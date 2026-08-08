@@ -122,4 +122,4 @@ release. See [docs/engineering/CMS-ROADMAP.md](docs/engineering/CMS-ROADMAP.md).
 - Shared rules: [AGENTS.md](AGENTS.md).
 - Claude Code imports the same rules through [CLAUDE.md](CLAUDE.md).
 - Codex project skills are pinned in `.agents/skills`; project launchers and
-  hooks are documented in [docs/TOOLING.md](docs/TOOLING.md).
+  hooks are documented in [docs/operations/TOOLING.md](docs/operations/TOOLING.md).
