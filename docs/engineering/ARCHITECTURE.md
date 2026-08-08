@@ -87,7 +87,7 @@ HTML giữ class contract; không đưa layout tuỳ route vào inline style.
 - Homepage reveals/marquee/project reel.
 
 Timing, easing và selector mapping được ghi tại
-[MOTION-MAP.md](MOTION-MAP.md). Production chỉ tái tạo hành vi đã đo; bundle
+[MOTION-MAP.md](../product/MOTION-MAP.md). Production chỉ tái tạo hành vi đã đo; bundle
 reference lưu trong `reference-audit/` không được nạp vào website.
 
 ### `detail.js`
@@ -152,7 +152,7 @@ Tiếng Việt là source content. Khi tải trang:
 `textContent` sẽ xoá các span/em bên trong.
 
 Trước khi đổi copy, motto, card/gallery hoặc media, đọc
-[CONTENT-MEDIA-GUIDE.md](CONTENT-MEDIA-GUIDE.md). Thứ tự bảo trì nội dung hiện
+[CONTENT-MEDIA-GUIDE.md](../product/CONTENT-MEDIA-GUIDE.md). Thứ tự bảo trì nội dung hiện
 tại là `/vi/projects-products/` → `/vi/commercial/` → `/vi/residential/`.
 
 ## Process invariant

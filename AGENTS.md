@@ -32,7 +32,7 @@ platform features, existing dependencies, and evidence-backed handoffs.
 ## Mandatory product contracts
 
 Before changing visible copy, `data-en*`, alt/ARIA text, image paths, cards,
-galleries, or filters, read `docs/CONTENT-MEDIA-GUIDE.md` completely.
+galleries, or filters, read `docs/product/CONTENT-MEDIA-GUIDE.md` completely.
 
 Before changing layout, typography, header, menu, transitions, reveals,
 galleries, montage, or motion, read `docs/REFERENCE-MOTION-AUDIT.md` completely.
@@ -149,7 +149,7 @@ Before website handoff:
 
 - Work only in the assigned scope. Preserve unrelated and concurrent edits.
 - Do not use broad destructive Git/filesystem commands.
-- Update `docs/ARCHITECTURE.md`, relevant specs, and an ADR when public routes,
+- Update `docs/engineering/ARCHITECTURE.md`, relevant specs, and an ADR when public routes,
   shared contracts, or architecture decisions change.
 - Update the Vietnamese `docs/memory/CURRENT.md` with real status and blockers.
 - Handoffs must list changed files, behavior, tests, results, owner TODOs, and

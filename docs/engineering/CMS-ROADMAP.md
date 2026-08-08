@@ -10,7 +10,7 @@ boundary, not an implementation request.
 - `src/worker/index.js`: dormant D1/R2/admin interfaces and validation.
 - `src/db/migrations/`: draft schema and seed data.
 - `src/admin/`: private administration shell excluded from public static assets.
-- `docs/CLOUDFLARE-CMS.md`: earlier design notes that require revalidation.
+- `docs/engineering/CLOUDFLARE-CMS.md`: earlier design notes that require revalidation.
 
 ## Phase entry criteria
 

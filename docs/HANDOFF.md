@@ -9,8 +9,8 @@ trí nhớ là bằng chứng; kiểm tra file và report thực tế trước k
    - `README.md`
    - `AGENTS.md`
    - `PRODUCT.md`
-   - `docs/MOTION-MAP.md`
-   - `docs/CONTENT-MEDIA-GUIDE.md`
+   - `docs/product/MOTION-MAP.md`
+   - `docs/product/CONTENT-MEDIA-GUIDE.md`
    - `docs/memory/CURRENT.md`
    - `docs/memory/DECISIONS.md`
 2. Kiểm tra phạm vi file được giao và thay đổi đang có; không hoàn nguyên việc
@@ -45,7 +45,7 @@ Mở:
 - Giữ process:
   **Khảo sát → Tư vấn → Sản xuất → Lắp đặt**.
 - Bổ sung VI/EN cùng lúc, gồm title, description, copy, alt và aria.
-- Trước khi sửa copy/media, đọc `docs/CONTENT-MEDIA-GUIDE.md`; thứ tự bảo trì
+- Trước khi sửa copy/media, đọc `docs/product/CONTENT-MEDIA-GUIDE.md`; thứ tự bảo trì
   hiện tại là `/quang-cao/` → `/kinh-doanh/` → `/nha-o/`.
 - Không dùng khuôn mặt nhận diện; ngoại lệ duy nhất là
   `assets/site/expanded/legacy-team.webp`.

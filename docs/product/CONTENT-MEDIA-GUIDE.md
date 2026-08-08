@@ -280,5 +280,5 @@ python -m http.server 4173 --bind 127.0.0.1
 node tests/site/site.e2e.cjs
 ```
 
-Xem thêm [route spec](SUBPAGES-SPEC.md), [test guide](../tests/README.md) và
-[quy tắc agent](../AGENTS.md).
+Xem thêm [route spec](SUBPAGES-SPEC.md), [test guide](../../tests/README.md) và
+[quy tắc agent](../../AGENTS.md).

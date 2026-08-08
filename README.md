@@ -94,7 +94,7 @@ repository.
 ```
 
 Before editing copy or media, read
-[docs/CONTENT-MEDIA-GUIDE.md](docs/CONTENT-MEDIA-GUIDE.md). Before editing
+[docs/product/CONTENT-MEDIA-GUIDE.md](docs/product/CONTENT-MEDIA-GUIDE.md). Before editing
 layout or motion, read
 [docs/REFERENCE-MOTION-AUDIT.md](docs/REFERENCE-MOTION-AUDIT.md).
 
@@ -115,7 +115,7 @@ logos, or identifying reference-site URLs.
 
 The future CMS may activate the existing Worker API, D1 migrations, R2 media,
 and Access-protected admin shell. It must not block or destabilize the static
-release. See [docs/specs/CMS-ROADMAP.md](docs/specs/CMS-ROADMAP.md).
+release. See [docs/engineering/CMS-ROADMAP.md](docs/engineering/CMS-ROADMAP.md).
 
 ## Agent instructions
 

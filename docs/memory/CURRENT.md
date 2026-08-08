@@ -20,12 +20,12 @@
 - Hero của ba route dịch vụ có motto. `detail.js` chia lại line/word sau khi font
   sẵn sàng, resize hoặc đổi VI/EN; `motion.js` đo ink bằng Canvas TextMetrics để
   cấp phần tràn mask phía trên theo font thực tế.
-- Timing/easing đã ánh xạ và ghi tại `docs/MOTION-MAP.md`.
+- Timing/easing đã ánh xạ và ghi tại `docs/product/MOTION-MAP.md`.
 - Home hero dùng bốn ảnh Nhà ở, Kinh doanh, Kiosk & POSM, Xe bán hàng; mỗi ảnh
   drift `1.06 → 1` trong `5s` với `sine.inOut`, cross-fade `1.6s` bắt đầu ở
   giây `4.2`, ảnh kế tiếp drift từ trung điểm giây `5.0`; easing vào/ra êm
   tránh giật vận tốc tại handoff; không còn kicker hoặc `hero-index`.
-- Sửa copy/media phải đọc `docs/CONTENT-MEDIA-GUIDE.md`; thứ tự bảo trì hiện tại:
+- Sửa copy/media phải đọc `docs/product/CONTENT-MEDIA-GUIDE.md`; thứ tự bảo trì hiện tại:
   `/projects-products/` → `/commercial/` → `/residential/`.
 
 ## Full-menu status 2026-08-01

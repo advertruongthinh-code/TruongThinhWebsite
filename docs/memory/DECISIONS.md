@@ -45,7 +45,7 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
 - **DEC-010 — Motion map theo web tham khảo, không nhập bundle production.** Route
   dùng white fade `.75s/1s`; full-menu dùng bốn background columns, page scale
   `.9`, timeline `1.15×` và reverse `2.25×`; line/media timing theo
-  `docs/MOTION-MAP.md`. Bundle public của reference chỉ nằm trong
+  `docs/product/MOTION-MAP.md`. Bundle public của reference chỉ nằm trong
   `reference-audit/` để nghiên cứu, không được load bởi website production.
 
 - **DEC-011 — Header route-first, không dùng fragment navigation.** Desktop nav
@@ -79,7 +79,7 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
 
 - **DEC-016 — Content/media có guide và thứ tự bảo trì rõ.** Trước khi sửa
   copy, motto, card/gallery hoặc asset phải đọc
-  `docs/CONTENT-MEDIA-GUIDE.md`. Thứ tự bảo trì hiện tại là
+  `docs/product/CONTENT-MEDIA-GUIDE.md`. Thứ tự bảo trì hiện tại là
   `/quang-cao/` → `/kinh-doanh/` → `/nha-o/`; đây không phải xếp hạng tầm quan
   trọng của dịch vụ.
 
