@@ -85,7 +85,7 @@ if ($stop.stdout.Trim()) { throw "Stop loop guard should not emit recursive cont
 $session = Complete-HookProcess (Invoke-HookProcess "SessionStart" '{"source":"startup"}')
 try {
   if ($session.stdout -match 'ADHD MODE ACTIVE') { throw "SessionStart still injects the project ADHD skill despite the global installation." }
-  if ((Get-Content -Raw -LiteralPath (Join-Path $root "AGENTS.md")) -notmatch 'ADHD always-on') { throw "AGENTS.md no longer provides the project ADHD fallback contract." }
+  if ((Get-Content -Raw -LiteralPath (Join-Path $root "AGENTS.md")) -notmatch 'ADHD response contract') { throw "AGENTS.md no longer provides the project ADHD fallback contract." }
 } finally {
   Complete-HookProcess (Invoke-HookProcess "SessionEnd" '{}') 10000 | Out-Null
 }
@@ -132,11 +132,27 @@ Complete-HookProcess $queryTwo | Out-Null
 if ((Get-GraphifyUpdateCount) -ne ($updatesBeforeCoalesce + 1)) { throw "Concurrent Graphify queries were not coalesced into one update." }
 if (Test-Path -LiteralPath $graphDirtyPath) { throw "Successful coalesced update did not clear Graphify dirty state." }
 
-foreach ($profile in @("strict", "watch", "boundary")) {
-  & (Join-Path $root "scripts\tooling\set-graphify-profile.ps1") -Profile $profile | Out-Null
-  if ((Get-Content -Raw (Join-Path $root ".graphify-profile")).Trim() -ne $profile) {
-    throw "Graphify profile fixture failed: $profile"
-  }
+$freshnessScript = Join-Path $root "scripts\tooling\graphify-freshness.ps1"
+$wrapper = Join-Path $root "scripts\tooling\invoke-graphify.ps1"
+if (-not (Test-Path -LiteralPath $freshnessScript -PathType Leaf)) { throw "Graphify freshness module is missing." }
+if (-not (Test-Path -LiteralPath $wrapper -PathType Leaf)) { throw "Graphify boundary wrapper is missing." }
+foreach ($obsolete in @(".graphify-profile", "scripts\graphify-watch.ps1", "scripts\tooling\set-graphify-profile.ps1")) {
+  if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { throw "Obsolete Graphify profile/watch file remains: $obsolete" }
 }
 
-Write-Output "PASS hook fixtures: single dispatchers, Serena guard, ADHD fallback without duplicate injection, Stop loop guard, deferred dirty tracking, read-only skip, coalesced query update, profiles."
+$dispatcherSource = Get-Content -Raw -LiteralPath $dispatcher
+$wrapperSource = Get-Content -Raw -LiteralPath $wrapper
+if ($dispatcherSource -notmatch 'graphify-freshness\.ps1') { throw "Hook dispatcher does not use the shared freshness gate." }
+if ($dispatcherSource -match 'graphify-profile|needs_update|graphify-watch') { throw "Hook dispatcher still contains obsolete Graphify profile/watch/marker logic." }
+if ($wrapperSource -notmatch 'Invoke-GraphUpdateIfNeeded') { throw "Graphify wrapper does not enforce AST freshness." }
+if ($wrapperSource -notmatch 'Get-GraphifySemanticStatus') { throw "Graphify wrapper does not report semantic freshness at the boundary." }
+foreach ($command in @("query", "path", "explain")) {
+  if ($wrapperSource -notmatch [regex]::Escape('"' + $command + '"')) { throw "Graphify wrapper does not allow $command." }
+}
+
+. $freshnessScript
+$semantic = Get-GraphifySemanticStatus
+if ($semantic.PSObject.Properties.Name -notcontains "pending_count") { throw "Semantic status does not expose pending_count." }
+if ($semantic.PSObject.Properties.Name -notcontains "pending_files") { throw "Semantic status does not expose pending_files." }
+
+Write-Output "PASS hook fixtures: single dispatchers, Serena guard, ADHD fallback without duplicate injection, Stop loop guard, deferred dirty tracking, read-only skip, coalesced query update, shared boundary wrapper, semantic status, obsolete Graphify cleanup."

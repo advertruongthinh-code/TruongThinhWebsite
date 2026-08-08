@@ -18,7 +18,7 @@ trí nhớ là bằng chứng; kiểm tra file và report thực tế trước k
 3. Nếu `graphify-out/graph.json` tồn tại và câu hỏi liên quan kiến trúc:
 
    ```powershell
-   & ".\.tooling\python\Scripts\graphify.exe" query "câu hỏi cụ thể"
+   & ".\scripts\tooling\invoke-graphify.ps1" query "câu hỏi cụ thể"
    ```
 
 4. Chỉ dùng `rg` để xác nhận mã có scope sau graph query.
@@ -105,11 +105,11 @@ Tích hợp Codex và git hook đã được cài bằng Graphify CLI:
 
 ```powershell
 & ".\.tooling\python\Scripts\graphify.exe" hook status
-.\scripts\graphify-watch.ps1
 ```
 
-Watcher chạy foreground; dừng bằng `Ctrl+C` và không mở bản thứ hai nếu terminal
-hoặc editor khác đã watch repo.
+Không chạy Graphify watcher riêng. Wrapper CLI và MCP hook cùng dùng boundary
+freshness gate; semantic warning được suy ra từ manifest Graphify, không từ
+marker tự tạo.
 
 ## Reference archive
 

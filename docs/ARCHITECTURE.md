@@ -230,15 +230,17 @@ update có thể giữ cấu trúc heading/link của Markdown.
 
 Nếu `graphify-out/graph.json` tồn tại:
 
-1. Dùng `& ".\.tooling\python\Scripts\graphify.exe" query "..."` trước cho câu hỏi kiến trúc/quan hệ file.
+1. Dùng `& ".\scripts\tooling\invoke-graphify.ps1" query "..."` trước cho câu hỏi kiến trúc/quan hệ file.
 2. Dùng `rg` có scope để xác nhận chi tiết.
 3. Sau code change, để hook đánh dấu dirty; pre-query/`Stop` coalesce một update.
 4. Dùng executable project-local với `hook status` để kiểm tra hook, không sửa tay file hook.
 5. Docs/images chưa có semantic extraction; ghi `semantic update required` nếu
    cần quan hệ ngữ nghĩa/vision.
 
-`scripts/graphify-watch.ps1` gọi executable project-local ở foreground; không
-chạy song song nếu editor/terminal khác đã có watcher.
+Wrapper và Graphify MCP dùng chung boundary freshness gate: coalesce một AST
+update khi fingerprint dirty, rồi cảnh báo riêng nếu manifest chính thức cho
+biết docs/media còn cần semantic extraction. Project không duy trì Graphify
+watcher hoặc profile tùy biến.
 
 ## External dependencies
 

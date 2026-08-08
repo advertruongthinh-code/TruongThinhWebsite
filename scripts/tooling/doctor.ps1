@@ -4,6 +4,7 @@ param(
 )
 
 . (Join-Path $PSScriptRoot "common.ps1")
+. (Join-Path $PSScriptRoot "graphify-freshness.ps1")
 $root = Get-ProjectRoot
 $failures = @()
 $warnings = @()
@@ -17,6 +18,7 @@ function Test-RequiredPath([string]$Relative, [string]$Label) {
 foreach ($item in @(
   @{ path = ".tooling\python\Scripts\serena.exe"; label = "Serena" },
   @{ path = ".tooling\python\Scripts\graphify.exe"; label = "Graphify" },
+  @{ path = "scripts\tooling\invoke-graphify.ps1"; label = "Graphify boundary wrapper" },
   @{ path = ".tooling\runtimes\uv-0.12.3\uv.exe"; label = "uv 0.12.3" },
   @{ path = ".tooling\runtimes\uv-0.12.3\uvx.exe"; label = "uvx 0.12.3" },
   @{ path = ".tooling\runtimes\powershell-7.6.4\pwsh.exe"; label = "PowerShell 7.6.4" },
@@ -27,6 +29,10 @@ foreach ($item in @(
   @{ path = ".codex\hooks.json"; label = "Codex hooks" },
   @{ path = ".codex\config.toml"; label = "Codex MCP config" }
 )) { Test-RequiredPath $item.path $item.label }
+
+foreach ($obsolete in @(".graphify-profile", "scripts\graphify-watch.ps1", "scripts\tooling\set-graphify-profile.ps1")) {
+  if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { $failures += "Obsolete Graphify file remains: $obsolete" }
+}
 
 $skillRoot = Join-Path $root ".agents\skills"
 $skillCount = @(Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
@@ -85,6 +91,13 @@ if ($Mcp) {
 
 $restart = Join-Path $root ".tooling\state\serena\restart-required.json"
 if (Test-Path -LiteralPath $restart) { $warnings += "Serena MCP reactivation is required; remove the marker only after verified reconnect." }
+
+try {
+  $semantic = Get-GraphifySemanticStatus
+  if (-not $semantic.available) { $warnings += "Graphify semantic freshness unavailable: $($semantic.error)" }
+  elseif ([int]$semantic.pending_count -gt 0) { $warnings += "Graphify semantic update required for $($semantic.pending_count) docs/media file(s); AST boundary remains independent." }
+  else { $passes += "Graphify semantic docs/media status fresh" }
+} catch { $warnings += "Graphify semantic freshness check failed: $($_.Exception.Message)" }
 
 Write-Output "PASS"
 $passes | ForEach-Object { Write-Output "  + $_" }

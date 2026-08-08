@@ -120,7 +120,7 @@ Commands:
 & ".\.tooling\python\Scripts\graphify.exe" god-nodes --top 10 --graph graphify-out/graph.json
 & ".\.tooling\python\Scripts\graphify.exe" benchmark graphify-out/graph.json
 & ".\.tooling\python\Scripts\graphify.exe" hook status
-.\scripts\graphify-watch.ps1
+& ".\.tooling\runtimes\powershell-7.6.4\pwsh.exe" -NoProfile -File tests/tooling/graphify-freshness-fixtures.ps1
 ```
 
 Results:
@@ -131,7 +131,7 @@ Results:
 - Benchmark: `7.5×` fewer tokens/query trên corpus hiện tại.
 - Hooks: post-commit installed; post-checkout installed; merge driver
   registered.
-- Watcher start/stop smoke pass; không còn process watcher sau `Ctrl+C`.
+- Boundary wrapper/shared-gate fixture pass; không còn custom watcher/profile.
 - Code-only baseline cảnh báo `.codex/hooks.json` không sinh node; incremental
   update giữ thêm cấu trúc Markdown mà không gọi LLM.
 

@@ -38,9 +38,9 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
   phát hành cam kết hoặc dữ kiện giả.
 
 - **DEC-009 — Graphify-first cho kiến trúc.** Khi
-  `graphify-out/graph.json` tồn tại, chạy `graphify query` trước raw search; dùng
-  `rg` chỉ để xác nhận có scope. Code changes cần `graphify update .`; docs/images
-  cần semantic re-extraction.
+  `graphify-out/graph.json` tồn tại, chạy Graphify query qua wrapper project-local
+  trước raw search; dùng `rg` chỉ để xác nhận có scope. Code changes cần AST
+  fresh; docs/images cần semantic re-extraction khi truy vấn quan hệ ngữ nghĩa.
 
 - **DEC-010 — Motion map theo web tham khảo, không nhập bundle production.** Route
   dùng white fade `.75s/1s`; full-menu dùng bốn background columns, page scale
@@ -208,3 +208,11 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
   pull request chạy contract và Chromium smoke; deploy production ban đầu là
   workflow thủ công. Static files là fallback/rollback. CMS chỉ được kích hoạt
   sau khi bản tĩnh live ổn định và owner duyệt workflow xuất bản.
+
+- **DEC-036 — Graphify dùng wrapper freshness với boundary cố định.**
+  `scripts/tooling/invoke-graphify.ps1` là interface canonical cho
+  `query`/`path`/`explain`; CLI wrapper và MCP hook dùng chung dirty fingerprint,
+  lock và coalesced AST update. AST update thất bại thì query bị dừng. Trạng
+  thái semantic docs/media được suy ra bằng API incremental và manifest chính
+  thức của Graphify, chỉ cảnh báo và không tự gọi LLM/API. Custom strict/watch
+  profile, watcher và marker semantic đã bị loại vì trùng chức năng và dễ stale.

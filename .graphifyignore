@@ -14,7 +14,14 @@ node_modules/**
 .codex/skills/**
 .codex/agents/**
 _temp/**
-.graphify-profile
+test-results/**
+playwright-report/**
+__pycache__/**
+*.pyc
+*.log
+.impeccable/config.local.json
+.serena/project.local.yml
+CLAUDE.local.md
 scripts/tooling/hooks.template.json
 scripts/tooling/serena-language-map.json
 tooling-install-manifest.json

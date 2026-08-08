@@ -18,7 +18,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.p
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/check-updates.ps1
 
 # Graphify lifecycle.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/set-graphify-profile.ps1 -Profile boundary
+& ".\scripts\tooling\invoke-graphify.ps1" query "câu hỏi cụ thể"
+& ".\scripts\tooling\invoke-graphify.ps1" path "source" "target"
+& ".\scripts\tooling\invoke-graphify.ps1" explain "node"
 & ".\.tooling\python\Scripts\graphify.exe" hook status
 
 # Serena lifecycle.
@@ -26,19 +28,23 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-ser
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-serena-languages.ps1 -Apply
 ```
 
-`boundary` là profile mặc định; `strict` từ chối Graphify query khi semantic
-marker còn tồn tại; `watch` thêm watcher debounce cho thay đổi từ editor ngoài.
-`PostToolUse` tính fingerprint rẻ và chỉ tạo `.tooling/state/graphify/dirty.json`
-khi corpus thực sự đổi; thao tác Bash chỉ đọc không chạy Serena sync hoặc
-Graphify update. Trước Graphify query và tại `Stop`, dispatcher recheck sau khi
-lấy lock để nhiều hook đồng thời chỉ chạy một `graphify update`. Fingerprint
-được ghi sau update thành công; thay đổi trong lúc update giữ graph ở trạng thái
-dirty cho lượt sau. Lệnh update chỉ cập nhật AST/structural data local, không gọi
-LLM. File `graphify-out/needs_update` biểu thị docs/media còn cần semantic pass.
+Wrapper boundary là interface canonical cho `query`, `path` và `explain`.
+`PostToolUse` tính fingerprint rẻ và chỉ tạo
+`.tooling/state/graphify/dirty.json` khi corpus thực sự đổi; thao tác Bash chỉ
+đọc không chạy Serena sync hoặc Graphify update. Wrapper CLI, Graphify MCP
+`PreToolUse` và `Stop` dùng chung freshness gate, recheck sau khi lấy lock để
+nhiều process đồng thời chỉ chạy một `graphify update`. Query bị dừng nếu AST
+không thể làm fresh.
 
-Graphify executable không được thêm vào global `PATH`; luôn gọi project-local
-`& ".\.tooling\python\Scripts\graphify.exe" ...` để clone trên máy khác dùng đúng
-phiên bản đã pin.
+Sau khi AST fresh, helper dùng `detect_incremental(kind="semantic")` và
+`graphify-out/manifest.json` của Graphify để xác định docs/media cần semantic
+pass. Kết quả được cache theo fingerprint của manifest; boundary chỉ cảnh báo,
+không chặn structural query và không tự gọi LLM/API. Không còn custom
+strict/watch profile, watcher hay marker `needs_update`.
+
+Graphify executable không được thêm vào global `PATH`. Dùng wrapper project-local
+cho query/path/explain; chỉ gọi executable project-local trực tiếp cho lệnh bảo
+trì như `update`, `hook status` hoặc semantic extraction được chủ dự án duyệt.
 
 ## Serena language lifecycle
 
@@ -64,7 +70,7 @@ mới đã activate project và `get_current_config` xác nhận context hiện 
 - Bốn persona read-only ở `.codex/agents`.
 - `.codex/hooks.json` có đúng một dispatcher cho mỗi event. Dispatcher quản lý
   quick doctor, update notification, Serena sync, Graphify
-  freshness, Impeccable detector, watcher PID, lock và Stop loop guard.
+  freshness, Impeccable detector, Serena watcher PID, lock và Stop loop guard.
 - ADHD always-on dùng contract ngắn trong `AGENTS.md`; project không vendoring
   hoặc SessionStart-inject bản skill đầy đủ để tránh trùng với skill global.
 - Git `post-commit`/`post-checkout` là managed block của Graphify CLI; không sửa

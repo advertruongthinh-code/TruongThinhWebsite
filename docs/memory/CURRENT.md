@@ -216,15 +216,15 @@ console, network, ảnh và overflow ngang.
 
 ## Graphify
 
-- Graphify `0.9.26`; Codex PreToolUse, git post-commit/post-checkout và merge
+- Graphify `0.9.36`; Codex PreToolUse, git post-commit/post-checkout và merge
   driver đã cài.
-- Local/no-LLM graph: `824` nodes, `1.696` edges, `53` communities; code AST là
-  nền và incremental update giữ thêm cấu trúc docs.
+- Local/no-LLM graph sau boundary refresh: `692` nodes, `1.177` edges; code AST
+  là nền và incremental update giữ thêm cấu trúc docs.
 - Multigraph diagnostic: `0` missing/dangling/self-loop/duplicate/collapsed
   edges.
 - Benchmark: `7.5×` fewer tokens/query trên corpus hiện tại.
-- Watcher `scripts/graphify-watch.ps1` đã start/stop smoke pass; không để process
-  watcher chạy nền.
+- Wrapper project-local và MCP dùng chung boundary freshness gate; không còn
+  Graphify watcher/profile tùy biến.
 - Docs/ảnh chưa có semantic LLM/vision extraction; chỉ cần full extraction khi
   chủ dự án muốn truy vấn quan hệ ngữ nghĩa của hai nhóm này.
 
@@ -269,7 +269,8 @@ tuyên bố “hơn 20 năm”.
 
 ## Automation expected
 
-- Foreground watcher: `scripts/graphify-watch.ps1`.
+- `scripts/tooling/invoke-graphify.ps1` là interface canonical cho
+  `query`/`path`/`explain`; wrapper tự làm fresh AST trước khi query.
 - `graphify hook status`: post-commit installed, post-checkout installed, merge
   driver registered.
 
@@ -305,7 +306,7 @@ tuyên bố “hơn 20 năm”.
   giữ dưới `.tooling/backups` vì repo chưa có commit rollback.
 - Fresh overwrite bootstrap `-SkipBrowsers` pass trong `54,9s`; doctor MCP pass
   Serena `23`, Graphify `10`, Chrome DevTools `29` tools. Serena unit test `2/2`
-  và hook fixtures (ADHD/guard/loop/lock/profile) pass.
+  và hook fixtures (ADHD/guard/loop/lock/boundary wrapper) pass.
 - Worker contract pass; cross-browser smoke Chromium/Firefox/WebKit `21/21`
   pass. Full Chromium suite hiện `87/94`: 25/25 route×viewport smoke pass, còn 7
   website-contract failures (5 header-route about query variants, 1 hidden
@@ -340,7 +341,8 @@ tuyên bố “hơn 20 năm”.
 - Crawler generic đã resume từ manifest tạm và tiếp tục tải archive local; dữ
   liệu này bị Git ignore nên không chặn commit/deploy. Một request timeout giờ
   được ghi vào manifest rồi bỏ qua thay vì làm hỏng cả crawl.
-- Hai lần Graphify update thủ công đều đạt timeout 300 giây dù Python còn dùng
-  CPU; `.site-output/**` đã thêm vào ignore nhưng `needs_update` vẫn còn. Graph
-  JSON hiện parse hợp lệ; handoff phải ghi `semantic update required` và không
-  tuyên bố graph fresh.
+- Graphify đã chuyển sang wrapper freshness với boundary cố định. PostToolUse
+  chỉ đánh dấu dirty khi fingerprint đổi; CLI wrapper, MCP PreToolUse và Stop
+  dùng chung lock/coalescing. Semantic pending được suy ra từ
+  `detect_incremental(kind="semantic")` và manifest chính thức; không còn
+  marker `needs_update`, custom strict/watch profile hoặc Graphify watcher.

@@ -87,14 +87,15 @@ security, accessibility, acceptance criteria, or required tests.
 Use the project-local Graphify executable:
 
 ```powershell
-& ".\.tooling\python\Scripts\graphify.exe" query "specific question"
+& ".\scripts\tooling\invoke-graphify.ps1" query "specific question"
 ```
 
-Do not use a global `graphify` command. PostToolUse marks the graph dirty only
-when a real file fingerprint changes. The dispatcher coalesces updates and runs
-one AST update before the next graph query or at Stop. Markdown/media changes
-may require a semantic pass; report `semantic update required` instead of
-claiming full freshness.
+Do not use a global `graphify` command or bypass the wrapper for `query`, `path`,
+or `explain`. PostToolUse marks the graph dirty only when a real file fingerprint
+changes. The shared boundary gate coalesces one AST update before a CLI/MCP
+query or at Stop. Semantic status comes from Graphify's own incremental manifest
+for documents/media; it warns but does not block structural queries. There are
+no custom strict/watch profiles or semantic marker files.
 
 Use Graphify for structure and blast radius, then Serena for exact symbols,
 references, diagnostics, and refactors. If create/delete/rename changes the

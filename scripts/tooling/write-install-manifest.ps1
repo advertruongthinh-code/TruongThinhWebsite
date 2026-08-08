@@ -1,6 +1,7 @@
 param([string]$Backup)
 
 . (Join-Path $PSScriptRoot "common.ps1")
+. (Join-Path $PSScriptRoot "graphify-freshness.ps1")
 $root = Get-ProjectRoot
 $versions = Get-Content -Raw (Join-Path $root "tooling-versions.json") | ConvertFrom-Json
 if (-not $Backup) {
@@ -16,11 +17,12 @@ if ($Backup) {
 }
 
 $fixedPaths = @(
-  "AGENTS.md", ".assetsignore", ".gitignore", ".graphifyignore", ".graphify-profile",
+  "AGENTS.md", ".assetsignore", ".gitignore", ".graphifyignore",
   "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "playwright.config.cjs",
   "tooling-versions.json", ".codex\config.toml", ".codex\hooks.json",
   ".serena\project.yml", ".git\hooks\post-commit", ".git\hooks\post-checkout",
   "tests\cross-browser.smoke.spec.cjs", "tests\tooling\hook-fixtures.ps1",
+  "tests\tooling\graphify-freshness-fixtures.ps1",
   "tests\tooling\test_serena_sync.py"
 )
 $scriptPaths = Get-ChildItem -LiteralPath (Join-Path $root "scripts\tooling") -File |
@@ -51,6 +53,7 @@ $skillChecksums = Get-ChildItem -LiteralPath (Join-Path $root ".agents\skills") 
 
 $serena = & (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Check | ConvertFrom-Json
 $graph = Get-Content -Raw (Join-Path $root "graphify-out\graph.json") | ConvertFrom-Json
+$semantic = Get-GraphifySemanticStatus
 $browserPayloads = Get-ChildItem -LiteralPath (Join-Path $root ".tooling\browsers") -Directory |
   Select-Object -ExpandProperty Name
 
@@ -72,8 +75,9 @@ $manifest = [ordered]@{
   graphify = [ordered]@{
     nodes = @($graph.nodes).Count
     edges = @($graph.links).Count
-    profile = (Get-Content -Raw (Join-Path $root ".graphify-profile")).Trim()
-    semantic_update_required = Test-Path -LiteralPath (Join-Path $root "graphify-out\needs_update")
+    freshness_policy = "wrapper-boundary"
+    semantic_status_available = [bool]$semantic.available
+    semantic_pending_count = $semantic.pending_count
   }
   browsers = @($browserPayloads)
   backup = $backupValue

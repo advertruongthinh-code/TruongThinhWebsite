@@ -148,7 +148,10 @@ if ($LASTEXITCODE -ne 0) { throw "Graphify managed Git hook installation failed.
 $legacyGraphifySkill = Join-Path $root ".codex\skills\graphify"
 $projectGraphifySkill = Join-Path $root ".agents\skills\graphify"
 if (-not (Test-Path -LiteralPath $legacyGraphifySkill)) { throw "Graphify skill payload is missing after install." }
-Copy-Item -LiteralPath $legacyGraphifySkill -Destination $projectGraphifySkill -Recurse -Force
+Move-Item -LiteralPath $legacyGraphifySkill -Destination $projectGraphifySkill
+# Keep the portable skill, then remove the duplicate Codex hook and AGENTS block.
+& (Get-GraphifyExe) uninstall --project --platform codex
+if ($LASTEXITCODE -ne 0) { throw "Graphify duplicate Codex integration cleanup failed." }
 & $node (Join-Path $root "node_modules\impeccable\cli\bin\cli.js") install --providers=codex --scope=project -y
 if ($LASTEXITCODE -ne 0) { throw "Impeccable project integration failed." }
 & (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Apply
