@@ -26,11 +26,11 @@ flowchart TD
 
 | Route | Entry file | Page type |
 | --- | --- | --- |
-| `/vi/`, `/en/` | `index.html` | Homepage |
-| `/vi/residential/`, `/en/residential/` | `residential/index.html` | Detail |
-| `/vi/commercial/`, `/en/commercial/` | `commercial/index.html` | Detail + horizontal gallery |
-| `/vi/projects-products/`, `/en/projects-products/` | `projects-products/index.html` | Projects, filters, product directory |
-| `/vi/about/`, `/en/about/` | `about/index.html` | About/detail |
+| `/vi/`, `/en/` | `src/site/index.html` | Homepage |
+| `/vi/residential/`, `/en/residential/` | `src/site/residential/index.html` | Detail |
+| `/vi/commercial/`, `/en/commercial/` | `src/site/commercial/index.html` | Detail + horizontal gallery |
+| `/vi/projects-products/`, `/en/projects-products/` | `src/site/projects-products/index.html` | Projects, filters, product directory |
+| `/vi/about/`, `/en/about/` | `src/site/about/index.html` | About/detail |
 | `/vi/projects/:slug/`, `/en/projects/:slug/` | projects-products shell | D1-backed project detail |
 
 `/`, source shell paths, và bốn route cũ `/nha-o/`, `/kinh-doanh/`,

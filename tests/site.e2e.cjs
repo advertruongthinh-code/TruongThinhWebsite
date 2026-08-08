@@ -56,6 +56,7 @@ const SSR_CMS_HYDRATION_CASES = [
 const REPORT_DIR = path.join(__dirname, "reports");
 const FAILURE_DIR = path.join(REPORT_DIR, "failures");
 const REPORT_PATH = path.join(REPORT_DIR, "latest.json");
+const SITE_ROOT = path.join(__dirname, "..", "src", "site");
 const PUBLIC_HTML = [
   ["index.html", "home"],
   ["residential/index.html", "residential"],
@@ -104,7 +105,7 @@ function prepareReportDirectories() {
 }
 
 function assertPersistentNavigationContracts() {
-  const root = path.join(__dirname, "..");
+  const root = SITE_ROOT;
   const barbaUrl =
     "https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js";
   const barbaIntegrity =
@@ -4667,11 +4668,11 @@ async function runNoScriptHeroCheck() {
 
 async function runHomeMotionRegressionCheck() {
   const motionSource = fs.readFileSync(
-    path.join(__dirname, "..", "motion.js"),
+    path.join(SITE_ROOT, "motion.js"),
     "utf8",
   );
   const styleSource = fs.readFileSync(
-    path.join(__dirname, "..", "style.css"),
+    path.join(SITE_ROOT, "style.css"),
     "utf8",
   );
   assert(

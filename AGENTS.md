@@ -2,8 +2,9 @@
 
 ## Mission
 
-Ship the bilingual VI/EN Truong Thinh static website quickly and safely. The
-repository root is canonical. CMS, private admin, D1, R2, and dynamic project
+Ship the bilingual VI/EN Truong Thinh static website quickly and safely.
+`src/site/` is the canonical static source and `.site-output/` is generated.
+CMS, private admin, D1, R2, and dynamic project
 publishing are a later phase and must not block the first public release.
 
 This is a solo-developer repository. Prefer small reversible diffs, native
@@ -48,7 +49,7 @@ source, media, logos, fonts, SVGs, or identifying URLs into production code.
 - Primary CTA: Zalo consultation or survey booking.
 - Never invent Zalo URL, address, founding year, or warranty policy.
 - Do not use recognizable faces. The only approved exception is
-  `assets/site/expanded/legacy-team.webp`.
+  `src/site/assets/site/expanded/legacy-team.webp`.
 - Every content image requires Vietnamese `alt` and English `data-en-alt`.
 
 ## HTML and localization contract

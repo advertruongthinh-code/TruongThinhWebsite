@@ -9,8 +9,8 @@
 
 ## Phase 1: Production source
 
-- [ ] Move public static source to `src/site/`.
-- [ ] Preserve `.site-output` paths and hashes.
+- [x] Move public static source to `src/site/`.
+- [x] Preserve `.site-output` paths and hashes (55 files, 15,804,007 bytes).
 - [ ] Move Worker to `src/worker/`.
 - [ ] Move dormant admin to `src/admin/`.
 - [ ] Move migrations to `src/db/migrations/`.

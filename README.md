@@ -72,17 +72,18 @@ repository.
 
 ```text
 .
-├─ index.html
-├─ residential/index.html
-├─ commercial/index.html
-├─ projects-products/index.html
-├─ about/index.html
-├─ assets/site/              # public media
-├─ style.css                 # shared tokens and layout
-├─ motion.js                 # locale, navigation, and shared motion
-├─ detail.css
-├─ detail.js
-├─ products.js
+├─ src/site/                 # canonical static source; copied unchanged to .site-output
+│  ├─ index.html
+│  ├─ residential/index.html
+│  ├─ commercial/index.html
+│  ├─ projects-products/index.html
+│  ├─ about/index.html
+│  ├─ assets/site/           # public media
+│  ├─ style.css              # shared tokens and layout
+│  ├─ motion.js              # locale, navigation, and shared motion
+│  ├─ detail.css
+│  ├─ detail.js
+│  └─ products.js
 ├─ worker/index.js           # static routing now; CMS-ready code is dormant
 ├─ tests/                    # source, Worker, and browser contracts
 ├─ docs/                     # specs, decisions, reports, and CMS roadmap
