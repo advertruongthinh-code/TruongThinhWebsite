@@ -96,7 +96,7 @@ repository.
 Before editing copy or media, read
 [docs/product/CONTENT-MEDIA-GUIDE.md](docs/product/CONTENT-MEDIA-GUIDE.md). Before editing
 layout or motion, read
-[docs/REFERENCE-MOTION-AUDIT.md](docs/REFERENCE-MOTION-AUDIT.md).
+[docs/reports/REFERENCE-MOTION-AUDIT.md](docs/reports/REFERENCE-MOTION-AUDIT.md).
 
 ## Reference research
 

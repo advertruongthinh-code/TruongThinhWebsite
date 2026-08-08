@@ -702,7 +702,7 @@ run mới.
 | Vimeo/video | A/G | Chưa có nhu cầu runtime đã chốt | Slice Media chỉ khi content yêu cầu |
 
 “V-old” gồm các browser/test report trước thay đổi gần đây. Không dùng
-<code>docs/memory/CURRENT.md</code> như bằng chứng pass hiện tại nếu code đã đổi.
+<code>docs/reports/CURRENT.md</code> như bằng chứng pass hiện tại nếu code đã đổi.
 
 Exact CDN/SRI đang có trong source TT:
 
@@ -965,7 +965,7 @@ loại cumulative state. QA responsive vẫn phải kiểm cả cold load và re
 
 ### 17.2 Home — hero, montage, header/rail
 
-[Archive index](../reference-audit/web-reference/README.md)
+[Archive index](../../reference-audit/web-reference/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | Montage row 1 `F/L + rect` | Montage row 4 `F/L + rect` |
 | ---: | --- | --- | --- | --- |
@@ -1038,7 +1038,7 @@ copy SVG/path của web tham khảo.
 
 ### 17.3 Interior Design — service hero và editorial copy
 
-[Archive index](../reference-audit/web-reference/README.md)
+[Archive index](../../reference-audit/web-reference/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | First h2 `F/L + rect` |
 | ---: | --- | --- | --- |
@@ -1056,7 +1056,7 @@ desktop, text-indent 100/50 theo breakpoint.
 
 ### 17.4 Kitchens — service hero và editorial copy
 
-[Archive index](../reference-audit/web-reference/README.md)
+[Archive index](../../reference-audit/web-reference/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | First h2 `F/L + rect` |
 | ---: | --- | --- | --- |
@@ -1072,7 +1072,7 @@ CTA label là 16/22.4 semibold uppercase.
 
 ### 17.5 Projects — full-screen title và filter
 
-[Archive index](../reference-audit/web-reference/README.md)
+[Archive index](../../reference-audit/web-reference/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | Active filter `F/L + rect` |
 | ---: | --- | --- | --- |
@@ -1088,7 +1088,7 @@ Active filter pseudo-element đo đúng 3 px, bottom -4 px, transition 0.3 s
 
 ### 17.6 Project detail — Can Molteni
 
-[Archive index](../reference-audit/web-reference/README.md)
+[Archive index](../../reference-audit/web-reference/README.md)
 
 | Width | Title line 1 `F/L + rect` | Title line 2 `F/L + rect` | First h2 `F/L + rect` |
 | ---: | --- | --- | --- |

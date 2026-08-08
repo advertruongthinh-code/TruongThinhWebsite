@@ -11,7 +11,7 @@ trí nhớ là bằng chứng; kiểm tra file và report thực tế trước k
    - `PRODUCT.md`
    - `docs/product/MOTION-MAP.md`
    - `docs/product/CONTENT-MEDIA-GUIDE.md`
-   - `docs/memory/CURRENT.md`
+   - `docs/reports/CURRENT.md`
    - `docs/decisions/DECISIONS.md`
 2. Kiểm tra phạm vi file được giao và thay đổi đang có; không hoàn nguyên việc
    của người khác.
@@ -53,7 +53,7 @@ Mở:
 
 ## Verification gate
 
-Theo [tests/README.md](../tests/README.md), sau khi server chạy:
+Theo [tests/README.md](../../tests/README.md), sau khi server chạy:
 
 ```powershell
 node tests/site/site.e2e.cjs
@@ -144,7 +144,7 @@ Không tự thay placeholder. Cần chủ dự án xác nhận:
 - [ ] DevTools console/network/a11y sạch ở desktop và mobile.
 - [ ] Graphify đã update hoặc handoff ghi semantic update còn thiếu.
 - [ ] Graphify project-local `hook status` xác nhận post-commit/post-checkout và merge driver.
-- [ ] `docs/memory/CURRENT.md` phản ánh trạng thái mới.
+- [ ] `docs/reports/CURRENT.md` phản ánh trạng thái mới.
 - [ ] Quyết định mới được append vào `docs/decisions/DECISIONS.md`.
 
 ## Handoff template

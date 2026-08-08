@@ -13,7 +13,7 @@
 - Bản crawl sitemap phục vụ nghiên cứu:
   `reference-audit/web-reference/archive/`.
 - Báo cáo hình học ban đầu:
-  `docs/REFERENCE-MOTION-AUDIT.md`.
+  `docs/reports/REFERENCE-MOTION-AUDIT.md`.
 
 ## Ánh xạ shell
 

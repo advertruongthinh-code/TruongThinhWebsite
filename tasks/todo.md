@@ -25,8 +25,8 @@
 
 ## Phase 3: Documentation and research
 
-- [ ] Classify docs into product, engineering, operations, decisions, reports.
-- [ ] Update mandatory AGENTS/README paths.
+- [x] Classify docs into product, engineering, operations, decisions, reports.
+- [x] Update mandatory AGENTS/README paths.
 - [ ] Move reference research to `research/reference-site/` with manifest proof.
 - [ ] Update ignore and language-sync mappings.
 - [ ] Confirm research remains outside deploy output.

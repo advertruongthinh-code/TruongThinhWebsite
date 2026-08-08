@@ -35,7 +35,7 @@ Before changing visible copy, `data-en*`, alt/ARIA text, image paths, cards,
 galleries, or filters, read `docs/product/CONTENT-MEDIA-GUIDE.md` completely.
 
 Before changing layout, typography, header, menu, transitions, reveals,
-galleries, montage, or motion, read `docs/REFERENCE-MOTION-AUDIT.md` completely.
+galleries, montage, or motion, read `docs/reports/REFERENCE-MOTION-AUDIT.md` completely.
 Compare the edited component against the locally archived reference at the same
 viewport and state. The reference is research only: never copy proprietary
 source, media, logos, fonts, SVGs, or identifying URLs into production code.
@@ -151,7 +151,7 @@ Before website handoff:
 - Do not use broad destructive Git/filesystem commands.
 - Update `docs/engineering/ARCHITECTURE.md`, relevant specs, and an ADR when public routes,
   shared contracts, or architecture decisions change.
-- Update the Vietnamese `docs/memory/CURRENT.md` with real status and blockers.
+- Update the Vietnamese `docs/reports/CURRENT.md` with real status and blockers.
 - Handoffs must list changed files, behavior, tests, results, owner TODOs, and
   any semantic graph work still required.
 
