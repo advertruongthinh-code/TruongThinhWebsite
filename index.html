@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap"
+    />
+    <meta
+      name="description"
+      content="Trường Thịnh thiết kế, sản xuất và thi công nội thất nhà ở, nội thất kinh doanh và công trình quảng cáo."
+      data-en-content="Trường Thịnh designs, manufactures, and builds residential interiors, commercial interiors, and advertising structures."
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      try {
+        const historyNavigation =
+          performance.getEntriesByType?.("navigation")[0]?.type ===
+            "back_forward" || performance.navigation?.type === 2;
+        if (
+          sessionStorage.getItem("tt-route") === "1" ||
+          historyNavigation
+        ) {
+          sessionStorage.removeItem("tt-route");
+          document.documentElement.classList.add("route-enter");
+        }
+        const routeLocale = document.documentElement.dataset.routeLocale;
+        document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
+      } catch {}
+    </script>
+    <script>
+      (() => {
+        const r=document.documentElement,a=new AbortController(),s={signal:a.signal},k=u=>`tt-locale-scroll:${u.pathname}${u.search}`;let close;
+        const b=window.__ttMotionBoot={claimed:false,fallback:false,timer:0,claim(){this.claimed=true;clearTimeout(this.timer);this.timer=0;return this.fallback},release(){close?.(false);a.abort();r.classList.remove("motion-fallback");this.fallback=false}};
+        const fail=()=>{
+          if(b.claimed||b.fallback)return;b.timer=0;if(!document.body)return document.addEventListener("DOMContentLoaded",fail,{once:true});
+          b.fallback=true;r.classList.add("motion-fallback");r.classList.remove("route-enter");document.body.classList.remove("is-transitioning","menu-open","motion-paused");
+          const c=document.querySelector("[data-barba=container]");if(c)c.hidden=false;window.TruongThinhDetail?.mount(c,{settled:true});
+          try{sessionStorage.removeItem("tt-route");const u=new URL(location.href),s=sessionStorage.getItem(k(u));sessionStorage.removeItem(k(u));if(s!==null){const restore=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,+s||0)));document.readyState==="complete"?restore():addEventListener("load",restore,{once:true,signal:a.signal})}}catch{}
+          const d=document.querySelector("#site-menu"),o=document.querySelector("[data-menu-open]");
+          close=(focus=true)=>{if(d?.open)d.close();d?.classList.remove("is-active");document.body.classList.remove("menu-open");o?.setAttribute("aria-expanded","false");if(focus)o?.focus({preventScroll:true})};
+          document.addEventListener("click",e=>{if(b.claimed)return;const t=e.target,l=t.closest("[data-language-option]");if(l){e.preventDefault();const u=new URL(l.href);u.search=location.search;u.hash="";try{sessionStorage.setItem(k(u),String(Math.round(scrollY)))}catch{}location.assign(u.href)}else if(t.closest("[data-menu-open]")&&!d?.open){d?.showModal();d?.classList.add("is-active");document.body.classList.add("menu-open");o?.setAttribute("aria-expanded","true");document.querySelector("[data-menu-close]")?.focus({preventScroll:true})}else if(t.closest("[data-menu-close]"))close()},s);
+          d?.addEventListener("cancel",e=>{e.preventDefault();close()},s);
+          addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
+        };
+        window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
+        b.timer=setTimeout(fail,2_500);
+      })();
+    </script>
+    <title data-en="Trường Thịnh — 20+ Years of Craft">
+      Trường Thịnh — Hơn 20 năm vững tay nghề
+    </title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.css"
+      integrity="sha384-8DE/Lk4d6Oc/WO04f3lv9vQCSrM28sDYyEmrs9hx4+b+oOrgm4txW7cOxPWlTHEd"
+      crossorigin="anonymous"
+      media="(min-width: 981px)"
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/detail.css" />
+  </head>
+  <body data-barba="wrapper">
+    <div class="route-veil" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <header class="site-header" data-site-header>
+      <a id="header-logo" class="brand" href="/">
+        <svg class="brand-mark" viewBox="0 0 100 90" aria-hidden="true">
+          <defs>
+            <clipPath id="triangle-header">
+              <path d="M50 3 97 86H3Z" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#triangle-header)">
+            <path d="M0 0h100v22L0 38Z" />
+            <path d="M0 41 100 25v20L0 61Z" />
+            <path d="M0 64 100 48v20L0 84Z" />
+            <path d="M0 87 100 71v29H0Z" />
+          </g>
+        </svg>
+        <span class="brand-copy">
+          <strong>TRƯỜNG THỊNH</strong>
+          <small data-en="INTERIORS · ADVERTISING"
+            >NỘI THẤT · QUẢNG CÁO</small
+          >
+        </span>
+        <span class="sr-only" data-en="— back to top">— về đầu trang</span>
+      </a>
+
+      <nav
+        id="header-menu-items"
+        class="desktop-nav"
+        aria-label="Điều hướng chính"
+        data-en-aria-label="Primary navigation"
+      >
+        <ul>
+          <li>
+            <a href="/vi/residential/" data-vi="Không gian Nhà ở" data-en="Residential spaces"
+              >Không gian Nhà ở</a
+            >
+          </li>
+          <li>
+            <a
+              href="/vi/commercial/"
+              data-vi="Không gian Kinh doanh"
+              data-en="Commercial spaces"
+              >Không gian Kinh doanh</a
+            >
+          </li>
+          <li>
+            <a
+              href="/vi/projects-products/"
+              data-vi="Công trình &amp; sản phẩm"
+              data-en="Projects &amp; products"
+              >Công trình &amp; sản phẩm</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <button
+        id="header-menu-toggle"
+        class="menu-button"
+        type="button"
+        aria-label="Mở menu"
+        data-en-aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="site-menu"
+        data-menu-open
+      >
+        <svg id="header-toggle-svg" viewBox="0 0 35 19" aria-hidden="true">
+          <line class="top" x1="0" y1="1.5" x2="35" y2="1.5" />
+          <line class="middle" x1="8.75" y1="9.5" x2="26.25" y2="9.5" />
+          <line class="bottom" x1="0" y1="17.5" x2="35" y2="17.5" />
+        </svg>
+      </button>
+    </header>
+
+    <a
+      class="floating-cta"
+      href="https://zalo.me/"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Gọi Zalo tư vấn"
+      data-en-aria-label="Talk to us on Zalo"
+    >
+      <span data-en="Talk to us on Zalo">Gọi Zalo tư vấn</span>
+      <svg viewBox="0 0 58.09 57.82" aria-hidden="true">
+        <rect x="3.66" y="9.64" width="50.77" height="44.28" />
+        <line x1="15.01" x2="15.01" y1="1.9" y2="14.69" />
+        <line x1="29.04" x2="29.04" y1="1.9" y2="14.69" />
+        <line x1="43.08" x2="43.08" y1="1.9" y2="14.69" />
+        <line x1="3.66" x2="54.43" y1="23.59" y2="23.59" />
+      </svg>
+    </a>
+
+    <dialog class="site-menu" id="site-menu" aria-labelledby="menu-title">
+      <div class="menu-shutters" aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+      </div>
+      <div class="menu-inner">
+        <div class="menu-head">
+          <a
+            class="menu-brand"
+            href="/vi/"
+            aria-label="Trường Thịnh — về trang chủ"
+            data-en-aria-label="Trường Thịnh — back to home"
+          >
+            <svg class="menu-brand__mark" viewBox="0 0 100 90" aria-hidden="true">
+              <defs><clipPath id="triangle-menu-home"><path d="M50 3 97 86H3Z" /></clipPath></defs>
+              <g clip-path="url(#triangle-menu-home)"><path d="M0 0h100v22L0 38Z" /><path d="M0 41 100 25v20L0 61Z" /><path d="M0 64 100 48v20L0 84Z" /><path d="M0 87 100 71v29H0Z" /></g>
+            </svg>
+            <span class="menu-brand__copy"><strong id="menu-title">TRƯỜNG THỊNH</strong><small data-en="INTERIORS · ADVERTISING">NỘI THẤT · QUẢNG CÁO</small></span>
+          </a>
+          <div
+            class="menu-language"
+            role="group"
+            aria-label="Chọn ngôn ngữ"
+            data-en-aria-label="Choose language"
+          >
+            <a href="/vi/" data-language-option="vi" lang="vi" data-en="Vietnamese">Tiếng Việt</a>
+            <a href="/en/" data-language-option="en" lang="en" data-en="English">English</a>
+          </div>
+          <a class="menu-appointment" href="https://zalo.me/" target="_blank" rel="noreferrer">
+            <svg data-menu-calendar viewBox="0 0 58.09 57.82" aria-hidden="true">
+              <rect x="3.66" y="9.64" width="50.77" height="44.28" />
+              <line x1="15.01" x2="15.01" y1="1.9" y2="14.69" />
+              <line x1="29.04" x2="29.04" y1="1.9" y2="14.69" />
+              <line x1="43.08" x2="43.08" y1="1.9" y2="14.69" />
+              <line x1="3.66" x2="54.43" y1="23.59" y2="23.59" />
+            </svg>
+            <span data-en="Book a site survey">Đặt lịch khảo sát</span>
+          </a>
+          <button
+            class="menu-close"
+            type="button"
+            aria-label="Đóng menu"
+            data-en-aria-label="Close menu"
+            data-menu-close
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 5l14 14M19 5 5 19" />
+            </svg>
+          </button>
+        </div>
+        <nav
+          class="menu-nav"
+          aria-label="Menu toàn trang"
+          data-en-aria-label="Full-site menu"
+        >
+          <div class="menu-group">
+            <span class="menu-group__number">01</span>
+            <a class="menu-group__title" href="/vi/residential/">
+              <span data-vi="Không gian Nhà ở" data-en="Residential spaces">Không gian Nhà ở</span>
+            </a>
+            <div class="menu-group__links">
+              <a class="menu-option" href="/vi/residential/?type=townhouse" data-en="Townhouses">Nhà phố</a>
+              <a class="menu-option" href="/vi/residential/?type=apartment" data-en="Apartments">Căn hộ</a>
+              <a class="menu-option" href="/vi/residential/?type=homestay" data-en="Homestays">Homestay</a>
+            </div>
+          </div>
+          <div class="menu-group">
+            <span class="menu-group__number">02</span>
+            <a class="menu-group__title" href="/vi/commercial/">
+              <span data-vi="Không gian Kinh doanh" data-en="Commercial spaces">Không gian Kinh doanh</span>
+            </a>
+            <div class="menu-group__links">
+              <a class="menu-option" href="/vi/commercial/?type=shop-showroom" data-en="Shop &amp; showroom">Shop &amp; showroom</a>
+              <a class="menu-option" href="/vi/commercial/?type=fnb" data-en="F&amp;B &amp; cafés">F&amp;B &amp; cafe</a>
+              <a class="menu-option" href="/vi/commercial/?type=office" data-en="Offices">Văn phòng</a>
+              <a class="menu-option" href="/vi/commercial/?type=retail" data-en="Retail stores">Cửa hàng bán lẻ</a>
+            </div>
+          </div>
+          <div class="menu-group">
+            <span class="menu-group__number">03</span>
+            <a class="menu-group__title" href="/vi/projects-products/">
+              <span data-vi="Công trình &amp; sản phẩm" data-en="Projects &amp; products">Công trình &amp; sản phẩm</span>
+            </a>
+            <div class="menu-group__links">
+              <a class="menu-option" href="/vi/projects-products/?category=kiosk-posm" data-en="Kiosk &amp; POSM">Kiosk &amp; POSM</a>
+              <a class="menu-option" href="/vi/projects-products/?category=mobile-retail" data-en="Mobile retail">Xe bán hàng</a>
+              <a class="menu-option" href="/vi/projects-products/?category=signage" data-en="Signage">Bảng hiệu</a>
+              <a class="menu-option" href="/vi/projects-products/?category=light-box" data-en="Light boxes">Hộp đèn</a>
+            </div>
+          </div>
+          <div class="menu-group">
+            <span class="menu-group__number">04</span>
+            <a class="menu-group__title" href="/vi/about/">
+              <span data-en="About us">Về chúng tôi</span>
+            </a>
+            <div class="menu-group__links">
+              <a class="menu-option" href="/vi/about/?topic=heritage" data-en="Heritage">Di sản</a>
+              <a class="menu-option" href="/vi/about/?topic=process" data-en="How we work">Cách làm</a>
+              <a class="menu-option" href="/vi/about/?topic=commitment" data-en="Commitment">Cam kết</a>
+              <a class="menu-option" href="/vi/about/?topic=contact" data-en="Contact">Liên hệ</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </dialog>
+
+    <div
+      class="page-shell"
+      data-scroll-container
+      data-barba="container"
+      data-barba-namespace="home"
+    >
+      <main id="noi-dung">
+        <section class="hero" id="top" data-header-tone="inverse">
+          <div class="hero-slides" aria-hidden="true">
+            <figure class="hero-slide is-active" data-slide="0">
+              <img
+                src="/assets/site/generated/residential-space.webp"
+                width="1536"
+                height="1024"
+                alt=""
+                fetchpriority="high"
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="1">
+              <img
+                data-src="/assets/site/commercial/hero.webp"
+                width="1536"
+                height="1024"
+                alt=""
+                loading="eager"
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="2">
+              <img
+                data-src="/assets/site/advertising/hero-kiosk.webp"
+                width="1536"
+                height="1024"
+                alt=""
+                loading="eager"
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="3">
+              <img
+                data-src="/assets/site/advertising/mobile-retail.webp"
+                width="1536"
+                height="1024"
+                alt=""
+                loading="eager"
+              />
+            </figure>
+          </div>
+          <div class="hero-shade" aria-hidden="true"></div>
+
+          <div class="hero-content">
+            <h1>
+              <span class="hero-line-mask">
+                <span
+                  ><span class="hero-word" data-en="Built">Làm</span>
+                  <span class="hero-word" data-en="solid.">chắc.</span></span
+                >
+              </span>
+              <span class="hero-line-mask">
+                <span
+                  ><em
+                    ><span class="hero-word" data-en="Made">Làm</span>
+                    <span class="hero-word" data-en="different."
+                      >khác.</span
+                    ></em
+                  ></span
+                >
+              </span>
+            </h1>
+          </div>
+
+          <button
+            class="motion-toggle"
+            type="button"
+            data-motion-toggle
+            aria-pressed="false"
+            aria-label="Tạm dừng chuyển động"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <g class="motion-toggle__pause">
+                <rect x="3.5" y="3" width="3" height="10" />
+                <rect x="9.5" y="3" width="3" height="10" />
+              </g>
+              <path class="motion-toggle__play" d="M4.75 3.1 12.5 8l-7.75 4.9Z" />
+            </svg>
+          </button>
+
+        </section>
+
+        <section
+          class="editorial-strip section-gap"
+          id="bang-chung"
+          role="region"
+          tabindex="0"
+          aria-label="Quy trình khảo sát, tư vấn, sản xuất và lắp đặt"
+          data-en-aria-label="Survey, consultation, production and installation process"
+          data-header-tone="ink"
+        >
+          <svg class="editorial-digit-sprite" aria-hidden="true">
+            <symbol id="editorial-digit-1" viewBox="0 0 514 745">
+              <path d="M0 745V645H197V100H57V0H317V645H514V745Z" />
+            </symbol>
+            <symbol id="editorial-digit-2" viewBox="0 0 489 757">
+              <path d="M5 757V672L204 454Q263 389 297 349.5Q331 310 344.5 280.5Q358 251 358 218Q358 164 326.5 134.5Q295 105 245 105Q195 105 157 135.5Q119 166 104 224L0 194Q12 135 47.5 91.5Q83 48 134 24Q185 0 245 0Q314 0 366 26.5Q418 53 447 100Q476 147 476 209Q476 250 460.5 289Q445 328 414.5 370Q384 412 336 465L161 657H489V757Z" />
+            </symbol>
+            <symbol id="editorial-digit-3" viewBox="0 0 505 757">
+              <path transform="translate(0 -12)" d="M248 769Q191 769 140 747Q89 725 52 685Q15 645 0 591L101 553Q120 606 159 635Q198 664 248 664Q289 664 320.5 647Q352 630 369.5 599Q387 568 387 524Q387 481 369.5 450Q352 419 321 403Q290 387 248 387Q231 387 212.5 390Q194 393 180 398L154 343L342 112H39V12H475V107L289 337L288 299Q352 300 401 328.5Q450 357 477.5 406.5Q505 456 505 521Q505 591 471.5 647.5Q438 704 380.5 736.5Q323 769 248 769Z" />
+            </symbol>
+            <symbol id="editorial-digit-4" viewBox="0 0 540 745">
+              <path transform="translate(0 -12)" d="M329 757V589H0V491L324 12H441V491H540V589H441V757ZM86 534 67 491H329V106L360 116Z" />
+            </symbol>
+          </svg>
+          <h2
+            class="sr-only"
+            id="editorial-title"
+            data-en="Survey, consultation, production and installation"
+          >
+            Khảo sát, tư vấn, sản xuất và lắp đặt
+          </h2>
+          <article class="editorial-item">
+            <svg class="editorial-number" viewBox="0 0 514 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true" focusable="false">
+              <use href="#editorial-digit-1" />
+            </svg>
+            <img
+              src="/assets/site/process/survey-laser-level.webp"
+              width="1024"
+              height="1536"
+              alt="Kỹ thuật viên khảo sát hiện trạng bằng máy cân bằng laser"
+              data-en-alt="Technician surveying the site with a laser level"
+              loading="lazy"
+            />
+            <div>
+              <h3 data-en="Survey">Khảo sát</h3>
+              <p data-en="Measure the site carefully so every piece fits straight from the workshop.">
+                Đo kỹ hiện trạng để đồ lên vừa ngay từ xưởng.
+              </p>
+            </div>
+          </article>
+          <article class="editorial-item">
+            <svg class="editorial-number" viewBox="0 0 489 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true" focusable="false">
+              <use href="#editorial-digit-2" />
+            </svg>
+            <img
+              src="/assets/site/process/consultation-materials.webp"
+              width="1024"
+              height="1536"
+              alt="Tư vấn lựa chọn mẫu gỗ và vật liệu hoàn thiện"
+              data-en-alt="Consulting on wood samples and finish materials"
+              loading="lazy"
+            />
+            <div>
+              <h3 data-en="Consultation">Tư vấn</h3>
+              <p data-en="Set the use, materials and budget from the start.">
+                Chốt cách dùng, vật liệu và mức chi ngay từ đầu.
+              </p>
+            </div>
+          </article>
+          <article class="editorial-item">
+            <svg class="editorial-number" viewBox="0 0 505 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true" focusable="false">
+              <use href="#editorial-digit-3" />
+            </svg>
+            <img
+              src="/assets/site/cnc.webp"
+              width="1536"
+              height="1024"
+              alt="Sản xuất chi tiết nội thất trên máy CNC"
+              data-en-alt="Producing interior components on a CNC machine"
+              loading="lazy"
+            />
+            <div>
+              <h3 data-en="Production">Sản xuất</h3>
+              <p data-en="Cut to the drawings and check every part before it leaves the workshop.">
+                Cắt đúng bản vẽ, kiểm từng chi tiết trước khi xuất xưởng.
+              </p>
+            </div>
+          </article>
+          <article class="editorial-item">
+            <svg class="editorial-number" viewBox="0 0 540 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true" focusable="false">
+              <use href="#editorial-digit-4" />
+            </svg>
+            <img
+              src="/assets/site/process/installation.webp"
+              width="1536"
+              height="1024"
+              alt="Lắp đặt nội thất tại công trình"
+              data-en-alt="Installing interiors on site"
+              loading="lazy"
+            />
+            <div>
+              <h3 data-en="Installation">Lắp đặt</h3>
+              <p data-en="Fit every piece, align every door and leave the site clean.">
+                Lắp đúng vị trí, căn từng cánh và dọn gọn khi bàn giao.
+              </p>
+            </div>
+          </article>
+        </section>
+
+        <section
+          class="portal-stage section-gap"
+          id="dich-vu"
+          aria-labelledby="services-title"
+          data-header-tone="ink"
+        >
+          <h2
+            class="sr-only"
+            id="services-title"
+            data-en="Three core practices"
+          >
+            Ba lĩnh vực chính
+          </h2>
+          <div class="service-portals">
+            <a
+              class="service-portal"
+              href="/vi/residential/"
+            >
+              <img
+                src="/assets/site/expanded/home-residential-kitchen.webp"
+                width="1086"
+                height="1448"
+                alt="Bếp nhà phố Việt Nam mở ra giếng trời xanh mát"
+                data-en-alt="Vietnamese townhouse kitchen opening onto a tropical lightwell"
+                loading="lazy"
+              />
+              <span class="portal-shade" aria-hidden="true"></span>
+              <span class="portal-copy">
+                <strong
+                  ><span class="portal-title__quiet"
+                    ><span class="portal-line" data-en="Spaces"
+                      >Không gian</span
+                    ></span
+                  ><br /><span class="portal-title__strong"
+                    ><span class="portal-line" data-en="Residential">Nhà ở</span></span
+                  ></strong
+                >
+                <small
+                  ><span
+                    class="portal-subtitle"
+                    data-en="A place to restore your energy"
+                    >Nơi tái tạo năng lượng sống</span
+                  ></small
+                >
+              </span>
+            </a>
+
+            <a
+              class="service-portal"
+              href="/vi/commercial/"
+            >
+              <img
+                src="/assets/site/expanded/home-commercial-fnb.webp"
+                width="1086"
+                height="1448"
+                alt="Quầy cafe Việt Nam đang vận hành với người chuyển động nhòe"
+                data-en-alt="Vietnamese café counter in operation with people blurred in motion"
+                loading="lazy"
+              />
+              <span class="portal-shade" aria-hidden="true"></span>
+              <span class="portal-copy">
+                <strong
+                  ><span class="portal-title__quiet"
+                    ><span class="portal-line" data-en="Spaces"
+                      >Không gian</span
+                    ></span
+                  ><br /><span class="portal-title__strong"
+                    ><span class="portal-line" data-en="Commercial"
+                      >Kinh doanh</span
+                    ></span
+                  ></strong
+                >
+                <small
+                  ><span
+                    class="portal-subtitle"
+                    data-en="Designed to work better"
+                    >Thiết kế để vận hành tốt hơn</span
+                  ></small
+                >
+              </span>
+            </a>
+
+            <a
+              class="service-portal"
+              href="/vi/projects-products/"
+            >
+              <img
+                src="/assets/site/portal-options-round-2/advertising-fnb-mobile-cart-v2.webp"
+                width="1086"
+                height="1448"
+                alt="Xe bán hàng lưu động F&amp;B với một chân chống ổn định"
+                data-en-alt="A mobile F&amp;B sales cart with a single stabilizer leg"
+                loading="lazy"
+              />
+              <span class="portal-shade" aria-hidden="true"></span>
+              <span class="portal-copy">
+                <strong
+                  ><span class="portal-title__quiet"
+                    ><span class="portal-line" data-en="Products"
+                      >Sản phẩm</span
+                    ></span
+                  ><br /><span class="portal-title__strong"
+                    ><span class="portal-line" data-en="Advertising"
+                      >Quảng cáo</span
+                    ></span
+                  ></strong
+                >
+                <small
+                  ><span
+                    class="portal-subtitle"
+                    data-en="Keeping your brand in sight"
+                    >Để thương hiệu luôn trong tầm mắt</span
+                  ></small
+                >
+              </span>
+            </a>
+          </div>
+        </section>
+
+        <section
+          class="heritage-montage section-gap"
+          id="tay-nghe"
+          data-header-tone="ink"
+          aria-labelledby="heritage-title"
+        >
+          <h2
+            class="sr-only"
+            id="heritage-title"
+            data-en="Experience and creativity are our commitment to every product"
+          >
+            Kinh nghiệm và sáng tạo là cam kết trong từng sản phẩm
+          </h2>
+          <div class="heritage-rows">
+            <p class="heritage-row heritage-row--center">
+              <span class="heritage-text"
+                ><span class="heritage-line" data-en="Experience"
+                  >Kinh nghiệm</span
+                ></span
+              >
+              <span class="heritage-image reveal-media">
+                <img
+                  src="/assets/site/thumbs/legacy-hands-384.webp"
+                  width="384"
+                  height="256"
+                  alt="Đôi tay người thợ đo và căn chỉnh mối ghép gỗ"
+                  data-en-alt="A craftsperson's hands measuring and aligning a timber joint"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+              <span class="heritage-text"
+                ><span
+                  class="heritage-line heritage-line--delay"
+                  data-en="and"
+                  >và</span
+                ></span
+              >
+            </p>
+            <p class="heritage-row heritage-row--start">
+              <span class="heritage-text"
+                ><span class="heritage-line" data-en="creativity"
+                  >sáng tạo</span
+                ></span
+              >
+              <span class="heritage-image reveal-media">
+                <img
+                  src="/assets/site/generated/montage-cnc-tablet.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Máy tính bảng hiển thị bản vẽ sản xuất trước máy CNC"
+                  data-en-alt="A tablet displaying production drawings in front of a CNC router"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+              <span class="heritage-text"
+                ><span
+                  class="heritage-line heritage-line--delay"
+                  data-en="are"
+                  >là</span
+                ></span
+              >
+            </p>
+            <p class="heritage-row heritage-row--end">
+              <span class="heritage-text"
+                ><span class="heritage-line" data-en="our commitment"
+                  >cam kết</span
+                ></span
+              >
+              <span class="heritage-image reveal-media">
+                <img
+                  src="/assets/site/generated/montage-commitment-option-3-knot.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Nút dây chịu lực được siết chặt"
+                  data-en-alt="A load-bearing rope knot pulled tight"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+              <span class="heritage-text"
+                ><span
+                  class="heritage-line heritage-line--delay"
+                  data-en="to"
+                  >trong</span
+                ></span
+              >
+            </p>
+            <p class="heritage-row heritage-row--center">
+              <span class="heritage-text"
+                ><span class="heritage-line" data-en="every">Từng</span></span
+              >
+              <span class="heritage-image reveal-media">
+                <img
+                  src="/assets/site/generated/montage-residential-product-detail.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Tủ console gỗ, đá và kim loại trong không gian căn hộ"
+                  data-en-alt="A timber, stone and metal console cabinet in an apartment interior"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </span>
+              <span class="heritage-text"
+                ><span class="heritage-line" data-en="product."
+                  >sản phẩm.</span
+                ></span
+              >
+            </p>
+          </div>
+          <a class="story-link" href="/vi/about/">
+            <span data-en="See how we work">Xem cách chúng tôi làm</span>
+            <svg viewBox="0 0 220 48" aria-hidden="true">
+              <path d="M0 24h208M187 3l21 21-21 21" />
+            </svg>
+          </a>
+        </section>
+
+        <section
+          class="portal-stage section-gap"
+          id="nang-luc"
+          aria-labelledby="capabilities-title"
+          data-header-tone="ink"
+        >
+          <h2
+            class="sr-only"
+            id="capabilities-title"
+            data-en="Materials, workshop and build"
+          >
+            Vật liệu, xưởng và thi công
+          </h2>
+          <div class="service-portals">
+            <article class="service-portal">
+              <img
+                src="/assets/site/expanded/materials.webp"
+                width="1536"
+                height="1024"
+                alt="Mẫu vật liệu gỗ, đá và kim loại được tuyển chọn"
+                data-en-alt="Selected timber, stone and metal samples"
+                loading="lazy"
+              />
+              <span class="portal-shade" aria-hidden="true"></span>
+              <span class="portal-copy">
+                <strong class="portal-title-mask"
+                  ><span class="portal-line" data-en="Materials"
+                    >Vật liệu</span
+                  ></strong
+                >
+                <small
+                  ><span
+                    class="portal-subtitle"
+                    data-en="Fit for purpose · Fit for budget"
+                    >Đúng công năng · Đúng ngân sách</span
+                  ></small
+                >
+              </span>
+            </article>
+            <article class="service-portal">
+              <img
+                src="/assets/site/process/installation.webp"
+                width="1536"
+                height="1024"
+                alt="Bàn tay kỹ thuật viên căn chỉnh hệ tủ tại công trình"
+                data-en-alt="Technician hands aligning cabinetry on site"
+                loading="lazy"
+              />
+              <span class="portal-shade" aria-hidden="true"></span>
+              <span class="portal-copy">
+                <strong class="portal-title-mask"
+                  ><span class="portal-line" data-en="Workshop &amp; CNC"
+                    >Xưởng &amp; CNC</span
+                  ></strong
+                >
+                <small
+                  ><span
+                    class="portal-subtitle"
+                    data-en="Real craft · Controlled tolerance"
+                    >Tay nghề thật · Sai số được kiểm soát</span
+                  ></small
+                >
+              </span>
+            </article>
+            <article class="service-portal">
+              <img
+                src="/assets/site/process/consultation.webp"
+                width="1536"
+                height="1024"
+                alt="Bàn tay tư vấn viên trao đổi vật liệu trên bản vẽ"
+                data-en-alt="Consultant hands reviewing materials over a plan"
+                loading="lazy"
+              />
+              <span class="portal-shade" aria-hidden="true"></span>
+              <span class="portal-copy">
+                <strong class="portal-title-mask"
+                  ><span class="portal-line" data-en="Process"
+                    >Quy trình</span
+                  ></strong
+                >
+                <small
+                  ><span
+                    class="portal-subtitle"
+                    data-en="Survey · Consultation · Production · Installation"
+                    >Khảo sát · Tư vấn · Sản xuất · Lắp đặt</span
+                  ></small
+                >
+              </span>
+            </article>
+          </div>
+        </section>
+
+        <section
+          class="project-reel section-gap"
+          id="du-an"
+          data-header-tone="ink"
+          aria-labelledby="projects-title"
+        >
+          <h2 class="sr-only" id="projects-title" data-en="Work in motion">
+            Nhịp công trình
+          </h2>
+          <div
+            class="project-track"
+            role="region"
+            tabindex="0"
+            aria-label="Nhịp công trình — cuộn ngang để xem thêm"
+            data-en-aria-label="Project reel — scroll horizontally for more"
+          >
+            <figure class="project-card project-card--high">
+              <span class="project-card__media">
+                <img
+                  src="/assets/site/cnc.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Máy CNC gia công chi tiết nội thất từ tấm MDF"
+                  data-en-alt="CNC machining an MDF interior component"
+                  loading="lazy"
+                />
+              </span>
+              <figcaption data-en="Workshop / CNC">Xưởng / CNC</figcaption>
+            </figure>
+            <figure class="project-card project-card--low">
+              <span class="project-card__media">
+                <img
+                  src="/assets/site/expanded/signage-detail.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Chi tiết chữ nổi có ánh sáng hắt trên nền kim loại"
+                  data-en-alt="Illuminated dimensional signage on a metal surface"
+                  loading="lazy"
+                />
+              </span>
+              <figcaption data-en="Signage / Detail"
+                >Bảng hiệu / Chi tiết</figcaption
+              >
+            </figure>
+            <figure class="project-card project-card--high">
+              <span class="project-card__media">
+                <img
+                  src="/assets/site/expanded/storefront.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Mặt tiền cửa hàng Việt Nam với hệ bảng hiệu vào giờ xanh"
+                  data-en-alt="Vietnamese storefront and signage at blue hour"
+                  loading="lazy"
+                />
+              </span>
+              <figcaption data-en="Business / Storefront"
+                >Kinh doanh / Mặt tiền</figcaption
+              >
+            </figure>
+            <figure class="project-card project-card--mid">
+              <span class="project-card__media">
+                <img
+                  src="/assets/site/expanded/completed-detail.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Góc hoàn thiện giữa tủ, kim loại và bề mặt acrylic"
+                  data-en-alt="Finished junction of cabinetry, metal and acrylic"
+                  loading="lazy"
+                />
+              </span>
+              <figcaption data-en="Home / Finishing"
+                >Nhà ở / Hoàn thiện</figcaption
+              >
+            </figure>
+            <figure class="project-card project-card--high">
+              <span class="project-card__media">
+                <img
+                  src="/assets/site/expanded/kiosk-active.webp"
+                  width="1536"
+                  height="1024"
+                  alt="Kiosk bán hàng lưu động đang hoạt động"
+                  data-en-alt="Mobile retail kiosk in operation"
+                  loading="lazy"
+                />
+              </span>
+              <figcaption data-en="Advertising / Kiosk"
+                >Quảng cáo / Kiosk</figcaption
+              >
+            </figure>
+          </div>
+        </section>
+
+        <section class="legacy-closer section-gap" data-header-tone="inverse">
+          <img
+            src="/assets/site/expanded/workshop-wide.webp"
+            width="1536"
+            height="1024"
+            alt="Toàn cảnh xưởng Trường Thịnh với đội ngũ đang sản xuất"
+            data-en-alt="Trường Thịnh workshop and production team"
+            loading="lazy"
+          />
+          <span class="legacy-shade" aria-hidden="true"></span>
+          <div class="legacy-copy">
+            <p data-en="TRƯỜNG THỊNH · 20+ YEARS">
+              TRƯỜNG THỊNH · HƠN 20 NĂM
+            </p>
+            <h2>
+              <span class="line-mask"
+                ><span data-en="Keep the craft.">Giữ nghề.</span></span
+              >
+              <span class="line-mask"
+                ><span
+                  ><span data-en="Always">Không ngừng</span>
+                  <em data-en="evolving.">làm mới.</em></span
+                ></span
+              >
+            </h2>
+          </div>
+        </section>
+
+        <section
+          class="capability-marquee section-gap"
+          aria-label="Năng lực sản xuất"
+          data-en-aria-label="Production capabilities"
+          data-header-tone="ink"
+        >
+          <div class="marquee-line">
+            <span>MDF</span><i></i><span>HDF</span><i></i><span>MFC</span><i></i>
+            <span>CNC</span><i></i
+            ><span data-en="Edge banding">Dán cạnh</span><i></i>
+            <span data-en="Installation">Lắp đặt</span><i></i>
+          </div>
+          <div class="marquee-line" aria-hidden="true">
+            <span>MDF</span><i></i><span>HDF</span><i></i><span>MFC</span><i></i>
+            <span>CNC</span><i></i
+            ><span data-en="Edge banding">Dán cạnh</span><i></i>
+            <span data-en="Installation">Lắp đặt</span><i></i>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer" id="lien-he" data-header-tone="ink">
+        <div class="footer-intro">
+          <p class="footer-statement">
+            <span data-en="Have a space?">Có mặt bằng?</span><br />
+            <em data-en="Let us take a look.">Mời chúng tôi đến xem.</em>
+          </p>
+        </div>
+
+        <div class="footer-contact">
+          <a href="https://zalo.me/" target="_blank" rel="noreferrer">
+            <span data-en="Consultation &amp; site survey"
+              >Tư vấn &amp; đặt lịch khảo sát</span
+            >
+            <strong
+              ><span data-en="Talk on Zalo">Gọi Zalo</span>
+              <b aria-hidden="true">↗</b></strong
+            >
+          </a>
+          <div>
+            <span data-en="Head office">Trụ sở</span>
+            <strong data-en="Details coming soon"
+              >Thông tin đang cập nhật</strong
+            >
+          </div>
+          <div>
+            <span data-en="Expertise">Lĩnh vực</span>
+            <strong data-en="Home · Business · Advertising"
+              >Nhà ở · Kinh doanh · Quảng cáo</strong
+            >
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© 2026 Trường Thịnh</p>
+        </div>
+      </footer>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" integrity="sha384-HOvlOYPIs/zjoIkWUGXkVmXsjr8GuZLV+Q+rcPwmJOVZVpvTSXQChiN4t9Euv9Vc" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.js" integrity="sha384-OCi7pis5Dzyb6liFSmJPTTJCogFKCIyxEx0jyPpmpqv3GyDGCIG3AiXjev/vqpGF" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js" integrity="sha384-T3/AkZI+fU7l5Ip18n7KLEi8r0LPLwiyIp0+anP6LuGlXmAwDS6l6YhmhJjiki/x" crossorigin="anonymous"></script>
+    <script defer src="/detail.js"></script>
+    <script defer src="/motion.js"></script>
+  </body>
+</html>

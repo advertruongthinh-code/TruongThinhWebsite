@@ -1,0 +1,36 @@
+web_search = "live"
+
+[features]
+hooks = true
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+
+[mcp_servers.serena]
+command = ".tooling\\runtimes\\powershell-7.6.4\\pwsh.exe"
+args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\\tooling\\start-serena-mcp.ps1"]
+cwd = "."
+startup_timeout_sec = 90
+tool_timeout_sec = 180
+enabled = true
+required = false
+
+[mcp_servers.graphify]
+command = ".tooling\\runtimes\\powershell-7.6.4\\pwsh.exe"
+args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\\tooling\\start-graphify-mcp.ps1"]
+cwd = "."
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+enabled = true
+required = false
+
+[mcp_servers.chrome_devtools]
+command = ".tooling\\runtimes\\powershell-7.6.4\\pwsh.exe"
+args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "scripts\\tooling\\start-chrome-devtools-mcp.ps1"]
+cwd = "."
+startup_timeout_sec = 90
+tool_timeout_sec = 180
+enabled = true
+required = false
+default_tools_approval_mode = "prompt"

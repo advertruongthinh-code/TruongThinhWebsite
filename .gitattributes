@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+*.png binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+
+graphify-out/graph.json merge=graphify

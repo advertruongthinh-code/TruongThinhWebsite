@@ -1,0 +1,23 @@
+node_modules/
+_temp/
+tests/reports/
+*.log
+__pycache__/
+*.pyc
+
+# Project tooling runtime/state (configuration and skills remain tracked).
+.tooling/
+.serena/cache/
+.serena/logs/
+.serena/project.local.yml
+test-results/
+playwright-report/
+.wrangler/
+.site-output/
+graphify-out/
+.impeccable/config.local.json
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Generated reference website archive; keep only the audit summary tracked.
+/reference-audit/web-reference/archive/

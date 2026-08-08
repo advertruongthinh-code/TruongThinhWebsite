@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "resolved_at": "2026-08-08",
+  "policy": "Pinned initial stable versions; update checks notify only.",
+  "skills": {
+    "agent-skills-count": 24,
+    "impeccable-skill": "4.0.4",
+    "ponytail-count": 6,
+    "ponytail-skill": "4.9.0"
+  },
+  "python": {
+    "serena-agent": "1.6.1",
+    "graphifyy": "0.9.36",
+    "graphify_extras": "all"
+  },
+  "node": {
+    "@cloudflare/workerd-windows-64": "1.20260801.1",
+    "@esbuild/win32-x64": "0.28.1",
+    "playwright": "1.62.1",
+    "impeccable": "3.5.0",
+    "chrome-devtools-mcp": "1.6.0",
+    "npm": "12.0.2",
+    "pnpm": "11.16.0",
+    "wrangler": "4.120.0"
+  },
+  "runtimes": {
+    "uv": {
+      "version": "0.12.3",
+      "url": "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-pc-windows-msvc.zip",
+      "sha256": "b23350c79e8ad0192b8124af13a0f17e8d4e4549524785e1aef389ae5a06990e"
+    },
+    "powershell": {
+      "version": "7.6.4",
+      "url": "https://github.com/PowerShell/PowerShell/releases/download/v7.6.4/PowerShell-7.6.4-win-x64.zip",
+      "sha256": "80832551c52809301e6071c8bac977beb5a2f1ec953eb4db9f94deb953333793"
+    }
+  },
+  "repositories": {
+    "oraios/serena": "c7af2c09ef45faa4367c0e2a9f770fb73a62a612",
+    "Graphify-Labs/graphify": "3d19463484ebcf773b399ddad9fd3363b2ab3bff",
+    "addyosmani/agent-skills": "d2478bf0c73a6357df39a3ed6aff16acaa218843",
+    "pbakaus/impeccable": "aee6ce9352b842217b3f57c78296a7a4fa35a7f3",
+    "dietrichgebert/ponytail": "2ed6c52c9d7e5e56942508591085fd45dea277d3"
+  },
+  "repository_urls": {
+    "oraios/serena": "https://github.com/oraios/serena.git",
+    "Graphify-Labs/graphify": "https://github.com/Graphify-Labs/graphify.git",
+    "addyosmani/agent-skills": "https://github.com/addyosmani/agent-skills.git",
+    "pbakaus/impeccable": "https://github.com/pbakaus/impeccable.git",
+    "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git"
+  }
+}
