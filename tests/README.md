@@ -18,21 +18,21 @@ Trong terminal khác:
 
 ```powershell
 $env:BASE_URL = "http://127.0.0.1:8787"
-node tests/worker-contract.cjs
-node tests/site.e2e.cjs
+node tests/worker/worker-contract.cjs
+node tests/site/site.e2e.cjs
 ```
 
 Mặc định Worker contract dùng `http://127.0.0.1:8787`. Có thể đổi server:
 
 ```bash
-BASE_URL=http://127.0.0.1:8080 node tests/site.e2e.cjs
+BASE_URL=http://127.0.0.1:8080 node tests/site/site.e2e.cjs
 ```
 
 PowerShell:
 
 ```powershell
 $env:BASE_URL = "http://127.0.0.1:8080"
-node tests/site.e2e.cjs
+node tests/site/site.e2e.cjs
 ```
 
 ## Chạy bằng runtime project-local
@@ -49,6 +49,6 @@ Wrangler asset watcher trong lúc test.
 
 ## Kết quả
 
-- Báo cáo mới nhất: `tests/reports/latest.json`
-- Ảnh chụp khi thất bại: `tests/reports/failures/`
+- Báo cáo mới nhất: `tests/site/reports/latest.json`
+- Ảnh chụp khi thất bại: `tests/site/reports/failures/`
 - Exit code `0` khi toàn bộ check đạt; `1` nếu có bất kỳ failure nào.

@@ -1,6 +1,7 @@
 node_modules/
 _temp/
 tests/reports/
+tests/site/reports/
 *.log
 __pycache__/
 *.pyc

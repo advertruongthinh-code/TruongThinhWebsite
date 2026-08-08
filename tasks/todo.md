@@ -17,7 +17,7 @@
 
 ## Phase 2: Tests and utilities
 
-- [ ] Split tests into `tests/site`, `tests/worker`, and `tests/tooling`.
+- [x] Split tests into `tests/site`, `tests/worker`, and `tests/tooling`.
 - [ ] Move the staging script to `scripts/site/`.
 - [ ] Move the crawler to `scripts/reference/`.
 - [ ] Keep `scripts/tooling/` and trusted hook commands unchanged.

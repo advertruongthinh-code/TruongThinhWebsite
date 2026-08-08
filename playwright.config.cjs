@@ -3,7 +3,7 @@
 const { defineConfig, devices } = require("playwright/test");
 
 module.exports = defineConfig({
-  testDir: "./tests",
+  testDir: "./tests/site",
   testMatch: "cross-browser.smoke.spec.cjs",
   fullyParallel: false,
   retries: 0,

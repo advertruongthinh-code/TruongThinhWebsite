@@ -8,10 +8,10 @@
 Command:
 
 ```powershell
-node tests/site.e2e.cjs
+node tests/site/site.e2e.cjs
 ```
 
-Report: `tests/reports/latest.json`
+Report: `tests/site/reports/latest.json`
 
 | Field | Result |
 | --- | --- |

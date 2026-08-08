@@ -8,11 +8,11 @@
     "prepare:site": "node scripts/prepare-static-assets.mjs",
     "dev": "pnpm prepare:site && wrangler dev",
     "deploy": "pnpm prepare:site && wrangler deploy",
-    "qa:static": "node tests/site-static-contract.cjs",
-    "qa:worker:static": "node tests/worker-static-contract.cjs",
-    "qa:site": "node tests/site.e2e.cjs",
-    "qa:worker": "node tests/worker-contract.cjs",
-    "qa:cross-browser": "playwright test tests/cross-browser.smoke.spec.cjs",
+    "qa:static": "node tests/site/site-static-contract.cjs",
+    "qa:worker:static": "node tests/worker/worker-static-contract.cjs",
+    "qa:site": "node tests/site/site.e2e.cjs",
+    "qa:worker": "node tests/worker/worker-contract.cjs",
+    "qa:cross-browser": "playwright test tests/site/cross-browser.smoke.spec.cjs",
     "tooling:doctor": ".tooling/runtimes/powershell-7.6.4/pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1"
   },
   "devDependencies": {

@@ -194,7 +194,7 @@ assets/fonts/
 
 ## Test architecture
 
-`tests/site.e2e.cjs` chạy Chromium thật qua Playwright; `tests/worker-contract.cjs`
+`tests/site/site.e2e.cjs` chạy Chromium thật qua Playwright; `tests/worker/worker-contract.cjs`
 kiểm tra raw Worker contract:
 
 - Smoke matrix: 5 route × 5 viewport.
@@ -212,8 +212,8 @@ kiểm tra raw Worker contract:
 - 10 raw `/vi`/`/en` heads, redirect 308/query, robots/sitemap, admin auth,
   CSRF rejection và invalid upload rejection.
 
-Kết quả ghi vào `tests/reports/latest.json`; failure screenshots ở
-`tests/reports/failures/`.
+Kết quả ghi vào `tests/site/reports/latest.json`; failure screenshots ở
+`tests/site/reports/failures/`.
 
 ## Reference research archive
 

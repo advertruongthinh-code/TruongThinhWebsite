@@ -21,7 +21,7 @@ $fixedPaths = @(
   "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "playwright.config.cjs",
   "tooling-versions.json", ".codex\config.toml", ".codex\hooks.json",
   ".serena\project.yml", ".git\hooks\post-commit", ".git\hooks\post-checkout",
-  "tests\cross-browser.smoke.spec.cjs", "tests\tooling\hook-fixtures.ps1",
+  "tests\site\cross-browser.smoke.spec.cjs", "tests\tooling\hook-fixtures.ps1",
   "tests\tooling\graphify-freshness-fixtures.ps1",
   "tests\tooling\test_serena_sync.py"
 )

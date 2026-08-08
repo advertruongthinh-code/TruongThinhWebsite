@@ -82,6 +82,6 @@ npx wrangler d1 migrations apply truong-thinh-cms --local --persist-to $state
 npx wrangler dev --local --port 8787 --persist-to $state
 ```
 
-Use another terminal for `node tests/worker-contract.cjs` and
-`node tests/site.e2e.cjs` with `BASE_URL=http://127.0.0.1:8787`. Do not deploy
+Use another terminal for `node tests/worker/worker-contract.cjs` and
+`node tests/site/site.e2e.cjs` with `BASE_URL=http://127.0.0.1:8787`. Do not deploy
 without owner approval and real D1/R2/Access values.

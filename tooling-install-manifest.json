@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "installed_at": "2026-08-08T14:19:14.3734625Z",
+  "installed_at": "2026-08-08T15:11:47.8365613Z",
   "policy": "project-only; pinned; notify-only updates",
   "versions": {
     "schema": 1,
@@ -97,13 +97,13 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "02c185f10bf5c0a440b13f44505a3ffda289587dd05da1ec9d7bc8175ea1b9a6",
-      "bytes": 465
+      "sha256": "7af113a1b6298e8d84604a85570a46025349db7ffee095d80a9b00366fd29ab3",
+      "bytes": 485
     },
     {
       "path": ".graphifyignore",
-      "sha256": "da47812ca847e9b296aa97ad22165cb8b01d423398052043172fcde3d367faf6",
-      "bytes": 503
+      "sha256": "c5c1c93a041cdc38431dc07df091219d5fbcc440c9bae886bc8115c01c6c80f8",
+      "bytes": 525
     },
     {
       "path": ".serena/project.yml",
@@ -112,18 +112,18 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "787a5627956099d5eaef3aae891a507a3105b19b390a922c066fdf7bab100eda",
-      "bytes": 7385
+      "sha256": "bd1a47a65f3d4fcb2b9f830590343586da1bcbb7d44cc30f67950245da8d75c0",
+      "bytes": 7437
     },
     {
       "path": "package.json",
-      "sha256": "0b1a1702eaa64e0d5398378922a79ac94a99e53bbdf6b734af067e1d979c4e21",
-      "bytes": 980
+      "sha256": "c809c80812464a6a89c9a89fd22f2f3c108f216ead07e2bf7cc54ee965e4e323",
+      "bytes": 1009
     },
     {
       "path": "playwright.config.cjs",
-      "sha256": "d861b52bdc55b2a9c654dc93aec586d9e075b72841fb777535fe313af4b6c908",
-      "bytes": 713
+      "sha256": "3b24dcd625f8d0d6f0b7acfd68e2a63bbf241018cca766b57ec325a77f3116f7",
+      "bytes": 718
     },
     {
       "path": "pnpm-lock.yaml",
@@ -187,8 +187,8 @@
     },
     {
       "path": "scripts/tooling/run-playwright.ps1",
-      "sha256": "b8ba59fffefc41c795af3b63624aa6132c6f7d687511fac60aeba554a306cb14",
-      "bytes": 593
+      "sha256": "b8f48805ac8bd192c44fd7a1f8840a191aa86a1422a477ea28c7190262a79002",
+      "bytes": 603
     },
     {
       "path": "scripts/tooling/serena_sync.py",
@@ -197,8 +197,8 @@
     },
     {
       "path": "scripts/tooling/serena-language-map.json",
-      "sha256": "9001eb98bd5600ce5cdb022d5405811daa21fe429738a377966d19fba832d267",
-      "bytes": 2120
+      "sha256": "776b4ea788be20288fd694d019c910e39fb82325d132fc2777b566176ea1ddd6",
+      "bytes": 2143
     },
     {
       "path": "scripts/tooling/start-chrome-devtools-mcp.ps1",
@@ -222,11 +222,11 @@
     },
     {
       "path": "scripts/tooling/write-install-manifest.ps1",
-      "sha256": "cfbe0175e20cf63ec6a61a1ea1d6a6fa97c58c3cc4fe2d4c1585231d59afa95a",
-      "bytes": 3909
+      "sha256": "c99c94bf2a1b6bba02ce35d1697f42364ccceb860dfc21d2e20dccb7345e54bd",
+      "bytes": 3914
     },
     {
-      "path": "tests/cross-browser.smoke.spec.cjs",
+      "path": "tests/site/cross-browser.smoke.spec.cjs",
       "sha256": "1b2f80096ceac447a713e6d5d87ec4049008fed833b0debffa025b4658ea85cf",
       "bytes": 2069
     },
@@ -407,11 +407,11 @@
     "restart_required": false
   },
   "graphify": {
-    "nodes": 720,
+    "nodes": 721,
     "edges": 1203,
     "freshness_policy": "wrapper-boundary",
     "semantic_status_available": true,
-    "semantic_pending_count": 31
+    "semantic_pending_count": 76
   },
   "browsers": [
     ".links",

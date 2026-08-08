@@ -66,10 +66,10 @@ In another terminal:
 
 ```powershell
 $env:BASE_URL = "http://127.0.0.1:8787"
-node tests/worker-contract.cjs
-node tests/site.e2e.cjs
+node tests/worker/worker-contract.cjs
+node tests/site/site.e2e.cjs
 ```
 
-Check the browser report at `tests/reports/latest.json`. A handoff should name
+Check the browser report at `tests/site/reports/latest.json`. A handoff should name
 the changed resource, migration state, publish/approval state, test commands,
 and any owner-supplied fact that is still blocked.

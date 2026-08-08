@@ -56,7 +56,7 @@ const SSR_CMS_HYDRATION_CASES = [
 const REPORT_DIR = path.join(__dirname, "reports");
 const FAILURE_DIR = path.join(REPORT_DIR, "failures");
 const REPORT_PATH = path.join(REPORT_DIR, "latest.json");
-const SITE_ROOT = path.join(__dirname, "..", "src", "site");
+const SITE_ROOT = path.join(__dirname, "..", "..", "src", "site");
 const PUBLIC_HTML = [
   ["index.html", "home"],
   ["residential/index.html", "residential"],

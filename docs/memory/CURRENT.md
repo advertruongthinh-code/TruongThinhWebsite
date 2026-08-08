@@ -48,7 +48,7 @@
   5/5 checks; the live Chrome run measured 1440×900 menu head/nav at
   `137.516/741px` with four `360px` columns and 390×844 at `226.969/597px`
   with one column. No console errors, page errors, request failures, or HTTP
-  errors were observed. `tests/worker-contract.cjs` also passes against the
+  errors were observed. `tests/worker/worker-contract.cjs` also passes against the
   fresh migration-backed Worker/D1 state.
 - Public navigation is now fragment-free across all 10 VI/EN routes. Browser
   verification found `0` fragment anchors, `0` horizontal overflow and no
@@ -147,7 +147,7 @@
 
 ## Historical browser run
 
-`tests/reports/latest.json` được tạo lúc `2026-07-30T20:17:54.259Z`:
+`tests/site/reports/latest.json` được tạo lúc `2026-07-30T20:17:54.259Z`:
 
 - 48 checks.
 - 48 passed.
@@ -164,7 +164,7 @@ console, network, ảnh và overflow ngang.
 - Local D1 mới đã apply `0001_cms.sql` + `0002_projects_products_identity.sql`;
   local state đã có `0001` cũng apply riêng `0002` thành công. Cả hai trả
   **Công trình & sản phẩm** / **Projects & products** cho H1 và SEO title.
-- `tests/worker-contract.cjs` pass với JWT forged/expired/issuer/audience/email,
+- `tests/worker/worker-contract.cjs` pass với JWT forged/expired/issuer/audience/email,
   padded/non-canonical Base64URL re-signed, WebP VP8X rỗng và một WebP thật.
 - Targeted Playwright pass tại `390×900` và `1440×900`: D1 SSR giữ title/meta/
   hero/motto sau hydration và header/full menu không render literal `&amp;`.

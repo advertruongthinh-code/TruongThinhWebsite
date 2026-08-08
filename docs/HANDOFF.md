@@ -56,18 +56,18 @@ Mở:
 Theo [tests/README.md](../tests/README.md), sau khi server chạy:
 
 ```powershell
-node tests/site.e2e.cjs
+node tests/site/site.e2e.cjs
 ```
 
 Latest verified source run: `48/48` pass, `0` fail,
-`tests/reports/latest.json` generated `2026-07-30T20:17:54.259Z`. Luôn chạy lại
+`tests/site/reports/latest.json` generated `2026-07-30T20:17:54.259Z`. Luôn chạy lại
 nếu source mới hơn report.
 
 Nếu cần runtime Node được đóng gói:
 
 ```powershell
 $env:NODE_PATH = "C:\Users\halal\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules"
-node tests/site.e2e.cjs
+node tests/site/site.e2e.cjs
 ```
 
 Không bàn giao production-ready cho đến khi:
@@ -140,7 +140,7 @@ Không tự thay placeholder. Cần chủ dự án xác nhận:
 - [ ] Alt/aria/title/description VI/EN đầy đủ.
 - [ ] Process order đúng ở mọi route.
 - [ ] Ảnh không có logo, text giả, watermark hoặc mặt nhận diện ngoài ngoại lệ.
-- [ ] `tests/reports/latest.json` là kết quả của source hiện tại và toàn bộ pass.
+- [ ] `tests/site/reports/latest.json` là kết quả của source hiện tại và toàn bộ pass.
 - [ ] DevTools console/network/a11y sạch ở desktop và mobile.
 - [ ] Graphify đã update hoặc handoff ghi semantic update còn thiếu.
 - [ ] Graphify project-local `hook status` xác nhận post-commit/post-checkout và merge driver.

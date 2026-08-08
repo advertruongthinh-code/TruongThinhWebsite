@@ -35,5 +35,5 @@
     ".git", ".serena", ".tooling", "node_modules", "graphify-out", "assets", "reference-audit",
     "test-results", "playwright-report", "_temp", ".wrangler", "__pycache__"
   ],
-  "excluded_prefixes": ["tests/reports/", ".agents/", ".codex/skills/"]
+  "excluded_prefixes": ["tests/reports/", "tests/site/reports/", ".agents/", ".codex/skills/"]
 }

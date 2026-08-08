@@ -48,7 +48,7 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8787
 
-      - run: pnpm exec playwright test tests/cross-browser.smoke.spec.cjs --project=chromium
+      - run: pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium
         env:
           BASE_URL: http://127.0.0.1:8787
 

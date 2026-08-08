@@ -134,5 +134,5 @@ Trong khi chờ dữ kiện, dùng CTA trung tính và “Thông tin đang cập
 - Không overflow ngang tại 320, 390, 768, 1024 và 1440 px.
 - Console và network sạch; landmarks, heading hierarchy và focus hợp lệ.
 - VI/EN đổi và giữ qua reload.
-- Playwright checks nằm trong `tests/`; báo cáo ở `tests/reports/`.
+- Playwright checks nằm trong `tests/site/`; báo cáo ở `tests/site/reports/`.
 - Visual/a11y/console/network được kiểm tra bằng Chrome DevTools trước release.

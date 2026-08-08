@@ -1,6 +1,7 @@
 assets/**
 reference-audit/**
 tests/reports/**
+tests/site/reports/**
 graphify-out/**
 .git/**
 .serena/**
