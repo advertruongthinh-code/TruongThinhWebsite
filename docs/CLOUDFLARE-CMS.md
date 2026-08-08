@@ -1,6 +1,6 @@
 # Cloudflare Worker CMS
 
-Worker `worker/index.js` render canonical public routes from static shells and
+Worker `src/worker/index.js` render canonical public routes from static shells and
 D1 content. Không có runtime dependency. `workers_dev = false`; production chỉ
 được phục vụ qua custom domain đã cấu hình trong Cloudflare.
 

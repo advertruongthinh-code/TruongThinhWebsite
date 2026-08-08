@@ -715,7 +715,7 @@ Exact CDN/SRI đang có trong source TT:
 
 ### Gap project-detail bắt buộc xử lý
 
-<code>worker/index.js:156–175</code> parse route project detail nhưng chọn
+<code>src/worker/index.js:156–175</code> parse route project detail nhưng chọn
 <code>SOURCE_ROUTES["projects-products"]</code>. Record project chỉ được áp vào
 leaf <code>data-cms</code> của source index; không có renderer khác nhau cho ba
 preset. Kết quả route detail có nguy cơ trả cùng hero/grid/filter của index.
@@ -792,7 +792,7 @@ Acceptance cho slice:
 | Attached rail semantics | Attachment <code>pasted-text.txt:1–76</code> |
 | TT shell/motion | <code>motion.js:180–340</code>, <code>630–770</code>, <code>1060–1205</code>, <code>1430–1565</code> |
 | TT header CSS | <code>style.css:161–365</code>, <code>1570–1660</code> |
-| TT project-detail routing gap | <code>worker/index.js:156–186</code> |
+| TT project-detail routing gap | <code>src/worker/index.js:156–186</code> |
 
 Bundle identity:
 

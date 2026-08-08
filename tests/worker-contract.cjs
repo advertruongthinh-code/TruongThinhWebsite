@@ -19,7 +19,7 @@ function base64url(value) {
 }
 
 async function importWorker() {
-  const source = fs.readFileSync("worker/index.js", "utf8");
+  const source = fs.readFileSync("src/worker/index.js", "utf8");
   return import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 }
 

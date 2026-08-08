@@ -84,7 +84,9 @@ repository.
 │  ├─ detail.css
 │  ├─ detail.js
 │  └─ products.js
-├─ worker/index.js           # static routing now; CMS-ready code is dormant
+├─ src/worker/index.js       # static routing now; CMS-ready code is dormant
+├─ src/admin/                # dormant private CMS shell
+├─ src/db/migrations/        # dormant CMS schema and seed drafts
 ├─ tests/                    # source, Worker, and browser contracts
 ├─ docs/                     # specs, decisions, reports, and CMS roadmap
 ├─ scripts/                  # project automation and reference crawler
