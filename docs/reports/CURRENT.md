@@ -1,14 +1,35 @@
 # Current state
 
-> Snapshot: 2026-08-02. Đây là trạng thái kiểm chứng tại thời điểm ghi, không
+> Snapshot: 2026-08-08. Đây là trạng thái kiểm chứng tại thời điểm ghi, không
 > thay thế việc đọc file/report hiện tại.
+
+## Cấu trúc repository ngày 2026-08-08
+
+- Nhánh local `codex/project-structure`; chưa push lên GitHub.
+- Source production đã tách vào `src/site`, `src/worker`, `src/admin` và
+  `src/db/migrations`; public URL và layout `.site-output` không đổi.
+- Test đã tách theo `tests/site`, `tests/worker`, `tests/tooling`; utility nằm
+  trong `scripts/site` và `scripts/reference`; agent tooling giữ nguyên
+  `scripts/tooling` để không làm mất trust của hook.
+- Tài liệu đã phân loại vào `docs/product`, `docs/engineering`,
+  `docs/operations`, `docs/decisions`, `docs/reports`.
+- Kho nghiên cứu nằm tại `research/reference-site`; full manifest trước/sau move
+  giống nhau: 1.955 file, 463.434.696 byte. Archive vẫn ignored và không lọt
+  vào `.site-output`.
+- Static contract, Worker security fixtures, Worker static runtime và
+  cross-browser smoke 21/21 trên Chromium, Firefox, WebKit đã pass. Suite CMS
+  đầy đủ vẫn cần D1 seed/binding và không phải release gate của phase tĩnh.
+- Serena không đổi language set; `.sql` vẫn được báo unsupported. MCP doctor
+  pass cả Serena, Graphify và Chrome DevTools. Graphify AST fresh; semantic pass
+  còn pending cho 31 file docs/media.
 
 ## Canonical product
 
 - Public canonical là `/vi/` và `/en/`; root/source/legacy paths redirect 308
   về `/vi/` counterpart.
 - Shared runtime/presentation:
-  `style.css`, `motion.js`, `detail.css`, `detail.js`.
+  `src/site/style.css`, `src/site/motion.js`, `src/site/detail.css`,
+  `src/site/detail.js`.
 - Route contract: `/vi/`/`/en/`, `residential`, `commercial`,
   `projects-products`, `about`, và `/projects/:slug/` theo locale.
 - Quy trình cố định:

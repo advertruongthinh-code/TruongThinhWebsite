@@ -216,3 +216,10 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
   thái semantic docs/media được suy ra bằng API incremental và manifest chính
   thức của Graphify, chỉ cảnh báo và không tự gọi LLM/API. Custom strict/watch
   profile, watcher và marker semantic đã bị loại vì trùng chức năng và dễ stale.
+
+- **DEC-037 — Repository boundaries follow runtime responsibility.** Canonical
+  production source lives under `src/`; tests are grouped by subsystem;
+  deploy/reference utilities are separate from the stable `scripts/tooling/`
+  trust boundary; system documents are categorized by purpose; reference
+  research is isolated under `research/`. Conventional discovery/config files
+  remain at repository root, and `.site-output` keeps the public URL shape.

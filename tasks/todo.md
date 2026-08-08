@@ -36,8 +36,8 @@
 - [ ] Obtain explicit approval for destructive cleanup.
 - [ ] Remove obsolete quarantine and old Graphify backup.
 - [ ] Keep required runtimes, browsers, Python, Serena cache, and reference data.
-- [ ] Refresh Serena and Graphify once after all moves.
-- [ ] Regenerate the tooling install manifest.
-- [ ] Run full QA, MCP doctor, link check, and Git inventory.
-- [ ] Update final README tree and Vietnamese handoff/current report.
-- [ ] Do not push without explicit owner instruction.
+- [x] Refresh Serena and Graphify once after all moves.
+- [x] Regenerate the tooling install manifest after the final tracked diff.
+- [x] Run static QA, three-browser smoke, MCP doctor, link check, and Git inventory.
+- [x] Update final README tree and Vietnamese handoff/current report.
+- [x] Do not push without explicit owner instruction.

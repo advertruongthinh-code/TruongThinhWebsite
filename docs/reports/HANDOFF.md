@@ -26,16 +26,16 @@ trí nhớ là bằng chứng; kiểm tra file và report thực tế trước k
 ## Run locally
 
 ```powershell
-python -m http.server 4173 --bind 127.0.0.1
+pnpm dev
 ```
 
 Mở:
 
-- `http://127.0.0.1:4173/`
-- `http://127.0.0.1:4173/nha-o/`
-- `http://127.0.0.1:4173/kinh-doanh/`
-- `http://127.0.0.1:4173/quang-cao/`
-- `http://127.0.0.1:4173/gioi-thieu/`
+- `http://127.0.0.1:8787/vi/`
+- `http://127.0.0.1:8787/vi/residential/`
+- `http://127.0.0.1:8787/vi/commercial/`
+- `http://127.0.0.1:8787/vi/projects-products/`
+- `http://127.0.0.1:8787/vi/about/`
 
 ## Before changing UI
 

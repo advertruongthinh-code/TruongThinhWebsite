@@ -87,10 +87,26 @@ repository.
 ├─ src/worker/index.js       # static routing now; CMS-ready code is dormant
 ├─ src/admin/                # dormant private CMS shell
 ├─ src/db/migrations/        # dormant CMS schema and seed drafts
-├─ tests/                    # source, Worker, and browser contracts
-├─ docs/                     # specs, decisions, reports, and CMS roadmap
-├─ scripts/                  # project automation and reference crawler
-└─ research/reference-site/  # tracked index plus ignored local research archive
+├─ tests/
+│  ├─ site/                  # static, E2E, and cross-browser contracts
+│  ├─ worker/                # Worker runtime and security contracts
+│  └─ tooling/               # hooks, Serena, Graphify, and bootstrap fixtures
+├─ scripts/
+│  ├─ site/                  # static deploy staging
+│  ├─ reference/             # generic reference crawler
+│  └─ tooling/               # project-local agent and MCP lifecycle; stable path
+├─ docs/
+│  ├─ product/               # content, motion, route, and release contracts
+│  ├─ engineering/           # architecture and deferred CMS design
+│  ├─ operations/            # admin and tooling runbooks
+│  ├─ decisions/             # ADRs and decision log
+│  └─ reports/               # Vietnamese status, audit, and handoff evidence
+├─ research/reference-site/  # tracked index plus ignored local research archive
+├─ .agents/                  # project-portable skills
+├─ .codex/                   # project hooks, MCP launchers, and personas
+├─ .tooling/                 # ignored local runtimes, cache, state, and backups
+├─ graphify-out/             # ignored generated code graph
+└─ .site-output/             # ignored generated deploy assets
 ```
 
 Before editing copy or media, read

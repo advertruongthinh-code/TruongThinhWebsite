@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "installed_at": "2026-08-08T15:20:58.4923113Z",
+  "installed_at": "2026-08-08T15:32:15.6421305Z",
   "policy": "project-only; pinned; notify-only updates",
   "versions": {
     "schema": 1,
@@ -102,8 +102,8 @@
     },
     {
       "path": ".graphifyignore",
-      "sha256": "d2e461806af20c2ecbd0d852261c7f64036afc0884b7ccb780a421cabe0eee56",
-      "bytes": 518
+      "sha256": "507bd5ad7b2b05820c24efde2aadedddf05cb8afb8e3a6ccfd00fcae67a37185",
+      "bytes": 527
     },
     {
       "path": ".serena/project.yml",
@@ -117,8 +117,8 @@
     },
     {
       "path": "package.json",
-      "sha256": "c48e677ac28d9792c3a056fca1a26ea0a3e357620d2c5c5c7180e6c6e63d7fe2",
-      "bytes": 1014
+      "sha256": "b91e9319117b5684ac62e21691d1161e04a9feac96571c7648657da385aedeba",
+      "bytes": 1097
     },
     {
       "path": "playwright.config.cjs",
@@ -407,11 +407,11 @@
     "restart_required": false
   },
   "graphify": {
-    "nodes": 721,
-    "edges": 1203,
+    "nodes": 722,
+    "edges": 1205,
     "freshness_policy": "wrapper-boundary",
     "semantic_status_available": true,
-    "semantic_pending_count": 76
+    "semantic_pending_count": 31
   },
   "browsers": [
     ".links",
