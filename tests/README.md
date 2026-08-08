@@ -22,6 +22,15 @@ node tests/worker/worker-contract.cjs
 node tests/site/site.e2e.cjs
 ```
 
+The static release can run Worker trust-boundary fixtures without D1:
+
+```powershell
+node tests/worker/worker-contract.cjs --security-only
+```
+
+The default Worker contract also checks seeded CMS catalogs and therefore
+belongs to the deferred CMS phase.
+
 Mặc định Worker contract dùng `http://127.0.0.1:8787`. Có thể đổi server:
 
 ```bash

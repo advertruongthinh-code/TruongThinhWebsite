@@ -26,12 +26,13 @@ release must not depend on the future CMS.
 
 1. A clean clone installs with `pnpm install --frozen-lockfile`.
 2. `pnpm qa:static` passes.
-3. `pnpm qa:worker:static` passes against `pnpm dev`.
-4. Chromium smoke passes in CI with no console, page, network, or overflow
+3. `pnpm qa:worker:security` passes without D1 or R2.
+4. `pnpm qa:worker:static` passes against `pnpm dev`.
+5. Chromium smoke passes in CI with no console, page, network, or overflow
    failure.
-5. Deployment produces a reachable preview URL and does not require CMS
+6. Deployment produces a reachable preview URL and does not require CMS
    bindings.
-6. Zalo, address, founding year, and warranty claims remain unset until the
+7. Zalo, address, founding year, and warranty claims remain unset until the
    owner confirms them.
 
 ## Release sequence

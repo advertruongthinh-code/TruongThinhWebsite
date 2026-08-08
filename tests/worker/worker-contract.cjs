@@ -91,11 +91,7 @@ async function runSecurityContract() {
       DB: { prepare: () => ({ bind: () => ({ first: async () => null }) }) },
     });
     assert(missingPage.status === 404, `missing published page returned ${missingPage.status}`);
-    const staticPage = await worker.default.fetch(new Request("https://site.example/vi/"), {
-      PUBLIC_ORIGIN: "https://site.example",
-      ASSETS: shell,
-    });
-    assert(staticPage.status === 200, `static fallback returned ${staticPage.status}`);
+    // Runtime SSR is covered by runPublicContract against Wrangler, which provides HTMLRewriter.
 
     const token = await accessToken(pair.privateKey, "admin@example.test");
     const headers = {
@@ -195,7 +191,7 @@ async function runSecurityContract() {
     validWebp.append("alt_en", "Test image");
     validWebp.append(
       "file",
-      new Blob([fs.readFileSync("assets/site/generated/kiosk-posm.webp")], { type: "image/webp" }),
+      new Blob([fs.readFileSync("src/site/assets/site/generated/commercial-space.webp")], { type: "image/webp" }),
       "known-good.webp",
     );
     const acceptedUpload = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: validWebp }), validUploadEnv);
@@ -225,16 +221,19 @@ async function runPublicContract() {
       assert(/<title\b[^>]*>[^<]+<\/title>/.test(body), `${path} has no SSR title`);
       if (segment === "commercial") {
         const expectedTitle = locale === "vi" ? "Không gian Kinh doanh — Trường Thịnh" : "Commercial spaces — Trường Thịnh";
-        assert(body.includes(`<title data-en="Commercial spaces — Trường Thịnh">${expectedTitle}</title>`), `${path} did not preserve the SSR commercial title`);
-        assert(body.includes(locale === "vi" ? ">KHÔNG GIAN</p>" : ">COMMERCIAL SPACES</p>"), `${path} did not preserve the SSR commercial hero kicker`);
+        assert(new RegExp(`<title data-en="Commercial spaces — Trường Thịnh">\\s*${expectedTitle}\\s*</title>`).test(body), `${path} did not preserve the SSR commercial title`);
+        const expectedKicker = locale === "vi"
+          ? "SHOP · F&amp;B · CAFE · VĂN PHÒNG"
+          : "RETAIL · F&amp;B · CAFÉS · OFFICES";
+        assert(new RegExp(`>\\s*${expectedKicker}\\s*</p>`).test(body), `${path} did not preserve the SSR commercial hero kicker`);
       }
       if (segment === "projects-products") {
         const expectedTitle = locale === "vi" ? "Công trình &amp; sản phẩm — Trường Thịnh" : "Projects &amp; products — Trường Thịnh";
         const expectedQualifier = locale === "vi" ? "Công trình &amp;" : "Projects &amp;";
         const expectedHeroTitle = locale === "vi" ? "sản phẩm" : "products";
-        assert(body.includes(`<title data-en="Projects &amp; products — Trường Thịnh">${expectedTitle}</title>`), `${path} did not preserve the SSR projects/products title`);
-        assert(new RegExp(`data-cms="hero\\.qualifier"[^>]*>${expectedQualifier}</span>`).test(body), `${path} did not preserve the SSR projects/products qualifier`);
-        assert(new RegExp(`data-cms="hero\\.title"[^>]*>${expectedHeroTitle}</span>`).test(body), `${path} did not preserve the SSR projects/products hero title`);
+        assert(new RegExp(`<title data-en="Projects &amp; products — Trường Thịnh">\\s*${expectedTitle}\\s*</title>`).test(body), `${path} did not preserve the SSR projects/products title`);
+        assert(new RegExp(`data-cms="hero\\.qualifier"[^>]*>\\s*${expectedQualifier}\\s*</span>`).test(body), `${path} did not preserve the SSR projects/products qualifier`);
+        assert(new RegExp(`data-cms="hero\\.title"[^>]*>\\s*${expectedHeroTitle}\\s*</span>`).test(body), `${path} did not preserve the SSR projects/products hero title`);
       }
       const counterpart = locale === "vi" ? "en" : "vi";
       assert(body.includes(`hreflang="${counterpart}" href="${BASE_URL}/${counterpart}/${segment ? `${segment}/` : ""}"`), `${path} does not contain a localized counterpart URL`);
@@ -357,9 +356,14 @@ async function runPublicContract() {
 }
 
 (async () => {
+  const securityOnly = process.argv.includes("--security-only");
   await runSecurityContract();
-  await runPublicContract();
-  console.log("[worker-contract] security, redirects, raw SSR, robots, and sitemap passed");
+  if (!securityOnly) await runPublicContract();
+  console.log(
+    securityOnly
+      ? "[worker-contract] security fixtures passed"
+      : "[worker-contract] security, redirects, raw SSR, robots, sitemap, and CMS catalog passed",
+  );
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;
