@@ -23,7 +23,7 @@ const TRACKING_PARAM =
   /^(?:fbclid|gclid|msclkid|utm_(?:campaign|content|medium|source|term))$/i;
 
 const scriptPath = fileURLToPath(import.meta.url);
-const repoRoot = path.resolve(path.dirname(scriptPath), "..");
+const repoRoot = path.resolve(path.dirname(scriptPath), "..", "..");
 const defaultArchiveDir = path.join(
   repoRoot,
   "reference-audit",
@@ -634,7 +634,7 @@ function parseArguments(argv) {
 
 function printHelp() {
   console.log(`Usage:
-  node scripts/archive-reference.mjs --origin <url> [options]
+  node scripts/reference/archive-reference.mjs --origin <url> [options]
 
 Options:
   --archive-dir <path>  Output directory (default: reference audit archive)

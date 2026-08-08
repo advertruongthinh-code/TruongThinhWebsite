@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "installed_at": "2026-08-08T15:11:47.8365613Z",
+  "installed_at": "2026-08-08T15:14:29.7049145Z",
   "policy": "project-only; pinned; notify-only updates",
   "versions": {
     "schema": 1,
@@ -117,8 +117,8 @@
     },
     {
       "path": "package.json",
-      "sha256": "c809c80812464a6a89c9a89fd22f2f3c108f216ead07e2bf7cc54ee965e4e323",
-      "bytes": 1009
+      "sha256": "c48e677ac28d9792c3a056fca1a26ea0a3e357620d2c5c5c7180e6c6e63d7fe2",
+      "bytes": 1014
     },
     {
       "path": "playwright.config.cjs",
@@ -408,7 +408,7 @@
   },
   "graphify": {
     "nodes": 721,
-    "edges": 1203,
+    "edges": 1204,
     "freshness_policy": "wrapper-boundary",
     "semantic_status_available": true,
     "semantic_pending_count": 76

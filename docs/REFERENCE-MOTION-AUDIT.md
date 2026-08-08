@@ -76,7 +76,7 @@ Không suy diễn “A” thành “I”, hoặc “I” thành “V”.
   <code>main.min.js</code>, <code>main.min.css</code>,
   <code>normalize.css</code>.
 - Crawler:
-  <code>scripts/archive-reference.mjs</code>.
+  <code>scripts/reference/archive-reference.mjs</code>.
 - Fragment người dùng đính kèm về rail dự án:
   <code>C:\Users\halal\.codex\attachments\2e8a6b52-9d2b-457d-88e5-13d1356f0bc8\pasted-text.txt</code>.
 
@@ -820,7 +820,7 @@ Bundle identity:
 1. Re-crawl vào archive trống hoặc chạy crawler theo hướng dẫn:
 
    ~~~powershell
-   node scripts/archive-reference.mjs --origin &lt;url&gt;
+   node scripts/reference/archive-reference.mjs --origin &lt;url&gt;
    ~~~
 
 2. Xác minh robots, timestamp, URL/page/asset count, manifest hash.

@@ -217,7 +217,7 @@ Kết quả ghi vào `tests/site/reports/latest.json`; failure screenshots ở
 
 ## Reference research archive
 
-`scripts/archive-reference.mjs` crawl tuần tự sitemap public của reference và
+`scripts/reference/archive-reference.mjs` crawl tuần tự sitemap public của reference và
 first-party media API vào `reference-audit/web-reference/archive/`. Manifest
 JSONL ghi URL, đường dẫn local, status, MIME, byte, SHA-256 và thời gian fetch.
 Thư mục này bị loại khỏi Graphify và không phải runtime dependency.

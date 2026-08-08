@@ -18,10 +18,10 @@
 ## Phase 2: Tests and utilities
 
 - [x] Split tests into `tests/site`, `tests/worker`, and `tests/tooling`.
-- [ ] Move the staging script to `scripts/site/`.
-- [ ] Move the crawler to `scripts/reference/`.
-- [ ] Keep `scripts/tooling/` and trusted hook commands unchanged.
-- [ ] Pass Checkpoint A runtime equivalence.
+- [x] Move the staging script to `scripts/site/`.
+- [x] Move the crawler to `scripts/reference/`.
+- [x] Keep `scripts/tooling/` and trusted hook commands unchanged.
+- [x] Pass Checkpoint A runtime equivalence (static, Worker runtime, Chromium 7/7).
 
 ## Phase 3: Documentation and research
 

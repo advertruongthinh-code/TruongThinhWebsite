@@ -5,7 +5,7 @@
   "description": "Project-local QA and agent tooling for Truong Thinh Website",
   "packageManager": "pnpm@11.16.0",
   "scripts": {
-    "prepare:site": "node scripts/prepare-static-assets.mjs",
+    "prepare:site": "node scripts/site/prepare-static-assets.mjs",
     "dev": "pnpm prepare:site && wrangler dev",
     "deploy": "pnpm prepare:site && wrangler deploy",
     "qa:static": "node tests/site/site-static-contract.cjs",

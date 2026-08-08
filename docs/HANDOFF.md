@@ -119,7 +119,7 @@ archive bằng:
 
 ```powershell
 node --test reference-audit/web-reference/archive/crawler.test.mjs
-node scripts/archive-reference.mjs --origin <url>
+node scripts/reference/archive-reference.mjs --origin <url>
 ```
 
 Kiểm tra `manifest.jsonl` và README trong archive trước khi gọi crawl hoàn tất.

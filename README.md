@@ -103,7 +103,7 @@ layout or motion, read
 The crawler is deliberately generic and requires an explicit origin:
 
 ```powershell
-node scripts/archive-reference.mjs --origin <url>
+node scripts/reference/archive-reference.mjs --origin <url>
 ```
 
 Generated source and media are stored under

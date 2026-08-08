@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const scriptPath = fileURLToPath(import.meta.url);
-const projectRoot = path.resolve(path.dirname(scriptPath), "..");
+const projectRoot = path.resolve(path.dirname(scriptPath), "..", "..");
 const sourceRoot = path.join(projectRoot, "src", "site");
 const outputRoot = path.join(projectRoot, ".site-output");
 
