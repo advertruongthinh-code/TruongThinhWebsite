@@ -90,7 +90,7 @@ repository.
 ├─ tests/                    # source, Worker, and browser contracts
 ├─ docs/                     # specs, decisions, reports, and CMS roadmap
 ├─ scripts/                  # project automation and reference crawler
-└─ reference-audit/          # ignored local research archive
+└─ research/reference-site/  # tracked index plus ignored local research archive
 ```
 
 Before editing copy or media, read
@@ -107,7 +107,7 @@ node scripts/reference/archive-reference.mjs --origin <url>
 ```
 
 Generated source and media are stored under
-`reference-audit/web-reference/archive/`, ignored by Git, and must never be
+`research/reference-site/archive/`, ignored by Git, and must never be
 loaded by the production website. Do not commit proprietary source, media,
 logos, or identifying reference-site URLs.
 

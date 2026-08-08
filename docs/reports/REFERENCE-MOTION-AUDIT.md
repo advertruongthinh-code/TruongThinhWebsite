@@ -66,12 +66,12 @@ Không suy diễn “A” thành “I”, hoặc “I” thành “V”.
 ### Nguồn local
 
 - Crawl đầy đủ:
-  <code>reference-audit/web-reference/archive/</code>.
+  <code>research/reference-site/archive/</code>.
 - HTML chọn lọc và bundle dùng để đọc:
-  <code>reference-audit/web-reference/source/</code>.
+  <code>research/reference-site/source/</code>.
 - JS/CSS đã format:
-  <code>reference-audit/web-reference/source/main.pretty.js</code> và
-  <code>reference-audit/web-reference/source/main.pretty.css</code>.
+  <code>research/reference-site/source/main.pretty.js</code> và
+  <code>research/reference-site/source/main.pretty.css</code>.
 - HTML gốc minified:
   <code>main.min.js</code>, <code>main.min.css</code>,
   <code>normalize.css</code>.
@@ -83,7 +83,7 @@ Không suy diễn “A” thành “I”, hoặc “I” thành “V”.
 ### Phạm vi crawl đã kiểm
 
 - 254/254 HTML hợp lệ trong
-  <code>reference-audit/web-reference/archive/site/</code>.
+  <code>research/reference-site/archive/site/</code>.
 - 11 giá trị <code>data-barba-id</code>.
 - Tất cả 254 trang dùng
   <code>data-barba-namespace="common"</code>.
@@ -765,8 +765,8 @@ Acceptance cho slice:
 
 | Evidence | Path / line |
 | --- | --- |
-| Crawl method/result | <code>reference-audit/web-reference/archive/README.md</code> |
-| Public shell markup | <code>reference-audit/web-reference/source/home.html:85–370</code> |
+| Crawl method/result | <code>research/reference-site/archive/README.md</code> |
+| Public shell markup | <code>research/reference-site/source/home.html:85–370</code> |
 | Common Barba + unsafe script reinjection | <code>main.pretty.js:16971–17104</code> |
 | Locomotive/header/scroll-call | <code>main.pretty.js:17107–17406</code> |
 | Header intro | <code>main.pretty.js:17408–17449</code> |
@@ -965,7 +965,7 @@ loại cumulative state. QA responsive vẫn phải kiểm cả cold load và re
 
 ### 17.2 Home — hero, montage, header/rail
 
-[Archive index](../../reference-audit/web-reference/README.md)
+[Archive index](../../research/reference-site/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | Montage row 1 `F/L + rect` | Montage row 4 `F/L + rect` |
 | ---: | --- | --- | --- | --- |
@@ -1038,7 +1038,7 @@ copy SVG/path của web tham khảo.
 
 ### 17.3 Interior Design — service hero và editorial copy
 
-[Archive index](../../reference-audit/web-reference/README.md)
+[Archive index](../../research/reference-site/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | First h2 `F/L + rect` |
 | ---: | --- | --- | --- |
@@ -1056,7 +1056,7 @@ desktop, text-indent 100/50 theo breakpoint.
 
 ### 17.4 Kitchens — service hero và editorial copy
 
-[Archive index](../../reference-audit/web-reference/README.md)
+[Archive index](../../research/reference-site/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | First h2 `F/L + rect` |
 | ---: | --- | --- | --- |
@@ -1072,7 +1072,7 @@ CTA label là 16/22.4 semibold uppercase.
 
 ### 17.5 Projects — full-screen title và filter
 
-[Archive index](../../reference-audit/web-reference/README.md)
+[Archive index](../../research/reference-site/README.md)
 
 | Width | Hero line 1 `F/L + rect` | Hero line 2 `F/L + rect` | Active filter `F/L + rect` |
 | ---: | --- | --- | --- |
@@ -1088,7 +1088,7 @@ Active filter pseudo-element đo đúng 3 px, bottom -4 px, transition 0.3 s
 
 ### 17.6 Project detail — Can Molteni
 
-[Archive index](../../reference-audit/web-reference/README.md)
+[Archive index](../../research/reference-site/README.md)
 
 | Width | Title line 1 `F/L + rect` | Title line 2 `F/L + rect` | First h2 `F/L + rect` |
 | ---: | --- | --- | --- |

@@ -114,11 +114,11 @@ marker tự tạo.
 ## Reference archive
 
 Source/media public của web tham khảo dùng cho nghiên cứu nằm tại
-`reference-audit/web-reference/archive/`, không phải runtime dependency. Cập nhật
+`research/reference-site/archive/`, không phải runtime dependency. Cập nhật
 archive bằng:
 
 ```powershell
-node --test reference-audit/web-reference/archive/crawler.test.mjs
+node --test research/reference-site/archive/crawler.test.mjs
 node scripts/reference/archive-reference.mjs --origin <url>
 ```
 

@@ -7,11 +7,11 @@
 ## Nguồn nghiên cứu
 
 - HTML và bundle đã lưu:
-  `reference-audit/web-reference/source/`.
+  `research/reference-site/source/`.
 - Bản JS/CSS đã format chỉ để đọc:
   `main.pretty.js`, `main.pretty.css`.
 - Bản crawl sitemap phục vụ nghiên cứu:
-  `reference-audit/web-reference/archive/`.
+  `research/reference-site/archive/`.
 - Báo cáo hình học ban đầu:
   `docs/reports/REFERENCE-MOTION-AUDIT.md`.
 

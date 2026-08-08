@@ -46,7 +46,7 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
   dùng white fade `.75s/1s`; full-menu dùng bốn background columns, page scale
   `.9`, timeline `1.15×` và reverse `2.25×`; line/media timing theo
   `docs/product/MOTION-MAP.md`. Bundle public của reference chỉ nằm trong
-  `reference-audit/` để nghiên cứu, không được load bởi website production.
+  `research/reference-site/` để nghiên cứu, không được load bởi website production.
 
 - **DEC-011 — Header route-first, không dùng fragment navigation.** Desktop nav
   và full-menu chỉ dẫn tới canonical route. Public anchor không chứa fragment;
@@ -62,7 +62,7 @@ thêm quyết định mới ghi rõ quyết định nào bị supersede.
   chạy full semantic extraction.
 
 - **DEC-013 — Reference archive tách khỏi runtime.** Crawler sitemap tuần tự lưu
-  HTML/source/media first-party vào `reference-audit/web-reference/archive/` kèm
+  HTML/source/media first-party vào `research/reference-site/archive/` kèm
   manifest SHA-256 để nghiên cứu và tái lập. Archive bị Graphify bỏ qua, không
   được load vào website production và không thay thế quyền sử dụng nội dung.
 

@@ -26,8 +26,8 @@ const scriptPath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(scriptPath), "..", "..");
 const defaultArchiveDir = path.join(
   repoRoot,
-  "reference-audit",
-  "web-reference",
+  "research",
+  "reference-site",
   "archive",
 );
 

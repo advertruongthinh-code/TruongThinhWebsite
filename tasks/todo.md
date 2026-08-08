@@ -27,9 +27,9 @@
 
 - [x] Classify docs into product, engineering, operations, decisions, reports.
 - [x] Update mandatory AGENTS/README paths.
-- [ ] Move reference research to `research/reference-site/` with manifest proof.
-- [ ] Update ignore and language-sync mappings.
-- [ ] Confirm research remains outside deploy output.
+- [x] Move reference research to `research/reference-site/` with full manifest proof (1,955 files, 463,434,696 bytes).
+- [x] Update ignore and language-sync mappings.
+- [x] Confirm research remains outside deploy output.
 
 ## Phase 4: Purge and finish
 

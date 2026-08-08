@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "installed_at": "2026-08-08T15:14:29.7049145Z",
+  "installed_at": "2026-08-08T15:20:58.4923113Z",
   "policy": "project-only; pinned; notify-only updates",
   "versions": {
     "schema": 1,
@@ -97,13 +97,13 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "7af113a1b6298e8d84604a85570a46025349db7ffee095d80a9b00366fd29ab3",
-      "bytes": 485
+      "sha256": "0cd170bba62d8d2f67863f89119e94399e559d8283a4cac97143814614a7b252",
+      "bytes": 479
     },
     {
       "path": ".graphifyignore",
-      "sha256": "c5c1c93a041cdc38431dc07df091219d5fbcc440c9bae886bc8115c01c6c80f8",
-      "bytes": 525
+      "sha256": "d2e461806af20c2ecbd0d852261c7f64036afc0884b7ccb780a421cabe0eee56",
+      "bytes": 518
     },
     {
       "path": ".serena/project.yml",
@@ -112,8 +112,8 @@
     },
     {
       "path": "AGENTS.md",
-      "sha256": "bd1a47a65f3d4fcb2b9f830590343586da1bcbb7d44cc30f67950245da8d75c0",
-      "bytes": 7437
+      "sha256": "cb8b7da6e1300f284f799b723ddbc85980a25394173cda8c4aee576740ead65d",
+      "bytes": 7466
     },
     {
       "path": "package.json",
@@ -197,8 +197,8 @@
     },
     {
       "path": "scripts/tooling/serena-language-map.json",
-      "sha256": "776b4ea788be20288fd694d019c910e39fb82325d132fc2777b566176ea1ddd6",
-      "bytes": 2143
+      "sha256": "ab08069965baecc0fba3e48b042e908162b97836f25799cf65d801e4e83ad1fa",
+      "bytes": 2136
     },
     {
       "path": "scripts/tooling/start-chrome-devtools-mcp.ps1",
@@ -408,7 +408,7 @@
   },
   "graphify": {
     "nodes": 721,
-    "edges": 1204,
+    "edges": 1203,
     "freshness_policy": "wrapper-boundary",
     "semantic_status_available": true,
     "semantic_pending_count": 76

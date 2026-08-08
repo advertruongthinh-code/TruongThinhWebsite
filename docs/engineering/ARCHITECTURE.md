@@ -88,7 +88,7 @@ HTML giữ class contract; không đưa layout tuỳ route vào inline style.
 
 Timing, easing và selector mapping được ghi tại
 [MOTION-MAP.md](../product/MOTION-MAP.md). Production chỉ tái tạo hành vi đã đo; bundle
-reference lưu trong `reference-audit/` không được nạp vào website.
+reference lưu trong `research/reference-site/` không được nạp vào website.
 
 ### `detail.js`
 
@@ -218,7 +218,7 @@ Kết quả ghi vào `tests/site/reports/latest.json`; failure screenshots ở
 ## Reference research archive
 
 `scripts/reference/archive-reference.mjs` crawl tuần tự sitemap public của reference và
-first-party media API vào `reference-audit/web-reference/archive/`. Manifest
+first-party media API vào `research/reference-site/archive/`. Manifest
 JSONL ghi URL, đường dẫn local, status, MIME, byte, SHA-256 và thời gian fetch.
 Thư mục này bị loại khỏi Graphify và không phải runtime dependency.
 

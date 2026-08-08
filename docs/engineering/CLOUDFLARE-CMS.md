@@ -60,7 +60,7 @@ write client production. Mọi write thành công được ghi `audit_log`.
   `menu_order` is an integer from 1 to 999. Records remain out of the menu when
   the group is null.
 - `products`: category IDs must have `kind=product`; seed toàn bộ
-  `reference-audit/Products.txt`, grouped by six ordered categories; Kiosk & POSM
+  `research/reference-site/Products.txt`, grouped by six ordered categories; Kiosk & POSM
   is default.
 - Không có raw HTML/WYSIWYG. Admin sends text fields; server validates shape.
 - Content media accepts WebP with RIFF size, WEBP and VP8/VP8L/VP8X validation.
