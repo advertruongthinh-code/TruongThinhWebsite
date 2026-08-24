@@ -1,0 +1,31 @@
+name = "truong-thinh-website"
+main = "src/worker/index.js"
+compatibility_date = "2026-07-31"
+workers_dev = true
+
+[assets]
+directory = ".site-output"
+binding = "ASSETS"
+html_handling = "force-trailing-slash"
+not_found_handling = "404-page"
+run_worker_first = [
+  "/",
+  "/index.html",
+  "/vi",
+  "/vi/*",
+  "/en",
+  "/en/*",
+  "/nha-o*",
+  "/kinh-doanh*",
+  "/quang-cao*",
+  "/gioi-thieu*",
+  "/residential*",
+  "/commercial*",
+  "/advertising-products*",
+  "/projects-products*",
+  "/about*",
+  "/api/*",
+  "/media/*",
+  "/robots.txt",
+  "/sitemap.xml",
+]

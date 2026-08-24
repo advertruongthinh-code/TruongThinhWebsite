@@ -1,0 +1,39 @@
+{
+  "priority": [
+    "typescript", "html", "scss", "powershell", "markdown", "json", "toml", "yaml",
+    "python", "bash", "go", "rust", "java", "kotlin", "cpp", "csharp", "ruby", "php",
+    "swift", "scala", "dart", "vue", "svelte", "lua", "terraform", "nix", "elixir",
+    "erlang", "fsharp", "haskell", "clojure", "julia", "r", "zig", "solidity", "latex"
+  ],
+  "extensions": {
+    ".js": "typescript", ".mjs": "typescript", ".cjs": "typescript", ".jsx": "typescript",
+    ".ts": "typescript", ".mts": "typescript", ".cts": "typescript", ".tsx": "typescript",
+    ".html": "html", ".htm": "html",
+    ".css": "scss", ".scss": "scss", ".sass": "scss",
+    ".ps1": "powershell", ".psm1": "powershell", ".psd1": "powershell",
+    ".md": "markdown", ".mdx": "markdown",
+    ".json": "json", ".jsonc": "json",
+    ".toml": "toml", ".yaml": "yaml", ".yml": "yaml",
+    ".py": "python", ".pyi": "python",
+    ".sh": "bash", ".bash": "bash", ".zsh": "bash",
+    ".go": "go", ".rs": "rust", ".java": "java", ".kt": "kotlin", ".kts": "kotlin",
+    ".c": "cpp", ".h": "cpp", ".cc": "cpp", ".cpp": "cpp", ".cxx": "cpp", ".hpp": "cpp",
+    ".cs": "csharp", ".rb": "ruby", ".php": "php", ".swift": "swift", ".scala": "scala",
+    ".dart": "dart", ".vue": "vue", ".svelte": "svelte", ".lua": "lua",
+    ".tf": "terraform", ".tfvars": "terraform", ".nix": "nix",
+    ".ex": "elixir", ".exs": "elixir", ".erl": "erlang", ".hrl": "erlang",
+    ".fs": "fsharp", ".fsx": "fsharp", ".hs": "haskell", ".lhs": "haskell",
+    ".clj": "clojure", ".cljs": "clojure", ".jl": "julia", ".r": "r", ".zig": "zig",
+    ".sol": "solidity", ".tex": "latex"
+  },
+  "unsupported": [".sql", ".astro", ".less"],
+  "ignored_extensions": [
+    ".lock", ".txt", ".csv", ".xml", ".ico", ".woff", ".woff2", ".ttf",
+    ".pdf", ".zip", ".gz", ".map", ".pyc", ".graphify-bak"
+  ],
+  "excluded_directories": [
+    ".git", ".serena", ".tooling", "node_modules", "graphify-out", "assets", "research",
+    "test-results", "playwright-report", "_temp", ".wrangler", "__pycache__"
+  ],
+  "excluded_prefixes": ["tests/reports/", "tests/site/reports/", ".agents/", ".codex/skills/"]
+}

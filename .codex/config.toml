@@ -1,0 +1,3 @@
+# This project inherits the user-global Codex stack.
+# Caveman ultra is set by the closer project rule in AGENTS.md.
+# Do not add lifecycle hooks or project-local MCP/package paths here.

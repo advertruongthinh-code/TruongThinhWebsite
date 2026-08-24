@@ -1,0 +1,32 @@
+node_modules/
+_temp/
+tests/reports/
+tests/site/reports/
+*.log
+__pycache__/
+*.pyc
+
+# Project-local browser payloads and generated tooling state.
+.tooling/
+.serena/cache/
+.serena/logs/
+.serena/project.local.yml
+test-results/
+playwright-report/
+.wrangler/
+.site-output/
+graphify-out/
+.impeccable/config.local.json
+.impeccable/design.json
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Local parity artifacts and raw runtime evidence. Markdown summaries remain project files.
+/.tmp/
+/tmp-layout-motion-*/
+/research/reference-site/runtime-evidence/
+/docs/reports/*.csv
+/docs/reports/*.bak
+
+# Generated reference website archive.
+/research/reference-site/archive/

@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Câu chuyện Trường Thịnh: hơn 20 năm vững nghề, một cách làm bắt đầu từ khảo sát đúng và cam kết làm chắc để đi đường dài."
+      data-en-content="The Trường Thịnh story: more than 20 years at the craft, a process that begins with a proper site survey, and a commitment to build for the long run."
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-black.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-white.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap"
+    />
+    <script>
+      try {
+        const historyNavigation =
+          performance.getEntriesByType?.("navigation")[0]?.type ===
+            "back_forward" || performance.navigation?.type === 2;
+        if (
+          sessionStorage.getItem("tt-route") === "1" ||
+          historyNavigation
+        ) {
+          sessionStorage.removeItem("tt-route");
+          document.documentElement.classList.add("route-enter");
+        }
+        const routeLocale = document.documentElement.dataset.routeLocale;
+        document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
+      } catch {}
+    </script>
+    <script>
+      (() => {
+        const r=document.documentElement,a=new AbortController(),s={signal:a.signal},k=u=>`tt-locale-scroll:${u.pathname}${u.search}`;let close;
+        const b=window.__ttMotionBoot={claimed:false,fallback:false,timer:0,claim(){this.claimed=true;clearTimeout(this.timer);this.timer=0;return this.fallback},release(){close?.(false);a.abort();r.classList.remove("motion-fallback");this.fallback=false}};
+        const fail=()=>{
+          if(b.claimed||b.fallback)return;b.timer=0;if(!document.body)return document.addEventListener("DOMContentLoaded",fail,{once:true});
+          b.fallback=true;r.classList.add("motion-fallback");r.classList.remove("route-enter");document.body.classList.remove("is-transitioning","menu-open","motion-paused");
+          const c=document.querySelector("[data-barba=container]");if(c)c.hidden=false;window.TruongThinhDetail?.mount(c,{settled:true});
+          try{sessionStorage.removeItem("tt-route");const u=new URL(location.href),s=sessionStorage.getItem(k(u));sessionStorage.removeItem(k(u));if(s!==null){const restore=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,+s||0)));document.readyState==="complete"?restore():addEventListener("load",restore,{once:true,signal:a.signal})}}catch{}
+          const d=document.querySelector("#site-menu"),o=document.querySelector("[data-menu-open]");
+          close=(focus=true)=>{if(d?.open)d.close();d?.classList.remove("is-active");document.body.classList.remove("menu-open");o?.setAttribute("aria-expanded","false");if(focus)o?.focus({preventScroll:true})};
+          document.addEventListener("click",e=>{if(b.claimed)return;const t=e.target,l=t.closest("[data-language-option]");if(l){e.preventDefault();const u=new URL(l.href);u.search=location.search;u.hash="";try{sessionStorage.setItem(k(u),String(Math.round(scrollY)))}catch{}location.assign(u.href)}else if(t.closest("[data-menu-open]")&&!d?.open){d?.showModal();d?.classList.add("is-active");document.body.classList.add("menu-open");o?.setAttribute("aria-expanded","true");document.querySelector("[data-menu-close]")?.focus({preventScroll:true})}else if(t.closest("[data-menu-close]"))close()},s);
+          d?.addEventListener("cancel",e=>{e.preventDefault();close()},s);
+          addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
+        };
+        window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
+        b.timer=setTimeout(fail,2_500);
+      })();
+    </script>
+    <title data-en="About Trường Thịnh — 20+ Years of Craft">
+      Giới thiệu Trường Thịnh — Hơn 20 năm vững nghề
+    </title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.css"
+      integrity="sha384-8DE/Lk4d6Oc/WO04f3lv9vQCSrM28sDYyEmrs9hx4+b+oOrgm4txW7cOxPWlTHEd"
+      crossorigin="anonymous"
+      media="(min-width: 981px)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/content/shared/legacy-team.webp"
+      type="image/webp"
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/detail.css" />
+  </head>
+  <body
+    class="detail-page about-page"
+    data-detail-hero-profile="words-09"
+    data-barba="wrapper"
+  >
+    <div class="route-veil" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+
+    <header class="site-header" data-site-header>
+      <a
+        id="header-logo"
+        class="brand"
+        href="/"
+        aria-label="Trường Thịnh — Trang chủ"
+        data-en-aria-label="Trường Thịnh — Home"
+      >
+        <svg class="brand-mark" viewBox="0 0 286.2 247.85" aria-hidden="true">
+          <path d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" />
+          <path d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" />
+          <path d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" />
+          <path d="M143.1 0l32.48 56.25c-36.88 63.87 -73.75 127.74 -110.62 191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" />
+        </svg>
+        <span class="brand-copy">
+          <strong>TRƯỜNG THỊNH</strong>
+          <small data-en="INTERIORS · ADVERTISING">
+            NỘI THẤT · QUẢNG CÁO
+          </small>
+        </span>
+        <span class="sr-only" data-en="— go to homepage">— về trang chủ</span>
+      </a>
+
+      <nav
+        id="header-menu-items"
+        class="desktop-nav"
+        aria-label="Điều hướng trang giới thiệu"
+        data-en-aria-label="About page navigation"
+      >
+        <ul>
+          <li>
+            <a href="/vi/residential/" data-vi="Không gian Nhà ở" data-en="Residential spaces"
+              >Không gian Nhà ở</a
+            >
+          </li>
+          <li>
+            <a
+              href="/vi/commercial/"
+              data-vi="Không gian Kinh doanh"
+              data-en="Commercial spaces"
+              >Không gian Kinh doanh</a
+            >
+          </li>
+          <li>
+            <a
+              href="/vi/advertising-products/"
+              data-vi="Sản phẩm Quảng cáo"
+              data-en="Advertising products"
+              >Sản phẩm Quảng cáo</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <button
+        id="header-menu-toggle"
+        class="menu-button"
+        type="button"
+        aria-label="Mở menu"
+        data-en-aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="site-menu"
+        data-menu-open
+      >
+        <svg id="header-toggle-svg" viewBox="0 0 35 19" aria-hidden="true">
+          <line class="top" x1="0" y1="1.5" x2="35" y2="1.5" />
+          <line class="middle" x1="8.75" y1="9.5" x2="26.25" y2="9.5" />
+          <line class="bottom" x1="0" y1="17.5" x2="35" y2="17.5" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- TODO(owner): Replace this placeholder with the verified official Zalo URL. -->
+    <a
+      class="floating-cta"
+      href="https://zalo.me/"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Trao đổi công trình qua Zalo"
+      data-en-aria-label="Discuss your project on Zalo"
+    >
+      <span data-en="Talk on Zalo">Trao đổi qua Zalo</span>
+      <svg viewBox="0 0 58.09 57.82" aria-hidden="true"><rect x="3.66" y="9.64" width="50.77" height="44.28" /><line x1="15.01" x2="15.01" y1="1.9" y2="14.69" /><line x1="29.04" x2="29.04" y1="1.9" y2="14.69" /><line x1="43.08" x2="43.08" y1="1.9" y2="14.69" /><line x1="3.66" x2="54.43" y1="23.59" y2="23.59" /></svg>
+    </a>
+
+    <dialog class="site-menu" id="site-menu" aria-labelledby="menu-title">
+      <div class="menu-shutters" aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+      </div>
+      <div class="menu-inner">
+        <div class="menu-head">
+          <a class="menu-brand" href="/vi/" aria-label="Trường Thịnh — về trang chủ" data-en-aria-label="Trường Thịnh — back to home"><svg class="menu-brand__mark" viewBox="0 0 286.2 247.85" aria-hidden="true"><path d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" /><path d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" /><path d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" /><path d="M143.1 0l32.48 56.25c-36.88 63.87 -73.75 127.74 -110.62 191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" /></svg><span class="menu-brand__copy"><strong id="menu-title">TRƯỜNG THỊNH</strong><small data-en="INTERIORS · ADVERTISING">NỘI THẤT · QUẢNG CÁO</small></span></a>
+          <div class="menu-language" role="group" aria-label="Chọn ngôn ngữ" data-en-aria-label="Choose language"><a href="/vi/about/" data-language-option="vi" lang="vi" data-en="Vietnamese">Tiếng Việt</a><a href="/en/about/" data-language-option="en" lang="en" data-en="English">English</a></div>
+          <a class="menu-appointment" href="https://zalo.me/" target="_blank" rel="noreferrer"><svg data-menu-calendar viewBox="0 0 58.09 57.82" aria-hidden="true"><rect x="3.66" y="9.64" width="50.77" height="44.28" /><line x1="15.01" x2="15.01" y1="1.9" y2="14.69" /><line x1="29.04" x2="29.04" y1="1.9" y2="14.69" /><line x1="43.08" x2="43.08" y1="1.9" y2="14.69" /><line x1="3.66" x2="54.43" y1="23.59" y2="23.59" /></svg><span data-en="Book a site survey">Đặt lịch khảo sát</span></a>
+          <button class="menu-close" type="button" aria-label="Đóng menu" data-en-aria-label="Close menu" data-menu-close><div class="menu-close__icon"><svg width="100%" height="100%" aria-hidden="true"><line class="top" x1="0" y1="0" x2="100%" y2="100%" /><line class="middle" x1="100%" y1="0" x2="0" y2="100%" /></svg></div></button>
+        </div>
+        <nav
+          class="menu-nav"
+          aria-label="Menu trang giới thiệu"
+          data-en-aria-label="About page menu"
+        >
+          <div class="menu-group"><span class="menu-group__number">01</span><a class="menu-group__title" href="/vi/residential/"><span data-vi="Không gian Nhà ở" data-en="Residential spaces">Không gian Nhà ở</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/residential/?type=townhouse" data-en="Townhouses">Nhà phố</a><a class="menu-option" href="/vi/residential/?type=apartment" data-en="Apartments">Căn hộ</a><a class="menu-option" href="/vi/residential/?type=homestay" data-en="Homestays">Homestay</a></div></div>
+          <div class="menu-group"><span class="menu-group__number">02</span><a class="menu-group__title" href="/vi/commercial/"><span data-vi="Không gian Kinh doanh" data-en="Commercial spaces">Không gian Kinh doanh</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/commercial/?type=shop-showroom" data-en="Shop &amp; showroom">Shop &amp; showroom</a><a class="menu-option" href="/vi/commercial/?type=fnb" data-en="F&amp;B &amp; cafés">F&amp;B &amp; cafe</a><a class="menu-option" href="/vi/commercial/?type=office" data-en="Offices">Văn phòng</a><a class="menu-option" href="/vi/commercial/?type=retail" data-en="Retail stores">Cửa hàng bán lẻ</a></div></div>
+          <div class="menu-group"><span class="menu-group__number">03</span><a class="menu-group__title" href="/vi/advertising-products/"><span data-vi="Sản phẩm Quảng cáo" data-en="Advertising products">Sản phẩm Quảng cáo</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/advertising-products/?category=kiosk-posm" data-en="Kiosk &amp; POSM">Kiosk &amp; POSM</a><a class="menu-option" href="/vi/advertising-products/?category=mobile-retail" data-en="Mobile retail">Xe bán hàng</a><a class="menu-option" href="/vi/advertising-products/?category=signage" data-en="Signage">Bảng hiệu</a><a class="menu-option" href="/vi/advertising-products/?category=light-box" data-en="Light boxes">Hộp đèn</a></div></div>
+          <div class="menu-group"><span class="menu-group__number">04</span><a class="menu-group__title" href="/vi/about/" aria-current="page"><span data-en="About us">Về chúng tôi</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/about/?topic=heritage" data-en="Heritage">Di sản</a><a class="menu-option" href="/vi/about/?topic=process" data-en="How we work">Cách làm</a><a class="menu-option" href="/vi/about/?topic=commitment" data-en="Commitment">Cam kết</a><a class="menu-option" href="/vi/about/?topic=contact" data-en="Contact">Liên hệ</a></div></div>
+        </nav>
+      </div>
+    </dialog>
+
+    <div
+      class="page-shell"
+      data-scroll-container
+      data-barba="container"
+      data-barba-namespace="about"
+    >
+      <main id="noi-dung">
+        <section
+          class="hero detail-hero about-hero"
+          id="top"
+          data-header-tone="inverse"
+          aria-labelledby="page-title"
+        >
+          <figure class="about-hero__media" aria-hidden="true">
+            <img
+              src="/assets/content/shared/legacy-team.webp"
+              width="1536"
+              height="1024"
+              alt=""
+              fetchpriority="high"
+              data-about-hero-image
+              data-motion-hero-media
+            />
+          </figure>
+          <div class="hero-shade" aria-hidden="true"></div>
+
+          <div class="hero-content">
+            <p
+              class="hero-kicker"
+              data-cms="hero.kicker"
+              data-motion-hero-kicker
+              data-en="THE TRƯỜNG THỊNH STORY"
+            >
+              CÂU CHUYỆN TRƯỜNG THỊNH
+            </p>
+            <h1 id="page-title" data-motion-words data-motion-hero-title>
+              <span class="detail-hero-line-mask">
+                <span
+                  class="detail-title__quiet"
+                  data-motion-word-source
+                  data-en="Craft, proven."
+                >
+                  Vững nghề.
+                </span>
+              </span>
+              <span class="detail-hero-line-mask">
+                <span
+                  class="detail-title__strong"
+                  data-motion-word-source
+                  data-en="Trust, earned."
+                >
+                  Vững niềm tin.
+                </span>
+              </span>
+            </h1>
+          </div>
+
+          <div
+            class="about-hero__chapters"
+            aria-label="Ba chương trong câu chuyện Trường Thịnh"
+            data-en-aria-label="Three chapters in the Trường Thịnh story"
+          >
+            <span data-en="I. Heritage">I. Di sản</span>
+            <span data-en="II. Our way">II. Cách làm</span>
+            <span data-en="III. Commitment">III. Cam kết</span>
+          </div>
+
+        </section>
+
+        <section
+          class="detail-intro about-opening section-gap"
+          id="mo-dau"
+          data-header-tone="ink"
+          aria-labelledby="opening-label"
+        >
+          <p
+            class="detail-eyebrow"
+            id="opening-label"
+            data-en="A PRACTICE, NOT A SLOGAN"
+          >
+            MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU
+          </p>
+          <p class="detail-intro__copy">
+            <span
+              data-en="When a space enters daily use, what remains is more than its appearance. It is how a door closes, how a counter carries the pace of work, and the feeling that every detail has been seen through."
+            >
+              Khi một không gian đi vào sử dụng, điều còn lại không chỉ là hình
+              thức. Đó là cách cánh tủ khép lại, cách quầy chịu được nhịp làm
+              việc mỗi ngày, và cảm giác mọi chi tiết đã được làm đến nơi đến
+              chốn.
+            </span>
+          </p>
+        </section>
+
+        <section
+          class="detail-heading section-gap"
+          id="di-san"
+          data-header-tone="ink"
+          aria-labelledby="heritage-title"
+        >
+          <p class="detail-eyebrow" data-motion-fade data-en="I. HERITAGE">
+            I. DI SẢN
+          </p>
+          <h2 id="heritage-title" data-motion-lines>
+            <span class="detail-line">
+              <span data-motion-line-source data-en="More than 20 years">
+                Hơn 20 năm
+              </span>
+            </span>
+            <span class="detail-line">
+              <span
+                ><em data-motion-line-source data-en="at the craft."
+                  >vững nghề.</em
+                ></span
+              >
+            </span>
+          </h2>
+        </section>
+
+        <figure
+          class="detail-media about-media section-gap"
+          data-header-tone="ink"
+        >
+          <img
+            src="/assets/content/shared/legacy-hands.webp"
+            width="1536"
+            height="1024"
+            alt="Những đôi tay cùng đo và đánh dấu một tấm gỗ tại bàn làm việc"
+            data-en-alt="Hands measuring and marking a wood panel at a workbench"
+            loading="lazy"
+            data-motion-media
+            data-scroll
+            data-scroll-speed="-0.12"
+          />
+          <figcaption class="sr-only" data-en="Experience passed through doing">
+            Kinh nghiệm được truyền qua cách làm
+          </figcaption>
+        </figure>
+
+        <!-- TODO(owner): Verify the founding year and origin-story details before replacing these neutral timeline markers. -->
+        <section
+          class="about-timeline section-gap"
+          data-header-tone="ink"
+          aria-labelledby="timeline-title"
+        >
+          <h2 class="sr-only" id="timeline-title" data-en="Trường Thịnh timeline">
+            Dòng thời gian Trường Thịnh
+          </h2>
+          <article class="about-timeline__item">
+            <p class="about-timeline__marker" data-motion-lines>
+              <span data-motion-line-source data-en="20+ years ago">
+                Hơn 20 năm trước
+              </span>
+            </p>
+            <p class="about-timeline__copy">
+              <strong data-en="The story began with taking the work seriously:">
+                Câu chuyện bắt đầu từ việc làm nghề nghiêm túc:
+              </strong>
+              <span
+                data-en="measure accurately, understand the material, and finish each detail with patience."
+              >
+                đo cho đúng, hiểu vật liệu và hoàn thiện từng chi tiết bằng sự
+                kiên nhẫn.
+              </span>
+            </p>
+          </article>
+          <article class="about-timeline__item">
+            <p class="about-timeline__marker" data-motion-lines>
+              <span data-motion-line-source data-en="Today">Hôm nay</span>
+            </p>
+            <p class="about-timeline__copy">
+              <strong data-en="That experience continues through one process">
+                Kinh nghiệm ấy tiếp tục đi cùng một quy trình
+              </strong>
+              <span
+                data-en="— from survey and consultation to production and installation — so every decision has a clear basis."
+              >
+                — từ khảo sát, tư vấn đến sản xuất và lắp đặt — để mỗi quyết
+                định đều có căn cứ.
+              </span>
+            </p>
+          </article>
+        </section>
+
+        <section
+          class="detail-heading section-gap"
+          id="cach-lam"
+          data-header-tone="ink"
+          aria-labelledby="way-title"
+        >
+          <p class="detail-eyebrow" data-motion-fade data-en="II. OUR WAY">
+            II. CÁCH LÀM
+          </p>
+          <h2 id="way-title" data-motion-lines>
+            <span class="detail-line">
+              <span data-motion-line-source data-en="Every project begins">
+                Mỗi công trình bắt đầu
+              </span>
+            </span>
+            <span class="detail-line">
+              <span
+                ><em
+                  data-motion-line-source
+                  data-en="with a proper site survey."
+                  >bằng một cuộc khảo sát đúng.</em
+                ></span
+              >
+            </span>
+          </h2>
+        </section>
+
+        <section
+          class="about-chapter-lead section-gap"
+          data-header-tone="ink"
+          aria-labelledby="way-lead"
+        >
+          <p
+            class="detail-eyebrow"
+            id="way-lead"
+            data-en="BEFORE THE DRAWING"
+          >
+            TRƯỚC KHI CÓ BẢN VẼ
+          </p>
+          <p>
+            <span
+              data-en="Before materials are chosen and before a machine starts, we need to understand how the site will be used. A good survey turns what is seen on site into the right questions for the project."
+            >
+              Trước khi chọn vật liệu và trước khi máy chạy, chúng tôi cần hiểu
+              mặt bằng sẽ được sử dụng như thế nào. Một cuộc khảo sát tốt biến
+              những gì nhìn thấy tại hiện trường thành đúng câu hỏi cho công
+              trình.
+            </span>
+          </p>
+        </section>
+
+        <figure
+          class="detail-media about-media section-gap"
+          data-header-tone="ink"
+        >
+          <img
+            src="/assets/content/shared/design-sketch.webp"
+            width="1536"
+            height="1024"
+            alt="Bàn tay rà soát bản vẽ và ghi chú giải pháp cho công trình"
+            data-en-alt="Hands reviewing drawings and noting project solutions"
+            loading="lazy"
+            data-motion-media
+            data-scroll
+            data-scroll-speed="-0.1"
+          />
+          <figcaption class="sr-only" data-en="From site notes to a clear plan">
+            Từ ghi nhận hiện trạng đến phương án rõ ràng
+          </figcaption>
+        </figure>
+
+        <section
+          class="detail-process section-gap"
+          data-header-tone="ink"
+          aria-label="Khảo sát, tư vấn, sản xuất và lắp đặt"
+          data-en-aria-label="Survey, consultation, production, and installation"
+        >
+          <article class="process-step" data-motion-up>
+            <span>01</span>
+            <h3 data-en="Survey">Khảo sát</h3>
+            <p
+              data-en="Measure the existing site, listen to the need, and record the constraints to solve."
+            >
+              Đo hiện trạng, lắng nghe nhu cầu và ghi nhận những ràng buộc cần
+              giải quyết.
+            </p>
+          </article>
+          <article class="process-step" data-motion-up data-motion-delay="0.15">
+            <span>02</span>
+            <h3 data-en="Consultation">Tư vấn</h3>
+            <p
+              data-en="Align function, materials, finish level, and the scope of work."
+            >
+              Cùng thống nhất công năng, vật liệu, mức hoàn thiện và phạm vi
+              công việc.
+            </p>
+          </article>
+          <article class="process-step" data-motion-up data-motion-delay="0.3">
+            <span>03</span>
+            <h3 data-en="Production">Sản xuất</h3>
+            <p
+              data-en="Develop the details so each component follows the agreed solution."
+            >
+              Triển khai chi tiết để từng bộ phận được làm đúng theo phương án
+              đã chốt.
+            </p>
+          </article>
+          <article class="process-step" data-motion-up data-motion-delay="0.45">
+            <span>04</span>
+            <h3 data-en="Installation">Lắp đặt</h3>
+            <p
+              data-en="Align on site, inspect the finish, and review the work before handover."
+            >
+              Căn chỉnh tại hiện trường, kiểm tra hoàn thiện và cùng rà soát
+              trước bàn giao.
+            </p>
+          </article>
+        </section>
+
+        <section
+          class="about-process-note section-gap"
+          data-header-tone="ink"
+          aria-labelledby="process-note-label"
+        >
+          <p
+            class="detail-eyebrow"
+            id="process-note-label"
+            data-en="ONE THREAD OF INFORMATION"
+          >
+            MỘT MẠCH THÔNG TIN XUYÊN SUỐT
+          </p>
+          <p>
+            <span
+              data-en="Four steps are not four separate hand-offs. The measurements, decisions, and constraints recorded at the start must follow the project all the way to the installation team."
+            >
+              Bốn bước không phải bốn lần bàn giao rời rạc. Số đo, quyết định
+              và ràng buộc ghi nhận từ đầu cần đi cùng công trình đến tận đội
+              lắp đặt.
+            </span>
+          </p>
+        </section>
+
+        <section
+          class="detail-duo section-gap"
+          data-header-tone="ink"
+          aria-labelledby="making-title"
+        >
+          <h2 class="sr-only" id="making-title" data-en="Material and making">
+            Vật liệu và cách làm
+          </h2>
+          <figure>
+            <img
+              src="/assets/content/shared/materials.webp"
+              width="1536"
+              height="1024"
+              alt="Tay người thợ lựa chọn và đối chiếu mẫu vật liệu"
+              data-en-alt="A craftsperson selecting and comparing material samples"
+              loading="lazy"
+              data-motion-media
+            />
+            <figcaption class="sr-only" data-en="Material decisions">
+              Quyết định vật liệu
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="/assets/content/shared/cnc-operator-b.webp"
+              width="1536"
+              height="1024"
+              alt="Quản lý theo dõi mô hình nội thất và tiến độ CNC trên máy tính bảng"
+              data-en-alt="A manager tracking a furniture model and CNC progress on a tablet"
+              loading="lazy"
+              data-motion-media
+            />
+            <figcaption class="sr-only" data-en="Workshop production">
+              Sản xuất tại xưởng
+            </figcaption>
+          </figure>
+        </section>
+
+        <section
+          class="detail-heading section-gap"
+          id="cam-ket"
+          data-header-tone="ink"
+          aria-labelledby="commitment-title"
+        >
+          <p class="detail-eyebrow" data-motion-fade data-en="III. COMMITMENT">
+            III. CAM KẾT
+          </p>
+          <h2 id="commitment-title" data-motion-lines>
+            <span class="detail-line">
+              <span data-motion-line-source data-en="Build it right">
+                Làm chắc
+              </span>
+            </span>
+            <span class="detail-line">
+              <span
+                ><em data-motion-line-source data-en="for the long run."
+                  >để đi đường dài.</em
+                ></span
+              >
+            </span>
+          </h2>
+        </section>
+
+        <section
+          class="about-chapter-lead section-gap"
+          data-header-tone="ink"
+          aria-labelledby="commitment-lead"
+        >
+          <p
+            class="detail-eyebrow"
+            id="commitment-lead"
+            data-en="THE WORK BEHIND THE WORDS"
+          >
+            VIỆC LÀM ĐỨNG SAU LỜI NÓI
+          </p>
+          <p>
+            <span
+              data-en="A commitment is not a grand statement. It is spotting a problem early, discussing it clearly, and seeing the agreed work through to completion."
+            >
+              Cam kết không nằm ở một câu nói lớn. Nó nằm ở việc nhìn ra vấn đề
+              sớm, trao đổi rõ và hoàn thiện đến cùng phần việc đã thống nhất.
+            </span>
+          </p>
+        </section>
+
+        <figure
+          class="detail-media about-media section-gap"
+          data-header-tone="ink"
+        >
+          <img
+            src="/assets/content/shared/workshop-wide.webp"
+            width="1536"
+            height="1024"
+            alt="Không gian xưởng với các công đoạn sản xuất nội thất tấm"
+            data-en-alt="A workshop where sheet-based interior components are produced"
+            loading="lazy"
+            data-motion-media
+            data-scroll
+            data-scroll-speed="-0.12"
+          />
+          <figcaption class="sr-only" data-en="Where details become built work">
+            Nơi chi tiết trở thành công trình
+          </figcaption>
+        </figure>
+
+        <!-- TODO(owner): Add verified warranty and aftercare terms here once the official policy is available. -->
+        <section
+          class="about-commitments section-gap"
+          data-header-tone="ink"
+          aria-label="Ba nguyên tắc trong cam kết làm nghề"
+          data-en-aria-label="Three principles behind our commitment"
+        >
+          <article class="about-commitment" data-motion-up>
+            <span>01</span>
+            <h3 data-en="Understand before building">Hiểu trước khi làm</h3>
+            <p
+              data-en="Clarify the site, the need, and the constraints before choosing a solution."
+            >
+              Làm rõ mặt bằng, nhu cầu và ràng buộc trước khi chọn giải pháp.
+            </p>
+          </article>
+          <article
+            class="about-commitment"
+            data-motion-up
+            data-motion-delay="0.15"
+          >
+            <span>02</span>
+            <h3 data-en="Be clear at every step">Rõ ở từng bước</h3>
+            <p
+              data-en="Keep decisions visible so design, production, and installation stay aligned."
+            >
+              Giữ quyết định rõ ràng để thiết kế, sản xuất và lắp đặt cùng một
+              hướng.
+            </p>
+          </article>
+          <article
+            class="about-commitment"
+            data-motion-up
+            data-motion-delay="0.3"
+          >
+            <span>03</span>
+            <h3 data-en="Stay with it through handover">
+              Chắc đến khi bàn giao
+            </h3>
+            <p
+              data-en="Inspect the finish and close the agreed scope before the project enters use."
+            >
+              Kiểm tra hoàn thiện và khép lại đúng phạm vi đã thống nhất trước
+              khi đưa vào sử dụng.
+            </p>
+          </article>
+        </section>
+
+        <section
+          class="detail-cta section-gap"
+          id="lien-he"
+          data-header-tone="inverse"
+          aria-labelledby="cta-title"
+        >
+          <img
+            src="/assets/content/projects/completed-detail.webp"
+            width="1536"
+            height="1024"
+            alt="Chi tiết nội thất đã hoàn thiện tại công trình"
+            data-en-alt="A finished interior detail on site"
+            loading="lazy"
+            data-motion-media
+          />
+          <div class="detail-cta__copy">
+            <p
+              data-motion-fade
+              data-motion-delay="0.3"
+              data-en="START WITH THE SITE"
+            >
+              BẮT ĐẦU TỪ MẶT BẰNG
+            </p>
+            <h2 id="cta-title" data-motion-lines>
+              <span
+                data-motion-line-source
+                data-en="Invite us to take a look."
+              >
+                Mời chúng tôi đến khảo sát.
+              </span>
+            </h2>
+            <a
+              href="https://zalo.me/"
+              target="_blank"
+              rel="noreferrer"
+              data-motion-fade
+              data-motion-delay="0.3"
+              aria-label="Đặt lịch khảo sát qua Zalo"
+              data-en-aria-label="Book a site survey on Zalo"
+            >
+              <span data-en="Talk on Zalo">Trao đổi qua Zalo</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </section>
+
+        <section
+          class="capability-marquee section-gap"
+          aria-label="Giá trị và cách làm của Trường Thịnh"
+          data-en-aria-label="Trường Thịnh values and way of working"
+          data-header-tone="ink"
+        >
+          <div class="marquee-line">
+            <span data-en="20+ years">Hơn 20 năm</span><i></i
+            ><span data-en="Survey">Khảo sát</span><i></i
+            ><span data-en="Consultation">Tư vấn</span><i></i
+            ><span data-en="Production">Sản xuất</span><i></i
+            ><span data-en="Installation">Lắp đặt</span><i></i
+            ><span data-en="Built solid">Làm chắc</span><i></i>
+          </div>
+          <div class="marquee-line" aria-hidden="true">
+            <span data-en="20+ years">Hơn 20 năm</span><i></i
+            ><span data-en="Survey">Khảo sát</span><i></i
+            ><span data-en="Consultation">Tư vấn</span><i></i
+            ><span data-en="Production">Sản xuất</span><i></i
+            ><span data-en="Installation">Lắp đặt</span><i></i
+            ><span data-en="Built solid">Làm chắc</span><i></i>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer" data-header-tone="ink">
+        <div class="footer-intro">
+          <p class="footer-statement">
+            <span data-en="Have a site?">Có mặt bằng?</span><br />
+            <em data-en="Let us take a look.">Mời chúng tôi đến xem.</em>
+          </p>
+        </div>
+
+        <div class="footer-contact">
+          <a href="https://zalo.me/" target="_blank" rel="noreferrer">
+            <span data-en="Consultation &amp; site survey">
+              Tư vấn &amp; đặt lịch khảo sát
+            </span>
+            <strong>
+              <span data-en="Talk on Zalo">Gọi Zalo</span>
+              <b aria-hidden="true">↗</b>
+            </strong>
+          </a>
+          <div>
+            <span data-en="Head office">Trụ sở</span>
+            <strong data-en="Details coming soon">
+              Thông tin đang cập nhật
+            </strong>
+          </div>
+          <div>
+            <span data-en="Expertise">Lĩnh vực</span>
+            <strong data-en="Home · Business · Advertising">
+              Nhà ở · Kinh doanh · Quảng cáo
+            </strong>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© 2026 Trường Thịnh</p>
+        </div>
+      </footer>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" integrity="sha384-HOvlOYPIs/zjoIkWUGXkVmXsjr8GuZLV+Q+rcPwmJOVZVpvTSXQChiN4t9Euv9Vc" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.js" integrity="sha384-OCi7pis5Dzyb6liFSmJPTTJCogFKCIyxEx0jyPpmpqv3GyDGCIG3AiXjev/vqpGF" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js" integrity="sha384-T3/AkZI+fU7l5Ip18n7KLEi8r0LPLwiyIp0+anP6LuGlXmAwDS6l6YhmhJjiki/x" crossorigin="anonymous"></script>
+    <script defer src="/detail.js"></script>
+    <script defer src="/motion.js"></script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm qa:static
+      - run: pnpm qa:worker:security
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start local Worker
+        run: |
+          pnpm prepare:site
+          pnpm exec wrangler dev --port 8787 > wrangler.log 2>&1 &
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:8787/robots.txt && exit 0
+            sleep 1
+          done
+          cat wrangler.log
+          exit 1
+
+      - run: pnpm qa:worker:static
+        env:
+          BASE_URL: http://127.0.0.1:8787
+
+      - run: pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium
+        env:
+          BASE_URL: http://127.0.0.1:8787
+
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-failure-evidence
+          path: |
+            wrangler.log
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,0 +1,5 @@
+# Graphify 0.9.37 detects these JSON files as code, but its AST extractor emits
+# zero nodes for them. Semantic cache entries keep their project content queryable.
+.vscode/tasks.json
+scripts/tooling/serena-language-map.json
+tooling-versions.json
