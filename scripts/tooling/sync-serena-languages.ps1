@@ -10,6 +10,7 @@ param(
 $root = Get-ProjectRoot
 Use-ProjectToolPath
 $python = Get-ProjectPython
+$env:SERENA_EXE = Get-SerenaExe
 $script = Join-Path $PSScriptRoot "serena_sync.py"
 $arguments = @($script, "--root", $root)
 

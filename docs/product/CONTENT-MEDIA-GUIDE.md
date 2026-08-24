@@ -1,4 +1,4 @@
-# Content & media guide
+# Hướng dẫn content và media
 
 Guide này là checklist bắt buộc trước khi sửa copy, thêm ảnh hoặc thay số lượng
 card/gallery trên các route con. Mục tiêu là để một solo dev hoặc AI agent cập
@@ -6,7 +6,7 @@ nhật nội dung nhanh mà không phá VI/EN, motion, crop hay hiệu năng.
 
 Ưu tiên cập nhật thường xuyên hiện tại:
 
-1. `/vi/projects-products/`
+1. `/vi/advertising-products/`
 2. `/vi/commercial/`
 3. `/vi/residential/`
 
@@ -26,38 +26,35 @@ nhật nội dung nhanh mà không phá VI/EN, motion, crop hay hiệu năng.
 - Không tự công bố URL Zalo, địa chỉ, năm thành lập hay bảo hành chưa được chủ dự
   án xác nhận.
 
-### Hero và motto
+### Hero và thông điệp
 
-Mỗi route dịch vụ phải có kicker, title hai cấp và một motto ngắn ngay trong
-hero:
+Mỗi route dịch vụ phải có kicker hoặc qualifier và title hai dòng. Ba route
+dịch vụ chính không dùng motto riêng trong hero:
 
-- qualifier: nét thường;
-- tên dịch vụ: semibold;
-- motto: một ý chắc, tối đa khoảng 14 từ VI / 12 từ EN.
+- kicker hoặc qualifier: một dòng ngắn, chữ hoa;
+- title: hai dòng, giữ đúng node lá VI/EN và motion hook hiện có;
+- không thêm `.detail-hero-motto` nếu thông điệp đã nằm trong `h1`.
 
-Giữ nguyên wrapper và motion hook:
+Thông điệp hiện tại:
 
-```html
-<p
-  class="detail-hero-motto"
-  data-motion-lines
-  data-motion-hero-motto
-  data-motion-delay="1.5"
->
-  <span
-    data-motion-line-source
-    data-en="English motto."
-  >Motto tiếng Việt.</span>
-</p>
-```
+| Route | Kicker hoặc qualifier VI | Title VI | Title EN | Motto |
+| --- | --- | --- | --- | --- |
+| `/vi/advertising-products/` | Sản phẩm quảng cáo | để thương hiệu / luôn trong tầm mắt | Keep your brand / always in sight | Không dùng motto riêng |
+| `/vi/commercial/` | SHOP · F&B · SHOWROOM · VĂN PHÒNG | Thiết kế để bán tốt. / Thi công để vận hành bền. | Designed to sell. / Built to perform. | Không dùng motto riêng |
+| `/vi/residential/` | NHÀ PHỐ · CĂN HỘ · HOMESTAY | Nơi tái tạo / năng lượng sống | A place to / recharge | Không dùng motto riêng |
 
-Motto hiện tại:
+Advertising Products là ngoại lệ có chủ đích theo bố cục Projects: hero nền
+trắng không có media, kicker `Sản phẩm quảng cáo`, title hai dòng
+`để thương hiệu / luôn trong tầm mắt`, filter ở phần dưới, scroll cue và mép
+hàng dự án đầu tiên xuất hiện ở đáy viewport.
 
-| Route | VI | EN |
-| --- | --- | --- |
-| `/vi/projects-products/` | Công trình & sản phẩm | Projects & products |
-| `/vi/commercial/` | Thiết kế để bán tốt. Thi công để vận hành bền. | Designed to sell. Built to perform. |
-| `/vi/residential/` | Làm để sống. Làm để bền lâu. | Made for living. Made to last. |
+Residential là ngoại lệ có chủ đích: giữ qualifier
+`NHÀ PHỐ · CĂN HỘ · HOMESTAY`, đặt thông điệp trong hai dòng `h1`, và không thêm
+`.detail-hero-motto`.
+
+Commercial cũng là ngoại lệ có chủ đích: giữ qualifier
+`SHOP · F&B · SHOWROOM · VĂN PHÒNG`, đặt thông điệp trong hai dòng `h1`, và không
+thêm `.detail-hero-motto`.
 
 Các section sau hero giữ heading theo từng bố cục trang; không thêm chapter
 divider kiểu About vào Residential, Commercial hoặc Projects & Products. Copy
@@ -89,24 +86,29 @@ có motion.
 
 ## 2. Câu chuyện và hướng ảnh theo route
 
-Ảnh mới nên đặt theo route. Không cần di chuyển asset cũ chỉ để đạt cấu trúc
-này:
+Public tree chỉ chứa file web-ready. Cấu trúc phẳng theo content type là contract
+tĩnh cho CMS tương lai:
 
 ```text
-assets/site/
-├─ advertising/              # /quang-cao/
-│  └─ originals/             # file nguồn, không load ở production
-├─ commercial/               # /kinh-doanh/
-│  └─ originals/
-└─ residential/              # ảnh mới cho /nha-o/
-   └─ originals/
+assets/content/
+├─ client-logos/             # SVG web-ready đã làm sạch
+├─ projects/                 # WebP dự án và gallery
+├─ news/                     # media bài Tin tức khi có nội dung
+└─ shared/                   # WebP dùng chung cho process, about và portal
+
+source-assets/
+└─ projects/                 # file nguồn cần tái biên tập, không đi vào build
 ```
+
+Không tạo thư mục con theo từng dự án hoặc bài Tin tức. Filename và manifest sẽ
+là khóa ổn định để CMS/R2 thay ownership sau này. Brand mark, icon, font và
+system asset vẫn do Git/source sở hữu.
 
 Tên file: chữ thường, ASCII, kebab-case, mô tả dự án và góc chụp; ví dụ
 `kiosk-trung-tam-thuong-mai-front.webp`. Không dùng `final-final`, ngày tải lên
 hoặc tên mặc định từ máy ảnh.
 
-### `/vi/projects-products/` — bằng chứng công trình
+### `/vi/advertising-products/` — bằng chứng công trình
 
 - Ưu tiên công trình đã làm: kiosk, xe/rạp bán hàng, bảng hiệu, hộp đèn.
 - Kể đủ nhịp: tổng thể hoàn thiện → chi tiết kết cấu/ánh sáng → gia công/lắp đặt.
@@ -139,7 +141,7 @@ dự án thay sau vòng duyệt; không dùng logo hoặc chữ giả.
 - Loại bỏ địa chỉ, ảnh gia đình, khuôn mặt hoặc thông tin riêng tư trong gương,
   màn hình và bề mặt phản chiếu.
 
-## 3. Metadata riêng cho `/vi/projects-products/`
+## 3. Metadata riêng cho `/vi/advertising-products/`
 
 Filter dùng phép so sánh chính xác. Mỗi tile chỉ nhận **một** category chính:
 
@@ -168,7 +170,7 @@ Quy tắc:
 >
   <div class="project-tile__media">
     <img
-      src="../assets/site/advertising/du-an-goc-chup.webp"
+      src="/assets/content/projects/kiosk-trung-tam-thuong-mai-front.webp"
       width="1536"
       height="1024"
       loading="lazy"
@@ -201,8 +203,8 @@ không thể gán nhóm sản phẩm, product không thể gán nhóm công trì
 
 - Runtime dùng WebP trong không gian màu **sRGB**; chuyển ảnh CMYK/Display-P3 về
   sRGB trước khi export.
-- Giữ file nguồn cần tái biên tập trong `originals/`; production HTML chỉ trỏ tới
-  WebP.
+- Giữ file nguồn cần tái biên tập trong `source-assets/projects/`; production
+  HTML chỉ trỏ tới WebP trong `assets/content/`.
 - Xoá EXIF/GPS khỏi ảnh giao cho web.
 - `width` và `height` trong HTML phải bằng kích thước pixel **thật** của file,
   không phải kích thước CSS.
@@ -238,7 +240,7 @@ liệu. 24 asset route hiện tại nằm khoảng 63–263 KB; giữ cùng cấ
 - Không dùng khuôn mặt nhận diện. Chụp quay lưng, chỉ bàn tay/bộ phận cơ thể hoặc
   phơi sáng dài để người chuyển động nhoè.
 - Kiểm tra cả phản chiếu, ảnh trên tường, màn hình và hậu cảnh.
-- Ngoại lệ duy nhất đã duyệt là `assets/site/expanded/legacy-team.webp`; không tự
+- Ngoại lệ duy nhất đã duyệt là `assets/content/shared/legacy-team.webp`; không tự
   mở rộng ngoại lệ.
 - Không chữ giả, logo giả, watermark, chi tiết cơ thể/dụng cụ méo. Logo/thông
   tin khách hàng thật chỉ xuất hiện khi đã có quyền công bố.
@@ -247,12 +249,12 @@ liệu. 24 asset route hiện tại nằm khoảng 63–263 KB; giữ cùng cấ
 
 1. Chọn route, section và vai trò câu chuyện của item.
 2. Chọn ảnh; kiểm tra full resolution ở 100% trước khi resize.
-3. Export WebP sRGB, đặt tên và thư mục đúng route; giữ nguồn trong `originals/`
-   nếu cần.
+3. Export WebP sRGB vào content type đúng; giữ nguồn trong
+   `source-assets/projects/` nếu cần.
 4. Ghi lại pixel thật và dung lượng; tối ưu lại nếu vượt ngưỡng review.
 5. Clone trọn item gần nhất trong cùng section.
 6. Thay `src`, `width`, `height`, caption, alt VI/EN và metadata category.
-7. Sửa copy theo leaf/i18n contract; giữ motto và toàn bộ motion hooks.
+7. Sửa copy theo leaf/i18n contract; giữ thông điệp và các motion hook áp dụng.
 8. Chạy website, VI/EN, crop, lazy loading, gallery/filter và responsive.
 9. Chỉ xoá asset cũ khi đã xác nhận không còn route nào tham chiếu.
 
@@ -265,9 +267,9 @@ liệu. 24 asset route hiện tại nằm khoảng 63–263 KB; giữ cùng cấ
 - [ ] `width`/`height` bằng pixel thật; dung lượng trong budget.
 - [ ] Ảnh nội dung có `alt` VI + `data-en-alt`; ảnh trang trí có `alt=""`.
 - [ ] Hero đầu high priority; ảnh dưới fold lazy + async decode.
-- [ ] Copy VI/EN nằm ở node lá; motto và motion hooks còn nguyên.
+- [ ] Copy VI/EN nằm ở node lá; thông điệp và các motion hook áp dụng còn nguyên.
 - [ ] Gallery/card count và `aria-label` còn đúng.
-- [ ] `/vi/projects-products/`: filter/category khớp, không button rỗng.
+- [ ] `/vi/advertising-products/`: filter/category khớp, không button rỗng.
 - [ ] Full menu: đúng bốn route cấp cao, 15 mục con VI/EN và không section hash.
 - [ ] Crop ổn ở 320/390/768/1024/1440, không overflow ngang.
 - [ ] Gallery arrows, drag/touch, filter, CTA và VI/EN hoạt động.
@@ -280,5 +282,14 @@ python -m http.server 4173 --bind 127.0.0.1
 node tests/site/site.e2e.cjs
 ```
 
-Xem thêm [route spec](SUBPAGES-SPEC.md), [test guide](../../tests/README.md) và
+Xem thêm [route spec](../specs/frontend-route-and-content.md), [test guide](../../tests/README.md) và
 [quy tắc agent](../../AGENTS.md).
+
+## Chú thích thuật ngữ
+
+- **Leaf node**: node cuối chứa text hoặc attribute cần dịch.
+- **Motion hook**: attribute/class để JavaScript tìm và điều khiển animation.
+- **Metadata**: dữ liệu mô tả content như category, alt, kích thước và trạng thái.
+- **Safe crop**: crop vẫn giữ chủ thể và thông tin quan trọng nhìn thấy được.
+- **Lazy loading**: chỉ tải asset khi cần, thường khi gần viewport.
+- **Placeholder**: asset tạm chờ thay bằng nội dung đã được owner duyệt.

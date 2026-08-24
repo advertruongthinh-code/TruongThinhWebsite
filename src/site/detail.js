@@ -291,6 +291,50 @@
           else item.addEventListener("load", markReady, { once: true, signal: abort.signal });
         });
 
+        const isInside = (section, element) =>
+          Boolean(section && element && (section === element || section.contains(element)));
+        state.replaySection = (section) => {
+          if (!section) return false;
+          const sectionTextGroups = [...lineGroups, ...wordGroups].filter((group) =>
+            isInside(section, group),
+          );
+          const sectionMotionItems = motionItems.filter((item) =>
+            isInside(section, item),
+          );
+          const sectionHeroItems = [
+            heroKicker,
+            heroZoom,
+            heroWrapperZoom,
+            heroMediaZoom,
+          ].filter((item) => isInside(section, item));
+
+          sectionTextGroups.forEach((group) => {
+            const parts = prepareTextGroup(group);
+            gsap.killTweensOf(parts);
+            gsap.set(
+              parts,
+              group.hasAttribute("data-motion-lines")
+                ? { y: "2em" }
+                : { opacity: 0 },
+            );
+          });
+          [...sectionMotionItems, ...sectionHeroItems].forEach((item) =>
+            item.classList.remove("is-motion-inview"),
+          );
+
+          scheduleFrame(() => {
+            sectionTextGroups.forEach((group) => revealTextGroup(group, 0));
+            [...sectionMotionItems, ...sectionHeroItems].forEach((item) =>
+              item.classList.add("is-motion-inview"),
+            );
+          });
+          return Boolean(
+            sectionTextGroups.length ||
+              sectionMotionItems.length ||
+              sectionHeroItems.length,
+          );
+        };
+
         if (heroKicker && settled) {
           heroKicker.classList.add("is-motion-inview");
         } else if (heroKicker) {
@@ -341,7 +385,7 @@
           .then(() => {
             if (activePage === state) rebuildText(true);
           });
-        window.addEventListener("languagechange", scheduleRebuild, {
+        window.addEventListener("languagechange", () => rebuildText(false), {
           signal: abort.signal,
         });
         window.addEventListener("resize", scheduleRebuild, {
@@ -458,7 +502,9 @@
     }
   };
 
-  window.TruongThinhDetail = { mount, unmount };
+  const replaySection = (section) => activePage?.replaySection?.(section) || false;
+
+  window.TruongThinhDetail = { mount, replaySection, unmount };
   if (document.documentElement.classList.contains("motion-fallback")) {
     mount(undefined, { settled: true });
   }

@@ -3,7 +3,7 @@
 
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8787").replace(/\/+$/, "");
 const ORIGIN = new URL(BASE_URL).origin;
-const ROUTES = ["", "residential", "commercial", "projects-products", "about"];
+const ROUTES = ["", "residential", "commercial", "advertising-products", "about"];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -28,7 +28,22 @@ async function request(pathname) {
       assert(response.headers.get("content-language") === locale, `${pathname} has the wrong locale header`);
       assert(html.includes(`<html lang="${locale}" data-route-locale="${locale}">`), `${pathname} was not localized`);
       assert(html.includes(`rel="canonical" href="${ORIGIN}${pathname}"`), `${pathname} has no canonical URL`);
+      if (locale === "en") {
+        assert(/\bdata-en="[^"]+"[^>]*\bdata-vi="[^"]+"/.test(html), `${pathname} does not carry Vietnamese text for an in-place switch`);
+        assert(/\bdata-en-alt="[^"]+"[^>]*\bdata-vi-alt="[^"]+"/.test(html), `${pathname} does not carry Vietnamese media labels for an in-place switch`);
+      }
+      const advertisingLabel = locale === "vi" ? "Sản phẩm Quảng cáo" : "Advertising products";
+      assert(html.includes(`href="/${locale}/advertising-products/"`), `${pathname} has the old advertising route`);
+      assert(html.includes(advertisingLabel), `${pathname} has the old advertising label`);
     }
+  }
+
+  for (const locale of ["vi", "en"]) {
+    const legacy = await request(`/${locale}/projects-products/?keep=1`);
+    const location = new URL(legacy.headers.get("location"));
+    assert(legacy.status === 308, `/${locale}/projects-products/ returned ${legacy.status}`);
+    assert(location.pathname === `/${locale}/advertising-products/`, `/${locale}/projects-products/ redirected to ${location.pathname}`);
+    assert(location.search === "?keep=1", `/${locale}/projects-products/ dropped its query`);
   }
 
   const sitemap = await request("/sitemap.xml");

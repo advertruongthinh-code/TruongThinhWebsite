@@ -2,7 +2,8 @@
 $root = Get-ProjectRoot
 Initialize-ToolingState
 $node = Get-ProjectNode
-$entry = Join-Path $root "node_modules\chrome-devtools-mcp\build\src\bin\chrome-devtools-mcp.js"
+$package = Get-GlobalNodePackage "chrome-devtools-mcp"
+$entry = Join-Path (Split-Path -Parent $package) "build\src\bin\chrome-devtools-mcp.js"
 $log = Join-Path $root ".tooling\logs\chrome-devtools-mcp.log"
 $env:CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS = "1"
 Set-Location -LiteralPath $root

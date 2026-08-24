@@ -17,6 +17,8 @@
     `tt-locale-scroll:${url.pathname}${url.search}`;
   const textMaskSelector =
     ".hero-line-mask, .line-mask, .heritage-text, .portal-title-mask, .portal-title__quiet, .portal-title__strong, .detail-line, .motion-line-mask";
+  const whiteOverlayMediaSelector =
+    ".hero-slide img, .about-hero__media img, .service-portal > img, .detail-gallery__item > img, .detail-cta > img, .legacy-closer > img";
   const maskContext = document.createElement("canvas").getContext("2d");
   const runtimeBodyClasses = [
     "is-transitioning",
@@ -61,6 +63,7 @@
   let menuCloseTimer;
   let menuClosePromise;
   let resolveMenuClose;
+  let localeSwitchPromise;
   const routeScrollPositions = new Map();
   let pendingLocaleNavigation;
 
@@ -69,6 +72,27 @@
     pageState?.smoothScroll ? pageState.smoothScrollY : window.scrollY;
   const getPageChildren = () =>
     pageState ? [...pageState.container.children] : [];
+  const getDominantSection = () => {
+    const candidates = pageState
+      ? [
+          ...pageState.container.querySelectorAll(
+            "main > section, main > figure, :scope > footer",
+          ),
+        ]
+      : [];
+    const visibleArea = (element) => {
+      const rect = element.getBoundingClientRect();
+      return Math.max(
+        0,
+        Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0),
+      );
+    };
+    return candidates.reduce(
+      (best, candidate) =>
+        !best || visibleArea(candidate) > visibleArea(best) ? candidate : best,
+      undefined,
+    );
+  };
 
   const measureTextMasks = () => {
     if (!maskContext) return;
@@ -112,8 +136,11 @@
       ...root.querySelectorAll("[data-en]"),
     ];
     textNodes.forEach((node) => {
-      if (!originalText.has(node)) originalText.set(node, node.textContent.trim());
-      node.textContent = language === "en" ? node.dataset.en : originalText.get(node);
+      if (!originalText.has(node)) {
+        originalText.set(node, node.dataset.vi ?? node.textContent.trim());
+      }
+      node.textContent =
+        language === "en" ? node.dataset.en : node.dataset.vi ?? originalText.get(node);
     });
     [
       ["aria-label", "enAriaLabel"],
@@ -130,10 +157,18 @@
           values = new Map();
           originalAttributes.set(node, values);
         }
-        if (!values.has(attribute)) values.set(attribute, node.getAttribute(attribute));
+        const viDataKey = `vi${dataKey.slice(2)}`;
+        if (!values.has(attribute)) {
+          values.set(
+            attribute,
+            node.dataset[viDataKey] ?? node.getAttribute(attribute),
+          );
+        }
         node.setAttribute(
           attribute,
-          language === "en" ? node.dataset[dataKey] : values.get(attribute),
+          language === "en"
+            ? node.dataset[dataKey]
+            : node.dataset[viDataKey] ?? values.get(attribute),
         );
       });
     });
@@ -148,13 +183,10 @@
     });
   };
 
-  const applyLanguage = (language, persist = true) => {
+  const applyLanguage = (language, persist = true, translate = true) => {
     currentLanguage = language === "en" ? "en" : "vi";
     document.documentElement.lang = currentLanguage;
-    const routeLocale = getRouteLocale();
-    if (routeLocale !== "vi" && routeLocale !== "en") {
-      translateTree(document.documentElement, currentLanguage);
-    }
+    if (translate) translateTree(document.documentElement, currentLanguage);
     updateLanguageControls();
     if (persist) {
       try {
@@ -172,7 +204,8 @@
 
   const setLanguageFromDocument = () => {
     const routeLocale = getRouteLocale();
-    if (routeLocale === "vi" || routeLocale === "en") {
+    const translatedByServer = routeLocale === "vi" || routeLocale === "en";
+    if (translatedByServer) {
       currentLanguage = routeLocale;
     } else {
       try {
@@ -182,7 +215,7 @@
         currentLanguage = "vi";
       }
     }
-    applyLanguage(currentLanguage, false);
+    applyLanguage(currentLanguage, false, !translatedByServer);
   };
 
   const colorHeader = (color, immediate = false) => {
@@ -387,11 +420,65 @@
       });
   };
 
+  const watchWhiteOverlayMedia = (state) => {
+    state.container
+      .querySelectorAll(whiteOverlayMediaSelector)
+      .forEach((image) => {
+        const reveal = () => {
+          if (
+            state.abort.signal.aborted ||
+            !image.complete ||
+            image.naturalWidth === 0
+          ) {
+            return;
+          }
+          image.classList.add("is-overlay-media-ready");
+        };
+        const decode = () => {
+          if (typeof image.decode !== "function") {
+            reveal();
+            return;
+          }
+          image.decode().then(reveal, reveal);
+        };
+        if (image.complete && image.naturalWidth > 0) decode();
+        else {
+          image.addEventListener("load", decode, {
+            once: true,
+            signal: state.abort.signal,
+          });
+        }
+      });
+  };
+
   const mountPageMotion = (state, enteredViaRoute, settledStartup = false) => {
+    const clientLogoTrack = state.container.querySelector(
+      ".client-logo-marquee__track",
+    );
+    let clientLogoInView = false;
+    const syncClientLogoMotion = () => {
+      clientLogoTrack?.classList.toggle(
+        "is-running",
+        clientLogoInView &&
+          !document.hidden &&
+          !document.body.classList.contains("motion-paused"),
+      );
+    };
+    const clientLogoObserver =
+      clientLogoTrack && !reduceMotion
+        ? new IntersectionObserver(([entry]) => {
+            clientLogoInView = entry.isIntersecting;
+            syncClientLogoMotion();
+          })
+        : null;
+    clientLogoObserver?.observe(clientLogoTrack);
     if (!hasGsap || reduceMotion) {
       state.container.querySelector("[data-motion-toggle]")?.setAttribute("hidden", "");
       document.body.classList.add("motion-paused");
-      return () => {};
+      document.addEventListener("visibilitychange", syncClientLogoMotion, {
+        signal: state.abort.signal,
+      });
+      return () => clientLogoObserver?.disconnect();
     }
     document.body.classList.remove("motion-paused");
     const gsap = window.gsap;
@@ -420,6 +507,7 @@
       const projectTrack = state.container.querySelector(".project-track");
       const heroWords = selectAll(".hero-word");
       const heroLabels = selectAll("[data-hero-label]");
+      const heroShade = state.hero?.querySelector(".hero-shade");
       const motionToggle = state.container.querySelector("[data-motion-toggle]");
       const heritageLines = heritageTextMasks
         .map((mask) => mask.querySelector(".heritage-line"))
@@ -593,8 +681,14 @@
         );
       }
       const slides = selectAll(".hero-slide");
+      let heroIntroPending = Boolean(
+        state.hero?.hasAttribute("data-hero-intro") &&
+          !settledStartup &&
+          !enteredViaRoute,
+      );
       if (slides.length) gsap.set(slides, { autoAlpha: 0 });
-      if (slides[0]) gsap.set(slides[0], { autoAlpha: 1 });
+      if (slides[0] && !heroIntroPending) gsap.set(slides[0], { autoAlpha: 1 });
+      if (heroShade) gsap.set(heroShade, { opacity: heroIntroPending ? 0 : 1 });
       const setActiveSlide = (index) => {
         slides.forEach((slide, slideIndex) =>
           slide.classList.toggle("is-active", slideIndex === index),
@@ -613,6 +707,8 @@
         const slide = slides[index];
         const nextIndex = (index + 1) % slides.length;
         const next = slides[nextIndex];
+        const introOffset = heroIntroPending && index === 0 ? 1.3 : 0;
+        heroIntroPending = false;
         const timeline = gsap.timeline({
           paused: userPaused || document.hidden || !heroInView,
           onComplete: () => {
@@ -632,21 +728,43 @@
             slide.querySelector("img"),
             { scale: 1.06 },
             { scale: 1, duration: 5, ease: "sine.inOut" },
-            0,
+            introOffset,
           );
+        }
+        if (introOffset) {
+          timeline
+            .to(
+              slide,
+              { autoAlpha: 1, duration: 1.6, ease: "power2.inOut" },
+              introOffset,
+            )
+            .to(
+              heroShade,
+              { opacity: 1, duration: 1.6, ease: "power2.inOut" },
+              introOffset,
+            );
         }
         if (next !== slide) {
           const nextImage = next.querySelector("img");
           timeline
-            .set(nextImage, { scale: 1.06 }, 4.2)
-            .to(next, { autoAlpha: 1, duration: 1.6, ease: "power2.inOut" }, 4.2)
-            .to(slide, { autoAlpha: 0, duration: 1.6, ease: "power2.inOut" }, 4.2)
-            .call(() => startSlide(nextIndex), null, 5);
+            .set(nextImage, { scale: 1.06 }, introOffset + 4.2)
+            .to(
+              next,
+              { autoAlpha: 1, duration: 1.6, ease: "power2.inOut" },
+              introOffset + 4.2,
+            )
+            .to(
+              slide,
+              { autoAlpha: 0, duration: 1.6, ease: "power2.inOut" },
+              introOffset + 4.2,
+            )
+            .call(() => startSlide(nextIndex), null, introOffset + 5);
         }
       };
       const syncMotionState = () => {
         const pagePaused = userPaused || document.hidden;
         document.body.classList.toggle("motion-paused", pagePaused);
+        syncClientLogoMotion();
         heroTimelines.forEach((timeline) => {
           if (pagePaused || !heroInView) timeline.pause();
           else timeline.resume();
@@ -678,6 +796,140 @@
       const toggleMotion = () => {
         userPaused = !userPaused;
         syncMotionState();
+      };
+      const isInside = (section, element) =>
+        Boolean(section && element && (section === element || section.contains(element)));
+      state.replayMotion = (section) => {
+        if (!section) return false;
+        const sectionReveals = revealItems.filter((item) => isInside(section, item));
+        const sectionGroups = revealGroups.filter((group) => isInside(section, group));
+        const sectionHeritageLines = heritageLines.filter((line) =>
+          isInside(section, line),
+        );
+        const sectionHeritageImages = heritageImages.filter((image) =>
+          isInside(section, image),
+        );
+        const sectionPortalTitles = portalTitles.filter(({ card }) =>
+          isInside(section, card),
+        );
+        const sectionPortalSubtitles = portalSubtitles.filter(({ card }) =>
+          isInside(section, card),
+        );
+        const sectionHeroWords = heroWords.filter((word) => isInside(section, word));
+        const sectionProjectTrack = isInside(section, projectTrack)
+          ? projectTrack
+          : null;
+        const hasSectionMotion = Boolean(
+          sectionReveals.length ||
+            sectionGroups.length ||
+            sectionHeritageLines.length ||
+            sectionHeritageImages.length ||
+            sectionPortalTitles.length ||
+            sectionPortalSubtitles.length ||
+            sectionHeroWords.length ||
+            sectionProjectTrack ||
+            isInside(section, state.hero),
+        );
+        if (!hasSectionMotion) return false;
+        const tweenTargets = [
+          ...sectionReveals,
+          ...sectionGroups.flatMap((group) => [
+            ...group.querySelectorAll(".line-mask > span"),
+          ]),
+          ...sectionHeritageLines,
+          ...sectionPortalTitles.flatMap(({ card, lines }) => [
+            ...(lines.length
+              ? lines
+              : card.querySelectorAll(".portal-copy strong")),
+          ]),
+          ...sectionHeroWords,
+        ];
+        gsap.killTweensOf(tweenTargets);
+        if (sectionReveals.length) {
+          gsap.set(sectionReveals, { opacity: 0, y: 60 });
+        }
+        sectionGroups.forEach((group) =>
+          gsap.set(group.querySelectorAll(".line-mask > span"), { y: "2em" }),
+        );
+        if (sectionHeritageLines.length) {
+          gsap.set(sectionHeritageLines, { y: "2em" });
+        }
+        sectionPortalTitles.forEach(({ card, lines }) =>
+          gsap.set(
+            lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
+            { y: "2em" },
+          ),
+        );
+        if (sectionHeroWords.length) gsap.set(sectionHeroWords, { opacity: 0 });
+        sectionHeritageImages.forEach((image) => image.classList.remove("is-inview"));
+        sectionPortalSubtitles.forEach(({ card }) =>
+          card.classList.remove("is-subtitle-inview"),
+        );
+        sectionProjectTrack?.classList.remove("is-inview");
+
+        window.requestAnimationFrame(() => {
+          if (sectionReveals.length) {
+            gsap.to(sectionReveals, {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power3.out",
+            });
+          }
+          sectionGroups.forEach((group) =>
+            gsap.to(group.querySelectorAll(".line-mask > span"), {
+              y: "-0.1em",
+              duration: 1.9,
+              ease: "power4.out",
+            }),
+          );
+          sectionHeritageLines.forEach((line) =>
+            gsap.to(line, {
+              y: "-0.1em",
+              duration: 1.9,
+              delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
+              ease: "power4.out",
+            }),
+          );
+          sectionPortalTitles.forEach(({ card, index, lines }) =>
+            gsap.to(
+              lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
+              {
+                y: "-0.1em",
+                duration: 1.9,
+                delay: (index % 3) * 0.3,
+                ease: "power4.out",
+              },
+            ),
+          );
+          if (sectionHeroWords.length) {
+            gsap.to(sectionHeroWords, {
+              opacity: 1,
+              duration: 1,
+              stagger: 0.2,
+              ease: "expo.out",
+              clearProps: "opacity",
+            });
+          }
+          sectionHeritageImages.forEach((image) => image.classList.add("is-inview"));
+          sectionPortalSubtitles.forEach(({ card }) =>
+            card.classList.add("is-subtitle-inview"),
+          );
+          sectionProjectTrack?.classList.add("is-inview");
+          if (isInside(section, state.hero)) {
+            heroTimelines.forEach((timeline) => {
+              timeline.kill();
+              timelines.delete(timeline);
+            });
+            heroTimelines.clear();
+            if (slides.length) gsap.set(slides, { autoAlpha: 0 });
+            if (slides[0]) gsap.set(slides[0], { autoAlpha: 1 });
+            holdSettledSlide = false;
+            startSlide(0);
+            syncMotionState();
+          }
+        });
+        return hasSectionMotion;
       };
       const heroObserver = state.hero
         ? new IntersectionObserver(([entry]) => {
@@ -711,6 +963,7 @@
     }, state.container);
 
     return () => {
+      state.replayMotion = undefined;
       state.stopCarousel?.();
       observers.forEach((observer) => observer.disconnect());
       timelines.forEach((timeline) => timeline.kill());
@@ -768,6 +1021,7 @@
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
 
+    watchWhiteOverlayMedia(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY);
     window.TruongThinhDetail?.mount(container, { settled: settledStartup });
@@ -811,7 +1065,7 @@
         dialog.querySelector(".menu-brand"),
         dialog.querySelector(".menu-language"),
         dialog.querySelector(".menu-appointment"),
-        dialog.querySelector("[data-menu-close]"),
+        dialog.querySelector(".menu-close__icon"),
         dialog.querySelector(".menu-nav"),
         ...dialog.querySelectorAll(
           ".menu-group, .menu-group__number, .menu-group__title, .menu-option",
@@ -830,7 +1084,7 @@
     openButton.setAttribute("aria-expanded", "false");
     header.classList.remove("is-hidden");
     pageState?.smoothScroll?.start();
-    resetMenuVisuals();
+    if (!hasGsap || reduceMotion) resetMenuVisuals();
     const resolve = resolveMenuClose;
     resolveMenuClose = undefined;
     menuClosePromise = undefined;
@@ -867,6 +1121,7 @@
 
   const openMenu = () => {
     if (dialog.open || routeInFlight) return;
+    if (pageState) pageState.menuContextSection = getDominantSection();
     dialog.showModal();
     dialog.focus({ preventScroll: true });
     document.body.classList.add("menu-open");
@@ -882,6 +1137,7 @@
       dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
         shutter.style.height = "100vh";
       });
+      dialog.querySelector(".menu-nav")?.style.setProperty("opacity", "1");
       closeButton.focus();
       return;
     }
@@ -892,12 +1148,25 @@
     const menuAppointment = dialog.querySelector(".menu-appointment");
     const menuNav = dialog.querySelector(".menu-nav");
     const menuGroups = [...menuNav.querySelectorAll(".menu-group")];
+    const menuLanguageItems = [
+      ...menuLanguage.querySelectorAll("[data-language-option]"),
+    ];
+    const menuAppointmentItems = [menuAppointment];
+    const menuCloseIcon = closeButton.querySelector(".menu-close__icon");
     const menuDetailItems = [
       ...menuNav.querySelectorAll(
         ".menu-group__number, .menu-group__title, .menu-option",
       ),
     ];
     window.gsap.set(shutters, { height: 0 });
+    window.gsap.set(menuBrand, { y: -140, opacity: 0 });
+    window.gsap.set(menuLanguageItems, { y: -20, opacity: 0 });
+    window.gsap.set(menuAppointmentItems, { y: -20, opacity: 0 });
+    window.gsap.set(menuCloseIcon, { opacity: 0, rotation: 90 });
+    window.gsap.set(menuNav, { opacity: 0 });
+    window.gsap.set(menuGroups, { y: -140, yPercent: 0, opacity: 0 });
+    window.gsap.set(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 });
+    const menuCoverageAt = 0.6 + Math.max(0, shutters.length - 1) * 0.15;
     menuPageTween = window.gsap.to(getPageChildren(), {
       scale: 0.9,
       duration: 0.7,
@@ -915,14 +1184,13 @@
         { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
         0,
       )
-      .fromTo(menuBrand, { y: -140, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.6, ease: "expo.out" }, 1.15)
-      .fromTo(menuLanguage, { y: -20, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.6, ease: "expo.out" }, 1.15)
-      .fromTo(menuAppointment, { y: -20, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.6, ease: "expo.out" }, 1.15)
-      .fromTo(menuNav, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6 }, 1.05)
-      .fromTo(menuGroups, { y: -140, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
-      .fromTo(menuDetailItems, { y: -20, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
-      .fromTo(closeButton, { autoAlpha: 0, rotation: 90 }, { autoAlpha: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, 1.4)
-      .to({}, { duration: 0.78 }, 2.05)
+      .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, menuCoverageAt)
+      .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, menuCoverageAt + 0.3)
+      .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, menuCoverageAt + 0.3)
+      .fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, menuCoverageAt + 0.45)
+      .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, menuCoverageAt)
+      .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, menuCoverageAt)
+      .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, menuCoverageAt + 0.5)
       .timeScale(1.15)
       .play(0);
   };
@@ -1194,28 +1462,122 @@
     );
   };
 
+  const updateLocaleLinks = (language) => {
+    document.querySelectorAll("a[href]").forEach((link) => {
+      const href = link.getAttribute("href");
+      if (!href || !href.startsWith("/") || href.startsWith("//")) return;
+      const optionLanguage = link.dataset.languageOption;
+      const targetLanguage = optionLanguage === "en" ? "en" : optionLanguage === "vi" ? "vi" : language;
+      const url = new URL(href, window.location.href);
+      const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
+      url.pathname = `/${targetLanguage}${suffix}`;
+      link.setAttribute("href", `${url.pathname}${url.search}${url.hash}`);
+    });
+  };
+
+  const updateLocaleHead = (url, language) => {
+    const canonical = new URL(url.href);
+    canonical.search = "";
+    canonical.hash = "";
+    document.querySelector('link[rel="canonical"]')?.setAttribute(
+      "href",
+      canonical.href,
+    );
+    document
+      .querySelectorAll('link[rel="alternate"][hreflang]')
+      .forEach((link) => {
+        const locale = link.hreflang === "x-default" ? "vi" : link.hreflang;
+        if (locale !== "vi" && locale !== "en") return;
+        const alternate = new URL(canonical.href);
+        alternate.pathname = alternate.pathname.replace(
+          /^\/(?:vi|en)(?=\/|$)/,
+          `/${locale}`,
+        );
+        link.href = alternate.href;
+      });
+    document
+      .querySelector('meta[property="og:locale"]')
+      ?.setAttribute("content", language === "en" ? "en_US" : "vi_VN");
+    document
+      .querySelector('meta[property="og:url"]')
+      ?.setAttribute("content", canonical.href);
+  };
+
+  const nextFrame = () =>
+    new Promise((resolve) => window.requestAnimationFrame(resolve));
+
+  const replayVisibleSection = async (section) => {
+    const pageReplayed = Boolean(pageState?.replayMotion?.(section));
+    const detailReplayed = Boolean(
+      window.TruongThinhDetail?.replaySection?.(section),
+    );
+    const replayed = pageReplayed || detailReplayed;
+    await nextFrame();
+    await nextFrame();
+    return {
+      detailReplayed,
+      pageReplayed,
+      reducedMotion: reduceMotion,
+      replayed: Boolean(replayed),
+      section,
+    };
+  };
+
   const switchLocaleRoute = (language) => {
     const routeLocale = getRouteLocale();
-    if (routeLocale !== "vi" && routeLocale !== "en") return false;
-    const url = new URL(window.location.href);
-    const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
-    url.pathname = `/${language === "en" ? "en" : "vi"}${suffix}`;
-    url.hash = "";
-    const scrollY = Math.max(0, Math.round(getPageScroll()));
-    pendingLocaleNavigation = { scrollY, url };
-    try {
-      window.sessionStorage.setItem(
-        localeScrollStateKey(url),
-        String(scrollY),
+    if (routeLocale !== "vi" && routeLocale !== "en") return Promise.resolve(false);
+    if (localeSwitchPromise) return localeSwitchPromise;
+    const nextLanguage = language === "en" ? "en" : "vi";
+    localeSwitchPromise = (async () => {
+      const section = pageState?.menuContextSection || getDominantSection();
+      const scrollY = Math.max(0, getPageScroll());
+      await closeMenu(false);
+      if (nextLanguage === currentLanguage) return true;
+
+      const url = new URL(window.location.href);
+      const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
+      url.pathname = `/${nextLanguage}${suffix}`;
+      url.hash = "";
+      if (window.barba?.history?.update && window.barba.history.store) {
+        window.barba.history.update({
+          scroll: { x: window.scrollX, y: scrollY },
+          url: url.href,
+        });
+        window.barba.history.store({});
+        window.history.replaceState(window.history.state, "", url.href);
+      } else {
+        window.history.replaceState(window.history.state, "", url.href);
+      }
+      document.documentElement.dataset.routeLocale = nextLanguage;
+      const previousOverflowAnchor = document.documentElement.style.overflowAnchor;
+      document.documentElement.style.overflowAnchor = "none";
+      let replay;
+      try {
+        applyLanguage(nextLanguage);
+        updateLocaleLinks(nextLanguage);
+        updateLocaleHead(url, nextLanguage);
+        await Promise.resolve(document.fonts?.ready).catch(() => undefined);
+        await nextFrame();
+        await nextFrame();
+        replay = await replayVisibleSection(section);
+        pageState?.smoothScroll?.update();
+        setPageScroll(pageState, scrollY);
+        await nextFrame();
+        await nextFrame();
+      } finally {
+        document.documentElement.style.overflowAnchor = previousOverflowAnchor;
+      }
+      setPageScroll(pageState, scrollY);
+      requestLayoutUpdate();
+      window.dispatchEvent(
+        new CustomEvent("site:section-replay", { detail: replay }),
       );
-    } catch {}
-    pinHeaderForRoute();
-    if (window.barba?.go && !window.barba.transitions?.isRunning) {
-      window.barba.go(url.href, "barba");
-    } else {
-      hardNavigate(url);
-    }
-    return true;
+      return true;
+    })().finally(() => {
+      if (pageState) pageState.menuContextSection = undefined;
+      localeSwitchPromise = undefined;
+    });
+    return localeSwitchPromise;
   };
 
   document.addEventListener(
@@ -1225,7 +1587,9 @@
       if (languageOption) {
         event.preventDefault();
         const nextLanguage = languageOption.dataset.languageOption;
-        if (!switchLocaleRoute(nextLanguage)) applyLanguage(nextLanguage);
+        void switchLocaleRoute(nextLanguage).then((handled) => {
+          if (!handled) applyLanguage(nextLanguage);
+        });
         return;
       }
 

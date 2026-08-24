@@ -5,28 +5,45 @@ function Get-ProjectRoot {
   return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..")).Path
 }
 
+function Get-GlobalToolingRoot {
+  $root = if ($env:CODEX_GLOBAL_TOOLING_ROOT) {
+    $env:CODEX_GLOBAL_TOOLING_ROOT
+  } else {
+    Join-Path $env:USERPROFILE ".codex\tooling"
+  }
+  return [System.IO.Path]::GetFullPath($root)
+}
+
 function Get-ProjectPython {
-  $python = Join-Path (Get-ProjectRoot) ".tooling\python\Scripts\python.exe"
+  $python = Join-Path (Get-GlobalToolingRoot) "python\Scripts\python.exe"
   if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
-    throw "Project Python is missing: $python. Run scripts/tooling/bootstrap.ps1."
+    throw "Global tooling Python is missing: $python. Run pnpm tooling:bootstrap."
   }
   return $python
 }
 
 function Get-SerenaExe {
-  $exe = Join-Path (Get-ProjectRoot) ".tooling\python\Scripts\serena.exe"
+  $exe = Join-Path (Get-GlobalToolingRoot) "python\Scripts\serena.exe"
   if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
-    throw "Serena is missing: $exe. Run scripts/tooling/bootstrap.ps1."
+    throw "Global Serena is missing: $exe. Run pnpm tooling:bootstrap."
   }
   return $exe
 }
 
 function Get-GraphifyExe {
-  $exe = Join-Path (Get-ProjectRoot) ".tooling\python\Scripts\graphify.exe"
+  $exe = Join-Path (Get-GlobalToolingRoot) "python\Scripts\graphify.exe"
   if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
-    throw "Graphify is missing: $exe. Run scripts/tooling/bootstrap.ps1."
+    throw "Global Graphify is missing: $exe. Run pnpm tooling:bootstrap."
   }
   return $exe
+}
+
+function Get-GlobalNodePackage([string]$Name) {
+  $path = Join-Path (Get-GlobalToolingRoot) "node\node_modules\$Name\package.json"
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    throw "Global Node package is missing: $Name. Run pnpm tooling:bootstrap."
+  }
+  return $path
 }
 
 function Get-ProjectNode {
@@ -47,34 +64,20 @@ function Get-ProjectPnpm {
   throw "pnpm is missing."
 }
 
-function Get-ProjectUvDirectory {
-  $directory = Join-Path (Get-ProjectRoot) ".tooling\runtimes\uv-0.12.3"
-  if (-not (Test-Path -LiteralPath (Join-Path $directory "uv.exe") -PathType Leaf)) {
-    throw "Project uv runtime is missing: $directory. Run scripts/tooling/bootstrap.ps1."
-  }
-  return $directory
-}
-
-function Get-ProjectPwshDirectory {
-  $directory = Join-Path (Get-ProjectRoot) ".tooling\runtimes\powershell-7.6.4"
-  if (-not (Test-Path -LiteralPath (Join-Path $directory "pwsh.exe") -PathType Leaf)) {
-    throw "Project PowerShell runtime is missing: $directory. Run scripts/tooling/bootstrap.ps1."
-  }
-  return $directory
-}
-
 function Use-ProjectToolPath {
   $nodeDirectory = Split-Path -Parent (Get-ProjectNode)
-  $nodeModulesBin = Join-Path (Get-ProjectRoot) "node_modules\.bin"
-  $pythonDirectory = Join-Path (Get-ProjectRoot) ".tooling\python\Scripts"
-  $directories = @((Get-ProjectUvDirectory), (Get-ProjectPwshDirectory), $pythonDirectory, $nodeModulesBin, $nodeDirectory)
-  $env:PATH = (($directories + @($env:PATH)) -join ";")
+  $projectNodeBin = Join-Path (Get-ProjectRoot) "node_modules\.bin"
+  $globalRoot = Get-GlobalToolingRoot
+  $globalPython = Join-Path $globalRoot "python\Scripts"
+  $globalNodeBin = Join-Path $globalRoot "node\node_modules\.bin"
+  $globalBin = Join-Path $globalRoot "bin"
+  $env:PATH = ((@($globalPython, $globalNodeBin, $globalBin, $projectNodeBin, $nodeDirectory, $env:PATH)) -join ";")
   $env:PYTHONUTF8 = "1"
 }
 
 function Initialize-ToolingState {
   $root = Get-ProjectRoot
-  foreach ($relative in @(".tooling\logs", ".tooling\state\hooks", ".tooling\state\serena", ".tooling\state\graphify")) {
+  foreach ($relative in @(".tooling\logs", ".tooling\state\serena", ".tooling\state\graphify")) {
     New-Item -ItemType Directory -Force -Path (Join-Path $root $relative) | Out-Null
   }
 }

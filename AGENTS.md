@@ -1,163 +1,77 @@
 # AGENTS.md
 
-## Mission
+## Bắt đầu
 
-Ship the bilingual VI/EN Truong Thinh static website quickly and safely.
-`src/site/` is the canonical static source and `.site-output/` is generated.
-CMS, private admin, D1, R2, and dynamic project
-publishing are a later phase and must not block the first public release.
+1. Mọi role dùng `i-have-adhd`, `caveman` ultra, `ponytail` ultra. Caveman nén prose, không nén nghĩa; safety/clarity override. Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
+2. Đọc hết `docs/STATE.md`, rồi [core rule](docs/operations/agent-rule-core.md). `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
+3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
+4. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
 
-This is a solo-developer repository. Prefer small reversible diffs, native
-platform features, existing dependencies, and evidence-backed handoffs.
+## Routing theo path
 
-## Writing language
+Cây ownership đầy đủ và nhãn lifecycle/Git nằm trong
+[`README.md`](README.md#cây-thư-mục-và-trạng-thái). Agent dùng routing ngắn này;
+không suy ra file `untracked` là file thừa.
 
-- Write every code comment in English.
-- Write Markdown reports in Vietnamese. Reports include audits, QA results,
-  handoffs, incident notes, and current-status logs.
-- Write all other Markdown in English, including README files, specifications,
-  ADRs, runbooks, and agent instructions.
-- Existing Vietnamese canonical content is product copy, not a code comment.
-
-## Static-first boundary
-
-- Static pages must work without D1, R2, Cloudflare Access, or CMS secrets.
-- Do not expand CMS or admin behavior unless the task explicitly targets the CMS
-  phase.
-- Preserve future CMS interfaces where cheap, but never add speculative
-  abstraction to the static release.
-- Do not deploy, connect a domain, or publish owner data without explicit user
-  approval.
-
-## Mandatory product contracts
-
-Before changing visible copy, `data-en*`, alt/ARIA text, image paths, cards,
-galleries, or filters, read `docs/product/CONTENT-MEDIA-GUIDE.md` completely.
-
-Before changing layout, typography, header, menu, transitions, reveals,
-galleries, montage, or motion, read `docs/reports/REFERENCE-MOTION-AUDIT.md` completely.
-Compare the edited component against the locally archived reference at the same
-viewport and state. The reference is research only: never copy proprietary
-source, media, logos, fonts, SVGs, or identifying URLs into production code.
-
-## Brand and content constraints
-
-- Voice: experienced, creative, credible, direct, and concise.
-- Use blue and orange as accents, not full-page backgrounds.
-- Balance more than 20 years of craft with modern design and production.
-- Avoid generic real-estate grids and fake-luxury black-and-gold styling.
-- Primary CTA: Zalo consultation or survey booking.
-- Never invent Zalo URL, address, founding year, or warranty policy.
-- Do not use recognizable faces. The only approved exception is
-  `src/site/assets/site/expanded/legacy-team.webp`.
-- Every content image requires Vietnamese `alt` and English `data-en-alt`.
-
-## HTML and localization contract
-
-- Use one `h1`; preserve `h2` then `h3` hierarchy.
-- Vietnamese is source text. Put English on leaf nodes in `data-en`.
-- Translate attributes with `data-en-alt`, `data-en-aria-label`, and
-  `data-en-content`.
-- Keep the process order: Khảo sát, Tư vấn, Sản xuất, Lắp đặt.
-- Public navigation must not use fragments. Locale switching keeps query and
-  reading position but removes fragments.
-- Service links target `/residential/`, `/commercial/`, and
-  `/projects-products/` through locale-aware routing.
-
-## Skill routing
-
-Read the complete `SKILL.md` for every selected skill before acting.
-
-1. Use `graphify` first for architecture, file relationships, dependencies, and
-   blast radius when `graphify-out/graph.json` exists.
-2. Use `using-agent-skills` to select only task-relevant skills.
-3. Use `frontend-ui-engineering` for UI implementation and accessibility.
-4. Use GSAP skills only for the GSAP feature being changed.
-5. Use `browser-testing-with-devtools` for runtime investigation.
-6. Use `impeccable` only as a critique/polish layer, not scope expansion.
-7. Use `imagegen` only when an asset must be generated or edited.
-8. Use `ponytail` before handoff to remove unnecessary complexity.
-
-For every code change, stop at the first sufficient option: no code, reuse,
-standard library, platform feature, installed dependency, then smallest custom
-diff. Never simplify away trust-boundary validation, data-loss prevention,
-security, accessibility, acceptance criteria, or required tests.
-
-## Graphify and Serena
-
-Use the project-local Graphify executable:
-
-```powershell
-& ".\scripts\tooling\invoke-graphify.ps1" query "specific question"
+```text
+.
+├─ src/site/                         # LIVE source; edit tại đây, không edit .site-output
+├─ src/worker/                       # LIVE route/SEO; CMS branch dormant nhưng có contract test
+├─ src/admin/, src/db/migrations/    # DEV CMS; ngoài static release gate
+├─ tests/, scripts/                  # PROJECT QA và entrypoint; kiểm tra consumer trước xóa
+├─ docs/                             # PROJECT knowledge; raw CSV/bak là generated local
+├─ research/reference-site/          # RESEARCH; archive/runtime evidence không phải source public
+└─ .site-output/, .tmp/, .tooling/,
+   graphify-out/, .wrangler/         # GENERATED/CACHE; không edit, không commit
 ```
 
-Do not use a global `graphify` command or bypass the wrapper for `query`, `path`,
-or `explain`. PostToolUse marks the graph dirty only when a real file fingerprint
-changes. The shared boundary gate coalesces one AST update before a CLI/MCP
-query or at Stop. Semantic status comes from Graphify's own incremental manifest
-for documents/media; it warns but does not block structural queries. There are
-no custom strict/watch profiles or semantic marker files.
+File/project source `untracked` cần review riêng trước khi stage. Không move,
+xóa, stage hoặc commit hàng loạt generated output, research archive, tooling
+cache hay untracked worktree.
 
-Use Graphify for structure and blast radius, then Serena for exact symbols,
-references, diagnostics, and refactors. If create/delete/rename changes the
-extension set, run:
+## STATE không stale
 
-```powershell
-scripts/tooling/sync-serena-languages.ps1 -Apply
-```
+- `docs/STATE.md` là snapshot Git ngắn: phase, active work, hard boundary, canonical link, verified blocker, next repo action. Không là changelog, Kanban, work log, hay bản sao Notion.
+- Trước plan/implement: đọc toàn bộ `STATE.md`. Sau khi một field của snapshot đổi vì behavior, verification, blocker, handoff: verify evidence, update field và `Updated` trong cùng task.
+- Bỏ item resolved/hết hạn; link spec, decision, report thay vì copy evidence. Không refresh `Updated` nếu facts không đổi.
+- `STATE` mâu thuẫn hoặc nghi stale: repository evidence, test, accepted Git document thắng. Verify, sửa `STATE`; chưa rõ thì ghi unknown.
 
-Complete the health check and reactivation before further symbolic work. Never
-edit `languages` or `language_servers` manually. A Serena
-`restart-required.json` blocks symbolic work until reconnection.
+## Viết và phản hồi
 
-## Project-local tooling
+- Code comment English. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Vietnamese product copy không là code comment.
+- Mỗi role load `i-have-adhd`, `caveman` ultra, `ponytail` ultra. Đọc đủ `SKILL.md` của skill đã chọn trước action. Caveman nén prose, không nén nghĩa; safety/clarity override.
+- Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, time estimate cụ thể, lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
+- Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 
-- Do not install packages, skills, MCP servers, browser state, or config at user
-  or global scope for this repository.
-- The initial bootstrap uses pinned stable versions. Later update checks only
-  report; they do not install without user approval.
-- Do not edit managed hook blocks. Keep debounce, locks, and Stop loop guards.
-  Hook failures must be logged and must never be reported as a pass.
-- Project-portable skills live in `.agents/skills`; personas live in
-  `.codex/agents`.
-- Review personas are read-only, cite file/line or runtime evidence, do not edit,
-  and do not call other personas.
+## Rule module
 
-## Browser QA and metric honesty
+| Trigger | Phải đọc |
+| --- | --- |
+| Copy, media, layout, UI | [Product và UI](docs/operations/agent-rule-product-ui.md) |
+| Plan, card, Notion, task từ `200 LOC` | [Knowledge và Notion](docs/operations/agent-rule-knowledge-notion.md) |
+| Codebase, Codex, skill, plugin, MCP, Graphify, Serena, Sol Advisor | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md); [Sol Advisor](docs/operations/sol-advisor.md) |
+| Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
 
-- Playwright is the repeatable regression gate. DevTools and Computer Use are
-  supplementary investigation tools. A screenshot is not a test pass.
-- Never infer Lighthouse, Core Web Vitals, accessibility, or performance
-  numbers. State whether evidence comes from Playwright, DevTools, or static
-  review.
-- DevTools MCP uses an isolated profile unless the user explicitly requests a
-  signed-in profile.
-- Native GUI testing requires application logs and framework-specific
-  automation; Playwright is not a native-GUI test framework.
+## Scripts map
 
-Before website handoff:
+Automation sở hữu Graphify structural refresh và Serena startup sync. Không chạy lại
+mechanics sau edit; chỉ dùng fallback trong [scripts map](docs/operations/agent-rule-scripts.md)
+khi tool báo lỗi hoặc blocked.
 
-1. Run `pnpm qa:static`.
-2. Start `pnpm dev`, then run `pnpm qa:worker:static`.
-3. Run the Playwright smoke suite; for UI releases, run the viewport matrix in
-   `tests/README.md`.
-4. Verify no console error, failed request, horizontal overflow, locale loss,
-   focus regression, or reduced-motion hidden content.
-5. Report exact commands, failures, owner TODOs, and graph freshness.
+| Need | Entrypoint |
+| --- | --- |
+| Graphify query | `& ".\scripts\tooling\invoke-graphify.ps1" query "question"` |
+| Dev, site QA | `pnpm dev`, `pnpm qa:*` |
+| Setup, repair, archive, script khác | [Scripts map đầy đủ](docs/operations/agent-rule-scripts.md) |
 
-## Change and documentation rules
+## Chú thích thuật ngữ
 
-- Work only in the assigned scope. Preserve unrelated and concurrent edits.
-- Do not use broad destructive Git/filesystem commands.
-- Update `docs/engineering/ARCHITECTURE.md`, relevant specs, and an ADR when public routes,
-  shared contracts, or architecture decisions change.
-- Update the Vietnamese `docs/reports/CURRENT.md` with real status and blockers.
-- Handoffs must list changed files, behavior, tests, results, owner TODOs, and
-  any semantic graph work still required.
-
-## ADHD response contract
-
-Start with the next action or current state. Number sequential work, give one
-concrete action at a time, use at most five items, state errors directly, and
-omit unnecessary introductions and conclusions. Only a direct user request in
-the current task may disable this format.
+- **Rule module**: file rule theo chủ đề, đọc khi trigger khớp.
+- **Scripts map**: bảng entrypoint script đã verify.
+- **Automation**: hook, watcher hoặc launcher tự xử lý mechanics.
+- **STATE**: snapshot Git ngắn, nêu context hiện tại để bắt đầu task.
+- **Canonical**: nguồn chuẩn dùng để quyết định nội dung được chấp nhận.
+- **Evidence**: bằng chứng verify được từ repository, test, tool.
+- **Stale**: đã cũ, không còn khớp evidence hiện tại.
+- **Lifecycle**: trạng thái sử dụng như live, dev, generated, research hoặc cache.
+- **Git index**: danh sách path Git đang quản lý; khác với lifecycle của file.

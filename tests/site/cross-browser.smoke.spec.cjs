@@ -6,7 +6,7 @@ const routes = [
   "/vi/",
   "/vi/residential/",
   "/vi/commercial/",
-  "/vi/projects-products/",
+  "/vi/advertising-products/",
   "/vi/about/",
 ];
 

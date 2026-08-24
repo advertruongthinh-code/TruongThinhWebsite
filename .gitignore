@@ -6,7 +6,7 @@ tests/site/reports/
 __pycache__/
 *.pyc
 
-# Project tooling runtime/state (configuration and skills remain tracked).
+# Project-local browser payloads and generated tooling state.
 .tooling/
 .serena/cache/
 .serena/logs/
@@ -17,8 +17,16 @@ playwright-report/
 .site-output/
 graphify-out/
 .impeccable/config.local.json
+.impeccable/design.json
 .claude/settings.local.json
 CLAUDE.local.md
 
-# Generated reference website archive; keep only the audit summary tracked.
+# Local parity artifacts and raw runtime evidence. Markdown summaries remain project files.
+/.tmp/
+/tmp-layout-motion-*/
+/research/reference-site/runtime-evidence/
+/docs/reports/*.csv
+/docs/reports/*.bak
+
+# Generated reference website archive.
 /research/reference-site/archive/

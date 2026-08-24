@@ -17,10 +17,21 @@ const SOURCE_ROUTES = {
   home: "/index.html",
   residential: "/residential/index.html",
   commercial: "/commercial/index.html",
-  "projects-products": "/projects-products/index.html",
+  "advertising-products": "/advertising-products/index.html",
   about: "/about/index.html",
 };
-const PAGE_IDS = new Set(Object.keys(SOURCE_ROUTES));
+const CMS_PAGE_IDS = {
+  home: "home",
+  residential: "residential",
+  commercial: "commercial",
+  "advertising-products": "projects-products",
+  about: "about",
+};
+const CMS_TO_PUBLIC_PAGE_IDS = new Map(
+  Object.entries(CMS_PAGE_IDS).map(([publicId, cmsId]) => [cmsId, publicId]),
+);
+const PUBLIC_PAGE_IDS = new Set(Object.keys(SOURCE_ROUTES));
+const CMS_PAGE_ID_SET = new Set(Object.values(CMS_PAGE_IDS));
 const LEGACY_ROUTES = {
   "/nha-o": "/vi/residential/",
   "/nha-o/": "/vi/residential/",
@@ -28,9 +39,9 @@ const LEGACY_ROUTES = {
   "/kinh-doanh": "/vi/commercial/",
   "/kinh-doanh/": "/vi/commercial/",
   "/kinh-doanh/index.html": "/vi/commercial/",
-  "/quang-cao": "/vi/projects-products/",
-  "/quang-cao/": "/vi/projects-products/",
-  "/quang-cao/index.html": "/vi/projects-products/",
+  "/quang-cao": "/vi/advertising-products/",
+  "/quang-cao/": "/vi/advertising-products/",
+  "/quang-cao/index.html": "/vi/advertising-products/",
   "/gioi-thieu": "/vi/about/",
   "/gioi-thieu/": "/vi/about/",
   "/gioi-thieu/index.html": "/vi/about/",
@@ -42,9 +53,18 @@ const SOURCE_ROUTE_REDIRECTS = {
   "/commercial": "/vi/commercial/",
   "/commercial/": "/vi/commercial/",
   "/commercial/index.html": "/vi/commercial/",
-  "/projects-products": "/vi/projects-products/",
-  "/projects-products/": "/vi/projects-products/",
-  "/projects-products/index.html": "/vi/projects-products/",
+  "/advertising-products": "/vi/advertising-products/",
+  "/advertising-products/": "/vi/advertising-products/",
+  "/advertising-products/index.html": "/vi/advertising-products/",
+  "/projects-products": "/vi/advertising-products/",
+  "/projects-products/": "/vi/advertising-products/",
+  "/projects-products/index.html": "/vi/advertising-products/",
+  "/vi/projects-products": "/vi/advertising-products/",
+  "/vi/projects-products/": "/vi/advertising-products/",
+  "/vi/projects-products/index.html": "/vi/advertising-products/",
+  "/en/projects-products": "/en/advertising-products/",
+  "/en/projects-products/": "/en/advertising-products/",
+  "/en/projects-products/index.html": "/en/advertising-products/",
   "/about": "/vi/about/",
   "/about/": "/vi/about/",
   "/about/index.html": "/vi/about/",
@@ -206,7 +226,7 @@ async function renderRoute(request, env, url, route) {
   const origin = publicOrigin(env, url);
   const sourcePath =
     route.pageId === "project-detail"
-      ? SOURCE_ROUTES["projects-products"]
+      ? SOURCE_ROUTES["advertising-products"]
       : SOURCE_ROUTES[route.pageId];
   const source = await env.ASSETS.fetch(
     new Request(new URL(sourcePath, url.origin), { method: "GET" }),
@@ -223,7 +243,7 @@ async function renderRoute(request, env, url, route) {
       record =
         route.pageId === "project-detail"
           ? await publishedProject(env, route.slug)
-          : await publishedPage(env, route.pageId);
+          : await publishedPage(env, CMS_PAGE_IDS[route.pageId]);
     }
   } catch (error) {
     if (error instanceof CmsUnavailableError) {
@@ -233,7 +253,8 @@ async function renderRoute(request, env, url, route) {
   }
   if (env.DB && !record) return new Response("Not Found", { status: 404 });
 
-  const content = record ? localeContent(record.content_json, route.locale) : null;
+  const localizedContent = record ? parseLocalizedContent(record.content_json) : null;
+  const content = localizedContent?.[route.locale] || null;
   if (record && !content) return new Response("Not Found", { status: 404 });
   const seo = content?.seo || DEFAULT_SEO[route.locale];
   const canonicalPath = canonicalRoutePath(route);
@@ -272,14 +293,30 @@ async function renderRoute(request, env, url, route) {
   // fields afterward so canonical locale routes cannot be reverted by them.
   if (content) {
     rewriter = rewriter
-      .on("title", new InnerText(seo.title))
-      .on('meta[name="description"]', new Attribute("content", seo.description));
+      .on(
+        "title",
+        new LocalizedText(seo.title, localizedContent.vi?.seo?.title, localizedContent.en?.seo?.title),
+      )
+      .on(
+        'meta[name="description"]',
+        new LocalizedAttribute(
+          "content",
+          seo.description,
+          localizedContent.vi?.seo?.description,
+          localizedContent.en?.seo?.description,
+        ),
+      );
   }
   rewriter = rewriter.on(
     "head",
     new SeoHead({ canonical, alternate, route, seo }),
   );
-  if (content) rewriter = rewriter.on("[data-cms]", new CmsField(content));
+  if (content) {
+    rewriter = rewriter.on(
+      "[data-cms]",
+      new CmsField(localizedContent, route.locale),
+    );
+  }
 
   return rewriter.transform(new Response(source.body, { headers }));
 }
@@ -307,7 +344,7 @@ async function sitemap(env, url) {
     const origin = publicOrigin(env, url);
     if (!env.DB) {
       const urls = [];
-      for (const pageId of PAGE_IDS) {
+      for (const pageId of PUBLIC_PAGE_IDS) {
         for (const locale of LOCALES) {
           urls.push(
             new URL(canonicalRoutePath({ locale, pageId }), origin).toString(),
@@ -326,8 +363,9 @@ async function sitemap(env, url) {
     ]);
     const urls = [];
     for (const page of pages.results || []) {
-      if (!PAGE_IDS.has(page.id)) continue;
-      for (const locale of LOCALES) urls.push(new URL(canonicalRoutePath({ locale, pageId: page.id }), origin).toString());
+      const pageId = CMS_TO_PUBLIC_PAGE_IDS.get(page.id);
+      if (!pageId) continue;
+      for (const locale of LOCALES) urls.push(new URL(canonicalRoutePath({ locale, pageId }), origin).toString());
     }
     for (const project of projects.results || []) {
       for (const locale of LOCALES) urls.push(new URL(canonicalRoutePath({ locale, pageId: "project-detail", slug: project.slug }), origin).toString());
@@ -366,27 +404,6 @@ class HtmlLocale {
   }
 }
 
-class InnerText {
-  constructor(value) {
-    this.value = value;
-  }
-
-  element(element) {
-    element.setInnerContent(this.value, { html: false });
-  }
-}
-
-class Attribute {
-  constructor(name, value) {
-    this.name = name;
-    this.value = value;
-  }
-
-  element(element) {
-    element.setAttribute(this.name, this.value);
-  }
-}
-
 class DatasetText {
   constructor(name) {
     this.name = name;
@@ -406,7 +423,13 @@ class DatasetAttribute {
 
   element(element) {
     const value = element.getAttribute(this.source);
-    if (value) element.setAttribute(this.name, decodeHtmlEntities(value));
+    if (!value) return;
+    const vietnameseSource = `data-vi-${this.name}`;
+    if (!element.hasAttribute(vietnameseSource)) {
+      const vietnamese = element.getAttribute(this.name);
+      if (vietnamese) element.setAttribute(vietnameseSource, vietnamese);
+    }
+    element.setAttribute(this.name, decodeHtmlEntities(value));
   }
 }
 
@@ -440,13 +463,52 @@ class LocaleLink {
 }
 
 class CmsField {
-  constructor(content) {
+  constructor(content, locale) {
     this.content = content;
+    this.locale = locale;
   }
 
   element(element) {
-    const value = valueAtPath(this.content, element.getAttribute("data-cms"));
+    const path = element.getAttribute("data-cms");
+    const vietnamese = valueAtPath(this.content.vi, path);
+    const english = valueAtPath(this.content.en, path);
+    if (typeof vietnamese === "string") element.setAttribute("data-vi", vietnamese);
+    if (typeof english === "string") element.setAttribute("data-en", english);
+    const value = this.locale === "en" ? english : vietnamese;
     if (typeof value === "string") element.setInnerContent(value, { html: false });
+  }
+}
+
+class LocalizedText {
+  constructor(value, vietnamese, english) {
+    this.value = value;
+    this.vietnamese = vietnamese;
+    this.english = english;
+  }
+
+  element(element) {
+    if (typeof this.vietnamese === "string") element.setAttribute("data-vi", this.vietnamese);
+    if (typeof this.english === "string") element.setAttribute("data-en", this.english);
+    element.setInnerContent(this.value, { html: false });
+  }
+}
+
+class LocalizedAttribute {
+  constructor(name, value, vietnamese, english) {
+    this.name = name;
+    this.value = value;
+    this.vietnamese = vietnamese;
+    this.english = english;
+  }
+
+  element(element) {
+    if (typeof this.vietnamese === "string") {
+      element.setAttribute(`data-vi-${this.name}`, this.vietnamese);
+    }
+    if (typeof this.english === "string") {
+      element.setAttribute(`data-en-${this.name}`, this.english);
+    }
+    element.setAttribute(this.name, this.value);
   }
 }
 
@@ -504,11 +566,10 @@ function valueAtPath(value, path) {
   return path.split(".").reduce((current, key) => current?.[key], value);
 }
 
-function localeContent(serialized, locale) {
+function parseLocalizedContent(serialized) {
   if (!serialized) return null;
   try {
-    const content = JSON.parse(serialized);
-    return content?.[locale] || null;
+    return JSON.parse(serialized);
   } catch {
     return null;
   }
@@ -1037,7 +1098,7 @@ async function readJson(request) {
 
 function validatePage(payload, routeId) {
   const id = routeId || requiredId(payload.id);
-  if (!PAGE_IDS.has(id)) throw new Error("Invalid page id.");
+  if (!CMS_PAGE_ID_SET.has(id)) throw new Error("Invalid page id.");
   const content = validateLocalizedPageContent(payload.content);
   return { id, status: status(payload.status), content_json: JSON.stringify(content) };
 }

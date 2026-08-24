@@ -1,16 +1,6 @@
 # the name by which the project can be referenced within Serena/when chatting with the LLM.
 project_name: "TruongThinh-Website"
 
-languages:
-- typescript
-- html
-- scss
-- powershell
-- markdown
-- json
-- toml
-- yaml
-- python
 encoding: "utf-8"
 
 # line ending convention to use when writing source files.
@@ -138,3 +128,13 @@ activation_command:
 # maximum time in seconds to wait for activation_command to complete before killing it (default 180s).
 # must be a positive number.
 activation_command_timeout: 180.0
+language_servers:
+- typescript
+- html
+- scss
+- powershell
+- markdown
+- json
+- toml
+- yaml
+- python

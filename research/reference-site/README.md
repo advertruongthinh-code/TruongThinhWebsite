@@ -1,14 +1,22 @@
-# Reference Website Archive
+# Archive website tham khảo
 
-This directory stores local research output produced by
-`scripts/reference/archive-reference.mjs`. The generated archive is ignored by Git.
+Directory này lưu research output local do
+`scripts/reference/archive-reference.mjs` tạo. Archive được generate và bị Git
+ignore.
 
-Run the crawler only with an origin supplied by the owner:
+Chỉ chạy crawler khi owner cung cấp origin:
 
 ```powershell
 node scripts/reference/archive-reference.mjs --origin <url>
 ```
 
-The archive may contain third-party source and media. Use it only for local
-layout and motion analysis. Never load it from production, redistribute it, or
-commit its source URLs and proprietary assets.
+Archive có thể chứa source và media của bên thứ ba. Chỉ dùng nó để phân tích
+layout và motion local. Không load archive vào production, không redistribute,
+và không commit source URL hoặc proprietary asset.
+
+## Chú thích thuật ngữ
+
+- **Crawler**: tool tự động truy cập và lưu tài nguyên theo rule.
+- **Archive**: bản lưu nghiên cứu local, không phải runtime dependency.
+- **Origin**: URL gốc được owner cho phép crawler truy cập.
+- **Redistribute**: phát tán lại source/media cho nơi khác.

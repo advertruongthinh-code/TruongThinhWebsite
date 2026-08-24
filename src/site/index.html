@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-black.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-white.svg" media="(prefers-color-scheme: dark)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -69,18 +70,11 @@
 
     <header class="site-header" data-site-header>
       <a id="header-logo" class="brand" href="/">
-        <svg class="brand-mark" viewBox="0 0 100 90" aria-hidden="true">
-          <defs>
-            <clipPath id="triangle-header">
-              <path d="M50 3 97 86H3Z" />
-            </clipPath>
-          </defs>
-          <g clip-path="url(#triangle-header)">
-            <path d="M0 0h100v22L0 38Z" />
-            <path d="M0 41 100 25v20L0 61Z" />
-            <path d="M0 64 100 48v20L0 84Z" />
-            <path d="M0 87 100 71v29H0Z" />
-          </g>
+        <svg class="brand-mark" viewBox="0 0 286.2 247.85" aria-hidden="true">
+          <path d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" />
+          <path d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" />
+          <path d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" />
+          <path d="M143.1 0l32.48 56.25c-36.88 63.87 -73.75 127.74 -110.62 191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" />
         </svg>
         <span class="brand-copy">
           <strong>TRƯỜNG THỊNH</strong>
@@ -113,10 +107,10 @@
           </li>
           <li>
             <a
-              href="/vi/projects-products/"
-              data-vi="Công trình &amp; sản phẩm"
-              data-en="Projects &amp; products"
-              >Công trình &amp; sản phẩm</a
+              href="/vi/advertising-products/"
+              data-vi="Sản phẩm Quảng cáo"
+              data-en="Advertising products"
+              >Sản phẩm Quảng cáo</a
             >
           </li>
         </ul>
@@ -170,9 +164,11 @@
             aria-label="Trường Thịnh — về trang chủ"
             data-en-aria-label="Trường Thịnh — back to home"
           >
-            <svg class="menu-brand__mark" viewBox="0 0 100 90" aria-hidden="true">
-              <defs><clipPath id="triangle-menu-home"><path d="M50 3 97 86H3Z" /></clipPath></defs>
-              <g clip-path="url(#triangle-menu-home)"><path d="M0 0h100v22L0 38Z" /><path d="M0 41 100 25v20L0 61Z" /><path d="M0 64 100 48v20L0 84Z" /><path d="M0 87 100 71v29H0Z" /></g>
+            <svg class="menu-brand__mark" viewBox="0 0 286.2 247.85" aria-hidden="true">
+              <path d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" />
+              <path d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" />
+              <path d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" />
+              <path d="M143.1 0l32.48 56.25c-36.88 63.87 -73.75 127.74 -110.62 191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" />
             </svg>
             <span class="menu-brand__copy"><strong id="menu-title">TRƯỜNG THỊNH</strong><small data-en="INTERIORS · ADVERTISING">NỘI THẤT · QUẢNG CÁO</small></span>
           </a>
@@ -202,9 +198,12 @@
             data-en-aria-label="Close menu"
             data-menu-close
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M5 5l14 14M19 5 5 19" />
-            </svg>
+            <div class="menu-close__icon">
+              <svg width="100%" height="100%" aria-hidden="true">
+                <line class="top" x1="0" y1="0" x2="100%" y2="100%" />
+                <line class="middle" x1="100%" y1="0" x2="0" y2="100%" />
+              </svg>
+            </div>
           </button>
         </div>
         <nav
@@ -237,14 +236,14 @@
           </div>
           <div class="menu-group">
             <span class="menu-group__number">03</span>
-            <a class="menu-group__title" href="/vi/projects-products/">
-              <span data-vi="Công trình &amp; sản phẩm" data-en="Projects &amp; products">Công trình &amp; sản phẩm</span>
+            <a class="menu-group__title" href="/vi/advertising-products/">
+              <span data-vi="Sản phẩm Quảng cáo" data-en="Advertising products">Sản phẩm Quảng cáo</span>
             </a>
             <div class="menu-group__links">
-              <a class="menu-option" href="/vi/projects-products/?category=kiosk-posm" data-en="Kiosk &amp; POSM">Kiosk &amp; POSM</a>
-              <a class="menu-option" href="/vi/projects-products/?category=mobile-retail" data-en="Mobile retail">Xe bán hàng</a>
-              <a class="menu-option" href="/vi/projects-products/?category=signage" data-en="Signage">Bảng hiệu</a>
-              <a class="menu-option" href="/vi/projects-products/?category=light-box" data-en="Light boxes">Hộp đèn</a>
+              <a class="menu-option" href="/vi/advertising-products/?category=kiosk-posm" data-en="Kiosk &amp; POSM">Kiosk &amp; POSM</a>
+              <a class="menu-option" href="/vi/advertising-products/?category=mobile-retail" data-en="Mobile retail">Xe bán hàng</a>
+              <a class="menu-option" href="/vi/advertising-products/?category=signage" data-en="Signage">Bảng hiệu</a>
+              <a class="menu-option" href="/vi/advertising-products/?category=light-box" data-en="Light boxes">Hộp đèn</a>
             </div>
           </div>
           <div class="menu-group">
@@ -270,11 +269,16 @@
       data-barba-namespace="home"
     >
       <main id="noi-dung">
-        <section class="hero" id="top" data-header-tone="inverse">
+        <section
+          class="hero"
+          id="top"
+          data-header-tone="inverse"
+          data-hero-intro
+        >
           <div class="hero-slides" aria-hidden="true">
             <figure class="hero-slide is-active" data-slide="0">
               <img
-                src="/assets/site/generated/residential-space.webp"
+                src="/assets/content/projects/residential-space.webp"
                 width="1536"
                 height="1024"
                 alt=""
@@ -283,7 +287,7 @@
             </figure>
             <figure class="hero-slide" data-slide="1">
               <img
-                data-src="/assets/site/commercial/hero.webp"
+                data-src="/assets/content/projects/hero.webp"
                 width="1536"
                 height="1024"
                 alt=""
@@ -292,7 +296,7 @@
             </figure>
             <figure class="hero-slide" data-slide="2">
               <img
-                data-src="/assets/site/advertising/hero-kiosk.webp"
+                data-src="/assets/content/projects/hero-kiosk.webp"
                 width="1536"
                 height="1024"
                 alt=""
@@ -301,7 +305,7 @@
             </figure>
             <figure class="hero-slide" data-slide="3">
               <img
-                data-src="/assets/site/advertising/mobile-retail.webp"
+                data-src="/assets/content/projects/mobile-retail.webp"
                 width="1536"
                 height="1024"
                 alt=""
@@ -385,7 +389,7 @@
               <use href="#editorial-digit-1" />
             </svg>
             <img
-              src="/assets/site/process/survey-laser-level.webp"
+              src="/assets/content/shared/survey-laser-level.webp"
               width="1024"
               height="1536"
               alt="Kỹ thuật viên khảo sát hiện trạng bằng máy cân bằng laser"
@@ -404,7 +408,7 @@
               <use href="#editorial-digit-2" />
             </svg>
             <img
-              src="/assets/site/process/consultation-materials.webp"
+              src="/assets/content/shared/consultation-materials.webp"
               width="1024"
               height="1536"
               alt="Tư vấn lựa chọn mẫu gỗ và vật liệu hoàn thiện"
@@ -423,7 +427,7 @@
               <use href="#editorial-digit-3" />
             </svg>
             <img
-              src="/assets/site/cnc.webp"
+              src="/assets/content/shared/cnc.webp"
               width="1536"
               height="1024"
               alt="Sản xuất chi tiết nội thất trên máy CNC"
@@ -442,7 +446,7 @@
               <use href="#editorial-digit-4" />
             </svg>
             <img
-              src="/assets/site/process/installation.webp"
+              src="/assets/content/shared/installation.webp"
               width="1536"
               height="1024"
               alt="Lắp đặt nội thất tại công trình"
@@ -477,7 +481,7 @@
               href="/vi/residential/"
             >
               <img
-                src="/assets/site/expanded/home-residential-kitchen.webp"
+                src="/assets/content/projects/home-residential-kitchen.webp"
                 width="1086"
                 height="1448"
                 alt="Bếp nhà phố Việt Nam mở ra giếng trời xanh mát"
@@ -510,7 +514,7 @@
               href="/vi/commercial/"
             >
               <img
-                src="/assets/site/expanded/home-commercial-fnb.webp"
+                src="/assets/content/projects/home-commercial-fnb.webp"
                 width="1086"
                 height="1448"
                 alt="Quầy cafe Việt Nam đang vận hành với người chuyển động nhòe"
@@ -542,10 +546,10 @@
 
             <a
               class="service-portal"
-              href="/vi/projects-products/"
+              href="/vi/advertising-products/"
             >
               <img
-                src="/assets/site/portal-options-round-2/advertising-fnb-mobile-cart-v2.webp"
+                src="/assets/content/projects/advertising-fnb-mobile-cart-v2.webp"
                 width="1086"
                 height="1448"
                 alt="Xe bán hàng lưu động F&amp;B với một chân chống ổn định"
@@ -599,7 +603,7 @@
               >
               <span class="heritage-image reveal-media">
                 <img
-                  src="/assets/site/thumbs/legacy-hands-384.webp"
+                  src="/assets/content/shared/legacy-hands-384.webp"
                   width="384"
                   height="256"
                   alt="Đôi tay người thợ đo và căn chỉnh mối ghép gỗ"
@@ -624,7 +628,7 @@
               >
               <span class="heritage-image reveal-media">
                 <img
-                  src="/assets/site/generated/montage-cnc-tablet.webp"
+                  src="/assets/content/shared/montage-cnc-tablet.webp"
                   width="1536"
                   height="1024"
                   alt="Máy tính bảng hiển thị bản vẽ sản xuất trước máy CNC"
@@ -649,7 +653,7 @@
               >
               <span class="heritage-image reveal-media">
                 <img
-                  src="/assets/site/generated/montage-commitment-option-3-knot.webp"
+                  src="/assets/content/shared/montage-commitment-option-3-knot.webp"
                   width="1536"
                   height="1024"
                   alt="Nút dây chịu lực được siết chặt"
@@ -672,7 +676,7 @@
               >
               <span class="heritage-image reveal-media">
                 <img
-                  src="/assets/site/generated/montage-residential-product-detail.webp"
+                  src="/assets/content/shared/montage-residential-product-detail.webp"
                   width="1536"
                   height="1024"
                   alt="Tủ console gỗ, đá và kim loại trong không gian căn hộ"
@@ -712,7 +716,7 @@
           <div class="service-portals">
             <article class="service-portal">
               <img
-                src="/assets/site/expanded/materials.webp"
+                src="/assets/content/shared/materials.webp"
                 width="1536"
                 height="1024"
                 alt="Mẫu vật liệu gỗ, đá và kim loại được tuyển chọn"
@@ -737,7 +741,7 @@
             </article>
             <article class="service-portal">
               <img
-                src="/assets/site/process/installation.webp"
+                src="/assets/content/shared/installation.webp"
                 width="1536"
                 height="1024"
                 alt="Bàn tay kỹ thuật viên căn chỉnh hệ tủ tại công trình"
@@ -762,7 +766,7 @@
             </article>
             <article class="service-portal">
               <img
-                src="/assets/site/process/consultation.webp"
+                src="/assets/content/shared/consultation.webp"
                 width="1536"
                 height="1024"
                 alt="Bàn tay tư vấn viên trao đổi vật liệu trên bản vẽ"
@@ -807,7 +811,7 @@
             <figure class="project-card project-card--high">
               <span class="project-card__media">
                 <img
-                  src="/assets/site/cnc.webp"
+                  src="/assets/content/shared/cnc.webp"
                   width="1536"
                   height="1024"
                   alt="Máy CNC gia công chi tiết nội thất từ tấm MDF"
@@ -820,7 +824,7 @@
             <figure class="project-card project-card--low">
               <span class="project-card__media">
                 <img
-                  src="/assets/site/expanded/signage-detail.webp"
+                  src="/assets/content/projects/signage-detail.webp"
                   width="1536"
                   height="1024"
                   alt="Chi tiết chữ nổi có ánh sáng hắt trên nền kim loại"
@@ -835,7 +839,7 @@
             <figure class="project-card project-card--high">
               <span class="project-card__media">
                 <img
-                  src="/assets/site/expanded/storefront.webp"
+                  src="/assets/content/projects/storefront.webp"
                   width="1536"
                   height="1024"
                   alt="Mặt tiền cửa hàng Việt Nam với hệ bảng hiệu vào giờ xanh"
@@ -850,7 +854,7 @@
             <figure class="project-card project-card--mid">
               <span class="project-card__media">
                 <img
-                  src="/assets/site/expanded/completed-detail.webp"
+                  src="/assets/content/projects/completed-detail.webp"
                   width="1536"
                   height="1024"
                   alt="Góc hoàn thiện giữa tủ, kim loại và bề mặt acrylic"
@@ -865,7 +869,7 @@
             <figure class="project-card project-card--high">
               <span class="project-card__media">
                 <img
-                  src="/assets/site/expanded/kiosk-active.webp"
+                  src="/assets/content/projects/kiosk-active.webp"
                   width="1536"
                   height="1024"
                   alt="Kiosk bán hàng lưu động đang hoạt động"
@@ -882,7 +886,7 @@
 
         <section class="legacy-closer section-gap" data-header-tone="inverse">
           <img
-            src="/assets/site/expanded/workshop-wide.webp"
+            src="/assets/content/shared/workshop-wide.webp"
             width="1536"
             height="1024"
             alt="Toàn cảnh xưởng Trường Thịnh với đội ngũ đang sản xuất"
@@ -909,22 +913,38 @@
         </section>
 
         <section
-          class="capability-marquee section-gap"
-          aria-label="Năng lực sản xuất"
-          data-en-aria-label="Production capabilities"
+          class="capability-marquee capability-marquee--clients section-gap"
+          aria-label="Khách hàng tiêu biểu"
+          data-en-aria-label="Selected clients"
           data-header-tone="ink"
         >
-          <div class="marquee-line">
-            <span>MDF</span><i></i><span>HDF</span><i></i><span>MFC</span><i></i>
-            <span>CNC</span><i></i
-            ><span data-en="Edge banding">Dán cạnh</span><i></i>
-            <span data-en="Installation">Lắp đặt</span><i></i>
-          </div>
-          <div class="marquee-line" aria-hidden="true">
-            <span>MDF</span><i></i><span>HDF</span><i></i><span>MFC</span><i></i>
-            <span>CNC</span><i></i
-            ><span data-en="Edge banding">Dán cạnh</span><i></i>
-            <span data-en="Installation">Lắp đặt</span><i></i>
+          <div class="client-logo-marquee__track">
+            <div class="client-logo-marquee__group">
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bcj.svg" width="200" height="80" loading="eager" decoding="async" alt="BCJ" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/beinco.svg" width="200" height="80" loading="eager" decoding="async" alt="Beinco" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/benh-vien-minh-duc.svg" width="200" height="80" loading="eager" decoding="async" alt="Bệnh viện Minh Đức" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/betrimex.svg" width="200" height="80" loading="eager" decoding="async" alt="Betrimex" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bidv.svg" width="200" height="80" loading="eager" decoding="async" alt="BIDV" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/cannes-hotel.svg" width="200" height="80" loading="eager" decoding="async" alt="Cannes Hotel" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/dua-cuu-long.svg" width="200" height="80" loading="eager" decoding="async" alt="Dừa Cửu Long" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/hdbank.svg" width="200" height="80" loading="eager" decoding="async" alt="HDBank" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/prudential.svg" width="200" height="80" loading="eager" decoding="async" alt="Prudential" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietcombank.svg" width="200" height="80" loading="eager" decoding="async" alt="Vietcombank" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietinbank.svg" width="200" height="80" loading="eager" decoding="async" alt="VietinBank" /></span>
+            </div>
+            <div class="client-logo-marquee__group" aria-hidden="true">
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bcj.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/beinco.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/benh-vien-minh-duc.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/betrimex.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bidv.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/cannes-hotel.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/dua-cuu-long.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/hdbank.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/prudential.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietcombank.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietinbank.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+            </div>
           </div>
         </section>
       </main>

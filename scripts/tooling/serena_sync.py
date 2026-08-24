@@ -136,7 +136,14 @@ def synchronize(root: Path, apply: bool) -> dict[str, Any]:
 
 
 def run_health_check(root: Path) -> int:
-    serena = root / ".tooling" / "python" / "Scripts" / "serena.exe"
+    serena = Path(
+        os.environ.get(
+            "SERENA_EXE",
+            str(Path.home() / ".codex" / "tooling" / "python" / "Scripts" / "serena.exe"),
+        )
+    )
+    if not serena.is_file():
+        raise FileNotFoundError(f"Global Serena executable is missing: {serena}")
     log = root / ".tooling" / "logs" / "serena-health-check.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("a", encoding="utf-8") as handle:

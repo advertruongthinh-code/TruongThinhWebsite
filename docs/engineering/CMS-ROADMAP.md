@@ -1,34 +1,45 @@
-# CMS Roadmap
+# Lộ trình CMS
 
-## Status
+## Trạng thái
 
-Deferred until the static website is live and stable. This document is a phase
-boundary, not an implementation request.
+Hoãn cho tới khi static website live và ổn định. Đây là phase boundary, không
+phải implementation request.
 
-## Existing scaffold
+## Scaffold hiện có
 
-- `src/worker/index.js`: dormant D1/R2/admin interfaces and validation.
-- `src/db/migrations/`: draft schema and seed data.
-- `src/admin/`: private administration shell excluded from public static assets.
-- `docs/engineering/CLOUDFLARE-CMS.md`: earlier design notes that require revalidation.
+- `src/worker/index.js`: interface D1/R2/admin và validation đang dormant.
+- `src/db/migrations/`: schema draft và seed data.
+- `src/admin/`: private administration shell bị loại khỏi public static asset.
+- `docs/specs/cms-content-publishing.md`: contract boundary tương lai; provider
+  detail cố ý chưa được chọn.
 
-## Phase entry criteria
+## Điều kiện bắt đầu phase
 
-- The static release is live and has a known rollback path.
-- The owner confirms the editorial roles and publishing workflow.
-- D1/R2 region, retention, backup, and cost assumptions are revalidated against
-  current official documentation.
-- Cloudflare Access and production domain decisions are explicit.
+- Static release đã live và có rollback path đã biết.
+- Owner xác nhận editorial role và publishing workflow.
+- Giả định về D1/R2 region, retention, backup và cost được revalidate với official
+  documentation hiện tại.
+- Quyết định về Cloudflare Access và production domain là explicit.
 
-## Planned outcomes
+## Kết quả dự kiến
 
-- Draft and publish bilingual pages, projects, and products.
-- Store structured metadata in D1 and approved media in R2.
-- Keep public static routes available during CMS incidents.
-- Record audit events and restrict all admin writes to authenticated owners.
+- Draft và publish bilingual structured post, project và product.
+- Lưu structured metadata và approved media trong provider system đã chọn;
+  D1/R2 vẫn chỉ là candidate cho tới khi constraint hiện tại được verify.
+- Giữ public static route hoạt động trong CMS incident.
+- Ghi audit event và giới hạn mọi admin write cho authenticated owner.
 
-## Non-goals
+## Không thuộc mục tiêu
 
-- A general-purpose page builder.
-- Multi-tenant permissions.
-- Replacing the static source files before the CMS proves reliable.
+- Page builder đa dụng.
+- Multi-tenant permission.
+- Thay static source file trước khi CMS chứng minh được độ tin cậy.
+
+## Chú thích thuật ngữ
+
+- **Phase boundary**: ranh giới quyết định khi nào một phase được phép bắt đầu.
+- **Scaffold**: khung code chuẩn bị sẵn nhưng chưa phải behavior đang active.
+- **Rollback path**: cách quay về release trước khi release mới gặp sự cố.
+- **Structured metadata**: metadata có schema và field được định nghĩa rõ.
+- **Multi-tenant**: một hệ thống phục vụ nhiều tenant với ranh giới dữ liệu/quyền
+  riêng.

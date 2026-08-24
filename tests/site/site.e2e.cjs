@@ -10,9 +10,9 @@ const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(
   "",
 );
 const BASE_ORIGIN = new URL(BASE_URL).origin;
-const ROUTES = ["/vi/", "/vi/residential/", "/vi/commercial/", "/vi/projects-products/", "/vi/about/"];
-const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/projects-products/"];
-const DIRECT_MOTTO_ROUTES = ["/vi/residential/", "/vi/commercial/"];
+const ROUTES = ["/vi/", "/vi/residential/", "/vi/commercial/", "/vi/advertising-products/", "/vi/about/"];
+const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
+const DIRECT_MOTTO_ROUTES = [];
 const VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
@@ -30,20 +30,20 @@ const HEADER_VIEWPORTS = [
 ];
 const SSR_CMS_HYDRATION_CASES = [
   {
-    route: "/vi/projects-products/",
+    route: "/vi/advertising-products/",
     locale: "vi",
-    title: "Công trình & sản phẩm — Trường Thịnh",
+    title: "Sản phẩm Quảng cáo — Trường Thịnh",
     description: "Kiosk, POSM, biển hiệu, LED, in ấn và nhận diện thương hiệu.",
-    heroTitle: "Công trình & sản phẩm",
-    navigationLabel: "Công trình & sản phẩm",
+    heroTitle: "để thương hiệu luôn trong tầm mắt",
+    navigationLabel: "Sản phẩm Quảng cáo",
   },
   {
-    route: "/en/projects-products/",
+    route: "/en/advertising-products/",
     locale: "en",
-    title: "Projects & products — Trường Thịnh",
+    title: "Advertising products — Trường Thịnh",
     description: "Kiosks, POSM, signage, LED, print, and brand identity.",
-    heroTitle: "Projects & products",
-    navigationLabel: "Projects & products",
+    heroTitle: "Keep your brand always in sight",
+    navigationLabel: "Advertising products",
   },
   {
     route: "/en/about/",
@@ -53,7 +53,9 @@ const SSR_CMS_HYDRATION_CASES = [
     requiresStaticFallbackMismatch: true,
   },
 ];
-const REPORT_DIR = path.join(__dirname, "reports");
+const REPORT_DIR = process.env.TT_E2E_REPORT_DIR
+  ? path.resolve(process.env.TT_E2E_REPORT_DIR)
+  : path.join(__dirname, "reports");
 const FAILURE_DIR = path.join(REPORT_DIR, "failures");
 const REPORT_PATH = path.join(REPORT_DIR, "latest.json");
 const SITE_ROOT = path.join(__dirname, "..", "..", "src", "site");
@@ -61,7 +63,7 @@ const PUBLIC_HTML = [
   ["index.html", "home"],
   ["residential/index.html", "residential"],
   ["commercial/index.html", "commercial"],
-  ["projects-products/index.html", "projects-products"],
+  ["advertising-products/index.html", "advertising-products"],
   ["about/index.html", "about"],
 ];
 
@@ -114,6 +116,25 @@ function assertPersistentNavigationContracts() {
 
   PUBLIC_HTML.forEach(([relativePath, namespace]) => {
     const source = fs.readFileSync(path.join(root, relativePath), "utf8");
+    assert(
+      source.includes(
+          '<link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-black.svg" media="(prefers-color-scheme: light)" />',
+        ) &&
+        source.includes(
+          '<link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-white.svg" media="(prefers-color-scheme: dark)" />',
+        ) &&
+        (source.match(/<link rel="icon"/g) || []).length === 2 &&
+        !source.includes('<link rel="icon" href="data:," />'),
+      `${relativePath} does not expose the adaptive Trường Thịnh favicon set`,
+    );
+    assert(
+      /class="menu-close"[\s\S]*?<div class="menu-close__icon">[\s\S]*?<svg/.test(source),
+      `${relativePath} does not expose an atomic close-icon motion wrapper`,
+    );
+    assert(
+      /<div class="menu-close__icon">\s*<svg width="100%" height="100%" aria-hidden="true">\s*<line class="top" x1="0" y1="0" x2="100%" y2="100%"\s*\/>\s*<line class="middle" x1="100%" y1="0" x2="0" y2="100%"\s*\/>\s*<\/svg>\s*<\/div>/.test(source),
+      `${relativePath} close icon does not retain the live full-extent line geometry`,
+    );
     const bootstrap = source.match(
       /<script>\s*\(\(\) => \{[\s\S]*?window\.__tt(?:MotionBoot|BootFailOpenCount)[\s\S]*?<\/script>/,
     )?.[0];
@@ -195,9 +216,9 @@ function assertPersistentNavigationContracts() {
       `${relativePath} must own locale, appointment, and four groups inside the full menu only`,
     );
     assert(
-      (source.match(/data-vi="Công trình &amp; sản phẩm"/g) || []).length >=
+      (source.match(/data-vi="Sản phẩm Quảng cáo"/g) || []).length >=
         2 &&
-        (source.match(/data-en="Projects &amp; products"/g) || []).length >= 2,
+        (source.match(/data-en="Advertising products"/g) || []).length >= 2,
       `${relativePath} has inconsistent project/product labels in the header or full menu`,
     );
     assert(
@@ -215,6 +236,42 @@ function assertPersistentNavigationContracts() {
         /<svg\b(?=[^>]*\bid="header-toggle-svg")/.test(headerSource),
       `${relativePath} does not expose the persistent reference-compatible header shell`,
     );
+    const headerBrand = headerSource?.match(
+      /<a\b(?=[^>]*\bid="header-logo")[\s\S]*?<\/a>/,
+    )?.[0];
+    assert(
+      headerBrand &&
+        /<svg class="brand-mark" viewBox="0 0 286\.2 247\.85" aria-hidden="true">/.test(
+          headerBrand,
+        ) &&
+        (headerBrand.match(/<path d="/g) || []).length === 4 &&
+        headerBrand.includes(
+          'd="M143.1 0l32.48 56.25c-36.88 63.87 -73.75 127.74 -110.62 191.6l-64.96 0 71.55 -123.92 71.55 -123.93z"',
+        ) &&
+        !/<clipPath\b/.test(headerBrand) &&
+        /<span class="brand-copy">\s*<strong>TRƯỜNG THỊNH<\/strong\s*>\s*<small data-en="INTERIORS · ADVERTISING"[^>]*>\s*NỘI THẤT · QUẢNG CÁO\s*<\/small\s*>\s*<\/span\s*>/.test(
+          headerBrand,
+        ),
+      `${relativePath} must use the approved four-path Trường Thịnh mark without changing brand copy`,
+    );
+    const menuBrand = menuSource?.match(
+      /<a\b(?=[^>]*\bclass="[^"]*\bmenu-brand\b)[\s\S]*?<\/a>/,
+    )?.[0];
+    const headerPaths = [...(headerBrand || "").matchAll(/<path d="([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+    const menuPaths = [...(menuBrand || "").matchAll(/<path d="([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+    assert(
+      menuBrand &&
+        /<svg class="menu-brand__mark" viewBox="0 0 286\.2 247\.85" aria-hidden="true">/.test(
+          menuBrand,
+        ) &&
+        !/<clipPath\b/.test(menuBrand) &&
+        JSON.stringify(menuPaths) === JSON.stringify(headerPaths),
+      `${relativePath} full-menu logo must reuse the approved header mark geometry`,
+    );
   });
 
   assert(
@@ -223,14 +280,108 @@ function assertPersistentNavigationContracts() {
   );
 
   const motionSource = fs.readFileSync(path.join(root, "motion.js"), "utf8");
+  assert(
+    /const introOffset = heroIntroPending && index === 0 \? 1\.3 : 0;/.test(
+      motionSource,
+    ),
+    "Home hero solid intro must last 1.3 seconds",
+  );
   const styleSource = fs.readFileSync(path.join(root, "style.css"), "utf8");
+  const homeSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const brandCss = styleSource.match(/\.brand\s*\{[\s\S]*?\n\}/)?.[0];
   const detailSource = fs.readFileSync(path.join(root, "detail.js"), "utf8");
   const detailCss = fs.readFileSync(path.join(root, "detail.css"), "utf8");
   const aboutSource = fs.readFileSync(path.join(root, "about/index.html"), "utf8");
-  const projectsSource = fs.readFileSync(
-    path.join(root, "projects-products/index.html"),
+  const residentialSource = fs.readFileSync(
+    path.join(root, "residential/index.html"),
     "utf8",
+  );
+  const commercialSource = fs.readFileSync(
+    path.join(root, "commercial/index.html"),
+    "utf8",
+  );
+  const projectsSource = fs.readFileSync(
+    path.join(root, "advertising-products/index.html"),
+    "utf8",
+  );
+
+  const residentialHeroContent = residentialSource.match(
+    /<div class="hero-content">[\s\S]*?<\/div>/,
+  )?.[0];
+  assert(
+    /class="hero detail-hero residential-hero"/.test(residentialSource) &&
+      residentialHeroContent?.includes("NHÀ PHỐ · CĂN HỘ · HOMESTAY") &&
+      residentialHeroContent?.includes('data-en="TOWNHOUSES · APARTMENTS · HOMESTAYS"') &&
+      residentialHeroContent?.includes("Nơi tái tạo") &&
+      residentialHeroContent?.includes("năng lượng sống") &&
+      residentialHeroContent?.includes('data-en="A place to"') &&
+      residentialHeroContent?.includes('data-en="recharge"') &&
+      !residentialHeroContent?.includes("detail-hero-motto"),
+    "Residential hero must use the approved two-line VI/EN copy without the retired motto",
+  );
+
+  const commercialHeroContent = commercialSource.match(
+    /<div class="hero-content">[\s\S]*?<\/div>/,
+  )?.[0];
+  assert(
+    /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
+      commercialHeroContent?.includes("SHOP · F&amp;B · SHOWROOM · VĂN PHÒNG") &&
+      commercialHeroContent?.includes('data-en="SHOP · F&amp;B · SHOWROOM · OFFICE"') &&
+      commercialHeroContent?.includes("Thiết kế để bán tốt.") &&
+      commercialHeroContent?.includes("Thi công để vận hành bền.") &&
+      commercialHeroContent?.includes('data-en="Designed to sell."') &&
+      commercialHeroContent?.includes('data-en="Built to perform."') &&
+      !commercialHeroContent?.includes("detail-hero-motto"),
+    "Commercial hero must use the approved Espacio-style two-line VI/EN copy without a separate motto",
+  );
+
+  const projectsHeroSection = projectsSource.match(
+    /<section\b(?=[^>]*\bclass="[^"]*\bdetail-index-hero\b)[\s\S]*?<\/section>/,
+  )?.[0];
+  const projectsHeroContent = projectsHeroSection?.match(
+    /<div\b(?=[^>]*\bclass="[^"]*\bhero-content\b)[^>]*>[\s\S]*?<\/div>/,
+  )?.[0];
+  assert(
+    projectsHeroSection &&
+      projectsHeroContent?.includes('class="hero-kicker"') &&
+      projectsHeroContent?.includes("Sản phẩm quảng cáo") &&
+      projectsHeroContent?.includes('data-en="Advertising products"') &&
+      projectsHeroContent?.includes("để thương hiệu") &&
+      projectsHeroContent?.includes("luôn trong tầm mắt") &&
+      projectsHeroContent?.includes('data-en="Keep your brand"') &&
+      projectsHeroContent?.includes('data-en="always in sight"') &&
+      !projectsHeroContent?.includes("project-filters") &&
+      !projectsHeroContent?.includes("detail-hero-motto") &&
+      /class="detail-index-hero__scroll"[\s\S]*?data-en="SCROLL DOWN"[\s\S]*?CUỘN XUỐNG/.test(
+        projectsHeroSection,
+      ) &&
+      detailCss.includes("height: calc(100svh - 50px);") &&
+      detailCss.includes("width: min(calc(100% - 2 * var(--gutter)), 1500px);") &&
+      detailCss.includes(".detail-index-hero__scroll"),
+    "Advertising hero must use the approved Projects-style copy, sibling filters, scroll cue, and viewport-minus-50 layout",
+  );
+
+  const clientLogoMarquee = homeSource.match(
+    /<section\b(?=[^>]*\bclass="[^"]*\bcapability-marquee\b)[\s\S]*?<\/section>/,
+  )?.[0];
+  const clientLogoGroups = clientLogoMarquee?.match(
+    /<div class="client-logo-marquee__group"(?: aria-hidden="true")?>[\s\S]*?<\/div>/g,
+  );
+  assert(
+    clientLogoMarquee?.includes('class="client-logo-marquee__track"') &&
+      clientLogoGroups?.length === 2 &&
+      (clientLogoGroups[0].match(/class="client-logo-slot/g) || []).length === 11 &&
+      (clientLogoGroups[1].match(/class="client-logo-slot/g) || []).length === 11 &&
+      /\.client-logo-marquee__track\s*\{[\s\S]*?animation:\s*client-logo-marquee\s+25s\s+linear\s+infinite;/.test(
+        styleSource,
+      ) &&
+      /\.client-logo-marquee__group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(11,\s*var\(--client-logo-slot-width\)\);/.test(
+        styleSource,
+      ) &&
+      /@keyframes client-logo-marquee\s*\{[\s\S]*?transform:\s*translate3d\(-50%,\s*0,\s*0\);/.test(
+        styleSource,
+      ),
+    "The client-logo marquee must use two equal eleven-slot groups on one seamless -50% track",
   );
 
   assert(
@@ -240,22 +391,28 @@ function assertPersistentNavigationContracts() {
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",
   );
   assert(
-    /\.site-header\s*\{[\s\S]*?box-sizing:\s*content-box;[\s\S]*?width:\s*calc\(100% - 70px\);[\s\S]*?padding:\s*35px 35px 0;[\s\S]*?grid-template-columns:\s*170px minmax\(0, 1fr\) 65px;[\s\S]*?column-gap:\s*70px;[\s\S]*?\}/.test(
+    /\.site-header\s*\{[\s\S]*?box-sizing:\s*content-box;[\s\S]*?width:\s*calc\(100% - 70px\);[\s\S]*?padding:\s*35px 35px 0;[\s\S]*?grid-template-columns:\s*170px minmax\(0, 1fr\) 65px;[\s\S]*?align-content:\s*center;[\s\S]*?align-items:\s*normal;[\s\S]*?column-gap:\s*70px;[\s\S]*?\}/.test(
       styleSource,
     ) &&
-      /@media \(max-width:\s*1200px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 50px\);[\s\S]*?padding:\s*25px 25px 0;[\s\S]*?grid-template-columns:\s*145px minmax\(0, 1fr\) 65px;[\s\S]*?column-gap:\s*25px;/.test(
+      /@media \(max-width:\s*1200px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 50px\);[\s\S]*?padding:\s*25px 25px 0;[\s\S]*?grid-template-columns:\s*220px minmax\(0, 1fr\) 65px;[\s\S]*?column-gap:\s*25px;/.test(
         styleSource,
       ) &&
-      /\.desktop-nav ul\s*\{[\s\S]*?left:\s*-10%;[\s\S]*?margin:\s*1em 0;/.test(
+      /\.desktop-nav ul\s*\{[\s\S]*?left:\s*-10%;[\s\S]*?margin:\s*1em 0;[\s\S]*?column-gap:\s*39\.4609375px;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*1200px\)[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?left:\s*auto;[\s\S]*?column-gap:\s*37\.5px;/.test(
+      /@media \(max-width:\s*1200px\)[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?left:\s*auto;[\s\S]*?column-gap:\s*44\.4609375px;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*960px\)[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?grid-template-rows:\s*repeat\(2, auto\);[\s\S]*?row-gap:\s*25px;/.test(
+      /@media \(max-width:\s*1024px\)[\s\S]*?\.brand\s*\{[\s\S]*?min-height:\s*60px;[\s\S]*?\.brand-copy small\s*\{[\s\S]*?display:\s*block;[\s\S]*?\.menu-button\s*\{[\s\S]*?gap:\s*normal 70px;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*750px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 30px\);[\s\S]*?padding:\s*15px 15px 0;[\s\S]*?column-gap:\s*15px;[\s\S]*?\.desktop-nav ul\s*\{\s*display:\s*none;/.test(
+      /@media \(max-width:\s*960px\)[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?grid-template-rows:\s*repeat\(2, auto\);[\s\S]*?column-gap:\s*0;[\s\S]*?row-gap:\s*25px;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*750px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 30px\);[\s\S]*?padding:\s*15px 15px 0;[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) 0 65px;[\s\S]*?column-gap:\s*15px;[\s\S]*?\.desktop-nav ul\s*\{\s*display:\s*none;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*680px\)[\s\S]*?\.brand\s*\{[\s\S]*?min-height:\s*57\.59375px;[\s\S]*?\.menu-button\s*\{[\s\S]*?gap:\s*normal 30px;/.test(
         styleSource,
       ) &&
       /\.site-header\s*\{[\s\S]*?border-bottom:\s*0 solid transparent;/.test(
@@ -264,7 +421,34 @@ function assertPersistentNavigationContracts() {
       /\.site-header\.is-collapsed\s*\{[\s\S]*?border-bottom:\s*1px solid #d3d3d3;/.test(
         styleSource,
       ),
-    "The header grid, gutter, or 750/960/1200 breakpoint contract drifted",
+    "The header separation, gutter, or 750/960/1200 breakpoint contract drifted",
+  );
+  assert(
+    /\.menu-brand\s*\{[\s\S]*?width:\s*max-content;[\s\S]*?min-height:\s*4\.22rem;[\s\S]*?aspect-ratio:\s*auto;[\s\S]*?gap:\s*0\.8rem;/.test(
+      styleSource,
+    ) &&
+      /\.menu-brand__mark\s*\{[\s\S]*?width:\s*60px;[\s\S]*?height:\s*60px;/.test(
+        styleSource,
+      ) &&
+      /\.menu-brand__copy\s*\{[\s\S]*?gap:\s*0\.15rem;[\s\S]*?letter-spacing:\s*0\.015em;/.test(
+        styleSource,
+      ) &&
+      /\.menu-brand__copy strong\s*\{[\s\S]*?font-size:\s*0\.98rem;[\s\S]*?font-weight:\s*600;/.test(
+        styleSource,
+      ) &&
+      /\.menu-brand__copy small\s*\{[\s\S]*?font-size:\s*0\.56rem;[\s\S]*?font-weight:\s*500;[\s\S]*?letter-spacing:\s*0\.09em;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*1024px\)[\s\S]*?\.menu-brand\s*\{[\s\S]*?min-height:\s*60px;[\s\S]*?gap:\s*0\.65rem;[\s\S]*?\.menu-brand__copy strong\s*\{[\s\S]*?font-size:\s*0\.8rem;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*680px\)[\s\S]*?\.menu-brand\s*\{[\s\S]*?min-height:\s*57\.59375px;[\s\S]*?\.menu-brand__mark\s*\{[\s\S]*?width:\s*57\.59375px;[\s\S]*?height:\s*57\.59375px;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*360px\)[\s\S]*?\.brand-copy strong,[\s\S]*?\.menu-brand__copy strong\s*\{[\s\S]*?font-size:\s*0\.86rem;/.test(
+        styleSource,
+      ),
+    "The header and full-menu brand must share one visible size system",
   );
   assert(
     /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*600;/.test(
@@ -280,6 +464,18 @@ function assertPersistentNavigationContracts() {
         styleSource,
       ),
     "Header nav typography, selected underline, or hamburger geometry drifted",
+  );
+  assert(
+    /\.desktop-nav a\s*\{[\s\S]*?scrollbar-color:\s*auto;[\s\S]*?transition:\s*0\.3s ease-out;[\s\S]*?\}/.test(
+      styleSource,
+    ) &&
+      /\.desktop-nav a:focus-visible\s*\{[\s\S]*?outline:\s*none;[\s\S]*?outline-offset:\s*1px;[\s\S]*?\}/.test(
+      styleSource,
+    ) &&
+      !/\.desktop-nav a:focus-visible::after[\s\S]*?transform:\s*scaleX\(1\)/.test(
+        styleSource,
+      ),
+    "Desktop nav focus must match the live outline-only state without opening the hover underline",
   );
   assert(
     /const collapsed = scrollY > 100;/.test(motionSource) &&
@@ -334,6 +530,34 @@ function assertPersistentNavigationContracts() {
       ),
     "Full menu does not match the audited 4/3/2/1 scroll-grid contract",
   );
+  assert(
+    /\.site-menu\s*\{[\s\S]*?display:\s*block;[\s\S]*?opacity:\s*0;[\s\S]*?pointer-events:\s*none;/.test(styleSource) &&
+      /\.site-menu\[open\]\s*\{[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/.test(styleSource) &&
+      /\.site-menu::backdrop\s*\{[\s\S]*?opacity:\s*0;[\s\S]*?background:\s*transparent;[\s\S]*?transition:\s*none;/.test(styleSource) &&
+      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.site-menu\s*\{[\s\S]*?animation:\s*none\s*!important;[\s\S]*?transition:\s*all 0s ease 0s\s*!important;/.test(styleSource) &&
+      /\.menu-shutters\s*\{(?=[^}]*position:\s*absolute;)(?=[^}]*overflow:\s*visible;)[^}]*\}/.test(styleSource) &&
+      /\.menu-shutters i\s*\{[\s\S]*?position:\s*relative;/.test(styleSource) &&
+      /\.menu-nav\s*\{[\s\S]*?z-index:\s*10;[\s\S]*?opacity:\s*0;/.test(styleSource) &&
+      /\.menu-language\s*\{[\s\S]*?width:\s*253\.203125px;[\s\S]*?overflow:\s*hidden;/.test(styleSource) &&
+      /\.menu-close__icon\s*\{[\s\S]*?position:\s*relative;[\s\S]*?display:\s*block;[\s\S]*?width:\s*25px;[\s\S]*?height:\s*25px;[\s\S]*?overflow:\s*visible;[\s\S]*?transition:\s*none;/.test(styleSource) &&
+      /\.menu-close__icon svg\s*\{[\s\S]*?stroke:\s*#2f2f2f;[\s\S]*?stroke-width:\s*3;/.test(styleSource) &&
+      /\.menu-close__icon svg line\s*\{[\s\S]*?transform-origin:\s*center;[\s\S]*?transition:\s*transform 0\.3s ease-out;/.test(styleSource) &&
+      /\.menu-close:hover \.menu-close__icon svg line\s*\{[\s\S]*?transform:\s*rotate\(90deg\);/.test(styleSource) &&
+      !/\.menu-close:hover \.menu-close__icon\s*\{/.test(styleSource) &&
+      /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-brand\s*\{[\s\S]*?transform:\s*translateY\(-140px\);[\s\S]*?opacity:\s*0;/.test(styleSource) &&
+      /html\.motion-enabled \.site-menu:not\(\.is-active\) :is\([\s\S]*?\.menu-language > \[data-language-option\],[\s\S]*?\.menu-appointment,[\s\S]*?\.menu-close__icon[\s\S]*?\)\s*\{[\s\S]*?opacity:\s*0;/.test(styleSource) &&
+      /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-group\s*\{[\s\S]*?transform:\s*translateY\(-140px\);[\s\S]*?opacity:\s*0;/.test(styleSource),
+    "Full-menu closed state does not retain the live full-viewport opacity-zero geometry",
+  );
+  assert(
+    motionSource.includes("const menuLanguageItems = [") &&
+      motionSource.includes('...menuLanguage.querySelectorAll("[data-language-option]")') &&
+      motionSource.includes("const menuAppointmentItems = [menuAppointment]") &&
+      motionSource.includes('const menuCloseIcon = closeButton.querySelector(".menu-close__icon")') &&
+      /const menuCoverageAt = 0\.6 \+ Math\.max\(0, shutters\.length - 1\) \* 0\.15;[\s\S]*\.fromTo\(menuBrand,[\s\S]*menuCoverageAt\)[\s\S]*\.fromTo\(menuLanguageItems,[\s\S]*menuCoverageAt \+ 0\.3\)[\s\S]*\.fromTo\(menuAppointmentItems,[\s\S]*menuCoverageAt \+ 0\.3\)[\s\S]*\.fromTo\(menuCloseIcon,[\s\S]*menuCoverageAt \+ 0\.45\)[\s\S]*\.fromTo\(menuNav,[\s\S]*menuCoverageAt\)[\s\S]*\.fromTo\(menuGroups,[\s\S]*menuCoverageAt\)[\s\S]*\.fromTo\(menuDetailItems,[\s\S]*menuCoverageAt \+ 0\.5\)/.test(motionSource) &&
+      /if \(!hasGsap \|\| reduceMotion\) resetMenuVisuals\(\);/.test(motionSource),
+    "Full-menu descendant targets or relative GSAP sequence drifted from the live contract",
+  );
 
   assert(
     /barba\.init\(\{[\s\S]*preventRunning:\s*true[\s\S]*timeout:\s*15_000[\s\S]*prefetchIgnore:\s*true/.test(
@@ -372,10 +596,12 @@ function assertPersistentNavigationContracts() {
     "About-only styles are not available after soft navigation",
   );
   assert(
-    !/data-product-directory|data-product-info|data-product-directory-open/.test(
+    !fs.existsSync(path.join(root, "products.js")) &&
+      !/data-product-directory|data-product-info|data-product-directory-open/.test(
       projectsSource,
-    ) && !/src="\/products\.js"/.test(projectsSource),
-    "Retired product dialogs/trigger/runtime still load",
+      ) &&
+      !/src="\/products\.js"/.test(projectsSource),
+    "Retired product dialogs/trigger/runtime still exist or load",
   );
   assert(
     /const pinHeaderForRoute = \(\) => \{[\s\S]*transitionDuration = "0s"[\s\S]*classList\.remove\("is-hidden"\)/.test(
@@ -445,7 +671,7 @@ function assertPersistentNavigationContracts() {
     "Persistent Home shell does not preload detail styles for soft entries",
   );
   assert(
-    (aboutSource.match(/src="\/assets\/site\/expanded\/legacy-team\.webp"/g) || [])
+    (aboutSource.match(/src="\/assets\/content\/shared\/legacy-team\.webp"/g) || [])
       .length === 1 &&
       !/<div class="hero-slides"[^>]*hidden/.test(aboutSource),
     "About still renders a hidden duplicate hero carousel/media request",
@@ -681,6 +907,8 @@ async function clickRouteLink(page, link, expectedPath) {
   } catch (error) {
     const state = await page
       .evaluate(() => ({
+        barbaCurrent: window.barba?.history?.current,
+        barbaRunning: window.barba?.transitions?.isRunning,
         bodyClasses: document.body.className,
         currentUrl: window.location.href,
         routeVeilOpacity: Number.parseFloat(
@@ -1118,30 +1346,61 @@ async function runRootProcessCheck() {
 }
 
 async function runPortalAlignmentChecks() {
-  for (const width of [1024, 1440]) {
+  for (const width of [320, 768, 1024, 1440]) {
     const viewport = { width, height: 900 };
     await runPageCase(
-      `root portal label alignment ${width}x900`,
+      `root portal typography and label alignment ${width}x900`,
       { route: "/vi/", viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, "/vi/");
-        const centers = await page
-          .locator("#dich-vu .service-portal .portal-title__strong")
-          .evaluateAll((labels) =>
-            labels.map((label) => {
-              const rect = label.getBoundingClientRect();
-              return rect.top + rect.height / 2;
-            }),
-          );
-        assert(centers.length === 3, `Expected 3 portal labels, found ${centers.length}`);
-        const spread = Math.max(...centers) - Math.min(...centers);
+        const typography = await page.evaluate(() => ({
+          titleWeights: [
+            ...document.querySelectorAll(
+              "#dich-vu .portal-title__quiet, #dich-vu .portal-title__strong, #nang-luc .portal-title-mask",
+            ),
+          ].map((element) => getComputedStyle(element).fontWeight),
+          subtitleWeights: [
+            ...document.querySelectorAll(
+              "#dich-vu .portal-subtitle, #nang-luc .portal-subtitle",
+            ),
+          ].map((element) => getComputedStyle(element).fontWeight),
+          horizontalOverflow:
+            document.documentElement.scrollWidth -
+            document.documentElement.clientWidth,
+        }));
         assert(
-          spread <= 1,
-          `Portal label center spread is ${spread.toFixed(2)}px: ${centers
-            .map((center) => center.toFixed(2))
-            .join(", ")}`,
+          typography.titleWeights.length === 9 &&
+            typography.titleWeights.every((weight) => weight === "500"),
+          `Portal titles do not share Espacio-equivalent weight 500: ${JSON.stringify(typography.titleWeights)}`,
         );
+        assert(
+          typography.subtitleWeights.length === 6 &&
+            typography.subtitleWeights.every((weight) => weight === "600"),
+          `Portal subtitles do not share Espacio-equivalent weight 600: ${JSON.stringify(typography.subtitleWeights)}`,
+        );
+        assert(
+          typography.horizontalOverflow <= 0,
+          `Portal typography introduced ${typography.horizontalOverflow}px horizontal overflow`,
+        );
+        if (width >= 1024) {
+          const centers = await page
+            .locator("#dich-vu .service-portal .portal-title__strong")
+            .evaluateAll((labels) =>
+              labels.map((label) => {
+                const rect = label.getBoundingClientRect();
+                return rect.top + rect.height / 2;
+              }),
+            );
+          assert(centers.length === 3, `Expected 3 portal labels, found ${centers.length}`);
+          const spread = Math.max(...centers) - Math.min(...centers);
+          assert(
+            spread <= 1,
+            `Portal label center spread is ${spread.toFixed(2)}px: ${centers
+              .map((center) => center.toFixed(2))
+              .join(", ")}`,
+          );
+        }
         assertDiagnostics(diagnostics);
       },
     );
@@ -1153,8 +1412,8 @@ async function runDirectHeaderRouteChecks() {
   const routePairs = [
     ["/vi/", "/vi/residential/"],
     ["/vi/residential/", "/vi/commercial/"],
-    ["/vi/commercial/", "/vi/projects-products/"],
-    ["/vi/projects-products/", "/vi/residential/"],
+    ["/vi/commercial/", "/vi/advertising-products/"],
+    ["/vi/advertising-products/", "/vi/residential/"],
     ["/vi/about/", "/vi/residential/"],
   ];
 
@@ -1226,6 +1485,13 @@ async function runHeaderParityChecks() {
             labels: links.map((link) => link.textContent.trim()),
             brand: rect(header.querySelector("#header-logo")),
             mark: rect(header.querySelector(".brand-mark")),
+            brandSubtitle: rect(header.querySelector(".brand-copy small")),
+            brandSubtitleDisplay: getComputedStyle(
+              header.querySelector(".brand-copy small"),
+            ).display,
+            brandSubtitleText: header
+              .querySelector(".brand-copy small")
+              .textContent.trim(),
             nav: rect(nav),
             navList: rect(navList),
             navListLeft: Number.parseFloat(listStyle.left),
@@ -1251,9 +1517,14 @@ async function runHeaderParityChecks() {
           : mobile
             ? [15, 15, 0, 15]
             : [25, 25, 0, 25];
+        const expectedBrandTrack = desktop
+          ? 170
+          : mobile
+            ? viewport.width - 125
+            : 220;
         assert(
           Math.abs(expanded.header.width - viewport.width) <= 1 &&
-            Math.abs(expanded.tracks[0] - (desktop ? 170 : 145)) <= 1 &&
+            Math.abs(expanded.tracks[0] - expectedBrandTrack) <= 1 &&
             Math.abs(expanded.tracks.at(-1) - 65) <= 1 &&
             Math.abs(expanded.gap - (desktop ? 70 : mobile ? 15 : 25)) <= 1 &&
             Math.abs(expanded.border) <= 0.1 &&
@@ -1272,22 +1543,23 @@ async function runHeaderParityChecks() {
               JSON.stringify([
                 "Không gian Nhà ở",
                 "Không gian Kinh doanh",
-                "Công trình & sản phẩm",
-              ]),
+                "Sản phẩm Quảng cáo",
+              ]) &&
+            expanded.brandSubtitleDisplay === "block" &&
+            expanded.brandSubtitle.height > 0 &&
+            expanded.brandSubtitleText === "NỘI THẤT · QUẢNG CÁO",
           `Header navigation contract drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
         );
         const rhythm = {
-          751: { header: 132.781, nav: 107.781, first: 197.531, last: 633.469 },
-          960: { header: 132.781, nav: 107.781, first: 302.031, last: 737.969 },
-          1201: { header: 102.516, nav: 60.391, first: 268.606, last: 908.263 },
-          1440: { header: 102.516, nav: 60.391, first: 388.106, last: 1027.763 },
+          751: { header: 132.781, nav: 107.781 },
+          960: { header: 132.781, nav: 107.781 },
+          1201: { header: 102.516, nav: 60.391 },
+          1440: { header: 102.516, nav: 60.391 },
         }[viewport.width];
         if (rhythm) {
           assert(
             Math.abs(expanded.header.height - rhythm.header) <= 0.25 &&
               Math.abs(expanded.nav.height - rhythm.nav) <= 1 &&
-              Math.abs(expanded.firstLink.left - rhythm.first) <= 1 &&
-              Math.abs(expanded.lastLink.right - rhythm.last) <= 1 &&
               expanded.navListMargin.every((value) => Math.abs(value - 16) <= 0.1) &&
               Math.abs(
                 expanded.navListLeft - (viewport.width > 1200 ? -64.5656 : 0),
@@ -1295,15 +1567,21 @@ async function runHeaderParityChecks() {
             `Header vertical or x rhythm drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
           );
         }
+        const expectedMark = viewport.width <= 680 ? 57.59375 : 60;
+        const brandClearance = mobile
+          ? expanded.menuSvg.left - expanded.brand.right
+          : expanded.firstLink.left - expanded.brand.right;
+        const menuClearance = mobile
+          ? brandClearance
+          : expanded.menuSvg.left - expanded.lastLink.right;
         assert(
-          Math.abs(expanded.mark.width - 60) <= 0.1 &&
-            Math.abs(expanded.mark.height - 60) <= 0.1 &&
+          Math.abs(expanded.mark.width - expectedMark) <= 0.1 &&
+            Math.abs(expanded.mark.height - expectedMark) <= 0.1 &&
             Math.abs(expanded.menuSvg.width - 35) <= 0.1 &&
             Math.abs(expanded.menuSvg.height - 19) <= 0.1 &&
             Math.abs(expanded.stroke - 3) <= 0.1 &&
-            expanded.brand.right <=
-              (mobile ? expanded.menuSvg.left : expanded.firstLink.left) + 0.25 &&
-            (mobile || expanded.lastLink.right <= expanded.menuSvg.left + 0.25) &&
+            brandClearance >= 24 &&
+            menuClearance >= 24 &&
             expanded.overflow <= 1,
           `Header controls overlap or overflow at ${viewport.width}: ${JSON.stringify(expanded)}`,
         );
@@ -1787,7 +2065,7 @@ async function runPersistentBarbaNavigationChecks() {
       for (const destination of [
         "/vi/residential/",
         "/vi/commercial/",
-        "/vi/projects-products/",
+        "/vi/advertising-products/",
         "/vi/residential/",
       ]) {
         await page.evaluate(() => {
@@ -2275,7 +2553,7 @@ async function runFailOpenRealBfcacheProbe() {
     cdp.on("Page.backForwardCacheNotUsed", (event) => reasons.push(event));
     await page.route("**/*motion.js*", (route) => route.abort("failed"));
 
-    await page.goto(pageUrl("/vi/projects-products/?bfcache=fail-open"), {
+    await page.goto(pageUrl("/vi/advertising-products/?bfcache=fail-open"), {
       waitUntil: "load",
       timeout: 20_000,
     });
@@ -2291,7 +2569,7 @@ async function runFailOpenRealBfcacheProbe() {
     await page.goBack({ waitUntil: "commit", timeout: 20_000 });
     await page.waitForTimeout(1_000);
     assert(
-      canonicalPathname(page.url()) === "/vi/projects-products/",
+      canonicalPathname(page.url()) === "/vi/advertising-products/",
       `Fail-open BFCache probe returned to ${page.url()}`,
     );
     const state = await page.evaluate(() => ({
@@ -2448,10 +2726,10 @@ async function runLanguagePersistenceCheck() {
           return {
             projectLabels: [
               document.querySelector(
-                '[data-site-header] a[href="/vi/projects-products/"]',
+                '[data-site-header] a[href="/vi/advertising-products/"]',
               ),
               document.querySelector(
-                '#site-menu .menu-group a[href="/vi/projects-products/"] [data-vi]',
+                '#site-menu .menu-group a[href="/vi/advertising-products/"] [data-vi]',
               ),
             ].map((element) => element?.textContent?.replace(/\s+/g, " ").trim()),
             title: document.title,
@@ -2461,7 +2739,7 @@ async function runLanguagePersistenceCheck() {
         });
         assert(
           initial.projectLabels.every(
-            (label) => label === "Công trình & sản phẩm",
+            (label) => label === "Sản phẩm Quảng cáo",
           ),
           `${route}: Vietnamese project/product navigation labels differ`,
         );
@@ -2506,10 +2784,10 @@ async function runLanguagePersistenceCheck() {
           return {
             projectLabels: [
               document.querySelector(
-                '[data-site-header] a[href="/en/projects-products/"]',
+                '[data-site-header] a[href="/en/advertising-products/"]',
               ),
               document.querySelector(
-                '#site-menu .menu-group a[href="/en/projects-products/"] [data-en]',
+                '#site-menu .menu-group a[href="/en/advertising-products/"] [data-en]',
               ),
             ].map((element) => element?.textContent?.replace(/\s+/g, " ").trim()),
             title: document.title,
@@ -2543,7 +2821,7 @@ async function runLanguagePersistenceCheck() {
         );
         assert(
           translated.projectLabels.every(
-            (label) => label === "Projects & products",
+            (label) => label === "Advertising products",
           ),
           `${route}: English project/product navigation labels differ`,
         );
@@ -2610,31 +2888,143 @@ async function runLanguagePersistenceCheck() {
 async function runLanguageScrollRetentionCheck() {
   const viewport = { width: 390, height: 844 };
   await runPageCase(
-    "locale switch keeps query and reading position",
+    "locale switch stays in-place, keeps reading position, and replays only the visible section",
     { route: "/vi/residential/?qa=scroll", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       const switchLocale = async (expectedUrl) => {
         const expectedLanguage = expectedUrl.startsWith("/en/") ? "en" : "vi";
+        const before = await page.evaluate(() => {
+          const container = document.querySelector('[data-barba="container"]');
+          const candidates = [
+            ...container.querySelectorAll(
+              "main > section, main > figure, :scope > footer",
+            ),
+          ];
+          const visibleArea = (element) => {
+            const rect = element.getBoundingClientRect();
+            return Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+          };
+          const section = candidates.reduce(
+            (best, candidate) =>
+              visibleArea(candidate) > visibleArea(best) ? candidate : best,
+            candidates[0],
+          );
+          const target = section?.matches("[data-motion-media]")
+            ? section
+            : section?.querySelector("[data-motion-media], [data-motion-up], [data-motion-fade]");
+          window.__ttLocaleSwitchProbe = {
+            container,
+            historyLength: history.length,
+            languageEvents: [],
+            replayEvents: [],
+            target,
+            targetClassChanges: [],
+            timeOrigin: performance.timeOrigin,
+          };
+          if (target) {
+            new MutationObserver(() => {
+              window.__ttLocaleSwitchProbe.targetClassChanges.push(
+                target.classList.contains("is-motion-inview"),
+              );
+            }).observe(target, { attributes: true, attributeFilter: ["class"] });
+          }
+          window.addEventListener(
+            "languagechange",
+            () => {
+              window.__ttLocaleSwitchProbe.languageEvents.push({
+                dialogOpen: document.querySelector("#site-menu")?.open,
+                language: document.documentElement.lang,
+              });
+            },
+            { once: true },
+          );
+          window.addEventListener(
+            "site:section-replay",
+            (event) => {
+              window.__ttLocaleSwitchProbe.replayEvents.push({
+                detailReplayed: event.detail?.detailReplayed,
+                pageReplayed: event.detail?.pageReplayed,
+                replayed: event.detail?.replayed,
+                sectionMatches: event.detail?.section === section,
+                targetMatches: target ? section?.contains(target) || section === target : true,
+              });
+            },
+            { once: true },
+          );
+          return {
+            historyLength: history.length,
+            sectionClass: section?.className,
+            sectionTag: section?.tagName,
+            scrollY: window.scrollY,
+            targetPresent: Boolean(target),
+            timeOrigin: performance.timeOrigin,
+          };
+        });
         await page.evaluate(() => {
           document.querySelector("[data-site-header]")?.classList.remove("is-hidden");
           document.querySelector("[data-menu-open]")?.click();
         });
         await waitForMenuState(page, true);
         await waitForMenuVisualState(page);
-        const transitionStarted = page.waitForFunction(() =>
-          document.body.classList.contains("is-transitioning"),
-        );
         await page
           .locator(`#site-menu [data-language-option="${expectedLanguage}"]`)
           .evaluate((button) => button.click());
-        await transitionStarted;
         await page.waitForURL(
           (url) =>
             `${url.pathname}${url.search}` === expectedUrl && url.hash === "",
           { timeout: 6_000 },
         );
-        await waitForNavigationCleanup(page);
+        await page.waitForFunction(
+          (language) =>
+            document.documentElement.lang === language &&
+            !document.querySelector("#site-menu")?.open &&
+            window.__ttLocaleSwitchProbe?.replayEvents.length === 1,
+          expectedLanguage,
+          { timeout: 6_000 },
+        );
+        await page.evaluate(() => document.fonts?.ready);
+        await page.waitForTimeout(120);
+        const after = await page.evaluate(() => ({
+          containerIdentity:
+            window.__ttLocaleSwitchProbe.container ===
+            document.querySelector('[data-barba="container"]'),
+          historyLength: history.length,
+          languageEvents: window.__ttLocaleSwitchProbe.languageEvents,
+          replayEvents: window.__ttLocaleSwitchProbe.replayEvents,
+          scrollY: window.scrollY,
+          targetClassChanges: window.__ttLocaleSwitchProbe.targetClassChanges,
+          timeOrigin: performance.timeOrigin,
+          transitioning: document.body.classList.contains("is-transitioning"),
+        }));
+        assert(
+          after.containerIdentity &&
+            after.timeOrigin === before.timeOrigin &&
+            after.historyLength === before.historyLength &&
+            !after.transitioning,
+          `Locale switch replaced the document or entered route motion: ${JSON.stringify({ before, after })}`,
+        );
+        assert(
+          after.languageEvents.length === 1 &&
+            after.languageEvents[0].language === expectedLanguage &&
+            after.languageEvents[0].dialogOpen === false,
+          `Language changed before the menu finished closing: ${JSON.stringify(after.languageEvents)}`,
+        );
+        assert(
+          after.replayEvents[0]?.sectionMatches &&
+            after.replayEvents[0]?.targetMatches &&
+            (before.targetPresent
+              ? after.replayEvents[0]?.replayed &&
+                after.targetClassChanges.includes(false) &&
+                after.targetClassChanges.includes(true)
+              : after.replayEvents[0]?.replayed === false &&
+                after.targetClassChanges.length === 0),
+          `The dominant section did not restart its motion: ${JSON.stringify({ before, after })}`,
+        );
+        assert(
+          Math.abs(after.scrollY - before.scrollY) <= 2,
+          `Locale switch moved the reading position: ${JSON.stringify({ before: before.scrollY, after: after.scrollY })}`,
+        );
       };
       const expectScroll = async (expected, label) => {
         const actual = await page.evaluate(() => window.scrollY);
@@ -2666,9 +3056,148 @@ async function runLanguageScrollRetentionCheck() {
 
       await switchLocale("/vi/residential/?qa=scroll");
       await expectScroll(expectedScroll, "EN to VI");
+
+      await gotoRoute(page, "/en/residential/?qa=direct-en");
+      await page.locator(".detail-media").scrollIntoViewIfNeeded();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector(".detail-media [data-motion-media]")
+            ?.classList.contains("is-motion-inview"),
+        null,
+        { timeout: 3_000 },
+      );
+      const directEnglishScroll = await page.evaluate(() => {
+        const target = document.querySelector(".detail-media");
+        const rect = target.getBoundingClientRect();
+        const top = Math.max(0, rect.top + window.scrollY - (innerHeight - rect.height) / 2);
+        window.scrollTo(0, top);
+        return window.scrollY;
+      });
+      await page.waitForTimeout(120);
+      await switchLocale("/vi/residential/?qa=direct-en");
+      await expectScroll(directEnglishScroll, "direct EN to VI");
+      const routeTimeOrigin = await page.evaluate(() => performance.timeOrigin);
+      const routeLink = await findRouteLink(
+        page,
+        "[data-site-header]",
+        "/vi/commercial/",
+      );
+      await Promise.all([
+        waitForPath(page, "/vi/commercial/"),
+        routeLink.evaluate((link) => link.click()),
+      ]);
+      assert(
+        (await page.evaluate(() => performance.timeOrigin)) === routeTimeOrigin &&
+          (await page.evaluate(() => document.documentElement.lang)) === "vi",
+        "Locale replaceState broke the next Barba route navigation",
+      );
       assertDiagnostics(diagnostics);
     },
   );
+}
+
+async function runLocaleResponsivePreferenceChecks() {
+  for (const testCase of [
+    {
+      label: "desktop smooth scroll",
+      reducedMotion: "no-preference",
+      viewport: { width: 1440, height: 900 },
+    },
+    {
+      label: "mobile reduced motion",
+      reducedMotion: "reduce",
+      viewport: { width: 390, height: 844 },
+    },
+  ]) {
+    await runPageCase(
+      `in-place locale switch ${testCase.label}`,
+      {
+        route: "/vi/residential/?qa=locale-mode",
+        viewport: testCase.viewport,
+        reducedMotion: testCase.reducedMotion,
+      },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/residential/?qa=locale-mode");
+        if (testCase.viewport.width >= 981) {
+          await page.mouse.move(
+            Math.floor(testCase.viewport.width / 2),
+            Math.floor(testCase.viewport.height / 2),
+          );
+          await page.mouse.wheel(0, 1_200);
+          await page.waitForTimeout(900);
+        } else {
+          await page.evaluate(() => window.scrollTo(0, 1_200));
+          await page.waitForTimeout(120);
+        }
+        const before = await page.evaluate(() => {
+          window.__ttLocaleModeProbe = {
+            container: document.querySelector('[data-barba="container"]'),
+            replay: null,
+          };
+          window.addEventListener(
+            "site:section-replay",
+            (event) => {
+              window.__ttLocaleModeProbe.replay = {
+                reducedMotion: event.detail?.reducedMotion,
+                replayed: event.detail?.replayed,
+              };
+            },
+            { once: true },
+          );
+          return {
+            historyLength: history.length,
+            scrollY: window.scrollY,
+            timeOrigin: performance.timeOrigin,
+          };
+        });
+        await page.evaluate(() => {
+          document.querySelector("[data-site-header]")?.classList.remove("is-hidden");
+          document.querySelector("[data-menu-open]")?.click();
+        });
+        await waitForMenuState(page, true);
+        await page
+          .locator('#site-menu [data-language-option="en"]')
+          .evaluate((link) => link.click());
+        await page.waitForFunction(
+          () =>
+            location.pathname === "/en/residential/" &&
+            document.documentElement.lang === "en" &&
+            !document.querySelector("#site-menu")?.open &&
+            window.__ttLocaleModeProbe?.replay,
+          null,
+          { timeout: 6_000 },
+        );
+        await page.waitForTimeout(120);
+        const after = await page.evaluate(() => ({
+          containerIdentity:
+            window.__ttLocaleModeProbe.container ===
+            document.querySelector('[data-barba="container"]'),
+          historyLength: history.length,
+          replay: window.__ttLocaleModeProbe.replay,
+          scrollY: window.scrollY,
+          timeOrigin: performance.timeOrigin,
+          transitioning: document.body.classList.contains("is-transitioning"),
+        }));
+        assert(
+          after.containerIdentity &&
+            after.historyLength === before.historyLength &&
+            after.timeOrigin === before.timeOrigin &&
+            Math.abs(after.scrollY - before.scrollY) <= 2 &&
+            !after.transitioning,
+          `${testCase.label} replaced the document or moved scroll: ${JSON.stringify({ before, after })}`,
+        );
+        if (testCase.reducedMotion === "reduce") {
+          assert(
+            after.replay.reducedMotion === true && after.replay.replayed === false,
+            `Reduced motion replayed entrance motion: ${JSON.stringify(after.replay)}`,
+          );
+        }
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
 }
 
 async function runSsrCmsHydrationCheck() {
@@ -2685,7 +3214,7 @@ async function runSsrCmsHydrationCheck() {
           const normalize = (value) => value.replace(/\s+/g, " ").trim();
           const navigationLabel = (selector) => {
             const link = [...document.querySelectorAll(selector)].find((node) =>
-              new URL(node.href).pathname.endsWith("/projects-products/"),
+              new URL(node.href).pathname.endsWith("/advertising-products/"),
             );
             const label = link?.matches("[data-vi], [data-en]")
               ? link
@@ -2751,6 +3280,20 @@ async function runMenuChecks() {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, "/vi/?locale=test");
         await restoreHeaderForMenu(page);
+        await page.evaluate(() => {
+          window.__menuLanguageOpacityTransitions = [];
+          document
+            .querySelectorAll("#site-menu .menu-language [data-language-option]")
+            .forEach((link) => {
+              ["transitionrun", "transitionstart", "transitionend", "transitioncancel"].forEach((type) => {
+                link.addEventListener(type, (event) => {
+                  if (event.propertyName === "opacity") {
+                    window.__menuLanguageOpacityTransitions.push(`${type}:${event.propertyName}`);
+                  }
+                });
+              });
+            });
+        });
         await page.locator("[data-menu-open]").click();
         await waitForMenuState(page, true);
         await page.waitForTimeout(250);
@@ -2758,25 +3301,22 @@ async function runMenuChecks() {
           const shutters = [...dialog.querySelectorAll(".menu-shutters i")];
           const animatedCopy = [
             dialog.querySelector(".menu-brand"),
-            dialog.querySelector(".menu-language"),
             dialog.querySelector(".menu-appointment"),
-            dialog.querySelector(".menu-nav"),
             ...dialog.querySelectorAll(".menu-group"),
             ...dialog.querySelectorAll(".menu-group__number, .menu-group__title, .menu-option"),
-            dialog.querySelector("[data-menu-close]"),
+            dialog.querySelector(".menu-close__icon"),
           ].filter(Boolean);
+          const visibleCopy = animatedCopy.filter((element) => {
+            const style = getComputedStyle(element);
+            return style.visibility !== "hidden" && Number.parseFloat(style.opacity) > 0.01;
+          });
           return {
             coverageIncomplete: shutters.some(
               (shutter) =>
                 shutter.getBoundingClientRect().height < window.innerHeight - 1,
             ),
-            copyVisible: animatedCopy.some((element) => {
-              const style = getComputedStyle(element);
-              return (
-                style.visibility !== "hidden" &&
-                Number.parseFloat(style.opacity) > 0.01
-              );
-            }),
+            copyVisible: visibleCopy.length > 0,
+            visibleCopy: visibleCopy.map((element) => element.className),
           };
         });
         assert(
@@ -2785,7 +3325,7 @@ async function runMenuChecks() {
         );
         assert(
           !earlyFrame.copyVisible,
-          `${viewport.width}x${viewport.height}: menu copy appeared before background coverage`,
+          `${viewport.width}x${viewport.height}: menu copy appeared before background coverage ${earlyFrame.visibleCopy.join(",")}`,
         );
         await waitForMenuVisualState(page);
         const menuContract = await page.locator("#site-menu").evaluate((dialog) => ({
@@ -2805,13 +3345,88 @@ async function runMenuChecks() {
               dividerDisplay: style.display,
             };
           }),
-          fitsViewport:
-            dialog.scrollWidth <= window.innerWidth + 1 &&
-            dialog.scrollHeight <= window.innerHeight + 1,
+          fitsViewport: (() => {
+            const rect = dialog.getBoundingClientRect();
+            return rect.left >= -1 && rect.top >= -1 && rect.right <= window.innerWidth + 1 && rect.bottom <= window.innerHeight + 1;
+          })(),
+          scrollSize: `${dialog.scrollWidth}x${dialog.scrollHeight}/${window.innerWidth}x${window.innerHeight}`,
+          overlaps: (() => {
+            const links = [...dialog.querySelectorAll(".menu-group__title, .menu-option")];
+            const overlaps = [];
+            for (let index = 0; index < links.length; index += 1) {
+              const first = links[index].getBoundingClientRect();
+              for (let next = index + 1; next < links.length; next += 1) {
+                const second = links[next].getBoundingClientRect();
+                const overlapX = Math.min(first.right, second.right) - Math.max(first.left, second.left);
+                const overlapY = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+                if (overlapX > 0.5 && overlapY > 0.5) overlaps.push(`${index}:${next}`);
+              }
+            }
+            return overlaps;
+          })(),
+          languageOpacityTransitions: window.__menuLanguageOpacityTransitions || [],
+          brandParity: (() => {
+            const measure = (root, markSelector, copySelector) => {
+              const mark = root.querySelector(markSelector);
+              const copy = root.querySelector(copySelector);
+              const title = copy.querySelector("strong");
+              const subtitle = copy.querySelector("small");
+              const dimensions = (element) => {
+                const rect = element.getBoundingClientRect();
+                return [rect.width, rect.height];
+              };
+              return {
+                mark: dimensions(mark),
+                copy: dimensions(copy),
+                title: title.textContent.trim(),
+                titleFont: Number.parseFloat(getComputedStyle(title).fontSize),
+                subtitle: subtitle.textContent.trim(),
+                subtitleDisplay: getComputedStyle(subtitle).display,
+                subtitleFont: Number.parseFloat(
+                  getComputedStyle(subtitle).fontSize,
+                ),
+              };
+            };
+            return {
+              header: measure(
+                document.querySelector("#header-logo"),
+                ".brand-mark",
+                ".brand-copy",
+              ),
+              menu: measure(dialog, ".menu-brand__mark", ".menu-brand__copy"),
+            };
+          })(),
         }));
         assert(
           menuContract.closeText === "",
           `${viewport.width}x${viewport.height}: close control must be icon-only`,
+        );
+        assert(
+          menuContract.brandParity.header.title === "TRƯỜNG THỊNH" &&
+            menuContract.brandParity.menu.title === "TRƯỜNG THỊNH" &&
+            menuContract.brandParity.header.subtitle ===
+              "NỘI THẤT · QUẢNG CÁO" &&
+            menuContract.brandParity.menu.subtitle ===
+              "NỘI THẤT · QUẢNG CÁO" &&
+            menuContract.brandParity.header.subtitleDisplay === "block" &&
+            menuContract.brandParity.menu.subtitleDisplay === "block" &&
+            ["mark", "copy"].every((key) =>
+              menuContract.brandParity.header[key].every(
+                (value, index) =>
+                  Math.abs(
+                    value - menuContract.brandParity.menu[key][index],
+                  ) <= 0.25,
+              ),
+            ) &&
+            Math.abs(
+              menuContract.brandParity.header.titleFont -
+                menuContract.brandParity.menu.titleFont,
+            ) <= 0.1 &&
+            Math.abs(
+              menuContract.brandParity.header.subtitleFont -
+                menuContract.brandParity.menu.subtitleFont,
+            ) <= 0.1,
+          `${viewport.width}x${viewport.height}: header and full-menu logos differ ${JSON.stringify(menuContract.brandParity)}`,
         );
         assert(
           menuContract.childGroupCount === 4 &&
@@ -2820,7 +3435,7 @@ async function runMenuChecks() {
             JSON.stringify(menuContract.titles) === JSON.stringify([
               "/vi/residential/",
               "/vi/commercial/",
-              "/vi/projects-products/",
+              "/vi/advertising-products/",
               "/vi/about/",
             ]),
           `${viewport.width}x${viewport.height}: menu groups or non-fragment child routes do not match the contract`,
@@ -2842,7 +3457,15 @@ async function runMenuChecks() {
         );
         assert(
           menuContract.fitsViewport,
-          `${viewport.width}x${viewport.height}: menu overflows viewport`,
+          `${viewport.width}x${viewport.height}: menu overflows viewport ${menuContract.scrollSize}`,
+        );
+        assert(
+          menuContract.overlaps.length === 0,
+          `${viewport.width}x${viewport.height}: settled menu links overlap ${menuContract.overlaps.join(",")}`,
+        );
+        assert(
+          menuContract.languageOpacityTransitions.length === 0,
+          `${viewport.width}x${viewport.height}: language options emitted CSS opacity transitions ${menuContract.languageOpacityTransitions.join(",")}`,
         );
         await Promise.all([
           waitForCanonicalPath(page, "/en/"),
@@ -2925,10 +3548,10 @@ async function runAdvertisingFilterCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "advertising filter hides and reflows",
-    { route: "/vi/projects-products/", viewport },
+    { route: "/vi/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/projects-products/");
+      await gotoRoute(page, "/vi/advertising-products/");
 
       const before = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
@@ -3028,22 +3651,31 @@ async function runAdvertisingFilterCheck() {
 }
 
 async function runProjectsProductsHeroEditorialCheck() {
-  const viewports = [
-    { width: 320, height: 640 },
-    { width: 390, height: 844 },
-    { width: 768, height: 900 },
-    { width: 1024, height: 900 },
-    { width: 1440, height: 900 },
+  const cases = [
+    { viewport: { width: 320, height: 640 } },
+    { viewport: { width: 390, height: 844 } },
+    { viewport: { width: 768, height: 900 } },
+    { viewport: { width: 1024, height: 900 } },
+    { viewport: { width: 1440, height: 900 } },
+    {
+      viewport: { width: 390, height: 844 },
+      reducedMotion: "reduce",
+    },
   ];
 
   for (const locale of ["vi", "en"]) {
-    for (const viewport of viewports) {
+    for (const testCase of cases) {
+      const { viewport, reducedMotion = "no-preference" } = testCase;
       await runPageCase(
-        `projects editorial hero ${locale} ${viewport.width}x${viewport.height}`,
-        { route: `/${locale}/projects-products/`, viewport },
+        `projects editorial hero ${locale} ${viewport.width}x${viewport.height} ${reducedMotion}`,
+        {
+          route: `/${locale}/advertising-products/`,
+          viewport,
+          reducedMotion,
+        },
         async (page) => {
           const diagnostics = monitorPage(page);
-          await gotoRoute(page, `/${locale}/projects-products/`);
+          await gotoRoute(page, `/${locale}/advertising-products/`);
           await page.waitForFunction(
             () =>
               [...document.querySelectorAll(".detail-index-hero .project-filter")].every(
@@ -3065,43 +3697,85 @@ async function runProjectsProductsHeroEditorialCheck() {
               const channels = parseColor(value);
               return channels.length >= 3 && channels[0] >= 245 && channels[1] >= 245 && channels[2] >= 245;
             };
+            const normalize = (value) => value.replace(/\s+/g, " ").trim();
+            const rect = (target) => {
+              const bounds = target.getBoundingClientRect();
+              return {
+                top: bounds.top,
+                right: bounds.right,
+                bottom: bounds.bottom,
+                left: bounds.left,
+                width: bounds.width,
+                height: bounds.height,
+              };
+            };
             const heading = element.querySelector("h1");
-            const headingRect = heading.getBoundingClientRect();
-            const lineRects = [...heading.querySelectorAll(".detail-hero-line-mask")].map((line) => {
-              const rect = line.getBoundingClientRect();
-              return { left: rect.left, right: rect.right, width: rect.width };
-            });
+            const headingRect = rect(heading);
+            const lineRects = [...heading.querySelectorAll(".detail-hero-line-mask")].map(rect);
             const textRects = [...heading.querySelectorAll("[data-motion-word-source]")].map((source) => {
               const range = document.createRange();
               range.selectNodeContents(source);
-              const rect = range.getBoundingClientRect();
-              return { left: rect.left, right: rect.right, width: rect.width };
+              const bounds = range.getBoundingClientRect();
+              return {
+                left: bounds.left,
+                right: bounds.right,
+                width: bounds.width,
+                center: bounds.left + bounds.width / 2,
+              };
             });
             const activeFilter = element.querySelector('.project-filter[aria-pressed="true"]');
             const activeFilterStyles = getComputedStyle(activeFilter);
             const header = document.querySelector("[data-site-header]");
             const styles = getComputedStyle(element);
-            const heroRect = element.getBoundingClientRect();
-            const filtersRect = element.querySelector(".project-filters").getBoundingClientRect();
-            const gridRect = document.querySelector("[data-project-grid]").getBoundingClientRect();
+            const heroRect = rect(element);
+            const contentRect = rect(element.querySelector(".hero-content"));
+            const kicker = element.querySelector(".hero-kicker");
+            const kickerRect = rect(kicker);
+            const filtersRect = rect(element.querySelector(".project-filters"));
+            const scrollCue = element.querySelector(".detail-index-hero__scroll");
+            const scrollRect = rect(scrollCue);
+            const gridRect = rect(document.querySelector("[data-project-grid]"));
+            const firstImageRect = rect(
+              document.querySelector("[data-project-grid] img"),
+            );
+            const mobile = window.innerWidth <= 680;
+            const expectedGutter = mobile
+              ? 15
+              : Number.parseFloat(
+                  getComputedStyle(document.documentElement).getPropertyValue("--gutter"),
+                );
 
             return {
               backgroundIsWhite: isWhite(styles.backgroundColor),
               filterBorders: [...element.querySelectorAll(".project-filter")].map((filter) => getComputedStyle(filter).borderStyle),
               hasHeroSlides: element.querySelector(".hero-slides") !== null,
               hasHeroMedia: Boolean(element.querySelector("img, figure")),
-              hasHeroKicker: element.querySelector(".hero-kicker") !== null,
+              hasHeroKicker: Boolean(kicker),
               hasHeroMotto: element.querySelector(".detail-hero-motto") !== null,
-              headerIsInk: header.classList.contains("is-ink"),
+              oneH1: document.querySelectorAll("main h1").length === 1,
+              headerIsInk: header?.classList.contains("is-ink") === true,
               headingColorIsInk: isInk(getComputedStyle(heading).color),
               headingFits: heading.scrollWidth <= heading.clientWidth + 1 && headingRect.left >= -1 && headingRect.right <= window.innerWidth + 1 && lineRects.every((line) => line.left >= -1 && line.right <= window.innerWidth + 1),
               headingFontSize: Number.parseFloat(getComputedStyle(heading).fontSize),
               headingLineCount: lineRects.length,
-              headingText: heading.textContent.replace(/\s+/g, " ").trim(),
+              headingText: normalize(heading.textContent),
+              kickerText: normalize(kicker.textContent),
+              scrollText: normalize(scrollCue.textContent),
               letterSpacing: Number.parseFloat(getComputedStyle(heading).letterSpacing),
-              asymmetricTitle: textRects.length === 2 && textRects[1].left - textRects[0].left >= 12,
+              titleAlignment:
+                textRects.length === 2 &&
+                (mobile
+                  ? textRects.every(
+                      (textRect) =>
+                        Math.abs(
+                          textRect.center -
+                            (headingRect.left + headingRect.width / 2),
+                        ) <= 2,
+                    )
+                  : Math.abs(textRects[0].left - headingRect.left) <= 2 &&
+                    Math.abs(textRects[1].right - headingRect.right) <= 2),
               activeUnderlineVisible: activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
-              contentIsWithinHero: [headingRect, filtersRect].every(
+              contentIsWithinHero: [contentRect, kickerRect, headingRect, filtersRect, scrollRect].every(
                 (rect) =>
                   rect.top >= heroRect.top - 1 &&
                   rect.bottom <= heroRect.bottom + 1 &&
@@ -3109,24 +3783,49 @@ async function runProjectsProductsHeroEditorialCheck() {
                   rect.right <= heroRect.right + 1,
               ),
               titleBlockStartsWithinHero: headingRect.top >= heroRect.top - 1,
-              filtersAreLower: filtersRect.top >= heroRect.top + heroRect.height * 0.55,
-              fullViewport: heroRect.top <= 1 && heroRect.bottom >= window.innerHeight - 1,
-              gridStartsAfterHero: gridRect.top >= heroRect.bottom - 1,
+              kickerLeadsTitle:
+                kickerRect.top < headingRect.top &&
+                kickerRect.bottom <= headingRect.top + 1,
+              filtersAreLower: filtersRect.top >= heroRect.top + heroRect.height * 0.6,
+              viewportMinusFifty:
+                heroRect.top <= 1 &&
+                Math.abs(heroRect.height - (window.innerHeight - 50)) <= 1,
+              gridStartsAtHero:
+                Math.abs(gridRect.top - heroRect.bottom) <= 1 &&
+                Math.abs(firstImageRect.top - heroRect.bottom) <= 1,
+              gridEntersViewport:
+                gridRect.top < window.innerHeight &&
+                Math.abs(window.innerHeight - gridRect.top - 50) <= 1,
+              gridGutterMatches:
+                Math.abs(gridRect.left - expectedGutter) <= 1 &&
+                Math.abs(window.innerWidth - gridRect.right - expectedGutter) <= 1,
+              scrollBottomMatches:
+                Math.abs(
+                  heroRect.bottom - scrollRect.bottom - (mobile ? 60 : 45),
+                ) <= 1,
               noHorizontalOverflow: document.documentElement.scrollWidth - window.innerWidth <= 1,
               tone: element.dataset.headerTone,
             };
           });
 
-          const expectedTitle = locale === "en" ? "Projects & products" : "Công trình & sản phẩm";
+          const expectedTitle =
+            locale === "en"
+              ? "Keep your brand always in sight"
+              : "để thương hiệu luôn trong tầm mắt";
+          const expectedKicker =
+            locale === "en" ? "Advertising products" : "Sản phẩm quảng cáo";
+          const expectedScroll = locale === "en" ? "SCROLL DOWN" : "CUỘN XUỐNG";
           assert(hero.tone === "ink" && hero.headerIsInk, `${locale} ${viewport.width}x${viewport.height}: header did not start in ink tone`);
           assert(hero.backgroundIsWhite && hero.headingColorIsInk, `${locale} ${viewport.width}x${viewport.height}: editorial hero is not white with ink content`);
-          assert(!hero.hasHeroSlides && !hero.hasHeroMedia && !hero.hasHeroKicker && !hero.hasHeroMotto, `${locale} ${viewport.width}x${viewport.height}: retired hero media or removed copy remains in the reading order`);
-          assert(hero.fullViewport && hero.gridStartsAfterHero, `${locale} ${viewport.width}x${viewport.height}: project content enters the first hero viewport`);
+          assert(!hero.hasHeroSlides && !hero.hasHeroMedia && hero.hasHeroKicker && !hero.hasHeroMotto && hero.oneH1, `${locale} ${viewport.width}x${viewport.height}: Projects-style text hierarchy or media-free hero contract failed`);
+          assert(hero.viewportMinusFifty && hero.gridStartsAtHero && hero.gridEntersViewport, `${locale} ${viewport.width}x${viewport.height}: hero does not end 50px before the viewport with the first project row attached`);
           assert(hero.contentIsWithinHero && hero.titleBlockStartsWithinHero, `${locale} ${viewport.width}x${viewport.height}: hero title or controls escape above the hero viewport`);
-          assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.asymmetricTitle, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its asymmetric alignment`);
+          assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
+          assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.titleAlignment, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its reference alignment`);
           assert(hero.headingFontSize <= 112.1 && hero.letterSpacing >= -4.49, `${locale} ${viewport.width}x${viewport.height}: hero title exceeded the editorial type bounds`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
-          assert(hero.filtersAreLower && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm or horizontal bounds failed`);
+          assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
+          assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
           const kioskFilter = page.locator('[data-project-filter="kiosk"]');
           await kioskFilter.focus();
           assert(
@@ -3168,6 +3867,353 @@ async function runProjectsProductsHeroEditorialCheck() {
             );
           }
 
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+}
+
+async function runResidentialHeroTextCheck() {
+  const cases = [
+    { viewport: { width: 320, height: 844 } },
+    { viewport: { width: 390, height: 844 } },
+    { viewport: { width: 768, height: 900 } },
+    { viewport: { width: 1024, height: 900 } },
+    { viewport: { width: 1440, height: 900 } },
+    {
+      viewport: { width: 390, height: 844 },
+      reducedMotion: "reduce",
+    },
+  ];
+
+  for (const locale of ["vi", "en"]) {
+    for (const testCase of cases) {
+      const { viewport, reducedMotion = "no-preference" } = testCase;
+      await runPageCase(
+        `residential hero text ${locale} ${viewport.width}x${viewport.height} ${reducedMotion}`,
+        { route: `/${locale}/residential/`, viewport, reducedMotion },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, `/${locale}/residential/`);
+          await page.waitForFunction(
+            () => {
+              const kicker = document.querySelector(".residential-hero .hero-kicker");
+              const title = document.querySelector(".residential-hero h1");
+              const words = [...(title?.querySelectorAll(".motion-word") || [])];
+              const sources = [
+                ...(title?.querySelectorAll("[data-motion-word-source]") || []),
+              ];
+              const visibleTitleNodes = matchMedia(
+                "(prefers-reduced-motion: reduce)",
+              ).matches
+                ? sources
+                : words;
+              return (
+                kicker &&
+                title &&
+                Number.parseFloat(getComputedStyle(kicker).opacity) > 0.99 &&
+                visibleTitleNodes.length > 0 &&
+                visibleTitleNodes.every(
+                  (word) => Number.parseFloat(getComputedStyle(word).opacity) > 0.99,
+                )
+              );
+            },
+            null,
+            { timeout: 4_000 },
+          );
+
+          const hero = await page.locator(".residential-hero").evaluate((element) => {
+            const rect = (node) => {
+              const value = node.getBoundingClientRect();
+              return {
+                top: value.top,
+                right: value.right,
+                bottom: value.bottom,
+                left: value.left,
+                width: value.width,
+                height: value.height,
+              };
+            };
+            const textRect = (node) => {
+              const range = document.createRange();
+              range.selectNodeContents(node);
+              return rect(range);
+            };
+            const normalize = (value) => value.replace(/\s+/g, " ").trim();
+            const content = element.querySelector(".hero-content");
+            const kicker = element.querySelector(".hero-kicker");
+            const heading = element.querySelector("h1");
+            const heroIndex = element.querySelector(".hero-index");
+            const sources = [...heading.querySelectorAll("[data-motion-word-source]")];
+            const contentRect = rect(content);
+            const kickerTextRect = textRect(kicker);
+            const textRects = sources.map(textRect);
+            const sourceFontSizes = sources.map((source) =>
+              Number.parseFloat(getComputedStyle(source).fontSize),
+            );
+            const contentCenter = contentRect.left + contentRect.width / 2;
+
+            return {
+              kicker: normalize(kicker.textContent),
+              title: normalize(heading.textContent),
+              lines: sources.map((source) => normalize(source.textContent)),
+              hasMotto: element.querySelector(".detail-hero-motto") !== null,
+              heroIndexHidden:
+                heroIndex === null || getComputedStyle(heroIndex).display === "none",
+              contentRect,
+              kickerTextRect,
+              textRects,
+              sourceFontSizes,
+              contentCenter,
+              textCenters: textRects.map((value) => value.left + value.width / 2),
+              uppercase: getComputedStyle(heading).textTransform === "uppercase",
+              verticalOrder:
+                kickerTextRect.bottom < textRects[0].top &&
+                textRects[0].top < textRects[1].top,
+              inViewport: [kickerTextRect, ...textRects].every(
+                (value) =>
+                  value.top >= -1 &&
+                  value.bottom <= window.innerHeight + 1 &&
+                  value.left >= -1 &&
+                  value.right <= window.innerWidth + 1,
+              ),
+              noHorizontalOverflow:
+                document.documentElement.scrollWidth - window.innerWidth <= 1,
+            };
+          });
+
+          const expected =
+            locale === "vi"
+              ? {
+                  kicker: "NHÀ PHỐ · CĂN HỘ · HOMESTAY",
+                  title: "Nơi tái tạo năng lượng sống",
+                  lines: ["Nơi tái tạo", "năng lượng sống"],
+                }
+              : {
+                  kicker: "TOWNHOUSES · APARTMENTS · HOMESTAYS",
+                  title: "A place to recharge",
+                  lines: ["A place to", "recharge"],
+                };
+          assert(
+            hero.kicker === expected.kicker &&
+              hero.title === expected.title &&
+              JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
+              !hero.hasMotto &&
+              hero.heroIndexHidden,
+            `${locale} ${viewport.width}x${viewport.height}: residential hero copy or reading order drifted`,
+          );
+          assert(
+            hero.uppercase &&
+              hero.verticalOrder &&
+              hero.inViewport &&
+              hero.noHorizontalOverflow &&
+              hero.contentRect.width <= 1001,
+            `${locale} ${viewport.width}x${viewport.height}: residential hero text escaped its Espacio-style bounds`,
+          );
+
+          if (viewport.width > 680) {
+            assert(
+              Math.abs(hero.textRects[0].left - hero.contentRect.left) <= 2 &&
+                Math.abs(hero.textRects[1].right - hero.contentRect.right) <= 2 &&
+                Math.abs(hero.kickerTextRect.left - hero.contentRect.left - 8) <= 2 &&
+                hero.sourceFontSizes.every((size) => size <= 112.1),
+              `${locale} ${viewport.width}x${viewport.height}: residential desktop title lost its left/right composition`,
+            );
+          } else {
+            assert(
+              hero.textCenters.every(
+                (center) => Math.abs(center - hero.contentCenter) <= 2,
+              ) && Math.abs(
+                hero.kickerTextRect.left + hero.kickerTextRect.width / 2 - hero.contentCenter,
+              ) <= 2,
+              `${locale} ${viewport.width}x${viewport.height}: residential mobile title is not centered`,
+            );
+          }
+          const motionToggle = page.locator(
+            ".residential-hero [data-motion-toggle]",
+          );
+          await motionToggle.focus();
+          assert(
+            await motionToggle.evaluate(
+              (button) => document.activeElement === button,
+            ),
+            `${locale} ${viewport.width}x${viewport.height}: hero motion control cannot receive keyboard focus`,
+          );
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+}
+
+async function runCommercialHeroTextCheck() {
+  const cases = [
+    { viewport: { width: 320, height: 844 } },
+    { viewport: { width: 390, height: 844 } },
+    { viewport: { width: 768, height: 900 } },
+    { viewport: { width: 1024, height: 900 } },
+    { viewport: { width: 1440, height: 900 } },
+    {
+      viewport: { width: 390, height: 844 },
+      reducedMotion: "reduce",
+    },
+  ];
+
+  for (const locale of ["vi", "en"]) {
+    for (const testCase of cases) {
+      const { viewport, reducedMotion = "no-preference" } = testCase;
+      await runPageCase(
+        `commercial hero text ${locale} ${viewport.width}x${viewport.height} ${reducedMotion}`,
+        { route: `/${locale}/commercial/`, viewport, reducedMotion },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, `/${locale}/commercial/`);
+          await page.waitForFunction(
+            () => {
+              const kicker = document.querySelector(".commercial-hero .hero-kicker");
+              const title = document.querySelector(".commercial-hero h1");
+              const words = [...(title?.querySelectorAll(".motion-word") || [])];
+              const sources = [
+                ...(title?.querySelectorAll("[data-motion-word-source]") || []),
+              ];
+              const visibleTitleNodes = matchMedia(
+                "(prefers-reduced-motion: reduce)",
+              ).matches
+                ? sources
+                : words;
+              return (
+                kicker &&
+                title &&
+                Number.parseFloat(getComputedStyle(kicker).opacity) > 0.99 &&
+                visibleTitleNodes.length > 0 &&
+                visibleTitleNodes.every(
+                  (word) => Number.parseFloat(getComputedStyle(word).opacity) > 0.99,
+                )
+              );
+            },
+            null,
+            { timeout: 4_000 },
+          );
+
+          const hero = await page.locator(".commercial-hero").evaluate((element) => {
+            const rect = (node) => {
+              const value = node.getBoundingClientRect();
+              return {
+                top: value.top,
+                right: value.right,
+                bottom: value.bottom,
+                left: value.left,
+                width: value.width,
+                height: value.height,
+              };
+            };
+            const textRect = (node) => {
+              const range = document.createRange();
+              range.selectNodeContents(node);
+              return rect(range);
+            };
+            const normalize = (value) => value.replace(/\s+/g, " ").trim();
+            const content = element.querySelector(".hero-content");
+            const kicker = element.querySelector(".hero-kicker");
+            const heading = element.querySelector("h1");
+            const sources = [...heading.querySelectorAll("[data-motion-word-source]")];
+            const contentRect = rect(content);
+            const kickerTextRect = textRect(kicker);
+            const textRects = sources.map(textRect);
+            const sourceStyles = sources.map((source) => getComputedStyle(source));
+            const contentCenter = contentRect.left + contentRect.width / 2;
+
+            return {
+              kicker: normalize(kicker.textContent),
+              title: normalize(heading.textContent),
+              lines: sources.map((source) => normalize(source.textContent)),
+              hasMotto: element.querySelector(".detail-hero-motto") !== null,
+              contentRect,
+              kickerTextRect,
+              textRects,
+              sourceFontSizes: sourceStyles.map((style) =>
+                Number.parseFloat(style.fontSize),
+              ),
+              sourceWhiteSpace: sourceStyles.map((style) => style.whiteSpace),
+              contentCenter,
+              textCenters: textRects.map((value) => value.left + value.width / 2),
+              uppercase: getComputedStyle(heading).textTransform === "uppercase",
+              verticalOrder:
+                kickerTextRect.bottom < textRects[0].top &&
+                textRects[0].top < textRects[1].top,
+              inViewport: [kickerTextRect, ...textRects].every(
+                (value) =>
+                  value.top >= -1 &&
+                  value.bottom <= window.innerHeight + 1 &&
+                  value.left >= -1 &&
+                  value.right <= window.innerWidth + 1,
+              ),
+              noHorizontalOverflow:
+                document.documentElement.scrollWidth - window.innerWidth <= 1,
+            };
+          });
+
+          const expected =
+            locale === "vi"
+              ? {
+                  kicker: "SHOP · F&B · SHOWROOM · VĂN PHÒNG",
+                  title: "Thiết kế để bán tốt. Thi công để vận hành bền.",
+                  lines: ["Thiết kế để bán tốt.", "Thi công để vận hành bền."],
+                }
+              : {
+                  kicker: "SHOP · F&B · SHOWROOM · OFFICE",
+                  title: "Designed to sell. Built to perform.",
+                  lines: ["Designed to sell.", "Built to perform."],
+                };
+          assert(
+            hero.kicker === expected.kicker &&
+              hero.title === expected.title &&
+              JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
+              !hero.hasMotto,
+            `${locale} ${viewport.width}x${viewport.height}: commercial hero copy or reading order drifted`,
+          );
+          assert(
+            hero.uppercase &&
+              hero.verticalOrder &&
+              hero.inViewport &&
+              hero.noHorizontalOverflow &&
+              hero.contentRect.width <= 1001 &&
+              hero.sourceWhiteSpace.every((value) => value === "nowrap"),
+            `${locale} ${viewport.width}x${viewport.height}: commercial hero text escaped its Espacio-style bounds`,
+          );
+
+          if (viewport.width > 680) {
+            assert(
+                Math.abs(hero.textRects[0].left - hero.contentRect.left) <= 2 &&
+                Math.abs(hero.textRects[1].right - hero.contentRect.right) <= 2 &&
+                Math.abs(hero.kickerTextRect.left - hero.contentRect.left - 8) <= 2 &&
+                hero.sourceFontSizes.every((size) => size <= 92.1),
+              `${locale} ${viewport.width}x${viewport.height}: commercial desktop title lost its left/right composition`,
+            );
+          } else {
+            assert(
+              hero.textCenters.every(
+                (center) => Math.abs(center - hero.contentCenter) <= 2,
+              ) &&
+                Math.abs(
+                  hero.kickerTextRect.left +
+                    hero.kickerTextRect.width / 2 -
+                    hero.contentCenter,
+                ) <= 2,
+              `${locale} ${viewport.width}x${viewport.height}: commercial mobile title is not centered`,
+            );
+          }
+          const motionToggle = page.locator(
+            ".commercial-hero [data-motion-toggle]",
+          );
+          await motionToggle.focus();
+          assert(
+            await motionToggle.evaluate(
+              (button) => document.activeElement === button,
+            ),
+            `${locale} ${viewport.width}x${viewport.height}: hero motion control cannot receive keyboard focus`,
+          );
           assertDiagnostics(diagnostics);
         },
       );
@@ -3340,7 +4386,7 @@ async function runDetailHeroEntryChecks() {
   const viewport = { width: 1440, height: 900 };
   for (const entry of [
     {
-      route: "/vi/projects-products/",
+      route: "/vi/advertising-products/",
       selector: "[data-motion-hero-wrapper-zoom]",
       label: "project hero wrapper",
     },
@@ -3411,12 +4457,12 @@ async function runDetailHeroEntryChecks() {
       label: "project hero wrapper",
       selector: "[data-motion-hero-wrapper-zoom]",
       source: "/vi/",
-      destination: "/vi/projects-products/",
+      destination: "/vi/advertising-products/",
       trigger: async (page) => {
         const link = await findRouteLink(
           page,
           "[data-site-header]",
-          "/vi/projects-products/",
+          "/vi/advertising-products/",
         );
         await link.click();
       },
@@ -3424,7 +4470,7 @@ async function runDetailHeroEntryChecks() {
     {
       label: "about hero media",
       selector: "[data-motion-hero-media]",
-      source: "/vi/projects-products/",
+      source: "/vi/advertising-products/",
       destination: "/vi/about/",
       trigger: async (page) => {
         await openMenu(page);
@@ -3646,7 +4692,7 @@ function assertHomeGeometryMatch(normal, fallback, label) {
 async function runMotionAbortFailOpenChecks() {
   for (const fixture of [
     { route: "/vi/", expected: 255, label: "dark home" },
-    { route: "/vi/projects-products/", expected: 47, label: "ink projects" },
+    { route: "/vi/advertising-products/", expected: 47, label: "ink projects" },
   ]) {
     await runPageCase(
       `post-route-pin fallback restores header leaves on ${fixture.label}`,
@@ -3758,11 +4804,11 @@ async function runMotionAbortFailOpenChecks() {
   ]) {
     await runPageCase(
       `motion abort matches settled projects geometry ${viewport.width}x${viewport.height}`,
-      { route: "/vi/projects-products/", viewport },
+      { route: "/vi/advertising-products/", viewport },
       async (page) => {
         const pageErrors = [];
         page.on("pageerror", (error) => pageErrors.push(error.message));
-        await gotoRoute(page, "/vi/projects-products/");
+        await gotoRoute(page, "/vi/advertising-products/");
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(2_800);
         const normal = await projectFinalGeometry(page);
@@ -3781,7 +4827,7 @@ async function runMotionAbortFailOpenChecks() {
         await page.route("**/*motion.js*", (route) => route.abort("failed"));
         const started = Date.now();
         const response = await page.goto(
-          pageUrl(`/vi/projects-products/?motion-abort=${viewport.width}`),
+          pageUrl(`/vi/advertising-products/?motion-abort=${viewport.width}`),
           { waitUntil: "load", timeout: 20_000 },
         );
         assert(response && response.status() < 400, "Project fail-open load failed");
@@ -3892,7 +4938,7 @@ async function runMotionAbortFailOpenChecks() {
     { route: "/vi/", viewport: { width: 390, height: 844 } },
     async (page) => {
       await page.route("**/*motion.js*", (route) => route.abort("failed"));
-      for (const route of ["", "projects-products/"]) {
+      for (const route of ["", "advertising-products/"]) {
         const viPath = `/vi/${route}`;
         const enPath = `/en/${route}`;
         const expectFallbackScroll = async () => {
@@ -3972,14 +5018,14 @@ async function runMotionAbortFailOpenChecks() {
 
   await runPageCase(
     "motion arriving after watchdog adopts final state without replay",
-    { route: "/vi/projects-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.route("**/*motion.js*", async (route) => {
         const response = await route.fetch();
         await new Promise((resolve) => setTimeout(resolve, 3_400));
         await route.fulfill({ response });
       });
-      const navigation = page.goto(pageUrl("/vi/projects-products/?slow-motion=1"), {
+      const navigation = page.goto(pageUrl("/vi/advertising-products/?slow-motion=1"), {
         waitUntil: "load",
         timeout: 20_000,
       });
@@ -4138,14 +5184,14 @@ async function runDelayedDetailFallbackChecks() {
   ]) {
     await runPageCase(
       `delayed detail mounts fail-open filters once ${viewport.width}x${viewport.height}`,
-      { route: "/vi/projects-products/", viewport },
+      { route: "/vi/advertising-products/", viewport },
       async (page) => {
         await page.route(detailPattern, delayResponse(4_200));
         await page.route(motionPattern, (route) => route.abort("failed"));
         let abortedNavigationError;
         const abortedNavigation = page
           .goto(
-            pageUrl(`/vi/projects-products/?delayed-detail-abort=${viewport.width}`),
+            pageUrl(`/vi/advertising-products/?delayed-detail-abort=${viewport.width}`),
             { waitUntil: "load", timeout: 20_000 },
           )
           .catch((error) => {
@@ -4185,7 +5231,7 @@ async function runDelayedDetailFallbackChecks() {
         let takeoverNavigationError;
         const takeoverNavigation = page
           .goto(
-            pageUrl(`/vi/projects-products/?delayed-detail-takeover=${viewport.width}`),
+            pageUrl(`/vi/advertising-products/?delayed-detail-takeover=${viewport.width}`),
             { waitUntil: "load", timeout: 20_000 },
           )
           .catch((error) => {
@@ -4551,6 +5597,308 @@ async function runHeroCrossFadeContinuityChecks() {
   }
 }
 
+async function runWhiteOverlayMediaFallbackCheck() {
+  const viewport = { width: 1440, height: 900 };
+  const cases = [
+    {
+      name: "home hero",
+      route: "/vi/?media-fallback=hero",
+      asset: "**/residential-space.webp",
+      surface: ".hero",
+      image: ".hero-slide.is-active img",
+      text: ".hero-content",
+      overlay: ".hero-shade",
+    },
+    {
+      name: "home hero reduced motion",
+      route: "/vi/?media-fallback=hero-reduced",
+      asset: "**/residential-space.webp",
+      surface: ".hero",
+      image: ".hero-slide.is-active img",
+      text: ".hero-content",
+      overlay: ".hero-shade",
+      reducedMotion: "reduce",
+    },
+    {
+      name: "about hero",
+      route: "/vi/about/?media-fallback=about",
+      asset: "**/legacy-team.webp",
+      surface: ".about-hero",
+      image: ".about-hero__media img",
+      text: ".hero-content",
+      overlay: ".hero-shade",
+    },
+    {
+      name: "service portal",
+      route: "/vi/?media-fallback=portal",
+      asset: "**/home-residential-kitchen.webp",
+      surface: "#dich-vu .service-portal:first-child",
+      image: "img",
+      text: ".portal-copy",
+      overlay: ".portal-shade",
+      scroll: true,
+    },
+    {
+      name: "gallery caption",
+      route: "/vi/residential/?media-fallback=gallery",
+      asset: "**/home.webp",
+      surface: ".detail-gallery__item:first-child",
+      image: "img",
+      text: "figcaption",
+      scroll: true,
+    },
+    {
+      name: "detail CTA",
+      route: "/vi/commercial/?media-fallback=cta",
+      asset: "**/site-detail.webp",
+      surface: ".detail-cta",
+      image: ":scope > img",
+      text: ".detail-cta__copy",
+      pseudoOverlay: true,
+      scroll: true,
+    },
+    {
+      name: "legacy closer",
+      route: "/vi/?media-fallback=legacy",
+      asset: "**/workshop-wide.webp",
+      surface: ".legacy-closer",
+      image: ":scope > img",
+      text: ".legacy-copy",
+      overlay: ".legacy-shade",
+      scroll: true,
+    },
+  ];
+
+  for (const testCase of cases) {
+    await runPageCase(
+      `white overlay media fallback ${testCase.name}`,
+      {
+        route: testCase.route,
+        viewport,
+        reducedMotion: testCase.reducedMotion,
+      },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        let releaseMedia;
+        let markMediaSeen;
+        const mediaGate = new Promise((resolve) => {
+          releaseMedia = resolve;
+        });
+        const mediaSeen = new Promise((resolve) => {
+          markMediaSeen = resolve;
+        });
+        await page.route(testCase.asset, async (route) => {
+          markMediaSeen();
+          await mediaGate;
+          await route.continue();
+        });
+
+        const response = await page.goto(pageUrl(testCase.route), {
+          waitUntil: "domcontentloaded",
+          timeout: 20_000,
+        });
+        assert(response && response.status() < 400, `${testCase.name}: navigation failed`);
+        await page.waitForFunction(
+          () => Reflect.get(window, "__ttMotionRuntimeHealthy") === true,
+        );
+        if (testCase.scroll) {
+          await page.locator(testCase.surface).scrollIntoViewIfNeeded();
+        }
+        await Promise.race([
+          mediaSeen,
+          page.waitForTimeout(5_000).then(() => {
+            throw new Error(`${testCase.name}: delayed media request was not observed`);
+          }),
+        ]);
+
+        const before = await page.locator(testCase.surface).evaluate(
+          (surface, selectors) => {
+            const image = surface.querySelector(selectors.image);
+            const text = surface.querySelector(selectors.text);
+            const textStyle = getComputedStyle(text);
+            const overlayStyle = selectors.pseudoOverlay
+              ? getComputedStyle(surface, "::after")
+              : selectors.overlay
+                ? getComputedStyle(surface.querySelector(selectors.overlay))
+                : null;
+            return {
+              background: getComputedStyle(surface).backgroundColor,
+              imageOpacity: Number.parseFloat(getComputedStyle(image).opacity),
+              textColor: textStyle.color,
+              textVisible:
+                textStyle.visibility !== "hidden" &&
+                Number.parseFloat(textStyle.opacity) > 0.99,
+              overlayHidden:
+                overlayStyle === null ||
+                overlayStyle.visibility === "hidden" ||
+                overlayStyle.display === "none",
+            };
+          },
+          {
+            image: testCase.image,
+            text: testCase.text,
+            overlay: testCase.overlay,
+            pseudoOverlay: testCase.pseudoOverlay,
+          },
+        );
+        assert(
+          before.background === "rgb(43, 44, 43)" &&
+            before.imageOpacity <= 0.01 &&
+            before.textColor === "rgb(255, 255, 255)" &&
+            before.textVisible &&
+            before.overlayHidden,
+          `${testCase.name}: white copy was not protected by the #2b2c2b loading surface: ${JSON.stringify(before)}`,
+        );
+
+        releaseMedia();
+        await page.waitForFunction(
+          ({ surface, image, overlay, pseudoOverlay }) => {
+            const loadingSurface = document.querySelector(surface);
+            const media = loadingSurface?.querySelector(image);
+            const overlayStyle = pseudoOverlay
+              ? getComputedStyle(loadingSurface, "::after")
+              : overlay
+                ? getComputedStyle(loadingSurface?.querySelector(overlay))
+                : null;
+            return (
+              media?.classList.contains("is-overlay-media-ready") &&
+              media.complete &&
+              media.naturalWidth > 0 &&
+              Number.parseFloat(getComputedStyle(media).opacity) > 0.99 &&
+              (overlayStyle === null || overlayStyle.visibility !== "hidden")
+            );
+          },
+          {
+            surface: testCase.surface,
+            image: testCase.image,
+            overlay: testCase.overlay,
+            pseudoOverlay: testCase.pseudoOverlay,
+          },
+          { timeout: 6_000 },
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function runHomeHeroIntroReadabilityCheck() {
+  const route = "/vi/?hero-intro-check=1";
+  const viewport = { width: 768, height: 900 };
+
+  await runPageCase(
+    "home hero holds a shortened solid surface before the slideshow",
+    { route, viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await page.addInitScript(() => {
+        window.__ttHeroIntroTrace = { done: false, samples: [] };
+        addEventListener(
+          "DOMContentLoaded",
+          () => {
+            let startedAt;
+            const sample = (now) => {
+              startedAt ??= now;
+              const hero = document.querySelector(".hero[data-hero-intro]");
+              const slides = [...document.querySelectorAll(".hero-slide")];
+              const words = [...document.querySelectorAll(".hero-word")];
+              window.__ttHeroIntroTrace.samples.push({
+                elapsed: now - startedAt,
+                background: hero ? getComputedStyle(hero).backgroundColor : "",
+                maxSlideOpacity: Math.max(
+                  0,
+                  ...slides.map((slide) =>
+                    Number.parseFloat(getComputedStyle(slide).opacity),
+                  ),
+                ),
+                visibleWordCount: words.filter(
+                  (word) => Number.parseFloat(getComputedStyle(word).opacity) >= 0.95,
+                ).length,
+                wordCount: words.length,
+              });
+              if (now - startedAt < 3_400) requestAnimationFrame(sample);
+              else window.__ttHeroIntroTrace.done = true;
+            };
+            requestAnimationFrame(sample);
+          },
+          { once: true },
+        );
+      });
+
+      await gotoRoute(page, route);
+      await page.waitForFunction(() => window.__ttHeroIntroTrace?.done, null, {
+        timeout: 8_000,
+      });
+      const trace = await page.evaluate(() => window.__ttHeroIntroTrace);
+      const solidSamples = trace.samples.filter(
+        ({ elapsed }) => elapsed >= 250 && elapsed <= 1_100,
+      );
+      const mediaWaitsForShortHold = trace.samples.some(
+        ({ elapsed, maxSlideOpacity }) =>
+          elapsed >= 1_150 &&
+          elapsed <= 1_300 &&
+          maxSlideOpacity <= 0.08 &&
+          Number.isFinite(maxSlideOpacity),
+      );
+      const fadeSamples = trace.samples.filter(
+        ({ elapsed }) => elapsed >= 1_400 && elapsed <= 2_750,
+      );
+      const finalSamples = trace.samples.filter(({ elapsed }) => elapsed >= 3_050);
+
+      assert(
+        solidSamples.length > 20 &&
+          solidSamples.every(
+            ({ background, maxSlideOpacity }) =>
+              background === "rgb(43, 44, 43)" && maxSlideOpacity <= 0.02,
+          ),
+        `Home hero did not hold the solid reading surface: ${JSON.stringify(trace.samples.slice(0, 12))}`,
+      );
+      assert(
+        mediaWaitsForShortHold,
+        "Home hero media appeared before the shortened solid hold completed",
+      );
+      assert(
+        fadeSamples.some(
+          ({ maxSlideOpacity }) =>
+            maxSlideOpacity >= 0.08 && maxSlideOpacity <= 0.92,
+        ),
+        "Home hero first image did not fade in after the solid hold",
+      );
+      assert(
+        finalSamples.some(({ maxSlideOpacity }) => maxSlideOpacity >= 0.99),
+        "Home hero first image did not finish visible",
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "home hero skips the solid hold for reduced motion",
+    { route, viewport, reducedMotion: "reduce" },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, route);
+      const state = await page.evaluate(() => {
+        const slides = [...document.querySelectorAll(".hero-slide")];
+        return {
+          activeOpacity: Number.parseFloat(
+            getComputedStyle(slides.find((slide) => slide.classList.contains("is-active"))).opacity,
+          ),
+          activeVisibility: getComputedStyle(
+            slides.find((slide) => slide.classList.contains("is-active")),
+          ).visibility,
+        };
+      });
+
+      assert(
+        state.activeOpacity >= 0.99 && state.activeVisibility === "visible",
+        `Reduced-motion home hero did not show its active image immediately: ${JSON.stringify(state)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
 async function runPhysicalWheelTransformChecks() {
   const cases = [
     { name: "home hero", route: "/vi/", selector: ".hero-slides", axis: "y", limit: 12 },
@@ -4676,9 +6024,12 @@ async function runHomeMotionRegressionCheck() {
     "utf8",
   );
   assert(
-    /\{ scale: 1\.06 \}[\s\S]*scale: 1, duration: 5, ease: "sine\.inOut"[\s\S]*duration: 1\.6[\s\S]*4\.2[\s\S]*\.call\(\(\) => startSlide\(nextIndex\), null, 5\)/.test(
+    /const introOffset = heroIntroPending && index === 0 \? 2\.6 : 0;/.test(
       motionSource,
-    ),
+    ) &&
+      /\{ scale: 1\.06 \}[\s\S]*scale: 1, duration: 5, ease: "sine\.inOut"[\s\S]*duration: 1\.6[\s\S]*introOffset \+ 4\.2[\s\S]*\.call\(\(\) => startSlide\(nextIndex\), null, introOffset \+ 5\)/.test(
+      motionSource,
+      ),
     "The home hero zoom/cross-fade contract changed",
   );
   assert(
@@ -4863,9 +6214,9 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.portalSources) ===
           JSON.stringify([
-            "/assets/site/expanded/home-residential-kitchen.webp",
-            "/assets/site/expanded/home-commercial-fnb.webp",
-            "/assets/site/portal-options-round-2/advertising-fnb-mobile-cart-v2.webp",
+            "/assets/content/projects/home-residential-kitchen.webp",
+            "/assets/content/projects/home-commercial-fnb.webp",
+            "/assets/content/projects/advertising-fnb-mobile-cart-v2.webp",
           ]),
         `Home service portal sources changed: ${contract.portalSources.join(", ")}`,
       );
@@ -4883,10 +6234,10 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.hero.sources) ===
           JSON.stringify([
-            "/assets/site/generated/residential-space.webp",
-            "/assets/site/commercial/hero.webp",
-            "/assets/site/advertising/hero-kiosk.webp",
-            "/assets/site/advertising/mobile-retail.webp",
+            "/assets/content/projects/residential-space.webp",
+            "/assets/content/projects/hero.webp",
+            "/assets/content/projects/hero-kiosk.webp",
+            "/assets/content/projects/mobile-retail.webp",
           ]),
         `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
       );
@@ -4900,10 +6251,10 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.heritage.sources) ===
           JSON.stringify([
-            "/assets/site/thumbs/legacy-hands-384.webp",
-            "/assets/site/generated/montage-cnc-tablet.webp",
-            "/assets/site/generated/montage-commitment-option-3-knot.webp",
-            "/assets/site/generated/montage-residential-product-detail.webp",
+            "/assets/content/shared/legacy-hands-384.webp",
+            "/assets/content/shared/montage-cnc-tablet.webp",
+            "/assets/content/shared/montage-commitment-option-3-knot.webp",
+            "/assets/content/shared/montage-residential-product-detail.webp",
           ]),
         `Heritage montage sources changed: ${contract.heritage.sources.join(", ")}`,
       );
@@ -5109,6 +6460,16 @@ async function main() {
   try {
     if (process.env.TT_E2E_MENU_ONLY === "1") {
       await runMenuChecks();
+    } else if (process.env.TT_E2E_PORTAL_ONLY === "1") {
+      await runPortalAlignmentChecks();
+    } else if (process.env.TT_E2E_LOCALE_MODES_ONLY === "1") {
+      await runLocaleResponsivePreferenceChecks();
+    } else if (process.env.TT_E2E_LOCALE_SCROLL_ONLY === "1") {
+      await runLanguageScrollRetentionCheck();
+    } else if (process.env.TT_E2E_LOCALE_ONLY === "1") {
+      await runLanguagePersistenceCheck();
+      await runLanguageScrollRetentionCheck();
+      await runLocaleResponsivePreferenceChecks();
     } else if (process.env.TT_E2E_FRAGMENT_ONLY === "1") {
       await runDirectHeaderRouteChecks();
       await runInternalLinkCheck();
@@ -5145,8 +6506,18 @@ async function main() {
       await runPhysicalWheelTransformChecks();
     } else if (process.env.TT_E2E_BOOT_RACE_ONLY === "1") {
       await runBootClaimReleaseRaceCheck();
+    } else if (process.env.TT_E2E_HERO_INTRO_ONLY === "1") {
+      await runHomeHeroIntroReadabilityCheck();
+    } else if (process.env.TT_E2E_MEDIA_FALLBACK_ONLY === "1") {
+      await runWhiteOverlayMediaFallbackCheck();
     } else if (process.env.TT_E2E_HERO_CONTINUITY_ONLY === "1") {
       await runHeroCrossFadeContinuityChecks();
+    } else if (process.env.TT_E2E_RESIDENTIAL_HERO_ONLY === "1") {
+      await runResidentialHeroTextCheck();
+    } else if (process.env.TT_E2E_COMMERCIAL_HERO_ONLY === "1") {
+      await runCommercialHeroTextCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_HERO_ONLY === "1") {
+      await runProjectsProductsHeroEditorialCheck();
     } else if (process.env.TT_E2E_M1_ONLY === "1") {
       await runPersistentBarbaNavigationChecks();
       await runEarlyHeroAccessibilityCheck();
@@ -5177,11 +6548,15 @@ async function main() {
       await runSsrCmsHydrationCheck();
       await runMenuChecks();
       await runProjectsProductsHeroEditorialCheck();
+      await runResidentialHeroTextCheck();
+      await runCommercialHeroTextCheck();
       await runAdvertisingFilterCheck();
       await runGalleryCheck();
       await runEarlyHeroAccessibilityCheck();
       await runDetailHeroEntryChecks();
       await runHeroCarouselLifecycleCheck();
+      await runWhiteOverlayMediaFallbackCheck();
+      await runHomeHeroIntroReadabilityCheck();
       await runHeroCrossFadeContinuityChecks();
       await runPhysicalWheelTransformChecks();
       await runNoScriptHeroCheck();

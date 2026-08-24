@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import json
 import os
+import shutil
 from pathlib import Path
 
 import anyio
@@ -12,22 +13,21 @@ from mcp.client.stdio import stdio_client
 
 
 def server_parameters(root: Path, service: str) -> StdioServerParameters:
-    launchers = {
-        "serena": "start-serena-mcp.ps1",
-        "graphify": "start-graphify-mcp.ps1",
-        "chrome-devtools": "start-chrome-devtools-mcp.ps1",
-    }
     environment = os.environ.copy()
     environment["PYTHONUTF8"] = "1"
-    pwsh = root / ".tooling" / "runtimes" / "powershell-7.6.4" / "pwsh.exe"
+    tooling = Path(environment.get("CODEX_GLOBAL_TOOLING_ROOT", Path.home() / ".codex" / "tooling"))
+    pwsh = shutil.which("pwsh")
+    if not pwsh:
+        raise FileNotFoundError("pwsh is required to launch the global MCP wrapper")
     return StdioServerParameters(
-        command=str(pwsh),
+        command=pwsh,
         args=[
             "-NoProfile",
             "-ExecutionPolicy",
             "Bypass",
             "-File",
-            str(root / "scripts" / "tooling" / launchers[service]),
+            str(tooling / "bin" / "mcp.ps1"),
+            service,
         ],
         cwd=str(root),
         env=environment,

@@ -1,14 +1,14 @@
-# Truong Thinh Website
+# Website Trường Thịnh
 
-Bilingual VI/EN static-first website for Truong Thinh Interior and Advertising.
-The repository root is the canonical site. The immediate goal is a reliable
-public website; CMS, private admin, D1, and R2 are deferred to a later phase.
+Website tĩnh VI/EN theo hướng static-first cho Trường Thịnh Interior và
+Advertising. Root của repository là site canonical. Mục tiêu trước mắt là một
+public website đáng tin cậy; CMS, private admin, D1 và R2 để ở phase sau.
 
 GitHub repository: [advertruongthinh-code/TruongThinhWebsite](https://github.com/advertruongthinh-code/TruongThinhWebsite)
 
-## Quick start
+## Khởi động nhanh
 
-Requirements: Node.js 22+ and Corepack.
+Yêu cầu: Node.js 22+ và Corepack.
 
 ```powershell
 corepack enable
@@ -16,27 +16,38 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open `http://127.0.0.1:8787/vi/`. A small allowlist copy step creates the ignored
-`.site-output/` deployment directory. HTML, CSS, JavaScript, and media are
-served as Cloudflare static assets; the Worker adds
-canonical locale routes, redirects, localized metadata, `robots.txt`, and the
-sitemap.
+Với Codex Desktop trên machine mới, cài hoặc repair pinned user-global agent
+stack và project-local browser tooling bằng một command:
 
-## Current scope
+```powershell
+pnpm tooling:bootstrap
+```
 
-- `/vi/` and `/en/`: home.
-- `/vi/residential/` and `/en/residential/`: residential interiors.
-- `/vi/commercial/` and `/en/commercial/`: commercial interiors.
-- `/vi/projects-products/` and `/en/projects-products/`: projects and products.
-- `/vi/about/` and `/en/about/`: company profile.
-- Static pages work without D1, R2, Access, or CMS secrets.
-- Dynamic `/projects/:slug/`, admin, and publishing workflows belong to the CMS
-  phase and are not part of the first release gate.
+Chỉ dùng khi machine mới hoặc repair. Nó tái tạo pinned user-global stack và
+project browser tooling. Repository override Caveman `ultra`; ADHD/Ponytail
+ultra vẫn active. Chi tiết ownership automation ở
+[`docs/operations/TOOLING.md`](docs/operations/TOOLING.md).
 
-The public copy still needs owner-confirmed Zalo, address, founding year, and
-warranty information. Do not invent these values.
+Mở `http://127.0.0.1:8787/vi/`. Một bước copy nhỏ có allowlist tạo deployment
+directory bị Git ignore là `.site-output/`. HTML, CSS, JavaScript và media được
+serve như Cloudflare static asset; Worker thêm canonical locale route, redirect,
+localized metadata, `robots.txt` và sitemap.
 
-## Commands
+## Phạm vi hiện tại
+
+- `/vi/` và `/en/`: home.
+- `/vi/residential/` và `/en/residential/`: residential interior.
+- `/vi/commercial/` và `/en/commercial/`: commercial interior.
+- `/vi/advertising-products/` và `/en/advertising-products/`: sản phẩm quảng cáo.
+- `/vi/about/` và `/en/about/`: company profile.
+- Static page hoạt động không cần D1, R2, Access hoặc CMS secret.
+- Dynamic `/projects/:slug/`, admin và publishing workflow thuộc CMS
+  phase, không nằm trong release gate đầu tiên.
+
+Public copy vẫn cần owner xác nhận Zalo, address, founding year và warranty.
+Không tự invent các giá trị này.
+
+## Command
 
 ```powershell
 pnpm qa:static
@@ -46,96 +57,122 @@ pnpm qa:cross-browser
 pnpm deploy
 ```
 
-`prepare:site` copies only public files into `.site-output`; it excludes tooling,
-reports, reference archives, CMS admin files, and repository metadata.
-`qa:static` checks source contracts without starting a server.
-`qa:worker:static` expects Wrangler at `http://127.0.0.1:8787` and checks both
-locales, redirects, canonical URLs, the sitemap, and the CMS-disabled fallback.
-See [tests/README.md](tests/README.md) for the full browser matrix.
+`prepare:site` chỉ copy public file vào `.site-output`; nó loại tooling,
+report, reference archive, CMS admin file và repository metadata.
+`qa:static` kiểm tra source contract mà không start server.
+`qa:worker:static` cần Wrangler ở `http://127.0.0.1:8787` và kiểm tra cả hai
+locale, redirect, canonical URL, sitemap và CMS-disabled fallback.
+UI release còn cần live interaction evidence từ Playwright, Computer Use và
+Chrome DevTools MCP. Xem [`tests/README.md`](tests/README.md) để đọc browser matrix và
+evidence contract.
 
 ## Deployment
 
-GitHub is the source of truth. Pull requests run the static and browser smoke
-gates. Production deployment is manual through GitHub Actions until the first
-stable release:
+GitHub là source of truth. Pull request chạy static và browser smoke gate.
+Production deployment là thủ công qua GitHub Actions cho tới stable release đầu
+tiên:
 
-1. Configure repository secrets `CLOUDFLARE_API_TOKEN` and
+1. Cấu hình repository secret `CLOUDFLARE_API_TOKEN` và
    `CLOUDFLARE_ACCOUNT_ID`.
-2. Run the `Deploy` workflow from GitHub Actions.
-3. Verify the generated `workers.dev` URL before connecting the production
+2. Chạy workflow `Deploy` từ GitHub Actions.
+3. Verify URL `workers.dev` được generate trước khi connect production
    domain.
 
-No global package, skill, MCP, or runtime installation is required by the
-repository.
+Agent stack là user-global; Playwright, Wrangler và browser engine vẫn
+project-local và được pin. Clone vẫn portable vì `pnpm tooling:bootstrap`
+reconstruct cả hai scope từ tracked pin và script.
 
-## Project layout
+## Cây thư mục và trạng thái
+
+Nhãn lifecycle và nhãn Git là hai việc khác nhau. `[UNTRACKED]` chỉ nói path
+chưa nằm trong Git index ở snapshot hiện tại; không có nghĩa path đó dư hoặc
+được phép xóa.
 
 ```text
 .
-├─ src/site/                 # canonical static source; copied unchanged to .site-output
-│  ├─ index.html
-│  ├─ residential/index.html
-│  ├─ commercial/index.html
-│  ├─ projects-products/index.html
-│  ├─ about/index.html
-│  ├─ assets/site/           # public media
-│  ├─ style.css              # shared tokens and layout
-│  ├─ motion.js              # locale, navigation, and shared motion
-│  ├─ detail.css
-│  ├─ detail.js
-│  └─ products.js
-├─ src/worker/index.js       # static routing now; CMS-ready code is dormant
-├─ src/admin/                # dormant private CMS shell
-├─ src/db/migrations/        # dormant CMS schema and seed drafts
-├─ tests/
-│  ├─ site/                  # static, E2E, and cross-browser contracts
-│  ├─ worker/                # Worker runtime and security contracts
-│  └─ tooling/               # hooks, Serena, Graphify, and bootstrap fixtures
-├─ scripts/
-│  ├─ site/                  # static deploy staging
-│  ├─ reference/             # generic reference crawler
-│  └─ tooling/               # project-local agent and MCP lifecycle; stable path
-├─ docs/
-│  ├─ product/               # content, motion, route, and release contracts
-│  ├─ engineering/           # architecture and deferred CMS design
-│  ├─ operations/            # admin and tooling runbooks
-│  ├─ decisions/             # ADRs and decision log
-│  └─ reports/               # Vietnamese status, audit, and handoff evidence
-├─ research/reference-site/  # tracked index plus ignored local research archive
-├─ .agents/                  # project-portable skills
-├─ .codex/                   # project hooks, MCP launchers, and personas
-├─ .tooling/                 # ignored local runtimes, cache, state, and backups
-├─ graphify-out/             # ignored generated code graph
-└─ .site-output/             # ignored generated deploy assets
+├─ src/                                      # source sản phẩm
+│  ├─ site/                                  # [LIVE, TRACKED/UNTRACKED MIX] source public canonical
+│  │  ├─ index.html                          # [LIVE] home VI/EN
+│  │  ├─ residential/index.html              # [LIVE] không gian nhà ở
+│  │  ├─ commercial/index.html               # [LIVE] không gian kinh doanh
+│  │  ├─ advertising-products/index.html     # [LIVE, UNTRACKED] sản phẩm quảng cáo
+│  │  ├─ about/index.html                    # [LIVE] giới thiệu
+│  │  ├─ assets/                             # [LIVE, UNTRACKED] brand, client logo, media public
+│  │  ├─ content/client-logos.json           # [LIVE, UNTRACKED] manifest logo khách hàng
+│  │  ├─ style.css, detail.css               # [LIVE] layout và visual contract
+│  │  └─ motion.js, detail.js                # [LIVE] locale, navigation, motion, gallery, filter
+│  ├─ worker/index.js                        # [LIVE] route/SEO; CMS compatibility vẫn dormant
+│  ├─ admin/                                 # [DEV] CMS shell, không được copy vào public output
+│  └─ db/migrations/                         # [DEV, TRACKED/UNTRACKED MIX] draft schema CMS
+├─ tests/                                    # [PROJECT, TRACKED/UNTRACKED MIX] static/browser/Worker/tooling QA
+├─ scripts/                                  # [PROJECT, TRACKED/UNTRACKED MIX] build, QA, research, tooling entrypoint
+├─ docs/                                     # [PROJECT, TRACKED/UNTRACKED MIX] spec, decision, rule, report đã chấp nhận
+│  └─ reports/*.csv, *.bak                   # [GENERATED] raw parity ledger local, Git ignore
+├─ research/reference-site/
+│  ├─ README.md                              # [PROJECT] boundary và cách dùng research
+│  ├─ archive/                               # [RESEARCH ARCHIVE] crawl local, Git ignore
+│  └─ runtime-evidence/                      # [GENERATED] screenshot/JSON raw, Git ignore
+├─ source-assets/                            # [DEV, UNTRACKED] source media biên tập, không deploy
+├─ .openai/hosting.json                      # [LIVE CONFIG, UNTRACKED] Codex Sites project id
+├─ .github/                                  # [PROJECT] CI và deploy workflow
+├─ .codex/, .serena/                         # [PROJECT] agent/Serena config; cache và log bị ignore
+├─ .vscode/                                  # [DEV, UNTRACKED] task chạy watcher/doctor
+├─ .site-output/                             # [GENERATED] build deploy từ src/site, không edit
+├─ .tmp/, tmp-layout-motion-*/               # [GENERATED] retry/probe local, Git ignore
+├─ .tooling/, graphify-out/, .wrangler/      # [CACHE] runtime/tool state, Git ignore
+├─ node_modules/                             # [CACHE] dependency install, Git ignore
+└─ package.json, pnpm-lock.yaml, wrangler.toml
+                                               # [PROJECT] command, pin và Worker config
 ```
 
-Before editing copy or media, read
-[docs/product/CONTENT-MEDIA-GUIDE.md](docs/product/CONTENT-MEDIA-GUIDE.md). Before editing
-layout or motion, read
-[docs/reports/REFERENCE-MOTION-AUDIT.md](docs/reports/REFERENCE-MOTION-AUDIT.md).
+Quy tắc ownership:
+
+1. Chỉ edit public source tại `src/site/`; `.site-output/` luôn được tạo lại.
+2. Source, config, test và Markdown đã chấp nhận là project file cần Git quản
+   lý; raw evidence, build output, archive và cache phải nằm ngoài Git index.
+3. File untracked phải được review theo path trước khi stage; không xóa hoặc
+   commit hàng loạt chỉ vì trạng thái `??`.
+4. Trước khi edit copy hoặc media, đọc
+   [`docs/product/CONTENT-MEDIA-GUIDE.md`](docs/product/CONTENT-MEDIA-GUIDE.md).
+
+Inventory và deletion ledger có ngày nằm tại
+[`docs/reports/verification-2026-08-25-project-source-cleanup.md`](docs/reports/verification-2026-08-25-project-source-cleanup.md).
 
 ## Reference research
 
-The crawler is deliberately generic and requires an explicit origin:
+Crawler là generic có chủ đích và cần origin explicit:
 
 ```powershell
 node scripts/reference/archive-reference.mjs --origin <url>
 ```
 
-Generated source and media are stored under
-`research/reference-site/archive/`, ignored by Git, and must never be
-loaded by the production website. Do not commit proprietary source, media,
-logos, or identifying reference-site URLs.
+Source và media được generate ở `research/reference-site/archive/`, bị Git ignore
+và không được production website load. Không commit proprietary source, media,
+logo hoặc identifying reference-site URL.
 
 ## CMS phase
 
-The future CMS may activate the existing Worker API, D1 migrations, R2 media,
-and Access-protected admin shell. It must not block or destabilize the static
-release. See [docs/engineering/CMS-ROADMAP.md](docs/engineering/CMS-ROADMAP.md).
+CMS tương lai có thể activate Worker dormant, selected structured-data storage,
+selected media object storage và Access-protected admin shell. Nó không được
+block hoặc destabilize static release. Xem
+[`docs/specs/cms-content-publishing.md`](docs/specs/cms-content-publishing.md) và
+[`docs/engineering/CMS-ROADMAP.md`](docs/engineering/CMS-ROADMAP.md).
 
-## Agent instructions
+## Agent instruction
 
-- Shared rules: [AGENTS.md](AGENTS.md).
-- Claude Code imports the same rules through [CLAUDE.md](CLAUDE.md).
-- Codex project skills are pinned in `.agents/skills`; project launchers and
-  hooks are documented in [docs/operations/TOOLING.md](docs/operations/TOOLING.md).
+- Shared rule: [`AGENTS.md`](AGENTS.md).
+- Claude Code import cùng rule qua [`CLAUDE.md`](CLAUDE.md).
+- Setup, MCP inventory, watcher, terminal command và recovery được ghi trong
+  [`docs/operations/TOOLING.md`](docs/operations/TOOLING.md).
+- Brief setup project mới có thể tái sử dụng và lesson nằm trong
+  [`docs/reports/verification-2026-08-09-agent-workspace-bootstrap.md`](docs/reports/verification-2026-08-09-agent-workspace-bootstrap.md).
+
+## Chú thích thuật ngữ
+
+- **Static-first**: ưu tiên website tĩnh trước phần dynamic.
+- **Canonical**: bản được xem là nguồn chuẩn.
+- **Portable**: có thể tái lập trên machine khác từ pin và script của repository.
+- **Deployment**: quá trình đưa output lên môi trường phục vụ.
+- **Fallback**: nhánh xử lý thay thế khi capability chính chưa có hoặc bị tắt.
+- **Automation**: hook, watcher, wrapper hoặc launcher tự xử lý mechanics.
+- **Dormant**: đã có trong source nhưng hiện chưa được activate.

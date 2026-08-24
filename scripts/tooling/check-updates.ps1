@@ -16,38 +16,44 @@ $pins = Get-Content -Raw (Join-Path $root "tooling-versions.json") | ConvertFrom
 $results = [ordered]@{}
 $errors = @()
 
-function Read-RemoteVersion([string]$Name, [scriptblock]$Fetch, [string]$Current) {
+function Read-RemoteVersion([string]$Name, [scriptblock]$Fetch, [string]$Current, [string]$Channel) {
   try {
-    $latest = & $Fetch
+    $latest = [string](& $Fetch)
     $script:results[$Name] = [ordered]@{
+      channel = $Channel
       current = $Current
-      latest = [string]$latest
-      update_available = ([string]$latest -ne $Current)
+      latest = $latest
+      update_available = $latest -ne $Current
     }
   } catch { $script:errors += "$Name`: $($_.Exception.Message)" }
 }
 
-Read-RemoteVersion "serena-agent" { (Invoke-RestMethod "https://pypi.org/pypi/serena-agent/json").info.version } $pins.python.'serena-agent'
-Read-RemoteVersion "graphifyy" { (Invoke-RestMethod "https://pypi.org/pypi/graphifyy/json").info.version } $pins.python.graphifyy
-Read-RemoteVersion "playwright" { (Invoke-RestMethod "https://registry.npmjs.org/playwright/latest").version } $pins.node.playwright
-Read-RemoteVersion "impeccable" { (Invoke-RestMethod "https://registry.npmjs.org/impeccable/latest").version } $pins.node.impeccable
-Read-RemoteVersion "chrome-devtools-mcp" { (Invoke-RestMethod "https://registry.npmjs.org/chrome-devtools-mcp/latest").version } $pins.node.'chrome-devtools-mcp'
-Read-RemoteVersion "npm" { (Invoke-RestMethod "https://registry.npmjs.org/npm/latest").version } $pins.node.npm
-Read-RemoteVersion "wrangler" { (Invoke-RestMethod "https://registry.npmjs.org/wrangler/latest").version } $pins.node.wrangler
-Read-RemoteVersion "uv" { (Invoke-RestMethod "https://api.github.com/repos/astral-sh/uv/releases/latest").tag_name.TrimStart("v") } $pins.runtimes.uv.version
-Read-RemoteVersion "powershell" { (Invoke-RestMethod "https://api.github.com/repos/PowerShell/PowerShell/releases/latest").tag_name.TrimStart("v") } $pins.runtimes.powershell.version
+Read-RemoteVersion "serena-agent" { (Invoke-RestMethod "https://pypi.org/pypi/serena-agent/json").info.version } $pins.python.'serena-agent' "stable-package"
+Read-RemoteVersion "graphifyy" { (Invoke-RestMethod "https://pypi.org/pypi/graphifyy/json").info.version } $pins.python.graphifyy "stable-package"
+Read-RemoteVersion "uv" { (Invoke-RestMethod "https://pypi.org/pypi/uv/json").info.version } $pins.python.uv "stable-package"
+Read-RemoteVersion "playwright" { (Invoke-RestMethod "https://registry.npmjs.org/playwright/latest").version } $pins.node.project.playwright "stable-package"
+Read-RemoteVersion "wrangler" { (Invoke-RestMethod "https://registry.npmjs.org/wrangler/latest").version } $pins.node.project.wrangler "stable-package"
+Read-RemoteVersion "impeccable" { (Invoke-RestMethod "https://registry.npmjs.org/impeccable/latest").version } $pins.node.global.impeccable "stable-package"
+Read-RemoteVersion "chrome-devtools-mcp" { (Invoke-RestMethod "https://registry.npmjs.org/chrome-devtools-mcp/latest").version } $pins.node.global.'chrome-devtools-mcp' "stable-package"
+Read-RemoteVersion "jq" {
+  $refs = & git ls-remote --quiet --tags --refs "https://github.com/jqlang/jq.git" "refs/tags/jq-*" 2>&1
+  if ($LASTEXITCODE -ne 0) { throw ($refs | Out-String).Trim() }
+  $versions = @($refs | ForEach-Object {
+    if ($_ -match 'refs/tags/jq-(?<version>\d+\.\d+\.\d+)$') { [version]$Matches.version }
+  })
+  if (-not $versions.Count) { throw "No stable jq-X.Y.Z tags were returned." }
+  [string]($versions | Sort-Object | Select-Object -Last 1)
+} $pins.runtimes.jq.version "stable-release"
 
-$repoRefs = [ordered]@{
-  "oraios/serena" = "main"
-  "Graphify-Labs/graphify" = "main"
-  "addyosmani/agent-skills" = "main"
-  "pbakaus/impeccable" = "main"
-  "dietrichgebert/ponytail" = "main"
-}
-foreach ($entry in $repoRefs.GetEnumerator()) {
-  $repo = $entry.Key
-  $ref = $entry.Value
-  Read-RemoteVersion $repo { (Invoke-RestMethod "https://api.github.com/repos/$repo/commits/$ref").sha } $pins.repositories.$repo
+foreach ($repo in $pins.repositories.PSObject.Properties.Name) {
+  $url = [string]$pins.repository_urls.$repo
+  Read-RemoteVersion $repo {
+    $head = & git ls-remote --quiet $url HEAD 2>&1
+    if ($LASTEXITCODE -ne 0) { throw ($head | Out-String).Trim() }
+    $sha = [string](@($head)[0] -split '\s+')[0]
+    if ($sha -notmatch '^[0-9a-f]{40}$') { throw "Invalid HEAD response from $url" }
+    $sha
+  } ([string]$pins.repositories.$repo) "repository-head"
 }
 
 $payload = [ordered]@{
@@ -59,10 +65,8 @@ $payload = [ordered]@{
 [System.IO.File]::WriteAllText($statePath, (($payload | ConvertTo-Json -Depth 8) + [Environment]::NewLine))
 
 $updates = @($results.GetEnumerator() | Where-Object { $_.Value.update_available })
-if ($updates.Count -gt 0) {
-  Write-Output "Tooling updates available; no packages were changed:"
-  foreach ($update in $updates) {
-    Write-Output "- $($update.Key): $($update.Value.current) -> $($update.Value.latest)"
-  }
+if ($updates.Count) {
+  Write-Output "Tooling updates available; nothing was changed:"
+  foreach ($update in $updates) { Write-Output "- $($update.Key) [$($update.Value.channel)]: $($update.Value.current) -> $($update.Value.latest)" }
 }
-if ($errors.Count -gt 0 -and -not $IfDue) { Write-Warning ($errors -join "; ") }
+if ($errors.Count -and -not $IfDue) { Write-Warning ($errors -join "; ") }

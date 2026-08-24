@@ -1,102 +1,145 @@
-# Project tooling
+# Agent tooling
 
-Toàn bộ runtime, package, skill, persona và MCP của dự án nằm trong repository;
-không có bước nào yêu cầu sửa cấu hình Codex/Git/user scope. Phiên bản và nguồn
-được khóa tại `tooling-versions.json`, Node dependencies tại `pnpm-lock.yaml`.
+Repository chứa pin, policy, wrapper, test và watcher riêng của project. Reusable
+agent package nằm ở user scope để Codex Desktop dùng cùng một stack trong mọi
+workspace.
 
-## Lệnh vận hành
+## Ownership
 
-```powershell
-# Backup rồi cài đè project tooling; chỉ dùng package đã pin.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/bootstrap.ps1
+- [Scripts map](agent-rule-scripts.md) là canonical ownership/fallback. Rule chỉ nêu trigger/boundary.
+- Hook, watcher, wrapper, launcher tự chạy normal mechanics. Impeccable context báo `MANUAL_DETECTOR_REQUIRED` mới chạy detector một lần sau UI xong.
+- Không có Codex lifecycle hook project. Không tạo/sửa hook, helper ngoài approved tooling repair.
 
-# Kiểm tra nhanh hoặc kiểm tra cả ba MCP.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1 -Mcp
+## Scope
 
-# Chỉ báo update, không tự cài.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/check-updates.ps1
+| Scope | Nội dung đã cài |
+| --- | --- |
+| User global | Serena 1.7.0, Graphify 0.9.46, Chrome DevTools MCP 1.7.0, Impeccable CLI 3.6.0, Sol Advisor 0.6.0, jq 1.8.2, 53 direct skill và native persona |
+| Project | Playwright 1.62.1, Wrangler 4.124.0, browser engine, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
 
-# Graphify lifecycle.
-& ".\scripts\tooling\invoke-graphify.ps1" query "câu hỏi cụ thể"
-& ".\scripts\tooling\invoke-graphify.ps1" path "source" "target"
-& ".\scripts\tooling\invoke-graphify.ps1" explain "node"
-& ".\.tooling\python\Scripts\graphify.exe" hook status
+Path ở user-global:
 
-# Serena lifecycle.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-serena-languages.ps1 -Check
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-serena-languages.ps1 -Apply
+```text
+~/.agents/skills/          payload Agent Skills trực tiếp
+~/.agents/references/      reference Agent Skills dùng chung
+~/.codex/agents/           native persona và Sol adapter tái sử dụng
+~/.codex/tooling/          Python, Node, jq, source, log và wrapper đã pin
+~/.codex/config.toml       MCP global và policy tắt hook
+~/.codex/AGENTS.md         rule ADHD, Caveman ultra và Ponytail ultra luôn active
 ```
 
-Wrapper boundary là interface canonical cho `query`, `path` và `explain`.
-`PostToolUse` tính fingerprint rẻ và chỉ tạo
-`.tooling/state/graphify/dirty.json` khi corpus thực sự đổi; thao tác Bash chỉ
-đọc không chạy Serena sync hoặc Graphify update. Wrapper CLI, Graphify MCP
-`PreToolUse` và `Stop` dùng chung freshness gate, recheck sau khi lấy lock để
-nhiều process đồng thời chỉ chạy một `graphify update`. Query bị dừng nếu AST
-không thể làm fresh.
+Caveman và Ponytail đều bắt buộc `ultra` ở global và project rule. Không có
+skill, persona, MCP definition hoặc lifecycle hook project-local.
 
-Sau khi AST fresh, helper dùng `detect_incremental(kind="semantic")` và
-`graphify-out/manifest.json` của Graphify để xác định docs/media cần semantic
-pass. Kết quả được cache theo fingerprint của manifest; boundary chỉ cảnh báo,
-không chặn structural query và không tự gọi LLM/API. Không còn custom
-strict/watch profile, watcher hay marker `needs_update`.
+## Machine mới hoặc repair
 
-Graphify executable không được thêm vào global `PATH`. Dùng wrapper project-local
-cho query/path/explain; chỉ gọi executable project-local trực tiếp cho lệnh bảo
-trì như `update`, `hook status` hoặc semantic extraction được chủ dự án duyệt.
+Từ repository root:
 
-## Serena language lifecycle
+```powershell
+corepack enable
+pnpm install --frozen-lockfile
+pnpm tooling:bootstrap
+```
 
-Script quét file không bị ignore, loại runtime/cache/assets/report/backup, dùng
-schema thật của Serena đang cài và giữ nguyên mọi key YAML khác. Tập hiện tại:
-`typescript`, `html`, `scss`, `powershell`, `markdown`, `json`, `toml`, `yaml`,
-`python`; `.sql` được báo unsupported, không ánh xạ giả.
+Bootstrap backup managed global và project configuration, verify repository commit
+và package version, install global stack, install project browser dependency,
+install official Git hook của Graphify, infer Serena language và chạy doctor.
+Chỉ dùng `-SkipBrowsers` khi browser engine project hiện có đã được verify:
 
-Khi tập extension đổi, script backup `project.yml`, cập nhật YAML bằng parser,
-chạy health-check và tạo marker restart. Chỉ gỡ marker sau khi một Serena MCP
-mới đã activate project và `get_current_config` xác nhận context hiện hành.
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/bootstrap.ps1 -SkipBrowsers
+```
 
-## Skills, personas và hooks
+Backup có thể recover ở `~/.codex/tooling/backups/`. Receipt được generate ở
+`.tooling/state/` và không làm clone dirty.
 
-- 24 Addy Osmani skills cùng shared references, Impeccable, Graphify và
-  sáu Ponytail skills `4.9.0` ở `.agents/skills`. Ponytail được pin tại commit
-  `2ed6c52c9d7e5e56942508591085fd45dea277d3` và được bootstrap lại từ repo,
-  nên clone mới không phụ thuộc skill global.
-- Project không đăng ký Ponytail MCP hoặc lifecycle hook thứ hai. `AGENTS.md`
-  chứa guard tối giản; user/global plugin, nếu có, sở hữu mode và ba hook
-  upstream. Cách tách này tránh inject trùng nhưng vẫn giữ skill dùng được khi
-  clone sang máy chưa cài plugin global.
-- Bốn persona read-only ở `.codex/agents`.
-- `.codex/hooks.json` có đúng một dispatcher cho mỗi event. Dispatcher quản lý
-  quick doctor, update notification, Serena sync, Graphify
-  freshness, Impeccable detector, Serena watcher PID, lock và Stop loop guard.
-- ADHD always-on dùng contract ngắn trong `AGENTS.md`; project không vendoring
-  hoặc SessionStart-inject bản skill đầy đủ để tránh trùng với skill global.
-- Git `post-commit`/`post-checkout` là managed block của Graphify CLI; không sửa
-  tay. Log project hook ở `.tooling/logs/hooks.log`.
+## Command và fallback
 
-## Browser QA
+```powershell
+# Chỉ diagnose setup/MCP issue đã được report.
+pnpm tooling:doctor
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1 -Mcp
 
-Playwright Chromium/Firefox/WebKit nằm ở `.tooling/browsers`; chạy qua
-`scripts/tooling/run-playwright.ps1`. Chromium chạy full matrix hiện có;
-Firefox/WebKit chạy smoke về navigation, locale, console/network, overflow và
-reduced motion. Smoke artifacts mặc định nằm trong `%TEMP%` vì Wrangler asset
-watcher sẽ reload liên tục nếu trace được ghi dưới asset root. Chrome DevTools
-MCP dùng `--isolated`, tắt usage statistics và
-CrUX, đồng thời redact network headers. Phiên bản khóa hiện không cung cấp flag
-chính thức để tắt update notification, nên không dùng flag tự chế.
+# Notify-only package and repository-head checks.
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/check-updates.ps1
 
-DevTools/Computer Use phù hợp điều tra DOM, a11y tree, network và interaction;
-chúng không thay thế regression test. Native GUI cần logs và automation của
-framework tương ứng; Playwright chỉ phù hợp web/webview có interface hỗ trợ.
+# Graphify query boundary.
+& ".\scripts\tooling\invoke-graphify.ps1" query "specific question"
 
-## Backup và phục hồi
+# Serena repair fallback; launcher/watcher normally tự sync.
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-serena-languages.ps1 -Check
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-serena-languages.ps1 -Apply
+```
 
-Backup trước cài đặt nằm dưới `.tooling/backups`; mỗi backup có
-`checksums.json`. Backup gốc của lần này là
-`pre-install-20260808-001` (158 file; manifest SHA-256
-`741f318f0b8b88a8ada173dce7b34979df44259665b97917173a1a4c962504b9`).
-Graph cũ có vendored skill được giữ tại
-`graphify-out-before-clean-rebuild-20260808-0128`. Chỉ phục hồi sau khi so checksum
-và xác minh đích nằm trong workspace.
+Update chỉ notify-only. Review upstream release, update
+`tooling-versions.json`, chạy bootstrap và commit pin cùng evidence; không auto-update
+machine đang làm việc.
+
+## VS Code watcher
+
+Đây là monitoring tùy chọn, không là bước mỗi agent task. **Tasks: Run Task** →
+**Tooling: Watch** start song song:
+
+- `Graphify: Watch`: official `graphify watch` qua repository wrapper.
+- `Serena: Sync Languages (Watch)`: add/remove Serena language server sau
+  event create, delete hoặc move file extension.
+
+Command terminal tương đương:
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/watch-graphify.ps1
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/sync-serena-languages.ps1 -Watch
+```
+
+Serena không phải Windows daemon thường trực. Codex launch required STDIO MCP
+cho từng task/session với `--context codex --project-from-cwd`; launcher sync
+language trước startup. Graphify cũng là required user-global STDIO MCP.
+Mọi semantic task, gồm Graphify semantic extraction và content synthesis, chạy
+bằng `gpt-5.6-luna` với reasoning effort `max`; semantic worker phải pin cả hai
+giá trị.
+
+Fact và decision phải được check bằng local evidence và primary official source.
+Đánh dấu inference, re-check unstable information và xem upstream repository đúng
+pin trước khi workaround error.
+
+## Routing
+
+`AGENTS.md` và rule module quyết định routing. Graphify trước cho architecture,
+relationship, cross-document context, blast radius; Serena theo sau cho exact
+symbol, reference, diagnostic, refactor. Corpus Graphify gồm meaningful
+non-media content; `.graphifyignore`/`.gitignore` loại media, generated, runtime,
+vendor.
+
+Nếu Impeccable context báo `MANUAL_DETECTOR_REQUIRED`, UI task hoàn tất mới chạy:
+
+```powershell
+& "$env:USERPROFILE\.codex\tooling\node\node_modules\.bin\impeccable.cmd" detect <path-or-url>
+```
+
+Provider hook active thì không chạy lại command này. Graphify
+`post-commit`/`post-checkout` là repository automation, không phải Codex lifecycle hook.
+
+## MCP inventory
+
+| MCP | Policy | Mục đích |
+| --- | --- | --- |
+| Serena | enabled, required | LSP symbol, reference, diagnostic, refactor |
+| Graphify | enabled, required | Architecture, relationship, project-content graph |
+| Chrome DevTools | enabled, optional, approval prompt | DOM, accessibility, console, network, screenshot |
+| Sol Advisor | không còn MCP ở 0.6.0 | Plugin skill và ba native selective-routing role |
+| node_repl | unchanged | Codex runtime integration |
+| open-design | unchanged | Open Design integration |
+
+Sau khi đổi global Codex configuration hoặc native agent, reload Codex hoặc start
+task mới. Doctor pass trước reload verify file và direct MCP launch; task mới
+verify Codex discovery.
+
+## Chú thích thuật ngữ
+
+- **User-global**: cài một lần ở user scope để dùng cho nhiều repository.
+- **Project-local**: chỉ thuộc repository hiện tại.
+- **STDIO MCP**: MCP server giao tiếp qua standard input/output.
+- **Pin**: version hoặc commit bị khóa để workflow tái lập.
+- **Doctor**: lệnh health check của tooling.
+- **Routing contract**: rule quyết định agent/tool nào xử lý phần việc nào.
+- **Automation**: hook, watcher, wrapper hoặc launcher tự chạy mechanics.

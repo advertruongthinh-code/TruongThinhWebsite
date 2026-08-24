@@ -2,6 +2,10 @@
 
 # Claude Code
 
-Use the repository-local commands and pinned dependencies documented in
-`README.md`. Do not create a separate Claude-only workflow when `AGENTS.md`
-already defines the shared contract.
+Dùng command nội bộ repository và dependency đã pin trong `README.md`. Không tạo
+workflow riêng cho Claude khi `AGENTS.md` đã định nghĩa shared contract.
+
+## Chú thích thuật ngữ
+
+- **Shared contract**: bộ rule chung được các agent cùng tuân thủ.
+- **Pinned dependency**: dependency có version được khóa để workflow tái lập.

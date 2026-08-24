@@ -637,7 +637,7 @@ function printHelp() {
   node scripts/reference/archive-reference.mjs --origin <url> [options]
 
 Options:
-  --archive-dir <path>  Output directory (default: reference audit archive)
+  --archive-dir <path>  Output directory (default: reference site archive)
   --delay-ms <number>   Minimum sequential request interval (default: 750)
   --max-pages <number>  Limit HTML pages for a smoke run
   --max-assets <number> Limit assets for a smoke run

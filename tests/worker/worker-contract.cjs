@@ -7,7 +7,7 @@ const { webcrypto } = require("node:crypto");
 globalThis.crypto ||= webcrypto;
 
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8787").replace(/\/+$/, "");
-const ROUTES = ["", "residential", "commercial", "projects-products", "about"];
+const ROUTES = ["", "residential", "commercial", "advertising-products", "about"];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -191,7 +191,7 @@ async function runSecurityContract() {
     validWebp.append("alt_en", "Test image");
     validWebp.append(
       "file",
-      new Blob([fs.readFileSync("src/site/assets/site/generated/commercial-space.webp")], { type: "image/webp" }),
+      new Blob([fs.readFileSync("src/site/assets/content/projects/commercial-space.webp")], { type: "image/webp" }),
       "known-good.webp",
     );
     const acceptedUpload = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: validWebp }), validUploadEnv);
@@ -221,17 +221,17 @@ async function runPublicContract() {
       assert(/<title\b[^>]*>[^<]+<\/title>/.test(body), `${path} has no SSR title`);
       if (segment === "commercial") {
         const expectedTitle = locale === "vi" ? "Không gian Kinh doanh — Trường Thịnh" : "Commercial spaces — Trường Thịnh";
-        assert(new RegExp(`<title data-en="Commercial spaces — Trường Thịnh">\\s*${expectedTitle}\\s*</title>`).test(body), `${path} did not preserve the SSR commercial title`);
+        assert(new RegExp(`<title\\b(?=[^>]*data-en="Commercial spaces — Trường Thịnh")[^>]*>\\s*${expectedTitle}\\s*</title>`).test(body), `${path} did not preserve the SSR commercial title`);
         const expectedKicker = locale === "vi"
           ? "SHOP · F&amp;B · CAFE · VĂN PHÒNG"
           : "RETAIL · F&amp;B · CAFÉS · OFFICES";
         assert(new RegExp(`>\\s*${expectedKicker}\\s*</p>`).test(body), `${path} did not preserve the SSR commercial hero kicker`);
       }
-      if (segment === "projects-products") {
-        const expectedTitle = locale === "vi" ? "Công trình &amp; sản phẩm — Trường Thịnh" : "Projects &amp; products — Trường Thịnh";
-        const expectedQualifier = locale === "vi" ? "Công trình &amp;" : "Projects &amp;";
-        const expectedHeroTitle = locale === "vi" ? "sản phẩm" : "products";
-        assert(new RegExp(`<title data-en="Projects &amp; products — Trường Thịnh">\\s*${expectedTitle}\\s*</title>`).test(body), `${path} did not preserve the SSR projects/products title`);
+      if (segment === "advertising-products") {
+        const expectedTitle = locale === "vi" ? "Sản phẩm Quảng cáo — Trường Thịnh" : "Advertising products — Trường Thịnh";
+        const expectedQualifier = locale === "vi" ? "Sản phẩm" : "Advertising";
+        const expectedHeroTitle = locale === "vi" ? "Quảng cáo" : "products";
+        assert(new RegExp(`<title\\b(?=[^>]*data-en="Advertising products — Trường Thịnh")[^>]*>\\s*${expectedTitle}\\s*</title>`).test(body), `${path} did not preserve the SSR projects/products title`);
         assert(new RegExp(`data-cms="hero\\.qualifier"[^>]*>\\s*${expectedQualifier}\\s*</span>`).test(body), `${path} did not preserve the SSR projects/products qualifier`);
         assert(new RegExp(`data-cms="hero\\.title"[^>]*>\\s*${expectedHeroTitle}\\s*</span>`).test(body), `${path} did not preserve the SSR projects/products hero title`);
       }
@@ -249,7 +249,9 @@ async function runPublicContract() {
     ["/?keep=1", "/vi/?keep=1"],
     ["/nha-o/index.html?keep=1", "/vi/residential/?keep=1"],
     ["/kinh-doanh/?keep=1", "/vi/commercial/?keep=1"],
-    ["/quang-cao/?keep=1", "/vi/projects-products/?keep=1"],
+    ["/quang-cao/?keep=1", "/vi/advertising-products/?keep=1"],
+    ["/vi/projects-products/?keep=1", "/vi/advertising-products/?keep=1"],
+    ["/en/projects-products/?keep=1", "/en/advertising-products/?keep=1"],
     ["/gioi-thieu/?keep=1", "/vi/about/?keep=1"],
     ["/residential/?keep=1", "/vi/residential/?keep=1"],
   ]) {

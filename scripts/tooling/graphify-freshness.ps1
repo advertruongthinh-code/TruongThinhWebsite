@@ -9,19 +9,32 @@ function Write-GraphifyLog([string]$EventLabel, [string]$Message) {
   $label = if ($EventLabel) { $EventLabel } else { "Graphify" }
   $line = "$(Get-Date -Format o) [$label] $Message$([Environment]::NewLine)"
   $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($line)
-  $logPath = Join-Path (Get-ProjectRoot) ".tooling\logs\hooks.log"
-  $stream = [System.IO.File]::Open($logPath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+  $root = Get-ProjectRoot
+  $logPath = Join-Path $root ".tooling\logs\hooks.log"
+  for ($attempt = 0; $attempt -lt 6; $attempt++) {
+    $stream = $null
+    try {
+      $stream = [System.IO.File]::Open($logPath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+      $stream.Write($bytes, 0, $bytes.Length)
+      $stream.Flush()
+      return
+    } catch {
+      if ($attempt -lt 5) { Start-Sleep -Milliseconds 50 }
+    } finally {
+      if ($stream) { $stream.Dispose() }
+    }
+  }
   try {
-    $stream.Write($bytes, 0, $bytes.Length)
-    $stream.Flush()
-  } finally {
-    $stream.Dispose()
+    $fallback = Join-Path $root ".tooling\logs\graphify-fallback-$PID-$([guid]::NewGuid().ToString('N')).log"
+    [System.IO.File]::WriteAllBytes($fallback, $bytes)
+  } catch {
+    [Console]::Error.WriteLine("Graphify log unavailable: $($_.Exception.Message)")
   }
 }
 
 function Invoke-WithGraphifyLock([scriptblock]$Action) {
   Initialize-ToolingState
-  $lockPath = Join-Path (Get-ProjectRoot) ".tooling\state\hooks\graphify.lock"
+  $lockPath = Get-GraphifyStatePath "graphify.lock"
   $deadline = (Get-Date).AddSeconds(30)
   $stream = $null
   while (-not $stream -and (Get-Date) -lt $deadline) {
@@ -136,17 +149,78 @@ function Mark-GraphDirtyIfChanged([string]$Trigger, [string]$EventLabel = "PostT
   return $true
 }
 
+function Invoke-GraphifySupplementalRestore([string]$EventLabel, [switch]$CheckOnly) {
+  $root = Get-ProjectRoot
+  $helper = Join-Path $PSScriptRoot "graphify_supplemental.py"
+  $files = Join-Path $PSScriptRoot "graphify-supplemental-files.txt"
+  $graph = Join-Path $root "graphify-out\graph.json"
+  $prompt = Join-Path $env:USERPROFILE ".agents\skills\graphify\references\extraction-spec.md"
+  $arguments = @($helper, "--root", $root, "--graph", $graph, "--files", $files, "--prompt", $prompt)
+  if ($CheckOnly) { $arguments += "--check-only" }
+
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    $ErrorActionPreference = "Continue"
+    $raw = & (Get-ProjectPython) @arguments 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+
+  try {
+    $jsonLine = $raw -split "`r?`n" | Where-Object { $_.Trim().StartsWith("{") } | Select-Object -Last 1
+    if (-not $jsonLine) { throw "No JSON result returned." }
+    $result = $jsonLine | ConvertFrom-Json
+  } catch {
+    Write-GraphifyLog $EventLabel "supplemental invalid output exit=$exitCode $($raw.Trim())"
+    return [pscustomobject]@{ fresh = $false; status = "error"; message = "Graphify supplemental coverage check failed. Inspect .tooling/logs/hooks.log."; exit_code = $exitCode }
+  }
+
+  Write-GraphifyLog $EventLabel "supplemental status=$($result.status) exit=$exitCode $($jsonLine.Trim())"
+  $fresh = $exitCode -eq 0 -and $result.status -in @("covered", "restored")
+  $message = if ($fresh) {
+    "Graphify supplemental content is $($result.status)."
+  } elseif ($result.status -eq "missing" -and $CheckOnly) {
+    "Graphify supplemental content needs restoration."
+  } elseif ($result.status -eq "stale-cache") {
+    "Graphify supplemental semantic cache is stale; refresh semantic extraction before querying."
+  } else {
+    "Graphify supplemental restore failed. Inspect .tooling/logs/hooks.log."
+  }
+  return [pscustomobject]@{ fresh = $fresh; status = $result.status; message = $message; exit_code = $exitCode }
+}
+
 function Invoke-GraphUpdateIfNeeded([string]$EventLabel = "GraphifyWrapper") {
   if (-not (Test-GraphUpdateRequired)) {
-    Write-GraphifyLog $EventLabel "graphify fresh; update skipped"
-    return [pscustomobject]@{ required = $false; updated = $false; fresh = $true; message = "Graphify AST is fresh."; exit_code = 0 }
+    $coverage = Invoke-GraphifySupplementalRestore $EventLabel -CheckOnly
+    if ($coverage.fresh) {
+      Write-GraphifyLog $EventLabel "graphify fresh; update skipped"
+      return [pscustomobject]@{ required = $false; updated = $false; fresh = $true; message = "Graphify AST and supplemental content are fresh."; exit_code = 0 }
+    }
+    if ($coverage.status -eq "stale-cache") {
+      Write-GraphifyLog $EventLabel "graphify AST fresh; stale supplemental semantic cache is non-blocking"
+      return [pscustomobject]@{ required = $false; updated = $false; fresh = $true; message = $coverage.message; exit_code = 0 }
+    }
+    if ($coverage.status -ne "missing") {
+      Write-GraphDirtyMarker (Get-GraphCorpusFingerprint) "supplemental-check-failed" $EventLabel
+      return [pscustomobject]@{ required = $false; updated = $false; fresh = $false; message = $coverage.message; exit_code = $coverage.exit_code }
+    }
   }
 
   try {
     return Invoke-WithGraphifyLock {
       if (-not (Test-GraphUpdateRequired)) {
+        $supplemental = Invoke-GraphifySupplementalRestore $EventLabel
+        if (-not $supplemental.fresh -and $supplemental.status -ne "stale-cache") {
+          Write-GraphDirtyMarker (Get-GraphCorpusFingerprint) "supplemental-restore-failed" $EventLabel
+          return [pscustomobject]@{ required = $true; updated = $false; fresh = $false; message = $supplemental.message; exit_code = $supplemental.exit_code }
+        }
+        if ($supplemental.status -eq "stale-cache") {
+          Write-GraphifyLog $EventLabel "graphify refreshed by another process; stale supplemental semantic cache is non-blocking"
+          return [pscustomobject]@{ required = $true; updated = $false; fresh = $true; message = $supplemental.message; exit_code = 0 }
+        }
         Write-GraphifyLog $EventLabel "graphify refreshed by another process; update coalesced"
-        return [pscustomobject]@{ required = $true; updated = $false; fresh = $true; message = "Graphify AST was refreshed by another process."; exit_code = 0 }
+        return [pscustomobject]@{ required = $true; updated = $false; fresh = $true; message = "Graphify AST is fresh and supplemental content was restored."; exit_code = 0 }
       }
 
       $root = Get-ProjectRoot
@@ -165,6 +239,15 @@ function Invoke-GraphUpdateIfNeeded([string]$EventLabel = "GraphifyWrapper") {
         return [pscustomobject]@{ required = $true; updated = $false; fresh = $false; message = "Graphify AST update failed. Inspect .tooling/logs/hooks.log."; exit_code = $exitCode }
       }
 
+      $supplemental = Invoke-GraphifySupplementalRestore $EventLabel
+      if (-not $supplemental.fresh -and $supplemental.status -ne "stale-cache") {
+        Write-GraphDirtyMarker $before "supplemental-restore-failed" $EventLabel
+        return [pscustomobject]@{ required = $true; updated = $true; fresh = $false; message = $supplemental.message; exit_code = $supplemental.exit_code }
+      }
+      if ($supplemental.status -eq "stale-cache") {
+        Write-GraphifyLog $EventLabel "graphify AST updated; stale supplemental semantic cache is non-blocking"
+      }
+
       $after = Get-GraphCorpusFingerprint
       if ($after -ne $before) {
         Write-GraphDirtyMarker $after "changed-during-update" $EventLabel
@@ -174,7 +257,8 @@ function Invoke-GraphUpdateIfNeeded([string]$EventLabel = "GraphifyWrapper") {
       Write-GraphFingerprint $after
       $dirtyPath = Get-GraphifyStatePath "dirty.json"
       if (Test-Path -LiteralPath $dirtyPath) { Remove-Item -LiteralPath $dirtyPath -Force }
-      return [pscustomobject]@{ required = $true; updated = $true; fresh = $true; message = "Graphify AST was updated."; exit_code = 0 }
+      $message = if ($supplemental.status -eq "stale-cache") { "Graphify AST was updated; supplemental semantic cache remains stale." } else { "Graphify AST was updated and supplemental content was restored." }
+      return [pscustomobject]@{ required = $true; updated = $true; fresh = $true; message = $message; exit_code = 0 }
     }
   } catch {
     Write-GraphifyLog $EventLabel "graphify update error: $($_.Exception.Message)"
@@ -192,13 +276,15 @@ function Get-GraphifySemanticStatus {
 
   $manifestInfo = Get-Item -LiteralPath $manifest
   $helper = Join-Path $PSScriptRoot "graphify-semantic-status.py"
-  $detectModule = Join-Path $root ".tooling\python\Lib\site-packages\graphify\detect.py"
+  $pythonRoot = Split-Path -Parent (Split-Path -Parent (Get-ProjectPython))
+  $detectModule = Join-Path $pythonRoot "Lib\site-packages\graphify\detect.py"
   $helperInfo = Get-Item -LiteralPath $helper
   $detectInfo = Get-Item -LiteralPath $detectModule
   $sourceKey = @(
     $manifestInfo.Length, $manifestInfo.LastWriteTimeUtc.Ticks,
     $helperInfo.Length, $helperInfo.LastWriteTimeUtc.Ticks,
-    $detectInfo.Length, $detectInfo.LastWriteTimeUtc.Ticks
+    $detectInfo.Length, $detectInfo.LastWriteTimeUtc.Ticks,
+    (Get-GraphCorpusFingerprint)
   ) -join "|"
   $cachePath = Get-GraphifyStatePath "semantic-status.json"
   if (Test-Path -LiteralPath $cachePath -PathType Leaf) {

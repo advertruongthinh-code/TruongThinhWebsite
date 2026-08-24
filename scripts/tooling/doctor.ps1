@@ -3,111 +3,201 @@ param(
   [switch]$Mcp
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "common.ps1")
 . (Join-Path $PSScriptRoot "graphify-freshness.ps1")
+
 $root = Get-ProjectRoot
+$global = Get-GlobalToolingRoot
 $failures = @()
 $warnings = @()
 $passes = @()
 
-function Test-RequiredPath([string]$Relative, [string]$Label) {
-  if (Test-Path -LiteralPath (Join-Path $root $Relative)) { $script:passes += $Label }
-  else { $script:failures += "$Label missing: $Relative" }
+function Test-RequiredPath([string]$Path, [string]$Label) {
+  if (Test-Path -LiteralPath $Path) { $script:passes += $Label }
+  else { $script:failures += "$Label missing: $Path" }
 }
 
 foreach ($item in @(
-  @{ path = ".tooling\python\Scripts\serena.exe"; label = "Serena" },
-  @{ path = ".tooling\python\Scripts\graphify.exe"; label = "Graphify" },
-  @{ path = "scripts\tooling\invoke-graphify.ps1"; label = "Graphify boundary wrapper" },
-  @{ path = ".tooling\runtimes\uv-0.12.3\uv.exe"; label = "uv 0.12.3" },
-  @{ path = ".tooling\runtimes\uv-0.12.3\uvx.exe"; label = "uvx 0.12.3" },
-  @{ path = ".tooling\runtimes\powershell-7.6.4\pwsh.exe"; label = "PowerShell 7.6.4" },
-  @{ path = "node_modules\playwright\package.json"; label = "Playwright" },
-  @{ path = "node_modules\impeccable\package.json"; label = "Impeccable CLI" },
-  @{ path = "node_modules\chrome-devtools-mcp\package.json"; label = "Chrome DevTools MCP" },
-  @{ path = "pnpm-lock.yaml"; label = "pnpm lockfile" },
-  @{ path = ".codex\hooks.json"; label = "Codex hooks" },
-  @{ path = ".codex\config.toml"; label = "Codex MCP config" }
+  @{ path = (Join-Path $global "python\Scripts\serena.exe"); label = "Serena user-global" },
+  @{ path = (Join-Path $global "python\Scripts\graphify.exe"); label = "Graphify user-global" },
+  @{ path = (Join-Path $global "node\node_modules\impeccable\package.json"); label = "Impeccable CLI user-global" },
+  @{ path = (Join-Path $global "node\node_modules\chrome-devtools-mcp\package.json"); label = "Chrome DevTools MCP user-global" },
+  @{ path = (Join-Path $global "bin\mcp.ps1"); label = "Global MCP launcher" },
+  @{ path = (Join-Path $root "scripts\tooling\invoke-graphify.ps1"); label = "Graphify boundary wrapper" },
+  @{ path = (Join-Path $root "scripts\tooling\graphify_supplemental.py"); label = "Graphify supplemental restore" },
+  @{ path = (Join-Path $root "scripts\tooling\graphify-supplemental-files.txt"); label = "Graphify supplemental allowlist" },
+  @{ path = (Join-Path $root "scripts\tooling\graphify-git-hooks.ps1"); label = "Graphify Git hook wrapper" },
+  @{ path = (Join-Path $root "scripts\tooling\watch-graphify.ps1"); label = "Graphify watcher wrapper" },
+  @{ path = (Join-Path $root ".vscode\tasks.json"); label = "VS Code tooling tasks" },
+  @{ path = (Join-Path $root "docs\operations\TOOLING.md"); label = "Tooling runbook" },
+  @{ path = (Join-Path $root "node_modules\playwright\package.json"); label = "Playwright project-local" },
+  @{ path = (Join-Path $root "pnpm-lock.yaml"); label = "pnpm lockfile" }
 )) { Test-RequiredPath $item.path $item.label }
 
-foreach ($obsolete in @(".graphify-profile", "scripts\graphify-watch.ps1", "scripts\tooling\set-graphify-profile.ps1")) {
-  if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { $failures += "Obsolete Graphify file remains: $obsolete" }
+$graphifyPythonMarker = Join-Path $root "graphify-out\.graphify_python"
+if (Test-Path -LiteralPath $graphifyPythonMarker -PathType Leaf) {
+  $expectedPython = [System.IO.Path]::GetFullPath((Join-Path $global "python\Scripts\python.exe"))
+  $actualPython = [System.IO.Path]::GetFullPath((Get-Content -Raw -LiteralPath $graphifyPythonMarker).Trim())
+  if ([string]::Equals($actualPython, $expectedPython, [System.StringComparison]::OrdinalIgnoreCase)) { $passes += "Graphify generated interpreter uses global Python" }
+  else { $failures += "Graphify generated interpreter is stale: $actualPython" }
 }
 
-$skillRoot = Join-Path $root ".agents\skills"
-$skillCount = @(Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
-if ($skillCount -ge 32) { $passes += "Project skills ($skillCount)" } else { $failures += "Expected at least 32 project skills; found $skillCount" }
-$missingPonytail = @(@(
-  "ponytail", "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help", "ponytail-review"
-) | Where-Object { -not (Test-Path -LiteralPath (Join-Path $skillRoot "$_\SKILL.md") -PathType Leaf) })
-if ($missingPonytail.Count -eq 0) { $passes += "Ponytail project skills (6)" }
-else { $failures += "Missing Ponytail project skills: $($missingPonytail -join ', ')" }
+foreach ($obsolete in @(
+  ".agents\skills",
+  ".codex\agents",
+  ".codex\hooks.json",
+  "scripts\tooling\hook-dispatch.ps1",
+  "scripts\tooling\hooks.template.json",
+  ".tooling\python",
+  ".tooling\runtimes",
+  ".tooling\vendor"
+)) {
+  if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { $failures += "Project-local payload remains: $obsolete" }
+}
 
-$personaCount = @(Get-ChildItem -LiteralPath (Join-Path $root ".codex\agents") -Filter "*.toml" -File -ErrorAction SilentlyContinue).Count
-if ($personaCount -eq 4) { $passes += "Read-only personas (4)" } else { $failures += "Expected 4 personas; found $personaCount" }
+$skillRoot = Join-Path $env:USERPROFILE ".agents\skills"
+$requiredSkills = @(
+  "using-agent-skills", "i-have-adhd", "caveman", "impeccable", "graphify", "ponytail",
+  "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help", "ponytail-review"
+)
+$missingSkills = @($requiredSkills | Where-Object { -not (Test-Path -LiteralPath (Join-Path $skillRoot "$_\SKILL.md") -PathType Leaf) })
+if ($missingSkills.Count -eq 0) { $passes += "Managed user-global skills" }
+else { $failures += "Missing user-global skills: $($missingSkills -join ', ')" }
+$managedCount = @(Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
+if ($managedCount -ge 40) { $passes += "User-global skill count ($managedCount)" }
+else { $failures += "Expected at least 40 user-global skills; found $managedCount" }
 
 try {
-  Get-Content -Raw (Join-Path $root ".codex\hooks.json") | ConvertFrom-Json | Out-Null
-  $passes += "hooks.json parses"
-} catch { $failures += "hooks.json invalid: $($_.Exception.Message)" }
+  $globalRules = Get-Content -Raw -LiteralPath (Join-Path $env:USERPROFILE ".codex\AGENTS.md")
+  $projectRules = @(
+    Get-Content -Raw -LiteralPath (Join-Path $root "AGENTS.md")
+    Get-Content -Raw -LiteralPath (Join-Path $root "docs\operations\agent-rules\workflow-tools.md")
+    Get-Content -Raw -LiteralPath (Join-Path $root "docs\operations\agent-rules\evidence-qa-handoff.md")
+  ) -join [Environment]::NewLine
+  $bootstrapRules = Get-Content -Raw -LiteralPath (Join-Path $root "scripts\tooling\bootstrap.ps1")
+  foreach ($entry in @(
+    @{ label = "global"; text = $globalRules },
+    @{ label = "project"; text = $projectRules },
+    @{ label = "bootstrap"; text = $bootstrapRules }
+  )) {
+    if ($entry.text -notmatch 'gpt-5\.6-luna' -or $entry.text -notmatch 'reasoning(?:\s+effort)?.*`?max`?') { throw "$($entry.label) semantic Luna/max rule is missing" }
+    if ($entry.text -notmatch 'primary\s+official\s+source' -or $entry.text -notmatch '(?:unsupported\s+guess|guess\s+(?:là|as)\s+fact)') { throw "$($entry.label) evidence rule is missing" }
+    if ($entry.text -notmatch '(?:semantic\s+index\s+only\s+when\s+the\s+user\s+explicitly\s+requests|Chỉ\s+build/update\s+Graphify\s+semantic\s+index\s+khi\s+user\s+explicit\s+request)') { throw "$($entry.label) opt-in semantic build rule is missing" }
+  }
+  foreach ($entry in @(
+    @{ label = "global"; text = $globalRules },
+    @{ label = "bootstrap"; text = $bootstrapRules }
+  )) {
+    if ($entry.text -notmatch 'SELECTIVE ROUTE' -or $entry.text -notmatch 'solo\s+by\s+default' -or $entry.text -notmatch 'broad\s+or\s+high-risk\s+exception') { throw "$($entry.label) Sol Advisor 0.6 selective-routing rule is missing" }
+    if ($entry.text -notmatch 'caveman`?\s+in\s+ultra\s+mode' -or $entry.text -notmatch 'ponytail`?\s+in\s+ultra\s+mode') { throw "$($entry.label) Caveman/Ponytail ultra rule is missing" }
+  }
+  $passes += "Semantic Luna/max, explicit-request, and evidence rules"
+  $passes += "Sol Advisor 0.6 selective routing and ultra modes"
+} catch { $failures += "Agent rules invalid: $($_.Exception.Message)" }
+
+$globalAgents = Join-Path $env:USERPROFILE ".codex\agents"
+$basePersonas = @("code-reviewer.toml", "security-auditor.toml", "test-engineer.toml", "web-performance-auditor.toml")
+$missingPersonas = @($basePersonas | Where-Object { -not (Test-Path -LiteralPath (Join-Path $globalAgents $_) -PathType Leaf) })
+if ($missingPersonas.Count -eq 0) { $passes += "User-global base personas (4)" }
+else { $failures += "Missing user-global personas: $($missingPersonas -join ', ')" }
+$expectedSolAdapters = @("sol-advisor-luna-implementer.toml", "sol-advisor-terra-implementer.toml", "sol-advisor-sol-reviewer.toml")
+$missingSolAdapters = @($expectedSolAdapters | Where-Object { -not (Test-Path -LiteralPath (Join-Path $globalAgents $_) -PathType Leaf) })
+$retiredSolAdapters = @(Get-ChildItem -LiteralPath $globalAgents -Filter "sol-advisor-*.toml" -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -notin $expectedSolAdapters })
+if ($missingSolAdapters.Count -eq 0 -and $retiredSolAdapters.Count -eq 0) { $passes += "Sol Advisor 0.6 user-global adapters (3)" }
+else {
+  if ($missingSolAdapters.Count) { $failures += "Missing Sol Advisor 0.6 adapters: $($missingSolAdapters -join ', ')" }
+  if ($retiredSolAdapters.Count) { $failures += "Retired Sol Advisor adapters remain: $($retiredSolAdapters.Name -join ', ')" }
+}
+
+$globalConfig = Join-Path $env:USERPROFILE ".codex\config.toml"
+try {
+  $configText = Get-Content -Raw -LiteralPath $globalConfig
+  if ($configText -notmatch '(?ms)^\[features\]\s*(?:(?!^\[).)*^hooks\s*=\s*false\s*$') { throw "features.hooks is not false" }
+  if ($configText -match '(?m)^\[hooks\.state') { throw "stale hooks.state remains" }
+  if ($configText -match 'ponytail@ponytail|marketplaces\.ponytail') { throw "Ponytail plugin remains enabled" }
+  foreach ($server in @("serena", "graphify")) {
+    if ($configText -notmatch "(?ms)^\[mcp_servers\.$server\]\s*(?:(?!^\[).)*^required\s*=\s*true\s*$") { throw "$server is not required" }
+  }
+  $passes += "Global hooks disabled and required MCP policy"
+} catch { $failures += "Global Codex config invalid: $($_.Exception.Message)" }
 
 try {
-  & (Get-ProjectPython) -c "import tomllib, pathlib; tomllib.loads(pathlib.Path(r'$root/.codex/config.toml').read_text(encoding='utf-8')); print('ok')" | Out-Null
-  if ($LASTEXITCODE -eq 0) { $passes += "config.toml parses" } else { $failures += "config.toml invalid" }
-} catch { $failures += "config.toml invalid: $($_.Exception.Message)" }
+  $projectConfig = Get-Content -Raw -LiteralPath (Join-Path $root ".codex\config.toml")
+  if ($projectConfig -match '(?m)^\[(mcp_servers|hooks|agents|features)') { throw "project config overrides the global stack" }
+  $passes += "Project Codex config inherits global stack"
+} catch { $failures += "Project Codex config invalid: $($_.Exception.Message)" }
+
+try {
+  $pluginRaw = (& codex plugin list --json 2>&1 | Out-String)
+  $plugins = $pluginRaw.Substring($pluginRaw.IndexOf("{"), $pluginRaw.LastIndexOf("}") - $pluginRaw.IndexOf("{") + 1) | ConvertFrom-Json
+  if (@($plugins.installed | Where-Object { $_.pluginId -eq "ponytail@ponytail" }).Count) { throw "Ponytail plugin is still installed" }
+  $sol = @($plugins.installed | Where-Object { $_.pluginId -eq "sol-advisor@sol-advisor" -and $_.enabled }) | Select-Object -First 1
+  if (-not $sol) { throw "Sol Advisor plugin is not enabled" }
+  $expected = [System.IO.Path]::GetFullPath((Join-Path $global "vendor\sol-advisor\plugins\sol-advisor"))
+  if (-not [string]::Equals([System.IO.Path]::GetFullPath([string]$sol.source.path), $expected, [System.StringComparison]::OrdinalIgnoreCase)) { throw "Sol Advisor source is not user-global" }
+  $passes += "Plugin scope: Sol Advisor global; Ponytail skill-only"
+} catch { $failures += "Plugin verification failed: $($_.Exception.Message)" }
+
+try {
+  $hookStatus = & (Join-Path $PSScriptRoot "graphify-git-hooks.ps1") -Action status 2>&1 | Out-String
+  foreach ($expected in @("post-commit: installed", "post-checkout: installed", "merge driver: registered")) {
+    if ($hookStatus -notmatch [regex]::Escape($expected)) { throw "Missing '$expected'" }
+  }
+  $passes += "Graphify Git hooks and merge driver"
+} catch { $failures += "Graphify Git hooks invalid: $($_.Exception.Message)" }
 
 try {
   Use-ProjectToolPath
-  $syncRaw = & (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Check
-  $sync = $syncRaw | ConvertFrom-Json
+  $sync = (& (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Check) | ConvertFrom-Json
   if ($sync.changed) { $failures += "Serena languages are stale: $($sync.previous -join ', ') -> $($sync.languages -join ', ')" }
   else { $passes += "Serena languages synced: $($sync.languages -join ', ')" }
-  if ($sync.unsupported_present.Count -gt 0) { $warnings += "Serena unsupported types present: $($sync.unsupported_present -join ', ')" }
-  if ($sync.unknown_present.Count -gt 0) { $warnings += "Serena unknown extension mappings: $($sync.unknown_present -join ', ')" }
-} catch { $failures += "Serena sync check failed: $($_.Exception.Message)" }
+  if ($sync.unsupported_present.Count) { $warnings += "Serena unsupported types: $($sync.unsupported_present -join ', ')" }
+  if ($sync.unknown_present.Count) { $warnings += "Serena unknown extensions: $($sync.unknown_present -join ', ')" }
+} catch { $failures += "Serena sync failed: $($_.Exception.Message)" }
 
-if (-not $Quick) { try {
+if (-not $Quick) {
   & (Get-ProjectPython) -m pip check | Out-Null
-  if ($LASTEXITCODE -eq 0) { $passes += "Python dependency check" } else { $failures += "pip check failed" }
-} catch { $failures += "pip check failed: $($_.Exception.Message)" } }
-
-$browserRoot = Join-Path $root ".tooling\browsers"
-if (-not $Quick) { foreach ($browser in @("chromium-*", "firefox-*", "webkit-*")) {
-  if (Get-ChildItem -LiteralPath $browserRoot -Directory -Filter $browser -ErrorAction SilentlyContinue) { $passes += "Browser $browser" }
-  else { $failures += "Browser payload missing: $browser" }
-} }
+  if ($LASTEXITCODE -eq 0) { $passes += "Global Python dependency check" } else { $failures += "Global pip check failed" }
+  $browserRoot = Join-Path $root ".tooling\browsers"
+  foreach ($browser in @("chromium-*", "firefox-*", "webkit-*")) {
+    if (Get-ChildItem -LiteralPath $browserRoot -Directory -Filter $browser -ErrorAction SilentlyContinue) { $passes += "Browser $browser" }
+    else { $failures += "Browser payload missing: $browser" }
+  }
+}
 
 if ($Mcp) {
-  Use-ProjectToolPath
   foreach ($service in @("serena", "graphify", "chrome-devtools")) {
     try {
       $probe = & (Get-ProjectPython) (Join-Path $PSScriptRoot "mcp_probe.py") $service --root $root --timeout 90 2>&1 | Out-String
       if ($LASTEXITCODE -ne 0) { throw $probe.Trim() }
       $data = ($probe -split "`r?`n" | Where-Object { $_.Trim().StartsWith("{") } | Select-Object -Last 1) | ConvertFrom-Json
+      if ($service -eq "serena" -and [string]$data.current_config -notmatch 'Language server status:\s+ready') {
+        throw "Serena initialized but its language server is not ready."
+      }
       $passes += "MCP $service ($($data.tools) tools)"
     } catch { $failures += "MCP $service probe failed: $($_.Exception.Message)" }
   }
 }
 
 $restart = Join-Path $root ".tooling\state\serena\restart-required.json"
-if (Test-Path -LiteralPath $restart) { $warnings += "Serena MCP reactivation is required; remove the marker only after verified reconnect." }
-
+if (Test-Path -LiteralPath $restart) { $warnings += "Serena MCP reload marker remains until a verified reconnect." }
+try {
+  $supplemental = Invoke-GraphifySupplementalRestore "Doctor" -CheckOnly
+  if ($supplemental.fresh) { $passes += "Graphify supplemental content coverage (3/3)" }
+  elseif ($supplemental.status -in @("missing", "stale-cache")) { $warnings += "$($supplemental.message) AST remains valid." }
+  else { $failures += $supplemental.message }
+} catch { $failures += "Graphify supplemental coverage check failed: $($_.Exception.Message)" }
 try {
   $semantic = Get-GraphifySemanticStatus
   if (-not $semantic.available) { $warnings += "Graphify semantic freshness unavailable: $($semantic.error)" }
-  elseif ([int]$semantic.pending_count -gt 0) { $warnings += "Graphify semantic update required for $($semantic.pending_count) docs/media file(s); AST boundary remains independent." }
-  else { $passes += "Graphify semantic docs/media status fresh" }
+  elseif ([int]$semantic.pending_count -gt 0) { $warnings += "Graphify semantic update required for $($semantic.pending_count) non-code files; AST remains valid." }
+  else { $passes += "Graphify semantic content fresh" }
 } catch { $warnings += "Graphify semantic freshness check failed: $($_.Exception.Message)" }
 
 Write-Output "PASS"
 $passes | ForEach-Object { Write-Output "  + $_" }
-if ($warnings.Count -gt 0) {
-  Write-Output "WARN"
-  $warnings | ForEach-Object { Write-Output "  ! $_" }
-}
-if ($failures.Count -gt 0) {
-  Write-Output "FAIL"
-  $failures | ForEach-Object { Write-Output "  - $_" }
-  exit 1
-}
+if ($warnings.Count) { Write-Output "WARN"; $warnings | ForEach-Object { Write-Output "  ! $_" } }
+if ($failures.Count) { Write-Output "FAIL"; $failures | ForEach-Object { Write-Output "  - $_" }; exit 1 }
 exit 0

@@ -21,6 +21,7 @@ run_worker_first = [
   "/gioi-thieu*",
   "/residential*",
   "/commercial*",
+  "/advertising-products*",
   "/projects-products*",
   "/about*",
   "/api/*",

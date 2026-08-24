@@ -12,7 +12,7 @@ const MENU_PROJECT_GROUP_OPTIONS = [
   { value: "", label: "Không hiển thị trong menu" },
   { value: "residential", label: "01 · Nhà ở" },
   { value: "commercial", label: "02 · Kinh doanh" },
-  { value: "projects-products", label: "03 · Công trình & sản phẩm" },
+  { value: "projects-products", label: "03 · Sản phẩm Quảng cáo" },
 ];
 const state = {
   resource: "pages",

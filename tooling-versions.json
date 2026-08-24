@@ -1,52 +1,89 @@
 {
-  "schema": 1,
-  "resolved_at": "2026-08-08",
-  "policy": "Pinned initial stable versions; update checks notify only.",
+  "schema": 2,
+  "resolved_at": "2026-08-09",
+  "policy": "User-global agent stack and project-local browser QA are pinned; update checks notify only.",
+  "scope": {
+    "global": [
+      "serena",
+      "graphify",
+      "chrome-devtools-mcp",
+      "impeccable",
+      "agent-skills",
+      "i-have-adhd",
+      "caveman",
+      "ponytail",
+      "sol-advisor",
+      "jq"
+    ],
+    "project": [
+      "playwright",
+      "wrangler",
+      "browser-engines",
+      "graphify-git-hooks",
+      "graphify-watcher",
+      "serena-language-policy"
+    ]
+  },
   "skills": {
     "agent-skills-count": 24,
-    "impeccable-skill": "4.0.4",
+    "caveman-count": 20,
+    "impeccable-skill": "4.1.1",
     "ponytail-count": 6,
-    "ponytail-skill": "4.9.0"
+    "ponytail-skill": "4.9.0",
+    "global-total": 53
   },
   "python": {
-    "serena-agent": "1.6.1",
-    "graphifyy": "0.9.36",
+    "serena-agent": "1.7.0",
+    "graphifyy": "0.9.46",
+    "uv": "0.12.5",
     "graphify_extras": "all"
   },
   "node": {
-    "@cloudflare/workerd-windows-64": "1.20260801.1",
-    "@esbuild/win32-x64": "0.28.1",
-    "playwright": "1.62.1",
-    "impeccable": "3.5.0",
-    "chrome-devtools-mcp": "1.6.0",
-    "npm": "12.0.2",
-    "pnpm": "11.16.0",
-    "wrangler": "4.120.0"
+    "global": {
+      "impeccable": "3.6.0",
+      "chrome-devtools-mcp": "1.7.0"
+    },
+    "project": {
+      "playwright": "1.62.1",
+      "pnpm": "11.22.0",
+      "wrangler": "4.124.0"
+    }
   },
   "runtimes": {
-    "uv": {
-      "version": "0.12.3",
-      "url": "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-pc-windows-msvc.zip",
-      "sha256": "b23350c79e8ad0192b8124af13a0f17e8d4e4549524785e1aef389ae5a06990e"
-    },
-    "powershell": {
-      "version": "7.6.4",
-      "url": "https://github.com/PowerShell/PowerShell/releases/download/v7.6.4/PowerShell-7.6.4-win-x64.zip",
-      "sha256": "80832551c52809301e6071c8bac977beb5a2f1ec953eb4db9f94deb953333793"
+    "jq": {
+      "version": "1.8.2",
+      "url": "https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-windows-amd64.exe",
+      "sha256": "a6fc67fedaf9128a3309a1e2ebb8b986aeccf70122ee46d2cb4849e423f0c627"
     }
   },
   "repositories": {
-    "oraios/serena": "c7af2c09ef45faa4367c0e2a9f770fb73a62a612",
-    "Graphify-Labs/graphify": "3d19463484ebcf773b399ddad9fd3363b2ab3bff",
-    "addyosmani/agent-skills": "d2478bf0c73a6357df39a3ed6aff16acaa218843",
-    "pbakaus/impeccable": "aee6ce9352b842217b3f57c78296a7a4fa35a7f3",
+    "oraios/serena": "2561478a7072c9e048fdfc0aba8c334218239340",
+    "Graphify-Labs/graphify": "558df6d57d61cb6ef79c740ec7473c6d953d79a7",
+    "ayghri/i-have-adhd": "e7555fcaf612dfa1739dc86610ea926a906db614",
+    "addyosmani/agent-skills": "df1edb2e05487d0aa6d93c747141e0aed1187f25",
+    "juliusbrussee/caveman": "99a9aa2f5a45097fc3563febea7d0baf64407441",
+    "pbakaus/impeccable": "f88b2837a7d7c3182e46307bbbb091a1ed547571",
+    "microsoft/playwright": "c377b7f47b00d41f4639b99b66ef62a458529f46",
+    "ChromeDevTools/chrome-devtools-mcp": "6506425a46ead4dcb9e6831befc4501ef1a3beee",
+    "DannyMac180/sol-advisor": "37b75cad535abdd46531f0227483a8842d045ab8",
     "dietrichgebert/ponytail": "2ed6c52c9d7e5e56942508591085fd45dea277d3"
   },
   "repository_urls": {
     "oraios/serena": "https://github.com/oraios/serena.git",
     "Graphify-Labs/graphify": "https://github.com/Graphify-Labs/graphify.git",
+    "ayghri/i-have-adhd": "https://github.com/ayghri/i-have-adhd.git",
     "addyosmani/agent-skills": "https://github.com/addyosmani/agent-skills.git",
+    "juliusbrussee/caveman": "https://github.com/juliusbrussee/caveman.git",
     "pbakaus/impeccable": "https://github.com/pbakaus/impeccable.git",
+    "microsoft/playwright": "https://github.com/microsoft/playwright.git",
+    "ChromeDevTools/chrome-devtools-mcp": "https://github.com/ChromeDevTools/chrome-devtools-mcp.git",
+    "DannyMac180/sol-advisor": "https://github.com/DannyMac180/sol-advisor.git",
     "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git"
+  },
+  "sol_advisor": {
+    "commit": "37b75cad535abdd46531f0227483a8842d045ab8",
+    "version": "0.6.0",
+    "archive_url": "https://codeload.github.com/DannyMac180/sol-advisor/zip/37b75cad535abdd46531f0227483a8842d045ab8",
+    "archive_sha256": "3d99fd4b96fa81f8cc02da0487fbd2dfd925ab14a15925fae6f2c4acac0eed98"
   }
 }

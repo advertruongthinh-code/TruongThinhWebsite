@@ -1,6 +1,6 @@
-# Architecture
+# Kiến trúc
 
-## Overview
+## Tổng quan
 
 Trường Thịnh dùng Cloudflare Worker dependency-free để SSR locale, SEO và CMS
 content. HTML/CSS/JS vẫn là static assets; D1 lưu content có schema cố định, R2
@@ -15,29 +15,29 @@ flowchart TD
   A --> B["style.css"]
   A --> C["motion.js"]
   A --> D["detail.css"]
-  A --> E["detail.js / products.js"]
+  A --> E["detail.js"]
   C --> F["GSAP CDN"]
   C --> G["Locomotive Scroll CDN"]
-  A --> H["assets/site"]
+  A --> H["assets/content"]
   I["Playwright smoke suite"] --> A
 ```
 
-## Canonical routes
+## Route canonical
 
 | Route | Entry file | Page type |
 | --- | --- | --- |
 | `/vi/`, `/en/` | `src/site/index.html` | Homepage |
 | `/vi/residential/`, `/en/residential/` | `src/site/residential/index.html` | Detail |
 | `/vi/commercial/`, `/en/commercial/` | `src/site/commercial/index.html` | Detail + horizontal gallery |
-| `/vi/projects-products/`, `/en/projects-products/` | `src/site/projects-products/index.html` | Projects, filters, product directory |
+| `/vi/advertising-products/`, `/en/advertising-products/` | `src/site/advertising-products/index.html` | Projects và filters |
 | `/vi/about/`, `/en/about/` | `src/site/about/index.html` | About/detail |
-| `/vi/projects/:slug/`, `/en/projects/:slug/` | projects-products shell | D1-backed project detail |
+| `/vi/projects/:slug/`, `/en/projects/:slug/` | advertising-products shell | D1-backed project detail |
 
 `/`, source shell paths, và bốn route cũ `/nha-o/`, `/kinh-doanh/`,
 `/quang-cao/`, `/gioi-thieu/` trả một hop `308` sang Vietnamese canonical route,
 giữ query. Không có bare public `/residential/` hoặc `/commercial/`.
 
-## Shared presentation
+## Lớp trình bày dùng chung
 
 ### `style.css`
 
@@ -54,12 +54,10 @@ giữ query. Không có bare public `/residential/` hoặc `/commercial/`.
   spacing without a shared chapter-divider treatment.
 - Horizontal gallery, process grid, asymmetric duo và detail CTA.
 - Project filters/grid cho route quảng cáo.
-- Product directory dialog cho `projects-products`, render danh mục/sản phẩm từ
-  public Worker API bằng DOM APIs.
 
 HTML giữ class contract; không đưa layout tuỳ route vào inline style.
 
-## Shared runtime
+## Runtime dùng chung
 
 ### `motion.js`
 
@@ -87,7 +85,7 @@ HTML giữ class contract; không đưa layout tuỳ route vào inline style.
 - Homepage reveals/marquee/project reel.
 
 Timing, easing và selector mapping được ghi tại
-[MOTION-MAP.md](../product/MOTION-MAP.md). Production chỉ tái tạo hành vi đã đo; bundle
+[motion-map.md](../impeccable/motion-map.md). Production chỉ tái tạo hành vi đã đo; bundle
 reference lưu trong `research/reference-site/` không được nạp vào website.
 
 ### `detail.js`
@@ -101,7 +99,7 @@ reference lưu trong `research/reference-site/` không được nạp vào websi
 
 `detail.js` là additive: route không có gallery/filter vẫn chạy an toàn.
 
-## HTML contracts
+## HTML contract
 
 Các route lặp lại header/menu/footer markup để giữ static hosting đơn giản, nhưng
 phải dùng cùng class và data attributes:
@@ -115,7 +113,7 @@ phải dùng cùng class và data attributes:
 - `.floating-cta`
 
 Header và full-menu source dùng ba URL `/vi/residential/`, `/vi/commercial/`,
-`/vi/projects-products/`; Worker rewrite chúng sang locale hiện tại. Không đổi chúng thành section hash: direct route contract giúp
+`/vi/advertising-products/`; Worker rewrite chúng sang locale hiện tại. Không đổi chúng thành section hash: direct route contract giúp
 Back/Forward không phải đi qua history entry trung gian.
 
 Detail hooks:
@@ -129,7 +127,7 @@ Detail hooks:
 - `[data-project-grid]`, `[data-project-filter]`,
   `[data-project-category]`
 
-## VI/EN system
+## Hệ thống VI/EN
 
 Tiếng Việt là source content. Khi tải trang:
 
@@ -153,9 +151,9 @@ Tiếng Việt là source content. Khi tải trang:
 
 Trước khi đổi copy, motto, card/gallery hoặc media, đọc
 [CONTENT-MEDIA-GUIDE.md](../product/CONTENT-MEDIA-GUIDE.md). Thứ tự bảo trì nội dung hiện
-tại là `/vi/projects-products/` → `/vi/commercial/` → `/vi/residential/`.
+tại là `/vi/advertising-products/` → `/vi/commercial/` → `/vi/residential/`.
 
-## Process invariant
+## Invariant của quy trình
 
 Mọi route và test cùng dùng:
 
@@ -166,16 +164,17 @@ Survey → Consultation → Production → Installation
 
 Đây là invariant nội dung, không chỉ là thứ tự trình bày.
 
-## Asset architecture
+## Kiến trúc asset
 
 ```text
-assets/site/
-├─ generated/                # generic route/category WebP, no visible labels
-├─ process/
-├─ expanded/
-├─ commercial/
-│  └─ originals/
-└─ advertising/
+assets/content/
+├─ client-logos/             # SVG web-ready
+├─ projects/                 # project/gallery WebP
+├─ news/                     # future news media
+└─ shared/                   # process/about/portal WebP
+
+source-assets/
+└─ projects/                 # editable originals, excluded from public build
 
 assets/fonts/
 ├─ instrument-sans-normal-latin.woff2
@@ -185,14 +184,14 @@ assets/fonts/
 ```
 
 - WebP là asset phục vụ runtime.
-- PNG nguồn chỉ giữ khi cần biên tập lại và nằm gần nhóm asset.
+- PNG nguồn chỉ giữ khi cần biên tập lại và nằm ngoài public build tree.
 - HTML khai báo `width`/`height` để giảm layout shift.
 - Hero đầu dùng `src` + `fetchpriority="high"`; slide sau có thể dùng
   `data-src` và được `motion.js` hydrate.
 - Ảnh nội dung lazy-load phải được suite cuộn tới trước khi kết luận lỗi.
 - Không khuôn mặt nhận diện, trừ `legacy-team.webp` được duyệt.
 
-## Test architecture
+## Kiến trúc test
 
 `tests/site/site.e2e.cjs` chạy Chromium thật qua Playwright; `tests/worker/worker-contract.cjs`
 kiểm tra raw Worker contract:
@@ -222,27 +221,18 @@ first-party media API vào `research/reference-site/archive/`. Manifest
 JSONL ghi URL, đường dẫn local, status, MIME, byte, SHA-256 và thời gian fetch.
 Thư mục này bị loại khỏi Graphify và không phải runtime dependency.
 
-## Graphify maintenance
+## Bảo trì Graphify
 
-Graphify `0.9.36` đã cài Codex PreToolUse hook, git post-commit/post-checkout và
-merge driver. Graph được tạo local không dùng LLM: code AST là nền; incremental
-update có thể giữ cấu trúc heading/link của Markdown.
+Graphify Git hook/watcher và query wrapper sở hữu structural freshness; agent
+chỉ query wrapper trước câu hỏi kiến trúc/quan hệ file, rồi dùng Serena hoặc
+`rg` có scope cho chi tiết. Không tự refresh sau edit. Setup/repair nằm ở
+[`docs/operations/graphify.md`](../operations/graphify.md).
 
-Nếu `graphify-out/graph.json` tồn tại:
+Wrapper coalesce AST update khi fingerprint đổi và cảnh báo semantic lag riêng.
+Docs/images chưa semantic extraction thì report `semantic update required`; chỉ
+build semantic khi user explicit request.
 
-1. Dùng `& ".\scripts\tooling\invoke-graphify.ps1" query "..."` trước cho câu hỏi kiến trúc/quan hệ file.
-2. Dùng `rg` có scope để xác nhận chi tiết.
-3. Sau code change, để hook đánh dấu dirty; pre-query/`Stop` coalesce một update.
-4. Dùng executable project-local với `hook status` để kiểm tra hook, không sửa tay file hook.
-5. Docs/images chưa có semantic extraction; ghi `semantic update required` nếu
-   cần quan hệ ngữ nghĩa/vision.
-
-Wrapper và Graphify MCP dùng chung boundary freshness gate: coalesce một AST
-update khi fingerprint dirty, rồi cảnh báo riêng nếu manifest chính thức cho
-biết docs/media còn cần semantic extraction. Project không duy trì Graphify
-watcher hoặc profile tùy biến.
-
-## External dependencies
+## Dependency bên ngoài
 
 - Plus Jakarta Sans hiện được tải từ Google Fonts, với Arial làm fallback.
 - GSAP 3.13 từ jsDelivr.
@@ -251,3 +241,13 @@ watcher hoặc profile tùy biến.
 
 Nếu CDN thất bại, trang vẫn phải giữ nội dung đọc được; motion nâng cao có thể
 không chạy.
+
+## Chú thích thuật ngữ
+
+- **SSR**: server-side rendering, render HTML ở Worker trước khi response.
+- **Runtime**: phần code chạy khi website đang hoạt động.
+- **Contract**: quy ước về markup, data attribute hoặc behavior phải được giữ.
+- **Hydrate**: gắn behavior/runtime vào markup đã được render sẵn.
+- **Invariant**: điều kiện phải giữ nguyên qua mọi route và test.
+- **BFCache**: cơ chế browser cache lại document để Back/Forward nhanh hơn.
+- **Structural freshness**: graph cấu trúc còn khớp source hiện tại.

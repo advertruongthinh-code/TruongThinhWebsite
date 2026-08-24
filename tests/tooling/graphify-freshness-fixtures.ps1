@@ -8,22 +8,20 @@ if (-not (Test-Path -LiteralPath $wrapper -PathType Leaf)) { throw "Graphify bou
 foreach ($obsolete in @(".graphify-profile", "scripts\graphify-watch.ps1", "scripts\tooling\set-graphify-profile.ps1")) {
   if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { throw "Obsolete Graphify profile/watch file remains: $obsolete" }
 }
-if (Test-Path -LiteralPath (Join-Path $root ".codex\skills\graphify")) { throw "Duplicate Codex Graphify skill remains." }
+if (Test-Path -LiteralPath (Join-Path $root ".agents\skills")) { throw "Project-local skills remain after global migration." }
 
-$dispatcher = Join-Path $root "scripts\tooling\hook-dispatch.ps1"
-$dispatcherSource = Get-Content -Raw -LiteralPath $dispatcher
 $wrapperSource = Get-Content -Raw -LiteralPath $wrapper
-if ($dispatcherSource -notmatch 'graphify-freshness\.ps1') { throw "Hook dispatcher does not use the shared freshness gate." }
-if ($dispatcherSource -match 'graphify-profile|needs_update|graphify-watch') { throw "Hook dispatcher still contains obsolete Graphify profile/watch/marker logic." }
+$freshnessSource = Get-Content -Raw -LiteralPath $freshnessScript
 if ($wrapperSource -notmatch 'Invoke-GraphUpdateIfNeeded') { throw "Graphify wrapper does not enforce AST freshness." }
 if ($wrapperSource -notmatch 'Get-GraphifySemanticStatus') { throw "Graphify wrapper does not report semantic freshness at the boundary." }
+if ($freshnessSource -notmatch '(?s)stale-cache.*fresh\s*=\s*\$true') { throw "Stale supplemental semantic cache still blocks structurally fresh queries." }
 foreach ($command in @("query", "path", "explain")) {
   if ($wrapperSource -notmatch [regex]::Escape('"' + $command + '"')) { throw "Graphify wrapper does not allow $command." }
 }
 
 $bootstrapSource = Get-Content -Raw -LiteralPath (Join-Path $root "scripts\tooling\bootstrap.ps1")
-if ($bootstrapSource -notmatch 'Move-Item\s+-LiteralPath\s+\$legacyGraphifySkill') { throw "Bootstrap does not move the Graphify skill into the portable project scope." }
-if ($bootstrapSource -notmatch 'uninstall --project --platform codex') { throw "Bootstrap does not remove Graphify's duplicate Codex integration." }
+if ($bootstrapSource -notmatch 'install --platform agents') { throw "Bootstrap does not install Graphify at user scope." }
+if ($bootstrapSource -match 'install --project|install --platform codex') { throw "Bootstrap still installs project-local or Codex lifecycle Graphify integration." }
 
 . $freshnessScript
 $semantic = Get-GraphifySemanticStatus
@@ -33,4 +31,4 @@ if (@($semantic.pending_files | Where-Object { $_ -match '\.(js|mjs|cjs|ps1|py|s
   throw "Boundary semantic status must not treat AST-covered code as pending docs/media."
 }
 
-Write-Output "PASS Graphify freshness fixtures: shared gate, boundary wrapper, semantic status, obsolete profile/watch cleanup."
+Write-Output "PASS Graphify freshness fixtures: boundary wrapper, semantic status, global skill install, obsolete profile cleanup."
