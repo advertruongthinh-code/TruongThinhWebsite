@@ -25,8 +25,8 @@ Static phase không phụ thuộc CMS, Cloudflare Worker hoặc Wrangler.
   server của repository.
 - Static asset web-ready trong `assets/content/`; file nguồn tái biên tập nằm
   ngoài public build tree tại `source-assets/`.
-- Copy theo allowlist vào `.site-output/` bị ignore để deploy không chứa project
-  tooling, test, report, reference research hoặc CMS admin file.
+- Build `.site-output/` từ `src/site/`, loại catalog, manifest, SVG và media
+  chỉ dùng tại source hoặc không có public consumer trước khi đóng gói.
 - Browser smoke coverage cho responsive và reduced motion.
 - CI chạy static contract và browser smoke mà không khởi động Worker.
 
