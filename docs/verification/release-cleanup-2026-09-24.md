@@ -7,9 +7,10 @@ Cleanup, docs mapping, Impeccable extract và catalog154 ảnh đã commit local
 `fdbfcbd77a9aa279d31b9a3351d3741ba0d75e4a` nối lịch sử Sites bằng merge
 giữ nguyên cây source, không force-push. Nhánh `codex/project-structure`.
 
-Pre-commit đạt `Lean already. Ship.`. Hai pre-push review không đạt, cả hai
-lệnh push exit1 trước khi truyền source. Chưa gọi save/deploy Sites; version1
-vẫn là bản đã phát hành. Các kết quả dưới đây không phải full-site parity PASS.
+GitHub đã nhận `097be1aa02e2244c0b225b0b8fda6f2ee2273e5d` sau khi pre-push
+đạt `Lean already. Ship.`; `git ls-remote` xác nhận đúng SHA. Các lần review
+trước bị chặn đã được xử lý theo evidence dưới đây. Sites đang chạy gate nguồn;
+chưa gọi save/deploy, version1 vẫn là bản đã phát hành. Không claim full-site PASS.
 
 ## Cleanup đã thực hiện
 
@@ -96,9 +97,10 @@ Node layout/skeleton đạt 17/17 sau thay đổi; shader GLSL và preset không
 Build đạt; browser return P7.4 đạt Back/navbar/related tại 1567 và 920 px,
 CTA/footer/reload cùng mép skeleton tại 1567 và 390 px sau cleanup này.
 
-Plugin Sites không còn thư mục skill/script trên máy trong lúc chuẩn bị deploy.
-Đã tìm lại trong plugin cache và user skills nhưng không có bản thay thế; cần
-bật lại plugin trước khi chạy quy trình publish chính thức.
+Plugin Sites từng thiếu thư mục skill/script lúc chuẩn bị deploy, sau đó đã có
+lại. Quy trình chính thức đã mở checkout riêng tại commit `097be1a`; build và
+static contract đạt. Checkout dùng dependency hiện có qua junction local,
+không đưa unrelated work hoặc backup ảnh vào output.
 
 ## Backup trước deploy
 

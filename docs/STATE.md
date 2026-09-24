@@ -5,10 +5,11 @@
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: dọn project/docs, Impeccable extract và changelog đã commit local
   tại `da2f13a`; `fdbfcbd` nối lịch sử Sites, giữ nguyên cây source.
-  GitHub/Sites push bị pre-push review chặn; chưa save/deploy version mới.
+  GitHub đã nhận `097be1a`, xác minh remote SHA; Sites đang chạy pre-push,
+  chưa save/deploy version mới.
   [Checkpoint release và finding](verification/release-cleanup-2026-09-24.md).
-  `5e24a10` bổ sung backup/live provenance và phân loại cleanup; pre-push còn
-  finding API không có runtime caller. Plugin Sites hiện thiếu file cài đặt.
+  `5e24a10` bổ sung backup/live provenance và phân loại cleanup; `097be1a`
+  gỡ API không có runtime caller. GitHub review đạt; plugin Sites đã có lại.
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
@@ -38,8 +39,8 @@
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: phân loại finding pre-push, giữ test bảo vệ contract;
-  chỉ sửa phần dư đã xác minh. Review lại rồi push GitHub/Sites và kiểm bản live.
+- Next repo action: hoàn tất pre-push Sites, save/deploy đúng snapshot
+  `097be1a` rồi xác minh deployment; giữ test bảo vệ contract.
 
 ## Chú thích thuật ngữ
 
