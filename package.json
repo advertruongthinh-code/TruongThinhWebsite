@@ -8,6 +8,7 @@
     "prepare:site": "node scripts/site/prepare-static-assets.mjs",
     "dev": "pnpm prepare:site && node scripts/tooling/serve-static-parity.mjs --port 8787",
     "qa:static": "node tests/site/site-static-contract.cjs",
+    "qa:release-regressions": "node --test --test-concurrency=1 tests/site/static-locales.test.mjs tests/site/advertising-full-span-p72.e2e.mjs tests/site/advertising-no-titles.e2e.mjs tests/site/advertising-suggestion-conditional.e2e.mjs tests/site/advertising-suggestion-info.e2e.mjs tests/site/shared-header-bottom-p7-1.e2e.mjs tests/site/shared-header-single-line.e2e.mjs",
     "qa:client-assets": "node tests/site/client-logo-assets-contract.cjs",
     "qa:worker:static": "node tests/worker/worker-static-contract.cjs",
     "qa:worker:security": "node tests/worker/worker-contract.cjs --security-only",

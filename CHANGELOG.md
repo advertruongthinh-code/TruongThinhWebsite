@@ -2,6 +2,9 @@
 
 ## 2026-09-24 — Bản website hiện hành
 
+Release candidate đã commit local; push/deploy còn bị pre-push review chặn.
+Xem [checkpoint](docs/verification/release-cleanup-2026-09-24.md).
+
 ### Thêm
 
 - Thư viện Sản phẩm quảng cáo có154 ảnh, gồm27 ảnh thêm và COCO BREEZE thay
@@ -11,6 +14,9 @@
 
 ### Thay đổi
 
+- Backup 54 ảnh của Sites version 1 cùng source archive trước deploy; giữ carousel
+  dormant để thiết kế lại cho Residential/Commercial. Nối bảy regression suite
+  vào lệnh QA release và loại thao tác build/hash thừa đã đối chiếu consumer.
 - Dọn cây project, gom1.267 file test lịch sử vào `.tmp/legacy-parity-20260924/`
   và kiểm SHA trước/sau; bỏ ba thư mục rỗng. Giữ ảnh gốc và evidence.
 - Rút STATE về snapshot hiện tại, archive bản cũ, sửa docs index/tree và link cũ.

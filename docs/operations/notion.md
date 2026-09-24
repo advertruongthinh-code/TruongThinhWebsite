@@ -133,6 +133,7 @@ Các record mutable đang dùng cho project này:
 - [Truong Thinh — Docs & Notion Hub](https://app.notion.com/p/3b7332849a0e81098aeeef782b88657f): hub vận hành và boundary Git–Notion.
 - [Notion workspace mapping — Truong Thinh](https://app.notion.com/p/3b7332849a0e81449deec2780de541f3): research note về database/schema hiện có và seed page bị loại.
 - [NOW Task: Dịch Markdown và thiết lập Notion docs hub](https://app.notion.com/p/3b7332849a0e81da892bec4641e6ab08): owner đã review và xác nhận Done ngày 2026-08-09.
+- [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): một card In progress cho năm phần việc còn mở, liên kết tới Git evidence và các card nguồn.
 
 Các link trên là mutable workspace reference. Nếu page được archive hoặc thay
 đổi, cập nhật lại mục này sau khi verify record mới.
@@ -146,6 +147,12 @@ spec/evidence đã có rank-v3/109 media. Không tự đóng card hoặc gọi r
 PASS từ việc URL còn truy cập được. [Evidence audit](../verification/living-docs-2026-09-09.md)
 giữ kết quả cùng timestamp payload; [card living docs](https://app.notion.com/p/3d5332849a0e817aad64f745684c0ca2)
 theo dõi migration hiện tại.
+
+Ngày 2026-09-24, đã đối chiếu 25 Tasks của project với Git hiện hành. Mười hai
+card chưa Done có trạng thái hoặc nội dung cũ được chuyển vào Notion Trash sau
+khi gom phần việc còn mở vào backlog mới; 13 card Done giữ làm lịch sử. Relation
+Tasks của Project đã kiểm lại: 14 card đang hoạt động, gồm một In progress và
+13 Done. Trash có thể khôi phục; không xóa vĩnh viễn.
 
 ## Chú thích thuật ngữ
 

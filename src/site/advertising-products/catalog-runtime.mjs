@@ -661,7 +661,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   let artifactDataHash;
-  let settingsHash;
   try {
     artifactDataHash = fnv1a32(JSON.stringify({
       datasetVersion: artifact.datasetVersion,
@@ -670,7 +669,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       categories,
       cards,
     })).toString(16).padStart(8, "0");
-    settingsHash = fnv1a32(JSON.stringify(settings)).toString(16).padStart(8, "0");
   } catch (error) {
     console.error("[advertising-products] artifact identity validation failed", error);
     throw new Error("Advertising artifact identity must be serializable", { cause: error });
@@ -1121,7 +1119,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       artifactCacheIdentity.datasetVersion,
       artifactCacheIdentity.layoutAlgorithmVersion,
       artifactDataHash,
-      settingsHash,
       CAPTION_METRICS_VERSION,
       targetFilter,
       compileOptions.layoutViewportWidth,

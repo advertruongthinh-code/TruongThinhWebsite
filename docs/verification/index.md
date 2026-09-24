@@ -7,6 +7,9 @@ không tự có nghĩa mọi claim trong đó bị hủy.
 
 ## Trạng thái toàn site
 
+[Checkpoint cleanup/release24/09](release-cleanup-2026-09-24.md): commit local
+đã qua pre-commit; GitHub/Sites pre-push bị chặn, chưa phát hành version mới.
+
 Full website và Espacio parity vẫn **NOT PASS**. [Canonical machine report](../reports/research-espacio-layout-motion-parity.md)
 giữ fail/blocked/unmapped; [pilot](../reports/research-espacio-layout-motion-parity-pilot.md)
 và [targeted](../reports/research-espacio-layout-motion-parity-targeted.md) là các

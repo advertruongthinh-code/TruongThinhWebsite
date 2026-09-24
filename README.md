@@ -122,7 +122,9 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 │  ├─ verification/                 # evidence có ngày và scope
 │  ├─ reports/                      # machine reports; CSV/bak bị ignore
 │  └─ archive/                      # bản gốc lịch sử và mapping
-├─ source-assets/projects/          # nguồn ảnh/review/provenance, không deploy
+├─ source-assets/
+│  ├─ projects/                     # nguồn ảnh/review/provenance, không deploy
+│  └─ site-backups/                 # backup bản live; ảnh/archive local, manifest lưu Git
 ├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
 ├─ tasks/                           # plan/checklist; không thay Notion status
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md

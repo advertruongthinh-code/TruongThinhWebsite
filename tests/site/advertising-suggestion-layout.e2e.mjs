@@ -29,10 +29,6 @@ const directSlots = selectAdvertisingSuggestions({
 assert.equal(directSlots.length, 4, "D17 selection has four slots");
 assert(directSlots.some(({ tag }) => tag.id === "use-sampling"), "D17 keeps an initial URL tag inside four stable slots");
 
-function rounded(value) {
-  return Math.round(value * 10) / 10;
-}
-
 function readSuggestions() {
   const rounded = (value) => Math.round(value * 10) / 10;
   const info = document.querySelector("[data-advertising-photo-info]")?.getBoundingClientRect();

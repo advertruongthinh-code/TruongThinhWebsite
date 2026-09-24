@@ -280,7 +280,10 @@ hook, native fallback, control focusable và cleanup.
 
 ## Advertising detail carousel
 
-**Status:** current progressive-enhancement pattern; native là baseline.
+**Status:** dormant; Advertising photo view đã thay entrypoint carousel cũ.
+Owner yêu cầu ngày 24/09/2026 giữ source để thiết kế lại carousel cho Residential
+và Commercial. Hướng mới có thể khác Espacio; chưa activate hoặc đổi UI trong
+release này. Runtime chỉ tải Swiper khi có markup carousel tương ứng.
 
 **Source/DOM:** renderer tạo `[data-advertising-carousel]`,
 `[data-advertising-carousel-viewport]`, `[data-advertising-carousel-track]`,
