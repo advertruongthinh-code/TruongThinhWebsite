@@ -2,8 +2,7 @@
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
-  const gsap = Reflect.get(window, "gsap");
-  const SplitText = Reflect.get(window, "SplitText");
+  const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
   const headerHoverMedia = window.matchMedia(

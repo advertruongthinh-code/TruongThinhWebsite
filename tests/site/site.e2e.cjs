@@ -633,7 +633,7 @@ function assertPersistentNavigationContracts() {
         motionSource,
       ) &&
       !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
-      /const gsap = Reflect\.get\(window, "gsap"\);[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
+      /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
         motionSource,
       ) &&
       /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
@@ -5269,8 +5269,7 @@ async function runPublicSelectionCheck({ advertisingOnly = false } = {}) {
 
 const runAdvertisingSelectionCheck = () => runPublicSelectionCheck({ advertisingOnly: true });
 
-async function runAdvertisingFreshBarbaReadinessChecks(options = Object.create(null)) {
-  let expectedCardCount = Reflect.get(options, "expectedCardCount") ?? null;
+async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = null } = {}) {
   let runtimeContract;
   if (expectedCardCount !== null) {
     const { buildAdvertisingArtifact } = await import(

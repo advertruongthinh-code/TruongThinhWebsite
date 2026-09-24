@@ -158,6 +158,10 @@ IO thuần vào `scripts/tooling/layout-motion-io.mjs` và đưa guard vào hàm
 Không đổi nguồn trang, CSS, motion runtime hoặc dữ liệu báo cáo. Syntax của sáu
 module và self-test của năm script diagnostic đạt; `generate-layout-motion-parity`
 đọc hai CSV local trong checkout riêng và đạt 22 kiểm tra.
+Lượt review sau gỡ thêm hai `Reflect.get` dùng trên property cố định ở motion
+bootstrap và tham số test; static contract được cập nhật để nhận cách đọc mới.
+Build/static ở checkout sạch và regression hero route-return VI/EN đạt; không
+đổi điều kiện reveal hay assertion.
 
 ## Chú thích thuật ngữ
 
