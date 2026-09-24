@@ -2,7 +2,7 @@
 
 ## 2026-09-24 — Bản website hiện hành
 
-Release candidate đã commit local; push/deploy còn bị pre-push review chặn.
+Release candidate đã push GitHub; đang hoàn tất gate nguồn Sites trước deploy.
 Xem [checkpoint](docs/verification/release-cleanup-2026-09-24.md).
 
 ### Thêm
@@ -13,6 +13,9 @@ Xem [checkpoint](docs/verification/release-cleanup-2026-09-24.md).
 - Grid ảnh có thứ tự ổn định theo bộ lọc và kích thước cửa sổ.
 
 ### Thay đổi
+
+- Gỡ runner diagnostic cũ và helper không có caller; giữ entrypoint đang dùng,
+  test contract, giao diện và motion hiện hành.
 
 - Backup 54 ảnh của Sites version 1 cùng source archive trước deploy; giữ carousel
   dormant để thiết kế lại cho Residential/Commercial. Nối bảy regression suite

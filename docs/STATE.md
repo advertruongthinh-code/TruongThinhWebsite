@@ -5,8 +5,8 @@
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: dọn project/docs, Impeccable extract và changelog đã commit local
   tại `da2f13a`; `fdbfcbd` nối lịch sử Sites, giữ nguyên cây source.
-  GitHub đã nhận `097be1a`, xác minh remote SHA; Sites đang chạy pre-push,
-  chưa save/deploy version mới.
+  GitHub đã nhận source `097be1a` và checkpoint `494035b`; đang xử lý các
+  finding diagnostic của Sites, chưa save/deploy version mới.
   [Checkpoint release và finding](verification/release-cleanup-2026-09-24.md).
   `5e24a10` bổ sung backup/live provenance và phân loại cleanup; `097be1a`
   gỡ API không có runtime caller. GitHub review đạt; plugin Sites đã có lại.
@@ -39,8 +39,8 @@
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: hoàn tất pre-push Sites, save/deploy đúng snapshot
-  `097be1a` rồi xác minh deployment; giữ test bảo vệ contract.
+- Next repo action: commit cleanup diagnostic đã đối chiếu caller, chạy lại
+  gate GitHub/Sites rồi deploy; giữ UI/motion, carousel và test contract.
 
 ## Chú thích thuật ngữ
 

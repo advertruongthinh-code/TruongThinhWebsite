@@ -52,9 +52,7 @@ function assertCategoryOrder(categoryOrder) {
  * @param {any} [options]
  */
 export function validateAdvertisingCards(cards, options = {}) {
-  const categoryOrder = Reflect.get(options, "categoryOrder") ?? [];
-  const requireRanks = Reflect.get(options, "requireRanks") ?? true;
-  const requireNonEmpty = Reflect.get(options, "requireNonEmpty") ?? false;
+  const categoryOrder = options.categoryOrder ?? [], requireRanks = options.requireRanks ?? true, requireNonEmpty = options.requireNonEmpty ?? false;
   if (!Array.isArray(cards)) throw new Error("Advertising cards must be an array");
   if (requireNonEmpty && cards.length === 0) throw new Error("Advertising cards must not be empty");
   assertCategoryOrder(categoryOrder);

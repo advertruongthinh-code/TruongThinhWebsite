@@ -9,8 +9,9 @@ giữ nguyên cây source, không force-push. Nhánh `codex/project-structure`.
 
 GitHub đã nhận `097be1aa02e2244c0b225b0b8fda6f2ee2273e5d` sau khi pre-push
 đạt `Lean already. Ship.`; `git ls-remote` xác nhận đúng SHA. Các lần review
-trước bị chặn đã được xử lý theo evidence dưới đây. Sites đang chạy gate nguồn;
-chưa gọi save/deploy, version1 vẫn là bản đã phát hành. Không claim full-site PASS.
+trước bị chặn đã được xử lý theo evidence dưới đây. Checkpoint `494035b` cũng
+đã push GitHub. Sites pre-push tiếp tục bị chặn; chưa gọi save/deploy,
+version1 vẫn là bản đã phát hành. Không claim full-site PASS.
 
 ## Cleanup đã thực hiện
 
@@ -101,6 +102,29 @@ Plugin Sites từng thiếu thư mục skill/script lúc chuẩn bị deploy, sa
 lại. Quy trình chính thức đã mở checkout riêng tại commit `097be1a`; build và
 static contract đạt. Checkout dùng dependency hiện có qua junction local,
 không đưa unrelated work hoặc backup ảnh vào output.
+
+Lần push Sites từ checkout riêng exit1 tại hook với thông báo
+`Ponytail review found removable complexity`. Workflow chỉ trả stderr khi push
+lỗi, còn finding chi tiết nằm trên stdout; hook xóa transcript/result tạm ở
+finally nên chưa thu được toàn bộ finding cuối. Không suy đoán danh sách cần
+xóa từ log tiến trình. Cần khôi phục báo cáo đầy đủ trước sửa tiếp. GitHub
+review phạm vi từ `a8ba94e`, Sites từ version1 `85adc08`; hai kết quả không
+thay thế nhau. Source Sites chưa cập nhật, không có deployment mới.
+
+## Finding Sites đã khôi phục
+
+Review lại đúng dải `85adc08..097be1a`, giữ stdout tại
+`.tmp/sites-review-recovery.txt`, trả tám finding. Đã đối chiếu consumer:
+generic/pilot runner cũ trong `run-motion-audit.mjs` không được CLI gọi;
+`runCliV2` là entrypoint hiện hành. Hai biến `auditPath`, các helper
+`groupSpec`, `replacePhaseBSection`, `streamCsvAtomic`, `stableTargets` không
+có caller. Đã gỡ chúng, giữ runner/writer hiện hành và mọi test contract.
+Ba option trong `validateAdvertisingCards` đọc trực tiếp, giữ `??` và các
+mặc định `[]`, `true`, `false`; không đổi geometry hoặc motion.
+
+Bốn script diagnostic qua self-test trước và sau; Node layout đạt 16/16.
+Hai script có unrelated local edits được stage bằng patch riêng từ HEAD,
+không đưa các thay đổi đó vào release. Đây không phải chạy lại full parity.
 
 ## Backup trước deploy
 
