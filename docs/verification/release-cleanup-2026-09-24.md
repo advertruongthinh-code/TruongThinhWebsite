@@ -195,9 +195,42 @@ Graphify structural query đạt, 258 semantic file pending; không chạy seman
 extraction. Serena đã activate đúng project với context Codex. Không cập nhật
 Notion card trong lượt này.
 
+## Release static-only 25/09/2026
+
+Source `0654dca286cdc029b1a44eaed0b5c2cc4207007c` đã qua pre-commit và
+pre-push, được đẩy lên GitHub nhánh `codex/project-structure`. Build loại 17
+file source-only không có consumer trong static runtime, gồm module catalog,
+media, manifest, JSON nguồn, SVG brand và WebP không được tham chiếu. Các file
+gốc, test, script và docs vẫn thuộc GitHub theo
+[contract static release](../specs/frontend-static-release.md).
+
+Checkout sạch tại source SHA trên tạo 268 file `.site-output/`; so sánh SHA-256
+từng file với mirror `dist/` đạt 268/268. `pnpm qa:static` và hai test static
+locale/Advertising đạt. Regression release 7/7 và Chromium local route
+Advertising 39 request HTTP 200, không console error, đã đạt trước lần loại ba
+module source-only cuối; lần cuối không chạy lại full-site parity.
+
+Mirror `557da5a2582759ace0e17fe46e04d956542b91d0` đã qua pre-commit và
+pre-push, được đẩy lên Sites source `main`. Cây Git của mirror chỉ có 268 file
+`dist/` và `.openai/hosting.json`, không có test, docs, script, CMS hoặc cache.
+Archive `.tmp/sites-static-0654dca-20260925.tar` có 269 file, giải nén và
+so sánh byte với mirror đạt 269/269; SHA-256
+`BC18BBD3A121F8708DA2F5E448A9C0D887A4AA05498DDF29D3FE1D5E03F5FA91`.
+Archive local là generated và không commit GitHub.
+
+Sites lưu version 2
+`appgprj_6a8c35ca1cf08191aa996a0e5e997bc6~appgver_7a3ef151a284819189996bd02bf4a402`
+từ đúng mirror SHA rồi deploy
+`appgdep_6ab5a88ab40c81919050bb65ae9f03b3` với trạng thái `succeeded`.
+Audience vẫn `public`. [Live site](https://truong-thinh-noi-that.potato240794.chatgpt.site/vi/)
+trả HTTP 200 tại `/vi/`, `/vi/advertising-products/` và `/en/` sau deploy.
+Đây là bằng chứng release static và smoke HTTP; không đổi trạng thái full-site
+parity `NOT PASS` hoặc thay owner visual acceptance.
+
 ## Chú thích thuật ngữ
 
 - **Checkpoint**: trạng thái đã xác minh để tiếp tục, không phải release hoàn tất.
 - **Consumer**: code, luồng build hoặc kiểm tra thật sự dùng một artifact.
 - **Pre-push**: gate Git chạy trước khi cập nhật remote.
 - **Snapshot**: cây source cố định gắn với commit.
+- **Mirror**: repository riêng chỉ giữ artifact website và manifest để Sites phát hành.
