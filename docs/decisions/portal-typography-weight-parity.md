@@ -1,6 +1,6 @@
 ---
 title: Typography portal theo trọng lượng Espacio
-status: accepted
+status: superseded
 date: 2026-08-24
 scope: Home portal typography
 tags:
@@ -8,6 +8,8 @@ tags:
   - typography
   - espacio-parity
 supersedes: []
+superseded_by:
+  - visible-typography-espacio-parity.md
 related_specs: []
 related_reports:
   - ../reports/research-espacio-layout-motion-parity.md
@@ -59,8 +61,9 @@ image hoặc motion.
 
 ## Follow-up
 
-- Rerun affected subset của parity runner với current source hash trước khi cập
-  nhật report parity tổng.
+- Quyết định này đã được thay thế ngày 2026-08-27 bởi
+  [Typography nhìn thấy theo cap-height Espacio](visible-typography-espacio-parity.md),
+  sau khi owner mở rộng scope từ riêng portal sang toàn bộ text nhìn thấy.
 
 ## Chú thích thuật ngữ
 

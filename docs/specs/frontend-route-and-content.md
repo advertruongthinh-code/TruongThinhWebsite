@@ -2,9 +2,10 @@
 title: Contract route và content
 type: frontend
 status: accepted
-updated: 2026-08-09
+updated: 2026-09-09
 notion: none
-related_decisions: []
+related_decisions:
+  - ../decisions/head-office-address-confirmed.md
 related_reports: []
 ---
 
@@ -15,15 +16,16 @@ related_reports: []
 - Root repository `/` là canonical.
 - Public route chuẩn: `/vi/`, `/vi/residential/`, `/vi/commercial/`,
   `/vi/advertising-products/`, `/vi/about/`; `/en/` có hierarchy tương đương.
-  Detail dùng `/vi/projects/:slug/` và `/en/projects/:slug/`.
+  Sáu detail Advertising hiện dùng `/{locale}/advertising-products/{slug}/`.
+  `/{locale}/projects/:slug/` là contract CMS tương lai, chưa thuộc static runtime.
 - Mọi route dùng cùng header, full menu, footer, VI/EN switch, Zalo CTA và motion
   system.
-- Header/full menu chỉ dùng bốn canonical route cấp cao theo locale; không có
-  mục con hoặc fragment navigation.
+- Cấu trúc và nhãn full menu theo [content guide](../design/content.md#full-menu-và-boundary-cms);
+  route và query phải giữ canonical locale, không dùng fragment navigation.
 - Dùng copy riêng của Trường Thịnh và image local/generated. Reference chỉ cung
   cấp nhịp layout, storytelling và motion; không copy source hoặc media.
 - Mọi thay đổi copy/media phải theo
-  [`CONTENT-MEDIA-GUIDE.md`](../product/CONTENT-MEDIA-GUIDE.md).
+  [`CONTENT-MEDIA-GUIDE.md`](../design/content.md).
 
 ## Contract dùng chung
 
@@ -32,16 +34,22 @@ related_reports: []
 | `style.css` | Token, typography, header/menu/footer, home section, responsive |
 | `motion.js` | VI/EN, route veil, header state, smooth scroll, hero, menu |
 | `detail.css` | Layout cho child/detail page |
-| `detail.js` | Detail reveal, horizontal gallery, project filter |
+| `detail.js` | Detail reveal, horizontal gallery, điều phối catalog lifecycle |
+| `advertising-products/catalog-runtime.mjs` | Grid/filter, virtualization và media replay |
 
 Child page load `../style.css`, `../detail.css`, `../motion.js` và
-`../detail.js`. Filter của `advertising-products` cũng do `detail.js` sở hữu;
-product directory runtime cũ đã retire. Không nhân bản shared logic vào từng
-route.
+`../detail.js`. Runtime này chờ dependency rồi mount catalog; grid/filter thuộc
+`catalog-runtime.mjs`, không thuộc generic gallery. Không nhân bản shared logic
+vào từng route. Reuse contract ở [component reference](../design/components.md).
+
+Sáu trang chi tiết nhóm Sản phẩm quảng cáo dùng một shared detail template;
+mỗi trang chỉ thay data và tổ hợp block. Espalmador cung cấp baseline về nhịp
+layout và storytelling, không cung cấp source hoặc asset để sao chép. Xem
+[decision shared template](../decisions/shared-advertising-product-detail-template.md).
 
 ## Edit content và media
 
-[Content & media guide](../product/CONTENT-MEDIA-GUIDE.md) là canonical
+[Content & media guide](../design/content.md) là canonical
 contract cho:
 
 - leaf VI/EN, heading, hero motto và motion hook;
@@ -50,7 +58,7 @@ contract cho:
   `/vi/commercial/`, `/vi/residential/`;
 - WebP/sRGB, pixel thật, alt song ngữ, loading, safe crop và budget;
 - advertising filter metadata và upload/QA checklist.
-- full menu chỉ giữ bốn route cấp cao, không có mục con hoặc section hash.
+- cấu trúc/copy full menu theo mục nguồn chuẩn trong content guide.
 
 Gallery/project collection có thể thêm hoặc bớt item bằng cách clone trọn
 `figure`. Cụm `.service-portals` vẫn là pattern ba mục; đổi số portal là
@@ -58,38 +66,26 @@ thay đổi layout/motion và phải được giao riêng.
 
 ## Narrative theo route
 
-- `/vi/` và `/en/`: hero ba lĩnh vực, editorial process, ba portal, câu chuyện hơn 20 năm,
-  năng lực vật liệu/xưởng/thi công, công trình và CTA.
-- `/vi/residential/` và `/en/residential/`: full-bleed opening, lời hứa nhà ở, chuỗi không gian/dự án,
-  vật liệu và tay nghề, quy trình, CTA khảo sát.
-- `/vi/commercial/` và `/en/commercial/`: opening theo vận hành, shop/showroom, F&B/cafe, văn phòng,
-  durability/material story, selected build, CTA khảo sát.
-- `/vi/advertising-products/` và `/en/advertising-products/`: identity hero
-  **Sản phẩm Quảng cáo** / **Advertising products**, rồi đến công trình,
-  statement, filterable kiosk/mobile retail/signage grid, chuỗi gia công, bằng
-  chứng xưởng và CTA khảo sát.
-- `/vi/about/` và `/en/about/`: kinh nghiệm hơn 20 năm, xưởng và con người, cách làm, cam kết
-  và CTA khảo sát.
+[Route narrative](../design/content.md#narrative-theo-route) giữ story/copy;
+surface briefs tại `.impeccable/surfaces/` giữ mode và intent của từng surface.
 
 ## Contract quy trình
 
-Thứ tự duy nhất trên mọi route:
+[Product process](../../PRODUCT.md) và [content guide](../design/content.md)
+sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spec.
 
-1. Khảo sát
-2. Tư vấn
-3. Sản xuất
-4. Lắp đặt
+## Advertising products routes
 
-Tiếng Anh tương ứng:
-**Survey → Consultation → Production → Installation**.
-
-Không đảo thứ tự hoặc đổi “Tư vấn” thành một bước diễn ra trước “Khảo sát”.
+- Parent route là `/{locale}/advertising-products/`; sáu detail route dùng
+  `/{locale}/advertising-products/{slug}/` với `kiosk-posm`, `mobile-retail`,
+  `signage-raised-letters`, `office-signs-wayfinding`,
+  `led-displays-lightboxes`, `print-decals`.
+- Sáu page detail được generate từ một shared template và catalog; không tạo
+  route family CMS hoặc sáu template độc lập.
 
 ## Contract i18n
 
-- Tiếng Việt là source text; tiếng Anh đặt tại leaf node `data-en`.
-- Thuộc tính dùng `data-en-alt`, `data-en-aria-label`,
-  `data-en-content`.
+- Copy/attribute song ngữ theo [Leaf text và VI/EN](../design/content.md#leaf-text-và-vien).
 - `<title>` dùng `data-en`; script trong `<head>` đặt `lang` sớm để giảm flash.
 - Worker SSR locale/head trước response; `motion.js` điều hướng counterpart
   locale, giữ query/vị trí đọc và loại fragment. `localStorage` chỉ fallback
@@ -99,46 +95,22 @@ Không đảo thứ tự hoặc đổi “Tư vấn” thành một bước di�
 
 ## Contract motion
 
-- Route veil: cover 0.75s, uncover 1s, `power4.inOut`; veil nằm dưới header,
-  header xoá `is-hidden` khi bắt đầu chuyển route.
-- Nếu route đổi từ full menu, menu reverse và route cover chạy đồng thời; URL
-  chỉ commit sau khi cả hai hoàn tất.
-- `pageshow.persisted` phải dọn dialog, page scale và route veil để Back/Forward
-  từ BFCache không giữ state cũ.
-- Header: collapse sau 100px; hide/show sau 150px di chuyển có hướng; force-show
-  trong 350px đầu; transition 1s `cubic-bezier(0,0,.1,.99)`. Khi route đổi,
-  `is-hidden` được xoá và header giữ nguyên trên veil.
-- Generic media reveal: 0.6s `cubic-bezier(0,0,.26,1)`.
-- Masked display line: 1.9s `power4.out`, stagger 0.1s.
-- Hover media: scale 1.1–1.15 trong 0.6s.
-- Desktop dùng Locomotive smoothing; mobile dùng native scroll.
-- `prefers-reduced-motion` bỏ transform/autoplay không thiết yếu và không được
-  để content ở trạng thái ẩn.
+[Motion design system](../design/motion.md#shared-motion) sở hữu timing/state.
+Runtime integration và test phải ref contract đó; không định nghĩa timeline thứ hai.
 
 ## Định hướng image
 
-- Architectural editorial photography, vật liệu thật, bối cảnh Việt Nam.
-- Không recognizable face; ưu tiên không gian, tool, bàn tay hoặc người bị motion
-  blur.
-- Exception đã approve: `assets/content/shared/legacy-team.webp`.
-- Không logo, text giả, watermark hoặc media copy từ reference.
-- Xanh và cam là accent, không phải nền toàn trang.
-- Content image phải có alt VI và `data-en-alt` EN.
+[Content/media guide](../design/content.md#chuẩn-file-ảnh) sở hữu image policy;
+[style guide](../design/style-guide.md) chỉ dẫn cách áp dụng palette/image grammar.
 
-## Content placeholder
+## Owner fact và content placeholder
 
-Không tự suy đoán hoặc công bố:
-
-- URL/số Zalo.
-- Địa chỉ trụ sở.
-- Năm thành lập chính xác.
-- Chính sách/thời hạn bảo hành.
-
-Trong khi chờ dữ kiện, dùng CTA trung tính và “Thông tin đang cập nhật”.
+[Owner facts](../design/content.md#fact-owner-và-dữ-kiện-chưa-biết) dẫn
+product/decision canonical. Route không tự tạo bản sao fact hoặc placeholder policy.
 
 ## Acceptance
 
-- Portal/hero title: qualifier regular, service name semibold.
+- Typography portal/hero theo [design system](../../DESIGN.md#typography).
 - Heritage inline image còn khoảng thở dọc ở mọi breakpoint.
 - Menu, filter, gallery, route link, Zalo CTA và back-to-top dùng được bằng bàn
   phím/touch.

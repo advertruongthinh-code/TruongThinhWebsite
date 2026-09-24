@@ -3,6 +3,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(
@@ -11,6 +12,11 @@ const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(
 );
 const BASE_ORIGIN = new URL(BASE_URL).origin;
 const ROUTES = ["/vi/", "/vi/residential/", "/vi/commercial/", "/vi/advertising-products/", "/vi/about/"];
+const ADVERTISING_CATEGORY_SLUGS = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
+const CANONICAL_ROUTES = [
+  ...ROUTES,
+  ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/vi/advertising-products/${slug}/`),
+];
 const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
 const DIRECT_MOTTO_ROUTES = [];
 const VIEWPORTS = [
@@ -23,7 +29,7 @@ const VIEWPORTS = [
 const HEADER_VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
-  ...[750, 751, 768, 960, 1024, 1200, 1201, 1440].map((width) => ({
+  ...[749, 750, 751, 760, 768, 820, 950, 960, 961, 1024, 1200, 1201, 1440].map((width) => ({
     width,
     height: 900,
   })),
@@ -33,7 +39,8 @@ const SSR_CMS_HYDRATION_CASES = [
     route: "/vi/advertising-products/",
     locale: "vi",
     title: "Sản phẩm Quảng cáo — Trường Thịnh",
-    description: "Kiosk, POSM, biển hiệu, LED, in ấn và nhận diện thương hiệu.",
+    description:
+      "Công trình quảng cáo Trường Thịnh: khảo sát, tư vấn, sản xuất và lắp đặt kiosk, xe bán hàng, bảng hiệu và hộp đèn.",
     heroTitle: "để thương hiệu luôn trong tầm mắt",
     navigationLabel: "Sản phẩm Quảng cáo",
   },
@@ -41,7 +48,8 @@ const SSR_CMS_HYDRATION_CASES = [
     route: "/en/advertising-products/",
     locale: "en",
     title: "Advertising products — Trường Thịnh",
-    description: "Kiosks, POSM, signage, LED, print, and brand identity.",
+    description:
+      "Trường Thịnh advertising projects: survey, consultation, production and installation of kiosks, mobile retail carts, signage and light boxes.",
     heroTitle: "Keep your brand always in sight",
     navigationLabel: "Advertising products",
   },
@@ -108,11 +116,47 @@ function prepareReportDirectories() {
 
 function assertPersistentNavigationContracts() {
   const root = SITE_ROOT;
+  const brandLockupPath = path.join(
+    root,
+    "assets/brand/truong-thinh-lockup.svg",
+  );
   const barbaUrl =
     "https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js";
   const barbaIntegrity =
     "sha384-T3/AkZI+fU7l5Ip18n7KLEi8r0LPLwiyIp0+anP6LuGlXmAwDS6l6YhmhJjiki/x";
   const bootstraps = [];
+
+  assert(
+    fs.existsSync(brandLockupPath),
+    "The canonical Trường Thịnh SVG lockup is missing",
+  );
+  const brandLockupSource = fs.readFileSync(brandLockupPath, "utf8");
+  const brandGeometryAttributes = (source) => [...source.matchAll(
+    /\b(?:viewBox|transform|d|x|y|font-family|font-size|font-weight|letter-spacing|word-spacing|textLength|lengthAdjust|fill)="[^"]*"/g,
+  )].map((match) => match[0]);
+  assert(
+    /<svg\b[^>]*viewBox="[^\"]*594(?:\.0+)?[^\"]*"/.test(
+      brandLockupSource,
+    ) &&
+      /<g\b(?=[^>]*\bid="truong-thinh-lockup")[^>]*\bfill="currentColor"[^>]*>/.test(
+        brandLockupSource,
+      ) &&
+      /<g\b(?=[^>]*\bid="truong-thinh-mark")[^>]*\bclass="[^"]*\bbrand-lockup__mark\b"[^>]*>/.test(
+        brandLockupSource,
+      ) &&
+      /<text\b(?=[^>]*\bid="truong-thinh-title")(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b")[^>]*\bfont-weight="600"[^>]*>/.test(
+        brandLockupSource,
+      ) &&
+      /<text\b(?=[^>]*\bid="truong-thinh-subtitle")(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b")[^>]*\bfont-weight="600"[^>]*>/.test(
+        brandLockupSource,
+      ) &&
+      (brandLockupSource.match(/<path\b/g) || []).length === 4 &&
+      (brandLockupSource.match(/<text\b/g) || []).length === 2 &&
+      !/<(?:use|image|style|metadata|clipPath|foreignObject)\b|\bhref\s*=|\bxlink:href\s*=/.test(
+        brandLockupSource,
+      ),
+    "The canonical Trường Thịnh lockup must keep four mark paths and two live text nodes",
+  );
 
   PUBLIC_HTML.forEach(([relativePath, namespace]) => {
     const source = fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -142,8 +186,14 @@ function assertPersistentNavigationContracts() {
     const containerTag =
       source.match(/<div\b[^>]*class="[^"]*\bpage-shell\b[^"]*"[^>]*>/)?.[0] ||
       "";
+    const usesLocalEditorialMotion = [
+      "residential/index.html",
+      "commercial/index.html",
+      "advertising-products/index.html",
+    ].includes(relativePath);
     const scriptOrder = [
-      "gsap@3.13.0",
+      usesLocalEditorialMotion ? "gsap-3.15.0.min.js" : "gsap@3.13.0",
+      ...(usesLocalEditorialMotion ? ["SplitText-3.15.0.min.js"] : []),
       "locomotive-scroll@4.1.4",
       barbaUrl,
       'src="/detail.js"',
@@ -209,8 +259,8 @@ function assertPersistentNavigationContracts() {
         (menuSource.match(/class="menu-group"/g) || []).length === 4 &&
         (menuSource.match(/class="menu-group__title"/g) || []).length === 4 &&
         (menuSource.match(/class="menu-group__links"/g) || []).length === 4 &&
-        (menuSource.match(/class="menu-option"/g) || []).length === 15 &&
-        !/href="[^"]*#|data-menu-projects|data-social-placeholder/.test(menuSource) &&
+        [15, 17].includes((menuSource.match(/class="menu-option"/g) || []).length) &&
+        !/<a\b[^>]*href="[^"]*#|data-menu-projects|data-social-placeholder/.test(menuSource) &&
         /class="menu-appointment"[\s\S]*?data-menu-calendar viewBox="0 0 58\.09 57\.82"/.test(menuSource) &&
         !/class="menu-foot"/.test(menuSource),
       `${relativePath} must own locale, appointment, and four groups inside the full menu only`,
@@ -241,37 +291,56 @@ function assertPersistentNavigationContracts() {
     )?.[0];
     assert(
       headerBrand &&
-        /<svg class="brand-mark" viewBox="0 0 286\.2 247\.85" aria-hidden="true">/.test(
+        headerBrand.includes(
+          'aria-label="TRƯỜNG THỊNH NỘI THẤT · QUẢNG CÁO — Trang chủ"',
+        ) &&
+        headerBrand.includes(
+          'data-en-aria-label="TRƯỜNG THỊNH INTERIORS · ADVERTISING — Home"',
+        ) &&
+        /<svg class="brand-lockup" viewBox="[^"]*594[^"]*" aria-hidden="true" data-parity-media>[\s\S]*?<g class="brand-lockup__geometry" fill="currentColor">[\s\S]*?<\/svg>/.test(
           headerBrand,
         ) &&
-        (headerBrand.match(/<path d="/g) || []).length === 4 &&
-        headerBrand.includes(
-          'd="M143.1 0l32.48 56.25c-36.88 63.87 -73.75 127.74 -110.62 191.6l-64.96 0 71.55 -123.92 71.55 -123.93z"',
+        (headerBrand.match(/<path\b/g) || []).length === 4 &&
+        (headerBrand.match(/<text\b/g) || []).length === 2 &&
+        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*\bfont-weight="600"[^>]*>/.test(
+          headerBrand,
         ) &&
-        !/<clipPath\b/.test(headerBrand) &&
-        /<span class="brand-copy">\s*<strong>TRƯỜNG THỊNH<\/strong\s*>\s*<small data-en="INTERIORS · ADVERTISING"[^>]*>\s*NỘI THẤT · QUẢNG CÁO\s*<\/small\s*>\s*<\/span\s*>/.test(
+        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)[^>]*\bfont-weight="600"[^>]*>/.test(
+          headerBrand,
+        ) &&
+        !/<span class="brand-copy"|<use\b|<image\b|<script\b|<style\b|<metadata\b/.test(
           headerBrand,
         ),
-      `${relativePath} must use the approved four-path Trường Thịnh mark without changing brand copy`,
+      `${relativePath} must inline the sanitized Trường Thịnh mark geometry and live text`,
     );
     const menuBrand = menuSource?.match(
       /<a\b(?=[^>]*\bclass="[^"]*\bmenu-brand\b)[\s\S]*?<\/a>/,
     )?.[0];
-    const headerPaths = [...(headerBrand || "").matchAll(/<path d="([^"]+)"/g)].map(
-      (match) => match[1],
-    );
-    const menuPaths = [...(menuBrand || "").matchAll(/<path d="([^"]+)"/g)].map(
-      (match) => match[1],
-    );
     assert(
       menuBrand &&
-        /<svg class="menu-brand__mark" viewBox="0 0 286\.2 247\.85" aria-hidden="true">/.test(
+        /<svg class="brand-lockup" viewBox="[^"]*594[^"]*" aria-hidden="true" data-parity-media>[\s\S]*?<g class="brand-lockup__geometry" fill="currentColor">[\s\S]*?<\/svg>/.test(
           menuBrand,
         ) &&
-        !/<clipPath\b/.test(menuBrand) &&
-        JSON.stringify(menuPaths) === JSON.stringify(headerPaths),
-      `${relativePath} full-menu logo must reuse the approved header mark geometry`,
+        (menuBrand.match(/<path\b/g) || []).length === 4 &&
+        (menuBrand.match(/<text\b/g) || []).length === 2 &&
+        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*\bfont-weight="600"[^>]*>/.test(
+          menuBrand,
+        ) &&
+        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)[^>]*\bfont-weight="600"[^>]*>/.test(
+          menuBrand,
+        ) &&
+        !/<span class="menu-brand__copy"|<use\b|<image\b|<script\b|<style\b|<metadata\b/.test(
+          menuBrand,
+        ),
+      `${relativePath} full-menu logo must inline the sanitized mark geometry and live text`,
     );
+    for (const [location, markup] of [["header", headerBrand], ["menu", menuBrand]]) {
+      assert(
+        JSON.stringify(brandGeometryAttributes(markup.match(/<svg\b[\s\S]*?<\/svg>/)[0])) ===
+          JSON.stringify(brandGeometryAttributes(brandLockupSource)),
+        `${relativePath} ${location} logo geometry must match the canonical SVG`,
+      );
+    }
   });
 
   assert(
@@ -280,11 +349,14 @@ function assertPersistentNavigationContracts() {
   );
 
   const motionSource = fs.readFileSync(path.join(root, "motion.js"), "utf8");
+  const finishCloseSource = motionSource.match(
+    /const finishClose = \(restoreFocus = true\) => \{([\s\S]*?)\n  \};/,
+  )?.[1] ?? "";
   assert(
-    /const introOffset = heroIntroPending && index === 0 \? 1\.3 : 0;/.test(
+    /const introOffset = heroIntroPending && index === 0 \? 1 : 0;/.test(
       motionSource,
     ),
-    "Home hero solid intro must last 1.3 seconds",
+    "Home hero solid intro must match Espacio's measured 1 second reveal",
   );
   const styleSource = fs.readFileSync(path.join(root, "style.css"), "utf8");
   const homeSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
@@ -303,6 +375,31 @@ function assertPersistentNavigationContracts() {
   const projectsSource = fs.readFileSync(
     path.join(root, "advertising-products/index.html"),
     "utf8",
+  );
+  const storyArrowWrapperCss = styleSource.match(/\.story-arrow\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const storyArrowCss = styleSource.match(/\.story-link svg\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  const storyArrowHoverCss = styleSource.match(/\.story-link:hover svg\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+  assert(
+    homeSource.includes('<span class="story-arrow">') &&
+      homeSource.includes('viewBox="0 0 178.01 39.43"') &&
+      homeSource.includes('x1="3.77" x2="174.25" y1="19.71" y2="19.71"') &&
+      homeSource.includes('points="156.6 2.07 174.25 19.71 156.6 37.36"') &&
+      /width:\s*200px/.test(storyArrowWrapperCss) &&
+      /position:\s*relative/.test(storyArrowWrapperCss) &&
+      /align-self:\s*center/.test(storyArrowWrapperCss) &&
+      /overflow:\s*hidden/.test(storyArrowWrapperCss) &&
+      /transform:\s*translateX\(12\.5%\)/.test(storyArrowWrapperCss) &&
+      /width:\s*100%/.test(storyArrowCss) &&
+      /position:\s*relative/.test(storyArrowCss) &&
+      /left:\s*-5px/.test(storyArrowCss) &&
+      /top:\s*-0\.5px/.test(storyArrowCss) &&
+      /height:\s*auto/.test(storyArrowCss) &&
+      /box-sizing:\s*content-box/.test(storyArrowCss) &&
+      /vertical-align:\s*middle/.test(storyArrowCss) &&
+      /transform:\s*translateX\(-25%\)/.test(storyArrowCss) &&
+      /transition:\s*0\.3s cubic-bezier\(0\.4, 0, 0\.2, 1\)/.test(storyArrowCss) &&
+      /transform:\s*translateX\(0\)/.test(storyArrowHoverCss),
+    "Story arrow must preserve Espacio's SVG geometry, baseline, and hover transition contract",
   );
 
   const residentialHeroContent = residentialSource.match(
@@ -352,12 +449,12 @@ function assertPersistentNavigationContracts() {
       projectsHeroContent?.includes('data-en="always in sight"') &&
       !projectsHeroContent?.includes("project-filters") &&
       !projectsHeroContent?.includes("detail-hero-motto") &&
-      /class="detail-index-hero__scroll"[\s\S]*?data-en="SCROLL DOWN"[\s\S]*?CUỘN XUỐNG/.test(
+      /class="scroll-cue detail-index-hero__scroll"[\s\S]*?data-scroll-cue[\s\S]*?data-en="SCROLL DOWN"[\s\S]*?CUỘN XUỐNG/.test(
         projectsHeroSection,
       ) &&
       detailCss.includes("height: calc(100svh - 50px);") &&
       detailCss.includes("width: min(calc(100% - 2 * var(--gutter)), 1500px);") &&
-      detailCss.includes(".detail-index-hero__scroll"),
+      styleSource.includes(".scroll-cue"),
     "Advertising hero must use the approved Projects-style copy, sibling filters, scroll cue, and viewport-minus-50 layout",
   );
 
@@ -370,18 +467,18 @@ function assertPersistentNavigationContracts() {
   assert(
     clientLogoMarquee?.includes('class="client-logo-marquee__track"') &&
       clientLogoGroups?.length === 2 &&
-      (clientLogoGroups[0].match(/class="client-logo-slot/g) || []).length === 11 &&
-      (clientLogoGroups[1].match(/class="client-logo-slot/g) || []).length === 11 &&
+      (clientLogoGroups[0].match(/class="client-logo-slot/g) || []).length === 12 &&
+      (clientLogoGroups[1].match(/class="client-logo-slot/g) || []).length === 12 &&
       /\.client-logo-marquee__track\s*\{[\s\S]*?animation:\s*client-logo-marquee\s+25s\s+linear\s+infinite;/.test(
         styleSource,
       ) &&
-      /\.client-logo-marquee__group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(11,\s*var\(--client-logo-slot-width\)\);/.test(
+      /\.client-logo-marquee__group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(12,\s*var\(--client-logo-slot-width\)\);/.test(
         styleSource,
       ) &&
       /@keyframes client-logo-marquee\s*\{[\s\S]*?transform:\s*translate3d\(-50%,\s*0,\s*0\);/.test(
         styleSource,
       ),
-    "The client-logo marquee must use two equal eleven-slot groups on one seamless -50% track",
+    "The client-logo marquee must use two equal twelve-slot groups on one seamless -50% track",
   );
 
   assert(
@@ -391,10 +488,10 @@ function assertPersistentNavigationContracts() {
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",
   );
   assert(
-    /\.site-header\s*\{[\s\S]*?box-sizing:\s*content-box;[\s\S]*?width:\s*calc\(100% - 70px\);[\s\S]*?padding:\s*35px 35px 0;[\s\S]*?grid-template-columns:\s*170px minmax\(0, 1fr\) 65px;[\s\S]*?align-content:\s*center;[\s\S]*?align-items:\s*normal;[\s\S]*?column-gap:\s*70px;[\s\S]*?\}/.test(
+    /\.site-header\s*\{[\s\S]*?box-sizing:\s*content-box;[\s\S]*?width:\s*calc\(100% - 70px\);[\s\S]*?padding:\s*35px 35px 0;[\s\S]*?grid-template-columns:\s*var\(--brand-header-track-width\) minmax\(0, 1fr\) 65px;[\s\S]*?grid-template-rows:\s*var\(--header-row-height\);[\s\S]*?align-content:\s*center;[\s\S]*?align-items:\s*normal;[\s\S]*?column-gap:\s*70px;[\s\S]*?\}/.test(
       styleSource,
     ) &&
-      /@media \(max-width:\s*1200px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 50px\);[\s\S]*?padding:\s*25px 25px 0;[\s\S]*?grid-template-columns:\s*220px minmax\(0, 1fr\) 65px;[\s\S]*?column-gap:\s*25px;/.test(
+      /@media \(max-width:\s*1200px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 50px\);[\s\S]*?padding:\s*25px 25px 0;[\s\S]*?grid-template-columns:\s*var\(--brand-header-track-width\) minmax\(0, 1fr\) 65px;[\s\S]*?grid-template-rows:\s*var\(--header-row-height\);[\s\S]*?column-gap:\s*25px;/.test(
         styleSource,
       ) &&
       /\.desktop-nav ul\s*\{[\s\S]*?left:\s*-10%;[\s\S]*?margin:\s*1em 0;[\s\S]*?column-gap:\s*39\.4609375px;/.test(
@@ -403,16 +500,22 @@ function assertPersistentNavigationContracts() {
       /@media \(max-width:\s*1200px\)[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?left:\s*auto;[\s\S]*?column-gap:\s*44\.4609375px;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*1024px\)[\s\S]*?\.brand\s*\{[\s\S]*?min-height:\s*60px;[\s\S]*?\.brand-copy small\s*\{[\s\S]*?display:\s*block;[\s\S]*?\.menu-button\s*\{[\s\S]*?gap:\s*normal 70px;/.test(
+      /@media \(max-width:\s*1024px\)[\s\S]*?\.menu-button\s*\{[\s\S]*?gap:\s*normal 70px;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*960px\)[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?grid-template-rows:\s*repeat\(2, auto\);[\s\S]*?column-gap:\s*0;[\s\S]*?row-gap:\s*25px;/.test(
+      /@media \(min-width:\s*751px\) and \(max-width:\s*960px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*min\(435\.875px, 100%\);/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*750px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 30px\);[\s\S]*?padding:\s*15px 15px 0;[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) 0 65px;[\s\S]*?column-gap:\s*15px;[\s\S]*?\.desktop-nav ul\s*\{\s*display:\s*none;/.test(
+      /@media \(min-width:\s*961px\) and \(max-width:\s*1200px\)[\s\S]*?\.desktop-nav\s*\{[\s\S]*?width:\s*calc\(100% \+ 30px\);[\s\S]*?min-width:\s*0;[\s\S]*?\.desktop-nav ul\s*\{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;[\s\S]*?margin-inline:\s*auto;[\s\S]*?grid-template-columns:[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content minmax\(0, 44\.4609375px\)[\s\S]*?max-content;[\s\S]*?column-gap:\s*0;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*680px\)[\s\S]*?\.brand\s*\{[\s\S]*?min-height:\s*57\.59375px;[\s\S]*?\.menu-button\s*\{[\s\S]*?gap:\s*normal 30px;/.test(
+      /\.desktop-nav\.is-space-hidden\s*\{[^}]*visibility:\s*hidden;[^}]*pointer-events:\s*none;/.test(styleSource) &&
+      !/grid-template-rows:\s*repeat\(2, auto\);/.test(styleSource) &&
+      /const measureDesktopNav = \(\) => \{[\s\S]*?desktopNav\.inert = hidden;/.test(motionSource) &&
+      /@media \(max-width:\s*750px\)[\s\S]*?\.site-header\s*\{[\s\S]*?width:\s*calc\(100% - 30px\);[\s\S]*?padding:\s*15px 15px 0;[\s\S]*?grid-template-columns:\s*var\(--brand-header-track-width\) minmax\(0, 1fr\) 65px;[\s\S]*?grid-template-rows:\s*var\(--header-row-height\);[\s\S]*?column-gap:\s*15px;[\s\S]*?\.desktop-nav ul\s*\{\s*display:\s*none;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*680px\)[\s\S]*?\.menu-button\s*\{[\s\S]*?gap:\s*normal 30px;/.test(
         styleSource,
       ) &&
       /\.site-header\s*\{[\s\S]*?border-bottom:\s*0 solid transparent;/.test(
@@ -424,49 +527,77 @@ function assertPersistentNavigationContracts() {
     "The header separation, gutter, or 750/960/1200 breakpoint contract drifted",
   );
   assert(
-    /\.menu-brand\s*\{[\s\S]*?width:\s*max-content;[\s\S]*?min-height:\s*4\.22rem;[\s\S]*?aspect-ratio:\s*auto;[\s\S]*?gap:\s*0\.8rem;/.test(
+    /:root\s*\{[\s\S]*?--brand-header-height:\s*67\.515625px;[\s\S]*?--brand-header-width:\s*260\.981741px;[\s\S]*?--brand-header-track-width:\s*260\.981741px;[\s\S]*?--brand-menu-height:\s*var\(--brand-header-height\);[\s\S]*?--brand-menu-width:\s*var\(--brand-header-width\);/.test(
       styleSource,
     ) &&
-      /\.menu-brand__mark\s*\{[\s\S]*?width:\s*60px;[\s\S]*?height:\s*60px;/.test(
+      !/\.site-header\.is-collapsed\s*\{[^}]*--brand-header-(?:height|width)\s*:/.test(
         styleSource,
       ) &&
-      /\.menu-brand__copy\s*\{[\s\S]*?gap:\s*0\.15rem;[\s\S]*?letter-spacing:\s*0\.015em;/.test(
+      /@media \(max-width:\s*1200px\)[\s\S]*?:root\s*\{[\s\S]*?--brand-header-height:\s*57\.59375px;[\s\S]*?--brand-header-width:\s*222\.62872px;[\s\S]*?--brand-header-track-width:\s*222\.62872px;/.test(
         styleSource,
       ) &&
-      /\.menu-brand__copy strong\s*\{[\s\S]*?font-size:\s*0\.98rem;[\s\S]*?font-weight:\s*600;/.test(
+      /@media \(max-width:\s*750px\)[\s\S]*?:root\s*\{[\s\S]*?--brand-header-height:\s*57\.59375px;[\s\S]*?--brand-header-width:\s*222\.62872px;[\s\S]*?--brand-header-track-width:\s*191\.885904px;/.test(
         styleSource,
       ) &&
-      /\.menu-brand__copy small\s*\{[\s\S]*?font-size:\s*0\.56rem;[\s\S]*?font-weight:\s*500;[\s\S]*?letter-spacing:\s*0\.09em;/.test(
+      /\.brand\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*max-content;[\s\S]*?align-self:\s*start;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*1024px\)[\s\S]*?\.menu-brand\s*\{[\s\S]*?min-height:\s*60px;[\s\S]*?gap:\s*0\.65rem;[\s\S]*?\.menu-brand__copy strong\s*\{[\s\S]*?font-size:\s*0\.8rem;/.test(
+      /\.brand-lockup\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-header-height\);[\s\S]*?overflow:\s*visible;[\s\S]*?fill:\s*currentColor;/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*680px\)[\s\S]*?\.menu-brand\s*\{[\s\S]*?min-height:\s*57\.59375px;[\s\S]*?\.menu-brand__mark\s*\{[\s\S]*?width:\s*57\.59375px;[\s\S]*?height:\s*57\.59375px;/.test(
+      /\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill 1s cubic-bezier\(0\.16, 1, 0\.3, 1\);/.test(
         styleSource,
       ) &&
-      /@media \(max-width:\s*360px\)[\s\S]*?\.brand-copy strong,[\s\S]*?\.menu-brand__copy strong\s*\{[\s\S]*?font-size:\s*0\.86rem;/.test(
+      /\.menu-brand\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*max-content;[\s\S]*?justify-self:\s*start;/.test(
         styleSource,
-      ),
-    "The header and full-menu brand must share one visible size system",
+      ) &&
+      /\.menu-brand \.brand-lockup\s*\{[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-menu-height\);[\s\S]*?overflow:\s*visible;/.test(
+        styleSource,
+      ) &&
+      !/\.menu-brand \.brand-lockup__copy[\s\S]*?transform:\s*scaleY/.test(
+        styleSource,
+      ) &&
+      !/brand-mark|brand-copy|menu-brand__mark|menu-brand__copy/.test(styleSource),
+    "The header and menu lockups must keep the approved precise true-bounds matrix, live text, and visible geometry",
   );
   assert(
-    /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*600;/.test(
+    /html\s*\{[\s\S]*?overflow-x:\s*hidden;/.test(styleSource) &&
+      /body\s*\{[\s\S]*?overflow-x:\s*visible;/.test(styleSource),
+    "The root must contain horizontal overflow while the body matches the live visible overflow contract",
+  );
+  assert(
+    /\.heritage-montage\s*\{[\s\S]*?overflow-x:\s*clip;/.test(styleSource) &&
+      /\.heritage-rows\s*\{[\s\S]*?overflow-x:\s*visible;/.test(styleSource) &&
+      /\.heritage-text\s*\{[\s\S]*?clip-path:\s*inset\([\s\S]*?-0\.12em[\s\S]*?-0\.12em[\s\S]*?\);/.test(
+        styleSource,
+      ),
+    "The heritage montage must contain layout overflow without clipping first or last glyph ink",
+  );
+  assert(
+    /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*700;/.test(
       styleSource,
     ) &&
       /\.desktop-nav li\.selected a::after[\s\S]*?transform:\s*scaleX\(1\);[\s\S]*?transform-origin:\s*left center;/.test(
         styleSource,
       ) &&
-      /\.desktop-nav li\.selected a,[\s\S]*?\.desktop-nav a\[aria-current="page"\][\s\S]*?pointer-events:\s*none;/.test(
-        styleSource,
-      ) &&
+      !/\.desktop-nav li\.selected a,[\s\S]*?\.desktop-nav a\[aria-current="page"\]\s*\{[\s\S]*?pointer-events:\s*none;/.test(styleSource) &&
       /\.menu-button svg\s*\{[\s\S]*?width:\s*35px;[\s\S]*?height:\s*19px;[\s\S]*?stroke-width:\s*3;/.test(
         styleSource,
       ),
     "Header nav typography, selected underline, or hamburger geometry drifted",
   );
   assert(
-    /\.desktop-nav a\s*\{[\s\S]*?scrollbar-color:\s*auto;[\s\S]*?transition:\s*0\.3s ease-out;[\s\S]*?\}/.test(
+    /\.menu-group::after\s*\{[\s\S]*?height:\s*100%;[\s\S]*?transform:\s*scaleY\(0\);[\s\S]*?transform-origin:\s*top;[\s\S]*?transition:\s*transform 0\.3s linear;/.test(
+      styleSource,
+    ) &&
+      /\.menu-open \.menu-group::after\s*\{[\s\S]*?transform:\s*scaleY\(1\);/.test(
+        styleSource,
+      ) &&
+      !/transition:\s*height\b/.test(styleSource),
+    "Full-menu dividers must animate on the compositor without height layout thrash",
+  );
+  assert(
+    /\.desktop-nav a\s*\{[\s\S]*?scrollbar-color:\s*auto;[\s\S]*?\}/.test(
       styleSource,
     ) &&
       /\.desktop-nav a:focus-visible\s*\{[\s\S]*?outline:\s*none;[\s\S]*?outline-offset:\s*1px;[\s\S]*?\}/.test(
@@ -481,10 +612,15 @@ function assertPersistentNavigationContracts() {
     /const collapsed = scrollY > 100;/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
       /directionStartY - scrollY > 150/.test(motionSource) &&
-      /scrollY > window\.innerHeight \* 0\.5[\s\S]*scrollY < pageHeight - window\.innerHeight \* 1\.25/.test(
+      /const isMiddle = scrollY > window\.innerHeight \* 0\.5;/.test(
         motionSource,
       ) &&
-      /document\.addEventListener\(\s*"pointermove",[\s\S]*classList\.toggle\("forceShow", event\.screenY <= 350\)/.test(
+      /const clampedByLayout =[\s\S]*maxScroll < lastMaxScroll - 1[\s\S]*scrollY >= maxScroll - 2/.test(motionSource) &&
+      /if \(clampedByLayout\) \{\s*directionStartY = maxScroll;\s*\} else \{/.test(motionSource) &&
+      /const headerHoverMedia = window\.matchMedia\(\s*"\(any-hover: hover\) and \(any-pointer: fine\)"\s*,?\s*\);/.test(
+        motionSource,
+      ) &&
+      /document\.addEventListener\(\s*"mousemove",[\s\S]*headerHoverMedia\.matches && event\.screenY <= 350[\s\S]*classList\.toggle\("forceShow", canForceShow\)/.test(
         motionSource,
       ) &&
       /transform 1s cubic-bezier\(0, 0, 0\.1, 0\.99\)/.test(styleSource),
@@ -492,12 +628,22 @@ function assertPersistentNavigationContracts() {
   );
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
-      /header\.querySelectorAll\("\.brand-mark path"\)/.test(motionSource) &&
-      /header\.querySelector\("\.brand-copy"\)/.test(motionSource) &&
-      /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
-      /window\.gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(fillTargets,\s*\{\s*fill:\s*color\s*\},\s*0\)[\s\S]*?\.to\(colorTargets,\s*\{\s*color\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
+      /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
+      /const colorTargets = \[[\s\S]*?headerLogo,[\s\S]*?\.desktop-nav a/.test(
         motionSource,
       ) &&
+      !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
+      /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
+        motionSource,
+      ) &&
+      /header\.querySelectorAll\("\.menu-button line"\)/.test(motionSource) &&
+      /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
+        motionSource,
+      ) &&
+      /\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill 1s cubic-bezier\(0\.16, 1, 0\.3, 1\);/.test(
+        styleSource,
+      ) &&
+      /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
       /const isExactCurrentUrl[\s\S]*?normalizePathname\(url\.pathname\)[\s\S]*?url\.search === window\.location\.search/.test(
         motionSource,
       ) &&
@@ -507,13 +653,17 @@ function assertPersistentNavigationContracts() {
       /link\.matches\([\s\S]*?\)\s*&&\s*isExactCurrentUrl\(destination\)[\s\S]*?event\.preventDefault\(\)[\s\S]*?event\.stopImmediatePropagation\(\)/.test(
         motionSource,
       ) &&
-      /html\.motion-fallback \.site-header \.brand-mark path[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
+      /const currentParentLink =[\s\S]*?residential\|commercial\|advertising-products[\s\S]*?has\("photo"\)[\s\S]*?setPageScroll\(pageState, 0, \{ instant: true \}\);[\s\S]*?closeMenu\(false\)/.test(
+        motionSource,
+      ) &&
+      !/\.menu-nav a\[aria-current="page"\]\s*\{[\s\S]*?pointer-events:\s*none;/.test(styleSource) &&
+      /html\.motion-fallback \.site-header \.brand-lockup[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
         styleSource,
       ),
-    "Header copy, actual logo fills, and hamburger strokes are not synchronized on the audited 0.3s expo tween",
+    "Header text/hamburger color or the deliberately slower mark-color transition drifted",
   );
   assert(
-    /\.menu-head\s*\{[\s\S]*?grid-template-columns:\s*170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
+    /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
       styleSource,
     ) &&
       /\.menu-nav\s*\{[\s\S]*?overflow-y:\s*scroll;[\s\S]*?grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\);/.test(
@@ -531,6 +681,11 @@ function assertPersistentNavigationContracts() {
     "Full menu does not match the audited 4/3/2/1 scroll-grid contract",
   );
   assert(
+    /\.hero\s*\{(?=[^}]*position:\s*relative;)(?=[^}]*z-index:\s*1;)(?=[^}]*display:\s*grid;)(?=[^}]*overflow:\s*hidden;)[^}]*\}/.test(styleSource) &&
+      /\.hero-slide\s*\{(?=[^}]*overflow:\s*hidden;)[^}]*\}/.test(styleSource),
+    "Home hero must match the live stacking layer and clip scaled media at the slide boundary",
+  );
+  assert(
     /\.site-menu\s*\{[\s\S]*?display:\s*block;[\s\S]*?opacity:\s*0;[\s\S]*?pointer-events:\s*none;/.test(styleSource) &&
       /\.site-menu\[open\]\s*\{[\s\S]*?opacity:\s*1;[\s\S]*?pointer-events:\s*auto;/.test(styleSource) &&
       /\.site-menu::backdrop\s*\{[\s\S]*?opacity:\s*0;[\s\S]*?background:\s*transparent;[\s\S]*?transition:\s*none;/.test(styleSource) &&
@@ -538,15 +693,15 @@ function assertPersistentNavigationContracts() {
       /\.menu-shutters\s*\{(?=[^}]*position:\s*absolute;)(?=[^}]*overflow:\s*visible;)[^}]*\}/.test(styleSource) &&
       /\.menu-shutters i\s*\{[\s\S]*?position:\s*relative;/.test(styleSource) &&
       /\.menu-nav\s*\{[\s\S]*?z-index:\s*10;[\s\S]*?opacity:\s*0;/.test(styleSource) &&
-      /\.menu-language\s*\{[\s\S]*?width:\s*253\.203125px;[\s\S]*?overflow:\s*hidden;/.test(styleSource) &&
+      /\.menu-language\s*\{[\s\S]*?width:\s*max-content;[\s\S]*?overflow:\s*hidden;/.test(styleSource) &&
       /\.menu-close__icon\s*\{[\s\S]*?position:\s*relative;[\s\S]*?display:\s*block;[\s\S]*?width:\s*25px;[\s\S]*?height:\s*25px;[\s\S]*?overflow:\s*visible;[\s\S]*?transition:\s*none;/.test(styleSource) &&
       /\.menu-close__icon svg\s*\{[\s\S]*?stroke:\s*#2f2f2f;[\s\S]*?stroke-width:\s*3;/.test(styleSource) &&
       /\.menu-close__icon svg line\s*\{[\s\S]*?transform-origin:\s*center;[\s\S]*?transition:\s*transform 0\.3s ease-out;/.test(styleSource) &&
       /\.menu-close:hover \.menu-close__icon svg line\s*\{[\s\S]*?transform:\s*rotate\(90deg\);/.test(styleSource) &&
       !/\.menu-close:hover \.menu-close__icon\s*\{/.test(styleSource) &&
-      /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-brand\s*\{[\s\S]*?transform:\s*translateY\(-140px\);[\s\S]*?opacity:\s*0;/.test(styleSource) &&
+      /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-brand\s*\{(?=[^}]*transform:\s*translateY\(-140px\);)(?=[^}]*opacity:\s*0;)[^}]*\}/.test(styleSource) &&
       /html\.motion-enabled \.site-menu:not\(\.is-active\) :is\([\s\S]*?\.menu-language > \[data-language-option\],[\s\S]*?\.menu-appointment,[\s\S]*?\.menu-close__icon[\s\S]*?\)\s*\{[\s\S]*?opacity:\s*0;/.test(styleSource) &&
-      /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-group\s*\{[\s\S]*?transform:\s*translateY\(-140px\);[\s\S]*?opacity:\s*0;/.test(styleSource),
+      /html\.motion-enabled \.site-menu:not\(\.is-active\) \.menu-group\s*\{(?=[^}]*transform:\s*translateY\(-140px\);)(?=[^}]*opacity:\s*0;)[^}]*\}/.test(styleSource),
     "Full-menu closed state does not retain the live full-viewport opacity-zero geometry",
   );
   assert(
@@ -554,8 +709,12 @@ function assertPersistentNavigationContracts() {
       motionSource.includes('...menuLanguage.querySelectorAll("[data-language-option]")') &&
       motionSource.includes("const menuAppointmentItems = [menuAppointment]") &&
       motionSource.includes('const menuCloseIcon = closeButton.querySelector(".menu-close__icon")') &&
-      /const menuCoverageAt = 0\.6 \+ Math\.max\(0, shutters\.length - 1\) \* 0\.15;[\s\S]*\.fromTo\(menuBrand,[\s\S]*menuCoverageAt\)[\s\S]*\.fromTo\(menuLanguageItems,[\s\S]*menuCoverageAt \+ 0\.3\)[\s\S]*\.fromTo\(menuAppointmentItems,[\s\S]*menuCoverageAt \+ 0\.3\)[\s\S]*\.fromTo\(menuCloseIcon,[\s\S]*menuCoverageAt \+ 0\.45\)[\s\S]*\.fromTo\(menuNav,[\s\S]*menuCoverageAt\)[\s\S]*\.fromTo\(menuGroups,[\s\S]*menuCoverageAt\)[\s\S]*\.fromTo\(menuDetailItems,[\s\S]*menuCoverageAt \+ 0\.5\)/.test(motionSource) &&
-      /if \(!hasGsap \|\| reduceMotion\) resetMenuVisuals\(\);/.test(motionSource),
+      !motionSource.includes("menuCoverageAt") &&
+      /\.fromTo\(menuBrand,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuLanguageItems,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuAppointmentItems,[\s\S]*1\.15\)[\s\S]*\.fromTo\(menuCloseIcon,[\s\S]*1\.4\)[\s\S]*\.fromTo\(menuNav,[\s\S]*1\.05\)[\s\S]*\.fromTo\(menuGroups,[\s\S]*1\.1\)[\s\S]*\.fromTo\(menuDetailItems,[\s\S]*1\.35\)/.test(motionSource) &&
+      motionSource.includes("const setReducedMenuState = (opened) => {") &&
+      (motionSource.match(/setReducedMenuState\(false\);/g) ?? []).length >= 2 &&
+      (motionSource.match(/setReducedMenuState\(true\);/g) ?? []).length === 1 &&
+      /if \(reduceMotion\)\s*\{[\s\S]*?setReducedMenuState\(false\);[\s\S]*?\}\s*else if \(!hasGsap\)/.test(finishCloseSource),
     "Full-menu descendant targets or relative GSAP sequence drifted from the live contract",
   );
 
@@ -652,9 +811,8 @@ function assertPersistentNavigationContracts() {
     "Hero labels or completed timeline cleanup are not synchronized",
   );
   assert(
-    /const cancelFrame[\s\S]*frames\.delete\(frame\)/.test(detailSource) &&
-      /const cancelTimer[\s\S]*timers\.delete\(timer\)/.test(detailSource),
-    "Canceled detail handles remain tracked",
+    /const cancelFrame[\s\S]*frames\.delete\(frame\)/.test(detailSource),
+    "Canceled detail animation frames remain tracked",
   );
   assert(
     /window\.__ttMotionBoot\?\.claim\?\.\(\)/.test(motionSource) &&
@@ -678,10 +836,27 @@ function assertPersistentNavigationContracts() {
   );
 }
 
+function assertEspacioTypographyMotionSourceContracts() {
+  for (const [relativePath] of PUBLIC_HTML) {
+    const source = fs.readFileSync(path.join(SITE_ROOT, relativePath), "utf8");
+    assert(
+      (source.match(/\bdata-scroll-cue(?!-)/g) || []).length === 1 &&
+        /<button\b[^>]*\bdata-scroll-cue\b[\s\S]*?\bdata-scroll-cue-label\b/.test(
+          source,
+        ),
+      `${relativePath} must expose one interactive localized scroll cue`,
+    );
+  }
+}
+
 async function launchBrowser() {
   const requestedExecutable = process.env.PLAYWRIGHT_EXECUTABLE_PATH;
+  const layoutScrollbarOptions = process.env.TT_E2E_ADVERTISING_GRID_ONLY === "1"
+    ? { ignoreDefaultArgs: ["--hide-scrollbars"] }
+    : {};
   const primaryOptions = {
     headless: true,
+    ...layoutScrollbarOptions,
     ...(requestedExecutable ? { executablePath: requestedExecutable } : {}),
   };
 
@@ -708,7 +883,7 @@ async function launchBrowser() {
     console.log(
       `[site-e2e] Playwright Chromium is unavailable; using ${executablePath}`,
     );
-    return chromium.launch({ headless: true, executablePath });
+    return chromium.launch({ headless: true, executablePath, ...layoutScrollbarOptions });
   }
 }
 
@@ -759,6 +934,7 @@ function monitorPage(page) {
 async function waitForNavigationCleanup(page) {
   await page.waitForFunction(
     () => {
+      if (!document.body) return false;
       const dialog = document.querySelector("#site-menu");
       const opener = document.querySelector("[data-menu-open]");
       const routeVeil = document.querySelector(".route-veil");
@@ -861,6 +1037,9 @@ async function assertDirectRouteContracts(page) {
       brandHref: document
         .querySelector("[data-site-header] .brand")
         ?.getAttribute("href"),
+      brandLabel: document
+        .querySelector("[data-site-header] .brand")
+        ?.getAttribute("aria-label"),
       header: inspect("[data-site-header] a[href]"),
       menuPrimary: inspect(
         "#site-menu .menu-group:not(:last-child) > a.menu-group__title",
@@ -870,7 +1049,13 @@ async function assertDirectRouteContracts(page) {
   });
   const expectedHeader = ["/vi/", ...DIRECT_SERVICE_ROUTES].sort();
   const expectedMenu = [...DIRECT_SERVICE_ROUTES].sort();
-  const expectedAbout = ["/vi/about/"].sort();
+  const expectedAbout = [
+    "/vi/about/",
+    "/vi/about/?topic=commitment",
+    "/vi/about/?topic=contact",
+    "/vi/about/?topic=heritage",
+    "/vi/about/?topic=process",
+  ].sort();
   const headerHrefs = unique(contracts.header.hrefs).sort();
   const menuHrefs = unique(contracts.menuPrimary.hrefs).sort();
   const aboutHrefs = unique(contracts.menuAbout.hrefs).sort();
@@ -878,6 +1063,11 @@ async function assertDirectRouteContracts(page) {
   assert(
     contracts.brandHref === "/vi/",
     `Header brand href is ${JSON.stringify(contracts.brandHref)}; expected "/vi/"`,
+  );
+  assert(
+    contracts.brandLabel ===
+      "TRƯỜNG THỊNH NỘI THẤT · QUẢNG CÁO — Trang chủ",
+    `Header brand label is ${JSON.stringify(contracts.brandLabel)}`,
   );
   assert(
     contracts.header.hashHrefs.length === 0,
@@ -959,20 +1149,31 @@ async function waitForMenuVisualState(page) {
     () => {
       const dialog = document.querySelector("#site-menu");
       if (!dialog?.open || !dialog.classList.contains("is-active")) return false;
-      if (window.innerWidth <= 578) {
-        return document.activeElement === dialog.querySelector("[data-menu-close]");
-      }
       const dividers = [...document.querySelectorAll("#site-menu .menu-group")]
         .map((group) => ({
           group,
           style: getComputedStyle(group, "::after"),
         }))
         .filter(({ style }) => style.display !== "none");
-      return dividers.length > 0 && dividers.every(({ group, style }) => {
-        const targetHeight = group.getBoundingClientRect().height;
-        const dividerHeight = Number.parseFloat(style.height);
-        return targetHeight > 0 && Number.isFinite(dividerHeight) && Math.abs(targetHeight - dividerHeight) <= 1;
-      });
+      const brand = dialog.querySelector(".menu-brand");
+      const brandStyle = getComputedStyle(brand);
+      const brandMatrix = new DOMMatrixReadOnly(brandStyle.transform);
+      return (
+        document.activeElement === dialog.querySelector("[data-menu-close]") &&
+        Number.parseFloat(brandStyle.opacity) >= 0.999 &&
+        Math.abs(brandMatrix.f) <= 0.5 &&
+        dividers.every(({ group, style }) => {
+          const targetHeight = group.getBoundingClientRect().height;
+          const dividerHeight = Number.parseFloat(style.height);
+          const matrix = new DOMMatrixReadOnly(style.transform);
+          return (
+            targetHeight > 0 &&
+            Number.isFinite(dividerHeight) &&
+            Math.abs(targetHeight - dividerHeight) <= 1 &&
+            Math.abs(matrix.d - 1) <= 0.01
+          );
+        })
+      );
     },
     null,
     { timeout: 6_000 },
@@ -982,6 +1183,14 @@ async function waitForMenuVisualState(page) {
 async function closeMenu(page) {
   await page.locator("[data-menu-close]").click();
   await waitForMenuState(page, false);
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll(".menu-shutters i")].every(
+        (shutter) => Math.abs(shutter.getBoundingClientRect().height) <= 0.5,
+      ),
+    null,
+    { timeout: 1_000 },
+  );
 }
 
 async function restoreHeaderForMenu(page) {
@@ -1075,10 +1284,10 @@ async function steppedScroll(page, viewport) {
 }
 
 async function settleLazyImagesAfterSteppedScroll(page) {
-  const images = page.locator('img[loading="lazy"]');
-  const count = await images.count();
-  for (let index = 0; index < count; index += 1) {
-    const isVisible = await images.nth(index).evaluate((image) => {
+  const images = await page.locator('img[loading="lazy"]').elementHandles();
+  for (const imageHandle of images) {
+    const isVisible = await imageHandle.evaluate((image) => {
+      if (!image.isConnected) return false;
       image.scrollIntoView({
         block: "center",
         inline: "center",
@@ -1088,9 +1297,13 @@ async function settleLazyImagesAfterSteppedScroll(page) {
       return style.display !== "none" && style.visibility !== "hidden";
     });
     if (isVisible) {
-      await images.nth(index).evaluate(
+      await imageHandle.evaluate(
         (image) =>
           new Promise((resolve) => {
+            if (!image.isConnected) {
+              resolve();
+              return;
+            }
             if (image.complete && image.naturalWidth > 0) {
               resolve();
               return;
@@ -1251,9 +1464,15 @@ async function runPageCase(
     viewport,
     reducedMotion = "no-preference",
     javaScriptEnabled = true,
+    hasTouch = false,
+    isMobile = false,
+    deviceScaleFactor = 1,
   },
   testBody,
 ) {
+  if (process.env.TT_E2E_P13_NAVBAR_ONLY === "1"
+    && process.env.TT_E2E_P13_CASE
+    && !name.includes(process.env.TT_E2E_P13_CASE)) return;
   const caseStartedAt = Date.now();
   const context = await browser.newContext({
     viewport,
@@ -1261,6 +1480,9 @@ async function runPageCase(
     colorScheme: "light",
     reducedMotion,
     javaScriptEnabled,
+    hasTouch,
+    isMobile,
+    deviceScaleFactor,
   });
   const page = await context.newPage();
   let failureScreenshot;
@@ -1346,64 +1568,217 @@ async function runRootProcessCheck() {
 }
 
 async function runPortalAlignmentChecks() {
-  for (const width of [320, 768, 1024, 1440]) {
-    const viewport = { width, height: 900 };
-    await runPageCase(
-      `root portal typography and label alignment ${width}x900`,
-      { route: "/vi/", viewport },
-      async (page) => {
-        const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/");
-        const typography = await page.evaluate(() => ({
-          titleWeights: [
-            ...document.querySelectorAll(
-              "#dich-vu .portal-title__quiet, #dich-vu .portal-title__strong, #nang-luc .portal-title-mask",
+  for (const locale of ["vi", "en"]) {
+    for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
+      const viewport = { width, height: 900 };
+      await runPageCase(
+        `root portal hierarchy and title anchor ${locale} ${width}x900`,
+        { route: `/${locale}/`, viewport },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, `/${locale}/`);
+          const state = await page.evaluate(() => ({
+            cards: [...document.querySelectorAll("#dich-vu .service-portal")].map(
+              (card) => {
+                const cardRect = card.getBoundingClientRect();
+                const upper = card.querySelector(".portal-title__quiet");
+                const title = card.querySelector(".portal-title__strong");
+                const lower = card.querySelector(".portal-subtitle");
+                const upperRect = upper.getBoundingClientRect();
+                const titleRect = title.getBoundingClientRect();
+                const lowerRect = lower.getBoundingClientRect();
+                const upperStyle = getComputedStyle(upper);
+                const titleStyle = getComputedStyle(title);
+                const lowerStyle = getComputedStyle(lower);
+                return {
+                  cardCenter: cardRect.top + cardRect.height / 2,
+                  relativeTitleCenter:
+                    titleRect.top + titleRect.height / 2 - cardRect.top,
+                  titleCenter: titleRect.top + titleRect.height / 2,
+                  titleFontSize: Number.parseFloat(titleStyle.fontSize),
+                  titleWeight: titleStyle.fontWeight,
+                  upperFontSize: Number.parseFloat(upperStyle.fontSize),
+                  upperWeight: upperStyle.fontWeight,
+                  lowerFontSize: Number.parseFloat(lowerStyle.fontSize),
+                  lowerWeight: lowerStyle.fontWeight,
+                  upperOverflow: upper.scrollWidth - upper.clientWidth,
+                  titleOverflow: title.scrollWidth - title.clientWidth,
+                  lowerOverflow: lower.scrollWidth - lower.clientWidth,
+                  upperWhiteSpace: upperStyle.whiteSpace,
+                  titleWhiteSpace: titleStyle.whiteSpace,
+                  lowerWhiteSpace: lowerStyle.whiteSpace,
+                  upperWithin: upperRect.left >= cardRect.left + 8 && upperRect.right <= cardRect.right - 8,
+                  titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
+                  lowerWithin: lowerRect.left >= cardRect.left + 8 && lowerRect.right <= cardRect.right - 8,
+                  upperGap: titleRect.top - upperRect.bottom,
+                  lowerGap: lowerRect.top - titleRect.bottom,
+                };
+              },
             ),
-          ].map((element) => getComputedStyle(element).fontWeight),
-          subtitleWeights: [
-            ...document.querySelectorAll(
-              "#dich-vu .portal-subtitle, #nang-luc .portal-subtitle",
-            ),
-          ].map((element) => getComputedStyle(element).fontWeight),
-          horizontalOverflow:
-            document.documentElement.scrollWidth -
-            document.documentElement.clientWidth,
-        }));
-        assert(
-          typography.titleWeights.length === 9 &&
-            typography.titleWeights.every((weight) => weight === "500"),
-          `Portal titles do not share Espacio-equivalent weight 500: ${JSON.stringify(typography.titleWeights)}`,
-        );
-        assert(
-          typography.subtitleWeights.length === 6 &&
-            typography.subtitleWeights.every((weight) => weight === "600"),
-          `Portal subtitles do not share Espacio-equivalent weight 600: ${JSON.stringify(typography.subtitleWeights)}`,
-        );
-        assert(
-          typography.horizontalOverflow <= 0,
-          `Portal typography introduced ${typography.horizontalOverflow}px horizontal overflow`,
-        );
-        if (width >= 1024) {
-          const centers = await page
-            .locator("#dich-vu .service-portal .portal-title__strong")
-            .evaluateAll((labels) =>
-              labels.map((label) => {
-                const rect = label.getBoundingClientRect();
-                return rect.top + rect.height / 2;
-              }),
+            capabilityCards: [
+              ...document.querySelectorAll("#nang-luc .service-portal"),
+            ].map((card) => {
+              const cardRect = card.getBoundingClientRect();
+              const title = card.querySelector(".portal-title-mask");
+              const subtitle = card.querySelector(".portal-subtitle");
+              const titleRect = title.getBoundingClientRect();
+              const subtitleRect = subtitle.getBoundingClientRect();
+              const titleStyle = getComputedStyle(title);
+              const subtitleStyle = getComputedStyle(subtitle);
+              return {
+                title: card.querySelector(".portal-line")?.textContent.trim(),
+                titleFontSize: Number.parseFloat(titleStyle.fontSize),
+                subtitleFontSize: Number.parseFloat(subtitleStyle.fontSize),
+                titleOverflow: title.scrollWidth - title.clientWidth,
+                subtitleOverflow: subtitle.scrollWidth - subtitle.clientWidth,
+                titleWhiteSpace: titleStyle.whiteSpace,
+                subtitleWhiteSpace: subtitleStyle.whiteSpace,
+                titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
+                subtitleWithin: subtitleRect.left >= cardRect.left + 8 && subtitleRect.right <= cardRect.right - 8,
+                titleCenterOffset:
+                  titleRect.top +
+                  titleRect.height / 2 -
+                  (cardRect.top + cardRect.height / 2),
+                gap: subtitleRect.top - titleRect.bottom,
+              };
+            }),
+            advertisingImage: (() => {
+              const image = document.querySelector(
+                "#dich-vu .service-portal:nth-child(3) img",
+              );
+              return image
+                  ? {
+                    src: new URL(image.currentSrc || image.src).pathname,
+                    declaredWidth: Number(image.getAttribute("width")),
+                    declaredHeight: Number(image.getAttribute("height")),
+                  }
+                : null;
+            })(),
+            editorial: [
+              ...document.querySelectorAll("#bang-chung .editorial-item"),
+            ].map((item) => {
+              const heading = item.querySelector("h3");
+              const body = item.querySelector("p");
+              return {
+                headingSize: Number.parseFloat(
+                  getComputedStyle(heading).fontSize,
+                ),
+                headingOverflow: heading.scrollWidth - heading.clientWidth,
+                bodySize: Number.parseFloat(getComputedStyle(body).fontSize),
+              };
+            }),
+            horizontalOverflow:
+              document.documentElement.scrollWidth -
+              document.documentElement.clientWidth,
+          }));
+          const zoomed = await page.evaluate(() => {
+            document.documentElement.style.fontSize = "200%";
+            const read = (selector) => [...document.querySelectorAll(selector)].map((element) => ({
+              fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+              overflow: element.scrollWidth - element.clientWidth,
+              whiteSpace: getComputedStyle(element).whiteSpace,
+              within: (() => {
+                const card = element.closest(".service-portal");
+                const cardRect = card.getBoundingClientRect();
+                const rect = element.getBoundingClientRect();
+                return rect.left >= cardRect.left + 8 && rect.right <= cardRect.right - 8;
+              })(),
+            }));
+            return {
+              serviceTitles: read("#dich-vu .portal-title__strong"),
+              serviceKickers: read("#dich-vu .portal-title__quiet"),
+              serviceSubtitles: read("#dich-vu .portal-subtitle"),
+              capabilityTitles: read("#nang-luc .portal-title-mask"),
+              capabilitySubtitles: read("#nang-luc .portal-subtitle"),
+            };
+          });
+          for (const [role, samples] of Object.entries(zoomed)) {
+            assert(
+              samples.length === 3 && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && whiteSpace === "nowrap" && within),
+              `Portal ${role} clips or wraps at 200% text zoom for ${locale} ${width}px: ${JSON.stringify(samples)}`,
             );
-          assert(centers.length === 3, `Expected 3 portal labels, found ${centers.length}`);
-          const spread = Math.max(...centers) - Math.min(...centers);
+            const sizes = samples.map(({ fontSize }) => fontSize);
+            assert(
+              Math.max(...sizes) - Math.min(...sizes) <= 0.01,
+              `Portal ${role} peer sizes differ at ${locale} ${width}px: ${sizes.join(", ")}`,
+            );
+          }
           assert(
-            spread <= 1,
-            `Portal label center spread is ${spread.toFixed(2)}px: ${centers
-              .map((center) => center.toFixed(2))
-              .join(", ")}`,
+            state.cards.every((card) => card.upperOverflow <= 0.5 && card.titleOverflow <= 0.5 && card.lowerOverflow <= 0.5
+              && card.upperWhiteSpace === "nowrap" && card.titleWhiteSpace === "nowrap" && card.lowerWhiteSpace === "nowrap"
+              && card.upperWithin && card.titleWithin && card.lowerWithin),
+            `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
-        }
-        assertDiagnostics(diagnostics);
-      },
-    );
+          assert(
+            state.capabilityCards.every((card) => card.titleOverflow <= 0.5 && card.subtitleOverflow <= 0.5
+              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "nowrap"
+              && card.titleWithin && card.subtitleWithin),
+            `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+          );
+          assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
+          assert(
+            state.capabilityCards[1]?.title ===
+              (locale === "vi" ? "Xưởng CNC" : "Workshop & CNC"),
+            `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
+          );
+          assert(
+            state.capabilityCards.length === 3 &&
+              state.capabilityCards.every(
+                (card) =>
+                  Math.abs(card.titleCenterOffset) <= 1 &&
+                  Math.abs(card.gap - 17.6) <= 0.25,
+              ),
+            `Capability portal title anchor or gap drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+          );
+          assert(
+            state.advertisingImage?.src ===
+              "/assets/content/projects/home-advertising-products-blue-grid.webp" &&
+              state.advertisingImage.declaredWidth === 1086 &&
+              state.advertisingImage.declaredHeight === 1448,
+            `Advertising portal image contract drifted at ${locale} ${width}px: ${JSON.stringify(state.advertisingImage)}`,
+          );
+          assert(
+            state.cards.every(
+              (card) =>
+                card.titleWeight === "600" &&
+                card.titleFontSize > card.upperFontSize &&
+                card.upperFontSize >= card.lowerFontSize &&
+                card.upperWeight === card.lowerWeight &&
+                Math.abs(card.upperGap - 13.6) <= 0.25 &&
+                card.lowerGap > card.upperGap + 2 &&
+                Math.abs(card.titleCenter - card.cardCenter) <= 1,
+            ),
+            `Portal hierarchy drifted at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
+          );
+          for (const role of ["titleFontSize", "upperFontSize", "lowerFontSize"]) {
+            const sizes = state.cards.map((card) => card[role]);
+            assert(
+              Math.max(...sizes) - Math.min(...sizes) <= 0.01,
+              `Service portal ${role} peer sizes differ at ${locale} ${width}px: ${sizes.join(", ")}`,
+            );
+          }
+          const relativeCenters = state.cards.map(
+            ({ relativeTitleCenter }) => relativeTitleCenter,
+          );
+          assert(
+            Math.max(...relativeCenters) - Math.min(...relativeCenters) <= 1,
+            `Portal relative title Y differs at ${locale} ${width}px: ${relativeCenters.join(", ")}`,
+          );
+          if (width >= 1024) {
+            const titleCenters = state.cards.map(({ titleCenter }) => titleCenter);
+            assert(
+              Math.max(...titleCenters) - Math.min(...titleCenters) <= 1,
+              `Desktop portal absolute title Y differs at ${locale} ${width}px: ${titleCenters.join(", ")}`,
+            );
+          }
+          assert(
+            state.horizontalOverflow <= 0,
+            `Portal hierarchy introduced ${state.horizontalOverflow}px horizontal overflow`,
+          );
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
   }
 }
 
@@ -1466,6 +1841,7 @@ async function runHeaderParityChecks() {
           const navStyle = getComputedStyle(nav);
           const listStyle = getComputedStyle(navList);
           return {
+            clientWidth: document.documentElement.clientWidth,
             header: rect(header),
             padding: [
               headerStyle.paddingTop,
@@ -1477,6 +1853,9 @@ async function runHeaderParityChecks() {
             tracks: headerStyle.gridTemplateColumns
               .split(" ")
               .map(Number.parseFloat),
+            rowTracks: headerStyle.gridTemplateRows
+              .split(" ")
+              .map(Number.parseFloat),
             gap: Number.parseFloat(headerStyle.columnGap),
             navDisplay: listStyle.display,
             navRows: listStyle.gridTemplateRows.split(" ").length,
@@ -1484,20 +1863,26 @@ async function runHeaderParityChecks() {
             navLine: Number.parseFloat(navStyle.lineHeight),
             labels: links.map((link) => link.textContent.trim()),
             brand: rect(header.querySelector("#header-logo")),
-            mark: rect(header.querySelector(".brand-mark")),
-            brandSubtitle: rect(header.querySelector(".brand-copy small")),
-            brandSubtitleDisplay: getComputedStyle(
-              header.querySelector(".brand-copy small"),
-            ).display,
-            brandSubtitleText: header
-              .querySelector(".brand-copy small")
-              .textContent.trim(),
+            lockup: rect(header.querySelector(".brand-lockup")),
+            lockupPathCount: header.querySelectorAll(".brand-lockup path").length,
+            lockupHasUse: Boolean(header.querySelector(".brand-lockup use")),
             nav: rect(nav),
             navList: rect(navList),
             navListLeft: Number.parseFloat(listStyle.left),
             navListMargin: [listStyle.marginTop, listStyle.marginBottom].map(
               Number.parseFloat,
             ),
+            navLinks: links.map((link) => {
+              const linkStyle = getComputedStyle(link);
+              return {
+                ...rect(link),
+                fontFamily: linkStyle.fontFamily,
+                fontSize: linkStyle.fontSize,
+                fontWeight: linkStyle.fontWeight,
+                letterSpacing: linkStyle.letterSpacing,
+                lineHeight: linkStyle.lineHeight,
+              };
+            }),
             firstLink: rect(links[0]),
             lastLink: rect(links.at(-1)),
             menu: rect(header.querySelector("#header-menu-toggle")),
@@ -1517,15 +1902,22 @@ async function runHeaderParityChecks() {
           : mobile
             ? [15, 15, 0, 15]
             : [25, 25, 0, 25];
-        const expectedBrandTrack = desktop
-          ? 170
+        const expectedBrandTrack = expectedBrandHeaderTrackWidth(viewport.width);
+        const expectedHeaderRow = desktop
+          ? 67.515625
           : mobile
-            ? viewport.width - 125
-            : 220;
+            ? 57.59375
+            : 60.390625;
         assert(
-          Math.abs(expanded.header.width - viewport.width) <= 1 &&
+          Math.abs(expanded.header.width - expanded.clientWidth) <= 1 &&
             Math.abs(expanded.tracks[0] - expectedBrandTrack) <= 1 &&
             Math.abs(expanded.tracks.at(-1) - 65) <= 1 &&
+            expanded.rowTracks.length === 1 &&
+            Math.abs(expanded.rowTracks[0] - expectedHeaderRow) <= 0.01 &&
+            Math.abs(
+              expanded.header.height -
+                (expectedHeaderRow + expectedPadding[0] + expectedPadding[2]),
+            ) <= 0.02 &&
             Math.abs(expanded.gap - (desktop ? 70 : mobile ? 15 : 25)) <= 1 &&
             Math.abs(expanded.border) <= 0.1 &&
             expanded.padding.every(
@@ -1545,9 +1937,8 @@ async function runHeaderParityChecks() {
                 "Không gian Kinh doanh",
                 "Sản phẩm Quảng cáo",
               ]) &&
-            expanded.brandSubtitleDisplay === "block" &&
-            expanded.brandSubtitle.height > 0 &&
-            expanded.brandSubtitleText === "NỘI THẤT · QUẢNG CÁO",
+            expanded.lockupPathCount === 4 &&
+            !expanded.lockupHasUse,
           `Header navigation contract drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
         );
         const rhythm = {
@@ -1562,12 +1953,20 @@ async function runHeaderParityChecks() {
               Math.abs(expanded.nav.height - rhythm.nav) <= 1 &&
               expanded.navListMargin.every((value) => Math.abs(value - 16) <= 0.1) &&
               Math.abs(
-                expanded.navListLeft - (viewport.width > 1200 ? -64.5656 : 0),
+                expanded.navListLeft -
+                  (viewport.width > 1200 ? expanded.nav.width * -0.1 : 0),
               ) <= 1,
             `Header vertical or x rhythm drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
           );
         }
-        const expectedMark = viewport.width <= 680 ? 57.59375 : 60;
+        const expectedBrandWidth = expectedBrandHeaderWidth(viewport.width);
+        const expectedBrandHeight = expectedBrandHeaderHeight(viewport.width);
+        const expectedBrandX = desktop ? 35 : mobile ? 15 : 25;
+        const expectedBrandY = desktop
+          ? 35 + (67.515625 - expectedBrandHeight) / 2
+          : mobile
+            ? 15 + (57.59375 - expectedBrandHeight) / 2
+            : 25 + (60.390625 - expectedBrandHeight) / 2;
         const brandClearance = mobile
           ? expanded.menuSvg.left - expanded.brand.right
           : expanded.firstLink.left - expanded.brand.right;
@@ -1575,12 +1974,16 @@ async function runHeaderParityChecks() {
           ? brandClearance
           : expanded.menuSvg.left - expanded.lastLink.right;
         assert(
-          Math.abs(expanded.mark.width - expectedMark) <= 0.1 &&
-            Math.abs(expanded.mark.height - expectedMark) <= 0.1 &&
+          Math.abs(expanded.brand.left - expectedBrandX) <= 0.1 &&
+            Math.abs(expanded.brand.top - expectedBrandY) <= 0.1 &&
+            Math.abs(expanded.brand.width - expectedBrandWidth) <= 0.1 &&
+            Math.abs(expanded.brand.height - expectedBrandHeight) <= 0.1 &&
+            Math.abs(expanded.lockup.width - expectedBrandWidth) <= 0.1 &&
+            Math.abs(expanded.lockup.height - expectedBrandHeight) <= 0.1 &&
             Math.abs(expanded.menuSvg.width - 35) <= 0.1 &&
             Math.abs(expanded.menuSvg.height - 19) <= 0.1 &&
             Math.abs(expanded.stroke - 3) <= 0.1 &&
-            brandClearance >= 24 &&
+            brandClearance >= 10 &&
             menuClearance >= 24 &&
             expanded.overflow <= 1,
           `Header controls overlap or overflow at ${viewport.width}: ${JSON.stringify(expanded)}`,
@@ -1592,10 +1995,29 @@ async function runHeaderParityChecks() {
         const collapsed = await page.evaluate(() => {
           const header = document.querySelector("[data-site-header]");
           const style = getComputedStyle(header);
-          const mark = header.querySelector(".brand-mark").getBoundingClientRect();
+          const lockup = header
+            .querySelector(".brand-lockup")
+            .getBoundingClientRect();
+          const navLinks = [
+            ...header.querySelectorAll("#header-menu-items > ul > li > a"),
+          ].map((link) => {
+            const rect = link.getBoundingClientRect();
+            const linkStyle = getComputedStyle(link);
+            return {
+              left: rect.left,
+              width: rect.width,
+              fontFamily: linkStyle.fontFamily,
+              fontSize: linkStyle.fontSize,
+              fontWeight: linkStyle.fontWeight,
+              letterSpacing: linkStyle.letterSpacing,
+              lineHeight: linkStyle.lineHeight,
+            };
+          });
           return {
             classes: header.className,
-            mark: [mark.width, mark.height],
+            height: header.getBoundingClientRect().height,
+            lockup: [lockup.width, lockup.height],
+            navLinks,
             padding: [
               style.paddingTop,
               style.paddingRight,
@@ -1610,9 +2032,14 @@ async function runHeaderParityChecks() {
           };
         });
         const collapsedSide = desktop ? 35 : mobile ? 15 : 25;
+        const collapsedHeaderHeight = mobile
+          ? 70.640625
+          : 81.390625;
         assert(
           collapsed.classes.includes("is-collapsed") &&
-            collapsed.mark.every((value) => Math.abs(value - 48) <= 0.1) &&
+            Math.abs(collapsed.height - collapsedHeaderHeight) <= 0.02 &&
+            Math.abs(collapsed.lockup[0] - expectedBrandHeaderWidth(viewport.width, true)) <= 0.1 &&
+            Math.abs(collapsed.lockup[1] - 49.641) <= 0.1 &&
             collapsed.padding.every(
               (value, index) =>
                 Math.abs(value - ([10, collapsedSide, 10, collapsedSide][index])) <=
@@ -1623,6 +2050,24 @@ async function runHeaderParityChecks() {
             collapsed.overflow <= 1,
           `Collapsed header geometry drifted at ${viewport.width}: ${JSON.stringify(collapsed)}`,
         );
+        if (!mobile) {
+          assert(
+            collapsed.navLinks.length === expanded.navLinks.length &&
+              collapsed.navLinks.every((link, index) => {
+                const before = expanded.navLinks[index];
+                return (
+                  Math.abs(link.left - before.left) <= 1 &&
+                  Math.abs(link.width - before.width) <= 1 &&
+                  link.fontFamily === before.fontFamily &&
+                  link.fontSize === before.fontSize &&
+                  link.fontWeight === before.fontWeight &&
+                  link.letterSpacing === before.letterSpacing &&
+                  link.lineHeight === before.lineHeight
+                );
+              }),
+            `Header links shifted or changed typography between expanded and sticky states at ${viewport.width}: ${JSON.stringify({ expanded: expanded.navLinks, collapsed: collapsed.navLinks })}`,
+          );
+        }
         assertDiagnostics(diagnostics);
       },
     );
@@ -1782,8 +2227,8 @@ async function runHeaderParityChecks() {
         document.documentElement.style.scrollBehavior = "auto";
         const header = document.querySelector("[data-site-header]");
         const read = () => [
-          getComputedStyle(header.querySelector(".brand-mark path")).fill,
-          getComputedStyle(header.querySelector(".brand-copy strong")).color,
+          getComputedStyle(header.querySelector(".brand-lockup")).fill,
+          getComputedStyle(header.querySelector("#header-logo")).color,
           getComputedStyle(header.querySelector(".desktop-nav a")).color,
           getComputedStyle(header.querySelector(".menu-button line")).stroke,
         ];
@@ -1858,6 +2303,7 @@ async function runHeaderParityChecks() {
         const style = getComputedStyle(element);
         return {
           classes: element.className,
+          height: element.getBoundingClientRect().height,
           top: element.getBoundingClientRect().top,
           duration: style.transitionDuration,
           timing: style.transitionTimingFunction,
@@ -1865,10 +2311,20 @@ async function runHeaderParityChecks() {
       });
       assert(
         hidden.classes.includes("is-hidden") &&
-          hidden.top < -80 &&
+          Math.abs(hidden.top + hidden.height) <= 1 &&
           hidden.duration.includes("1s") &&
           hidden.timing.includes("cubic-bezier(0, 0, 0.1, 0.99)"),
         `Header did not hide with the audited transform: ${JSON.stringify(hidden)}`,
+      );
+      await page.locator("[data-site-header]").dispatchEvent("pointermove", {
+        pointerType: "touch",
+        screenY: 100,
+      });
+      assert(
+        !(await page.locator("[data-site-header]").evaluate((element) =>
+          element.classList.contains("forceShow"),
+        )),
+        "A touch pointer unexpectedly triggered the mouse-only force-show region",
       );
       await page.mouse.move(100, 100);
       await page.waitForTimeout(1_050);
@@ -1942,7 +2398,7 @@ async function runHeaderParityChecks() {
 
       await page.evaluate(() => {
         document.documentElement.style.scrollBehavior = "auto";
-        window.scrollTo(0, 600);
+        window.TruongThinhMotion.setLogicalScroll(600);
       });
       await page.mouse.move(100, 100);
       await page.waitForTimeout(1_050);
@@ -1950,27 +2406,27 @@ async function runHeaderParityChecks() {
         window.__ttSelectedHeader = document.querySelector("[data-site-header]");
         return {
           historyLength: history.length,
-          scrollY: window.scrollY,
+          logicalScroll: window.TruongThinhMotion.getLogicalScroll(),
           timeOrigin: performance.timeOrigin,
           url: window.location.href,
         };
       });
-      const assertUnchanged = async (input) => {
+      const assertReturnedTop = async (input) => {
         const state = await page.evaluate(() => ({
           headerIdentity:
             window.__ttSelectedHeader === document.querySelector("[data-site-header]"),
           historyLength: history.length,
-          scrollY: window.scrollY,
+          logicalScroll: window.TruongThinhMotion.getLogicalScroll(),
           timeOrigin: performance.timeOrigin,
           url: window.location.href,
         }));
         assert(
-          state.headerIdentity &&
-            state.historyLength === initial.historyLength &&
-            Math.abs(state.scrollY - initial.scrollY) <= 2 &&
-            state.timeOrigin === initial.timeOrigin &&
-            state.url === initial.url,
-          `Selected nav ${input} changed document state: ${JSON.stringify({ initial, state })}`,
+            state.headerIdentity &&
+              state.historyLength === initial.historyLength &&
+              Math.abs(state.logicalScroll) <= 0.5 &&
+              state.timeOrigin === initial.timeOrigin &&
+              state.url === initial.url,
+          `Selected nav ${input} did not return the current parent to top: ${JSON.stringify({ initial, state })}`,
         );
       };
 
@@ -1978,17 +2434,63 @@ async function runHeaderParityChecks() {
       assert(box, "Selected desktop link has no pointer geometry");
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
       await page.waitForTimeout(500);
-      await assertUnchanged("pointer click");
+      await assertReturnedTop("pointer click");
       assert(
-        (await activeLink.evaluate((element) => getComputedStyle(element).pointerEvents)) ===
+        (await activeLink.evaluate((element) => getComputedStyle(element).pointerEvents)) !==
           "none",
-        "Selected desktop link still accepts pointer events",
+        "Selected desktop link blocks pointer events",
       );
 
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));
       await activeLink.focus();
       await page.keyboard.press("Enter");
       await page.waitForTimeout(500);
-      await assertUnchanged("keyboard Enter");
+      await assertReturnedTop("keyboard Enter");
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "touch input cannot force-show the hidden header",
+    {
+      route: "/vi/residential/",
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+      deviceScaleFactor: 2,
+    },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/residential/");
+      await page.waitForTimeout(2_600);
+      await page.evaluate(() => {
+        document.documentElement.style.scrollBehavior = "auto";
+        scrollTo(0, 500);
+      });
+      await page.waitForTimeout(80);
+      await page.evaluate(() => scrollTo(0, 700));
+      await page.waitForTimeout(1_050);
+      assert(
+        await page.locator("[data-site-header]").evaluate((element) =>
+          element.classList.contains("is-hidden"),
+        ),
+        "Touch-only context could not establish the hidden header state",
+      );
+      await page.touchscreen.tap(100, 100);
+      await page.evaluate(() =>
+        document.dispatchEvent(
+          new MouseEvent("mousemove", { bubbles: true, screenY: 100 }),
+        ),
+      );
+      await page.waitForTimeout(120);
+      assert(
+        await page.locator("[data-site-header]").evaluate(
+          (element) =>
+            !element.classList.contains("forceShow") &&
+            element.classList.contains("is-hidden"),
+        ),
+        "Touch-only context triggered the mouse-only force-show region",
+      );
       assertDiagnostics(diagnostics);
     },
   );
@@ -2094,8 +2596,8 @@ async function runPersistentBarbaNavigationChecks() {
                 const channel = (value) =>
                   Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
                 const tone = [
-                  getComputedStyle(header.querySelector(".brand-mark path")).fill,
-                  getComputedStyle(header.querySelector(".brand-copy")).color,
+                  getComputedStyle(header.querySelector(".brand-lockup")).fill,
+                  getComputedStyle(header.querySelector("#header-logo")).color,
                   getComputedStyle(header.querySelector(".desktop-nav a")).color,
                   getComputedStyle(header.querySelector(".menu-button line")).stroke,
                 ].map(channel);
@@ -2326,6 +2828,627 @@ async function runPersistentBarbaNavigationChecks() {
   );
 }
 
+async function runEspacioRouteLogoTimingChecks() {
+  const viewport = { width: 1440, height: 900 };
+  await runPageCase(
+    "Espacio route logo destination timing",
+    { route: "/vi/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await page.evaluate(() => {
+        window.__ttEspacioRouteTrace = [];
+        const channel = (value) =>
+          Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
+        const startedAt = performance.now();
+        const timer = window.setInterval(() => {
+          const header = document.querySelector("[data-site-header]");
+          const veil = document.querySelector(".route-veil");
+          const container = document.querySelector(
+            '[data-barba="container"]:not([hidden])',
+          );
+          const sample = {
+            time: performance.now() - startedAt,
+            namespace: container?.dataset.barbaNamespace || "",
+            transitioning: document.body.classList.contains("is-transitioning"),
+            veil: Number.parseFloat(getComputedStyle(veil).opacity),
+            logo: channel(getComputedStyle(header.querySelector("#header-logo")).color),
+            brandColor: header.classList.contains("is-brand-color"),
+          };
+          window.__ttEspacioRouteTrace.push(sample);
+          if (
+            sample.namespace === "residential" &&
+            !sample.transitioning &&
+            sample.veil <= 0.001
+          ) {
+            window.clearInterval(timer);
+          }
+        }, 8);
+      });
+      const residentialLink = await findRouteLink(
+        page,
+        "[data-site-header]",
+        "/vi/residential/",
+      );
+      await clickRouteLink(page, residentialLink, "/vi/residential/");
+      const ordinaryTrace = await page.evaluate(
+        () => window.__ttEspacioRouteTrace || [],
+      );
+      const destinationIndex = ordinaryTrace.findIndex(
+        (sample) => sample.namespace === "residential",
+      );
+      const destinationToneUnderCover = ordinaryTrace.findIndex(
+        (sample, index) =>
+          index >= destinationIndex && sample.veil >= 0.99 && sample.logo > 80,
+      );
+      assert(
+        destinationIndex >= 0 && destinationToneUnderCover >= destinationIndex,
+        `Residential destination tone did not start while the route veil was opaque: ${JSON.stringify(
+          ordinaryTrace.slice(Math.max(0, destinationIndex - 2), destinationIndex + 18),
+        )}`,
+      );
+      assert(
+        ordinaryTrace.some(
+          (sample) => sample.transitioning && sample.brandColor,
+        ),
+        "White route veil did not complete the shared CMYK mark state",
+      );
+
+      await page.evaluate(() => {
+        window.__ttEspacioAdvertisingTrace = [];
+        const rgb = (value) =>
+          (value.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+        const startedAt = performance.now();
+        const timer = window.setInterval(() => {
+          const header = document.querySelector("[data-site-header]");
+          const veil = document.querySelector(".route-veil");
+          const container = document.querySelector(
+            '[data-barba="container"]:not([hidden])',
+          );
+          const sample = {
+            time: performance.now() - startedAt,
+            namespace: container?.dataset.barbaNamespace || "",
+            transitioning: document.body.classList.contains("is-transitioning"),
+            veil: Number.parseFloat(getComputedStyle(veil).opacity),
+            colorState: header.classList.contains("is-brand-color"),
+            fills: [...header.querySelectorAll(".brand-lockup__mark path")].map(
+              (path) => rgb(getComputedStyle(path).fill),
+            ),
+            transitionTotals: [
+              ...header.querySelectorAll(".brand-lockup__mark path"),
+            ].map((path) => {
+              const style = getComputedStyle(path);
+              return (
+                Number.parseFloat(style.transitionDuration) +
+                Number.parseFloat(style.transitionDelay)
+              );
+            }),
+            wordmark: rgb(
+              getComputedStyle(header.querySelector(".brand-lockup__title")).fill,
+            ),
+          };
+          window.__ttEspacioAdvertisingTrace.push(sample);
+          if (
+            sample.namespace === "advertising-products" &&
+            !sample.transitioning &&
+            sample.veil <= 0.001
+          ) {
+            window.clearInterval(timer);
+          }
+        }, 8);
+      });
+      const advertisingLink = await findRouteLink(
+        page,
+        "[data-site-header]",
+        "/vi/advertising-products/",
+      );
+      await clickRouteLink(page, advertisingLink, "/vi/advertising-products/");
+      const advertisingTrace = await page.evaluate(
+        () => window.__ttEspacioAdvertisingTrace || [],
+      );
+      const advertisingStart = advertisingTrace.findIndex(
+        (sample) => sample.namespace === "advertising-products",
+      );
+      const startsBlack = advertisingTrace.findIndex(
+        (sample, index) =>
+          index >= advertisingStart &&
+          sample.fills.length === 4 &&
+          sample.fills.every((fill) =>
+            fill.every((channel) => channel >= 30 && channel <= 70),
+          ),
+      );
+      const endsCmyk = advertisingTrace.findIndex(
+        (sample, index) =>
+          index >= startsBlack &&
+          sample.colorState &&
+          sample.fills[1]?.[0] >= 245 &&
+          sample.fills[1]?.[1] >= 225 &&
+          sample.fills[2]?.[0] >= 220 &&
+          sample.fills[2]?.[2] >= 100 &&
+          sample.fills[3]?.[1] >= 145 &&
+          sample.fills[3]?.[2] >= 210,
+      );
+      const colorDuration =
+        startsBlack >= 0 && endsCmyk >= 0
+          ? advertisingTrace[endsCmyk].time - advertisingTrace[startsBlack].time
+          : Number.NaN;
+      const activeColorSample = advertisingTrace.find(
+        (sample, index) => index >= startsBlack && sample.colorState,
+      );
+      assert(
+        advertisingStart >= 0 && startsBlack >= advertisingStart,
+        `Advertising mark did not begin monochrome black: ${JSON.stringify(
+          advertisingTrace.slice(Math.max(0, advertisingStart - 2), advertisingStart + 12),
+        )}`,
+      );
+      assert(
+        endsCmyk > startsBlack &&
+          activeColorSample?.transitionTotals.length === 4 &&
+          activeColorSample.transitionTotals.every(
+            (duration) => Math.abs(duration - 1) <= 0.02,
+          ),
+        `Advertising mark did not complete black-to-CMYK in 1s: ${JSON.stringify({
+          colorDuration,
+          startsBlack,
+          endsCmyk,
+          transitionTotals: activeColorSample?.transitionTotals,
+        })}`,
+      );
+      assert(
+        advertisingTrace
+          .slice(advertisingStart)
+          .every((sample) =>
+            sample.wordmark.every((channel) => channel >= 25 && channel <= 80),
+          ),
+        "Advertising entry recolored the wordmark instead of the mark only",
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  let delayedHeroReleased = false;
+  await runPageCase(
+    "Espacio route reveal does not wait for destination media",
+    { route: "/vi/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await page.route("**/residential-detail.webp", async (requestRoute) => {
+        await new Promise((resolve) => setTimeout(resolve, 1_800));
+        delayedHeroReleased = true;
+        await requestRoute.continue();
+      });
+      const link = await findRouteLink(
+        page,
+        "[data-site-header]",
+        "/vi/residential/",
+      );
+      await clickRouteLink(page, link, "/vi/residential/");
+      await page.waitForFunction(
+        () => {
+          const veil = document.querySelector(".route-veil");
+          const container = document.querySelector(
+            '[data-barba="container"][data-barba-namespace="residential"]',
+          );
+          return (
+            container &&
+            Number.parseFloat(getComputedStyle(veil).opacity) < 0.95
+          );
+        },
+        null,
+        { timeout: 2_500 },
+      );
+      const state = await page.evaluate(() => {
+        const image = document.querySelector(
+          '[data-barba-namespace="residential"] img[src*="residential-detail.webp"]',
+        );
+        return {
+          complete: image?.complete,
+          veil: Number.parseFloat(
+            getComputedStyle(document.querySelector(".route-veil")).opacity,
+          ),
+        };
+      });
+      assert(
+        !delayedHeroReleased && state.complete === false && state.veil < 0.95,
+        `Route reveal waited for delayed destination media: ${JSON.stringify({ delayedHeroReleased, state })}`,
+      );
+      await page.waitForFunction(
+        () =>
+          document.querySelector(
+            '[data-barba-namespace="residential"] img[src*="residential-detail.webp"]',
+          )?.complete,
+        null,
+        { timeout: 5_000 },
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runEspacioScrollCueChecks() {
+  await runPageCase(
+    "scroll cue letters enter and exit with a uniform stagger",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      const timing = await page.evaluate(async () => {
+        const gsap = window.gsap;
+        if (!gsap) return null;
+        const originalTimeScale = gsap.globalTimeline.timeScale();
+        try {
+          gsap.globalTimeline.timeScale(2);
+          window.dispatchEvent(new Event("languagechange"));
+          const characters = [
+            ...document.querySelectorAll("[data-scroll-cue-char]"),
+          ];
+          const rows = characters.map((character) => ({
+            character: character.textContent,
+            enterStart: null,
+            enterDone: null,
+            exitStart: null,
+          }));
+          const startedAt = performance.now();
+          const deadline = startedAt + 4_600;
+          while (performance.now() < deadline) {
+            const elapsed = performance.now() - startedAt;
+            characters.forEach((character, index) => {
+              const opacity = Number.parseFloat(
+                getComputedStyle(character).opacity,
+              );
+              const row = rows[index];
+              if (row.enterStart === null && opacity > 0.05) {
+                row.enterStart = elapsed;
+              }
+              if (row.enterDone === null && opacity >= 0.95) {
+                row.enterDone = elapsed;
+              }
+              if (
+                row.enterDone !== null &&
+                row.exitStart === null &&
+                opacity < 0.95
+              ) {
+                row.exitStart = elapsed;
+              }
+            });
+            await new Promise((resolve) => window.setTimeout(resolve, 8));
+          }
+          const intervals = (key) =>
+            rows.slice(1).map((row, index) => row[key] - rows[index][key]);
+          return {
+            rows,
+            enterIntervals: intervals("enterStart"),
+            exitIntervals: intervals("exitStart"),
+          };
+        } finally {
+          gsap.globalTimeline.timeScale(originalTimeScale);
+        }
+      });
+      const isUniform = (intervals) =>
+        intervals.length > 0 &&
+        intervals.every((interval) => interval >= 25 && interval <= 80);
+      assert(
+        timing &&
+          isUniform(timing.enterIntervals) &&
+          isUniform(timing.exitIntervals),
+        `Scroll cue stagger is not uniform per letter: ${JSON.stringify(timing)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  const cases = [
+    ...ROUTES,
+    ...ROUTES.map((route) => route.replace(/^\/vi\//, "/en/")),
+  ];
+  for (const route of cases) {
+    const viewport = { width: 1440, height: 900 };
+    await runPageCase(
+      `Espacio scroll cue ${route}`,
+      { route, viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, route);
+        const state = await page.evaluate(() => {
+          const cue = document.querySelector("[data-scroll-cue]");
+          const label = cue?.querySelector("[data-scroll-cue-label]");
+          const rect = cue?.getBoundingClientRect();
+          const styles = cue ? getComputedStyle(cue) : null;
+          return {
+            isButton: cue?.tagName === "BUTTON",
+            label: label?.textContent.trim() || "",
+            characters: [
+              ...(label?.querySelectorAll("[data-scroll-cue-char]") || []),
+            ].map((character) => character.textContent),
+            bottom: rect ? innerHeight - rect.bottom : Number.NaN,
+            cueCount: document.querySelectorAll("[data-scroll-cue]").length,
+            wordSpacingRatio: styles
+              ? Number.parseFloat(styles.wordSpacing) /
+                Number.parseFloat(styles.fontSize)
+              : Number.NaN,
+          };
+        });
+        const expectedLabel = route.startsWith("/en/")
+          ? "SCROLL DOWN"
+          : "CUỘN XUỐNG";
+        const expectedViewportBottom = route.includes("/advertising-products/")
+          ? 95
+          : 45;
+        assert(
+          state.cueCount === 1 &&
+            state.isButton &&
+            state.label === expectedLabel &&
+            state.characters.length ===
+              [...expectedLabel].filter((character) => !/\s/u.test(character))
+                .length &&
+            state.characters.every((character) => !/\s/u.test(character)) &&
+            Math.abs(state.bottom - expectedViewportBottom) <= 1 &&
+            Math.abs(state.wordSpacingRatio - 0.1) <= 0.01,
+          `Scroll cue contract drifted on ${route}: ${JSON.stringify(state)}`,
+        );
+        if (route === "/vi/advertising-products/") {
+          const pathname = new URL(page.url()).pathname;
+          await page.evaluate(() =>
+            document.querySelector("[data-scroll-cue]")?.click(),
+          );
+          await page.waitForFunction(
+            () => {
+              const hero = document.querySelector(".hero");
+              const target = hero?.nextElementSibling;
+              if (!(target instanceof HTMLElement)) return false;
+              return Math.abs(target.getBoundingClientRect().top) <= 120;
+            },
+            null,
+            { timeout: 5_000 },
+          );
+          assert(
+            new URL(page.url()).pathname === pathname,
+            "Scroll cue changed route instead of scrolling to the next section",
+          );
+        }
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "Espacio scroll cue responsive offsets",
+    {
+      route: "/vi/advertising-products/",
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    },
+    async (page) => {
+      await gotoRoute(page, "/vi/advertising-products/");
+      const bottom = await page.locator("[data-scroll-cue]").evaluate((cue) => {
+        const rect = cue.getBoundingClientRect();
+        return innerHeight - rect.bottom;
+      });
+      assert(
+        Math.abs(bottom - 110) <= 1,
+        `Mobile advertising scroll cue viewport offset is ${bottom}px; expected 110px`,
+      );
+    },
+  );
+
+  await runPageCase(
+    "scroll cue cycle restarts after soft route and history",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const assertFreshCycle = async (label) => {
+        await page.waitForSelector("[data-scroll-cue-char]");
+        const state = await page
+          .locator("[data-scroll-cue-char]")
+          .first()
+          .evaluate((character) => ({
+            opacity: Number.parseFloat(getComputedStyle(character).opacity),
+            top: Number.parseFloat(getComputedStyle(character).top),
+          }));
+        assert(
+          state.opacity <= 0.01 && Math.abs(state.top + 20) <= 0.5,
+          `${label} did not restart from the Espacio initial delay state: ${JSON.stringify(state)}`,
+        );
+      };
+      const waitForReplacement = async (oldCue) => {
+        await page.waitForFunction((cue) => !cue.isConnected, oldCue, {
+          timeout: 6_000,
+        });
+      };
+
+      await gotoRoute(page, "/vi/");
+      const homeCue = await page.locator("[data-scroll-cue]").elementHandle();
+      const residentialLink = await findRouteLink(
+        page,
+        "[data-site-header]",
+        "/vi/residential/",
+      );
+      await Promise.all([
+        waitForCanonicalPath(page, "/vi/residential/"),
+        residentialLink.click(),
+      ]);
+      await waitForReplacement(homeCue);
+      await assertFreshCycle("Soft route entry");
+
+      const residentialCue = await page
+        .locator("[data-scroll-cue]")
+        .elementHandle();
+      await Promise.all([
+        waitForCanonicalPath(page, "/vi/"),
+        page.goBack({ timeout: 15_000 }),
+      ]);
+      await waitForReplacement(residentialCue);
+      await assertFreshCycle("History entry");
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runEspacioTypographyChecks() {
+  const localizedRoutes = [
+    ...ROUTES,
+    ...ROUTES.map((route) => route.replace(/^\/vi\//, "/en/")),
+  ];
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 1440, height: 900 },
+  ]) {
+    for (const route of localizedRoutes) {
+      await runPageCase(
+        `Espacio visible typography ${route} ${viewport.width}`,
+        {
+          route,
+          viewport,
+          hasTouch: viewport.width === 390,
+          isMobile: viewport.width === 390,
+        },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, route);
+          await page.evaluate(() => document.fonts?.ready);
+          const state = await page.evaluate(() => {
+            const isRendered = (element) => {
+              const style = getComputedStyle(element);
+              const rect = element.getBoundingClientRect();
+              return (
+                style.display !== "none" &&
+                style.visibility !== "hidden" &&
+                rect.width > 0 &&
+                rect.height > 0
+              );
+            };
+            const hasDirectText = (element) =>
+              [...element.childNodes].some(
+                (node) =>
+                  node.nodeType === Node.TEXT_NODE && node.textContent.trim(),
+              );
+            const excluded = (element) =>
+              element.closest(
+                ".brand-lockup, svg, script, style, template, .sr-only, [hidden], [aria-hidden='true']",
+              );
+            const visibleText = [...document.body.querySelectorAll("*")]
+              .filter(
+                (element) =>
+                  hasDirectText(element) && !excluded(element) && isRendered(element),
+              )
+              .map((element) => {
+                const style = getComputedStyle(element);
+                return {
+                  selector: `${element.tagName.toLowerCase()}.${element.className || ""}`,
+                  text: [...element.childNodes]
+                    .filter((node) => node.nodeType === Node.TEXT_NODE)
+                    .map((node) => node.textContent.trim())
+                    .filter(Boolean)
+                    .join(" ")
+                    .slice(0, 80),
+                  size: Number.parseFloat(style.fontSize),
+                  weight: Number.parseFloat(style.fontWeight),
+                };
+              });
+            const readRole = (selector) => {
+              const element = document.querySelector(selector);
+              if (!(element instanceof HTMLElement) || !isRendered(element)) {
+                return null;
+              }
+              const style = getComputedStyle(element);
+              const canvas = document.createElement("canvas");
+              const context = canvas.getContext("2d");
+              context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+              return {
+                selector,
+                size: Number.parseFloat(style.fontSize),
+                weight: Number.parseFloat(style.fontWeight),
+                capHeight: context.measureText("H").actualBoundingBoxAscent,
+              };
+            };
+            return {
+              overflow:
+                document.documentElement.scrollWidth -
+                document.documentElement.clientWidth,
+              lightText: visibleText.filter((item) => item.weight < 500),
+              tinyText: visibleText.filter((item) => item.size < 12.5),
+              roles: {
+                nav: readRole("#header-menu-items a"),
+                cue: readRole("[data-scroll-cue]"),
+                portal: readRole(".portal-copy strong"),
+                editorial: readRole(".editorial-item p"),
+                detailLabel: readRole(
+                  ".detail-eyebrow, .detail-gallery__head h2, .detail-index-hero__kicker",
+                ),
+                footerLabel: readRole(".footer-contact span"),
+              },
+            };
+          });
+          assert(
+            state.overflow <= 1,
+            `${route} ${viewport.width}px has ${state.overflow}px horizontal overflow`,
+          );
+          assert(
+            state.lightText.length === 0,
+            `${route} ${viewport.width}px has visible text below weight 500: ${JSON.stringify(state.lightText)}`,
+          );
+          assert(
+            state.tinyText.length === 0,
+            `${route} ${viewport.width}px has visible text below 12.5px: ${JSON.stringify(state.tinyText)}`,
+          );
+          assert(
+            state.roles.cue &&
+              state.roles.cue.weight >= 700 &&
+              state.roles.cue.capHeight >= 8 &&
+              state.roles.cue.capHeight <= 11,
+            `Scroll cue cap-height drifted on ${route}: ${JSON.stringify(state.roles.cue)}`,
+          );
+          assert(
+            state.roles.footerLabel &&
+              state.roles.footerLabel.weight >= 700 &&
+              state.roles.footerLabel.capHeight >= 8 &&
+              state.roles.footerLabel.capHeight <= 11,
+            `Footer label cap-height drifted on ${route}: ${JSON.stringify(state.roles.footerLabel)}`,
+          );
+          if (viewport.width === 1440) {
+            assert(
+              state.roles.nav &&
+                state.roles.nav.weight >= 700 &&
+                state.roles.nav.capHeight >= 10 &&
+                state.roles.nav.capHeight <= 13,
+              `Desktop nav cap-height drifted on ${route}: ${JSON.stringify(state.roles.nav)}`,
+            );
+          }
+          if (route === "/vi/" || route === "/en/") {
+            const portalRange =
+              viewport.width === 1440 ? [43.5, 47] : [31, 46];
+            assert(
+              state.roles.portal &&
+                state.roles.portal.weight >= 600 &&
+                state.roles.portal.capHeight >= portalRange[0] &&
+                state.roles.portal.capHeight <= portalRange[1],
+              `Portal cap-height drifted on ${route}: ${JSON.stringify(state.roles.portal)}`,
+            );
+            assert(
+              state.roles.editorial &&
+                state.roles.editorial.weight >= 500 &&
+                Math.abs(state.roles.editorial.size - 16) <= 0.01 &&
+                state.roles.editorial.capHeight >= 11 &&
+                state.roles.editorial.capHeight <= 13,
+              `Editorial body cap-height drifted on ${route}: ${JSON.stringify(state.roles.editorial)}`,
+            );
+          } else if (state.roles.detailLabel) {
+            assert(
+              state.roles.detailLabel.weight >= 700 &&
+                state.roles.detailLabel.capHeight >= 8 &&
+                state.roles.detailLabel.capHeight <= 11,
+              `Detail label cap-height drifted on ${route}: ${JSON.stringify(state.roles.detailLabel)}`,
+            );
+          }
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+}
+
 async function runBarbaFailureFallbackCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
@@ -2371,52 +3494,214 @@ async function runBarbaFailureFallbackCheck() {
 
 async function runHistoryNavigationChecks() {
   const viewport = { width: 390, height: 844 };
-  await runPageCase(
-    "history restores each route's own reading position",
-    { route: "/vi/residential/", viewport },
-    async (page) => {
-      const diagnostics = monitorPage(page);
-      const setScroll = async (scrollY) => {
-        await page.evaluate((value) => {
-          document.documentElement.style.scrollBehavior = "auto";
-          window.scrollTo(0, value);
-        }, scrollY);
-        await page.waitForFunction((value) => Math.abs(window.scrollY - value) <= 2, scrollY);
-      };
-      const expectScroll = async (expected, label) => {
-        const state = await page.evaluate(() => ({
-          actual: window.scrollY,
-          maximum: document.documentElement.scrollHeight - innerHeight,
-        }));
-        const clampedExpected = Math.min(expected, state.maximum);
-        assert(
-          Math.abs(state.actual - clampedExpected) <= 2,
-          `${label}: expected ${clampedExpected}px, received ${state.actual}px`,
+  for (const locale of ["vi", "en"]) {
+    const homeRoute = `/${locale}/`;
+    const residentialRoute = `/${locale}/residential/`;
+    await runPageCase(
+      `history restores navbar state ${locale}`,
+      { route: homeRoute, viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        const setScroll = async (scrollY) => {
+          await page.evaluate((value) => {
+            document.documentElement.style.scrollBehavior = "auto";
+            window.scrollTo(0, value);
+          }, scrollY);
+          await page.waitForFunction(
+            (value) => Math.abs(window.scrollY - value) <= 2,
+            scrollY,
+          );
+          await page.waitForTimeout(80);
+        };
+        const expectScroll = async (expected, label) => {
+          const state = await page.evaluate(() => ({
+            actual: window.scrollY,
+            maximum: document.documentElement.scrollHeight - innerHeight,
+          }));
+          const clampedExpected = Math.min(expected, state.maximum);
+          assert(
+            Math.abs(state.actual - clampedExpected) <= 2,
+            `${label}: expected ${clampedExpected}px, received ${state.actual}px`,
+          );
+        };
+        const readHeaderState = () =>
+          page.evaluate(() => {
+            const header = document.querySelector("[data-site-header]");
+            const rect = header?.getBoundingClientRect();
+            const scrollContainer = document.querySelector(
+              "[data-scroll-container]",
+            );
+            const scrollTransform = scrollContainer
+              ? getComputedStyle(scrollContainer).transform
+              : "none";
+            const scrollMatrix =
+              scrollTransform === "none"
+                ? new DOMMatrixReadOnly()
+                : new DOMMatrixReadOnly(scrollTransform);
+            return {
+              classes: header?.className || "",
+              top: rect?.top ?? Number.NaN,
+              height: rect?.height ?? Number.NaN,
+              scrollY: window.scrollY,
+              logicalScrollY: document.documentElement.classList.contains(
+                "has-scroll-smooth",
+              )
+                ? Math.abs(scrollMatrix.m42)
+                : window.scrollY,
+            };
+          });
+        const expectExpandedVisible = async (label) => {
+          const state = await readHeaderState();
+          assert(
+            !state.classes.includes("is-collapsed") &&
+              !state.classes.includes("is-hidden") &&
+              state.top >= -1,
+            `${label}: expected expanded visible header, received ${JSON.stringify(state)}`,
+          );
+        };
+
+        await gotoRoute(page, homeRoute);
+        await page.evaluate(() => {
+          const header = document.querySelector("[data-site-header]");
+          header?.classList.add("is-collapsed", "is-hidden");
+          window.dispatchEvent(
+            new PageTransitionEvent("pageshow", { persisted: false }),
+          );
+        });
+        await page.waitForTimeout(120);
+        await expectExpandedVisible("Non-persisted pageshow at top");
+        await setScroll(900);
+        const firstResidentialLink = await findRouteLink(
+          page,
+          "[data-site-header]",
+          residentialRoute,
         );
-      };
+        await Promise.all([
+          waitForPath(page, residentialRoute),
+          firstResidentialLink.evaluate((link) => link.click()),
+        ]);
+        await expectScroll(0, "Normal residential entry");
+        await setScroll(700);
+        const brand = page.locator("[data-site-header] .brand");
+        await Promise.all([waitForPath(page, homeRoute), brand.click()]);
+        await expectScroll(0, "Logo/Home navigation");
+        await expectExpandedVisible("Logo/Home navigation");
 
-      await gotoRoute(page, "/vi/residential/");
-      await setScroll(1_500);
-      const commercialLink = await findRouteLink(
-        page,
-        "[data-site-header]",
-        "/vi/commercial/",
-      );
-      await Promise.all([
-        waitForPath(page, "/vi/commercial/"),
-        commercialLink.evaluate((link) => link.click()),
-      ]);
-      await expectScroll(0, "Normal Commercial entry");
+        await setScroll(900);
+        const residentialLink = await findRouteLink(
+          page,
+          "[data-site-header]",
+          residentialRoute,
+        );
+        await Promise.all([
+          waitForPath(page, residentialRoute),
+          residentialLink.evaluate((link) => link.click()),
+        ]);
+        await expectScroll(0, "Normal residential entry");
+        await traverseHistory(page, "back", homeRoute);
+        await expectScroll(900, "Back to saved homepage");
+        const restoredHome = await readHeaderState();
+        assert(
+          restoredHome.classes.includes("is-collapsed") &&
+            !restoredHome.classes.includes("is-hidden"),
+          `Back did not derive sticky homepage header from restored scroll: ${JSON.stringify(restoredHome)}`,
+        );
+        await page.evaluate(() => {
+          window.dispatchEvent(
+            new PageTransitionEvent("pageshow", { persisted: true }),
+          );
+        });
+        await page.waitForTimeout(120);
+        const pageshowHome = await readHeaderState();
+        assert(
+          pageshowHome.scrollY >= 899 &&
+            pageshowHome.classes.includes("is-collapsed") &&
+            !pageshowHome.classes.includes("is-hidden"),
+          `Persisted pageshow retained stale homepage navbar state: ${JSON.stringify(pageshowHome)}`,
+        );
 
-      await setScroll(900);
-      await traverseHistory(page, "back", "/vi/residential/");
-      await expectScroll(1_500, "Back to Residential");
+        await traverseHistory(page, "forward", residentialRoute);
+        await expectScroll(0, "Forward to residential");
+        await expectExpandedVisible("Forward to residential");
 
-      await traverseHistory(page, "forward", "/vi/commercial/");
-      await expectScroll(900, "Forward to Commercial");
-      assertDiagnostics(diagnostics);
-    },
-  );
+        await setScroll(700);
+        const beforeResize = await readHeaderState();
+        assert(
+          beforeResize.classes.includes("is-collapsed"),
+          `Resize setup did not establish collapsed header: ${JSON.stringify(beforeResize)}`,
+        );
+        await page.setViewportSize({ width: 1024, height: 900 });
+        await page.waitForTimeout(120);
+        const desktopResize = await readHeaderState();
+        assert(
+          desktopResize.logicalScrollY >= 699 &&
+            desktopResize.classes.includes("is-collapsed") &&
+            !desktopResize.classes.includes("is-hidden"),
+          `Resize retained stale navbar state instead of deriving from current scroll: ${JSON.stringify(desktopResize)}`,
+        );
+        await page.setViewportSize(viewport);
+        await page.waitForTimeout(120);
+        const mobileResize = await readHeaderState();
+        assert(
+          mobileResize.logicalScrollY >= 699 &&
+            mobileResize.classes.includes("is-collapsed") &&
+            !mobileResize.classes.includes("is-hidden"),
+          `Resize back to native scroll retained stale navbar state: ${JSON.stringify(mobileResize)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  for (const locale of ["vi", "en"]) {
+    const homeRoute = `/${locale}/`;
+    const commercialRoute = `/${locale}/commercial/`;
+    await runPageCase(
+      `soft navigation releases persistent navbar focus ${locale}`,
+      { route: homeRoute, viewport: { width: 1440, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        const header = page.locator("[data-site-header]");
+        const expectAutoHidden = async (label) => {
+          await page.mouse.move(100, 700);
+          for (let index = 0; index < 8; index += 1) {
+            await page.mouse.wheel(0, 100);
+            await page.waitForTimeout(70);
+          }
+          await page.waitForTimeout(1_050);
+          const state = await header.evaluate((element) => ({
+            activeInside: element.contains(document.activeElement),
+            classes: element.className,
+            height: element.getBoundingClientRect().height,
+            top: element.getBoundingClientRect().top,
+          }));
+          assert(
+            !state.activeInside &&
+              state.classes.includes("is-collapsed") &&
+              state.classes.includes("is-hidden") &&
+              Math.abs(state.top + state.height) <= 1,
+            `${label}: persistent navbar focus prevented auto-hide: ${JSON.stringify(state)}`,
+          );
+        };
+
+        await gotoRoute(page, homeRoute);
+        const commercialLink = await findRouteLink(
+          page,
+          "[data-site-header]",
+          commercialRoute,
+        );
+        await clickRouteLink(page, commercialLink, commercialRoute);
+        await expectAutoHidden("Commercial after soft navigation");
+
+        await page.mouse.move(100, 100);
+        await page.waitForTimeout(1_050);
+        const brand = page.locator("[data-site-header] .brand");
+        await clickRouteLink(page, brand, homeRoute);
+        await expectAutoHidden("Homepage after soft navigation return");
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
 }
 
 async function runBfcacheCleanupCheck() {
@@ -2687,7 +3972,7 @@ async function runInternalLinkCheck() {
         if (link.localeControl) return;
         const destination = new URL(link.url);
         const targetPath = canonicalPathname(destination.href);
-        if (!ROUTES.some((route) => canonicalPathname(route) === targetPath)) {
+        if (!CANONICAL_ROUTES.some((route) => canonicalPathname(route) === targetPath)) {
           issues.push(
             `${link.source}: ${link.href} points outside canonical routes`,
           );
@@ -3200,9 +4485,9 @@ async function runLocaleResponsivePreferenceChecks() {
   }
 }
 
-async function runSsrCmsHydrationCheck() {
+async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
   const viewport = { width: 390, height: 844 };
-  for (const expected of SSR_CMS_HYDRATION_CASES) {
+  for (const expected of cases) {
     await runPageCase(
       `SSR CMS survives hydration ${routeSlug(expected.route)}`,
       { route: expected.route, viewport },
@@ -3335,6 +4620,9 @@ async function runMenuChecks() {
           titles: [...dialog.querySelectorAll(".menu-group__title")].map((link) => link.getAttribute("href")),
           childGroupCount: dialog.querySelectorAll(".menu-group__links").length,
           childItemCount: dialog.querySelectorAll(".menu-option").length,
+          titleFontSizes: [...dialog.querySelectorAll(".menu-group__title")].map(
+            (link) => Number.parseFloat(getComputedStyle(link).fontSize),
+          ),
           fragmentLinkCount: [...dialog.querySelectorAll("a")].filter((link) => link.hash).length,
           dividers: [...dialog.querySelectorAll(".menu-group")].map((group) => {
             const rect = group.getBoundingClientRect();
@@ -3366,34 +4654,23 @@ async function runMenuChecks() {
           })(),
           languageOpacityTransitions: window.__menuLanguageOpacityTransitions || [],
           brandParity: (() => {
-            const measure = (root, markSelector, copySelector) => {
-              const mark = root.querySelector(markSelector);
-              const copy = root.querySelector(copySelector);
-              const title = copy.querySelector("strong");
-              const subtitle = copy.querySelector("small");
+            const measure = (root) => {
+              const lockup = root.querySelector(".brand-lockup");
               const dimensions = (element) => {
                 const rect = element.getBoundingClientRect();
-                return [rect.width, rect.height];
+                return [rect.x, rect.y, rect.width, rect.height];
               };
               return {
-                mark: dimensions(mark),
-                copy: dimensions(copy),
-                title: title.textContent.trim(),
-                titleFont: Number.parseFloat(getComputedStyle(title).fontSize),
-                subtitle: subtitle.textContent.trim(),
-                subtitleDisplay: getComputedStyle(subtitle).display,
-                subtitleFont: Number.parseFloat(
-                  getComputedStyle(subtitle).fontSize,
-                ),
+                host: dimensions(root),
+                lockup: dimensions(lockup),
+                pathCount: lockup.querySelectorAll("path").length,
+                textCount: lockup.querySelectorAll("text").length,
+                hasUse: Boolean(lockup.querySelector("use")),
               };
             };
             return {
-              header: measure(
-                document.querySelector("#header-logo"),
-                ".brand-mark",
-                ".brand-copy",
-              ),
-              menu: measure(dialog, ".menu-brand__mark", ".menu-brand__copy"),
+              header: measure(document.querySelector("#header-logo")),
+              menu: measure(dialog.querySelector(".menu-brand")),
             };
           })(),
         }));
@@ -3401,32 +4678,74 @@ async function runMenuChecks() {
           menuContract.closeText === "",
           `${viewport.width}x${viewport.height}: close control must be icon-only`,
         );
+        const desktopLogo = viewport.width > 1200;
+        const expectedHeaderWidth = expectedBrandHeaderWidth(viewport.width);
+        const expectedHeaderHeight = expectedBrandHeaderHeight(viewport.width);
+        const expectedMenuHostWidth = desktopLogo ? 260.981741 : 230.299324;
+        const expectedMenuLockupWidth = expectedMenuHostWidth;
+        const expectedMenuHeight = desktopLogo ? 67.515625 : 59.578125;
+        const expectedHeaderPosition = [
+          desktopLogo ? 35 : viewport.width <= 750 ? 15 : 25,
+          desktopLogo
+            ? 35 + (67.515625 - expectedHeaderHeight) / 2
+            : viewport.width <= 750
+              ? 15 + (57.59375 - expectedHeaderHeight) / 2
+              : 25 + (60.390625 - expectedHeaderHeight) / 2,
+        ];
+        const expectedMenuPosition = [desktopLogo ? 35 : 25, desktopLogo ? 35 : 25];
         assert(
-          menuContract.brandParity.header.title === "TRƯỜNG THỊNH" &&
-            menuContract.brandParity.menu.title === "TRƯỜNG THỊNH" &&
-            menuContract.brandParity.header.subtitle ===
-              "NỘI THẤT · QUẢNG CÁO" &&
-            menuContract.brandParity.menu.subtitle ===
-              "NỘI THẤT · QUẢNG CÁO" &&
-            menuContract.brandParity.header.subtitleDisplay === "block" &&
-            menuContract.brandParity.menu.subtitleDisplay === "block" &&
-            ["mark", "copy"].every((key) =>
-              menuContract.brandParity.header[key].every(
+          menuContract.brandParity.header.pathCount === 4 &&
+            menuContract.brandParity.menu.pathCount === 4 &&
+            menuContract.brandParity.header.textCount === 2 &&
+            menuContract.brandParity.menu.textCount === 2 &&
+            !menuContract.brandParity.header.hasUse &&
+            !menuContract.brandParity.menu.hasUse &&
+            menuContract.brandParity.header.host.every(
+              (value, index) =>
+                Math.abs(
+                  value -
+                    [
+                      ...expectedHeaderPosition,
+                      expectedHeaderWidth,
+                      expectedHeaderHeight,
+                    ][index],
+                ) <= 0.25,
+            ) &&
+            menuContract.brandParity.menu.host.every(
+              (value, index) =>
+                Math.abs(
+                  value -
+                    [
+                      ...expectedMenuPosition,
+                      expectedMenuHostWidth,
+                      expectedMenuHeight,
+                    ][index],
+                ) <= 0.25,
+            ) &&
+            menuContract.brandParity.header.host.every(
+              (value, index) =>
+                Math.abs(
+                  value - menuContract.brandParity.header.lockup[index],
+                ) <= 0.1,
+            ) &&
+            menuContract.brandParity.menu.lockup.every(
+              (value, index) =>
+                Math.abs(
+                  value -
+                    [
+                      ...expectedMenuPosition,
+                      expectedMenuLockupWidth,
+                      expectedMenuHeight,
+                    ][index],
+                ) <= 0.25,
+            ) &&
+            menuContract.brandParity.menu.host.slice(0, 2).every(
                 (value, index) =>
                   Math.abs(
-                    value - menuContract.brandParity.menu[key][index],
-                  ) <= 0.25,
-              ),
-            ) &&
-            Math.abs(
-              menuContract.brandParity.header.titleFont -
-                menuContract.brandParity.menu.titleFont,
-            ) <= 0.1 &&
-            Math.abs(
-              menuContract.brandParity.header.subtitleFont -
-                menuContract.brandParity.menu.subtitleFont,
-            ) <= 0.1,
-          `${viewport.width}x${viewport.height}: header and full-menu logos differ ${JSON.stringify(menuContract.brandParity)}`,
+                    value - menuContract.brandParity.menu.lockup[index],
+                  ) <= 0.1,
+            ),
+          `${viewport.width}x${viewport.height}: header or full-menu lockup differs from live Espacio geometry ${JSON.stringify(menuContract.brandParity)}`,
         );
         assert(
           menuContract.childGroupCount === 4 &&
@@ -3462,6 +4781,11 @@ async function runMenuChecks() {
         assert(
           menuContract.overlaps.length === 0,
           `${viewport.width}x${viewport.height}: settled menu links overlap ${menuContract.overlaps.join(",")}`,
+        );
+        assert(
+          menuContract.titleFontSizes.length === 4 &&
+            menuContract.titleFontSizes.every((size) => Math.abs(size - 24) <= 0.1),
+          `${viewport.width}x${viewport.height}: menu title size drifted from 24px ${JSON.stringify(menuContract.titleFontSizes)}`,
         );
         assert(
           menuContract.languageOpacityTransitions.length === 0,
@@ -3552,105 +4876,1207 @@ async function runAdvertisingFilterCheck() {
     async (page) => {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
-
+      await page.waitForFunction(
+        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+        null,
+        { timeout: 3_000 },
+      );
       const before = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
-        tiles: [...grid.querySelectorAll("[data-project-category]")].map(
-          (tile, index) => {
+        tiles: [...grid.querySelectorAll("[data-advertising-category]")].map(
+          (tile) => {
             const rect = tile.getBoundingClientRect();
+            const gridRect = grid.getBoundingClientRect();
             return {
-              index,
-              category: tile.dataset.projectCategory,
-              hidden: tile.hidden,
-              left: rect.left,
-              top: rect.top,
+              id: tile.dataset.advertisingCard,
+              category: tile.dataset.advertisingCategory,
+              left: rect.left - gridRect.left,
+              top: rect.top - gridRect.top,
+              transform: getComputedStyle(tile).transform,
             };
           },
         ),
       }));
-      await page.locator('[data-project-filter="kiosk"]').click();
+      const wasMountedBefore = await page.locator("[data-project-grid]").evaluate((grid) =>
+        Boolean(grid.querySelector('[data-advertising-card="print-decals-01"]')),
+      );
+      assert(wasMountedBefore, "rank-v3 all view must mount print-decals-01 as the shared filter survivor");
+      await page.evaluate(() => {
+        const grid = document.querySelector("[data-project-grid]");
+        const snapshots = [];
+        const capture = () => snapshots.push([...grid.querySelectorAll(".advertising-tile")].map((tile) => tile.dataset.advertisingCard));
+        const observer = new MutationObserver(capture);
+        observer.observe(grid, { childList: true });
+        capture();
+        window.__ttCohortProbe = { snapshots, observer };
+        window.__ttAdvertisingFilterLayout = new Promise((resolve) => {
+          window.addEventListener("site:layout", resolve, { once: true });
+        });
+      });
+      await page.locator('[data-advertising-filter="print-decals"]').click();
       await page.waitForFunction(
         () => {
-          const tiles = [
-            ...document.querySelectorAll("[data-project-category]"),
-          ];
           return (
             document
-              .querySelector('[data-project-filter="kiosk"]')
-              ?.getAttribute("aria-pressed") === "true" &&
-            tiles.every(
-              (tile) =>
-                tile.hidden === (tile.dataset.projectCategory !== "kiosk"),
-            )
+              .querySelector('[data-advertising-filter="print-decals"]')
+              ?.getAttribute("aria-current") === "true"
           );
         },
         null,
         { timeout: 3_000 },
       );
+      const captureTrajectory = () => page.locator("[data-project-grid]").evaluate((grid) => {
+        const tile = grid.querySelector('[data-advertising-card="print-decals-01"]');
+        const style = tile ? getComputedStyle(tile) : null;
+        const rect = tile?.getBoundingClientRect();
+        const gridRect = grid.getBoundingClientRect();
+        return {
+          delay: style?.transitionDelay,
+          duration: style?.transitionDuration,
+          property: style?.transitionProperty,
+          transform: style?.transform,
+          left: Number.parseFloat(style?.left || "0"),
+          top: Number.parseFloat(style?.top || "0"),
+          visualLeft: rect ? rect.left - gridRect.left : null,
+          visualTop: rect ? rect.top - gridRect.top : null,
+        };
+      });
+      await page.waitForTimeout(20);
+      const origin = await captureTrajectory();
+      await page.waitForTimeout(160);
+      const during = await captureTrajectory();
+      assert(
+        during.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
+          during.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
+          during.property?.includes("transform") &&
+          during.transform &&
+          during.transform !== "none",
+        `Masonry transition did not morph the rank-v3 filter survivor: ${JSON.stringify({ wasMountedBefore, origin, during })}`,
+      );
+      await page.evaluate(() => window.__ttAdvertisingFilterLayout);
+      await page.waitForTimeout(450);
+      const settledTrajectory = await captureTrajectory();
+      await page.waitForTimeout(80);
+      const stableTrajectory = await captureTrajectory();
+      const travel = {
+        x: settledTrajectory.left - origin.left,
+        y: settledTrajectory.top - origin.top,
+      };
+      const travelDistance = Math.hypot(travel.x, travel.y);
+      const originToDestination = Math.hypot(origin.visualLeft - settledTrajectory.left, origin.visualTop - settledTrajectory.top);
+      const duringToDestination = Math.hypot(during.visualLeft - settledTrajectory.left, during.visualTop - settledTrajectory.top);
+      const observedTravelDistance = Math.hypot(during.visualLeft - origin.visualLeft, during.visualTop - origin.visualTop);
+      assert(
+        travelDistance > 1 &&
+          originToDestination > 2 && observedTravelDistance > 2 && duringToDestination > 2 &&
+          duringToDestination < originToDestination &&
+          Math.hypot(settledTrajectory.visualLeft - settledTrajectory.left, settledTrajectory.visualTop - settledTrajectory.top) <= 2 &&
+          Math.hypot(stableTrajectory.visualLeft - settledTrajectory.visualLeft, stableTrajectory.visualTop - settledTrajectory.visualTop) <= 2,
+        `Top-page destination did not travel monotonically from cached origin to settled coordinate: ${JSON.stringify({ origin, during, settledTrajectory, stableTrajectory })}`,
+      );
 
       const after = await page.locator("[data-project-grid]").evaluate((grid) => ({
         height: grid.getBoundingClientRect().height,
-        tiles: [...grid.querySelectorAll("[data-project-category]")].map(
-          (tile, index) => {
+        width: grid.clientWidth,
+        tiles: [...grid.querySelectorAll("[data-advertising-category]")].map(
+          (tile) => {
             const rect = tile.getBoundingClientRect();
+            const gridRect = grid.getBoundingClientRect();
             return {
-              index,
-              category: tile.dataset.projectCategory,
-              hidden: tile.hidden,
-              left: rect.left,
-              top: rect.top,
+              id: tile.dataset.advertisingCard,
+              category: tile.dataset.advertisingCategory,
+              left: rect.left - gridRect.left,
+              top: rect.top - gridRect.top,
+              right: rect.right - gridRect.left,
+              bottom: rect.bottom - gridRect.top,
+              transform: getComputedStyle(tile).transform,
             };
           },
         ),
       }));
-      const visible = after.tiles.filter((tile) => !tile.hidden);
-      const kioskCount = before.tiles.filter(
-        (tile) => tile.category === "kiosk",
-      ).length;
-      assert(visible.length === kioskCount, `Expected ${kioskCount} kiosk tiles, found ${visible.length}`);
+      const visible = after.tiles;
+      const cohortSnapshots = await page.evaluate(() => {
+        const probe = window.__ttCohortProbe;
+        probe.observer.disconnect();
+        delete window.__ttCohortProbe;
+        return probe.snapshots;
+      });
+      const expectedWindow = await page.evaluate(async () => {
+        const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
+        const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import("/advertising-products/layout-core.mjs");
+        const geometry = compileAdvertisingLayout({ cards: artifact.cards,
+          categoryOrder: artifact.categories.map((category) => category.slug),
+          datasetVersion: artifact.datasetVersion, filter: "print-decals",
+          layoutViewportWidth: document.documentElement.clientWidth });
+        return getVirtualWindow(geometry, {
+          scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
+          viewportHeight: innerHeight, overscan: innerHeight,
+        }).items.map((placement) => placement.card.id);
+      });
+      assert(JSON.stringify(after.tiles.map((tile) => tile.id).sort()) === JSON.stringify([...expectedWindow].sort()),
+        "Settled filter DOM does not equal the expected normal virtual window");
+      const allowedCohort = new Set([...before.tiles.map((tile) => tile.id), ...expectedWindow]);
+      assert(cohortSnapshots.length > 1 && cohortSnapshots.every((ids) => ids.every((id) => allowedCohort.has(id))),
+        `Filter cohort escaped old/new virtual-window union: ${JSON.stringify(cohortSnapshots)}`);
+      assert(visible.length > 0, "print-decals filter did not mount a top-page destination window");
       assert(
-        visible.every((tile) => tile.category === "kiosk"),
-        "A non-kiosk tile remained visible",
-      );
-      assert(
-        after.tiles.filter((tile) => tile.hidden).length ===
-          before.tiles.length - kioskCount,
-        "Filter did not hide every non-kiosk tile",
+        visible.every((tile) => tile.category === "print-decals"),
+        "A non-print-decals tile remained visible",
       );
       assert(
         after.height < before.height,
         `Project grid did not shrink: ${before.height}px → ${after.height}px`,
       );
-      const moved = visible.some((tile) => {
-        const previous = before.tiles.find((item) => item.index === tile.index);
-        return (
-          previous &&
-          (Math.abs(previous.left - tile.left) > 1 ||
-            Math.abs(previous.top - tile.top) > 1)
-        );
-      });
-      assert(moved, "Visible kiosk tiles did not reflow after filtering");
+      const noOverlap = visible.every((tile, index) =>
+        tile.left >= -1 && tile.top >= -1 && tile.right <= after.width + 1 &&
+        visible.slice(index + 1).every((next) =>
+          Math.min(tile.right, next.right) - Math.max(tile.left, next.left) <= 1 ||
+          Math.min(tile.bottom, next.bottom) - Math.max(tile.top, next.top) <= 1,
+        ),
+      );
+      assert(noOverlap, "Filtered print-decals geometry overflowed or overlapped");
       assert(
         (await page
-          .locator('[data-project-filter="kiosk"]')
-          .getAttribute("aria-pressed")) === "true",
-        "Active filter did not expose aria-pressed=true",
+          .locator('[data-advertising-filter="print-decals"]')
+          .getAttribute("aria-current")) === "true",
+        "Active filter did not expose aria-current=true",
       );
-      await page.locator('[data-project-filter="all"]').click();
+      const categoryOriginMounted = await page.locator("[data-project-grid]").evaluate((grid) =>
+        Boolean(grid.querySelector('[data-advertising-card="signage-raised-letters-01"]')),
+      );
+      assert(!categoryOriginMounted, "signage-raised-letters-01 must not be mounted before category-to-category filter morph");
+      await page.locator('[data-advertising-filter="signage-raised-letters"]').click();
+      await page.waitForTimeout(180);
+      const categoryDuring = await page.locator("[data-project-grid]").evaluate((grid) => {
+        const tile = grid.querySelector('[data-advertising-card="signage-raised-letters-01"]');
+        const style = tile ? getComputedStyle(tile) : null;
+        return { duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
+      });
+      assert(
+        categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
+          categoryDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
+          categoryDuring.transform && categoryDuring.transform !== "none",
+        `Masonry transition did not generalize to category-to-category destination: ${JSON.stringify({ categoryOriginMounted, categoryDuring })}`,
+      );
+      await page.waitForTimeout(450);
+      await page.locator('[data-advertising-filter="all"]').click();
       await page.waitForFunction(
         () =>
-          [...document.querySelectorAll("[data-project-category]")].every(
-            (tile) => !tile.hidden,
-          ),
+          document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true",
         null,
         { timeout: 3_000 },
+      );
+      const captureReverseTrajectory = () => page.locator("[data-project-grid]").evaluate((grid) => {
+        const tile = [...grid.querySelectorAll(".advertising-tile")].find(
+          (item) => !item.hidden && item.dataset.advertisingCategory !== "signage-raised-letters",
+        );
+        const style = tile ? getComputedStyle(tile) : null;
+        const rect = tile?.getBoundingClientRect();
+        const gridRect = grid.getBoundingClientRect();
+        return {
+          id: tile?.dataset.advertisingCard,
+          duration: style?.transitionDuration,
+          delay: style?.transitionDelay,
+          transform: style?.transform,
+          left: Number.parseFloat(style?.left || "0"),
+          top: Number.parseFloat(style?.top || "0"),
+          visualLeft: rect ? rect.left - gridRect.left : null,
+          visualTop: rect ? rect.top - gridRect.top : null,
+        };
+      });
+      await page.waitForTimeout(20);
+      const reverseOrigin = await captureReverseTrajectory();
+      await page.waitForTimeout(160);
+      const reverseDuring = await captureReverseTrajectory();
+      await page.waitForTimeout(300);
+      const reverseSettled = await captureReverseTrajectory();
+      const reverseTravel = {
+        x: reverseSettled.left - reverseOrigin.left,
+        y: reverseSettled.top - reverseOrigin.top,
+      };
+      const reverseTravelDistance = Math.hypot(reverseTravel.x, reverseTravel.y);
+      const reverseOriginToDestination = Math.hypot(reverseOrigin.visualLeft - reverseSettled.left, reverseOrigin.visualTop - reverseSettled.top);
+      const reverseDuringToDestination = Math.hypot(reverseDuring.visualLeft - reverseSettled.left, reverseDuring.visualTop - reverseSettled.top);
+      const reverseObservedTravel = Math.hypot(reverseDuring.visualLeft - reverseOrigin.visualLeft, reverseDuring.visualTop - reverseOrigin.visualTop);
+      assert(
+        reverseOrigin.id === reverseDuring.id &&
+          reverseDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
+          reverseDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
+          reverseDuring.transform && reverseDuring.transform !== "none" &&
+          reverseTravelDistance > 1 && reverseOriginToDestination > 2 && reverseObservedTravel > 2 &&
+          reverseDuringToDestination > 2 && reverseDuringToDestination < reverseOriginToDestination &&
+          Math.hypot(reverseSettled.visualLeft - reverseSettled.left, reverseSettled.visualTop - reverseSettled.top) <= 2 &&
+          (!reverseSettled.transform || reverseSettled.transform === "none"),
+        `Category-to-all unshared tile did not travel from an old visual slot: ${JSON.stringify({ reverseOrigin, reverseDuring, reverseSettled })}`,
+      );
+      await page.waitForTimeout(450);
+      await page.setViewportSize({ width: 1200, height: 900 });
+      await page.waitForTimeout(180);
+      const resizeDuring = await page.locator("[data-project-grid]").evaluate((grid) => {
+        const tile = grid.querySelector('[data-advertising-card="kiosk-posm-02"]');
+        const style = tile ? getComputedStyle(tile) : null;
+        return { duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
+      });
+      assert(
+        resizeDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
+          resizeDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
+          resizeDuring.transform && resizeDuring.transform !== "none",
+        `Masonry resize did not retain an active position morph: ${JSON.stringify(resizeDuring)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+  await runPageCase(
+    "advertising filter reduced motion is instant",
+    { route: "/vi/advertising-products/", viewport, reducedMotion: "reduce" },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.locator('[data-advertising-filter="mobile-retail"]').click();
+      await page.waitForFunction(
+        () => document.querySelector('[data-advertising-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
+        null,
+        { timeout: 3_000 },
+      );
+      const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
+        const tile = grid.querySelector('[data-advertising-card="mobile-retail-01"]');
+        const style = tile ? getComputedStyle(tile) : null;
+        return { duration: style?.transitionDuration, transform: style?.transform };
+      });
+      assert(
+        reduced.duration?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
+          (!reduced.transform || reduced.transform === "none"),
+        `Reduced-motion filter retained position motion: ${JSON.stringify(reduced)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+  await runPageCase(
+    "advertising scroll during filter motion catches up",
+    { route: "/vi/advertising-products/?category=mobile-retail", viewport: { width: 679, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/advertising-products/?category=mobile-retail");
+      await page.waitForFunction(
+        () => document.querySelector('[data-advertising-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
+        null,
+        { timeout: 3_000 },
+      );
+      await page.evaluate(() => {
+        window.__ttPendingScrollLayoutEvents = 0;
+        window.addEventListener("site:layout", () => {
+          window.__ttPendingScrollLayoutEvents += 1;
+        });
+      });
+      await page.locator('[data-advertising-filter="all"]').click();
+      await page.waitForTimeout(50);
+      const target = await page.locator("[data-project-grid]").evaluate((grid) =>
+        grid.getBoundingClientRect().top + window.scrollY + 3000,
+      );
+      const scrollDuringMotion = await page.evaluate((y) => {
+        document.documentElement.style.scrollBehavior = "auto";
+        window.scrollTo(0, y);
+        return window.scrollY;
+      }, target);
+      assert(scrollDuringMotion >= target - 2, `Native scroll did not reach the target during the filter morph: ${JSON.stringify({ scrollDuringMotion, target })}`);
+      await page.waitForTimeout(650);
+      const state = await page.locator("[data-project-grid]").evaluate((grid, y) => {
+        const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+        const localScroll = y - gridTop;
+        const expected = { top: Math.max(0, localScroll - innerHeight), bottom: localScroll + innerHeight * 2 };
+        const tiles = [...grid.querySelectorAll(".advertising-tile")].map((tile) => ({
+          top: Number.parseFloat(tile.style.top),
+          bottom: Number.parseFloat(tile.style.top) + Number.parseFloat(tile.style.height),
+          instant: getComputedStyle(tile).transitionDuration.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01),
+        }));
+        return {
+          count: tiles.length,
+          scrollY: window.scrollY,
+          active: document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current"),
+          expected,
+          intersectsExpectedRange: tiles.some((tile) => tile.top >= expected.top && tile.top < expected.bottom),
+          instant: tiles.every((tile) => tile.instant),
+          layoutEvents: window.__ttPendingScrollLayoutEvents,
+        };
+      }, target);
+      assert(state.active === "true", `All filter did not remain active during deferred scroll: ${JSON.stringify(state)}`);
+      assert(state.scrollY >= target - 2 && state.count > 0 && state.count < 120 && state.intersectsExpectedRange && state.instant && state.layoutEvents === 2, `Virtual window did not perform exactly one pending-scroll catch-up after the filter layout: ${JSON.stringify(state)}`);
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runPublicSelectionCheck({ advertisingOnly = false } = {}) {
+  const routeSuffixes = advertisingOnly
+    ? [{ name: "Advertising parent", path: "/advertising-products/" }]
+    : [
+        { name: "Home", path: "/" },
+        { name: "Residential", path: "/residential/" },
+        { name: "Commercial", path: "/commercial/" },
+        { name: "Advertising parent", path: "/advertising-products/" },
+        { name: "Advertising detail", path: "/advertising-products/kiosk-posm/" },
+      ];
+  for (const locale of ["vi", "en"]) {
+    for (const route of routeSuffixes) {
+      const pathname = `/${locale}${route.path}`;
+      await runPageCase(
+        `${route.name} public text selection ${locale}`,
+        { route: pathname, viewport: { width: 1440, height: 900 } },
+        async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, pathname);
+        const selection = async () => page.evaluate(() => {
+          const selectors = {
+            heading: "main h1, main h2",
+            body: "main p",
+            caption: "main figcaption",
+            nav: "[data-site-header] a",
+            menu: "#site-menu a",
+            filter: "[data-advertising-filter]",
+            button: "[data-menu-open]",
+          };
+          return Object.fromEntries(
+            Object.entries(selectors)
+              .map(([role, selector]) => [role, document.querySelector(selector)])
+              .filter(([, element]) => element)
+              .map(([role, element]) => [role, getComputedStyle(element).userSelect]),
+          );
+        });
+        const normal = await selection();
+        assert(
+          ["heading", "body", "nav", "menu", "button"].every((role) => role in normal) &&
+          Object.values(normal).every((value) => value === "auto"),
+          `${route.name} ${locale} public text roles lost normal user-select:auto: ${JSON.stringify(normal)}`,
+        );
+        await page.evaluate(() => document.documentElement.classList.add("has-scroll-dragging"));
+        const dragging = await selection();
+        assert(
+          Object.values(dragging).every((value) => value === "none"),
+          `${route.name} ${locale} scroll dragging did not temporarily disable public text selection: ${JSON.stringify(dragging)}`,
+        );
+        await page.evaluate(() => document.documentElement.classList.remove("has-scroll-dragging"));
+        const restored = await selection();
+        assert(
+          Object.values(restored).every((value) => value === "auto"),
+          `${route.name} ${locale} public text selection did not recover after dragging: ${JSON.stringify(restored)}`,
+        );
+        assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+}
+
+const runAdvertisingSelectionCheck = () => runPublicSelectionCheck({ advertisingOnly: true });
+
+async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = null } = {}) {
+  let runtimeContract;
+  if (expectedCardCount !== null) {
+    const { buildAdvertisingArtifact } = await import(
+      pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
+    );
+    const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
+      pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+    );
+    const artifact = buildAdvertisingArtifact();
+    if (expectedCardCount === "current") expectedCardCount = artifact.cards.length;
+    assert(
+      artifact.cards.length === expectedCardCount,
+      `Advertising Barba contract expected ${expectedCardCount} cards, got ${artifact.cards.length}`,
+    );
+    runtimeContract = { artifact, compileAdvertisingLayout, getVirtualWindow };
+  }
+  const cases = [
+    { locale: "vi", viewport: { width: 1440, height: 900 }, slowVendor: true },
+    { locale: "en", viewport: { width: 1440, height: 900 } },
+    { locale: "vi", viewport: { width: 390, height: 844 } },
+    { locale: "en", viewport: { width: 390, height: 844 } },
+  ];
+  for (const testCase of cases) {
+    const destination = `/${testCase.locale}/advertising-products/`;
+    await runPageCase(
+      `fresh Home to Advertising Barba readiness ${testCase.locale} ${testCase.viewport.width}px`,
+      { route: `/${testCase.locale}/`, viewport: testCase.viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        let vendorIntercepted = false;
+        if (testCase.slowVendor) {
+          await page.route("**/assets/vendor/masonry-4.2.2.min.js", async (route) => {
+            vendorIntercepted = true;
+            const response = await route.fetch();
+            await new Promise((resolve) => setTimeout(resolve, 180));
+            await route.fulfill({ response });
+          });
+        }
+        await gotoRoute(page, `/${testCase.locale}/`);
+        assert(
+          await page.evaluate(() => typeof window.Masonry !== "function"),
+          "fresh Home unexpectedly carried Advertising Masonry before public navigation",
+        );
+        const linkScope = testCase.viewport.width <= 980 ? "#site-menu" : "[data-site-header]";
+        if (linkScope === "#site-menu") await openMenu(page);
+        const link = await findRouteLink(page, linkScope, destination);
+        await Promise.all([waitForCanonicalPath(page, destination), link.click()]);
+        await page.waitForFunction(
+          () => {
+            const grid = document.querySelector("[data-project-grid].advertising-grid");
+            return Boolean(
+              document.body.classList.contains("is-transitioning") &&
+              grid?.querySelector(".advertising-tile") &&
+              window.gsap?.version === "3.15.0" &&
+              typeof window.SplitText === "function" &&
+              typeof window.Masonry === "function" &&
+              window.lazySizes?.loader,
+            );
+          },
+          null,
+          { timeout: 6_000 },
+        );
+        const state = await page.evaluate(async (cardCount) => {
+          const grid = document.querySelector("[data-project-grid]");
+          const artifactPath = "/advertising-products/catalog-artifact.mjs";
+          const artifact = cardCount === null ? null : await import(artifactPath);
+          return {
+            grids: document.querySelectorAll("[data-project-grid].advertising-grid").length,
+            masonry: typeof window.Masonry === "function",
+            lazySizes: Boolean(window.lazySizes?.loader),
+            splitText: typeof window.SplitText === "function",
+            gsap: window.gsap?.version,
+            rawNoScript: grid?.textContent.trim().startsWith("<figure") || false,
+            noscript: grid?.querySelector("noscript") !== null,
+            path: window.location.pathname,
+            tiles: grid?.querySelectorAll(".advertising-tile").length || 0,
+            tileIds: [...(grid?.querySelectorAll(".advertising-tile") || [])].map(
+              (tile) => tile.getAttribute("data-advertising-card"),
+            ),
+            gridHeight: Number.parseFloat(Reflect.get(grid || {}, "style")?.height || "0"),
+            gridTop: grid ? grid.getBoundingClientRect().top + window.scrollY : 0,
+            layoutViewportWidth: document.documentElement.clientWidth,
+            scrollY: window.scrollY,
+            viewportHeight: window.innerHeight,
+            artifactCards: artifact?.ADVERTISING_CATALOG_ARTIFACT?.cards?.length ?? null,
+            transitioning: document.body.classList.contains("is-transitioning"),
+          };
+        }, expectedCardCount);
+        const expectedRuntime = runtimeContract
+          ? (() => {
+              const layout = runtimeContract.compileAdvertisingLayout({
+                cards: runtimeContract.artifact.cards,
+                categoryOrder: runtimeContract.artifact.categories.map((category) => category.slug),
+                datasetVersion: runtimeContract.artifact.datasetVersion,
+                filter: "all",
+                layoutViewportWidth: state.layoutViewportWidth,
+              });
+              const ids = runtimeContract.getVirtualWindow(layout, {
+                scrollTop: Math.max(0, state.scrollY - state.gridTop),
+                viewportHeight: state.viewportHeight,
+                overscan: state.viewportHeight,
+              }).items.map((placement) => placement.card.id);
+              return {
+                ids,
+                minHeight: layout.totalPixelHeight,
+                maxHeight: layout.totalPixelHeight + state.viewportHeight + 2 * layout.interCardGap,
+              };
+            })()
+          : null;
+        assert(
+          state.path === destination && state.transitioning && state.grids === 1 && state.tiles > 0 &&
+            state.masonry && state.lazySizes && state.splitText && state.gsap === "3.15.0" &&
+            !state.rawNoScript && !state.noscript &&
+            (expectedCardCount === null || state.artifactCards === expectedCardCount) &&
+            (!expectedRuntime || (
+              JSON.stringify(state.tileIds) === JSON.stringify(expectedRuntime.ids) &&
+              state.gridHeight >= expectedRuntime.minHeight - 0.05 &&
+              state.gridHeight <= expectedRuntime.maxHeight + 0.05
+            )),
+          `fresh Barba Advertising readiness failed: ${JSON.stringify({ state, expectedRuntime })}`,
+        );
+        if (testCase.slowVendor) assert(vendorIntercepted, "bounded slow-vendor readiness interception did not run");
+        await page.waitForFunction(() => !document.body.classList.contains("is-transitioning"));
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function runAdvertisingDependencyRecoveryChecks() {
+  const vendorPattern = "**/assets/vendor/masonry-4.2.2.min.js";
+  const installFailedVendor = (page) => page.evaluate(async () => {
+    const script = document.createElement("script");
+    script.setAttribute("src", "/assets/vendor/masonry-4.2.2.min.js");
+    script.dataset.ttAdvertisingDependency = "/assets/vendor/masonry-4.2.2.min.js";
+    script.dataset.ttAdvertisingStatus = "failed";
+    document.head.append(script);
+    await new Promise((resolve) => script.addEventListener("error", resolve, { once: true }));
+  });
+
+  await runPageCase(
+    "advertising retries a vendor that failed before readiness listeners",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      let requests = 0;
+      await page.route(vendorPattern, async (route) => {
+        requests += 1;
+        if (requests === 1) return route.abort("failed");
+        const response = await route.fetch();
+        return route.fulfill({ response });
+      });
+      await gotoRoute(page, "/vi/");
+      await installFailedVendor(page);
+      const diagnostics = monitorPage(page);
+      const state = await page.evaluate(async () => {
+        await window.TruongThinhDetail.ensureAdvertisingDependencies();
+        return { masonry: typeof window.Masonry === "function" };
+      });
+      assert(state.masonry && requests === 2, `Failed vendor did not retry exactly once: ${JSON.stringify({ state, requests })}`);
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "advertising rejects a failed existing vendor without hanging",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      await page.route(vendorPattern, (route) => route.abort("failed"));
+      await gotoRoute(page, "/vi/");
+      await installFailedVendor(page);
+      const state = await page.evaluate(async () => {
+        const started = performance.now();
+        const result = await Promise.race([
+          window.TruongThinhDetail.ensureAdvertisingDependencies().then(
+            () => "resolved",
+            () => "rejected",
+          ),
+          new Promise((resolve) => setTimeout(() => resolve("timed-out"), 1_500)),
+        ]);
+        return { elapsed: performance.now() - started, result };
+      });
+      assert(
+        state.result === "rejected" && state.elapsed < 1_500,
+        `Failed existing vendor readiness hung instead of rejecting: ${JSON.stringify(state)}`,
+      );
+    },
+  );
+}
+
+async function runAdvertisingHistoryRemountChecks() {
+  const cases = [
+    { locale: "vi", viewport: { width: 1440, height: 900 } },
+    { locale: "en", viewport: { width: 390, height: 844 } },
+  ];
+  for (const testCase of cases) {
+    const home = `/${testCase.locale}/`;
+    const advertising = `/${testCase.locale}/advertising-products/`;
+    await runPageCase(
+      `advertising Home history remount ${testCase.locale} ${testCase.viewport.width}px`,
+      { route: advertising, viewport: testCase.viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        const clickRoute = async (destination) => {
+          const scope = testCase.viewport.width <= 980 ? "#site-menu" : "[data-site-header]";
+          if (scope === "#site-menu") await openMenu(page);
+          const link = await findRouteLink(page, scope, destination);
+          await Promise.all([waitForPath(page, destination), link.click()]);
+        };
+        const catalogState = () => page.evaluate(() => {
+          const grid = document.querySelector("[data-project-grid].advertising-grid");
+          return {
+            grids: document.querySelectorAll("[data-project-grid].advertising-grid").length,
+            masonry: typeof window.Masonry === "function",
+            lazySizes: Boolean(window.lazySizes?.loader),
+            splitText: typeof window.SplitText === "function",
+            raw: grid?.textContent.trim().startsWith("<figure") || false,
+            tiles: grid?.querySelectorAll(".advertising-tile").length || 0,
+          };
+        });
+        const assertCatalog = async (label) => {
+          await page.waitForFunction(() => document.querySelectorAll("[data-project-grid].advertising-grid .advertising-tile").length > 0);
+          const state = await catalogState();
+          assert(
+            state.grids === 1 && state.tiles > 0 && state.masonry && state.lazySizes && state.splitText && !state.raw,
+            `${label} did not converge on one ready catalog: ${JSON.stringify(state)}`,
+          );
+        };
+        await gotoRoute(page, advertising);
+        await assertCatalog("initial Advertising");
+        await clickRoute(home);
+        await clickRoute(advertising);
+        await assertCatalog("Advertising after Home");
+        try {
+          await traverseHistory(page, "back", home);
+          await traverseHistory(page, "forward", advertising);
+        } catch (error) {
+          const state = await page.evaluate(() => ({
+            path: window.location.pathname,
+            containers: [...document.querySelectorAll("[data-barba=container]")].map((container) => container.dataset.barbaNamespace),
+            grids: document.querySelectorAll("[data-project-grid].advertising-grid").length,
+          }));
+          throw new Error(`Advertising history traversal failed: ${error.message}; state=${JSON.stringify(state)}`);
+        }
+        await assertCatalog("Advertising after Back/Forward");
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function runAdvertisingPhotoHistoryChecks() {
+  for (const testCase of [
+    { locale: "vi", viewport: { width: 1440, height: 900 } },
+    { locale: "en", viewport: { width: 390, height: 844 } },
+  ]) {
+    const root = `/${testCase.locale}/advertising-products/`;
+    await runPageCase(
+      `advertising photo A B Back grid ${testCase.locale} ${testCase.viewport.width}px`,
+      { route: root, viewport: testCase.viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, root);
+        await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+        await page.evaluate(() => window.TruongThinhAdvertising.getAdapter().ensurePhoto("kiosk-posm-07", { scrollIntoView: true }));
+        const cardA = page.locator('[data-advertising-card="kiosk-posm-07"] > a');
+        await cardA.waitFor();
+        await cardA.evaluate((link) => link.addEventListener("click", () => {
+          window.__ttAdvertisingTestClickScroll = window.TruongThinhMotion.getLogicalScroll();
+        }, { capture: true, once: true }));
+        await cardA.click();
+        const gridScroll = await page.evaluate(() => window.__ttAdvertisingTestClickScroll);
+        await page.waitForFunction(() => new URL(location.href).searchParams.get("photo") === "kiosk-posm-07"
+          && document.body.classList.contains("is-advertising-photo")
+          && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
+          && document.querySelector("[data-advertising-photo-image]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
+        assert(await page.locator("[data-advertising-photo-view] [data-advertising-photo-cta]").count() === 1, "photo detail must expose one flow CTA");
+        assert(await page.locator("[data-advertising-photo-view] [data-advertising-back]").count() === 0, "photo detail must not expose a Back control");
+        const viewerUrl = page.url();
+        const expandButton = page.locator("[data-advertising-photo-expand]");
+        await expandButton.evaluate((button) => button.addEventListener("click", () => {
+          window.__ttAdvertisingTestViewerScroll = window.TruongThinhMotion.getLogicalScroll();
+        }, { capture: true, once: true }));
+        await expandButton.click();
+        const viewerScroll = await page.evaluate(() => window.__ttAdvertisingTestViewerScroll);
+        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open
+          && document.querySelector("[data-advertising-photo-expanded-image]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
+        await page.locator("[data-advertising-photo-zoom-in]").click();
+        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-zoom-status]")?.textContent === "150%"
+          && document.querySelector("[data-advertising-photo-expanded-image]")?.style.transform.includes("scale(1.5)"));
+        const beforePan = await page.locator("[data-advertising-photo-expanded-image]").evaluate((image) => image.style.transform);
+        const panKey = await page.locator("[data-advertising-photo-expanded-image]").evaluate((image) => {
+          const viewport = image.parentElement;
+          return image.getBoundingClientRect().width > viewport.clientWidth ? "ArrowRight" : "ArrowDown";
+        });
+        await page.keyboard.press(panKey);
+        const afterPan = await page.locator("[data-advertising-photo-expanded-image]").evaluate((image) => image.style.transform);
+        assert(afterPan !== beforePan, "viewer keyboard pan did not move a zoomed image");
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open
+          && document.activeElement?.matches("[data-advertising-photo-expand]"));
+        assert(page.url() === viewerUrl, "viewer changed the photo URL/history identity");
+        const viewerRestoredScroll = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+        assert(Math.abs(viewerRestoredScroll - viewerScroll) <= 2, `viewer close lost logical scroll: ${JSON.stringify({ viewerScroll, viewerRestoredScroll })}`);
+        await page.locator('[data-advertising-photo-tag="use-sampling"]').click();
+        await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling"
+          && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true"
+          && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
+        const relatedB = page.locator('[data-advertising-related-card="mobile-retail-04"] > a');
+        await relatedB.waitFor();
+        const relatedBState = await relatedB.evaluate((link) => ({
+          placement: link.parentElement.dataset.advertisingPlacementIndex,
+          slot: link.closest("[data-advertising-photo-related-grid]").dataset.advertisingSuggestionSlot,
+        }));
+        await relatedB.click();
+        await page.waitForFunction(() => new URL(location.href).searchParams.get("photo") === "mobile-retail-04"
+          && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "mobile-retail-04");
+        await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]")
+          && Math.abs(window.TruongThinhMotion.getLogicalScroll()) <= 2);
+        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+        assert(await page.locator('[data-advertising-photo-image][src*="mobile-retail"]').count() === 1, "B did not become the only hero image");
+        assert(await page.locator("[data-advertising-photo-morph]").count() <= 1, "more than one photo morph clone is active");
+        if (testCase.viewport.width <= 980) {
+          await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
+        } else {
+          await page.mouse.move(testCase.viewport.width / 2, testCase.viewport.height - 80);
+          await page.mouse.wheel(0, 600);
+        }
+        await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll() > 100);
+        const detailBScroll = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+        await page.waitForFunction((expected) => Math.abs(window.TruongThinhAdvertising.getBrowseState().detail.scrollY - expected) <= 2, detailBScroll);
+        await Promise.all([
+          page.waitForURL((url) => url.searchParams.get("photo") === "kiosk-posm-07"),
+          page.goBack(),
+        ]);
+        await page.waitForFunction(({ placement, slot }) => {
+          const related = document.querySelector('[data-advertising-related-card="mobile-retail-04"]');
+          const grid = document.querySelector("[data-advertising-photo-related-grid]");
+          return document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
+            && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true"
+            && related?.dataset.advertisingPlacementIndex === placement
+            && grid?.dataset.advertisingSuggestionSlot === slot;
+        }, relatedBState);
+        assert(new URL(page.url()).searchParams.get("tag") === "use-sampling", "Back to A lost its tag state");
+        await Promise.all([
+          page.waitForURL((url) => url.searchParams.get("photo") === "mobile-retail-04"),
+          page.goForward(),
+        ]);
+        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "mobile-retail-04");
+        await page.waitForFunction((expected) => !document.querySelector("[data-advertising-photo-morph]")
+          && Math.abs(window.TruongThinhMotion.getLogicalScroll() - expected) <= 2, detailBScroll);
+        await page.evaluate(async () => {
+          await document.fonts?.ready;
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        });
+        const restoredBScroll = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+        assert(Math.abs(restoredBScroll - detailBScroll) <= 2, `Forward B lost its persisted detail scroll: ${JSON.stringify({ detailBScroll, restoredBScroll })}`);
+        const navigationScope = testCase.viewport.width <= 980 ? "#site-menu .menu-nav" : "[data-site-header]";
+        if (navigationScope === "#site-menu .menu-nav") await openMenu(page);
+        const advertisingNavigation = await findRouteLink(page, navigationScope, root);
+        await advertisingNavigation.click();
+        await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+          && !document.body.classList.contains("is-advertising-photo"));
+        await page.waitForFunction(() => document.activeElement?.closest?.("[data-advertising-card]")?.dataset.advertisingCard === "mobile-retail-04");
+        await Promise.all([
+          page.waitForURL((url) => url.searchParams.get("photo") === "mobile-retail-04"),
+          page.goBack(),
+        ]);
+        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "mobile-retail-04");
+        await Promise.all([
+          page.waitForURL((url) => url.searchParams.get("photo") === "kiosk-posm-07"),
+          page.goBack(),
+        ]);
+        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
+        await Promise.all([
+          page.waitForURL((url) => !url.searchParams.has("photo")),
+          page.goBack(),
+        ]);
+        await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+          && !document.body.classList.contains("is-advertising-photo"));
+        await page.waitForFunction((expected) => !document.querySelector("[data-advertising-photo-morph]")
+          && Math.abs(window.TruongThinhMotion.getLogicalScroll() - expected) <= 2, gridScroll);
+        await page.evaluate(async () => {
+          await document.fonts?.ready;
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        });
+        const restored = await page.evaluate(() => ({
+          activeId: document.activeElement?.closest?.("[data-advertising-card]")?.dataset.advertisingCard || null,
+          scroll: window.TruongThinhMotion.getLogicalScroll(),
+          maximum: document.documentElement.scrollHeight - innerHeight,
+          gridHeight: document.querySelector("[data-project-grid]")?.getBoundingClientRect().height,
+          browse: window.TruongThinhAdvertising.getBrowseState(),
+        }));
+        assert(restored.activeId === "kiosk-posm-07", `grid focus was not restored to A: ${JSON.stringify(restored)}`);
+        assert(Math.abs(restored.scroll - gridScroll) <= 2, `grid logical scroll drifted beyond 2px: ${JSON.stringify({ gridScroll, restored })}`);
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "advertising valid direct photo reload and Escape",
+    { route: "/vi/advertising-products/", viewport: { width: 1024, height: 900 } },
+    async (page) => {
+      const direct = "/vi/advertising-products/?photo=kiosk-posm-07&tag=use-sampling";
+      await gotoRoute(page, direct);
+      await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
+        && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true");
+      const localeHrefs = await page.locator("[data-language-option]").evaluateAll((links) => links.map((link) => link.href));
+      assert(localeHrefs.every((href) => new URL(href).searchParams.get("photo") === "kiosk-posm-07"
+        && new URL(href).searchParams.get("tag") === "use-sampling"), `locale anchors dropped direct photo state: ${JSON.stringify(localeHrefs)}`);
+      await page.reload();
+      await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
+        && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true");
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+        && document.activeElement?.closest?.("[data-advertising-card]")?.dataset.advertisingCard === "kiosk-posm-07");
+      assert(new URL(page.url()).searchParams.get("category") === "kiosk-posm", "direct Escape did not return to the containing grid");
+    },
+  );
+
+  await runPageCase(
+    "advertising invalid direct query cleans in place",
+    { route: "/vi/advertising-products/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      await gotoRoute(page, "/vi/advertising-products/?category=missing&photo=missing&tag=use-sampling");
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getBrowseState?.());
+      assert(new URL(page.url()).search === "", `invalid direct query remained visible: ${page.url()}`);
+      assert(await page.locator("[data-project-grid].advertising-grid").isVisible(), "invalid direct photo did not fail open to the grid");
+    },
+  );
+
+  await runPageCase(
+    "advertising reduced motion opens detail without a clone",
+    { route: "/vi/advertising-products/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.evaluate(() => window.TruongThinhAdvertising.getAdapter().ensurePhoto("kiosk-posm-07", { scrollIntoView: true }));
+      await page.locator('[data-advertising-card="kiosk-posm-07"] > a').click();
+      await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+      assert(await page.locator("[data-advertising-photo-morph]").count() === 0, "reduced motion created a transform clone");
+    },
+  );
+}
+
+async function runAdvertisingNoOpScrollCheck() {
+  for (const width of [1440, 390]) {
+    await runPageCase(
+      `advertising same-frontier scroll is a no-op ${width}px`,
+      { route: "/vi/advertising-products/", viewport: { width, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/advertising-products/");
+        await page.waitForFunction(() => document.querySelectorAll(".advertising-tile").length > 0);
+        const state = await page.evaluate(async () => {
+          const grid = document.querySelector("[data-project-grid]");
+          const ids = () => [...grid.querySelectorAll(".advertising-tile")].map((tile) => tile.dataset.advertisingCard).sort().join(",");
+          const before = ids();
+          const calls = { layouts: 0, reloadItems: 0, events: 0 };
+          const masonry = window.Masonry.data(grid);
+          const originalLayout = masonry.layout;
+          const originalReload = masonry.reloadItems;
+          masonry.layout = function (...args) { calls.layouts += 1; return originalLayout.apply(this, args); };
+          masonry.reloadItems = function (...args) { calls.reloadItems += 1; return originalReload.apply(this, args); };
+          const count = () => { calls.events += 1; };
+          window.addEventListener("site:layout", count);
+          try {
+            for (let index = 0; index < 4; index += 1) {
+              window.dispatchEvent(innerWidth > 980
+                ? new CustomEvent("site:scroll", { detail: { y: window.scrollY } })
+                : new Event("scroll"));
+            }
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            return { before, after: ids(), ...calls };
+          } finally {
+            masonry.layout = originalLayout;
+            masonry.reloadItems = originalReload;
+            window.removeEventListener("site:layout", count);
+          }
+        });
+        assert(
+          state.layouts === 0 && state.reloadItems === 0 && state.events === 0 && state.before === state.after,
+          `same-frontier scroll committed a catalog layout: ${JSON.stringify(state)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function runAdvertisingRapidFilterCheck() {
+  const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const categorySlugs = ADVERTISING_CATEGORIES.map((category) => category.slug);
+  const cards = Array.from({ length: 600 }, (_, index) => {
+    const category = categorySlugs[index % categorySlugs.length];
+    return {
+      id: `rapid-${category}-${String(index).padStart(3, "0")}`,
+      category,
+      rank: index,
+      sourceOrder: Math.floor(index / categorySlugs.length),
+      media: {
+        src: "/assets/content/projects/advertising-kiosk-posm-cover.webp",
+        width: 1536,
+        height: 1024,
+        altVi: "Mẫu kiểm tra rapid-filter",
+        altEn: "Rapid-filter test sample",
+      },
+      titleVi: `Mẫu ${index}`,
+      titleEn: `Sample ${index}`,
+    };
+  });
+  const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards });
+  await runPageCase(
+    "advertising rapid filter continues from visual coordinates",
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      await page.addInitScript((injectedArtifact) => {
+        Object.defineProperty(window, "__TT_ADVERTISING_ARTIFACT__", {
+          configurable: true,
+          value: injectedArtifact,
+          writable: true,
+        });
+      }, artifact);
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(
+        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0 &&
+          document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true",
+        null,
+        { timeout: 3_000 },
+      );
+      await page.locator("[data-project-grid]").evaluate((grid) => {
+        const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: gridTop, behavior: "instant" });
+        window.dispatchEvent(new Event("scroll"));
+      });
+      await page.waitForTimeout(50);
+      await page.locator('[data-advertising-filter="print-decals"]').evaluate((control) => control.click());
+      await page.waitForTimeout(120);
+      const rapidStart = await page.locator("[data-project-grid]").evaluate(async (grid) => {
+        const gridRect = grid.getBoundingClientRect();
+        const before = [...grid.querySelectorAll(".advertising-tile")]
+          .filter((tile) => !tile.hidden)
+          .map((tile) => {
+            const rect = tile.getBoundingClientRect();
+            return { x: rect.left - gridRect.left, y: rect.top - gridRect.top };
+          });
+        const blockRapidTransitionEnd = (event) => {
+          if (event.propertyName === "transform" &&
+              event.target?.dataset?.advertisingCategory === "mobile-retail") {
+            event.stopImmediatePropagation();
+          }
+        };
+        grid.addEventListener("transitionend", blockRapidTransitionEnd, true);
+        grid.__blockRapidTransitionEnd = blockRapidTransitionEnd;
+        const scrollBefore = window.scrollY;
+        grid.closest('[data-barba-namespace="advertising-products"]')
+          ?.querySelector('[data-advertising-filter="mobile-retail"]')?.click();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        const membersBeforeScroll = [...grid.querySelectorAll(".advertising-tile")]
+          .filter((tile) => !tile.hidden)
+          .map((tile) => tile.dataset.advertisingCard);
+        const scrollTarget = Math.min(
+          document.documentElement.scrollHeight - innerHeight,
+          scrollBefore + Math.round(innerHeight * 2),
+        );
+        const gridDocumentTop = grid.getBoundingClientRect().top + window.scrollY;
+        const futureCenter = Math.max(0, scrollTarget - gridDocumentTop) + innerHeight * 0.5;
+        const trackedItem = Reflect.get(window, "Masonry").data(grid).items
+          .filter((item) => !item.element.hidden && item.element.dataset.advertisingCategory === "mobile-retail")
+          .sort((left, right) => Math.abs(left.position.y - futureCenter) - Math.abs(right.position.y - futureCenter))[0];
+        if (!trackedItem) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
+        grid.__rapidOldTransitionEnds = 0;
+        trackedItem.on("transitionEnd", () => {
+          grid.__rapidOldTransitionEnds += 1;
+        });
+        window.scrollTo({ top: scrollTarget, behavior: "instant" });
+        window.dispatchEvent(new Event("scroll"));
+        window.dispatchEvent(new CustomEvent("site:scroll", { detail: { y: window.scrollY } }));
+        return { before, membersBeforeScroll, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.advertisingCard };
+      });
+      const { before, membersBeforeScroll, scrollTarget, trackedId } = rapidStart;
+      const capture = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
+        const tile = [...grid.querySelectorAll(".advertising-tile")]
+          .find((item) => !item.hidden && item.dataset.advertisingCard === id);
+        const gridRect = grid.getBoundingClientRect();
+        const rect = tile?.getBoundingClientRect();
+        const style = tile ? getComputedStyle(tile) : null;
+        return {
+          duration: style?.transitionDuration,
+          members: [...grid.querySelectorAll(".advertising-tile")].map((item) => item.dataset.advertisingCard),
+          staleTransitionEnds: grid.__rapidOldTransitionEnds || 0,
+          transform: style?.transform,
+          target: { x: Number.parseFloat(style?.left || "0"), y: Number.parseFloat(style?.top || "0") },
+          visual: rect ? { x: rect.left - gridRect.left, y: rect.top - gridRect.top } : null,
+        };
+      }, trackedId);
+      const origin = await capture();
+      await page.waitForTimeout(160);
+      const during = await capture();
+      await page.waitForTimeout(280);
+      const settled = await capture();
+      await page.locator("[data-project-grid]").evaluate(async (grid, id) => {
+        if (!grid.__blockRapidTransitionEnd) return;
+        grid.removeEventListener("transitionend", grid.__blockRapidTransitionEnd, true);
+        delete grid.__blockRapidTransitionEnd;
+        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
+        tile?.dispatchEvent(new TransitionEvent("transitionend", {
+          bubbles: true,
+          propertyName: "transform",
+        }));
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }, trackedId);
+      const afterStaleEnd = await capture();
+      const seededOrigin = origin.target;
+      const nearestOrigin = Math.min(...before.map((slot) => Math.hypot(seededOrigin.x - slot.x, seededOrigin.y - slot.y)));
+      const travel = Math.hypot(settled.target.x - seededOrigin.x, settled.target.y - seededOrigin.y);
+      const progressed = Math.hypot(during.visual.x - seededOrigin.x, during.visual.y - seededOrigin.y);
+      const remaining = Math.hypot(during.visual.x - settled.target.x, during.visual.y - settled.target.y);
+      const membershipChanged = membersBeforeScroll.length !== settled.members.length ||
+        membersBeforeScroll.some((id) => !settled.members.includes(id)) ||
+        settled.members.some((id) => !membersBeforeScroll.includes(id));
+      const staleEndWasInert = JSON.stringify(afterStaleEnd.members) === JSON.stringify(settled.members) &&
+        Math.hypot(afterStaleEnd.visual.x - afterStaleEnd.target.x, afterStaleEnd.visual.y - afterStaleEnd.target.y) <= 2 &&
+        Math.hypot(afterStaleEnd.target.x - settled.target.x, afterStaleEnd.target.y - settled.target.y) <= 2 &&
+        afterStaleEnd.staleTransitionEnds === 0 &&
+        (!afterStaleEnd.transform || afterStaleEnd.transform === "none");
+      assert(
+        origin.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
+          during.transform && during.transform !== "none" &&
+          nearestOrigin <= 3 && travel > 1 && progressed > 2 && remaining > 2 &&
+          membershipChanged &&
+          Math.hypot(settled.visual.x - settled.target.x, settled.visual.y - settled.target.y) <= 2 &&
+          (!settled.transform || settled.transform === "none") &&
+          staleEndWasInert &&
+          Math.abs((await page.evaluate(() => window.scrollY)) - scrollTarget) <= 2,
+        `Rapid filter snapped instead of continuing the Masonry coordinate morph: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, nearestOrigin, travel, progressed, remaining, membershipChanged, staleEndWasInert, scrollTarget })}`,
       );
       assertDiagnostics(diagnostics);
     },
   );
 }
 
-async function runProjectsProductsHeroEditorialCheck() {
+async function runAdvertisingDirectFailureCheck() {
+  await runPageCase(
+    "advertising direct persistent vendor failure settles without reload",
+    { route: "/vi/advertising-products/?direct-vendor-failure=1", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      await page.addInitScript(() => {
+        window.name = String(Number(window.name || "0") + 1);
+      });
+      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.abort("failed"));
+      await gotoRoute(page, "/vi/advertising-products/?direct-vendor-failure=1");
+      await page.waitForFunction(
+        () => document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback === "failed",
+        null,
+        { timeout: 6_000 },
+      );
+      const state = await page.evaluate(() => {
+        const grid = document.querySelector("[data-project-grid]");
+        return {
+          boots: Number(window.name),
+          fallback: document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback,
+          hidden: grid?.hidden,
+          raw: grid?.textContent.trim().startsWith("<figure") || false,
+          transitioning: document.body.classList.contains("is-transitioning"),
+        };
+      });
+      assert(
+        state.boots === 1 && state.fallback === "failed" && state.hidden && !state.raw && !state.transitioning,
+        `Persistent direct vendor failure reloaded or left unsafe catalog content: ${JSON.stringify(state)}`,
+      );
+    },
+  );
+}
+
+async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}) {
+  await runPageCase(
+    "advertising hero text preserves the approved page-load sequence",
+    {
+      route: "/vi/advertising-products/",
+      viewport: { width: 1440, height: 900 },
+    },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await page.addInitScript(() => {
+        /** @type {Array<Record<string, unknown>>} */
+        const samples = [];
+        const trace = { done: false, samples };
+        Reflect.set(window, "__ttAdvertisingHeroTextTrace", trace);
+        document.addEventListener(
+          "DOMContentLoaded",
+          () => {
+            const startedAt = performance.now();
+            /** @param {Element | null} target */
+            const matrix = (target) =>
+              target
+                ? new DOMMatrixReadOnly(getComputedStyle(target).transform)
+                : null;
+            const sample = () => {
+              const kicker = document.querySelector(
+                "[data-motion-hero-kicker]",
+              );
+              const title = document.querySelector(
+                "[data-motion-words][data-motion-hero-title]",
+              );
+              const wrapper = document.querySelector(
+                "[data-motion-hero-wrapper-zoom]",
+              );
+              const words = [...(title?.querySelectorAll(".motion-word") || [])];
+              const filters = [
+                ...document.querySelectorAll("[data-advertising-filter]"),
+              ];
+              const kickerMatrix = matrix(kicker);
+              const wrapperMatrix = matrix(wrapper);
+              const elapsed = performance.now() - startedAt;
+              trace.samples.push({
+                elapsed,
+                filterOpacities: filters.map((filter) =>
+                  Number.parseFloat(getComputedStyle(filter).opacity),
+                ),
+                filterTransforms: filters.map((filter) =>
+                  matrix(filter)?.f || 0,
+                ),
+                kickerOpacity: Number.parseFloat(
+                  kicker ? getComputedStyle(kicker).opacity : "NaN",
+                ),
+                kickerX: kickerMatrix?.e || 0,
+                motionReady:
+                  document.documentElement.classList.contains("motion-ready"),
+                wordOpacities: words.map((word) =>
+                  Number.parseFloat(getComputedStyle(word).opacity),
+                ),
+                wrapperScale: wrapperMatrix?.a || 1,
+              });
+              if (elapsed < 3_200) requestAnimationFrame(sample);
+              else trace.done = true;
+            };
+            requestAnimationFrame(sample);
+          },
+          { once: true },
+        );
+      });
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(
+        () => Reflect.get(window, "__ttAdvertisingHeroTextTrace")?.done,
+        null,
+        { timeout: 8_000 },
+      );
+      const trace = await page.evaluate(
+        () => Reflect.get(window, "__ttAdvertisingHeroTextTrace").samples,
+      );
+      const ready = trace.find((sample) => sample.motionReady);
+      const kickerMid = trace.find(
+        (sample) =>
+          sample.kickerOpacity > 0.05 &&
+          sample.kickerOpacity < 0.95 &&
+          sample.kickerX < -3,
+      );
+      const filterStart = trace.find(
+        (sample) =>
+          sample.filterOpacities.length === 7 &&
+          sample.filterOpacities.every((opacity) => opacity <= 0.05) &&
+          sample.filterTransforms.every((offset) => offset >= 18),
+      );
+      const filterMid = trace.find(
+        (sample) =>
+          sample.filterOpacities.some(
+            (opacity) => opacity > 0.05 && opacity < 0.95,
+          ) &&
+          sample.filterOpacities.some((opacity) => opacity <= 0.05),
+      );
+      const wordStart = trace.find(
+        (sample) =>
+          sample.wordOpacities.length === 7 &&
+          sample.wordOpacities.every((opacity) => opacity <= 0.05),
+      );
+      const wordMid = trace.find(
+        (sample) =>
+          sample.wordOpacities.some((opacity) => opacity >= 0.95) &&
+          sample.wordOpacities.some((opacity) => opacity <= 0.05),
+      );
+      const final = trace.at(-1);
+
+      assert(
+        ready?.kickerOpacity <= 0.05 && ready.kickerX <= -55 && kickerMid,
+        `Advertising hero kicker skipped its delayed left-to-right reveal: ${JSON.stringify({ ready, kickerMid })}`,
+      );
+      assert(
+        filterStart && filterMid &&
+          final.filterOpacities.every((opacity) => opacity >= 0.99) &&
+          final.filterTransforms.every((offset) => Math.abs(offset) <= 0.5),
+        `Advertising hero filters did not preserve their staggered entrance: ${JSON.stringify({ filterStart, filterMid, final })}`,
+      );
+      assert(
+        wordStart && wordMid &&
+          final.wordOpacities.every((opacity) => opacity >= 0.99) &&
+          trace[0].wrapperScale >= 1.18 && final.wrapperScale <= 1.01,
+        `Advertising hero title left the approved word-fade and wrapper-zoom sequence: ${JSON.stringify({ wordStart, wordMid, first: trace[0], final })}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  if (motionOnly) return;
+
   const cases = [
     { viewport: { width: 320, height: 640 } },
     { viewport: { width: 390, height: 844 } },
@@ -3685,7 +6111,7 @@ async function runProjectsProductsHeroEditorialCheck() {
                 },
               ),
             null,
-            { timeout: 3_000 },
+            { timeout: 5_000 },
           );
           const hero = await page.locator(".detail-index-hero").evaluate((element) => {
             const parseColor = (value) => value.match(/[\d.]+/g)?.map(Number) || [];
@@ -3723,7 +6149,7 @@ async function runProjectsProductsHeroEditorialCheck() {
                 center: bounds.left + bounds.width / 2,
               };
             });
-            const activeFilter = element.querySelector('.project-filter[aria-pressed="true"]');
+            const activeFilter = element.querySelector('.project-filter[aria-current="true"]');
             const activeFilterStyles = getComputedStyle(activeFilter);
             const header = document.querySelector("[data-site-header]");
             const styles = getComputedStyle(element);
@@ -3826,7 +6252,7 @@ async function runProjectsProductsHeroEditorialCheck() {
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
-          const kioskFilter = page.locator('[data-project-filter="kiosk"]');
+          const kioskFilter = page.locator('[data-advertising-filter="kiosk-posm"]');
           await kioskFilter.focus();
           assert(
             await kioskFilter.evaluate((filter) => document.activeElement === filter),
@@ -3834,8 +6260,8 @@ async function runProjectsProductsHeroEditorialCheck() {
           );
 
           if (viewport.width <= 390) {
-            const firstFilter = page.locator('[data-project-filter="all"]');
-            const lastFilter = page.locator('[data-project-filter="lightbox"]');
+            const firstFilter = page.locator('[data-advertising-filter="all"]');
+            const lastFilter = page.locator('[data-advertising-filter="led-displays-lightboxes"]');
             await firstFilter.focus();
             for (let index = 0; index < 4; index += 1) {
               await page.keyboard.press("Tab");
@@ -3856,7 +6282,7 @@ async function runProjectsProductsHeroEditorialCheck() {
             assert(mobileFilters.isScrollable && mobileFilters.lastFits, `${locale} ${viewport.width}x${viewport.height}: keyboard focus did not bring the final mobile filter into view`);
             await page.keyboard.press("Enter");
             await page.waitForFunction(
-              () => document.querySelector('[data-project-filter="lightbox"]')?.getAttribute("aria-pressed") === "true",
+              () => document.querySelector('[data-advertising-filter="led-displays-lightboxes"]')?.getAttribute("aria-current") === "true",
               null,
               { timeout: 3_000 },
             );
@@ -3872,6 +6298,1376 @@ async function runProjectsProductsHeroEditorialCheck() {
       );
     }
   }
+}
+
+async function runAdvertisingGridFocusedChecks() {
+  const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
+  const artifact = buildAdvertisingArtifact();
+  const categoryOrder = ADVERTISING_CATEGORIES.map((category) => category.slug);
+  const matrixWidths = [320, 390, 640, 750, 768, 960, 1024, 1200, 1440, 1920, 2560];
+  const contractBoundaryWidths = [750, 960, 1200];
+  const columnBoundaryWidths = [500, 735, 990];
+  const thresholdWidths = [...new Set([...contractBoundaryWidths, ...columnBoundaryWidths])]
+    .flatMap((width) => [width - 1, width, width + 1]);
+  const widths = [...new Set([...matrixWidths, ...thresholdWidths])].sort((left, right) => left - right);
+  assert(artifact.layoutAlgorithmVersion === "advertising-grid-v9", `Advertising artifact version is not v9: ${artifact.layoutAlgorithmVersion}`);
+  assert(
+    artifact.cards.every((card) => !Object.prototype.hasOwnProperty.call(card, "presentationCanvas") && !Object.prototype.hasOwnProperty.call(card, "fitMode") && !Object.prototype.hasOwnProperty.call(card, "layoutSpan")),
+    "Advertising artifact retained legacy canvas or span authoring fields",
+  );
+  for (const width of widths) {
+    await runPageCase(
+      `advertising grid ${width}px`,
+      { route: "/vi/advertising-products/", viewport: { width, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/advertising-products/");
+        await page.waitForFunction(
+          () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+          null,
+          { timeout: 3_000 },
+        );
+        await page.evaluate(() => document.fonts?.ready);
+        const measured = await page.locator("[data-project-grid]").evaluate((grid) => {
+          const gridBounds = grid.getBoundingClientRect();
+          const tiles = [...grid.querySelectorAll(".advertising-tile")].map((tile) => {
+            const rect = tile.getBoundingClientRect();
+            const media = tile.querySelector(".project-tile__media");
+            return {
+              id: tile.dataset.advertisingCard,
+              left: Number.parseFloat(tile.style.left),
+              top: Number.parseFloat(tile.style.top),
+              width: Number.parseFloat(tile.style.width),
+              height: Number.parseFloat(tile.style.height),
+              visualLeft: rect.left - gridBounds.left,
+              visualTop: rect.top - gridBounds.top,
+              mediaWidth: media?.getBoundingClientRect().width ?? 0,
+              mediaHeight: media?.getBoundingClientRect().height ?? 0,
+              images: media?.querySelectorAll("img").length ?? 0,
+              backplates: media?.querySelectorAll(".advertising-tile__backplate").length ?? 0,
+              fitMode: media?.getAttribute("data-media-fit"),
+            };
+          });
+          return {
+            viewportWidth: document.documentElement.clientWidth,
+            left: gridBounds.left,
+            right: document.documentElement.clientWidth - gridBounds.right,
+            width: gridBounds.width,
+            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            tiles,
+            outerToken: Number.parseFloat(getComputedStyle(grid.closest(".project-index")).getPropertyValue("--advertising-outer")),
+            gapToken: Number.parseFloat(getComputedStyle(grid).getPropertyValue("--advertising-gap")),
+            captionCount: grid.querySelectorAll("figcaption").length,
+          };
+        });
+        const expectedOuter = measured.viewportWidth <= 750 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
+        const expectedGap = measured.viewportWidth <= 960 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
+        const expectedGridWidth = Math.min(measured.viewportWidth - 2 * expectedOuter, 1500);
+        const expectedEffectiveOuter = (measured.viewportWidth - expectedGridWidth) / 2;
+        const expectedColumns = Math.min(4, Math.max(2, Math.floor(expectedGridWidth / 235)));
+        const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
+        const expectedLayout = compileAdvertisingLayout({
+          cards: artifact.cards,
+          categoryOrder,
+          datasetVersion: artifact.datasetVersion,
+          settings: artifact.settings,
+          filter: "all",
+          layoutViewportWidth: measured.viewportWidth,
+        });
+        /** @type {Map<string, any>} */
+        const expectedById = new Map();
+        expectedLayout.placements.forEach((placement) => expectedById.set(placement.card.id, placement));
+        assert(expectedLayout.columns >= 2 && expectedLayout.columns <= 4 && expectedLayout.placements.every((placement) => placement.width === 1), `${width}px v6 compiler lost 2..4 columns or one-column photos`);
+        const noOverlap = measured.tiles.every((tile, index) => measured.tiles.slice(index + 1).every((next) =>
+          Math.min(tile.left + tile.width, next.left + next.width) - Math.max(tile.left, next.left) <= 0.05 ||
+          Math.min(tile.top + tile.height, next.top + next.height) - Math.max(tile.top, next.top) <= 0.05,
+        ));
+        const withinGrid = measured.tiles.every((tile) => tile.left >= -0.05 && tile.left + tile.width <= measured.width + 0.05);
+        assert(measured.outerToken === expectedOuter, `${width}px outer token expected ${expectedOuter}, got ${measured.outerToken}`);
+        assert(Math.abs(measured.left - expectedEffectiveOuter) <= 0.05, `${width}px effective outer left expected ${expectedEffectiveOuter}, got ${measured.left}`);
+        assert(Math.abs(measured.right - expectedEffectiveOuter) <= 0.05, `${width}px effective outer right expected ${expectedEffectiveOuter}, got ${measured.right}`);
+        assert(Math.abs(measured.width - expectedGridWidth) <= 0.05, `${width}px grid width expected ${expectedGridWidth}, got ${measured.width}`);
+        assert(expectedColumns >= 2 && expectedColumns <= 4, `${width}px expected column contract escaped 2..4: ${expectedColumns}`);
+        assert(expectedLayout.columns === expectedColumns, `${width}px compiler columns expected ${expectedColumns}, got ${expectedLayout.columns}`);
+        assert(measured.tiles.every((tile) => Math.abs(tile.width - expectedCardWidth) <= 0.05), `${width}px one-column card width drift: ${JSON.stringify(measured.tiles.slice(0, 6))}`);
+        assert(measured.gapToken === expectedGap, `${width}px gap token expected ${expectedGap}, got ${measured.gapToken}`);
+        assert(measured.overflow <= 1 && withinGrid, `${width}px horizontal overflow or out-of-grid tile: ${JSON.stringify({ overflow: measured.overflow, withinGrid })}`);
+        assert(measured.tiles.length > 0 && measured.tiles.length < 120, `${width}px virtual DOM count ${measured.tiles.length}`);
+        assert(noOverlap, `${width}px grid has overlapping runtime tiles`);
+        assert(measured.captionCount === 0, `${width}px Advertising grid retains caption nodes`);
+        assert(measured.tiles.every((tile) => {
+          const expected = expectedById.get(tile.id);
+          return expected && Math.abs(tile.left - expected.x) <= 0.05 && Math.abs(tile.top - expected.y) <= 0.05 &&
+            Math.abs(tile.width - expected.pixelWidth) <= 0.05 && Math.abs(tile.height - expected.pixelHeight) <= 0.05 &&
+            Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
+            Math.abs(tile.mediaWidth / tile.mediaHeight - expected.card.media.width / expected.card.media.height) <= 0.01 &&
+            Math.abs(tile.height - tile.mediaHeight) <= 0.05 &&
+            tile.images === 1 && tile.backplates === 0 && tile.fitMode === null &&
+            Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05;
+        }), `${width}px runtime geometry drifted from v6 shared layout`);
+        const oracle = inspectAdvertisingGrid({ layout: expectedLayout, placements: expectedLayout.placements });
+        assert(oracle.valid, `${width}px full v6 layout violates one-column stagger/anti-brick oracle: ${JSON.stringify(oracle.violations)}`);
+
+        const firstPass = await page.locator("[data-project-grid]").evaluate((grid) =>
+          [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+        );
+        await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+        await page.locator('[data-advertising-filter="all"]').click();
+        await page.waitForTimeout(450);
+        const secondPass = await page.locator("[data-project-grid]").evaluate((grid) =>
+          [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+        );
+        assert(JSON.stringify(secondPass) === JSON.stringify(firstPass), `${width}px filter round-trip changed the loaded deterministic prefix: ${JSON.stringify({ firstPass, secondPass })}`);
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  for (const width of [751, 1201]) {
+    await runPageCase(
+      `advertising grid ${width}px with layout scrollbar`,
+      { route: "/vi/advertising-products/", viewport: { width, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await page.addInitScript((scrollbarWidth) => {
+          const installLayoutScrollbar = () => {
+            if (!document.documentElement) return false;
+            Object.defineProperty(document.documentElement, "clientWidth", {
+              configurable: true,
+              get: () => innerWidth - scrollbarWidth,
+            });
+            const layoutStyle = document.createElement("style");
+            layoutStyle.textContent = `body { width: calc(100vw - ${scrollbarWidth}px) !important; }`;
+            document.documentElement.prepend(layoutStyle);
+            return true;
+          };
+          if (installLayoutScrollbar()) return;
+          const observer = new MutationObserver(() => {
+            if (!installLayoutScrollbar()) return;
+            observer.disconnect();
+          });
+          observer.observe(document, { childList: true });
+        }, 17);
+        await gotoRoute(page, "/vi/advertising-products/");
+        await page.waitForFunction(() => {
+          const grid = document.querySelector("[data-project-grid]");
+          const index = grid?.closest(".project-index");
+          if (!grid || !index) return false;
+          const outer = Number.parseFloat(getComputedStyle(index).getPropertyValue("--advertising-outer"));
+          const expectedOuter = document.documentElement.clientWidth <= 750 ? 15 : document.documentElement.clientWidth <= 1200 ? 25 : 35;
+          const expectedWidth = Math.min(document.documentElement.clientWidth - 2 * expectedOuter, 1500);
+          return outer === expectedOuter && Math.abs(grid.getBoundingClientRect().width - expectedWidth) <= 0.05;
+        });
+        const measured = await page.locator("[data-project-grid]").evaluate((grid) => {
+          const bounds = grid.getBoundingClientRect();
+          const index = grid.closest(".project-index");
+          return {
+            innerWidth: window.innerWidth,
+            clientWidth: document.documentElement.clientWidth,
+            left: bounds.left,
+            right: document.documentElement.clientWidth - bounds.right,
+            width: bounds.width,
+            outerToken: Number.parseFloat(getComputedStyle(index).getPropertyValue("--advertising-outer")),
+          };
+        });
+        const expectedOuter = measured.clientWidth <= 750 ? 15 : measured.clientWidth <= 1200 ? 25 : 35;
+        const expectedWidth = Math.min(measured.clientWidth - 2 * expectedOuter, 1500);
+        const expectedEffectiveOuter = (measured.clientWidth - expectedWidth) / 2;
+        assert(measured.innerWidth > measured.clientWidth, `${width}px did not create a layout-scrollbar width split: ${JSON.stringify(measured)}`);
+        assert(measured.outerToken === expectedOuter, `${width}px scrollbar outer token expected ${expectedOuter}: ${JSON.stringify(measured)}`);
+        assert(Math.abs(measured.width - expectedWidth) <= 0.05, `${width}px scrollbar grid width expected ${expectedWidth}: ${JSON.stringify(measured)}`);
+        assert(
+          Math.abs(measured.left - expectedEffectiveOuter) <= 0.05 && Math.abs(measured.right - expectedEffectiveOuter) <= 0.05,
+          `${width}px scrollbar margins expected ${expectedEffectiveOuter}: ${JSON.stringify(measured)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "advertising legacy rank-v2 artifact fails before Masonry",
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      await page.addInitScript((injectedArtifact) => {
+        window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
+        window.__ttMasonryConstructs = 0;
+      }, { ...artifact, layoutAlgorithmVersion: "advertising-rank-v2" });
+      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: "window.Masonry = function Masonry() { window.__ttMasonryConstructs += 1; };",
+      }));
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(
+        () => document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback === "failed",
+        null,
+        { timeout: 6_000 },
+      );
+      const state = await page.evaluate(() => ({
+        constructs: window.__ttMasonryConstructs,
+        fallback: document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback,
+        gridHidden: document.querySelector("[data-project-grid]")?.hidden,
+      }));
+      assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `rank-v2 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
+    },
+  );
+
+  await runPageCase(
+    "advertising empty v6 artifact fails before Masonry",
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      await page.addInitScript((injectedArtifact) => {
+        window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
+        window.__ttMasonryConstructs = 0;
+      }, { ...artifact, cards: [] });
+      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: "window.Masonry = function Masonry() { window.__ttMasonryConstructs += 1; };",
+      }));
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(
+        () => document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback === "failed",
+        null,
+        { timeout: 6_000 },
+      );
+      const state = await page.evaluate(() => ({
+        constructs: window.__ttMasonryConstructs,
+        fallback: document.querySelector('[data-barba="container"]')?.dataset.advertisingFallback,
+        gridHidden: document.querySelector("[data-project-grid]")?.hidden,
+      }));
+      assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `empty v6 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
+    },
+  );
+}
+
+async function advertisingArtifactScrollTarget(page, artifact, id) {
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
+  const layout = compileAdvertisingLayout({
+    cards: artifact.cards,
+    categoryOrder: artifact.categories.map((category) => category.slug),
+    datasetVersion: artifact.datasetVersion,
+    filter: "all",
+    layoutViewportWidth,
+  });
+  const target = layout.placements.find((placement) => placement.card.id === id);
+  if (!target) throw new Error(`artifact placement missing: ${id}`);
+  const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
+  return gridTop + target.y;
+}
+
+async function runAdvertisingKeyboardVirtualizationCheck() {
+  const { buildAdvertisingArtifact } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
+  );
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  );
+  const artifact = buildAdvertisingArtifact();
+  const expected = [...artifact.cards]
+    .sort((left, right) => left.rank - right.rank || left.id.localeCompare(right.id));
+
+  await runPageCase(
+    "advertising keyboard crosses virtual frontiers",
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
+      const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
+      const layout = compileAdvertisingLayout({
+        cards: artifact.cards,
+        categoryOrder: artifact.categories.map((category) => category.slug),
+        datasetVersion: artifact.datasetVersion,
+        filter: "all",
+        layoutViewportWidth,
+      });
+      const readState = () => page.locator("[data-project-grid]").evaluate((grid) => {
+        const activeItem = document.activeElement?.closest("[data-advertising-card]");
+        const gridTop = grid.getBoundingClientRect().top + window.scrollY;
+        return {
+          activeId: activeItem?.getAttribute("data-advertising-card"),
+          activeRole: activeItem?.getAttribute("role"),
+          activePosition: Number(activeItem?.getAttribute("aria-posinset")),
+          activeSetSize: Number(activeItem?.getAttribute("aria-setsize")),
+          gridRole: grid.getAttribute("role"),
+          domCount: grid.querySelectorAll(".advertising-tile").length,
+          mountedPositions: [...grid.querySelectorAll(".advertising-tile")]
+            .map((item) => item.getAttribute("aria-posinset"))
+            .filter((value) => value !== null)
+            .map(Number),
+          gridTop,
+          scrollY: window.scrollY,
+        };
+      });
+
+      await page.locator(`[data-advertising-card="${expected[0].id}"] a`).focus();
+      const states = [];
+      for (let index = 0; index < expected.length; index += 1) {
+        if (index > 0) {
+          await page.keyboard.press("Tab");
+          await page.waitForTimeout(25);
+        }
+        const state = await readState();
+        assert(
+          state.activeId === expected[index].id,
+          `Tab left canonical advertising order before item ${index + 1}: ${JSON.stringify(state)}`,
+        );
+        const expectedWindowCount = getVirtualWindow(layout, {
+          scrollTop: Math.max(0, state.scrollY - state.gridTop),
+          viewportHeight: 900,
+          overscan: 900,
+        }).items.length;
+        assert(
+          state.domCount <= expectedWindowCount + 1 && state.domCount < expected.length,
+          `Keyboard virtualization became unbounded at item ${index + 1}: ${JSON.stringify({ state, expectedWindowCount })}`,
+        );
+        states.push(state);
+      }
+
+      assert(
+        states.every((state, index) => state.gridRole === "list" && state.activeRole === "listitem" &&
+          state.activePosition === index + 1 && state.activeSetSize === expected.length),
+        `Advertising virtual-list semantics drifted: ${JSON.stringify(states.filter((state, index) =>
+          state.gridRole !== "list" || state.activeRole !== "listitem" || state.activePosition !== index + 1 || state.activeSetSize !== expected.length))}`,
+      );
+      const endMounted = new Set(states.at(-1).mountedPositions);
+      const firstBackwardPosition = expected.length - 1;
+      assert(!endMounted.has(firstBackwardPosition), `No backward virtual frontier remained after item 109: ${JSON.stringify([...endMounted])}`);
+      for (let index = expected.length - 2; index >= expected.length - 12; index -= 1) {
+        await page.keyboard.press("Shift+Tab");
+        await page.waitForTimeout(25);
+        const state = await readState();
+        assert(
+          state.activeId === expected[index].id && state.activePosition === index + 1,
+          `Shift+Tab failed to cross backward virtual frontier at item ${index + 1}: ${JSON.stringify(state)}`,
+        );
+      }
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runAdvertisingMediaEntranceChecks() {
+  const { buildAdvertisingArtifact } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
+  );
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  );
+  const artifact = buildAdvertisingArtifact();
+  const layout = compileAdvertisingLayout({
+    cards: artifact.cards,
+    categoryOrder: artifact.categories.map((category) => category.slug),
+    datasetVersion: artifact.datasetVersion,
+    filter: "all",
+    layoutViewportWidth: 1440,
+  });
+  const target = layout.placements.reduce((deepest, placement) =>
+    placement.y > deepest.y ? placement : deepest);
+
+  for (const locale of ["vi", "en"]) {
+    const route = `/${locale}/advertising-products/`;
+    await runPageCase(
+      `advertising media entrance ${locale}`,
+      { route, viewport: { width: 1440, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        let targetImageDelayed = false;
+        await page.route(`**${target.card.media.src}`, async (requestRoute) => {
+          targetImageDelayed = true;
+          const response = await requestRoute.fetch();
+          await new Promise((resolve) => setTimeout(resolve, 180));
+          await requestRoute.fulfill({ response });
+        });
+        await gotoRoute(page, route);
+        await page.waitForFunction(
+          () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+          null,
+          { timeout: 6_000 },
+        );
+        const gridTop = await page.locator("[data-project-grid]").evaluate(
+          (grid) => grid.getBoundingClientRect().top + window.scrollY,
+        );
+        const initiallyMounted = await page.locator(
+          `[data-advertising-card="${target.card.id}"]`,
+        ).count();
+        assert(
+          initiallyMounted === 0,
+          `${locale} media entrance target was already inside the initial virtual window`,
+        );
+
+        const trace = await page.evaluate(async ({ targetId, scrollTop }) => {
+          const trace = [{
+            elapsed: -1,
+            imageOpacity: -1,
+            imageReady: false,
+            currentSrc: "",
+            complete: false,
+            naturalWidth: 0,
+            intersectsViewport: false,
+            transitionProperty: "",
+            transitionDuration: "",
+            transitionTiming: "",
+            shellOpacity: -1,
+          }];
+          const startedAt = performance.now();
+          let readyAt = -1;
+          window.scrollTo(0, scrollTop);
+          await new Promise((resolve) => {
+            const sample = () => {
+              const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
+              const image = tile?.querySelector(".advertising-tile__foreground");
+              if (tile && image instanceof HTMLImageElement) {
+                const imageStyle = getComputedStyle(image);
+                const tileRect = tile.getBoundingClientRect();
+                trace.push({
+                  elapsed: performance.now() - startedAt,
+                  imageOpacity: Number.parseFloat(imageStyle.opacity),
+                  imageReady: image.classList.contains("is-advertising-media-ready"),
+                  currentSrc: image.currentSrc,
+                  complete: image.complete,
+                  naturalWidth: image.naturalWidth,
+                  intersectsViewport: tileRect.bottom > 0 && tileRect.top < innerHeight,
+                  transitionProperty: imageStyle.transitionProperty,
+                  transitionDuration: imageStyle.transitionDuration,
+                  transitionTiming: imageStyle.transitionTimingFunction,
+                  shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
+                });
+                if (image.classList.contains("is-advertising-media-ready") && readyAt < 0) {
+                  readyAt = performance.now();
+                }
+              }
+              if (
+                (readyAt < 0 && performance.now() - startedAt < 6_000) ||
+                (readyAt >= 0 && performance.now() - readyAt < 750)
+              ) requestAnimationFrame(sample);
+              else resolve(undefined);
+            };
+            requestAnimationFrame(sample);
+          });
+          return trace.slice(1);
+        }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
+        const intermediate = trace.find((sample) =>
+          sample.intersectsViewport && sample.imageOpacity > 0.02 && sample.imageOpacity < 0.98);
+        const final = trace.at(-1);
+        const transitionProperties = (intermediate?.transitionProperty || "")
+          .split(",")
+          .map((value) => value.trim());
+        const opacityIndex = transitionProperties.indexOf("opacity");
+        const transitionDurations = (intermediate?.transitionDuration || "")
+          .split(",")
+          .map((value) => Number.parseFloat(value));
+        const transitionTimings = (intermediate?.transitionTiming || "")
+          .split(",")
+          .map((value) => value.trim());
+        assert(
+          targetImageDelayed && intermediate && final?.imageReady && final.imageOpacity >= 0.999 &&
+            final.currentSrc && final.complete && final.naturalWidth > 0 &&
+            opacityIndex >= 0 && Math.abs(transitionDurations[opacityIndex] - 0.6) <= 0.01 &&
+            transitionTimings[opacityIndex] === "ease-out" &&
+            trace.every((sample) => sample.shellOpacity >= 0.999),
+          `${locale} fresh deep card skipped the image-only 0.6s ease-out fade: ${JSON.stringify(trace)}`,
+        );
+
+        const captureReplay = async (cycle) => {
+          await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop);
+          await page.waitForFunction(
+            (targetId) => !document.querySelector(`[data-advertising-card="${targetId}"]`),
+            target.card.id,
+            { timeout: 6_000 },
+          );
+          const replay = await page.evaluate(async ({ targetId, scrollTop }) => {
+            const events = [];
+            const capture = (event) => {
+              if (
+                event.target?.classList?.contains("advertising-tile__foreground") &&
+                event.target.closest("[data-advertising-card]")?.dataset.advertisingCard === targetId &&
+                event.propertyName === "opacity"
+              ) {
+                events.push(event.type);
+              }
+            };
+            for (const type of ["transitionrun", "transitionstart", "transitionend"]) {
+              document.addEventListener(type, capture, true);
+            }
+            window.scrollTo(0, scrollTop);
+            const samples = [];
+            const startedAt = performance.now();
+            let mountedAt = -1;
+            let readyAt = -1;
+            await new Promise((resolve) => {
+              const sample = () => {
+                const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
+                const image = tile?.querySelector(".advertising-tile__foreground");
+                if (tile && image) {
+                  if (mountedAt < 0) mountedAt = performance.now();
+                  if (
+                    readyAt < 0 &&
+                    image.classList.contains("is-advertising-media-ready")
+                  ) readyAt = performance.now();
+                  const rect = tile.getBoundingClientRect();
+                  samples.push({
+                    opacity: Number.parseFloat(getComputedStyle(image).opacity),
+                    ready: image.classList.contains("is-advertising-media-ready"),
+                    intersectsViewport: rect.bottom > 0 && rect.top < innerHeight,
+                    shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
+                  });
+                }
+                if (
+                  (mountedAt < 0 && performance.now() - startedAt < 3_000) ||
+                  (mountedAt >= 0 && readyAt < 0 && performance.now() - mountedAt < 3_000) ||
+                  (readyAt >= 0 && performance.now() - readyAt < 750)
+                ) requestAnimationFrame(sample);
+                else resolve(undefined);
+              };
+              requestAnimationFrame(sample);
+            });
+            for (const type of ["transitionrun", "transitionstart", "transitionend"]) {
+              document.removeEventListener(type, capture, true);
+            }
+            return { events, samples };
+          }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
+          const intermediateReplay = replay.samples.find((sample) =>
+            sample.intersectsViewport && sample.opacity > 0.02 && sample.opacity < 0.98);
+          const finalReplay = replay.samples.at(-1);
+          assert(
+            intermediateReplay && finalReplay?.ready && finalReplay.opacity >= 0.999 &&
+              replay.events.includes("transitionrun") && replay.events.includes("transitionstart") &&
+              replay.events.includes("transitionend") && replay.samples.every((sample) =>
+                sample.shellOpacity >= 0.999),
+            `${locale} media re-entry cycle ${cycle} did not replay image-only fade: ${JSON.stringify(replay)}`,
+          );
+          const partial = await page.evaluate(async (targetId) => {
+            const events = [];
+            const capture = (event) => {
+              if (
+                event.target?.classList?.contains("advertising-tile__foreground") &&
+                event.target.closest("[data-advertising-card]")?.dataset.advertisingCard === targetId &&
+                event.propertyName === "opacity"
+              ) {
+                events.push(event.type);
+              }
+            };
+            document.addEventListener("transitionrun", capture, true);
+            window.scrollBy(0, 24);
+            await new Promise((resolve) => setTimeout(resolve, 180));
+            document.removeEventListener("transitionrun", capture, true);
+            const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
+            const rect = tile?.getBoundingClientRect();
+            return {
+              events,
+              intersectsViewport: Boolean(rect && rect.bottom > 0 && rect.top < innerHeight),
+            };
+          }, target.card.id);
+          assert(
+            partial.intersectsViewport && partial.events.length === 0,
+            `${locale} partial visibility restarted media fade in cycle ${cycle}: ${JSON.stringify(partial)}`,
+          );
+        };
+        await captureReplay(1);
+        await captureReplay(2);
+        assertDiagnostics(diagnostics);
+      },
+    );
+
+    await runPageCase(
+      `advertising media entrance reduced ${locale}`,
+      { route, viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, route);
+        await page.waitForFunction(
+          () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+          null,
+          { timeout: 6_000 },
+        );
+        const gridTop = await page.locator("[data-project-grid]").evaluate(
+          (grid) => grid.getBoundingClientRect().top + window.scrollY,
+        );
+        await page.evaluate(
+          (scrollTop) => window.scrollTo(0, scrollTop),
+          gridTop + target.y - 200,
+        );
+        await page.waitForFunction(
+          (targetId) => document.querySelector(
+            `[data-advertising-card="${targetId}"] .advertising-tile__foreground.is-advertising-media-ready`,
+          ),
+          target.card.id,
+          { timeout: 6_000 },
+        );
+        const state = await page.locator(
+          `[data-advertising-card="${target.card.id}"]`,
+        ).evaluate((tile) => {
+          const image = tile.querySelector(".advertising-tile__foreground");
+          const imageStyle = getComputedStyle(image);
+          return {
+            reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+            imageOpacity: Number.parseFloat(imageStyle.opacity),
+            transitionDurations: imageStyle.transitionDuration
+              .split(",")
+              .map((value) => Number.parseFloat(value)),
+            shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
+          };
+        });
+        assert(
+          state.reduced && state.imageOpacity >= 0.999 &&
+            state.transitionDurations.every((duration) => duration <= 0.01) &&
+            state.shellOpacity >= 0.999,
+          `${locale} reduced-motion media entrance was not instant: ${JSON.stringify(state)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function runAdvertisingMediaFocusedChecks() {
+  const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
+  );
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
+    pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
+  );
+  const artifact = buildAdvertisingArtifact();
+  const expectedCounts = {
+    "kiosk-posm": 30,
+    "mobile-retail": 16,
+    "signage-raised-letters": 22,
+    "office-signs-wayfinding": 13,
+    "led-displays-lightboxes": 18,
+    "print-decals": 16,
+  };
+  const categoryOrder = artifact.categories.map((category) => category.slug);
+  const expectedMediaPaths = new Set(
+    artifact.cards.map((card) => new URL(card.media.src, "http://localhost").pathname),
+  );
+  const expectedCardCount = Object.values(expectedCounts).reduce((sum, count) => sum + count, 0);
+  assert(artifact.cards.length === expectedCardCount, `Advertising artifact expected ${expectedCardCount} cards, got ${artifact.cards.length}`);
+  assert(expectedMediaPaths.size === expectedCardCount, `Advertising artifact expected ${expectedCardCount} unique media paths, got ${expectedMediaPaths.size}`);
+  assert(
+    artifact.cards.every((card, index) => card.rank === index),
+    `Advertising artifact ranks must be continuous from 0 through ${expectedCardCount - 1}`,
+  );
+  for (const category of artifact.categories) {
+    const cards = artifact.cards
+      .filter((card) => card.category === category.slug)
+      .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
+    const layout = compileAdvertisingLayout({
+      cards: artifact.cards,
+      categoryOrder,
+      datasetVersion: artifact.datasetVersion,
+      filter: category.slug,
+      layoutViewportWidth: 1440,
+    });
+    assert(
+      cards.length === expectedCounts[category.slug] &&
+        cards.every((card, index) => card.sourceOrder === index) &&
+        layout.placements.every((placement, index) => placement.card.id === cards[index].id),
+      `${category.slug} count or FIFO source order drifted`,
+    );
+    const pool = new Map(cards.map((card) => [card.media.src, card.media]));
+    const coverMedia = pool.get(category.cover);
+    assert(
+      category.products.length === 12 &&
+        coverMedia && Reflect.get(coverMedia, "width") === category.coverWidth &&
+        Reflect.get(coverMedia, "height") === category.coverHeight &&
+        category.gallery.length === 2 &&
+        category.gallery.every(([src, altVi, altEn, width, height]) => {
+          const media = pool.get(src);
+          return media && Reflect.get(media, "altVi") === altVi && Reflect.get(media, "altEn") === altEn &&
+            Reflect.get(media, "width") === width && Reflect.get(media, "height") === height;
+        }),
+      `${category.slug} detail taxonomy or gallery escaped its current category pool`,
+    );
+  }
+  const rankedLayout = compileAdvertisingLayout({
+    cards: artifact.cards,
+    categoryOrder,
+    datasetVersion: artifact.datasetVersion,
+    filter: "all",
+    layoutViewportWidth: 1440,
+  });
+  assert(
+    rankedLayout.placements.length === expectedCardCount &&
+      rankedLayout.placements.map((placement) => placement.card.rank).sort((left, right) => left - right)
+        .every((rank, index) => rank === index),
+    `All layout did not retain all ${expectedCardCount} ranked cards`,
+  );
+
+  const readGridState = (page) => page.locator("[data-project-grid]").evaluate((grid) => {
+    const bounds = grid.getBoundingClientRect();
+    const tiles = [...grid.querySelectorAll(".advertising-tile:not([hidden])")].map((tile) => {
+      const rect = tile.getBoundingClientRect();
+      const image = tile.querySelector(".advertising-tile__foreground");
+      return {
+        id: tile.dataset.advertisingCard,
+        category: tile.dataset.advertisingCategory,
+        left: Number.parseFloat(tile.style.left),
+        top: Number.parseFloat(tile.style.top),
+        width: Number.parseFloat(tile.style.width),
+        height: Number.parseFloat(tile.style.height),
+        visualLeft: rect.left - bounds.left,
+        visualTop: rect.top - bounds.top,
+        source: image?.dataset.src || (image?.currentSrc ? new URL(image.currentSrc).pathname : ""),
+        transitionDuration: getComputedStyle(tile).transitionDuration,
+        transform: getComputedStyle(tile).transform,
+      };
+    });
+    return {
+      tiles,
+      totalDomCount: grid.querySelectorAll(".advertising-tile").length,
+      gridTop: bounds.top + window.scrollY,
+      gridWidth: bounds.width,
+      gridHeight: Number.parseFloat(grid.style.height),
+      scrollY: window.scrollY,
+      viewportHeight: window.innerHeight,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      rawHtmlText: /(?:<|&lt;)figure\b/i.test(grid.textContent),
+      noscript: grid.querySelector("noscript") !== null,
+      activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.getAttribute("data-advertising-filter"),
+      categoryQuery: new URLSearchParams(location.search).get("category"),
+    };
+  });
+  const assertGridState = (state, layout, label) => {
+    const localScroll = Math.max(0, state.scrollY - state.gridTop);
+    const expected = getVirtualWindow(layout, {
+      scrollTop: localScroll,
+      viewportHeight: state.viewportHeight,
+      overscan: state.viewportHeight,
+    }).items;
+    const expectedById = new Map(expected.map((placement) => [placement.card.id, placement]));
+    const overlap = state.tiles.some((first, index) => state.tiles.slice(index + 1).some((second) =>
+      Math.min(first.left + first.width, second.left + second.width) - Math.max(first.left, second.left) > 0.05 &&
+      Math.min(first.top + first.height, second.top + second.height) - Math.max(first.top, second.top) > 0.05,
+    ));
+    const checks = {
+      order: JSON.stringify(state.tiles.map((tile) => tile.id)) === JSON.stringify(expected.map((placement) => placement.card.id)),
+      geometry: state.tiles.every((tile) => {
+          const placement = expectedById.get(tile.id);
+          return placement && Math.abs(tile.left - Reflect.get(placement, "x")) <= 0.05 &&
+            Math.abs(tile.top - Reflect.get(placement, "y")) <= 0.05 &&
+            Math.abs(tile.width - Reflect.get(placement, "pixelWidth")) <= 0.05 &&
+            Math.abs(tile.height - Reflect.get(placement, "pixelHeight")) <= 0.05 &&
+            Math.abs(tile.visualLeft - tile.left) <= 1 && Math.abs(tile.visualTop - tile.top) <= 1 &&
+            tile.transitionDuration.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
+            (!tile.transform || tile.transform === "none") &&
+            tile.left >= -0.05 && tile.left + tile.width <= state.gridWidth + 0.05;
+        }),
+      boundedDom: state.tiles.length > 0 && state.tiles.length < expectedCardCount && state.totalDomCount === state.tiles.length,
+      gridHeight: state.gridHeight >= layout.totalPixelHeight - 0.05
+        && state.gridHeight <= layout.totalPixelHeight + state.viewportHeight + 2 * layout.interCardGap + 0.05,
+      safeSurface: state.overflow <= 1 && !overlap && !state.rawHtmlText && !state.noscript,
+    };
+    assert(Object.values(checks).every(Boolean),
+      `${label} virtual window, geometry, or source-text safety failed: ${JSON.stringify({ checks, state, expected: expected.map((placement) => placement.card.id) })}`);
+  };
+
+  await runPageCase(
+    `advertising ${expectedCardCount}-media lazy virtual window`,
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const mediaRequestPaths = new Set();
+      const mediaResponseStatuses = new Map();
+      page.on("request", (request) => {
+        const pathname = new URL(request.url()).pathname;
+        if (request.resourceType() === "image" && pathname.startsWith("/assets/content/projects/advertising/")) {
+          mediaRequestPaths.add(pathname);
+        }
+      });
+      page.on("response", (response) => {
+        const pathname = new URL(response.url()).pathname;
+        if (response.request().resourceType() !== "image" || !pathname.startsWith("/assets/content/projects/advertising/")) return;
+        const previous = mediaResponseStatuses.get(pathname);
+        mediaResponseStatuses.set(pathname, previous ? `${previous},${response.status()}` : String(response.status()));
+      });
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(
+        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+        null,
+        { timeout: 6_000 },
+      );
+      await page.waitForTimeout(500);
+      const initial = await readGridState(page);
+      assertGridState(initial, rankedLayout, "initial direct load");
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile__foreground")?.classList.contains("is-advertising-media-ready"));
+      const hoverTile = page.locator("[data-project-grid] .advertising-tile").first();
+      await hoverTile.hover();
+      await page.waitForTimeout(700);
+      const naturalHoverScale = await hoverTile.locator(".advertising-tile__foreground").evaluate((image) =>
+        new DOMMatrixReadOnly(getComputedStyle(image).transform).a,
+      );
+      assert(naturalHoverScale >= 1.14, `Natural advertising hover scale is ${naturalHoverScale}`);
+      const initialTileIds = initial.tiles.map((tile) => tile.id);
+      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+      const initialRequests = new Set(mediaRequestPaths);
+      const initialSources = new Set(initial.tiles.map((tile) => tile.source));
+      assert(
+        initialRequests.size > 0 && initialRequests.size < expectedCardCount &&
+          [...initialRequests].every((pathname) => initialSources.has(pathname)),
+        `Initial lazy requests escaped the mounted virtual window: ${JSON.stringify({ requests: [...initialRequests], sources: [...initialSources] })}`,
+      );
+
+      for (const language of ["en", "vi"]) {
+        await openMenu(page);
+        await page.locator(`#site-menu [data-language-option="${language}"]`).click();
+        await page.waitForFunction(
+          (expected) =>
+            document.documentElement.lang === expected &&
+            location.pathname === `/${expected}/advertising-products/` &&
+            !document.querySelector("#site-menu")?.hasAttribute("open"),
+          language,
+          { timeout: 6_000 },
+        );
+        await page.waitForTimeout(500);
+        const localized = await readGridState(page);
+        assertGridState(localized, rankedLayout, `${language} locale round-trip`);
+        assert(
+          JSON.stringify(localized.tiles.map((tile) => tile.id)) === JSON.stringify(initialTileIds) &&
+            (await page.evaluate(() => performance.timeOrigin)) === timeOrigin,
+          `${language} locale round-trip replaced the ${expectedCardCount}-card runtime window`,
+        );
+      }
+
+      for (const category of artifact.categories) {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.locator(`[data-advertising-filter="${category.slug}"]`).click();
+        await page.waitForFunction(
+          (slug) => document.querySelector(`[data-advertising-filter="${slug}"]`)?.getAttribute("aria-current") === "true",
+          category.slug,
+          { timeout: 3_000 },
+        );
+        await page.waitForTimeout(500);
+        const filteredLayout = compileAdvertisingLayout({
+          cards: artifact.cards,
+          categoryOrder,
+          datasetVersion: artifact.datasetVersion,
+          filter: category.slug,
+          layoutViewportWidth: 1440,
+        });
+        const filtered = await readGridState(page);
+        assertGridState(filtered, filteredLayout, `${category.slug} filter`);
+        assert(
+          filtered.activeFilter === category.slug && filtered.categoryQuery === category.slug &&
+            filtered.tiles.every((tile) => tile.category === category.slug),
+          `${category.slug} filter retained a wrong category or URL state`,
+        );
+      }
+
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.locator('[data-advertising-filter="all"]').click();
+      await page.waitForFunction(
+        () => document.querySelector('[data-advertising-filter="all"]')?.getAttribute("aria-current") === "true",
+        null,
+        { timeout: 3_000 },
+      );
+      await page.waitForTimeout(500);
+      await page.setViewportSize({ width: 1200, height: 900 });
+      await page.waitForTimeout(500);
+      const resizedLayout = compileAdvertisingLayout({
+        cards: artifact.cards,
+        categoryOrder,
+        datasetVersion: artifact.datasetVersion,
+        filter: "all",
+        layoutViewportWidth: 1200,
+      });
+      assertGridState(await readGridState(page), resizedLayout, "1200px resize");
+
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.waitForTimeout(500);
+      await page.waitForFunction(() => {
+        const card = document.querySelector("[data-project-grid] .advertising-tile");
+        const image = card?.querySelector(".advertising-tile__foreground");
+        return image?.classList.contains("is-advertising-media-ready")
+          && Number.parseFloat(getComputedStyle(image).opacity) >= 0.999;
+      });
+      const replayFixtureId = await page.locator("[data-project-grid] .advertising-tile").first().evaluate((card) => {
+        window.__ttAdvertisingOneShotNode = card;
+        return card.dataset.advertisingCard;
+      });
+      const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
+      const step = 450;
+      for (let localY = 0; localY <= rankedLayout.totalPixelHeight; localY += step) {
+        const requestedBefore = new Set(mediaRequestPaths);
+        await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop + localY);
+        await page.waitForTimeout(180);
+        const state = await readGridState(page);
+        assertGridState(state, rankedLayout, `stepped scroll ${localY}px`);
+        const mounted = new Set(state.tiles.map((tile) => tile.source));
+        const requestedNow = [...mediaRequestPaths].filter((pathname) => !requestedBefore.has(pathname));
+        assert(
+          requestedNow.every((pathname) => mounted.has(pathname)),
+          `Lazy request started outside the mounted window at ${localY}px: ${JSON.stringify({ requestedNow, mounted: [...mounted] })}`,
+        );
+      }
+      await page.waitForFunction(
+        () => window.__ttAdvertisingOneShotNode && !window.__ttAdvertisingOneShotNode.isConnected,
+        null,
+        { timeout: 3_000 },
+      );
+      await page.waitForTimeout(800);
+      const requested = new Set(mediaRequestPaths);
+      const responded = new Set(mediaResponseStatuses.keys());
+      const badResponses = [...mediaResponseStatuses].filter(([, statuses]) =>
+        statuses.split(",").some((status) => Number(status) !== 200));
+      assert(
+        requested.size === expectedCardCount && [...expectedMediaPaths].every((pathname) => requested.has(pathname)) &&
+          responded.size === requested.size && [...requested].every((pathname) => responded.has(pathname)) &&
+          badResponses.length === 0,
+        `Stepped lazy sweep did not load exactly the ${expectedCardCount} approved media paths with HTTP 200: ${JSON.stringify({ requested: [...requested], expected: [...expectedMediaPaths], badResponses })}`,
+      );
+
+      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop);
+      await page.waitForFunction(
+        (id) => {
+          const current = document.querySelector(`[data-project-grid] [data-advertising-card="${id}"]`);
+          const image = current?.querySelector(".advertising-tile__foreground");
+          return current && current !== window.__ttAdvertisingOneShotNode
+            && image?.classList.contains("is-advertising-media-ready");
+        },
+        replayFixtureId,
+        { timeout: 3_000 },
+      );
+      const replay = await page.locator("[data-project-grid]").evaluate((grid, id) => {
+        const current = grid.querySelector(`[data-advertising-card="${id}"]`);
+        const image = current?.querySelector(".advertising-tile__foreground");
+        return {
+          oldConnected: window.__ttAdvertisingOneShotNode?.isConnected,
+          sameNode: current === window.__ttAdvertisingOneShotNode,
+          ready: image?.classList.contains("is-advertising-media-ready"),
+          opacity: image ? Number.parseFloat(getComputedStyle(image).opacity) : -1,
+          runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
+        };
+      }, replayFixtureId);
+      assert(
+        !replay.oldConnected && !replay.sameNode && replay.ready &&
+          (replay.opacity < 0.999 || replay.runningAnimations > 0),
+        `Virtual remount skipped its approved media replay: ${JSON.stringify(replay)}`,
+      );
+      await page.waitForFunction(
+        () => {
+          const image = document.querySelector("[data-project-grid] .advertising-tile__foreground");
+          return image && Number.parseFloat(getComputedStyle(image).opacity) >= 0.999;
+        },
+        null,
+        { timeout: 2_000 },
+      );
+      const focusedCard = page.locator("[data-project-grid] .advertising-tile").first();
+      const focusedId = await focusedCard.getAttribute("data-advertising-card");
+      await focusedCard.evaluate((card) => card.setAttribute("data-qa-focus-retention", "true"));
+      await focusedCard.locator("a").focus();
+      const focusedBefore = await page.locator("[data-project-grid]").evaluate((grid) => ({
+        activeId: document.activeElement?.closest("[data-advertising-card]")?.getAttribute("data-advertising-card"),
+        retained: grid.querySelector("[data-qa-focus-retention]")?.getAttribute("data-advertising-card"),
+      }));
+      assert(
+        focusedId && focusedBefore.activeId === focusedId && focusedBefore.retained === focusedId,
+        `Virtual card did not receive focus before deep scroll: ${JSON.stringify({ focusedId, focusedBefore })}`,
+      );
+      const focusedTarget = gridTop + Math.max(0, rankedLayout.totalPixelHeight - 900);
+      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), focusedTarget);
+      await page.waitForTimeout(400);
+      const focusedWindowCount = getVirtualWindow(rankedLayout, {
+        scrollTop: Math.max(0, focusedTarget - gridTop),
+        viewportHeight: 900,
+        overscan: 900,
+      }).items.length;
+      const focusedState = await page.locator("[data-project-grid]").evaluate((grid, id) => {
+        const retained = grid.querySelector(`[data-advertising-card="${id}"]`);
+        return {
+          activeId: document.activeElement?.closest("[data-advertising-card]")?.getAttribute("data-advertising-card"),
+          retained: retained?.getAttribute("data-qa-focus-retention"),
+          connected: retained?.isConnected,
+          totalDomCount: grid.querySelectorAll(".advertising-tile").length,
+        };
+      }, focusedId);
+      assert(
+        focusedId && focusedState.activeId === focusedId && focusedState.retained === "true" && focusedState.connected &&
+          focusedState.totalDomCount <= focusedWindowCount + 1 && focusedState.totalDomCount < expectedCardCount,
+        `Focused virtual card was replaced or DOM became unbounded: ${JSON.stringify({ focusedId, focusedBefore, focusedWindowCount, focusedState })}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runAdvertisingCompatibilityChecks();
+}
+async function runAdvertisingCompatibilityChecks() {
+  const { buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const categoryTitles = new Map(buildAdvertisingArtifact().categories.map((category) => [category.slug, { vi: category.titleVi, en: category.titleEn }]));
+  for (const locale of ["vi", "en"]) {
+    for (const slug of ADVERTISING_CATEGORY_SLUGS) {
+      await runPageCase(
+        `advertising compatibility ${locale}/${slug}`,
+        { route: `/${locale}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`, viewport: { width: 390, height: 844 } },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, `/${locale}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`);
+          const url = new URL(page.url());
+          assert(
+            url.origin === BASE_ORIGIN && canonicalPathname(url) === `/${locale}/advertising-products/` &&
+              url.searchParams.get("category") === slug && !url.searchParams.has("photo") && !url.searchParams.has("tag"),
+            `${locale}/${slug} did not cleanly replace to its parent category query: ${url}`,
+          );
+          const photoState = await page.locator("[data-advertising-photo-view]").evaluate((view) => ({ hidden: view.hidden, active: view.dataset.advertisingPhotoId || null }));
+          assert(photoState.hidden && !photoState.active, `compatibility route must leave the reusable photo view inactive: ${JSON.stringify(photoState)}`);
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+  for (const [locale, slug] of [["vi", "kiosk-posm"], ["en", "print-decals"]]) {
+    await runPageCase(
+      `advertising compatibility no-js fallback ${locale}/${slug}`,
+      { route: `/${locale}/advertising-products/${slug}/`, viewport: { width: 390, height: 844 } },
+      async (page) => {
+        const response = await page.request.get(pageUrl(`/${locale}/advertising-products/${slug}/`));
+        const html = await response.text();
+        assert(response.ok() && /<link\b[^>]*rel="canonical"[^>]*href="\.\.\/"/i.test(html) && /<noscript[\s>]/i.test(html) && new RegExp(`category=${slug}`).test(html) && html.replaceAll("&amp;", "&").includes(categoryTitles.get(slug)?.[locale]), `${locale}/${slug} raw localized fallback drifted`);
+      },
+    );
+    const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+    const noJsPage = await context.newPage();
+    try {
+      await noJsPage.goto(pageUrl(`/${locale}/advertising-products/${slug}/`), { waitUntil: "domcontentloaded" });
+      await noJsPage.waitForURL((url) => canonicalPathname(url) === `/${locale}/advertising-products/` && url.searchParams.get("category") === slug, { timeout: 5_000 });
+    } finally { await context.close(); }
+  }
+}
+
+// Superseded by AD-BROWSE-R1 photo detail; CAROUSEL_ONLY aliases compatibility to avoid retired composition assertions.
+async function runAdvertisingThreeThousandCardProbe() {
+  const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
+  const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
+  const viewport = { width: 1440, height: 900 };
+  const interCardGap = 35;
+  const cardWidth = (Math.min(viewport.width - 70, 1500) - interCardGap * 3) / 4;
+  const captionPixelHeight = 0;
+  const quantum = 0.125 * cardWidth;
+  const rowStep = 8 * cardWidth;
+  const patterns = [[2, 3, 4], [3, 5, 2], [4, 2, 5], [5, 4, 3]];
+  const bottoms = [];
+  const cards = Array.from({ length: 3000 }, (_, index) => {
+    const row = Math.floor(index / 4);
+    const column = index % 4;
+    const deltas = patterns[row % patterns.length];
+    const phases = [0, deltas[0] * quantum, (deltas[0] + deltas[1]) * quantum, (deltas[0] + deltas[1] + deltas[2]) * quantum];
+    const bottom = (row + 1) * rowStep + phases[column];
+    const top = row ? bottoms[index - 4] + interCardGap : 0;
+    const mediaPixelHeight = bottom - top - captionPixelHeight;
+    bottoms.push(bottom);
+    return {
+      id: `benchmark-${String(index).padStart(4, "0")}`,
+      category: "kiosk-posm",
+      rank: index,
+      sourceOrder: index,
+      media: {
+        src: svg(cardWidth, mediaPixelHeight, ["#8ba9bf", "#c0aa88", "#8da88d", "#b38b8b"][column]),
+        width: cardWidth,
+        height: mediaPixelHeight,
+        altVi: "Mẫu kiểm tra ảo hóa",
+        altEn: "Virtualization test sample",
+      },
+      titleVi: `Mẫu ${index}`,
+      titleEn: `Sample ${index}`,
+    };
+  });
+  const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards });
+  const feasibleLayout = compileAdvertisingLayout({
+    cards: artifact.cards,
+    categoryOrder: artifact.categories.map((category) => category.slug),
+    datasetVersion: artifact.datasetVersion,
+    settings: artifact.settings,
+    filter: "all",
+    layoutViewportWidth: viewport.width,
+  });
+  const feasibleInspection = inspectAdvertisingGrid({ layout: feasibleLayout, placements: feasibleLayout.placements });
+  assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
+  await runPageCase(
+    "advertising 3000-card virtual window",
+    { route: "/vi/advertising-products/", viewport },
+    async (page) => {
+      await page.addInitScript((injectedArtifact) => {
+        window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
+      }, artifact);
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/advertising-products/");
+      await page.waitForFunction(
+        () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
+        null,
+        { timeout: 3_000 },
+      );
+      const composition = await page.locator("[data-project-grid]").evaluate((grid, injectedArtifact) => {
+        const records = new Map(injectedArtifact.cards.map((card) => [card.id, card]));
+        return [...grid.querySelectorAll(".advertising-tile")].slice(0, 28).map((tile) => {
+          const record = records.get(tile.dataset.advertisingCard);
+          const media = tile.querySelector(".project-tile__media");
+          const foreground = tile.querySelector(".advertising-tile__foreground");
+          const bounds = media.getBoundingClientRect();
+          return {
+            id: record.id,
+            expectedRatio: record.media.width / record.media.height,
+            renderedRatio: bounds.width / bounds.height,
+            layoutSpan: Number(tile.dataset.advertisingSpan),
+            fitAttribute: media.getAttribute("data-media-fit"),
+            backplates: media.querySelectorAll(".advertising-tile__backplate").length,
+            foregrounds: media.querySelectorAll(".advertising-tile__foreground").length,
+            foregroundAlt: foreground?.alt,
+            foregroundFit: foreground ? getComputedStyle(foreground).objectFit : null,
+          };
+        });
+      }, artifact);
+      assert(composition.every((entry) => entry.layoutSpan === 1 && Math.abs(entry.renderedRatio - entry.expectedRatio) <= 0.01), `one-column media geometry drift: ${JSON.stringify(composition)}`);
+      assert(composition.every((entry) => entry.fitAttribute === null && entry.backplates === 0 && entry.foregrounds === 1 && entry.foregroundAlt === "Mẫu kiểm tra ảo hóa"), `natural media gained legacy canvas treatment: ${JSON.stringify(composition)}`);
+      const initialGeometryHeight = await page.locator("[data-project-grid]").evaluate((grid) => Number.parseFloat(grid.style.height));
+      assert(initialGeometryHeight > 200_000, `3000-card injection did not reach runtime: grid height ${initialGeometryHeight}`);
+      const target = await advertisingArtifactScrollTarget(page, artifact, "benchmark-2800");
+      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), target);
+      await page.waitForTimeout(600);
+      const nearFrontier = await page.locator("[data-project-grid]").evaluate((grid) => {
+        const tiles = [...grid.querySelectorAll(".advertising-tile")];
+        const rectangles = tiles.map((tile) => {
+          const rect = tile.getBoundingClientRect();
+          return { id: tile.dataset.advertisingCard, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+        });
+        const overlap = rectangles.some((first, index) => rectangles.slice(index + 1).some((second) =>
+          Math.min(first.right, second.right) - Math.max(first.left, second.left) > 0.5 &&
+          Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top) > 0.5,
+        ));
+        return {
+          count: tiles.length,
+          has2800: Boolean(grid.querySelector('[data-advertising-card="benchmark-2800"]')),
+          ids: tiles.map((tile) => tile.dataset.advertisingCard),
+          hasEarly: Boolean(grid.querySelector('[data-advertising-card="tt-0000"]')),
+          height: Number.parseFloat(grid.style.height),
+          gridTop: grid.getBoundingClientRect().top + window.scrollY,
+          scrollY: window.scrollY,
+          overflow: document.documentElement.scrollWidth - innerWidth,
+          overlap,
+          prefix: tiles.slice(0, 24).map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+        };
+      });
+      const deepLayout = compileAdvertisingLayout({
+        cards: artifact.cards,
+        categoryOrder: artifact.categories.map((category) => category.slug),
+        datasetVersion: artifact.datasetVersion,
+        settings: artifact.settings,
+        filter: "all",
+        layoutViewportWidth: 1440,
+      });
+      const expectedDeepWindow = getVirtualWindow(deepLayout, {
+        scrollTop: Math.max(0, nearFrontier.scrollY - nearFrontier.gridTop),
+        viewportHeight: viewport.height,
+        overscan: viewport.height,
+      }).items.map((placement) => placement.card.id);
+      assert(nearFrontier.has2800 && !nearFrontier.hasEarly && JSON.stringify(nearFrontier.ids) === JSON.stringify(expectedDeepWindow), `index 2800 virtual window diverged from the full layout: ${JSON.stringify({ count: nearFrontier.count, actual: nearFrontier.ids, expected: expectedDeepWindow, scrollY: nearFrontier.scrollY })}`);
+      assert(nearFrontier.count > 0 && nearFrontier.count < 120, `3000-card DOM window is unbounded: ${nearFrontier.count}`);
+      assert(nearFrontier.height > target, "geometry spacer does not preserve deep scroll extent");
+      assert(nearFrontier.scrollY >= target - 2, "deep scroll position was not retained");
+      assert(nearFrontier.overflow <= 1 && !nearFrontier.overlap, "deep virtual window has overflow or overlap");
+
+      await page.locator('[data-advertising-filter="mobile-retail"]').click();
+      await page.locator('[data-advertising-filter="all"]').click();
+      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), target);
+      await page.waitForTimeout(600);
+      const afterFilter = await page.locator("[data-project-grid]").evaluate((grid) => ({
+        scrollY: window.scrollY,
+        prefix: [...grid.querySelectorAll(".advertising-tile")].slice(0, 24).map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
+      }));
+      assert(afterFilter.scrollY >= target - 2, "filter round-trip shifted deep scroll position");
+      assert(JSON.stringify(afterFilter.prefix) === JSON.stringify(nearFrontier.prefix), "filter round-trip changed the remounted deterministic window");
+
+      await page.setViewportSize({ width: 1200, height: 900 });
+      await page.waitForTimeout(500);
+      const resizedTarget = await advertisingArtifactScrollTarget(page, artifact, "benchmark-2800");
+      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), resizedTarget);
+      await page.waitForTimeout(500);
+      const afterResize = await page.locator("[data-project-grid]").evaluate((grid) => ({
+        count: grid.querySelectorAll(".advertising-tile").length,
+        overflow: document.documentElement.scrollWidth - innerWidth,
+        has2800: Boolean(grid.querySelector('[data-advertising-card="benchmark-2800"]')),
+      }));
+      assert(afterResize.count > 0 && afterResize.count < 120 && afterResize.overflow <= 1 && afterResize.has2800, `resize lost the bounded deep virtual window: ${JSON.stringify(afterResize)}`);
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runAdvertisingLocaleLifecycleChecks() {
+  const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const virtualizedCards = Array.from({ length: 3000 }, (_, index) => {
+    const kiosk = index < 3;
+    const primaryKiosk = index === 0;
+    return {
+      id: kiosk ? `kiosk-posm-${String(index + 1).padStart(2, "0")}` : `locale-${String(index).padStart(4, "0")}`,
+      category: kiosk ? "kiosk-posm" : "mobile-retail",
+      rank: index,
+      sourceOrder: kiosk ? index : index - 3,
+      media: {
+        src: "/assets/content/projects/advertising-kiosk-posm-cover.webp",
+        width: 1536,
+        height: 1024,
+        altVi: primaryKiosk ? "Gian hàng triển lãm do Trường Thịnh thực hiện" : "Mẫu kiểm tra ảo hóa",
+        altEn: primaryKiosk ? "Exhibition booths made by Trường Thịnh" : "Virtualization test sample",
+      },
+      titleVi: primaryKiosk ? "Gian hàng triển lãm" : `Mẫu ${index}`,
+      titleEn: primaryKiosk ? "Exhibition booths" : `Sample ${index}`,
+    };
+  });
+  const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards: virtualizedCards });
+  await runPageCase(
+    "advertising locale SplitText and focused filter lifecycle",
+    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await page.addInitScript((injectedArtifact) => {
+        window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
+      }, artifact);
+      await gotoRoute(page, "/vi/advertising-products/");
+      const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+      const snapshot = () => page.evaluate(() => {
+        const title = document.querySelector("#page-title");
+        const lines = [...document.querySelectorAll("[data-motion-lines] .motion-line")];
+        return {
+          language: document.documentElement.lang,
+          title: title?.textContent?.replace(/\s+/g, " ").trim(),
+          aria: title?.getAttribute("aria-label"),
+          lineCount: lines.length,
+          duplicateLines: document.querySelectorAll("[data-motion-lines] .motion-line .motion-line").length > 0,
+        };
+      });
+      const switchLanguage = async (language) => {
+        await page.evaluate(() => {
+          window.__ttAdvertisingLocaleSettled = false;
+          window.addEventListener(
+            "site:section-replay",
+            () => {
+              window.__ttAdvertisingLocaleSettled = true;
+            },
+            { once: true },
+          );
+        });
+        await openMenu(page);
+        await page.locator(`#site-menu [data-language-option="${language}"]`).click();
+        await page
+          .waitForFunction(
+            (expected) => document.documentElement.lang === expected && !document.querySelector("#site-menu")?.open,
+            language,
+            { timeout: 6_000 },
+          )
+          .catch((error) => {
+            throw new Error(`language ${language} did not settle in place: ${error.message}`);
+          });
+        await page
+          .waitForFunction((expected) => location.pathname.startsWith(`/${expected}/advertising-products/`), language)
+          .catch((error) => {
+            throw new Error(`language ${language} did not update the route: ${error.message}`);
+          });
+        await page
+          .waitForFunction(() => window.__ttAdvertisingLocaleSettled === true)
+          .catch(async (error) => {
+            const state = await page.evaluate(() => ({
+              language: document.documentElement.lang,
+              menuOpen: Boolean(document.querySelector("#site-menu")?.open),
+              pathname: location.pathname,
+              replayed: window.__ttAdvertisingLocaleSettled,
+              transitioning: document.body.classList.contains("is-transitioning"),
+            }));
+            throw new Error(`language ${language} did not complete its production replay: ${error.message}; ${JSON.stringify({ state, diagnostics })}`);
+          });
+        assert(await page.evaluate(() => performance.timeOrigin) === timeOrigin, "locale switch must stay in the current document");
+      };
+      const virtualizeKiosk = async () => {
+        const target = await advertisingArtifactScrollTarget(page, artifact, "locale-2800");
+        await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), target);
+        await page
+          .waitForFunction(() => !document.querySelector('[data-advertising-card="kiosk-posm-01"]'))
+          .catch((error) => {
+            throw new Error(`virtualized kiosk did not leave the DOM: ${error.message}`);
+          });
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page
+          .waitForFunction(() => Boolean(document.querySelector('[data-advertising-card="kiosk-posm-01"]')))
+          .catch(async (error) => {
+            const state = await page.locator("[data-project-grid]").evaluate((grid) => ({
+              rectTop: grid.getBoundingClientRect().top,
+              scrollY: window.scrollY,
+              rendered: [...grid.querySelectorAll(".advertising-tile")].slice(0, 8).map((tile) => tile.dataset.advertisingCard),
+            }));
+            throw new Error(`virtualized kiosk did not remount: ${error.message}; ${JSON.stringify(state)}`);
+          });
+      };
+      const vi = await snapshot();
+      await switchLanguage("en");
+      const en = await snapshot();
+      await switchLanguage("vi");
+      const viAgain = await snapshot();
+      assert(vi.language === "vi" && en.language === "en" && viAgain.language === "vi", `locale cycle failed: ${JSON.stringify({ vi, en, viAgain })}`);
+      assert(vi.title === "để thương hiệu luôn trong tầm mắt" && vi.aria === vi.title && en.title === "Keep your brand always in sight" && en.aria === en.title && viAgain.title === vi.title && viAgain.aria === vi.title && !vi.duplicateLines && !en.duplicateLines && !viAgain.duplicateLines, `SplitText locale content/ARIA/wrappers drifted: ${JSON.stringify({ vi, en, viAgain })}`);
+
+      await page.locator("#cta-title").scrollIntoViewIfNeeded();
+      await page.waitForTimeout(280);
+      const activeReveal = () => page.evaluate(() => {
+        const lines = [...document.querySelectorAll("#cta-title .motion-line")];
+        const values = lines.map((line) => {
+          const style = getComputedStyle(line);
+          return new DOMMatrixReadOnly(style.transform).f;
+        });
+        return { count: lines.length, values, nested: document.querySelectorAll("#cta-title .motion-line .motion-line").length };
+      });
+      const beforeResize = await activeReveal();
+      await page.setViewportSize({ width: 1200, height: 900 });
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(220);
+      const afterResize = await activeReveal();
+      const resized = await snapshot();
+      assert(beforeResize.count > 0 && beforeResize.nested === 0 && afterResize.count > 0 && afterResize.nested === 0 && !resized.duplicateLines && resized.lineCount > 0 && afterResize.values.some((value, index) => Math.abs(value - beforeResize.values[index]) > 0.1) && afterResize.values.some((value) => value > -20), `SplitText active resize/font lifecycle snapped or duplicated wrappers: ${JSON.stringify({ beforeResize, afterResize, resized })}`);
+
+      await page.setViewportSize({ width: 960, height: 900 });
+      await page.waitForTimeout(400);
+      await switchLanguage("en");
+      await virtualizeKiosk();
+      const localizedCard = await page.locator("[data-project-grid]").evaluate((grid) => {
+        const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
+        const link = card?.querySelector("a");
+        const image = card?.querySelector(".advertising-tile__foreground");
+        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
+      });
+      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/kiosk-posm/", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
+
+      await switchLanguage("vi");
+      await virtualizeKiosk();
+      const localizedViCard = await page.locator("[data-project-grid]").evaluate((grid) => {
+        const card = grid.querySelector('[data-advertising-card="kiosk-posm-01"]');
+        const link = card?.querySelector("a");
+        const image = card?.querySelector(".advertising-tile__foreground");
+        return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
+      });
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/kiosk-posm/", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
+
+      await page.locator(".advertising-tile a").first().focus();
+      await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());
+      await page.waitForTimeout(250);
+      const filterFocus = await page.evaluate(() => {
+        const active = document.activeElement;
+        const zero = [...document.querySelectorAll(".advertising-tile")].filter((tile) => {
+          if (tile.hidden) return false;
+          const rect = tile.getBoundingClientRect();
+          return Math.abs(rect.left) < 0.5 && Math.abs(rect.top) < 0.5;
+        }).length;
+        return { active: active?.getAttribute("data-advertising-filter"), zero };
+      });
+      assert(filterFocus.active === "mobile-retail" && filterFocus.zero === 0, `focused filter left stale fallback tile: ${JSON.stringify(filterFocus)}`);
+      assertDiagnostics(diagnostics);
+    },
+  );
 }
 
 async function runResidentialHeroTextCheck() {
@@ -3944,7 +7740,6 @@ async function runResidentialHeroTextCheck() {
             const content = element.querySelector(".hero-content");
             const kicker = element.querySelector(".hero-kicker");
             const heading = element.querySelector("h1");
-            const heroIndex = element.querySelector(".hero-index");
             const sources = [...heading.querySelectorAll("[data-motion-word-source]")];
             const contentRect = rect(content);
             const kickerTextRect = textRect(kicker);
@@ -3959,8 +7754,10 @@ async function runResidentialHeroTextCheck() {
               title: normalize(heading.textContent),
               lines: sources.map((source) => normalize(source.textContent)),
               hasMotto: element.querySelector(".detail-hero-motto") !== null,
-              heroIndexHidden:
-                heroIndex === null || getComputedStyle(heroIndex).display === "none",
+              slideCount: element.querySelectorAll(".hero-slide").length,
+              mediaCount: element.querySelectorAll("[data-motion-hero-media]").length,
+              motionToggleCount: element.querySelectorAll("[data-motion-toggle]").length,
+              scrollCueCount: element.querySelectorAll("[data-scroll-cue]").length,
               contentRect,
               kickerTextRect,
               textRects,
@@ -4000,7 +7797,10 @@ async function runResidentialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              hero.heroIndexHidden,
+              hero.slideCount === 1 &&
+              hero.mediaCount === 1 &&
+              hero.motionToggleCount === 0 &&
+              hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: residential hero copy or reading order drifted`,
           );
           assert(
@@ -4030,16 +7830,6 @@ async function runResidentialHeroTextCheck() {
               `${locale} ${viewport.width}x${viewport.height}: residential mobile title is not centered`,
             );
           }
-          const motionToggle = page.locator(
-            ".residential-hero [data-motion-toggle]",
-          );
-          await motionToggle.focus();
-          assert(
-            await motionToggle.evaluate(
-              (button) => document.activeElement === button,
-            ),
-            `${locale} ${viewport.width}x${viewport.height}: hero motion control cannot receive keyboard focus`,
-          );
           assertDiagnostics(diagnostics);
         },
       );
@@ -4129,6 +7919,10 @@ async function runCommercialHeroTextCheck() {
               title: normalize(heading.textContent),
               lines: sources.map((source) => normalize(source.textContent)),
               hasMotto: element.querySelector(".detail-hero-motto") !== null,
+              slideCount: element.querySelectorAll(".hero-slide").length,
+              mediaCount: element.querySelectorAll("[data-motion-hero-media]").length,
+              motionToggleCount: element.querySelectorAll("[data-motion-toggle]").length,
+              scrollCueCount: element.querySelectorAll("[data-scroll-cue]").length,
               contentRect,
               kickerTextRect,
               textRects,
@@ -4170,7 +7964,11 @@ async function runCommercialHeroTextCheck() {
             hero.kicker === expected.kicker &&
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
-              !hero.hasMotto,
+              !hero.hasMotto &&
+              hero.slideCount === 1 &&
+              hero.mediaCount === 1 &&
+              hero.motionToggleCount === 0 &&
+              hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: commercial hero copy or reading order drifted`,
           );
           assert(
@@ -4204,16 +8002,6 @@ async function runCommercialHeroTextCheck() {
               `${locale} ${viewport.width}x${viewport.height}: commercial mobile title is not centered`,
             );
           }
-          const motionToggle = page.locator(
-            ".commercial-hero [data-motion-toggle]",
-          );
-          await motionToggle.focus();
-          assert(
-            await motionToggle.evaluate(
-              (button) => document.activeElement === button,
-            ),
-            `${locale} ${viewport.width}x${viewport.height}: hero motion control cannot receive keyboard focus`,
-          );
           assertDiagnostics(diagnostics);
         },
       );
@@ -4395,6 +8183,16 @@ async function runDetailHeroEntryChecks() {
       selector: "[data-motion-hero-media]",
       label: "about hero media",
     },
+    {
+      route: "/vi/residential/",
+      selector: "[data-motion-hero-media]",
+      label: "residential hero media",
+    },
+    {
+      route: "/vi/commercial/",
+      selector: "[data-motion-hero-media]",
+      label: "commercial hero media",
+    },
   ]) {
     await runPageCase(
       `${entry.label} direct entry runs 1.2 to 1 over 2.5s`,
@@ -4475,6 +8273,34 @@ async function runDetailHeroEntryChecks() {
       trigger: async (page) => {
         await openMenu(page);
         const link = await findRouteLink(page, "#site-menu", "/vi/about/");
+        await link.click();
+      },
+    },
+    {
+      label: "residential hero media",
+      selector: "[data-motion-hero-media]",
+      source: "/vi/",
+      destination: "/vi/residential/",
+      trigger: async (page) => {
+        const link = await findRouteLink(
+          page,
+          "[data-site-header]",
+          "/vi/residential/",
+        );
+        await link.click();
+      },
+    },
+    {
+      label: "commercial hero media",
+      selector: "[data-motion-hero-media]",
+      source: "/vi/",
+      destination: "/vi/commercial/",
+      trigger: async (page) => {
+        const link = await findRouteLink(
+          page,
+          "[data-site-header]",
+          "/vi/commercial/",
+        );
         await link.click();
       },
     },
@@ -4580,8 +8406,8 @@ async function projectFinalGeometry(page) {
       filterRects: [...document.querySelectorAll(".project-filter")].map(rect),
       lineRects: [...document.querySelectorAll(".detail-hero-line-mask")].map(rect),
       headerLeafTone: [
-        getComputedStyle(header.querySelector(".brand-mark path")).fill,
-        getComputedStyle(header.querySelector(".brand-copy")).color,
+        getComputedStyle(header.querySelector(".brand-lockup")).fill,
+        getComputedStyle(header.querySelector("#header-logo")).color,
         getComputedStyle(header.querySelector(".desktop-nav a")).color,
         getComputedStyle(header.querySelector(".menu-button line")).stroke,
       ],
@@ -4660,8 +8486,8 @@ async function homeFinalGeometry(page) {
         Object.entries(elements).map(([name, element]) => [name, rect(element)]),
       ),
       headerLeafTone: [
-        getComputedStyle(header.querySelector(".brand-mark path")).fill,
-        getComputedStyle(header.querySelector(".brand-copy")).color,
+        getComputedStyle(header.querySelector(".brand-lockup")).fill,
+        getComputedStyle(header.querySelector("#header-logo")).color,
         getComputedStyle(header.querySelector(".desktop-nav a")).color,
         getComputedStyle(header.querySelector(".menu-button line")).stroke,
       ],
@@ -4737,8 +8563,8 @@ async function runMotionAbortFailOpenChecks() {
           const channel = (value) =>
             Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
           return [
-            getComputedStyle(header.querySelector(".brand-mark path")).fill,
-            getComputedStyle(header.querySelector(".brand-copy")).color,
+            getComputedStyle(header.querySelector(".brand-lockup")).fill,
+            getComputedStyle(header.querySelector("#header-logo")).color,
             getComputedStyle(header.querySelector(".desktop-nav a")).color,
             getComputedStyle(header.querySelector(".menu-button line")).stroke,
           ].map(channel);
@@ -4879,10 +8705,10 @@ async function runMotionAbortFailOpenChecks() {
         );
         const filterState = await page.evaluate(() => ({
           allTiles: document.querySelectorAll(
-            "[data-project-grid] [data-project-category]",
+            "[data-project-grid] [data-advertising-category]",
           ).length,
           kioskTiles: document.querySelectorAll(
-            '[data-project-grid] [data-project-category="kiosk"]',
+            '[data-project-grid] [data-advertising-category="kiosk-posm"]',
           ).length,
         }));
         assert(
@@ -4890,36 +8716,36 @@ async function runMotionAbortFailOpenChecks() {
             filterState.kioskTiles > 0,
           `Fail-open fixture cannot prove filtering: ${JSON.stringify(filterState)}`,
         );
-        await page.locator('[data-project-filter="kiosk"]').click();
+        await page.locator('[data-advertising-filter="kiosk-posm"]').click();
         await page.waitForFunction(
           () =>
             document
-              .querySelector('[data-project-filter="kiosk"]')
-              ?.getAttribute("aria-pressed") === "true",
+              .querySelector('[data-advertising-filter="kiosk-posm"]')
+              ?.getAttribute("aria-current") === "true",
         );
         const filteredState = await page.evaluate(() => ({
           visible: [
             ...document.querySelectorAll(
-              "[data-project-grid] [data-project-category]",
+              "[data-project-grid] [data-advertising-category]",
             ),
           ]
             .filter((tile) => !tile.hidden)
-            .map((tile) => tile.dataset.projectCategory),
+            .map((tile) => tile.dataset.advertisingCategory),
         }));
         assert(
           filteredState.visible.length === filterState.kioskTiles &&
-            filteredState.visible.every((category) => category === "kiosk"),
+            filteredState.visible.every((category) => category === "kiosk-posm"),
           `Fail-open filter did not isolate kiosk tiles: ${JSON.stringify(filteredState)}`,
         );
-        await page.locator('[data-project-filter="all"]').click();
+        await page.locator('[data-advertising-filter="all"]').click();
         await page.waitForFunction(
           (expected) =>
             document
-              .querySelector('[data-project-filter="all"]')
-              ?.getAttribute("aria-pressed") === "true" &&
+              .querySelector('[data-advertising-filter="all"]')
+              ?.getAttribute("aria-current") === "true" &&
             [
               ...document.querySelectorAll(
-                "[data-project-grid] [data-project-category]",
+                "[data-project-grid] [data-advertising-category]",
               ),
             ].filter((tile) => !tile.hidden).length === expected,
           filterState.allTiles,
@@ -5040,12 +8866,12 @@ async function runMotionAbortFailOpenChecks() {
           window.__ttLateFilterLayoutEvents += 1;
         });
       });
-      await page.locator('[data-project-filter="kiosk"]').click();
+      await page.locator('[data-advertising-filter="kiosk-posm"]').click();
       await page.waitForFunction(
         () =>
           document
-            .querySelector('[data-project-filter="kiosk"]')
-            ?.getAttribute("aria-pressed") === "true" &&
+            .querySelector('[data-advertising-filter="kiosk-posm"]')
+            ?.getAttribute("aria-current") === "true" &&
           window.__ttLateFilterLayoutEvents === 1,
       );
       await page.evaluate(() => {
@@ -5106,11 +8932,11 @@ async function runMotionAbortFailOpenChecks() {
       await page.evaluate(() => {
         window.__ttLateFilterLayoutEvents = 0;
       });
-      await page.locator('[data-project-filter="all"]').click();
+      await page.locator('[data-advertising-filter="all"]').click();
       const filterTakeover = await page.evaluate(() => ({
         active: document
-          .querySelector('[data-project-filter="all"]')
-          ?.getAttribute("aria-pressed"),
+          .querySelector('[data-advertising-filter="all"]')
+          ?.getAttribute("aria-current"),
         layoutEvents: window.__ttLateFilterLayoutEvents,
       }));
       assert(
@@ -5133,46 +8959,74 @@ async function runDelayedDetailFallbackChecks() {
     await new Promise((resolve) => setTimeout(resolve, delay));
     await route.fulfill({ response });
   };
-  const exerciseFilter = async (page, category) => {
-    await page.evaluate(() => document.fonts.ready);
+  const waitForAdvertisingCatalog = async (page) => {
+    await page.waitForFunction(
+      () => {
+        const grid = document.querySelector("[data-project-grid].advertising-grid");
+        return Boolean(
+          grid?.querySelector(".advertising-tile") &&
+          typeof window.Masonry === "function" &&
+          window.lazySizes?.loader &&
+          typeof window.SplitText === "function" &&
+          window.gsap?.version === "3.15.0",
+        );
+      },
+      null,
+      { timeout: 8_000 },
+    );
     await page.evaluate(
       () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
     );
+  };
+  const exerciseFilter = async (page, category) => {
+    await waitForAdvertisingCatalog(page);
     await page.evaluate(() => {
-      if (!window.__ttDelayedDetailLayoutListener) {
-        window.__ttDelayedDetailLayoutListener = true;
-        window.addEventListener("site:layout", () => {
-          window.__ttDelayedDetailLayoutEvents += 1;
-        });
+      if (!window.__ttDelayedDetailMasonryProbe) {
+        const layout = window.Masonry.prototype.layout;
+        window.__ttDelayedDetailMasonryProbe = true;
+        window.Masonry.prototype.layout = function (...args) {
+          if (this.element?.matches?.("[data-project-grid].advertising-grid")) {
+            window.__ttDelayedDetailMasonryLayouts += 1;
+          }
+          return layout.apply(this, args);
+        };
       }
-      window.__ttDelayedDetailLayoutEvents = 0;
+      window.__ttDelayedDetailMasonryLayouts = 0;
     });
-    await page.locator(`[data-project-filter="${category}"]`).click();
+    await page.evaluate((selector) => {
+      const control = document.querySelector(selector);
+      if (!(control instanceof HTMLElement)) throw new Error(`Missing filter: ${selector}`);
+      control.click();
+    }, `[data-advertising-filter="${category}"]`);
+    await page.waitForFunction(() => window.__ttDelayedDetailMasonryLayouts >= 1, null, { timeout: 3_000 });
     return page.evaluate((activeCategory) => {
       const tiles = [
         ...document.querySelectorAll(
-          "[data-project-grid] [data-project-category]",
+          "[data-project-grid] [data-advertising-category]",
         ),
       ];
       return {
         active: document
-          .querySelector(`[data-project-filter="${activeCategory}"]`)
-          ?.getAttribute("aria-pressed"),
-        events: window.__ttDelayedDetailLayoutEvents,
+          .querySelector(`[data-advertising-filter="${activeCategory}"]`)
+          ?.getAttribute("aria-current"),
+        masonryLayouts: window.__ttDelayedDetailMasonryLayouts,
         total: tiles.length,
+        unique: new Set(tiles.map((tile) => tile.dataset.advertisingCard)).size === tiles.length,
         visible: tiles
           .filter((tile) => !tile.hidden)
-          .map((tile) => tile.dataset.projectCategory),
+          .map((tile) => tile.dataset.advertisingCategory),
       };
     }, category);
   };
   const assertFilter = (state, category, label) => {
     assert(
       state.active === "true" &&
-        state.events === 1 &&
+        state.masonryLayouts === 1 &&
+        state.unique &&
+        state.total < 120 &&
         state.visible.length > 0 &&
         (category === "all"
-          ? state.visible.length === state.total
+          ? new Set(state.visible).size > 1
           : state.visible.every((item) => item === category)),
       `${label} filter is inert or duplicated: ${JSON.stringify(state)}`,
     );
@@ -5203,9 +9057,7 @@ async function runDelayedDetailFallbackChecks() {
           null,
           { timeout: 5_000 },
         );
-        await page.waitForFunction(() => Boolean(window.TruongThinhDetail), null, {
-          timeout: 6_000,
-        });
+        await waitForAdvertisingCatalog(page);
         const abortedResponse = await abortedNavigation;
         assert(
           abortedResponse &&
@@ -5214,8 +9066,8 @@ async function runDelayedDetailFallbackChecks() {
           `Delayed-detail abort page did not load: ${abortedNavigationError}`,
         );
         assertFilter(
-          await exerciseFilter(page, "kiosk"),
-          "kiosk",
+          await exerciseFilter(page, "kiosk-posm"),
+          "kiosk-posm",
           "Delayed-detail abort kiosk",
         );
         assertFilter(
@@ -5243,12 +9095,10 @@ async function runDelayedDetailFallbackChecks() {
           null,
           { timeout: 5_000 },
         );
-        await page.waitForFunction(() => Boolean(window.TruongThinhDetail), null, {
-          timeout: 6_000,
-        });
+        await waitForAdvertisingCatalog(page);
         assertFilter(
-          await exerciseFilter(page, "kiosk"),
-          "kiosk",
+          await exerciseFilter(page, "kiosk-posm"),
+          "kiosk-posm",
           "Delayed-detail pre-takeover kiosk",
         );
         const takeoverResponse = await takeoverNavigation;
@@ -5265,6 +9115,8 @@ async function runDelayedDetailFallbackChecks() {
           null,
           { timeout: 5_000 },
         );
+        await waitForLoadedDocument(page);
+        await waitForAdvertisingCatalog(page);
         assertFilter(
           await exerciseFilter(page, "all"),
           "all",
@@ -5404,71 +9256,57 @@ async function runBootClaimReleaseRaceCheck() {
 
 async function runHeroCarouselLifecycleCheck() {
   const viewport = { width: 1440, height: 900 };
+  for (const route of ["/vi/residential/", "/vi/commercial/"]) {
+    await runPageCase(
+      `service hero is a single finite entrance ${route}`,
+      { route, viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, route);
+        const state = await page.locator(".hero").evaluate((hero) => ({
+          slideCount: hero.querySelectorAll(".hero-slide").length,
+          mediaCount: hero.querySelectorAll("[data-motion-hero-media]").length,
+          labelCount: hero.querySelectorAll("[data-hero-label]").length,
+          motionToggleCount: hero.querySelectorAll("[data-motion-toggle]").length,
+          scrollCueCount: hero.querySelectorAll("[data-scroll-cue]").length,
+        }));
+        assert(
+          state.slideCount === 1 &&
+            state.mediaCount === 1 &&
+            state.labelCount === 0 &&
+            state.motionToggleCount === 0 &&
+            state.scrollCueCount === 1,
+          `Service hero still exposes slideshow UI: ${JSON.stringify(state)}`,
+        );
+        await page.waitForTimeout(3_000);
+        const settled = await page
+          .locator("[data-motion-hero-media]")
+          .evaluate((media) => ({
+            inview: media.classList.contains("is-motion-inview"),
+            scale: new DOMMatrixReadOnly(getComputedStyle(media).transform).a,
+          }));
+        assert(
+          settled.inview && settled.scale >= 1 && settled.scale <= 1.01,
+          `Service hero did not stop after its one-shot entrance: ${JSON.stringify(settled)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
   await runPageCase(
-    "service hero labels stay synchronized and timelines plateau for 25 cycles",
-    { route: "/vi/residential/", viewport },
+    "about hero keeps the scroll cue without chapter tabs",
+    { route: "/vi/about/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/residential/");
-      await page.evaluate(() => {
-        window.__ttHeroLifecycle = { changes: 0, mismatches: [] };
-        const hero = document.querySelector(".hero");
-        const check = () => {
-          const slideIndex = [
-            ...hero.querySelectorAll(".hero-slide"),
-          ].findIndex((slide) => slide.classList.contains("is-active"));
-          const labelIndex = [
-            ...hero.querySelectorAll("[data-hero-label]"),
-          ].findIndex((label) => label.classList.contains("is-active"));
-          window.__ttHeroLifecycle.changes += 1;
-          if (slideIndex !== labelIndex) {
-            window.__ttHeroLifecycle.mismatches.push({ slideIndex, labelIndex });
-          }
-        };
-        const observer = new MutationObserver(() => requestAnimationFrame(check));
-        hero.querySelectorAll(".hero-slide").forEach((slide) =>
-          observer.observe(slide, { attributes: true, attributeFilter: ["class"] }),
-        );
-        window.gsap.globalTimeline.timeScale(50);
-      });
-      const heroAnimationCount = () =>
-        page.evaluate(() => {
-          const hero = document.querySelector(".hero");
-          return window.gsap.globalTimeline
-            .getChildren(true, true, true)
-            .filter(
-              (animation) =>
-                animation.targets?.().some(
-                  (target) => target instanceof Element && hero.contains(target),
-                ),
-            ).length;
-        });
-      await page.waitForFunction(
-        () => window.__ttHeroLifecycle?.changes >= 6,
-        null,
-        { timeout: 4_000 },
-      );
-      const afterSix = await heroAnimationCount();
-      await page.waitForFunction(
-        () => window.__ttHeroLifecycle?.changes >= 12,
-        null,
-        { timeout: 4_000 },
-      );
-      const afterTwelve = await heroAnimationCount();
-      await page.waitForFunction(
-        () => window.__ttHeroLifecycle?.changes >= 25,
-        null,
-        { timeout: 8_000 },
-      );
-      const afterTwentyFive = await heroAnimationCount();
-      const lifecycle = await page.evaluate(() => window.__ttHeroLifecycle);
+      await gotoRoute(page, "/vi/about/");
+      const state = await page.locator(".about-hero").evaluate((hero) => ({
+        chapterCount: hero.querySelectorAll(".about-hero__chapters").length,
+        scrollCueCount: hero.querySelectorAll("[data-scroll-cue]").length,
+      }));
       assert(
-        lifecycle.mismatches.length === 0,
-        `Hero labels desynchronized: ${JSON.stringify(lifecycle.mismatches)}`,
-      );
-      assert(
-        afterTwelve <= afterSix + 1 && afterTwentyFive <= afterSix + 1,
-        `Hero animation count grew across cycles: ${afterSix} → ${afterTwelve} → ${afterTwentyFive}`,
+        state.chapterCount === 0 && state.scrollCueCount === 1,
+        `About hero chapter/cue contract drifted: ${JSON.stringify(state)}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -5478,8 +9316,6 @@ async function runHeroCarouselLifecycleCheck() {
 async function runHeroCrossFadeContinuityChecks() {
   const cases = [
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
-    { route: "/vi/residential/", viewport: { width: 1440, height: 900 } },
-    { route: "/vi/commercial/", viewport: { width: 1440, height: 900 } },
     { route: "/vi/", viewport: { width: 390, height: 844 } },
   ];
 
@@ -5782,6 +9618,60 @@ async function runWhiteOverlayMediaFallbackCheck() {
   }
 }
 
+async function runHomeHeroTypesettingChecks() {
+  const viewports = [
+    { width: 320, height: 912 },
+    { width: 768, height: 912 },
+    { width: 1569, height: 912 },
+  ];
+  const locales = [
+    { locale: "vi", lines: ["Làm chắc", "Làm khác"] },
+    { locale: "en", lines: ["Built solid.", "Made different."] },
+  ];
+
+  for (const { locale, lines: expectedLines } of locales) {
+    for (const viewport of viewports) {
+      const route = `/${locale}/?hero-typeset-check=1`;
+      await runPageCase(
+        `home hero copy and line gap ${locale} ${viewport.width}x${viewport.height}`,
+        { route, viewport, reducedMotion: "reduce" },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, route);
+          const state = await page.evaluate(() => {
+            const heading = document.querySelector(".hero h1");
+            const lines = [...heading.querySelectorAll(".hero-line-mask")];
+            const rects = lines.map((line) => line.getBoundingClientRect());
+            const fontSize = Number.parseFloat(getComputedStyle(heading).fontSize);
+            return {
+              lines: lines.map((line) => line.textContent.replace(/\s+/g, " ").trim()),
+              gap: rects[1]?.top - rects[0]?.bottom,
+              fontSize,
+              horizontalOverflow:
+                document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            };
+          });
+          const gapRatio = state.gap / state.fontSize;
+
+          assert(
+            JSON.stringify(state.lines) === JSON.stringify(expectedLines),
+            `Home hero ${locale} copy drifted at ${viewport.width}px: ${JSON.stringify(state.lines)}`,
+          );
+          assert(
+            gapRatio >= 0.045 && gapRatio <= 0.055,
+            `Home hero line gap is not the intended subtle 0.05em at ${viewport.width}px: ${JSON.stringify({ gap: state.gap, fontSize: state.fontSize, gapRatio })}`,
+          );
+          assert(
+            state.horizontalOverflow <= 1,
+            `Home hero overflowed horizontally at ${viewport.width}px by ${state.horizontalOverflow}px`,
+          );
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+}
+
 async function runHomeHeroIntroReadabilityCheck() {
   const route = "/vi/?hero-intro-check=1";
   const viewport = { width: 768, height: 900 };
@@ -5831,19 +9721,19 @@ async function runHomeHeroIntroReadabilityCheck() {
       });
       const trace = await page.evaluate(() => window.__ttHeroIntroTrace);
       const solidSamples = trace.samples.filter(
-        ({ elapsed }) => elapsed >= 250 && elapsed <= 1_100,
+        ({ elapsed }) => elapsed >= 250 && elapsed <= 850,
       );
       const mediaWaitsForShortHold = trace.samples.some(
         ({ elapsed, maxSlideOpacity }) =>
-          elapsed >= 1_150 &&
-          elapsed <= 1_300 &&
+          elapsed >= 900 &&
+          elapsed <= 1_000 &&
           maxSlideOpacity <= 0.08 &&
           Number.isFinite(maxSlideOpacity),
       );
       const fadeSamples = trace.samples.filter(
-        ({ elapsed }) => elapsed >= 1_400 && elapsed <= 2_750,
+        ({ elapsed }) => elapsed >= 1_100 && elapsed <= 2_450,
       );
-      const finalSamples = trace.samples.filter(({ elapsed }) => elapsed >= 3_050);
+      const finalSamples = trace.samples.filter(({ elapsed }) => elapsed >= 2_750);
 
       assert(
         solidSamples.length > 20 &&
@@ -5897,6 +9787,7 @@ async function runHomeHeroIntroReadabilityCheck() {
       assertDiagnostics(diagnostics);
     },
   );
+
 }
 
 async function runPhysicalWheelTransformChecks() {
@@ -6024,7 +9915,7 @@ async function runHomeMotionRegressionCheck() {
     "utf8",
   );
   assert(
-    /const introOffset = heroIntroPending && index === 0 \? 2\.6 : 0;/.test(
+    /const introOffset = heroIntroPending && index === 0 \? 1 : 0;/.test(
       motionSource,
     ) &&
       /\{ scale: 1\.06 \}[\s\S]*scale: 1, duration: 5, ease: "sine\.inOut"[\s\S]*duration: 1\.6[\s\S]*introOffset \+ 4\.2[\s\S]*\.call\(\(\) => startSlide\(nextIndex\), null, introOffset \+ 5\)/.test(
@@ -6115,7 +10006,7 @@ async function runHomeMotionRegressionCheck() {
           ...document.querySelectorAll("#dich-vu .portal-subtitle"),
         ];
         const header = document.querySelector("[data-site-header]");
-        const brandMark = header.querySelector(".brand-mark");
+        const brandLockup = header.querySelector(".brand-lockup");
         const veil = document.querySelector(".route-veil");
         const media = [
           ...document.querySelectorAll(".project-card__media"),
@@ -6160,9 +10051,9 @@ async function runHomeMotionRegressionCheck() {
             headerDisplay: getComputedStyle(header).display,
             headerVisibility: getComputedStyle(header).visibility,
             headerOpacity: getComputedStyle(header).opacity,
-            brandMark: [
-              Math.round(Number.parseFloat(getComputedStyle(brandMark).width)),
-              Math.round(Number.parseFloat(getComputedStyle(brandMark).height)),
+            brandLockup: [
+              Math.round(Number.parseFloat(getComputedStyle(brandLockup).width)),
+              Math.round(Number.parseFloat(getComputedStyle(brandLockup).height)),
             ],
           },
           media: media.map((item) => ({
@@ -6225,8 +10116,8 @@ async function runHomeMotionRegressionCheck() {
           contract.routeShell.headerDisplay !== "none" &&
           contract.routeShell.headerVisibility === "visible" &&
           contract.routeShell.headerOpacity === "1" &&
-          contract.routeShell.brandMark[0] === 60 &&
-          contract.routeShell.brandMark[1] === 60,
+          contract.routeShell.brandLockup[0] === 196 &&
+          contract.routeShell.brandLockup[1] === 68,
         "Route veil can hide the persistent site header",
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
@@ -6396,11 +10287,2551 @@ async function runHomeMotionRegressionCheck() {
   );
 }
 
-async function runReducedMotionChecks() {
-  const viewport = { width: 390, height: 844 };
-  for (const route of ROUTES) {
+const BRAND_SHELL_VIEWPORTS = [
+  { width: 320, height: 844 },
+  { width: 390, height: 844 },
+  { width: 768, height: 900 },
+  { width: 959, height: 900 },
+  { width: 981, height: 900 },
+  { width: 1024, height: 900 },
+  { width: 1199, height: 900 },
+  { width: 1440, height: 900 },
+  { width: 1569, height: 900 },
+];
+
+const BRAND_HEADER_BBOX_MATRIX = [
+  { label: "expanded >1200px", width: 1440, height: 67.516 },
+  { label: "expanded 768-1200px at 1200px", width: 1200, height: 57.594 },
+  { label: "expanded 768-1200px at 768px", width: 768, height: 57.594 },
+  { label: "expanded <=767px", width: 767, height: 57.594 },
+  { label: "sticky compact", width: 1440, height: 49.641, sticky: true },
+];
+
+const BRAND_LOCKUP_ROUTE_CASES = ["vi", "en"].flatMap((locale) =>
+  PUBLIC_HTML.map(([relativePath]) => {
+    const suffix =
+      relativePath === "index.html"
+        ? "/"
+        : `/${relativePath.replace(/\/index\.html$/, "")}/`;
+    return { locale, route: `/${locale}${suffix}` };
+  }),
+);
+
+const BRAND_MOTION_PREVIEW_URLS = (
+  process.env.TT_E2E_BRAND_MOTION_PREVIEW_URLS ||
+  "/vi/?brand-preview=expanded,/vi/?brand-preview=sticky,/vi/?brand-preview=compact"
+)
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+const FOOTER_SOCIALS = ["facebook", "instagram", "tiktok", "pinterest"];
+const HEAD_OFFICE_ADDRESS =
+  "E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long";
+function expectedBrandHeaderHeight(width, sticky = false) {
+  if (sticky) return 49.641;
+  return width > 1200 ? 67.516 : 57.594;
+}
+
+async function runSharedMediaHoverPortalChecks() {
+  for (const locale of ["vi", "en"]) {
     await runPageCase(
-      `reduced motion ${routeSlug(route)} 390x844`,
+      `shared media-hover portal ${locale}`,
+      { route: `/${locale}/`, viewport: { width: 1440, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, `/${locale}/`);
+        const allPortals = page.locator("#dich-vu .service-portal, #nang-luc .service-portal");
+        assert((await allPortals.count()) === 6, `Expected six shared media portals at ${locale}`);
+        for (let index = 0; index < 6; index += 1) {
+          const sharedPortal = allPortals.nth(index);
+          const sharedImage = sharedPortal.locator("> img");
+          await sharedPortal.scrollIntoViewIfNeeded();
+          const beforeRect = await sharedPortal.boundingBox();
+          await sharedPortal.hover();
+          await page.waitForTimeout(650);
+          const state = await sharedImage.evaluate((image) => {
+            const style = getComputedStyle(image);
+            return {
+              scale: new DOMMatrixReadOnly(style.transform).a,
+              duration: style.transitionDuration,
+              easing: style.transitionTimingFunction,
+              origin: style.transformOrigin,
+            };
+          });
+          const afterRect = await sharedPortal.boundingBox();
+          assert(Math.abs(state.scale - 1.15) < 0.01
+            && state.duration === "0.6s"
+            && state.easing === "ease-out"
+            && state.origin.startsWith(`${beforeRect.width / 2}px`)
+            && Math.abs(beforeRect.width - afterRect.width) <= 0.1
+            && Math.abs(beforeRect.height - afterRect.height) <= 0.1,
+          `Shared portal ${index + 1} motion drifted at ${locale}: ${JSON.stringify({ state, beforeRect, afterRect })}`);
+          await page.mouse.move(0, 0);
+        }
+        const portal = page.locator("#dich-vu .service-portal").first();
+        const image = portal.locator("> img");
+        const subtitle = portal.locator(".portal-subtitle");
+        const shadeBefore = await portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
+        await portal.hover();
+        await page.waitForTimeout(650);
+        const hover = await image.evaluate((image) => {
+          const style = getComputedStyle(image);
+          return {
+            scale: new DOMMatrixReadOnly(style.transform).a,
+            duration: style.transitionDuration,
+            easing: style.transitionTimingFunction,
+          };
+        });
+        assert(Math.abs(hover.scale - 1.15) < 0.01, `Portal hover zoom drifted at ${locale}: ${hover.scale}`);
+        assert(
+          hover.duration === "0.6s" && hover.easing === "ease-out",
+          `Portal hover timing drifted at ${locale}: ${JSON.stringify(hover)}`,
+        );
+        const shadeAfter = await portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
+        assert(shadeAfter !== shadeBefore, `Portal hover keeps shade state at ${locale}`);
+        await page.mouse.move(0, 0);
+        await portal.focus();
+        await page.waitForTimeout(650);
+        const focus = await image.evaluate((image) => {
+          const style = getComputedStyle(image);
+          return {
+            scale: new DOMMatrixReadOnly(style.transform).a,
+            duration: style.transitionDuration,
+            easing: style.transitionTimingFunction,
+          };
+        });
+        assert(Math.abs(focus.scale - 1.15) < 0.01, `Portal keyboard focus zoom drifted at ${locale}: ${focus.scale}`);
+        assert(
+          focus.duration === "0.6s" && focus.easing === "ease-out",
+          `Portal keyboard focus timing drifted at ${locale}: ${JSON.stringify(focus)}`,
+        );
+        assert(
+          Math.abs(await subtitle.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element, "::after").transform).a) - 1) < 0.01,
+          `Portal keyboard focus keeps subtitle underline at ${locale}`,
+        );
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        const reduced = await image.evaluate((image) => {
+          const style = getComputedStyle(image);
+          return { transform: style.transform, duration: style.transitionDuration };
+        });
+        assert(
+          reduced.transform === "none" && reduced.duration === "0s",
+          `Portal reduced motion removes zoom and transition at ${locale}: ${JSON.stringify(reduced)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+function expectedBrandHeaderWidth(width, sticky = false) {
+  if (sticky) return 191.885904;
+  return width > 1200 ? 260.981741 : 222.62872;
+}
+
+function expectedBrandHeaderTrackWidth(width) {
+  if (width <= 750) return 191.885904;
+  return width > 1200 ? 260.981741 : 222.62872;
+}
+
+async function waitForBrandFonts(page) {
+  await page.evaluate(async () => {
+    if (document.fonts?.ready) await document.fonts.ready;
+  });
+}
+
+function extractSourceFooter(source, relativePath) {
+  const matches = [...source.matchAll(/<footer\b[\s\S]*?<\/footer>/g)].map(
+    (match) => match[0],
+  );
+  assert(
+    matches.length === 1,
+    relativePath + " must contain exactly one canonical footer",
+  );
+  return matches[0];
+}
+
+function extractInlineBrandLockups(source, relativePath) {
+  const lockups = [
+    ...source.matchAll(
+      /<svg\b(?=[^>]*\bclass="[^"]*\bbrand-lockup\b)[^>]*>[\s\S]*?<\/svg>/g,
+    ),
+  ].map((match) => match[0]);
+  assert(
+    lockups.length === 2,
+    relativePath +
+      " must expose exactly two inline brand lockups (header and full menu); found " +
+      lockups.length,
+  );
+  return lockups;
+}
+
+function assertBrandShellSourceContracts() {
+  const footerSources = [];
+  let lockupCount = 0;
+  const styleSource = fs.readFileSync(path.join(SITE_ROOT, "style.css"), "utf8");
+  const motionSource = fs.readFileSync(path.join(SITE_ROOT, "motion.js"), "utf8");
+
+  PUBLIC_HTML.forEach(([relativePath]) => {
+    const source = fs.readFileSync(path.join(SITE_ROOT, relativePath), "utf8");
+    const lockups = extractInlineBrandLockups(source, relativePath);
+    lockupCount += lockups.length;
+
+    lockups.forEach((lockup, index) => {
+      const mark = lockup.match(
+        /<g\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__mark\b)[^>]*>[\s\S]*?<\/g>/,
+      )?.[0];
+      assert(
+        mark &&
+          (mark.match(/<path\b/g) || []).length === 4 &&
+          (lockup.match(/<text\b/g) || []).length === 2 &&
+          /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*>/.test(
+            lockup,
+          ) &&
+          /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)(?=[^>]*\bdata-en="INTERIORS · ADVERTISING")[^>]*>/.test(
+            lockup,
+          ) &&
+          !/\blengthAdjust="spacingAndGlyphs"/.test(lockup) &&
+          !/<(?:use|image|style|metadata|title|desc|foreignObject)\b|\bhref\s*=|\bxlink:href\s*=/.test(
+            lockup,
+          ),
+        relativePath +
+          " lockup " +
+          (index + 1) +
+          " must keep four mark paths, two live text nodes, and undistorted locale copy",
+      );
+    });
+
+    const footer = extractSourceFooter(source, relativePath);
+    assert(
+      footer.includes('id="lien-he"') && footer.includes(HEAD_OFFICE_ADDRESS),
+      relativePath + " footer is missing the confirmed head-office address",
+    );
+
+    let previousSocialIndex = -1;
+    FOOTER_SOCIALS.forEach((social) => {
+      const item = footer.match(
+        new RegExp(
+          '<(?:a|span|button)\\b(?=[^>]*\\bdata-footer-social="' +
+            social +
+            '")(?=[^>]*\\baria-label=")[^>]*aria-disabled="true"[^>]*>[\\s\\S]*?<\\/(?:a|span|button)>',
+        ),
+      )?.[0];
+      assert(
+        item &&
+          !/<(?:a|span|button)\b[^>]*\bhref\s*=/.test(item) &&
+          /<svg\b[^>]*\bviewBox="0 0 24 24"/.test(item) &&
+          /currentColor/.test(item) &&
+          !/\bstroke(?:-width)?=/.test(item) &&
+          !/\bfill="none"/.test(item) &&
+          (!/^<a\b/.test(item) || /\btabindex="-1"/.test(item)),
+        relativePath +
+          " footer social placeholder " +
+          social +
+          " must be inline, monochrome, disabled, and unfocusable",
+      );
+      const socialIndex = footer.indexOf('data-footer-social="' + social + '"');
+      assert(
+        socialIndex > previousSocialIndex,
+        relativePath + " footer social order changed at " + social,
+      );
+      previousSocialIndex = socialIndex;
+    });
+    footerSources.push(footer.replace(/\s+/g, " ").trim());
+  });
+
+  assert(
+    lockupCount === 10,
+    "The five routes must expose ten inline Trường Thịnh lockups; found " +
+      lockupCount,
+  );
+  assert(
+    !/\.brand-lockup__(?:title|subtitle|copy)\s*\{[^}]*transform:\s*[^;}]*scale[XY]/.test(
+      styleSource,
+    ) && !/\blengthAdjust="spacingAndGlyphs"/.test(styleSource),
+    "Brand locale width must not scale glyphs",
+  );
+  assert(
+    !/html\[lang="en"\]\s+\.brand-lockup__(?:title|subtitle)\s*\{/.test(
+      styleSource,
+    ),
+    "English brand text must inherit the canonical Vietnamese font size, tracking, and baseline",
+  );
+  assert(
+    new Set(footerSources).size === 1,
+    "Footer markup is not canonical across the five public routes",
+  );
+  assert(
+    /--brand-header-height:\s*49\.640625px;/.test(styleSource) &&
+      /--brand-header-height:\s*57\.59375px;/.test(styleSource) &&
+      /--brand-header-height:\s*67\.515625px;/.test(styleSource) &&
+      /--header-row-height:\s*67\.515625px;/.test(styleSource) &&
+      /--header-collapsed-row-height:\s*60\.390625px;/.test(styleSource) &&
+      /@media \(max-width:\s*1200px\)[\s\S]*?--header-row-height:\s*60\.390625px;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*960px\)[\s\S]*?--header-row-height:\s*107\.78125px;[\s\S]*?--header-collapsed-row-height:\s*107\.78125px;/.test(
+        styleSource,
+      ) &&
+      /@media \(max-width:\s*750px\)[\s\S]*?--header-row-height:\s*57\.59375px;[\s\S]*?--header-collapsed-row-height:\s*49\.640625px;/.test(
+        styleSource,
+      ),
+    "Header brand bbox and independent Espacio row-height matrices drifted",
+  );
+  assert(
+    /\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill\s+1s\s+cubic-bezier\(0\.16, 1, 0\.3, 1\);/.test(
+      styleSource,
+    ) &&
+      /data-logo-motion="sequence"[\s\S]*?path:nth-child\(2\)[\s\S]*?transition-duration:\s*0\.93s;[\s\S]*?transition-delay:\s*0\.07s;/.test(
+        styleSource,
+      ) &&
+      /data-logo-motion="sequence"[\s\S]*?path:nth-child\(3\)[\s\S]*?transition-duration:\s*0\.86s;[\s\S]*?transition-delay:\s*0\.14s;/.test(
+        styleSource,
+      ) &&
+      /data-logo-motion="sequence"[\s\S]*?path:nth-child\(4\)[\s\S]*?transition-duration:\s*0\.79s;[\s\S]*?transition-delay:\s*0\.21s;/.test(
+        styleSource,
+      ) &&
+      !/data-logo-motion="(?:crossfade|wipe)"|brand-lockup-mark-color-wipe/.test(
+        styleSource,
+      ) &&
+      /header\.setAttribute\(\s*"data-logo-motion",\s*"sequence"\s*\)/.test(
+        motionSource,
+      ) &&
+      !/logoMotionVariants|searchParams\.get\(\s*"logo-motion"|playHeaderMarkColorMotion/.test(
+        motionSource,
+      ) &&
+      /\.menu-brand \.brand-lockup\s*\{[\s\S]*?--logo-mark-yellow:\s*#ffed00;[\s\S]*?--logo-mark-magenta:\s*#e5097f;[\s\S]*?--logo-mark-cyan:\s*#00a0e3;/.test(
+        styleSource,
+      ) &&
+      !/function resetMenuMarkColor\(/.test(motionSource) &&
+      !/\.call\(\(\) => dialog\.classList\.add\("is-brand-color"\)/.test(
+        motionSource,
+      ) &&
+      /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
+      /function syncHeaderBrandSurface\(whiteSurface,[\s\S]*?replayHeaderBrandColor\(\)/.test(
+        motionSource,
+      ) &&
+      /classList\.toggle\(\s*"is-logo-ink"\s*,\s*collapsed\s*\)/.test(
+        motionSource,
+      ) &&
+      /function playHeaderLockupScaleMotion\(beforeRect\)[\s\S]*?gsap\.fromTo\([\s\S]*?scaleX[\s\S]*?scaleY[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"/.test(
+        motionSource,
+      ) &&
+      /if \(collapsedChanged\)[\s\S]*?playHeaderLockupScaleMotion\(logoBeforeRect\)/.test(
+        motionSource,
+      ) &&
+      !/killTweensOf\(logoTarget\)/.test(motionSource),
+    "Header/menu mark color must use the selected 1s sequence without dead variants while preserving 0.3s lockup scale",
+  );
+}
+
+async function runResponsiveResizeRegressionChecks() {
+  await runPageCase(
+    "responsive resize clears the desktop scroll coordinate system",
+    { route: "/vi/", viewport: { width: 1199, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await page.keyboard.press("End");
+      await page.waitForTimeout(1_800);
+      const desktop = await page.evaluate(() => {
+        const shell = document.querySelector(".page-shell");
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(shell).transform);
+        return {
+          scrollY: window.scrollY,
+          hasSmooth: document.documentElement.classList.contains("has-scroll-smooth"),
+          shellTop: shell.getBoundingClientRect().top,
+          shellTransformY: matrix.m42,
+        };
+      });
+      assert(
+        desktop.hasSmooth &&
+          desktop.scrollY <= 1 &&
+          desktop.shellTransformY < -1000,
+        "Resize probe did not reach the desktop Locomotive state: " +
+          JSON.stringify(desktop),
+      );
+
+      await page.setViewportSize({ width: 959, height: 900 });
+      await page.waitForTimeout(1_200);
+      const mobile = await page.evaluate(() => {
+        const shell = document.querySelector(".page-shell");
+        const shellStyle = getComputedStyle(shell);
+        const shellRect = shell.getBoundingClientRect();
+        const landmarks = [
+          ...document.querySelectorAll("main > section, main > figure, footer"),
+        ].filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.bottom > 0 && rect.top < innerHeight;
+        });
+        return {
+          scrollY: window.scrollY,
+          shellTop: shellRect.top,
+          shellTransform: shellStyle.transform,
+          landmarks: landmarks.length,
+          overflow: document.documentElement.scrollWidth - innerWidth,
+        };
+      });
+      assert(
+        Math.abs(mobile.shellTop + mobile.scrollY) <= 4 &&
+          (mobile.shellTransform === "none" ||
+            mobile.shellTransform === "matrix(1, 0, 0, 1, 0, 0)") &&
+          mobile.landmarks > 0 &&
+          mobile.overflow <= 1,
+        "1199px to 959px resize left native scroll and page-shell transforms doubled: " +
+          JSON.stringify({ desktop, mobile }),
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runMenuResizeRegressionCheck() {
+  await runPageCase(
+    "menu resize does not restart background smooth scroll",
+    { route: "/vi/", viewport: { width: 1199, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await openMenu(page);
+      await page.setViewportSize({ width: 959, height: 900 });
+      await page.waitForTimeout(700);
+      await page.setViewportSize({ width: 1199, height: 900 });
+      await page.waitForTimeout(1_000);
+      const before = await page.evaluate(() => {
+        const shell = document.querySelector(".page-shell");
+        return {
+          menuOpen: document.querySelector("#site-menu")?.open === true,
+          bodyOpen: document.body.classList.contains("menu-open"),
+          hasSmooth: document.documentElement.classList.contains("has-scroll-smooth"),
+          scrollY: window.scrollY,
+          shellTop: shell.getBoundingClientRect().top,
+          shellTransform: getComputedStyle(shell).transform,
+        };
+      });
+      await page.keyboard.press("End");
+      await page.waitForTimeout(1_800);
+      const after = await page.evaluate(() => {
+        const shell = document.querySelector(".page-shell");
+        return {
+          menuOpen: document.querySelector("#site-menu")?.open === true,
+          bodyOpen: document.body.classList.contains("menu-open"),
+          hasSmooth: document.documentElement.classList.contains("has-scroll-smooth"),
+          scrollY: window.scrollY,
+          shellTop: shell.getBoundingClientRect().top,
+          shellTransform: getComputedStyle(shell).transform,
+        };
+      });
+      assert(
+        before.menuOpen &&
+          before.bodyOpen &&
+          !before.hasSmooth &&
+          after.menuOpen &&
+          after.bodyOpen &&
+          !after.hasSmooth &&
+          Math.abs(after.scrollY - before.scrollY) <= 2 &&
+          Math.abs(after.shellTop - before.shellTop) <= 4 &&
+          (after.shellTransform === "none" ||
+            after.shellTransform === "matrix(1, 0, 0, 1, 0, 0)"),
+        "Open menu crossed 981px and allowed a new smooth instance/background scroll: " +
+          JSON.stringify({ before, after }),
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function readBrandLockupRuntimeState(page) {
+  return page.evaluate(() => {
+    const rect = (element) => {
+      const value = element?.getBoundingClientRect();
+      if (!value) return null;
+      return {
+        top: value.top,
+        right: value.right,
+        bottom: value.bottom,
+        left: value.left,
+        width: value.width,
+        height: value.height,
+      };
+    };
+    const union = (elements) => {
+      const rects = elements.map(rect).filter(Boolean);
+      if (!rects.length) return null;
+      const top = Math.min(...rects.map((value) => value.top));
+      const right = Math.max(...rects.map((value) => value.right));
+      const bottom = Math.max(...rects.map((value) => value.bottom));
+      const left = Math.min(...rects.map((value) => value.left));
+      return { top, right, bottom, left, width: right - left, height: bottom - top };
+    };
+    const measure = (root) => {
+      const lockup = root?.querySelector(".brand-lockup");
+      const mark = lockup?.querySelector(".brand-lockup__mark");
+      const title = lockup?.querySelector(".brand-lockup__title");
+      const subtitle = lockup?.querySelector(".brand-lockup__subtitle");
+      const bbox = (element) => {
+        try {
+          const value = element?.getBBox?.();
+          if (!value) return null;
+          return {
+            x: value.x,
+            y: value.y,
+            width: value.width,
+            height: value.height,
+          };
+        } catch {
+          return null;
+        }
+      };
+      const visualTextExtent = (element) => {
+        try {
+          const count = element?.getNumberOfChars?.() || 0;
+          const matrix = element?.getScreenCTM?.();
+          const style = element && getComputedStyle(element);
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!count || !matrix || !style || !context) return null;
+          const sampleSize = 1000;
+          const scale = Number.parseFloat(style.fontSize) / sampleSize;
+          const text = element.textContent || "";
+          context.font = [
+            style.fontStyle,
+            style.fontWeight,
+            sampleSize + "px",
+            style.fontFamily,
+          ].join(" ");
+          const project = (x, y) => ({
+            x: matrix.a * x + matrix.c * y + matrix.e,
+            y: matrix.b * x + matrix.d * y + matrix.f,
+          });
+          const extents = [];
+          for (let index = 0; index < count; index += 1) {
+            const glyph = text[index];
+            if (!glyph || /\s/.test(glyph)) continue;
+            const point = element.getStartPositionOfChar(index);
+            const metrics = context.measureText(glyph);
+            const corners = [
+              project(
+                point.x - metrics.actualBoundingBoxLeft * scale,
+                point.y - metrics.actualBoundingBoxAscent * scale,
+              ),
+              project(
+                point.x + metrics.actualBoundingBoxRight * scale,
+                point.y + metrics.actualBoundingBoxDescent * scale,
+              ),
+            ];
+            extents.push({
+              top: Math.min(...corners.map((corner) => corner.y)),
+              right: Math.max(...corners.map((corner) => corner.x)),
+              bottom: Math.max(...corners.map((corner) => corner.y)),
+              left: Math.min(...corners.map((corner) => corner.x)),
+            });
+          }
+          if (!extents.length) return null;
+          const top = Math.min(...extents.map((value) => value.top));
+          const bottom = Math.max(...extents.map((value) => value.bottom));
+          const left = Math.min(...extents.map((value) => value.left));
+          const right = Math.max(...extents.map((value) => value.right));
+          return { top, right, bottom, left, width: right - left, height: bottom - top };
+        } catch {
+          return null;
+        }
+      };
+      const canvasMetricsAt1000 = (element) => {
+        if (!element) return null;
+        const style = getComputedStyle(element);
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) return null;
+        const sampleSize = 1000;
+        const fontSize = Number.parseFloat(style.fontSize);
+        const matrix = element.getScreenCTM?.();
+        const verticalScale = matrix ? Math.hypot(matrix.c, matrix.d) : 1;
+        context.font = [
+          style.fontStyle,
+          style.fontWeight,
+          sampleSize + "px",
+          style.fontFamily,
+        ].join(" ");
+        const cap = context.measureText("H");
+        const ink = context.measureText(element.textContent || "");
+        const scale = (fontSize / sampleSize) * verticalScale;
+        return {
+          sampleSize,
+          capHeight:
+            (cap.actualBoundingBoxAscent + cap.actualBoundingBoxDescent) * scale,
+          inkHeight:
+            (ink.actualBoundingBoxAscent + ink.actualBoundingBoxDescent) * scale,
+          inkTop: ink.actualBoundingBoxAscent * scale,
+          inkBottom: ink.actualBoundingBoxDescent * scale,
+        };
+      };
+      const baselineY = (element) => {
+        try {
+          const point = element?.getStartPositionOfChar?.(0);
+          const matrix = element?.getScreenCTM?.();
+          if (!point || !matrix) return null;
+          return matrix.b * point.x + matrix.d * point.y + matrix.f;
+        } catch {
+          return null;
+        }
+      };
+      const titleNodes = title ? [title] : [];
+      const subtitleNodes = subtitle ? [subtitle] : [];
+      const text = [...titleNodes, ...subtitleNodes];
+      const markRect = union([mark]);
+      const textRect = union(text);
+      const trueRect = union([mark, ...text]);
+      const svgRect = rect(lockup);
+      const titleExtent = visualTextExtent(title);
+      const subtitleExtent = visualTextExtent(subtitle);
+      const textInk = [titleExtent, subtitleExtent].every(Boolean)
+        ? {
+            top: Math.min(titleExtent.top, subtitleExtent.top),
+            right: Math.max(titleExtent.right, subtitleExtent.right),
+            bottom: Math.max(titleExtent.bottom, subtitleExtent.bottom),
+            left: Math.min(titleExtent.left, subtitleExtent.left),
+          }
+        : null;
+      if (textInk) {
+        textInk.width = textInk.right - textInk.left;
+        textInk.height = textInk.bottom - textInk.top;
+      }
+      const inkRect = markRect && textInk
+        ? {
+            top: Math.min(markRect.top, textInk.top),
+            right: Math.max(markRect.right, textInk.right),
+            bottom: Math.max(markRect.bottom, textInk.bottom),
+            left: Math.min(markRect.left, textInk.left),
+          }
+        : null;
+      if (inkRect) {
+        inkRect.width = inkRect.right - inkRect.left;
+        inkRect.height = inkRect.bottom - inkRect.top;
+      }
+      return {
+        svgRect,
+        markRect,
+        textRect,
+        trueRect,
+        titleRect: rect(title),
+        subtitleRect: rect(subtitle),
+        titleBBox: bbox(title),
+        subtitleBBox: bbox(subtitle),
+        titleExtent,
+        subtitleExtent,
+        textInk,
+        inkRect,
+        titleMetrics: canvasMetricsAt1000(title),
+        subtitleMetrics: canvasMetricsAt1000(subtitle),
+        titleBaselineY: baselineY(title),
+        subtitleBaselineY: baselineY(subtitle),
+        pathCount: mark?.querySelectorAll("path").length || 0,
+        hasUse: Boolean(lockup?.querySelector("use")),
+        textCount: lockup?.querySelectorAll("text").length || 0,
+        titleFontSizes: titleNodes.map((node) =>
+          Number.parseFloat(getComputedStyle(node).fontSize),
+        ),
+        subtitleFontSizes: subtitleNodes.map((node) =>
+          Number.parseFloat(getComputedStyle(node).fontSize),
+        ),
+        subtitleLetterSpacings: subtitleNodes.map((node) => {
+          const value = getComputedStyle(node).letterSpacing;
+          return value === "normal" ? 0 : Number.parseFloat(value);
+        }),
+        titleLetterSpacings: titleNodes.map((node) => {
+          const value = getComputedStyle(node).letterSpacing;
+          return value === "normal" ? 0 : Number.parseFloat(value);
+        }),
+        titleTransforms: titleNodes.map((node) => getComputedStyle(node).transform),
+        subtitleTransforms: subtitleNodes.map(
+          (node) => getComputedStyle(node).transform,
+        ),
+        titleWeights: titleNodes.map((node) => getComputedStyle(node).fontWeight),
+        subtitleWeights: subtitleNodes.map(
+          (node) => getComputedStyle(node).fontWeight,
+        ),
+        overflow:
+          inkRect &&
+          svgRect &&
+          {
+            left: svgRect.left - inkRect.left,
+            right: inkRect.right - svgRect.right,
+            top: svgRect.top - inkRect.top,
+            bottom: inkRect.bottom - svgRect.bottom,
+          },
+      };
+    };
+    return {
+      lang: document.documentElement.lang,
+      header: measure(document.querySelector("#header-logo")),
+      menu: measure(document.querySelector("#site-menu")),
+    };
+  });
+}
+
+function assertBrandLockupRuntimeState(state, label, width) {
+  const subtitleToTitleBodyRatio = 0.618;
+  const subtitleToTitleBodyTolerance = 0.005;
+  const tolerance = 0.5;
+  const validate = (measurement, name) => {
+    const isVietnamese = state.lang === "vi";
+    const y = measurement?.markRect?.height / 6;
+    const titleBodyHeight = measurement?.titleMetrics?.capHeight;
+    const subtitleBodyHeight = measurement?.subtitleMetrics?.capHeight;
+    const interlineInkGap = measurement?.subtitleExtent?.top - measurement?.titleExtent?.bottom;
+    const bodyInkHeight = measurement?.textInk?.height;
+    const topPadding = measurement?.textInk?.top - measurement?.markRect?.top;
+    const bottomPadding = measurement?.markRect?.bottom - measurement?.textInk?.bottom;
+    const markToTextInkGap =
+      Math.min(
+        measurement?.titleExtent?.left || Infinity,
+        measurement?.subtitleExtent?.left || Infinity,
+      ) - measurement?.markRect?.right;
+    assert(
+      measurement &&
+        measurement.pathCount === 4 &&
+        !measurement.hasUse &&
+        measurement.textCount === 2 &&
+        measurement.titleWeights.length === 1 &&
+        measurement.subtitleWeights.length === 1 &&
+        measurement.titleWeights[0] === "600" &&
+        measurement.subtitleWeights[0] === "600" &&
+        measurement.markRect &&
+        measurement.textRect &&
+        measurement.trueRect &&
+        measurement.markRect.height > 0 &&
+        measurement.titleMetrics?.sampleSize === 1000 &&
+        measurement.subtitleMetrics?.sampleSize === 1000 &&
+        titleBodyHeight > 0 &&
+        subtitleBodyHeight > 0 &&
+        measurement.titleExtent &&
+        measurement.subtitleExtent &&
+        measurement.textInk &&
+        Number.isFinite(y) &&
+        Math.abs(subtitleBodyHeight / titleBodyHeight - subtitleToTitleBodyRatio) <=
+          subtitleToTitleBodyTolerance &&
+        interlineInkGap >= -tolerance &&
+        Math.abs(topPadding - y) <= tolerance &&
+        Math.abs(markToTextInkGap - y) <= tolerance &&
+        measurement.subtitleExtent.top >= measurement.titleExtent.bottom - tolerance &&
+        measurement.titleExtent &&
+        measurement.subtitleExtent &&
+        measurement.titleExtent.width > 0 &&
+        measurement.subtitleExtent.width > 0 &&
+        Math.abs(measurement.titleExtent.width - measurement.subtitleExtent.width) <= tolerance &&
+        (isVietnamese
+          ? Math.abs(bodyInkHeight - 4 * y) <= tolerance &&
+            Math.abs(bottomPadding - y) <= tolerance &&
+            Math.abs(measurement.titleExtent.left - measurement.subtitleExtent.left) <= tolerance &&
+            Math.abs(measurement.titleExtent.right - measurement.subtitleExtent.right) <= tolerance &&
+            interlineInkGap <= 0.5 * y + tolerance
+          : Math.abs(measurement.titleFontSizes[0] - 46.68365) <= 0.001 &&
+            Math.abs(measurement.subtitleFontSizes[0] - 28.8505) <= 0.001 &&
+            measurement.titleLetterSpacings[0] === 0 &&
+            measurement.subtitleLetterSpacings[0] === 0 &&
+            measurement.titleTransforms[0] === "none" &&
+            measurement.subtitleTransforms[0] === "none"),
+      label +
+        " " +
+        name +
+        " must keep the locale brand metrics and fitted title/subtitle widths: " +
+        JSON.stringify({
+          lang: state.lang,
+          checks: {
+            bodyRatio: Math.abs(subtitleBodyHeight / titleBodyHeight - subtitleToTitleBodyRatio) <= subtitleToTitleBodyTolerance,
+            accentBounds: Math.abs(bodyInkHeight - 4 * y) <= tolerance,
+            topPadding: Math.abs(topPadding - y) <= tolerance,
+            bottomPadding: Math.abs(bottomPadding - y) <= tolerance,
+            markGap: Math.abs(markToTextInkGap - y) <= tolerance,
+            leftEdge: Math.abs(measurement.titleExtent.left - measurement.subtitleExtent.left) <= tolerance,
+            rightEdge: Math.abs(measurement.titleExtent.right - measurement.subtitleExtent.right) <= tolerance,
+            compactGap: interlineInkGap >= -tolerance && interlineInkGap <= 0.5 * y + tolerance,
+            width: Math.abs(measurement.titleExtent.width - measurement.subtitleExtent.width) <= tolerance,
+          },
+          y,
+          titleBodyHeight,
+          subtitleBodyHeight,
+          interlineInkGap,
+          bodyInkHeight,
+          topPadding,
+          bottomPadding,
+          markToTextInkGap,
+          measurement,
+        }),
+    );
+    assert(
+      Object.values(measurement.overflow).every((value) => Number(value) <= tolerance),
+      label +
+        " " +
+        name +
+        " true lockup ink escapes its SVG viewBox: " +
+        JSON.stringify(measurement),
+    );
+    assert(
+      measurement.svgRect.right - measurement.textInk.right >= 0.5,
+      label + " " + name + " text ink must retain clearance inside the logo hit area",
+    );
+  };
+  validate(state.header, "header");
+  validate(state.menu, "menu");
+}
+
+function assertBrandLocaleMetricParity(viState, enState, label) {
+  const tolerance = 0.5;
+  for (const name of ["header", "menu"]) {
+    const vi = viState[name];
+    const en = enState[name];
+    const viBaselineGap = vi.subtitleBaselineY - vi.titleBaselineY;
+    const enBaselineGap = en.subtitleBaselineY - en.titleBaselineY;
+    assert(
+      vi.titleFontSizes[0] === en.titleFontSizes[0] &&
+        vi.subtitleFontSizes[0] === en.subtitleFontSizes[0] &&
+        vi.titleLetterSpacings[0] === en.titleLetterSpacings[0] &&
+        vi.subtitleLetterSpacings[0] === en.subtitleLetterSpacings[0] &&
+        vi.titleTransforms[0] === en.titleTransforms[0] &&
+        vi.subtitleTransforms[0] === en.subtitleTransforms[0] &&
+        Math.abs(viBaselineGap - enBaselineGap) <= tolerance &&
+        ["top", "right", "bottom", "left"].every(
+          (edge) => Math.abs(vi.titleExtent[edge] - en.titleExtent[edge]) <= tolerance,
+        ) &&
+        Math.abs(vi.titleExtent.width - en.titleExtent.width) <= tolerance &&
+        Math.abs(en.subtitleExtent.width - en.titleExtent.width) <= tolerance,
+      `${label} ${name} English text must inherit Vietnamese character metrics while fitting the canonical title width: ` +
+        JSON.stringify({ vi, en, viBaselineGap, enBaselineGap }),
+    );
+  }
+}
+
+async function runBrandLockupRuntimeChecks() {
+  for (const viewport of BRAND_SHELL_VIEWPORTS) {
+    await runPageCase(
+      "brand lockup true bbox " + viewport.width,
+      { route: "/vi/", viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/");
+        await waitForBrandFonts(page);
+        await openMenu(page);
+        await waitForBrandFonts(page);
+        const state = await readBrandLockupRuntimeState(page);
+        assertBrandLockupRuntimeState(
+          state,
+          viewport.width + "x" + viewport.height,
+          viewport.width,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "brand lockup English inherits Vietnamese character metrics",
+    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await waitForBrandFonts(page);
+      await openMenu(page);
+      await waitForBrandFonts(page);
+      const viState = await readBrandLockupRuntimeState(page);
+      await gotoRoute(page, "/en/");
+      await waitForBrandFonts(page);
+      await openMenu(page);
+      await waitForBrandFonts(page);
+      const enState = await readBrandLockupRuntimeState(page);
+      assertBrandLocaleMetricParity(viState, enState, "390x844");
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  for (const { locale, route } of BRAND_LOCKUP_ROUTE_CASES) {
+    await runPageCase(
+      `brand lockup text width ${locale} ${route}`,
+      { route, viewport: { width: 390, height: 844 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, route);
+        await waitForBrandFonts(page);
+        await openMenu(page);
+        await waitForBrandFonts(page);
+        const state = await readBrandLockupRuntimeState(page);
+        assertBrandLockupRuntimeState(state, route + " 390x844", 390);
+        const subtitles = await page
+          .locator(".brand-lockup__subtitle")
+          .allTextContents();
+        const titles = await page
+          .locator(".brand-lockup__title")
+          .allTextContents();
+        const expectedSubtitle =
+          locale === "en" ? "INTERIORS · ADVERTISING" : "NỘI THẤT · QUẢNG CÁO";
+        assert(
+          titles.length === 2 &&
+            titles.every((text) => text.replace(/\s+/g, " ").trim() === "TRƯỜNG THỊNH") &&
+            subtitles.length === 2 &&
+            subtitles.every(
+              (text) => text.replace(/\s+/g, " ").trim() === expectedSubtitle,
+            ),
+          `${route} must render both live brand title/subtitle nodes for ${locale}: ` +
+            JSON.stringify({ titles, subtitles }),
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "brand lockup English desktop geometry",
+    { route: "/en/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/en/");
+      await waitForBrandFonts(page);
+      await openMenu(page);
+      await waitForBrandFonts(page);
+      assertBrandLockupRuntimeState(
+        await readBrandLockupRuntimeState(page),
+        "/en/ 1440x900",
+        1440,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "brand lockup English subtitle",
+    { route: "/en/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/en/");
+      await page.waitForFunction(
+        () => document.documentElement.lang === "en",
+      );
+      const subtitles = await page
+        .locator(".brand-lockup__subtitle")
+        .allTextContents();
+      assert(
+        subtitles.length === 2 &&
+          subtitles.every(
+            (text) => text.replace(/\s+/g, " ").trim() === "INTERIORS · ADVERTISING",
+          ),
+        "English route must translate both header and full-menu brand subtitles: " +
+          JSON.stringify(subtitles),
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  if (process.env.TT_E2E_BRAND_LOCKUP_ONLY !== "1") {
+    await runBrandColorMotionCheck();
+  }
+}
+
+async function runBrandColorMotionCheck() {
+  for (const { locale, viewport } of [
+    { locale: "vi", viewport: { width: 390, height: 844 } },
+    { locale: "vi", viewport: { width: 1440, height: 900 } },
+    { locale: "en", viewport: { width: 1440, height: 900 } },
+  ]) {
+    const route = `/${locale}/advertising-products/`;
+    await runPageCase(
+      `direct white-surface header replays black to CMYK ${locale} ${viewport.width}`,
+      { route, viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await page.addInitScript(() => {
+          window.__ttWhiteSurfaceLogoTrace = { done: false, samples: [] };
+          const findMark = () => {
+            const paths = [
+              ...document.querySelectorAll(
+                "#header-logo .brand-lockup__mark path",
+              ),
+            ];
+            if (paths.length !== 4) {
+              requestAnimationFrame(findMark);
+              return;
+            }
+            const startedAt = performance.now();
+            const sample = () => {
+              const elapsed = performance.now() - startedAt;
+              window.__ttWhiteSurfaceLogoTrace.samples.push({
+                elapsed,
+                fills: paths.map((path) => getComputedStyle(path).fill),
+                totals: paths.map((path) => {
+                  const style = getComputedStyle(path);
+                  const seconds = (value) =>
+                    value.endsWith("ms")
+                      ? Number.parseFloat(value) / 1000
+                      : Number.parseFloat(value);
+                  return (
+                    seconds(style.transitionDuration) +
+                    seconds(style.transitionDelay)
+                  );
+                }),
+              });
+              if (elapsed < 1_150) requestAnimationFrame(sample);
+              else window.__ttWhiteSurfaceLogoTrace.done = true;
+            };
+            sample();
+          };
+          requestAnimationFrame(findMark);
+        });
+        const response = await page.goto(pageUrl(route), {
+          waitUntil: "domcontentloaded",
+          timeout: 20_000,
+        });
+        assert(response && response.status() < 400, `${route} load failed`);
+        await page.waitForFunction(
+          () => window.__ttWhiteSurfaceLogoTrace?.done,
+          null,
+          { timeout: 4_000 },
+        );
+        const trace = await page.evaluate(
+          () => window.__ttWhiteSurfaceLogoTrace.samples,
+        );
+        const black = [
+          "rgb(43, 42, 41)",
+          "rgb(43, 42, 41)",
+          "rgb(43, 42, 41)",
+          "rgb(43, 42, 41)",
+        ];
+        const cmyk = [
+          "rgb(43, 42, 41)",
+          "rgb(255, 237, 0)",
+          "rgb(229, 9, 127)",
+          "rgb(0, 160, 227)",
+        ];
+        const startsBlack = trace.findIndex(
+          ({ fills }) => JSON.stringify(fills) === JSON.stringify(black),
+        );
+        const endsCmyk = trace.findIndex(
+          ({ fills }, index) =>
+            index > startsBlack &&
+            JSON.stringify(fills) === JSON.stringify(cmyk),
+        );
+        const active = trace.find(
+          ({ fills }, index) =>
+            index > startsBlack &&
+            fills.some((fill, pathIndex) => fill !== black[pathIndex]),
+        );
+        assert(
+          startsBlack >= 0 &&
+            endsCmyk > startsBlack &&
+            active?.totals.every((total) => Math.abs(total - 1) <= 0.02),
+          `Direct white-surface mark did not replay black-to-CMYK in 1s: ${JSON.stringify({ startsBlack, endsCmyk, active, end: trace.at(-1) })}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "direct heritage fragment resolves header mark to CMYK",
+    { route: "/vi/#tay-nghe", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/#tay-nghe");
+      await page.evaluate(() => {
+        document.documentElement.style.overflow = "auto";
+        window.location.hash = "tay-nghe";
+      });
+      await page.waitForFunction(
+        () =>
+          Math.abs(
+            document.querySelector("#tay-nghe")?.getBoundingClientRect().top ||
+              Infinity,
+          ) < window.innerHeight,
+        null,
+        { timeout: 4_000 },
+      );
+      await page.waitForTimeout(1_100);
+      const state = await page.evaluate(() => {
+        const header = document.querySelector("[data-site-header]");
+        return {
+          className: header?.className || "",
+          fills: [
+            ...header?.querySelectorAll(".brand-lockup__mark path") || [],
+          ].map((path) => getComputedStyle(path).fill),
+        };
+      });
+      const cmyk = [
+        "rgb(43, 42, 41)",
+        "rgb(255, 237, 0)",
+        "rgb(229, 9, 127)",
+        "rgb(0, 160, 227)",
+      ];
+      assert(
+        state.className.includes("is-brand-color") &&
+          !state.className.includes("is-brand-inverse") &&
+          JSON.stringify(state.fills) === JSON.stringify(cmyk),
+        `Direct #tay-nghe header mark must be CMYK on its white surface: ${JSON.stringify(state)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "hamburger brand enters with CMYK mark from first visible frame",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await waitForBrandFonts(page);
+      const before = await page.evaluate(() => {
+        const readTiming = (path) => {
+          const style = getComputedStyle(path);
+          const milliseconds = (value) =>
+            value.endsWith("ms")
+              ? Number.parseFloat(value)
+              : Number.parseFloat(value) * 1000;
+          return {
+            delay: milliseconds(style.transitionDelay),
+            duration: milliseconds(style.transitionDuration),
+            fill: style.fill,
+          };
+        };
+        const menuPaths = [
+          ...document.querySelectorAll(
+            "#site-menu .menu-brand .brand-lockup__mark path",
+          ),
+        ];
+        const headerPaths = [
+          ...document.querySelectorAll(
+            "#header-logo .brand-lockup__mark path",
+          ),
+        ];
+        return {
+          header: headerPaths.map(readTiming),
+          menu: menuPaths.map(readTiming),
+        };
+      });
+      assert(
+        JSON.stringify(before.menu.map(({ fill }) => fill)) ===
+          JSON.stringify([
+            "rgb(43, 42, 41)",
+            "rgb(255, 237, 0)",
+            "rgb(229, 9, 127)",
+            "rgb(0, 160, 227)",
+          ]) &&
+          before.header.length === 4 &&
+          before.header.every(
+            ({ delay, duration }) => Math.abs(delay + duration - 1000) <= 1,
+          ),
+        "Closed hamburger mark or header sequence does not preserve its CMYK/1s color contract: " +
+          JSON.stringify(before),
+      );
+      await page.locator("[data-menu-open]").click();
+      await page.waitForFunction(() => {
+        const brand = document.querySelector("#site-menu .menu-brand");
+        return (
+          document.querySelector("#site-menu")?.open &&
+          Number.parseFloat(getComputedStyle(brand).opacity) > 0.001
+        );
+      });
+      const firstVisible = await page.evaluate(() => {
+        const brand = document.querySelector("#site-menu .menu-brand");
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(brand).transform);
+        return {
+          opacity: Number.parseFloat(getComputedStyle(brand).opacity),
+          translateY: matrix.m42,
+          menuFills: [
+            ...document.querySelectorAll(
+              "#site-menu .menu-brand .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill),
+          headerFills: [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill),
+        };
+      });
+      assert(
+        firstVisible.opacity > 0.001 &&
+          firstVisible.translateY >= -140.5 &&
+          firstVisible.translateY <= 0.5 &&
+          JSON.stringify(firstVisible.menuFills) ===
+            JSON.stringify([
+              "rgb(43, 42, 41)",
+              "rgb(255, 237, 0)",
+              "rgb(229, 9, 127)",
+              "rgb(0, 160, 227)",
+            ]) &&
+          JSON.stringify(firstVisible.headerFills) ===
+            JSON.stringify(before.header.map(({ fill }) => fill)),
+        "Hamburger first visible frame must be CMYK while preserving its -140px to 0px entrance and header color: " +
+          JSON.stringify({ before, firstVisible }),
+      );
+      await page.waitForTimeout(700);
+      const after = await page.evaluate(() => ({
+        fills: [
+          ...document.querySelectorAll(
+            "#site-menu .menu-brand .brand-lockup__mark path",
+          ),
+        ].map((path) => getComputedStyle(path).fill),
+      }));
+      assert(
+        JSON.stringify(after.fills) ===
+          JSON.stringify([
+            "rgb(43, 42, 41)",
+            "rgb(255, 237, 0)",
+            "rgb(229, 9, 127)",
+            "rgb(0, 160, 227)",
+          ]),
+        "Hamburger mark changed after first visible CMYK frame: " +
+          JSON.stringify(after),
+      );
+
+      await closeMenu(page);
+      await page.locator("[data-menu-open]").click();
+      await page.waitForFunction(() => {
+        const brand = document.querySelector("#site-menu .menu-brand");
+        return (
+          document.querySelector("#site-menu")?.open &&
+          Number.parseFloat(getComputedStyle(brand).opacity) > 0.001
+        );
+      });
+      const reopened = await page.evaluate(() => [
+        ...document.querySelectorAll(
+          "#site-menu .menu-brand .brand-lockup__mark path",
+        ),
+      ].map((path) => getComputedStyle(path).fill));
+      assert(
+        JSON.stringify(reopened) ===
+          JSON.stringify([
+            "rgb(43, 42, 41)",
+            "rgb(255, 237, 0)",
+            "rgb(229, 9, 127)",
+            "rgb(0, 160, 227)",
+          ]),
+        "Reopened hamburger mark flashed monochrome before its first visible frame: " +
+          JSON.stringify(reopened),
+      );
+      await closeMenu(page);
+      const readHeaderFills = () =>
+        page.locator("#header-logo").evaluate((logo) => [
+          ...logo.querySelectorAll(".brand-lockup__mark path"),
+        ].map((path) => getComputedStyle(path).fill));
+      const expandedFills = await readHeaderFills();
+      await page.mouse.move(720, 820);
+      await page.mouse.wheel(0, 220);
+      await page.waitForFunction(() =>
+        document
+          .querySelector("[data-site-header]")
+          ?.classList.contains("is-collapsed"),
+      );
+      await page.waitForTimeout(1_100);
+      const stickyFills = await readHeaderFills();
+      await page.keyboard.press("Home");
+      await page.waitForFunction(() =>
+        !document
+          .querySelector("[data-site-header]")
+          ?.classList.contains("is-collapsed"),
+      );
+      await page.waitForTimeout(1_100);
+      const returnedFills = await readHeaderFills();
+      assert(
+        expandedFills.every((fill) => fill === "rgb(255, 255, 255)") &&
+          JSON.stringify(stickyFills) ===
+            JSON.stringify([
+              "rgb(43, 42, 41)",
+              "rgb(255, 237, 0)",
+              "rgb(229, 9, 127)",
+              "rgb(0, 160, 227)",
+            ]) &&
+          returnedFills.every((fill) => fill === "rgb(255, 255, 255)"),
+        "Header mark did not complete both monochrome-to-CMYK directions: " +
+          JSON.stringify({ expandedFills, stickyFills, returnedFills }),
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "reduced-motion hamburger mark starts CMYK",
+    {
+      route: "/vi/",
+      viewport: { width: 390, height: 844 },
+      reducedMotion: "reduce",
+    },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await openMenu(page);
+      const reduced = await page.evaluate(() => {
+        const brand = document.querySelector("#site-menu .menu-brand");
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(brand).transform);
+        return {
+          opacity: Number.parseFloat(getComputedStyle(brand).opacity),
+          translateY: matrix.m42,
+          fills: [
+            ...document.querySelectorAll(
+              "#site-menu .menu-brand .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill),
+        };
+      });
+      assert(
+        reduced.opacity >= 0.999 &&
+          Math.abs(reduced.translateY) <= 0.5 &&
+          JSON.stringify(reduced.fills) ===
+            JSON.stringify([
+              "rgb(43, 42, 41)",
+              "rgb(255, 237, 0)",
+              "rgb(229, 9, 127)",
+              "rgb(0, 160, 227)",
+            ]),
+        "Reduced-motion hamburger mark must be visible at its CMYK endpoint: " +
+          JSON.stringify(reduced),
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "white-to-white soft route preserves CMYK mark",
+    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const cmyk = [
+        "rgb(43, 42, 41)",
+        "rgb(255, 237, 0)",
+        "rgb(229, 9, 127)",
+        "rgb(0, 160, 227)",
+      ];
+      const black = cmyk.map(() => "rgb(43, 42, 41)");
+      await gotoRoute(page, "/vi/");
+      await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("[data-site-header]")
+            ?.classList.contains("is-brand-color"),
+        null,
+        { timeout: 4_000 },
+      );
+      await page.waitForTimeout(1_100);
+      const before = await page.evaluate(() =>
+        [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
+          (path) => getComputedStyle(path).fill,
+        ),
+      );
+      assert(
+        JSON.stringify(before) === JSON.stringify(cmyk),
+        `White section did not settle to CMYK before soft route: ${JSON.stringify(before)}`,
+      );
+      await page.evaluate(() => {
+        const trace = { running: true, samples: [] };
+        window.__ttWhiteToWhiteTrace = trace;
+        const sample = () => {
+          if (!trace.running) return;
+          trace.samples.push(
+            [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
+              (path) => getComputedStyle(path).fill,
+            ),
+          );
+          requestAnimationFrame(sample);
+        };
+        sample();
+      });
+      const link = await findRouteLink(
+        page,
+        "[data-site-header]",
+        "/vi/advertising-products/",
+      );
+      await Promise.all([
+        waitForPath(page, "/vi/advertising-products/"),
+        link.evaluate((node) => node.click()),
+      ]);
+      await page.waitForTimeout(1_100);
+      const after = await page.evaluate(() => {
+        const trace = window.__ttWhiteToWhiteTrace;
+        if (trace) trace.running = false;
+        return {
+          fills: [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill),
+          samples: trace?.samples || [],
+        };
+      });
+      assert(
+        JSON.stringify(after.fills) === JSON.stringify(cmyk) &&
+          !after.samples.some(
+            (fills) => JSON.stringify(fills) === JSON.stringify(black),
+          ),
+        `White-to-white soft route reset the mark: ${JSON.stringify(after)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "interrupted mark transition reverses from current fills",
+    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const cmyk = [
+        "rgb(43, 42, 41)",
+        "rgb(255, 237, 0)",
+        "rgb(229, 9, 127)",
+        "rgb(0, 160, 227)",
+      ];
+      const white = cmyk.map(() => "rgb(255, 255, 255)");
+      await gotoRoute(page, "/vi/");
+      await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
+      await page.waitForFunction(
+        (expected) => {
+          const fills = [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill);
+          return JSON.stringify(fills) === JSON.stringify(expected);
+        },
+        cmyk,
+        { timeout: 4_000 },
+      );
+      await page.evaluate(() => {
+        document.documentElement.style.scrollBehavior = "auto";
+        const paths = [
+          ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+        ];
+        const readTransitions = () =>
+          paths.map((path, index) => {
+            const transition = path
+              .getAnimations()
+              .find((animation) => animation.transitionProperty === "fill");
+            const timing = transition?.effect?.getComputedTiming();
+            const keyframes = transition?.effect?.getKeyframes() || [];
+            return {
+              index,
+              activeDurationMs: Number(timing?.activeDuration),
+              nominalDurationMs: Number.parseFloat(getComputedStyle(path).transitionDuration) * 1000,
+              progress: Number(timing?.progress),
+              startFill: keyframes[0]?.fill || "",
+            };
+          });
+        const probe = {
+          phase: "forward",
+          departureStartedAt: 0,
+          reverseStartedAt: 0,
+          events: [],
+          readTransitions,
+        };
+        paths.forEach((path, index) => {
+          path.addEventListener("transitionrun", (event) => {
+            if (event.propertyName === "fill") {
+              probe.events.push({
+                type: event.type,
+                phase: probe.phase,
+                elapsedMs: event.elapsedTime * 1000,
+                index,
+                at: performance.now(),
+              });
+            }
+          });
+          path.addEventListener("transitionend", (event) => {
+            if (event.propertyName === "fill") {
+              probe.events.push({
+                type: event.type,
+                phase: probe.phase,
+                elapsedMs: event.elapsedTime * 1000,
+                index,
+                at: performance.now(),
+              });
+            }
+          });
+        });
+        window.__ttBrandInterruptProbe = probe;
+      });
+      await page.keyboard.press("Home");
+      await page.waitForFunction(
+        () =>
+          !document
+            .querySelector("[data-site-header]")
+            ?.classList.contains("is-collapsed"),
+      );
+      await page.waitForFunction((expected) => {
+        const fills = [
+          ...document.querySelectorAll(
+            "#header-logo .brand-lockup__mark path",
+          ),
+        ].map((path) => getComputedStyle(path).fill);
+        const departed = fills.some(
+          (fill, index) => fill !== expected[index],
+        );
+        if (departed) {
+          window.__ttBrandInterruptProbe.departureStartedAt = performance.now();
+        }
+        return departed;
+      }, cmyk);
+      await page.waitForTimeout(450);
+      const intermediate = await page.evaluate(() => ({
+        elapsedMs:
+          performance.now() - window.__ttBrandInterruptProbe.departureStartedAt,
+        forward: window.__ttBrandInterruptProbe.readTransitions(),
+        fills: [
+          ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+        ].map((path) => getComputedStyle(path).fill),
+      }));
+      assert(
+        intermediate.elapsedMs >= 400 &&
+          intermediate.elapsedMs <= 750 &&
+          intermediate.forward.every(
+            ({ activeDurationMs, progress }) =>
+              Number.isFinite(activeDurationMs) &&
+              activeDurationMs > 0 &&
+              Number.isFinite(progress) &&
+              progress > 0 &&
+              progress < 1,
+          ) &&
+          intermediate.fills.some(
+         (fill, index) => fill !== cmyk[index] && fill !== white[index],
+       ),
+        `Interrupted departure did not expose intermediate computed fills: ${JSON.stringify(intermediate)}`,
+      );
+      await page.evaluate(() => {
+        const probe = window.__ttBrandInterruptProbe;
+        probe.phase = "reverse";
+        document
+          .querySelector("#tay-nghe")
+          ?.scrollIntoView({ block: "start", behavior: "instant" });
+      });
+      await page.waitForFunction(() =>
+        window.__ttBrandInterruptProbe.events.filter(
+          (event) => event.phase === "reverse" && event.type === "transitionrun",
+        ).length >= 3,
+      );
+      await page.evaluate(
+        () =>
+          new Promise((resolve) =>
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                const probe = window.__ttBrandInterruptProbe;
+                probe.reverseStartedAt = Math.min(
+                  ...probe.events
+                    .filter(
+                      (event) =>
+                        event.phase === "reverse" &&
+                        event.type === "transitionrun",
+                    )
+                    .map((event) => event.at),
+                );
+                probe.reverse = probe.readTransitions();
+                resolve();
+              }),
+            ),
+          ),
+      );
+      await page.waitForFunction(() =>
+        window.__ttBrandInterruptProbe.events.filter(
+          (event) => event.phase === "reverse" && event.type === "transitionend",
+        ).length === 4,
+      );
+      await page.waitForFunction(
+        (expected) => {
+          const fills = [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill);
+          return JSON.stringify(fills) === JSON.stringify(expected);
+        },
+        cmyk,
+        { timeout: 2_000 },
+      );
+      const reverse = await page.evaluate(() => {
+        const probe = window.__ttBrandInterruptProbe;
+        return {
+          elapsedMs: performance.now() - probe.reverseStartedAt,
+          forward: probe.forward,
+          transitions: probe.reverse,
+          events: probe.events,
+        };
+      });
+      const forwardByIndex = new Map(
+        intermediate.forward.map((transition) => [transition.index, transition]),
+      );
+      const reverseEnds = reverse.events.filter(
+        (event) => event.phase === "reverse" && event.type === "transitionend",
+      );
+      const channels = (fill) =>
+        String(fill)
+          .match(/-?\d+(?:\.\d+)?/g)
+          ?.map(Number) || [];
+      const channelDelta = (left, right) => {
+        const a = channels(left);
+        const b = channels(right);
+        return a.length === b.length && a.length > 0
+          ? Math.max(...a.map((value, index) => Math.abs(value - b[index])))
+          : Infinity;
+      };
+      assert(
+        reverse.transitions.length >= 3 &&
+          reverseEnds.length >= 3 &&
+          reverse.transitions.every((transition) => {
+            const forward = forwardByIndex.get(transition.index);
+            const end = reverseEnds.find(
+              (event) => event.index === transition.index,
+            );
+            return (
+              forward &&
+              Number.isFinite(transition.activeDurationMs) &&
+              transition.activeDurationMs > 0 &&
+              transition.activeDurationMs < transition.nominalDurationMs &&
+              transition.activeDurationMs <= 1000 &&
+              channelDelta(
+                transition.startFill,
+                intermediate.fills[transition.index],
+              ) <= 12 &&
+              end &&
+              Math.abs(end.elapsedMs - transition.activeDurationMs) <= 20
+            );
+          }),
+        `Interrupted reverse reset an endpoint or missed proportional transition completion: ${JSON.stringify({ intermediate, reverse })}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "hamburger close preserves visible CMYK until hidden",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const cmyk = [
+        "rgb(43, 42, 41)",
+        "rgb(255, 237, 0)",
+        "rgb(229, 9, 127)",
+        "rgb(0, 160, 227)",
+      ];
+      await gotoRoute(page, "/vi/");
+      await openMenu(page);
+      const before = await page.evaluate(() => [
+        ...document.querySelectorAll(
+          "#site-menu .menu-brand .brand-lockup__mark path",
+        ),
+      ].map((path) => getComputedStyle(path).fill));
+      assert(
+        JSON.stringify(before) === JSON.stringify(cmyk),
+        `Hamburger did not settle to CMYK before close: ${JSON.stringify(before)}`,
+      );
+      await page.locator("[data-menu-close]").click();
+      await page.waitForTimeout(120);
+      const during = await page.evaluate(() => ({
+        open: document.querySelector("#site-menu")?.open,
+        fills: [
+          ...document.querySelectorAll(
+            "#site-menu .menu-brand .brand-lockup__mark path",
+          ),
+        ].map((path) => getComputedStyle(path).fill),
+      }));
+      assert(
+        during.open && JSON.stringify(during.fills) === JSON.stringify(cmyk),
+        `Hamburger close changed visible mark color: ${JSON.stringify(during)}`,
+      );
+      await waitForMenuState(page, false);
+      const after = await page.evaluate(() => [
+        ...document.querySelectorAll(
+          "#site-menu .menu-brand .brand-lockup__mark path",
+        ),
+      ].map((path) => getComputedStyle(path).fill));
+      assert(
+        JSON.stringify(after) === JSON.stringify(cmyk),
+        `Hamburger mark changed after dialog hidden: ${JSON.stringify(after)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "direct dark load paints white mark without color motion",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await page.addInitScript(() => {
+        window.__ttDirectDarkFillTransitions = 0;
+        document.addEventListener("transitionrun", (event) => {
+          if (
+            event.propertyName === "fill" &&
+            event.target?.matches?.("#header-logo .brand-lockup__mark path")
+          ) {
+            window.__ttDirectDarkFillTransitions += 1;
+          }
+        });
+      });
+      const response = await page.goto(pageUrl("/vi/"), {
+        waitUntil: "domcontentloaded",
+        timeout: 20_000,
+      });
+      assert(response && response.status() < 400, "Direct dark route load failed");
+      await page.evaluate(
+        () => new Promise((resolve) => requestAnimationFrame(resolve)),
+      );
+      const state = await page.evaluate(() => ({
+        classes: document.querySelector("[data-site-header]")?.className || "",
+        transitions: window.__ttDirectDarkFillTransitions,
+        fills: [
+          ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+        ].map((path) => getComputedStyle(path).fill),
+      }));
+      assert(
+        state.fills.length === 4 &&
+          state.fills.every((fill) => fill === "rgb(255, 255, 255)") &&
+          !state.classes.includes("is-brand-color") &&
+          state.transitions === 0,
+        `Direct dark load did not paint white immediately: ${JSON.stringify(state)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "history white surfaces preserve CMYK without black replay",
+    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const cmyk = [
+        "rgb(43, 42, 41)",
+        "rgb(255, 237, 0)",
+        "rgb(229, 9, 127)",
+        "rgb(0, 160, 227)",
+      ];
+      await page.addInitScript(() => {
+        const key = "tt-brand-history-saw-black";
+        const sample = () => {
+          const fills = [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill);
+          if (
+            fills.length === 4 &&
+            fills.every((fill) => fill === "rgb(43, 42, 41)")
+          ) {
+            sessionStorage.setItem(key, "1");
+          }
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
+      const readState = () =>
+        page.evaluate(() => ({
+          path: window.location.pathname,
+          fills: [
+            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+          ].map((path) => getComputedStyle(path).fill),
+          sawBlack: sessionStorage.getItem("tt-brand-history-saw-black") === "1",
+        }));
+      await gotoRoute(page, "/vi/");
+      await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
+      await page.waitForFunction(
+        (expected) => {
+          const fills = [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark path",
+            ),
+          ].map((path) => getComputedStyle(path).fill);
+          return JSON.stringify(fills) === JSON.stringify(expected);
+        },
+        cmyk,
+        { timeout: 4_000 },
+      );
+      const advertising = "/vi/advertising-products/";
+      await page.evaluate(() =>
+        sessionStorage.removeItem("tt-brand-history-saw-black"),
+      );
+      const link = await findRouteLink(page, "[data-site-header]", advertising);
+      await Promise.all([
+        waitForPath(page, advertising),
+        link.evaluate((node) => node.click()),
+      ]);
+      await page.waitForTimeout(1_100);
+      const onAdvertising = await readState();
+      assert(
+        JSON.stringify(onAdvertising.fills) === JSON.stringify(cmyk),
+        `Advertising history entry did not settle to CMYK: ${JSON.stringify(onAdvertising)}`,
+      );
+      await page.evaluate(() =>
+        sessionStorage.removeItem("tt-brand-history-saw-black"),
+      );
+      await traverseHistory(page, "back", "/vi/");
+      await page.waitForTimeout(1_100);
+      const back = await readState();
+      assert(
+        JSON.stringify(back.fills) === JSON.stringify(cmyk) && !back.sawBlack,
+        `Back navigation replayed black on a white surface: ${JSON.stringify(back)}`,
+      );
+      await page.evaluate(() =>
+        sessionStorage.removeItem("tt-brand-history-saw-black"),
+      );
+      await traverseHistory(page, "forward", advertising);
+      await page.waitForTimeout(1_100);
+      const forward = await readState();
+      assert(
+        JSON.stringify(forward.fills) === JSON.stringify(cmyk) &&
+          !forward.sawBlack,
+        `Forward navigation replayed black on a white surface: ${JSON.stringify(forward)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+}
+
+async function runBrandHeaderBboxMatrixChecks() {
+  for (const locale of ["vi", "en"]) {
+    await runPageCase(
+      `brand header narrow controls ${locale} 320px`,
+      { route: `/${locale}/`, viewport: { width: 320, height: 844 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, `/${locale}/`);
+        await waitForBrandFonts(page);
+        await page.waitForFunction(
+          () => {
+            const transform = getComputedStyle(document.querySelector("#header-logo")).transform;
+            if (transform === "none") return true;
+            const matrix = new DOMMatrixReadOnly(transform);
+            return Math.abs(matrix.a - 1) <= 0.0005 && Math.abs(matrix.d - 1) <= 0.0005 &&
+              Math.abs(matrix.e) <= 0.05 && Math.abs(matrix.f) <= 0.05;
+          },
+          null,
+          { timeout: 6_000 },
+        );
+        const geometry = await page.evaluate(() => {
+          const logo = document.querySelector("#header-logo").getBoundingClientRect();
+          const button = document.querySelector("#header-menu-toggle").getBoundingClientRect();
+          const icon = document.querySelector("#header-toggle-svg").getBoundingClientRect();
+          return {
+            logoHeight: logo.height,
+            iconClearance: icon.left - logo.right,
+            hitboxClearance: button.left - logo.right,
+            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          };
+        });
+        assert(
+          Math.abs(geometry.logoHeight - 57.59375) <= 0.05 &&
+            geometry.iconClearance >= 24 && geometry.hitboxClearance >= 0 &&
+            geometry.overflow <= 1,
+          `The 320px logo must preserve its height and clear the menu: ${JSON.stringify(geometry)}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+  for (const matrixCase of BRAND_HEADER_BBOX_MATRIX) {
+    const viewport = { width: matrixCase.width, height: 900 };
+    await runPageCase(
+      "brand header bbox " + matrixCase.label,
+      { route: "/vi/", viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/");
+        await waitForBrandFonts(page);
+        await page.waitForFunction(
+          () => {
+            const logo = document.querySelector("#header-logo");
+            if (!logo) return false;
+            const transform = getComputedStyle(logo).transform;
+            if (transform === "none") return true;
+            const matrix = new DOMMatrixReadOnly(transform);
+            return (
+              Math.abs(matrix.a - 1) <= 0.0005 &&
+              Math.abs(matrix.d - 1) <= 0.0005 &&
+              Math.abs(matrix.b) <= 0.0005 &&
+              Math.abs(matrix.c) <= 0.0005
+            );
+          },
+          null,
+          { timeout: 6_000 },
+        );
+        if (matrixCase.sticky) {
+          await page.mouse.move(viewport.width / 2, viewport.height - 80);
+          await page.mouse.wheel(0, 220);
+          await page.waitForFunction(
+            () =>
+              document
+                .querySelector("[data-site-header]")
+                ?.classList.contains("is-collapsed"),
+            null,
+            { timeout: 6_000 },
+          );
+          await page.waitForFunction(
+            () => {
+              const transform = getComputedStyle(
+                document.querySelector("#header-logo"),
+              ).transform;
+              if (transform === "none") return true;
+              const matrix = new DOMMatrixReadOnly(transform);
+              return (
+                Math.abs(matrix.a - 1) <= 0.0005 &&
+                Math.abs(matrix.d - 1) <= 0.0005 &&
+                Math.abs(matrix.e) <= 0.05 &&
+                Math.abs(matrix.f) <= 0.05
+              );
+            },
+            null,
+            { timeout: 6_000 },
+          );
+        }
+        const state = await page.evaluate(() => {
+          const header = document.querySelector("[data-site-header]");
+          const lockup = header?.querySelector(".brand-lockup");
+          const rect = lockup?.getBoundingClientRect();
+          const trueElements = [
+            lockup?.querySelector(".brand-lockup__mark"),
+            lockup?.querySelector(".brand-lockup__title"),
+            lockup?.querySelector(".brand-lockup__subtitle"),
+          ].filter((element) => element instanceof SVGGraphicsElement);
+          const trueRects = trueElements.map((element) =>
+            element.getBoundingClientRect(),
+          );
+          const trueTop = Math.min(...trueRects.map((value) => value.top));
+          const trueRight = Math.max(...trueRects.map((value) => value.right));
+          const trueBottom = Math.max(...trueRects.map((value) => value.bottom));
+          const trueLeft = Math.min(...trueRects.map((value) => value.left));
+          return {
+            classes: header?.className || "",
+            lockup: rect
+              ? {
+                  left: rect.left,
+                  right: rect.right,
+                  top: rect.top,
+                  bottom: rect.bottom,
+                  width: rect.width,
+                  height: rect.height,
+                }
+              : null,
+            trueBox: {
+              left: trueLeft,
+              right: trueRight,
+              top: trueTop,
+              bottom: trueBottom,
+              width: trueRight - trueLeft,
+              height: trueBottom - trueTop,
+            },
+          };
+        });
+        const expected = expectedBrandHeaderHeight(
+          matrixCase.width,
+          matrixCase.sticky,
+        );
+        const expectedCollapsed = Boolean(matrixCase.sticky);
+        assert(
+          (expectedCollapsed ===
+            state.classes.includes("is-collapsed")) &&
+            state.lockup &&
+            Math.abs(state.lockup.height - expected) <= 0.05 &&
+            Math.abs(state.trueBox.height - expected) <= 0.05,
+          `${matrixCase.label} must expose ${expected}px header logo bbox: ` +
+            JSON.stringify({ expected, state }),
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  for (const scaleWidth of [1440, 390]) {
+  await runPageCase(
+    `brand header whole-lockup scale motion ${scaleWidth}px`,
+    { route: "/vi/", viewport: { width: scaleWidth, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await waitForBrandFonts(page);
+      await page.waitForFunction(
+        () => {
+          const logo = document.querySelector("#header-logo");
+          if (!(logo instanceof Element)) return false;
+          const transform = getComputedStyle(logo).transform;
+          if (transform === "none") return true;
+          const matrix = new DOMMatrixReadOnly(transform);
+          return (
+            Math.abs(matrix.a - 1) <= 0.0005 &&
+            Math.abs(matrix.d - 1) <= 0.0005 &&
+            Math.abs(matrix.e) <= 0.05 &&
+            Math.abs(matrix.f) <= 0.05
+          );
+        },
+        null,
+        { timeout: 6_000 },
+      );
+
+      const armProbe = () =>
+        page.evaluate(() => {
+          const logo = document.querySelector("#header-logo");
+          if (!(logo instanceof HTMLElement)) {
+            throw new Error("Header logo is unavailable");
+          }
+          const probe = {
+            done: false,
+            samples: Array(),
+          };
+          Reflect.set(window, "__brandScaleProbe", probe);
+          const startedAt = performance.now();
+          const sample = () => {
+            const rect = logo.getBoundingClientRect();
+            const transform = getComputedStyle(logo).transform;
+            const matrix =
+              transform === "none"
+                ? new DOMMatrixReadOnly()
+                : new DOMMatrixReadOnly(transform);
+            const elapsed = performance.now() - startedAt;
+            probe.samples.push({
+              elapsed,
+              height: rect.height,
+              scaleX: matrix.a,
+              scaleY: matrix.d,
+            });
+            if (elapsed < 900) requestAnimationFrame(sample);
+            else probe.done = true;
+          };
+          requestAnimationFrame(sample);
+        });
+
+      const readProbe = () =>
+        page.evaluate(() => {
+          const logo = document.querySelector("#header-logo");
+          if (!(logo instanceof Element)) {
+            throw new Error("Header logo is unavailable");
+          }
+          return {
+            ...Reflect.get(window, "__brandScaleProbe"),
+            finalTransform: getComputedStyle(logo).transform,
+          };
+        });
+
+      await page.mouse.move(scaleWidth / 2, 820);
+      await armProbe();
+      await page.mouse.wheel(0, 220);
+      await page.waitForFunction(() =>
+        document
+          .querySelector("[data-site-header]")
+          ?.classList.contains("is-collapsed"),
+      );
+      await page.waitForFunction(
+        () => Reflect.get(window, "__brandScaleProbe")?.done === true,
+      );
+      const collapse = await readProbe();
+
+      await armProbe();
+      await page.mouse.wheel(0, -1000);
+      await page.waitForFunction(
+        () =>
+          !document
+            .querySelector("[data-site-header]")
+            ?.classList.contains("is-collapsed"),
+      );
+      await page.waitForFunction(
+        () => Reflect.get(window, "__brandScaleProbe")?.done === true,
+      );
+      const expand = await readProbe();
+
+      const hasIntermediateHeight = (samples, min, max) =>
+        samples.some(
+          ({ height }) => height > min + 0.5 && height < max - 0.5,
+        );
+      const finalHeight = (samples) => samples.at(-1)?.height;
+      assert(
+        hasIntermediateHeight(collapse.samples, 49.641, expectedBrandHeaderHeight(scaleWidth)) &&
+          hasIntermediateHeight(expand.samples, 49.641, expectedBrandHeaderHeight(scaleWidth)) &&
+          collapse.samples.some(({ scaleX }) => Math.abs(scaleX - 1) > 0.01) &&
+          expand.samples.some(({ scaleX }) => Math.abs(scaleX - 1) > 0.01) &&
+          Math.abs(finalHeight(collapse.samples) - 49.641) <= 0.1 &&
+          Math.abs(finalHeight(expand.samples) - expectedBrandHeaderHeight(scaleWidth)) <= 0.1 &&
+          collapse.finalTransform === "none" &&
+          expand.finalTransform === "none",
+        "Header lockup must scale continuously between expanded and sticky endpoints: " +
+          JSON.stringify({ collapse, expand }),
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+  }
+
+  for (const testCase of [
+    {
+      name: "brand header scale settles mobile changed-size state",
+      viewport: { width: 767, height: 900 },
+      reducedMotion: "no-preference",
+    },
+    {
+      name: "brand header scale respects reduced motion",
+      viewport: { width: 1440, height: 900 },
+      reducedMotion: "reduce",
+    },
+  ]) {
+    await runPageCase(
+      testCase.name,
+      {
+        route: "/vi/",
+        viewport: testCase.viewport,
+        reducedMotion: testCase.reducedMotion,
+      },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/");
+        await waitForBrandFonts(page);
+        await page.waitForFunction(
+          () => {
+            const logo = document.querySelector("#header-logo");
+            if (!(logo instanceof Element)) return false;
+            const transform = getComputedStyle(logo).transform;
+            if (transform === "none") return true;
+            const matrix = new DOMMatrixReadOnly(transform);
+            return (
+              Math.abs(matrix.a - 1) <= 0.0005 &&
+              Math.abs(matrix.d - 1) <= 0.0005 &&
+              Math.abs(matrix.e) <= 0.05 &&
+              Math.abs(matrix.f) <= 0.05
+            );
+          },
+          null,
+          { timeout: 6_000 },
+        );
+        await page.mouse.move(
+          testCase.viewport.width / 2,
+          testCase.viewport.height - 80,
+        );
+        await page.mouse.wheel(0, 220);
+        await page.waitForFunction(() =>
+          document
+            .querySelector("[data-site-header]")
+            ?.classList.contains("is-collapsed"),
+        );
+        await page.waitForFunction(
+          () => {
+            const logo = document.querySelector("#header-logo");
+            const lockup = logo?.querySelector(".brand-lockup");
+            const transform = logo ? getComputedStyle(logo).transform : "";
+            const matrix =
+              transform === "none"
+                ? new DOMMatrixReadOnly()
+                : new DOMMatrixReadOnly(transform);
+            return (
+              logo &&
+              lockup &&
+              Math.abs(matrix.a - 1) <= 0.0005 &&
+              Math.abs(matrix.d - 1) <= 0.0005 &&
+              Math.abs(matrix.e) <= 0.05 &&
+              Math.abs(matrix.f) <= 0.05 &&
+              Math.abs(lockup.getBoundingClientRect().height - 49.641) <= 0.1
+            );
+          },
+          null,
+          { timeout: 6_000 },
+        );
+        const state = await page.evaluate(() => {
+          const transform = getComputedStyle(
+            document.querySelector("#header-logo"),
+          ).transform;
+          const matrix =
+            transform === "none"
+              ? new DOMMatrixReadOnly()
+              : new DOMMatrixReadOnly(transform);
+          return {
+            transform,
+            scaleX: matrix.a,
+            scaleY: matrix.d,
+            height: document
+              .querySelector("#header-logo .brand-lockup")
+              .getBoundingClientRect().height,
+          };
+        });
+        assert(
+          Math.abs(state.scaleX - 1) <= 0.0005 &&
+            Math.abs(state.scaleY - 1) <= 0.0005 &&
+            Math.abs(state.height - 49.641) <= 0.1,
+          testCase.name + " must settle without spatial transform: " +
+            JSON.stringify(state),
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  for (const testCase of [
+    {
+      name: "brand logo motion defaults to sequence",
+      route: "/vi/",
+      expected: "sequence",
+    },
+    {
+      name: "legacy brand logo motion query cannot override selected sequence",
+      route: "/vi/?logo-motion=wipe",
+      expected: "sequence",
+    },
+  ]) {
+    await runPageCase(
+      testCase.name,
+      { route: testCase.route, viewport: { width: 1440, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, testCase.route);
+        const actual = await page
+          .locator("[data-site-header]")
+          .getAttribute("data-logo-motion");
+        assert(
+          actual === testCase.expected,
+          `${testCase.name} expected ${testCase.expected}, got ${actual}`,
+        );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function readFooterRuntimeState(page) {
+  return page.evaluate(() => {
+    const footer = document.querySelector("footer");
+    const statement = footer?.querySelector(".footer-statement");
+    const statementStyle = statement ? getComputedStyle(statement) : null;
+    const statementFontSize = Number.parseFloat(statementStyle?.fontSize || "0");
+    const statementLineHeight = Number.parseFloat(statementStyle?.lineHeight || "0");
+    const candidates = [footer, ...footer.querySelectorAll("*")];
+    const fullWidthLines = [];
+    candidates.forEach((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      if (
+        Number.parseFloat(style.borderTopWidth) >= 1 &&
+        rect.width >= innerWidth - 2
+      ) {
+        fullWidthLines.push({
+          type: "border-top",
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+        });
+      }
+      if (
+        Number.parseFloat(style.borderBottomWidth) >= 1 &&
+        rect.width >= innerWidth - 2
+      ) {
+        fullWidthLines.push({
+          type: "border-bottom",
+          left: rect.left,
+          right: rect.right,
+          width: rect.width,
+        });
+      }
+      ["::before", "::after"].forEach((pseudo) => {
+        const pseudoStyle = getComputedStyle(element, pseudo);
+        const pseudoWidth = Number.parseFloat(pseudoStyle.width);
+        if (
+          pseudoStyle.content !== "none" &&
+          Number.parseFloat(pseudoStyle.height) <= 2 &&
+          Number.isFinite(pseudoWidth) &&
+          pseudoWidth >= innerWidth - 2
+        ) {
+          fullWidthLines.push({
+            type: pseudo,
+            left: rect.left,
+            right: rect.left + pseudoWidth,
+            width: pseudoWidth,
+          });
+        }
+      });
+    });
+    return {
+      spacing: footer
+        ? {
+            marginTop: Number.parseFloat(getComputedStyle(footer).marginTop),
+            paddingBottom: Number.parseFloat(
+              getComputedStyle(footer).paddingBottom,
+            ),
+          }
+        : null,
+      statement: statement
+        ? {
+            fontSize: statementFontSize,
+            lineHeight: statementLineHeight,
+            extraLeading: statementLineHeight - statementFontSize * 0.98,
+          }
+        : null,
+      address: footer?.textContent?.includes(
+        "E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long",
+      ),
+      social: ["facebook", "instagram", "tiktok", "pinterest"].map((name) => {
+        const item = footer?.querySelector('[data-footer-social="' + name + '"]');
+        const svg = item?.querySelector("svg");
+        const svgRect = svg?.getBoundingClientRect();
+        return {
+          name,
+          tag: item?.tagName || null,
+          ariaDisabled: item?.getAttribute("aria-disabled"),
+          href: item?.getAttribute("href"),
+          tabIndex: item?.tabIndex,
+          label: item?.getAttribute("aria-label"),
+          svg: svg?.outerHTML || null,
+          viewBox: svg?.getAttribute("viewBox") || null,
+          width: svgRect?.width || 0,
+          height: svgRect?.height || 0,
+          hasStroke: Boolean(svg?.querySelector("[stroke]")),
+        };
+      }),
+      fullWidthLines,
+      overflow: document.documentElement.scrollWidth - innerWidth,
+    };
+  });
+}
+
+async function runFooterRuntimeChecks() {
+  for (const route of ROUTES) {
+    for (const viewport of [
+      { width: 390, height: 844 },
+      { width: 1440, height: 900 },
+    ]) {
+      await runPageCase(
+        "canonical footer " + routeSlug(route) + " " + viewport.width,
+        { route, viewport },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, route);
+          await page.evaluate(() => {
+            document.documentElement.style.scrollBehavior = "auto";
+            window.scrollTo(0, document.documentElement.scrollHeight);
+          });
+          await page.waitForTimeout(350);
+          const state = await readFooterRuntimeState(page);
+          const expectedTopGap = viewport.width <= 750 ? 64 : viewport.width <= 1200 ? 70 : 90;
+          assert(
+            state.spacing?.marginTop === expectedTopGap &&
+              state.spacing.paddingBottom === 0 &&
+              state.address &&
+              state.social.every(
+                (item) =>
+                  item.tag &&
+                  item.ariaDisabled === "true" &&
+                   item.href === null &&
+                   item.label &&
+                   item.svg &&
+                   item.viewBox === "0 0 24 24" &&
+                   Math.abs(item.width - 30) <= 0.1 &&
+                   Math.abs(item.height - 30) <= 0.1 &&
+                   !item.hasStroke &&
+                   item.tabIndex < 0,
+              ) &&
+              state.fullWidthLines.some(
+                (line) =>
+                  line.left <= 1 && line.right >= viewport.width - 1,
+              ) &&
+              state.overflow <= 1,
+            "Footer runtime contract failed on " +
+              route +
+              " at " +
+              viewport.width +
+              ": " +
+              JSON.stringify(state),
+          );
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+}
+
+async function readHeritageResponsiveState(page) {
+  return page.evaluate(() => {
+    const section = document.querySelector("#tay-nghe");
+    const toRect = (element) => {
+      const value = element?.getBoundingClientRect();
+      if (!value) return null;
+      return {
+        top: value.top,
+        right: value.right,
+        bottom: value.bottom,
+        left: value.left,
+        width: value.width,
+        height: value.height,
+      };
+    };
+    const union = (rects) => {
+      const values = rects.filter(Boolean);
+      if (!values.length) return null;
+      const top = Math.min(...values.map((value) => value.top));
+      const right = Math.max(...values.map((value) => value.right));
+      const bottom = Math.max(...values.map((value) => value.bottom));
+      const left = Math.min(...values.map((value) => value.left));
+      return { top, right, bottom, left, width: right - left, height: bottom - top };
+    };
+    const parseInsetClip = (clipPath, maskRect) => {
+      const match = clipPath.match(/^inset\(([^)]+)\)$/);
+      if (!match || !maskRect) return null;
+      const values = match[1]
+        .trim()
+        .split(/\s+/)
+        .map((value) => Number.parseFloat(value))
+        .filter((value) => Number.isFinite(value));
+      if (!values.length || values.length > 4) return null;
+      const top = values[0];
+      const right = values[1] ?? top;
+      const bottom = values[2] ?? top;
+      const left = values[3] ?? right;
+      return {
+        top: maskRect.top + top,
+        right: maskRect.right - right,
+        bottom: maskRect.bottom - bottom,
+        left: maskRect.left + left,
+      };
+    };
+    const rangeRect = (element) => {
+      if (!element) return null;
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return toRect(range);
+    };
+    const rows = [...(section?.querySelectorAll(".heritage-row") || [])];
+    const masks = [...(section?.querySelectorAll(".heritage-text") || [])];
+    return {
+      innerWidth,
+      scrollY: window.scrollY,
+      section: toRect(section),
+      edgeRows: rows
+        .filter((row) =>
+          row.matches(".heritage-row--start, .heritage-row--end"),
+        )
+        .map((row) => {
+          const lineRects = [...row.querySelectorAll(".heritage-line")].map(
+            rangeRect,
+          );
+          const imageRects = [...row.querySelectorAll(".heritage-image")].map(
+            toRect,
+          );
+          return {
+            className: row.className,
+            text: row.textContent.trim(),
+            rowRect: toRect(row),
+            trueRect: union([...lineRects, ...imageRects]),
+          };
+        }),
+      masks: masks.map((mask) => {
+        const line = mask.querySelector(".heritage-line");
+        const maskRect = toRect(mask);
+        const style = getComputedStyle(mask);
+        const lineStyle = line ? getComputedStyle(line) : null;
+        const fontSize = Number.parseFloat(lineStyle?.fontSize || "0");
+        const lineTransform = lineStyle
+          ? new DOMMatrixReadOnly(lineStyle.transform).f
+          : NaN;
+        return {
+          text: mask.textContent.trim(),
+          maskRect,
+          lineRect: toRect(line),
+          glyphRect: rangeRect(line),
+          clipRect: parseInsetClip(style.clipPath, maskRect),
+          clipPath: style.clipPath,
+          overflow: style.overflow,
+          fontSize,
+          lineTransform,
+          inkOverflow: Number.parseFloat(
+            style.getPropertyValue("--mask-ink-overflow"),
+          ),
+          inkOverflowTop: Number.parseFloat(
+            style.getPropertyValue("--mask-ink-overflow-top"),
+          ),
+          inkOverflowBottom: Number.parseFloat(
+            style.getPropertyValue("--mask-ink-overflow-bottom"),
+          ),
+        };
+      }),
+    };
+  });
+}
+
+function assertHeritageResponsiveState(state, label) {
+  assert(
+    state.section &&
+      state.section.bottom > 0 &&
+      state.section.top < 900 &&
+      state.edgeRows.length === 2,
+    label + " could not bring #tay-nghe into view: " + JSON.stringify(state),
+  );
+
+  const unsafeRows = state.edgeRows.filter(
+    ({ trueRect, rowRect }) =>
+      !trueRect ||
+      !rowRect ||
+      trueRect.left < 6 ||
+      trueRect.right > state.innerWidth - 6 ||
+      rowRect.left < 6 ||
+      rowRect.right > state.innerWidth - 6,
+  );
+  assert(
+    unsafeRows.length === 0,
+    label +
+      " heritage edge row true bbox must keep a 6px safe inset: " +
+      JSON.stringify({ innerWidth: state.innerWidth, rows: state.edgeRows }),
+  );
+
+  const clippedMasks = state.masks.filter(
+    ({ clipRect, glyphRect, lineRect, overflow, clipPath, fontSize, inkOverflow, inkOverflowTop, inkOverflowBottom }) =>
+      overflow !== "visible" ||
+      !/^inset\(/.test(clipPath) ||
+      !clipRect ||
+      !glyphRect ||
+      !lineRect ||
+      !Number.isFinite(fontSize) ||
+      fontSize <= 0 ||
+      inkOverflow < fontSize * 0.2 ||
+      inkOverflowTop < fontSize * 0.2 ||
+      inkOverflowBottom < fontSize * 0.2 ||
+      glyphRect.top < clipRect.top - 1 ||
+      glyphRect.right > clipRect.right + 1 ||
+      glyphRect.bottom > clipRect.bottom + 1 ||
+      glyphRect.left < clipRect.left - 1 ||
+      lineRect.top < clipRect.top - 1 ||
+      lineRect.right > clipRect.right + 1 ||
+      lineRect.bottom > clipRect.bottom + 1 ||
+      lineRect.left < clipRect.left - 1,
+  );
+  assert(
+    state.masks.length === 8 && clippedMasks.length === 0,
+    label +
+      " heritage text clip-path cuts a glyph or lacks ink clearance: " +
+      JSON.stringify({ masks: state.masks, clippedMasks }),
+  );
+}
+
+async function runHeritageResponsiveClippingChecks() {
+  for (const width of [959, 1199, 1440]) {
+    await runPageCase(
+      "homepage heritage clipping " + width,
+      { route: "/vi/", viewport: { width, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, "/vi/");
+        await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
+        await page.waitForTimeout(2_500);
+        const state = await readHeritageResponsiveState(page);
+        assertHeritageResponsiveState(state, width + "x900");
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+}
+
+async function runBrandShellFocusedChecks() {
+  await runResponsiveResizeRegressionChecks();
+  assertBrandShellSourceContracts();
+  await runMenuResizeRegressionCheck();
+  await runBrandHeaderBboxMatrixChecks();
+  await runBrandLockupRuntimeChecks();
+  await runFooterRuntimeChecks();
+  await runHeritageResponsiveClippingChecks();
+}
+
+async function runReducedMotionChecks() {
+  const cases = [
+    ...ROUTES.map((route) => ({ route, viewport: { width: 390, height: 844 } })),
+    { route: "/vi/", viewport: { width: 1024, height: 900 } },
+  ];
+  for (const { route, viewport } of cases) {
+    await runPageCase(
+      `reduced motion ${routeSlug(route)} ${viewport.width}x${viewport.height}`,
       { route, viewport, reducedMotion: "reduce" },
       async (page) => {
         await smokePage(page, route, viewport);
@@ -6417,9 +12848,572 @@ async function runReducedMotionChecks() {
           state.hiddenRevealCount === 0,
           `${state.hiddenRevealCount} reveal elements remained hidden with reduced motion`,
         );
+        if (route === "/vi/") {
+          const readCloseIcon = () => page.locator(".menu-close__icon").evaluate((icon) => {
+            const style = getComputedStyle(icon);
+            const matrix = new DOMMatrix(style.transform);
+            return {
+              opacity: Number.parseFloat(style.opacity),
+              transform: [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f],
+            };
+          });
+          const beforeIcon = await readCloseIcon();
+          await openMenu(page);
+          const endIcon = await readCloseIcon();
+          await closeMenu(page);
+          const cleanupIcon = await readCloseIcon();
+          const cleanup = await page.evaluate(() => {
+            const body = getComputedStyle(document.body);
+            return {
+              bodyOpen: document.body.classList.contains("menu-open"),
+              bodyOverflowX: body.overflowX,
+              dialogOpen: document.querySelector("#site-menu")?.open,
+              horizontalOverflow:
+                document.documentElement.scrollWidth -
+                document.documentElement.clientWidth,
+              heights: [...document.querySelectorAll(".menu-shutters i")].map(
+                (shutter) => shutter.getBoundingClientRect().height,
+              ),
+            };
+          });
+          const quarterTurn = (value) =>
+            Math.abs(value[0]) <= 0.001 &&
+            Math.abs(value[1] - 1) <= 0.001 &&
+            Math.abs(value[2] + 1) <= 0.001 &&
+            Math.abs(value[3]) <= 0.001;
+          const identity = (value) =>
+            Math.abs(value[0] - 1) <= 0.001 &&
+            Math.abs(value[1]) <= 0.001 &&
+            Math.abs(value[2]) <= 0.001 &&
+            Math.abs(value[3] - 1) <= 0.001;
+          assert(
+            !cleanup.bodyOpen &&
+              !cleanup.dialogOpen &&
+              cleanup.bodyOverflowX === "visible" &&
+              cleanup.horizontalOverflow <= 0.5 &&
+              cleanup.heights.length === 4 &&
+              cleanup.heights.every(
+                (height) => Math.abs(height) <= 0.5,
+              ),
+            `Reduced-motion menu cleanup did not restore zero-height shutters: ${JSON.stringify(cleanup)}`,
+          );
+          assert(
+            beforeIcon.opacity <= 0.001 &&
+              quarterTurn(beforeIcon.transform) &&
+              endIcon.opacity >= 0.999 &&
+              identity(endIcon.transform) &&
+              cleanupIcon.opacity <= 0.001 &&
+              quarterTurn(cleanupIcon.transform),
+            `Reduced-motion menu close state drifted across before/end/cleanup: ${JSON.stringify({ beforeIcon, endIcon, cleanupIcon })}`,
+          );
+        }
       },
     );
   }
+}
+
+async function runP13NavbarChecks() {
+  const viewport = { width: 1329, height: 912 };
+  const parentRoutes = ["residential", "commercial", "advertising-products"];
+  const setLogicalScroll = async (page, value) => {
+    const expected = await page.evaluate((scrollY) => {
+      if (!window.TruongThinhMotion?.setLogicalScroll?.(scrollY)) {
+        throw new Error("Logical scroll adapter is unavailable");
+      }
+      return window.TruongThinhMotion.getLogicalScroll();
+    }, value);
+    await page.waitForFunction(
+      (scrollY) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - scrollY) <= 1,
+      expected,
+    );
+    return expected;
+  };
+  const readNavigationState = (page) => page.evaluate(() => ({
+    historyLength: history.length,
+    logicalScroll: window.TruongThinhMotion.getLogicalScroll(),
+    timeOrigin: performance.timeOrigin,
+    url: location.href,
+  }));
+  const waitForLogicalTop = (page) => page.waitForFunction(
+    () => Math.abs(window.TruongThinhMotion.getLogicalScroll()) <= 0.5,
+  );
+  const probeNativeLink = (link) => link.evaluate((element) => {
+    const variants = [
+      ["ctrl", { ctrlKey: true }],
+      ["meta", { metaKey: true }],
+      ["shift", { shiftKey: true }],
+      ["middle", { button: 1 }],
+      ["target", { target: "_blank" }],
+      ["download", { download: "probe.html" }],
+    ];
+    return variants.map(([name, settings]) => {
+      const originalPrevent = Event.prototype.preventDefault;
+      const originalStop = Event.prototype.stopImmediatePropagation;
+      const originalTarget = element.getAttribute("target");
+      const originalDownload = element.getAttribute("download");
+      let documentPrevented = false;
+      let documentStopped = false;
+      Event.prototype.preventDefault = function preventDefaultProbe() {
+        if (this.currentTarget === document) documentPrevented = true;
+        return originalPrevent.call(this);
+      };
+      Event.prototype.stopImmediatePropagation = function stopProbe() {
+        if (this.currentTarget === document) documentStopped = true;
+        return originalStop.call(this);
+      };
+      if (settings.target) element.setAttribute("target", settings.target);
+      if (settings.download) element.setAttribute("download", settings.download);
+      const stopNative = (event) => originalPrevent.call(event);
+      window.addEventListener("click", stopNative, { once: true });
+      element.dispatchEvent(new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        button: settings.button || 0,
+        ctrlKey: Boolean(settings.ctrlKey),
+        metaKey: Boolean(settings.metaKey),
+        shiftKey: Boolean(settings.shiftKey),
+      }));
+      window.removeEventListener("click", stopNative);
+      Event.prototype.preventDefault = originalPrevent;
+      Event.prototype.stopImmediatePropagation = originalStop;
+      if (originalTarget === null) element.removeAttribute("target");
+      else element.setAttribute("target", originalTarget);
+      if (originalDownload === null) element.removeAttribute("download");
+      else element.setAttribute("download", originalDownload);
+      return { name, documentPrevented, documentStopped };
+    });
+  });
+
+  for (const locale of ["vi", "en"]) {
+    for (const slug of parentRoutes) {
+      const route = `/${locale}/${slug}/`;
+      await runPageCase(
+        `P1.3 current navbar returns ${route} to logical top`,
+        { route, viewport },
+        async (page) => {
+          const diagnostics = monitorPage(page);
+          await gotoRoute(page, route);
+          const link = await findRouteLink(page, "[data-site-header]", route);
+          assert(
+            (await link.getAttribute("aria-current")) === "page",
+            `${route}: current parent navbar link is not selected`,
+          );
+          assert(
+            (await link.evaluate((element) => getComputedStyle(element).pointerEvents)) !== "none",
+            `${route}: current parent navbar link blocks pointer input`,
+          );
+
+          await setLogicalScroll(page, 700);
+          const pointerBefore = await readNavigationState(page);
+          await link.click();
+          await waitForLogicalTop(page);
+          const pointerAfter = await readNavigationState(page);
+          assert(
+            pointerAfter.url === pointerBefore.url
+              && pointerAfter.historyLength === pointerBefore.historyLength
+              && pointerAfter.timeOrigin === pointerBefore.timeOrigin,
+            `${route}: pointer re-click changed route/history/document ${JSON.stringify({ pointerBefore, pointerAfter })}`,
+          );
+
+          await setLogicalScroll(page, 700);
+          const keyboardBefore = await readNavigationState(page);
+          await link.focus();
+          await page.keyboard.press("Enter");
+          await waitForLogicalTop(page);
+          const keyboardAfter = await readNavigationState(page);
+          assert(
+            keyboardAfter.url === keyboardBefore.url
+              && keyboardAfter.historyLength === keyboardBefore.historyLength
+              && keyboardAfter.timeOrigin === keyboardBefore.timeOrigin,
+            `${route}: keyboard re-click changed route/history/document ${JSON.stringify({ keyboardBefore, keyboardAfter })}`,
+          );
+          assertDiagnostics(diagnostics);
+        },
+      );
+    }
+  }
+
+  await runPageCase(
+    "P1.3 Advertising parent preserves filters and native link behavior",
+    { route: "/vi/advertising-products/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const route = "/vi/advertising-products/?category=mobile-retail&campaign=retained";
+      await gotoRoute(page, route);
+      await page.evaluate(() => {
+        if (!window.TruongThinhAdvertising?.replaceTag?.("use-sampling")) {
+          throw new Error("Advertising tag setup failed");
+        }
+      });
+      await page.waitForFunction(
+        () => new URL(location.href).searchParams.get("tag") === "use-sampling",
+      );
+      const link = await findRouteLink(page, "[data-site-header]", route);
+      await setLogicalScroll(page, 700);
+      const before = await readNavigationState(page);
+      assert(before.logicalScroll > 100, `Advertising filter setup has no scroll range: ${JSON.stringify(before)}`);
+      await link.click();
+      await waitForLogicalTop(page);
+      const after = await readNavigationState(page);
+      assert(
+        after.url === before.url
+          && after.historyLength === before.historyLength
+          && after.timeOrigin === before.timeOrigin,
+        `Advertising parent re-click lost query/history ${JSON.stringify({ before, after })}`,
+      );
+      const preservedQuery = new URL(after.url).searchParams;
+      assert(
+        preservedQuery.get("category") === "mobile-retail"
+          && preservedQuery.get("tag") === "use-sampling"
+          && preservedQuery.get("campaign") === "retained",
+        `Advertising parent query value drifted: ${after.url}`,
+      );
+
+      const nativeResults = await probeNativeLink(link);
+      assert(
+        nativeResults.every((entry) => !entry.documentPrevented && !entry.documentStopped),
+        `Modified/target/download link was intercepted: ${JSON.stringify(nativeResults)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "P1.3 full menu current parent closes and returns to top",
+    { route: "/en/commercial/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/en/commercial/");
+      await setLogicalScroll(page, 1_600);
+      await openMenu(page);
+      const before = await readNavigationState(page);
+      assert(before.logicalScroll > 100, `Menu setup unexpectedly reached top: ${JSON.stringify(before)}`);
+      const link = await findRouteLink(page, "#site-menu .menu-nav", "/en/commercial/");
+      const nativeResults = await probeNativeLink(link);
+      assert(
+        nativeResults.every((entry) => !entry.documentPrevented && !entry.documentStopped),
+        `Menu modified/target/download link was intercepted: ${JSON.stringify(nativeResults)}`,
+      );
+      const menuAfterNativeProbes = await page.locator("#site-menu").evaluate((dialog) => ({
+        active: dialog.classList.contains("is-active"),
+        bodyOpen: document.body.classList.contains("menu-open"),
+        open: dialog.open,
+      }));
+      assert(
+        menuAfterNativeProbes.open
+          && menuAfterNativeProbes.active
+          && menuAfterNativeProbes.bodyOpen,
+        `Native link probes unexpectedly closed the full menu: ${JSON.stringify(menuAfterNativeProbes)}`,
+      );
+      await link.click({ timeout: 3_000 });
+      await waitForNavigationCleanup(page);
+      await waitForLogicalTop(page);
+      const after = await readNavigationState(page);
+      assert(
+        after.url === before.url
+          && after.historyLength === before.historyLength
+          && after.timeOrigin === before.timeOrigin,
+        `Menu re-click changed route/history/document ${JSON.stringify({ before, after })}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "P1.3 Advertising menu option still changes category",
+    { route: "/vi/advertising-products/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/advertising-products/?category=kiosk-posm");
+      await openMenu(page);
+      const historyLength = await page.evaluate(() => history.length);
+      const link = page.locator(
+        '#site-menu .menu-option[href*="category=mobile-retail"]',
+      ).first();
+      assert(await link.count(), "Advertising menu has no mobile-retail option");
+      await link.click();
+      await page.waitForFunction(
+        () => new URL(location.href).searchParams.get("category") === "mobile-retail",
+      );
+      await waitForNavigationCleanup(page);
+      const state = await page.evaluate(() => ({
+        activeFilter: document
+          .querySelector('[data-advertising-filter="mobile-retail"]')
+          ?.getAttribute("aria-current"),
+        historyLength: history.length,
+        url: location.href,
+      }));
+      assert(
+        state.activeFilter === "true" && state.historyLength === historyLength + 1,
+        `Advertising menu category did not navigate: ${JSON.stringify(state)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "P1.3 Advertising photo navbar still returns through query navigation",
+    { route: "/vi/advertising-products/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      const route = "/vi/advertising-products/?category=kiosk-posm&tag=use-sampling&photo=kiosk-posm-07";
+      await gotoRoute(page, route);
+      await page.waitForFunction(
+        () => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07",
+      );
+      const before = await readNavigationState(page);
+      const link = await findRouteLink(page, "[data-site-header]", route);
+      await link.click();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      await page.waitForFunction(
+        () => !document.body.classList.contains("is-advertising-photo"),
+      );
+      const after = await readNavigationState(page);
+      assert(
+        new URL(after.url).pathname === "/vi/advertising-products/"
+          && after.historyLength === before.historyLength + 1
+          && after.timeOrigin === before.timeOrigin,
+        `Photo navbar bypassed parent query navigation ${JSON.stringify({ before, after })}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  await runPageCase(
+    "P1.3 Advertising menu falls back when the catalog adapter is unavailable",
+    { route: "/vi/advertising-products/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await page.route("**/advertising-products/catalog-runtime.mjs*", (request) => request.abort());
+      await gotoRoute(page, "/vi/advertising-products/?photo=kiosk-posm-07");
+      const unavailable = await page.evaluate(() => ({
+        adapter: Boolean(window.TruongThinhAdvertising?.getAdapter?.()),
+        motion: Boolean(window.TruongThinhMotion),
+      }));
+      assert(
+        unavailable.motion && !unavailable.adapter,
+        `Dependency-failure setup did not isolate the catalog adapter: ${JSON.stringify(unavailable)}`,
+      );
+      await openMenu(page);
+      const link = await findRouteLink(
+        page,
+        "#site-menu .menu-nav",
+        "/vi/advertising-products/",
+      );
+      await link.click();
+      await page.waitForFunction(
+        () => !new URL(location.href).searchParams.has("photo"),
+        null,
+        { timeout: 8_000 },
+      );
+      await waitForLoadedDocument(page);
+      assert(
+        diagnostics.pageErrors.length === 0 && diagnostics.badResponses.length === 0,
+        `Dependency fallback raised a runtime error: ${JSON.stringify(diagnostics)}`,
+      );
+      assert(
+        diagnostics.requestFailures.some((failure) => failure.includes("catalog-runtime.mjs")),
+        `Catalog dependency failure was not observed: ${JSON.stringify(diagnostics)}`,
+      );
+    },
+  );
+
+  await runPageCase(
+    "P1.3 closed menu cannot cover the mobile photo expand control",
+    {
+      route: "/vi/advertising-products/",
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true,
+    },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(
+        page,
+        "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07",
+      );
+      await page.waitForFunction(
+        () => document.body.classList.contains("is-advertising-photo"),
+      );
+      const hit = await page.locator("[data-advertising-photo-expand]").evaluate((button) => {
+        const rect = button.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const target = document.elementFromPoint(x, y);
+        return {
+          buttonHit: target === button || button.contains(target),
+          closedMenuHit: Boolean(target?.closest("#site-menu")),
+          x,
+          y,
+        };
+      });
+      assert(
+        hit.buttonHit && !hit.closedMenuHit,
+        `Closed full menu covered the expand control: ${JSON.stringify(hit)}`,
+      );
+      await page.touchscreen.tap(hit.x, hit.y);
+      await page.waitForFunction(
+        () => document.querySelector("[data-advertising-photo-dialog]")?.open,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
+
+  const exercisePhysicalHeader = async (page, route, touch) => {
+    await gotoRoute(page, route);
+    if (new URL(route, "https://invalid.local").searchParams.has("photo")) {
+      await page.waitForFunction(
+        () => document.body.classList.contains("is-advertising-photo"),
+      );
+    }
+    const snapshot = () => page.locator("[data-site-header]").evaluate((header) => ({
+      collapsed: header.classList.contains("is-collapsed"),
+      hidden: header.classList.contains("is-hidden"),
+      logicalScroll: window.TruongThinhMotion.getLogicalScroll(),
+      top: header.getBoundingClientRect().top,
+    }));
+    const top = await snapshot();
+    let cdp;
+    const touchSwipe = async (fromY, toY) => {
+      cdp ||= await page.context().newCDPSession(page);
+      const x = 5;
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x, y: fromY }],
+      });
+      // A controlled swipe tests direction without flinging past the compact-header region.
+      for (let step = 1; step <= 12; step += 1) {
+        await cdp.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: [{ x, y: fromY + ((toY - fromY) * step) / 12 }],
+        });
+        await page.waitForTimeout(50);
+      }
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await page.evaluate(async () => {
+        let previous = window.scrollY;
+        let stableFrames = 0;
+        for (let frame = 0; frame < 180; frame += 1) {
+          await new Promise(requestAnimationFrame);
+          const current = window.scrollY;
+          stableFrames = Math.abs(current - previous) < 0.5 ? stableFrames + 1 : 0;
+          previous = current;
+          if (stableFrames >= 6) return;
+        }
+        throw new Error("Native touch inertia did not settle");
+      });
+    };
+    const physicalScroll = async (direction, distance) => {
+      if (touch) {
+        const down = direction === "down";
+        const fromY = down ? 720 : 180;
+        const toY = down ? Math.max(80, fromY - distance) : Math.min(780, fromY + distance);
+        await touchSwipe(fromY, toY);
+      } else {
+        await page.mouse.move(5, 700);
+        const repetitions = direction === "down" ? 6 : 2;
+        for (let index = 0; index < repetitions; index += 1) {
+          await page.mouse.wheel(0, direction === "down" ? distance : -distance);
+          await page.waitForTimeout(50);
+        }
+      }
+    };
+
+    await physicalScroll("down", 650);
+    await page.waitForFunction(
+      () => window.TruongThinhMotion.getLogicalScroll() > 150,
+    );
+    await page.waitForFunction(
+      () => document.querySelector("[data-site-header]")?.classList.contains("is-hidden"),
+      null,
+      { timeout: 4_000 },
+    );
+    const down = await snapshot();
+    await physicalScroll("up", 220);
+    await page.waitForFunction(
+      () => {
+        const header = document.querySelector("[data-site-header]");
+        return window.TruongThinhMotion.getLogicalScroll() > 100
+          && !header?.classList.contains("is-hidden")
+          && Math.abs(header?.getBoundingClientRect().top || 0) <= 1;
+      },
+      null,
+      { timeout: 4_000 },
+    );
+    const up = await snapshot();
+    for (let index = 0; index < 4 && (await snapshot()).logicalScroll > 1; index += 1) {
+      await physicalScroll("up", 650);
+      await page.waitForTimeout(120);
+    }
+    await page.waitForFunction(
+      () => {
+        const header = document.querySelector("[data-site-header]");
+        return window.TruongThinhMotion.getLogicalScroll() <= 1
+          && !header?.classList.contains("is-collapsed")
+          && !header?.classList.contains("is-hidden")
+          && Math.abs(header?.getBoundingClientRect().top || 0) <= 1;
+      },
+      null,
+      { timeout: 5_000 },
+    );
+    return { top, down, up, restored: await snapshot() };
+  };
+
+  for (const input of [
+    { label: "desktop wheel", touch: false, viewport },
+    { label: "mobile touch", touch: true, viewport: { width: 390, height: 844 } },
+  ]) {
+    await runPageCase(
+      `P1.3 shared photo header matches Residential with ${input.label}`,
+      {
+        route: "/vi/residential/",
+        viewport: input.viewport,
+        hasTouch: input.touch,
+        isMobile: input.touch,
+      },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        const residential = await exercisePhysicalHeader(page, "/vi/residential/", input.touch);
+        const advertising = await exercisePhysicalHeader(
+          page,
+          "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07",
+          input.touch,
+        );
+        for (const [name, state] of Object.entries({ residential, advertising })) {
+          assert(
+            !state.top.collapsed && !state.top.hidden && Math.abs(state.top.top) <= 1
+              && state.down.collapsed && state.down.hidden && state.down.logicalScroll > 150
+              && state.up.collapsed && !state.up.hidden && state.up.logicalScroll > 100
+              && !state.restored.collapsed && !state.restored.hidden
+              && state.restored.logicalScroll <= 1 && Math.abs(state.restored.top) <= 1,
+            `${input.label} ${name} header state drifted: ${JSON.stringify(state)}`,
+          );
+        }
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+
+  await runPageCase(
+    "P1.3 homepage logo remains the top-scroll control",
+    { route: "/vi/", viewport },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await gotoRoute(page, "/vi/");
+      await setLogicalScroll(page, 700);
+      const before = await readNavigationState(page);
+      await page.locator("[data-site-header] .brand").click();
+      await waitForLogicalTop(page);
+      const after = await readNavigationState(page);
+      assert(
+        after.url === before.url
+          && after.historyLength === before.historyLength
+          && after.timeOrigin === before.timeOrigin,
+        `Homepage logo top-scroll contract drifted ${JSON.stringify({ before, after })}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
 }
 
 function writeReport() {
@@ -6441,13 +13435,26 @@ function writeReport() {
 }
 
 async function main() {
+  const brandShellOnly = process.env.TT_E2E_BRAND_SHELL_ONLY === "1";
+  const espacioTypeMotionOnly =
+    process.env.TT_E2E_ESPACIO_TYPE_MOTION_ONLY === "1";
   if (process.env.TT_E2E_STATIC_ONLY === "1") {
-    assertPersistentNavigationContracts();
+    if (brandShellOnly) {
+      assertBrandShellSourceContracts();
+    } else if (espacioTypeMotionOnly) {
+      assertPersistentNavigationContracts();
+      assertEspacioTypographyMotionSourceContracts();
+    } else {
+      assertPersistentNavigationContracts();
+    }
     console.log("[site-e2e] static contracts passed");
     return;
   }
   prepareReportDirectories();
-  assertPersistentNavigationContracts();
+  if (!brandShellOnly) assertPersistentNavigationContracts();
+  if (espacioTypeMotionOnly) {
+    assertEspacioTypographyMotionSourceContracts();
+  }
   if (process.env.TT_E2E_REAL_BFCACHE_ONLY === "1") {
     await runRealBfcacheProbe();
     return;
@@ -6458,10 +13465,30 @@ async function main() {
   }
   browser = await launchBrowser();
   try {
-    if (process.env.TT_E2E_MENU_ONLY === "1") {
+    if (brandShellOnly) {
+      await runBrandShellFocusedChecks();
+    } else if (espacioTypeMotionOnly) {
+      await runEspacioRouteLogoTimingChecks();
+      await runEspacioScrollCueChecks();
+      await runEspacioTypographyChecks();
+    } else if (process.env.TT_E2E_P13_NAVBAR_ONLY === "1") {
+      await runP13NavbarChecks();
+    } else if (process.env.TT_E2E_SCROLL_CUE_ONLY === "1") {
+      await runEspacioScrollCueChecks();
+    } else if (process.env.TT_E2E_BRAND_HEADER_BBOX_ONLY === "1") {
+      await runBrandHeaderBboxMatrixChecks();
+    } else if (process.env.TT_E2E_BRAND_LOCKUP_ONLY === "1") {
+      await runBrandLockupRuntimeChecks();
+    } else if (process.env.TT_E2E_BRAND_COLOR_ONLY === "1") {
+      await runBrandColorMotionCheck();
+    } else if (process.env.TT_E2E_MENU_ONLY === "1") {
       await runMenuChecks();
     } else if (process.env.TT_E2E_PORTAL_ONLY === "1") {
       await runPortalAlignmentChecks();
+    } else if (process.env.TT_E2E_P5_MEDIA_HOVER_ONLY === "1") {
+      await runSharedMediaHoverPortalChecks();
+    } else if (process.env.TT_E2E_FOOTER_ONLY === "1") {
+      await runFooterRuntimeChecks();
     } else if (process.env.TT_E2E_LOCALE_MODES_ONLY === "1") {
       await runLocaleResponsivePreferenceChecks();
     } else if (process.env.TT_E2E_LOCALE_SCROLL_ONLY === "1") {
@@ -6475,6 +13502,10 @@ async function main() {
       await runInternalLinkCheck();
       await runLanguagePersistenceCheck();
       await runLanguageScrollRetentionCheck();
+    } else if (process.env.TT_E2E_HEADER_GEOMETRY_ONLY === "1") {
+      await runHeaderParityChecks();
+    } else if (process.env.TT_E2E_HISTORY_ONLY === "1") {
+      await runHistoryNavigationChecks();
     } else if (process.env.TT_E2E_HEADER_ONLY === "1") {
       await runHeaderParityChecks();
       await runDirectHeaderRouteChecks();
@@ -6494,6 +13525,7 @@ async function main() {
         { route: "/vi/commercial/", viewport: { width: 768, height: 900 } },
         { route: "/vi/residential/", viewport: { width: 1024, height: 900 } },
         { route: "/vi/residential/", viewport: { width: 1440, height: 900 } },
+        { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
       ]) {
         await runPageCase(
           `full-suite lazy image retry ${routeSlug(testCase.route)} ${testCase.viewport.width}`,
@@ -6507,17 +13539,71 @@ async function main() {
     } else if (process.env.TT_E2E_BOOT_RACE_ONLY === "1") {
       await runBootClaimReleaseRaceCheck();
     } else if (process.env.TT_E2E_HERO_INTRO_ONLY === "1") {
+      await runHomeHeroTypesettingChecks();
       await runHomeHeroIntroReadabilityCheck();
     } else if (process.env.TT_E2E_MEDIA_FALLBACK_ONLY === "1") {
       await runWhiteOverlayMediaFallbackCheck();
     } else if (process.env.TT_E2E_HERO_CONTINUITY_ONLY === "1") {
       await runHeroCrossFadeContinuityChecks();
+    } else if (process.env.TT_E2E_DETAIL_HERO_ONLY === "1") {
+      await runDetailHeroEntryChecks();
+      await runHeroCarouselLifecycleCheck();
+    } else if (process.env.TT_E2E_REDUCED_ONLY === "1") {
+      await runReducedMotionChecks();
     } else if (process.env.TT_E2E_RESIDENTIAL_HERO_ONLY === "1") {
       await runResidentialHeroTextCheck();
     } else if (process.env.TT_E2E_COMMERCIAL_HERO_ONLY === "1") {
       await runCommercialHeroTextCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_HERO_MOTION_ONLY === "1") {
+      await runProjectsProductsHeroEditorialCheck({ motionOnly: true });
     } else if (process.env.TT_E2E_ADVERTISING_HERO_ONLY === "1") {
       await runProjectsProductsHeroEditorialCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_GRID_ONLY === "1") {
+      await runAdvertisingGridFocusedChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_KEYBOARD_ONLY === "1") {
+      await runAdvertisingKeyboardVirtualizationCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY === "1") {
+      await runAdvertisingMediaEntranceChecks();
+      await runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount: "current" });
+      await runAdvertisingHistoryRemountChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_CAROUSEL_ONLY === "1") {
+      await runAdvertisingCompatibilityChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_COMPATIBILITY_ONLY === "1") {
+      await runAdvertisingCompatibilityChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_MEDIA_ONLY === "1") {
+      await runAdvertisingMediaFocusedChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_3K_ONLY === "1") {
+      await runAdvertisingThreeThousandCardProbe();
+    } else if (process.env.TT_E2E_ADVERTISING_LOCALE_LIFECYCLE_ONLY === "1") {
+      await runAdvertisingLocaleLifecycleChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_PROOF_ONLY === "1") {
+      await runAdvertisingNoOpScrollCheck();
+      await runAdvertisingFilterCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_SELECTION_ONLY === "1") {
+      await runAdvertisingSelectionCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_PHOTO_HISTORY_ONLY === "1") {
+      await runAdvertisingPhotoHistoryChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_HISTORY_ONLY === "1") {
+      await runAdvertisingHistoryRemountChecks();
+    } else if (process.env.TT_E2E_ADVERTISING_RAPID_FILTER_ONLY === "1") {
+      await runAdvertisingRapidFilterCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY === "1") {
+      await runAdvertisingDirectFailureCheck();
+    } else if (process.env.TT_E2E_ADVERTISING_DEFAULT_ONLY === "1") {
+      await runSsrCmsHydrationCheck(
+        SSR_CMS_HYDRATION_CASES.filter((testCase) =>
+          testCase.route.includes("/advertising-products/"),
+        ),
+      );
+      await runAdvertisingFreshBarbaReadinessChecks();
+      await runAdvertisingDependencyRecoveryChecks();
+      await runAdvertisingHistoryRemountChecks();
+      await runAdvertisingFilterCheck();
+      await runAdvertisingRapidFilterCheck();
+      await runAdvertisingNoOpScrollCheck();
+      await runAdvertisingDirectFailureCheck();
+      await runPublicSelectionCheck();
+      await runDelayedDetailFallbackChecks();
     } else if (process.env.TT_E2E_M1_ONLY === "1") {
       await runPersistentBarbaNavigationChecks();
       await runEarlyHeroAccessibilityCheck();
@@ -6556,6 +13642,7 @@ async function main() {
       await runDetailHeroEntryChecks();
       await runHeroCarouselLifecycleCheck();
       await runWhiteOverlayMediaFallbackCheck();
+      await runHomeHeroTypesettingChecks();
       await runHomeHeroIntroReadabilityCheck();
       await runHeroCrossFadeContinuityChecks();
       await runPhysicalWheelTransformChecks();

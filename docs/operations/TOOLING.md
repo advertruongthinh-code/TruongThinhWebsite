@@ -7,22 +7,37 @@ workspace.
 ## Ownership
 
 - [Scripts map](agent-rule-scripts.md) là canonical ownership/fallback. Rule chỉ nêu trigger/boundary.
-- Hook, watcher, wrapper, launcher tự chạy normal mechanics. Impeccable context báo `MANUAL_DETECTOR_REQUIRED` mới chạy detector một lần sau UI xong.
+- Hook, watcher, wrapper, launcher tự chạy normal mechanics. Git `pre-commit`/`pre-push` chạy `ponytail-review` read-only và fail closed. Impeccable context báo `MANUAL_DETECTOR_REQUIRED` mới chạy detector một lần sau UI xong.
 - Không có Codex lifecycle hook project. Không tạo/sửa hook, helper ngoài approved tooling repair.
 
 ## Scope
 
+Evidence kiểm kê, runtime và đề xuất cập nhật gần nhất:
+[Audit global/project và GPT-6 Astra ngày 2026-09-08](../archive/reports/verification-tooling-global-project-astra-2026-09-08.md).
+Owner đã chọn giữ Graphify; bảng dưới là các pin đã cập nhật ngày 2026-09-08.
+Phần baseline trong audit giữ lại để đối chiếu trước/sau.
+
+Agent Skills dùng commit `6ca0cd7db39b41b1c37e26d335c507ee92382c6d`, vẫn 25
+upstream skill và 54 managed skill tổng cộng sau khi retired custom orchestration
+skill ngày 2026-09-23. Bootstrap áp dụng ba bản tương
+thích Codex từ `scripts/tooling/skill-overrides/`: `cavecrew`, `caveman-explore`,
+`caveman-stats`. Không sửa trực tiếp payload global vì lần cài sau sẽ ghi đè.
+Xem [scripts map](agent-rule-scripts.md) để repair từng component đã được cho phép.
+
 | Scope | Nội dung đã cài |
 | --- | --- |
-| User global | Serena 1.7.0, Graphify 0.9.46, Chrome DevTools MCP 1.7.0, Impeccable CLI 3.6.0, Sol Advisor 0.6.0, jq 1.8.2, 53 direct skill và native persona |
-| Project | Playwright 1.62.1, Wrangler 4.124.0, browser engine, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
+| User global | Serena 1.7.0, Graphify 0.9.64, uv 0.12.17, Chrome DevTools MCP 1.9.0, Impeccable CLI 4.1.0/skill 4.3.1/engine 0.1.5, jq 1.8.2, 54 direct skill và native persona |
+| Project | pnpm 12.4.2, Playwright 1.63.0, browser engine, static Node preview, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
+
+Wrangler không được cài hoặc gọi trong static phase. `src/worker/` và
+`wrangler.toml` chỉ là dormant CMS source; việc mở lại cần owner gate.
 
 Path ở user-global:
 
 ```text
 ~/.agents/skills/          payload Agent Skills trực tiếp
 ~/.agents/references/      reference Agent Skills dùng chung
-~/.codex/agents/           native persona và Sol adapter tái sử dụng
+~/.codex/agents/           bốn native persona review dùng chung
 ~/.codex/tooling/          Python, Node, jq, source, log và wrapper đã pin
 ~/.codex/config.toml       MCP global và policy tắt hook
 ~/.codex/AGENTS.md         rule ADHD, Caveman ultra và Ponytail ultra luôn active
@@ -43,7 +58,7 @@ pnpm tooling:bootstrap
 
 Bootstrap backup managed global và project configuration, verify repository commit
 và package version, install global stack, install project browser dependency,
-install official Git hook của Graphify, infer Serena language và chạy doctor.
+install official Git hook của Graphify cùng managed Ponytail review gate, infer Serena language và chạy doctor.
 Chỉ dùng `-SkipBrowsers` khi browser engine project hiện có đã được verify:
 
 ```powershell
@@ -118,6 +133,17 @@ Nếu Impeccable context báo `MANUAL_DETECTOR_REQUIRED`, UI task hoàn tất m�
 
 Provider hook active thì không chạy lại command này. Graphify
 `post-commit`/`post-checkout` là repository automation, không phải Codex lifecycle hook.
+Ponytail `pre-commit`/`pre-push` cũng là repository automation; hook dùng Codex
+read-only và chặn Git khi review không sạch hoặc không chạy được.
+
+Impeccable 4 dùng engine binary. Global Node bootstrap phải cài optional dependency
+theo platform; không dùng `--no-optional` cho component Node. pnpm 12 dùng
+`--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn dùng frozen install.
+Skill Windows gọi `C:\Users\halal\.agents\skills\impeccable\scripts\impeccable.cmd`
+với verb `context`, `doctor` hoặc `detect`; entrypoint `context.mjs` cũ đã được thay.
+Launcher tải engine đúng pin vào user cache và kiểm SHA-256 khi chưa có binary.
+Xem [migration pnpm/Impeccable](../archive/reports/verification-pnpm-impeccable-major-2026-09-08.md)
+cho compatibility, backup và giới hạn kiểm chứng.
 
 ## MCP inventory
 
@@ -126,7 +152,6 @@ Provider hook active thì không chạy lại command này. Graphify
 | Serena | enabled, required | LSP symbol, reference, diagnostic, refactor |
 | Graphify | enabled, required | Architecture, relationship, project-content graph |
 | Chrome DevTools | enabled, optional, approval prompt | DOM, accessibility, console, network, screenshot |
-| Sol Advisor | không còn MCP ở 0.6.0 | Plugin skill và ba native selective-routing role |
 | node_repl | unchanged | Codex runtime integration |
 | open-design | unchanged | Open Design integration |
 

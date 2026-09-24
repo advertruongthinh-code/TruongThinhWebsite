@@ -11,20 +11,31 @@
 
 UI change hoặc website release phải chạy local web, có đủ evidence:
 
-1. `pnpm qa:static`, `pnpm qa:worker:static`.
+1. `pnpm qa:static`; `pnpm qa:worker:security` khi Worker source bị tác động.
 2. Playwright live server: navigation, click, scroll, locale, keyboard/focus, reduced motion, console, network, overflow, responsive state.
-3. Computer Use test window cô lập: một human path; visible result, focus, menu, locale, CTA, touch size.
+3. Computer Use không tự động. Chỉ dùng test window cô lập khi task thật sự cần Windows UI theo human path và Playwright, in-app Browser hoặc DevTools không đủ; nêu lý do trước khi dùng.
 4. Chrome DevTools MCP cùng local route: DOM, computed style, accessibility tree, console, network, screenshot.
 
-Playwright, Computer Use, DevTools không thay nhau. Thiếu tool/layer: QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
+Playwright và DevTools là evidence layer riêng. Computer Use chỉ thành layer bắt buộc khi trigger trên khớp; thiếu layer đã kích hoạt thì QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
+
+`qa:worker:static`, Wrangler và Cloudflare deployment không thuộc static phase.
+Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được
+duyệt.
 
 ## Handoff
 
 - Behavior/project policy đổi: update spec, decision hoặc dated Vietnamese verification report.
 - Handoff ghi: changed file, observed behavior, exact command, result, blocker, owner TODO, Notion status, Graphify semantic freshness.
+- Docs impact bắt buộc: ghi nguồn đã cập nhật hoặc lý do không cần cập nhật;
+  kiểm local links, symbol/example và status. Main chịu trách nhiệm kiểm phần
+  này cho mọi worker, không coi test PASS là đủ để bỏ docs gate.
+- Migration docs kiểm SHA256 original và consumer trước/sau. Không chạy lại
+  full UI/parity chỉ vì đổi Markdown; evidence runtime cũ giữ ngày/hash/scope.
 
 ## Chú thích thuật ngữ
 
 - **Primary official source**: nguồn chính thức từ chủ sở hữu công nghệ/dữ liệu.
 - **Handoff**: bàn giao thay đổi, evidence, việc còn lại.
 - **Blocked**: không thể gọi pass vì thiếu điều kiện bắt buộc.
+- **Computer Use**: công cụ thao tác Windows UI theo luồng người dùng nhìn thấy.
+- **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.

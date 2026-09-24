@@ -1,8 +1,9 @@
 import { createReadStream, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROUTES = new Map([
+export const ROUTES = new Map([
   ["/vi/", "index.html"],
   ["/en/", "index.html"],
   ["/vi/residential/", "residential/index.html"],
@@ -11,6 +12,7 @@ const ROUTES = new Map([
   ["/en/commercial/", "commercial/index.html"],
   ["/vi/advertising-products/", "advertising-products/index.html"],
   ["/en/advertising-products/", "advertising-products/index.html"],
+  ...["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"].flatMap((slug) => [[`/vi/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`], [`/en/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`]]),
   ["/vi/about/", "about/index.html"],
   ["/en/about/", "about/index.html"],
 ]);
@@ -24,6 +26,7 @@ const MIME = new Map([
   [".jpeg", "image/jpeg"],
   [".jpg", "image/jpeg"],
   [".js", "text/javascript; charset=UTF-8"],
+  [".mjs", "text/javascript; charset=UTF-8"],
   [".json", "application/json; charset=UTF-8"],
   [".mp4", "video/mp4"],
   [".png", "image/png"],
@@ -57,7 +60,7 @@ function setAttribute(tag, name, value) {
   return tag.replace(/\s*\/?\s*>$/, (ending) => ` ${name}="${value}"${ending}`);
 }
 
-function localeHtml(source, locale = "vi") {
+export function localeHtml(source, locale = "vi") {
   let html = source.replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
   if (locale === "en") {
     html = html.replace(/<[^>]+>/g, (tag) => {
@@ -150,6 +153,7 @@ function selfTest() {
     requestFile(root, "/vi/")?.file === resolve(root, "index.html"),
     requestFile(root, "/en/")?.locale === "en",
     requestFile(root, "/vi/about/")?.file === resolve(root, "about/index.html"),
+    requestFile(root, "/en/advertising-products/kiosk-posm/")?.file === resolve(root, "advertising-products/kiosk-posm/index.html"),
     requestFile(root, "/style.css")?.file === resolve(root, "style.css"),
     requestFile(root, "/../package.json") === null,
     byteRange("bytes=10-19", 100)?.end === 19,
@@ -165,11 +169,13 @@ function selfTest() {
   console.log(`Static parity server self-test passed: ${checks.length}/${checks.length}`);
 }
 
-const options = parseArgs(process.argv.slice(2));
-if (options.selfTest) selfTest();
-else {
-  const server = createServer(handler(options.root));
-  server.listen(options.port, options.host, () => {
-    console.log(`Static parity server: http://${options.host}:${options.port} root=${options.root}`);
-  });
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const options = parseArgs(process.argv.slice(2));
+  if (options.selfTest) selfTest();
+  else {
+    const server = createServer(handler(options.root));
+    server.listen(options.port, options.host, () => {
+      console.log(`Static parity server: http://${options.host}:${options.port} root=${options.root}`);
+    });
+  }
 }

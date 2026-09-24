@@ -1,0 +1,442 @@
+{
+  "site": "https://truong-thinh-noi-that.potato240794.chatgpt.site",
+  "version": 1,
+  "commit": "85adc08077b75faf47249eb2a2a68ad9422deb3b",
+  "backup_date": "2026-09-24",
+  "provenance": "Sites version 1 source commit; direct HTTP download returned 403",
+  "source_archive_sha256": "e47ef25ad58fce041fb7005055845710f35d9f1f185ab320fc651fb08a7245e7",
+  "images": [
+    {
+      "path": "assets/brand/favicon-black.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/brand/favicon-black.svg",
+      "bytes": 336,
+      "sha256": "860819c3b06e022a7a16ba0aac3485e0392ed7c7fa28465aa13bc6c7c291bf52",
+      "source_sha256": "860819c3b06e022a7a16ba0aac3485e0392ed7c7fa28465aa13bc6c7c291bf52",
+      "matches_source": true
+    },
+    {
+      "path": "assets/brand/favicon-white.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/brand/favicon-white.svg",
+      "bytes": 336,
+      "sha256": "120053890c7ec5b9bb9a9d64d75a7c8ca5470f05e31b00193415fef6d8897e51",
+      "source_sha256": "120053890c7ec5b9bb9a9d64d75a7c8ca5470f05e31b00193415fef6d8897e51",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/bcj.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/bcj.svg",
+      "bytes": 2975,
+      "sha256": "1e265b6d5ef4ddc74ccad534588bd8b84047032bb1fbc90849a694dd7390bdf8",
+      "source_sha256": "1e265b6d5ef4ddc74ccad534588bd8b84047032bb1fbc90849a694dd7390bdf8",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/beinco.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/beinco.svg",
+      "bytes": 11417,
+      "sha256": "0c33463cea812a5bd67be20df69c303e7e58a88081763cffe67990820f45779c",
+      "source_sha256": "0c33463cea812a5bd67be20df69c303e7e58a88081763cffe67990820f45779c",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/benh-vien-minh-duc.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/benh-vien-minh-duc.svg",
+      "bytes": 8834,
+      "sha256": "f0e2cedd32ff288a8a0714f25bde3201b94f9c5bbedb9a7fa6042de9691a95ac",
+      "source_sha256": "f0e2cedd32ff288a8a0714f25bde3201b94f9c5bbedb9a7fa6042de9691a95ac",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/betrimex.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/betrimex.svg",
+      "bytes": 12530,
+      "sha256": "395bc4ed05aa24e19191955d269fc560df16bfe1b92d4d49c32d3eb114299c9d",
+      "source_sha256": "395bc4ed05aa24e19191955d269fc560df16bfe1b92d4d49c32d3eb114299c9d",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/bidv.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/bidv.svg",
+      "bytes": 4535,
+      "sha256": "eccf8a5a4fc567ed5b4c2626973429b70814e74c325d029451268d97beb93f7e",
+      "source_sha256": "eccf8a5a4fc567ed5b4c2626973429b70814e74c325d029451268d97beb93f7e",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/cannes-hotel.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/cannes-hotel.svg",
+      "bytes": 6945,
+      "sha256": "68ff97347264855b246f449feff1fbec963bce61c6b6b4bf62a08955587c73be",
+      "source_sha256": "68ff97347264855b246f449feff1fbec963bce61c6b6b4bf62a08955587c73be",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/dua-cuu-long.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/dua-cuu-long.svg",
+      "bytes": 2780,
+      "sha256": "80604c905aed8f378dc863721a0218507c14da7e0a3cd8054e497c4d2553f687",
+      "source_sha256": "80604c905aed8f378dc863721a0218507c14da7e0a3cd8054e497c4d2553f687",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/hdbank.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/hdbank.svg",
+      "bytes": 4715,
+      "sha256": "7d5e218d6f6e6177cbdb28699f2c4e5369dcdaba16d3fe487f5c1b419305f0ce",
+      "source_sha256": "7d5e218d6f6e6177cbdb28699f2c4e5369dcdaba16d3fe487f5c1b419305f0ce",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/prudential.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/prudential.svg",
+      "bytes": 11180,
+      "sha256": "ee13d63c7b0a5e6efd0ec1719e1af39caf53038567012f088e2d4440ac377df7",
+      "source_sha256": "ee13d63c7b0a5e6efd0ec1719e1af39caf53038567012f088e2d4440ac377df7",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/vietcombank.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/vietcombank.svg",
+      "bytes": 11583,
+      "sha256": "78d53eb9978af79a39e270bedf582120286f57e0a6d961a01d37e891194fbf54",
+      "source_sha256": "78d53eb9978af79a39e270bedf582120286f57e0a6d961a01d37e891194fbf54",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/client-logos/vietinbank.svg",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/client-logos/vietinbank.svg",
+      "bytes": 3981,
+      "sha256": "da56695df6de3da84c15078a7476d13dabe773bccdd3343d6432634ed4273808",
+      "source_sha256": "da56695df6de3da84c15078a7476d13dabe773bccdd3343d6432634ed4273808",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/advertising-fnb-mobile-cart-v2.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/advertising-fnb-mobile-cart-v2.webp",
+      "bytes": 244598,
+      "sha256": "5031268157ee7a4d0217aeaae5451e8a7a44d62eb99f237487bde4b0ad2c4af7",
+      "source_sha256": "5031268157ee7a4d0217aeaae5451e8a7a44d62eb99f237487bde4b0ad2c4af7",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/commercial-active.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/commercial-active.webp",
+      "bytes": 163650,
+      "sha256": "092934959f401e2be3e6ee08f5b9f685a2eeea4da78add6e24421ecd2f4b0af1",
+      "source_sha256": "092934959f401e2be3e6ee08f5b9f685a2eeea4da78add6e24421ecd2f4b0af1",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/commercial-space.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/commercial-space.webp",
+      "bytes": 138770,
+      "sha256": "9685209e0ee9ec7a6f7240ef319753cb64b727448d60b35d79d395fca6e7429c",
+      "source_sha256": "9685209e0ee9ec7a6f7240ef319753cb64b727448d60b35d79d395fca6e7429c",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/completed-detail.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/completed-detail.webp",
+      "bytes": 64102,
+      "sha256": "87e43264fdf24ba070bc3cba6652a02533b5b283fc8122fa9ab11ebfb33da3ff",
+      "source_sha256": "87e43264fdf24ba070bc3cba6652a02533b5b283fc8122fa9ab11ebfb33da3ff",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/fabrication-hands.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/fabrication-hands.webp",
+      "bytes": 105586,
+      "sha256": "851cc83c821c54ef0668ae3472ab91c2caa32d60cc1442dff76c42b8724378fd",
+      "source_sha256": "851cc83c821c54ef0668ae3472ab91c2caa32d60cc1442dff76c42b8724378fd",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/gallery-office.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/gallery-office.webp",
+      "bytes": 141746,
+      "sha256": "e19b8a7aa046c927dce29dab9a3233e261116285d69e76da0c1d20245433aca4",
+      "source_sha256": "e19b8a7aa046c927dce29dab9a3233e261116285d69e76da0c1d20245433aca4",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/gallery-shop.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/gallery-shop.webp",
+      "bytes": 130074,
+      "sha256": "0d20fc03b9f9f0344ca5793debbbfa8fbe8ea307b171c3552b9e6433868f6838",
+      "source_sha256": "0d20fc03b9f9f0344ca5793debbbfa8fbe8ea307b171c3552b9e6433868f6838",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/hero-kiosk.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/hero-kiosk.webp",
+      "bytes": 222420,
+      "sha256": "b33da7023f8b2254e3022f03a2f8bd259ebe9af868dc7ad03fed36c4b5db7e2a",
+      "source_sha256": "b33da7023f8b2254e3022f03a2f8bd259ebe9af868dc7ad03fed36c4b5db7e2a",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/hero.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/hero.webp",
+      "bytes": 200558,
+      "sha256": "194e6906b237950ebe11513b775347455a167505dca0f710bea7f4fcada4a70d",
+      "source_sha256": "194e6906b237950ebe11513b775347455a167505dca0f710bea7f4fcada4a70d",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/home-commercial-fnb.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/home-commercial-fnb.webp",
+      "bytes": 220918,
+      "sha256": "8cb254b5e9054a10c55185d3fbedeff0047a751de2af00096f5b7ec47dafa291",
+      "source_sha256": "8cb254b5e9054a10c55185d3fbedeff0047a751de2af00096f5b7ec47dafa291",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/home-residential-kitchen.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/home-residential-kitchen.webp",
+      "bytes": 203944,
+      "sha256": "d01e7376f8c881a78ead252a234cc53abcac3d28ede5f6521742760e97426e08",
+      "source_sha256": "d01e7376f8c881a78ead252a234cc53abcac3d28ede5f6521742760e97426e08",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/kiosk-active.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/kiosk-active.webp",
+      "bytes": 160928,
+      "sha256": "3e5004650f003c0d41709dbf629d4d5a1bfa4e401eebcc7ef08b8ee0c8f15a35",
+      "source_sha256": "3e5004650f003c0d41709dbf629d4d5a1bfa4e401eebcc7ef08b8ee0c8f15a35",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/kiosk-posm-materials.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/kiosk-posm-materials.webp",
+      "bytes": 190452,
+      "sha256": "2115c24cafe4268b9d67fbfadc0248c4c4e7d5b08067076a3cb05c6a7b00ba91",
+      "source_sha256": "2115c24cafe4268b9d67fbfadc0248c4c4e7d5b08067076a3cb05c6a7b00ba91",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/mobile-retail-materials.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/mobile-retail-materials.webp",
+      "bytes": 161984,
+      "sha256": "f0a0c2bc731d2163a68d9b227d0b9083180958f386ebf029d250e48a4b5f48cf",
+      "source_sha256": "f0a0c2bc731d2163a68d9b227d0b9083180958f386ebf029d250e48a4b5f48cf",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/mobile-retail.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/mobile-retail.webp",
+      "bytes": 154408,
+      "sha256": "47176e2cc7d8552e186a8cb5ef8066c2a73a80ec7a960ec55ecaaf7acff46b3f",
+      "source_sha256": "47176e2cc7d8552e186a8cb5ef8066c2a73a80ec7a960ec55ecaaf7acff46b3f",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/residential-detail.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/residential-detail.webp",
+      "bytes": 91470,
+      "sha256": "c8aca19ef5d4aa2a1afa827b50fae610e54c6670b7b7befc4f6714000134aa21",
+      "source_sha256": "c8aca19ef5d4aa2a1afa827b50fae610e54c6670b7b7befc4f6714000134aa21",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/residential-space.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/residential-space.webp",
+      "bytes": 187506,
+      "sha256": "f1c971e7db8bf23e36e76aecffa46b017e5e669c8f740679eadeb530d7508464",
+      "source_sha256": "f1c971e7db8bf23e36e76aecffa46b017e5e669c8f740679eadeb530d7508464",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/signage-detail.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/signage-detail.webp",
+      "bytes": 142092,
+      "sha256": "c8eaa006920413a6441dd9fe5c3771c44e3321edd90275f0139d9b7c6e3fc49b",
+      "source_sha256": "c8eaa006920413a6441dd9fe5c3771c44e3321edd90275f0139d9b7c6e3fc49b",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/signage-dusk.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/signage-dusk.webp",
+      "bytes": 157854,
+      "sha256": "18a60fc3b906a7daccf64f81570de895af1d2b6ec8da488c4e87cbbd4193efe5",
+      "source_sha256": "18a60fc3b906a7daccf64f81570de895af1d2b6ec8da488c4e87cbbd4193efe5",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/site-detail.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/site-detail.webp",
+      "bytes": 130634,
+      "sha256": "7b9d48041861f50f7ecb0818120bbf52eb4eeccd86d43a964f1c7821ba6d4f11",
+      "source_sha256": "7b9d48041861f50f7ecb0818120bbf52eb4eeccd86d43a964f1c7821ba6d4f11",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/projects/storefront.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/projects/storefront.webp",
+      "bytes": 165172,
+      "sha256": "db5c64f8a8eb28d9d71f135e65fe42043d404c7e2c1583220f30a01a2a7f3714",
+      "source_sha256": "db5c64f8a8eb28d9d71f135e65fe42043d404c7e2c1583220f30a01a2a7f3714",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/advertising.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/advertising.webp",
+      "bytes": 141076,
+      "sha256": "6994ca23b93d410688a82b7072bfd208bf886ba524cf1908bf1a5502045c8465",
+      "source_sha256": "6994ca23b93d410688a82b7072bfd208bf886ba524cf1908bf1a5502045c8465",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/business.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/business.webp",
+      "bytes": 146544,
+      "sha256": "49c335d44cf2a32781e72dcfea1d1d24c57881fca65c2280bd6ff10bf50ba766",
+      "source_sha256": "49c335d44cf2a32781e72dcfea1d1d24c57881fca65c2280bd6ff10bf50ba766",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/cnc-operator-b.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/cnc-operator-b.webp",
+      "bytes": 148450,
+      "sha256": "6ab742d23e0172a18c6c25d7fbddcad40092a60b9c5ae6739be8e1ce4fc811bd",
+      "source_sha256": "6ab742d23e0172a18c6c25d7fbddcad40092a60b9c5ae6739be8e1ce4fc811bd",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/cnc.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/cnc.webp",
+      "bytes": 165528,
+      "sha256": "c21b736d5089c2c99aae5d54b1c79d021e022305439da57dceeb15e6a003da7c",
+      "source_sha256": "c21b736d5089c2c99aae5d54b1c79d021e022305439da57dceeb15e6a003da7c",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/consultation-materials.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/consultation-materials.webp",
+      "bytes": 126650,
+      "sha256": "39393aa4c2ea2244077fac3dcbacc5862da81636cb3532969edee9c0378dccd6",
+      "source_sha256": "39393aa4c2ea2244077fac3dcbacc5862da81636cb3532969edee9c0378dccd6",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/consultation.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/consultation.webp",
+      "bytes": 256146,
+      "sha256": "6d6f30a31112b68d5ecbafcf3c4feee1f7bd7cef94b4e19bdae716d8c42d77f6",
+      "source_sha256": "6d6f30a31112b68d5ecbafcf3c4feee1f7bd7cef94b4e19bdae716d8c42d77f6",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/design-sketch.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/design-sketch.webp",
+      "bytes": 113792,
+      "sha256": "34d2cee041565169999528c603c9e8fd3c08f5b1b9331b323cda6936207f9607",
+      "source_sha256": "34d2cee041565169999528c603c9e8fd3c08f5b1b9331b323cda6936207f9607",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/edge-banding.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/edge-banding.webp",
+      "bytes": 133206,
+      "sha256": "881350d082718b158aa94ffc152eaae8d4c696f3549d9ddc5a70c854e1fd7ea5",
+      "source_sha256": "881350d082718b158aa94ffc152eaae8d4c696f3549d9ddc5a70c854e1fd7ea5",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/home.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/home.webp",
+      "bytes": 178878,
+      "sha256": "dbf481284923bcfbad77800af546fca28fa0efd033d66858a751e690fa46bb47",
+      "source_sha256": "dbf481284923bcfbad77800af546fca28fa0efd033d66858a751e690fa46bb47",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/installation.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/installation.webp",
+      "bytes": 98120,
+      "sha256": "2304402d4992018237c3ef15d14e01a7123625f3ca3c38d57ba20373a2b9cbc1",
+      "source_sha256": "2304402d4992018237c3ef15d14e01a7123625f3ca3c38d57ba20373a2b9cbc1",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/legacy-hands-384.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/legacy-hands-384.webp",
+      "bytes": 10474,
+      "sha256": "67ddac8804c926ebf28e86d9ac57706736ac9af6efca61c07762782fe122aed3",
+      "source_sha256": "67ddac8804c926ebf28e86d9ac57706736ac9af6efca61c07762782fe122aed3",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/legacy-hands.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/legacy-hands.webp",
+      "bytes": 189098,
+      "sha256": "efce90a2ed2e1cc5782f3d81e866a243955027898627d456a08f19af7ba17105",
+      "source_sha256": "efce90a2ed2e1cc5782f3d81e866a243955027898627d456a08f19af7ba17105",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/legacy-team.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/legacy-team.webp",
+      "bytes": 184604,
+      "sha256": "3891769658f04c4a0a5d4beab7cc8fc4f5f03fb4113dc91f5b638ec5bc14f963",
+      "source_sha256": "3891769658f04c4a0a5d4beab7cc8fc4f5f03fb4113dc91f5b638ec5bc14f963",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/materials.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/materials.webp",
+      "bytes": 269754,
+      "sha256": "a120560ed212129e66c133544a6f9a225cae4271ef63151169f88970a2d9eb6c",
+      "source_sha256": "a120560ed212129e66c133544a6f9a225cae4271ef63151169f88970a2d9eb6c",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/montage-cnc-tablet.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/montage-cnc-tablet.webp",
+      "bytes": 100940,
+      "sha256": "141bec416408b9080a8b40d3c2ee00c896a27d8d740468942aa1f161053ca48a",
+      "source_sha256": "141bec416408b9080a8b40d3c2ee00c896a27d8d740468942aa1f161053ca48a",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/montage-commitment-option-3-knot.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/montage-commitment-option-3-knot.webp",
+      "bytes": 171880,
+      "sha256": "d4fa4c33417ab3590bc1fba54f652701e3ac91bb2c1796fe23fb7ef6a2fd6827",
+      "source_sha256": "d4fa4c33417ab3590bc1fba54f652701e3ac91bb2c1796fe23fb7ef6a2fd6827",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/montage-residential-product-detail.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/montage-residential-product-detail.webp",
+      "bytes": 155374,
+      "sha256": "cebf745ef754e83f1ce2c0efbc334f70f25a025fc08c4fecff61c7307a84a96e",
+      "source_sha256": "cebf745ef754e83f1ce2c0efbc334f70f25a025fc08c4fecff61c7307a84a96e",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/survey-laser-level.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/survey-laser-level.webp",
+      "bytes": 122102,
+      "sha256": "7aceb84fb8be290acc36b387882a10b259e7738b5a17234d2fcf058d7b25fa59",
+      "source_sha256": "7aceb84fb8be290acc36b387882a10b259e7738b5a17234d2fcf058d7b25fa59",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/survey-modern.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/survey-modern.webp",
+      "bytes": 106588,
+      "sha256": "0f09342ce9c89b43c7ba87a3fefa47b87e0a84561c582bb78e873dd0457e66dd",
+      "source_sha256": "0f09342ce9c89b43c7ba87a3fefa47b87e0a84561c582bb78e873dd0457e66dd",
+      "matches_source": true
+    },
+    {
+      "path": "assets/content/shared/workshop-wide.webp",
+      "url": "https://truong-thinh-noi-that.potato240794.chatgpt.site/assets/content/shared/workshop-wide.webp",
+      "bytes": 232510,
+      "sha256": "5bf06046368f22e925df0a9af20a69cb30d9d01bb6fed56e58945c4ff5714f52",
+      "source_sha256": "5bf06046368f22e925df0a9af20a69cb30d9d01bb6fed56e58945c4ff5714f52",
+      "matches_source": true
+    }
+  ]
+}

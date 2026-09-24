@@ -17,11 +17,16 @@ const css = fs.readFileSync(path.join(site, "style.css"), "utf8");
 
 assert.ok(fs.existsSync(manifestPath), "Missing client logo manifest");
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-assert.equal(manifest.length, 11, "Client logo manifest must contain exactly 11 entries");
+assert.equal(manifest.length, 12, "Client logo manifest must contain exactly 12 entries");
 assert.equal(
   manifest.find((logo) => logo.id === "prudential")?.viewBox,
   "0 0 841.9 396",
   "Prudential manifest must match the replacement vector",
+);
+assert.equal(
+  manifest.find((logo) => logo.id === "ttc-hospitality")?.viewBox,
+  "0 0 3679.87 2826.35",
+  "TTC Hospitality manifest must match the supplied vector",
 );
 assert.match(
   css,
@@ -61,7 +66,7 @@ const expectedSources = manifest.map((logo) => logo.src);
 const expectedNames = manifest.map((logo) => logo.name);
 for (const [groupIndex, group] of groupMatches.entries()) {
   const imageTags = [...group[2].matchAll(/<img\b[^>]*>/g)].map((match) => match[0]);
-  assert.equal(imageTags.length, 11, `Group ${groupIndex + 1} must contain 11 logos`);
+  assert.equal(imageTags.length, 12, `Group ${groupIndex + 1} must contain 12 logos`);
   assert.ok(imageTags.every((tag) => /\bloading="eager"/.test(tag)), `Group ${groupIndex + 1} must preload every moving logo`);
   assert.deepEqual(imageTags.map((tag) => tag.match(/\bsrc="([^"]+)"/)?.[1]), expectedSources, `Logo order differs in group ${groupIndex + 1}`);
   if (groupIndex === 0) {

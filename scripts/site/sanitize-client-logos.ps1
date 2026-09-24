@@ -17,6 +17,7 @@ $logoFiles = [ordered]@{
   "LogoDuaCuuLong.svg" = "dua-cuu-long.svg"
   "LogoHDBank.svg" = "hdbank.svg"
   "LogoPrudential.svg" = "prudential.svg"
+  "LogoTTC.svg" = "ttc-hospitality.svg"
   "LogoVietcombank.svg" = "vietcombank.svg"
   "LogoViettinbank.svg" = "vietinbank.svg"
 }

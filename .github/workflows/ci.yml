@@ -32,20 +32,15 @@ jobs:
       - run: pnpm qa:worker:security
       - run: pnpm exec playwright install --with-deps chromium
 
-      - name: Start local Worker
+      - name: Start local static preview
         run: |
-          pnpm prepare:site
-          pnpm exec wrangler dev --port 8787 > wrangler.log 2>&1 &
+          pnpm dev > static-server.log 2>&1 &
           for attempt in {1..30}; do
-            curl --fail --silent http://127.0.0.1:8787/robots.txt && exit 0
+            curl --fail --silent http://127.0.0.1:8787/vi/ > /dev/null && exit 0
             sleep 1
           done
-          cat wrangler.log
+          cat static-server.log
           exit 1
-
-      - run: pnpm qa:worker:static
-        env:
-          BASE_URL: http://127.0.0.1:8787
 
       - run: pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium
         env:
@@ -57,7 +52,7 @@ jobs:
         with:
           name: qa-failure-evidence
           path: |
-            wrangler.log
+            static-server.log
             test-results/
           if-no-files-found: ignore
           retention-days: 7

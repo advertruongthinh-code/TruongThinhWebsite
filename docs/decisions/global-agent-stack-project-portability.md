@@ -1,6 +1,6 @@
 ---
 title: Global agent stack với project policy portable
-status: accepted
+status: superseded
 date: 2026-08-09
 scope: agent tooling
 supersedes:
@@ -9,7 +9,8 @@ supersedes:
   - fallback-before-removing-skills.md
 related_specs: []
 related_reports:
-  - ../reports/verification-2026-08-09-agent-workspace-bootstrap.md
+  - ../archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md
+superseded_by: codex-native-agent-skills-workflow.md
 ---
 
 # Global agent stack với project policy portable

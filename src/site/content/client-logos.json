@@ -7,7 +7,8 @@
   { "id": "cannes-hotel", "name": "Cannes Hotel", "src": "/assets/content/client-logos/cannes-hotel.svg", "viewBox": "0 0 113.61 152.36", "order": 6 },
   { "id": "dua-cuu-long", "name": "Dừa Cửu Long", "src": "/assets/content/client-logos/dua-cuu-long.svg", "viewBox": "0 0 42.89 26.24", "order": 7 },
   { "id": "hdbank", "name": "HDBank", "src": "/assets/content/client-logos/hdbank.svg", "viewBox": "0 0 2240.33 587.85", "order": 8 },
-  { "id": "prudential", "name": "Prudential", "src": "/assets/content/client-logos/prudential.svg", "viewBox": "0 0 841.9 396", "order": 9 },
-  { "id": "vietcombank", "name": "Vietcombank", "src": "/assets/content/client-logos/vietcombank.svg", "viewBox": "0 0 7971.51 2722.13", "order": 10 },
-  { "id": "vietinbank", "name": "VietinBank", "src": "/assets/content/client-logos/vietinbank.svg", "viewBox": "0 0 1742.42 430.13", "order": 11 }
+{ "id": "prudential", "name": "Prudential", "src": "/assets/content/client-logos/prudential.svg", "viewBox": "0 0 841.9 396", "order": 9 },
+{ "id": "vietcombank", "name": "Vietcombank", "src": "/assets/content/client-logos/vietcombank.svg", "viewBox": "0 0 7971.51 2722.13", "order": 10 },
+{ "id": "vietinbank", "name": "VietinBank", "src": "/assets/content/client-logos/vietinbank.svg", "viewBox": "0 0 1742.42 430.13", "order": 11 },
+{ "id": "ttc-hospitality", "name": "TTC Hospitality", "src": "/assets/content/client-logos/ttc-hospitality.svg", "viewBox": "0 0 3679.87 2826.35", "order": 12 }
 ]

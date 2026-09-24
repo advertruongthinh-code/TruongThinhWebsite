@@ -24,14 +24,14 @@ pnpm tooling:bootstrap
 ```
 
 Chỉ dùng khi machine mới hoặc repair. Nó tái tạo pinned user-global stack và
-project browser tooling. Repository override Caveman `ultra`; ADHD/Ponytail
+project browser tooling. Caveman `ultra`; ADHD/Ponytail
 ultra vẫn active. Chi tiết ownership automation ở
 [`docs/operations/TOOLING.md`](docs/operations/TOOLING.md).
 
-Mở `http://127.0.0.1:8787/vi/`. Một bước copy nhỏ có allowlist tạo deployment
+Mở `http://127.0.0.1:8787/vi/`. Một bước copy nhỏ có allowlist tạo static output
 directory bị Git ignore là `.site-output/`. HTML, CSS, JavaScript và media được
-serve như Cloudflare static asset; Worker thêm canonical locale route, redirect,
-localized metadata, `robots.txt` và sitemap.
+serve bằng static Node server của repository; current local preview không khởi
+động Cloudflare Worker.
 
 ## Phạm vi hiện tại
 
@@ -44,7 +44,8 @@ localized metadata, `robots.txt` và sitemap.
 - Dynamic `/projects/:slug/`, admin và publishing workflow thuộc CMS
   phase, không nằm trong release gate đầu tiên.
 
-Public copy vẫn cần owner xác nhận Zalo, address, founding year và warranty.
+Public copy vẫn cần owner xác nhận Zalo, founding year và warranty; địa chỉ
+trụ sở đã có [decision xác nhận](docs/decisions/head-office-address-confirmed.md).
 Không tự invent các giá trị này.
 
 ## Command
@@ -52,91 +53,107 @@ Không tự invent các giá trị này.
 ```powershell
 pnpm qa:static
 pnpm dev
-pnpm qa:worker:static
 pnpm qa:cross-browser
-pnpm deploy
 ```
 
-`prepare:site` chỉ copy public file vào `.site-output`; nó loại tooling,
+`prepare:site` tạo public output và HTML VI/EN tại `.site-output`; nó loại tooling,
 report, reference archive, CMS admin file và repository metadata.
 `qa:static` kiểm tra source contract mà không start server.
-`qa:worker:static` cần Wrangler ở `http://127.0.0.1:8787` và kiểm tra cả hai
-locale, redirect, canonical URL, sitemap và CMS-disabled fallback.
-UI release còn cần live interaction evidence từ Playwright, Computer Use và
-Chrome DevTools MCP. Xem [`tests/README.md`](tests/README.md) để đọc browser matrix và
+Worker static contract được giữ dormant cho CMS phase và không thuộc current
+static gate.
+UI release còn cần live interaction evidence từ Playwright và Chrome DevTools
+MCP. Computer Use chỉ khi human path cần Windows UI mà tool chuyên biệt không đủ.
+Xem [`tests/README.md`](tests/README.md) để đọc browser matrix và
 evidence contract.
 
 ## Deployment
 
 GitHub là source of truth. Pull request chạy static và browser smoke gate.
-Production deployment là thủ công qua GitHub Actions cho tới stable release đầu
-tiên:
+Không có workflow Cloudflare deploy; CMS chưa activate, không chạy Wrangler.
+Owner đã yêu cầu phát hành snapshot24/09 lên Sites hiện có; giữ audience public.
+GitHub giữ source/test; Sites chỉ nhận build theo
+[quyết định phát hành](docs/decisions/sites-artifact-only-release-mirror.md).
+Trạng thái phát hành thực tế xem [STATE](docs/STATE.md), thay đổi xem
+[CHANGELOG](CHANGELOG.md).
+Wrangler chỉ được cài và activate
+khi owner mở CMS phase theo
+[`Khóa Wrangler đến phase CMS`](docs/decisions/wrangler-deferred-until-cms.md).
 
-1. Cấu hình repository secret `CLOUDFLARE_API_TOKEN` và
-   `CLOUDFLARE_ACCOUNT_ID`.
-2. Chạy workflow `Deploy` từ GitHub Actions.
-3. Verify URL `workers.dev` được generate trước khi connect production
-   domain.
-
-Agent stack là user-global; Playwright, Wrangler và browser engine vẫn
-project-local và được pin. Clone vẫn portable vì `pnpm tooling:bootstrap`
-reconstruct cả hai scope từ tracked pin và script.
+Agent stack là user-global; Playwright và browser engine vẫn project-local và
+được pin. Clone vẫn portable vì `pnpm tooling:bootstrap` reconstruct cả hai
+scope từ tracked pin và script.
 
 ## Cây thư mục và trạng thái
 
-Nhãn lifecycle và nhãn Git là hai việc khác nhau. `[UNTRACKED]` chỉ nói path
-chưa nằm trong Git index ở snapshot hiện tại; không có nghĩa path đó dư hoặc
-được phép xóa.
+Tài liệu theo công việc: [architecture](docs/architecture/index.md),
+[frontend](docs/frontend/index.md), [backend](docs/backend/index.md),
+[design system](docs/design/index.md), [baseline Espacio](docs/reference/espacio/index.md).
+[Docs index](docs/index.md) dẫn tới nguồn chuẩn và evidence; mọi thay đổi liên
+quan phải cập nhật docs trong cùng task hoặc ghi lý do không có docs impact.
+
+Cây dưới mô tả ownership và lifecycle thực tế. Trạng thái Git thay đổi theo
+commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bản đồ lâu dài.
 
 ```text
 .
-├─ src/                                      # source sản phẩm
-│  ├─ site/                                  # [LIVE, TRACKED/UNTRACKED MIX] source public canonical
-│  │  ├─ index.html                          # [LIVE] home VI/EN
-│  │  ├─ residential/index.html              # [LIVE] không gian nhà ở
-│  │  ├─ commercial/index.html               # [LIVE] không gian kinh doanh
-│  │  ├─ advertising-products/index.html     # [LIVE, UNTRACKED] sản phẩm quảng cáo
-│  │  ├─ about/index.html                    # [LIVE] giới thiệu
-│  │  ├─ assets/                             # [LIVE, UNTRACKED] brand, client logo, media public
-│  │  ├─ content/client-logos.json           # [LIVE, UNTRACKED] manifest logo khách hàng
-│  │  ├─ style.css, detail.css               # [LIVE] layout và visual contract
-│  │  └─ motion.js, detail.js                # [LIVE] locale, navigation, motion, gallery, filter
-│  ├─ worker/index.js                        # [LIVE] route/SEO; CMS compatibility vẫn dormant
-│  ├─ admin/                                 # [DEV] CMS shell, không được copy vào public output
-│  └─ db/migrations/                         # [DEV, TRACKED/UNTRACKED MIX] draft schema CMS
-├─ tests/                                    # [PROJECT, TRACKED/UNTRACKED MIX] static/browser/Worker/tooling QA
-├─ scripts/                                  # [PROJECT, TRACKED/UNTRACKED MIX] build, QA, research, tooling entrypoint
-├─ docs/                                     # [PROJECT, TRACKED/UNTRACKED MIX] spec, decision, rule, report đã chấp nhận
-│  └─ reports/*.csv, *.bak                   # [GENERATED] raw parity ledger local, Git ignore
-├─ research/reference-site/
-│  ├─ README.md                              # [PROJECT] boundary và cách dùng research
-│  ├─ archive/                               # [RESEARCH ARCHIVE] crawl local, Git ignore
-│  └─ runtime-evidence/                      # [GENERATED] screenshot/JSON raw, Git ignore
-├─ source-assets/                            # [DEV, UNTRACKED] source media biên tập, không deploy
-├─ .openai/hosting.json                      # [LIVE CONFIG, UNTRACKED] Codex Sites project id
-├─ .github/                                  # [PROJECT] CI và deploy workflow
-├─ .codex/, .serena/                         # [PROJECT] agent/Serena config; cache và log bị ignore
-├─ .vscode/                                  # [DEV, UNTRACKED] task chạy watcher/doctor
-├─ .site-output/                             # [GENERATED] build deploy từ src/site, không edit
-├─ .tmp/, tmp-layout-motion-*/               # [GENERATED] retry/probe local, Git ignore
-├─ .tooling/, graphify-out/, .wrangler/      # [CACHE] runtime/tool state, Git ignore
-├─ node_modules/                             # [CACHE] dependency install, Git ignore
-└─ package.json, pnpm-lock.yaml, wrangler.toml
-                                               # [PROJECT] command, pin và Worker config
+├─ src/
+│  ├─ site/                         # LIVE: HTML/CSS/JS và media public
+│  │  ├─ index.html                 # home VI/EN
+│  │  ├─ residential/, commercial/, about/
+│  │  ├─ advertising-products/      # catalog, metadata, layout, viewer, skeleton
+│  │  ├─ assets/                    # brand, fonts, vendor, media web-ready
+│  │  └─ content/                   # manifest logo khách hàng
+│  ├─ worker/                       # DORMANT: route/SEO/API/CMS
+│  ├─ admin/                        # DEV: CMS shell
+│  └─ db/migrations/                # DEV: schema CMS
+├─ scripts/
+│  ├─ site/                         # build, brand sync, media preparation
+│  ├─ media/                        # inventory/review ảnh
+│  ├─ reference/                    # crawler research
+│  └─ tooling/                      # local server, QA, Graphify, Git hooks
+├─ tests/
+│  ├─ site/, media/, worker/, tooling/ # QA trong GitHub; không deploy lên Sites
+│  └─ reports/                      # GENERATED: kết quả local
+├─ docs/
+│  ├─ STATE.md, index.md             # snapshot hiện tại và routing
+│  ├─ architecture/, frontend/, backend/
+│  ├─ design/, impeccable/          # authority/reuse; Impeccable compatibility
+│  ├─ specs/, decisions/            # contract và quyết định
+│  ├─ operations/                   # rule, tooling và recovery
+│  ├─ reference/                    # measured research, không phải source public
+│  ├─ verification/                 # evidence có ngày và scope
+│  ├─ reports/                      # machine reports; CSV/bak bị ignore
+│  └─ archive/                      # bản gốc lịch sử và mapping
+├─ source-assets/
+│  ├─ projects/                     # nguồn ảnh/review/provenance, không deploy
+│  └─ site-backups/                 # backup bản live; ảnh/archive local, manifest lưu Git
+├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
+├─ tasks/                           # plan/checklist; không thay Notion status
+├─ PRODUCT.md, DESIGN.md, CHANGELOG.md
+├─ .impeccable/                     # design extensions và surface briefs
+├─ .openai/hosting.json             # project Sites; local build dùng .site-output
+├─ .github/, .vscode/               # CI/workflow và dev tasks
+├─ .agents/, .claude/, .codex/, .serena/ # agent config; cache giữ local
+├─ .site-output/                    # GENERATED: public build, không edit/commit
+├─ .tmp/, _temp/, test-results/     # GENERATED: probe, staging, evidence local
+├─ .tooling/, graphify-out/, .wrangler/, node_modules/ # CACHE
+└─ package.json, pnpm-lock.yaml, pnpm-workspace.yaml,
+   playwright.config.cjs, tooling-versions.json, wrangler.toml
 ```
 
 Quy tắc ownership:
 
 1. Chỉ edit public source tại `src/site/`; `.site-output/` luôn được tạo lại.
 2. Source, config, test và Markdown đã chấp nhận là project file cần Git quản
-   lý; raw evidence, build output, archive và cache phải nằm ngoài Git index.
+   lý; raw evidence, build output, research archive và cache nằm ngoài Git index.
+   Archive Markdown của docs giữ trong Git để bảo toàn decision/evidence.
 3. File untracked phải được review theo path trước khi stage; không xóa hoặc
    commit hàng loạt chỉ vì trạng thái `??`.
 4. Trước khi edit copy hoặc media, đọc
-   [`docs/product/CONTENT-MEDIA-GUIDE.md`](docs/product/CONTENT-MEDIA-GUIDE.md).
+   [`docs/design/content.md`](docs/design/content.md).
 
 Inventory và deletion ledger có ngày nằm tại
-[`docs/reports/verification-2026-08-25-project-source-cleanup.md`](docs/reports/verification-2026-08-25-project-source-cleanup.md).
+[`docs/archive/reports/verification-2026-08-25-project-source-cleanup.md`](docs/archive/reports/verification-2026-08-25-project-source-cleanup.md).
 
 ## Reference research
 
@@ -156,7 +173,7 @@ CMS tương lai có thể activate Worker dormant, selected structured-data stor
 selected media object storage và Access-protected admin shell. Nó không được
 block hoặc destabilize static release. Xem
 [`docs/specs/cms-content-publishing.md`](docs/specs/cms-content-publishing.md) và
-[`docs/engineering/CMS-ROADMAP.md`](docs/engineering/CMS-ROADMAP.md).
+[`docs/backend/roadmap.md`](docs/backend/roadmap.md).
 
 ## Agent instruction
 
@@ -165,7 +182,7 @@ block hoặc destabilize static release. Xem
 - Setup, MCP inventory, watcher, terminal command và recovery được ghi trong
   [`docs/operations/TOOLING.md`](docs/operations/TOOLING.md).
 - Brief setup project mới có thể tái sử dụng và lesson nằm trong
-  [`docs/reports/verification-2026-08-09-agent-workspace-bootstrap.md`](docs/reports/verification-2026-08-09-agent-workspace-bootstrap.md).
+  [`docs/archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md`](docs/archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md).
 
 ## Chú thích thuật ngữ
 
@@ -173,6 +190,7 @@ block hoặc destabilize static release. Xem
 - **Canonical**: bản được xem là nguồn chuẩn.
 - **Portable**: có thể tái lập trên machine khác từ pin và script của repository.
 - **Deployment**: quá trình đưa output lên môi trường phục vụ.
+- **Release mirror**: source Git Sites chỉ chứa output tĩnh và manifest của release.
 - **Fallback**: nhánh xử lý thay thế khi capability chính chưa có hoặc bị tắt.
 - **Automation**: hook, watcher, wrapper hoặc launcher tự xử lý mechanics.
 - **Dormant**: đã có trong source nhưng hiện chưa được activate.

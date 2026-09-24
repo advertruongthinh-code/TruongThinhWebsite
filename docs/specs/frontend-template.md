@@ -24,18 +24,18 @@ related_reports: []
 ## Hướng visual
 
 - Surface brief: <.impeccable/surfaces/<slug>.md hoặc none>
-- Visual thesis: <một câu>
-- Impeccable review mode: Persuade | Experience | Operate
+- Visual thesis/mode: <link tới mục trong surface brief; không copy prose>
+- Design authority: <link đúng mục DESIGN/style-guide/motion/patterns theo docs/design/index.md>
 
 ## Component và layout contract
 
-<DOM/component responsibility, shared component, layout constraint và media
-crop rule.>
+<DOM/component responsibility và runtime integration. Link visual/layout/media
+contract về owning design doc; không lặp token, ratio, timing hoặc copy.>
 
 ## Responsive, motion và accessibility
 
-<Breakpoint, keyboard/focus behavior, reduced motion, heading structure,
-contrast và content visibility.>
+<Link responsive/motion/accessibility target; ghi runtime consumer và cách QA
+kiểm contract. Giá trị visual chỉ định nghĩa tại nguồn chuẩn.>
 
 ## Localization, SEO và performance
 

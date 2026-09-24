@@ -6,6 +6,24 @@ console/network, horizontal overflow và interaction chính. `worker-contract.cj
 tra Worker raw SSR 10 locale route, redirect 308, sitemap/robots và security
 reject của admin/upload.
 
+## Gate regression trước release
+
+Sau `pnpm prepare:site`, giữ `pnpm dev` tại cổng 8787 và chạy
+`pnpm qa:release-regressions`. Lệnh này chạy tuần tự các kiểm tra độc lập:
+
+| Suite | Contract bảo vệ |
+| --- | --- |
+| `static-locales.test.mjs` | HTML VI/EN build khớp locale transform của preview |
+| `advertising-full-span-p72.e2e.mjs` | Primary full-span vừa phần viewport dưới navbar, đúng ratio và vùng blur |
+| `advertising-no-titles.e2e.mjs` | Không tái xuất hiện caption/title ảnh đã bỏ |
+| `advertising-suggestion-conditional.e2e.mjs` | Resize split/full-span giữ node, focus và vị trí gợi ý |
+| `advertising-suggestion-info.e2e.mjs` | Tag, bàn phím, history và phân trang mô tả khi text zoom |
+| `shared-header-bottom-p7-1.e2e.mjs` | Navbar không tự expand ở cuối trang trên VI/EN |
+| `shared-header-single-line.e2e.mjs` | Ẩn mục navbar khi không vừa một hàng thực tế |
+
+Các suite này có consumer release và assertion hành vi riêng; không xóa chỉ vì
+trước đây chưa có lệnh tổng hợp. Gate hẹp không thay full-site parity.
+
 ## Chạy chuẩn
 
 ```powershell

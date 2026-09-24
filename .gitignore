@@ -17,7 +17,6 @@ playwright-report/
 .site-output/
 graphify-out/
 .impeccable/config.local.json
-.impeccable/design.json
 .claude/settings.local.json
 CLAUDE.local.md
 
@@ -27,6 +26,10 @@ CLAUDE.local.md
 /research/reference-site/runtime-evidence/
 /docs/reports/*.csv
 /docs/reports/*.bak
+
+# Local backup of the deployed site; provenance and checksum manifest stay reviewable.
+/source-assets/site-backups/*/assets/
+/source-assets/site-backups/*/*.tar
 
 # Generated reference website archive.
 /research/reference-site/archive/

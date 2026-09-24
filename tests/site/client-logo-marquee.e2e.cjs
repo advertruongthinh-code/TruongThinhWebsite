@@ -65,7 +65,7 @@ async function inspectMarquee(page, viewport) {
   });
 
   assert(result.groupCount === 2, `${viewport.width}: expected two groups`);
-  assert(result.slotsPerGroup.every((count) => count === 11), `${viewport.width}: expected eleven slots per group`);
+  assert(result.slotsPerGroup.every((count) => count === 12), `${viewport.width}: expected twelve slots per group`);
   assert(result.groupWidthDelta <= 0.5, `${viewport.width}: group widths differ by ${result.groupWidthDelta}px`);
   assert(result.centerGapDelta <= 0.5, `${viewport.width}: center gaps differ by ${result.centerGapDelta}px`);
   assert(result.animationName === "client-logo-marquee", `${viewport.width}: wrong animation name`);

@@ -1,14 +1,13 @@
-import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sha, csvParse, csvWrite } from './layout-motion-io.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const reportDir = path.join(root, 'docs', 'reports');
 const candidatesPath = path.join(reportDir, 'research-espacio-motion-candidates.csv');
 const mapPath = path.join(reportDir, 'research-espacio-motion-candidate-map.csv');
 const obligationsPath = path.join(reportDir, 'research-espacio-motion-obligations.csv');
-const auditPath = path.join(reportDir, 'research-espacio-motion-audit.md');
 const viewports = ['320x844', '390x844', '768x900', '1024x900', '1440x900'];
 const preferences = ['no-preference', 'reduce'];
 function probe(scenario_id, motion_family, route, template, target_selector, action_protocol, viewport_rule = 'all', lifecycle = 'load+state+reset') {
@@ -66,24 +65,7 @@ const liveUrls = new Set([
   'https://espaciohomedesign.com/en/cocinart',
 ]);
 
-function sha(value) { return createHash('sha256').update(value).digest('hex'); }
 function slug(value) { return value.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase(); }
-function csvParse(text) {
-  const rows = []; let row = []; let field = ''; let quoted = false;
-  for (let i = 0; i < text.length; i += 1) {
-    const ch = text[i]; const next = text[i + 1];
-    if (quoted) { if (ch === '"' && next === '"') { field += '"'; i += 1; } else if (ch === '"') quoted = false; else field += ch; continue; }
-    if (ch === '"') { quoted = true; continue; }
-    if (ch === ',') { row.push(field); field = ''; continue; }
-    if (ch === '\n') { row.push(field.replace(/\r$/, '')); rows.push(row); row = []; field = ''; continue; }
-    field += ch;
-  }
-  if (field || row.length) { row.push(field.replace(/\r$/, '')); rows.push(row); }
-  const [header, ...body] = rows.filter((r) => r.length && r.some(Boolean));
-  return body.map((r) => Object.fromEntries(header.map((name, index) => [name, r[index] ?? ''])));
-}
-function csvEscape(value) { const text = String(value ?? ''); return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text; }
-function csvWrite(columns, rows) { return `${columns.join(',')}\n${rows.map((row) => columns.map((key) => csvEscape(row[key])).join(',')).join('\n')}\n`; }
 function sourceHash(candidate) {
   const parts = candidate.identity_basis.split('|');
   return parts.find((part) => /^[a-f0-9]{64}$/i.test(part)) ?? sha(candidate.identity_basis);
@@ -155,13 +137,6 @@ function probesFor(candidate) {
   if (resource.endsWith('index.html') && kind === 'inline-motion-hook') return [];
   return [];
 }
-function groupSpec(candidates) {
-  const representative = candidates.slice().sort((a, b) => a.candidate_id.localeCompare(b.candidate_id))[0];
-  const system = representative.system;
-  const local = system === 'truong-thinh';
-  const location = local ? localRoute(representative) : { route: 'https://espaciohomedesign.com/en', template: 'espacio-live-home-snapshot', locale: 'en' };
-  return { system, representative, location, group: groupFor(representative) };
-}
 function contractFingerprint(row) {
   return `contract:${sha([
     row.motion_group_id, row.system, row.exact_url_or_route, row.template, row.locale, row.viewport, row.orientation,
@@ -182,12 +157,6 @@ function stableGroupProof(members, representative) {
     relevant_css_signature: staticSignature(representative, representative.system === 'truong-thinh' ? localRoute(representative).template : archiveCategory(representative)),
     equivalence_status: 'not-claimed',
   };
-}
-async function replacePhaseBSection(text, section) {
-  const start = '<!-- motion-audit-phase-b:start -->'; const end = '<!-- motion-audit-phase-b:end -->';
-  const block = `${start}\n${section}\n${end}`;
-  const expression = new RegExp(`${start}[\\s\\S]*?${end}`, 'm');
-  return expression.test(text) ? text.replace(expression, block) : `${text.trimEnd()}\n\n${block}\n`;
 }
 function selfTest() {
   const hash = 'a'.repeat(64);

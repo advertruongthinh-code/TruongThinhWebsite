@@ -9,6 +9,11 @@
 
 - Khi app `Notion` có, dùng skill/app phù hợp để research, capture, tạo task. Notion Spec approved phải trỏ Git spec canonical trước `notion-spec-to-implementation`.
 - Verify xong: update Git document/evidence trước, rồi card. Chỉ Done khi repository evidence verified. Không giữ accepted spec, ADR, report, implementation evidence chỉ ở Notion.
+- Mỗi task ghi docs impact và path sở hữu. Cập nhật contract/source link cùng
+  behavior; không có impact thì ghi lý do. Main kiểm claim của subagent trước
+  nghiệm thu. Tài liệu theo domain ở [docs index](../index.md).
+- Link Notion cần kiểm cả quyền truy cập lẫn content drift. `object_not_found`
+  không đủ kết luận đã xóa; timestamp payload cũ không là current verification.
 
 ## Ngưỡng card
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 25.4515 594 153.667">
+  <g id="truong-thinh-lockup" class="brand-lockup__geometry" fill="currentColor">
+    <g id="truong-thinh-mark" class="brand-lockup__mark" transform="translate(0 25.4515) scale(0.62)">
+      <path fill="var(--logo-mark-black, currentColor)" d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" />
+      <path fill="var(--logo-mark-yellow, currentColor)" d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" />
+      <path fill="var(--logo-mark-magenta, currentColor)" d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" />
+      <path fill="var(--logo-mark-cyan, currentColor)" d="M143.1 0l32.48 56.25c-36.88,63.87 -73.75,127.74 -110.62,191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" />
+    </g>
+    <g class="brand-lockup__copy">
+      <text id="truong-thinh-title" class="brand-lockup__title" x="203.05517" y="98.47574" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="46.68365" font-weight="600" letter-spacing="0" word-spacing="0" textLength="390.63185" lengthAdjust="spacing">TRƯỜNG THỊNH</text>
+      <text id="truong-thinh-subtitle" class="brand-lockup__subtitle" x="201.57159" y="147.19920" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="28.85050" font-weight="600" letter-spacing="0" word-spacing="0" textLength="390.87000" lengthAdjust="spacing">NỘI THẤT · QUẢNG CÁO</text>
+    </g>
+  </g>
+</svg>

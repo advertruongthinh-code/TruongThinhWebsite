@@ -1,17 +1,19 @@
 ---
 title: Phát hành static website trước CMS
-status: accepted
+status: superseded
 date: 2026-08-08
 scope: release
 supersedes: []
 related_specs:
   - ../specs/frontend-static-release.md
 related_reports: []
+superseded_by: wrangler-deferred-until-cms.md
 ---
 
 # Phát hành static website trước CMS
 
-- Status: Accepted
+- Status: Superseded bởi
+  [`wrangler-deferred-until-cms.md`](wrangler-deferred-until-cms.md)
 - Date: 2026-08-08
 
 ## Context

@@ -68,6 +68,21 @@ không phải implementation contract đã được approve.
 
 ## Database và field hiện có
 
+Schema Tasks được fetch lại ngày 2026-09-09: `Name` (title), `Status`,
+`Project` (relation), `Due date`, `Thứ tự Up next` (number). Status hợp lệ là `Not started`, `Up next`,
+`In progress`, `Done`. Những trường workflow trong bảng bên dưới là nội dung
+cần ghi, không phải lời khẳng định database đã có property tương ứng; field
+thiếu ghi trong body. Không gửi status `Approved` hoặc `Blocked` vào Tasks.
+Phải fetch schema trước mỗi mutation có phụ thuộc schema.
+
+`Thứ tự Up next` lưu thứ tự thực hiện do owner yêu cầu sắp xếp. Board
+`By status` sort tăng dần theo field này; grouping vẫn theo `Status`. Chỉ gán
+rank cho các card trong scope sắp xếp, không đổi tên, status hoặc ngày tạo để
+ép thứ tự. Ghi lý do và dependency trong card. Khi xếp lại, ưu tiên card mới
+theo `createdTime` trong những việc đã đủ điều kiện; prerequisite và QA/nghiệm
+thu phải đúng trình tự. Rank không chứng minh implementation còn thiếu hay
+đã hoàn tất; đối chiếu accepted spec/evidence trước khi thực hiện card cũ.
+
 Workspace hiện có thể dùng các database sau cho project này:
 
 | Database | Dùng cho |
@@ -118,9 +133,26 @@ Các record mutable đang dùng cho project này:
 - [Truong Thinh — Docs & Notion Hub](https://app.notion.com/p/3b7332849a0e81098aeeef782b88657f): hub vận hành và boundary Git–Notion.
 - [Notion workspace mapping — Truong Thinh](https://app.notion.com/p/3b7332849a0e81449deec2780de541f3): research note về database/schema hiện có và seed page bị loại.
 - [NOW Task: Dịch Markdown và thiết lập Notion docs hub](https://app.notion.com/p/3b7332849a0e81da892bec4641e6ab08): owner đã review và xác nhận Done ngày 2026-08-09.
+- [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): một card In progress cho năm phần việc còn mở, liên kết tới Git evidence và các card nguồn.
 
 Các link trên là mutable workspace reference. Nếu page được archive hoặc thay
 đổi, cập nhật lại mục này sau khi verify record mới.
+
+Kiểm link ngày 2026-09-09: project, hub và workspace mapping đọc được; card
+dịch Markdown trả `object_not_found` 404 (chưa phân biệt thiếu quyền/đã xóa).
+Hub vẫn ghi quy tắc một tầng category cũ; mapping là snapshot lịch sử ngày
+2026-08-09. Không dùng các claim đó để ghi đè [docs routing](../index.md).
+Card Advertising trả rank-v2/rapid-filter blocker cũ, trong khi accepted Git
+spec/evidence đã có rank-v3/109 media. Không tự đóng card hoặc gọi runtime
+PASS từ việc URL còn truy cập được. [Evidence audit](../verification/living-docs-2026-09-09.md)
+giữ kết quả cùng timestamp payload; [card living docs](https://app.notion.com/p/3d5332849a0e817aad64f745684c0ca2)
+theo dõi migration hiện tại.
+
+Ngày 2026-09-24, đã đối chiếu 25 Tasks của project với Git hiện hành. Mười hai
+card chưa Done có trạng thái hoặc nội dung cũ được chuyển vào Notion Trash sau
+khi gom phần việc còn mở vào backlog mới; 13 card Done giữ làm lịch sử. Relation
+Tasks của Project đã kiểm lại: 14 card đang hoạt động, gồm một In progress và
+13 Done. Trash có thể khôi phục; không xóa vĩnh viễn.
 
 ## Chú thích thuật ngữ
 
