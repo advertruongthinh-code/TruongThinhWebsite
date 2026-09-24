@@ -2,8 +2,13 @@
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
-  const hasGsap = typeof window.gsap !== "undefined";
+  const gsap = Reflect.get(window, "gsap");
+  const SplitText = Reflect.get(window, "SplitText");
+  const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
+  const headerHoverMedia = window.matchMedia(
+    "(any-hover: hover) and (any-pointer: fine)",
+  );
   const header = document.querySelector("[data-site-header]");
   const routeVeil = document.querySelector(".route-veil");
   const floatingCta = document.querySelector(".floating-cta");
@@ -32,6 +37,37 @@
   ];
 
   if (!header || !routeVeil || !dialog || !openButton || !closeButton) return;
+  header.setAttribute("data-logo-motion", "sequence");
+  const headerLogo = header.querySelector("#header-logo");
+  const desktopNav = header.querySelector("#header-menu-items");
+  const desktopNavList = desktopNav?.querySelector("ul");
+  const measureDesktopNav = () => {
+    if (!desktopNavList) return;
+    const hiddenByBreakpoint = getComputedStyle(desktopNavList).display === "none";
+    const items = [...desktopNavList.children];
+    const listRect = desktopNavList.getBoundingClientRect();
+    const logoRect = headerLogo?.getBoundingClientRect();
+    const menuRect = openButton.getBoundingClientRect();
+    const wraps = items.length > 0
+      && items.some((item) => Math.abs(item.offsetTop - items[0].offsetTop) > 1);
+    const clips = desktopNavList.scrollWidth > desktopNavList.clientWidth + 1;
+    const overlaps = logoRect && (listRect.left < logoRect.right - 1 || listRect.right > menuRect.left + 1);
+    const hidden = hiddenByBreakpoint || items.length === 0 || wraps || clips || overlaps;
+    desktopNav.classList.toggle("is-space-hidden", hidden);
+    desktopNav.inert = hidden;
+    desktopNav.setAttribute("aria-hidden", String(hidden));
+    desktopNav.dataset.navMeasured = "true";
+  };
+  if (desktopNavList && typeof ResizeObserver !== "undefined") {
+    const navResizeObserver = new ResizeObserver(measureDesktopNav);
+    navResizeObserver.observe(header);
+    navResizeObserver.observe(desktopNavList);
+  }
+  if (hasGsap) {
+    gsap.registerEase("expo.out", (progress) =>
+      progress === 1 ? 1 : 1 - 2 ** (-10 * progress),
+    );
+  }
   if (hasGsap && !reduceMotion) {
     document.documentElement.classList.add("motion-enabled");
   }
@@ -52,11 +88,18 @@
   let toneRanges = [];
   let ticking = false;
   let lastScrollY = 0;
+  let lastMaxScroll = 0;
   let directionStartY = 0;
   let lastDirection = "";
+  let lastHeaderCollapsed;
   let currentHeaderColor = "";
   let routeTimeline;
   let routeInFlight = false;
+  let routeDestinationReady = false;
+  let routeMountReady = false;
+  let headerBrandColorFrame;
+  let headerBrandColorActivationFrame;
+  let lastHeaderWhiteSurface;
   let hardFallbackPending = false;
   let menuTimeline;
   let menuPageTween;
@@ -69,7 +112,9 @@
 
   const getRouteLocale = () => document.documentElement.dataset.routeLocale;
   const getPageScroll = () =>
-    pageState?.smoothScroll ? pageState.smoothScrollY : window.scrollY;
+    pageState?.smoothScroll
+      ? Math.max(pageState.smoothScrollY, window.scrollY)
+      : window.scrollY;
   const getPageChildren = () =>
     pageState ? [...pageState.container.children] : [];
   const getDominantSection = () => {
@@ -185,6 +230,7 @@
 
   const applyLanguage = (language, persist = true, translate = true) => {
     currentLanguage = language === "en" ? "en" : "vi";
+    if (translate) window.TruongThinhDetail?.revertSplitText?.();
     document.documentElement.lang = currentLanguage;
     if (translate) translateTree(document.documentElement, currentLanguage);
     updateLanguageControls();
@@ -200,6 +246,10 @@
       }),
     );
     scheduleTextMaskMeasurement();
+    if (!translate) return Promise.resolve();
+    return Promise.resolve(document.fonts?.ready)
+      .catch(() => undefined)
+      .then(() => window.TruongThinhDetail?.rebuildSplitText?.());
   };
 
   const setLanguageFromDocument = () => {
@@ -222,37 +272,73 @@
     if (currentHeaderColor === color && !immediate) return;
     const isInitialColor = currentHeaderColor === "";
     currentHeaderColor = color;
-    const fillTargets = [...header.querySelectorAll(".brand-mark path")];
     const colorTargets = [
-      header.querySelector(".brand-copy"),
+      headerLogo,
       ...header.querySelectorAll(".desktop-nav a"),
       header.querySelector(".menu-button"),
-    ].filter(Boolean);
-    const strokeTargets = [...header.querySelectorAll(".menu-button line")];
-    const targets = [...fillTargets, ...colorTargets, ...strokeTargets];
-    const routeTransitionActive =
-      document.body.classList.contains("is-transitioning") ||
-      document.documentElement.classList.contains("route-enter");
+    ].filter((target) => target instanceof HTMLElement);
+    const strokeTargets = [
+      ...header.querySelectorAll(".menu-button line"),
+    ].filter((target) => target instanceof SVGElement);
+    const targets = [...colorTargets, ...strokeTargets];
     if (
       immediate ||
       isInitialColor ||
-      routeTransitionActive ||
       !hasGsap ||
       reduceMotion
     ) {
-      if (hasGsap) window.gsap.killTweensOf(targets);
-      fillTargets.forEach((target) => target.style.setProperty("fill", color));
+      if (hasGsap) gsap.killTweensOf(targets);
       colorTargets.forEach((target) => target.style.setProperty("color", color));
       strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
       return;
     }
-    window.gsap.killTweensOf(targets);
-    window.gsap
+    gsap.killTweensOf(targets);
+    gsap
       .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: true } })
-      .to(fillTargets, { fill: color }, 0)
       .to(colorTargets, { color }, 0)
       .to(strokeTargets, { stroke: color }, 0);
   };
+
+  /**
+   * @param {DOMRect | null} beforeRect
+   */
+  function playHeaderLockupScaleMotion(beforeRect) {
+    if (
+      reduceMotion ||
+      !hasGsap ||
+      !(headerLogo instanceof HTMLElement) ||
+      !beforeRect
+    ) {
+      return;
+    }
+    const afterRect = headerLogo.getBoundingClientRect();
+    const sizeChanged =
+      Math.abs(beforeRect.width - afterRect.width) > 0.5 ||
+      Math.abs(beforeRect.height - afterRect.height) > 0.5;
+    if (!sizeChanged || afterRect.width <= 0 || afterRect.height <= 0) return;
+
+    gsap.killTweensOf(headerLogo, "transform");
+    gsap.fromTo(
+      headerLogo,
+      {
+        x: beforeRect.left - afterRect.left,
+        y: beforeRect.top - afterRect.top,
+        scaleX: beforeRect.width / afterRect.width,
+        scaleY: beforeRect.height / afterRect.height,
+        transformOrigin: "top left",
+      },
+      {
+        x: 0,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 0.3,
+        ease: "expo.out",
+        overwrite: "auto",
+        clearProps: "transform",
+      },
+    );
+  }
 
   const updateToneRanges = () => {
     if (!pageState) {
@@ -282,14 +368,29 @@
     )?.section;
     const collapsed = scrollY > 100;
     const ink =
-      routeTransitionActive ||
+      (routeTransitionActive && !routeDestinationReady) ||
       collapsed ||
       activeSection?.dataset.headerTone === "ink";
+    const collapsedChanged =
+      lastHeaderCollapsed !== undefined && lastHeaderCollapsed !== collapsed;
+    const logoBeforeRect =
+      collapsedChanged && headerLogo instanceof HTMLElement
+        ? headerLogo.getBoundingClientRect()
+        : null;
     header.classList.toggle("is-ink", ink);
+    header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-collapsed", collapsed);
     colorHeader(ink ? "#2f2f2f" : "#ffffff");
+    if (activeSection || routeTransitionActive || collapsed) {
+      syncHeaderBrandSurface(ink);
+    }
+    if (collapsedChanged) {
+      playHeaderLockupScaleMotion(logoBeforeRect);
+    }
+    lastHeaderCollapsed = collapsed;
 
     const pageHeight = document.documentElement.scrollHeight;
+    const maxScroll = Math.max(0, pageHeight - window.innerHeight);
     const nextCtaShown =
       scrollY <= window.innerHeight ||
       scrollY >= pageHeight - window.innerHeight * 1.75;
@@ -297,31 +398,42 @@
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta.classList.toggle("show", nextCtaShown);
     }
+    if (pageState?.scrollCue instanceof HTMLElement) {
+      const cueHidden = scrollY > 200;
+      pageState.scrollCue.classList.toggle("is-hidden", cueHidden);
+      pageState.scrollCue.tabIndex = cueHidden ? -1 : 0;
+    }
 
     if (routeTransitionActive) {
       header.classList.remove("is-hidden");
     } else if (!document.body.classList.contains("menu-open")) {
-      const direction =
-        scrollY > lastScrollY
-          ? "down"
-          : scrollY < lastScrollY
-            ? "up"
-            : lastDirection;
-      if (direction && direction !== lastDirection) {
-        directionStartY = scrollY;
-        lastDirection = direction;
-      }
-      const isMiddle =
-        scrollY > window.innerHeight * 0.5 &&
-        scrollY < pageHeight - window.innerHeight * 1.25;
+      const clampedByLayout =
+        maxScroll < lastMaxScroll - 1 &&
+        scrollY >= maxScroll - 2;
+      const isMiddle = scrollY > window.innerHeight * 0.5;
       if (!isMiddle) header.classList.remove("is-hidden");
-      else if (direction === "down" && scrollY - directionStartY > 150) {
-        header.classList.add("is-hidden");
-      } else if (direction === "up" && directionStartY - scrollY > 150) {
-        header.classList.remove("is-hidden");
+      if (clampedByLayout) {
+        directionStartY = maxScroll;
+      } else {
+        const direction =
+          scrollY > lastScrollY + 1
+            ? "down"
+            : scrollY < lastScrollY - 1
+              ? "up"
+              : lastDirection;
+        if (direction && direction !== lastDirection) {
+          directionStartY = scrollY;
+          lastDirection = direction;
+        }
+        if (isMiddle && direction === "down" && scrollY - directionStartY > 150) {
+          header.classList.add("is-hidden");
+        } else if (isMiddle && direction === "up" && directionStartY - scrollY > 150) {
+          header.classList.remove("is-hidden");
+        }
       }
     }
-    lastScrollY = scrollY;
+    lastScrollY = Math.min(scrollY, maxScroll);
+    lastMaxScroll = maxScroll;
     ticking = false;
   };
 
@@ -330,23 +442,105 @@
     ticking = true;
     window.requestAnimationFrame(() => updateHeader());
   };
+  const cancelHeaderBrandColorFrames = () => {
+    window.cancelAnimationFrame(headerBrandColorFrame);
+    window.cancelAnimationFrame(headerBrandColorActivationFrame);
+    headerBrandColorFrame = undefined;
+    headerBrandColorActivationFrame = undefined;
+  };
+  const setHeaderBrandInverse = () => {
+    cancelHeaderBrandColorFrames();
+    header.classList.remove("is-brand-color");
+    header.classList.add("is-brand-inverse");
+    if (lastHeaderWhiteSurface !== undefined) {
+      header.classList.remove("is-brand-color-reset");
+      return;
+    }
+    header.classList.add("is-brand-color-reset");
+    void header.offsetWidth;
+    headerBrandColorFrame = window.requestAnimationFrame(() => {
+      headerBrandColorFrame = undefined;
+      header.classList.remove("is-brand-color-reset");
+    });
+  };
+  const setHeaderBrandColor = () => {
+    cancelHeaderBrandColorFrames();
+    header.classList.remove("is-brand-color-reset", "is-brand-inverse");
+    header.classList.add("is-brand-color");
+  };
+  const replayHeaderBrandColor = () => {
+    cancelHeaderBrandColorFrames();
+    header.classList.remove("is-brand-color", "is-brand-inverse");
+    header.classList.add("is-brand-color-reset");
+    void header.offsetWidth;
+    headerBrandColorFrame = window.requestAnimationFrame(() => {
+      headerBrandColorFrame = undefined;
+      header.classList.remove("is-brand-color-reset");
+      headerBrandColorActivationFrame = window.requestAnimationFrame(() => {
+        headerBrandColorActivationFrame = undefined;
+        header.classList.add("is-brand-color");
+      });
+    });
+  };
+  function syncHeaderBrandSurface(whiteSurface, { replay = false } = {}) {
+    if (whiteSurface) {
+      if (replay || lastHeaderWhiteSurface === undefined) {
+        replayHeaderBrandColor();
+      } else if (
+        lastHeaderWhiteSurface !== true ||
+        !header.classList.contains("is-brand-color")
+      ) {
+        setHeaderBrandColor();
+      }
+    } else if (
+      lastHeaderWhiteSurface !== false ||
+      !header.classList.contains("is-brand-inverse")
+    ) {
+      setHeaderBrandInverse();
+    }
+    lastHeaderWhiteSurface = whiteSurface;
+  };
+  const prepareRouteDestination = (container) => {
+    routeDestinationReady = true;
+    const destinationWhiteSurface =
+      container?.querySelector("[data-header-tone]")?.dataset.headerTone === "ink";
+    syncHeaderBrandSurface(destinationWhiteSurface);
+    return destinationWhiteSurface;
+  };
+  const releaseHeaderInteractionState = () => {
+    const activeElement = document.activeElement;
+    if (
+      activeElement instanceof HTMLElement &&
+      header.contains(activeElement)
+    ) {
+      activeElement.blur();
+    }
+    header.classList.remove("forceShow");
+  };
   const pinHeaderForRoute = () => {
     header.style.transitionDuration = "0s";
     header.classList.remove("is-hidden");
     header.classList.add("is-route-pinned", "is-ink");
+    routeDestinationReady = false;
     colorHeader("#2f2f2f");
+    syncHeaderBrandSurface(true);
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
-  const requestLayoutUpdate = () =>
-    window.requestAnimationFrame(() => {
+  let layoutUpdateFrame;
+  const requestLayoutUpdate = () => {
+    if (layoutUpdateFrame) return;
+    layoutUpdateFrame = window.requestAnimationFrame(() => {
+      layoutUpdateFrame = undefined;
+      measureDesktopNav();
       pageState?.smoothScroll?.update();
       updateToneRanges();
       updateHeader();
       scheduleTextMaskMeasurement();
     });
+  };
 
-  const setPageScroll = (state, scrollY) => {
+  const setPageScroll = (state, scrollY, { instant = false } = {}) => {
     const maxScroll = Math.max(
       0,
       document.documentElement.scrollHeight - window.innerHeight,
@@ -355,23 +549,60 @@
     state.smoothScrollY = nextScroll;
     if (state.smoothScroll) {
       window.scrollTo(0, 0);
+      // Query navigation may replace a short detail with the much taller grid.
+      state.smoothScroll.update();
       state.smoothScroll.scrollTo(nextScroll, {
         duration: 0,
         disableLerp: true,
       });
+      // Locomotive 4.1.4 can defer a zero-duration scroll by one frame.
+      if (instant) state.smoothScroll.setScroll(0, nextScroll);
       state.smoothScroll.update();
     } else {
-      window.scrollTo(0, nextScroll);
+      window.scrollTo({ top: nextScroll, left: 0, behavior: instant ? "instant" : "auto" });
     }
     lastScrollY = nextScroll;
     updateToneRanges();
     updateHeader(nextScroll);
+  };
+  let logicalScrollLock;
+  window.TruongThinhMotion = {
+    ...(window.TruongThinhMotion || {}),
+    getLogicalScroll: getPageScroll,
+    lockLogicalScroll() {
+      if (logicalScrollLock) return logicalScrollLock.scrollY;
+      logicalScrollLock = {
+        bodyOverflow: document.body.style.overflow,
+        htmlOverflow: document.documentElement.style.overflow,
+        scrollY: getPageScroll(),
+      };
+      pageState?.smoothScroll?.stop?.();
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      return logicalScrollLock.scrollY;
+    },
+    setLogicalScroll(scrollY) {
+      if (!pageState) return false;
+      setPageScroll(pageState, scrollY, { instant: true });
+      return true;
+    },
+    unlockLogicalScroll(scrollY = logicalScrollLock?.scrollY) {
+      if (!logicalScrollLock) return false;
+      const lock = logicalScrollLock;
+      logicalScrollLock = undefined;
+      document.body.style.overflow = lock.bodyOverflow;
+      document.documentElement.style.overflow = lock.htmlOverflow;
+      pageState?.smoothScroll?.start?.();
+      if (pageState) setPageScroll(pageState, scrollY, { instant: true });
+      return true;
+    },
   };
 
   const initSmoothScroll = (state, scrollY) => {
     if (
       reduceMotion ||
       !smoothMedia.matches ||
+      document.body.classList.contains("menu-open") ||
       typeof window.LocomotiveScroll === "undefined"
     ) {
       window.scrollTo(0, scrollY);
@@ -388,27 +619,56 @@
     });
     state.smoothScroll.on("scroll", ({ scroll }) => {
       state.smoothScrollY = scroll.y;
+      window.dispatchEvent(
+        new CustomEvent("site:scroll", { detail: { y: scroll.y } }),
+      );
       updateHeader(scroll.y);
     });
     state.smoothScroll.update();
   };
 
-  const destroySmoothScroll = (state) => {
-    if (!state.smoothScroll) return;
-    const scrollY = state.smoothScrollY;
-    state.smoothScroll.stop();
-    state.smoothScroll.destroy();
-    state.smoothScroll = undefined;
+  const clearSmoothScrollStyles = (state, scrollY) => {
     document.documentElement.classList.remove(
       "has-scroll-init",
       "has-scroll-smooth",
       "has-scroll-scrolling",
       "has-scroll-dragging",
     );
-    state.container.style.transform = "";
-    state.container.style.willChange = "";
-    document.body.style.height = "";
+    state.container.style.removeProperty("transform");
+    state.container.style.removeProperty("will-change");
+    state.container.querySelectorAll("[data-scroll]").forEach((element) => {
+      element.style.removeProperty("transform");
+      element.style.removeProperty("will-change");
+    });
+    document.body.style.removeProperty("height");
     window.scrollTo(0, scrollY);
+  };
+
+  const destroySmoothScroll = (state) => {
+    const scrollY = state.smoothScrollY;
+    if (state.smoothScroll) {
+      state.smoothScroll.stop();
+      state.smoothScroll.destroy();
+      state.smoothScroll = undefined;
+    }
+    clearSmoothScrollStyles(state, scrollY);
+
+    let cleanupFrames = 2;
+    const finishNativeCleanup = () => {
+      if (
+        state.smoothScroll ||
+        state.abort.signal.aborted ||
+        !state.container.isConnected
+      ) {
+        return;
+      }
+      clearSmoothScrollStyles(state, scrollY);
+      cleanupFrames -= 1;
+      if (cleanupFrames > 0) {
+        window.requestAnimationFrame(finishNativeCleanup);
+      }
+    };
+    window.requestAnimationFrame(finishNativeCleanup);
   };
 
   const hydrateDeferredHeroImages = (state) => {
@@ -455,6 +715,27 @@
     const clientLogoTrack = state.container.querySelector(
       ".client-logo-marquee__track",
     );
+    const scrollCue = state.container.querySelector("[data-scroll-cue]");
+    const scrollTarget = state.hero?.nextElementSibling;
+    state.scrollCue = scrollCue;
+    scrollCue?.addEventListener(
+      "click",
+      () => {
+        if (!(scrollTarget instanceof HTMLElement)) return;
+        if (state.smoothScroll) {
+          state.smoothScroll.scrollTo(scrollTarget, {
+            duration: reduceMotion ? 0 : 900,
+            disableLerp: reduceMotion,
+          });
+        } else {
+          scrollTarget.scrollIntoView({
+            behavior: reduceMotion ? "auto" : "smooth",
+            block: "start",
+          });
+        }
+      },
+      { signal: state.abort.signal },
+    );
     let clientLogoInView = false;
     const syncClientLogoMotion = () => {
       clientLogoTrack?.classList.toggle(
@@ -484,10 +765,12 @@
     const gsap = window.gsap;
     const observers = [];
     const timelines = new Set();
+    let scrollCueSplit;
     const context = gsap.context(() => {
       const selectAll = (selector) => [...state.container.querySelectorAll(selector)];
       const revealItems = selectAll(".reveal");
       const revealGroups = selectAll(".legacy-copy h2");
+      const legacyLabels = selectAll(".legacy-copy > p");
       const heritageTextMasks = selectAll(".heritage-text");
       const heritageImages = selectAll(".heritage-image");
       const portalCards = selectAll(".service-portal");
@@ -509,6 +792,50 @@
       const heroLabels = selectAll("[data-hero-label]");
       const heroShade = state.hero?.querySelector(".hero-shade");
       const motionToggle = state.container.querySelector("[data-motion-toggle]");
+      const scrollCueLabel = scrollCue?.querySelector("[data-scroll-cue-label]");
+      const splitCueRoute = new Set([
+        "advertising-products",
+        "residential",
+        "commercial",
+      ]).has(state.container.dataset.barbaNamespace);
+      let scrollCueTimeline;
+      const buildScrollCueTimeline = () => {
+        if (!(scrollCueLabel instanceof HTMLElement)) return;
+        scrollCueTimeline?.kill();
+        if (scrollCueTimeline) timelines.delete(scrollCueTimeline);
+        scrollCueSplit?.revert();
+        const characters = splitCueRoute && SplitText
+          ? (scrollCueSplit = SplitText.create(scrollCueLabel, {
+              type: "chars",
+              charsClass: "scroll-cue-char",
+              aria: "auto",
+            })).chars
+          : [...scrollCueLabel.textContent].map((character, index) => {
+              if (index === 0) scrollCueLabel.replaceChildren();
+              const item = document.createElement("span");
+              item.className = "scroll-cue-char";
+              item.textContent = character;
+              scrollCueLabel.append(item);
+              return item;
+            });
+        scrollCueTimeline = gsap
+          .timeline({ delay: 3, repeat: -1, repeatDelay: 3 })
+          .from(characters, {
+            top: -20,
+            opacity: 0,
+            duration: 0.4,
+            stagger: { each: 0.1 },
+          })
+          .to(characters, {
+            top: 20,
+            opacity: 0,
+            duration: 0.4,
+            delay: 3,
+            stagger: { each: 0.1 },
+          });
+        timelines.add(scrollCueTimeline);
+      };
+      buildScrollCueTimeline();
       const heritageLines = heritageTextMasks
         .map((mask) => mask.querySelector(".heritage-line"))
         .filter(Boolean);
@@ -517,6 +844,7 @@
         revealGroups.forEach((group) =>
           gsap.set(group.querySelectorAll(".line-mask > span"), { y: "-0.1em" }),
         );
+        legacyLabels.forEach((label) => label.classList.add("is-inview"));
         if (heritageLines.length) gsap.set(heritageLines, { y: "-0.1em" });
         portalTitles.forEach(({ card, lines }) =>
           gsap.set(
@@ -560,7 +888,9 @@
               y: "-0.1em",
               duration: 1.9,
               ease: "power4.out",
+              stagger: 0.1,
             });
+            target.closest(".legacy-copy")?.querySelector(":scope > p")?.classList.add("is-inview");
           }
           observer.unobserve(target);
         });
@@ -681,6 +1011,7 @@
         );
       }
       const slides = selectAll(".hero-slide");
+      const carouselEnabled = slides.length > 1;
       let heroIntroPending = Boolean(
         state.hero?.hasAttribute("data-hero-intro") &&
           !settledStartup &&
@@ -707,7 +1038,7 @@
         const slide = slides[index];
         const nextIndex = (index + 1) % slides.length;
         const next = slides[nextIndex];
-        const introOffset = heroIntroPending && index === 0 ? 1.3 : 0;
+        const introOffset = heroIntroPending && index === 0 ? 1 : 0;
         heroIntroPending = false;
         const timeline = gsap.timeline({
           paused: userPaused || document.hidden || !heroInView,
@@ -769,6 +1100,10 @@
           if (pagePaused || !heroInView) timeline.pause();
           else timeline.resume();
         });
+        if (scrollCueTimeline) {
+          if (pagePaused || !heroInView) scrollCueTimeline.pause();
+          else scrollCueTimeline.resume();
+        }
         if (motionToggle) {
           const label =
             currentLanguage === "en"
@@ -803,6 +1138,9 @@
         if (!section) return false;
         const sectionReveals = revealItems.filter((item) => isInside(section, item));
         const sectionGroups = revealGroups.filter((group) => isInside(section, group));
+        const sectionLegacyLabels = legacyLabels.filter((label) =>
+          isInside(section, label),
+        );
         const sectionHeritageLines = heritageLines.filter((line) =>
           isInside(section, line),
         );
@@ -822,6 +1160,7 @@
         const hasSectionMotion = Boolean(
           sectionReveals.length ||
             sectionGroups.length ||
+            sectionLegacyLabels.length ||
             sectionHeritageLines.length ||
             sectionHeritageImages.length ||
             sectionPortalTitles.length ||
@@ -851,6 +1190,7 @@
         sectionGroups.forEach((group) =>
           gsap.set(group.querySelectorAll(".line-mask > span"), { y: "2em" }),
         );
+        sectionLegacyLabels.forEach((label) => label.classList.remove("is-inview"));
         if (sectionHeritageLines.length) {
           gsap.set(sectionHeritageLines, { y: "2em" });
         }
@@ -881,8 +1221,10 @@
               y: "-0.1em",
               duration: 1.9,
               ease: "power4.out",
+              stagger: 0.1,
             }),
           );
+          sectionLegacyLabels.forEach((label) => label.classList.add("is-inview"));
           sectionHeritageLines.forEach((line) =>
             gsap.to(line, {
               y: "-0.1em",
@@ -916,7 +1258,7 @@
             card.classList.add("is-subtitle-inview"),
           );
           sectionProjectTrack?.classList.add("is-inview");
-          if (isInside(section, state.hero)) {
+          if (carouselEnabled && isInside(section, state.hero)) {
             heroTimelines.forEach((timeline) => {
               timeline.kill();
               timelines.delete(timeline);
@@ -947,10 +1289,13 @@
       document.addEventListener("visibilitychange", syncMotionState, {
         signal: state.abort.signal,
       });
-      window.addEventListener("languagechange", syncMotionState, {
+      window.addEventListener("languagechange", () => {
+        buildScrollCueTimeline();
+        syncMotionState();
+      }, {
         signal: state.abort.signal,
       });
-      startSlide(0);
+      if (carouselEnabled) startSlide(0);
       syncMotionState();
       state.stopCarousel = () => {
         carouselStopped = true;
@@ -967,6 +1312,7 @@
       state.stopCarousel?.();
       observers.forEach((observer) => observer.disconnect());
       timelines.forEach((timeline) => timeline.kill());
+      scrollCueSplit?.revert();
       context.revert();
     };
   };
@@ -986,7 +1332,7 @@
     toneRanges = [];
   };
 
-  const mountPage = (
+  const mountPage = async (
     container,
     {
       enteredViaRoute = false,
@@ -1006,6 +1352,7 @@
     };
     pageState = state;
     lastScrollY = state.smoothScrollY;
+    lastMaxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     directionStartY = state.smoothScrollY;
     lastDirection = "";
 
@@ -1024,7 +1371,12 @@
     watchWhiteOverlayMedia(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY);
-    window.TruongThinhDetail?.mount(container, { settled: settledStartup });
+    await window.TruongThinhDetail?.mount(container, { settled: settledStartup });
+    if (
+      pageState !== state ||
+      state.abort.signal.aborted ||
+      !state.container.isConnected
+    ) return false;
     state.motionCleanup = mountPageMotion(
       state,
       enteredViaRoute,
@@ -1045,7 +1397,7 @@
     updateHeader(state.smoothScrollY);
     scheduleTextMaskMeasurement();
 
-    return true;
+    return pageState === state && !state.abort.signal.aborted && state.container.isConnected;
   };
 
   const resetMenuVisuals = () => {
@@ -1075,6 +1427,53 @@
     );
   };
 
+  const setReducedMenuState = (opened) => {
+    if (!reduceMotion) return;
+    const setMotion = (elements, opacity, transform) => {
+      elements.filter(Boolean).forEach((element) => {
+        element.style.opacity = String(opacity);
+        element.style.transform = transform;
+      });
+    };
+    const menuNav = dialog.querySelector(".menu-nav");
+    const menuGroups = [...dialog.querySelectorAll(".menu-group")];
+    const menuDetailItems = [
+      ...dialog.querySelectorAll(
+        ".menu-group__number, .menu-group__title, .menu-option",
+      ),
+    ];
+    dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
+      shutter.style.height = opened ? "100vh" : "0px";
+    });
+    setMotion(
+      [dialog.querySelector(".menu-brand")],
+      opened ? 1 : 0,
+      opened ? "translateY(0px)" : "translateY(-140px)",
+    );
+    setMotion(
+      [
+        ...dialog.querySelectorAll(".menu-language > [data-language-option]"),
+        dialog.querySelector(".menu-appointment"),
+        ...menuDetailItems,
+      ],
+      opened ? 1 : 0,
+      opened ? "translateY(0px)" : "translateY(-20px)",
+    );
+    setMotion(
+      menuGroups,
+      opened ? 1 : 0,
+      opened ? "translateY(0px)" : "translateY(-140px)",
+    );
+    setMotion([menuNav], opened ? 1 : 0, "none");
+    setMotion(
+      [dialog.querySelector(".menu-close__icon")],
+      opened ? 1 : 0,
+      opened ? "rotate(0deg)" : "rotate(90deg)",
+    );
+  };
+
+  setReducedMenuState(false);
+
   const finishClose = (restoreFocus = true) => {
     window.clearTimeout(menuCloseTimer);
     menuCloseTimer = undefined;
@@ -1083,13 +1482,27 @@
     document.body.classList.remove("menu-open");
     openButton.setAttribute("aria-expanded", "false");
     header.classList.remove("is-hidden");
-    pageState?.smoothScroll?.start();
-    if (!hasGsap || reduceMotion) resetMenuVisuals();
+    if (pageState?.smoothScroll) {
+      pageState.smoothScroll.start();
+    } else if (pageState && smoothMedia.matches && !reduceMotion) {
+      const scrollY = pageState.smoothScrollY;
+      initSmoothScroll(pageState, scrollY);
+      setPageScroll(pageState, scrollY);
+    }
+    if (reduceMotion) {
+      setReducedMenuState(false);
+    } else if (!hasGsap) {
+      resetMenuVisuals();
+      dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
+        shutter.style.height = "100vh";
+      });
+    }
     const resolve = resolveMenuClose;
     resolveMenuClose = undefined;
     menuClosePromise = undefined;
     resolve?.();
     if (restoreFocus && !routeInFlight) openButton.focus({ preventScroll: true });
+    window.dispatchEvent(new CustomEvent("site:menu-closed"));
   };
 
   const closeMenu = (restoreFocus = true) => {
@@ -1138,6 +1551,7 @@
         shutter.style.height = "100vh";
       });
       dialog.querySelector(".menu-nav")?.style.setProperty("opacity", "1");
+      setReducedMenuState(true);
       closeButton.focus();
       return;
     }
@@ -1166,7 +1580,6 @@
     window.gsap.set(menuNav, { opacity: 0 });
     window.gsap.set(menuGroups, { y: -140, yPercent: 0, opacity: 0 });
     window.gsap.set(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 });
-    const menuCoverageAt = 0.6 + Math.max(0, shutters.length - 1) * 0.15;
     menuPageTween = window.gsap.to(getPageChildren(), {
       scale: 0.9,
       duration: 0.7,
@@ -1184,13 +1597,13 @@
         { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
         0,
       )
-      .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, menuCoverageAt)
-      .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, menuCoverageAt + 0.3)
-      .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, menuCoverageAt + 0.3)
-      .fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, menuCoverageAt + 0.45)
-      .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, menuCoverageAt)
-      .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, menuCoverageAt)
-      .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, menuCoverageAt + 0.5)
+      .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
+      .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
+      .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
+      .fromTo(menuCloseIcon, { opacity: 0, rotation: 90 }, { opacity: 1, rotation: 0, duration: 0.6, ease: "expo.out" }, 1.4)
+      .fromTo(menuNav, { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.05)
+      .fromTo(menuGroups, { y: -140, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: 0.02 }, 1.1)
+      .fromTo(menuDetailItems, { y: -20, yPercent: 0, opacity: 0 }, { y: 0, yPercent: 0, opacity: 1, duration: 0.6, ease: "expo.out", stagger: 0.03 }, 1.35)
       .timeScale(1.15)
       .play(0);
   };
@@ -1204,6 +1617,8 @@
     routeTimeline?.kill();
     routeTimeline = undefined;
     routeInFlight = false;
+    routeDestinationReady = false;
+    routeMountReady = false;
     document.documentElement.classList.remove("route-enter");
     document.body.classList.remove("is-transitioning");
     header.classList.remove("is-route-pinned");
@@ -1215,6 +1630,7 @@
 
   const coverRoute = (waitFor) => {
     routeInFlight = true;
+    routeMountReady = false;
     pinHeaderForRoute();
     document.body.classList.add("is-transitioning");
     pageState?.smoothScroll?.stop();
@@ -1241,7 +1657,8 @@
       return Promise.resolve();
     }
     routeTimeline?.kill();
-    pinHeaderForRoute();
+    header.classList.remove("is-hidden");
+    header.classList.add("is-route-pinned");
     document.body.classList.add("is-transitioning");
     setRouteVeil(1);
     return new Promise((resolve) => {
@@ -1553,10 +1970,9 @@
       document.documentElement.style.overflowAnchor = "none";
       let replay;
       try {
-        applyLanguage(nextLanguage);
+        await applyLanguage(nextLanguage);
         updateLocaleLinks(nextLanguage);
         updateLocaleHead(url, nextLanguage);
-        await Promise.resolve(document.fonts?.ready).catch(() => undefined);
         await nextFrame();
         await nextFrame();
         replay = await replayVisibleSection(section);
@@ -1584,6 +2000,10 @@
     "click",
     (event) => {
       const languageOption = event.target.closest("[data-language-option]");
+      if (
+        languageOption
+        && (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+      ) return;
       if (languageOption) {
         event.preventDefault();
         const nextLanguage = languageOption.dataset.languageOption;
@@ -1601,7 +2021,78 @@
       }
       const destination = new URL(link.href, window.location.href);
       if (destination.origin !== window.location.origin) return;
+      const plainPrimaryClick = event.button === 0
+        && !event.altKey
+        && !event.ctrlKey
+        && !event.metaKey
+        && !event.shiftKey;
+      const persistentNavbarLink = link.matches(
+        "[data-site-header] .desktop-nav a, #site-menu .menu-group__title",
+      );
+      const persistentAdvertisingLink = persistentNavbarLink
+        && /^\/(?:vi|en)\/advertising-products\/?$/.test(destination.pathname);
+      const currentParentLink = plainPrimaryClick
+        && persistentNavbarLink
+        && !link.target
+        && !link.hasAttribute("download")
+        && /^\/(?:vi|en)\/(?:residential|commercial|advertising-products)\/?$/.test(
+          window.location.pathname,
+        )
+        && normalizePathname(destination.pathname) === normalizePathname(window.location.pathname)
+        && (!persistentAdvertisingLink || destination.search === window.location.search)
+        && !new URL(window.location.href).searchParams.has("photo");
+      if (currentParentLink) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const returnToTop = () => setPageScroll(pageState, 0);
+        if (link.closest("#site-menu")) {
+          setPageScroll(pageState, 0, { instant: true });
+          void closeMenu(false);
+        } else {
+          returnToTop();
+        }
+        return;
+      }
       if (
+        plainPrimaryClick
+        && persistentAdvertisingLink
+        && !link.target
+        && !link.hasAttribute("download")
+        && destination.pathname === window.location.pathname
+        && destination.search === ""
+        && destination.search !== window.location.search
+        && window.TruongThinhAdvertising?.getAdapter?.()
+      ) {
+        const navigateToAdvertisingParent = () => {
+          if (window.TruongThinhAdvertising?.navigateQuery?.(
+            destination.href,
+            { reason: "navbar" },
+          )) {
+            return true;
+          }
+          if (window.barba?.go) {
+            window.barba.go(destination.href);
+          } else {
+            window.location.assign(destination.href);
+          }
+          return true;
+        };
+        if (link.closest("#site-menu")) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          void closeMenu(false).then(navigateToAdvertisingParent);
+          return;
+        }
+        if (navigateToAdvertisingParent()) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+      }
+      if (
+        plainPrimaryClick &&
+        !link.target &&
+        !link.hasAttribute("download") &&
         link.matches(currentRouteLinkSelector) &&
         isExactCurrentUrl(destination)
       ) {
@@ -1649,6 +2140,15 @@
     (event) => {
       const link = event.target?.closest?.("a[href]");
       if (!link || !dialog.contains(link)) return;
+      if (
+        event.button !== 0 ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        link.target ||
+        link.hasAttribute("download")
+      ) return;
       const destination = new URL(link.href, window.location.href);
       if (
         link.matches(currentRouteLinkSelector) &&
@@ -1676,8 +2176,11 @@
     signal: runtimeAbort.signal,
   });
   document.addEventListener(
-    "pointermove",
-    (event) => header.classList.toggle("forceShow", event.screenY <= 350),
+    "mousemove",
+    (event) => {
+      const canForceShow = headerHoverMedia.matches && event.screenY <= 350;
+      header.classList.toggle("forceShow", canForceShow);
+    },
     { passive: true, signal: runtimeAbort.signal },
   );
   smoothMedia.addEventListener(
@@ -1691,6 +2194,9 @@
     },
     { signal: runtimeAbort.signal },
   );
+  document.fonts?.addEventListener("loadingdone", requestLayoutUpdate, {
+    signal: runtimeAbort.signal,
+  });
   document.fonts?.addEventListener("loadingdone", scheduleTextMaskMeasurement, {
     signal: runtimeAbort.signal,
   });
@@ -1700,6 +2206,7 @@
   });
 
   setLanguageFromDocument();
+  measureDesktopNav();
   const directUrl = new URL(window.location.href);
   window.history.replaceState(
     window.history.state,
@@ -1715,14 +2222,117 @@
   const directContainer = document.querySelector('[data-barba="container"]');
   const settledStartup = window.__ttMotionBoot?.fallback === true;
   const enteredViaRoute = document.documentElement.classList.contains("route-enter");
-  mountPage(directContainer, {
+  let pendingAdvertisingFilter;
+  let advertisingFilterQueueEnabled =
+    directContainer?.dataset.barbaNamespace === "advertising-products";
+  const clearPendingAdvertisingFilter = () => {
+    pendingAdvertisingFilter = undefined;
+    advertisingFilterQueueEnabled = false;
+  };
+  const replayPendingAdvertisingFilter = () => {
+    const intent = pendingAdvertisingFilter;
+    clearPendingAdvertisingFilter();
+    if (!intent) return;
+    const control = directContainer.querySelector(
+      `[data-advertising-filter="${CSS.escape(intent.filter)}"]`,
+    );
+    if (control instanceof HTMLElement) {
+      control.click();
+      return;
+    }
+    hardNavigate(intent.href);
+  };
+  document.addEventListener("click", (event) => {
+    if (!advertisingFilterQueueEnabled || window.TruongThinhAdvertising?.getAdapter?.()) return;
+    const control = event.target instanceof Element
+      ? event.target.closest("[data-advertising-filter]")
+      : null;
+    const link = control?.closest("a[href]");
+    if (
+      !control
+      || !link
+      || !directContainer?.contains(control)
+      || event.button !== 0
+      || event.altKey
+      || event.ctrlKey
+      || event.metaKey
+      || event.shiftKey
+      || link.target
+      || link.hasAttribute("download")
+    ) return;
+    const destination = new URL(link.href, window.location.href);
+    if (
+      destination.origin !== window.location.origin
+      || normalizePathname(destination.pathname) !== normalizePathname(window.location.pathname)
+    ) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    pendingAdvertisingFilter = {
+      filter: control.dataset.advertisingFilter || "all",
+      href: destination.href,
+    };
+  }, { capture: true, signal: runtimeAbort.signal });
+  if (enteredViaRoute) prepareRouteDestination(directContainer);
+  const directMount = mountPage(directContainer, {
     enteredViaRoute,
     scrollY: directScroll,
     settledStartup,
   });
+  const handleDirectMountFailure = (error) => {
+    const intent = pendingAdvertisingFilter;
+    clearPendingAdvertisingFilter();
+    console.error("[advertising-products] direct dependency readiness failed", error);
+    if (pageState?.container === directContainer) unmountPage();
+    if (directContainer?.dataset.barbaNamespace !== "advertising-products") {
+      hardNavigate(directUrl.href);
+      return;
+    }
+    if (intent) {
+      hardNavigate(intent.href);
+      return;
+    }
+    const grid = directContainer.querySelector("[data-project-grid]");
+    grid?.replaceChildren();
+    if (grid) grid.hidden = true;
+    directContainer.dataset.advertisingFallback = "failed";
+    document.documentElement.classList.add("motion-fallback");
+    clearRouteEntry();
+  };
+  if (enteredViaRoute) {
+    void directMount.then(
+      (mounted) => {
+        if (mounted) replayPendingAdvertisingFilter();
+        else clearPendingAdvertisingFilter();
+        if (mounted) return playRouteEnter();
+        clearRouteEntry();
+      },
+      handleDirectMountFailure,
+    );
+  } else {
+    setRouteVeil(0);
+    void directMount.then(
+      (mounted) => {
+        if (mounted) replayPendingAdvertisingFilter();
+        else clearPendingAdvertisingFilter();
+      },
+      handleDirectMountFailure,
+    );
+  }
 
-  if (enteredViaRoute) playRouteEnter();
-  else setRouteVeil(0);
+  window.addEventListener("popstate", (event) => {
+    const advertising = window.TruongThinhAdvertising;
+    const previousHref = advertising?.getCurrentHref?.() || window.barba?.history?.current?.url;
+    const nextHref = window.location.href;
+    if (!advertising?.canHandlePopState?.(previousHref, nextHref)) return;
+    window.barba?.history?.change?.(nextHref, "popstate", event);
+    const handled = advertising.handlePopState?.(
+      event,
+      previousHref,
+      nextHref,
+    );
+    if (!handled) return;
+    event.stopImmediatePropagation();
+  }, { signal: runtimeAbort.signal });
 
   if (window.barba) {
     try {
@@ -1745,7 +2355,9 @@
             name: "persistent-shell",
             sync: false,
             beforeLeave(data) {
+              releaseHeaderInteractionState();
               pinHeaderForRoute();
+              routeMountReady = false;
               rememberCurrentScroll(data);
             },
             async leave(data) {
@@ -1753,7 +2365,7 @@
               unmountPage();
               data.current.container.hidden = true;
             },
-            beforeEnter(data) {
+            async beforeEnter(data) {
               if (!syncDocumentState(data.next.html)) {
                 const fallbackUrl = new URL(
                   pendingLocaleNavigation?.url.href || data.next.url.href,
@@ -1762,16 +2374,31 @@
                 hardNavigate(fallbackUrl.href);
                 return;
               }
+              if (data.next.container.dataset.barbaNamespace === "advertising-products") {
+                try {
+                  await window.TruongThinhDetail?.ensureAdvertisingDependencies?.(data.next.url.href);
+                } catch (error) {
+                  console.error("[advertising-products] Barba dependency readiness failed", error);
+                  hardNavigate(data.next.url.href);
+                  return;
+                }
+              }
               const nextUrl = new URL(data.next.url.href, window.location.href);
               restorePendingLocaleUrl(nextUrl);
               const scrollY = resolveNextScroll(data);
-              mountPage(data.next.container, {
-                enteredViaRoute: true,
-                scrollY,
-              });
+              prepareRouteDestination(data.next.container);
+              try {
+                routeMountReady = await mountPage(data.next.container, {
+                  enteredViaRoute: true,
+                  scrollY,
+                });
+              } catch (error) {
+                console.error("[advertising-products] destination mount failed", error);
+                hardNavigate(data.next.url.href);
+              }
             },
             async enter() {
-              await playRouteEnter();
+              if (routeMountReady) await playRouteEnter();
             },
             after() {
               if (pendingLocaleNavigation && pageState) {
@@ -1790,11 +2417,14 @@
   window.addEventListener(
     "pageshow",
     (event) => {
-      if (!event.persisted) return;
-      hardFallbackPending = false;
-      routeInFlight = false;
-      finishClose(false);
-      clearRouteEntry();
+      releaseHeaderInteractionState();
+      if (event.persisted) {
+        hardFallbackPending = false;
+        routeInFlight = false;
+        finishClose(false);
+        clearRouteEntry();
+      }
+      header.classList.remove("is-hidden");
       requestLayoutUpdate();
     },
     { signal: runtimeAbort.signal },

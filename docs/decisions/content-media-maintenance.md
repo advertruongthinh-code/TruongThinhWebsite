@@ -16,7 +16,7 @@ related_reports: []
 ## Decision
 
 Mọi thay đổi copy, motto, card/gallery hoặc asset phải đọc
-`docs/product/CONTENT-MEDIA-GUIDE.md`. Thứ tự bảo trì tại thời điểm decision là
+`docs/design/content.md`. Thứ tự bảo trì tại thời điểm decision là
 `/quang-cao/` → `/kinh-doanh/` → `/nha-o/`; đây không phải xếp hạng
 tầm quan trọng của dịch vụ.
 

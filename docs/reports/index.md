@@ -1,41 +1,36 @@
-# Report
+# Report công cụ và compatibility
 
-Report lưu durable research, verification, security và incident evidence. Viết
-report bằng tiếng Việt và có section `## Chú thích thuật ngữ` cho English technical
-term. Raw log và machine-generated state vẫn bị ignore trong `.tooling/`.
+Thư mục này giữ các đường dẫn công cụ đang đọc/ghi. Tài liệu cho người và
+agent bắt đầu tại [verification](../verification/index.md) hoặc
+[baseline Espacio](../reference/espacio/index.md).
 
-## Category
+## Machine reports
 
-| Category | Dùng cho |
+| File | Vai trò |
 | --- | --- |
-| `verification` | Test, bootstrap và acceptance evidence |
-| `research` | Investigation và comparison có source |
-| `security` | Threat review, finding và remediation evidence |
-| `incidents` | Timeline, impact, cause và prevention của failure |
+| [Canonical parity](research-espacio-layout-motion-parity.md) | Verdict fail/blocked/unmapped; hiện NOT PASS |
+| [Pilot](research-espacio-layout-motion-parity-pilot.md) | Subset; runner tạo theo suffix |
+| [Targeted](research-espacio-layout-motion-parity-targeted.md) | Subset; runner tạo theo suffix |
+| [Motion audit](research-espacio-motion-audit.md) | Resource/candidate/runtime ledger |
 
-Tổ chức report bằng prefix category trong tên file, trực tiếp dưới
-`docs/reports/`; không tạo thư mục con. Link spec và decision liên quan bằng
-descriptive path; không dùng numeric document code.
+CSV và backup ở path hiện tại, Git ignore; chúng có consumer thật và không
+phải file thừa. Không rename hoặc hand-edit machine report khi gom docs.
+Generator ownership ở scripts/tooling: generate-layout-motion-parity,
+run-layout-motion-parity, finalize-layout-motion-coverage và motion-audit family.
 
-## Report canonical hiện tại
+## Evidence viết tay
 
-- [Audit source và phân loại file toàn project](verification-2026-08-25-project-source-cleanup.md)
-  — source cleanup, fresh output và Worker smoke đạt; card `Done`.
-- [Project baseline](verification-2026-08-08-project-baseline.md)
-- [Browser verification audit](verification-2026-07-31-browser-audit.md)
-- [Documentation migration](verification-2026-08-09-docs-migration.md)
+[Navbar 2026-08-27](research-espacio-navbar-runtime-2026-08-27.md) chỉ là stub
+chuyển tới original archive; giữ vì canonical machine report còn dùng link này.
 
-## Research
-
-- [Espacio parity inventory](research-espacio-parity-inventory.md)
-- [Espacio motion audit](research-espacio-motion-audit.md)
-- [Espacio pairwise layout và motion parity](research-espacio-layout-motion-parity.md)
-  — `NOT PASS`, full current-hash có 3.668 obligations, 827 fail, 1.914
-  runtime-blocked và evidence cập nhật `2026-08-24T08:18:09+07:00`.
+Report gốc có ngày nằm trong [archive](../archive/index.md), có SHA256 và
+mapping. Archive chỉ lưu original; [verification index](../verification/index.md)
+xác định claim nào còn được sử dụng, claim nào đã có evidence thay thế.
+Report mới đáng giữ đặt theo domain verification/reference; không tạo report
+cho mọi sửa nhỏ. [Template](_template.md) giữ compatibility cho workflow cũ.
 
 ## Chú thích thuật ngữ
 
-- **Durable evidence**: bằng chứng giữ lại để truy nguyên lâu dài.
-- **Verification**: kiểm tra claim hoặc behavior có đúng không.
-- **Research**: tìm hiểu dựa trên source và phương pháp rõ.
-- **Remediation**: thay đổi để xử lý finding hoặc risk.
+- **Machine report**: output có công cụ sở hữu.
+- **Compatibility**: giữ đường dẫn mà consumer còn phụ thuộc.
+- **Subset**: tập kiểm tra con, không thay kết luận toàn bộ.

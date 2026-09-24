@@ -9,6 +9,12 @@
 
 ## STATE không stale
 
+- Living docs là gate của mọi task và mọi role: thay behavior, interface,
+  schema, design, command, ownership hoặc evidence thì cập nhật nguồn chuẩn
+  trong cùng task. Không có docs impact phải ghi lý do cụ thể khi handoff.
+- Dùng [docs routing](../index.md) để chọn nguồn; không tạo một report mới cho
+  từng thay đổi nhỏ hoặc copy contract sang nhiều file.
+
 - `docs/STATE.md` là snapshot Git ngắn: phase, active work, hard boundary, canonical link, verified blocker, next repo action. Không là changelog, Kanban, work log, hay bản sao Notion.
 - Trước plan/implement: đọc toàn bộ `STATE.md`. Sau khi một field của snapshot đổi vì behavior, verification, blocker, handoff: verify evidence, update field và `Updated` trong cùng task.
 - Bỏ item resolved/hết hạn; link spec, decision, report thay vì copy evidence. Không refresh `Updated` nếu facts không đổi.

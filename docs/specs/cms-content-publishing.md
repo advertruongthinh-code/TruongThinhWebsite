@@ -61,6 +61,13 @@ slice, sau đó ghi vào provider decision record.
 
 ### Interface
 
+Advertising theo [AD-BROWSE-R1, policy một cột](advertising-photo-browse.md#r1--ảnh-rộng-một-cột-xếp-organic).
+Owner đã bỏ lựa chọn Auto / 1 cột / 2 cột và threshold Auto chỉ dùng để chọn
+độ rộng ảnh. Form đăng/chỉnh ảnh không có trường chọn span, kể cả trường chỉ
+còn giá trị 1 cột. Nội dung mới không phải khai báo lựa chọn này; metadata cũ
+chỉ giữ cho truy nguyên/tương thích theo contract. Quyết định này thay interface
+GRID-R4 trước đó, không cấp quyền implement admin hoặc publication trong static phase.
+
 CMS implementation phải document typed admin command cho create, update, submit,
 publish, unpublish và media upload, cùng public read contract cho published
 post. Mọi interface phải định nghĩa behavior của validation, authentication,
@@ -109,7 +116,7 @@ khi implement.
 
 ## 9. Reference và history
 
-- [`../engineering/CMS-ROADMAP.md`](../engineering/CMS-ROADMAP.md)
+- [`../backend/roadmap.md`](../backend/roadmap.md)
 - [`frontend-landing-page-foundation.md`](frontend-landing-page-foundation.md)
 
 ## Chú thích thuật ngữ

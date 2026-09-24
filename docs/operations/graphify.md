@@ -1,6 +1,6 @@
 # Vận hành Graphify
 
-Graphify 0.9.46 ở user scope. Đây là runbook setup/repair, không phải checklist
+Graphify 0.9.53 ở user scope. Đây là runbook setup/repair, không phải checklist
 mỗi task. Normal task chỉ query wrapper; Git hook, watcher và wrapper sở hữu
 structural freshness. Codex lifecycle hook bị disabled.
 
@@ -14,6 +14,17 @@ structural freshness. Codex lifecycle hook bị disabled.
 
 Wrapper block query khi structural refresh fail, report semantic lag riêng. Dùng
 Serena sau Graphify cho exact symbol, reference, diagnostic, refactor.
+
+Khi **Graphify: Watch** đang chạy và đã xử lý save gần nhất, query graph hiện có
+mà không tranh refresh lock:
+
+```powershell
+& ".\scripts\tooling\invoke-graphify.ps1" -SkipAstRefresh query "specific architecture question"
+```
+
+`-SkipAstRefresh` chỉ bỏ bước structural refresh của wrapper. Graph phải tồn tại;
+semantic warning và command Graphify vẫn chạy. Không dùng switch khi chưa có
+watcher hoặc chưa chắc save gần nhất đã được watcher xử lý.
 
 ## Setup hoặc repair
 
@@ -51,6 +62,9 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/watch-graphify.ps1
 Giữ task terminal mở và nhấn `Ctrl+C` để dừng. Watcher và Git hook build lại
 structural AST graph cho code change mà không cần LLM.
 
+Agent không dừng watcher để query. Sau khi watcher xử lý save, agent dùng
+`-SkipAstRefresh` theo mục Normal task.
+
 ## Corpus project content
 
 `.graphifyignore` gồm meaningful non-media project content như source, Markdown,
@@ -65,7 +79,7 @@ khi user explicit request semantic build/update. Không tự động spawn seman
 worker, merge chunk hoặc ghi semantic cache/manifest state. `graphify update .`
 thường chỉ update code.
 
-Graphify 0.9.46 detect ba project JSON file như code nhưng không emit AST node
+Graphify 0.9.53 detect ba project JSON file như code nhưng không emit AST node
 cho chúng. `scripts/tooling/graphify-supplemental-files.txt` là minimal allowlist đã
 verify. Shared query boundary restore semantic cache fresh của chúng sau
 upstream update. Cache stale chỉ tạo semantic warning; AST query vẫn chạy và
@@ -79,6 +93,8 @@ reproduce được zero-AST case.
   safe-directory override của Git vào Graphify process.
 - Watcher idle: save supported code file và inspect dedicated terminal; filesystem
   event có debounce.
+- Query đụng refresh lock khi watcher active: đợi watcher xử lý save, rồi gọi
+  wrapper với `-SkipAstRefresh` trước command.
 - Document pending: report chúng; chờ user explicit request trước khi chạy
   Graphify semantic pipeline.
 - Supplemental restore bị block: report ba path trong
@@ -88,7 +104,7 @@ reproduce được zero-AST case.
 
 Nếu command vẫn fail, kiểm tra pinned upstream Graphify README và release tương
 ứng trước khi thêm workaround:
-<https://github.com/Graphify-Labs/graphify/tree/558df6d57d61cb6ef79c740ec7473c6d953d79a7>.
+<https://github.com/Graphify-Labs/graphify/tree/33362d969292b57eda82f3fbd9eb5f3f5bc9bbc2>.
 
 ## Chú thích thuật ngữ
 

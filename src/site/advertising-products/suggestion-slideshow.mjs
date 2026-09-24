@@ -1,0 +1,97 @@
+const decks = new Map();
+
+// Keep each group's sampled set stable for this document's lifetime.
+export function suggestionDeck(key, cards) {
+  if (!decks.has(key)) {
+    const shuffled = [...cards];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+      const other = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
+    }
+    decks.set(key, shuffled.slice(0, 9));
+  }
+  return decks.get(key);
+}
+
+export function mountSuggestionSlides(root, { cards, createImage, isReduced, signal }) {
+  const pending = new Map();
+  let stopped = false;
+  const clear = () => {
+    pending.forEach(({ image, animation }) => {
+      animation?.cancel();
+      image.remove();
+    });
+    pending.clear();
+  };
+  const tick = async (button) => {
+    const rect = button.getBoundingClientRect();
+    if (stopped || isReduced() || document.hidden || root.hidden || button.getAttribute("aria-pressed") === "true"
+      || rect.bottom <= 0 || rect.top >= innerHeight || pending.has(button)
+      || document.body.classList.contains("motion-paused")) return;
+    const tag = button.dataset.advertisingSuggestionTag;
+    const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
+    // Sparse groups remain static until they contain four distinct assets.
+    if (deck.length < 4) return;
+    const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
+    const index = deck.findIndex(card => card.id === current?.dataset.advertisingSuggestionPhoto);
+    const card = deck[(index + 1) % deck.length];
+    const next = createImage(card);
+    next.loading = "eager";
+    next.dataset.advertisingSuggestionImageLayer = "next";
+    next.dataset.advertisingSuggestionPhoto = card.id;
+    next.style.opacity = "0";
+    const state = { image: next, animation: null };
+    pending.set(button, state);
+    try { await next.decode(); } catch {
+      if (pending.get(button) === state) pending.delete(button);
+      return;
+    }
+    if (pending.get(button) !== state) return;
+    if (stopped || isReduced() || !button.isConnected || button.getAttribute("aria-pressed") === "true") {
+      pending.delete(button); return;
+    }
+    button.insertBefore(next, current?.nextSibling || null);
+    const animation = next.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: 1600, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards",
+    });
+    state.animation = animation;
+    animation.addEventListener("finish", () => {
+      current?.remove();
+      next.dataset.advertisingSuggestionImageLayer = "current";
+      next.style.removeProperty("opacity");
+      animation.cancel();
+      pending.delete(button);
+    }, { once: true });
+    onVisibility();
+  };
+  const timer = setInterval(() => {
+    root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => { void tick(button); });
+  }, 5000);
+  const onVisibility = () => {
+    if (isReduced() || preference.matches) { clear(); return; }
+    pending.forEach(({ animation }, button) => {
+      const rect = button.getBoundingClientRect();
+      if (document.hidden || document.body.classList.contains("motion-paused")
+        || button.getAttribute("aria-pressed") === "true" || rect.bottom <= 0 || rect.top >= innerHeight) animation?.pause();
+      else animation?.play();
+    });
+  };
+  document.addEventListener("visibilitychange", onVisibility, { signal });
+  addEventListener("scroll", onVisibility, { passive: true, signal });
+  addEventListener("site:scroll", onVisibility, { signal });
+  const observer = new MutationObserver(onVisibility);
+  observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  observer.observe(root, { attributes: true, attributeFilter: ["aria-pressed"], subtree: true });
+  const preference = matchMedia("(prefers-reduced-motion: reduce)");
+  preference.addEventListener("change", onVisibility, { signal });
+  return () => {
+    stopped = true;
+    clearInterval(timer);
+    clear();
+    observer.disconnect();
+    preference.removeEventListener("change", onVisibility);
+    document.removeEventListener("visibilitychange", onVisibility);
+    removeEventListener("scroll", onVisibility);
+    removeEventListener("site:scroll", onVisibility);
+  };
+}

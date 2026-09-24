@@ -68,6 +68,21 @@ không phải implementation contract đã được approve.
 
 ## Database và field hiện có
 
+Schema Tasks được fetch lại ngày 2026-09-09: `Name` (title), `Status`,
+`Project` (relation), `Due date`, `Thứ tự Up next` (number). Status hợp lệ là `Not started`, `Up next`,
+`In progress`, `Done`. Những trường workflow trong bảng bên dưới là nội dung
+cần ghi, không phải lời khẳng định database đã có property tương ứng; field
+thiếu ghi trong body. Không gửi status `Approved` hoặc `Blocked` vào Tasks.
+Phải fetch schema trước mỗi mutation có phụ thuộc schema.
+
+`Thứ tự Up next` lưu thứ tự thực hiện do owner yêu cầu sắp xếp. Board
+`By status` sort tăng dần theo field này; grouping vẫn theo `Status`. Chỉ gán
+rank cho các card trong scope sắp xếp, không đổi tên, status hoặc ngày tạo để
+ép thứ tự. Ghi lý do và dependency trong card. Khi xếp lại, ưu tiên card mới
+theo `createdTime` trong những việc đã đủ điều kiện; prerequisite và QA/nghiệm
+thu phải đúng trình tự. Rank không chứng minh implementation còn thiếu hay
+đã hoàn tất; đối chiếu accepted spec/evidence trước khi thực hiện card cũ.
+
 Workspace hiện có thể dùng các database sau cho project này:
 
 | Database | Dùng cho |
@@ -121,6 +136,16 @@ Các record mutable đang dùng cho project này:
 
 Các link trên là mutable workspace reference. Nếu page được archive hoặc thay
 đổi, cập nhật lại mục này sau khi verify record mới.
+
+Kiểm link ngày 2026-09-09: project, hub và workspace mapping đọc được; card
+dịch Markdown trả `object_not_found` 404 (chưa phân biệt thiếu quyền/đã xóa).
+Hub vẫn ghi quy tắc một tầng category cũ; mapping là snapshot lịch sử ngày
+2026-08-09. Không dùng các claim đó để ghi đè [docs routing](../index.md).
+Card Advertising trả rank-v2/rapid-filter blocker cũ, trong khi accepted Git
+spec/evidence đã có rank-v3/109 media. Không tự đóng card hoặc gọi runtime
+PASS từ việc URL còn truy cập được. [Evidence audit](../verification/living-docs-2026-09-09.md)
+giữ kết quả cùng timestamp payload; [card living docs](https://app.notion.com/p/3d5332849a0e817aad64f745684c0ca2)
+theo dõi migration hiện tại.
 
 ## Chú thích thuật ngữ
 

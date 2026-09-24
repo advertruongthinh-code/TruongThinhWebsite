@@ -21,7 +21,7 @@ reviewable và portable cùng Git repository. Draft, NOW/Kanban state, priority,
 blocker, discovery note và knowledge note cần được khai thác trong Notion mà
 không biến Notion thành implementation truth chưa review. Reusable agent
 tooling được quản trị riêng trong
-[`global-agent-stack-project-portability.md`](global-agent-stack-project-portability.md).
+[`codex-native-agent-skills-workflow.md`](codex-native-agent-skills-workflow.md).
 
 ## Decision
 
@@ -47,9 +47,10 @@ hoặc verified status update:
 - `notion-knowledge-capture` cho decision, how-to và knowledge summary.
 - `notion-spec-to-implementation` chỉ cho Spec đã Approved và có Git spec.
 
-Sol Advisor source, state, runtime và generated adapter là user-global. Generated
-adapter chỉ được tạo qua complete preview của Sol Advisor cùng hai exact
-user-scope confirmation token.
+Agent Skills dùng direct user-global installation; project chỉ giữ pin, policy,
+automation và verification cần để tái lập workflow, không vendor skill payload.
+Codex chọn execution native sau các human gate; main agent giữ verification và
+final acceptance.
 
 ## Hệ quả
 
@@ -59,20 +60,19 @@ user-scope confirmation token.
   không trở thành unreviewed source của implementation truth.
 - Mỗi project có thể dùng relation `Projects` → `Docs`/`Tasks`; field mutable
   thiếu trong schema dùng chung được ghi trong page content, không phá schema.
-- Sol Advisor vẫn optional và không thể âm thầm tạo global role adapter.
+- Không cài Agent Skills marketplace/plugin thứ hai gây trùng skill name.
 - Repository giữ pin, bootstrap automation và project exception mà không vendor
   reusable agent payload.
 
 ## Evidence
 
 - `docs/operations/notion.md`
-- `docs/operations/sol-advisor.md`
-- `scripts/tooling/install-sol-advisor.ps1`
+- `docs/decisions/codex-native-agent-skills-workflow.md`
 - `scripts/tooling/doctor.ps1 -Quick` vào 2026-08-08
 
 ## Follow-up
 
-- Reload Codex và hoàn tất user-scope adapter setup sau khi review exact preview.
+- Reload Codex sau khi đổi user-global skill hoặc plugin catalog.
 - Tạo descriptive specification đầu tiên sau khi Notion proposal được approve
   hoặc owner explicit authorize Git-only slice.
 - Duy trì một Notion project record, Docs hub và NOW task liên kết với repository
@@ -86,3 +86,4 @@ user-scope confirmation token.
 - **Canonical**: bản ghi chuẩn được ưu tiên khi có nhiều bản.
 - **Connector**: kết nối cho phép agent đọc/ghi workspace Notion.
 - **Citation**: liên kết hoặc dẫn chứng để truy nguyên nguồn.
+- **Agent Skills**: các workflow instruction dùng chung được cài trực tiếp ở user scope.

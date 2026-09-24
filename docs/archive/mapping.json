@@ -1,0 +1,196 @@
+[
+  {
+    "source": "docs/STATE.md",
+    "destination": "docs/archive/snapshots/state-before-release-2026-09-24.md",
+    "replacement": "docs/STATE.md",
+    "sha256": "faae4662ff0d76ad67b2a43bdd6b259c38540816018faa832fc6c09e24db8c3c"
+  },
+  {
+    "source": "docs/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md",
+    "destination": "docs/archive/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md",
+    "replacement": "docs/archive/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md",
+    "sha256": "8031df1f01ca95e1c027ccb7efb04680144bb85d8f83550525bf2cda9af0f25c"
+  },
+  {
+    "source": "docs/reports/research-advertising-products-masonry-batching-2026-08-30.md",
+    "destination": "docs/archive/reports/research-advertising-products-masonry-batching-2026-08-30.md",
+    "replacement": "docs/archive/reports/research-advertising-products-masonry-batching-2026-08-30.md",
+    "sha256": "e25b6a530b655ac1385a2793aa4f2bbd8c04c12cca2373dc2dd846499b2acfda"
+  },
+  {
+    "source": "docs/reports/research-codex-orchestration-skills-2026-09-08.md",
+    "destination": "docs/archive/reports/research-codex-orchestration-skills-2026-09-08.md",
+    "replacement": "docs/archive/reports/research-codex-orchestration-skills-2026-09-08.md",
+    "sha256": "7d3495b53905fead139568dc2b7cae323dd269ecb88e8b146ee8b489e60d15d7"
+  },
+  {
+    "source": "docs/reports/research-espacio-navbar-runtime-2026-08-27.md",
+    "destination": "docs/archive/reports/research-espacio-navbar-runtime-2026-08-27.md",
+    "replacement": "docs/archive/reports/research-espacio-navbar-runtime-2026-08-27.md",
+    "sha256": "1be00b48184917024c19a222a5c3e6ba41145931279e179c33c00f5f2623ba3f",
+    "compatibility_stub": true,
+    "stub_sha256": "f8a3fe679666ac7e47be5ead615fdc701a6b42374e8e3d5f7f013beeaae3a269"
+  },
+  {
+    "source": "docs/reports/research-espacio-parity-inventory.md",
+    "destination": "docs/archive/reports/research-espacio-parity-inventory.md",
+    "replacement": "docs/archive/reports/research-espacio-parity-inventory.md",
+    "sha256": "d4a83d69b7091226d898f8d466e9d58ad4d784c737782a8e05a86c65dee78078"
+  },
+  {
+    "source": "docs/reports/research-espacio-project-detail-templates-2026-08-30.md",
+    "destination": "docs/archive/reports/research-espacio-project-detail-templates-2026-08-30.md",
+    "replacement": "docs/archive/reports/research-espacio-project-detail-templates-2026-08-30.md",
+    "sha256": "d73065925ef4b45cf3ae3b92e5614e69fe609efa50b1ce3fceea12a27fddc30d"
+  },
+  {
+    "source": "docs/reports/research-espacio-typography-hero-route-motion-2026-08-27.md",
+    "destination": "docs/archive/reports/research-espacio-typography-hero-route-motion-2026-08-27.md",
+    "replacement": "docs/archive/reports/research-espacio-typography-hero-route-motion-2026-08-27.md",
+    "sha256": "56dcab00e00c97c560f777f3f54145fd473284d4bd2d36453085f28d7a7099bf"
+  },
+  {
+    "source": "docs/reports/verification-2026-07-31-browser-audit.md",
+    "destination": "docs/archive/reports/verification-2026-07-31-browser-audit.md",
+    "replacement": "docs/archive/reports/verification-2026-07-31-browser-audit.md",
+    "sha256": "77b44327358ece352d67609fc253294511dfca2eec7cc2ba2e5213345ef2fd06"
+  },
+  {
+    "source": "docs/reports/verification-2026-08-08-project-baseline.md",
+    "destination": "docs/archive/reports/verification-2026-08-08-project-baseline.md",
+    "replacement": "docs/archive/reports/verification-2026-08-08-project-baseline.md",
+    "sha256": "ac975cf8656de547a6f9b6abbe5b4032c4fc8126329303417ea82041d7f7687f"
+  },
+  {
+    "source": "docs/reports/verification-2026-08-09-agent-workspace-bootstrap.md",
+    "destination": "docs/archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md",
+    "replacement": "docs/archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md",
+    "sha256": "420ee870b716dddf2311b39d598432ef48142dbf11cb52bb7b492a44d630da9e"
+  },
+  {
+    "source": "docs/reports/verification-2026-08-09-docs-migration.md",
+    "destination": "docs/archive/reports/verification-2026-08-09-docs-migration.md",
+    "replacement": "docs/archive/reports/verification-2026-08-09-docs-migration.md",
+    "sha256": "70c633c74c147f11fe42af5897fed4c0f7b7e39293b6554a95758e0116910fa3"
+  },
+  {
+    "source": "docs/reports/verification-2026-08-25-project-source-cleanup.md",
+    "destination": "docs/archive/reports/verification-2026-08-25-project-source-cleanup.md",
+    "replacement": "docs/archive/reports/verification-2026-08-25-project-source-cleanup.md",
+    "sha256": "76a4ea4d61002b70a32b7a99de2c0622c8f0c53994da6ce56205e094fe7b5295"
+  },
+  {
+    "source": "docs/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md",
+    "destination": "docs/archive/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md",
+    "replacement": "docs/archive/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md",
+    "sha256": "876eb2269d215a2f7ba63bb69f34992d9fb312a5ea93cfed1de0147c5c1b19d9"
+  },
+  {
+    "source": "docs/reports/verification-advertising-detail-gallery-visibility-2026-09-02.md",
+    "destination": "docs/archive/reports/verification-advertising-detail-gallery-visibility-2026-09-02.md",
+    "replacement": "docs/archive/reports/verification-advertising-detail-gallery-visibility-2026-09-02.md",
+    "sha256": "784ad4cfcf5e92cfb39208ee137be93d0ff6e41e7ea301858cab425b546e50da"
+  },
+  {
+    "source": "docs/reports/verification-advertising-detail-horizontal-carousel-2026-09-02.md",
+    "destination": "docs/archive/reports/verification-advertising-detail-horizontal-carousel-2026-09-02.md",
+    "replacement": "docs/archive/reports/verification-advertising-detail-horizontal-carousel-2026-09-02.md",
+    "sha256": "7230a769c42fb011bfa2dbf520ea0f8e06799179c91496b326e1176beb6066e6"
+  },
+  {
+    "source": "docs/reports/verification-advertising-hero-text-motion-2026-09-01.md",
+    "destination": "docs/archive/reports/verification-advertising-hero-text-motion-2026-09-01.md",
+    "replacement": "docs/archive/reports/verification-advertising-hero-text-motion-2026-09-01.md",
+    "sha256": "a9f0f28a105f280faa53792a98d6280fd5208ba5f7031c21238bcb739d92eba2"
+  },
+  {
+    "source": "docs/reports/verification-advertising-products-109-media-spacing-2026-09-01.md",
+    "destination": "docs/archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md",
+    "replacement": "docs/archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md",
+    "sha256": "47beb11c9864d6ac1296f519b56c62d130b269431556565fe675b3958838997f"
+  },
+  {
+    "source": "docs/reports/verification-advertising-products-current-hash-2026-08-31.md",
+    "destination": "docs/archive/reports/verification-advertising-products-current-hash-2026-08-31.md",
+    "replacement": "docs/archive/reports/verification-advertising-products-current-hash-2026-08-31.md",
+    "sha256": "73477cae38d036e8dff00876dddbe0d9e72cd1dbeda8ccfe319cecee682bbdb9"
+  },
+  {
+    "source": "docs/reports/verification-advertising-products-media-entrance-2026-09-01.md",
+    "destination": "docs/archive/reports/verification-advertising-products-media-entrance-2026-09-01.md",
+    "replacement": "docs/archive/reports/verification-advertising-products-media-entrance-2026-09-01.md",
+    "sha256": "ca9c0b2c2703a5c1f67af555b4fd5e7aa8ae43ba3bbdf938ed373ef7360980fc"
+  },
+  {
+    "source": "docs/reports/verification-advertising-products-media-reentry-detail-visibility-2026-09-01.md",
+    "destination": "docs/archive/reports/verification-advertising-products-media-reentry-detail-visibility-2026-09-01.md",
+    "replacement": "docs/archive/reports/verification-advertising-products-media-reentry-detail-visibility-2026-09-01.md",
+    "sha256": "b5da981911ee9e7ee6a828c5d8f94152e27b3f026d12d5bf91e5571782a904f4"
+  },
+  {
+    "source": "docs/reports/verification-advertising-products-organic-masonry-2026-09-01.md",
+    "destination": "docs/archive/reports/verification-advertising-products-organic-masonry-2026-09-01.md",
+    "replacement": "docs/archive/reports/verification-advertising-products-organic-masonry-2026-09-01.md",
+    "sha256": "79331f69b426e3926fd88eadcc784c74fd12a58a14d842c0e2440f0796ee7459"
+  },
+  {
+    "source": "docs/reports/verification-advertising-products-single-column-2026-08-31.md",
+    "destination": "docs/archive/reports/verification-advertising-products-single-column-2026-08-31.md",
+    "replacement": "docs/archive/reports/verification-advertising-products-single-column-2026-08-31.md",
+    "sha256": "8ba4aadf18d17f9cbb70d46673b89e7bc558bbe1b005e5146801f28f60ca2c24"
+  },
+  {
+    "source": "docs/reports/verification-frontend-brand-lockup-copy-ratio-2026-08-31.md",
+    "destination": "docs/archive/reports/verification-frontend-brand-lockup-copy-ratio-2026-08-31.md",
+    "replacement": "docs/archive/reports/verification-frontend-brand-lockup-copy-ratio-2026-08-31.md",
+    "sha256": "e9bd319fb95e17adeea627fa7ed4c001a56397bb6e05d6d4f334688831f71c04"
+  },
+  {
+    "source": "docs/reports/verification-pnpm-impeccable-major-2026-09-08.md",
+    "destination": "docs/archive/reports/verification-pnpm-impeccable-major-2026-09-08.md",
+    "replacement": "docs/archive/reports/verification-pnpm-impeccable-major-2026-09-08.md",
+    "sha256": "0c67af3df397c376393436c389c01cbb5f1321fca01356210cfb8f9196d8511d"
+  },
+  {
+    "source": "docs/reports/verification-superpowers-codex-2026-09-08.md",
+    "destination": "docs/archive/reports/verification-superpowers-codex-2026-09-08.md",
+    "replacement": "docs/archive/reports/verification-superpowers-codex-2026-09-08.md",
+    "sha256": "50ee137eb1c2880e09e2e0e9b3d3fc8fc1146b189ecda5691b9fc24867709b1b"
+  },
+  {
+    "source": "docs/reports/verification-tooling-global-project-astra-2026-09-08.md",
+    "destination": "docs/archive/reports/verification-tooling-global-project-astra-2026-09-08.md",
+    "replacement": "docs/archive/reports/verification-tooling-global-project-astra-2026-09-08.md",
+    "sha256": "aa0829b2921705cfef7386fec12390456f21156e342fa9c4efe4bfc24af6bfcb"
+  },
+  {
+    "source": "docs/engineering/ARCHITECTURE.md",
+    "destination": "docs/archive/guides/ARCHITECTURE.md",
+    "replacement": "docs/architecture/index.md",
+    "sha256": "f6913fecf4a255fe3640d82ec2640a8ee040220268b7fdbfe591a13ba31c94e5"
+  },
+  {
+    "source": "docs/engineering/CMS-ROADMAP.md",
+    "destination": "docs/archive/guides/CMS-ROADMAP.md",
+    "replacement": "docs/backend/roadmap.md",
+    "sha256": "be801bfa2cddfb1bd88f5e39c4610d03272d8c191840ddec5212107cac4a1d46"
+  },
+  {
+    "source": "docs/impeccable/brand-guidelines.md",
+    "destination": "docs/archive/guides/brand-guidelines.md",
+    "replacement": "docs/design/style-guide.md",
+    "sha256": "bba9b5250f402669ef3a024797d4a1fdf1de43e570bfcdb5e3475a85c16f676b"
+  },
+  {
+    "source": "docs/impeccable/motion-map.md",
+    "destination": "docs/archive/guides/motion-map.md",
+    "replacement": "docs/reference/espacio/motion.md",
+    "sha256": "3889f4f4eebe9cb60f88722d1e77d56087f838fbf87b72cfa0a4e302dd13fb8a"
+  },
+  {
+    "source": "docs/product/CONTENT-MEDIA-GUIDE.md",
+    "destination": "docs/archive/guides/CONTENT-MEDIA-GUIDE.md",
+    "replacement": "docs/design/content.md",
+    "sha256": "7997233474b330b9a65de8a11752e65cdd1bc8f0495671474e1bbb125732e879"
+  }
+]

@@ -3,11 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "description": "Truong Thinh Website with portable project policy and pinned browser QA",
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@12.4.2",
   "scripts": {
     "prepare:site": "node scripts/site/prepare-static-assets.mjs",
-    "dev": "pnpm prepare:site && wrangler dev",
-    "deploy": "pnpm prepare:site && wrangler deploy",
+    "dev": "pnpm prepare:site && node scripts/tooling/serve-static-parity.mjs --port 8787",
     "qa:static": "node tests/site/site-static-contract.cjs",
     "qa:client-assets": "node tests/site/client-logo-assets-contract.cjs",
     "qa:worker:static": "node tests/worker/worker-static-contract.cjs",
@@ -19,7 +18,12 @@
     "tooling:doctor": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1"
   },
   "devDependencies": {
-    "playwright": "1.62.1",
-    "wrangler": "4.124.0"
+    "playwright": "1.63.0"
+  },
+  "dependencies": {
+    "gsap": "3.15.0",
+    "lazysizes": "5.3.2",
+    "masonry-layout": "4.2.2",
+    "swiper": "14.2.0"
   }
 }

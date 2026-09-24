@@ -22,8 +22,8 @@ cần các evidence surface khác nhau.
 Mọi UI change và website release dùng bốn nhóm evidence trên cùng live local web
 server:
 
-1. Static/Worker contract chạy `pnpm qa:static` và
-   `pnpm qa:worker:static`.
+1. Current static contract chạy `pnpm qa:static`. Worker contract chỉ được thêm
+   lại khi owner mở CMS phase.
 2. Playwright chạy route, viewport, interaction, locale, reduced-motion,
    console, network và overflow check có thể lặp lại.
 3. Computer Use thực hiện một human path trong isolated test window và verify
@@ -38,7 +38,8 @@ profile phải isolated; không inspect cookie, token hoặc private session.
 ## Hệ quả
 
 - Playwright vẫn là regression gate.
-- Static/Worker contract tạo evidence contract trước runtime.
+- Static contract tạo evidence contract trước runtime; Worker contract dormant
+  không bị trình bày như current gate.
 - Computer Use và Chrome DevTools cung cấp runtime evidence bắt buộc, không phải
   investigation tùy chọn.
 - Report phải nêu tool và exact observation cho mỗi result.
