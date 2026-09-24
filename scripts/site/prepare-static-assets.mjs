@@ -34,6 +34,9 @@ const swiperStyleSources = [
 ];
 const nonPublicSourceAssets = [
   "advertising-products/catalog.mjs",
+  "advertising-products/media-contract.mjs",
+  "advertising-products/media-manifest.mjs",
+  "advertising-products/photo-tags.mjs",
   "content/client-logos.json",
   "assets/brand/truong-thinh-lockup.svg",
   "assets/content/projects/advertising-kiosk-posm-cover.jpg",
