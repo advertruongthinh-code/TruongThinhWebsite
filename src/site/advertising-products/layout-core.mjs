@@ -606,41 +606,29 @@ export function compileAdvertisingProductLayout(options = {}) {
 function compileAdvertisingLayoutPhase(options = {}) {
   const productLayout = options?.productLayout === true;
   const staggerMode = options?.staggerMode === "fallback" ? "fallback" : "preferred";
-  let layoutViewportWidth = Number.NaN;
-  let filter = "all";
-  let cards = [];
-  let categoryOrder = [];
-  let datasetVersion = DEFAULT_DATASET_VERSION;
-  let settings;
-  let columns;
-  let outer;
-  let interCardGap;
-  let initialColumnBottoms;
-  let operationBudget;
-  let terminalPhotoPeek;
-  let continuousDetail;
-  let allowAsymmetricSparseTail;
-  let suppliedCaptionPixelHeight;
+  let layoutViewportWidth = Number.NaN, filter = "all", cards = [], categoryOrder = [], datasetVersion = DEFAULT_DATASET_VERSION;
+  let settings, columns, outer, interCardGap, initialColumnBottoms, operationBudget;
+  let terminalPhotoPeek, continuousDetail, allowAsymmetricSparseTail, suppliedCaptionPixelHeight;
   try {
     if (!options || typeof options !== "object" || Array.isArray(options)) throw new Error("Advertising layout options must be an object");
-    layoutViewportWidth = Reflect.get(options, "layoutViewportWidth") ?? Number.NaN;
-    filter = Reflect.get(options, "filter") ?? "all";
-    cards = Reflect.get(options, "cards") ?? [];
-    categoryOrder = Reflect.get(options, "categoryOrder") ?? [];
-    datasetVersion = Reflect.get(options, "datasetVersion") ?? DEFAULT_DATASET_VERSION;
-    settings = normalizeAdvertisingSettings(Reflect.get(options, "settings"));
-    columns = Reflect.get(options, "columns") ?? columnsForWidth(layoutViewportWidth);
-    operationBudget = Reflect.get(options, "operationBudget") ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
-    allowAsymmetricSparseTail = Reflect.get(options, "allowAsymmetricSparseTail") ?? false;
-    suppliedCaptionPixelHeight = Reflect.get(options, "captionPixelHeight");
+    layoutViewportWidth = options.layoutViewportWidth ?? Number.NaN;
+    filter = options.filter ?? "all";
+    cards = options.cards ?? [];
+    categoryOrder = options.categoryOrder ?? [];
+    datasetVersion = options.datasetVersion ?? DEFAULT_DATASET_VERSION;
+    settings = normalizeAdvertisingSettings(options.settings);
+    columns = options.columns ?? columnsForWidth(layoutViewportWidth);
+    operationBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
+    allowAsymmetricSparseTail = options.allowAsymmetricSparseTail ?? false;
+    suppliedCaptionPixelHeight = options.captionPixelHeight;
     if (!Number.isInteger(operationBudget) || operationBudget < 1 || operationBudget > ADVERTISING_SEARCH_OPERATION_BUDGET) throw new Error("Invalid advertising operation budget");
     if (typeof allowAsymmetricSparseTail !== "boolean") throw new Error("Invalid asymmetric sparse tail option");
     if (suppliedCaptionPixelHeight !== undefined && (!Number.isFinite(suppliedCaptionPixelHeight) || suppliedCaptionPixelHeight < 0)) throw new Error("Invalid advertising caption height");
     validateAdvertisingCards(cards, { categoryOrder });
     if (!Number.isFinite(layoutViewportWidth) || layoutViewportWidth <= 0) throw new Error("Invalid advertising viewport width");
     if (!Number.isInteger(columns) || columns < (productLayout ? 1 : ADVERTISING_MIN_COLUMNS) || columns > ADVERTISING_MAX_COLUMNS) throw new Error(`Invalid advertising column count: ${columns}`);
-    terminalPhotoPeek = Reflect.get(options, "terminalPhotoPeek");
-    continuousDetail = Reflect.get(options, "continuousDetail") ?? false;
+    terminalPhotoPeek = options.terminalPhotoPeek;
+    continuousDetail = options.continuousDetail ?? false;
     if (typeof continuousDetail !== "boolean") throw new Error("Invalid continuous detail option");
     if (terminalPhotoPeek !== undefined) {
       if (!terminalPhotoPeek || typeof terminalPhotoPeek !== "object" || Array.isArray(terminalPhotoPeek)) throw new Error("Invalid terminal photo peek");
@@ -651,7 +639,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
       }
       terminalPhotoPeek = Object.fromEntries(fields.map((field) => [field, terminalPhotoPeek[field]]));
     }
-    const suppliedInitialColumnBottoms = Reflect.get(options, "initialColumnBottoms");
+    const suppliedInitialColumnBottoms = options.initialColumnBottoms;
     if (suppliedInitialColumnBottoms === undefined) initialColumnBottoms = Array(columns).fill(0);
     else if (!Array.isArray(suppliedInitialColumnBottoms) || suppliedInitialColumnBottoms.length !== columns || suppliedInitialColumnBottoms.some((bottom) => !Number.isFinite(bottom) || bottom < 0)) {
       throw new Error("Invalid initialColumnBottoms: expected one finite non-negative bottom per column");
@@ -893,7 +881,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
 
 export function compileAdvertisingLayout(options = {}) {
   if (!options || typeof options !== "object" || Array.isArray(options) || options.productLayout !== true) return compileAdvertisingLayoutPhase(options);
-  const totalBudget = Reflect.get(options, "operationBudget") ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
+  const totalBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
   if (!Number.isInteger(totalBudget) || totalBudget < 1 || totalBudget > ADVERTISING_SEARCH_OPERATION_BUDGET) return compileAdvertisingLayoutPhase(options);
   const preferredBudget = Math.max(1, Math.ceil(totalBudget / 2));
   try {

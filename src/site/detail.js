@@ -3,7 +3,7 @@
   let advertisingCarouselModulesPromise;
   let advertisingCarouselStylePromise;
   let advertisingDependenciesPromise;
-  let advertisingHeroPlayed = false;
+  const advertisingHeroPlayed = new WeakSet();
   const ADVERTISING_DEPENDENCY_TIMEOUT = 4_000;
 
   const ADVERTISING_DEPENDENCIES = [
@@ -221,7 +221,7 @@
     unmount();
 
     const advertisingHeroSettled = container.dataset.barbaNamespace === "advertising-products"
-      && advertisingHeroPlayed;
+      && advertisingHeroPlayed.has(container);
 
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -230,7 +230,7 @@
     if (
       container.dataset.barbaNamespace === "advertising-products"
       && (settled || reduceMotion || (gsap && window.SplitText))
-    ) advertisingHeroPlayed = true;
+    ) advertisingHeroPlayed.add(container);
     const abort = new AbortController();
     const observers = [];
     const frames = new Set();

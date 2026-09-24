@@ -136,6 +136,22 @@ Mọi ảnh khớp SHA-256 với source commit; HTTP trực tiếp trả 403 nê
 đã đối chiếu byte runtime. Ảnh/archive backup giữ local, manifest và hướng dẫn
 được lưu Git; backup không thuộc output deploy.
 
+## Bổ sung trước đợt phát hành tiếp theo
+
+Owner chọn ảnh portal Advertising tông xanh dương từ bộ cuối tạo bằng ChatGPT
+web. Bản nguồn và WebP public có SHA, pixel và provenance tại
+[ảnh portal](../../source-assets/projects/advertising/portal-20260924/README.md).
+Portal giữ 1086 × 1448 px, alt VI/EN, overlay và motion cũ; browser xác nhận
+ảnh tải với `naturalWidth=1086` ở 390 và 1440 px. Hai viewport này không
+thay thế kiểm tra trực quan của owner.
+
+Regression `advertising-hero-once.e2e.mjs` đạt: route-return VI/EN có word
+stagger 0,2 giây; filter và locale trong cùng container không replay. Static
+contract và 17 layout/lifecycle test đạt. Full `qa:site` được dừng sau khi
+ghi nhận nhiều failure ngoài phạm vi (ảnh catalog tải lỗi từng lần, menu và
+hero các route khác); không công bố full-site PASS. Các failure này cần audit
+riêng, không dùng kết quả focused để phủ nhận chúng.
+
 ## Chú thích thuật ngữ
 
 - **Checkpoint**: trạng thái đã xác minh để tiếp tục, không phải release hoàn tất.

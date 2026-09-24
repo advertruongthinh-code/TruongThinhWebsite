@@ -1,5 +1,14 @@
 # Changelog
 
+## Chưa phát hành — hero và portal Advertising 2026-09-24
+
+- Sửa cờ one-shot theo container: route enter chạy lại reveal từng word;
+  filter và đổi locale tại chỗ không khởi động lại hero.
+- Regression VI/EN route-return, delayed adapter, mười filter và fallback đạt.
+- Trang chủ dùng ảnh portal xanh dương owner chọn từ bộ ChatGPT web; giữ kích
+  thước ảnh, bố cục, lớp phủ và motion hiện hành.
+- Hoàn tất cleanup diagnostic theo gate review Sites; giữ các consumer runtime.
+
 ## 2026-09-24 — Bản website hiện hành
 
 Release candidate đã push GitHub; đang hoàn tất gate nguồn Sites trước deploy.

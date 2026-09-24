@@ -429,6 +429,9 @@ active filter là Tất cả; Back/Forward không sai state.
 **Module id:** `advertising-hero-once`. **Plan:** `AD-SEPT-2026-P7`.
 **Status:** accepted; owner xác nhận ngày `2026-09-22`.
 
+- Owner chốt lại ngày2026-09-24: mỗi lần vào qua navbar/đổi route thật phải
+  reveal từng word, giữ stagger0,2s và nhịp hiện hành; không chỉ fade cả khối.
+  Cờ one-shot thuộc container của lần mở trang, không thuộc toàn phiên duyệt.
 - Hero Advertising chạy đúng một lần cho mỗi document load hoặc route enter
   thật. Scroll, `End`, `Home`, resize, focus/visibility và thay filter trong
   cùng document không được reset SplitText, class in-view hoặc chạy lại hero.

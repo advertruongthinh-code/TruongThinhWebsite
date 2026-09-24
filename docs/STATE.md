@@ -39,8 +39,11 @@
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: commit cleanup diagnostic đã đối chiếu caller, chạy lại
-  gate GitHub/Sites rồi deploy; giữ UI/motion, carousel và test contract.
+- Next repo action: owner đã chọn ảnh portal xanh dương và cho phép commit,
+  push, deploy ngày2026-09-24. GitHub hiện ở47f56ee; Sites vẫn version1 cho
+  đến khi gate và deployment xác nhận thành công. Hero route-return VI/EN đã
+  qua regression, filter không replay. Ảnh nguồn và WebP có
+  [provenance](../source-assets/projects/advertising/portal-20260924/README.md).
 
 ## Chú thích thuật ngữ
 

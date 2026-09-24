@@ -46,6 +46,7 @@ async function installHeroOnceProbe(page) {
       heroHiddenSets: 0,
       heroTransitionRuns: [],
       heroTweenCalls: 0,
+      heroWordStaggers: [],
       mountCalls: 0,
       originalContainer,
       originalHero,
@@ -96,7 +97,12 @@ async function installHeroOnceProbe(page) {
     for (const method of ["to", "fromTo"]) {
       const original = window.gsap[method];
       window.gsap[method] = function (targets, ...args) {
-        if (targetsHero(targets)) probe.heroTweenCalls += 1;
+        if (targetsHero(targets)) {
+          probe.heroTweenCalls += 1;
+          if ([...targets].some((target) => target.matches?.("[data-motion-hero-title] .motion-word"))) {
+            probe.heroWordStaggers.push(args[0]?.stagger);
+          }
+        }
         return Reflect.apply(original, this, [targets, ...args]);
       };
     }
@@ -150,6 +156,7 @@ async function readProbe(page) {
       heroHiddenSets: probe.heroHiddenSets,
       heroTransitionRuns: probe.heroTransitionRuns,
       heroTweenCalls: probe.heroTweenCalls,
+      heroWordStaggers: probe.heroWordStaggers,
       midMotionLocaleRebuild: probe.midMotionLocaleRebuild,
       mountCalls: probe.mountCalls,
       queryCalls: probe.queryCalls,
@@ -423,14 +430,12 @@ try {
 
   assert.equal(routeReturn.sameDocument, true, "route-return fixture created a new document");
   assert.equal(routeReturn.activeFilter, "kiosk-posm", "route-return filter did not activate");
-  assert.equal(routeReturn.heroTweenCalls, 0, "same-document Barba return replayed Advertising hero motion");
-  assert.equal(routeReturn.heroHiddenSets, 0, "same-document Barba return hid the Advertising hero");
-  assert.deepEqual(routeReturn.heroTransitionRuns, [], "same-document Barba return restarted hero CSS motion");
   assert.equal(englishRouteReturn.sameDocument, true, "English route-return fixture created a new document");
   assert.equal(englishRouteReturn.activeFilter, "kiosk-posm", "English route-return filter did not activate");
-  assert.equal(englishRouteReturn.heroTweenCalls, 0, "English same-document Barba return replayed Advertising hero motion");
-  assert.equal(englishRouteReturn.heroHiddenSets, 0, "English same-document Barba return hid the Advertising hero");
-  assert.deepEqual(englishRouteReturn.heroTransitionRuns, [], "English same-document Barba return restarted hero CSS motion");
+
+  for (const result of [routeReturn, englishRouteReturn]) {
+    assert.deepEqual(result.heroWordStaggers, [0.2], "route return must reveal words once; filter must not replay them");
+  }
 
   assert.equal(localeDuringHero.sameDocument, true, "locale switch during hero motion created a new document");
   assert.equal(localeDuringHero.midMotionLocaleRebuild, true, "locale fixture rebuilt after the hero tween ended");
