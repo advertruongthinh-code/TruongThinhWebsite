@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sha, csvParse, csvWrite as csv } from './layout-motion-io.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const reports = path.join(root, 'docs', 'reports');
@@ -11,7 +11,6 @@ const runtimePath = path.join(reports, 'research-espacio-motion-runtime.csv');
 const runtimeColumns=['obligation_id','contract_fingerprint','motion_group_id','system','exact_url_or_route','template','locale','viewport','orientation','input_device_state','preference','lifecycle','candidate_count','candidate_member_ids','representative_candidate_id','source_fingerprint','applicability','applicability_blocker','scenario_id','motion_family','target_selector','action_protocol','sample_timings','obligation_type','browser','os','dpr','zoom','cache_network_state','fixture_data_identity','source_page_hash','runner_hash','schema_hash','timestamp','stable_anchor_member_ids','artifact_refs','before_measured_values','start_measured_values','mid_measured_values','end_measured_values','console_network_summary','status','blocker','duration_ms'];
 const liveAllowlist = new Set(['https://espaciohomedesign.com/en', 'https://espaciohomedesign.com/en/kitchens', 'https://espaciohomedesign.com/en/interior-design', 'https://espaciohomedesign.com/en/projects', 'https://espaciohomedesign.com/en/services', 'https://espaciohomedesign.com/en/showrooms', 'https://espaciohomedesign.com/en/news/80-anniversary', 'https://espaciohomedesign.com/en/cocinart']);
 const args = new Map(process.argv.slice(2).map((arg, index, list) => arg.startsWith('--') ? [arg.slice(2), list[index + 1] && !list[index + 1].startsWith('--') ? list[index + 1] : 'true'] : []));
-function sha(value) { return createHash('sha256').update(value).digest('hex'); }
 const runnerHash = sha(await readFile(fileURLToPath(import.meta.url)));
 const schemaHash = sha(runtimeColumns.join('|'));
 function contractFingerprintV2(row) {
@@ -34,9 +33,6 @@ async function pageFingerprintV2(page) {
   const value = await page.evaluate(() => `${location.href}\n${document.documentElement.outerHTML}`);
   return `dom:${sha(value)}`;
 }
-function csvParse(text) { const rows=[]; let row=[],field='',quoted=false; for(let i=0;i<text.length;i+=1){const ch=text[i],n=text[i+1]; if(quoted){if(ch==='"'&&n==='"'){field+='"';i+=1}else if(ch==='"')quoted=false;else field+=ch;continue} if(ch==='"'){quoted=true;continue} if(ch===','){row.push(field);field='';continue} if(ch==='\n'){row.push(field.replace(/\r$/,''));rows.push(row);row=[];field='';continue} field+=ch} if(field||row.length){row.push(field.replace(/\r$/,''));rows.push(row)} const [head,...body]=rows.filter(r=>r.length&&r.some(Boolean)); return body.map(r=>Object.fromEntries(head.map((key,i)=>[key,r[i]??'']))); }
-function esc(value) { const text=String(value??''); return /[",\n\r]/.test(text) ? `"${text.replaceAll('"','""')}"` : text; }
-function csv(columns, rows) { return `${columns.join(',')}\n${rows.map(row=>columns.map(key=>esc(row[key])).join(',')).join('\n')}\n`; }
 function viewport(text) { const [width,height]=text.split('x').map(Number); return { width, height }; }
 function toLocal(base, route) { return `${base.replace(/\/$/, '')}${route}`; }
 function safeName(id) { return id.replace(/[^a-z0-9-]/gi, '_'); }

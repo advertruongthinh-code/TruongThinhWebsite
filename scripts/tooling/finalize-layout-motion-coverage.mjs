@@ -1,8 +1,8 @@
-import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
 import { access, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sha, csvParse, csvEscape } from './layout-motion-io.mjs';
 import { approvedExclusions, excludedWithReason, exclusionForOrigin, exclusionPolicyErrors, isExcludedRuntimeRow, notRunOwnerApprovedExclusion } from './layout-motion-parity-exclusions.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -18,9 +18,6 @@ const paths = {
 };
 const obligationColumns = ['obligation_id', 'category', 'local_url', 'live_url', 'template', 'viewport', 'device_mode', 'preference', 'state_scenario', 'local_selector', 'live_selector', 'local_action_selector', 'live_action_selector', 'local_cleanup_selector', 'live_cleanup_selector', 'local_pseudo', 'live_pseudo', 'action_protocol', 'sample_timings', 'geometry_threshold_px', 'timing_threshold_frames', 'contract_fingerprint', 'applicability', 'exclusion_original_obligation_id', 'exclusion_reason', 'blocker', 'mapping_confidence', 'initial_status'];
 const coverageColumns = ['candidate_id', 'source_kind', 'source_anchor', 'obligation_id', 'mapping_id', 'mapping_kind', 'status', 'blocker', 'contract_fingerprint', 'artifact_refs'];
-const sha = (value) => createHash('sha256').update(value).digest('hex');
-const csvEscape = (value) => { const text = String(value ?? ''); return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text; };
-function csvParse(text) { const rows = []; let row = []; let field = ''; let quoted = false; for (let index = 0; index < text.length; index += 1) { const char = text[index]; const next = text[index + 1]; if (quoted) { if (char === '"' && next === '"') { field += '"'; index += 1; } else if (char === '"') quoted = false; else field += char; } else if (char === '"') quoted = true; else if (char === ',') { row.push(field); field = ''; } else if (char === '\n') { row.push(field.replace(/\r$/, '')); rows.push(row); row = []; field = ''; } else field += char; } if (field || row.length) { row.push(field.replace(/\r$/, '')); rows.push(row); } const [head, ...body] = rows.filter((item) => item.some(Boolean)); return body.map((item) => Object.fromEntries(head.map((key, position) => [key, item[position] ?? '']))); }
 function contractFingerprint(row) { const values = obligationColumns.filter((key) => !['obligation_id', 'contract_fingerprint', 'blocker', 'initial_status', 'exclusion_original_obligation_id', 'exclusion_reason'].includes(key)).map((key) => row[key] ?? ''); if (row.applicability === excludedWithReason) values.push('owner-approved-exclusion', row.exclusion_original_obligation_id ?? '', row.exclusion_reason ?? ''); return `contract:${sha(values.join('|'))}`; }
 function safeArtifact(relative) { const resolved = path.resolve(root, relative); if (!resolved.startsWith(`${root}${path.sep}`)) throw new Error(`Artifact outside workspace: ${relative}`); return resolved; }
 function mappingDescriptor(row) { try { const value = JSON.parse(row.runtime_discovered_mapping || ''); return value && !Array.isArray(value) && typeof value.artifact === 'string' && Number.isInteger(value.count) && value.count >= 0 && /^[a-f0-9]{64}$/i.test(value.sha256 || '') ? value : null; } catch { return null; } }

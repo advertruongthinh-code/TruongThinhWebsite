@@ -152,6 +152,13 @@ ghi nhận nhiều failure ngoài phạm vi (ảnh catalog tải lỗi từng l�
 hero các route khác); không công bố full-site PASS. Các failure này cần audit
 riêng, không dùng kết quả focused để phủ nhận chúng.
 
+Pre-push review Sites trên diff từ version1 chặn thêm hai đoạn diagnostic:
+SHA/CSV trùng trong năm script và wrapper gán lại `writeRuntimeReport`. Đã gom
+IO thuần vào `scripts/tooling/layout-motion-io.mjs` và đưa guard vào hàm gốc.
+Không đổi nguồn trang, CSS, motion runtime hoặc dữ liệu báo cáo. Syntax của sáu
+module và self-test của năm script diagnostic đạt; `generate-layout-motion-parity`
+đọc hai CSV local trong checkout riêng và đạt 22 kiểm tra.
+
 ## Chú thích thuật ngữ
 
 - **Checkpoint**: trạng thái đã xác minh để tiếp tục, không phải release hoàn tất.
