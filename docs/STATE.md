@@ -3,13 +3,12 @@
 - Updated: 2026-09-24
 - Phase: public website static-first VI/EN. Source tại `src/site/`, build tại
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
-- Active work: dọn project/docs, Impeccable extract và changelog đã commit local
-  tại `da2f13a`; `fdbfcbd` nối lịch sử Sites, giữ nguyên cây source.
-  GitHub đã nhận source `097be1a` và checkpoint `494035b`; đang xử lý các
-  finding diagnostic của Sites, chưa save/deploy version mới.
-  [Checkpoint release và finding](verification/release-cleanup-2026-09-24.md).
-  `5e24a10` bổ sung backup/live provenance và phân loại cleanup; `097be1a`
-  gỡ API không có runtime caller. GitHub review đạt; plugin Sites đã có lại.
+- Active work: hoàn tất ranh giới GitHub/source/test và Sites/artifact theo
+  [quyết định release mirror](decisions/sites-artifact-only-release-mirror.md).
+  GitHub đã nhận source `9b50e32`. Mirror đang staged, chưa commit/push/save/deploy;
+  285 file `dist/` khớp từng byte với build từ source đó, không chứa test/tooling.
+  Sites xác nhận vẫn version 1. Plugin Sites mất thư mục local trong lúc tiếp tục
+  task; script phát hành chính thức hiện không có. [Checkpoint](verification/release-cleanup-2026-09-24.md).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
@@ -34,15 +33,15 @@
 - Knowledge: [docs index](index.md), [cây project](../README.md#cây-thư-mục-và-trạng-thái).
   Git giữ contract/evidence; Notion giữ planning/status. [Backlog hiện hành](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)
   gom việc còn mở; 12 card cũ vào Trash, 13 card Done giữ làm lịch sử.
-- Tooling: Graphify AST fresh tại query;254 semantic file pending trước cleanup.
+- Tooling: Graphify AST fresh tại query; 258 semantic file pending khi tiếp tục release.
   Không chạy semantic extraction. Serena đã activate đúng project.
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: owner đã chọn ảnh portal xanh dương và cho phép commit,
-  push, deploy ngày2026-09-24. GitHub hiện ở47f56ee; Sites vẫn version1 cho
-  đến khi gate và deployment xác nhận thành công. Hero route-return VI/EN đã
-  qua regression, filter không replay. Ảnh nguồn và WebP có
+- Next repo action: khôi phục plugin Sites, hoàn tất Git gate cho mirror và
+  phát hành snapshot website `9b50e32` bằng workflow Sites chính thức.
+  Owner đã cho phép commit/push/deploy ngày 2026-09-24; giữ audience public.
+  Hero route-return VI/EN đã qua regression, filter không replay. Ảnh nguồn và WebP có
   [provenance](../source-assets/projects/advertising/portal-20260924/README.md).
 
 ## Chú thích thuật ngữ

@@ -71,8 +71,10 @@ evidence contract.
 GitHub là source of truth. Pull request chạy static và browser smoke gate.
 Không có workflow Cloudflare deploy; CMS chưa activate, không chạy Wrangler.
 Owner đã yêu cầu phát hành snapshot24/09 lên Sites hiện có; giữ audience public.
-`.openai/hosting.json` chỉ định project và static output. Trạng thái phát hành
-thực tế xem [STATE](docs/STATE.md), thay đổi xem [CHANGELOG](CHANGELOG.md).
+GitHub giữ source/test; Sites chỉ nhận build theo
+[quyết định phát hành](docs/decisions/sites-artifact-only-release-mirror.md).
+Trạng thái phát hành thực tế xem [STATE](docs/STATE.md), thay đổi xem
+[CHANGELOG](CHANGELOG.md).
 Wrangler chỉ được cài và activate
 khi owner mở CMS phase theo
 [`Khóa Wrangler đến phase CMS`](docs/decisions/wrangler-deferred-until-cms.md).
@@ -110,7 +112,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 │  ├─ reference/                    # crawler research
 │  └─ tooling/                      # local server, QA, Graphify, Git hooks
 ├─ tests/
-│  ├─ site/, media/, worker/, tooling/ # source QA theo domain
+│  ├─ site/, media/, worker/, tooling/ # QA trong GitHub; không deploy lên Sites
 │  └─ reports/                      # GENERATED: kết quả local
 ├─ docs/
 │  ├─ STATE.md, index.md             # snapshot hiện tại và routing
@@ -129,7 +131,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ tasks/                           # plan/checklist; không thay Notion status
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md
 ├─ .impeccable/                     # design extensions và surface briefs
-├─ .openai/hosting.json             # Sites project và static directory
+├─ .openai/hosting.json             # project Sites; local build dùng .site-output
 ├─ .github/, .vscode/               # CI/workflow và dev tasks
 ├─ .agents/, .claude/, .codex/, .serena/ # agent config; cache giữ local
 ├─ .site-output/                    # GENERATED: public build, không edit/commit
@@ -188,6 +190,7 @@ block hoặc destabilize static release. Xem
 - **Canonical**: bản được xem là nguồn chuẩn.
 - **Portable**: có thể tái lập trên machine khác từ pin và script của repository.
 - **Deployment**: quá trình đưa output lên môi trường phục vụ.
+- **Release mirror**: source Git Sites chỉ chứa output tĩnh và manifest của release.
 - **Fallback**: nhánh xử lý thay thế khi capability chính chưa có hoặc bị tắt.
 - **Automation**: hook, watcher, wrapper hoặc launcher tự xử lý mechanics.
 - **Dormant**: đã có trong source nhưng hiện chưa được activate.

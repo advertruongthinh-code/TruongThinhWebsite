@@ -45,6 +45,7 @@ accepted decision chỉ vì ngắn. Decision thay thế phải dẫn rõ superse
 | 2026-07-30 | accepted | [Header route-first, không dùng fragment navigation](route-first-navigation.md) |
 | 2026-08-08 | accepted | [Repository boundary theo runtime responsibility](runtime-responsibility-boundaries.md) |
 | 2026-08-31 | accepted | [SplitText chỉ áp dụng cho editorial reveal đã khai báo](selective-splittext-editorial-reveals.md) |
+| 2026-09-24 | accepted | [Sites chỉ nhận artifact tĩnh, GitHub giữ source và test](sites-artifact-only-release-mirror.md) |
 | 2026-08-30 | accepted | [Sáu trang nhóm Sản phẩm quảng cáo dùng một shared detail template](shared-advertising-product-detail-template.md) |
 | 2026-08-01 | accepted | [Typography và locale transition giữ shell ổn định](stable-shell-locale-transition.md) |
 | 2026-08-08 | accepted | [Live bản tĩnh trước, CMS sau](static-before-cms.md) |

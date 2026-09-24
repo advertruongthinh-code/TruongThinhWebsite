@@ -11,6 +11,7 @@ related_decisions:
   - ../decisions/static-shared-architecture.md
   - ../decisions/runtime-responsibility-boundaries.md
   - ../decisions/wrangler-deferred-until-cms.md
+  - ../decisions/sites-artifact-only-release-mirror.md
 ---
 
 # Kiến trúc runtime Trường Thịnh
@@ -38,6 +39,8 @@ flowchart LR
 | Public static | Đang dùng | `src/site/`, local assets và shared CSS/JS; không cần D1, R2, Access hoặc CMS secret |
 | Static build | Đang dùng | `scripts/site/prepare-static-assets.mjs` copy source/vendor, tạo catalog artifact, sáu compatibility HTML và22 HTML VI/EN vào `.site-output/` |
 | Local preview | Đang dùng | `pnpm dev` chạy `prepare:site` rồi `scripts/tooling/serve-static-parity.mjs --port 8787` |
+| QA | Chỉ ở repository | `tests/` và scripts kiểm chứng source/build; không thuộc public output hoặc gói Sites |
+| Sites release mirror | Đã chọn cho static release | Source Git nội bộ của Sites chỉ giữ `dist/` và manifest trỏ `dist/`; `dist/` sao từ `.site-output/` build từ commit GitHub xác định |
 | Worker | Dormant | `src/worker/index.js` giữ route, SEO, API và CMS boundary; Wrangler chưa thuộc static gate |
 | Admin | Dev/dormant | `src/admin/` là shell private cho CMS, không copy vào public output |
 | CMS data | Planned | D1/R2/Access/provider chỉ chọn và verify khi owner mở CMS phase |
@@ -91,8 +94,8 @@ hoặc CMS provider decision từ tài liệu này; các claim đó cần eviden
 
 ## Deployment và kiểm chứng
 
-GitHub là source of truth. Static hosting/deploy decision vẫn riêng; Wrangler
-được khóa tới CMS phase theo [decision deferred Wrangler](../decisions/wrangler-deferred-until-cms.md).
+Boundary GitHub/Sites theo [quyết định mirror](../decisions/sites-artifact-only-release-mirror.md);
+Wrangler khóa tới CMS theo [decision deferred Wrangler](../decisions/wrangler-deferred-until-cms.md).
 
 Các command có trong repository:
 
@@ -124,3 +127,4 @@ viewport, console/network và accessibility theo [tests README](../../tests/READ
 - **Generated**: output có thể tạo lại từ source; không edit trực tiếp.
 - **Fallback**: nhánh vẫn phục vụ content khi capability nâng cao lỗi hoặc bị tắt.
 - **Trust boundary**: ranh giới nơi input, quyền hoặc dependency phải được kiểm tra.
+- **Release mirror**: cây source Git Sites chứa output tĩnh và manifest, tách khỏi repository GitHub.

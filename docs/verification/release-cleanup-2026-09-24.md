@@ -163,6 +163,38 @@ bootstrap và tham số test; static contract được cập nhật để nhận
 Build/static ở checkout sạch và regression hero route-return VI/EN đạt; không
 đổi điều kiện reveal hay assertion.
 
+## Tiếp tục tách website và test
+
+Checkpoint này thay trạng thái release đang mở ở đầu tài liệu; các mục trước
+giữ ngày và phạm vi evidence lịch sử.
+
+- `git ls-remote origin refs/heads/codex/project-structure` xác nhận GitHub tại
+  `9b50e323ad1c40acbcc3341da8c135e3f18e7e8a`. Source website không đổi trong
+  lượt tiếp tục; các edit tooling, test và ảnh nguồn khác giữ ngoài scope commit.
+- Cây project đã tách website ở `src/site/`, kiểm thử ở `tests/`, build ở
+  `.site-output/`, dữ liệu nguồn ở `source-assets/`; không cần move lại source.
+  Contract GitHub/Sites được ghi tại [static release](../specs/frontend-static-release.md),
+  [architecture](../architecture/index.md) và [ADR](../decisions/sites-artifact-only-release-mirror.md).
+- Checkout `.tmp/sites-static-publish-20260924/` vẫn có HEAD version 1
+  `85adc08077b75faf47249eb2a2a68ad9422deb3b`. Index mới có 286 file:
+  285 file `dist/` và một `.openai/hosting.json` trỏ `dist`.
+  So sánh đệ quy từng file với `.tmp/release-publish-20260924/.site-output/`
+  đạt bằng nhau từng byte; không có test, docs, tooling, research hoặc CMS.
+  `pnpm qa:static` đạt. Không chạy lại full parity cho thay đổi Markdown.
+- Sites `get_site` xác nhận audience public, version 1. Chưa có mirror commit,
+  archive mới, saved version hoặc deployment thành công; không dùng archive cũ
+  trỏ `.site-output/` cho mirror mới trỏ `dist/`.
+- Blocker hiện tại: package local
+  `C:/Users/halal/.codex/plugins/cache/openai-curated-remote/sites/0.1.71/`
+  đã biến mất sau khi đọc skill. Tìm `site-workflow.mjs` trong toàn bộ plugin
+  directory không có kết quả. Connector vẫn callable; không suy ra workflow
+  local còn đủ. Cần khôi phục plugin, dùng workflow chính thức, chạy Git hooks
+  và chỉ ghi deploy xong khi Sites trả `succeeded`.
+
+Graphify structural query đạt, 258 semantic file pending; không chạy semantic
+extraction. Serena đã activate đúng project với context Codex. Không cập nhật
+Notion card trong lượt này.
+
 ## Chú thích thuật ngữ
 
 - **Checkpoint**: trạng thái đã xác minh để tiếp tục, không phải release hoàn tất.
