@@ -120,12 +120,6 @@ void main() {
 }
 `;
 
-const saturate = (value) => Math.min(1, Math.max(0, value));
-const smooth = (value) => {
-  const clamped = saturate(value);
-  return clamped * clamped * (3 - 2 * clamped);
-};
-
 const parseHex = (value) => [
   Number.parseInt(value.slice(1, 3), 16) / 255,
   Number.parseInt(value.slice(3, 5), 16) / 255,
@@ -227,11 +221,6 @@ const sourcePresets = RAW_PRESETS.map(({ id, colors, distortion, swirl, speed, n
 
 export const SKELETON_FLOW_PRESETS = parseSkeletonFlowPresets(sourcePresets);
 
-export function selectSkeletonFlowPreset(random = Math.random) {
-  const value = Math.min(0.999999, Math.max(0, Number(random()) || 0));
-  return SKELETON_FLOW_PRESETS[Math.floor(value * SKELETON_FLOW_PRESETS.length)];
-}
-
 const normalizedRandom = (random) => Math.min(0.999999, Math.max(0, Number(random()) || 0));
 
 function shuffled(values, random) {
@@ -332,64 +321,6 @@ export function advanceSkeletonFlowPhase(phase, deltaSeconds, speed, direction =
   const delta = Math.min(MAX_DELTA_SECONDS, Math.max(0, Number(deltaSeconds) || 0));
   const signedDirection = direction < 0 ? -1 : 1;
   return phase + signedDirection * (rangedNumber(speed, 0, 100, "Flow speed") / 100) * 1.2 * delta;
-}
-
-function automaticAnchor(index, phase) {
-  const anchorPhase = 0.37 * index;
-  const fx = 0.6 + 0.9 * (index / 3 - Math.floor(index / 3));
-  const fyValue = (index + 1) / 4;
-  const fy = 0.8 + fyValue - Math.floor(fyValue);
-  return [
-    0.5 + 0.5 * Math.sin(phase * fx + anchorPhase),
-    0.5 + 0.5 * Math.cos(phase * fy + 1.5 * anchorPhase),
-  ];
-}
-
-function sampleValidatedPreset(preset, xInput, yInput, phase) {
-  const scaleFactor = 0.4 + 1.2 * preset.field.scale / 100;
-  let x = (Number(xInput) - 0.5) / scaleFactor + 0.5;
-  let y = (Number(yInput) - 0.5) / scaleFactor + 0.5;
-  const radius = smooth(Math.hypot(x - 0.5, y - 0.5));
-  const edge = 1 - radius;
-  for (let pass = 1; pass <= 2; pass += 1) {
-    x += (preset.field.distortion / 100) * edge / pass
-      * Math.sin(phase + 0.4 * pass * smooth(y))
-      * Math.cos(0.2 * phase + 2.4 * pass * smooth(y));
-    y += (preset.field.distortion / 100) * edge / pass
-      * Math.cos(phase + 2 * pass * smooth(x));
-  }
-  const angle = -3 * (preset.field.swirl / 100) * radius;
-  const centeredX = x - 0.5;
-  const centeredY = y - 0.5;
-  const sine = Math.sin(angle);
-  const cosine = Math.cos(angle);
-  x = centeredX * cosine - centeredY * sine + 0.5;
-  y = centeredX * sine + centeredY * cosine + 0.5;
-
-  const edges = [0, ...preset.bands, 1];
-  const colors = preset.colors.map(parseHex);
-  const output = [0, 0, 0];
-  let totalWeight = 0;
-  preset.anchors.forEach((ring, index) => {
-    const current = automaticAnchor(index, phase);
-    const baseline = automaticAnchor(index, FLOW_CLOCK_START);
-    const anchorX = (ring.x - 0.5) / scaleFactor + 0.5
-      + 0.2 * (current[0] - baseline[0]) / scaleFactor;
-    const anchorY = (ring.y - 0.5) / scaleFactor + 0.5
-      + 0.2 * (current[1] - baseline[1]) / scaleFactor;
-    const distanceSquared = (x - anchorX) ** 2 + (y - anchorY) ** 2;
-    const balance = 4 * (edges[index + 1] - edges[index]);
-    const weight = balance / (distanceSquared ** 2 + 0.0001);
-    totalWeight += weight;
-    for (let channel = 0; channel < 3; channel += 1) {
-      output[channel] += colors[index][channel] * weight;
-    }
-  });
-  return output.map((channel) => saturate(channel / totalWeight)).concat(1);
-}
-
-export function sampleSkeletonFlowColor(presetInput, xInput, yInput, phase = FLOW_CLOCK_START) {
-  return sampleValidatedPreset(parseSkeletonFlowPreset(presetInput), xInput, yInput, phase);
 }
 
 export function staticBackground(preset) {

@@ -12,8 +12,6 @@ import {
   createSkeletonFlowFrameLayout,
   parseSkeletonFlowPreset,
   parseSkeletonFlowPresets,
-  sampleSkeletonFlowColor,
-  selectSkeletonFlowPreset,
 } from "../../src/site/advertising-products/skeleton-flow.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -152,17 +150,6 @@ invalid.unknown = true;
 assert.throws(() => parseSkeletonFlowPreset(invalid), /unknown/i);
 assert.throws(() => parseSkeletonFlowPresets([SKELETON_FLOW_PRESETS[0]]), /12/);
 
-const sequence = (seed) => {
-  const random = seededRandom(seed);
-  return Array.from({ length: 12 }, () => selectSkeletonFlowPreset(random).id);
-};
-assert.deepEqual(sequence(20260921), sequence(20260921),
-  "seeded preset selection must be deterministic");
-assert(new Set(sequence(20260921)).size > 1, "preset selection never varies");
-assert.equal(selectSkeletonFlowPreset(() => -1).id, SKELETON_FLOW_PRESETS[0].id);
-assert.equal(selectSkeletonFlowPreset(() => 1).id,
-  SKELETON_FLOW_PRESETS[SKELETON_FLOW_PRESETS.length - 1].id);
-
 assert.equal(typeof skeletonFlow.createSkeletonFlowBatchAssignments, "function",
   "Flow must expose a pure batch allocator for the accepted R5 invariants");
 const createBatch = (seed) => skeletonFlow.createSkeletonFlowBatchAssignments({
@@ -274,18 +261,6 @@ assert.deepEqual(
 
 assert.equal(advanceSkeletonFlowPhase(20.75, 1, 30), 20.768,
   "clock delta must cap at 50ms");
-for (const preset of SKELETON_FLOW_PRESETS) {
-  for (const phase of [20.75, 20.768, 21.2]) {
-    for (const [x, y] of [[0, 0], [0.5, 0.5], [1, 1], [0.2, 0.8]]) {
-      const color = sampleSkeletonFlowColor(preset, x, y, phase);
-      assert.equal(color.length, 4);
-      assert(color.every(Number.isFinite), `${preset.id}: shader oracle returned a non-finite channel`);
-      assert(color.slice(0, 3).every((channel) => channel >= 0 && channel <= 1));
-      assert.equal(color[3], 1, `${preset.id}: shader oracle returned empty alpha`);
-    }
-  }
-}
-
 assert.match(SKELETON_FLOW_FRAGMENT_SHADER, /distanceSquared \* distanceSquared \+ 0\.0001/);
 assert.match(SKELETON_FLOW_FRAGMENT_SHADER, /for \(int pass = 1; pass <= 2; pass \+= 1\)/);
 

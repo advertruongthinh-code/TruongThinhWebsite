@@ -12,7 +12,6 @@ import {
   computeAdvertisingPhotoGeometry,
   getVirtualWindow,
   normalizeAdvertisingSettings,
-  resolveAdvertisingSpan,
   scheduleAdvertisingRank,
   validateAdvertisingCards,
 } from "../../src/site/advertising-products/layout-core.mjs";
@@ -127,10 +126,6 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
   assert.deepEqual(normalizeAdvertisingSettings(), { landscapeThreshold: 1.25 });
   assert.throws(() => normalizeAdvertisingSettings({ landscapeThreshold: 1 }), /finite number greater than 1/i);
-  assert.equal(resolveAdvertisingSpan({ layoutSpan: "auto", media: { width: 126, height: 100 } }), 2);
-  assert.equal(resolveAdvertisingSpan({ layoutSpan: "auto", media: { width: 125, height: 100 } }), 1);
-  assert.equal(resolveAdvertisingSpan({ layoutSpan: 1, media: { width: 200, height: 100 } }), 1);
-  assert.equal(resolveAdvertisingSpan({ layoutSpan: 2, media: { width: 50, height: 100 } }), 2);
   assert.equal(ADVERTISING_CARDS.length, 154);
   assert.deepEqual(ADVERTISING_CARDS.map(({ rank }) => rank), Array.from({ length: 154 }, (_, index) => index));
   assert.equal(new Set(ADVERTISING_CARDS.map(({ id }) => id)).size, 154);

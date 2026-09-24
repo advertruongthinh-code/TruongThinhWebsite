@@ -32,20 +32,6 @@ export function normalizeAdvertisingSettings(settings) {
   return { landscapeThreshold };
 }
 
-export function resolveAdvertisingSpan(card, settings) {
-  const { landscapeThreshold } = normalizeAdvertisingSettings(settings);
-  const layoutSpan = card?.layoutSpan;
-  if (layoutSpan !== undefined && layoutSpan !== "auto" && layoutSpan !== 1 && layoutSpan !== 2) {
-    throw new Error(`Invalid layoutSpan: ${String(layoutSpan)}`);
-  }
-  const media = card?.media ?? card;
-  if (!Number.isFinite(media?.width) || media.width <= 0 || !Number.isFinite(media?.height) || media.height <= 0) {
-    throw new Error(`Invalid intrinsic media dimensions: ${card?.id ?? "card"}`);
-  }
-  if (layoutSpan === 1 || layoutSpan === 2) return layoutSpan;
-  return media.width / media.height > landscapeThreshold ? 2 : 1;
-}
-
 export function fnv1a32(value) {
   let hash = 0x811c9dc5;
   for (const byte of new TextEncoder().encode(value)) {

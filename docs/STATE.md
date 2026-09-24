@@ -7,6 +7,8 @@
   tại `da2f13a`; `fdbfcbd` nối lịch sử Sites, giữ nguyên cây source.
   GitHub/Sites push bị pre-push review chặn; chưa save/deploy version mới.
   [Checkpoint release và finding](verification/release-cleanup-2026-09-24.md).
+  `5e24a10` bổ sung backup/live provenance và phân loại cleanup; pre-push còn
+  finding API không có runtime caller. Plugin Sites hiện thiếu file cài đặt.
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).

@@ -86,6 +86,20 @@ compatibility/static locale đạt 19/19; `pnpm qa:release-regressions` đạt 7
 trên local server 8787. Lần chạy đầu chưa có server trả connection refused;
 đã khởi động server rồi chạy lại trọn gate thành công.
 
+## Review tiếp theo
+
+Commit `5e24a10` qua pre-commit nhưng pre-push phát hiện thêm ba API chỉ có test
+caller: `resolveAdvertisingSpan`, `selectSkeletonFlowPreset` và CPU sampler
+`sampleSkeletonFlowColor`. Đã đối chiếu toàn repo, gỡ API cùng assertion chỉ
+kiểm chính API đó; giữ kernel layout, batch allocator và WebGL renderer thật.
+Node layout/skeleton đạt 17/17 sau thay đổi; shader GLSL và preset không đổi.
+Build đạt; browser return P7.4 đạt Back/navbar/related tại 1567 và 920 px,
+CTA/footer/reload cùng mép skeleton tại 1567 và 390 px sau cleanup này.
+
+Plugin Sites không còn thư mục skill/script trên máy trong lúc chuẩn bị deploy.
+Đã tìm lại trong plugin cache và user skills nhưng không có bản thay thế; cần
+bật lại plugin trước khi chạy quy trình publish chính thức.
+
 ## Backup trước deploy
 
 Sites xác nhận version 1 gắn với commit
