@@ -1,15 +1,20 @@
 ---
 title: Sites chỉ nhận artifact tĩnh, GitHub giữ source và test
-status: accepted
+status: superseded
 date: 2026-09-24
 scope: static website release
 supersedes: []
 related_specs:
   - ../specs/frontend-static-release.md
 related_reports: []
+superseded_by: cloudflare-workers-static-demo.md
 ---
 
 # Sites chỉ nhận artifact tĩnh, GitHub giữ source và test
+
+- Status: Superseded bởi
+  [`cloudflare-workers-static-demo.md`](cloudflare-workers-static-demo.md)
+  ngày 2026-10-03; owner không còn dùng Sites.
 
 ## Bối cảnh
 

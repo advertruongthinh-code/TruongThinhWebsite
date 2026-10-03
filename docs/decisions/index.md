@@ -14,6 +14,7 @@ accepted decision chỉ vì ngắn. Decision thay thế phải dẫn rõ superse
 | 2026-09-01 | accepted | [Lưới organic Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập](advertising-organic-masonry-espacio-spacing-media-distribution.md) |
 | 2026-08-09 | accepted | [Caveman ultra và rule module](caveman-ultra-agent-rules.md) |
 | 2026-10-03 | accepted | [Skill vendor vào .claude từ pin](claude-skills-vendored-from-pins.md) |
+| 2026-10-03 | accepted | [Demo tĩnh chạy trên Cloudflare Workers static assets](cloudflare-workers-static-demo.md) |
 | 2026-09-01 | accepted | [Codex native với Agent Skills user-global](codex-native-agent-skills-workflow.md) |
 | 2026-07-31 | accepted | [Content/media có guide và thứ tự bảo trì rõ](content-media-maintenance.md) |
 | 2026-07-31 | accepted | [D1 SSR luôn ưu tiên hơn shell fallback](d1-ssr-static-fallback.md) |
@@ -46,7 +47,6 @@ accepted decision chỉ vì ngắn. Decision thay thế phải dẫn rõ superse
 | 2026-07-30 | accepted | [Header route-first, không dùng fragment navigation](route-first-navigation.md) |
 | 2026-08-08 | accepted | [Repository boundary theo runtime responsibility](runtime-responsibility-boundaries.md) |
 | 2026-08-31 | accepted | [SplitText chỉ áp dụng cho editorial reveal đã khai báo](selective-splittext-editorial-reveals.md) |
-| 2026-09-24 | accepted | [Sites chỉ nhận artifact tĩnh, GitHub giữ source và test](sites-artifact-only-release-mirror.md) |
 | 2026-08-30 | accepted | [Sáu trang nhóm Sản phẩm quảng cáo dùng một shared detail template](shared-advertising-product-detail-template.md) |
 | 2026-08-01 | accepted | [Typography và locale transition giữ shell ổn định](stable-shell-locale-transition.md) |
 | 2026-08-08 | accepted | [Live bản tĩnh trước, CMS sau](static-before-cms.md) |
@@ -72,6 +72,7 @@ accepted decision chỉ vì ngắn. Decision thay thế phải dẫn rõ superse
 | 2026-09-01 | superseded | [Sản phẩm quảng cáo dùng Pinterest organic masonry và natural ratio](pinterest-organic-advertising-product-masonry.md) |
 | 2026-08-24 | superseded | [Typography portal theo trọng lượng Espacio](portal-typography-weight-parity.md) |
 | 2026-08-08 | superseded | [Tooling chỉ ở project scope và update là notify-only](project-scoped-tooling.md) |
+| 2026-09-24 | superseded | [Sites chỉ nhận artifact tĩnh, GitHub giữ source và test](sites-artifact-only-release-mirror.md) |
 | 2026-08-08 | superseded | [Hook có một dispatcher cho mỗi event](single-hook-dispatcher.md) |
 | 2026-08-08 | superseded | [Phát hành static website trước CMS](static-first-release.md) |
 

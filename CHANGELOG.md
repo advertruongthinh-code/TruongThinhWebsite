@@ -1,5 +1,10 @@
 # Changelog
 
+## Chưa phát hành — demo chuyển sang Cloudflare 2026-10-03
+
+- Thêm `wrangler.static.toml` (assets-only) và `pnpm deploy:demo`; ChatGPT Sites
+  không còn là đường phát hành. CMS Worker vẫn dormant.
+
 ## Chưa phát hành — hero và portal Advertising 2026-09-24
 
 - Sửa cờ one-shot theo container: route enter chạy lại reveal từng word;

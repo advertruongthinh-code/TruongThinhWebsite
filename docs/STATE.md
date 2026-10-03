@@ -3,11 +3,10 @@
 - Updated: 2026-10-03
 - Phase: public website static-first VI/EN. Source tại `src/site/`, build tại
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
-- Active work: ranh giới GitHub/source/test và Sites/artifact đã áp dụng theo
-  [quyết định release mirror](decisions/sites-artifact-only-release-mirror.md).
-  GitHub nhận source `0654dca`; Sites nhận mirror `557da5a` chỉ gồm 268 file
-  `dist/` và manifest. Version 2 đã deploy thành công, audience public;
-  [checkpoint](verification/release-cleanup-2026-09-24.md) ghi SHA và QA.
+- Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
+  Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
+  Build 268 file, `pnpm deploy:demo --dry-run` đạt; chưa deploy thật.
+  Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
@@ -24,8 +23,9 @@
   source trước ship; preset hiện hành giữ nguyên.
   COCO/decal còn lỗi chữ nhỏ theo review độc lập; giữ exact bản owner duyệt.
   [Evidence index](verification/index.md) giữ ngày và scope từng run.
-- Hard boundary: user đã cho phép GitHub/Sites cho snapshot hiện tại; không
-  suy ra quyền activate CMS, đổi audience/domain hoặc publish ảnh chưa duyệt.
+- Hard boundary: owner đồng ý chuyển demo sang Workers; mỗi lần deploy vẫn cần
+  owner đồng ý. Không suy ra quyền activate CMS, đổi audience/domain hoặc publish
+  ảnh chưa duyệt.
   Giữ nguồn ảnh, archive, unrelated work và không bypass Git review hooks.
   [Backup ảnh Sites version 1](../source-assets/site-backups/live-v1-20260924/README.md)
   giữ 54 ảnh từ source commit đã phát hành, kèm SHA-256 trước deploy.
@@ -40,9 +40,9 @@
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: owner kiểm nhận giao diện trên
-  [site public](https://truong-thinh-noi-that.potato240794.chatgpt.site/vi/);
-  full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
+- Next repo action: owner tạo tài khoản Cloudflare, chạy `pnpm deploy:demo` theo
+  [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026),
+  rồi kiểm nhận giao diện trên URL `workers.dev`; full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
   regression, filter không replay. Ảnh nguồn và WebP có
   [provenance](../source-assets/projects/advertising/portal-20260924/README.md).
 

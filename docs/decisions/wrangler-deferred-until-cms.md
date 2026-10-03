@@ -33,6 +33,8 @@ Wrangler chỉ được cài và nối lại vào command, CI hoặc deployment 
 explicit activate CMS phase và duyệt spec cùng implementation plan tương ứng.
 Một lựa chọn static hosting khác, nếu có, phải được quyết định riêng và không tự
 động mở lại Wrangler.
+Ngày 2026-10-03, [demo trên Workers static assets](cloudflare-workers-static-demo.md)
+là quyết định riêng đó: chỉ `pnpm deploy:demo` gọi Wrangler, không mở CMS.
 
 ## Hệ quả
 

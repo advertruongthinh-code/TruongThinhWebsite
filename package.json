@@ -7,6 +7,8 @@
   "scripts": {
     "prepare:site": "node scripts/site/prepare-static-assets.mjs",
     "dev": "pnpm prepare:site && node scripts/tooling/serve-static-parity.mjs --port 8787",
+    "deploy:demo": "pnpm prepare:site && pnpm demo:wrangler deploy --config wrangler.static.toml",
+    "demo:wrangler": "pnpm dlx --allow-build=esbuild --allow-build=workerd wrangler@4.124.0",
     "qa:static": "node tests/site/site-static-contract.cjs",
     "qa:release-regressions": "node --test --test-concurrency=1 tests/site/static-locales.test.mjs tests/site/advertising-full-span-p72.e2e.mjs tests/site/advertising-no-titles.e2e.mjs tests/site/advertising-suggestion-conditional.e2e.mjs tests/site/advertising-suggestion-info.e2e.mjs tests/site/shared-header-bottom-p7-1.e2e.mjs tests/site/shared-header-single-line.e2e.mjs",
     "qa:client-assets": "node tests/site/client-logo-assets-contract.cjs",

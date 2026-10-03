@@ -15,6 +15,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | --- | --- | --- |
 | Copy static source | `pnpm prepare:site` | Generate `.site-output/`; không edit output. |
 | Local web | `pnpm dev` | Static Node server; không Worker, không deploy. |
+| Deploy demo | `pnpm deploy:demo` | Workers static assets; owner chạy, agent chỉ `--dry-run`. [Decision](../decisions/cloudflare-workers-static-demo.md). |
 | Static contract | `pnpm qa:static` | Current static QA evidence. |
 | Dormant Worker contract | `pnpm qa:worker:static`, `pnpm qa:worker` | Chỉ sau owner gate mở CMS và có Worker runtime. |
 | Browser suite | `pnpm qa:site`, `pnpm qa:cross-browser` | Live server cần sẵn. |

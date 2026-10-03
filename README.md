@@ -69,13 +69,14 @@ evidence contract.
 ## Deployment
 
 GitHub là source of truth. Pull request chạy static và browser smoke gate.
-Không có workflow Cloudflare deploy; CMS chưa activate, không chạy Wrangler.
-Owner đã yêu cầu phát hành snapshot24/09 lên Sites hiện có; giữ audience public.
-GitHub giữ source/test; Sites chỉ nhận build theo
-[quyết định phát hành](docs/decisions/sites-artifact-only-release-mirror.md).
+Demo tĩnh chạy trên Cloudflare Workers static assets: owner chạy
+`pnpm deploy:demo` trên máy local theo
+[quyết định demo](docs/decisions/cloudflare-workers-static-demo.md) và
+[các bước phát hành](docs/specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
+Không có CI deploy; CMS chưa activate.
 Trạng thái phát hành thực tế xem [STATE](docs/STATE.md), thay đổi xem
 [CHANGELOG](CHANGELOG.md).
-Wrangler chỉ được cài và activate
+Wrangler cho CMS Worker chỉ được cài và activate
 khi owner mở CMS phase theo
 [`Khóa Wrangler đến phase CMS`](docs/decisions/wrangler-deferred-until-cms.md).
 
@@ -112,7 +113,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 │  ├─ reference/                    # crawler research
 │  └─ tooling/                      # local server, QA, Graphify, Git hooks
 ├─ tests/
-│  ├─ site/, media/, worker/, tooling/ # QA trong GitHub; không deploy lên Sites
+│  ├─ site/, media/, worker/, tooling/ # QA trong GitHub; không deploy
 │  └─ reports/                      # GENERATED: kết quả local
 ├─ docs/
 │  ├─ STATE.md, index.md             # snapshot hiện tại và routing
@@ -131,14 +132,15 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ tasks/                           # plan/checklist; không thay Notion status
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md
 ├─ .impeccable/                     # design extensions và surface briefs
-├─ .openai/hosting.json             # project Sites; local build dùng .site-output
+├─ .openai/hosting.json             # LEGACY: project Sites cũ, không còn dùng
 ├─ .github/, .vscode/               # CI/workflow và dev tasks
 ├─ .agents/, .claude/, .codex/, .serena/ # agent config; cache giữ local
 ├─ .site-output/                    # GENERATED: public build, không edit/commit
 ├─ .tmp/, _temp/, test-results/     # GENERATED: probe, staging, evidence local
 ├─ .tooling/, graphify-out/, .wrangler/, node_modules/ # CACHE
 └─ package.json, pnpm-lock.yaml, pnpm-workspace.yaml,
-   playwright.config.cjs, tooling-versions.json, wrangler.toml
+   playwright.config.cjs, tooling-versions.json,
+   wrangler.toml (CMS dormant), wrangler.static.toml (demo)
 ```
 
 Quy tắc ownership:
@@ -190,7 +192,7 @@ block hoặc destabilize static release. Xem
 - **Canonical**: bản được xem là nguồn chuẩn.
 - **Portable**: có thể tái lập trên machine khác từ pin và script của repository.
 - **Deployment**: quá trình đưa output lên môi trường phục vụ.
-- **Release mirror**: source Git Sites chỉ chứa output tĩnh và manifest của release.
+- **Workers static assets**: Cloudflare phục vụ file tĩnh từ Worker, không cần code.
 - **Fallback**: nhánh xử lý thay thế khi capability chính chưa có hoặc bị tắt.
 - **Automation**: hook, watcher, wrapper hoặc launcher tự xử lý mechanics.
 - **Dormant**: đã có trong source nhưng hiện chưa được activate.

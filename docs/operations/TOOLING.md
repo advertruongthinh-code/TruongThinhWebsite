@@ -29,8 +29,9 @@ Xem [scripts map](agent-rule-scripts.md) để repair từng component đã đư
 | User global | Serena 1.7.0, Graphify 0.9.64, uv 0.12.17, Chrome DevTools MCP 1.9.0, Impeccable CLI 4.1.0/skill 4.3.1/engine 0.1.5, jq 1.8.2, 54 direct skill và native persona |
 | Project | pnpm 12.4.2, Playwright 1.63.0, browser engine, static Node preview, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
 
-Wrangler không được cài hoặc gọi trong static phase. `src/worker/` và
-`wrangler.toml` chỉ là dormant CMS source; việc mở lại cần owner gate.
+Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` gọi bản
+pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-demo.md).
+`src/worker/` và `wrangler.toml` chỉ là dormant CMS source; việc mở lại cần owner gate.
 
 Path ở user-global:
 

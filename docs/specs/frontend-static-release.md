@@ -2,12 +2,12 @@
 title: Đặc tả static release
 type: frontend
 status: accepted
-updated: 2026-09-24
+updated: 2026-10-03
 notion: none
 related_decisions:
   - ../decisions/wrangler-deferred-until-cms.md
   - ../decisions/head-office-address-confirmed.md
-  - ../decisions/sites-artifact-only-release-mirror.md
+  - ../decisions/cloudflare-workers-static-demo.md
 related_reports: []
 ---
 
@@ -16,7 +16,8 @@ related_reports: []
 ## Mục tiêu
 
 Giữ website bilingual hiện có chạy và kiểm thử được bằng static runtime độc lập.
-Static phase không phụ thuộc CMS, Cloudflare Worker hoặc Wrangler.
+Phát triển và QA static không phụ thuộc CMS, Cloudflare Worker hoặc Wrangler;
+chỉ bước deploy demo gọi Wrangler.
 
 ## Trong scope
 
@@ -45,7 +46,8 @@ Static phase không phụ thuộc CMS, Cloudflare Worker hoặc Wrangler.
 4. `pnpm dev` chỉ chạy static Node server và phục vụ các route VI/EN đã khai báo.
 5. Chromium smoke pass trong CI, không có console, page, network hoặc overflow
    failure.
-6. Current package và CI không cài hoặc gọi Wrangler; chưa có workflow CMS deploy.
+6. Package và CI không cài Wrangler; chỉ `pnpm deploy:demo` gọi bản pin qua
+   `pnpm dlx`. Không có CI deploy hoặc workflow CMS deploy.
 7. Zalo, founding year và warranty claim vẫn unset cho tới khi owner confirm;
    address dùng owner fact đã accepted.
 
@@ -53,33 +55,39 @@ Static phase không phụ thuộc CMS, Cloudflare Worker hoặc Wrangler.
 
 1. Chạy `pnpm dev` và verify route, CTA VI/EN trên local preview.
 2. Merge pull request sau khi CI pass.
-3. Chưa tạo workflow Cloudflare deploy khi CMS chưa activate.
-4. Chỉ chọn static hosting hoặc mở CMS deployment bằng decision và owner gate
-   riêng.
+3. Owner đồng ý, rồi deploy demo theo mục dưới. Không tạo workflow deploy tự
+   động khi CMS chưa activate.
+4. Đổi hosting, domain hoặc mở CMS deployment cần decision và owner gate riêng.
 
-## Phát hành Sites — owner yêu cầu 24/09/2026
+## Phát hành demo Cloudflare — owner đồng ý 03/10/2026
 
-Owner đã cho phép phát hành snapshot hiện tại lên Sites hiện có và push GitHub
-bằng CLI, sau khi dọn project/docs. Đây là static hosting, không mở CMS hoặc
-Cloudflare deployment. Giữ audience public hiện tại.
-
+Owner không còn dùng ChatGPT Sites; demo chuyển sang Workers static assets theo
+[quyết định demo Cloudflare](../decisions/cloudflare-workers-static-demo.md).
 Build dùng chung `ROUTES` và `localeHtml` với local server để tạo22 HTML VI/EN,
-không phụ thuộc server rewrite khi chạy trên static hosting. GitHub giữ source,
-test, scripts và docs đầy đủ. `tests/site/advertising-primary-p14.e2e.mjs` là
-test trong GitHub, không phải file của website public.
+nên static hosting không cần server rewrite. `wrangler.static.toml` chỉ khai báo
+asset `.site-output/`; không Worker script, không binding. `wrangler.toml` vẫn là
+cấu hình CMS dormant.
 
-Với mỗi release, build `.site-output/` từ một commit GitHub xác định. Source Git
-nội bộ của Sites là mirror chỉ có `dist/` (bản sao chính xác của
-`.site-output/`) và `.openai/hosting.json` trỏ tới `dist/` ở cây mới nhất;
-commit mới nối tiếp lịch sử Sites hiện có, không viết lại lịch sử. Archive gửi
-Sites cũng chỉ chứa hai path đó. Manifest trong GitHub tiếp tục trỏ tới
-`.site-output/` cho local build. Ghi ánh xạ commit GitHub, commit Sites, checksum
-archive và Sites version vào evidence release; kiểm tra cây mirror/archive trước
-khi save version. Test và tooling vẫn chịu Git/QA gate, nhưng không đóng gói
-vào Sites. Chi tiết lý do tại [quyết định Sites](../decisions/sites-artifact-only-release-mirror.md).
+Owner làm một lần trên máy local:
 
-Changelog ghi thay đổi và known limitations; focused PASS không đổi verdict
-full-site parity. Rollback dùng saved Sites version trước của cùng project.
+1. Tạo tài khoản Cloudflare miễn phí tại `dash.cloudflare.com/sign-up` và xác
+   nhận email.
+2. Trong repository: `pnpm install --frozen-lockfile`, rồi
+   `pnpm demo:wrangler login`. Trình duyệt mở trang Cloudflare, bấm Allow.
+   Không cần tạo API token; không dán token hay mật khẩu vào chat.
+3. `pnpm deploy:demo --dry-run` để kiểm cấu hình mà không upload.
+
+Mỗi lần phát hành:
+
+1. Checkout commit GitHub đã qua CI, chạy `pnpm qa:static`.
+2. `pnpm deploy:demo`. Lần đầu Wrangler hỏi tên subdomain `workers.dev`; URL demo
+   là `https://truong-thinh-demo.<subdomain>.workers.dev/vi/`.
+3. Mở `/vi/` và `/en/`, kiểm route chính; ghi commit GitHub, Worker version ID
+   và URL vào evidence release.
+
+Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml`
+hoặc chọn deployment cũ trong Cloudflare dashboard. Changelog ghi thay đổi và
+known limitations; focused PASS không đổi verdict full-site parity.
 
 Phân loại website, test, CMS và dữ liệu local theo [cây ownership](../../README.md#cây-thư-mục-và-trạng-thái).
 Build chỉ lấy `src/site/` và vendor khai báo; không đặt test trong source website
@@ -92,4 +100,5 @@ hoặc dùng repository root làm static directory.
 - **Smoke test**: kiểm tra nhanh các đường đi và behavior quan trọng.
 - **Local preview**: website phục vụ trên máy phát triển để kiểm tra output.
 - **Binding**: cấu hình kết nối Worker tới resource như D1 hoặc R2.
-- **Release mirror**: source Git Sites chỉ giữ build tĩnh và manifest của lần phát hành.
+- **Workers static assets**: Cloudflare phục vụ file tĩnh từ Worker, không cần code.
+- **Worker version ID**: mã Cloudflare cấp cho mỗi lần deploy, dùng để rollback.
