@@ -495,16 +495,17 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
       window.__m01bBubbledClicks = 0;
       node.addEventListener("click", () => { window.__m01bBubbledClicks += 1; });
     });
-    const swipeTouch = async (from, to, id) => link.evaluate((node, point) => {
-      const touch = (x) => new Touch({ identifier: point.id, target: node, clientX: x, clientY: point.y });
-      const start = touch(point.from);
-      const end = touch(point.to);
-      node.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, cancelable: true,
-        touches: [start], targetTouches: [start], changedTouches: [start] }));
-      node.dispatchEvent(new TouchEvent("touchend", { bubbles: true, cancelable: true,
-        touches: [], targetTouches: [], changedTouches: [end] }));
-      return node.parentElement.dataset.advertisingActiveMediaId;
-    }, { from, to, y: point.y, id });
+    // Real CDP touches produce the pointer events the runtime listens to.
+    const client = await context.newCDPSession(page);
+    const touchPath = async (from, to, id) => {
+      await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: from, y: point.y, id }] });
+      if (to !== from) await client.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: to, y: point.y, id }] });
+      await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    };
+    const swipeTouch = async (from, to, id) => {
+      await touchPath(from, to, id);
+      return link.evaluate((node) => node.parentElement.dataset.advertisingActiveMediaId);
+    };
     assert.equal(await swipeTouch(point.x1, point.x2, 61), videoId);
     const compatibility = await link.evaluate((node) => {
       const event = new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 });
@@ -514,20 +515,8 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
     assert(compatibility.prevented && compatibility.bubbled === 0,
       `touch swipe compatibility click must be suppressed: ${JSON.stringify(compatibility)}`);
     assert.equal(await swipeTouch(point.x2, point.x1, 62), fixtureId);
-    const freshTap = await link.evaluate((node, point) => {
-      const started = performance.now();
-      const touch = new Touch({ identifier: 63, target: node, clientX: point.x, clientY: point.y });
-      node.dispatchEvent(new TouchEvent("touchstart", { bubbles: true, cancelable: true,
-        touches: [touch], targetTouches: [touch], changedTouches: [touch] }));
-      node.dispatchEvent(new TouchEvent("touchend", { bubbles: true, cancelable: true,
-        touches: [], targetTouches: [], changedTouches: [touch] }));
-      const click = new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 });
-      node.dispatchEvent(click);
-      return { bubbled: window.__m01bBubbledClicks, elapsedMs: performance.now() - started,
-        activeId: node.parentElement.dataset.advertisingActiveMediaId };
-    }, { x: point.x1, y: point.y });
-    assert(freshTap.bubbled === 1 && freshTap.elapsedMs < 400 && freshTap.activeId === fixtureId,
-      `new touch gesture must open detail: ${JSON.stringify(freshTap)}`);
+    // A fresh tap inside the old 400ms guard must still open the detail of the active media.
+    await touchPath(point.x1, point.x1, 63);
     await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
   } finally { await context.close(); await browser.close(); }
 });

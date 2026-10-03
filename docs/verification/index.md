@@ -26,6 +26,7 @@ không tự đóng gate hoặc cấp quyền deploy.
 
 | Claim cần truy nguyên | Report | Giới hạn |
 | --- | --- | --- |
+| Ảnh gốc của media site tĩnh | [Kiểm kê 2026-10-03](media-originals-2026-10-03.md) | Quét PC owner một lần; manifest ngoài Git |
 | Đồng bộ board Notion và kiểm nhất quán Advertising 03/10 | [Notion sync](advertising-notion-sync-2026-10-03.md) | Chỉ tóm tắt `Not started`/`In progress`; 13 card `Done` không chép chi tiết. UI probe desktop 929×861, không thay thế M02b hoặc full-site acceptance |
 | M02b Advertising Claude PARTIAL / NOT ACCEPTED | [Checkpoint Claude 03/10](site-media-card-m02b-claude-checkpoint-2026-10-03.md) | Runtime `B1B3C8…`: Masonry instant-relayout fix, related seed `m02b-i`; related 4/6, landscape VI/EN `Y=3` FAIL chưa rõ gốc; full transitions 19/29 với fail đã biết/có sẵn; units58/59, qa:static PASS |
 | M02b Advertising quota STOP, PAUSED / NOT ACCEPTED | [Checkpoint 03/10](site-media-card-m02b-checkpoint-2026-10-03.md), [Claude handoff](site-media-card-m02b-claude-handoff-2026-10-03.md) | Runtime `6D654C…`: original6 PASS, affected5/8, related3/6, layout47/static/build PASS, M02a10/11. Ba related và ba affected FAIL còn mở; lifecycle50/52 stale baseline đã xác minh, chưa sửa. MCP matrix TOOL BLOCKED; detector evidence OPEN, Samsung physical skipped/unverified, không là M02b/full-site GREEN |

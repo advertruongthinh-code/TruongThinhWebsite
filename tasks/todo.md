@@ -895,7 +895,7 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 
 Nhập từ Codex; chờ owner duyệt [plan](plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25).
 
-Trạng thái: chờ owner duyệt plan. Không bắt đầu source task trước human gate.
+Trạng thái: owner duyệt 2026-10-03, xem [quyết định owner](plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25).
 
 ### P0 — Cô lập checkout và chụp baseline
 
