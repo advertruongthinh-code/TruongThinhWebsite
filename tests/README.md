@@ -239,6 +239,8 @@ node tests/site/image-delivery-measure.mjs --base http://127.0.0.1:8792 --runs 1
 
 `--warm` thêm lượt cache nóng sau lượt cold đầu. Raw ở `.tmp/image-delivery/`;
 `summary.json` có median LCP, ảnh đầu sẵn sàng, ảnh sau một lần cuộn, CLS và byte ảnh.
+Lượt treo quá `120 s` hoặc crash được ghi `failure` cùng request còn treo
+(`pending`), rồi chạy tiếp; `runs.json` lưu sau mỗi lượt, `summary.json` đếm `failed`.
 
 ## Chú thích thuật ngữ
 
