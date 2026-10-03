@@ -31,6 +31,14 @@ const CMS_TO_PUBLIC_PAGE_IDS = new Map(
   Object.entries(CMS_PAGE_IDS).map(([publicId, cmsId]) => [cmsId, publicId]),
 );
 const PUBLIC_PAGE_IDS = new Set(Object.keys(SOURCE_ROUTES));
+const ADVERTISING_DETAIL_SLUGS = new Set([
+  "kiosk-posm",
+  "mobile-retail",
+  "signage-raised-letters",
+  "office-signs-wayfinding",
+  "led-displays-lightboxes",
+  "print-decals",
+]);
 const CMS_PAGE_ID_SET = new Set(Object.values(CMS_PAGE_IDS));
 const LEGACY_ROUTES = {
   "/nha-o": "/vi/residential/",
@@ -216,6 +224,9 @@ function parseLocaleRoute(pathname) {
   if (first === "projects" && second && parts.length === 3) {
     return { locale, pageId: "project-detail", slug: second };
   }
+  if (first === "advertising-products" && second && parts.length === 3 && ADVERTISING_DETAIL_SLUGS.has(second)) {
+    return { locale, pageId: "advertising-detail", slug: second };
+  }
   if (SOURCE_ROUTES[first] && parts.length === 2) {
     return { locale, pageId: first, slug: null };
   }
@@ -225,7 +236,9 @@ function parseLocaleRoute(pathname) {
 async function renderRoute(request, env, url, route) {
   const origin = publicOrigin(env, url);
   const sourcePath =
-    route.pageId === "project-detail"
+    route.pageId === "advertising-detail"
+      ? `/advertising-products/${route.slug}/index.html`
+      : route.pageId === "project-detail"
       ? SOURCE_ROUTES["advertising-products"]
       : SOURCE_ROUTES[route.pageId];
   const source = await env.ASSETS.fetch(
@@ -237,9 +250,10 @@ async function renderRoute(request, env, url, route) {
     return new Response("Not Found", { status: 404 });
   }
 
+  const cmsRoute = env.DB && route.pageId !== "advertising-detail";
   let record = null;
   try {
-    if (env.DB) {
+    if (cmsRoute) {
       record =
         route.pageId === "project-detail"
           ? await publishedProject(env, route.slug)
@@ -251,7 +265,7 @@ async function renderRoute(request, env, url, route) {
     }
     throw error;
   }
-  if (env.DB && !record) return new Response("Not Found", { status: 404 });
+  if (cmsRoute && !record) return new Response("Not Found", { status: 404 });
 
   const localizedContent = record ? parseLocalizedContent(record.content_json) : null;
   const content = localizedContent?.[route.locale] || null;
@@ -351,6 +365,7 @@ async function sitemap(env, url) {
           );
         }
       }
+      urls.push(...advertisingDetailUrls(origin));
       return sitemapResponse(urls);
     }
     const [pages, projects] = await Promise.all([
@@ -367,6 +382,7 @@ async function sitemap(env, url) {
       if (!pageId) continue;
       for (const locale of LOCALES) urls.push(new URL(canonicalRoutePath({ locale, pageId }), origin).toString());
     }
+    urls.push(...advertisingDetailUrls(origin));
     for (const project of projects.results || []) {
       for (const locale of LOCALES) urls.push(new URL(canonicalRoutePath({ locale, pageId: "project-detail", slug: project.slug }), origin).toString());
     }
@@ -386,10 +402,15 @@ function sitemapResponse(urls) {
   });
 }
 
+function advertisingDetailUrls(origin) {
+  return [...ADVERTISING_DETAIL_SLUGS].flatMap((slug) => [...LOCALES].map((locale) => new URL(canonicalRoutePath({ locale, pageId: "advertising-detail", slug }), origin).toString()));
+}
+
 function canonicalRoutePath(route) {
   const prefix = `/${route.locale}/`;
   if (route.pageId === "home") return prefix;
   if (route.pageId === "project-detail") return `${prefix}projects/${route.slug}/`;
+  if (route.pageId === "advertising-detail") return `${prefix}advertising-products/${route.slug}/`;
   return `${prefix}${route.pageId}/`;
 }
 

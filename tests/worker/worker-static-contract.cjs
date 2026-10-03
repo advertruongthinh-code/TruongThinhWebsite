@@ -4,6 +4,7 @@
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8787").replace(/\/+$/, "");
 const ORIGIN = new URL(BASE_URL).origin;
 const ROUTES = ["", "residential", "commercial", "advertising-products", "about"];
+const ADVERTISING_DETAIL_SLUGS = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -35,6 +36,18 @@ async function request(pathname) {
       const advertisingLabel = locale === "vi" ? "Sản phẩm Quảng cáo" : "Advertising products";
       assert(html.includes(`href="/${locale}/advertising-products/"`), `${pathname} has the old advertising route`);
       assert(html.includes(advertisingLabel), `${pathname} has the old advertising label`);
+    }
+  }
+
+  for (const locale of ["vi", "en"]) {
+    for (const slug of ADVERTISING_DETAIL_SLUGS) {
+      const pathname = `/${locale}/advertising-products/${slug}/`;
+      const response = await request(pathname);
+      const html = await response.text();
+      assert(response.status === 200, `${pathname} returned ${response.status}`);
+      assert(response.headers.get("content-language") === locale, `${pathname} has the wrong locale header`);
+      assert(html.includes(`data-route-locale="${locale}"`), `${pathname} was not localized`);
+      assert(html.includes(`href="/${locale}/advertising-products/"`), `${pathname} lost its parent route`);
     }
   }
 

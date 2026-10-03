@@ -96,7 +96,7 @@ INSERT INTO products (id, category_id, position, content_json) VALUES
   ('signage-02', 'signage-3d', 2, '{"vi":{"name":"Pano và bảng quảng cáo tấm lớn ngoài trời"},"en":{"name":"Large-format outdoor advertising panels"}}'),
   ('signage-03', 'signage-3d', 3, '{"vi":{"name":"Hộp đèn bạt Hiflex / bạt 3M cao cấp"},"en":{"name":"Hiflex and premium 3M fabric light boxes"}}'),
   ('signage-04', 'signage-3d', 4, '{"vi":{"name":"Chữ nổi Inox gắn LED sáng chân hoặc âm chữ"},"en":{"name":"Stainless steel 3D letters with halo or internal LED lighting"}}'),
-  ('signage-05', 'signage-3d', 5, '{"vi":{"name":"Chữ nổi Mica / Alu / Format"},"en":{"name":"Acrylic, aluminium, and foam-board 3D letters"}}'),
+  ('signage-05', 'signage-3d', 5, '{"vi":{"name":"Chữ nổi Mica / Alu / Formex"},"en":{"name":"Acrylic, aluminium, and Formex 3D letters"}}'),
   ('signage-06', 'signage-3d', 6, '{"vi":{"name":"Logo và chữ nổi tòa nhà, showroom"},"en":{"name":"Building and showroom logos and dimensional lettering"}}'),
   ('signage-07', 'signage-3d', 7, '{"vi":{"name":"Bảng vẫy Mica hút nổi"},"en":{"name":"Vacuum-formed acrylic projecting signs"}}'),
   ('signage-08', 'signage-3d', 8, '{"vi":{"name":"Bảng vẫy LED và LED hiệu ứng"},"en":{"name":"LED projecting signs and animated LED signs"}}'),
