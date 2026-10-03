@@ -10,6 +10,7 @@ $fixedPaths = @(
   "AGENTS.md", ".gitignore", ".graphifyignore", "package.json", "pnpm-lock.yaml",
   "tooling-versions.json", ".codex\config.toml", ".vscode\tasks.json",
   ".serena\project.yml", ".git\hooks\post-commit", ".git\hooks\post-checkout",
+  ".git\hooks\pre-commit", ".git\hooks\pre-push",
   "docs\operations\TOOLING.md", "docs\operations\graphify.md"
 )
 $scriptPaths = Get-ChildItem -LiteralPath (Join-Path $root "scripts\tooling") -File |

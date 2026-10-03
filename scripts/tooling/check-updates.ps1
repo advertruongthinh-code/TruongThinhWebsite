@@ -32,9 +32,9 @@ Read-RemoteVersion "serena-agent" { (Invoke-RestMethod "https://pypi.org/pypi/se
 Read-RemoteVersion "graphifyy" { (Invoke-RestMethod "https://pypi.org/pypi/graphifyy/json").info.version } $pins.python.graphifyy "stable-package"
 Read-RemoteVersion "uv" { (Invoke-RestMethod "https://pypi.org/pypi/uv/json").info.version } $pins.python.uv "stable-package"
 Read-RemoteVersion "playwright" { (Invoke-RestMethod "https://registry.npmjs.org/playwright/latest").version } $pins.node.project.playwright "stable-package"
-Read-RemoteVersion "wrangler" { (Invoke-RestMethod "https://registry.npmjs.org/wrangler/latest").version } $pins.node.project.wrangler "stable-package"
 Read-RemoteVersion "impeccable" { (Invoke-RestMethod "https://registry.npmjs.org/impeccable/latest").version } $pins.node.global.impeccable "stable-package"
 Read-RemoteVersion "chrome-devtools-mcp" { (Invoke-RestMethod "https://registry.npmjs.org/chrome-devtools-mcp/latest").version } $pins.node.global.'chrome-devtools-mcp' "stable-package"
+Read-RemoteVersion "pnpm" { (Invoke-RestMethod "https://registry.npmjs.org/pnpm/latest").version } $pins.node.project.pnpm "stable-package"
 Read-RemoteVersion "jq" {
   $refs = & git ls-remote --quiet --tags --refs "https://github.com/jqlang/jq.git" "refs/tags/jq-*" 2>&1
   if ($LASTEXITCODE -ne 0) { throw ($refs | Out-String).Trim() }

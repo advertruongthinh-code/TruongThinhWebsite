@@ -1,6 +1,7 @@
 param(
   [switch]$SkipBrowsers,
-  [switch]$SkipSolAdvisor
+  [ValidateSet("Python", "Node", "Skills")]
+  [string[]]$Components
 )
 
 Set-StrictMode -Version Latest
@@ -96,13 +97,15 @@ function Install-GlobalNode {
   $package = [ordered]@{
     name = "codex-global-tooling"
     private = $true
+    packageManager = "pnpm@$($pins.node.project.pnpm)"
     dependencies = [ordered]@{
       "chrome-devtools-mcp" = [string]$pins.node.global.'chrome-devtools-mcp'
       impeccable = [string]$pins.node.global.impeccable
     }
   }
   Write-Utf8Atomic (Join-Path $nodeRoot "package.json") (($package | ConvertTo-Json -Depth 5) + [Environment]::NewLine)
-  & (Get-ProjectPnpm) --dir $nodeRoot install --frozen-lockfile=false --no-optional
+  # Impeccable 4 ships its engine as a platform-specific optional dependency.
+  & (Get-ProjectPnpm) --dir $nodeRoot install --no-frozen-lockfile
   if ($LASTEXITCODE -ne 0) { throw "Global Node dependency installation failed." }
 }
 
@@ -294,10 +297,10 @@ Apply these rules in the main agent and every coordinator, explorer, worker, rev
 
 1. Always load `i-have-adhd`, `caveman` in ultra mode, and `ponytail` in ultra mode. ADHD controls actionable structure, Caveman controls terse prose, and Ponytail controls implementation minimalism. A closer project `AGENTS.md` may explicitly disable Caveman.
 2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use Serena for exact symbols, references, diagnostics, and refactors. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
-3. Serena is required per task/session with `--context codex --project-from-cwd`; synchronize language servers from actual project extensions instead of editing the language list manually.
-4. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install Codex lifecycle hooks.
-5. Sol Advisor 0.6 is fail-closed and requires primary Sol/High plus a declared SELECTIVE ROUTE before task tools. Use solo by default; delegate selects one Luna/Max or Terra/High implementer, audit selects one fresh read-only Sol/High reviewer, and full is only for an explicit broad or high-risk exception.
-6. Route every semantic task, including Graphify semantic extraction and content synthesis, to `gpt-5.6-luna` with reasoning effort `max`. Pin both values explicitly for spawned semantic workers; do not inherit a different model or effort.
+3. Serena is required per task/session with `--project-from-cwd` and the host context (`codex` or `claude-code`); synchronize language servers from actual project extensions instead of editing the language list manually.
+4. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
+5. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
+6. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
 7. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
 8. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
 <!-- codex:global-stack:end -->
@@ -318,6 +321,20 @@ function Retire-ProjectPayloads {
   }
 }
 
+$selectedComponents = @($Components | Sort-Object -Unique)
+if ($selectedComponents.Count -gt 0) {
+  foreach ($component in $selectedComponents) {
+    switch ($component) {
+      "Python" { Install-GlobalPython }
+      "Node" { Install-GlobalNode }
+      "Skills" { Install-GlobalSkills }
+    }
+  }
+  Write-Output "Selected bootstrap components ready: $($selectedComponents -join ', ')"
+  Write-Output "Backup: $backupRoot"
+  return
+}
+
 Install-GlobalPython
 Install-PnpmShim
 Install-GlobalNode
@@ -325,7 +342,6 @@ Install-GlobalSkills
 Install-GlobalPersonas
 New-Item -ItemType Directory -Force -Path (Join-Path $globalRoot "bin"),(Join-Path $globalRoot "logs"),(Join-Path $globalRoot "state\serena") | Out-Null
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot "global-mcp.ps1") -Destination (Join-Path $globalRoot "bin\mcp.ps1") -Force
-if (-not $SkipSolAdvisor) { & (Join-Path $PSScriptRoot "install-sol-advisor.ps1") }
 Configure-Codex
 $graphifyPythonMarker = Join-Path $projectRoot "graphify-out\.graphify_python"
 if (Test-Path -LiteralPath $graphifyPythonMarker -PathType Leaf) {
@@ -342,6 +358,7 @@ if (-not $SkipBrowsers) {
 }
 
 & (Join-Path $PSScriptRoot "graphify-git-hooks.ps1") -Action install
+& (Join-Path $PSScriptRoot "ponytail-git-hooks.ps1") -Action install
 & (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Apply
 Retire-ProjectPayloads
 & (Join-Path $PSScriptRoot "doctor.ps1")

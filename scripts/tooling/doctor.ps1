@@ -29,6 +29,7 @@ foreach ($item in @(
   @{ path = (Join-Path $root "scripts\tooling\graphify_supplemental.py"); label = "Graphify supplemental restore" },
   @{ path = (Join-Path $root "scripts\tooling\graphify-supplemental-files.txt"); label = "Graphify supplemental allowlist" },
   @{ path = (Join-Path $root "scripts\tooling\graphify-git-hooks.ps1"); label = "Graphify Git hook wrapper" },
+  @{ path = (Join-Path $root "scripts\tooling\ponytail-git-hooks.ps1"); label = "Ponytail Git hook wrapper" },
   @{ path = (Join-Path $root "scripts\tooling\watch-graphify.ps1"); label = "Graphify watcher wrapper" },
   @{ path = (Join-Path $root ".vscode\tasks.json"); label = "VS Code tooling tasks" },
   @{ path = (Join-Path $root "docs\operations\TOOLING.md"); label = "Tooling runbook" },
@@ -65,6 +66,9 @@ $requiredSkills = @(
 $missingSkills = @($requiredSkills | Where-Object { -not (Test-Path -LiteralPath (Join-Path $skillRoot "$_\SKILL.md") -PathType Leaf) })
 if ($missingSkills.Count -eq 0) { $passes += "Managed user-global skills" }
 else { $failures += "Missing user-global skills: $($missingSkills -join ', ')" }
+$retiredSkillPath = Join-Path $skillRoot "subagent-driven-development"
+if (Test-Path -LiteralPath $retiredSkillPath) { $failures += "Retired user-global skill remains: subagent-driven-development" }
+else { $passes += "Retired orchestration skill removed from user-global catalog" }
 $managedCount = @(Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
 if ($managedCount -ge 40) { $passes += "User-global skill count ($managedCount)" }
 else { $failures += "Expected at least 40 user-global skills; found $managedCount" }
@@ -82,8 +86,8 @@ try {
   $globalRules = Get-Content -Raw -LiteralPath (Join-Path $env:USERPROFILE ".codex\AGENTS.md")
   $projectRules = @(
     Get-Content -Raw -LiteralPath (Join-Path $root "AGENTS.md")
-    Get-Content -Raw -LiteralPath (Join-Path $root "docs\operations\agent-rules\workflow-tools.md")
-    Get-Content -Raw -LiteralPath (Join-Path $root "docs\operations\agent-rules\evidence-qa-handoff.md")
+    Get-Content -Raw -LiteralPath (Join-Path $root "docs\operations\agent-rule-workflow-tools.md")
+    Get-Content -Raw -LiteralPath (Join-Path $root "docs\operations\agent-rule-evidence-qa-handoff.md")
   ) -join [Environment]::NewLine
   $bootstrapRules = Get-Content -Raw -LiteralPath (Join-Path $root "scripts\tooling\bootstrap.ps1")
   foreach ($entry in @(
@@ -91,7 +95,8 @@ try {
     @{ label = "project"; text = $projectRules },
     @{ label = "bootstrap"; text = $bootstrapRules }
   )) {
-    if ($entry.text -notmatch 'gpt-5\.6-luna' -or $entry.text -notmatch 'reasoning(?:\s+effort)?.*`?max`?') { throw "$($entry.label) semantic Luna/max rule is missing" }
+    if ($entry.text -match 'subagent-driven-development' -or $entry.text -notmatch 'callable') { throw "$($entry.label) native capability-based orchestration rule is missing or stale" }
+    if ($entry.text -match 'Route every semantic task.*gpt-5\.6-luna|Semantic task.*`gpt-5\.6-luna`') { throw "$($entry.label) obsolete blanket semantic pin remains" }
     if ($entry.text -notmatch 'primary\s+official\s+source' -or $entry.text -notmatch '(?:unsupported\s+guess|guess\s+(?:là|as)\s+fact)') { throw "$($entry.label) evidence rule is missing" }
     if ($entry.text -notmatch '(?:semantic\s+index\s+only\s+when\s+the\s+user\s+explicitly\s+requests|Chỉ\s+build/update\s+Graphify\s+semantic\s+index\s+khi\s+user\s+explicit\s+request)') { throw "$($entry.label) opt-in semantic build rule is missing" }
   }
@@ -99,11 +104,11 @@ try {
     @{ label = "global"; text = $globalRules },
     @{ label = "bootstrap"; text = $bootstrapRules }
   )) {
-    if ($entry.text -notmatch 'SELECTIVE ROUTE' -or $entry.text -notmatch 'solo\s+by\s+default' -or $entry.text -notmatch 'broad\s+or\s+high-risk\s+exception') { throw "$($entry.label) Sol Advisor 0.6 selective-routing rule is missing" }
+    if ($entry.text -notmatch 'using-agent-skills' -or $entry.text -notmatch 'Codex\s+chooses\s+native' -or $entry.text -notmatch 'main\s+agent\s+retains') { throw "$($entry.label) Codex native Agent Skills rule is missing" }
     if ($entry.text -notmatch 'caveman`?\s+in\s+ultra\s+mode' -or $entry.text -notmatch 'ponytail`?\s+in\s+ultra\s+mode') { throw "$($entry.label) Caveman/Ponytail ultra rule is missing" }
   }
-  $passes += "Semantic Luna/max, explicit-request, and evidence rules"
-  $passes += "Sol Advisor 0.6 selective routing and ultra modes"
+  $passes += "Capability-based orchestration, explicit-request, and evidence rules"
+  $passes += "Codex native Agent Skills routing and ultra modes"
 } catch { $failures += "Agent rules invalid: $($_.Exception.Message)" }
 
 $globalAgents = Join-Path $env:USERPROFILE ".codex\agents"
@@ -111,15 +116,6 @@ $basePersonas = @("code-reviewer.toml", "security-auditor.toml", "test-engineer.
 $missingPersonas = @($basePersonas | Where-Object { -not (Test-Path -LiteralPath (Join-Path $globalAgents $_) -PathType Leaf) })
 if ($missingPersonas.Count -eq 0) { $passes += "User-global base personas (4)" }
 else { $failures += "Missing user-global personas: $($missingPersonas -join ', ')" }
-$expectedSolAdapters = @("sol-advisor-luna-implementer.toml", "sol-advisor-terra-implementer.toml", "sol-advisor-sol-reviewer.toml")
-$missingSolAdapters = @($expectedSolAdapters | Where-Object { -not (Test-Path -LiteralPath (Join-Path $globalAgents $_) -PathType Leaf) })
-$retiredSolAdapters = @(Get-ChildItem -LiteralPath $globalAgents -Filter "sol-advisor-*.toml" -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -notin $expectedSolAdapters })
-if ($missingSolAdapters.Count -eq 0 -and $retiredSolAdapters.Count -eq 0) { $passes += "Sol Advisor 0.6 user-global adapters (3)" }
-else {
-  if ($missingSolAdapters.Count) { $failures += "Missing Sol Advisor 0.6 adapters: $($missingSolAdapters -join ', ')" }
-  if ($retiredSolAdapters.Count) { $failures += "Retired Sol Advisor adapters remain: $($retiredSolAdapters.Name -join ', ')" }
-}
-
 $globalConfig = Join-Path $env:USERPROFILE ".codex\config.toml"
 try {
   $configText = Get-Content -Raw -LiteralPath $globalConfig
@@ -142,11 +138,7 @@ try {
   $pluginRaw = (& codex plugin list --json 2>&1 | Out-String)
   $plugins = $pluginRaw.Substring($pluginRaw.IndexOf("{"), $pluginRaw.LastIndexOf("}") - $pluginRaw.IndexOf("{") + 1) | ConvertFrom-Json
   if (@($plugins.installed | Where-Object { $_.pluginId -eq "ponytail@ponytail" }).Count) { throw "Ponytail plugin is still installed" }
-  $sol = @($plugins.installed | Where-Object { $_.pluginId -eq "sol-advisor@sol-advisor" -and $_.enabled }) | Select-Object -First 1
-  if (-not $sol) { throw "Sol Advisor plugin is not enabled" }
-  $expected = [System.IO.Path]::GetFullPath((Join-Path $global "vendor\sol-advisor\plugins\sol-advisor"))
-  if (-not [string]::Equals([System.IO.Path]::GetFullPath([string]$sol.source.path), $expected, [System.StringComparison]::OrdinalIgnoreCase)) { throw "Sol Advisor source is not user-global" }
-  $passes += "Plugin scope: Sol Advisor global; Ponytail skill-only"
+  $passes += "Plugin scope: Ponytail skill-only"
 } catch { $failures += "Plugin verification failed: $($_.Exception.Message)" }
 
 try {
@@ -156,6 +148,14 @@ try {
   }
   $passes += "Graphify Git hooks and merge driver"
 } catch { $failures += "Graphify Git hooks invalid: $($_.Exception.Message)" }
+
+try {
+  $hookStatus = & (Join-Path $PSScriptRoot "ponytail-git-hooks.ps1") -Action status 2>&1 | Out-String
+  foreach ($expected in @("pre-commit: installed", "pre-push: installed")) {
+    if ($hookStatus -notmatch [regex]::Escape($expected)) { throw "Missing '$expected'" }
+  }
+  $passes += "Ponytail pre-commit and pre-push hooks"
+} catch { $failures += "Ponytail Git hooks invalid: $($_.Exception.Message)" }
 
 try {
   Use-ProjectToolPath
