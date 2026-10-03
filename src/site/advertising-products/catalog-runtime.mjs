@@ -139,11 +139,6 @@ const optionalFinite = (value) => value === null || value === undefined || value
   : Number.isFinite(Number(value)) ? Number(value) : null;
 const nullableId = (value) => typeof value === "string" && value ? value : null;
 
-export function shuffleAdvertisingCards(cards = [], seed, scope = "grid") {
-  if (!Array.isArray(cards)) throw new TypeError("Advertising card pool must be an array");
-  return shuffleWithSeed(cards, seed, scope);
-}
-
 export function isAdvertisingQueryOnlyNavigation(previousHref, nextHref) {
   let previous;
   let next;
@@ -262,7 +257,7 @@ export function compileAdvertisingRelatedLayout({
   const relatedPool = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag });
   const related = seed === null
     ? relatedPool
-    : shuffleAdvertisingCards(relatedPool, seed, `related:${heroId}:${tag || "all"}`);
+    : shuffleWithSeed(relatedPool, seed, `related:${heroId}:${tag || "all"}`);
   const preferredColumns = Number.isInteger(requestedColumns) && requestedColumns >= 1 && requestedColumns <= 4
     ? requestedColumns : columnsForWidth(layoutViewportWidth);
   const columns = preferredColumns;
@@ -1373,7 +1368,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
 
   const geometryFor = (targetFilter) => {
     const categoryPool = targetFilter === "all" ? cards : cards.filter((card) => card.category === targetFilter);
-    const presentationOrder = shuffleAdvertisingCards(
+    const presentationOrder = shuffleWithSeed(
       categoryPool,
       browseHistory.current.seed,
       `grid:${targetFilter}`,
@@ -2031,6 +2026,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     sizeNode(node, placement, geometry.placements.length);
     restoreCanonicalDomOrder();
     if (masonry) {
+      // An instant relayout mid-transition would stack the in-flight transform on the new top.
+      cancelMasonryTransitions();
       masonry.options.layoutInstant = true;
       masonry.reloadItems();
       masonry.layout();

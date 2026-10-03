@@ -17,6 +17,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Local web | `pnpm dev` | Static Node server; không Worker, không deploy. |
 | Deploy demo | `pnpm deploy:demo` | Workers static assets; owner chạy, agent chỉ `--dry-run`. [Decision](../decisions/cloudflare-workers-static-demo.md). |
 | Static contract | `pnpm qa:static` | Current static QA evidence. |
+| Related scroll emulator + Android | `pnpm qa:related-scroll [-- --skip-emulator|--skip-device|--cards 16,first]` | Preview8792 tự bật nếu tắt; tap thật qua `adb shell input tap` sau một tap calibration; owner tự xoay máy, script không đổi system setting. Raw ở `.tmp/site-media-card/related-scroll-*`. |
 | Dormant Worker contract | `pnpm qa:worker:static`, `pnpm qa:worker` | Chỉ sau owner gate mở CMS và có Worker runtime. |
 | Browser suite | `pnpm qa:site`, `pnpm qa:cross-browser` | Live server cần sẵn. |
 | Direct Playwright | `pwsh -File scripts/tooling/run-playwright.ps1 -Suite <full|smoke>` | Chỉ khi cần runner wrapper. |
@@ -34,7 +35,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.2.2 dùng engine 0.1.3; `context` một lần mỗi session, `doctor` cho maintenance; không cài Codex lifecycle hook. |
 | Graphify query | `& ".\scripts\tooling\invoke-graphify.ps1" query|path|explain ...`; khi watcher active: thêm `-SkipAstRefresh` trước command | Mặc định refresh fail closed; switch chỉ dùng graph hiện có sau save đã được watcher xử lý. |
 | Graph hook | `pwsh -File scripts/tooling/graphify-git-hooks.ps1 -Action status` | Diagnose/approved repair; hook tự refresh khi active. |
-| Ponytail Git gate | `pwsh -File scripts/tooling/ponytail-git-hooks.ps1 -Action status` | `pre-commit`/`pre-push` tự review và fail closed; install/uninstall chỉ approved repair. |
+| Ponytail Git gate | `pwsh -File scripts/tooling/ponytail-git-hooks.ps1 -Action install` | `pre-commit`/`pre-push` gọi `claude -p /ponytail-review` mức full, chặn khi net cắt > 20 dòng hoặc lỗi; install chỉ approved repair, gỡ bằng xóa `.git/hooks/pre-*`. |
 | Graph watcher | `pwsh -File scripts/tooling/watch-graphify.ps1` | Opt-in monitoring, không là bước mỗi task. |
 | Serena language | `pwsh -File scripts/tooling/sync-serena-languages.ps1 -Check|-Apply|-Watch` | Launcher/watcher sở hữu normal sync; repair fallback, không edit config tay. |
 

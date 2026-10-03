@@ -7,6 +7,14 @@
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
   Đã deploy 2026-10-03, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
+- Active execution scope: M02b media-card Advertising (`advertising-products`
+  và route con `?photo=` VI/EN), restore từ tag `archive/mobile-ui-contract-20261003`
+  vào worktree Claude. PAUSED / NOT ACCEPTED theo
+  [checkpoint 03/10](verification/site-media-card-m02b-checkpoint-2026-10-03.md)
+  và [handoff](verification/site-media-card-m02b-claude-handoff-2026-10-03.md):
+  [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md):
+  related 4/6 PASS sau fix Masonry và seed fixture; landscape VI/EN `Y=3` còn
+  FAIL, chưa rõ gốc. M03–M09 PAUSED đến khi owner mở lại.
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
@@ -18,7 +26,7 @@
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
-- Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 thật,
+- Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 performance thật,
   owner visual các đợt cũ chưa đóng. Editor skeleton tạm đã gỡ khỏi public
   source trước ship; preset hiện hành giữ nguyên.
   COCO/decal còn lỗi chữ nhỏ theo review độc lập; giữ exact bản owner duyệt.
@@ -51,4 +59,3 @@
 - **Snapshot**: trạng thái source cố định để phát hành.
 - **Focused evidence**: kết quả chỉ chứng minh phạm vi đã chạy.
 - **Dormant**: source có nhưng chưa dùng trong runtime public.
-

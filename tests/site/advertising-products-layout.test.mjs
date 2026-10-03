@@ -1,6 +1,3 @@
-import * as randomLayoutCore from "../../src/site/advertising-products/layout-core.mjs";
-const scoreAdvertisingOrganicRhythm = (...args) => randomLayoutCore.scoreAdvertisingOrganicRhythm(...args);
-const solveAdvertisingOrganicPresentationOrder = (...args) => randomLayoutCore.solveAdvertisingOrganicPresentationOrder(...args);
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
@@ -16,6 +13,8 @@ import {
   getVirtualWindow,
   normalizeAdvertisingSettings,
   scheduleAdvertisingRank,
+  scoreAdvertisingOrganicRhythm,
+  solveAdvertisingOrganicPresentationOrder,
   validateAdvertisingCards,
 } from "../../src/site/advertising-products/layout-core.mjs";
 import { ANTI_BRICK_EVENT_DEFINITION, inspectAdvertisingGrid, inspectAdvertisingRhythmEdges } from "./advertising-grid-oracle.mjs";

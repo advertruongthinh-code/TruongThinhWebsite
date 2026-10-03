@@ -44,6 +44,8 @@ const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
 const mediaCardId = "signage-raised-letters-06";
 const mediaVideoId = `${mediaCardId}-synthetic-video`;
+// Mirrors ADVERTISING_VISIT_SEED_HANDOFF_KEY; the runtime module needs a window to import.
+const visitSeedHandoffKey = "tt-advertising-visit-seed-handoff-v1";
 const p13BaselineOnly = process.env.PHOTO_TRANSITIONS_P13_BASELINE === "1";
 const p13GateOnly = process.env.PHOTO_TRANSITIONS_P13_GATE === "1";
 const selectedCase = process.env.CASE || "";
@@ -102,7 +104,7 @@ async function chooseB(page, beforeClick) {
   await link.click();
 }
 
-async function m02bFixture(page, locale, direct = false) {
+async function m02bFixture(page, locale, direct = false, seed = null) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === mediaCardId);
   assert(card && card.mediaItems.length === 1, "M02b fixture needs the authored image cover");
@@ -123,8 +125,16 @@ async function m02bFixture(page, locale, direct = false) {
     });
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-  await page.goto(href(`/${locale}/advertising-products/?category=signage-raised-letters${direct ? `&photo=${mediaCardId}` : ""}`), { waitUntil: "domcontentloaded" });
+  const target = href(`/${locale}/advertising-products/?category=signage-raised-letters${direct ? `&photo=${mediaCardId}` : ""}`);
+  // Pin the visit seed through the runtime handoff so related order (and virtual reachability) is deterministic.
+  if (seed) {
+    await page.addInitScript(({ key, url, value }) => {
+      sessionStorage.setItem(key, JSON.stringify({ version: 1, url, seed: value, expiresAt: Date.now() + 30_000 }));
+    }, { key: visitSeedHandoffKey, url: target, value: seed });
+  }
+  await page.goto(target, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  if (seed) assert.equal(await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed), seed, "M02b fixture seed must be consumed");
   if (direct) await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
   else await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), mediaCardId);
   return card;
@@ -745,7 +755,8 @@ try {
       };
       for (const locale of [profile.locale]) {
         stage(`${profile.name}-${locale}-grid-to-A`);
-        await m02bFixture(page, locale);
+        // Seed keeps A reachable for related virtualization on desktop, where short related grids pin some cards.
+        await m02bFixture(page, locale, false, "m02b-i");
         await page.evaluate(() => {
           document.addEventListener("click", (event) => {
             const card = event.target.closest("[data-advertising-card], [data-advertising-related-card]");

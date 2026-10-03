@@ -4,9 +4,9 @@ import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advert
 import {
   columnsForWidth,
   compileAdvertisingProductLayout,
+  scoreAdvertisingOrganicRhythm,
 } from "../../src/site/advertising-products/layout-core.mjs";
-import * as layoutCore from "../../src/site/advertising-products/layout-core.mjs";
-const scoreAdvertisingOrganicRhythm = (...args) => layoutCore.scoreAdvertisingOrganicRhythm(...args);
+import { shuffleWithSeed } from "../../src/site/advertising-products/random-order.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
 
 const previousWindow = globalThis.window;
@@ -57,9 +57,9 @@ test("existing solver honors a noncanonical presentation order", () => {
 test("seeded card shuffle is repeatable per grid scope and preserves pool membership", () => {
   const cards = makeCards(18);
   const original = structuredClone(cards);
-  const first = advertisingRuntime.shuffleAdvertisingCards(cards, "visit-a", "all");
-  const repeat = advertisingRuntime.shuffleAdvertisingCards(cards, "visit-a", "all");
-  const nextVisit = advertisingRuntime.shuffleAdvertisingCards(cards, "visit-b", "all");
+  const first = shuffleWithSeed(cards, "visit-a", "all");
+  const repeat = shuffleWithSeed(cards, "visit-a", "all");
+  const nextVisit = shuffleWithSeed(cards, "visit-b", "all");
 
   assert.deepEqual(first.map(({ id }) => id), repeat.map(({ id }) => id));
   assert.notDeepEqual(first.map(({ id }) => id), nextVisit.map(({ id }) => id));
@@ -72,7 +72,7 @@ test("seeded card shuffle is repeatable per grid scope and preserves pool member
     heroId: "hero",
     tag: "shared",
   });
-  const randomizedRelated = advertisingRuntime.shuffleAdvertisingCards(related, "visit-a", "related:hero:shared");
+  const randomizedRelated = shuffleWithSeed(related, "visit-a", "related:hero:shared");
   assert.deepEqual(new Set(randomizedRelated.map(({ id }) => id)), new Set(["photo-a", "photo-b"]));
   assert.equal(randomizedRelated.some(({ id }) => id === "hero"), false);
 });
@@ -117,7 +117,7 @@ test("solver follows supplied presentation order without rewriting canonical car
     const cards = makeCards(count, "pool-" + count);
     const original = structuredClone(cards);
     const category = "pool-" + count;
-    const order = advertisingRuntime.shuffleAdvertisingCards(cards, "solver-seed-1", category);
+    const order = shuffleWithSeed(cards, "solver-seed-1", category);
     const expectedIds = order.map(({ id }) => id);
     const layout = compileAdvertisingProductLayout({
       cards,
@@ -138,7 +138,7 @@ test("solver follows supplied presentation order without rewriting canonical car
 
   for (const seed of ["solver-seed-2", "solver-seed-3"]) {
     const cards = makeCards(100, "large-pool");
-    const order = advertisingRuntime.shuffleAdvertisingCards(cards, seed, "large-pool").map(({ id }) => id);
+    const order = shuffleWithSeed(cards, seed, "large-pool").map(({ id }) => id);
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
       const layout = compileAdvertisingProductLayout({
         cards,
@@ -158,7 +158,7 @@ test("solver follows supplied presentation order without rewriting canonical car
   for (const filter of ["all", ...categoryOrder]) {
     const eligible = filter === "all" ? ADVERTISING_CARDS : ADVERTISING_CARDS.filter((card) => card.category === filter);
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
-      const presentationOrder = advertisingRuntime.shuffleAdvertisingCards(eligible, "public-grid-seed", "filter:" + filter)
+      const presentationOrder = shuffleWithSeed(eligible, "public-grid-seed", "filter:" + filter)
         .map(({ id }) => id);
       const layout = compileAdvertisingProductLayout({
         cards: ADVERTISING_CARDS,
@@ -195,7 +195,7 @@ test("organic solver scores the rendered order while keeping 20 seeded hard-safe
   const observedOrders = new Set();
 
   for (let seed = 0; seed < 20; seed += 1) {
-    const priority = advertisingRuntime.shuffleAdvertisingCards(ADVERTISING_CARDS, `organic-seed-${seed}`, "grid:all")
+    const priority = shuffleWithSeed(ADVERTISING_CARDS, `organic-seed-${seed}`, "grid:all")
       .map(({ id }) => id);
     const layout = compileAdvertisingProductLayout({
       cards: ADVERTISING_CARDS,
@@ -228,7 +228,7 @@ test("organic solver keeps all six filter pools hard-safe across supported viewp
   for (const filter of ["all", ...categoryOrder]) {
     const eligible = filter === "all" ? ADVERTISING_CARDS : ADVERTISING_CARDS.filter((card) => card.category === filter);
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
-      const presentationOrder = advertisingRuntime.shuffleAdvertisingCards(
+      const presentationOrder = shuffleWithSeed(
         eligible, "organic-matrix-seed", `filter:${filter}`,
       ).map(({ id }) => id);
       const layout = compileAdvertisingProductLayout({
@@ -259,7 +259,7 @@ test("organic solver remains bounded and diagnostic when a future 100-image pool
   const category = "future-pool";
   const cards = makeCards(100, category);
   for (const seed of ["future-a", "future-b", "future-c", "future-d"]) {
-    const presentationOrder = advertisingRuntime.shuffleAdvertisingCards(cards, seed, category)
+    const presentationOrder = shuffleWithSeed(cards, seed, category)
       .map(({ id }) => id);
     for (const layoutViewportWidth of [320, 390, 1024]) {
       const layout = compileAdvertisingProductLayout({
