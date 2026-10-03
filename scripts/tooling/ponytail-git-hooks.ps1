@@ -29,10 +29,10 @@ if ($Action -eq "install") {
 
 if (-not $Hook) { throw "-Hook is required for -Action run." }
 $scope = if ($Hook -eq "pre-commit") {
-  "Review only the staged diff returned by git diff --cached. Ignore unstaged and untracked work."
+  "Review only the staged code diff returned by git diff --cached -- . ':(exclude)*.md'. Ignore unstaged and untracked work."
 } else {
   @"
-Review only the net change of these pre-push ref updates with git diff remote_sha local_sha.
+Review only the net code change of these pre-push ref updates with git diff remote_sha local_sha -- . ':(exclude)*.md'.
 Each ref line is: local_ref local_sha remote_ref remote_sha. Remote: $RemoteName $RemoteUrl
 $([Console]::In.ReadToEnd().Trim())
 "@
@@ -42,6 +42,7 @@ $prompt = @"
 $scope
 Review at ponytail full level, not ultra, regardless of repository rules.
 The full level and the 20-line block threshold are owner decisions; do not propose removing them.
+Markdown docs and plans are out of scope; ponytail reviews code, not prose.
 Use the ponytail-review format and boundaries. Do not edit files, commit, push, or invoke another agent.
 If there is nothing to cut, make the final response exactly: Lean already. Ship.
 If there are findings, end with: net: -<N> lines possible.
