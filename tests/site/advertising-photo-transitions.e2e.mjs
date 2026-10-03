@@ -429,6 +429,52 @@ async function runP13Baseline(browserInstance) {
   results.push({ name: "p13-t4-warm-baseline", viewport, status: passesBudget ? "PASS" : "FAIL", evidence });
 }
 
+async function installRelatedMediaProbe(page) {
+  await page.addInitScript(() => {
+    const probe = { records: [] };
+    const sampling = new WeakSet();
+    const capture = (image) => {
+      const card = image.closest("[data-advertising-related-card]");
+      // Cached remounts re-insert the same node, so dedupe per insertion, not per element.
+      if (!card || sampling.has(image)) return;
+      sampling.add(image);
+      const record = { id: card.dataset.advertisingRelatedCard, frames: [] };
+      probe.records.push(record);
+      const started = performance.now();
+      const sample = () => {
+        const style = getComputedStyle(image);
+        record.frames.push({
+          elapsed: performance.now() - started,
+          opacity: Number(style.opacity),
+          duration: style.transitionDuration,
+          easing: style.transitionTimingFunction,
+        });
+        if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
+        else sampling.delete(image);
+      };
+      requestAnimationFrame(sample);
+    };
+    new MutationObserver((entries) => entries.forEach((entry) => entry.addedNodes.forEach((added) => {
+      if (!(added instanceof Element)) return;
+      if (added.matches("[data-advertising-related-card] img")) capture(added);
+      added.querySelectorAll("[data-advertising-related-card] img").forEach(capture);
+    }))).observe(document, { childList: true, subtree: true });
+    window.__ttP13RelatedMedia = probe;
+  });
+}
+
+function assertMediaFade(record, label) {
+  assert(record?.frames.length > 3, `${label}: media fade was not sampled`);
+  const first = record.frames[0];
+  const middle = record.frames.find(({ opacity }) => opacity > 0.05 && opacity < 0.95);
+  const last = record.frames.at(-1);
+  assert(first.opacity <= 0.05 && middle?.opacity > first.opacity && middle.opacity < 1 && last.opacity >= 0.99,
+    `${label}: opacity did not travel 0 to 1 ${JSON.stringify({ first, middle, last })}`);
+  assert(first.duration.split(",").includes("0.6s") && first.easing.split(",").includes("ease-out"),
+    `${label}: media timing differs from 0.6s ease-out ${JSON.stringify(first)}`);
+  return { id: record.id, first, middle, last };
+}
+
 async function installStuffingProbe(page, selector, gridSelector) {
   await page.addInitScript(({ itemSelector, ownerSelector }) => {
     const probe = { records: [] };
@@ -979,13 +1025,13 @@ try {
 
     stage("cached-remount");
     const firstId = parentStuffing.id;
-    const farId = ADVERTISING_CARDS.at(-1).id;
     const initial = await page.locator(`[data-advertising-card="${firstId}"]`).evaluate((node) => {
       const rect = node.getBoundingClientRect();
       const grid = node.closest("[data-project-grid]").getBoundingClientRect();
       return { x: rect.left - grid.left, y: rect.top - grid.top };
     });
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: true }), farId);
+    // Presentation order is seeded, so the catalog's last card can sit near the top; scroll to the end instead.
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.waitForFunction((id) => !document.querySelector(`[data-advertising-card="${id}"]`), firstId);
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: true }), firstId);
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`), firstId);
@@ -1051,18 +1097,23 @@ try {
     await relatedPage.locator('[data-advertising-suggestion-tag="format-portrait"][aria-pressed="true"]').click();
     await relatedPage.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     stage("related-cached-remount");
+    // The tag deep link reloads the page with its own related order, so pick from the cards mounted now.
+    const topWindowIds = await relatedPage.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card]")]
+      .filter((node) => node.getBoundingClientRect().top < innerHeight).map((node) => ({ id: node.dataset.advertisingRelatedCard })));
     await relatedPage.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await relatedPage.waitForFunction((records) => records.some((record) => (
       !document.querySelector(`[data-advertising-related-card="${record.id}"]`)
-    )), completedInitialMediaRecords);
+    )), topWindowIds);
     const remountMedia = await relatedPage.evaluate((records) => records.find((record) => (
       !document.querySelector(`[data-advertising-related-card="${record.id}"]`)
-    )) || null, completedInitialMediaRecords);
-    assert(remountMedia, "bottom virtual window retained every completed portrait fixture");
+    )) || null, topWindowIds);
+    assert(remountMedia, "bottom virtual window retained every top-window card");
+    const recordsBeforeRemount = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length, remountMedia.id);
     await relatedPage.evaluate(() => window.scrollTo(0, 0));
     await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img`), remountMedia.id);
-    await relatedPage.waitForFunction((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length >= 2, remountMedia.id);
-    await relatedPage.waitForTimeout(700);
+    await relatedPage.waitForFunction(([id, before]) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length > before, [remountMedia.id, recordsBeforeRemount]);
+    // Image decode can delay the fade start, so wait for the sampled fade to finish instead of a fixed delay.
+    await relatedPage.waitForFunction((id) => (window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1)?.frames.at(-1)?.opacity ?? 0) >= 0.99, remountMedia.id);
     const remountedMediaRecord = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1), remountMedia.id);
     const remountedMedia = assertMediaFade(remountedMediaRecord, "related cached remount media");
     const relatedRemount = await relatedPage.locator(`[data-advertising-related-card="${remountMedia.id}"]`).evaluate(async (node) => {

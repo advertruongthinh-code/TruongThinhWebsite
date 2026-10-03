@@ -1689,10 +1689,7 @@ body.is-advertising-browse .advertising-grid {
 }
 
 .advertising-card-media--carousel > img[hidden],
-.advertising-card-media--carousel > video[hidden],
-.advertising-card-media__loading[hidden],
-.advertising-card-media__duration[hidden],
-.advertising-card-media__playback[hidden] {
+.advertising-card-media--carousel > video[hidden] {
   display: none;
 }
 

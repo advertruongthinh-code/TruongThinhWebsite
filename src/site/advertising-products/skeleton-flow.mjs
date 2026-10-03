@@ -382,12 +382,9 @@ export function createSkeletonFlowFrameLayout({
   Object.defineProperty(result, "diagnostics", {
     enumerable: false,
     value: Object.freeze({
-      frameCount: result.length,
       candidatesTried,
       firstFourKinds: selectedRhythm.firstFourKinds,
-      firstBands: Object.freeze(selectedRhythm.firstBands),
       longestRun: selectedRhythm.longestRun,
-      score: selectedRhythm.score,
       targetApplicable: selectedRhythm.targetApplicable,
       targetMet: selectedRhythm.targetMet,
       fallbackReason: selectedRhythm.targetApplicable && !selectedRhythm.targetMet

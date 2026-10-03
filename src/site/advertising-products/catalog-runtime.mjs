@@ -774,7 +774,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     indicator.setAttribute("role", "group");
     indicator.setAttribute("aria-label", english ? "Card media" : "Media của thẻ");
     const numericIndicator = items.length >= 7;
-    if (items.length >= 5 && !numericIndicator) indicator.classList.add("advertising-card-media__indicator--dense");
     if (hasCarousel) playback.classList.add("advertising-card-media__playback--carousel");
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = document.createElement("button");
@@ -1754,7 +1753,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     visibleSkeletonFrames.clear();
     skeletonEntryFrames.forEach((_, frame) => cancelSkeletonEntry(frame));
     [...skeletonFlowByFrame.keys()].forEach(releaseSkeletonRenderer);
-    skeletonFlowByFrame.clear();
     skeletonAssignmentByFrame.clear();
     skeletonFrameBySlot.clear();
     skeletonPhaseBySlot.clear();

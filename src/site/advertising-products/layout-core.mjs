@@ -60,15 +60,11 @@ export function scoreAdvertisingOrganicRhythm(items, limit = ORGANIC_RHYTHM_WIND
     }
   }
   const targetApplicable = counts.high >= 2 && counts.low >= 2;
-  const hasBothBands = bands.includes("high") && bands.includes("low");
-  const targetMet = targetApplicable ? hasBothBands && longestRun <= 4 : null;
+  const targetMet = targetApplicable ? bands.includes("high") && bands.includes("low") && longestRun <= 4 : null;
   return {
-    counts,
     firstBands: bands,
-    hasBothBands,
     highLowTransitions,
     longestRun,
-    repeatedBandPairs,
     score: highLowTransitions * 100 - repeatedBandPairs * 10 - longestRun,
     targetApplicable,
     targetMet,
@@ -88,8 +84,6 @@ export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrde
   if (!baseline.targetApplicable || requested.length < 3) {
     return {
       cards: requested,
-      baseline,
-      score: baseline,
       applied: false,
       fallbackReason: "insufficient-ratio-pool",
     };
@@ -127,8 +121,6 @@ export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrde
   const score = scoreAdvertisingOrganicRhythm(ordered);
   return {
     cards: ordered,
-    baseline,
-    score,
     applied: ordered.some((card, index) => card.id !== requested[index]?.id),
     fallbackReason: score.targetMet === false ? "soft-rhythm-target-unreachable" : null,
   };
@@ -748,9 +740,7 @@ export function compileAdvertisingProductLayout(options = {}) {
   const hardSafeSpread = Math.max(0, ...hardSafe.columnBottoms) - Math.min(...hardSafe.columnBottoms);
   let layout = hardSafe;
   let actual = hardSafeRhythm;
-  let columnSpread = hardSafeSpread;
   let operations = hardSafe.diagnostics.operations;
-  let fallbackUsed = false;
   let fallbackReason = solution?.fallbackReason || "order-not-optimized";
   if (solution?.applied && operations < totalBudget) {
     const remainingBudget = totalBudget - operations;
@@ -767,7 +757,6 @@ export function compileAdvertisingProductLayout(options = {}) {
         || (candidateRhythm.score === hardSafeRhythm.score && candidateSpread < hardSafeSpread)) {
         layout = candidate;
         actual = candidateRhythm;
-        columnSpread = candidateSpread;
         fallbackReason = actual.targetMet === false ? "geometry-placement-order" : null;
       } else {
         fallbackReason = "soft-score-not-improved";
@@ -775,26 +764,16 @@ export function compileAdvertisingProductLayout(options = {}) {
     } catch (error) {
       if (error?.diagnostic?.code !== "search-exhausted") throw error;
       operations += Math.min(remainingBudget, Number(error.diagnostic.operations) || remainingBudget);
-      fallbackUsed = true;
       fallbackReason = "hard-safe-requested-order";
     }
   } else if (solution?.applied) {
-    fallbackUsed = true;
     fallbackReason = "hard-safe-requested-order";
   }
   layout.diagnostics = {
     ...layout.diagnostics,
     operations,
     budget: totalBudget,
-    organicRhythm: {
-      baseline: solution?.baseline || null,
-      planned: solution?.score || null,
-      actual,
-      columnSpread,
-      applied: layout !== hardSafe,
-      fallbackUsed,
-      fallbackReason,
-    },
+    organicRhythm: { actual, fallbackReason },
   };
   return { ...layout, settings };
 }
