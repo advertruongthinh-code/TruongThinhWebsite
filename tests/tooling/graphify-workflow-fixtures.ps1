@@ -46,7 +46,7 @@ if ((@($watchTask.args) -join " ") -notmatch 'watch-graphify\.ps1') {
 }
 
 $runbook = Get-Content -Raw -LiteralPath $runbookPath
-foreach ($needle in @("graphify-git-hooks.ps1", "watch-graphify.ps1", "Graphify: Watch", "Ctrl+C")) {
+foreach ($needle in @("graphify-git-hooks.ps1", "watch-graphify.ps1", "Graphify: Watch", "Ctrl+C", "-SkipAstRefresh")) {
   if ($runbook -notmatch [regex]::Escape($needle)) { throw "Graphify runbook is missing: $needle" }
 }
 

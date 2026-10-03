@@ -1,4 +1,6 @@
 param(
+  [switch]$SkipAstRefresh,
+
   [Parameter(Mandatory = $true, Position = 0)]
   [ValidateSet("query", "path", "explain")]
   [string]$Command,
@@ -12,10 +14,19 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "graphify-freshness.ps1")
 Initialize-ToolingState
 
-$freshness = Invoke-GraphUpdateIfNeeded -EventLabel "GraphifyWrapper"
-if (-not $freshness.fresh) {
-  [Console]::Error.WriteLine($freshness.message)
-  exit 1
+if ($SkipAstRefresh) {
+  $graphPath = Join-Path (Get-ProjectRoot) "graphify-out\graph.json"
+  if (-not (Test-Path -LiteralPath $graphPath -PathType Leaf)) {
+    [Console]::Error.WriteLine("Graphify AST refresh was skipped, but graphify-out\graph.json is missing. Run the watcher or retry without -SkipAstRefresh.")
+    exit 1
+  }
+  [Console]::Error.WriteLine("Graphify boundary notice: AST refresh skipped; querying the existing watcher-owned graph.")
+} else {
+  $freshness = Invoke-GraphUpdateIfNeeded -EventLabel "GraphifyWrapper"
+  if (-not $freshness.fresh) {
+    [Console]::Error.WriteLine($freshness.message)
+    exit 1
+  }
 }
 
 $semantic = Get-GraphifySemanticStatus

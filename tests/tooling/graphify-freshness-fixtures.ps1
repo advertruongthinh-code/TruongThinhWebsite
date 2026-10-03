@@ -14,9 +14,23 @@ $wrapperSource = Get-Content -Raw -LiteralPath $wrapper
 $freshnessSource = Get-Content -Raw -LiteralPath $freshnessScript
 if ($wrapperSource -notmatch 'Invoke-GraphUpdateIfNeeded') { throw "Graphify wrapper does not enforce AST freshness." }
 if ($wrapperSource -notmatch 'Get-GraphifySemanticStatus') { throw "Graphify wrapper does not report semantic freshness at the boundary." }
+if ($wrapperSource -notmatch '\[switch\]\$SkipAstRefresh') { throw "Graphify wrapper does not expose the watcher-safe AST refresh bypass." }
+if ($wrapperSource -notmatch '(?s)if \(\$SkipAstRefresh\).*?graphify-out\\graph\.json' -or $wrapperSource -notmatch '(?s)else\s*\{.*?Invoke-GraphUpdateIfNeeded') {
+  throw "Graphify wrapper does not keep default freshness enforcement while allowing an explicit existing-graph query."
+}
 if ($freshnessSource -notmatch '(?s)stale-cache.*fresh\s*=\s*\$true') { throw "Stale supplemental semantic cache still blocks structurally fresh queries." }
 foreach ($command in @("query", "path", "explain")) {
   if ($wrapperSource -notmatch [regex]::Escape('"' + $command + '"')) { throw "Graphify wrapper does not allow $command." }
+}
+
+foreach ($rulePath in @(
+  "docs\operations\agent-rule-workflow-tools.md",
+  "docs\operations\agent-rule-scripts.md"
+)) {
+  $ruleSource = Get-Content -Raw -LiteralPath (Join-Path $root $rulePath)
+  if ($ruleSource -notmatch [regex]::Escape("-SkipAstRefresh")) {
+    throw "Agent Graphify rule does not explain watcher-safe queries: $rulePath"
+  }
 }
 
 $bootstrapSource = Get-Content -Raw -LiteralPath (Join-Path $root "scripts\tooling\bootstrap.ps1")
