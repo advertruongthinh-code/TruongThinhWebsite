@@ -21,7 +21,7 @@ index của năm spec độc lập; không tự thay thế human gate của từ
 | `skeleton-flow-devtools` | Editor tune tạm thời; đã gỡ khỏi public source ngày24/09 trước ship | `skeleton-flow` | [Card skeleton](https://app.notion.com/p/3e0332849a0e811dbac1e7bb09ea28be) |
 | `photo-morph-scroll` | Giữ photo morph đúng khi user cuộn viewport | — | [Card](https://app.notion.com/p/3e0332849a0e8178a964de1dd951db71) |
 | `brand-lockup-typeset` | Typeset lại title/subtitle theo khối `4Y` và tỷ lệ thân chữ `61,8%` | — | [Card](https://app.notion.com/p/3e0332849a0e8147a613d929612f5bd3) |
-| `photo-detail-layout` | Detail span 3: ảnh 2 cột, mô tả 1 cột; CTA, gợi ý và nền blur dùng composition thống nhất | `photo-morph-scroll` | [Card hợp nhất](https://app.notion.com/p/3d8332849a0e8177ba63d3b965242c90) |
+| `photo-detail-layout` | Detail span 3: ảnh 2 cột, mô tả 1 cột; CTA, suggestion và nền blur dùng composition thống nhất | `photo-morph-scroll` | [Card hợp nhất](https://app.notion.com/p/3d8332849a0e8177ba63d3b965242c90) |
 | `photo-viewer-controls` | Wheel/middle zoom và cụm `+`/`−`/Reset dùng chung một zoom state | `photo-detail-layout` | [Card hợp nhất](https://app.notion.com/p/3d8332849a0e8177ba63d3b965242c90) |
 | `advertising-page-shell` | CTA giao skeleton–khoảng trắng và nav Advertising luôn về filter Tất cả | `skeleton-flow` | [Card hợp nhất](https://app.notion.com/p/3d8332849a0e8177ba63d3b965242c90) |
 | `media-review-report` | Báo cáo HTML ảnh tạo từ `10/09/2026` đến `20/09/2026`, clustering và đề xuất ảnh | — | [Card](https://app.notion.com/p/3e0332849a0e8175844ce3444a75f975) |
@@ -91,7 +91,7 @@ không stage, commit, push hoặc deploy.
 - [skeleton-flow](advertising-skeleton-flow.md)
 - [photo-morph-scroll](advertising-photo-morph-scroll.md)
 - [brand-lockup-typeset](../../DESIGN.md#brand-lockup--nguồn-chuẩn)
-- [photo-detail-layout](advertising-photo-browse.md#r8--accepted-detail-span-3-và-gợi-ý-một-dòng--2026-09-21)
+- [photo-detail-layout](advertising-photo-browse.md#r8--accepted-detail-span-3-và-suggestion-một-dòng--2026-09-21)
 - [photo-viewer-controls](advertising-photo-browse.md#r9--accepted-viewer-wheelmiddle-zoom--2026-09-21)
 - [advertising-page-shell](advertising-final-polish-and-media.md#d20--accepted-cta-giao-skeletonkhoảng-trắng-và-nav-reset--2026-09-21)
 - `media-review-report`: hoàn tất 2026-09-20, 93 exact image, 69 cụm; report

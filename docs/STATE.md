@@ -25,7 +25,7 @@
 - UI contract: [photo/masonry](specs/advertising-photo-browse.md),
   [capability map](specs/advertising-september-2026-capability-map.md),
   [menu mở](specs/full-menu-reference-parity.md), [DESIGN](../DESIGN.md).
-  Full-span vừa viewport dưới navbar; gợi ý conditional; Back giữ entry,
+  Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
   navbar về All; skeleton/CTA/footer theo P7.5.
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.

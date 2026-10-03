@@ -280,7 +280,7 @@ hook, native fallback, control focusable và cleanup.
 
 ## Advertising detail carousel
 
-**Status:** dormant; Advertising photo view đã thay entrypoint carousel cũ.
+**Status:** dormant; Advertising detail đã thay entrypoint carousel cũ.
 Owner yêu cầu ngày 24/09/2026 giữ source để thiết kế lại carousel cho Residential
 và Commercial. Hướng mới có thể khác Espacio; chưa activate hoặc đổi UI trong
 release này. Runtime chỉ tải Swiper khi có markup carousel tương ứng.
@@ -310,7 +310,7 @@ Nút mở ảnh primary, đóng viewer và các nút điều khiển viewer dùn
 `--media-control-hover` và `--media-control-active` từ `style.css`.
 Giá trị normative thuộc `DESIGN.md`; `detail.css` chỉ consume token.
 Giữ nguyên geometry, focus ring, trạng thái disabled và reduced motion.
-Không áp lên nút gợi ý có ảnh vì contract overlay của chúng khác.
+Không áp lên nút suggestion có ảnh vì contract overlay của chúng khác.
 
 ## Chú thích thuật ngữ
 

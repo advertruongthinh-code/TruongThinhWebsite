@@ -75,7 +75,7 @@ API đọc DOM của công cụ không hỗ trợ `document.getAnimations()`; th
 chính xác của view transition mở/đóng chưa được xác minh. Không suy duration
 mở/đóng từ duration 200 ms của zoom.
 
-## Khối nhãn gợi ý trong grid
+## Khối nhãn suggestion trong grid
 
 Ở pin Jewelry showroom, đã đọc khối `Ý tưởng bạn có thể thích` khi cuộn
 xuống masonry: một masonry item tại khoảng (88; 1118), rộng 228,33 px, cao 583 px.
@@ -88,10 +88,10 @@ tag registry và ảnh đại diện trong catalog, giữ hero khi lọc, không
 nhãn hoặc đường dẫn Pinterest. Owner đã xác nhận chỉ ảnh nền ô nhãn được crop;
 ảnh sản phẩm vẫn giữ toàn bộ nội dung. Contract triển khai thuộc R6 của spec.
 
-### Đo thành phần gợi ý — 2026-09-11
+### Đo thành phần suggestion — 2026-09-11
 
 Đo lại live pin Jewelry showroom trong Chrome đăng nhập, desktop viewport
-1569 × 912 CSS px, DPR 1. Khối gợi ý rộng 228,33 px, cao 583 px; gồm năm
+1569 × 912 CSS px, DPR 1. Khối suggestion rộng 228,33 px, cao 583 px; gồm năm
 banner. Bảng dùng computed style và rect ổn định ở viewport này, không suy
 thành quy tắc cho mọi viewport hoặc mọi biến thể Pinterest.
 
@@ -109,7 +109,7 @@ Giữ Plus Jakarta Sans và góc vuông, không thu toàn bộ khối về 228 p
 đổi số cột/gutter để mô phỏng bề rộng cột Pinterest.
 
 Giới hạn cửa sổ hẹp cần xử lý trong delta spec: local viewport 320 × 740
-cho khối gợi ý rộng 132,5 px. Canvas measureText với font đang tải, weight
+cho khối suggestion rộng 132,5 px. Canvas measureText với font đang tải, weight
 700 và cỡ 16 px cho tiêu đề đầy đủ rộng khoảng 186,85 px; không thể vừa
 giữ trọn chữ một dòng, cỡ chữ 16 px và khung một cột ở trường hợp này.
 Đây là phép đo text, không phải screenshot proof cho copy responsive mới.
@@ -118,7 +118,7 @@ chiều rộng; bản EN tương ứng **“You might like”**. Cùng phép đo
 cho bề rộng lần lượt125,57px và106,97px, vừa cột132,5px; không cần đổi nhãn
 theo breakpoint hoặc hạ font ở mẫu này. Đây là target P1.3, chưa triển khai.
 Các mẫu thu ngay sau resize Pinterest có thể còn transform hoặc chưa
-mount khối gợi ý; không dùng mẫu chuyển tiếp làm số đo kích thước cuối.
+mount khối suggestion; không dùng mẫu chuyển tiếp làm số đo kích thước cuối.
 
 ## Control và giới hạn tái dùng
 

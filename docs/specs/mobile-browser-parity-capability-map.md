@@ -197,7 +197,7 @@ ngày 2026-09-30 thay phần morph card grid/related↔primary của intent và 
 `advertising-history-motion` phía trên. Click, Back/Forward và chuyển giữa
 hai detail không tạo clone card↔primary. Scroll và media active vẫn theo từng
 history entry; chỉ morph
-primary↔enlarged viewer được giữ. Đây là supersession của contract, không là
+primary↔viewer được giữ. Đây là supersession của contract, không là
 bằng chứng runtime hoặc nghiệm thu browser parity.
 
 `site-mobile-layout-parity` nhận phần landscape từ module

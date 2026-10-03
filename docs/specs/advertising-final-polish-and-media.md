@@ -4,7 +4,7 @@
 
 **Provenance:** snapshot đã duyệt ở `.tmp/orchestration/advertising-consolidated-spec-20260911/spec-draft.md`, SHA256 `9D3AD0BD6BC5A9FE02AEA44DB512561FD429CC937B01A463DB0641D1A14F3A16`. File này chuyển nội dung đã duyệt sang Git, đổi cách trình bày và trạng thái, không đổi acceptance. Chưa commit/push; link GitHub không đại diện delta local.
 
-**Thứ tự ưu tiên:** bản này sở hữu delta D/C/B/M/Q. Trong phạm vi được nêu, thay các rule cũ về ngưỡng ảnh, giảm N, vị trí gợi ý và nội dung cuối Advertising của [photo browse](advertising-photo-browse.md). Ngoài delta, giữ [DESIGN](../../DESIGN.md), [patterns](../design/patterns.md), [content](../design/content.md), [motion](../design/motion.md) và [brief/rubric ảnh](../design/advertising-image-quality.md). Evidence P1.3/P1.4 không tự nghiệm thu delta mới.
+**Thứ tự ưu tiên:** bản này sở hữu delta D/C/B/M/Q. Trong phạm vi được nêu, thay các rule cũ về ngưỡng ảnh, giảm N, vị trí suggestion và nội dung cuối Advertising của [photo browse](advertising-photo-browse.md). Ngoài delta, giữ [DESIGN](../../DESIGN.md), [patterns](../design/patterns.md), [content](../design/content.md), [motion](../design/motion.md) và [brief/rubric ảnh](../design/advertising-image-quality.md). Evidence P1.3/P1.4 không tự nghiệm thu delta mới.
 
 ## Mục tiêu và phạm vi
 
@@ -15,7 +15,7 @@ Phạm vi: parent Advertising, detail dùng query photo/category/tag, sáu URL t
 Bản đồ phạm vi giữ trong cùng card, không tạo thêm hệ thống hoặc card con:
 | Module | Kết quả | Phụ thuộc |
 | --- | --- | --- |
-| advertising-detail | Số cột, ngưỡng ratio, vị trí gợi ý, kính mờ; giữ transition và control | Contract P1.4 và dữ liệu intrinsic hiện có |
+| advertising-detail | Số cột, ngưỡng ratio, vị trí suggestion, kính mờ; giữ transition và control | Contract P1.4 và dữ liệu intrinsic hiện có |
 | advertising-continuation | Skeleton chuyển động, CTA gọn, bỏ section dư và sửa dấu hero | Masonry/layout và motion lifecycle hiện có |
 | brand-typesetting | Cụm chữ logo đọc trọn ở mọi consumer/state được kiểm | LOGO-R3 và font/locale hiện có |
 | advertising-media | Inventory, chấm lại, tạo/sửa, phân loại và tích hợp ảnh đạt | Brief/quality gate hiện hành; UI ổn định trước QA tích hợp cuối |
@@ -30,25 +30,25 @@ D1 thay rõ hai nhánh giảm cột hiện hữu trong related: missing-photo-pe
 
 **D2 — Hướng theo ảnh gốc; span theo D10.** Mọi ratio dùng span min(3,N). Ratio rộng/cao từ 1,8 trở lên: ảnh trên/chữ dưới; dưới 1,8: ảnh trái/chữ phải, gồm ảnh vuông/gần vuông. Không tính lớp blur vào ratio; không làm tròn ratio trước so ngưỡng; không phụ thuộc tên thiết bị hoặc xoay hướng cửa sổ. Nếu mỗi nửa trong layout cạnh nhau nhỏ hơn 240 px sau gap thì chuyển xếp dọc, giữ span.
 
-**D3 — Chiều cao tự nhiên, vừa phần nhìn ở top.** Giữ navbar và hành vi hiện tại. Canvas/masonry cách đáy navbar ở đầu trang một gutter hiện hành 15/25/35 px theo cỡ cửa sổ; tính safe area một lần. Primary có chiều cao tự nhiên và trần P1.4: phần nhìn còn lại trừ gutter dưới và dải ảnh thật lộ clamp(48 px, 8vh, 96 px). Ở top/reload, primary nằm trọn và thấy ít nhất một phần ảnh liên quan thật phía dưới khi có ảnh phù hợp. Banner gợi ý/skeleton/caption không được tính thay ảnh thật.
+**D3 — Chiều cao tự nhiên, vừa phần nhìn ở top.** Giữ navbar và hành vi hiện tại. Canvas/masonry cách đáy navbar ở đầu trang một gutter hiện hành 15/25/35 px theo cỡ cửa sổ; tính safe area một lần. Primary có chiều cao tự nhiên và trần P1.4: phần nhìn còn lại trừ gutter dưới và dải ảnh thật lộ clamp(48 px, 8vh, 96 px). Ở top/reload, primary nằm trọn và thấy ít nhất một phần ảnh liên quan thật phía dưới khi có ảnh phù hợp. Banner suggestion/skeleton/caption không được tính thay ảnh thật.
 
 Vùng ảnh ngang ưu tiên 61,8% và chữ 38,2% chiều cao; ảnh cạnh nhau chia 50/50 chiều rộng sau gap. Đây là tỷ lệ ưu tiên: đo chữ ở bề rộng thực rồi phân bổ trong trần, không kéo khối cao cứng để tạo dead space. Giữ category/title/body một luồng; chỉ title được giảm theo cấp chữ đã chốt P1.4, không thu body hoặc cắt nội dung để giấu scrollbar. Nội dung thực sự dài hoặc chữ phóng 200% vẫn cuộn riêng được bằng wheel/touch/keyboard; không trap focus. Tính lại sau font load, đổi locale, resize hoặc cỡ chữ.
 
-**D4 — Gợi ý ở bên phải.** “Có thể bạn thích” / “You might like” giữ rộng một cột, title 16/24 px, banner cao 103 px và khoảng cách 8 px theo contract hiện có. Đặt ở cột ngoài cùng bên phải, xa primary nhất: N4/span2 là cột 4; N4/span3 cũng cột 4. Khi span bằng N, đặt gợi ý ở cột cuối ngay dải đầu dưới detail. Không thu span chỉ để ép gợi ý cùng hàng. Cửa sổ hẹp/chữ lớn được wrap, không clip chữ để giữ một dòng.
+**D4 — Suggestion ở bên phải.** “Có thể bạn thích” / “You might like” giữ rộng một cột, title 16/24 px, banner cao 103 px và khoảng cách 8 px theo contract hiện có. Đặt ở cột ngoài cùng bên phải, xa primary nhất: N4/span2 là cột 4; N4/span3 cũng cột 4. Khi span bằng N, đặt suggestion ở cột cuối ngay dải đầu dưới detail. Không thu span chỉ để ép suggestion cùng hàng. Cửa sổ hẹp/chữ lớn được wrap, không clip chữ để giữ một dòng.
 
 **D5 — Ít ảnh và giới hạn search.** Giữ mỗi ảnh masonry một cột, đúng intrinsic ratio, không mất/trùng/crop/stretch; không dùng spacer, skeleton hoặc sửa kích thước ảnh để giả đạt organic. Tổng budget 300.000 và gate cân đuôi tiếp tục áp dụng trên các ảnh/cặp thật có thể đánh giá. Rule so le0,20 cũ được correction D9 bên dưới thay thế.
 
-Ngoại lệ dữ liệu đã được duyệt cùng spec: bộ lọc còn 1 ảnh thì đặt ảnh thật đó trong dải dưới primary, gợi ý vẫn ở cột ngoài cùng bên phải, chấp nhận các slot khác trống. Bộ lọc không còn ảnh liên quan thì không dựng ảnh giả; giữ detail/gợi ý và thao tác bỏ lọc, điều kiện ảnh thật lộ dưới là không áp dụng vì không có dữ liệu. Với nhóm ít ảnh, không đánh giá cân đuôi/so le đối với cột không có ảnh thật. Không tạo thêm ảnh hoặc lặp ảnh chỉ để lấp cột.
+Ngoại lệ dữ liệu đã được duyệt cùng spec: bộ lọc còn 1 ảnh thì đặt ảnh thật đó trong dải dưới primary, suggestion vẫn ở cột ngoài cùng bên phải, chấp nhận các slot khác trống. Bộ lọc không còn ảnh liên quan thì không dựng ảnh giả; giữ detail/suggestion và thao tác bỏ lọc, điều kiện ảnh thật lộ dưới là không áp dụng vì không có dữ liệu. Với nhóm ít ảnh, không đánh giá cân đuôi/so le đối với cột không có ảnh thật. Không tạo thêm ảnh hoặc lặp ảnh chỉ để lấp cột.
 
 Trường hợp search hết budget vẫn giữ N, không thay đổi bộ lọc/URL hoặc hiển thị dữ liệu của bộ lọc trước như kết quả mới. Không hạ quality gate để gọi PASS. Plan phải có phương án xử lý trạng thái chưa bố trí được trong cùng N và regression cho các bộ dữ liệu được hỗ trợ; lỗi search ở đầu vào hợp lệ còn chưa xử lý chặn nghiệm thu. Không tuyên bố tìm kiếm hữu hạn chứng minh bất khả thi toán học.
 
 **D6 — Kính mờ chỉ ở nền dư.** Dùng màu từ chính ảnh tạo nền cover, tán mịn và lớp sáng mỏng như kính mờ nhẹ. Foreground contain, sắc nét và đủ cả ảnh; không viền trắng/đen đặc ở phần dư. Nền bị clip trong frame, chỉ trang trí, không focus/pointer/alt hoặc tham gia morph. Không méo thấu kính, không viền khúc xạ, không hiệu ứng bám chuột. Blur không phủ chữ/icon/control. Ảnh masonry và fullscreen viewer không đổi fit mode vì delta này.
 
-**D7 — Giữ tương tác đã duyệt.** Hàng tag dưới mô tả đã gỡ; vẫn giữ taxonomy, tag URL, gợi ý/reset/history và compatibility. CTA ở góc dưới trái ảnh, expand dưới phải; giữ action/href, trạng thái hover/focus/active/disabled và accessibility hiện có. Không nhân đôi CTA hoặc cho click CTA mở viewer. Giữ shuffle khi đổi vị trí/số card, gồm lần tải trang; chuyển từ vị trí đang thấy, ngắt/resume được, không clone/focus card kẹt đè hero. Bổ sung skeleton loop không được chiếm transform điều phối layout.
+**D7 — Giữ tương tác đã duyệt.** Hàng tag dưới mô tả đã gỡ; vẫn giữ taxonomy, tag URL, suggestion/reset/history và compatibility. CTA ở góc dưới trái ảnh, expand dưới phải; giữ action/href, trạng thái hover/focus/active/disabled và accessibility hiện có. Không nhân đôi CTA hoặc cho click CTA mở viewer. Giữ shuffle khi đổi vị trí/số card, gồm lần tải trang; chuyển từ vị trí đang thấy, ngắt/resume được, không clone/focus card kẹt đè hero. Bổ sung skeleton loop không được chiếm transform điều phối layout.
 
-### D8 — Correction owner: gợi ý thuộc mô tả, ảnh không có tên — 2026-09-13
+### D8 — Correction owner: suggestion thuộc mô tả, ảnh không có tên — 2026-09-13
 
-Correction này thay D4 và phần D3/D5/D7 liên quan title, gợi ý/reset; các
+Correction này thay D4 và phần D3/D5/D7 liên quan title, suggestion/reset; các
 điều kiện intrinsic, số cột, tỷ lệ vùng và khả năng đọc còn lại giữ nguyên.
 Owner đã chốt trong interview và yêu cầu tiếp tục triển khai card:
 
@@ -57,9 +57,9 @@ Owner đã chốt trong interview và yêu cầu tiếp tục triển khai card:
   mô tả thay thế cho accessibility; ảnh không có tên riêng trong mô hình CMS
   tương lai. Không mở triển khai CMS/database trong task này.
 - Chuyển toàn bộ “Có thể bạn thích” / “You might like” vào vùng mô tả của
-  primary. Gợi ý không còn chiếm một cột trong related masonry; vị trí N−1 cũ
+  primary. Suggestion không còn chiếm một cột trong related masonry; vị trí N−1 cũ
   và kích thước banner103px không còn là constraint của cụm mới.
-- Giữ nền ảnh cho từng nút gợi ý, dàn gọn và tự xuống hàng theo bề rộng.
+- Giữ nền ảnh cho từng nút suggestion, dàn gọn và tự xuống hàng theo bề rộng.
   Bố cục phù hợp ảnh trên/chữ dưới và ảnh trái/chữ phải; giữ chữ đọc được,
   hạn chế scrollbar bằng sắp xếp nội dung, không cắt mất nội dung hoặc thu body.
 - Một filter được bật tại một thời điểm; bấm lại mục đang bật để tắt,
@@ -69,7 +69,7 @@ Owner đã chốt trong interview và yêu cầu tiếp tục triển khai card:
   bỏ filter bằng chính nút toggle đang bật trong phần mô tả.
 
 Điều kiện nghiệm thu thêm: không còn caption/title ảnh trong mọi masonry;
-gợi ý nằm trong primary info ở cả hai layout; bật/chuyển/tắt filter bằng
+suggestion nằm trong primary info ở cả hai layout; bật/chuyển/tắt filter bằng
 mouse và keyboard giữ photo ID, Back/Forward khôi phục đúng trạng thái;
 normal-copy fit và chữ200% vẫn truy cập hết nội dung. Evidence geometry cũ
 đo suggestion riêng không được dùng để nghiệm thu correction này.
@@ -102,7 +102,7 @@ Nghiệm thu: parent và related dùng cùng ưu tiên10%; mixed pool có phươ
 so le phải chọn được nhánh ưu tiên trên fixture kiểm; nhóm cùng tỷ lệ và hai
 fixture format-square/use-sampling trước đây bị chặn phải hiển thị với N giữ
 nguyên. Kiểm determinism, các mốc cột và hình học thực trên browser. D8 về
-gợi ý/toggle vẫn là phần được duyệt độc lập, không bị correction này thay.
+suggestion/toggle vẫn là phần được duyệt độc lập, không bị correction này thay.
 
 ### D10 — Correction owner: mọi layout dùng span3 — 2026-09-13
 
@@ -115,7 +115,7 @@ span2 cho ảnh đứng/vuông của D2; không cần phân loại ảnh để c
 - Ratio gốc1,8 chỉ quyết định ảnh trên/chữ dưới hoặc ảnh trái/chữ phải.
   Giữ chuyển xếp dọc khi mỗi nửa nhỏ hơn240px, không thay threshold.
 - Giữ D3 về chiều cao tự nhiên/trần viewport, khoảng navbar, real-photo-peek;
-  D8 về mô tả/gợi ý/toggle; D9 về ưu tiên so le10%, fixed N và budget tổng.
+  D8 về mô tả/suggestion/toggle; D9 về ưu tiên so le10%, fixed N và budget tổng.
   Không đổi media, taxonomy, navbar, CTA hoặc mở CMS trong correction này.
 
 Nghiệm thu: ngang/đứng/vuông cùng viewport có cùng span min(3,N); VI/EN
@@ -134,7 +134,7 @@ dùng `height: calc(100svh - 50px)`. Đây là mốc từ trang Trường Thịn
   safe-bottom và50CSSpx. Cùng viewport không co primary theo lượng chữ/ratio
   làm lộ nhiều hơn; vẫn contain ảnh, giữ50/50 hoặc golden ưu tiên bên trong.
 - Ở top/direct/reload/resize, hàng ảnh thật bắt đầu dưới primary nhô khoảng
-  50CSSpx từ đáy viewport, dung sai1px; không dùng skeleton/gợi ý thay ảnh.
+  50CSSpx từ đáy viewport, dung sai1px; không dùng skeleton/suggestion thay ảnh.
   Card ở cột cạnh primary không tính là hàng ảnh dưới trong phép đo này.
 - Giữ ngoại lệ không có ảnh thật: không dựng ảnh giả. Nội dung dài/chữ200%
   cuộn riêng, luôn truy cập đủ. Với viewport không đủ chỗ vật lý, ghi đúng
@@ -155,7 +155,7 @@ chống overlap hoặc ngoại lệ chỉ còn một ảnh. Pool đầy đủ gi
 Đây là quyết định mới sau chứng minh gate cũ loại mọi candidate mixed
 trong case kiosk-posm-01/product-kiosk-posm-product-02, không phải lỗi thiếu ảnh.
 
-### D17 — Bốn mục gợi ý phủ ngang mô tả — 2026-09-13
+### D17 — Bốn mục suggestion phủ ngang mô tả — 2026-09-13
 
 Owner duyệt bốn mục: split dùng2×2 phủ hết chiều ngang info; stacked dùng
 bốn mục cùng hàng khi đủ chỗ, tự wrap ở cửa sổ hẹp. D17 thay số lượng và
@@ -174,11 +174,11 @@ detail.css `440EC20C41E2F38CED02BC8F0D3C5EEBD9BFBFB68FD9EA6E338115768FFC36E7`.
 Static oracle sparse một ảnh đã đồng bộ D14: cột4 cùng hàng; không đổi
 compiler. Các gate D13 hai ảnh và geometry hiện hành tiếp tục sở hữu packing.
 
-### D16 — Gợi ý theo hướng layout primary — 2026-09-13
+### D16 — Suggestion theo hướng layout primary — 2026-09-13
 
 Số lượng/bố cục được D17 thay thế; evidence dưới đây giữ lịch sử.
 
-Owner yêu cầu primary ảnh trên/mô tả dưới dùng gợi ý ngang. Vùng gợi ý
+Owner yêu cầu primary ảnh trên/mô tả dưới dùng suggestion ngang. Vùng suggestion
 lấy đủ chiều rộng info; năm mục cùng hàng khi đủ chỗ, tự xuống hàng theo
 bề rộng (mục tối thiểu180px hoặc toàn chiều rộng khi nhỏ hơn).
 Primary ảnh trái/mô tả phải giữ năm mục dọc. D16 thay quy tắc năm dòng
@@ -200,7 +200,7 @@ Giữ hover ảnh scale1,15 trong0,6giây ease-out của masonry chính; rời c
 scale1. Focus bàn phím dùng cùng zoom và outline rõ; reduced motion bỏ zoom
 và giữ outline, touch mở ảnh bằng một chạm không phụ thuộc hover.
 Không đổi tọa độ/kích thước card, D14, URL/ID, filter hoặc motion riêng của
-nút gợi ý và skeleton. Giữ wrapper dữ liệu masonry/related cho routing hiện có.
+nút suggestion và skeleton. Giữ wrapper dữ liệu masonry/related cho routing hiện có.
 
 Kiểm chứng: test mới `advertising-card-interactions.e2e.mjs` đỏ trước sửa
 ở detail hover; sau sửa parent/detail VI/EN đạt hover/rời/focus/reduced/Enter.
@@ -215,27 +215,27 @@ Owner đã chốt: khi bộ lọc chỉ còn một ảnh thật và N4/primary s
 ở cột4 cùng hàng với primary; miễn yêu cầu ảnh thật nhô50px phía dưới
 vì không có ảnh thứ hai. Không đổi chiều cao primary khi bật/tắt filter.
 Khi chỉ đủ hai hoặc ba cột, giữ ảnh dưới primary và peek50px.
-Giữ nguyên intrinsic ratio, ID, URL/filter, thứ tự gợi ý và motion chuyển
+Giữ nguyên intrinsic ratio, ID, URL/filter, thứ tự suggestion và motion chuyển
 vị trí400ms; không nhân bản ảnh. Pool từ hai ảnh trở lên giữ D11/D13.
 
 Kiểm chứng13/09: regression D14 thất bại trước sửa tại1005px (cột0 thay vì3),
 sau sửa đạt sáu widths390/820/1004/1005/1569/1922. One-column13/13 gồm1320
 case, photo-layout10/10; products-layout14/14 đạt sau cập nhật pin v13.
 `tests/site/advertising-single-related.e2e.mjs` kiểm ba chu kỳ bật/tắt mỗi
-locale VI/EN, thứ tự/vị trí gợi ý và primary không đổi, không nhảy lần hai
+locale VI/EN, thứ tự/vị trí suggestion và primary không đổi, không nhảy lần hai
 sau motion; resize820px giữ peek50px. Native1569×912: primary(35,137,516),
 card(1185,5,137,516), cột4 cùng đỉnh. Static và review CODE độc lập đạt.
 Core v13 hash8442F40B…; runtime D70FEE75…; source/output đã đối chiếu.
 Không thay verdict full-site/card.
 
-### D12 — Correction owner: năm dòng gợi ý và motion trạng thái — 2026-09-13
+### D12 — Correction owner: năm dòng suggestion và motion trạng thái — 2026-09-13
 
 Owner yêu cầu năm mục thành năm dòng; hover khác active/deactive; mục
 active chạy chuỗi ảnh sản phẩm liên quan như hero homepage. Khi ảnh và mô
 tả không đổi, bật/tắt filter không được đổi vị trí các mục.
 
 - Giữ năm vị trí một cột trong info ở cả hai layout; nhãn đủ chữ, không
-  cắt hoặc tự chia thành nhiều cột. Giữ thứ tự/tag của bộ gợi ý trong suốt
+  cắt hoặc tự chia thành nhiều cột. Giữ thứ tự/tag của bộ suggestion trong suốt
   cùng ảnh detail, kể cả bật/chuyển/tắt lọc; active không được đưa lên đầu.
 - Chỉ mục active chạy chuỗi ảnh cùng bộ lọc related; ít hơn hai ảnh thì
   giữ ảnh tĩnh. Off giữ ảnh đại diện tĩnh. Chữ/viền trạng thái đứng yên,
@@ -311,7 +311,7 @@ Giữ ảnh khác nội dung dù chung tag; không tự coi chung nhóm là trù
 | Q4 Media | Mọi hash/use-site trong cutoff có disposition; toàn ảnh cuối được dùng đạt cả hai điểm và brief, không unresolved hard reject. Mapping source-public/VI-EN/intrinsic được kiểm; không asset lỗi, duplicate revision ngoài ý muốn hoặc mất ảnh. V6 và các ảnh thiếu nguồn phải được xử lý, sửa/thay và nghiệm thu bản cuối, hoặc có owner explicit loại khỏi scope. Chỉ ghi nhãn cần sửa/thay không đủ đóng công việc. |
 | Q5 Handoff | Build/static, focused Playwright và Chrome DevTools theo phạm vi đổi; không lỗi console/network mới. Cập nhật owning docs/evidence theo source hash cuối, mở preview VI/EN cho owner. Done chỉ khi các requirement và owner acceptance cần thiết hoàn tất; không dùng subset PASS thay full-site/canonical parity. |
 
-Case regression bắt buộc: URL office-signs-wayfinding-03 với tag product-office-signs-wayfinding-product-08 ở 1922×912 phải giữ N4, span3, gợi ý cột4 và một ảnh thật lộ bên dưới. Case filter-interruption-resize đang FAIL ở checkpoint trước phải được chẩn đoán và giải quyết; không ghi là flaky hoặc làm yếu assertion khi chưa có bằng chứng.
+Case regression bắt buộc: URL office-signs-wayfinding-03 với tag product-office-signs-wayfinding-product-08 ở 1922×912 phải giữ N4, span3, suggestion cột4 và một ảnh thật lộ bên dưới. Case filter-interruption-resize đang FAIL ở checkpoint trước phải được chẩn đoán và giải quyết; không ghi là flaky hoặc làm yếu assertion khi chưa có bằng chứng.
 
 ## Nguồn, ownership và lệnh kiểm
 
@@ -364,7 +364,7 @@ Luôn giữ scope, source-originals, URL/metadata đúng, test có assertion th�
 
 Cần scope mới nếu muốn đổi mark/font/navbar, rubric/brief đã duyệt, dependency, CMS, dữ liệu ngoài Advertising hoặc deploy. Không xóa failing test, hạ gate, thay ảnh chưa đạt hoặc đóng toàn card cũ vì một phần mới xong.
 
-Owner đã duyệt ngưỡng 1,8, vị trí gợi ý, kính mờ, mốc cột 720/1005, ngoại lệ sparse D5, thông số motion khởi điểm và nhịp cuối CTA. Không còn câu hỏi spec mở. Implementation plan AD-FINAL-R1-P1 đã được duyệt ngày 2026-09-13; không mở lại các lựa chọn hoặc gate đã duyệt trong scope này.
+Owner đã duyệt ngưỡng 1,8, vị trí suggestion, kính mờ, mốc cột 720/1005, ngoại lệ sparse D5, thông số motion khởi điểm và nhịp cuối CTA. Không còn câu hỏi spec mở. Implementation plan AD-FINAL-R1-P1 đã được duyệt ngày 2026-09-13; không mở lại các lựa chọn hoặc gate đã duyệt trong scope này.
 
 ### D18 — Correction owner: detail span2, một layout — 2026-09-20
 
@@ -403,7 +403,7 @@ mọi finish/cancel/abort phải nhả lock.
 thay morph card masonry/related↔primary ở D19, gồm click, Back/Forward và
 chuyển giữa hai detail: không tạo clone giữa card và primary; giữ media
 active, scroll từng history entry và dấu card vừa xem. Chỉ morph
-primary↔enlarged viewer được giữ. Đoạn D19 phía trên là yêu cầu lịch sử,
+primary↔viewer được giữ. Đoạn D19 phía trên là yêu cầu lịch sử,
 không là oracle mới cho các đường card↔primary này.
 
 ### D20 — Accepted CTA giao skeleton/khoảng trắng và nav reset — 2026-09-21

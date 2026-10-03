@@ -163,7 +163,7 @@ masonry giữ `1500px`. Điểm chuẩn geometry đọc từ test layout, không
 
 Caption: [DESIGN.md](../../DESIGN.md#advertising-caption).
 
-## Advertising photo view
+## Advertising detail
 
 Contract hiện hành nằm tại [AD-FINAL-R1](../specs/advertising-final-polish-and-media.md)
 và [photo browse spec](../specs/advertising-photo-browse.md).
@@ -218,7 +218,7 @@ cho phép lệch đáy ở đúng trường hợp này. Pool đầy đủ vẫn 
 
 Accepted visual/interaction contract; [dependency và renderer](../specs/advertising-products-turnkey-services.md#template-chi-tiết-và-media) vẫn do spec sở hữu.
 
-Đây là contract carousel lịch sử; photo view mới ở trên supersede entrypoint
+Đây là contract carousel lịch sử; detail mới ở trên supersede entrypoint
 Advertising khi compatibility đã được triển khai. Generic gallery ngoài
 Advertising giữ behavior riêng.
 

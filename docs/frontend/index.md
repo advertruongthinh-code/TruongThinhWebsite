@@ -26,7 +26,7 @@ và [content/media guide](../design/content.md).
 | Home | `src/site/index.html` | VI/EN static landing |
 | Residential | `src/site/residential/index.html` | Detail page, shared shell |
 | Commercial | `src/site/commercial/index.html` | Detail page, generic horizontal gallery |
-| Advertising catalog và photo view | `src/site/advertising-products/index.html` | Masonry Auto; query `photo` mở ảnh, `tag` lọc related; viewer mở rộng giữ URL |
+| Advertising catalog và detail | `src/site/advertising-products/index.html` | Masonry Auto; query `photo` mở ảnh, `tag` lọc related; viewer mở rộng giữ URL |
 | Advertising category URL cũ | `scripts/site/prepare-static-assets.mjs` + `catalog.mjs` | Sáu compatibility entry về parent `?category=<slug>`, giữ VI/EN; source template lịch sử được giữ |
 | About | `src/site/about/index.html` | About/detail page |
 
@@ -101,12 +101,12 @@ dùng solver chung với reservation theo chiều cao primary đã đo.
 
 Khối primary dọc/vuông chia ảnh và thông tin ở desktop/tablet đủ rộng; ảnh
 ngang và mobile xếp ảnh trên thông tin. Adapter đo primary thật trước khi
-dành chỗ cho related. Khối gợi ý chứa tối đa năm link banner từ authored tags,
+dành chỗ cho related. Khối suggestion chứa tối đa năm link banner từ authored tags,
 ảnh đại diện khớp tag và thứ tự ổn định theo hero ID; chọn tag dùng replaceState
 và giữ hero. Chỉ ảnh nền ô nhãn dùng cover crop.
 
 Mode desktop dùng cùng media query `min-width: 961px` với CSS; spacing và bề
-rộng khả dụng dùng `documentElement.clientWidth`. Gutter trong photo view lấy
+rộng khả dụng dùng `documentElement.clientWidth`. Gutter trong detail lấy
 cùng số đo với solver để thanh cuộn không làm card vượt container. Adapter
 truyền số cột ưu tiên; related adapter giảm cột khi cần. Window resize
 đi qua scheduler ngay cả khi ResizeObserver không phát callback. Callback RO
@@ -126,7 +126,7 @@ lề cho control. Ma trận viewport thuộc photo browse spec.
 
 ## Advertising category URL cũ
 
-Photo view trên parent route thay composition theo nhóm.
+Detail trên parent route thay composition theo nhóm.
 Generator xuất sáu HTML compatibility nhỏ; canonical tương đối `../`, fallback
 link `../?category=<slug>`. JavaScript dùng `location.replace` để giữ locale và
 query không định tuyến, bỏ `photo`/`tag`/`category` cũ rồi đặt category của pathname.

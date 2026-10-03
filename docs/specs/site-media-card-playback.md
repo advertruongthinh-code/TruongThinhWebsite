@@ -158,7 +158,7 @@ alt/ARIA ở node lá theo [content guide](../design/content.md).
   có một dấu, pin kế thay dấu cũ, điều hướng cùng tab giữ dấu, còn reload đúng
   trang search thì `markerCount=0` dù pin còn hiện. Đây là bằng chứng giới hạn
   theo phiên/phiên bản quan sát, không là quy luật chung của Pinterest.
-- **Giữ** morph ảnh primary ↔ enlarged viewer khi mở/đóng, zoom fit → cover → 2 × cover, pan giới hạn,
+- **Giữ** morph ảnh primary ↔ viewer khi mở/đóng, zoom fit → cover → 2 × cover, pan giới hạn,
   focus/scroll lock và reduced-motion policy hiện có. Bổ sung yêu cầu pinch **hai ngón trên chính ảnh trong
   viewer** để zoom ảnh nội bộ và pan khi phóng lớn, không đánh đồng với native page zoom. Không tự thêm
   double-tap. L06 portrait page pinch không chứng minh viewer pinch; L06 landscape hai EN viewer tự đóng sau
@@ -257,4 +257,4 @@ Advertising tiếp tục tạm dừng.
 - **Số nguyên an toàn**: số nguyên dương biểu diễn chính xác trong JavaScript
   (`Number.isSafeInteger`), dùng cho kích thước pixel khai báo.
 - **Vùng trọng tâm**: vùng vô hình dùng chọn ứng viên autoplay, không phải viewport tải trước.
-- **Viewer pinch**: cử chỉ hai ngón đổi tỷ lệ ảnh bên trong enlarged viewer, khác native page zoom.
+- **Viewer pinch**: cử chỉ hai ngón đổi tỷ lệ ảnh bên trong viewer, khác native page zoom.

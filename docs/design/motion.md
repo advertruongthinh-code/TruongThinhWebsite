@@ -13,7 +13,7 @@ Masonry chính và related detail dùng cùng `createPhotoCard`, media wrapper v
 reveal/lazyload. Hover chuột chính xác phóng ảnh1,15 trong0,6giây ease-out,
 rời chuột về1; khung giữ nguyên tọa độ/kích thước và clip ảnh bên trong.
 Focus bàn phím có zoom cùng outline2px offset4px; reduced motion tắt zoom,
-giữ outline. Touch không cần hover để mở ảnh. Toggle gợi ý/skeleton giữ
+giữ outline. Touch không cần hover để mở ảnh. Toggle suggestion/skeleton giữ
 contract riêng, không áp hover card ảnh vào hai loại control này.
 
 ## Advertising: skeleton tiếp nối masonry
@@ -36,9 +36,9 @@ Espacio chỉ là [measured reference](../reference/espacio/motion.md), không p
 implementation hoặc target tự động. Historical PASS không chứng minh current
 runtime; trạng thái nghiệm thu ở [STATE](../STATE.md) và verification.
 
-## Advertising: chuỗi ảnh của gợi ý active
+## Advertising: chuỗi ảnh của suggestion active
 
-[D12](../specs/advertising-final-polish-and-media.md): chỉ nút gợi ý active chuyển chuỗi ảnh related với nhịp hero homepage, zoom
+[D12](../specs/advertising-final-polish-and-media.md): chỉ nút suggestion active chuyển chuỗi ảnh related với nhịp hero homepage, zoom
 nhẹ1,06→1 trong5giây và chuyển mờ1,6giây. D17 xếp bốn mục ngang/wrap
 ở stacked và2×2 phủ ngang info ở split. Nhãn, thứ tự và hình học bốn mục
 đứng yên; hover/focus phản hồi riêng, off giữ ảnh đại diện tĩnh. Pause khi
@@ -75,7 +75,7 @@ Click, Back, Forward và chuyển giữa hai detail không tạo clone ảnh bay
 Đóng detail đánh dấu đúng một card vừa xem bằng lớp phủ tối và nhãn
 `Vừa xem` / `Just viewed`; full reload xóa dấu.
 History vẫn giữ media active và scroll riêng từng entry. Chỉ morph
-primary↔enlarged viewer được giữ. Viewer UI-FRAME-R4 giữ nguyên URL và cuộn nền;
+primary↔viewer được giữ. Viewer UI-FRAME-R4 giữ nguyên URL và cuộn nền;
 Escape chỉ đóng viewer trước khi photo history nhận phím. Reduced motion bỏ
 animation của viewer; zoom/pan chủ động của người xem vẫn đổi tức thì.
 Acceptance của flow này phải có evidence riêng, không dùng report route veil

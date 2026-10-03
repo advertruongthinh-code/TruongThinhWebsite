@@ -52,7 +52,7 @@ không nhân bản token hoặc coi HTML specimen là production component.
   Kiểm local trước,
   rồi mới debug Sites sau phát hành.
 - [Photo/masonry Advertising](specs/advertising-photo-browse.md): layout, history,
-  primary, gợi ý và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
+  primary, suggestion và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
   dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random masonry và
   tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25)

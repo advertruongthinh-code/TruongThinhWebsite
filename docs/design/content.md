@@ -177,7 +177,7 @@ mọi masonry và detail bỏ tiêu đề ảnh, giữ mô tả và tag phân lo
 mô tả nội dung ảnh cho accessibility, không dùng alt như title hiển thị.
 “Có thể bạn thích” chuyển vào mô tả, giữ nền ảnh dạng nút gọn và toggle một
 filter; bấm lại để tắt, giữ photo ID. Xem
-[AD-FINAL-R1 D8](../specs/advertising-final-polish-and-media.md#d8--correction-owner-gợi-ý-thuộc-mô-tả-ảnh-không-có-tên--2026-09-13).
+[AD-FINAL-R1 D8](../specs/advertising-final-polish-and-media.md#d8--correction-owner-suggestion-thuộc-mô-tả-ảnh-không-có-tên--2026-09-13).
 CMS/database ngoài phạm vi implementation.
 
 Index dùng anchor filter với `data-advertising-filter`. `all` chỉ dành cho anchor

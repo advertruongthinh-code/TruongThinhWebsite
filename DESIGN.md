@@ -247,7 +247,7 @@ Hệ thống hiện hành thiên về flat/tonal layering: paper, ink, line và 
 
 Form language mặc định là góc vuông (`0`); không có radius scale tổng quát. Nút điều khiển gallery là ngoại lệ hình tròn (`50%`) với kích thước observed `2.7rem`. Media dùng clipping để giữ tỷ lệ và hover scale; clipping không đồng nghĩa với bo góc. Focus-visible là outline orange 2px, offset 4px, phải còn rõ trên nền sáng và ảnh.
 
-Owner correction ngày 2026-09-10: nút trong Advertising photo view/viewer phải
+Owner correction ngày 2026-09-10: nút trong Advertising detail/viewer phải
 dùng góc vuông theo ngôn ngữ chung, có hover motion; ngoại lệ gallery tròn
 không còn là target cho flow này. [AD-BROWSE-R1/R2](docs/specs/advertising-photo-browse.md#r2--detail-và-responsive-layout)
 giữ contract expand gọn/mở nhãn và icon reset; P1.3 bỏ Back riêng. Control
@@ -260,7 +260,7 @@ hoặc suy rộng thành thay gallery khác.
 
 P1.4 cho phép riêng nền hero duplicate cover+blur, bị clip trong vùng ảnh;
 foreground luôn contain trọn tỷ lệ. Title detail giảm về2rem/600, một luồng
-chữ cách12px và giữ cỡ body. Owner bỏ hàng nhãn dưới mô tả, dùng cụm gợi ý
+chữ cách12px và giữ cỡ body. Owner bỏ hàng nhãn dưới mô tả, dùng cụm suggestion
 để lọc ảnh. Geometry ngang3 cột/đứng-vuông2 cột,
 cap viewport và dải ảnh dưới theo [contract P1.4](docs/specs/advertising-photo-browse.md).
 

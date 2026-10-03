@@ -24,7 +24,7 @@ chữ số phần trăm. Ảnh sẵn sàng thì vòng biến mất, ảnh hiện
 được duyệt. Khung chờ này khác batch skeleton Flow trước CTA của Advertising.
 
 Áp dụng cho ảnh nội dung trên home, residential, commercial, about,
-Advertising parent/detail, gallery, gợi ý và ảnh mở rộng. Logo/biểu tượng
+Advertising parent/detail, gallery, suggestion và ảnh mở rộng. Logo/biểu tượng
 nhận diện, favicon, ảnh nền chỉ trang trí và canvas skeleton CTA không dùng
 vòng này. Không random grid của route ngoài Advertising.
 
@@ -54,7 +54,7 @@ loading được thông báo vừa đủ bằng `aria-busy`; không spam live re
 chunk. Reduced motion giữ frame và cung tiến trình tĩnh theo byte; trạng thái
 không xác định không quay liên tục.
 
-Giữ media reveal/fade/hover hiện hành, trong đó slideshow gợi ý không tự zoom.
+Giữ media reveal/fade/hover hiện hành, trong đó slideshow suggestion không tự zoom.
 Không đặt thêm một lớp opacity gate làm ảnh đã decode vẫn bị ẩn. Khi ảnh đổi
 do slideshow hoặc route lifecycle, cleanup listener, request và object URL của
 ảnh cũ; không gắn vòng của ảnh A lên ảnh B.

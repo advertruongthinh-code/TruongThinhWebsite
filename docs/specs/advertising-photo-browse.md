@@ -2,15 +2,15 @@
 
 **Delta accepted hiện hành:** [AD-FINAL-R1](advertising-final-polish-and-media.md)
 được owner duyệt ngày2026-09-11. D1–D7 thay ngưỡng ratio, số cột related,
-placement gợi ý, ngoại lệ sparse và nền dư; C1–C5 thay continuation/copy/hero.
+placement suggestion, ngoại lệ sparse và nền dư; C1–C5 thay continuation/copy/hero.
 Những rule P1.4/v7 bên dưới trái delta này chỉ còn mô tả phiên bản đã triển khai
 trước; không phục hồi fallback giảm N. Plan đã được owner duyệt; source/evidence
 hiện tại chưa chứng minh toàn bộ AD-FINAL-R1 đạt. Correction D8 bỏ title và chuyển
-gợi ý vào mô tả; D9 ngày2026-09-13 thay gate so le0,20 bằng ưu tiên so le từ0,10,
+suggestion vào mô tả; D9 ngày2026-09-13 thay gate so le0,20 bằng ưu tiên so le từ0,10,
 cho phép hàng thẳng sau nhánh tìm kiếm ưu tiên. Anti-brick không chặn hàng thẳng
 ở nhánh này. D10/D11 ngày13/09 dùng primary min(3,N) cho mọi ratio và luôn
 chừa khoảng50CSSpx ảnh thật ở đáy viewport; thay span3/2 và chiều cao tự nhiên
-P1.4. D12 dùng5 dòng gợi ý cố định, chỉ mục active chạy chuỗi ảnh related;
+P1.4. D12 dùng5 dòng suggestion cố định, chỉ mục active chạy chuỗi ảnh related;
 bật/tắt không đổi vị trí các mục. Các contract ngoài delta giữ nguyên.
 
 **Trạng thái:** Spec gốc, plan AD-BROWSE-R1-P1 và delta AD-BROWSE-R1-P1.1 đã được owner duyệt ngày 2026-09-10. Policy một cột cho cả hai masonry và bỏ lựa chọn Auto/1/2 đã triển khai, qua focused integration G1; [evidence v6](../verification/advertising-grid-r4-2026-09-09.md#ad-browse-r1-p11--policy-một-cột-2026-09-10) giữ số đo và hash. Các correction viewer/detail và ngoại lệ crop ô nhãn R6 giữ theo yêu cầu trực tiếp. Owner spot-check VI/EN và các phần còn lại của card không tự đóng.
@@ -61,13 +61,13 @@ owner preview còn mở, không suy focused PASS thành full-site PASS.
   xử lý safe area một lần. Related còn ảnh thì phải có phần ảnh thật bên dưới
   primary lọt vào viewport; chỉ có ảnh bên cạnh hoặc banner không đủ.
   Candidate thiếu dải ảnh thật thử N thấp hơn trong cùng budget300.000.
-  Khi chỉ còn một cột, gợi ý đặt ngay sau ảnh đầu tiên; các ảnh sau giữ gutter
-  quanh reservation này. Gợi ý không trở thành media giả trong solver.
+  Khi chỉ còn một cột, suggestion đặt ngay sau ảnh đầu tiên; các ảnh sau giữ gutter
+  quanh reservation này. Suggestion không trở thành media giả trong solver.
 - Chia vùng ưu tiên: ngang61,8/38,2 chiều cao, đứng50/50 chiều rộng sau gap16px.
   Đo chiều cao chữ tại chiều rộng thật rồi phân bổ linh hoạt; chỉ scroll khi
   nội dung thực sự vượt vùng khả dụng. Giữ một luồng category/title/body;
   owner bỏ hàng nhãn dưới mô tả ngày 2026-09-11 vì trùng với “Có thể bạn thích”.
-  Metadata/tag URL và bộ lọc gợi ý vẫn hoạt động; nút reset chỉ hiện khi đang lọc.
+  Metadata/tag URL và bộ lọc suggestion vẫn hoạt động; nút reset chỉ hiện khi đang lọc.
   title dùng cấp2rem/weight600, không giảm body/tag hoặc font theo overflow.
   Tính lại khi font load, resize hoặc cỡ chữ đổi ngay tại cùng viewport.
 - Foreground contain trọn ảnh, đúng ratio. Nền trùng ảnh cover blur lấp vùng
@@ -85,7 +85,7 @@ Giữ G1/v7 organic0,20/cân đuôi/budget300.000, suggestion, navbar và motion
 Những công thức P1.3 bên dưới giữ để truy nguyên; nếu mâu thuẫn, P1.4 thắng
 trong phạm vi geometry/ảnh/chữ/CTA nêu trên. Focused PASS không là full-site PASS.
 
-Khách tìm mẫu sản phẩm trong sáu nhóm, mở một ảnh để xem rõ, xem ảnh liên quan và quay lại đúng ảnh cùng vị trí. Masonry, detail, related và phục hồi history dùng chung photo identity và state.
+Khách tìm mẫu sản phẩm trong sáu nhóm, mở một ảnh để xem rõ, xem ảnh related và quay lại đúng ảnh cùng vị trí. Masonry, detail, related và phục hồi history dùng chung photo identity và state.
 
 Giữ nền trắng, Plus Jakarta Sans, khung ảnh vuông góc, caption và khoảng cách theo design system. Pinterest chỉ là reference cho bố cục/hành vi. Không thêm pin, bình luận, tài khoản, bảng lưu, giá hoặc thông số chưa có dữ liệu.
 
@@ -97,7 +97,7 @@ Không tạo trang nội dung category mới. Detail là view của parent Adver
 
 Owner bổ sung ngày 2026-09-10 sau khi có detail/viewer: ảnh thumbnail không
 cần rộng hai cột. Qua interview, owner xác nhận áp dụng cho **cả masonry parent
-và masonry ảnh liên quan**. Quyết định này thay phần chọn span 1/2 của Auto ở
+và related masonry**. Quyết định này thay phần chọn span 1/2 của Auto ở
 AD-BROWSE-R1 và Task 2.1 cũ; không hủy evidence của phiên bản Auto v5 trước đó.
 Source dùng policy một cột v7; trạng thái nghiệm thu ở [verification](../verification/advertising-grid-r4-2026-09-09.md).
 
@@ -185,7 +185,7 @@ vẫn là phạm vi độc lập.
 
 #### Position motion P1.3
 
-Giữ toàn bộ gate v7: một cột mỗi ảnh; intrinsic height; lệch đáy ảnh liền kề tối thiểu0,20×chiều cao ảnh lớn hơn; cân đuôi ảnh thật; không spacer/crop/mất ảnh để đạt gate. Skeleton/gợi ý không được tính là ảnh thật để che hụt cột.
+Giữ toàn bộ gate v7: một cột mỗi ảnh; intrinsic height; lệch đáy ảnh liền kề tối thiểu0,20×chiều cao ảnh lớn hơn; cân đuôi ảnh thật; không spacer/crop/mất ảnh để đạt gate. Skeleton/suggestion không được tính là ảnh thật để che hụt cột.
 Position motion dùng pipeline Masonry/Outlayer hiện hữu,400ms ease, delay0, không stagger. Mọi thay đổi tọa độ của card đang hiện, gồm filter/photo/tag/resize/đổi số cột và dữ liệu, phải animate từ trạng thái đang thấy đến vị trí mới. Chỉ một engine sở hữu transform vị trí; không thêm GSAP/WAAPI FLIP cho cùng card.
 Initial load cũng có stuffing: khởi tạo card của visible window tại đầu cột đích (sau vùng primary reservation nếu có), rồi đưa tới tọa độ organic bằng cùng400ms. Origin dựng trước paint, không hiện final rồi giật về đầu. Card có tọa độ không đổi không cần chạy translate giả. Chỉ initial/view-entry cần khởi tạo origin; remount do scroll virtualization ở cached coordinate vẫn instant, không kéo ảnh từ đầu trang khi khách chỉ cuộn.
 Giữ media fade0,6s ease-out riêng trên img, hover theo shared contract. Tái layout chỉ khi hình học đổi; không render lại toàn dataset khi scroll. Cohort giữ oldWindow∪newWindow∪focused khi position motion đang chạy; sau settle trả normal bound.
@@ -215,18 +215,18 @@ Registry tag gồm stable tag ID, label VI/EN và quan hệ nhóm. Một photo c
 
 Không đưa ảnh AI thành claim công trình thật hoặc bao bì chính thức của khách hàng. Chỉ file đạt Audit/Critique theo đúng hash mới đủ điều kiện public sau mapping. Batch 39 và các reject cũ không tự thay catalog 109 hoặc tự đóng backlog.
 
-### R6 — Related và gợi ý
+### R6 — Related và suggestion
 
 Heading thống nhất “Có thể bạn thích” / “You might like”; một dòng,16px/24px,700, căn giữa. Banner rộng trọn một cột C, cao103px, góc vuông; gap heading–banner và giữa banner8px. Nhãn16px/24px,700, căn giữa, padding12px; cho xuống dòng nhãn dài để không mất nội dung. Giữ Plus Jakarta Sans, tối đa5 authored tag, màu/lớp tối bảo đảm chữ đọc được. Chỉ nền banner được cover; ảnh sản phẩm không nhận ngoại lệ này.
 Cụm phải nằm gần primary. Slot xác định: nếu còn ít nhất2 cột bên cạnh, cụm ở cột trống gần primary nhất, còn cột khác dành ảnh thật; nếu chỉ còn1 cột bên cạnh, giữ cột đó cho ảnh thật và đặt cụm ngay dải đầu dưới primary; nếu full-span, đặt cụm vào dải đầu dưới primary. Không đẩy cụm sâu xuống masonry theo hash ngẫu nhiên. Với cùng photo/filter/viewport, reload/Back cho cùng slot; thứ tự tag vẫn theo registry. Điều kiện gần khối ảnh/mô tả thay vị trí tùy ý trước đây, không bắt buộc bên trái.
 
-Mỗi detail có đúng một khối gợi ý. Ngoại lệ cover chỉ áp dụng nền banner,
+Mỗi detail có đúng một khối suggestion. Ngoại lệ cover chỉ áp dụng nền banner,
 không áp dụng parent/related/hero hoặc trạng thái fit của viewer, không sửa
 file gốc/intrinsic metadata.
 
 - Không chọn tag: related cùng category, loại hero, sort ổn định theo `sourceOrder` rồi `id`.
 - Có tag: hero vẫn giữ; related lấy photo ở mọi category có tag, loại hero, sort theo thứ tự category chuẩn, `sourceOrder`, `id`.
-- Thứ tự gợi ý cố định theo photo ID, không random, không phụ thuộc locale.
+- Thứ tự suggestion cố định theo photo ID, không random, không phụ thuộc locale.
 - Click tag giữ hero và lọc related cross-group. Reset tag trở về cùng nhóm. Tag không có kết quả hiển thị empty state rõ, không giả kết quả.
 
 ## Compatibility và Barba
@@ -267,21 +267,21 @@ mobile không overflow và xếp dọc; bốn suggestion nằm dưới mô tả;
 đồng bộ masonry; toggle không đổi rect; URL/history/photo ID và masonry packing giữ
 nguyên.
 
-## R8 — Accepted detail span 3 và gợi ý một dòng — 2026-09-21
+## R8 — Accepted detail span 3 và suggestion một dòng — 2026-09-21
 
 Owner duyệt R8 ngày `2026-09-21`. R8 thay R7 và D18 về geometry detail, thứ tự
-info và trạng thái gợi ý.
+info và trạng thái suggestion.
 
 - Từ tablet trở lên, primary span `min(3,N)`. Trong block N3, hero chiếm hai
   cột và info chiếm một cột; khi masonry N4, cột 4 tiếp tục dành cho ảnh thật.
-  Mobile dùng cùng component theo thứ tự hero, info, CTA, gợi ý.
+  Mobile dùng cùng component theo thứ tự hero, info, CTA, suggestion.
 - Info theo thứ tự eyebrow/title, mô tả, “Trao đổi ý tưởng”, khoảng thở co giãn,
   “Có thể bạn thích” neo đáy. CTA không còn phủ trên hero.
-- Gợi ý tối đa bốn mục, mỗi mục đúng một dòng riêng và phủ hết bề ngang info.
+- Suggestion tối đa bốn mục, mỗi mục đúng một dòng riêng và phủ hết bề ngang info.
   Inactive/hover không viền; active mới có viền, nền trắng và ảnh của mục chỉ
   hiện trong nét chữ bằng mask. Fallback thiếu text-mask dùng chữ màu ink đủ
   tương phản. `aria-pressed` và focus-visible không phụ thuộc hiệu ứng mask.
-- Hover/reveal gợi ý reuse đúng media-card interaction của masonry. Media zoom và
+- Hover/reveal suggestion reuse đúng media-card interaction của masonry. Media zoom và
   crossfade không đổi rect, không flash hoặc nhảy zoom-out khi ảnh mới decode.
 - Phần thừa quanh ảnh dùng cùng source làm nền blur. Nền zoom chậm hơn ảnh trước,
   parallax ngược nhẹ và crossfade đồng bộ khi đổi photo; reduced motion giữ tĩnh.
@@ -289,7 +289,7 @@ info và trạng thái gợi ý.
   optical inset bằng nhau ở cả hai state, không đổi hit target.
 
 Acceptance R8: VI/EN tại N1–N4, long-copy và text zoom `200%`; N4 có block span3
-và ảnh thật cột4; mobile không overflow; CTA/gợi ý đúng thứ tự; bốn button một
+và ảnh thật cột4; mobile không overflow; CTA/suggestion đúng thứ tự; bốn button một
 dòng mỗi mục; active không đổi geometry; background/foreground capture đầu,
 giữa, cuối đồng bộ và reduced motion không animate. Nút expand/collapse được đo
 ở hover, focus và touch cho VI/EN: optical inset icon/text hai mép chênh tối đa
@@ -360,7 +360,7 @@ Capture frame trên click, Back/Forward chứng minh đúng photo/media ID và Y
 
 ### G4 — Tags/CTA
 
-Multi-tag, cross-group, reset, empty state; thứ tự gợi ý giữ ổn định khi reload/Back. Chọn/reset tag không tạo history entry. Photo ID lạ về masonry dùng được và URL sạch; tag lạ bỏ filter giữ photo. Mỗi Advertising view có một CTA đúng vị trí; không nhân CTA trong menu/nút nổi/footer của flow. Kiểm đoạn nối masonry → skeleton rỗng cùng cột → fade → chữ CTA, sau filter/resize và ở viewport hẹp. Reduced motion giữ chữ đọc được, bỏ chuyển động; skeleton không xuất hiện trong focus order hoặc danh sách sản phẩm cho assistive technology.
+Multi-tag, cross-group, reset, empty state; thứ tự suggestion giữ ổn định khi reload/Back. Chọn/reset tag không tạo history entry. Photo ID lạ về masonry dùng được và URL sạch; tag lạ bỏ filter giữ photo. Mỗi Advertising view có một CTA đúng vị trí; không nhân CTA trong menu/nút nổi/footer của flow. Kiểm đoạn nối masonry → skeleton rỗng cùng cột → fade → chữ CTA, sau filter/resize và ở viewport hẹp. Reduced motion giữ chữ đọc được, bỏ chuyển động; skeleton không xuất hiện trong focus order hoặc danh sách sản phẩm cho assistive technology.
 
 ### G5 — Integration
 
@@ -388,7 +388,7 @@ dưới primary. Đây là kích thước giả lập/cửa sổ, không là thi
 ### G7 — Acceptance P1.3
 
 - Geometry: toàn109 media với VI/EN và viewport representative320,390,430,750/751,820,960/961,1024,1200/1201,1329,1569,1920,2560; có cửa sổ ngang320px cao, tall/short, scrollbar và resize liên tục. Thêm r0,899/0,900/1,000/1,100/1,101; hai phía ngưỡng mô tả240px. Primary nằm dưới navbar và bottom≤visibleBottom−inset với dung sai1 CSS px; chia vùng đúng a/b sau trừ gap; sai số intrinsic ratio≤0,1%; không crop/dải tối/overlap.
-- Related/gợi ý: ảnh thật một cột, solver/tail/organic v7 giữ nguyên; sparse tag0/1/3 ảnh, full-span, fallback giảm cột; cụm gợi ý gần primary và đúng103/16/24/8/12px, title đủ một dòng tại320px thường. Mô tả dài và text zoom200% phải truy cập hết bằng touch/keyboard; không cắt chữ để giữ một dòng trong chế độ accessibility.
+- Related/suggestion: ảnh thật một cột, solver/tail/organic v7 giữ nguyên; sparse tag0/1/3 ảnh, full-span, fallback giảm cột; cụm suggestion gần primary và đúng103/16/24/8/12px, title đủ một dòng tại320px thường. Mô tả dài và text zoom200% phải truy cập hết bằng touch/keyboard; không cắt chữ để giữ một dòng trong chế độ accessibility.
 - Motion/navigation: capture frame đầu/giữa/cuối initial stuffing, filter, tag và related layout; masonry/related↔detail, rapid click, Back/Forward và resize không tạo clone hoặc flash sai media. Navbar parent reclick giữ filter/history; detail→parent đúng ảnh, direct/reload/đổi VI/EN/menu/modified click; so sánh auto-collapse/hide/reveal với shared Residential tại cùng viewport.
 - Viewer/CTA: chạy focused suite viewer trên Chromium/Firefox/WebKit, normal/reduced motion, phone landscape và dialog resize; kiểm control/focus/scroll/ratio. Chụp cuối parent masonry chứng minh chữ trong vùng skeleton sậm hơn và một CTA, gồm sau filter/resize. Không phát sinh console/network error do delta.
 - Owner xem local preview của build đã kiểm; evidence ghi source/output hash, công cụ/viewport/giới hạn. Math preflight hoặc focused PASS không là mọi thiết bị vật lý, full-site hoặc canonical Espacio PASS.
@@ -410,7 +410,7 @@ Browser checks mới nằm trong suite hiện có sau khi DOM/API chốt. Không
 ## Supersession và docs impact
 
 P1.3 thay geometry cố định2/3cột và50/50, navbar photo luôn hiện, nút Back
-riêng, heading gợi ý cũ/ratio banner2,2, initial layout instant và chữ CTA
+riêng, heading suggestion cũ/ratio banner2,2, initial layout instant và chữ CTA
 ngoài continuation. Browser history, viewer và v7 organic/tail budget giữ
 nguyên. Shared navbar re-click thuộc correction ngoài Advertising đã được
 owner chốt, không mở redesign các trang khác.
@@ -553,7 +553,7 @@ riêng morph giữa mọi masonry/related card và primary detail.
   `1.5px`; reset, `+` và `−` vẫn dùng chung zoom state với wheel/middle control.
 - Acceptance đọc computed style của shared glass, xác nhận source image có
   `filter: none`, Back không còn trong DOM/runtime/CSS, kiểm inset nhãn/icon và
-  chạy photo viewer trên Chromium, Firefox, WebKit. Focused PASS không thay
+  chạy viewer trên Chromium, Firefox, WebKit. Focused PASS không thay
   owner visual gate hoặc full-site gate.
 
 ## R15 — correction P7 Pinterest primary và description pager
@@ -663,11 +663,11 @@ split layout, pager và vị trí suggestion theo P7.1 giữ nguyên.
 Nhánh navbar trong correction này được thay bởi P7.5 bên dưới; giữ lại để đối chiếu lịch sử.
 
 - Từ photo trở về bằng navbar: khôi phục category, anchor và scroll của masonry
-  xuất phát, kể cả sau khi xem ảnh liên quan. Direct photo không có masonry nguồn
+  xuất phát, kể cả sau khi xem ảnh related. Direct photo không có masonry nguồn
   vẫn fallback về All. Quy tắc này thay hành vi navbar luôn về All/căn giữa ảnh.
 - Mở photo và quay lại trong cùng catalog mount không random lại batch skeleton.
   Random preset không được thay geometry hay vị trí CTA so với footer.
-- Nút gợi ý có ảnh: border trong suốt và nền không vẽ dưới border; active giữ
+- Nút suggestion có ảnh: border trong suốt và nền không vẽ dưới border; active giữ
   border đen/nền trắng. Keyboard focus vẫn có chỉ báo riêng.
 - Nền blur quanh primary giữ tĩnh trong grid-detail click/Back/Forward;
   chỉ đổi media source khi primary đổi. M02b supersede các nhịp foreground/backdrop morph cũ.
@@ -686,7 +686,7 @@ Owner xác nhận trong phiên 2026-09-23–24; tiếp tục scope đã duyệt.
   sang ảnh B, căn giữa B trong phần nhìn và đánh dấu card B vừa xem. Browser
   Back giữ chuỗi history, bộ lọc và scroll của entry tương ứng.
 - Cùng dữ liệu, viewport và bộ lọc phải cho cùng tọa độ mọi card, kể cả khi
-  reload. Random bộ ảnh gợi ý hoặc preset màu skeleton không thay geometry.
+  reload. Random bộ ảnh suggestion hoặc preset màu skeleton không thay geometry.
   Restore phải cập nhật giới hạn smooth-scroll từ masonry mới trước khi đặt scroll.
 - Khi hai container cùng tồn tại trong chuyển route, CTA đo footer thuộc
   chính container mới. Không lấy footer đầu tiên toàn document. Giữ bố cục
@@ -694,7 +694,7 @@ Owner xác nhận trong phiên 2026-09-23–24; tiếp tục scope đã duyệt.
 - M02b supersede morph 520/400ms và backdrop 1200ms của grid-detail ở đoạn
   P7.5 cũ. Nền primary giữ tĩnh trên click, history, direct load và reduced
   motion; viewer primary↔dialog vẫn giữ motion đã duyệt.
-- Mỗi nhóm gợi ý lấy ngẫu nhiên một tập tối đa9 ảnh liên quan trong document
+- Mỗi nhóm suggestion lấy ngẫu nhiên một tập tối đa9 ảnh liên quan trong document
   hiện tại, tối thiểu4 để autoplay; mỗi5s crossfade1.6s, không tự zoom. Zoom
   chỉ theo hover chung. Active trắng/chữ đen; inactive không đổi độ tối khi
   hover, border không lộ nền đen. Hidden/offscreen/pause/reduced ngừng chuyển.
@@ -702,7 +702,7 @@ Owner xác nhận trong phiên 2026-09-23–24; tiếp tục scope đã duyệt.
   đạt4 ảnh. Nguồn/prompt và review ở
   [album](../../source-assets/projects/advertising/suggestion-slides-20260923/review.md).
   Catalog lên127 ảnh, dataset `2026-09-23.1`; ảnh mới giữ sourceOrder riêng.
-  `media.suggestionPosition` chỉ chọn vùng cover của nút gợi ý; không crop
+  `media.suggestionPosition` chỉ chọn vùng cover của nút suggestion; không crop
   hoặc biến dạng ảnh trong masonry, primary hay viewer. Ngày2026-09-24, owner
   chốt giữ12 ảnh mới và kết thúc đợt bổ sung này, catalog giữ127 ảnh.
   Thêm163 ảnh cho67 nhóm còn lại nằm ngoài phạm vi đợt này; nhóm chưa đủ4

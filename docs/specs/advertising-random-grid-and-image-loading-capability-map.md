@@ -18,7 +18,7 @@ và task list đã được lập, chờ owner duyệt; hành vi chưa được 
 
 | Module id | Trách nhiệm | Phụ thuộc |
 | --- | --- | --- |
-| `advertising-organic-random` | Đảo vị trí card của All, sáu filter và related sau mỗi lần mở URL/F5; giữ ổn định trong cùng lượt duyệt kể cả Back dựng lại document; solver thích ứng khi catalog tăng; batch skeleton tiếp nối masonry với hình học đa dạng; giữ tập ảnh gợi ý random và đổi ảnh mỗi 3 giây | — |
+| `advertising-organic-random` | Đảo vị trí card của All, sáu filter và related sau mỗi lần mở URL/F5; giữ ổn định trong cùng lượt duyệt kể cả Back dựng lại document; solver thích ứng khi catalog tăng; batch skeleton tiếp nối masonry với hình học đa dạng; giữ tập ảnh suggestion random và đổi ảnh mỗi 3 giây | — |
 | `static-image-delivery` | Đo trước/sau trên Sites; tối ưu tải ảnh nội dung toàn website trong phase tĩnh, giữ kích thước và media contract | — |
 | `image-loading-progress` | Dành sẵn khung đúng tỷ lệ cho ảnh nội dung toàn website; vòng tải theo byte thật không hiện số, trạng thái cache/lỗi/reduced motion; không dùng cho batch skeleton CTA | `static-image-delivery` |
 

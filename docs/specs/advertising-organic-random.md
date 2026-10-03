@@ -32,8 +32,8 @@ không phá luồng xem ảnh, CTA hoặc footer. Trong phase tĩnh, thêm ảnh
 catalog/media rồi build và xuất bản lại; solver phải thích ứng, chưa có CMS UI.
 
 Module này sở hữu parent All, sáu filter, related masonry trong photo detail, batch
-skeleton card trước CTA và slideshow trong nút gợi ý. Thứ tự/vị trí của **nút
-filter**, tag và khối gợi ý giữ nguyên. Các masonry/gallery của route khác không
+skeleton card trước CTA và slideshow trong nút suggestion. Thứ tự/vị trí của **nút
+filter**, tag và khối suggestion giữ nguyên. Các masonry/gallery của route khác không
 random; việc tải ảnh toàn site ngoài scope correction và thuộc recovery paused.
 Scope correction được giữ trong
 [capability map](mobile-browser-parity-capability-map.md).
@@ -44,8 +44,8 @@ Scope correction được giữ trong
 | --- | --- | --- |
 | [P7.5](advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow) giữ card cùng tọa độ qua reload | Mỗi direct load/F5 lấy thứ tự trình bày mới; ảnh A có thể đổi ô | Filter/Back/locale trong cùng lượt duyệt giữ thứ tự đã lấy; ID, focus, scroll và history không đổi |
 | [P7.4](advertising-photo-browse.md#correction-p74--owner-xác-nhận-ngày-2026-09-23) giữ tọa độ CTA khi reload cùng viewport | Tọa độ tuyệt đối của CTA có thể dịch theo chiều cao masonry random | Khoảng cách chữ CTA–footer, final viewport và visual treatment giữ nguyên |
-| [R6](advertising-photo-browse.md#r6--related-và-gợi-ý) sort related theo `sourceOrder/id` | Related dùng thứ tự random của pool đang chọn | Tập ảnh theo group/tag và vị trí khối gợi ý, thứ tự tag vẫn như cũ |
-| [P7.5](advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow) đổi ảnh gợi ý mỗi 5 giây | Đổi mỗi 3 giây | Tập ảnh gợi ý random tối đa 9 ảnh/tag trong document, crossfade 1,6 giây, không tự zoom, pause và reduced motion |
+| [R6](advertising-photo-browse.md#r6--related-và-suggestion) sort related theo `sourceOrder/id` | Related dùng thứ tự random của pool đang chọn | Tập ảnh theo group/tag và vị trí khối suggestion, thứ tự tag vẫn như cũ |
+| [P7.5](advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow) đổi ảnh suggestion mỗi 5 giây | Đổi mỗi 3 giây | Tập ảnh suggestion random tối đa 9 ảnh/tag trong document, crossfade 1,6 giây, không tự zoom, pause và reduced motion |
 | [Skeleton R5/R7](advertising-skeleton-flow.md#13-correction-r5-accepted--batch-đa-dạng-và-viewport-replay--2026-09-21) giữ phân bố khung theo chu kỳ | Thứ tự khung thấp/vuông/cao thay đổi theo lần tải và pool card thật | 12 preset không lặp trong batch, frontier liên tục, global glass và ranh giới CTA/footer |
 
 Các delta chỉ có hiệu lực sau khi owner duyệt spec và implementation qua QA;
