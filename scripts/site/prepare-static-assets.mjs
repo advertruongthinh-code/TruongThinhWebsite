@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATEGORIES, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import "./sync-brand-lockup.mjs";
+import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -31,35 +32,6 @@ const swiperStyleSources = [
   "node_modules/swiper/swiper.css",
   "node_modules/swiper/modules/pagination.css",
   "node_modules/swiper/modules/a11y.css",
-];
-const nonPublicSourceAssets = [
-  "advertising-products/catalog.mjs",
-  "advertising-products/media-contract.mjs",
-  "advertising-products/media-manifest.mjs",
-  "advertising-products/photo-tags.mjs",
-  "content/client-logos.json",
-  "assets/brand/truong-thinh-lockup.svg",
-  "assets/content/projects/advertising-kiosk-posm-cover.jpg",
-  "assets/content/projects/advertising-mobile-retail-cover.jpg",
-  "assets/content/projects/advertising-office-wayfinding-cover.jpg",
-  "assets/content/projects/advertising-led-lightboxes-cover.jpg",
-  "assets/content/projects/advertising-print-decals-cover.jpg",
-  "assets/content/projects/advertising-signage-raised-letters-cover.jpg",
-  "assets/content/projects/process-commercial-handover.jpg",
-  "assets/content/projects/process-commercial-survey-v2.png",
-  "assets/content/projects/process-commercial-survey.jpg",
-  "assets/content/projects/process-residential-survey-v2.png",
-  "assets/content/projects/advertising-fnb-mobile-cart-v2.webp",
-  "assets/content/projects/advertising/mobile-retail/mobile-retail-05-event-retail-counters.webp",
-  "assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-01-etched-and-embossed-stainless-steel-house-number.webp",
-  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-02-large-outdoor-advertising-panels.webp",
-  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-06-halo-lit-stainless-steel-letters.webp",
-  "assets/content/projects/home-advertising-products-table.webp",
-  "assets/content/projects/mobile-retail-materials.webp",
-  "assets/content/shared/advertising.webp",
-  "assets/content/shared/business.webp",
-  "assets/content/shared/edge-banding.webp",
-  "assets/content/shared/survey-laser-level.webp",
 ];
 
 if (path.dirname(outputRoot) !== projectRoot || path.dirname(sourceRoot) !== path.join(projectRoot, "src")) {
