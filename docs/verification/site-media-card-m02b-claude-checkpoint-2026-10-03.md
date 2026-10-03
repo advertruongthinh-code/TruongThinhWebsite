@@ -106,6 +106,35 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
   nhóm rủi ro thấp (class `--dense` không có CSS, `clear()` thừa, key diagnostic
   không ai đọc, selector `[hidden]` trùng UA). Nhóm cấu trúc lại và gỡ touch
   listener chờ owner.
+- Phân loại FAIL còn lại (`main` `b72c9cf`). Đều là lỗi test, không phải lỗi
+  sản phẩm; mỗi ca PASS ít nhất 2 lượt liên tiếp sau sửa:
+  - p13 `filter-interruption-resize`: đọc vị trí trước/sau click ở hai task
+    khác nhau nên đo cả smooth scroll đang chạy. Sửa: đọc, click, đọc lại
+    trong một task.
+  - morph-frame-identity, rapid-related-and-back-mid-morph: Locomotive 4.1.4
+    nhận một notch cho mỗi wheel event, nhân `mouseMultiplier` theo OS
+    (Windows 108 px, Linux 43 px), nên một wheel không đủ `100px` trên Linux.
+    Sửa: ba notch. Thêm: thứ tự related ngẫu nhiên có thể đặt B ngay đầu nên
+    detail chưa cuộn; test cuộn một nửa khoảng tới B trước click.
+  - history-grid-scrollbar-resize: đọc `gridY` trước khi click tự cuộn card
+    vào view. Sửa: `scrollIntoViewIfNeeded` rồi chờ scroll đứng yên mới đọc.
+  - viewer-control-affordances: transition `150ms` chưa xong sau `180ms` khi
+    runner nặng. Sửa: chờ `getAnimations()` xong rồi mới đọc màu.
+  - skeleton-global-boundary-fade và grid-cta-skeleton-flow: test còn
+    đòi mask trên container skeleton (R6/R8) và tối đa 3 frame mỗi cột (R11).
+    [R10 và P7.1](../specs/advertising-skeleton-flow.md#correction-p71--organic-continuation-và-paint-overflow)
+    đã thay bằng một glass surface toàn cục và số frame theo ranh giới glass.
+    Test nay kiểm glass `::before` có `linear-gradient` và `backdrop-filter`.
+  - grid-cta-skeleton-flow `vi-320`: test đo hộp frame chưa cắt (vượt `54px`),
+    nhưng container skeleton có `overflow: hidden` và cao tới đáy grid cộng một
+    gap, nên phần vẽ ra chỉ vượt `15px`. Test nay đo theo cạnh cắt đó.
+  - related-selected-card-shuffle-cleanup: related ngẫu nhiên và virtualized,
+    card đích có lúc chưa mount; `scrollIntoView` native không đẩy được smooth
+    scroll. Sửa: cuộn logical tới khi card mount rồi đưa card vào view.
+- Toàn bộ transitions sau sửa: 25/29, rồi chạy lại từng ca hỏng. Còn mở:
+  landscape VI/EN `Y=2` (giới hạn emulator, owner quyết định giữ FAIL kèm ghi
+  chú, kiểm lại trên A05s); grid-cta-skeleton-flow `vi-320` một lần vẽ vượt
+  `18px` (hơn gap `3px`), lượt chạy lại PASS, chưa rõ nguyên nhân.
 
 ## Chú thích thuật ngữ
 
