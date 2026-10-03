@@ -311,6 +311,27 @@ test("preserves output fields and contains every catalog photo across measured v
   assert.equal(cases, measuredViewports.length * ADVERTISING_CARDS.length);
 });
 
+test("L04R keeps existing geometry when readable floors fit and grows only insufficient zones", () => {
+  const options = { ...base, layoutViewportWidth: 390, columns: 1, viewportHeight: 844, imageWidth: 2000, descriptionHeight: 300 };
+  const original = computeAdvertisingPhotoGeometry(options);
+  assert.deepEqual(computeAdvertisingPhotoGeometry({ ...options, minimumDescriptionHeight: 0, minimumImageZoneHeight: 0 }), original);
+  assert.deepEqual(computeAdvertisingPhotoGeometry({ ...options, minimumDescriptionHeight: 100, minimumImageZoneHeight: 80 }), original);
+  const readable = computeAdvertisingPhotoGeometry({ ...options, minimumDescriptionHeight: 340, minimumImageZoneHeight: 104 });
+  assert.equal(readable.descriptionHeight, 340);
+  assert.ok(readable.descriptionHeight > original.descriptionHeight);
+  assert.ok(readable.imageZoneHeight >= 104);
+  closeTo(readable.imageWidth / readable.imageHeight, options.imageWidth / options.imageHeight);
+  closeTo(readable.height, readable.imageZoneHeight + readable.descriptionHeight + readable.internalGap);
+  const split = computeAdvertisingPhotoGeometry({ ...base, viewportHeight: 390, minimumDescriptionHeight: 420, minimumImageZoneHeight: 104 });
+  assert.equal(split.mode, "split");
+  assert.equal(split.descriptionHeight, 420);
+  assert.equal(split.height, 420);
+  assert.ok(split.top + split.height > 390, "insufficient viewport becomes scrollable");
+  for (const field of ["minimumDescriptionHeight", "minimumImageZoneHeight"]) {
+    for (const value of [-1, NaN, Infinity]) assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, [field]: value }), TypeError);
+  }
+});
+
 test("validates finite inputs and rejects physically impossible geometry", () => {
   assert.throws(() => computeAdvertisingPhotoGeometry(), TypeError);
   assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, imageWidth: 0 }), TypeError);

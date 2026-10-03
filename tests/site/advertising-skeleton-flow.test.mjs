@@ -57,6 +57,7 @@ assert.match(globalBlurRule, /width:\s*calc\(100% \+ \(2 \* var\(--advertising-o
 assert.doesNotMatch(detailCss, /@keyframes\s+advertising-skeleton-float/i,
   "R6 removes the legacy floating skeleton keyframes");
 
+const createSeededRandom = (seed, scope = "") => seededRandom([...String(seed) + scope].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 1));
 const seededRandom = (seed) => () => {
   seed = (seed * 1664525 + 1013904223) >>> 0;
   return seed / 0x1_0000_0000;
@@ -192,10 +193,48 @@ const frameLayoutInput = {
 const frameLayout = createSkeletonFlowFrameLayout(frameLayoutInput);
 assert.deepEqual(frameLayout, createSkeletonFlowFrameLayout(frameLayoutInput),
   "skeleton ratio layout must be deterministic");
+assert.equal(frameLayout.diagnostics.targetMet, true,
+  "the batch solver must report a varied first-four rhythm with no long first-12 run");
+assert.ok(frameLayout.diagnostics.firstFourKinds >= 2);
+assert.ok(frameLayout.diagnostics.longestRun <= 3);
+const seededFrameLayout = (seed) => createSkeletonFlowFrameLayout({
+  ...frameLayoutInput,
+  boundaryBottom: 4_000,
+  seed,
+});
+const firstSeededFrames = seededFrameLayout("reload-a");
+const secondSeededFrames = seededFrameLayout("reload-b");
+assert.deepEqual(firstSeededFrames, seededFrameLayout("reload-a"),
+  "the same visit seed must restore its batch frame rhythm");
+assert.notDeepEqual(firstSeededFrames.map(({ band }) => band), secondSeededFrames.map(({ band }) => band),
+  "a new reload seed must randomize low, square, and high skeleton placement");
+assert.equal(firstSeededFrames.diagnostics.targetMet, true);
+assert.equal(secondSeededFrames.diagnostics.targetMet, true);
 assert.deepEqual(frameLayout.slice(0, 4).map(({ column }) => column), [0, 1, 2, 3],
   "skeleton continuation must consume the shortest existing masonry frontier before adding a second card to a column");
 assert.deepEqual(frameLayout.slice(0, 4).map(({ top }) => top), [135, 195, 255, 315],
   "skeletons must start at each real-card column bottom plus the shared gap, without a batch row seam");
+const seededFramesA = createSkeletonFlowFrameLayout({ ...frameLayoutInput, seed: "visit-a" });
+const seededFramesARepeat = createSkeletonFlowFrameLayout({ ...frameLayoutInput, seed: "visit-a" });
+const seededFramesB = createSkeletonFlowFrameLayout({ ...frameLayoutInput, seed: "visit-b" });
+assert.deepEqual(seededFramesA, seededFramesARepeat, "a visit seed keeps CTA bands stable through relayout");
+assert.notDeepEqual(seededFramesA.map(({ slot, band }) => [slot, band]),
+  seededFramesB.map(({ slot, band }) => [slot, band]), "a new visit seed changes the CTA band distribution");
+const knownRhythmGeometry = {
+  columnBottoms: [100, 100, 100, 100],
+  columns: 4,
+  cardWidth: 200,
+  gap: 35,
+  boundaryBottom: 2_200,
+};
+const candidateLimitedFrames = createSkeletonFlowFrameLayout({ ...knownRhythmGeometry, seed: "seed-52" });
+assert.equal(candidateLimitedFrames.diagnostics.targetMet, true,
+  "bounded seed candidates must find an organic band order when the same geometry has a valid solution");
+assert.notEqual(candidateLimitedFrames.diagnostics.fallbackReason, "ratio-pool-or-frontier-limit",
+  "fallback diagnostics must not blame geometry when candidate selection caused the miss");
+assert.ok(candidateLimitedFrames.diagnostics.candidatesTried >= 1
+  && candidateLimitedFrames.diagnostics.candidatesTried <= 8,
+"frame rhythm search must have a small explicit candidate bound");
 const continuationBottoms = frameLayoutInput.columnBottoms.slice();
 for (const frame of frameLayout) {
   const shortest = continuationBottoms.indexOf(Math.min(...continuationBottoms));
@@ -258,6 +297,32 @@ assert.deepEqual(
     .map(({ slot, band }) => [slot, band]),
   "shared skeleton slots must preserve ratio bands across responsive column counts",
 );
+const fourColumnResize = createSkeletonFlowFrameLayout({
+  columnBottoms: [100, 100, 100, 100], columns: 4, cardWidth: 200, gap: 35,
+  boundaryBottom: 900, seed: "visit-4",
+});
+const bandsBeforeResize = new Map(fourColumnResize.map(({ slot, band }) => [slot, band]));
+const threeColumnResize = createSkeletonFlowFrameLayout({
+  columnBottoms: [100, 100, 100], columns: 3, cardWidth: 230, gap: 25,
+  boundaryBottom: 900, seed: "visit-4", bandAssignments: bandsBeforeResize,
+});
+assert.equal(
+  threeColumnResize.find(({ slot }) => slot === "0:1")?.band,
+  fourColumnResize.find(({ slot }) => slot === "0:1")?.band,
+  "a persistent skeleton slot keeps its ratio band when the grid changes from four to three columns",
+);
+const batchA = skeletonFlow.createSkeletonFlowBatchAssignments({
+  count: 6, presets: SKELETON_FLOW_PRESETS, random: createSeededRandom("visit-a", "batch"),
+});
+const batchARepeat = skeletonFlow.createSkeletonFlowBatchAssignments({
+  count: 6, presets: SKELETON_FLOW_PRESETS, random: createSeededRandom("visit-a", "batch"),
+});
+const batchB = skeletonFlow.createSkeletonFlowBatchAssignments({
+  count: 6, presets: SKELETON_FLOW_PRESETS, random: createSeededRandom("visit-b", "batch"),
+});
+assert.deepEqual(batchA, batchARepeat, "a visit seed keeps batch assignments stable");
+assert.notDeepEqual(batchA.map(({ preset, anchorPermutation }) => [preset.id, anchorPermutation]),
+  batchB.map(({ preset, anchorPermutation }) => [preset.id, anchorPermutation]), "a new visit seed changes batch assignments");
 
 assert.equal(advanceSkeletonFlowPhase(20.75, 1, 30), 20.768,
   "clock delta must cap at 50ms");
@@ -392,6 +457,50 @@ assert.equal(listeners.size, 0, "destroy must remove context listeners");
 assert(calls.deleted >= 3, "destroy must release WebGL resources");
 assert.equal(calls.lost, 1, "destroy must release the browser WebGL context");
 
+const lostFixture = createFakeWebGl();
+lostFixture.gl.isContextLost = () => true;
+const lostRenderer = createSkeletonFlowRenderer({
+  getContext: () => lostFixture.gl,
+  style: {},
+  addEventListener() {},
+  removeEventListener() {},
+});
+lostRenderer.destroy();
+lostRenderer.destroy();
+assert.equal(lostFixture.calls.lost || 0, 0, "destroy never loses an already lost context");
+
+const restoreFixture = createFakeWebGl();
+const restoreListeners = new Map();
+let contextLost = false;
+let restoredProgram = null;
+const programsUsed = [];
+restoreFixture.gl.isContextLost = () => contextLost;
+restoreFixture.gl.createProgram = () => (restoredProgram = {});
+restoreFixture.gl.useProgram = program => {
+  assert.equal(program, restoredProgram, "draw uses resources from the current generation");
+  programsUsed.push(program);
+};
+const restoredRenderer = createSkeletonFlowRenderer({
+  getContext: () => restoreFixture.gl,
+  style: {}, dataset: {},
+  addEventListener: (type, listener) => restoreListeners.set(type, listener),
+  removeEventListener: type => restoreListeners.delete(type),
+}, { requestFrame: () => 1, cancelFrame() {} });
+restoredRenderer.draw(0);
+const firstProgram = restoredProgram;
+contextLost = true;
+restoreListeners.get("webglcontextlost")({ preventDefault() {} });
+assert.equal(restoredRenderer.backend, "fallback");
+assert.equal(restoredRenderer.running, false);
+contextLost = false;
+restoreListeners.get("webglcontextrestored")();
+assert.notEqual(restoredProgram, firstProgram, "restore rebuilds program generation");
+assert.ok(programsUsed.includes(restoredProgram));
+contextLost = true;
+restoreListeners.get("webglcontextlost")({ preventDefault() {} });
+restoredRenderer.destroy();
+assert.equal(restoreFixture.calls.lost || 0, 0, "loss followed by teardown does not re-lose context");
+
 let fallbackQueued = false;
 const fallbackContexts = [];
 const fallbackCanvas = {
@@ -416,5 +525,38 @@ assert(fallbackCanvas.style.backgroundImage, "fallback must expose the static CS
 assert(!fallbackContexts.includes("2d"), "fallback must not synchronously rasterize a CPU frame");
 assert.equal(fallbackQueued, false, "static fallback must not start a RAF loop");
 fallback.destroy();
+
+const handoffFixture = createFakeWebGl();
+let handoffProgram;
+handoffFixture.gl.useProgram = program => { if (program) handoffProgram = program; };
+const handoffListeners = new Map();
+const handoffCanvas = {
+  style: {}, dataset: {}, getContext: () => handoffFixture.gl,
+  addEventListener: (type, listener) => handoffListeners.set(type, listener),
+  removeEventListener: type => handoffListeners.delete(type),
+};
+let handoffCancelled = 0;
+const lease = createSkeletonFlowRenderer(handoffCanvas, {
+  initialPhase: 38, requestFrame: () => 7, cancelFrame: () => handoffCancelled++,
+});
+const deletedBeforeHandoff = handoffFixture.calls.deleted;
+const programBeforeHandoff = handoffProgram;
+lease.start();
+lease.destroy({ releaseContext: false });
+lease.destroy({ releaseContext: false });
+assert.equal(handoffFixture.calls.lost || 0, 0, "handoff retains the native context");
+assert.equal(handoffFixture.calls.deleted - deletedBeforeHandoff, 3, "handoff deletes its program, buffer and texture once");
+assert.equal(handoffListeners.size, 0, "handoff releases renderer event listeners");
+assert.equal(handoffCancelled, 1, "handoff cancels its RAF once");
+assert.equal(lease.draw(100), false, "released lease cannot draw again");
+const nextLease = createSkeletonFlowRenderer(handoffCanvas, {
+  preset: SKELETON_FLOW_PRESETS[1], initialPhase: lease.phase,
+});
+assert.equal(nextLease.phase, 38, "new lease starts at the saved phase");
+assert.equal(nextLease.context, handoffFixture.gl, "cache receives the owned native context");
+assert.notEqual(handoffProgram, programBeforeHandoff, "new lease rebuilds the program generation");
+nextLease.draw(0);
+nextLease.destroy(); nextLease.destroy();
+assert.equal(handoffFixture.calls.lost, 1, "default destroy still disposes native context once");
 
 console.log("advertising skeleton Flow WebGL contract passed");

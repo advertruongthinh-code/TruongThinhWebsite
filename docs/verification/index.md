@@ -7,8 +7,10 @@ không tự có nghĩa mọi claim trong đó bị hủy.
 
 ## Trạng thái toàn site
 
-[Checkpoint cleanup/release24/09](release-cleanup-2026-09-24.md): commit local
-đã qua pre-commit; GitHub/Sites pre-push bị chặn, chưa phát hành version mới.
+[Checkpoint cleanup/release](release-cleanup-2026-09-24.md#release-static-only-25092026)
+đã bổ sung evidence25/09: GitHub nhận source `0654dca`, Sites nhận mirror
+`557da5a`, version2 deploy `succeeded`. Các trạng thái pre-push bị chặn trước
+đó là checkpoint lịch sử; release static không là full-site parity PASS.
 
 Full website và Espacio parity vẫn **NOT PASS**. [Canonical machine report](../reports/research-espacio-layout-motion-parity.md)
 giữ fail/blocked/unmapped; [pilot](../reports/research-espacio-layout-motion-parity-pilot.md)
@@ -25,6 +27,19 @@ không tự đóng gate hoặc cấp quyền deploy.
 
 | Claim cần truy nguyên | Report | Giới hạn |
 | --- | --- | --- |
+| Đồng bộ board Notion và kiểm nhất quán Advertising 03/10 | [Notion sync](advertising-notion-sync-2026-10-03.md) | Chỉ tóm tắt `Not started`/`In progress`; 13 card `Done` không chép chi tiết. UI probe desktop 929×861, không thay thế M02b hoặc full-site acceptance |
+| M02b Advertising quota STOP, PAUSED / NOT ACCEPTED | [Checkpoint 03/10](site-media-card-m02b-checkpoint-2026-10-03.md), [Claude handoff](site-media-card-m02b-claude-handoff-2026-10-03.md) | Runtime `6D654C…`: original6 PASS, affected5/8, related3/6, layout47/static/build PASS, M02a10/11. Ba related và ba affected FAIL còn mở; lifecycle50/52 stale baseline đã xác minh, chưa sửa. MCP matrix TOOL BLOCKED; detector evidence OPEN, Samsung physical skipped/unverified, không là M02b/full-site GREEN |
+| M02b Advertising PAUSED/dở dang lịch sử sau source patch | [Checkpoint lịch sử 30/09](site-media-card-m02b-checkpoint-2026-09-30.md) | Một named no-clone VI/EN PASS; timeout B chưa phân loại và bốn named chưa chạy tại thời điểm đó. Giữ immutable; diagnosis/runner và evidence mới ở checkpoint 03/10 không retag report cũ |
+| M02b Advertising RED-only trước source patch | [RED baseline 30/09](site-media-card-m02b-red-pause-2026-09-30.md) | Bốn product RED, hai control PASS trên source M02a frozen; behavior M02b chưa sửa tại thời điểm này. Evidence lịch sử, không chuyển PASS sang source candidate hiện tại |
+| Media-card Advertising M02a: primary, thumbnail, audio và direct detail | [Checkpoint M02a 30/09](site-media-card-m02a-checkpoint-2026-09-30.md) | Scoped engineering GREEN trên source đã khóa; focused11, viewer controls12, photo-layout15, affected pointer harness và A05s portrait đạt. Raw landscape strict fit RED được L04R native scroll/reachability làm rõ; P14-L04R focused37/37, không đóng multi-engine/Android/660 matrix. Owner visual, clip thật, iPhone/Safari và full-site còn mở |
+| Media-card Advertising R6-R3: canvas cover và dải control grid/related | [Checkpoint R6-R3 28/09](site-media-card-r6-r3-checkpoint-2026-09-28.md) | Scoped browser R6 29/29, M01b 25/25, unit77/77, static/build/diffcheck; source/build/served layout/runtime/CSS khớp, seal118/118. Synthetic Chromium 320/390 VI/EN; native, clip public thật và full-site không thuộc checkpoint này |
+| Layout mobile: overlap, copy/control100/200% và minimum readable geometry | [Layout28/09](mobile-layout-parity-2026-09-28.md) | L04H history126, matrix660, body210 và state/history3engines đạt trên cùng SHA; regressions9/9, unit57 đạt. A05s portrait16entry/48cycles đạt; [landscape](mobile-layout-parity-2026-09-28.md#l06-landscape-red) ghi16entry/48cycles, geometry132pairs/574nodes≤1px nhưng raw incomplete vì2EN viewer đóng sau touch và CDN load error. L06/L07, iPhone/reference/MCP/owner/full-site giữ mở |
+| Advertising history scroll và offscreen photo morph | [H00 28/09](advertising-history-motion-2026-09-28.md) | Chromium EN/VI1543×884, grid Y0=0/detail Y1=480: geometry, computed paint và video cho thấy ảnh clone qua viewport hai chiều. Không tái hiện lỗi trên8792; tab gốc8790 khác candidate chưa xác minh, H01 source fix chưa mở, owner visual còn mở. Runner hash chỉ ghi posthoc, chưa chứng minh pre/post freeze |
+| Mobile toolbar: stable geometry, visible controls và visibility | [Viewport27/09](mobile-viewport-stability-2026-09-27.md) | Final132 route/orientation geometry cases/3engines đạt;9 EN text-size failures giữ exit1; fallback/viewer/visibility/resize/focus đạt. Source/evidence review Required0; final USB A05s dọc/ngang14 entries×3cycles,0errors; V-C partial lưu, iPhone/A54/owner/MCP gates mở |
+| Random phục hồi, visible skeleton và WebKit cleanup | [Correction27/09](mobile-skeleton-correction-2026-09-27.md) | Current C06U A/deck12 accepted;60unit/19random/6footer, lifecycle3engines/clean80, scrollbar405/smoke21/21 đạt; Android dọc/ngang1366common pairs0reset. Native GPU FPS/profile đạt; full continuation FAIL ready predicate/MCP blocked, C06/C07/device/owner mở; historical C05 RED/C05R GREEN giữ |
+| Preview random, skeleton, landscape và WebKit | [Diagnostic27/09](mobile-preview-diagnostics-2026-09-27.md) |8792 dùng baseline trước random; Android footer↔grid tái hiện; landscape settled lỗi ở emulation; delta skeleton và plan/card đã duyệt; implementation đang mở, iPhone chưa kiểm |
+| Scrollbar desktop overlay/native và Android thật | [Scrollbar27/09](scrollbar-parity-2026-09-27.md) |405 focused case + Android VI/EN/ngang đạt; owner visual scrollbar đã duyệt; smoke20/21 còn WebKit skeleton error; iPhone/reference drag live còn mở |
+| Android thật: skeleton thay frame khi visual height đổi | [Owner recording27/09](android-skeleton-observation-2026-09-27.md) | Galaxy A05s/Chrome153, local candidate66 staged;652 samples/49 ảnh; chưa sửa UI, chưa kiểm Sites2/iPhone hoặc FPS |
 | Catalog154, owner selection28 và5 ảnh ChatGPT | [Mapping/review24/09](../../source-assets/projects/advertising/owner-selection-20260924/README.md) |27 thêm,1 thay; COCO/decal còn lỗi chữ nhỏ; không5/5 rubric PASS |
 | Full menu responsive | [MENU-R1](menu-reference-parity-2026-09-24.md) |28 geometry,10 flow,2 text zoom; không nghiệm thu thiết bị thật |
 | History, footer, slideshow và logo correction | [P7.5](advertising-september-p7-5-2026-09-24.md) | Focused regression; full-site parity không đổi |

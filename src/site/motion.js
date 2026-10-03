@@ -565,9 +565,29 @@
     updateHeader(nextScroll);
   };
   let logicalScrollLock;
+  const viewportProbe = document.querySelector(".site-viewport-metrics") || document.createElement("div");
+  viewportProbe.className = "site-viewport-metrics";
+  viewportProbe.setAttribute("aria-hidden", "true");
+  if (!viewportProbe.isConnected) document.body.append(viewportProbe);
+  // Resolve the native CSS viewport unit; visible metrics never own persistent geometry.
+  const getViewportMetrics = () => {
+    const visible = window.visualViewport;
+    return {
+      layoutWidth: document.documentElement.clientWidth,
+      layoutHeight: viewportProbe.getBoundingClientRect().height || window.innerHeight,
+      visible: {
+        width: visible?.width ?? window.innerWidth,
+        height: visible?.height ?? window.innerHeight,
+        left: visible?.offsetLeft ?? 0,
+        top: visible?.offsetTop ?? 0,
+        scale: visible?.scale ?? 1,
+      },
+    };
+  };
   window.TruongThinhMotion = {
     ...(window.TruongThinhMotion || {}),
     getLogicalScroll: getPageScroll,
+    getViewportMetrics,
     lockLogicalScroll() {
       if (logicalScrollLock) return logicalScrollLock.scrollY;
       logicalScrollLock = {
@@ -614,8 +634,82 @@
       lerp: 0.085,
       multiplier: 0.9,
       smartphone: { smooth: false },
-      tablet: { smooth: false },
+      tablet: { smooth: false, breakpoint: 981 },
     });
+    // Locomotive 4.1.4 omits the keyboard start timestamp and only flags stop().
+    const smooth = state.smoothScroll;
+    const core = smooth.scroll;
+    if (core.scrollbarThumb) {
+      let thumbMoveFrame;
+      const cancelThumbMove = () => {
+        window.cancelAnimationFrame(thumbMoveFrame);
+        thumbMoveFrame = undefined;
+      };
+      // Replace the unguarded vendor RAF at the instance boundary, keeping one input path.
+      window.removeEventListener("mousemove", core.moveScrollBar);
+      core.moveScrollBar = (event) => {
+        if (core.stop || !core.isDraggingScrollbar) return;
+        cancelThumbMove();
+        thumbMoveFrame = window.requestAnimationFrame(() => {
+          thumbMoveFrame = undefined;
+          if (core.stop || !core.isDraggingScrollbar) return;
+          const { clientY } = event;
+          const { top } = core.scrollbarBCR;
+          const y = clientY - top;
+          // The last reachable CSS pixel must reach the document limit.
+          core.instance.delta.y = Math.max(0, Math.min(core.instance.limit.y,
+            y >= core.scrollbarHeight - 1 ? core.instance.limit.y
+              : y / core.scrollbarHeight * core.instance.limit.y));
+        });
+      };
+      window.addEventListener("mousemove", core.moveScrollBar);
+      const checkScroll = core.checkScroll.bind(core);
+      const updateDelta = core.updateDelta.bind(core);
+      core.updateDelta = (event) => {
+        if (!core.stop) updateDelta(event);
+      };
+      const startScrolling = core.startScrolling.bind(core);
+      core.startScrolling = () => {
+        if (!core.stop) startScrolling();
+      };
+      core.checkScroll = (forced = false) => {
+        if (core.stop && !forced) return;
+        if (core.isScrolling && core.startScrollTs === undefined) {
+          core.startScrollTs = Date.now();
+        }
+        checkScroll(forced);
+      };
+      const stop = smooth.stop.bind(smooth);
+      smooth.stop = () => {
+        const { x, y } = core.instance.scroll;
+        stop();
+        cancelThumbMove();
+        core.releaseScrollBar();
+        core.stopScrolling();
+        core.hasScrollTicking = false;
+        core.animatingScroll = false;
+        core.setScroll(x, y);
+      };
+      const start = smooth.start.bind(smooth);
+      smooth.start = () => {
+        // Discard a thumb-move callback queued immediately before an overlay lock.
+        core.instance.delta = { ...core.instance.scroll };
+        start();
+      };
+      const blockLockedThumb = (event) => {
+        if (!core.stop) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      core.scrollbarThumb.addEventListener("mousedown", blockLockedThumb,
+        { capture: true, signal: state.abort.signal });
+      const destroy = smooth.destroy.bind(smooth);
+      smooth.destroy = () => {
+        cancelThumbMove();
+        core.scrollbarThumb.removeEventListener("mousedown", blockLockedThumb, true);
+        destroy();
+      };
+    }
     state.smoothScroll.on("scroll", ({ scroll }) => {
       state.smoothScrollY = scroll.y;
       window.dispatchEvent(
@@ -624,6 +718,7 @@
       updateHeader(scroll.y);
     });
     state.smoothScroll.update();
+    if (logicalScrollLock) state.smoothScroll.stop();
   };
 
   const clearSmoothScrollStyles = (state, scrollY) => {
@@ -1337,6 +1432,7 @@
       enteredViaRoute = false,
       scrollY = 0,
       settledStartup = false,
+      softNavigation = false,
     } = {},
   ) => {
     if (!container) return false;
@@ -1369,8 +1465,8 @@
 
     watchWhiteOverlayMedia(state);
     initSmoothScroll(state, state.smoothScrollY);
-    setPageScroll(state, state.smoothScrollY);
-    await window.TruongThinhDetail?.mount(container, { settled: settledStartup });
+    setPageScroll(state, state.smoothScrollY, { instant: true });
+    await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
     if (
       pageState !== state ||
       state.abort.signal.aborted ||
@@ -1673,7 +1769,7 @@
     });
   };
 
-  const hardNavigate = (destination) => {
+  const hardNavigate = (destination, trigger) => {
     if (hardFallbackPending) return;
     hardFallbackPending = true;
     try {
@@ -1681,6 +1777,17 @@
     } catch {}
     const url = new URL(destination, window.location.href);
     url.hash = "";
+    if (["popstate", "back", "forward"].includes(trigger)
+      && url.origin === location.origin && url.pathname === location.pathname && url.search === location.search
+      && /^\/(?:vi|en)\/advertising-products\/?$/.test(url.pathname)
+      && window.history.state) {
+      try {
+        window.history.replaceState({
+          ...window.history.state,
+          ttAdvertisingHistoryFallback: url.href,
+        }, "", window.location.href);
+      } catch {}
+    }
     window.location.assign(url.href);
   };
 
@@ -1869,6 +1976,17 @@
       isExcludedRoute(url) ||
       el?.target ||
       el?.hasAttribute?.("download")
+    ) {
+      return true;
+    }
+    const canonical = /^\/(vi|en)\/(?:(about|residential|commercial|advertising-products)\/)?$/;
+    const currentRoute = canonical.exec(normalizePathname(window.location.pathname));
+    const nextRoute = canonical.exec(normalizePathname(url.pathname));
+    if (
+      currentRoute &&
+      nextRoute &&
+      currentRoute[1] === nextRoute[1] &&
+      (currentRoute[2] === "about") !== (nextRoute[2] === "about")
     ) {
       return true;
     }
@@ -2322,7 +2440,15 @@
     const advertising = window.TruongThinhAdvertising;
     const previousHref = advertising?.getCurrentHref?.() || window.barba?.history?.current?.url;
     const nextHref = window.location.href;
-    if (!advertising?.canHandlePopState?.(previousHref, nextHref)) return;
+    if (!advertising?.canHandlePopState?.(previousHref, nextHref)) {
+      // Barba forces a native load for traversal during a running transition.
+      if (window.barba?.transitions?.isRunning
+        && /^\/(?:vi|en)\/advertising-products\/?$/.test(location.pathname)) {
+        event.stopImmediatePropagation();
+        hardNavigate(nextHref, "popstate");
+      }
+      return;
+    }
     window.barba?.history?.change?.(nextHref, "popstate", event);
     const handled = advertising.handlePopState?.(
       event,
@@ -2340,13 +2466,13 @@
         timeout: 15_000,
         prefetchIgnore: true,
         prevent: shouldPreventBarba,
-        requestError: (_trigger, _action, url) => {
+        requestError: (trigger, _action, url) => {
           const fallbackUrl = new URL(
             pendingLocaleNavigation?.url.href || url,
             window.location.href,
           );
           clearPendingLocaleNavigation();
-          hardNavigate(fallbackUrl.href);
+          hardNavigate(fallbackUrl.href, trigger);
           return false;
         },
         transitions: [
@@ -2378,7 +2504,7 @@
                   await window.TruongThinhDetail?.ensureAdvertisingDependencies?.(data.next.url.href);
                 } catch (error) {
                   console.error("[advertising-products] Barba dependency readiness failed", error);
-                  hardNavigate(data.next.url.href);
+                  hardNavigate(data.next.url.href, data.trigger);
                   return;
                 }
               }
@@ -2390,10 +2516,11 @@
                 routeMountReady = await mountPage(data.next.container, {
                   enteredViaRoute: true,
                   scrollY,
+                  softNavigation: true,
                 });
               } catch (error) {
                 console.error("[advertising-products] destination mount failed", error);
-                hardNavigate(data.next.url.href);
+                hardNavigate(data.next.url.href, data.trigger);
               }
             },
             async enter() {

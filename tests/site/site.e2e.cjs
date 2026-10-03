@@ -187,9 +187,11 @@ function assertPersistentNavigationContracts() {
       source.match(/<div\b[^>]*class="[^"]*\bpage-shell\b[^"]*"[^>]*>/)?.[0] ||
       "";
     const usesLocalEditorialMotion = [
+      "index.html",
       "residential/index.html",
       "commercial/index.html",
       "advertising-products/index.html",
+      "about/index.html",
     ].includes(relativePath);
     const scriptOrder = [
       usesLocalEditorialMotion ? "gsap-3.15.0.min.js" : "gsap@3.13.0",
@@ -221,6 +223,14 @@ function assertPersistentNavigationContracts() {
         ),
       `${relativePath} has the wrong GSAP/Locomotive/Barba/detail/motion order`,
     );
+    if (relativePath === "index.html") {
+      assert(
+        !source.includes("gsap@3.13.0") &&
+          (source.match(/<script defer src="\/assets\/vendor\/gsap-3\.15\.0\.min\.js"><\/script>/g) || []).length === 1 &&
+          (source.match(/<script defer src="\/assets\/vendor\/SplitText-3\.15\.0\.min\.js"><\/script>/g) || []).length === 1,
+        "Home must load one paired local GSAP/SplitText set without the old CDN GSAP",
+      );
+    }
     assert(
       source.includes(`src="${barbaUrl}"`) &&
         source.includes(`integrity="${barbaIntegrity}"`) &&

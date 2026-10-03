@@ -2,7 +2,7 @@
 title: Motion design system Trường Thịnh
 type: design
 status: accepted
-updated: 2026-09-13
+updated: 2026-09-30
 ---
 
 # Motion design system Trường Thịnh
@@ -74,18 +74,24 @@ Không thay motion homepage; nghiệm thu runtime theo evidence đúng revision.
 
 ## Advertising photo browse
 
-Photo browse Advertising là query-only view theo
-[AD-BROWSE-R1](../specs/advertising-photo-browse.md#r4--motion-và-phục-hồi):
-chỉ ảnh được chọn morph, navbar không tham gia; history trả đúng photo/card và
-logical scroll. Viewer UI-FRAME-R4 giữ nguyên URL và cuộn nền, Escape chỉ đóng
-viewer trước khi photo history nhận phím. Reduced motion bỏ animation của
-viewer; zoom/pan chủ động của người xem vẫn đổi tức thì. Acceptance của flow
-này phải có evidence riêng, không dùng report route veil hoặc carousel cũ.
+Photo browse Advertising là query-only view. Theo
+[spec media-card](../specs/site-media-card-playback.md), supersession M02b
+ngày 2026-09-30 bỏ morph card grid/related↔primary của AD-BROWSE-R1/P7.5.
+Click, Back, Forward và chuyển giữa hai detail không tạo clone ảnh bay.
+Đóng detail đánh dấu đúng một card vừa xem bằng lớp phủ tối và nhãn
+`Vừa xem` / `Just viewed`; full reload xóa dấu.
+History vẫn giữ media active và scroll riêng từng entry. Chỉ morph
+primary↔enlarged viewer được giữ. Viewer UI-FRAME-R4 giữ nguyên URL và cuộn nền;
+Escape chỉ đóng viewer trước khi photo history nhận phím. Reduced motion bỏ
+animation của viewer; zoom/pan chủ động của người xem vẫn đổi tức thì.
+Acceptance của flow này phải có evidence riêng, không dùng report route veil
+hoặc carousel cũ.
 
 Viewer dùng transform từ rect hero tới fit và ngược lại; zoom/reset nội suy
 giữa fit, cover viewport và hai lần cover. Timing/easing và cách hủy khi
 resize, đổi ảnh hoặc unmount do R4 của spec sở hữu. Pan theo con trỏ tức thì,
-giới hạn theo kích thước ảnh đã phóng. Không đưa cả grid vào lớp morph của ảnh và không animate layout width/height
+giới hạn theo kích thước ảnh đã phóng. Không đưa grid vào viewer morph và không
+animate layout width/height
 mỗi frame. Position motion của từng card do Masonry sở hữu; không thêm animation library.
 
 P1.3: control Advertising vuông48px, icon nét1,5px. Expand neo phải; hover/
@@ -255,9 +261,11 @@ nghiệm thu loop mới.
 
 ## Source và verification
 
-- Advertising photo áp dụng [P7.5](../specs/advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow):
-  morph vào520ms/history400ms rồi background lingering1200ms; suggestion
-  crossfade1.6s mỗi5s, zoom chỉ khi hover. Đây là delta TT được owner yêu cầu,
+- [P7.5](../specs/advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow)
+  ghi timing morph vào520ms/history400ms và background lingering1200ms trước
+  khi [spec media-card](../specs/site-media-card-playback.md) thay morph card
+  grid/related↔primary, gồm chuyển giữa hai detail; suggestion
+  crossfade1.6s mỗi3s theo [supersession random](../specs/advertising-organic-random.md), zoom chỉ khi hover. Đây là delta TT được owner yêu cầu,
   không phải số đo Espacio. Reduced motion và pause tiếp tục là điều kiện chung.
 - Shared shell: `src/site/motion.js`, `src/site/style.css`.
 - Detail: `src/site/detail.js`, `src/site/detail.css`.

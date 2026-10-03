@@ -2,7 +2,7 @@
 title: Contract route và content
 type: frontend
 status: accepted
-updated: 2026-09-09
+updated: 2026-09-28
 notion: none
 related_decisions:
   - ../decisions/head-office-address-confirmed.md
@@ -16,7 +16,10 @@ related_reports: []
 - Root repository `/` là canonical.
 - Public route chuẩn: `/vi/`, `/vi/residential/`, `/vi/commercial/`,
   `/vi/advertising-products/`, `/vi/about/`; `/en/` có hierarchy tương đương.
-  Sáu detail Advertising hiện dùng `/{locale}/advertising-products/{slug}/`.
+  Sáu slug Advertising `/{locale}/advertising-products/{slug}/` là compatibility
+  entrypoint, chuyển sang parent với `?category={slug}` theo
+  [AD-BROWSE-R1](advertising-photo-browse.md). Photo detail dùng query `photo`,
+  optional `tag`, trên parent canonical.
   `/{locale}/projects/:slug/` là contract CMS tương lai, chưa thuộc static runtime.
 - Mọi route dùng cùng header, full menu, footer, VI/EN switch, Zalo CTA và motion
   system.
@@ -42,10 +45,11 @@ Child page load `../style.css`, `../detail.css`, `../motion.js` và
 `catalog-runtime.mjs`, không thuộc generic gallery. Không nhân bản shared logic
 vào từng route. Reuse contract ở [component reference](../design/components.md).
 
-Sáu trang chi tiết nhóm Sản phẩm quảng cáo dùng một shared detail template;
-mỗi trang chỉ thay data và tổ hợp block. Espalmador cung cấp baseline về nhịp
-layout và storytelling, không cung cấp source hoặc asset để sao chép. Xem
-[decision shared template](../decisions/shared-advertising-product-detail-template.md).
+Sáu category detail composition cũ đã được
+[AD-BROWSE-R1](advertising-photo-browse.md) supersede bằng photo browse tại
+parent route. [Decision shared template](../decisions/shared-advertising-product-detail-template.md)
+giữ provenance lịch sử, không là sáu template đang chạy. Không copy reference
+source hoặc media.
 
 ## Edit content và media
 
@@ -76,12 +80,13 @@ sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spe
 
 ## Advertising products routes
 
-- Parent route là `/{locale}/advertising-products/`; sáu detail route dùng
+- Parent canonical là `/{locale}/advertising-products/`; sáu compatibility slug dùng
   `/{locale}/advertising-products/{slug}/` với `kiosk-posm`, `mobile-retail`,
   `signage-raised-letters`, `office-signs-wayfinding`,
   `led-displays-lightboxes`, `print-decals`.
-- Sáu page detail được generate từ một shared template và catalog; không tạo
-  route family CMS hoặc sáu template độc lập.
+- Generator `scripts/site/prepare-static-assets.mjs` tạo HTML compatibility với
+  canonical parent và `location.replace` sang category. Test phải chờ URL đích;
+  không gọi12 slug VI/EN là12 canonical detail template độc lập.
 
 ## Contract i18n
 

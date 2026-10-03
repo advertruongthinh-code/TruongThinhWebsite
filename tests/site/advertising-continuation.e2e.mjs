@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 
 import { SKELETON_FLOW_PRESETS } from "../../src/site/advertising-products/skeleton-flow.mjs";
 
@@ -15,6 +17,12 @@ const expectedCopy = {
   en: ["The next mark", "for your brand"],
 };
 const flowPresetIds = new Set(SKELETON_FLOW_PRESETS.map(({ id }) => id));
+const output = path.join(root, ".tmp/mobile-skeleton-correction", "continuation-" + new Date().toISOString().replace(/[:.]/g, "-"));
+await fs.mkdir(output, { recursive: true });
+const evidence = { baseUrl, source: {}, performance: {} };
+for (const file of ["motion.js", "advertising-products/catalog-runtime.mjs", "advertising-products/skeleton-flow.mjs", "style.css"]) {
+  evidence.source[file] = createHash("sha256").update(await fs.readFile(path.join(root, "src/site", file))).digest("hex");
+}
 
 function matrix(transform) {
   const values = (transform.match(/matrix\(([^)]+)\)/)?.[1] || "").split(",").map(Number);
@@ -77,6 +85,7 @@ async function flowAssignments(page) {
       const canvas = frame.querySelector("[data-advertising-flow-preset]");
       return {
         slot: `${frame.dataset.advertisingCtaColumn}:${frame.dataset.advertisingCtaDepth}`,
+        batch: canvas?.dataset.advertisingFlowBatch,
         preset: canvas?.dataset.advertisingFlowPreset,
         anchorPermutation: canvas?.dataset.advertisingFlowAnchorPermutation,
         phase: Number(canvas?.dataset.advertisingFlowPhase),
@@ -89,11 +98,21 @@ async function flowAssignments(page) {
 
 function assertFlowBatch(assignments, label) {
   assert(assignments.length > 0, `${label}: Flow batch is empty`);
-  if (assignments.length <= SKELETON_FLOW_PRESETS.length) {
-    assert.equal(new Set(assignments.map(({ preset }) => preset)).size, assignments.length,
+  assert(assignments.every(({ batch }) => typeof batch === "string" && batch.length > 0),
+    `${label}: Flow assignment is missing its logical batch identity`);
+  const batches = Map.groupBy(assignments, ({ batch }) => batch);
+  for (const [batch, members] of batches) {
+    assert(members.length <= SKELETON_FLOW_PRESETS.length, `${label}: logical batch ${batch} exceeds its deck`);
+    assert.equal(new Set(members.map(({ preset }) => preset)).size, members.length,
       `${label}: Flow batch repeats a preset`);
-    assert.equal(new Set(assignments.map(({ anchorPermutation }) => anchorPermutation)).size, assignments.length,
+    assert.equal(new Set(members.map(({ anchorPermutation }) => anchorPermutation)).size, members.length,
       `${label}: Flow batch repeats an anchor permutation`);
+    assert.equal(new Set(members.map(({ phase }) => phase)).size, members.length,
+      `${label}: Flow batch repeats a starting phase`);
+    if (members.length === SKELETON_FLOW_PRESETS.length) {
+      const directionBalance = members.reduce((total, { direction }) => total + direction, 0);
+      assert(Math.abs(directionBalance) <= 1, `${label}: complete Flow deck directions are not near-balanced`);
+    }
   }
   assert.equal(new Set(assignments.map(({ preset, anchorPermutation, phase, direction }) =>
     `${preset}|${anchorPermutation}|${phase}|${direction}`)).size, assignments.length,
@@ -101,25 +120,19 @@ function assertFlowBatch(assignments, label) {
   assert(assignments.every(({ anchorPermutation }) =>
     anchorPermutation?.split(",").map(Number).sort().join(",") === "0,1,2,3"),
   `${label}: Flow batch has an invalid anchor permutation`);
-  if (assignments.length <= SKELETON_FLOW_PRESETS.length) {
-    assert.equal(new Set(assignments.map(({ phase }) => phase)).size, assignments.length,
-      `${label}: Flow batch repeats a starting phase`);
-  }
   assert(assignments.every(({ phase }) => Number.isFinite(phase)),
     `${label}: Flow batch has a non-finite starting phase`);
   assert(assignments.every(({ direction }) => direction === -1 || direction === 1),
     `${label}: Flow batch direction must be negative or positive`);
-  const directionBalance = assignments.reduce((total, { direction }) => total + direction, 0);
-  assert(Math.abs(directionBalance) <= 1, `${label}: Flow directions are not near-balanced`);
 }
 
 function assignmentSignature(assignments) {
-  return assignments.map(({ slot, preset, anchorPermutation, phase, direction, ratioBand }) =>
-    `${slot}|${preset}|${anchorPermutation}|${phase}|${direction}|${ratioBand}`).join(";");
+  return assignments.map(({ slot, batch, preset, anchorPermutation, phase, direction, ratioBand }) =>
+    `${slot}|${batch}|${preset}|${anchorPermutation}|${phase}|${direction}|${ratioBand}`).join(";");
 }
 
-function stableFlowAssignment({ slot, preset, anchorPermutation, phase, direction }) {
-  return { slot, preset, anchorPermutation, phase, direction };
+function stableFlowAssignment({ slot, batch, preset, anchorPermutation, phase, direction }) {
+  return { slot, batch, preset, anchorPermutation, phase, direction };
 }
 
 async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
@@ -227,6 +240,8 @@ async function snapshot(page) {
       headingLinkGap: linkRect.top - headingRect.bottom,
       headerClearance,
       viewportHeight: innerHeight,
+      layoutViewportWidth: document.documentElement.clientWidth,
+      nativeGutter: innerWidth - document.documentElement.clientWidth,
       skeletonCoverageRatio: Math.max(0, deepestFrameBottom - ctaRect.top) / ctaRect.height,
       skeletonRatioToken: Number.parseFloat(getComputedStyle(cta).getPropertyValue("--advertising-cta-skeleton-ratio")) || 0,
       glassStart: Number.parseFloat(getComputedStyle(skeleton).getPropertyValue("--advertising-cta-skeleton-glass-start")) || 0,
@@ -435,13 +450,14 @@ async function replaySkeletonEntry(page, label) {
 const installSkeletonPaintProbe = (targetPage) => targetPage.addInitScript(() => {
   window.__ttSkeletonPaints = { connected: 0, detached: 0 };
   window.__ttSkeletonPaintTimeline = [];
+  window.__ttSkeletonTraceEnabled = true;
   const nativeDrawArrays = WebGLRenderingContext.prototype.drawArrays;
   WebGLRenderingContext.prototype.drawArrays = function patchedDrawArrays(...args) {
     if (this.canvas?.matches?.(".advertising-grid__cta-flow")) {
       const key = this.canvas.isConnected ? "connected" : "detached";
       window.__ttSkeletonPaints[key] += 1;
       this.canvas.__ttSkeletonPaints = (this.canvas.__ttSkeletonPaints || 0) + 1;
-      if (this.canvas.isConnected) {
+      if (this.canvas.isConnected && window.__ttSkeletonTraceEnabled) {
         const frame = this.canvas.closest("[data-advertising-cta-frame]");
         window.__ttSkeletonPaintTimeline.push({
           at: performance.now(),
@@ -456,6 +472,8 @@ const installSkeletonPaintProbe = (targetPage) => targetPage.addInitScript(() =>
 });
 
 const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluate(async (probeDuration) => {
+  const wasTracing = window.__ttSkeletonTraceEnabled;
+  window.__ttSkeletonTraceEnabled = false;
   const longTasks = [];
   const observer = typeof PerformanceObserver === "function"
     && PerformanceObserver.supportedEntryTypes?.includes("longtask")
@@ -463,7 +481,9 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
     : null;
   observer?.observe({ type: "longtask", buffered: false });
   const paintsBefore = window.__ttSkeletonPaints.connected;
-  const activeFrameCount = document.querySelectorAll("[data-advertising-cta-frame].is-looping").length;
+  const activeCanvases = [...document.querySelectorAll("[data-advertising-cta-frame].is-looping canvas")];
+  const perFrameBefore = activeCanvases.map(canvas => canvas.__ttSkeletonPaints || 0);
+  const activeFrameCount = activeCanvases.length;
   const started = performance.now();
   let rafTicks = 0;
   await new Promise((resolve) => {
@@ -476,9 +496,17 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
   });
   const elapsed = performance.now() - started;
   const paints = window.__ttSkeletonPaints.connected - paintsBefore;
+  const frames = activeCanvases.map((canvas, index) => ({
+    slot: canvas.closest("[data-advertising-cta-frame]").dataset.advertisingCtaSlot,
+    connected: canvas.isConnected,
+    paints: (canvas.__ttSkeletonPaints || 0) - perFrameBefore[index],
+    fps: ((canvas.__ttSkeletonPaints || 0) - perFrameBefore[index]) * 1000 / elapsed,
+  }));
   observer?.disconnect();
+  window.__ttSkeletonTraceEnabled = wasTracing;
   return {
     activeFrameCount,
+    frames,
     elapsed,
     paints,
     fps: activeFrameCount ? paints * 1000 / elapsed / activeFrameCount : 0,
@@ -489,7 +517,10 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
   };
 }, duration);
 
-const browser = await chromium.launch({ headless: true });
+const launchOptions = { headless: process.env.CONTINUATION_HEADED !== "1" };
+if (process.env.CONTINUATION_CHANNEL) launchOptions.channel = process.env.CONTINUATION_CHANNEL;
+const browser = await chromium.launch(launchOptions);
+evidence.browser = { version: browser.version(), ...launchOptions };
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await installSkeletonPaintProbe(page);
@@ -514,6 +545,9 @@ try {
         throw new Error(`${locale} ${viewport.width}x${viewport.height}: skeleton readiness failed`, { cause: error });
       });
       const state = await snapshot(page);
+      (evidence.viewportBoundaries ||= []).push({ locale, viewport,
+        layoutViewportWidth: state.layoutViewportWidth, nativeGutter: state.nativeGutter,
+        glassLeft: state.glassLeft, glassRight: state.glassRight });
       assertFlowBatch(await flowAssignments(page), `${locale} ${viewport.width}x${viewport.height}`);
       if (viewport.width === 360 && viewport.height === 800) {
         const p7MobileFailures = [];
@@ -607,11 +641,12 @@ try {
         assert.match(state.photoGlassTint, /rgba\(0, 0, 0, 0\)|transparent/,
           `${locale} ${viewport.width}: inactive photo glass retained a tint`);
       }
-      assert.match(state.boundaryBlurMask, /linear-gradient/i,
-        `${locale} ${viewport.width}: glass blur lacks one global gradient mask`);
+      assert.match(state.boundaryBlurMask,
+        /^radial-gradient\((?:ellipse )?150% 100% at 50% 100%, (?:rgb\(0, 0, 0\)|#000) 72%, (?:rgba\(0, 0, 0, 0\)|transparent) 100%\)$/i,
+        `${locale} ${viewport.width}: glass blur preserves the accepted P7.4 radial gradient mask`);
       assert(Math.abs(state.glassLeft) <= 1,
         `${locale} ${viewport.width}: skeleton glass does not reach the viewport left edge`);
-      assert(Math.abs(state.glassRight - viewport.width) <= 1,
+      assert(Math.abs(state.glassRight - state.layoutViewportWidth) <= 1,
         `${locale} ${viewport.width}: skeleton glass does not reach the viewport right edge`);
       assert.match(state.glassBackground, /linear-gradient/i,
         `${locale} ${viewport.width}: global glass surface does not own the white fade`);
@@ -695,6 +730,8 @@ try {
   beforeResizeSignature);
   await ready(page);
   const narrowAssignments = await flowAssignments(page);
+  evidence.assignmentTransitions = { filteredAssignments, narrowAssignments };
+  assertFlowBatch(narrowAssignments, "N4 to N3 logical batches");
   const filteredBySlot = new Map(filteredAssignments.map((assignment) => [assignment.slot, assignment]));
   assert.equal((await snapshot(page)).columns, 3, "resize fixture did not cross from N4 to N3");
   for (const assignment of narrowAssignments) {
@@ -726,8 +763,8 @@ try {
   await ready(page);
   const historyAssignments = await flowAssignments(page);
   assertFlowBatch(historyAssignments, "detail/history lifecycle");
-  assert.notEqual(assignmentSignature(historyAssignments), assignmentSignature(reloadAssignments),
-    "detail close through native Back reused the previous Flow batch");
+  assert.deepEqual(historyAssignments, reloadAssignments,
+    "photo Back preserves assignments in the same catalog visit (P7.4 and governing random contract)");
 
   await page.evaluate(() => history.forward());
   await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
@@ -736,8 +773,8 @@ try {
   await ready(page);
   const secondHistoryAssignments = await flowAssignments(page);
   assertFlowBatch(secondHistoryAssignments, "native Back/Forward lifecycle");
-  assert.notEqual(assignmentSignature(secondHistoryAssignments), assignmentSignature(historyAssignments),
-    "native Forward/Back reused the previous Flow batch");
+  assert.deepEqual(secondHistoryAssignments, historyAssignments,
+    "photo Forward/Back preserves the same catalog visit assignments");
 
   const stableAssignments = secondHistoryAssignments;
   const timeline = await collectFlowWindow(page);
@@ -772,7 +809,42 @@ try {
     (document.querySelector("[data-advertising-cta-frame].is-looping canvas")?.__ttSkeletonPaints || 0) > before,
   paintsWhileLost);
 
+  await page.setViewportSize({ width: 1569, height: 912 });
+  await ready(page);
+  await page.evaluate(() => {
+    const bounds = [...document.querySelectorAll("[data-advertising-cta-frame]")]
+      .map(frame => frame.getBoundingClientRect());
+    const firstVisibleScroll = Math.max(...bounds.map(rect => rect.top)) - innerHeight;
+    const lastVisibleScroll = Math.min(...bounds.map(rect => rect.bottom));
+    const motion = window.TruongThinhMotion;
+    const target = (motion?.getLogicalScroll?.() ?? scrollY) + (firstVisibleScroll + lastVisibleScroll) / 2;
+    if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
+  });
+  await page.waitForTimeout(1000);
+  await page.bringToFront();
+  await page.waitForFunction(() => [...document.querySelectorAll("[data-advertising-cta-frame]")]
+    .every(frame => frame.dataset.advertisingFlowState === "running"
+      && frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl"));
+  const desktopScene = await page.evaluate(() => {
+    const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
+    return { width: innerWidth, height: innerHeight, frames: frames.length,
+      top: Math.min(...frames.map(frame => frame.getBoundingClientRect().top)),
+      bottom: Math.max(...frames.map(frame => frame.getBoundingClientRect().bottom)),
+      fullyVisible: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.top >= -1 && rect.bottom <= innerHeight + 1;}).length,
+      visible: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.bottom > 0 && rect.top < innerHeight;}).length,
+      running: frames.filter(frame => frame.dataset.advertisingFlowState === "running"
+        && frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl").length };
+  });
+  assert.deepEqual([desktopScene.width, desktopScene.height], [1569, 912], "R4 desktop uses the accepted viewport");
+  evidence.performance.desktop = { scene: desktopScene };
+  assert.ok(desktopScene.frames > 0 && desktopScene.frames === desktopScene.visible
+    && desktopScene.frames === desktopScene.running, "R4 measures all skeleton renderers concurrently");
   const desktopPerformanceDiagnostic = await measureAnimationPerformance(page, 5000);
+  evidence.performance.desktop = { scene: desktopScene, probe: desktopPerformanceDiagnostic };
+  assert.ok(desktopPerformanceDiagnostic.fps >= 30, "R4 desktop skeleton loop stays at or above 30fps");
+  assert.ok(desktopPerformanceDiagnostic.frames.every(frame => frame.connected && frame.fps >= 30),
+    "R4 measures at least 30fps for every visible renderer");
+  if (desktopPerformanceDiagnostic.supportsLongTask) assert.ok(desktopPerformanceDiagnostic.maxLongTask <= 50, "R4 has no measured long task over 50ms");
   await exitSkeletonViewport(page);
   const mobilePerformanceContext = await browser.newContext({
     viewport: { width: 360, height: 800 },
@@ -807,7 +879,15 @@ try {
     contexts: document.querySelectorAll("[data-advertising-cta-frame].is-looping canvas").length,
     devicePixelRatio,
   }));
-  const performanceProbe = await measureAnimationPerformance(mobilePerformancePage, 5000);
+  await mobilePerformancePage.waitForTimeout(1000);
+  const mobileProbes = [];
+  for (let run = 0; run < 3; run++) mobileProbes.push(await measureAnimationPerformance(mobilePerformancePage, 5000));
+  const medianFps = mobileProbes.map(probe => probe.fps).sort((left, right) => left - right)[1];
+  const performanceProbe = { ...mobileProbes[1], fps: medianFps,
+    maxLongTask: Math.max(...mobileProbes.map(probe => probe.maxLongTask)),
+    supportsLongTask: mobileProbes.every(probe => probe.supportsLongTask) };
+  evidence.performance.mobile = { profile: "A54 emulation, 360x800 DPR3; physical gate remains separate", probes: mobileProbes, medianFps };
+  assert.ok(mobileProbes.every(probe => probe.activeFrameCount >= 1 && probe.activeFrameCount <= 2), "R10 all three probes keep the two-context budget");
   await mobilePerformancePage.evaluate(() => {
     window.__ttMobileRenderers = [...document.querySelectorAll('[data-advertising-flow-backend="webgl"]')];
     window.__ttMobileTransitionCount = 0;
@@ -845,16 +925,53 @@ try {
   });
   assert(retainedMobile.sameCanvases && retainedMobile.contexts <= 2 && retainedMobile.transitions === 0,
     `A54 focus/reduced toggle remounted or replayed Flow (${JSON.stringify(retainedMobile)})`);
+  evidence.handoffSceneAttempts = [];
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const scene = await mobilePerformancePage.evaluate(() => {
+      const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")].map(frame => ({
+        slot: frame.dataset.advertisingCtaSlot, top: frame.getBoundingClientRect().top,
+        bottom: frame.getBoundingClientRect().bottom, x: frame.offsetLeft,
+        live: frame.querySelector("canvas").dataset.advertisingFlowBackend === "webgl",
+      }));
+      const outgoing = frames.filter(frame => frame.live);
+      const firstDelta = Math.ceil(Math.max(...outgoing.map(frame => frame.bottom))) + 2;
+      const incoming = frames.filter(frame => !frame.live && frame.bottom > firstDelta && frame.top < firstDelta + innerHeight)
+        .sort((a, b) => a.top - b.top || a.x - b.x).slice(0, 2).sort((a, b) => b.bottom - a.bottom);
+      const secondDelta = Math.ceil(incoming[1]?.bottom ?? Infinity) + 2;
+      const later = frames.find(frame => !frame.live && !incoming.includes(frame)
+        && frame.bottom > secondDelta && frame.top < secondDelta + innerHeight);
+      return { seed: window.TruongThinhAdvertising.getBrowseState().seed, frames, firstDelta, secondDelta,
+        qualified: outgoing.length === 2 && incoming.length === 2
+          && incoming[0].bottom > secondDelta && Boolean(later) };
+    });
+    evidence.handoffSceneAttempts.push(scene);
+    if (scene.qualified) break;
+    if (attempt === 7) throw new Error("No reachable two-handoff scene in eight fresh random visits");
+    await mobilePerformancePage.reload({ waitUntil: "networkidle" });
+    await ready(mobilePerformancePage);
+    await mobilePerformancePage.waitForTimeout(1000);
+  }
   const mobileHandoffStart = await mobilePerformancePage.evaluate(() => {
     const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
     const spacer = document.createElement("div");
     spacer.id = "tt-skeleton-handoff-probe";
     spacer.style.height = "900px";
     document.body.append(spacer);
+    const scroll = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
+    const bounds = frames.map(frame => ({ frame, rect: frame.getBoundingClientRect(),
+      live: frame.querySelector("canvas").dataset.advertisingFlowBackend === "webgl" }));
+    const outgoing = bounds.filter(row => row.live);
+    const delta = Math.ceil(Math.max(...outgoing.map(row => row.rect.bottom))) + 2;
+    const candidates = bounds.filter(row => !row.live && row.rect.bottom > delta && row.rect.top < delta + innerHeight)
+      .sort((a, b) => a.frame.offsetTop - b.frame.offsetTop || a.frame.offsetLeft - b.frame.offsetLeft).slice(0, 2);
+    if (outgoing.length !== 2 || candidates.length !== 2) throw new Error("Handoff scene needs two outgoing leases and two incoming frames");
+    const incomingFrame = candidates.sort((a, b) => b.rect.bottom - a.rect.bottom)[0].frame;
+    const target = scroll + delta;
+    if (target > document.documentElement.scrollHeight - innerHeight) throw new Error("Handoff target is outside native scroll range");
     window.__ttHandoffTransitions = [];
     window.__ttHandoffOpacity = [];
-    const incomingCanvas = frames[2].querySelector("canvas");
     window.__ttHandoffObserver = new MutationObserver(() => {
+      const incomingCanvas = incomingFrame.querySelector("canvas");
       if (incomingCanvas.dataset.advertisingFlowBackend !== "webgl") return;
       window.__ttHandoffObserver.disconnect();
       let samples = 0;
@@ -864,7 +981,8 @@ try {
       };
       requestAnimationFrame(sample);
     });
-    window.__ttHandoffObserver.observe(incomingCanvas, {
+    window.__ttHandoffObserver.observe(incomingFrame, {
+      childList: true, subtree: true,
       attributes: true, attributeFilter: ["data-advertising-flow-backend"],
     });
     window.__ttHandoffListener = (event) => {
@@ -874,14 +992,15 @@ try {
     };
     document.addEventListener("transitionrun", window.__ttHandoffListener);
     return {
-      scroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
-      first: frames[0].dataset.advertisingCtaSlot,
-      incoming: frames[2].dataset.advertisingCtaSlot,
-      laterIncoming: frames[4].dataset.advertisingCtaSlot,
+      scroll, target,
+      outgoing: outgoing.map(row => row.frame.dataset.advertisingCtaSlot),
+      incoming: incomingFrame.dataset.advertisingCtaSlot,
+      bounds: bounds.map(row => ({ slot: row.frame.dataset.advertisingCtaSlot,
+        top: row.rect.top, bottom: row.rect.bottom, live: row.live })),
     };
   });
-  await mobilePerformancePage.evaluate(({ scroll }) => {
-    const target = scroll + 500;
+  evidence.handoff = { firstInput: mobileHandoffStart };
+  await mobilePerformancePage.evaluate(({ target }) => {
     if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
   }, mobileHandoffStart);
   await mobilePerformancePage.waitForFunction(({ incoming }) =>
@@ -890,27 +1009,47 @@ try {
   await mobilePerformancePage.waitForFunction(({ incoming }) =>
     window.__ttHandoffTransitions.includes(incoming), mobileHandoffStart);
   await mobilePerformancePage.waitForFunction(() => window.__ttHandoffOpacity.length === 25);
-  const handoffDown = await mobilePerformancePage.evaluate(({ incoming }) => ({
+  const handoffDown = await mobilePerformancePage.evaluate(({ incoming, outgoing }) => ({
     contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
-    firstBackend: document.querySelector("[data-advertising-cta-frame]")?.querySelector("canvas")?.dataset.advertisingFlowBackend,
+    outgoingBackends: outgoing.map(slot => document.querySelector(`[data-advertising-cta-slot="${slot}"] canvas`)?.dataset.advertisingFlowBackend),
     incomingFade: window.__ttHandoffTransitions.includes(incoming),
     lowestOpacity: Math.min(...window.__ttHandoffOpacity),
     finalOpacity: window.__ttHandoffOpacity.at(-1),
     staticBackground: getComputedStyle(document.querySelector(`[data-advertising-cta-slot="${incoming}"] .advertising-grid__cta-surface`)).backgroundImage,
   }), mobileHandoffStart);
-  assert(handoffDown.contexts <= 2 && handoffDown.firstBackend === "none"
+  evidence.handoff.down = handoffDown;
+  assert(handoffDown.contexts <= 2 && handoffDown.outgoingBackends.every(backend => backend === "none")
     && handoffDown.incomingFade && handoffDown.staticBackground !== "none"
     && handoffDown.lowestOpacity < 0.9 && handoffDown.finalOpacity > 0.95,
   `A54 incoming renderer handoff jumped or exceeded budget (${JSON.stringify(handoffDown)})`);
-  await mobilePerformancePage.evaluate(({ scroll }) => {
-    const target = scroll + 650;
-    if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
+  const mobileHandoffNext = await mobilePerformancePage.evaluate(({ incoming, scroll }) => {
+    const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
+    const current = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
+    const bounds = frames.map(frame => ({ frame, rect: frame.getBoundingClientRect(),
+      live: frame.querySelector("canvas").dataset.advertisingFlowBackend === "webgl" }));
+    const retained = bounds.find(row => row.frame.dataset.advertisingCtaSlot === incoming);
+    const outgoing = bounds.find(row => row.live && row !== retained);
+    const delta = Math.ceil(outgoing.rect.bottom) + 2;
+    const candidate = bounds.filter(row => !row.live && row.rect.bottom > delta && row.rect.top < delta + innerHeight)
+      .sort((a, b) => a.frame.offsetTop - b.frame.offsetTop || a.frame.offsetLeft - b.frame.offsetLeft)[0];
+    const target = current + delta;
+    const reverse = Math.max(scroll, Math.ceil(current + retained.rect.top - innerHeight) + 2);
+    if (!retained.live || retained.rect.bottom <= delta || retained.rect.top >= delta + innerHeight
+      || !candidate || target > document.documentElement.scrollHeight - innerHeight || reverse >= target)
+      throw new Error("Second handoff must release a lease while the retained incoming frame stays visible");
+    return { target, reverse, incoming, laterIncoming: candidate.frame.dataset.advertisingCtaSlot,
+      bounds: bounds.map(row => ({ slot: row.frame.dataset.advertisingCtaSlot,
+        top: row.rect.top, bottom: row.rect.bottom, live: row.live })) };
   }, mobileHandoffStart);
+  evidence.handoff.secondInput = mobileHandoffNext;
+  await mobilePerformancePage.evaluate(({ target }) => {
+    if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
+  }, mobileHandoffNext);
   await mobilePerformancePage.waitForFunction(({ laterIncoming }) => {
     const canvas = document.querySelector(`[data-advertising-cta-slot="${laterIncoming}"] canvas`);
     const opacity = canvas && Number(getComputedStyle(canvas).opacity);
     return canvas?.dataset.advertisingFlowBackend === "webgl" && opacity > 0.1 && opacity < 0.9;
-  }, mobileHandoffStart);
+  }, mobileHandoffNext);
   await mobilePerformancePage.emulateMedia({ reducedMotion: "reduce" });
   await mobilePerformancePage.waitForFunction(() =>
     !document.querySelector("[data-advertising-cta-frame].is-looping"));
@@ -921,15 +1060,23 @@ try {
       opacityAnimations: canvas.getAnimations().filter((animation) => animation.transitionProperty === "opacity").length,
       contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
     };
-  }, mobileHandoffStart);
+  }, mobileHandoffNext);
+  evidence.handoff.reduced = reducedDuringHandoff;
   assert(reducedDuringHandoff.opacity >= 0.99 && reducedDuringHandoff.opacityAnimations === 0
     && reducedDuringHandoff.contexts <= 2,
   `A54 Reduce Motion left an incoming canvas fade running (${JSON.stringify(reducedDuringHandoff)})`);
   await mobilePerformancePage.emulateMedia({ reducedMotion: "no-preference" });
   await mobilePerformancePage.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
-  await mobilePerformancePage.evaluate(({ scroll }) => {
-    if (!window.TruongThinhMotion?.setLogicalScroll?.(scroll)) window.scrollTo(0, scroll);
-  }, mobileHandoffStart);
+  await mobilePerformancePage.evaluate(({ reverse }) => {
+    if (!window.TruongThinhMotion?.setLogicalScroll?.(reverse)) window.scrollTo(0, reverse);
+  }, mobileHandoffNext);
+  await mobilePerformancePage.waitForFunction(({ reverse, incoming }) => {
+    const rect = document.querySelector(`[data-advertising-cta-slot="${incoming}"]`).getBoundingClientRect();
+    return Math.abs((window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) - reverse) <= 1
+      && rect.bottom > 0 && rect.top < innerHeight;
+  }, mobileHandoffNext);
+  await mobilePerformancePage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await mobilePerformancePage.waitForTimeout(340);
   const handoffUp = await mobilePerformancePage.evaluate(({ incoming }) => {
     const result = {
       contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
@@ -946,6 +1093,7 @@ try {
     delete window.__ttHandoffListener;
     return result;
   }, mobileHandoffStart);
+  evidence.handoff.up = handoffUp;
   assert(handoffUp.contexts <= 2 && handoffUp.incomingStillLive && handoffUp.incomingFades === 1,
     `A54 reverse scroll evicted a visible renderer (${JSON.stringify(handoffUp)})`);
   await mobilePerformancePage.emulateMedia({ reducedMotion: "reduce" });
@@ -992,24 +1140,17 @@ try {
   const firstExit = await exitSkeletonViewport(page);
   assert(firstExit.opacity <= 0.01, "offscreen skeleton did not reset to hidden opacity");
   assert(Math.abs(firstExit.transformY) <= 0.1, "offscreen skeleton changed frame geometry");
-  const pausedDigest = await page.locator("[data-advertising-flow-preset]").first().evaluate((canvas) => {
-    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
-    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    return pixels.reduce((hash, value, index) => index % 4 ? hash : Math.imul(hash ^ value, 16777619), 2166136261) >>> 0;
-  });
+  // Offscreen frames release their lease; reading a fallback with getContext would allocate an unmanaged context.
+  const pausedPaints = await page.evaluate(() => ({ ...window.__ttSkeletonPaints }));
   await page.evaluate(() => new Promise((resolve) => {
     const started = performance.now();
     const tick = () => performance.now() - started >= 450 ? resolve() : requestAnimationFrame(tick);
     tick();
   }));
-  const pausedAfter = await page.locator("[data-advertising-flow-preset]").first().evaluate((canvas) => {
-    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
-    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    return pixels.reduce((hash, value, index) => index % 4 ? hash : Math.imul(hash ^ value, 16777619), 2166136261) >>> 0;
-  });
-  assert.equal(pausedAfter, pausedDigest, "offscreen skeleton Flow kept rendering");
+  assert.deepEqual(await page.evaluate(() => ({ ...window.__ttSkeletonPaints })), pausedPaints,
+    "offscreen skeleton has zero connected and detached WebGL paints");
+  assert.ok(await page.evaluate(() => [...document.querySelectorAll("[data-advertising-flow-preset]")]
+    .every(canvas => getComputedStyle(canvas).backgroundImage !== "none")), "released offscreen frames retain filled static fallbacks");
 
   const entryContract = await skeletonEntryContract(page);
   assert.deepEqual(entryContract.frame.opacity && {
@@ -1159,7 +1300,14 @@ try {
   assert.equal(new URL(page.url()).search, "", "parent nav added query state");
   assert.equal(await page.locator('[data-advertising-filter="all"]').getAttribute("aria-current"), "true", "parent nav changed All filter");
   assert.deepEqual(errors, [], "continuation emitted browser errors");
+  evidence.errors = errors;
+  evidence.pass = true;
   await page.close();
+} catch (error) {
+  evidence.pass = false; evidence.failure = error.message;
+  throw error;
 } finally {
+  await fs.writeFile(path.join(output, "results.json"), JSON.stringify(evidence, null, 2));
+  console.log("Continuation evidence: " + output);
   await browser.close();
 }

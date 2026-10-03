@@ -12,6 +12,7 @@ import {
 } from "./layout-core.mjs";
 import { createAdvertisingPhotoViewer } from "./photo-viewer.mjs";
 import { mountSuggestionSlides, suggestionDeck } from "./suggestion-slideshow.mjs";
+import { createAdvertisingSeed, createSeededRandom, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowBatchAssignments,
   createSkeletonFlowFrameLayout,
@@ -21,17 +22,127 @@ import {
 } from "./skeleton-flow.mjs";
 
 let activeInstance;
+let lastClosedPhotoId = null;
 let artifactPromise;
 const GEOMETRY_CACHE_LIMIT = 24;
 const CAPTION_METRICS_VERSION = "advertising-caption-v2";
 const ADVERTISING_BROWSE_STATE_KEY = "advertisingBrowse";
+export const ADVERTISING_VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
+const ADVERTISING_VISIT_SEED_HANDOFF_TTL_MS = 30_000;
 const ADVERTISING_ROOT_PATTERN = /^\/(?:vi|en)\/advertising-products\/?$/;
+const skeletonNativeContexts = [];
+let skeletonDocumentParked = false;
+let skeletonDocumentEventsBound = false;
+const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
+  || document.documentElement.clientWidth <= 750;
+const disposeSkeletonContext = (record) => {
+  if (record.disposed) return;
+  record.disposed = true;
+  record.canvas.removeEventListener("webglcontextlost", record.onLost);
+  record.canvas.removeEventListener("webglcontextrestored", record.onRestored);
+  if (record.renderer) record.renderer.destroy();
+  else if (record.gl && !record.gl.isContextLost()) record.gl.getExtension("WEBGL_lose_context")?.loseContext();
+  record.renderer = null;
+  record.gl = null;
+};
+const pruneSkeletonContexts = (budget) => {
+  while (skeletonNativeContexts.length > budget) {
+    const index = skeletonNativeContexts.findIndex(record => !record.renderer);
+    if (index < 0) break;
+    disposeSkeletonContext(skeletonNativeContexts.splice(index, 1)[0]);
+  }
+};
+const rememberSkeletonContext = (canvas, renderer) => {
+  const record = { canvas, gl: renderer.context, renderer, disposed: false };
+  record.onLost = event => event.preventDefault();
+  record.onRestored = () => {
+    if (!skeletonDocumentParked) activeInstance?.syncSkeletonMotion?.();
+  };
+  canvas.addEventListener("webglcontextlost", record.onLost);
+  canvas.addEventListener("webglcontextrestored", record.onRestored);
+  skeletonNativeContexts.push(record);
+  if (!skeletonDocumentEventsBound) {
+    skeletonDocumentEventsBound = true;
+    addEventListener("pagehide", event => {
+      skeletonDocumentParked = true;
+      if (event.persisted) {
+        skeletonNativeContexts.forEach(record => record.renderer?.stop());
+        activeInstance?.syncSkeletonMotion?.();
+      }
+      else skeletonNativeContexts.splice(0).forEach(disposeSkeletonContext);
+    });
+    addEventListener("pageshow", event => {
+      if (!event.persisted) return;
+      skeletonDocumentParked = false;
+      activeInstance?.syncSkeletonMotion?.();
+    });
+  }
+  return record;
+};
+
+function safeSessionStorage() {
+  try { return globalThis.sessionStorage || null; }
+  catch { return null; }
+}
+
+function normalizedHandoffUrl(value) {
+  try {
+    const url = new URL(value, globalThis.location?.href || "https://local.invalid/");
+    url.hash = "";
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+export function writeAdvertisingVisitSeedHandoff(storage, targetUrl, seed, { now = Date.now() } = {}) {
+  const url = normalizedHandoffUrl(targetUrl);
+  if (!storage || !url || typeof seed !== "string" || !seed || seed.length > 128 || !Number.isFinite(now)) return false;
+  try {
+    storage.setItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY, JSON.stringify({
+      version: 1,
+      url,
+      seed,
+      expiresAt: now + ADVERTISING_VISIT_SEED_HANDOFF_TTL_MS,
+    }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function consumeAdvertisingVisitSeedHandoff(storage, {
+  targetUrl,
+  navigationType,
+  now = Date.now(),
+} = {}) {
+  let serialized;
+  try { serialized = storage?.getItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY); }
+  catch { return null; }
+  try { storage?.removeItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY); }
+  catch { /* A readable value is still validated and consumed for this initialization. */ }
+  if (!serialized || navigationType !== "navigate" || !Number.isFinite(now)) return null;
+  try {
+    const handoff = JSON.parse(serialized);
+    if (handoff?.version !== 1 || typeof handoff.seed !== "string" || !handoff.seed
+      || handoff.seed.length > 128 || !Number.isFinite(handoff.expiresAt) || handoff.expiresAt < now
+      || handoff.url !== normalizedHandoffUrl(targetUrl)) return null;
+    return handoff.seed;
+  } catch {
+    return null;
+  }
+}
 
 const finiteScroll = (value) => Math.max(0, Number.isFinite(Number(value)) ? Number(value) : 0);
 const optionalFinite = (value) => value === null || value === undefined || value === ""
   ? null
   : Number.isFinite(Number(value)) ? Number(value) : null;
 const nullableId = (value) => typeof value === "string" && value ? value : null;
+
+export function shuffleAdvertisingCards(cards = [], seed, scope = "grid") {
+  if (!Array.isArray(cards)) throw new TypeError("Advertising card pool must be an array");
+  return shuffleWithSeed(cards, seed, scope);
+}
 
 export function isAdvertisingQueryOnlyNavigation(previousHref, nextHref) {
   let previous;
@@ -142,22 +253,29 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
 export function compileAdvertisingRelatedLayout({
   cards = [], categoryOrder = [], columns: requestedColumns, datasetVersion, heroId,
   layoutViewportWidth, viewportHeight = 900, headerHeight = 0, safeTop = 0, safeBottom = 0,
-  settings, measureDescriptionHeight, suggestionCard = null, tag = null,
+  settings, measureDescriptionHeight, measureDescriptionMinimumHeight, minimumImageZoneHeight = 0,
+  suggestionCard = null, tag = null, seed = null, primaryMedia = null,
   compile = compileAdvertisingProductLayout,
 } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) throw new Error("Related layout requires a known photo");
-  const related = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag });
+  const relatedPool = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag });
+  const related = seed === null
+    ? relatedPool
+    : shuffleAdvertisingCards(relatedPool, seed, `related:${heroId}:${tag || "all"}`);
   const preferredColumns = Number.isInteger(requestedColumns) && requestedColumns >= 1 && requestedColumns <= 4
     ? requestedColumns : columnsForWidth(layoutViewportWidth);
   const columns = preferredColumns;
   const geometryOptions = {
     layoutViewportWidth, viewportHeight, columns, headerHeight, safeTop, safeBottom,
-    imageWidth: hero.media.width, imageHeight: hero.media.height,
+    imageWidth: primaryMedia?.width || hero.media.width,
+    imageHeight: primaryMedia?.height || hero.media.height, minimumImageZoneHeight,
   };
   const basePrimary = computeAdvertisingPhotoGeometry(geometryOptions);
-  const primary = typeof measureDescriptionHeight === "function"
-    ? computeAdvertisingPhotoGeometry({ ...geometryOptions, descriptionHeight: measureDescriptionHeight(basePrimary.descriptionWidth, basePrimary.mode) })
+  const primary = typeof measureDescriptionHeight === "function" || typeof measureDescriptionMinimumHeight === "function"
+    ? computeAdvertisingPhotoGeometry({ ...geometryOptions,
+      descriptionHeight: typeof measureDescriptionHeight === "function" ? measureDescriptionHeight(basePrimary.descriptionWidth, basePrimary.mode) : 0,
+      minimumDescriptionHeight: typeof measureDescriptionMinimumHeight === "function" ? measureDescriptionMinimumHeight(basePrimary.descriptionWidth, basePrimary.mode, basePrimary) : 0 })
     : basePrimary;
   const { gap } = primary;
   const hasSuggestion = suggestionCard?.kind === "suggestion" && primary.span === columns;
@@ -183,6 +301,8 @@ export function compileAdvertisingRelatedLayout({
         cards: attemptCards, categoryOrder, columns, datasetVersion, filter: "all",
         initialColumnBottoms: seed, layoutViewportWidth, operationBudget,
         settings, terminalPhotoPeek, continuousDetail: true,
+        presentationOrder: attemptCards.map(({ id }) => id),
+        organicOrder: true,
       });
       attempts.push({ mode, columns, operations: compiled.diagnostics.operations, operationBudget });
       return compiled;
@@ -248,16 +368,19 @@ const normalizeBrowseHistoryState = (value = {}) => ({
   directPhotoRootId: nullableId(value.directPhotoRootId),
   photo: nullableId(value.photo),
   tag: nullableId(value.tag),
+  seed: nullableId(value.seed),
   grid: {
     category: nullableId(value.grid?.category),
     anchorOffset: optionalFinite(value.grid?.anchorOffset),
     focusId: nullableId(value.grid?.focusId),
+    mediaId: nullableId(value.grid?.mediaId),
     scrollY: finiteScroll(value.grid?.scrollY),
     viewportWidth: optionalFinite(value.grid?.viewportWidth),
   },
   detail: {
     anchorId: nullableId(value.detail?.anchorId),
     anchorOffset: optionalFinite(value.detail?.anchorOffset),
+    mediaId: nullableId(value.detail?.mediaId),
     scrollY: finiteScroll(value.detail?.scrollY),
     viewportWidth: optionalFinite(value.detail?.viewportWidth),
   },
@@ -280,7 +403,17 @@ export function createAdvertisingBrowseHistoryController({
   tagRegistry = [],
   barbaHistory,
   browserHistory,
+  restoredHistoryState,
+  historyFallback = false,
+  softNavigation = false,
   getHref,
+  getNavigationType = () => {
+    try { return globalThis.performance?.getEntriesByType?.("navigation")?.[0]?.type || null; }
+    catch { return null; }
+  },
+  createSeed = createAdvertisingSeed,
+  sessionStorage = safeSessionStorage(),
+  now = Date.now,
   getLogicalScroll = () => 0,
   onApply = () => {},
 } = {}) {
@@ -290,24 +423,48 @@ export function createAdvertisingBrowseHistoryController({
   const href = getHref || (() => globalThis.location.href);
   let currentHref = href();
   const initialLocation = parseAdvertisingBrowseLocation(currentHref, schema);
-  const initialHistory = readAdvertisingBrowseHistoryState(nativeHistory?.state);
+  const barbaHistoryReady = () => {
+    const entry = barbaHistory?.current;
+    return Boolean(entry && entry.data && typeof entry.data === "object");
+  };
+  const navigationType = getNavigationType?.();
+  const initialHistory = readAdvertisingBrowseHistoryState(nativeHistory?.state)
+    || (navigationType === "back_forward" || historyFallback
+      ? readAdvertisingBrowseHistoryState(restoredHistoryState)
+      : null);
   const matchesLocation = (stored, located) => Boolean(stored)
     && stored.category === located.category
     && stored.photo === located.photo
     && stored.tag === located.tag;
+  const matchingInitialHistory = matchesLocation(initialHistory, initialLocation);
+  const isReload = navigationType === "reload";
+  const localeHandoffSeed = consumeAdvertisingVisitSeedHandoff(sessionStorage, {
+    targetUrl: currentHref,
+    navigationType,
+    now: now(),
+  });
+  const preservedSeed = matchingInitialHistory
+    && (softNavigation || historyFallback || navigationType !== "navigate")
+    && initialHistory.seed;
+  const initialSeed = isReload
+    ? createSeed()
+    : preservedSeed || localeHandoffSeed || createSeed();
   let current = normalizeBrowseHistoryState({
-    ...(matchesLocation(initialHistory, initialLocation) ? initialHistory : {}),
+    ...(matchingInitialHistory ? initialHistory : {}),
     ...initialLocation,
-    directPhotoRootId: matchesLocation(initialHistory, initialLocation)
+    seed: initialSeed,
+    directPhotoRootId: matchingInitialHistory
       ? initialHistory.directPhotoRootId
       : initialLocation.photo,
-    grid: matchesLocation(initialHistory, initialLocation) ? initialHistory.grid : undefined,
-    detail: matchesLocation(initialHistory, initialLocation) ? initialHistory.detail : undefined,
+    grid: matchingInitialHistory ? initialHistory.grid : undefined,
+    detail: matchingInitialHistory ? initialHistory.detail : undefined,
   });
   const canonicalInitialUrl = serializeAdvertisingBrowseLocation(currentHref, current);
   const suppliedInitialUrl = new URL(currentHref);
   if (`${canonicalInitialUrl.pathname}${canonicalInitialUrl.search}` !== `${suppliedInitialUrl.pathname}${suppliedInitialUrl.search}`) {
-    if (barbaHistory?.store) barbaHistory.store({ [ADVERTISING_BROWSE_STATE_KEY]: current });
+    if (barbaHistoryReady() && typeof barbaHistory.store === "function") {
+      barbaHistory.store({ [ADVERTISING_BROWSE_STATE_KEY]: current });
+    }
     nativeHistory?.replaceState?.({
       ...(nativeHistory.state || {}),
       [ADVERTISING_BROWSE_STATE_KEY]: current,
@@ -328,7 +485,10 @@ export function createAdvertisingBrowseHistoryController({
   });
   const storeCurrent = () => {
     current = snapshotWithScroll();
-    if (barbaHistory?.store) {
+    const stored = readAdvertisingBrowseHistoryState(barbaHistoryReady()
+      ? barbaHistory.current.data : nativeHistory?.state);
+    if (stored && JSON.stringify(stored) === JSON.stringify(current)) return;
+    if (barbaHistoryReady() && typeof barbaHistory.store === "function") {
       barbaHistory.store({ [ADVERTISING_BROWSE_STATE_KEY]: current });
       return;
     }
@@ -342,7 +502,7 @@ export function createAdvertisingBrowseHistoryController({
   const write = (action, browse, reason) => {
     const normalized = normalizeBrowseHistoryState(browse);
     const url = serializeAdvertisingBrowseLocation(href(), normalized);
-    if (barbaHistory?.add) {
+    if (barbaHistoryReady() && typeof barbaHistory.add === "function") {
       barbaHistory.add(url.href, "barba", action, {
         [ADVERTISING_BROWSE_STATE_KEY]: normalized,
       });
@@ -360,17 +520,17 @@ export function createAdvertisingBrowseHistoryController({
   };
 
   return {
-    captureDetail({ anchorId, anchorOffset, scrollY = getLogicalScroll(), viewportWidth } = {}) {
+    captureDetail({ anchorId, anchorOffset, mediaId = current.detail.mediaId, scrollY = getLogicalScroll(), viewportWidth } = {}) {
       current = normalizeBrowseHistoryState({
         ...current,
-        detail: { anchorId, anchorOffset, scrollY, viewportWidth },
+        detail: { anchorId, anchorOffset, mediaId, scrollY, viewportWidth },
       });
       return this.current;
     },
-    captureGrid({ anchorOffset, focusId, scrollY = getLogicalScroll(), viewportWidth } = {}) {
+    captureGrid({ anchorOffset, focusId, mediaId = current.grid.mediaId, scrollY = getLogicalScroll(), viewportWidth } = {}) {
       current = normalizeBrowseHistoryState({
         ...current,
-        grid: { anchorOffset, focusId, scrollY, viewportWidth },
+        grid: { anchorOffset, focusId, mediaId, scrollY, viewportWidth },
       });
       return this.current;
     },
@@ -410,7 +570,7 @@ export function createAdvertisingBrowseHistoryController({
       onApply({ action: "pop", browse: current, reason: "history", url: new URL(nextHref) });
       return true;
     },
-    openPhoto(photoId) {
+    openPhoto(photoId, mediaId = null) {
       const card = cardById.get(photoId);
       if (!card) return false;
       if (current.photo === photoId) return this.current;
@@ -433,6 +593,7 @@ export function createAdvertisingBrowseHistoryController({
         detail: {
           anchorId: null,
           anchorOffset: null,
+          mediaId,
           scrollY: 0,
           viewportWidth: optionalFinite(globalThis.innerWidth),
         },
@@ -529,7 +690,24 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   return image;
 }
 
-function createPhotoCard(record, locale, onMediaLoaded, related) {
+function syncJustViewedMarker(figure, locale, marked) {
+  const media = figure.querySelector(".advertising-card-media");
+  if (!media) return;
+  let marker = media.querySelector("[data-advertising-just-viewed]");
+  if (!marked) {
+    marker?.remove();
+    return;
+  }
+  if (!marker) {
+    marker = document.createElement("span");
+    marker.className = "advertising-card-media__just-viewed";
+    marker.dataset.advertisingJustViewed = "";
+    media.append(marker);
+  }
+  marker.textContent = locale === "en" ? "Just viewed" : "Vừa xem";
+}
+
+function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {}) {
   const figure = document.createElement("figure");
   figure.className = "project-tile advertising-tile";
   figure.dataset[related ? "advertisingRelatedCard" : "advertisingCard"] = record.id;
@@ -543,19 +721,314 @@ function createPhotoCard(record, locale, onMediaLoaded, related) {
   media.append(image);
   link.append(media);
   figure.append(link);
-  listenForMediaLoad(figure, image, onMediaLoaded);
+  const items = record.mediaItems;
+  const hasCarousel = Array.isArray(items) && items.length > 1;
+  const hasSingletonOverride = Array.isArray(items) && items.length === 1
+    && (items[0].kind !== "image" || items[0].src !== record.media.src);
+  if (hasCarousel || hasSingletonOverride) {
+    const english = locale === "en";
+    const coverIndex = Math.max(0, items.findIndex((item) => item.id === record.coverMediaId));
+    const selectedIndex = items.findIndex((item) => item.id === initialMediaId);
+    const initialIndex = selectedIndex >= 0 ? selectedIndex : coverIndex;
+    const useLegacyCover = items[coverIndex].kind === "image" && items[coverIndex].src === record.media.src;
+    const layers = new Map(useLegacyCover ? [[items[coverIndex].id, image]] : []);
+    let activeIndex = useLegacyCover ? coverIndex : -1;
+    let lastReadyImageIndex = -1;
+    const failedImages = new Set();
+    const posterStatus = new Map();
+    let pointerStart = null;
+    let touchStart = null;
+    let suppressClick = false;
+    let suppressClickGeneration = 0;
+    const clearSuppressedClick = () => {
+      suppressClick = false;
+      suppressClickGeneration += 1;
+    };
+    media.classList.add("advertising-card-media--carousel");
+    image.classList.remove("media-hover-zoom");
+    image.hidden = !useLegacyCover;
+    if (useLegacyCover) {
+      image.dataset.advertisingMediaItem = items[coverIndex].id;
+      figure.dataset.advertisingActiveMediaId = items[coverIndex].id;
+    }
+
+    const loading = document.createElement("span");
+    loading.className = "advertising-card-media__loading";
+    loading.dataset.advertisingMediaLoading = "";
+    loading.setAttribute("role", "status");
+    loading.setAttribute("aria-label", english ? "Loading media" : "Đang tải media");
+    loading.hidden = true;
+    media.append(loading);
+
+    const duration = document.createElement("span");
+    duration.className = "advertising-card-media__duration";
+    duration.dataset.advertisingMediaDuration = "";
+    duration.hidden = true;
+    media.append(duration);
+
+    const playback = document.createElement("button");
+    playback.type = "button";
+    playback.className = "advertising-card-media__playback";
+    playback.dataset.advertisingMediaPlayback = "";
+    playback.hidden = true;
+    figure.append(playback);
+
+    const indicator = document.createElement("div");
+    indicator.className = "advertising-card-media__indicator";
+    indicator.dataset.advertisingMediaIndicator = "";
+    indicator.setAttribute("role", "group");
+    indicator.setAttribute("aria-label", english ? "Card media" : "Media của thẻ");
+    const numericIndicator = items.length >= 7;
+    if (items.length >= 5 && !numericIndicator) indicator.classList.add("advertising-card-media__indicator--dense");
+    if (hasCarousel) playback.classList.add("advertising-card-media__playback--carousel");
+    const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "advertising-card-media__dot";
+      button.dataset.advertisingMediaSelect = item.id;
+      button.setAttribute("aria-label", english
+        ? `Show media ${index + 1} of ${items.length}`
+        : `Xem media ${index + 1} trên ${items.length}`);
+      indicator.append(button);
+      return button;
+    }) : [];
+    let previousButton;
+    let nextButton;
+    let countStatus;
+    if (numericIndicator) {
+      indicator.classList.add("advertising-card-media__indicator--numeric");
+      previousButton = document.createElement("button");
+      previousButton.type = "button";
+      previousButton.className = "advertising-card-media__step advertising-card-media__step--previous";
+      previousButton.dataset.advertisingMediaPrev = "";
+      previousButton.setAttribute("aria-label", english ? "Previous media" : "Media trước");
+      countStatus = document.createElement("span");
+      countStatus.className = "advertising-card-media__count";
+      countStatus.dataset.advertisingMediaCount = "";
+      countStatus.setAttribute("role", "status");
+      countStatus.setAttribute("aria-live", "polite");
+      countStatus.setAttribute("aria-atomic", "true");
+      nextButton = document.createElement("button");
+      nextButton.type = "button";
+      nextButton.className = "advertising-card-media__step advertising-card-media__step--next";
+      nextButton.dataset.advertisingMediaNext = "";
+      nextButton.setAttribute("aria-label", english ? "Next media" : "Media tiếp");
+      indicator.append(previousButton, countStatus, nextButton);
+    }
+    if (hasCarousel) figure.append(indicator);
+
+    const updateIndicator = (index) => {
+      buttons.forEach((button, buttonIndex) => button.setAttribute("aria-current", String(buttonIndex === index)));
+      if (!numericIndicator) return;
+      countStatus.textContent = `${index + 1}/${items.length}`;
+      countStatus.setAttribute("aria-label", english
+        ? `Media ${index + 1} of ${items.length}`
+        : `Media ${index + 1} trên ${items.length}`);
+      previousButton.disabled = index === 0;
+      nextButton.disabled = index === items.length - 1;
+    };
+
+    const isReady = (layer) => layer instanceof HTMLVideoElement
+      ? layer.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+      : layer.complete && layer.naturalWidth > 0;
+    const imageFallbackIndex = () => {
+      const previous = layers.get(items[lastReadyImageIndex]?.id);
+      if (previous instanceof HTMLImageElement && isReady(previous)) return lastReadyImageIndex;
+      const cover = layers.get(items[coverIndex].id);
+      if (cover instanceof HTMLImageElement && isReady(cover)) return coverIndex;
+      return items.findIndex((item) => item.kind === "image" && !failedImages.has(item.id));
+    };
+    const updateLoading = () => {
+      const layer = layers.get(items[activeIndex].id);
+      const ready = Boolean(layer && isReady(layer));
+      const failedImage = layer instanceof HTMLImageElement && failedImages.has(items[activeIndex].id);
+      const loadedVideoPoster = layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "loaded";
+      loading.hidden = ready || failedImage || loadedVideoPoster;
+      if (ready) {
+        layer.classList.add("is-advertising-media-ready");
+        if (layer instanceof HTMLImageElement) {
+          lastReadyImageIndex = activeIndex;
+          if (items[coverIndex].kind === "video" && figure.dataset.advertisingMediaLoaded !== "true") {
+            figure.dataset.advertisingMediaLoaded = "true";
+            onMediaLoaded(figure);
+          }
+        }
+      }
+    };
+    image.addEventListener("load", updateLoading);
+    image.addEventListener("lazyloaded", updateLoading);
+    const setActive = (nextIndex) => {
+      const index = Math.max(0, Math.min(items.length - 1, nextIndex));
+      if (failedImages.has(items[index].id) || posterStatus.get(items[index].id) === "failed") {
+        const fallback = imageFallbackIndex();
+        if (fallback >= 0 && fallback !== index) return setActive(fallback);
+      }
+      if (index === activeIndex && layers.has(items[index].id)) return;
+      const previous = layers.get(items[activeIndex]?.id);
+      if (previous instanceof HTMLVideoElement) previous.pause();
+      if (previous) previous.hidden = true;
+      activeIndex = index;
+      const item = items[index];
+      let layer = layers.get(item.id);
+      if (!layer) {
+        layer = document.createElement(item.kind === "video" ? "video" : "img");
+        layer.className = "advertising-tile__foreground advertising-card-media__image";
+        layer.dataset.advertisingMediaItem = item.id;
+        layer.width = item.width;
+        layer.height = item.height;
+        if (item.kind === "video") {
+          layer.muted = true;
+          layer.defaultMuted = true;
+          layer.playsInline = true;
+          layer.preload = "metadata";
+          layer.poster = item.posterSrc;
+          layer.src = item.src;
+          layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
+          layer.addEventListener("loadeddata", updateLoading);
+          layer.addEventListener("pause", () => { playback.textContent = english ? "Play" : "Phát"; });
+          layer.addEventListener("play", () => { playback.textContent = english ? "Pause" : "Tạm dừng"; });
+        } else {
+          layer.loading = "lazy";
+          layer.decoding = "async";
+          layer.alt = english ? item.altEn : item.altVi;
+          layer.src = item.src;
+          layer.addEventListener("load", updateLoading);
+        }
+        layer.addEventListener("error", () => {
+          if (item.kind === "image") {
+            failedImages.add(item.id);
+            const fallback = imageFallbackIndex();
+            if (activeIndex === index && fallback >= 0 && fallback !== index) {
+              setActive(fallback);
+              return;
+            }
+          }
+          if (item.kind === "video" && !posterStatus.has(item.id)) {
+            posterStatus.set(item.id, "loading");
+            const probe = new Image();
+            probe.addEventListener("load", () => {
+              posterStatus.set(item.id, "loaded");
+              if (activeIndex === index) updateLoading();
+            }, { once: true });
+            probe.addEventListener("error", () => {
+              posterStatus.set(item.id, "failed");
+              if (activeIndex !== index) return;
+              const fallback = imageFallbackIndex();
+              if (fallback >= 0 && fallback !== index) setActive(fallback);
+              else updateLoading();
+            }, { once: true });
+            probe.src = item.posterSrc;
+          }
+          if (activeIndex !== index) return;
+          if (item.kind === "video") playback.hidden = true;
+          updateLoading();
+        });
+        layers.set(item.id, layer);
+        media.prepend(layer);
+      }
+      layer.hidden = false;
+      figure.dataset.advertisingActiveMediaId = item.id;
+      updateIndicator(index);
+      duration.hidden = item.kind !== "video";
+      playback.hidden = item.kind !== "video" || Boolean(layer.error);
+      if (item.kind === "video") {
+        const seconds = Math.ceil(item.durationSeconds);
+        duration.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+        playback.textContent = english ? "Play" : "Phát";
+      }
+      updateLoading();
+    };
+    figure.advertisingSetMediaId = (id) => {
+      const index = items.findIndex((item) => item.id === id);
+      if (index >= 0) setActive(index);
+    };
+    const selectMedia = (index) => {
+      setActive(index);
+      onMediaChange(figure.dataset.advertisingActiveMediaId);
+    };
+    buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
+    if (numericIndicator) {
+      previousButton.addEventListener("click", () => selectMedia(activeIndex - 1));
+      nextButton.addEventListener("click", () => selectMedia(activeIndex + 1));
+    }
+    playback.addEventListener("click", () => {
+      const video = layers.get(items[activeIndex].id);
+      if (!(video instanceof HTMLVideoElement)) return;
+      if (video.paused) void video.play().catch(() => {});
+      else video.pause();
+    });
+    const swipe = (dx, dy) => {
+      if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
+      selectMedia(activeIndex + (dx < 0 ? 1 : -1));
+      suppressClick = true;
+      const generation = ++suppressClickGeneration;
+      setTimeout(() => {
+        if (suppressClickGeneration === generation) suppressClick = false;
+      }, 400);
+    };
+    if (hasCarousel) {
+      link.addEventListener("pointerdown", (event) => {
+        clearSuppressedClick();
+        if (event.pointerType === "touch") return;
+        pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      });
+      link.addEventListener("pointerup", (event) => {
+        if (!pointerStart || pointerStart.id !== event.pointerId) return;
+        const dx = event.clientX - pointerStart.x;
+        const dy = event.clientY - pointerStart.y;
+        pointerStart = null;
+        swipe(dx, dy);
+      });
+      link.addEventListener("pointercancel", () => { pointerStart = null; });
+      link.addEventListener("touchstart", (event) => {
+        clearSuppressedClick();
+        const touch = event.changedTouches[0];
+        touchStart = touch ? { id: touch.identifier, x: touch.clientX, y: touch.clientY } : null;
+      }, { passive: true });
+      link.addEventListener("touchend", (event) => {
+        if (!touchStart) return;
+        const touch = [...event.changedTouches].find((candidate) => candidate.identifier === touchStart.id);
+        if (touch) swipe(touch.clientX - touchStart.x, touch.clientY - touchStart.y);
+        touchStart = null;
+      }, { passive: true });
+      link.addEventListener("touchcancel", () => { touchStart = null; });
+      link.addEventListener("click", (event) => {
+        if (event.detail === 0) {
+          clearSuppressedClick();
+          return;
+        }
+        if (!suppressClick) return;
+        event.preventDefault();
+        event.stopPropagation();
+        clearSuppressedClick();
+      });
+      updateIndicator(coverIndex);
+    }
+    if (useLegacyCover && initialIndex === coverIndex) updateLoading();
+    else setActive(initialIndex);
+    listenForMediaLoad(figure, layers.get(items[activeIndex].id), onMediaLoaded);
+  } else {
+    listenForMediaLoad(figure, image, onMediaLoaded);
+  }
+  syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
+    && (related || !document.body.classList.contains("is-advertising-photo")));
   return figure;
 }
 
-function listenForMediaLoad(figure, image, onMediaLoaded) {
+function listenForMediaLoad(figure, media, onMediaLoaded) {
   const markLoaded = () => {
     if (figure.dataset.advertisingMediaLoaded === "true") return;
     figure.dataset.advertisingMediaLoaded = "true";
     onMediaLoaded(figure);
   };
-  image.addEventListener("lazyloaded", markLoaded, { once: true });
-  image.addEventListener("load", markLoaded, { once: true });
-  if (image.complete && image.naturalWidth > 0) markLoaded();
+  if (media instanceof HTMLVideoElement) {
+    media.addEventListener("loadeddata", markLoaded, { once: true });
+    if (media.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) markLoaded();
+  } else {
+    media.addEventListener("lazyloaded", markLoaded, { once: true });
+    media.addEventListener("load", markLoaded, { once: true });
+    if (media.complete && media.naturalWidth > 0) markLoaded();
+  }
 }
 
 function setPlacementStyle(node, placement) {
@@ -590,9 +1063,11 @@ function createMasonry(grid, positions, getHeight, { itemSelector = ".advertisin
   return masonry;
 }
 
-export async function mountAdvertisingCatalog(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll } = {}) {
+export async function mountAdvertisingCatalog(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
+  const startupHistory = window.__ttAdvertisingBrowseStartupHistory;
+  delete window.__ttAdvertisingBrowseStartupHistory;
 
   const grid = container.querySelector("[data-project-grid]");
   const filters = container.querySelector(".project-filters");
@@ -607,8 +1082,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoCanvas = photoView?.querySelector("[data-advertising-photo-canvas]");
   const photoPrimary = photoView?.querySelector("[data-advertising-photo-primary]");
   const photoImage = photoView?.querySelector("[data-advertising-photo-image]");
+  const photoVideo = photoView?.querySelector("[data-advertising-photo-video]");
+  const photoAudioToggle = photoView?.querySelector("[data-advertising-photo-audio-toggle]");
+  let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
-  const photoHeroFrame = photoImage?.closest(".advertising-photo-view__hero-frame");
   const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
   const photoDescription = photoView?.querySelector("[data-advertising-photo-description]");
   const photoDescriptionPager = photoView?.querySelector("[data-advertising-photo-description-pager]");
@@ -682,12 +1159,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
+  // Keep the CSS measurement available when the shell script fails to boot.
+  if (!document.querySelector(".site-viewport-metrics")) {
+    const probe = document.createElement("div");
+    probe.className = "site-viewport-metrics";
+    probe.setAttribute("aria-hidden", "true");
+    document.body.append(probe);
+  }
+  const getLayoutViewportHeight = () => scroll?.getViewportMetrics?.().layoutHeight
+    || document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height
+    || innerHeight;
+  const getVisibleViewport = () => scroll?.getViewportMetrics?.().visible || {
+    width: window.visualViewport?.width ?? innerWidth,
+    height: window.visualViewport?.height ?? innerHeight,
+    left: window.visualViewport?.offsetLeft ?? 0,
+    top: window.visualViewport?.offsetTop ?? 0,
+  };
   document.body.classList.add("is-advertising-browse");
   let locale = currentLocale();
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMotionQuery.matches;
   const geometries = new Map();
   const rendered = new Map();
+  const gridMediaById = new Map();
+  const relatedMediaById = new Map();
   const positions = new Map();
   const retainedPhotoIds = new Set();
   const relatedRendered = new Map();
@@ -698,9 +1193,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let relatedMotionTimer = 0;
   let relatedLayout;
   let activePhotoId = null;
-  let activeMorph = null;
-  let activeBackdropAnimation = null;
-  let pendingMorph = null;
+  let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
   let relatedMeasuredGeometry = null;
@@ -725,50 +1218,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     zoomOutButton: photoZoomOut,
     zoomStatus: photoZoomStatus,
   });
-  const resetPhotoBackground = () => {
-    if (!photoBackground) return;
-    const animations = photoBackground.getAnimations?.() || [];
-    activeBackdropAnimation = null;
-    animations.forEach((animation) => animation.cancel());
-    photoHeroFrame?.classList.remove("is-photo-morph-backdrop-active");
-    photoBackground.style.opacity = "1";
-    photoBackground.style.transform = "translate3d(0, 0, 0) scale(1.12)";
-  };
-  const animatePhotoBackground = (generation) => {
-    if (!photoBackground || reduced || typeof photoBackground.animate !== "function") return null;
-    const direction = generation % 2 ? 1 : -1;
-    const animation = photoBackground.animate([
-      {
-        offset: 0,
-        opacity: 0,
-        easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-        transform: `translate3d(${direction * -2.2}%, ${direction * 1.2}%, 0) scale(1.26)`,
-      },
-      {
-        offset: 0.35,
-        opacity: 1,
-        easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-        transform: `translate3d(${direction * -0.8}%, ${direction * 0.4}%, 0) scale(1.20)`,
-      },
-      {
-        offset: 1,
-        opacity: 1,
-        transform: "translate3d(0, 0, 0) scale(1.12)",
-      },
-    ], { duration: 1200, easing: "linear", fill: "forwards" });
-    activeBackdropAnimation = animation;
-    photoHeroFrame?.classList.add("is-photo-morph-backdrop-active");
-    const cleanup = () => {
-      if (activeBackdropAnimation !== animation) return;
-      activeBackdropAnimation = null;
-      photoHeroFrame?.classList.remove("is-photo-morph-backdrop-active");
-      photoBackground.style.opacity = "1";
-      animation.cancel();
-    };
-    animation.addEventListener("finish", cleanup, { once: true });
-    animation.addEventListener("cancel", cleanup, { once: true });
-    return animation;
-  };
   const armedMediaCards = new Set();
   const visibleMediaCards = new Set();
   const mediaRevealFrames = new Map();
@@ -816,195 +1265,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (reduced) showMedia(node);
     else revealMedia(node);
   };
-  const rectSnapshot = (node) => {
-    const rect = node?.getBoundingClientRect?.();
-    return rect && rect.width > 0 && rect.height > 0
-      ? { height: rect.height, left: rect.left, top: rect.top, width: rect.width }
-      : null;
-  };
-  const documentRectSnapshot = (node) => {
-    const rect = rectSnapshot(node);
-    return rect ? {
-      ...rect,
-      left: rect.left + window.scrollX,
-      top: rect.top + window.scrollY,
-    } : null;
-  };
-  const visiblePhotoSnapshot = (id) => {
-    const node = activeMorph?.clone.dataset.advertisingPhotoId === id ? activeMorph.clone : photoImage;
-    return { id, rect: rectSnapshot(node), rectSpace: "viewport", src: node?.currentSrc || node?.src };
-  };
-  const cancelPhotoMorph = () => {
-    if (!activeMorph) return;
-    const morph = activeMorph;
-    activeMorph = null;
-    if (morph.endpointFrame) cancelAnimationFrame(morph.endpointFrame);
-    morph.clearPending?.();
-    morph.backdropAnimation?.cancel?.();
-    morph.animation?.cancel?.();
-    resetPhotoBackground();
-    morph.finish();
-  };
-  photoExpand?.addEventListener("click", cancelPhotoMorph, { capture: true, signal: controller.signal });
-  const runPhotoMorph = ({ photoId, source, sourceRect, sourceRectSpace, sourceUrl, target, releaseIds = [], duration = 400 } = {}) => {
-    cancelPhotoMorph();
-    const from = sourceRect && sourceRectSpace === "viewport" ? {
-      ...sourceRect,
-      left: sourceRect.left + window.scrollX,
-      top: sourceRect.top + window.scrollY,
-    } : sourceRect || documentRectSnapshot(source);
-    const mediaCard = target?.closest("[data-advertising-card], [data-advertising-related-card]");
-    const relatedCard = mediaCard?.matches("[data-advertising-related-card]") ? mediaCard : null;
-    if (relatedCard) {
-      const destination = relatedPositions.get(relatedCard.dataset.advertisingRelatedCard);
-      if (destination) {
-        const item = relatedMasonry?.getItem(relatedCard);
-        if (item) item.goTo(destination.x, destination.y);
-        else Object.assign(relatedCard.style, { left: `${destination.x}px`, top: `${destination.y}px`, transform: "none" });
-      }
-    }
-    if (reduced || !from || !target || !sourceUrl) {
-      target?.style.removeProperty("visibility");
-      releaseIds.forEach((id) => retainedPhotoIds.delete(id));
-      return false;
-    }
-    const clone = document.createElement("img");
-    clone.dataset.advertisingPhotoMorph = "true";
-    if (photoId) clone.dataset.advertisingPhotoId = photoId;
-    clone.alt = "";
-    clone.src = sourceUrl;
-    Object.assign(clone.style, {
-      height: `${from.height}px`,
-      left: `${from.left}px`,
-      margin: "0",
-      objectFit: "contain",
-      pointerEvents: "none",
-      position: "absolute",
-      top: `${from.top}px`,
-      transformOrigin: "0 0",
-      width: `${from.width}px`,
-      zIndex: "1200",
-    });
-    target.style.visibility = "hidden";
-    document.body.append(clone);
-    let releaseScroll = null;
-    const finishMorph = () => {
-      target.style.removeProperty("visibility");
-      clone.remove();
-      releaseIds.forEach((id) => retainedPhotoIds.delete(id));
-      releaseScroll?.();
-    };
-    const measureTarget = () => {
-      const transitionValue = target.style.getPropertyValue("transition");
-      const transitionPriority = target.style.getPropertyPriority("transition");
-      if (mediaCard) target.style.setProperty("transition", "none", "important");
-      const rect = documentRectSnapshot(target);
-      if (mediaCard) {
-        if (transitionValue) target.style.setProperty("transition", transitionValue, transitionPriority);
-        else target.style.removeProperty("transition");
-      }
-      return rect;
-    };
-    const to = measureTarget();
-    if (!to) {
-      finishMorph();
-      return false;
-    }
-    const transform = `translate3d(${to.left - from.left}px, ${to.top - from.top}px, 0) scale(${to.width / from.width}, ${to.height / from.height})`;
-    const motion = window.TruongThinhMotion;
-    const unlockedViewport = {
-      clientWidth: document.documentElement.clientWidth,
-      innerWidth,
-      viewportHeight: window.visualViewport?.height || innerHeight,
-    };
-    let scrollLocked = false;
-    let animation;
-    try {
-      if (typeof motion?.lockLogicalScroll === "function" && typeof motion.unlockLogicalScroll === "function") {
-        const scrollY = motion.lockLogicalScroll();
-        scrollLocked = true;
-        releaseScroll = () => {
-          if (!scrollLocked) return;
-          scrollLocked = false;
-          motion.unlockLogicalScroll(scrollY);
-        };
-      }
-      animation = clone.animate([
-        { transform: "translate3d(0, 0, 0) scale(1, 1)" },
-        { transform },
-      ], { duration, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
-    } catch (error) {
-      finishMorph();
-      throw error;
-    }
-    const lockedClientWidth = document.documentElement.clientWidth;
-    const morph = {
-      animation,
-      clone,
-      finish: finishMorph,
-      clearPending: null,
-      deferredResize: false,
-      endpointFrame: 0,
-      lockedViewport: lockedClientWidth === unlockedViewport.clientWidth ? null : {
-        clientWidth: lockedClientWidth,
-        innerWidth: unlockedViewport.innerWidth,
-        viewportHeight: unlockedViewport.viewportHeight,
-      },
-    };
-    activeMorph = morph;
-    if (activePhotoId && !photoView.hidden) {
-      photoBackground.style.opacity = "0";
-      photoHeroFrame?.classList.add("is-photo-morph-backdrop-active");
-    }
-    if (mediaCard && typeof animation.effect?.setKeyframes === "function") {
-      morph.endpointFrame = requestAnimationFrame(() => {
-        morph.endpointFrame = 0;
-        if (activeMorph !== morph) return;
-        if (!relatedCard && !mediaCard.matches(":hover")) return;
-        const endpoint = measureTarget();
-        if (!endpoint) return;
-        const endpointTransform = `translate3d(${endpoint.left - from.left}px, ${endpoint.top - from.top}px, 0) scale(${endpoint.width / from.width}, ${endpoint.height / from.height})`;
-        animation.effect.setKeyframes([
-          { transform: "translate3d(0, 0, 0) scale(1, 1)" },
-          { transform: endpointTransform },
-        ]);
-      });
-    }
-    const settle = () => {
-      if (activeMorph !== morph) return;
-      if (morph.endpointFrame) cancelAnimationFrame(morph.endpointFrame);
-      morph.clearPending?.();
-      const mediaCard = target.closest("[data-advertising-card], [data-advertising-related-card]");
-      if (mediaCard) {
-        armedMediaCards.delete(mediaKey(mediaCard));
-        cancelMediaReveal(mediaCard);
-        target.style.setProperty("transition", "none", "important");
-        showMedia(mediaCard);
-        void target.offsetWidth;
-        target.style.removeProperty("transition");
-      }
-      finishMorph();
-      activeMorph = null;
-      if (activePhotoId && !photoView.hidden) animatePhotoBackground(detailRenderGeneration);
-      if (morph.deferredResize) scheduleResize();
-      if (activePhotoId) renderRelatedWindow();
-      else renderWindow();
-    };
-    animation.addEventListener("finish", () => {
-      if (target.complete) return settle();
-      // Keep the cached image at its destination while the full image finishes.
-      const timer = setTimeout(settle, 4_000);
-      target.addEventListener("load", settle, { once: true });
-      target.addEventListener("error", settle, { once: true });
-      morph.clearPending = () => {
-        clearTimeout(timer);
-        target.removeEventListener("load", settle);
-        target.removeEventListener("error", settle);
-      };
-    }, { once: true });
-    animation.addEventListener("cancel", settle, { once: true });
-    return true;
-  };
   const mediaObserver = reduced ? null : new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       const node = entry.target;
@@ -1028,6 +1288,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
+    node.querySelectorAll("video").forEach((video) => video.pause());
     mediaObserver?.unobserve(node);
     visibleMediaCards.delete(id);
     armedMediaCards.add(id);
@@ -1039,7 +1300,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let geometry;
   let masonry;
   let scrollFrame = 0;
-  let browsePersistFrame = 0;
   let resizeFrame = 0;
   let layoutFrame = 0;
   let motionUntil = 0;
@@ -1050,6 +1310,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let lastGeometrySignature = "";
   let gridPixelHeight = 0;
   let ctaGeometryHash = "";
+  let lastCtaViewportHeight = 0;
   const syncGridCtaHeadingMetric = () => {
     if (!gridCta || !gridCtaHeading) return;
     gridCta.style.setProperty(
@@ -1087,17 +1348,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       existing.delete(entry.slug);
     });
     existing.forEach((control) => control.remove());
-    rendered.forEach((node, id) => {
-      const record = cards.find((card) => card.id === id);
-      if (!record) return;
-      const english = locale === "en";
-      const link = node.querySelector("a");
-      const image = node.querySelector(".advertising-tile__foreground");
-      const caption = node.querySelector("figcaption");
-      if (link) link.href = `/${locale}/advertising-products/?category=${encodeURIComponent(record.category)}&photo=${encodeURIComponent(record.id)}`;
-      if (image) image.alt = english ? record.media.altEn : record.media.altVi;
-      if (caption) caption.textContent = english ? record.titleEn : record.titleVi;
-    });
+    for (const cardMap of [rendered, relatedRendered]) {
+      cardMap.forEach((node, id) => {
+        const record = cards.find((card) => card.id === id);
+        if (!record) return;
+        const english = locale === "en";
+        const link = node.querySelector("a");
+        const image = node.querySelector(".advertising-tile__foreground");
+        const caption = node.querySelector("figcaption");
+        if (link) link.href = `/${locale}/advertising-products/?category=${encodeURIComponent(record.category)}&photo=${encodeURIComponent(record.id)}`;
+        if (image) image.alt = english ? record.media.altEn : record.media.altVi;
+        if (caption) caption.textContent = english ? record.titleEn : record.titleVi;
+        syncJustViewedMarker(node, locale, lastClosedPhotoId === id
+          && (cardMap === relatedRendered ? Boolean(activePhotoId) : !activePhotoId));
+      });
+    }
   };
   updateLocalizedContent();
   ctaSkeleton?.replaceChildren();
@@ -1107,6 +1372,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   relatedGrid?.setAttribute("role", "list");
 
   const geometryFor = (targetFilter) => {
+    const categoryPool = targetFilter === "all" ? cards : cards.filter((card) => card.category === targetFilter);
+    const presentationOrder = shuffleAdvertisingCards(
+      categoryPool,
+      browseHistory.current.seed,
+      `grid:${targetFilter}`,
+    ).map(({ id }) => id);
     const compileOptions = {
       layoutViewportWidth: document.documentElement.clientWidth,
       filter: targetFilter,
@@ -1114,6 +1385,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       categoryOrder,
       datasetVersion: artifact.datasetVersion,
       settings,
+      presentationOrder,
+      organicOrder: true,
     };
     const key = [
       artifactCacheIdentity.datasetVersion,
@@ -1122,6 +1395,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       CAPTION_METRICS_VERSION,
       targetFilter,
       compileOptions.layoutViewportWidth,
+      presentationOrder.join(","),
     ].join(":");
     let layout = geometries.get(key);
     if (layout) {
@@ -1138,10 +1412,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
 
   const virtualWindow = () => {
     const gridTop = grid.getBoundingClientRect().top + currentVisualY;
+    const visible = getVisibleViewport();
     const windowed = getVirtualWindow(geometry, {
-      scrollTop: Math.max(0, currentVisualY - gridTop),
-      viewportHeight: innerHeight,
-      overscan: innerHeight,
+      scrollTop: Math.max(0, currentVisualY + visible.top - gridTop),
+      viewportHeight: visible.height,
+      overscan: visible.height,
     });
     const visiblePlacements = [...windowed.items];
     const keep = new Set(visiblePlacements.map((placement) => placement.card.id));
@@ -1252,16 +1527,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const skeletonMotionPreference = matchMedia("(prefers-reduced-motion: reduce)");
   const visibleSkeletonFrames = new Set();
   const skeletonFlowByFrame = new Map();
+  const skeletonLeaseByFrame = new Map();
   const skeletonAssignmentByFrame = new Map();
+  const skeletonFrameBySlot = new Map();
+  const skeletonPhaseBySlot = new Map();
   const skeletonEntryFrames = new Map();
   let skeletonFlowBatch;
-  let skeletonFlowAssignmentCursor = 0;
+  let skeletonFlowBatchGeneration = 0;
+  const createLogicalSkeletonBatch = () => {
+    const generation = skeletonFlowBatchGeneration++;
+    const batch = `${browseHistory.current.seed}:${generation}`;
+    return createSkeletonFlowBatchAssignments({
+      count: SKELETON_FLOW_PRESETS.length,
+      presets: SKELETON_FLOW_PRESETS,
+      random: createSeededRandom(browseHistory.current.seed, "batch-skeleton:" + generation),
+    }).map((assignment) => Object.freeze({ ...assignment, batch }));
+  };
   const skeletonFlowAssignmentBySlot = new Map();
+  const skeletonRatioBandBySlot = new Map();
   const revealedSkeletonSlots = new Set();
-  const rerandomizeSkeletonPresets = () => {
-    skeletonFlowBatch = undefined;
-    skeletonFlowAssignmentCursor = 0;
-    skeletonFlowAssignmentBySlot.clear();
+  const resetSkeletonRevealState = () => {
     revealedSkeletonSlots.clear();
     ctaGeometryHash = "";
   };
@@ -1274,7 +1559,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonEntryFrames.delete(frame);
   };
   const skeletonCanLoop = (frame) => visibleSkeletonFrames.has(frame)
-    && !document.hidden && !skeletonMotionPreference.matches && !activePhotoId;
+    && !skeletonDocumentParked && !document.hidden && !document.body.classList.contains("motion-paused")
+    && !document.body.classList.contains("menu-open")
+    && !skeletonMotionPreference.matches && !activePhotoId;
   const settleSkeletonCanvas = (frame) => {
     const canvas = frame.querySelector('[data-advertising-flow-backend="webgl"]');
     if (!canvas) return;
@@ -1284,11 +1571,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (animation.transitionProperty === "opacity") animation.cancel();
     });
   };
-  const createSkeletonCanvas = (assignment) => {
+  const createSkeletonCanvas = (assignment, canvas = document.createElement("canvas")) => {
     const { preset, anchorPermutation, phase, direction } = assignment;
-    const canvas = document.createElement("canvas");
     canvas.className = "advertising-grid__cta-flow";
     canvas.dataset.advertisingFlowPreset = preset.id;
+    canvas.dataset.advertisingFlowBatch = assignment.batch;
     canvas.dataset.advertisingFlowAnchorPermutation = anchorPermutation.join(",");
     canvas.dataset.advertisingFlowPhase = String(phase);
     canvas.dataset.advertisingFlowDirection = String(direction);
@@ -1301,23 +1588,33 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return canvas;
   };
   const mountSkeletonRenderer = (frame) => {
-    if (skeletonFlowByFrame.has(frame)) return;
+    if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);
     if (!assignment) return;
     const { preset, phase, direction } = assignment;
-    const canvas = frame.querySelector("canvas") || createSkeletonCanvas(assignment);
+    const budget = skeletonPhone() ? 2 : Infinity;
+    const lease = skeletonNativeContexts.find(record => !record.renderer && !record.gl.isContextLost());
+    if (!lease && skeletonNativeContexts.length >= budget) return;
+    const oldCanvas = frame.querySelector("canvas");
+    const canvas = createSkeletonCanvas(assignment, lease?.canvas || oldCanvas || undefined);
     canvas.style.transition = "none";
     canvas.style.opacity = "0";
     canvas.getBoundingClientRect();
     const renderer = createSkeletonFlowRenderer(canvas, {
       preset,
       seed: fnv1a32(`${frame.dataset.advertisingCtaSlot}:${preset.id}`),
-      initialPhase: phase,
+      initialPhase: skeletonPhaseBySlot.get(frame.dataset.advertisingCtaSlot) ?? phase,
       direction,
     });
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
     renderer?.draw(performance.now());
     skeletonFlowByFrame.set(frame, renderer);
+    if (renderer?.context) {
+      const record = lease || rememberSkeletonContext(canvas, renderer);
+      record.renderer = renderer;
+      skeletonLeaseByFrame.set(frame, record);
+    }
+    if (oldCanvas && oldCanvas !== canvas) oldCanvas.replaceWith(canvas);
     if (!canvas.isConnected) frame.querySelector(".advertising-grid__cta-surface")?.append(canvas);
     requestAnimationFrame(() => {
       if (!canvas.isConnected || skeletonFlowByFrame.get(frame) !== renderer
@@ -1329,28 +1626,43 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       });
     });
   };
+  const releaseSkeletonRenderer = (frame) => {
+    const renderer = skeletonFlowByFrame.get(frame);
+    if (!skeletonFlowByFrame.has(frame)) return;
+    const slot = frame.dataset.advertisingCtaSlot;
+    if (Number.isFinite(renderer?.phase)) skeletonPhaseBySlot.set(slot, renderer.phase);
+    const lease = skeletonLeaseByFrame.get(frame);
+    renderer?.destroy({ releaseContext: !lease });
+    if (lease) {
+      lease.renderer = null;
+      lease.canvas.getAnimations().forEach(animation => animation.cancel());
+      skeletonLeaseByFrame.delete(frame);
+    }
+    skeletonFlowByFrame.delete(frame);
+    const oldCanvas = frame.querySelector("canvas");
+    const assignment = skeletonAssignmentByFrame.get(frame);
+    if (oldCanvas && assignment) oldCanvas.replaceWith(createSkeletonCanvas(assignment));
+  };
   const syncSkeletonRenderers = () => {
-    if (document.documentElement.clientWidth > 750) return;
-    const canKeep = !activePhotoId;
+    const budget = skeletonPhone() ? 2 : Infinity;
+    const eligible = !skeletonDocumentParked && !activePhotoId && !document.hidden && !skeletonMotionPreference.matches
+      && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
     const keep = new Set();
-    if (canKeep) for (const frame of skeletonFlowByFrame.keys()) {
-      if (visibleSkeletonFrames.has(frame) && keep.size < 2) keep.add(frame);
+    if (!activePhotoId) for (const frame of skeletonFlowByFrame.keys()) {
+      if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
     const prioritized = [...visibleSkeletonFrames]
       .sort((left, right) => left.offsetTop - right.offsetTop || left.offsetLeft - right.offsetLeft)
       .filter((frame) => !keep.has(frame));
-    if (canKeep && !document.hidden && !skeletonMotionPreference.matches) for (const frame of prioritized) {
-      if (keep.size >= 2) break;
+    if (eligible) for (const frame of prioritized) {
+      if (keep.size >= budget) break;
       keep.add(frame);
     }
-    for (const [frame, renderer] of skeletonFlowByFrame) {
-      if (keep.has(frame)) continue;
-      renderer?.destroy();
-      const oldCanvas = frame.querySelector("canvas");
-      const assignment = skeletonAssignmentByFrame.get(frame);
-      if (oldCanvas && assignment) oldCanvas.replaceWith(createSkeletonCanvas(assignment));
-      skeletonFlowByFrame.delete(frame);
+    // Release before allocation so phone rotation never overlaps context budgets.
+    for (const frame of skeletonFlowByFrame.keys()) {
+      if (!keep.has(frame)) releaseSkeletonRenderer(frame);
     }
+    pruneSkeletonContexts(budget);
     keep.forEach(mountSkeletonRenderer);
   };
   const startSkeletonEntry = (frame) => {
@@ -1383,6 +1695,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonEntryFrames.set(frame, pending);
   };
   const syncSkeletonMotion = () => {
+    const visible = getVisibleViewport();
+    for (const frame of skeletonFrameBySlot.values()) {
+      const rect = frame.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0
+        && rect.right > visible.left && rect.left < visible.left + visible.width
+        && rect.bottom > visible.top && rect.top < visible.top + visible.height) visibleSkeletonFrames.add(frame);
+      else visibleSkeletonFrames.delete(frame);
+    }
     syncSkeletonRenderers();
     ctaSkeleton?.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
@@ -1404,7 +1724,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderer?.stop();
         return;
       }
-      if (document.hidden || activePhotoId) {
+      if (document.hidden || activePhotoId || document.body.classList.contains("motion-paused")) {
         cancelSkeletonEntry(frame);
         settleSkeletonCanvas(frame);
         frame.classList.remove("is-looping");
@@ -1427,26 +1747,22 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
   };
   const skeletonObserver = typeof IntersectionObserver === "function"
-    ? new IntersectionObserver((entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (isIntersecting) visibleSkeletonFrames.add(target);
-        else {
-          visibleSkeletonFrames.delete(target);
-          revealedSkeletonSlots.delete(target.dataset.advertisingCtaSlot);
-        }
-      });
-      syncSkeletonMotion();
-    }) : null;
+    ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
+  const skeletonPauseObserver = new MutationObserver(syncSkeletonMotion);
+  skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
   const clearCtaSkeleton = () => {
     ctaGeometryHash = "";
     skeletonObserver?.disconnect();
     visibleSkeletonFrames.clear();
     skeletonEntryFrames.forEach((_, frame) => cancelSkeletonEntry(frame));
-    skeletonFlowByFrame.forEach((renderer) => renderer?.destroy());
+    [...skeletonFlowByFrame.keys()].forEach(releaseSkeletonRenderer);
     skeletonFlowByFrame.clear();
     skeletonAssignmentByFrame.clear();
+    skeletonFrameBySlot.clear();
+    skeletonPhaseBySlot.clear();
     if (!ctaSkeleton) return;
     ctaSkeleton.hidden = true;
     ctaSkeleton.replaceChildren();
@@ -1467,33 +1783,38 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     syncGridCtaHeadingMetric();
     const ctaTop = geometry.totalPixelHeight + geometry.interCardGap;
     gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
-    const viewportHeight = window.visualViewport?.height || innerHeight;
+    const viewportHeight = getLayoutViewportHeight();
+    lastCtaViewportHeight = viewportHeight;
     const footerStyle = siteFooter ? getComputedStyle(siteFooter) : null;
     const footerGap = Number.parseFloat(footerStyle?.marginBlockStart || footerStyle?.marginTop) || 0;
+    const ctaStyle = gridCta ? getComputedStyle(gridCta) : null;
+    const skeletonRatio = Math.min(0.5, Math.max(0,
+      Number.parseFloat(ctaStyle?.getPropertyValue("--advertising-cta-skeleton-ratio")) || 0.382));
+    const copy = gridCta?.querySelector(".detail-cta__copy");
+    const headingStyle = gridCtaHeading ? getComputedStyle(gridCtaHeading) : null;
+    const headingTransform = headingStyle?.transform || "none";
+    const headingTop = headingTransform === "none" ? 0 : new DOMMatrixReadOnly(headingTransform).m42;
+    const headingInkTop = Math.max(
+      (Number.parseFloat(headingStyle?.fontSize) || 0) * 0.28,
+      ...Array.from(gridCtaHeading?.querySelectorAll(".motion-line-mask") || [],
+        (mask) => Number.parseFloat(getComputedStyle(mask).getPropertyValue("--mask-ink-overflow-top")) || 0),
+    );
+    const readableHeight = Math.ceil(Math.max(
+      Math.max(copy?.offsetHeight || 0, copy?.scrollHeight || 0) / (1 - skeletonRatio),
+      skeletonRatio > 0 && headingTop < 0 ? (-headingTop + headingInkTop) / skeletonRatio : 0,
+    ));
     const tailHeight = Math.max(Math.ceil(geometry.cardWidth * 0.25) + 1,
-      viewportHeight - geometry.interCardGap - footerGap - (siteFooter?.offsetHeight || 0));
+      viewportHeight - geometry.interCardGap - footerGap - (siteFooter?.offsetHeight || 0), readableHeight);
     const nextCtaGeometryHash = `${geometry.coordinateHash}:${tailHeight.toFixed(3)}`;
     if (ctaGeometryHash === nextCtaGeometryHash) return;
     gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
-    const ctaStyle = gridCta ? getComputedStyle(gridCta) : null;
-    const skeletonRatio = Math.min(0.5, Math.max(0,
-      Number.parseFloat(ctaStyle?.getPropertyValue("--advertising-cta-skeleton-ratio")) || 0.382));
     const skeletonFadeEnd = ctaTop + ctaHeight * skeletonRatio;
     const gridBottom = ctaTop + ctaHeight;
     const skeletonBoundaryBottom = gridBottom + geometry.interCardGap;
-    skeletonObserver?.disconnect();
-    visibleSkeletonFrames.clear();
-    skeletonEntryFrames.forEach((_, frame) => cancelSkeletonEntry(frame));
-    skeletonFlowByFrame.forEach((renderer) => renderer?.destroy());
-    skeletonFlowByFrame.clear();
-    skeletonAssignmentByFrame.clear();
     const fragment = document.createDocumentFragment();
     if (!skeletonFlowBatch) {
-      skeletonFlowBatch = createSkeletonFlowBatchAssignments({
-        count: SKELETON_FLOW_PRESETS.length,
-        presets: SKELETON_FLOW_PRESETS,
-      });
+      skeletonFlowBatch = createLogicalSkeletonBatch();
     }
     const frameLayout = createSkeletonFlowFrameLayout({
       columnBottoms: geometry.columnBottoms,
@@ -1501,10 +1822,37 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       cardWidth: geometry.cardWidth,
       gap: geometry.interCardGap,
       boundaryBottom: skeletonBoundaryBottom,
+      seed: browseHistory.current.seed,
+      bandAssignments: skeletonRatioBandBySlot,
     });
+    frameLayout.forEach(({ slot, band }) => skeletonRatioBandBySlot.set(slot, band));
+    const neededSlots = new Set(frameLayout.map(({ slot }) => slot));
+    for (const [slot, frame] of skeletonFrameBySlot) {
+      if (neededSlots.has(slot)) continue;
+      cancelSkeletonEntry(frame);
+      skeletonObserver?.unobserve(frame);
+      visibleSkeletonFrames.delete(frame);
+      releaseSkeletonRenderer(frame);
+      skeletonAssignmentByFrame.delete(frame);
+      skeletonFrameBySlot.delete(slot);
+      revealedSkeletonSlots.delete(slot);
+      frame.remove();
+    }
+    const claimedAssignments = new Set([...skeletonFrameBySlot.values()]
+      .map((frame) => skeletonAssignmentByFrame.get(frame)));
+    const nextAssignments = new Map();
+    // Reserve returning slots before new slots can borrow their assignments.
+    for (const { slot } of frameLayout) {
+      if (skeletonFrameBySlot.has(slot)) continue;
+      const cached = skeletonFlowAssignmentBySlot.get(slot);
+      if (!cached || claimedAssignments.has(cached)) continue;
+      nextAssignments.set(slot, cached);
+      claimedAssignments.add(cached);
+    }
     frameLayout.forEach(({ slot, column, depth, band, top, height }) => {
-        const frame = document.createElement("span");
-        frame.className = "advertising-grid__cta-frame";
+        const existing = skeletonFrameBySlot.get(slot);
+        const frame = existing || document.createElement("span");
+        if (!existing) frame.className = "advertising-grid__cta-frame";
         frame.dataset.advertisingCtaFrame = "true";
         frame.dataset.advertisingCtaColumn = String(column);
         frame.dataset.advertisingCtaDepth = String(depth);
@@ -1515,40 +1863,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         frame.style.width = `${geometry.cardWidth}px`;
         frame.style.height = `${height}px`;
         frame.style.setProperty("--advertising-cta-frame-opacity", "1");
+        if (existing) return;
         if (revealedSkeletonSlots.has(slot)) frame.classList.add("is-entry-ready");
         const surface = document.createElement("span");
         surface.className = "advertising-grid__cta-surface";
-        let assignment = skeletonFlowAssignmentBySlot.get(slot);
+        let assignment = nextAssignments.get(slot);
         if (!assignment) {
-          if (skeletonFlowAssignmentCursor >= skeletonFlowBatch.length) {
-            skeletonFlowBatch = createSkeletonFlowBatchAssignments({
-              count: SKELETON_FLOW_PRESETS.length,
-              presets: SKELETON_FLOW_PRESETS,
-            });
-            skeletonFlowAssignmentCursor = 0;
+          assignment = skeletonFlowBatch.find((candidate) => !claimedAssignments.has(candidate));
+          if (!assignment) {
+            const additionalBatch = createLogicalSkeletonBatch();
+            skeletonFlowBatch = [...skeletonFlowBatch, ...additionalBatch];
+            assignment = additionalBatch[0];
           }
-          assignment = skeletonFlowBatch[skeletonFlowAssignmentCursor];
-          skeletonFlowAssignmentCursor += 1;
+          claimedAssignments.add(assignment);
+          skeletonPhaseBySlot.delete(slot);
           skeletonFlowAssignmentBySlot.set(slot, assignment);
         }
         skeletonAssignmentByFrame.set(frame, assignment);
         surface.style.backgroundColor = assignment.preset.colors[3];
         surface.style.backgroundImage = staticBackground(assignment.preset);
         const canvas = createSkeletonCanvas(assignment);
-        if (document.documentElement.clientWidth > 750) {
-          const renderer = createSkeletonFlowRenderer(canvas, {
-            preset: assignment.preset,
-            seed: fnv1a32(`${slot}:${assignment.preset.id}`),
-            initialPhase: assignment.phase,
-            direction: assignment.direction,
-          });
-          canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
-          renderer?.draw(performance.now());
-          skeletonFlowByFrame.set(frame, renderer);
-        }
         surface.append(canvas);
         frame.append(surface);
         fragment.append(frame);
+        skeletonFrameBySlot.set(slot, frame);
     });
     gridPixelHeight = gridBottom;
     const skeletonGlassStart = Math.max(geometry.totalPixelHeight, skeletonFadeEnd - geometry.cardWidth);
@@ -1558,7 +1896,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       skeletonFadeEnd - geometry.cardWidth * 0.5,
     );
     ctaGeometryHash = nextCtaGeometryHash;
-    ctaSkeleton.replaceChildren(fragment);
+    ctaSkeleton.append(fragment);
     ctaSkeleton.hidden = false;
     ctaSkeleton.dataset.advertisingCtaColumns = String(geometry.columns);
     ctaSkeleton.dataset.advertisingCtaReady = "true";
@@ -1623,7 +1961,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const placement of visiblePlacements) {
       let node = rendered.get(placement.card.id);
       if (!node) {
-        node = createPhotoCard(placement.card, locale, handleMediaLoaded, false);
+        const id = placement.card.id;
+        const initialMediaId = gridMediaById.get(id)
+          || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
+        node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
+          (mediaId) => gridMediaById.set(id, mediaId));
         rendered.set(placement.card.id, node);
         observeMediaCard(node);
         created.add(placement.card.id);
@@ -1676,7 +2018,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const focusVirtualPlacement = (placement, { focus = true, scrollIntoView = true } = {}) => {
     let node = rendered.get(placement.card.id);
     if (!node) {
-      node = createPhotoCard(placement.card, locale, handleMediaLoaded, false);
+      const id = placement.card.id;
+      const initialMediaId = gridMediaById.get(id)
+        || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
+      node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
+        (mediaId) => gridMediaById.set(id, mediaId));
       rendered.set(placement.card.id, node);
       observeMediaCard(node);
       grid.append(node);
@@ -1717,7 +2063,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const origins = animate ? cachedCoordinates(nextFilter, visualOrigins) : undefined;
     cancelMotion();
-    rerandomizeSkeletonPresets();
+    clearCtaSkeleton();
+    resetSkeletonRevealState();
+    skeletonFlowAssignmentBySlot.clear();
+    skeletonRatioBandBySlot.clear();
+    skeletonFlowBatch = undefined;
     filter = nextFilter;
     filters.querySelectorAll("[data-advertising-filter]").forEach((item) => {
       item.setAttribute("aria-current", String(item.dataset.advertisingFilter === filter));
@@ -1831,7 +2181,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         link.append(image, label);
         links.append(link);
       });
+      const previousLinks = suggestionNode.querySelector(".advertising-photo-view__suggestion-links");
+      if (previousLinks) resizeObserver.unobserve(previousLinks);
       suggestionNode.replaceChildren(...[suggestionTitle, links].filter(Boolean));
+      resizeObserver.observe(links);
       stopSuggestionSlides = mountSuggestionSlides(suggestionNode, {
         cards, isReduced: () => reduced, signal: controller.signal,
         createImage: card => createPhotoMedia(card, locale, { suggestion: true }),
@@ -1871,7 +2224,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!placement || !relatedGrid) return null;
     let node = relatedRendered.get(id);
     if (!node) {
-      node = createPhotoCard(placement.card, locale, handleMediaLoaded, true);
+      node = createPhotoCard(placement.card, locale, handleMediaLoaded, true,
+        relatedMediaById.get(id), (mediaId) => relatedMediaById.set(id, mediaId));
       relatedRendered.set(id, node);
       observeMediaCard(node);
       relatedGrid.append(node);
@@ -1880,6 +2234,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     node.style.width = `${placement.pixelWidth}px`;
     node.style.height = `${placement.pixelHeight}px`;
+    node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
     node.dataset.advertisingPlacementIndex = String(placement.index);
     node.setAttribute("role", "listitem");
     node.setAttribute("aria-posinset", String(placement.index + 1));
@@ -1933,10 +2288,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
     if (!animate && (relatedMotionFrame || relatedMotionTimer)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
+    const visible = getVisibleViewport();
     const windowed = getVirtualWindow(relatedLayout.layout, {
-      overscan: innerHeight,
-      scrollTop: Math.max(0, getLogicalScroll() - gridTop),
-      viewportHeight: innerHeight,
+      overscan: visible.height,
+      scrollTop: Math.max(0, getLogicalScroll() + visible.top - gridTop),
+      viewportHeight: visible.height,
     });
     const normalKeep = new Set(windowed.items.map((placement) => placement.card.id));
     const suggestionId = relatedLayout.suggestionPlacement?.card.id;
@@ -2019,9 +2375,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const layoutRelated = (browse) => {
     if (!relatedGrid || !photoPrimary || !photoCanvas) return;
     const viewportWidth = document.documentElement.clientWidth;
-    const viewportHeight = window.visualViewport?.height || innerHeight;
+    const viewportHeight = getLayoutViewportHeight();
     const typographyKey = relatedTypographyKey();
-    const nextLayoutKey = `${browse.photo}:${browse.tag || "all"}:${locale}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
+    const nextLayoutKey = `${browse.seed}:${browse.photo}:${activePrimaryMediaId}:${browse.tag || "all"}:${locale}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
     if (nextLayoutKey === relatedLayoutKey) {
       renderRelatedWindow();
       return;
@@ -2076,6 +2432,43 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         height: Math.max(1, suggestionHeight),
       },
     } : null;
+    let needsDescriptionIndicator = false;
+    const measureInfo = (width, mode, basePrimary = null) => {
+      if (!photoInfo) return 0;
+      photoView.dataset.advertisingPhotoLayout = mode;
+      const previousWidth = photoInfo.style.width;
+      const previousHeight = photoInfo.style.height;
+      const previousText = photoDescription.textContent;
+      const previousIndicatorHidden = photoDescriptionIndicator.hidden;
+      try {
+        photoInfo.style.width = `${width}px`;
+        photoInfo.style.height = "auto";
+        photoDescription.textContent = descriptionSource;
+        photoDescriptionIndicator.hidden = true;
+        const naturalHeight = Math.ceil(photoInfo.getBoundingClientRect().height);
+        if (!basePrimary) return naturalHeight;
+        const controls = [...photoInfo.children].filter(node => node !== photoDescriptionPager
+          && !node.hidden);
+        const controlsHeight = controls.reduce((sum, node) => {
+          const style = getComputedStyle(node);
+          return sum + node.offsetHeight + (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
+        }, 0);
+        const lineHeight = parseFloat(getComputedStyle(photoDescription).lineHeight);
+        const gap = parseFloat(getComputedStyle(photoInfo).rowGap) || 0;
+        const floor = Math.ceil(controlsHeight + lineHeight + controls.length * gap) + 1;
+        needsDescriptionIndicator = naturalHeight > Math.max(basePrimary.descriptionHeight, floor);
+        return floor + (needsDescriptionIndicator ? Math.ceil(parseFloat(getComputedStyle(photoDescriptionIndicator).lineHeight)) + gap : 0);
+      } finally {
+        photoInfo.style.width = previousWidth;
+        photoInfo.style.height = previousHeight;
+        photoDescription.textContent = previousText;
+        photoDescriptionIndicator.hidden = previousIndicatorHidden;
+      }
+    };
+    const expandStyle = photoExpand ? getComputedStyle(photoExpand) : null;
+    const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
+      2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
+      + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
     relatedLayout = compileAdvertisingRelatedLayout({
       cards, categoryOrder, columns,
       datasetVersion: artifact.datasetVersion, heroId: browse.photo,
@@ -2083,18 +2476,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       safeTop: parseFloat(viewStyle.getPropertyValue("--advertising-safe-top")) || 0,
       safeBottom: parseFloat(viewStyle.getPropertyValue("--advertising-safe-bottom")) || 0,
       settings, suggestionCard, tag: browse.tag,
-      measureDescriptionHeight: (width, mode) => {
-        if (!photoInfo) return 0;
-        photoView.dataset.advertisingPhotoLayout = mode;
-        const previousWidth = photoInfo.style.width;
-        const previousHeight = photoInfo.style.height;
-        photoInfo.style.width = `${width}px`;
-        photoInfo.style.height = "auto";
-        const height = Math.ceil(photoInfo.getBoundingClientRect().height);
-        photoInfo.style.width = previousWidth;
-        photoInfo.style.height = previousHeight;
-        return height;
-      },
+      seed: browse.seed,
+      primaryMedia: cards.find((card) => card.id === browse.photo)?.mediaItems?.find((item) => item.id === activePrimaryMediaId),
+      measureDescriptionHeight: measureInfo,
+      measureDescriptionMinimumHeight: measureInfo,
+      minimumImageZoneHeight: imageControlMinimum,
     });
     relatedLayoutKey = nextLayoutKey;
     const primary = relatedLayout.primary;
@@ -2116,28 +2502,124 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     relatedGrid.style.setProperty("--advertising-photo-related-height", `${height}px`);
     photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
     relatedPixelHeight = height;
+    photoDescriptionIndicator.hidden = !needsDescriptionIndicator;
     paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
+  const renderPrimaryMedia = (record, item) => {
+    const english = locale === "en";
+    const video = item.kind === "video";
+    activePrimaryMediaId = item.id;
+    photoView.dataset.advertisingActiveMediaId = item.id;
+    photoVideo.pause();
+    photoVideo.muted = true;
+    photoVideo.defaultMuted = true;
+    photoVideo.hidden = !video;
+    photoImage.hidden = video;
+    photoExpand.hidden = video;
+    photoAudioToggle.hidden = !video || item.hasAudio === false;
+    if (video) {
+      photoVideo.width = item.width;
+      photoVideo.height = item.height;
+      photoVideo.poster = item.posterSrc;
+      photoVideo.setAttribute("aria-label", english ? item.altEn : item.altVi);
+      if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
+      void photoVideo.play().catch(() => {});
+    } else {
+      photoVideo.removeAttribute("src");
+      photoVideo.load();
+      photoImage.width = item.width;
+      photoImage.height = item.height;
+      photoImage.alt = english ? item.altEn : item.altVi;
+      photoImage.loading = "eager";
+      photoImage.fetchPriority = "high";
+      photoImage.src = item.src;
+    }
+    updateAudioLabel();
+    if (photoBackground) {
+      photoBackground.src = video ? item.posterSrc : item.src;
+      photoBackground.dataset.advertisingPhotoId = record.id;
+    }
+    photoViewer.setRecord(video ? null : { ...record, media: item });
+    photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
+      button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
+    });
+  };
+  const renderPrimaryThumbs = (record) => {
+    const items = record.mediaItems || [];
+    const authored = items.length > 1 || items.some((item) => item.id !== record.id
+      || item.kind !== "image" || item.src !== record.media.src);
+    if (!authored) {
+      photoMediaThumbs?.remove();
+      photoMediaThumbs = null;
+      return;
+    }
+    const english = locale === "en";
+    if (!photoMediaThumbs) {
+      photoMediaThumbs = document.createElement("div");
+      photoMediaThumbs.className = "advertising-photo-view__media-thumbs";
+      photoMediaThumbs.dataset.advertisingPhotoMediaThumbs = "";
+      photoMediaThumbs.setAttribute("role", "group");
+      photoDescriptionPager.before(photoMediaThumbs);
+    }
+    photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
+    photoMediaThumbs.replaceChildren();
+    items.forEach((item, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.advertisingPhotoMediaSelect = item.id;
+      button.setAttribute("aria-label", english
+        ? `Show ${item.kind === "video" ? "video" : "image"} ${index + 1} of ${items.length}: ${item.altEn}`
+        : `Xem ${item.kind === "video" ? "video" : "ảnh"} ${index + 1} trên ${items.length}: ${item.altVi}`);
+      const image = document.createElement("img");
+      image.src = item.kind === "video" ? item.posterSrc : item.src;
+      image.alt = "";
+      image.loading = "lazy";
+      button.append(image);
+      if (item.kind === "video") {
+        const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        icon.setAttribute("viewBox", "0 0 24 24");
+        icon.setAttribute("aria-hidden", "true");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M7 4v16l13-8z");
+        icon.append(path);
+        button.append(icon);
+      }
+      button.addEventListener("click", () => {
+        if (activePrimaryMediaId === item.id) return;
+        renderPrimaryMedia(record, item);
+        browseHistory.captureDetail({ ...browseHistory.current.detail, mediaId: item.id, scrollY: getLogicalScroll() });
+        browseHistory.persistCurrent();
+        relatedLayoutKey = "";
+        layoutRelated(browseHistory.current);
+      });
+      photoMediaThumbs.append(button);
+    });
+  };
+  photoAudioToggle?.addEventListener("click", () => {
+    if (!photoVideo || photoVideo.hidden || photoAudioToggle.hidden) return;
+    if (photoVideo.muted || photoVideo.volume === 0) {
+      if (photoVideo.volume === 0) photoVideo.volume = 1;
+      photoVideo.muted = false;
+      if (photoVideo.paused) void photoVideo.play().catch(() => {});
+    } else photoVideo.muted = true;
+    updateAudioLabel();
+  }, { signal: controller.signal });
+  const updateAudioLabel = () => {
+    const label = photoVideo.muted || photoVideo.volume === 0 ? locale === "en" ? "Unmute" : "Bật tiếng"
+      : locale === "en" ? "Mute" : "Tắt tiếng";
+    photoAudioToggle.textContent = label;
+    photoAudioToggle.setAttribute("aria-label", label);
+  };
+  photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
   const renderPhoto = (browse, reason) => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;
     const previousPhotoId = activePhotoId;
-    const previousHero = previousPhotoId ? visiblePhotoSnapshot(previousPhotoId) : null;
-    if (!pendingMorph && !previousPhotoId && reason === "history" && browse.grid.focusId === record.id) {
-      const source = ensurePhoto(record.id)?.querySelector("img");
-      const rect = rectSnapshot(source);
-      const src = source?.currentSrc || source?.src;
-      if (rect && src) {
-        retainedPhotoIds.add(record.id);
-        pendingMorph = { id: record.id, rect, rectSpace: "viewport", src };
-      }
+    if (previousPhotoId && previousPhotoId !== record.id) {
+      lastClosedPhotoId = previousPhotoId;
     }
     const generation = ++detailRenderGeneration;
-    cancelPhotoMorph();
-    photoViewer.setRecord(record);
-    const requestedMorph = pendingMorph;
-    pendingMorph = null;
     cancelMotion();
     activePhotoId = record.id;
     clearCtaSkeleton();
@@ -2148,18 +2630,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     document.body.dataset.advertisingPhotoActive = "true";
     if (gridSection) gridSection.hidden = true;
     photoView.hidden = false;
+    rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
     const english = locale === "en";
-    photoImage.width = record.media.width;
-    photoImage.height = record.media.height;
-    photoImage.alt = english ? record.media.altEn : record.media.altVi;
-    photoImage.loading = "eager";
-    photoImage.fetchPriority = "high";
-    photoImage.src = record.media.src;
-    if (photoBackground) {
-      resetPhotoBackground();
-      photoBackground.src = record.media.src;
-      photoBackground.dataset.advertisingPhotoId = record.id;
-    }
+    renderPrimaryThumbs(record);
+    const initialId = (reason === "direct" && !softNavigation && startupHistory?.historyFallback !== true
+      ? null : browse.detail.mediaId)
+      || (reason === "locale" && previousPhotoId === record.id ? activePrimaryMediaId : null)
+      || record.coverMediaId;
+    const selected = record.mediaItems?.find((item) => item.id === initialId)
+      || record.mediaItems?.find((item) => item.id === record.coverMediaId)
+      || record.media;
+    renderPrimaryMedia(record, selected);
+    browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
     descriptionSource = english ? record.descriptionEn : record.descriptionVi;
     descriptionPageIndex = 0;
     if (photoDescription) photoDescription.textContent = descriptionSource;
@@ -2167,6 +2649,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;
     renderSuggestionLinks(browse, english);
     layoutRelated(browse);
+    relatedRendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     let restoredScroll = browse.detail.scrollY;
     if (
       browse.detail.anchorId
@@ -2179,24 +2662,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (anchorRect) restoredScroll = getLogicalScroll() + anchorRect.top - browse.detail.anchorOffset;
     }
     setLogicalScroll(restoredScroll);
-    let target = photoImage;
-    let sourceRect = requestedMorph?.rect;
-    let sourceRectSpace = requestedMorph?.rectSpace;
-    let sourceUrl = requestedMorph?.src;
-    let morphPhotoId = requestedMorph?.id;
-    const releaseIds = [record.id];
-    if (!requestedMorph && previousHero && previousHero.id !== record.id) {
-      retainedPhotoIds.add(previousHero.id);
-      target = ensureRelatedPhoto(previousHero.id)?.querySelector("img");
-      sourceRect = previousHero.rect;
-      sourceRectSpace = previousHero.rectSpace;
-      sourceUrl = previousHero.src;
-      morphPhotoId = previousHero.id;
-      releaseIds.push(previousHero.id);
-    }
-    if (target && sourceRect && sourceUrl) {
-      runPhotoMorph({ photoId: morphPhotoId, sourceRect, sourceRectSpace, sourceUrl, target, releaseIds, duration: reason === "history" ? 400 : 520 });
-    } else releaseIds.forEach((id) => retainedPhotoIds.delete(id));
     requestAnimationFrame(() => {
       if (generation !== detailRenderGeneration || controller.signal.aborted) return;
       window.dispatchEvent(new CustomEvent("site:layout"));
@@ -2205,15 +2670,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
-    const previousHero = previousPhotoId ? visiblePhotoSnapshot(previousPhotoId) : null;
     const generation = ++detailRenderGeneration;
-    cancelPhotoMorph();
     photoViewer.close({ restoreFocus: false });
-    pendingMorph = null;
-    const previousHeroRect = previousHero?.rect;
-    const previousHeroRectSpace = previousHero?.rectSpace;
-    const previousHeroSrc = previousHero?.src;
+    if (previousPhotoId) lastClosedPhotoId = previousPhotoId;
+    rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
+    activePrimaryMediaId = null;
+    photoVideo?.pause();
     clearRelatedCards();
     syncLocaleLinks(browse);
     if (photoView) delete photoView.dataset.advertisingPhotoId;
@@ -2227,6 +2690,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const focusId = browse.grid.focusId;
     if (browse.category !== filter) setActiveFilter(browse.category);
     const node = focusId ? ensurePhoto(focusId) : null;
+    if (node && browse.grid.mediaId) {
+      gridMediaById.set(focusId, browse.grid.mediaId);
+      node.advertisingSetMediaId?.(browse.grid.mediaId);
+    }
     let restoredScrollY;
     if (reason === "navbar" && node && browse.grid.anchorOffset === null) {
       const rect = node.getBoundingClientRect();
@@ -2243,38 +2710,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       restoredScrollY = browse.grid.scrollY;
     }
     setLogicalScroll(restoredScrollY);
-      const link = focusId ? rendered.get(focusId)?.querySelector("a") : null;
-      link?.focus({ preventScroll: true });
-    const target = previousPhotoId ? rendered.get(previousPhotoId)?.querySelector("img") : null;
-    const canMorph = Boolean(target && previousHeroRect && previousHeroSrc);
-    if (canMorph) {
-      retainedPhotoIds.add(previousPhotoId);
-      target.style.visibility = "hidden";
-    }
+    const link = focusId ? rendered.get(focusId)?.querySelector("a") : null;
+    link?.focus({ preventScroll: true });
     requestAnimationFrame(() => {
-      if (generation !== detailRenderGeneration || controller.signal.aborted) {
-        target?.style.removeProperty("visibility");
-        if (previousPhotoId) retainedPhotoIds.delete(previousPhotoId);
-        return;
-      }
+      if (generation !== detailRenderGeneration || controller.signal.aborted) return;
       window.dispatchEvent(new CustomEvent("site:layout"));
-      if (!canMorph) return;
-      requestAnimationFrame(() => {
-        if (generation !== detailRenderGeneration || controller.signal.aborted) {
-          target.style.removeProperty("visibility");
-          retainedPhotoIds.delete(previousPhotoId);
-          return;
-        }
-        runPhotoMorph({
-          sourceRect: previousHeroRect,
-          sourceRectSpace: previousHeroRectSpace,
-          sourceUrl: previousHeroSrc,
-          target,
-          photoId: previousPhotoId,
-          releaseIds: [previousPhotoId],
-          duration: 400,
-        });
-      });
     });
   };
   const browseHistory = createAdvertisingBrowseHistoryController({
@@ -2283,11 +2723,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     tagRegistry: artifact.tagRegistry || [],
     barbaHistory: window.barba?.history,
     browserHistory: window.history,
+    restoredHistoryState: startupHistory?.state,
+    historyFallback: startupHistory?.historyFallback === true,
+    softNavigation,
     getHref: () => window.location.href,
     getLogicalScroll,
     onApply({ browse, reason }) {
-      if (browsePersistFrame) cancelAnimationFrame(browsePersistFrame);
-      browsePersistFrame = 0;
       syncLocaleLinks(browse);
       if (reason === "category") return;
       if (browse.photo) {
@@ -2297,7 +2738,28 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       restoreGridEntry(browse, reason);
     },
   });
-  browseHistory.persistCurrent();
+  const localeHandoffStorage = safeSessionStorage();
+  let pendingLocaleSeedHandoff = null;
+  document.addEventListener("click", (event) => {
+    const anchor = event.target?.closest?.("a[href]");
+    if (!anchor || event.defaultPrevented || event.button !== 0
+      || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (!anchor.hasAttribute("download") && (!anchor.target || anchor.target === "_self")
+      && new URL(anchor.href, location.href).origin === location.origin) {
+      browseHistory.persistCurrent();
+    }
+    const link = anchor.matches("[data-language-option]") ? anchor : null;
+    if (!link) return;
+    const targetUrl = new URL(link.href, window.location.href);
+    const targetLocale = link.dataset.languageOption === "en" ? "en" : "vi";
+    if (targetUrl.origin !== window.location.origin || targetLocale === locale
+      || !new RegExp(`^/${targetLocale}/advertising-products/?$`).test(targetUrl.pathname)) return;
+    pendingLocaleSeedHandoff = {
+      locale: targetLocale,
+      seed: browseHistory.current.seed,
+      targetUrl: targetUrl.href,
+    };
+  }, { capture: true, signal: controller.signal });
   const adapter = {
     ensurePhoto,
     getCardLink: (id) => rendered.get(id)?.querySelector("a") || null,
@@ -2345,17 +2807,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     scrollFrame = requestAnimationFrame(() => {
       scrollFrame = 0;
       renderWindow();
+      renderRelatedWindow();
+      syncSkeletonMotion();
     });
   };
   const scheduleBrowsePersistence = () => {
-    if (browsePersistFrame) return;
-    browsePersistFrame = requestAnimationFrame(() => {
-      browsePersistFrame = 0;
-      const browse = browseHistory.current;
-      if (browse.photo) browseHistory.captureDetail({ ...browse.detail, scrollY: getLogicalScroll() });
-      else browseHistory.captureGrid({ ...browse.grid, scrollY: getLogicalScroll() });
-      browseHistory.persistCurrent();
-    });
+    if (!/^\/(?:vi|en)\/advertising-products\/?$/.test(location.pathname)) return;
+    const browse = browseHistory.current;
+    if (browse.photo) browseHistory.captureDetail({ ...browse.detail, scrollY: getLogicalScroll() });
+    else browseHistory.captureGrid({ ...browse.grid, scrollY: getLogicalScroll() });
+    browseHistory.persistCurrent();
   };
   const updateVisualScroll = (event) => {
     const y = Number(event.detail?.y);
@@ -2377,38 +2838,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (resizeFrame) return;
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
-      const viewportHeight = window.visualViewport?.height || innerHeight;
+      const viewportHeight = getLayoutViewportHeight();
       const viewportWidth = document.documentElement.clientWidth;
-      const lockedViewport = activeMorph?.lockedViewport;
-      if (
-        lockedViewport
-        && lockedViewport.clientWidth === viewportWidth
-        && lockedViewport.innerWidth === innerWidth
-        && lockedViewport.viewportHeight === viewportHeight
-      ) {
-        activeMorph.deferredResize = true;
-        return;
-      }
       if (activePhotoId) {
         const geometryAlreadyMeasured = relatedMeasuredGeometry
           && relatedMeasuredGeometry.viewportHeight === viewportHeight
           && relatedMeasuredGeometry.viewportWidth === viewportWidth
           && relatedMeasuredGeometry.typographyKey === relatedTypographyKey();
-        if (geometryAlreadyMeasured) return;
-        cancelPhotoMorph();
+        if (geometryAlreadyMeasured) {
+          renderRelatedWindow();
+          return;
+        }
         layoutRelated(browseHistory.current);
         window.dispatchEvent(new CustomEvent("site:layout"));
         return;
       }
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
-        cancelPhotoMorph();
         cancelMotion();
         measure({ animate: true, origins });
-      } else if (!ctaGeometryHash) {
+      } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
+      scheduleScroll();
     });
   };
 
@@ -2420,21 +2873,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     event.preventDefault();
     event.stopImmediatePropagation();
     const rect = card.getBoundingClientRect();
-    const image = card.querySelector("img");
-    pendingMorph = {
-      id: card.dataset.advertisingCard,
-      rect: rectSnapshot(image),
-      rectSpace: "viewport",
-      src: image?.currentSrc || image?.src,
-    };
+    const activeId = card.dataset.advertisingActiveMediaId;
     browseHistory.captureGrid({
       anchorOffset: rect.top,
       focusId: card.dataset.advertisingCard,
+      mediaId: activeId || null,
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
-    retainedPhotoIds.add(card.dataset.advertisingCard);
-    browseHistory.openPhoto(card.dataset.advertisingCard);
+    browseHistory.openPhoto(card.dataset.advertisingCard, activeId || null);
   }, { signal: controller.signal });
   grid.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || !geometry) return;
@@ -2469,17 +2916,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!nextId || nextId === browseHistory.current.photo) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    const image = node.querySelector("img");
+    const activeId = node.dataset.advertisingActiveMediaId;
     const rect = node.getBoundingClientRect();
     browseHistory.captureDetail({
       anchorId: nextId,
       anchorOffset: rect.top,
+      mediaId: activePrimaryMediaId,
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
-    pendingMorph = { id: nextId, rect: rectSnapshot(image), rectSpace: "viewport", src: image?.currentSrc || image?.src };
-    retainedPhotoIds.add(nextId);
-    browseHistory.openPhoto(nextId);
+    browseHistory.openPhoto(nextId, activeId || null);
   }, { signal: controller.signal });
   relatedGrid?.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || !relatedLayout) return;
@@ -2549,7 +2995,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
   }, { signal: controller.signal });
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || event.defaultPrevented || photoDialog?.open || !browseHistory.current.photo) return;
+    if (event.key !== "Escape" || event.defaultPrevented || photoDialog?.open
+      || document.querySelector('#site-menu')?.open || !browseHistory.current.photo) return;
     event.preventDefault();
     if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
@@ -2561,27 +3008,48 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { signal: controller.signal });
   addEventListener("resize", scheduleResize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("resize", scheduleResize, { passive: true, signal: controller.signal });
+  window.visualViewport?.addEventListener("scroll", scheduleScroll, { passive: true, signal: controller.signal });
   addEventListener("site:menu-closed", () => {
     const browse = browseHistory.current;
     if (browse.photo || !browse.grid.focusId) return;
     ensurePhoto(browse.grid.focusId)?.querySelector("a")?.focus({ preventScroll: true });
   }, { signal: controller.signal });
   addEventListener("pagehide", () => {
-    if (browsePersistFrame) cancelAnimationFrame(browsePersistFrame);
-    browsePersistFrame = 0;
-    const browse = browseHistory.current;
-    if (browse.photo) browseHistory.captureDetail({ ...browse.detail, scrollY: getLogicalScroll() });
-    else browseHistory.captureGrid({ ...browse.grid, scrollY: getLogicalScroll() });
-    browseHistory.persistCurrent();
+    // Preserve the native destination entry while Barba still owns the outgoing index.
+    if (!window.history.state?.ttAdvertisingHistoryFallback) {
+      const browse = browseHistory.current;
+      if (browse.photo) browseHistory.captureDetail({ ...browse.detail, scrollY: getLogicalScroll() });
+      else browseHistory.captureGrid({ ...browse.grid, scrollY: getLogicalScroll() });
+      browseHistory.persistCurrent();
+    }
+    if (pendingLocaleSeedHandoff) {
+      writeAdvertisingVisitSeedHandoff(
+        localeHandoffStorage,
+        pendingLocaleSeedHandoff.targetUrl,
+        pendingLocaleSeedHandoff.seed,
+      );
+      pendingLocaleSeedHandoff = null;
+    }
   }, { signal: controller.signal });
   addEventListener("languagechange", () => {
-    locale = currentLocale();
+    const nextLocale = currentLocale();
+    if (pendingLocaleSeedHandoff?.locale === nextLocale) pendingLocaleSeedHandoff = null;
+    locale = nextLocale;
     updateLocalizedContent();
     if (browseHistory.current.photo) renderPhoto(browseHistory.current, "locale");
   }, { signal: controller.signal });
   let observedCtaHeight = gridCta?.offsetHeight || 0;
   const resizeObserver = new ResizeObserver((entries) => {
-    if (entries.some((entry) => entry.target === gridCtaHeading)) syncGridCtaHeadingMetric();
+    if (activePhotoId && !suggestionNode?.hidden
+      && entries.some(entry => entry.target.matches(".advertising-photo-view__suggestion-links"))
+      && suggestionNode.scrollHeight > suggestionNode.offsetHeight + 1) {
+      relatedLayoutKey = "";
+      relatedMeasuredGeometry = null;
+    }
+    if (entries.some((entry) => entry.target === gridCtaHeading)) {
+      syncGridCtaHeadingMetric();
+      ctaGeometryHash = "";
+    }
     if (entries.some((entry) => entry.target === siteFooter)) ctaGeometryHash = "";
     if (entries.some((entry) => entry.target === gridCta) && gridCta.offsetHeight !== observedCtaHeight) {
       observedCtaHeight = gridCta.offsetHeight;
@@ -2611,9 +3079,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     signal?.removeEventListener("abort", cleanup);
     controller.abort();
     stopSuggestionSlides?.();
+    if (photoVideo) {
+      photoVideo.pause();
+      photoVideo.removeAttribute("src");
+      photoVideo.load();
+    }
     photoViewer.cleanup();
-    cancelPhotoMorph();
-    resetPhotoBackground();
     clearRelatedCards();
     skeletonObserver?.disconnect();
     visibleSkeletonFrames.clear();
@@ -2622,7 +3093,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     rendered.forEach((node) => cancelMediaReveal(node));
     masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
-    if (browsePersistFrame) cancelAnimationFrame(browsePersistFrame);
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     if (motionTimer) clearTimeout(motionTimer);
@@ -2633,7 +3103,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (activeInstance?.container === container) activeInstance = undefined;
   };
   signal?.addEventListener("abort", cleanup, { once: true });
-  activeInstance = { adapter, browseHistory, container, cleanup };
+  activeInstance = { adapter, browseHistory, container, cleanup, syncSkeletonMotion };
   measure({ animate: !browseHistory.current.photo });
   if (browseHistory.current.photo) {
     adapter.retainPhoto(browseHistory.current.photo);
@@ -2641,6 +3111,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   } else {
     restoreGridEntry(browseHistory.current, "direct");
   }
+  browseHistory.persistCurrent();
   return cleanup;
 }
 

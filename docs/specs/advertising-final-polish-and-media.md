@@ -399,6 +399,13 @@ Photo morph native Back/Forward phải chạy đủ bốn hướng `grid↔detai
 card và khi scroll lease làm thay đổi `clientWidth`. Resize thật vẫn hủy sạch và
 mọi finish/cancel/abort phải nhả lock.
 
+**Supersession M02b — 2026-09-30:** [Spec media-card đã duyệt](site-media-card-playback.md)
+thay morph card grid/related↔primary ở D19, gồm click, Back/Forward và
+chuyển giữa hai detail: không tạo clone giữa card và primary; giữ media
+active, scroll từng history entry và dấu card vừa xem. Chỉ morph
+primary↔enlarged viewer được giữ. Đoạn D19 phía trên là yêu cầu lịch sử,
+không là oracle mới cho các đường card↔primary này.
+
 ### D20 — Accepted CTA giao skeleton/khoảng trắng và nav reset — 2026-09-21
 
 Owner duyệt D20 ngày `2026-09-21`. D20 thay phần đặt copy của D19; giữ CTA một

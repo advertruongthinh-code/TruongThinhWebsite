@@ -90,6 +90,8 @@ assert.match(viewerSource, /event\.preventDefault\(\);[\s\S]*event\.stopPropagat
 assert.match(motionSource, /lockLogicalScroll[\s\S]*unlockLogicalScroll/, "viewer scroll lock uses the logical-scroll owner");
 assert.match(runtime, /heroImage: photoImage[\s\S]*resetButton: photoZoomReset/, "viewer receives the rendered hero and reset control");
 assert.match(runtime, /advertisingPhotoLayout = primary\.mode/, "photo mode comes from viewport-aware golden geometry");
+assert.match(detailSource, /mountAdvertisingCatalog\(container,[\s\S]*?softNavigation,/, "detail forwards the Barba remount context");
+assert.match(motionSource, /softNavigation:\s*true/, "Barba marks destination remounts");
 assert.match(runtime, /computeAdvertisingPhotoGeometry\(/, "the shared pure geometry owns responsive primary spans");
 assert.doesNotMatch(runtime, /whenPhotoImageReady/, "morph feedback must not wait for a full image network request");
 assert.match(detailSource, /GSAP 3\.15\.0[\s\S]*optional: true[\s\S]*SplitText 3\.15\.0[\s\S]*optional: true/, "animation-only dependencies should not block catalog mount");
@@ -230,6 +232,56 @@ fallbackController.openPhoto("photo-a");
 assert.equal(fallbackState.index, 42, "native fallback merges browse data without replacing Barba's index");
 assert.equal(fallbackState.from, "barba", "native fallback preserves unrelated Barba state fields");
 
+let lateBarbaCurrent = null;
+let lateBarbaHref = "https://example.test/vi/advertising-products/";
+let lateBarbaAdds = 0;
+let lateBarbaStores = 0;
+let lateNativeState = { from: "barba", index: 3 };
+let lateNativeWrites = 0;
+const lateBarbaHistory = {
+  get current() { return lateBarbaCurrent; },
+  store(data) {
+    assert.ok(this.current?.data, "Barba history is initialized before store");
+    lateBarbaStores += 1;
+    this.current.data = { ...this.current.data, ...data };
+  },
+  add(url, _trigger, _action, data) {
+    assert.ok(this.current?.data, "Barba history is initialized before add");
+    lateBarbaAdds += 1;
+    lateBarbaHref = url;
+    lateBarbaCurrent = { data: { ...data }, url };
+  },
+};
+const lateNativeHistory = {
+  get state() { return lateNativeState; },
+  pushState(state, _title, url) {
+    lateNativeWrites += 1;
+    lateNativeState = state;
+    lateBarbaHref = new URL(url, lateBarbaHref).href;
+  },
+  replaceState(state, _title, url) {
+    lateNativeWrites += 1;
+    lateNativeState = state;
+    if (url) lateBarbaHref = new URL(url, lateBarbaHref).href;
+  },
+};
+const lateAdapterController = createAdvertisingBrowseHistoryController({
+  ...browseFixture,
+  barbaHistory: lateBarbaHistory,
+  browserHistory: lateNativeHistory,
+  getHref: () => lateBarbaHref,
+});
+lateAdapterController.openPhoto("photo-a");
+assert.equal(new URL(lateBarbaHref).searchParams.get("photo"), "photo-a",
+  "native history works while Barba exposes its API before initialization");
+assert.equal(lateBarbaAdds, 0);
+assert.ok(lateNativeWrites > 0);
+lateBarbaCurrent = { data: {}, url: lateBarbaHref };
+lateAdapterController.openPhoto("photo-b");
+assert.equal(lateBarbaStores, 1, "the adapter switches to initialized Barba for the outgoing entry");
+assert.equal(lateBarbaAdds, 1, "the adapter switches to initialized Barba for the next entry");
+assert.equal(new URL(lateBarbaHref).searchParams.get("photo"), "photo-b");
+
 let fixtureHref = "https://example.test/vi/advertising-products/?category=kiosk-posm";
 let fixtureIndex = 7;
 let fixtureState = {
@@ -361,11 +413,14 @@ createAdvertisingBrowseHistoryController({
 });
 assert.equal(cleanedDirectHref, "https://example.test/vi/advertising-products/", "invalid direct photo/category/tag query is cleaned in place");
 assert.equal(cleanedDirectState.index, 12, "invalid direct cleanup preserves the Barba history index");
+const cleanedBrowseState = readAdvertisingBrowseHistoryState(cleanedDirectState);
+assert.match(cleanedBrowseState.seed, /^[a-z0-9]+-[a-z0-9]+$/, "a fresh direct route receives a visit seed");
 assert.deepEqual(readAdvertisingBrowseHistoryState(cleanedDirectState), {
   category: "all",
   directPhotoRootId: null,
   photo: null,
   tag: null,
+  seed: cleanedBrowseState.seed,
   grid: { category: null, anchorOffset: null, focusId: null, scrollY: 0, viewportWidth: null },
   detail: { anchorId: null, anchorOffset: null, scrollY: 0, viewportWidth: null },
 }, "invalid direct cleanup writes one usable grid state without a phantom entry");
@@ -426,6 +481,7 @@ let englishAdds = 0;
 const englishController = createAdvertisingBrowseHistoryController({
   ...browseFixture,
   barbaHistory: {
+    current: { data: {} },
     add(url) { englishHref = url; englishAdds += 1; },
     store() {},
   },

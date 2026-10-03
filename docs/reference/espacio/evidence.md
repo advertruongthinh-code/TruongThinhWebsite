@@ -4,6 +4,7 @@ type: reference-evidence
 status: candidate-composite-baseline
 snapshot_id: ESPACIO-R1-20260902
 snapshot_cutoff: 2026-09-02
+addendum_updated: 2026-09-27
 ---
 
 # Measurement index và provenance
@@ -14,6 +15,9 @@ Mỗi dòng dưới là một measurement group. Các phép đo không diễn ra
 tra bổ sung ngày `2026-09-02`. `Viewport` ghi kích thước browser; `unit` ghi
 đơn vị của value; `status` không đồng nghĩa với acceptance.
 
+Bổ sung27/09 giữ group scrollbar riêng; không thay cutoff hoặc kết quả của
+snapshot R1 phía trên. Các giới hạn live/source-derived được ghi tại group đó.
+
 ## Register
 
 URL/route Espacio bên dưới thuộc host `https://espaciohomedesign.com`; TT là
@@ -22,6 +26,7 @@ phép đo bao phủ mọi route. Tên artifact ở cột scope được link tro
 
 | ID | Observation và value | Ngày; viewport | Method | Unit | Source report, section | Status | Source URL/route và giới hạn |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `E-SCROLLBAR-20260927` | Track11px, thumb7px/margin2px/radius10px; idle opacity0, scrolling/hover1; hover scaleX1.45; transition300ms | 2026-09-27;1440×900 desktop,390×844 mobile emulation | Archive/live CSS hash, DevTools computed state/geometry | px, ms, opacity, scale | [components addendum](components.md#bổ-sung-scrollbar--2026-09-27) | idle/scroll/hover `measured`; drag CSS `source-derived` | `/en`; live CSSv0.038 đối chiếu archivev0.021; mobile emulation không có custom bar; chưa đo live drag/release, reduced motion, menu/viewer lock hoặc idle timeout |
 | `E-ARCHIVE-ACCOUNT` | `R_total=6100`, `R_success=6054`, `R_failure=46`, `R_unique_url=5855`, duplicate occurrence `245` | 2026-08-08; N/A | Parse `manifest.jsonl`, kiểm status/hash/bytes | row, URL | [motion audit](../../reports/research-espacio-motion-audit.md) §2 | `measured` | Corpus Espacio; URL từng row trong `manifest.jsonl`, không phải một route |
 | `E-ARCHIVE-VARIANT` | 5809 successful variants: 264 textual, 5545 binary/static; `0` parse-failure | 2026-08-08; N/A | Variant identity = normalized URL + status + content hash + content type | variant | [motion audit](../../reports/research-espacio-motion-audit.md) §3 | `measured` | Corpus Espacio; URL + hash từng variant trong `manifest.jsonl` |
 | `E-ARCHIVE-BLOCKS` | 257 HTML, 2697 embedded style blocks, 256 inline script bodies; TT 5 HTML, 10 inline scripts | 2026-08-08; N/A | Closed-world deterministic scanner | document/block | [motion audit](../../reports/research-espacio-motion-audit.md) §3 | `measured` | Corpus archive Espacio và 5 HTML TT; file từng block theo motion audit §3 |

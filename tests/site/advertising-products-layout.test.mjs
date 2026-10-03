@@ -1,3 +1,6 @@
+import * as randomLayoutCore from "../../src/site/advertising-products/layout-core.mjs";
+const scoreAdvertisingOrganicRhythm = (...args) => randomLayoutCore.scoreAdvertisingOrganicRhythm(...args);
+const solveAdvertisingOrganicPresentationOrder = (...args) => randomLayoutCore.solveAdvertisingOrganicPresentationOrder(...args);
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
@@ -17,6 +20,7 @@ import {
 } from "../../src/site/advertising-products/layout-core.mjs";
 import { ANTI_BRICK_EVENT_DEFINITION, inspectAdvertisingGrid, inspectAdvertisingRhythmEdges } from "./advertising-grid-oracle.mjs";
 import { ADVERTISING_MEDIA_CATEGORY_COUNTS } from "../../src/site/advertising-products/media-contract.mjs";
+import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
 
 const previousWindow = globalThis.window;
 globalThis.window = {};
@@ -37,6 +41,136 @@ function fixture(ratios, category = "fixture") {
     layoutSpan,
     media: { src: `/${category}-${index}.webp`, width, height },
   }));
+}
+
+function wideVideoCoverFixture() {
+  const legacy = ADVERTISING_CARDS.find((card) => card.id === "signage-raised-letters-08");
+  assert(legacy);
+  assert.deepEqual(readWebpSize(new URL(`../../src/site${legacy.media.src}`, import.meta.url)), [1254, 1254]);
+  assert.deepEqual(readWebpSize(new URL("./fixtures/site-media-card-poster.webp", import.meta.url)), [640, 360]);
+  const image = {
+    ...legacy.mediaItems[0], id: `${legacy.id}-wide-image`,
+    src: "/__site_media_card_fixture__/poster.webp", width: 640, height: 360,
+    sourceId: "m01d:test-only:poster", source: "M00b sealed synthetic fixture",
+    sha256: "5e55b48ce48a2de66737178f32d9c19b1c175dabb4d312a7d05ef7d0e9b853ba",
+    provenance: "Synthetic test-only fixture, not public media.",
+  };
+  const video = {
+    ...image, id: `${legacy.id}-wide-video`, kind: "video",
+    src: "/__site_media_card_fixture__/clip-audio.mp4", sourceId: "m01d:test-only:clip",
+    sha256: "853e4939e6a4627cc7777665283b2affab189132243974a4777f5a955338e827",
+    posterSrc: image.src, posterWidth: 640, posterHeight: 360,
+    durationSeconds: 3, hasAudio: true,
+  };
+  const card = { ...legacy, mediaItems: [video, image], coverMediaId: video.id };
+  assert.equal(validateAdvertisingCardMedia(card).coverMediaId, video.id);
+  return card;
+}
+
+function wideMediaCount(count) {
+  const card = wideVideoCoverFixture();
+  const image = card.mediaItems[1];
+  const mediaItems = [card.mediaItems[0], ...Array.from({ length: count - 1 }, (_, index) => ({
+    ...image, id: `${image.id}-${index + 1}`, src: `${image.src}?r6-r3=${index + 1}`,
+    sourceId: `${image.sourceId}:r6-r3:${index + 1}`,
+  }))];
+  const result = { ...card, mediaItems };
+  assert.equal(validateAdvertisingCardMedia(result).mediaItems.length, count);
+  return result;
+}
+
+for (const count of [2, 5, 6, 7]) {
+  test(`R6-R3 ${count} authored media reserve 44px control strip from first grid compile`, () => {
+    const card = { ...wideMediaCount(count), rank: 0, sourceOrder: 0 };
+    const options = { cards: [card], categoryOrder: [card.category], columns: 2,
+      layoutViewportWidth: 320, presentationOrder: [card.id] };
+    const first = compileAdvertisingProductLayout(options);
+    const second = compileAdvertisingProductLayout(options);
+    const placement = first.placements[0];
+    assert.equal(placement.mediaPixelHeight, placement.pixelWidth * 9 / 16, "cover ratio applies only to canvas");
+    assert.equal(placement.captionPixelHeight, 0);
+    assert.equal(placement.pixelHeight, placement.mediaPixelHeight + 44, "card includes 44px below canvas");
+    assert.equal(placement.height, placement.pixelHeight);
+    assert.equal(first.totalPixelHeight, placement.pixelHeight, "initial solver reserves the complete card");
+    assert.equal(second.coordinateHash, first.coordinateHash, "repeat compile keeps geometry stable");
+  });
+}
+
+test("R6-R3 related placement reserves the same 44px below 16:9 canvas", () => {
+  const card = wideMediaCount(7);
+  const hero = ADVERTISING_CARDS.find((item) => item.id === "signage-raised-letters-02");
+  assert(hero);
+  const result = compileAdvertisingRelatedLayout({
+    cards: [hero, card], categoryOrder: [card.category], heroId: hero.id,
+    columns: 2, layoutViewportWidth: 390, viewportHeight: 844, headerHeight: 70,
+  });
+  const placement = result.photoPlacements.find((item) => item.card.id === card.id);
+  assert(placement);
+  assert.equal(placement.mediaPixelHeight, placement.pixelWidth * 9 / 16);
+  assert.equal(placement.pixelHeight, placement.mediaPixelHeight + 44);
+});
+
+test("R6-R3 singleton and malformed authored lists retain existing boundaries", () => {
+  const card = wideMediaCount(2);
+  const singleton = { ...card, mediaItems: [card.mediaItems[0]], rank: 0, sourceOrder: 0 };
+  assert.equal(validateAdvertisingCardMedia(singleton).mediaItems.length, 1);
+  const layout = compileAdvertisingProductLayout({ cards: [singleton], categoryOrder: [singleton.category],
+    columns: 2, layoutViewportWidth: 390, presentationOrder: [singleton.id] });
+  const placement = layout.placements[0];
+  assert.equal(placement.pixelHeight, placement.mediaPixelHeight, "singleton has no control strip");
+  for (const mediaItems of [[], null]) {
+    assert.throws(() => validateAdvertisingCards([{ ...singleton, mediaItems }],
+      { categoryOrder: [singleton.category], requireRanks: false }), /media dimensions/i);
+  }
+});
+
+test("M01d grid uses valid 16:9 video cover while legacy metadata stays square", () => {
+  const card = { ...wideVideoCoverFixture(), rank: 0, sourceOrder: 0 };
+  const layout = compileAdvertisingProductLayout({
+    cards: [card], categoryOrder: [card.category], columns: 2,
+    layoutViewportWidth: 390, presentationOrder: [card.id],
+  });
+  assert.equal(card.media.width, card.media.height, "legacy media is real square metadata");
+  assert.equal(layout.placements.length, 1);
+  const placement = layout.placements[0];
+  assert.ok(Math.abs(placement.mediaPixelHeight - placement.pixelWidth * 9 / 16) <= 1,
+    `grid frame must use 16:9 cover: ${placement.pixelWidth}x${placement.mediaPixelHeight}`);
+});
+
+test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alone", () => {
+  const card = wideVideoCoverFixture();
+  const hero = ADVERTISING_CARDS.find((item) => item.id === "signage-raised-letters-02");
+  assert(hero);
+  const result = compileAdvertisingRelatedLayout({
+    cards: [hero, card], categoryOrder: [card.category], heroId: hero.id,
+    columns: 2, layoutViewportWidth: 390, viewportHeight: 844, headerHeight: 70,
+  });
+  const placement = result.photoPlacements.find((item) => item.card.id === card.id);
+  assert(placement, "wide fixture is selected as related media");
+  assert.ok(Math.abs(placement.mediaPixelHeight - placement.pixelWidth * 9 / 16) <= 1,
+    `related frame must use 16:9 cover: ${placement.pixelWidth}x${placement.mediaPixelHeight}`);
+});
+
+test("M01d original 154 cards retain coordinate hash, order and no filler", () => {
+  const order = ADVERTISING_CARDS.map((card) => card.id);
+  for (const [layoutViewportWidth, expectedHash] of [[390, "8090c910"], [1440, "15171343"]]) {
+    const layout = compileAdvertisingProductLayout({
+      cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
+      columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
+    });
+    assert.equal(layout.coordinateHash, expectedHash);
+    assert.deepEqual(layout.diagnostics.placementOrder, order);
+    assert.equal(layout.placements.length, 154);
+    assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
+  }
+});
+
+function organicTightBudgetOptions() {
+  const heights = [130, 60, 180, 150, 60, 130, 220, 150, 75, 150, 220, 180, 150, 180, 220, 60, 220, 150, 220];
+  const cards = fixture(heights.map((height) => [100, height]), "organic-tight");
+  const presentationOrder = [17, 5, 11, 2, 16, 6, 9, 3, 13, 1, 18, 4, 15, 7, 8, 14, 12, 0, 10]
+    .map((index) => cards[index].id);
+  return { cards, categoryOrder: ["organic-tight"], columns: 4, layoutViewportWidth: 1024, presentationOrder };
 }
 
 function readWebpSize(filePath) {
@@ -120,7 +254,7 @@ function knownFeasibleFixture(count = 3000) {
 }
 
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
-  assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v13");
+  assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v14");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
   assert.deepEqual(categoryOrder, ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"]);
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
@@ -213,6 +347,25 @@ test("R15 selects Pinterest geometry from full span at every responsive boundary
       `${width}px glass appears only for real side overflow`);
     assert.equal(matchingRatio.hasContainOverflow, false, `${width}px fitted ratio disables zoom-glass`);
   }
+});
+
+test("L04R reserves measured readable primary height before related cards without changing their pool", () => {
+  const cards = fixture([[100, 100], [100, 150], [200, 100]], "readable-detail");
+  const options = { cards, categoryOrder: ["readable-detail"], heroId: cards[0].id,
+    columns: 2, layoutViewportWidth: 390, viewportHeight: 390, headerHeight: 100, seed: 17 };
+  const baseline = compileAdvertisingRelatedLayout(options);
+  let measurement;
+  const readable = compileAdvertisingRelatedLayout({ ...options,
+    measureDescriptionHeight: () => 400,
+    measureDescriptionMinimumHeight: (width, mode) => { measurement = { width, mode }; return 340; },
+    minimumImageZoneHeight: 104 });
+  assert.deepEqual(measurement, { width: baseline.primary.descriptionWidth, mode: baseline.primary.mode });
+  assert.equal(readable.primary.descriptionHeight, 340);
+  assert.ok(readable.primary.imageZoneHeight >= 104);
+  assert.equal(readable.layout.columns, baseline.layout.columns);
+  assert.deepEqual(readable.photoPlacements.map(p => p.card.id).sort(), baseline.photoPlacements.map(p => p.card.id).sort());
+  assert.ok(readable.photoPlacements.every(p => p.y >= readable.primary.height));
+  assert.deepEqual(compileAdvertisingRelatedLayout({ ...options, minimumImageZoneHeight: 0 }), baseline);
 });
 
 test("P7.1 keeps suggestion in primary info for split and first in related grid for full-span", () => {
@@ -444,6 +597,106 @@ test("D9 reports a shared tiny phase budget without claiming infeasibility", () 
     (error) => error.code === "search-exhausted" && error.diagnostic.budget === 1
       && error.diagnostic.operations <= 1 && error.code !== "proven-infeasible",
   );
+});
+
+test("organic order preserves a hard-safe requested layout when only its full budget succeeds", () => {
+  const cards = fixture([
+    ...Array.from({ length: 5 }, () => [100, 150]),
+    ...Array.from({ length: 3 }, () => [100, 60]),
+  ], "organic-budget");
+  const options = {
+    cards, categoryOrder: ["organic-budget"], columns: 4,
+    layoutViewportWidth: 1024, presentationOrder: cards.map(({ id }) => id),
+    operationBudget: 64,
+  };
+  const baseline = compileAdvertisingProductLayout(options);
+  assertGrid(baseline, "hard-safe requested order", cards.length);
+  const layout = compileAdvertisingProductLayout({ ...options, organicOrder: true });
+  assertGrid(layout, "organic bounded fallback", cards.length);
+  assert.equal(layout.diagnostics.operations, 64);
+  assert.ok(layout.diagnostics.operations <= layout.diagnostics.budget);
+  assert.deepEqual(layout.diagnostics.placementOrder, baseline.diagnostics.placementOrder);
+});
+
+test("organic order keeps the 19-card pool hard-safe at the production operation budget", () => {
+  const options = organicTightBudgetOptions();
+  const layout = compileAdvertisingProductLayout({ ...options, organicOrder: true });
+  assertGrid(layout, "19-card production budget", options.cards.length);
+  assert.deepEqual(new Set(layout.placements.map(({ card }) => card.id)), new Set(options.presentationOrder));
+  assert.ok(layout.diagnostics.operations <= 300000);
+});
+
+test("organic order diagnoses a deliberately insufficient 19-card budget without exceeding it", () => {
+  const options = organicTightBudgetOptions();
+  const operationBudget = 128;
+  assert.throws(
+    () => compileAdvertisingProductLayout({ ...options, organicOrder: true, operationBudget }),
+    (error) => error.code === "search-exhausted" && error.diagnostic.budget === operationBudget
+      && error.diagnostic.operations <= operationBudget,
+  );
+  const candidateOrder = solveAdvertisingOrganicPresentationOrder(options.cards, options.presentationOrder)
+    .cards.map(({ id }) => id);
+  const candidate = compileAdvertisingProductLayout({ ...options, presentationOrder: candidateOrder, operationBudget });
+  assertGrid(candidate, "19-card alternative under tight budget", options.cards.length);
+  assert.ok(candidate.diagnostics.operations <= operationBudget);
+});
+
+test("organic order prefers a hard-safe layout with better rendered rhythm", () => {
+  const cards = fixture([
+    ...Array.from({ length: 4 }, () => [100, 200]),
+    ...Array.from({ length: 4 }, () => [200, 100]),
+  ], "organic-quality");
+  const options = {
+    cards, categoryOrder: ["organic-quality"], columns: 4,
+    layoutViewportWidth: 1024, presentationOrder: cards.map(({ id }) => id),
+    operationBudget: 128,
+  };
+  const baseline = compileAdvertisingProductLayout(options);
+  const layout = compileAdvertisingProductLayout({ ...options, organicOrder: true });
+  assertGrid(layout, "improved organic rhythm", cards.length);
+  assert.ok(scoreAdvertisingOrganicRhythm(layout.placements).score > scoreAdvertisingOrganicRhythm(baseline.placements).score);
+  assert.ok(layout.diagnostics.operations <= layout.diagnostics.budget);
+});
+
+test("organic order solves only the eligible filter pool when the catalog contains other categories", () => {
+  const photos = fixture([
+    ...Array.from({ length: 5 }, () => [100, 150]),
+    ...Array.from({ length: 3 }, () => [100, 60]),
+  ], "organic-filter");
+  const others = fixture([[100, 100], [100, 100]], "other-filter");
+  const cards = scheduleAdvertisingRank([...photos, ...others].map((card) => ({ ...card, layoutSpan: 1 })), ["organic-filter", "other-filter"]);
+  const options = {
+    cards, categoryOrder: ["organic-filter", "other-filter"], filter: "organic-filter",
+    columns: 4, layoutViewportWidth: 1024,
+    presentationOrder: photos.map(({ id }) => id), operationBudget: 128,
+  };
+  const baseline = compileAdvertisingProductLayout(options);
+  const layout = compileAdvertisingProductLayout({ ...options, organicOrder: true });
+  assertGrid(layout, "eligible filter pool", photos.length);
+  assert.deepEqual(new Set(layout.placements.map(({ card }) => card.id)), new Set(photos.map(({ id }) => id)));
+  assert.ok(scoreAdvertisingOrganicRhythm(layout.placements).score > scoreAdvertisingOrganicRhythm(baseline.placements).score);
+  assert.ok(layout.diagnostics.operations <= layout.diagnostics.budget);
+});
+
+test("organic related order keeps the suggestion block first while mixing photo ratios", () => {
+  const suggestion = {
+    id: "advertising-suggestion", kind: "suggestion", category: "organic-related",
+    sourceOrder: 0, rank: 0, layoutSpan: 1,
+    media: { src: "/suggestion.webp", width: 100, height: 100 },
+  };
+  const photos = fixture([
+    ...Array.from({ length: 5 }, () => [100, 150]),
+    ...Array.from({ length: 3 }, () => [100, 60]),
+  ], "organic-related").map((photo) => ({ ...photo, sourceOrder: photo.sourceOrder + 1, rank: photo.rank + 1 }));
+  const cards = [suggestion, ...photos];
+  const layout = compileAdvertisingProductLayout({
+    cards, categoryOrder: ["organic-related"], columns: 2,
+    layoutViewportWidth: 390, presentationOrder: cards.map(({ id }) => id),
+    organicOrder: true,
+  });
+  assertGrid(layout, "related suggestion anchor", cards.length);
+  assert.equal(layout.placements[0].card.kind, "suggestion");
+  assert.ok(layout.diagnostics.organicRhythm.actual.highLowTransitions > 1);
 });
 
 test("R11 lets strict shortest-column continuity use the aligned stagger fallback", () => {

@@ -2,12 +2,13 @@
 title: Hướng dẫn content, i18n và media
 type: design
 status: living
-updated: 2026-09-11
+updated: 2026-09-30
 related_docs:
   - ../decisions/head-office-address-confirmed.md
   - ../specs/frontend-route-and-content.md
   - ../specs/frontend-brand-shell-responsive-runtime.md
   - ../specs/living-docs-design-system.md
+  - ../specs/site-media-card-playback.md
   - ../../PRODUCT.md
 ---
 
@@ -212,6 +213,56 @@ và [standee, biển số hắt chân, sửa ảnh cụ thể](advertising-image
 hợp public. Thuật ngữ sản phẩm hiện tại là **Formex**; raw history và ID cũ
 giữ theo quy tắc tương thích của image quality.
 
+### Danh sách media trên card Advertising
+
+[Spec media-card đã duyệt](../specs/site-media-card-playback.md) sở hữu hành vi;
+schema M01a chỉ chuẩn bị dữ liệu. Mỗi card có `mediaItems[]` theo thứ tự tác giả
+chọn và `coverMediaId` trỏ tới `id` của một item trong danh sách. `id` ổn định,
+không trùng; mỗi item có `kind: "image"` hoặc `kind: "video"`, `src`,
+`sourceId`, kích thước pixel thật `width`/`height` là số nguyên dương an toàn,
+`altVi`/`altEn`, `source`, SHA-256 và `provenance`. Mọi item trong một card phải
+có cùng tỷ lệ `width:height` chính xác sau khi rút gọn; không làm tròn, dùng
+ngưỡng sai số hoặc tự crop để ép tỷ lệ. Alt mô tả media bằng hai ngôn ngữ,
+không là tên ảnh hiển thị. `media` cũ vẫn là ảnh để tương thích với renderer
+hiện hành; không đổi nó thành video khi cover là video. Nếu ảnh legacy này
+được hiển thị làm fallback trên card thì nó cũng phải cùng tỷ lệ; khác tỷ lệ
+chỉ được giữ làm metadata không hiển thị. 154 card một ảnh giữ dữ liệu hiện có.
+Card có đúng một item do tác giả chọn vẫn có thể dùng video hoặc ảnh có
+`src`/`id` khác `media` legacy; `coverMediaId` trỏ đúng item đó. Không ép item
+về ảnh legacy để bỏ chỉ báo: một item không hiện chỉ báo nhưng card hiển thị
+chính item và dùng `id` của nó theo [spec](../specs/site-media-card-playback.md).
+
+Item video còn cần `posterSrc`, `posterWidth`/`posterHeight` là kích thước pixel
+thật, số nguyên dương an toàn của poster, cùng tỷ lệ với video/card;
+`durationSeconds` dương và `hasAudio` boolean. Trước khi đưa asset hoặc fixture
+vào catalog, đối chiếu kích thước nội tại giải mã của video, poster và mọi ảnh
+fallback thực sự hiển thị với metadata đã khai báo; cùng tỷ lệ chính xác.
+Validator dữ liệu chỉ kiểm metadata, không chứng minh byte file có đúng kích
+thước: dùng probe media (`ffprobe` cho video, giải mã ảnh/browser cho poster)
+trên đúng file được tham chiếu. Không tự crop để chữa dữ liệu sai.
+Giữ track tiếng gốc nếu video có audio; grid mute và detail có điều khiển bật
+tiếng theo spec. Khi xuất poster từ clip, lưu nguồn clip, cách tạo và hash
+file poster trong hồ sơ provenance của asset; không gán provenance của clip
+cho poster như thể đó là file gốc. Không lưu GIF trong media public, không
+tạo đường dẫn asset hư cấu. Public hiện vẫn chỉ có ảnh: 154 card mỗi card một
+item image; test video M01a dùng fixture synthetic, chưa đưa video lên site.
+
+Primary Advertising lấy item đang active khi mở từ card grid hoặc related;
+URL trực tiếp `?photo=cardId` và reload bắt đầu ở `coverMediaId`. Thumbnail cạnh
+mô tả chọn ảnh hoặc video trong cùng card, hiển thị viền chọn và nhãn VI/EN;
+thao tác này không sửa URL hoặc thêm history entry. Ảnh được chọn mở đúng ảnh
+đó trong viewer; video dùng poster, player và nút bật/tắt tiếng, bắt đầu ở
+trạng thái tắt tiếng. Nút tiếng đồng bộ với volume/mute của player gốc và chỉ
+hiện khi media có audio; khi rời route, player dừng và nhả nguồn. Card grid vẫn
+tắt tiếng. Dải thumbnail không xuất hiện
+trên 154 card ảnh legacy một item; item singleton do tác giả chọn giữ ID riêng.
+
+Supersession M02b ghi ngày 2026-09-30 theo
+[spec media-card đã duyệt](../specs/site-media-card-playback.md): khi
+đóng detail về grid, chỉ card vừa đóng gần nhất có lớp phủ tối và nhãn VI
+`Vừa xem` / EN `Just viewed`. Đóng card khác chuyển dấu; full reload xóa dấu.
+Dấu không tự cuộn tới card và không ghi vào storage.
+
 ### Pool 109 card hiện tại
 
 [GRID-R4](../specs/advertising-grid-span-organic.md) là delta đã duyệt, đang kiểm chứng tích hợp,
@@ -384,3 +435,7 @@ thật, không ghi kết quả chưa chạy.
 - **Responsive derivative**: biến thể ảnh nhỏ hơn để browser chọn theo viewport
   qua `srcset` và `sizes`.
 - **Observed**: fact đọc từ source/test, chưa tự trở thành accepted target.
+- **Cover media**: item có ID được `coverMediaId` chọn làm đại diện card.
+- **Số nguyên an toàn**: số nguyên dương biểu diễn chính xác trong JavaScript
+  (`Number.isSafeInteger`), dùng cho kích thước pixel khai báo.
+- **Provenance**: hồ sơ nguồn gốc và các bước tạo asset để kiểm chứng bản public.

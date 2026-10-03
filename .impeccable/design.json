@@ -3,6 +3,13 @@
   "generatedAt": "2026-09-08T20:44:44.330268+00:00",
   "title": "Design System: Trường Thịnh",
   "extensions": {
+    "mobileLayoutParity": {
+      "status": "observed implementation; state/body/native verification in progress",
+      "contract": "docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--draft-2026-09-28",
+      "evidence": "docs/verification/mobile-layout-parity-2026-09-28.md",
+      "source": ["src/site/style.css", "src/site/detail.css", "src/site/about/index.html", "src/site/advertising-products/catalog-runtime.mjs", "src/site/advertising-products/layout-core.mjs"],
+      "scope": "Intrinsic mobile hero/legacy/portal geometry, long-word wrap, fluid ink masks; L04R measured CTA/info/image-control floors and necessary-only pagination indicator; WebKit inner suggestion measurement correction. Accepted typography/media/random/scrollbar retained. Chrome/A05s and Safari/iPhone physical/owner/reference/MCP gates separate."
+    },
     "colorMeta": {
       "paper": {
         "role": "neutral",

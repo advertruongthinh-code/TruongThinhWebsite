@@ -174,7 +174,7 @@ vẫn là phạm vi độc lập.
 - Photo URL dùng parent route với query `photo=<record.id>`; `record.id` là stable photo identity. `title`, `productKey` và `media.sourceId` không làm khóa URL.
 - Tag dùng `tag=<stable-tag.id>`. URL direct, reload, mở tab mới và Forward dựng đúng photo, tag, locale và related state.
 - Chuỗi chuẩn: grid mở A, A mở B, Back về A, Back tiếp về đúng grid gốc với category, logical scroll và focus card A được phục hồi.
-- Navbar về danh mục đưa ảnh đang xem vào viewport grid để morph về đúng card. Đây là thao tác đi thẳng về grid; Browser Back vẫn phục hồi chuỗi A/B và vị trí grid gốc. Phải kiểm riêng trường hợp ảnh B đang xem ở xa ảnh A mở đầu.
+- Navbar về danh mục đưa ảnh đang xem vào viewport grid, không tạo grid-detail morph. Đây là thao tác đi thẳng về grid; Browser Back vẫn phục hồi chuỗi A/B và vị trí grid gốc. Phải kiểm riêng trường hợp ảnh B đang xem ở xa ảnh A mở đầu.
 - Trước grid → A, lưu category, logical scroll và `focusId=A` bằng `replaceState`, sau đó `pushState` A. Trước A → B, lưu detail state A rồi `pushState` B.
 - Chọn hoặc reset tag giữ hero, cập nhật related bằng `replaceState`, không tạo thêm một bước Back.
 - Escape lùi một detail entry; direct link lùi về grid chứa ảnh đó.
@@ -188,21 +188,20 @@ vẫn là phạm vi độc lập.
 Giữ toàn bộ gate v7: một cột mỗi ảnh; intrinsic height; lệch đáy ảnh liền kề tối thiểu0,20×chiều cao ảnh lớn hơn; cân đuôi ảnh thật; không spacer/crop/mất ảnh để đạt gate. Skeleton/gợi ý không được tính là ảnh thật để che hụt cột.
 Position motion dùng pipeline Masonry/Outlayer hiện hữu,400ms ease, delay0, không stagger. Mọi thay đổi tọa độ của card đang hiện, gồm filter/photo/tag/resize/đổi số cột và dữ liệu, phải animate từ trạng thái đang thấy đến vị trí mới. Chỉ một engine sở hữu transform vị trí; không thêm GSAP/WAAPI FLIP cho cùng card.
 Initial load cũng có stuffing: khởi tạo card của visible window tại đầu cột đích (sau vùng primary reservation nếu có), rồi đưa tới tọa độ organic bằng cùng400ms. Origin dựng trước paint, không hiện final rồi giật về đầu. Card có tọa độ không đổi không cần chạy translate giả. Chỉ initial/view-entry cần khởi tạo origin; remount do scroll virtualization ở cached coordinate vẫn instant, không kéo ảnh từ đầu trang khi khách chỉ cuộn.
-Giữ media fade0,6s ease-out riêng trên img, hover theo shared contract. Tái layout chỉ khi hình học đổi; không render lại toàn dataset khi scroll. Cohort không vượt oldWindow∪newWindow∪focused∪ảnh đang morph; sau settle trả normal bound.
-Correction owner 2026-09-11: focused/anchor chỉ giữ card còn thuộc related layout hiện tại. Khi card đang focus trở thành ảnh detail hoặc bị filter loại, chuyển focus sang vùng mô tả với preventScroll; card cũ ẩn ngay trong cohort và bị loại sau settle. Không giữ card thiếu placement ở tọa độ mặc định; source morph được chụp trước khi đổi layout. Card hợp lệ đang focus vẫn được giữ khi virtualization thay window.
-Click parent→photo, related→photo và photo→parent: source/target/clone cùng stable ID; target chưa được lộ trước khi clone nhận geometry. Reuse thumbnail đã sẵn sàng khi ảnh lớn đang tải, giữ placeholder/fail-open theo baseline; không chờ tải lại toàn grid. Một morph active, click/Back mới nhất tiếp quản hoặc hủy sạch; không reset về frame đầu giữa chừng. Vào400ms, ra300ms với easing hiện hữu của photo morph; không gán route veil0,75s/1s vào query photo.
+Giữ media fade0,6s ease-out riêng trên img, hover theo shared contract. Tái layout chỉ khi hình học đổi; không render lại toàn dataset khi scroll. Cohort giữ oldWindow∪newWindow∪focused khi position motion đang chạy; sau settle trả normal bound.
+Correction owner 2026-09-11: focused/anchor chỉ giữ card còn thuộc related layout hiện tại. Khi card đang focus trở thành ảnh detail hoặc bị filter loại, chuyển focus sang vùng mô tả với preventScroll; card cũ ẩn ngay trong cohort và bị loại sau settle. Không giữ card thiếu placement ở tọa độ mặc định. Card hợp lệ đang focus vẫn được giữ khi virtualization thay window.
+Click parent→photo, related→photo và photo→parent đổi view tức thì, không tạo clone, backdrop morph hoặc lease khóa cuộn. Ảnh primary chọn media đang active trên card; Browser Back/Forward khôi phục media và logical scroll riêng từng entry. Viewer primary↔dialog tiếp tục có morph riêng. Route veil không được gán vào query photo.
 Ngân sách kiểm đã chốt: Chrome không throttle, ảnh/font cache,20 lượt mỗi luồng ở1329×912; p95 click→frame phản hồi đầu≤100ms và không task đồng bộ do handler/layout mới vượt50ms. Ghi trace/baseline/candidate cùng máy và viewport; cold image kiểm fail-open riêng, không trộn network chậm vào số đo solver. Đây là mục tiêu phải chứng minh sau triển khai, không phải số đo đã đạt.
 
 #### Photo morph, viewer và phục hồi
 
-- Chỉ ảnh được click morph từ rect nguồn tới rect hero. Không morph cả grid, navbar hoặc container layout.
+- Grid/related card và ảnh primary đổi view không morph; không tạo clone ảnh bay giữa hai vùng.
 - Related grid tái dùng nhịp vị trí 400 ms và reveal media hiện tại của Advertising; các card còn lại không chuyển cùng ảnh hero.
-- Dùng transform của lớp ảnh chuyển tiếp; không animate width/height làm layout chạy từng frame. Entrance 400 ms, exit 300 ms, easing giảm tốc, không bounce.
-- Chỉ một morph active. Click nhanh, Back đang mở, resize, ảnh tải chậm và lỗi dependency phải hủy hoặc tiếp quản theo state mới nhất; không để clone nhân đôi, input khóa vĩnh viễn hoặc rơi vào view cũ.
-- Giữ source/target trong virtual window đến khi settle; giải phóng sau đó. Focus trả về link ảnh bằng stable ID, không bằng title/index.
-- Back B → A phục hồi hero A, thông tin A, tag A và slot B trong related để reverse morph. Back A → grid phục hồi A đúng card và vị trí.
-- Nếu viewport không đổi, sai số scroll sau Back tối đa 2 CSS px sau khi ảnh/font sẵn sàng. Nếu viewport đổi, phục hồi cùng anchor và offset tương đối.
-- Với `prefers-reduced-motion: reduce`, không morph, translate hoặc scale; đổi view tức thì, giữ đúng photo, history, scroll, focus và related state.
+- Click nhanh, Back đang mở, resize, ảnh tải chậm và lỗi dependency phải giữ state mới nhất; không để target ẩn, input khóa hoặc rơi vào view cũ.
+- Virtual window giữ card đang focus theo stable ID, không theo title/index; marker chỉ có trên card detail vừa đóng gần nhất và không kéo viewport tới card đó.
+- Back B → A phục hồi hero A, media active, thông tin A, tag A và slot B trong related. Back A → grid phục hồi A đúng card, media active và vị trí.
+- Nếu viewport không đổi, sai số scroll của từng entry sau Back/Forward tối đa 1 CSS px, không có frame tại Y của entry khác. Nếu viewport đổi, phục hồi cùng anchor và offset tương đối.
+- Với `prefers-reduced-motion: reduce`, grid-detail vẫn đổi view tức thì, giữ đúng photo, media, history, scroll, focus và related state.
 - Trong viewer, reduced motion bỏ animation; thao tác zoom/pan do người xem chủ động vẫn hoạt động tức thì để đọc chi tiết ảnh.
 - Expand mở nhãn khi hover/focus-visible, thu lại khi rời tương tác. Reference đo được width 250 ms ease-in và opacity nhãn 250 ms với easing khác nhau cho vào/ra; áp cùng nhịp, giữ icon ở cạnh neo của nút và không làm grid/hero dịch chuyển. Zoom/đóng/reset phản hồi sắc nền khi hover; không suy CSS transform 85 ms thành hiệu ứng phóng to khi chưa quan sát. Trên touch, một lần tap thực hiện chức năng; accessible name luôn tồn tại. Reduced motion bỏ chuyển động mở/thu nhưng giữ nhãn, trạng thái và focus dùng được.
 - Viewer mở từ rect ảnh detail tới rect fit, đóng về đúng ảnh detail; chỉ animate transform của ảnh. Zoom/reset dùng 200 ms `ease-in-out` theo style đã đo trực tiếp. Mở/đóng chọn 300/250 ms và easing `cubic-bezier(0.55, 0, 0, 1)`; easing có evidence Pinterest, duration mở/đóng là lựa chọn Trường Thịnh vì reference chưa đo được duration. Pan theo con trỏ tức thì; giới hạn dựa trên ảnh sau zoom và viewport. Resize hoặc thao tác liên tiếp phải hủy/tiếp quản motion, không kẹt dialog/focus/scroll.
@@ -353,11 +352,11 @@ suggestion, tag và reserved area thật, cũng chưa là browser acceptance.
 
 ### G2 — Detail/history
 
-Desktop/mobile VI/EN: mở A, chọn tag, mở B; Back phục hồi hero A, tag A, related slot B và reverse morph; Back tiếp về grid gốc với scroll lệch ≤2 CSS px và focus A. Forward, navbar, Escape, reload, URL direct, sáu URL cũ, đổi locale đều đúng entry. P1.3 không có nút Quay lại riêng; Escape/Browser Back giữ nguyên nhánh history. Navbar vẫn đưa thẳng về grid chứa ảnh hiện tại; kiểm riêng trường hợp B cách xa A. Assertion không có UI Back áp dụng lại cho P1.3; evidence nút Back v7 giữ lịch sử.
+Desktop/mobile VI/EN: mở A, chọn tag, mở B; Back phục hồi hero A, media active, tag A và related slot B; Back tiếp về grid gốc với media, scroll lệch ≤1 CSS px và focus A. Forward, navbar, Escape, reload, URL direct, sáu URL cũ, đổi locale đều đúng entry. P1.3 không có nút Quay lại riêng; Escape/Browser Back giữ nguyên nhánh history. Navbar vẫn đưa thẳng về grid chứa ảnh hiện tại; kiểm riêng trường hợp B cách xa A. Assertion không có UI Back áp dụng lại cho P1.3; evidence nút Back v7 giữ lịch sử.
 
 ### G3 — Motion
 
-Capture frame đầu/giữa/cuối chứng minh đúng photo ID từ source tới destination, không morph nhầm ảnh/cả grid. Kiểm click nhanh, Back giữa transition, resize, ảnh tải chậm, dependency lỗi và reduced motion. Reduced motion phải không có morph/translate/scale.
+Capture frame trên click, Back/Forward chứng minh đúng photo/media ID và Y từng entry, không clone, lease khóa cuộn hoặc frame nhảy Y. Kiểm click nhanh, resize, ảnh tải chậm, dependency lỗi và reduced motion. Morph viewer có gate riêng.
 
 ### G4 — Tags/CTA
 
@@ -390,7 +389,7 @@ dưới primary. Đây là kích thước giả lập/cửa sổ, không là thi
 
 - Geometry: toàn109 media với VI/EN và viewport representative320,390,430,750/751,820,960/961,1024,1200/1201,1329,1569,1920,2560; có cửa sổ ngang320px cao, tall/short, scrollbar và resize liên tục. Thêm r0,899/0,900/1,000/1,100/1,101; hai phía ngưỡng mô tả240px. Primary nằm dưới navbar và bottom≤visibleBottom−inset với dung sai1 CSS px; chia vùng đúng a/b sau trừ gap; sai số intrinsic ratio≤0,1%; không crop/dải tối/overlap.
 - Related/gợi ý: ảnh thật một cột, solver/tail/organic v7 giữ nguyên; sparse tag0/1/3 ảnh, full-span, fallback giảm cột; cụm gợi ý gần primary và đúng103/16/24/8/12px, title đủ một dòng tại320px thường. Mô tả dài và text zoom200% phải truy cập hết bằng touch/keyboard; không cắt chữ để giữ một dòng trong chế độ accessibility.
-- Motion/navigation: capture frame đầu/giữa/cuối initial stuffing, filter, tag, related click, resize, rapid click, Back giữa morph; không flash destination và cleanup đầy đủ. Navbar parent reclick giữ filter/history; detail→parent đúng ảnh, direct/reload/đổi VI/EN/menu/modified click; so sánh auto-collapse/hide/reveal với shared Residential tại cùng viewport.
+- Motion/navigation: capture frame đầu/giữa/cuối initial stuffing, filter, tag và related layout; grid/related↔detail, rapid click, Back/Forward và resize không tạo clone hoặc flash sai media. Navbar parent reclick giữ filter/history; detail→parent đúng ảnh, direct/reload/đổi VI/EN/menu/modified click; so sánh auto-collapse/hide/reveal với shared Residential tại cùng viewport.
 - Viewer/CTA: chạy focused suite viewer trên Chromium/Firefox/WebKit, normal/reduced motion, phone landscape và dialog resize; kiểm control/focus/scroll/ratio. Chụp cuối parent grid chứng minh chữ trong vùng skeleton sậm hơn và một CTA, gồm sau filter/resize. Không phát sinh console/network error do delta.
 - Owner xem local preview của build đã kiểm; evidence ghi source/output hash, công cụ/viewport/giới hạn. Math preflight hoặc focused PASS không là mọi thiết bị vật lý, full-site hoặc canonical Espacio PASS.
 
@@ -423,7 +422,7 @@ organic đã chốt. UI-FRAME-R4 thay giả định metadata luôn dưới ảnh
 quy tắc hiển thị trọn ảnh sản phẩm. Delta plan một cột phải có phạm vi và phép
 kiểm riêng, không dùng approval plan Auto cũ làm evidence đã triển khai.
 
-Các đoạn discovery/proposal và hai câu hỏi async trong snapshot Notion được supersede bởi decisions ở R2/R3: desktop/mobile đã chốt; navbar về grid được chốt là thao tác trực tiếp đưa ảnh hiện tại vào viewport để morph, còn Browser Back giữ chuỗi A/B và grid gốc. Các spec cũ `docs/specs/advertising-grid-span-organic.md` và `docs/specs/advertising-products-turnkey-services.md` chỉ còn là nguồn tham chiếu cho phần không bị AD-BROWSE-R1 thay thế; plan phải chỉ rõ delta trước implementation.
+Các đoạn discovery/proposal và hai câu hỏi async trong snapshot Notion được supersede bởi decisions ở R2/R3: desktop/mobile đã chốt; navbar về grid là thao tác trực tiếp đưa ảnh hiện tại vào viewport, còn Browser Back giữ chuỗi A/B và grid gốc. Grid-detail morph cũ tiếp tục bị [M02b](site-media-card-playback.md) supersede. Các spec cũ `docs/specs/advertising-grid-span-organic.md` và `docs/specs/advertising-products-turnkey-services.md` chỉ còn là nguồn tham chiếu cho phần không bị AD-BROWSE-R1 thay thế; plan phải chỉ rõ delta trước implementation.
 
 Khi implementation thay runtime, main cập nhật guide sở hữu route, motion, data và trạng thái kiểm chứng trong cùng task. `STATE` giữ snapshot; Notion giữ plan/status. Phần source UI chưa triển khai không được mô tả như behavior hiện hành.
 
@@ -504,7 +503,7 @@ Owner duyệt R12 ngày `2026-09-22`; implementation chờ duyệt plan
 - Khi user kích hoạt suggestion, media thu mượt về scale `1` và crossfade sang
   nền trắng trong `250ms ease-out`. Endpoint active chỉ có nền trắng, chữ đen,
   viền đen; không hiện ảnh, overlay hoặc hover/focus media motion.
-- `aria-pressed`, keyboard activation, focus-visible, photo morph identity,
+- `aria-pressed`, keyboard activation, focus-visible, photo identity,
   button label VI/EN và một nút mỗi dòng giữ nguyên. Active state không thay
   outer rect, không làm solver relayout và không chặn browser Back/Forward.
 
@@ -528,8 +527,8 @@ plan, task ngày `2026-09-22`.
 - Direct/deep-link photo không có grid entry nội bộ: button fallback bằng
   navigation tới `/{locale}/advertising-products/`, không query, fragment hoặc
   scroll restoration.
-- Escape và navbar giữ behavior hiện hành. Không thay controller contract của
-  navbar, photo morph, viewer zoom, suggestion hoặc related grid.
+- Escape và navbar giữ behavior hiện hành. M02b supersede riêng photo
+  card↔detail morph trong controller; viewer zoom, suggestion và related grid giữ contract.
 - Browser acceptance phủ VI/EN, grid→photo→Back, direct photo fallback,
   keyboard/focus, reduced motion và viewport `390/1440`; không có console error.
 
@@ -537,7 +536,8 @@ plan, task ngày `2026-09-22`.
 
 **Status:** accepted; owner xác nhận intent và cho phép Codex tự duyệt spec,
 plan, task ngày `2026-09-22`. Correction này supersede riêng Delta P6.1; history,
-navbar, photo morph, viewer zoom và suggestion giữ contract hiện hành.
+navbar, viewer zoom và suggestion giữ contract hiện hành. M02b supersede
+riêng morph giữa mọi grid/related card và primary detail.
 
 - Bỏ hoàn toàn nút Back riêng trong primary photo. Điều hướng quay lại tiếp tục
   dùng Browser Back, Escape và navbar theo R3/R4; không thêm fallback control mới.
@@ -661,8 +661,8 @@ Nhánh navbar trong correction này được thay bởi P7.5 bên dưới; giữ
   Random preset không được thay geometry hay vị trí CTA so với footer.
 - Nút gợi ý có ảnh: border trong suốt và nền không vẽ dưới border; active giữ
   border đen/nền trắng. Keyboard focus vẫn có chỉ báo riêng.
-- Blur background chỉ bắt đầu animate sau khi foreground morph hoàn tất;
-  reduced motion và direct load giữ trạng thái tĩnh. Thay contract erase25% cũ.
+- Nền blur quanh primary giữ tĩnh trong grid-detail click/Back/Forward;
+  chỉ đổi media source khi primary đổi. M02b supersede các nhịp foreground/backdrop morph cũ.
 - Glass cuối skeleton kết thúc bằng trắng đặc, phủ chồng mép clip ít nhất2px;
   biên chuyển cong nhẹ, tâm ellipse phía footer, full bleed như contract cũ.
 - CTA và toàn footer cùng hiện ở cuối trang; vị trí CTA ổn định khi reload cùng
@@ -675,7 +675,7 @@ Owner xác nhận trong phiên 2026-09-23–24; tiếp tục scope đã duyệt.
 
 - Navbar từ photo **luôn về All**, xóa category/tag/photo khỏi URL. Nếu vẫn ở
   ảnh A đã mở từ parent, giữ A ở đúng offset cũ trong viewport. Nếu đã duyệt
-  sang ảnh B, căn giữa B trong phần nhìn và morph primary về card B. Browser
+  sang ảnh B, căn giữa B trong phần nhìn và đánh dấu card B vừa xem. Browser
   Back giữ chuỗi history, bộ lọc và scroll của entry tương ứng.
 - Cùng dữ liệu, viewport và bộ lọc phải cho cùng tọa độ mọi card, kể cả khi
   reload. Random bộ ảnh gợi ý hoặc preset màu skeleton không thay geometry.
@@ -683,11 +683,9 @@ Owner xác nhận trong phiên 2026-09-23–24; tiếp tục scope đã duyệt.
 - Khi hai container cùng tồn tại trong chuyển route, CTA đo footer thuộc
   chính container mới. Không lấy footer đầu tiên toàn document. Giữ bố cục
   quang học và gap hiện hành; cả copy CTA và toàn footer cùng hiện tại End.
-- Morph vào primary 520ms; history và trở về grid 400ms. Sau khi ảnh vào vị
-  trí, background mới chạy 1200ms: opacity hoàn tất trong420ms đầu, sau đó
-  zoom-out tiếp780ms đến scale1.12. Easing giảm tốc; cuộn vẫn dùng được trong
-  đoạn lingering. Retarget hủy background cũ, chỉ ảnh cuối chạy phần nền.
-  Direct load và reduced motion giữ ảnh nền tĩnh.
+- M02b supersede morph 520/400ms và backdrop 1200ms của grid-detail ở đoạn
+  P7.5 cũ. Nền primary giữ tĩnh trên click, history, direct load và reduced
+  motion; viewer primary↔dialog vẫn giữ motion đã duyệt.
 - Mỗi nhóm gợi ý lấy ngẫu nhiên một tập tối đa9 ảnh liên quan trong document
   hiện tại, tối thiểu4 để autoplay; mỗi5s crossfade1.6s, không tự zoom. Zoom
   chỉ theo hover chung. Active trắng/chữ đen; inactive không đổi độ tối khi
@@ -703,6 +701,29 @@ Owner xác nhận trong phiên 2026-09-23–24; tiếp tục scope đã duyệt.
   ảnh tiếp tục hiển thị tĩnh theo contract slideshow.
 
 Evidence hiện tại: [P7.5](../verification/advertising-september-p7-5-2026-09-24.md).
+
+## Supersession random accepted
+
+[Organic random](advertising-organic-random.md) thay yêu cầu thứ tự/tọa độ tuyệt
+đối qua direct/F5 ở P7.4/P7.5, sort related R6, slideshow5s thành3s và nhịp
+frame batch. Same-seed/filter/history/locale giữ context; ratio, frontier,
+khoảng CTA–footer giữ giá trị hiện hành với sai lệch đo≤1 CSS px, final viewport,
+glass, Flow và fade1600ms giữ nguyên. Shared footer top gap vẫn48/64px theo
+P6.1;≤1px không là gap tuyệt đối hoặc khoảng từ chữ CTA tới footer.
+[Delta lifecycle27/09](advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
+giữ common slot khi toolbar/resize/scroll, không thay yêu cầu full-exit replay.
+
+## Amendment layout mobile L04R — accepted 28/09/2026
+
+Owner duyệt [delta L04R](frontend-brand-shell-responsive-runtime.md#l04r-readable-content-floor--draft-2026-09-28)
+và plan cùng ngày. P7.2 cap giữ ở nơi chữ/control đã fit; nếu không đủ một dòng
+mô tả đầy đủ và category/CTA/indicator cần thiết, info/primary tăng tối thiểu.
+Indicator chỉ chiếm chỗ khi cần nhiều page. Measurement dùng full description
+source, không dùng một page đang hiện để quyết định geometry sau resize/re-entry.
+Image zone giữ contain ratio, đủ expand control/label/focus và edge spacing;
+related grid tiếp tục sau primary. User cuộn để tiếp cận khi minimum vượt viewport.
+Không giảm font, bỏ chữ, đổi random/history/suggestion span hoặc motion/glass.
+Target hiện tại Chrome/A05s và Safari/iPhone; local8792, chưa deploy.
 
 ## Chú thích thuật ngữ
 

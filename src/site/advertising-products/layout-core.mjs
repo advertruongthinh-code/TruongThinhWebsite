@@ -1,4 +1,4 @@
-export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v13";
+export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v14";
 export const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
 export const ADVERTISING_MIN_COLUMNS = 2;
 export const ADVERTISING_MAX_COLUMNS = 4;
@@ -10,6 +10,129 @@ export const ADVERTISING_SEARCH_OPERATION_BUDGET = 300000;
 const SEARCH_WINDOW_SIZE = 64;
 const SEARCH_CANDIDATE_LIMIT = 20;
 const SEARCH_BACKTRACK_DEPTH = 24;
+const ORGANIC_RHYTHM_WINDOW = 12;
+
+function layoutMedia(card) {
+  if (card?.mediaItems === undefined) return card?.media;
+  if (!Array.isArray(card.mediaItems) || card.mediaItems.length === 0) return null;
+  const coverId = card.coverMediaId ?? card.mediaItems[0]?.id;
+  return card.mediaItems.find((item) => item?.id === coverId) ?? null;
+}
+
+function mediaControlStripHeight(card) {
+  return Array.isArray(card?.mediaItems) && card.mediaItems.length >= 2 ? 44 : 0;
+}
+
+function mediaRatioBand(card) {
+  const media = layoutMedia(card);
+  const ratio = media?.height / media?.width;
+  return ratio >= 1.15 ? "high" : ratio <= 0.9 ? "low" : "medium";
+}
+
+export function scoreAdvertisingOrganicRhythm(items, limit = ORGANIC_RHYTHM_WINDOW) {
+  const cards = items.map((item) => item?.card || item).filter(Boolean);
+  const bands = cards.slice(0, limit).map(mediaRatioBand);
+  const counts = cards.reduce((result, card) => {
+    const band = mediaRatioBand(card);
+    result[band] += 1;
+    return result;
+  }, { high: 0, low: 0, medium: 0 });
+  let highLowTransitions = 0;
+  let repeatedBandPairs = 0;
+  let currentBand = null;
+  let currentRun = 0;
+  let longestRun = 0;
+  for (let index = 0; index < bands.length; index += 1) {
+    const band = bands[index];
+    const previous = bands[index - 1];
+    if ((band === "high" && previous === "low") || (band === "low" && previous === "high")) highLowTransitions += 1;
+    if (band === previous && band !== "medium") repeatedBandPairs += 1;
+    if (band === "medium") {
+      currentBand = null;
+      currentRun = 0;
+    } else if (band === currentBand) {
+      currentRun += 1;
+      longestRun = Math.max(longestRun, currentRun);
+    } else {
+      currentBand = band;
+      currentRun = 1;
+      longestRun = Math.max(longestRun, currentRun);
+    }
+  }
+  const targetApplicable = counts.high >= 2 && counts.low >= 2;
+  const hasBothBands = bands.includes("high") && bands.includes("low");
+  const targetMet = targetApplicable ? hasBothBands && longestRun <= 4 : null;
+  return {
+    counts,
+    firstBands: bands,
+    hasBothBands,
+    highLowTransitions,
+    longestRun,
+    repeatedBandPairs,
+    score: highLowTransitions * 100 - repeatedBandPairs * 10 - longestRun,
+    targetApplicable,
+    targetMet,
+  };
+}
+
+export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrderIds) {
+  if (!Array.isArray(cards) || !Array.isArray(presentationOrderIds)) return null;
+  const cardById = new Map(cards.map((card) => [card.id, card]));
+  if (presentationOrderIds.length !== cardById.size
+    || new Set(presentationOrderIds).size !== cardById.size
+    || presentationOrderIds.some((id) => !cardById.has(id))) return null;
+  const requested = presentationOrderIds.map((id) => cardById.get(id));
+  const pinnedSuggestion = requested[0]?.kind === "suggestion" ? requested[0] : null;
+  const movable = pinnedSuggestion ? requested.slice(1) : requested;
+  const baseline = scoreAdvertisingOrganicRhythm(requested);
+  if (!baseline.targetApplicable || requested.length < 3) {
+    return {
+      cards: requested,
+      baseline,
+      score: baseline,
+      applied: false,
+      fallbackReason: "insufficient-ratio-pool",
+    };
+  }
+  const queues = {
+    high: movable.filter((card) => mediaRatioBand(card) === "high"),
+    low: movable.filter((card) => mediaRatioBand(card) === "low"),
+    medium: movable.filter((card) => mediaRatioBand(card) === "medium"),
+  };
+  const ordered = pinnedSuggestion ? [pinnedSuggestion] : [];
+  const usedIds = new Set(pinnedSuggestion ? [pinnedSuggestion.id] : []);
+  const firstPriorityBand = movable.find((card) => ["high", "low"].includes(mediaRatioBand(card)));
+  let nextHighLow = firstPriorityBand ? mediaRatioBand(firstPriorityBand) : "high";
+  for (let index = ordered.length; index < Math.min(ORGANIC_RHYTHM_WINDOW, requested.length); index += 1) {
+    const lastBand = ordered.length ? mediaRatioBand(ordered.at(-1)) : null;
+    const lastRun = (() => {
+      let count = 0;
+      for (let offset = ordered.length - 1; offset >= 0 && mediaRatioBand(ordered[offset]) === lastBand; offset -= 1) count += 1;
+      return count;
+    })();
+    let band;
+    if (queues.medium.length && index > 0 && (index % 4 === 3 || lastRun >= 3)) band = "medium";
+    else if (queues[nextHighLow].length) band = nextHighLow;
+    else if (queues[nextHighLow === "high" ? "low" : "high"].length) band = nextHighLow === "high" ? "low" : "high";
+    else if (queues.medium.length) band = "medium";
+    else break;
+    const card = queues[band].shift();
+    ordered.push(card);
+    usedIds.add(card.id);
+    if (band === "high" || band === "low") nextHighLow = band === "high" ? "low" : "high";
+  }
+  requested.forEach((card) => {
+    if (!usedIds.has(card.id)) ordered.push(card);
+  });
+  const score = scoreAdvertisingOrganicRhythm(ordered);
+  return {
+    cards: ordered,
+    baseline,
+    score,
+    applied: ordered.some((card, index) => card.id !== requested[index]?.id),
+    fallbackReason: score.targetMet === false ? "soft-rhythm-target-unreachable" : null,
+  };
+}
 
 export function normalizeAdvertisingProductSettings(settings) {
   if (settings !== undefined && (!settings || typeof settings !== "object" || Array.isArray(settings))) {
@@ -78,7 +201,8 @@ export function validateAdvertisingCards(cards, options = {}) {
     const sourcePosition = `${card.category}\0${card.sourceOrder}`;
     if (sourcePositions.has(sourcePosition)) throw new Error(`Duplicate category source order: ${card.id}`);
     sourcePositions.add(sourcePosition);
-    if (typeof card.media?.src !== "string" || !card.media.src || !Number.isFinite(card.media.width) || card.media.width <= 0 || !Number.isFinite(card.media.height) || card.media.height <= 0) {
+    const media = layoutMedia(card);
+    if (typeof media?.src !== "string" || !media.src || !Number.isFinite(media.width) || media.width <= 0 || !Number.isFinite(media.height) || media.height <= 0) {
       throw new Error(`Invalid media dimensions: ${card.id}`);
     }
     if (requireRanks && (!Number.isInteger(card.rank) || card.rank < 0)) throw new Error(`Invalid card rank: ${card.id}`);
@@ -145,12 +269,14 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
     safeTop = 0,
     safeBottom = 0,
     descriptionHeight: measuredDescriptionHeight = 0,
+    minimumDescriptionHeight = 0,
+    minimumImageZoneHeight = 0,
   } = options;
   let { columns } = options;
   for (const [name, value] of Object.entries({ layoutViewportWidth, viewportHeight, imageWidth, imageHeight })) {
     if (!Number.isFinite(value) || value <= 0) throw new TypeError(`Invalid advertising photo ${name}: expected a positive finite number`);
   }
-  for (const [name, value] of Object.entries({ headerHeight, safeTop, safeBottom, descriptionHeight: measuredDescriptionHeight })) {
+  for (const [name, value] of Object.entries({ headerHeight, safeTop, safeBottom, descriptionHeight: measuredDescriptionHeight, minimumDescriptionHeight, minimumImageZoneHeight })) {
     if (!Number.isFinite(value) || value < 0) throw new TypeError(`Invalid advertising photo ${name}: expected a non-negative finite number`);
   }
   if (columns === undefined) columns = columnsForWidth(layoutViewportWidth);
@@ -186,7 +312,7 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
     const imageColumns = Math.max(1, span - 1);
     imageZoneWidth = imageColumns * cardWidth + (imageColumns - 1) * interCardGap;
     descriptionWidth = cardWidth;
-    height = heightCap;
+    height = Math.max(heightCap, minimumDescriptionHeight, minimumImageZoneHeight);
     imageZoneHeight = height;
     descriptionHeight = height;
   } else {
@@ -196,8 +322,10 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
     descriptionHeight = measuredDescriptionHeight > 0
       ? Math.min(measuredDescriptionHeight, descriptionCap)
       : descriptionCap;
+    descriptionHeight = Math.max(descriptionHeight, minimumDescriptionHeight);
     imageZoneWidth = width;
-    imageZoneHeight = Math.min(width / ratio, availableHeight - descriptionHeight - internalGap);
+    imageZoneHeight = Math.max(minimumImageZoneHeight,
+      Math.min(width / ratio, availableHeight - descriptionHeight - internalGap));
     descriptionWidth = width;
     height = imageZoneHeight + descriptionHeight + internalGap;
   }
@@ -559,11 +687,13 @@ function undoRhythms(logs) {
 function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHeight, settings) {
   const literalSpan = card?.layoutSpan;
   const widths = literalSpan === 1 || literalSpan === 2 ? [literalSpan] : [1, 2];
+  const controlStripHeight = mediaControlStripHeight(card);
   const candidates = [];
   for (const width of widths) {
     const mediaPixelWidth = width * cardWidth + (width - 1) * gap;
-    const mediaPixelHeight = mediaPixelWidth * card.media.height / card.media.width;
-    const pixelHeight = mediaPixelHeight + captionPixelHeight;
+    const media = layoutMedia(card);
+    const mediaPixelHeight = mediaPixelWidth * media.height / media.width;
+    const pixelHeight = mediaPixelHeight + controlStripHeight + captionPixelHeight;
     for (let left = 0; left <= columns - width; left += 1) {
       const occupied = state.columnBottoms.slice(left, left + width);
       if (width === 1) {
@@ -596,7 +726,76 @@ export function compileAdvertisingProductLayout(options = {}) {
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
     : options.cards;
   const settings = normalizeAdvertisingProductSettings(options.settings);
-  const layout = compileAdvertisingLayout({ ...options, cards, settings, captionPixelHeight: options.captionPixelHeight ?? 0, productLayout: true });
+  const compileOptions = { ...options, cards, settings, captionPixelHeight: options.captionPixelHeight ?? 0, productLayout: true };
+  const requestedOrder = options.presentationOrder;
+  const totalBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
+  const canSolveOrganicOrder = options.organicOrder === true
+    && Array.isArray(requestedOrder)
+    && Number.isInteger(totalBudget)
+    && totalBudget >= 1
+    && totalBudget <= ADVERTISING_SEARCH_OPERATION_BUDGET;
+  if (!canSolveOrganicOrder) {
+    const layout = compileAdvertisingLayout(compileOptions);
+    return { ...layout, settings };
+  }
+
+  const eligibleCards = options.filter && options.filter !== "all"
+    ? cards.filter((card) => card.category === options.filter)
+    : cards;
+  const solution = solveAdvertisingOrganicPresentationOrder(eligibleCards, requestedOrder);
+  const hardSafe = compileAdvertisingLayout(compileOptions);
+  const hardSafeRhythm = scoreAdvertisingOrganicRhythm(hardSafe.placements);
+  const hardSafeSpread = Math.max(0, ...hardSafe.columnBottoms) - Math.min(...hardSafe.columnBottoms);
+  let layout = hardSafe;
+  let actual = hardSafeRhythm;
+  let columnSpread = hardSafeSpread;
+  let operations = hardSafe.diagnostics.operations;
+  let fallbackUsed = false;
+  let fallbackReason = solution?.fallbackReason || "order-not-optimized";
+  if (solution?.applied && operations < totalBudget) {
+    const remainingBudget = totalBudget - operations;
+    try {
+      const candidate = compileAdvertisingLayout({
+        ...compileOptions,
+        presentationOrder: solution.cards.map(({ id }) => id),
+        operationBudget: remainingBudget,
+      });
+      operations += candidate.diagnostics.operations;
+      const candidateRhythm = scoreAdvertisingOrganicRhythm(candidate.placements);
+      const candidateSpread = Math.max(0, ...candidate.columnBottoms) - Math.min(...candidate.columnBottoms);
+      if (candidateRhythm.score > hardSafeRhythm.score
+        || (candidateRhythm.score === hardSafeRhythm.score && candidateSpread < hardSafeSpread)) {
+        layout = candidate;
+        actual = candidateRhythm;
+        columnSpread = candidateSpread;
+        fallbackReason = actual.targetMet === false ? "geometry-placement-order" : null;
+      } else {
+        fallbackReason = "soft-score-not-improved";
+      }
+    } catch (error) {
+      if (error?.diagnostic?.code !== "search-exhausted") throw error;
+      operations += Math.min(remainingBudget, Number(error.diagnostic.operations) || remainingBudget);
+      fallbackUsed = true;
+      fallbackReason = "hard-safe-requested-order";
+    }
+  } else if (solution?.applied) {
+    fallbackUsed = true;
+    fallbackReason = "hard-safe-requested-order";
+  }
+  layout.diagnostics = {
+    ...layout.diagnostics,
+    operations,
+    budget: totalBudget,
+    organicRhythm: {
+      baseline: solution?.baseline || null,
+      planned: solution?.score || null,
+      actual,
+      columnSpread,
+      applied: layout !== hardSafe,
+      fallbackUsed,
+      fallbackReason,
+    },
+  };
   return { ...layout, settings };
 }
 
@@ -608,12 +807,13 @@ function compileAdvertisingLayoutPhase(options = {}) {
   const staggerMode = options?.staggerMode === "fallback" ? "fallback" : "preferred";
   let layoutViewportWidth = Number.NaN, filter = "all", cards = [], categoryOrder = [], datasetVersion = DEFAULT_DATASET_VERSION;
   let settings, columns, outer, interCardGap, initialColumnBottoms, operationBudget;
-  let terminalPhotoPeek, continuousDetail, allowAsymmetricSparseTail, suppliedCaptionPixelHeight;
+  let terminalPhotoPeek, continuousDetail, allowAsymmetricSparseTail, suppliedCaptionPixelHeight, requestedPresentationOrder;
   try {
     if (!options || typeof options !== "object" || Array.isArray(options)) throw new Error("Advertising layout options must be an object");
     layoutViewportWidth = options.layoutViewportWidth ?? Number.NaN;
     filter = options.filter ?? "all";
     cards = options.cards ?? [];
+    requestedPresentationOrder = options.presentationOrder;
     categoryOrder = options.categoryOrder ?? [];
     datasetVersion = options.datasetVersion ?? DEFAULT_DATASET_VERSION;
     settings = normalizeAdvertisingSettings(options.settings);
@@ -655,21 +855,39 @@ function compileAdvertisingLayoutPhase(options = {}) {
   const cardWidth = (availableWidth - interCardGap * (columns - 1)) / columns;
   if (cardWidth <= 0) throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: [], violation: "Advertising columns do not fit the viewport" });
   const captionPixelHeight = suppliedCaptionPixelHeight ?? (productLayout ? 0 : 10 + (layoutViewportWidth <= 578 ? 15.68 : 17.92));
-  const pool = (filter === "all" ? cards : cards.filter((card) => card.category === filter)).slice().sort(bySource);
+  const canonicalPool = (filter === "all" ? cards : cards.filter((card) => card.category === filter)).slice().sort(bySource);
+  let pool = canonicalPool;
+  if (requestedPresentationOrder !== undefined) {
+    const poolById = new Map(canonicalPool.map((card) => [card.id, card]));
+    if (!Array.isArray(requestedPresentationOrder)
+      || requestedPresentationOrder.length !== canonicalPool.length
+      || new Set(requestedPresentationOrder).size !== canonicalPool.length
+      || requestedPresentationOrder.some((id) => typeof id !== "string" || !poolById.has(id))) {
+      throw layoutError("invalid-input", {
+        filter,
+        width: layoutViewportWidth,
+        ids: Array.isArray(requestedPresentationOrder) ? requestedPresentationOrder : [],
+        violation: "presentation order must be an exact permutation of eligible filter IDs",
+      });
+    }
+    pool = requestedPresentationOrder.map((id) => poolById.get(id));
+  }
   const realProductCount = pool.filter((card) => card.kind !== "suggestion").length;
   const mediaMinima = pool.map((card) => {
     const span = card.layoutSpan === 2 ? 2 : 1;
-    return { id: card.id, height: (span * cardWidth + (span - 1) * interCardGap) * card.media.height / card.media.width };
+    const media = layoutMedia(card);
+    return { id: card.id, height: (span * cardWidth + (span - 1) * interCardGap) * media.height / media.width };
   }).sort((a, b) => a.height - b.height || a.id.localeCompare(b.id));
   /** @param {any} state @param {Record<string, any>} [diagnostics] */
   const makeResult = (state, diagnostics = {}) => {
     const placements = state.placements.slice().sort(comparePlacement)
       .map(({ cavity, ...placement }, index) => ({ ...placement, index }));
     const totalPixelHeight = Math.max(0, ...state.columnBottoms);
-    const coordinates = placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, captionPixelHeight: captionHeight, pixelHeight }) =>
-      `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${card.media.width}x${card.media.height}`,
-    ).join("|");
-    const coordinateHash = fnv1a32(`${datasetVersion}:${ADVERTISING_LAYOUT_ALGORITHM_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
+    const coordinates = placements.map(({ card, left, width, x, y, pixelWidth, mediaPixelHeight, captionPixelHeight: captionHeight, pixelHeight }) => {
+      const media = layoutMedia(card);
+      return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
+    }).join("|");
+    const coordinateHash = fnv1a32(`${datasetVersion}:${ADVERTISING_LAYOUT_ALGORITHM_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
     return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, effectiveOuter, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: ADVERTISING_LAYOUT_ALGORITHM_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {

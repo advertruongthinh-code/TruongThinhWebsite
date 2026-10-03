@@ -57,7 +57,7 @@ Khách đang tìm loại sản phẩm quảng cáo gần với nhu cầu điểm
 - Contract source là `compileAdvertisingProductLayout(options)`, `getVirtualWindow(layout, options)`, `mountAdvertisingCatalog(container, {signal})` và `unmountAdvertisingCatalog()`; policy public dùng kernel chung.
 - Giữ all/six filters, query state, full/virtual window, media pending/loaded/revealed, dependency failure/retry, VI/EN, direct/Barba/history/remount và abort/cleanup states.
 - Giữ `role=listitem`, `aria-posinset`, `aria-setsize` và sáu fallback card không cần script.
-- Ảnh parent/related luôn rộng một cột theo [AD-BROWSE-R1](../../docs/specs/advertising-photo-browse.md). Source v7 giữ parent 2–4 cột; related được giảm xuống một cột sau search có giới hạn không đạt gate. Đã triển khai so le 0,20 chiều cao ảnh, cân đáy ảnh thật, skeleton CTA nối grid và control vuông. Back chỉ hiện detail, lùi entry như Pinterest; navbar vẫn về danh mục hiện tại. Nghiệm thu theo evidence P1.2, không dùng PASS v6 thay thế.
+- Mỗi item parent/related chiếm đúng một cột trong layout responsive; số cột của grid vẫn do viewport quyết định (2–4 cột, related ưu tiên 4 cột ở viewport rộng). Đã triển khai so le 0,20 chiều cao ảnh, cân đáy ảnh thật, skeleton CTA nối grid và control vuông. Back chỉ hiện detail, lùi entry như Pinterest; navbar vẫn về danh mục hiện tại. Nghiệm thu theo evidence P1.2, không dùng PASS v6 thay thế.
 - Không thêm production token hoặc card style mới; dùng `DESIGN.md` làm visual authority toàn cục.
 - Alignment với Espacio/R1 dùng measured baseline và accepted Trường Thịnh delta; exact revision hoặc cutoff chưa được khóa.
 

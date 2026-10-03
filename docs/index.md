@@ -30,9 +30,35 @@ không nhân bản token hoặc coi HTML specimen là production component.
 
 ## Contract hiện hành
 
+- [Intent scrollbar và browser parity](specs/mobile-browser-parity-capability-map.md):
+  intent/map và [delta scrollbar](specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)
+  cùng [plan/card](../tasks/plan.md) đã duyệt27/09;
+  [verification scrollbar](verification/scrollbar-parity-2026-09-27.md) giữ scoped result và gate còn mở.
+  [Debug Android thật](operations/android-real-device-debugging.md)
+  giữ Chrome/USB và interaction PASS; [owner recording](verification/android-skeleton-observation-2026-09-27.md)
+  đã ghi nhận thay frame skeleton khi visual height đổi, gồm capture footer↔grid8792.
+  Owner nghiệm thu visual scrollbar; [chẩn đoán preview](verification/mobile-preview-diagnostics-2026-09-27.md)
+  giữ lỗi baseline random/landscape/WebKit. [Map bổ sung](specs/mobile-browser-parity-capability-map.md#feedback-preview--intent-và-map-bổ-sung-đã-duyệt)
+  đã duyệt; [delta skeleton lifecycle](specs/advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
+  đã duyệt bằng “Duyệt delta skeleton”; [plan correction](../tasks/plan.md#correction-baseline-và-skeleton--plan-chờ-duyệt)
+  và [card correction](https://app.notion.com/p/3e8332849a0e8121bd20e1f62a275bb7) đã duyệt27/09.
+  [Correction evidence](verification/mobile-skeleton-correction-2026-09-27.md)
+  giữ random/Android functional và lịch sử C05 WebKit RED; [amendment C05R](../tasks/plan.md#amendment-c05r--accepted-2026-09-27)
+  cùng delta ownership đã duyệt. Owner duyệt A logical deck12/C06U; current
+  Android dọc/ngang1366common pairs không reset, lifecycle/clean80/smoke21/21 đạt.
+  Full continuation còn FAIL tại first-DOM-frame ready predicate; MCP UI QA
+  blocked. C06/C07 chưa nghiệm thu; checkpoint partial giữ nguyên các gate.
+  Kiểm local trước,
+  rồi mới debug Sites sau phát hành.
 - [Photo/grid Advertising](specs/advertising-photo-browse.md): layout, history,
   primary, gợi ý và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
   dẫn các correction; không áp checkpoint cũ thay delta mới.
+- [Media-card toàn website](specs/site-media-card-playback.md): spec đã duyệt
+  28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
+  còn chờ duyệt. Supersession grid-detail morph chỉ xảy ra khi triển khai;
+  viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
+  kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
+  chỉ tóm tắt card đang làm; chi tiết Done không được chép.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
   và [DESIGN](../DESIGN.md): shell và visual authority.
 - [Static release](specs/frontend-static-release.md): build/hosting;

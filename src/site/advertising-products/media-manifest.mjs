@@ -157,7 +157,7 @@ const MEDIA_ROWS = [
   ["mobile-retail-21","mobile-retail",20,"mobile-retail-product-09","Quầy bán hàng ngoài trời","Outdoor retail counters","owner-approved:2026-09-24:aaa5b58ce7c4d1d2","/assets/content/projects/advertising/mobile-retail/mobile-retail-21-owner-20260924.webp",1448,1086],
 ];
 
-export const ADVERTISING_MEDIA_MANIFEST = attachPhotoMetadata(MEDIA_ROWS.map(([
+const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
   id,
   category,
   sourceOrder,
@@ -183,4 +183,10 @@ export const ADVERTISING_MEDIA_MANIFEST = attachPhotoMetadata(MEDIA_ROWS.map(([
     altVi: `${titleVi} — ảnh minh họa AI`,
     altEn: `${titleEn} — AI-generated illustration`,
   }),
+})));
+
+export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => Object.freeze({
+  ...record,
+  coverMediaId: record.id,
+  mediaItems: Object.freeze([Object.freeze({ id: record.id, kind: "image", ...record.media })]),
 })));

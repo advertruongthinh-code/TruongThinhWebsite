@@ -1,4 +1,25 @@
 (() => {
+  const directContainer = document.querySelector('[data-barba="container"]');
+  const navigationType = window.performance?.getEntriesByType?.("navigation")?.[0]?.type;
+  const nativeState = window.history.state;
+  const currentUrl = new URL(window.location.href);
+  currentUrl.hash = "";
+  const historyFallback = navigationType === "navigate"
+    && nativeState?.ttAdvertisingHistoryFallback === currentUrl.href;
+  if (Object.prototype.hasOwnProperty.call(nativeState || {}, "ttAdvertisingHistoryFallback")) {
+    const cleanedState = { ...nativeState };
+    delete cleanedState.ttAdvertisingHistoryFallback;
+    try { window.history.replaceState(cleanedState, "", window.location.href); } catch {}
+  }
+  if (directContainer?.dataset.barbaNamespace === "advertising-products"
+    && (navigationType === "back_forward" || historyFallback)) {
+    window.__ttAdvertisingBrowseStartupHistory = {
+      navigationType,
+      historyFallback,
+      state: nativeState,
+    };
+  }
+
   let activePage;
   let advertisingCarouselModulesPromise;
   let advertisingCarouselStylePromise;
@@ -215,7 +236,7 @@
 
   const mount = (
     container = document.querySelector('[data-barba="container"]'),
-    { settled = false } = {},
+    { settled = false, softNavigation = false } = {},
   ) => {
     if (!container || activePage?.container === container) return activePage?.catalogReady;
     unmount();
@@ -258,6 +279,7 @@
             return mountAdvertisingCatalog(container, {
               signal: abort.signal,
               scroll: window.TruongThinhMotion,
+              softNavigation,
             });
           }
         });

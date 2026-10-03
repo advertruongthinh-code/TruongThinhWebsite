@@ -277,6 +277,28 @@ Các component dưới đây là pattern đã quan sát hoặc contract đã ch�
 
 ### Public shell, brand và menu
 
+Scrollbar shared shell theo [delta accepted27/09](docs/specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27):
+desktop dùng overlay Espacio hiện khi scroll/hover/drag, ẩn khi settle; không
+reserve gutter. Mobile/reduced/fail-open dùng native indicator của browser/OS;
+document không áp track trắng riêng. Menu và horizontal rail giữ contract riêng.
+Radius10px chỉ là ngoại lệ của thumb scrollbar, không mở radius scale cho UI.
+Evidence và gate browser/device xem [verification](docs/verification/scrollbar-parity-2026-09-27.md).
+
+Mobile layout theo [delta accepted28/09](docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--draft-2026-09-28):
+≤980px hero Home/About dùng intrinsic flow; Advertising mở đến1024px sau
+measured overlap981/982px. Chừa header và chữ tăng200%; các title dài được wrap.
+Legacy closer/portal tăng chiều cao theo
+copy, giữ min-height và brand typography. Mask chữ có fluid ink allowance.
+About reuse local GSAP/SplitText pair cho reveal direct/native; soft entry
+giữ gate riêng vì baseline menu DOM mismatch. Đây observed
+implementation đang kiểm body/state. [L04R accepted](docs/specs/frontend-brand-shell-responsive-runtime.md#l04r-readable-content-floor--draft-2026-09-28)
+cho CTA/info/image-control tăng minimum khi chữ/control không fit; indicator chỉ
+reserve khi nhiều page. Expanded image-action label wrap và scale theo chữ,
+suggestion label wrap long word; giữ font/palette/default nơi fit. Measurement
+inner suggestion có correction cho WebKit grid entry, chưa full device acceptance.
+[Evidence](docs/verification/mobile-layout-parity-2026-09-28.md)
+giữ scope từng candidate, chưa full-site/device/owner/reference acceptance.
+
 #### Brand lockup — nguồn chuẩn
 
 **Revision:** LOGO-R4, owner duyệt delta logo ngày 2026-09-20. **Design status:** accepted.
@@ -378,6 +400,12 @@ Không dùng report cũ làm PASS cho LOGO-R3.
 - **Runtime contract:** `compileAdvertisingLayout(options)`, `getVirtualWindow(layout, options)`, `mountAdvertisingCatalog(container, {signal})` và `unmountAdvertisingCatalog()` là API source hiện có; không tạo wrapper khác.
 - **States:** filter/query, full/virtual window, media pending/loaded/revealed, dependency ready/failure/retry, VI/EN, direct/Barba/history/remount, abort/cleanup và reduced motion.
 - **Source/tests:** `src/site/advertising-products/layout-core.mjs:29-167`, `src/site/advertising-products/catalog-runtime.mjs:67-71,617-621`, `tests/site/advertising-products-layout.test.mjs`, `advertising-products-lifecycle.test.mjs`, `advertising-products-media.test.mjs`, `advertising-products-static.test.mjs`, browser checks trong `tests/site/site.e2e.cjs:4811-5671`.
+
+[Organic random accepted](docs/specs/advertising-organic-random.md) sở hữu thứ tự
+parent/filter/related, seeded batch và slideshow3s/fade1,6s; direct/F5 tạo seed
+mới, history/locale giữ entry. Geometry/card media và scrollbar giữ nguyên.
+[Delta lifecycle](docs/specs/advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
+giữ outer slot/reveal/phase khi toolbar/resize; WebGL cấp phát theo visibility.
 
 ### Generic horizontal gallery
 

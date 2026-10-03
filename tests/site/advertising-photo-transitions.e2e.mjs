@@ -6,6 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
+import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const defaultOutput = path.join(root, ".tmp/orchestration/advertising-browse-implementation-20260910");
@@ -41,6 +42,8 @@ const { chromium } = await import("playwright");
 const results = [];
 const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
+const mediaCardId = "signage-raised-letters-06";
+const mediaVideoId = `${mediaCardId}-synthetic-video`;
 const p13BaselineOnly = process.env.PHOTO_TRANSITIONS_P13_BASELINE === "1";
 const p13GateOnly = process.env.PHOTO_TRANSITIONS_P13_GATE === "1";
 const selectedCase = process.env.CASE || "";
@@ -98,10 +101,91 @@ async function chooseB(page, beforeClick) {
   await beforeClick?.();
   await link.click();
 }
-async function caseRun(name, viewport, fn, { allowedIssues = [] } = {}) {
+
+async function m02bFixture(page, locale, direct = false) {
+  const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
+  const card = artifact.cards.find((item) => item.id === mediaCardId);
+  assert(card && card.mediaItems.length === 1, "M02b fixture needs the authored image cover");
+  card.mediaItems.push({
+    id: mediaVideoId, kind: "video", src: "/__site_media_card_fixture__/clip-audio-3x2.mp4",
+    sourceId: "m00b:test-only:clip-audio-3x2", source: "M00b sealed synthetic fixture",
+    sha256: "363907eb9b7c8da2af83cd672087ce0e2d1942e4f7a30350b06ec2583aba4ef4",
+    provenance: "Synthetic test-only fixture, not public project media.",
+    width: 480, height: 320, posterSrc: "/__site_media_card_fixture__/poster-3x2.webp",
+    posterWidth: 480, posterHeight: 320, durationSeconds: 3, hasAudio: true,
+    altVi: "Video kiểm thử tổng hợp", altEn: "Synthetic test video",
+  });
+  await page.route("**/__site_media_card_fixture__/*", (route) => {
+    const video = route.request().url().endsWith(".mp4");
+    return route.fulfill({
+      path: path.join(root, "tests/site/fixtures", video ? "site-media-card-clip-audio-3x2.mp4" : "site-media-card-poster-3x2.webp"),
+      contentType: video ? "video/mp4" : "image/webp",
+    });
+  });
+  await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
+  await page.goto(href(`/${locale}/advertising-products/?category=signage-raised-letters${direct ? `&photo=${mediaCardId}` : ""}`), { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  if (direct) await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
+  else await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), mediaCardId);
+  return card;
+}
+
+async function armNoGridMorphProbe(page) {
+  await page.evaluate(() => {
+    window.__ttM02bProbe?.restore?.();
+    const probe = { clones: [], locks: [], frames: [] };
+    const capture = (node) => {
+      if (!(node instanceof Element)) return;
+      if (node.matches("[data-advertising-photo-morph]")) probe.clones.push({ id: node.dataset.advertisingPhotoId, at: performance.now() });
+      node.querySelectorAll?.("[data-advertising-photo-morph]").forEach(capture);
+    };
+    probe.observer = new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach(capture)));
+    probe.observer.observe(document.body, { childList: true, subtree: true });
+    const motion = window.TruongThinhMotion;
+    const lock = motion.lockLogicalScroll;
+    motion.lockLogicalScroll = function measuredLock(...args) {
+      probe.locks.push({ at: performance.now(), url: location.href });
+      return lock.apply(this, args);
+    };
+    probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; };
+    const started = performance.now();
+    const sample = () => {
+      probe.frames.push({ photo: new URL(location.href).searchParams.get("photo"),
+        y: motion.getLogicalScroll?.() ?? scrollY, nativeY: scrollY,
+        cloneCount: document.querySelectorAll("[data-advertising-photo-morph]").length });
+      if (performance.now() - started < 900) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+    window.__ttM02bProbe = probe;
+  });
+}
+
+async function noGridMorphEvidence(page, expectedPhoto, expectedY) {
+  await page.waitForTimeout(600);
+  const evidence = await page.evaluate(() => {
+    const probe = window.__ttM02bProbe;
+    probe.restore();
+    return { clones: probe.clones, locks: probe.locks, frames: probe.frames,
+      currentClones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+      currentLocks: [document.body.style.overflow, document.documentElement.style.overflow] };
+  });
+  assert.equal(evidence.clones.length, 0, `grid/detail transition created a clone: ${JSON.stringify(evidence.clones)}`);
+  assert.equal(evidence.currentClones, 0, "grid/detail transition retained a clone");
+  assert.equal(evidence.locks.length, 0, `grid/detail transition acquired a scroll lease: ${JSON.stringify(evidence.locks)}`);
+  assert.deepEqual(evidence.currentLocks, ["", ""], "grid/detail transition retained scroll lock");
+  const entryFrames = evidence.frames.filter(({ photo }) => photo === expectedPhoto);
+  assert(entryFrames.length > 0, "no frames observed after navigation reached its history entry");
+  assert(entryFrames.every(({ y, cloneCount }) => Math.abs(y - expectedY) <= 1 && cloneCount === 0),
+    `history entry painted at another scroll position: ${JSON.stringify(entryFrames)}`);
+  return { cloneAdds: evidence.clones.length, lockCalls: evidence.locks.length,
+    entryFrames: entryFrames.length, y: entryFrames.at(-1).y };
+}
+async function caseRun(name, viewport, fn, { allowedIssues = [], contextOptions = {} } = {}) {
   if (p13BaselineOnly || (p13GateOnly && !p13RegressionCases.has(name))) return;
   if (selectedCase && selectedCase !== name) return;
-  const context = await browser.newContext({ viewport, locale: "vi-VN" });
+  const recordVideo = name === "history-entry-scroll-offscreen-morph"
+    ? { dir: path.join(output, "video"), size: viewport } : undefined;
+  const context = await browser.newContext({ viewport, locale: "vi-VN", ...contextOptions, ...(recordVideo && { recordVideo }) });
   const page = await context.newPage();
   if (p13GateOnly) await installSynchronousHandlerProbe(page);
   const issues = [];
@@ -112,13 +196,20 @@ async function caseRun(name, viewport, fn, { allowedIssues = [] } = {}) {
     const evidence = await fn(page, (value) => { stage = value; });
     const unexpectedIssues = issues.filter((issue) => !allowedIssues.includes(issue));
     assert.deepEqual(unexpectedIssues, [], `${name}: runtime diagnostics ${unexpectedIssues.join(" | ")}`);
-    results.push({ name, viewport, status: "PASS", evidence });
+    results.push({ name, viewport, status: "PASS", videoPath: await page.video()?.path(), evidence });
   } catch (error) {
     await mkdir(failureDir, { recursive: true });
-    const screenshot = path.join(failureDir, `${name.replaceAll(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`);
+    const captureName = name === "m02b-related-history-just-viewed-and-scroll" ? `${name}-${viewport.width}x${viewport.height}-${stage}` : name;
+    const screenshot = path.join(failureDir, `${captureName.replaceAll(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`);
     await page.screenshot({ path: screenshot }).catch(() => {});
     const probe = await page.evaluate(() => window.__ttRelatedMorphProbe?.events || null).catch(() => null);
-    results.push({ name, viewport, status: "FAIL", stage, error: String(error?.stack || error), screenshot, probe });
+    const historyTrace = await page.evaluate(() => ({
+      snapshots: window.__ttHistoryScrollTrace || [],
+      morphs: window.__ttHistoryMorphs || [],
+    })).catch(() => null);
+    results.push({ name, viewport, status: "FAIL", stage, error: String(error?.stack || error), screenshot,
+      videoPath: await page.video()?.path(), probe, historyTrace,
+      relatedEvidence: await page.evaluate(() => window.__ttM02bRelatedEvidence || null).catch(() => null) });
   } finally { await context.close(); }
 }
 
@@ -366,87 +457,6 @@ async function installStuffingProbe(page, selector, gridSelector) {
   }, { itemSelector: selector, ownerSelector: gridSelector });
 }
 
-async function installMorphEndpointProbe(page) {
-  await page.addInitScript(() => {
-    const nativeAnimate = Element.prototype.animate;
-    window.__ttP13MorphEndpoints = [];
-    Element.prototype.animate = function patchedAnimate(keyframes, options) {
-      const animation = nativeAnimate.call(this, keyframes, options);
-      if (!this.matches?.("[data-advertising-photo-morph]")) return animation;
-      const clone = this;
-      animation.addEventListener("finish", () => {
-        const endpoint = {
-          id: clone.dataset.advertisingPhotoId,
-          finishedAt: performance.now(),
-          cloneRect: clone.getBoundingClientRect().toJSON(),
-          transformEnd: getComputedStyle(clone).transform,
-        };
-        queueMicrotask(() => {
-          const target = document.querySelector(`[data-advertising-photo-image][data-advertising-photo-id="${endpoint.id}"]`);
-          endpoint.revealedAt = performance.now();
-          endpoint.targetRect = target?.getBoundingClientRect().toJSON() || null;
-          endpoint.targetVisibility = target ? getComputedStyle(target).visibility : null;
-          window.__ttP13MorphEndpoints.push(endpoint);
-        });
-      }, { once: true });
-      return animation;
-    };
-  });
-}
-
-async function installHistoryMorphProbe(page) {
-  await page.addInitScript(() => {
-    const nativeAnimate = Element.prototype.animate;
-    window.__ttHistoryMorphs = [];
-    Element.prototype.animate = function measuredHistoryMorph(keyframes, options) {
-      const animation = nativeAnimate.call(this, keyframes, options);
-      if (!this.matches?.("[data-advertising-photo-morph]")) return animation;
-      const clone = this;
-      const record = {
-        canceledAt: null,
-        duration: Number(typeof options === "number" ? options : options?.duration),
-        finishedAt: null,
-        frames: [],
-        id: clone.dataset.advertisingPhotoId,
-        clientWidthAtStart: document.documentElement.clientWidth,
-        lockedAtStart: [document.body.style.overflow, document.documentElement.style.overflow],
-        src: clone.currentSrc || clone.src,
-        startedAt: performance.now(),
-      };
-      window.__ttHistoryMorphs.push(record);
-      const sample = () => {
-        record.frames.push({
-          at: performance.now(),
-          clientWidth: document.documentElement.clientWidth,
-          connected: clone.isConnected,
-          currentTime: Number(animation.currentTime),
-          locked: [document.body.style.overflow, document.documentElement.style.overflow],
-          rect: clone.getBoundingClientRect().toJSON(),
-        });
-        if (clone.isConnected && performance.now() - record.startedAt < 1_000) requestAnimationFrame(sample);
-      };
-      requestAnimationFrame(sample);
-      animation.addEventListener("finish", () => {
-        record.finishedAt = performance.now();
-        record.finishRect = clone.getBoundingClientRect().toJSON();
-        const target = [...document.images].find((node) => node !== clone && node.style.visibility === "hidden");
-        Object.defineProperty(record, "targetNode", { configurable: true, value: target, writable: true });
-        record.targetId = target?.dataset.advertisingPhotoId
-          || target?.closest("[data-advertising-card]")?.dataset.advertisingCard
-          || target?.closest("[data-advertising-related-card]")?.dataset.advertisingRelatedCard;
-        record.targetRect = target?.getBoundingClientRect().toJSON() || null;
-        queueMicrotask(() => {
-          record.targetVisibility = target ? getComputedStyle(target).visibility : null;
-          record.targetRectAfterSettle = target?.getBoundingClientRect().toJSON() || null;
-          record.lockedAfterSettle = [document.body.style.overflow, document.documentElement.style.overflow];
-        });
-      }, { once: true });
-      animation.addEventListener("cancel", () => { record.canceledAt = performance.now(); }, { once: true });
-      return animation;
-    };
-  });
-}
-
 async function installBackdropMorphProbe(page) {
   await page.addInitScript(() => {
     const nativeAnimate = Element.prototype.animate;
@@ -523,129 +533,6 @@ async function readBackdropMorphState(page) {
   });
 }
 
-function assertSequentialBackdrop({ during, foregroundSettled, lingerMidpoint, lingerFinished, scrollDuringLinger }, { duration, label, targetId }) {
-  const backdropStart = during.records.find((record) => record.kind === "backdrop" && record.photoId === targetId);
-  const morphStart = during.records.find((record) => record.kind === "morph");
-  assert(backdropStart, `${label}: real morph did not start a backdrop animation`);
-  assert(morphStart, `${label}: fixture did not create a real photo morph`);
-  assert(morphStart.finishedAt && backdropStart.startedAt >= morphStart.finishedAt,
-    `${label}: backdrop must wait for foreground settle ${JSON.stringify({ backdropStart, morphStart })}`);
-  assert.equal(morphStart.duration, duration, `${label}: foreground duration`);
-  assert.equal(backdropStart.duration, 1200, `${label}: long settling zoom-out`);
-  assert.equal(Number(backdropStart.keyframes[0].opacity), 0, `${label}: backdrop fades in from white`);
-  assert.equal(foregroundSettled.viewId, targetId, `${label}: foreground settled wrong detail identity`);
-  assert.equal(foregroundSettled.heroId, targetId, `${label}: foreground settled wrong hero identity`);
-  assert.equal(foregroundSettled.backdropSrc, foregroundSettled.heroSrc, `${label}: backdrop retained wrong photo at foreground settle`);
-  assert.equal(foregroundSettled.activeBackdropAnimations, 1,
-    `${label}: backdrop did not linger after foreground settle ${JSON.stringify(foregroundSettled.records)}`);
-  assert.deepEqual(foregroundSettled.locked, ["", ""], `${label}: foreground settle did not release scroll lease`);
-  assert(scrollDuringLinger.after > scrollDuringLinger.before,
-    `${label}: user could not scroll during backdrop linger ${JSON.stringify(scrollDuringLinger)}`);
-  assert.notDeepEqual(lingerMidpoint.backdropStyle, foregroundSettled.backdropStyle,
-    `${label}: backdrop did not continue zoom-blur during linger`);
-  assert.notEqual(lingerMidpoint.backdropStyle.transform, foregroundSettled.backdropStyle.transform,
-    `${label}: lingering zoom-out must remain visible after opacity settles`);
-  assert.equal(lingerFinished.activeBackdropAnimations, 0, `${label}: backdrop survived its duration`);
-  assert.equal(lingerFinished.viewId, targetId, `${label}: final detail identity`);
-  assert.equal(lingerFinished.heroId, targetId, `${label}: final hero identity`);
-  assert.equal(lingerFinished.backdropSrc, lingerFinished.heroSrc, `${label}: backdrop retained wrong photo`);
-}
-
-function assertHistoryMorph(record, { id, src }, label) {
-  assert(record, `${label}: history morph was not created`);
-  assert.equal(record.id, id, `${label}: clone identity`);
-  assert.equal(record.src, src, `${label}: clone source`);
-  assert.equal(record.duration, 400, `${label}: duration`);
-  assert.equal(record.canceledAt, null, `${label}: morph was canceled`);
-  assert(record.finishedAt - record.startedAt >= 200, `${label}: morph ended before its midpoint`);
-  assert(record.frames.length > 2, `${label}: morph did not survive more than one frame`);
-  assert(record.frames.some(({ currentTime }) => currentTime > 60 && currentTime < 260),
-    `${label}: no animated midpoint ${JSON.stringify(record.frames.map(({ currentTime, connected }) => ({ currentTime, connected })))}`);
-  assert.deepEqual(record.lockedAtStart, ["hidden", "hidden"], `${label}: scroll was not locked at start`);
-  assert(record.frames.filter(({ currentTime }) => currentTime < 260)
-    .every(({ locked }) => locked[0] === "hidden" && locked[1] === "hidden"), `${label}: scroll unlocked before settle`);
-  assert.equal(record.targetId, id, `${label}: destination identity`);
-  assert.equal(record.targetVisibility, "visible", `${label}: destination stayed hidden`);
-  assert.deepEqual(record.lockedAfterSettle, ["", ""], `${label}: scroll lease was not released`);
-  const endpointDelta = ["left", "top", "width", "height"]
-    .map((key) => record.finishRect[key] - record.targetRectAfterSettle[key]);
-  assert(endpointDelta.every((delta) => Math.abs(delta) <= 2), `${label}: endpoint mismatch ${JSON.stringify({
-    endpointDelta,
-    finishRect: record.finishRect,
-    targetRect: record.targetRect,
-    targetRectAfterSettle: record.targetRectAfterSettle,
-  })}`);
-}
-
-async function completedHistoryMorph(page, index) {
-  await page.waitForFunction((position) => {
-    const record = window.__ttHistoryMorphs?.[position];
-    return record && (record.finishedAt || record.canceledAt);
-  }, index);
-  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-  return page.evaluate((position) => {
-    const record = window.__ttHistoryMorphs[position];
-    const identity = (node) => node.dataset.advertisingPhotoId
-      || node.closest("[data-advertising-card]")?.dataset.advertisingCard
-      || node.closest("[data-advertising-related-card]")?.dataset.advertisingRelatedCard;
-    const target = record.targetNode?.isConnected ? record.targetNode : [...document.images]
-      .filter((node) => identity(node) === record.targetId)
-      .map((node) => ({ node, rect: node.getBoundingClientRect() }))
-      .sort((left, right) => Math.abs(left.rect.left - record.targetRect.left)
-        + Math.abs(left.rect.top - record.targetRect.top)
-        - Math.abs(right.rect.left - record.targetRect.left)
-        - Math.abs(right.rect.top - record.targetRect.top))[0]?.node;
-    record.targetVisibility = target ? getComputedStyle(target).visibility : null;
-    record.targetRectAfterSettle = target?.getBoundingClientRect().toJSON() || null;
-    record.lockedAfterSettle = [document.body.style.overflow, document.documentElement.style.overflow];
-    record.clientWidthAfterSettle = document.documentElement.clientWidth;
-    return record;
-  }, index);
-}
-
-async function installRelatedMediaProbe(page) {
-  await page.addInitScript(() => {
-    const probe = { records: [] };
-    const capture = (image) => {
-      const card = image.closest("[data-advertising-related-card]");
-      if (!card || image.dataset.p13MediaObserved) return;
-      image.dataset.p13MediaObserved = "true";
-      const record = { id: card.dataset.advertisingRelatedCard, frames: [] };
-      probe.records.push(record);
-      const started = performance.now();
-      const sample = () => {
-        const style = getComputedStyle(image);
-        record.frames.push({
-          elapsed: performance.now() - started,
-          opacity: Number(style.opacity),
-          duration: style.transitionDuration,
-          easing: style.transitionTimingFunction,
-        });
-        if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
-      };
-      requestAnimationFrame(sample);
-    };
-    new MutationObserver((entries) => entries.forEach((entry) => entry.addedNodes.forEach((added) => {
-      if (!(added instanceof Element)) return;
-      if (added.matches("[data-advertising-related-card] img")) capture(added);
-      added.querySelectorAll("[data-advertising-related-card] img").forEach(capture);
-    }))).observe(document, { childList: true, subtree: true });
-    window.__ttP13RelatedMedia = probe;
-  });
-}
-
-function assertMediaFade(record, label) {
-  assert(record?.frames.length > 3, `${label}: media fade was not sampled`);
-  const first = record.frames[0];
-  const middle = record.frames.find(({ opacity }) => opacity > 0.05 && opacity < 0.95);
-  const last = record.frames.at(-1);
-  assert(first.opacity <= 0.05 && middle?.opacity > first.opacity && middle.opacity < 1 && last.opacity >= 0.99,
-    `${label}: opacity did not travel 0 to 1 ${JSON.stringify({ first, middle, last })}`);
-  assert(first.duration.split(",").includes("0.6s") && first.easing.split(",").includes("ease-out"),
-    `${label}: media timing differs from 0.6s ease-out ${JSON.stringify(first)}`);
-  return { id: record.id, first, middle, last };
-}
-
 function assertStuffingRecord(records, label, expectedHead) {
   const moved = records.find((record) => {
     const first = record.frames[0];
@@ -670,6 +557,304 @@ function assertStuffingRecord(records, label, expectedHead) {
 const browser = await chromium.launch({ headless: true });
 try {
   if (p13BaselineOnly) await runP13Baseline(browser);
+  await caseRun("m02b-grid-detail-no-clone-no-jump", { width: 1440, height: 900 }, async (page, stage) => {
+    const evidence = [];
+    for (const locale of ["vi", "en"]) {
+      stage(`${locale}-grid-click`);
+      await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+      const card = page.locator(`[data-advertising-card="${A}"] > a`);
+      await card.scrollIntoViewIfNeeded();
+      const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      await armNoGridMorphProbe(page);
+      await card.click();
+      await ready(page, A);
+      const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      evidence.push({ locale, direction: "click", ...await noGridMorphEvidence(page, A, detailY) });
+
+      stage(`${locale}-grid-back`);
+      await armNoGridMorphProbe(page);
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      evidence.push({ locale, direction: "Back", ...await noGridMorphEvidence(page, null, gridY) });
+
+      stage(`${locale}-grid-forward`);
+      await armNoGridMorphProbe(page);
+      await page.goForward();
+      await ready(page, A);
+      evidence.push({ locale, direction: "Forward", ...await noGridMorphEvidence(page, A, detailY) });
+    }
+    return evidence;
+  });
+
+  await caseRun("m02b-one-just-viewed-marker-per-tab", { width: 1440, height: 900 }, async (page, stage) => {
+    const readMarkers = () => page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")]
+      .filter((card) => /Vừa xem|Just viewed/.test(card.innerText))
+      .map((card) => ({ id: card.dataset.advertisingCard, text: card.innerText })));
+    const evidence = [];
+    for (const locale of ["vi", "en"]) {
+      stage(`${locale}-close-A`);
+      await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+      await page.locator(`[data-advertising-card="${A}"] > a`).click();
+      await ready(page, A);
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+        && !document.querySelector("[data-advertising-photo-morph]"));
+      await page.evaluate(frame);
+      const first = await readMarkers();
+      assert.deepEqual(first.map(({ id }) => id), [A], `${locale}: closing A must mark only A`);
+      assert(first[0].text.includes(locale === "vi" ? "Vừa xem" : "Just viewed"), `${locale}: marker label`);
+
+      stage(`${locale}-close-B`);
+      await page.evaluate((id) => {
+        const card = window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { focus: false, scrollIntoView: false });
+        const rect = card.getBoundingClientRect();
+        const motion = window.TruongThinhMotion;
+        motion.setLogicalScroll(motion.getLogicalScroll() + rect.top - (innerHeight - rect.height) / 2);
+      }, B);
+      const bCardInViewport = (id) => {
+        const card = document.querySelector(`[data-advertising-card="${id}"]`);
+        const rect = card?.getBoundingClientRect();
+        return Boolean(card && !card.hidden && rect.top >= 0 && rect.bottom <= innerHeight);
+      };
+      await page.waitForFunction(bCardInViewport, B, { timeout: 5_000 });
+      await page.evaluate(frame);
+      assert(await page.evaluate(bCardInViewport, B), `${locale}: B must stay within the viewport before click`);
+      await page.locator(`[data-advertising-card="${B}"] > a`).click();
+      await ready(page, B);
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+        && !document.querySelector("[data-advertising-photo-morph]"));
+      await page.evaluate(frame);
+      const second = await readMarkers();
+      assert.deepEqual(second.map(({ id }) => id), [B], `${locale}: B replaces A without a second marker`);
+      assert(second[0].text.includes(locale === "vi" ? "Vừa xem" : "Just viewed"), `${locale}: replacement label`);
+      await page.goForward();
+      await ready(page, B);
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+        && !document.querySelector("[data-advertising-photo-morph]"));
+      assert.deepEqual((await readMarkers()).map(({ id }) => id), [B], `${locale}: same-tab history keeps latest marker`);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      assert.deepEqual(await readMarkers(), [], `${locale}: full reload clears runtime marker`);
+      evidence.push({ locale, first, second, afterReload: 0 });
+    }
+    return evidence;
+  });
+
+  await caseRun("m02b-entry-media-and-scroll-back-forward", { width: 1543, height: 884 }, async (page, stage) => {
+    const evidence = [];
+    for (const locale of ["vi", "en"]) {
+      stage(`${locale}-grid-video-Y0`);
+      const card = await m02bFixture(page, locale);
+      const tile = page.locator(`[data-advertising-card="${mediaCardId}"]`);
+      await tile.scrollIntoViewIfNeeded();
+      await tile.locator(`[data-advertising-media-select="${mediaVideoId}"]`).click();
+      await page.waitForFunction(({ id, mediaId }) => document.querySelector(`[data-advertising-card="${id}"]`)?.dataset.advertisingActiveMediaId === mediaId,
+        { id: mediaCardId, mediaId: mediaVideoId });
+      const preClickY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      const initialLength = await page.evaluate(() => history.length);
+      await tile.locator(":scope > a").click({ position: { x: 20, y: 20 } });
+      await page.waitForFunction((id) => new URL(location.href).searchParams.get("photo") === id, mediaCardId);
+      const y0 = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
+      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
+      assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: card creates exactly one history entry`);
+      stage(`${locale}-detail-image-Y1`);
+      await page.locator(`[data-advertising-photo-media-select="${card.coverMediaId}"]`).click();
+      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
+      await page.waitForFunction(() => Math.abs(window.TruongThinhMotion.getLogicalScroll() - 480) <= 1);
+      const y1 = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      assert(Math.abs(y0 - y1) > 100, `${locale}: fixture needs distinct entry scroll positions`);
+      assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: media switch must not push history`);
+
+      stage(`${locale}-Back-grid-video`);
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      await page.waitForTimeout(650);
+      const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0}`);
+      const gridMedia = await page.locator(`[data-advertising-card="${mediaCardId}"]`).getAttribute("data-advertising-active-media-id");
+      assert.equal(gridMedia, mediaVideoId, `${locale}: Back restores grid entry media`);
+
+      stage(`${locale}-Forward-detail-image`);
+      await page.goForward();
+      await page.waitForFunction((id) => new URL(location.href).searchParams.get("photo") === id, mediaCardId);
+      await page.waitForTimeout(650);
+      const forwardY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      assert(Math.abs(forwardY - y1) <= 1, `${locale}: Forward restored detail Y ${forwardY}, expected ${y1}`);
+      const activeThumb = await page.locator('[data-advertising-photo-media-select][aria-current="true"]').getAttribute("data-advertising-photo-media-select");
+      assert.equal(activeThumb, card.coverMediaId, `${locale}: Forward restores detail entry media`);
+      assert.equal(new URL(page.url()).searchParams.has("media"), false, `${locale}: media identity must not enter URL`);
+      assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: Back/Forward must not add entries`);
+      evidence.push({ locale, preClickY, y0, y1, gridMedia, activeThumb, historyLength: initialLength + 1 });
+    }
+    return evidence;
+  });
+
+  for (const profile of [
+    { name: "desktop", viewport: { width: 1440, height: 900 }, contextOptions: {} },
+    { name: "phone-portrait", viewport: { width: 390, height: 844 }, contextOptions: { isMobile: true, hasTouch: true } },
+    { name: "phone-landscape", viewport: { width: 844, height: 390 }, contextOptions: { isMobile: true, hasTouch: true } },
+  ].flatMap((profile) => ["vi", "en"].map((locale) => ({ ...profile, locale })))) {
+    await caseRun("m02b-related-history-just-viewed-and-scroll", profile.viewport, async (page, stage) => {
+      const evidence = [];
+      const markerFailures = [];
+      const activate = async (link) => {
+        const position = await link.evaluate((node) => {
+          const rect = node.getBoundingClientRect();
+          const headerBottom = document.querySelector("header").getBoundingClientRect().bottom;
+          return { x: 20, y: Math.max(rect.top + 20, headerBottom + 20) - rect.top };
+        });
+        await page.evaluate(() => { window.__ttM02bActivation = null; });
+        if (profile.contextOptions.hasTouch) await link.tap({ position });
+        else await link.click({ position });
+        const activation = await page.evaluate(() => window.__ttM02bActivation);
+        assert(activation?.trusted, "card activation must reach the trusted click observer");
+        return activation;
+      };
+      const positionCard = async (selector) => {
+        await page.evaluate((target) => {
+          const rect = document.querySelector(target).getBoundingClientRect();
+          const top = document.querySelector("header").getBoundingClientRect().bottom + 20;
+          const motion = window.TruongThinhMotion;
+          motion.setLogicalScroll(motion.getLogicalScroll() + rect.top - top);
+        }, selector);
+        await page.evaluate(frame);
+        await page.waitForFunction((target) => {
+          const rect = document.querySelector(target)?.getBoundingClientRect();
+          const headerBottom = document.querySelector("header").getBoundingClientRect().bottom;
+          return rect && Math.max(rect.top, headerBottom) + 30 < Math.min(rect.bottom, innerHeight);
+        }, selector);
+      };
+      const checkMarker = async (locale, expectedId, grid, label) => {
+        const markers = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-just-viewed]")].map((node) => {
+          const card = node.closest("[data-advertising-card], [data-advertising-related-card]");
+          return { id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
+            grid: card.hasAttribute("data-advertising-related-card") ? "related" : "main",
+            hidden: Boolean(node.closest("[hidden]")), text: node.textContent };
+        }));
+        const expected = expectedId ? [{ id: expectedId, grid, hidden: false, text: locale === "vi" ? "Vừa xem" : "Just viewed" }] : [];
+        evidence.push({ locale, label, markers });
+        if (JSON.stringify(markers) !== JSON.stringify(expected)) markerFailures.push({ locale, label, expected, markers });
+        await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
+      };
+      for (const locale of [profile.locale]) {
+        stage(`${profile.name}-${locale}-grid-to-A`);
+        await m02bFixture(page, locale);
+        await page.evaluate(() => {
+          document.addEventListener("click", (event) => {
+            const card = event.target.closest("[data-advertising-card], [data-advertising-related-card]");
+            if (!card) return;
+            window.__ttM02bActivation = { id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
+              y: window.TruongThinhMotion.getLogicalScroll(), nativeY: scrollY, trusted: event.isTrusted };
+          }, { capture: true });
+        });
+        await positionCard(`[data-advertising-card="${mediaCardId}"]`);
+        const preClickGridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+        const initialLength = await page.evaluate(() => history.length);
+        const gridActivation = await activate(page.locator(`[data-advertising-card="${mediaCardId}"] > a`));
+        await ready(page, mediaCardId);
+        const storedGridY = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
+        const gridY = gridActivation.y;
+        assert(Math.abs(storedGridY - gridY) <= 1, `${locale}: stored grid Y must match independent click observer`);
+        const nextId = await page.locator("[data-advertising-related-card]").first().getAttribute("data-advertising-related-card");
+        assert(nextId && nextId !== mediaCardId, "related fixture needs another card");
+        await positionCard(`[data-advertising-related-card="${nextId}"]`);
+        const preClickDetailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+
+        stage(`${profile.name}-${locale}-A-to-B`);
+        await armNoGridMorphProbe(page);
+        const detailActivation = await activate(page.locator(`[data-advertising-related-card="${nextId}"] > a`));
+        const ya = detailActivation.y;
+        await ready(page, nextId);
+        await noGridMorphEvidence(page, nextId, 0);
+        await positionCard(`[data-advertising-related-card="${mediaCardId}"]`);
+        const yb = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+        assert(Math.abs(ya - yb) > 1, `${locale}: related history needs distinct YA/YB`);
+        await checkMarker(locale, mediaCardId, "related", "A-to-B");
+
+        stage(`${profile.name}-${locale}-Back-A-YA`);
+        await armNoGridMorphProbe(page);
+        await page.goBack();
+        await ready(page, mediaCardId);
+        const back = await noGridMorphEvidence(page, mediaCardId, ya);
+        await checkMarker(locale, nextId, "related", "Back-A");
+
+        stage(`${profile.name}-${locale}-Forward-B-YB`);
+        await armNoGridMorphProbe(page);
+        await page.goForward();
+        await ready(page, nextId);
+        const forward = await noGridMorphEvidence(page, nextId, yb);
+        await checkMarker(locale, mediaCardId, "related", "Forward-B");
+        evidence.push({ profile: profile.name, locale, nextId, preClickGridY, gridActivation, storedGridY,
+          gridY, preClickDetailY, detailActivation, ya, yb, back, forward });
+        await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
+        assert.deepEqual(markerFailures, [], `related marker failures: ${JSON.stringify(markerFailures)}`);
+        assert.equal(await page.evaluate(() => history.length), initialLength + 2, `${locale}: related history must not add entries`);
+        assert.deepEqual([...new URL(page.url()).searchParams.keys()].sort(), ["category", "photo"], `${locale}: no marker/media URL parameter`);
+
+        stage(`${profile.name}-${locale}-related-virtualization-remount`);
+        const away = await page.evaluate(({ id, originY }) => {
+          window.TruongThinhAdvertising.getAdapter().releasePhoto(id);
+          const max = document.documentElement.scrollHeight - innerHeight;
+          const target = originY > max / 2 ? 0 : max;
+          window.TruongThinhMotion.setLogicalScroll(target);
+          return { max, target, originY };
+        }, { id: mediaCardId, originY: yb });
+        evidence.push({ locale, label: "virtual-away", ...away });
+        await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
+        await page.waitForFunction((id) => !document.querySelector(`[data-advertising-related-card="${id}"]`), mediaCardId);
+        await checkMarker(locale, null, "related", "offscreen-unmounted");
+        await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), yb);
+        await page.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"]`), mediaCardId);
+        await page.evaluate(frame);
+        await checkMarker(locale, mediaCardId, "related", "virtual-remount");
+        assert(Math.abs(await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) - yb) <= 1, `${locale}: marker remount must not scroll`);
+
+        stage(`${profile.name}-${locale}-Back-main-grid`);
+        await page.goBack();
+        await ready(page, mediaCardId);
+        await armNoGridMorphProbe(page);
+        await page.goBack();
+        await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+        await noGridMorphEvidence(page, null, gridY);
+        await checkMarker(locale, mediaCardId, "main", "Back-main-grid");
+        stage(`${profile.name}-${locale}-reload-clears-marker`);
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+        await checkMarker(locale, null, "main", "reload");
+        evidence.push({ profile: profile.name, locale, gridY, ya, yb, back, forward,
+          emulation: await page.evaluate(() => ({ touchPoints: navigator.maxTouchPoints, coarsePointer: matchMedia("(pointer: coarse)").matches, width: innerWidth, height: innerHeight })) });
+      }
+      assert.deepEqual(markerFailures, [], `related marker failures: ${JSON.stringify(markerFailures)}`);
+      return evidence;
+    }, { contextOptions: profile.contextOptions });
+  }
+
+  await caseRun("m02b-direct-reload-cover", { width: 390, height: 844 }, async (page, stage) => {
+    const evidence = [];
+    for (const locale of ["vi", "en"]) {
+      stage(`${locale}-direct`);
+      const card = await m02bFixture(page, locale, true);
+      const selected = () => page.locator('[data-advertising-photo-media-select][aria-current="true"]')
+        .getAttribute("data-advertising-photo-media-select");
+      assert.equal(await selected(), card.coverMediaId, `${locale}: direct detail starts authored cover`);
+      await page.locator(`[data-advertising-photo-media-select="${mediaVideoId}"]`).click();
+      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
+      stage(`${locale}-reload`);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
+      assert.equal(await selected(), card.coverMediaId, `${locale}: reload resets to cover`);
+      assert.equal(new URL(page.url()).searchParams.has("media"), false, `${locale}: direct/reload URL remains card-only`);
+      evidence.push({ locale, cover: card.coverMediaId, reload: await selected() });
+    }
+    return evidence;
+  });
   await caseRun("related-selected-card-shuffle-cleanup", { width: 1569, height: 912 }, async (page, stage) => {
     const evidence = [];
     for (const scenario of [
@@ -932,595 +1117,385 @@ try {
     return { parentStuffing, relatedStuffing, tagStuffing, initialMedia, remountedMedia, relatedRemount, remount, interrupted, reduced };
   });
   await caseRun("morph-frame-identity", { width: 1440, height: 900 }, async (page, stage) => {
-    stage("open-A");
-    await installMorphEndpointProbe(page);
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-    await page.waitForFunction((id) => {
-      const image = document.querySelector(`[data-advertising-card="${id}"] img`);
-      return image?.complete && image.naturalWidth > 0 && Boolean(image.currentSrc);
-    }, A);
-    await page.locator(`[data-advertising-card="${A}"] > a`).scrollIntoViewIfNeeded();
-    const source = await page.locator(`[data-advertising-card="${A}"] img`).evaluate((node) => ({ id: node.closest("[data-advertising-card]")?.dataset.advertisingCard, src: node.currentSrc, rect: node.getBoundingClientRect().toJSON() }));
-    await page.evaluate(() => {
-      const probe = { added: [] };
-      const capture = (node) => probe.added.push({
-        id: node.dataset.advertisingPhotoId,
-        src: node.currentSrc || node.src,
-        rect: node.getBoundingClientRect().toJSON(),
-        cloneCount: document.querySelectorAll("[data-advertising-photo-morph]").length,
-        targetVisibility: getComputedStyle(document.querySelector("[data-advertising-photo-image]")).visibility,
-      });
-      probe.observer = new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
-        if (!(node instanceof Element)) return;
-        if (node.matches("[data-advertising-photo-morph]")) capture(node);
-        node.querySelectorAll?.("[data-advertising-photo-morph]").forEach(capture);
-      })));
-      probe.observer.observe(document.body, { childList: true, subtree: true });
-      window.__ttAdvertisingMorphProbe = probe;
-    });
-    await page.locator(`[data-advertising-card="${A}"] > a`).click();
-    const start = await page.evaluate(snapshot);
-    await page.evaluate(frame);
-    const mid = await page.evaluate(snapshot);
-    await ready(page, A);
-    await page.waitForFunction(() => window.__ttAdvertisingMorphProbe?.added.length > 0);
+    stage("related-click-without-grid-morph");
+    await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const added = await page.evaluate(() => {
-      window.__ttAdvertisingMorphProbe.observer.disconnect();
-      return window.__ttAdvertisingMorphProbe.added;
+    let relatedY = 0;
+    await chooseB(page, async () => {
+      relatedY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      await armNoGridMorphProbe(page);
     });
-    const end = await page.evaluate(snapshot);
-    assert.equal(end.hero, A); assert.equal(source.id, A);
-    assert.equal(end.clones.length, 0);
-    assert.equal(await page.locator("[data-site-header] [data-advertising-photo-morph]").count(), 0);
-    const observed = [...added, ...start.clones, ...mid.clones];
-    assert(observed.length > 0, `no observable morph clone ${JSON.stringify({ source, start, mid })}`);
-    assert(observed.every((clone) => clone.id === A && clone.src === source.src), `stale morph identity ${JSON.stringify({ source, start, mid })}`);
-    assert(added.every((clone) => clone.cloneCount === 1 && clone.targetVisibility === "hidden"), `target flashed or clone duplicated on first morph frame ${JSON.stringify(added)}`);
-    const firstClone = added[0];
-    const firstFrameDelta = {
-      left: firstClone.rect.left - source.rect.left,
-      top: firstClone.rect.top - source.rect.top,
-      width: firstClone.rect.width - source.rect.width,
-      height: firstClone.rect.height - source.rect.height,
-    };
-    assert([firstFrameDelta.left, firstFrameDelta.top, firstFrameDelta.width, firstFrameDelta.height]
-      .every((delta) => Math.abs(delta) <= 2),
-    `first clone frame did not preserve the clicked image viewport geometry ${JSON.stringify({ source, firstClone, firstFrameDelta })}`);
-    stage("scrolled-related-endpoint");
-    await page.locator('[data-advertising-suggestion-tag="use-sampling"]').click();
-    await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling");
-    const relatedLink = page.locator(`[data-advertising-related-card="${B}"] > a`);
-    await relatedLink.waitFor();
-    await page.waitForFunction((id) => {
-      const image = document.querySelector(`[data-advertising-related-card="${id}"] img`);
-      return image?.complete && image.naturalWidth > 0 && Boolean(image.currentSrc);
-    }, B);
-    await page.mouse.move(5, 700);
-    await page.mouse.wheel(0, 500);
-    await page.waitForFunction(() => (window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) > 100);
-    await page.evaluate(async () => {
-      let previous = NaN;
-      let stable = 0;
-      while (stable < 3) {
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        const current = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
-        stable = Math.abs(current - previous) <= 0.1 ? stable + 1 : 0;
-        previous = current;
-      }
-    });
-    const relatedScroll = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
-    await relatedLink.click();
-    await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-morph][data-advertising-photo-id="${id}"]`), B);
-    const morphScrollStart = await page.evaluate(() => ({
-      logical: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
-      native: scrollY,
-      overflow: [document.body.style.overflow, document.documentElement.style.overflow],
-    }));
-    await page.mouse.wheel(0, 160);
-    await page.keyboard.press("PageDown");
-    const morphScrollEnd = await page.evaluate(() => ({
-      logical: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
-      native: scrollY,
-    }));
     await ready(page, B);
-    await page.waitForFunction((id) => window.__ttP13MorphEndpoints.some((entry) => entry.id === id && entry.targetRect), B);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const endpoint = await page.evaluate((id) => window.__ttP13MorphEndpoints.findLast((entry) => entry.id === id), B);
-    const revealedTarget = await page.evaluate(() => {
-      const target = document.querySelector('[data-advertising-photo-image][data-advertising-photo-id="mobile-retail-04"]');
-      return { at: performance.now(), rect: target?.getBoundingClientRect().toJSON() || null, visibility: target ? getComputedStyle(target).visibility : null };
-    });
-    assert(relatedScroll > 0, `related click did not exercise restored scroll geometry: ${relatedScroll}`);
-    assert.deepEqual(morphScrollStart.overflow, ["hidden", "hidden"],
-      `morph did not acquire the shared scroll lease: ${JSON.stringify(morphScrollStart)}`);
-    assert(Math.abs(morphScrollEnd.logical - morphScrollStart.logical) <= 0.1
-      && Math.abs(morphScrollEnd.native - morphScrollStart.native) <= 0.1,
-    `wheel or scroll key changed the viewport during morph: ${JSON.stringify({ morphScrollStart, morphScrollEnd })}`);
-    const releasedScrollStart = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
+    const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    const transition = await noGridMorphEvidence(page, B, detailY);
+    assert(relatedY > 0, "related click must start from a scrolled detail");
+    assert.equal(new URL(page.url()).searchParams.get("photo"), B);
+    assert.equal(new URL(page.url()).searchParams.get("tag"), "use-sampling");
+    const scrollStart = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     await page.mouse.wheel(0, 160);
-    await page.waitForFunction((start) => Math.abs((window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) - start) >= 100, releasedScrollStart);
-    const releasedScrollEnd = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
-    assert.equal(revealedTarget.visibility, "visible", "photo target remained hidden after clone removal");
-    const endpointDelta = {
-      elapsedMs: revealedTarget.at - endpoint.finishedAt,
-      left: endpoint.cloneRect.left - revealedTarget.rect.left,
-      top: endpoint.cloneRect.top - revealedTarget.rect.top,
-      width: endpoint.cloneRect.width - revealedTarget.rect.width,
-      height: endpoint.cloneRect.height - revealedTarget.rect.height,
-    };
-    assert([endpointDelta.left, endpointDelta.top, endpointDelta.width, endpointDelta.height].every((delta) => Math.abs(delta) <= 2),
-      `finished clone did not meet the revealed photo target ${JSON.stringify({ relatedScroll, endpoint, revealedTarget, endpointDelta })}`);
-    return { source, firstClone, firstFrameDelta, start, mid, end, relatedScroll, morphScrollStart, morphScrollEnd, releasedScrollStart, releasedScrollEnd, endpoint, revealedTarget, endpointDelta };
+    await page.waitForFunction((start) => window.TruongThinhMotion.getLogicalScroll() - start >= 100, scrollStart);
+    return { relatedY, detailY, transition, scrollAfterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
   });
-
   await caseRun("viewer-morph-lock-handoff", { width: 1440, height: 900 }, async (page, stage) => {
-    stage("open-during-morph");
+    stage("viewer-open-morph");
     await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     await page.evaluate(() => {
       const motion = window.TruongThinhMotion;
-      const lock = motion.lockLogicalScroll.bind(motion);
-      const unlock = motion.unlockLogicalScroll.bind(motion);
-      window.__ttViewerMorphLocks = [];
-      motion.lockLogicalScroll = () => {
-        const scrollY = lock();
-        window.__ttViewerMorphLocks.push({ type: "lock", at: performance.now(), body: document.body.style.overflow, html: document.documentElement.style.overflow });
-        return scrollY;
+      const lock = motion.lockLogicalScroll;
+      const unlock = motion.unlockLogicalScroll;
+      const animate = Element.prototype.animate;
+      window.__ttViewerProbe = { locks: [], animations: [] };
+      motion.lockLogicalScroll = function measuredViewerLock(...args) {
+        window.__ttViewerProbe.locks.push({ kind: "lock", at: performance.now() });
+        return lock.apply(this, args);
       };
-      motion.unlockLogicalScroll = (scrollY) => {
-        const result = unlock(scrollY);
-        window.__ttViewerMorphLocks.push({ type: "unlock", at: performance.now(), body: document.body.style.overflow, html: document.documentElement.style.overflow });
-        return result;
+      motion.unlockLogicalScroll = function measuredViewerUnlock(...args) {
+        window.__ttViewerProbe.locks.push({ kind: "unlock", at: performance.now() });
+        return unlock.apply(this, args);
+      };
+      Element.prototype.animate = function measuredViewerAnimation(keyframes, options) {
+        if (this.matches?.("[data-advertising-photo-expanded-image]")) {
+          window.__ttViewerProbe.animations.push({
+            duration: Number(typeof options === "number" ? options : options?.duration),
+            state: document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState,
+          });
+        }
+        return animate.call(this, keyframes, options);
       };
     });
-    const baseline = await page.evaluate(() => ({ body: document.body.style.overflow, html: document.documentElement.style.overflow }));
-    await chooseB(page);
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-morph]")
-      && document.querySelector("[data-advertising-photo-expand]")?.offsetParent);
-    const beforeExpand = await page.evaluate(() => ({
-      clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
-      body: getComputedStyle(document.body).overflow,
-      html: getComputedStyle(document.documentElement).overflow,
+    const baseline = await page.evaluate(() => [document.body.style.overflow, document.documentElement.style.overflow]);
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
+    const opening = await page.evaluate(() => ({
+      locks: [document.body.style.overflow, document.documentElement.style.overflow],
+      animations: window.__ttViewerProbe.animations,
+      focus: document.activeElement?.matches("[data-advertising-photo-close]"),
     }));
-    assert.equal(beforeExpand.clones, 1, "expand fixture did not catch an active photo morph");
-    await page.locator("[data-advertising-photo-expand]").evaluate((node) => node.click());
-    await page.waitForTimeout(450);
-    await page.locator("[data-advertising-photo-image]").evaluate((node) => node.dispatchEvent(new Event("load")));
-    await page.waitForTimeout(200);
-    const during = await page.evaluate(() => ({
-      dialogOpen: document.querySelector("[data-advertising-photo-dialog]")?.open === true,
-      body: getComputedStyle(document.body).overflow,
-      html: getComputedStyle(document.documentElement).overflow,
-      bodyInline: document.body.style.overflow,
-      htmlInline: document.documentElement.style.overflow,
-      clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
-      locks: window.__ttViewerMorphLocks,
-    }));
-    assert.equal(during.dialogOpen, true, "viewer closed while the morph lock settled");
-    assert(during.bodyInline === "hidden" || during.htmlInline === "hidden", "viewer lost document scroll lock after morph settlement");
-    assert.equal(during.clones, 0, "viewer handoff retained the obsolete morph clone");
+    assert(opening.locks.includes("hidden"), "viewer open must own document scroll lock");
+    assert(opening.animations.some(({ duration, state }) => duration === 300 && state === "opening"),
+      "primary to viewer open morph must remain");
+    assert.equal(opening.focus, true, "viewer open must focus close control");
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
 
-    stage("cancel-releases");
-    await page.keyboard.press("Escape");
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
-    const afterCancel = await page.evaluate(() => ({ body: document.body.style.overflow, html: document.documentElement.style.overflow }));
-    assert.deepEqual(afterCancel, baseline, "dialog cancel did not release the viewer lock");
-
-    stage("reduced-motion-releases");
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.locator("[data-advertising-photo-expand]").evaluate((node) => node.click());
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === true);
-    const reducedLocked = await page.evaluate(() => ({ body: getComputedStyle(document.body).overflow, html: getComputedStyle(document.documentElement).overflow }));
-    assert(reducedLocked.body === "hidden" || reducedLocked.html === "hidden", "reduced-motion viewer did not acquire its lock");
+    stage("viewer-close-morph");
     await page.locator("[data-advertising-photo-close]").click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
-    const afterReduced = await page.evaluate(() => ({ body: document.body.style.overflow, html: document.documentElement.style.overflow }));
-    assert.deepEqual(afterReduced, baseline, "reduced-motion close did not release the viewer lock");
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    const closed = await page.evaluate(() => ({
+      locks: [document.body.style.overflow, document.documentElement.style.overflow],
+      animations: window.__ttViewerProbe.animations,
+      focus: document.activeElement?.matches("[data-advertising-photo-expand]"),
+      lockEvents: window.__ttViewerProbe.locks,
+    }));
+    assert(closed.animations.some(({ duration, state }) => duration === 250 && state === "closing"),
+      "viewer to primary close morph must remain");
+    assert.deepEqual(closed.locks, baseline, "viewer close must release document scroll lock");
+    assert.equal(closed.focus, true, "viewer close must return focus to expand control");
+    assert.deepEqual(closed.lockEvents.map(({ kind }) => kind), ["lock", "unlock"], "viewer lock handoff");
 
-    stage("image-error-releases");
+    stage("reduced-motion-and-error-release");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
+    await page.locator("[data-advertising-photo-close]").click();
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    const reduced = await page.evaluate(() => ({
+      locks: [document.body.style.overflow, document.documentElement.style.overflow],
+      animationCount: window.__ttViewerProbe.animations.length,
+    }));
+    assert.deepEqual(reduced.locks, baseline, "reduced-motion viewer must release lock");
+    assert.equal(reduced.animationCount, 2, "reduced-motion viewer must skip open and close morph");
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.locator("[data-advertising-photo-expand]").evaluate((node) => node.click());
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === true);
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
     await page.locator("[data-advertising-photo-expanded-image]").evaluate((node) => node.dispatchEvent(new Event("error")));
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
-    const afterError = await page.evaluate(() => ({ body: document.body.style.overflow, html: document.documentElement.style.overflow }));
-    assert.deepEqual(afterError, baseline, "viewer image error did not release the viewer lock");
-    return { beforeExpand, during, afterCancel, reducedLocked, afterReduced, afterError };
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+    const afterError = await page.evaluate(() => [document.body.style.overflow, document.documentElement.style.overflow]);
+    assert.deepEqual(afterError, baseline, "viewer image error must release lock");
+    return { opening, closed, reduced, afterError };
   });
-
   await caseRun("history-back-forward-morph", { width: 1440, height: 900 }, async (page, stage) => {
-    await installHistoryMorphProbe(page);
-    stage("detail-back-forward");
+    stage("detail-A-to-B");
     await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const aSrc = await page.locator("[data-advertising-photo-image]").evaluate((node) => node.currentSrc);
-    await chooseB(page);
+    const a = await page.evaluate(() => ({
+      seed: window.TruongThinhAdvertising.getBrowseState().seed,
+      y: window.TruongThinhMotion.getLogicalScroll(),
+      gridY: window.TruongThinhAdvertising.getBrowseState().grid.scrollY,
+      length: history.length,
+    }));
+    await chooseB(page, async () => { a.y = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()); });
     await ready(page, B);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const bSrc = await page.locator("[data-advertising-photo-image]").evaluate((node) => node.currentSrc);
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
+    const b = await page.evaluate(() => ({
+      seed: window.TruongThinhAdvertising.getBrowseState().seed,
+      y: window.TruongThinhMotion.getLogicalScroll(),
+      length: history.length,
+    }));
+    assert.equal(b.seed, a.seed, "detail navigation must preserve seed");
+    assert.equal(b.length, a.length + 1, "related card creates one history entry");
 
-    await page.mouse.move(1400, 20);
+    stage("Back-A");
+    await armNoGridMorphProbe(page);
     await page.goBack();
     await ready(page, A);
-    const detailBack = await completedHistoryMorph(page, 0);
-    assertHistoryMorph(detailBack, { id: B, src: bSrc }, "detail B to A Back");
+    const back = await noGridMorphEvidence(page, A, a.y);
+    assert.equal(await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed), a.seed, "Back preserves seed");
 
-    await page.mouse.move(1400, 20);
+    stage("Forward-B");
+    await armNoGridMorphProbe(page);
     await page.goForward();
     await ready(page, B);
-    const detailForward = await completedHistoryMorph(page, 1);
-    assertHistoryMorph(detailForward, { id: A, src: aSrc }, "detail A to B Forward");
+    const forward = await noGridMorphEvidence(page, B, b.y);
 
-    stage("grid-back-forward");
-    await openA(page);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
-    await page.mouse.move(1400, 20);
+    stage("Back-grid-focus");
+    await page.goBack();
+    await ready(page, A);
+    await armNoGridMorphProbe(page);
     await page.goBack();
     await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
-    const gridBack = await completedHistoryMorph(page, 0);
-    assertHistoryMorph(gridBack, { id: A, src: aSrc }, "detail A to grid Back");
-
-    await page.mouse.move(1400, 20);
-    await page.goForward();
-    await ready(page, A);
-    const gridForward = await completedHistoryMorph(page, 1);
-    assertHistoryMorph(gridForward, { id: A, src: aSrc }, "grid to detail A Forward");
-
-    stage("deep-link-no-source");
-    await page.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
-    await ready(page, A);
-    assert.equal(await page.evaluate(() => window.__ttHistoryMorphs.length), 0, "deep link created a morph without a grid source");
-
-    stage("reduced-motion-history");
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await openA(page);
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
-    await page.goBack();
-    await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
-    await page.goForward();
-    await ready(page, A);
-    const reduced = await page.evaluate(() => ({
-      clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
-      locks: [document.body.style.overflow, document.documentElement.style.overflow],
-      records: window.__ttHistoryMorphs.length,
-    }));
-    assert.deepEqual(reduced, { clones: 0, locks: ["", ""], records: 0 });
-    return { detailBack, detailForward, gridBack, gridForward, reduced };
+    const grid = await noGridMorphEvidence(page, null, a.gridY);
+    assert.equal(await page.evaluate(() => history.length), b.length, "Back/Forward must not add history entries");
+    return { a, b, back, forward, grid };
   });
+  await caseRun("history-entry-scroll-offscreen-morph", { width: 1543, height: 884 }, async (page, stage) => {
+    const evidence = [];
+    const networkFailures = [];
+    page.on("requestfailed", (request) => networkFailures.push({ url: request.url(), error: request.failure()?.errorText }));
+    page.on("response", (response) => {
+      if (response.status() >= 400) networkFailures.push({ url: response.url(), status: response.status() });
+    });
+    for (const locale of ["en", "vi"]) {
+      networkFailures.length = 0;
+      stage(locale + "-offscreen-grid-fixture");
+      await page.goto(href("/" + locale + "/advertising-products/?category=signage-raised-letters"), { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+      let initial = null;
+      for (const candidate of ADVERTISING_CARDS.filter((card) => card.category === "signage-raised-letters")) {
+        await page.evaluate((photoId) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(photoId), candidate.id);
+        initial = await page.evaluate((photoId) => {
+          const card = document.querySelector('[data-advertising-card="' + photoId + '"]');
+          return { id: photoId, rect: card?.getBoundingClientRect().toJSON() || null,
+            seed: window.TruongThinhAdvertising.getBrowseState().seed, length: history.length };
+        }, candidate.id);
+        if (initial.rect?.top > 884) break;
+      }
+      assert(initial?.rect?.top > 884, locale + ": no offscreen card after checking category candidates");
+      const id = initial.id;
+      const link = page.locator('[data-advertising-card="' + id + '"] > a');
+      await link.scrollIntoViewIfNeeded();
+      await page.waitForFunction((photoId) => {
+        const image = document.querySelector('[data-advertising-card="' + photoId + '"] img');
+        return image?.complete && image.naturalWidth > 0;
+      }, id);
+      const clickedY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      await link.click();
+      await ready(page, id);
+      await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
+      await page.waitForFunction(() => Math.abs(window.TruongThinhAdvertising.getBrowseState().detail.scrollY - 480) <= 1);
+      const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 
+      stage(locale + "-grid-Y0");
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+        && !document.querySelector("[data-advertising-photo-morph]"));
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+      await page.waitForFunction(() => Math.abs(window.TruongThinhMotion.getLogicalScroll()) <= 1);
+      const grid = await page.evaluate((photoId) => ({
+        y: window.TruongThinhMotion.getLogicalScroll(),
+        cardTop: document.querySelector('[data-advertising-card="' + photoId + '"]')?.getBoundingClientRect().top ?? null,
+        seed: window.TruongThinhAdvertising.getBrowseState().seed,
+        category: window.TruongThinhAdvertising.getBrowseState().category,
+        length: history.length,
+      }), id);
+      assert(grid.cardTop === null || grid.cardTop > 884, locale + ": grid Y0 must keep card offscreen");
+      assert(Math.abs(detailY - grid.y) > 100, locale + ": fixture needs distinct Y0/Y1");
+
+      stage(locale + "-Forward-detail-Y1");
+      await armNoGridMorphProbe(page);
+      await page.goForward();
+      await ready(page, id);
+      const forward = await noGridMorphEvidence(page, id, detailY);
+      const forwardState = await page.evaluate(() => ({
+        seed: window.TruongThinhAdvertising.getBrowseState().seed,
+        category: window.TruongThinhAdvertising.getBrowseState().category,
+        length: history.length,
+      }));
+
+      stage(locale + "-Back-grid-Y0");
+      await armNoGridMorphProbe(page);
+      await page.goBack();
+      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      const back = await noGridMorphEvidence(page, null, grid.y);
+      const backState = await page.evaluate(() => ({
+        seed: window.TruongThinhAdvertising.getBrowseState().seed,
+        category: window.TruongThinhAdvertising.getBrowseState().category,
+        focusId: window.TruongThinhAdvertising.getBrowseState().grid.focusId,
+        length: history.length,
+      }));
+      assert.equal(forwardState.seed, initial.seed, locale + ": Forward changed seed");
+      assert.equal(backState.seed, initial.seed, locale + ": Back changed seed");
+      assert.equal(forwardState.category, "signage-raised-letters", locale + ": Forward changed category");
+      assert.equal(backState.category, "signage-raised-letters", locale + ": Back changed category");
+      assert.equal(backState.focusId, id, locale + ": Back lost card focus");
+      assert.equal(forwardState.length, initial.length + 1, locale + ": click created wrong history length");
+      assert.equal(backState.length, forwardState.length, locale + ": traversal added history entry");
+      assert.equal(new URL(page.url()).pathname, "/" + locale + "/advertising-products/", locale + ": locale changed");
+      assert.deepEqual(networkFailures, [], locale + ": fixture/network failure");
+      evidence.push({ locale, clickedY, detailY, grid, forward, back, forwardState, backState, networkFailures: [] });
+    }
+    return evidence;
+  });
   await caseRun("history-pointer-retained-morph", { width: 1440, height: 900 }, async (page, stage) => {
-    await installHistoryMorphProbe(page);
-    stage("detail-back-pointer-retained");
+    stage("detail-Back-with-pointer-retained");
     await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    await chooseB(page);
+    let aY = 0;
+    await chooseB(page, async () => { aY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()); });
     await ready(page, B);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const bSrc = await page.locator("[data-advertising-photo-image]").evaluate((node) => node.currentSrc);
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
-
+    await armNoGridMorphProbe(page);
     await page.goBack();
     await ready(page, A);
-    const detailBack = await completedHistoryMorph(page, 0);
-    assertHistoryMorph(detailBack, { id: B, src: bSrc }, "detail B to A Back with retained pointer");
-    return { detailBack };
+    const back = await noGridMorphEvidence(page, A, aY);
+    assert.equal(new URL(page.url()).searchParams.get("photo"), A, "retained pointer Back reached wrong detail");
+    return { aY, back };
   });
-
   await caseRun("history-grid-pointer-retained-morph", { width: 1440, height: 900 }, async (page, stage) => {
-    await installHistoryMorphProbe(page);
-    stage("detail-to-grid-pointer-retained");
+    stage("grid-Back-with-pointer-retained");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-    const firstLink = page.locator("[data-advertising-card] > a").first();
-    const photoId = await firstLink.evaluate((node) => node.closest("[data-advertising-card]")?.dataset.advertisingCard);
-    await firstLink.click();
+    const link = page.locator("[data-advertising-card] > a").first();
+    const photoId = await link.evaluate((node) => node.closest("[data-advertising-card]").dataset.advertisingCard);
+    await link.scrollIntoViewIfNeeded();
+    const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    await link.click();
     await ready(page, photoId);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const source = await page.locator("[data-advertising-photo-image]").evaluate((node) => node.currentSrc);
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
-
+    await armNoGridMorphProbe(page);
     await page.goBack();
     await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, photoId);
-    const gridBack = await completedHistoryMorph(page, 0);
-    assertHistoryMorph(gridBack, { id: photoId, src: source }, "detail to parent grid Back with retained pointer");
-    return { gridBack, photoId };
+    const back = await noGridMorphEvidence(page, null, gridY);
+    return { photoId, gridY, back };
   });
-
   await caseRun("history-grid-scrollbar-resize", { width: 1010, height: 900 }, async (page, stage) => {
-    await installHistoryMorphProbe(page);
     await page.addInitScript(() => {
       addEventListener("DOMContentLoaded", () => {
         const root = document.documentElement;
         const nativeClientWidth = root.clientWidth;
         Object.defineProperty(root, "clientWidth", {
           configurable: true,
-          get: () => window.__ttViewportClientWidth
-            ?? nativeClientWidth - (document.body.style.overflow === "hidden" ? 0 : 10),
+          get: () => nativeClientWidth - (document.body.style.overflow === "hidden" ? 0 : 10),
         });
-        new MutationObserver(() => dispatchEvent(new Event("resize")))
-          .observe(document.body, { attributeFilter: ["style"], attributes: true });
       }, { once: true });
     });
-    stage("grid-back-visible-scrollbar");
+    stage("Back-with-visible-scrollbar");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-    await page.locator(`[data-advertising-card="${A}"] > a`).evaluate((node) => node.click());
+    const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    await page.locator('[data-advertising-card="' + A + '"] > a').click();
     await ready(page, A);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const aSrc = await page.locator("[data-advertising-photo-image]").evaluate((node) => node.currentSrc);
     const clientWidthBefore = await page.evaluate(() => document.documentElement.clientWidth);
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
-    await page.mouse.move(1000, 20);
-
+    await armNoGridMorphProbe(page);
     await page.goBack();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
-      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
-    const gridBack = await completedHistoryMorph(page, 0);
-    assert(gridBack.clientWidthAtStart > clientWidthBefore, "scroll lock did not expose the visible scrollbar width change");
-    assert.equal(gridBack.clientWidthAfterSettle, clientWidthBefore, "scrollbar width was not restored after settle");
-    assertHistoryMorph(gridBack, { id: A, src: aSrc }, "detail A to grid Back with visible scrollbar");
+    await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+    const back = await noGridMorphEvidence(page, null, gridY);
+    const clientWidthAfter = await page.evaluate(() => document.documentElement.clientWidth);
+    assert.equal(clientWidthAfter, clientWidthBefore, "Back must not acquire a grid morph scrollbar lease");
 
-    stage("grid-back-real-resize-cancels");
-    await page.locator(`[data-advertising-card="${A}"] > a`).evaluate((node) => node.click());
+    stage("real-viewport-resize");
+    await page.setViewportSize({ width: 1020, height: 900 });
+    await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+    await armNoGridMorphProbe(page);
+    await page.locator('[data-advertising-card="' + A + '"] > a').click();
     await ready(page, A);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    await page.evaluate(() => { window.__ttHistoryMorphs.length = 0; });
-    await page.goBack();
-    await page.waitForSelector("[data-advertising-photo-morph]");
-    await page.evaluate(() => {
-      window.__ttViewportClientWidth = 1020;
-      Object.defineProperty(window, "innerWidth", { configurable: true, value: 1020 });
-      dispatchEvent(new Event("resize"));
-    });
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    await page.waitForFunction(() => window.__ttHistoryMorphs[0]?.canceledAt || window.__ttHistoryMorphs[0]?.finishedAt);
-    const realResize = await page.evaluate(() => ({
-      canceledAt: window.__ttHistoryMorphs[0]?.canceledAt,
-      locks: [document.body.style.overflow, document.documentElement.style.overflow],
-    }));
-    assert(realResize.canceledAt, "real viewport resize did not cancel the grid morph");
-    assert.deepEqual(realResize.locks, ["", ""], "real viewport resize did not release the scroll lease");
-    return { clientWidthBefore, gridBack, realResize };
+    const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    const resized = await noGridMorphEvidence(page, A, detailY);
+    assert.equal(new URL(page.url()).searchParams.get("photo"), A, "resize changed detail identity");
+    return { gridY, clientWidthBefore, clientWidthAfter, back, resized };
   });
-
   await caseRun("morph-backdrop-lifecycle", { width: 1440, height: 900 }, async (page, stage) => {
     await installBackdropMorphProbe(page);
-    const clearProbe = () => page.evaluate(() => { window.__ttP4BackdropMorphs.records.length = 0; });
-    const captureTransition = async (targetId) => {
-      await page.waitForFunction(() => {
-        const kinds = new Set((window.__ttP4BackdropMorphs?.records || []).map(({ kind }) => kind));
-        return kinds.has("backdrop") && kinds.has("morph");
-      });
-      const during = await readBackdropMorphState(page);
-      await page.waitForFunction(({ id }) => {
-        const record = (window.__ttP4BackdropMorphs?.records || [])
-          .find((entry) => entry.kind === "backdrop" && entry.photoId === id);
-        if (!record) return false;
-        const animation = document.querySelector("[data-advertising-photo-background]")?.getAnimations()
-          .find(({ playState }) => playState === "pending" || playState === "running");
-        const foreground = (window.__ttP4BackdropMorphs?.records || [])
-          .find((entry) => entry.kind === "morph")?.duration;
-        return animation && Number(animation.currentTime) >= Number(foreground) * 0.25;
-      }, { id: targetId });
-      const eraseMidpoint = await readBackdropMorphState(page);
-      await ready(page, targetId);
-      await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-      await page.evaluate(frame);
-      const foregroundSettled = await readBackdropMorphState(page);
-      const scrollBefore = await page.evaluate(() =>
-        window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY);
-      await page.mouse.wheel(0, 240);
-      await page.evaluate(frame);
-      const scrollDuringLinger = {
-        after: await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY),
-        before: scrollBefore,
-      };
-      await page.waitForTimeout(100);
-      await page.evaluate(frame);
-      const lingerMidpoint = await readBackdropMorphState(page);
-      await page.waitForTimeout(1200);
-      await page.evaluate(frame);
-      return {
-        during,
-        eraseMidpoint,
-        foregroundSettled,
-        lingerFinished: await readBackdropMorphState(page),
-        lingerMidpoint,
-        scrollDuringLinger,
-      };
+    const read = async (label) => {
+      await page.waitForTimeout(650);
+      const state = await readBackdropMorphState(page);
+      assert.deepEqual(state.records, [], label + ": grid/detail started foreground or backdrop morph");
+      assert.equal(state.activeBackdropAnimations, 0, label + ": backdrop animation survived");
+      assert.deepEqual(state.locked, ["", ""], label + ": grid/detail retained a scroll lease");
+      return { label, photo: state.viewId, hero: state.heroId, activeBackdropAnimations: state.activeBackdropAnimations };
     };
-    const evidence = {};
-
+    const evidence = [];
     stage("direct-load-static");
-    await page.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/vi/advertising-products/?photo=" + A), { waitUntil: "domcontentloaded" });
     await ready(page, A);
-    await page.evaluate(frame);
-    evidence.direct = await readBackdropMorphState(page);
-
+    evidence.push(await read("direct"));
     stage("reduced-motion-static");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
-    await page.locator(`[data-advertising-card="${A}"] > a`).click();
+    await page.locator('[data-advertising-card="' + A + '"] > a').click();
     await ready(page, A);
-    await page.evaluate(frame);
-    evidence.reduced = await readBackdropMorphState(page);
-
-    stage("missing-source-static");
+    evidence.push(await read("reduced"));
+    stage("grid-click-static");
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
-    await page.locator(`[data-advertising-card="${A}"] img`).evaluate((node) => { node.removeAttribute("src"); });
-    await page.locator(`[data-advertising-card="${A}"] > a`).click();
+    await page.locator('[data-advertising-card="' + A + '"] > a').click();
     await ready(page, A);
-    await page.evaluate(frame);
-    evidence.missingSource = await readBackdropMorphState(page);
-
-    stage("grid-morph");
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await ensureParentTarget(page);
-    await page.locator(`[data-advertising-card="${A}"] > a`).click();
-    evidence.grid = await captureTransition(A);
-
-    stage("related-morph");
-    await clearProbe();
+    evidence.push(await read("grid"));
+    stage("related-click-static");
+    await page.evaluate(() => { window.__ttP4BackdropMorphs.records.length = 0; });
     await chooseB(page);
-    evidence.related = await captureTransition(B);
-
-    stage("history-back-morph");
-    await clearProbe();
+    await ready(page, B);
+    evidence.push(await read("related"));
+    stage("history-Back-static");
+    await page.evaluate(() => { window.__ttP4BackdropMorphs.records.length = 0; });
     await page.goBack();
-    evidence.historyBack = await captureTransition(A);
-
-    stage("history-forward-morph");
-    await clearProbe();
-    await page.goForward();
-    evidence.historyForward = await captureTransition(B);
-
-    stage("rapid-history-retarget");
-    await clearProbe();
-    await page.goBack();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-morph]"));
+    await ready(page, A);
+    evidence.push(await read("Back"));
+    stage("history-Forward-static");
+    await page.evaluate(() => { window.__ttP4BackdropMorphs.records.length = 0; });
     await page.goForward();
     await ready(page, B);
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    await page.evaluate(frame);
-    evidence.rapid = await readBackdropMorphState(page);
-
-    assert.equal(evidence.direct.records.length, 0,
-      `direct load animated without a real morph ${JSON.stringify(evidence.direct)}`);
-    assert.equal(evidence.direct.activeBackdropAnimations, 0, "direct load retained backdrop animation");
-    assert.equal(evidence.reduced.records.length, 0,
-      `reduced motion animated without a real morph ${JSON.stringify(evidence.reduced)}`);
-    assert.equal(evidence.reduced.activeBackdropAnimations, 0, "reduced motion retained backdrop animation");
-    assert.equal(evidence.missingSource.records.length, 0,
-      `missing source animated without a real morph ${JSON.stringify(evidence.missingSource)}`);
-    assert.equal(evidence.missingSource.activeBackdropAnimations, 0, "missing source retained backdrop animation");
-    assertSequentialBackdrop(evidence.grid, { duration: 520, label: "grid to detail", targetId: A });
-    assertSequentialBackdrop(evidence.related, { duration: 520, label: "related to detail", targetId: B });
-    assertSequentialBackdrop(evidence.historyBack, { duration: 400, label: "native Back", targetId: A });
-    assertSequentialBackdrop(evidence.historyForward, { duration: 400, label: "native Forward", targetId: B });
-    const rapidBackdrops = evidence.rapid.records.filter(({ kind }) => kind === "backdrop");
-    const rapidMorphs = evidence.rapid.records.filter(({ kind }) => kind === "morph");
-    assert(rapidMorphs.length >= 2, `rapid retarget did not replace an active morph ${JSON.stringify(evidence.rapid.records)}`);
-    assert.equal(rapidBackdrops.length, 1,
-      `only the settled morph may start backdrop motion ${JSON.stringify(evidence.rapid.records)}`);
-    assert(rapidMorphs.slice(0, -1).every(({ canceledAt }) => canceledAt),
-      `replaced morph was not canceled ${JSON.stringify(rapidMorphs)}`);
-    assert(rapidBackdrops.slice(0, -1).every(({ canceledAt }) => canceledAt),
-      `replaced backdrop was not canceled ${JSON.stringify(rapidBackdrops)}`);
-    assert.equal(rapidBackdrops.at(-1)?.photoId, B, "rapid retarget started a backdrop for the wrong final photo");
-    assert.equal(rapidBackdrops.at(-1)?.duration, 1200, "rapid retarget omitted long backdrop settle");
-    assert.equal(evidence.rapid.activeBackdropAnimations, 1, "rapid retarget did not retain only final backdrop linger");
-    await page.waitForTimeout(1300);
-    await page.evaluate(frame);
-    evidence.rapidFinished = await readBackdropMorphState(page);
-    assert.equal(evidence.rapidFinished.activeBackdropAnimations, 0, "rapid retarget left final backdrop animation running");
-    assert.equal(evidence.rapid.viewId, B, "rapid retarget settled the wrong detail photo");
-    assert.equal(evidence.rapid.heroId, B, "rapid retarget settled the wrong hero photo");
-    assert.equal(evidence.rapid.backdropSrc, evidence.rapid.heroSrc, "rapid retarget retained the wrong backdrop photo");
+    evidence.push(await read("Forward"));
     return evidence;
   });
-
   await caseRun("rapid-related-and-back-mid-morph", { width: 1440, height: 900 }, async (page, stage) => {
-    stage("A-to-B"); await openA(page); await chooseB(page, () => page.evaluate(() => {
-      const events = [];
-      const removals = [];
-      const nativeRemove = Element.prototype.remove;
-      Element.prototype.remove = function probedRemove() {
-        if (this.matches?.('[data-advertising-photo-morph][data-advertising-photo-id="mobile-retail-04"]')) {
-          const relatedTarget = document.querySelector('[data-advertising-related-card="mobile-retail-04"] img');
-          removals.push({
-            at: performance.now(),
-            url: location.href,
-            relatedOpacity: relatedTarget ? Number(getComputedStyle(relatedTarget).opacity) : null,
-            relatedReady: relatedTarget?.classList.contains("is-advertising-media-ready") ?? null,
-          });
-        }
-        return nativeRemove.call(this);
-      };
-      const capture = (kind, node) => {
-        const event = {
-          kind,
-          at: performance.now(),
-          id: node.dataset.advertisingPhotoId,
-          src: node.currentSrc || node.src,
-          connected: node.isConnected,
-          url: location.href,
-          rect: node.getBoundingClientRect().toJSON(),
-        };
-        events.push(event);
-        return event;
-      };
-      const observer = new MutationObserver((records) => records.forEach((record) => {
-        record.addedNodes.forEach((node) => { if (node instanceof Element && node.matches("[data-advertising-photo-morph]")) {
-          const added = capture("added", node);
-          const probe = window.__ttRelatedMorphProbe;
-          if (probe.backTriggered && added.id === "mobile-retail-04") probe.reverseFirst = added;
-          if (!probe.backScheduled && added.id === "mobile-retail-04" && new URL(location.href).searchParams.get("photo") === "mobile-retail-04") {
-            probe.backScheduled = true;
-            setTimeout(() => {
-              const active = document.querySelector('[data-advertising-photo-morph][data-advertising-photo-id="mobile-retail-04"]');
-              if (!active?.isConnected || probe.backTriggered) return;
-              probe.beforeBack = capture("before-back", active);
-              probe.backTriggered = true;
-              history.back();
-            }, 100);
-          }
-        } });
-        record.removedNodes.forEach((node) => { if (node instanceof Element && node.matches("[data-advertising-photo-morph]")) capture("removed", node); });
-      }));
-      observer.observe(document.body, { childList: true, subtree: true });
-      window.__ttRelatedMorphProbe = { backScheduled: false, backTriggered: false, beforeBack: null, reverseFirst: null, events, removals, observer };
-      // History traversal is asynchronous: compare at handoff, not a frame before popstate.
-      const advertising = window.TruongThinhAdvertising;
-      const handlePopState = advertising.handlePopState;
-      advertising.handlePopState = function measuredHistoryHandoff(...args) {
-        const active = document.querySelector('[data-advertising-photo-morph][data-advertising-photo-id="mobile-retail-04"]');
-        if (active) window.__ttRelatedMorphProbe.beforeHandoff = capture("before-handoff", active);
-        return handlePopState.apply(this, args);
-      };
-    }));
-    stage("back-mid-morph"); await ready(page, A);
-    await page.waitForFunction(() => window.__ttRelatedMorphProbe?.reverseFirst);
+    stage("related-B-then-immediate-Back");
+    await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    const settled = await page.evaluate(snapshot);
-    assert.equal(settled.hero, A); assert.equal(settled.clones.length, 0); assert.deepEqual(settled.locked, ["", ""]);
-    const cancelScrollStart = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
+    await chooseB(page, () => armNoGridMorphProbe(page));
+    await ready(page, B);
+    await page.goBack();
+    await ready(page, A);
+    await page.waitForTimeout(650);
+    const state = await page.evaluate(() => {
+      const probe = window.__ttM02bProbe;
+      probe.restore();
+      return {
+        photo: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
+        clonesAdded: probe.clones,
+        currentClones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+        locks: probe.locks,
+        currentLocks: [document.body.style.overflow, document.documentElement.style.overflow],
+      };
+    });
+    assert.equal(state.photo, A, "rapid Back must settle at A");
+    assert.deepEqual(state.clonesAdded, [], "rapid related/Back created a grid/detail clone");
+    assert.equal(state.currentClones, 0, "rapid related/Back retained a clone");
+    assert.deepEqual(state.locks, [], "rapid related/Back acquired a scroll lease");
+    assert.deepEqual(state.currentLocks, ["", ""], "rapid related/Back retained scroll lock");
+    const beforeWheel = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     await page.mouse.wheel(0, 160);
-    await page.waitForFunction((start) => Math.abs((window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) - start) >= 100, cancelScrollStart);
-    const cancelScrollEnd = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
-    const probe = await page.evaluate(() => { const probe = window.__ttRelatedMorphProbe; probe?.observer.disconnect(); return { backTriggered: probe?.backTriggered, beforeBack: probe?.beforeBack, beforeHandoff: probe?.beforeHandoff, reverseFirst: probe?.reverseFirst, events: probe?.events || [], removals: probe?.removals || [] }; });
-    assert.equal(probe.backTriggered, true, "history.back must run while B clone remains connected");
-    assert(probe.events.some((event) => event.kind === "added" && event.id === B && event.url.includes(`photo=${B}`)), "B clone must be observed before Back");
-    assert.equal(probe.beforeBack.id, B, "visible clone identity before Back differs from B");
-    assert.equal(probe.beforeHandoff?.id, B, "visible clone identity at history handoff differs from B");
-    assert.equal(probe.reverseFirst.id, B, "reverse clone identity differs from B");
-    const continuityDelta = {
-      elapsedMs: probe.reverseFirst.at - probe.beforeHandoff.at,
-      left: probe.reverseFirst.rect.left - probe.beforeHandoff.rect.left,
-      top: probe.reverseFirst.rect.top - probe.beforeHandoff.rect.top,
-      width: probe.reverseFirst.rect.width - probe.beforeHandoff.rect.width,
-      height: probe.reverseFirst.rect.height - probe.beforeHandoff.rect.height,
-    };
-    assert([continuityDelta.left, continuityDelta.top, continuityDelta.width, continuityDelta.height].every((delta) => Math.abs(delta) <= 2),
-      `reverse morph did not continue from the visible B clone ${JSON.stringify(continuityDelta)}`);
-    const reverseRemoval = probe.removals.findLast(({ relatedOpacity }) => relatedOpacity !== null);
-    assert(reverseRemoval?.relatedReady && reverseRemoval.relatedOpacity >= 0.999,
-      `reverse target was not fully revealed before clone removal ${JSON.stringify(probe.removals)}`);
-    probe.continuityDelta = continuityDelta;
-    return { probe, settled, cancelScrollStart, cancelScrollEnd };
+    await page.waitForFunction((start) => window.TruongThinhMotion.getLogicalScroll() - start >= 100, beforeWheel);
+    return { state, beforeWheel, afterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
   });
-
   await caseRun("delayed-image-resize-latest-wins", { width: 390, height: 844 }, async (page, stage) => {
     stage("open-A"); await openA(page);
     await page.route("**/*mobile-retail-04*.webp", async (route) => { await new Promise((resolve) => setTimeout(resolve, 700)); await route.continue(); });

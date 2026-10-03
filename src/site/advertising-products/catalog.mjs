@@ -3,7 +3,7 @@ import {
   compileAdvertisingProductLayout as compileLayout,
   scheduleAdvertisingRank,
 } from "./layout-core.mjs";
-import { validateAdvertisingMediaPool } from "./media-contract.mjs";
+import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
 
@@ -287,14 +287,17 @@ function selectCardMedia(record) {
   for (const legacyField of ["presentationCanvas", "fitMode", "mediaCandidates"]) {
     if (Object.hasOwn(record, legacyField)) throw new Error(`Legacy card field is not supported: ${legacyField}: ${record.id}`);
   }
-  const { media, rank: _rank, layoutSpan: _legacyLayoutSpan, ...card } = record;
+  const { media, mediaItems: _mediaItems, coverMediaId: _coverMediaId, rank: _rank, layoutSpan: _legacyLayoutSpan, ...card } = record;
   if (typeof media?.src !== "string" || !media.src || !Number.isFinite(media.width) || media.width <= 0 || !Number.isFinite(media.height) || media.height <= 0) {
     throw new Error(`Invalid media: ${card.id}`);
   }
   const { id: _mediaId, sourceOrder: _mediaSourceOrder, ...selectedMedia } = media;
+  const { mediaItems, coverMediaId } = validateAdvertisingCardMedia(record);
   return {
     ...card,
     media: selectedMedia,
+    mediaItems,
+    coverMediaId,
   };
 }
 

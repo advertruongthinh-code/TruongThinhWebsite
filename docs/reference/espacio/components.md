@@ -4,6 +4,7 @@ type: reference-components
 status: candidate-composite-baseline
 snapshot_id: ESPACIO-R1-20260902
 snapshot_cutoff: 2026-09-02
+addendum_updated: 2026-09-27
 ---
 
 # Components và blocks
@@ -107,12 +108,42 @@ nguyên nếu chỉ có selector/source hoặc thiếu target computed evidence.
 | Live news card | Image `scale 1→1.2`, heading underline, CTA opacity `0→1` | Espacio `measured` |
 | Live footer | Contact underline; Instagram image opacity `1→.4`; newsletter SVG translate to `0` | Espacio `measured` |
 | Live hero cue | Không có accessibility target UID trong attempt | Espacio `blocked`/ambiguous |
-| Scrollbar/focus-only | Scrollbar không target được; `.editorial-strip`/`.project-track` là focus-only | `not measured` hover; không đếm như hover family |
+| Scrollbar/focus-only | Snapshot R1 chưa target được scrollbar; `.editorial-strip`/`.project-track` là focus-only | Scrollbar có bổ sung27/09 bên dưới; focus-only vẫn không đếm như hover family |
 
 Nguồn: [parity inventory](../../archive/reports/research-espacio-parity-inventory.md)
 §6.1 và [targeted parity](../../reports/research-espacio-layout-motion-parity-targeted.md)
 `Hover/focus parity`. Không tự suy ra keyboard order hoặc accessibility pass từ
 hover rows.
+
+## Bổ sung scrollbar — 2026-09-27
+
+Observation mới nằm ngoài cutoff R1; không thay kết quả parity lịch sử. Nguồn:
+archive CSS08/08 SHA-256
+`b3cb9abf01889550121da4ebd11513ec4d7cc746f4a2672ba3d76871451c1296`,
+bundle JS SHA-256
+`91f971d6f6a2f9829660f9422789ed6fb311fa915040820d16dd192ecf6b064c`.
+Live CSS [main.min.css](https://espaciohomedesign.com/css/main.min.css?v=0.038-consent-v2)
+SHA-256 `19c048fdc547121c345332f54901d608228f0641a41d017bcbdbe6665cdda99c`;
+scrollbar rules khớp archive dù hash toàn bundle đã đổi.
+
+| State/property | Evidence | Mức kiểm chứng |
+| --- | --- | --- |
+| Desktop idle1440×900 | Một overlay track11px, right0/top0, height900; clientWidth/main width1440; track opacity0, background transparent | Live computed geometry/style |
+| Thumb | Width7px, margin2px, radius10px, black opacity0.5; cursor grab | Archive/live CSS và computed style |
+| Scrolling | `has-scroll-scrolling` làm track opacity1 | Live PageDown + CSS; không đo wheel end |
+| Hover | Track scaleX1.45, opacity1; transform/opacity transition0.3s; computed width15.95px, thumb10.15px | Live hover xác nhận đúng `.c-scrollbar:hover` và CSS |
+| Drag | `has-scroll-dragging` giữ track opacity1, thumb cursor grabbing | Source-derived; live drag/release chưa đo |
+| Native/mobile | Reload390×844 có native scroll, không `.c-scrollbar`, main/clientWidth390 | Desktop mobile emulation; không là physical Android/iPhone proof |
+
+Idle opacity0 là state predicate khi không scroll/hover/drag, không là timeout
+cố định sau ngón tay/wheel. Probe keyboard-only PageDown giữ class scrolling
+trong lần đo này; không dùng nó để claim auto-hide delay đã verified. Source
+bundle stopScrolling gỡ class khi controller settle; không invent idle timer.
+Menu/viewer lock và reduced-motion chưa có live oracle scrollbar riêng; Trường
+Thịnh tiếp tục dùng accepted lock/reduced-motion contract. Raw observation:
+[states.json](../../../.tmp/scrollbar-reference/states.json).
+Normative correction nằm ở [scrollbar-parity accepted27/09](../../specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27).
+Spec đã được owner duyệt; chưa là TT implementation hoặc full reference acceptance.
 
 ## Ownership và reuse boundary
 

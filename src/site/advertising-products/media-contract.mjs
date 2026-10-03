@@ -10,6 +10,7 @@ export const ADVERTISING_MEDIA_CATEGORY_COUNTS = Object.freeze({
 
 const isNonEmptyString = (value) => typeof value === "string" && value.length > 0;
 const isPositiveNumber = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
+const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
 const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
 
 function duplicateValue(records, readValue) {
@@ -21,6 +22,68 @@ function duplicateValue(records, readValue) {
     seen.add(value);
   }
   return null;
+}
+
+export function validateAdvertisingCardMedia(record) {
+  if (record.mediaItems === undefined) {
+    if (record.coverMediaId !== undefined && record.coverMediaId !== record.id) {
+      throw new Error(`${record.id} coverMediaId must name one media item`);
+    }
+    if (!isPositiveInteger(record.media?.width) || !isPositiveInteger(record.media?.height)) {
+      throw new Error(`${record.id} media requires positive integer width and height`);
+    }
+    return { mediaItems: [{ id: record.id, kind: "image", ...record.media }], coverMediaId: record.id };
+  }
+  const mediaItems = record.mediaItems;
+  if (!Array.isArray(mediaItems) || mediaItems.length === 0) {
+    throw new Error(`${record.id} requires a non-empty mediaItems list`);
+  }
+  const coverMediaId = record.coverMediaId === undefined ? mediaItems[0]?.id : record.coverMediaId;
+  if (!isNonEmptyString(coverMediaId) || !mediaItems.some((item) => item?.id === coverMediaId)) {
+    throw new Error(`${record.id} coverMediaId must name one media item`);
+  }
+  const ids = new Set();
+  let cardWidth = 0n;
+  let cardHeight = 0n;
+  for (const item of mediaItems) {
+    if (!item || !isNonEmptyString(item.id)) throw new Error(`${record.id} media item requires an id`);
+    if (ids.has(item.id)) throw new Error(`${record.id} has duplicate media id: ${item.id}`);
+    ids.add(item.id);
+    if (item.kind !== "image" && item.kind !== "video") throw new Error(`${record.id} media ${item.id} requires image/video kind`);
+    if (!isNonEmptyString(item.src) || !isNonEmptyString(item.sourceId)) throw new Error(`${record.id} media ${item.id} requires src and sourceId`);
+    if (!isPositiveInteger(item.width) || !isPositiveInteger(item.height)) throw new Error(`${record.id} media ${item.id} requires positive integer width and height`);
+    if (cardWidth === 0n) {
+      cardWidth = BigInt(item.width);
+      cardHeight = BigInt(item.height);
+    } else if (BigInt(item.width) * cardHeight !== BigInt(item.height) * cardWidth) {
+      throw new Error(`${record.id} media ${item.id} ratio must match the card`);
+    }
+    if (!isNonEmptyString(item.altVi) || !isNonEmptyString(item.altEn)) throw new Error(`${record.id} media ${item.id} requires altVi and altEn`);
+    if (!isNonEmptyString(item.source) || !isSha256(item.sha256) || !isNonEmptyString(item.provenance)) {
+      throw new Error(`${record.id} media ${item.id} requires source, sha256, and provenance`);
+    }
+    if (item.kind === "video") {
+      if (!isNonEmptyString(item.posterSrc)) throw new Error(`${record.id} media ${item.id} requires posterSrc`);
+      if (!isPositiveInteger(item.posterWidth) || !isPositiveInteger(item.posterHeight)) {
+        throw new Error(`${record.id} media ${item.id} requires positive integer posterWidth and posterHeight`);
+      }
+      if (BigInt(item.posterWidth) * cardHeight !== BigInt(item.posterHeight) * cardWidth) {
+        throw new Error(`${record.id} media ${item.id} poster ratio must match the card`);
+      }
+      if (!isPositiveNumber(item.durationSeconds)) throw new Error(`${record.id} media ${item.id} requires durationSeconds`);
+      if (typeof item.hasAudio !== "boolean") throw new Error(`${record.id} media ${item.id} requires hasAudio`);
+    }
+  }
+  const cover = mediaItems.find((item) => item.id === coverMediaId);
+  if (cover.kind === "image" && cover.src === record.media?.src) {
+    if (!isPositiveInteger(record.media.width) || !isPositiveInteger(record.media.height)) {
+      throw new Error(`${record.id} legacy cover requires positive integer width and height`);
+    }
+    if (BigInt(record.media.width) * cardHeight !== BigInt(record.media.height) * cardWidth) {
+      throw new Error(`${record.id} legacy cover ratio must match the card`);
+    }
+  }
+  return { mediaItems, coverMediaId };
 }
 
 export function validateAdvertisingMediaPool(records, options) {
@@ -93,6 +156,11 @@ export function validateAdvertisingMediaPool(records, options) {
     if (!isNonEmptyString(record.media?.source) || !isSha256(record.media?.sha256) || !isNonEmptyString(record.media?.provenance)) {
       errors.push(String(record.id ?? ("record " + inputIndex)) + " requires media source, SHA-256, and provenance");
     }
+    try {
+      validateAdvertisingCardMedia(record);
+    } catch (error) {
+      errors.push(error.message);
+    }
   });
 
   for (const [label, readValue] of [
@@ -102,6 +170,12 @@ export function validateAdvertisingMediaPool(records, options) {
   ]) {
     const duplicate = duplicateValue(records, readValue);
     if (duplicate !== null) errors.push(`duplicate ${label}: ${String(duplicate)}`);
+  }
+
+  const allMediaItems = records.flatMap((record) => Array.isArray(record?.mediaItems) ? record.mediaItems : []);
+  for (const [label, field] of [["id", "id"], ["src", "src"], ["sourceId", "sourceId"]]) {
+    const duplicate = duplicateValue(allMediaItems, (item) => item?.[field]);
+    if (duplicate !== null) errors.push(`duplicate media item ${label}: ${duplicate}`);
   }
 
   for (const [category] of expectedEntries) {

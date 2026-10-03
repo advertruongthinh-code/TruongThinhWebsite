@@ -134,6 +134,7 @@ Các record mutable đang dùng cho project này:
 - [Notion workspace mapping — Truong Thinh](https://app.notion.com/p/3b7332849a0e81449deec2780de541f3): research note về database/schema hiện có và seed page bị loại.
 - [NOW Task: Dịch Markdown và thiết lập Notion docs hub](https://app.notion.com/p/3b7332849a0e81da892bec4641e6ab08): owner đã review và xác nhận Done ngày 2026-08-09.
 - [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): một card In progress cho năm phần việc còn mở, liên kết tới Git evidence và các card nguồn.
+- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board được đọc lại ngày 2026-10-03 để đồng bộ phần Advertising; snapshot ghi `1 Not started`, `0 Up next`, `8 In progress`, `13 Done`. Chi tiết nhóm Done không được chép; xem [report đồng bộ Advertising](../verification/advertising-notion-sync-2026-10-03.md).
 
 Các link trên là mutable workspace reference. Nếu page được archive hoặc thay
 đổi, cập nhật lại mục này sau khi verify record mới.

@@ -229,6 +229,19 @@ async function evidence(page) {
     const foregroundRect = foreground?.getBoundingClientRect();
     const visibleRelatedItems = [...(relatedGrid?.children || [])]
       .filter((node) => node.getBoundingClientRect().width > 0);
+    const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionPager
+      && !node.hidden && styles(node).display !== "none");
+    const infoGap = Number.parseFloat(infoStyle?.rowGap) || 0;
+    const descriptionLineHeight = Number.parseFloat(descriptionStyle?.lineHeight) || 0;
+    const infoMinimumHeight = Math.ceil(visibleInfoControls.reduce((sum, node) => {
+      const style = styles(node);
+      return sum + node.getBoundingClientRect().height
+        + (Number.parseFloat(style.marginTop) || 0) + (Number.parseFloat(style.marginBottom) || 0);
+    }, descriptionLineHeight + visibleInfoControls.length * infoGap)) + 1;
+    const imageEdgePadding = Number.parseFloat(expandStyle?.getPropertyValue("--image-action-edge-padding")) || 0;
+    const imageMinimumHeight = Math.ceil(Math.max(expand?.getBoundingClientRect().height || 0,
+      2 * (Number.parseFloat(expandStyle?.lineHeight) || 0) + imageEdgePadding)
+      + 2 * (Number.parseFloat(expandStyle?.bottom) || 0));
     return {
       url: location.href,
       viewport: {
@@ -266,6 +279,12 @@ async function evidence(page) {
         }),
       } : null,
       view: box(view), primary: box(primary), hero: box(hero), frame: box(frame), info: box(info),
+      contentRects: {
+        category: box(document.querySelector("[data-advertising-photo-category]")),
+        pager: box(descriptionPager), description: box(description),
+        indicator: descriptionIndicator?.hidden ? null : box(descriptionIndicator),
+      },
+      minimum: { infoHeight: infoMinimumHeight, imageHeight: imageMinimumHeight, descriptionLineHeight },
       frameOverflow: styles(frame)?.overflow,
       glass: glassStyle ? {
         backgroundColor: glassStyle.backgroundColor,
@@ -352,6 +371,11 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   const expectedLayout = expectedSpan === actual.relatedColumns ? "pinterest" : "split";
   const viewportBottom = actual.viewport.height - actual.safeBottom;
   const requiredPeek = 50;
+  const minimumPrimaryHeight = expectedLayout === "pinterest"
+    ? actual.minimum.imageHeight + actual.primaryGap + actual.minimum.infoHeight
+    : Math.max(actual.minimum.imageHeight, actual.minimum.infoHeight);
+  const fitsViewport = minimumPrimaryHeight <= viewportBottom - actual.primary.top;
+  const fitsInfoCap = actual.minimum.infoHeight + actual.primaryGap <= actual.viewport.height * 0.28;
 
   assert.equal(actual.readiness.fontsStatus, "loaded", `${label}: document fonts are not loaded`);
   assert(actual.readiness.plusJakartaFaces.some(({ status }) => status === "loaded"), `${label}: Plus Jakarta Sans face is not loaded`);
@@ -373,13 +397,23 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   closeTo(actual.primary.top - actual.header.bottom - actual.safeTop, gutter, `${label}: expanded-header gutter`, 2);
   assert(contained(actual.hero, actual.primary), `${label}: hero leaves primary bounds`);
   assert(contained(actual.info, actual.primary), `${label}: info leaves primary bounds`);
+  assert(actual.hero.height >= actual.minimum.imageHeight - 1, `${label}: image zone is below its control floor`);
+  assert(actual.info.height >= actual.minimum.infoHeight - 1, `${label}: info is below its readable floor`);
+  assert(actual.contentRects.pager.height >= actual.minimum.descriptionLineHeight - 1,
+    `${label}: description lacks one complete line`);
+  for (const [name, rect] of Object.entries(actual.contentRects)) {
+    if (name !== "description" && rect) assert(contained(rect, actual.info), `${label}: ${name} is clipped outside info`);
+  }
+  assert(actual.infoState.scrollHeight <= actual.infoState.clientHeight + 1,
+    `${label}: info content is clipped`);
+  if (fitsViewport) {
+    assert(actual.primary.bottom <= viewportBottom + 1.5,
+      `${label}: primary bottom ${actual.primary.bottom} exceeds viewport ${viewportBottom} despite fitting floors`);
+  }
   if (expectedLayout === "pinterest") {
-    assert(actual.primary.bottom <= viewportBottom + 1.5, `${label}: Pinterest primary extends below viewport`);
-    assert(actual.info.height + actual.primaryGap <= actual.viewport.height * 0.28 + 1.5,
-      `${label}: description and gap exceed the viewport-based 28% cap`);
+    if (fitsInfoCap) assert(actual.info.height + actual.primaryGap <= actual.viewport.height * 0.28 + 1.5,
+      `${label}: description and gap exceed the viewport-based 28% cap despite fitting floors`);
     closeTo(actual.frame.height, actual.foreground.rect.height, `${label}: Pinterest image has vertical blur overflow`, 1.5);
-  } else {
-    assert(actual.primary.bottom <= viewportBottom + 1.5, `${label}: primary bottom ${actual.primary.bottom} exceeds viewport ${viewportBottom}`);
   }
   assert.equal(actual.horizontalOverflow, 0, `${label}: horizontal overflow ${actual.horizontalOverflow}px`);
   assert(!overlaps(actual.hero, actual.info), `${label}: hero overlaps info`);
@@ -392,8 +426,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
       visiblePeek: Math.max(0, Math.min(entry.image.rect.bottom, viewportBottom) - entry.image.rect.top),
     }))
     .sort((a, b) => b.visiblePeek - a.visiblePeek);
-  assert(below.length > 0, `${label}: no real related image starts below primary with ${gutter}px gutter`);
-  if (expectedLayout === "split") {
+  if (fitsViewport) assert(below.length > 0, `${label}: no real related image starts below primary with ${gutter}px gutter`);
+  if (expectedLayout === "split" && fitsViewport) {
     assert(below[0].visiblePeek >= requiredPeek - 2,
       `${label}: real related image peek ${below[0].visiblePeek}px is below ${requiredPeek}px`);
   }
@@ -450,7 +484,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
       assert.equal(actual.related.length, expectedRelatedCount, `${label}: sparse tag produced ${actual.related.length} related cards`);
     } else assert(actual.related.length > 0 && actual.related.length <= 5, `${label}: sparse tag produced ${actual.related.length} related cards`);
   }
-  return { label, ratio, gutter, expectedSpan, expectedLayout, requiredPeek, bestBelow: below[0] };
+  return { label, ratio, gutter, expectedSpan, expectedLayout, requiredPeek, bestBelow: below[0],
+    minimumPrimaryHeight, fitsViewport, fitsInfoCap };
 }
 
 function assertControls(actual, locale) {
@@ -577,6 +612,103 @@ async function screenshot(page, label) {
   return file;
 }
 
+async function wheelToHit(page, locator, label) {
+  const viewport = page.viewportSize();
+  await page.mouse.move(10, Math.max(120, viewport.height / 2));
+  const inspect = () => locator.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    const headerBottom = document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom || 0;
+    const top = Math.max(rect.top, headerBottom + 2);
+    const bottom = Math.min(rect.bottom, innerHeight - 2);
+    const x = rect.left + rect.width / 2;
+    const y = (top + bottom) / 2;
+    return { rect: rect.toJSON(), x, y, visible: bottom > top,
+      hit: bottom > top && node.contains(document.elementFromPoint(x, y)) };
+  });
+  for (let attempt = 0; attempt < 16; attempt += 1) {
+    let state = await inspect();
+    let stable = 0;
+    for (let sample = 0; sample < 50 && stable < 3; sample += 1) {
+      await page.waitForTimeout(80);
+      const next = await inspect();
+      stable = Math.abs(next.rect.top - state.rect.top) <= 0.25 ? stable + 1 : 0;
+      state = next;
+    }
+    assert(stable >= 3, `${label}: target geometry did not settle after wheel`);
+    if (state.visible) {
+      assert(state.hit, `${label}: visible control is covered at its pointer target`);
+      return state;
+    }
+    const direction = state.rect.top >= viewport.height ? 1 : -1;
+    const distance = direction > 0 ? state.rect.top - viewport.height * 0.65
+      : viewport.height * 0.35 - state.rect.bottom;
+    const beforeTop = await page.locator("[data-advertising-photo-primary]").evaluate((node) => node.getBoundingClientRect().top);
+    await page.mouse.wheel(0, direction * Math.min(300, Math.max(60, distance)));
+    await page.waitForFunction((previous) => document.querySelector("[data-advertising-photo-primary]")?.getBoundingClientRect().top !== previous,
+      beforeTop, { timeout: 4_000 })
+      .catch(() => { throw new Error(`${label}: wheel stalled, target ${state.rect.top}-${state.rect.bottom}`); });
+  }
+  throw new Error(`${label}: real wheel did not reach target`);
+}
+
+async function assertNonfitReachability(page, context, externalRequests, test, initial) {
+  const relatedId = initial.related.at(-1).id;
+  const geometry = () => page.evaluate((id) => {
+    const position = (selector) => {
+      const rect = document.querySelector(selector)?.getBoundingClientRect();
+      return rect?.toJSON() || null;
+    };
+    return {
+      primary: position("[data-advertising-photo-primary]"),
+      hero: position("[data-advertising-photo-hero]"),
+      info: position("[data-advertising-photo-info]"),
+      indicator: position("[data-advertising-photo-description-indicator]"),
+      cta: position("[data-advertising-photo-cta]"),
+      related: (() => {
+        const rect = [...document.querySelectorAll("[data-advertising-related-card]")]
+          .find((node) => node.dataset.advertisingRelatedCard === id)?.getBoundingClientRect();
+        return rect?.toJSON() || null;
+      })(),
+      pageHeight: document.scrollingElement.scrollHeight,
+    };
+  }, relatedId);
+  const before = await geometry();
+  assert(before.pageHeight > initial.viewport.height, `${test.label}: nonfit content has no document scroll`);
+  assertControls(initial, test.locale);
+  const expand = await wheelToHit(page, page.locator("[data-advertising-photo-expand]"), `${test.label}: expand`);
+  await page.mouse.click(expand.x, expand.y);
+  await page.waitForFunction(() => Boolean(document.querySelector("[data-advertising-photo-dialog]")?.open));
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
+
+  const indicator = await wheelToHit(page, page.locator("[data-advertising-photo-description-indicator]"), `${test.label}: indicator`);
+  await page.locator("[data-advertising-photo-description-pager]").focus();
+  for (let index = 1; index < initial.pager.count; index += 1) await page.keyboard.press("ArrowRight");
+  const finalPage = await page.locator("[data-advertising-photo-description-pager]").evaluate((node) => ({
+    index: Number(node.dataset.pageIndex), count: Number(node.dataset.pageCount),
+    text: node.querySelector("[data-advertising-photo-description]")?.textContent.trim() || "",
+  }));
+  assert.equal(finalPage.index, finalPage.count - 1, `${test.label}: final description page is unreachable`);
+  const canonical = cards.get(test.id)[test.locale === "vi" ? "descriptionVi" : "descriptionEn"];
+  assert(finalPage.text && canonical.endsWith(finalPage.text), `${test.label}: final description text is incomplete`);
+
+  const cta = await wheelToHit(page, page.locator("[data-advertising-photo-cta]"), `${test.label}: CTA`);
+  await activateWithoutViewer(page, context, "pointer", externalRequests, test.label);
+  const related = await wheelToHit(page, page.locator(`[data-advertising-related-card="${relatedId}"]`), `${test.label}: related`);
+  const after = await geometry();
+  closeTo(after.primary.width, before.primary.width, `${test.label}: primary width changed during scroll`, 1);
+  closeTo(after.primary.height, before.primary.height, `${test.label}: primary height changed during scroll`, 1);
+  for (const name of ["primary", "hero", "info", "indicator", "cta", "related"]) {
+    for (const edge of ["top", "bottom", "left", "right"]) {
+      const relativeBefore = before[name][edge] - before.primary[edge];
+      const relativeAfter = after[name][edge] - after.primary[edge];
+      closeTo(relativeAfter, relativeBefore, `${test.label}: ${name} ${edge} moved relative to primary during scroll`, 1);
+    }
+  }
+  assert.equal(after.pageHeight, before.pageHeight, `${test.label}: page height changed during scroll`);
+  return { indicator, finalPage, cta, related, before, after };
+}
+
 async function runPageCase(browser, test) {
   if (labelFilter && !test.label.includes(labelFilter)) return;
   const started = Date.now();
@@ -629,6 +761,10 @@ async function runPageCase(browser, test) {
           `${test.label}: scaled description introduced an inner scroller`);
       }
       observed.textBefore = beforeText;
+    }
+    if (!expected.fitsViewport || (expected.expectedLayout === "pinterest" && !expected.fitsInfoCap)) {
+      stage = "nonfit-reachability";
+      observed.nonfit = await assertNonfitReachability(page, context, externalRequests, test, observed);
     }
     if (test.controls || test.touchOnly) {
       stage = "controls-normal";
@@ -960,6 +1096,22 @@ await runPageCase(browser, {
   viewport: { width: 1024, height: 420 }, textScale: 2, verifyTextAllocation: false,
 });
 await runPageCase(browser, {
+  label: "landscape-vi-kiosk-posm-09-838x331", locale: "vi", id: "kiosk-posm-09",
+  viewport: { width: 838, height: 331 },
+});
+await runPageCase(browser, {
+  label: "landscape-en-kiosk-posm-06-844x390", locale: "en", id: "kiosk-posm-06",
+  viewport: { width: 844, height: 390 },
+});
+await runPageCase(browser, {
+  label: "fit-controls-vi-kiosk-posm-09-390x844", locale: "vi", id: "kiosk-posm-09",
+  viewport: { width: 390, height: 844 }, controls: true,
+});
+await runPageCase(browser, {
+  label: "fit-controls-en-kiosk-posm-09-1440x900", locale: "en", id: "kiosk-posm-09",
+  viewport: { width: 1440, height: 900 }, controls: true,
+});
+await runPageCase(browser, {
   label: "reduced-motion-vi-kiosk-posm-04-820x1180", locale: "vi", id: "kiosk-posm-04",
   viewport: { width: 820, height: 1180 }, reducedMotion: true,
 });
@@ -980,7 +1132,7 @@ const machine = {
   generatedAt,
   baseUrl,
   browser: "chromium",
-  requestedRoute: "gpt-5.6-sol/high",
+  requestedRoute: "gpt-6-sol/xhigh",
   effectiveRoute: "unknown",
   widthSamples,
   catalogCount: ADVERTISING_CARDS.length,
@@ -998,7 +1150,7 @@ const markdown = [
   `- Generated: ${generatedAt}`,
   `- Base URL: \`${baseUrl}\``,
   `- Result: ${machine.passed} passed, ${machine.failed} failed`,
-  `- Route: requested \`gpt-5.6-sol/high\`; effective \`unknown\``,
+  `- Route: requested \`gpt-6-sol/xhigh\`; effective \`unknown\``,
   `- Machine evidence: \`${path.relative(root, resultsPath).replaceAll("\\", "/")}\``,
   "",
   "## Failures",

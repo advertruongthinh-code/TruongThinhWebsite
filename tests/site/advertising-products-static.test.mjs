@@ -61,7 +61,8 @@ assert.doesNotMatch(index, /class="detail-cta__skeleton"/, "legacy three-column 
 assert.match(runtime, /geometry\.columnBottoms[\s\S]*?dataset\.advertisingCtaFrame/, "CTA continuation starts from the compiled column frontiers");
 assert.doesNotMatch(runtime + advertisingCss, /skeleton-dev|skeleton-flow-devtools|createSkeletonFlowDevtools/, "temporary skeleton editor must not ship");
 assert.equal(existsSync(new URL("../../src/site/advertising-products/skeleton-flow-devtools.mjs", import.meta.url)), false, "temporary editor module is removed, not merely disabled");
-assert.match(runtime, /const rerandomizeSkeletonPresets[\s\S]*?skeletonFlowAssignmentBySlot\.clear\(\)/, "skeleton lifecycle can rerandomize slots without coupling to resize");
+assert.match(runtime, /const skeletonFlowAssignmentBySlot = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
+assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
 assert.match(runtime, /gridPixelHeight[\s\S]*?createMasonry\(grid, positions, \(\) => gridPixelHeight\)/, "Masonry owns the complete photo and skeleton height");
 assert.doesNotMatch(index, /data-advertising-photo-back(?:\s|=|>)/, "photo state does not expose a dedicated Back control");
 assert.doesNotMatch(runtime, /\bphotoBack\b/, "photo runtime does not retain dedicated Back behavior");

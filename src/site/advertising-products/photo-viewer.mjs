@@ -32,6 +32,7 @@ export function createAdvertisingPhotoViewer({
   let imageAnimation = null;
   let motionGeneration = 0;
   let resizeFrame = 0;
+  let fitGeometryKey = "";
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
   document.body.append(dialog);
@@ -43,7 +44,25 @@ export function createAdvertisingPhotoViewer({
   };
   const coverScale = () => Math.max(viewport.clientWidth / fitWidth, viewport.clientHeight / fitHeight);
   const scaleForLevel = (nextLevel = level) => nextLevel === 0 ? 1 : coverScale() * (nextLevel === 2 ? 2 : 1);
+  const geometryKey = () => {
+    const styles = getComputedStyle(dialog);
+    return [viewport.clientWidth, viewport.clientHeight, styles.paddingTop, styles.paddingRight,
+      styles.paddingBottom, styles.paddingLeft].join(":");
+  };
+  const updateVisibleControls = () => {
+    const visible = scroll?.getViewportMetrics?.().visible || window.visualViewport;
+    const bounds = dialog.getBoundingClientRect();
+    const top = visible?.top ?? visible?.offsetTop ?? 0;
+    const left = visible?.left ?? visible?.offsetLeft ?? 0;
+    const height = visible?.height ?? innerHeight;
+    const width = visible?.width ?? innerWidth;
+    for (const [edge, value] of Object.entries({
+      top: top - bounds.top, left: left - bounds.left,
+      right: bounds.right - left - width, bottom: bounds.bottom - top - height,
+    })) dialog.style.setProperty(`--advertising-viewer-visible-${edge}`, `${Math.max(0, value)}px`);
+  };
   const measureFit = () => {
+    fitGeometryKey = geometryKey();
     const styles = getComputedStyle(dialog);
     const insetX = viewport.clientWidth <= 750 ? 0 : viewport.clientWidth <= 960 ? 16 : 64;
     const insetTop = Math.max(80, (parseFloat(styles.paddingTop) || 0) + 64);
@@ -183,6 +202,7 @@ export function createAdvertisingPhotoViewer({
     level = 0;
     panX = panY = 0;
     dialog.showModal();
+    updateVisibleControls();
     measureFit();
     const target = renderTransform();
     runMotion(sourceTransform() || target, target, 300, "cubic-bezier(0.55, 0, 0, 1)", "opening");
@@ -271,6 +291,8 @@ export function createAdvertisingPhotoViewer({
     resizeFrame = requestAnimationFrame(() => {
       resizeFrame = 0;
       if (!dialog.open) return;
+      updateVisibleControls();
+      if (fitGeometryKey === geometryKey()) return;
       if (dialog.dataset.advertisingViewerState === "closing") {
         finishClose(true);
         return;
@@ -284,6 +306,8 @@ export function createAdvertisingPhotoViewer({
   const resizeObserver = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
   resizeObserver?.observe(viewport);
   window.addEventListener("resize", resize, { passive: true, signal: controller.signal });
+  window.visualViewport?.addEventListener("resize", resize, { passive: true, signal: controller.signal });
+  window.visualViewport?.addEventListener("scroll", resize, { passive: true, signal: controller.signal });
   const cleanup = () => {
     close({ restoreFocus: false, animate: false });
     cancelMotion();

@@ -10,6 +10,8 @@ try {
     height: document.querySelector("[data-advertising-grid-cta]")?.offsetHeight,
     hash: document.querySelector(".advertising-grid__cta-skeleton")?.dataset.advertisingCtaSignature,
     footer: document.querySelector("footer.site-footer")?.offsetHeight,
+    seed: window.TruongThinhAdvertising.getBrowseState().seed,
+    gap: document.querySelector("footer.site-footer").getBoundingClientRect().top - document.querySelector("[data-advertising-grid-cta]").getBoundingClientRect().bottom,
   });
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
@@ -22,7 +24,8 @@ try {
   const routed = await page.evaluate(read);
   console.log({ direct, routed });
   assert.equal(routed.height, direct.height, "route entry must measure the new container footer");
-  assert.equal(routed.hash, direct.hash, "route entry must preserve grid and skeleton geometry");
+  assert.notEqual(routed.seed, direct.seed, "a new route visit creates a fresh random seed");
+  assert.ok(Math.abs(routed.gap - direct.gap) <= 1, "new-seed geometry preserves CTA-to-footer gap");
   const filters = await page.locator("[data-advertising-filter]").evaluateAll(nodes => nodes.map(node => node.dataset.advertisingFilter));
   const signatures = new Map();
   for (const category of [...filters, ...filters].filter(value => value !== "all")) {
@@ -38,6 +41,11 @@ try {
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
   await page.waitForTimeout(1500);
-  assert.deepEqual(await page.evaluate(read), beforeReload, "filtered reload preserves geometry");
+  const reloaded = await page.evaluate(read);
+  assert.notEqual(reloaded.seed, beforeReload.seed, "F5 reseeds the filtered pool");
+  assert.equal(reloaded.height, beforeReload.height, "F5 preserves CTA typography/height");
+  assert.equal(reloaded.footer, beforeReload.footer, "F5 preserves footer typography/height");
+  assert.ok(Math.abs(reloaded.gap - beforeReload.gap) <= 1, "F5 preserves CTA-to-footer gap");
+  assert.ok(reloaded.hash, "new-seed layout retains its geometry signature");
   console.log(`PASS route footer and deterministic geometry for ${signatures.size} filters`);
 } finally { await browser.close(); }

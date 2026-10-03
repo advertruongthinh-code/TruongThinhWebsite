@@ -2,7 +2,11 @@
 title: Skeleton Flow với preset dịu ngẫu nhiên
 type: frontend
 status: accepted
-updated: 2026-09-22
+updated: 2026-09-27
+lifecycle_delta_status: accepted
+lifecycle_spec_approved: 2026-09-27
+lifecycle_module_id: skeleton-card-lifecycle
+lifecycle_map_approved: 2026-09-27
 notion: https://app.notion.com/p/3e0332849a0e811dbac1e7bb09ea28be
 related_decisions: []
 related_reports:
@@ -471,6 +475,252 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
   [P7.1 correction](advertising-september-2026-p7-1-correction.md); dev UI
   `?skeleton-dev=1` vẫn chờ removal gate P3-T08 trước ship.
 
+<a id="correction-mobile-lifecycle--draft-2026-09-27"></a>
+
+## Correction mobile lifecycle — accepted 2026-09-27
+
+**Module id:** `skeleton-card-lifecycle`. **Status:** accepted; owner duyệt
+ngày27/09/2026 bằng “Duyệt delta skeleton”.
+[Map bổ sung](mobile-browser-parity-capability-map.md#feedback-preview--intent-và-map-bổ-sung-đã-duyệt)
+đã duyệt27/09; intent “Xác nhận intent này”. Delta này cụ thể hóa lifecycle
+R7/R10/P7.1, giữ geometry/Flow/glass đã accepted. [Plan correction](../../tasks/plan.md#correction-baseline-và-skeleton--plan-chờ-duyệt)
+cần owner duyệt trước implementation; approval spec không mở code hoặc release.
+Landscape thuộc module khác, chưa sửa trong delta này.
+
+### Mục tiêu, input và dependency
+
+Người xem Advertising VI/EN cuộn footer↔grid trên Android/iPhone thấy skeleton
+như card thường. Toolbar đổi visual height hoặc một ngưỡng scroll không khiến
+card vẫn đang hiện bị dựng lại, về opacity0 hoặc reset Flow. Cuộn hẳn khỏi
+viewport rồi quay lại vẫn dùng entry contract hiện hành của card thường.
+
+Input là [capture Android8792](../verification/android-skeleton-observation-2026-09-27.md#bổ-sung-preview8792--footergrid)
+và [chẩn đoán WebKit/baseline](../verification/mobile-preview-diagnostics-2026-09-27.md).
+131 samples có14 thế hệ frame cùng batch; WebKit3 baseline/3 current có lỗi
+context pressure và already-lost. Đây là failure evidence, chưa là fix PASS.
+
+Dependency `preview-contract-preservation` phải được verify trước nghiệm thu
+integration: cùng source/build/served candidate giữ random từ contract accepted
+trong primary/recovery và scrollbar đã nghiệm thu. Random F5/direct load, pool,
+history/locale và batch shape vẫn theo contract random; không dùng bản8792
+trước random để tuyên bố integration đạt. Recovery66 staged giữ immutable;
+việc chọn/carry baseline sẽ được giới hạn trong plan riêng, chưa resume release.
+
+### Contract state và identity
+
+Identity logic là context/pool hiện hành và `slot` của skeleton trên frontier
+card thật. Tách layout geometry, reveal state, assignment và renderer resources;
+height đổi không đồng nghĩa context/pool hay assignment đổi.
+
+| State/trigger | Behavior bắt buộc | Oracle |
+| --- | --- | --- |
+| Mount/new context hoặc slot mới | Chọn assignment theo governing random contract; entry600ms ease-out khi lần đầu slot thật sự vào viewport | Đúng membership/preset/anchor/phase/direction; không trùng preset trong batch |
+| Scroll/toolbar height-only, slot còn trong viewport | Cập nhật CTA/tail/mask theo geometry mới; giữ frame node, assignment và reveal đã đạt/đang chạy; không restart entry hoặc reset Flow phase | Common slot giữ identity; opacity không quay1→0; không reseed/rebuild toàn batch |
+| Slot rời hoàn toàn viewport rồi quay lại | Pause Flow; arm đúng một entry opacity theo card thường khi vào lại; preset/assignment giữ, renderer resume phase đã lưu | Một entry cho một chu kỳ exit/reentry thực; không arm chỉ vì toolbar/RO callback |
+| Width/columns/orientation hoặc geometry thực đổi | Reconcile theo slot: giữ node/state slot còn tồn tại, cập nhật bbox, thêm/bỏ slot cần thiết; frontier/CTA/footer vẫn hợp lệ | Membership, ratio, gutter, boundary và common-slot persistence; không stale geometry |
+| Tab ẩn, overlay giữ parent mounted, reduced motion hoặc context lost | Pause đúng lifecycle trong cùng context; quay lại không replay entry nếu chưa có full viewport exit; context loss hiện static fallback đầy đủ; reduced motion endpoint tĩnh | Phase pause/resume, reveal state, không blank canvas |
+| Actual teardown, new pool/context, navigation/history remount | Cleanup context cũ đầy đủ; node mới hợp lệ. Seed/order/assignment restoration theo governing random contract; entry theo R7 của context được mount | Không yêu cầu DOM identity sống qua unmount/document mới; không leak timer/RAF/observer/resources |
+
+Không suy full viewport exit từ việc batch node thay, chiều cao browser toolbar
+đổi hoặc observer được đăng ký lại. Footer/CTA ResizeObserver chỉ invalidation
+đúng metric và reconcile cần thiết; cập nhật footer/final viewport vẫn chạy.
+Nếu renderer phải nhả tài nguyên khi offscreen/budget đổi, lưu phase hiện tại
+theo slot; resume không lấy lại phase khởi tạo của assignment. Surface fallback
+và alpha của frame giữ đầy đủ trong quá trình đổi resource.
+
+### WebGL ownership và cleanup
+
+Giữ12 preset, Field/Finish/Scale100,240×160, shader/noise/speed và entry600ms.
+DOM coverage của P7.1 vẫn độc lập với số context sống: điện thoại tối đa2 context
+sống ở portrait lẫn landscape, kể cả width838px, và trong lúc đổi canvas.
+Không phân loại phone thành desktop chỉ vì xoay ngang vượt750px. Canvas/resource
+replacement hợp lệ giữ outer frame identity/reveal/phase như state table;
+desktop allocation dựa trên frame eligible/visible và gate thực tế,
+không eager allocate cho toàn bộ frame offscreen. Không đặt giả định browser
+luôn hỗ trợ một số context cố định.
+
+Tại cùng pool/viewport/visibility sau settle,20 chu kỳ remount/filter/resize
+không làm số context sống tăng so với lượt candidate đầu đã settle; ledger phải
+ghi allocation, release/context-loss và generation để thấy pressure trong lúc
+chuyển state. Console không có “too many active WebGL contexts”,
+already-lost/INVALID_OPERATION, uncaught hoặc lỗi page mới do skeleton.
+Sửa cleanup và allocation cùng boundary; guard cleanup riêng không đủ nghiệm thu.
+
+`destroy()` idempotent, cleanup RAF/listener/resources đúng một lần. Không gọi
+`loseContext` khi context đã mất; extension này tạo INVALID_OPERATION trong
+state đó theo [Khronos WEBGL_lose_context](https://registry.khronos.org/webgl/extensions/WEBGL_lose_context/).
+Context restored phải dựng lại resources hợp lệ, không dùng texture/buffer từ
+context cũ theo [WebGL specification](https://registry.khronos.org/webgl/specs/1.0/).
+Restore/canvas replacement hợp lệ không random lại slot hoặc replay opacity
+của outer frame. Static fallback của R4 giữ khi WebGL không dùng được.
+
+### Ownership và code style
+
+`src/site/advertising-products/catalog-runtime.mjs` sở hữu slot reconciliation,
+visibility/reveal và budget; `skeleton-flow.mjs` sở hữu renderer cleanup/restore.
+Giữ style hiện hữu, named imports, Map/Set và lifecycle theo controller. Reuse
+interface renderer hiện có; ví dụ resume từ phase đã lưu:
+
+```js
+createSkeletonFlowRenderer(canvas, {
+  preset: assignment.preset,
+  seed: slotSeed,
+  initialPhase: savedPhase,
+  direction: assignment.direction,
+});
+```
+
+Ví dụ không khóa tên biến hoặc yêu cầu module/export mới. CSS token/glass,
+copy, images/taxonomy, scrollbar/controller và width breakpoint giữ contract
+đã accepted. Test ở `tests/site/`; raw diagnostic ở ignored `.tmp`.
+
+### Commands và acceptance gates
+
+Các command dưới giữ acceptance gate. [Correction evidence](../verification/mobile-skeleton-correction-2026-09-27.md)
+ghi focused commands đã chạy, Android capture và C05 còn RED; không suy partial
+GREEN thành toàn matrix đạt:
+
+```powershell
+pnpm prepare:site
+pnpm qa:static
+node --test tests/site/advertising-skeleton-flow.test.mjs tests/site/advertising-products-layout.test.mjs tests/site/advertising-products-lifecycle.test.mjs
+$env:BASE_URL = 'http://127.0.0.1:8792'
+$env:PLAYWRIGHT_BROWSERS_PATH = 'E:/TruongThinh-Website/.tooling/browsers'
+node tests/site/advertising-continuation.e2e.mjs
+node tests/site/advertising-route-footer-p75.e2e.mjs
+pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs
+```
+
+1. Regression RED trên candidate có lỗi, GREEN sau fix: stable visible slot qua
+   height-only/scroll/RO; entry đang chạy không restart; full exit/reentry đúng
+   một lần; tab/viewer/reduced/context loss cleanup. Assert identity và state,
+   không chỉ đếm screenshot/request hoặc mirrors branch implementation.
+2. Chromium/Firefox/WebKit cùng candidate/source hashes; All/filter/detail,
+   VI/EN, reload/Back/locale, resize/orientation, reduced motion và20 remount.
+   Không bỏ console assertions để che WebKit failure; randomness/geometry/gap
+   CTA→footer/final viewport/glass endpoint giữ các oracle hiện hành.
+3. Android Chrome thật: native touch footer↔grid tối thiểu3 chu kỳ, toolbar
+   expanded/collapsed, portrait và landscape; ghi device/browser/source,
+   DOM/CSS identities, console/network và PNG. Common slot đang visible không
+   remount/replay. iPhone thật là gate riêng cùng scenario; WebKit emulation
+   không tự đóng gate đó. Functional A05s không thay performance A54 gate.
+4. Giữ performance gate R4/R10:240×160,30fps/50ms và zero running renderer khi
+   hidden/reduced/detail theo scope đã accepted. Log/screenshot capture có
+   overhead không dùng để tuyên bố FPS PASS. Leak/context ledger chạy riêng.
+5. Main kiểm diff/provenance và một agent gộp QA/audit/code review Sol/ultra;
+   owner xem cùng preview random+scrollbar+skeleton. Focused pass không là
+   full-site/P11/release pass; đứng tại gate nếu source/reference/device thiếu.
+
+### Ranh giới và rollback
+
+- **Luôn làm:** giữ accepted contracts/DoD; update owning spec/evidence cùng
+  source; verify source/build/served và integration baseline.
+- **Cần owner duyệt:** delta và plan/tracking C00–C07 đã đạt gate27/09;
+  mọi thay đổi visual/preset,
+  quality gate, shared shell hoặc cách phát hành ngoài module.
+- **Không làm:** sửa generated output/dependency/vendor; giảm DOM coverage,
+  resolution hoặc motion quality để pass; chặn geometry updates; suppress
+  console; sửa recovery checkpoint, resume P11 hoặc commit/push/deploy.
+
+Rollback dùng patch/source snapshot của slice mới trên checkout correction,
+giữ snapshot random và scrollbar trước slice. Không rollback bằng cách trở
+về HEAD trước random hoặc ghi đè recovery66 staged. Plan phải ghi exact paths,
+snapshot hashes và checkpoint cần giữ trước implementation.
+
+<a id="amendment-context-reuse--draft-2026-09-27"></a>
+### Amendment context reuse — accepted 2026-09-27
+
+**Accepted27/09/2026:** owner xác nhận “Duyệt delta và plan C05R”; implementation mở. Thuộc module `skeleton-card-lifecycle`
+trong map đã duyệt; không thêm capability/module mới. [Evidence C05](../verification/mobile-skeleton-correction-2026-09-27.md#webkit-quota-đã-sửa-pressure-chưa-sửa)
+giữ counterexample sạch sau quota fix và prototype reuse2 contexts. Cleanup
+backing store0/cancel animation không đạt zero-error. Nguyên nhân native
+retention cụ thể còn inference; không miễn WebKit gate vì engine bug.
+
+Mục tiêu đã duyệt: cùng visual/lifecycle contract, giảm việc tạo rồi lose native
+contexts khi scroll/filter/Barba remount trong cùng document. Tách native
+canvas/context ownership khỏi assignment/frame và tài nguyên của mỗi renderer.
+Owner đã duyệt một document giữ context idle có giới hạn; C05R là ngoại lệ
+hẹp đối với giới hạn renderer pool abstraction trong plan gốc.
+
+| Boundary đã duyệt | Contract accepted |
+| --- | --- |
+| Document cache trong hai module hiện hữu | Phone coarse/touch tối đa2 native context tổng cả leased và idle; desktop chỉ grow theo eligible visible demand đã đo, không eager allocate offscreen hoặc dựa hardcoded browser cap |
+| Frame lease/handoff | Slot tiếp tục sở hữu assignment, reveal, bbox và saved phase. Trước chuyển lease: stop/cancel RAF, xóa program/buffer/texture, tháo renderer listeners đúng một lần. Native context được giữ cho lease sau; idle không vẽ và không giữ assignment/controller cũ |
+| Filter/new logical pool, controller unmount | Cleanup hết frame/state/RAF/observer/listeners/program resources; trả lease về document cache. Giữ idle context có giới hạn là intentional ownership mới, không coi unmount là document teardown |
+| Document teardown/BFCache | `pagehide.persisted=false`: dispose native contexts đúng một lần với already-lost guard, cache/leased records sạch. `pagehide.persisted=true`: pause/park leased renderers, giữ cache bounded và saved phase; `pageshow.persisted=true` chỉ resume eligible slots, không reseed/reveal lại. Kiểm event ordering trên browser, không suy BFCache PASS từ synthetic event |
+| Lost/restore | Idle healthy được checkout. Lost/restoring được quarantine, không checkout; dùng filled static fallback khi chưa phục hồi. Restore dựng resources generation mới; không đổi outer frame/reveal/preset/phase. Không tạo replacements vô hạn khi native context chưa phục hồi |
+
+Provider renderer vẫn giữ default destroy hiện hành cho consumer không dùng
+reuse. Có thể thêm optional release mode cho handoff, ví dụ
+`destroy({ releaseContext: false })`; default không truyền option vẫn fully
+dispose. Catalog/document cache chịu ownership native context được giữ;
+renderer chỉ chịu lease resources khi chọn mode này. Cụ thể hóa interface và
+idempotency bằng unit trước code; không tạo framework/controller/package mới.
+
+Quality bar không đổi:12 presets, shader/noise/speed,240×160, Field/Finish,
+entry600ms, native mobile scroll, random seed/history/locale, footer/tail/glass,
+R4/R10 performance và zero console errors. Hidden/reduced/detail/idle có0
+running; common visible slot không replay/reseed. Không suppress warnings,
+force GC/browser flags hoặc dùng device emulation để đóng physical gate.
+
+Success:20 valid filter/resize/remount cycles ở Chromium/Firefox/WebKit,
+including clean console run không ledger; allocation plateau sau warm-up,
+phone leased+idle≤2 trong transition, fresh restored program generation và
+phase giữ. Route exit/return, pending history, BFCache/document dispose,
+hidden/reduced/overlay, same outer frame và unchanged presets/resolution phải
+qua regression. Prototype40 filter cycles chỉ là feasibility, không đủ gate.
+
+[Plan amendment C05R](../../tasks/plan.md#amendment-c05r--accepted-2026-09-27) ghi
+paths/tasks/estimate/rollback. C05R chỉ mở sau owner duyệt cả delta ownership
+và amendment plan; C06/C07 dùng lại gate cũ sau checkpoint C GREEN.
+
+<a id="amendment-logical-batch-khi-resize--draft-2026-09-27"></a>
+
+### Amendment logical batch khi resize — accepted 2026-09-27
+
+**Status: accepted A.** Owner duyệt delta và plan C06U ngày27/09 bằng
+“Duyệt A và plan C06U (đề xuất)”. Uniqueness theo logical deck thay oracle
+gom toàn bộ active frames thành một batch khi count≤12; common persistence
+giữ nguyên. C06 tìm
+counterexample thật tại candidate catalog `94dbffac…`: N4 có13 frame, N3 có10
+frame nhưng hai common slots `2:1` và `2:3` đều giữ preset `electric-tide`.
+Không thể vừa giữ preset của cả hai common slots vừa yêu cầu10 frame không
+trùng preset. [Evidence và hai lựa chọn](../verification/mobile-skeleton-correction-2026-09-27.md#c06-counterexample-và-gate-còn-mở)
+giữ raw seed, membership và assignment; không phải lỗi của shader.
+
+**Lựa chọn A đã duyệt:** ưu tiên card ổn định như intent owner. Một logical
+batch là deck tối đa12 assignment, shuffle preset/anchor không hoàn lại,
+starting phase riêng và direction cân bằng ở deck đầy đủ. Geometry có hơn12
+frame được lấy thêm deck; mỗi frame giữ batch identity. Resize giữ assignment
+của common slots, không gom các assignment từ nhiều deck thành batch mới chỉ
+vì số frame giảm xuống12 hoặc ít hơn. Preset có thể trùng giữa hai deck; trong
+cùng deck vẫn cấm trùng. Fresh filter/new pool tạo deck mới; height-only và
+same-pool photo Back giữ deck. Test kiểm uniqueness theo logical batch, common
+identity/assignment/phase/reveal và fresh-filter change; không sửa preset,
+shader, resolution, native context budget hoặc geometry.
+
+**Lựa chọn B không được chọn:** ưu tiên mọi tập tối đa12 frame hiện hành không trùng preset.
+Khi resize giữ lại hai preset trùng, một common slot được đổi assignment.
+Lựa chọn này sửa ngoại lệ cho rule resize giữ assignment; cần delta chi tiết
+và owner duyệt lại trước code, không được áp tự động.
+
+R4 performance đo tất cả DOM skeleton frames cùng intersect viewport và tất
+cả renderer đang chạy tại1569×912, probe5s sau warm-up; vẫn≥30fps và không
+loop long task>50ms. Rect hoàn toàn nằm trong viewport được ghi diagnostic,
+không thay one-viewport **remaining tail/CTA/footer** oracle của R10. Scene
+probe hiện có span1129–1510px, mọi frame intersect và running; cấm dùng scene
+ít renderer hơn chỉ để đạt FPS.
+
+[Plan amendment C06U](../../tasks/plan.md#amendment-c06u--accepted-2026-09-27)
+đã được duyệt cùng delta. Không dùng approval A để đổi preset của common slot.
+
+Implementation27/09 giữ immutable deck identity trên assignment và canvas;
+[current correction evidence](../verification/mobile-skeleton-correction-2026-09-27.md#c06u-logical-deck-current-build-và-gates)
+ghi source/build/served, production13→11→13 common preservation, Android hai
+orientation và raw counterexamples. Đây focused proof; full continuation
+first-DOM-frame ready predicate/MCP/device/owner gates chưa đạt. Không dùng
+partial PASS để hạ R4/R10 hoặc đóng browser parity.
+
 ## Chú thích thuật ngữ
 
 - **Flow field**: trường màu bị biến dạng liên tục theo thời gian.
@@ -480,3 +730,4 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
   giữ trọng tâm thị giác.
 - **Shader**: chương trình nhỏ chạy trên GPU để tính màu mỗi pixel.
 - **Global space**: hệ tọa độ chung của container, không reset theo từng frame.
+- **Lease**: quyền dùng tạm native context; assignment/frame không sở hữu document cache.

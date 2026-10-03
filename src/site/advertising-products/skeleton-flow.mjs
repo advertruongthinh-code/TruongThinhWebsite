@@ -1,4 +1,6 @@
 const FLOW_WIDTH = 240;
+import { shuffleWithSeed } from "./random-order.mjs";
+
 const FLOW_HEIGHT = 160;
 const FLOW_CLOCK_START = 20.75;
 const MAX_DELTA_SECONDS = 0.05;
@@ -290,6 +292,8 @@ export function createSkeletonFlowFrameLayout({
   gap,
   boundaryBottom,
   maxFrames = Number.MAX_SAFE_INTEGER,
+  seed,
+  bandAssignments,
 } = {}) {
   if (!Array.isArray(columnBottoms) || !Number.isInteger(columns) || columns < 1
     || columnBottoms.length < columns || columnBottoms.slice(0, columns).some((bottom) => !Number.isFinite(bottom))
@@ -298,23 +302,100 @@ export function createSkeletonFlowFrameLayout({
     || !Number.isInteger(maxFrames) || maxFrames < columns) {
     throw new TypeError("Skeleton frame layout requires valid column geometry");
   }
-  const frames = [];
-  const bottoms = columnBottoms.slice(0, columns);
-  const depths = Array(columns).fill(0);
   const baseBands = [SKELETON_RATIO_BANDS[1], SKELETON_RATIO_BANDS[0], SKELETON_RATIO_BANDS[2]];
-  while (frames.length < maxFrames) {
-    const column = bottoms.reduce((shortest, bottom, index) =>
-      bottom < bottoms[shortest] ? index : shortest, 0);
-    const top = Number(bottoms[column]) + gap;
-    if (top >= boundaryBottom) break;
-    const depth = depths[column];
-    const source = baseBands[(depth + column) % baseBands.length];
-    const height = cardWidth * source.ratio;
-    frames.push({ slot: `${column}:${depth}`, column, depth, band: source.id, top, height });
-    depths[column] += 1;
-    bottoms[column] = top + height;
+  const buildCandidate = (candidateSeed) => {
+    const frames = [];
+    const bottoms = columnBottoms.slice(0, columns);
+    const depths = Array(columns).fill(0);
+    const previousBandByColumn = new Map();
+    const rowBands = new Map();
+    while (frames.length < maxFrames) {
+      const column = bottoms.reduce((shortest, bottom, index) =>
+        bottom < bottoms[shortest] ? index : shortest, 0);
+      const top = Number(bottoms[column]) + gap;
+      if (top >= boundaryBottom) break;
+      const depth = depths[column];
+      const slot = `${column}:${depth}`;
+      let source;
+      const assignedBand = bandAssignments?.get?.(slot);
+      const preservedBand = SKELETON_RATIO_BANDS.find((band) => band.id === assignedBand);
+      if (preservedBand) {
+        source = preservedBand;
+      } else if (candidateSeed === null) {
+        source = baseBands[(depth + column) % baseBands.length];
+      } else {
+        const candidates = shuffleWithSeed(SKELETON_RATIO_BANDS, candidateSeed, `frame:${column}:${depth}`);
+        const unavailable = rowBands.get(depth) || new Set();
+        source = candidates.find((band) => band.id !== previousBandByColumn.get(column)?.id && !unavailable.has(band.id))
+          || candidates.find((band) => band.id !== previousBandByColumn.get(column)?.id)
+          || candidates[0];
+      }
+      const height = cardWidth * source.ratio;
+      frames.push({ slot, column, depth, band: source.id, top, height });
+      previousBandByColumn.set(column, source);
+      if (!rowBands.has(depth)) rowBands.set(depth, new Set());
+      rowBands.get(depth).add(source.id);
+      depths[column] += 1;
+      bottoms[column] = top + height;
+    }
+    return frames;
+  };
+  const scoreFrames = (frames) => {
+    const firstBands = frames.slice(0, 12).map(({ band }) => band);
+    const firstFourKinds = new Set(firstBands.slice(0, 4)).size;
+    let longestRun = 0;
+    let transitions = 0;
+    let currentBand = null;
+    let currentRun = 0;
+    for (const band of firstBands) {
+      if (band === currentBand) currentRun += 1;
+      else {
+        if (currentBand !== null) transitions += 1;
+        currentBand = band;
+        currentRun = 1;
+      }
+      longestRun = Math.max(longestRun, currentRun);
+    }
+    const targetApplicable = frames.length >= 2;
+    const targetMet = targetApplicable ? firstFourKinds >= 2 && longestRun <= 3 : null;
+    const score = firstFourKinds * 100 + transitions * 10 - longestRun * 20;
+    return { firstBands, firstFourKinds, longestRun, score, targetApplicable, targetMet };
+  };
+
+  const maxCandidates = seed === undefined || seed === null ? 1 : 8;
+  let selectedFrames = [];
+  let selectedRhythm = null;
+  let candidatesTried = 0;
+  for (let candidateIndex = 0; candidateIndex < maxCandidates; candidateIndex += 1) {
+    const candidateSeed = maxCandidates === 1 ? null : `${String(seed)}:organic-candidate:${candidateIndex}`;
+    const frames = buildCandidate(candidateSeed);
+    const rhythm = scoreFrames(frames);
+    candidatesTried += 1;
+    if (!selectedRhythm || (rhythm.targetMet && !selectedRhythm.targetMet) || rhythm.score > selectedRhythm.score) {
+      selectedFrames = frames;
+      selectedRhythm = rhythm;
+    }
+    if (rhythm.targetMet) break;
   }
-  return Object.freeze(frames.map((frame) => Object.freeze(frame)));
+
+  const result = selectedFrames.map((frame) => Object.freeze(frame));
+  Object.defineProperty(result, "diagnostics", {
+    enumerable: false,
+    value: Object.freeze({
+      frameCount: result.length,
+      candidatesTried,
+      firstFourKinds: selectedRhythm.firstFourKinds,
+      firstBands: Object.freeze(selectedRhythm.firstBands),
+      longestRun: selectedRhythm.longestRun,
+      score: selectedRhythm.score,
+      targetApplicable: selectedRhythm.targetApplicable,
+      targetMet: selectedRhythm.targetMet,
+      fallbackReason: selectedRhythm.targetApplicable && !selectedRhythm.targetMet
+        ? maxCandidates > 1 ? "bounded-seed-candidate-search-exhausted" : "deterministic-default-rhythm"
+        : null,
+    }),
+  });
+  return Object.freeze(result);
 }
 
 export function advanceSkeletonFlowPhase(phase, deltaSeconds, speed, direction = 1) {
@@ -427,9 +508,14 @@ export function createSkeletonFlowRenderer(canvas, {
   const releaseResources = () => {
     if (!gl) return;
     try {
-      if (texture) gl.deleteTexture(texture);
-      if (buffer) gl.deleteBuffer(buffer);
-      if (program) gl.deleteProgram(program);
+      if (!gl.isContextLost?.()) {
+        gl.useProgram(null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        if (texture) gl.deleteTexture(texture);
+        if (buffer) gl.deleteBuffer(buffer);
+        if (program) gl.deleteProgram(program);
+      }
     } catch {}
     texture = null;
     buffer = null;
@@ -438,7 +524,7 @@ export function createSkeletonFlowRenderer(canvas, {
   };
 
   const initializeWebGl = () => {
-    if (!gl) return false;
+    if (!gl || gl.isContextLost?.()) return false;
     program = createProgram(gl);
     buffer = program && gl.createBuffer();
     texture = program && gl.createTexture();
@@ -481,14 +567,11 @@ export function createSkeletonFlowRenderer(canvas, {
     return true;
   };
 
-  if (!initializeWebGl() && gl) {
-    gl = null;
-    backend = "fallback";
-  }
+  if (!initializeWebGl()) backend = "fallback";
 
   const draw = (timestamp = 0) => {
     if (destroyed) return false;
-    if (backend === "webgl" && gl && program) {
+    if (backend === "webgl" && gl && program && !gl.isContextLost?.()) {
       const currentTimestamp = Number(timestamp) || 0;
       if (lastTimestamp >= 0) {
         phase = advanceSkeletonFlowPhase(phase, (currentTimestamp - lastTimestamp) / 1000,
@@ -541,6 +624,7 @@ export function createSkeletonFlowRenderer(canvas, {
     resumeAfterRestore = wasRunning;
     releaseResources();
     backend = "fallback";
+    if (canvas.dataset) canvas.dataset.advertisingFlowBackend = "fallback";
   };
   const onContextRestored = () => {
     if (destroyed) return;
@@ -551,6 +635,7 @@ export function createSkeletonFlowRenderer(canvas, {
       stencil: false,
     });
     if (initializeWebGl()) {
+      if (canvas.dataset) canvas.dataset.advertisingFlowBackend = "webgl";
       draw();
       if (resumeAfterRestore) start();
     }
@@ -563,19 +648,22 @@ export function createSkeletonFlowRenderer(canvas, {
     draw,
     start,
     stop,
-    destroy() {
+    destroy({ releaseContext = true } = {}) {
       if (destroyed) return;
       stop();
       destroyed = true;
       canvas.removeEventListener?.("webglcontextlost", onContextLost);
       canvas.removeEventListener?.("webglcontextrestored", onContextRestored);
-      const loseContext = gl?.getExtension?.("WEBGL_lose_context");
+      const loseContext = releaseContext && gl && !gl.isContextLost?.() ? gl.getExtension?.("WEBGL_lose_context") : null;
       releaseResources();
       loseContext?.loseContext();
       gl = null;
     },
     get backend() {
       return backend;
+    },
+    get context() {
+      return gl;
     },
     get phase() {
       return phase;

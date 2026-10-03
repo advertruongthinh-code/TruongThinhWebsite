@@ -1,14 +1,10 @@
+import { shuffleWithSeed } from "./random-order.mjs";
 const decks = new Map();
 
 // Keep each group's sampled set stable for this document's lifetime.
 export function suggestionDeck(key, cards) {
   if (!decks.has(key)) {
-    const shuffled = [...cards];
-    for (let index = shuffled.length - 1; index > 0; index--) {
-      const other = Math.floor(Math.random() * (index + 1));
-      [shuffled[index], shuffled[other]] = [shuffled[other], shuffled[index]];
-    }
-    decks.set(key, shuffled.slice(0, 9));
+    decks.set(key, shuffleWithSeed(cards, Math.random(), key).slice(0, 9));
   }
   return decks.get(key);
 }
@@ -66,7 +62,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   };
   const timer = setInterval(() => {
     root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => { void tick(button); });
-  }, 5000);
+  }, 3000);
   const onVisibility = () => {
     if (isReduced() || preference.matches) { clear(); return; }
     pending.forEach(({ animation }, button) => {
