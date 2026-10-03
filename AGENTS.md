@@ -60,8 +60,9 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
 - Trước plan/implement: đọc toàn bộ `STATE.md`. Sau khi một field của snapshot đổi vì behavior, verification, blocker, handoff: verify evidence, update field và `Updated` trong cùng task.
 - Bỏ item resolved/hết hạn; link spec, decision, report thay vì copy evidence. Không refresh `Updated` nếu facts không đổi.
 - `STATE` mâu thuẫn hoặc nghi stale: repository evidence, test, accepted Git document thắng. Verify, sửa `STATE`; chưa rõ thì ghi unknown.
+- SSoT là GitHub, nhánh `main`. Checkout local, project memory, Notion đi theo `main`; lệch thì `main` thắng.
 - Project memory (`MEMORY.md` của Claude project, ngoài Git) chỉ giữ thứ repo không chứa: preference và cách làm việc của owner, thread nào sở hữu việc gì, device/Remote Control, link ngoài. Fact về repo (phase, active work, blocker, demo, command) thuộc `STATE` hoặc doc sở hữu; memory chỉ link tới, không copy.
-- Owner đổi cách làm việc: ghi memory; nếu đổi rule repo (branch, tool, gate) thì cập nhật `AGENTS.md`/doc sở hữu trong PR. Memory và repo mâu thuẫn về fact repo: repo thắng, sửa memory. Mỗi PR đổi field `STATE` tự cập nhật `STATE` trong cùng PR.
+- Owner đổi cách làm việc: ghi memory; nếu đổi rule repo (branch, tool, gate) thì cập nhật `AGENTS.md`/doc sở hữu trong PR. Memory lệch `main` về fact repo: sửa memory. Mỗi PR đổi field `STATE` tự cập nhật `STATE` trong cùng PR.
 
 ## Viết và phản hồi
 
@@ -97,6 +98,7 @@ khi tool báo lỗi hoặc blocked.
 - **Scripts map**: bảng entrypoint script đã verify.
 - **Automation**: hook, watcher hoặc launcher tự xử lý mechanics.
 - **STATE**: snapshot Git ngắn, nêu context hiện tại để bắt đầu task.
+- **SSoT**: single source of truth, nguồn chuẩn duy nhất.
 - **Project memory**: bộ nhớ chung của các Claude session trong Claude project, nằm ngoài Git.
 - **Canonical**: nguồn chuẩn dùng để quyết định nội dung được chấp nhận.
 - **Evidence**: bằng chứng verify được từ repository, test, tool.
