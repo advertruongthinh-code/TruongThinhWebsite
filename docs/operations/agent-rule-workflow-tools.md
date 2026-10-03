@@ -38,7 +38,7 @@
   semantic extraction.
 - Khi `graphify-out/graph.json` có: Graphify trước cho code và meaningful non-media content: docs, spec, ADR, config, SQL, HTML, JSON, YAML, PDF, Office. Bỏ image, video, audio, font, generated output, runtime state.
 - Sau Graphify dùng Serena cho symbol, reference, diagnostic, refactor; `rg` chỉ bổ sung. Semantic freshness chỉ warning, không chặn structural query.
-- Serena, Graphify là user-global MCP bắt buộc. Launcher khởi động mỗi task/session với `--context codex --project-from-cwd`; không là Windows daemon thường trực.
+- Serena, Graphify là user-global MCP bắt buộc. Launcher khởi động mỗi task/session với `--project-from-cwd` và context theo host: Codex `codex`, Claude Code `claude-code` (`mcp.ps1 serena -Context claude-code`); không là Windows daemon thường trực.
 
 ## Semantic
 

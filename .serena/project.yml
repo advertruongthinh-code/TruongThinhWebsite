@@ -138,3 +138,4 @@ language_servers:
 - toml
 - yaml
 - python
+- bash

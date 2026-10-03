@@ -1,7 +1,10 @@
 param(
   [Parameter(Mandatory)]
   [ValidateSet("serena", "graphify", "chrome-devtools")]
-  [string]$Service
+  [string]$Service,
+  # Serena context per host: Codex config omits it; Claude Code passes claude-code.
+  [ValidateSet("codex", "claude-code")]
+  [string]$Context = "codex"
 )
 
 Set-StrictMode -Version Latest
@@ -24,7 +27,7 @@ switch ($Service) {
       & $python $sync --root $projectRoot --apply | Out-Null
       if ($LASTEXITCODE -ne 0) { throw "Serena language sync failed." }
     }
-    & $env:SERENA_EXE start-mcp-server --transport stdio --context codex --project-from-cwd --enable-web-dashboard false --open-web-dashboard false
+    & $env:SERENA_EXE start-mcp-server --transport stdio --context $Context --project-from-cwd --enable-web-dashboard false --open-web-dashboard false
     exit $LASTEXITCODE
   }
   "graphify" {
