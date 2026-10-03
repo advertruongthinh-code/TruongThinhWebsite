@@ -26,6 +26,8 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | --- | --- | --- |
 | Clone, approved repair | `pnpm tooling:bootstrap` | Mutate pinned user-global stack/project browser. |
 | Approved repair từng phần | `pwsh -NoProfile -File scripts/tooling/bootstrap.ps1 -Components Skills` | Chọn `Python`, `Node` hoặc `Skills`; không chạy full bootstrap, đổi Codex config hay cài Git hook. |
+| Skill vendor | `pnpm tooling:skills`, `pnpm tooling:skills:check` | Sinh `.claude/skills` từ `tooling-versions.json`; không sửa tay `.claude/skills`. |
+| Graphify Linux/cloud | `scripts/tooling/invoke-graphify.sh query|path|explain ...` | Tự cài Graphify pin, refresh AST khi tree đổi. |
 | Health | `pnpm tooling:doctor`, `pnpm tooling:doctor -- -Mcp` | Diagnose reported setup/MCP issue. |
 | Update report | `pwsh -File scripts/tooling/check-updates.ps1 [-IfDue]` | Notify-only; không install. |
 | Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.2.2 dùng engine 0.1.3; `context` một lần mỗi session, `doctor` cho maintenance; không cài Codex lifecycle hook. |

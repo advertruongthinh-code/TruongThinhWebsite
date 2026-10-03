@@ -30,6 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm qa:static
       - run: pnpm qa:worker:security
+      - run: pnpm tooling:skills:check
       - run: pnpm exec playwright install --with-deps chromium
 
       - name: Start local static preview
