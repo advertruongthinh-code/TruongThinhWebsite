@@ -43,8 +43,9 @@ Path ở user-global:
 ~/.codex/AGENTS.md         rule ADHD, Caveman ultra và Ponytail ultra luôn active
 ```
 
-Caveman và Ponytail đều bắt buộc `ultra` ở global và project rule. Không có
-skill, persona, MCP definition hoặc lifecycle hook project-local.
+Caveman và Ponytail đều bắt buộc `ultra` ở global và project rule. Skill được
+vendor vào `.claude/skills/` từ pin; không có persona, MCP definition hoặc
+lifecycle hook project-local.
 
 ## Machine mới hoặc repair
 
@@ -67,6 +68,30 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/bootstrap.ps1 -Ski
 
 Backup có thể recover ở `~/.codex/tooling/backups/`. Receipt được generate ở
 `.tooling/state/` và không làm clone dirty.
+
+## Claude Code: skill trong repo
+
+`.claude/skills/` và `.claude/references/` sinh từ `tooling-versions.json` bằng
+`pnpm tooling:skills`; hash nằm trong `.claude/skills.lock.json`. Claude local,
+Remote Control và thread cloud cùng đọc bản này. Không sửa tay; đổi pin rồi chạy
+lại script, commit, sau đó bootstrap để Codex nhận cùng bản. CI chạy
+`pnpm tooling:skills:check`.
+
+Skill cá nhân thắng skill của repo khi trùng tên, nên `~/.claude/skills` không được
+chứa các skill này. Một lần trên máy Windows, sau khi branch có `.claude/skills`:
+
+```powershell
+$p = Join-Path $env:USERPROFILE ".claude\skills"
+$item = Get-Item -LiteralPath $p -Force -ErrorAction SilentlyContinue
+if ($item.LinkType) { cmd /c rmdir "$p" }   # chỉ gỡ link; ~/.agents/skills giữ nguyên
+elseif ($item) { Move-Item -LiteralPath $p -Destination "$p.bak-20261003" }
+pnpm tooling:bootstrap
+pnpm tooling:doctor
+```
+
+Doctor báo lỗi nếu `~/.agents/skills` lệch lock hoặc `~/.claude/skills` che bản repo.
+Trên Linux/cloud không có PowerShell: Graphify chạy qua
+`scripts/tooling/invoke-graphify.sh`, tự cài Graphify pin lần đầu.
 
 ## Command và fallback
 

@@ -12,6 +12,9 @@ related_reports:
 
 # Codex native với Agent Skills user-global
 
+Câu "Repository không vendor reusable skill payload" được thay bởi
+[skill vendor vào .claude từ pin](claude-skills-vendored-from-pins.md) ngày 2026-10-03.
+
 Phần routing semantic Luna/max của decision này được thay thế bởi
 [spec Superpowers accepted ngày 2026-09-08](../specs/superpowers-chatgpt-codex-orchestration.md),
 đã retired theo yêu cầu owner ngày 2026-09-23. Spec và evidence được giữ làm

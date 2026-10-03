@@ -13,6 +13,7 @@ accepted decision chỉ vì ngắn. Decision thay thế phải dẫn rõ superse
 | 2026-07-31 | accepted | [Defense in depth cho admin](admin-defense-in-depth.md) |
 | 2026-09-01 | accepted | [Lưới organic Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập](advertising-organic-masonry-espacio-spacing-media-distribution.md) |
 | 2026-08-09 | accepted | [Caveman ultra và rule module](caveman-ultra-agent-rules.md) |
+| 2026-10-03 | accepted | [Skill vendor vào .claude từ pin](claude-skills-vendored-from-pins.md) |
 | 2026-09-01 | accepted | [Codex native với Agent Skills user-global](codex-native-agent-skills-workflow.md) |
 | 2026-07-31 | accepted | [Content/media có guide và thứ tự bảo trì rõ](content-media-maintenance.md) |
 | 2026-07-31 | accepted | [D1 SSR luôn ưu tiên hơn shell fallback](d1-ssr-static-fallback.md) |

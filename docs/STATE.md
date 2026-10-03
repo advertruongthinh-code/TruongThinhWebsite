@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-09-25
+- Updated: 2026-10-03
 - Phase: public website static-first VI/EN. Source tại `src/site/`, build tại
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: ranh giới GitHub/source/test và Sites/artifact đã áp dụng theo
@@ -34,6 +34,9 @@
   gom việc còn mở; 12 card cũ vào Trash, 13 card Done giữ làm lịch sử.
 - Tooling: Graphify AST fresh tại query; 258 semantic file pending khi tiếp tục release.
   Không chạy semantic extraction. Serena đã activate đúng project.
+- Claude skill: 52 skill vendor tại `.claude/skills` từ pin, cloud thread dùng được
+  ([decision](decisions/claude-skills-vendored-from-pins.md)). Máy local còn bước gỡ
+  link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.

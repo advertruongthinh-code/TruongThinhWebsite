@@ -16,7 +16,9 @@
     "qa:worker": "node tests/worker/worker-contract.cjs",
     "qa:cross-browser": "playwright test tests/site/cross-browser.smoke.spec.cjs",
     "tooling:bootstrap": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/bootstrap.ps1",
-    "tooling:doctor": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1"
+    "tooling:doctor": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/doctor.ps1",
+    "tooling:skills": "node scripts/tooling/vendor-skills.mjs",
+    "tooling:skills:check": "node scripts/tooling/vendor-skills.mjs --check"
   },
   "devDependencies": {
     "playwright": "1.63.0"

@@ -68,6 +68,15 @@ else { $failures += "Missing user-global skills: $($missingSkills -join ', ')" }
 $managedCount = @(Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
 if ($managedCount -ge 40) { $passes += "User-global skill count ($managedCount)" }
 else { $failures += "Expected at least 40 user-global skills; found $managedCount" }
+& (Get-ProjectNode) (Join-Path $root "scripts\tooling\vendor-skills.mjs") --compare $skillRoot | Out-Null
+if ($LASTEXITCODE -eq 0) { $passes += "User-global skills match vendored .claude/skills" }
+else { $failures += "User-global skills differ from .claude/skills; run pnpm tooling:bootstrap" }
+
+# Personal Claude skills win over project skills, so a copy there would shadow the repository payload.
+$vendoredNames = @(Get-ChildItem -LiteralPath (Join-Path $root ".claude\skills") -Directory).Name
+$shadowing = @(Get-ChildItem -LiteralPath (Join-Path $env:USERPROFILE ".claude\skills") -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -in $vendoredNames })
+if ($shadowing.Count -eq 0) { $passes += "No personal Claude skill shadows .claude/skills" }
+else { $failures += "Personal Claude skills shadow .claude/skills: $($shadowing.Name -join ', '). See docs/operations/TOOLING.md" }
 
 try {
   $globalRules = Get-Content -Raw -LiteralPath (Join-Path $env:USERPROFILE ".codex\AGENTS.md")

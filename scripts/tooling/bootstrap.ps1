@@ -119,60 +119,21 @@ function Install-PnpmShim {
   Write-Utf8Atomic $shim ($content.TrimEnd() + [Environment]::NewLine)
 }
 
-function Get-PinnedRepository([string]$Slug, [string]$DirectoryName) {
-  $destination = Join-Path $globalRoot "sources\$DirectoryName"
-  $commit = [string]$pins.repositories.$Slug
-  if (Test-Path -LiteralPath $destination) {
-    $actual = (& git -C $destination rev-parse HEAD 2>$null).Trim()
-    if ($actual -eq $commit) { return $destination }
-    Move-Item -LiteralPath $destination -Destination (Join-Path $backupRoot "sources-$DirectoryName")
-  }
-  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-  & git clone --filter=blob:none --no-checkout ([string]$pins.repository_urls.$Slug) $destination
-  if ($LASTEXITCODE -ne 0) { throw "Clone failed: $Slug" }
-  & git -C $destination checkout --detach $commit
-  if ($LASTEXITCODE -ne 0) { throw "Checkout failed: $Slug@$commit" }
-  return $destination
-}
-
 function Install-GlobalSkills {
-  $agentSource = Get-PinnedRepository "addyosmani/agent-skills" "agent-skills"
-  $adhdSource = Get-PinnedRepository "ayghri/i-have-adhd" "i-have-adhd"
-  $cavemanSource = Get-PinnedRepository "juliusbrussee/caveman" "caveman"
-  $impeccableSource = Get-PinnedRepository "pbakaus/impeccable" "impeccable"
-  $ponytailSource = Get-PinnedRepository "dietrichgebert/ponytail" "ponytail"
-  $stage = Join-Path $stagingRoot "skills"
+  # The repository's vendored .claude tree is the only skill payload; Codex gets a copy.
+  $source = Join-Path $projectRoot ".claude\skills"
   $userAgents = Join-Path $env:USERPROFILE ".agents"
   $destination = Join-Path $userAgents "skills"
   $managedStatePath = Join-Path $globalRoot "state\managed-skills.json"
   $previousManaged = if (Test-Path -LiteralPath $managedStatePath -PathType Leaf) {
     @((Get-Content -Raw -LiteralPath $managedStatePath | ConvertFrom-Json).skills)
   } else { @() }
-  New-Item -ItemType Directory -Force -Path $stage,$destination | Out-Null
+  New-Item -ItemType Directory -Force -Path $destination | Out-Null
 
-  $agentSkills = @(Get-ChildItem -LiteralPath (Join-Path $agentSource "skills") -Directory | Where-Object {
+  $vendored = @(Get-ChildItem -LiteralPath $source -Directory | Where-Object {
     Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") -PathType Leaf
   })
-  $cavemanSkills = @(Get-ChildItem -LiteralPath (Join-Path $cavemanSource "skills") -Directory | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") -PathType Leaf
-  })
-  $ponytailSkills = @(Get-ChildItem -LiteralPath (Join-Path $ponytailSource "skills") -Directory | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") -PathType Leaf
-  })
-
-  foreach ($skill in $agentSkills) {
-    Copy-Item -LiteralPath $skill.FullName -Destination (Join-Path $stage $skill.Name) -Recurse
-  }
-  Copy-Item -LiteralPath (Join-Path $adhdSource "skills\i-have-adhd") -Destination (Join-Path $stage "i-have-adhd") -Recurse
-  foreach ($skill in $cavemanSkills) {
-    Copy-Item -LiteralPath $skill.FullName -Destination (Join-Path $stage $skill.Name) -Recurse
-  }
-  Copy-Item -LiteralPath (Join-Path $impeccableSource ".agents\skills\impeccable") -Destination (Join-Path $stage "impeccable") -Recurse
-  foreach ($skill in $ponytailSkills) {
-    Copy-Item -LiteralPath $skill.FullName -Destination (Join-Path $stage $skill.Name) -Recurse
-  }
-
-  $nextManaged = @((Get-ChildItem -LiteralPath $stage -Directory).Name + @("graphify") | Sort-Object -Unique)
+  $nextManaged = @($vendored.Name + @("graphify") | Sort-Object -Unique)
   foreach ($name in @($previousManaged | Where-Object { $_ -notin $nextManaged })) {
     $target = Join-Path $destination $name
     if (-not (Test-Path -LiteralPath $target)) { continue }
@@ -181,19 +142,19 @@ function Install-GlobalSkills {
     Move-Item -LiteralPath $target -Destination $skillBackup
   }
 
-  foreach ($skill in Get-ChildItem -LiteralPath $stage -Directory) {
+  foreach ($skill in $vendored) {
     $target = Join-Path $destination $skill.Name
     if (Test-Path -LiteralPath $target) {
       $skillBackup = Join-Path $backupRoot "skills\$($skill.Name)"
       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $skillBackup) | Out-Null
       Move-Item -LiteralPath $target -Destination $skillBackup
     }
-    Move-Item -LiteralPath $skill.FullName -Destination $target
+    Copy-Item -LiteralPath $skill.FullName -Destination $target -Recurse
   }
 
   $references = Join-Path $userAgents "references"
   if (Test-Path -LiteralPath $references) { Move-Item -LiteralPath $references -Destination (Join-Path $backupRoot "skills-references") }
-  Copy-Item -LiteralPath (Join-Path $agentSource "references") -Destination $references -Recurse
+  Copy-Item -LiteralPath (Join-Path $projectRoot ".claude\references") -Destination $references -Recurse
 
   $graphify = Join-Path $destination "graphify"
   if (Test-Path -LiteralPath $graphify) { Move-Item -LiteralPath $graphify -Destination (Join-Path $backupRoot "skills\graphify") }
@@ -207,6 +168,8 @@ function Install-GlobalSkills {
     updated_at = (Get-Date).ToUniversalTime().ToString("o")
     skills = $nextManaged
   } | ConvertTo-Json -Depth 4) + [Environment]::NewLine)
+  & (Get-ProjectNode) (Join-Path $PSScriptRoot "vendor-skills.mjs") --compare $destination
+  if ($LASTEXITCODE -ne 0) { throw "User-global skills differ from the vendored .claude/skills payload." }
 }
 
 function Install-GlobalPersonas {
