@@ -47,10 +47,6 @@ assert.match(runtime, /stagger: 0/, "Masonry has no stagger");
 assert.match(runtime, /retainCohort \? new Set\(\[\.\.\.currentKeep, \.\.\.normalKeep\]\) : normalKeep/, "filter motion stays bounded");
 assert.match(runtime, /const cancelMasonryTransitions = \(instance = masonry\) => \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");
-assert.match(runtime, /photoExpand\?\.addEventListener\("click", cancelPhotoMorph, \{ capture: true, signal: controller\.signal \}\)/,
-  "viewer expansion settles the morph scroll lease before the viewer acquires its lease");
-assert.match(runtime, /animation\.addEventListener\("finish"[\s\S]*setTimeout\(settle, 4_000\)[\s\S]*addEventListener\("load", settle[\s\S]*addEventListener\("error", settle/,
-  "slow target media keeps the morph lease for at most four seconds and releases early on load or error");
 assert.match(runtime, /node === document\.activeElement \|\| node\.contains\(document\.activeElement\)/, "focused cards remain mounted");
 assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualization mounts direct placements instead of closed batches");
 const filterClickHandler = runtime.slice(runtime.indexOf('filters.addEventListener("click"'));
@@ -421,8 +417,8 @@ assert.deepEqual(readAdvertisingBrowseHistoryState(cleanedDirectState), {
   photo: null,
   tag: null,
   seed: cleanedBrowseState.seed,
-  grid: { category: null, anchorOffset: null, focusId: null, scrollY: 0, viewportWidth: null },
-  detail: { anchorId: null, anchorOffset: null, scrollY: 0, viewportWidth: null },
+  grid: { category: null, anchorOffset: null, focusId: null, mediaId: null, scrollY: 0, viewportWidth: null },
+  detail: { anchorId: null, anchorOffset: null, mediaId: null, scrollY: 0, viewportWidth: null },
 }, "invalid direct cleanup writes one usable grid state without a phantom entry");
 browseController.captureGrid({ anchorOffset: 180, focusId: "photo-a", scrollY: logicalScroll, viewportWidth: 1440 });
 browseController.openPhoto("photo-a");

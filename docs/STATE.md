@@ -7,14 +7,18 @@
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
   Đã deploy 2026-10-03, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
-- Active execution scope: M02b media-card Advertising (`advertising-products`
-  và route con `?photo=` VI/EN), restore từ tag `archive/mobile-ui-contract-20261003`
-  vào worktree Claude. PAUSED / NOT ACCEPTED theo
-  [checkpoint 03/10](verification/site-media-card-m02b-checkpoint-2026-10-03.md)
-  và [handoff](verification/site-media-card-m02b-claude-handoff-2026-10-03.md):
-  [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md):
-  related 4/6 PASS sau fix Masonry và seed fixture; landscape VI/EN `Y=3` còn
-  FAIL, chưa rõ gốc. M03–M09 PAUSED đến khi owner mở lại.
+- Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
+  chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
+  Remote Control trên PC chỉ khi cần A05s/iPhone thật. Cloud chỉ có Chromium;
+  `cdn.jsdelivr.net` bị network policy chặn (Barba, Locomotive), QA cloud cần
+  route tạm hoặc owner mở host.
+- Active execution scope: toàn bộ task trang `advertising-products` và route con
+  `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao
+  2026-10-03, đang chờ owner trả lời 6 điểm xung đột trước khi mở P0–P11.
+  M02b đã lên `main`, vẫn NOT ACCEPTED: transitions cloud 20/29, unit 120/120,
+  [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#chạy-lại-trên-cloud-03102026).
+  Landscape `Y=3` chỉ có trên emulator, A05s thật `Y=0`; iPhone chưa kiểm.
+  M03–M09 ngoài Advertising vẫn PAUSED.
 - [Capability map masonry Advertising và tải ảnh](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba module spec đã được owner duyệt; runtime chưa sửa. Bước tiếp là
   [plan/task list riêng](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25) chờ owner

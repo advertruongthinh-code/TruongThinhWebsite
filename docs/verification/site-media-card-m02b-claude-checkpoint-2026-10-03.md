@@ -81,6 +81,32 @@ card related đầu, VI/EN, theo hướng máy đang cầm. [Raw lần chạy](.
 Card `16` và `24` drift trên emulator nhưng `Y=0` trên A05s thật. Suy luận:
 drift landscape là artifact của Chromium emulation; iPhone vẫn chưa kiểm.
 
+## Chạy lại trên cloud 03/10/2026
+
+Branch `claude/m02b-leftovers-tkh3xr` trên `main` `f3f75a7`, Chromium 141
+headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
+`cdn.jsdelivr.net` bị chặn; font Google lấy qua proxy.
+
+- Transitions đầy đủ trước sửa: 20/29 PASS. FAIL: landscape VI/EN `Y=2`
+  (related A-to-B), viewer-control-affordances (hover), p13, morph-frame-identity,
+  history-grid-scrollbar-resize, rapid-related-and-back-mid-morph,
+  grid-cta-skeleton-flow `vi-320`, skeleton-global-boundary-fade.
+  Related shuffle PASS trên cloud.
+- Unit `node --test tests/site/*.test.mjs`: 116/120 trước, 120/120 sau. Bốn
+  test lệch hành vi đã duyệt: hai assertion về grid-detail morph lease và
+  backdrop morph đã bị M02b bỏ ([spec](../specs/advertising-photo-browse.md)),
+  history state thiếu `mediaId`, R11 dùng tag nay có hai ảnh và đổi geometry ở
+  `media` thay vì cover `mediaItems`.
+- p13: khôi phục `installRelatedMediaProbe`/`assertMediaFade` bị rơi khi restore;
+  thay `ensurePhoto(card cuối catalog)` bằng cuộn cuối trang vì thứ tự đã random;
+  chọn card remount từ cửa sổ hiện tại vì tag deep link reload trang; chờ fade
+  xong thay vì 700ms. Stage remount PASS 2/3; stage `filter-interruption-resize`
+  nay mới chạy tới và FAIL (mọi card cùng `left 0` khi đổi filter), chưa phân loại.
+- Ponytail ultra trên phần code restore `f76c14f`: 88 dòng có thể cắt; đã cắt
+  nhóm rủi ro thấp (class `--dense` không có CSS, `clear()` thừa, key diagnostic
+  không ai đọc, selector `[hidden]` trùng UA). Nhóm cấu trúc lại và gỡ touch
+  listener chờ owner.
+
 ## Chú thích thuật ngữ
 
 - **Overscan**: vùng render thêm ngoài viewport trước khi unmount card.

@@ -175,7 +175,6 @@ assert.match(runtime, /link\.className = "advertising-card-interactive media-hov
 assert.match(runtime, /advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media[\s\S]*createPhotoMedia\(card, locale, \{ suggestion: true \}\)/, "suggestion buttons reuse the shared media interaction");
 assert.doesNotMatch(runtime, /startSuggestionMotion|advertising-suggestion-image|scale\(1\.06\)/, "suggestions do not run a second hover or slideshow motion provider");
 assert.match(runtime, /"internal-gap": primary\.internalGap/, "detail runtime passes the span-three internal gap to CSS");
-assert.match(runtime, /const animatePhotoBackground[\s\S]*?duration: 1200, easing: "linear", fill: "forwards"/, "P7.5 backdrop keeps its independent 1200ms lingering timeline after morph");
 assert.match(siteCss, /media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):hover \.media-hover-zoom[\s\S]*?media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):focus-visible \.media-hover-zoom[\s\S]*?transform: scale\(1\.15\)/, "inactive grid and suggestion media share the same hover and focus zoom contract");
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*advertising-card-media__image[\s\S]*transform: none !important;/, "shared media zoom has a reduced-motion path");
 assert.match(runtime, /const nextTag = browseHistory\.current\.tag === tag \? null : tag/, "clicking the current suggestion tag should toggle it off through replaceState history");
