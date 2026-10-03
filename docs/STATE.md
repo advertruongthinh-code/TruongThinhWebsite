@@ -13,16 +13,17 @@
   `cdn.jsdelivr.net` bị network policy chặn (Barba, Locomotive), QA cloud cần
   route tạm hoặc owner mở host.
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
-  `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao
-  2026-10-03, đang chờ owner trả lời 6 điểm xung đột trước khi mở P0–P11.
-  M02b đã lên `main`, vẫn NOT ACCEPTED: transitions cloud 20/29, unit 120/120,
+  `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
+  duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25),
+  [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md)).
+  M02b đã lên `main`, vẫn NOT ACCEPTED: các FAIL cloud là lỗi test, đã sửa;
   [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#chạy-lại-trên-cloud-03102026).
-  Landscape `Y=3` chỉ có trên emulator, A05s thật `Y=0`; iPhone chưa kiểm.
-  M03–M09 ngoài Advertising vẫn PAUSED.
-- [Capability map masonry Advertising và tải ảnh](specs/advertising-random-grid-and-image-loading-capability-map.md)
-  cùng ba module spec đã được owner duyệt; runtime chưa sửa. Bước tiếp là
-  [plan/task list riêng](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25) chờ owner
-  duyệt; plan Advertising cũ và các human acceptance mở được giữ nguyên.
+  Landscape `Y=3` chỉ có trên emulator, A05s thật `Y=0`; iPhone, Firefox, WebKit
+  chạy một lượt trên PC ở cuối. M03–M09 ngoài Advertising vẫn PAUSED.
+- Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
+  WebKit. P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
+  variant AVIF/WebP tạo bằng `scripts/site/build-image-variants.mjs`, chưa nối vào
+  site. [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
@@ -56,7 +57,7 @@
   link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
 - STATE trước cleanup: Git `da2f13a` (`docs/archive/snapshots/state-before-release-2026-09-24.md`,
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: owner duyệt plan/task list cho random masonry và image loading;
+- Next repo action: P4 phân tích baseline, rồi nối `srcset` cho variant ảnh;
   owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

@@ -73,6 +73,14 @@ const snapshot = () => ({
   clones: [...document.querySelectorAll("[data-advertising-photo-morph]")].map((node) => ({ id: node.dataset.advertisingPhotoId, src: node.currentSrc, rect: node.getBoundingClientRect().toJSON() })),
   locked: [document.body.style.overflow, document.documentElement.style.overflow],
 });
+// Smooth scroll eases toward its target; read the logical position only once it stops moving.
+async function restingScroll(page) {
+  await page.waitForFunction(() => new Promise((resolve) => {
+    const start = window.TruongThinhMotion.getLogicalScroll();
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve(Math.abs(window.TruongThinhMotion.getLogicalScroll() - start) < 0.5)));
+  }));
+  return page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+}
 async function settle(page, predicate, argument) {
   await page.waitForFunction(predicate, argument, { timeout: 8_000 });
   await page.evaluate(frame);
@@ -186,7 +194,7 @@ async function noGridMorphEvidence(page, expectedPhoto, expectedY) {
   const entryFrames = evidence.frames.filter(({ photo }) => photo === expectedPhoto);
   assert(entryFrames.length > 0, "no frames observed after navigation reached its history entry");
   assert(entryFrames.every(({ y, cloneCount }) => Math.abs(y - expectedY) <= 1 && cloneCount === 0),
-    `history entry painted at another scroll position: ${JSON.stringify(entryFrames)}`);
+    `history entry painted at another scroll position (expected ${expectedY}): ${JSON.stringify(entryFrames.slice(0, 3))}`);
   return { cloneAdds: evidence.clones.length, lockCalls: evidence.locks.length,
     entryFrames: entryFrames.length, y: entryFrames.at(-1).y };
 }
@@ -927,7 +935,15 @@ try {
       await page.goto(href(`/${scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-advertising-related-card="${id}"] > a`);
-      await link.scrollIntoViewIfNeeded();
+      // Related order is seeded and virtualized; scroll down until the target card mounts.
+      for (let step = 0; step < 40 && !(await link.count()); step += 1) {
+        await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(window.TruongThinhMotion.getLogicalScroll() + innerHeight * 0.6));
+        await page.evaluate(frame);
+      }
+      // Smooth scroll ignores native scrollIntoView; move the logical scroll to the card instead.
+      await link.evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
+        window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
+      await restingScroll(page);
       await page.waitForFunction((photoId) => {
         const image = document.querySelector(`[data-advertising-related-card="${photoId}"] img`);
         return image?.complete && image.naturalWidth > 0;
@@ -956,7 +972,9 @@ try {
     await ready(page, "signage-raised-letters-01");
     await page.locator("[data-advertising-photo-expand]").click();
     const controls = Object.fromEntries(["close", "zoom-in", "zoom-out", "zoom-reset"].map((name) => [name, page.locator(`[data-advertising-photo-${name}]`)]));
-    const read = (control) => control.evaluate((node) => {
+    // Let the 150 ms background transition finish; a loaded runner can lag past a fixed wait.
+    const read = (control) => control.evaluate(async (node) => {
+      await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {})));
       const style = getComputedStyle(node);
       return { background: style.backgroundColor, color: style.color, disabled: node.disabled,
         outline: style.outlineStyle, outlineWidth: parseFloat(style.outlineWidth),
@@ -985,7 +1003,7 @@ try {
       await control.hover();
       await page.waitForTimeout(180);
       const hovered = await read(control);
-      assert(shade(normal.background) - shade(hovered.background) >= 20, `${label}: hover needs clear tonal change`);
+      assert(shade(normal.background) - shade(hovered.background) >= 20, `${label}: hover needs clear tonal change ${JSON.stringify({ normal, hovered })}`);
       const bounds = await control.boundingBox();
       assert(bounds, `${label}: control has no pointer target`);
       await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
@@ -1130,15 +1148,15 @@ try {
 
     stage("filter-interruption-resize");
     await page.evaluate(() => window.scrollTo(0, 0));
-    const beforeFilter = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-      .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.advertisingCard, rect: node.getBoundingClientRect().toJSON() })));
-    const filter = page.locator('[data-advertising-filter="kiosk-posm"]');
-    // Sample in the same task as the activated control so the assertion measures
-    // the seeded first frame, not arbitrary transition progress after Playwright's
-    // pointer action has yielded one or more animation frames.
-    await filter.evaluate((control) => control.click());
-    const during = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
-      .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.advertisingCard, rect: node.getBoundingClientRect().toJSON() })));
+    // Read, click and re-read in one task so the assertion measures the seeded
+    // first frame, not scroll or transition progress after the page yields a frame.
+    const { beforeFilter, during } = await page.evaluate(() => {
+      const visible = () => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+        .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.advertisingCard, rect: node.getBoundingClientRect().toJSON() }));
+      const beforeFilter = visible();
+      document.querySelector('[data-advertising-filter="kiosk-posm"]').click();
+      return { beforeFilter, during: visible() };
+    });
     const beforeById = new Map(beforeFilter.map((card) => [card.id, card.rect]));
     const retainedStarts = during.filter((card) => beforeById.has(card.id));
     const retainedDeltas = retainedStarts.map((card) => {
@@ -1184,6 +1202,13 @@ try {
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     let relatedY = 0;
     await chooseB(page, async () => {
+      // Seeded related order can place B in view at the top; scroll partway so the click starts scrolled.
+      await page.evaluate((id) => {
+        if (window.TruongThinhMotion.getLogicalScroll() > 0) return;
+        const top = document.querySelector(`[data-advertising-related-card="${id}"]`).getBoundingClientRect().top;
+        window.TruongThinhMotion.setLogicalScroll(Math.max(1, Math.floor(top / 2)));
+      }, B);
+      await page.evaluate(frame);
       relatedY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       await armNoGridMorphProbe(page);
     });
@@ -1194,7 +1219,8 @@ try {
     assert.equal(new URL(page.url()).searchParams.get("photo"), B);
     assert.equal(new URL(page.url()).searchParams.get("tag"), "use-sampling");
     const scrollStart = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-    await page.mouse.wheel(0, 160);
+    // Locomotive moves one notch per wheel event, scaled per OS (Windows 108 px, Linux 43 px); three notches clear 100 px.
+    for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160);
     await page.waitForFunction((start) => window.TruongThinhMotion.getLogicalScroll() - start >= 100, scrollStart);
     return { relatedY, detailY, transition, scrollAfterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
   });
@@ -1459,8 +1485,11 @@ try {
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
-    const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-    await page.locator('[data-advertising-card="' + A + '"] > a').click();
+    // Scroll the way click() would first, so the grid position Back restores is the one read here.
+    const gridCard = page.locator('[data-advertising-card="' + A + '"] > a');
+    await gridCard.scrollIntoViewIfNeeded();
+    const gridY = await restingScroll(page);
+    await gridCard.click();
     await ready(page, A);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     const clientWidthBefore = await page.evaluate(() => document.documentElement.clientWidth);
@@ -1554,7 +1583,8 @@ try {
     assert.deepEqual(state.locks, [], "rapid related/Back acquired a scroll lease");
     assert.deepEqual(state.currentLocks, ["", ""], "rapid related/Back retained scroll lock");
     const beforeWheel = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-    await page.mouse.wheel(0, 160);
+    // Locomotive moves one notch per wheel event, scaled per OS (Windows 108 px, Linux 43 px); three notches clear 100 px.
+    for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160);
     await page.waitForFunction((start) => window.TruongThinhMotion.getLogicalScroll() - start >= 100, beforeWheel);
     return { state, beforeWheel, afterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
   });
@@ -1699,9 +1729,14 @@ try {
         semanticIntruders: grid?.querySelectorAll('[role="listitem"]:not([data-advertising-card])').length || 0,
         ready: skeleton?.dataset.advertisingCtaReady === "true",
         signature: skeleton?.dataset.advertisingCtaSignature || null,
-        skeletonMaskImage: skeleton ? getComputedStyle(skeleton).maskImage : null,
+        // R10: one full-bleed glass surface (::before of the grid section) owns the global fade.
+        skeletonGlass: skeleton ? (({ backgroundImage, backdropFilter }) => ({ backgroundImage, backdropFilter }))(getComputedStyle(skeleton.closest(".project-index"), "::before")) : null,
         skeletonIsTile: skeleton?.classList.contains("advertising-tile") ?? null,
         viewportOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        viewportWidth: innerWidth,
+        // The skeleton container clips its frames (overflow hidden), so paint ends at its bottom.
+        skeletonClipBottom: skeleton && getComputedStyle(skeleton).overflowY !== "visible"
+          ? skeleton.getBoundingClientRect().bottom - gridRect.top : Infinity,
       };
     });
     const assertCta = (state, label) => {
@@ -1711,8 +1746,9 @@ try {
       assert.equal(state.hidden, false, `${label}: skeleton hidden in grid`);
       assert.equal(state.skeletonIsTile, false, `${label}: skeleton entered Masonry items`);
       assert.equal(state.interactiveDescendants, 0, `${label}: skeleton entered focus order`);
-      assert(state.frameStates.length >= state.columns && state.frameStates.length <= state.columns * 3,
-        `${label}: frame count leaves the bounded one-to-three range per column`);
+      // P7.1 replaced the R11 depth cap: frame count follows the glass boundary, at least one per column.
+      assert(state.frameStates.length >= state.columns,
+        `${label}: skeleton needs a frame in every column: ${state.frameStates.length} frames, ${state.columns} columns`);
       assert.equal(new Set(state.frameStates.map((frame) => frame.column)).size, state.columns, `${label}: incomplete columns`);
       assert(state.listItems > 0 && state.listItems <= state.photoSetSize, `${label}: invalid virtualized product count`);
       assert.equal(state.semanticIntruders, 0, `${label}: skeleton changed product semantics/count`);
@@ -1724,7 +1760,7 @@ try {
       for (let column = 0; column < state.columns; column += 1) {
         const frames = state.frameStates.filter((frame) => frame.column === column).sort((a, b) => a.depth - b.depth);
         assert(frames.every((frame) => Math.abs(frame.width - frames[0].width) <= 0.1 && frame.height > 0), `${label}: invalid frame geometry in column ${column}`);
-        assert(frames.length >= 1 && frames.length <= 3
+        assert(frames.length >= 1
           && frames.every((frame) => Math.abs(frame.targetOpacity - 1) <= 0.01),
         `${label}: frame retained local depth opacity instead of the global boundary fade`);
         assert(frames.slice(1).every((frame, index) => frames[index].ratioBand !== frame.ratioBand),
@@ -1735,8 +1771,12 @@ try {
         assert(frames.every((frame) => frame.flowFilter === "none"), `${label}: Flow canvas retained a local blur/filter`);
         assert(frames.slice(1).every((frame, index) => frames[index].top < frame.top), `${label}: frame order in column ${column}`);
       }
-      assert.match(state.skeletonMaskImage || "", /linear-gradient/i, `${label}: skeleton container lacks the global boundary fade`);
-      assert(state.gridHeight + 0.1 >= Math.max(...state.frameStates.map((frame) => frame.top + frame.height)), `${label}: grid height clips skeleton`);
+      assert(/linear-gradient/i.test(state.skeletonGlass?.backgroundImage) && /blur/.test(state.skeletonGlass?.backdropFilter),
+        `${label}: skeleton lacks the global glass boundary fade: ${JSON.stringify(state.skeletonGlass)}`);
+      // P7.1: frames may paint past the logical grid bottom by at most one inter-card gap.
+      const gap = state.viewportWidth <= 960 ? 15 : state.viewportWidth <= 1200 ? 25 : 35;
+      const overflow = Math.min(state.skeletonClipBottom, Math.max(...state.frameStates.map((frame) => frame.top + frame.height))) - state.gridHeight;
+      assert(overflow <= gap + 1, `${label}: skeleton paints ${overflow}px past the grid, more than one ${gap}px gap`);
     };
 
     const matrix = [];
@@ -1960,8 +2000,10 @@ try {
           transform: style.transform,
         };
       };
+      const glass = getComputedStyle(skeleton.closest(".project-index"), "::before");
       return {
         skeleton: stateOf(skeleton),
+        glass: { backgroundImage: glass.backgroundImage, backdropFilter: glass.backdropFilter },
         frames: frames.map((frame) => ({
           ...stateOf(frame),
           surface: stateOf(frame.querySelector(".advertising-grid__cta-surface")),
@@ -1969,8 +2011,8 @@ try {
         photoBackdrop: document.querySelector("[data-advertising-photo-background]")?.getAnimations().length ?? 0,
       };
     });
-    assert.match(state.skeleton.maskImage, /linear-gradient/i,
-      "skeleton fade must be one global-space mask on its container");
+    assert(/linear-gradient/i.test(state.glass.backgroundImage) && /blur/.test(state.glass.backdropFilter),
+      `skeleton fade must be one global glass surface on its section (R10): ${JSON.stringify(state.glass)}`);
     assert(state.frames.length > 0, "skeleton fixture has no frames");
     assert(state.frames.every(({ maskImage }) => maskImage === "none"),
       "skeleton frame retained a local mask instead of the global boundary fade");
