@@ -63,7 +63,7 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
 
 ## Viết và phản hồi
 
-- Code comment English. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Vietnamese product copy không là code comment.
+- Code comment English. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md). Vietnamese product copy không là code comment.
 - Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, time estimate cụ thể, lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
 - Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 

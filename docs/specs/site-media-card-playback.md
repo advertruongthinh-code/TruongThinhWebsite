@@ -31,11 +31,11 @@ Board nguồn là [Tasks — By status](https://app.notion.com/p/3b5332849a0e806
 
 Các work item đang hoạt động liên quan Advertising được tóm tắt như sau:
 
-- **CMS: giữ contract Advertising grid khi CRUD ảnh, tag và phân loại** — `Not started`. CMS/upload UI, adapter snapshot, invalidation và CRUD regression vẫn ngoài phạm vi source static hiện tại; contract media/grid trong spec này phải được giữ khi lập phase CMS riêng.
+- **CMS: giữ contract Advertising masonry khi CRUD ảnh, tag và phân loại** — `Not started`. CMS/upload UI, adapter snapshot, invalidation và CRUD regression vẫn ngoài phạm vi source static hiện tại; contract media/masonry trong spec này phải được giữ khi lập phase CMS riêng.
 - **Trường Thịnh Website — backlog hiện hành và phát hành snapshot 24/09** — `In progress`. Release còn bị Git pre-push gate chặn; owner visual VI/EN, scrollbar/hero replay, chất lượng asset và physical QA vẫn là gate mở.
-- **Card đa media trong grid và vùng primary** — `In progress`. Git spec này là nguồn chuẩn; M02a đã có evidence focused, M02b Advertising đang ở checkpoint partial/paused, còn M03–M05 và QA/closure toàn website vẫn paused. Phạm vi thực thi hiện tại chỉ là Advertising và route con.
-- **Implement: Grid Advertising ngẫu nhiên và cải thiện tải ảnh** — `In progress`. Random grid, skeleton và image-progress đã có source/evidence local; candidate chưa qua Git gate và chưa commit/push/deploy.
-- **Layout mobile**, **Mobile viewport**, **Random grid và skeleton mobile**, **Scrollbar theo Espacio** — `In progress`. Đây là các card cross-cutting; chỉ phần ảnh hưởng Advertising/compatibility route được đối chiếu ở report, không mở lại implementation ngoài boundary hiện tại.
+- **Card đa media trong masonry và vùng primary** — `In progress`. Git spec này là nguồn chuẩn; M02a đã có evidence focused, M02b Advertising đang ở checkpoint partial/paused, còn M03–M05 và QA/closure toàn website vẫn paused. Phạm vi thực thi hiện tại chỉ là Advertising và route con.
+- **Implement: Masonry Advertising ngẫu nhiên và cải thiện tải ảnh** — `In progress`. Random masonry, skeleton và image-progress đã có source/evidence local; candidate chưa qua Git gate và chưa commit/push/deploy.
+- **Layout mobile**, **Mobile viewport**, **Random masonry và skeleton mobile**, **Scrollbar theo Espacio** — `In progress`. Đây là các card cross-cutting; chỉ phần ảnh hưởng Advertising/compatibility route được đối chiếu ở report, không mở lại implementation ngoài boundary hiện tại.
 
 Notion tiếp tục sở hữu status, blocker và next action; Git spec này sở hữu contract đã duyệt và evidence. Khi hai lớp khác nhau, phải cập nhật Git trước rồi mới ghi lại card Notion.
 
@@ -50,7 +50,7 @@ class khác `grid`:
 | Họ hiện có | Source và layout hiện tại | Đề xuất trong phạm vi |
 | --- | --- | --- |
 | Advertising parent và related | [`index.html`](../../src/site/advertising-products/index.html) `[data-project-grid]`, `[data-advertising-photo-related-grid]`; [`layout-core.mjs`](../../src/site/advertising-products/layout-core.mjs) là solver riêng | Card sản phẩm và related; suggestion/tag không phải sản phẩm |
-| Home project reel | [`index.html`](../../src/site/index.html) `.project-track > .project-card`; desktop grid, mobile rail | Card công trình, giữ rail/scroll-snap hiện có |
+| Home project reel | [`index.html`](../../src/site/index.html) `.project-track > .project-card`; desktop masonry, mobile rail | Card công trình, giữ rail/scroll-snap hiện có |
 | Residential/Commercial gallery | [`residential/index.html`](../../src/site/residential/index.html), [`commercial/index.html`](../../src/site/commercial/index.html) `.detail-gallery__item`; rail scroll-snap | Mỗi item ảnh/công trình có thể là media-card; không thay gallery controls |
 | Portal, process, cặp ảnh | `.service-portal`, `.editorial-item`, `.detail-duo figure` trên Home/Residential/Commercial/About | **Đề xuất** chỉ card có identity sản phẩm/công trình và đích detail; không ép một ảnh minh họa quy trình thành sản phẩm |
 | Nhóm phi-card | About `.about-timeline`, `.about-commitments` là chữ; Home client-logo marquee và heritage montage là logo/ảnh xen chữ | **Đề xuất** giữ nguyên, vì không có card sản phẩm/công trình hay primary tương ứng; owner xác nhận ranh giới này |
@@ -86,7 +86,7 @@ alt/ARIA ở node lá theo [content guide](../design/content.md).
   `src`/một item tiếp tục đi đường tương thích hiện có.
 - **Khởi tạo detail và history:** URL giữ identity card bằng `?photo=cardId`,
   không thêm tham số media. M02a: mở detail trực tiếp bằng URL này hoặc reload
-  URL đó thì primary bắt đầu ở item `coverMediaId`; mở từ card trong grid thì
+  URL đó thì primary bắt đầu ở item `coverMediaId`; mở từ card trong masonry thì
   bắt đầu ở media active của card như trên. M02b: Back/Forward trong cùng tab
   khôi phục media active **và** vị trí cuộn `Y` riêng của từng history entry;
   thao tác này không áp dụng quy tắc khởi tạo cover của direct/reload. Không
@@ -105,41 +105,41 @@ alt/ARIA ở node lá theo [content guide](../design/content.md).
   nếu được render làm fallback thì phải cùng tỷ lệ. 154 card một ảnh giữ data
   hiện hành. CMS tương lai chịu trách nhiệm kiểm/chuyển đổi trước khi lưu,
   ngoài phạm vi feature này.
-- **Canvas media ban đầu của card Advertising ở grid và related** lấy tỷ lệ từ
+- **Canvas media ban đầu của card Advertising ở masonry và related** lấy tỷ lệ từ
   `width`/`height` của item mà `coverMediaId` trỏ tới, kể cả cover video khác tỷ
   lệ ảnh legacy `record.media` chỉ dùng làm metadata, không render fallback.
   Nếu record cũ chưa có danh sách media thì dùng kích thước `record.media` như
   trước; giữ `record.media` là ảnh tương thích, không sửa giả kích thước của nó.
   Card có từ hai media phải tính **tổng chiều cao canvas + dải `44 CSS px`** ngay
-  trong lần xếp solver đầu tiên ở grid/related; tỷ lệ cover chỉ áp cho canvas,
+  trong lần xếp solver đầu tiên ở masonry/related; tỷ lệ cover chỉ áp cho canvas,
   không áp cho cả card gồm dải. Video duration ở góc trên trái canvas và
   playback control ở góc trên phải canvas, không lấn dải dưới. Đổi item đang
   xem, tải chậm hoặc lỗi media không thay rect card đã xếp trong cùng viewport
   (`≤1 CSS px`), dải không giao ảnh/card kế; không
   đổi seed, thứ tự hay thêm filler chỉ để đạt điều này. 154 card một ảnh giữ
   hình học và hash layout hiện hành, không thêm dải. Primary khi mở ở media active thuộc M02a
-  và có hình học riêng, không lấy rect grid làm contract primary.
+  và có hình học riêng, không lấy rect masonry làm contract primary.
   Cơ sở tham chiếu: trong **một phiên Pinterest được quan sát** ở viewport
-  `320×700`, grid hai cột/card khoảng `100 CSS px`, 5/6 media đặt một hàng chấm
+  `320×700`, masonry hai cột/card khoảng `100 CSS px`, 5/6 media đặt một hàng chấm
   nhìn thấy khoảng `8 CSS px` trong dải riêng khoảng `40 CSS px` dưới ảnh;
   card 17 media dùng số trên ảnh, không quan sát thấy nút play cố định. Đây là
   quan sát theo phiên/phiên bản, không là quy luật chung của Pinterest; dải
   `44 CSS px` và hit box nêu trên là quyết định điều chỉnh cho website.
   Nếu một họ card tương lai hẹp hơn dải cần thiết, M03–M05 kiểm riêng trước
   khi chọn fallback; không áp dụng fallback mới ở Advertising hiện tại.
-- Video có nhãn thời lượng góc trên trái. Grid luôn mute; detail ban đầu cũng mute, có điều khiển bật/tắt
-  tiếng bằng thao tác chủ động. Giữ track audio gốc; quay lại grid luôn mute. Nút play/pause riêng trên
+- Video có nhãn thời lượng góc trên trái. Masonry luôn mute; detail ban đầu cũng mute, có điều khiển bật/tắt
+  tiếng bằng thao tác chủ động. Giữ track audio gốc; quay lại masonry luôn mute. Nút play/pause riêng trên
   mobile điều khiển video, chạm thân card vẫn mở detail. **Đề xuất phân xử trên mobile:** play thủ công
   nắm player duy nhất và pause player khác; pause thủ công không bị lịch vùng trọng tâm bật lại ngay. Chỉ
   play tường minh hoặc lần cuộn tiếp theo mới cho lịch xét phát lại; trên desktop, hover mới cũng là
   tương tác phát lại theo contract hover.
   Video pause giữ frame và thời điểm khi card còn trong viewport; có thể bỏ thời điểm khi ra ngoài. Khi
   media lỗi, giữ poster/ảnh hợp lệ và điều khiển còn dùng được, không đổi sai media ID.
-- Chỉ bỏ morph **grid ↔ detail**, kể cả click, Back và Forward; không tạo clone bay giữa hai vùng. Khi đóng
+- Chỉ bỏ morph **masonry ↔ detail**, kể cả click, Back và Forward; không tạo clone bay giữa hai vùng. Khi đóng
   detail, đúng card vừa xem gần nhất có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`; card khác không có.
   Dấu chỉ xuất hiện sau khi đóng detail: trong runtime của tab có đúng một card
-  vừa đóng được đánh dấu trên grid đang active: main Advertising hoặc related
-  trong query photo detail. Không giữ marker trùng trong main grid đang ẩn.
+  vừa đóng được đánh dấu trên masonry đang active: main Advertising hoặc related
+  trong query photo detail. Không giữ marker trùng trong main masonry đang ẩn.
   A→B đánh dấu A ở related của B; Back về A đánh dấu B ở related của A; Forward
   về B đánh dấu A ở related của B. Dấu dùng identity vừa đóng mới nhất của runtime,
   không phục hồi dấu cũ từ snapshot history. Đóng card khác thì chuyển dấu sang card đó. Điều hướng
@@ -206,8 +206,8 @@ alt/ARIA ở node lá theo [content guide](../design/content.md).
 
 | Nhóm focused | Evidence cần có sau implementation |
 | --- | --- |
-| Mỗi họ media-card VI/EN; desktop/mobile | Card active, swipe không mở detail, body mở đúng media, thumbnail đồng bộ; Advertising 2–6 chấm một hàng trong dải 44px dưới canvas, từ 7 bộ đếm/nút prev-next trong dải, singleton không dải; duration/playback nằm trên canvas; pointer thật ở grid/related, alt/ARIA, grid/rail/portal không tràn hoặc đổi hình học ngoài contract |
-| Autoplay và hover/touch | Vùng dưới header, center membership, soft solver fallback; một player, random không lặp trong chu kỳ, hover override/resume/pause, mobile play/pause, mute grid/detail và unmute chủ động |
+| Mỗi họ media-card VI/EN; desktop/mobile | Card active, swipe không mở detail, body mở đúng media, thumbnail đồng bộ; Advertising 2–6 chấm một hàng trong dải 44px dưới canvas, từ 7 bộ đếm/nút prev-next trong dải, singleton không dải; duration/playback nằm trên canvas; pointer thật ở masonry/related, alt/ARIA, masonry/rail/portal không tràn hoặc đổi hình học ngoài contract |
+| Autoplay và hover/touch | Vùng dưới header, center membership, soft solver fallback; một player, random không lặp trong chu kỳ, hover override/resume/pause, mobile play/pause, mute masonry/detail và unmute chủ động |
 | Loading/lifecycle | Poster/metadata trước, video không chủ ý tải toàn bộ, loading vòng đúng frame, pause giữ frame; slow/error/offscreen/re-entry/route/BFCache cleanup, không player/timer thừa |
 | History/marker/viewer | Direct/reload `?photo=cardId` mở `coverMediaId`; Back/Forward cùng tab khôi phục media active và `Y0 ≠ Y1` của đúng entry; chỉ một marker của card vừa đóng, card đóng kế thay marker, điều hướng cùng runtime giữ và full reload xóa dấu, không cuộn tới marker hay thêm media URL param; grid-detail không morph, viewer vẫn morph; pinch hai ngón zoom ảnh nội bộ và pan, backdrop touch không đóng sai, focus/scroll lock/reduced motion |
 | Quality gate | RED focused trước sửa, GREEN cùng source/build/served hash; browser desktop, Android thật dọc/ngang và iPhone physical khi có thiết bị. Kiểm console/network, ảnh/video lỗi, VI/EN, keyboard và fallback. L06 landscape EN touch-close/CDN còn RED riêng, không được gọi PASS nhờ case khác |
@@ -237,7 +237,7 @@ reference asset, recovery `8790`, vendor hoặc deploy trong module này.
    chốt từ quan sát Pinterest giới hạn nêu trên. M02a kiểm direct/reload
    khởi tạo cover; M02b kiểm Back/Forward trong tab phục hồi media active và
    scroll theo entry, không thêm tham số media vào URL. Thời điểm phát video qua
-   Back/Forward/locale và chuyển grid→detail chưa chốt; không tự phát lại âm
+   Back/Forward/locale và chuyển masonry→detail chưa chốt; không tự phát lại âm
    thanh hoặc hứa chuyển timestamp khi chưa có bằng chứng.
 
 Khi thực thi theo plan được duyệt, ghi supersession có chọn lọc ở

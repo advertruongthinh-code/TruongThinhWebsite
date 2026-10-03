@@ -173,7 +173,7 @@ hoặc thông tin riêng tư trong gương, màn hình và bề mặt phản chi
 ## Metadata Advertising Products
 
 Ảnh Advertising không có tên/title riêng hiển thị;
-mọi grid và detail bỏ tiêu đề ảnh, giữ mô tả và tag phân loại. Alt VI/EN vẫn
+mọi masonry và detail bỏ tiêu đề ảnh, giữ mô tả và tag phân loại. Alt VI/EN vẫn
 mô tả nội dung ảnh cho accessibility, không dùng alt như title hiển thị.
 “Có thể bạn thích” chuyển vào mô tả, giữ nền ảnh dạng nút gọn và toggle một
 filter; bấm lại để tắt, giữ photo ID. Xem
@@ -194,7 +194,7 @@ là nguồn taxonomy sáu nhóm, 12 product label mỗi nhóm và detail layout;
 ### Tiêu chí tạo và nghiệm thu ảnh Advertising
 
 Mọi ảnh mới là minh họa AI, không nhận là công trình thực đã thi công.
-`suggestionPosition` chỉ điều chỉnh crop nền nút; grid/primary vẫn giữ trọn ảnh.
+`suggestionPosition` chỉ điều chỉnh crop nền nút; masonry/primary vẫn giữ trọn ảnh.
 
 [Tiêu chí ảnh Advertising Products](advertising-image-quality.md) sở hữu brief
 sáu nhóm, cách dùng ảnh tham khảo, giới hạn chữ và gate Audit/Critique ≥ 8/10
@@ -236,26 +236,26 @@ fallback thực sự hiển thị với metadata đã khai báo; cùng tỷ lệ
 Validator dữ liệu chỉ kiểm metadata, không chứng minh byte file có đúng kích
 thước: dùng probe media (`ffprobe` cho video, giải mã ảnh/browser cho poster)
 trên đúng file được tham chiếu. Không tự crop để chữa dữ liệu sai.
-Giữ track tiếng gốc nếu video có audio; grid mute và detail có điều khiển bật
+Giữ track tiếng gốc nếu video có audio; masonry mute và detail có điều khiển bật
 tiếng theo spec. Khi xuất poster từ clip, lưu nguồn clip, cách tạo và hash
 file poster trong hồ sơ provenance của asset; không gán provenance của clip
 cho poster như thể đó là file gốc. Không lưu GIF trong media public, không
 tạo đường dẫn asset hư cấu. Public hiện vẫn chỉ có ảnh: 154 card mỗi card một
 item image; test video M01a dùng fixture synthetic, chưa đưa video lên site.
 
-Primary Advertising lấy item đang active khi mở từ card grid hoặc related;
+Primary Advertising lấy item đang active khi mở từ card trong masonry hoặc related;
 URL trực tiếp `?photo=cardId` và reload bắt đầu ở `coverMediaId`. Thumbnail cạnh
 mô tả chọn ảnh hoặc video trong cùng card, hiển thị viền chọn và nhãn VI/EN;
 thao tác này không sửa URL hoặc thêm history entry. Ảnh được chọn mở đúng ảnh
 đó trong viewer; video dùng poster, player và nút bật/tắt tiếng, bắt đầu ở
 trạng thái tắt tiếng. Nút tiếng đồng bộ với volume/mute của player gốc và chỉ
-hiện khi media có audio; khi rời route, player dừng và nhả nguồn. Card grid vẫn
+hiện khi media có audio; khi rời route, player dừng và nhả nguồn. Card trong masonry vẫn
 tắt tiếng. Dải thumbnail không xuất hiện
 trên 154 card ảnh legacy một item; item singleton do tác giả chọn giữ ID riêng.
 
 Supersession M02b ghi ngày 2026-09-30 theo
 [spec media-card đã duyệt](../specs/site-media-card-playback.md): khi
-đóng detail về grid, chỉ card vừa đóng gần nhất có lớp phủ tối và nhãn VI
+đóng detail về masonry, chỉ card vừa đóng gần nhất có lớp phủ tối và nhãn VI
 `Vừa xem` / EN `Just viewed`. Đóng card khác chuyển dấu; full reload xóa dấu.
 Dấu không tự cuộn tới card và không ghi vào storage.
 
@@ -271,9 +271,9 @@ export lại không được tính là ảnh mới.
 
 Mỗi nhóm phải có đủ ratio portrait `< 0.9`, near-square `0.9–1.1`, landscape
 `> 1.1` và ít nhất một extreme `<= 0.625` hoặc `>= 1.6`, tính từ
-`intrinsic width / height`. Geometry grid theo
+`intrinsic width / height`. Geometry masonry theo
 [GRID-R4](../specs/advertising-grid-span-organic.md) và
-[visual contract](patterns.md#advertising-grid-geometry).
+[visual contract](patterns.md#advertising-masonry-geometry).
 
 ### Full menu và boundary CMS
 
@@ -336,7 +336,7 @@ liệu; 90–220 KB là budget review, không phải ngưỡng tối thiểu.
   intrinsic dimensions hoặc dùng bản crop như ảnh sản phẩm mới.
 - Hero, gallery và route khác có thể dùng `object-fit: cover` để crop theo slot.
   Card Advertising tuân thủ [GRID-R4](../specs/advertising-grid-span-organic.md)
-  và [visual contract](patterns.md#advertising-grid-geometry); không áp dụng
+  và [visual contract](patterns.md#advertising-masonry-geometry); không áp dụng
   cơ chế fit/canvas cũ. Thông số tỷ lệ, span và gap chỉ định nghĩa tại nguồn đó.
 - Giữ chủ thể quan trọng trong vùng giữa khoảng 60% chiều ngang và 70% chiều
   dọc; không đặt bàn tay, dụng cụ hoặc mép đồ quan trọng sát 10% biên ảnh.

@@ -90,7 +90,7 @@ CMS thứ hai. Nếu thời điểm discovery/priority là nút thắt, giữ m�
   Ngay sau deploy, đo version candidate **trên Sites** theo đúng ma trận và
   cùng điều kiện; nếu gate trượt, khôi phục version Sites trước và ghi evidence.
   Với hero đầu trang, đo `navigation→decode`; với ảnh lazy, đo từ lần scroll cố
-  định đưa card đầu vào viewport tới `decode`. Advertising grid phải giảm
+  định đưa card đầu vào viewport tới `decode`. Advertising masonry phải giảm
   median thời gian ảnh đầu sẵn sàng ít nhất `10%`; route khác có median baseline
   trên `3 s` cũng phải giảm ít nhất `10%`. Mức giảm phải vượt biến thiên giữa
   các lượt; những route còn lại không chậm đi ngoài nhiễu đo. LCP không tăng

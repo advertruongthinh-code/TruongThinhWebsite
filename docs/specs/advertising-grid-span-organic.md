@@ -27,14 +27,14 @@ phần data/CMS dưới đây giữ lịch sử, không dùng để tạo lại 
 **GRID-R4 — owner duyệt spec và plan ngày 2026-09-09.** Thực hiện sau LOGO-R2
 theo thứ tự owner yêu cầu. **Bổ sung GRID-R4-B1 đã duyệt:** cho phép cavity tại
 bridge span 2 theo visual authority; các vị trí khác giữ gutter.
-Chưa sửa runtime grid hoặc tạo ảnh cho revision này.
+Chưa sửa runtime masonry hoặc tạo ảnh cho revision này.
 Đây là delta của
 [Advertising spec](advertising-products-turnkey-services.md), không phải
 taxonomy hoặc component system mới. [Plan](../../tasks/plan.md#grid-r4--kế-hoạch-đề-nghị)
 giữ thứ tự thực hiện; Notion giữ checklist/status.
 
 Khách xem parent `/vi/advertising-products/` và `/en/advertising-products/`
-thấy ảnh nguyên tỷ lệ, kích thước khung dễ hiểu và grid so le organic ổn định
+thấy ảnh nguyên tỷ lệ, kích thước khung dễ hiểu và masonry so le organic ổn định
 qua reload. Sáu filter dùng cùng thuật toán. Đặc tả này không mở CMS UI;
 nó chuẩn bị data contract để CMS sau này quản lý.
 
@@ -42,7 +42,7 @@ nó chuẩn bị data contract để CMS sau này quản lý.
 
 | Hợp đồng | Nguồn duy nhất |
 | --- | --- |
-| Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](../design/patterns.md#advertising-grid-geometry) |
+| Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](../design/patterns.md#advertising-masonry-geometry) |
 | Caption và token | [DESIGN](../../DESIGN.md#advertising-caption) |
 | Motion, media entrance, reduced motion | [Motion guide](../design/motion.md#advertising-motion) |
 | Sáu nhóm ảnh, khách hàng, cấu tạo, brief, người/chữ/provenance và điểm | [Image quality](../design/advertising-image-quality.md) và các ref trong đó |
@@ -87,7 +87,7 @@ const cardLayout = { layoutSpan: "auto" }; // "auto", 1 or 2
   gọi lại bước gán. Rebuild/reload không gán lại span. Không dùng thời gian
   hoặc network để quyết định span/order. Không làm giả width/height hoặc
   resize méo ảnh để tạo ratio. Chỉ generator tạo ảnh mới có bố cục/tỷ lệ khác.
-- Global threshold áp toàn catalog; `layoutSpan` thuộc item ảnh trong grid.
+- Global threshold áp toàn catalog; `layoutSpan` thuộc item ảnh trong masonry.
   CMS sau này có Settings global và lựa chọn Auto/1 cột/2 cột khi đăng ảnh.
   Draft preview/publish phải validate cùng contract, không lưu arbitrary CSS.
   Schema/provider/admin và publishing thực tế vẫn thuộc CMS phase.
@@ -103,7 +103,7 @@ span, coordinates, image/card bounds, total height, hash và diagnostics.
 Ưu tiên kiểm feasibility sớm bằng search có giới hạn: thử một cửa sổ candidate
 card và các vị trí cột liên tiếp hợp lệ; lookahead/backtrack hữu hạn khi chạm
 bridge hoặc tail. Loại overlap, overflow, cavity vượt B1 hoặc vi phạm span/natural ratio
-trước; đánh giá stagger/nhịp theo visual contract, rồi độ gọn của grid. Tie cố
+trước; đánh giá stagger/nhịp theo visual contract, rồi độ gọn của masonry. Tie cố
 định theo sourceOrder, stable ID, vị trí cột. Search budget/window là hằng số
 có version, được chọn bằng focused benchmark, không worker tự thêm dependency.
 
@@ -133,7 +133,7 @@ thiếu, reviewer độc lập chấm theo image guide, chạy lại solver và 
 Không sửa lựa chọn span của admin, crop, kéo méo, chèn filler, giãn gutter hoặc
 giảm stagger để lấy PASS. Nếu hết search budget vì thuật toán, sửa thuật toán
 trước khi tốn quota tạo ảnh không cần thiết. Input lỗi hoặc pool public chưa
-đạt chặn build/publish R4; giữ last verified release, không thay bằng grid lỗi.
+đạt chặn build/publish R4; giữ last verified release, không thay bằng masonry lỗi.
 CMS tương lai báo lỗi preview cho admin, không tự sửa media thật.
 
 ## Gỡ fitMode và migration
@@ -155,7 +155,7 @@ build lại; không broad reset worktree đang có nhiều thay đổi.
 | R4-2 | Visual contract đạt 2/3/4 cột, natural ratio, stagger và anti-brick | Oracle hình học độc lập với solver, toàn All + sáu filter; screenshot; không lấy output core làm expected duy nhất |
 | R4-3 | Reload/order/hash ổn định; mount prefix từ full layout giữ tọa độ; không overlap/cavity vượt B1 | Hai lần build, reload, filter round-trip, resize boundary; adversarial ratios/spans; phân biệt lỗi và search exhaustion |
 | R4-4 | Virtualization/focus/motion/readiness không regress | 3.000 card, vị trí 2800–2820, bounded DOM/cohort, keyboard, rapid filter, no-op scroll, history, VI/EN, reduced motion và dependency failure |
-| R4-5 | Bộ ảnh đúng sáu nhóm/coverage, từng ảnh đạt riêng Audit ≥8/10 và Critique ≥8/10 theo nguồn rubric; detail references hợp lệ | Reviewer khác generator, asset hash + hai bảng điểm từng ảnh dùng, lỗi/sửa/chấm lại nếu chưa đạt; contact sheets, partition hero/body và visual grid sau khi thay media |
+| R4-5 | Bộ ảnh đúng sáu nhóm/coverage, từng ảnh đạt riêng Audit ≥8/10 và Critique ≥8/10 theo nguồn rubric; detail references hợp lệ | Reviewer khác generator, asset hash + hai bảng điểm từng ảnh dùng, lỗi/sửa/chấm lại nếu chưa đạt; contact sheets, partition hero/body và visual masonry sau khi thay media |
 
 Empty filter phải hiện trạng thái rỗng đúng; fixture 1 item chỉ kiểm cấu trúc và
 diagnostic cần thêm ảnh, không dùng nó miễn gate bộ public. Kiểm widths đang có

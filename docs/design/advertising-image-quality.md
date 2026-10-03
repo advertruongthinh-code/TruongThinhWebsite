@@ -82,7 +82,7 @@ cảnh theo công năng sản phẩm, không sao chép nhận diện/kiến trú
 | Showroom, hội chợ, F&B | Quầy/kệ giới thiệu thực phẩm, đồ uống, mỹ phẩm; catalogue/bao bì tại điểm giới thiệu. Xe bán hàng giữ bối cảnh F&B đã chốt; không gán thành dự án của 12 khách hàng khi chưa có xác nhận. | Kiosk/POSM; Xe bán hàng; In nhanh. |
 
 Brief chỉ rõ **ngành → khu vực → vị trí lắp/đặt → công năng → góc chụp**;
-tiếp theo mới chọn tỷ lệ ảnh phục vụ grid. Bối cảnh phải nhận ra từ không gian
+tiếp theo mới chọn tỷ lệ ảnh phục vụ masonry. Bối cảnh phải nhận ra từ không gian
 và vị trí sử dụng, không cần logo thật. Giữ quy mô, khí hậu và đặc điểm đô thị
 phù hợp Bến Tre/Việt Nam theo brief; không mặc định mọi cảnh là resort, showroom
 hạng sang hoặc cao ốc siêu lớn.
@@ -231,7 +231,7 @@ không dùng một ảnh tổng quan mơ hồ để tuyên bố đã đủ mọi
 sung loại sản phẩm còn thiếu hoặc thay ảnh sai chủ thể, sau đó mới thêm góc
 chụp và tỷ lệ. Mọi ảnh mới vẫn qua gate độc lập bên dưới.
 
-Đây là yêu cầu nội dung và nghiệm thu ảnh. Schema nhãn, facet, related grid
+Đây là yêu cầu nội dung và nghiệm thu ảnh. Schema nhãn, facet, related masonry
 và view detail đang discovery trong [card revision mới](https://app.notion.com/p/3d6332849a0e8124af03c79f3c2e8406);
 không xem phần này là bằng chứng public runtime đã hỗ trợ nhiều nhãn.
 
@@ -412,15 +412,15 @@ báo cáo của generator. Main kiểm chứng evidence và nghiệm thu; không
 
 ## Kiểm tra bộ ảnh và liên kết grid
 
-Ảnh đạt riêng lẻ chưa chứng minh grid đạt. Bộ ảnh phải đủ biến thể sản phẩm,
+Ảnh đạt riêng lẻ chưa chứng minh masonry đạt. Bộ ảnh phải đủ biến thể sản phẩm,
 góc chụp và tỷ lệ để thuật toán tạo bố cục organic, không nhịp gạch đều, với
-offset và giới hạn cột theo grid hiện hành tại
-[patterns](patterns.md#advertising-grid-geometry),
+offset và giới hạn cột theo masonry hiện hành tại
+[patterns](patterns.md#advertising-masonry-geometry),
 [GRID-R4](../specs/advertising-grid-span-organic.md) và
 [Advertising spec](../specs/advertising-products-turnkey-services.md).
 
 Nếu bộ ảnh quá ít hoặc tỷ lệ quá giống nhau, bổ sung/tạo lại ảnh có bố cục gốc
-phù hợp, qua hai gate điểm rồi chạy lại kiểm tra toàn grid. Không chữa bằng crop,
+phù hợp, qua hai gate điểm rồi chạy lại kiểm tra toàn masonry. Không chữa bằng crop,
 kéo méo, bỏ lựa chọn span của admin hoặc thêm khoảng trắng giả. Đa dạng tỷ lệ
 không có nghĩa ép mọi ảnh về baseline 3:2 của slot khác.
 

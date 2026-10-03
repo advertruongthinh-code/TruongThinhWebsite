@@ -10,13 +10,14 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | --- | --- | --- |
 | Mục tiêu và phase dự án | [Goal](goal.md) | Static (đang ở) và CMS (chưa mở), nguyên tắc stack free/phí thấp |
 | Hiểu hệ thống/deploy | [Architecture](architecture/index.md) | Runtime static, source ownership, ranh giới CMS |
-| Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/grid/detail và test |
+| Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
 | Thiết kế và reuse UI | [Design system](design/index.md) | Style guide, component/pattern/content, supersession, Impeccable |
 | Đối chiếu Espacio | [Baseline reference](reference/espacio/index.md) | Foundations/components/motion/templates có provenance |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
 | Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
 | Dùng tool/agent | [AGENTS](../AGENTS.md), [Operations](operations/TOOLING.md) | Scope, workflow, command và recovery |
+| Đặt tên trong docs | [Tên gọi chuẩn](terminology.md) | masonry, grid, card, detail, viewer và tên không dùng |
 | Hiểu quyết định | [Decisions](decisions/index.md) | Accepted/superseded; không suy status từ tuổi file |
 | Truy nguyên report cũ | [Archive](archive/index.md) | Original bytes, mapping và giới hạn lịch sử |
 
@@ -50,15 +51,15 @@ không nhân bản token hoặc coi HTML specimen là production component.
   blocked. C06/C07 chưa nghiệm thu; checkpoint partial giữ nguyên các gate.
   Kiểm local trước,
   rồi mới debug Sites sau phát hành.
-- [Photo/grid Advertising](specs/advertising-photo-browse.md): layout, history,
+- [Photo/masonry Advertising](specs/advertising-photo-browse.md): layout, history,
   primary, gợi ý và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
-  dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random grid và
+  dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random masonry và
   tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25)
   đang chờ owner duyệt, behavior chưa được triển khai.
 - [Media-card toàn website](specs/site-media-card-playback.md): spec đã duyệt
   28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
-  còn chờ duyệt. Supersession grid-detail morph chỉ xảy ra khi triển khai;
+  còn chờ duyệt. Supersession masonry-detail morph chỉ xảy ra khi triển khai;
   viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
   kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
   chỉ tóm tắt card đang làm; chi tiết Done không được chép.

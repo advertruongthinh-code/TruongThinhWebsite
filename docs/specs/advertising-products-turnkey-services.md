@@ -1,5 +1,5 @@
 ---
-title: Ba mảng dịch vụ và lưới Sản phẩm quảng cáo
+title: Ba mảng dịch vụ và masonry Sản phẩm quảng cáo
 type: frontend
 status: accepted
 updated: 2026-09-10
@@ -28,7 +28,7 @@ flow mới dùng photo query và compatibility entry. Ngoài delta này, scope b
 dịch vụ và taxonomy vẫn giữ.
 
 **Delta lịch sử đã duyệt:** [GRID-R4](advertising-grid-span-organic.md) gom yêu
-cầu grid span 1/2, bỏ fit/canvas và media đã chốt trong interview. Nội dung
+cầu masonry span 1/2, bỏ fit/canvas và media đã chốt trong interview. Nội dung
 rank-v3 bên dưới mô tả baseline cũ; không dùng max-5/single-column hay
 proof cũ để nghiệm thu R4. R4 chỉ supersede phạm vi liệt kê sau owner approval.
 
@@ -96,7 +96,7 @@ Delta sáu composition trang chi tiết được owner duyệt spec và plan ng�
 | `advertising-detail-compositions` | Sáu route dùng sáu chuỗi block khác nhau từ cùng shared component family | Shared detail template và block renderer |
 | `advertising-detail-media-completeness` | Đưa đủ `109` ảnh vào đúng route nhóm, mỗi source đúng một lần kể cả hero | Media manifest `2026-09-01.2` và sáu composition |
 
-Delta không đổi parent Pinterest grid, taxonomy, `109` source asset, header,
+Delta không đổi parent masonry kiểu Pinterest, taxonomy, `109` source asset, header,
 footer, route transition, CMS, Wrangler hoặc deploy.
 
 Delta carousel ngang trang chi tiết được owner duyệt spec/plan ngày
@@ -105,9 +105,9 @@ Delta carousel ngang trang chi tiết được owner duyệt spec/plan ngày
 | Capability | Sở hữu | Phụ thuộc |
 | --- | --- | --- |
 | `advertising-detail-horizontal-carousel` | Nâng cấp mọi block `gallery` trong sáu composition thành carousel ngang kiểu Espacio, giữ caption và hỗ trợ progressive fallback | Shared detail renderer, Swiper `14.2.0` và media lifecycle hiện có |
-| `advertising-detail-gallery-box-integrity` | Loại bỏ vùng nền rỗng do grid item bị stretch; reserve geometry đúng khi ảnh lazy-load, lỗi hoặc dependency chưa sẵn sàng | Carousel geometry và placeholder hiện có |
+| `advertising-detail-gallery-box-integrity` | Loại bỏ vùng nền rỗng do masonry item bị stretch; reserve geometry đúng khi ảnh lazy-load, lỗi hoặc dependency chưa sẵn sàng | Carousel geometry và placeholder hiện có |
 
-Delta chỉ tác động sáu route con Advertising Products. Parent Pinterest grid,
+Delta chỉ tác động sáu route con Advertising Products. Parent masonry kiểu Pinterest,
 block `single`/`double`/`banner`, taxonomy, copy, `109` source asset, header,
 footer, CMS, Wrangler và deploy không đổi.
 
@@ -262,7 +262,7 @@ Invariant:
 
 ## Layout, append và virtualization
 
-Visual geometry: [Advertising grid](../design/patterns.md#advertising-grid-geometry).
+Visual geometry: [Advertising masonry](../design/patterns.md#advertising-masonry-geometry).
 
 Layout compiler tạo placement deterministic theo `datasetVersion`, filter,
 intrinsic media/canvas dimensions và số cột. Scheduler `advertising-rank-v3`
@@ -413,7 +413,7 @@ editorial thay vì tạo `12` section cứng; danh mục và caption vẫn trìn
 `12` product label của nhóm.
 
 Runtime chỉ nhận media production dạng WebP trong không gian màu sRGB, đã loại
-metadata nhúng và ghi đúng kích thước pixel thật. Pool grid có đúng `109` ảnh gốc
+metadata nhúng và ghi đúng kích thước pixel thật. Pool masonry có đúng `109` ảnh gốc
 độc lập theo phân bổ trong data contract; mỗi card dùng một ảnh khác nhau. Ảnh
 không có logo/chữ giả, watermark hoặc khuôn mặt nhận diện. Sáu trang con chỉ
 được dùng pool `109`, không mở gallery asset riêng. Hero dùng `fetchpriority="high"`;
@@ -550,7 +550,7 @@ English, product copy và project Markdown viết bằng tiếng Việt.
 - Regression cho hai finding owner chỉ ra phải chứng minh media đã load có
   `complete = true`, `naturalWidth > 0`; wrapper không cao hơn tổng media,
   caption và control rail. Không còn nền rỗng hàng trăm pixel do item cùng hàng
-  bị grid stretch.
+  bị masonry stretch.
 - Browser regression mô phỏng ít nhất một gallery image lỗi: box không collapse,
   placeholder trung tính nhìn thấy, không còn ancestor `opacity: 0`, không có
   unhandled console error và các block sau giữ nguyên vị trí.
@@ -561,7 +561,7 @@ English, product copy và project Markdown viết bằng tiếng Việt.
 
 ## Evidence và trạng thái implementation
 
-Work log evidence scoped current-hash (root grid, carousel, sáu composition,
+Work log evidence scoped current-hash (root masonry, carousel, sáu composition,
 delta `109`, organic masonry và baseline 2026-08-31) đã chuyển sang
 [evidence Advertising Products](../verification/advertising-products-turnkey-evidence.md).
 Full suite vẫn `NOT PASS`; scoped result không là release clearance.
@@ -577,10 +577,10 @@ Full suite vẫn `NOT PASS`; scoped result không là release clearance.
   Pinterest organic masonry static.
 - Delta `109` lịch sử không đổi sáu trang con. Delta composition `2026-09-02`
   được phép đổi shared detail renderer và sáu config, nhưng không đổi parent
-  grid, taxonomy hoặc tạo pool gallery riêng.
+  masonry, taxonomy hoặc tạo pool gallery riêng.
 - Delta carousel được phép thêm `swiper@14.2.0`, vendor asset, progressive
   carousel markup, scoped detail CSS/runtime và regression tương ứng; không được
-  dùng Swiper cho parent Pinterest grid, Residential hoặc Commercial trong task
+  dùng Swiper cho parent masonry kiểu Pinterest, Residential hoặc Commercial trong task
   này.
 
 ## Chú thích thuật ngữ
@@ -617,7 +617,7 @@ Full suite vẫn `NOT PASS`; scoped result không là release clearance.
   cho người dùng biết có nội dung ngang tiếp theo.
 - **Progressive fallback**: giao diện cơ bản vẫn dùng được khi thư viện tăng
   cường chưa tải hoặc bị lỗi.
-- **Wrapper stretch**: grid item bị kéo cao theo hàng dù nội dung ảnh ngắn hơn,
+- **Wrapper stretch**: masonry item bị kéo cao theo hàng dù nội dung ảnh ngắn hơn,
   tạo vùng nền rỗng không mang thông tin.
 - **CMS deferral**: việc đã biết nhưng chủ động chuyển sang CMS phase, có ghi rõ
   boundary và điều kiện xem lại.

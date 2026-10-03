@@ -23,7 +23,7 @@ Các kích thước bên dưới là số đo ở viewport trên; không suy th�
 
 Ở biến thể hai phần, `closeup-body-style` dùng flex theo hàng. Phần media
 và thông tin có bề rộng gần bằng nhau. Media dùng aspect ratio intrinsic;
-wrapper trong dùng grid và căn giữa. Ảnh chính có vị trí absolute trong
+wrapper trong dùng masonry và căn giữa. Ảnh chính có vị trí absolute trong
 wrapper giữ tỷ lệ bằng padding-bottom. Đây là cách dành chỗ trước khi ảnh tải,
 không phải crop ảnh thành một tỷ lệ chung.
 
@@ -78,12 +78,12 @@ mở/đóng từ duration 200 ms của zoom.
 ## Khối nhãn gợi ý trong grid
 
 Ở pin Jewelry showroom, đã đọc khối `Ý tưởng bạn có thể thích` khi cuộn
-xuống grid: một grid item tại khoảng (88; 1118), rộng 228,33 px, cao 583 px.
+xuống masonry: một masonry item tại khoảng (88; 1118), rộng 228,33 px, cao 583 px.
 Khối có heading cao 24 px và năm anchor banner xếp dọc, mỗi banner khoảng
 228,33 × 103 px, cách nhau 8 px. Ảnh nền dùng cover, nhãn trắng đặt giữa.
 Pinterest dùng góc bo 16 px và liên kết sang tìm kiếm theo chủ đề.
 
-Owner yêu cầu đưa kiểu UI này vào related grid. Trường Thịnh dùng authored
+Owner yêu cầu đưa kiểu UI này vào related masonry. Trường Thịnh dùng authored
 tag registry và ảnh đại diện trong catalog, giữ hero khi lọc, không sao chép
 nhãn hoặc đường dẫn Pinterest. Owner đã xác nhận chỉ ảnh nền ô nhãn được crop;
 ảnh sản phẩm vẫn giữ toàn bộ nội dung. Contract triển khai thuộc R6 của spec.
@@ -182,7 +182,7 @@ Hai ảnh dọc cùng tỷ lệ vẫn có thể thuộc hai kiểu; aspect ratio
 thuật toán chọn template.
 
 Back 48 × 48 px tại (96;88), `position: fixed`, không đổi vị trí khi cuộn,
-không có trong grid; từ related pin quay lại pin trước, từ điểm vào về grid.
+không có trong masonry; từ related pin quay lại pin trước, từ điểm vào về masonry.
 Contract Back/navbar riêng của Trường Thịnh thuộc photo browse spec.
 
 ## Responsive: quan hệ khối detail, ảnh, mô tả và grid — 2026-09-11
@@ -199,7 +199,7 @@ pin ngang 621215342329320862 tại 1569×912 và 2560×1440.
 
 `closeup-body-style` nằm trong một `[data-grid-item]` position absolute.
 Các card xung quanh dùng chung parent relative và translateX/translateY;
-không phải một sidebar ảnh độc lập cao bằng detail. Grid chừa toàn bộ vùng
+không phải một sidebar ảnh độc lập cao bằng detail. Masonry chừa toàn bộ vùng
 khối chính, lấp cột bên phải từ cùng top, rồi tiếp ảnh dưới vùng đã chừa.
 Số đo Jewelry tại 1569×912: khối y80, cao630,53; bốn card dưới bắt đầu
 y727, tương ứng reservation làm tròn631px cộng gap16px.
@@ -221,7 +221,7 @@ mẫu desktop đã đo, gap16px và `detailWidth = S*C + (S-1)*16`.
 
 Vì đổi số cột, cửa sổ rộng hơn có thể làm khối detail hẹp lại: 1440→1569px
 làm 5→6 cột và detail1053,59→961,33px. Không phải một phần trăm viewport
-cố định. Trong phiên desktop này grid width là viewport trừ phần nav,
+cố định. Trong phiên desktop này masonry width là viewport trừ phần nav,
 scrollbar và padding; không chuyển hằng số trừ103px sang Trường Thịnh.
 
 **Suy luận từ mẫu, chưa trích được logic chọn span:** số cột gần khớp
@@ -315,6 +315,6 @@ chọn thiết kế, không phải số đo Pinterest 1:1.
 - **Cover**: giữ tỷ lệ và phóng đủ phủ cả chiều ngang lẫn chiều dọc viewport.
 - **Pan**: dịch ảnh đã phóng để xem vùng nằm ngoài viewport.
 - **View transition**: chuyển liên tục giữa hai trạng thái hiển thị của cùng ảnh.
-- **Reservation**: vùng grid dành cho khối lớn; card khác xếp ngoài vùng này.
+- **Reservation**: vùng masonry dành cho khối lớn; card khác xếp ngoài vùng này.
 - **UA**: chuỗi nhận diện trình duyệt, có thể làm website trả giao diện khác.
 - **Transient**: trạng thái giữa chuyển động hoặc trước khi bố cục ổn định.

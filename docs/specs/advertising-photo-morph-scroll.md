@@ -13,7 +13,7 @@ related_reports: []
 ## Phạm vi sau M02b
 
 [M02b](site-media-card-playback.md) supersede toàn bộ yêu cầu clone, morph,
-backdrop animation và scroll lease giữa grid/related card với primary detail,
+backdrop animation và scroll lease giữa masonry/related card với primary detail,
 bao gồm click, Back/Forward và chuyển detail A↔detail B. Các correction R2–R5
 và nhịp 300/400ms trước đây chỉ còn là lịch sử, không là gate runtime.
 Điều hướng đổi view trực tiếp, giữ đúng photo/media, focus và entry scroll;
@@ -33,9 +33,9 @@ không kéo viewport để lộ card ngoài màn hình. Nền primary giữ tĩn
 
 ## Delta browser history và vị trí cuộn còn hiệu lực
 
-Gọi T0 là grid với logical scroll Y0, T1 là detail cùng photo ID với
+Gọi T0 là masonry với logical scroll Y0, T1 là detail cùng photo ID với
 logical scroll Y1. Trước khi rời mỗi entry, lưu scroll và media đang active.
-Back tới T0 phục hồi Y0 và media grid; Forward tới T1 phục hồi Y1 và
+Back tới T0 phục hồi Y0 và media masonry; Forward tới T1 phục hồi Y1 và
 media primary. Cùng viewport, sai lệch sau settle tối đa 1 CSS px cho từng
 entry kể cả Y0 khác Y1, không hiện frame ở scroll của entry kia. Nếu viewport
 đổi thật, dùng anchor/offset tương đối theo contract hiện hữu. Restore không

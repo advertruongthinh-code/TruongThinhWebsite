@@ -9,21 +9,21 @@ updated: 2026-09-30
 
 ## Advertising: card ảnh thật dùng chung
 
-Grid chính và related detail dùng cùng `createPhotoCard`, media wrapper và
+Masonry chính và related detail dùng cùng `createPhotoCard`, media wrapper và
 reveal/lazyload. Hover chuột chính xác phóng ảnh1,15 trong0,6giây ease-out,
 rời chuột về1; khung giữ nguyên tọa độ/kích thước và clip ảnh bên trong.
 Focus bàn phím có zoom cùng outline2px offset4px; reduced motion tắt zoom,
 giữ outline. Touch không cần hover để mở ảnh. Toggle gợi ý/skeleton giữ
 contract riêng, không áp hover card ảnh vào hai loại control này.
 
-## Advertising: skeleton tiếp nối grid
+## Advertising: skeleton tiếp nối masonry
 
 Theo C1–C2, các frame trang trí giữ nguyên tọa độ packing; surface bên trong
 trôi X/Y tối đa3px theo chu kỳ6–8giây lệch phase. Hai mảng gradient xám chuyển
 mềm bằng transform/opacity6giây, không đổi layout hoặc chiều cao trang.
 Chỉ frame giao viewport và tab visible mới chạy; reduced motion giữ nền tĩnh,
 đổi preference trực tiếp có hiệu lực. Observer/listener thuộc mount và được dọn
-khi rời route. Skeleton kết thúc ở đáy CTA cộng một gap grid; không kéo thêm
+khi rời route. Skeleton kết thúc ở đáy CTA cộng một gap masonry; không kéo thêm
 ba hàng ảnh giả xuống cuối trang.
 
 Ở detail, mục Advertising trên navbar không gạch chân khi nghỉ nhưng hover
@@ -70,7 +70,7 @@ Không thay motion homepage.
 
 Photo browse Advertising là query-only view. Theo
 [spec media-card](../specs/site-media-card-playback.md), supersession M02b
-ngày 2026-09-30 bỏ morph card grid/related↔primary của AD-BROWSE-R1/P7.5.
+ngày 2026-09-30 bỏ morph card masonry/related↔primary của AD-BROWSE-R1/P7.5.
 Click, Back, Forward và chuyển giữa hai detail không tạo clone ảnh bay.
 Đóng detail đánh dấu đúng một card vừa xem bằng lớp phủ tối và nhãn
 `Vừa xem` / `Just viewed`; full reload xóa dấu.
@@ -84,7 +84,7 @@ hoặc carousel cũ.
 Viewer dùng transform từ rect hero tới fit và ngược lại; zoom/reset nội suy
 giữa fit, cover viewport và hai lần cover. Timing/easing và cách hủy khi
 resize, đổi ảnh hoặc unmount do R4 của spec sở hữu. Pan theo con trỏ tức thì,
-giới hạn theo kích thước ảnh đã phóng. Không đưa grid vào viewer morph và không
+giới hạn theo kích thước ảnh đã phóng. Không đưa masonry vào viewer morph và không
 animate layout width/height
 mỗi frame. Position motion của từng card do Masonry sở hữu; không thêm animation library.
 
@@ -92,7 +92,7 @@ Control Advertising vuông48px, icon nét1,5px. Expand neo phải; hover/
 focus mở nhãn trong250ms, không scale glyph hoặc reflow ảnh. Hover đổi nền
 150ms; reduced motion đưa duration về0. Bỏ Back riêng; navbar photo dùng
 nguyên shared collapse/hide/reveal, không pin transform. Navbar từ detail
-về grid của ảnh hiện tại; tại chính parent bấm lại mục đó về logical top và
+về masonry của ảnh hiện tại; tại chính parent bấm lại mục đó về logical top và
 giữ bộ lọc. Ba trang danh sách dùng cùng nhánh logo homepage, theo
 [brand shell](../specs/frontend-brand-shell-responsive-runtime.md#navbar-p13).
 Không tự thêm tween cuộn khác: logo hiện dùng setPageScroll tức thì cùng
@@ -109,7 +109,7 @@ Source background của primary photo chỉ animate opacity và
 transform; không animate CSS blur. Một shared glass surface phủ đều vùng dư với
 `blur(28px) saturate(1.08) brightness(1.04)` và tint trắng alpha `0.12`.
 Skeleton boundary tái dùng cùng surface, giữ global gradient mask riêng và lan
-ngang tới hai mép viewport mà không đổi geometry grid; photo overflow không
+ngang tới hai mép viewport mà không đổi geometry masonry; photo overflow không
 tăng blur theo khoảng cách từ mép ảnh. Nút mở ảnh cân hai đầu trong tolerance
 `1px`; icon mở/reset dùng cùng nét hai mũi tên chéo. Không có nút Back riêng.
 
@@ -244,7 +244,7 @@ giữ nguyên contract interruption/cleanup của các ảnh thật.
 - Khi ready và in-view, ảnh fade `opacity 0 → 1` một lần trong `0.6s ease-out`,
   tương ứng class lifecycle `lazyload/lazyloading → lazyloaded` đã đo trên
   Espacio. Không replay khi ảnh rời rồi tái vào viewport; replay chỉ thuộc card
-  ở catalog grid trang cha.
+  ở catalog masonry trang cha.
 - Khi node ảnh phát `error`, wrapper giữ đúng geometry và chuyển sang placeholder
   trung tính ở final state; không chờ motion readiness vô hạn. Reduced motion
   bỏ transition và hiện ảnh hoặc placeholder ngay.
@@ -256,7 +256,7 @@ giữ nguyên contract interruption/cleanup của các ảnh thật.
 - [P7.5](../specs/advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow)
   ghi timing morph vào520ms/history400ms và background lingering1200ms trước
   khi [spec media-card](../specs/site-media-card-playback.md) thay morph card
-  grid/related↔primary, gồm chuyển giữa hai detail; suggestion
+  masonry/related↔primary, gồm chuyển giữa hai detail; suggestion
   crossfade1.6s mỗi3s theo [supersession random](../specs/advertising-organic-random.md), zoom chỉ khi hover. Đây là delta TT được owner yêu cầu,
   không phải số đo Espacio. Reduced motion và pause tiếp tục là điều kiện chung.
 - Shared shell: `src/site/motion.js`, `src/site/style.css`.

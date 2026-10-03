@@ -15,14 +15,14 @@
   [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md):
   related 4/6 PASS sau fix Masonry và seed fixture; landscape VI/EN `Y=3` còn
   FAIL, chưa rõ gốc. M03–M09 PAUSED đến khi owner mở lại.
-- [Capability map grid Advertising và tải ảnh](specs/advertising-random-grid-and-image-loading-capability-map.md)
+- [Capability map masonry Advertising và tải ảnh](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba module spec đã được owner duyệt; runtime chưa sửa. Bước tiếp là
   [plan/task list riêng](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25) chờ owner
   duyệt; plan Advertising cũ và các human acceptance mở được giữ nguyên.
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
-- UI contract: [photo/grid](specs/advertising-photo-browse.md),
+- UI contract: [photo/masonry](specs/advertising-photo-browse.md),
   [capability map](specs/advertising-september-2026-capability-map.md),
   [menu mở](specs/full-menu-reference-parity.md), [DESIGN](../DESIGN.md).
   Full-span vừa viewport dưới navbar; gợi ý conditional; Back giữ entry,
@@ -52,7 +52,7 @@
   link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
 - STATE trước cleanup: Git `da2f13a` (`docs/archive/snapshots/state-before-release-2026-09-24.md`,
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: owner duyệt plan/task list cho random grid và image loading;
+- Next repo action: owner duyệt plan/task list cho random masonry và image loading;
   owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

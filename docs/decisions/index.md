@@ -11,7 +11,7 @@ ghi file gốc ở mục `Lịch sử`; bản gốc còn trong Git history.
 | --- | --- | --- |
 | 2026-07-30 | accepted | [Xanh/cam là accent](accent-color-roles.md) |
 | 2026-07-31 | accepted | [Defense in depth cho admin](admin-defense-in-depth.md) |
-| 2026-09-01 | accepted | [Lưới organic Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập](advertising-organic-masonry-espacio-spacing-media-distribution.md) |
+| 2026-09-01 | accepted | [Masonry Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập](advertising-organic-masonry-espacio-spacing-media-distribution.md) |
 | 2026-09-01 | accepted | [Agent Skills dùng chung cho mọi host agent](agent-skills-workflow.md) |
 | 2026-08-09 | accepted | [Caveman ultra và rule module](caveman-ultra-agent-rules.md) |
 | 2026-10-03 | accepted | [Skill vendor vào .claude từ pin](claude-skills-vendored-from-pins.md) |

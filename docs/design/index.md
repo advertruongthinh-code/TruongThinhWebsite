@@ -28,7 +28,7 @@ baseline thành production contract.
 | VI/EN copy, alt/ARIA, media và route content | [`content.md`](content.md) | `content.md` là nguồn chuẩn duy nhất của design guide cho content/media |
 | Tiêu chí ảnh sáu nhóm Advertising, Audit/Critique | [`advertising-image-quality.md`](advertising-image-quality.md) | `content.md` giữ policy media/người dùng chung; không lặp rubric trong Impeccable brief |
 | Shared/Advertising motion và choreography | [`motion.md`](motion.md) | Logo riêng theo DESIGN; specs chỉ dẫn contract, giữ runtime integration |
-| Grid/carousel visual composition | [`patterns.md`](patterns.md) | Advertising spec giữ data/algorithm/dependency/QA |
+| Masonry/carousel visual composition | [`patterns.md`](patterns.md) | Advertising spec giữ data/algorithm/dependency/QA |
 | Public route và lifecycle contract | [`frontend-route-and-content.md`](../specs/frontend-route-and-content.md) | [`components.md`](components.md), [`patterns.md`](patterns.md) |
 | Current implementation evidence | `src/site/`, `scripts/`, `tests/` | [`components.md`](components.md) |
 | Espacio measured reference | [Corpus tổng hợp](../reference/espacio/index.md), candidate revision có provenance | Không tự nâng candidate thành owner-locked target hoặc current runtime proof |

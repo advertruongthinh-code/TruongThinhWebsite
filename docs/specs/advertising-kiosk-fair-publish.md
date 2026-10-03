@@ -25,7 +25,7 @@ hội chợ đang hoạt động mà không mở lại vòng chấm ảnh đã �
 
 ### Kết quả mong muốn
 
-Exact ảnh đã duyệt xuất hiện trong parent grid và photo detail VI/EN, có taxonomy
+Exact ảnh đã duyệt xuất hiện trong parent masonry và photo detail VI/EN, có taxonomy
 và mô tả đúng, không có title/caption riêng.
 
 | Trong scope | Ngoài scope |

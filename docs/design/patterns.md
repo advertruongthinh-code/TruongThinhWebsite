@@ -39,12 +39,12 @@ do `detail.js` sở hữu. Reduced motion phải hiện body mà không đợi t
 
 **Ghép:** `catalog.mjs`/`media-manifest.mjs` → `validateAdvertisingCards` và
 `compileAdvertisingProductLayout` trong shared core → `catalog-runtime.mjs` → `[data-project-grid]`.
-Filter dùng `[data-advertising-filter]`; tile sinh ra dùng
+Filter dùng `[data-advertising-filter]`; card sinh ra dùng
 `[data-advertising-category]`.
 
 **Dùng khi:** catalog cần filter, geometry organic deterministic, bounded
 virtualization, lazy media và lifecycle locale/remount. **Tránh:** hard-code card
-list trong HTML/runtime, route-specific grid algorithm hoặc bypass validator.
+list trong HTML/runtime, route-specific masonry algorithm hoặc bypass validator.
 
 `mountAdvertisingCatalog(container, { signal })` do `detail.js` điều phối và trả
 `Promise<cleanup function>`; pure core không biết DOM. State gồm all/category,
@@ -102,7 +102,7 @@ hoặc media thiếu kích thước.
 `content.md` là nguồn chuẩn cho ratio, budget, crop và QA. Product fact vẫn về
 `PRODUCT.md`; owner fact vẫn về decision tương ứng.
 
-## Advertising grid geometry
+## Advertising masonry geometry
 
 **Contract hiện hành:**
 [AD-FINAL-R1 D1–D5, D8–D9](../specs/advertising-final-polish-and-media.md),
@@ -159,7 +159,7 @@ hole. Oracle độc lập dùng bounds, không dùng cờ solver tự trả.
 Data/placement algorithm do [Advertising spec](../specs/advertising-products-turnkey-services.md#layout-append-và-virtualization)
 sở hữu. `layoutViewportWidth` dùng `documentElement.clientWidth`; native
 scrollbar không tính vào lưới. Content căn giữa; viewport rộng hơn `1570px` thì
-grid giữ `1500px`. Điểm chuẩn geometry đọc từ test layout, không giữ bảng tay.
+masonry giữ `1500px`. Điểm chuẩn geometry đọc từ test layout, không giữ bảng tay.
 
 Caption: [DESIGN.md](../../DESIGN.md#advertising-caption).
 
@@ -174,7 +174,7 @@ stack khi nửa chữ dưới240px. D11 dùng chiều cao còn lại dưới nav
 trừ gap dưới và50CSSpx ảnh thật nhô ở đáy viewport; không co khối theo lượng chữ.
 Khoảng navbar
 bằng gutter15/25/35px; navbar giữ shared behavior. Bỏ title detail và caption
-mọi grid Advertising theo D8; giữ mô tả, category và alt. Một luồng chữ dùng
+mọi masonry Advertising theo D8; giữ mô tả, category và alt. Một luồng chữ dùng
 hết chiều rộng, chỉ scroll khi thực sự thiếu chỗ.
 “Có thể bạn thích” nằm trong phần mô tả: D12 dùng5 nút có ảnh nền thành5
 dòng, nhãn đủ chữ; cùng photo không đổi thứ tự vì bật/tắt. Chỉ một tag bật;
@@ -200,7 +200,7 @@ với contract riêng của TT. Trạng thái implementation theo [STATE](../STA
 không suy target accepted là runtime đã đạt. Gallery ngoài Advertising giữ phạm vi riêng.
 Không copy media, logo hoặc chức năng tài khoản Pinterest.
 
-### Cuối grid Advertising
+### Cuối masonry Advertising
 
 CTA gồm hai đoạn “Dấu ấn tiếp theo” / “dành cho thương hiệu của bạn”;
 EN “The next mark” / “for your brand”, không eyebrow hoặc dấu chấm/phẩy.

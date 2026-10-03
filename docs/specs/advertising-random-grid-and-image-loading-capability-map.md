@@ -18,14 +18,14 @@ và task list đã được lập, chờ owner duyệt; hành vi chưa được 
 
 | Module id | Trách nhiệm | Phụ thuộc |
 | --- | --- | --- |
-| `advertising-organic-random` | Đảo vị trí card của All, sáu filter và related sau mỗi lần mở URL/F5; giữ ổn định trong cùng lượt duyệt kể cả Back dựng lại document; solver thích ứng khi catalog tăng; batch skeleton tiếp nối grid với hình học đa dạng; giữ tập ảnh gợi ý random và đổi ảnh mỗi 3 giây | — |
+| `advertising-organic-random` | Đảo vị trí card của All, sáu filter và related sau mỗi lần mở URL/F5; giữ ổn định trong cùng lượt duyệt kể cả Back dựng lại document; solver thích ứng khi catalog tăng; batch skeleton tiếp nối masonry với hình học đa dạng; giữ tập ảnh gợi ý random và đổi ảnh mỗi 3 giây | — |
 | `static-image-delivery` | Đo trước/sau trên Sites; tối ưu tải ảnh nội dung toàn website trong phase tĩnh, giữ kích thước và media contract | — |
 | `image-loading-progress` | Dành sẵn khung đúng tỷ lệ cho ảnh nội dung toàn website; vòng tải theo byte thật không hiện số, trạng thái cache/lỗi/reduced motion; không dùng cho batch skeleton CTA | `static-image-delivery` |
 
 Thứ tự: `advertising-organic-random` có thể đặc tả độc lập;
 `static-image-delivery` xác định đường tải ảnh rồi `image-loading-progress` dùng
 đường đó. Sau ba module là một lần kiểm tích hợp Advertising, các route khác,
-CTA/footer, VI/EN và Sites. CMS/admin và random grid của route khác không thuộc
+CTA/footer, VI/EN và Sites. CMS/admin và random masonry của route khác không thuộc
 đợt này.
 
 Khi ảnh mới khiến nhịp cao–thấp hoặc mức so le khó đạt, solver được chọn kết quả

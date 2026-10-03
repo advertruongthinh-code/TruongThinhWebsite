@@ -24,7 +24,7 @@ gradient gần như không đổi, nên nhìn như đứng yên.
 
 ### User và context
 
-Người xem cần cảm nhận phần tiếp nối grid còn sống và có chiều sâu trong lúc
+Người xem cần cảm nhận phần tiếp nối masonry còn sống và có chiều sâu trong lúc
 cuộn, nhưng motion không được tranh chú ý với ảnh sản phẩm.
 
 ### Kết quả mong muốn
@@ -127,7 +127,7 @@ performance budget hoặc gây lỗi lifecycle.
   `0,5–1 giây`, không chỉ dịch ảnh nền tuyến tính. Không sao chép bundle Feral.
 - Tăng quãng trôi X/Y của toàn frame so với baseline `3px`, vẫn giữ tốc độ chậm,
   không làm card chạm/đè card lân cận hoặc gây layout shift. Hover/focus được
-  phép tăng nhẹ biên độ nhưng không thay đổi geometry của grid.
+  phép tăng nhẹ biên độ nhưng không thay đổi geometry của masonry.
 - Reduced motion hiển thị frame tĩnh; offscreen và tab ẩn vẫn dừng RAF.
 
 Acceptance R2: unit test chứng minh mọi preset dùng cùng FIELD; browser sampling
@@ -143,14 +143,14 @@ không cần xuất hiện trong cùng viewport.
 
 - CTA dùng chiều cao `100svh` trừ chiều cao thực của header collapsed. Không tạo
   `min-height` lớn hơn viewport và không dùng JS để snap hoặc cưỡng bức scroll.
-- Dải skeleton tiếp nối grid chỉ được đi vào khoảng `38,2%` phía trên CTA. Phần
+- Dải skeleton tiếp nối masonry chỉ được đi vào khoảng `38,2%` phía trên CTA. Phần
   chữ và negative space sở hữu khoảng `61,8%` còn lại; copy nằm trong vùng này,
   không bị skeleton che thành nền toàn màn hình.
 - Desktop/tablet giữ tối đa ba lớp frame khi geometry cần, nhưng cắt tại đáy dải
   skeleton. Màn hình hẹp hoặc thấp được giảm số/lớp và dùng dải tối đa `28%` để
   giữ headline, CTA link và vùng bấm nguyên kích thước.
 - Footer giữ component và nội dung chung hiện hành; không đưa footer vào CTA và
-  không thêm card giả vào semantics/grid sản phẩm.
+  không thêm card giả vào semantics/masonry sản phẩm.
 - Reduced motion, palette, FIELD, random-per-load và visible-only lifecycle của
   R2 giữ nguyên.
 
@@ -226,7 +226,7 @@ bands là `B25-50-75`. Owner có thể tune từng preset bằng dev UI rồi ex
   định. Reload, đổi filter, mở/đóng detail và native Back/Forward random lại.
   Resize giữ nguyên preset. Không random giữa frame đầu/cuối của cùng transition.
 - Skeleton không có viền. Reveal khi viewport chạm tới và hover/focus reuse
-  media-card component của grid; dev UI không được tạo motion card riêng.
+  media-card component của masonry; dev UI không được tạo motion card riêng.
 - Chỉ frame visible, tab hiện và motion bình thường mới advance time. Reduced
   motion, offscreen và tab ẩn giữ frame tĩnh; unmount/remount không leak WebGL
   context, RAF, observer hoặc listener.
@@ -258,7 +258,7 @@ cho một Advertising state ổn định; hiện có tối đa `4 cột × 3 dep
   màu hay không. Mười hai frame lấy các permutation không lặp từ 24 khả năng.
 - Mỗi frame có phase xuất phát khác nhau. Chiều Flow dương/âm được phân bổ gần
   cân bằng rồi shuffle để một batch không tình cờ chuyển động cùng hướng.
-- Viewport-entry phải reuse cùng contract của card ảnh grid: rời hoàn toàn thì
+- Viewport-entry phải reuse cùng contract của card ảnh masonry: rời hoàn toàn thì
   arm lại; mỗi lần đi vào viewport chạy opacity và transform `600ms` với easing
   hiện hành cùng stagger theo vị trí. WebGL loop chỉ bắt đầu sau khi entry motion
   khởi động. Reduced motion hiện ngay, không replay và giữ Flow tĩnh.
@@ -266,14 +266,14 @@ cho một Advertising state ổn định; hiện có tối đa `4 cột × 3 dep
 Acceptance R5: unit chứng minh preset, permutation và phase không lặp trong batch
 12 frame; direction chênh tối đa một; resize giữ nguyên và các lifecycle trigger
 random lại. Browser test cuộn ra/vào hai lần phải thấy cùng entry endpoint/timing
-như card grid, không đổi geometry, không leak observer/RAF và reduced motion tĩnh.
+như card masonry, không đổi geometry, không leak observer/RAF và reduced motion tĩnh.
 
 ## 14. Correction R6 accepted — opacity-only entry, global boundary fade
 
 R6 supersede phần transform entry và hover/focus của R4–R5. Skeleton vẫn giữ
 WebGL Flow, batch assignment và viewport lifecycle đã chốt.
 
-- Viewport-entry phải dùng chính contract media reveal của card ảnh grid: frame
+- Viewport-entry phải dùng chính contract media reveal của card ảnh masonry: frame
   giữ nguyên geometry và `transform`; chỉ opacity chuyển từ `0` tới opacity đích
   trong `600ms ease-out`. Không dùng `translateY`, scale hoặc motion card riêng.
 - Stagger được phép đổi thời điểm bắt đầu nhưng không được đổi duration/easing.
@@ -314,7 +314,7 @@ plan `AD-SEPT-2026-P6`.
 
 ### Geometry đa dạng
 
-- Skeleton luôn rộng đúng một grid column; không có span 2. Chiều cao dùng ba
+- Skeleton luôn rộng đúng một masonry column; không có span 2. Chiều cao dùng ba
   band tỷ lệ ngang, vuông và đứng lấy từ geometry/media ratio hợp lệ của card
   thật trong batch hiện hành.
 - Cùng một cột không được có hai depth liên tiếp cùng band; hai frame kề nhau
@@ -362,7 +362,7 @@ của R7; preset, geometry, entry lifecycle và CTA spacing giữ nguyên.
 - Dùng một global glass surface trong coordinate space của toàn skeleton batch;
   không blur từng frame. Mốc tham chiếu là điểm bắt đầu vùng headline CTA theo
   composition token hiện hành. Blur nhắm tới `ctaHeadlineTop - cardWidth` và
-  clamp tại đáy grid ảnh thật để không phủ mờ card thật; `cardWidth` là chiều
+  clamp tại đáy masonry ảnh thật để không phủ mờ card thật; `cardWidth` là chiều
   cao tham chiếu của card vuông một cột.
 - Glass dùng `backdrop-filter` với blur tối thiểu `24px`, có WebKit prefix và
   gradient mask tăng dần; text CTA, hit target và footer không nằm trong lớp
@@ -387,7 +387,7 @@ của R8; chỉ chuẩn hóa visual surface để tái dùng.
 - Skeleton boundary và primary photo overflow dùng một token contract:
   `blur(28px) saturate(1.08) brightness(1.04)` cùng tint trắng alpha `0.12`.
 - Glass của skeleton trải ngang tới hai mép viewport; frame skeleton, ảnh thật,
-  CTA và outer grid giữ nguyên geometry. Không tạo horizontal overflow. Photo
+  CTA và outer masonry giữ nguyên geometry. Không tạo horizontal overflow. Photo
   overflow vẫn chỉ phủ hero frame theo contract riêng.
 - Skeleton tiếp tục dùng mask gradient toàn batch và white endpoint của R8.
   Primary photo dùng glass đồng nhất trên toàn vùng dư, không dùng mask tăng dần
@@ -435,7 +435,7 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
 - Opacity fade và blur không còn là hai component độc lập. Một full-bleed
   Glassmorphism surface sở hữu cả translucent white background và
   `backdrop-filter`; surface phủ từ mép trái tới mép phải viewport nhưng không
-  đổi width/hit testing của grid.
+  đổi width/hit testing của masonry.
 - Trình tự dọc bắt buộc: nội dung clear; blur/tint tăng trước; lớp trắng tăng sau;
   endpoint tại đáy lưới là `#fff` hoàn toàn. Chuyển tiếp phải mịn, không seam theo
   cột, ghost, fallout hoặc skeleton mờ bên dưới endpoint.
@@ -465,7 +465,7 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
 - Số DOM card được chọn đủ phủ vùng glass theo boundary thật. Mobile giữ tối đa
   hai WebGL context sống bằng lifecycle/virtualization; không giới hạn toàn bộ
   DOM card còn hai hoặc giảm chất lượng preset và motion.
-- Grid logical bottom kết thúc sớm để final viewport chứa trọn CTA và footer.
+- Masonry logical bottom kết thúc sớm để final viewport chứa trọn CTA và footer.
   Card có thể paint vượt boundary tối đa một gap, nhưng không đổi document height
   hoặc hit testing. Global Glassmorphism R10 giữ token, full bleed, trình tự blur
   trước white và endpoint `#fff`.
@@ -490,7 +490,7 @@ Landscape thuộc module khác, chưa sửa trong delta này.
 
 ### Mục tiêu, input và dependency
 
-Người xem Advertising VI/EN cuộn footer↔grid trên Android/iPhone thấy skeleton
+Người xem Advertising VI/EN cuộn footer↔masonry trên Android/iPhone thấy skeleton
 như card thường. Toolbar đổi visual height hoặc một ngưỡng scroll không khiến
 card vẫn đang hiện bị dựng lại, về opacity0 hoặc reset Flow. Cuộn hẳn khỏi
 viewport rồi quay lại vẫn dùng entry contract hiện hành của card thường.
@@ -600,7 +600,7 @@ pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs
    VI/EN, reload/Back/locale, resize/orientation, reduced motion và20 remount.
    Không bỏ console assertions để che WebKit failure; randomness/geometry/gap
    CTA→footer/final viewport/glass endpoint giữ các oracle hiện hành.
-3. Android Chrome thật: native touch footer↔grid tối thiểu3 chu kỳ, toolbar
+3. Android Chrome thật: native touch footer↔masonry tối thiểu3 chu kỳ, toolbar
    expanded/collapsed, portrait và landscape; ghi device/browser/source,
    DOM/CSS identities, console/network và PNG. Common slot đang visible không
    remount/replay. iPhone thật là gate riêng cùng scenario; WebKit emulation

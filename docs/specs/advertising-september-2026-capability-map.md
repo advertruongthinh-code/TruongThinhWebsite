@@ -56,7 +56,7 @@ Owner duyệt capability map correction `AD-SEPT-2026-P6` ngày `2026-09-22`:
 | Module id | Trách nhiệm | Phụ thuộc | Card Notion |
 | --- | --- | --- | --- |
 | `shared-footer-boundary` | Footer dùng chung toàn site, khoảng thở responsive và mốc dừng skeleton | — | Spec P6 đã duyệt |
-| `shared-media-hover` | Một primitive motion ảnh `1:1` cho homepage portal, Advertising grid/related và suggestion; active suggestion bất động | — | Spec P6 đã duyệt |
+| `shared-media-hover` | Một primitive motion ảnh `1:1` cho homepage portal, Advertising masonry/related và suggestion; active suggestion bất động | — | Spec P6 đã duyệt |
 | `portal-type-fit` | Kicker, title và subtitle portal dùng cùng cỡ theo từng role, không clip hoặc xuống dòng trong VI/EN | `shared-media-hover` | Spec P6 đã duyệt |
 | `skeleton-cta-field` | Giữ entry qua page visibility, đa dạng tỷ lệ card, global blur/fade, CTA spacing và dừng trước footer | `shared-footer-boundary` | [Card skeleton](https://app.notion.com/p/3e0332849a0e811dbac1e7bb09ea28be) |
 
@@ -70,9 +70,9 @@ cho phép Codex tự duyệt spec, plan, task; owner kiểm kết quả cuối:
 
 | Module id | Trách nhiệm | Phụ thuộc | Nguồn chuẩn |
 | --- | --- | --- | --- |
-| `advertising-hero-once` | Hero Advertising chỉ chạy một lần trong mỗi document load; filter chỉ cập nhật grid | — | `advertising-final-polish-and-media.md` |
+| `advertising-hero-once` | Hero Advertising chỉ chạy một lần trong mỗi document load; filter chỉ cập nhật masonry | — | `advertising-final-polish-and-media.md` |
 | `skeleton-cta-field` | Preset Feral với Scale 100, solver mobile 1–2 canvas, tail một viewport và một surface glass `clear → blur → white` | `shared-footer-boundary` | `advertising-skeleton-flow.md` |
-| `photo-detail-layout` | Pinterest mode khi primary chiếm toàn bộ span, primary `100dvh`, description pager và suggestion là card đầu related grid | `photo-morph-scroll`, `shared-media-hover` | `advertising-photo-browse.md` |
+| `photo-detail-layout` | Pinterest mode khi primary chiếm toàn bộ span, primary `100dvh`, description pager và suggestion là card đầu related masonry | `photo-morph-scroll`, `shared-media-hover` | `advertising-photo-browse.md` |
 | `shared-header-shell` | Giữ navbar geometry đã duyệt; phục hồi CTA Zalo trong menu và cân CTA/X trên cùng shared shell | — | `frontend-brand-shell-responsive-runtime.md` |
 
 Build order P7: khóa regression rồi sửa `advertising-hero-once`; tiếp theo

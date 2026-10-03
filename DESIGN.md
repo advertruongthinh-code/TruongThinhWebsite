@@ -295,7 +295,7 @@ implementation đang kiểm body/state. [L04R accepted](docs/specs/frontend-bran
 cho CTA/info/image-control tăng minimum khi chữ/control không fit; indicator chỉ
 reserve khi nhiều page. Expanded image-action label wrap và scale theo chữ,
 suggestion label wrap long word; giữ font/palette/default nơi fit. Measurement
-inner suggestion có correction cho WebKit grid entry, chưa full device acceptance.
+inner suggestion có correction cho WebKit masonry entry, chưa full device acceptance.
 [Evidence](docs/verification/mobile-layout-parity-2026-09-28.md)
 giữ scope từng candidate, chưa full-site/device/owner/reference acceptance.
 
@@ -394,10 +394,10 @@ Không dùng report cũ làm PASS cho LOGO-R3.
 - **Source:** `src/site/style.css` project tile selectors và route galleries.
 - **Verification:** asset/static checks có trong source; full visual crop audit là **unverified**.
 
-### Advertising browse grid và filter
+### Advertising browse masonry và filter
 
 - **Status:** accepted contract; dynamic visual state observed from runtime source.
-- **Visual contract:** filter `all` và sáu nhóm; grid desktop/tablet/mobile; no-script fallback vẫn có card; virtual window chỉ mount phần cần thiết. List item giữ `aria-posinset` và `aria-setsize`.
+- **Visual contract:** filter `all` và sáu nhóm; masonry desktop/tablet/mobile; no-script fallback vẫn có card; virtual window chỉ mount phần cần thiết. List item giữ `aria-posinset` và `aria-setsize`.
 - **Runtime contract:** `compileAdvertisingLayout(options)`, `getVirtualWindow(layout, options)`, `mountAdvertisingCatalog(container, {signal})` và `unmountAdvertisingCatalog()` là API source hiện có; không tạo wrapper khác.
 - **States:** filter/query, full/virtual window, media pending/loaded/revealed, dependency ready/failure/retry, VI/EN, direct/Barba/history/remount, abort/cleanup và reduced motion.
 - **Source/tests:** `src/site/advertising-products/layout-core.mjs:29-167`, `src/site/advertising-products/catalog-runtime.mjs:67-71,617-621`, `tests/site/advertising-products-layout.test.mjs`, `advertising-products-lifecycle.test.mjs`, `advertising-products-media.test.mjs`, `advertising-products-static.test.mjs`, browser checks trong `tests/site/site.e2e.cjs:4811-5671`.

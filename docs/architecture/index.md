@@ -54,7 +54,7 @@ Các route dưới đây là public static contract. `locale` là `vi` hoặc `e
 | `/{locale}/` | `src/site/index.html` | Homepage |
 | `/{locale}/residential/` | `src/site/residential/index.html` | Detail nhà ở |
 | `/{locale}/commercial/` | `src/site/commercial/index.html` | Detail kinh doanh, horizontal gallery |
-| `/{locale}/advertising-products/` | `src/site/advertising-products/index.html` | Catalog, filter, grid |
+| `/{locale}/advertising-products/` | `src/site/advertising-products/index.html` | Catalog, filter, masonry |
 | `/{locale}/advertising-products/{slug}/` | `src/site/advertising-products/detail-template.html` + `catalog.mjs` | Sáu compatibility entry chuyển về parent `?category=<slug>`; photo view hiện hành dùng query `photo` |
 | `/{locale}/about/` | `src/site/about/index.html` | About/detail |
 
@@ -71,7 +71,7 @@ compatibility trong Worker dormant; không dùng chúng làm canonical source pa
 3. `src/site/motion.js` giữ locale, route veil, header/menu, scroll và motion;
    `src/site/detail.js` mount detail behavior và điều phối catalog lifecycle.
 4. `src/site/advertising-products/catalog-runtime.mjs` validate artifact,
-   compile geometry, mount filter/grid, virtualization, media replay và cleanup.
+   compile geometry, mount filter/masonry, virtualization, media replay và cleanup.
 5. `scripts/tooling/serve-static-parity.mjs` phục vụ `.site-output/`; output
    generated không được edit.
 

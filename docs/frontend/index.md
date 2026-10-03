@@ -26,7 +26,7 @@ và [content/media guide](../design/content.md).
 | Home | `src/site/index.html` | VI/EN static landing |
 | Residential | `src/site/residential/index.html` | Detail page, shared shell |
 | Commercial | `src/site/commercial/index.html` | Detail page, generic horizontal gallery |
-| Advertising catalog và photo view | `src/site/advertising-products/index.html` | Grid Auto; query `photo` mở ảnh, `tag` lọc related; viewer mở rộng giữ URL |
+| Advertising catalog và photo view | `src/site/advertising-products/index.html` | Masonry Auto; query `photo` mở ảnh, `tag` lọc related; viewer mở rộng giữ URL |
 | Advertising category URL cũ | `scripts/site/prepare-static-assets.mjs` + `catalog.mjs` | Sáu compatibility entry về parent `?category=<slug>`, giữ VI/EN; source template lịch sử được giữ |
 | About | `src/site/about/index.html` | About/detail page |
 
@@ -44,7 +44,7 @@ là current static page hoặc thêm nó vào menu public.
 | `src/site/advertising-products/catalog.mjs` | category/card/detail data và artifact input | `layout-core.mjs`, generator, focused tests |
 | `src/site/advertising-products/photo-tags.mjs` | stable tag registry, mapping và mô tả VI/EN theo photo ID, source hash/provenance | media manifest, validator và artifact |
 | `src/site/advertising-products/layout-core.mjs` | pure spacing, breakpoint, validation, geometry và virtual window | `catalog-runtime.mjs`, layout/lifecycle tests |
-| `src/site/advertising-products/catalog-runtime.mjs` | grid/filter, photo/related, history, morph, virtualization, locale và cleanup | `detail.js`, catalog/photo browser tests |
+| `src/site/advertising-products/catalog-runtime.mjs` | masonry/filter, photo/related, history, morph, virtualization, locale và cleanup | `detail.js`, catalog/photo browser tests |
 | `src/site/advertising-products/photo-viewer.mjs` | native dialog, motion hero/fit, fit/cover/2×cover, reset/pan, focus trap và cleanup | `catalog-runtime.mjs`, `advertising-photo-view.e2e.mjs` |
 | `scripts/site/prepare-static-assets.mjs` | build copy, artifact và sáu compatibility entry | `pnpm prepare:site`, route/static tests |
 
@@ -53,7 +53,7 @@ là current static page hoặc thêm nó vào menu public.
 `detail.js` là lifecycle coordinator: khi namespace là
 `advertising-products`, nó chờ `ensureAdvertisingDependencies()`, import
 `catalog-runtime.mjs` và gọi `mountAdvertisingCatalog(container, { signal })`.
-Grid/filter không thuộc generic `detail.js`.
+Masonry/filter không thuộc generic `detail.js`.
 
 Runtime API hiện có:
 
@@ -63,7 +63,7 @@ Runtime API hiện có:
 - `getVirtualWindow(layout, options)` trả visible `{ items, totalHeight }` theo
   scroll/viewport/overscan và throw khi input invalid.
 - `mountAdvertisingCatalog(container?, { signal }?)` là async; validate
-  artifact/version, mount filter/grid, listeners, media observer và
+  artifact/version, mount filter/masonry, listeners, media observer và
   virtualization, rồi trả `Promise<cleanup function>`.
 - `unmountAdvertisingCatalog()` dọn active instance; browser bridge là
   `window.TruongThinhAdvertising`.
@@ -94,7 +94,7 @@ và [photo browse spec](../specs/advertising-photo-browse.md); không lặp ở 
 
 ## Advertising photo runtime
 
-Parent route giữ cả grid và photo region. Runtime dùng `record.id` để dựng
+Parent route giữ cả masonry và photo region. Runtime dùng `record.id` để dựng
 hero, mô tả VI/EN, nhãn và related; query-only navigation không mở route veil.
 History merge state Barba và lưu logical scroll/focus theo từng entry. Related
 dùng solver chung với reservation theo chiều cao primary đã đo.

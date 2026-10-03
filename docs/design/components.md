@@ -154,11 +154,11 @@ không tự nhận accepted chỉ vì có test.
 
 **Input:** Barba container `[data-barba-namespace="advertising-products"]` tuỳ
 chọn và `{ signal }`; `catalog-artifact.mjs` generated; filter
-`[data-advertising-filter]`; grid `[data-project-grid]`.
+`[data-advertising-filter]`; masonry `[data-project-grid]`.
 
 **Output/lifecycle:** `mountAdvertisingCatalog(container?, { signal }?)` là hàm
 async và trả `Promise<cleanup function>`. Hàm validate artifact version,
-category/card, mount filter/grid/Masonry, lazy media, virtualization và listener.
+category/card, mount filter/masonry, lazy media, virtualization và listener.
 `unmountAdvertisingCatalog()` gọi cleanup active; browser bridge là
 `window.TruongThinhAdvertising = { mount, unmount }`.
 

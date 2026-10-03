@@ -1,5 +1,5 @@
 ---
-title: Lưới organic Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập
+title: Masonry Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập
 status: accepted
 date: 2026-09-01
 scope: Advertising product grid geometry and media distribution
@@ -13,7 +13,7 @@ related_reports:
   - ../reports/research-espacio-motion-audit.md
 ---
 
-# Lưới organic Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập
+# Masonry Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập
 
 ## Bối cảnh
 
@@ -54,7 +54,7 @@ tạo gallery asset riêng trong decision này.
 
 | Alternative | Lợi ích | Lý do không chọn |
 | --- | --- | --- |
-| Giữ outer `20px`, gap `16px`, cột không giới hạn | Không đổi runtime geometry | Trái spacing Espacio đã đo và làm grid quá dày trên viewport rộng |
+| Giữ outer `20px`, gap `16px`, cột không giới hạn | Không đổi runtime geometry | Trái spacing Espacio đã đo và làm masonry quá dày trên viewport rộng |
 | Giữ `72` card và crop lại | Ít asset hơn | Không đáp ứng ảnh độc lập; cùng source crop khác vẫn là duplicate |
 | Quay lại ba ratio cố định và closed frontier | Dễ cân đáy | Trái natural-ratio organic masonry đã chốt |
 | Tạo thêm gallery riêng cho sáu trang con | Nhiều media hơn | Mở rộng scope và tăng chi phí asset không cần thiết |
@@ -64,7 +64,7 @@ tạo gallery asset riêng trong decision này.
 - Resize quanh band hoặc ngưỡng cột có thể đổi geometry; Masonry position morph
   tiếp tục xử lý mọi coordinate change.
 - Viewport rộng hơn `1570px` có effective outer lớn hơn `35px` vì content cap,
-  nhưng grid vẫn căn giữa và giữ card width ổn định.
+  nhưng masonry vẫn căn giữa và giữ card width ổn định.
 - Catalog cần schema `media.sourceId`, validator count/uniqueness/ratio coverage
   và một contact-sheet review để bắt near-duplicate.
 - Tạo và duyệt đủ media là phần tốn công chính; implementation không được giảm
@@ -103,7 +103,7 @@ current-hash dùng report `109` media riêng.
 ## Chú thích thuật ngữ
 
 - **Outer band**: khoảng tối thiểu theo breakpoint trước khi áp content cap.
-- **Effective outer**: khoảng thật từ viewport tới grid sau khi căn giữa.
+- **Effective outer**: khoảng thật từ viewport tới masonry sau khi căn giữa.
 - **Intrinsic ratio**: `width / height` thật của media source.
 - **Source ID**: định danh ảnh gốc dùng để phát hiện reuse qua crop hoặc export.
 - **Interior hole**: khoảng trống trong một cột ngoài gutter/caption có chủ đích.

@@ -16,7 +16,7 @@ Bản đồ phạm vi giữ trong cùng card, không tạo thêm hệ thống ho
 | Module | Kết quả | Phụ thuộc |
 | --- | --- | --- |
 | advertising-detail | Số cột, ngưỡng ratio, vị trí gợi ý, kính mờ; giữ transition và control | Contract P1.4 và dữ liệu intrinsic hiện có |
-| advertising-continuation | Skeleton chuyển động, CTA gọn, bỏ section dư và sửa dấu hero | Grid/layout và motion lifecycle hiện có |
+| advertising-continuation | Skeleton chuyển động, CTA gọn, bỏ section dư và sửa dấu hero | Masonry/layout và motion lifecycle hiện có |
 | brand-typesetting | Cụm chữ logo đọc trọn ở mọi consumer/state được kiểm | LOGO-R3 và font/locale hiện có |
 | advertising-media | Inventory, chấm lại, tạo/sửa, phân loại và tích hợp ảnh đạt | Brief/quality gate hiện hành; UI ổn định trước QA tích hợp cuối |
 
@@ -30,19 +30,19 @@ D1 thay rõ hai nhánh giảm cột hiện hữu trong related: missing-photo-pe
 
 **D2 — Hướng theo ảnh gốc; span theo D10.** Mọi ratio dùng span min(3,N). Ratio rộng/cao từ 1,8 trở lên: ảnh trên/chữ dưới; dưới 1,8: ảnh trái/chữ phải, gồm ảnh vuông/gần vuông. Không tính lớp blur vào ratio; không làm tròn ratio trước so ngưỡng; không phụ thuộc tên thiết bị hoặc xoay hướng cửa sổ. Nếu mỗi nửa trong layout cạnh nhau nhỏ hơn 240 px sau gap thì chuyển xếp dọc, giữ span.
 
-**D3 — Chiều cao tự nhiên, vừa phần nhìn ở top.** Giữ navbar và hành vi hiện tại. Canvas/grid cách đáy navbar ở đầu trang một gutter hiện hành 15/25/35 px theo cỡ cửa sổ; tính safe area một lần. Primary có chiều cao tự nhiên và trần P1.4: phần nhìn còn lại trừ gutter dưới và dải ảnh thật lộ clamp(48 px, 8vh, 96 px). Ở top/reload, primary nằm trọn và thấy ít nhất một phần ảnh liên quan thật phía dưới khi có ảnh phù hợp. Banner gợi ý/skeleton/caption không được tính thay ảnh thật.
+**D3 — Chiều cao tự nhiên, vừa phần nhìn ở top.** Giữ navbar và hành vi hiện tại. Canvas/masonry cách đáy navbar ở đầu trang một gutter hiện hành 15/25/35 px theo cỡ cửa sổ; tính safe area một lần. Primary có chiều cao tự nhiên và trần P1.4: phần nhìn còn lại trừ gutter dưới và dải ảnh thật lộ clamp(48 px, 8vh, 96 px). Ở top/reload, primary nằm trọn và thấy ít nhất một phần ảnh liên quan thật phía dưới khi có ảnh phù hợp. Banner gợi ý/skeleton/caption không được tính thay ảnh thật.
 
 Vùng ảnh ngang ưu tiên 61,8% và chữ 38,2% chiều cao; ảnh cạnh nhau chia 50/50 chiều rộng sau gap. Đây là tỷ lệ ưu tiên: đo chữ ở bề rộng thực rồi phân bổ trong trần, không kéo khối cao cứng để tạo dead space. Giữ category/title/body một luồng; chỉ title được giảm theo cấp chữ đã chốt P1.4, không thu body hoặc cắt nội dung để giấu scrollbar. Nội dung thực sự dài hoặc chữ phóng 200% vẫn cuộn riêng được bằng wheel/touch/keyboard; không trap focus. Tính lại sau font load, đổi locale, resize hoặc cỡ chữ.
 
 **D4 — Gợi ý ở bên phải.** “Có thể bạn thích” / “You might like” giữ rộng một cột, title 16/24 px, banner cao 103 px và khoảng cách 8 px theo contract hiện có. Đặt ở cột ngoài cùng bên phải, xa primary nhất: N4/span2 là cột 4; N4/span3 cũng cột 4. Khi span bằng N, đặt gợi ý ở cột cuối ngay dải đầu dưới detail. Không thu span chỉ để ép gợi ý cùng hàng. Cửa sổ hẹp/chữ lớn được wrap, không clip chữ để giữ một dòng.
 
-**D5 — Ít ảnh và giới hạn search.** Giữ mỗi ảnh grid một cột, đúng intrinsic ratio, không mất/trùng/crop/stretch; không dùng spacer, skeleton hoặc sửa kích thước ảnh để giả đạt organic. Tổng budget 300.000 và gate cân đuôi tiếp tục áp dụng trên các ảnh/cặp thật có thể đánh giá. Rule so le0,20 cũ được correction D9 bên dưới thay thế.
+**D5 — Ít ảnh và giới hạn search.** Giữ mỗi ảnh masonry một cột, đúng intrinsic ratio, không mất/trùng/crop/stretch; không dùng spacer, skeleton hoặc sửa kích thước ảnh để giả đạt organic. Tổng budget 300.000 và gate cân đuôi tiếp tục áp dụng trên các ảnh/cặp thật có thể đánh giá. Rule so le0,20 cũ được correction D9 bên dưới thay thế.
 
 Ngoại lệ dữ liệu đã được duyệt cùng spec: bộ lọc còn 1 ảnh thì đặt ảnh thật đó trong dải dưới primary, gợi ý vẫn ở cột ngoài cùng bên phải, chấp nhận các slot khác trống. Bộ lọc không còn ảnh liên quan thì không dựng ảnh giả; giữ detail/gợi ý và thao tác bỏ lọc, điều kiện ảnh thật lộ dưới là không áp dụng vì không có dữ liệu. Với nhóm ít ảnh, không đánh giá cân đuôi/so le đối với cột không có ảnh thật. Không tạo thêm ảnh hoặc lặp ảnh chỉ để lấp cột.
 
 Trường hợp search hết budget vẫn giữ N, không thay đổi bộ lọc/URL hoặc hiển thị dữ liệu của bộ lọc trước như kết quả mới. Không hạ quality gate để gọi PASS. Plan phải có phương án xử lý trạng thái chưa bố trí được trong cùng N và regression cho các bộ dữ liệu được hỗ trợ; lỗi search ở đầu vào hợp lệ còn chưa xử lý chặn nghiệm thu. Không tuyên bố tìm kiếm hữu hạn chứng minh bất khả thi toán học.
 
-**D6 — Kính mờ chỉ ở nền dư.** Dùng màu từ chính ảnh tạo nền cover, tán mịn và lớp sáng mỏng như kính mờ nhẹ. Foreground contain, sắc nét và đủ cả ảnh; không viền trắng/đen đặc ở phần dư. Nền bị clip trong frame, chỉ trang trí, không focus/pointer/alt hoặc tham gia morph. Không méo thấu kính, không viền khúc xạ, không hiệu ứng bám chuột. Blur không phủ chữ/icon/control. Ảnh grid và fullscreen viewer không đổi fit mode vì delta này.
+**D6 — Kính mờ chỉ ở nền dư.** Dùng màu từ chính ảnh tạo nền cover, tán mịn và lớp sáng mỏng như kính mờ nhẹ. Foreground contain, sắc nét và đủ cả ảnh; không viền trắng/đen đặc ở phần dư. Nền bị clip trong frame, chỉ trang trí, không focus/pointer/alt hoặc tham gia morph. Không méo thấu kính, không viền khúc xạ, không hiệu ứng bám chuột. Blur không phủ chữ/icon/control. Ảnh masonry và fullscreen viewer không đổi fit mode vì delta này.
 
 **D7 — Giữ tương tác đã duyệt.** Hàng tag dưới mô tả đã gỡ; vẫn giữ taxonomy, tag URL, gợi ý/reset/history và compatibility. CTA ở góc dưới trái ảnh, expand dưới phải; giữ action/href, trạng thái hover/focus/active/disabled và accessibility hiện có. Không nhân đôi CTA hoặc cho click CTA mở viewer. Giữ shuffle khi đổi vị trí/số card, gồm lần tải trang; chuyển từ vị trí đang thấy, ngắt/resume được, không clone/focus card kẹt đè hero. Bổ sung skeleton loop không được chiếm transform điều phối layout.
 
@@ -52,12 +52,12 @@ Correction này thay D4 và phần D3/D5/D7 liên quan title, gợi ý/reset; c�
 điều kiện intrinsic, số cột, tỷ lệ vùng và khả năng đọc còn lại giữ nguyên.
 Owner đã chốt trong interview và yêu cầu tiếp tục triển khai card:
 
-- Bỏ caption/title ảnh ở mọi dạng grid Advertising và bỏ tiêu đề lớn trong
+- Bỏ caption/title ảnh ở mọi dạng masonry Advertising và bỏ tiêu đề lớn trong
   detail, cả VI/EN và route tương thích. Giữ mô tả, phân loại bằng tag và
   mô tả thay thế cho accessibility; ảnh không có tên riêng trong mô hình CMS
   tương lai. Không mở triển khai CMS/database trong task này.
 - Chuyển toàn bộ “Có thể bạn thích” / “You might like” vào vùng mô tả của
-  primary. Gợi ý không còn chiếm một cột trong related grid; vị trí N−1 cũ
+  primary. Gợi ý không còn chiếm một cột trong related masonry; vị trí N−1 cũ
   và kích thước banner103px không còn là constraint của cụm mới.
 - Giữ nền ảnh cho từng nút gợi ý, dàn gọn và tự xuống hàng theo bề rộng.
   Bố cục phù hợp ảnh trên/chữ dưới và ảnh trái/chữ phải; giữ chữ đọc được,
@@ -68,7 +68,7 @@ Owner đã chốt trong interview và yêu cầu tiếp tục triển khai card:
 - Bỏ nút “Xem lại các ảnh liên quan”. Khi không có ảnh related, người dùng
   bỏ filter bằng chính nút toggle đang bật trong phần mô tả.
 
-Điều kiện nghiệm thu thêm: không còn caption/title ảnh trong mọi grid;
+Điều kiện nghiệm thu thêm: không còn caption/title ảnh trong mọi masonry;
 gợi ý nằm trong primary info ở cả hai layout; bật/chuyển/tắt filter bằng
 mouse và keyboard giữ photo ID, Back/Forward khôi phục đúng trạng thái;
 normal-copy fit và chữ200% vẫn truy cập hết nội dung. Evidence geometry cũ
@@ -76,9 +76,9 @@ normal-copy fit và chữ200% vẫn truy cập hết nội dung. Evidence geomet
 
 ### D9 — Correction owner: ưu tiên so le từ 10% — 2026-09-13
 
-Owner xác nhận: “grid không nhất thiết phải so le nhưng cách xếp so le phải
+Owner xác nhận: “masonry không nhất thiết phải so le nhưng cách xếp so le phải
 ưu tiên hàng đầu. So le tối thiểu 10%”. Correction này thay yêu cầu bắt buộc
-so le0,20 ở D5 và các contract grid Advertising cũ; không chỉ giới hạn ngoại
+so le0,20 ở D5 và các contract masonry Advertising cũ; không chỉ giới hạn ngoại
 lệ cho nhóm cùng tỷ lệ.
 
 - Ưu tiên tìm bố cục so le với độ lệch tối thiểu0,10 thay0,20. Giữ cách đo
@@ -193,14 +193,14 @@ Test: `tests/site/advertising-suggestion-layout.e2e.mjs`.
 
 ### D15 — Card ảnh dùng chung — 2026-09-13
 
-Owner yêu cầu đồng bộ card ảnh thật giữa grid chính và grid related detail,
+Owner yêu cầu đồng bộ card ảnh thật giữa masonry chính và masonry related detail,
 reuse component thay vì dựng markup/hành vi riêng. Cả hai dùng cùng factory,
 khung media clip, intrinsic dimensions, link/alt VI/EN, lazyload và reveal.
-Giữ hover ảnh scale1,15 trong0,6giây ease-out của grid chính; rời chuột trả
+Giữ hover ảnh scale1,15 trong0,6giây ease-out của masonry chính; rời chuột trả
 scale1. Focus bàn phím dùng cùng zoom và outline rõ; reduced motion bỏ zoom
 và giữ outline, touch mở ảnh bằng một chạm không phụ thuộc hover.
 Không đổi tọa độ/kích thước card, D14, URL/ID, filter hoặc motion riêng của
-nút gợi ý và skeleton. Giữ wrapper dữ liệu grid/related cho routing hiện có.
+nút gợi ý và skeleton. Giữ wrapper dữ liệu masonry/related cho routing hiện có.
 
 Kiểm chứng: test mới `advertising-card-interactions.e2e.mjs` đỏ trước sửa
 ở detail hover; sau sửa parent/detail VI/EN đạt hover/rời/focus/reduced/Enter.
@@ -242,7 +242,7 @@ tả không đổi, bật/tắt filter không được đổi vị trí các m�
   không đổi vị trí nút hoặc kích thước cụm vì chuyển ảnh.
 - Tái dùng nhịp homepage đã kiểm trong motion.js: ảnh zoom nhẹ1,06→1
   trong5giây, chuyển mờ1,6giây; điều chỉnh ở lớp ảnh nền nút, không animate
-  grid/primary theo nhịp này. Hover phản hồi viền/sáng nhẹ riêng, không
+  masonry/primary theo nhịp này. Hover phản hồi viền/sáng nhẹ riêng, không
   giả trạng thái chọn; keyboard có focus rõ, `aria-pressed` giữ chính xác.
 - Pause khi offscreen/tabẩn; hủy khi deactive/đổi ảnh/unmount. Reduced
   motion giữ ảnh tĩnh và trạng thái rõ. Không thay media hoặc motion homepage.
@@ -285,7 +285,7 @@ Backlog 23 sửa, 13 thay và 6 parent chưa xác minh nguồn là số dư lị
 
 Ảnh không đạt phải sửa/tạo lại theo từng lô nhỏ rồi review lại. Yêu cầu công cụ imagegen tích hợp, requested ChatGPT Images 2.5; effective model chỉ ghi khi tool công bố, còn lại unknown. Không dùng model/API thay thế ngầm. Không tự hồi sinh revision đã bị loại. Các correction về biển đường, canvas dưới sàn, quầy VỊ DỪA QUÊ, LED BỆNH VIỆN, pano, standee, menu Mica, sáu concept triển lãm và vật liệu Formex tiếp tục là ràng buộc. Giữ đủ ba sơ đồ du lịch/khu công nghiệp/nhà máy, bốn kiểu standee và số nhà/số phòng theo authority. Ba sản phẩm bổ sung là một hộp đèn kim loại hiệu ứng rỉ và hai biển số nhà Mica/Mica-Alu; không gọi chung thành ba biển số nhà. Đây là chỉ dẫn truy vết, không phải danh sách thay thế brief đầy đủ.
 
-**M5 — Tích hợp và kiểm cuối.** Chỉ bản đạt mới đi vào public catalog: asset tối ưu, intrinsic dimensions thật, taxonomy/tags, tên/mô tả/alt VI/EN và mapping route chính xác. Giữ public identity khi thay đúng sản phẩm; thêm ID ổn định cho sản phẩm mới. Update manifest, counts, preflight, fixtures và các consumer dựa mapping được kiểm, không sửa assert chỉ để test xanh. Không để ảnh lỗi, link hỏng, crop/stretch hoặc skeleton tải kẹt. Sau thay số lượng phải kiểm grid/shuffle/filter/related ở VI/EN, gồm ảnh mới và ảnh thay.
+**M5 — Tích hợp và kiểm cuối.** Chỉ bản đạt mới đi vào public catalog: asset tối ưu, intrinsic dimensions thật, taxonomy/tags, tên/mô tả/alt VI/EN và mapping route chính xác. Giữ public identity khi thay đúng sản phẩm; thêm ID ổn định cho sản phẩm mới. Update manifest, counts, preflight, fixtures và các consumer dựa mapping được kiểm, không sửa assert chỉ để test xanh. Không để ảnh lỗi, link hỏng, crop/stretch hoặc skeleton tải kẹt. Sau thay số lượng phải kiểm masonry/shuffle/filter/related ở VI/EN, gồm ảnh mới và ảnh thay.
 
 ### M5 — Owner duyệt ảnh trước tích hợp (bổ sung 2026-09-13)
 
@@ -354,7 +354,7 @@ $env:BASE_URL = "http://127.0.0.1:8787"
 $env:TT_E2E_BRAND_LOCKUP_ONLY = "1"
 node tests/site/site.e2e.cjs
 ```
-Plan bổ sung scoped cases cho skeleton/CTA/hero/grid/header vào harness sẵn có; không dùng pnpm qa:site trần để mở full canonical đã ngoài scope. Browser controls/contrast/performance phải đo đúng state; không suy từ build.
+Plan bổ sung scoped cases cho skeleton/CTA/hero/masonry/header vào harness sẵn có; không dùng pnpm qa:site trần để mở full canonical đã ngoài scope. Browser controls/contrast/performance phải đo đúng state; không suy từ build.
 
 Khi triển khai: cập nhật nguồn Git sở hữu contract — docs/specs/advertising-photo-browse.md, DESIGN.md, docs/design/patterns.md, docs/design/content.md nếu copy/use-site đổi, docs/design/advertising-image-quality.md nếu có correction mới, acceptance manifests và verification tương ứng. Notion tiếp tục giữ status/plan và link Git; không thay evidence observed của phiên bản trước thành proof của delta này.
 
@@ -371,7 +371,7 @@ Owner đã duyệt ngưỡng 1,8, vị trí gợi ý, kính mờ, mốc cột 72
 D18 thay D2, D10, D16 và phần layout của D17. Từ tablet trở lên primary luôn
 span `min(2,N)`, ảnh trái và mô tả phải; mobile xếp dọc. “Có thể bạn thích”
 giữ bốn mục dưới body trong cột mô tả, phủ hết bề ngang và dùng cùng card hover
-component với grid. Toggle active/deactive không đổi geometry hoặc thứ tự.
+component với masonry. Toggle active/deactive không đổi geometry hoặc thứ tự.
 
 Morph correction cùng lượt khóa scroll trong toàn bộ animation và phải release
 trong mọi đường finish/cancel/abort/error. Skeleton correction dùng một FIELD
@@ -400,7 +400,7 @@ card và khi scroll lease làm thay đổi `clientWidth`. Resize thật vẫn h�
 mọi finish/cancel/abort phải nhả lock.
 
 **Supersession M02b — 2026-09-30:** [Spec media-card đã duyệt](site-media-card-playback.md)
-thay morph card grid/related↔primary ở D19, gồm click, Back/Forward và
+thay morph card masonry/related↔primary ở D19, gồm click, Back/Forward và
 chuyển giữa hai detail: không tạo clone giữa card và primary; giữ media
 active, scroll từng history entry và dấu card vừa xem. Chỉ morph
 primary↔enlarged viewer được giữ. Đoạn D19 phía trên là yêu cầu lịch sử,
@@ -412,7 +412,7 @@ Owner duyệt D20 ngày `2026-09-21`. D20 thay phần đặt copy của D19; gi�
 viewport, footer ở document flow kế tiếp và responsive cap `28%`.
 
 - Skeleton không có viền và không phủ toàn viewport. Card skeleton dùng cùng
-  reveal/hover component với card grid; gradient nội bộ theo R4 của
+  reveal/hover component với card masonry; gradient nội bộ theo R4 của
   `advertising-skeleton-flow.md`.
 - Tâm quang học headline nằm trên đường biên dưới của cụm skeleton: phần trên
   chạm/đè nhẹ lên dải card, phần dưới đi vào khoảng trắng. Link “Trao đổi ý
@@ -427,7 +427,7 @@ viewport, footer ở document flow kế tiếp và responsive cap `28%`.
 
 Acceptance D20: screenshot VI/EN tại desktop/mobile cho thấy headline giao đúng
 biên, link nằm trong trắng, CTA không overflow và footer bắt đầu sau section;
-viewport-entry/hover skeleton khớp card grid. Click nav từ category/photo/tag và
+viewport-entry/hover skeleton khớp card masonry. Click nav từ category/photo/tag và
 ngay tại parent đưa URL về `/vi/advertising-products/` hoặc locale tương ứng,
 active filter là Tất cả; Back/Forward không sai state.
 
@@ -447,19 +447,19 @@ active filter là Tất cả; Back/Forward không sai state.
   adapter chưa sẵn sàng. Shell lưu intent filter mới nhất, không fetch HTML,
   không unmount container và không thêm history entry tạm.
 - Khi adapter mount thành công, chuyển đúng một activation cho catalog handler;
-  catalog sở hữu URL/query, `aria-current`, geometry và grid motion như hiện tại.
+  catalog sở hữu URL/query, `aria-current`, geometry và masonry motion như hiện tại.
   Nếu mount fail, giữ fallback link usable thay vì khóa filter vĩnh viễn.
 - Modifier click, middle click, target/download và route ngoài Advertising không
   bị chặn. Khi adapter đã sẵn sàng, đường xử lý hiện tại giữ nguyên.
 - Regression delay import catalog, thực hiện `End → Home → click filter` trước
   adapter rồi assert: container/hero identity giữ nguyên, không document/XHR
-  route query, hero không có animation mới; sau ready, query/grid cập nhật một
+  route query, hero không có animation mới; sau ready, query/masonry cập nhật một
   lần. Lặp mười vòng sau ready và kiểm cùng invariant.
 
 ## Chú thích thuật ngữ
 
 - **Client width**: bề rộng vùng nội dung browser bằng CSS px, không gồm thanh cuộn dọc.
-- **Span**: số cột grid mà khối detail chiếm.
+- **Span**: số cột masonry mà khối detail chiếm.
 - **Intrinsic ratio**: tỷ lệ rộng/cao thật của ảnh.
 - **Disposition**: kết luận giữ, sửa, thay, thêm hoặc không dùng cho từng candidate ảnh.
 - **Gate**: điều kiện phải đạt trước khi tích hợp hoặc nghiệm thu.
