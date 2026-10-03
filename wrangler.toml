@@ -1,3 +1,5 @@
+# Dormant until the owner activates the CMS phase.
+# Current static workflows must not invoke this configuration.
 name = "truong-thinh-website"
 main = "src/worker/index.js"
 compatibility_date = "2026-07-31"

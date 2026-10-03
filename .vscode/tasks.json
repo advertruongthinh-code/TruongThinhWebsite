@@ -2,6 +2,22 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Website: Localhost Trường Thịnh",
+      "type": "shell",
+      "command": "pnpm dev",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "runOptions": { "instanceLimit": 1 },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "detail": "Chạy localhost; dùng Tasks: Terminate Task hoặc nút dừng của terminal để dừng."
+    },
+    {
       "label": "Tooling: Watch",
       "dependsOrder": "parallel",
       "dependsOn": [

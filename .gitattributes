@@ -6,7 +6,5 @@
 *.woff2 binary
 *.zip binary
 
-# Preserve the exact bytes recorded by the archive SHA256 ledger.
-docs/archive/snapshots/state-before-release-2026-09-24.md -text
 
 graphify-out/graph.json merge=graphify
