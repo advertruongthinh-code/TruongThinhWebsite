@@ -8,6 +8,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 
 | Công việc | Nguồn bắt đầu | Nội dung |
 | --- | --- | --- |
+| Mục tiêu và phase dự án | [Goal](goal.md) | Static (đang ở) và CMS (chưa mở), nguyên tắc stack free/phí thấp |
 | Hiểu hệ thống/deploy | [Architecture](architecture/index.md) | Runtime static, source ownership, ranh giới CMS |
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/grid/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
