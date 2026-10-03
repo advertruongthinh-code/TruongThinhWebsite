@@ -16,6 +16,7 @@ const pins = JSON.parse(readFileSync(join(root, "tooling-versions.json"), "utf8"
 const claudeDir = join(root, ".claude");
 const lockPath = join(claudeDir, "skills.lock.json");
 const cacheDir = join(root, ".tooling", "skill-sources");
+const overridesDir = join(root, "scripts", "tooling", "skill-overrides");
 
 // Same selection the global Codex stack used: every skill folder that has a SKILL.md.
 const SOURCES = [
@@ -39,12 +40,9 @@ function checkout(repo) {
     mkdirSync(cacheDir, { recursive: true });
     git(["clone", "--quiet", "--filter=blob:none", "--no-checkout", url, dir]);
   }
-  let head = "";
-  try { head = git(["rev-parse", "HEAD"], dir); } catch { /* fresh clone without checkout */ }
-  if (head !== commit) {
-    try { git(["cat-file", "-e", `${commit}^{commit}`], dir); } catch { git(["fetch", "--quiet", "origin"], dir); }
-    git(["-c", "advice.detachedHead=false", "checkout", "--quiet", "--force", "--detach", commit], dir);
-  }
+  // Always check out: a --no-checkout clone can already point HEAD at the pin with an empty tree.
+  try { git(["cat-file", "-e", `${commit}^{commit}`], dir); } catch { git(["fetch", "--quiet", "origin"], dir); }
+  git(["-c", "advice.detachedHead=false", "checkout", "--quiet", "--force", "--detach", commit], dir);
   return { dir, commit };
 }
 
@@ -82,6 +80,12 @@ function collect() {
       skills[name] = { repo: source.repo, commit, path: folder, from: join(dir, folder) };
     }
     if (source.references) references.push({ repo: source.repo, commit, path: source.references, from: join(dir, source.references) });
+  }
+  // Project overrides replace the whole upstream skill folder.
+  for (const name of readdirSync(overridesDir)) {
+    if (!existsSync(join(overridesDir, name, "SKILL.md"))) continue;
+    if (!skills[name]) throw new Error(`Skill override has no pinned upstream skill: ${name}`);
+    skills[name] = { ...skills[name], path: `override:scripts/tooling/skill-overrides/${name}`, from: join(overridesDir, name) };
   }
   return { skills, references };
 }

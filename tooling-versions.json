@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "resolved_at": "2026-08-09",
+  "resolved_at": "2026-10-03",
   "policy": "User-global agent stack and project-local browser QA are pinned; update checks notify only.",
   "scope": {
     "global": [
@@ -12,12 +12,10 @@
       "i-have-adhd",
       "caveman",
       "ponytail",
-      "sol-advisor",
       "jq"
     ],
     "project": [
       "playwright",
-      "wrangler",
       "browser-engines",
       "graphify-git-hooks",
       "graphify-watcher",
@@ -25,28 +23,27 @@
     ]
   },
   "skills": {
-    "agent-skills-count": 24,
-    "caveman-count": 20,
-    "impeccable-skill": "4.1.1",
+    "agent-skills-count": 25,
+    "caveman-count": 22,
+    "impeccable-skill": "4.5.0",
     "ponytail-count": 6,
-    "ponytail-skill": "4.9.0",
-    "global-total": 53
+    "ponytail-skill": "4.10.0",
+    "global-total": 56
   },
   "python": {
     "serena-agent": "1.7.0",
-    "graphifyy": "0.9.46",
-    "uv": "0.12.5",
+    "graphifyy": "0.9.74",
+    "uv": "0.12.22",
     "graphify_extras": "all"
   },
   "node": {
     "global": {
-      "impeccable": "3.6.0",
-      "chrome-devtools-mcp": "1.7.0"
+      "impeccable": "4.1.0",
+      "chrome-devtools-mcp": "1.10.1"
     },
     "project": {
-      "playwright": "1.62.1",
-      "pnpm": "11.22.0",
-      "wrangler": "4.124.0"
+      "playwright": "1.63.0",
+      "pnpm": "12.8.1"
     }
   },
   "runtimes": {
@@ -57,16 +54,15 @@
     }
   },
   "repositories": {
-    "oraios/serena": "2561478a7072c9e048fdfc0aba8c334218239340",
-    "Graphify-Labs/graphify": "558df6d57d61cb6ef79c740ec7473c6d953d79a7",
-    "ayghri/i-have-adhd": "e7555fcaf612dfa1739dc86610ea926a906db614",
-    "addyosmani/agent-skills": "df1edb2e05487d0aa6d93c747141e0aed1187f25",
-    "juliusbrussee/caveman": "99a9aa2f5a45097fc3563febea7d0baf64407441",
-    "pbakaus/impeccable": "f88b2837a7d7c3182e46307bbbb091a1ed547571",
-    "microsoft/playwright": "c377b7f47b00d41f4639b99b66ef62a458529f46",
-    "ChromeDevTools/chrome-devtools-mcp": "6506425a46ead4dcb9e6831befc4501ef1a3beee",
-    "DannyMac180/sol-advisor": "37b75cad535abdd46531f0227483a8842d045ab8",
-    "dietrichgebert/ponytail": "2ed6c52c9d7e5e56942508591085fd45dea277d3"
+    "oraios/serena": "d0f7f92631c23dc4c5ed0b5ccd35bc623b19a809",
+    "Graphify-Labs/graphify": "0b60d47e6cd9338c51143f39f35b6c45c8453385",
+    "ayghri/i-have-adhd": "839872f9d1cd634fed642b4589ce7226199cc15f",
+    "addyosmani/agent-skills": "a06bc63b3f8b829c14b0bbf53d99fefc39d58092",
+    "juliusbrussee/caveman": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
+    "pbakaus/impeccable": "e103efe779e2dd01274dabae83531fef00bf2563",
+    "microsoft/playwright": "1b025d7e20a026371cd5f98ba0cdce48892737c8",
+    "ChromeDevTools/chrome-devtools-mcp": "b2f522c8ba0fd2e00a679159b4aa5243de5f1b78",
+    "dietrichgebert/ponytail": "c982cd411abb53323c4baa1baa3c2f020b8d0b08"
   },
   "repository_urls": {
     "oraios/serena": "https://github.com/oraios/serena.git",
@@ -77,13 +73,6 @@
     "pbakaus/impeccable": "https://github.com/pbakaus/impeccable.git",
     "microsoft/playwright": "https://github.com/microsoft/playwright.git",
     "ChromeDevTools/chrome-devtools-mcp": "https://github.com/ChromeDevTools/chrome-devtools-mcp.git",
-    "DannyMac180/sol-advisor": "https://github.com/DannyMac180/sol-advisor.git",
     "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git"
-  },
-  "sol_advisor": {
-    "commit": "37b75cad535abdd46531f0227483a8842d045ab8",
-    "version": "0.6.0",
-    "archive_url": "https://codeload.github.com/DannyMac180/sol-advisor/zip/37b75cad535abdd46531f0227483a8842d045ab8",
-    "archive_sha256": "3d99fd4b96fa81f8cc02da0487fbd2dfd925ab14a15925fae6f2c4acac0eed98"
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: using-agent-skills
-description: Discovers and invokes agent skills. Use when starting a session or when you need to discover which skill applies to the current task. This is the meta-skill that governs how all other skills are discovered and invoked.
+description: Discovers and invokes agent skills. Use when starting a session, or when you need to decide which skill or workflow applies to the piece of work at hand. This is the meta-skill that governs how all other skills are discovered and invoked.
 ---
 
 # Using Agent Skills
@@ -19,6 +19,7 @@ Task arrives
     ├── Don't know what you want yet? ──────→ interview-me
     ├── Have a rough concept, need variants? → idea-refine
     ├── New project/feature/change? ──→ spec-driven-development
+    ├── No quality bar written down? ──→ constraint-driven-development
     ├── Have a spec, need tasks? ──────→ planning-and-task-breakdown
     ├── Implementing code? ────────────→ incremental-implementation
     │   ├── UI work? ─────────────────→ frontend-ui-engineering
@@ -40,6 +41,14 @@ Task arrives
     ├── Adding logs/metrics/alerts? ───→ observability-and-instrumentation
     └── Deploying/launching? ─────────→ shipping-and-launch
 ```
+
+## Thực thi plan đã duyệt
+
+Sau khi owner duyệt plan, Codex đánh giá scope, risk và khả năng tách ownership
+rồi chọn tự xử lý hoặc dùng collaboration native khi tool khả dụng và được cho
+phép. Main giữ yêu cầu, architecture, diff inspection, verification và final
+acceptance; output của worker/reviewer là claim cho đến khi main kiểm chứng.
+Không thêm router runtime riêng hoặc mở lại gate đã được owner duyệt.
 
 ## Core Operating Behaviors
 
@@ -189,3 +198,9 @@ Not every task needs every skill. A bug fix might only need: `debugging-and-erro
 | Ship | documentation-and-adrs | Document the why, not just the what |
 | Ship | observability-and-instrumentation | Structured logs, RED metrics, traces, symptom-based alerts |
 | Ship | shipping-and-launch | Pre-launch checklist, monitoring, rollback plan |
+
+
+## Chú thích thuật ngữ
+
+- **Callable**: model/effort thực sự gọi được qua tool của host.
+- **Execution**: thực thi công việc theo plan và authorization đã có.
