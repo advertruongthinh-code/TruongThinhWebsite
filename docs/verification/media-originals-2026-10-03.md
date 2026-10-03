@@ -34,8 +34,8 @@ gốc nhưng cũng không được tham chiếu: sáu bản `.jpg` cover/process
 `process-*-survey-v2.png`, bốn WebP Advertising cũ (`mobile-retail-05`,
 `office-signs-wayfinding-01`, `signage-raised-letters-02`, `-06`) và
 `home-advertising-products-table`.
-Cả 19 file đều có tên trong `nonPublicSourceAssets` của
-`scripts/site/prepare-static-assets.mjs`: được giữ chủ đích làm source, không
+Cả 19 file đều có tên trong `nonPublicSourceAssets` trong
+`scripts/site/non-public-source-assets.mjs`: được giữ chủ đích làm source, không
 phát hành, nên không phải media chết và không convert.
 
 ## Xử lý khi convert
