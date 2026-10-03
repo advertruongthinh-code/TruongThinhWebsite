@@ -194,7 +194,7 @@ Inventory initial: 132 file docs, gồm 120 Markdown và 12 CSV/backup.
 Hai native worker đã trả inventory Espacio provenance và design/code mapping.
 Main đã đối chiếu raw sink/suffix, motion replay drift và source reuse entrypoint.
 Inventory không phải audit từng dòng toàn bộ docs; requested Sol/high,
-effective unknown. Mapping đầy đủ ở [inventory](../../tasks/docs-living/inventory.md),
+effective unknown. Mapping đầy đủ ở [inventory](../../tasks/plan.md#inventory-living-docs-r1--2026-09-09),
 thứ tự thực thi ở plan `tasks/docs-living/plan.md` (local, đã xóa sau khi hoàn tất).
 
 Owner đã duyệt spec, plan và mapping trong session ngày 2026-09-09.

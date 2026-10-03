@@ -891,6 +891,305 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 - [ ] M09: xác minh M02b supersession, link/status/content và handoff/DoD;
   không retag H00/L06 hoặc rerun body210 khi hash/blast radius không đòi.
 
+## Advertising random grid và tải ảnh — checklist
+
+Nhập từ Codex; chờ owner duyệt [plan](plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25).
+
+Trạng thái: chờ owner duyệt plan. Không bắt đầu source task trước human gate.
+
+### P0 — Cô lập checkout và chụp baseline
+
+**Mô tả:** sau plan approval, tạo branch/worktree riêng từ HEAD `main` đã xác
+nhận lúc chạy; chỉ copy spec/map/plan/docs thuộc task. Đo Sites version hiện
+hành trước mọi source change.
+
+**Acceptance:**
+
+- [ ] Main checkout và dirty/untracked work ngoài task còn nguyên.
+- [ ] Branch là `codex/advertising-random-media`; worktree chỉ chứa file task
+      sau selective transfer.
+- [ ] Có 120 cold runs: 6 route đại diện × 2 locale × 2 viewport × 5 lượt;
+      ghi LCP, request start, decode/reveal, bytes, kích thước, CLS, lỗi và
+      cohort ID. Warm cache ghi riêng.
+- [ ] Report ghi Sites version/SHA, Slow 4G/CPU 4x, thời gian chạy và sample
+      bị loại; không dùng phép đo thăm dò đơn làm baseline.
+
+**Verification:** kiểm git status ở main/worktree; browser Network/Performance
+xác nhận ảnh mẫu có transfer bytes `>0`; đối chiếu đủ 120 tổ hợp.
+**Dependencies:** plan approval. **Files likely:** report dưới
+`docs/verification/` và verification index. **Estimate:** 75–120 phút.
+
+### P1 — Khóa RED cho thứ tự, history và pool mở rộng
+
+**Mô tả:** khóa test trước source cho All, sáu filter, related category/tag,
+seed/history, solver hard/soft gate và catalog tăng.
+
+**Acceptance:**
+
+- [ ] Direct load/F5 lấy seed mới; filter, locale và Back/Forward giữ seed,
+      kể cả khi browser dựng lại document; URL contract không đổi.
+- [ ] Mỗi pool giữ đúng membership/ID đúng một lần; canonical `sourceOrder`,
+      rank, tags, caption/alt VI/EN không bị ghi lại.
+- [ ] Nút All và sáu filter giữ nguyên thứ tự/vị trí; grid route ngoài Advertising
+      không bị random.
+- [ ] Fixture `0/1/2/3/10/100`, ảnh đứng/ngang/vuông và ratio cực đoan kiểm
+      geometry, operation budget và hard-safe fallback.
+
+**Verification:** test mới RED đúng trên behavior cũ và invariant cũ GREEN;
+chạy:
+`node --test tests/site/advertising-products-layout.test.mjs tests/site/advertising-products-lifecycle.test.mjs tests/site/advertising-skeleton-flow.test.mjs`.
+**Dependencies:** P0. **Files likely:** ba test trên và
+`tests/site/advertising-products-random-order.test.mjs`. **Estimate:** 50–80 phút.
+
+### P2 — Triển khai presentation order, seed và solver fallback
+
+**Mô tả:** nối thứ tự trình bày với layout mà không shuffle phá canonical
+rank; gắn seed vào history entry và locale handoff dùng một lần.
+
+**Acceptance:**
+
+- [ ] Pool có nhiều hơn một nghiệm hard-safe tạo được ít nhất hai hoán vị qua
+      nhiều seed; trong cùng lượt mỗi pool dùng lại đúng thứ tự.
+- [ ] Back/Forward, locale full navigation và document reconstruction phục hồi
+      seed entry; reload/direct navigation bắt đầu seed mới.
+- [ ] Search không vượt `300.000` operations; nếu soft target không đạt, trả
+      layout hợp lệ cùng diagnostic, không `search-exhausted`.
+
+**Verification:** P1 GREEN; oracle sweep width
+`320/390/768/1024/1440/1920/2560`, pool `1/10/100`, history và resize.
+**Dependencies:** P1. **Files likely:** `layout-core.mjs`,
+`catalog-runtime.mjs`, helper nếu cần và tối đa hai test. **Estimate:** 90–150 phút.
+
+### P3 — Random batch skeleton và nhịp slideshow
+
+**Mô tả:** random phân bố band cao/vuông/thấp theo seed trên frontier hiện có;
+giữ tập suggestion theo tag và đổi ảnh mỗi 3 giây.
+
+**Acceptance:**
+
+- [ ] Batch tiếp nối đáy card thật; band đổi giữa seed khi có nhiều nghiệm;
+      không đổi scrollHeight, hit testing, CTA–footer gap hoặc final viewport.
+- [ ] CTA–footer gap giữ trong `1 CSS px`; khoảng batch–card không vượt một
+      inter-card gap ngoài sai số `1 CSS px`.
+- [ ] Suggestion giữ sample random tối đa 9 ảnh/tag; đổi mỗi `3 s`, crossfade
+      `1,6 s`, không auto-zoom, tôn trọng pause/visibility/selection/reduced motion.
+- [ ] Cùng lượt filter/history round-trip phục hồi batch state; membership,
+      ảnh thật và CTA không đổi.
+
+**Verification:** P1/P2 GREEN; unit/browser matrix VI/EN mobile/desktop,
+reduced motion, CTA/footer và 3-second tick.
+**Dependencies:** P2. **Files likely:** `skeleton-flow.mjs`,
+`catalog-runtime.mjs`, `suggestion-slideshow.mjs`, tối đa hai test.
+**Estimate:** 50–90 phút.
+
+#### Checkpoint A — Advertising
+
+- [ ] P1–P3 focused tests và static/layout checks đạt.
+- [ ] Main kiểm diff; report score/fallback cho pool đồng dạng và khó.
+
+### P4 — Chẩn đoán bottleneck delivery
+
+**Mô tả:** phân rã baseline thành discovery/priority, queue/transfer,
+decode/reveal. Đây là bước read-only, chưa đổi source hoặc media.
+
+**Acceptance:**
+
+- [ ] Có root cause theo route/viewport/cohort; giải thích biến thiên random
+      bằng ID, dimensions và bytes.
+- [ ] Quyết định nhánh tối thiểu được số đo hỗ trợ: discovery/priority,
+      transfer bytes hay decode/reveal; ghi nhánh loại trừ và lý do.
+- [ ] Nếu bytes chi phối, đề xuất đúng media cohort cần responsive derivative;
+      nếu không, giữ nguyên pool media.
+
+**Verification:** Network waterfall cold/warm cùng điều kiện và report root
+cause. **Dependencies:** P0. **Files:** chỉ report evidence, không source.
+**Estimate:** 30–60 phút.
+
+### P5 — Triển khai tối ưu delivery đã đo
+
+**Mô tả:** triển khai đúng nhánh P4 đã xác định; không thêm derivative nếu
+waterfall không cho thấy transfer bytes là nút thắt.
+
+**Acceptance:**
+
+- [ ] Candidate cải thiện phần bottleneck đo được, không tải mọi ảnh trước
+      viewport và không tạo request trùng.
+- [ ] Nếu cần derivative, giữ provenance/identity/dimensions/alt và tạo theo
+      batch nhỏ; không đưa source-only asset vào `.site-output/`.
+- [ ] Không làm LCP tăng ngoài gate; giữ caching, lazy loading, decode và
+      intrinsic ratio.
+
+**Verification:** focused media/static tests, cold/warm local Network waterfall
+và so đúng cohort/bytes với P0. **Dependencies:** P4. **Files likely:** tối đa
+5 source/test/doc paths cho mỗi slice; derivative chia batch riêng.
+**Estimate:** 45–90 phút, chưa tính derivative batch.
+
+### P6 — Feasibility gate cho byte progress
+
+**Mô tả:** thử cùng một request với một hero và một card lazy; kiểm tra byte
+stream, encoding, cache/decode và so với native path.
+
+**Acceptance:**
+
+- [ ] Không request lần hai, không trì hoãn hero/LCP ngoài gate, không buffer
+      ảnh ngoài viewport.
+- [ ] Determinate chỉ khi stream bytes và Content-Length cùng đơn vị; thiếu/lệch
+      header, encoded response hoặc body không đọc được thành indeterminate.
+- [ ] Abort/reload cleanup stream, listener và object URL; không hiện số %.
+- [ ] Nếu byte thật và speed gate không thể cùng đạt, dừng P6–P8 và trình owner
+      số đo/tradeoff; không thay bằng progress giả.
+
+**Verification:** isolated browser probe/test trên throttled network; ghi
+request count, time-to-decode, LCP, bytes và cleanup.
+**Dependencies:** P5. **Files likely:** isolated probe/test; chưa rollout
+production source. **Estimate:** 45–90 phút.
+
+#### Checkpoint B — Delivery go/no-go
+
+- [ ] P4 xác định bottleneck; P5 có candidate so sánh được.
+- [ ] P6 pass hoặc dừng, chuyển quyết định cho owner.
+
+### P7 — Tạo frame và progress state dùng chung
+
+**Mô tả:** sau P5 pass, thêm thành phần dùng chung nhỏ nhất cho reserved frame,
+determinate/indeterminate ring, cache, ready và error.
+
+**Acceptance:**
+
+- [ ] Frame lấy dimensions/aspect ratio thật trước request; cache-ready không
+      lóe; ready chỉ sau decode; error giữ tỷ lệ/alt.
+- [ ] Cung tròn phản ánh bytes, không có số; trạng thái unknown dùng chuyển
+      động indeterminate; reduced motion không quay liên tục; có `aria-busy`.
+- [ ] Không thêm dependency, WebGL, service worker, endpoint hoặc global loader
+      gây hàng đợi chung.
+
+**Verification:** component tests known/unknown/mismatch/cache/error/abort;
+accessibility tree và reduced-motion browser check.
+**Dependencies:** P6 pass. **Files likely:** shared loader/state, CSS và test
+mới. **Estimate:** 60–120 phút.
+
+### P8 — Nối frame vào ảnh tĩnh toàn website
+
+**Mô tả:** nối với global motion/media reveal và page detail/service; logo,
+icon, background trang trí và batch skeleton CTA giữ ngoại lệ spec.
+
+**Acceptance:**
+
+- [ ] Home, residential, commercial, about, gallery và hero dành chỗ trước
+      request; không CLS do placeholder.
+- [ ] Alt, request priority/lazy, VI/EN, direct/Barba/Back lifecycle không đổi;
+      no-script vẫn xem ảnh được.
+- [ ] Không request ảnh trùng; ảnh cache không hiện loading state giả.
+
+**Verification:** HTML/media contract; Playwright/DevTools theo route, locale,
+viewport, slow network và failure.
+**Dependencies:** P7. **Files likely:** `motion.js`, `detail.js`, shared
+module/CSS và một test (tối đa 5 file). **Estimate:** 75–120 phút.
+
+### P9 — Nối frame vào Advertising động
+
+**Mô tả:** nối component đã qua gate vào card, related, suggestion và photo
+viewer; giữ LazySizes/virtualization và priority hiện hành.
+
+**Acceptance:**
+
+- [ ] Parent/detail/related/viewer hiện đúng loading state; thay hero hoặc rapid
+      scroll không gắn state ảnh cũ sang ảnh mới.
+- [ ] Lazy window giữ bounded requests; viewer close/error và history giữ
+      lifecycle hiện tại.
+- [ ] Grid random, CTA/footer và filter không đổi geometry khi tải ảnh.
+
+**Verification:** Advertising layout/media/lifecycle và viewer E2E; request
+count, slow network, keyboard/touch, reduced motion.
+**Dependencies:** P3 và P8. **Files likely:** `catalog-runtime.mjs`,
+`photo-viewer.mjs` và focused tests (tối đa 5 file). **Estimate:** 75–120 phút.
+
+### P10 — Tích hợp, review và preview độc lập
+
+**Mô tả:** chạy project quality gates, review source cuối và gọi subagent mới
+để preview local candidate bằng Chrome/Playwright.
+
+**Acceptance:**
+
+- [ ] Unit/static/build GREEN; docs index/STATE/specs khớp source/hash.
+- [ ] Main chạy `code-review-and-quality` và `ponytail-review`; không còn
+      finding quan trọng.
+- [ ] Subagent `web-performance-auditor` dùng model yêu cầu `gpt-6-sol`,
+      effort `ultra`; preview read-only VI/EN, mobile/desktop, home/service,
+      Advertising All/filter/detail, Back/locale, CTA/footer, console/network/CLS.
+- [ ] Main kiểm từng finding; owner xem local preview trước Sites release.
+
+**Verification:** `pnpm prepare:site`, `pnpm qa:static`, focused test commands
+trong spec, local `pnpm dev`, Playwright và Chrome DevTools MCP. Ghi model/
+effort thực tế từ dispatch result hoặc `unknown`.
+**Dependencies:** P3–P9. **Files:** evidence/docs và finding chuyển về task sở
+hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
+
+#### Checkpoint C — Local preview
+
+- [ ] Source, review và preview đạt; owner approve candidate.
+- [ ] Sites version rollback trước release đã được xác nhận.
+
+### P11 — Push source và đo Sites candidate
+
+**Mô tả:** phát hành theo gate Sites sau owner release approval; GitHub giữ
+source/tests/scripts/docs, Sites chỉ nhận static artifact.
+
+**Acceptance:**
+
+- [ ] Ponytail review chạy trước commit/push; staged diff chỉ gồm task paths.
+- [ ] Release evidence ghi GitHub SHA, mirror SHA, archive checksum và Sites version.
+- [ ] Sites tree/archive chỉ có `dist/` và `.openai/hosting.json`.
+- [ ] Candidate đạt 120 cold runs cùng baseline và threshold của spec; nếu trượt,
+      rollback version cũ và lưu evidence.
+
+**Verification:** Git diff/commit/push gates, archive tree/checksum, Sites
+deployment confirmation và Network/Performance matrix sau deploy.
+**Dependencies:** P10 và owner release approval. **Estimate:** 60–120 phút,
+chưa tính propagation hoặc sửa phát sinh.
+
+## Lịch sử checklist Codex
+
+Checklist Codex của checkout chính, nhập ngày 2026-10-03.
+
+- [x] Task 19: Khóa regression RED cho ancestor opacity, one-shot fade và media
+  error theo [plan](plan.md#task-19-khóa-regression-red-cho-gallery-ancestor-và-media-error).
+- [x] Task 20: Sửa shared gallery markup và scoped media-error lifecycle theo
+  [plan](plan.md#task-20-sửa-shared-gallery-media-lifecycle).
+- [x] Checkpoint 8: Focused tests green và boundary không lan sang trang cha hoặc
+  route dịch vụ.
+- [x] Task 21: Chạy runtime QA, review và đồng bộ live evidence theo
+  [plan](plan.md#task-21-runtime-qa-review-và-live-evidence).
+- [ ] Human acceptance: owner spot-check một route VI và một route EN.
+
+### Sáu composition và đủ `109` media
+
+- [x] Task 22: Khóa RED cho sáu composition và media partition theo
+  [plan](plan.md#task-22-khóa-red-cho-sáu-composition-và-media-partition).
+- [x] Task 23: Triển khai sáu config cùng shared block renderer theo
+  [plan](plan.md#task-23-triển-khai-config-và-shared-block-renderer).
+- [x] Task 24: Hoàn thiện responsive composition và focused browser regression
+  theo [plan](plan.md#task-24-hoàn-thiện-responsive-composition-và-browser-regression).
+- [x] Checkpoint 9: Shared family, media partition và route boundary green.
+- [x] Task 25: Chạy three-way QA, review và đồng bộ live evidence theo
+  [plan](plan.md#task-25-three-way-qa-review-và-live-evidence).
+- [x] Human gate: owner duyệt plan trước Task 22.
+
+### Carousel ngang cho mọi block gallery
+
+- [x] Human gate spec: owner duyệt delta carousel và ngoại lệ ảnh siêu rộng.
+- [x] Human gate plan: owner duyệt Task 26–29 trước source edit.
+- [x] Task 26: Khóa RED cho carousel, fallback và box integrity theo
+  [plan](plan.md#task-26-khóa-regression-red-cho-carousel-fallback-và-box-integrity).
+- [x] Task 27: Pin Swiper và chuyển shared gallery sang progressive markup theo
+  [plan](plan.md#task-27-pin-swiper-và-chuyển-gallery-sang-progressive-carousel-markup).
+- [x] Task 28: Triển khai scoped lifecycle, geometry và interaction theo
+  [plan](plan.md#task-28-triển-khai-scoped-lifecycle-responsive-geometry-và-interaction).
+- [x] Checkpoint 10: Sáu route VI/EN, fallback và route boundary green.
+- [x] Task 29: Three-way QA, review và live evidence theo
+  [plan](plan.md#task-29-three-way-qa-review-và-đồng-bộ-live-evidence).
+- [ ] Human acceptance: owner spot-check một route VI và một route EN.
+
 ## Chú thích thuật ngữ
 
 - **Baseline**: source trước fix, dùng để chứng minh regression assertion.
@@ -898,3 +1197,33 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 - **Channel**: bản browser cụ thể được chạy, ngoài tên engine.
 - **Handoff**: bàn giao implementation, evidence và gate còn mở.
 - **Stable stage**: vùng layout ảnh giữ kích thước khi browser toolbar đổi vùng nhìn.
+- **Seed**: giá trị chọn thứ tự random, được dùng lại khi phục hồi lượt duyệt.
+- **Soft score**: điểm nhịp cao–thấp/so le; có thể nới để giữ hard contract.
+- **Cold run**: lượt tải không dùng body ảnh trong cache browser.
+- **Candidate**: build đã qua local QA, chờ owner duyệt phát hành/đo Sites.
+- **Tracked**: file Git đang quản lý, xóa vẫn khôi phục được từ history.
+- **Untracked**: file Git chưa quản lý, xóa là mất.
+- **Supersede**: quyết định mới thay quyết định cũ.
+- **Ledger**: một file tổng hợp nhiều lần kiểm theo thứ tự.
+- **Trim**: cắt phần thừa trong file, giữ contract.
+- **Mapping**: đường dẫn trước và sau được đề xuất.
+- **Sink**: path script đọc/ghi, cần compatibility.
+- **SHA256**: dấu kiểm byte để chứng minh bảo toàn.
+- **Synthesis**: tổng hợp facts có nguồn, không thay evidence gốc.
+- **Pure layout core**: module thuật toán không đọc DOM, network hoặc trạng thái
+- **Artifact**: data build-time được runtime public đọc, không phải source CMS.
+- **Shortest-column**: đặt card kế tiếp vào cột có đáy thấp nhất.
+- **Immutable prefix**: card đã append giữ nguyên thứ tự và tọa độ khi nối data.
+- **Fail-closed**: dừng rõ ràng khi version/schema sai thay vì render nửa đúng.
+- **Reserved brick**: vùng primary tham gia cùng coordinate space như một item đã
+- **Media lane**: ownership theo một category để các batch ảnh không xung đột.
+- **Source ID**: danh tính ảnh gốc; crop/export lại cùng source không thành ảnh mới.
+- **Contact sheet**: bảng thumbnail dùng để review uniqueness và composition.
+- **Composition config**: dữ liệu xác định block order và media của một route.
+- **Media partition**: chia toàn bộ source thành các slot không thiếu và không lặp.
+- **RED**: regression test thất bại vì behavior mới chưa được triển khai.
+- **Go/no-go**: điểm quyết định có tiếp tục rollout theo số đo hay dừng.
+- **Reserved frame**: khung ảnh dành đúng tỷ lệ trước khi tải.
+- **Selective transfer**: chỉ chuyển file task đã sở hữu sang worktree mới.
+- **Ancestor opacity**: opacity của phần tử cha có thể làm ảnh con vô hình dù ảnh
+- **Composition**: thứ tự và tổ hợp block tạo nhịp riêng cho một route.

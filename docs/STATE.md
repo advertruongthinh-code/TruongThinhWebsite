@@ -17,7 +17,7 @@
   FAIL, chưa rõ gốc. M03–M09 PAUSED đến khi owner mở lại.
 - [Capability map grid Advertising và tải ảnh](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba module spec đã được owner duyệt; runtime chưa sửa. Bước tiếp là
-  [plan/task list riêng](../tasks/advertising-random-media/plan.md) chờ owner
+  [plan/task list riêng](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25) chờ owner
   duyệt; plan Advertising cũ và các human acceptance mở được giữ nguyên.
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
