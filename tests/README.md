@@ -227,6 +227,19 @@ node tests/site/mobile-layout-parity.e2e.mjs --phase baseline --scope advertisin
 node tests/site/mobile-layout-parity.e2e.mjs --phase final --scope all
 ```
 
+## Đo tốc độ tải ảnh
+
+Baseline và candidate của [static-image-delivery](../docs/specs/static-image-delivery.md):
+6 route × VI/EN × `390×844`/`1440×900`, Slow 4G và CPU 4x, mỗi lượt cache tắt.
+
+```bash
+node tests/site/image-delivery-measure.mjs --base https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev --runs 5
+node tests/site/image-delivery-measure.mjs --base http://127.0.0.1:8792 --runs 1 --only advertising-products/
+```
+
+`--warm` thêm lượt cache nóng sau lượt cold đầu. Raw ở `.tmp/image-delivery/`;
+`summary.json` có median LCP, ảnh đầu sẵn sàng, ảnh sau một lần cuộn, CLS và byte ảnh.
+
 ## Chú thích thuật ngữ
 
 - **Smoke suite**: nhóm test nhanh cho đường đi và behavior chính.

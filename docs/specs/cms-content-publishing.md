@@ -29,6 +29,12 @@ accessible và safe khi editorial data hoặc media chưa đầy đủ.
   reject.
 - `layoutKey` là allowlist do frontend contract sở hữu.
 - Image/video media cần type validation, alt text và poster handling khi áp dụng.
+- Chuẩn hóa media khi upload (owner, 2026-10-03): giữ nguyên file gốc ở vùng
+  storage private, rồi sinh biến thể public từ file gốc theo cùng chuẩn với
+  site tĩnh: ảnh AVIF kèm WebP dự phòng ở các cỡ chuẩn, video AV1/WebM kèm MP4
+  H.264 và poster. Public chỉ dùng biến thể, không dùng file gốc. Lý do: 36 ảnh
+  của bản tĩnh đã mất file gốc, chỉ còn WebP nén
+  ([danh sách](../verification/media-originals-2026-10-03.md)).
 - Provider, database, object storage, retention, backup và cost vẫn mở cho tới
   khi CMS phase bắt đầu và official documentation được revalidate.
 
@@ -38,7 +44,7 @@ accessible và safe khi editorial data hoặc media chưa đầy đủ.
 | --- | --- | --- |
 | Editorial role và review requirement là gì? | Owner | CMS discovery slice |
 | Provider và storage model chính xác? | Owner | Provider decision record |
-| Giới hạn size/type/variant của media? | Owner | Upload verification report |
+| Giới hạn size/type và danh sách cỡ biến thể của media? | Owner | Upload verification report |
 | Layout preset nào launch trước? | Owner | Frontend/CMS contract review |
 
 ## 3. User workflow và acceptance

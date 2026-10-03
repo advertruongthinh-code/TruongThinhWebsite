@@ -2788,10 +2788,7 @@ body.is-advertising-browse .floating-cta {
     justify-self: center;
   }
 
-  :root .detail-index-hero [data-motion-hero-wrapper-zoom] {
-    transform: scale(1);
-  }
-
+  :root .detail-index-hero [data-motion-hero-wrapper-zoom],
   :root .detail-index-hero [data-motion-hero-wrapper-zoom].is-motion-inview {
     transform: scale(1);
   }

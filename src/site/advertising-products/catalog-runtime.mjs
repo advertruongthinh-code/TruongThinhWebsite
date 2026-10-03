@@ -732,12 +732,14 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const failedImages = new Set();
     const posterStatus = new Map();
     let pointerStart = null;
-    let touchStart = null;
-    let suppressClick = false;
-    let suppressClickGeneration = 0;
-    const clearSuppressedClick = () => {
-      suppressClick = false;
-      suppressClickGeneration += 1;
+    let suppressClickUntil = 0;
+    const el = (tag, className, dataKey, attrs = {}) => {
+      const node = document.createElement(tag);
+      node.className = className;
+      if (dataKey) node.dataset[dataKey] = "";
+      Object.entries(attrs).forEach(([name, value]) => node.setAttribute(name, value));
+      if (tag === "button") node.type = "button";
+      return node;
     };
     media.classList.add("advertising-card-media--carousel");
     image.classList.remove("media-hover-zoom");
@@ -747,42 +749,23 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dataset.advertisingActiveMediaId = items[coverIndex].id;
     }
 
-    const loading = document.createElement("span");
-    loading.className = "advertising-card-media__loading";
-    loading.dataset.advertisingMediaLoading = "";
-    loading.setAttribute("role", "status");
-    loading.setAttribute("aria-label", english ? "Loading media" : "Đang tải media");
-    loading.hidden = true;
-    media.append(loading);
-
-    const duration = document.createElement("span");
-    duration.className = "advertising-card-media__duration";
-    duration.dataset.advertisingMediaDuration = "";
-    duration.hidden = true;
-    media.append(duration);
-
-    const playback = document.createElement("button");
-    playback.type = "button";
-    playback.className = "advertising-card-media__playback";
-    playback.dataset.advertisingMediaPlayback = "";
-    playback.hidden = true;
+    const loading = el("span", "advertising-card-media__loading", "advertisingMediaLoading",
+      { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
+    const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
+    const playback = el("button", "advertising-card-media__playback", "advertisingMediaPlayback");
+    loading.hidden = duration.hidden = playback.hidden = true;
+    media.append(loading, duration);
     figure.append(playback);
 
-    const indicator = document.createElement("div");
-    indicator.className = "advertising-card-media__indicator";
-    indicator.dataset.advertisingMediaIndicator = "";
-    indicator.setAttribute("role", "group");
-    indicator.setAttribute("aria-label", english ? "Card media" : "Media của thẻ");
+    const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
+      { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
     const numericIndicator = items.length >= 7;
     if (hasCarousel) playback.classList.add("advertising-card-media__playback--carousel");
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "advertising-card-media__dot";
-      button.dataset.advertisingMediaSelect = item.id;
-      button.setAttribute("aria-label", english
+      const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
         ? `Show media ${index + 1} of ${items.length}`
-        : `Xem media ${index + 1} trên ${items.length}`);
+        : `Xem media ${index + 1} trên ${items.length}` });
+      button.dataset.advertisingMediaSelect = item.id;
       indicator.append(button);
       return button;
     }) : [];
@@ -791,22 +774,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     let countStatus;
     if (numericIndicator) {
       indicator.classList.add("advertising-card-media__indicator--numeric");
-      previousButton = document.createElement("button");
-      previousButton.type = "button";
-      previousButton.className = "advertising-card-media__step advertising-card-media__step--previous";
-      previousButton.dataset.advertisingMediaPrev = "";
-      previousButton.setAttribute("aria-label", english ? "Previous media" : "Media trước");
-      countStatus = document.createElement("span");
-      countStatus.className = "advertising-card-media__count";
-      countStatus.dataset.advertisingMediaCount = "";
-      countStatus.setAttribute("role", "status");
-      countStatus.setAttribute("aria-live", "polite");
-      countStatus.setAttribute("aria-atomic", "true");
-      nextButton = document.createElement("button");
-      nextButton.type = "button";
-      nextButton.className = "advertising-card-media__step advertising-card-media__step--next";
-      nextButton.dataset.advertisingMediaNext = "";
-      nextButton.setAttribute("aria-label", english ? "Next media" : "Media tiếp");
+      previousButton = el("button", "advertising-card-media__step advertising-card-media__step--previous",
+        "advertisingMediaPrev", { "aria-label": english ? "Previous media" : "Media trước" });
+      countStatus = el("span", "advertising-card-media__count", "advertisingMediaCount",
+        { role: "status", "aria-live": "polite", "aria-atomic": "true" });
+      nextButton = el("button", "advertising-card-media__step advertising-card-media__step--next",
+        "advertisingMediaNext", { "aria-label": english ? "Next media" : "Media tiếp" });
       indicator.append(previousButton, countStatus, nextButton);
     }
     if (hasCarousel) figure.append(indicator);
@@ -954,16 +927,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const swipe = (dx, dy) => {
       if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
       selectMedia(activeIndex + (dx < 0 ? 1 : -1));
-      suppressClick = true;
-      const generation = ++suppressClickGeneration;
-      setTimeout(() => {
-        if (suppressClickGeneration === generation) suppressClick = false;
-      }, 400);
+      suppressClickUntil = performance.now() + 400;
     };
     if (hasCarousel) {
+      // Pointer events cover touch too; touch-action: pan-y leaves horizontal swipes to this handler.
       link.addEventListener("pointerdown", (event) => {
-        clearSuppressedClick();
-        if (event.pointerType === "touch") return;
+        suppressClickUntil = 0;
         pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
       });
       link.addEventListener("pointerup", (event) => {
@@ -974,27 +943,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         swipe(dx, dy);
       });
       link.addEventListener("pointercancel", () => { pointerStart = null; });
-      link.addEventListener("touchstart", (event) => {
-        clearSuppressedClick();
-        const touch = event.changedTouches[0];
-        touchStart = touch ? { id: touch.identifier, x: touch.clientX, y: touch.clientY } : null;
-      }, { passive: true });
-      link.addEventListener("touchend", (event) => {
-        if (!touchStart) return;
-        const touch = [...event.changedTouches].find((candidate) => candidate.identifier === touchStart.id);
-        if (touch) swipe(touch.clientX - touchStart.x, touch.clientY - touchStart.y);
-        touchStart = null;
-      }, { passive: true });
-      link.addEventListener("touchcancel", () => { touchStart = null; });
       link.addEventListener("click", (event) => {
-        if (event.detail === 0) {
-          clearSuppressedClick();
-          return;
-        }
-        if (!suppressClick) return;
+        if (!event.detail || performance.now() >= suppressClickUntil) return;
         event.preventDefault();
         event.stopPropagation();
-        clearSuppressedClick();
+        suppressClickUntil = 0;
       });
       updateIndicator(coverIndex);
     }
@@ -1199,6 +1152,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let descriptionPageIndex = 0;
   let descriptionPointer = null;
   const photoViewer = createAdvertisingPhotoViewer({
+    getVisibleViewport,
     closeButton: photoClose,
     dialog: photoDialog,
     expandButton: photoExpand,
@@ -1552,10 +1506,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     frame.removeEventListener("transitionend", pending.settle);
     skeletonEntryFrames.delete(frame);
   };
-  const skeletonCanLoop = (frame) => visibleSkeletonFrames.has(frame)
-    && !skeletonDocumentParked && !document.hidden && !document.body.classList.contains("motion-paused")
-    && !document.body.classList.contains("menu-open")
-    && !skeletonMotionPreference.matches && !activePhotoId;
+  const skeletonMotionAllowed = () => !skeletonDocumentParked && !activePhotoId && !document.hidden
+    && !skeletonMotionPreference.matches
+    && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
+  const skeletonCanLoop = (frame) => visibleSkeletonFrames.has(frame) && skeletonMotionAllowed();
   const settleSkeletonCanvas = (frame) => {
     const canvas = frame.querySelector('[data-advertising-flow-backend="webgl"]');
     if (!canvas) return;
@@ -1639,8 +1593,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const syncSkeletonRenderers = () => {
     const budget = skeletonPhone() ? 2 : Infinity;
-    const eligible = !skeletonDocumentParked && !activePhotoId && !document.hidden && !skeletonMotionPreference.matches
-      && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
+    const eligible = skeletonMotionAllowed();
     const keep = new Set();
     if (!activePhotoId) for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
@@ -2572,13 +2525,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       image.loading = "lazy";
       button.append(image);
       if (item.kind === "video") {
-        const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        icon.setAttribute("viewBox", "0 0 24 24");
-        icon.setAttribute("aria-hidden", "true");
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", "M7 4v16l13-8z");
-        icon.append(path);
-        button.append(icon);
+        button.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>');
       }
       button.addEventListener("click", () => {
         if (activePrimaryMediaId === item.id) return;
@@ -2806,12 +2753,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       syncSkeletonMotion();
     });
   };
-  const scheduleBrowsePersistence = () => {
-    if (!/^\/(?:vi|en)\/advertising-products\/?$/.test(location.pathname)) return;
+  const captureScroll = () => {
     const browse = browseHistory.current;
     if (browse.photo) browseHistory.captureDetail({ ...browse.detail, scrollY: getLogicalScroll() });
     else browseHistory.captureGrid({ ...browse.grid, scrollY: getLogicalScroll() });
     browseHistory.persistCurrent();
+  };
+  const scheduleBrowsePersistence = () => {
+    if (ADVERTISING_ROOT_PATTERN.test(location.pathname)) captureScroll();
   };
   const updateVisualScroll = (event) => {
     const y = Number(event.detail?.y);
@@ -3011,12 +2960,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { signal: controller.signal });
   addEventListener("pagehide", () => {
     // Preserve the native destination entry while Barba still owns the outgoing index.
-    if (!window.history.state?.ttAdvertisingHistoryFallback) {
-      const browse = browseHistory.current;
-      if (browse.photo) browseHistory.captureDetail({ ...browse.detail, scrollY: getLogicalScroll() });
-      else browseHistory.captureGrid({ ...browse.grid, scrollY: getLogicalScroll() });
-      browseHistory.persistCurrent();
-    }
+    if (!window.history.state?.ttAdvertisingHistoryFallback) captureScroll();
     if (pendingLocaleSeedHandoff) {
       writeAdvertisingVisitSeedHandoff(
         localeHandoffStorage,

@@ -1263,8 +1263,24 @@ commit/push/deploy hoặc mở recovery/P11 trong plan này.
 
 Nhập từ `tasks/advertising-random-media/plan.md` của Codex ngày 2026-10-03; checklist ở [todo](todo.md#advertising-random-grid-và-tải-ảnh--checklist).
 
-**Trạng thái:** chờ owner duyệt plan. Capability map và ba spec đã được duyệt
-ngày `2026-09-25`.
+**Trạng thái:** owner duyệt ngày `2026-10-03` trong thread "M02b dở dang và
+plan", cùng lệnh giao toàn bộ task Advertising và convert media. Capability map
+và ba spec đã được duyệt ngày `2026-09-25`.
+
+**Quyết định owner 2026-10-03 (thay phần tương ứng bên dưới):**
+
+- Convert media sang định dạng hiện đại là yêu cầu trực tiếp: AVIF kèm WebP
+  dự phòng, ba cỡ theo màn hình; video dùng AV1/WebM kèm MP4 H.264. Vẫn đo
+  trước/sau để làm bằng chứng, không còn là điều kiện mở derivative.
+- Nguồn convert là PNG gốc trên PC owner (154/154 ảnh Advertising, 27/65 ảnh
+  khác); script chạy trên PC qua Remote Control, chỉ đầu ra vào Git. 38 ảnh
+  không có gốc giữ WebP hiện tại làm cỡ lớn nhất.
+- Đo trên demo Cloudflare Workers thay Sites; mỗi lần deploy vẫn hỏi owner.
+  Làm trên cloud, branch ngắn và PR vào `main` thay worktree
+  `codex/advertising-random-media`; reviewer là Claude, không dùng `gpt-6-sol`.
+- Gate cần Firefox/WebKit, A05s hoặc iPhone để mở, gom chạy một lần trên PC ở
+  cuối. Drift landscape `Y=3` ghi là giới hạn emulator, test giữ FAIL, kiểm lại
+  trên A05s.
 **Ngày lập:** `2026-09-25`.
 **Ước lượng:** khoảng `12–22 giờ` làm việc chủ động, chưa tính derivative phát
 sinh, thời gian chờ owner và Sites; khoảng `250–500 LOC` source/test, cần chốt

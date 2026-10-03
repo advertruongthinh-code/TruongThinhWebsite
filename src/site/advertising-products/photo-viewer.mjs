@@ -12,6 +12,7 @@ export function createAdvertisingPhotoViewer({
   zoomOutButton,
   zoomStatus,
   scroll,
+  getVisibleViewport,
   signal,
 } = {}) {
   if (!dialog || !expandButton || !expandedImage || !viewport || !closeButton || !zoomInButton || !zoomOutButton || !zoomStatus) {
@@ -50,12 +51,8 @@ export function createAdvertisingPhotoViewer({
       styles.paddingBottom, styles.paddingLeft].join(":");
   };
   const updateVisibleControls = () => {
-    const visible = scroll?.getViewportMetrics?.().visible || window.visualViewport;
+    const { top, left, height, width } = getVisibleViewport();
     const bounds = dialog.getBoundingClientRect();
-    const top = visible?.top ?? visible?.offsetTop ?? 0;
-    const left = visible?.left ?? visible?.offsetLeft ?? 0;
-    const height = visible?.height ?? innerHeight;
-    const width = visible?.width ?? innerWidth;
     for (const [edge, value] of Object.entries({
       top: top - bounds.top, left: left - bounds.left,
       right: bounds.right - left - width, bottom: bounds.bottom - top - height,
