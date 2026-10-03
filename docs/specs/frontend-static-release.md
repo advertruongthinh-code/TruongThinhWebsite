@@ -85,6 +85,11 @@ Mỗi lần phát hành:
 3. Mở `/vi/` và `/en/`, kiểm route chính; ghi commit GitHub, Worker version ID
    và URL vào evidence release.
 
+Lần deploy đầu 2026-10-03: source `src/site/` của `ffd7a2e`, Worker version
+`035423fd-b05b-4024-b44f-b3dcbf2d8239`, URL
+`https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/`; `/vi/`,
+`/en/`, trang con và asset trả 200, path sai trả 404.
+
 Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml`
 hoặc chọn deployment cũ trong Cloudflare dashboard. Changelog ghi thay đổi và
 known limitations; focused PASS không đổi verdict full-site parity.

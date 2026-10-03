@@ -5,7 +5,7 @@
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
-  Build 268 file, `pnpm deploy:demo --dry-run` đạt; chưa deploy thật.
+  Đã deploy 2026-10-03, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
@@ -40,9 +40,9 @@
 - Lịch sử checkpoint được bảo toàn tại
   [STATE trước cleanup](archive/snapshots/state-before-release-2026-09-24.md).
   Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: owner tạo tài khoản Cloudflare, chạy `pnpm deploy:demo` theo
-  [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026),
-  rồi kiểm nhận giao diện trên URL `workers.dev`; full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
+- Next repo action: owner kiểm nhận giao diện trên
+  [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
+  phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
   regression, filter không replay. Ảnh nguồn và WebP có
   [provenance](../source-assets/projects/advertising/portal-20260924/README.md).
 
