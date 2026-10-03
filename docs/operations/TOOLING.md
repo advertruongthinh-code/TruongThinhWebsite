@@ -159,8 +159,8 @@ Nếu Impeccable context báo `MANUAL_DETECTOR_REQUIRED`, UI task hoàn tất m�
 
 Provider hook active thì không chạy lại command này. Graphify
 `post-commit`/`post-checkout` là repository automation, không phải Codex lifecycle hook.
-Ponytail `pre-commit`/`pre-push` cũng là repository automation; hook dùng Codex
-read-only và chặn Git khi review không sạch hoặc không chạy được.
+Ponytail `pre-commit`/`pre-push` cũng là repository automation: hook chạy
+`claude -p /ponytail-review`, chặn Git khi đề xuất cắt hơn 20 dòng hoặc review lỗi.
 
 Impeccable 4 dùng engine binary. Global Node bootstrap phải cài optional dependency
 theo platform; không dùng `--no-optional` cho component Node. pnpm 12 dùng
