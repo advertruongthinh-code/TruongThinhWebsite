@@ -1,3 +1,14 @@
+---
+title: Menu mở — đối chiếu Espacio
+type: frontend
+status: accepted
+updated: 2026-09-24
+notion: none
+related_decisions: []
+related_reports:
+  - ../verification/menu-reference-parity-2026-09-24.md
+---
+
 # Menu mở — đối chiếu Espacio
 
 ## Mục tiêu và phạm vi

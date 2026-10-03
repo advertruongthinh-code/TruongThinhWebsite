@@ -110,28 +110,11 @@ V3 cần tách `header-collapse`, mobile `route-soft`, `focus-order` và
 `pointer-threshold`, vì fresh review thấy setup và measured action còn gộp.
 Semantic closure chưa acceptance-ready.
 
-## Trường Thịnh accepted và observed
+## Trường Thịnh accepted
 
-Các dòng này là contract của local, không phải Espacio measurement:
-
-| Area | Accepted/observed contract | Provenance/status |
-| --- | --- | --- |
-| Route veil | Cover/reveal `.75s/1s`; header trên veil; destination-ready ở `beforeEnter`; không chờ hero media | Owner decision/spec và typography report; `accepted` |
-| Logo surface | Khi vào nền trắng, mark painted black rồi đen→CMYK tổng `1s`; rời nền trắng CMYK→trắng; wordmark không tham gia sequence | Owner contract 2026-08-27; `accepted` |
-| Header intro | `.brand scale 0→1`, `1.5s`, `power4.out`; desktop nav `y -150`, `1.5s`, delay `.3`, stagger `.1`; hamburger `scaleX 0`, `1s`, delay `1.5` | Historical motion map; `accepted/source-derived` |
-| Home hero | Reference Vimeo; TT giữ carousel đã duyệt: drift `1.06→1` trong `5s`, cross-fade `1.6s` bắt đầu `4.2s`; next drift midpoint `5.0s` | Typography report + accepted local decision; `accepted`, không phải live Espacio measurement |
-| Single-media hero | Residential/Commercial/About chạy một lần direct/F5 + soft route, `scale 1.2→1.005`, `2.5s`, `ease`, không slideshow/reverse | Local accepted/source current contract; `accepted` |
-| Content reveals | Masked line `y 2em→-.1em`, `1.9s`, `power4.out`, stagger `.1`; generic up `y60→0`, opacity `0→1`, `.6s`; generic media opacity `.6s ease-out`; montage `scale .9→1`, `.6s`, delay `.6` | Historical motion map, local source; `accepted/observed` theo surface |
-| Portal/project/detail | Portal title `1.9s`, delay `0/.3/.6`; subtitle `.3s ease-out`, delay `.3/.6/.9`; project image hover `1→1.15`, `.6s`; detail hooks `data-motion-lines/words/fade/up/media`; plain copy static | Motion map local profile; `accepted`/`observed` |
-| Advertising filter | Controls `y20`, opacity `0`, delay `1.3`, duration `1s`, stagger `.15`, `expo.out`; filter reflow, no invented tile fade; reduced motion final state | Motion map/local spec; `accepted` |
-| Reduced motion | Không khởi tạo Locomotive/GSAP presentation; route/menu đổi ngay; content visible/native scroll; hero first only | Motion map local contract; `accepted` |
-| Human path | Local `/vi/`: menu click/Escape, scroll đổi tone/collapse/hide/show, toggle label pause/resume; focus return sau Escape không claim vì focus ở address bar | Computer Use evidence, `observed` historical |
-
-Local DevTools representative motion observation tại `1440x900`: nav underline
-`scaleX 0→1` trong `.3s cubic-bezier(.4,0,0,1)`, hai marquee `running`, console
-`0` error/warning/issue, network `28/28`; performance trace ghi LCP `1414ms`,
-TTFB `18ms`, render delay `1396ms`, CLS `0.00`, nhưng trace raw không được ghi
-vào MCP workspace. Đây là local observation, không Espacio parity proof.
+Contract motion của Trường Thịnh (route veil, logo, header, hero, reveal,
+Advertising, reduced motion) nằm ở [design motion](../../design/motion.md);
+file này chỉ giữ số đo Espacio.
 
 ## Giới hạn phải giữ
 

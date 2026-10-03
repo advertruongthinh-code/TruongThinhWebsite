@@ -21,7 +21,7 @@ reviewable và portable cùng Git repository. Draft, NOW/Kanban state, priority,
 blocker, discovery note và knowledge note cần được khai thác trong Notion mà
 không biến Notion thành implementation truth chưa review. Reusable agent
 tooling được quản trị riêng trong
-[`codex-native-agent-skills-workflow.md`](codex-native-agent-skills-workflow.md).
+[`agent-skills-workflow.md`](agent-skills-workflow.md).
 
 ## Decision
 
@@ -67,7 +67,7 @@ final acceptance.
 ## Evidence
 
 - `docs/operations/notion.md`
-- `docs/decisions/codex-native-agent-skills-workflow.md`
+- `docs/decisions/agent-skills-workflow.md`
 - `scripts/tooling/doctor.ps1 -Quick` vào 2026-08-08
 
 ## Follow-up

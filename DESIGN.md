@@ -324,13 +324,14 @@ bốn path của mark, nội dung chữ hoặc các section ngoài logo.
   `0,618±0,005`; full ink bounds theo từng locale vẫn cao `4Y`. Hai dòng cân mép
   trong tolerance `0,5 CSS px`, khoảng dòng gọn và không kéo giãn glyph.
   Footprint, font600, mark và motion giữ nguyên.
-- Canonical VI dùng title `46.68365`, subtitle `28.85050`, baseline subtitle
-  `147.19920`. EN typeset riêng bằng CSS: title `58.10527px` tại
-  `translate(0.00002px, 11.60012px)` và subtitle `35.90906px` tại
-  `translate(-1.3218px, 5.74706px)`. Hai locale cùng đạt thân chữ `0,618`,
-  khối ink `4Y`, padding trên/dưới `Y`, gap ngang `Y` và khoảng dòng gọn.
-  Tracking dùng `textLength` với `lengthAdjust="spacing"`; không dùng
-  `spacingAndGlyphs` hoặc scale ngang.
+- Canonical VI dùng title `46.68365` với `textLength="390.63185"`, subtitle
+  `28.85050`, baseline subtitle `147.19920`. Tracking dùng `textLength` với
+  `lengthAdjust="spacing"`; không dùng `spacingAndGlyphs` hoặc scale ngang.
+- Correction R5 (owner duyệt 2026-09-20): EN kế thừa metric VI, không có CSS
+  transform hoặc override cỡ theo locale. Title EN dùng đúng geometry VI, rect
+  trùng VI trong `0,5px`. Subtitle EN `INTERIORS · ADVERTISING` cùng font-size,
+  baseline gap và chiều cao character với VI; chỉ nén tracking để cùng width
+  title. Ink bounds vẫn tính đủ dấu, font late/blocked không clip.
 - Giữ font Plus Jakarta Sans, weight 600 và copy title/subtitle hiện có;
   EN là INTERIORS · ADVERTISING. Chọn font-size theo ink height sau font ready,
   điều chỉnh vị trí và tracking theo locale để cân rộng; không kéo giãn glyph bằng

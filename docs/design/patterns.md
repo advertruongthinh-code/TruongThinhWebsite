@@ -105,55 +105,33 @@ hoặc media thiếu kích thước.
 ## Advertising grid geometry
 
 **Contract hiện hành:**
-[AD-FINAL-R1 D1–D5, D8–D9](../specs/advertising-final-polish-and-media.md) sở hữu
-rule số cột theo clientWidth, không giảm theo dữ liệu và ngưỡng ảnh.
-D8 chuyển gợi ý vào phần mô tả, thay vị trí cột ngoài cùng trước đó.
-Các đoạn fallback giảm N giữ để truy nguyên implementation cũ, bị delta
-thay trong đúng phạm vi đó. Trạng thái nghiệm thu nằm trong evidence theo revision.
-Các gate intrinsic còn lại tiếp tục áp dụng với ngoại lệ sparse đã duyệt.
-Correction D9 ngày2026-09-13 trong cùng spec thay gate so le0,20 bằng ưu tiên
-so le từ0,10 theo chiều cao ảnh lớn hơn trong cặp. Sau khi thử nhánh ưu tiên,
-được dùng hàng thẳng; anti-brick không chặn hàng thẳng ở nhánh fallback.
-Giữ N theo viewport và tổng budget300.000. Các số đo0,20 bên dưới là lịch sử.
+[AD-FINAL-R1 D1–D5, D8–D9](../specs/advertising-final-polish-and-media.md),
+[GRID-R4](../specs/advertising-grid-span-organic.md) và
+[photo browse R1/G1](../specs/advertising-photo-browse.md#r1--ảnh-rộng-một-cột-xếp-organic)
+sở hữu rule; runtime là `layout-core.mjs` (`advertising-grid-v13`). Mục này chỉ
+tóm tắt visual contract; trạng thái nghiệm thu ở [STATE](../STATE.md) và
+verification.
 
-Owner chốt revision một cột ngày 2026-09-10 cho cả parent và related tại
-[AD-BROWSE-R1, R1/G1](../specs/advertising-photo-browse.md#r1--ảnh-rộng-một-cột-xếp-organic).
-Chỉ policy span 1/2 và ngoại lệ bridge B1 bên dưới bị thay thế; giữ số cột,
-gutter, caption, stagger tối thiểu và anti-brick đã định lượng. Runtime một
-cột v7 đã có focused evidence trong AD-BROWSE-R1; P1.3 có geometry/motion
-riêng cần nghiệm thu. Evidence Auto cũ không chứng minh revision mới.
+- Số cột theo clientWidth, không giảm theo dữ liệu. Ảnh parent/related luôn
+  rộng một cột; không có lựa chọn Auto/1/2 ở authoring.
+- Stagger (D9): ưu tiên mép dưới hai cột kề lệch từ `0.10` chiều cao ảnh lớn
+  hơn trong cặp; sau nhánh ưu tiên được dùng hàng thẳng, anti-brick không chặn
+  hàng thẳng ở nhánh fallback. Tổng budget mọi lượt thử `300.000`.
 
-### Target GRID-R4 đã duyệt, đang kiểm chứng tích hợp
-
-Owner đã duyệt intent và phần định lượng bên dưới cho
-[GRID-R4](../specs/advertising-grid-span-organic.md); source và preview đã tích hợp,
-chưa là runtime PASS. Trạng thái kiểm chứng ở
-[GRID-R4 verification](../verification/advertising-grid-r4-2026-09-09.md).
-Mục này thay contract geometry rank-v3 bên dưới trong phạm vi
-parent grid; số liệu rank-v3 giữ làm baseline lịch sử. Delta
-[AD-BROWSE-R1/G1](../specs/advertising-photo-browse.md) và plan P1.1 được owner
-duyệt ngày 2026-09-10: ảnh parent/related luôn rộng một cột; bỏ mọi lựa chọn
-Auto/1/2 ở contract authoring. Source public v7 dùng cùng policy với preflight.
-Owner bổ sung sau preview v6: stagger đổi sang 0,20 chiều cao vùng ảnh
-lớn nhất liền kề và ưu tiên cân đáy cột theo
-[R1](../specs/advertising-photo-browse.md#r1--ảnh-rộng-một-cột-xếp-organic).
-P1.2 đã được duyệt; v7 triển khai gate mới. Evidence v6 giữ ngưỡng cũ.
-
-- Giữ outer band, gutter, content cap `1500px`, min `2` và các ngưỡng cột hiện
-  có cho parent; trần `4`. Related được giảm xuống một cột nếu search hữu hạn
-  không tìm được layout đạt gate, theo R1; tổng budget mọi lượt thử không quá
-  300.000. Mỗi ảnh luôn rộng một cột ở mọi viewport.
+- Outer band `15/25/35px` (viewport `<=750`, `<=1200`, lớn hơn), gutter
+  `15/25/35px` (`<=960`, `<=1200`, lớn hơn) theo `advertisingSpacing()`;
+  content cap `1500px` ở CSS. Related giảm xuống một cột nếu search hữu hạn
+  không tìm được layout đạt gate.
 - Gọi `C` là số cột, `W` là chiều rộng một cột, `G` là gutter ngang hiện hành:
-  `C = min(4, max(2, floor(gridWidth / 235px)))`,
+  `C = min(4, max(2, floor((gridWidth + G) / (220px + G))))` (`columnsForWidth()`),
   `W = (gridWidth - (C - 1) * G) / C`,
   `imageWidth = W`,
   `imageHeight = imageWidth * intrinsicHeight / intrinsicWidth`.
 - Không crop, kéo méo, canvas riêng hoặc backplate; mép ảnh trùng mép khung
   ảnh, chiều cao tự do. Caption theo [DESIGN](../../DESIGN.md#advertising-caption).
-- Candidate đo stagger: với hai cột kề, mép dưới ảnh của hai item khác nhau
-  gần nhau nhất phải lệch ít nhất `0.20 * max(imageHeightA, imageHeightB)`;
-  chiều cao chuẩn chỉ là vùng ảnh hiển thị, không gồm caption. Terminal
-  frontier cũng áp dụng. Mỗi ảnh chỉ chiếm một cột, không có ngoại lệ bridge span 2.
+- Đo stagger: với hai cột kề, so mép dưới ảnh của hai item khác nhau gần nhau
+  nhất theo ngưỡng D9 ở trên; chiều cao chuẩn chỉ là vùng ảnh hiển thị, không
+  gồm caption. Terminal frontier cũng áp dụng. Mỗi ảnh chỉ chiếm một cột.
   Mép trên hàng đầu không chịu gate mép dưới này; cột trống không giả làm item.
 - Candidate chống nhịp gạch: lượng tử hóa offset có dấu giữa hai cột theo
   `0.125 * W`; không lặp hai mức A/B thành `ABABAB` qua sáu sự kiện mép dưới
@@ -168,75 +146,28 @@ P1.2 đã được duyệt; v7 triển khai gate mới. Evidence v6 giữ ngư�
   cặp stable ID đã sort. Mức lượng tử là `Math.round(offset / (0.125 * W))`.
   Áp gate ba mức giống nhau hoặc ABABAB trên chuỗi này, riêng mỗi loại mép.
 - Không spacer/filler, giãn gutter hoặc đổi kích thước ảnh để giả stagger.
-  Skeleton rỗng ở cuối parent là phần nối tiếp CTA được owner yêu cầu riêng
-  tại R2, không phải filler giữa ảnh và không tính vào proof cân đáy ảnh thật.
-  Ngoại lệ GRID-R4-B1 cho bridge span 2 chỉ còn thuộc baseline lịch sử;
-  không áp dụng cho ảnh một cột của AD-BROWSE-R1/G1.
+  Skeleton rỗng ở cuối parent là phần nối tiếp CTA, không phải filler giữa ảnh
+  và không tính vào proof cân đáy ảnh thật.
 
 Phép đo hole candidate: chiếu bounds đầy đủ của card (ảnh + caption) lên từng
 cột nó chiếm, sort theo top. Với hai card liên tiếp trong một cột:
-`excessGap = max(0, next.top - previous.bottom - G)` phải `<= 0.05px` với
-next span 1. Với next span 2, top phải bằng `max(bottomLeft, bottomRight) + G`;
-excessGap ở cột thấp được phép `<= 0.5 * W + 0.05px`, cột cao vẫn `<= 0.05px`.
-Không nâng thêm top để tạo spacer. Card đầu ở cột có dữ liệu phải bắt đầu tại
-`top = 0 ± 0.05px`; không bắc span từ một cột đã có dữ liệu sang cột còn trống.
-Phần sau card cuối là terminal frontier, không là interior hole.
-Oracle độc lập dùng bounds, không dùng cờ solver tự trả. Fixture có bridge
-trong/vượt giới hạn, bridge cùng đáy và terminal ragged. B1 thay no-hole tuyệt
-đối đã khiến span 2 chỉ có thể nằm đầu mỗi cặp cột; các gate stagger giữ nguyên.
+`excessGap = max(0, next.top - previous.bottom - G)` phải `<= 0.05px`.
+Không nâng thêm top để tạo spacer. Card đầu mỗi cột bắt đầu tại
+`top = 0 ± 0.05px`. Phần sau card cuối là terminal frontier, không là interior
+hole. Oracle độc lập dùng bounds, không dùng cờ solver tự trả.
 
-### Baseline rank-v3 lịch sử
-
-Accepted visual contract chuyển từ Advertising spec; [data/placement algorithm](../specs/advertising-products-turnkey-services.md#layout-append-và-virtualization) vẫn do spec sở hữu.
-
-Lưới dùng Pinterest organic masonry: cột rộng bằng nhau, card luôn rộng một cột
-và chiều cao tự do theo media/canvas. Geometry kết hợp packing Pinterest với
-outer band, gap và content cap đã đo từ Espacio:
-
-```text
-outerBand = 15px when layoutViewportWidth <= 750px
-outerBand = 25px when 751px <= layoutViewportWidth <= 1200px
-outerBand = 35px when layoutViewportWidth > 1200px
-
-interCardGap = 15px when layoutViewportWidth <= 960px
-interCardGap = 25px when 961px <= layoutViewportWidth <= 1200px
-interCardGap = 35px when layoutViewportWidth > 1200px
-
-gridWidth = min(layoutViewportWidth - (2 * outerBand), 1500px)
-effectiveOuter = (layoutViewportWidth - gridWidth) / 2
-columns = min(5, max(2, floor(gridWidth / 235px)))
-cardWidth = (gridWidth - interCardGap * (columns - 1)) / columns
-```
-
-`layoutViewportWidth` dùng `documentElement.clientWidth`; native scrollbar không
-được tính vào lưới. Content căn giữa; khi viewport rộng hơn `1570px`, grid giữ
-`1500px`, vì vậy `effectiveOuter` lớn hơn outer band là đúng. Công thức phải tái
-hiện các điểm chuẩn DPR `1` sau với sai số geometry tối đa `0.05px`:
-
-| Viewport | Grid width | Effective outer | Gap | Cột | Card width |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| `320px` | `290px` | `15px` | `15px` | 2 | `137.5px` |
-| `390px` | `360px` | `15px` | `15px` | 2 | `172.5px` |
-| `750px` | `720px` | `15px` | `15px` | 3 | `230px` |
-| `751px` | `701px` | `25px` | `15px` | 2 | `343px` |
-| `768px` | `718px` | `25px` | `15px` | 3 | `229.333px` |
-| `960px` | `910px` | `25px` | `15px` | 3 | `293.333px` |
-| `961px` | `911px` | `25px` | `25px` | 3 | `287px` |
-| `1024px` | `974px` | `25px` | `25px` | 4 | `224.75px` |
-| `1200px` | `1150px` | `25px` | `25px` | 4 | `268.75px` |
-| `1201px` | `1131px` | `35px` | `35px` | 4 | `256.5px` |
-| `1440px` | `1370px` | `35px` | `35px` | 5 | `246px` |
-| `1570px` | `1500px` | `35px` | `35px` | 5 | `272px` |
-| `1920px` | `1500px` | `210px` | `35px` | 5 | `272px` |
-| `2560px` | `1500px` | `530px` | `35px` | 5 | `272px` |
+Data/placement algorithm do [Advertising spec](../specs/advertising-products-turnkey-services.md#layout-append-và-virtualization)
+sở hữu. `layoutViewportWidth` dùng `documentElement.clientWidth`; native
+scrollbar không tính vào lưới. Content căn giữa; viewport rộng hơn `1570px` thì
+grid giữ `1500px`. Điểm chuẩn geometry đọc từ test layout, không giữ bảng tay.
 
 Caption: [DESIGN.md](../../DESIGN.md#advertising-caption).
 
 ## Advertising photo view
 
-Contract hiện hành nằm tại [AD-FINAL-R1](../specs/advertising-final-polish-and-media.md),
-thay các điểm tương ứng của [AD-BROWSE-R1, delta P1.4](../specs/advertising-photo-browse.md).
-Mọi primary dùng span3 theo correction D10, clamp theo số cột hiện có.
+Contract hiện hành nằm tại [AD-FINAL-R1](../specs/advertising-final-polish-and-media.md)
+và [photo browse spec](../specs/advertising-photo-browse.md).
+Mọi primary dùng span3 (D10), clamp theo số cột hiện có.
 Ratio≥1,80 xếp ảnh trên/chữ dưới ưu tiên61,8/38,2;
 đứng/vuông xếp ảnh trái/chữ phải50/50. Clamp span theo số cột,
 stack khi nửa chữ dưới240px. D11 dùng chiều cao còn lại dưới navbar/gap,
@@ -262,13 +193,12 @@ Control vuông48px, nét1,5px; expand neo phải, CTA hiện hữu neo trái tro
 vùng ảnh. Cả hai icon-only, hover/focus mở nhãn250ms vào trong ảnh, không
 chồng hit target; reduced motion bỏ transition. CTA giữ native link VI/EN,
 touch/keyboard kích hoạt ngay và không mở viewer; không lặp dưới mô tả.
-P1.3 bỏ Back riêng, giữ Browser Back/Escape và navbar về parent. Header photo
+Không có Back riêng; dùng Browser Back/Escape và navbar về parent. Header photo
 dùng shared behavior; bấm lại mục hiện tại tại parent về top và giữ bộ lọc.
 [Live reference](../reference/pinterest-photo-view.md) phân biệt số đo Pinterest
 với contract riêng của TT. Trạng thái implementation theo [STATE](../STATE.md),
 không suy target accepted là runtime đã đạt. Gallery ngoài Advertising giữ phạm vi riêng.
-Không copy media, logo hoặc chức năng tài khoản Pinterest. Nghiệm thu runtime
-theo report đúng revision, không kế thừa PASS từ carousel cũ.
+Không copy media, logo hoặc chức năng tài khoản Pinterest.
 
 ### Cuối grid Advertising
 

@@ -130,7 +130,7 @@ evidence lịch sử và những điều kiện không liệt kê ở trên vẫ
   top của skeleton đầu mỗi cột cách frontier card thật tối đa một inter-card
   gap (sai số `≤1 CSS px`), không thêm khoảng trắng độc lập; tại cuối trang vẫn
   thấy trọn CTA và footer trong một viewport như
-  [P7.1](advertising-september-2026-p7-1-correction.md).
+  [P7.1](advertising-skeleton-flow.md#correction-p71--organic-continuation-và-paint-overflow).
 
 ## Giao diện module và nơi đặt code
 

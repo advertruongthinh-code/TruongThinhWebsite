@@ -623,8 +623,12 @@ thay riêng phần hình học đó.
   synthetic card đầu related grid. Resize qua hai mode chỉ chuyển parent của
   cùng một node, giữ tag đang chọn, focus, copy, hover và history.
 - Pager, zoom-glass có điều kiện và input cuộn trang của R15 không đổi; quy tắc
-  primary `100dvh`/`72/28` tiếp tục là lịch sử và được P7.2 thay thế. Chi tiết acceptance nằm trong
-  [P7.1 correction](advertising-september-2026-p7-1-correction.md).
+  primary `100dvh`/`72/28` tiếp tục là lịch sử và được P7.2 thay thế.
+- Mỗi state có đúng một suggestion region trong DOM và accessibility tree;
+  resize không clone, không đổi tag/photo đang chọn, không tạo history entry.
+- Regression VI/EN tại `360×800`, `390×844`, `768×1024`, `1004×900`,
+  `1005×900`, `1440×900`, `1569×912`, `1922×912`. Spec P7.1 gốc đã xóa, xem
+  Git `da2f13a`.
 
 ## Correction P7.2 — primary full-span cao theo nội dung
 
@@ -644,8 +648,12 @@ split layout, pager và vị trí suggestion theo P7.1 giữ nguyên.
 - Độ cao cụm bằng image zone + gap + mô tả, tối đa phần viewport còn lại. Shared glass chỉ
   bật khi có phần dư ngang thật. Kiểm browser VI/EN trên ảnh ngang và dọc,
   gồm `756×910`; kiểm cùng ratio và không có horizontal overflow.
-- Chi tiết contract và bằng chứng đo Pinterest nằm trong
-  [P7.2 visual adjustment](advertising-september-2026-p7-2-visual-adjustment.md).
+- Hình học: `W` bề rộng image zone, `r` tỷ lệ ảnh, `D` chiều cao mô tả đã
+  giới hạn, `G` gap, `V` chiều cao viewport, `T` mép trên primary:
+  `H = min(W/r + D + G, V - T - safeBottom)`; image zone cao `H - D - G`, ảnh
+  `contain` trong zone, sai số browser tối đa `1 CSS px`. Unit khóa portrait,
+  landscape, mô tả ngắn/dài, span boundary và ratio. Spec P7.2 gốc đã xóa,
+  xem Git `da2f13a`.
 - Resize từ full-span sang split phải xóa `position` và tọa độ masonry inline
   của suggestion trước khi đưa node vào info; các nút có ảnh nền ở trạng thái
   inactive không có viền đen, active vẫn trắng/chữ và viền đen.
@@ -725,6 +733,16 @@ related grid tiếp tục sau primary. User cuộn để tiếp cận khi minimu
 Không giảm font, bỏ chữ, đổi random/history/suggestion span hoặc motion/glass.
 Target hiện tại Chrome/A05s và Safari/iPhone; local8792, chưa deploy.
 
+## Delta owner media — 24/09/2026
+
+Owner đã duyệt và yêu cầu tích hợp28 phiên bản cuối, gồm5 ảnh tạo lại qua
+ChatGPT. Catalog154 ảnh, dataset2026-09-24.1, thêm27 và thay mobile-retail-05
+bằng COCO BREEZE; giữ ID cũ và sourceOrder hiện hữu. Hai product mới:
+Standee và khung quảng cáo (Kiosk/POSM), Bao bì và ly in F&B (Print/Decals).
+Product key mỗi category là duy nhất, tối thiểu12; hai category này có13.
+[Mapping, provenance, giới hạn review và kiểm chứng](../../source-assets/projects/advertising/owner-selection-20260924/README.md).
+Số lượng154 supersede127 ở checkpoint trước; không đổi layout/motion contract.
+
 ## Chú thích thuật ngữ
 
 - **Stable photo ID**: `record.id` duy nhất của ảnh, dùng cho card, URL, history và focus.
@@ -736,13 +754,3 @@ Target hiện tại Chrome/A05s và Safari/iPhone; local8792, chưa deploy.
 - **Zoom anchor**: điểm ảnh dưới con trỏ được giữ tại cùng vị trí khi đổi scale.
 - **Continuous masonry**: mọi brick dùng cùng coordinate space và luôn lấp vị
   trí hợp lệ cao nhất trước khi tạo hàng mới.
-
-## Delta owner media — 24/09/2026
-
-Owner đã duyệt và yêu cầu tích hợp28 phiên bản cuối, gồm5 ảnh tạo lại qua
-ChatGPT. Catalog154 ảnh, dataset2026-09-24.1, thêm27 và thay mobile-retail-05
-bằng COCO BREEZE; giữ ID cũ và sourceOrder hiện hữu. Hai product mới:
-Standee và khung quảng cáo (Kiosk/POSM), Bao bì và ly in F&B (Print/Decals).
-Product key mỗi category là duy nhất, tối thiểu12; hai category này có13.
-[Mapping, provenance, giới hạn review và kiểm chứng](../../source-assets/projects/advertising/owner-selection-20260924/README.md).
-Số lượng154 supersede127 ở checkpoint trước; không đổi layout/motion contract.

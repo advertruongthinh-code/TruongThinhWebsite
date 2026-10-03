@@ -2,7 +2,7 @@
 title: Nền tảng landing page
 type: frontend
 status: draft
-updated: 2026-09-22
+updated: 2026-10-03
 notion: none
 related_decisions:
   - ../decisions/wrangler-deferred-until-cms.md
@@ -11,6 +11,12 @@ related_reports: []
 ---
 
 # Nền tảng landing page
+
+Trạng thái: mục 1–9 vẫn là draft. Hai module
+[Shared media hover](#shared-media-hover--accepted-p6) và
+[Portal type fit](#portal-type-fit--accepted-p6) là accepted P6 (2026-09-22),
+đạt focused technical gate theo
+[ledger P2–P7](../verification/advertising-september-2026-p2-p7.md).
 
 ## 1. Vấn đề và kết quả
 
@@ -103,7 +109,7 @@ landing-page release.
 
 - [`frontend-route-and-content.md`](frontend-route-and-content.md)
 - [`frontend-static-release.md`](frontend-static-release.md)
-- [`../impeccable/index.md`](../impeccable/index.md)
+- [`../design/index.md`](../design/index.md#impeccable)
 
 ## Shared media hover — accepted P6
 
@@ -134,13 +140,13 @@ Correction P7.2 ngày `2026-09-23`: overlay của homepage portal và suggestion
 inactive dùng cùng token `rgba(0, 0, 0, 0.4)` đo trực tiếp ở nút Pinterest
 “Điêu khắc” lúc không hover. Normal, hover và focus giữ cùng độ tối; chỉ ảnh
 tiếp tục zoom theo shared primitive. Active suggestion vẫn nền trắng, chữ/viền
-đen, không có motion. Xem [P7.2](advertising-september-2026-p7-2-visual-adjustment.md).
+đen, không có motion; nút có ảnh nền inactive không có viền đen kể cả khi
+hover. Spec P7.2 gốc đã xóa, xem Git `da2f13a`.
 
 ## Portal type fit — accepted P6
 
 **Module id:** `portal-type-fit`. **Phụ thuộc:** `shared-media-hover`.
-**Status:** accepted ngày `2026-09-22`; implementation chờ duyệt plan
-`AD-SEPT-2026-P6`.
+**Status:** accepted ngày `2026-09-22`; P6 đạt focused technical gate.
 
 - Mọi homepage portal trong `#dich-vu` và `#nang-luc` đều thuộc sweep. Trong mỗi
   nhóm, các portal ngang hàng dùng cùng font-size theo từng role

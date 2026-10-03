@@ -2,7 +2,7 @@
 title: Style guide áp dụng Trường Thịnh
 type: design
 status: living
-updated: 2026-09-09
+updated: 2026-10-03
 related_docs:
   - ../../DESIGN.md
   - ../reference/espacio/index.md
@@ -25,22 +25,17 @@ cáo. Nhịp editorial, khoảng trắng và typography dẫn hướng; tránh p
 luxury chung chung và lưới bất động sản rập khuôn. Espacio là baseline hình thức
 và behavior theo evidence; media, source và nhận diện riêng không sao chép.
 
-`PRODUCT.md` giữ product truth; guide này giữ cách áp dụng logo/hình ảnh;
-`DESIGN.md` giữ token và visual role. Khi có
-conflict, theo authority map trong [`design index`](index.md).
+Conflict: theo [authority map](index.md#authority-map).
 
 ## Màu và mark
 
 - Dùng surface neutral để material, project và mark là tâm điểm; xanh dương và
   cam là accent/emphasis có chủ đích. Giá trị và tên ngữ nghĩa đọc từ `DESIGN.md`.
 - Quy định duy nhất về mark, màu, geometry, chữ và motion:
-  [Brand lockup trong DESIGN.md](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
-  Đọc cả revision và implementation gap trước khi áp dụng.
+  [Brand lockup trong DESIGN.md](../../DESIGN.md#brand-lockup--nguồn-chuẩn);
+  guide này không giữ bản sao tỷ lệ, kích thước hoặc timing logo.
 
 ## Typography và hierarchy
-
-Typography logo theo [Brand lockup](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
-Guide này không giữ bản sao tỷ lệ, kích thước hoặc timing logo.
 
 Favicon là ngoại lệ mark-only duy nhất: dùng
 [`favicon-black.svg`](../../src/site/assets/brand/favicon-black.svg) cho light
@@ -70,14 +65,12 @@ composition theo data/layout hiện có; không tách sáu Advertising route th�
 component visual.
 
 Image phải là bằng chứng thật của không gian, vật liệu, tool, craft, bàn tay hoặc
-motion blur. Runtime public dùng WebP sRGB, pixel `width`/`height` thật, lazy
-loading cho ảnh dưới fold và alt VI/EN. Safe crop, budget, source asset và
-upload checklist thuộc [`content.md`](content.md).
+motion blur. Chuẩn file, safe crop, budget, alt và checklist thuộc
+[`content.md`](content.md).
 
 ## VI/EN, accessibility và motion
 
-- VI là source; EN ở leaf `data-en`, `data-en-alt`, `data-en-aria-label` hoặc
-  `data-en-content`. Không đặt translation trên parent có markup con.
+- VI/EN leaf-node rule thuộc [`content.md`](content.md).
 - Focus visible, keyboard/touch controls, heading order, landmark và không
   overflow ngang là baseline. Exact selector/state xem source và frontend spec.
 - `prefers-reduced-motion` phải fail-open: content vẫn visible, native scroll
@@ -91,15 +84,13 @@ upload checklist thuộc [`content.md`](content.md).
 
 - Dẫn người đọc từ image/material tới process và CTA tư vấn.
 - Giữ blue/orange ít nhưng có ý nghĩa.
-- Áp dụng state logo theo authority được dẫn ở mục Màu và mark.
 - Giữ alt/ARIA, VI/EN, focus và reduced-motion cùng lúc với visual change.
-- Link token và component role về `DESIGN.md`, source và test consumer.
 
 ### Don't
 
 - Không lặp hex, breakpoint, shadow, motion hoặc component token từ `DESIGN.md`.
 - Không copy source/media/logo/font/URL nhận diện từ Espacio reference.
-- Không invent Zalo, founding year, warranty hoặc claim owner chưa xác nhận.
+- Không invent owner fact chưa xác nhận trong `PRODUCT.md`.
 - Không đưa primitive admin/CMS vào public visual system khi CMS còn dormant.
 - Không thêm `data-motion-*`, motto, gallery count hoặc route variant trái content
   guide chỉ để đạt cảm giác nhất thời.

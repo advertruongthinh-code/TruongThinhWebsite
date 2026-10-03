@@ -2,7 +2,7 @@
 title: Frontend runtime và route guide Trường Thịnh
 type: frontend
 status: living
-updated: 2026-09-10
+updated: 2026-10-03
 related_specs:
   - ../specs/frontend-route-and-content.md
   - ../specs/frontend-brand-shell-responsive-runtime.md
@@ -74,42 +74,23 @@ runtime đọc artifact generated, category filter, locale và viewport. Keyboar
 Tab qua virtual frontier được xử lý trong `catalog-runtime.mjs`; list item giữ
 `aria-posinset`/`aria-setsize`.
 
-Photo contract AD-BROWSE-R1 dùng `record.id` làm identity; title và product key
+Photo contract dùng `record.id` làm identity; title và product key
 được phép lặp. Mỗi record có `descriptionVi`, `descriptionEn`, `tagIds` và
 `media.source`, `media.sha256`, `media.provenance`. `buildAdvertisingArtifact()`
 xuất thêm `tagRegistry` với label VI/EN và nhóm tag. Mapping là source authored,
 không suy material/technique từ keyword lúc runtime. Validator reject tag lạ,
 thiếu mô tả, thiếu source/hash/provenance và photo ID trùng.
 
-Main đã đối chiếu 109 public record với baseline và SHA-256 file: media, identity,
-dimensions và source order giữ nguyên. Registry có 82 tag; `use-sampling` nối
-ảnh quầy dùng thử ở hai nhóm bằng mapping authored. Photo history/related đã qua
-fixture gate; Auto v5 đã qua ma trận và independent review. Detail runtime đã
-nối theo [AD-BROWSE-R1](../specs/advertising-photo-browse.md); browser acceptance
-phải đối chiếu report đúng revision. Thư viện ảnh mới giữ gate/mapping riêng trong
+Catalog hiện có 154 public record, dataset `2026-09-24.1`; registry có 84 tag
+(đọc từ `buildAdvertisingArtifact()`). Mapping ảnh mới giữ gate riêng trong
 [image audit](../verification/advertising-images-audit-2026-09-09.md).
 
-Policy public `advertising-grid-v7` dùng `compileAdvertisingProductLayout`
-trong shared core: mọi ảnh rộng một cột, cao intrinsic. `initialColumnBottoms` cho phép
-related adapter dành chỗ cho primary bằng solver chung; gap do solver cộng.
-Rhythm prefix chỉ bị loại khi cạnh sớm nhất của mọi ảnh còn lại cũng không thể
-sửa nó. Lower bound tính theo intrinsic height/span nhỏ nhất hợp lệ, theo dõi
-remaining set và rollback cùng search; prefix còn sửa được vẫn được xét.
-Gate so le dùng 0,20 chiều cao ảnh lớn nhất liền kề; tail-fill đo đáy ảnh thật
-trong cùng tọa độ, không trừ seed. Search ưu tiên cột thấp, giữ nhánh các cột
-ở đoạn cuối và loại candidate cùng hình học. Related được giảm số cột sau
-search-exhausted, tối thiểu một cột; invalid-input vẫn ném lỗi. Đo lại banner
-theo width và giữ vùng primary theo giao chiều ngang. Tổng budget mọi lượt
-thử giữ 300.000; không tuyên bố nghiệm tối ưu hoặc số cột lớn nhất khả thi.
-
-Owner đã duyệt AD-BROWSE-R1-P1.1. Producer/validator/media data bỏ lựa chọn
-Auto / 1 cột / 2 cột và threshold chọn độ rộng; artifact mới có `settings: {}`,
-không có `layoutSpan`. Adapter giữ span 1 nội bộ cho solver. Cả parent,
-related và build preflight dùng chung policy; giá trị legacy không ảnh hưởng
-geometry hoặc coordinate hash mới. Generic kernel Auto và các fixture cũ chỉ
-giữ tương thích/lịch sử. Contract CMS tương lai cũng bỏ lựa chọn này;
-slice không mở CMS hoặc sửa file ảnh/intrinsic metadata. Evidence đúng revision
-ở [verification](../verification/advertising-grid-r4-2026-09-09.md).
+Policy hiện hành là `advertising-grid-v13` trong `layout-core.mjs`
+(`layoutAlgorithmVersion` của artifact): mọi ảnh rộng một cột, cao intrinsic;
+parent, related và build preflight dùng chung solver; artifact có
+`settings: {}`, không còn lựa chọn Auto / 1 / 2 cột hay `layoutSpan`. Thuật
+toán và acceptance thuộc [GRID-R4](../specs/advertising-grid-span-organic.md)
+và [photo browse spec](../specs/advertising-photo-browse.md); không lặp ở đây.
 
 ## Advertising photo runtime
 
@@ -122,12 +103,12 @@ Khối primary dọc/vuông chia ảnh và thông tin ở desktop/tablet đủ r
 ngang và mobile xếp ảnh trên thông tin. Adapter đo primary thật trước khi
 dành chỗ cho related. Khối gợi ý chứa tối đa năm link banner từ authored tags,
 ảnh đại diện khớp tag và thứ tự ổn định theo hero ID; chọn tag dùng replaceState
-và giữ hero. Chỉ ảnh nền ô nhãn dùng cover crop theo R6.
+và giữ hero. Chỉ ảnh nền ô nhãn dùng cover crop.
 
 Mode desktop dùng cùng media query `min-width: 961px` với CSS; spacing và bề
 rộng khả dụng dùng `documentElement.clientWidth`. Gutter trong photo view lấy
 cùng số đo với solver để thanh cuộn không làm card vượt container. Adapter
-truyền số cột ưu tiên; related adapter giảm cột khi cần theo R1. Window resize
+truyền số cột ưu tiên; related adapter giảm cột khi cần. Window resize
 đi qua scheduler ngay cả khi ResizeObserver không phát callback. Callback RO
 của geometry đã đo được bỏ qua, tránh hủy morph vừa mở.
 
@@ -141,12 +122,11 @@ viewer chỉ đóng viewer; Escape khi đã đóng tiếp tục flow photo histo
 Cleanup đóng dialog, khôi phục scroll và trả node về container trước unmount.
 
 Phone tận dụng bề rộng vùng ảnh và safe area; tablet thu lề ngang; desktop giữ
-lề cho control. Contract và ma trận viewport thuộc R2/G6 của spec, không dùng
-test carousel lịch sử làm bằng chứng cho viewer.
+lề cho control. Ma trận viewport thuộc photo browse spec.
 
 ## Advertising category URL cũ
 
-AD-BROWSE-R1 thay composition theo nhóm bằng photo view trên parent route.
+Photo view trên parent route thay composition theo nhóm.
 Generator xuất sáu HTML compatibility nhỏ; canonical tương đối `../`, fallback
 link `../?category=<slug>`. JavaScript dùng `location.replace` để giữ locale và
 query không định tuyến, bỏ `photo`/`tag`/`category` cũ rồi đặt category của pathname.
@@ -157,8 +137,6 @@ Khi tắt JavaScript, đích là fallback tĩnh của parent, không phải runt
 Source `detail-template.html`, cấu hình composition, assets lịch sử và generic
 carousel vẫn được giữ; sáu output category không còn nhúng gallery/pool cũ.
 Compatibility này thuộc static preview; không đổi Worker, sitemap hoặc provider.
-Evidence và phạm vi kiểm chứng ở
-[Advertising verification](../verification/advertising-grid-r4-2026-09-09.md).
 
 ## Shared DOM và i18n
 

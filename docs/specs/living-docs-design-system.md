@@ -195,7 +195,7 @@ Hai native worker đã trả inventory Espacio provenance và design/code mappin
 Main đã đối chiếu raw sink/suffix, motion replay drift và source reuse entrypoint.
 Inventory không phải audit từng dòng toàn bộ docs; requested Sol/high,
 effective unknown. Mapping đầy đủ ở [inventory](../../tasks/docs-living/inventory.md),
-thứ tự thực thi ở [plan](../../tasks/docs-living/plan.md).
+thứ tự thực thi ở plan `tasks/docs-living/plan.md` (local, đã xóa sau khi hoàn tất).
 
 Owner đã duyệt spec, plan và mapping trong session ngày 2026-09-09.
 Kết quả thực thi và các giới hạn được ghi tại

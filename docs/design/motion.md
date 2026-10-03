@@ -30,26 +30,20 @@ ba hàng ảnh giả xuống cuối trang.
 hoặc keyboard focus dùng lại underline transition0,3giây của navigation chung.
 
 Nguồn chuẩn cho choreography, trigger, state và reduced motion dùng chung.
-Nội dung được chuyển từ accepted route/Advertising spec ngày 2026-09-09, không
-thay behavior. Dependency version, API và test execution vẫn thuộc owning spec.
+Dependency version, API và test execution vẫn thuộc owning spec.
 Logo có authority riêng tại [DESIGN.md](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
 Espacio chỉ là [measured reference](../reference/espacio/motion.md), không phải
-implementation hoặc target tự động. Historical PASS không chứng minh current runtime. Delta P1.3 dưới đây đã được
-owner duyệt spec và plan ngày 2026-09-11; motion T3–T4 đạt
-[checkpoint B](../verification/advertising-grid-r4-2026-09-09.md#p13-checkpoint-b--chuyển-vị-trí-và-mở-ảnh-2026-09-11).
-CTA/navbar và kiểm tích hợp P1.3 đã đạt
-[checkpoint C](../verification/advertising-grid-r4-2026-09-09.md#p13-checkpoint-c-và-nghiệm-thu-kỹ-thuật-2026-09-11).
-Owner spot-check còn mở; các phép đo scoped không thay verdict toàn website.
+implementation hoặc target tự động. Historical PASS không chứng minh current
+runtime; trạng thái nghiệm thu ở [STATE](../STATE.md) và verification.
 
 ## Advertising: chuỗi ảnh của gợi ý active
 
-[D12](../specs/advertising-final-polish-and-media.md) được owner yêu cầu13/09:
-chỉ nút gợi ý active chuyển chuỗi ảnh related với nhịp hero homepage, zoom
+[D12](../specs/advertising-final-polish-and-media.md): chỉ nút gợi ý active chuyển chuỗi ảnh related với nhịp hero homepage, zoom
 nhẹ1,06→1 trong5giây và chuyển mờ1,6giây. D17 xếp bốn mục ngang/wrap
 ở stacked và2×2 phủ ngang info ở split. Nhãn, thứ tự và hình học bốn mục
 đứng yên; hover/focus phản hồi riêng, off giữ ảnh đại diện tĩnh. Pause khi
 offscreen/tabẩn, hủy khi tắt/đổi ảnh/unmount; reduced motion dùng ảnh tĩnh.
-Không thay motion homepage; nghiệm thu runtime theo evidence đúng revision.
+Không thay motion homepage.
 
 ## Shared motion
 
@@ -94,7 +88,7 @@ giới hạn theo kích thước ảnh đã phóng. Không đưa grid vào viewe
 animate layout width/height
 mỗi frame. Position motion của từng card do Masonry sở hữu; không thêm animation library.
 
-P1.3: control Advertising vuông48px, icon nét1,5px. Expand neo phải; hover/
+Control Advertising vuông48px, icon nét1,5px. Expand neo phải; hover/
 focus mở nhãn trong250ms, không scale glyph hoặc reflow ảnh. Hover đổi nền
 150ms; reduced motion đưa duration về0. Bỏ Back riêng; navbar photo dùng
 nguyên shared collapse/hide/reveal, không pin transform. Navbar từ detail
@@ -104,24 +98,23 @@ giữ bộ lọc. Ba trang danh sách dùng cùng nhánh logo homepage, theo
 Không tự thêm tween cuộn khác: logo hiện dùng setPageScroll tức thì cùng
 phản ứng shell.
 
-Correction owner 2026-09-11: viewer control có nền trắng đặc, hover #ddd,
+Viewer control có nền trắng đặc, hover #ddd,
 active #c6c6c6; disabled dùng icon #91918c và không transition. Focus bàn phím
-có viền riêng, không dùng hover thay focus. Thông số đầy đủ ở R4 photo browse.
+có viền riêng, không dùng hover thay focus. Thông số đầy đủ ở photo browse spec.
 Related giữ focus/anchor chỉ với card còn placement; khi mở ảnh đó thành
 detail, chuyển focus sang mô tả và giải phóng card cũ sau cohort. Không đổi
 duration400ms hoặc geometry để che lỗi card bị giữ ngoài layout.
 
-Correction P6.2: source background của primary photo chỉ animate opacity và
+Source background của primary photo chỉ animate opacity và
 transform; không animate CSS blur. Một shared glass surface phủ đều vùng dư với
 `blur(28px) saturate(1.08) brightness(1.04)` và tint trắng alpha `0.12`.
 Skeleton boundary tái dùng cùng surface, giữ global gradient mask riêng và lan
 ngang tới hai mép viewport mà không đổi geometry grid; photo overflow không
 tăng blur theo khoảng cách từ mép ảnh. Nút mở ảnh cân hai đầu trong tolerance
-`1px`; icon mở/reset dùng cùng nét hai mũi tên chéo. Nút Back riêng của P6.1 bị
-loại bỏ.
+`1px`; icon mở/reset dùng cùng nét hai mũi tên chéo. Không có nút Back riêng.
 
 Skeleton CTA có ba frame rỗng/cột nối từ đáy geometry ảnh thật, cùng gutter.
-P1.3 đặt toàn bộ rect chữ CTA trong continuation, sau max(bottom ảnh thật)
+Toàn bộ rect chữ CTA nằm trong continuation, sau max(bottom ảnh thật)
 cùng gutter; kéo dài continuation nếu chữ/gap chưa vừa. Alpha nền frame0,28,
 border0,40 bằng màu neutral hiện hữu; opacity0,42→0,16→0,04 và mask fade dọc.
 Không focus/shimmer/catalog item; không dùng skeleton che hụt đuôi ảnh thật.
@@ -171,8 +164,7 @@ tương ứng và được ghi rõ trong data/template contract.
 [AD-FINAL-R1 C1–C2 và D7](../specs/advertising-final-polish-and-media.md) bổ sung
 loop gradient xám và chuyển động XY nhẹ cho skeleton, pause theo visibility
 và reduced motion. Chuyển động trang trí không chiếm transform của shuffle;
-giữ nguyên contract interruption/cleanup của các ảnh thật. Evidence cũ không
-nghiệm thu loop mới.
+giữ nguyên contract interruption/cleanup của các ảnh thật.
 
 ### Position morph
 
@@ -181,7 +173,7 @@ nghiệm thu loop mới.
 - Trigger là coordinate diff của card đã render, không phải danh sách event cố
   định. Filter, resize, đổi số cột và mọi layout invalidation dùng cùng một
   Masonry instance và `.layout()` pipeline.
-- P1.3: initial load/view-entry khởi tạo card visible window tại đầu cột
+- Initial load/view-entry khởi tạo card visible window tại đầu cột
   đích, sau primary reservation nếu có, rồi dùng cùng position motion400ms
   tới organic coordinate. Origin có từ prepaint, không flash final rồi lùi
   lại. Scroll virtualization remount tại cached coordinate vẫn instant.
@@ -227,13 +219,13 @@ nghiệm thu loop mới.
   chạy `0.3s cubic-bezier(0.4, 0, 0, 1)`.
 - Batch mới append atomic rồi nối từng card vào cột thấp nhất từ cached column
   bottoms. Prefix không đổi tọa độ nên không chạy lại motion; chỉ media mới được
-  fade khi vào viewport. Cân đáy ảnh thật tuân R1 v7 của AD-BROWSE-R1;
+  fade khi vào viewport. Cân đáy ảnh thật tuân photo browse R1;
   không ép các cột bằng nhau hoặc dùng skeleton che lỗi cân đáy.
 - `prefers-reduced-motion` giữ cùng layout result nhưng position và media hiện
   tức thì, không setup hoặc replay media transition; filter không chờ animation.
-- Scope position/media của P1.3 gồm parent và related của query photo tại
+- Scope position/media gồm parent và related của query photo tại
   `/vi/advertising-products/` và `/en/advertising-products/`. Sáu slug cũ giữ
-  compatibility theo AD-BROWSE-R1; không tự mở redesign gallery ngoài flow.
+  compatibility theo photo browse spec; không tự mở redesign gallery ngoài flow.
 
 ### Visibility media trên sáu route chi tiết
 

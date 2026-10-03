@@ -5,7 +5,7 @@ status: draft
 updated: 2026-08-09
 notion: none
 related_decisions:
-  - ../decisions/static-first-release.md
+  - ../decisions/wrangler-deferred-until-cms.md
 related_reports: []
 ---
 
@@ -116,7 +116,7 @@ khi implement.
 
 ## 9. Reference và history
 
-- [`../backend/roadmap.md`](../backend/roadmap.md)
+- [`../backend/index.md`](../backend/index.md#điều-kiện-mở-cms-phase)
 - [`frontend-landing-page-foundation.md`](frontend-landing-page-foundation.md)
 
 ## Chú thích thuật ngữ

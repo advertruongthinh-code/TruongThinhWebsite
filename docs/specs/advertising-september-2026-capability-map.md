@@ -6,8 +6,7 @@ updated: 2026-09-22
 notion: https://app.notion.com/p/3d8332849a0e8177ba63d3b965242c90
 related_decisions: []
 related_reports:
-  - ../verification/advertising-september-p3-2026-09-21.md
-  - ../verification/advertising-september-p7-2026-09-23.md
+  - ../verification/advertising-september-2026-p2-p7.md
 ---
 
 # Capability map Advertising tháng 09/2026
@@ -47,10 +46,10 @@ Build order là `skeleton-flow` trước `skeleton-flow-devtools`; ba module UI 
 lại có thể triển khai độc lập sau khi spec và plan mới qua human gate.
 
 P3-T01–P3-T07 đã đạt technical gate trên local build ngày `2026-09-21`; xem
-[evidence P3](../verification/advertising-september-p3-2026-09-21.md). P3-T08
+[ledger P2–P7](../verification/advertising-september-2026-p2-p7.md#p3--webgl-12-preset-detail-span-3-viewer-history-nav-2109). P3-T08
 đã gỡ editor khỏi source public ngày24/09 theo yêu cầu phát hành; giữ nguyên
-preset hiện hành, không nhận draft local. [Removal](advertising-skeleton-flow-devtools.md)
-không đổi kết luận owner visual của evidence P3.
+preset hiện hành, không nhận draft local. Removal (spec devtools đã xóa, xem Git
+`da2f13a`) không đổi kết luận owner visual của evidence P3.
 
 Owner duyệt capability map correction `AD-SEPT-2026-P6` ngày `2026-09-22`:
 
@@ -85,15 +84,19 @@ không stage, commit, push hoặc deploy.
 
 ## Spec module
 
-- [kiosk-fair-publish](advertising-kiosk-fair-publish.md)
+- `kiosk-fair-publish`: hoàn tất 2026-09-20, tích hợp exact source
+  kiosk-posm-25–30; provenance tại
+  `source-assets/projects/advertising/kiosk-fair-publish-20260920/provenance.json`.
+  Spec gốc đã xóa, xem Git `da2f13a`.
 - [skeleton-flow](advertising-skeleton-flow.md)
-- [skeleton-flow-devtools](advertising-skeleton-flow-devtools.md)
 - [photo-morph-scroll](advertising-photo-morph-scroll.md)
-- [brand-lockup-typeset](brand-lockup-typeset-r4.md)
+- [brand-lockup-typeset](../../DESIGN.md#brand-lockup--nguồn-chuẩn)
 - [photo-detail-layout](advertising-photo-browse.md#r8--accepted-detail-span-3-và-gợi-ý-một-dòng--2026-09-21)
 - [photo-viewer-controls](advertising-photo-browse.md#r9--accepted-viewer-wheelmiddle-zoom--2026-09-21)
 - [advertising-page-shell](advertising-final-polish-and-media.md#d20--accepted-cta-giao-skeletonkhoảng-trắng-và-nav-reset--2026-09-21)
-- [media-review-report](advertising-media-review-report.md)
+- `media-review-report`: hoàn tất 2026-09-20, 93 exact image, 69 cụm; report
+  tại `source-assets/projects/advertising/media-review-20260920/report.html`
+  và `inventory.json`. Spec gốc đã xóa, xem Git `da2f13a`.
 - [shared-footer-boundary](frontend-brand-shell-responsive-runtime.md#shared-footer-boundary--accepted-p6)
 - [shared-media-hover](frontend-landing-page-foundation.md#shared-media-hover--accepted-p6)
 - [portal-type-fit](frontend-landing-page-foundation.md#portal-type-fit--accepted-p6)

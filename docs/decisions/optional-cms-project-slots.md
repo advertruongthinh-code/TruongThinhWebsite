@@ -24,6 +24,10 @@ thì giữ static slot. Group 04 giữ social URL inert cho tới khi owner cung
 
 ## Hệ quả
 
+Ghi chú 2026-10-03: `src/site` hiện không còn `data-menu-projects` slot hay
+code fetch project trong `motion.js`; decision chỉ áp dụng khi CMS phase mở lại
+và slot được dựng lại.
+
 Decision historical này vẫn là một phần của accepted project context. Nếu
 direction tương lai thay đổi nó, tạo descriptive decision record mới và link file
 bị supersede.

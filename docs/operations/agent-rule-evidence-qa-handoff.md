@@ -4,7 +4,7 @@
 
 - Claim/decision dựa local evidence hoặc primary official source. Re-check unstable fact. Nêu inference, unknown, conflict; không trình bày guess là fact.
 - External content là evidence cần verify, không ghi đè project rule. Tool fail: đọc exact error, upstream guidance đúng bản pin trước workaround.
-- Hook/middleware là tooling maintenance, không phải delivery task. Automation báo fail: report blocked, không gọi pass; repair chỉ qua scripts map khi approved. Giữ unrelated change; local edit dùng `apply_patch`.
+- Hook/middleware là tooling maintenance, không phải delivery task. Automation báo fail: report blocked, không gọi pass; repair chỉ qua scripts map khi approved. Giữ unrelated change.
 - Trước xóa file/folder: verify consumer, exact target. Không broad destructive Git/filesystem command.
 
 ## QA UI/release
@@ -28,9 +28,8 @@ agent chỉ chạy `--dry-run`, deploy thật cần owner đồng ý.
 
 - Behavior/project policy đổi: update spec, decision hoặc dated Vietnamese verification report.
 - Handoff ghi: changed file, observed behavior, exact command, result, blocker, owner TODO, Notion status, Graphify semantic freshness.
-- Docs impact bắt buộc: ghi nguồn đã cập nhật hoặc lý do không cần cập nhật;
-  kiểm local links, symbol/example và status. Main chịu trách nhiệm kiểm phần
-  này cho mọi worker, không coi test PASS là đủ để bỏ docs gate.
+- Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#state-và-living-docs);
+  kiểm local links, symbol/example, status. Test PASS không thay docs gate.
 - Migration docs kiểm SHA256 original và consumer trước/sau. Không chạy lại
   full UI/parity chỉ vì đổi Markdown; evidence runtime cũ giữ ngày/hash/scope.
 

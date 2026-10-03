@@ -2,6 +2,11 @@
 
 ## Trạng thái
 
+Trạng thái cuối (25/09/2026): Sites version 2 đã deploy public, trạng thái
+`succeeded`, từ GitHub source `0654dca` và Sites mirror `557da5a`; xem
+[release static-only](#release-static-only-25092026). Full-site parity vẫn
+`NOT PASS`. Các đoạn dưới giữ trình tự checkpoint lịch sử.
+
 Cleanup, docs mapping, Impeccable extract và catalog154 ảnh đã commit local:
 `da2f13a735319723ce7245771e63a37b6ee84711`. Commit
 `fdbfcbd77a9aa279d31b9a3351d3741ba0d75e4a` nối lịch sử Sites bằng merge

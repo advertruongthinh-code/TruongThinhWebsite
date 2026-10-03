@@ -7,10 +7,9 @@ không tự có nghĩa mọi claim trong đó bị hủy.
 
 ## Trạng thái toàn site
 
-[Checkpoint cleanup/release](release-cleanup-2026-09-24.md#release-static-only-25092026)
-đã bổ sung evidence25/09: GitHub nhận source `0654dca`, Sites nhận mirror
-`557da5a`, version2 deploy `succeeded`. Các trạng thái pre-push bị chặn trước
-đó là checkpoint lịch sử; release static không là full-site parity PASS.
+Sites version 2 đã deploy public ngày 25/09/2026 (`succeeded`): GitHub source
+`0654dca`, Sites mirror `557da5a` chỉ gồm artifact `dist/`. Xem
+[release static-only](release-cleanup-2026-09-24.md#release-static-only-25092026).
 
 Full website và Espacio parity vẫn **NOT PASS**. [Canonical machine report](../reports/research-espacio-layout-motion-parity.md)
 giữ fail/blocked/unmapped; [pilot](../reports/research-espacio-layout-motion-parity-pilot.md)
@@ -44,20 +43,15 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Catalog154, owner selection28 và5 ảnh ChatGPT | [Mapping/review24/09](../../source-assets/projects/advertising/owner-selection-20260924/README.md) |27 thêm,1 thay; COCO/decal còn lỗi chữ nhỏ; không5/5 rubric PASS |
 | Full menu responsive | [MENU-R1](menu-reference-parity-2026-09-24.md) |28 geometry,10 flow,2 text zoom; không nghiệm thu thiết bị thật |
 | History, footer, slideshow và logo correction | [P7.5](advertising-september-p7-5-2026-09-24.md) | Focused regression; full-site parity không đổi |
-| Glass boundary, suggestion border và scroll restore | [P7.4](advertising-september-p7-4-2026-09-23.md) | P7.5 tiếp tục case route/footer |
-| AD-SEPT-2026-P7.3: primary vừa viewport dưới navbar, nav một hàng và suggestion qua resize | [Run 2026-09-23](advertising-september-p7-3-2026-09-23.md) | Focused technical gate đạt; owner visual, Galaxy A54 thật và P3-T08 còn mở; full-site vẫn NOT PASS |
-| AD-SEPT-2026-P7.1/P7.2: organic skeleton tail, conditional suggestion, hero/navbar regressions, Pinterest overlay và primary cao theo nội dung | [Run 2026-09-23](advertising-september-p7-1-p7-2-2026-09-23.md) | Focused technical gate đạt; owner visual, Galaxy A54 thật và P3-T08 còn mở; full-site vẫn NOT PASS |
-| AD-SEPT-2026-P7: hero one-shot, mobile tail/Glassmorphism, Pinterest primary/pager, suggestion-first và shared header | [Run 2026-09-23](advertising-september-p7-2026-09-23.md) | Focused functional gate đạt; performance 30fps trên Galaxy A54 thật và owner visual gate còn mở; full-site vẫn NOT PASS |
-| AD-SEPT-2026-P6/P6.1/P6.2: footer boundary, shared hover, portal type-fit, skeleton CTA glass field và photo overflow shared glass | [Run 2026-09-22](advertising-september-p6-2026-09-22.md) | P6, P6.1 và P6.2 focused technical gate đạt; photo Back P6.1 đã bị P6.2 supersede; P3-T08 và owner visual gate còn mở |
-| AD-SEPT-2026-P5: continuous masonry, shared hover, skeleton global fade và backdrop white erase | [Run 2026-09-21](advertising-september-p5-2026-09-21.md) | P5-T01–P5-T07 technical gate đạt; P3-T08 và owner visual gate còn mở |
-| AD-SEPT-2026-P4: batch Flow, viewport replay, N4/span3 cột 4 và morph backdrop | [Run 2026-09-21](advertising-september-p4-2026-09-21.md) | P4-T01–P4-T05 technical gate đạt; P3-T08 và owner visual gate còn mở |
-| AD-SEPT-2026-P3: WebGL 12 preset, detail span3, viewer, history, CTA và nav canonical | [Run 2026-09-21](advertising-september-p3-2026-09-21.md) | P3-T01–P3-T07 technical gate đạt; P3-T08 tune/removal và owner visual gate còn mở |
+| AD-SEPT-2026-P7.3: primary vừa viewport dưới navbar, nav một hàng và suggestion qua resize | [Run 2026-09-23](advertising-september-p7-3-2026-09-23.md) | Focused technical gate đạt; owner visual và Galaxy A54 thật còn mở; full-site vẫn NOT PASS |
+| AD-SEPT-2026-P7.1/P7.2: organic skeleton tail, conditional suggestion, hero/navbar regressions, Pinterest overlay và primary cao theo nội dung | [Run 2026-09-23](advertising-september-p7-1-p7-2-2026-09-23.md) | Focused technical gate đạt; owner visual và Galaxy A54 thật còn mở; full-site vẫn NOT PASS |
+| AD-SEPT-2026-P2 đến P7: Flow, detail span, morph history, cột 4, masonry, footer/hover/portal, glass, hero one-shot, Pinterest primary, shared header | [Ledger P2–P7](advertising-september-2026-p2-p7.md) | Focused technical gate từng phase đạt; P3-T08 đóng 24/09; owner visual và Galaxy A54 thật còn mở; full-site vẫn NOT PASS |
 | Feral Flow formulas, 12 preset, pins/bands và bundle provenance | [Measurement 2026-09-21](feral-flow-measurement-2026-09-21.md) | Clean-room input; không là giấy phép sao chép, pixel parity hoặc runtime PASS Trường Thịnh |
-| AD-SEPT-2026-P2: Flow, detail span2, morph history, CTA một viewport và logo R5 | [Run 2026-09-21](advertising-september-p2-2026-09-21.md) | Scoped technical gate đạt; owner visual gate và media selection còn mở |
-| Up next Advertising: scroll/morph/selection/spacing | [Run 2026-09-09](upnext-advertising-2026-09-09.md) | Scoped gates; xem acceptance và giới hạn trong report |
+| Up next Advertising: scroll/morph/selection/spacing | [Run 2026-09-09](../archive/reports/verification-upnext-advertising-2026-09-09.md) | Archive; scoped gates tại ngày ghi |
 | AD-BROWSE-R1, UI-FRAME-R4 và R6 | [Checkpoint R4/R6](advertising-grid-r4-2026-09-09.md#ad-browse-r1--ui-frame-r4-và-r6-2026-09-10) | Baseline detail/viewer/nhãn: G6 94/94, scrollbar 4/4, compatibility 14/14; không tự bao phủ policy v6 hoặc image-quality |
 | AD-BROWSE-R1-P1.1 một cột | [Policy v6 và geometry](advertising-grid-r4-2026-09-09.md#ad-browse-r1-p11--policy-một-cột-2026-09-10) | Node 34/34, grid 30/30, G3 6/6, viewer 94/94; build cuối một cột 6/6 và scrollbar 4/4; owner spot-check còn mở |
 | AD-BROWSE-R1-P1.2 | [Cân đáy, CTA và Back v7](advertising-grid-r4-2026-09-09.md#ad-browse-r1-p12--cân-đáy-cta-và-back-2026-09-10) | Node 38/38, 1.320 related cases; transitions 8/8, viewer 94/94, một cột browser 6/6; owner spot-check còn mở |
+| Advertising Products scoped work log 31/08–09/09 | [Evidence turnkey](advertising-products-turnkey-evidence.md) | Lịch sử scoped current-hash; contract ở spec |
 | Audit + Critique 115 ảnh Advertising | [Bảng điểm đầy đủ](advertising-images-audit-2026-09-09.md) | 70 giữ, 23 sửa, 16 thay, 6 nguồn chưa xác minh; chưa thay ảnh hoặc nghiệm thu GRID-R4 |
 | Grid 109 media, spacing | [109 media](../archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md) | Scoped snapshot, khác rank-v2 và rank-v3 72 card |
 | Grid media re-entry | [Replay](../archive/reports/verification-advertising-products-media-reentry-detail-visibility-2026-09-01.md) | Phần detail 7/7 được regression dưới bổ sung |
@@ -66,7 +60,6 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Progressive carousel | [Carousel](../archive/reports/verification-advertising-detail-horizontal-carousel-2026-09-02.md) | Evidence lịch sử Advertising; generic carousel vẫn giữ, không là proof photo view |
 | Hero direct/F5 | [Hero text](../archive/reports/verification-advertising-hero-text-motion-2026-09-01.md) | Advertising; Commercial reduced-motion gap ngoài scope |
 | Brand LOGO-R3 | [Ink gồm dấu, header và màu](brand-lockup-logo-r3-2026-09-10.md) | Revision hiện hành; xem trạng thái gate trong report, không là full-site parity |
-| Brand LOGO-R2 | [Lockup trước delta tính dấu](brand-lockup-logo-r2-2026-09-09.md) | Evidence lịch sử, được LOGO-R3 thay cho behavior hiện tại |
 | Agent tooling | [Major upgrade](../archive/reports/verification-pnpm-impeccable-major-2026-09-08.md), [Superpowers](../archive/reports/verification-superpowers-codex-2026-09-08.md) | Version/fixtures tại ngày ghi, không website release |
 | Docs migration R1 | [Verification living docs](living-docs-2026-09-09.md) | Links/schema/preservation/reuse; không runtime UI |
 
@@ -81,9 +74,8 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Browser/project/bootstrap snapshot tháng 7–8 | Historical; tra current scope trong STATE, tooling runbook và report mới tương ứng |
 
 Không tự bỏ accepted ADR vì cũ. [Decision index](../decisions/index.md) giữ
-status explicit; [archive index](../archive/index.md) giữ toàn bộ bản gốc và
-mapping SHA256. Known historical broken paths được ghi tại report migration;
-không đổi byte của evidence để che lỗi.
+status explicit; [archive mapping](../archive/mapping.json) giữ SHA256 và file
+đã xóa. Không đổi byte của evidence để che lỗi.
 
 ## Chú thích thuật ngữ
 

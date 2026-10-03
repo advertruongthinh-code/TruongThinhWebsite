@@ -243,9 +243,8 @@ bands là `B25-50-75`. Owner có thể tune từng preset bằng dev UI rồi ex
 - Test context loss/fallback, resize, filter/detail/history, VI/EN và mount/unmount
   lặp. Static gate chứng minh không thêm dependency hoặc remote runtime.
 
-Dev UI tạm thời thuộc spec riêng
-[advertising-skeleton-flow-devtools.md](advertising-skeleton-flow-devtools.md)
-và phải qua removal gate trước ship.
+Dev UI tạm thời `?skeleton-dev=1` đã gỡ khỏi public source ngày 2026-09-24
+(P3-T08); spec devtools đã xóa, xem Git `da2f13a`.
 
 ## 13. Correction R5 accepted — batch đa dạng và viewport replay — 2026-09-21
 
@@ -454,8 +453,7 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
 - Unit khóa 12 Field/Finish, Scale 100, anchor P100 frozen và batch uniqueness.
   Browser khóa N1/N2 resize persistence, one-viewport tail, full-bleed glass,
   blur-before-white và endpoint `rgb(255,255,255)` sai số tối đa một.
-- `?skeleton-dev=1` vẫn là dev-only surface và phải bị xóa vật lý trước ship theo
-  removal gate P3-T08; correction này không biến nó thành production UI.
+- `?skeleton-dev=1` đã bị xóa vật lý ngày 2026-09-24 theo removal gate P3-T08.
 
 ## Correction P7.1 — organic continuation và paint overflow
 
@@ -471,9 +469,12 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
   Card có thể paint vượt boundary tối đa một gap, nhưng không đổi document height
   hoặc hit testing. Global Glassmorphism R10 giữ token, full bleed, trình tự blur
   trước white và endpoint `#fff`.
-- Verification và ngoại lệ thiết bị thật được ghi trong
-  [P7.1 correction](advertising-september-2026-p7-1-correction.md); dev UI
-  `?skeleton-dev=1` vẫn chờ removal gate P3-T08 trước ship.
+- Tại `scrollY = scrollHeight - innerHeight`, bbox CTA và toàn footer nằm trong
+  viewport, sai số `1 CSS px`. Overflow nằm dưới glass, CTA và footer; glass đạt
+  white endpoint trước chữ/link đầu tiên của footer, không ghost.
+- Không tạo hàng skeleton riêng, local card fade/blur hoặc absolute CTA/footer
+  để đạt screenshot. Synthetic A54 không thay proof thiết bị thật. Spec P7.1
+  gốc đã xóa, xem Git `da2f13a`.
 
 <a id="correction-mobile-lifecycle--draft-2026-09-27"></a>
 

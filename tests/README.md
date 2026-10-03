@@ -1,28 +1,9 @@
 # Bộ browser smoke của Trường Thịnh
 
-`site.e2e.cjs` chạy Chromium thật bằng Playwright, không cần test runner riêng. Bộ test
-bao phủ 5 route ở 5 viewport, kiểm tra tải image sau khi cuộn từng bước, lỗi
-console/network, horizontal overflow và interaction chính. `worker-contract.cjs` kiểm
-tra Worker raw SSR 10 locale route, redirect 308, sitemap/robots và security
-reject của admin/upload.
-
-## Gate regression trước release
-
-Sau `pnpm prepare:site`, giữ `pnpm dev` tại cổng 8787 và chạy
-`pnpm qa:release-regressions`. Lệnh này chạy tuần tự các kiểm tra độc lập:
-
-| Suite | Contract bảo vệ |
-| --- | --- |
-| `static-locales.test.mjs` | HTML VI/EN build khớp locale transform của preview |
-| `advertising-full-span-p72.e2e.mjs` | Primary full-span vừa phần viewport dưới navbar, đúng ratio và vùng blur |
-| `advertising-no-titles.e2e.mjs` | Không tái xuất hiện caption/title ảnh đã bỏ |
-| `advertising-suggestion-conditional.e2e.mjs` | Resize split/full-span giữ node, focus và vị trí gợi ý |
-| `advertising-suggestion-info.e2e.mjs` | Tag, bàn phím, history và phân trang mô tả khi text zoom |
-| `shared-header-bottom-p7-1.e2e.mjs` | Navbar không tự expand ở cuối trang trên VI/EN |
-| `shared-header-single-line.e2e.mjs` | Ẩn mục navbar khi không vừa một hàng thực tế |
-
-Các suite này có consumer release và assertion hành vi riêng; không xóa chỉ vì
-trước đây chưa có lệnh tổng hợp. Gate hẹp không thay full-site parity.
+`site.e2e.cjs` chạy Chromium thật bằng Playwright, không cần test runner riêng.
+Bộ test bao phủ public route ở nhiều viewport, tải image sau khi cuộn từng bước,
+lỗi console/network, horizontal overflow và interaction chính. Static phase dùng
+Node server của repository; không cài hoặc khởi động Wrangler.
 
 ## Chạy chuẩn
 
@@ -77,70 +58,96 @@ Current continuation vẫn FAIL tại first-DOM-frame `ready()` predicate;
 giữ exact line/hash/raw và gate, không xem focused FPS/handoff là full PASS.
 
 ```powershell
-$state = Join-Path $env:TEMP "truong-thinh-worker-state"
-node node_modules/wrangler/bin/wrangler.js d1 migrations apply truong-thinh-cms --local --persist-to $state
-node node_modules/wrangler/bin/wrangler.js dev --local --port 8787 --persist-to $state
+pnpm dev
 ```
 
-Trong terminal khác:
+Terminal khác:
 
 ```powershell
 $env:BASE_URL = "http://127.0.0.1:8787"
-node tests/worker/worker-contract.cjs
 node tests/site/site.e2e.cjs
 ```
 
-Static release có thể chạy Worker trust-boundary fixture mà không cần D1:
+Luôn đặt `BASE_URL`: `pnpm dev` phục vụ cổng 8787, còn default trong code là
+4173. Worker trust-boundary fixture chạy không cần Wrangler, D1, R2:
+`pnpm qa:worker:security`. `qa:worker:static` và Worker contract đầy đủ thuộc
+CMS phase; chỉ chạy sau owner gate mở CMS và Worker runtime được pin lại.
 
-```powershell
-node tests/worker/worker-contract.cjs --security-only
-```
+## Gate regression trước release
 
-Worker contract mặc định cũng kiểm tra CMS catalog đã seed, vì vậy nó thuộc CMS
-phase được defer.
+Sau `pnpm prepare:site`, giữ `pnpm dev` tại 8787 và chạy
+`pnpm qa:release-regressions` (tuần tự):
 
-Mặc định Worker contract dùng `http://127.0.0.1:8787`. Có thể đổi server:
+| Suite | Contract bảo vệ |
+| --- | --- |
+| `static-locales.test.mjs` | HTML VI/EN build khớp locale transform của preview |
+| `advertising-full-span-p72.e2e.mjs` | Primary full-span vừa viewport dưới navbar, đúng ratio và vùng blur |
+| `advertising-no-titles.e2e.mjs` | Không tái xuất hiện caption/title ảnh đã bỏ |
+| `advertising-suggestion-conditional.e2e.mjs` | Resize split/full-span giữ node, focus, vị trí gợi ý |
+| `advertising-suggestion-info.e2e.mjs` | Tag, bàn phím, history, phân trang mô tả khi text zoom |
+| `shared-header-bottom-p7-1.e2e.mjs` | Navbar không tự expand ở cuối trang VI/EN |
+| `shared-header-single-line.e2e.mjs` | Ẩn mục navbar khi không vừa một hàng |
 
-```bash
-BASE_URL=http://127.0.0.1:8080 node tests/site/site.e2e.cjs
-```
+Các suite có consumer release; không xóa. Gate hẹp không thay full-site parity.
 
-PowerShell:
+## Gate tập trung Sản phẩm quảng cáo
 
-```powershell
-$env:BASE_URL = "http://127.0.0.1:8080"
-node tests/site/site.e2e.cjs
-```
+Giữ `pnpm dev`; mỗi gate chạy trong terminal mới, đặt `BASE_URL` và chỉ bật
+một flag `*_ONLY` để tránh chọn nhầm gate.
+
+| Flag | Lệnh | Kiểm |
+| --- | --- | --- |
+| `TT_E2E_ADVERTISING_GRID_ONLY=1` | `pnpm qa:site` | Margin/gap `15/25/35px`, trần `1500px`, `2–4` cột, breakpoint `-1/0/+1px`, geometry oracle, overflow |
+| `TT_E2E_ADVERTISING_MEDIA_ONLY=1` | `pnpm qa:site` | Số card theo `expectedCounts` trong suite, DOM bounded, lazy request theo virtual window, remount/focus |
+| `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY=1` | `pnpm qa:site` | Image-only `0.6s ease-out`, không replay khi remount, reduced motion, route enter Home/Back/Forward |
+| `TT_E2E_ADVERTISING_3K_ONLY=1` | `pnpm qa:site` | Fixture natural ratio, explicit canvas, virtual window `2800–2820` |
+| `TT_E2E_ADVERTISING_PROOF_ONLY=1` | `pnpm qa:site` | No-op scroll counter layout, filter morph, cohort union, pending-scroll catch-up |
+| `TT_E2E_ADVERTISING_COMPATIBILITY_ONLY=1` | `node tests/site/site.e2e.cjs` | Sáu slug VI/EN, query cũ, fallback không JavaScript |
+| `TT_E2E_P13_NAVBAR_ONLY=1` (+ `TT_E2E_P13_CASE`) | `node tests/site/site.e2e.cjs` | Re-click top, full menu, detail về parent, collapse/hide/reveal |
+| `PHOTO_VIEW_P13_GEOMETRY_ONLY=1` | `node tests/site/advertising-photo-view.e2e.mjs` | Khối detail, vùng gợi ý, mô tả dài, chữ 200% bằng CSS |
+| `PHOTO_VIEW_SCROLLBAR_REGRESSION=1` | `node tests/site/advertising-photo-view.e2e.mjs` | Thanh cuộn thật quanh 750/960/1200 px, related không overlap |
+| `PHOTO_VIEW_ONE_COLUMN_REGRESSION=1` | `node tests/site/advertising-photo-view.e2e.mjs` | Policy một cột, natural ratio, không lựa chọn Auto/1/2 |
+| `PHOTO_TRANSITIONS_P13_GATE=1` | `node tests/site/advertising-photo-transitions.e2e.mjs` | Chỉ position/morph/timing |
+
+Mode `RAPID_FILTER`, `LOCALE_LIFECYCLE`, `HISTORY`, `SELECTION`, `DEFAULT`,
+`REDUCED` giữ regression motion, pending scroll, focus, lifecycle.
+`CAROUSEL_ONLY` là alias compatibility cũ. Photo-view gate thường thêm
+`PHOTO_VIEW_ENGINES=chromium`; mỗi run dùng `PHOTO_VIEW_OUTPUT_DIR` hoặc
+`PHOTO_TRANSITIONS_OUTPUT_DIR` riêng dưới `.tmp/`. Node unit:
+`node --test tests/site/advertising-photo-layout.test.mjs` và
+`tests/site/advertising-one-column.test.mjs`.
+
+Không flag, transition suite kiểm identity/morph, Back giữa animation, ảnh
+chậm, dependency lỗi; viewer suite kiểm ba engine, viewport 320–2560, fit/
+cover, pan, focus, reduced motion. Đây là browser emulation, không phải phần
+cứng thật. Diễn giải kết quả theo
+[photo browse spec](../docs/specs/advertising-photo-browse.md).
 
 ## Chạy bằng runtime project-local
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/run-playwright.ps1 -Suite full
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/run-playwright.ps1 -Suite smoke
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/run-playwright.ps1 -Suite full
+pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/run-playwright.ps1 -Suite smoke
 ```
 
 Không chạy `npx` với package chưa khóa. Playwright và ba browser engine dùng
-đúng version trong `package.json`/lockfile và `.tooling/browsers`. Smoke artifact
-mặc định ghi vào `%TEMP%/truong-thinh-playwright-smoke` để không kích hoạt
-Wrangler asset watcher trong lúc test.
+version trong lockfile và `.tooling/browsers`. Smoke artifact ghi vào
+`%TEMP%/truong-thinh-playwright-smoke`.
 
 ## Kết quả
 
-- Report mới nhất: `tests/site/reports/latest.json`
-- Ảnh chụp khi fail: `tests/site/reports/failures/`
-- Exit code `0` khi toàn bộ check đạt; `1` nếu có bất kỳ failure nào.
+- Report mới nhất: `tests/site/reports/latest.json`; ảnh fail: `tests/site/reports/failures/`.
+- Exit code `0` khi mọi check đạt; `1` nếu có failure.
 
 ## Release evidence
 
-Playwright là regression layer có thể lặp lại. Mọi UI change và website
-release cần live interaction trên server local và inspection cùng route bằng
-Chrome DevTools MCP. Computer Use chỉ bắt buộc khi task cần Windows UI theo
-human path và tool chuyên biệt không đủ, theo
-[rule QA hiện hành](../docs/operations/agent-rule-evidence-qa-handoff.md#qa-uirelease).
-Ghi route, viewport, visible result,
-console/network finding, accessibility tree result và screenshot evidence trong
-dated verification report. Thiếu evidence layer bắt buộc thì QA/release bị
-block; Android CDP hoặc Playwright không thay gate Chrome DevTools MCP.
+Playwright là regression layer lặp lại được. UI change và website release còn
+cần Playwright live interaction và Chrome DevTools MCP cùng route theo
+[evidence rule](../docs/operations/agent-rule-evidence-qa-handoff.md). Computer
+Use chỉ dùng khi trigger AGENTS.md rule 5 khớp (cần Windows UI theo human path
+mà tool chuyên biệt không đủ). Ghi route, viewport, kết quả, console/network,
+accessibility tree, screenshot trong verification report có ngày. Layer bắt
+buộc không chạy được thì release blocked, không pass.
 
 ## Mobile viewport stability
 
@@ -224,6 +231,6 @@ node tests/site/mobile-layout-parity.e2e.mjs --phase final --scope all
 
 - **Smoke suite**: nhóm test nhanh cho đường đi và behavior chính.
 - **Trust boundary fixture**: fixture kiểm tra ranh giới input/quyền.
-- **Seeded catalog**: dữ liệu catalog được nạp trước cho test.
 - **Regression layer**: lớp test lặp lại để phát hiện thay đổi làm hỏng behavior.
 - **Viewport**: vùng browser đang hiển thị.
+- **Env flag**: biến môi trường chọn gate test hẹp.

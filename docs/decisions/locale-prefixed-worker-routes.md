@@ -3,9 +3,7 @@ title: Worker CMS và locale URL là canonical
 status: accepted
 date: 2026-07-31
 scope: historical project decision
-supersedes:
-  - root-canonical.md
-  - vietnamese-source-english-leaf-attributes.md
+supersedes: []
 related_specs: []
 related_reports: []
 ---
@@ -17,17 +15,17 @@ related_reports: []
 
 ## Decision
 
-Worker CMS và locale URL là canonical. Decision này supersede root và locale
-decision trước ở phần route/i18n: public chỉ dùng `/vi/…` và `/en/…`;
+Worker CMS và locale URL là canonical. Decision này chỉ thay phần route của
+decision trước: public chỉ dùng `/vi/…` và `/en/…`;
 Worker SSR locale/head từ D1, còn HTML shell giữ leaf `data-en` cho
 structure/motion. Root, source shell và Vietnamese legacy path one-hop 308 sang
 `/vi/…`.
 
 ## Hệ quả
 
-Decision historical này vẫn là một phần của accepted project context. Nếu
-direction tương lai thay đổi nó, tạo descriptive decision record mới và link file
-bị supersede.
+Route này thuộc Worker dormant, chỉ hiệu lực khi CMS phase mở. Contract leaf
+attribute vẫn do [VI source, EN qua data attribute](vietnamese-source-english-leaf-attributes.md)
+sở hữu. Bản `root-canonical` cũ đã xóa ngày 2026-10-03; còn trong Git history.
 
 ## Chú thích thuật ngữ
 

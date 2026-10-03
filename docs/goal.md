@@ -7,7 +7,7 @@ related_docs:
   - STATE.md
   - ../PRODUCT.md
   - architecture/index.md
-  - backend/roadmap.md
+  - backend/index.md
   - specs/frontend-static-release.md
   - specs/cms-content-publishing.md
 related_decisions:
@@ -32,7 +32,7 @@ Product truth nằm ở [PRODUCT.md](../PRODUCT.md).
 Ưu tiên stack free hoặc phí thấp; hướng hiện tại là Cloudflare (Workers, D1, R2)
 vì khớp scaffold dormant có sẵn. Đây là ưu tiên, chưa phải provider decision:
 provider, storage, region, backup và cost vẫn phải revalidate bằng tài liệu
-chính thức ở CMS discovery theo [roadmap](backend/roadmap.md).
+chính thức ở CMS discovery theo [roadmap](backend/index.md).
 
 Static route luôn là fallback và rollback path; CMS lỗi không được làm mất trang
 public.
@@ -42,14 +42,14 @@ public.
 | Phase | Trạng thái | Phạm vi | Nguồn chuẩn |
 | --- | --- | --- | --- |
 | 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/frontend-static-release.md), [STATE](STATE.md) |
-| 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [CMS contract](specs/cms-content-publishing.md), [Backend roadmap](backend/roadmap.md) |
+| 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [CMS contract](specs/cms-content-publishing.md), [Backend roadmap](backend/index.md) |
 
 Việc còn mở của phase 1 (owner kiểm nhận giao diện, full-site parity, fact chưa
 xác minh) được [STATE](STATE.md) theo dõi; không lặp lại ở đây.
 
 ## Điều kiện chuyển sang phase 2
 
-Giữ nguyên năm điều kiện trong [Backend roadmap](backend/roadmap.md#điều-kiện-mở-cms-phase).
+Giữ nguyên năm điều kiện trong [Backend roadmap](backend/index.md#điều-kiện-mở-cms-phase).
 Tóm tắt: static live ổn định với rollback path đã xác nhận, owner chốt role và
 workflow biên tập, kiểm lại tài liệu chính thức của provider, có accepted
 decision, và owner mở explicit implementation slice. Không suy quyền activate

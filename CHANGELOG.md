@@ -5,19 +5,11 @@
 - Thêm `wrangler.static.toml` (assets-only) và `pnpm deploy:demo`; ChatGPT Sites
   không còn là đường phát hành. CMS Worker vẫn dormant.
 
-## Chưa phát hành — hero và portal Advertising 2026-09-24
+## 2026-09-25 — Sites version 2 (bản website hiện hành)
 
-- Sửa cờ one-shot theo container: route enter chạy lại reveal từng word;
-  filter và đổi locale tại chỗ không khởi động lại hero.
-- Regression VI/EN route-return, delayed adapter, mười filter và fallback đạt.
-- Trang chủ dùng ảnh portal xanh dương owner chọn từ bộ ChatGPT web; giữ kích
-  thước ảnh, bố cục, lớp phủ và motion hiện hành.
-- Hoàn tất cleanup diagnostic theo gate review Sites; giữ các consumer runtime.
-
-## 2026-09-24 — Bản website hiện hành
-
-Release candidate đã push GitHub; đang hoàn tất gate nguồn Sites trước deploy.
-Xem [checkpoint](docs/verification/release-cleanup-2026-09-24.md).
+Đã phát hành public trên Sites version 2: source GitHub `0654dca`, mirror Sites
+`557da5a` chỉ gồm `dist/` và manifest. Xem
+[checkpoint](docs/verification/release-cleanup-2026-09-24.md).
 
 ### Thêm
 
@@ -25,6 +17,8 @@ Xem [checkpoint](docs/verification/release-cleanup-2026-09-24.md).
   ảnh mobile-retail-05. Năm ảnh ChatGPT đã duyệt nằm trong28 lựa chọn cuối.
 - Duyệt ảnh chi tiết, ảnh liên quan, slideshow gợi ý và phân trang mô tả VI/EN.
 - Grid ảnh có thứ tự ổn định theo bộ lọc và kích thước cửa sổ.
+- Trang chủ dùng ảnh portal xanh dương owner chọn; giữ kích thước ảnh, bố cục,
+  lớp phủ và motion hiện hành.
 
 ### Thay đổi
 
@@ -52,6 +46,10 @@ Xem [checkpoint](docs/verification/release-cleanup-2026-09-24.md).
 - Primary full-span vừa vùng viewport dưới navbar; gợi ý đổi vị trí theo layout.
 - Hero không replay khi lọc; navbar không tự expand khi chạm đáy.
 - Lớp blur chạy sau morph, có nhịp zoom-out kéo dài.
+- Cờ one-shot theo container: route enter chạy lại reveal từng word; filter và
+  đổi locale tại chỗ không khởi động lại hero. Regression VI/EN route-return,
+  delayed adapter, mười filter và fallback đạt.
+- Build static loại asset source-only và module media build-only khỏi output.
 
 ### Giới hạn kiểm chứng
 

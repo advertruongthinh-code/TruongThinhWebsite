@@ -21,9 +21,9 @@ VI là source text; English dùng `data-en`, `data-en-alt`,
 
 ## Hệ quả
 
-Decision historical này vẫn là một phần của accepted project context. Nếu
-direction tương lai thay đổi nó, tạo descriptive decision record mới và link file
-bị supersede.
+Decision này còn hiệu lực trong static phase: `src/site` dùng leaf `data-en`
+và `motion.js` lưu locale ở `tt-lang`. [Locale-prefixed Worker routes](locale-prefixed-worker-routes.md)
+chỉ thay phần route/URL cho CMS phase, không thay contract attribute này.
 
 ## Chú thích thuật ngữ
 

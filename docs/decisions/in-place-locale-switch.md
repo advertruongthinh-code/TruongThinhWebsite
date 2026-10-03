@@ -3,8 +3,7 @@ title: Chuyển locale tại chỗ và replay section đang xem
 status: accepted
 date: 2026-08-21
 scope: public website
-supersedes:
-  - stable-shell-locale-transition.md
+supersedes: []
 related_specs: []
 related_reports: []
 ---

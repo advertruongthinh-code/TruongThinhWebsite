@@ -3,8 +3,7 @@ title: Khóa Wrangler đến phase CMS
 status: accepted
 date: 2026-09-01
 scope: release tooling
-supersedes:
-  - static-first-release.md
+supersedes: []
 related_specs:
   - ../specs/frontend-static-release.md
 related_reports: []
@@ -19,6 +18,12 @@ diện hoặc tạo `.site-output/`. Giữ Wrangler trong active workflow làm t
 surface và có thể khởi động nhầm Worker trước khi CMS được chốt.
 
 ## Decision
+
+Static trước, CMS sau: public site chạy không cần D1, R2, Access hoặc CMS
+secret. GitHub là source of truth; static output là fallback và rollback path.
+CMS chỉ activate sau khi bản tĩnh live ổn định và owner duyệt publishing
+workflow. Cơ chế phát hành static hiện hành nằm ở
+[Sites artifact-only release mirror](sites-artifact-only-release-mirror.md).
 
 Trong static phase:
 
@@ -53,9 +58,15 @@ là quyết định riêng đó: chỉ `pnpm deploy:demo` gọi Wrangler, không
 4. Wrangler được pin lại, CI/deploy được phục hồi và Worker contract pass trên
    runtime thật.
 
+## Lịch sử
+
+2026-10-03 gộp và xóa `static-before-cms`, `static-first-release`; bỏ quy tắc cũ
+"PR smoke và manual deploy". Bản gốc còn trong Git history.
+
 ## Chú thích thuật ngữ
 
 - **Dormant**: source được giữ lại nhưng không nằm trong workflow đang chạy.
 - **Runtime surface**: tập dependency và tiến trình có thể được kích hoạt.
 - **Binding**: cấu hình nối Worker với D1, R2 hoặc resource khác.
+- **Rollback path**: đường quay về output trước khi release mới fail.
 - **Explicit activate**: owner ra quyết định rõ ràng để mở một phase đã khóa.

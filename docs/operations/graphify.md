@@ -1,8 +1,8 @@
 # Vận hành Graphify
 
-Graphify 0.9.53 ở user scope. Đây là runbook setup/repair, không phải checklist
+Graphify 0.9.74 ở user scope. Đây là runbook setup/repair, không phải checklist
 mỗi task. Normal task chỉ query wrapper; Git hook, watcher và wrapper sở hữu
-structural freshness. Codex lifecycle hook bị disabled.
+structural freshness. Agent lifecycle hook bị disabled.
 
 ## Normal task
 
@@ -79,7 +79,7 @@ khi user explicit request semantic build/update. Không tự động spawn seman
 worker, merge chunk hoặc ghi semantic cache/manifest state. `graphify update .`
 thường chỉ update code.
 
-Graphify 0.9.53 detect ba project JSON file như code nhưng không emit AST node
+Graphify 0.9.74 detect ba project JSON file như code nhưng không emit AST node
 cho chúng. `scripts/tooling/graphify-supplemental-files.txt` là minimal allowlist đã
 verify. Shared query boundary restore semantic cache fresh của chúng sau
 upstream update. Cache stale chỉ tạo semantic warning; AST query vẫn chạy và
@@ -104,7 +104,7 @@ reproduce được zero-AST case.
 
 Nếu command vẫn fail, kiểm tra pinned upstream Graphify README và release tương
 ứng trước khi thêm workaround:
-<https://github.com/Graphify-Labs/graphify/tree/33362d969292b57eda82f3fbd9eb5f3f5bc9bbc2>.
+<https://github.com/Graphify-Labs/graphify/tree/0b60d47e6cd9338c51143f39f35b6c45c8453385>.
 
 ## Chú thích thuật ngữ
 

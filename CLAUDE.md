@@ -2,7 +2,7 @@
 
 # Claude Code
 
-Dùng command nội bộ repository và dependency đã pin trong `README.md`. Không tạo
+Dùng command nội bộ repository; dependency pin nằm trong `tooling-versions.json`. Không tạo
 workflow riêng cho Claude khi `AGENTS.md` đã định nghĩa shared contract.
 
 Skill nằm ở `.claude/skills/`, sinh từ pin bằng `pnpm tooling:skills`; không sửa

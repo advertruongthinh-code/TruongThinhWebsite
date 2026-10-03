@@ -2,11 +2,11 @@
 title: Quyền sở hữu và routing design system
 type: design
 status: living
-updated: 2026-09-09
+updated: 2026-10-03
 related_docs:
   - ../../PRODUCT.md
   - ../../DESIGN.md
-  - ../impeccable/index.md
+  - ../../.impeccable/design.json
   - ../specs/living-docs-design-system.md
 ---
 
@@ -62,7 +62,7 @@ tên report hoặc độ mới của output để tự suy ra authority.
 | Reuse source/API/DOM/lifecycle nào? | [`components.md`](components.md) |
 | Motion, text reveal, media replay và reduced motion? | [`motion.md`](motion.md) |
 | Ghép shell, grid, gallery, renderer ra sao? | [`patterns.md`](patterns.md) |
-| File nào canonical, status/version/approval thế nào? | [`governance.md`](governance.md) |
+| File nào canonical, status/supersession thế nào? | [Authority map](#authority-map), [Supersession](#supersession) |
 | Route/runtime current hay CMS dormant? | [`frontend guide`](../frontend/index.md), [`backend guide`](../backend/index.md) |
 
 ## Reuse boundary
@@ -94,12 +94,34 @@ Không copy status, blocker hoặc Kanban từ Notion vào guide. Git giữ guid
 accepted spec, decision và evidence; Notion giữ planning/status theo
 [`docs/STATE.md`](../STATE.md).
 
-## Approval và supersession
+## Supersession
 
-Owner review là gate trước khi merge hoặc dùng guide làm target mới. Khi direction
-đổi, giữ guide cũ nếu có provenance, cập nhật status và link replacement; không
-rewrite mất lịch sử. Khi source đổi mà accepted target chưa đổi, ghi `observed`
-và gap, không tự sửa design requirement.
+Owner review là gate trước khi merge hoặc dùng guide làm target mới. Khi source
+đổi mà accepted target chưa đổi, ghi `observed` và gap, không tự sửa design
+requirement. Cập nhật `updated` chỉ khi contract thực sự đổi.
+
+Khi accepted decision đổi:
+
+1. Tạo hoặc cập nhật descriptive decision mới.
+2. Link decision cũ bằng `supersedes`/`superseded_by`, hoặc xóa file tracked
+   cũ khi owner duyệt gộp (Git history giữ provenance).
+3. Cập nhật guide sở hữu contract cùng slice.
+4. Ghi migration/rollback và evidence; remap mọi link trong cùng slice.
+
+Docs migration snapshot path/status/hash trước mutation, preserve unrelated
+work, giữ original report bytes trong archive. Rollback chỉ phục hồi path do
+task sở hữu sau khi kiểm concurrent edit.
+
+## Impeccable
+
+Context loader của skill `impeccable` đọc root `PRODUCT.md`, `DESIGN.md` và
+brief khớp tại `.impeccable/surfaces/`; không move các artifact đó vào `docs/`.
+Sidecar [`design.json`](../../.impeccable/design.json) schema v2 chỉ giữ
+extension và specimen, không sao chép token primitive; narrative là projection
+từ DESIGN, không sửa độc lập. Sidecar được Git quản lý; config local và runtime
+cache vẫn ignored. `init`/`document` chỉ cập nhật trong scope user giao, không
+tự thay accepted identity hoặc owner fact. `extract` có thể refactor source nên
+cần task và verification riêng.
 
 ## Verification
 
@@ -117,3 +139,5 @@ và gap, không tự sửa design requirement.
 - **Supersession**: decision/guide mới thay thế nhưng vẫn giữ liên kết lịch sử.
 - **Customization boundary**: phần consumer được phép thay đổi mà không phá contract.
 - **Impact gate**: điều kiện buộc cập nhật đúng tài liệu khi behavior hoặc contract đổi.
+- **Sidecar**: phần mở rộng đi cùng DESIGN, không thay token authority.
+- **Specimen**: mẫu hiển thị; không tự là module production để import.

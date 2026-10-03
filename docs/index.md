@@ -12,11 +12,11 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | Hiểu hệ thống/deploy | [Architecture](architecture/index.md) | Runtime static, source ownership, ranh giới CMS |
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/grid/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
-| Thiết kế và reuse UI | [Design system](design/index.md) | Style guide, component/pattern/content/governance |
+| Thiết kế và reuse UI | [Design system](design/index.md) | Style guide, component/pattern/content, supersession, Impeccable |
 | Đối chiếu Espacio | [Baseline reference](reference/espacio/index.md) | Foundations/components/motion/templates có provenance |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
 | Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
-| Dùng tool/agent | [Operations](operations/TOOLING.md), [core rule](operations/agent-rule-core.md) | Command, workflow, scope và recovery |
+| Dùng tool/agent | [AGENTS](../AGENTS.md), [Operations](operations/TOOLING.md) | Scope, workflow, command và recovery |
 | Hiểu quyết định | [Decisions](decisions/index.md) | Accepted/superseded; không suy status từ tuổi file |
 | Truy nguyên report cũ | [Archive](archive/index.md) | Original bytes, mapping và giới hạn lịch sử |
 
@@ -52,7 +52,10 @@ không nhân bản token hoặc coi HTML specimen là production component.
   rồi mới debug Sites sau phát hành.
 - [Photo/grid Advertising](specs/advertising-photo-browse.md): layout, history,
   primary, gợi ý và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
-  dẫn các correction; không áp checkpoint cũ thay delta mới.
+  dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random grid và
+  tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
+  cùng ba spec đã duyệt; [plan triển khai](../tasks/advertising-random-media/plan.md)
+  đang chờ owner duyệt, behavior chưa được triển khai.
 - [Media-card toàn website](specs/site-media-card-playback.md): spec đã duyệt
   28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
   còn chờ duyệt. Supersession grid-detail morph chỉ xảy ra khi triển khai;
@@ -70,10 +73,8 @@ không nhân bản token hoặc coi HTML specimen là production component.
 
 ## Quy tắc duy trì
 
-Mọi thay đổi behavior/interface/data/design/tooling/operations cập nhật tài liệu
-sở hữu trong cùng task. Không có impact thì ghi lý do cụ thể khi handoff.
-Main kiểm phần này của mọi subagent; xem [governance](design/governance.md).
-Chỉ tạo report mới khi có evidence bền vững cần giữ, không cho mỗi sửa nhỏ.
+Living-docs gate ở [AGENTS.md](../AGENTS.md#state-và-living-docs); supersession
+ở [design index](design/index.md#supersession).
 
 Active docs tổ chức theo domain; độ sâu bổ sung dùng cho `reference/espacio`
 và archive, không tạo folder theo từng ngày/task. Root Impeccable artifacts giữ

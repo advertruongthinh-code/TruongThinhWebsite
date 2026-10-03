@@ -7,8 +7,7 @@ tags:
   - ui
   - typography
   - espacio-parity
-supersedes:
-  - portal-typography-weight-parity.md
+supersedes: []
 related_specs: []
 related_reports:
   - ../archive/reports/research-espacio-typography-hero-route-motion-2026-08-27.md
@@ -25,7 +24,7 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
 
 ## Decision
 
-1. Plus Jakarta Sans tiếp tục là font local; không tải hoặc sao chép Silka.
+1. Plus Jakarta Sans tiếp tục là font chính; không tải hoặc sao chép Silka.
 2. Body và copy thường dùng tối thiểu `500`; display dùng `600`; nav, label,
    caption và subtitle dùng `700`.
 3. Các mốc nhỏ dùng cap-height proxy: nav khoảng `11–12px`, body khoảng
@@ -72,6 +71,10 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
 - Không có text nhìn thấy ngoài brand lockup dưới weight `500` hoặc dưới
   `12.5px`; không có horizontal overflow trong matrix focused.
 
+Ghi chú 2026-10-03: `src/site` không có file font local; Plus Jakarta Sans
+tải từ Google Fonts qua `<link>` (weight `400/500/600/700`, italic `500`) trong
+HTML shell. Chữ "local" ở bản cũ không khớp source.
+
 ## Hệ quả
 
 - Heading và nhãn đậm hơn quyết định portal cũ; width nav tăng theo font metric.
@@ -79,6 +82,11 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
   nhãn nav; typography và tọa độ vẫn bất biến giữa expanded/sticky.
 - Canonical parity tổng vẫn `NOT PASS`; focused typography không thay thế full
   current-hash runner.
+
+## Lịch sử
+
+2026-10-03 xóa `portal-typography-weight-parity` (đã supersede); bản gốc còn
+trong Git history.
 
 ## Chú thích thuật ngữ
 

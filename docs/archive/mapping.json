@@ -3,7 +3,9 @@
     "source": "docs/STATE.md",
     "destination": "docs/archive/snapshots/state-before-release-2026-09-24.md",
     "replacement": "docs/STATE.md",
-    "sha256": "faae4662ff0d76ad67b2a43bdd6b259c38540816018faa832fc6c09e24db8c3c"
+    "sha256": "faae4662ff0d76ad67b2a43bdd6b259c38540816018faa832fc6c09e24db8c3c",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md",
@@ -28,8 +30,8 @@
     "destination": "docs/archive/reports/research-espacio-navbar-runtime-2026-08-27.md",
     "replacement": "docs/archive/reports/research-espacio-navbar-runtime-2026-08-27.md",
     "sha256": "1be00b48184917024c19a222a5c3e6ba41145931279e179c33c00f5f2623ba3f",
-    "compatibility_stub": true,
-    "stub_sha256": "f8a3fe679666ac7e47be5ead615fdc701a6b42374e8e3d5f7f013beeaae3a269"
+    "stub_sha256": "f8a3fe679666ac7e47be5ead615fdc701a6b42374e8e3d5f7f013beeaae3a269",
+    "stub_removed": "2026-10-03"
   },
   {
     "source": "docs/reports/research-espacio-parity-inventory.md",
@@ -53,13 +55,17 @@
     "source": "docs/reports/verification-2026-07-31-browser-audit.md",
     "destination": "docs/archive/reports/verification-2026-07-31-browser-audit.md",
     "replacement": "docs/archive/reports/verification-2026-07-31-browser-audit.md",
-    "sha256": "77b44327358ece352d67609fc253294511dfca2eec7cc2ba2e5213345ef2fd06"
+    "sha256": "77b44327358ece352d67609fc253294511dfca2eec7cc2ba2e5213345ef2fd06",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/verification-2026-08-08-project-baseline.md",
     "destination": "docs/archive/reports/verification-2026-08-08-project-baseline.md",
     "replacement": "docs/archive/reports/verification-2026-08-08-project-baseline.md",
-    "sha256": "ac975cf8656de547a6f9b6abbe5b4032c4fc8126329303417ea82041d7f7687f"
+    "sha256": "ac975cf8656de547a6f9b6abbe5b4032c4fc8126329303417ea82041d7f7687f",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/verification-2026-08-09-agent-workspace-bootstrap.md",
@@ -71,7 +77,9 @@
     "source": "docs/reports/verification-2026-08-09-docs-migration.md",
     "destination": "docs/archive/reports/verification-2026-08-09-docs-migration.md",
     "replacement": "docs/archive/reports/verification-2026-08-09-docs-migration.md",
-    "sha256": "70c633c74c147f11fe42af5897fed4c0f7b7e39293b6554a95758e0116910fa3"
+    "sha256": "70c633c74c147f11fe42af5897fed4c0f7b7e39293b6554a95758e0116910fa3",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/verification-2026-08-25-project-source-cleanup.md",
@@ -113,13 +121,17 @@
     "source": "docs/reports/verification-advertising-products-current-hash-2026-08-31.md",
     "destination": "docs/archive/reports/verification-advertising-products-current-hash-2026-08-31.md",
     "replacement": "docs/archive/reports/verification-advertising-products-current-hash-2026-08-31.md",
-    "sha256": "73477cae38d036e8dff00876dddbe0d9e72cd1dbeda8ccfe319cecee682bbdb9"
+    "sha256": "73477cae38d036e8dff00876dddbe0d9e72cd1dbeda8ccfe319cecee682bbdb9",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/verification-advertising-products-media-entrance-2026-09-01.md",
     "destination": "docs/archive/reports/verification-advertising-products-media-entrance-2026-09-01.md",
     "replacement": "docs/archive/reports/verification-advertising-products-media-entrance-2026-09-01.md",
-    "sha256": "ca9c0b2c2703a5c1f67af555b4fd5e7aa8ae43ba3bbdf938ed373ef7360980fc"
+    "sha256": "ca9c0b2c2703a5c1f67af555b4fd5e7aa8ae43ba3bbdf938ed373ef7360980fc",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/verification-advertising-products-media-reentry-detail-visibility-2026-09-01.md",
@@ -137,7 +149,9 @@
     "source": "docs/reports/verification-advertising-products-single-column-2026-08-31.md",
     "destination": "docs/archive/reports/verification-advertising-products-single-column-2026-08-31.md",
     "replacement": "docs/archive/reports/verification-advertising-products-single-column-2026-08-31.md",
-    "sha256": "8ba4aadf18d17f9cbb70d46673b89e7bc558bbe1b005e5146801f28f60ca2c24"
+    "sha256": "8ba4aadf18d17f9cbb70d46673b89e7bc558bbe1b005e5146801f28f60ca2c24",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/reports/verification-frontend-brand-lockup-copy-ratio-2026-08-31.md",
@@ -167,19 +181,25 @@
     "source": "docs/engineering/ARCHITECTURE.md",
     "destination": "docs/archive/guides/ARCHITECTURE.md",
     "replacement": "docs/architecture/index.md",
-    "sha256": "f6913fecf4a255fe3640d82ec2640a8ee040220268b7fdbfe591a13ba31c94e5"
+    "sha256": "f6913fecf4a255fe3640d82ec2640a8ee040220268b7fdbfe591a13ba31c94e5",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/engineering/CMS-ROADMAP.md",
     "destination": "docs/archive/guides/CMS-ROADMAP.md",
     "replacement": "docs/backend/roadmap.md",
-    "sha256": "be801bfa2cddfb1bd88f5e39c4610d03272d8c191840ddec5212107cac4a1d46"
+    "sha256": "be801bfa2cddfb1bd88f5e39c4610d03272d8c191840ddec5212107cac4a1d46",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/impeccable/brand-guidelines.md",
     "destination": "docs/archive/guides/brand-guidelines.md",
     "replacement": "docs/design/style-guide.md",
-    "sha256": "bba9b5250f402669ef3a024797d4a1fdf1de43e570bfcdb5e3475a85c16f676b"
+    "sha256": "bba9b5250f402669ef3a024797d4a1fdf1de43e570bfcdb5e3475a85c16f676b",
+    "removed": "2026-10-03",
+    "removed_note": "Đã xóa khỏi tree; khôi phục từ Git da2f13a"
   },
   {
     "source": "docs/impeccable/motion-map.md",
@@ -192,5 +212,12 @@
     "destination": "docs/archive/guides/CONTENT-MEDIA-GUIDE.md",
     "replacement": "docs/design/content.md",
     "sha256": "7997233474b330b9a65de8a11752e65cdd1bc8f0495671474e1bbb125732e879"
+  },
+  {
+    "source": "docs/verification/upnext-advertising-2026-09-09.md",
+    "destination": "docs/archive/reports/verification-upnext-advertising-2026-09-09.md",
+    "replacement": "docs/verification/advertising-september-2026-p2-p7.md",
+    "sha256": "9c07e7a20de8d5f815fd4fb6ee3ed17e0aaa6448b82ca6d92d1bd6c430bc4e0c",
+    "archived": "2026-10-03"
   }
 ]

@@ -128,6 +128,37 @@ nếu slice chỉ thay đổi tài liệu.>
 | --- | --- | --- |
 | YYYY-MM-DD | Initial draft | <reason> |
 
+## Phụ lục A (tùy chọn) — mục thêm cho frontend slice
+
+Thêm khi `type: frontend`; link giá trị visual về nguồn chuẩn theo
+`docs/design/index.md`, không lặp token, ratio, timing hoặc copy.
+
+- Route/surface, trong và ngoài scope; route hierarchy, empty/loading/error,
+  cặp VI/EN.
+- Surface brief `.impeccable/surfaces/<slug>.md` hoặc none; visual thesis và
+  design authority bằng link.
+- DOM/component responsibility; responsive, motion, accessibility target cùng
+  runtime consumer.
+- Metadata, alt/ARIA, loading strategy, budget ảnh/video.
+- Verification: route/content (static check), visual và responsive (viewport
+  matrix, Playwright, Chrome DevTools), accessibility tree, performance.
+
+## Phụ lục B (tùy chọn) — mục thêm cho CMS slice
+
+Thêm khi `type: cms`.
+
+- Editorial outcome và public outcome; actor, auth boundary, lifecycle
+  draft/review/publish/unpublish.
+- Content có cấu trúc: field, localized text, media, alt, poster, `layoutKey`
+  allowlist; reject raw HTML, arbitrary CSS và component code.
+- Interface: admin command, public read contract, validation/authorization
+  error, idempotency, compatibility.
+- Media pipeline: validation, size/type limit, naming, variant, orphan
+  cleanup, retention, recovery.
+- Security và operations: session, CSRF, rate limit, audit event, logging,
+  alerting. Rendering: `structured post -> validated media -> allowlisted
+  layoutKey -> deterministic renderer -> static-safe fallback`.
+
 ## Chú thích thuật ngữ
 
 - **Slice**: phần thay đổi nhỏ có boundary rõ.
@@ -135,3 +166,6 @@ nếu slice chỉ thay đổi tài liệu.>
 - **Acceptance**: điều kiện để chấp nhận kết quả.
 - **Migration**: chuyển schema, dữ liệu hoặc behavior từ trạng thái cũ.
 - **Rollback**: quay lại trạng thái an toàn trước thay đổi.
+- **Allowlist**: danh sách giá trị được phép.
+- **Idempotency**: chạy lại cùng request không tạo kết quả trùng ngoài ý muốn.
+- **Viewport matrix**: tập kích thước màn hình dùng để kiểm tra.

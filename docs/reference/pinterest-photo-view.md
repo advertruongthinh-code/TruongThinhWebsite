@@ -1,13 +1,11 @@
 # Pinterest: khung ảnh, mô tả và viewer
 
-Quan sát ban đầu ngày 2026-09-10 trong trình duyệt Codex đã đăng nhập,
-viewport 1569 × 912 CSS px, DPR 1. Đây là reference hành vi và hình học cho
+Đo trong browser đã đăng nhập ngày 2026-09-10 (desktop 1569 × 912 CSS px,
+DPR 1) và 2026-09-11 (responsive, desktop và mobile emulation). Đây là
+reference hành vi và hình học cho
 [Advertising photo browse](../specs/advertising-photo-browse.md), không thay
-[DESIGN](../../DESIGN.md) hoặc khóa frontend của Trường Thịnh.
-
-Ngày 2026-09-11 đo bổ sung responsive bằng Chrome đã đăng nhập, desktop và
-mobile emulation. Section responsive bên dưới phân biệt số đo ổn định,
-công thức suy ra và giới hạn; các bảng ngày 2026-09-10 giữ provenance cũ.
+[DESIGN](../../DESIGN.md) hoặc khóa frontend của Trường Thịnh. Section
+responsive phân biệt số đo ổn định, công thức suy ra và giới hạn.
 
 ## Khung ảnh và phần mô tả
 
@@ -142,11 +140,11 @@ cần kiểm phone/tablet/desktop, đổi kích thước, touch, bàn phím, gi�
 reset, focus/scroll restoration và interruption. Đây không là claim kiểm trên
 thiết bị vật lý hoặc pixel parity toàn Pinterest.
 
-## Hover control — đo bổ sung tại 1329 × 912
+## Hover control tại 1329 × 912
 
-Ngày 2026-09-10 đã thao tác trực tiếp trên
-[Arched Wall And Stairs](https://www.pinterest.com/pin/664069907599383230/)
-trong tab Codex đã đăng nhập: đưa chuột ra/vào nút, mở viewer, tăng hai nấc,
+Thao tác trực tiếp trên
+[Arched Wall And Stairs](https://www.pinterest.com/pin/664069907599383230/):
+đưa chuột ra/vào nút, mở viewer, tăng hai nấc,
 hover reset, reset về fit, hover đóng rồi đóng về detail. Đọc DOM/CSS gắn với
 các control nhìn thấy; không suy state từ ảnh chụp tĩnh.
 
@@ -172,34 +170,20 @@ tự thiết kế theo nét hiện hành. Nút về danh sách mở nhãn khi ho
 owner, không phải claim nút Quay lại của Pinterest cũng mở nhãn. Các mẫu này
 chưa là chứng minh pixel parity, touch behavior hoặc implementation mới.
 
-## Bổ sung Back và hai kiểu trình bày — 2026-09-10
+## Back và hai kiểu trình bày
 
-Đã kiểm lại trong tab Codex đăng nhập ở 1329 × 912 CSS px theo feedback mới.
-Hai pin [khung vòm thứ nhất](https://www.pinterest.com/pin/732468326941307039/)
-và [khung vòm thứ hai](https://www.pinterest.com/pin/963277807823575570/)
-cùng kiểu ảnh căn giữa, thông tin bên dưới: khối chính 719,59 × 751,86 px;
-ảnh intrinsic 736 × 1308, hiển thị 326,78 × 580,73 px tại (284,39;145).
-DOM gọi media là `Hình ảnh Ghim câu chuyện`; tên DOM này không đủ chứng minh
-điều kiện chọn template của Pinterest.
+Tại 1329 × 912: hai pin [khung vòm thứ nhất](https://www.pinterest.com/pin/732468326941307039/)
+và [thứ hai](https://www.pinterest.com/pin/963277807823575570/) dùng kiểu ảnh
+căn giữa, thông tin bên dưới (khối 719,59 × 751,86 px; ảnh 736 × 1308 hiển thị
+326,78 × 580,73 px tại (284,39;145)). Candy wall và Jewelry showroom dùng khối
+rộng 964,80 px, mô tả bên phải (ảnh 416,91 × 740,66 và 473,25 × 630,78 px).
+Có bằng chứng cho hai kiểu; chưa xác minh tổng số template hoặc quy tắc chọn.
+Hai ảnh dọc cùng tỷ lệ vẫn có thể thuộc hai kiểu; aspect ratio không phải
+thuật toán chọn template.
 
-Kiểm lại Candy wall và Jewelry showroom ở cùng viewport: khối chính rộng
-964,80 px, mô tả bên phải. Candy wall hiển thị ảnh 416,91 × 740,66 px;
-Jewelry showroom 473,25 × 630,78 px. Như vậy hiện có bằng chứng trực tiếp cho
-hai kiểu bố cục; chưa xác minh tổng số template hoặc quy tắc chọn template.
-Hai ảnh dọc cùng tỷ lệ vẫn có thể thuộc hai kiểu khác nhau. Không được mô tả
-aspect ratio như thuật toán chọn template đã trích xuất từ Pinterest.
-
-Đã thao tác luồng grid Pinterest → pin 963277807823575570 → related pin
-732468326941307039 → nút Back: quay lại pin 963277807823575570. Lần kiểm từ
-pin về điểm vào trả về grid trang chủ. Back 48 × 48 px tại (96;88) không đổi
-vị trí sau khi cuộn 725 px; ancestor dùng `position: fixed`. Nút không có
-trong grid. Không đọc lịch sử riêng tư hoặc state nội bộ của tài khoản.
-
-Owner yêu cầu áp dụng hành vi Back này. Trường Thịnh giữ hình vuông và nhãn
-hover đã chốt, đổi nhãn thành `Quay lại` / `Back`: về entry trước, hoặc dùng
-fallback về grid khi mở detail bằng URL trực tiếp. Navbar Advertising vẫn
-giữ hành vi đưa thẳng về danh mục có ảnh hiện tại. Nút ẩn ngoài detail và
-khi viewer đang mở; đây là correction của P1.2, không tạo CTA kinh doanh mới.
+Back 48 × 48 px tại (96;88), `position: fixed`, không đổi vị trí khi cuộn,
+không có trong grid; từ related pin quay lại pin trước, từ điểm vào về grid.
+Contract Back/navbar riêng của Trường Thịnh thuộc photo browse spec.
 
 ## Responsive: quan hệ khối detail, ảnh, mô tả và grid — 2026-09-11
 
@@ -314,18 +298,15 @@ test mọi thiết bị vật lý, Safari native hoặc toàn bộ template Pint
 
 Kết quả này bổ sung reference, chưa thay contract layout Trường Thịnh.
 Khi áp dụng phải giữ font, góc vuông, outer band/gutter/content cap, ảnh
-intrinsic không crop, organic0,20, CTA và Espacio motion đã khóa. Chưa có
+intrinsic không crop, organic stagger, CTA và Espacio motion đã khóa. Chưa có
 quyết định dùng device-UA branching hoặc cách chọn split/stacked mới.
 
-### Trạng thái nút viewer — kiểm lại 2026-09-11
+### Trạng thái nút viewer
 
-Đối chiếu nút viewer ngày2026-09-11 trên pin376683956346027604 bằng tab
-Codex đã đăng nhập: ở fit, Zoom out có aria-disabled=true và SVG fill
-rgb(145,145,140); ở max, Zoom in dùng cùng màu và aria-disabled=true, xuất
-hiện Zoom out fully. Icon đang dùng được màu đen. Đã mở, tăng hai nấc,
-reset và đóng; không thao tác Save. Owner chọn TT tăng phân biệt trạng thái:
-nền trắng đặc, hover xám, icon disabled nhạt. Màu hover/active cụ thể của TT
-là lựa chọn đã chốt, không gọi là kết quả đo Pinterest1:1.
+Pin 376683956346027604 (2026-09-11): ở fit, Zoom out `aria-disabled=true`,
+SVG fill rgb(145,145,140); ở max, Zoom in cùng màu và disabled, xuất hiện
+Zoom out fully; icon dùng được màu đen. Màu nền/hover/active của TT là lựa
+chọn thiết kế, không phải số đo Pinterest 1:1.
 
 ## Chú thích thuật ngữ
 

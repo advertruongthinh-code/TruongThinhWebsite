@@ -283,8 +283,10 @@ của Shared footer boundary P6.
   intent. Header chỉ hiện lại khi cuộn lên thật vượt threshold hiện hành; ở
   logical scroll `0` giữ expanded top state. Áp dụng mọi route VI/EN và cả
   native scroll lẫn Locomotive. CTA/menu/accessibility P7 giữ nguyên.
-- Contract chi tiết và matrix nằm trong
-  [P7.1 correction](advertising-september-2026-p7-1-correction.md).
+- Restore geometry tại shared CSS ownership, không route override. Overscroll,
+  scrollbar clamp, footer/skeleton đổi chiều cao, visual viewport resize và
+  rounding smooth-scroll không là upward intent; keyboard, wheel, touch,
+  trackpad cho cùng state. Spec P7.1 gốc đã xóa, xem Git `da2f13a`.
 
 ## Correction 2026-09-23 — desktop nav luôn một hàng
 

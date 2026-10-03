@@ -7,7 +7,7 @@ Trạng thái UI hiện tại nằm ở mục AD-BROWSE-R1 — UI-FRAME-R4 và R
 không dùng trạng thái chưa nghiệm thu của checkpoint cũ thay kết quả mới.
 Nguồn chuẩn GRID-R4 là
 [spec R4](../specs/advertising-grid-span-organic.md),
-[visual B1](../design/patterns.md#target-grid-r4-đã-duyệt-đang-kiểm-chứng-tích-hợp)
+[visual B1](../design/patterns.md#advertising-grid-geometry)
 và [rubric ảnh](../design/advertising-image-quality.md).
 Chất lượng toàn pool và website vẫn chưa được nghiệm thu toàn bộ.
 Run local: `.tmp/orchestration/grid-r4-20260909-execution/`.

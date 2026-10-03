@@ -16,7 +16,7 @@
 - Contract gồm top, menu-open, scroll; 390 và 1440 thuộc pilot. Pseudo hover local `::after`, live `::before` nằm trong fingerprint.
 - Fresh live reference ngày `2026-08-27` đã đo 180 URL sitemap, 16
   viewport/input mode và exact scroll contract; xem
-  [audit navbar runtime](research-espacio-navbar-runtime-2026-08-27.md). Kết quả
+  [audit navbar runtime](../archive/reports/research-espacio-navbar-runtime-2026-08-27.md). Kết quả
   này không đổi trạng thái pairwise `NOT PASS`.
 
 ## Hover/focus parity

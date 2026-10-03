@@ -10,17 +10,16 @@ updated: 2026-09-13
 ## Phạm vi và nguồn
 
 Nguồn chuẩn cho brief tạo ảnh và nghiệm thu ảnh của sáu nhóm Advertising.
-Ràng buộc nội dung do owner xác nhận ngày 2026-09-09 và bổ sung ngày 2026-09-10; việc ghi tiêu chí không
+Ràng buộc nội dung do owner xác nhận; việc ghi tiêu chí không
 đồng nghĩa pool ảnh hiện tại đã được chấm hoặc đạt. Quy định người trong ảnh,
 file web, alt và loading kế thừa [content guide](content.md#safe-crop-và-kiểm-tra-con-người).
 Không sao chép các quy định đó vào prompt riêng rồi xem bản sao là authority.
 
-Owner yêu cầu ảnh tạo mới dùng **ChatGPT Images 2.5**.
-[OpenAI công bố ngày 2026-09-08](https://openai.com/index/introducing-chatgpt-images-2-5/)
-xác nhận phiên bản này có trên Codex. Dùng luồng tạo ảnh tích hợp Codex;
-tool hiện không có field chọn model. Ghi model yêu cầu và metadata thực thi
-nếu tool cung cấp; thiếu metadata ghi unknown, không suy thành bằng chứng
-phiên bản của từng ảnh. Không tự chuyển sang model/API khác. Yêu cầu này
+Owner yêu cầu ảnh tạo mới dùng **ChatGPT Images 2.5**
+([công bố của OpenAI](https://openai.com/index/introducing-chatgpt-images-2-5/)),
+qua công cụ tạo ảnh mà host agent hoặc owner có. Ghi model yêu cầu và metadata
+thực thi nếu tool cung cấp; thiếu metadata ghi unknown, không suy thành bằng
+chứng phiên bản của từng ảnh. Không tự chuyển sang model/API khác. Yêu cầu này
 không thay gate Audit/Critique bên dưới.
 
 Đã đọc `C:\Users\halal\Desktop\Products.txt`: file có **năm mục lớn I–V**,
@@ -97,7 +96,7 @@ bên dưới vẫn áp dụng cho ảnh tạo mới.
 
 ### Brief nhà máy theo phạm vi BEINCO và Betrimex
 
-Owner bổ sung ba nhóm sản phẩm và xác nhận cấu tạo ngày 2026-09-09:
+Owner bổ sung ba nhóm sản phẩm và xác nhận cấu tạo:
 
 - **Bảng hiệu bạt:** in nội dung lên bạt rồi căng bạt trên khung sắt.
 - **Pano không lưng tôn:** in nội dung lên bạt rồi căng bạt trên khung sắt.
@@ -136,7 +135,7 @@ Dữ kiện sản phẩm, bao bì và quan hệ nhà sản xuất/nhãn hiệu t
 hàng không chứng minh mọi hàng trong đó do cửa hàng sản xuất. Không chuyển
 điểm ảnh cũ sang ảnh mới hoặc sang brief khác sau nghiên cứu.
 
-Owner xác nhận ngày 2026-09-10: các khách hàng thường làm gian hàng triển lãm
+Owner xác nhận: các khách hàng thường làm gian hàng triển lãm
 gồm **BEINCO, Betrimex, Dừa Cửu Long** và các công ty mỹ phẩm/làm đẹp, thời
 trang, thực phẩm đóng gói/đóng hộp, đặc biệt sản phẩm từ dừa. Đây là thông tin
 owner cung cấp; không phải xác nhận từng thiết kế trong ảnh mẫu đã được
@@ -207,7 +206,7 @@ trong catalog; không nhân bản cùng ảnh để tăng số lượng hai nhó
 
 ### Nhãn chi tiết và coverage theo sản phẩm
 
-Owner xác nhận ngày 2026-09-09: sáu nhóm public là tầng gom các nhãn gần nhau,
+Owner xác nhận: sáu nhóm public là tầng gom các nhãn gần nhau,
 không phải sáu nhãn duy nhất. Một ảnh được mang nhiều nhãn; phân loại phải đi
 tới loại sản phẩm cụ thể. Ví dụ tờ rơi, tờ gấp, catalogue, giấy chứng nhận và
 phong bì là các loại riêng, không xem một tên gộp trong catalog là bằng chứng
@@ -253,7 +252,7 @@ dụng chính xác hay tính năng cảm biến chỉ từ ảnh tham khảo nh�
 
 ### Decal kính đã lắp đặt và biển tên đường
 
-Owner bổ sung khi duyệt album ngày 2026-09-10: decal kính trong hoặc mờ ở
+Owner bổ sung khi duyệt album: decal kính trong hoặc mờ ở
 trạng thái đã thi công xong phải dán phẳng, bám hoàn toàn, mép cắt sạch và
 thẳng; không bong/tróc góc, nhăn, bọt khí hoặc vết keo. Không bóc góc film
 đã lắp để chứng minh vật liệu. Chi tiết bóc một tem mẫu chỉ được dùng trong
@@ -278,7 +277,7 @@ logo, địa chỉ, điện thoại hay watermark từ ảnh tham khảo. Không
 thật vào danh thiếp; dùng nhãn chức năng chung. Chữ chủ thể phải đúng chính tả,
 dấu tiếng Việt và đọc được; không dùng ký tự giả để lấp khoảng trống.
 
-Owner mở rộng ngày 2026-09-10: đồ họa quảng bá trên sản phẩm in cần typography
+Owner mở rộng: đồ họa quảng bá trên sản phẩm in cần typography
 đa dạng và hợp tính cách sản phẩm; có thể thêm slogan/subtitle ngắn, tự viết,
 phù hợp khi đủ diện tích. Quy tắc tên chức năng chung ở trên không cấm slogan
 đã được owner cho phép; vẫn cấm nhãn hiệu thật, địa chỉ/liên hệ/watermark và
@@ -339,7 +338,7 @@ so các đường cùng phương trên cùng mặt phẳng bằng phối cảnh,
 chúng song song trên ảnh bất kể điểm tụ. Đây là sửa lỗi hình học, không đổi
 Mica thành kim loại hoặc đổi nội dung sản phẩm.
 
-### Tham khảo bổ sung ngày 2026-09-10
+### Tham khảo owner gửi cho gian hàng, standee, biển số
 
 Bộ gian hàng owner vừa gửi gồm **bảy ảnh tham khảo**, được liệt kê trong ba
 dòng gian hàng của bảng dưới. Đây là số reference đầu vào, không phải yêu cầu
@@ -353,7 +352,7 @@ không thay bằng ảnh khác cùng tên.
 
 | Nhóm | File tham khảo | Phần dùng làm reference |
 | --- | --- | --- |
-| Standee | `standee-in-standee-CF7jyQX0Ot.jpg`; `vn-11134207-7ras8-m0cy6g1e9xfz33.jpg`; `codex-clipboard-23c49468-1fd2-45ea-bde9-7c6d9589c324.jpg` trong Temp | Lần lượt X-banner, đế nhựa đối trọng và hai chân T. Khung sắt hộp đế chữ nhật thuộc attachment `images.jpg` ở message standee, không phải file hiện tại. |
+| Standee | `standee-in-standee-CF7jyQX0Ot.jpg`; `vn-11134207-7ras8-m0cy6g1e9xfz33.jpg`; một ảnh owner dán trong phiên (không còn file local) | Lần lượt X-banner, đế nhựa đối trọng và hai chân T. Khung sắt hộp đế chữ nhật thuộc attachment `images.jpg` ở message standee, không phải file hiện tại. |
 | Biển số kim loại | `z4773438019730_2b234b005e0f8d96f6ee692c4e50b045.jpg`; `z5028831963498_4e21c36ba6b0339ac07025b23360e5ca-300x300.jpg`; `2_1-600x800.jpg` | Hai mẫu đầu gợi cấu tạo kim loại và ánh sáng hắt; mẫu cuối gợi bảng kim loại, số và gá. Không coi mẫu cuối tự chứng minh có LED. |
 | Gian tiêu chuẩn và nhỏ | `53-1667011277-mg-5320.jpg`; `images.jpg` ở message gian hàng triển lãm | Khung module, vách/biển tên, quầy/kệ của gian tiêu chuẩn; gian mỹ phẩm nhỏ, thấp với vách hậu và quầy. |
 | Gian lớn và thiết kế nổi bật | `sdsa-800x533.jpg`; `TOP-GIAN-HANGTRIEN-LAM-INDEX-2024_bia-800x532.jpg`; `booth gian hàng 6x6-04.jpg` | Quy mô lớn, mở nhiều phía, fascia cao/treo và kết cấu tạo điểm nhấn. Tên file không chứng minh kích thước hoặc tải trọng. |
@@ -415,11 +414,10 @@ báo cáo của generator. Main kiểm chứng evidence và nghiệm thu; không
 
 Ảnh đạt riêng lẻ chưa chứng minh grid đạt. Bộ ảnh phải đủ biến thể sản phẩm,
 góc chụp và tỷ lệ để thuật toán tạo bố cục organic, không nhịp gạch đều, với
-offset và giới hạn cột theo revision grid được duyệt tại
-[patterns](patterns.md#advertising-grid-geometry) và
+offset và giới hạn cột theo grid hiện hành tại
+[patterns](patterns.md#advertising-grid-geometry),
+[GRID-R4](../specs/advertising-grid-span-organic.md) và
 [Advertising spec](../specs/advertising-products-turnkey-services.md).
-[Revision GRID-R4](../specs/advertising-grid-span-organic.md) đã duyệt, đang kiểm chứng tích hợp;
-proof rank-v3 cũ không chứng minh target mới.
 
 Nếu bộ ảnh quá ít hoặc tỷ lệ quá giống nhau, bổ sung/tạo lại ảnh có bố cục gốc
 phù hợp, qua hai gate điểm rồi chạy lại kiểm tra toàn grid. Không chữa bằng crop,

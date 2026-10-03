@@ -33,7 +33,7 @@ không dùng `~/.claude/skills` cho các skill này. Trên Linux/cloud, Graphify
 qua `scripts/tooling/invoke-graphify.sh`, tự cài bản pin khi cần.
 
 Decision này thay câu "Repository không vendor reusable skill payload" trong
-[Codex native với Agent Skills user-global](codex-native-agent-skills-workflow.md);
+[Agent Skills dùng chung cho mọi host agent](agent-skills-workflow.md);
 phần còn lại của decision đó giữ nguyên.
 
 ## Alternative đã cân nhắc

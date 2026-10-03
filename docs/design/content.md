@@ -2,7 +2,7 @@
 title: Hướng dẫn content, i18n và media
 type: design
 status: living
-updated: 2026-09-30
+updated: 2026-10-03
 related_docs:
   - ../decisions/head-office-address-confirmed.md
   - ../specs/frontend-route-and-content.md
@@ -172,14 +172,13 @@ hoặc thông tin riêng tư trong gương, màn hình và bề mặt phản chi
 
 ## Metadata Advertising Products
 
-**Correction owner ngày2026-09-13:** ảnh Advertising không có tên/title riêng;
+Ảnh Advertising không có tên/title riêng hiển thị;
 mọi grid và detail bỏ tiêu đề ảnh, giữ mô tả và tag phân loại. Alt VI/EN vẫn
 mô tả nội dung ảnh cho accessibility, không dùng alt như title hiển thị.
 “Có thể bạn thích” chuyển vào mô tả, giữ nền ảnh dạng nút gọn và toggle một
 filter; bấm lại để tắt, giữ photo ID. Xem
 [AD-FINAL-R1 D8](../specs/advertising-final-polish-and-media.md#d8--correction-owner-gợi-ý-thuộc-mô-tả-ảnh-không-có-tên--2026-09-13).
-Đây là target đã duyệt; các mô tả caption/schema bên dưới là baseline source
-trước khi delta được kiểm chứng. CMS/database vẫn ngoài phạm vi implementation.
+CMS/database ngoài phạm vi implementation.
 
 Index dùng anchor filter với `data-advertising-filter`. `all` chỉ dành cho anchor
 “Tất cả”; sáu giá trị còn lại là các slug canonical:
@@ -194,9 +193,6 @@ là nguồn taxonomy sáu nhóm, 12 product label mỗi nhóm và detail layout;
 
 ### Tiêu chí tạo và nghiệm thu ảnh Advertising
 
-Đợt P7.5 ngày2026-09-23–24 thêm12 ảnh cho bốn nhóm gợi ý văn phòng/chỉ dẫn;
-catalog hiện127 ảnh, không thay media cũ. Nguồn và prompt, review độc lập,
-WebP/hash được liên kết tại [evidence P7.5](../verification/advertising-september-p7-5-2026-09-24.md).
 Mọi ảnh mới là minh họa AI, không nhận là công trình thực đã thi công.
 `suggestionPosition` chỉ điều chỉnh crop nền nút; grid/primary vẫn giữ trọn ảnh.
 
@@ -205,7 +201,7 @@ sáu nhóm, cách dùng ảnh tham khảo, giới hạn chữ và gate Audit/Cri
 do subagent độc lập kiểm tra. Áp dụng cho ảnh mới/thay thế; không suy ra pool
 hiện tại đã đạt điểm. Quy định con người và chuẩn file chung vẫn ở guide này.
 
-Các bổ sung owner ngày 2026-09-10 nằm trong cùng nguồn chuẩn: [gian hàng theo
+Bổ sung owner nằm trong cùng nguồn chuẩn: [gian hàng theo
 ngành hàng](advertising-image-quality.md#brief-gian-hàng-triển-lãm-theo-ngành-hàng),
 [typography/slogan trên sản phẩm](advertising-image-quality.md#chữ-bối-cảnh-và-ảnh-tham-khảo)
 và [standee, biển số hắt chân, sửa ảnh cụ thể](advertising-image-quality.md#sản-phẩm-owner-bổ-sung-khi-duyệt-album).
@@ -263,29 +259,26 @@ Supersession M02b ghi ngày 2026-09-30 theo
 `Vừa xem` / EN `Just viewed`. Đóng card khác chuyển dấu; full reload xóa dấu.
 Dấu không tự cuộn tới card và không ghi vào storage.
 
-### Pool 109 card hiện tại
+### Pool card hiện tại
 
-[GRID-R4](../specs/advertising-grid-span-organic.md) là delta đã duyệt, đang kiểm chứng tích hợp,
-cho phép thêm/thay media và bỏ fit/canvas. Số liệu và fit policy bên dưới là
-baseline hiện tại, không phải acceptance của revision mới.
-
-Pool static hiện có 109 record theo thứ tự sáu slug:
-`24 / 16 / 22 / 13 / 18 / 16`. Mỗi record giữ `id`, `category`, `sourceOrder`,
-product key và `media.sourceId`, source path, kích thước pixel thật, alt VI/EN.
+Catalog `ADVERTISING_DATASET_VERSION` `2026-09-24.1` có 154 record theo thứ tự
+sáu slug: `37 / 21 / 26 / 31 / 18 / 21` (đọc từ `catalog.mjs`; số đổi thì đọc
+lại source). Mỗi record giữ `id`, `category`, `sourceOrder`, `productKey`,
+title/description VI/EN, `tagIds` và `media` (`sourceId`, `src`, kích thước
+pixel thật, alt VI/EN, `sha256`, provenance).
 Mỗi card có media riêng; ảnh cùng source nhưng crop, blur, xoay, reframe hoặc
 export lại không được tính là ảnh mới.
 
 Mỗi nhóm phải có đủ ratio portrait `< 0.9`, near-square `0.9–1.1`, landscape
 `> 1.1` và ít nhất một extreme `<= 0.625` hoặc `>= 1.6`, tính từ
-`intrinsic width / height`. `presentationCanvas` không tạo ratio source mới.
-Build tạo `rank-v3`; runtime dùng pure core để derive geometry theo cột ngắn
-nhất. Không random hoặc seeded-random `fitMode`.
+`intrinsic width / height`. Geometry grid theo
+[GRID-R4](../specs/advertising-grid-span-organic.md) và
+[visual contract](patterns.md#advertising-grid-geometry).
 
 ### Full menu và boundary CMS
 
 Full menu hiện có bốn route cấp cao: Không gian Nhà ở, Không gian Kinh doanh,
-Sản phẩm Quảng cáo và Về chúng tôi. Nhãn và cấu trúc đối chiếu `src/site/index.html`
-ngày 2026-09-09. Menu có 17 mục con VI/EN dẫn tới URL canonical kèm query taxonomy;
+Sản phẩm Quảng cáo và Về chúng tôi; nguồn `src/site/index.html`. Menu có 17 mục con VI/EN dẫn tới URL canonical kèm query taxonomy;
 không dùng section hash, project CMS hoặc social placeholder.
 
 Dữ liệu public hiện là static-first: sáu nhóm public và card Advertising được
@@ -317,8 +310,7 @@ Baseline tương thích layout là `3:2`, `1536 × 1024`. Nếu dùng file
 | Ảnh nhỏ thật sự, render `≤384 px` | `768×512` | 40–100 KB | `> 130 KB` |
 
 Đây là ngân sách review, không phải hard gate làm ảnh bệt hoặc mất chi tiết vật
-liệu. Pool Advertising hiện có 109 WebP, khoảng 34–220 KB/file, tổng 14.22 MiB;
-90–220 KB là budget review, không phải ngưỡng tối thiểu.
+liệu; 90–220 KB là budget review, không phải ngưỡng tối thiểu.
 
 ### Loading và alt
 
@@ -326,7 +318,7 @@ liệu. Pool Advertising hiện có 109 WebP, khoảng 34–220 KB/file, tổng 
 - Hero slide sau giữ pattern `data-src` để `motion.js` hydrate.
 - Ảnh dưới fold dùng `loading="lazy"` và `decoding="async"`.
 - Ảnh trang trí trong container `aria-hidden="true"` dùng `alt=""`.
-- Advertising primary P1.4 có bản sao ảnh nền cover+blur với `alt=""` và
+- Advertising primary có bản sao ảnh nền cover+blur với `alt=""` và
   `aria-hidden="true"`, không nhận pointer/focus. Foreground riêng giữ
   contain và alt VI/EN; nền không tham gia morph hoặc fullscreen viewer.
 - Ảnh có nội dung phải có alt VI và `data-en-alt` EN; mô tả điều ảnh cho người
@@ -339,7 +331,7 @@ liệu. Pool Advertising hiện có 109 WebP, khoảng 34–220 KB/file, tổng 
 
 - Riêng Advertising photo browse, ảnh sản phẩm parent/related/hero và viewer
   ở mức fit giữ trọn ảnh theo [AD-BROWSE-R1](../specs/advertising-photo-browse.md).
-  Owner xác nhận ngày 2026-09-10: chỉ thumbnail nền của ô nhãn điều hướng
+  Chỉ thumbnail nền của ô nhãn điều hướng
   `Ý tưởng bạn có thể thích` được cover crop thành banner; không sửa source,
   intrinsic dimensions hoặc dùng bản crop như ảnh sản phẩm mới.
 - Hero, gallery và route khác có thể dùng `object-fit: cover` để crop theo slot.
@@ -404,7 +396,7 @@ owner confirmation.
 - [ ] Copy VI/EN ở node lá; motion hook còn nguyên.
 - [ ] Gallery/card count và `aria-label` còn đúng.
 - [ ] Advertising: filter và slug trong `catalog.mjs` khớp; không anchor rỗng.
-- [ ] Pool 109: count `24/16/22/13/18/16`; unique id/src/sourceId; đủ product
+- [ ] Pool khớp count theo nhóm trong `catalog.mjs`; unique id/src/sourceId; đủ product
       label; ratio coverage và extreme của từng nhóm; contact sheet không có
       crop/near-duplicate.
 - [ ] Full menu đúng bốn route cấp cao, 17 mục con VI/EN và không section hash.

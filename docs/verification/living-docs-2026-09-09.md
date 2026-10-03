@@ -1,7 +1,7 @@
 # Verification living docs R1
 
 Ngày: 2026-09-09, Asia/Bangkok. Owner đã duyệt
-[spec](../specs/living-docs-design-system.md) và [plan](../../tasks/docs-living/plan.md).
+[spec](../specs/living-docs-design-system.md) và plan `tasks/docs-living/plan.md` (local, đã xóa sau khi hoàn tất).
 Scope chỉ docs/routing/governance; không sửa UI/backend/runtime, không commit,
 deploy, extract hoặc canonical parity rerun. Trạng thái: **hoàn tất trong scope
 docs**, với historical gaps và giới hạn runtime được ghi bên dưới.
@@ -123,7 +123,7 @@ Không thay source website trong slice docs này.
 | Shared choreography, SplitText, catalog/detail motion | [Motion system](../design/motion.md) |
 | Grid geometry và carousel visual/interaction | [Patterns](../design/patterns.md) |
 | Narrative, i18n, image và menu copy | [Content](../design/content.md) |
-| Routing và chống duplicate | [Authority map](../design/index.md#authority-map), [governance](../design/governance.md) |
+| Routing và chống duplicate | [Authority map](../design/index.md#authority-map), [supersession](../design/index.md#supersession) |
 
 Brand/route/Advertising specs giữ integration, data, dependency và QA; mục visual
 đã chuyển có link tại chỗ. Giữ các heading motion cũ làm đường dẫn chuyển tiếp.

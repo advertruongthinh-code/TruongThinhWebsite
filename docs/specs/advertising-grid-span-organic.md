@@ -42,7 +42,7 @@ nó chuẩn bị data contract để CMS sau này quản lý.
 
 | Hợp đồng | Nguồn duy nhất |
 | --- | --- |
-| Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](../design/patterns.md#target-grid-r4-đã-duyệt-đang-kiểm-chứng-tích-hợp) |
+| Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](../design/patterns.md#advertising-grid-geometry) |
 | Caption và token | [DESIGN](../../DESIGN.md#advertising-caption) |
 | Motion, media entrance, reduced motion | [Motion guide](../design/motion.md#advertising-motion) |
 | Sáu nhóm ảnh, khách hàng, cấu tạo, brief, người/chữ/provenance và điểm | [Image quality](../design/advertising-image-quality.md) và các ref trong đó |

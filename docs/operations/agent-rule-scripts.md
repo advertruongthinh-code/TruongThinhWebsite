@@ -27,12 +27,12 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Need | Entrypoint | Boundary |
 | --- | --- | --- |
 | Clone, approved repair | `pnpm tooling:bootstrap` | Mutate pinned user-global stack/project browser. |
-| Approved repair từng phần | `pwsh -NoProfile -File scripts/tooling/bootstrap.ps1 -Components Skills` | Chọn `Python`, `Node` hoặc `Skills`; không chạy full bootstrap, đổi Codex config hay cài Git hook. |
+| Approved repair từng phần | `pwsh -NoProfile -File scripts/tooling/bootstrap.ps1 -Components Skills` | Chọn `Python`, `Node` hoặc `Skills`; không chạy full bootstrap, đổi host agent config hay cài Git hook. |
 | Skill vendor | `pnpm tooling:skills`, `pnpm tooling:skills:check` | Sinh `.claude/skills` từ `tooling-versions.json`; không sửa tay `.claude/skills`. |
 | Graphify Linux/cloud | `scripts/tooling/invoke-graphify.sh query|path|explain ...` | Tự cài Graphify pin, refresh AST khi tree đổi. |
 | Health | `pnpm tooling:doctor`, `pnpm tooling:doctor -- -Mcp` | Diagnose reported setup/MCP issue. |
 | Update report | `pwsh -File scripts/tooling/check-updates.ps1 [-IfDue]` | Notify-only; không install. |
-| Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.2.2 dùng engine 0.1.3; `context` một lần mỗi session, `doctor` cho maintenance; không cài Codex lifecycle hook. |
+| Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.5.0; `context` một lần mỗi session, `doctor` cho maintenance; không cài agent lifecycle hook. |
 | Graphify query | `& ".\scripts\tooling\invoke-graphify.ps1" query|path|explain ...`; khi watcher active: thêm `-SkipAstRefresh` trước command | Mặc định refresh fail closed; switch chỉ dùng graph hiện có sau save đã được watcher xử lý. |
 | Graph hook | `pwsh -File scripts/tooling/graphify-git-hooks.ps1 -Action status` | Diagnose/approved repair; hook tự refresh khi active. |
 | Ponytail Git gate | `pwsh -File scripts/tooling/ponytail-git-hooks.ps1 -Action install` | `pre-commit`/`pre-push` gọi `claude -p /ponytail-review` mức full, chặn khi net cắt > 20 dòng hoặc lỗi; install chỉ approved repair, gỡ bằng xóa `.git/hooks/pre-*`. |
@@ -47,9 +47,9 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 
 ## Managed/helper
 
-- MCP launcher: `global-mcp.ps1`, `start-serena-mcp.ps1`, `start-graphify-mcp.ps1`, `start-chrome-devtools-mcp.ps1`. Codex launch MCP mỗi session; không chạy như Windows daemon.
+- MCP launcher: `global-mcp.ps1`, `start-serena-mcp.ps1`, `start-graphify-mcp.ps1`, `start-chrome-devtools-mcp.ps1`. Host agent launch MCP mỗi session; không chạy như Windows daemon.
 - Internal: `common.ps1`, `graphify-freshness.ps1`, `graphify-semantic-status.py`, `graphify_supplemental.py`, `serena_sync.py`, `mcp_probe.py`, `write-install-manifest.ps1`, patch/test fixture. Chỉ tool-maintenance task được user approve mới gọi.
-- `skill-overrides/apply.ps1`: bootstrap áp dụng ba skill tương thích Codex lên staging trước khi cài; không gọi trực tiếp trên thư mục skill global.
+- `skill-overrides/`: override cả thư mục skill upstream cùng tên; `pnpm tooling:skills` áp dụng khi sinh `.claude/skills`.
 
 ## Chú thích thuật ngữ
 

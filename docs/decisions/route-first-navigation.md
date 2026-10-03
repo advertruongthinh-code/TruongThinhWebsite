@@ -20,14 +20,23 @@ canonical route. Public anchor không chứa fragment; locale switch giữ query
 vị trí đọc nhưng loại fragment. BFCache vẫn dọn route veil, dialog và page scale
 trong `pageshow.persisted`.
 
+Public navigation không dùng fragment: section CTA, footer chapter link,
+fragment scroll/focus runtime và hash persistence đã bị bỏ. SVG `url(#...)`
+clip-path reference vẫn giữ vì là local graphic resource, không phải navigation.
+
 ## Hệ quả
 
 Decision historical này vẫn là một phần của accepted project context. Nếu
 direction tương lai thay đổi nó, tạo descriptive decision record mới và link file
 bị supersede.
 
+## Lịch sử
+
+2026-10-03 gộp và xóa `fragment-free-navigation`; bản gốc còn trong Git history.
+
 ## Chú thích thuật ngữ
 
 - **Route-first**: ưu tiên chuyển tới route độc lập thay vì scroll tới fragment.
 - **Anchor**: link/điểm điều hướng trong document.
+- **Fragment**: phần `#hash` trong URL trỏ tới vị trí trong document.
 - **BFCache**: cache của browser cho Back/Forward.

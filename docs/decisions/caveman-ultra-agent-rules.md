@@ -6,7 +6,7 @@ scope: agent context
 supersedes: []
 related_specs: []
 related_decisions:
-  - global-agent-stack-project-portability.md
+  - agent-skills-workflow.md
 related_reports: []
 ---
 

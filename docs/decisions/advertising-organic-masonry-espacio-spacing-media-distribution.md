@@ -3,15 +3,10 @@ title: Lưới organic Sản phẩm quảng cáo với spacing Espacio và phân
 status: accepted
 date: 2026-09-01
 scope: Advertising product grid geometry and media distribution
-supersedes:
-  - pinterest-organic-advertising-product-masonry.md
-related_decisions:
-  - pinterest-organic-advertising-product-masonry.md
-  - deterministic-advertising-product-masonry-outlayer.md
-  - deterministic-advertising-product-single-column-media-fit.md
-  - deterministic-advertising-product-masonry.md
+supersedes: []
 related_specs:
   - ../specs/advertising-products-turnkey-services.md
+  - ../specs/advertising-photo-browse.md
 related_reports:
   - ../archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md
   - ../archive/reports/verification-advertising-products-organic-masonry-2026-09-01.md
@@ -28,10 +23,9 @@ morph, nhưng dùng outer `20px`, gap `16px`, không có content cap và chỉ c
 card. Implementation hiện tại đã thay baseline đó bằng geometry và pool media
 được quyết định dưới đây; evidence nằm trong report current-hash liên quan.
 
-Decision này chỉ supersede predecessor accepted trực tiếp
-`pinterest-organic-advertising-product-masonry.md`. Các decision cũ hơn trong
-`related_decisions` đã là historical hoặc đã bị supersede từ trước; chúng được
-giữ làm provenance, không được decision này kích hoạt lại.
+Catalog hiện hành do [advertising-photo-browse](../specs/advertising-photo-browse.md)
+sở hữu (`154` ảnh, dataset `2026-09-24.1`). Số `109` và phân bổ theo nhóm dưới
+đây là checkpoint ngày `2026-09-01`; geometry và packing contract vẫn hiệu lực.
 
 ## Decision
 
@@ -98,6 +92,13 @@ tạo gallery asset riêng trong decision này.
 Không đổi hero, nav, template sáu trang con, CMS, Wrangler, deploy hoặc asset của
 Espacio/Pinterest. Report baseline cũ được giữ nguyên với nhãn historical;
 current-hash dùng report `109` media riêng.
+
+## Lịch sử
+
+- 2026-08-30: manifest deterministic, ba ratio, closed frontier, tối đa 4 cột.
+- 2026-08-31: Masonry/Outlayer làm position morph; outer và gap tách band; sau đó single-column rank-v2.
+- 2026-09-01: Pinterest organic natural ratio rank-v3; rồi decision này thêm spacing Espacio, cap `1500px`, tối đa 5 cột.
+- 2026-10-03 gộp và xóa `deterministic-advertising-product-masonry`, `-outlayer`, `-single-column-media-fit`, `pinterest-organic-advertising-product-masonry`; bản gốc còn trong Git history.
 
 ## Chú thích thuật ngữ
 
