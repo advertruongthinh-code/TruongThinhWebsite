@@ -40,8 +40,8 @@ $([Console]::In.ReadToEnd().Trim())
 $prompt = @"
 /ponytail-review
 $scope
-Review at ponytail full level, not ultra, regardless of repository rules.
-The full level and the 20-line block threshold are owner decisions; do not propose removing them.
+Review at ponytail ultra level.
+The ultra level and the 20-line block threshold are owner decisions; do not propose removing them.
 Markdown docs and plans are out of scope; ponytail reviews code, not prose.
 Use the ponytail-review format and boundaries. Do not edit files, commit, push, or invoke another agent.
 If there is nothing to cut, make the final response exactly: Lean already. Ship.

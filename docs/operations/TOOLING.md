@@ -7,7 +7,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 ## Ownership
 
 - [Scripts map](agent-rule-scripts.md) là canonical ownership/fallback. Rule chỉ nêu trigger/boundary.
-- Hook, watcher, wrapper, launcher tự chạy normal mechanics. Git `pre-commit`/`pre-push` chạy `claude -p /ponytail-review` read-only trên diff code (bỏ qua `*.md`), chặn khi đề xuất cắt hơn 20 dòng hoặc review lỗi. Graphify `post-commit`/`post-checkout` là repository automation, không phải agent lifecycle hook.
+- Hook, watcher, wrapper, launcher tự chạy normal mechanics. Git `pre-commit`/`pre-push` chạy `claude -p /ponytail-review` mức ultra, read-only trên diff code (bỏ qua `*.md`), chặn khi đề xuất cắt hơn 20 dòng hoặc review lỗi. Graphify `post-commit`/`post-checkout` là repository automation, không phải agent lifecycle hook.
 - Không có agent lifecycle hook project. Skill vendor tại `.claude/skills` từ pin; không persona, MCP definition project-local. Không tạo/sửa hook, helper ngoài approved tooling repair.
 
 ## Pin
