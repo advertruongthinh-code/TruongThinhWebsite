@@ -12,7 +12,7 @@ gãy link và lịch sử.
 | card | Một phần tử trong masonry hoặc grid. | tile, item khi nói về phần tử hiển thị |
 | media-card | Card có identity, một hoặc nhiều media và đích detail, theo [spec media-card](specs/site-media-card-playback.md). | card đa media khác tên |
 | detail | View một card Advertising qua query `?photo=`, gồm primary và related. | photo view, trang ảnh |
-| primary | Vùng media chính và thông tin trong detail. | photo view |
+| primary | Vùng media chính và thông tin trong detail. | Không có tên thay thế đang dùng |
 | related | Masonry card liên quan dưới primary. | ảnh liên quan, masonry ảnh liên quan khi nói về thành phần |
 | suggestion | Khối nút gợi ý trong primary info, mục active chạy slideshow ảnh related. Chữ "Gợi ý" chỉ là copy giao diện. | gợi ý khi nói về thành phần |
 | viewer | Lớp phóng to media trong detail, có zoom/pan. | lightbox, enlarged viewer, photo viewer |
