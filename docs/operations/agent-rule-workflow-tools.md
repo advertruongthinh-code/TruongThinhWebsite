@@ -12,15 +12,15 @@ File này chỉ giữ routing tool.
 ## Automation
 
 - Tooling chuẩn: [TOOLING](TOOLING.md). Entrypoint/fallback: [scripts map](agent-rule-scripts.md). Không chạy lại hook, watcher, wrapper, launcher mechanics sau edit.
-- Git `pre-commit`/`pre-push` tự chạy `ponytail-review` read-only, fail closed; đây là repository Git hook, không phải agent lifecycle hook.
-- Impeccable hook active tự chạy detector. Context báo `MANUAL_DETECTOR_REQUIRED` thì chạy một lần sau UI hoàn tất.
+- Git `pre-commit`/`pre-push` tự chạy `ponytail-review` read-only, fail closed; đây là repository Git hook, không phải agent lifecycle hook. Cloud không có PowerShell nên không có Git hook: agent tự chạy `ponytail-review` trên diff trước mỗi commit/push.
+- Không có lifecycle hook Impeccable: sau UI change chạy `impeccable detect` một lần.
 - Không thêm/sửa lifecycle hook, helper, Serena config ngoài approved tooling repair.
 
 ## Graphify và Serena
 
 - Graphify trước cho code và meaningful non-media content qua wrapper; chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).
 - Sau Graphify dùng Serena cho symbol, reference, diagnostic, refactor; `rg` chỉ bổ sung.
-- Serena, Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session với `--project-from-cwd` và context host, không là Windows daemon.
+- Serena, Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session với `--project-from-cwd` và context host (`claude-code` cho Claude Code, `codex` cho Codex), không là Windows daemon. Cloud: MCP qua plugin `cloud-stack` ([TOOLING](TOOLING.md#claude-code-cloud-environment)).
 - Chỉ build/update Graphify semantic index khi user explicit request; không thì báo file pending.
 
 ## Chú thích thuật ngữ

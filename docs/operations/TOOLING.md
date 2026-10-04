@@ -134,8 +134,8 @@ Không cài, có lý do:
   không có trên cloud. Agent cloud chạy `ponytail-review` thủ công trước commit.
 
 Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
-`claude plugin list` liệt kê sáu plugin `@skills-dir`. Trong repo này skill vừa
-có bản vendor `.claude/skills` vừa có bản plugin namespace (`ponytail:ponytail`).
+`claude plugin list` liệt kê sáu plugin `@skills-dir`. Repo này tắt năm plugin
+skill trùng qua `.claude/settings.json` (`enabledPlugins: false`), chỉ dùng bản vendor.
 
 ## Doctor và update
 
