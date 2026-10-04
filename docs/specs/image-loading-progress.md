@@ -94,6 +94,22 @@ biệt, đo request count, time-to-decode và memory/cleanup. Nếu chưa có đ
 tải đạt đồng thời byte thật và gate tốc độ, dừng rollout toàn site, đưa số đo
 cho owner chọn tradeoff; không thay bằng phần trăm giả.
 
+## Triển khai 2026-10-04
+
+Probe P6 ([kết quả](../../tasks/todo.md#p6--feasibility-gate-cho-byte-progress))
+cho thấy byte progress buộc bỏ `<picture>`/`srcset` và lazy native, trong khi
+ảnh sau [pipeline biến thể](static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)
+nhỏ nên vòng % gần như nhảy thẳng tới đầy. Đề xuất chờ owner xác nhận: mọi ảnh
+dùng `loading-unknown`.
+
+- `src/site/motion.js` `watchMediaLoading`: ảnh `/assets/content/` chưa
+  `complete` trong frame có `position` khác `static` nhận
+  `<span class="media-load-ring" aria-hidden="true">` sau 150 ms; frame có
+  `aria-busy="true"`; gỡ khi `load`, `error` hoặc rời trang.
+- `src/site/style.css` `.media-load-ring`: vòng mảnh trung tính, quay
+  0,9 s; reduced motion đứng yên.
+- Advertising runtime (grid, related, viewer) thuộc P9, chưa gắn.
+
 ## Giao diện module và nơi đặt code
 
 Provider [static-image-delivery](static-image-delivery.md) sở hữu URL/variant,

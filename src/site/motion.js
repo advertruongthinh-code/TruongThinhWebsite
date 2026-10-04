@@ -805,6 +805,33 @@
       });
   };
 
+  // Content images show an indeterminate ring inside their reserved frame until load or error
+  // (docs/specs/image-loading-progress.md). Advertising runtime media owns its own loading state.
+  const watchMediaLoading = (state) => {
+    state.container.querySelectorAll('img[src^="/assets/content/"]').forEach((image) => {
+      if (image.complete || image.closest("[data-project-grid], [data-advertising-photo-view], .client-logo-marquee")) return;
+      const frame = (image.parentElement?.tagName === "PICTURE" ? image.parentElement.parentElement : image.parentElement);
+      if (!frame || getComputedStyle(frame).position === "static") return;
+      const ring = document.createElement("span");
+      ring.className = "media-load-ring";
+      ring.setAttribute("aria-hidden", "true");
+      // A short delay keeps cache hits and fast loads from flashing the ring.
+      const timer = window.setTimeout(() => {
+        if (image.complete) return;
+        frame.setAttribute("aria-busy", "true");
+        frame.append(ring);
+      }, 150);
+      const settle = () => {
+        window.clearTimeout(timer);
+        ring.remove();
+        frame.removeAttribute("aria-busy");
+      };
+      image.addEventListener("load", settle, { once: true, signal: state.abort.signal });
+      image.addEventListener("error", settle, { once: true, signal: state.abort.signal });
+      state.abort.signal.addEventListener("abort", settle, { once: true });
+    });
+  };
+
   const mountPageMotion = (state, enteredViaRoute, settledStartup = false) => {
     const clientLogoTrack = state.container.querySelector(
       ".client-logo-marquee__track",
@@ -1464,6 +1491,7 @@
     }
 
     watchWhiteOverlayMedia(state);
+    watchMediaLoading(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
