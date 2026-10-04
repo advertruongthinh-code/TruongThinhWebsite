@@ -97,8 +97,8 @@
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; kính chờ ảnh masonry và motion mở ảnh có spec và
   mục Design System, chờ code; mọi bề mặt glass đổi sang
-  [Kính dùng chung](specs/glass-surface.md) (owner duyệt hướng 04/10, chờ bản
-  chạy thử); iPhone chưa kiểm. Owner kiểm nhận giao diện trên
+  [Kính dùng chung](specs/glass-surface.md) (owner chốt số 04/10, chờ code);
+  iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
   regression, filter không replay. Ảnh nguồn và WebP có
