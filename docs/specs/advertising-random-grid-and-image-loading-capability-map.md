@@ -12,7 +12,7 @@ related_docs:
 # Capability map cho grid Advertising và tải ảnh toàn site
 
 Owner đã duyệt intent/map ngày `2026-09-25` và duyệt cả ba module spec ngày
-`2026-09-25`. [Implementation plan](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25)
+`2026-09-25`. [Implementation plan](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
 và task list đã được lập, chờ owner duyệt; hành vi chưa được triển khai và chỉ
 đổi khi QA đạt.
 

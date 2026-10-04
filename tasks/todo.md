@@ -112,7 +112,7 @@ vẫn paused, chưa commit/push/deploy. Semantic extraction không chạy.
 
 ## Correction baseline và skeleton
 
-[Plan bổ sung](plan.md#correction-baseline-và-skeleton--plan-chờ-duyệt) sở hữu
+[Plan bổ sung](plan.md#correction-baseline-và-skeleton--accepted-2026-09-27) sở hữu
 composition, exact source provenance, estimate/matrix và rollback. C00–C07
 là phần mới của cùng initiative; T01–T04 và evidence scrollbar giữ nguyên.
 Owner nghiệm thu visual scrollbar27/09; iPhone/reference riêng còn open.
@@ -328,7 +328,7 @@ source/status/checkpoint hashes, docs link check; owner visual spot-check là ga
 
 ## Mobile viewport stability — V00–V05
 
-[Plan viewport](plan.md#mobile-viewport-stability--plan-chờ-duyệt) sở hữu approach,
+[Plan viewport](plan.md#mobile-viewport-stability--plan-accepted-2026-09-27) sở hữu approach,
 ownership≤5 files/task, commands, matrix, estimate và rollback. Đây extension
 cùng initiative đã duyệt; checklist C06/C07 cùng historical FAIL giữ nguyên.
 
@@ -492,7 +492,7 @@ cần owner duyệt spec và plan trước code.
 
 ## Site mobile layout parity — L00–L07
 
-[Plan layout](plan.md#site-mobile-layout-parity--plan-chờ-duyệt) giữ architecture,
+[Plan layout](plan.md#site-mobile-layout-parity--plan-đã-duyệt) giữ architecture,
 ownership≤5 files/task, commands, matrix660cases, estimate và rollback.
 Đây extension cùng initiative đã duyệt; giữ nguyên incomplete tasks/history
 C/V và plan recovery. Plan/card đã duyệt28/09; L00 bắt đầu baseline.
@@ -643,7 +643,7 @@ observations;132toolbar pairs/574common node pairs≤1px,0geometry fault.
 Landscape raw **incomplete**:2EN `viewer-after-touch` đóng viewer và jsDelivr
 Locomotive Scroll `net::ERR_CONNECTION_CLOSED`. Summary
 `.tmp/mobile-layout-parity/l06-landscape-red-summary-2026-09-28T04-59-43-211Z.json`;
-[evidence](../docs/verification/mobile-layout-parity-2026-09-28.md#l06-landscape-red).
+[evidence](../docs/verification/mobile-layout-parity-2026-09-28.md#l06--a05s-landscape-red-giữ-raw-riêng).
 Không check L06/L07/L-C; cần phân loại gesture target và network trước capture
 bổ sung, giữ raw RED bất biến.
 
@@ -703,9 +703,9 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 
 ### L04H — About Back/Forward, plan đã duyệt
 
-- [x] Owner duyệt [delta L04H](../docs/specs/frontend-brand-shell-responsive-runtime.md#l04h-about-route-history--draft-2026-09-28)
+- [x] Owner duyệt [delta L04H](../docs/specs/frontend-brand-shell-responsive-runtime.md#l04h--history-qua-about-khi-shell-không-tương-thích--accepted)
   bằng “Duyệt delta L04H”; immutable WebKit RED và shell map đã lưu.
-- [x] Owner duyệt [plan L04H](plan.md#l04h-about-route-history--plan-draft-2026-09-28)
+- [x] Owner duyệt [plan L04H](plan.md#amendment-l04h--history-qua-about--plan-đã-duyệt)
   bằng “Duyệt plan L04H” trước khi sửa `src/site/motion.js`.
 - [x] L04H0: xác nhận raw shell map/source/served hash, giữ named WebKit RED
   `l04h-red-stage-2026-09-28T00-47-52-020Z` riêng; không retag lịch sử.
@@ -725,10 +725,10 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 
 ### H00–H03 — Advertising history motion, plan đã duyệt
 
-- [x] Owner duyệt [delta 13](../docs/specs/advertising-photo-morph-scroll.md#advertising-history-motion--accepted-2026-09-28)
+- [x] Owner duyệt [delta 13](../docs/specs/advertising-photo-morph-scroll.md#delta-browser-history-và-vị-trí-cuộn-còn-hiệu-lực)
   ngày 28/09 bằng “duyệt”: scroll riêng mỗi entry, morph đúng card/primary
   hai chiều kể cả offscreen, không tự cuộn thêm; giữ `400ms`.
-- [x] Owner duyệt [plan H00–H03](plan.md#advertising-history-motion--plan-draft-2026-09-28)
+- [x] Owner duyệt [plan H00–H03](plan.md#advertising-history-motion--plan-đã-duyệt-2026-09-28)
   ngày 28/09 bằng “duyệt”; điều phối L06 source freeze trước H00/build, không nhập RED viewer/CDN
   vào history gate.
 - [x] H00 đã chạy named case trên candidate `8792`; source/build/served hash,
@@ -763,7 +763,7 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 - [x] Owner duyệt [spec media-card toàn website](../docs/specs/site-media-card-playback.md)
   ngày 28/09; vùng A40% và fallback không autoplay đã chốt sau prototype.
   Byte budget/preload margin và các edge case còn chờ clip thật, trace/case.
-- [x] Owner duyệt [plan M00–M09](plan.md#site-media-card-playback--plan-draft-2026-09-28)
+- [x] Owner duyệt [plan M00–M09](plan.md#media-card-toàn-website--plan-đã-duyệt-2026-09-28)
   ngày 28/09 bằng “duyệt”; điều phối source freeze L06/L07 và giữ
   H00 no-reproduction, L06 EN landscape viewer/CDN RED độc lập.
 - [x] M00a: local `8792` runtime source/build/served và HTML build/served SHA
@@ -893,9 +893,9 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 
 ## Advertising random grid và tải ảnh — checklist
 
-Nhập từ Codex; chờ owner duyệt [plan](plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25).
-
-Trạng thái: owner duyệt 2026-10-03, xem [quyết định owner](plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25).
+Nhập từ Codex; owner duyệt [plan](plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
+ngày 2026-10-03. Đối chiếu evidence ngày 2026-10-04: ô `[x]` có test hoặc số đo
+trong repo; mục bị quyết định owner thay ghi `Bỏ`; ô trống là chưa có evidence.
 
 ### P0 — Cô lập checkout và chụp baseline
 
@@ -905,9 +905,13 @@ hành trước mọi source change.
 
 **Acceptance:**
 
-- [ ] Main checkout và dirty/untracked work ngoài task còn nguyên.
-- [ ] Branch là `codex/advertising-random-media`; worktree chỉ chứa file task
-      sau selective transfer.
+**Trạng thái 2026-10-04:** owner thay worktree bằng branch ngắn + PR trên cloud
+(2026-10-03) và rút gọn baseline: demo 390 px vi, Slow 4G, CPU 4x, median LCP
+([số đo](../docs/specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
+Ma trận 120 lượt dời sang P11 sau deploy.
+
+- [x] Main checkout và dirty/untracked work ngoài task còn nguyên (cloud clone riêng).
+- Bỏ: branch `codex/advertising-random-media`; thay bằng branch ngắn + PR vào `main`.
 - [ ] Có 120 cold runs: 6 route đại diện × 2 locale × 2 viewport × 5 lượt;
       ghi LCP, request start, decode/reveal, bytes, kích thước, CLS, lỗi và
       cohort ID. Warm cache ghi riêng.
@@ -921,18 +925,25 @@ xác nhận ảnh mẫu có transfer bytes `>0`; đối chiếu đủ 120 tổ h
 
 ### P1 — Khóa RED cho thứ tự, history và pool mở rộng
 
+**Đối chiếu 2026-10-04:** `node --test tests/site/*.test.mjs` 120/120 trên cloud,
+gồm `advertising-products-random-order.test.mjs` (seed/history, fixture
+`0/1/2/3/10/100`, budget `300000`, cadence suggestion) và skeleton-flow;
+e2e Chromium PASS: `advertising-random-browse` (phần Chromium; WebKit chờ PC),
+`advertising-skeleton-lifecycle`, `advertising-route-footer-p75`,
+`advertising-suggestion-motion`.
+
 **Mô tả:** khóa test trước source cho All, sáu filter, related category/tag,
 seed/history, solver hard/soft gate và catalog tăng.
 
 **Acceptance:**
 
-- [ ] Direct load/F5 lấy seed mới; filter, locale và Back/Forward giữ seed,
+- [x] Direct load/F5 lấy seed mới; filter, locale và Back/Forward giữ seed,
       kể cả khi browser dựng lại document; URL contract không đổi.
-- [ ] Mỗi pool giữ đúng membership/ID đúng một lần; canonical `sourceOrder`,
+- [x] Mỗi pool giữ đúng membership/ID đúng một lần; canonical `sourceOrder`,
       rank, tags, caption/alt VI/EN không bị ghi lại.
-- [ ] Nút All và sáu filter giữ nguyên thứ tự/vị trí; grid route ngoài Advertising
+- [ ] (chưa có test riêng) Nút All và sáu filter giữ nguyên thứ tự/vị trí; grid route ngoài Advertising
       không bị random.
-- [ ] Fixture `0/1/2/3/10/100`, ảnh đứng/ngang/vuông và ratio cực đoan kiểm
+- [x] Fixture `0/1/2/3/10/100`, ảnh đứng/ngang/vuông và ratio cực đoan kiểm
       geometry, operation budget và hard-safe fallback.
 
 **Verification:** test mới RED đúng trên behavior cũ và invariant cũ GREEN;
@@ -948,11 +959,11 @@ rank; gắn seed vào history entry và locale handoff dùng một lần.
 
 **Acceptance:**
 
-- [ ] Pool có nhiều hơn một nghiệm hard-safe tạo được ít nhất hai hoán vị qua
+- [x] Pool có nhiều hơn một nghiệm hard-safe tạo được ít nhất hai hoán vị qua
       nhiều seed; trong cùng lượt mỗi pool dùng lại đúng thứ tự.
-- [ ] Back/Forward, locale full navigation và document reconstruction phục hồi
+- [x] Back/Forward, locale full navigation và document reconstruction phục hồi
       seed entry; reload/direct navigation bắt đầu seed mới.
-- [ ] Search không vượt `300.000` operations; nếu soft target không đạt, trả
+- [x] Search không vượt `300.000` operations; nếu soft target không đạt, trả
       layout hợp lệ cùng diagnostic, không `search-exhausted`.
 
 **Verification:** P1 GREEN; oracle sweep width
@@ -967,13 +978,13 @@ giữ tập suggestion theo tag và đổi ảnh mỗi 3 giây.
 
 **Acceptance:**
 
-- [ ] Batch tiếp nối đáy card thật; band đổi giữa seed khi có nhiều nghiệm;
+- [x] Batch tiếp nối đáy card thật; band đổi giữa seed khi có nhiều nghiệm;
       không đổi scrollHeight, hit testing, CTA–footer gap hoặc final viewport.
-- [ ] CTA–footer gap giữ trong `1 CSS px`; khoảng batch–card không vượt một
+- [x] CTA–footer gap giữ trong `1 CSS px`; khoảng batch–card không vượt một
       inter-card gap ngoài sai số `1 CSS px`.
-- [ ] Suggestion giữ sample random tối đa 9 ảnh/tag; đổi mỗi `3 s`, crossfade
+- [x] Suggestion giữ sample random tối đa 9 ảnh/tag; đổi mỗi `3 s`, crossfade
       `1,6 s`, không auto-zoom, tôn trọng pause/visibility/selection/reduced motion.
-- [ ] Cùng lượt filter/history round-trip phục hồi batch state; membership,
+- [x] Cùng lượt filter/history round-trip phục hồi batch state; membership,
       ảnh thật và CTA không đổi.
 
 **Verification:** P1/P2 GREEN; unit/browser matrix VI/EN mobile/desktop,
@@ -984,7 +995,7 @@ reduced motion, CTA/footer và 3-second tick.
 
 #### Checkpoint A — Advertising
 
-- [ ] P1–P3 focused tests và static/layout checks đạt.
+- [x] P1–P3 focused tests và static/layout checks đạt.
 - [ ] Main kiểm diff; report score/fallback cho pool đồng dạng và khó.
 
 ### P4 — Chẩn đoán bottleneck delivery
@@ -997,11 +1008,11 @@ decode/reveal. Đây là bước read-only, chưa đổi source hoặc media.
 
 **Acceptance:**
 
-- [ ] Có root cause theo route/viewport/cohort; giải thích biến thiên random
+- Bỏ (owner rút gọn 2026-10-04): root cause theo route/viewport/cohort; giải thích biến thiên random
       bằng ID, dimensions và bytes.
-- [ ] Quyết định nhánh tối thiểu được số đo hỗ trợ: discovery/priority,
+- [x] Quyết định nhánh tối thiểu được số đo hỗ trợ: discovery/priority,
       transfer bytes hay decode/reveal; ghi nhánh loại trừ và lý do.
-- [ ] Nếu bytes chi phối, đề xuất đúng media cohort cần responsive derivative;
+- [x] Nếu bytes chi phối, đề xuất đúng media cohort cần responsive derivative;
       nếu không, giữ nguyên pool media.
 
 **Verification:** Network waterfall cold/warm cùng điều kiện và report root
@@ -1018,11 +1029,11 @@ waterfall không cho thấy transfer bytes là nút thắt.
 
 **Acceptance:**
 
-- [ ] Candidate cải thiện phần bottleneck đo được, không tải mọi ảnh trước
+- [x] Candidate cải thiện phần bottleneck đo được, không tải mọi ảnh trước
       viewport và không tạo request trùng.
-- [ ] Nếu cần derivative, giữ provenance/identity/dimensions/alt và tạo theo
+- [x] Nếu cần derivative, giữ provenance/identity/dimensions/alt và tạo theo
       batch nhỏ; không đưa source-only asset vào `.site-output/`.
-- [ ] Không làm LCP tăng ngoài gate; giữ caching, lazy loading, decode và
+- [ ] (chờ đo demo ở P11) Không làm LCP tăng ngoài gate; giữ caching, lazy loading, decode và
       intrinsic ratio.
 
 **Verification:** focused media/static tests, cold/warm local Network waterfall
@@ -1047,12 +1058,12 @@ stream, encoding, cache/decode và so với native path.
 
 **Acceptance:**
 
-- [ ] Không request lần hai, không trì hoãn hero/LCP ngoài gate, không buffer
+- Bỏ (owner dừng byte progress 2026-10-04): không request lần hai, không trì hoãn hero/LCP ngoài gate, không buffer
       ảnh ngoài viewport.
-- [ ] Determinate chỉ khi stream bytes và Content-Length cùng đơn vị; thiếu/lệch
+- Bỏ: determinate chỉ khi stream bytes và Content-Length cùng đơn vị; thiếu/lệch
       header, encoded response hoặc body không đọc được thành indeterminate.
-- [ ] Abort/reload cleanup stream, listener và object URL; không hiện số %.
-- [ ] Nếu byte thật và speed gate không thể cùng đạt, dừng P6–P8 và trình owner
+- Bỏ: abort/reload cleanup stream, listener và object URL; không hiện số %.
+- [x] Nếu byte thật và speed gate không thể cùng đạt, dừng P6–P8 và trình owner
       số đo/tradeoff; không thay bằng progress giả.
 
 **Verification:** isolated browser probe/test trên throttled network; ghi
@@ -1062,8 +1073,8 @@ production source. **Estimate:** 45–90 phút.
 
 #### Checkpoint B — Delivery go/no-go
 
-- [ ] P4 xác định bottleneck; P5 có candidate so sánh được.
-- [ ] P6 pass hoặc dừng, chuyển quyết định cho owner.
+- [x] P4 xác định bottleneck; P5 có candidate so sánh được.
+- [x] P6 pass hoặc dừng, chuyển quyết định cho owner.
 
 ### P7 — Tạo frame và progress state dùng chung
 
@@ -1079,9 +1090,9 @@ determinate/indeterminate ring, cache, ready và error.
 
 - [ ] Frame lấy dimensions/aspect ratio thật trước request; cache-ready không
       lóe; ready chỉ sau decode; error giữ tỷ lệ/alt.
-- [ ] Cung tròn phản ánh bytes, không có số; trạng thái unknown dùng chuyển
+- Bỏ phần byte (owner 2026-10-04); vòng indeterminate, reduced motion đứng yên đã có. Cung tròn phản ánh bytes, không có số; trạng thái unknown dùng chuyển
       động indeterminate; reduced motion không quay liên tục; có `aria-busy`.
-- [ ] Không thêm dependency, WebGL, service worker, endpoint hoặc global loader
+- [x] Không thêm dependency, WebGL, service worker, endpoint hoặc global loader
       gây hàng đợi chung.
 
 **Verification:** component tests known/unknown/mismatch/cache/error/abort;
@@ -1091,9 +1102,10 @@ mới. **Estimate:** 60–120 phút.
 
 ### P8 — Nối frame vào ảnh tĩnh toàn website
 
-**Trạng thái 2026-10-04:** `watchMediaLoading` trong `motion.js` gắn vòng cho
-ảnh `/assets/content/` chưa tải xong có frame `position` khác `static`; bỏ qua
-Advertising runtime (P9) và logo khách hàng.
+**Trạng thái 2026-10-04:** vòng CSS trong `style.css` vẽ sau ảnh
+`/assets/content/`, hiện trước khi script chạy; thay `watchMediaLoading` cũ.
+Bỏ qua Advertising runtime (P9) và logo khách hàng. Chi tiết ở
+[spec](../docs/specs/image-loading-progress.md#triển-khai-2026-10-04).
 
 **Mô tả:** nối với global motion/media reveal và page detail/service; logo,
 icon, background trang trí và batch skeleton CTA giữ ngoại lệ spec.
@@ -1113,8 +1125,9 @@ module/CSS và một test (tối đa 5 file). **Estimate:** 75–120 phút.
 
 ### P9 — Nối frame vào Advertising động
 
-**Trạng thái 2026-10-04:** card grid/related một ảnh và viewer primary đã có
-vòng indeterminate; suggestion chưa gắn. Chi tiết ở
+**Trạng thái 2026-10-04:** card grid/related một ảnh, viewer primary và
+suggestion đã có vòng indeterminate; acceptance dưới chưa có test tự động
+ngoài suggestion. Chi tiết ở
 [spec](../docs/specs/image-loading-progress.md#triển-khai-2026-10-04).
 
 **Mô tả:** nối component đã qua gate vào card, related, suggestion và photo
@@ -1148,7 +1161,7 @@ iPhone chưa kiểm.
 - [ ] Unit/static/build GREEN; docs index/STATE/specs khớp source/hash.
 - [ ] Main chạy `code-review-and-quality` và `ponytail-review`; không còn
       finding quan trọng.
-- [ ] Subagent `web-performance-auditor` dùng model yêu cầu `gpt-6-sol`,
+- Bỏ (owner 2026-10-03, reviewer là Claude): subagent `web-performance-auditor` dùng model `gpt-6-sol`,
       effort `ultra`; preview read-only VI/EN, mobile/desktop, home/service,
       Advertising All/filter/detail, Back/locale, CTA/footer, console/network/CLS.
 - [ ] Main kiểm từng finding; owner xem local preview trước Sites release.
