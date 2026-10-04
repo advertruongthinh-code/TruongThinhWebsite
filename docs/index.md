@@ -41,7 +41,7 @@ không nhân bản token hoặc coi HTML specimen là production component.
   Owner nghiệm thu visual scrollbar; [chẩn đoán preview](verification/mobile-preview-diagnostics-2026-09-27.md)
   giữ lỗi baseline random/landscape/WebKit. [Map bổ sung](specs/mobile-browser-parity-capability-map.md#feedback-preview--intent-và-map-bổ-sung-đã-duyệt)
   đã duyệt; [delta skeleton lifecycle](specs/advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
-  đã duyệt bằng “Duyệt delta skeleton”; [plan correction](../tasks/plan.md#correction-baseline-và-skeleton--plan-chờ-duyệt)
+  đã duyệt bằng “Duyệt delta skeleton”; [plan correction](../tasks/plan.md#correction-baseline-và-skeleton--accepted-2026-09-27)
   và [card correction](https://app.notion.com/p/3e8332849a0e8121bd20e1f62a275bb7) đã duyệt27/09.
   [Correction evidence](verification/mobile-skeleton-correction-2026-09-27.md)
   giữ random/Android functional và lịch sử C05 WebKit RED; [amendment C05R](../tasks/plan.md#amendment-c05r--accepted-2026-09-27)
@@ -55,10 +55,10 @@ không nhân bản token hoặc coi HTML specimen là production component.
   primary, suggestion và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
   dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random masonry và
   tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
-  cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25)
+  cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
   đang chờ owner duyệt, behavior chưa được triển khai.
 - [Media-card toàn website](specs/site-media-card-playback.md): spec đã duyệt
-  28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
+  28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#media-card-toàn-website--plan-đã-duyệt-2026-09-28)
   còn chờ duyệt. Supersession masonry-detail morph chỉ xảy ra khi triển khai;
   viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
   kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)

@@ -2,7 +2,7 @@
 title: Đặc tả khung chờ và vòng tải ảnh toàn website
 type: frontend
 status: accepted
-updated: 2026-09-25
+updated: 2026-10-04
 module_id: image-loading-progress
 capability_map: advertising-random-grid-and-image-loading-capability-map.md
 depends_on: static-image-delivery
@@ -117,7 +117,14 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
   ảnh có class LazySizes `lazyloading`, hiện sau 150 ms bằng animation
   delay; card nhiều media giữ spinner `advertising-card-media__loading` sẵn
   có. Ảnh primary của viewer nhận `.media-load-ring` và `aria-busy` khi đổi
-  ảnh chưa tải xong. Suggestion chưa gắn vòng.
+  ảnh chưa tải xong.
+- Suggestion (`detail.css`): ô chưa chọn vẽ cùng vòng SVG làm
+  `background-image` dưới ảnh, như ảnh tĩnh, cỡ `0.75rem` ở góc phải trên
+  (`right 2px top 2px`), nằm trong padding `12px` của nhãn nên không chạm chữ;
+  vòng giữa ô sẽ đè lên nhãn căn giữa. Ô đang chọn nền trắng, ảnh ẩn, không
+  có vòng. Ảnh kế tiếp của slideshow decode ngoài DOM trước khi chèn, nên
+  không cần vòng. Reduced motion dùng cung tĩnh. Test:
+  `tests/site/advertising-suggestion-motion.e2e.mjs`.
 
 ## Giao diện module và nơi đặt code
 

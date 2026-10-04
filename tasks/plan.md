@@ -1259,7 +1259,7 @@ link/anchor là docs gate. Rollback chỉ hunk thuộc task sau snapshot/hash,
 rebuild và giữ raw RED/GREEN; không reset checkout, đổi phone settings,
 commit/push/deploy hoặc mở recovery/P11 trong plan này.
 
-## Advertising random grid và tải ảnh — plan chờ duyệt 2026-09-25
+## Advertising random grid và tải ảnh — plan duyệt 2026-10-03
 
 Nhập từ `tasks/advertising-random-media/plan.md` của Codex ngày 2026-10-03; checklist ở [todo](todo.md#advertising-random-grid-và-tải-ảnh--checklist).
 
@@ -1348,11 +1348,12 @@ Checklist chi tiết, acceptance, verification và estimate nằm trong
   batch frontier và CTA/footer đều đạt.
 - **B — delivery:** P4 xác định bottleneck; P5 có candidate so sánh được; P6
   pass hoặc dừng tại go/no-go để owner quyết định.
-- **C — preview:** P7–P9 pass toàn website; P10 gồm QA độc lập bằng subagent
-  `gpt-6-sol`, effort `ultra`, theo yêu cầu owner. Main kiểm diff và finding.
+- **C — preview:** P7–P9 pass toàn website; P10 gồm QA độc lập do Claude
+  review (owner 2026-10-03, không dùng `gpt-6-sol`). Main kiểm diff và finding.
 - **D — release:** sau local preview, code review, Ponytail review và owner
-  release gate. Sites chỉ nhận `.site-output/` cùng `.openai/hosting.json`;
-  giữ version trước để rollback. Đo lại cùng ma trận sau deploy.
+  duyệt deploy demo Cloudflare Workers theo
+  [decision](../docs/decisions/cloudflare-workers-static-demo.md); đo lại cùng
+  ma trận sau deploy.
 
 ### Quality gate chung
 
@@ -1391,8 +1392,8 @@ Checklist chi tiết, acceptance, verification và estimate nằm trong
 - Ước lượng `250–500 LOC` vượt ngưỡng Notion `200 LOC`. Trước source task
   đầu, link task vào card liên quan trong backlog Notion hoặc owner cho phép tạo
   card; không tự tạo/cập nhật card khi chưa có quyền và connector phù hợp.
-- Publish candidate lên Sites cần owner duyệt sau khi local preview/code review
-  đạt. URL deployment Sites là public, không phải private preview.
+- Deploy candidate lên demo Cloudflare cần owner duyệt từng lần sau khi local
+  preview/code review đạt (thay Sites từ 2026-10-03).
 
 ## Tinh gọn docs — thực hiện 2026-10-03
 
