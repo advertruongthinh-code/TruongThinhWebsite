@@ -20,9 +20,8 @@ host, thêm cache, adapter và installer không cần thiết.
 ## Decision
 
 1. Pin canonical ở [`tooling-versions.json`](../../tooling-versions.json).
-   Skill payload vendor vào `.claude/skills` theo
-   [decision vendor skill](claude-skills-vendored-from-pins.md); bootstrap copy
-   sang `~/.agents/skills` cho Codex. Runtime (Serena, Graphify, Chrome DevTools
+   Skill đến từ plugin pin ở user scope theo
+   [decision plugin pin](claude-skills-from-pinned-plugins.md). Runtime (Serena, Graphify, Chrome DevTools
    MCP, Impeccable CLI, jq) cài ở user scope.
 2. Không router riêng, không model pin chung, không host lifecycle hook. Quy trình
    chạy skill, human gate và vai trò main/worker/reviewer nằm ở

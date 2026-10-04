@@ -1,9 +1,0 @@
-{
-  "enabledPlugins": {
-    "agent-skills@skills-dir": false,
-    "caveman@skills-dir": false,
-    "ponytail@skills-dir": false,
-    "impeccable@skills-dir": false,
-    "i-have-adhd@skills-dir": false
-  }
-}

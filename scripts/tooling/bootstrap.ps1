@@ -123,56 +123,11 @@ function Install-PnpmShim {
 }
 
 function Install-GlobalSkills {
-  # The repository's vendored .claude tree is the only skill payload; Codex gets a copy.
-  $source = Join-Path $projectRoot ".claude\skills"
-  $userAgents = Join-Path $env:USERPROFILE ".agents"
-  $destination = Join-Path $userAgents "skills"
-  $managedStatePath = Join-Path $globalRoot "state\managed-skills.json"
-  $previousManaged = if (Test-Path -LiteralPath $managedStatePath -PathType Leaf) {
-    @((Get-Content -Raw -LiteralPath $managedStatePath | ConvertFrom-Json).skills)
-  } else { @() }
-  New-Item -ItemType Directory -Force -Path $destination | Out-Null
-
-  $vendored = @(Get-ChildItem -LiteralPath $source -Directory | Where-Object {
-    Test-Path -LiteralPath (Join-Path $_.FullName "SKILL.md") -PathType Leaf
-  })
-  $nextManaged = @($vendored.Name + @("graphify") | Sort-Object -Unique)
-  foreach ($name in @($previousManaged | Where-Object { $_ -notin $nextManaged })) {
-    $target = Join-Path $destination $name
-    if (-not (Test-Path -LiteralPath $target)) { continue }
-    $skillBackup = Join-Path $backupRoot "skills\$name"
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $skillBackup) | Out-Null
-    Move-Item -LiteralPath $target -Destination $skillBackup
-  }
-
-  foreach ($skill in $vendored) {
-    $target = Join-Path $destination $skill.Name
-    if (Test-Path -LiteralPath $target) {
-      $skillBackup = Join-Path $backupRoot "skills\$($skill.Name)"
-      New-Item -ItemType Directory -Force -Path (Split-Path -Parent $skillBackup) | Out-Null
-      Move-Item -LiteralPath $target -Destination $skillBackup
-    }
-    Copy-Item -LiteralPath $skill.FullName -Destination $target -Recurse
-  }
-
-  $references = Join-Path $userAgents "references"
-  if (Test-Path -LiteralPath $references) { Move-Item -LiteralPath $references -Destination (Join-Path $backupRoot "skills-references") }
-  Copy-Item -LiteralPath (Join-Path $projectRoot ".claude\references") -Destination $references -Recurse
-
-  $graphify = Join-Path $destination "graphify"
-  if (Test-Path -LiteralPath $graphify) { Move-Item -LiteralPath $graphify -Destination (Join-Path $backupRoot "skills\graphify") }
+  # Claude Code skills come from the pinned plugins (local-setup.ps1), same as cloud-setup.sh.
+  # Codex reinstalls its own skills when needed; only the Graphify skill is kept here.
+  & (Join-Path $PSScriptRoot "local-setup.ps1")
   & (Join-Path $globalRoot "python\Scripts\graphify.exe") install --platform agents
   if ($LASTEXITCODE -ne 0) { throw "Graphify global skill installation failed." }
-
-  $managed = @(Get-ChildItem -LiteralPath $destination -Directory | Where-Object { $_.Name -in $nextManaged })
-  if ($managed.Count -ne [int]$pins.skills.'global-total') { throw "Expected $($pins.skills.'global-total') managed global skills; found $($managed.Count)." }
-  Write-Utf8Atomic $managedStatePath (([ordered]@{
-    schema = 1
-    updated_at = (Get-Date).ToUniversalTime().ToString("o")
-    skills = $nextManaged
-  } | ConvertTo-Json -Depth 4) + [Environment]::NewLine)
-  & (Get-ProjectNode) (Join-Path $PSScriptRoot "vendor-skills.mjs") --compare $destination
-  if ($LASTEXITCODE -ne 0) { throw "User-global skills differ from the vendored .claude/skills payload." }
 }
 
 function Install-GlobalPersonas {

@@ -14,7 +14,7 @@ ghi file gốc ở mục `Lịch sử`; bản gốc còn trong Git history.
 | 2026-09-01 | accepted | [Masonry Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập](advertising-organic-masonry-espacio-spacing-media-distribution.md) |
 | 2026-09-01 | accepted | [Agent Skills dùng chung cho mọi host agent](agent-skills-workflow.md) |
 | 2026-08-09 | accepted | [Caveman ultra và rule module](caveman-ultra-agent-rules.md) |
-| 2026-10-03 | accepted | [Skill vendor vào .claude từ pin](claude-skills-vendored-from-pins.md) |
+| 2026-10-04 | accepted | [Skill Claude chỉ đến từ plugin pin ở user scope](claude-skills-from-pinned-plugins.md) |
 | 2026-10-03 | accepted | [Demo tĩnh chạy trên Cloudflare Workers static assets](cloudflare-workers-static-demo.md) |
 | 2026-07-31 | accepted | [Content/media có guide và thứ tự bảo trì rõ](content-media-maintenance.md) |
 | 2026-07-31 | accepted | [D1 SSR luôn ưu tiên hơn shell fallback](d1-ssr-static-fallback.md) |
@@ -51,6 +51,7 @@ Ngoại lệ còn giữ file vì decision mới dẫn trực tiếp:
 | Ngày | Status | Decision |
 | --- | --- | --- |
 | 2026-09-24 | superseded | [Sites chỉ nhận artifact tĩnh, GitHub giữ source và test](sites-artifact-only-release-mirror.md) |
+| 2026-10-03 | superseded | [Skill vendor vào .claude từ pin](claude-skills-vendored-from-pins.md) |
 
 ## Chú thích thuật ngữ
 

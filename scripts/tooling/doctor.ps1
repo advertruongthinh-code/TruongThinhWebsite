@@ -58,29 +58,12 @@ foreach ($obsolete in @(
   if (Test-Path -LiteralPath (Join-Path $root $obsolete)) { $failures += "Project-local payload remains: $obsolete" }
 }
 
-$skillRoot = Join-Path $env:USERPROFILE ".agents\skills"
-$requiredSkills = @(
-  "using-agent-skills", "i-have-adhd", "caveman", "impeccable", "graphify", "ponytail",
-  "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help", "ponytail-review"
-)
-$missingSkills = @($requiredSkills | Where-Object { -not (Test-Path -LiteralPath (Join-Path $skillRoot "$_\SKILL.md") -PathType Leaf) })
-if ($missingSkills.Count -eq 0) { $passes += "Managed user-global skills" }
-else { $failures += "Missing user-global skills: $($missingSkills -join ', ')" }
-$retiredSkillPath = Join-Path $skillRoot "subagent-driven-development"
-if (Test-Path -LiteralPath $retiredSkillPath) { $failures += "Retired user-global skill remains: subagent-driven-development" }
-else { $passes += "Retired orchestration skill removed from user-global catalog" }
-$managedCount = @(Get-ChildItem -LiteralPath $skillRoot -Directory -ErrorAction SilentlyContinue).Count
-if ($managedCount -ge 40) { $passes += "User-global skill count ($managedCount)" }
-else { $failures += "Expected at least 40 user-global skills; found $managedCount" }
-& (Get-ProjectNode) (Join-Path $root "scripts\tooling\vendor-skills.mjs") --compare $skillRoot | Out-Null
-if ($LASTEXITCODE -eq 0) { $passes += "User-global skills match vendored .claude/skills" }
-else { $failures += "User-global skills differ from .claude/skills; run pnpm tooling:bootstrap" }
-
-# Personal Claude skills win over project skills, so a copy there would shadow the repository payload.
-$vendoredNames = @(Get-ChildItem -LiteralPath (Join-Path $root ".claude\skills") -Directory).Name
-$shadowing = @(Get-ChildItem -LiteralPath (Join-Path $env:USERPROFILE ".claude\skills") -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -in $vendoredNames })
-if ($shadowing.Count -eq 0) { $passes += "No personal Claude skill shadows .claude/skills" }
-else { $failures += "Personal Claude skills shadow .claude/skills: $($shadowing.Name -join ', '). See docs/operations/TOOLING.md" }
+$pluginRoot = Join-Path $env:USERPROFILE ".claude\skills"
+$missingPlugins = @("agent-skills", "caveman", "ponytail", "impeccable", "i-have-adhd" | Where-Object {
+  -not (Test-Path -LiteralPath (Join-Path $pluginRoot "$_\.claude-plugin\plugin.json") -PathType Leaf)
+})
+if ($missingPlugins.Count -eq 0) { $passes += "Claude skill plugins installed" }
+else { $failures += "Missing Claude skill plugins: $($missingPlugins -join ', '); run scripts/tooling/local-setup.ps1" }
 
 try {
   $globalRules = Get-Content -Raw -LiteralPath (Join-Path $env:USERPROFILE ".codex\AGENTS.md")

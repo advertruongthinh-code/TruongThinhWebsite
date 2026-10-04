@@ -8,7 +8,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 - [Scripts map](agent-rule-scripts.md) là canonical ownership/fallback. Rule chỉ nêu trigger/boundary.
 - Hook, watcher, wrapper, launcher tự chạy normal mechanics. Git `pre-commit`/`pre-push` chạy `claude -p /ponytail-review` mức ultra, read-only trên diff code (bỏ qua `*.md`), chặn khi đề xuất cắt hơn 20 dòng hoặc review lỗi. Graphify `post-commit`/`post-checkout` là repository automation, không phải agent lifecycle hook.
-- Không có agent lifecycle hook project. Skill vendor tại `.claude/skills` từ pin; không persona, MCP definition project-local. Không tạo/sửa hook, helper ngoài approved tooling repair.
+- Không có agent lifecycle hook project. Skill đến từ plugin pin ở user scope (cloud: `cloud-setup.sh`, local: `local-setup.ps1`), repo không vendor skill; không persona, MCP definition project-local. Không tạo/sửa hook, helper ngoài approved tooling repair.
 
 ## Pin
 
@@ -17,10 +17,9 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 | User global | Serena 1.7.0, Graphify 0.9.74, uv 0.12.22, Chrome DevTools MCP 1.10.1, Impeccable CLI 4.1.0/skill 4.5.0, jq 1.8.2, 56 direct skill và native persona |
 | Project | pnpm 12.8.1, Playwright 1.63.0, browser engine, static Node preview, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
 
-Agent Skills gồm 25 upstream skill (commit trong `tooling-versions.json`).
-`pnpm tooling:skills` áp dụng override từ `scripts/tooling/skill-overrides/` khi
-sinh `.claude/skills`; không sửa trực tiếp payload global vì lần cài sau sẽ ghi đè. Caveman và
-Ponytail bắt buộc `ultra` ở global và project rule.
+Năm plugin skill (agent-skills, caveman, ponytail, impeccable, i-have-adhd) cài
+từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill caveman
+chỉ chạy khi user gọi; `i-have-adhd` tự gọi.
 
 Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` gọi bản
 pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-demo.md).
@@ -29,8 +28,8 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ## Path user-global
 
 ```text
-~/.agents/skills/          payload Agent Skills trực tiếp
-~/.agents/references/      reference Agent Skills dùng chung
+~/.claude/skills/<plugin>  năm plugin skill (junction tới ~/.claude/agent-tools/src)
+~/.agents/skills/          skill Codex (Codex tự cài khi cần; bootstrap chỉ giữ graphify)
 ~/.codex/agents/           bốn native persona review (Codex)
 ~/.codex/tooling/          Python, Node, jq, source, log, wrapper, backups/
 ~/.codex/config.toml       MCP global Codex và policy tắt hook
@@ -40,7 +39,7 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ~/.claude.json             MCP user scope Claude: serena, graphify qua mcp.ps1
 ```
 
-Bootstrap copy `.claude/skills` sang `~/.agents/skills` cho Codex. Persona Claude
+Bootstrap gọi `local-setup.ps1` cho skill Claude. Persona Claude
 là bản chép tay; đổi persona Codex thì chép lại. Serena launcher hiện dùng
 `--context codex --project-from-cwd` cho cả hai host. Chrome DevTools MCP chưa
 đăng ký cho Claude Code vì app có browser riêng.
@@ -59,28 +58,13 @@ review gate, infer Serena language rồi chạy doctor. `-SkipBrowsers` chỉ kh
 browser engine đã verify. Backup ở `~/.codex/tooling/backups/`; receipt ở
 `.tooling/state/`.
 
-## Claude Code: skill trong repo
+## Claude Code: skill
 
-`.claude/skills/` và `.claude/references/` sinh từ `tooling-versions.json` bằng
-`pnpm tooling:skills`; override trong `scripts/tooling/skill-overrides/` thay cả
-thư mục skill upstream cùng tên. Hash nằm trong `.claude/skills.lock.json`.
-Claude local, Remote Control và thread cloud cùng đọc bản này. Không sửa tay;
-đổi pin hoặc override rồi chạy lại script, commit, sau đó bootstrap để Codex nhận
-cùng bản. CI chạy `pnpm tooling:skills:check`.
-
-Skill cá nhân thắng skill của repo khi trùng tên, nên `~/.claude/skills` không được
-chứa các skill này. Một lần trên máy Windows, sau khi branch có `.claude/skills`:
-
-```powershell
-$p = Join-Path $env:USERPROFILE ".claude\skills"
-$item = Get-Item -LiteralPath $p -Force -ErrorAction SilentlyContinue
-if ($item.LinkType) { cmd /c rmdir "$p" }   # chỉ gỡ link; ~/.agents/skills giữ nguyên
-elseif ($item) { Move-Item -LiteralPath $p -Destination "$p.bak-20261003" }
-pnpm tooling:bootstrap
-pnpm tooling:doctor
-```
-
-Doctor báo lỗi nếu `~/.agents/skills` lệch lock hoặc `~/.claude/skills` che bản repo.
+Một nguồn skill duy nhất: năm plugin pin, cùng quy tắc ở mọi nơi (bỏ hook, caveman
+chỉ user gọi, `i-have-adhd` tự gọi). Cloud cài bằng `cloud-setup.sh` (mục dưới),
+máy local bằng `pwsh -NoProfile -File scripts/tooling/local-setup.ps1` (một lần mỗi
+máy, restart Claude Code; `bootstrap.ps1` cũng gọi script này). Repo không còn
+`.claude/skills`; decision: [skill từ plugin pin](../decisions/claude-skills-from-pinned-plugins.md).
 Trên Linux/cloud không có PowerShell: Graphify chạy qua
 `scripts/tooling/invoke-graphify.sh`, tự cài Graphify pin lần đầu.
 
@@ -134,14 +118,7 @@ Không cài, có lý do:
   không có trên cloud. Agent cloud chạy `ponytail-review` thủ công trước commit.
 
 Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
-`claude plugin list` liệt kê sáu plugin `@skills-dir`. Repo này tắt năm plugin
-skill trùng qua `.claude/settings.json` (`enabledPlugins: false`), chỉ dùng bản vendor.
-
-Máy local cài cùng năm plugin skill (pin, bỏ hook, cùng cờ invocation) bằng
-`pwsh -NoProfile -File scripts/tooling/local-setup.ps1`, một lần mỗi máy rồi
-restart Claude Code; MCP local vẫn do `bootstrap.ps1`. Kế hoạch một nguồn
-skill: (A) script local, (B) owner chạy và verify cloud + local, (C) xóa vendor
-`.claude/skills`, override Codex và `.claude/settings.json`.
+`claude plugin list` liệt kê sáu plugin `@skills-dir`.
 
 ## Doctor và update
 

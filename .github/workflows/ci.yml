@@ -31,7 +31,6 @@ jobs:
       - run: pnpm qa:static
       - run: node scripts/site/build-image-variants.mjs --check
       - run: pnpm qa:worker:security
-      - run: pnpm tooling:skills:check
       - run: pnpm exec playwright install --with-deps chromium
 
       - name: Start local static preview
