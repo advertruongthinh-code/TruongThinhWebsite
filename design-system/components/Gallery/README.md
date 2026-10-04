@@ -6,8 +6,9 @@ Markup `section.detail-gallery` với `[data-gallery]`, style ở
 
 ## Cấu trúc
 
-- Đầu khối: tiêu đề nhãn bên trái, hai nút prev/next tròn 2.7rem, viền
-  `line`, hover nền `ink` chữ `white`; nút có nhãn ARIA.
+- Đầu khối: tiêu đề nhãn bên trái, hai nút prev/next 2.7rem, viền `line`,
+  hover nền `ink` chữ `white`; nút có nhãn ARIA. Nút đang tròn, lệch ngôn ngữ
+  vuông của Design System; chờ sửa ở website.
 - Track cao `min(50vw, 45rem)`, padding ngang `gutter`, gap 20px, scroll snap
   giữa, kéo được bằng chuột.
 - Item rộng `min(32vw, 29rem)`, nền `media-loading-surface`, caption chữ hoa

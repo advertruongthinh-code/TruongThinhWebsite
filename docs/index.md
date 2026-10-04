@@ -13,7 +13,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md) | Token, component, motion, content, ảnh Advertising; [authority map](#authority-map) |
-| Đối chiếu Espacio | [Baseline reference](../design-system/reference-espacio.md) | Số đo header, chữ, motion, template của site tham chiếu |
+| Đối chiếu Espacio | [Baseline reference](../design-system/reference-espacio.md) | Số đo header, chữ, hero, motion, layout của site tham chiếu |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
 | Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
 | Dùng tool/agent | [AGENTS](../AGENTS.md), [Operations](operations/TOOLING.md) | Scope, workflow, command và recovery |
