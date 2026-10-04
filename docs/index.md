@@ -57,15 +57,16 @@ lifecycle) nằm trong spec sở hữu.
   dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random masonry và
   tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
-  đang chờ owner duyệt, behavior chưa được triển khai.
+  đã duyệt, phần lớn đã code; việc còn mở ở [STATE](STATE.md).
 - [Media-card toàn website](specs/site-media-card-playback.md): spec đã duyệt
   28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#media-card-toàn-website--plan-đã-duyệt-2026-09-28)
-  còn chờ duyệt. Supersession masonry-detail morph chỉ xảy ra khi triển khai;
+  đã duyệt, M03–M09 tạm dừng tới khi có ảnh và video thật. Supersession masonry-detail morph chỉ xảy ra khi triển khai;
   viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
   kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
   chỉ tóm tắt card đang làm; chi tiết Done không được chép.
   [Skeleton chờ ảnh, mở ảnh tại chỗ, màn trắng vào trang](specs/loading-glass-and-page-entry.md):
-  owner chốt 04/10, chờ code; thay vòng xoay Advertising khi triển khai.
+  owner chốt 04/10; veil khi tải trực tiếp (R6) đã code, phần còn lại chờ code
+  và thay vòng xoay Advertising khi triển khai.
   [Kính dùng chung](specs/glass-surface.md): đã code 04/10 cho kính cuối
   masonry và kính vùng dư primary; còn đo trên A05s.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):

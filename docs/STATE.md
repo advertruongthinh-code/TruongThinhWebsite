@@ -5,7 +5,7 @@
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
-  Deploy gần nhất 2026-10-04 `9478ed8`, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
+  Deploy gần nhất 2026-10-04 `8759d0a` (Worker `7ee4aaa9`), [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,

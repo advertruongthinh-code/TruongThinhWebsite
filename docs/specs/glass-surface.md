@@ -178,7 +178,9 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
   và khi mở primary có kính. Đo tương đối trên cloud 04/10 (Chromium vẽ bằng
   CPU, chậm CPU ×4, 390×844 DPR3, cuộn qua lại ở cuối masonry): `main` 55fps,
   kính cung năm bậc 21–59fps (hai mode), cùng kính một bậc 60fps. Năm bậc là
-  phần nặng; số này không thay A05s.
+  phần nặng. Vào thẳng ảnh có kính phủ đều (1329×912, cùng cloud): số khung
+  trong 460ms đầu khi related xếp chỗ là `main` 22, Kính 17, Kính bỏ hạt nhiễu
+  22; hạt nhiễu `overlay` là phần nặng. Số cloud không thay A05s.
 - Safari trên iPhone thật chưa kiểm.
 - R6 chạy khi thread M02b code card đang tải và mở ảnh tại chỗ.
 

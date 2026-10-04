@@ -30,7 +30,7 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
 | Đổi tone header | Chữ nav và nét hamburger đổi màu cùng lúc `0.3s expo.out` theo `data-header-tone` của section dưới header |
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |
-| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; body có `is-transitioning` trong lúc chuyển |
+| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; body có `is-transitioning` trong lúc chuyển. Tải trực tiếp (link, F5, Back/Forward không qua bfcache) phủ veil từ khung hình đầu rồi uncover như chuyển route; reduced motion bỏ veil |
 | Route từ full menu | Menu reverse và route cover chạy đồng thời; URL chỉ commit khi cả hai xong |
 | Underline nav, footer, menu | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover hoặc đang chọn neo trái; mục Advertising ở trang detail không gạch chân khi nghỉ |
 | Hamburger, nút đóng menu | Hover `0.3s ease-out`: hamburger dòng trên, dưới `scaleX(.5)`, dòng giữa `scaleX(2)`; nút đóng xoay hai nét 90°; nhấn `scale(.8)` |
@@ -163,11 +163,21 @@ outline. Touch không cần hover để mở ảnh.
 
 - Ba frame rỗng mỗi cột nối từ đáy ảnh thật, cùng gutter, chứa CTA; kết thúc ở
   đáy CTA cộng một gap masonry.
-- Frame giữ tọa độ; mặt trong trôi X/Y tối đa 3px, chu kỳ 6 đến 8s lệch pha;
-  gradient xám chuyển bằng transform và opacity trong 6s. Chỉ frame trong
-  viewport và tab đang hiện mới chạy.
-- Nền frame alpha 0.28, viền 0.40; opacity `0.42 → 0.16 → 0.04` và mask mờ
-  dọc. Không shimmer, không focus.
+- Mặt frame là Flow: gradient bốn màu chảy và xoáy chậm, có noise mịn, vẽ
+  bằng WebGL. Mỗi lần trang ổn định (tải, đổi filter, mở đóng detail,
+  Back/Forward) 12 preset màu được xáo và chia cho các frame, không frame nào
+  trùng preset; mỗi frame lệch anchor, pha và chiều chảy. Resize giữ nguyên.
+  Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton-flow.md#preset-source-controlled).
+- Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
+  Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
+- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, stagger theo vị trí như
+  ảnh card; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
+  không focus.
+- Cuối batch là [Kính](components/Glass/README.md) dạng cung, đứng yên: card
+  phía trên nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối. CTA và
+  footer nằm trên kính.
+- Chỉ frame trong viewport và tab đang hiện mới chạy; reduced motion hiện ngay
+  và giữ frame tĩnh.
 
 ### Suggestion và detail
 

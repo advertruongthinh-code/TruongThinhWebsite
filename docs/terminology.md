@@ -23,8 +23,8 @@ gãy link và lịch sử.
 - ID và tên file đã dùng trong link: `advertising-grid-span-organic.md`,
   `advertising-random-grid-and-image-loading-capability-map.md`, GRID-R4,
   capability `advertising-grid-geometry`, `advertising-grid-media`.
-- Code và selector: `advertising-grid-v13`, `[data-project-grid]`,
-  `[data-grid-item]`.
+- Code và selector: `advertising-grid-v14`, `[data-project-grid]`,
+  `[data-advertising-card]`.
 - Report, verification và archive có ngày giữ nguyên chữ gốc.
 
 ## Chú thích thuật ngữ

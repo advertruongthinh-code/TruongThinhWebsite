@@ -64,8 +64,10 @@ nền giấy luôn là trọng tâm.
 
 ## Typography
 
-`"Plus Jakarta Sans", Arial, sans-serif`, tải từ Google Fonts (400, 500, 600,
-700, italic 500) trong `<head>` mỗi trang. Không đổi font.
+`"Plus Jakarta Sans", Arial, sans-serif`: font biến thiên (OFL, weight 200
+tới 800, có italic) tự host ở `/assets/vendor/`, preload bản latin và
+vietnamese trong `<head>`. Preview trên claude.ai nạp cùng font từ Google
+Fonts. Không đổi font.
 
 | Style | Dùng cho | Ghi chú |
 | --- | --- | --- |
@@ -148,11 +150,12 @@ Corner radius vì đó là khung cố định của loại artifact, nên mục 
 token đó.
 
 - Hình tròn chỉ xuất hiện ở chi tiết vốn là chấm hoặc vòng, không phải góc bo
-  của khung: chấm marquee, chấm timeline About, vòng tải ảnh, nút bật tắt
-  motion.
+  của khung: chấm marquee, chấm timeline About, chấm chỉ báo media card, vòng
+  tải ảnh, nút bật tắt motion.
 - Control viewer Advertising vuông tối thiểu 48px, viền 1px `ink`, hover mở nhãn.
 - Focus: `outline: 2px solid` màu `orange`, offset 4px, mọi phần tử
-  `:focus-visible`.
+  `:focus-visible`; card Advertising và control trên card dùng `ink`
+  ([Media card](components/MediaCard/README.md#focus-và-nhãn)).
 
 **Quy tắc khung.** Khung vuông và đường thẳng giữ cảm giác editorial và xưởng.
 Thêm radius cho card, filter hoặc shell là thay đổi design system.

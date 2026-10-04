@@ -152,7 +152,9 @@ nhật hoặc lý do không đổi.
    source thì fail. Phần Advertising do JavaScript dựng được
    `scripts/docs/capture-design-system.mjs` chụp từ trang chạy thật vào
    `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
-   trong `src/site/`.
+   trong `src/site/`. Catalog public chưa có card nhiều media nên capture
+   MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
+   như test e2e; video chỉ giữ poster.
 4. Motion là section `motion.md` (format không có nhóm token motion).
 5. `README.md` dùng đúng các heading Impeccable đọc (Overview, Colors,
    Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
