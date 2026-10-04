@@ -737,18 +737,13 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
   ghi EN/VI desktop PASS, không có product RED; dừng source fix.
 - [ ] H00 named RED để mở H01: chưa đạt trên `8792`; tab owner `8790` khác
   source và chưa quan sát được. Không gắn PASS của candidate thành lỗi đã hết.
-- [ ] H01: cần rescope oracle theo supersession M02b 30/09; H00 vẫn là
-  evidence lịch sử. Contract đã bỏ card grid/related↔primary morph, kể cả
-  detail A→B qua related và Back/Forward; `400ms` cho clone này không còn là
-  yêu cầu. Giữ scroll/media từng entry và primary↔enlarged viewer morph. M02b
-  có phần history/scroll, hiện được owner mở lại nhưng chưa nghiệm thu; không
-  gọi H01 done.
-- [ ] H02–H03: clear `CASE` và hai `PHOTO_TRANSITIONS_P13_*` flags trước full
-  19-case runner; VI/EN desktop/mobile-width, seed/category/tag/locale,
-  Back/Forward/reduced/slow/rapid và detail↔detail. Chạy return-P74,
-  random-browse nếu seed branch đổi, footer-P75 nếu adapter/limit đổi;
-  diff/review/docs/checkpoint, owner visual còn mở; giữ L06/L07 RED và
-  recovery `8790` unverified.
+- [x] H01 rescope 04/10: oracle mới là không clone/lease, scroll từng entry
+  lệch tối đa 1 CSS px (`noGridMorphEvidence`); không cần sửa source.
+  [Evidence](../docs/verification/advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04).
+  M02b history/scroll vẫn chờ owner nghiệm thu.
+- [x] H02 cloud 04/10: full runner 29/30 entry (25 tên); FAIL duy nhất là
+  landscape emulator `Y=2` đã biết. Unit 120/120.
+- [ ] H03: owner visual, iPhone và physical gate còn mở.
 
 ### M00–M09 — media-card toàn website, plan đã duyệt
 
@@ -880,8 +875,8 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
   arbitration, timestamp/reduced motion GREEN.
 - [ ] M06c: poster/metadata/initial bytes trace, pause frame và offscreen/
   BFCache/slow/error cleanup, terminal UI khi mọi asset lỗi; byte budget có số đo.
-- [ ] M07a: replay bounded L06 EN landscape touch-close, CDN lỗi riêng;
-  không nhận viewer PASS bằng portrait page pinch.
+- [x] M07a 04/10: L06 touch-close là swipe bắt đầu trên nền lúc zoom; đã sửa,
+  runner RED→GREEN trên Chromium. Replay A05s landscape còn mở; CDN lỗi riêng.
 - [ ] M07b: enlarged viewer two-finger pinch/pan trên Android thật; viewer
   open-close morph/focus/lock/reduced motion giữ nguyên.
 - [ ] M08a: cross-site VI/EN desktop/browser matrix, affected regressions,

@@ -31,6 +31,7 @@ export function createAdvertisingPhotoViewer({
   let panX = 0;
   let panY = 0;
   let drag = null;
+  let backdropPress = false;
   let lockedScroll = 0;
   let imageAnimation = null;
   let motionGeneration = 0;
@@ -237,10 +238,8 @@ export function createAdvertisingPhotoViewer({
       setLevel(0);
       return;
     }
-    if (event.target === dialog || event.target === viewport) {
-      close();
-      return;
-    }
+    backdropPress = event.target === dialog || event.target === viewport;
+    if (backdropPress) return;
     if (level === 0 || event.target !== expandedImage || dialog.dataset.advertisingViewerState === "closing") return;
     cancelMotion();
     dialog.dataset.advertisingViewerState = "open";
@@ -248,6 +247,11 @@ export function createAdvertisingPhotoViewer({
     viewport.setPointerCapture?.(event.pointerId);
     renderTransform();
     event.preventDefault();
+  }, { signal: controller.signal });
+  // Close on a backdrop tap only; a touch swipe that starts there (e.g. mid zoom) fires no click.
+  dialog.addEventListener("click", (event) => {
+    if (backdropPress && (event.target === dialog || event.target === viewport)) close();
+    backdropPress = false;
   }, { signal: controller.signal });
   dialog.addEventListener("pointermove", (event) => {
     if (!drag || drag.id !== event.pointerId) return;

@@ -63,6 +63,35 @@ Owner có thể mở preview VI đúng photo tại
 Để tạo history grid↔detail, mở route grid cùng category trước, chọn card `18`,
 cuộn detail rồi dùng Back/Forward; mở trực tiếp URL photo không tạo grid entry.
 
+## H01–H02 rescope và chạy cloud 2026-10-04
+
+H01 không sửa source: theo [supersession M02b](../specs/advertising-photo-morph-scroll.md#phạm-vi-sau-m02b),
+oracle `400ms` card↔primary bị bỏ. Runner đã dùng oracle mới qua
+`noGridMorphEvidence`: không clone, không scroll lease, mọi frame của entry
+đích nằm ở scroll của chính entry đó, lệch tối đa `1` CSS px. Ca
+`history-entry-scroll-offscreen-morph` giữ tên cũ nhưng kiểm oracle này
+(card ngoài viewport, `Y0≠Y1`, EN/VI, seed/category/focus, không thêm entry).
+Mobile-width do `m02b-related-history-just-viewed-and-scroll` phủ: desktop,
+phone dọc `390×844` và phone ngang, VI/EN, grid→A→B→Back/Forward→grid.
+
+H02: full runner trên branch `claude/project-thread-dkyq3r` (main `4af1e31`),
+Chromium 141 headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version,
+Google Fonts trả rỗng vì proxy cloud lỗi `ERR_TOO_MANY_RETRIES`; preload tạm
+ngoài repo, không đổi runner.
+
+| Lượt | Kết quả (entry / tên duy nhất) | FAIL |
+| --- | --- | --- |
+| Trước sửa L06 | 27/29 entry, 24 tên | landscape VI/EN `Y=2` |
+| Sau sửa L06 | 29/30 entry, 25 tên | landscape VI `Y=2` |
+
+Landscape `Y=2` là giới hạn emulator đã biết; A05s thật `Y=0`
+([checkpoint](site-media-card-m02b-claude-checkpoint-2026-10-03.md#a05s-landscape-trên-main-2026-10-04)),
+owner giữ FAIL kèm ghi chú. Các fail cũ p13 `installRelatedMediaProbe`,
+morph-frame-identity, scrollbar-resize Back và skeleton-global-boundary-fade
+đều PASS. Unit `node --test tests/site/*.test.mjs` 120/120. Không chạy
+return-P74, random-browse, footer-P75: diff không đổi history, seed, adapter.
+Gate còn mở: iPhone, physical landscape cho viewer, owner visual.
+
 ## Chú thích thuật ngữ
 
 - **Entry**: một mục trong lịch sử browser, giữ vị trí scroll riêng.

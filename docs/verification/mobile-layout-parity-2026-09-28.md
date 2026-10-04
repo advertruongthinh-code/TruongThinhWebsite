@@ -641,6 +641,18 @@ Runtime có `Network.loadingFailed` cho Locomotive Scroll từ jsDelivr
 `net::ERR_CONNECTION_CLOSED` lúc04:53:12.095Z và console resource error;
 không miễn trừ thành PASS. Raw giữ nguyên, không sửa recorder/runtime hay rerun.
 
+**Phân loại M07a 2026-10-04 (cloud Chromium):** giả thuyết backdrop đúng.
+Replay cùng gesture (zoom-in rồi swipe x=`0.55w`, y `0.8h→0.25h`) tại `838×331`
+touch: `pointerdown` rơi vào `.advertising-photo-dialog__viewport` khi state
+`zooming` (ảnh còn kích thước fit), viewer đóng ở cả VI và EN; chờ `400ms` hoặc
+`915×412` thì chạm vào ảnh, viewer giữ mở. Khác biệt EN/VI trên A05s là timing,
+không phải locale. Sửa `photo-viewer.mjs`: đóng bằng `click` khi lần nhấn cũng
+bắt đầu trên nền, swipe không sinh click. Ca runner
+`viewer-backdrop-swipe-stays-open` RED→GREEN
+([evidence](advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04)).
+CDN jsDelivr lỗi là network riêng, không đổi. Chưa replay trên A05s nên L06
+landscape chưa đóng.
+
 Summary `.tmp/mobile-layout-parity/l06-landscape-red-summary-2026-09-28T04-59-43-211Z.json`
 SHA `ab4e91c7f83f1b8d0f5f56156a84785129d7885a8740edf468b5153744935c72`.
 Raw metadata SHA `70d6f78d894437b2fe906bbfb99b38068d7bfa652b99585f74a45422d026f4c6`,

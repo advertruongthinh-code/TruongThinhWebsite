@@ -22,6 +22,8 @@
   Firefox/WebKit trên PC 2026-10-04 không có lỗi mới
   ([kết quả](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#firefox-và-webkit-trên-pc-2026-10-04));
   iPhone chưa kiểm vì chưa kết nối. M03–M09 ngoài Advertising vẫn PAUSED.
+  History H01–H02 rescope xong trên cloud; viewer không còn đóng khi vuốt từ nền
+  (L06), chờ replay A05s ([evidence](verification/advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04)).
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
   WebKit. P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
   variant AVIF/WebP đã nối vào HTML tĩnh và Advertising runtime
