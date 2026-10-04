@@ -1658,7 +1658,8 @@ async function runPortalAlignmentChecks() {
               );
               return image
                   ? {
-                    src: new URL(image.currentSrc || image.src).pathname,
+                    // The authored fallback src; currentSrc is a responsive AVIF/WebP variant.
+                    src: new URL(image.getAttribute("src"), location.href).pathname,
                     declaredWidth: Number(image.getAttribute("width")),
                     declaredHeight: Number(image.getAttribute("height")),
                   }
@@ -8081,7 +8082,8 @@ async function runGalleryCheck() {
         .boundingBox();
       assert(imageBox, "Gallery image has no mouse target");
       const startX = imageBox.x + imageBox.width * 0.72;
-      const y = imageBox.y + imageBox.height * 0.5;
+      // Middle of the image's visible part; scroll-padding under the sticky header can leave its center below the fold.
+      const y = (Math.max(imageBox.y, 0) + Math.min(imageBox.y + imageBox.height, viewport.height)) / 2;
       await page.mouse.move(startX, y);
       await page.mouse.down();
       await page.mouse.move(startX - 220, y, { steps: 12 });
@@ -9498,7 +9500,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
       route: "/vi/commercial/?media-fallback=cta",
       asset: "**/site-detail.webp",
       surface: ".detail-cta",
-      image: ":scope > img",
+      image: ":scope > img, :scope > picture > img",
       text: ".detail-cta__copy",
       pseudoOverlay: true,
       scroll: true,
@@ -9508,7 +9510,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
       route: "/vi/?media-fallback=legacy",
       asset: "**/workshop-wide.webp",
       surface: ".legacy-closer",
-      image: ":scope > img",
+      image: ":scope > img, :scope > picture > img",
       text: ".legacy-copy",
       overlay: ".legacy-shade",
       scroll: true,
@@ -9533,7 +9535,9 @@ async function runWhiteOverlayMediaFallbackCheck() {
         const mediaSeen = new Promise((resolve) => {
           markMediaSeen = resolve;
         });
-        await page.route(testCase.asset, async (route) => {
+        // Gate whichever responsive AVIF/WebP variant the browser picks for this asset.
+        const assetName = testCase.asset.replace("**/", "").replace(/\.webp$/, "");
+        await page.route(new RegExp(`/${assetName}(?:-\\d+)?\\.(?:webp|avif)$`), async (route) => {
           markMediaSeen();
           await mediaGate;
           await route.continue();

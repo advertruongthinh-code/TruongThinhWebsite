@@ -177,9 +177,20 @@ loading state VI/EN trên mobile và desktop trước merge/deploy.
 - **Không làm:** hiển thị phần trăm số, progress giả theo timer, download ảnh
   hai lần, đặt spinner trên skeleton CTA hoặc che ảnh mãi khi JS thất bại.
 
+## Gate còn mở
+
+- Vòng CSS (`style.css`) và thanh nút gợi ý (`detail.css`) là SVG SMIL
+  `repeatCount="indefinite"` trong `background-image`, vẫn quay sau khi ảnh che
+  vòng nên trình duyệt vẽ lại liên tục: `/vi/residential/` 1440 px, 2 giây nhàn
+  rỗi 509 Paint, bỏ background còn 311 (QA 04/10, PR #46).
+- Selector vòng khớp `article.editorial-item`; ở 390 px ảnh 167 px trong khung
+  350 px nên vòng không bị che (suy luận từ review, chưa đo).
+
 ## Chú thích thuật ngữ
 
 - **Frame**: khung có tỷ lệ dành sẵn cho ảnh thật trước khi tải.
 - **Determinate**: biết tổng byte nên có thể biểu diễn phần đã tải.
 - **Indeterminate**: chưa biết tổng byte nên không tính được phần trăm thật.
 - **Decode**: bước browser chuyển bytes ảnh thành bitmap sẵn sàng hiển thị.
+- **SMIL**: cú pháp animation khai báo trong SVG.
+- **Paint**: lần trình duyệt vẽ lại pixel, đo bằng DevTools trace.
