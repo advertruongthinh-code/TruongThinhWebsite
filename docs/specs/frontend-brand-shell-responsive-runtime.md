@@ -53,7 +53,7 @@ related_reports:
 Owner đã duyệt [đặc tả menu theo Espacio](full-menu-reference-parity.md).
 Đặc tả này thay các giá trị layout menu mở không còn khớp reference;
 không thay navbar đóng, nhận diện, nội dung, route hoặc contract khác.
-Đã triển khai CSS menu chung; kế hoạch nằm trong `tasks/plan.md`, mục MENU-R1.
+Đã triển khai CSS menu chung; kế hoạch nằm trong `tasks/archive/plan.md`, mục MENU-R1.
 
 ### Brand lockup
 
@@ -315,7 +315,7 @@ của Shared footer boundary P6.
 
 **Module id:** `scrollbar-parity`. **Status:** accepted; owner xác nhận
 “Duyệt delta scrollbar” ngày 27/09/2026. [Capability map](mobile-browser-parity-capability-map.md)
-đã được duyệt cùng ngày. [Plan](../../tasks/plan.md) và card riêng đã được owner
+đã được duyệt cùng ngày. [Plan](../../tasks/archive/plan.md) và card riêng đã được owner
 duyệt27/09: “Duyệt plan và card Notion”. Các section accepted phía trên giữ hiệu lực.
 
 ### Objective và phạm vi
@@ -420,7 +420,7 @@ resume recovery/P11/deploy từ approval của delta này.
 
 ### Human gate và rollback boundary
 
-Owner đã duyệt delta `scrollbar-parity` và [plan riêng](../../tasks/plan.md)
+Owner đã duyệt delta `scrollbar-parity` và [plan riêng](../../tasks/archive/plan.md)
 ngày27/09. QA/audit/code review tương tự gom trong một agent Sol effort
 ultra theo owner; main giữ verification/acceptance. Rollback chỉ đúng source/test
 hunk của module; không thay checkpoint recovery66 staged paths. Approval này

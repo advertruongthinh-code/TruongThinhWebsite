@@ -85,7 +85,7 @@ Local tiêu đề đang24px và dòng liên kết chỉ cao19,04px.
 Owner đã duyệt đặc tả và plan ngày 2026-09-24. Đã sửa CSS menu chung.
 Focused checks đạt; [evidence](../verification/menu-reference-parity-2026-09-24.md).
 Contract liên kết với
-`docs/specs/frontend-brand-shell-responsive-runtime.md`; plan ở `tasks/plan.md`.
+`docs/specs/frontend-brand-shell-responsive-runtime.md`; plan ở `tasks/archive/plan.md`.
 Chữ hai locale căn theo cạnh vùng ngôn ngữ; CTA căn giữa vùng riêng nên
 tọa độ trái khác reference theo chiều rộng copy. Logo chỉ khớp chiều cao và
 vị trí, không ép chiều rộng. Menu-group thêm15px cuối danh sách như khoảng

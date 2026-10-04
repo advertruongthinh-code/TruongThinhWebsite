@@ -9,7 +9,7 @@ docs**, với historical gaps và giới hạn runtime được ghi bên dưới
 ## Baseline và preservation
 
 Inventory đầu initiative: 132 file docs (120 Markdown, 11 CSV, 1 backup),
-được ghi path/byte/SHA256 tại [inventory](../../tasks/plan.md#inventory-living-docs-r1--2026-09-09).
+được ghi path/byte/SHA256 tại [inventory](../../tasks/archive/plan.md#inventory-living-docs-r1--2026-09-09).
 Base Git `a8ba94ec1dadd84990b0b33f7e590f2cf76c71b1` có nhiều dirty/untracked
 work trước task; diff HEAD không được coi toàn bộ là thay đổi initiative này.
 

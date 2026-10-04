@@ -30,7 +30,7 @@ bridge span 2 theo visual authority; các vị trí khác giữ gutter.
 Chưa sửa runtime masonry hoặc tạo ảnh cho revision này.
 Đây là delta của
 [Advertising spec](advertising-products-turnkey-services.md), không phải
-taxonomy hoặc component system mới. [Plan](../../tasks/plan.md#grid-r4--kế-hoạch-đề-nghị)
+taxonomy hoặc component system mới. [Plan](../../tasks/archive/plan.md#grid-r4--kế-hoạch-đề-nghị)
 giữ thứ tự thực hiện; Notion giữ checklist/status.
 
 Khách xem parent `/vi/advertising-products/` và `/en/advertising-products/`

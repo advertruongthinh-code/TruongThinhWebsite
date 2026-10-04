@@ -33,7 +33,7 @@ không nhân bản token hoặc coi HTML specimen là production component.
 
 - [Intent scrollbar và browser parity](specs/mobile-browser-parity-capability-map.md):
   intent/map và [delta scrollbar](specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)
-  cùng [plan/card](../tasks/plan.md) đã duyệt27/09;
+  cùng [plan/card](../tasks/archive/plan.md) đã duyệt27/09;
   [verification scrollbar](verification/scrollbar-parity-2026-09-27.md) giữ scoped result và gate còn mở.
   [Debug Android thật](operations/android-real-device-debugging.md)
   giữ Chrome/USB và interaction PASS; [owner recording](verification/android-skeleton-observation-2026-09-27.md)
