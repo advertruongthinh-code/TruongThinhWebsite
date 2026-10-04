@@ -17,6 +17,12 @@ async function scrollTo(page, target) {
   await page.waitForTimeout(80);
 }
 
+// Advertising restores its history scroll once the catalog mounts; scroll only after that.
+const catalogSettled = page => page.waitForFunction(() => {
+  const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
+  return !skeleton || skeleton.dataset.advertisingCtaReady === "true";
+});
+
 try {
   for (const locale of ["vi", "en"]) {
     for (const route of routes) {
@@ -30,6 +36,7 @@ try {
         await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")
           || document.documentElement.classList.contains("motion-fallback"));
         await page.evaluate(() => document.fonts?.ready);
+        await catalogSettled(page);
         const max = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
         assert(max > 1200, `${label}: needs enough scroll range for direction test (${max}px)`);
         const middle = Math.min(max - 450, Math.max(700, Math.floor(max * 0.55)));
@@ -76,8 +83,10 @@ try {
         assert(await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
           `${label}: successive content-height clamps must not reveal header`);
 
-        await scrollTo(page, max - 100);
-        await scrollTo(page, max - 300);
+        // The random Advertising grid can settle shorter after the fixtures; measure again.
+        const bottom = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+        await scrollTo(page, bottom - 100);
+        await scrollTo(page, bottom - 300);
         assert(!await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
           `${label}: real upward scroll past threshold must reveal header`);
         await scrollTo(page, 0);
@@ -97,6 +106,7 @@ try {
     try {
       await page.goto(`${baseUrl}/vi/${route}`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => document.documentElement.classList.contains("has-scroll-smooth"));
+      await catalogSettled(page);
       const max = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
       await page.evaluate(y => window.TruongThinhMotion.setLogicalScroll(y), Math.floor(max / 2));
       await page.mouse.move(720, 500);

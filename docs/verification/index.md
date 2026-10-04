@@ -27,6 +27,7 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Claim cần truy nguyên | Report | Giới hạn |
 | --- | --- | --- |
 | Advertising random grid P1/P3 và khung tải ảnh P8–P9 | [Cloud 04/10](advertising-random-grid-p0-p10-2026-10-04.md) | Chromium cloud, CDN route từ npm; WebKit/iPhone/A05s không chạy; cache hit của vòng tĩnh chưa xác nhận |
+| QA và audit PR #13–#29, #39 (ảnh AVIF, vòng tải, focus header) | [QA 04/10](qa-audit-done-tasks-2026-10-04.md) | Chỉ Chromium cloud; FAIL có sẵn từ trước PR #13 được tách riêng; F1 vòng SMIL vẽ lại liên tục còn mở |
 | Ảnh gốc của media site tĩnh | [Kiểm kê 2026-10-03](media-originals-2026-10-03.md) | Quét PC owner một lần; manifest ngoài Git |
 | Đồng bộ board Notion và kiểm nhất quán Advertising 03/10 | [Notion sync](advertising-notion-sync-2026-10-03.md) | Chỉ tóm tắt `Not started`/`In progress`; 13 card `Done` không chép chi tiết. UI probe desktop 929×861, không thay thế M02b hoặc full-site acceptance |
 | M02b Advertising Claude PARTIAL / NOT ACCEPTED | [Checkpoint Claude 03/10](site-media-card-m02b-claude-checkpoint-2026-10-03.md) | Runtime `B1B3C8…`: Masonry instant-relayout fix, related seed `m02b-i`; related 4/6, landscape VI/EN `Y=3` FAIL chưa rõ gốc; full transitions 19/29 với fail đã biết/có sẵn; units58/59, qa:static PASS |
