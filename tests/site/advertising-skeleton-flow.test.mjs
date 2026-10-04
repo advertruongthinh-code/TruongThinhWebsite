@@ -23,7 +23,7 @@ const cssRule = (selector, occurrence = 0) => {
   return match[1];
 };
 const skeletonRule = cssRule("\\.advertising-grid__cta-skeleton");
-const frameRule = cssRule("\\.advertising-grid__cta-frame");
+const frameRule = cssRule("^\\.advertising-grid__cta-frame");
 const surfaceRule = cssRule("\\.advertising-grid__cta-surface");
 const flowRule = cssRule("\\.advertising-grid__cta-flow");
 const legacyWashRules = [...detailCss.matchAll(/\.advertising-grid__cta-skeleton::after\s*\{([\s\S]*?)\n\}/gm)]

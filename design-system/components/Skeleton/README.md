@@ -21,10 +21,16 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 - [Kính](../Glass/README.md) dạng cung phủ batch làm nền cho CTA: card phía trên
   vẫn nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối.
 
-Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối).
+Cùng khung này phủ kín [media card](../MediaCard/README.md) và ảnh
+[primary](../Primary/README.md) đang chờ ảnh: một khung mỗi ảnh, preset chọn
+theo media id, đủ độ đậm (không nhạt dần), gỡ sau khi ảnh hiện. Điện thoại chạy
+tối đa 2 khung WebGL, desktop 12; khung còn lại hiện frame tĩnh của chính
+preset.
 
-Đã duyệt, chờ code: skeleton này cũng phủ card và primary đang chờ ảnh
-([Card đang tải](../../approved-designs.md#card-đang-tải)).
+Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối) và
+[Ảnh trong card](../../motion.md#ảnh-trong-card).
+
+Đã duyệt, chờ code: [Kính](../../approved-designs.md#kính) trên ảnh vừa tải.
 
 ## Chú thích thuật ngữ
 

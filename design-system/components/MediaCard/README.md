@@ -10,15 +10,16 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   rộng đúng một cột, không crop, không caption, không tiêu đề (chỉ alt VI/EN).
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
-- Khi ảnh chưa tải, khung trong suốt để lộ nền `paper`; ảnh fade vào
-  `0.6s ease-out`.
+- Ảnh chưa tải sau `150ms` thì khung media mang [skeleton](../Skeleton/README.md)
+  cuối masonry, rồi crossfade sang ảnh; ảnh có sẵn fade vào `0.6s ease-out`
+  ([Motion](../../motion.md#ảnh-trong-card)).
 - Card một ảnh: hover hoặc focus thì ảnh `scale(1.15)` trong `600ms`, khung
   giữ nguyên.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/site-media-card-playback.md#media-card-và-detail).
 
-Đã duyệt, chờ code: [Card đang tải](../../approved-designs.md#card-đang-tải).
+Đã duyệt, chờ code: [Kính](../../approved-designs.md#kính) trên ảnh vừa tải.
 
 ## Nhiều media trong card
 
@@ -74,7 +75,7 @@ Chấm, nút bước và playback có outline 2px `ink` offset 2px; link card ou
 | Chấm | `Xem media 2 trên 3` | `Show media 2 of 3` |
 | Nút trước, nút sau | `Media trước`, `Media tiếp` | `Previous media`, `Next media` |
 | Bộ đếm | `Media 7 trên 11` | `Media 7 of 11` |
-| Vòng tải | `Đang tải media` | `Loading media` |
+| Trạng thái tải (chỉ trình đọc màn hình) | `Đang tải media` | `Loading media` |
 
 ### Hình học
 
@@ -87,12 +88,12 @@ Chấm, nút bước và playback có outline 2px `ink` offset 2px; link card ou
 
 ### Chờ tải, Vừa xem, reduced motion
 
-- **Vòng tải:** 28px, viền 3px trắng alpha 0.45, cạnh trên trắng, quay
-  `0.8s linear` ở tâm canvas, hiện ngay khi item chưa sẵn sàng. Card một ảnh
-  dùng vòng 1.75rem, chỉ hiện sau 150ms.
+- **Chờ tải:** item chưa sẵn sàng sau `150ms` thì canvas mang
+  [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
+  vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.72 và nhãn trắng `0.8rem` 700 ở giữa, chỉ phủ
   canvas, không phủ dải.
-- **Reduced motion:** vòng tải không quay; ảnh hiện ngay, không transition,
+- **Reduced motion:** skeleton đứng yên; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ

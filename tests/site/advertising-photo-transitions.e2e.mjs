@@ -1232,8 +1232,10 @@ try {
     await ready(page, A);
     const reduced = await page.evaluate(() => ({
       clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+      // Reduced motion shortens every transition to 0.01ms, so a related relayout right after open is not motion.
       runningTransforms: [...document.querySelectorAll("[data-advertising-card], [data-advertising-related-card]")]
-        .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running").length,
+        .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running"
+          && Number(animation.effect?.getTiming().duration) > 1).length,
       photo: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
     }));
     assert.deepEqual(reduced, { clones: 0, runningTransforms: 0, photo: A });
@@ -1558,8 +1560,13 @@ try {
     await installBackdropMorphProbe(page);
     const read = async (label) => {
       await page.waitForTimeout(650);
+      // The in-place crossfade (loading-glass-and-page-entry R4) may fade the backdrop; it must finish and stay opacity-only.
+      await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-background]")?.getAnimations()
+        .some(({ playState }) => playState === "pending" || playState === "running"), null, { timeout: 5000 });
       const state = await readBackdropMorphState(page);
-      assert.deepEqual(state.records, [], label + ": grid/detail started foreground or backdrop morph");
+      const morphs = state.records.filter((record) => record.kind !== "backdrop"
+        || record.keyframes?.some(({ backgroundColor, filter, transform }) => backgroundColor || filter || transform));
+      assert.deepEqual(morphs, [], label + ": grid/detail started foreground or backdrop morph");
       assert.equal(state.activeBackdropAnimations, 0, label + ": backdrop animation survived");
       assert.deepEqual(state.locked, ["", ""], label + ": grid/detail retained a scroll lease");
       return { label, photo: state.viewId, hero: state.heroId, activeBackdropAnimations: state.activeBackdropAnimations };

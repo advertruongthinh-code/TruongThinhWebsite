@@ -21,7 +21,8 @@ Khi ảnh nội dung đang tải trên website public, khách thấy khung chờ
 kích thước và tỷ lệ cuối** cùng một vòng tiến trình tròn ở giữa. Cung tròn
 phản ánh byte ảnh đã nhận so với tổng byte **khi biết tổng**, không hiển thị
 chữ số phần trăm. Ảnh sẵn sàng thì vòng biến mất, ảnh hiện ra bằng motion đang
-được duyệt. Khung chờ này khác batch skeleton Flow trước CTA của Advertising.
+được duyệt. Card và ảnh primary Advertising dùng skeleton Flow thay vòng
+([Skeleton chờ ảnh](loading-glass-and-page-entry.md)).
 
 Áp dụng cho ảnh nội dung trên home, residential, commercial, about,
 Advertising parent/detail, gallery, suggestion và ảnh mở rộng. Logo/biểu tượng
@@ -114,13 +115,11 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
   A05s Slow 4G ngày 2026-10-04 trên trang chủ không thấy vòng vì ảnh tải xong
   trước script. Ảnh tĩnh không còn `aria-busy`; ảnh trang tĩnh là ảnh minh họa
   có `alt`, không cần thông báo trạng thái.
-- `.media-load-ring`: vòng mảnh trung tính, quay 0,9 s; reduced motion đứng
-  yên; dùng cho viewer Advertising.
-- Advertising (P9): card grid và related một ảnh hiện vòng qua `::after` khi
-  ảnh có class LazySizes `lazyloading`, hiện sau 150 ms bằng animation
-  delay; card nhiều media giữ spinner `advertising-card-media__loading` sẵn
-  có. Ảnh primary của viewer nhận `.media-load-ring` và `aria-busy` khi đổi
-  ảnh chưa tải xong.
+- Advertising (P9): card grid, related và ảnh primary dùng skeleton card
+  thay vòng xoay, theo [Skeleton chờ ảnh](loading-glass-and-page-entry.md)
+  R1, R4, R5. Card nhiều media giữ `advertising-card-media__loading` làm trạng
+  thái cho trình đọc màn hình (`sr-only`); khung primary đang tải có
+  `aria-busy`.
 - Suggestion (`detail.css`): owner chọn ngày `2026-10-04` thanh chạy thay
   vòng xoay. Ô chưa chọn vẽ thanh SVG cao `3px` dọc cạnh dưới làm
   `background-image` dưới ảnh, như ảnh tĩnh; đoạn sáng chạy trái sang phải

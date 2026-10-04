@@ -2047,32 +2047,6 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
-.media-load-ring {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin: auto;
-  border: 2px solid rgb(255 255 255 / 18%);
-  border-top-color: rgb(255 255 255 / 72%);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: media-load-spin 0.9s linear infinite;
-}
-
-@keyframes media-load-spin {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .media-load-ring {
-    animation: none;
-  }
-}
-
 @keyframes marquee {
   to {
     transform: translateX(-100%);
@@ -4666,33 +4640,11 @@ body.is-advertising-browse .advertising-grid {
     var(--media-hover-transform);
 }
 
-/* LazySizes marks the request with .lazyloading; the ring waits 150 ms so cache hits do not flash. */
-.advertising-card-media:not(.advertising-card-media--carousel):has(> img.lazyloading)::after {
-  content: "";
-  position: absolute;
-  z-index: 2;
+/* Loading media wears the masonry-end skeleton frame (docs/specs/loading-glass-and-page-entry.md R1). */
+.advertising-card-media > .advertising-grid__cta-frame {
+  z-index: 1;
   inset: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin: auto;
-  border: 2px solid rgb(255 255 255 / 18%);
-  border-top-color: rgb(255 255 255 / 72%);
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-  animation: media-load-spin 0.9s linear infinite, media-load-reveal 0s linear 150ms forwards;
-}
-
-@keyframes media-load-reveal {
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .advertising-card-media:not(.advertising-card-media--carousel):has(> img.lazyloading)::after {
-    animation: media-load-reveal 0s linear 150ms forwards;
-  }
+  --advertising-cta-frame-opacity: 1;
 }
 
 .advertising-card-media--carousel {
@@ -4714,24 +4666,6 @@ body.is-advertising-browse .advertising-grid {
 .advertising-card-media--carousel > img[hidden],
 .advertising-card-media--carousel > video[hidden] {
   display: none;
-}
-
-.advertising-card-media__loading {
-  position: absolute;
-  top: calc(var(--advertising-media-height) / 2 - 14px);
-  left: calc(50% - 14px);
-  z-index: 2;
-  width: 28px;
-  height: 28px;
-  border: 3px solid rgba(255, 255, 255, 0.45);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: advertising-card-loading 0.8s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes advertising-card-loading {
-  to { transform: rotate(360deg); }
 }
 
 .advertising-card-media__duration {
@@ -5065,7 +4999,8 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
-.advertising-photo-view__hero [data-advertising-photo-image] {
+.advertising-photo-view__hero [data-advertising-photo-image],
+.advertising-photo-view__outgoing {
   position: absolute;
   z-index: 2;
   top: 50%;
@@ -5078,6 +5013,22 @@ body.is-advertising-browse .advertising-grid {
   aspect-ratio: auto;
   object-fit: contain;
   transform: translate(-50%, -50%);
+}
+
+/* The skeleton sits above the photo and below the image actions; the photo waits under it until decoded. */
+.advertising-photo-view__hero-frame > .advertising-grid__cta-frame {
+  z-index: 2;
+  inset: 0;
+  --advertising-cta-frame-opacity: 1;
+}
+
+.advertising-photo-view__hero-frame[data-advertising-photo-loading] > :is([data-advertising-photo-image], [data-advertising-photo-background]) {
+  opacity: 0;
+}
+
+/* The outgoing photo keeps its old inline size and fades over the new one without taking clicks. */
+.advertising-photo-view__outgoing {
+  pointer-events: none;
 }
 
 .advertising-photo-view__hero [data-advertising-photo-video] {
@@ -5117,7 +5068,8 @@ body.is-advertising-browse .advertising-grid {
   outline-offset: 3px;
 }
 
-.advertising-photo-view__hero [data-advertising-photo-background] {
+.advertising-photo-view__hero [data-advertising-photo-background],
+.advertising-photo-view__outgoing-background {
   position: absolute;
   z-index: 0;
   inset: 0;

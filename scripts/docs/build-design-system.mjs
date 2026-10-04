@@ -32,9 +32,6 @@ const COMPONENTS = [
   ...[['Filter', 240, 40], ['MediaCard', 420, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
     ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size]) => ({ name, group: 'Advertising', height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
-  // The ring exists only while an image loads, so its host box is written here; the ring itself is runtime markup (catalog-runtime.mjs).
-  { name: 'LoadRing', group: 'Advertising', height: 280, file: 'src/site/advertising-products/catalog-runtime.mjs', start: /photoLoadRing\.className = "media-load-ring"/,
-    markup: '<div style="position: relative; width: 316px; height: 237px; margin: 20px 35px; background: var(--media-loading-surface);">\n<span class="media-load-ring" aria-hidden="true"></span>\n</div>' },
   // Kính is runtime markup (glass-surface.mjs); the photo host and the half-width placement are written here.
   { name: 'Glass', group: 'Advertising', height: 300, file: 'src/site/advertising-products/glass-surface.mjs', start: /glass\.className = "glass-surface"/,
     markup: '<div style="position: relative; width: 384px; height: 256px; margin: 20px 35px; overflow: hidden;">\n'

@@ -41,7 +41,11 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
 
 Rule đầy đủ: [photo browse](../../../docs/specs/advertising-photo-browse.md).
 
-Đã duyệt, chờ code: [Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ).
+Đổi ảnh diễn ra tại chính khung ảnh: ảnh đang tải mang
+[skeleton](../Skeleton/README.md), ảnh có sẵn crossfade từ ảnh đang xem
+([Motion](../../motion.md#suggestion-và-detail)).
+
+Đã duyệt, chờ code: [Kính](../../approved-designs.md#kính) phủ đều khi đổi ảnh.
 
 ## Chú thích thuật ngữ
 

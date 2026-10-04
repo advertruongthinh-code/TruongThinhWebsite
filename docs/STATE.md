@@ -38,10 +38,11 @@
   variant AVIF/WebP đã nối vào HTML tĩnh và Advertising runtime
   ([pipeline](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
   P6–P9 xong: owner chọn vòng xoay chờ, không byte progress; ảnh tĩnh dùng vòng
-  CSS, Advertising dùng vòng runtime ([spec](specs/image-loading-progress.md)).
-  Owner đổi Advertising sang skeleton chờ ảnh, mở ảnh tại chỗ và màn trắng khi
-  vào thẳng trang ngày 04/10 ([spec planned](specs/loading-glass-and-page-entry.md));
-  thread M02b làm code. CTA cuối masonry đã code 04/10: chân chữ dòng cuối tiêu
+  CSS ([spec](specs/image-loading-progress.md)). Advertising dùng skeleton chờ
+  ảnh trên card và primary, primary đổi ảnh tại chỗ bằng crossfade, veil vào
+  thẳng trang chỉ fallback khi motion.js lỗi hoặc tại `DOMContentLoaded`
+  ([spec](specs/loading-glass-and-page-entry.md)); kính trên ảnh vừa tải chờ
+  component Kính. CTA cuối masonry đã code 04/10: chân chữ dòng cuối tiêu
   đề nằm giữa viewport, có parallax; footer gọn ở cửa sổ nhỏ; footer mọi trang
   còn ba icon Facebook, TikTok, YouTube ([spec](specs/advertising-cta-center-parallax.md)).
   Chờ owner xem trên demo; thanh địa chỉ A05s thật chưa chạy.
@@ -95,9 +96,9 @@
   LCP residential mobile còn hai mode do reveal SplitText ở hero title
   ([gate](specs/frontend-static-release.md#gate-còn-mở)).
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
-  khi vào thẳng trang đã sửa; kính chờ ảnh masonry và motion mở ảnh có spec và
-  mục Design System, chờ code; [Kính dùng chung](specs/glass-surface.md) đã
-  code 04/10 cho kính cuối masonry và vùng dư primary, còn đo 30fps trên A05s;
+  khi vào thẳng trang đã sửa; skeleton chờ ảnh và mở ảnh tại chỗ đã code, kính
+  của hai motion này và trace A05s (R9) còn chờ; [Kính dùng chung](specs/glass-surface.md)
+  đã code 04/10 cho kính cuối masonry và vùng dư primary, còn đo 30fps trên A05s;
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

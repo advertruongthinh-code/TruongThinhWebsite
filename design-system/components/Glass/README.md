@@ -36,9 +36,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 Preview dựng tay một khung ảnh có kính phủ đều ở nửa phải; class và style vẫn
 của website. Hạt nhiễu sinh lúc chạy nên preview không có.
 
-Đã duyệt, chờ code: kính hiện và tan trên
-[Card đang tải](../../approved-designs.md#card-đang-tải) và
-[Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ).
+Đã duyệt, chờ code: kính hiện và tan trên ảnh card và primary vừa tải
+([Kính](../../approved-designs.md#kính)).
 
 Spec: [Kính dùng chung](../../../docs/specs/glass-surface.md).
 
