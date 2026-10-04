@@ -14,8 +14,9 @@ CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 T="${AGENT_TOOLS_DIR:-/opt/agent-tools}"
 BIN="$HOME/.local/bin"
 mkdir -p "$T/src" "$CFG/skills"
-exec > >(tee "$T/setup.log") 2>&1
-export DO_NOT_TRACK=1 CAVEMAN_TELEMETRY=0
+# Plain file redirect: with `exec > >(tee ...)`, a bare `wait` also waits for tee and deadlocks.
+exec >"$T/setup.log" 2>&1 </dev/null
+export DO_NOT_TRACK=1 CAVEMAN_TELEMETRY=0 GIT_TERMINAL_PROMPT=0
 
 fetch() { # <owner/repo> <sha>: shallow checkout of one pinned commit
   local d="$T/src/${1#*/}"
