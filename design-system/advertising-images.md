@@ -13,6 +13,9 @@ Ghi tiêu chí không có nghĩa pool ảnh hiện tại đã đạt.
   `catalog.mjs`: I Bảng hiệu, II Biển văn phòng, III LED, IV In nhanh, phần POSM
   của V là Kiosk. Xe bán hàng là nhóm owner bổ sung. Dịch vụ thiết kế ở V
   không thành nhóm thứ bảy.
+- Kỷ niệm chương owner bổ sung ngày 04/10, xếp vào `office-signs-wayfinding`
+  vì cùng vật liệu và cách gia công với bảng chức danh (suy luận thiết kế,
+  owner đổi nhóm được).
 - Sáu nhóm là tầng gom; một ảnh mang nhiều nhãn chi tiết tới loại sản phẩm cụ
   thể (tờ rơi, tờ gấp, catalogue là các loại riêng).
 - Tên canonical: **chữ nổi Formex** (hoặc "Chữ nổi Alu và Formex"). ID và path
@@ -22,10 +25,10 @@ Ghi tiêu chí không có nghĩa pool ảnh hiện tại đã đạt.
 
 | Nhóm | Sản phẩm cần bao phủ | Bối cảnh và góc chụp |
 | --- | --- | --- |
-| `kiosk-posm` | Kiosk, gian hàng triển lãm nhiều quy mô, quầy và kệ trưng bày, tủ kệ theo yêu cầu, bốn kiểu standee | Toàn hoặc trung, thấy tổng thể và cấu tạo; không để kiến trúc hay người che chủ thể |
-| `mobile-retail` | Xe, quầy di động cà phê, ăn vặt Việt, kem, trà sữa, trà trái cây | Toàn hoặc trung thấy cả xe, bánh, mặt quầy, mái; thiết bị và không gian thao tác khả thi |
+| `kiosk-posm` | Kiosk (cả kiosk theo mẫu chuỗi nhượng quyền), gian hàng triển lãm nhiều quy mô, quầy và kệ trưng bày, tủ kệ theo yêu cầu, bốn kiểu standee | Siêu thị, trung tâm thương mại, trung tâm triển lãm, show kinh doanh. Toàn hoặc trung, thấy tổng thể và cấu tạo; không để kiến trúc hay người che chủ thể |
+| `mobile-retail` | Xe, quầy di động cà phê, ăn vặt Việt, kem, trà sữa, trà trái cây; xe theo mẫu chuỗi nhượng quyền | Toàn hoặc trung thấy cả xe, bánh, mặt quầy, mái; thiết bị và không gian thao tác khả thi |
 | `signage-raised-letters` | Mặt dựng Alu, bảng hiệu bạt khung sắt, pano khung sắt, chữ Inox vàng/xước/bóng, LED hắt chân/âm chữ, Mica/Alu/Formex, bảng vẫy Mica hút nổi, Inox, Hiflex, LED | Toàn, trung và cận: mặt tiền, nóc, pano cao, chữ trên bệ trong tiểu cảnh. Cận thấy cạnh, mối nối, bề mặt |
-| `office-signs-wayfinding` | Số nhà, số phòng (có loại kim loại hắt chân), tên đường, chức danh gỗ–đồng, Mica/Inox, phòng ban, tầng, sơ đồ, cảnh báo, WC | Trung hoặc cận khi đã lắp hay đặt trên bàn; chữ và cấu tạo là chủ thể |
+| `office-signs-wayfinding` | Số nhà, số phòng (có loại kim loại hắt chân), tên đường, chức danh gỗ–đồng, Mica/Inox, phòng ban, tầng, sơ đồ, cảnh báo, WC; kỷ niệm chương kim loại, gỗ, thủy tinh | Trung hoặc cận khi đã lắp hay đặt trên bàn; chữ và cấu tạo là chủ thể |
 | `led-displays-lightboxes` | LED ma trận đơn sắc/ba màu/full color, màn hình sự kiện, hộp đèn siêu mỏng, tranh điện, chữ lớn gắn LED điểm | Toàn hoặc trung; thấy quy mô, kết cấu đỡ; không nhầm chữ gắn LED điểm với màn ma trận |
 | `print-decals` | Danh thiếp, tờ rơi, catalogue, thiệp, chứng nhận, phong bì, menu các loại, Hiflex, decal trong/mờ/kính/tường/xe, tem bế, canvas, bao bì, ly, hộp | Cận hoặc trung, số lượng lớn có tổ chức; in sắc, mép cắt, nếp gấp hợp lý |
 
@@ -64,8 +67,10 @@ sách khách không phải quota ảnh.
 ### Gian hàng triển lãm
 
 Khách làm gian hàng: BEINCO, Betrimex, Dừa Cửu Long và các công ty mỹ phẩm,
-thời trang, thực phẩm đóng gói, đặc biệt sản phẩm dừa. Bộ ảnh cần đủ ba chiều
-độc lập: **nhỏ và lớn, tiêu chuẩn và ngoại cỡ, thông thường và gây ấn tượng**.
+thời trang, thực phẩm đóng gói và đóng hộp, đặc biệt sản phẩm dừa. Nơi đặt:
+trung tâm triển lãm, hội chợ và show kinh doanh theo ngành. Bộ ảnh cần đủ ba
+chiều độc lập: **nhỏ và lớn, tiêu chuẩn và ngoại cỡ, thông thường và gây ấn
+tượng**.
 
 | Ngành | Sản phẩm phải thấy |
 | --- | --- |
@@ -74,11 +79,25 @@ thời trang, thực phẩm đóng gói, đặc biệt sản phẩm dừa. Bộ 
 | Dừa Cửu Long | Mặt nạ cellulose, chăm sóc tóc và da, xà bông, ống hút và giấy gói từ nước dừa |
 | Mỹ phẩm | Chai, lọ, tuýp, hộp, quầy thử, kệ, bàn tư vấn; không claim điều trị |
 | Thời trang | Trang phục, phụ kiện, giá treo, mannequin, khu tư vấn |
-| Thực phẩm đóng gói | Bao bì đủ chi tiết, mặt trưng bày, quầy dùng thử |
+| Thực phẩm đóng gói, đóng hộp | Túi, hộp, lon đủ chi tiết, mặt trưng bày, quầy dùng thử |
 
 Ảnh toàn gian đọc được ranh giới gian, lối vào, quan hệ vách, khung, fascia,
 kệ, quầy, bục, đèn; kết cấu treo đỡ khả thi; dấu hiệu hội chợ và quy mô Việt
 Nam. Trái dừa trang trí không thay sản phẩm đóng gói.
+
+## Siêu thị và chuỗi nhượng quyền
+
+Owner bổ sung ngày 04/10.
+
+- **Siêu thị:** kiosk, quầy dùng thử, kệ trưng bày, standee cho thời trang,
+  mỹ phẩm, thực phẩm đóng gói và đóng hộp, đặt trong siêu thị đang hoạt động:
+  lối đi, kệ hàng, đèn trần, quy mô siêu thị Việt Nam. Không tái tạo tên hay
+  nhận diện của siêu thị thật.
+- **Thi công theo mẫu chuỗi nhượng quyền:** Trường Thịnh làm xe bán hàng lưu
+  động và kiosk đúng mẫu thiết kế chuỗi giao. Ảnh cho thấy tính đồng bộ: hai,
+  ba xe hoặc kiosk cùng mẫu ở các điểm khác nhau, hoặc một chiếc hoàn thiện
+  khớp kích thước, màu, vật liệu, bố trí của mẫu. Tên chuỗi là tên chung giả
+  định, theo [Chữ trong ảnh](#chữ-trong-ảnh).
 
 ## Chữ trong ảnh
 
@@ -113,6 +132,7 @@ Nam. Trái dừa trang trí không thay sản phẩm đóng gói.
 | Quầy dừa sự kiện "COCONUT GROVE" | Khung sắt, mặt gỗ, kệ; trong siêu thị hoặc trung tâm thương mại đang hoạt động; không người |
 | Quầy dùng thử trà trái cây | Trong hội chợ, trung tâm mua sắm hoặc siêu thị đang hoạt động |
 | Sơ đồ | Ba ảnh riêng: khu du lịch, khu công nghiệp, nhà máy; đường liên tục, chú giải, "Bạn đang ở đây" |
+| Kỷ niệm chương | Đủ ba vật liệu kim loại, gỗ, thủy tinh và hai cách làm: in UV (màu nằm trên mặt) và khắc (nét lõm vào vật liệu). Thấy độ dày, cạnh, đế; chữ chung như "GHI NHẬN ĐÓNG GÓP", không tên người hay tổ chức thật |
 
 Mô tả vật liệu từ trang bán hàng chỉ dùng nhận diện loại sản phẩm; không đưa
 giá, tuổi thọ, điện áp, bảo hành vào nội dung website.
@@ -159,3 +179,5 @@ có bố cục gốc phù hợp, không crop, kéo méo hay thêm khoảng trắ
 - **Pano lưng tôn**: pano có tấm tôn phía sau mặt bạt.
 - **Coverage**: mức bao phủ từng loại sản phẩm bằng ảnh phù hợp.
 - **Bế theo biên**: cắt decal theo đường bao, giữ giấy đế.
+- **Chuỗi nhượng quyền**: hệ thống cửa hàng dùng chung thương hiệu và mẫu thiết kế.
+- **In UV**: in mực đóng rắn bằng tia UV trực tiếp lên kim loại, gỗ, thủy tinh.
