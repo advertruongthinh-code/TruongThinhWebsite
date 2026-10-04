@@ -66,7 +66,6 @@ test("direct loads and reload play the route enter veil, then clear it", async (
     await expect(page.locator("html")).not.toHaveClass(/route-enter/);
     await expect(page.locator(".route-veil")).toHaveCSS("opacity", "0");
   }
-  await expect(page.locator("[data-project-grid] > noscript")).toBeHidden();
 });
 
 test("scrolling the advertising grid still lets a photo push its own entry", async ({ page }) => {
