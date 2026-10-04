@@ -70,7 +70,7 @@ try {
         assert.equal(result.socials, 4);
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
         assert.equal(result.copyright, "© 2026 Trường Thịnh");
-        assert.equal(result.overflow, false);
+        assert.equal(result.overflow, false, JSON.stringify({ width, route, locale }));
         count++;
       }
     }

@@ -701,6 +701,11 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 - [ ] Final660/state/regressions, L-B, A05sUSB, L07review/L-C tiếp tục theo plan;
   iPhone/reference/MCP/owner còn missing không được check thay.
 
+Cloud04/10: Chromium layout all4688records0fault, L04R1 200% không còn RED;
+sửa focus `Xem lớn hơn` bị header che và badge `Vừa xem` cắt
+([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026)).
+Firefox/WebKit, A05s, iPhone còn chờ đợt PC; chưa check L04R1–R3.
+
 ### L04H — About Back/Forward, plan đã duyệt
 
 - [x] Owner duyệt [delta L04H](../docs/specs/frontend-brand-shell-responsive-runtime.md#l04h-about-route-history--draft-2026-09-28)

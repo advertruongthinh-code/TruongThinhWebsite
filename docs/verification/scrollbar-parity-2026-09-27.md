@@ -191,6 +191,9 @@ Giữ preview8792 và provenance cho correction tiếp theo; bản hiện tại 
 candidate random. Notion giữ In progress cho device/reference gate còn mở;
 contract/evidence ở Git local, chưa push. Scrollbar đã được owner chấp nhận.
 
+Chạy lại cloud Chromium 04/10/2026 đạt; kết quả và gate còn mở tại
+[layout parity](mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026).
+
 ## Chú thích thuật ngữ
 
 - **Focused gate**: kiểm module đang thay đổi, không nghiệm thu toàn site.
