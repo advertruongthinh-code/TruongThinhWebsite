@@ -218,8 +218,6 @@ card, media, CTA, filter, control đều góc vuông; không có thang radius.
 - Hình tròn chỉ xuất hiện ở chi tiết vốn là chấm hoặc vòng, không phải góc bo
   của khung: chấm marquee, chấm timeline About, vòng tải ảnh, nút bật tắt
   motion.
-- Lệch hiện tại: nút prev/next của [Gallery ngang](design-system/components/Gallery/README.md)
-  còn tròn 2.7rem, chưa theo ngôn ngữ vuông; sửa trong một task website riêng.
 - Control viewer Advertising vuông tối thiểu 48px, viền 1px `ink`, hover mở nhãn.
 - Focus: `outline: 2px solid` màu `orange`, offset 4px, mọi phần tử
   `:focus-visible`.

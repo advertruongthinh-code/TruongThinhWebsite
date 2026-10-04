@@ -377,7 +377,7 @@ html[lang="vi"]
   padding: 0;
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   cursor: pointer;
   transition:
