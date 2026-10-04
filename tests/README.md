@@ -151,7 +151,7 @@ buộc không chạy được thì release blocked, không pass.
 
 ## Mobile viewport stability
 
-[Plan V00–V05](../tasks/plan.md#mobile-viewport-stability--plan-chờ-duyệt) đã duyệt;
+[Plan V00–V05](../tasks/plan.md#mobile-viewport-stability--plan-accepted-2026-09-27) đã duyệt;
 focused runner3 engines dùng boundary fixture visible metrics, không giả native
 toolbar. `setViewportSize` kiểm resize layout thật. Raw timestamp mới tại
 `.tmp/mobile-viewport-stability/`; giữ named RED và source/served hashes.
@@ -191,7 +191,7 @@ là iPhone. Không đổi device settings, Sites, viewport flags hoặc CSS đ�
 
 ## Layout mobile toàn website
 
-Runner `tests/site/mobile-layout-parity.e2e.mjs` theo [plan L00–L07](../tasks/plan.md#site-mobile-layout-parity--plan-chờ-duyệt).
+Runner `tests/site/mobile-layout-parity.e2e.mjs` theo [plan L00–L07](../tasks/plan.md#site-mobile-layout-parity--plan-đã-duyệt).
 Ghi source/served/runner SHA, entry/destination, font/layout/visible metrics,
 header/title/filter và glyph/ancestor paint clips, console/network/PNG failure.
 Rail filter accepted phải đưa từng nút vào vùng nhìn đủ chữ; heading không exempt.

@@ -284,14 +284,14 @@ document không áp track trắng riêng. Menu và horizontal rail giữ contrac
 Radius10px chỉ là ngoại lệ của thumb scrollbar, không mở radius scale cho UI.
 Evidence và gate browser/device xem [verification](docs/verification/scrollbar-parity-2026-09-27.md).
 
-Mobile layout theo [delta accepted28/09](docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--draft-2026-09-28):
+Mobile layout theo [delta accepted28/09](docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--accepted-2026-09-28):
 ≤980px hero Home/About dùng intrinsic flow; Advertising mở đến1024px sau
 measured overlap981/982px. Chừa header và chữ tăng200%; các title dài được wrap.
 Legacy closer/portal tăng chiều cao theo
 copy, giữ min-height và brand typography. Mask chữ có fluid ink allowance.
 About reuse local GSAP/SplitText pair cho reveal direct/native; soft entry
 giữ gate riêng vì baseline menu DOM mismatch. Đây observed
-implementation đang kiểm body/state. [L04R accepted](docs/specs/frontend-brand-shell-responsive-runtime.md#l04r-readable-content-floor--draft-2026-09-28)
+implementation đang kiểm body/state. [L04R accepted](docs/specs/frontend-brand-shell-responsive-runtime.md#l04r--chiều-cao-tối-thiểu-cho-chữcontrol-advertising--accepted)
 cho CTA/info/image-control tăng minimum khi chữ/control không fit; indicator chỉ
 reserve khi nhiều page. Expanded image-action label wrap và scale theo chữ,
 suggestion label wrap long word; giữ font/palette/default nơi fit. Measurement

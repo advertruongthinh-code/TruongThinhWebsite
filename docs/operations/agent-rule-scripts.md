@@ -18,6 +18,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Local web | `pnpm dev` | Static Node server; không Worker, không deploy. |
 | Deploy demo | `pnpm deploy:demo` | Workers static assets; owner chạy, agent chỉ `--dry-run`. [Decision](../decisions/cloudflare-workers-static-demo.md). |
 | Static contract | `pnpm qa:static` | Current static QA evidence. |
+| Docs gate | `pnpm qa:docs` | Link, anchor và giới hạn dòng spec; chạy trong CI. Bỏ qua lịch sử chờ xóa và evidence local theo [spec docs](../specs/docs-system.md). |
 | Related scroll emulator + Android | `pnpm qa:related-scroll [-- --skip-emulator|--skip-device|--cards 16,first|--rotate]` | Preview8792 tự bật nếu tắt; tap thật qua `adb shell input tap` sau một tap calibration. `--rotate` khóa landscape thật qua `settings put system user_rotation 1` rồi trả giá trị cũ khi thoát; owner tự chạy lệnh này vì agent PC không đổi system setting. Raw ở `.tmp/site-media-card/related-scroll-*`. |
 | Dormant Worker contract | `pnpm qa:worker:static`, `pnpm qa:worker` | Chỉ sau owner gate mở CMS và có Worker runtime. |
 | Browser suite | `pnpm qa:site`, `pnpm qa:cross-browser` | Live server cần sẵn. |

@@ -17,7 +17,7 @@ giữ; khi thread đó xong, gộp vào `tasks/plan.md` hoặc xóa khi plan ho�
 
 ## Phase 1: Nền tảng
 
-- [ ] T1. Template spec mới và `pnpm qa:docs` bản đầu
+- [x] T1. Template spec mới và `pnpm qa:docs` bản đầu
   - Làm: viết lại `docs/specs/_template.md` theo R2; thêm
     `scripts/docs/check-docs.mjs` với check links và budget (budget chỉ áp
     cho spec có `status: live|planned|dormant`); thêm script vào

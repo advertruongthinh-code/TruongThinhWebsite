@@ -29,7 +29,7 @@ agent chỉ chạy `--dry-run`, deploy thật cần owner đồng ý.
 - Behavior/project policy đổi: update spec, decision hoặc dated Vietnamese verification report.
 - Handoff ghi: changed file, observed behavior, exact command, result, blocker, owner TODO, Notion status, Graphify semantic freshness.
 - Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#state-và-living-docs);
-  kiểm local links, symbol/example, status. Test PASS không thay docs gate.
+  chạy `pnpm qa:docs`, kiểm symbol/example, status. Test PASS không thay docs gate.
 - Migration docs kiểm SHA256 original và consumer trước/sau. Không chạy lại
   full UI/parity chỉ vì đổi Markdown; evidence runtime cũ giữ ngày/hash/scope.
 

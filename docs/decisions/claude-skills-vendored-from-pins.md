@@ -69,7 +69,7 @@ phần còn lại của decision đó giữ nguyên.
 ## Follow-up
 
 - Trên máy owner: gỡ link `~/.claude/skills`, chạy bootstrap và doctor theo
-  [TOOLING](../operations/TOOLING.md#claude-code-skill-trong-repo).
+  [TOOLING](../operations/TOOLING.md#claude-code-skill).
 - Khi đổi pin: chạy `pnpm tooling:skills`, commit `.claude/`, rồi bootstrap.
 
 ## Chú thích thuật ngữ

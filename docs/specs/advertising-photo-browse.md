@@ -723,7 +723,7 @@ giữ common slot khi toolbar/resize/scroll, không thay yêu cầu full-exit re
 
 ## Amendment layout mobile L04R — accepted 28/09/2026
 
-Owner duyệt [delta L04R](frontend-brand-shell-responsive-runtime.md#l04r-readable-content-floor--draft-2026-09-28)
+Owner duyệt [delta L04R](frontend-brand-shell-responsive-runtime.md#l04r--chiều-cao-tối-thiểu-cho-chữcontrol-advertising--accepted)
 và plan cùng ngày. P7.2 cap giữ ở nơi chữ/control đã fit; nếu không đủ một dòng
 mô tả đầy đủ và category/CTA/indicator cần thiết, info/primary tăng tối thiểu.
 Indicator chỉ chiếm chỗ khi cần nhiều page. Measurement dùng full description

@@ -143,7 +143,7 @@ Thứ tự: chốt baseline preview → skeleton lifecycle/WebGL → landscape �
 matrix và physical checks trên cùng candidate. Dependency là gate verify;
 không thêm package/runtime layer hoặc cyclic dependency. Không đổi module id
 scrollbar/button/Android đã accepted. Owner duyệt [delta skeleton lifecycle](advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
-ngày27/09 bằng “Duyệt delta skeleton”. [Plan baseline/skeleton](../../tasks/plan.md#correction-baseline-và-skeleton--plan-chờ-duyệt)
+ngày27/09 bằng “Duyệt delta skeleton”. [Plan baseline/skeleton](../../tasks/plan.md#correction-baseline-và-skeleton--accepted-2026-09-27)
 đã duyệt cùng [card correction](https://app.notion.com/p/3e8332849a0e8121bd20e1f62a275bb7); spec/plan landscape và nút chưa mở implementation.
 
 [Contract random accepted](advertising-organic-random.md) được carry từ frozen recovery
@@ -230,16 +230,16 @@ owner duyệt trước delta đầu tiên. Mỗi delta vẫn cần state/oracle/
 plan trước code. Android capture và WebKit desktop không thay iPhone thật;
 không gọi kiểm một route hoặc focused engine PASS là toàn website PASS.
 
-Delta đầu tiên: [mobile viewport stability — accepted](frontend-brand-shell-responsive-runtime.md#mobile-viewport-stability--draft-2026-09-27).
-Owner duyệt bằng “Duyệt delta viewport”; [plan V00–V05](../../tasks/plan.md#mobile-viewport-stability--plan-chờ-duyệt)
+Delta đầu tiên: [mobile viewport stability — accepted](frontend-brand-shell-responsive-runtime.md#mobile-viewport-stability--accepted-2026-09-27).
+Owner duyệt bằng “Duyệt delta viewport”; [plan V00–V05](../../tasks/plan.md#mobile-viewport-stability--plan-accepted-2026-09-27)
 đã được duyệt cùng [card viewport riêng](https://app.notion.com/p/3e8332849a0e81bdadc4e49d0ca95495)
 bằng “Duyệt plan và card viewport (đề xuất)”. Chỉ V00–V05 local8792 được mở;
 các module layout/viewer/history/glass vẫn cần delta/plan riêng.
 
-[Delta layout toàn website — accepted](frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--draft-2026-09-28)
+[Delta layout toàn website — accepted](frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--accepted-2026-09-28)
 đã nhận landscape overlap và named200% EN text-size failures từ viewport QA.
 Owner duyệt ngày28/09/2026 bằng “Duyệt delta layout (đề xuất)”.
-[Plan L00–L07](../../tasks/plan.md#site-mobile-layout-parity--plan-chờ-duyệt)
+[Plan L00–L07](../../tasks/plan.md#site-mobile-layout-parity--plan-đã-duyệt)
 đã duyệt cùng [card layout](https://app.notion.com/p/3e8332849a0e81f18301f28c1091a9c3)
 bằng “Duyệt plan và card layout (đề xuất)”. Chỉ L00–L07 local8792 được mở.
 
