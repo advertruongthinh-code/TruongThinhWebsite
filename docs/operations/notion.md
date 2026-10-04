@@ -13,11 +13,14 @@
   Git document liên quan.
 - Verify xong: update Git document/evidence trước, rồi card. Chỉ Done khi
   repository evidence verified.
-- Task từ `200 LOC`, chưa có card: nêu estimate, đề xuất tạo hoặc link work
-  item trước implement. `LOC` là source/test viết tay thêm, sửa, xóa; trừ
-  generated, vendor, lockfile, formatting-only, Markdown.
-- Không tự tạo/update card khi user chưa đồng ý. User đồng ý: `search`,
-  `fetch`, rồi `create/update`; không đoán database, schema, parent.
+- Board Tasks là backlog của owner, điều phối và mọi worker
+  ([AGENTS.md](../../AGENTS.md#notion-trong-workflow)). Việc owner giao chưa có
+  card: tạo card trước khi làm; task từ `200 LOC` ghi estimate trong card.
+  `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
+  lockfile, formatting-only, Markdown.
+- Tạo card và đổi status cho việc owner đã giao không cần hỏi lại; xóa, gộp,
+  đổi tên card cần owner duyệt. Trước mỗi lần ghi: `search`, `fetch`, rồi
+  `create/update`; không đoán database, schema, parent.
 - Link Notion cần kiểm quyền truy cập lẫn content drift. `object_not_found`
   không đủ kết luận đã xóa; timestamp payload cũ không là current verification.
 
@@ -26,7 +29,8 @@
 1. Tìm work item trong NOW/Kanban; đọc `STATE.md` và Git document item liên kết.
 2. Implement một thin slice, verify bằng repository evidence.
 3. Cập nhật Git spec, decision hoặc report.
-4. Cập nhật card: status, evidence, blocker, next action.
+4. Cập nhật card: status, việc còn mở, blocker, link spec và PR. Evidence ở
+   Git (spec, PR), không chép vào card.
 
 Notion **Spec** page chỉ là proposal. Khi owner approve, Git spec canonical ở
 `docs/specs/<descriptive-slug>.md` mới là implementation contract; Git spec có
@@ -37,8 +41,8 @@ thể giữ frontmatter `notion:` link ngược về page.
 Fetch schema trước mỗi mutation phụ thuộc schema. Schema đã thấy: `Name`
 (title), `Status` (`Not started`, `Up next`, `In progress`, `Done`), `Project`
 (relation), `Due date`, `Thứ tự Up next` (number). Không gửi status `Approved`
-hoặc `Blocked`. Field workflow còn thiếu (`Git spec`, `Evidence`, `Blocker`,
-`Next action`, `Priority`) ghi trong body; không tự phá schema dùng chung.
+hoặc `Blocked`. Field workflow còn thiếu (`Git spec`, `PR`, `Blocker`,
+`Priority`) ghi một dòng trong body; không tự phá schema dùng chung.
 
 `Thứ tự Up next` là thứ tự owner yêu cầu; board `By status` sort tăng dần theo
 field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status, ngày tạo
