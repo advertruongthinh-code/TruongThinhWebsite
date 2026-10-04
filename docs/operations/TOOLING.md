@@ -120,6 +120,28 @@ Không cài, có lý do:
 Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
 `claude plugin list` liệt kê sáu plugin `@skills-dir`.
 
+## Browser QA trên cloud
+
+Cloud environment cho phép `cdn.playwright.dev`,
+`playwright.download.prss.microsoft.com` và `cdn.jsdelivr.net` (owner mở
+04/10). Mỗi session mới cài engine vào cache user, không ghi vào repo:
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright pnpm exec playwright install --with-deps firefox webkit chromium
+```
+
+Chromium và WebKit chạy runner trực tiếp. Firefox có cert store riêng, không
+tin CA proxy cloud (`SEC_ERROR_UNKNOWN_ISSUER`), nên chạy qua preload test-only:
+request HTTPS của Firefox do Node tải (Node tin CA qua `NODE_EXTRA_CA_CERTS`,
+vẫn kiểm chứng chỉ) và trả lại nguyên byte. Owner duyệt cách này ngày 04/10;
+`.claude/settings.json` cho phép đúng lệnh này không cần hỏi.
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright LAYOUT_ENGINES=firefox node --import ./tests/site/support/firefox-cloud-ca.mjs tests/site/mobile-layout-parity.e2e.mjs --scope all
+```
+
+PC Windows không cần preload.
+
 ## Doctor và update
 
 ```powershell
@@ -168,3 +190,4 @@ Serena và Graphify là STDIO MCP host launch mỗi session, không là Windows 
 - **Setup script**: Bash script của cloud environment, chạy trước khi Claude Code khởi động.
 - **Skills-directory plugin**: thư mục plugin trong `~/.claude/skills/`, tự nạp mọi session.
 - **Always-on**: mode tự bật đầu session qua hook, không cần gõ lệnh.
+- **Preload**: module Node nạp trước runner qua `node --import`, chỉ dùng cho test.
