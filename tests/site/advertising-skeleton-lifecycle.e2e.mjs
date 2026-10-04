@@ -106,7 +106,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       window.__lifecycleFrames = new Map(frames.map(node => [node.dataset.advertisingCtaSlot, node]));
       return { width: document.documentElement.clientWidth, height: innerHeight,
         coordinateHash: skeleton.dataset.advertisingCtaSignature.split(":")[0],
-        boundary: Number.parseFloat(getComputedStyle(skeleton).getPropertyValue("--advertising-cta-skeleton-boundary-bottom")),
+        boundary: Number.parseFloat(skeleton.style.height),
         samples };
     });
     let previousHeight = await heightState();

@@ -26,9 +26,6 @@ const skeletonRule = cssRule("\\.advertising-grid__cta-skeleton");
 const frameRule = cssRule("^\\.advertising-grid__cta-frame");
 const surfaceRule = cssRule("\\.advertising-grid__cta-surface");
 const flowRule = cssRule("\\.advertising-grid__cta-flow");
-const globalBlurRule = cssRule("\\.detail-page \\.project-index:has\\(\\.advertising-grid__cta-skeleton:not\\(\\[hidden\\]\\)\\)::before");
-const sharedGlassRule = cssRule("\\.detail-page \\.project-index:has\\(\\.advertising-grid__cta-skeleton:not\\(\\[hidden\\]\\)\\)::before,\\s*\\[data-advertising-photo-glass=\\\"true\\\"\\] \\.advertising-photo-view__hero-frame::after");
-const sharedGlassTokensRule = cssRule("\\.detail-page \\.project-index:has\\(\\.advertising-grid__cta-skeleton\\),\\s*\\.advertising-photo-view__hero-frame");
 const legacyWashRules = [...detailCss.matchAll(/\.advertising-grid__cta-skeleton::after\s*\{([\s\S]*?)\n\}/gm)]
   .map((match) => match[1]);
 
@@ -44,16 +41,7 @@ assert.doesNotMatch(surfaceRule, /\banimation\b/i,
   "R6 forbids floating, scale, and hover-like skeleton surface motion");
 assert.doesNotMatch(flowRule, /\bfilter\s*:/i,
   "R6 forbids a local blur/filter on each skeleton card");
-assert.match(sharedGlassTokensRule, /--advertising-glass-blur:\s*28px;[\s\S]*--advertising-glass-saturation:\s*1\.08;[\s\S]*--advertising-glass-brightness:\s*1\.04;[\s\S]*--advertising-glass-tint:\s*rgba\(255, 255, 255, 0\.12\);/i,
-  "R8 locks the exact shared glass tokens for both consumers");
-assert.match(sharedGlassRule, /backdrop-filter:\s*blur\(var\(--advertising-glass-blur\)\)\s+saturate\(var\(--advertising-glass-saturation\)\)\s+brightness\(var\(--advertising-glass-brightness\)\)/i,
-  "R8 requires the full shared glass filter before the skeleton-to-white boundary");
-assert.match(globalBlurRule, /mask-image:\s*radial-gradient\(ellipse 150% 100% at 50% 100%, #000 72%, transparent 100%\)/i,
-  "P7.4 requires a broad curved global glass boundary centered toward the footer");
-assert.match(globalBlurRule, /left:\s*calc\(-1 \* var\(--advertising-outer\)\);/i,
-  "R9 requires the skeleton glass to reach the viewport left edge");
-assert.match(globalBlurRule, /width:\s*calc\(100% \+ \(2 \* var\(--advertising-outer\)\)\);/i,
-  "R9 requires the skeleton glass to reach the viewport right edge");
+// R8-R10 glass moved to the shared Kính component: tests/site/glass-surface.test.mjs.
 assert.doesNotMatch(detailCss, /@keyframes\s+advertising-skeleton-float/i,
   "R6 removes the legacy floating skeleton keyframes");
 
@@ -111,19 +99,11 @@ SKELETON_FLOW_PRESETS.forEach((preset, index) => {
   }
 });
 
-const unifiedGlassBackground = globalBlurRule.match(/\bbackground(?:-image)?\s*:\s*([^;]+);/i)?.[1] || "";
-if (!/linear-gradient/i.test(unifiedGlassBackground)
-  || !/--advertising-glass-tint/i.test(unifiedGlassBackground)
-  || !/--advertising-cta-skeleton-fade-start/i.test(unifiedGlassBackground)
-  || !/--advertising-cta-skeleton-glass-start/i.test(unifiedGlassBackground)
-  || !/(?:#fff|rgb\(255,\s*255,\s*255\))\s+100%/i.test(unifiedGlassBackground)) {
-  r10ContractFailures.push("global glass surface does not own clear-to-tint-to-pure-white background");
-}
 if (legacyWashRules.some((rule) => /\bbackground(?:-image)?\s*:/i.test(rule))) {
   r10ContractFailures.push("legacy skeleton-local white wash still exists outside the global glass surface");
 }
 assert.deepEqual(r10ContractFailures, [],
-  "R10 requires Scale 100, frozen P100 anchors, and one global blur-before-white surface");
+  "R10 requires Scale 100, frozen P100 anchors, and no skeleton-local white wash");
 
 const exportedJson = JSON.stringify(SKELETON_FLOW_PRESETS);
 assert.deepEqual(parseSkeletonFlowPresets(exportedJson), SKELETON_FLOW_PRESETS,

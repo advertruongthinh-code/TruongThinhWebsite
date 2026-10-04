@@ -1860,42 +1860,59 @@ body.is-advertising-browse .advertising-grid {
   overflow: hidden;
 }
 
-.detail-page .project-index:has(.advertising-grid__cta-skeleton),
-.advertising-photo-view__hero-frame {
-  --advertising-glass-blur: 28px;
-  --advertising-glass-saturation: 1.08;
-  --advertising-glass-brightness: 1.04;
-  --advertising-glass-tint: rgba(255, 255, 255, 0.12);
+/* Kính (docs/specs/glass-surface.md): one component for every glass surface. Stacked backdrop
+   blurs compound, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward the levels 2, 4.5, 9, 16 and 28px;
+   saturate() and brightness() multiply, so each step carries the fifth root of 1.7 and 1.04.
+   Only the steps own backdrop-filter. The box itself stays plain: opacity, a mask or a filter on it
+   would cut the steps off from the page behind. */
+.glass-surface {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.detail-page .project-index:has(.advertising-grid__cta-skeleton:not([hidden]))::before,
-[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame::after {
-  -webkit-backdrop-filter: blur(var(--advertising-glass-blur)) saturate(var(--advertising-glass-saturation)) brightness(var(--advertising-glass-brightness));
-  backdrop-filter: blur(var(--advertising-glass-blur)) saturate(var(--advertising-glass-saturation)) brightness(var(--advertising-glass-brightness));
-}
-
-[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame::after {
-  background: var(--advertising-glass-tint);
-}
-
-.detail-page .project-index:has(.advertising-grid__cta-skeleton:not([hidden]))::before {
+.glass-surface > i {
   position: absolute;
   z-index: 1;
-  top: var(--advertising-cta-skeleton-glass-start);
+  inset: 0;
+  display: block;
+}
+
+.glass-surface__step {
+  -webkit-backdrop-filter: blur(var(--glass-step-blur)) saturate(1.112) brightness(1.0079);
+  backdrop-filter: blur(var(--glass-step-blur)) saturate(1.112) brightness(1.0079);
+}
+
+.glass-surface__step:nth-child(1) { --glass-step-blur: 2px; }
+.glass-surface__step:nth-child(2) { --glass-step-blur: 4.03px; }
+.glass-surface__step:nth-child(3) { --glass-step-blur: 7.79px; }
+.glass-surface__step:nth-child(4) { --glass-step-blur: 13.23px; }
+.glass-surface__step:nth-child(5) { --glass-step-blur: 22.98px; }
+
+.glass-surface__step--full {
+  -webkit-backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
+  backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
+}
+
+.glass-surface__tint {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Static mono grain at 4% on a mid tone; overlay leaves pure white untouched. */
+.glass-surface__grain {
+  background: var(--glass-grain, none) 0 0 / var(--glass-grain-size, 160px) repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.08;
+}
+
+/* The arc runtime places each layer (glass-surface.mjs); it spans the viewport over the batch. */
+.glass-surface[data-glass-shape="arc"] {
   left: calc(-1 * var(--advertising-outer));
   width: calc(100% + (2 * var(--advertising-outer)));
-  height: calc(var(--advertising-cta-skeleton-boundary-bottom) - var(--advertising-cta-skeleton-glass-start) + 2px);
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0) 0,
-    var(--advertising-glass-tint) calc(var(--advertising-cta-skeleton-fade-start) - var(--advertising-cta-skeleton-glass-start)),
-    #fff calc(100% - 8px),
-    #fff 100%
-  );
-  -webkit-mask-image: radial-gradient(ellipse 150% 100% at 50% 100%, #000 72%, transparent 100%);
-  mask-image: radial-gradient(ellipse 150% 100% at 50% 100%, #000 72%, transparent 100%);
-  content: "";
+}
+
+.glass-surface[data-glass-shape="arc"] > i {
+  inset: auto 0;
 }
 
 .advertising-grid__cta-skeleton[hidden] {
@@ -2012,16 +2029,12 @@ body.is-advertising-browse .advertising-grid {
   background: var(--media-loading-surface);
 }
 
-.advertising-photo-view__hero-frame::after {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  pointer-events: none;
-  content: none;
+.advertising-photo-view__hero-frame > .glass-surface {
+  display: none;
 }
 
-[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame::after {
-  content: "";
+[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame > .glass-surface {
+  display: block;
 }
 
 .advertising-photo-view__hero [data-advertising-photo-image],
@@ -2676,7 +2689,6 @@ body.is-advertising-browse .advertising-grid {
 }
 
 .detail-cta[data-advertising-grid-cta] {
-  --advertising-cta-skeleton-ratio: 0.382;
   width: 100%;
   height: var(--advertising-cta-tail-height, calc(100svh - var(--header-collapsed-row-height) - 20px));
   min-height: 0;
@@ -2738,12 +2750,6 @@ body.is-advertising-browse:not(.is-advertising-photo) {
   display: flex;
   width: max-content;
   margin: var(--advertising-gap) auto 0;
-}
-
-@media (max-width: 750px), (max-height: 640px) {
-  .detail-cta[data-advertising-grid-cta] {
-    --advertising-cta-skeleton-ratio: 0.28;
-  }
 }
 
 @media (max-width: 750px) {

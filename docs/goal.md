@@ -11,7 +11,6 @@ related_docs:
   - specs/frontend-static-release.md
   - specs/cms-content-publishing.md
 related_decisions:
-  - decisions/static-before-cms.md
   - decisions/wrangler-deferred-until-cms.md
 ---
 

@@ -29,9 +29,15 @@ const COMPONENTS = [
   { name: 'Gallery', group: 'Page', height: 640, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
   // Advertising markup is built at runtime; capture-design-system.mjs snapshots it into scripts/docs/captures/.
   // pad: space kept above the focus element inside the frame; size: image variant width.
-  ...[['Filter', 240, 40], ['MediaCard', 280, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
+  ...[['Filter', 240, 40], ['MediaCard', 420, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
     ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size]) => ({ name, group: 'Advertising', height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
+  // Kính is runtime markup (glass-surface.mjs); the photo host and the half-width placement are written here.
+  { name: 'Glass', group: 'Advertising', height: 300, file: 'src/site/advertising-products/glass-surface.mjs', start: /glass\.className = "glass-surface"/,
+    markup: '<div style="position: relative; width: 384px; height: 256px; margin: 20px 35px; overflow: hidden;">\n'
+      + '<img src="/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-26-owner-20260924.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">\n'
+      + '<div style="position: absolute; inset: 0 0 0 50%;"><div class="glass-surface" data-glass-shape="even" aria-hidden="true">'
+      + '<i class="glass-surface__step glass-surface__step--full"></i><i class="glass-surface__tint"></i><i class="glass-surface__grain"></i></div></div>\n</div>' },
   // The bar shows only until a suggestion photo paints, so the buttons are written here without photos; the bar itself is detail.css.
   { name: 'LoadBar', group: 'Advertising', height: 280, file: 'src/site/detail.css', start: /Indeterminate bar painted along the bottom edge/,
     markup: '<div class="advertising-photo-view__suggestion-links" style="width: 316px; margin: 20px 35px;">\n'
@@ -63,13 +69,13 @@ const photos = new Map();
 function localizeImages(markup, size = 960) {
   return markup
     .replace(/\s+data-src="[^"]*"/g, '')
-    .replace(/src="\/assets\/content\/([^"]+?)(?:-(?:480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, path, ext) => {
+    .replace(/(src|poster)="\/assets\/content\/([^"]+?)(?:-(?:480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, attr, path, ext) => {
       const source = [`${path}-${size}.webp`, `${path}.webp`, `${path}.${ext}`]
         .map((candidate) => `src/site/assets/content/${candidate}`).find(existsSync);
       if (!source) throw new Error(`không tìm thấy ảnh ${whole}`);
       const name = basename(source).replace(/-960(?=\.)/, '');
       photos.set(`${OUT}/assets/Photos/${name}`, source);
-      return `src="../../assets/Photos/${name}"`;
+      return `${attr}="../../assets/Photos/${name}"`;
     });
 }
 

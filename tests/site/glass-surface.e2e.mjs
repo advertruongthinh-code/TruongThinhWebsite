@@ -1,0 +1,121 @@
+// Kính in Chromium (docs/specs/glass-surface.md R1-R4, R8): arc at the masonry end, even around the primary.
+import assert from "node:assert/strict";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
+const { chromium } = await import("playwright");
+const { default: sharp } = await import("sharp");
+const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
+const browser = await chromium.launch({ headless: true });
+
+const arcState = () => {
+  const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
+  const box = glass.getBoundingClientRect();
+  const steps = [...glass.querySelectorAll(".glass-surface__step")];
+  const top = (node) => Number.parseFloat(node.style.top);
+  const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
+  const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
+  const tint = glass.querySelector(".glass-surface__tint");
+  // Elements whose own box carries a backdrop filter; the closed viewer's ::backdrop is not rendered.
+  const owners = [...new Set([...document.querySelectorAll("*")].flatMap((node) => [null, "::before", "::after"]
+    .filter((pseudo) => !["none", ""].includes(getComputedStyle(node, pseudo).backdropFilter))
+    .map((pseudo) => `${node.className}${pseudo || ""}`)))];
+  const boxStyle = getComputedStyle(glass);
+  return {
+    hidden: glass.hidden, width: box.width, owners,
+    box: { opacity: boxStyle.opacity, mask: boxStyle.maskImage, filter: boxStyle.filter },
+    s0: top(steps[0]), s4: top(steps[4]),
+    centreX: Number.parseFloat(steps[0].style.maskImage.match(/circle at ([\d.]+)px/)[1]),
+    centreY: top(steps[0]) + Number.parseFloat(steps[0].style.maskImage.match(/circle at [\d.]+px ([\d.]+)px/)[1]),
+    clusterTop: copy.querySelector("h2").getBoundingClientRect().top - box.top - parallax,
+    clusterBottom: copy.getBoundingClientRect().bottom - box.top - parallax,
+    realBottom: Number(document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaRealBottom),
+    batchBottom: top(tint) + Number.parseFloat(tint.style.height) - 2,
+    batchBottomOnScreen: box.top + top(tint) + Number.parseFloat(tint.style.height) - 2,
+    grain: getComputedStyle(document.documentElement).getPropertyValue("--glass-grain"),
+    grainBlend: getComputedStyle(glass.querySelector(".glass-surface__grain")).mixBlendMode,
+  };
+};
+
+const failures = [];
+const check = (condition, message) => condition || failures.push(message);
+
+try {
+  for (const [locale, width, height, scale, reducedMotion] of [
+    ["vi", 1440, 900, 1, "no-preference"], ["en", 390, 844, 3, "no-preference"], ["vi", 844, 390, 3, "no-preference"],
+    ["vi", 1280, 720, 1, "reduce"],
+  ]) {
+    const label = `${locale} ${width}x${height} ${reducedMotion}`;
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(String(error)));
+    try {
+      await page.goto(`${origin}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
+      await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+      // Lazy cards above can grow the page, so scroll to the end until it settles.
+      for (let pass = 0, last = -1; pass < 8; pass += 1) {
+        const end = await page.evaluate(() => document.documentElement.scrollHeight);
+        if (end === last) break;
+        last = end;
+        await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), end);
+        await page.waitForTimeout(800);
+      }
+      await page.waitForTimeout(1200);
+      const state = await page.evaluate(arcState);
+      check(!state.hidden, `${label}: arc Kính hidden at the masonry end`);
+      check(Math.abs(state.width - width) <= 1, `${label}: arc Kính does not span the viewport (${state.width}px)`);
+      check(JSON.stringify(state.owners) === JSON.stringify(["glass-surface__step"]),
+        `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
+      check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
+        `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
+      // Step 0 starts at the band edge, step 4 at 0.3 of the band, both above the apex yIn.
+      const band = (state.s4 - state.s0) / 0.7;
+      const yIn = state.s0 + band;
+      const cluster = state.clusterBottom - state.clusterTop;
+      check(Math.abs(yIn - (state.clusterTop + 0.5 * cluster)) <= 2,
+        `${label}: R2 apex ${yIn.toFixed(1)} is not at half the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
+      check(state.s0 >= state.realBottom - 1, `${label}: R2 band edge ${state.s0} rises above the real photos ${state.realBottom}`);
+      check(Math.abs(band - 1.2 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
+        `${label}: R2 band ${band.toFixed(1)} is not 1.2 cluster heights`);
+      check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
+      check(Math.abs(state.centreY - yIn - 4 * width) <= 1 || state.centreY - yIn > 4 * width,
+        `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 4 viewport widths`);
+      check(state.grain.startsWith("url(blob:") && state.grainBlend === "overlay", `${label}: R4 grain missing`);
+      // R3, R4: the last row above the batch bottom (its corners sit on the pure white circle) stays white
+      // within 1/255 and carries no grain.
+      const shot = await page.screenshot({ clip: { x: 0, y: Math.floor(state.batchBottomOnScreen) - 1, width, height: 1 } });
+      const { data } = await sharp(shot).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+      const darkest = data.reduce((min, value) => Math.min(min, value), 255);
+      check(darkest >= 254, `${label}: R3 batch bottom is not pure white (darkest channel ${darkest})`);
+      check(!errors.length, `${label}: page errors ${errors.join(" | ")}`);
+    } finally {
+      await page.close();
+    }
+  }
+
+  // Even Kính around the primary: on only when the contained photo leaves room.
+  for (const [width, height, photo, overflow] of [[1440, 900, "kiosk-posm-09", true], [390, 844, "kiosk-posm-28", false]]) {
+    const page = await browser.newPage({ viewport: { width, height } });
+    try {
+      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=${photo}`, { waitUntil: "networkidle" });
+      await page.waitForTimeout(1500);
+      const state = await page.evaluate(() => {
+        const glass = document.querySelector(".advertising-photo-view__hero-frame > .glass-surface");
+        return { shape: glass?.dataset.glassShape, display: glass && getComputedStyle(glass).display,
+          layers: glass?.children.length, flag: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass };
+      });
+      check(state.shape === "even" && state.layers === 3, `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
+      check(state.flag === String(overflow) && state.display === (overflow ? "block" : "none"),
+        `${photo}: primary Kính does not follow contain overflow ${JSON.stringify(state)}`);
+    } finally {
+      await page.close();
+    }
+  }
+  assert.deepEqual(failures, [], "Kính contract");
+  process.stdout.write("[glass-surface] arc and even Kính passed\n");
+} finally {
+  await browser.close();
+}

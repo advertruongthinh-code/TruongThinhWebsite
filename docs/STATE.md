@@ -5,7 +5,7 @@
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
-  Deploy gần nhất 2026-10-04 `9478ed8`, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
+  Deploy gần nhất 2026-10-04 `8759d0a` (Worker `7ee4aaa9`), [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
@@ -97,8 +97,8 @@
   ([gate](specs/frontend-static-release.md#gate-còn-mở)).
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; skeleton chờ ảnh và mở ảnh tại chỗ đã code, kính
-  của hai motion này và trace A05s (R9) còn chờ; mọi bề mặt glass đổi sang
-  [Kính dùng chung](specs/glass-surface.md) (owner chốt số 04/10, chờ code);
+  của hai motion này và trace A05s (R9) còn chờ; [Kính dùng chung](specs/glass-surface.md)
+  đã code 04/10 cho kính cuối masonry và vùng dư primary, còn đo 30fps trên A05s;
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

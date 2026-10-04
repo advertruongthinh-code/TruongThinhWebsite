@@ -17,8 +17,8 @@ Owner thử M02b trên điện thoại ngày 2026-10-04 và thấy hai vấn đ�
 thì masonry Advertising chỉ có vùng trắng, không báo đang tải. Mở ảnh và F5 thì
 không có motion. Spec này định nghĩa ba motion owner đã chốt: skeleton chờ ảnh
 rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào thẳng trang.
-Kính trong R2 và R4 chờ [Kính dùng chung](glass-surface.md); tới lúc đó
-website chạy riêng bước crossfade (xem R2). Lỗi Back history, dòng HTML thô sau
+Kính trong R2 và R4 chưa nối vào [Kính dùng chung](glass-surface.md) (component
+đã có code); tới lúc đó website chạy riêng bước crossfade (xem R2). Lỗi Back history, dòng HTML thô sau
 F5 và motion phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
 (phiên bản 9).
@@ -258,8 +258,8 @@ không phải số đo mới:
 
 ## Gate còn mở
 
-- Kính bước 1 và 3 của R2, R4: nối component Kính khi
-  [Kính dùng chung](glass-surface.md) có code; mục Kính trong
+- Kính bước 1 và 3 của R2, R4: nối bề mặt năm bậc của
+  [Kính dùng chung](glass-surface.md) (R6); mục Kính trong
   [Đã duyệt, chờ code](../../design-system/approved-designs.md#kính) giữ tới lúc đó.
 - R9 trên A05s, gồm nhiều kính chạy cùng lúc khi vuốt nhanh; WebKit chưa chạy.
 - R8 chưa có test tự động.

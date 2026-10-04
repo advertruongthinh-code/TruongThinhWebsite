@@ -21,6 +21,7 @@ import {
   SKELETON_FLOW_PRESETS,
   staticBackground,
 } from "./skeleton-flow.mjs";
+import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
 
 let activeInstance;
 let lastClosedPhotoId = null;
@@ -1061,6 +1062,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".project-index");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
+  const arcGlass = gridSectionStyleTarget?.appendChild(Object.assign(createGlassSurface("arc"), { hidden: true }));
   const photoView = container.querySelector("[data-advertising-photo-view]");
   const photoCanvas = photoView?.querySelector("[data-advertising-photo-canvas]");
   const photoPrimary = photoView?.querySelector("[data-advertising-photo-primary]");
@@ -1069,6 +1071,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoAudioToggle = photoView?.querySelector("[data-advertising-photo-audio-toggle]");
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
+  // Even Kính over the cover backdrop; CSS shows it only when the contained photo leaves room around it.
+  const photoGlass = createGlassSurface("even");
+  photoBackground?.after(photoGlass);
   const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
   const photoDescription = photoView?.querySelector("[data-advertising-photo-description]");
   const photoDescriptionPager = photoView?.querySelector("[data-advertising-photo-description-pager]");
@@ -1919,9 +1924,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ctaSkeleton.hidden = true;
     ctaSkeleton.replaceChildren();
     gridCta?.style.removeProperty("--advertising-cta-tail-height");
-    gridSectionStyleTarget?.style.removeProperty("--advertising-cta-skeleton-glass-start");
-    gridSectionStyleTarget?.style.removeProperty("--advertising-cta-skeleton-fade-start");
-    gridSectionStyleTarget?.style.removeProperty("--advertising-cta-skeleton-boundary-bottom");
+    if (arcGlass) arcGlass.hidden = true;
     delete ctaSkeleton.dataset.advertisingCtaColumns;
     delete ctaSkeleton.dataset.advertisingCtaReady;
     delete ctaSkeleton.dataset.advertisingCtaSignature;
@@ -1948,9 +1951,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       gridCta.style.setProperty("--advertising-cta-copy-below", `${ctaCopyMetrics.below}px`);
       requestAnimationFrame(() => { gridCta.dataset.advertisingCtaSettled = "true"; });
     }
-    const ctaStyle = gridCta ? getComputedStyle(gridCta) : null;
-    const skeletonRatio = Math.min(0.5, Math.max(0,
-      Number.parseFloat(ctaStyle?.getPropertyValue("--advertising-cta-skeleton-ratio")) || 0.382));
     // The last baseline sits D above the batch bottom; too short a window keeps the button one gap above it.
     const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(geometry.cardWidth * 0.25) + 1,
@@ -1959,7 +1959,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (ctaGeometryHash === nextCtaGeometryHash) return;
     gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
-    const skeletonFadeEnd = ctaTop + ctaHeight * skeletonRatio;
     const gridBottom = ctaTop + ctaHeight;
     // The batch ends right on the footer.
     const skeletonBoundaryBottom = gridBottom;
@@ -2032,12 +2031,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         frame.style.setProperty("--advertising-cta-frame-opacity", "1");
     });
     gridPixelHeight = gridBottom;
-    const skeletonGlassStart = Math.max(geometry.totalPixelHeight, skeletonFadeEnd - geometry.cardWidth);
-    const skeletonFadeLead = Math.min(48, Math.max(1, (skeletonFadeEnd - skeletonGlassStart) * 0.25));
-    const skeletonFadeStart = Math.max(
-      skeletonGlassStart + skeletonFadeLead,
-      skeletonFadeEnd - geometry.cardWidth * 0.5,
-    );
     ctaGeometryHash = nextCtaGeometryHash;
     ctaSkeleton.append(fragment);
     ctaSkeleton.hidden = false;
@@ -2045,9 +2038,20 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ctaSkeleton.dataset.advertisingCtaReady = "true";
     ctaSkeleton.dataset.advertisingCtaRealBottom = String(geometry.totalPixelHeight);
     ctaSkeleton.dataset.advertisingCtaSignature = `${ctaGeometryHash}:${gridPixelHeight.toFixed(3)}`;
-    gridSectionStyleTarget?.style.setProperty("--advertising-cta-skeleton-glass-start", `${skeletonGlassStart}px`);
-    gridSectionStyleTarget?.style.setProperty("--advertising-cta-skeleton-fade-start", `${skeletonFadeStart}px`);
-    gridSectionStyleTarget?.style.setProperty("--advertising-cta-skeleton-boundary-bottom", `${skeletonBoundaryBottom}px`);
+    if (arcGlass) {
+      // The CTA cluster (heading top to link bottom) at the scroll limit, where the parallax is zero.
+      const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
+      // Shown before measuring: a hidden box has no width.
+      arcGlass.hidden = false;
+      layoutArcGlass(arcGlass, arcGlassGeometry({
+        width: arcGlass.clientWidth,
+        batchBottom: skeletonBoundaryBottom,
+        realBottom: geometry.totalPixelHeight,
+        cardWidth: geometry.cardWidth,
+        clusterTop: clusterBottom - ctaCopyMetrics.baseline - ctaCopyMetrics.below,
+        clusterBottom,
+      }));
+    }
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
     grid.style.height = `${gridPixelHeight}px`;
     ctaSkeleton.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
@@ -3276,7 +3280,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedLayoutKey = "";
       relatedMeasuredGeometry = null;
     }
-    if (entries.some((entry) => entry.target === gridCtaHeading)) {
+    // The heading or the link moving the copy edge (late styles, font swap) invalidates the CTA metrics.
+    if (entries.some((entry) => entry.target === gridCtaCopy)) {
       ctaCopyKey = "";
       ctaGeometryHash = "";
     }
@@ -3289,7 +3294,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   });
   resizeObserver.observe(grid);
   if (gridCta) resizeObserver.observe(gridCta);
-  if (gridCtaHeading) resizeObserver.observe(gridCtaHeading);
+  if (gridCtaCopy) resizeObserver.observe(gridCtaCopy);
   if (siteFooter) resizeObserver.observe(siteFooter);
   if (photoPrimary) resizeObserver.observe(photoPrimary);
   if (photoInfo) [...photoInfo.children].forEach((node) => resizeObserver.observe(node));
@@ -3338,6 +3343,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     [...cardSkeletons.keys()].forEach(dropCardSkeleton);
     cancelAnimationFrame(skeletonSyncFrame);
     clearCtaSkeleton();
+    arcGlass?.remove();
+    photoGlass.remove();
     document.body.classList.remove("is-advertising-browse", "is-advertising-photo");
     delete document.body.dataset.advertisingPhotoActive;
     if (activeInstance?.container === container) activeInstance = undefined;

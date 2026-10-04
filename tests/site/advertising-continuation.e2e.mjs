@@ -194,11 +194,12 @@ async function snapshot(page) {
     const footer = document.querySelector("footer.site-footer");
     const gridRect = grid?.getBoundingClientRect();
     const sectionRect = section?.getBoundingClientRect();
-    const glassStyle = section ? getComputedStyle(section, "::before") : null;
-    const heroFrame = document.querySelector(".advertising-photo-view__hero-frame");
-    const heroStyle = heroFrame ? getComputedStyle(heroFrame, "::after") : null;
-    const glassLeft = (sectionRect?.left || 0) + (Number.parseFloat(glassStyle?.left) || 0);
-    const glassWidth = Number.parseFloat(glassStyle?.width) || 0;
+    // Kính (glass-surface.md): the arc on the grid section, the even one in the primary frame.
+    const glass = section?.querySelector(":scope > .glass-surface[data-glass-shape=arc]");
+    const glassRect = glass?.getBoundingClientRect();
+    const glassTint = glass?.querySelector(".glass-surface__tint");
+    const glassFilters = (host) => [...(host?.querySelectorAll(".glass-surface__step") || [])].map((step) => getComputedStyle(step).backdropFilter);
+    const photoGlass = document.querySelector(".advertising-photo-view__hero-frame > .glass-surface");
     const ctaRect = cta?.getBoundingClientRect();
     const copyRect = cta.querySelector(".detail-cta__copy").getBoundingClientRect();
     const rootStyle = getComputedStyle(document.documentElement);
@@ -239,22 +240,20 @@ async function snapshot(page) {
       layoutViewportWidth: document.documentElement.clientWidth,
       nativeGutter: innerWidth - document.documentElement.clientWidth,
       skeletonCoverageRatio: Math.max(0, deepestFrameBottom - ctaRect.top) / ctaRect.height,
-      skeletonRatioToken: Number.parseFloat(getComputedStyle(cta).getPropertyValue("--advertising-cta-skeleton-ratio")) || 0,
-      glassStart: Number.parseFloat(getComputedStyle(skeleton).getPropertyValue("--advertising-cta-skeleton-glass-start")) || 0,
-      fadeStart: Number.parseFloat(getComputedStyle(skeleton).getPropertyValue("--advertising-cta-skeleton-fade-start")) || 0,
-      boundaryBottom: Number.parseFloat(getComputedStyle(skeleton).getPropertyValue("--advertising-cta-skeleton-boundary-bottom")) || 0,
+      glassHidden: glass?.hidden ?? null,
+      glassTop: Math.min(...[...(glass?.children || [])].map((layer) => Number.parseFloat(layer.style.top))),
+      glassEnd: (Number.parseFloat(glassTint?.style.top) || 0) + (Number.parseFloat(glassTint?.style.height) || 0) - 2,
+      boundaryBottom: Number.parseFloat(skeleton.style.height) || 0,
       realBottom: Number.parseFloat(skeleton.dataset.advertisingCtaRealBottom) || 0,
       cardWidth: frameRects[0]?.width || 0,
       boundaryMask: getComputedStyle(skeleton).maskImage,
-      boundaryBlur: glassStyle?.backdropFilter || glassStyle?.getPropertyValue("-webkit-backdrop-filter") || "",
-      boundaryTint: glassStyle?.backgroundColor || "",
-      boundaryBlurMask: glassStyle?.maskImage || glassStyle?.getPropertyValue("-webkit-mask-image") || "",
+      boundaryBlur: glassFilters(glass),
       photoGlassActive: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoGlass === "true",
-      photoGlassBlur: heroStyle?.backdropFilter || heroStyle?.getPropertyValue("-webkit-backdrop-filter") || "",
-      photoGlassTint: heroStyle?.backgroundColor || "",
-      glassLeft,
-      glassRight: glassLeft + glassWidth,
-      glassBackground: glassStyle?.backgroundImage || "",
+      photoGlassDisplay: photoGlass ? getComputedStyle(photoGlass).display : "",
+      photoGlassBlur: glassFilters(photoGlass),
+      glassLeft: glassRect?.left ?? NaN,
+      glassRight: glassRect?.right ?? NaN,
+      glassBackground: glassTint ? getComputedStyle(glassTint).backgroundImage : "",
       legacyWhiteWash: getComputedStyle(skeleton, "::after").backgroundImage,
       tailSpan: footerRect.bottom - ctaRect.top,
       paintOverflow: skeleton.getBoundingClientRect().bottom - gridRect.bottom,
@@ -269,7 +268,7 @@ async function snapshot(page) {
       frontierCoverage: Math.min(...Array.from({ length: Number(skeleton.dataset.advertisingCtaColumns) }, (_, column) =>
         Math.max(...frameState.filter((frame) => frame.column === column).map((frame) => frame.bottom))
           + (Number.parseFloat(getComputedStyle(grid).gap) || 0)))
-        - (Number.parseFloat(getComputedStyle(skeleton).getPropertyValue("--advertising-cta-skeleton-boundary-bottom")) || 0),
+        - (Number.parseFloat(skeleton.style.height) || 0),
       physicalLines: cta.querySelectorAll("h2 > .motion-line-mask").length,
       looping: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => frame.classList.contains("is-looping")).length,
       flowCanvases: document.querySelectorAll("[data-advertising-cta-frame] canvas[data-advertising-flow-preset]").length,
@@ -556,9 +555,8 @@ try {
         if (state.tailSpan > state.viewportHeight + 2) {
           p7MobileFailures.push(`tail span ${state.tailSpan}px exceeds ${state.viewportHeight}px viewport`);
         }
-        if (!/linear-gradient/i.test(state.glassBackground)
-          || !/(?:rgb\(255, 255, 255\)|#fff) 100%/i.test(state.glassBackground)) {
-          p7MobileFailures.push("global glass surface lacks pure-white gradient endpoint");
+        if (!/^radial-gradient\(.*?, rgb\(255, 255, 255\) [\d.]+px/i.test(state.glassBackground)) {
+          p7MobileFailures.push("arc Kính lacks the pure-white corner circle");
         }
         if (state.legacyWhiteWash !== "none") {
           p7MobileFailures.push("legacy local white wash remains separate from global glass");
@@ -573,11 +571,8 @@ try {
       assert.equal(state.footerIntro, 0, `${locale} ${viewport.width}: Advertising retained the footer invitation`);
       assert.equal(state.marquee, 0, `${locale} ${viewport.width}: capability marquee remains`);
       assert.equal(state.contact, 1, `${locale} ${viewport.width}: contact footer was removed`);
-      const expectedSkeletonRatio = viewport.width <= 750 || viewport.height <= 640 ? 0.28 : 0.382;
       assert(state.ctaHeight > 0 && state.ctaHeight <= state.viewportHeight,
         `${locale} ${viewport.width}x${viewport.height}: tail solver emitted an invalid CTA height`);
-      assert(Math.abs(state.skeletonRatioToken - expectedSkeletonRatio) <= 0.002,
-        `${locale} ${viewport.width}x${viewport.height}: skeleton ratio token differs from the accepted composition`);
       assert(Math.min(...state.frameState.map(({ top }) => top)) < state.ctaBottom - state.ctaHeight,
         `${locale} ${viewport.width}x${viewport.height}: skeleton starts at the CTA row instead of continuing the real-card frontier`);
       assert(state.frontierGaps.length === state.columns
@@ -603,46 +598,23 @@ try {
         assert(frames.slice(1).every((frame, index) => frame.band !== frames[index].band),
           `${locale} ${viewport.width}: skeleton column ${column} repeats an adjacent ratio band`);
       }
-      const ctaTop = state.ctaBottom - state.ctaHeight;
-      const ctaHeadlineTop = ctaTop + state.ctaHeight * state.skeletonRatioToken;
-      const expectedGlassStart = Math.max(state.realBottom, ctaHeadlineTop - state.cardWidth);
-      const expectedFadeLead = Math.min(48, Math.max(1, (ctaHeadlineTop - expectedGlassStart) * 0.25));
-      const expectedFadeStart = Math.max(
-        expectedGlassStart + expectedFadeLead,
-        ctaHeadlineTop - state.cardWidth * 0.5,
-      );
-      assert(Math.abs(state.glassStart - expectedGlassStart) <= 2,
-        `${locale} ${viewport.width}: glass blur does not begin one reference card above the CTA`);
-      assert(Math.abs(state.fadeStart - expectedFadeStart) <= 2,
-        `${locale} ${viewport.width}: global fade does not begin half a reference card above the CTA`);
-      assert(state.fadeStart > state.glassStart,
-        `${locale} ${viewport.width}: global fade must start after the glass blur`);
+      assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
+      assert(state.glassTop >= state.realBottom - 1,
+        `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
+      assert.deepEqual(state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]), ["2", "4.03", "7.79", "13.23", "22.98"],
+        `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
+      assert.deepEqual(state.photoGlassBlur, ["blur(28px) saturate(1.7) brightness(1.04)"],
+        `${locale} ${viewport.width}: photo overflow is not one full Kính step`);
+      assert.equal(state.photoGlassDisplay, state.photoGlassActive ? "block" : "none",
+        `${locale} ${viewport.width}: photo Kính does not follow contain overflow`);
       assert.equal(state.boundaryMask, "none",
-        `${locale} ${viewport.width}: skeleton retained a local opacity mask outside global glass`);
-      assert.equal(state.boundaryBlur, "blur(28px) saturate(1.08) brightness(1.04)",
-        `${locale} ${viewport.width}: skeleton changed the shared glass filter`);
-      if (state.photoGlassActive) {
-        assert.equal(state.photoGlassBlur, state.boundaryBlur,
-          `${locale} ${viewport.width}: active photo overflow no longer shares the skeleton glass filter`);
-        assert.equal(state.photoGlassTint, "rgba(255, 255, 255, 0.12)",
-          `${locale} ${viewport.width}: photo overflow changed the shared glass tint`);
-      } else {
-        assert.equal(state.photoGlassBlur, "none",
-          `${locale} ${viewport.width}: photo glass must stay disabled without contain overflow`);
-        assert.match(state.photoGlassTint, /rgba\(0, 0, 0, 0\)|transparent/,
-          `${locale} ${viewport.width}: inactive photo glass retained a tint`);
-      }
-      assert.match(state.boundaryBlurMask,
-        /^radial-gradient\((?:ellipse )?150% 100% at 50% 100%, (?:rgb\(0, 0, 0\)|#000) 72%, (?:rgba\(0, 0, 0, 0\)|transparent) 100%\)$/i,
-        `${locale} ${viewport.width}: glass blur preserves the accepted P7.4 radial gradient mask`);
+        `${locale} ${viewport.width}: skeleton retained a local opacity mask outside the Kính`);
       assert(Math.abs(state.glassLeft) <= 1,
         `${locale} ${viewport.width}: skeleton glass does not reach the viewport left edge`);
       assert(Math.abs(state.glassRight - state.layoutViewportWidth) <= 1,
         `${locale} ${viewport.width}: skeleton glass does not reach the viewport right edge`);
-      assert.match(state.glassBackground, /linear-gradient/i,
-        `${locale} ${viewport.width}: global glass surface does not own the white fade`);
-      assert.match(state.glassBackground, /(?:rgb\(255, 255, 255\)|#fff) 100%/i,
-        `${locale} ${viewport.width}: global glass endpoint is not pure white`);
+      assert.match(state.glassBackground, /^radial-gradient\(.*?, rgb\(255, 255, 255\) [\d.]+px/i,
+        `${locale} ${viewport.width}: arc Kính does not turn pure white at the batch corners`);
       assert.equal(state.legacyWhiteWash, "none",
         `${locale} ${viewport.width}: legacy local white wash remains separate from global glass`);
       assert.equal(state.flowCanvases, state.frameCount, `${locale} ${viewport.width}: Flow canvas count differs from frames`);
@@ -663,8 +635,8 @@ try {
         `${locale} ${viewport.width}: offscreen Flow is running`);
       assert(Math.abs(state.paintOverflow) <= 1,
         `${locale} ${viewport.width}: the skeleton batch must end on the footer`);
-      assert(Math.abs(state.boundaryBottom - state.ctaBottom) <= 1.5,
-        `${locale} ${viewport.width}: global glass endpoint differs from the batch bottom`);
+      assert(Math.abs(state.boundaryBottom - state.ctaBottom) <= 1.5 && Math.abs(state.glassEnd - state.boundaryBottom) <= 0.5,
+        `${locale} ${viewport.width}: Kính endpoint differs from the batch bottom`);
       assert.equal(state.footerTopGap, 0, `${locale} ${viewport.width}: Advertising keeps a gap above the footer`);
       assert(Math.abs(state.gridHeight - state.ctaBottom) <= 1.5,
         `${locale} ${viewport.width}: skeleton overflow increased the logical grid height`);

@@ -1,8 +1,9 @@
 ---
 title: Living docs, baseline Espacio và design system Trường Thịnh
 type: cross-cutting
-status: accepted
-updated: 2026-09-09
+status: superseded
+superseded_by: docs-system.md
+updated: 2026-10-04
 notion: https://app.notion.com/p/3d5332849a0e817aad64f745684c0ca2
 related_decisions:
   - ../decisions/git-notion-governance.md
@@ -10,6 +11,10 @@ related_reports: []
 ---
 
 # Living docs, baseline Espacio và design system
+
+Đã bị thay bởi [docs-system](docs-system.md): Design System nằm ở
+`design-system/`, `DESIGN.md` và `design.json` là file sinh. File này chỉ giữ
+lịch sử cho tới khi T17 dọn.
 
 Intent R1 đã chốt với owner: docs trước, refactor component/token ở phase riêng.
 Owner đã duyệt spec và plan D1–D13 trong session ngày 2026-09-09.

@@ -139,8 +139,10 @@ nền giấy luôn là trọng tâm.
 
 ## Typography
 
-`"Plus Jakarta Sans", Arial, sans-serif`, tải từ Google Fonts (400, 500, 600,
-700, italic 500) trong `<head>` mỗi trang. Không đổi font.
+`"Plus Jakarta Sans", Arial, sans-serif`: font biến thiên (OFL, weight 200
+tới 800, có italic) tự host ở `/assets/vendor/`, preload bản latin và
+vietnamese trong `<head>`. Preview trên claude.ai nạp cùng font từ Google
+Fonts. Không đổi font.
 
 | Style | Dùng cho | Ghi chú |
 | --- | --- | --- |
@@ -223,11 +225,12 @@ Corner radius vì đó là khung cố định của loại artifact, nên mục 
 token đó.
 
 - Hình tròn chỉ xuất hiện ở chi tiết vốn là chấm hoặc vòng, không phải góc bo
-  của khung: chấm marquee, chấm timeline About, vòng tải ảnh, nút bật tắt
-  motion.
+  của khung: chấm marquee, chấm timeline About, chấm chỉ báo media card, vòng
+  tải ảnh, nút bật tắt motion.
 - Control viewer Advertising vuông tối thiểu 48px, viền 1px `ink`, hover mở nhãn.
 - Focus: `outline: 2px solid` màu `orange`, offset 4px, mọi phần tử
-  `:focus-visible`.
+  `:focus-visible`; card Advertising và control trên card dùng `ink`
+  ([Media card](design-system/components/MediaCard/README.md#focus-và-nhãn)).
 
 **Quy tắc khung.** Khung vuông và đường thẳng giữ cảm giác editorial và xưởng.
 Thêm radius cho card, filter hoặc shell là thay đổi design system.
@@ -247,7 +250,7 @@ không sửa tay preview:
 | --- | --- |
 | Shell | [Header](design-system/components/Header/README.md), [Brand lockup](design-system/components/BrandLockup/README.md), [Full menu](design-system/components/FullMenu/README.md), [Footer](design-system/components/Footer/README.md), [Floating CTA](design-system/components/FloatingCta/README.md) |
 | Trang | [Hero](design-system/components/Hero/README.md), [Project reel](design-system/components/ProjectReel/README.md), [Gallery ngang](design-system/components/Gallery/README.md) |
-| Advertising | [Filter](design-system/components/Filter/README.md), [Media card](design-system/components/MediaCard/README.md), [Masonry](design-system/components/Masonry/README.md), [Skeleton](design-system/components/Skeleton/README.md), [Primary](design-system/components/Primary/README.md), [Suggestion](design-system/components/Suggestion/README.md), [Viewer](design-system/components/Viewer/README.md), [Thanh tải](design-system/components/LoadBar/README.md) |
+| Advertising | [Filter](design-system/components/Filter/README.md), [Media card](design-system/components/MediaCard/README.md), [Masonry](design-system/components/Masonry/README.md), [Skeleton](design-system/components/Skeleton/README.md), [Kính](design-system/components/Glass/README.md), [Primary](design-system/components/Primary/README.md), [Suggestion](design-system/components/Suggestion/README.md), [Viewer](design-system/components/Viewer/README.md), [Thanh tải](design-system/components/LoadBar/README.md) |
 
 Mẫu chưa có preview riêng:
 

@@ -355,28 +355,22 @@ plan `AD-SEPT-2026-P6`.
 
 ## Correction R8 accepted — glass blur rộng và white endpoint
 
+Glass của R8, R9 và R10 nay là [Kính](glass-surface.md) dạng cung: hình cung,
+năm bậc nhòe, màu trắng và số chốt thuộc spec đó. Full bleed, không phủ ảnh
+thật và đáy batch trắng tuyệt đối giữ nguyên.
+
 **Status:** accepted; owner xác nhận intent và cho phép Codex tự duyệt spec,
 plan, task ngày `2026-09-22`. Correction này thay riêng bullet global blur/fade
 của R7; preset, geometry, entry lifecycle và CTA spacing giữ nguyên.
 
 - Dùng một global glass surface trong coordinate space của toàn skeleton batch;
-  không blur từng frame. Mốc tham chiếu là điểm bắt đầu vùng headline CTA theo
-  composition token hiện hành. Blur nhắm tới `ctaHeadlineTop - cardWidth` và
-  clamp tại đáy masonry ảnh thật để không phủ mờ card thật; `cardWidth` là chiều
-  cao tham chiếu của card vuông một cột.
-- Glass dùng `backdrop-filter` với blur tối thiểu `24px`, có WebKit prefix và
-  gradient mask tăng dần; text CTA, hit target và footer không nằm trong lớp
-  backdrop-filter.
-- Global alpha fade nhắm tới `ctaHeadlineTop - 0.5 × cardWidth`. Khi target này
-  bị clamp cùng mốc blur ở viewport thấp, fade phải lùi xuống tối thiểu `1px`
-  và tối đa `48px` theo phần khoảng còn lại để blur luôn xuất hiện trước fade.
-  Mask giảm đơn điệu và đạt alpha `0` tại `skeletonBoundaryBottom`.
+  không blur từng frame, không phủ mờ card thật.
+- Text CTA, hit target và footer không nằm trong lớp backdrop-filter.
 - Từ `skeletonBoundaryBottom` trở xuống nền phải là `#fff` tuyệt đối: không còn
   pixel skeleton, ghost, fallout, seam hoặc lớp gradient bán trong suốt. White
   endpoint giữ qua resize, filter, locale và reduced motion.
-- Browser acceptance đọc computed custom properties, `backdrop-filter`, global
-  mask và chụp pixel band tại các cột; endpoint sai khác trắng tối đa `1/255`
-  mỗi kênh khi không có text/element foreground.
+- Browser acceptance chụp pixel đáy batch; endpoint sai khác trắng tối đa
+  `1/255` mỗi kênh khi không có text/element foreground.
 
 ## Correction R9 accepted — shared glass surface với photo overflow
 
@@ -384,20 +378,16 @@ của R7; preset, geometry, entry lifecycle và CTA spacing giữ nguyên.
 bộ global coordinate space, fade endpoint, preset, FIELD/FINISH và entry motion
 của R8; chỉ chuẩn hóa visual surface để tái dùng.
 
-- Skeleton boundary và primary photo overflow dùng một token contract:
-  `blur(28px) saturate(1.08) brightness(1.04)` cùng tint trắng alpha `0.12`.
+- Skeleton boundary và primary photo overflow dùng chung component
+  [Kính](glass-surface.md).
 - Glass của skeleton trải ngang tới hai mép viewport; frame skeleton, ảnh thật,
   CTA và outer masonry giữ nguyên geometry. Không tạo horizontal overflow. Photo
   overflow vẫn chỉ phủ hero frame theo contract riêng.
-- Skeleton tiếp tục dùng mask gradient toàn batch và white endpoint của R8.
-  Primary photo dùng glass đồng nhất trên toàn vùng dư, không dùng mask tăng dần
-  hoặc thay cường độ blur theo khoảng cách từ mép ảnh.
-- Source image và WebGL canvas không tự sở hữu CSS blur của glass. Shared
-  pseudo-element là lớp duy nhất sở hữu `backdrop-filter`, có WebKit prefix,
-  không nhận pointer event và không che CTA/control.
-- Acceptance khóa computed token ở cả hai consumer, xác nhận skeleton vẫn global
-  và photo source có `filter: none`. Không mở rộng sang dialog backdrop, WebGL
-  `soften` hoặc blur không thuộc hai consumer này.
+- Skeleton giữ white endpoint của R8. Primary photo dùng kính đồng nhất trên
+  toàn vùng dư, không thay cường độ blur theo khoảng cách từ mép ảnh.
+- Source image và WebGL canvas không tự sở hữu CSS blur. Chỉ các bậc của Kính
+  sở hữu `backdrop-filter`, không nhận pointer event và không che CTA/control.
+  Không mở rộng sang dialog backdrop hoặc WebGL `soften`.
 
 ## Correction R10 accepted — mobile tail, Scale 100 và unified glass
 
@@ -432,12 +422,11 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
 
 ### Một Glassmorphism surface trong global space
 
-- Opacity fade và blur không còn là hai component độc lập. Một full-bleed
-  Glassmorphism surface sở hữu cả translucent white background và
-  `backdrop-filter`; surface phủ từ mép trái tới mép phải viewport nhưng không
-  đổi width/hit testing của masonry.
-- Trình tự dọc bắt buộc: nội dung clear; blur/tint tăng trước; lớp trắng tăng sau;
-  endpoint tại đáy lưới là `#fff` hoàn toàn. Chuyển tiếp phải mịn, không seam theo
+- Opacity fade và blur không còn là hai component độc lập: [Kính](glass-surface.md)
+  dạng cung sở hữu cả lớp trắng và `backdrop-filter`, phủ từ mép trái tới mép
+  phải viewport nhưng không đổi width/hit testing của masonry.
+- Trình tự dọc: nội dung clear; blur/tint tăng trước; lớp trắng tăng sau;
+  endpoint tại đáy lưới là `#fff` hoàn toàn. Chuyển tiếp mịn, không seam theo
   cột, ghost, fallout hoặc skeleton mờ bên dưới endpoint.
 - CTA và footer nằm trên/ngoài surface nên luôn rõ, không bị blur. Skeleton không
   có hover/focus motion và không dùng local mask.
@@ -467,8 +456,8 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
   DOM card còn hai hoặc giảm chất lượng preset và motion.
 - Masonry logical bottom kết thúc sớm để final viewport chứa trọn CTA và footer.
   Card cuối mỗi cột kết thúc đúng đáy batch, ngay trên footer, không paint vượt
-  boundary ([CTA giữa viewport](advertising-cta-center-parallax.md) R2). Global Glassmorphism R10 giữ token, full bleed, trình tự blur
-  trước white và endpoint `#fff`.
+  boundary ([CTA giữa viewport](advertising-cta-center-parallax.md) R2). Kính
+  dạng cung giữ full bleed, trình tự blur trước white và endpoint `#fff`.
 - Tại `scrollY = scrollHeight - innerHeight`, bbox CTA và toàn footer nằm trong
   viewport, sai số `1 CSS px`. Overflow nằm dưới glass, CTA và footer; glass đạt
   white endpoint trước chữ/link đầu tiên của footer, không ghost.
