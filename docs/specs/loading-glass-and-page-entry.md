@@ -17,7 +17,7 @@ rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào
 Thread M02b làm code theo spec. Lỗi Back history, dòng HTML thô sau F5 và motion
 phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
-(phiên bản 8).
+(phiên bản 9).
 
 ## Hành vi
 
@@ -252,7 +252,7 @@ không phải số đo mới:
 
 ## Gate còn mở
 
-- Owner duyệt bản chạy thử phiên bản 8 và spec này.
+- Owner duyệt bản chạy thử phiên bản 9 và spec này.
 - Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
   A05s thật.
 - R1: mức trần context WebGL trên desktop, chốt theo số đo.
