@@ -143,7 +143,7 @@ Các thông số và quy tắc dưới đây thuộc delta spec P1.3 đã đư�
 
 - Nút mở dialog phủ toàn cửa sổ trên nền tối. Ảnh ban đầu fit vùng nhìn, giữ toàn bộ ảnh. Ba nấc zoom: fit → cover viewport → 2 × cover; tăng/giảm có giới hạn, không dùng một trần phần trăm cố định cho mọi ratio. Khi tới mức tối đa, hiện reset về fit và tâm ảnh. Control 48 CSS px: đóng trên trái, reset/+/− xếp dọc dưới phải, khoảng cách 8 px và inset 16 px cộng safe area cần thiết. Các nút trong Advertising dùng góc vuông, thay ngoại lệ nút tròn của viewer v6. Đóng, zoom và reset có phản hồi hover bằng motion; icon reset phải cùng nét và ngôn ngữ hình học với cụm nút. Hiệu ứng và icon giữ baseline vuông đã kiểm cùng timing R4; khi verify phải đối chiếu reference, không tự đổi ngôn ngữ thiết kế. Dialog không thêm business CTA.
 
-- Dialog giữ URL/history/tag/category, khóa cuộn nền và cô lập focus. Đóng bằng nút, Escape hoặc nền ngoài ảnh trả về đúng nút mở và vị trí cuộn. Escape trong dialog chỉ đóng dialog; không đồng thời lùi detail. Khi đổi route/photo hoặc unmount phải dọn dialog/scroll lock/listener.
+- Dialog giữ URL/history/tag/category, khóa cuộn nền và cô lập focus. Đóng bằng nút, Escape hoặc chạm/click nền ngoài ảnh trả về đúng nút mở và vị trí cuộn; cử chỉ vuốt hoặc kéo bắt đầu trên nền không đóng dialog (L06, 04/10). Escape trong dialog chỉ đóng dialog; không đồng thời lùi detail. Khi đổi route/photo hoặc unmount phải dọn dialog/scroll lock/listener.
 
 Navbar detail dùng nguyên shared collapse/hide/reveal; không ép luôn hiện.
 Không có nút Back riêng. Mục Advertising không active underline khi đang xem

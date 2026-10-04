@@ -1039,6 +1039,43 @@ try {
     assert.equal(await page.locator("[data-advertising-photo-dialog]").evaluate((node) => node.open), false);
     return evidence;
   });
+
+  // L06: on the A05s in landscape, a swipe right after zoom-in began on the backdrop
+  // (image still fit-sized mid-animation) and closed the viewer on pointerdown.
+  await caseRun("viewer-backdrop-swipe-stays-open", { width: 838, height: 331 }, async (page, stage) => {
+    const cdp = await page.context().newCDPSession(page);
+    const dialogOpen = () => page.evaluate(() => document.querySelector("#advertising-photo-dialog").open);
+    const touch = async (from, to) => {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...from, id: 1 }] });
+      for (let step = 1; step <= 9; step++) {
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{
+          x: from.x + (to.x - from.x) * step / 9, y: from.y + (to.y - from.y) * step / 9, id: 1 }] });
+        await page.waitForTimeout(22);
+      }
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await page.waitForTimeout(400);
+    };
+    const evidence = [];
+    for (const locale of ["vi", "en"]) {
+      stage(`${locale}-swipe-from-backdrop-mid-zoom`);
+      await page.goto(href(`/${locale}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`));
+      await ready(page, "kiosk-posm-37");
+      await page.locator("[data-advertising-photo-expand]").click();
+      await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-in]").click());
+      const target = await page.evaluate(() => document.elementFromPoint(461, 265)?.matches("[data-advertising-photo-viewport]"));
+      assert(target, "swipe must start on the backdrop while the zoom animation runs");
+      await touch({ x: 461, y: 265 }, { x: 461, y: 83 });
+      assert(await dialogOpen(), "swipe from the backdrop closed the viewer");
+      stage(`${locale}-backdrop-tap-closes`);
+      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-reset]").click());
+      await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      await page.touchscreen.tap(20, 300);
+      await page.waitForFunction(() => !document.querySelector("#advertising-photo-dialog").open);
+      evidence.push({ locale, swipeKeptOpen: true, tapClosed: true });
+    }
+    return evidence;
+  }, { contextOptions: { isMobile: true, hasTouch: true, deviceScaleFactor: 2.625 } });
   await caseRun("p13-position-stuffing-and-remount", { width: 1329, height: 912 }, async (page, stage) => {
     stage("parent-prepaint");
     await installStuffingProbe(page, "[data-advertising-card]", "[data-project-grid]");
