@@ -104,8 +104,11 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
 
 - `src/site/style.css`: frame có ảnh con `/assets/content/` (trực tiếp hoặc
   qua `<picture>`) vẽ vòng SVG mảnh làm `background-image` ở giữa, nằm dưới
-  ảnh; ảnh vẽ xong thì che vòng. Chỉ dùng CSS nên vòng hiện ngay khi
-  stylesheet tới, không chờ `motion.js`; ảnh đã cache vẽ ngay nên không nháy.
+  ảnh. Chỉ dùng CSS nên vòng hiện ngay khi stylesheet tới, không chờ
+  `motion.js`; ảnh đã cache vẽ ngay nên không nháy. Ảnh `load` hoặc `error`
+  thì `motion.js` gắn `.is-media-settled` lên frame và `<picture>` để gỡ vòng,
+  vì SMIL vẫn vẽ lại dù ảnh đã che; ảnh xong trước khi script chạy được quét
+  qua `img.complete`.
   Bỏ qua project grid, viewer Advertising và client logo. Reduced motion dùng
   cung tĩnh. Thay `watchMediaLoading` cũ (JS, gắn sau khi `motion.js` chạy):
   A05s Slow 4G ngày 2026-10-04 trên trang chủ không thấy vòng vì ảnh tải xong
@@ -121,7 +124,7 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
 - Suggestion (`detail.css`): owner chọn ngày `2026-10-04` thanh chạy thay
   vòng xoay. Ô chưa chọn vẽ thanh SVG cao `2px` dọc cạnh dưới làm
   `background-image` dưới ảnh, như ảnh tĩnh; đoạn sáng chạy trái sang phải
-  `1,2 s`, ảnh vẽ xong thì che thanh. Ô đang chọn nền trắng, ảnh ẩn, không có
+  `1,2 s`, ảnh tải xong thì `.is-media-settled` gỡ thanh. Ô đang chọn nền trắng, ảnh ẩn, không có
   thanh. Ảnh kế tiếp của slideshow decode ngoài DOM trước khi chèn, nên không
   cần thanh. Reduced motion dùng thanh đứng yên. Test:
   `tests/site/advertising-suggestion-motion.e2e.mjs`.
@@ -179,12 +182,7 @@ loading state VI/EN trên mobile và desktop trước merge/deploy.
 
 ## Gate còn mở
 
-- Vòng CSS (`style.css`) và thanh nút gợi ý (`detail.css`) là SVG SMIL
-  `repeatCount="indefinite"` trong `background-image`, vẫn quay sau khi ảnh che
-  vòng nên trình duyệt vẽ lại liên tục: `/vi/residential/` 1440 px, 2 giây nhàn
-  rỗi 509 Paint, bỏ background còn 311 (QA 04/10, PR #46).
-- Selector vòng khớp `article.editorial-item`; ở 390 px ảnh 167 px trong khung
-  350 px nên vòng không bị che (suy luận từ review, chưa đo).
+Không có.
 
 ## Chú thích thuật ngữ
 
@@ -193,4 +191,3 @@ loading state VI/EN trên mobile và desktop trước merge/deploy.
 - **Indeterminate**: chưa biết tổng byte nên không tính được phần trăm thật.
 - **Decode**: bước browser chuyển bytes ảnh thành bitmap sẵn sàng hiển thị.
 - **SMIL**: cú pháp animation khai báo trong SVG.
-- **Paint**: lần trình duyệt vẽ lại pixel, đo bằng DevTools trace.

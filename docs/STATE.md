@@ -51,9 +51,8 @@
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
   QA/audit 04/10 các PR #13–#29, #39 trên Chromium cloud: gate đỏ là test chưa
-  biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Còn mở: vòng tải
-  SMIL vẽ lại liên tục sau khi ảnh xong và bốn finding nhỏ, ghi ở "Gate còn mở"
-  của [vòng tải](specs/image-loading-progress.md#gate-còn-mở) và
+  biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Vòng tải đã
+  dừng khi ảnh xong. Còn mở: hai finding nhỏ ở "Gate còn mở" của
   [tải ảnh](specs/static-image-delivery.md#gate-còn-mở).
 - Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 performance thật,
   owner visual các đợt cũ chưa đóng. Editor skeleton tạm đã gỡ khỏi public

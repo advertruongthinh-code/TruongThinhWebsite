@@ -128,6 +128,7 @@ chính; P4 rút gọn vì bytes chi phối rõ (mục đo dưới). Contract hi�
 - Runtime Advertising (`advertising-products/responsive-image.mjs`): probe AVIF
   một lần; card grid dùng LazySizes `data-srcset` + `data-sizes="auto"`, card
   suggestion, carousel layer và thumb dùng `srcset` + `sizes="auto, ..."`;
+  ảnh kế của slideshow suggestion tải eager nên `sizes` ghim bằng width nút;
   viewer và expanded viewer dùng AVIF full khi browser hỗ trợ.
 
 Đo nhanh cloud ngày `2026-10-04`, Chromium, local preview, sau khi cuộn hết
@@ -210,14 +211,10 @@ cho tới khi số đo Sites đạt và rollback vẫn khả dụng.
 
 ## Gate còn mở
 
-- Slideshow gợi ý: ảnh kế đổi sang `loading="eager"` làm `sizes="auto, 50vw"`
-  rơi về `50vw`, có thể tải biến thể 960 cho nút 316 px (suy luận, chưa tái hiện).
 - `responsive-image.mjs` probe AVIF bất đồng bộ: deep link `?photo=` có thể
   render WebP trước rồi tải lại AVIF khi mở viewer (suy luận).
 - Placeholder eager `advertising-print-decals-cover.webp` trong
   `advertising-products/index.html` luôn tải nhưng runtime thay bằng AVIF.
-- `prepare-static-assets.mjs` chỉ kiểm `-W.webp` tồn tại nhưng ghi cả `-W.avif`
-  vào `<source>`; CI `--check` đang che.
 
 ## Chú thích thuật ngữ
 

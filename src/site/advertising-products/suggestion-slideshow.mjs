@@ -32,6 +32,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     const index = deck.findIndex(card => card.id === current?.dataset.advertisingSuggestionPhoto);
     const card = deck[(index + 1) % deck.length];
     const next = createImage(card);
+    // Eager drops "auto" from sizes; pin the button width before the request starts.
+    if (next.srcset) next.sizes = `${Math.ceil(rect.width)}px`;
     next.loading = "eager";
     next.dataset.advertisingSuggestionImageLayer = "next";
     next.dataset.advertisingSuggestionPhoto = card.id;
