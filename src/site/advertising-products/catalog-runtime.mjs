@@ -2702,6 +2702,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
   };
+  // Chrome silently drops history writes past 200 per 10 s, which lost photo pushes after a scroll.
+  // Scroll is written at most every 300 ms; a pending write is dropped once the entry changes.
+  let persistTimer = 0;
   const browseHistory = createAdvertisingBrowseHistoryController({
     cards,
     categories,
@@ -2714,6 +2717,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     getHref: () => window.location.href,
     getLogicalScroll,
     onApply({ browse, reason }) {
+      clearTimeout(persistTimer);
+      persistTimer = 0;
       syncLocaleLinks(browse);
       if (reason === "category") return;
       if (browse.photo) {
@@ -2803,7 +2808,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     browseHistory.persistCurrent();
   };
   const scheduleBrowsePersistence = () => {
-    if (ADVERTISING_ROOT_PATTERN.test(location.pathname)) captureScroll();
+    if (persistTimer || !ADVERTISING_ROOT_PATTERN.test(location.pathname)) return;
+    persistTimer = setTimeout(() => {
+      persistTimer = 0;
+      if (!controller.signal.aborted && ADVERTISING_ROOT_PATTERN.test(location.pathname)) captureScroll();
+    }, 300);
   };
   const updateVisualScroll = (event) => {
     const y = Number(event.detail?.y);

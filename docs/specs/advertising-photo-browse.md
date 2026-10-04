@@ -177,6 +177,7 @@ vẫn là phạm vi độc lập.
 - Navbar về danh mục đưa ảnh đang xem vào viewport grid, không tạo grid-detail morph. Đây là thao tác đi thẳng về grid; Browser Back vẫn phục hồi chuỗi A/B và vị trí grid gốc. Phải kiểm riêng trường hợp ảnh B đang xem ở xa ảnh A mở đầu.
 - Trước masonry → A, lưu category, logical scroll và `focusId=A` bằng `replaceState`, sau đó `pushState` A. Trước A → B, lưu detail state A rồi `pushState` B.
 - Chọn hoặc reset tag giữ hero, cập nhật related bằng `replaceState`, không tạo thêm một bước Back.
+- Cuộn chỉ ghi vị trí vào history tối đa mỗi 300 ms; Chrome bỏ qua lệnh ghi thứ 201 trong 10 giây, từng làm mất bước mở ảnh và Back nhảy sai entry (04/10). Smoke test Chromium bật lại giới hạn này.
 - Escape lùi một detail entry; direct link lùi về masonry chứa ảnh đó.
 - Query `photo` lạ fail-open về masonry dùng được và URL sạch. `tag` lạ bỏ filter nhưng giữ photo hợp lệ.
 - Locale switch VI/EN giữ nguyên photo ID, tag ID, history identity và layout state.

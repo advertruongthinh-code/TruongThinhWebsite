@@ -68,3 +68,39 @@ test("direct loads and reload play the route enter veil, then clear it", async (
   }
   await expect(page.locator("[data-project-grid] > noscript")).toBeHidden();
 });
+
+test("scrolling the advertising grid still lets a photo push its own entry", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.historyWrites = 0;
+    for (const method of ["pushState", "replaceState"]) {
+      const original = history[method];
+      history[method] = function (...args) {
+        window.historyWrites += 1;
+        return original.apply(this, args);
+      };
+    }
+  });
+  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await expect(page.locator("html")).not.toHaveClass(/route-enter/);
+  await page.waitForTimeout(1_000);
+  await page.mouse.move(400, 400);
+  const before = await page.evaluate(() => window.historyWrites);
+  for (let step = 0; step < 80; step += 1) {
+    await page.mouse.wheel(0, 60);
+    await page.waitForTimeout(40);
+  }
+  await page.waitForTimeout(400);
+  const writes = await page.evaluate(() => window.historyWrites) - before;
+  expect(writes, "scroll history writes").toBeLessThan(25);
+  const length = await page.evaluate(() => history.length);
+  const photo = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")].find((card) => {
+    const rect = card.getBoundingClientRect();
+    return rect.top > 120 && rect.bottom < innerHeight;
+  })?.dataset.advertisingCard);
+  expect(photo, "a fully visible card").toBeTruthy();
+  await page.locator(`[data-advertising-card="${photo}"] > a`).click();
+  await expect(page).toHaveURL(new RegExp(`[?&]photo=${photo}`));
+  expect(await page.evaluate(() => history.length)).toBe(length + 1);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/vi\/advertising-products\/(\?(?!.*photo=).*)?$/);
+});
