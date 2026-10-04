@@ -105,7 +105,8 @@ chiều cao dòng.
 
 - **Gutter:** `gutter` 35px, 25px ở max-width 1200px, 20px ở max-width 680px.
 - **Nhịp section:** `section-gap` 90px, 70px ở max-width 1200px, 64px ở
-  max-width 680px; `footer-top-gap` 64px, 48px ở max-width 750px.
+  max-width 680px; `footer-top-gap` 64px, 48px ở max-width 750px, 0 ở
+  Advertising lúc duyệt.
 - **Breakpoint hay dùng:** 1200, 1024, 980/981, 960/961, 750/751, 680, 578/579
   px. Kiểm layout ở 320, 390, 768, 1024, 1440px.
 - **Header:** ba track độc lập cho brand, nav và nút menu. Hàng expanded
@@ -115,8 +116,8 @@ chiều cao dòng.
 - **Advertising:** masonry tính bằng `layout-core.mjs`, không dùng CSS grid
   hoặc solver thứ hai; cột và gutter theo width ở
   [Masonry](components/Masonry/README.md#hình-học).
-- **Footer:** chỉ trụ sở, mạng xã hội, bản quyền; hai cột desktop, một cột
-  mobile. Lời mời và CTA nằm trước footer.
+- **Footer:** chỉ trụ sở, mạng xã hội, bản quyền; hai cột desktop, footer gọn
+  ở cửa sổ rộng `≤750px` hoặc cao `≤640px`. Lời mời và CTA nằm trước footer.
 - **Scrollbar:** desktop dùng track overlay 11px bên phải (Locomotive), không
   chiếm chỗ: thumb 7px, margin 2px, đen opacity 0.5; idle opacity 0, hiện khi
   cuộn, hover hoặc kéo; hover track `scaleX 1.45`; transition 0.3s; thumb

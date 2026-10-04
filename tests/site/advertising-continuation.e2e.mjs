@@ -201,8 +201,6 @@ async function snapshot(page) {
     const glassWidth = Number.parseFloat(glassStyle?.width) || 0;
     const ctaRect = cta?.getBoundingClientRect();
     const copyRect = cta.querySelector(".detail-cta__copy").getBoundingClientRect();
-    const headingRect = cta.querySelector("h2").getBoundingClientRect();
-    const linkRect = cta.querySelector(".detail-cta__copy a").getBoundingClientRect();
     const rootStyle = getComputedStyle(document.documentElement);
     const headerClearance = (Number.parseFloat(rootStyle.getPropertyValue("--header-collapsed-row-height")) || 0) + 20;
     const frameRects = [...document.querySelectorAll("[data-advertising-cta-frame]")]
@@ -235,9 +233,7 @@ async function snapshot(page) {
         .map((node) => node.dataset[document.documentElement.lang] || node.textContent.trim()))],
       ctaBottom: ctaRect.bottom - gridRect.top,
       ctaHeight: ctaRect.height,
-      copyTopRatio: (copyRect.top - ctaRect.top) / ctaRect.height,
       copyBottom: copyRect.bottom - ctaRect.top,
-      headingLinkGap: linkRect.top - headingRect.bottom,
       headerClearance,
       viewportHeight: innerHeight,
       layoutViewportWidth: document.documentElement.clientWidth,
@@ -587,13 +583,8 @@ try {
       assert(state.frontierGaps.length === state.columns
         && state.frontierGaps.every((gap) => gap !== null && Math.abs(gap - state.gridGap) <= 2),
       `${locale} ${viewport.width}x${viewport.height}: skeleton does not join each real-card column at the shared gap ${JSON.stringify(state.frontierGaps)}`);
-      assert(state.copyTopRatio >= expectedSkeletonRatio - 0.02,
-        `${locale} ${viewport.width}x${viewport.height}: CTA copy intrudes into the skeleton band`);
       assert(state.copyBottom <= state.ctaHeight + 1,
         `${locale} ${viewport.width}x${viewport.height}: CTA copy is clipped below the composition ${JSON.stringify({ copyBottom: state.copyBottom, ctaHeight: state.ctaHeight })}`);
-      const expectedCtaGap = viewport.width <= 960 ? 15 : viewport.width <= 1200 ? 25 : 35;
-      assert(Math.abs(state.headingLinkGap - expectedCtaGap) <= 1,
-        `${locale} ${viewport.width}x${viewport.height}: CTA heading-to-link gap differs from the accepted responsive gap`);
       assert(state.frameCount >= state.columns && state.frontierCoverage >= -1,
         `${locale} ${viewport.width}x${viewport.height}: skeleton frontier stops before glass (${state.frontierCoverage}px)`);
       if (viewport.width === 360 && viewport.height === 800) {
@@ -670,10 +661,11 @@ try {
       }
       assert(hiddenFlowStates.every(({ state: flowState }) => flowState === "paused"),
         `${locale} ${viewport.width}: offscreen Flow is running`);
-      assert(state.paintOverflow > 0 && state.paintOverflow <= state.gridGap + 1,
-        `${locale} ${viewport.width}: skeleton paint must cross the logical grid bottom by only one gap`);
-      assert(Math.abs(state.boundaryBottom - state.ctaBottom - state.gridGap) <= 1.5,
-        `${locale} ${viewport.width}: global glass endpoint does not cover the visual overflow`);
+      assert(Math.abs(state.paintOverflow) <= 1,
+        `${locale} ${viewport.width}: the skeleton batch must end on the footer`);
+      assert(Math.abs(state.boundaryBottom - state.ctaBottom) <= 1.5,
+        `${locale} ${viewport.width}: global glass endpoint differs from the batch bottom`);
+      assert.equal(state.footerTopGap, 0, `${locale} ${viewport.width}: Advertising keeps a gap above the footer`);
       assert(Math.abs(state.gridHeight - state.ctaBottom) <= 1.5,
         `${locale} ${viewport.width}: skeleton overflow increased the logical grid height`);
       assert(Math.abs(state.footerGap - state.footerTopGap) <= 2,
@@ -682,14 +674,40 @@ try {
       const finalViewport = await page.evaluate(async () => {
         const motion = window.TruongThinhMotion;
         const lastScroll = document.documentElement.scrollHeight - innerHeight;
+        // R6: 100px of scroll near the end moves the CTA copy 90px.
+        const copyNode = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
+        const copyTopAt = async (y) => {
+          if (!motion?.setLogicalScroll?.(y)) window.scrollTo(0, y);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          return copyNode.getBoundingClientRect().top;
+        };
+        const parallaxStep = await copyTopAt(lastScroll - 200) - await copyTopAt(lastScroll - 100);
         if (!motion?.setLogicalScroll?.(lastScroll)) window.scrollTo(0, lastScroll);
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         await new Promise((resolve) => setTimeout(resolve, 900));
+        const parallaxEnd = new DOMMatrixReadOnly(getComputedStyle(copyNode).transform).m42;
+        // The line reveal settles 0.1em above the layout box.
+        const headingNode = document.querySelector("[data-advertising-grid-cta] h2");
+        const fontSize = Number.parseFloat(getComputedStyle(headingNode).fontSize);
+        const lines = [...headingNode.querySelectorAll(".motion-line")];
+        for (let wait = 0; wait < 40 && lines.some((line) =>
+          Math.abs(new DOMMatrixReadOnly(getComputedStyle(line).transform).m42 + 0.1 * fontSize) > 0.5); wait += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        const lastLine = lines.at(-1) || [...headingNode.querySelectorAll("[data-motion-line-source]")].at(-1);
+        const leaf = [...lastLine.querySelectorAll("*")].filter((node) => !node.children.length).at(-1) || lastLine;
+        const probe = document.createElement("span");
+        probe.style.cssText = "display: inline-block; width: 0; height: 0;";
+        leaf.append(probe);
+        const baseline = probe.getBoundingClientRect().top;
+        probe.remove();
+        const lastLineBottom = lastLine.getBoundingClientRect().bottom;
         const cta = document.querySelector("[data-advertising-grid-cta]").getBoundingClientRect();
         const footer = document.querySelector("footer.site-footer").getBoundingClientRect();
         const heading = document.querySelector("[data-advertising-grid-cta] h2").getBoundingClientRect();
         const link = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy a").getBoundingClientRect();
-        return { ctaTop: cta.top, headingTop: heading.top, headingBottom: heading.bottom,
+        return { ctaTop: cta.top, ctaBottom: cta.bottom, headingTop: heading.top, headingBottom: heading.bottom,
+          baseline, lastLineBottom, fontSize, parallaxStep, parallaxEnd,
           linkTop: link.top, linkBottom: link.bottom, footerBottom: footer.bottom, viewportHeight: innerHeight,
           logical: motion?.getLogicalScroll?.(), target: lastScroll,
           scrollHeight: document.documentElement.scrollHeight,
@@ -701,8 +719,33 @@ try {
       assert(finalViewport.headingTop >= -1 && finalViewport.linkTop >= finalViewport.headingBottom - 1
         && finalViewport.linkBottom <= finalViewport.viewportHeight + 1,
       `${locale} ${viewport.width}x${viewport.height}: final viewport clips or overlaps CTA content ${JSON.stringify(finalViewport)}`);
+      // R1: the last line's baseline sits on the viewport centre; R5 windows keep the link one gap above the batch.
+      const expectedCtaGap = viewport.width <= 960 ? 15 : viewport.width <= 1200 ? 25 : 35;
+      const shortWindow = Math.abs(finalViewport.ctaBottom - finalViewport.linkBottom - expectedCtaGap) <= 1;
+      assert(shortWindow || Math.abs(finalViewport.baseline - finalViewport.viewportHeight / 2) <= 1,
+        `${locale} ${viewport.width}x${viewport.height}: CTA baseline is off the viewport centre ${JSON.stringify(finalViewport)}`);
+      assert(Math.abs(finalViewport.linkTop - finalViewport.lastLineBottom - expectedCtaGap) <= 1,
+        `${locale} ${viewport.width}x${viewport.height}: link is not one gap under the last heading line ${JSON.stringify(finalViewport)}`);
+      assert(finalViewport.fontSize >= 20.8 - 0.01, `${locale} ${viewport.width}x${viewport.height}: CTA heading under 1.3rem`);
+      assert(Math.abs(finalViewport.parallaxStep - 90) <= 1 && Math.abs(finalViewport.parallaxEnd) <= 0.5,
+        `${locale} ${viewport.width}x${viewport.height}: CTA parallax is not 10% slower or not zero at the end ${JSON.stringify(finalViewport)}`);
     }
   }
+
+  // R7: switching to reduced motion drops the CTA parallax offset at once.
+  const parallaxOffset = () => page.evaluate(async () => {
+    // The global reduced-motion rule leaves a 0.01ms transition, so read after a short wait.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
+    return new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
+  });
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight - innerHeight - 100));
+  const movingOffset = await parallaxOffset();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reducedOffset = await parallaxOffset();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  assert(Math.abs(movingOffset + 10) <= 0.5 && reducedOffset === 0,
+    `reduced motion keeps a CTA parallax offset (${movingOffset}, ${reducedOffset})`);
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });

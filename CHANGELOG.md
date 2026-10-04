@@ -4,6 +4,9 @@
 
 - Thêm `wrangler.static.toml` (assets-only) và `pnpm deploy:demo`; ChatGPT Sites
   không còn là đường phát hành. CMS Worker vẫn dormant.
+- CTA cuối trang Advertising: chân chữ dòng cuối tiêu đề nằm giữa viewport ở mọi
+  cỡ, có parallax; batch skeleton kéo tới sát footer. Footer gọn ở cửa sổ nhỏ;
+  footer mọi trang còn ba icon Facebook, TikTok, YouTube.
 
 ## 2026-09-25 — Sites version 2 (bản website hiện hành)
 

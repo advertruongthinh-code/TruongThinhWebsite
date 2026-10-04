@@ -2,7 +2,7 @@
 title: Brand shell và responsive runtime
 type: frontend
 status: accepted
-updated: 2026-09-28
+updated: 2026-10-04
 scrollbar_delta_approved: 2026-09-27
 viewport_delta_status: accepted
 viewport_delta_approved: 2026-09-27
@@ -32,8 +32,9 @@ related_reports:
 
 - Homepage footer là canonical markup cho năm route; route không được tự tạo
   biến thể footer khác.
-- Footer giữ statement và contact, hiển thị địa chỉ đã xác nhận, rồi bốn social
-  icon theo thứ tự Facebook, Instagram, TikTok, Pinterest.
+- Footer giữ statement và contact, hiển thị địa chỉ đã xác nhận, rồi ba social
+  icon theo thứ tự Facebook, TikTok, YouTube. Cửa sổ nhỏ dùng
+  [footer gọn](advertising-cta-center-parallax.md#r4-footer-ở-cửa-sổ-nhỏ-và-điện-thoại).
 - Khi chưa có URL thật, social item vẫn nhìn thấy nhưng không có `href`, có
   `aria-disabled="true"` và không nhận focus như một link giả.
 - Nội dung VI là source. Leaf node có bản EN qua `data-en`; địa chỉ chính thức

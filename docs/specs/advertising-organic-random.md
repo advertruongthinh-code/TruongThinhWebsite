@@ -2,7 +2,7 @@
 title: Đặc tả đảo vị trí organic cho Advertising
 type: frontend
 status: accepted
-updated: 2026-09-25
+updated: 2026-10-04
 module_id: advertising-organic-random
 capability_map: mobile-browser-parity-capability-map.md
 related_docs:
@@ -125,8 +125,9 @@ evidence lịch sử và những điều kiện không liệt kê ở trên vẫ
   tính frontier mới. Preset/motion Flow, giới hạn WebGL, fade/blur trắng và
   reduced motion giữ contract hiện hành. Paint overflow của batch không tăng
   `scrollHeight`, không nhận pointer event và không che CTA/footer.
-- Khoảng cách từ chữ CTA đến footer giữ nguyên như website hiện tại ở cùng
-  viewport (sai số đo `≤1 CSS px`). Batch nối với đáy card thật theo gutter,
+- Vị trí chữ CTA và chiều cao batch theo
+  [CTA giữa viewport](advertising-cta-center-parallax.md) R1–R2, thay khoảng
+  CTA–footer cố định. Batch nối với đáy card thật theo gutter,
   top của skeleton đầu mỗi cột cách frontier card thật tối đa một inter-card
   gap (sai số `≤1 CSS px`), không thêm khoảng trắng độc lập; tại cuối trang vẫn
   thấy trọn CTA và footer trong một viewport như

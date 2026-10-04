@@ -266,6 +266,12 @@ assert(Math.min(...unevenBottoms.map((bottom) => bottom + 15)) >= 2_000,
   "an uneven mobile frontier must not stop at a fixed card-count budget");
 assert(frameLayout.every(({ height }) => height >= frameLayoutInput.cardWidth * 0.25),
   "skeleton ratio layout must omit thin residual frames");
+for (const layout of [frameLayout, mobileFrameLayout, unevenMobile]) {
+  const bottom = layout === frameLayout ? frameLayoutInput.boundaryBottom : layout === mobileFrameLayout ? 700 : 2_000;
+  const columnEnds = Object.values(Object.groupBy(layout, ({ column }) => column)).map((frames) => frames.at(-1));
+  assert(columnEnds.every(({ top, height }) => top + height === bottom),
+    "the last frame of each column must end on the batch bottom");
+}
 for (let column = 0; column < frameLayoutInput.columns; column += 1) {
   const columnFrames = frameLayout.filter((frame) => frame.column === column);
   assert(new Set(columnFrames.map(({ band }) => band)).size >= Math.min(3, columnFrames.length),

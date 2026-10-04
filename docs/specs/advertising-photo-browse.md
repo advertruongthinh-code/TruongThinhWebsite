@@ -675,8 +675,9 @@ Nhánh navbar trong correction này được thay bởi P7.5 bên dưới; giữ
 - Glass cuối skeleton kết thúc bằng trắng đặc, phủ chồng mép clip ít nhất2px;
   biên chuyển cong nhẹ, tâm ellipse phía footer, full bleed như contract cũ.
 - CTA và toàn footer cùng hiện ở cuối trang; vị trí CTA ổn định khi reload cùng
-  viewport. Giữ điểm thị giác cao hơn tâm hình học, không hard-code một khoảng
-  cách desktop cho mọi màn hình.
+  viewport. Chân chữ dòng cuối của CTA nằm giữa viewport theo
+  [CTA giữa viewport](advertising-cta-center-parallax.md) R1, thay điểm thị giác
+  cao hơn tâm hình học.
 
 ## Correction P7.5 — history, lingering và slideshow
 
