@@ -118,12 +118,12 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
   delay; card nhiều media giữ spinner `advertising-card-media__loading` sẵn
   có. Ảnh primary của viewer nhận `.media-load-ring` và `aria-busy` khi đổi
   ảnh chưa tải xong.
-- Suggestion (`detail.css`): ô chưa chọn vẽ cùng vòng SVG làm
-  `background-image` dưới ảnh, như ảnh tĩnh, cỡ `0.75rem` ở góc phải trên
-  (`right 2px top 2px`), nằm trong padding `12px` của nhãn nên không chạm chữ;
-  vòng giữa ô sẽ đè lên nhãn căn giữa. Ô đang chọn nền trắng, ảnh ẩn, không
-  có vòng. Ảnh kế tiếp của slideshow decode ngoài DOM trước khi chèn, nên
-  không cần vòng. Reduced motion dùng cung tĩnh. Test:
+- Suggestion (`detail.css`): owner chọn ngày `2026-10-04` thanh chạy thay
+  vòng xoay. Ô chưa chọn vẽ thanh SVG cao `2px` dọc cạnh dưới làm
+  `background-image` dưới ảnh, như ảnh tĩnh; đoạn sáng chạy trái sang phải
+  `1,2 s`, ảnh vẽ xong thì che thanh. Ô đang chọn nền trắng, ảnh ẩn, không có
+  thanh. Ảnh kế tiếp của slideshow decode ngoài DOM trước khi chèn, nên không
+  cần thanh. Reduced motion dùng thanh đứng yên. Test:
   `tests/site/advertising-suggestion-motion.e2e.mjs`.
 
 ## Giao diện module và nơi đặt code

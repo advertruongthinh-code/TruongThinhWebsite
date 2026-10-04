@@ -2446,17 +2446,17 @@ body.is-advertising-browse .advertising-grid {
   transition: background-color 250ms ease-out, border-color 250ms ease-out;
 }
 
-/* Ring painted behind the photo until it covers it; kept in the label padding so it never sits under the text. */
+/* Indeterminate bar painted along the bottom edge behind the photo until the photo covers it. */
 .advertising-photo-view__suggestion-link:not([aria-pressed="true"]) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke-width='2'%3E%3Ccircle cx='14' cy='14' r='13' stroke='%23ffffff2e'/%3E%3Cpath d='M14 1a13 13 0 0 1 13 13' stroke='%23ffffffb8'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 14 14' to='360 14 14' dur='0.9s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
-  background-position: right 2px top 2px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 2' preserveAspectRatio='none'%3E%3Crect width='100' height='2' fill='%23ffffff2e'/%3E%3Crect x='-30' width='30' height='2' fill='%23ffffffb8'%3E%3Canimate attributeName='x' from='-30' to='100' dur='1.2s' repeatCount='indefinite'/%3E%3C/rect%3E%3C/svg%3E");
+  background-position: left bottom;
   background-repeat: no-repeat;
-  background-size: 0.75rem;
+  background-size: 100% 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .advertising-photo-view__suggestion-link:not([aria-pressed="true"]) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke-width='2'%3E%3Ccircle cx='14' cy='14' r='13' stroke='%23ffffff2e'/%3E%3Cpath d='M14 1a13 13 0 0 1 13 13' stroke='%23ffffffb8'%3E%3C/path%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 2' preserveAspectRatio='none'%3E%3Crect width='100' height='2' fill='%23ffffff2e'/%3E%3Crect x='0' width='30' height='2' fill='%23ffffffb8'/%3E%3C/svg%3E");
   }
 }
 

@@ -122,15 +122,15 @@ try {
     borderWidth: "1px",
     labelColor: "rgb(32, 33, 32)",
   }, "active suggestion is white with black text and border");
-  const ring = (link) => link.evaluate((node) => {
+  const loadBar = (link) => link.evaluate((node) => {
     const style = getComputedStyle(node);
     return { image: style.backgroundImage, position: style.backgroundPosition, size: style.backgroundSize };
   });
-  const inactiveRing = await ring(inactiveLink);
-  assert.match(inactiveRing.image, /animateTransform/, "inactive suggestion paints the spinning loading ring behind its photo");
-  assert.deepEqual([inactiveRing.position, inactiveRing.size], ["right 2px top 2px", "12px"],
-    "suggestion ring stays in the label padding corner");
-  assert.equal((await ring(activeLink)).image, "none", "active suggestion has no loading ring behind its hidden photo");
+  const inactiveBar = await loadBar(inactiveLink);
+  assert.match(inactiveBar.image, /animate attributeName=.x/, "inactive suggestion paints the moving loading bar behind its photo");
+  assert.deepEqual([inactiveBar.position, inactiveBar.size], ["0% 100%", "100% 2px"],
+    "suggestion loading bar runs along the bottom edge");
+  assert.equal((await loadBar(activeLink)).image, "none", "active suggestion has no loading bar behind its hidden photo");
   await activeLink.hover();
   await page.waitForTimeout(650);
   const activeHoverMedia = await activeLink.evaluate((link) => [...link.querySelectorAll(".advertising-card-media__image")].map((image) => {
@@ -254,10 +254,10 @@ try {
   });
   assert.equal(reducedMedia.transform, "none", "reduced motion removes the shared media zoom");
   assert.equal(reducedMedia.duration, "0s", "reduced motion leaves no suggestion media transition");
-  const reducedRing = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
+  const reducedBar = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
     .evaluate((link) => getComputedStyle(link).backgroundImage);
-  assert.match(reducedRing, /svg/, "reduced motion keeps the suggestion loading ring");
-  assert.doesNotMatch(reducedRing, /animateTransform/, "reduced motion suggestion ring does not spin");
+  assert.match(reducedBar, /svg/, "reduced motion keeps the suggestion loading bar");
+  assert.doesNotMatch(reducedBar, /animate/, "reduced motion suggestion bar does not move");
   await reduced.close();
 
   const direct = await browser.newPage({ viewport: { width: 820, height: 1180 } });
