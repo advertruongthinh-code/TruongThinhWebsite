@@ -174,7 +174,7 @@ async function evidence(page) {
     const dialog = document.querySelector("[data-advertising-photo-dialog]");
     const foregroundStyle = styles(foreground);
     const backgroundStyle = styles(background);
-    const glassStyle = frame ? getComputedStyle(frame, "::after") : null;
+    const glass = frame?.querySelector(":scope > .glass-surface");
     const infoStyle = styles(info);
     const ctaStyle = styles(cta);
     const expandStyle = styles(expand);
@@ -286,10 +286,11 @@ async function evidence(page) {
       },
       minimum: { infoHeight: infoMinimumHeight, imageHeight: imageMinimumHeight, descriptionLineHeight },
       frameOverflow: styles(frame)?.overflow,
-      glass: glassStyle ? {
-        backgroundColor: glassStyle.backgroundColor,
-        backdropFilter: glassStyle.backdropFilter || glassStyle.getPropertyValue("-webkit-backdrop-filter"),
-        content: glassStyle.content,
+      glass: glass ? {
+        display: getComputedStyle(glass).display,
+        shape: glass.dataset.glassShape,
+        tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundColor,
+        steps: [...glass.querySelectorAll(".glass-surface__step")].map((step) => getComputedStyle(step).backdropFilter),
       } : null,
       containOverflow: Boolean(frameRect && foregroundRect
         && (foregroundRect.width < frameRect.width - 1 || foregroundRect.height < frameRect.height - 1)),
@@ -444,12 +445,10 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert.equal(actual.background.pointerEvents, "none", `${label}: background accepts pointer input`);
   assert.equal(actual.background.objectFit, "cover", `${label}: background must use object-fit cover`);
   assert.equal(actual.background.filter, "none", `${label}: source image still owns the blur effect`);
-  if (actual.containOverflow) {
-    assert.equal(actual.glass?.backdropFilter, "blur(28px) saturate(1.08) brightness(1.04)", `${label}: photo overflow changed the shared glass filter`);
-    assert.equal(actual.glass?.backgroundColor, "rgba(255, 255, 255, 0.12)", `${label}: photo overflow changed the shared glass tint`);
-  } else {
-    assert(["none", ""].includes(actual.glass?.backdropFilter), `${label}: fitted photo unexpectedly enables glass`);
-  }
+  assert.equal(actual.glass?.shape, "even", `${label}: photo overflow is not the even Kính`);
+  assert.equal(actual.glass.display, actual.containOverflow ? "block" : "none", `${label}: Kính does not follow contain overflow`);
+  assert.deepEqual(actual.glass.steps, ["blur(28px) saturate(1.7) brightness(1.04)"], `${label}: photo Kính is not one full step`);
+  assert.equal(actual.glass.tint, "rgba(255, 255, 255, 0.12)", `${label}: photo overflow changed the Kính tint`);
   assert(!actual.background.morph, `${label}: background participates in morph`);
   assert(["hidden", "clip"].includes(actual.frameOverflow), `${label}: hero frame does not clip decorative background`);
   if (actual.containOverflow) {
@@ -894,7 +893,7 @@ async function runP7PinterestContract(browser, locale) {
       const suggestion = document.querySelector("[data-advertising-suggestion-card]");
       const frameRect = frame?.getBoundingClientRect();
       const imageRect = image?.getBoundingClientRect();
-      const glass = frame ? getComputedStyle(frame, "::after") : null;
+      const glass = frame?.querySelector(":scope > .glass-surface");
       const items = [...(relatedGrid?.children || [])].filter((node) => node.getBoundingClientRect().width > 0);
       return {
         viewportHeight: visualViewport?.height || innerHeight,
@@ -909,7 +908,7 @@ async function runP7PinterestContract(browser, locale) {
           touchAction: getComputedStyle(pager).touchAction } : null,
         indicator: indicator ? { label: indicator.getAttribute("aria-label"), text: indicator.textContent.trim() } : null,
         containOverflow: Boolean(frameRect && imageRect && (imageRect.width < frameRect.width - 1 || imageRect.height < frameRect.height - 1)),
-        glassActive: Boolean(glass && glass.content !== "none" && (glass.backdropFilter || glass.getPropertyValue("-webkit-backdrop-filter")) !== "none"),
+        glassActive: Boolean(glass && getComputedStyle(glass).display !== "none"),
         suggestion: suggestion ? { first: items[0] === suggestion,
           inInfo: Boolean(suggestion.closest("[data-advertising-photo-info]")),
           inRelated: Boolean(suggestion.closest("[data-advertising-photo-related-grid]")),

@@ -11,8 +11,9 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 - Bốn cột (`split`): ảnh chiếm hai cột, chữ một cột; cao bằng viewport trừ
   header, gutter và 50px để lộ hàng ảnh dưới. Hai hoặc ba cột (`pinterest`):
   ảnh trên, chữ dưới, chữ cao tối đa 28% viewport.
-- Nền khung ảnh là bản sao cover và blur của chính ảnh, `aria-hidden`, không
-  nhận pointer; ảnh foreground giữ trọn tỷ lệ.
+- Ảnh foreground giữ trọn tỷ lệ. Khi còn chỗ trống quanh ảnh, nền khung là bản
+  sao cover của chính ảnh (`aria-hidden`, không nhận pointer) dưới
+  [Kính](../Glass/README.md) dạng phủ đều.
 - Nút `Xem lớn hơn` vuông 48px, viền 1px, neo phải trong vùng ảnh; mở
   [Viewer](../Viewer/README.md). Video có thêm nút tiếng.
 - Cột chữ: nhãn nhóm, mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
@@ -40,8 +41,7 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
 
 Rule đầy đủ: [photo browse](../../../docs/specs/advertising-photo-browse.md).
 
-Đã duyệt, chờ code: [Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ);
-kính vùng dư đổi sang [Kính](../../approved-designs.md#kính) dạng phủ đều.
+Đã duyệt, chờ code: [Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ).
 
 ## Chú thích thuật ngữ
 

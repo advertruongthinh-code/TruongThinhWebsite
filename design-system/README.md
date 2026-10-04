@@ -175,7 +175,7 @@ không sửa tay preview:
 | --- | --- |
 | Shell | [Header](components/Header/README.md), [Brand lockup](components/BrandLockup/README.md), [Full menu](components/FullMenu/README.md), [Footer](components/Footer/README.md), [Floating CTA](components/FloatingCta/README.md) |
 | Trang | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md) |
-| Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Vòng tải](components/LoadRing/README.md), [Thanh tải](components/LoadBar/README.md) |
+| Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Kính](components/Glass/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Vòng tải](components/LoadRing/README.md), [Thanh tải](components/LoadBar/README.md) |
 
 Mẫu chưa có preview riêng:
 

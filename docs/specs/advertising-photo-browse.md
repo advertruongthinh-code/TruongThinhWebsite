@@ -542,11 +542,11 @@ riêng morph giữa mọi masonry/related card và primary detail.
 
 - Bỏ hoàn toàn nút Back riêng trong primary photo. Điều hướng quay lại tiếp tục
   dùng Browser Back, Escape và navbar theo R3/R4; không thêm fallback control mới.
-- Vùng dư quanh ảnh chính dùng cùng glass surface với global skeleton boundary:
-  blur `28px`, saturation `1.08`, brightness `1.04` và tint trắng alpha `0.12`.
-  Glass phủ đều vùng dư, không tăng blur theo khoảng cách từ mép ảnh và không
-  blur trực tiếp source image. Source background tiếp tục sở hữu opacity/zoom;
-  chuyển động nhìn qua glass tạo phần zoom-blur tương ứng.
+- Vùng dư quanh ảnh chính dùng [Kính](glass-surface.md) dạng phủ đều; số blur,
+  độ rực, tint và hạt nhiễu thuộc spec đó. Kính phủ đều vùng dư, không tăng blur
+  theo khoảng cách từ mép ảnh và không blur trực tiếp source image. Source
+  background tiếp tục sở hữu opacity/zoom; chuyển động nhìn qua kính tạo phần
+  zoom-blur tương ứng.
 - Nút `Xem lớn hơn`/`View larger` khi mở nhãn phải có khoảng cách vật lý hai đầu
   bằng nhau, tolerance `1px`, không wrap. Trạng thái đóng vẫn là control icon
   vuông hiện hành và không làm ảnh reflow.

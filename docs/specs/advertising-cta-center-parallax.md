@@ -17,7 +17,7 @@ Cuối masonry Advertising, chân chữ dòng cuối của tiêu đề "Dấu �
 dành cho thương hiệu của bạn" nằm đúng đường giữa viewport, nút "Trao đổi ý
 tưởng" ngay dưới, có parallax, ở mọi cỡ cửa sổ. Batch skeleton dưới CTA co giãn
 để chân chữ tới đúng giữa; footer gọn ở cửa sổ nhỏ để vùng CTA là vùng chính.
-Footer mọi trang có ba icon mạng xã hội. Skeleton và glass thuộc spec skeleton.
+Footer mọi trang có ba icon mạng xã hội. Skeleton thuộc spec skeleton, kính thuộc [Kính](glass-surface.md).
 
 ## Hành vi
 

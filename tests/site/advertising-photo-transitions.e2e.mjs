@@ -1772,8 +1772,12 @@ try {
         semanticIntruders: grid?.querySelectorAll('[role="listitem"]:not([data-advertising-card])').length || 0,
         ready: skeleton?.dataset.advertisingCtaReady === "true",
         signature: skeleton?.dataset.advertisingCtaSignature || null,
-        // R10: one full-bleed glass surface (::before of the grid section) owns the global fade.
-        skeletonGlass: skeleton ? (({ backgroundImage, backdropFilter }) => ({ backgroundImage, backdropFilter }))(getComputedStyle(skeleton.closest(".project-index"), "::before")) : null,
+        // Kính dạng cung on the grid section owns the boundary blur and white (glass-surface.md R2-R3).
+        skeletonGlass: (({ glass = skeleton?.closest(".project-index")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
+          hidden: glass.hidden,
+          tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage,
+          blur: getComputedStyle(glass.querySelectorAll(".glass-surface__step")[4]).backdropFilter,
+        })({}),
         skeletonIsTile: skeleton?.classList.contains("advertising-tile") ?? null,
         viewportOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         viewportWidth: innerWidth,
@@ -1814,8 +1818,8 @@ try {
         assert(frames.every((frame) => frame.flowFilter === "none"), `${label}: Flow canvas retained a local blur/filter`);
         assert(frames.slice(1).every((frame, index) => frames[index].top < frame.top), `${label}: frame order in column ${column}`);
       }
-      assert(/linear-gradient/i.test(state.skeletonGlass?.backgroundImage) && /blur/.test(state.skeletonGlass?.backdropFilter),
-        `${label}: skeleton lacks the global glass boundary fade: ${JSON.stringify(state.skeletonGlass)}`);
+      assert(state.skeletonGlass?.hidden === false && /radial-gradient/i.test(state.skeletonGlass.tint) && /blur/.test(state.skeletonGlass.blur),
+        `${label}: skeleton lacks the arc Kính: ${JSON.stringify(state.skeletonGlass)}`);
       // P7.1: frames may paint past the logical grid bottom by at most one inter-card gap.
       const gap = state.viewportWidth <= 960 ? 15 : state.viewportWidth <= 1200 ? 25 : 35;
       const overflow = Math.min(state.skeletonClipBottom, Math.max(...state.frameStates.map((frame) => frame.top + frame.height))) - state.gridHeight;
@@ -2043,10 +2047,10 @@ try {
           transform: style.transform,
         };
       };
-      const glass = getComputedStyle(skeleton.closest(".project-index"), "::before");
+      const glass = skeleton.closest(".project-index").querySelector(":scope > .glass-surface[data-glass-shape=arc]");
       return {
         skeleton: stateOf(skeleton),
-        glass: { backgroundImage: glass.backgroundImage, backdropFilter: glass.backdropFilter },
+        glass: glass && { hidden: glass.hidden, tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage },
         frames: frames.map((frame) => ({
           ...stateOf(frame),
           surface: stateOf(frame.querySelector(".advertising-grid__cta-surface")),
@@ -2054,8 +2058,8 @@ try {
         photoBackdrop: document.querySelector("[data-advertising-photo-background]")?.getAnimations().length ?? 0,
       };
     });
-    assert(/linear-gradient/i.test(state.glass.backgroundImage) && /blur/.test(state.glass.backdropFilter),
-      `skeleton fade must be one global glass surface on its section (R10): ${JSON.stringify(state.glass)}`);
+    assert(state.glass?.hidden === false && /radial-gradient/i.test(state.glass.tint),
+      `skeleton boundary must be the arc Kính on its section: ${JSON.stringify(state.glass)}`);
     assert(state.frames.length > 0, "skeleton fixture has no frames");
     assert(state.frames.every(({ maskImage }) => maskImage === "none"),
       "skeleton frame retained a local mask instead of the global boundary fade");

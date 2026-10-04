@@ -85,9 +85,9 @@ try {
         const footer = document.querySelector("footer").getBoundingClientRect();
         const skeleton = document.querySelector(".advertising-grid__cta-skeleton").getBoundingClientRect();
         const section = document.querySelector(".project-index:has(.advertising-grid__cta-skeleton)");
-        const glass = getComputedStyle(section, "::before");
+        const tint = section.querySelector(":scope > .glass-surface .glass-surface__tint");
         return { copy: copy.toJSON(), footer: footer.toJSON(), edge: skeleton.bottom,
-          overlap: section.getBoundingClientRect().top + parseFloat(glass.top) + parseFloat(glass.height) - skeleton.bottom };
+          overlap: section.getBoundingClientRect().top + parseFloat(tint.style.top) + parseFloat(tint.style.height) - skeleton.bottom };
       });
       assert(geometry.copy.top >= 0 && geometry.copy.bottom < geometry.footer.top, JSON.stringify(geometry));
       assert(geometry.footer.bottom <= 911 && geometry.footer.top >= 0, JSON.stringify(geometry));

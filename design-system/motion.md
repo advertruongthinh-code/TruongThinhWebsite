@@ -173,9 +173,9 @@ outline. Touch không cần hover để mở ảnh.
 - Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, stagger theo vị trí như
   ảnh card; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
   không focus.
-- Cuối batch là một lớp kính rộng toàn trang: `blur(28px) saturate(1.08)
-  brightness(1.04)`, tint trắng alpha 0.12, rồi chuyển hẳn sang trắng ở đáy
-  batch; blur lên trước, trắng lên sau. CTA và footer nằm trên kính.
+- Cuối batch là [Kính](components/Glass/README.md) dạng cung, đứng yên: card
+  phía trên nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối. CTA và
+  footer nằm trên kính.
 - Chỉ frame trong viewport và tab đang hiện mới chạy; reduced motion hiện ngay
   và giữ frame tĩnh.
 
@@ -188,8 +188,8 @@ outline. Touch không cần hover để mở ảnh.
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 - Viewer: transform từ khung hero tới fit và ngược lại; zoom nội suy giữa fit,
   cover và hai lần cover; pan theo con trỏ tức thì, giới hạn theo ảnh đã phóng.
-- Nền primary là bản sao cover + blur, chỉ animate opacity và transform; lớp
-  kính `blur(28px) saturate(1.08) brightness(1.04)`, tint trắng alpha 0.12.
+- Nền primary là bản sao cover, chỉ animate opacity và transform; nhìn qua
+  [Kính](components/Glass/README.md) dạng phủ đều đứng yên.
 
 ## Chú thích thuật ngữ
 
