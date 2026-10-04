@@ -119,7 +119,9 @@ chính; P4 rút gọn vì bytes chi phối rõ (mục đo dưới). Contract hi�
 - HTML tĩnh: `prepare-static-assets.mjs` bọc `<img src=".../x.webp">` thành
   `<picture>` với `<source type="image/avif">` và `srcset`; khi không khai báo
   `sizes`, ảnh `loading="lazy"` dùng `sizes="auto, 100vw"` (browser lấy width
-  đã layout), ảnh eager dùng `100vw`. Bỏ qua ảnh `data-src`, đã có `srcset`, hoặc có thuộc tính
+  đã layout), ảnh eager dùng `100vw`. Ảnh hero `data-src` nhận
+  `data-srcset`, `motion.js` chép sang `srcset` lúc hydrate. Bỏ qua ảnh đã
+  có `srcset`, hoặc có thuộc tính
   `data-advertising-*` (runtime đổi `src`, `<source>` sẽ ghi đè). CSS đặt
   `picture { display: contents; }`; selector `X > img` có thêm
   `X > picture > img`.

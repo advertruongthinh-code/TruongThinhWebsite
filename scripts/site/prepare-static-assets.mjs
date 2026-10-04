@@ -221,22 +221,24 @@ const embedVietnameseText = (html, filePath) => {
 };
 
 // Wraps content WebP <img> tags in <picture> with AVIF and width variants from build-image-variants.mjs.
-// Images without variants on disk, lazy data-src images, images that already declare srcset and runtime-managed
-// Advertising images (the runtime swaps their src, which a <source> would override) stay unchanged.
+// Deferred data-src images get data-srcset, which motion.js copies when it hydrates them. Images without
+// variants on disk, images that already declare srcset and runtime-managed Advertising images (the runtime
+// swaps their src, which a <source> would override) stay unchanged.
 const RESPONSIVE_WIDTHS = [480, 960];
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
-    const src = tag.match(/\ssrc="(\/assets\/content\/[^"]+)\.webp"/)?.[1];
-    if (!src || /\s(?:data-src|srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.avif`))) return tag;
+    const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];
+    if (!src || /\s(?:srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.avif`))) return tag;
+    const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
     const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.webp`)));
     const set = (format) => [...widths.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
-    if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" srcset="${src}.avif">${tag}</picture>`;
+    if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" ${srcset}="${src}.avif">${tag}</picture>`;
     // Lazy images let the browser use their laid-out width ("auto"); 100vw is the fallback for older browsers.
     const declared = tag.match(/\ssizes="([^"]+)"/)?.[1];
     const sizes = declared || (/\sloading="lazy"/.test(tag) ? "auto, 100vw" : "100vw");
-    const img = tag.replace(/^<img\b/, `<img srcset="${set("webp")}"${declared ? "" : ` sizes="${sizes}"`}`);
-    return `<picture><source type="image/avif" srcset="${set("avif")}" sizes="${sizes}">${img}</picture>`;
+    const img = tag.replace(/^<img\b/, `<img ${srcset}="${set("webp")}"${declared ? "" : ` sizes="${sizes}"`}`);
+    return `<picture><source type="image/avif" ${srcset}="${set("avif")}" sizes="${sizes}">${img}</picture>`;
   });
 
 const localizeHtmlOutput = async (directory) => {
