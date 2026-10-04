@@ -144,7 +144,7 @@ Các giá trị trong frontmatter là token normative. Mục nào ghi **accepted
 - Nhận diện theo [Brand lockup](#brand-lockup--nguồn-chuẩn); blue/orange là accent.
 - Motion có reduced-motion final state và không sở hữu nội dung.
 
-Nguồn chính: `src/site/style.css:1-14`, `src/site/style.css:83-84`, `docs/specs/frontend-route-and-content.md`, `docs/design/style-guide.md`. Dynamic visual audit chưa chạy trong task này; canonical parity hiện vẫn **NOT PASS** vì các row `fail`, `blocked` và `unmapped` còn tồn tại, không được suy ra PASS từ việc thiếu run.
+Nguồn chính: `src/site/style.css:1-14`, `src/site/style.css:83-84`, `docs/specs/frontend-route-and-content.md`, `design-system/README.md`. Dynamic visual audit chưa chạy trong task này; canonical parity hiện vẫn **NOT PASS** vì các row `fail`, `blocked` và `unmapped` còn tồn tại, không được suy ra PASS từ việc thiếu run.
 
 ## Colors
 
@@ -270,8 +270,8 @@ Menu button và CTA không dùng pill treatment. Việc thêm radius cho card, f
 
 ## Components
 
-Shared choreography: [Motion design system](design-system/motion.md). Component
-geometry: [Patterns](docs/design/patterns.md). Runtime/API: [Components guide](docs/design/components.md).
+Shared choreography: [Motion design system](design-system/motion.md). Component:
+[Design System](design-system/README.md#components). Runtime/API: [Advertising spec](docs/specs/advertising-products-turnkey-services.md#runtime-api).
 
 Các component dưới đây là pattern đã quan sát hoặc contract đã chấp nhận. Public source là static markup + shared CSS/runtime; tên mô tả không phải API mới.
 
@@ -384,7 +384,7 @@ xem khi source website thay đổi.
 
 **Integration và evidence:** DOM/lifecycle/QA thuộc
 [brand shell spec](docs/specs/frontend-brand-shell-responsive-runtime.md);
-reuse entrypoint thuộc [component guide](docs/design/components.md#public-shell-static-markup).
+reuse entrypoint thuộc [reuse contract](docs/specs/frontend-route-and-content.md#shell-tĩnh).
 Không dùng report cũ làm PASS cho LOGO-R3.
 
 ### Editorial project tile

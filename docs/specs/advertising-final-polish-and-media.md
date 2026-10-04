@@ -4,7 +4,7 @@
 
 **Provenance:** snapshot đã duyệt ở `.tmp/orchestration/advertising-consolidated-spec-20260911/spec-draft.md`, SHA256 `9D3AD0BD6BC5A9FE02AEA44DB512561FD429CC937B01A463DB0641D1A14F3A16`. File này chuyển nội dung đã duyệt sang Git, đổi cách trình bày và trạng thái, không đổi acceptance. Chưa commit/push; link GitHub không đại diện delta local.
 
-**Thứ tự ưu tiên:** bản này sở hữu delta D/C/B/M/Q. Trong phạm vi được nêu, thay các rule cũ về ngưỡng ảnh, giảm N, vị trí suggestion và nội dung cuối Advertising của [photo browse](advertising-photo-browse.md). Ngoài delta, giữ [DESIGN](../../DESIGN.md), [patterns](../design/patterns.md), [content](../../design-system/content.md), [motion](../../design-system/motion.md) và [brief/rubric ảnh](../../design-system/advertising-images.md). Evidence P1.3/P1.4 không tự nghiệm thu delta mới.
+**Thứ tự ưu tiên:** bản này sở hữu delta D/C/B/M/Q. Trong phạm vi được nêu, thay các rule cũ về ngưỡng ảnh, giảm N, vị trí suggestion và nội dung cuối Advertising của [photo browse](advertising-photo-browse.md). Ngoài delta, giữ [DESIGN](../../DESIGN.md), [hình học masonry](advertising-grid-span-organic.md#hình-học-masonry-grid-r4-visual), [content](../../design-system/content.md), [motion](../../design-system/motion.md) và [brief/rubric ảnh](../../design-system/advertising-images.md). Evidence P1.3/P1.4 không tự nghiệm thu delta mới.
 
 ## Mục tiêu và phạm vi
 
@@ -356,7 +356,7 @@ node tests/site/site.e2e.cjs
 ```
 Plan bổ sung scoped cases cho skeleton/CTA/hero/masonry/header vào harness sẵn có; không dùng pnpm qa:site trần để mở full canonical đã ngoài scope. Browser controls/contrast/performance phải đo đúng state; không suy từ build.
 
-Khi triển khai: cập nhật nguồn Git sở hữu contract — docs/specs/advertising-photo-browse.md, DESIGN.md, docs/design/patterns.md, design-system/content.md nếu copy/use-site đổi, design-system/advertising-images.md nếu có correction mới, acceptance manifests và verification tương ứng. Notion tiếp tục giữ status/plan và link Git; không thay evidence observed của phiên bản trước thành proof của delta này.
+Khi triển khai: cập nhật nguồn Git sở hữu contract — docs/specs/advertising-photo-browse.md, DESIGN.md, docs/specs/advertising-grid-span-organic.md (hình học masonry), design-system/content.md nếu copy/use-site đổi, design-system/advertising-images.md nếu có correction mới, acceptance manifests và verification tương ứng. Notion tiếp tục giữ status/plan và link Git; không thay evidence observed của phiên bản trước thành proof của delta này.
 
 ## Ranh giới và duyệt
 

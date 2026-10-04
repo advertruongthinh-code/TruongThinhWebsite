@@ -77,7 +77,7 @@ Ràng buộc public:
 - Xanh biển và cam là điểm nhấn; nền ưu tiên giấy sáng, vật liệu và hình ảnh.
 - Giữ nhận diện Trường Thịnh; visual contract và implementation gap theo
   [design system](DESIGN.md#brand-lockup--nguồn-chuẩn), ứng dụng/favicon theo
-  [style guide](docs/design/style-guide.md#typography-và-hierarchy).
+  [Brand lockup](design-system/components/BrandLockup/README.md).
 - Không dùng khuôn mặt nhận diện, ngoại trừ `assets/content/shared/legacy-team.webp` đã được owner duyệt.
 
 ## Evidence on Hand
@@ -88,7 +88,7 @@ Các nguồn chuẩn đã đọc cho bản ghi này:
 - Địa chỉ đã xác nhận: `docs/decisions/head-office-address-confirmed.md`.
 - Public source: `src/site/`, đặc biệt `src/site/style.css`, các route locale và `src/site/advertising-products/`.
 - Architecture boundary: `docs/architecture/index.md`.
-- Brand geometry và tone: `docs/design/style-guide.md`.
+- Brand geometry và tone: `design-system/README.md`.
 - Inventory/provenance của R1: `.tmp/docs-living/design-inventory.md` và `.tmp/docs-living/reference-inventory.md`.
 
 Trạng thái bằng chứng:
