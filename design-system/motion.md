@@ -6,10 +6,7 @@ Chuyển động của website Trường Thịnh, viết theo runtime đang ch�
 skeleton, viewer). Định dạng token không có family motion, nên mọi timing nằm ở
 đây.
 
-Phần lớn motion học từ Espacio Home Design: header collapse và ẩn/hiện, route
-veil, full menu, hover và fade ảnh card dùng cùng nhịp đã đo ở
-[Motion Espacio](reference-espacio-motion.md). Phần riêng của Trường Thịnh:
-FLIP và đổi màu logo, reduced motion, toàn bộ luồng Advertising.
+Nguồn tham khảo của nhịp motion ghi ở [README](README.md#nguồn-tham-khảo).
 
 ## Nguyên tắc
 
@@ -31,12 +28,16 @@ FLIP và đổi màu logo, reduced motion, toàn bộ luồng Advertising.
 
 | Chuyển động | Thông số |
 | --- | --- |
-| Header collapse | Khi `scrollY > 100`. Transition `1s cubic-bezier(0, 0, .1, .99)` |
+| Header intro | Chỉ khi tải trực tiếp: lockup `scale 0 → 1` `1.5s power4.out`; mục nav `y -150 → 0` `1.5s power4.out`, stagger 0.1, tại 0.3s; hamburger `scaleX 0 → 1` `1s power4.out` tại 1.5s. Vào bằng route mềm thì không chạy lại |
+| Header collapse | Khi `scrollY > 100`. Transform `1s cubic-bezier(0, 0, .1, .99)`; padding, nền, viền, màu `0.3s ease-out` |
+| Đổi tone header | Chữ nav và nét hamburger đổi màu cùng lúc `0.3s expo.out` theo `data-header-tone` của section dưới header |
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |
-| Route veil | Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; veil nằm dưới header, header bỏ `is-hidden` khi bắt đầu chuyển route |
+| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; body có `is-transitioning` trong lúc chuyển |
 | Route từ full menu | Menu reverse và route cover chạy đồng thời; URL chỉ commit khi cả hai xong |
-| Hover underline nav | `scaleX(0 → 1)`, `0.3s`; mục Advertising ở trang detail không gạch chân khi nghỉ |
+| Underline nav, footer, menu | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover hoặc đang chọn neo trái; mục Advertising ở trang detail không gạch chân khi nghỉ |
+| Hamburger, nút đóng menu | Hover `0.3s ease-out`: hamburger dòng trên, dưới `scaleX(.5)`, dòng giữa `scaleX(2)`; nút đóng xoay hai nét 90°; nhấn `scale(.8)` |
+| Floating CTA | Hiện trong viewport đầu và 1.75 viewport cuối trang; trượt `translateX(130%) → 0` trong `1s cubic-bezier(.63, 0, .08, 1)` |
 | Smooth scroll | Locomotive trên desktop; mobile dùng scroll native |
 
 ### Lockup header
@@ -50,7 +51,9 @@ FLIP và đổi màu logo, reduced motion, toàn bộ luồng Advertising.
 
 ### Full menu
 
-Timeline GSAP mở trong `motion.js`:
+Timeline GSAP mở trong `motion.js`. Cột thời điểm là vị trí trong timeline;
+timeline chạy `timeScale 1.15` nên giây thật bằng vị trí chia 1.15 (shutter
+phủ xong khoảng 0.91s). Chữ chỉ hiện sau khi shutter phủ xong.
 
 | Phần | Thông số |
 | --- | --- |
@@ -60,7 +63,8 @@ Timeline GSAP mở trong `motion.js`:
 | Brand, locale, CTA hẹn | `y -140` (brand) hoặc `-20`, `0.6s expo.out`, tại `1.15s`; mark có màu CMYK ngay từ frame đầu |
 | Mục con | `y -20 → 0`, `0.6s expo.out`, stagger `0.03`, tại `1.35s` |
 | Nút đóng | opacity `0 → 1`, rotate `90° → 0`, `0.6s expo.out`, tại `1.4s` |
-| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
+| Page scale | trang phía sau `scale 1 → 0.9`, `0.7s power2.out`, origin `50vw 50vh`, ngoài timeline; khi đóng, timeline reverse `timeScale 2.25`, scale về 1 sau delay `0.85s` |
+| Đường kẻ | CSS, ngoài timeline: dưới hàng đầu `scaleX 0 → 1` `0.7s cubic-bezier(.56, 0, .38, 1)` sau 0.7s; giữa các cột `scaleY 0 → 1` `0.3s linear`, delay 0.9, 1.1, 1.3, 1.5s |
 
 ## Text
 
@@ -71,7 +75,7 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | --- | --- | --- |
 | Line reveal | `data-motion-lines` | `1.9s power4.out`, stagger `0.1s`, khi vào viewport |
 | Word fade | `data-motion-words` | `1s expo.out`, stagger `0.2s` |
-| Scroll cue | `[data-scroll-cue-label]` | Character split, vòng lặp hiện hành |
+| Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` và rời thứ tự Tab |
 | Media reveal | `data-motion-media` | `0.6s cubic-bezier(0, 0, .26, 1)` (`--ease`) |
 
 Route và target:
@@ -87,8 +91,18 @@ Entrance Advertising khi tải trực tiếp: kicker `opacity 0, x -60px`, delay
 delay `0.6s`; filter `opacity 0, y 20px`, delay `1.3s`, `1s expo.out`, stagger
 `0.15s`. Đổi ngôn ngữ chỉ cập nhật text, URL, ARIA trên node filter hiện có.
 
-Trang chủ: hero slideshow zoom `scale 1.06 → 1` trong `5s sine.inOut`, chuyển
-slide mờ `1.6s power2.inOut`; dừng khi hero ngoài viewport hoặc tab ẩn.
+Trang chủ:
+
+- Hero slideshow zoom `scale 1.06 → 1` trong `5s sine.inOut`, chuyển slide mờ
+  `1.6s power2.inOut`; dừng khi hero ngoài viewport hoặc tab ẩn. Word fade
+  tiêu đề bắt đầu tại 0.9s.
+- Dòng heritage `y 2em → -0.1em`, `1.9s power4.out`; dòng `--delay` trễ 0.3s.
+  Ảnh xen chữ `scale 0.9 → 1` và `opacity 0 → 1`, `0.6s` `--ease`, delay 0.6s.
+- Portal: dòng tiêu đề `y → -0.1em` `1.9s power4.out`, delay 0, 0.3, 0.6s
+  theo cột; phụ đề `opacity 0.3s ease-out`, delay 0.3, 0.6, 0.9s.
+- Rail dự án trượt `translate 60px → 0`, `0.6s` `--ease`. Đoạn văn legacy
+  `opacity 0.6s ease-out`, delay 0.3s.
+- Marquee chạy vòng `25s linear`.
 
 ## Hover
 

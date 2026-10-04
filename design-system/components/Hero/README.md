@@ -9,9 +9,7 @@ hình, giống màn giới thiệu level hay chapter mới trong game. Markup
 
 - Nguồn cảm hứng owner chọn: chữ lớn mở cảnh của
   [Resident Evil Requiem](https://www.jank.cool/resident-evil-requiems-big-text-splashes-explained/)
-  và màn vào level, chapter mới của game Control Resonant. Nhịp, weight và
-  motion học theo Espacio; số đo hero Espacio từng trang ở
-  [Hero Espacio](../../reference-espacio-hero.md).
+  và màn vào level, chapter mới của game Control Resonant.
 - Chữ là nhân vật chính: một kicker nhỏ phía trên, tiêu đề hai dòng rất lớn,
   không nút, không đoạn văn dài.
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
@@ -28,19 +26,43 @@ hình, giống màn giới thiệu level hay chapter mới trong game. Markup
 | About | Ảnh đội ngũ, shade thêm lớp ngang | `clamp(5.4rem, 9vw, 10.2rem)`, line-height 0.87, chữ thường; dòng 1 weight 500, dòng 2 700 nghiêng thụt `0.78em`; kicker 500 | Căn trái |
 | Advertising | `paper`, chữ `ink` | Chữ hoa 600, `clamp(3.05rem, 7.2vw, 7rem)`, line-height 1.4; dòng 2 nhỏ hơn | Căn trái, cao `100svh - 50px` |
 
-Đo ở 1440×900 (computed style): trang chủ 129.6px; Residential 102.96/97.2px;
-Commercial 92/66.4px; About 129.6px; Advertising 103.68/87.2px.
-
 Hero ảnh cao `100svh` (tối thiểu 42–46rem tùy trang); tới 980px chuyển sang
 luồng chữ tự nhiên để chữ tăng 200% không đè header. Ảnh đầu tải ngay với
 `fetchpriority="high"`.
+
+## Theo width
+
+Font-size/line-height dòng 1 | dòng 2 (px) và chiều cao hero, đo trên website
+ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
+
+| Trang | 320 | 390 | 768 | 1024 | 1440 |
+| --- | --- | --- | --- | --- | --- |
+| Trang chủ | 65.6/56.42 | 74.1/63.73 | 80/68.8 | 92.16/79.26 | 129.6/111.46 |
+| Residential | 40/56 \| 26.24/36.74 | 46.8/65.52 \| 31.98/44.77 | 54.91/76.88 \| 51.84/72.58 | 73.22/102.5 \| 69.12/96.77 | 102.96/144.14 \| 97.2/136.08 |
+| Commercial | 24/33.6 \| 17.6/24.64 | 29.25/40.95 \| 21.45/30.03 | 57.6/80.64 \| 40.7/56.99 | 76.8/107.52 \| 54.27/75.98 | 92/128.8 \| 66.4/92.96 |
+| About | 70.4/61.25 | 78/67.86 | 86.4/75.17 | 92.16/80.18 | 129.6/112.75 |
+| Advertising | 29.12/40.77 \| 22.08/30.91 | 35.49/49.69 \| 26.91/37.67 | 55.3/77.41 \| 48.38/67.74 | 73.73/103.22 \| 64.51/90.32 | 103.68/145.15 \| 87.2/122.08 |
+
+| Trang | Cao hero 320–390 | 768 | 1024–1440 |
+| --- | ---: | ---: | ---: |
+| Trang chủ | 560 | 608 | 900 |
+| Residential, Commercial | 844 | 900 | 900 |
+| About | 704 | 736 | 900 |
+| Advertising | 794 | 850 | 850 |
+
+- Trang chủ và About dùng một cỡ cho hai dòng; dòng 2 nghiêng.
+- Khung chữ ở 1440: x 220, rộng 1000 (Residential, Commercial, Advertising);
+  trang chủ x 35; About x 64.
+- Kicker 16/22.4 (14/19.6 ở Residential, Commercial tới 390px).
+- Scroll cue chữ hoa 12.8/17.92, cách đáy hero 45px (`> 1200`), 30px
+  (`<= 1200`), 60px (`<= 750`); không nhận click khi đã ẩn.
 
 ## Motion
 
 - Tiêu đề: word fade `data-motion-words`, `1s expo.out`, stagger `0.2s`.
 - Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`.
 - Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh About `scale 1.2 →
-  1.005`, `2.5s ease` (cùng số đo hero zoom của Espacio).
+  1.005`, `2.5s ease`.
 - Trang chủ: slideshow zoom `scale 1.06 → 1` trong `5s sine.inOut`.
 - Reduced motion hiện ngay trạng thái cuối. Chi tiết ở
   [Motion](../../motion.md#text).

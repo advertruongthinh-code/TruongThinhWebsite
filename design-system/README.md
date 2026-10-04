@@ -16,9 +16,9 @@ trắng rộng và nhịp editorial để ảnh và typography dẫn câu chuy�
 - Khung vuông, mặt phẳng, không đổ bóng container.
 - Blue và orange là accent hiếm, có chủ đích.
 - Motion phục vụ nội dung; reduced motion luôn có trạng thái cuối đầy đủ.
-- Phần lớn layout và motion học từ [Espacio Home Design](https://espaciohomedesign.com/)
-  (số đo ở [Tham chiếu Espacio](reference-espacio.md)); giữ màu, font, logo,
-  nội dung và ảnh của Trường Thịnh, không chép source hay media.
+- Layout, nhịp chữ và motion có [nguồn tham khảo](#nguồn-tham-khảo) bên
+  ngoài; màu, font, logo, nội dung, ảnh là của Trường Thịnh. Mọi số đo trong
+  Design System là của website Trường Thịnh.
 
 Tài liệu kèm theo:
 
@@ -26,9 +26,6 @@ Tài liệu kèm theo:
   token không có family motion nên mọi timing nằm ở đây.
 - [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
 - [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
-- [Tham chiếu Espacio](reference-espacio.md): số đo site tham chiếu (header,
-  chữ, layout), kèm [Hero Espacio](reference-espacio-hero.md) và
-  [Motion Espacio](reference-espacio-motion.md).
 
 `DESIGN.md` ở gốc repo được sinh từ README này và `tokens.json` cho
 Impeccable; sửa ở đây rồi chạy `node scripts/docs/build-design-md.mjs`.
@@ -79,6 +76,24 @@ nền giấy luôn là trọng tâm.
 `tokens.json` ghi mức trần của các size `clamp()` vì định dạng token không
 nhận hàm; CSS giữ `clamp()`.
 
+Đo trên website ngày 2026-10-04 (font-size/line-height px). Tiêu đề hero từng
+trang ở [Hero](components/Hero/README.md#theo-width).
+
+| Vai trò | 320 | 390 | 768 | 1024 | 1440 | Weight |
+| --- | --- | --- | --- | --- | --- | --- |
+| Kicker hero | 14/19.6 hoặc 16/22.4 | 14/19.6 hoặc 16/22.4 | 16/22.4 | 16/22.4 | 16/22.4 | 700 hoa; About 500 |
+| Eyebrow section | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 700 hoa |
+| Đoạn mở đầu detail | 23.2/32.48 | 23.2/32.48 | 24.8/34.72 | 24.8/34.72 | 31.68/44.35 | 500 |
+| Tiêu đề editorial About | 52/52 | 52/52 | 48/48 | 59.39/59.39 | 83.52/83.52 | 600 |
+| Tiêu đề CTA Advertising | 28.16/33.79 | 32/38.4 | 40/48 | 46.08/55.3 | 64.8/77.76 | 600 |
+| Nav header | ẩn | ẩn | 16/22.4 | 16/22.4 | 16/22.4 | 700 hoa |
+| Caption, scroll cue | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 700 hoa |
+| Số nhóm full menu | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 500 |
+| Tiêu đề nhóm full menu | 28.8/40.32 | 28.8/40.32 | 28.8/40.32 | 28.8/40.32 | 28.8/40.32 | 600 hoa |
+| Mục full menu | 13.6/22.4 | 13.6/22.4 | 13.6/22.4 | 13.6/22.4 | 13.6/22.4 | 700 hoa |
+
+Kicker hero 14/19.6 ở Residential và Commercial tới 390px.
+
 **Quy tắc đọc trước.** Display tạo nhịp, body truyền thông tin, label định vị
 control. Không dùng weight hay tracking display cho đoạn đọc dài. Chữ không
 được clip dấu tiếng Việt (`Á`, `Ả`, `Ắ`); không dùng `overflow: hidden` để giả
@@ -92,16 +107,20 @@ chiều cao dòng.
 - **Breakpoint hay dùng:** 1200, 1024, 980/981, 960/961, 750/751, 680, 578/579
   px. Kiểm layout ở 320, 390, 768, 1024, 1440px.
 - **Header:** ba track độc lập cho brand, nav và nút menu. Hàng expanded
-  `header-row-height`, sticky `header-collapsed-row-height`.
+  `header-row-height`, sticky `header-collapsed-row-height`; số đo từng
+  breakpoint ở [Header](components/Header/README.md#hình-học).
 - **Detail:** project grid tối đa 1500px, bốn cột desktop, gap theo gutter.
 - **Advertising:** masonry tính bằng `layout-core.mjs`, không dùng CSS grid
-  hoặc solver thứ hai.
+  hoặc solver thứ hai; cột và gutter theo width ở
+  [Masonry](components/Masonry/README.md#hình-học).
 - **Footer:** chỉ trụ sở, mạng xã hội, bản quyền; hai cột desktop, một cột
   mobile. Lời mời và CTA nằm trước footer.
-- **Scrollbar:** desktop dùng thumb overlay hiện khi cuộn, hover, kéo, không
-  chiếm chỗ; mobile và reduced motion dùng scrollbar native. Thumb giữ bo
-  10px mặc định của thư viện scroll (như Espacio); không áp bo đó cho UI
-  ([brand shell spec](../docs/specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)).
+- **Scrollbar:** desktop dùng track overlay 11px bên phải (Locomotive), không
+  chiếm chỗ: thumb 7px, margin 2px, đen opacity 0.5; idle opacity 0, hiện khi
+  cuộn, hover hoặc kéo; hover track `scaleX 1.45`; transition 0.3s; thumb
+  cursor `grab`, khi kéo `grabbing`. Mobile và reduced motion dùng scrollbar
+  native. Thumb giữ bo 10px mặc định của thư viện scroll; không áp bo đó cho
+  UI ([brand shell spec](../docs/specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)).
 - **Mobile:** tới 980px hero Home, About theo luồng chữ tự nhiên, Advertising
   tới 1024px; chữ tăng 200% vẫn không đè header, title dài xuống dòng
   ([mobile parity](../docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--accepted-2026-09-28)).
@@ -148,7 +167,7 @@ không sửa tay preview:
 | --- | --- |
 | Shell | [Header](components/Header/README.md), [Brand lockup](components/BrandLockup/README.md), [Full menu](components/FullMenu/README.md), [Footer](components/Footer/README.md), [Floating CTA](components/FloatingCta/README.md) |
 | Trang | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md) |
-| Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Vòng tải](components/LoadRing/README.md) |
+| Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Vòng tải](components/LoadRing/README.md), [Thanh tải](components/LoadBar/README.md) |
 
 Mẫu chưa có preview riêng:
 
@@ -168,10 +187,27 @@ Mẫu chưa có preview riêng:
 
 - **Don't** thêm token, radius, shadow hoặc breakpoint không có trong CSS.
 - **Don't** tạo component API hay wrapper không có trong source.
-- **Don't** sao chép source, media, logo, font của site tham chiếu Espacio.
+- **Don't** sao chép source, media, logo, font của site tham khảo.
 - **Don't** dùng màu `logo-mark-*` cho UI.
 - **Don't** đưa token hay primitive của admin (`src/admin/`, CMS chưa mở) vào
   route public.
+
+## Nguồn tham khảo
+
+Design System chỉ mô tả Trường Thịnh. Nhịp layout, chữ và phần lớn motion
+tham khảo từ [Espacio Home Design](https://espaciohomedesign.com/); các báo
+cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commit>:<path>`:
+
+- `3afef50:docs/reports/REFERENCE-MOTION-AUDIT.md`: audit source và đo live
+  2026-08-01, chi tiết nhất.
+- `fae6529:docs/archive/reports/research-espacio-parity-inventory.md`,
+  `research-espacio-navbar-runtime-2026-08-27.md`,
+  `research-espacio-typography-hero-route-motion-2026-08-27.md`,
+  `research-espacio-project-detail-templates-2026-08-30.md`,
+  `research-advertising-products-masonry-batching-2026-08-30.md` (cùng thư mục).
+- `fae6529:docs/archive/guides/motion-map.md`,
+  `f76c14f:docs/reference/espacio/components.md`,
+  `116367c:docs/specs/full-menu-reference-parity.md`.
 
 ## Chú thích thuật ngữ
 
@@ -181,3 +217,4 @@ Mẫu chưa có preview riêng:
 - **FLIP**: kỹ thuật animate đổi cỡ bằng cách đo đầu, cuối rồi nội suy.
 - **Masonry**: lưới ảnh xếp so le theo chiều cao ảnh.
 - **Reduced motion**: thiết lập hệ điều hành yêu cầu giảm chuyển động.
+- **Nguồn tham khảo**: site bên ngoài dùng để học nhịp thiết kế, không phải giá trị của Design System.

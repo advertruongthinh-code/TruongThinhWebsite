@@ -13,7 +13,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md) | Token, component, motion, content, ảnh Advertising; [authority map](#authority-map) |
-| Đối chiếu Espacio | [Baseline reference](../design-system/reference-espacio.md) | Số đo header, chữ, hero, motion, layout của site tham chiếu |
+| Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo) | Site tham khảo và báo cáo khảo sát cũ trong Git |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
 | Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
 | Dùng tool/agent | [AGENTS](../AGENTS.md), [Operations](operations/TOOLING.md) | Scope, workflow, command và recovery |
@@ -97,7 +97,7 @@ không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo
 | Token, visual role, component, motion | [Design System](../design-system/README.md), [Motion](../design-system/motion.md) |
 | Copy VI/EN, alt/ARIA, media | [Content và media](../design-system/content.md) |
 | Ảnh sáu nhóm Advertising, Audit/Critique | [Ảnh Advertising](../design-system/advertising-images.md) |
-| Số đo site tham chiếu | [Espacio](../design-system/reference-espacio.md); không tự thành target |
+| Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo); không tự thành target |
 | Route, lifecycle, reuse contract | [Route và content](specs/frontend-route-and-content.md#reuse-contract) |
 | Masonry, catalog, renderer Advertising | [GRID-R4](specs/advertising-grid-span-organic.md), [Advertising](specs/advertising-products-turnkey-services.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |

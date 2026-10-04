@@ -14,8 +14,26 @@ chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở b�
   hoa 700, 0.85rem, cao dòng tối thiểu 22.4px, cách nhau 15px; tiêu đề nhóm
   `menu-title` dài thì xuống dòng.
 - Hàng đầu đệm 35px (25px ở max-width 1200px). Mobile đưa CTA xuống hàng thứ
-  ba; 579–960px ẩn CTA như site tham chiếu
+  ba; 579–960px ẩn CTA
   ([menu parity](../../../docs/specs/full-menu-reference-parity.md)).
+
+## Hình học
+
+Đo khi menu mở xong, ngày 2026-10-04 (px).
+
+| Viewport | Cao hàng đầu | Lockup | Cột nhóm | Ghi chú |
+| --- | ---: | --- | ---: | --- |
+| 320, 390 | 226.97 | `230.3 × 59.58` ở 25, 25 | 1 | Locale và CTA thành hai hàng dưới lockup |
+| 768 | 109.58 | `230.3 × 59.58` ở 25, 25 | 2 | Ẩn CTA |
+| 1024 | 109.58 | `230.3 × 59.58` ở 25, 25 | 3 | |
+| 1440 | 137.52 | `260.97 × 67.52` ở 35, 35 | 4 | |
+
+- Nút đóng `50 × 50`. CTA `166.63 × 50`.
+- Nhóm: số 12.8/17.92 weight 500; tiêu đề 28.8/40.32 600 chữ hoa; mục con
+  13.6/22.4 700 chữ hoa. Số tới tiêu đề 15px, tiêu đề tới danh sách 30px,
+  bước giữa hai mục 37.41px.
+- Đường kẻ dưới hàng đầu và giữa các cột màu `line`, mở dần theo
+  [Motion](../../motion.md#full-menu).
 
 Timeline mở, đóng và page scale ở [Motion](../../motion.md#full-menu).
 Preview hiện trạng thái cuối khi menu mở xong.

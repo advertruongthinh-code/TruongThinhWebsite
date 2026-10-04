@@ -35,6 +35,12 @@ const COMPONENTS = [
   // The ring exists only while an image loads, so its host box is written here; the ring itself is runtime markup (catalog-runtime.mjs).
   { name: 'LoadRing', group: 'Advertising', height: 280, file: 'src/site/advertising-products/catalog-runtime.mjs', start: /photoLoadRing\.className = "media-load-ring"/,
     markup: '<div style="position: relative; width: 316px; height: 237px; margin: 20px 35px; background: var(--media-loading-surface);">\n<span class="media-load-ring" aria-hidden="true"></span>\n</div>' },
+  // The bar shows only until a suggestion photo paints, so the buttons are written here without photos; the bar itself is detail.css.
+  { name: 'LoadBar', group: 'Advertising', height: 280, file: 'src/site/detail.css', start: /Indeterminate bar painted along the bottom edge/,
+    markup: '<div class="advertising-photo-view__suggestion-links" style="width: 316px; margin: 20px 35px;">\n'
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Chữ nổi Mica</span></button>\n'
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Logo và chữ nổi tòa nhà</span></button>\n'
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label">Bảng vẫy Mica hút nổi</span></button>\n</div>' },
 ];
 
 // Returns the outer HTML of the element whose opening tag matches `start`, balancing nested tags of the same name.
