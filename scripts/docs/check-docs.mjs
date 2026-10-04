@@ -118,6 +118,14 @@ try {
   errors.push(error.stderr.trim());
 }
 
+// Captured Advertising markup (R5.3): every class in a preview still exists in the site source (CSS, runtime, HTML), else re-capture.
+const siteText = git('ls-files', 'src/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
+for (const preview of git('ls-files', 'design-system/components/*/preview.html').split('\n').filter(Boolean)) {
+  const classes = new Set([...readFileSync(preview, 'utf8').matchAll(/\sclass="([^"]*)"/g)].flatMap(([, list]) => list.split(/\s+/)).filter(Boolean));
+  const gone = [...classes].filter((name) => !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));
+  if (gone.length) errors.push(`design-system: ${preview} dùng class không còn trong src/site (${gone.join(', ')}); chạy node scripts/docs/capture-design-system.mjs rồi build-design-system.mjs`);
+}
+
 if (errors.length) {
   console.error(errors.join('\n'));
   console.error(`qa:docs FAIL: ${errors.length} lỗi`);
