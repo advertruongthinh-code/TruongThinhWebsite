@@ -29,7 +29,7 @@ const COMPONENTS = [
   { name: 'Gallery', group: 'Page', height: 640, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
   // Advertising markup is built at runtime; capture-design-system.mjs snapshots it into scripts/docs/captures/.
   // pad: space kept above the focus element inside the frame; size: image variant width.
-  ...[['Filter', 240, 40], ['MediaCard', 280, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
+  ...[['Filter', 240, 40], ['MediaCard', 420, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
     ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size]) => ({ name, group: 'Advertising', height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
   // The ring exists only while an image loads, so its host box is written here; the ring itself is runtime markup (catalog-runtime.mjs).
@@ -66,13 +66,13 @@ const photos = new Map();
 function localizeImages(markup, size = 960) {
   return markup
     .replace(/\s+data-src="[^"]*"/g, '')
-    .replace(/src="\/assets\/content\/([^"]+?)(?:-(?:480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, path, ext) => {
+    .replace(/(src|poster)="\/assets\/content\/([^"]+?)(?:-(?:480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, attr, path, ext) => {
       const source = [`${path}-${size}.webp`, `${path}.webp`, `${path}.${ext}`]
         .map((candidate) => `src/site/assets/content/${candidate}`).find(existsSync);
       if (!source) throw new Error(`không tìm thấy ảnh ${whole}`);
       const name = basename(source).replace(/-960(?=\.)/, '');
       photos.set(`${OUT}/assets/Photos/${name}`, source);
-      return `src="../../assets/Photos/${name}"`;
+      return `${attr}="../../assets/Photos/${name}"`;
     });
 }
 
