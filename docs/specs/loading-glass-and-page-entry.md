@@ -17,7 +17,7 @@ rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào
 Thread M02b làm code theo spec. Lỗi Back history, dòng HTML thô sau F5 và motion
 phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
-(phiên bản 6).
+(phiên bản 7).
 
 ## Hành vi
 
@@ -91,12 +91,13 @@ primary hiện tại chính khung của nó, không có ảnh bay từ card, kh�
 
 - Ảnh chưa tải: skeleton card thay ảnh primary cũ ngay khi bấm, giữ tới khi ảnh
   giải mã xong, rồi chạy ba bước của R2.
-- Ảnh đã có (owner chốt 2026-10-04): cùng khung như ảnh chưa tải nhưng không có
-  skeleton, kính, crossfade hay chuyển động màu của skeleton. Ảnh mới thay ảnh
-  cũ ngay trong khung, trong cùng một frame.
+- Ảnh đã có (owner chốt 2026-10-04): không có skeleton; kính phủ lên ảnh primary
+  đang xem (khung trống nếu mở lần đầu), crossfade sang ảnh mới, rồi kính tan.
+  Ba bước giữ đường cong và độ chồng của R2 nhưng gọn trong `0.6s`, bằng lúc
+  skeleton card hiện ra khi ảnh chưa tải (opacity `600ms ease-out`). Xem bảng UI.
 
-Nền blur vùng dư của primary (`data-advertising-photo-glass`) đổi cùng lúc với
-ảnh: qua crossfade khi ảnh chưa tải, đổi ngay khi ảnh đã có. Morph primary sang
+Nền blur vùng dư của primary (`data-advertising-photo-glass`) đi cùng ảnh trong
+crossfade. Morph primary sang
 viewer phóng to (`photo-viewer.mjs`, đo từ ảnh primary) giữ nguyên.
 
 ```gherkin
@@ -109,8 +110,8 @@ And khi ảnh giải mã xong, primary chạy đúng ba bước kính như card
 ```gherkin
 Given người xem đang xem một ảnh ở primary
 When người xem bấm một ảnh liên quan đã có trong cache
-Then ảnh mới thay ảnh cũ ngay trong khung primary
-And không có skeleton, kính, crossfade hay chuyển động nào
+Then kính phủ lên ảnh cũ, ảnh cũ crossfade sang ảnh mới dưới kính, rồi kính tan
+And cả ba bước xong trong 0.6s, bằng lúc skeleton card hiện ra
 ```
 
 ### R5. Skeleton thay vòng xoay
@@ -222,6 +223,7 @@ này được thay bằng link.
 | Bước 1, kính hiện | 0 đến 0.6s, `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
 | Bước 2, crossfade | 0.3 đến 0.9s, `cubic-bezier(0.65, 0, 0.35, 1)` |
 | Bước 3, kính tan | 0.6 đến 1.4s, `power4.inOut` (`cubic-bezier(0.86, 0, 0.07, 1)`) |
+| Primary có sẵn ảnh | Ba bước trên nhân `3/7`, tổng `0.6s`: kính hiện 0 đến 0.26s, crossfade 0.13 đến 0.39s, kính tan 0.26 đến 0.6s |
 | Veil | Route veil trắng hiện có; giữ tới khi mount, mở 1s power4.inOut |
 
 Owner chốt tổng `1.4s` và ba bước chồng lên nhau (2026-10-04): crossfade bắt
@@ -250,7 +252,7 @@ không phải số đo mới:
 
 ## Gate còn mở
 
-- Owner duyệt bản chạy thử phiên bản 6 và spec này.
+- Owner duyệt bản chạy thử phiên bản 7 và spec này.
 - Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
   A05s thật.
 - R1: mức trần context WebGL trên desktop, chốt theo số đo.
