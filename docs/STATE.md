@@ -60,9 +60,9 @@
   files còn pending; không chạy semantic extraction khi chưa có yêu cầu.
   Cloud stack: `scripts/tooling/cloud-setup.sh` cho environment `Default`
   ([TOOLING](operations/TOOLING.md#claude-code-cloud-environment)). Verify
-  04/10: 6 plugin `@skills-dir` loaded, 7 MCP connected. Bản bỏ lifecycle
-  hook (owner chọn giống local, rule global ở `~/.claude/CLAUDE.md`) chờ owner
-  dán lại và verify. Đổi script thì dán lại vào environment.
+  04/10: không lifecycle hook, 6 plugin `@skills-dir` loaded, 7 MCP connected,
+  rule global ở `~/.claude/CLAUDE.md`. Repo này tắt plugin skill trùng qua
+  `.claude/settings.json`. Đổi script thì dán lại vào environment.
 - Claude skill: 55 skill vendor tại `.claude/skills` từ pin, cloud thread dùng được
   ([decision](decisions/claude-skills-vendored-from-pins.md)). Máy local còn bước gỡ
   link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
