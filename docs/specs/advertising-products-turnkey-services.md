@@ -348,8 +348,8 @@ Xem [Detail visibility](../../design-system/motion.md#ảnh-trên-sáu-trang-det
   dependency không được silent no-op. Failure phải có diagnostic và không được
   để destination ở trạng thái nửa mount.
 - Với JavaScript đang bật, `<noscript>` không được xuất hiện thành raw markup
-  trong live DOM sau Barba parse, kể cả khi direct load đang chờ catalog (Chromium
-  render `noscript` thành block nên CSS chỉ hiện fallback trong
+  trong live DOM sau Barba parse, kể cả khi direct load đang chờ catalog
+  (`display: contents` làm Chromium vẽ text thô, nên rule chỉ nằm trong
   `@media (scripting: none)`). No-JS fallback chỉ phục vụ direct document
   navigation khi scripting thật sự tắt.
 - Thay `splitWords()`, `splitLines()`, character splitter cũ và custom card FLIP;

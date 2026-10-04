@@ -35,7 +35,7 @@ assert.deepEqual([...index.matchAll(/data-advertising-filter="([^"]+)"/g)].map((
   ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)], "All and the six filters keep their canonical order");
 assert.doesNotMatch(sharedScripts, /Math\.random|random-order|shuffle/, "grid routes outside Advertising are never randomized");
 assert.equal((index.match(/<noscript>/g) || []).length, 1, "no-JS fallback remains available");
-assert.match(css, /\.project-grid > noscript \{\s*display: none;\s*\}\s*@media \(scripting: none\) \{\s*\.project-grid > noscript \{\s*display: contents;/,
+assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\s*display: contents;/,
   "no-JS fallback markup never renders as text while JavaScript loads the catalog");
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");

@@ -3635,11 +3635,7 @@ html[lang="en"]
   gap: 35px;
 }
 
-/* Chromium lays out noscript as block while scripts run, so its raw markup would show as text. */
-.project-grid > noscript {
-  display: none;
-}
-
+/* display: contents has no box of its own, so with scripting on Chromium would lay out the raw fallback text. */
 @media (scripting: none) {
   .project-grid > noscript {
     display: contents;
