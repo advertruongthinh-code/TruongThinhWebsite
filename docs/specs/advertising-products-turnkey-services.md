@@ -283,7 +283,7 @@ column index, coordinate hash và total height qua mọi lần build. Resize ho�
 filter được phép tạo layout mới và đi qua position morph; append không được
 repack prefix.
 
-Caption visual contract: [Advertising caption](../../DESIGN.md#advertising-caption).
+Card không có caption: [Media card](../../design-system/components/MediaCard/README.md).
 
 Ảnh lazy-load độc lập trong box đã reserve natural ratio hoặc canvas ratio từ dữ
 liệu, không chờ decode mới biết chiều cao. Virtual window chỉ mount card trong

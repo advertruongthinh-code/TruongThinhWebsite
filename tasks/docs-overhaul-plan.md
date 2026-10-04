@@ -64,7 +64,7 @@ Checkpoint 1: CI xanh; owner thử đọc template mới.
     primary, suggestion, viewer, filter. Xóa `docs/design/` còn lại.
   - Nhận: như T5; không còn `docs/design/`.
   - Phụ thuộc: T5. Cỡ M.
-- [ ] T7. DESIGN.md sinh tự động cho Impeccable
+- [x] T7. DESIGN.md sinh tự động cho Impeccable
   - Làm: `scripts/docs/build-design-md.mjs` sinh `DESIGN.md` từ
     `tokens.json` và `README.md`; chế độ `--check` trong `qa:docs`; chạy
     `impeccable doctor` để rút `.impeccable/design.json` về phần bắt buộc;

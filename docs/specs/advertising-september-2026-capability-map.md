@@ -90,7 +90,7 @@ không stage, commit, push hoặc deploy.
   Spec gốc đã xóa, xem Git `da2f13a`.
 - [skeleton-flow](advertising-skeleton-flow.md)
 - [photo-morph-scroll](advertising-photo-morph-scroll.md)
-- [brand-lockup-typeset](../../DESIGN.md#brand-lockup--nguồn-chuẩn)
+- [brand-lockup-typeset](../../design-system/components/BrandLockup/README.md)
 - [photo-detail-layout](advertising-photo-browse.md#r8--accepted-detail-span-3-và-suggestion-một-dòng--2026-09-21)
 - [photo-viewer-controls](advertising-photo-browse.md#r9--accepted-viewer-wheelmiddle-zoom--2026-09-21)
 - [advertising-page-shell](advertising-final-polish-and-media.md#d20--accepted-cta-giao-skeletonkhoảng-trắng-và-nav-reset--2026-09-21)

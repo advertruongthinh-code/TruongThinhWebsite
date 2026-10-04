@@ -57,7 +57,7 @@ không thay navbar đóng, nhận diện, nội dung, route hoặc contract khá
 
 ### Brand lockup
 
-Visual contract duy nhất: [Brand lockup trong DESIGN.md](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
+Visual contract duy nhất: [Brand lockup](../../design-system/components/BrandLockup/README.md).
 LOGO-R3 cập nhật phép đo ink gồm dấu; [focused verification](../verification/brand-lockup-logo-r3-2026-09-10.md)
 giữ proof geometry, header và color lifecycle theo revision hiện hành. LOGO-R2
 là evidence lịch sử. Không suy ra full-site PASS.
@@ -167,8 +167,8 @@ Owner spot-check còn mở; source và gate P1.2 không tự được dùng làm
 | --- | --- | --- |
 | Static contract | `pnpm qa:static` | Năm route cùng lockup/footer contract |
 | Resize runtime | Playwright tại static preview | Không transform kép, blank viewport hoặc background scroll |
-| Logo geometry | Playwright DOM/SVG bbox + Canvas TextMetrics sau font ready | [Contract và nghiệm thu logo](../../DESIGN.md#brand-lockup--nguồn-chuẩn) |
-| Logo scale và màu | Playwright rAF/computed style/transition event | [Motion và state logo](../../DESIGN.md#brand-lockup--nguồn-chuẩn) |
+| Logo geometry | Playwright DOM/SVG bbox + Canvas TextMetrics sau font ready | [Contract và nghiệm thu logo](../../design-system/components/BrandLockup/README.md) |
+| Logo scale và màu | Playwright rAF/computed style/transition event | [Motion và state logo](../../design-system/components/BrandLockup/README.md) |
 | Navbar responsive | Playwright tại bốn width band | Đúng tổng height, collapse/hide/reveal, mouse-only force-reveal; từng link giữ `left`/width trong `1px` và computed typography bất biến |
 | Navbar P1.3 | Focused parent/detail/history và Chrome DevTools | Re-click về top giữ query/filter/history; detail về parent; header cùng collapse/hide/reveal với Residential, không UI Back |
 | Responsive | Playwright viewport matrix | Không overflow hoặc glyph clipping |

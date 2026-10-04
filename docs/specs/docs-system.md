@@ -164,13 +164,18 @@ Then check design-drift fail cho tới khi tokens.json có token cùng tên và 
 
 ### R6. Impeccable tham chiếu Design System
 
-1. `DESIGN.md` được sinh bởi script từ `design-system/tokens.json` (frontmatter)
-   và `design-system/README.md` (nội dung); dòng đầu ghi "GENERATED, sửa
-   design-system/". Script có chế độ `--check` chạy trong `qa:docs`.
-2. `.impeccable/design.json` chỉ giữ phần Impeccable bắt buộc mà
-   `design-system/` không biểu diễn được; xác định bằng `impeccable doctor`.
+1. `scripts/docs/build-design-md.mjs` sinh `DESIGN.md` từ
+   `design-system/tokens.json` (frontmatter) và `design-system/README.md` (nội
+   dung, link đổi về gốc repo). Frontmatter phải đứng đầu file nên dòng ghi
+   GENERATED là comment YAML ngay sau `---`. Chế độ `--check` chạy trong
+   `qa:docs`.
+2. Cùng script sinh `.impeccable/design.json` (schemaVersion 2) chỉ với phần
+   frontmatter không chứa được: shadow. Specimen component và narrative bỏ vì
+   preview và README của `design-system/` đã giữ; `impeccable doctor` không báo
+   thiếu.
 3. Surface brief trong `.impeccable/surfaces/` chỉ giữ chiến lược riêng route,
-   link component thay vì chép mô tả.
+   link component thay vì chép mô tả. Brief của route không còn render (sáu URL
+   detail Advertising nay chỉ chuyển hướng) bị xóa.
 4. Impeccable vẫn là công cụ critique, audit, polish, `impeccable detect`.
 
 ```gherkin

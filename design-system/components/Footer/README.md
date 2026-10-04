@@ -11,6 +11,8 @@ hệ. Markup gồm `div.site-invitation` và `footer.site-footer`.
 - Tuyên bố: font 600, `clamp(2.8rem, 4.5vw, 5.4rem)`, tracking và
   word-spacing display.
 - Lưới liên hệ hai cột, tràn ra mép trang, viền trên dưới `line`.
+- Hàng bản quyền `footer-bottom` cao tối thiểu 72px, căn giữa dọc, chữ
+  `muted` 0.8rem; không thêm padding cuối hay min-height toàn khung.
 - Địa chỉ trụ sở giữ nguyên chuỗi ở cả VI và EN (xem
   [Content](../../content.md#song-ngữ-vien)).
 
