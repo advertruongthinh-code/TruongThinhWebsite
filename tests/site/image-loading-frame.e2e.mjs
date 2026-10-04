@@ -1,4 +1,4 @@
-// P8/P9 evidence: reserved frames, loading ring state, request count and geometry while images load.
+// P8/P9 evidence: reserved frames, loading ring or skeleton state, request count and geometry while images load.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -166,12 +166,15 @@ try {
       filters: [...document.querySelectorAll("[data-advertising-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-advertising-loading-skeleton].is-entry-ready"));
     const loading = await page.evaluate(() => {
-      const media = document.querySelector(".advertising-card-media:not(.advertising-card-media--carousel):has(> img.lazyloading)");
-      return media && { opacity: getComputedStyle(media, "::after").opacity, content: getComputedStyle(media, "::after").content };
+      const frame = document.querySelector("[data-project-grid] [data-advertising-loading-skeleton].is-entry-ready");
+      const box = frame.getBoundingClientRect();
+      const media = frame.parentElement.getBoundingClientRect();
+      return { covers: [box.left - media.left, box.top - media.top, box.width - media.width, box.height - media.height].every(gap => Math.abs(gap) <= 1),
+        busy: Boolean(frame.parentElement.querySelector("img.lazyloading, img.lazyload")) };
     });
-    assert.deepEqual(loading, { opacity: "1", content: '""' }, `${viewport.width}px: loading card shows the ring after 150 ms`);
+    assert.deepEqual(loading, { covers: true, busy: true }, `${viewport.width}px: loading card wears the skeleton frame after 150 ms`);
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
       previous = duringLoad;
@@ -184,18 +187,20 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    const ringAfterLoad = await page.evaluate(() => getComputedStyle(document.querySelector(".advertising-card-media"), "::after").content);
-    assert.equal(ringAfterLoad, "none", `${viewport.width}px: loaded cards drop the ring`);
+    // The reveal crossfade ends 1.4 s after the last image loads, then the skeleton node is removed.
+    await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-advertising-loading-skeleton]"), null, { timeout: 5000 })
+      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the skeleton`));
 
-    // Viewer: ring and aria-busy follow the current photo, including a fast hero swap.
+    // Viewer: skeleton and aria-busy follow the current photo, including a fast hero swap.
     const viewer = () => page.evaluate(() => {
       const frame = document.querySelector("[data-advertising-photo-image]").parentElement;
-      return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), ring: Boolean(frame.querySelector(".media-load-ring")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
+      return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
     });
     await page.locator("[data-advertising-card] a").first().click();
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.parentElement.getAttribute("aria-busy") === "true");
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.parentElement.getAttribute("aria-busy") === "true"
+      && document.querySelector("[data-advertising-photo-image]").parentElement.querySelector("[data-advertising-loading-skeleton]"));
     const first = await viewer();
-    assert.ok(first.photo && first.ring, `${viewport.width}px: viewer shows ring while primary loads`);
+    assert.ok(first.photo && first.skeleton, `${viewport.width}px: viewer shows the skeleton while primary loads`);
     await page.waitForFunction(() => document.querySelector("[data-advertising-related-card] > a"));
     const relatedId = await page.evaluate(() => {
       const card = [...document.querySelectorAll("[data-advertising-related-card]")].find(node => node.querySelector("a") && node.getBoundingClientRect().height);
@@ -208,11 +213,11 @@ try {
     await page.waitForTimeout(DELAY + 300);
     const swapped = await viewer();
     assert.equal(swapped.photo, relatedId);
-    assert.deepEqual({ busy: swapped.busy, ring: swapped.ring }, { busy: null, ring: false }, `${viewport.width}px: earlier photo leaves no stale ring`);
+    assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton }, { busy: null, skeleton: false }, `${viewport.width}px: earlier photo leaves no stale skeleton`);
     await page.goBack();
     await page.goBack();
     await page.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === null);
-    assert.equal(await page.evaluate(() => document.querySelectorAll(".media-load-ring").length), 0, `${viewport.width}px: closing the viewer clears rings`);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-photo-view] [data-advertising-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
     assert.deepEqual((await geometry()).filters, loaded.filters, `${viewport.width}px: history return keeps filters`);
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();

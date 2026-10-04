@@ -1,7 +1,10 @@
 ---
 title: Skeleton chờ ảnh và màn trắng khi vào trang
-status: planned
-tests: []
+status: live
+tests:
+  - tests/site/image-loading-frame.e2e.mjs
+  - tests/site/site.e2e.cjs
+  - tests/site/advertising-skeleton-flow.test.mjs
 notion: none
 updated: 2026-10-04
 ---
@@ -14,8 +17,9 @@ Owner thử M02b trên điện thoại ngày 2026-10-04 và thấy hai vấn đ�
 thì masonry Advertising chỉ có vùng trắng, không báo đang tải. Mở ảnh và F5 thì
 không có motion. Spec này định nghĩa ba motion owner đã chốt: skeleton chờ ảnh
 rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào thẳng trang.
-Thread M02b làm code theo spec. Lỗi Back history, dòng HTML thô sau F5 và motion
-phóng to của viewer nằm ngoài spec này. Bản chạy thử:
+Kính trong R2 và R4 chờ [Kính dùng chung](glass-surface.md); tới lúc đó
+website chạy riêng bước crossfade (xem R2). Lỗi Back history, dòng HTML thô sau
+F5 và motion phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
 (phiên bản 9).
 
@@ -34,9 +38,10 @@ id, nên card remount giữ màu cũ.
 WebGL dùng chung lease pool với skeleton cuối masonry (`catalog-runtime.mjs`).
 Chỉ skeleton giao viewport và tab đang hiện mới chạy. Điện thoại giữ tối đa 2
 context sống; skeleton không có context hiện frame tĩnh của chính component
-(`staticBackground`). Desktop cũng cần mức trần, vì một màn masonry đang tải có
-thể có hơn chục khung; bản chạy thử dùng 8. Skeleton rời viewport thì trả
-context và giữ phase để quay lại không giật.
+(`staticBackground`). Desktop giữ tối đa 12: riêng skeleton cuối masonry đã
+cần 8 đến 10 context ở bề rộng 1280 đến 2560px, và 12 vẫn dưới giới hạn 16 của
+Chrome. Khung gần đầu viewport được ưu tiên context. Skeleton rời viewport thì
+trả context và giữ phase để quay lại không giật.
 
 Skeleton chỉ phủ card đã mount (viewport cộng một màn hình mỗi phía), không ép
 mount toàn catalog. Motion card vào viewport giữ như card thường; skeleton thuộc
@@ -64,6 +69,10 @@ bước.
 Xong bước 3, runtime gỡ kính và skeleton khỏi DOM và trả context WebGL về pool.
 Ảnh không đổi `transform`, nên hover zoom chạy như cũ.
 
+Tới khi có component Kính, website chỉ chạy bước 2 đúng mốc của nó trong tổng
+`1.4s` (crossfade `0.3s` đến `0.9s`), rồi gỡ skeleton. Ảnh chỉ được đổi chỗ khi
+`decode()` xong, nên crossfade không vẽ ảnh giải mã dở.
+
 ```gherkin
 Given một card đang hiện skeleton
 When ảnh của card giải mã xong
@@ -75,8 +84,10 @@ And sau đó card không còn node skeleton hay kính, context WebGL đã đư�
 
 ### R3. Ảnh có sẵn
 
-Ảnh đã `complete` lúc card mount (cache, hoặc tải xong trước khi mount) thì
-không hiện skeleton và không chạy kính; ảnh dùng fade card hiện có.
+Ảnh tải xong trong `150ms` sau khi card vào viewport (cache, hoặc tải xong
+trước khi mount) thì không hiện skeleton và không chạy kính; ảnh dùng fade card
+hiện có. Chrome báo cả ảnh trong bộ nhớ đệm là chưa `complete` ngay lúc gắn
+`src`, nên runtime chờ khoảng này thay vì đọc `complete` một lần.
 
 ```gherkin
 Given ảnh của card đã có trong cache trình duyệt
@@ -90,12 +101,15 @@ Bấm một card ở masonry chính hoặc ở related đều mở detail cùng 
 primary hiện tại chính khung của nó, không có ảnh bay từ card, không clone.
 
 - Ảnh chưa tải: skeleton card thay ảnh primary cũ ngay khi bấm, giữ tới khi ảnh
-  giải mã xong, rồi chạy ba bước của R2.
+  giải mã xong, rồi chạy ba bước của R2. Ảnh giải mã xong trong `100ms` tính là
+  ảnh đã có.
 - Ảnh đã có (owner chốt 2026-10-04): không có skeleton; kính phủ lên ảnh primary
   đang xem (khung trống nếu mở lần đầu), crossfade sang ảnh mới, rồi kính tan.
   Ba bước giữ đường cong và độ chồng của R2 nhưng gọn trong `0.6s`, bằng lúc
   skeleton card hiện ra khi ảnh chưa tải (opacity `600ms ease-out`). Xem bảng UI.
 
+Ảnh primary cũ nằm lại thành lớp tạm phía trên ảnh mới cho tới hết crossfade,
+rồi bị gỡ. Chưa có Kính thì ảnh có sẵn chỉ chạy crossfade `0.13s` đến `0.39s`.
 Nền blur vùng dư của primary (`data-advertising-photo-glass`) đi cùng ảnh trong
 crossfade. Morph primary sang
 viewer phóng to (`photo-viewer.mjs`, đo từ ảnh primary) giữ nguyên.
@@ -117,9 +131,10 @@ And cả ba bước xong trong 0.6s, bằng lúc skeleton card hiện ra
 ### R5. Skeleton thay vòng xoay
 
 Ảnh primary đang tải dùng skeleton card của R1, thay `span.media-load-ring`.
-Card nhiều media dùng skeleton cho media đang hiện, thay
-`.advertising-card-media__loading` và vòng `::after` khi ảnh có `.lazyloading`.
-`aria-busy` giữ trên khung đang tải.
+Card nhiều media dùng skeleton cho media đang hiện, thay spinner và vòng
+`::after` khi ảnh có `.lazyloading`; `.advertising-card-media__loading` chỉ còn
+là trạng thái cho trình đọc màn hình (`sr-only`). `aria-busy` giữ trên khung
+primary đang tải.
 
 ```gherkin
 Given primary đổi sang một ảnh chưa tải
@@ -154,10 +169,10 @@ And không có chữ HTML thô hay scroll cue nào lộ ra trước khi veil m�
 Mạng chậm không được làm mất motion. Veil giữ tới khi script dựng trang chạy
 xong rồi mới kéo mở. Bỏ motion (fallback) chỉ khi script motion lỗi, hoặc khi
 `DOMContentLoaded` đã qua mà motion vẫn chưa nhận trang. Không dùng mốc thời gian
-cố định tính từ `<head>` (hiện là 2.5s) làm điều kiện bỏ motion. Fallback gỡ veil
-ngay để nội dung hiện đầy đủ.
-[CẦN LÀM RÕ: thời gian chờ tối đa sau `DOMContentLoaded` trước khi fallback,
-thread M02b đề xuất theo số đo trên A05s.]
+cố định tính từ `<head>` làm điều kiện bỏ motion. Fallback gỡ veil ngay để nội
+dung hiện đầy đủ. Không có thời gian chờ thêm sau `DOMContentLoaded`: `motion.js`
+là script `defer`, chạy xong trước sự kiện này, nên lúc đó chưa nhận trang
+nghĩa là motion không chạy được.
 
 ```gherkin
 Given mạng chậm, script tải xong sau 4s
@@ -203,16 +218,18 @@ Then trace đạt median 30fps, không long task trên 50ms, tối đa 2 context
 | --- | --- | --- |
 | Code | `createSkeletonFlowRenderer`, `SKELETON_FLOW_PRESETS`, `staticBackground` (`skeleton-flow.mjs`) | Skeleton card dùng lại nguyên |
 | Runtime | Lease pool `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer` (`catalog-runtime.mjs`) | Dùng chung cho skeleton cuối masonry và card đang tải |
-| DOM | `.advertising-grid__cta-frame` trong khung media | Thêm khi ảnh chưa `complete`, gỡ sau ba bước |
-| DOM | `.glass-surface[data-glass-shape="even"]` trong khung media hoặc primary | Chỉ tồn tại trong ba bước ([Kính dùng chung](glass-surface.md)) |
+| DOM | `.advertising-grid__cta-frame[data-advertising-loading-skeleton="<media id>"]` trong `.advertising-card-media` hoặc khung primary | Thêm khi ảnh chưa xong sau `150ms` (card) hoặc `100ms` (primary), gỡ sau crossfade |
+| DOM | `.advertising-photo-view__outgoing`, `__outgoing-background` | Ảnh primary cũ và nền blur cũ, chỉ tồn tại trong crossfade của ảnh có sẵn (R4) |
+| DOM | `[data-advertising-photo-loading]` trên khung primary | Ẩn ảnh cũ khi không còn lớp tạm phía trên |
+| DOM | `.glass-surface[data-glass-shape="even"]` trong khung media hoặc primary | Chưa có; sẽ chỉ tồn tại trong ba bước ([Kính dùng chung](glass-surface.md)) |
 | Root class | `route-enter` trên `<html>` | Prepaint thêm cho mọi lần vào thẳng trang (R6) |
-| Boot | `window.__ttMotionBoot` | Đổi điều kiện fallback theo R7 |
+| Boot | `window.__ttMotionBoot` (`claim`, `release`) | Fallback khi `motion.js` lỗi tải hoặc tại `DOMContentLoaded` nếu chưa ai `claim` (R7) |
 
 ## UI
 
-Giá trị owner duyệt trong bản chạy thử nằm ở Design System, mục
-[Đã duyệt, chờ code](../../design-system/approved-designs.md): Card đang tải,
-Mở ảnh tại chỗ, Vào thẳng trang.
+Giá trị đã code nằm ở [Motion](../../design-system/motion.md): ảnh trong card,
+primary và route veil. Phần kính owner duyệt trong bản chạy thử nằm ở
+[Đã duyệt, chờ code](../../design-system/approved-designs.md#kính).
 
 Owner chốt tổng `1.4s` và ba bước chồng lên nhau (2026-10-04): crossfade bắt
 đầu khi kính chưa hiện xong, kính bắt đầu tan khi crossfade chưa xong. Nhịp còn
@@ -232,26 +249,20 @@ không phải số đo mới:
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R3 | chưa có test |
-| R4–R5 | chưa có test |
-| R6–R7 | chưa có test |
+| R1, R3, R5 | `tests/site/image-loading-frame.e2e.mjs` (P9: skeleton phủ card đang tải, gỡ sau khi tải) |
+| R2, R4 | `tests/site/image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, đổi ảnh nhanh không để lại skeleton cũ); kính chưa có test |
+| R1 (preset) | `node --test tests/site/advertising-skeleton-flow.test.mjs` |
+| R6–R7 | `pnpm qa:site` (`site.e2e.cjs`: motion chậm giữ veil, motion lỗi fallback ngay) |
 | R8 | chưa có test |
 | R9 | chưa có test; trace Chrome trên A05s qua CDP |
 
 ## Gate còn mở
 
-- Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
-  A05s thật.
-- R1: mức trần context WebGL trên desktop, chốt theo số đo.
-- R9 trên A05s, gồm nhiều kính chạy cùng lúc khi vuốt nhanh.
-- PR code cập nhật Design System cùng lúc: [Skeleton](../../design-system/components/Skeleton/README.md)
-  (thêm vai trò chờ ảnh), [Motion](../../design-system/motion.md) mục ảnh trong
-  card, detail và route veil, [Media card](../../design-system/components/MediaCard/README.md),
-  [Vòng tải](../../design-system/components/LoadRing/README.md) (bỏ phần
-  Advertising), xóa ba mục tương ứng trong
-  [Đã duyệt, chờ code](../../design-system/approved-designs.md); cập nhật phần
-  Advertising của [khung chờ và vòng tải](image-loading-progress.md).
-- R7: thời gian chờ tối đa trước fallback (mục `CẦN LÀM RÕ`).
+- Kính bước 1 và 3 của R2, R4: nối component Kính khi
+  [Kính dùng chung](glass-surface.md) có code; mục Kính trong
+  [Đã duyệt, chờ code](../../design-system/approved-designs.md#kính) giữ tới lúc đó.
+- R9 trên A05s, gồm nhiều kính chạy cùng lúc khi vuốt nhanh; WebKit chưa chạy.
+- R8 chưa có test tự động.
 
 ## Chú thích thuật ngữ
 

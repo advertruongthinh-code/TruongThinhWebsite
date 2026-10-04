@@ -245,8 +245,8 @@ function assertPersistentNavigationContracts() {
         bootstrap.includes("if(b.claimed)return") &&
         bootstrap.includes("window.TruongThinhDetail?.mount") &&
         bootstrap.includes('addEventListener("pageshow"') &&
-        bootstrap.includes("this.timer=0") &&
-        bootstrap.includes("2_500") &&
+        bootstrap.includes('document.addEventListener("DOMContentLoaded",fail,{once:true,...s})') &&
+        !bootstrap.includes("setTimeout(fail") &&
         !bootstrap.includes("__ttBootFailOpenCount") &&
         !bootstrap.includes("motion-failed") &&
         !/onerror\s*=/.test(source),
@@ -3866,7 +3866,6 @@ async function runFailOpenRealBfcacheProbe() {
       pageshow: window.__ttFailOpenBfcachePageshow,
       fallback: window.__ttMotionBoot?.fallback,
       claimed: window.__ttMotionBoot?.claimed,
-      timer: window.__ttMotionBoot?.timer,
       dialogOpen: document.querySelector("#site-menu")?.open,
       menuOpen: document.body.classList.contains("menu-open"),
       expanded: document
@@ -3880,7 +3879,6 @@ async function runFailOpenRealBfcacheProbe() {
     assert(
       state.fallback === true &&
         state.claimed === false &&
-        state.timer === 0 &&
         !state.dialogOpen &&
         !state.menuOpen &&
         state.expanded === "false",
@@ -8622,8 +8620,7 @@ async function runMotionAbortFailOpenChecks() {
             !fallback.bodyTransitioning &&
             fallback.horizontalOverflow <= 1 &&
             fallback.veilOpacity <= 0.001 &&
-            fallback.veilPointerEvents === "none" &&
-            (await page.evaluate(() => window.__ttMotionBoot?.timer)) === 0,
+            fallback.veilPointerEvents === "none",
           `Home fail-open is not final-state safe: ${JSON.stringify({ normal, fallback })}`,
         );
       },
@@ -8846,7 +8843,7 @@ async function runMotionAbortFailOpenChecks() {
   );
 
   await runPageCase(
-    "motion arriving after watchdog adopts final state without replay",
+    "slow motion keeps the route veil until the runtime claims",
     { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.route("**/*motion.js*", async (route) => {
@@ -8858,10 +8855,41 @@ async function runMotionAbortFailOpenChecks() {
         waitUntil: "load",
         timeout: 20_000,
       });
+      await page.waitForFunction(() => document.body, null, { timeout: 3_000 });
+      // Past the old 2.5 s watchdog the page must still be veiled, not failed open.
+      await page.waitForTimeout(2_800);
+      const waiting = await page.evaluate(() => ({
+        routeEnter: document.documentElement.classList.contains("route-enter"),
+        fallback: document.documentElement.classList.contains("motion-fallback"),
+        veilOpacity: Number.parseFloat(getComputedStyle(document.querySelector(".route-veil")).opacity),
+        claimed: window.__ttMotionBoot?.claimed,
+      }));
+      assert(
+        waiting.routeEnter && !waiting.fallback && waiting.veilOpacity >= 0.99 && waiting.claimed === false,
+        `Slow motion did not hold the veil: ${JSON.stringify(waiting)}`,
+      );
+      await navigation;
       await page.waitForFunction(
-        () => document.documentElement.classList.contains("motion-fallback"),
+        () =>
+          window.__ttMotionRuntimeHealthy === true &&
+          !document.documentElement.classList.contains("route-enter") &&
+          Number.parseFloat(getComputedStyle(document.querySelector(".route-veil")).opacity) <= 0.001,
         null,
-        { timeout: 3_200 },
+        { timeout: 6_000 },
+      );
+      await page.waitForFunction(
+        () => Number.parseFloat(getComputedStyle(document.querySelector(".detail-index-hero .hero-content")).opacity) >= 0.99,
+        null,
+        { timeout: 6_000 },
+      );
+      const boot = await page.evaluate(() => ({
+        claimed: window.__ttMotionBoot?.claimed,
+        fallback: window.__ttMotionBoot?.fallback,
+        fallbackClass: document.documentElement.classList.contains("motion-fallback"),
+      }));
+      assert(
+        boot.claimed === true && boot.fallback === false && !boot.fallbackClass,
+        `Slow motion fell back instead of claiming: ${JSON.stringify(boot)}`,
       );
       await page.evaluate(() => {
         window.__ttLateFilterLayoutEvents = 0;
@@ -8877,74 +8905,10 @@ async function runMotionAbortFailOpenChecks() {
             ?.getAttribute("aria-current") === "true" &&
           window.__ttLateFilterLayoutEvents === 1,
       );
-      await page.evaluate(() => {
-        const target = document.querySelector(".detail-index-hero .hero-content");
-        const baseline = target.getBoundingClientRect();
-        window.__ttLateMotionTrace = [];
-        const started = performance.now();
-        const sample = () => {
-          const rect = target.getBoundingClientRect();
-          const style = getComputedStyle(target);
-          window.__ttLateMotionTrace.push({
-            elapsed: performance.now() - started,
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-            opacity: Number.parseFloat(style.opacity),
-            fallback: document.documentElement.classList.contains("motion-fallback"),
-          });
-          if (performance.now() - started < 1_800) requestAnimationFrame(sample);
-        };
-        window.__ttLateMotionBaseline = {
-          top: baseline.top,
-          left: baseline.left,
-          width: baseline.width,
-          height: baseline.height,
-        };
-        sample();
-      });
-      await navigation;
-      await page.waitForFunction(
-        () =>
-          window.__ttMotionRuntimeHealthy === true &&
-          !document.documentElement.classList.contains("motion-fallback"),
-      );
-      await page.waitForTimeout(1_900);
-      const state = await page.evaluate(() => ({
-        baseline: window.__ttLateMotionBaseline,
-        boot: {
-          claimed: window.__ttMotionBoot?.claimed,
-          fallback: window.__ttMotionBoot?.fallback,
-        },
-        samples: window.__ttLateMotionTrace,
-      }));
-      for (const sample of state.samples) {
-        for (const key of ["top", "left", "width", "height"]) {
-          assert(
-            Math.abs(sample[key] - state.baseline[key]) <= 1,
-            `Late motion replayed ${key}: ${JSON.stringify(sample)}`,
-          );
-        }
-        assert(sample.opacity >= 0.99, `Late motion hid content: ${JSON.stringify(sample)}`);
-      }
+      await page.waitForTimeout(300);
       assert(
-        state.boot.claimed === true && state.boot.fallback === false,
-        `Late motion did not take over once: ${JSON.stringify(state.boot)}`,
-      );
-      await page.evaluate(() => {
-        window.__ttLateFilterLayoutEvents = 0;
-      });
-      await page.locator('[data-advertising-filter="all"]').click();
-      const filterTakeover = await page.evaluate(() => ({
-        active: document
-          .querySelector('[data-advertising-filter="all"]')
-          ?.getAttribute("aria-current"),
-        layoutEvents: window.__ttLateFilterLayoutEvents,
-      }));
-      assert(
-        filterTakeover.active === "true" && filterTakeover.layoutEvents === 1,
-        `Late takeover duplicated or lost filter listeners: ${JSON.stringify(filterTakeover)}`,
+        (await page.evaluate(() => window.__ttLateFilterLayoutEvents)) === 1,
+        "Slow motion mounted duplicate filter listeners",
       );
       await page.locator("[data-menu-open]").click();
       await waitForMenuState(page, true);
@@ -9040,7 +9004,7 @@ async function runDelayedDetailFallbackChecks() {
     { width: 1440, height: 900 },
   ]) {
     await runPageCase(
-      `delayed detail mounts fail-open filters once ${viewport.width}x${viewport.height}`,
+      `delayed detail mounts filters once with failed or slow motion ${viewport.width}x${viewport.height}`,
       { route: "/vi/advertising-products/", viewport },
       async (page) => {
         await page.route(detailPattern, delayResponse(4_200));
@@ -9083,37 +9047,37 @@ async function runDelayedDetailFallbackChecks() {
         await page.unroute(motionPattern);
         await page.route(detailPattern, delayResponse(4_200));
         await page.route(motionPattern, delayResponse(6_000));
-        let takeoverNavigationError;
-        const takeoverNavigation = page
+        let delayedNavigationError;
+        const delayedNavigation = page
           .goto(
-            pageUrl(`/vi/advertising-products/?delayed-detail-takeover=${viewport.width}`),
+            pageUrl(`/vi/advertising-products/?delayed-detail-veil=${viewport.width}`),
             { waitUntil: "load", timeout: 20_000 },
           )
           .catch((error) => {
-            takeoverNavigationError = error;
+            delayedNavigationError = error;
             return null;
           });
-        await page.waitForFunction(
-          () => document.documentElement.classList.contains("motion-fallback"),
-          null,
-          { timeout: 5_000 },
-        );
-        await waitForAdvertisingCatalog(page);
-        assertFilter(
-          await exerciseFilter(page, "kiosk-posm"),
-          "kiosk-posm",
-          "Delayed-detail pre-takeover kiosk",
-        );
-        const takeoverResponse = await takeoverNavigation;
+        await page.waitForFunction(() => document.body, null, { timeout: 4_000 });
+        await page.waitForTimeout(4_500);
+        const waiting = await page.evaluate(() => ({
+          routeEnter: document.documentElement.classList.contains("route-enter"),
+          fallback: document.documentElement.classList.contains("motion-fallback"),
+        }));
         assert(
-          takeoverResponse &&
-            !takeoverNavigationError &&
-            takeoverResponse.status() < 400,
-          `Delayed-detail takeover page did not load: ${takeoverNavigationError}`,
+          waiting.routeEnter && !waiting.fallback,
+          `Delayed scripts failed open instead of holding the veil: ${JSON.stringify(waiting)}`,
+        );
+        const delayedResponse = await delayedNavigation;
+        assert(
+          delayedResponse &&
+            !delayedNavigationError &&
+            delayedResponse.status() < 400,
+          `Delayed-detail veil page did not load: ${delayedNavigationError}`,
         );
         await page.waitForFunction(
           () =>
             window.__ttMotionRuntimeHealthy === true &&
+            window.__ttMotionBoot?.fallback === false &&
             !document.documentElement.classList.contains("motion-fallback"),
           null,
           { timeout: 5_000 },
@@ -9121,34 +9085,25 @@ async function runDelayedDetailFallbackChecks() {
         await waitForLoadedDocument(page);
         await waitForAdvertisingCatalog(page);
         assertFilter(
+          await exerciseFilter(page, "kiosk-posm"),
+          "kiosk-posm",
+          "Delayed-detail veil kiosk",
+        );
+        assertFilter(
           await exerciseFilter(page, "all"),
           "all",
-          "Delayed-detail post-takeover All",
+          "Delayed-detail veil All",
         );
       },
     );
   }
 }
 
-async function runBootClaimReleaseRaceCheck() {
+async function runSlowMotionBootCheck() {
   await runPageCase(
-    "runtime claim suppresses the fail-open locale handler before release",
+    "slow motion never fails open and switches locale in place after claim",
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     async (page) => {
-      await page.addInitScript(() => {
-        const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
-        window.requestAnimationFrame = (callback) =>
-          nativeRequestAnimationFrame((time) => {
-            if (
-              window.__ttMotionBoot?.claimed &&
-              window.__ttMotionBoot?.fallback
-            ) {
-              window.setTimeout(() => callback(performance.now()), 120);
-              return;
-            }
-            callback(time);
-          });
-      });
       await page.route("**/*motion.js*", async (route) => {
         const response = await route.fetch();
         await new Promise((resolve) => setTimeout(resolve, 4_500));
@@ -9164,15 +9119,19 @@ async function runBootClaimReleaseRaceCheck() {
           navigationError = error;
           return null;
         });
-      await page.waitForFunction(
-        () => document.documentElement.classList.contains("motion-fallback"),
-        null,
-        { timeout: 4_000 },
+      await page.waitForFunction(() => document.body, null, { timeout: 4_000 });
+      await page.waitForTimeout(3_000);
+      const waiting = await page.evaluate(() => ({
+        routeEnter: document.documentElement.classList.contains("route-enter"),
+        fallback: window.__ttMotionBoot?.fallback,
+        fallbackClass: document.documentElement.classList.contains("motion-fallback"),
+      }));
+      assert(
+        waiting.routeEnter && waiting.fallback === false && !waiting.fallbackClass,
+        `Slow motion failed open before the runtime arrived: ${JSON.stringify(waiting)}`,
       );
       await page.waitForFunction(
-        () =>
-          window.__ttMotionBoot?.claimed === true &&
-          window.__ttMotionBoot?.fallback === true,
+        () => window.__ttMotionBoot?.claimed === true && window.__ttMotionRuntimeHealthy === true,
         null,
         { timeout: 5_000 },
       );
@@ -9231,18 +9190,17 @@ async function runBootClaimReleaseRaceCheck() {
       const state = await page.evaluate(() => ({
         claimed: window.__ttMotionBoot?.claimed,
         fallback: window.__ttMotionBoot?.fallback,
-        timer: window.__ttMotionBoot?.timer,
         lang: document.documentElement.lang,
         headerSamples: window.__ttTakeoverHeaderTrace.samples,
       }));
+      // The runtime swaps the locale in place, so no fail-open handler may request the page.
       assert(
-        targetRequests.length === 1,
-        `Claim window triggered ${targetRequests.length} locale requests: ${JSON.stringify(targetRequests)}`,
+        targetRequests.length === 0,
+        `Locale switch after claim requested the page: ${JSON.stringify(targetRequests)}`,
       );
       assert(
         state.claimed === true &&
           state.fallback === false &&
-          state.timer === 0 &&
           state.lang === "en" &&
           state.headerSamples.length > 30 &&
           state.headerSamples.every(
@@ -13542,7 +13500,7 @@ async function main() {
     } else if (process.env.TT_E2E_WHEEL_ONLY === "1") {
       await runPhysicalWheelTransformChecks();
     } else if (process.env.TT_E2E_BOOT_RACE_ONLY === "1") {
-      await runBootClaimReleaseRaceCheck();
+      await runSlowMotionBootCheck();
     } else if (process.env.TT_E2E_HERO_INTRO_ONLY === "1") {
       await runHomeHeroTypesettingChecks();
       await runHomeHeroIntroReadabilityCheck();
@@ -13621,7 +13579,7 @@ async function main() {
     } else if (process.env.TT_E2E_M2_ONLY === "1") {
       await runMotionAbortFailOpenChecks();
       await runDelayedDetailFallbackChecks();
-      await runBootClaimReleaseRaceCheck();
+      await runSlowMotionBootCheck();
       await runDetailHeroEntryChecks();
       await runHeroCarouselLifecycleCheck();
     } else {
@@ -13654,7 +13612,7 @@ async function main() {
       await runNoScriptHeroCheck();
       await runMotionAbortFailOpenChecks();
       await runDelayedDetailFallbackChecks();
-      await runBootClaimReleaseRaceCheck();
+      await runSlowMotionBootCheck();
       await runHomeMotionRegressionCheck();
       await runReducedMotionChecks();
     }

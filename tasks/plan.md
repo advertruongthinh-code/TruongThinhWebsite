@@ -45,7 +45,8 @@ Hành vi F5 có veil đã lên main ở PR #66.
    chưa nhận trang (lỗi hoặc thoát sớm). Không cần thời gian chờ thêm; mạng chậm
    thì veil giữ trắng tới khi script tải xong. Điền mục `CẦN LÀM RÕ` của spec.
 2. R1: trần context WebGL điện thoại 2, desktop 8 như bản chạy thử; chốt lại
-   theo số đo.
+   theo số đo. Đã chốt desktop 12: skeleton cuối masonry một mình cần 8 đến 10
+   context ở 1280 đến 2560px.
 3. Preset skeleton theo media id (`fnv1a32(mediaId) % 12`), nên card remount
    giữ màu.
 4. R4 ảnh có sẵn: ảnh cũ nằm trong một lớp tạm ngay trong khung primary để
@@ -61,7 +62,7 @@ Hành vi F5 có veil đã lên main ở PR #66.
 | # | Việc | R | Ước lượng |
 | --- | --- | --- | --- |
 | T1 | Tách helper dựng frame, surface, canvas từ `renderCtaSkeleton`; card masonry và related có ảnh chưa `complete` gắn skeleton vào khung media; dùng chung lease pool, cho chạy cả khi đang mở detail | R1, R3, R8 | 2 giờ |
-| T2 | Ba bước hiện ảnh bằng Web Animations theo bảng [Card đang tải](../design-system/approved-designs.md#card-đang-tải); gỡ skeleton, kính và trả context khi xong | R2 | 1 giờ |
+| T2 | Ba bước hiện ảnh bằng Web Animations theo bảng [Kính](../design-system/approved-designs.md#kính); gỡ skeleton, kính và trả context khi xong | R2 | 1 giờ |
 | T3 | Skeleton thay `.media-load-ring`, spinner card nhiều ảnh và vòng `::after`; primary mở tại chỗ, ảnh có sẵn crossfade `0.6s`; giữ `aria-busy` và morph sang viewer | R4, R5 | 2 giờ |
 | T4 | Đổi điều kiện fallback trong năm head script; sửa test đang dựa vào mốc 2.5s | R6, R7 | 1 giờ |
 | T5 | E2E: ảnh chậm thì có skeleton, điện thoại tối đa 2 context, ảnh cache không skeleton, node gỡ sau reveal, primary chưa tải có skeleton, motion.js chậm 4s veil giữ rồi mở, motion.js lỗi veil gỡ; sửa test vòng xoay cũ; cập nhật Design System và spec theo mục Gate còn mở | R1–R8 | 2 giờ |

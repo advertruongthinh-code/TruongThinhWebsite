@@ -36,6 +36,15 @@ let skeletonDocumentParked = false;
 let skeletonDocumentEventsBound = false;
 const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
   || document.documentElement.clientWidth <= 750;
+// Wide desktops show 8-10 CTA frames at once; 12 keeps them all live and stays under Chrome's 16 contexts.
+const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
+// Loading skeletons pick their assignment by media id, so a remounted card keeps its colours.
+const LOADING_SKELETON_BATCH = createSkeletonFlowBatchAssignments({
+  random: createSeededRandom("advertising-loading-skeleton"),
+}).map((assignment) => Object.freeze({ ...assignment, batch: "loading" }));
+// Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; a cached primary scales it to 0.6s.
+const MEDIA_REVEAL_MS = 1400;
+const CACHED_PRIMARY_REVEAL_MS = 600;
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
   record.disposed = true;
@@ -712,7 +721,8 @@ function syncJustViewedMarker(figure, locale, marked) {
   marker.textContent = locale === "en" ? "Just viewed" : "Vừa xem";
 }
 
-function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {}) {
+function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {},
+  onPendingChange = () => {}) {
   const figure = document.createElement("figure");
   figure.className = "project-tile advertising-tile";
   figure.dataset[related ? "advertisingRelatedCard" : "advertisingCard"] = record.id;
@@ -759,7 +769,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dataset.advertisingActiveMediaId = items[coverIndex].id;
     }
 
-    const loading = el("span", "advertising-card-media__loading", "advertisingMediaLoading",
+    // The skeleton frame is the visual; this node only keeps the loading status for assistive tech.
+    const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
     const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
     const playback = el("button", "advertising-card-media__playback", "advertisingMediaPlayback");
@@ -821,6 +832,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const failedImage = layer instanceof HTMLImageElement && failedImages.has(items[activeIndex].id);
       const loadedVideoPoster = layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "loaded";
       loading.hidden = ready || failedImage || loadedVideoPoster;
+      onPendingChange(figure);
       if (ready) {
         layer.classList.add("is-advertising-media-ready");
         if (layer instanceof HTMLImageElement) {
@@ -920,6 +932,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       }
       updateLoading();
     };
+    figure.advertisingPendingMediaId = () => loading.hidden ? null : items[activeIndex].id;
     figure.advertisingSetMediaId = (id) => {
       const index = items.findIndex((item) => item.id === id);
       if (index >= 0) setActive(index);
@@ -970,6 +983,13 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     else setActive(initialIndex);
     listenForMediaLoad(figure, layers.get(items[activeIndex].id), onMediaLoaded);
   } else {
+    let failed = false;
+    figure.advertisingPendingMediaId = () => failed || (image.complete && image.naturalWidth > 0)
+      ? null : record.coverMediaId;
+    image.addEventListener("error", () => {
+      failed = true;
+      onPendingChange(figure);
+    });
     listenForMediaLoad(figure, image, onMediaLoaded);
   }
   syncJustViewedMarker(figure, locale, lastClosedPhotoId === record.id
@@ -1226,10 +1246,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     mediaRevealFrames.set(id, restoreFrame);
   };
   const handleMediaLoaded = (node) => {
-    if (reduced) showMedia(node);
+    cancelCardSkeletonWait(node);
+    if (cardSkeletons.has(node)) revealCardSkeleton(node);
+    else if (reduced) showMedia(node);
     else revealMedia(node);
   };
-  const mediaObserver = reduced ? null : new IntersectionObserver((entries) => {
+  // Reduced motion still observes: loading skeletons appear only on cards in view.
+  const mediaObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       const node = entry.target;
       const id = mediaKey(node);
@@ -1238,25 +1261,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         visibleMediaCards.delete(id);
         armedMediaCards.add(id);
         cancelMediaReveal(node);
+        cancelCardSkeletonWait(node);
+        if (cardSkeletons.get(node)?.revealing) dropCardSkeleton(node);
         return;
       }
       if (!entry.isIntersecting) return;
       visibleMediaCards.add(id);
-      revealMedia(node);
+      queueCardSkeleton(node);
+      if (!reduced) revealMedia(node);
     });
   }, { threshold: 0 });
   const observeMediaCard = (node) => {
     const id = mediaKey(node);
     armedMediaCards.add(id);
-    mediaObserver?.observe(node);
+    mediaObserver.observe(node);
   };
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
     node.querySelectorAll("video").forEach((video) => video.pause());
-    mediaObserver?.unobserve(node);
+    mediaObserver.unobserve(node);
     visibleMediaCards.delete(id);
     armedMediaCards.add(id);
     cancelMediaReveal(node);
+    cancelCardSkeletonWait(node);
+    dropCardSkeleton(node);
   };
   let filter = new URLSearchParams(location.search).get("category") || "all";
   let currentVisualY = window.scrollY;
@@ -1553,7 +1581,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     frame.removeEventListener("transitionend", pending.settle);
     skeletonEntryFrames.delete(frame);
   };
-  const skeletonMotionAllowed = () => !skeletonDocumentParked && !activePhotoId && !document.hidden
+  // Loading skeletons run on related cards and the primary too; the CTA batch is cleared while a photo is open.
+  const skeletonMotionAllowed = () => !skeletonDocumentParked && !document.hidden
     && !skeletonMotionPreference.matches
     && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
   const skeletonCanLoop = (frame) => visibleSkeletonFrames.has(frame) && skeletonMotionAllowed();
@@ -1566,6 +1595,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (animation.transitionProperty === "opacity") animation.cancel();
     });
   };
+  const loadingSkeletonFrames = new Set();
+  const skeletonFrames = () => [...skeletonFrameBySlot.values(), ...loadingSkeletonFrames];
+  const skeletonKey = (frame) => frame.dataset.advertisingCtaSlot
+    ?? `media:${frame.dataset.advertisingLoadingSkeleton}`;
   const createSkeletonCanvas = (assignment, canvas = document.createElement("canvas")) => {
     const { preset, anchorPermutation, phase, direction } = assignment;
     canvas.className = "advertising-grid__cta-flow";
@@ -1582,12 +1615,24 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.setAttribute("aria-hidden", "true");
     return canvas;
   };
+  const createSkeletonFrame = (assignment) => {
+    const frame = document.createElement("span");
+    frame.className = "advertising-grid__cta-frame";
+    const surface = document.createElement("span");
+    surface.className = "advertising-grid__cta-surface";
+    surface.style.backgroundColor = assignment.preset.colors[3];
+    surface.style.backgroundImage = staticBackground(assignment.preset);
+    surface.append(createSkeletonCanvas(assignment));
+    frame.append(surface);
+    skeletonAssignmentByFrame.set(frame, assignment);
+    return frame;
+  };
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);
     if (!assignment) return;
     const { preset, phase, direction } = assignment;
-    const budget = skeletonPhone() ? 2 : Infinity;
+    const budget = skeletonContextBudget();
     const lease = skeletonNativeContexts.find(record => !record.renderer && !record.gl.isContextLost());
     if (!lease && skeletonNativeContexts.length >= budget) return;
     const oldCanvas = frame.querySelector("canvas");
@@ -1597,12 +1642,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.getBoundingClientRect();
     const renderer = createSkeletonFlowRenderer(canvas, {
       preset,
-      seed: fnv1a32(`${frame.dataset.advertisingCtaSlot}:${preset.id}`),
-      initialPhase: skeletonPhaseBySlot.get(frame.dataset.advertisingCtaSlot) ?? phase,
+      seed: fnv1a32(`${skeletonKey(frame)}:${preset.id}`),
+      initialPhase: skeletonPhaseBySlot.get(skeletonKey(frame)) ?? phase,
       direction,
     });
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
-    renderer?.draw(performance.now());
     skeletonFlowByFrame.set(frame, renderer);
     if (renderer?.context) {
       const record = lease || rememberSkeletonContext(canvas, renderer);
@@ -1611,6 +1655,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     if (oldCanvas && oldCanvas !== canvas) oldCanvas.replaceWith(canvas);
     if (!canvas.isConnected) frame.querySelector(".advertising-grid__cta-surface")?.append(canvas);
+    // Draw once a leased canvas is in the frame; no paint runs in between, so it still shows the first frame.
+    renderer?.draw(performance.now());
     requestAnimationFrame(() => {
       if (!canvas.isConnected || skeletonFlowByFrame.get(frame) !== renderer
         || document.hidden || skeletonMotionPreference.matches) return;
@@ -1624,8 +1670,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const releaseSkeletonRenderer = (frame) => {
     const renderer = skeletonFlowByFrame.get(frame);
     if (!skeletonFlowByFrame.has(frame)) return;
-    const slot = frame.dataset.advertisingCtaSlot;
-    if (Number.isFinite(renderer?.phase)) skeletonPhaseBySlot.set(slot, renderer.phase);
+    if (Number.isFinite(renderer?.phase)) skeletonPhaseBySlot.set(skeletonKey(frame), renderer.phase);
     const lease = skeletonLeaseByFrame.get(frame);
     renderer?.destroy({ releaseContext: !lease });
     if (lease) {
@@ -1639,14 +1684,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (oldCanvas && assignment) oldCanvas.replaceWith(createSkeletonCanvas(assignment));
   };
   const syncSkeletonRenderers = () => {
-    const budget = skeletonPhone() ? 2 : Infinity;
+    const budget = skeletonContextBudget();
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
-    if (!activePhotoId) for (const frame of skeletonFlowByFrame.keys()) {
+    for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
+    // Card and CTA frames sit in different containers, so order them by viewport position.
     const prioritized = [...visibleSkeletonFrames]
-      .sort((left, right) => left.offsetTop - right.offsetTop || left.offsetLeft - right.offsetLeft)
+      .map((frame) => ({ frame, rect: frame.getBoundingClientRect() }))
+      .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left)
+      .map(({ frame }) => frame)
       .filter((frame) => !keep.has(frame));
     if (eligible) for (const frame of prioritized) {
       if (keep.size >= budget) break;
@@ -1683,14 +1731,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       frame.addEventListener("transitionend", pending.settle);
       frame.classList.add("is-entry-ready");
-      revealedSkeletonSlots.add(frame.dataset.advertisingCtaSlot);
+      revealedSkeletonSlots.add(skeletonKey(frame));
       pending.fallback = setTimeout(settle, 650);
     });
     skeletonEntryFrames.set(frame, pending);
   };
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
-    for (const frame of skeletonFrameBySlot.values()) {
+    for (const frame of skeletonFrames()) {
       const rect = frame.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0
         && rect.right > visible.left && rect.left < visible.left + visible.width
@@ -1698,13 +1746,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       else visibleSkeletonFrames.delete(frame);
     }
     syncSkeletonRenderers();
-    ctaSkeleton?.querySelectorAll("[data-advertising-cta-frame]").forEach((frame) => {
+    skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
       if (skeletonMotionPreference.matches) {
         cancelSkeletonEntry(frame);
         settleSkeletonCanvas(frame);
         frame.classList.add("is-entry-ready");
-        revealedSkeletonSlots.add(frame.dataset.advertisingCtaSlot);
+        revealedSkeletonSlots.add(skeletonKey(frame));
         frame.classList.remove("is-looping");
         frame.dataset.advertisingFlowState = "paused";
         renderer?.stop();
@@ -1713,12 +1761,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!visibleSkeletonFrames.has(frame)) {
         cancelSkeletonEntry(frame);
         frame.classList.remove("is-looping", "is-entry-ready");
-        revealedSkeletonSlots.delete(frame.dataset.advertisingCtaSlot);
+        revealedSkeletonSlots.delete(skeletonKey(frame));
         frame.dataset.advertisingFlowState = "paused";
         renderer?.stop();
         return;
       }
-      if (document.hidden || activePhotoId || document.body.classList.contains("motion-paused")) {
+      if (document.hidden || document.body.classList.contains("motion-paused")) {
         cancelSkeletonEntry(frame);
         settleSkeletonCanvas(frame);
         frame.classList.remove("is-looping");
@@ -1747,13 +1795,124 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
+  let skeletonSyncFrame = 0;
+  const scheduleSkeletonSync = () => {
+    if (skeletonSyncFrame || controller.signal.aborted) return;
+    skeletonSyncFrame = requestAnimationFrame(() => {
+      skeletonSyncFrame = 0;
+      syncSkeletonMotion();
+    });
+  };
+  // Loading media shows the masonry-end skeleton frame itself (loading-glass-and-page-entry R1, R5).
+  const attachLoadingSkeleton = (host, mediaId, before = null) => {
+    const frame = createSkeletonFrame(LOADING_SKELETON_BATCH[fnv1a32(mediaId) % LOADING_SKELETON_BATCH.length]);
+    frame.dataset.advertisingLoadingSkeleton = mediaId;
+    frame.setAttribute("aria-hidden", "true");
+    host.insertBefore(frame, before);
+    loadingSkeletonFrames.add(frame);
+    if (skeletonObserver) skeletonObserver.observe(frame);
+    else visibleSkeletonFrames.add(frame);
+    scheduleSkeletonSync();
+    return frame;
+  };
+  const detachLoadingSkeleton = (frame) => {
+    if (!loadingSkeletonFrames.delete(frame)) return;
+    skeletonObserver?.unobserve(frame);
+    visibleSkeletonFrames.delete(frame);
+    cancelSkeletonEntry(frame);
+    releaseSkeletonRenderer(frame);
+    skeletonAssignmentByFrame.delete(frame);
+    frame.remove();
+    scheduleSkeletonSync();
+  };
+  // Crossfade step of the approved reveal: outgoing layers fade from their current opacity, incoming ones from 0.
+  const crossfadeLayers = (from, to, total) => {
+    const scale = total / MEDIA_REVEAL_MS;
+    const timing = { delay: 300 * scale, duration: 600 * scale, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "both" };
+    return [
+      ...from.map((node) => {
+        const opacity = getComputedStyle(node).opacity;
+        node.style.transition = "none";
+        node.style.opacity = opacity;
+        return node.animate([{ opacity }, { opacity: 0 }], timing);
+      }),
+      ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
+    ];
+  };
+  const cardSkeletons = new Map();
+  const cardSkeletonWaits = new Map();
+  const cancelCardSkeletonWait = (node) => {
+    clearTimeout(cardSkeletonWaits.get(node));
+    cardSkeletonWaits.delete(node);
+  };
+  const queueCardSkeleton = (node) => {
+    if (cardSkeletons.has(node) || cardSkeletonWaits.has(node) || !node.advertisingPendingMediaId?.()) return;
+    // Cache hits finish inside this grace and keep the plain card fade (R3).
+    cardSkeletonWaits.set(node, setTimeout(() => {
+      cardSkeletonWaits.delete(node);
+      const mediaId = node.advertisingPendingMediaId();
+      if (!mediaId || !node.isConnected || !visibleMediaCards.has(mediaKey(node))) return;
+      const frame = attachLoadingSkeleton(node.querySelector(".advertising-card-media"), mediaId);
+      cardSkeletons.set(node, { frame, revealing: false, animations: [] });
+    }, 150));
+  };
+  const dropCardSkeleton = (node) => {
+    const entry = cardSkeletons.get(node);
+    if (!entry) return;
+    cardSkeletons.delete(node);
+    entry.animations.forEach((animation) => animation.cancel());
+    if (entry.animations.length) mediaLayers(node).forEach((media) => media.style.removeProperty("transition"));
+    detachLoadingSkeleton(entry.frame);
+  };
+  const revealCardSkeleton = (node) => {
+    const entry = cardSkeletons.get(node);
+    if (!entry || entry.revealing) return;
+    const id = mediaKey(node);
+    const layer = mediaLayers(node).find((media) => !media.hidden);
+    const failed = layer instanceof HTMLImageElement && !layer.naturalWidth;
+    if (failed || reduced || !visibleMediaCards.has(id)) {
+      dropCardSkeleton(node);
+      if (!failed) handleMediaLoaded(node);
+      return;
+    }
+    entry.revealing = true;
+    armedMediaCards.delete(id);
+    cancelMediaReveal(node);
+    // Swap only a decoded photo so the crossfade never paints a half-decoded frame (R2).
+    const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
+    decoded.then(() => {
+      if (cardSkeletons.get(node) !== entry) return;
+      if (!visibleMediaCards.has(id)) {
+        dropCardSkeleton(node);
+        return;
+      }
+      const layers = mediaLayers(node);
+      layers.forEach((media) => {
+        media.style.setProperty("transition", "none", "important");
+        media.classList.add("is-advertising-media-ready");
+      });
+      entry.animations = crossfadeLayers([entry.frame], layers, MEDIA_REVEAL_MS);
+      Promise.all(entry.animations.map(({ finished }) => finished))
+        .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
+    });
+  };
+  const syncCardSkeleton = (node) => {
+    if (node.advertisingPendingMediaId?.()) {
+      if (visibleMediaCards.has(mediaKey(node))) queueCardSkeleton(node);
+      return;
+    }
+    cancelCardSkeletonWait(node);
+    revealCardSkeleton(node);
+  };
   const clearCtaSkeleton = () => {
     ctaGeometryHash = "";
-    skeletonObserver?.disconnect();
-    visibleSkeletonFrames.clear();
-    skeletonEntryFrames.forEach((_, frame) => cancelSkeletonEntry(frame));
-    [...skeletonFlowByFrame.keys()].forEach(releaseSkeletonRenderer);
-    skeletonAssignmentByFrame.clear();
+    for (const frame of skeletonFrameBySlot.values()) {
+      skeletonObserver?.unobserve(frame);
+      visibleSkeletonFrames.delete(frame);
+      cancelSkeletonEntry(frame);
+      releaseSkeletonRenderer(frame);
+      skeletonAssignmentByFrame.delete(frame);
+    }
     skeletonFrameBySlot.clear();
     skeletonPhaseBySlot.clear();
     if (!ctaSkeleton) return;
@@ -1842,9 +2001,25 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       claimedAssignments.add(cached);
     }
     frameLayout.forEach(({ slot, column, depth, band, top, height }) => {
-        const existing = skeletonFrameBySlot.get(slot);
-        const frame = existing || document.createElement("span");
-        if (!existing) frame.className = "advertising-grid__cta-frame";
+        let frame = skeletonFrameBySlot.get(slot);
+        if (!frame) {
+          let assignment = nextAssignments.get(slot);
+          if (!assignment) {
+            assignment = skeletonFlowBatch.find((candidate) => !claimedAssignments.has(candidate));
+            if (!assignment) {
+              const additionalBatch = createLogicalSkeletonBatch();
+              skeletonFlowBatch = [...skeletonFlowBatch, ...additionalBatch];
+              assignment = additionalBatch[0];
+            }
+            claimedAssignments.add(assignment);
+            skeletonPhaseBySlot.delete(slot);
+            skeletonFlowAssignmentBySlot.set(slot, assignment);
+          }
+          frame = createSkeletonFrame(assignment);
+          if (revealedSkeletonSlots.has(slot)) frame.classList.add("is-entry-ready");
+          fragment.append(frame);
+          skeletonFrameBySlot.set(slot, frame);
+        }
         frame.dataset.advertisingCtaFrame = "true";
         frame.dataset.advertisingCtaColumn = String(column);
         frame.dataset.advertisingCtaDepth = String(depth);
@@ -1855,30 +2030,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         frame.style.width = `${geometry.cardWidth}px`;
         frame.style.height = `${height}px`;
         frame.style.setProperty("--advertising-cta-frame-opacity", "1");
-        if (existing) return;
-        if (revealedSkeletonSlots.has(slot)) frame.classList.add("is-entry-ready");
-        const surface = document.createElement("span");
-        surface.className = "advertising-grid__cta-surface";
-        let assignment = nextAssignments.get(slot);
-        if (!assignment) {
-          assignment = skeletonFlowBatch.find((candidate) => !claimedAssignments.has(candidate));
-          if (!assignment) {
-            const additionalBatch = createLogicalSkeletonBatch();
-            skeletonFlowBatch = [...skeletonFlowBatch, ...additionalBatch];
-            assignment = additionalBatch[0];
-          }
-          claimedAssignments.add(assignment);
-          skeletonPhaseBySlot.delete(slot);
-          skeletonFlowAssignmentBySlot.set(slot, assignment);
-        }
-        skeletonAssignmentByFrame.set(frame, assignment);
-        surface.style.backgroundColor = assignment.preset.colors[3];
-        surface.style.backgroundImage = staticBackground(assignment.preset);
-        const canvas = createSkeletonCanvas(assignment);
-        surface.append(canvas);
-        frame.append(surface);
-        fragment.append(frame);
-        skeletonFrameBySlot.set(slot, frame);
     });
     gridPixelHeight = gridBottom;
     const skeletonGlassStart = Math.max(geometry.totalPixelHeight, skeletonFadeEnd - geometry.cardWidth);
@@ -1958,7 +2109,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const initialMediaId = gridMediaById.get(id)
           || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
         node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
-          (mediaId) => gridMediaById.set(id, mediaId));
+          (mediaId) => gridMediaById.set(id, mediaId), syncCardSkeleton);
         rendered.set(placement.card.id, node);
         observeMediaCard(node);
         created.add(placement.card.id);
@@ -2015,7 +2166,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const initialMediaId = gridMediaById.get(id)
         || (browseHistory.current.grid.focusId === id ? browseHistory.current.grid.mediaId : null);
       node = createPhotoCard(placement.card, locale, handleMediaLoaded, false, initialMediaId,
-        (mediaId) => gridMediaById.set(id, mediaId));
+        (mediaId) => gridMediaById.set(id, mediaId), syncCardSkeleton);
       rendered.set(placement.card.id, node);
       observeMediaCard(node);
       grid.append(node);
@@ -2220,7 +2371,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     let node = relatedRendered.get(id);
     if (!node) {
       node = createPhotoCard(placement.card, locale, handleMediaLoaded, true,
-        relatedMediaById.get(id), (mediaId) => relatedMediaById.set(id, mediaId));
+        relatedMediaById.get(id), (mediaId) => relatedMediaById.set(id, mediaId), syncCardSkeleton);
       relatedRendered.set(id, node);
       observeMediaCard(node);
       relatedGrid.append(node);
@@ -2501,24 +2652,59 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
-  // Indeterminate ring while the primary image loads (docs/specs/image-loading-progress.md).
-  const photoLoadRing = photoImage?.parentElement ? document.createElement("span") : null;
-  let photoLoadTimer = 0;
-  const settlePhotoLoading = () => {
-    window.clearTimeout(photoLoadTimer);
-    photoLoadRing?.remove();
-    photoImage?.parentElement?.removeAttribute("aria-busy");
+  // The primary changes inside its own frame (loading-glass-and-page-entry R4, R5): a loading photo
+  // shows the skeleton at once, a cached one crossfades over the photo on screen.
+  const heroFrame = photoImage?.parentElement;
+  let primaryReveal = null;
+  const settlePrimaryReveal = () => {
+    if (!primaryReveal) return;
+    const { frame, outgoing, animations, timer } = primaryReveal;
+    primaryReveal = null;
+    clearTimeout(timer);
+    animations.forEach((animation) => animation.cancel());
+    outgoing.forEach((node) => node.remove());
+    if (frame) detachLoadingSkeleton(frame);
+    delete heroFrame.dataset.advertisingPhotoLoading;
+    heroFrame.removeAttribute("aria-busy");
   };
-  if (photoLoadRing) {
-    photoLoadRing.className = "media-load-ring";
-    photoLoadRing.setAttribute("aria-hidden", "true");
-    photoImage.addEventListener("load", settlePhotoLoading, { signal: controller.signal });
-    photoImage.addEventListener("error", settlePhotoLoading, { signal: controller.signal });
-    controller.signal.addEventListener("abort", settlePhotoLoading, { once: true });
-  }
-  const renderPrimaryMedia = (record, item) => {
+  const playPrimaryReveal = (reveal, from, to, total) => {
+    if (primaryReveal !== reveal) return;
+    delete heroFrame.dataset.advertisingPhotoLoading;
+    heroFrame.removeAttribute("aria-busy");
+    if (reduced) {
+      settlePrimaryReveal();
+      return;
+    }
+    reveal.animations = crossfadeLayers(from, to, total);
+    Promise.all(reveal.animations.map(({ finished }) => finished))
+      .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+  };
+  // The photo on screen stays as a temporary layer above the new one; no node flies in from the card.
+  const snapshotPrimary = () => {
+    const rect = photoImage.getBoundingClientRect();
+    const image = document.createElement("img");
+    image.className = "advertising-photo-view__outgoing";
+    image.alt = "";
+    image.src = photoImage.currentSrc;
+    image.style.width = `${rect.width}px`;
+    image.style.height = `${rect.height}px`;
+    photoVideo.after(image);
+    if (photoView.dataset.advertisingPhotoGlass !== "true" || !photoBackground?.currentSrc) return [image];
+    const background = document.createElement("img");
+    background.className = "advertising-photo-view__outgoing-background";
+    background.alt = "";
+    background.src = photoBackground.currentSrc;
+    photoBackground.after(background);
+    return [image, background];
+  };
+  const renderPrimaryMedia = (record, item, inPlace = true) => {
     const english = locale === "en";
     const video = item.kind === "video";
+    const source = video ? null : responsiveSource(item.src);
+    const changed = !video && photoImage.getAttribute("src") !== source;
+    if (changed || video) settlePrimaryReveal();
+    const outgoing = changed && inPlace && !reduced && !photoImage.hidden
+      && photoImage.complete && photoImage.naturalWidth > 0 ? snapshotPrimary() : [];
     activePrimaryMediaId = item.id;
     photoView.dataset.advertisingActiveMediaId = item.id;
     photoVideo.pause();
@@ -2543,20 +2729,37 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.alt = english ? item.altEn : item.altVi;
       photoImage.loading = "eager";
       photoImage.fetchPriority = "high";
-      photoImage.src = responsiveSource(item.src);
-    }
-    settlePhotoLoading();
-    if (!video && photoLoadRing && !photoImage.complete) {
-      photoLoadTimer = window.setTimeout(() => {
-        if (photoImage.complete) return;
-        photoImage.parentElement.setAttribute("aria-busy", "true");
-        photoImage.parentElement.append(photoLoadRing);
-      }, 150);
+      photoImage.src = source;
     }
     updateAudioLabel();
     if (photoBackground) {
-      photoBackground.src = video ? item.posterSrc : responsiveSource(item.src);
+      photoBackground.src = video ? item.posterSrc : source;
       photoBackground.dataset.advertisingPhotoId = record.id;
+    }
+    if (changed) {
+      const incoming = [photoImage, photoBackground].filter(Boolean);
+      const reveal = { frame: null, outgoing, animations: [], timer: 0 };
+      primaryReveal = reveal;
+      heroFrame.setAttribute("aria-busy", "true");
+      // Without a photo on screen, hide the stale one; otherwise the old photo stays up until the swap.
+      if (!outgoing.length) heroFrame.dataset.advertisingPhotoLoading = "true";
+      // Chrome reports even memory-cached photos as incomplete right after src changes, so a photo that
+      // decodes inside this window counts as cached; anything slower gets the skeleton at once (R4).
+      reveal.timer = setTimeout(() => {
+        if (primaryReveal !== reveal) return;
+        reveal.outgoing.forEach((node) => node.remove());
+        reveal.outgoing = [];
+        heroFrame.dataset.advertisingPhotoLoading = "true";
+        reveal.frame = attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling);
+      }, 100);
+      // decode() rejects on error or when a newer source replaces this one.
+      photoImage.decode().then(() => {
+        if (primaryReveal !== reveal) return;
+        clearTimeout(reveal.timer);
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS);
+        else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS);
+        else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS);
+      }, () => primaryReveal === reveal && settlePrimaryReveal());
     }
     photoViewer.setRecord(video ? null : { ...record, media: item });
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
@@ -2657,7 +2860,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const selected = record.mediaItems?.find((item) => item.id === initialId)
       || record.mediaItems?.find((item) => item.id === record.coverMediaId)
       || record.media;
-    renderPrimaryMedia(record, selected);
+    renderPrimaryMedia(record, selected, Boolean(previousPhotoId));
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
     descriptionSource = english ? record.descriptionEn : record.descriptionVi;
     descriptionPageIndex = 0;
@@ -2689,6 +2892,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const previousPhotoId = activePhotoId;
     const generation = ++detailRenderGeneration;
     photoViewer.close({ restoreFocus: false });
+    settlePrimaryReveal();
     if (previousPhotoId) lastClosedPhotoId = previousPhotoId;
     rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
@@ -3120,7 +3324,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonObserver?.disconnect();
     visibleSkeletonFrames.clear();
     resizeObserver.disconnect();
-    mediaObserver?.disconnect();
+    mediaObserver.disconnect();
     rendered.forEach((node) => cancelMediaReveal(node));
     masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);
@@ -3128,6 +3332,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     if (motionTimer) clearTimeout(motionTimer);
     retainedPhotoIds.clear();
+    settlePrimaryReveal();
+    cardSkeletonWaits.forEach(clearTimeout);
+    cardSkeletonWaits.clear();
+    [...cardSkeletons.keys()].forEach(dropCardSkeleton);
+    cancelAnimationFrame(skeletonSyncFrame);
     clearCtaSkeleton();
     document.body.classList.remove("is-advertising-browse", "is-advertising-photo");
     delete document.body.dataset.advertisingPhotoActive;

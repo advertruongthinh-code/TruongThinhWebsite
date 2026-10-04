@@ -32,9 +32,6 @@ const COMPONENTS = [
   ...[['Filter', 240, 40], ['MediaCard', 280, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
     ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size]) => ({ name, group: 'Advertising', height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
-  // The ring exists only while an image loads, so its host box is written here; the ring itself is runtime markup (catalog-runtime.mjs).
-  { name: 'LoadRing', group: 'Advertising', height: 280, file: 'src/site/advertising-products/catalog-runtime.mjs', start: /photoLoadRing\.className = "media-load-ring"/,
-    markup: '<div style="position: relative; width: 316px; height: 237px; margin: 20px 35px; background: var(--media-loading-surface);">\n<span class="media-load-ring" aria-hidden="true"></span>\n</div>' },
   // The bar shows only until a suggestion photo paints, so the buttons are written here without photos; the bar itself is detail.css.
   { name: 'LoadBar', group: 'Advertising', height: 280, file: 'src/site/detail.css', start: /Indeterminate bar painted along the bottom edge/,
     markup: '<div class="advertising-photo-view__suggestion-links" style="width: 316px; margin: 20px 35px;">\n'

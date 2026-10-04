@@ -120,7 +120,8 @@ Khi kính dạng phủ đều hiện hoặc tan (card đang tải, primary), cá
 lần lượt từ nhẹ tới mạnh và tan theo chiều ngược lại, chỉ bằng `opacity`. Không
 animate bán kính blur mỗi frame, theo nguyên tắc của
 [Motion](../../design-system/motion.md#nguyên-tắc). Thời gian và đường cong
-giữ như [Card đang tải](../../design-system/approved-designs.md#card-đang-tải).
+giữ như bảng hiện và tan trong
+[Kính](../../design-system/approved-designs.md#kính).
 
 ```gherkin
 Given card đang tải có ảnh vừa giải mã

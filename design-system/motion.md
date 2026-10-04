@@ -31,6 +31,7 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |
 | Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; body có `is-transitioning` trong lúc chuyển |
+| Vào thẳng trang | F5, gõ link, mở link từ ứng dụng khác: veil phủ trang từ khung hình đầu, header intro chạy cùng lúc; trang dựng xong thì uncover `1s power4.inOut` rồi entrance của trang chạy tiếp. Mạng chậm giữ veil tới khi trang dựng xong; script motion lỗi thì gỡ veil ngay, không motion. Back từ BFCache và reduced motion không có veil |
 | Route từ full menu | Menu reverse và route cover chạy đồng thời; URL chỉ commit khi cả hai xong |
 | Underline nav, footer, menu | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover hoặc đang chọn neo trái; mục Advertising ở trang detail không gạch chân khi nghỉ |
 | Hamburger, nút đóng menu | Hover `0.3s ease-out`: hamburger dòng trên, dưới `scaleX(.5)`, dòng giữa `scaleX(2)`; nút đóng xoay hai nét 90°; nhấn `scale(.8)` |
@@ -154,9 +155,16 @@ outline. Touch không cần hover để mở ảnh.
 
 - Chỉ ảnh foreground fade `opacity 0 → 1`, `0.6s ease-out`; khung card, link,
   caption luôn hiện.
-- Ảnh chưa tải xong thì chờ LazySizes rồi mới fade. Card rời viewport hoàn
-  toàn (`intersectionRatio = 0`) thì lần vào sau fade lại, kể cả ảnh đã cache;
-  card còn giao một phần thì không restart.
+- Ảnh chưa tải xong `150ms` sau khi card vào viewport thì khung media mang
+  [skeleton](components/Skeleton/README.md) cuối masonry (Flow, 12 preset chọn
+  theo media id, hiện `600ms`). Ảnh giải mã xong thì skeleton mờ đi, ảnh hiện
+  lên: crossfade `0.3s` đến `0.9s` trong nhịp `1.4s`,
+  `cubic-bezier(0.65, 0, 0.35, 1)`. Kính hai bước còn lại ở
+  [Đã duyệt, chờ code](approved-designs.md#kính).
+- Ảnh tải xong trong `150ms` không có skeleton, chỉ fade `0.6s`. Card rời
+  viewport hoàn toàn (`intersectionRatio = 0`) thì lần vào sau fade lại, kể cả
+  ảnh đã cache; card còn giao một phần thì không restart.
+- Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 
 ### Skeleton tiếp nối
@@ -176,6 +184,11 @@ outline. Touch không cần hover để mở ảnh.
   hover. Nút đang bật và reduced motion giữ ảnh tĩnh; dừng khi tab ẩn.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
+- Primary đổi ảnh tại chỗ, cả lần mở đầu từ masonry lẫn khi bấm related. Ảnh
+  chưa giải mã xong sau `100ms` thì khung primary mang skeleton như card rồi
+  crossfade cùng nhịp `1.4s`. Ảnh có sẵn: ảnh đang xem và nền blur cũ mờ đi
+  trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`; mở lần đầu thì
+  ảnh mới hiện từ khung trống cùng nhịp.
 - Viewer: transform từ khung hero tới fit và ngược lại; zoom nội suy giữa fit,
   cover và hai lần cover; pan theo con trỏ tức thì, giới hạn theo ảnh đã phóng.
 - Nền primary là bản sao cover + blur, chỉ animate opacity và transform; lớp

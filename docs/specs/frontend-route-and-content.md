@@ -227,7 +227,9 @@ Barba hooks và listener `pageshow` trong [motion.js](../../src/site/motion.js).
 Đây không phải export cho caller ngoài. Không có mount API độc lập; chỉ thêm
 sau architecture decision đã được chấp nhận. Mọi lần tải trực tiếp (gõ link, F5,
 Back/Forward tải lại) phát pha vào của route veil: inline script trong `head` thêm
-`route-enter`, trừ khi reduced motion; boot fallback 2.5 s vẫn là giới hạn trên.
+`route-enter`, trừ khi reduced motion. Veil giữ tới khi `motion.js` nhận trang;
+boot fallback chỉ chạy khi `motion.js` lỗi tải hoặc `DOMContentLoaded` đã qua mà
+chưa có runtime nhận trang.
 
 **Customization boundary:** route content và shell tone đã duyệt có thể thay đổi;
 class contract, locale ownership, semantics header/menu và cấu trúc footer giữ

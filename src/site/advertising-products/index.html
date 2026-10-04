@@ -26,9 +26,9 @@
     <script>
       (() => {
         const r=document.documentElement,a=new AbortController(),s={signal:a.signal},k=u=>`tt-locale-scroll:${u.pathname}${u.search}`;let close;
-        const b=window.__ttMotionBoot={claimed:false,fallback:false,timer:0,claim(){this.claimed=true;clearTimeout(this.timer);this.timer=0;return this.fallback},release(){close?.(false);a.abort();r.classList.remove("motion-fallback");this.fallback=false}};
+        const b=window.__ttMotionBoot={claimed:false,fallback:false,claim(){this.claimed=true;return this.fallback},release(){close?.(false);a.abort();r.classList.remove("motion-fallback");this.fallback=false}};
         const fail=()=>{
-          if(b.claimed||b.fallback)return;b.timer=0;if(!document.body)return document.addEventListener("DOMContentLoaded",fail,{once:true});
+          if(b.claimed||b.fallback)return;if(!document.body)return document.addEventListener("DOMContentLoaded",fail,{once:true});
           b.fallback=true;r.classList.add("motion-fallback");r.classList.remove("route-enter");document.body.classList.remove("is-transitioning","menu-open","motion-paused");
           const c=document.querySelector("[data-barba=container]");if(c)c.hidden=false;window.TruongThinhDetail?.mount(c,{settled:true});
           try{const u=new URL(location.href),s=sessionStorage.getItem(k(u));sessionStorage.removeItem(k(u));if(s!==null){const restore=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,+s||0)));document.readyState==="complete"?restore():addEventListener("load",restore,{once:true,signal:a.signal})}}catch{}
@@ -39,7 +39,8 @@
           addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
         };
         window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
-        b.timer=setTimeout(fail,2_500);
+        // Deferred motion.js runs before DOMContentLoaded, so a slow network keeps the veil.
+        document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
     <title data-en="Advertising products — Trường Thịnh">

@@ -21,8 +21,12 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 
 Rule đầy đủ: [photo browse](../../../docs/specs/advertising-photo-browse.md).
 
-Đã duyệt, chờ code: [Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ);
-kính vùng dư đổi sang [Kính](../../approved-designs.md#kính) dạng phủ đều.
+Đổi ảnh diễn ra tại chính khung ảnh: ảnh đang tải mang
+[skeleton](../Skeleton/README.md), ảnh có sẵn crossfade từ ảnh đang xem
+([Motion](../../motion.md#suggestion-và-detail)).
+
+Đã duyệt, chờ code: kính vùng dư và kính khi đổi ảnh đổi sang
+[Kính](../../approved-designs.md#kính) dạng phủ đều.
 
 ## Chú thích thuật ngữ
 
