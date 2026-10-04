@@ -85,7 +85,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 │                                   # reference, verification, reports, archive
 ├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
 ├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
-├─ tasks/                           # plan/checklist; không thay Notion status
+├─ tasks/                           # plan/checklist đang mở, archive/ giữ phần đã xong; không thay Notion status
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md, .impeccable/
 ├─ .openai/hosting.json             # LEGACY: project Sites cũ, không còn dùng
 ├─ .github/, .vscode/               # CI/workflow và dev tasks

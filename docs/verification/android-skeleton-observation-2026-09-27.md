@@ -146,7 +146,7 @@ build/UI regression chỉ vì cập nhật docs. Notion recovery giữ paused;
 Graphify semantic extraction không chạy, pending snapshot nằm trong STATE.
 
 Tại thời điểm handoff recorder, next action là owner duyệt
-[plan scrollbar](../../tasks/plan.md), delta đã được duyệt27/09. Owner sau đó
+[plan scrollbar](../../tasks/archive/plan.md), delta đã được duyệt27/09. Owner sau đó
 đã duyệt plan/card; [verification scrollbar](scrollbar-parity-2026-09-27.md)
 giữ kết quả implementation riêng. Evidence này vẫn là đầu vào cho delta
 skeleton lifecycle chưa accepted; không tự cấp quyền implementation skeleton.

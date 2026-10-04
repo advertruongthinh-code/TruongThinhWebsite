@@ -59,8 +59,8 @@ Mỗi module UI vẫn cần spec và plan được duyệt trước code. Không
 monolithic hoặc nhân bản design token; dùng delta tại nguồn đã sở hữu contract.
 
 Owner duyệt [delta scrollbar](frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)
-ngày27/09: “Duyệt delta scrollbar”. [Plan scrollbar](../../tasks/plan.md) và
-[checklist](../../tasks/todo.md) đã được duyệt cùng card riêng27/09. Không mở lại spec gate;
+ngày27/09: “Duyệt delta scrollbar”. [Plan scrollbar](../../tasks/archive/plan.md) và
+[checklist](../../tasks/archive/todo.md) đã được duyệt cùng card riêng27/09. Không mở lại spec gate;
 skeleton lifecycle và plan/card C00–C07 đã duyệt27/09; delta/plan nút vẫn cần gate riêng.
 
 ## Reference và giới hạn

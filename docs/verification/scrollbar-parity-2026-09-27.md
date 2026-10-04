@@ -16,7 +16,7 @@ owner đã nghiệm thu visual scrollbar27/09 bằng “scrollbar ổn”. Visua
 Firefox native appearance có cửa sổ, iPhone thật và reference drag live còn mở.
 
 Nguồn acceptance: [delta đã duyệt](../specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27),
-[plan/checklist](../../tasks/plan.md), [reference có provenance](../reference/espacio/components.md#bổ-sung-scrollbar--2026-09-27).
+[plan/checklist](../../tasks/archive/plan.md), [reference có provenance](../reference/espacio/components.md#bổ-sung-scrollbar--2026-09-27).
 Owner duyệt plan và [card riêng](https://app.notion.com/p/3e8332849a0e812c9695d39f0861010e)
 ngày27/09. Gate này chỉ cho correction local; recovery/P11/release cũ tiếp tục paused.
 
@@ -177,7 +177,7 @@ Packet đã review có SHA `b0e0cd9eaa64c3b9679edeb1f7b11308440dcfc2499fc756408b
 17 file manifest và `git apply --reverse --check` đạt, không mutate source.
 Hai finding docs stale approval đã sửa ở docs index và historical recorder handoff.
 Source/test giữ hash trên; sau review chỉ cập nhật closing metadata/checklist/docs.
-Không spawn reviewer khác. [Checklist](../../tasks/todo.md) đóng execution T01–T04,
+Không spawn reviewer khác. [Checklist](../../tasks/archive/todo.md) đóng execution T01–T04,
 không tự đóng iPhone, Firefox headful hoặc reference drag live. Owner sau đó
 đã duyệt visual scrollbar; [diagnostic feedback mới](mobile-preview-diagnostics-2026-09-27.md)
 giữ riêng lỗi random baseline, skeleton footer↔grid và landscape/WebGL.
