@@ -1112,6 +1112,10 @@ module/CSS và một test (tối đa 5 file). **Estimate:** 75–120 phút.
 
 ### P9 — Nối frame vào Advertising động
 
+**Trạng thái 2026-10-04:** card grid/related một ảnh và viewer primary đã có
+vòng indeterminate; suggestion chưa gắn. Chi tiết ở
+[spec](../docs/specs/image-loading-progress.md#triển-khai-2026-10-04).
+
 **Mô tả:** nối component đã qua gate vào card, related, suggestion và photo
 viewer; giữ LazySizes/virtualization và priority hiện hành.
 

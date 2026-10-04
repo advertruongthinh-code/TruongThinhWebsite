@@ -2469,6 +2469,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
+  // Indeterminate ring while the primary image loads (docs/specs/image-loading-progress.md).
+  const photoLoadRing = photoImage?.parentElement ? document.createElement("span") : null;
+  let photoLoadTimer = 0;
+  const settlePhotoLoading = () => {
+    window.clearTimeout(photoLoadTimer);
+    photoLoadRing?.remove();
+    photoImage?.parentElement?.removeAttribute("aria-busy");
+  };
+  if (photoLoadRing) {
+    photoLoadRing.className = "media-load-ring";
+    photoLoadRing.setAttribute("aria-hidden", "true");
+    photoImage.addEventListener("load", settlePhotoLoading, { signal: controller.signal });
+    photoImage.addEventListener("error", settlePhotoLoading, { signal: controller.signal });
+    controller.signal.addEventListener("abort", settlePhotoLoading, { once: true });
+  }
   const renderPrimaryMedia = (record, item) => {
     const english = locale === "en";
     const video = item.kind === "video";
@@ -2497,6 +2512,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.loading = "eager";
       photoImage.fetchPriority = "high";
       photoImage.src = responsiveSource(item.src);
+    }
+    settlePhotoLoading();
+    if (!video && photoLoadRing && !photoImage.complete) {
+      photoLoadTimer = window.setTimeout(() => {
+        if (photoImage.complete) return;
+        photoImage.parentElement.setAttribute("aria-busy", "true");
+        photoImage.parentElement.append(photoLoadRing);
+      }, 150);
     }
     updateAudioLabel();
     if (photoBackground) {

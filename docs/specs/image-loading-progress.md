@@ -108,7 +108,11 @@ dùng `loading-unknown`.
   `aria-busy="true"`; gỡ khi `load`, `error` hoặc rời trang.
 - `src/site/style.css` `.media-load-ring`: vòng mảnh trung tính, quay
   0,9 s; reduced motion đứng yên.
-- Advertising runtime (grid, related, viewer) thuộc P9, chưa gắn.
+- Advertising (P9): card grid và related một ảnh hiện vòng qua `::after` khi
+  ảnh có class LazySizes `lazyloading`, hiện sau 150 ms bằng animation
+  delay; card nhiều media giữ spinner `advertising-card-media__loading` sẵn
+  có. Ảnh primary của viewer nhận `.media-load-ring` và `aria-busy` khi đổi
+  ảnh chưa tải xong. Suggestion chưa gắn vòng.
 
 ## Giao diện module và nơi đặt code
 
