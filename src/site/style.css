@@ -84,6 +84,11 @@ img {
   height: auto;
 }
 
+/* Build-time responsive wrappers must not add a layout box around content images. */
+picture {
+  display: contents;
+}
+
 figure {
   margin: 0;
 }
@@ -1390,13 +1395,15 @@ em {
   transform: scale(1.15);
 }
 
-.service-portal > img {
+.service-portal > img,
+.service-portal > picture > img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.service-portal:nth-child(2) > img {
+.service-portal:nth-child(2) > img,
+.service-portal:nth-child(2) > picture > img {
   object-position: 52% center;
 }
 
@@ -1872,6 +1879,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 .legacy-closer > img,
+.legacy-closer > picture > img,
 .legacy-shade {
   position: absolute;
   inset: 0;
@@ -1879,12 +1887,14 @@ html[lang="en"] #nang-luc .portal-subtitle {
   height: 100%;
 }
 
-.legacy-closer > img {
+.legacy-closer > img,
+.legacy-closer > picture > img {
   object-fit: cover;
   transition: transform 0.6s ease-out;
 }
 
-.legacy-closer:hover > img {
+.legacy-closer:hover > img,
+.legacy-closer:hover > picture > img {
   transform: scale(1.1);
 }
 

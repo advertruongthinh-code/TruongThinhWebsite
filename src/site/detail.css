@@ -544,6 +544,7 @@ html[lang="vi"]
 }
 
 .detail-cta > img,
+.detail-cta > picture > img,
 .detail-cta::after {
   position: absolute;
   inset: 0;
@@ -551,7 +552,8 @@ html[lang="vi"]
   height: 100%;
 }
 
-.detail-cta > img {
+.detail-cta > img,
+.detail-cta > picture > img {
   object-fit: cover;
   transition: transform 0.6s ease-out;
 }
@@ -561,7 +563,8 @@ html[lang="vi"]
   background: rgba(0, 0, 0, 0.4);
 }
 
-.detail-cta:hover > img {
+.detail-cta:hover > img,
+.detail-cta:hover > picture > img {
   transform: scale(1.1);
 }
 
@@ -1376,7 +1379,8 @@ html[lang="en"]
     min-height: max(calc(var(--site-layout-viewport-height) * 0.72), 34rem);
   }
 
-  .detail-page .service-portal > img {
+  .detail-page .service-portal > img,
+  .detail-page .service-portal > picture > img {
     position: absolute;
     inset: 0;
   }
@@ -3245,13 +3249,13 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
     )
     .hero-shade,
   html:not(.motion-fallback)
-    .service-portal:not(:has(> img.is-overlay-media-ready))
+    .service-portal:not(:has(> img.is-overlay-media-ready, > picture > img.is-overlay-media-ready))
     .portal-shade,
   html:not(.motion-fallback)
-    .legacy-closer:not(:has(> img.is-overlay-media-ready))
+    .legacy-closer:not(:has(> img.is-overlay-media-ready, > picture > img.is-overlay-media-ready))
     .legacy-shade,
   html:not(.motion-fallback)
-    .detail-cta:not(:has(> img.is-overlay-media-ready))::after {
+    .detail-cta:not(:has(> img.is-overlay-media-ready, > picture > img.is-overlay-media-ready))::after {
     visibility: hidden;
   }
 
@@ -3260,18 +3264,26 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .hero-slide img,
       .about-hero__media img,
       .service-portal > img,
+      .service-portal > picture > img,
       .detail-gallery__item > img,
+      .detail-gallery__item > picture > img,
       .detail-cta > img,
-      .legacy-closer > img
+      .detail-cta > picture > img,
+      .legacy-closer > img,
+      .legacy-closer > picture > img
     ):not(.is-overlay-media-ready),
   html:not(.motion-enabled):not(.motion-fallback)
     :is(
       .hero-slide img,
       .about-hero__media img,
       .service-portal > img,
+      .service-portal > picture > img,
       .detail-gallery__item > img,
+      .detail-gallery__item > picture > img,
       .detail-cta > img,
-      .legacy-closer > img
+      .detail-cta > picture > img,
+      .legacy-closer > img,
+      .legacy-closer > picture > img
     ):not(.is-overlay-media-ready) {
     opacity: 0;
   }

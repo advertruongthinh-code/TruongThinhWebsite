@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -219,6 +220,23 @@ const embedVietnameseText = (html, filePath) => {
   return output;
 };
 
+// Wraps content WebP <img> tags in <picture> with AVIF and width variants from build-image-variants.mjs.
+// Images without variants on disk, lazy data-src images, images that already declare srcset and runtime-managed
+// Advertising images (the runtime swaps their src, which a <source> would override) stay unchanged.
+const RESPONSIVE_WIDTHS = [480, 960];
+const responsivePictures = (html) =>
+  html.replace(/<img\b[^>]*>/g, (tag) => {
+    const src = tag.match(/\ssrc="(\/assets\/content\/[^"]+)\.webp"/)?.[1];
+    if (!src || /\s(?:data-src|srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.avif`))) return tag;
+    const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
+    const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.webp`)));
+    const set = (format) => [...widths.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
+    if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" srcset="${src}.avif">${tag}</picture>`;
+    const sizes = tag.match(/\ssizes="([^"]+)"/)?.[1];
+    const img = tag.replace(/^<img\b/, `<img srcset="${set("webp")}"${sizes ? "" : ' sizes="100vw"'}`);
+    return `<picture><source type="image/avif" srcset="${set("avif")}" sizes="${sizes || "100vw"}">${img}</picture>`;
+  });
+
 const localizeHtmlOutput = async (directory) => {
   const entries = await readdir(directory, { withFileTypes: true });
   await Promise.all(
@@ -227,7 +245,7 @@ const localizeHtmlOutput = async (directory) => {
       if (entry.isDirectory()) return localizeHtmlOutput(target);
       if (!entry.isFile() || path.extname(entry.name) !== ".html") return;
       const html = await readFile(target, "utf8");
-      await writeFile(target, embedVietnameseText(html, target), "utf8");
+      await writeFile(target, responsivePictures(embedVietnameseText(html, target)), "utf8");
     }),
   );
 };

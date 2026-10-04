@@ -1,3 +1,5 @@
+import { responsiveSource } from "./responsive-image.mjs";
+
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 
 export function createAdvertisingPhotoViewer({
@@ -191,7 +193,7 @@ export function createAdvertisingPhotoViewer({
   const open = () => {
     if (!record || dialog.open) return;
     lockedScroll = scroll?.lockLogicalScroll?.() ?? scroll?.getLogicalScroll?.() ?? window.scrollY;
-    expandedImage.src = record.media.src;
+    expandedImage.src = responsiveSource(record.media.src);
     expandedImage.alt = document.documentElement.lang === "en" ? record.media.altEn : record.media.altVi;
     expandedImage.width = record.media.width;
     expandedImage.height = record.media.height;

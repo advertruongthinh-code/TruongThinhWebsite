@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-03
+- Updated: 2026-10-04
 - Phase: public website static-first VI/EN. Source tại `src/site/`, build tại
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
@@ -22,8 +22,8 @@
   chạy một lượt trên PC ở cuối. M03–M09 ngoài Advertising vẫn PAUSED.
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
   WebKit. P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
-  variant AVIF/WebP tạo bằng `scripts/site/build-image-variants.mjs`, chưa nối vào
-  site. [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
+  variant AVIF/WebP đã nối vào HTML tĩnh và Advertising runtime
+  ([pipeline](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
@@ -57,7 +57,7 @@
   link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
 - STATE trước cleanup: Git `da2f13a` (`docs/archive/snapshots/state-before-release-2026-09-24.md`,
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: P4 phân tích baseline, rồi nối `srcset` cho variant ảnh;
+- Next repo action: P6 feasibility gate cho byte progress (`tasks/todo.md`);
   owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
