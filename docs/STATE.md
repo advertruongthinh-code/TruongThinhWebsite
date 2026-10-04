@@ -9,8 +9,9 @@
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
-  anchor, giới hạn dòng, sync spec, design-drift) chạy trên PR; T3–T4 tạo `design-system/`
-  (token, README, motion, content, ảnh Advertising, tham chiếu Espacio).
+  anchor, giới hạn dòng, sync spec, design-drift, preview sinh) chạy trên PR; T3–T5 tạo
+  `design-system/` (token, README, motion, content, ảnh Advertising, tham chiếu Espacio,
+  8 component shell và trang sinh từ HTML/CSS website).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
