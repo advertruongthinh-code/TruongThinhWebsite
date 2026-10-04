@@ -12,7 +12,7 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
   vuông 48px, viền 1px theo màu chữ, icon 24px nét 1.5.
 - Nền nút `white`; hover và nhấn dùng `media-control-hover`,
   `media-control-active`; nút disabled nền `control-disabled-surface`, icon
-  `control-disabled-icon`, không hover motion. Escape đóng viewer trước khi history nhận phím.
+  `control-disabled-icon`, không hover motion.
 - Nền mờ vào `300ms`, ra `250ms`; reduced motion bỏ transition.
 
 ## Chú thích thuật ngữ

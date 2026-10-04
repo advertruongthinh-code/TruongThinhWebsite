@@ -1,21 +1,14 @@
 # Ảnh Advertising
 
-Brief tạo ảnh và tiêu chí nghiệm thu ảnh cho sáu nhóm Advertising. Quy định
-chung về con người, file web, alt, loading ở [Content và media](content.md).
-Ghi tiêu chí không có nghĩa pool ảnh hiện tại đã đạt.
+Hướng ảnh cho sáu nhóm Advertising: sản phẩm, bối cảnh, góc chụp, chữ và cấu
+tạo phải thấy trong ảnh. Khách hàng, dịch vụ và danh mục ở
+[PRODUCT.md](../PRODUCT.md#khách-hàng-dịch-vụ-và-danh-mục); quy trình chấm
+điểm ảnh ở [QA ảnh Advertising](../docs/operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising);
+crop và con người ở [Content và media](content.md#crop-và-con-người). Ghi hướng
+ảnh không có nghĩa pool ảnh hiện tại đã đạt.
 
-## Công cụ và taxonomy
+## Nhóm và nhãn
 
-- Ảnh mới tạo bằng **ChatGPT Images 2.5** qua công cụ mà agent hoặc owner có;
-  ghi model và metadata nếu tool trả về, thiếu thì ghi unknown. Không tự đổi
-  model.
-- Danh mục sản phẩm owner có năm mục I–V, ánh xạ vào sáu nhóm public trong
-  `catalog.mjs`: I Bảng hiệu, II Biển văn phòng, III LED, IV In nhanh, phần POSM
-  của V là Kiosk. Xe bán hàng là nhóm owner bổ sung. Dịch vụ thiết kế ở V
-  không thành nhóm thứ bảy.
-- Kỷ niệm chương owner bổ sung ngày 04/10, xếp vào `office-signs-wayfinding`
-  vì cùng vật liệu và cách gia công với bảng chức danh (suy luận thiết kế,
-  owner đổi nhóm được).
 - Sáu nhóm là tầng gom; một ảnh mang nhiều nhãn chi tiết tới loại sản phẩm cụ
   thể (tờ rơi, tờ gấp, catalogue là các loại riêng).
 - Tên canonical: **chữ nổi Formex** (hoặc "Chữ nổi Alu và Formex"). ID và path
@@ -35,26 +28,25 @@ Ghi tiêu chí không có nghĩa pool ảnh hiện tại đã đạt.
 Coverage kiểm ở cấp bộ ảnh, không nhồi mọi biến thể vào một ảnh. Ảnh giao
 thoa hai nhóm chọn theo sản phẩm chính; không nhân bản ảnh sang hai nhóm.
 
-## Bối cảnh từ khách hàng thật
+## Bối cảnh theo ngành khách hàng
 
-Mười hai khách hàng owner xác nhận (logo ở `src/site/content/client-logos.json`),
-phần lớn ở Bến Tre. Quan hệ và hạng mục là thông tin owner; ứng dụng vào brief
-là suy luận thiết kế, không phải hồ sơ thi công.
+Ngành lấy từ [khách hàng owner xác nhận](../PRODUCT.md#khách-hàng-dịch-vụ-và-danh-mục);
+ứng dụng vào ảnh là suy luận thiết kế, không phải hồ sơ thi công.
 
-| Họ bối cảnh | Khách hàng | Cảnh và sản phẩm |
-| --- | --- | --- |
-| Nhà máy dừa, thực phẩm, mỹ phẩm | BEINCO, Betrimex, Dừa Cửu Long | Văn phòng chính, nhà điều hành, khu sản xuất: biển phòng, chỉ dẫn, biển khu vực, ấn phẩm, bảng hiệu bạt và pano khung sắt; gian hàng triển lãm |
-| Ngân hàng | BIDV, HDBank, Vietcombank, VietinBank | Chữ nhôm đục lỗ gắn LED trên nóc, phòng ATM, quầy giao dịch; không thành ảnh máy ATM đơn lẻ |
-| Bệnh viện | Minh Đức | Chữ nhôm đục lỗ gắn LED trên nóc, bảng vẫy dẫn xe cứu thương, biển khoa phòng |
-| Văn phòng, bảo hiểm, tư vấn | Prudential, BCJ | Sảnh, phòng họp, cửa phòng: chức danh, tên phòng, chỉ dẫn, văn phòng phẩm |
-| Khách sạn, hội nghị | Cannes Hotel, TTC Palace Bến Tre | Mặt tiền, lễ tân, sảnh hội nghị, số phòng, menu, ấn phẩm sự kiện |
+| Ngành | Cảnh và sản phẩm |
+| --- | --- |
+| Nhà máy dừa, thực phẩm, mỹ phẩm | Văn phòng chính, nhà điều hành, khu sản xuất: biển phòng, chỉ dẫn, biển khu vực, ấn phẩm, bảng hiệu bạt và pano khung sắt; gian hàng triển lãm |
+| Ngân hàng | Chữ nhôm đục lỗ gắn LED trên nóc, phòng ATM, quầy giao dịch; không thành ảnh máy ATM đơn lẻ |
+| Bệnh viện | Chữ nhôm đục lỗ gắn LED trên nóc, bảng vẫy dẫn xe cứu thương, biển khoa phòng |
+| Văn phòng, bảo hiểm, tư vấn | Sảnh, phòng họp, cửa phòng: chức danh, tên phòng, chỉ dẫn, văn phòng phẩm |
+| Khách sạn, hội nghị | Mặt tiền, lễ tân, sảnh hội nghị, số phòng, menu, ấn phẩm sự kiện |
 
 Brief đi theo thứ tự **ngành, khu vực, vị trí lắp, công năng, góc chụp**, rồi
 mới chọn tỷ lệ. Bối cảnh nhận ra qua không gian, không cần logo thật. Quy mô,
 khí hậu, đô thị hợp Bến Tre và Việt Nam; không mặc định resort hay cao ốc. Danh
 sách khách không phải quota ảnh.
 
-### Nhà máy (BEINCO, Betrimex)
+### Nhà máy
 
 - **Bảng hiệu bạt** và **pano không lưng tôn**: in bạt rồi căng trên khung sắt.
 - **Pano có lưng tôn**: khung sắt có tấm tôn phía sau; mặt nội dung vẫn là bạt
@@ -66,11 +58,10 @@ sách khách không phải quota ảnh.
 
 ### Gian hàng triển lãm
 
-Khách làm gian hàng: BEINCO, Betrimex, Dừa Cửu Long và các công ty mỹ phẩm,
-thời trang, thực phẩm đóng gói và đóng hộp, đặc biệt sản phẩm dừa. Nơi đặt:
-trung tâm triển lãm, hội chợ và show kinh doanh theo ngành. Bộ ảnh cần đủ ba
-chiều độc lập: **nhỏ và lớn, tiêu chuẩn và ngoại cỡ, thông thường và gây ấn
-tượng**.
+Gian hàng đặt ở trung tâm triển lãm, hội chợ và show kinh doanh theo ngành.
+Bộ ảnh cần đủ ba chiều độc lập: **nhỏ và lớn, tiêu chuẩn và ngoại cỡ, thông
+thường và gây ấn tượng**. Sản phẩm của từng khách đối chiếu với
+[nghiên cứu sản phẩm khách hàng](../docs/reference/advertising-client-products.md).
 
 | Ngành | Sản phẩm phải thấy |
 | --- | --- |
@@ -87,16 +78,13 @@ Nam. Trái dừa trang trí không thay sản phẩm đóng gói.
 
 ## Siêu thị và chuỗi nhượng quyền
 
-Owner bổ sung ngày 04/10.
-
 - **Siêu thị:** kiosk, quầy dùng thử, kệ trưng bày, standee cho thời trang,
   mỹ phẩm, thực phẩm đóng gói và đóng hộp, đặt trong siêu thị đang hoạt động:
   lối đi, kệ hàng, đèn trần, quy mô siêu thị Việt Nam. Không tái tạo tên hay
   nhận diện của siêu thị thật.
-- **Thi công theo mẫu chuỗi nhượng quyền:** Trường Thịnh làm xe bán hàng lưu
-  động và kiosk đúng mẫu thiết kế chuỗi giao. Ảnh cho thấy tính đồng bộ: hai,
-  ba xe hoặc kiosk cùng mẫu ở các điểm khác nhau, hoặc một chiếc hoàn thiện
-  khớp kích thước, màu, vật liệu, bố trí của mẫu. Tên chuỗi là tên chung giả
+- **Thi công theo mẫu chuỗi nhượng quyền:** ảnh xe bán hàng và kiosk cho thấy
+  tính đồng bộ: hai, ba xe hoặc kiosk cùng mẫu ở các điểm khác nhau, hoặc một
+  chiếc hoàn thiện khớp kích thước, màu, vật liệu, bố trí của mẫu. Tên chuỗi là tên chung giả
   định, theo [Chữ trong ảnh](#chữ-trong-ảnh).
 
 ## Chữ trong ảnh
@@ -137,47 +125,26 @@ Owner bổ sung ngày 04/10.
 Mô tả vật liệu từ trang bán hàng chỉ dùng nhận diện loại sản phẩm; không đưa
 giá, tuổi thọ, điện áp, bảo hành vào nội dung website.
 
-## Chấm điểm
-
-Mỗi ảnh đạt **Audit ≥ 8/10 và Critique ≥ 8/10**; không lấy trung bình.
-
-| Audit | Điểm |
-| --- | --- |
-| Đúng nhóm, sản phẩm, bối cảnh, góc chụp theo brief | 3 |
-| Kết cấu, vật liệu, tỷ lệ, khả năng gia công và lắp đặt | 3 |
-| Không lỗi hình học, chữ, ánh sáng, phản chiếu, chi tiết AI | 2 |
-| Đúng tỷ lệ ảnh, pixel thật, metadata, provenance | 2 |
-
-| Critique | Điểm |
-| --- | --- |
-| Bố cục rõ chủ thể ở ảnh lớn và thumbnail | 3 |
-| Ánh sáng, vật liệu, độ sắc nét | 3 |
-| Hợp ngôn ngữ thị giác (README), tinh tế nhưng trung thực cấu tạo | 2 |
-| Bổ sung khác biệt hữu ích cho bộ ảnh | 2 |
-
-**Loại thẳng dù đủ điểm**: mặt nhận diện được; thương hiệu hoặc watermark sao
-chép; chữ chủ thể sai; kết cấu bất khả thi; sai nhóm; sản phẩm lớn bị cắt;
-crop hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại
-coi như ảnh mới.
-
-Một subagent độc lập với agent tạo ảnh mở ảnh để chấm, ghi điểm từng mục và
-lỗi. Main kiểm lại, không tự nâng điểm. Ảnh sửa thì chấm lại đúng SHA-256 mới.
-Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
-
 ## Bộ ảnh và masonry
 
 Ảnh đạt riêng lẻ chưa chứng minh masonry đạt. Bộ ảnh cần đủ biến thể sản phẩm,
-góc chụp, tỷ lệ để bố cục organic (xem tỷ lệ tối thiểu ở
-[Content và media](content.md#metadata-ảnh-advertising)). Thiếu thì tạo ảnh mới
-có bố cục gốc phù hợp, không crop, kéo méo hay thêm khoảng trắng giả.
+góc chụp, tỷ lệ để bố cục organic. Mỗi nhóm cần đủ tỷ lệ: portrait `< 0.9`, gần
+vuông `0.9–1.1`, landscape `> 1.1`, và ít nhất một ảnh cực `<= 0.625` hoặc
+`>= 1.6`. Thiếu thì tạo ảnh mới có bố cục gốc phù hợp, không crop, kéo méo hay
+thêm khoảng trắng giả.
+
+- Ảnh cùng nguồn nhưng crop, blur, xoay hay export lại không tính là ảnh mới.
+- Ảnh tạo mới là minh họa AI, không nhận là công trình đã thi công.
+- Ảnh không có tiêu đề hiển thị; alt VI/EN mô tả nội dung cho người không nhìn
+  thấy, không dùng làm tiêu đề. Metadata của card theo
+  [spec card nhiều media](../docs/specs/site-media-card-playback.md#media-card-và-detail).
 
 ## Chú thích thuật ngữ
 
-- **Audit**: kiểm độ đúng kỹ thuật và nội dung.
-- **Critique**: đánh giá chất lượng thị giác và đóng góp cho bộ ảnh.
 - **POSM**: vật phẩm, quầy kệ hỗ trợ trưng bày và bán hàng.
 - **Pano lưng tôn**: pano có tấm tôn phía sau mặt bạt.
 - **Coverage**: mức bao phủ từng loại sản phẩm bằng ảnh phù hợp.
+- **Minh họa AI**: ảnh tạo bằng mô hình sinh ảnh, không chụp từ công trình thật.
 - **Bế theo biên**: cắt decal theo đường bao, giữ giấy đế.
 - **Chuỗi nhượng quyền**: hệ thống cửa hàng dùng chung thương hiệu và mẫu thiết kế.
 - **In UV**: in mực đóng rắn bằng tia UV trực tiếp lên kim loại, gỗ, thủy tinh.
