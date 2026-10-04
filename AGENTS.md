@@ -26,6 +26,22 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 5. Definition of Done và các Reference Checklists phù hợp là acceptance gate. Các cross-cutting skill tiếp tục do `using-agent-skills` định tuyến trong implementation, review, QA, documentation và shipping.
 6. Agent Personas chỉ chạy dưới dạng sibling review task do main agent điều phối; persona không gọi persona. Chỉ parallel review khi các góc kiểm tra độc lập và production risk đủ lớn; main agent hợp nhất kết quả trước final acceptance.
 
+## Notion trong workflow
+
+Notion là một phần của workflow vận hành: board Tasks là backlog chung của
+owner, điều phối và mọi worker (thread, subagent). Git `main` giữ contract và
+trạng thái repo; card chỉ trỏ tới đó.
+
+- Điều phối (coordinator hoặc main agent) giao việc kèm card tương ứng. Việc
+  owner giao chưa có card thì worker nhận việc tạo card trước khi làm.
+- Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
+  merge (`Done`, hoặc ghi việc còn mở).
+- Card chỉ giữ tên, status, thứ tự, mục tiêu một dòng, việc còn mở, link spec
+  và PR. Không chép state, evidence, log hay checklist đã xong vào card.
+- Tạo card và đổi status cho việc owner đã giao không cần hỏi lại; xóa, gộp
+  hoặc đổi tên card cần owner duyệt.
+- Schema, quy trình và link board: [Notion và Git](docs/operations/notion.md#rule).
+
 ## Routing theo path
 
 Cây ownership đầy đủ và nhãn lifecycle/Git nằm trong
@@ -100,6 +116,8 @@ khi tool báo lỗi hoặc blocked.
 ## Chú thích thuật ngữ
 
 - **Host agent**: agent đang chạy task, hiện là Claude Code hoặc Codex.
+- **Backlog**: danh sách việc chờ làm, sắp theo ưu tiên; ở đây là board Tasks trên Notion.
+- **Điều phối**: agent giao việc cho worker (coordinator của Claude project hoặc main agent).
 - **Rule module**: file rule theo chủ đề, đọc khi trigger khớp.
 - **Scripts map**: bảng entrypoint script đã verify.
 - **Automation**: hook, watcher hoặc launcher tự xử lý mechanics.
