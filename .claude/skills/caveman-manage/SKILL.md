@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-manage
 description: >
   Inspect Caveman Cloud's experiment lifecycle and block unsafe execution. Use

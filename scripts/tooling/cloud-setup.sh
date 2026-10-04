@@ -53,7 +53,7 @@ cat > "$CFG/CLAUDE.md" <<'EOF'
 
 Apply these rules in the main agent and every coordinator, explorer, worker, reviewer, and subagent.
 
-1. Always load `caveman` in ultra mode and `ponytail` in ultra mode. Caveman controls terse prose and Ponytail controls implementation minimalism; the `i-have-adhd` skill self-invokes to shape actionable structure. A closer project `AGENTS.md` may explicitly disable Caveman.
+1. Always load `ponytail` in ultra mode; it controls implementation minimalism. The `i-have-adhd` skill self-invokes to shape actionable structure. Caveman skills run only when the user invokes them; never self-invoke them. A closer project `AGENTS.md` may explicitly disable Caveman.
 2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use Serena for exact symbols, references, diagnostics, and refactors. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
 3. Serena is required per task/session with `--project-from-cwd` and the host context (`codex` or `claude-code`); synchronize language servers from actual project extensions instead of editing the language list manually.
 4. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
@@ -90,6 +90,10 @@ unhook "$T/src/i-have-adhd" i-have-adhd
 sed -i -e '/^disable-model-invocation:/d' \
   -e 's|Invoke with /i-have-adhd;|Use for every response to the owner, or on /i-have-adhd;|' \
   "$T/src/i-have-adhd/skills/i-have-adhd/SKILL.md"
+# Owner choice: caveman skills are user-invoked only (same as vendor-skills.mjs userOnly).
+for f in "$T"/src/caveman/skills/*/SKILL.md; do
+  grep -q '^disable-model-invocation:' "$f" || sed -i '1a disable-model-invocation: true' "$f"
+done
 
 # Local plugin carrying the MCP servers.
 P="$T/cloud-stack"

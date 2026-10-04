@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-evidence-review
 description: >
   Read-only review of Caveman Cloud evidence: cost, Cave Score, workflows,

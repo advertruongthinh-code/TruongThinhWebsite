@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-discover
 description: >
   Find and label every LLM workflow in the repository so Caveman Cloud groups

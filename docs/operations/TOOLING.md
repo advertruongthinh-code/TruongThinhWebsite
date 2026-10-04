@@ -107,7 +107,7 @@ bật qua rule này như local, không qua hook.
 | Tool | Cài trên cloud |
 | --- | --- |
 | agent-skills | Plugin: 25 skill, 9 command, 4 agent, references |
-| caveman | Plugin: 22 skill, 3 agent, `/caveman-init`; CLI 2.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
+| caveman | Plugin: 22 skill (chỉ user gọi, `disable-model-invocation: true`), 3 agent, `/caveman-init`; CLI 2.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
 | ponytail | Plugin: 6 skill; MCP `ponytail` |
 | impeccable | Plugin: skill, 4 agent; engine 0.1.11 cache, CLI npm 4.1.0 |
 | i-have-adhd | Plugin: skill, tự gọi (script bỏ `disable-model-invocation`, giống override repo) |

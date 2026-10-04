@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-stats
 description: Báo cáo token usage thật của Codex session khi có record token_count của session hiện tại.
 ---

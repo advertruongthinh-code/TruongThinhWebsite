@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-review
 description: >
   Compressed code review - one line per finding with location, problem and fix.

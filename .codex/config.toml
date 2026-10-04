@@ -1,5 +1,5 @@
 # This project inherits the user-global Codex stack.
-# Caveman ultra is set by the closer project rule in AGENTS.md.
+# Caveman skills are user-invoked only (see AGENTS.md rule 1).
 # Do not add lifecycle hooks or project-local MCP/package paths here.
 model_verbosity = "low"
 model_reasoning_summary = "auto"

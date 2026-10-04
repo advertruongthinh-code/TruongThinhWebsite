@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: cavecrew
 description: Dùng mẫu ủy quyền gọn, có giới hạn khi giúp tiết kiệm context; ánh xạ sang role native của Codex hoặc xử lý inline.
 ---
