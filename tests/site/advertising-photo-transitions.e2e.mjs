@@ -1232,8 +1232,10 @@ try {
     await ready(page, A);
     const reduced = await page.evaluate(() => ({
       clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
+      // Reduced motion shortens every transition to 0.01ms, so a related relayout right after open is not motion.
       runningTransforms: [...document.querySelectorAll("[data-advertising-card], [data-advertising-related-card]")]
-        .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running").length,
+        .flatMap((node) => node.getAnimations()).filter((animation) => animation.playState === "running"
+          && Number(animation.effect?.getTiming().duration) > 1).length,
       photo: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId,
     }));
     assert.deepEqual(reduced, { clones: 0, runningTransforms: 0, photo: A });
