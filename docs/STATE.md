@@ -17,9 +17,8 @@
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
-  và `cdn.jsdelivr.net` ngày 04/10: cloud chạy Chromium và WebKit với Barba/
-  Locomotive thật. Firefox không tin CA proxy cloud, chạy qua preload
-  `tests/site/support/firefox-cloud-ca.mjs` ([TOOLING](operations/TOOLING.md#browser-qa-trên-cloud)).
+  ngày 04/10; font và vendor tự host nên cloud chạy Chromium, Firefox và WebKit
+  trực tiếp ([TOOLING](operations/TOOLING.md#browser-qa-trên-cloud)).
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
   duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03),
@@ -76,8 +75,7 @@
   Cloud stack: `scripts/tooling/cloud-setup.sh` cho environment `Default`
   ([TOOLING](operations/TOOLING.md#claude-code-cloud-environment)). Verify
   04/10: không lifecycle hook, 6 plugin `@skills-dir` loaded, 7 MCP connected,
-  rule global ở `~/.claude/CLAUDE.md`. `.claude/settings.json` chỉ giữ permission
-  rule cho preload Firefox. Đổi script thì dán lại vào environment.
+  rule global ở `~/.claude/CLAUDE.md`. Đổi script thì dán lại vào environment.
 - Claude skill: một nguồn, năm plugin pin ở user scope (cloud `cloud-setup.sh`,
   local `local-setup.ps1`); repo không vendor skill
   ([decision](decisions/claude-skills-from-pinned-plugins.md)). Local verify 04/10:
