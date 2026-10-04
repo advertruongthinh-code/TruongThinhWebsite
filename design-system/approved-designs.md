@@ -3,8 +3,9 @@
 Thiết kế owner đã duyệt nhưng website chưa chạy. Card đang tải, Mở ảnh tại
 chỗ và Vào thẳng trang được duyệt ngày 04/10 trên bản chạy thử
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
-(phiên bản 9); hướng của Kính được duyệt cùng ngày, số liệu chốt trên bản chạy
-thử kế tiếp. Component và [Motion](motion.md) vẫn mô tả code hiện tại. PR code
+(phiên bản 9); số của Kính chốt cùng ngày trên
+[Kính Trường Thịnh](https://claude.ai/artifact/3cmMiPqYxMMq9LAWCHwujH)
+(phiên bản 3). Component và [Motion](motion.md) vẫn mô tả code hiện tại. PR code
 chuyển từng mục vào component và Motion, rồi xóa mục khỏi trang này.
 
 ## Kính
@@ -15,21 +16,22 @@ mặt nào tự viết `backdrop-filter`.
 
 | Dạng | Bề mặt |
 | --- | --- |
-| Cung (`data-glass-shape="arc"`) | Kính cuối masonry, phủ batch [skeleton](components/Skeleton/README.md) dưới CTA |
+| Cung (`data-glass-shape="arc"`) | Kính cuối masonry, nền cho cụm CTA trên batch [skeleton](components/Skeleton/README.md) |
 | Phủ đều (`data-glass-shape="even"`) | Vùng dư quanh [primary](components/Primary/README.md), [Card đang tải](#card-đang-tải), [Mở ảnh tại chỗ](#mở-ảnh-tại-chỗ) |
 
-- **Nhòe tăng dần thật:** năm bậc nhòe, bậc trong cùng như hiện tại 28px, mỗi
-  bậc chồng mép lên bậc kế nên không thấy bậc hay bóng ma hai lớp.
-- **Dạng cung:** biên là cung tròn, tâm giữa màn hình và dưới batch. Trong cung
-  nhòe tối đa; ra ngoài, xa tâm, nhòe giảm dần về 0. Dải giảm dừng sao cho vẫn
-  thấy rõ vài card skeleton phía trên, không phủ ảnh thật. Tâm, bán kính, độ
-  dày dải chỉnh theo cỡ màn.
-- **Trắng theo cùng cung:** ngoài cung không có trắng, tới cung đạt tint, vào
+- **Nhòe tăng dần thật:** năm bậc `2`, `4.5`, `9`, `16`, `28px`, mỗi bậc chồng
+  mép lên bậc kế nên không thấy bậc hay bóng ma hai lớp.
+- **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
+  trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
+  batch; trong cung nhòe tối đa, ra ngoài nhòe giảm dần về 0. Đỉnh cung ở
+  `70%` cụm CTA tính từ mép trên tiêu đề, bán kính `2.7` × bề rộng màn, dải giảm
+  nhòe `1.40` × chiều cao cụm. Dải không lên quá ảnh thật.
+- **Trắng theo cùng cung:** ngoài dải không có trắng, tới cung đạt tint, vào
   trong tăng tới trắng tuyệt đối ở đáy batch.
-- **Hạt nhiễu:** đơn sắc, tĩnh, đậm khoảng 2 đến 3%, che sọc màu ở dải trắng;
-  không có ở vùng trắng tuyệt đối.
-- **Màu sau kính:** độ bão hòa khoảng `1.5` (hiện `1.08`), độ sáng `1.04`, tint
-  trắng alpha `0.12`.
+- **Hạt nhiễu:** đơn sắc, tĩnh, đậm `4%`, che sọc màu ở dải trắng; không có ở
+  vùng trắng tuyệt đối.
+- **Màu sau kính:** độ bão hòa `1.7` (hiện `1.08`), độ sáng `1.04`, tint trắng
+  alpha `0.12`.
 - **Hiện và tan:** các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược
   lại, chỉ bằng opacity; không animate bán kính blur.
 - Không phải Kính: nền tối của [viewer](components/Viewer/README.md) phóng to
@@ -91,6 +93,7 @@ Spec: [Skeleton chờ ảnh](../docs/specs/loading-glass-and-page-entry.md) R6, 
 - **Kính**: component glassmorphism dùng chung, làm nhòe và phủ trắng nội dung
   phía sau.
 - **Bậc nhòe**: một lớp kính có một bán kính blur cố định.
+- **Cụm CTA**: tiêu đề "Dấu ấn tiếp theo" và nút "Trao đổi ý tưởng" cuối masonry.
 - **Crossfade**: một lớp mờ đi trong lúc lớp khác hiện lên ở cùng chỗ.
 - **Route veil**: lớp trắng toàn màn hình che trang khi chuyển route.
 - **bfcache**: bộ nhớ trình duyệt giữ nguyên trang để Back hiện tức thì.
