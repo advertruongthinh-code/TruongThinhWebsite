@@ -666,11 +666,10 @@ Ma trận 120 lượt dời sang P11 sau deploy.
 
 - [x] Main checkout và dirty/untracked work ngoài task còn nguyên (cloud clone riêng).
 - Bỏ: branch `codex/advertising-random-media`; thay bằng branch ngắn + PR vào `main`.
-- [ ] Có 120 cold runs: 6 route đại diện × 2 locale × 2 viewport × 5 lượt;
-      ghi LCP, request start, decode/reveal, bytes, kích thước, CLS, lỗi và
-      cohort ID. Warm cache ghi riêng.
-- [ ] Report ghi Sites version/SHA, Slow 4G/CPU 4x, thời gian chạy và sample
-      bị loại; không dùng phép đo thăm dò đơn làm baseline.
+- Bỏ (owner rút gọn 2026-10-04): ma trận 120 cold runs; thay bằng baseline
+      median LCP trên demo ghi ở trạng thái trên.
+- Bỏ: report theo Sites version; Sites đã ngừng, demo Workers ghi commit và
+      Worker version ID theo [release](../docs/specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
 
 **Verification:** kiểm git status ở main/worktree; browser Network/Performance
 xác nhận ảnh mẫu có transfer bytes `>0`; đối chiếu đủ 120 tổ hợp.
@@ -695,8 +694,8 @@ seed/history, solver hard/soft gate và catalog tăng.
       kể cả khi browser dựng lại document; URL contract không đổi.
 - [x] Mỗi pool giữ đúng membership/ID đúng một lần; canonical `sourceOrder`,
       rank, tags, caption/alt VI/EN không bị ghi lại.
-- [ ] (chưa có test riêng) Nút All và sáu filter giữ nguyên thứ tự/vị trí; grid route ngoài Advertising
-      không bị random.
+- [x] Nút All và sáu filter giữ nguyên thứ tự/vị trí; grid route ngoài Advertising
+      không bị random ([evidence 04/10](../docs/verification/advertising-random-grid-p0-p10-2026-10-04.md#p1-thứ-tự-nút-all-và-sáu-filter)).
 - [x] Fixture `0/1/2/3/10/100`, ảnh đứng/ngang/vuông và ratio cực đoan kiểm
       geometry, operation budget và hard-safe fallback.
 
@@ -750,7 +749,8 @@ reduced motion, CTA/footer và 3-second tick.
 #### Checkpoint A — Advertising
 
 - [x] P1–P3 focused tests và static/layout checks đạt.
-- [ ] Main kiểm diff; report score/fallback cho pool đồng dạng và khó.
+- [x] Main kiểm diff; report score/fallback cho pool đồng dạng và khó
+      ([report 04/10](../docs/verification/advertising-random-grid-p0-p10-2026-10-04.md#p3--checkpoint-a-review-solver)).
 
 ### P4 — Chẩn đoán bottleneck delivery
 
@@ -866,11 +866,14 @@ icon, background trang trí và batch skeleton CTA giữ ngoại lệ spec.
 
 **Acceptance:**
 
-- [ ] Home, residential, commercial, about, gallery và hero dành chỗ trước
-      request; không CLS do placeholder.
-- [ ] Alt, request priority/lazy, VI/EN, direct/Barba/Back lifecycle không đổi;
+- [x] Home, residential, commercial, about, gallery và hero dành chỗ trước
+      request; không CLS do placeholder ([evidence 04/10](../docs/verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải)).
+- [x] Alt, request priority/lazy, VI/EN, direct/Barba/Back lifecycle không đổi;
       no-script vẫn xem ảnh được.
-- [ ] Không request ảnh trùng; ảnh cache không hiện loading state giả.
+- [x] Không request ảnh trùng.
+- [ ] Ảnh cache không hiện loading state giả: home có ảnh lazy ở mép màn hình
+      chưa xong 2 frame khi tải lại, vòng tĩnh không có delay; chưa xác nhận
+      vòng có hiện ([đo 04/10](../docs/verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải)).
 
 **Verification:** HTML/media contract; Playwright/DevTools theo route, locale,
 viewport, slow network và failure.
@@ -889,11 +892,12 @@ viewer; giữ LazySizes/virtualization và priority hiện hành.
 
 **Acceptance:**
 
-- [ ] Parent/detail/related/viewer hiện đúng loading state; thay hero hoặc rapid
-      scroll không gắn state ảnh cũ sang ảnh mới.
-- [ ] Lazy window giữ bounded requests; viewer close/error và history giữ
-      lifecycle hiện tại.
-- [ ] Grid random, CTA/footer và filter không đổi geometry khi tải ảnh.
+- [x] Parent/detail/related/viewer hiện đúng loading state; thay hero hoặc rapid
+      scroll không gắn state ảnh cũ sang ảnh mới ([evidence 04/10](../docs/verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải);
+      thay hero kiểm bằng bấm related khi ảnh đầu chưa tải xong).
+- [x] Lazy window giữ bounded requests; viewer close và history giữ
+      lifecycle hiện tại (viewer error chưa có ca riêng).
+- [x] Grid random, CTA/footer và filter không đổi geometry khi tải ảnh.
 
 **Verification:** Advertising layout/media/lifecycle và viewer E2E; request
 count, slow network, keyboard/touch, reduced motion.
@@ -912,13 +916,15 @@ iPhone chưa kiểm.
 
 **Acceptance:**
 
-- [ ] Unit/static/build GREEN; docs index/STATE/specs khớp source/hash.
+- [x] Unit/static/build GREEN; docs index/STATE/specs khớp source/hash
+      (unit 120/120, `pnpm qa:static`, `pnpm prepare:site` ngày 04/10, [evidence](../docs/verification/advertising-random-grid-p0-p10-2026-10-04.md)).
 - [ ] Main chạy `code-review-and-quality` và `ponytail-review`; không còn
       finding quan trọng.
 - Bỏ (owner 2026-10-03, reviewer là Claude): subagent `web-performance-auditor` dùng model `gpt-6-sol`,
       effort `ultra`; preview read-only VI/EN, mobile/desktop, home/service,
       Advertising All/filter/detail, Back/locale, CTA/footer, console/network/CLS.
-- [ ] Main kiểm từng finding; owner xem local preview trước Sites release.
+- [ ] Main kiểm từng finding; owner xem preview trên demo Workers trước khi
+      phát hành lại.
 
 **Verification:** `pnpm prepare:site`, `pnpm qa:static`, focused test commands
 trong spec, local `pnpm dev`, Playwright và Chrome DevTools MCP. Ghi model/
@@ -929,27 +935,31 @@ hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
 #### Checkpoint C — Local preview
 
 - [ ] Source, review và preview đạt; owner approve candidate.
-- [ ] Sites version rollback trước release đã được xác nhận.
+- [x] Rollback trước release: Sites bỏ; demo Workers rollback bằng
+      `pnpm demo:wrangler rollback` ([release](../docs/specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026)).
 
-### P11 — Push source và đo Sites candidate
+### P11 — Push source và đo demo candidate
 
 **Trạng thái 2026-10-04:** owner duyệt, demo deploy `9478ed8`. Bytes ảnh và
 ảnh đầu đạt; LCP chưa đạt vì LCP text phụ thuộc font và JS CDN
 ([kết quả](../docs/specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
 
-**Mô tả:** phát hành theo gate Sites sau owner release approval; GitHub giữ
-source/tests/scripts/docs, Sites chỉ nhận static artifact.
+**Mô tả:** phát hành demo Cloudflare Workers sau owner release approval (Sites
+đã ngừng); GitHub giữ source/tests/scripts/docs, Workers chỉ nhận
+`.site-output/`.
 
 **Acceptance:**
 
 - [ ] Ponytail review chạy trước commit/push; staged diff chỉ gồm task paths.
-- [ ] Release evidence ghi GitHub SHA, mirror SHA, archive checksum và Sites version.
-- [ ] Sites tree/archive chỉ có `dist/` và `.openai/hosting.json`.
-- [ ] Candidate đạt 120 cold runs cùng baseline và threshold của spec; nếu trượt,
-      rollback version cũ và lưu evidence.
+- [x] Release evidence ghi GitHub SHA và Worker version ID (deploy `9478ed8`,
+      [release](../docs/specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026)).
+- Bỏ: Sites tree/archive `dist/` + `.openai/hosting.json`; Workers deploy
+      `.site-output/` qua `wrangler.static.toml`.
+- [ ] (thread font và cache) Candidate đạt gate LCP cùng cohort baseline; bytes
+      và ảnh đầu đã đạt, LCP chưa đạt; nếu trượt sau deploy thì rollback.
 
-**Verification:** Git diff/commit/push gates, archive tree/checksum, Sites
-deployment confirmation và Network/Performance matrix sau deploy.
+**Verification:** Git diff/commit/push gates, Worker version ID, route 200 và
+Network/Performance trên demo sau deploy.
 **Dependencies:** P10 và owner release approval. **Estimate:** 60–120 phút,
 chưa tính propagation hoặc sửa phát sinh.
 
