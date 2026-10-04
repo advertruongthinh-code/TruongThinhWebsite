@@ -111,6 +111,13 @@ for (const [name, raw] of rootVars) {
   else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} là ${value} trong CSS nhưng token ghi ${tokenValues.get(name)}`);
 }
 
+// Generated previews (R5.3): component previews, bundle.css and photos match the site source.
+try {
+  execFileSync(process.execPath, ['scripts/docs/build-design-system.mjs', '--check'], { encoding: 'utf8', stdio: 'pipe' });
+} catch (error) {
+  errors.push(error.stderr.trim());
+}
+
 if (errors.length) {
   console.error(errors.join('\n'));
   console.error(`qa:docs FAIL: ${errors.length} lỗi`);

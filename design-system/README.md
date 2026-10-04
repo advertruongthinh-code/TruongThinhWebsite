@@ -113,7 +113,17 @@ Nguyên tắc: motion phục vụ nội dung, reduced motion đi thẳng trạng
 ## Components
 
 Website là HTML tĩnh với CSS và runtime dùng chung, không có component API như
-`Header` hay `Footer`. Các mẫu chính:
+`Header` hay `Footer`. Mỗi mẫu có README và `preview.html` trong
+`components/`; preview và `components/bundle.css` sinh bằng
+`node scripts/docs/build-design-system.mjs` từ HTML và CSS website, không sửa
+tay. Shell: [Header](components/Header/README.md),
+[Brand lockup](components/BrandLockup/README.md),
+[Full menu](components/FullMenu/README.md),
+[Footer](components/Footer/README.md),
+[Floating CTA](components/FloatingCta/README.md). Trang:
+[Hero](components/Hero/README.md),
+[Project reel](components/ProjectReel/README.md),
+[Gallery ngang](components/Gallery/README.md). Các mẫu chính:
 
 - **Brand lockup:** mark bốn path và hai dòng chữ (VI: Trường Thịnh và phụ đề,
   EN: INTERIORS · ADVERTISING). Gọi H là chiều cao mark, Y = H/6: khối chữ cao
