@@ -36,7 +36,7 @@ Checkpoint 1: CI xanh; owner thử đọc template mới.
 
 ## Phase 2: Design System
 
-- [ ] T3. Token và README Design System
+- [x] T3. Token và README Design System
   - Làm: tạo `design-system/` với `design-system.json`, `tokens.json` (màu,
     chữ, spacing, radius lấy từ `:root` của `style.css` và literal trong
     `detail.css`), `README.md` theo heading Impeccable, rút từ `DESIGN.md`

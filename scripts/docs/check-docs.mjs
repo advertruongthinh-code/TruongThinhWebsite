@@ -98,6 +98,19 @@ if (process.env.DOCS_BASE) {
   }
 }
 
+// Design drift (R5.2): each custom property in the top :root block of style.css has a same-named token with the same value.
+const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
+const tokenValues = new Map(Object.values(tokens).flatMap((family) => family?.tokens ?? [])
+  .map((t) => [t.name, typeof t.value === 'string' ? t.value : Object.values(t.value)[0]]));
+const rootVars = new Map([...readFileSync('src/site/style.css', 'utf8').match(/^:root \{\n([\s\S]*?)\n\}/m)[1]
+  .matchAll(/--([\w-]+):\s*([^;]+);/g)].map(([, name, value]) => [name, value.trim()]));
+for (const [name, raw] of rootVars) {
+  if (name in (tokens.meta?.cssOnly ?? {})) continue;
+  const value = raw.replace(/^var\(--([\w-]+)\)$/, (whole, ref) => rootVars.get(ref) ?? whole);
+  if (!tokenValues.has(name)) errors.push(`design drift: --${name} trong :root của src/site/style.css chưa có token trong design-system/tokens.json`);
+  else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} là ${value} trong CSS nhưng token ghi ${tokenValues.get(name)}`);
+}
+
 if (errors.length) {
   console.error(errors.join('\n'));
   console.error(`qa:docs FAIL: ${errors.length} lỗi`);

@@ -8,8 +8,8 @@
   Deploy gần nhất 2026-10-04 `9478ed8`, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
-  [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). T1 thêm `pnpm qa:docs`
-  (link, anchor, giới hạn dòng) vào CI.
+  [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
+  anchor, giới hạn dòng, sync spec, design-drift) chạy trên PR; T3 tạo `design-system/`.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Cloud chỉ có Chromium:

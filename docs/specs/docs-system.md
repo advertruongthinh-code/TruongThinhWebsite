@@ -137,8 +137,11 @@ nhật hoặc lý do không đổi.
    Design System trên claude.ai: `README.md`, `tokens.json`,
    `components/<Tên>/README.md` và `preview.html`, `assets/`, các section
    `*.md` khác (ví dụ `motion.md`, `content.md`), `design-system.json`.
-2. Giá trị token lấy đúng từ CSS đang chạy (`:root` trong `src/site/style.css`
-   và các literal màu trong `detail.css`); không chế giá trị.
+2. Giá trị token lấy đúng từ CSS đang chạy (`src/site/style.css`,
+   `detail.css`); không chế giá trị. Check design-drift so khối `:root` đầu
+   `style.css` với token cùng tên: thiếu token hoặc khác giá trị thì fail.
+   Biến motion không có family token, khai trong `tokens.json`
+   `meta.cssOnly` kèm lý do. Literal rải trong selector không thuộc check.
 3. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand
    lockup, CTA, hero, project grid card, media-card, masonry, skeleton, vòng
    tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
@@ -148,9 +151,9 @@ nhật hoặc lý do không đổi.
    Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
 
 ```gherkin
-Given một màu hoặc spacing mới trong :root của style.css
+Given một biến mới hoặc giá trị đổi trong :root của style.css
 When CI chạy pnpm qa:docs
-Then check design-drift fail cho tới khi tokens.json có token đó
+Then check design-drift fail cho tới khi tokens.json có token cùng tên và giá trị
 ```
 
 ### R6. Impeccable tham chiếu Design System
