@@ -90,6 +90,12 @@ Lần deploy đầu 2026-10-03: source `src/site/` của `ffd7a2e`, Worker versi
 `https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/`; `/vi/`,
 `/en/`, trang con và asset trả 200, path sai trả 404.
 
+Deploy 2026-10-04 (owner yêu cầu trong thread M02b): `main` `9478ed8`, có
+PR #26, Worker version `d6ad9a03-1108-4276-ab63-84aabdaad521`. 10 route chính
+VI/EN trả 200, ảnh nội dung bọc `<picture>` có nguồn AVIF, `.avif` trả
+`Content-Type: image/avif`; A05s thật mở `/vi/` không ảnh hỏng, không lỗi JS.
+Asset hiện trả `Cache-Control: max-age=0, must-revalidate`.
+
 Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml`
 hoặc chọn deployment cũ trong Cloudflare dashboard. Changelog ghi thay đổi và
 known limitations; focused PASS không đổi verdict full-site parity.
