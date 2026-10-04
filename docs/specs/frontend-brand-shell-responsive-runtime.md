@@ -158,8 +158,8 @@ Owner spot-check còn mở; source và gate P1.2 không tự được dùng làm
 
 - Không đổi route, metadata, favicon hoặc Worker behavior.
 - Không thêm package, font request, remote SVG hay CMS binding.
-- Text trong SVG reuse font Plus Jakarta Sans được HTML nạp sẵn từ Google
-  Fonts; không thêm font request hoặc thay pipeline font trong slice này.
+- Text trong SVG reuse font Plus Jakarta Sans tự host (`@font-face` trong
+  `style.css`, xem [tự host font](frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026)).
 
 ## Verification và evidence
 

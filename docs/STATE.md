@@ -85,6 +85,9 @@
 - Next repo action: P11 đã đo trên demo 2026-10-04: bytes ảnh và ảnh đầu đạt,
   LCP chưa đạt vì LCP text phụ thuộc font Google và JS CDN
   ([kết quả](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
+  Font, Locomotive, Barba đã tự host và có `_headers` cache
+  ([spec](specs/frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026));
+  chờ owner đồng ý deploy để đo lại LCP trên demo.
   M02b chờ owner kiểm nhận và iPhone; owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

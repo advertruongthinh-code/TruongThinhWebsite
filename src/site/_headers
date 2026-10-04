@@ -1,0 +1,9 @@
+# Cloudflare Workers static assets headers (not served). Spec: docs/specs/frontend-static-release.md R3.
+/assets/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/content/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/assets/brand/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

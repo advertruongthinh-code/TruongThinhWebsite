@@ -104,7 +104,7 @@ Phân loại website, test, CMS và dữ liệu local theo [cây ownership](../.
 Build chỉ lấy `src/site/` và vendor khai báo; không đặt test trong source website
 hoặc dùng repository root làm static directory.
 
-## Tự host font, thư viện và cache (chờ owner duyệt)
+## Tự host font, thư viện và cache (owner duyệt 04/10/2026)
 
 Mục đích: đường render đầu không chờ origin bên thứ ba. P11 đo LCP text trên
 residential và commercial phụ thuộc Google Fonts và jsDelivr
@@ -169,6 +169,12 @@ Then Cache-Control vẫn là max-age=0, must-revalidate
 
 Cloud không truy cập được `workers.dev` (proxy trả 403), nên số đo demo chạy
 trên PC hoặc sau khi owner thêm host vào network của environment.
+
+### Gate còn mở
+
+- Gate LCP chưa đo trên demo: chờ owner đồng ý deploy. Số đo local không thay
+  được demo vì `pnpm dev` không nén gzip/brotli còn Cloudflare có nén, và request
+  tới Google Fonts, jsDelivr trong cloud không chịu throttle như request local.
 
 ## Chú thích thuật ngữ
 
