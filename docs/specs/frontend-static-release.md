@@ -104,6 +104,72 @@ Phân loại website, test, CMS và dữ liệu local theo [cây ownership](../.
 Build chỉ lấy `src/site/` và vendor khai báo; không đặt test trong source website
 hoặc dùng repository root làm static directory.
 
+## Tự host font, thư viện và cache (chờ owner duyệt)
+
+Mục đích: đường render đầu không chờ origin bên thứ ba. P11 đo LCP text trên
+residential và commercial phụ thuộc Google Fonts và jsDelivr
+([kết quả](static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
+Asset có version trong tên được cache dài; HTML và code app vẫn revalidate.
+
+### R1. Font tự host
+
+Plus Jakarta Sans variable (wght 200–800, normal và italic) lấy từ npm
+`@fontsource-variable/plus-jakarta-sans@5.3.0` (OFL, kèm LICENSE), build chép
+subset latin, latin-ext, vietnamese vào `/assets/vendor/plus-jakarta-sans-5.3.0/`;
+bỏ cyrillic-ext. `@font-face` nằm đầu `style.css`, giữ tên family
+`Plus Jakarta Sans`, `font-display: swap`, `unicode-range` theo package. HTML
+preload hai file normal latin và vietnamese.
+
+```gherkin
+Given build từ src/site/
+When mở bất kỳ route VI/EN nào với cache trống
+Then không có request tới fonts.googleapis.com hoặc fonts.gstatic.com
+And chữ hiển thị bằng Plus Jakarta Sans, đủ dấu tiếng Việt
+```
+
+### R2. Thư viện CDN tự host
+
+Locomotive Scroll `4.1.4` (JS và CSS) và `@barba/core` `2.10.3` cài từ npm, build
+chép vào `/assets/vendor/` giống gsap. HTML trỏ path local, bỏ `integrity` và
+`crossorigin` vì cùng origin. Giữ nguyên version và thứ tự `defer`, không đổi
+behavior.
+
+```gherkin
+Given build từ src/site/
+When mở route bất kỳ
+Then không có request tới cdn.jsdelivr.net
+And chuyển trang Barba và smooth scroll desktop chạy như trước
+```
+
+### R3. Cache header
+
+`src/site/_headers` (Workers static assets đọc file này, không phục vụ ra ngoài):
+
+| Path | `Cache-Control` | Lý do |
+| --- | --- | --- |
+| `/assets/vendor/*` | `public, max-age=31536000, immutable` | Tên có version |
+| `/assets/content/*`, `/assets/brand/*` | `public, max-age=86400, stale-while-revalidate=604800` | Tên không có hash; ảnh thay cùng tên lộ ra trong một ngày |
+| HTML, `style.css`, `motion.js`, `detail.*`, `*.mjs` | Mặc định Cloudflare `max-age=0, must-revalidate` + ETag | Đổi mỗi deploy, tên không có version |
+
+```gherkin
+Given demo đã deploy bản có _headers
+When request /assets/vendor/gsap-3.15.0.min.js
+Then Cache-Control là public, max-age=31536000, immutable
+When request /vi/
+Then Cache-Control vẫn là max-age=0, must-revalidate
+```
+
+### Kiểm tra
+
+| R | Test hoặc command |
+| --- | --- |
+| R1, R2 | `pnpm qa:site` (static contract không còn host ngoài), Network trên local preview |
+| R3 | `wrangler dev --config wrangler.static.toml` rồi đọc header |
+| Gate LCP | Đo demo cùng cohort P11 sau deploy (cần owner đồng ý) |
+
+Cloud không truy cập được `workers.dev` (proxy trả 403), nên số đo demo chạy
+trên PC hoặc sau khi owner thêm host vào network của environment.
+
 ## Chú thích thuật ngữ
 
 - **Static release**: lần phát hành dựa trên asset tĩnh, không cần CMS runtime.
@@ -113,3 +179,6 @@ hoặc dùng repository root làm static directory.
 - **Binding**: cấu hình kết nối Worker tới resource như D1 hoặc R2.
 - **Workers static assets**: Cloudflare phục vụ file tĩnh từ Worker, không cần code.
 - **Worker version ID**: mã Cloudflare cấp cho mỗi lần deploy, dùng để rollback.
+- **Preload**: thẻ báo browser tải sớm file cần cho lần vẽ đầu.
+- **Immutable**: browser dùng lại bản cache, không hỏi lại server khi còn hạn.
+- **LCP**: thời điểm phần tử lớn nhất trong khung nhìn đầu được vẽ.
