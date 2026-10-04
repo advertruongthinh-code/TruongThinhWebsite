@@ -132,7 +132,7 @@ try {
   const inactiveBar = await loadBar(inactiveLink);
   await inactiveLink.evaluate((link) => link.classList.add("is-media-settled"));
   assert.match(inactiveBar.image, /animate attributeName=.x/, "inactive suggestion paints the moving loading bar behind its photo");
-  assert.deepEqual([inactiveBar.position, inactiveBar.size], ["0% 100%", "100% 2px"],
+  assert.deepEqual([inactiveBar.position, inactiveBar.size], ["0% 100%", "100% 3px"],
     "suggestion loading bar runs along the bottom edge");
   assert.equal((await loadBar(activeLink)).image, "none", "active suggestion has no loading bar behind its hidden photo");
   await activeLink.hover();
