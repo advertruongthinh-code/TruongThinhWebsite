@@ -5,7 +5,7 @@
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
-  Đã deploy 2026-10-03, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
+  Deploy gần nhất 2026-10-04 `9478ed8`, [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
@@ -66,8 +66,10 @@
   link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
 - STATE trước cleanup: Git `da2f13a` (`docs/archive/snapshots/state-before-release-2026-09-24.md`,
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: P11 đo lại trên demo sau khi owner duyệt deploy (owner chưa
-  duyệt ngày 2026-10-04), rồi đóng M02b; owner kiểm nhận giao diện trên
+- Next repo action: P11 đã đo trên demo 2026-10-04: bytes ảnh và ảnh đầu đạt,
+  LCP chưa đạt vì LCP text phụ thuộc font Google và JS CDN
+  ([kết quả](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
+  M02b chờ owner kiểm nhận và iPhone; owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
   regression, filter không replay. Ảnh nguồn và WebP có

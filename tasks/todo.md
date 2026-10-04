@@ -1174,8 +1174,9 @@ hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
 
 ### P11 — Push source và đo Sites candidate
 
-**Trạng thái 2026-10-04:** source đã lên `main`. Đo lại trên demo Cloudflare
-chờ owner duyệt deploy; owner chọn chưa deploy ngày 2026-10-04.
+**Trạng thái 2026-10-04:** owner duyệt, demo deploy `9478ed8`. Bytes ảnh và
+ảnh đầu đạt; LCP chưa đạt vì LCP text phụ thuộc font và JS CDN
+([kết quả](../docs/specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
 
 **Mô tả:** phát hành theo gate Sites sau owner release approval; GitHub giữ
 source/tests/scripts/docs, Sites chỉ nhận static artifact.

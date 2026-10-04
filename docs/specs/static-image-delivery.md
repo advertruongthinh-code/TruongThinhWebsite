@@ -139,15 +139,32 @@ trang (bytes ảnh, trước → sau):
 | `/vi/residential/` | 1920 → 458 KB | 2632 → 1031 KB |
 | `/vi/commercial/` | 2442 → 422 KB | 1980 → 1006 KB |
 | `/vi/about/` | 1174 → 428 KB | 1174 → 743 KB |
+| `/en/advertising-products/` | 23692 → 2476 KB | 23692 → 2476 KB |
 
 Sau khi thêm `sizes="auto"` cho ảnh lazy (desktop 1440 px): home 1032 KB,
 residential 372 KB, commercial 348 KB, about 576 KB.
-| `/en/advertising-products/` | 23692 → 2476 KB | 23692 → 2476 KB |
 
 Không có request 404; kích thước render của mọi ảnh nội dung không đổi. Baseline
 demo ngắn (390 px vi, Slow 4G, CPU 4x, median): home LCP 3,8 s, residential
-4,18 s, commercial 4,08 s, about 3,80 s. Đo lại trên demo chỉ khi owner duyệt
-deploy.
+4,18 s, commercial 4,08 s, about 3,80 s.
+
+P11 trên demo ngày `2026-10-04` (deploy `9478ed8`, cùng cohort: 390 px vi,
+cold, Slow 4G, CPU 4x; 2 lượt mỗi route, 0/48 lượt lỗi; median):
+
+| Route | Bytes ảnh | Ảnh đầu sẵn sàng | LCP |
+| --- | --- | --- | --- |
+| home | 2,2 → 0,97 MB | 9,0 → 5,0 s | 3,8 → 5,7 s (lượt 7,6 và 3,8 s) |
+| residential | 1,9 → 0,49 MB | 7,7 → 2,2 s | 4,2 → 4,9 s, phần tử LCP là text |
+| commercial | 1,5 → 0,41 MB | 5,1 → 2,3 s | 4,1 → 4,5 s, phần tử LCP là text |
+| about | 0,37 → 0,33 MB | 3,8 → 2,9 s | 3,8 → 3,9 s |
+| advertising-products | chưa có baseline: 0,15 MB | | 1,6 s |
+
+Kết luận: gate bytes và ảnh đầu đạt (thời gian ảnh đầu giảm 24–71%). Gate LCP
+chưa đạt: home biến thiên quá lớn với 2 lượt; residential và commercial có phần
+tử LCP là text nên LCP phụ thuộc font Google và JS từ CDN (gsap, Locomotive,
+Barba), không còn phụ thuộc ảnh. Hướng tiếp theo nằm ngoài pipeline ảnh: tự
+host font, cache dài cho `/assets/*`. Raw trên PC:
+`.tmp/image-delivery/p11-demo-20261004`.
 
 ## Giao diện module và nơi đặt code
 
