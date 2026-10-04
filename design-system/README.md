@@ -26,7 +26,9 @@ Tài liệu kèm theo:
   token không có family motion nên mọi timing nằm ở đây.
 - [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
 - [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
-- [Tham chiếu Espacio](reference-espacio.md): số đo site tham chiếu.
+- [Tham chiếu Espacio](reference-espacio.md): số đo site tham chiếu (header,
+  chữ, layout), kèm [Hero Espacio](reference-espacio-hero.md) và
+  [Motion Espacio](reference-espacio-motion.md).
 
 `DESIGN.md` ở gốc repo được sinh từ README này và `tokens.json` cho
 Impeccable; sửa ở đây rồi chạy `node scripts/docs/build-design-md.mjs`.

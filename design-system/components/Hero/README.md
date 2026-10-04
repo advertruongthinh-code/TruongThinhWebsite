@@ -10,7 +10,8 @@ hình, giống màn giới thiệu level hay chapter mới trong game. Markup
 - Nguồn cảm hứng owner chọn: chữ lớn mở cảnh của
   [Resident Evil Requiem](https://www.jank.cool/resident-evil-requiems-big-text-splashes-explained/)
   và màn vào level, chapter mới của game Control Resonant. Nhịp, weight và
-  motion học theo [Espacio](../../reference-espacio.md#typography).
+  motion học theo Espacio; số đo hero Espacio từng trang ở
+  [Hero Espacio](../../reference-espacio-hero.md).
 - Chữ là nhân vật chính: một kicker nhỏ phía trên, tiêu đề hai dòng rất lớn,
   không nút, không đoạn văn dài.
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
