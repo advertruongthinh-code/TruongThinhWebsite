@@ -9,8 +9,9 @@
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
-  Remote Control trên PC chỉ khi cần A05s/iPhone thật. Cloud chỉ có Chromium;
-  `cdn.jsdelivr.net` bị network policy chặn (Barba, Locomotive), QA cloud cần
+  Remote Control trên PC chỉ khi cần A05s/iPhone thật. Cloud chỉ có Chromium:
+  network policy chặn CDN Playwright (Firefox/WebKit, kiểm 04/10) và
+  `cdn.jsdelivr.net` (Barba, Locomotive), QA cloud cần
   route tạm hoặc owner mở host.
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
