@@ -64,6 +64,8 @@ lifecycle) nằm trong spec sở hữu.
   viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
   kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
   chỉ tóm tắt card đang làm; chi tiết Done không được chép.
+  [Kính chờ, mở ảnh tại chỗ, màn trắng vào trang](specs/loading-glass-and-page-entry.md):
+  owner chốt 04/10, chờ code; thay vòng xoay Advertising khi triển khai.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
   và [Design System](../design-system/README.md): shell và visual authority.
 - [Static release](specs/frontend-static-release.md): build/hosting;
