@@ -31,6 +31,52 @@ layout_card: https://app.notion.com/p/3e8332849a0e81f18301f28c1091a9c3
 
 Chỉ giữ plan còn việc mở. Plan scrollbar, tinh gọn docs, inventory living docs và lịch sử plan Codex đã chuyển sang [lưu trữ](archive/plan.md).
 
+## Skeleton chờ ảnh, mở ảnh tại chỗ, vào thẳng trang — plan chờ duyệt 2026-10-04
+
+Spec owner đã duyệt: [Skeleton chờ ảnh và màn trắng khi vào trang](../docs/specs/loading-glass-and-page-entry.md)
+(PR #65). Kính thuộc [Kính dùng chung](../docs/specs/glass-surface.md), thread
+"Code component Kính" làm; M02b chỉ gắn vào, không viết `backdrop-filter`.
+Hành vi F5 có veil đã lên main ở PR #66.
+
+### Mặc định M02b chọn
+
+1. R7: bỏ mốc 2.5s. Tám script trang đều `defer`, luôn chạy xong trước
+   `DOMContentLoaded`, nên fallback ngay tại `DOMContentLoaded` nếu motion.js
+   chưa nhận trang (lỗi hoặc thoát sớm). Không cần thời gian chờ thêm; mạng chậm
+   thì veil giữ trắng tới khi script tải xong. Điền mục `CẦN LÀM RÕ` của spec.
+2. R1: trần context WebGL điện thoại 2, desktop 8 như bản chạy thử; chốt lại
+   theo số đo.
+3. Preset skeleton theo media id (`fnv1a32(mediaId) % 12`), nên card remount
+   giữ màu.
+4. R4 ảnh có sẵn: ảnh cũ nằm trong một lớp tạm ngay trong khung primary để
+   crossfade, gỡ khi xong; không có ảnh bay từ card. Code hiện tại không có
+   clone hay FLIP từ card sang primary; chuyển động "bay" owner thấy có thể là
+   related masonry xếp lại `0.4s` (suy luận), phần này giữ nguyên.
+5. Hai PR. PR1: skeleton, crossfade, bỏ vòng xoay, boot; ba bước chạy với chỗ
+   gắn kính để trống. PR2: gắn kính khi component Kính lên `main`. Deploy demo
+   một lần sau PR2, hỏi owner trước.
+
+### Task
+
+| # | Việc | R | Ước lượng |
+| --- | --- | --- | --- |
+| T1 | Tách helper dựng frame, surface, canvas từ `renderCtaSkeleton`; card masonry và related có ảnh chưa `complete` gắn skeleton vào khung media; dùng chung lease pool, cho chạy cả khi đang mở detail | R1, R3, R8 | 2 giờ |
+| T2 | Ba bước hiện ảnh bằng Web Animations theo bảng [Card đang tải](../design-system/approved-designs.md#card-đang-tải); gỡ skeleton, kính và trả context khi xong | R2 | 1 giờ |
+| T3 | Skeleton thay `.media-load-ring`, spinner card nhiều ảnh và vòng `::after`; primary mở tại chỗ, ảnh có sẵn crossfade `0.6s`; giữ `aria-busy` và morph sang viewer | R4, R5 | 2 giờ |
+| T4 | Đổi điều kiện fallback trong năm head script; sửa test đang dựa vào mốc 2.5s | R6, R7 | 1 giờ |
+| T5 | E2E: ảnh chậm thì có skeleton, điện thoại tối đa 2 context, ảnh cache không skeleton, node gỡ sau reveal, primary chưa tải có skeleton, motion.js chậm 4s veil giữ rồi mở, motion.js lỗi veil gỡ; sửa test vòng xoay cũ; cập nhật Design System và spec theo mục Gate còn mở | R1–R8 | 2 giờ |
+| T6 | Đo R9 trên A05s qua phiên PC: trace vuốt nhanh, median từ `30fps`, không long task trên `50ms`, tối đa 2 context; WebKit trên cloud | R9 | 1 giờ |
+| T7 | PR2: gắn kính dạng phủ đều vào ba bước, đo lại R9 | R2, R4 | 1 giờ |
+
+Tổng khoảng 10 giờ agent, khoảng 600 dòng code và test viết tay.
+
+### Rủi ro và rollback
+
+- Nhiều skeleton cùng crossfade khi vuốt nhanh có thể rơi gate R9; khi đó báo
+  owner kèm số đo trước khi đổi cách làm, theo spec.
+- Test cũ khóa vòng xoay và mốc 2.5s phải đổi cùng PR, không bỏ test.
+- Mỗi PR revert độc lập; PR1 không đụng Kính.
+
 <a id="correction-baseline-và-skeleton--plan-chờ-duyệt"></a>
 
 ## Correction baseline và skeleton — accepted 2026-09-27
