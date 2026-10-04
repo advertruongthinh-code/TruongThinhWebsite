@@ -727,8 +727,15 @@ html[lang="en"]
   gap: 35px;
 }
 
+/* Chromium lays out noscript as block while scripts run, so its raw markup would show as text. */
 .project-grid > noscript {
-  display: contents;
+  display: none;
+}
+
+@media (scripting: none) {
+  .project-grid > noscript {
+    display: contents;
+  }
 }
 
 .project-tile {
