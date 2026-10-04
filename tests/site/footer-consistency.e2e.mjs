@@ -46,6 +46,8 @@ try {
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
           || document.body.classList.contains(location.search.includes("photo=") ? "is-advertising-photo" : "is-advertising-browse"));
         await page.evaluate(() => document.fonts.ready);
+        // Reduced motion still gives every property a 0.01ms transition, so let the class change settle.
+        await page.waitForTimeout(100);
         const result = await page.evaluate(() => {
           const footer = document.querySelector(".site-footer");
           const rect = footer.getBoundingClientRect();
