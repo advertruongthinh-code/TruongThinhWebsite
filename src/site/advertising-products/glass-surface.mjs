@@ -30,15 +30,18 @@ function ensureGrain() {
   canvas.toBlob((blob) => blob && root.style.setProperty("--glass-grain", `url(${URL.createObjectURL(blob)})`));
 }
 
-export function createGlassSurface(shape) {
+// A static even surface looks the same through one full step as through five stacked ones, at about half the cost;
+// a surface that fades in or out step by step (spec R6) asks for all five.
+export function createGlassSurface(shape, steps = shape === "arc" ? STEPS : 1) {
   ensureGrain();
   const glass = document.createElement("div");
   glass.className = "glass-surface";
   glass.dataset.glassShape = shape;
   glass.setAttribute("aria-hidden", "true");
-  // A static even surface looks the same through one full step as through five stacked ones, at about half the cost.
-  for (let index = 0; index < (shape === "arc" ? STEPS : 1); index += 1) {
-    glass.append(Object.assign(document.createElement("i"), { className: "glass-surface__step" }));
+  for (let index = 0; index < steps; index += 1) {
+    glass.append(Object.assign(document.createElement("i"), {
+      className: steps === 1 ? "glass-surface__step glass-surface__step--full" : "glass-surface__step",
+    }));
   }
   glass.append(
     Object.assign(document.createElement("i"), { className: "glass-surface__tint" }),

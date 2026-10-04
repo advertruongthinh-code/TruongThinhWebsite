@@ -153,10 +153,10 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
-| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung năm bậc; dạng phủ đều đứng yên một bậc đủ mạnh (nhìn như năm bậc chồng, nhẹ hơn). Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1` |
-| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`), `saturate(1.112)`, `brightness(1.0079)`; bậc phủ đều `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
+| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung năm bậc; dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); bề mặt hiện/tan (R6) năm bậc. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1` |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`), `saturate(1.112)`, `brightness(1.0079)`; `.glass-surface__step--full` là `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
 | CSS | `--glass-grain`, `--glass-grain-size` trên `html` | Ảnh hạt nhiễu 160×160 sinh một lần bằng canvas, một hạt một pixel thiết bị |
-| Runtime | `glass-surface.mjs` | `createGlassSurface(shape)`; `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt mask và màu trắng |
+| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 5, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt mask và màu trắng |
 | Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass` |
 
 ## UI

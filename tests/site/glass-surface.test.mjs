@@ -10,11 +10,12 @@ const runtime = await read("advertising-products/catalog-runtime.mjs");
 
 // R1: only the glass steps and the viewer's dim layer own backdrop-filter.
 const owners = [...css.matchAll(/([^{}]+)\{[^}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
-assert(owners.every((selector) => selector === ".advertising-photo-dialog::backdrop" || selector.endsWith(".glass-surface__step")),
-  `R1: no surface writes its own backdrop-filter ${JSON.stringify(owners)}`);
-// The static even surface blurs through one full step, the five steps' product.
-assert.match(css, /\.glass-surface\[data-glass-shape="even"\] > \.glass-surface__step \{[^}]*backdrop-filter: blur\(28px\) saturate\(1\.7\) brightness\(1\.04\);/,
-  "R2, R5: the even surface is one full step");
+assert.deepEqual([...new Set(owners)].sort(),
+  [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--full"],
+  "R1: no surface writes its own backdrop-filter");
+// A one-step surface blurs through the five steps' product.
+assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(28px\) saturate\(1\.7\) brightness\(1\.04\);/,
+  "R2, R5: one full step equals the five steps");
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even"\)/, "R1: the primary uses the even Kính");
 

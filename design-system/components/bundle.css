@@ -4917,7 +4917,7 @@ body.is-advertising-browse .advertising-grid {
 .glass-surface__step:nth-child(4) { --glass-step-blur: 13.23px; }
 .glass-surface__step:nth-child(5) { --glass-step-blur: 22.98px; }
 
-.glass-surface[data-glass-shape="even"] > .glass-surface__step {
+.glass-surface__step--full {
   -webkit-backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
   backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
 }
