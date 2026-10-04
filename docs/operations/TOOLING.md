@@ -92,38 +92,44 @@ environment `Default` tại claude.ai/code. Nguồn chuẩn là
 Script chạy bằng root trước khi Claude Code khởi động; kết quả được cache
 khoảng 7 ngày, nên áp dụng cho mọi cloud session, mọi repo.
 
-Cơ chế: mỗi plugin là skills-directory plugin, tức symlink
-`~/.claude/skills/<tên>` trỏ tới checkout pin trong `/opt/agent-tools/src`.
-Claude Code nạp plugin dạng này mọi session, không cần `settings.json` (docs
-cloud ghi user settings "not read"). Plugin local `cloud-stack` giữ MCP và
-các hook mà plugin upstream không tự nối.
+Cơ chế, theo rule global "never install agent lifecycle hooks": cloud chỉ có
+skill, command, agent, MCP. Mỗi plugin là skills-directory plugin
+`~/.claude/skills/<tên>`, thư mục bọc symlink mọi entry của checkout pin trong
+`/opt/agent-tools/src` trừ `hooks/`, manifest bỏ khóa `hooks`. Claude Code nạp
+plugin dạng này mọi session, không cần `settings.json` (docs cloud ghi user
+settings "not read"). Plugin local `cloud-stack` chỉ giữ MCP. Rule global ghi
+vào `~/.claude/CLAUDE.md` của VM, chép nguyên khối `codex:global-stack` trong
+`bootstrap.ps1`; đổi một bên thì đổi cả hai. ADHD, Caveman ultra, Ponytail ultra
+bật qua rule này như local, không qua hook.
 
 | Tool | Cài trên cloud |
 | --- | --- |
-| agent-skills | Plugin: 25 skill, 9 command, 4 agent, references; hook `sdd-cache`, `simplify-ignore` |
-| caveman | Plugin: 22 skill, 3 agent, `/caveman-init`, hook mode; CLI 2.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
-| ponytail | Plugin: 6 skill, 3 hook; MCP `ponytail` |
-| impeccable | Plugin: skill, 4 agent, 3 hook; engine cache, CLI npm 4.1.0 |
-| i-have-adhd | Plugin: skill, hook always-on |
-| graphify | `graphifyy[all]` 0.9.74, skill global, hook `hook-guard`, MCP `graphify` |
-| serena | `serena-agent` 1.7.0, MCP `--context claude-code --project-from-cwd`, 4 hook `serena-hooks` |
+| agent-skills | Plugin: 25 skill, 9 command, 4 agent, references |
+| caveman | Plugin: 22 skill, 3 agent, `/caveman-init`; CLI 2.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
+| ponytail | Plugin: 6 skill; MCP `ponytail` |
+| impeccable | Plugin: skill, 4 agent; engine 0.1.11 cache, CLI npm 4.1.0 |
+| i-have-adhd | Plugin: skill |
+| graphify | `graphifyy[all]` 0.9.74, skill global, MCP `graphify` |
+| serena | `serena-agent` 1.7.0, MCP `--context claude-code --project-from-cwd` |
 | Chrome DevTools | MCP headless, Chromium `/usr/local/bin/chromium` (`--no-sandbox` cho root) |
 
-Mặc định always-on giống rule global local: ADHD, Caveman `ultracave`,
-Ponytail `ultra`; xóa dòng tương ứng trong script để chuyển về gọi tay. Pin trong script khớp `tooling-versions.json`;
-đổi pin thì sửa cả hai rồi dán lại script, cache tự build lại.
+Pin trong script khớp `tooling-versions.json`; đổi pin thì sửa cả hai rồi dán
+lại script, cache tự build lại.
 
 Không cài, có lý do:
 
+- Mọi lifecycle hook upstream (mode của caveman, ponytail, i-have-adhd; hook
+  Impeccable; `serena-hooks`; graphify `hook-guard`; agent-skills `sdd-cache`,
+  `simplify-ignore`, `session-start`): rule global cấm.
 - `caveman enable`/`caveman claude`: đổi `ANTHROPIC_BASE_URL` sang proxy
   local, làm hỏng session cloud.
 - Statusline caveman/ponytail: app cloud không hiển thị status line terminal.
-- Caveman standalone hook: trùng hook của plugin. `caveman-shrink` cần upstream
-  MCP cụ thể. `caveman-cloud` cần login, đang đóng beta. `caveman-delegate` opt-in.
-- `agent-skills/hooks/session-start.sh`: upstream khuyên không dùng với Claude
-  Code vì trùng skill routing.
+- `caveman-shrink` cần upstream MCP cụ thể. `caveman-cloud` cần login, đang
+  đóng beta. `caveman-delegate` opt-in.
 - Bước per-repo (`graphify claude install`, `graphify hook install`, build graph,
   `caveman-init`): ghi file vào repo, chạy khi repo cần.
+- Git hook `ponytail-git-hooks.ps1`, `graphify-git-hooks.ps1`: cần PowerShell,
+  không có trên cloud. Agent cloud chạy `ponytail-review` thủ công trước commit.
 
 Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
 `claude plugin list` liệt kê sáu plugin `@skills-dir`. Trong repo này skill vừa
