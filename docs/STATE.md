@@ -90,7 +90,9 @@
   ([kết quả](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
   LCP residential mobile còn hai mode do reveal SplitText ở hero title
   ([gate](specs/frontend-static-release.md#gate-còn-mở)).
-  M02b chờ owner kiểm nhận và iPhone; owner kiểm nhận giao diện trên
+  M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
+  khi vào thẳng trang đã sửa; kính chờ ảnh masonry và motion mở ảnh chờ spec
+  Design System rồi M02b làm code; iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
   regression, filter không replay. Ảnh nguồn và WebP có
