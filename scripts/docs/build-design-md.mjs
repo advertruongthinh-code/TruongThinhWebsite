@@ -28,7 +28,6 @@ const frontmatter = [
   `description: ${q(description)}`,
   'colors:', map(tokens.color.tokens.map((t) => [t.name, t.value])),
   'typography:', typography,
-  'rounded:', map(tokens.radius.tokens.map((t) => [t.name.replace(/^radius-/, ''), t.value])),
   'spacing:', map(tokens.spacing.tokens.map((t) => [t.name, t.value])),
   '---',
 ].join('\n');
