@@ -154,6 +154,12 @@ Giới hạn: viewport override, không xoay vật lý; render, scroll, history 
 vi thật của Chrome trên máy. Kết luận giữ nguyên: `Y=2`/`Y=3` chỉ có trên
 emulator. Ca emulator vẫn FAIL kèm ghi chú theo quyết định owner.
 
+Xoay vật lý cùng ngày: auto-rotate bật, máy đặt nằm ngang, tap thật bằng
+`adb shell input tap` (`pnpm qa:related-scroll -- --skip-emulator`), không
+override viewport. PASS 4/4, `maxY=0`, 60 frame, `touch=true`: VI card `16` và
+`07`, EN card `16` và `10`. Raw trong worktree PC:
+`.tmp/site-media-card/related-scroll-20261004T063545608Z`.
+
 ## Chú thích thuật ngữ
 
 - **Overscan**: vùng render thêm ngoài viewport trước khi unmount card.
