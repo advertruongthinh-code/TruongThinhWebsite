@@ -1135,6 +1135,11 @@ count, slow network, keyboard/touch, reduced motion.
 
 ### P10 — Tích hợp, review và preview độc lập
 
+**Trạng thái 2026-10-04:** đã chạy Chromium trên cloud, Firefox/WebKit trên PC
+và A05s thật; không có lỗi mới
+([checkpoint](../docs/verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#firefox-và-webkit-trên-pc-2026-10-04)).
+iPhone chưa kiểm.
+
 **Mô tả:** chạy project quality gates, review source cuối và gọi subagent mới
 để preview local candidate bằng Chrome/Playwright.
 
@@ -1160,6 +1165,9 @@ hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
 - [ ] Sites version rollback trước release đã được xác nhận.
 
 ### P11 — Push source và đo Sites candidate
+
+**Trạng thái 2026-10-04:** source đã lên `main`. Đo lại trên demo Cloudflare
+chờ owner duyệt deploy; owner chọn chưa deploy ngày 2026-10-04.
 
 **Mô tả:** phát hành theo gate Sites sau owner release approval; GitHub giữ
 source/tests/scripts/docs, Sites chỉ nhận static artifact.
