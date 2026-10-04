@@ -225,14 +225,15 @@ thay đổi mới nằm trong mô tả PR.
 
 Card Notion gồm tên, status, thứ tự ưu tiên, link spec và link PR. Không spec
 nháp, evidence hay checklist trong Notion. Checklist từng bước nằm trong
-`tasks/`. Sửa card cũ chỉ làm khi owner đồng ý theo `docs/operations/notion.md`.
+`tasks/`. Board Tasks là backlog của điều phối và mọi worker; quyền tạo, cập
+nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 
 ## Ranh giới
 
 - Luôn: viết tiếng Việt, giữ English technical term; dùng
   [tên gọi chuẩn](../terminology.md); mỗi bước một PR nhỏ vào `main`.
-- Hỏi trước: xóa ADR còn hiệu lực, đổi `PRODUCT.md`, sửa card Notion, đổi
-  hành vi website để khớp spec.
+- Hỏi trước: xóa ADR còn hiệu lực, đổi `PRODUCT.md`, xóa hoặc gộp card
+  Notion, đổi hành vi website để khớp spec.
 - Không: sửa source website trong đợt đại tu docs; chạy semantic Graphify khi
   chưa được yêu cầu; sửa `tasks/plan.md`, `tasks/todo.md` khi thread khác đang
   giữ.

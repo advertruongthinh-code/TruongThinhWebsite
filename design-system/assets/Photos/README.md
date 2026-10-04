@@ -5,8 +5,9 @@
 sửa tay; đổi ảnh website rồi sinh lại. Trên claude.ai mỗi ảnh là một upload,
 id ghi trong `design-system.json`.
 
-Ảnh là công trình, vật liệu, xưởng thật của Trường Thịnh; chuẩn chọn và chấm
-điểm ở [Ảnh Advertising](../../advertising-images.md).
+Phần lớn ảnh là minh họa AI, không phải công trình đã thi công
+([Ảnh Advertising](../../advertising-images.md#bộ-ảnh-và-masonry)); chấm điểm ở
+[QA ảnh Advertising](../../../docs/operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising).
 
 ## Chú thích thuật ngữ
 

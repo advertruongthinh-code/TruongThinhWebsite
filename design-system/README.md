@@ -24,8 +24,10 @@ Tài liệu kèm theo:
 
 - [Motion](motion.md): timing shell, menu, text, hover, Advertising; định dạng
   token không có family motion nên mọi timing nằm ở đây.
+- [Brand guideline](brand.md): câu chuyện thương hiệu, giá trị cốt lõi và logo
+  (hình dựng tỷ lệ, dạng màu, motion, state machine màu của mark).
 - [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
-- [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
+- [Ảnh Advertising](advertising-images.md): hướng ảnh sáu nhóm Advertising.
 - [Đã duyệt, chờ code](approved-designs.md): thiết kế owner đã duyệt nhưng
   website chưa chạy.
 
@@ -211,6 +213,10 @@ cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commi
 - `fae6529:docs/archive/guides/motion-map.md`,
   `f76c14f:docs/reference/espacio/components.md`,
   `116367c:docs/specs/full-menu-reference-parity.md`.
+
+Hero dựng như title card theo cảm hứng owner chọn: chữ lớn mở cảnh của
+[Resident Evil Requiem](https://www.jank.cool/resident-evil-requiems-big-text-splashes-explained/)
+và màn vào level, chapter mới của game Control Resonant.
 
 ## Chú thích thuật ngữ
 

@@ -7,7 +7,7 @@ nhóm. Markup tĩnh trong `src/site/advertising-products/index.html`
 ## Hành vi
 
 - Link thật (`?category=<slug>`, `Tất cả` về URL gốc); `aria-current="true"` ở
-  mục đang chọn. Sáu slug theo [Content](../../content.md#gallery-và-card).
+  mục đang chọn. Sáu slug theo [PRODUCT.md](../../../PRODUCT.md#capabilities-and-constraints).
 - Chữ hoa 700, 1rem, màu `muted`; hover, focus và mục đang chọn đổi sang `ink`
   kèm gạch chân dày 3px, cách 4px.
 - Căn giữa, rộng tối đa 53.125rem, cách đáy hero 15vh; xuống dòng khi hẹp.

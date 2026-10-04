@@ -318,7 +318,8 @@ schema, migration, admin UI hoặc public editor cho các field đó.
 ## Motion
 
 [Advertising motion](../../design-system/motion.md#advertising) sở hữu position
-morph, media replay và detail visibility. Spec giữ dependency/data/QA và chỉ ref.
+morph và media replay. Spec giữ dependency/data/QA và chỉ ref. Sáu route chi
+tiết nay chỉ chuyển hướng về trang Advertising nên không còn motion riêng.
 
 ### Position morph
 
@@ -327,10 +328,6 @@ Xem [Position morph](../../design-system/motion.md#vị-trí-card-masonry).
 ### Media entrance và interaction
 
 Xem [Media entrance và interaction](../../design-system/motion.md#ảnh-trong-card).
-
-### Visibility media trên sáu route chi tiết
-
-Xem [Detail visibility](../../design-system/motion.md#ảnh-trên-sáu-trang-detail).
 
 ## Dependency và lifecycle
 

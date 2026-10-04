@@ -23,8 +23,9 @@ related_reports: []
   `/{locale}/projects/:slug/` là contract CMS tương lai, chưa thuộc static runtime.
 - Mọi route dùng cùng header, full menu, footer, VI/EN switch, Zalo CTA và motion
   system.
-- Cấu trúc và nhãn full menu theo [content guide](../../design-system/content.md#gallery-và-card);
-  route và query phải giữ canonical locale, không dùng fragment navigation.
+- Full menu có bốn route cấp cao và 17 mục con VI/EN
+  ([Full menu](../../design-system/components/FullMenu/README.md)); route và
+  query phải giữ canonical locale, không dùng fragment navigation.
 - Dùng copy riêng của Trường Thịnh và image local/generated. Reference chỉ cung
   cấp nhịp layout, storytelling và motion; không copy source hoặc media.
 - Mọi thay đổi copy/media phải theo
@@ -53,16 +54,21 @@ source hoặc media.
 
 ## Edit content và media
 
-[Content & media guide](../../design-system/content.md) là canonical
-contract cho:
+Giọng văn, copy hero, mạch route và crop ảnh ở
+[Content và media](../../design-system/content.md); file ảnh, loading và
+checklist ở [chuẩn file ảnh](static-image-delivery.md#chuẩn-file-ảnh).
 
-- leaf VI/EN, heading, hero motto và motion hook;
-- số lượng card/gallery có thể thay đổi mà không hard-code JavaScript;
-- story và image directory riêng cho `/vi/advertising-products/`,
-  `/vi/commercial/`, `/vi/residential/`;
-- WebP/sRGB, pixel thật, alt song ngữ, loading, safe crop và budget;
-- advertising filter metadata và upload/QA checklist.
-- cấu trúc/copy full menu theo mục nguồn chuẩn trong content guide.
+- Giữ `data-motion-lines`, `data-motion-words`, `data-motion-line-source`,
+  `data-motion-word-source`, `data-motion-media`. Không viết tay `.motion-line`
+  hay `.motion-word`; `detail.js` sinh lại sau load, resize, `languagechange`.
+  Copy dài hơn đổi số dòng và nhịp reveal: kiểm VI và EN ở mobile và desktop.
+- `.detail-gallery__track` đọc item từ DOM; bắt buộc khi có `[data-gallery]`
+  (xem [Gallery ngang detail](#gallery-ngang-detail)). Clone hoặc xóa trọn một
+  `figure`: ảnh, caption, alt VI/EN, metadata. `aria-label` ưu tiên trung
+  tính, không ghi số lượng.
+- Advertising: `[data-project-grid]` dựng từ `catalog.mjs` (taxonomy sáu nhóm,
+  slug, layout) và `media-manifest.mjs` (media card). Sửa data source, không
+  sửa HTML sinh ra. Filter `all` chỉ cho mục "Tất cả".
 
 Gallery/project collection có thể thêm hoặc bớt item bằng cách clone trọn
 `figure`. Cụm `.service-portals` vẫn là pattern ba mục; đổi số portal là
@@ -90,7 +96,11 @@ sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spe
 
 ## Contract i18n
 
-- Copy/attribute song ngữ theo [Leaf text và VI/EN](../../design-system/content.md#song-ngữ-vien).
+- Tiếng Việt là HTML gốc; tiếng Anh đặt trên **node lá** qua `data-en`. Không
+  đặt `data-en` lên phần tử chứa `span`, `em`, icon hoặc motion wrapper:
+  `motion.js` thay `textContent` và xóa markup con. Attribute song ngữ:
+  `data-en-alt`, `data-en-aria-label`, `data-en-content`.
+- Mỗi trang đúng một `h1`; không nhảy cấp heading.
 - `<title>` dùng `data-en`; script trong `<head>` đặt `lang` sớm để giảm flash.
 - Worker SSR locale/head trước response; `motion.js` điều hướng counterpart
   locale, giữ query/vị trí đọc và loại fragment. `localStorage` chỉ fallback
@@ -103,15 +113,28 @@ sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spe
 [Motion design system](../../design-system/motion.md#shell) sở hữu timing/state.
 Runtime integration và test phải ref contract đó; không định nghĩa timeline thứ hai.
 
+- Observer, listener, timeline thuộc lần mount và được dọn khi rời route.
+  `pageshow.persisted` (Back/Forward từ BFCache) dọn dialog, page scale và
+  route veil.
+- Không thêm thư viện animation. Đang dùng: GSAP và SplitText (shell, text),
+  Barba (chuyển route mềm), `masonry-layout` (vị trí card Advertising), Swiper
+  (carousel detail), Locomotive Scroll (smooth scroll desktop), LazySizes (ảnh).
+- Masonry Advertising: trong `400ms` chuyển vị trí, DOM chỉ giữ cửa sổ cũ, cửa
+  sổ mới, card đang focus và ảnh đang morph; scroll trong lúc đó được giữ lại
+  và render một lần sau khi xong, không replay
+  ([photo browse](advertising-photo-browse.md#position-motion-p13)).
+- Escape đóng viewer trước khi history nhận phím.
+
 ## Định hướng image
 
-[Content/media guide](../../design-system/content.md#chuẩn-file-ảnh) sở hữu image policy;
-[Design System](../../design-system/README.md) giữ palette và image grammar.
+[Chuẩn file ảnh](static-image-delivery.md#chuẩn-file-ảnh) sở hữu file, loading
+và budget; [crop và con người](../../design-system/content.md#crop-và-con-người)
+giữ hướng ảnh.
 
 ## Owner fact và content placeholder
 
-[Owner facts](../../design-system/content.md#song-ngữ-vien) dẫn
-product/decision canonical. Route không tự tạo bản sao fact hoặc placeholder policy.
+[PRODUCT.md](../../PRODUCT.md#operating-context) giữ owner fact (địa chỉ trụ sở,
+dữ kiện chưa xác minh). Route không tự tạo bản sao fact hoặc placeholder policy.
 
 ## Acceptance
 
