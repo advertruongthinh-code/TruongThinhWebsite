@@ -31,8 +31,9 @@ Tuyên bố “hơn 20 năm” được phép dùng. Năm thành lập chính x�
 Website phục vụ khách hàng, văn phòng và xưởng trong chuỗi từ khảo sát đến thi công. Tiếng Việt là source text; tiếng Anh là leaf copy tương ứng. Mỗi route cần giữ ngữ cảnh khi đổi locale, reload, dùng keyboard hoặc touch.
 
 Danh sách khách hàng và hạng mục owner xác nhận ngày 2026-09-09, bổ sung ngày
-2026-09-10 về gian hàng triển lãm theo ngành dừa, thực phẩm, mỹ phẩm và thời trang, được lưu một
-lần tại [bối cảnh Advertising](design-system/advertising-images.md#bối-cảnh-từ-khách-hàng-thật).
+2026-09-10 về gian hàng triển lãm theo ngành dừa, thực phẩm, mỹ phẩm và thời trang, ngày
+2026-10-04 về siêu thị, thi công theo mẫu chuỗi nhượng quyền và kỷ niệm chương, được lưu một
+lần tại [Ảnh Advertising](design-system/advertising-images.md#bối-cảnh-từ-khách-hàng-thật).
 Nguồn này phân biệt xác nhận của owner, thông tin website khách hàng và suy
 luận dùng cho brief ảnh; không dùng ảnh AI để chứng minh công trình đã thi công.
 
