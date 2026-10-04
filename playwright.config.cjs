@@ -16,7 +16,8 @@ module.exports = defineConfig({
     video: "off",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // Keep real Chrome's history rate limit (200 writes per 10 s), which Playwright turns off by default.
+    { name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: { ignoreDefaultArgs: ["--disable-ipc-flooding-protection"] } } },
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
