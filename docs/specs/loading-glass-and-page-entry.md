@@ -17,7 +17,7 @@ rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào
 Thread M02b làm code theo spec. Lỗi Back history, dòng HTML thô sau F5 và motion
 phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
-(phiên bản 3).
+(phiên bản 5).
 
 ## Hành vi
 
@@ -220,18 +220,22 @@ này được thay bằng link.
 | Kính | `blur(28px) saturate(1.08) brightness(1.04)`, tint trắng alpha 0.12; bắt đầu và kết thúc ở `blur(0)`, tint 0 |
 | Bước 1, kính hiện | 0 đến 0.6s, `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
 | Bước 2, crossfade | 0.3 đến 0.9s, `cubic-bezier(0.65, 0, 0.35, 1)` |
-| Bước 3, kính tan | 0.9 đến 1.9s, `power4.inOut` (`cubic-bezier(0.86, 0, 0.07, 1)`) |
+| Bước 3, kính tan | 0.6 đến 1.4s, `power4.inOut` (`cubic-bezier(0.86, 0, 0.07, 1)`) |
 | Veil | Route veil trắng hiện có; giữ tới khi mount, mở 1s power4.inOut |
 
-Nhịp suy ra từ số đo Espacio đã có trong [Motion](../../design-system/motion.md)
-(owner yêu cầu ngày 2026-10-04), không phải số đo mới:
+Owner chốt tổng `1.4s` và ba bước chồng lên nhau (2026-10-04): crossfade bắt
+đầu khi kính chưa hiện xong, kính bắt đầu tan khi crossfade chưa xong. Nhịp còn
+lại suy ra từ số đo Espacio đã có trong [Motion](../../design-system/motion.md),
+không phải số đo mới:
 
-- Mỗi bước bắt đầu trên nhịp `0.3s`, như delay mặc định của reveal Espacio.
+- Ba bước bắt đầu ở `0`, `0.3s`, `0.6s`, theo delay mặc định `0.3s` của reveal
+  Espacio.
 - Kính hiện và crossfade dài `0.6s`, bằng thời lượng hiện ảnh đã đo (LazySizes
   `0.6s ease-out`, media reveal `0.6s --ease`). Crossfade dùng đường cong
   in-out mà site đang dùng cho suggestion, để hai lớp đổi chỗ không bị lõm sáng.
-- Kính tan dùng đúng nhịp mở route veil `1s power4.inOut`: mọi nội dung lộ ra
-  từ dưới một lớp phủ đều mở cùng một cách.
+- Kính tan dùng đường cong mở route veil `power4.inOut`: mọi nội dung lộ ra
+  từ dưới một lớp phủ đều mở cùng một cách; rút từ `1s` còn `0.8s` để tổng
+  đúng `1.4s`.
 
 ## Kiểm tra
 
@@ -245,7 +249,7 @@ Nhịp suy ra từ số đo Espacio đã có trong [Motion](../../design-system/
 
 ## Gate còn mở
 
-- Owner duyệt bản chạy thử phiên bản 3 và spec này.
+- Owner duyệt bản chạy thử phiên bản 5 và spec này.
 - Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
   A05s thật.
 - R1: mức trần context WebGL trên desktop, chốt theo số đo.

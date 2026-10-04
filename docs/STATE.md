@@ -42,7 +42,8 @@
   CSS, Advertising dùng vòng runtime ([spec](specs/image-loading-progress.md)).
   Owner đổi Advertising sang skeleton chờ ảnh, mở ảnh tại chỗ và màn trắng khi
   vào thẳng trang ngày 04/10 ([spec planned](specs/loading-glass-and-page-entry.md));
-  thread M02b làm code.
+  thread M02b làm code. CTA cuối masonry đổi sang giữa viewport có parallax
+  ([spec planned](specs/advertising-cta-center-parallax.md)), chờ owner duyệt.
   P8–P9 có e2e `image-loading-frame` 23 ca PASS trên cloud; còn mở: cache hit
   của vòng tĩnh (home lóe tối đa 2 frame chưa xác nhận) ([evidence](verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải)).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection

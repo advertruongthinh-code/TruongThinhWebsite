@@ -40,6 +40,26 @@ Nguồn tham khảo của nhịp motion ghi ở [README](README.md#nguồn-tham-
 | Floating CTA | Hiện trong viewport đầu và 1.75 viewport cuối trang; trượt `translateX(130%) → 0` trong `1s cubic-bezier(.63, 0, .08, 1)` |
 | Smooth scroll | Locomotive trên desktop; mobile dùng scroll native |
 
+### Smooth scroll và parallax
+
+Locomotive Scroll 4.1.4 chỉ bật khi cửa sổ rộng từ 981px và không giảm chuyển
+động (`lerp 0.085`, `multiplier 0.9`, `motion.js`). Dưới 981px, khi giảm chuyển
+động hoặc khi menu mở, trang dùng scroll native và không có parallax.
+
+Phần tử có `data-scroll` và `data-scroll-speed` lệch theo công thức của
+Locomotive: độ lệch bằng (tâm viewport trừ tâm phần tử) nhân `-speed / 10`, nên
+bằng 0 khi phần tử nằm giữa viewport. Speed âm làm phần tử trôi chậm hơn nội
+dung, speed dương làm nó chạy nhanh hơn.
+
+| Phần tử | Trang | Speed | Cảm nhận |
+| --- | --- | --- | --- |
+| Ảnh hero `.hero-slides` | Trang chủ | `-2` | Trôi chậm hơn cuộn 20% |
+| Rail dự án `.project-track` | Trang chủ | `4`, chiều ngang | Trượt ngang 0.4px mỗi px cuộn |
+| Ảnh `legacy-hands`, `design-sketch`, `workshop-wide` | About | `-0.12`, `-0.1`, `-0.12` | Trôi chậm hơn 1.2%, 1%, 1.2% |
+
+Hero và rail nhận thuộc tính lúc mount trong `motion.js`; ảnh About khai báo
+trong HTML.
+
 ### Lockup header
 
 - FLIP scale `300ms expo.out` toàn cụm khi đổi giữa expanded và sticky (có
@@ -180,3 +200,4 @@ cuối. Carousel native chạy trước, Swiper là nâng cấp; reduced motion 
 - **Prepaint**: trạng thái CSS có trước khi JavaScript chạy.
 - **Ảo hóa**: chỉ mount các card gần viewport.
 - **BFCache**: bộ nhớ trang của trình duyệt cho Back/Forward.
+- **Parallax**: lớp nội dung chạy khác tốc độ cuộn để tạo chiều sâu.
