@@ -6,14 +6,9 @@ dùng file ảnh.
 
 ## Hình học
 
-- Gọi H là chiều cao mark, Y = H/6: khối chữ cao 4Y, cách mark Y, đệm trên
-  dưới Y. Kích thước header: `brand-header-width` × `brand-header-height`.
-- Dòng 1 tên thương hiệu, dòng 2 phụ đề `NỘI THẤT · QUẢNG CÁO`; EN là
-  `INTERIORS · ADVERTISING` cùng geometry. Font 600, dấu không bị clip.
-- Mark đơn sắc theo màu chữ khi expanded; sticky và full menu dùng bốn màu
-  `logo-mark-*`. Màu `logo-mark-*` chỉ dùng cho mark, không dùng cho UI.
-- Favicon: `src/site/assets/brand/favicon-black.svg` (light) và
-  `favicon-white.svg` (dark).
+Hình dựng tỷ lệ (H, Y = H/6, khối chữ 4Y), dạng màu, motion và state machine
+màu theo [Brand guideline](../../brand.md#logo). Kích thước header: `brand-header-width` ×
+`brand-header-height`.
 
 ## Contract LOGO-R4
 
@@ -30,8 +25,6 @@ Owner duyệt LOGO-R4 ngày 2026-09-20 và correction R5 cùng ngày; đã tri�
 - Chiều cao ngoài: header expanded `brand-header-height` (67.515625px, còn
   57.59375px ở max-width 1200px), sticky 49.640625px, full menu 67.515625px
   (59.578125px ở max-width 1200px). Chiều ngang theo tỷ lệ logo Trường Thịnh.
-- Menu: mark có màu CMYK ngay frame đầu, không có pha đen. Motion header ở
-  [Motion](../../motion.md#lockup-header).
 
 Nghiệm thu đo sau `document.fonts.ready` bằng Canvas TextMetrics (font-size
 1000, scale về cỡ render) và SVG CTM: tỷ lệ ink `±0.005`; khe, đệm, mép chữ

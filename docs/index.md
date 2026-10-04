@@ -101,6 +101,7 @@ không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo
 | --- | --- |
 | Product, user, claim, owner fact | [PRODUCT.md](../PRODUCT.md) |
 | Token, visual role, component, motion | [Design System](../design-system/README.md), [Motion](../design-system/motion.md) |
+| Câu chuyện thương hiệu, logo: tỷ lệ, màu, motion, state | [Brand guideline](../design-system/brand.md) |
 | Copy VI/EN, alt/ARIA, media | [Content và media](../design-system/content.md) |
 | Ảnh sáu nhóm Advertising, Audit/Critique | [Ảnh Advertising](../design-system/advertising-images.md) |
 | Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo); không tự thành target |

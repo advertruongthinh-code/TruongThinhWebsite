@@ -75,9 +75,11 @@ Ràng buộc public:
 - Tính cách: kinh nghiệm, sáng tạo, uy tín; chữ ít, ý rõ, ưu tiên động từ và bằng chứng.
 - Cho công trình lên tiếng trước lời quảng cáo; gắn sáng tạo với khả năng sản xuất và thi công.
 - Xanh biển và cam là điểm nhấn; nền ưu tiên giấy sáng, vật liệu và hình ảnh.
-- Giữ nhận diện Trường Thịnh; visual contract và implementation gap theo
-  [design system](design-system/components/BrandLockup/README.md), ứng dụng/favicon theo
-  [Brand lockup](design-system/components/BrandLockup/README.md).
+- Câu chuyện và giá trị cốt lõi (chất lượng thi công, tư vấn tận tâm, hậu mãi
+  đầy đủ; chỉn chu, tận tâm, chuyên nghiệp) theo
+  [Brand guideline](design-system/brand.md#câu-chuyện-thương-hiệu), owner viết 2026-10-04.
+- Giữ nhận diện Trường Thịnh; logo, màu, motion và favicon theo
+  [Brand guideline](design-system/brand.md#logo).
 - Không dùng khuôn mặt nhận diện, ngoại trừ `assets/content/shared/legacy-team.webp` đã được owner duyệt.
 
 ## Evidence on Hand

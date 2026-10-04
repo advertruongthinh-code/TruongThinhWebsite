@@ -71,12 +71,8 @@ trượt `margin-bottom 0.4s ease-out`
 
 ### Lockup header
 
-- FLIP scale `300ms expo.out` toàn cụm khi đổi giữa expanded và sticky (có
-  khung hình trung gian cả hai chiều, cả mobile).
-- Mark đổi màu đơn sắc (expanded) sang CMYK (sticky); mỗi path có
-  `duration + delay = 1s`; wordmark đổi màu tức thì. Interrupt thì chuyển từ màu
-  đang hiển thị, không nhảy.
-- Full menu và reduced motion không chạy FLIP.
+Intro, FLIP scale `300ms expo.out`, tone cụm chữ và chuỗi màu bốn path của
+mark ở [Brand guideline](brand.md#motion).
 
 ### Full menu
 

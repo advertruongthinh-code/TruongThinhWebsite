@@ -6,7 +6,8 @@ và nghiệm thu ảnh Advertising ở [Ảnh Advertising](advertising-images.md
 
 ## Giọng điệu
 
-Giàu kinh nghiệm, sáng tạo, đáng tin, trực tiếp, súc tích. Để công trình, vật
+Giàu kinh nghiệm, sáng tạo, đáng tin, trực tiếp, súc tích, đi ra từ
+[câu chuyện thương hiệu](brand.md#câu-chuyện-thương-hiệu). Để công trình, vật
 liệu, quy trình và khả năng thi công lên tiếng trước lời quảng cáo. Câu ngắn,
 cụ thể, có thông tin vật liệu, quy trình hoặc kết quả. Tránh giọng luxury
 chung chung và lưới bất động sản rập khuôn.
