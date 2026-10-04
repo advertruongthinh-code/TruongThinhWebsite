@@ -15,17 +15,8 @@
     <meta name="theme-color" content="#ffffff" />
     <script>
       try {
-        // Reload and Back/Forward replay the route-transition enter phase.
-        const navigationType = performance.getEntriesByType?.("navigation")[0]?.type;
-        const replayRoute =
-          (navigationType === "reload" || navigationType === "back_forward" ||
-            performance.navigation?.type === 1 || performance.navigation?.type === 2) &&
-          !matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (
-          sessionStorage.getItem("tt-route") === "1" ||
-          replayRoute
-        ) {
-          sessionStorage.removeItem("tt-route");
+        // Every direct load (link, reload, Back/Forward) plays the route-transition enter phase.
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
           document.documentElement.classList.add("route-enter");
         }
         const routeLocale = document.documentElement.dataset.routeLocale;
@@ -40,7 +31,7 @@
           if(b.claimed||b.fallback)return;b.timer=0;if(!document.body)return document.addEventListener("DOMContentLoaded",fail,{once:true});
           b.fallback=true;r.classList.add("motion-fallback");r.classList.remove("route-enter");document.body.classList.remove("is-transitioning","menu-open","motion-paused");
           const c=document.querySelector("[data-barba=container]");if(c)c.hidden=false;window.TruongThinhDetail?.mount(c,{settled:true});
-          try{sessionStorage.removeItem("tt-route");const u=new URL(location.href),s=sessionStorage.getItem(k(u));sessionStorage.removeItem(k(u));if(s!==null){const restore=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,+s||0)));document.readyState==="complete"?restore():addEventListener("load",restore,{once:true,signal:a.signal})}}catch{}
+          try{const u=new URL(location.href),s=sessionStorage.getItem(k(u));sessionStorage.removeItem(k(u));if(s!==null){const restore=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,+s||0)));document.readyState==="complete"?restore():addEventListener("load",restore,{once:true,signal:a.signal})}}catch{}
           const d=document.querySelector("#site-menu"),o=document.querySelector("[data-menu-open]");
           close=(focus=true)=>{if(d?.open)d.close();d?.classList.remove("is-active");document.body.classList.remove("menu-open");o?.setAttribute("aria-expanded","false");if(focus)o?.focus({preventScroll:true})};
           document.addEventListener("click",e=>{if(b.claimed)return;const t=e.target,l=t.closest("[data-language-option]");if(l){e.preventDefault();const u=new URL(l.href);u.search=location.search;u.hash="";try{sessionStorage.setItem(k(u),String(Math.round(scrollY)))}catch{}location.assign(u.href)}else if(t.closest("[data-menu-open]")&&!d?.open){d?.showModal();d?.classList.add("is-active");document.body.classList.add("menu-open");o?.setAttribute("aria-expanded","true");document.querySelector("[data-menu-close]")?.focus({preventScroll:true})}else if(t.closest("[data-menu-close]"))close()},s);

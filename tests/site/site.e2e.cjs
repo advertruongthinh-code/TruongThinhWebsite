@@ -952,7 +952,6 @@ async function waitForNavigationCleanup(page) {
         !document.body.classList.contains("menu-open") &&
         !dialog?.open &&
         opener?.getAttribute("aria-expanded") === "false" &&
-        sessionStorage.getItem("tt-route") === null &&
         veilIsHidden
       );
     },
@@ -8815,10 +8814,9 @@ async function runMotionAbortFailOpenChecks() {
   );
 
   await runPageCase(
-    "stale tt-route fails open without an opaque veil",
+    "motion failure fails open without an opaque veil",
     { route: "/vi/residential/", viewport: { width: 390, height: 844 } },
     async (page) => {
-      await page.addInitScript(() => sessionStorage.setItem("tt-route", "1"));
       await page.route("**/*motion.js*", (route) => route.abort("failed"));
       await page.goto(pageUrl("/vi/residential/"), { waitUntil: "load" });
       await page.waitForFunction(() =>
@@ -8832,7 +8830,6 @@ async function runMotionAbortFailOpenChecks() {
           brandColor: getComputedStyle(document.querySelector(".brand")).color,
           headerVisible: headerRect.bottom > 0 && headerRect.top < innerHeight,
           routeEnter: document.documentElement.classList.contains("route-enter"),
-          routeToken: sessionStorage.getItem("tt-route"),
           veilOpacity: Number.parseFloat(getComputedStyle(veil).opacity),
           veilPointerEvents: getComputedStyle(veil).pointerEvents,
         };
@@ -8841,10 +8838,9 @@ async function runMotionAbortFailOpenChecks() {
         state.brandColor === "rgb(255, 255, 255)" &&
           state.headerVisible &&
           !state.routeEnter &&
-          state.routeToken === null &&
           state.veilOpacity <= 0.001 &&
           state.veilPointerEvents === "none",
-        `Stale route did not fail open: ${JSON.stringify(state)}`,
+        `Route veil did not fail open: ${JSON.stringify(state)}`,
       );
     },
   );
@@ -9962,7 +9958,7 @@ async function runHomeMotionRegressionCheck() {
     "The approved veil entry/exit route motion changed",
   );
   assert(
-    /const hardNavigate[\s\S]*sessionStorage\.setItem\("tt-route", "1"\)[\s\S]*window\.location\.assign/.test(
+    /const hardNavigate[\s\S]*window\.location\.assign/.test(
       motionSource,
     ),
     "The route request failure fallback changed",

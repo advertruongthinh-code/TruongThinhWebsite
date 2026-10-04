@@ -1792,9 +1792,6 @@
   const hardNavigate = (destination, trigger) => {
     if (hardFallbackPending) return;
     hardFallbackPending = true;
-    try {
-      window.sessionStorage.setItem("tt-route", "1");
-    } catch {}
     const url = new URL(destination, window.location.href);
     url.hash = "";
     if (["popstate", "back", "forward"].includes(trigger)

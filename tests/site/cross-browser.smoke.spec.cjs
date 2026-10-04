@@ -54,16 +54,17 @@ test("locale navigation switches to English and survives reload", async ({ page 
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
-test("reload replays the route enter veil, then clears it", async ({ page }) => {
-  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+test("direct loads and reload play the route enter veil, then clear it", async ({ page }) => {
   await page.addInitScript(() => {
     new MutationObserver(() => {
       if (document.documentElement?.classList.contains("route-enter")) window.routeEnterSeen = true;
     }).observe(document, { subtree: true, attributes: true, attributeFilter: ["class"] });
   });
-  await page.reload({ waitUntil: "load" });
-  expect(await page.evaluate(() => window.routeEnterSeen === true), "reload skipped the route enter").toBe(true);
-  await expect(page.locator("html")).not.toHaveClass(/route-enter/);
-  await expect(page.locator(".route-veil")).toHaveCSS("opacity", "0");
+  for (const load of [() => page.goto("/vi/advertising-products/", { waitUntil: "load" }), () => page.reload({ waitUntil: "load" })]) {
+    await load();
+    expect(await page.evaluate(() => window.routeEnterSeen === true), "load skipped the route enter").toBe(true);
+    await expect(page.locator("html")).not.toHaveClass(/route-enter/);
+    await expect(page.locator(".route-veil")).toHaveCSS("opacity", "0");
+  }
   await expect(page.locator("[data-project-grid] > noscript")).toBeHidden();
 });
