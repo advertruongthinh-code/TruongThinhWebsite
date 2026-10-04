@@ -7,7 +7,7 @@ updated: 2026-09-10
 
 # Nghiên cứu sản phẩm khách hàng cho Advertising
 
-Truy cập nguồn: 2026-09-10. Đây là nguồn tham chiếu để kiểm **đúng doanh nghiệp, đúng họ sản phẩm và đúng công năng bao bì** khi viết brief hoặc Audit ảnh. Không xác nhận giá, tồn kho, địa chỉ, quy mô nhà máy, số thị trường, hay chứng nhận áp dụng toàn danh mục. Quan hệ khách hàng và hạng mục Trường Thịnh đã làm vẫn thuộc xác nhận owner trong [tiêu chí ảnh](../design/advertising-image-quality.md), không phải bằng chứng từ nghiên cứu web.
+Truy cập nguồn: 2026-09-10. Đây là nguồn tham chiếu để kiểm **đúng doanh nghiệp, đúng họ sản phẩm và đúng công năng bao bì** khi viết brief hoặc Audit ảnh. Không xác nhận giá, tồn kho, địa chỉ, quy mô nhà máy, số thị trường, hay chứng nhận áp dụng toàn danh mục. Quan hệ khách hàng và hạng mục Trường Thịnh đã làm vẫn thuộc xác nhận owner trong [tiêu chí ảnh](../../design-system/advertising-images.md), không phải bằng chứng từ nghiên cứu web.
 
 ## Quy tắc dùng nguồn và Audit
 

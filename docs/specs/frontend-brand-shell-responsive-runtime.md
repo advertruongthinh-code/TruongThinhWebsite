@@ -140,7 +140,7 @@ Owner spot-check còn mở; source và gate P1.2 không tự được dùng làm
   bounding-box width và computed typography giữa expanded và sticky. Sai số
   `left`/width tối đa `1px`; `font-family`, `font-size`, `font-weight`,
   `letter-spacing` và `line-height` phải trùng tuyệt đối.
-- Header collapse/hide/reveal theo [Shared motion](../design/motion.md#shared-motion).
+- Header collapse/hide/reveal theo [Shared motion](../../design-system/motion.md#shell).
 - Chuyển qua `981px` phải giữ đúng một scroll coordinate system: desktop dùng
   Locomotive, mobile dùng native scroll; không còn transform kép hoặc viewport
   trắng.
@@ -332,7 +332,7 @@ OS/browser quyết định, không ép iPhone/Android dùng thumb desktop11px.
 
 ### State và visual contract
 
-Oracle geometry/style là [bổ sung Espacio27/09](../reference/espacio/components.md#bổ-sung-scrollbar--2026-09-27),
+Oracle geometry/style là [bổ sung Espacio27/09](../../design-system/reference-espacio.md#scrollbar-desktop),
 có hash archive/live và raw state. Các giá trị10px TT native lịch sử trong
 foundations không phải target.
 
@@ -914,7 +914,7 @@ Viewer native top layer tiếp tục có thứ tự modal riêng. Raw survey:
 | Route transition active/idle và CTA | Frame paint/hit-test: `header > veil > CTA > content` khi active; idle veil không chặn pointer/focus hoặc gây nền trắng. |
 | Menu↔viewer, Escape/đóng | Tối đa một modal active/backdrop; handoff đóng modal cũ không trả focus trung gian ra nền, focus trực tiếp modal mới và giữ scroll lock liên tục. Khi modal mới đóng, dùng `preventScroll` trả focus về opener mới nếu còn connected/visible/enabled; nếu không về menu toggle shared header, rồi header logo khi cần. Giữ entry scroll, không có frame nền tự cuộn. |
 
-Giữ [motion](../design/motion.md), [menu](full-menu-reference-parity.md),
+Giữ [motion](../../design-system/motion.md), [menu](full-menu-reference-parity.md),
 [viewer/morph](advertising-photo-browse.md) và regression geometry/history.
 Không đổi layout, màu, chữ, glass, media, zoom hay timing. L06 viewer EN
 touch-close/CDN vẫn RED độc lập. Owner phải duyệt plan trước sửa

@@ -105,7 +105,7 @@ performance budget hoặc gây lỗi lifecycle.
 
 ## 9. Reference và history
 
-- [Motion design system](../design/motion.md)
+- [Motion design system](../../design-system/motion.md)
 - [FeralUI Gradient Builder](https://feralui.dev/gradients) chỉ là evidence hành vi,
   không phải nguồn code hoặc media.
 

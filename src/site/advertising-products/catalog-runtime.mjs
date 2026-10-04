@@ -666,7 +666,7 @@ export function compileAdvertisingGeometry({ grid, options, compile = compileAdv
 
 function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   // Keep the contracted LazySizes preload/class lifecycle for virtualized cards.
-  // Native loading alone has different viewport thresholds (docs/design/motion.md).
+  // Native loading alone has different viewport thresholds (design-system/motion.md).
   const image = document.createElement("img");
   image.className = suggestion
     ? "advertising-card-media__image media-hover-zoom"

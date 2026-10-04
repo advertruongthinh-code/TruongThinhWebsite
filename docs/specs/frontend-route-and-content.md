@@ -23,12 +23,12 @@ related_reports: []
   `/{locale}/projects/:slug/` là contract CMS tương lai, chưa thuộc static runtime.
 - Mọi route dùng cùng header, full menu, footer, VI/EN switch, Zalo CTA và motion
   system.
-- Cấu trúc và nhãn full menu theo [content guide](../design/content.md#full-menu-và-boundary-cms);
+- Cấu trúc và nhãn full menu theo [content guide](../../design-system/content.md#gallery-và-card);
   route và query phải giữ canonical locale, không dùng fragment navigation.
 - Dùng copy riêng của Trường Thịnh và image local/generated. Reference chỉ cung
   cấp nhịp layout, storytelling và motion; không copy source hoặc media.
 - Mọi thay đổi copy/media phải theo
-  [`CONTENT-MEDIA-GUIDE.md`](../design/content.md).
+  [`CONTENT-MEDIA-GUIDE.md`](../../design-system/content.md).
 
 ## Contract dùng chung
 
@@ -53,7 +53,7 @@ source hoặc media.
 
 ## Edit content và media
 
-[Content & media guide](../design/content.md) là canonical
+[Content & media guide](../../design-system/content.md) là canonical
 contract cho:
 
 - leaf VI/EN, heading, hero motto và motion hook;
@@ -70,12 +70,12 @@ thay đổi layout/motion và phải được giao riêng.
 
 ## Narrative theo route
 
-[Route narrative](../design/content.md#narrative-theo-route) giữ story/copy;
+[Route narrative](../../design-system/content.md#mạch-nội-dung-theo-route) giữ story/copy;
 surface briefs tại `.impeccable/surfaces/` giữ mode và intent của từng surface.
 
 ## Contract quy trình
 
-[Product process](../../PRODUCT.md) và [content guide](../design/content.md)
+[Product process](../../PRODUCT.md) và [content guide](../../design-system/content.md)
 sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spec.
 
 ## Advertising products routes
@@ -90,7 +90,7 @@ sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spe
 
 ## Contract i18n
 
-- Copy/attribute song ngữ theo [Leaf text và VI/EN](../design/content.md#leaf-text-và-vien).
+- Copy/attribute song ngữ theo [Leaf text và VI/EN](../../design-system/content.md#song-ngữ-vien).
 - `<title>` dùng `data-en`; script trong `<head>` đặt `lang` sớm để giảm flash.
 - Worker SSR locale/head trước response; `motion.js` điều hướng counterpart
   locale, giữ query/vị trí đọc và loại fragment. `localStorage` chỉ fallback
@@ -100,17 +100,17 @@ sở hữu thứ tự/copy quy trình; không định nghĩa lại ở route spe
 
 ## Contract motion
 
-[Motion design system](../design/motion.md#shared-motion) sở hữu timing/state.
+[Motion design system](../../design-system/motion.md#shell) sở hữu timing/state.
 Runtime integration và test phải ref contract đó; không định nghĩa timeline thứ hai.
 
 ## Định hướng image
 
-[Content/media guide](../design/content.md#chuẩn-file-ảnh) sở hữu image policy;
+[Content/media guide](../../design-system/content.md#chuẩn-file-ảnh) sở hữu image policy;
 [style guide](../design/style-guide.md) chỉ dẫn cách áp dụng palette/image grammar.
 
 ## Owner fact và content placeholder
 
-[Owner facts](../design/content.md#fact-owner-và-dữ-kiện-chưa-biết) dẫn
+[Owner facts](../../design-system/content.md#song-ngữ-vien) dẫn
 product/decision canonical. Route không tự tạo bản sao fact hoặc placeholder policy.
 
 ## Acceptance

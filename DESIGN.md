@@ -270,7 +270,7 @@ Menu button và CTA không dùng pill treatment. Việc thêm radius cho card, f
 
 ## Components
 
-Shared choreography: [Motion design system](docs/design/motion.md). Component
+Shared choreography: [Motion design system](design-system/motion.md). Component
 geometry: [Patterns](docs/design/patterns.md). Runtime/API: [Components guide](docs/design/components.md).
 
 Các component dưới đây là pattern đã quan sát hoặc contract đã chấp nhận. Public source là static markup + shared CSS/runtime; tên mô tả không phải API mới.

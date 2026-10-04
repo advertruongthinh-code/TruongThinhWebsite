@@ -8,7 +8,7 @@ related_specs:
   - ../specs/frontend-brand-shell-responsive-runtime.md
   - ../specs/advertising-products-turnkey-services.md
   - ../specs/advertising-photo-browse.md
-  - ../design/content.md
+  - ../../design-system/content.md
 ---
 
 # Frontend runtime và route guide
@@ -17,7 +17,7 @@ Frontend hiện là static HTML với shared CSS/runtime. Không có importable
 `Header`, `Footer` hoặc `Shell` component; các route lặp markup để giữ static
 hosting đơn giản, còn behavior dùng chung nằm trong CSS/JS. Contract chi tiết
 thuộc [route spec](../specs/frontend-route-and-content.md), [brand shell spec](../specs/frontend-brand-shell-responsive-runtime.md)
-và [content/media guide](../design/content.md).
+và [content/media guide](../../design-system/content.md).
 
 ## Route và source
 

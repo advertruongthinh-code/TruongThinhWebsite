@@ -21,17 +21,17 @@ baseline thành production contract.
 
 | Contract | Nguồn chuẩn | Guide liên quan |
 | --- | --- | --- |
-| Product, user, job, claim, confirmed fact | [`PRODUCT.md`](../../PRODUCT.md) | [`content.md`](content.md) chỉ dẫn copy/media, không thay product truth |
+| Product, user, job, claim, confirmed fact | [`PRODUCT.md`](../../PRODUCT.md) | [`content.md`](../../design-system/content.md) chỉ dẫn copy/media, không thay product truth |
 | Visual token, visual role, current accepted system | [`DESIGN.md`](../../DESIGN.md) | [`style-guide.md`](style-guide.md), [`components.md`](components.md) |
 | Logo: tỷ lệ, màu, motion và acceptance visual | [Brand lockup](../../DESIGN.md#brand-lockup--nguồn-chuẩn) | Style guide hướng dẫn áp dụng; frontend spec giữ integration/QA, chỉ ref target |
 | Impeccable sidecar, motion/breakpoint/specimen | [`.impeccable/design.json`](../../.impeccable/design.json) | `DESIGN.md` là authority prose/token; sidecar giữ extension |
-| VI/EN copy, alt/ARIA, media và route content | [`content.md`](content.md) | `content.md` là nguồn chuẩn duy nhất của design guide cho content/media |
-| Tiêu chí ảnh sáu nhóm Advertising, Audit/Critique | [`advertising-image-quality.md`](advertising-image-quality.md) | `content.md` giữ policy media/người dùng chung; không lặp rubric trong Impeccable brief |
-| Shared/Advertising motion và choreography | [`motion.md`](motion.md) | Logo riêng theo DESIGN; specs chỉ dẫn contract, giữ runtime integration |
+| VI/EN copy, alt/ARIA, media và route content | [`content.md`](../../design-system/content.md) | `content.md` là nguồn chuẩn duy nhất của design guide cho content/media |
+| Tiêu chí ảnh sáu nhóm Advertising, Audit/Critique | [`advertising-images.md`](../../design-system/advertising-images.md) | `content.md` giữ policy media/người dùng chung; không lặp rubric trong Impeccable brief |
+| Shared/Advertising motion và choreography | [`motion.md`](../../design-system/motion.md) | Logo riêng theo DESIGN; specs chỉ dẫn contract, giữ runtime integration |
 | Masonry/carousel visual composition | [`patterns.md`](patterns.md) | Advertising spec giữ data/algorithm/dependency/QA |
 | Public route và lifecycle contract | [`frontend-route-and-content.md`](../specs/frontend-route-and-content.md) | [`components.md`](components.md), [`patterns.md`](patterns.md) |
 | Current implementation evidence | `src/site/`, `scripts/`, `tests/` | [`components.md`](components.md) |
-| Espacio measured reference | [Corpus tổng hợp](../reference/espacio/index.md), candidate revision có provenance | Không tự nâng candidate thành owner-locked target hoặc current runtime proof |
+| Espacio measured reference | [Corpus tổng hợp](../../design-system/reference-espacio.md), candidate revision có provenance | Không tự nâng candidate thành owner-locked target hoặc current runtime proof |
 | CMS/admin boundary | [`backend guide`](../backend/index.md) và [`cms-content-publishing.md`](../specs/cms-content-publishing.md) | Không đưa admin primitive vào public visual system |
 
 Root `DESIGN.md`, sidecar và surface briefs là artifact của hệ thống docs dù
@@ -58,9 +58,9 @@ tên report hoặc độ mới của output để tự suy ra authority.
 | Câu hỏi | Mở file |
 | --- | --- |
 | Dùng màu, chữ, image grammar, voice thế nào? | [`style-guide.md`](style-guide.md) |
-| Copy, VI/EN, alt, media, owner fact nào được dùng? | [`content.md`](content.md) |
+| Copy, VI/EN, alt, media, owner fact nào được dùng? | [`content.md`](../../design-system/content.md) |
 | Reuse source/API/DOM/lifecycle nào? | [`components.md`](components.md) |
-| Motion, text reveal, media replay và reduced motion? | [`motion.md`](motion.md) |
+| Motion, text reveal, media replay và reduced motion? | [`motion.md`](../../design-system/motion.md) |
 | Ghép shell, grid, gallery, renderer ra sao? | [`patterns.md`](patterns.md) |
 | File nào canonical, status/supersession thế nào? | [Authority map](#authority-map), [Supersession](#supersession) |
 | Route/runtime current hay CMS dormant? | [`frontend guide`](../frontend/index.md), [`backend guide`](../backend/index.md) |

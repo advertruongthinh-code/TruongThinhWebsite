@@ -13,7 +13,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
 | Thiết kế và reuse UI | [Design system](design/index.md) | Style guide, component/pattern/content, supersession, Impeccable |
-| Đối chiếu Espacio | [Baseline reference](reference/espacio/index.md) | Foundations/components/motion/templates có provenance |
+| Đối chiếu Espacio | [Baseline reference](../design-system/reference-espacio.md) | Số đo header, chữ, motion, template của site tham chiếu |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
 | Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
 | Dùng tool/agent | [AGENTS](../AGENTS.md), [Operations](operations/TOOLING.md) | Scope, workflow, command và recovery |
@@ -80,8 +80,8 @@ với CSS `:root`); từ plan T7 `DESIGN.md` được sinh từ đây.
 Living-docs gate ở [AGENTS.md](../AGENTS.md#state-và-living-docs); supersession
 ở [design index](design/index.md#supersession).
 
-Active docs tổ chức theo domain; độ sâu bổ sung dùng cho `reference/espacio`
-và archive, không tạo folder theo từng ngày/task. Root Impeccable artifacts giữ
+Active docs tổ chức theo domain; độ sâu bổ sung chỉ dùng cho
+archive, không tạo folder theo từng ngày/task. Root Impeccable artifacts giữ
 nguyên path tool đọc. `docs/reports/` là compatibility cho machine report/CSV;
 không là nơi mặc định ghi tài liệu hướng dẫn mới. Original archive không sửa
 để làm đẹp; [mapping](archive/mapping.json) giải path trước/sau.

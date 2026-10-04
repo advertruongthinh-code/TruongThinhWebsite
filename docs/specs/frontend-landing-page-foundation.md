@@ -69,7 +69,7 @@ render trong tương lai.
 - Future public CMS projection: structured post data render qua preset trong
   allowlist; không đổi static release boundary.
 - Visual input: `PRODUCT.md`, `DESIGN.md` khi có, surface brief khớp trong
-  `.impeccable/surfaces/<slug>.md` và `docs/design/content.md`.
+  `.impeccable/surfaces/<slug>.md` và `design-system/content.md`.
 
 ## 5. Hướng dẫn implementation
 

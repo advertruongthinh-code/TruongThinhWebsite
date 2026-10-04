@@ -48,7 +48,7 @@ không suy nguyên nhân mọi lần reset từ một phiên capture.
 | Module id | Trách nhiệm | Phụ thuộc để nghiệm thu | Nguồn sở hữu |
 | --- | --- | --- | --- |
 | `android-usb-qa` | Kết nối Chrome trên Android thật; lưu metadata, DOM/CSS, lỗi và thao tác cuộn | — | [Hướng dẫn debug](../operations/android-real-device-debugging.md); không thay UI contract |
-| `scrollbar-parity` | Chốt scrollbar/shell theo reference; geometry và tương tác tương ứng | `android-usb-qa` cho mobile gate | Delta của [brand shell](frontend-brand-shell-responsive-runtime.md), tham chiếu [Espacio](../reference/espacio/index.md) |
+| `scrollbar-parity` | Chốt scrollbar/shell theo reference; geometry và tương tác tương ứng | `android-usb-qa` cho mobile gate | Delta của [brand shell](frontend-brand-shell-responsive-runtime.md), tham chiếu [Espacio](../../design-system/reference-espacio.md) |
 | `skeleton-card-lifecycle` | Giữ lifecycle/reveal khi cuộn như card thường; không reset batch do ngưỡng cuộn | `android-usb-qa` | Delta của [skeleton flow](advertising-skeleton-flow.md) và [photo/grid](advertising-photo-browse.md) |
 | `button-content-parity` | Căn chỉnh chữ/icon trong nút trên browser mục tiêu | `android-usb-qa` | Delta của [brand shell](frontend-brand-shell-responsive-runtime.md) và visual authority hiện hữu |
 
@@ -65,10 +65,10 @@ skeleton lifecycle và plan/card C00–C07 đã duyệt27/09; delta/plan nút v�
 
 ## Reference và giới hạn
 
-[Foundations Espacio](../reference/espacio/foundations.md) và
-[components](../reference/espacio/components.md) giữ source/measurement đã lưu.
+[Foundations Espacio](../../design-system/reference-espacio.md) và
+[components](../../design-system/reference-espacio.md) giữ source/measurement đã lưu.
 Số10px trong foundations là scrollbar native của Trường Thịnh ở snapshot cũ,
-không phải width target của Espacio. [Bổ sung scrollbar27/09](../reference/espacio/components.md#bổ-sung-scrollbar--2026-09-27)
+không phải width target của Espacio. [Bổ sung scrollbar27/09](../../design-system/reference-espacio.md#scrollbar-desktop)
 giữ CSS/source hash và phép đo idle/scroll/hover; drag/release live còn open.
 Không tự suy idle timeout hoặc gọi source-derived state là live PASS.
 
@@ -189,7 +189,7 @@ Intent mới:
 | `mobile-viewport-stability` | Phân biệt toolbar/visual viewport thay height với reflow thật; giữ geometry card và bố cục trên toàn website, vẫn tiếp cận được controls | Baseline random/scrollbar/skeleton accepted; `android-usb-qa`, Safari/iPhone physical gate | Delta [brand shell](frontend-brand-shell-responsive-runtime.md); shared `style.css`/`motion.js`, geometry trong `catalog-runtime.mjs` và viewer hiện hữu |
 | `site-mobile-layout-parity` | Kiểm/sửa layout VI/EN dọc/ngang trên mọi route; không chồng header/title/filter, không mất nội dung hoặc overflow ngang | `mobile-viewport-stability`; shared shell và route contracts đã accepted | Delta [brand shell](frontend-brand-shell-responsive-runtime.md), [route/content](frontend-route-and-content.md), [photo/grid](advertising-photo-browse.md); shared CSS/template/source từng route khi evidence cần |
 | `advertising-viewer-gestures-motion` | Pinch/pan ảnh trong viewer; morph ảnh và clear↔blur khi mở/đóng, interruption/cleanup/focus | `mobile-viewport-stability`, `site-mobile-layout-parity` | Delta [photo browse](advertising-photo-browse.md); `photo-viewer.mjs`, `detail.css` |
-| `advertising-history-motion` | Crossfade/lingering có overlap; morph và zoom-blur đối xứng trên Back/Forward, giữ entry/scroll/random context | `mobile-viewport-stability`, `site-mobile-layout-parity`; history contract accepted | Delta [photo browse](advertising-photo-browse.md), [photo morph](advertising-photo-morph-scroll.md), [motion](../design/motion.md); `catalog-runtime.mjs` và adapter shared hiện hữu |
+| `advertising-history-motion` | Crossfade/lingering có overlap; morph và zoom-blur đối xứng trên Back/Forward, giữ entry/scroll/random context | `mobile-viewport-stability`, `site-mobile-layout-parity`; history contract accepted | Delta [photo browse](advertising-photo-browse.md), [photo morph](advertising-photo-morph-scroll.md), [motion](../../design-system/motion.md); `catalog-runtime.mjs` và adapter shared hiện hữu |
 | `advertising-glass-typography` | Blur zone rộng hơn mà không đổi opacity-to-white; paragraph mô tả justified, pagination vẫn đúng | `mobile-viewport-stability`, `site-mobile-layout-parity`; glass/preset/media accepted | Delta [skeleton flow](advertising-skeleton-flow.md), [photo browse](advertising-photo-browse.md); `detail.css` và description pagination hiện hữu |
 
 Theo [spec media-card đã duyệt](site-media-card-playback.md), supersession M02b

@@ -281,28 +281,28 @@
         "value": "0.75s power4.inOut",
         "purpose": "Cover route trước khi đổi nội dung.",
         "status": "accepted",
-        "source": "docs/design/motion.md#shared-motion"
+        "source": "design-system/motion.md#shell"
       },
       {
         "name": "route-uncover",
         "value": "1s power4.inOut",
         "purpose": "Uncover route sau khi nội dung sẵn sàng.",
         "status": "accepted",
-        "source": "docs/design/motion.md#shared-motion"
+        "source": "design-system/motion.md#shell"
       },
       {
         "name": "media-reveal",
         "value": "0.6s cubic-bezier(0,0,.26,1)",
         "purpose": "Reveal media đã sẵn sàng.",
         "status": "accepted",
-        "source": "docs/design/motion.md#shared-motion"
+        "source": "design-system/motion.md#shell"
       },
       {
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce -> final state without non-essential transform or autoplay",
         "purpose": "Không để content ở trạng thái ẩn khi người dùng giảm motion.",
         "status": "accepted",
-        "source": "docs/design/motion.md#shared-motion"
+        "source": "design-system/motion.md#shell"
       }
     ],
     "breakpoints": [
