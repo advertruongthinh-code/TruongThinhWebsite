@@ -289,6 +289,10 @@ cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commi
   `f76c14f:docs/reference/espacio/components.md`,
   `116367c:docs/specs/full-menu-reference-parity.md`.
 
+Hero dựng như title card theo cảm hứng owner chọn: chữ lớn mở cảnh của
+[Resident Evil Requiem](https://www.jank.cool/resident-evil-requiems-big-text-splashes-explained/)
+và màn vào level, chapter mới của game Control Resonant.
+
 ## Chú thích thuật ngữ
 
 - **Token**: tên đặt cho một giá trị thiết kế (màu, cỡ chữ, khoảng cách).
