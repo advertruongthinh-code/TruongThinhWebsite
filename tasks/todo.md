@@ -513,11 +513,11 @@ runner tái hiện actual overlap/paint clipping/text overflow; không source fi
 
 **Acceptance:**
 
-- [ ] Exact candidate provenance/source/served, old V-C/C06U/pause và primary/
+- [x] Exact candidate provenance/source/served, old V-C/C06U/pause và primary/
   recovery được preserve; baseline raw/snapshot immutable riêng, không retag history.
-- [ ] Named RED VI/EN Advertising low landscape và9 EN200% failures tái hiện
+- [x] Named RED VI/EN Advertising low landscape và9 EN200% failures tái hiện
   trên3engines, actual offending node/rect/paint captured; timeouts không làm RED oracle.
-- [ ] Runner ghi route/destination/font/layout/visible/state/version/error/PNG,
+- [x] Runner ghi route/destination/font/layout/visible/state/version/error/PNG,
   normal/reduced/fallback readiness có predicate và deadline; không disable motion
   hay inject runtime/CSS fix để tạo pass.
 
@@ -532,11 +532,11 @@ chồng nhau; hero chứa đủ nội dung theo stable layout basis.
 
 **Acceptance:**
 
-- [ ] VI/EN Advertising All/6categories sau settle, scroll đầu trang:
+- [x] VI/EN Advertising All/6categories sau settle, scroll đầu trang:
   header/title/filter không giao/che paint tại5viewport×100/200%text size.
-- [ ] Toolbar-only geometry≤1px; actual orientation/width resize vẫn reflow;
+- [x] Toolbar-only geometry≤1px; actual orientation/width resize vẫn reflow;
   baseline portrait/desktop composition đã đạt giữ đúng accepted contract.
-- [ ] Copy/brand/filter accessibility, grid entry, random/deck/common/reveal/
+- [x] Copy/brand/filter accessibility, grid entry, random/deck/common/reveal/
   context≤2/scrollbar và CTA/footer48/64 không đổi; không motion/glass/pinch mới.
 
 **Verification:** layout runner advertising3engines, viewport advertising/visibility,
@@ -550,11 +550,11 @@ copy vẫn đọc được tại200%; không thay chữ hoặc ép font nhỏ ch
 
 **Acceptance:**
 
-- [ ] Sáu inherited EN200% failures của Residential/Commercial GREEN3engines;
+- [x] Sáu inherited EN200% failures của Residential/Commercial GREEN3engines;
   document overflow≤1px và toàn title/body/control paint trong component phù hợp.
-- [ ] Portrait/landscape VI/EN100/200% không initial overlap/cut/mask chữ;
+- [x] Portrait/landscape VI/EN100/200% không initial overlap/cut/mask chữ;
   text tăng thực đo32px root, semantic reading order/brand copy giữ.
-- [ ] True reflow và locale/route return/focus giữ behavior; default desktop
+- [x] True reflow và locale/route return/focus giữ behavior; default desktop
   typography/motion/copy/media không đổi ngoài measured responsive geometry.
 
 **Verification:** scoped layout runner residential-commercial, viewport states
@@ -562,9 +562,9 @@ affected routes và build/static; main paired pre/post PNG/rect/source inspectio
 
 ### Checkpoint L-A — sau L00–L02
 
-- [ ] Baseline RED và Advertising/Residential/Commercial GREEN trên3engines,
+- [x] Baseline RED và Advertising/Residential/Commercial GREEN trên3engines,
   required static/viewport/random/footer assertions giữ, same candidate hashes.
-- [ ] Main kiểm snapshot source/owned hunks/raw, peer findings và preservation;
+- [x] Main kiểm snapshot source/owned hunks/raw, peer findings và preservation;
   thiếu owner/reference/device giữ open, không nghiệm thu từ screenshot đơn.
 
 ### L03 — Home, About và shared heading
@@ -575,11 +575,11 @@ geometry/overflow; shared CSS chỉ thay nơi responsible.
 
 **Acceptance:**
 
-- [ ] Ba inherited EN About200% failures GREEN3engines; Home/About VI/EN
+- [x] Ba inherited EN About200% failures GREEN3engines; Home/About VI/EN
   toàn copy/controls tiếp cận, document overflow≤1px trên5viewports/text sizes.
-- [ ] Hero/header/content/heading/body/footer không initial overlap hoặc clipping
+- [x] Hero/header/content/heading/body/footer không initial overlap hoặc clipping
   paint; new failure phải RED trước fix, không giả định Home lỗi giống About.
-- [ ] Shared stable metrics/token/desktop composition/menu/footer/copy/media giữ;
+- [x] Shared stable metrics/token/desktop composition/menu/footer/copy/media giữ;
   sibling Advertising/Residential/Commercial không regression vì shared CSS.
 
 **Verification:** scoped layout runner home-about3engines, affected state cases,
@@ -593,16 +593,21 @@ viewer/route history/locale đổi state; không đổi animation intent.
 
 **Acceptance:**
 
-- [ ] Advertising All/6category/photo/tag/related/viewer và10shared routes VI/EN
+- [x] Advertising All/6category/photo/tag/related/viewer và10shared routes VI/EN
   menu open/closed/direct/reload/locale/Back/Forward không overlap/cut/overflow.
-- [ ] Native/reduced/shell-unavailable, true breakpoint680/750/980/981 và
+- [x] Native/reduced/shell-unavailable, true breakpoint680/750/980/981 và
   actual orientation resize giữ focus, scroll/context và visible controls.
-- [ ] Random/history/common/deck/context≤2, stable viewer fit/pan/cleanup,
+- [x] Random/history/common/deck/context≤2, stable viewer fit/pan/cleanup,
   scrollbar/CTA/footer giữ; runtime fix ngoài listed geometry ownership quay plan
   amendment trước edit, không âm thầm mở gesture/history/glass module.
 
 **Verification:** layout runner states, viewport viewer/fallback/visibility,
 menu focus and geometry; console/page/network assertions không suppress.
+
+L00–L04 và L-A tick 04/10 theo evidence 3 engine trên candidate L-B: matrix
+660/660, body210, state/history, regressions9/9
+([L04H3 và L-B](../docs/verification/mobile-layout-parity-2026-09-28.md#l04h-tiếp-tục-từ-checkpoint--28092026)).
+Source sau đó đổi ở PR #39 chỉ có Chromium chạy lại; Firefox/WebKit theo L04R.
 
 ### L05 — Matrix và regression cuối
 
@@ -705,6 +710,8 @@ Cloud04/10: Chromium layout all4688records0fault, L04R1 200% không còn RED;
 sửa focus `Xem lớn hơn` bị header che và badge `Vừa xem` cắt
 ([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026)).
 Firefox/WebKit, A05s, iPhone còn chờ đợt PC; chưa check L04R1–R3.
+Cloud không cài được Firefox/WebKit: network policy trả403 cho CDN Playwright
+(`cdn.playwright.dev`, `playwright.download.prss.microsoft.com`), kiểm04/10.
 
 ### L04H — About Back/Forward, plan đã duyệt
 
