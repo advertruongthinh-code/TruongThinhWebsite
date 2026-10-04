@@ -107,7 +107,10 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
   (IntersectionObserver) mà sau 150 ms vẫn chưa xong, nhận
   `<span class="media-load-ring" aria-hidden="true">`; frame có
   `aria-busy="true"` theo số ảnh đang tải trong frame; gỡ khi `load`, `error`
-  hoặc rời trang. Ảnh lazy dưới fold không làm section bị `aria-busy`.
+  hoặc rời trang. Ảnh lazy dưới fold không làm section bị `aria-busy`. Ảnh đã
+  tải xong trước khi `motion.js` chạy, hoặc xong trước khi vào viewport (lazy
+  của browser tải trước khá xa), không hiện vòng; A05s Slow 4G ngày
+  2026-10-04 trên trang chủ không thấy vòng nào vì lý do này.
 - `src/site/style.css` `.media-load-ring`: vòng mảnh trung tính, quay
   0,9 s; reduced motion đứng yên.
 - Advertising (P9): card grid và related một ảnh hiện vòng qua `::after` khi

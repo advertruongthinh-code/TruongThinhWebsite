@@ -769,6 +769,12 @@
     state.container
       .querySelectorAll(".hero-slide img[data-src]")
       .forEach((image) => {
+        // Build-time <picture> wrappers carry deferred variants as data-srcset.
+        [image.previousElementSibling, image].forEach((node) => {
+          if (!node?.dataset.srcset) return;
+          node.srcset = node.dataset.srcset;
+          node.removeAttribute("data-srcset");
+        });
         image.src = image.dataset.src;
         image.removeAttribute("data-src");
       });
