@@ -67,7 +67,6 @@ typography:
     letterSpacing: "normal"
 rounded:
   square: "0"
-  round: "50%"
 spacing:
   gutter: "35px"
   section-gap: "90px"
@@ -173,8 +172,8 @@ chiều cao dòng.
 - **Footer:** chỉ trụ sở, mạng xã hội, bản quyền; hai cột desktop, một cột
   mobile. Lời mời và CTA nằm trước footer.
 - **Scrollbar:** desktop dùng thumb overlay hiện khi cuộn, hover, kéo, không
-  chiếm chỗ; mobile và reduced motion dùng scrollbar native. Radius 10px của
-  thumb là ngoại lệ duy nhất ngoài `radius-round`
+  chiếm chỗ; mobile và reduced motion dùng scrollbar native. Thumb giữ bo
+  10px mặc định của thư viện scroll (như Espacio); không áp bo đó cho UI
   ([brand shell spec](docs/specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)).
 - **Mobile:** tới 980px hero Home, About theo luồng chữ tự nhiên, Advertising
   tới 1024px; chữ tăng 200% vẫn không đè header, title dài xuống dòng
@@ -192,8 +191,14 @@ tác, không phải elevation.
 
 ## Shapes
 
-- `radius-square` (0) cho mọi khung, nút, card, media, CTA, filter.
-- `radius-round` (50%) chỉ cho nút prev/next gallery 2.7rem và indicator tròn.
+Ngôn ngữ vuông vức: chỉ có một token `radius-square` (0). Mọi khung, nút,
+card, media, CTA, filter, control đều góc vuông; không có thang radius.
+
+- Hình tròn chỉ xuất hiện ở chi tiết vốn là chấm hoặc vòng, không phải góc bo
+  của khung: chấm marquee, chấm timeline About, vòng tải ảnh, nút bật tắt
+  motion.
+- Lệch hiện tại: nút prev/next của [Gallery ngang](design-system/components/Gallery/README.md)
+  còn tròn 2.7rem, chưa theo ngôn ngữ vuông; sửa trong một task website riêng.
 - Control viewer Advertising vuông tối thiểu 48px, viền 1px `ink`, hover mở nhãn.
 - Focus: `outline: 2px solid` màu `orange`, offset 4px, mọi phần tử
   `:focus-visible`.
