@@ -12,10 +12,10 @@
   anchor, giới hạn dòng, sync spec, design-drift) chạy trên PR; T3 tạo `design-system/`.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
-  Remote Control trên PC chỉ khi cần A05s/iPhone thật. Cloud chỉ có Chromium:
-  network policy chặn CDN Playwright (Firefox/WebKit, kiểm 04/10) và
-  `cdn.jsdelivr.net` (Barba, Locomotive), QA cloud cần
-  route tạm hoặc owner mở host.
+  Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
+  và `cdn.jsdelivr.net` ngày 04/10: cloud chạy Chromium và WebKit với Barba/
+  Locomotive thật. Firefox trên cloud không tin CA proxy nên lỗi TLS; Firefox
+  vẫn chạy trên PC.
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
   duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03),

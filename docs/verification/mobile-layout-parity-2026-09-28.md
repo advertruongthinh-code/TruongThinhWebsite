@@ -698,6 +698,26 @@ Chromium. Gate còn mở cho đợt PC: Firefox/WebKit cùng 660 matrix và stat
 C06 R4/R10 FPS trên GPU thật, A05s USB (L06 landscape, V04 toolbar
 direct/reload), iPhone/A54, owner visual.
 
+## Firefox và WebKit trên cloud 04/10/2026
+
+Owner mở `cdn.playwright.dev`, `playwright.download.prss.microsoft.com`,
+`cdn.jsdelivr.net` cho cloud environment. Candidate `main` `aa2f5b9`, preview
+`8792`, Playwright 1.63, Barba/Locomotive tải thật từ jsDelivr (không shim).
+`main` sau đó chỉ bỏ preload ảnh About (`e82c276`), không đổi layout.
+
+| Engine | Suite | Kết quả |
+| --- | --- | --- |
+| WebKit 26.6 | Layout `--scope all` | `cloud-l04r-webkit-2026-10-04T10-28-49-525Z` 4694 records, 0 fault, provenance sạch, runner `341c61bf` |
+| WebKit 26.6 | Viewport | `cloud-webkit-2026-10-04T12-29-16-460Z` 63 samples, 0 failure |
+| Firefox 155 | Layout `--scope all` | `cloud-l04r-firefox-2026-10-04T10-28-49-557Z` 4771 records, 303 fault, matrix 164/220: **không dùng nghiệm thu** |
+
+Firefox dùng cert store riêng, không tin CA chặn TLS của proxy cloud: 656 lỗi
+`SEC_ERROR_UNKNOWN_ISSUER` (jsDelivr) và 820 lỗi CORS do font không tải, nên
+13 fault `text clipped horizontally by detail-cta` chưa phân loại được (có thể
+do font fallback, chưa kiểm chứng). Cài CA vào Firefox bằng policy không có tác
+dụng; route qua Node bị chặn vì làm yếu TLS. Firefox chạy trên PC. Cùng với
+Chromium ở mục trên, L04R còn thiếu Firefox, A05s, iPhone.
+
 ## Chú thích thuật ngữ
 
 - **Oracle**: tiêu chí tự động quyết định kết quả test.
