@@ -1,0 +1,31 @@
+name: Docs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Body passes through env, never interpolated into the script.
+      - run: node scripts/docs/check-docs.mjs
+        env:
+          DOCS_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}

@@ -3,13 +3,11 @@ title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
 updated: 2026-10-04
 source:
-  - docs/**
-  - design-system/**
-  - DESIGN.md
-  - PRODUCT.md
-  - AGENTS.md
-  - .impeccable/**
-tests: []
+  - scripts/docs/**
+  - .github/pull_request_template.md
+  - .github/workflows/docs.yml
+tests:
+  - scripts/docs/check-docs.mjs
 notion: none
 ---
 
@@ -128,7 +126,10 @@ When CI chạy pnpm qa:docs
 Then check sync fail và nêu tên spec cần cập nhật
 ```
 
-PR template thêm mục "Spec" để agent ghi spec đã cập nhật hoặc lý do không đổi.
+Spec tham gia ownership và sync qua danh sách glob `source:` trong frontmatter;
+`_template.md` không tham gia. Sync chạy trong workflow `docs.yml` trên mọi PR,
+kể cả khi chỉ sửa mô tả PR. PR template có mục "Spec" để agent ghi spec đã cập
+nhật hoặc lý do không đổi.
 
 ### R5. Design System là nguồn chuẩn visual
 

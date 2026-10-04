@@ -25,7 +25,7 @@ giữ; khi thread đó xong, gộp vào `tasks/plan.md` hoặc xóa khi plan ho�
   - Nhận: `pnpm qa:docs` chạy xanh trên `main` hiện tại; cố tình làm gãy một
     link thì fail và nêu file, dòng.
   - Files: `_template.md`, `check-docs.mjs`, `package.json`, `ci.yml`. Cỡ M.
-- [ ] T2. Check ownership, sync và PR template
+- [x] T2. Check ownership, sync và PR template
   - Làm: thêm check ownership (chế độ báo cáo, chưa fail) và sync (fail);
     thêm `.github/pull_request_template.md` có mục "Spec".
   - Nhận: PR thử đổi file thuộc `source` của `docs-system.md` mà không đổi
