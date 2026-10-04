@@ -117,8 +117,9 @@ chính; P4 rút gọn vì bytes chi phối rõ (mục đo dưới). Contract hi�
   ảnh gốc. AVIF q55, WebP q78, effort 6. `--originals` dùng PNG gốc khi cùng tỉ
   lệ. CI chạy `--check`, thiếu biến thể thì fail.
 - HTML tĩnh: `prepare-static-assets.mjs` bọc `<img src=".../x.webp">` thành
-  `<picture>` với `<source type="image/avif">` và `srcset`, `sizes="100vw"`
-  khi không khai báo. Bỏ qua ảnh `data-src`, đã có `srcset`, hoặc có thuộc tính
+  `<picture>` với `<source type="image/avif">` và `srcset`; khi không khai báo
+  `sizes`, ảnh `loading="lazy"` dùng `sizes="auto, 100vw"` (browser lấy width
+  đã layout), ảnh eager dùng `100vw`. Bỏ qua ảnh `data-src`, đã có `srcset`, hoặc có thuộc tính
   `data-advertising-*` (runtime đổi `src`, `<source>` sẽ ghi đè). CSS đặt
   `picture { display: contents; }`; selector `X > img` có thêm
   `X > picture > img`.
@@ -136,6 +137,9 @@ trang (bytes ảnh, trước → sau):
 | `/vi/residential/` | 1920 → 458 KB | 2632 → 1031 KB |
 | `/vi/commercial/` | 2442 → 422 KB | 1980 → 1006 KB |
 | `/vi/about/` | 1174 → 428 KB | 1174 → 743 KB |
+
+Sau khi thêm `sizes="auto"` cho ảnh lazy (desktop 1440 px): home 1032 KB,
+residential 372 KB, commercial 348 KB, about 576 KB.
 | `/en/advertising-products/` | 23692 → 2476 KB | 23692 → 2476 KB |
 
 Không có request 404; kích thước render của mọi ảnh nội dung không đổi. Baseline
