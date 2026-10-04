@@ -50,7 +50,7 @@ Khung phải có width/height hoặc `aspect-ratio` lấy từ pixel thật/mani
 request; không đợi `naturalWidth` mới cấp chỗ. Không crop/kéo méo chỉ để vừa
 skeleton. Vòng dùng palette trung tính và nét mảnh, không che caption, nhãn,
 control hoặc vùng bấm. Vòng không là nút, không nhận focus/pointer. Trạng thái
-loading được thông báo vừa đủ bằng `aria-busy`; không spam live region theo từng
+loading được thông báo vừa đủ bằng `aria-busy` ở nơi runtime biết trạng thái (viewer Advertising); không spam live region theo từng
 chunk. Reduced motion giữ frame và cung tiến trình tĩnh theo byte; trạng thái
 không xác định không quay liên tục.
 
@@ -102,17 +102,17 @@ cho thấy byte progress buộc bỏ `<picture>`/`srcset` và lazy native, trong
 nhỏ nên vòng % gần như nhảy thẳng tới đầy. Owner chọn ngày `2026-10-04`: mọi ảnh
 dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
 
-- `src/site/motion.js` `watchMediaLoading`: ảnh `/assets/content/` chưa
-  `complete` trong frame có `position` khác `static`, khi vào viewport
-  (IntersectionObserver) mà sau 150 ms vẫn chưa xong, nhận
-  `<span class="media-load-ring" aria-hidden="true">`; frame có
-  `aria-busy="true"` theo số ảnh đang tải trong frame; gỡ khi `load`, `error`
-  hoặc rời trang. Ảnh lazy dưới fold không làm section bị `aria-busy`. Ảnh đã
-  tải xong trước khi `motion.js` chạy, hoặc xong trước khi vào viewport (lazy
-  của browser tải trước khá xa), không hiện vòng; A05s Slow 4G ngày
-  2026-10-04 trên trang chủ không thấy vòng nào vì lý do này.
-- `src/site/style.css` `.media-load-ring`: vòng mảnh trung tính, quay
-  0,9 s; reduced motion đứng yên.
+- `src/site/style.css`: frame có ảnh con `/assets/content/` (trực tiếp hoặc
+  qua `<picture>`) vẽ vòng SVG mảnh làm `background-image` ở giữa, nằm dưới
+  ảnh; ảnh vẽ xong thì che vòng. Chỉ dùng CSS nên vòng hiện ngay khi
+  stylesheet tới, không chờ `motion.js`; ảnh đã cache vẽ ngay nên không nháy.
+  Bỏ qua project grid, viewer Advertising và client logo. Reduced motion dùng
+  cung tĩnh. Thay `watchMediaLoading` cũ (JS, gắn sau khi `motion.js` chạy):
+  A05s Slow 4G ngày 2026-10-04 trên trang chủ không thấy vòng vì ảnh tải xong
+  trước script. Ảnh tĩnh không còn `aria-busy`; ảnh trang tĩnh là ảnh minh họa
+  có `alt`, không cần thông báo trạng thái.
+- `.media-load-ring`: vòng mảnh trung tính, quay 0,9 s; reduced motion đứng
+  yên; dùng cho viewer Advertising.
 - Advertising (P9): card grid và related một ảnh hiện vòng qua `::after` khi
   ảnh có class LazySizes `lazyloading`, hiện sau 150 ms bằng animation
   delay; card nhiều media giữ spinner `advertising-card-media__loading` sẵn
