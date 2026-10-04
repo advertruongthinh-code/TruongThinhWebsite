@@ -17,7 +17,7 @@ rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào
 Thread M02b làm code theo spec. Lỗi Back history, dòng HTML thô sau F5 và motion
 phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
-(phiên bản 2).
+(phiên bản 3).
 
 ## Hành vi
 
@@ -218,10 +218,20 @@ này được thay bằng link.
 | --- | --- |
 | Skeleton | Skeleton card hiện có, không đổi style hay motion |
 | Kính | `blur(28px) saturate(1.08) brightness(1.04)`, tint trắng alpha 0.12; bắt đầu và kết thúc ở `blur(0)`, tint 0 |
-| Bước 1, kính hiện | 0 đến 400ms, `cubic-bezier(0, 0, 0.26, 1)` (`--ease` của site) |
-| Bước 2, crossfade | 300 đến 800ms, `cubic-bezier(0.45, 0, 0.55, 1)` |
-| Bước 3, kính tan | 750 đến 1350ms, `cubic-bezier(0.45, 0, 0.2, 1)` |
+| Bước 1, kính hiện | 0 đến 0.6s, `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
+| Bước 2, crossfade | 0.3 đến 0.9s, `cubic-bezier(0.65, 0, 0.35, 1)` |
+| Bước 3, kính tan | 0.9 đến 1.9s, `power4.inOut` (`cubic-bezier(0.86, 0, 0.07, 1)`) |
 | Veil | Route veil trắng hiện có; giữ tới khi mount, mở 1s power4.inOut |
+
+Nhịp suy ra từ số đo Espacio đã có trong [Motion](../../design-system/motion.md)
+(owner yêu cầu ngày 2026-10-04), không phải số đo mới:
+
+- Mỗi bước bắt đầu trên nhịp `0.3s`, như delay mặc định của reveal Espacio.
+- Kính hiện và crossfade dài `0.6s`, bằng thời lượng hiện ảnh đã đo (LazySizes
+  `0.6s ease-out`, media reveal `0.6s --ease`). Crossfade dùng đường cong
+  in-out mà site đang dùng cho suggestion, để hai lớp đổi chỗ không bị lõm sáng.
+- Kính tan dùng đúng nhịp mở route veil `1s power4.inOut`: mọi nội dung lộ ra
+  từ dưới một lớp phủ đều mở cùng một cách.
 
 ## Kiểm tra
 
@@ -235,7 +245,7 @@ này được thay bằng link.
 
 ## Gate còn mở
 
-- Owner duyệt bản chạy thử phiên bản 2 và spec này.
+- Owner duyệt bản chạy thử phiên bản 3 và spec này.
 - Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
   A05s thật.
 - R1: mức trần context WebGL trên desktop, chốt theo số đo.
