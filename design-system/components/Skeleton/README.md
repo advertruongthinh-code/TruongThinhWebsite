@@ -20,7 +20,8 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối).
 
 Đã duyệt, chờ code: skeleton này cũng phủ card và primary đang chờ ảnh
-([Card đang tải](../../approved-designs.md#card-đang-tải)).
+([Card đang tải](../../approved-designs.md#card-đang-tải)); kính phủ batch đổi
+sang [Kính](../../approved-designs.md#kính) dạng cung.
 
 ## Chú thích thuật ngữ
 

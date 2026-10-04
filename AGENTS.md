@@ -55,6 +55,10 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
   contract trong cùng task; không có impact thì ghi lý do cụ thể khi bàn giao.
   Chọn nguồn qua [docs routing](docs/index.md); supersession theo
   [docs index](docs/index.md#supersession).
+- Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
+  publish lại claude.ai ([docs-system R7](docs/specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
+  PR code của một mục trong `design-system/approved-designs.md` chuyển giá trị
+  vào component và `motion.md` rồi xóa mục. CI không kiểm được hai việc này.
 - Không tạo report cho mọi sửa nhỏ, không copy contract sang nhiều file. Cập
   nhật nguồn chuẩn, links và trạng thái supersession; main kiểm docs impact của
   worker trước nghiệm thu.

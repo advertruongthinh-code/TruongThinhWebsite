@@ -21,7 +21,8 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 
 Rule đầy đủ: [photo browse](../../../docs/specs/advertising-photo-browse.md).
 
-Đã duyệt, chờ code: [Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ).
+Đã duyệt, chờ code: [Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ);
+kính vùng dư đổi sang [Kính](../../approved-designs.md#kính) dạng phủ đều.
 
 ## Chú thích thuật ngữ
 

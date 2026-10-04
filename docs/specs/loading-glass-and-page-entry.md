@@ -58,9 +58,9 @@ And cùng một card luôn mang cùng một preset
 2. Dưới kính, skeleton mờ đi và ảnh hiện lên (crossfade).
 3. Kính tan dần để lộ ảnh rõ nét.
 
-Kính dùng token glass chung của skeleton và primary (R10 của
-[Skeleton Flow](advertising-skeleton-flow.md)), tăng từ không blur, không tint.
-Kính là lớp duy nhất sở hữu `backdrop-filter` và chỉ tồn tại trong ba bước.
+Kính là component [Kính dùng chung](glass-surface.md) dạng phủ đều, hiện và
+tan theo R6 của spec đó, từ không blur, không tint. Kính chỉ tồn tại trong ba
+bước.
 Xong bước 3, runtime gỡ kính và skeleton khỏi DOM và trả context WebGL về pool.
 Ảnh không đổi `transform`, nên hover zoom chạy như cũ.
 
@@ -204,11 +204,9 @@ Then trace đạt median 30fps, không long task trên 50ms, tối đa 2 context
 | Code | `createSkeletonFlowRenderer`, `SKELETON_FLOW_PRESETS`, `staticBackground` (`skeleton-flow.mjs`) | Skeleton card dùng lại nguyên |
 | Runtime | Lease pool `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer` (`catalog-runtime.mjs`) | Dùng chung cho skeleton cuối masonry và card đang tải |
 | DOM | `.advertising-grid__cta-frame` trong khung media | Thêm khi ảnh chưa `complete`, gỡ sau ba bước |
-| DOM | Lớp kính `aria-hidden` trong khung media hoặc primary | Chỉ tồn tại trong ba bước |
+| DOM | `.glass-surface[data-glass-shape="even"]` trong khung media hoặc primary | Chỉ tồn tại trong ba bước ([Kính dùng chung](glass-surface.md)) |
 | Root class | `route-enter` trên `<html>` | Prepaint thêm cho mọi lần vào thẳng trang (R6) |
 | Boot | `window.__ttMotionBoot` | Đổi điều kiện fallback theo R7 |
-
-Tên class của lớp kính do thread M02b đặt khi làm code, theo vai trò ở trên.
 
 ## UI
 
