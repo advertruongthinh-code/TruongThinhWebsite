@@ -72,7 +72,7 @@ Checkpoint 1: CI xanh; owner thử đọc template mới.
   - Nhận: `impeccable context` đọc được, không `CONTEXT_STALE`; sửa
     `DESIGN.md` bằng tay thì `qa:docs` fail.
   - Phụ thuộc: T6. Cỡ M.
-- [ ] T8. Publish lên claude.ai
+- [x] T8. Publish lên claude.ai
   - Làm: tạo artifact Design System từ `design-system/`; ghi URL vào
     `design-system/README.md`.
   - Nhận: đọc lại artifact thấy đủ token, component, section.

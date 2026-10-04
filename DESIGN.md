@@ -92,6 +92,9 @@ trắng rộng và nhịp editorial để ảnh và typography dẫn câu chuy�
 - Khung vuông, mặt phẳng, không đổ bóng container.
 - Blue và orange là accent hiếm, có chủ đích.
 - Motion phục vụ nội dung; reduced motion luôn có trạng thái cuối đầy đủ.
+- Phần lớn layout và motion học từ [Espacio Home Design](https://espaciohomedesign.com/)
+  (số đo ở [Tham chiếu Espacio](design-system/reference-espacio.md)); giữ màu, font, logo,
+  nội dung và ảnh của Trường Thịnh, không chép source hay media.
 
 Tài liệu kèm theo:
 
@@ -103,6 +106,13 @@ Tài liệu kèm theo:
 
 `DESIGN.md` ở gốc repo được sinh từ README này và `tokens.json` cho
 Impeccable; sửa ở đây rồi chạy `node scripts/docs/build-design-md.mjs`.
+
+Bản xem trên claude.ai: [Design System Trường Thịnh](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88).
+Git là nguồn chuẩn; không sửa trên trang. Sau mỗi PR đổi `design-system/` đã
+merge, agent chạy `node scripts/docs/stage-design-system.mjs` rồi publish thư
+mục `.tmp/design-system-publish` bằng công cụ Artifact (`root` là thư mục đó,
+`file_path` là `project/design-system.json`, `files` theo danh sách script in
+ra). Ảnh mới hoặc đã đổi phải upload trước và ghi id vào `design-system.json`.
 
 ## Colors
 

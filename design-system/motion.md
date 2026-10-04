@@ -4,7 +4,12 @@ Chuyển động của website Trường Thịnh, viết theo runtime đang ch�
 `src/site/motion.js` (shell, route, menu, hero), `src/site/detail.js` và
 `detail.css` (trang detail), `src/site/advertising-products/` (catalog,
 skeleton, viewer). Định dạng token không có family motion, nên mọi timing nằm ở
-đây. Số đo của site tham chiếu nằm ở [Tham chiếu Espacio](reference-espacio.md).
+đây.
+
+Phần lớn motion học từ Espacio Home Design: header collapse và ẩn/hiện, route
+veil, full menu, hover và fade ảnh card dùng cùng nhịp đã đo ở
+[Tham chiếu Espacio](reference-espacio.md#motion). Phần riêng của Trường Thịnh:
+FLIP và đổi màu logo, reduced motion, toàn bộ luồng Advertising.
 
 ## Nguyên tắc
 

@@ -1,13 +1,407 @@
 {
   "v": 3,
   "layout": "files",
-  "createdOnFiles": { "v": 1, "at": "2026-10-04T12:30:12Z" },
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-04T12:30:12Z"
+  },
   "title": "Trường Thịnh",
   "namespace": "TruongThinh",
   "libraries": [],
   "sections": {},
-  "groups": [],
-  "assetGroups": {},
+  "groups": [
+    "Photos"
+  ],
+  "assetGroups": {
+    "Photos": {
+      "name": "Photos",
+      "tile": "m",
+      "order": [
+        "cnc.webp",
+        "completed-detail.webp",
+        "consultation.webp",
+        "design-sketch.webp",
+        "home.webp",
+        "installation.webp",
+        "kiosk-active.webp",
+        "kiosk-posm-08-event-reception-counters-480.webp",
+        "kiosk-posm-12-campaign-posm-sets-480.webp",
+        "kiosk-posm-20-event-reception-counters-480.webp",
+        "kiosk-posm-21-product-display-plinths-480.webp",
+        "kiosk-posm-22-island-displays-480.webp",
+        "kiosk-posm-25-trade-fair-coconut-standard-480.webp",
+        "kiosk-posm-31-owner-20260924-480.webp",
+        "kiosk-posm-35-owner-20260924-480.webp",
+        "kiosk-posm-36-owner-20260924-480.webp",
+        "led-displays-lightboxes-02-three-colour-matrix-led-signs-480.webp",
+        "led-displays-lightboxes-03-full-colour-matrix-led-signs-480.webp",
+        "led-displays-lightboxes-04-indoor-matrix-led-systems-480.webp",
+        "led-displays-lightboxes-11-magnetic-front-illuminated-frames-480.webp",
+        "led-displays-lightboxes-17-outdoor-matrix-led-systems-480.webp",
+        "legacy-hands.webp",
+        "materials.webp",
+        "meeting-brushed-01-480.webp",
+        "mobile-retail-05-owner-20260924-480.webp",
+        "mobile-retail-06-mobile-pop-up-counters-480.webp",
+        "mobile-retail-11-brand-led-retail-counters-480.webp",
+        "office-signs-wayfinding-07-stainless-steel-desk-nameplates-480.webp",
+        "office-signs-wayfinding-09-meeting-room-signs-480.webp",
+        "office-signs-wayfinding-10-floor-wayfinding-signs-480.webp",
+        "office-signs-wayfinding-29-owner-20260924-480.webp",
+        "print-decals-02-flyers-480.webp",
+        "print-decals-07-hard-cover-leather-and-timber-menus-480.webp",
+        "print-decals-08-waterproof-plastic-menus-480.webp",
+        "print-decals-10-hiflex-banner-printing-480.webp",
+        "print-decals-11-window-wall-vehicle-and-die-cut-decals-480.webp",
+        "print-decals-15-brochures-and-folded-leaflets-480.webp",
+        "print-decals-16-catalogues-480.webp",
+        "print-decals-20-owner-20260924-480.webp",
+        "residential-space.webp",
+        "signage-detail.webp",
+        "signage-raised-letters-07-acrylic-dimensional-letters.webp",
+        "signage-raised-letters-09-building-logos-and-dimensional-lettering-480.webp",
+        "signage-raised-letters-09-building-logos-and-dimensional-lettering.webp",
+        "signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs-480.webp",
+        "signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs.webp",
+        "signage-raised-letters-20-aluminium-and-foam-dimensional-letters-480.webp",
+        "signage-raised-letters-24-owner-20260924-480.webp",
+        "signage-raised-letters-25-owner-20260924-480.webp",
+        "signage-raised-letters-26-owner-20260924.webp",
+        "storefront.webp",
+        "survey-modern.webp",
+        "washroom-projecting-03-480.webp"
+      ],
+      "files": {
+        "cnc.webp": {
+          "name": "cnc.webp",
+          "blob": "7b799f3a3c84d748a4ae98eda5419f41",
+          "size": 49466,
+          "type": "image/webp"
+        },
+        "completed-detail.webp": {
+          "name": "completed-detail.webp",
+          "blob": "7ab816d0dab4c44b508329327c01e013",
+          "size": 17516,
+          "type": "image/webp"
+        },
+        "consultation.webp": {
+          "name": "consultation.webp",
+          "blob": "3978535b0a3f61bd8a105195a50f37b4",
+          "size": 63240,
+          "type": "image/webp"
+        },
+        "design-sketch.webp": {
+          "name": "design-sketch.webp",
+          "blob": "66be6e43d1e8e02be79a37de7d5968dd",
+          "size": 38420,
+          "type": "image/webp"
+        },
+        "home.webp": {
+          "name": "home.webp",
+          "blob": "1eb435a4a3bf6a1f6e8da5c7a09dfd2c",
+          "size": 39706,
+          "type": "image/webp"
+        },
+        "installation.webp": {
+          "name": "installation.webp",
+          "blob": "43ca0f109fa68cfc7ffc7df1ecaf03f6",
+          "size": 26106,
+          "type": "image/webp"
+        },
+        "kiosk-active.webp": {
+          "name": "kiosk-active.webp",
+          "blob": "849492de3e3d8b038ee6218ec4911f58",
+          "size": 49582,
+          "type": "image/webp"
+        },
+        "kiosk-posm-08-event-reception-counters-480.webp": {
+          "name": "kiosk-posm-08-event-reception-counters-480.webp",
+          "blob": "4e0469de6f54ad7985a45b677ca40a19",
+          "size": 12400,
+          "type": "image/webp"
+        },
+        "kiosk-posm-12-campaign-posm-sets-480.webp": {
+          "name": "kiosk-posm-12-campaign-posm-sets-480.webp",
+          "blob": "8a283f0893c524620503fad293421568",
+          "size": 23268,
+          "type": "image/webp"
+        },
+        "kiosk-posm-20-event-reception-counters-480.webp": {
+          "name": "kiosk-posm-20-event-reception-counters-480.webp",
+          "blob": "ddc252dc46592dc79644e00cbf099c14",
+          "size": 23588,
+          "type": "image/webp"
+        },
+        "kiosk-posm-21-product-display-plinths-480.webp": {
+          "name": "kiosk-posm-21-product-display-plinths-480.webp",
+          "blob": "5d7346f558e90ed0c3d981cc77a0f200",
+          "size": 21926,
+          "type": "image/webp"
+        },
+        "kiosk-posm-22-island-displays-480.webp": {
+          "name": "kiosk-posm-22-island-displays-480.webp",
+          "blob": "5dfa01dca34a9590accf41b86caba5d4",
+          "size": 19548,
+          "type": "image/webp"
+        },
+        "kiosk-posm-25-trade-fair-coconut-standard-480.webp": {
+          "name": "kiosk-posm-25-trade-fair-coconut-standard-480.webp",
+          "blob": "0239de3385f7e5164b0fb797ef0dc8f8",
+          "size": 32642,
+          "type": "image/webp"
+        },
+        "kiosk-posm-31-owner-20260924-480.webp": {
+          "name": "kiosk-posm-31-owner-20260924-480.webp",
+          "blob": "67d60b6317d2a8709f55fe4d39c14334",
+          "size": 25130,
+          "type": "image/webp"
+        },
+        "kiosk-posm-35-owner-20260924-480.webp": {
+          "name": "kiosk-posm-35-owner-20260924-480.webp",
+          "blob": "697e89d566bff3a5e879184ee8109156",
+          "size": 46420,
+          "type": "image/webp"
+        },
+        "kiosk-posm-36-owner-20260924-480.webp": {
+          "name": "kiosk-posm-36-owner-20260924-480.webp",
+          "blob": "14e2e914b47c2fdcc7ee7bb1d8182008",
+          "size": 38454,
+          "type": "image/webp"
+        },
+        "led-displays-lightboxes-02-three-colour-matrix-led-signs-480.webp": {
+          "name": "led-displays-lightboxes-02-three-colour-matrix-led-signs-480.webp",
+          "blob": "2699593b77f1a6ab5e6adcc51fad5f8f",
+          "size": 37764,
+          "type": "image/webp"
+        },
+        "led-displays-lightboxes-03-full-colour-matrix-led-signs-480.webp": {
+          "name": "led-displays-lightboxes-03-full-colour-matrix-led-signs-480.webp",
+          "blob": "095df415c03a98ba05b0c2f9e3bf6f9a",
+          "size": 24062,
+          "type": "image/webp"
+        },
+        "led-displays-lightboxes-04-indoor-matrix-led-systems-480.webp": {
+          "name": "led-displays-lightboxes-04-indoor-matrix-led-systems-480.webp",
+          "blob": "a49b1ad787b4ffe026a4271629cb2cea",
+          "size": 16502,
+          "type": "image/webp"
+        },
+        "led-displays-lightboxes-11-magnetic-front-illuminated-frames-480.webp": {
+          "name": "led-displays-lightboxes-11-magnetic-front-illuminated-frames-480.webp",
+          "blob": "0e36d2451254326d4282a8532467ae4a",
+          "size": 9890,
+          "type": "image/webp"
+        },
+        "led-displays-lightboxes-17-outdoor-matrix-led-systems-480.webp": {
+          "name": "led-displays-lightboxes-17-outdoor-matrix-led-systems-480.webp",
+          "blob": "4f055ca3b6514c77ddbd0d92ad3fbf64",
+          "size": 60744,
+          "type": "image/webp"
+        },
+        "legacy-hands.webp": {
+          "name": "legacy-hands.webp",
+          "blob": "33c69b8ba765278755f818c1e5a515e8",
+          "size": 38274,
+          "type": "image/webp"
+        },
+        "materials.webp": {
+          "name": "materials.webp",
+          "blob": "3d34cb469c669056b7e8cbdef8f068d8",
+          "size": 50826,
+          "type": "image/webp"
+        },
+        "meeting-brushed-01-480.webp": {
+          "name": "meeting-brushed-01-480.webp",
+          "blob": "a54a13a929a62637d1d86cc53c2630c0",
+          "size": 7894,
+          "type": "image/webp"
+        },
+        "mobile-retail-05-owner-20260924-480.webp": {
+          "name": "mobile-retail-05-owner-20260924-480.webp",
+          "blob": "6ceefd88024ac37085d8a58da9ee149f",
+          "size": 40898,
+          "type": "image/webp"
+        },
+        "mobile-retail-06-mobile-pop-up-counters-480.webp": {
+          "name": "mobile-retail-06-mobile-pop-up-counters-480.webp",
+          "blob": "a5b5abd3157cbe1d416cd6217a57220a",
+          "size": 26064,
+          "type": "image/webp"
+        },
+        "mobile-retail-11-brand-led-retail-counters-480.webp": {
+          "name": "mobile-retail-11-brand-led-retail-counters-480.webp",
+          "blob": "84c77d678995efdedb70d085348e8387",
+          "size": 30506,
+          "type": "image/webp"
+        },
+        "office-signs-wayfinding-07-stainless-steel-desk-nameplates-480.webp": {
+          "name": "office-signs-wayfinding-07-stainless-steel-desk-nameplates-480.webp",
+          "blob": "024624200f96e175264b28e56dbc6432",
+          "size": 13940,
+          "type": "image/webp"
+        },
+        "office-signs-wayfinding-09-meeting-room-signs-480.webp": {
+          "name": "office-signs-wayfinding-09-meeting-room-signs-480.webp",
+          "blob": "0b0ce30f65e99b31477ac54295bd4685",
+          "size": 18604,
+          "type": "image/webp"
+        },
+        "office-signs-wayfinding-10-floor-wayfinding-signs-480.webp": {
+          "name": "office-signs-wayfinding-10-floor-wayfinding-signs-480.webp",
+          "blob": "10aac705201073cac0d1176c69edf600",
+          "size": 20714,
+          "type": "image/webp"
+        },
+        "office-signs-wayfinding-29-owner-20260924-480.webp": {
+          "name": "office-signs-wayfinding-29-owner-20260924-480.webp",
+          "blob": "b357f6abc939c2e724539efa2e05923d",
+          "size": 21784,
+          "type": "image/webp"
+        },
+        "print-decals-02-flyers-480.webp": {
+          "name": "print-decals-02-flyers-480.webp",
+          "blob": "2859d9054f607cc76a9993a5905b474f",
+          "size": 14886,
+          "type": "image/webp"
+        },
+        "print-decals-07-hard-cover-leather-and-timber-menus-480.webp": {
+          "name": "print-decals-07-hard-cover-leather-and-timber-menus-480.webp",
+          "blob": "f129ec4bca61aa6ce3a3949949dad14c",
+          "size": 20592,
+          "type": "image/webp"
+        },
+        "print-decals-08-waterproof-plastic-menus-480.webp": {
+          "name": "print-decals-08-waterproof-plastic-menus-480.webp",
+          "blob": "a6380eeab82e780d96fc496481bbe741",
+          "size": 8304,
+          "type": "image/webp"
+        },
+        "print-decals-10-hiflex-banner-printing-480.webp": {
+          "name": "print-decals-10-hiflex-banner-printing-480.webp",
+          "blob": "340a04bb57b99d70929d86d9c475d135",
+          "size": 26630,
+          "type": "image/webp"
+        },
+        "print-decals-11-window-wall-vehicle-and-die-cut-decals-480.webp": {
+          "name": "print-decals-11-window-wall-vehicle-and-die-cut-decals-480.webp",
+          "blob": "25d84a518fa81b700172670760a608d0",
+          "size": 18460,
+          "type": "image/webp"
+        },
+        "print-decals-15-brochures-and-folded-leaflets-480.webp": {
+          "name": "print-decals-15-brochures-and-folded-leaflets-480.webp",
+          "blob": "2d2d67c7bf16f60d3df65ae04ed4d2d9",
+          "size": 7540,
+          "type": "image/webp"
+        },
+        "print-decals-16-catalogues-480.webp": {
+          "name": "print-decals-16-catalogues-480.webp",
+          "blob": "af5cf26d91ce47cd067f74a6fc10b5fc",
+          "size": 23056,
+          "type": "image/webp"
+        },
+        "print-decals-20-owner-20260924-480.webp": {
+          "name": "print-decals-20-owner-20260924-480.webp",
+          "blob": "42b03fc6087fd9b92e516ccbf22a4009",
+          "size": 30934,
+          "type": "image/webp"
+        },
+        "residential-space.webp": {
+          "name": "residential-space.webp",
+          "blob": "d306d15a70e8403a8d819e66e9735edb",
+          "size": 51100,
+          "type": "image/webp"
+        },
+        "signage-detail.webp": {
+          "name": "signage-detail.webp",
+          "blob": "387f38d3df83e23fca03a5813895141e",
+          "size": 37172,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-07-acrylic-dimensional-letters.webp": {
+          "name": "signage-raised-letters-07-acrylic-dimensional-letters.webp",
+          "blob": "29e862722aea03dabdb07fe99e3257f6",
+          "size": 46238,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-09-building-logos-and-dimensional-lettering-480.webp": {
+          "name": "signage-raised-letters-09-building-logos-and-dimensional-lettering-480.webp",
+          "blob": "db01e86bfc77d8600acf763304b3ed5b",
+          "size": 23744,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-09-building-logos-and-dimensional-lettering.webp": {
+          "name": "signage-raised-letters-09-building-logos-and-dimensional-lettering.webp",
+          "blob": "77b6ec2c2809c5de0e13a0d10db8f225",
+          "size": 102264,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs-480.webp": {
+          "name": "signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs-480.webp",
+          "blob": "87529be64f63ae00f4dd436e76e702ac",
+          "size": 20196,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs.webp": {
+          "name": "signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs.webp",
+          "blob": "792c742126a01355ee0256408d332e75",
+          "size": 77212,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-20-aluminium-and-foam-dimensional-letters-480.webp": {
+          "name": "signage-raised-letters-20-aluminium-and-foam-dimensional-letters-480.webp",
+          "blob": "05dddb3d1eaf2a71cee041358358ea63",
+          "size": 19962,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-24-owner-20260924-480.webp": {
+          "name": "signage-raised-letters-24-owner-20260924-480.webp",
+          "blob": "c1bc3e164f1c4a9bea3fd48410da2b9b",
+          "size": 28358,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-25-owner-20260924-480.webp": {
+          "name": "signage-raised-letters-25-owner-20260924-480.webp",
+          "blob": "d43093ad1a4d54a79e96c915863afb9d",
+          "size": 22128,
+          "type": "image/webp"
+        },
+        "signage-raised-letters-26-owner-20260924.webp": {
+          "name": "signage-raised-letters-26-owner-20260924.webp",
+          "blob": "c4a70bba95ca671d2b90b696c48d3d27",
+          "size": 38652,
+          "type": "image/webp"
+        },
+        "storefront.webp": {
+          "name": "storefront.webp",
+          "blob": "051b0d9a711ed995d88a4705f8344122",
+          "size": 52246,
+          "type": "image/webp"
+        },
+        "survey-modern.webp": {
+          "name": "survey-modern.webp",
+          "blob": "c83cc441b73350fe6a45b3db5d3c9e53",
+          "size": 30124,
+          "type": "image/webp"
+        },
+        "washroom-projecting-03-480.webp": {
+          "name": "washroom-projecting-03-480.webp",
+          "blob": "815761ac2e743b4193054def1f2025c4",
+          "size": 11738,
+          "type": "image/webp"
+        }
+      }
+    }
+  },
   "blobs": {},
-  "docs": { "readme": "project/README.md", "sections": [] }
+  "docs": {
+    "readme": "project/README.md",
+    "sections": []
+  },
+  "lastChange": {
+    "by": "Thịnh",
+    "at": "2026-10-04T13:45:00Z",
+    "via": "Claude Code",
+    "note": "T8: publish design-system/ từ Git"
+  }
 }

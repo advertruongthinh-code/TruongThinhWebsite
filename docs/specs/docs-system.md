@@ -191,7 +191,10 @@ Sau khi PR đổi `design-system/` merge vào `main`, agent publish thư mục �
 một artifact Design System duy nhất; URL ghi trong `design-system/README.md`.
 Không sửa trực tiếp trên trang claude.ai; nếu có sửa, đưa ngược vào Git qua PR.
 CI không publish được (cần công cụ Artifact của Claude), nên đây là bước của
-agent trong cùng thread với PR.
+agent trong cùng thread với PR. `scripts/docs/stage-design-system.mjs` dựng bảng
+file `project/` (ảnh preview trỏ upload `/_blob/<id>` ghi trong
+`design-system.json`, link ra ngoài `design-system/` trỏ GitHub); cover nằm ở
+`components/Cover/preview.html`.
 
 ### R8. Lịch sử ra khỏi cây thư mục
 
