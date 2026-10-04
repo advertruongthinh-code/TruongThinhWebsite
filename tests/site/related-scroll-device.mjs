@@ -47,6 +47,15 @@ async function runDevice() {
   if (!adbRun(serial, "reverse", "--list").includes(`tcp:${port} tcp:${port}`)) adbRun(serial, "reverse", `tcp:${port}`, `tcp:${port}`);
   const browser = await chromium.connectOverCDP(cdp);
   const page = browser.contexts()[0]?.pages()[0] || await browser.contexts()[0].newPage();
+  if (args.includes("--rotate")) {
+    // Owner-launched only: lock real landscape, restore the saved rotation settings on exit.
+    const setting = (name, value) => adbRun(serial, "shell", "settings", value === undefined ? "get" : "put", "system", name, ...(value === undefined ? [] : [value]));
+    const saved = ["accelerometer_rotation", "user_rotation"].map((name) => [name, setting(name)]);
+    process.on("exit", () => saved.forEach(([name, value]) => setting(name, value)));
+    setting("accelerometer_rotation", "0");
+    setting("user_rotation", "1");
+    while (!(await page.evaluate(() => innerWidth > innerHeight))) await sleep(250);
+  }
   const orientation = await page.evaluate(() => (innerWidth > innerHeight ? "landscape" : "portrait"));
   log(`device ${model} (${serial}) ${orientation}; screen stays awake only while unlocked`);
 
