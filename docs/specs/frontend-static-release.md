@@ -94,7 +94,11 @@ Deploy 2026-10-04 (owner yêu cầu trong thread M02b): `main` `9478ed8`, có
 PR #26, Worker version `d6ad9a03-1108-4276-ab63-84aabdaad521`. 10 route chính
 VI/EN trả 200, ảnh nội dung bọc `<picture>` có nguồn AVIF, `.avif` trả
 `Content-Type: image/avif`; A05s thật mở `/vi/` không ảnh hỏng, không lỗi JS.
-Asset hiện trả `Cache-Control: max-age=0, must-revalidate`.
+Asset khi đó trả `Cache-Control: max-age=0, must-revalidate`.
+
+Deploy 2026-10-04 (owner tự chạy sau PR #53): `main` `8759d0a`, Worker version
+`7ee4aaa9-4db2-4823-8305-9dfd433c4d98`. Header khớp R3 bên dưới, `/_headers` trả
+404, 6 route chính trả 200.
 
 Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml`
 hoặc chọn deployment cũ trong Cloudflare dashboard. Changelog ghi thay đổi và
@@ -172,9 +176,12 @@ trên PC hoặc sau khi owner thêm host vào network của environment.
 
 ### Gate còn mở
 
-- Gate LCP chưa đo trên demo: chờ owner đồng ý deploy. Số đo local không thay
-  được demo vì `pnpm dev` không nén gzip/brotli còn Cloudflare có nén, và request
-  tới Google Fonts, jsDelivr trong cloud không chịu throttle như request local.
+- LCP residential mobile có hai mode: phần tử LCP là chữ hero title, nếu JS về
+  trước khi title vẽ thì SplitText tách chữ và GSAP fade làm LCP lùi tới cuối
+  animation (4,2–5,5 s, 3/7 lượt), nếu không thì LCP khoảng 3,25 s. Median vẫn
+  dưới baseline. Sửa cần spec riêng cho motion reveal (`detail.js`), owner quyết.
+- Số đo local không thay được demo: `pnpm dev` không nén gzip/brotli còn
+  Cloudflare có nén.
 
 ## Chú thích thuật ngữ
 

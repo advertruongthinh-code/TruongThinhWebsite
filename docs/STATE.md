@@ -84,12 +84,11 @@
   5 OK, `ponytail:ponytail`, `agent-skills:spec` hiện.
 - STATE trước cleanup: Git `da2f13a` (`docs/archive/snapshots/state-before-release-2026-09-24.md`,
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
-- Next repo action: P11 đã đo trên demo 2026-10-04: bytes ảnh và ảnh đầu đạt,
-  LCP chưa đạt vì LCP text phụ thuộc font Google và JS CDN
+- Next repo action: P11 đạt trên demo 2026-10-04 sau khi tự host font, thư viện
+  và cache (Worker `7ee4aaa9`): bytes, ảnh đầu và LCP không route nào vượt baseline
   ([kết quả](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
-  Font, Locomotive, Barba đã tự host và có `_headers` cache
-  ([spec](specs/frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026));
-  chờ owner đồng ý deploy để đo lại LCP trên demo.
+  LCP residential mobile còn hai mode do reveal SplitText ở hero title
+  ([gate](specs/frontend-static-release.md#gate-còn-mở)).
   M02b chờ owner kiểm nhận và iPhone; owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
