@@ -154,6 +154,7 @@ server chỉ để vẽ vòng.
 | Build và static contract | `pnpm prepare:site` rồi `pnpm qa:static` |
 | Media regression hiện hành | `node --test tests/site/advertising-products-media.test.mjs tests/site/advertising-products-lifecycle.test.mjs` |
 | Browser preview | `pnpm dev` |
+| Khung, vòng, request, geometry P8–P9 | `pnpm dev` rồi `BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs` |
 
 Test mới phải stream ảnh thử theo chunk có/không có tổng byte và response có
 `Content-Encoding`/header lệch: xác nhận chỉ dùng determinate khi đơn vị khớp,

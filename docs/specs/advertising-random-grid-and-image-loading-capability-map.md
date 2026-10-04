@@ -2,7 +2,7 @@
 title: Capability map cho grid Advertising và tải ảnh toàn site
 type: cross-cutting
 status: accepted
-updated: 2026-09-25
+updated: 2026-10-04
 related_docs:
   - advertising-photo-browse.md
   - advertising-skeleton-flow.md
@@ -12,9 +12,9 @@ related_docs:
 # Capability map cho grid Advertising và tải ảnh toàn site
 
 Owner đã duyệt intent/map ngày `2026-09-25` và duyệt cả ba module spec ngày
-`2026-09-25`. [Implementation plan](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
-và task list đã được lập, chờ owner duyệt; hành vi chưa được triển khai và chỉ
-đổi khi QA đạt.
+`2026-09-25`. Owner duyệt [implementation plan](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
+ngày `2026-10-03`; trạng thái triển khai theo
+[checklist](../../tasks/todo.md#advertising-random-grid-và-tải-ảnh--checklist).
 
 | Module id | Trách nhiệm | Phụ thuộc |
 | --- | --- | --- |

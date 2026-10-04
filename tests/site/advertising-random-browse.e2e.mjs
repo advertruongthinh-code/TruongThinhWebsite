@@ -18,7 +18,10 @@ const read = page => page.evaluate(() => ({
   ids: [...document.querySelectorAll("[data-advertising-card]")].map(node => node.dataset.advertisingCard),
   positions: [...document.querySelectorAll("[data-advertising-card]")].map(node => [node.dataset.advertisingCard, node.style.left, node.style.top]),
   hash: document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature,
+  filters: [...document.querySelectorAll(".project-filters [data-advertising-filter]")]
+    .map(node => [node.dataset.advertisingFilter, node.offsetLeft, node.offsetTop]),
 }));
+const filterOrder = ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)];
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   page.on("console", msg => { if(msg.type() === "error") errors.push(msg.text()); });
@@ -28,6 +31,7 @@ try {
   const direct = await read(page);
   assert.ok(direct.ids.length);
   const originalPositions = direct.positions;
+  assert.deepEqual(direct.filters.map(([slug]) => slug), filterOrder, "runtime keeps All and the six filters in canonical order");
   for (const category of ADVERTISING_CATEGORIES) {
     await page.locator('[data-advertising-filter="' + category.slug + '"]').click();
     await page.waitForFunction(category => window.TruongThinhAdvertising.getBrowseState().category === category, category.slug);
@@ -36,6 +40,7 @@ try {
     assert.equal(sample.browse.seed, direct.browse.seed);
     assert.ok(sample.ids.every(id => ADVERTISING_CARDS.find(card => card.id === id)?.category === category.slug));
     assert.equal(new Set(sample.ids).size, sample.ids.length);
+    assert.deepEqual(sample.filters, direct.filters, "filter controls keep order and position");
     results.push({ case: "filter", category: category.slug, seed: sample.browse.seed, rendered: sample.ids.length });
   }
   await page.locator('[data-advertising-filter="all"]').click();
@@ -86,6 +91,7 @@ try {
   await page.waitForFunction(() => document.documentElement.lang === "en");
   await ready(page);
   assert.equal((await read(page)).browse.seed, direct.browse.seed, "soft locale retains the current visit");
+  assert.deepEqual((await read(page)).filters.map(([slug]) => slug), filterOrder, "English keeps the filter order");
   results.push({ case: "soft-locale", seed: direct.browse.seed });
   const beforeReload = await read(page);
   await page.reload({ waitUntil: "networkidle" }); await ready(page);

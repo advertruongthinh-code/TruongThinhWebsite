@@ -1,16 +1,17 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { ADVERTISING_DETAIL_LAYOUTS, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CATEGORIES, ADVERTISING_DETAIL_LAYOUTS, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_LAYOUT_ALGORITHM_VERSION, columnsForWidth, compileAdvertisingProductLayout as compileAdvertisingLayout } from "../../src/site/advertising-products/layout-core.mjs";
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
-const [runtime, index, css, siteCss, prepare] = await Promise.all([
+const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
   read("src/site/advertising-products/catalog-runtime.mjs"),
   read("src/site/advertising-products/index.html"),
   read("src/site/detail.css"),
   read("src/site/style.css"),
   read("scripts/site/prepare-static-assets.mjs"),
+  Promise.all(["src/site/motion.js", "src/site/detail.js"].map(read)).then((sources) => sources.join("\n")),
 ]);
 const artifact = buildAdvertisingArtifact();
 const advertisingGridStart = css.indexOf(".advertising-grid {");
@@ -30,6 +31,9 @@ try {
 }
 
 assert.equal((index.match(/data-advertising-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
+assert.deepEqual([...index.matchAll(/data-advertising-filter="([^"]+)"/g)].map(([, slug]) => slug),
+  ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)], "All and the six filters keep their canonical order");
+assert.doesNotMatch(sharedScripts, /Math\.random|random-order|shuffle/, "grid routes outside Advertising are never randomized");
 assert.equal((index.match(/<noscript>/g) || []).length, 1, "no-JS fallback remains available");
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");

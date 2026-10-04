@@ -25,11 +25,14 @@
   History H01–H02 rescope xong trên cloud; viewer không còn đóng khi vuốt từ nền
   (L06), chờ replay A05s ([evidence](verification/advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04)).
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
-  WebKit. P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
+  WebKit; thứ tự filter có test, solver 350/350 lượt hard-safe
+  ([evidence 04/10](verification/advertising-random-grid-p0-p10-2026-10-04.md)). P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
   variant AVIF/WebP đã nối vào HTML tĩnh và Advertising runtime
   ([pipeline](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
   P6–P9 xong: owner chọn vòng xoay chờ, không byte progress; ảnh tĩnh dùng vòng
   CSS, Advertising dùng vòng runtime ([spec](specs/image-loading-progress.md)).
+  P8–P9 có e2e `image-loading-frame` 23 ca PASS trên cloud; còn mở: cache hit
+  của vòng tĩnh (home lóe tối đa 2 frame chưa xác nhận) ([evidence](verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải)).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
