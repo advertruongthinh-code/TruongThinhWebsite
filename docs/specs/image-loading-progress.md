@@ -99,13 +99,15 @@ cho owner chọn tradeoff; không thay bằng phần trăm giả.
 Probe P6 ([kết quả](../../tasks/todo.md#p6--feasibility-gate-cho-byte-progress))
 cho thấy byte progress buộc bỏ `<picture>`/`srcset` và lazy native, trong khi
 ảnh sau [pipeline biến thể](static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)
-nhỏ nên vòng % gần như nhảy thẳng tới đầy. Đề xuất chờ owner xác nhận: mọi ảnh
-dùng `loading-unknown`.
+nhỏ nên vòng % gần như nhảy thẳng tới đầy. Owner chọn ngày `2026-10-04`: mọi ảnh
+dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
 
 - `src/site/motion.js` `watchMediaLoading`: ảnh `/assets/content/` chưa
-  `complete` trong frame có `position` khác `static` nhận
-  `<span class="media-load-ring" aria-hidden="true">` sau 150 ms; frame có
-  `aria-busy="true"`; gỡ khi `load`, `error` hoặc rời trang.
+  `complete` trong frame có `position` khác `static`, khi vào viewport
+  (IntersectionObserver) mà sau 150 ms vẫn chưa xong, nhận
+  `<span class="media-load-ring" aria-hidden="true">`; frame có
+  `aria-busy="true"` theo số ảnh đang tải trong frame; gỡ khi `load`, `error`
+  hoặc rời trang. Ảnh lazy dưới fold không làm section bị `aria-busy`.
 - `src/site/style.css` `.media-load-ring`: vòng mảnh trung tính, quay
   0,9 s; reduced motion đứng yên.
 - Advertising (P9): card grid và related một ảnh hiện vòng qua `::after` khi

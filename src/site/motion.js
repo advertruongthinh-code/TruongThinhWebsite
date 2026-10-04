@@ -805,9 +805,23 @@
       });
   };
 
-  // Content images show an indeterminate ring inside their reserved frame until load or error
-  // (docs/specs/image-loading-progress.md). Advertising runtime media owns its own loading state.
+  // Content images show an indeterminate ring inside their reserved frame while they load in view
+  // (docs/specs/image-loading-progress.md). Lazy images below the fold stay idle until they enter the
+  // viewport. Advertising runtime media owns its own loading state.
   const watchMediaLoading = (state) => {
+    const busyCounts = new WeakMap();
+    const setBusy = (frame, delta) => {
+      const count = Math.max(0, (busyCounts.get(frame) || 0) + delta);
+      busyCounts.set(frame, count);
+      if (count) frame.setAttribute("aria-busy", "true");
+      else frame.removeAttribute("aria-busy");
+    };
+    const observer = new IntersectionObserver((entries) => entries.forEach(({ isIntersecting, target }) => {
+      if (!isIntersecting) return;
+      observer.unobserve(target);
+      target.dispatchEvent(new Event("media-load-visible"));
+    }));
+    state.abort.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
     state.container.querySelectorAll('img[src^="/assets/content/"]').forEach((image) => {
       if (image.complete || image.closest("[data-project-grid], [data-advertising-photo-view], .client-logo-marquee")) return;
       const frame = (image.parentElement?.tagName === "PICTURE" ? image.parentElement.parentElement : image.parentElement);
@@ -815,20 +829,29 @@
       const ring = document.createElement("span");
       ring.className = "media-load-ring";
       ring.setAttribute("aria-hidden", "true");
+      let timer = 0;
+      let shown = false;
       // A short delay keeps cache hits and fast loads from flashing the ring.
-      const timer = window.setTimeout(() => {
-        if (image.complete) return;
-        frame.setAttribute("aria-busy", "true");
-        frame.append(ring);
-      }, 150);
+      image.addEventListener("media-load-visible", () => {
+        timer = window.setTimeout(() => {
+          if (image.complete) return;
+          shown = true;
+          setBusy(frame, 1);
+          frame.append(ring);
+        }, 150);
+      }, { once: true, signal: state.abort.signal });
       const settle = () => {
         window.clearTimeout(timer);
+        observer.unobserve(image);
+        if (!shown) return;
+        shown = false;
         ring.remove();
-        frame.removeAttribute("aria-busy");
+        setBusy(frame, -1);
       };
       image.addEventListener("load", settle, { once: true, signal: state.abort.signal });
       image.addEventListener("error", settle, { once: true, signal: state.abort.signal });
       state.abort.signal.addEventListener("abort", settle, { once: true });
+      observer.observe(image);
     });
   };
 

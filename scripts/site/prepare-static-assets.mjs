@@ -232,9 +232,11 @@ const responsivePictures = (html) =>
     const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.webp`)));
     const set = (format) => [...widths.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
     if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" srcset="${src}.avif">${tag}</picture>`;
-    const sizes = tag.match(/\ssizes="([^"]+)"/)?.[1];
-    const img = tag.replace(/^<img\b/, `<img srcset="${set("webp")}"${sizes ? "" : ' sizes="100vw"'}`);
-    return `<picture><source type="image/avif" srcset="${set("avif")}" sizes="${sizes || "100vw"}">${img}</picture>`;
+    // Lazy images let the browser use their laid-out width ("auto"); 100vw is the fallback for older browsers.
+    const declared = tag.match(/\ssizes="([^"]+)"/)?.[1];
+    const sizes = declared || (/\sloading="lazy"/.test(tag) ? "auto, 100vw" : "100vw");
+    const img = tag.replace(/^<img\b/, `<img srcset="${set("webp")}"${declared ? "" : ` sizes="${sizes}"`}`);
+    return `<picture><source type="image/avif" srcset="${set("avif")}" sizes="${sizes}">${img}</picture>`;
   });
 
 const localizeHtmlOutput = async (directory) => {

@@ -1039,8 +1039,8 @@ stream + object URL 1417–1438 ms, 1 request, 25 mốc tiến độ, đạt 100
 progress khả thi về kỹ thuật nhưng phải bỏ chọn ảnh native của
 `<picture>`/`srcset`, preload scanner và lazy loading của browser; sau P5 ảnh
 nhỏ nên phần lớn thời gian là latency, vòng tiến độ gần như nhảy thẳng tới
-100%. Đề xuất: dừng nhánh byte progress, P7 chỉ dùng frame + vòng
-indeterminate; chờ owner quyết.
+100%. Owner chọn 2026-10-04: dừng nhánh byte progress, P7 chỉ dùng frame +
+vòng indeterminate.
 
 **Mô tả:** thử cùng một request với một hero và một card lazy; kiểm tra byte
 stream, encoding, cache/decode và so với native path.
@@ -1067,9 +1067,10 @@ production source. **Estimate:** 45–90 phút.
 
 ### P7 — Tạo frame và progress state dùng chung
 
-**Trạng thái 2026-10-04:** làm theo phương án đề xuất ở P6 (chờ owner xác
-nhận): `.media-load-ring` indeterminate trong frame sẵn có, hiện sau 150 ms để
-cache hit không lóe, `aria-busy` trên frame, reduced motion đứng yên.
+**Trạng thái 2026-10-04:** làm theo phương án owner chọn ở P6:
+`.media-load-ring` indeterminate trong frame sẵn có, chỉ khi ảnh vào viewport,
+hiện sau 150 ms để cache hit không lóe, `aria-busy` trên frame, reduced motion
+đứng yên.
 
 **Mô tả:** sau P5 pass, thêm thành phần dùng chung nhỏ nhất cho reserved frame,
 determinate/indeterminate ring, cache, ready và error.
