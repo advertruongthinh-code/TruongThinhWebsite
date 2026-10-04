@@ -146,6 +146,9 @@ nhật hoặc lý do không đổi.
    lockup, CTA, hero, project grid card, media-card, masonry, skeleton, vòng
    tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
    CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`).
+   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website, bundle
+   và ảnh `assets/Photos/`; `qa:docs` chạy chế độ `--check`, file sinh lệch
+   source thì fail.
 4. Motion là section `motion.md` (format không có nhóm token motion).
 5. `README.md` dùng đúng các heading Impeccable đọc (Overview, Colors,
    Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
