@@ -53,3 +53,17 @@ test("locale navigation switches to English and survives reload", async ({ page 
   await expect(page).toHaveURL(/\/en\/$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
+
+test("reload replays the route enter veil, then clears it", async ({ page }) => {
+  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await page.addInitScript(() => {
+    new MutationObserver(() => {
+      if (document.documentElement?.classList.contains("route-enter")) window.routeEnterSeen = true;
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ["class"] });
+  });
+  await page.reload({ waitUntil: "load" });
+  expect(await page.evaluate(() => window.routeEnterSeen === true), "reload skipped the route enter").toBe(true);
+  await expect(page.locator("html")).not.toHaveClass(/route-enter/);
+  await expect(page.locator(".route-veil")).toHaveCSS("opacity", "0");
+  await expect(page.locator("[data-project-grid] > noscript")).toBeHidden();
+});

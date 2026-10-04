@@ -15,12 +15,15 @@
     <meta name="theme-color" content="#ffffff" />
     <script>
       try {
-        const historyNavigation =
-          performance.getEntriesByType?.("navigation")[0]?.type ===
-            "back_forward" || performance.navigation?.type === 2;
+        // Reload and Back/Forward replay the route-transition enter phase.
+        const navigationType = performance.getEntriesByType?.("navigation")[0]?.type;
+        const replayRoute =
+          (navigationType === "reload" || navigationType === "back_forward" ||
+            performance.navigation?.type === 1 || performance.navigation?.type === 2) &&
+          !matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (
           sessionStorage.getItem("tt-route") === "1" ||
-          historyNavigation
+          replayRoute
         ) {
           sessionStorage.removeItem("tt-route");
           document.documentElement.classList.add("route-enter");
