@@ -1,7 +1,7 @@
 # Kiểm chứng LOGO-R3: tỷ lệ chữ gồm dấu
 
 - Ngày: 2026-09-10.
-- Contract: [Brand lockup](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
+- Contract: [Brand lockup](../../design-system/components/BrandLockup/README.md).
 - Owner duyệt delta trong [card AD-BROWSE-R1](https://app.notion.com/p/3d6332849a0e8124af03c79f3c2e8406), yêu cầu làm song song với plan grid đã duyệt.
 - Trạng thái: main nghiệm thu kỹ thuật LOGO-R3 sau independent review, native UI và 45/45 focused runtime checks. Owner preview còn mở; không dùng subset này làm PASS toàn site.
 

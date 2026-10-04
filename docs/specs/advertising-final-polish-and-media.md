@@ -165,7 +165,7 @@ bấm lại tắt, motion/hover/reduced motion và span/peek đã duyệt.
 
 Delta logo cùng lượt: owner xác nhận khối chữ4Y, cách biên trên/dưới markY
 và cách ngang markY, đo cả dấu; cho phép cân cỡ hai dòng và gap. Authority
-là [Brand lockup](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
+là [Brand lockup](../../design-system/components/BrandLockup/README.md).
 
 Focused verification: build/static, suggestion layout và motion E2E đạt.
 Main chạy lại VI/EN desktop/mobile và toggle giữ slot; CODE review đạt.

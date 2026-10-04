@@ -11,7 +11,8 @@
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
   anchor, giới hạn dòng, sync spec, design-drift, preview sinh) chạy trên PR; T3–T6 tạo
   `design-system/` (token, README, motion, content, ảnh Advertising, tham chiếu Espacio,
-  16 component: shell và trang sinh từ HTML/CSS, Advertising chụp từ runtime).
+  16 component: shell và trang sinh từ HTML/CSS, Advertising chụp từ runtime). T7: `DESIGN.md`
+  và sidecar Impeccable sinh từ `design-system/`, không sửa tay.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
@@ -44,7 +45,7 @@
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
 - UI contract: [photo/masonry](specs/advertising-photo-browse.md),
   [capability map](specs/advertising-september-2026-capability-map.md),
-  [menu mở](specs/full-menu-reference-parity.md), [DESIGN](../DESIGN.md).
+  [menu mở](specs/full-menu-reference-parity.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
   navbar về All; skeleton/CTA/footer theo P7.5.
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,

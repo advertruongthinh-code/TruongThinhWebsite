@@ -115,7 +115,7 @@ product/decision canonical. Route không tự tạo bản sao fact hoặc placeh
 
 ## Acceptance
 
-- Typography portal/hero theo [design system](../../DESIGN.md#typography).
+- Typography portal/hero theo [design system](../../design-system/README.md#typography).
 - Heritage inline image còn khoảng thở dọc ở mọi breakpoint.
 - Menu, filter, gallery, route link, Zalo CTA và back-to-top dùng được bằng bàn
   phím/touch.
@@ -132,7 +132,7 @@ DOM hook, lifecycle và ranh giới tùy biến của phần dùng chung; visual
 
 ### Shell tĩnh
 
-Visual target: [Brand lockup](../../DESIGN.md#brand-lockup--nguồn-chuẩn).
+Visual target: [Brand lockup](../../design-system/components/BrandLockup/README.md).
 Reuse guide này chỉ giữ DOM/source/lifecycle, không định nghĩa lại geometry hoặc màu.
 
 

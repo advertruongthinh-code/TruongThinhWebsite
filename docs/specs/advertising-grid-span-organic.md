@@ -43,7 +43,7 @@ nó chuẩn bị data contract để CMS sau này quản lý.
 | Hợp đồng | Nguồn duy nhất |
 | --- | --- |
 | Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](#hình-học-masonry-grid-r4-visual) |
-| Caption và token | [DESIGN](../../DESIGN.md#advertising-caption) |
+| Card (không caption) | [Media card](../../design-system/components/MediaCard/README.md) |
 | Motion, media entrance, reduced motion | [Motion guide](../../design-system/motion.md#advertising) |
 | Sáu nhóm ảnh, khách hàng, cấu tạo, brief, người/chữ/provenance và điểm | [Image quality](../../design-system/advertising-images.md) và các ref trong đó |
 | Data, algorithm, cache, migration và kiểm thử R4 | File này |
@@ -223,7 +223,7 @@ verification.
   `imageWidth = W`,
   `imageHeight = imageWidth * intrinsicHeight / intrinsicWidth`.
 - Không crop, kéo méo, canvas riêng hoặc backplate; mép ảnh trùng mép khung
-  ảnh, chiều cao tự do. Caption theo [DESIGN](../../DESIGN.md#advertising-caption).
+  ảnh, chiều cao tự do. Card không có caption ([Media card](../../design-system/components/MediaCard/README.md)).
 - Đo stagger: với hai cột kề, so mép dưới ảnh của hai item khác nhau gần nhau
   nhất theo ngưỡng D9 ở trên; chiều cao chuẩn chỉ là vùng ảnh hiển thị, không
   gồm caption. Terminal frontier cũng áp dụng. Mỗi ảnh chỉ chiếm một cột.
@@ -256,7 +256,7 @@ sở hữu. `layoutViewportWidth` dùng `documentElement.clientWidth`; native
 scrollbar không tính vào lưới. Content căn giữa; viewport rộng hơn `1570px` thì
 masonry giữ `1500px`. Điểm chuẩn geometry đọc từ test layout, không giữ bảng tay.
 
-Caption: [DESIGN.md](../../DESIGN.md#advertising-caption).
+Card không có caption: [Media card](../../design-system/components/MediaCard/README.md).
 
 ## Chú thích thuật ngữ
 

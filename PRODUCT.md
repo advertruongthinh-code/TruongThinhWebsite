@@ -76,7 +76,7 @@ Ràng buộc public:
 - Cho công trình lên tiếng trước lời quảng cáo; gắn sáng tạo với khả năng sản xuất và thi công.
 - Xanh biển và cam là điểm nhấn; nền ưu tiên giấy sáng, vật liệu và hình ảnh.
 - Giữ nhận diện Trường Thịnh; visual contract và implementation gap theo
-  [design system](DESIGN.md#brand-lockup--nguồn-chuẩn), ứng dụng/favicon theo
+  [design system](design-system/components/BrandLockup/README.md), ứng dụng/favicon theo
   [Brand lockup](design-system/components/BrandLockup/README.md).
 - Không dùng khuôn mặt nhận diện, ngoại trừ `assets/content/shared/legacy-team.webp` đã được owner duyệt.
 

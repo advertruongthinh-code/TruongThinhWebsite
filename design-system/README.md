@@ -17,6 +17,17 @@ trắng rộng và nhịp editorial để ảnh và typography dẫn câu chuy�
 - Blue và orange là accent hiếm, có chủ đích.
 - Motion phục vụ nội dung; reduced motion luôn có trạng thái cuối đầy đủ.
 
+Tài liệu kèm theo:
+
+- [Motion](motion.md): timing shell, menu, text, hover, Advertising; định dạng
+  token không có family motion nên mọi timing nằm ở đây.
+- [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
+- [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
+- [Tham chiếu Espacio](reference-espacio.md): số đo site tham chiếu.
+
+`DESIGN.md` ở gốc repo được sinh từ README này và `tokens.json` cho
+Impeccable; sửa ở đây rồi chạy `node scripts/docs/build-design-md.mjs`.
+
 ## Colors
 
 Một theme sáng; website không có dark theme.
@@ -52,15 +63,14 @@ nền giấy luôn là trọng tâm.
 | `body` | Đoạn văn, metadata | 16px, 500, 1.4, word-spacing 0.1em |
 | `filter` | Filter Advertising | 1rem, 700; mục chọn gạch chân 3px |
 | `label` | Caption, nav nhỏ, CTA | 0.8rem, 700, thường uppercase |
-| `caption-ad`, `caption-ad-narrow` | Caption card masonry | 12px hoặc 10.5px theo ngưỡng 578/579px |
 
 `tokens.json` ghi mức trần của các size `clamp()` vì định dạng token không
 nhận hàm; CSS giữ `clamp()`.
 
 **Quy tắc đọc trước.** Display tạo nhịp, body truyền thông tin, label định vị
-control. Không dùng weight hay tracking display cho đoạn đọc dài. Caption
-Advertising không clip dấu tiếng Việt (`Á`, `Ả`, `Ắ`), không dùng
-`overflow: hidden` để giả chiều cao.
+control. Không dùng weight hay tracking display cho đoạn đọc dài. Chữ không
+được clip dấu tiếng Việt (`Á`, `Ả`, `Ắ`); không dùng `overflow: hidden` để giả
+chiều cao dòng.
 
 ## Layout
 
@@ -76,6 +86,13 @@ Advertising không clip dấu tiếng Việt (`Á`, `Ả`, `Ắ`), không dùng
   hoặc solver thứ hai.
 - **Footer:** chỉ trụ sở, mạng xã hội, bản quyền; hai cột desktop, một cột
   mobile. Lời mời và CTA nằm trước footer.
+- **Scrollbar:** desktop dùng thumb overlay hiện khi cuộn, hover, kéo, không
+  chiếm chỗ; mobile và reduced motion dùng scrollbar native. Radius 10px của
+  thumb là ngoại lệ duy nhất ngoài `radius-round`
+  ([brand shell spec](../docs/specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)).
+- **Mobile:** tới 980px hero Home, About theo luồng chữ tự nhiên, Advertising
+  tới 1024px; chữ tăng 200% vẫn không đè header, title dài xuống dòng
+  ([mobile parity](../docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--accepted-2026-09-28)).
 
 **Quy tắc lưới tiêu điểm.** Layout mở chỗ cho ảnh, statement và khoảng thở;
 không thêm wrapper hay card grid để lấp chỗ trống.
@@ -97,18 +114,6 @@ tác, không phải elevation.
 
 **Quy tắc khung.** Khung vuông và đường thẳng giữ cảm giác editorial và xưởng.
 Thêm radius cho card, filter hoặc shell là thay đổi design system.
-
-## Motion
-
-Định dạng token không có family motion; mọi timing ở [Motion](motion.md).
-Nguyên tắc: motion phục vụ nội dung, reduced motion đi thẳng trạng thái cuối.
-
-## Các section khác
-
-- [Motion](motion.md): shell, menu, text, hover, Advertising.
-- [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
-- [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
-- [Tham chiếu Espacio](reference-espacio.md): số đo site tham chiếu.
 
 ## Components
 
@@ -147,6 +152,8 @@ Mẫu chưa có preview riêng:
 - **Don't** tạo component API hay wrapper không có trong source.
 - **Don't** sao chép source, media, logo, font của site tham chiếu Espacio.
 - **Don't** dùng màu `logo-mark-*` cho UI.
+- **Don't** đưa token hay primitive của admin (`src/admin/`, CMS chưa mở) vào
+  route public.
 
 ## Chú thích thuật ngữ
 

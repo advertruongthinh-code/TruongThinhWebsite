@@ -23,14 +23,12 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 
 ## Nguồn chuẩn và artifact của Impeccable
 
-[PRODUCT.md](../PRODUCT.md) sở hữu product truth; [DESIGN.md](../DESIGN.md)
-sở hữu visual primitives/roles, [.impeccable/design.json](../.impeccable/design.json)
-giữ extensions theo schema. Surface briefs nằm ở `.impeccable/surfaces/` khi có
-strategy riêng. Reuse contract (DOM hook, lifecycle) nằm trong spec sở hữu;
-không nhân bản token hoặc coi HTML specimen là production component.
-
-[design-system/](../design-system/README.md) là Design System mới (token kiểm drift
-với CSS `:root`); từ plan T7 `DESIGN.md` được sinh từ đây.
+[PRODUCT.md](../PRODUCT.md) sở hữu product truth. Visual truth ở
+[design-system/](../design-system/README.md) (token kiểm drift với CSS `:root`);
+[DESIGN.md](../DESIGN.md) và [.impeccable/design.json](../.impeccable/design.json)
+được sinh từ đó cho Impeccable, không sửa tay. Surface brief ở
+`.impeccable/surfaces/` giữ chiến lược riêng route. Reuse contract (DOM hook,
+lifecycle) nằm trong spec sở hữu.
 
 ## Contract hiện hành
 
@@ -67,7 +65,7 @@ với CSS `:root`); từ plan T7 `DESIGN.md` được sinh từ đây.
   kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
   chỉ tóm tắt card đang làm; chi tiết Done không được chép.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
-  và [DESIGN](../DESIGN.md): shell và visual authority.
+  và [Design System](../design-system/README.md): shell và visual authority.
 - [Static release](specs/frontend-static-release.md): build/hosting;
   [changelog](../CHANGELOG.md) ghi thay đổi phát hành.
 - [STATE](STATE.md) giữ active work, blocker và next action;
