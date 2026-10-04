@@ -145,7 +145,8 @@ nhật hoặc lý do không đổi.
 3. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand
    lockup, CTA, hero, project grid card, media-card, masonry, skeleton, vòng
    tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
-   CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`).
+   CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`,
+   bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
    `scripts/docs/build-design-system.mjs` sinh preview từ HTML website, bundle
    và ảnh `assets/Photos/`; `qa:docs` chạy chế độ `--check`, file sinh lệch
    source thì fail. Phần Advertising do JavaScript dựng được

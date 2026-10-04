@@ -20,6 +20,14 @@ const vendorAssets = [
   ["node_modules/lazysizes/lazysizes.min.js", "assets/vendor/lazysizes-5.3.2.min.js"],
   ["node_modules/gsap/dist/gsap.min.js", "assets/vendor/gsap-3.15.0.min.js"],
   ["node_modules/gsap/dist/SplitText.min.js", "assets/vendor/SplitText-3.15.0.min.js"],
+  ["node_modules/locomotive-scroll/dist/locomotive-scroll.min.js", "assets/vendor/locomotive-scroll-4.1.4.min.js"],
+  ["node_modules/locomotive-scroll/dist/locomotive-scroll.min.css", "assets/vendor/locomotive-scroll-4.1.4.min.css"],
+  ["node_modules/@barba/core/dist/barba.umd.js", "assets/vendor/barba-2.10.3.umd.js"],
+  ["node_modules/@fontsource-variable/plus-jakarta-sans/LICENSE", "assets/vendor/plus-jakarta-sans-5.3.0/LICENSE"],
+  ...["latin", "latin-ext", "vietnamese"].flatMap((subset) => ["normal", "italic"].map((style) => {
+    const file = `plus-jakarta-sans-${subset}-wght-${style}.woff2`;
+    return [`node_modules/@fontsource-variable/plus-jakarta-sans/files/${file}`, `assets/vendor/plus-jakarta-sans-5.3.0/${file}`];
+  })),
   ["node_modules/swiper/swiper.mjs", "assets/vendor/swiper-14.2.0/swiper.mjs"],
   ["node_modules/swiper/shared/swiper-core.mjs", "assets/vendor/swiper-14.2.0/shared/swiper-core.mjs"],
   ["node_modules/swiper/shared/utils.mjs", "assets/vendor/swiper-14.2.0/shared/utils.mjs"],

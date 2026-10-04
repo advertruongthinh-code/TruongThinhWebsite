@@ -958,7 +958,10 @@ hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
 - Bỏ: Sites tree/archive `dist/` + `.openai/hosting.json`; Workers deploy
       `.site-output/` qua `wrangler.static.toml`.
 - [ ] (thread font và cache) Candidate đạt gate LCP cùng cohort baseline; bytes
-      và ảnh đầu đã đạt, LCP chưa đạt; nếu trượt sau deploy thì rollback.
+      và ảnh đầu đã đạt, LCP chưa đạt; nếu trượt sau deploy thì rollback. Font,
+      Locomotive, Barba tự host và cache đã vào source
+      ([spec](../docs/specs/frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026)),
+      chờ deploy và đo demo.
 
 **Verification:** Git diff/commit/push gates, Worker version ID, route 200 và
 Network/Performance trên demo sau deploy.

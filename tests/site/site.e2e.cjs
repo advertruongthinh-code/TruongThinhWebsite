@@ -120,10 +120,7 @@ function assertPersistentNavigationContracts() {
     root,
     "assets/brand/truong-thinh-lockup.svg",
   );
-  const barbaUrl =
-    "https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.js";
-  const barbaIntegrity =
-    "sha384-T3/AkZI+fU7l5Ip18n7KLEi8r0LPLwiyIp0+anP6LuGlXmAwDS6l6YhmhJjiki/x";
+  const barbaUrl = "/assets/vendor/barba-2.10.3.umd.js";
   const bootstraps = [];
 
   assert(
@@ -196,7 +193,7 @@ function assertPersistentNavigationContracts() {
     const scriptOrder = [
       usesLocalEditorialMotion ? "gsap-3.15.0.min.js" : "gsap@3.13.0",
       ...(usesLocalEditorialMotion ? ["SplitText-3.15.0.min.js"] : []),
-      "locomotive-scroll@4.1.4",
+      'src="/assets/vendor/locomotive-scroll-4.1.4.min.js"',
       barbaUrl,
       'src="/detail.js"',
       'src="/motion.js"',
@@ -232,10 +229,8 @@ function assertPersistentNavigationContracts() {
       );
     }
     assert(
-      source.includes(`src="${barbaUrl}"`) &&
-        source.includes(`integrity="${barbaIntegrity}"`) &&
-        source.includes('crossorigin="anonymous"'),
-      `${relativePath} does not pin the approved Barba CDN asset`,
+      !/fonts\.googleapis\.com|fonts\.gstatic\.com|cdn\.jsdelivr\.net/.test(source),
+      `${relativePath} must self-host fonts and libraries instead of Google Fonts or jsDelivr`,
     );
     assert(bootstrap, `${relativePath} has no motion startup handshake`);
     bootstraps.push(bootstrap.replaceAll("\r\n", "\n"));

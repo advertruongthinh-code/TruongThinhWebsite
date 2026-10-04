@@ -164,7 +164,8 @@ Kết luận: gate bytes và ảnh đầu đạt (thời gian ảnh đầu giả
 chưa đạt: home biến thiên quá lớn với 2 lượt; residential và commercial có phần
 tử LCP là text nên LCP phụ thuộc font Google và JS từ CDN (gsap, Locomotive,
 Barba), không còn phụ thuộc ảnh. Hướng tiếp theo nằm ngoài pipeline ảnh: tự
-host font, cache dài cho `/assets/*`. Raw trên PC:
+host font và thư viện, cache dài cho `/assets/vendor/*`, đã làm theo
+[spec](frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026), chờ đo demo. Raw trên PC:
 `.tmp/image-delivery/p11-demo-20261004`.
 
 ## Giao diện module và nơi đặt code
