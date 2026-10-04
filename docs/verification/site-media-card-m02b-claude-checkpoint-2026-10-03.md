@@ -160,6 +160,24 @@ override viewport. PASS 4/4, `maxY=0`, 60 frame, `touch=true`: VI card `16` và
 `07`, EN card `16` và `10`. Raw trong worktree PC:
 `.tmp/site-media-card/related-scroll-20261004T063545608Z`.
 
+## Firefox và WebKit trên PC 2026-10-04
+
+Main `f3c9d9a`, preview local, chạy bản tạm của suite với Playwright Firefox và
+WebKit (VI/EN trong từng suite):
+
+| Suite | Firefox | WebKit |
+| --- | --- | --- |
+| Advertising transitions | 26 PASS, 3 FAIL | 26 PASS, 3 FAIL |
+| `site-media-card-m02a` | 11/11 PASS | 9 PASS, 2 FAIL |
+
+- Firefox: 3 FAIL đều do runtime diagnostics bắt console `downloadable font:
+  download failed ... status=2152398850` (NS_BINDING_ABORTED, Google Fonts bị
+  hủy khi điều hướng), không phải assertion hành vi. Test nay bỏ qua đúng thông
+  báo này.
+- WebKit transitions: 3 FAIL đã biết, có từ `f16d052`.
+- WebKit m02a: 2 FAIL ở video (mở primary video, unmount video), nghi Playwright
+  WebKit trên Windows không phát MP4/H.264; chưa xác nhận. Ca ảnh, AVIF đều PASS.
+
 ## Chú thích thuật ngữ
 
 - **Overscan**: vùng render thêm ngoài viewport trước khi unmount card.

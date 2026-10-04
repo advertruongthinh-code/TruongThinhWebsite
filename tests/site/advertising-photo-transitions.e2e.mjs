@@ -208,7 +208,8 @@ async function caseRun(name, viewport, fn, { allowedIssues = [], contextOptions 
   if (p13GateOnly) await installSynchronousHandlerProbe(page);
   const issues = [];
   page.on("pageerror", (error) => issues.push(`pageerror:${error.message}`));
-  page.on("console", (message) => { if (message.type() === "error") issues.push(`console:${message.text()}`); });
+  // Firefox reports Google Fonts requests aborted by navigation (NS_BINDING_ABORTED) as console errors.
+  page.on("console", (message) => { if (message.type() === "error" && !/^downloadable font: download failed .*status=2152398850/.test(message.text())) issues.push(`console:${message.text()}`); });
   let stage = "start";
   try {
     const evidence = await fn(page, (value) => { stage = value; });
