@@ -935,10 +935,15 @@ try {
       await page.goto(href(`/${scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-advertising-related-card="${id}"] > a`);
-      // Related order is seeded and virtualized; scroll down until the target card mounts.
-      for (let step = 0; step < 40 && !(await link.count()); step += 1) {
-        await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(window.TruongThinhMotion.getLogicalScroll() + innerHeight * 0.6));
+      // Related order is seeded and virtualized; sweep down, then back up, until the target card mounts.
+      for (let step = 0, direction = 1; step < 120 && !(await link.count()); step += 1) {
+        const moved = await page.evaluate((sign) => {
+          const before = window.TruongThinhMotion.getLogicalScroll();
+          window.TruongThinhMotion.setLogicalScroll(Math.max(0, before + sign * innerHeight * 0.6));
+          return before;
+        }, direction);
         await page.evaluate(frame);
+        if (await page.evaluate((before) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - before) < 1, moved)) direction = -direction;
       }
       // Smooth scroll ignores native scrollIntoView; move the logical scroll to the card instead.
       await link.evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,

@@ -112,8 +112,13 @@ async function primaryState(page) {
   });
 }
 
+// Responsive AVIF/width variants count as their authored WebP source.
 function mediaPath(value) {
-  return value ? new URL(value, base).pathname : "";
+  if (!value) return "";
+  const pathname = new URL(value, base).pathname;
+  return /^\/assets\/content\/.+\.avif$|-(?:480|960)\.(?:avif|webp)$/.test(pathname)
+    ? pathname.replace(/(?:-(?:480|960))?\.(?:avif|webp)$/, ".webp")
+    : pathname;
 }
 
 async function assertPrimary(page, card, expectedId, locale) {

@@ -989,6 +989,9 @@ reduced motion, CTA/footer và 3-second tick.
 
 ### P4 — Chẩn đoán bottleneck delivery
 
+**Trạng thái 2026-10-04:** rút gọn theo owner; bytes chi phối, xem
+[pipeline biến thể](../docs/specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04).
+
 **Mô tả:** phân rã baseline thành discovery/priority, queue/transfer,
 decode/reveal. Đây là bước read-only, chưa đổi source hoặc media.
 
@@ -1006,6 +1009,9 @@ cause. **Dependencies:** P0. **Files:** chỉ report evidence, không source.
 **Estimate:** 30–60 phút.
 
 ### P5 — Triển khai tối ưu delivery đã đo
+
+**Trạng thái 2026-10-04:** xong, AVIF/WebP `srcset` cho HTML tĩnh và
+Advertising runtime; đo lại trên demo chờ owner duyệt deploy.
 
 **Mô tả:** triển khai đúng nhánh P4 đã xác định; không thêm derivative nếu
 waterfall không cho thấy transfer bytes là nút thắt.

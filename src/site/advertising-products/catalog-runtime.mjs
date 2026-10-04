@@ -1,3 +1,4 @@
+import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   ADVERTISING_SEARCH_OPERATION_BUDGET,
@@ -674,11 +675,20 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   image.decoding = "async";
   image.width = record.media.width;
   image.height = record.media.height;
+  const srcset = responsiveSrcset(record.media.src, record.media.width);
   if (suggestion) {
+    if (srcset) {
+      image.sizes = "auto, 50vw";
+      image.srcset = srcset;
+    }
     image.src = record.media.src;
     image.alt = "";
     if (record.media.suggestionPosition) image.style.objectPosition = record.media.suggestionPosition;
   } else {
+    if (srcset) {
+      image.dataset.sizes = "auto";
+      image.dataset.srcset = srcset;
+    }
     image.dataset.src = record.media.src;
     image.alt = locale === "en" ? record.media.altEn : record.media.altVi;
   }
@@ -858,6 +868,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           layer.loading = "lazy";
           layer.decoding = "async";
           layer.alt = english ? item.altEn : item.altVi;
+          const srcset = responsiveSrcset(item.src, item.width);
+          if (srcset) {
+            layer.sizes = "auto, 50vw";
+            layer.srcset = srcset;
+          }
           layer.src = item.src;
           layer.addEventListener("load", updateLoading);
         }
@@ -2481,11 +2496,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.alt = english ? item.altEn : item.altVi;
       photoImage.loading = "eager";
       photoImage.fetchPriority = "high";
-      photoImage.src = item.src;
+      photoImage.src = responsiveSource(item.src);
     }
     updateAudioLabel();
     if (photoBackground) {
-      photoBackground.src = video ? item.posterSrc : item.src;
+      photoBackground.src = video ? item.posterSrc : responsiveSource(item.src);
       photoBackground.dataset.advertisingPhotoId = record.id;
     }
     photoViewer.setRecord(video ? null : { ...record, media: item });
@@ -2520,9 +2535,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         ? `Show ${item.kind === "video" ? "video" : "image"} ${index + 1} of ${items.length}: ${item.altEn}`
         : `Xem ${item.kind === "video" ? "video" : "ảnh"} ${index + 1} trên ${items.length}: ${item.altVi}`);
       const image = document.createElement("img");
+      image.loading = "lazy";
+      const thumbSrcset = item.kind === "video" ? "" : responsiveSrcset(item.src, item.width);
+      if (thumbSrcset) {
+        image.sizes = "auto, 25vw";
+        image.srcset = thumbSrcset;
+      }
       image.src = item.kind === "video" ? item.posterSrc : item.src;
       image.alt = "";
-      image.loading = "lazy";
       button.append(image);
       if (item.kind === "video") {
         button.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>');

@@ -30,8 +30,8 @@ trong `source-assets/` không tự được phát hành.
 ## Hiện trạng quan sát và delta được đề xuất
 
 `scripts/site/prepare-static-assets.mjs` hiện copy media từ `src/site/` sang
-`.site-output/` mà không tạo derivative; [content guide](../design/content.md#loading-và-alt)
-giữ một WebP/card, hoãn `srcset/sizes` tới CMS. Các hero có ưu tiên cao;
+`.site-output/` và từ 2026-10-04 thêm `<picture>`/`srcset` theo
+[pipeline biến thể](#pipeline-biến-thể-đã-triển-khai-2026-10-04). Các hero có ưu tiên cao;
 ảnh dưới fold dùng lazy + async; Advertising card dùng LazySizes và
 virtualization. Source này là baseline, không suy rằng mọi route đều có cùng
 nút thắt.
@@ -107,6 +107,42 @@ không suy thành kết quả của mọi người dùng.
 giữ ảnh quan trọng discoverable và không lazy-load; phép đo Sites mới quyết
 định tối ưu cụ thể.
 
+## Pipeline biến thể đã triển khai (2026-10-04)
+
+Owner yêu cầu ngày `2026-10-04` làm theo best practice, chỉ test vài trường hợp
+chính; P4 rút gọn vì bytes chi phối rõ (mục đo dưới). Contract hiện hành:
+
+- `scripts/site/build-image-variants.mjs` tạo cạnh mỗi WebP nội dung:
+  `name.avif` (full), `name-480/960.avif` và `.webp`; bỏ width không nhỏ hơn
+  ảnh gốc. AVIF q55, WebP q78, effort 6. `--originals` dùng PNG gốc khi cùng tỉ
+  lệ. CI chạy `--check`, thiếu biến thể thì fail.
+- HTML tĩnh: `prepare-static-assets.mjs` bọc `<img src=".../x.webp">` thành
+  `<picture>` với `<source type="image/avif">` và `srcset`, `sizes="100vw"`
+  khi không khai báo. Bỏ qua ảnh `data-src`, đã có `srcset`, hoặc có thuộc tính
+  `data-advertising-*` (runtime đổi `src`, `<source>` sẽ ghi đè). CSS đặt
+  `picture { display: contents; }`; selector `X > img` có thêm
+  `X > picture > img`.
+- Runtime Advertising (`advertising-products/responsive-image.mjs`): probe AVIF
+  một lần; card grid dùng LazySizes `data-srcset` + `data-sizes="auto"`, card
+  suggestion, carousel layer và thumb dùng `srcset` + `sizes="auto, ..."`;
+  viewer và expanded viewer dùng AVIF full khi browser hỗ trợ.
+
+Đo nhanh cloud ngày `2026-10-04`, Chromium, local preview, sau khi cuộn hết
+trang (bytes ảnh, trước → sau):
+
+| Route | 390 px DPR 2 | 1440 px |
+| --- | --- | --- |
+| `/vi/` | 3411 → 1346 KB | 3411 → 2025 KB |
+| `/vi/residential/` | 1920 → 458 KB | 2632 → 1031 KB |
+| `/vi/commercial/` | 2442 → 422 KB | 1980 → 1006 KB |
+| `/vi/about/` | 1174 → 428 KB | 1174 → 743 KB |
+| `/en/advertising-products/` | 23692 → 2476 KB | 23692 → 2476 KB |
+
+Không có request 404; kích thước render của mọi ảnh nội dung không đổi. Baseline
+demo ngắn (390 px vi, Slow 4G, CPU 4x, median): home LCP 3,8 s, residential
+4,18 s, commercial 4,08 s, about 3,80 s. Đo lại trên demo chỉ khi owner duyệt
+deploy.
+
 ## Giao diện module và nơi đặt code
 
 Source media nằm ở `src/site/assets/content/`; HTML và runtime thuộc
@@ -155,3 +191,5 @@ cho tới khi số đo Sites đạt và rollback vẫn khả dụng.
 - **Derivative**: biến thể kích thước của cùng ảnh đã duyệt.
 - **LCP**: thời điểm phần tử nội dung lớn nhất hiển thị trong viewport đầu.
 - **CLS**: tổng dịch chuyển layout ngoài ý muốn khi trang tải.
+- **AVIF**: định dạng ảnh nén tốt hơn WebP ở cùng chất lượng; browser cũ dùng WebP dự phòng.
+- **Probe**: phép thử nhỏ lúc chạy để biết browser có decode được AVIF hay không.

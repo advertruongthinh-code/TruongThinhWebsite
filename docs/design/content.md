@@ -294,8 +294,8 @@ hoặc CMS làm nguồn cho index public trước khi capability đó được b
 
 - Runtime dùng WebP trong không gian màu **sRGB**; chuyển ảnh CMYK hoặc
   Display-P3 về sRGB trước khi export.
-- Giữ file nguồn cần tái biên tập trong `source-assets/projects/`; production
-  HTML chỉ trỏ tới WebP trong `assets/content/`.
+- Giữ file nguồn cần tái biên tập trong `source-assets/projects/`; source HTML
+  chỉ trỏ tới WebP trong `assets/content/`, build tự thêm AVIF và `srcset`.
 - Xoá metadata nhúng, gồm EXIF/GPS, khỏi ảnh giao cho web.
 - `width` và `height` trong HTML phải bằng kích thước pixel **thật** của file,
   không phải kích thước CSS.
@@ -323,9 +323,11 @@ liệu; 90–220 KB là budget review, không phải ngưỡng tối thiểu.
   contain và alt VI/EN; nền không tham gia morph hoặc fullscreen viewer.
 - Ảnh có nội dung phải có alt VI và `data-en-alt` EN; mô tả điều ảnh cho người
   không nhìn thấy, không nhồi từ khoá.
-- Static phase hiện phát một WebP/card và chưa có `srcset`, `sizes` hoặc
-  derivative nhỏ hơn. Lazy loading và bounded virtualization giới hạn request;
-  responsive derivative được hoãn tới CMS phase để không tạo hai pipeline media.
+- Mỗi WebP nội dung có AVIF full size và bản 480/960 px (AVIF + WebP) do
+  `scripts/site/build-image-variants.mjs` tạo; contract chi tiết ở
+  [static image delivery](../specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04).
+  Thêm hoặc thay ảnh phải chạy lại script đó; CMS phase sẽ chuẩn hoá cùng bộ
+  biến thể khi upload.
 
 ### Safe crop và kiểm tra con người
 
