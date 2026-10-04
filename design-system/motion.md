@@ -190,14 +190,6 @@ outline. Touch không cần hover để mở ảnh.
 - Nền primary là bản sao cover + blur, chỉ animate opacity và transform; lớp
   kính `blur(28px) saturate(1.08) brightness(1.04)`, tint trắng alpha 0.12.
 
-### Ảnh trên sáu trang detail
-
-Khung ảnh giữ kích thước và luôn hiện; chỉ node `img` fade `0 → 1` trong
-`0.6s ease-out` một lần khi đã tải (`complete` và `naturalWidth > 0`, hoặc sự
-kiện `load`) và vào viewport. Lỗi tải thì giữ nền placeholder ở trạng thái
-cuối. Carousel native chạy trước, Swiper là nâng cấp; reduced motion đặt speed
-0.
-
 ## Chú thích thuật ngữ
 
 - **FLIP**: đo vị trí đầu và cuối rồi nội suy bằng transform.

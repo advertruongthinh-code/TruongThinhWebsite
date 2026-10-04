@@ -54,7 +54,7 @@ Public canonical routes theo locale:
 | `/{locale}/commercial/` | Shop/showroom, F&B/cafe, văn phòng |
 | `/{locale}/advertising-products/` | Sản phẩm quảng cáo, filter và bằng chứng gia công |
 | `/{locale}/about/` | Kinh nghiệm, xưởng, đội ngũ và cam kết |
-| `/{locale}/advertising-products/{slug}/` | Sáu trang chi tiết dùng chung một template |
+| `/{locale}/advertising-products/{slug}/` | Sáu URL cũ, chỉ chuyển hướng về `/{locale}/advertising-products/?category={slug}` |
 
 `{locale}` là `vi` hoặc `en`. Sáu slug hiện hành là `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`, `led-displays-lightboxes` và `print-decals`. `/{locale}/projects/:slug/` chỉ là contract CMS tương lai, chưa thuộc static runtime.
 
