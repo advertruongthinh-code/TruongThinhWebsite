@@ -159,12 +159,14 @@ outline. Touch không cần hover để mở ảnh.
   [skeleton](components/Skeleton/README.md) cuối masonry (Flow, 12 preset chọn
   theo media id, hiện `600ms`). Ảnh giải mã xong thì skeleton mờ đi, ảnh hiện
   lên: crossfade `0.3s` đến `0.9s` trong nhịp `1.4s`,
-  `cubic-bezier(0.65, 0, 0.35, 1)`. Kính hai bước còn lại ở
-  [Đã duyệt, chờ code](approved-designs.md#kính).
+  `cubic-bezier(0.65, 0, 0.35, 1)`. [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải)
+  năm bậc phủ khung trong lúc đó: hiện `0` đến `0.6s`
+  `cubic-bezier(0, 0, 0.26, 1)`, tan `0.6s` đến `1.4s`
+  `cubic-bezier(0.86, 0, 0.07, 1)`, chỉ opacity.
 - Ảnh tải xong trong `150ms` không có skeleton, chỉ fade `0.6s`. Card rời
   viewport hoàn toàn (`intersectionRatio = 0`) thì lần vào sau fade lại, kể cả
   ảnh đã cache; card còn giao một phần thì không restart.
-- Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong.
+- Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong, không kính.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 
 ### Skeleton tiếp nối
@@ -196,9 +198,10 @@ outline. Touch không cần hover để mở ảnh.
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 - Primary đổi ảnh tại chỗ, cả lần mở đầu từ masonry lẫn khi bấm related. Ảnh
   chưa giải mã xong sau `100ms` thì khung primary mang skeleton như card rồi
-  crossfade cùng nhịp `1.4s`. Ảnh có sẵn: ảnh đang xem và nền blur cũ mờ đi
-  trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`; mở lần đầu thì
-  ảnh mới hiện từ khung trống cùng nhịp.
+  crossfade dưới kính cùng nhịp `1.4s`. Ảnh có sẵn: ảnh đang xem và nền blur
+  cũ mờ đi trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`, kính
+  hiện `0` đến `0.26s` rồi tan tới `0.6s`; mở lần đầu thì ảnh mới hiện từ khung
+  trống cùng nhịp. Reduced motion: không kính.
 - Viewer: transform từ khung hero tới fit và ngược lại; zoom nội suy giữa fit,
   cover và hai lần cover; pan theo con trỏ tức thì, giới hạn theo ảnh đã phóng.
 - Nền primary là bản sao cover, chỉ animate opacity và transform; nhìn qua
