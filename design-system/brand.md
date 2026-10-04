@@ -1,13 +1,39 @@
-# Logo
+# Brand guideline
 
-Brand guideline cho logo Trường Thịnh: cấu tạo, hình dựng tỷ lệ, dạng màu,
-motion và state machine màu của mark. Mọi giá trị lấy từ code đang chạy
+Câu chuyện, giá trị cốt lõi và logo của Trường Thịnh. Câu chuyện do owner viết
+ngày 04/10; logo lấy từ code đang chạy
 (`src/site/assets/brand/truong-thinh-lockup.svg`, `src/site/style.css`,
-`src/site/motion.js`) và các quyết định owner đã chốt từ LOGO-R2 tới R5.
-Số SVG, chiều cao theo trạng thái và sai số nghiệm thu ở
+`src/site/motion.js`) và các quyết định owner đã chốt từ LOGO-R2 tới R5. Số
+SVG, chiều cao theo trạng thái và sai số nghiệm thu ở
 [Brand lockup](components/BrandLockup/README.md).
 
-## Cấu tạo
+## Câu chuyện thương hiệu
+
+Khách hàng đến với Trường Thịnh nhận được ba cam kết:
+
+| Cam kết | Nghĩa là |
+| --- | --- |
+| Chất lượng sản phẩm | Tỉ mỉ, chính xác trong thi công |
+| Tư vấn | Tận tâm và chuyên sâu trong suốt quá trình tư vấn |
+| Hậu mãi | Dịch vụ sau bán hàng đầy đủ |
+
+Ba cam kết đó đã được chứng minh qua hơn 20 năm thương hiệu đứng vững và phát
+triển trên thương trường. Đó là giá trị cốt lõi được gìn giữ, truyền lại và
+phát huy, cùng sự sáng tạo và tinh thần tiếp thu cái mới, để từng sản phẩm và
+dịch vụ đều **chỉn chu, tận tâm, chuyên nghiệp**.
+
+Khi viết copy:
+
+- Mỗi cam kết đi kèm bằng chứng thật: ảnh công trình, xưởng, vật liệu, quy
+  trình Khảo sát, Tư vấn, Sản xuất, Lắp đặt. Giọng điệu theo
+  [Content và media](content.md#giọng-điệu).
+- Dùng "hơn 20 năm"; không suy ra năm thành lập.
+- Hậu mãi là cam kết chung; không ghi thời hạn hay điều khoản bảo hành khi
+  owner chưa xác nhận (`PRODUCT.md`).
+
+## Logo
+
+### Cấu tạo
 
 - **Mark:** tam giác dựng từ bốn dải chéo song song, SVG bốn path,
   `viewBox 0 0 286.2 247.85`. Từ trái sang phải: cyan (dải dài nhất, chạm
@@ -18,7 +44,7 @@ Số SVG, chiều cao theo trạng thái và sai số nghiệm thu ở
 - Mark luôn đứng trái, cụm chữ đứng phải. Không tách mark dùng riêng, trừ
   favicon.
 
-## Hình dựng tỷ lệ
+### Hình dựng tỷ lệ
 
 Đơn vị dựng là chiều cao mark: gọi H là chiều cao mark, Y = H/6.
 
@@ -67,7 +93,7 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 - EN dùng đúng hình dựng VI (correction R5): tiêu đề trùng VI; phụ đề EN cùng
   cỡ và khe với VI, chỉ nén tracking để bằng chiều ngang tiêu đề.
 
-## Dạng màu
+### Dạng màu
 
 | Dạng | Mark | Cụm chữ | Dùng ở |
 | --- | --- | --- | --- |
@@ -89,7 +115,7 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 - Favicon là ngoại lệ mark-only duy nhất: hai file `favicon-black.svg`,
   `favicon-white.svg` cùng `viewBox`, bốn path, chỉ khác màu đơn sắc.
 
-## Motion
+### Motion
 
 | Motion | Thông số | Khi nào |
 | --- | --- | --- |
@@ -113,7 +139,7 @@ cùng xong một lúc, path bắt đầu muộn thì đổi nhanh hơn:
 FLIP chạy song song với chuỗi màu và không hủy nó. Giảm chuyển động: không
 intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
 
-## State machine màu
+### State machine màu
 
 Header có một trong ba trạng thái màu mark. Header ở tone mực (nền trắng) khi
 một trong ba điều kiện đúng: đã cuộn quá `100px` (sticky), section đang dưới
@@ -151,6 +177,8 @@ sẵn sàng.
 
 ## Chú thích thuật ngữ
 
+- **Giá trị cốt lõi**: điều thương hiệu giữ không đổi qua mọi sản phẩm, dịch vụ.
+- **Hậu mãi**: dịch vụ sau bán hàng như bảo trì, sửa chữa, hỗ trợ.
 - **Mark**: phần hình tam giác của logo.
 - **Cụm chữ**: hai dòng tiêu đề và phụ đề đứng cạnh mark.
 - **Lockup**: mark và cụm chữ đi cùng nhau.

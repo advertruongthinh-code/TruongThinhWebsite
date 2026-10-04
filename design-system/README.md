@@ -24,8 +24,8 @@ Tài liệu kèm theo:
 
 - [Motion](motion.md): timing shell, menu, text, hover, Advertising; định dạng
   token không có family motion nên mọi timing nằm ở đây.
-- [Logo](logo.md): brand guideline, hình dựng tỷ lệ, dạng màu, motion và
-  state machine màu của mark.
+- [Brand guideline](brand.md): câu chuyện thương hiệu, giá trị cốt lõi và logo
+  (hình dựng tỷ lệ, dạng màu, motion, state machine màu của mark).
 - [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
 - [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
 - [Đã duyệt, chờ code](approved-designs.md): thiết kế owner đã duyệt nhưng
