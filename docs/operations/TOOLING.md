@@ -137,6 +137,12 @@ Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAI
 `claude plugin list` liệt kê sáu plugin `@skills-dir`. Repo này tắt năm plugin
 skill trùng qua `.claude/settings.json` (`enabledPlugins: false`), chỉ dùng bản vendor.
 
+Máy local cài cùng năm plugin skill (pin, bỏ hook, cùng cờ invocation) bằng
+`pwsh -NoProfile -File scripts/tooling/local-setup.ps1`, một lần mỗi máy rồi
+restart Claude Code; MCP local vẫn do `bootstrap.ps1`. Kế hoạch một nguồn
+skill: (A) script local, (B) owner chạy và verify cloud + local, (C) xóa vendor
+`.claude/skills`, override Codex và `.claude/settings.json`.
+
 ## Doctor và update
 
 ```powershell
