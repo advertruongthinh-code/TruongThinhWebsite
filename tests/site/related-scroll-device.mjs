@@ -52,6 +52,7 @@ async function runDevice() {
     const setting = (name, value) => adbRun(serial, "shell", "settings", value === undefined ? "get" : "put", "system", name, ...(value === undefined ? [] : [value]));
     const saved = ["accelerometer_rotation", "user_rotation"].map((name) => [name, setting(name)]);
     process.on("exit", () => saved.forEach(([name, value]) => setting(name, value)));
+    process.on("SIGINT", () => process.exit(130));
     setting("accelerometer_rotation", "0");
     setting("user_rotation", "1");
     while (!(await page.evaluate(() => innerWidth > innerHeight))) await sleep(250);
