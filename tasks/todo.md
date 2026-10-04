@@ -456,9 +456,11 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 Cloud04/10: Chromium layout all4688records0fault, L04R1 200% không còn RED;
 sửa focus `Xem lớn hơn` bị header che và badge `Vừa xem` cắt
 ([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026)).
-Firefox/WebKit, A05s, iPhone còn chờ đợt PC; chưa check L04R1–R3.
-Cloud không cài được Firefox/WebKit: network policy trả403 cho CDN Playwright
-(`cdn.playwright.dev`, `playwright.download.prss.microsoft.com`), kiểm04/10.
+Cloud04/10 sau khi owner mở host: WebKit26.6 layout all4694records0fault,
+viewport63samples0failure. Firefox155 chạy được nhưng không tin CA proxy cloud
+nên jsDelivr/font trả `SEC_ERROR_UNKNOWN_ISSUER`, matrix164/220: raw không dùng
+nghiệm thu ([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#firefox-và-webkit-trên-cloud-04102026)).
+Còn Firefox (PC), A05s, iPhone; chưa check L04R1–R3.
 
 ### L04H — About Back/Forward, plan đã duyệt
 
