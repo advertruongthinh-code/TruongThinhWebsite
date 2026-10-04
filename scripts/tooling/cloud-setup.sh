@@ -5,7 +5,7 @@
 #
 # Owner rule: skills, commands, agents and MCP only, never agent lifecycle hooks.
 # Each plugin loads as a skills-directory plugin (~/.claude/skills/<name>/ with
-# .claude-plugin/plugin.json) that links the pinned checkout minus its hooks.
+# .claude-plugin/plugin.json) linking the pinned checkout, its hooks stripped.
 # MCP servers live in the local "cloud-stack" plugin. Pins mirror tooling-versions.json.
 # Always exits 0 so a failed install never blocks the session; read
 # /opt/agent-tools/setup.log for the per-item result.
@@ -71,20 +71,20 @@ exec /opt/pw-browsers/chromium --no-sandbox "$@"
 EOF
 chmod +x /usr/local/bin/chromium
 
-wrap() { # <checkout> <name>: plugin linking every entry except hooks, manifest without hooks
-  local w="$T/plugins/$2" e
-  mkdir -p "$w/.claude-plugin"
-  for e in "$1"/* "$1"/.claude; do
-    [ -e "$e" ] && [ "${e##*/}" != hooks ] && ln -sfn "$e" "$w/${e##*/}"
-  done
-  jq 'del(.hooks)' "$1/.claude-plugin/plugin.json" > "$w/.claude-plugin/plugin.json"
-  ln -sfnT "$w" "$CFG/skills/$2"
+# Strip hooks in place: drop the default hooks/hooks.json and the manifest `hooks` key.
+# Keep hooks/ itself (ponytail-mcp imports from it). Symlinked component dirs are
+# rejected as "path escapes plugin directory", so link the checkout root itself.
+unhook() { # <checkout> <name>
+  local m="$1/.claude-plugin/plugin.json"
+  rm -f "$1/hooks/hooks.json"
+  jq 'del(.hooks)' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+  ln -sfnT "$1" "$CFG/skills/$2"
 }
-wrap "$T/src/agent-skills" agent-skills
-wrap "$T/src/caveman" caveman
-wrap "$T/src/ponytail" ponytail
-wrap "$T/src/impeccable/plugin" impeccable
-wrap "$T/src/i-have-adhd" i-have-adhd
+unhook "$T/src/agent-skills" agent-skills
+unhook "$T/src/caveman" caveman
+unhook "$T/src/ponytail" ponytail
+unhook "$T/src/impeccable/plugin" impeccable
+unhook "$T/src/i-have-adhd" i-have-adhd
 
 # Local plugin carrying the MCP servers.
 P="$T/cloud-stack"
@@ -119,4 +119,5 @@ for c in caveman impeccable chrome-devtools-mcp; do
   command -v "$c" >/dev/null && echo "OK   $c" || echo "FAIL $c"
 done
 grep -l '"hooks"' "$CFG"/skills/*/.claude-plugin/plugin.json && echo "FAIL hooks in a manifest"
+ls "$CFG"/skills/*/hooks/hooks.json 2>/dev/null && echo "FAIL default hooks.json left"
 exit 0
