@@ -94,8 +94,10 @@ khoảng 7 ngày, nên áp dụng cho mọi cloud session, mọi repo.
 
 Cơ chế, theo rule global "never install agent lifecycle hooks": cloud chỉ có
 skill, command, agent, MCP. Mỗi plugin là skills-directory plugin
-`~/.claude/skills/<tên>`, thư mục bọc symlink mọi entry của checkout pin trong
-`/opt/agent-tools/src` trừ `hooks/`, manifest bỏ khóa `hooks`. Claude Code nạp
+`~/.claude/skills/<tên>`, symlink tới checkout pin trong `/opt/agent-tools/src`;
+script xóa `hooks/hooks.json` và khóa `hooks` của manifest ngay trong checkout
+(thư mục bọc bằng symlink từng phần bị Claude Code từ chối: "Path escapes plugin
+directory"). Claude Code nạp
 plugin dạng này mọi session, không cần `settings.json` (docs cloud ghi user
 settings "not read"). Plugin local `cloud-stack` chỉ giữ MCP. Rule global ghi
 vào `~/.claude/CLAUDE.md` của VM, chép nguyên khối `codex:global-stack` trong
