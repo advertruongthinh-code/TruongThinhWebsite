@@ -449,12 +449,12 @@ kiểm không có author override, không gọi đó là physical appearance PAS
 ## Mobile viewport stability — accepted 2026-09-27
 
 Module `mobile-viewport-stability` thuộc
-[map toàn website đã duyệt](mobile-browser-parity-capability-map.md#feedback-viewer-và-mobile-toàn-website--map-chờ-duyệt).
+[map toàn website đã duyệt](mobile-browser-parity-capability-map.md#feedback-viewer-và-mobile-toàn-website--map-đã-duyệt).
 Owner xác nhận giữ card/bố cục ổn định khi toolbar hiện/ẩn, Safari/iPhone và
 Chrome/A54, trên22 route VI/EN dọc/ngang. Owner duyệt bằng
 “Duyệt delta viewport”; plan V00–V05 và card riêng đã duyệt bằng
 “Duyệt plan và card viewport (đề xuất)”. Implementation/proof theo
-[plan viewport](../../tasks/plan.md#mobile-viewport-stability--plan-chờ-duyệt).
+[plan viewport](../../tasks/plan.md#mobile-viewport-stability--plan-accepted-2026-09-27).
 Giả định: website public web hiện hữu; browser/version thực dùng phải được ghi
 trong evidence; không coi WebKit desktop là Safari/iPhone physical.
 
@@ -600,7 +600,7 @@ Timing/performance probes tách screenshot overhead, không hạ thresholds cũ.
 
 Owner duyệt intent, map và delta viewport ngày27/09/2026;
 **implementation plan đã duyệt** bằng “Duyệt plan và card viewport (đề xuất)”.
-Plan cụ thể: [V00–V05](../../tasks/plan.md#mobile-viewport-stability--plan-chờ-duyệt),
+Plan cụ thể: [V00–V05](../../tasks/plan.md#mobile-viewport-stability--plan-accepted-2026-09-27),
 checklist tại [tasks/todo.md](../../tasks/todo.md#mobile-viewport-stability--v00v05).
 V01 triển khai shared token `--site-layout-viewport-height`: `100svh`, fallback
 `100vh`, desktop981px trở lên dùng `100vh`. `TruongThinhMotion.getViewportMetrics()`
@@ -639,7 +639,7 @@ accepted scrollbar/random/skeleton hoặc mở module layout/motion/glass kế t
 
 ## Site mobile layout parity — accepted 2026-09-28
 
-Module kế tiếp trong [map đã duyệt](mobile-browser-parity-capability-map.md#feedback-viewer-và-mobile-toàn-website--map-chờ-duyệt):
+Module kế tiếp trong [map đã duyệt](mobile-browser-parity-capability-map.md#feedback-viewer-và-mobile-toàn-website--map-đã-duyệt):
 owner yêu cầu sửa iPhone/A54 và landscape overlap trên toàn website VI/EN.
 Intent/map đã duyệt; owner duyệt delta ngày28/09/2026 bằng
 “Duyệt delta layout (đề xuất)”. Alias anchor draft được giữ cho các link cũ.
@@ -684,7 +684,7 @@ Source ownership dự kiến shared `style.css`, `detail.css`, runtime geometry
 consumer và page HTML thật khi evidence chỉ ra cần; reuse token và intrinsic
 layout hiện hữu. Không thêm runtime layer/dependency hoặc nhân CSS theo22 URL.
 Actual files, tasks/estimate/rollback tại
-[plan layout L00–L07](../../tasks/plan.md#site-mobile-layout-parity--plan-chờ-duyệt),
+[plan layout L00–L07](../../tasks/plan.md#site-mobile-layout-parity--plan-đã-duyệt),
 [card riêng](https://app.notion.com/p/3e8332849a0e81f18301f28c1091a9c3) đã tạo/fetch
 verified sau owner approval; checklist giữ gate physical/owner riêng.
 

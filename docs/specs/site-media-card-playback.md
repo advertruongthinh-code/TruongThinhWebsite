@@ -241,7 +241,7 @@ reference asset, recovery `8790`, vendor hoặc deploy trong module này.
    thanh hoặc hứa chuyển timestamp khi chưa có bằng chứng.
 
 Khi thực thi theo plan được duyệt, ghi supersession có chọn lọc ở
-[photo morph](advertising-photo-morph-scroll.md#advertising-history-motion--accepted-2026-09-28) và các đoạn
+[photo morph](advertising-photo-morph-scroll.md#delta-browser-history-và-vị-trí-cuộn-còn-hiệu-lực) và các đoạn
 grid-detail morph của [photo browse](advertising-photo-browse.md); **không** xóa contract viewer open/close
 morph, scroll theo entry hoặc R9 wheel zoom. Plan riêng đã được owner duyệt;
 M02b còn chờ GREEN cùng hash và nghiệm thu độc lập. Theo yêu cầu owner ngày

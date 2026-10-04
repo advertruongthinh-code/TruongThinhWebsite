@@ -1,171 +1,61 @@
 ---
-title: <tiêu đề slice>
-type: frontend | cms | cross-cutting
-status: draft
+title: <tên capability>
+status: live
+source:
+  - <glob file source spec này sở hữu, ví dụ src/site/about/**>
+tests:
+  - <file test chứng minh hành vi>
+notion: none
 updated: YYYY-MM-DD
-notion: <URL page/card Notion đã approve hoặc none>
-related_decisions: []
-related_reports: []
 ---
 
-# <Tiêu đề slice>
+# <Tên capability>
 
-## 1. Vấn đề và kết quả
+<!-- Mẫu theo docs/specs/docs-system.md R2. Tối đa 300 dòng; dài hơn thì tách
+capability. Viết từ source và test hiện tại. Không ghi lịch sử, delta hay
+evidence có ngày: Git log và mô tả PR giữ. status: live | planned | dormant. -->
 
-### Vấn đề
+## Mục đích
 
-<Điều gì đang thiếu hoặc đang fail hôm nay?>
+<Tối đa 5 dòng: capability làm gì cho ai, ranh giới với capability khác.>
 
-### User và context
+## Hành vi
 
-<Ai gặp vấn đề, trong tình huống nào và vì sao?>
+### R1. <Tên requirement>
 
-### Kết quả mong muốn
-
-<Kết quả quan sát được, không phải implementation task.>
-
-### Goal và non-goal
-
-| Trong scope | Ngoài scope |
-| --- | --- |
-| <goal> | <non-goal rõ ràng> |
-
-## 2. Constraint và câu hỏi mở
-
-### Constraint
-
-- <Invariant bắt buộc hoặc product boundary.>
-
-### Câu hỏi mở
-
-| Câu hỏi | Owner | Evidence giải quyết |
-| --- | --- | --- |
-| <câu hỏi> | <owner> | <evidence> |
-
-## 3. User workflow và acceptance
+<Một đoạn ngắn mô tả hành vi hiện tại. Câu chưa chắc ghi
+`[CẦN LÀM RÕ: câu hỏi]`, không đoán.>
 
 ```gherkin
-Given <context>
-When <action>
-Then <observable result>
-And <important invariant>
+Given <bối cảnh>
+When <hành động>
+Then <kết quả quan sát được>
 ```
 
-## 4. System và implementation boundary
+## Giao diện và dữ liệu
 
-### Context và data flow
-
-<Chỉ mô tả component, contract, data và migration impact cần cho slice này.>
-
-### Interface và type
-
-<Interface public hoặc internal cần cho slice. Không invent provider-specific
-detail trước khi provider được chọn.>
-
-### Cấu trúc project
-
-<Path source, test và document liên quan.>
-
-## 5. Hướng dẫn implementation
-
-### Command
-
-```text
-Build: <command hoặc N/A>
-Test: <command hoặc N/A>
-Verify: <command hoặc N/A>
-```
-
-### Implementation path
-
-<Implementation path nhỏ nhất, invariant và example.>
-
-### Code và contract style
-
-<Naming, validation, interface shape và một example đại diện.>
-
-## 6. Thuộc tính chất lượng
-
-| Attribute | Requirement | Evidence |
+| Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Accessibility | <requirement> | <check> |
-| Performance | <requirement> | <check> |
-| Security | <requirement hoặc N/A> | <check> |
-| Maintainability | <requirement> | <check> |
+| DOM hook | `[data-...]` | <ai đọc, ai ghi> |
+| Data | `<file>` | <nội dung, ai sinh> |
+| Hàm public | `<tên>` | <input, output, lỗi> |
 
-## 7. Kế hoạch verification
+## UI
 
-| Level | Scenario | Command hoặc method | Evidence kỳ vọng |
-| --- | --- | --- | --- |
-| <level> | <scenario> | `<command>` | <result> |
+<Link tới component và section trong `design-system/`. Không chép token,
+khoảng cách hay timing.>
 
-## 8. Delivery, migration và rollback
+## Kiểm tra
 
-### Thin vertical slice
+| R | Test hoặc command |
+| --- | --- |
+| R1 | `<file test>` hoặc "chưa có test" |
 
-<Hành vi end-to-end nhỏ nhất chứng minh được kết quả.>
+## Gate còn mở
 
-### Known limitation
-
-1. <Điều cố ý defer.>
-
-### Migration và rollback
-
-<Các bước additive, compatibility, rollback trigger và recovery path. Dùng N/A
-nếu slice chỉ thay đổi tài liệu.>
-
-## 9. Reference và history
-
-### Decision liên quan
-
-- `../decisions/<descriptive-slug>.md`
-
-### Report liên quan
-
-- `../reports/<category>-<slug>.md`
-
-| Date | Change | Reason |
-| --- | --- | --- |
-| YYYY-MM-DD | Initial draft | <reason> |
-
-## Phụ lục A (tùy chọn) — mục thêm cho frontend slice
-
-Thêm khi `type: frontend`; link giá trị visual về nguồn chuẩn theo
-`docs/design/index.md`, không lặp token, ratio, timing hoặc copy.
-
-- Route/surface, trong và ngoài scope; route hierarchy, empty/loading/error,
-  cặp VI/EN.
-- Surface brief `.impeccable/surfaces/<slug>.md` hoặc none; visual thesis và
-  design authority bằng link.
-- DOM/component responsibility; responsive, motion, accessibility target cùng
-  runtime consumer.
-- Metadata, alt/ARIA, loading strategy, budget ảnh/video.
-- Verification: route/content (static check), visual và responsive (viewport
-  matrix, Playwright, Chrome DevTools), accessibility tree, performance.
-
-## Phụ lục B (tùy chọn) — mục thêm cho CMS slice
-
-Thêm khi `type: cms`.
-
-- Editorial outcome và public outcome; actor, auth boundary, lifecycle
-  draft/review/publish/unpublish.
-- Content có cấu trúc: field, localized text, media, alt, poster, `layoutKey`
-  allowlist; reject raw HTML, arbitrary CSS và component code.
-- Interface: admin command, public read contract, validation/authorization
-  error, idempotency, compatibility.
-- Media pipeline: validation, size/type limit, naming, variant, orphan
-  cleanup, retention, recovery.
-- Security và operations: session, CSRF, rate limit, audit event, logging,
-  alerting. Rendering: `structured post -> validated media -> allowlisted
-  layoutKey -> deterministic renderer -> static-safe fallback`.
+<Chỉ việc NOT PASS chưa đóng, mỗi dòng nêu thiếu gì và ai đóng. Xóa dòng khi
+đóng. Không còn gì thì ghi "Không có".>
 
 ## Chú thích thuật ngữ
 
-- **Slice**: phần thay đổi nhỏ có boundary rõ.
-- **Invariant**: điều kiện phải luôn được giữ.
-- **Acceptance**: điều kiện để chấp nhận kết quả.
-- **Migration**: chuyển schema, dữ liệu hoặc behavior từ trạng thái cũ.
-- **Rollback**: quay lại trạng thái an toàn trước thay đổi.
-- **Allowlist**: danh sách giá trị được phép.
-- **Idempotency**: chạy lại cùng request không tạo kết quả trùng ngoài ý muốn.
-- **Viewport matrix**: tập kích thước màn hình dùng để kiểm tra.
+- **<Thuật ngữ>**: <nghĩa ngắn>.

@@ -484,7 +484,7 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
 ngày27/09/2026 bằng “Duyệt delta skeleton”.
 [Map bổ sung](mobile-browser-parity-capability-map.md#feedback-preview--intent-và-map-bổ-sung-đã-duyệt)
 đã duyệt27/09; intent “Xác nhận intent này”. Delta này cụ thể hóa lifecycle
-R7/R10/P7.1, giữ geometry/Flow/glass đã accepted. [Plan correction](../../tasks/plan.md#correction-baseline-và-skeleton--plan-chờ-duyệt)
+R7/R10/P7.1, giữ geometry/Flow/glass đã accepted. [Plan correction](../../tasks/plan.md#correction-baseline-và-skeleton--accepted-2026-09-27)
 cần owner duyệt trước implementation; approval spec không mở code hoặc release.
 Landscape thuộc module khác, chưa sửa trong delta này.
 
@@ -686,7 +686,7 @@ giữ nguyên. C06 tìm
 counterexample thật tại candidate catalog `94dbffac…`: N4 có13 frame, N3 có10
 frame nhưng hai common slots `2:1` và `2:3` đều giữ preset `electric-tide`.
 Không thể vừa giữ preset của cả hai common slots vừa yêu cầu10 frame không
-trùng preset. [Evidence và hai lựa chọn](../verification/mobile-skeleton-correction-2026-09-27.md#c06-counterexample-và-gate-còn-mở)
+trùng preset. [Evidence và hai lựa chọn](../verification/mobile-skeleton-correction-2026-09-27.md#c06u-logical-deck-current-build-và-gates)
 giữ raw seed, membership và assignment; không phải lỗi của shader.
 
 **Lựa chọn A đã duyệt:** ưu tiên card ổn định như intent owner. Một logical
