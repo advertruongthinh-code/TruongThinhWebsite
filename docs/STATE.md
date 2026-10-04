@@ -47,8 +47,9 @@
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
   QA/audit 04/10 các PR #13–#29, #39 trên Chromium cloud: gate đỏ là test chưa
   biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Còn mở: vòng tải
-  SMIL vẽ lại liên tục sau khi ảnh xong (F1)
-  ([QA 04/10](verification/qa-audit-done-tasks-2026-10-04.md)).
+  SMIL vẽ lại liên tục sau khi ảnh xong và bốn finding nhỏ, ghi ở "Gate còn mở"
+  của [vòng tải](specs/image-loading-progress.md#gate-còn-mở) và
+  [tải ảnh](specs/static-image-delivery.md#gate-còn-mở).
 - Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 performance thật,
   owner visual các đợt cũ chưa đóng. Editor skeleton tạm đã gỡ khỏi public
   source trước ship; preset hiện hành giữ nguyên.

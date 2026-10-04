@@ -208,6 +208,17 @@ cho tới khi số đo Sites đạt và rollback vẫn khả dụng.
 - **Không làm:** tải mọi ảnh cùng lúc, nhân đôi request để đo progress, edit
   `.site-output/`, phát hành ảnh nguồn chưa duyệt hoặc bỏ QA vì số đo nhanh hơn.
 
+## Gate còn mở
+
+- Slideshow gợi ý: ảnh kế đổi sang `loading="eager"` làm `sizes="auto, 50vw"`
+  rơi về `50vw`, có thể tải biến thể 960 cho nút 316 px (suy luận, chưa tái hiện).
+- `responsive-image.mjs` probe AVIF bất đồng bộ: deep link `?photo=` có thể
+  render WebP trước rồi tải lại AVIF khi mở viewer (suy luận).
+- Placeholder eager `advertising-print-decals-cover.webp` trong
+  `advertising-products/index.html` luôn tải nhưng runtime thay bằng AVIF.
+- `prepare-static-assets.mjs` chỉ kiểm `-W.webp` tồn tại nhưng ghi cả `-W.avif`
+  vào `<source>`; CI `--check` đang che.
+
 ## Chú thích thuật ngữ
 
 - **Cold-cache**: lần tải không dùng body ảnh đã lưu trong browser cache.
