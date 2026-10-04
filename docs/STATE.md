@@ -52,6 +52,9 @@
 - Tooling: chuyển sang Claude Code ngày 2026-10-03; Claude Code và Codex dùng
   chung global stack, xem [TOOLING](operations/TOOLING.md). Graphify semantic
   files còn pending; không chạy semantic extraction khi chưa có yêu cầu.
+  Cloud stack: `scripts/tooling/cloud-setup.sh` cho environment `Default`,
+  chưa chạy thử và chưa dán vào environment
+  ([TOOLING](operations/TOOLING.md#claude-code-cloud-environment)).
 - Claude skill: 55 skill vendor tại `.claude/skills` từ pin, cloud thread dùng được
   ([decision](decisions/claude-skills-vendored-from-pins.md)). Máy local còn bước gỡ
   link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
