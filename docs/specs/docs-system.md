@@ -1,6 +1,6 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
-status: draft
+status: accepted
 updated: 2026-10-04
 source:
   - docs/**
@@ -220,13 +220,14 @@ nháp, evidence hay checklist trong Notion. Checklist từng bước nằm trong
 | R7 | Đọc lại artifact bằng công cụ Artifact sau publish |
 | R10 | Owner xem board Notion |
 
-## Gate còn mở
+## Quyết định owner khi duyệt
 
-| Câu hỏi | Mặc định nếu owner không đổi |
-| --- | --- |
-| Corpus Espacio (`docs/reference/espacio/`) còn là mục tiêu parity không? | Gộp phần còn dùng vào `design-system/` thành section tham chiếu; xóa phần còn lại |
-| Giới hạn 300 dòng mỗi spec có hợp lý không? | Giữ 300; spec dài hơn thì tách capability |
-| Xóa ADR đã superseded (agent-skills khuyên giữ) | Xóa, theo quyết định "lịch sử ra khỏi cây thư mục" |
+Owner duyệt spec ngày 2026-10-04 với ba mặc định:
+
+- Corpus `docs/reference/espacio/`: phần còn dùng gộp vào `design-system/`
+  thành section tham chiếu; phần còn lại xóa.
+- Mỗi spec tối đa 300 dòng; dài hơn thì tách capability.
+- ADR đã superseded bị xóa khỏi cây thư mục; Git history giữ.
 
 ## Chú thích thuật ngữ
 
