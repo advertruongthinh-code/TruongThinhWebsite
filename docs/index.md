@@ -29,6 +29,9 @@ giữ extensions theo schema. Surface briefs nằm ở `.impeccable/surfaces/` k
 strategy riêng. `docs/design/` nối artifact với source/API/test để reuse;
 không nhân bản token hoặc coi HTML specimen là production component.
 
+[design-system/](../design-system/README.md) là Design System mới (token kiểm drift
+với CSS `:root`); từ plan T7 `DESIGN.md` được sinh từ đây.
+
 ## Contract hiện hành
 
 - [Intent scrollbar và browser parity](specs/mobile-browser-parity-capability-map.md):
