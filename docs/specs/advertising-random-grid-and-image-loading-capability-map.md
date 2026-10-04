@@ -6,7 +6,7 @@ updated: 2026-10-04
 related_docs:
   - advertising-photo-browse.md
   - advertising-skeleton-flow.md
-  - ../design/content.md
+  - ../../design-system/content.md
 ---
 
 # Capability map cho grid Advertising và tải ảnh toàn site

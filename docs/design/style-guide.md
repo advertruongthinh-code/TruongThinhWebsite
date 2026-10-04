@@ -5,7 +5,7 @@ status: living
 updated: 2026-10-03
 related_docs:
   - ../../DESIGN.md
-  - ../reference/espacio/index.md
+  - ../../design-system/reference-espacio.md
   - content.md
   - ../specs/frontend-brand-shell-responsive-runtime.md
 ---
@@ -66,17 +66,17 @@ component visual.
 
 Image phải là bằng chứng thật của không gian, vật liệu, tool, craft, bàn tay hoặc
 motion blur. Chuẩn file, safe crop, budget, alt và checklist thuộc
-[`content.md`](content.md).
+[`content.md`](../../design-system/content.md).
 
 ## VI/EN, accessibility và motion
 
-- VI/EN leaf-node rule thuộc [`content.md`](content.md).
+- VI/EN leaf-node rule thuộc [`content.md`](../../design-system/content.md).
 - Focus visible, keyboard/touch controls, heading order, landmark và không
   overflow ngang là baseline. Exact selector/state xem source và frontend spec.
 - `prefers-reduced-motion` phải fail-open: content vẫn visible, native scroll
   dùng được, transform/autoplay không thiết yếu bị bỏ.
-- Choreography TT theo [Motion system](motion.md); measured reference riêng
-  tại [Espacio](../reference/espacio/motion.md). Không dùng hai loại thay nhau.
+- Choreography TT theo [Motion system](../../design-system/motion.md); measured reference riêng
+  tại [Espacio](../../design-system/reference-espacio.md). Không dùng hai loại thay nhau.
 
 ## Do và don't
 

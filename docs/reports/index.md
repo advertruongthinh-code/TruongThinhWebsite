@@ -2,7 +2,7 @@
 
 Thư mục này giữ các đường dẫn công cụ đang đọc/ghi. Tài liệu cho người và
 agent bắt đầu tại [verification](../verification/index.md) hoặc
-[baseline Espacio](../reference/espacio/index.md).
+[baseline Espacio](../../design-system/reference-espacio.md).
 
 ## Machine reports
 

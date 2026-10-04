@@ -66,7 +66,7 @@ docs/architecture/                 overview, current runtime, deployment
 docs/frontend/                     shell/runtime/routes, feature contracts
 docs/backend/                      current/dormant/planned boundaries
 docs/design/                       component/pattern/content/governance
-docs/reference/espacio/            foundations/components/motion/templates/evidence
+design-system/reference-espacio.md   số đo Espacio
 docs/verification/                 current evidence index và parity status
 docs/decisions/                    durable decisions, descriptive names
 docs/operations/                   developer/tooling/agent procedures

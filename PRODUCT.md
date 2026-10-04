@@ -32,7 +32,7 @@ Website phục vụ khách hàng, văn phòng và xưởng trong chuỗi từ kh
 
 Danh sách khách hàng và hạng mục owner xác nhận ngày 2026-09-09, bổ sung ngày
 2026-09-10 về gian hàng triển lãm theo ngành dừa, thực phẩm, mỹ phẩm và thời trang, được lưu một
-lần tại [bối cảnh Advertising](docs/design/advertising-image-quality.md#bối-cảnh-từ-khách-hàng-thực-tế).
+lần tại [bối cảnh Advertising](design-system/advertising-images.md#bối-cảnh-từ-khách-hàng-thật).
 Nguồn này phân biệt xác nhận của owner, thông tin website khách hàng và suy
 luận dùng cho brief ảnh; không dùng ảnh AI để chứng minh công trình đã thi công.
 

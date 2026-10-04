@@ -8,8 +8,8 @@ capability_map: advertising-random-grid-and-image-loading-capability-map.md
 depends_on: static-image-delivery
 related_docs:
   - static-image-delivery.md
-  - ../design/content.md
-  - ../design/motion.md
+  - ../../design-system/content.md
+  - ../../design-system/motion.md
   - advertising-skeleton-flow.md
 ---
 
@@ -170,7 +170,7 @@ loading state VI/EN trên mobile và desktop trước merge/deploy.
 ## Ranh giới
 
 - **Luôn làm:** reuse token/motion hiện hành, giữ alt VI/EN và cập nhật
-  `docs/design/content.md`, `docs/design/motion.md` cùng owning component guide
+  `design-system/content.md`, `design-system/motion.md` cùng owning component guide
   khi hành vi thực sự đổi.
 - **Cần owner duyệt riêng:** đổi ảnh/crop, redesign hover/reveal, đổi visual
   direction/token hay làm chậm ảnh quan trọng để lấy progress chính xác.

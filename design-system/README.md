@@ -100,16 +100,15 @@ Thêm radius cho card, filter hoặc shell là thay đổi design system.
 
 ## Motion
 
-Định dạng token không có family motion, nên các biến motion ở `:root` chỉ ghi
-tại đây:
+Định dạng token không có family motion; mọi timing ở [Motion](motion.md).
+Nguyên tắc: motion phục vụ nội dung, reduced motion đi thẳng trạng thái cuối.
 
-- `--ease: cubic-bezier(0, 0, 0.26, 1)`: easing chung của shell.
-- `--media-hover-duration: 600ms`, `--media-hover-easing: ease-out`: ảnh zoom
-  khi hover; overlay không đổi độ tối.
-- Lockup header đổi cỡ bằng FLIP 300ms giữa expanded và sticky; mark đổi màu
-  đơn sắc sang CMYK, mỗi path tổng duration và delay bằng 1s.
-- `prefers-reduced-motion: reduce` đi thẳng trạng thái cuối, nội dung vẫn hiện,
-  scroll native dùng được.
+## Các section khác
+
+- [Motion](motion.md): shell, menu, text, hover, Advertising.
+- [Content và media](content.md): giọng điệu, VI/EN, chuẩn file ảnh.
+- [Ảnh Advertising](advertising-images.md): brief và chấm điểm ảnh.
+- [Tham chiếu Espacio](reference-espacio.md): số đo site tham chiếu.
 
 ## Components
 
@@ -140,6 +139,7 @@ Website là HTML tĩnh với CSS và runtime dùng chung, không có component A
 - **Do** lấy giá trị từ `tokens.json`, không chép hex vào chỗ khác.
 - **Do** để ảnh công trình, vật liệu, xưởng dẫn hierarchy.
 - **Do** giữ focus, VI/EN, alt và ARIA, reduced motion trong mọi thay đổi.
+- **Do** viết copy và chọn ảnh theo [Content và media](content.md).
 
 ### Don't:
 

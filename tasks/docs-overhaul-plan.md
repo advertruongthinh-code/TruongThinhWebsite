@@ -44,7 +44,7 @@ Checkpoint 1: CI xanh; owner thử đọc template mới.
   - Nhận: mọi custom property màu và spacing trong `:root` có token; drift
     check fail khi thêm một biến CSS chưa có token.
   - Phụ thuộc: T1. Cỡ M.
-- [ ] T4. Section motion, content, tham chiếu Espacio
+- [x] T4. Section motion, content, tham chiếu Espacio
   - Làm: `design-system/motion.md`, `content.md`, `reference-espacio.md` gộp
     từ `docs/design/motion.md`, `content.md`, `advertising-image-quality.md`
     và `docs/reference/espacio/`; mô tả theo code đang chạy (`motion.js`,

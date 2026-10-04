@@ -7,8 +7,8 @@ module_id: static-image-delivery
 capability_map: advertising-random-grid-and-image-loading-capability-map.md
 related_docs:
   - frontend-static-release.md
-  - ../design/content.md
-  - ../design/motion.md
+  - ../../design-system/content.md
+  - ../../design-system/motion.md
   - ../decisions/sites-artifact-only-release-mirror.md
 ---
 

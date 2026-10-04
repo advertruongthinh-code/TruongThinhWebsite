@@ -44,8 +44,8 @@ nó chuẩn bị data contract để CMS sau này quản lý.
 | --- | --- |
 | Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](../design/patterns.md#advertising-masonry-geometry) |
 | Caption và token | [DESIGN](../../DESIGN.md#advertising-caption) |
-| Motion, media entrance, reduced motion | [Motion guide](../design/motion.md#advertising-motion) |
-| Sáu nhóm ảnh, khách hàng, cấu tạo, brief, người/chữ/provenance và điểm | [Image quality](../design/advertising-image-quality.md) và các ref trong đó |
+| Motion, media entrance, reduced motion | [Motion guide](../../design-system/motion.md#advertising) |
+| Sáu nhóm ảnh, khách hàng, cấu tạo, brief, người/chữ/provenance và điểm | [Image quality](../../design-system/advertising-images.md) và các ref trong đó |
 | Data, algorithm, cache, migration và kiểm thử R4 | File này |
 
 R4 thay max-5/single-column, canvas/fitMode/backplate, round-robin/FIFO ép thứ

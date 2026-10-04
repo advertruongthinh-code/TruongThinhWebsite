@@ -154,7 +154,7 @@ model hoặc route Tin tức mới.
 
 ## SplitText editorial contract
 
-[SplitText editorial](../design/motion.md#splittext-editorial) là nguồn chuẩn
+[SplitText editorial](../../design-system/motion.md#text) là nguồn chuẩn
 cho target, sequence và reduced motion. Dependency/lifecycle ở spec này.
 
 ## Public scroll và text selection
@@ -317,20 +317,20 @@ schema, migration, admin UI hoặc public editor cho các field đó.
 
 ## Motion
 
-[Advertising motion](../design/motion.md#advertising-motion) sở hữu position
+[Advertising motion](../../design-system/motion.md#advertising) sở hữu position
 morph, media replay và detail visibility. Spec giữ dependency/data/QA và chỉ ref.
 
 ### Position morph
 
-Xem [Position morph](../design/motion.md#position-morph).
+Xem [Position morph](../../design-system/motion.md#vị-trí-card-masonry).
 
 ### Media entrance và interaction
 
-Xem [Media entrance và interaction](../design/motion.md#media-entrance-và-interaction).
+Xem [Media entrance và interaction](../../design-system/motion.md#ảnh-trong-card).
 
 ### Visibility media trên sáu route chi tiết
 
-Xem [Detail visibility](../design/motion.md#visibility-media-trên-sáu-route-chi-tiết).
+Xem [Detail visibility](../../design-system/motion.md#ảnh-trên-sáu-trang-detail).
 
 ## Dependency và lifecycle
 

@@ -9,8 +9,8 @@ related_docs:
   - advertising-photo-morph-scroll.md
   - mobile-browser-parity-capability-map.md
   - frontend-brand-shell-responsive-runtime.md
-  - ../design/content.md
-  - ../design/motion.md
+  - ../../design-system/content.md
+  - ../../design-system/motion.md
 ---
 
 # Media card đa nội dung trên toàn website — accepted 2026-09-28
@@ -59,7 +59,7 @@ Các họ dùng CSS/interaction khác nhau; chỉ Advertising gọi solver hiệ
 visibility, playback và trạng thái; không bắt các họ khác dùng thuật toán xếp Advertising. Sáu URL category
 Advertising VI/EN là compatibility redirect về parent, không phải sáu gallery độc lập. Source public ở
 `src/site/`; `.site-output/` chỉ là build. Copy VI gốc ngoài nhãn mới giữ nguyên; EN dùng câu tự nhiên,
-alt/ARIA ở node lá theo [content guide](../design/content.md).
+alt/ARIA ở node lá theo [content guide](../../design-system/content.md).
 
 ## Media, card và detail
 
@@ -199,7 +199,7 @@ alt/ARIA ở node lá theo [content guide](../design/content.md).
   thiết bị mục tiêu chứng minh lợi ích mà vẫn có fallback MP4. Apple khuyên
   [H.264 MP4 cho file video](https://developer.apple.com/documentation/webkit/delivering-video-content-for-safari);
   [hướng dẫn preload](https://web.dev/learn/performance/video-performance) lưu ý metadata/poster không bảo
-  đảm lượng tải cố định. Không tự đổi policy asset trong [content guide](../design/content.md) trước khi
+  đảm lượng tải cố định. Không tự đổi policy asset trong [content guide](../../design-system/content.md) trước khi
   proposal được duyệt.
 
 ## Nghiệm thu và gate
@@ -215,7 +215,7 @@ alt/ARIA ở node lá theo [content guide](../design/content.md).
 Giữ chuẩn evidence và quality bar hiện hành; không giảm oracle `≤1 CSS px` cho geometry/scroll có thể so
 cùng viewport. Dùng `pnpm qa:static` và focused test/browser commands theo plan được duyệt; `pnpm qa:site`
 là suite rộng, không tự chạy lại body210 khi source/runner không đổi. Mọi thay đổi visible copy/media sau
-này phải cập nhật đúng [content guide](../design/content.md), motion và owning spec; không sửa CMS/Worker,
+này phải cập nhật đúng [content guide](../../design-system/content.md), motion và owning spec; không sửa CMS/Worker,
 reference asset, recovery `8790`, vendor hoặc deploy trong module này.
 
 ## Hướng đã duyệt và gate số đo còn mở
