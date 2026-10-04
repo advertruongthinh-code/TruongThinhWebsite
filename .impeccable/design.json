@@ -356,7 +356,7 @@
         "scripts/site/prepare-static-assets.mjs:80-154",
         "docs/specs/frontend-route-and-content.md",
         "docs/decisions/head-office-address-confirmed.md",
-        "docs/design/style-guide.md",
+        "design-system/README.md",
         "DESIGN.md#brand-lockup--nguồn-chuẩn"
       ],
       "testRefs": [

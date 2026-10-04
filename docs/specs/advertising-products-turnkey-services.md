@@ -262,7 +262,7 @@ Invariant:
 
 ## Layout, append và virtualization
 
-Visual geometry: [Advertising masonry](../design/patterns.md#advertising-masonry-geometry).
+Visual geometry: [Hình học masonry](advertising-grid-span-organic.md#hình-học-masonry-grid-r4-visual).
 
 Layout compiler tạo placement deterministic theo `datasetVersion`, filter,
 intrinsic media/canvas dimensions và số cột. Scheduler `advertising-rank-v3`
@@ -391,7 +391,7 @@ nhất `2` item. Config không được thêm block để hấp thụ media dư 
 đã duyệt. Số carousel theo sáu route lần lượt là `1/3/1/2/1/1`, khớp chính xác
 số block `gallery` trong sequence; không gom thành đúng một carousel mỗi route.
 
-Visual/interaction contract: [Advertising carousel](../design/patterns.md#advertising-carousel-visual).
+Visual/interaction contract: [Carousel visual](#carousel-visual).
 
 Implementation dùng `swiper@14.2.0`, là bản npm mới nhất đã kiểm tra ngày
 `2026-09-02`. Chỉ bundle module cần thiết cho horizontal slide, mousewheel,
@@ -583,6 +583,217 @@ Full suite vẫn `NOT PASS`; scoped result không là release clearance.
   dùng Swiper cho parent masonry kiểu Pinterest, Residential hoặc Commercial trong task
   này.
 
+## Carousel visual
+
+Accepted visual/interaction contract; [dependency và renderer](#template-chi-tiết-và-media) vẫn do spec sở hữu.
+
+Đây là contract carousel lịch sử; detail mới ở trên supersede entrypoint
+Advertising khi compatibility đã được triển khai. Generic gallery ngoài
+Advertising giữ behavior riêng.
+
+Mọi block `gallery` dùng cùng carousel ngang, không giữ grid media cũ hoặc tạo
+hai renderer song song. Contract trình bày:
+
+- carousel breakout khỏi content cap `1500px` nhưng giữ outer band theo Espacio:
+  `35px` trên desktop, `25px` từ `751–1200px`, `15px` đến `750px`;
+- media viewport có chiều cao tối đa `50vw` trên desktop và `75vw` đến `750px`;
+  chiều rộng từng slide lấy từ intrinsic ratio của ảnh, không kéo giãn, crop
+  hoặc thêm backplate;
+- slide thường giữ chiều cao tối đa và phải để lộ slide kế tiếp khi chưa ở item
+  cuối. Nếu intrinsic ratio làm slide rộng hơn usable carousel width, slide đó
+  được cap bằng toàn bộ usable width, giảm chiều cao theo đúng tỷ lệ tự nhiên và
+  không bắt buộc để lộ slide kế; wrapper cùng control rail bám chiều cao media
+  thực tế để không tạo box rỗng;
+- slide gap `20px` từ `600px`, `10px` dưới `600px`;
+- caption VI/EN nằm dưới từng ảnh, không overlay, không clip dấu và chỉ ẩn khi
+  record không có caption; dots đặt thành một control rail riêng bên dưới;
+- slide và thay đổi chiều cao wrapper chuyển trong `500ms`; hỗ trợ drag, touch,
+  wheel ngang với
+  `forceToAxis`, clickable dots và grab cursor; không autoplay, loop, arrow hoặc
+  keyboard trap;
+- reduced motion đưa slide cùng chiều cao wrapper tới vị trí mới tức thì; không
+  thêm entrance hoặc exit motion cho wrapper carousel;
+- trước khi Swiper sẵn sàng hoặc khi dependency lỗi, markup vẫn là native
+  horizontal scroll có scroll snap, đủ caption và truy cập được mọi media.
+
+## Runtime API
+
+API và lifecycle đang chạy của catalog, layout và renderer Advertising.
+
+### Layout core
+
+**Status:** current pure runtime API, observed implementation và validation
+contract trong source/test. Accepted geometry target phải đến từ spec/decision,
+không suy ra từ source.
+
+**Source:** [`layout-core.mjs`](../../src/site/advertising-products/layout-core.mjs);
+consumers `catalog-runtime.mjs`, layout/lifecycle tests.
+
+**Input/output API:**
+
+| API | Input | Output |
+| --- | --- | --- |
+| `advertisingSpacing(width)` | viewport width hữu hạn, dương | `{ outer, interCardGap }` |
+| `columnsForWidth(width)` | viewport width hữu hạn, dương | số cột trong giới hạn |
+| `validateAdvertisingCards(cards, options)` | cards, `categoryOrder`, cờ rank/non-empty | cards gốc hoặc throw |
+| `compileAdvertisingLayout(options)` | `layoutViewportWidth`, `filter`, `cards`, `categoryOrder`, `datasetVersion`, `columns` tuỳ chọn | geometry, placements, total height, `coordinateHash` deterministic |
+| `getVirtualWindow(layout, options)` | layout, `scrollTop`, `viewportHeight`, `overscan` | `{ items, totalHeight }` |
+
+Validator reject input không phải array/rỗng khi được yêu cầu, ID sai/trùng,
+category không biết, source order trùng, kích thước media/canvas sai,
+`span`/fixed `ratio` không hỗ trợ, fit mode sai và rank không liên tục/không
+canonical. Core throw khi viewport/columns/filter/virtual-window input sai.
+
+**Ví dụ:** `catalog-runtime.mjs` gọi `compileAdvertisingLayout({
+layoutViewportWidth, filter, cards, categoryOrder, datasetVersion })`, rồi gọi
+`getVirtualWindow(geometry, { scrollTop, viewportHeight: innerHeight, overscan:
+innerHeight })`.
+
+Ví dụ chạy với data canonical hiện có, không tự tạo card hoặc generated artifact:
+
+```powershell
+node --input-type=module -e "import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, compileAdvertisingLayout } from './src/site/advertising-products/catalog.mjs'; import { validateAdvertisingCards } from './src/site/advertising-products/layout-core.mjs'; const categoryOrder=ADVERTISING_CATEGORIES.map(({slug})=>slug); validateAdvertisingCards(ADVERTISING_CARDS,{categoryOrder,requireRanks:true}); const layout=compileAdvertisingLayout({layoutViewportWidth:1280,filter:'all'}); console.log({categories:categoryOrder.length,cards:ADVERTISING_CARDS.length,placements:layout.placements.length,columns:layout.columns,totalPixelHeight:layout.totalPixelHeight,coordinateHash:layout.coordinateHash});"
+```
+
+Lệnh này kiểm tra import, validator và wrapper compile bằng data source hiện có;
+giá trị `coordinateHash` do runtime tính, không ghi cứng vào guide.
+
+**A11y/responsive:** core không đọc DOM; runtime thêm list semantics,
+`aria-posinset`, `aria-setsize`, keyboard frontier recovery và cột responsive.
+Reduced motion chỉ ảnh hưởng transition runtime, không đổi geometry deterministic.
+
+**Customization boundary:** caller có thể chọn filter/viewport và columns tuỳ chọn
+cho scenario đã kiểm chứng; không bypass validator, đổi placement order hoặc
+invent rule geometry riêng route.
+
+### Catalog runtime
+
+**Status:** current static catalog runtime; source/data contract là observed,
+không tự nhận accepted chỉ vì có test.
+
+**Source/consumer:** [`catalog-runtime.mjs`](../../src/site/advertising-products/catalog-runtime.mjs)
+được `detail.js` import và điều phối; browser focused functions gồm
+`runAdvertisingGridFocusedChecks`, `runAdvertisingKeyboardVirtualizationCheck`,
+`runAdvertisingMediaFocusedChecks` và `runAdvertisingLocaleLifecycleChecks`.
+
+**Input:** Barba container `[data-barba-namespace="advertising-products"]` tuỳ
+chọn và `{ signal }`; `catalog-artifact.mjs` generated; filter
+`[data-advertising-filter]`; masonry `[data-project-grid]`.
+
+**Output/lifecycle:** `mountAdvertisingCatalog(container?, { signal }?)` là hàm
+async và trả `Promise<cleanup function>`. Hàm validate artifact version,
+category/card, mount filter/masonry, lazy media, virtualization và listener.
+`unmountAdvertisingCatalog()` gọi cleanup active; browser bridge là
+`window.TruongThinhAdvertising = { mount, unmount }`.
+
+**Trạng thái:** filter query all/category; full/virtual window; media
+pending/loaded/revealed; dependency ready/failure; VI/EN; direct load,
+Barba/history remount, resize, scroll và abort cleanup.
+
+**Errors/fallback:** mount reject khi artifact version, category/card data hoặc
+Masonry không hợp lệ. Markup card static/no-script còn đó cho tới khi mount hợp
+lệ thay thế. Media replay được arm lại sau khi rời viewport; cleanup idempotent
+và xoá observer/listener/timer do runtime sở hữu.
+
+**A11y/i18n/responsive:** filter `aria-current`, card link/alt/caption generated
+theo leaf data, list item semantics, DOM bounded và keyboard Tab recovery qua
+virtual frontier. Reduced motion reveal media ngay và bỏ Masonry transition.
+
+**Ví dụ:** `detail.js` chờ `ensureAdvertisingDependencies()`, import module rồi
+return `mountAdvertisingCatalog(container, { signal: abort.signal })`; caller lưu
+Promise nhận được vào `state.catalogReady`.
+
+**Customization boundary:** đổi taxonomy/media qua `catalog.mjs` và
+`media-manifest.mjs`; không sửa generated artifact, card list trong runtime HTML
+hoặc bypass pure layout core.
+
+### Renderer detail build-time
+
+**Status:** current internal renderer; không phải component library hoặc runtime API.
+
+**Source:** `renderDetailComposition(category, products)` trong
+[`prepare-static-assets.mjs`](../../scripts/site/prepare-static-assets.mjs),
+template [`detail-template.html`](../../src/site/advertising-products/detail-template.html),
+data `catalog.mjs`.
+
+**Input/output:** category detail layout, source ID, copy category song ngữ và
+product list đi vào; composition `<main>` dùng chung và
+`/{locale}/advertising-products/{slug}/index.html` generated đi ra. Block hợp lệ
+gồm `titular`, `paragraph`, `facts`, `gallery`, `single`, `double`, `columns`,
+`banner`; sáu route variant là data/layout, không phải sáu renderer.
+
+**Ví dụ:** generator lặp `ADVERTISING_CATEGORIES`, resolve hero/source ID, render
+product rồi thay `{{composition}}` trong template dùng chung.
+
+**Errors/fallback:** thiếu hero hoặc section media không resolve thì throw; layout
+kind sai bị catalog validation reject. Không có runtime empty renderer; build phải
+fail trước khi output được chấp nhận. Generated `.site-output/` không phải edit
+target.
+
+**A11y/i18n:** renderer tạo title/statement/alt/caption song ngữ, semantic
+product list, `aria-label`/`data-en-aria-label`, kích thước intrinsic và lazy
+media. Reduced motion do detail runtime xử lý sau render.
+
+**Customization boundary:** sửa data/layout schema trong catalog/spec sở hữu;
+không thêm template copy riêng route hoặc block HTML/CSS tuỳ ý.
+
+Ví dụ block gallery có thật trong `ADVERTISING_DETAIL_LAYOUTS`, dùng đúng schema
+và source ID hiện có:
+
+```js
+{
+  kind: "gallery",
+  sourceIds: [
+    "imagegen:2026-09-01:kiosk-posm:06",
+    "imagegen:2026-09-01:kiosk-posm:07",
+    "imagegen:2026-09-01:kiosk-posm:08",
+    "imagegen:2026-09-01:kiosk-posm:09",
+    "imagegen:2026-09-01:kiosk-posm:10",
+    "imagegen:2026-09-01:kiosk-posm:11",
+    "imagegen:2026-09-01:kiosk-posm:12",
+    "imagegen:2026-09-01:kiosk-posm:13",
+    "imagegen:2026-09-01:kiosk-posm:14",
+    "imagegen:2026-09-01:kiosk-posm:15",
+    "imagegen:2026-09-01:kiosk-posm:16",
+    "imagegen:2026-09-01:kiosk-posm:17",
+  ],
+}
+```
+
+Để thêm hoặc đổi gallery, sửa block tương ứng trong
+`src/site/advertising-products/catalog.mjs`, giữ mỗi source ID thuộc đúng slug
+và partition pool đúng một lần. Không chép block thành layout thứ hai và không
+sửa `.site-output/`. Kiểm tra contract bằng
+`node --input-type=module -e "import { ADVERTISING_DETAIL_LAYOUTS } from './src/site/advertising-products/catalog.mjs'; console.log(ADVERTISING_DETAIL_LAYOUTS['kiosk-posm'].sections.find(({kind})=>kind==='gallery'));"`
+và test tập trung trong `tests/site/advertising-products-static.test.mjs` hoặc
+`tests/site/site.e2e.cjs` theo consumer bị chạm.
+
+### Carousel detail (dormant)
+
+**Status:** dormant; Advertising detail đã thay entrypoint carousel cũ.
+Owner yêu cầu ngày 24/09/2026 giữ source để thiết kế lại carousel cho Residential
+và Commercial. Hướng mới có thể khác Espacio; chưa activate hoặc đổi UI trong
+release này. Runtime chỉ tải Swiper khi có markup carousel tương ứng.
+
+**Source/DOM:** renderer tạo `[data-advertising-carousel]`,
+`[data-advertising-carousel-viewport]`, `[data-advertising-carousel-track]`,
+`[data-advertising-carousel-pagination]` và
+`data-advertising-carousel-state="native"`. `detail.js` tải Swiper 14.2.0
+module Mousewheel/Pagination/A11y qua local vendor path đã pin.
+
+**Output/states:** state đổi native → enhanced sau khi module sẵn sàng;
+`autoHeight`, `slidesPerView: auto`, drag cursor, axis-aware wheel, pagination và
+watchOverflow. Failure reset/giữ native state. Reduced motion dùng speed `0`;
+normal motion dùng transition hiện có trong source.
+
+**A11y/i18n/cleanup:** Swiper A11y được bật; label carousel có attribute VI và EN;
+ảnh giữ alt pair và không native image drag. Detail unmount destroy mọi carousel
+và abort listener của page.
+
+**Customization boundary:** data chọn block/source list; runtime sở hữu
+enhancement và fallback. Không gộp API này với `[data-gallery]` generic hoặc bỏ
+qua native state khi vendor module lỗi.
+
 ## Chú thích thuật ngữ
 
 - **Data manifest**: file dữ liệu chung mô tả sáu nhóm và card.
@@ -621,3 +832,6 @@ Full suite vẫn `NOT PASS`; scoped result không là release clearance.
   tạo vùng nền rỗng không mang thông tin.
 - **CMS deferral**: việc đã biết nhưng chủ động chuyển sang CMS phase, có ghi rõ
   boundary và điều kiện xem lại.
+- **Pure core**: hàm chỉ phụ thuộc input, không đọc DOM hoặc global runtime.
+- **Virtual frontier**: ranh giới item chưa mount nhưng vẫn phải đi qua bằng keyboard.
+- **Progressive enhancement**: native behavior chạy trước, enhancement chỉ thêm khi sẵn sàng.

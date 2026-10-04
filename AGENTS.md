@@ -54,7 +54,7 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
   command, ownership, tooling hoặc evidence thì cập nhật tài liệu sở hữu
   contract trong cùng task; không có impact thì ghi lý do cụ thể khi bàn giao.
   Chọn nguồn qua [docs routing](docs/index.md); supersession theo
-  [design index](docs/design/index.md#supersession).
+  [docs index](docs/index.md#supersession).
 - Không tạo report cho mọi sửa nhỏ, không copy contract sang nhiều file. Cập
   nhật nguồn chuẩn, links và trạng thái supersession; main kiểm docs impact của
   worker trước nghiệm thu.

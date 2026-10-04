@@ -67,7 +67,7 @@ khi owner mở CMS phase theo
 
 Tài liệu theo công việc: [architecture](docs/architecture/index.md),
 [frontend](docs/frontend/index.md), [backend](docs/backend/index.md),
-[design system](docs/design/index.md), [baseline Espacio](design-system/reference-espacio.md).
+[Design System](design-system/README.md), [baseline Espacio](design-system/reference-espacio.md).
 [Docs index](docs/index.md) dẫn tới nguồn chuẩn và evidence.
 
 Cây dưới mô tả ownership và lifecycle thực tế. Trạng thái Git thay đổi theo
