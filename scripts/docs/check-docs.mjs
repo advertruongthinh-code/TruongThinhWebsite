@@ -1,7 +1,7 @@
-// Docs gate (docs/specs/docs-system.md R4): broken internal links and line budgets.
+// Docs gate (docs/specs/docs-system.md R4): links, line budgets, spec ownership and code-spec sync.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, matchesGlob } from 'node:path';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Legacy history leaves the tree in plan T17/T20; tasks/plan.md and todo.md belong to another thread.
@@ -63,6 +63,38 @@ for (const file of files.filter((f) => f.startsWith('docs/specs/'))) {
   const lines = text.split('\n').length;
   if (/^status:\s*(live|planned|dormant)\s*$/m.test(text) && lines > 300) {
     errors.push(`${file}: ${lines} dòng, vượt giới hạn 300 của spec`);
+  }
+}
+
+// Specs own source files through the `source:` globs in their frontmatter.
+const specs = files
+  .filter((f) => f.startsWith('docs/specs/') && !f.endsWith('_template.md'))
+  .map((file) => {
+    const block = readFileSync(file, 'utf8').match(/^source:\n((?:\s+- .+\n)+)/m);
+    return { file, globs: block ? block[1].split('\n').filter(Boolean).map((l) => l.replace(/^\s+- /, '').trim()) : [] };
+  })
+  .filter((s) => s.globs.length);
+const owners = (path) => specs.filter((s) => s.globs.some((g) => matchesGlob(path, g)));
+
+// Ownership is report-only until every capability spec exists (plan T16).
+const OWNERSHIP_STRICT = false;
+const MEDIA = /\.(avif|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
+const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
+if (unowned.length) {
+  const message = `ownership: ${unowned.length} file trong src/site/ chưa thuộc spec nào`;
+  if (OWNERSHIP_STRICT) errors.push(`${message}: ${unowned.join(', ')}`);
+  else console.log(`${message} (chưa bắt buộc)`);
+}
+
+// Sync runs on pull requests: CI sets DOCS_BASE to the base commit and PR_BODY to the description.
+if (process.env.DOCS_BASE) {
+  const changed = git('diff', '--name-only', `${process.env.DOCS_BASE}...HEAD`).split('\n').filter(Boolean);
+  const waived = /^Spec: không đổi - \S/m.test(process.env.PR_BODY ?? '');
+  for (const spec of specs) {
+    const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
+    if (touched.length && !changed.includes(spec.file) && !waived) {
+      errors.push(`sync: ${touched.join(', ')} đổi nhưng ${spec.file} không đổi; cập nhật spec hoặc ghi "Spec: không đổi - <lý do>" trong mô tả PR`);
+    }
   }
 }
 
