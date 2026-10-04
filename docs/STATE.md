@@ -14,7 +14,7 @@
   route tạm hoặc owner mở host.
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
-  duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25),
+  duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03),
   [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md)).
   M02b đã lên `main`, vẫn NOT ACCEPTED: các FAIL cloud là lỗi test, đã sửa;
   [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#chạy-lại-trên-cloud-03102026).

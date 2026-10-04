@@ -74,11 +74,14 @@ const browseState = () => historyPage.evaluate(() => {
       .map((node) => node.dataset.advertisingSuggestionTag),
   };
 });
-await historyPage.locator('[data-advertising-card="kiosk-posm-07"] > a').click();
-await historyPage.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === "kiosk-posm-07");
+// Grid order is random per visit, so open whichever single-photo card renders first.
+const firstCard = historyPage.locator("[data-advertising-card]:not(:has(.advertising-card-media--carousel)) > a").first();
+const openedId = await firstCard.evaluate((node) => node.parentElement.dataset.advertisingCard);
+await firstCard.click();
+await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, openedId);
 const opened = await browseState();
-assert.deepEqual({ photo: opened.photo, tag: opened.tag, pressed: opened.pressed }, { photo: "kiosk-posm-07", tag: null, pressed: [] }, "native photo open records its browse state");
-assert.equal(new URL(opened.url).searchParams.get("photo"), "kiosk-posm-07", "native photo open writes the photo URL");
+assert.deepEqual({ photo: opened.photo, tag: opened.tag, pressed: opened.pressed }, { photo: openedId, tag: null, pressed: [] }, "native photo open records its browse state");
+assert.equal(new URL(opened.url).searchParams.get("photo"), openedId, "native photo open writes the photo URL");
 const related = historyPage.locator("[data-advertising-related-card] > a").first();
 const relatedPhoto = await related.evaluate((node) => node.closest("[data-advertising-related-card]").dataset.advertisingRelatedCard);
 await related.click();
@@ -92,10 +95,10 @@ assert.deepEqual({ photo: tagged.photo, tag: tagged.tag, pressed: tagged.pressed
 await historyPage.locator(`[data-advertising-suggestion-tag="${selectedTag}"][aria-pressed="true"]`).press("Enter");
 await historyPage.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().tag === null);
 await historyPage.goBack({ waitUntil: "networkidle" });
-await historyPage.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === "kiosk-posm-07");
+await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, openedId);
 const back = await browseState();
-assert.deepEqual({ photo: back.photo, tag: back.tag, pressed: back.pressed }, { photo: "kiosk-posm-07", tag: null, pressed: [] }, "Back restores the opened photo state after replacement");
-assert.equal(new URL(back.url).searchParams.get("photo"), "kiosk-posm-07", "Back restores the opened photo URL");
+assert.deepEqual({ photo: back.photo, tag: back.tag, pressed: back.pressed }, { photo: openedId, tag: null, pressed: [] }, "Back restores the opened photo state after replacement");
+assert.equal(new URL(back.url).searchParams.get("photo"), openedId, "Back restores the opened photo URL");
 await historyPage.goForward({ waitUntil: "networkidle" });
 await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, relatedPhoto);
 const forward = await browseState();

@@ -40,7 +40,7 @@ phát hành, nên không phải media chết và không convert.
 
 ## Xử lý khi convert
 
-Theo quyết định owner trong [plan](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-chờ-duyệt-2026-09-25):
+Theo quyết định owner trong [plan](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03):
 36 ảnh này giữ WebP hiện tại làm cỡ lớn nhất, chỉ sinh cỡ nhỏ hơn từ WebP.
 CMS sau này giữ file gốc khi upload, xem [CMS spec](../specs/cms-content-publishing.md).
 
