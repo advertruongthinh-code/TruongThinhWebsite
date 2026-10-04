@@ -19,8 +19,10 @@ const arcState = () => {
   const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
   const tint = glass.querySelector(".glass-surface__tint");
-  // Elements whose own box carries a backdrop filter; the closed viewer's ::backdrop is not rendered.
-  const owners = [...new Set([...document.querySelectorAll("*")].flatMap((node) => [null, "::before", "::after"]
+  // Rendered elements whose own box carries a backdrop filter; the hidden photo view's even Kính and
+  // the closed viewer's ::backdrop are not rendered.
+  const owners = [...new Set([...document.querySelectorAll("*")].filter((node) => node.checkVisibility())
+    .flatMap((node) => [null, "::before", "::after"]
     .filter((pseudo) => !["none", ""].includes(getComputedStyle(node, pseudo).backdropFilter))
     .map((pseudo) => `${node.className}${pseudo || ""}`)))];
   const boxStyle = getComputedStyle(glass);
