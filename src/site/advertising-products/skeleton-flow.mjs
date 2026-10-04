@@ -378,7 +378,14 @@ export function createSkeletonFlowFrameLayout({
     if (rhythm.targetMet) break;
   }
 
-  const result = selectedFrames.map((frame) => Object.freeze(frame));
+  // The last frame of each column ends on the batch bottom; a remainder under a quarter card goes to the frame above.
+  const dropped = new Set();
+  for (let column = 0; column < columns; column += 1) {
+    const own = selectedFrames.filter((frame) => frame.column === column);
+    if (own.length && boundaryBottom - own.at(-1).top < cardWidth * 0.25) dropped.add(own.pop());
+    if (own.length) own.at(-1).height = boundaryBottom - own.at(-1).top;
+  }
+  const result = selectedFrames.filter((frame) => !dropped.has(frame)).map((frame) => Object.freeze(frame));
   Object.defineProperty(result, "diagnostics", {
     enumerable: false,
     value: Object.freeze({

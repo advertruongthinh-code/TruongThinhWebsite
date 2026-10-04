@@ -1037,6 +1037,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ctaSkeleton = grid.querySelector("[data-advertising-cta-skeleton]");
   const gridCta = container.querySelector("[data-advertising-grid-cta]");
   const gridCtaHeading = gridCta?.querySelector("h2");
+  const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".project-index");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
@@ -1274,12 +1275,43 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let gridPixelHeight = 0;
   let ctaGeometryHash = "";
   let lastCtaViewportHeight = 0;
-  const syncGridCtaHeadingMetric = () => {
-    if (!gridCta || !gridCtaHeading) return;
-    gridCta.style.setProperty(
-      "--advertising-cta-heading-half-height",
-      `${gridCtaHeading.getBoundingClientRect().height / 2}px`,
-    );
+  let ctaCopyKey = "";
+  let ctaCopyMetrics = { baseline: 0, below: 0 };
+  // A zero-size inline box at the heading's end sits on the last line's baseline.
+  const ctaBaselineProbe = document.createElement("span");
+  ctaBaselineProbe.style.cssText = "display: inline-block; width: 0; height: 0;";
+  const measureCtaCopy = () => {
+    const last = [...gridCtaHeading.querySelectorAll("*")]
+      .filter((node) => !node.children.length && node.textContent.trim()).at(-1);
+    (last || gridCtaHeading).append(ctaBaselineProbe);
+    const line = last?.closest(".motion-line");
+    // Measure the revealed state: drop the line's current reveal offset, then rest it 0.1em up as detail.js does.
+    const reveal = line ? new DOMMatrixReadOnly(getComputedStyle(line).transform).m42
+      + 0.1 * Number.parseFloat(getComputedStyle(gridCtaHeading).fontSize) : 0;
+    const copyRect = gridCtaCopy.getBoundingClientRect();
+    const baseline = ctaBaselineProbe.getBoundingClientRect().top - copyRect.top - reveal;
+    ctaBaselineProbe.remove();
+    return { baseline, below: copyRect.height - baseline };
+  };
+  // Shrinks the heading only as far as the space under its last baseline needs, never under 1.3rem.
+  const fitGridCtaHeading = (room) => {
+    gridCtaHeading.style.removeProperty("font-size");
+    const css = measureCtaCopy();
+    if (css.below <= room) return css;
+    const cssSize = Number.parseFloat(getComputedStyle(gridCtaHeading).fontSize);
+    const minSize = 1.3 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    gridCtaHeading.style.fontSize = `${minSize}px`;
+    const floor = measureCtaCopy();
+    if (floor.below >= room || cssSize <= minSize) return floor;
+    // The space under the baseline grows linearly with the font size.
+    gridCtaHeading.style.fontSize = `${minSize + (cssSize - minSize) * (room - floor.below) / (css.below - floor.below)}px`;
+    return measureCtaCopy();
+  };
+  // The copy trails the page by 10% and lands on zero offset at the scroll limit.
+  const syncCtaParallax = () => {
+    if (!gridCtaCopy || !siteFooter) return;
+    const offset = reduced || activePhotoId ? 0 : (siteFooter.getBoundingClientRect().bottom - innerHeight) * -0.1;
+    gridCtaCopy.style.transform = offset ? `translate3d(0, ${offset.toFixed(2)}px, 0)` : "";
   };
   let hasLaidOut = false;
   if (!categories.some((entry) => entry.slug === filter)) filter = "all";
@@ -1741,38 +1773,37 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       clearCtaSkeleton();
       return;
     }
-    syncGridCtaHeadingMetric();
-    const ctaTop = geometry.totalPixelHeight + geometry.interCardGap;
+    const gap = geometry.interCardGap;
+    const ctaTop = geometry.totalPixelHeight + gap;
     gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
     const viewportHeight = getLayoutViewportHeight();
     lastCtaViewportHeight = viewportHeight;
-    const footerStyle = siteFooter ? getComputedStyle(siteFooter) : null;
-    const footerGap = Number.parseFloat(footerStyle?.marginBlockStart || footerStyle?.marginTop) || 0;
+    const footerHeight = siteFooter?.offsetHeight || 0;
+    const room = viewportHeight / 2 - footerHeight - gap;
+    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
+    if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
+      ctaCopyKey = copyKey;
+      ctaCopyMetrics = fitGridCtaHeading(room);
+      // CSS places the copy against the dynamic viewport, so the address bar never rebuilds the batch.
+      gridCta.style.setProperty("--advertising-cta-footer-height", `${footerHeight}px`);
+      gridCta.style.setProperty("--advertising-cta-copy-below", `${ctaCopyMetrics.below}px`);
+      requestAnimationFrame(() => { gridCta.dataset.advertisingCtaSettled = "true"; });
+    }
     const ctaStyle = gridCta ? getComputedStyle(gridCta) : null;
     const skeletonRatio = Math.min(0.5, Math.max(0,
       Number.parseFloat(ctaStyle?.getPropertyValue("--advertising-cta-skeleton-ratio")) || 0.382));
-    const copy = gridCta?.querySelector(".detail-cta__copy");
-    const headingStyle = gridCtaHeading ? getComputedStyle(gridCtaHeading) : null;
-    const headingTransform = headingStyle?.transform || "none";
-    const headingTop = headingTransform === "none" ? 0 : new DOMMatrixReadOnly(headingTransform).m42;
-    const headingInkTop = Math.max(
-      (Number.parseFloat(headingStyle?.fontSize) || 0) * 0.28,
-      ...Array.from(gridCtaHeading?.querySelectorAll(".motion-line-mask") || [],
-        (mask) => Number.parseFloat(getComputedStyle(mask).getPropertyValue("--mask-ink-overflow-top")) || 0),
-    );
-    const readableHeight = Math.ceil(Math.max(
-      Math.max(copy?.offsetHeight || 0, copy?.scrollHeight || 0) / (1 - skeletonRatio),
-      skeletonRatio > 0 && headingTop < 0 ? (-headingTop + headingInkTop) / skeletonRatio : 0,
-    ));
+    // The last baseline sits D above the batch bottom; too short a window keeps the button one gap above it.
+    const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(geometry.cardWidth * 0.25) + 1,
-      viewportHeight - geometry.interCardGap - footerGap - (siteFooter?.offsetHeight || 0), readableHeight);
+      viewportHeight - gap - footerHeight, Math.ceil(baselineGap + ctaCopyMetrics.baseline));
     const nextCtaGeometryHash = `${geometry.coordinateHash}:${tailHeight.toFixed(3)}`;
     if (ctaGeometryHash === nextCtaGeometryHash) return;
     gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
     const skeletonFadeEnd = ctaTop + ctaHeight * skeletonRatio;
     const gridBottom = ctaTop + ctaHeight;
-    const skeletonBoundaryBottom = gridBottom + geometry.interCardGap;
+    // The batch ends right on the footer.
+    const skeletonBoundaryBottom = gridBottom;
     const fragment = document.createDocumentFragment();
     if (!skeletonFlowBatch) {
       skeletonFlowBatch = createLogicalSkeletonBatch();
@@ -1873,6 +1904,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       else visibleSkeletonFrames.add(frame);
     });
     syncSkeletonMotion();
+    syncCtaParallax();
   };
 
   const renderWindow = ({ animate = false, origins } = {}) => {
@@ -2819,6 +2851,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!Number.isFinite(y)) return;
     currentVisualY = Math.max(0, y);
     usesVisualScroll = true;
+    syncCtaParallax();
     scheduleScroll();
     scheduleBrowsePersistence();
     renderRelatedWindow();
@@ -2827,6 +2860,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (usesVisualScroll && window.scrollY === 0) return;
     currentVisualY = window.scrollY;
     usesVisualScroll = false;
+    syncCtaParallax();
     scheduleScroll();
     scheduleBrowsePersistence();
   };
@@ -3001,6 +3035,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
   reducedMotionQuery.addEventListener("change", ({ matches }) => {
     reduced = matches;
+    syncCtaParallax();
   }, { signal: controller.signal });
   addEventListener("resize", scheduleResize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("resize", scheduleResize, { passive: true, signal: controller.signal });
@@ -3038,7 +3073,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedMeasuredGeometry = null;
     }
     if (entries.some((entry) => entry.target === gridCtaHeading)) {
-      syncGridCtaHeadingMetric();
+      ctaCopyKey = "";
       ctaGeometryHash = "";
     }
     if (entries.some((entry) => entry.target === siteFooter)) ctaGeometryHash = "";
@@ -3055,9 +3090,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (photoPrimary) resizeObserver.observe(photoPrimary);
   if (photoInfo) [...photoInfo.children].forEach((node) => resizeObserver.observe(node));
   const refreshFontGeometry = () => {
-    if (controller.signal.aborted || !activePhotoId) return;
-    relatedLayoutKey = "";
-    relatedMeasuredGeometry = null;
+    if (controller.signal.aborted) return;
+    // Web font metrics move the CTA baseline without resizing the heading box.
+    ctaCopyKey = "";
+    ctaGeometryHash = "";
+    if (activePhotoId) {
+      relatedLayoutKey = "";
+      relatedMeasuredGeometry = null;
+    }
     scheduleResize();
   };
   document.fonts?.ready.then(refreshFontGeometry);

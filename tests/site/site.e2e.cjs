@@ -10330,7 +10330,7 @@ const BRAND_MOTION_PREVIEW_URLS = (
   .map((value) => value.trim())
   .filter(Boolean);
 
-const FOOTER_SOCIALS = ["facebook", "instagram", "tiktok", "pinterest"];
+const FOOTER_SOCIALS = ["facebook", "tiktok", "youtube"];
 const HEAD_OFFICE_ADDRESS =
   "E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long";
 function expectedBrandHeaderHeight(width, sticky = false) {
@@ -12560,7 +12560,7 @@ async function readFooterRuntimeState(page) {
       address: footer?.textContent?.includes(
         "E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long",
       ),
-      social: ["facebook", "instagram", "tiktok", "pinterest"].map((name) => {
+      social: FOOTER_SOCIALS.map((name) => {
         const item = footer?.querySelector('[data-footer-social="' + name + '"]');
         const svg = item?.querySelector("svg");
         const svgRect = svg?.getBoundingClientRect();
@@ -12615,8 +12615,8 @@ async function runFooterRuntimeChecks() {
                    item.label &&
                    item.svg &&
                    item.viewBox === "0 0 24 24" &&
-                   Math.abs(item.width - 30) <= 0.1 &&
-                   Math.abs(item.height - 30) <= 0.1 &&
+                   Math.abs(item.width - (viewport.width <= 750 ? 24 : 30)) <= 0.1 &&
+                   Math.abs(item.height - (viewport.width <= 750 ? 24 : 30)) <= 0.1 &&
                    !item.hasStroke &&
                    item.tabIndex < 0,
               ) &&

@@ -46,7 +46,7 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
 
 Locomotive Scroll 4.1.4 chỉ bật khi cửa sổ rộng từ 981px và không giảm chuyển
 động (`lerp 0.085`, `multiplier 0.9`, `motion.js`). Dưới 981px, khi giảm chuyển
-động hoặc khi menu mở, trang dùng scroll native và không có parallax.
+động hoặc khi menu mở, trang dùng scroll native và không có parallax Locomotive.
 
 Phần tử có `data-scroll` và `data-scroll-speed` lệch theo công thức của
 Locomotive: độ lệch bằng (tâm viewport trừ tâm phần tử) nhân `-speed / 10`, nên
@@ -61,6 +61,13 @@ dung, speed dương làm nó chạy nhanh hơn.
 
 Hero và rail nhận thuộc tính lúc mount trong `motion.js`; ảnh About khai báo
 trong HTML.
+
+CTA cuối trang Advertising (`.detail-cta__copy`) có parallax riêng ở mọi chiều
+rộng, cả scroll native: độ lệch bằng (giới hạn cuộn trừ `scrollY`) nhân `-0.1`,
+tức trôi chậm hơn cuộn 10% và bằng 0 đúng tại cuối trang. Giảm chuyển động hoặc
+đang xem ảnh thì không lệch. Vị trí cuối của cụm CTA đổi theo thanh địa chỉ thì
+trượt `margin-bottom 0.4s ease-out`
+([CTA giữa viewport](../docs/specs/advertising-cta-center-parallax.md)).
 
 ### Lockup header
 

@@ -2,7 +2,7 @@
 title: Skeleton Flow với preset dịu ngẫu nhiên
 type: frontend
 status: accepted
-updated: 2026-09-27
+updated: 2026-10-04
 lifecycle_delta_status: accepted
 lifecycle_spec_approved: 2026-09-27
 lifecycle_module_id: skeleton-card-lifecycle
@@ -466,8 +466,8 @@ Scale `46–52` và CTA tự chiếm một viewport của các revision trước
   hai WebGL context sống bằng lifecycle/virtualization; không giới hạn toàn bộ
   DOM card còn hai hoặc giảm chất lượng preset và motion.
 - Masonry logical bottom kết thúc sớm để final viewport chứa trọn CTA và footer.
-  Card có thể paint vượt boundary tối đa một gap, nhưng không đổi document height
-  hoặc hit testing. Global Glassmorphism R10 giữ token, full bleed, trình tự blur
+  Card cuối mỗi cột kết thúc đúng đáy batch, ngay trên footer, không paint vượt
+  boundary ([CTA giữa viewport](advertising-cta-center-parallax.md) R2). Global Glassmorphism R10 giữ token, full bleed, trình tự blur
   trước white và endpoint `#fff`.
 - Tại `scrollY = scrollHeight - innerHeight`, bbox CTA và toàn footer nằm trong
   viewport, sai số `1 CSS px`. Overflow nằm dưới glass, CTA và footer; glass đạt

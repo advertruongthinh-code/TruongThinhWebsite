@@ -41,10 +41,10 @@
   CSS, Advertising dùng vòng runtime ([spec](specs/image-loading-progress.md)).
   Owner đổi Advertising sang skeleton chờ ảnh, mở ảnh tại chỗ và màn trắng khi
   vào thẳng trang ngày 04/10 ([spec planned](specs/loading-glass-and-page-entry.md));
-  thread M02b làm code. CTA cuối masonry đổi: chân chữ dòng cuối tiêu đề nằm giữa
-  viewport, có parallax; footer gọn chỉ ở cửa sổ nhỏ và điện thoại; footer mọi
-  trang còn ba icon Facebook, TikTok, YouTube
-  ([spec planned](specs/advertising-cta-center-parallax.md)), owner duyệt 04/10, chờ code.
+  thread M02b làm code. CTA cuối masonry đã code 04/10: chân chữ dòng cuối tiêu
+  đề nằm giữa viewport, có parallax; footer gọn ở cửa sổ nhỏ; footer mọi trang
+  còn ba icon Facebook, TikTok, YouTube ([spec](specs/advertising-cta-center-parallax.md)).
+  Chờ owner xem trên demo; thanh địa chỉ A05s thật chưa chạy.
   P8–P9 có e2e `image-loading-frame` 23 ca PASS trên cloud; còn mở: cache hit
   của vòng tĩnh (home lóe tối đa 2 frame chưa xác nhận) ([evidence](verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải)).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection

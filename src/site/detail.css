@@ -2699,13 +2699,11 @@ body.is-advertising-browse .advertising-grid {
 
 .detail-cta[data-advertising-grid-cta] {
   --advertising-cta-skeleton-ratio: 0.382;
-  --advertising-cta-heading-half-height: min(clamp(3.45rem, 6.21vw, 6.9rem), 19.32svh);
   width: 100%;
   height: var(--advertising-cta-tail-height, calc(100svh - var(--header-collapsed-row-height) - 20px));
   min-height: 0;
   padding: 0 var(--gutter);
-  grid-template-rows: 38.2% minmax(0, 61.8%);
-  place-items: stretch center;
+  place-items: end center;
   background: transparent;
   color: var(--ink);
 }
@@ -2716,68 +2714,75 @@ body.is-advertising-browse .detail-cta[data-advertising-grid-cta] {
   left: 0;
 }
 
+/* The batch fills the space above the footer. */
+body.is-advertising-browse:not(.is-advertising-photo) {
+  --footer-top-gap: 0px;
+}
+
 .detail-cta[data-advertising-grid-cta]::after {
   content: none;
 }
 
+/* The last heading baseline sits on the centre of the dynamic viewport at the scroll limit,
+   or the link keeps one gap above the batch bottom when the window is too short. */
 .detail-cta[data-advertising-grid-cta] .detail-cta__copy {
   z-index: 2;
-  grid-row: 2;
-  align-self: start;
-  justify-self: center;
   width: min(78rem, 100%);
+  margin-bottom: calc(max(50dvh - var(--advertising-cta-footer-height, 0px),
+    var(--advertising-gap) + var(--advertising-cta-copy-below, 0px)) - var(--advertising-cta-copy-below, 0px));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* After the first placement, address bar resizes glide instead of jumping. */
+  .detail-cta[data-advertising-grid-cta][data-advertising-cta-settled] .detail-cta__copy {
+    transition: margin-bottom 0.4s ease-out;
+  }
 }
 
 .detail-cta[data-advertising-grid-cta] h2 {
   font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
   line-height: 1.2;
-  transform: translateY(-50%);
+}
+
+/* The runtime fits the size synchronously; the reduced-motion transition would report the old size. */
+.detail-cta[data-advertising-grid-cta] h2,
+.detail-cta[data-advertising-grid-cta] h2 * {
+  transition: none !important;
+}
+
+/* Split lines add 0.12em mask padding and rest 0.1em up after the reveal (detail.js),
+   so the link still sits one gap under the visible last line. */
+.detail-cta[data-advertising-grid-cta] h2:has(> .motion-line-mask) {
+  margin-bottom: -0.22em;
 }
 
 .detail-cta[data-advertising-grid-cta] .detail-cta__copy a {
   display: flex;
   width: max-content;
-  margin-right: auto;
-  margin-top: calc(var(--advertising-gap) - var(--advertising-cta-heading-half-height));
-  margin-left: auto;
+  margin: var(--advertising-gap) auto 0;
 }
 
 @media (max-width: 750px), (max-height: 640px) {
   .detail-cta[data-advertising-grid-cta] {
     --advertising-cta-skeleton-ratio: 0.28;
-    grid-template-rows: 28% minmax(0, 72%);
   }
-
 }
 
 @media (max-width: 750px) {
   .detail-cta[data-advertising-grid-cta] h2 {
     font-size: clamp(1.7rem, 8.8vw, 2rem);
-    transform: none;
-  }
-
-  .detail-cta[data-advertising-grid-cta] .detail-cta__copy a {
-    margin-top: var(--advertising-gap);
   }
 }
 
 @media (max-width: 750px) and (max-height: 640px) {
   .detail-cta[data-advertising-grid-cta] h2 {
-    font-size: clamp(1.125rem, 5.13vw, 2rem);
+    font-size: clamp(1.3rem, 5.13vw, 2rem);
   }
 }
 
 @media (min-width: 751px) and (max-height: 640px) {
-  body.is-advertising-browse {
-    --footer-top-gap: 28px;
-  }
-
-  .detail-cta[data-advertising-grid-cta] {
-    --advertising-cta-heading-half-height: clamp(1.5525rem, 6.21svh, 3.45rem);
-  }
-
   .detail-cta[data-advertising-grid-cta] h2 {
-    font-size: clamp(1.125rem, 4.5svh, 2.5rem);
+    font-size: clamp(1.3rem, 4.5svh, 2.5rem);
   }
 }
 

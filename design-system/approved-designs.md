@@ -1,6 +1,6 @@
 # Đã duyệt, chờ code
 
-Bốn thiết kế owner duyệt ngày 04/10 trên bản chạy thử
+Ba thiết kế owner duyệt ngày 04/10 trên bản chạy thử
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
 (phiên bản 9). Website chưa chạy các thiết kế này, nên component và
 [Motion](motion.md) vẫn mô tả code hiện tại. PR code chuyển từng mục vào
@@ -42,28 +42,6 @@ hiện tại chính khung của nó: không ảnh bay từ card, không clone.
 
 Spec: [Skeleton chờ ảnh](../docs/specs/loading-glass-and-page-entry.md) R4, R5.
 
-## CTA cuối trang
-
-Cuối trang Advertising, cụm CTA neo theo đường giữa viewport.
-
-- Chân chữ dòng cuối của tiêu đề nằm đúng `vh/2`, sai số 1px, ở mọi cỡ từ
-  320px, VI/EN. Nút "Trao đổi ý tưởng" nằm dưới một gap masonry.
-- Batch skeleton dưới CTA co giãn: card cuối mỗi cột kéo tới đáy batch, không
-  mỏng hơn `0.25` bề rộng card. Trang Advertising bỏ `footer-top-gap`.
-- Tiêu đề tối thiểu `1.3rem` (cỡ nút `0.8rem` nhân 1.618); thiếu chỗ thì nhỏ
-  lại vừa đủ, không dưới mức này.
-- Parallax: cụm CTA trôi chậm hơn cuộn 10%, lệch 0 đúng tại cuối trang, ở mọi
-  chiều rộng; giảm chuyển động thì không có.
-- [Footer](components/Footer/README.md) gọn ở cửa sổ nhỏ (rộng `≤750px` hoặc
-  cao `≤640px`), không quá 38.2% viewport. Điện thoại dọc: hai hàng, khoảng
-  130px; hàng đầu địa chỉ `1rem`, hàng hai icon 24px cách 8px bên trái, bản
-  quyền bên phải, cao 44px. Cửa sổ nhỏ khác: một hàng, 67 đến 90px. Nhãn "Mạng
-  xã hội" ẩn bằng mắt; viền trên một đường `line`.
-- Mọi footer còn ba icon theo thứ tự Facebook, TikTok, YouTube (Remix Icon
-  4.6.0 `youtube-fill`).
-
-Spec: [CTA giữa viewport](../docs/specs/advertising-cta-center-parallax.md).
-
 ## Vào thẳng trang
 
 F5, gõ link hay mở link từ Zalo, Google: [route veil](motion.md#shell) trắng
@@ -80,7 +58,5 @@ Spec: [Skeleton chờ ảnh](../docs/specs/loading-glass-and-page-entry.md) R6, 
 
 - **Kính**: lớp blur chỉ xuất hiện khi ảnh thay skeleton.
 - **Crossfade**: một lớp mờ đi trong lúc lớp khác hiện lên ở cùng chỗ.
-- **Chân chữ**: baseline, đường các chữ đứng lên.
 - **Route veil**: lớp trắng toàn màn hình che trang khi chuyển route.
 - **bfcache**: bộ nhớ trình duyệt giữ nguyên trang để Back hiện tức thì.
-- **Parallax**: lớp nội dung chạy khác tốc độ cuộn để tạo chiều sâu.
