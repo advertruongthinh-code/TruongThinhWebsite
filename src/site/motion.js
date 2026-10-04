@@ -1,3 +1,17 @@
+// The CSS loading ring keeps repainting under a loaded photo, so mark its frame settled.
+(() => {
+  // The ring selector matches both <picture> and its wrapper.
+  const settle = (image) => {
+    const parent = image.parentElement;
+    parent?.classList.add("is-media-settled");
+    if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+  };
+  const onSettle = ({ target }) => target.tagName === "IMG" && settle(target);
+  document.addEventListener("load", onSettle, true);
+  document.addEventListener("error", onSettle, true);
+  document.querySelectorAll("img[src]").forEach((image) => image.complete && settle(image));
+})();
+
 (() => {
   const reduceMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
