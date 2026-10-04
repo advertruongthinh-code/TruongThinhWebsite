@@ -15,7 +15,7 @@ tay trong HTML.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 - Video chạy tắt tiếng trong masonry.
 
-Metadata ảnh ở [Content](../../content.md#metadata-ảnh-advertising).
+Metadata ảnh ở [card nhiều media](../../../docs/specs/site-media-card-playback.md#media-card-và-detail).
 
 Đã duyệt, chờ code: [Card đang tải](../../approved-designs.md#card-đang-tải).
 

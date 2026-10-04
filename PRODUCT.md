@@ -30,18 +30,41 @@ Tuyên bố “hơn 20 năm” được phép dùng. Năm thành lập chính x�
 
 Website phục vụ khách hàng, văn phòng và xưởng trong chuỗi từ khảo sát đến thi công. Tiếng Việt là source text; tiếng Anh là leaf copy tương ứng. Mỗi route cần giữ ngữ cảnh khi đổi locale, reload, dùng keyboard hoặc touch.
 
-Danh sách khách hàng và hạng mục owner xác nhận ngày 2026-09-09, bổ sung ngày
-2026-09-10 về gian hàng triển lãm theo ngành dừa, thực phẩm, mỹ phẩm và thời trang, ngày
-2026-10-04 về siêu thị, thi công theo mẫu chuỗi nhượng quyền và kỷ niệm chương, được lưu một
-lần tại [Ảnh Advertising](design-system/advertising-images.md#bối-cảnh-từ-khách-hàng-thật).
-Nguồn này phân biệt xác nhận của owner, thông tin website khách hàng và suy
-luận dùng cho brief ảnh; không dùng ảnh AI để chứng minh công trình đã thi công.
-
 Địa chỉ trụ sở đã được owner xác nhận và phải dùng đúng chuỗi sau trong footer và các nội dung địa chỉ:
 
 `E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long`
 
 URL hoặc số Zalo thật, năm thành lập chính xác và chính sách hoặc thời hạn bảo hành vẫn là dữ kiện chưa xác minh. Href Zalo hiện tại `https://zalo.me/` là placeholder, không phải URL đã được owner xác nhận.
+
+### Khách hàng, dịch vụ và danh mục
+
+Owner xác nhận ngày 2026-09-09, bổ sung 2026-09-10 và 2026-10-04. Quan hệ và
+hạng mục là thông tin owner, không phải hồ sơ thi công; không dùng ảnh AI để
+chứng minh công trình đã làm. Brief ảnh dùng các thông tin này ở
+[Ảnh Advertising](design-system/advertising-images.md).
+
+| Ngành | Khách hàng (logo ở `src/site/content/client-logos.json`) |
+| --- | --- |
+| Nhà máy dừa, thực phẩm, mỹ phẩm | BEINCO, Betrimex, Dừa Cửu Long |
+| Ngân hàng | BIDV, HDBank, Vietcombank, VietinBank |
+| Bệnh viện | Minh Đức |
+| Văn phòng, bảo hiểm, tư vấn | Prudential, BCJ |
+| Khách sạn, hội nghị | Cannes Hotel, TTC Palace Bến Tre |
+
+Mười hai khách, phần lớn ở Bến Tre.
+
+- **Gian hàng triển lãm:** BEINCO, Betrimex, Dừa Cửu Long và các công ty mỹ
+  phẩm, thời trang, thực phẩm đóng gói và đóng hộp, đặc biệt sản phẩm dừa; đặt
+  ở trung tâm triển lãm, hội chợ, show kinh doanh theo ngành và siêu thị.
+- **Thi công theo mẫu chuỗi nhượng quyền:** xe bán hàng lưu động và kiosk làm
+  đúng mẫu thiết kế chuỗi giao.
+- **Danh mục sản phẩm:** owner có năm mục I–V, ánh xạ vào sáu nhóm public trong
+  `catalog.mjs`: I Bảng hiệu, II Biển văn phòng, III LED, IV In nhanh, phần
+  POSM của V là Kiosk. Xe bán hàng là nhóm owner bổ sung. Dịch vụ thiết kế ở V
+  không thành nhóm thứ bảy.
+- **Kỷ niệm chương** (kim loại, gỗ, thủy tinh; in UV hoặc khắc), owner bổ sung
+  2026-10-04, xếp vào `office-signs-wayfinding` vì cùng vật liệu và cách gia
+  công với bảng chức danh (suy luận, owner đổi nhóm được).
 
 ## Capabilities and Constraints
 

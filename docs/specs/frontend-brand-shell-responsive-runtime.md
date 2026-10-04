@@ -69,6 +69,11 @@ là evidence lịch sử. Không suy ra full-site PASS.
 - DOM hook, font loading, locale switch và cleanup do shared shell runtime sở hữu.
 - Đọc target trước khi thay source/test; không dùng thông số từ report cũ làm
   acceptance mới. Nội dung/geometry/màu không được định nghĩa lại tại spec này.
+- Nghiệm thu đo sau `document.fonts.ready` bằng Canvas TextMetrics (font-size
+  1000, scale về cỡ render) và SVG CTM: tỷ lệ ink `±0.005`; khe, đệm, mép chữ
+  `±0.5px`; chiều cao ngoài `±0.05px`. Phủ VI/EN, desktop/mobile, header/menu,
+  interrupt, soft navigation, Back/Forward, reduced motion. Không đổi font, bóp
+  glyph hay cắt dấu để đạt sai số.
 
 ### Footer
 
@@ -168,8 +173,8 @@ Owner spot-check còn mở; source và gate P1.2 không tự được dùng làm
 | --- | --- | --- |
 | Static contract | `pnpm qa:static` | Năm route cùng lockup/footer contract |
 | Resize runtime | Playwright tại static preview | Không transform kép, blank viewport hoặc background scroll |
-| Logo geometry | Playwright DOM/SVG bbox + Canvas TextMetrics sau font ready | [Contract và nghiệm thu logo](../../design-system/components/BrandLockup/README.md) |
-| Logo scale và màu | Playwright rAF/computed style/transition event | [Motion và state logo](../../design-system/components/BrandLockup/README.md) |
+| Logo geometry | Playwright DOM/SVG bbox + Canvas TextMetrics sau font ready | [Hình dựng logo](../../design-system/brand.md#hình-dựng-tỷ-lệ), sai số ở [Brand lockup](#brand-lockup) |
+| Logo scale và màu | Playwright rAF/computed style/transition event | [Motion và state logo](../../design-system/brand.md#motion) |
 | Navbar responsive | Playwright tại bốn width band | Đúng tổng height, collapse/hide/reveal, mouse-only force-reveal; từng link giữ `left`/width trong `1px` và computed typography bất biến |
 | Navbar P1.3 | Focused parent/detail/history và Chrome DevTools | Re-click về top giữ query/filter/history; detail về parent; header cùng collapse/hide/reveal với Residential, không UI Back |
 | Responsive | Playwright viewport matrix | Không overflow hoặc glyph clipping |

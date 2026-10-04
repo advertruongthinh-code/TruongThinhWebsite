@@ -102,7 +102,7 @@ Tài liệu kèm theo:
 - [Brand guideline](design-system/brand.md): câu chuyện thương hiệu, giá trị cốt lõi và logo
   (hình dựng tỷ lệ, dạng màu, motion, state machine màu của mark).
 - [Content và media](design-system/content.md): giọng điệu, VI/EN, chuẩn file ảnh.
-- [Ảnh Advertising](design-system/advertising-images.md): brief và chấm điểm ảnh.
+- [Ảnh Advertising](design-system/advertising-images.md): hướng ảnh sáu nhóm Advertising.
 - [Đã duyệt, chờ code](design-system/approved-designs.md): thiết kế owner đã duyệt nhưng
   website chưa chạy.
 

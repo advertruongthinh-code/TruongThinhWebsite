@@ -24,6 +24,37 @@ duyệt. Ngoại lệ duy nhất: `pnpm deploy:demo` và `pnpm demo:wrangler` th
 [decision demo Cloudflare](../decisions/cloudflare-workers-static-demo.md);
 agent chỉ chạy `--dry-run`, deploy thật cần owner đồng ý.
 
+## Chấm ảnh Advertising
+
+Ảnh mới tạo bằng **ChatGPT Images 2.5** qua công cụ mà agent hoặc owner có; ghi
+model và metadata nếu tool trả về, thiếu thì ghi unknown. Không tự đổi model.
+Brief theo [Ảnh Advertising](../../design-system/advertising-images.md).
+
+Mỗi ảnh đạt **Audit ≥ 8/10 và Critique ≥ 8/10**; không lấy trung bình.
+
+| Audit | Điểm |
+| --- | --- |
+| Đúng nhóm, sản phẩm, bối cảnh, góc chụp theo brief | 3 |
+| Kết cấu, vật liệu, tỷ lệ, khả năng gia công và lắp đặt | 3 |
+| Không lỗi hình học, chữ, ánh sáng, phản chiếu, chi tiết AI | 2 |
+| Đúng tỷ lệ ảnh, pixel thật, metadata, provenance | 2 |
+
+| Critique | Điểm |
+| --- | --- |
+| Bố cục rõ chủ thể ở ảnh lớn và thumbnail | 3 |
+| Ánh sáng, vật liệu, độ sắc nét | 3 |
+| Hợp ngôn ngữ thị giác ([Design System](../../design-system/README.md)), tinh tế nhưng trung thực cấu tạo | 2 |
+| Bổ sung khác biệt hữu ích cho bộ ảnh | 2 |
+
+**Loại thẳng dù đủ điểm**: mặt nhận diện được; thương hiệu hoặc watermark sao
+chép; chữ chủ thể sai; kết cấu bất khả thi; sai nhóm; sản phẩm lớn bị cắt;
+crop hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại
+coi như ảnh mới.
+
+Một subagent độc lập với agent tạo ảnh mở ảnh để chấm, ghi điểm từng mục và
+lỗi. Main kiểm lại, không tự nâng điểm. Ảnh sửa thì chấm lại đúng SHA-256 mới.
+Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
+
 ## Handoff
 
 - Behavior/project policy đổi: update spec, decision hoặc dated Vietnamese verification report.
@@ -40,3 +71,5 @@ agent chỉ chạy `--dry-run`, deploy thật cần owner đồng ý.
 - **Blocked**: không thể gọi pass vì thiếu điều kiện bắt buộc.
 - **Computer Use**: công cụ thao tác Windows UI theo luồng người dùng nhìn thấy.
 - **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.
+- **Audit**: kiểm độ đúng kỹ thuật và nội dung của ảnh.
+- **Critique**: đánh giá chất lượng thị giác và đóng góp cho bộ ảnh.

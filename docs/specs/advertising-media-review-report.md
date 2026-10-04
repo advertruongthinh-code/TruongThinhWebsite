@@ -88,7 +88,7 @@ verify không có consumer.
 
 ## 9. Reference và history
 
-- [Image quality rubric](../../design-system/advertising-images.md)
+- [Image quality rubric](../operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising)
 - [Image audit](../verification/advertising-images-audit-2026-09-09.md)
 
 | Date | Change | Reason |

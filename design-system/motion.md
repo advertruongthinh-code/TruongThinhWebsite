@@ -18,13 +18,8 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
   thì. Đổi preference khi đang mở trang có hiệu lực ngay.
 - Chỉ animate `transform` và `opacity`; không animate width, height hay CSS
   blur mỗi frame.
-- Observer, listener, timeline thuộc lần mount và được dọn khi rời route.
-  `pageshow.persisted` (Back/Forward từ BFCache) dọn dialog, page scale và
-  route veil.
-- Không thêm thư viện animation. Đang dùng: GSAP và SplitText (shell, text),
-  Barba (chuyển route mềm),
-  `masonry-layout` (vị trí card Advertising), Swiper (carousel detail),
-  Locomotive Scroll (smooth scroll desktop), LazySizes (ảnh).
+- Vòng đời (dọn observer, listener, timeline; BFCache) và thư viện animation
+  ở [route và content](../docs/specs/frontend-route-and-content.md#contract-motion).
 
 ## Shell
 
@@ -152,11 +147,8 @@ outline. Touch không cần hover để mở ảnh.
   trí mới bằng `transform 0.4s ease`, không delay, không stagger.
 - Tải lần đầu: card trong cửa sổ hiển thị đi từ đầu cột tới tọa độ đích
   cùng `400ms`; điểm xuất phát có từ prepaint.
-- Trong `400ms`, DOM chỉ giữ cửa sổ cũ, cửa sổ mới, card đang focus và ảnh
-  đang morph. Scroll trong lúc đó được giữ lại và render một lần sau khi xong,
-  không replay.
-- Tọa độ không đổi thì không có motion. Remount do ảo hóa tại tọa độ cũ là tức
-  thì.
+- Tọa độ không đổi thì không có motion. Card gắn lại do ảo hóa tại tọa độ cũ
+  hiện ngay, không chạy lại motion.
 
 ### Ảnh trong card
 
@@ -186,7 +178,6 @@ outline. Touch không cần hover để mở ảnh.
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 - Viewer: transform từ khung hero tới fit và ngược lại; zoom nội suy giữa fit,
   cover và hai lần cover; pan theo con trỏ tức thì, giới hạn theo ảnh đã phóng.
-  Escape đóng viewer trước khi history nhận phím.
 - Nền primary là bản sao cover, chỉ animate opacity và transform; nhìn qua
   [Kính](components/Glass/README.md) dạng phủ đều đứng yên.
 

@@ -191,6 +191,58 @@ request riêng. Ví dụ biểu diễn nếu có variant:
 Ví dụ chưa khóa danh sách variant, breakpoint hoặc pipeline; chỉ thể hiện
 contract nhất quán giữa kích thước thật, URL và browser selection.
 
+## Chuẩn file ảnh
+
+```text
+src/site/assets/content/
+├─ client-logos/   SVG đã làm sạch
+├─ projects/       WebP dự án và gallery
+├─ news/           media Tin tức
+└─ shared/         WebP dùng chung (process, about, portal)
+source-assets/projects/   file nguồn để biên tập lại, không vào build
+```
+
+- Thư mục phẳng theo loại; không tạo thư mục con theo dự án. Tên file chữ
+  thường, ASCII, kebab-case, mô tả dự án và góc chụp
+  (`kiosk-trung-tam-thuong-mai-front.webp`).
+- WebP sRGB (chuyển từ CMYK hoặc Display-P3 trước khi export); xóa EXIF và GPS.
+- `width`/`height` trong HTML bằng pixel thật của file.
+- Thêm hoặc thay ảnh thì chạy `node scripts/site/build-image-variants.mjs` (xem
+  [pipeline](#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
+
+| Slot | Kích thước nguồn | WebP mục tiêu | Xem lại khi |
+| --- | --- | --- | --- |
+| Hero, full-bleed, CTA | `1536×1024` hoặc `1920×1280` | 180–300 KB | `> 350 KB` |
+| Gallery, project, card | `1536×1024` | 90–220 KB | `> 275 KB` |
+| Ảnh nhỏ, render `<= 384px` | `768×512` | 40–100 KB | `> 130 KB` |
+
+Ngân sách là mức review, không phải hard gate làm ảnh bệt.
+
+- Hero đầu: `src` và `fetchpriority="high"`, không lazy. Slide sau dùng
+  `data-src` cho `motion.js` hydrate.
+- Ảnh dưới fold: `loading="lazy"`, `decoding="async"`.
+- Ảnh trang trí trong vùng `aria-hidden="true"`: `alt=""`. Nền blur của
+  primary Advertising cũng `alt=""`, `aria-hidden`, không nhận pointer.
+- Ảnh nội dung có alt VI và `data-en-alt`; không nhồi từ khóa.
+- Video: `posterSrc`, `posterWidth`/`posterHeight`, `durationSeconds`,
+  `hasAudio`; đối chiếu kích thước thật bằng `ffprobe` (video) và giải mã ảnh
+  (poster). Schema card ở [card nhiều media](site-media-card-playback.md#media-card-và-detail).
+
+Checklist khi thêm hoặc thay ảnh:
+
+1. Ảnh đúng câu chuyện route, không trùng ý ảnh liền kề; đã xem full
+   resolution theo [crop và con người](../../design-system/content.md#crop-và-con-người).
+2. WebP sRGB, kebab-case, đã xóa EXIF; `width`/`height` đúng pixel; dung lượng
+   trong ngân sách; đã chạy `build-image-variants.mjs`.
+3. Alt VI và `data-en-alt`; ảnh trang trí `alt=""`; hero high priority, ảnh dưới
+   fold lazy.
+4. Copy ở node lá, motion hook còn ([route và content](frontend-route-and-content.md#edit-content-và-media)).
+5. Advertising: record trong `media-manifest.mjs`, slug khớp `catalog.mjs`,
+   id/src/sourceId không trùng, đủ tỷ lệ mỗi nhóm theo
+   [Ảnh Advertising](../../design-system/advertising-images.md#bộ-ảnh-và-masonry).
+6. Crop ổn ở năm viewport, không tràn ngang; chạy `pnpm qa:static` và
+   `pnpm qa:site`. Chỉ xóa asset cũ khi không còn route nào dùng.
+
 ## Lệnh và kiểm thử
 
 | Mục đích | Lệnh |
@@ -210,7 +262,7 @@ cho tới khi số đo Sites đạt và rollback vẫn khả dụng.
 ## Ranh giới
 
 - **Luôn làm:** giữ chất lượng/provenance ảnh, đo trước/sau trên Sites và cập
-  nhật content guide, release evidence khi contract media thực sự đổi.
+  nhật [chuẩn file ảnh](#chuẩn-file-ảnh), release evidence khi contract media thực sự đổi.
 - **Cần owner duyệt riêng:** thay ảnh/crop/claim, giảm chất lượng vật liệu thấy
   được, đổi hosting/audience/domain hoặc đưa pipeline media mới ngoài static.
 - **Không làm:** tải mọi ảnh cùng lúc, nhân đôi request để đo progress, edit
