@@ -8,7 +8,7 @@ owner ngày 2026-10-04
 
 ## Hành vi
 
-- Vẽ bằng `background-image` SVG cao 2px, rộng đủ nút, nằm dưới ảnh: ảnh tải
+- Vẽ bằng `background-image` SVG cao 3px, rộng đủ nút, nằm dưới ảnh: ảnh tải
   xong thì phủ lên thanh, và runtime thêm `.is-media-settled` để gỡ thanh.
 - Rãnh trắng alpha 0.18; đoạn sáng trắng alpha 0.72 rộng 30% chạy từ trái sang
   phải, mỗi vòng `1.2s` tuyến tính.
