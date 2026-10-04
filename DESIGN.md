@@ -65,8 +65,6 @@ typography:
     fontWeight: 700
     lineHeight: 1.4
     letterSpacing: "normal"
-rounded:
-  square: "0"
 spacing:
   gutter: "35px"
   section-gap: "90px"
@@ -212,8 +210,8 @@ tác, không phải elevation.
 
 ## Shapes
 
-Ngôn ngữ vuông vức: chỉ có một token `radius-square` (0). Mọi khung, nút,
-card, media, CTA, filter, control đều góc vuông; không có thang radius.
+Ngôn ngữ vuông vức: mọi khung, nút, card, media, CTA, filter, control đều góc
+vuông, nên Design System không có token hay mục radius.
 
 - Hình tròn chỉ xuất hiện ở chi tiết vốn là chấm hoặc vòng, không phải góc bo
   của khung: chấm marquee, chấm timeline About, vòng tải ảnh, nút bật tắt
