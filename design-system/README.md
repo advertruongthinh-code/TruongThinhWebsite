@@ -113,24 +113,24 @@ Nguyên tắc: motion phục vụ nội dung, reduced motion đi thẳng trạng
 ## Components
 
 Website là HTML tĩnh với CSS và runtime dùng chung, không có component API như
-`Header` hay `Footer`. Các mẫu chính:
+`Header` hay `Footer`. Mỗi mẫu có README và `preview.html` trong `components/`,
+không sửa tay preview:
 
-- **Brand lockup:** mark bốn path và hai dòng chữ (VI: Trường Thịnh và phụ đề,
-  EN: INTERIORS · ADVERTISING). Gọi H là chiều cao mark, Y = H/6: khối chữ cao
-  4Y, cách mark Y, đệm trên dưới Y; font 600; dấu không bị clip; EN dùng cùng
-  geometry VI. Favicon dùng `src/site/assets/brand/favicon-black.svg` (light)
-  và `favicon-white.svg` (dark).
-- **Header và full menu:** nút menu vuông, không pill; menu mở full viewport,
-  nhóm link 4/3/2/1 cột ở 1200/960/578px.
+- `node scripts/docs/build-design-system.mjs` sinh preview, `bundle.css` và ảnh
+  từ HTML, CSS website và bản chụp trong `scripts/docs/captures/`.
+- `node scripts/docs/capture-design-system.mjs` (cần `pnpm dev`) chụp lại phần
+  Advertising do JavaScript dựng lúc chạy.
+
+| Nhóm | Component |
+| --- | --- |
+| Shell | [Header](components/Header/README.md), [Brand lockup](components/BrandLockup/README.md), [Full menu](components/FullMenu/README.md), [Footer](components/Footer/README.md), [Floating CTA](components/FloatingCta/README.md) |
+| Trang | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md) |
+| Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Vòng tải](components/LoadRing/README.md) |
+
+Mẫu chưa có preview riêng:
+
 - **Project tile:** media tỷ lệ 3/4, feature 3/2, landscape 4/3; caption
   `label`; ảnh zoom khi hover; không shadow, không radius.
-- **Gallery ngang:** scroll snap, nút prev/next tròn có nhãn ARIA.
-- **Advertising masonry và filter:** filter `all` cộng sáu nhóm; masonry ảo
-  hóa; không có JavaScript vẫn thấy card.
-- **Advertising detail:** sáu route dùng chung template; carousel native chạy
-  trước, Swiper là nâng cấp.
-- **Floating CTA:** `cta-black`, chữ white, góc phải dưới, cách 35px; hover
-  đảo nền trắng chữ `ink`.
 
 ## Do's and Don'ts
 

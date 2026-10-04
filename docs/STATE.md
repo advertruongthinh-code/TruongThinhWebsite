@@ -9,14 +9,15 @@
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
-  anchor, giới hạn dòng, sync spec, design-drift) chạy trên PR; T3–T4 tạo `design-system/`
-  (token, README, motion, content, ảnh Advertising, tham chiếu Espacio).
+  anchor, giới hạn dòng, sync spec, design-drift, preview sinh) chạy trên PR; T3–T6 tạo
+  `design-system/` (token, README, motion, content, ảnh Advertising, tham chiếu Espacio,
+  16 component: shell và trang sinh từ HTML/CSS, Advertising chụp từ runtime).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
   và `cdn.jsdelivr.net` ngày 04/10: cloud chạy Chromium và WebKit với Barba/
-  Locomotive thật. Firefox trên cloud không tin CA proxy nên lỗi TLS; Firefox
-  vẫn chạy trên PC.
+  Locomotive thật. Firefox không tin CA proxy cloud, chạy qua preload
+  `tests/site/support/firefox-cloud-ca.mjs` ([TOOLING](operations/TOOLING.md#browser-qa-trên-cloud)).
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
   duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03),
@@ -50,9 +51,8 @@
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
   QA/audit 04/10 các PR #13–#29, #39 trên Chromium cloud: gate đỏ là test chưa
-  biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Còn mở: vòng tải
-  SMIL vẽ lại liên tục sau khi ảnh xong và bốn finding nhỏ, ghi ở "Gate còn mở"
-  của [vòng tải](specs/image-loading-progress.md#gate-còn-mở) và
+  biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Vòng tải đã
+  dừng khi ảnh xong. Còn mở: hai finding nhỏ ở "Gate còn mở" của
   [tải ảnh](specs/static-image-delivery.md#gate-còn-mở).
 - Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 performance thật,
   owner visual các đợt cũ chưa đóng. Editor skeleton tạm đã gỡ khỏi public
@@ -74,8 +74,8 @@
   Cloud stack: `scripts/tooling/cloud-setup.sh` cho environment `Default`
   ([TOOLING](operations/TOOLING.md#claude-code-cloud-environment)). Verify
   04/10: không lifecycle hook, 6 plugin `@skills-dir` loaded, 7 MCP connected,
-  rule global ở `~/.claude/CLAUDE.md`. Repo này tắt plugin skill trùng qua
-  `.claude/settings.json`. Đổi script thì dán lại vào environment.
+  rule global ở `~/.claude/CLAUDE.md`. `.claude/settings.json` chỉ giữ permission
+  rule cho preload Firefox. Đổi script thì dán lại vào environment.
 - Claude skill: một nguồn, năm plugin pin ở user scope (cloud `cloud-setup.sh`,
   local `local-setup.ps1`); repo không vendor skill
   ([decision](decisions/claude-skills-from-pinned-plugins.md)). Local verify 04/10:

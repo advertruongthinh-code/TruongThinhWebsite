@@ -239,7 +239,7 @@ const responsivePictures = (html) =>
     if (!src || /\s(?:srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.avif`))) return tag;
     const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
-    const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.webp`)));
+    const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && ["webp", "avif"].every((format) => existsSync(path.join(outputRoot, `${src}-${width}.${format}`))));
     const set = (format) => [...widths.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
     if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" ${srcset}="${src}.avif">${tag}</picture>`;
     // Lazy images let the browser use their laid-out width ("auto"); 100vw is the fallback for older browsers.

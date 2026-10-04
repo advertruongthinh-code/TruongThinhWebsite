@@ -42,7 +42,7 @@ nó chuẩn bị data contract để CMS sau này quản lý.
 
 | Hợp đồng | Nguồn duy nhất |
 | --- | --- |
-| Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](../design/patterns.md#advertising-masonry-geometry) |
+| Cột, kích thước ảnh, stagger, nhịp gạch và khoảng trắng | [GRID-R4 visual](#hình-học-masonry-grid-r4-visual) |
 | Caption và token | [DESIGN](../../DESIGN.md#advertising-caption) |
 | Motion, media entrance, reduced motion | [Motion guide](../../design-system/motion.md#advertising) |
 | Sáu nhóm ảnh, khách hàng, cấu tạo, brief, người/chữ/provenance và điểm | [Image quality](../../design-system/advertising-images.md) và các ref trong đó |
@@ -196,6 +196,67 @@ Luôn giữ stable IDs, audit provenance, focused regression và living docs.
 Không cài dependency, đổi CMS/provider, commit/push/deploy hoặc chỉnh logo trong
 R4. Logo có thẻ độc lập. Spec/plan và bổ sung B1 đã được owner duyệt trước code;
 model/effort thực thi theo plan và capability lúc dispatch.
+
+## Hình học masonry (GRID-R4 visual)
+
+**Contract hiện hành:**
+[AD-FINAL-R1 D1–D5, D8–D9](advertising-final-polish-and-media.md),
+GRID-R4 (file này) và
+[photo browse R1/G1](advertising-photo-browse.md#r1--ảnh-rộng-một-cột-xếp-organic)
+sở hữu rule; runtime là `layout-core.mjs` (`advertising-grid-v13`). Mục này chỉ
+tóm tắt visual contract; trạng thái nghiệm thu ở [STATE](../STATE.md) và
+verification.
+
+- Số cột theo clientWidth, không giảm theo dữ liệu. Ảnh parent/related luôn
+  rộng một cột; không có lựa chọn Auto/1/2 ở authoring.
+- Stagger (D9): ưu tiên mép dưới hai cột kề lệch từ `0.10` chiều cao ảnh lớn
+  hơn trong cặp; sau nhánh ưu tiên được dùng hàng thẳng, anti-brick không chặn
+  hàng thẳng ở nhánh fallback. Tổng budget mọi lượt thử `300.000`.
+
+- Outer band `15/25/35px` (viewport `<=750`, `<=1200`, lớn hơn), gutter
+  `15/25/35px` (`<=960`, `<=1200`, lớn hơn) theo `advertisingSpacing()`;
+  content cap `1500px` ở CSS. Related giảm xuống một cột nếu search hữu hạn
+  không tìm được layout đạt gate.
+- Gọi `C` là số cột, `W` là chiều rộng một cột, `G` là gutter ngang hiện hành:
+  `C = min(4, max(2, floor((gridWidth + G) / (220px + G))))` (`columnsForWidth()`),
+  `W = (gridWidth - (C - 1) * G) / C`,
+  `imageWidth = W`,
+  `imageHeight = imageWidth * intrinsicHeight / intrinsicWidth`.
+- Không crop, kéo méo, canvas riêng hoặc backplate; mép ảnh trùng mép khung
+  ảnh, chiều cao tự do. Caption theo [DESIGN](../../DESIGN.md#advertising-caption).
+- Đo stagger: với hai cột kề, so mép dưới ảnh của hai item khác nhau gần nhau
+  nhất theo ngưỡng D9 ở trên; chiều cao chuẩn chỉ là vùng ảnh hiển thị, không
+  gồm caption. Terminal frontier cũng áp dụng. Mỗi ảnh chỉ chiếm một cột.
+  Mép trên hàng đầu không chịu gate mép dưới này; cột trống không giả làm item.
+- Candidate chống nhịp gạch: lượng tử hóa offset có dấu giữa hai cột theo
+  `0.125 * W`; không lặp hai mức A/B thành `ABABAB` qua sáu sự kiện mép dưới
+  liên tiếp của cùng cặp cột khác item, hoặc cùng một mức ba lần liên tiếp.
+  Chỉ đổi bên cao/thấp nhưng mức lệch đa dạng không tự bị coi là nhịp gạch.
+  Screenshot vẫn cần nghiệm thu bằng mắt; qua chỉ số không tự chứng minh đẹp.
+
+  Để oracle và solver đo cùng một nhịp: xét riêng mép ảnh và mép card của từng
+  cặp cột kề. Ghép mỗi mép với mép gần nhất ở cột đối diện thuộc item khác;
+  hòa khoảng cách thì ưu tiên y nhỏ hơn, rồi stable ID. Loại cặp item trùng,
+  lấy offset `leftY - rightY`; sort sự kiện theo `max(leftY, rightY)`, rồi
+  cặp stable ID đã sort. Mức lượng tử là `Math.round(offset / (0.125 * W))`.
+  Áp gate ba mức giống nhau hoặc ABABAB trên chuỗi này, riêng mỗi loại mép.
+- Không spacer/filler, giãn gutter hoặc đổi kích thước ảnh để giả stagger.
+  Skeleton rỗng ở cuối parent là phần nối tiếp CTA, không phải filler giữa ảnh
+  và không tính vào proof cân đáy ảnh thật.
+
+Phép đo hole candidate: chiếu bounds đầy đủ của card (ảnh + caption) lên từng
+cột nó chiếm, sort theo top. Với hai card liên tiếp trong một cột:
+`excessGap = max(0, next.top - previous.bottom - G)` phải `<= 0.05px`.
+Không nâng thêm top để tạo spacer. Card đầu mỗi cột bắt đầu tại
+`top = 0 ± 0.05px`. Phần sau card cuối là terminal frontier, không là interior
+hole. Oracle độc lập dùng bounds, không dùng cờ solver tự trả.
+
+Data/placement algorithm do [Advertising spec](advertising-products-turnkey-services.md#layout-append-và-virtualization)
+sở hữu. `layoutViewportWidth` dùng `documentElement.clientWidth`; native
+scrollbar không tính vào lưới. Content căn giữa; viewport rộng hơn `1570px` thì
+masonry giữ `1500px`. Điểm chuẩn geometry đọc từ test layout, không giữ bảng tay.
+
+Caption: [DESIGN.md](../../DESIGN.md#advertising-caption).
 
 ## Chú thích thuật ngữ
 

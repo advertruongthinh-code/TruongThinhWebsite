@@ -91,6 +91,9 @@ try {
       const raw = await rawAttributes(page);
       await scrollThrough(page);
       await settle(page);
+      // load fires a task after complete flips; give a busy main thread time to drop rings.
+      await page.waitForFunction(() => [...document.images].every(img => !img.complete || !img.naturalWidth
+        || !getComputedStyle(img.closest(":not(img, picture)")).backgroundImage.includes("svg")), null, { timeout: 5000 }).catch(() => {});
       await page.waitForTimeout(400);
       const after = new Map((await snapshot(page)).map(item => [item.key, item]));
       const label = `${route} ${viewport.width}px`;
@@ -103,6 +106,7 @@ try {
         const done = after.get(item.key);
         if (!done) continue;
         if (done.columnVisible) assert.ok(done.ready, `${label}: ${item.src} finishes loading`);
+        if (done.ready) assert.ok(!done.ring, `${label}: ${item.src} drops the ring once loaded`);
         assert.ok(Math.abs(done.w - item.w) <= 1 && Math.abs(done.h - item.h) <= 1,
           `${label}: ${item.src} keeps its box ${item.w}x${item.h} -> ${done.w}x${done.h}`);
       }

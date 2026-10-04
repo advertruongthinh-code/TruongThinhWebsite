@@ -126,7 +126,11 @@ try {
     const style = getComputedStyle(node);
     return { image: style.backgroundImage, position: style.backgroundPosition, size: style.backgroundSize };
   });
+  await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
+  assert.equal((await loadBar(inactiveLink)).image, "none", "loaded suggestion stops the loading bar");
+  await inactiveLink.evaluate((link) => link.classList.remove("is-media-settled"));
   const inactiveBar = await loadBar(inactiveLink);
+  await inactiveLink.evaluate((link) => link.classList.add("is-media-settled"));
   assert.match(inactiveBar.image, /animate attributeName=.x/, "inactive suggestion paints the moving loading bar behind its photo");
   assert.deepEqual([inactiveBar.position, inactiveBar.size], ["0% 100%", "100% 2px"],
     "suggestion loading bar runs along the bottom edge");
@@ -254,8 +258,14 @@ try {
   });
   assert.equal(reducedMedia.transform, "none", "reduced motion removes the shared media zoom");
   assert.equal(reducedMedia.duration, "0s", "reduced motion leaves no suggestion media transition");
+  // Loaded links drop the bar; unsettle to read the loading style.
   const reducedBar = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
-    .evaluate((link) => getComputedStyle(link).backgroundImage);
+    .evaluate((link) => {
+      link.classList.remove("is-media-settled");
+      const image = getComputedStyle(link).backgroundImage;
+      link.classList.add("is-media-settled");
+      return image;
+    });
   assert.match(reducedBar, /svg/, "reduced motion keeps the suggestion loading bar");
   assert.doesNotMatch(reducedBar, /animate/, "reduced motion suggestion bar does not move");
   await reduced.close();

@@ -12,7 +12,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | Hiểu hệ thống/deploy | [Architecture](architecture/index.md) | Runtime static, source ownership, ranh giới CMS |
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
 | Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
-| Thiết kế và reuse UI | [Design system](design/index.md) | Style guide, component/pattern/content, supersession, Impeccable |
+| Thiết kế và reuse UI | [Design System](../design-system/README.md) | Token, component, motion, content, ảnh Advertising; [authority map](#authority-map) |
 | Đối chiếu Espacio | [Baseline reference](../design-system/reference-espacio.md) | Số đo header, chữ, motion, template của site tham chiếu |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
 | Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
@@ -26,7 +26,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 [PRODUCT.md](../PRODUCT.md) sở hữu product truth; [DESIGN.md](../DESIGN.md)
 sở hữu visual primitives/roles, [.impeccable/design.json](../.impeccable/design.json)
 giữ extensions theo schema. Surface briefs nằm ở `.impeccable/surfaces/` khi có
-strategy riêng. `docs/design/` nối artifact với source/API/test để reuse;
+strategy riêng. Reuse contract (DOM hook, lifecycle) nằm trong spec sở hữu;
 không nhân bản token hoặc coi HTML specimen là production component.
 
 [design-system/](../design-system/README.md) là Design System mới (token kiểm drift
@@ -78,7 +78,7 @@ với CSS `:root`); từ plan T7 `DESIGN.md` được sinh từ đây.
 ## Quy tắc duy trì
 
 Living-docs gate ở [AGENTS.md](../AGENTS.md#state-và-living-docs); supersession
-ở [design index](design/index.md#supersession).
+ở [mục dưới](#supersession).
 
 Active docs tổ chức theo domain; độ sâu bổ sung chỉ dùng cho
 archive, không tạo folder theo từng ngày/task. Root Impeccable artifacts giữ
@@ -91,11 +91,35 @@ trong `source-assets/` là evidence local, không nằm trong gói website. Mộ
 artifact nguồn không commit; bản clone dùng kết luận có scope trong verification,
 không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo lại chúng.
 
-## Chọn context thiết kế
+## Authority map
 
-Bắt đầu từ [design authority map](design/index.md#authority-map). Style guide,
-visual system, motion, content, reuse và surface briefs có owner riêng; spec và
-operations chỉ link contract ngoài domain, không giữ bản sao thông số.
+| Contract | Nguồn chuẩn |
+| --- | --- |
+| Product, user, claim, owner fact | [PRODUCT.md](../PRODUCT.md) |
+| Token, visual role, component, motion | [Design System](../design-system/README.md), [Motion](../design-system/motion.md) |
+| Copy VI/EN, alt/ARIA, media | [Content và media](../design-system/content.md) |
+| Ảnh sáu nhóm Advertising, Audit/Critique | [Ảnh Advertising](../design-system/advertising-images.md) |
+| Số đo site tham chiếu | [Espacio](../design-system/reference-espacio.md); không tự thành target |
+| Route, lifecycle, reuse contract | [Route và content](specs/frontend-route-and-content.md#reuse-contract) |
+| Masonry, catalog, renderer Advertising | [GRID-R4](specs/advertising-grid-span-organic.md), [Advertising](specs/advertising-products-turnkey-services.md) |
+| Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |
+
+Source chỉ cho thấy implementation hiện tại; owner hoặc spec đã duyệt mới nâng
+nó thành target. Spec và operations chỉ link contract ngoài domain, không giữ
+bản sao thông số.
+
+## Supersession
+
+Khi decision đã duyệt đổi:
+
+1. Tạo hoặc cập nhật decision mới.
+2. Link decision cũ bằng `supersedes`/`superseded_by`, hoặc xóa file cũ khi
+   owner duyệt gộp (Git history giữ provenance).
+3. Cập nhật tài liệu sở hữu contract trong cùng PR.
+4. Ghi migration, rollback, evidence; sửa mọi link trong cùng PR.
+
+Source đổi mà target đã duyệt chưa đổi: ghi phần lệch, không tự sửa yêu cầu
+thiết kế.
 
 ## Chú thích thuật ngữ
 

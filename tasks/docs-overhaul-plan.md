@@ -52,14 +52,14 @@ Checkpoint 1: CI xanh; owner thử đọc template mới.
   - Nhận: không còn `docs/reference/espacio/`; mỗi section dưới 300 dòng;
     links xanh.
   - Phụ thuộc: T3. Cỡ M.
-- [ ] T5. Component shell
+- [x] T5. Component shell
   - Làm: `components/bundle.css` sinh từ CSS website; README và preview cho
     header, menu, footer, brand lockup, CTA, hero, project grid card,
     carousel ngang.
   - Nhận: mỗi preview render đúng như route demo khi mở cạnh nhau (chụp
     Playwright cùng viewport).
   - Phụ thuộc: T3. Cỡ M.
-- [ ] T6. Component media và Advertising
+- [x] T6. Component media và Advertising
   - Làm: README và preview cho media-card, masonry, skeleton, vòng tải,
     primary, suggestion, viewer, filter. Xóa `docs/design/` còn lại.
   - Nhận: như T5; không còn `docs/design/`.
