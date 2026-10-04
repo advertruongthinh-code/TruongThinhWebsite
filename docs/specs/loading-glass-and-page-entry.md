@@ -17,7 +17,7 @@ rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào
 Thread M02b làm code theo spec. Lỗi Back history, dòng HTML thô sau F5 và motion
 phóng to của viewer nằm ngoài spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
-(phiên bản 5).
+(phiên bản 6).
 
 ## Hành vi
 
@@ -88,16 +88,16 @@ Then không có skeleton hay kính và ảnh hiện bằng fade 0.6s như card t
 
 Bấm một card ở masonry chính hoặc ở related đều mở detail cùng một cách: ảnh
 primary hiện tại chính khung của nó, không có ảnh bay từ card, không clone.
-Primary dùng cùng ba bước của R2; chỉ khác thứ nằm dưới kính lúc bắt đầu:
 
 - Ảnh chưa tải: skeleton card thay ảnh primary cũ ngay khi bấm, giữ tới khi ảnh
-  giải mã xong, rồi chạy ba bước.
-- Ảnh đã có: không có skeleton; kính phủ lên ảnh primary đang xem (khung trống
-  nếu mở lần đầu), crossfade sang ảnh mới, rồi kính tan.
+  giải mã xong, rồi chạy ba bước của R2.
+- Ảnh đã có (owner chốt 2026-10-04): cùng khung như ảnh chưa tải nhưng không có
+  skeleton, kính, crossfade hay chuyển động màu của skeleton. Ảnh mới thay ảnh
+  cũ ngay trong khung, trong cùng một frame.
 
-Nền blur vùng dư của primary (`data-advertising-photo-glass`) đi cùng ảnh trong
-crossfade. Morph primary sang viewer phóng to (`photo-viewer.mjs`, đo từ ảnh
-primary) giữ nguyên.
+Nền blur vùng dư của primary (`data-advertising-photo-glass`) đổi cùng lúc với
+ảnh: qua crossfade khi ảnh chưa tải, đổi ngay khi ảnh đã có. Morph primary sang
+viewer phóng to (`photo-viewer.mjs`, đo từ ảnh primary) giữ nguyên.
 
 ```gherkin
 Given trang Advertising đang mở masonry chính hoặc related
@@ -109,7 +109,8 @@ And khi ảnh giải mã xong, primary chạy đúng ba bước kính như card
 ```gherkin
 Given người xem đang xem một ảnh ở primary
 When người xem bấm một ảnh liên quan đã có trong cache
-Then kính phủ lên ảnh cũ, ảnh cũ crossfade sang ảnh mới dưới kính, rồi kính tan
+Then ảnh mới thay ảnh cũ ngay trong khung primary
+And không có skeleton, kính, crossfade hay chuyển động nào
 ```
 
 ### R5. Skeleton thay vòng xoay
@@ -249,7 +250,7 @@ không phải số đo mới:
 
 ## Gate còn mở
 
-- Owner duyệt bản chạy thử phiên bản 5 và spec này.
+- Owner duyệt bản chạy thử phiên bản 6 và spec này.
 - Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
   A05s thật.
 - R1: mức trần context WebGL trên desktop, chốt theo số đo.
