@@ -134,7 +134,9 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
 - Toàn bộ transitions sau sửa: 25/29, rồi chạy lại từng ca hỏng. Còn mở:
   landscape VI/EN `Y=2` (giới hạn emulator, owner quyết định giữ FAIL kèm ghi
   chú, kiểm lại trên A05s); grid-cta-skeleton-flow `vi-320` một lần vẽ vượt
-  `18px` (hơn gap `3px`), lượt chạy lại PASS, chưa rõ nguyên nhân.
+  `18px` (hơn gap `3px`), lượt chạy lại PASS, chưa rõ nguyên nhân. Ngày
+  2026-10-04 trên main `565fed4` chạy lại 5 lần đều PASS, không tái hiện;
+  đóng, mở lại nếu gặp lại.
 
 ## Chú thích thuật ngữ
 
