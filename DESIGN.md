@@ -69,6 +69,8 @@ spacing:
   gutter: "35px"
   section-gap: "90px"
   footer-top-gap: "64px"
+rounded:
+  square: "0"
 ---
 
 # Design System: Trường Thịnh
@@ -99,11 +101,13 @@ Tài liệu kèm theo:
   token không có family motion nên mọi timing nằm ở đây.
 - [Content và media](design-system/content.md): giọng điệu, VI/EN, chuẩn file ảnh.
 - [Ảnh Advertising](design-system/advertising-images.md): brief và chấm điểm ảnh.
+- [Đã duyệt, chờ code](design-system/approved-designs.md): thiết kế owner đã duyệt nhưng
+  website chưa chạy.
 
 `DESIGN.md` ở gốc repo được sinh từ README này và `tokens.json` cho
 Impeccable; sửa ở đây rồi chạy `node scripts/docs/build-design-md.mjs`.
 
-Bản xem trên claude.ai: [Design System Trường Thịnh](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88).
+Bản xem trên claude.ai: [Trường Thịnh's website](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88).
 Git là nguồn chuẩn; không sửa trên trang. Sau mỗi PR đổi `design-system/` đã
 merge, agent chạy `node scripts/docs/stage-design-system.mjs` rồi publish thư
 mục `.tmp/design-system-publish` bằng công cụ Artifact (`root` là thư mục đó,
@@ -211,7 +215,9 @@ tác, không phải elevation.
 ## Shapes
 
 Ngôn ngữ vuông vức: mọi khung, nút, card, media, CTA, filter, control đều góc
-vuông, nên Design System không có token hay mục radius.
+vuông. Token radius duy nhất là `square` bằng `0`. Trang claude.ai luôn có mục
+Corner radius vì đó là khung cố định của loại artifact, nên mục này chỉ ghi
+token đó.
 
 - Hình tròn chỉ xuất hiện ở chi tiết vốn là chấm hoặc vòng, không phải góc bo
   của khung: chấm marquee, chấm timeline About, vòng tải ảnh, nút bật tắt

@@ -160,6 +160,11 @@ nhật hoặc lý do không đổi.
    không có file hay bảng số đo của site tham khảo. Site tham khảo và các báo
    cáo khảo sát cũ chỉ ghi ở section `Nguồn tham khảo` của `README.md` (owner
    2026-10-04).
+7. Thiết kế owner đã duyệt nhưng website chưa chạy nằm ở section
+   `approved-designs.md` (Đã duyệt, chờ code): giá trị owner duyệt, link spec
+   planned và bản chạy thử (owner 2026-10-04). Component và `motion.md` chỉ
+   mô tả code đang chạy, có thêm một dòng trỏ tới mục chờ code. PR code chuyển
+   giá trị vào component và `motion.md` rồi xóa mục.
 
 ```gherkin
 Given một biến mới hoặc giá trị đổi trong :root của style.css

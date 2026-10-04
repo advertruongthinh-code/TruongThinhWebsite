@@ -17,6 +17,8 @@ tay trong HTML.
 
 Metadata ảnh ở [Content](../../content.md#metadata-ảnh-advertising).
 
+Đã duyệt, chờ code: [Card đang tải](../../approved-designs.md#card-đang-tải).
+
 ## Chú thích thuật ngữ
 
 - **Masonry**: lưới ảnh xếp so le theo chiều cao ảnh.

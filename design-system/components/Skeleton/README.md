@@ -16,6 +16,10 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 
 Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối).
 
+Đã duyệt, chờ code: skeleton này cũng phủ card và primary đang chờ ảnh
+([Card đang tải](../../approved-designs.md#card-đang-tải)); CTA neo theo đường
+giữa viewport ([CTA cuối trang](../../approved-designs.md#cta-cuối-trang)).
+
 ## Chú thích thuật ngữ
 
 - **Skeleton**: khung giữ chỗ không có nội dung.

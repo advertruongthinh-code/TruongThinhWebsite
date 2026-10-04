@@ -16,6 +16,9 @@ hệ. Markup gồm `div.site-invitation` và `footer.site-footer`.
 - Địa chỉ trụ sở giữ nguyên chuỗi ở cả VI và EN (xem
   [Content](../../content.md#song-ngữ-vien)).
 
+Đã duyệt, chờ code: footer gọn ở cửa sổ nhỏ và ba icon Facebook, TikTok,
+YouTube ([CTA cuối trang](../../approved-designs.md#cta-cuối-trang)).
+
 ## Chú thích thuật ngữ
 
 - **Display**: cỡ chữ lớn cho tiêu đề và tuyên bố.

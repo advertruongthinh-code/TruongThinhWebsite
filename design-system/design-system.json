@@ -5,7 +5,7 @@
     "v": 1,
     "at": "2026-10-04T12:30:12Z"
   },
-  "title": "Trường Thịnh",
+  "title": "Trường Thịnh's website",
   "namespace": "TruongThinh",
   "libraries": [],
   "sections": {},
@@ -400,8 +400,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-04T13:45:00Z",
+    "at": "2026-10-04T18:45:00Z",
     "via": "Claude Code",
-    "note": "T8: publish design-system/ từ Git"
+    "note": "Đã duyệt chờ code, token góc vuông, tên Trường Thịnh's website"
   }
 }
