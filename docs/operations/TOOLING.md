@@ -84,6 +84,51 @@ Doctor báo lỗi nếu `~/.agents/skills` lệch lock hoặc `~/.claude/skills`
 Trên Linux/cloud không có PowerShell: Graphify chạy qua
 `scripts/tooling/invoke-graphify.sh`, tự cài Graphify pin lần đầu.
 
+## Claude Code: cloud environment
+
+Cloud session không đọc máy local, nên global stack cài qua setup script của
+environment `Default` tại claude.ai/code. Nguồn chuẩn là
+`scripts/tooling/cloud-setup.sh`; owner dán toàn bộ file vào ô **Setup script**.
+Script chạy bằng root trước khi Claude Code khởi động; kết quả được cache
+khoảng 7 ngày, nên áp dụng cho mọi cloud session, mọi repo.
+
+Cơ chế: mỗi plugin là skills-directory plugin, tức symlink
+`~/.claude/skills/<tên>` trỏ tới checkout pin trong `/opt/agent-tools/src`.
+Claude Code nạp plugin dạng này mọi session, không cần `settings.json` (docs
+cloud ghi user settings "not read"). Plugin local `cloud-stack` giữ MCP và
+các hook mà plugin upstream không tự nối.
+
+| Tool | Cài trên cloud |
+| --- | --- |
+| agent-skills | Plugin: 25 skill, 9 command, 4 agent, references; hook `sdd-cache`, `simplify-ignore` |
+| caveman | Plugin: 22 skill, 3 agent, `/caveman-init`, hook mode; CLI 2.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
+| ponytail | Plugin: 6 skill, 3 hook; MCP `ponytail` |
+| impeccable | Plugin: skill, 4 agent, 3 hook; engine cache, CLI npm 4.1.0 |
+| i-have-adhd | Plugin: skill, hook always-on |
+| graphify | `graphifyy[all]` 0.9.74, skill global, hook `hook-guard`, MCP `graphify` |
+| serena | `serena-agent` 1.7.0, MCP `--context claude-code --project-from-cwd`, 4 hook `serena-hooks` |
+| Chrome DevTools | MCP headless, Chromium `/usr/local/bin/chromium` (`--no-sandbox` cho root) |
+
+Mặc định always-on giống rule global local: ADHD, Caveman `ultracave`,
+Ponytail `ultra`; xóa dòng tương ứng trong script để chuyển về gọi tay. Pin trong script khớp `tooling-versions.json`;
+đổi pin thì sửa cả hai rồi dán lại script, cache tự build lại.
+
+Không cài, có lý do:
+
+- `caveman enable`/`caveman claude`: đổi `ANTHROPIC_BASE_URL` sang proxy
+  local, làm hỏng session cloud.
+- Statusline caveman/ponytail: app cloud không hiển thị status line terminal.
+- Caveman standalone hook: trùng hook của plugin. `caveman-shrink` cần upstream
+  MCP cụ thể. `caveman-cloud` cần login, đang đóng beta. `caveman-delegate` opt-in.
+- `agent-skills/hooks/session-start.sh`: upstream khuyên không dùng với Claude
+  Code vì trùng skill routing.
+- Bước per-repo (`graphify claude install`, `graphify hook install`, build graph,
+  `caveman-init`): ghi file vào repo, chạy khi repo cần.
+
+Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAIL`;
+`claude plugin list` liệt kê sáu plugin `@skills-dir`. Trong repo này skill vừa
+có bản vendor `.claude/skills` vừa có bản plugin namespace (`ponytail:ponytail`).
+
 ## Doctor và update
 
 ```powershell
@@ -129,3 +174,6 @@ Serena và Graphify là STDIO MCP host launch mỗi session, không là Windows 
 - **Automation**: hook, watcher, wrapper hoặc launcher tự chạy mechanics.
 - **Junction**: liên kết thư mục Windows, hai path cùng trỏ một nội dung.
 - **Host agent**: Claude Code hoặc Codex.
+- **Setup script**: Bash script của cloud environment, chạy trước khi Claude Code khởi động.
+- **Skills-directory plugin**: thư mục plugin trong `~/.claude/skills/`, tự nạp mọi session.
+- **Always-on**: mode tự bật đầu session qua hook, không cần gõ lệnh.
