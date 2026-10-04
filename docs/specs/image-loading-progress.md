@@ -122,7 +122,7 @@ dùng `loading-unknown` (vòng xoay chờ), bỏ nhánh byte progress.
   có. Ảnh primary của viewer nhận `.media-load-ring` và `aria-busy` khi đổi
   ảnh chưa tải xong.
 - Suggestion (`detail.css`): owner chọn ngày `2026-10-04` thanh chạy thay
-  vòng xoay. Ô chưa chọn vẽ thanh SVG cao `2px` dọc cạnh dưới làm
+  vòng xoay. Ô chưa chọn vẽ thanh SVG cao `3px` dọc cạnh dưới làm
   `background-image` dưới ảnh, như ảnh tĩnh; đoạn sáng chạy trái sang phải
   `1,2 s`, ảnh tải xong thì `.is-media-settled` gỡ thanh. Ô đang chọn nền trắng, ảnh ẩn, không có
   thanh. Ảnh kế tiếp của slideshow decode ngoài DOM trước khi chèn, nên không
