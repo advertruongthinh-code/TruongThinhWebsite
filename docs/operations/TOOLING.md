@@ -130,17 +130,13 @@ Cloud environment cho phép `cdn.playwright.dev`,
 PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright pnpm exec playwright install --with-deps firefox webkit chromium
 ```
 
-Chromium và WebKit chạy runner trực tiếp. Firefox có cert store riêng, không
-tin CA proxy cloud (`SEC_ERROR_UNKNOWN_ISSUER`), nên chạy qua preload test-only:
-request HTTPS của Firefox do Node tải (Node tin CA qua `NODE_EXTRA_CA_CERTS`,
-vẫn kiểm chứng chỉ) và trả lại nguyên byte. Owner duyệt cách này ngày 04/10;
-`.claude/settings.json` cho phép đúng lệnh này không cần hỏi.
+Từ khi font và vendor tự host (PR #53), page test chỉ gọi origin local nên cả
+Chromium, Firefox và WebKit chạy runner trực tiếp, không cần preload hay quyền
+riêng:
 
 ```bash
-PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright LAYOUT_ENGINES=firefox node --import ./tests/site/support/firefox-cloud-ca.mjs tests/site/mobile-layout-parity.e2e.mjs --scope all
+PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright LAYOUT_ENGINES=firefox node tests/site/mobile-layout-parity.e2e.mjs --scope all
 ```
-
-PC Windows không cần preload.
 
 ## Doctor và update
 
@@ -190,4 +186,3 @@ Serena và Graphify là STDIO MCP host launch mỗi session, không là Windows 
 - **Setup script**: Bash script của cloud environment, chạy trước khi Claude Code khởi động.
 - **Skills-directory plugin**: thư mục plugin trong `~/.claude/skills/`, tự nạp mọi session.
 - **Always-on**: mode tự bật đầu session qua hook, không cần gõ lệnh.
-- **Preload**: module Node nạp trước runner qua `node --import`, chỉ dùng cho test.

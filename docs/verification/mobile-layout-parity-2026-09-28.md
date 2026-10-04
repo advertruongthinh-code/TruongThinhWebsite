@@ -698,25 +698,32 @@ Chromium. Gate còn mở cho đợt PC: Firefox/WebKit cùng 660 matrix và stat
 C06 R4/R10 FPS trên GPU thật, A05s USB (L06 landscape, V04 toolbar
 direct/reload), iPhone/A54, owner visual.
 
-## Firefox và WebKit trên cloud 04/10/2026
+## Ba engine sau khi tự host asset 04/10/2026
 
-Owner mở `cdn.playwright.dev`, `playwright.download.prss.microsoft.com`,
-`cdn.jsdelivr.net` cho cloud environment. Candidate `main` `aa2f5b9`, preview
-`8792`, Playwright 1.63, Barba/Locomotive tải thật từ jsDelivr (không shim).
-`main` sau đó chỉ bỏ preload ảnh About (`e82c276`), không đổi layout.
+Từ `bfad7ed` (#53) font và vendor tự host, nên Firefox chạy trên cloud không
+cần preload; kết quả Firefox cloud lỗi CA trước đó bị thay. Bằng chứng L04R1–R2:
 
-| Engine | Suite | Kết quả |
-| --- | --- | --- |
-| WebKit 26.6 | Layout `--scope all` | `cloud-l04r-webkit-2026-10-04T10-28-49-525Z` 4694 records, 0 fault, provenance sạch, runner `341c61bf` |
-| WebKit 26.6 | Viewport | `cloud-webkit-2026-10-04T12-29-16-460Z` 63 samples, 0 failure |
-| Firefox 155 | Layout `--scope all` | `cloud-l04r-firefox-2026-10-04T10-28-49-557Z` 4771 records, 303 fault, matrix 164/220: **không dùng nghiệm thu** |
+| Engine | Nơi | Suite | Kết quả |
+| --- | --- | --- | --- |
+| Chromium 153 | Cloud | Layout `--scope all` | `cloud-l04r-chromium-final-2026-10-04T15-42-59-501Z` trên `0c9f98c`: 4705 records, 0 fault, provenance sạch, runner `dcea1504` |
+| Firefox 155 | PC | Layout `--scope all` | `pc-l04r-firefox-final-2026-10-04T15-20-31-388Z` trên `9c8f344`: 4707 records, 0 fault, provenance sạch, runner `dcea1504` |
+| WebKit 26.6 | PC | Layout `--scope all` | `pc-l04r-webkit-selfhost-2026-10-04T14-23-45-603Z` trên `bfad7ed`: 4711 records, 0 fault, provenance sạch |
+| Chromium, WebKit | Cloud | Viewport | `cloud-selfhost-2026-10-04T15-20-12-504Z` trên `bfad7ed`: 126 samples, 0 failure |
+| Firefox 155 | PC | Viewport | `pc-firefox-selfhost-2026-10-04T15-17-48-411Z` trên `bfad7ed`: 63 samples, 0 failure |
 
-Firefox dùng cert store riêng, không tin CA chặn TLS của proxy cloud: 656 lỗi
-`SEC_ERROR_UNKNOWN_ISSUER` (jsDelivr) và 820 lỗi CORS do font không tải, nên
-13 fault `text clipped horizontally by detail-cta` chưa phân loại được (có thể
-do font fallback, chưa kiểm chứng). Cài CA vào Firefox bằng policy không có tác
-dụng; route qua Node bị chặn vì làm yếu TLS. Firefox chạy trên PC. Cùng với
-Chromium ở mục trên, L04R còn thiếu Firefox, A05s, iPhone.
+Lần Firefox đầu trên `bfad7ed` có 1 fault (no-JS `/en/` `838x387` chữ 200%): 6
+ảnh srcset bị thay thế báo `NS_BINDING_ABORTED`, còn oracle chỉ bỏ qua mã
+Chromium `net::ERR_ABORTED`. `9c8f344` cho oracle nhận cả hai mã; repro cloud
+53/0.
+
+Test footer (`footer-consistency.e2e.mjs`, Chromium) fail ở 320px VI/EN Quảng cáo
+cả trước #53: khi JS bật và catalog chưa tải, Chromium vẽ text thô của
+`noscript` vì rule `display: contents`, trang rộng 378px. `0c9f98c` chỉ áp rule
+trong `@media (scripting: none)`; footer 48/64 đạt 192/192. Firefox và WebKit
+luôn ẩn `noscript` khi JS bật nên số liệu `bfad7ed` của hai engine vẫn đúng.
+Unit 120/120, `qa:release-regressions` 7/7, random browse 19 ca đạt.
+
+Còn L04R3 (final 660, A05s USB, iPhone, L07 review/L-C), L06, V04.
 
 ## Chú thích thuật ngữ
 
@@ -727,3 +734,5 @@ Chromium ở mục trên, L04R còn thiếu Firefox, A05s, iPhone.
 - **Physical evidence**: bằng chứng từ thiết bị thật.
 - **Shim**: đoạn code test-only thay một dependency mạng bằng bản cục bộ.
 - **SRI**: Subresource Integrity, hash bắt buộc của script tải từ CDN.
+- **Provenance**: dấu vết chứng minh run đo đúng source, runner và output đã nêu.
+- **Tự host**: phục vụ font và script từ chính origin của site thay vì CDN.

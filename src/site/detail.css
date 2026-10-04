@@ -727,8 +727,11 @@ html[lang="en"]
   gap: 35px;
 }
 
-.project-grid > noscript {
-  display: contents;
+/* display: contents has no box of its own, so with scripting on Chromium would lay out the raw fallback text. */
+@media (scripting: none) {
+  .project-grid > noscript {
+    display: contents;
+  }
 }
 
 .project-tile {

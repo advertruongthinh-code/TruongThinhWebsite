@@ -30,8 +30,9 @@ const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercia
 const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];
 const results = [];
-// Resizes and route changes re-pick srcset candidates; the browser aborts the superseded image request.
-const supersededImage=request=>request.resourceType()==='image'&&request.failure()?.errorText==='net::ERR_ABORTED';
+// Resizes and route changes re-pick srcset candidates; the browser aborts the superseded image request
+// (Chromium reports net::ERR_ABORTED, Firefox NS_BINDING_ABORTED).
+const supersededImage=request=>request.resourceType()==='image'&&['net::ERR_ABORTED','NS_BINDING_ABORTED'].includes(request.failure()?.errorText);
 async function saveRecord(record){results.push(record);await fs.appendFile(dir+'/observations.jsonl',JSON.stringify(record)+'\n');}
 async function textFixture(context,size){await context.addInitScript(size=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.style.fontSize=`${size}px`,{once:true}),size);}
 function measure(options = {}) {

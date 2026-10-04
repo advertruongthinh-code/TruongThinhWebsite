@@ -446,21 +446,17 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 
 ### L04R — minimum chữ/control Advertising đã duyệt28/09
 
-- [ ] L04R1: minimum CTA/info/pager/image-controls sửa named200% RED; optional
+- [x] L04R1: minimum CTA/info/pager/image-controls sửa named200% RED; optional
   pure API giữ default, unit compatibility và short portrait/landscape đạt.
-- [ ] L04R2:100/200% VI/EN3engines đọc đủ pages, không clipping/overflow;
+- [x] L04R2:100/200% VI/EN3engines đọc đủ pages, không clipping/overflow;
   giữ random/common/deck/context≤2, footer48/64, toolbar geometry và query/focus.
 - [ ] Final660/state/regressions, L-B, A05sUSB, L07review/L-C tiếp tục theo plan;
   iPhone/reference/MCP/owner còn missing không được check thay.
 
-Cloud04/10: Chromium layout all4688records0fault, L04R1 200% không còn RED;
-sửa focus `Xem lớn hơn` bị header che và badge `Vừa xem` cắt
-([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026)).
-Cloud04/10 sau khi owner mở host: WebKit26.6 layout all4694records0fault,
-viewport63samples0failure. Firefox155 chạy được nhưng không tin CA proxy cloud
-nên jsDelivr/font trả `SEC_ERROR_UNKNOWN_ISSUER`, matrix164/220: raw không dùng
-nghiệm thu ([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#firefox-và-webkit-trên-cloud-04102026)).
-Còn Firefox (PC), A05s, iPhone; chưa check L04R1–R3.
+04/10 sau tự host: layout `--scope all` 0 fault trên Chromium (cloud), Firefox
+và WebKit (PC); viewport 0 failure; sửa oracle Firefox và lỗi `noscript` Chrome
+([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#ba-engine-sau-khi-tự-host-asset-04102026)).
+Còn L04R3 (A05s, iPhone, final660, L07/L-C).
 
 ### L04H — About Back/Forward, plan đã duyệt
 
