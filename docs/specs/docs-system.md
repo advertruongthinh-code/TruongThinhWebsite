@@ -144,7 +144,7 @@ nhật hoặc lý do không đổi.
    `meta.cssOnly` kèm lý do. Literal rải trong selector không thuộc check.
 3. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand
    lockup, CTA, hero, project grid card, media-card, masonry, skeleton, vòng
-   tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
+   tải, thanh tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
    CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`,
    bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
    `scripts/docs/build-design-system.mjs` sinh preview từ HTML website, bundle
@@ -156,6 +156,10 @@ nhật hoặc lý do không đổi.
 4. Motion là section `motion.md` (format không có nhóm token motion).
 5. `README.md` dùng đúng các heading Impeccable đọc (Overview, Colors,
    Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
+6. Design System chỉ mô tả Trường Thịnh: số đo là của website Trường Thịnh,
+   không có file hay bảng số đo của site tham khảo. Site tham khảo và các báo
+   cáo khảo sát cũ chỉ ghi ở section `Nguồn tham khảo` của `README.md` (owner
+   2026-10-04).
 
 ```gherkin
 Given một biến mới hoặc giá trị đổi trong :root của style.css
@@ -244,7 +248,8 @@ nháp, evidence hay checklist trong Notion. Checklist từng bước nằm trong
 Owner duyệt spec ngày 2026-10-04 với ba mặc định:
 
 - Corpus `docs/reference/espacio/`: phần còn dùng gộp vào `design-system/`
-  thành section tham chiếu; phần còn lại xóa.
+  thành quy tắc của Trường Thịnh, nguồn chỉ ghi ở `Nguồn tham khảo` (owner
+  chỉnh 2026-10-04); phần còn lại xóa.
 - Mỗi spec tối đa 300 dòng; dài hơn thì tách capability.
 - ADR đã superseded bị xóa khỏi cây thư mục; Git history giữ.
 

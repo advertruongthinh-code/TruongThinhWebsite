@@ -332,8 +332,8 @@ OS/browser quyết định, không ép iPhone/Android dùng thumb desktop11px.
 
 ### State và visual contract
 
-Oracle geometry/style là [bổ sung Espacio27/09](../../design-system/reference-espacio.md#scrollbar-desktop),
-có hash archive/live và raw state. Các giá trị10px TT native lịch sử trong
+Oracle geometry/style là [Scrollbar trong Design System](../../design-system/README.md#layout);
+hash archive/live và raw state ở báo cáo `f76c14f:docs/reference/espacio/components.md`. Các giá trị10px TT native lịch sử trong
 foundations không phải target.
 
 | Mode/state | Outcome bắt buộc |

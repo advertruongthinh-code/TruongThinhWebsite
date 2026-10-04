@@ -10,8 +10,9 @@
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
   anchor, giới hạn dòng, sync spec, design-drift, preview sinh) chạy trên PR; T3–T6 tạo
-  `design-system/` (token, README, motion, content, ảnh Advertising, tham chiếu Espacio,
-  16 component: shell và trang sinh từ HTML/CSS, Advertising chụp từ runtime). T7: `DESIGN.md`
+  `design-system/` (token, README, motion, content, ảnh Advertising, 17 component: shell
+  và trang sinh từ HTML/CSS, Advertising chụp từ runtime); chỉ mô tả Trường Thịnh, Espacio
+  chỉ ghi ở nguồn tham khảo. T7: `DESIGN.md`
   và sidecar Impeccable sinh từ `design-system/`, không sửa tay. T8: đã publish lên
   [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); chờ owner duyệt (checkpoint 2).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)

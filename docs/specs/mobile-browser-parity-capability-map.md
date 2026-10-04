@@ -48,7 +48,7 @@ không suy nguyên nhân mọi lần reset từ một phiên capture.
 | Module id | Trách nhiệm | Phụ thuộc để nghiệm thu | Nguồn sở hữu |
 | --- | --- | --- | --- |
 | `android-usb-qa` | Kết nối Chrome trên Android thật; lưu metadata, DOM/CSS, lỗi và thao tác cuộn | — | [Hướng dẫn debug](../operations/android-real-device-debugging.md); không thay UI contract |
-| `scrollbar-parity` | Chốt scrollbar/shell theo reference; geometry và tương tác tương ứng | `android-usb-qa` cho mobile gate | Delta của [brand shell](frontend-brand-shell-responsive-runtime.md), tham chiếu [Espacio](../../design-system/reference-espacio.md) |
+| `scrollbar-parity` | Chốt scrollbar/shell theo reference; geometry và tương tác tương ứng | `android-usb-qa` cho mobile gate | Delta của [brand shell](frontend-brand-shell-responsive-runtime.md), tham chiếu [Design System](../../design-system/README.md#layout) |
 | `skeleton-card-lifecycle` | Giữ lifecycle/reveal khi cuộn như card thường; không reset batch do ngưỡng cuộn | `android-usb-qa` | Delta của [skeleton flow](advertising-skeleton-flow.md) và [photo/grid](advertising-photo-browse.md) |
 | `button-content-parity` | Căn chỉnh chữ/icon trong nút trên browser mục tiêu | `android-usb-qa` | Delta của [brand shell](frontend-brand-shell-responsive-runtime.md) và visual authority hiện hữu |
 
@@ -65,11 +65,12 @@ skeleton lifecycle và plan/card C00–C07 đã duyệt27/09; delta/plan nút v�
 
 ## Reference và giới hạn
 
-[Foundations Espacio](../../design-system/reference-espacio.md) và
-[components](../../design-system/reference-espacio.md) giữ source/measurement đã lưu.
+Báo cáo đo site tham khảo nằm trong lịch sử Git, liệt kê ở
+[nguồn tham khảo](../../design-system/README.md#nguồn-tham-khảo).
 Số10px trong foundations là scrollbar native của Trường Thịnh ở snapshot cũ,
-không phải width target của Espacio. [Bổ sung scrollbar27/09](../../design-system/reference-espacio.md#scrollbar-desktop)
-giữ CSS/source hash và phép đo idle/scroll/hover; drag/release live còn open.
+không phải width target của Espacio. [Scrollbar trong Design System](../../design-system/README.md#layout)
+ghi geometry và trạng thái; hash và phép đo idle/scroll/hover ở báo cáo
+`f76c14f:docs/reference/espacio/components.md`; drag/release live còn open.
 Không tự suy idle timeout hoặc gọi source-derived state là live PASS.
 
 Contract scrollbar chi tiết phải dẫn exact artifact/source hash cho từng state

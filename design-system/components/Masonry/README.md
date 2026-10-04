@@ -10,6 +10,16 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
   cột 15/25/35px (`<= 960`, `<= 1200`, lớn hơn). Nội dung tối đa 1500px.
 - Số cột: `C = min(4, max(2, floor((gridWidth + G) / (220 + G))))`; mỗi ảnh
   rộng đúng một cột, cao theo tỷ lệ gốc.
+
+| Viewport | Lề ngoài | Cột | Gutter | Rộng card |
+| ---: | ---: | ---: | ---: | ---: |
+| 320 | 15 | 2 | 15 | 138 |
+| 390 | 15 | 2 | 15 | 173 |
+| 768 | 25 | 3 | 15 | 229 |
+| 1024 | 25 | 4 | 25 | 225 |
+| 1440 | 35 | 4 | 35 | 316 |
+
+Đo trên website ngày 2026-10-04.
 - Không spacer, không giãn gutter, không crop để giả so le. Rule stagger và
   chống nhịp gạch: [GRID-R4](../../../docs/specs/advertising-grid-span-organic.md).
 - Chỉ mount card gần viewport; list có `aria-posinset`, `aria-setsize`; Tab

@@ -14,6 +14,8 @@ chuỗi ảnh nền.
   bật hoặc tắt.
 - Nút chưa bật chạy chuỗi ảnh mỗi 3s; zoom chỉ khi hover. Nút đang bật và
   reduced motion giữ ảnh tĩnh.
+- Ảnh nền chưa tải xong thì cạnh dưới nút hiện [Thanh tải](../LoadBar/README.md),
+  không dùng vòng xoay.
 
 Preview chụp tại một thời điểm của chuỗi ảnh nên ảnh nền có thể khác lần chụp
 sau.
