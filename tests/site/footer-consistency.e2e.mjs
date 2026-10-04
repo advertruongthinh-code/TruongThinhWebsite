@@ -57,6 +57,7 @@ try {
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
             advertisingBrowse: url.pathname.endsWith("/advertising-products/") && !url.searchParams.has("photo"),
+            bodyClass: document.body.className,
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,
             address: footer.querySelector(".footer-address strong").textContent,
