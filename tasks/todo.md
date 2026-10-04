@@ -789,7 +789,7 @@ waterfall không cho thấy transfer bytes là nút thắt.
       viewport và không tạo request trùng.
 - [x] Nếu cần derivative, giữ provenance/identity/dimensions/alt và tạo theo
       batch nhỏ; không đưa source-only asset vào `.site-output/`.
-- [ ] (chờ đo demo ở P11) Không làm LCP tăng ngoài gate; giữ caching, lazy loading, decode và
+- [x] Không làm LCP tăng ngoài gate (đo P11 sau tự host font); giữ caching, lazy loading, decode và
       intrinsic ratio.
 
 **Verification:** focused media/static tests, cold/warm local Network waterfall
@@ -942,8 +942,8 @@ hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
 
 ### P11 — Push source và đo demo candidate
 
-**Trạng thái 2026-10-04:** owner duyệt, demo deploy `9478ed8`. Bytes ảnh và
-ảnh đầu đạt; LCP chưa đạt vì LCP text phụ thuộc font và JS CDN
+**Trạng thái 2026-10-04:** owner duyệt, demo deploy `9478ed8` rồi `8759d0a`
+(tự host font, thư viện, cache). Bytes ảnh, ảnh đầu và LCP đều đạt
 ([kết quả](../docs/specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
 
 **Mô tả:** phát hành demo Cloudflare Workers sau owner release approval (Sites
@@ -957,11 +957,9 @@ hữu, không dùng QA để mở rộng refactor. **Estimate:** 90–150 phút.
       [release](../docs/specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026)).
 - Bỏ: Sites tree/archive `dist/` + `.openai/hosting.json`; Workers deploy
       `.site-output/` qua `wrangler.static.toml`.
-- [ ] (thread font và cache) Candidate đạt gate LCP cùng cohort baseline; bytes
-      và ảnh đầu đã đạt, LCP chưa đạt; nếu trượt sau deploy thì rollback. Font,
-      Locomotive, Barba tự host và cache đã vào source
-      ([spec](../docs/specs/frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026)),
-      chờ deploy và đo demo.
+- [x] Candidate đạt gate LCP cùng cohort baseline sau khi tự host font, thư viện
+      và cache (Worker `7ee4aaa9`,
+      [kết quả](../docs/specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
 
 **Verification:** Git diff/commit/push gates, Worker version ID, route 200 và
 Network/Performance trên demo sau deploy.

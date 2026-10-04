@@ -165,8 +165,14 @@ chưa đạt: home biến thiên quá lớn với 2 lượt; residential và com
 tử LCP là text nên LCP phụ thuộc font Google và JS từ CDN (gsap, Locomotive,
 Barba), không còn phụ thuộc ảnh. Hướng tiếp theo nằm ngoài pipeline ảnh: tự
 host font và thư viện, cache dài cho `/assets/vendor/*`, đã làm theo
-[spec](frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026), chờ đo demo. Raw trên PC:
+[spec](frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026). Raw trên PC:
 `.tmp/image-delivery/p11-demo-20261004`.
+
+Đo lại sau tự host (Worker `7ee4aaa9`, cùng cohort, 3 lượt, residential 7 lượt,
+0 lượt lỗi; median 390 px vi): home 3,77 s, residential 3,26 s, commercial
+3,85 s, about 2,86 s, advertising-products 2,25 s. Không route nào vượt baseline
+quá 5%; gate LCP đạt. Raw trên PC: `.tmp/image-delivery/p11-fontcache-20261004`
+và `p11-fontcache-residential-20261004`.
 
 ## Giao diện module và nơi đặt code
 
