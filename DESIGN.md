@@ -99,6 +99,8 @@ Tài liệu kèm theo:
 
 - [Motion](design-system/motion.md): timing shell, menu, text, hover, Advertising; định dạng
   token không có family motion nên mọi timing nằm ở đây.
+- [Logo](design-system/logo.md): brand guideline, hình dựng tỷ lệ, dạng màu, motion và
+  state machine màu của mark.
 - [Content và media](design-system/content.md): giọng điệu, VI/EN, chuẩn file ảnh.
 - [Ảnh Advertising](design-system/advertising-images.md): brief và chấm điểm ảnh.
 - [Đã duyệt, chờ code](design-system/approved-designs.md): thiết kế owner đã duyệt nhưng
