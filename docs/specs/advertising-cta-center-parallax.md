@@ -263,7 +263,8 @@ batch ngoài một gap bắt buộc. EN cho cùng kết quả ở các cỡ đã
   dòng bốn icon của [brand shell](frontend-brand-shell-responsive-runtime.md),
   `tests/site/footer-consistency.e2e.mjs` (ba icon, footer gọn, Advertising
   không có khoảng trên footer), [Footer](../../design-system/components/Footer/README.md)
-  và [Motion](../../design-system/motion.md) mục parallax.
+  và [Motion](../../design-system/motion.md) mục parallax; xóa mục CTA cuối
+  trang trong [Đã duyệt, chờ code](../../design-system/approved-designs.md).
 
 ## Chú thích thuật ngữ
 

@@ -14,6 +14,9 @@ style ở `src/site/style.css`.
 Vòng chỉ tồn tại khi ảnh đang tải, nên preview dựng khung chứa tay; class và
 style vẫn của website.
 
+Đã duyệt, chờ code: skeleton thay vòng này ở primary
+([Mở ảnh tại chỗ](../../approved-designs.md#mở-ảnh-tại-chỗ)).
+
 ## Chú thích thuật ngữ
 
 - **Primary**: ảnh đang được xem chi tiết.

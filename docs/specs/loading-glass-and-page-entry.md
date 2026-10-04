@@ -212,19 +212,9 @@ Tên class của lớp kính do thread M02b đặt khi làm code, theo vai trò 
 
 ## UI
 
-Giá trị dưới đây là bản owner xem trong bản chạy thử. Khi code xong, chúng
-chuyển vào [Motion](../../design-system/motion.md) và Design System, rồi bảng
-này được thay bằng link.
-
-| Phần | Giá trị |
-| --- | --- |
-| Skeleton | Skeleton card hiện có, không đổi style hay motion |
-| Kính | `blur(28px) saturate(1.08) brightness(1.04)`, tint trắng alpha 0.12; bắt đầu và kết thúc ở `blur(0)`, tint 0 |
-| Bước 1, kính hiện | 0 đến 0.6s, `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
-| Bước 2, crossfade | 0.3 đến 0.9s, `cubic-bezier(0.65, 0, 0.35, 1)` |
-| Bước 3, kính tan | 0.6 đến 1.4s, `power4.inOut` (`cubic-bezier(0.86, 0, 0.07, 1)`) |
-| Primary có sẵn ảnh | Ba bước trên nhân `3/7`, tổng `0.6s`: kính hiện 0 đến 0.26s, crossfade 0.13 đến 0.39s, kính tan 0.26 đến 0.6s |
-| Veil | Route veil trắng hiện có; giữ tới khi mount, mở 1s power4.inOut |
+Giá trị owner duyệt trong bản chạy thử nằm ở Design System, mục
+[Đã duyệt, chờ code](../../design-system/approved-designs.md): Card đang tải,
+Mở ảnh tại chỗ, Vào thẳng trang.
 
 Owner chốt tổng `1.4s` và ba bước chồng lên nhau (2026-10-04): crossfade bắt
 đầu khi kính chưa hiện xong, kính bắt đầu tan khi crossfade chưa xong. Nhịp còn
@@ -260,8 +250,9 @@ không phải số đo mới:
   (thêm vai trò chờ ảnh), [Motion](../../design-system/motion.md) mục ảnh trong
   card, detail và route veil, [Media card](../../design-system/components/MediaCard/README.md),
   [Vòng tải](../../design-system/components/LoadRing/README.md) (bỏ phần
-  Advertising); cập nhật phần Advertising của
-  [khung chờ và vòng tải](image-loading-progress.md).
+  Advertising), xóa ba mục tương ứng trong
+  [Đã duyệt, chờ code](../../design-system/approved-designs.md); cập nhật phần
+  Advertising của [khung chờ và vòng tải](image-loading-progress.md).
 - R7: thời gian chờ tối đa trước fallback (mục `CẦN LÀM RÕ`).
 
 ## Chú thích thuật ngữ

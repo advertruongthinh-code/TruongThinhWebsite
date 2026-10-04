@@ -29,6 +29,7 @@ const frontmatter = [
   'colors:', map(tokens.color.tokens.map((t) => [t.name, t.value])),
   'typography:', typography,
   'spacing:', map(tokens.spacing.tokens.map((t) => [t.name, t.value])),
+  'rounded:', map(tokens.radius.tokens.map((t) => [t.name, t.value])),
   '---',
 ].join('\n');
 
