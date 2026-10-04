@@ -16,7 +16,7 @@ mờ dần độ trong suốt, nên vùng chuyển là ảnh nét và ảnh nhò
 (`src/site/detail.css`). Spec này thay mọi bề mặt glass bằng một component Kính
 duy nhất, có bốn cải tiến owner chọn. Owner chốt số ngày 04/10 trên bản chạy
 thử [Kính Trường Thịnh](https://claude.ai/artifact/3cmMiPqYxMMq9LAWCHwujH)
-(phiên bản 3 mở sẵn số đã chốt). Giá trị nhìn thấy ở
+(phiên bản 4 mở sẵn số đã chốt). Giá trị nhìn thấy ở
 [Design System](../../design-system/approved-designs.md#kính).
 
 ## Hành vi
@@ -60,9 +60,9 @@ mép trên tiêu đề tới đáy nút.
 
 | Giá trị | Chốt 04/10 |
 | --- | --- |
-| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề + `0.70` × chiều cao cụm CTA |
-| Bán kính | `2.7` × bề rộng viewport |
-| Dải giảm nhòe, đo từ cung ra ngoài | `1.40` × chiều cao cụm CTA |
+| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề + `0.50` × chiều cao cụm CTA |
+| Bán kính | `4.0` × bề rộng viewport |
+| Dải giảm nhòe, đo từ cung ra ngoài | `1.20` × chiều cao cụm CTA |
 
 Hai giới hạn tự động: dải hẹp lại nếu mép ngoài lên quá đáy cột ảnh thật cao
 nhất, nên Kính không bao giờ phủ ảnh thật; bán kính tăng lên nếu cần, để cung

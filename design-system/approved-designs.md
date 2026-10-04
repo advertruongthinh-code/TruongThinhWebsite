@@ -5,7 +5,7 @@ chỗ và Vào thẳng trang được duyệt ngày 04/10 trên bản chạy th�
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
 (phiên bản 9); số của Kính chốt cùng ngày trên
 [Kính Trường Thịnh](https://claude.ai/artifact/3cmMiPqYxMMq9LAWCHwujH)
-(phiên bản 3). Component và [Motion](motion.md) vẫn mô tả code hiện tại. PR code
+(phiên bản 4). Component và [Motion](motion.md) vẫn mô tả code hiện tại. PR code
 chuyển từng mục vào component và Motion, rồi xóa mục khỏi trang này.
 
 ## Kính
@@ -24,8 +24,8 @@ mặt nào tự viết `backdrop-filter`.
 - **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
   trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
   batch; trong cung nhòe tối đa, ra ngoài nhòe giảm dần về 0. Đỉnh cung ở
-  `70%` cụm CTA tính từ mép trên tiêu đề, bán kính `2.7` × bề rộng màn, dải giảm
-  nhòe `1.40` × chiều cao cụm. Dải không lên quá ảnh thật.
+  `50%` cụm CTA tính từ mép trên tiêu đề, bán kính `4.0` × bề rộng màn, dải giảm
+  nhòe `1.20` × chiều cao cụm. Dải không lên quá ảnh thật.
 - **Trắng theo cùng cung:** ngoài dải không có trắng, tới cung đạt tint, vào
   trong tăng tới trắng tuyệt đối ở đáy batch.
 - **Hạt nhiễu:** đơn sắc, tĩnh, đậm `4%`, che sọc màu ở dải trắng; không có ở
