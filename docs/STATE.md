@@ -96,8 +96,8 @@
   ([gate](specs/frontend-static-release.md#gate-còn-mở)).
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; kính chờ ảnh masonry và motion mở ảnh có spec và
-  mục Design System, chờ code; mọi bề mặt glass đổi sang
-  [Kính dùng chung](specs/glass-surface.md) (owner chốt số 04/10, chờ code);
+  mục Design System, chờ code; [Kính dùng chung](specs/glass-surface.md) đã
+  code 04/10 cho kính cuối masonry và vùng dư primary, còn đo 30fps trên A05s;
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

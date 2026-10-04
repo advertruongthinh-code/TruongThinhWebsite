@@ -1,7 +1,11 @@
 ---
 title: Kính dùng chung cho mọi bề mặt glass
-status: planned
-tests: []
+status: live
+source:
+  - src/site/advertising-products/glass-surface.mjs
+tests:
+  - tests/site/glass-surface.test.mjs
+  - tests/site/glass-surface.e2e.mjs
 notion: none
 updated: 2026-10-04
 ---
@@ -10,26 +14,24 @@ updated: 2026-10-04
 
 ## Mục đích
 
-Owner thấy vùng chuyển từ nét sang nhòe ở kính cuối masonry Advertising còn
-ranh giới (04/10). Kính hiện tại là một lớp blur 28px đủ mạnh từ mép trên, chỉ
-mờ dần độ trong suốt, nên vùng chuyển là ảnh nét và ảnh nhòe chồng nhau
-(`src/site/detail.css`). Spec này thay mọi bề mặt glass bằng một component Kính
-duy nhất, có bốn cải tiến owner chọn. Owner chốt số ngày 04/10 trên bản chạy
-thử [Kính Trường Thịnh](https://claude.ai/artifact/3cmMiPqYxMMq9LAWCHwujH)
-(phiên bản 4 mở sẵn số đã chốt). Giá trị nhìn thấy ở
-[Design System](../../design-system/approved-designs.md#kính).
+Mọi bề mặt glass của trang Advertising dùng một component Kính: nhòe tăng dần
+thật qua năm bậc, màu trắng theo cùng hình, hạt nhiễu mịn và màu sau kính rực
+hơn, để vùng chuyển từ nét sang nhòe không còn ranh giới. Số do owner chốt trên
+bản chạy thử [Kính Trường Thịnh](https://claude.ai/artifact/3cmMiPqYxMMq9LAWCHwujH)
+(phiên bản 4). Giá trị nhìn thấy ở
+[Design System](../../design-system/components/Glass/README.md).
 
 ## Hành vi
 
 ### R1. Một component, hai dạng
 
-Mọi bề mặt glass dùng cùng một component Kính, cùng markup, CSS và custom
-property; không bề mặt nào tự viết `backdrop-filter`. Component có hai dạng:
+Mọi bề mặt glass dùng cùng một component Kính, cùng markup và CSS; không bề
+mặt nào tự viết `backdrop-filter`. Component có hai dạng:
 
 | Dạng | Bề mặt |
 | --- | --- |
 | Cung | Kính cuối masonry Advertising, nền cho cụm CTA trên batch skeleton |
-| Phủ đều | Vùng dư quanh ảnh primary; card đang tải và primary đang mở ([R2, R4](loading-glass-and-page-entry.md)) |
+| Phủ đều | Vùng dư quanh ảnh primary khi ảnh contain còn chỗ trống; sau này card đang tải và primary đang mở ([R2, R4](loading-glass-and-page-entry.md)) |
 
 Nền tối của viewer phóng to (`.advertising-photo-dialog::backdrop`) là lớp làm
 tối để xem ảnh, không phải Kính, và giữ nguyên.
@@ -97,8 +99,9 @@ And từ đáy batch trở xuống mỗi kênh màu lệch trắng tối đa 1/2
 
 Kính có lớp hạt nhiễu đơn sắc tĩnh, độ đậm `4%` (độ lệch lớn nhất trên tông
 giữa), để che sọc màu (banding) ở dải trắng lớn và cho cảm giác kính mờ. Lớp
-hạt hòa trộn `overlay`, nên vùng trắng tuyệt đối (R3) giữ nguyên trắng. Hạt
-nhiễu không chuyển động; một hạt bằng một pixel thiết bị.
+hạt hòa trộn `overlay` và ở dạng cung mờ dần về 0 tới vòng trắng tuyệt đối, nên
+vùng trắng tuyệt đối (R3) giữ nguyên trắng. Hạt nhiễu không chuyển động; một
+hạt bằng một pixel thiết bị.
 
 ```gherkin
 Given A05s mở cuối masonry
@@ -109,14 +112,16 @@ And vùng trắng tuyệt đối không có hạt nhiễu
 
 ### R5. Màu sau kính rực hơn
 
-Kính tăng độ bão hòa của nội dung phía sau lên `1.7` (hiện `1.08`), độ sáng
+Kính tăng độ bão hòa của nội dung phía sau lên `1.7`, độ sáng
 `1.04`, tint trắng alpha `0.12`. `saturate()` và `brightness()` nhân dồn qua
 các bậc, nên mỗi bậc nhận căn bậc năm của giá trị tổng và độ rực tăng cùng độ
 nhòe.
 
 ### R6. Hiện và tan bằng opacity từng bậc
 
-Khi kính dạng phủ đều hiện hoặc tan (card đang tải, primary), các bậc nhòe hiện
+Chưa có bề mặt nào hiện hoặc tan kính: card đang tải và mở ảnh tại chỗ thuộc
+[Skeleton chờ ảnh](loading-glass-and-page-entry.md), chưa code. Khi có, kính
+dạng phủ đều dùng đủ năm bậc và hiện hoặc tan theo quy tắc sau: các bậc nhòe hiện
 lần lượt từ nhẹ tới mạnh và tan theo chiều ngược lại, chỉ bằng `opacity`. Không
 animate bán kính blur mỗi frame, theo nguyên tắc của
 [Motion](../../design-system/motion.md#nguyên-tắc). Thời gian và đường cong
@@ -130,10 +135,10 @@ Then chỉ opacity của các bậc đổi theo thời gian, backdrop-filter kh�
 
 ### R7. Hiệu năng và trình duyệt
 
-Đạt gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md)
-R9 trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
+Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
+trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
 median tối thiểu `30fps`, không long task trên `50ms`. Nếu số bậc làm rơi gate,
-PR code báo owner kèm số đo trước khi đổi số bậc. Có tiền tố
+báo owner kèm số đo trước khi đổi số bậc. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
@@ -148,28 +153,34 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
-| DOM | Các lớp bậc nhòe, lớp tint và lớp hạt nhiễu bên trong `.glass-surface` | Mỗi lớp một bậc; chỉ lớp bậc có `backdrop-filter` |
-| CSS | `--glass-*` | Thay `--advertising-glass-*` và hai pseudo-element hiện tại trong `detail.css` |
-| Runtime | `catalog-runtime.mjs` | Đặt tâm, bán kính, dải theo cụm CTA và hình học batch, thay `--advertising-cta-skeleton-glass-start` |
+| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung năm bậc; dạng phủ đều đứng yên một bậc đủ mạnh (nhìn như năm bậc chồng, nhẹ hơn). Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1` |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`), `saturate(1.112)`, `brightness(1.0079)`; bậc phủ đều `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
+| CSS | `--glass-grain`, `--glass-grain-size` trên `html` | Ảnh hạt nhiễu 160×160 sinh một lần bằng canvas, một hạt một pixel thiết bị |
+| Runtime | `glass-surface.mjs` | `createGlassSurface(shape)`; `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt mask và màu trắng |
+| Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass` |
 
 ## UI
 
-[Kính trong Design System](../../design-system/approved-designs.md#kính).
+[Kính trong Design System](../../design-system/components/Glass/README.md).
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R6 | chưa có test |
-| R7 | chưa có test; trace Chrome trên A05s qua CDP |
-| R8 | chưa có test |
+| R1–R5 | `node tests/site/glass-surface.test.mjs` (CSS, hình học); `node tests/site/glass-surface.e2e.mjs` (Chromium, `BASE_URL`) |
+| R6 | chưa có bề mặt |
+| R7 | trace Chrome trên A05s qua CDP, chưa chạy |
+| R8 | `glass-surface.e2e.mjs`, ca giảm chuyển động |
 
 ## Gate còn mở
 
-- PR code làm R1–R8 kèm test, cập nhật glass của
-  [Skeleton Flow](advertising-skeleton-flow.md) R8–R10, glass vùng dư của
-  [photo browse](advertising-photo-browse.md) P6.2, Design System và xóa mục
-  Kính trong [Đã duyệt, chờ code](../../design-system/approved-designs.md).
+- R7 trên A05s thật: chưa đo median fps và long task khi cuộn tới kính cung
+  và khi mở primary có kính. Đo tương đối trên cloud 04/10 (Chromium vẽ bằng
+  CPU, chậm CPU ×4, 390×844 DPR3, cuộn qua lại ở cuối masonry): `main` 55fps,
+  kính cung năm bậc 21–59fps (hai mode), cùng kính một bậc 60fps. Năm bậc là
+  phần nặng; số này không thay A05s.
+- Safari trên iPhone thật chưa kiểm.
+- R6 chạy khi thread M02b code card đang tải và mở ảnh tại chỗ.
 
 ## Chú thích thuật ngữ
 

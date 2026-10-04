@@ -187,8 +187,8 @@ outline. Touch không cần hover để mở ảnh.
 - Viewer: transform từ khung hero tới fit và ngược lại; zoom nội suy giữa fit,
   cover và hai lần cover; pan theo con trỏ tức thì, giới hạn theo ảnh đã phóng.
   Escape đóng viewer trước khi history nhận phím.
-- Nền primary là bản sao cover + blur, chỉ animate opacity và transform; lớp
-  kính `blur(28px) saturate(1.08) brightness(1.04)`, tint trắng alpha 0.12.
+- Nền primary là bản sao cover, chỉ animate opacity và transform; nhìn qua
+  [Kính](components/Glass/README.md) dạng phủ đều đứng yên.
 
 ## Chú thích thuật ngữ
 

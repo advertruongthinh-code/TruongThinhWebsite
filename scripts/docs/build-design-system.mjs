@@ -35,6 +35,12 @@ const COMPONENTS = [
   // The ring exists only while an image loads, so its host box is written here; the ring itself is runtime markup (catalog-runtime.mjs).
   { name: 'LoadRing', group: 'Advertising', height: 280, file: 'src/site/advertising-products/catalog-runtime.mjs', start: /photoLoadRing\.className = "media-load-ring"/,
     markup: '<div style="position: relative; width: 316px; height: 237px; margin: 20px 35px; background: var(--media-loading-surface);">\n<span class="media-load-ring" aria-hidden="true"></span>\n</div>' },
+  // Kính is runtime markup (glass-surface.mjs); the photo host and the half-width placement are written here.
+  { name: 'Glass', group: 'Advertising', height: 300, file: 'src/site/advertising-products/glass-surface.mjs', start: /glass\.className = "glass-surface"/,
+    markup: '<div style="position: relative; width: 384px; height: 256px; margin: 20px 35px; overflow: hidden;">\n'
+      + '<img src="/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-26-owner-20260924.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">\n'
+      + '<div style="position: absolute; inset: 0 0 0 50%;"><div class="glass-surface" data-glass-shape="even" aria-hidden="true">'
+      + '<i class="glass-surface__step"></i><i class="glass-surface__tint"></i><i class="glass-surface__grain"></i></div></div>\n</div>' },
   // The bar shows only until a suggestion photo paints, so the buttons are written here without photos; the bar itself is detail.css.
   { name: 'LoadBar', group: 'Advertising', height: 280, file: 'src/site/detail.css', start: /Indeterminate bar painted along the bottom edge/,
     markup: '<div class="advertising-photo-view__suggestion-links" style="width: 316px; margin: 20px 35px;">\n'

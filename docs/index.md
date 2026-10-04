@@ -66,8 +66,8 @@ lifecycle) nằm trong spec sở hữu.
   chỉ tóm tắt card đang làm; chi tiết Done không được chép.
   [Skeleton chờ ảnh, mở ảnh tại chỗ, màn trắng vào trang](specs/loading-glass-and-page-entry.md):
   owner chốt 04/10, chờ code; thay vòng xoay Advertising khi triển khai.
-  [Kính dùng chung](specs/glass-surface.md): owner chốt số 04/10, chờ code;
-  thay kính cuối masonry và kính vùng dư primary.
+  [Kính dùng chung](specs/glass-surface.md): đã code 04/10 cho kính cuối
+  masonry và kính vùng dư primary; còn đo trên A05s.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
