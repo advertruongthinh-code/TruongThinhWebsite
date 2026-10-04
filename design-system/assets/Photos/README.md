@@ -6,8 +6,8 @@ sửa tay; đổi ảnh website rồi sinh lại. Trên claude.ai mỗi ảnh l�
 id ghi trong `design-system.json`.
 
 Phần lớn ảnh là minh họa AI, không phải công trình đã thi công
-([Content và media](../../content.md#metadata-ảnh-advertising)); chuẩn chọn và
-chấm điểm ở [Ảnh Advertising](../../advertising-images.md).
+([Ảnh Advertising](../../advertising-images.md#bộ-ảnh-và-masonry)); chấm điểm ở
+[QA ảnh Advertising](../../../docs/operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising).
 
 ## Chú thích thuật ngữ
 
