@@ -3635,8 +3635,11 @@ html[lang="en"]
   gap: 35px;
 }
 
-.project-grid > noscript {
-  display: contents;
+/* Only without scripts: with scripts on, noscript holds raw text that display:contents would paint. */
+@media (scripting: none) {
+  .project-grid > noscript {
+    display: contents;
+  }
 }
 
 .project-tile {
