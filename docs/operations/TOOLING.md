@@ -1,6 +1,6 @@
 # Agent tooling
 
-Repository chứa pin, policy, wrapper, test, watcher và skill vendor của project.
+Repository chứa pin, policy, wrapper, test và watcher của project; không vendor skill.
 Runtime agent package nằm ở user scope; Claude Code và Codex dùng chung một stack trong
 mọi workspace. Pin canonical: `tooling-versions.json`.
 
@@ -40,8 +40,9 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ```
 
 Bootstrap gọi `local-setup.ps1` cho skill Claude. Persona Claude
-là bản chép tay; đổi persona Codex thì chép lại. Serena launcher hiện dùng
-`--context codex --project-from-cwd` cho cả hai host. Chrome DevTools MCP chưa
+là bản chép tay; đổi persona Codex thì chép lại. Serena dùng
+`--project-from-cwd` với context của host: cloud `claude-code`
+(`cloud-setup.sh`); `start-serena-mcp.ps1` trên PC còn ghi `codex`. Chrome DevTools MCP chưa
 đăng ký cho Claude Code vì app có browser riêng.
 
 ## Machine mới hoặc repair

@@ -78,13 +78,10 @@ Spec: [Skeleton chờ ảnh](../docs/specs/loading-glass-and-page-entry.md) R4, 
 
 ## Vào thẳng trang
 
-F5, gõ link hay mở link từ Zalo, Google: [route veil](motion.md#shell) trắng
-hiện có phủ trang từ khung hình đầu. Header nằm trên veil nên intro header chạy
-cùng lúc. Trang dựng xong thì veil mở `1s power4.inOut` như chuyển route, rồi
-entrance của trang chạy tiếp.
-
-- Không có veil khi Back từ bfcache hay khi giảm chuyển động.
-- Mạng chậm: veil giữ tới khi script dựng trang xong. Script lỗi: gỡ veil ngay.
+Veil khi tải trực tiếp đã chạy, xem [route veil](motion.md#shell). Còn chờ
+code: mạng chậm thì veil giữ tới khi script dựng trang xong. Hiện script chưa
+nhận trang sau 2.5s thì veil gỡ và trang hiện ở trạng thái cuối; script lỗi
+thì gỡ veil ngay (đã chạy).
 
 Spec: [Skeleton chờ ảnh](../docs/specs/loading-glass-and-page-entry.md) R6, R7.
 
