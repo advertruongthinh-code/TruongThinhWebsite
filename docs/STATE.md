@@ -12,7 +12,8 @@
   anchor, giới hạn dòng, sync spec, design-drift, preview sinh) chạy trên PR; T3–T6 tạo
   `design-system/` (token, README, motion, content, ảnh Advertising, tham chiếu Espacio,
   16 component: shell và trang sinh từ HTML/CSS, Advertising chụp từ runtime). T7: `DESIGN.md`
-  và sidecar Impeccable sinh từ `design-system/`, không sửa tay.
+  và sidecar Impeccable sinh từ `design-system/`, không sửa tay. T8: đã publish lên
+  [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); chờ owner duyệt (checkpoint 2).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
