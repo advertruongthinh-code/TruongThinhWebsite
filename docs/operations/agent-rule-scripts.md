@@ -28,8 +28,8 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Need | Entrypoint | Boundary |
 | --- | --- | --- |
 | Clone, approved repair | `pnpm tooling:bootstrap` | Mutate pinned user-global stack/project browser. |
+| Skill Claude local | `pwsh -NoProfile -File scripts/tooling/local-setup.ps1` | Cài năm plugin skill pin vào `~/.claude/skills`; cloud dùng `cloud-setup.sh`. |
 | Approved repair từng phần | `pwsh -NoProfile -File scripts/tooling/bootstrap.ps1 -Components Skills` | Chọn `Python`, `Node` hoặc `Skills`; không chạy full bootstrap, đổi host agent config hay cài Git hook. |
-| Skill vendor | `pnpm tooling:skills`, `pnpm tooling:skills:check` | Sinh `.claude/skills` từ `tooling-versions.json`; không sửa tay `.claude/skills`. |
 | Graphify Linux/cloud | `scripts/tooling/invoke-graphify.sh query|path|explain ...` | Tự cài Graphify pin, refresh AST khi tree đổi. |
 | Health | `pnpm tooling:doctor`, `pnpm tooling:doctor -- -Mcp` | Diagnose reported setup/MCP issue. |
 | Update report | `pwsh -File scripts/tooling/check-updates.ps1 [-IfDue]` | Notify-only; không install. |
@@ -50,7 +50,6 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 
 - MCP launcher: `global-mcp.ps1`, `start-serena-mcp.ps1`, `start-graphify-mcp.ps1`, `start-chrome-devtools-mcp.ps1`. Host agent launch MCP mỗi session; không chạy như Windows daemon.
 - Internal: `common.ps1`, `graphify-freshness.ps1`, `graphify-semantic-status.py`, `graphify_supplemental.py`, `serena_sync.py`, `mcp_probe.py`, `write-install-manifest.ps1`, patch/test fixture. Chỉ tool-maintenance task được user approve mới gọi.
-- `skill-overrides/`: override cả thư mục skill upstream cùng tên; `pnpm tooling:skills` áp dụng khi sinh `.claude/skills`.
 
 ## Chú thích thuật ngữ
 

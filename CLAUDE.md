@@ -5,8 +5,7 @@
 Dùng command nội bộ repository; dependency pin nằm trong `tooling-versions.json`. Không tạo
 workflow riêng cho Claude khi `AGENTS.md` đã định nghĩa shared contract.
 
-Skill nằm ở `.claude/skills/`, sinh từ pin bằng `pnpm tooling:skills`; không sửa
-tay. Phiên Linux hoặc cloud (`CLAUDE_CODE_REMOTE=true`) không có PowerShell: thay
+Skill đến từ plugin pin ở user scope ([TOOLING](docs/operations/TOOLING.md#claude-code-skill)). Phiên Linux hoặc cloud (`CLAUDE_CODE_REMOTE=true`) không có PowerShell: thay
 `invoke-graphify.ps1` bằng `scripts/tooling/invoke-graphify.sh query "..."`.
 
 ## Chú thích thuật ngữ

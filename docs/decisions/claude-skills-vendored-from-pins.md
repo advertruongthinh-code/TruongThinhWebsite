@@ -1,6 +1,7 @@
 ---
 title: Skill vendor vào .claude từ pin để mọi phiên Claude dùng cùng bộ
-status: accepted
+status: superseded
+superseded_by: claude-skills-from-pinned-plugins.md
 date: 2026-10-03
 scope: agent tooling
 tags: [claude-code, skills, graphify]

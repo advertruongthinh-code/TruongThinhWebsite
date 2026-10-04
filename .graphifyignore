@@ -1,8 +1,5 @@
 # Generated, vendor, cache, and runtime state.
 .git/**
-.claude/skills/**
-.claude/references/**
-.claude/skills.lock.json
 .tooling/**
 .serena/cache/**
 .serena/logs/**

@@ -63,9 +63,10 @@
   04/10: không lifecycle hook, 6 plugin `@skills-dir` loaded, 7 MCP connected,
   rule global ở `~/.claude/CLAUDE.md`. Repo này tắt plugin skill trùng qua
   `.claude/settings.json`. Đổi script thì dán lại vào environment.
-- Claude skill: 55 skill vendor tại `.claude/skills` từ pin, cloud thread dùng được
-  ([decision](decisions/claude-skills-vendored-from-pins.md)). Máy local còn bước gỡ
-  link `~/.claude/skills` rồi bootstrap theo [TOOLING](operations/TOOLING.md#claude-code-skill-trong-repo).
+- Claude skill: một nguồn, năm plugin pin ở user scope (cloud `cloud-setup.sh`,
+  local `local-setup.ps1`); repo không vendor skill
+  ([decision](decisions/claude-skills-from-pinned-plugins.md)). Local verify 04/10:
+  5 OK, `ponytail:ponytail`, `agent-skills:spec` hiện.
 - STATE trước cleanup: Git `da2f13a` (`docs/archive/snapshots/state-before-release-2026-09-24.md`,
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
 - Next repo action: P11 đã đo trên demo 2026-10-04: bytes ảnh và ảnh đầu đạt,

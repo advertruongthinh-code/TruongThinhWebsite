@@ -2,7 +2,7 @@
 
 ## Bắt đầu
 
-1. Mọi role dùng `ponytail` ultra. Skill của agent-skills, ponytail, impeccable, graphify, `i-have-adhd` do AI tự gọi; skill caveman (22 skill từ juliusbrussee/caveman) chỉ chạy khi user chỉ định (`disable-model-invocation: true` do `vendor-skills.mjs` gắn). Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
+1. Mọi role dùng `ponytail` ultra. Skill của agent-skills, ponytail, impeccable, graphify, `i-have-adhd` do AI tự gọi; skill caveman (22 skill từ juliusbrussee/caveman) chỉ chạy khi user chỉ định (`disable-model-invocation: true` do `cloud-setup.sh`/`local-setup.ps1` gắn). Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
 4. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
@@ -38,7 +38,7 @@ Cây ownership đầy đủ và nhãn lifecycle/Git nằm trong
 - `research/reference-site/`: research evidence, không phải source public.
 - `.site-output/`, `.tmp/`, `.tooling/`, `graphify-out/`, `.wrangler/`: generated/cache; không edit, không commit.
 
-Skill trong repo này dùng bản vendor `.claude/skills` (pin, có override). `.claude/settings.json` tắt bản plugin `@skills-dir` trùng tên của cloud stack; MCP `cloud-stack` giữ nguyên.
+Skill chỉ có một nguồn: plugin pin ở user scope ([TOOLING](docs/operations/TOOLING.md#claude-code-skill)); repo không vendor skill.
 
 File/project source `untracked` cần review riêng trước khi stage. Không move,
 xóa, stage hoặc commit hàng loạt generated output, research archive, tooling

@@ -86,11 +86,11 @@ unhook "$T/src/caveman" caveman
 unhook "$T/src/ponytail" ponytail
 unhook "$T/src/impeccable/plugin" impeccable
 unhook "$T/src/i-have-adhd" i-have-adhd
-# Owner choice: i-have-adhd self-invokes (same as the repo override in skill-overrides/).
+# Owner choice: i-have-adhd self-invokes (same as local-setup.ps1).
 sed -i -e '/^disable-model-invocation:/d' \
   -e 's|Invoke with /i-have-adhd;|Use for every response to the owner, or on /i-have-adhd;|' \
   "$T/src/i-have-adhd/skills/i-have-adhd/SKILL.md"
-# Owner choice: caveman skills are user-invoked only (same as vendor-skills.mjs userOnly).
+# Owner choice: caveman skills are user-invoked only (same as local-setup.ps1).
 for f in "$T"/src/caveman/skills/*/SKILL.md; do
   grep -q '^disable-model-invocation:' "$f" || sed -i '1a disable-model-invocation: true' "$f"
 done
