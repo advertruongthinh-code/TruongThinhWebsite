@@ -84,13 +84,15 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
   await page.waitForTimeout(1_000);
   await page.mouse.move(400, 400);
   const before = await page.evaluate(() => window.historyWrites);
+  const started = Date.now();
   for (let step = 0; step < 80; step += 1) {
     await page.mouse.wheel(0, 60);
     await page.waitForTimeout(40);
   }
   await page.waitForTimeout(400);
   const writes = await page.evaluate(() => window.historyWrites) - before;
-  expect(writes, "scroll history writes").toBeLessThan(25);
+  // Throttled scroll persistence writes about 3 times per second; Chrome's limit is 20 per second.
+  expect(writes / ((Date.now() - started) / 1_000), "scroll history writes per second").toBeLessThan(5);
   const length = await page.evaluate(() => history.length);
   const photo = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")].find((card) => {
     const rect = card.getBoundingClientRect();
