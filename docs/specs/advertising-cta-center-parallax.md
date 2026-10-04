@@ -23,9 +23,9 @@ Contract hiện tại giữ khoảng cách cố định từ chữ CTA tới foo
 đặt điểm nhìn cao hơn tâm hình học ([organic random](advertising-organic-random.md),
 [P7.4](advertising-photo-browse.md#correction-p74--owner-xác-nhận-ngày-2026-09-23),
 [P7.1](advertising-skeleton-flow.md#correction-p71--organic-continuation-và-paint-overflow)).
-Khi owner duyệt spec này, ba điểm đó được thay bằng R1–R5 dưới đây; phần còn
-lại của các spec cũ (skeleton, glass) giữ nguyên. Bản chạy thử ở mục "CTA cuối
-trang" của [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
+Owner duyệt spec này ngày 04/10; PR code thay ba điểm đó bằng R1–R5 dưới đây;
+phần còn lại của các spec cũ (skeleton, glass) giữ nguyên. Bản chạy thử ở mục
+"CTA cuối trang" của [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
 (phiên bản 9), dựng theo số đo dưới đây.
 
 Số đo hiện tại tại cuối trang (`/vi/advertising-products/`, Chromium, 04/10):
@@ -259,7 +259,6 @@ batch ngoài một gap bắt buộc. EN cho cùng kết quả ở các cỡ đã
 
 ## Gate còn mở
 
-- Owner duyệt spec này và bản chạy thử phiên bản 9.
 - PR code làm R1–R8 kèm test, cập nhật cùng lúc ba spec cũ ở mục Mục đích,
   dòng bốn icon của [brand shell](frontend-brand-shell-responsive-runtime.md),
   `tests/site/footer-consistency.e2e.mjs` (ba icon, footer gọn, Advertising

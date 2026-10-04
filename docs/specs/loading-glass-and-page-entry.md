@@ -252,7 +252,6 @@ không phải số đo mới:
 
 ## Gate còn mở
 
-- Owner duyệt bản chạy thử phiên bản 9 và spec này.
 - Thread M02b làm code R1–R9 và viết test; kiểm Chromium, WebKit trên cloud và
   A05s thật.
 - R1: mức trần context WebGL trên desktop, chốt theo số đo.

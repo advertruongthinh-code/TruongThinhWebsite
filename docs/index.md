@@ -67,7 +67,7 @@ lifecycle) nằm trong spec sở hữu.
   [Skeleton chờ ảnh, mở ảnh tại chỗ, màn trắng vào trang](specs/loading-glass-and-page-entry.md):
   owner chốt 04/10, chờ code; thay vòng xoay Advertising khi triển khai.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):
-  planned 04/10, chờ owner duyệt; thay khoảng CTA–footer cố định.
+  owner duyệt 04/10, chờ code; thay khoảng CTA–footer cố định.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
   và [Design System](../design-system/README.md): shell và visual authority.
 - [Static release](specs/frontend-static-release.md): build/hosting;
