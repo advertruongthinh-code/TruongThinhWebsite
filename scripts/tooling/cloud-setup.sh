@@ -41,7 +41,8 @@ wait
 caveman telemetry off >/dev/null
 caveman setup --install </dev/null
 (cd "$T/src/ponytail/ponytail-mcp" && npm install --silent --no-audit --no-fund --omit=dev)
-"$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
+# Hide the npm CLI (engine 0.1.5) so the launcher caches the skill's pinned engine.
+PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
 "$BIN/serena" init </dev/null >/dev/null
 "$BIN/graphify" install </dev/null
 
@@ -58,6 +59,8 @@ touch "$CFG/.i-have-adhd-always"
 mkdir -p "$HOME/.config/caveman" "$HOME/.config/ponytail"
 echo '{"defaultMode": "ultracave"}' > "$HOME/.config/caveman/config.json"
 echo '{"defaultMode": "ultra"}' > "$HOME/.config/ponytail/config.json"
+# The cloud app shows no status line; mark the per-session statusline nudges as shown.
+touch "$CFG/.caveman-nudge-shown" "$CFG/.ponytail-statusline-nudged"
 
 # Local plugin: MCP servers, plus hooks the upstream plugins leave unwired.
 P="$T/cloud-stack"
