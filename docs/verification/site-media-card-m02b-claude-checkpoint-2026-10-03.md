@@ -138,6 +138,22 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
   2026-10-04 trên main `565fed4` chạy lại 5 lần đều PASS, không tái hiện;
   đóng, mở lại nếu gặp lại.
 
+## A05s landscape trên main 2026-10-04
+
+Kiểm lại sau thay đổi ảnh (main `5b17cf0`), tự động, không đổi setting Android.
+Chrome thật trên A05s qua CDP: `Emulation.setDeviceMetricsOverride` `915×412`,
+mobile, `landscapePrimary` 90 độ, cộng touch emulation; tap bằng
+`Input.dispatchTouchEvent` (trusted touch). Related-history, 60 frame:
+
+| Locale | Card 16 | Card đầu |
+| --- | --- | --- |
+| VI | PASS `maxY=0` | PASS `maxY=0` (`01`) |
+| EN | PASS `maxY=0` | PASS `maxY=0` (`04`) |
+
+Giới hạn: viewport override, không xoay vật lý; render, scroll, history là hành
+vi thật của Chrome trên máy. Kết luận giữ nguyên: `Y=2`/`Y=3` chỉ có trên
+emulator. Ca emulator vẫn FAIL kèm ghi chú theo quyết định owner.
+
 ## Chú thích thuật ngữ
 
 - **Overscan**: vùng render thêm ngoài viewport trước khi unmount card.
@@ -145,3 +161,4 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
 - **Entrance transition**: animation Masonry khi card vào vị trí.
 - **Flake**: test lúc PASS lúc FAIL trên cùng source.
 - **DPR**: tỉ lệ pixel thiết bị trên CSS pixel.
+- **CDP**: Chrome DevTools Protocol, điều khiển Chrome từ xa.
