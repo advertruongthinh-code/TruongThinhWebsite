@@ -110,6 +110,8 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
+    // Chromium aborts superseded lazy image fetches (srcset/variant swap, unmount); not a load failure.
+    if (request.resourceType() === "image" && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (isLocalUrl(request.url())) issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
   });
   page.on("response", (response) => {
