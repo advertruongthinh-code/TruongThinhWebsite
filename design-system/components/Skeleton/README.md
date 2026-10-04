@@ -8,7 +8,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 ## Hành vi
 
 - Ba khung mỗi cột, cùng gutter với ảnh, tỷ lệ theo nhóm ảnh; mặt trong là
-  gradient màu dịu, nhạt dần xuống dưới (opacity `0.42 → 0.16 → 0.04`).
+  gradient Flow nhiều màu chảy chậm (WebGL, 12 preset xáo ngẫu nhiên, không
+  trùng trong một lần hiện). Cuối batch một lớp kính chuyển dần sang trắng
+  trước CTA.
 - Khung không nhận focus, `aria-hidden`; không shimmer. Chỉ khung trong viewport
   và tab đang hiện mới chuyển động.
 - CTA: Plus Jakarta Sans 600, line-height 1.2, khung tối đa 78rem; EN là "The

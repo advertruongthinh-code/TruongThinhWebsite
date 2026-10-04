@@ -139,8 +139,10 @@ nền giấy luôn là trọng tâm.
 
 ## Typography
 
-`"Plus Jakarta Sans", Arial, sans-serif`, tải từ Google Fonts (400, 500, 600,
-700, italic 500) trong `<head>` mỗi trang. Không đổi font.
+`"Plus Jakarta Sans", Arial, sans-serif`: font biến thiên (OFL, weight 200
+tới 800, có italic) tự host ở `/assets/vendor/`, preload bản latin và
+vietnamese trong `<head>`. Preview trên claude.ai nạp cùng font từ Google
+Fonts. Không đổi font.
 
 | Style | Dùng cho | Ghi chú |
 | --- | --- | --- |

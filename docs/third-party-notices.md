@@ -2,9 +2,9 @@
 
 ## Remix Icon
 
-Bốn SVG social icon trong footer dùng geometry chính thức từ bộ `Fill` của
+Ba SVG social icon trong footer dùng geometry chính thức từ bộ `Fill` của
 [Remix Icon](https://github.com/Remix-Design/RemixIcon):
-`facebook-circle-fill`, `instagram-fill`, `tiktok-fill` và `pinterest-fill`.
+`facebook-circle-fill`, `tiktok-fill` và `youtube-fill` (4.6.0).
 
 Icon được dùng để đại diện cho đúng mạng xã hội tương ứng theo
 [Remix Icon License v1.0](https://github.com/Remix-Design/RemixIcon/blob/master/License).
