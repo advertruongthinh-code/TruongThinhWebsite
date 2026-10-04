@@ -1676,6 +1676,35 @@ body.is-advertising-browse .advertising-grid {
     var(--media-hover-transform);
 }
 
+/* LazySizes marks the request with .lazyloading; the ring waits 150 ms so cache hits do not flash. */
+.advertising-card-media:not(.advertising-card-media--carousel):has(> img.lazyloading)::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: auto;
+  border: 2px solid rgb(255 255 255 / 18%);
+  border-top-color: rgb(255 255 255 / 72%);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: media-load-spin 0.9s linear infinite, media-load-reveal 0s linear 150ms forwards;
+}
+
+@keyframes media-load-reveal {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advertising-card-media:not(.advertising-card-media--carousel):has(> img.lazyloading)::after {
+    animation: media-load-reveal 0s linear 150ms forwards;
+  }
+}
+
 .advertising-card-media--carousel {
   display: flex;
   align-items: center;

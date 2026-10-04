@@ -1032,6 +1032,16 @@ và so đúng cohort/bytes với P0. **Dependencies:** P4. **Files likely:** t�
 
 ### P6 — Feasibility gate cho byte progress
 
+**Kết quả probe 2026-10-04 (cloud, local preview, 390 px, Slow 4G, CPU 4x, 3
+lượt mỗi path):** ảnh `residential-space-960.avif` 37992 B, có
+`Content-Length`, không `Content-Encoding`. Native `<img>` 1403–1423 ms; fetch
+stream + object URL 1417–1438 ms, 1 request, 25 mốc tiến độ, đạt 100%. Byte
+progress khả thi về kỹ thuật nhưng phải bỏ chọn ảnh native của
+`<picture>`/`srcset`, preload scanner và lazy loading của browser; sau P5 ảnh
+nhỏ nên phần lớn thời gian là latency, vòng tiến độ gần như nhảy thẳng tới
+100%. Đề xuất: dừng nhánh byte progress, P7 chỉ dùng frame + vòng
+indeterminate; chờ owner quyết.
+
 **Mô tả:** thử cùng một request với một hero và một card lazy; kiểm tra byte
 stream, encoding, cache/decode và so với native path.
 
@@ -1057,6 +1067,10 @@ production source. **Estimate:** 45–90 phút.
 
 ### P7 — Tạo frame và progress state dùng chung
 
+**Trạng thái 2026-10-04:** làm theo phương án đề xuất ở P6 (chờ owner xác
+nhận): `.media-load-ring` indeterminate trong frame sẵn có, hiện sau 150 ms để
+cache hit không lóe, `aria-busy` trên frame, reduced motion đứng yên.
+
 **Mô tả:** sau P5 pass, thêm thành phần dùng chung nhỏ nhất cho reserved frame,
 determinate/indeterminate ring, cache, ready và error.
 
@@ -1076,6 +1090,10 @@ mới. **Estimate:** 60–120 phút.
 
 ### P8 — Nối frame vào ảnh tĩnh toàn website
 
+**Trạng thái 2026-10-04:** `watchMediaLoading` trong `motion.js` gắn vòng cho
+ảnh `/assets/content/` chưa tải xong có frame `position` khác `static`; bỏ qua
+Advertising runtime (P9) và logo khách hàng.
+
 **Mô tả:** nối với global motion/media reveal và page detail/service; logo,
 icon, background trang trí và batch skeleton CTA giữ ngoại lệ spec.
 
@@ -1093,6 +1111,10 @@ viewport, slow network và failure.
 module/CSS và một test (tối đa 5 file). **Estimate:** 75–120 phút.
 
 ### P9 — Nối frame vào Advertising động
+
+**Trạng thái 2026-10-04:** card grid/related một ảnh và viewer primary đã có
+vòng indeterminate; suggestion chưa gắn. Chi tiết ở
+[spec](../docs/specs/image-loading-progress.md#triển-khai-2026-10-04).
 
 **Mô tả:** nối component đã qua gate vào card, related, suggestion và photo
 viewer; giữ LazySizes/virtualization và priority hiện hành.

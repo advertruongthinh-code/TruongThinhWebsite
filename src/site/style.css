@@ -2035,6 +2035,32 @@ html[lang="en"] #nang-luc .portal-subtitle {
   animation-play-state: paused;
 }
 
+.media-load-ring {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: auto;
+  border: 2px solid rgb(255 255 255 / 18%);
+  border-top-color: rgb(255 255 255 / 72%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: media-load-spin 0.9s linear infinite;
+}
+
+@keyframes media-load-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-load-ring {
+    animation: none;
+  }
+}
+
 @keyframes marquee {
   to {
     transform: translateX(-100%);
