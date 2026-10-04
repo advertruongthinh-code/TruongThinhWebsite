@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman
 description: >
   Terse caveman voice: answer first, fluff gone, every technical fact kept.

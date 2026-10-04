@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-explore
 description: Explorer read-only cho định hướng ban đầu hoặc định vị cross-file khi chưa biết exact symbol.
 ---

@@ -18,85 +18,85 @@
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "override:scripts/tooling/skill-overrides/cavecrew",
-      "sha256": "dc941b8e3a668a6ec57de79e505a17dc20a43f170fa7d5aec938b817f1cc3552"
+      "sha256": "a231ae17b2b93212056cd175a2a6e787be00ff7cfd99818b11f2b8ad7d8cb9fb"
     },
     "caveman": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman",
-      "sha256": "ec627f69cc7e0979eaa5032a2ca55f0ed0564deb766be689e02e25e4627a87cc"
+      "sha256": "9e9828cc9fa83ab3bd6c1d5317ac4b4ee0d4a37dc9debbb94103ba213e75572f"
     },
     "caveman-commit": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-commit",
-      "sha256": "fd1ac4733cfc4e23f4068a932f2c61fbf043d482f043135177c636bd705f3364"
+      "sha256": "a25300292c467f5a4e01244897130f26d2231e3d0fe1ac5b7b2dd88ee3f3c369"
     },
     "caveman-compress": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-compress",
-      "sha256": "ccb7d64d18bf6bdb65739fe0bb7551d1fa5e498cd304a8cfdd755a71671ac9c3"
+      "sha256": "01eae606666689f19a5bb42ae74a2ec4fb2f0da6b236454d02d3d51dc9b65604"
     },
     "caveman-discover": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-discover",
-      "sha256": "585fea3ecb53371bdb7a13211e6fa494b6467c37c3ef40f667b5581de993848a"
+      "sha256": "56988815d03bfbbe307428cf56b437ea2d49f8746069b4db9561627d39a4ad31"
     },
     "caveman-evidence-review": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-evidence-review",
-      "sha256": "d43f261f37f30aed338344a720c8610557984cb571ef3890b09b4113f25b2922"
+      "sha256": "d8ba152b8bdf04346eaa603c7d4f4ae94ffcb418ec7de55f7afc493cd39ff23d"
     },
     "caveman-explore": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "override:scripts/tooling/skill-overrides/caveman-explore",
-      "sha256": "498db67d3d0e8226bf2d82c5eecbf009510e415daf1f74e061dc34b0f7733aa0"
+      "sha256": "17026b42048fc2410f009e213d03f0da569c3a2081bbd3bfd435ff377fc05f8d"
     },
     "caveman-help": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-help",
-      "sha256": "7b596bbd5dbfb19e2e5816b16db16f09095952f360a3e51e4b021435e40f3e14"
+      "sha256": "4831b8eb2e51934f5fc9dfc44784fbe363d5deea8169451eb5ace0c743f8980f"
     },
     "caveman-learn": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-learn",
-      "sha256": "0d8891d9d18e70572da018551426e9d4e53fe8ae0db80efdeb85b42df849b746"
+      "sha256": "4948d42d24ed136ffef0a179b70af37472f33135592d7355e4f8a397824c807d"
     },
     "caveman-manage": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-manage",
-      "sha256": "550731881a738cc0b5ce238ffe8dd1b95f43082c0e59d3209be2fa65f87c118d"
+      "sha256": "042553226599c1e4ee7a11f8368e747d1ad537d45eb2715d36c3b06863509b44"
     },
     "caveman-optimize": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-optimize",
-      "sha256": "87bcd77d77c14f92ed1c3eb818b5c740060bcd0d2c0ee9ea987cd33dd8541a49"
+      "sha256": "6cacd0a27d339cc1c3c197b3efcda4da70ae7e8b9f09b4ba329a94ec2e20a0ca"
     },
     "caveman-review": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-review",
-      "sha256": "7b40f52f1c4e7c52dbe46c2ac06ea3355452e663b81b45ee6f8b05351e2a8a88"
+      "sha256": "944155e1024750abfc894eadba00a26f469d45e304c3331a6814ebe63f358594"
     },
     "caveman-setup": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/caveman-setup",
-      "sha256": "3ee90c115e41adad33f4ffcd21d7ae41c9c5dc372b4bb8112d0bd18982191489"
+      "sha256": "11d9a6440b40b2f5cb729a0cecfdfb7c84fbe2c7be82817b11fc52e7ddd3267f"
     },
     "caveman-stats": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "override:scripts/tooling/skill-overrides/caveman-stats",
-      "sha256": "b69ef9466e12838aec69b07cf4eae36963d3d7756e8f12ddae52784055c92cfd"
+      "sha256": "47111d9970a99eea62ce9b7f2d416a9a8dfae2934b0e6b289c4823283a4f387b"
     },
     "ci-cd-and-automation": {
       "repo": "addyosmani/agent-skills",
@@ -167,8 +167,8 @@
     "i-have-adhd": {
       "repo": "ayghri/i-have-adhd",
       "commit": "839872f9d1cd634fed642b4589ce7226199cc15f",
-      "path": "skills/i-have-adhd",
-      "sha256": "fa5609f9135595dcef3a4a81420abdf20a55054d7f6f0990b7881cd2f4de751b"
+      "path": "override:scripts/tooling/skill-overrides/i-have-adhd",
+      "sha256": "513c4e302f2b71ea40248a66e2243048128b3fb4eeb01038de2f94e5fb0b6ff4"
     },
     "idea-refine": {
       "repo": "addyosmani/agent-skills",
@@ -198,13 +198,13 @@
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/investigate-first",
-      "sha256": "dba9e14102a81f41d8158b2325e3838e6924192d708ab3664341911d1d9d5141"
+      "sha256": "aab1f59129a922defbbd0ab1e36f0282e5eb380c104f7b2760c8e37a1c159775"
     },
     "lean-build": {
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/lean-build",
-      "sha256": "19674c3a5838bad06207175c1c187ab8e7ac37892b68aee32d2b0451fa491139"
+      "sha256": "413877ed34438003962079cf146913b5d8108a0a353ee826f5aa61cff0b6f84c"
     },
     "megacave": {
       "repo": "juliusbrussee/caveman",
@@ -216,7 +216,7 @@
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/migration",
-      "sha256": "d64cb4f01af919314ed1806fed62aae6eda06f410eda203505f10469fc51c58c"
+      "sha256": "22da629fadbd0a587db5f046cf541fac03a7fa10b5bce9367b331be8e80f9a24"
     },
     "observability-and-instrumentation": {
       "repo": "addyosmani/agent-skills",
@@ -276,7 +276,7 @@
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/safe-refactor",
-      "sha256": "543556d8ff48863c5dcf7e3e96c8044860f96083b1adb274ec6c91e5cb680a85"
+      "sha256": "807e8ef37fb817050f8d77a007551fd8d99c94a6927daaf684d5d9559774b4ac"
     },
     "security-and-hardening": {
       "repo": "addyosmani/agent-skills",
@@ -306,7 +306,7 @@
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/surgical-patch",
-      "sha256": "3ed6675e72f51e1cac488b2fec3097191fb4d0d77aa653148b9547be89bfcf9e"
+      "sha256": "911c7584a878700edc232f9791f2043c658d1d20ca9b9501168007d51b37457d"
     },
     "test-driven-development": {
       "repo": "addyosmani/agent-skills",
@@ -330,7 +330,7 @@
       "repo": "juliusbrussee/caveman",
       "commit": "aeb45e2f787c0757a8af383a291a280cb6aeb4c1",
       "path": "skills/verify-and-stop",
-      "sha256": "d75cd6fd2ffae27b4b213da92da74e375b1055c7aed498e1a0cf190bbf6ed460"
+      "sha256": "10631f85124379f9ef5180c6d493848d2636bff6f00ff4b48ee43e80a4c1199a"
     }
   },
   "references": {

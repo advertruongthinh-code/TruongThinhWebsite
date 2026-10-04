@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-commit
 description: >
   Write a Conventional Commits message compressed to intent only. Use for

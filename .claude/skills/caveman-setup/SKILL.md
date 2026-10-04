@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: caveman-setup
 description: >
   Wire a repository through the Caveman Cloud gateway so every LLM request is
