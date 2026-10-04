@@ -2,7 +2,7 @@
 title: Kiểm chứng layout mobile toàn website
 type: verification
 status: in-progress
-updated: 2026-09-28
+updated: 2026-10-04
 notion: https://app.notion.com/p/3e8332849a0e81f18301f28c1091a9c3
 ---
 
@@ -663,6 +663,41 @@ Portrait GREEN và landscape RED là hai proof độc lập cùng candidate. L06
 L-C còn mở; cần phân loại gesture target và CDN failure trước capture bổ sung.
 Không tự đóng iPhone/reference/MCP/owner/full-site gate hoặc resume recovery/P11.
 
+## Chạy lại trên cloud 04/10/2026
+
+Branch `claude/project-thread-qivb2u` trên `main` `4af1e31` (sau AVIF, vòng
+tải, M02b). Chromium 141 headless, preview `8792`. Cloud chặn
+`cdn.jsdelivr.net`: shim test-only ngoài repo trả Barba/Locomotive từ npm
+tarball cùng version, SRI khớp; font Google qua proxy. Firefox/WebKit và thiết
+bị thật không chạy trên cloud.
+
+Named RED lượt đầu và cách xử lý:
+
+| Phát hiện | Loại | Xử lý |
+| --- | --- | --- |
+| Nút `Xem lớn hơn` 838×387/200%: Shift+Tab focus khi nút nằm dưới header, browser không cuộn vì coi là đã thấy | Sản phẩm | `html` `scroll-padding-top` = header row + gutter + `0.5rem`; bỏ `scroll-margin` riêng của section/footer, `.project-index`, image action |
+| Badge `Vừa xem` card related 390/200%: dòng hai vượt media 97px | Sản phẩm | padding badge `1rem` → `0.5rem` |
+| Nút âm thanh `hidden` (ảnh không video) bị tính là copy zero width | Oracle | runner miễn `[data-advertising-photo-audio-toggle][hidden]` |
+| Ảnh srcset bị hủy `ERR_ABORTED` khi resize | Oracle | runner bỏ qua image `ERR_ABORTED` |
+| Scrollbar: wheel 500 chỉ cuộn 43px trên Linux (Locomotive `0.4×` ngoài Windows) | Test | gửi 3 notch |
+| Scrollbar: About↔route khác là native navigation (L04H), `body` tạm null | Test | predicate null-safe + chờ ready |
+| Menu: style media query trễ 1–2 frame sau resize headless | Test | chờ 100ms trước đo |
+
+Kết quả cuối trên cùng source:
+
+| Suite | Kết quả |
+| --- | --- |
+| Unit `node --test tests/site/*.test.mjs`, `pnpm qa:static` | 120/120, đạt |
+| Layout `--scope all` (matrix 220, body/state, Advertising interaction) | `ws3-final-2026-10-04T08-39-42-235Z` 4688 records, 0 fault, provenance sạch |
+| Viewport | `ws3-final-2026-10-04T09-35-40-081Z` 63 samples, 0 failure |
+| Scrollbar, menu, footer | 113 state; 28+10+2; 192 check |
+| C06 continuation | 10 viewport boundary đạt; dừng ở cảnh R4 1569×912 chờ mọi CTA frame `running/webgl` (timeout 30s), software GPU |
+
+Home/About 200% overflow và L04R1 minimum control 200% không còn RED trên
+Chromium. Gate còn mở cho đợt PC: Firefox/WebKit cùng 660 matrix và state,
+C06 R4/R10 FPS trên GPU thật, A05s USB (L06 landscape, V04 toolbar
+direct/reload), iPhone/A54, owner visual.
+
 ## Chú thích thuật ngữ
 
 - **Oracle**: tiêu chí tự động quyết định kết quả test.
@@ -670,3 +705,5 @@ Không tự đóng iPhone/reference/MCP/owner/full-site gate hoặc resume recov
 - **Rail**: component cho phép cuộn ngang đã được duyệt.
 - **Named RED**: lỗi có location/cause/measurement cụ thể trước sửa.
 - **Physical evidence**: bằng chứng từ thiết bị thật.
+- **Shim**: đoạn code test-only thay một dependency mạng bằng bản cục bộ.
+- **SRI**: Subresource Integrity, hash bắt buộc của script tải từ CDN.

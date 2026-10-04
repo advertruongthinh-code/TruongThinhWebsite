@@ -58,6 +58,8 @@ html {
   color: var(--ink);
   overflow-x: hidden;
   scroll-behavior: smooth;
+  /* Native focus and anchor scrolls stop below the sticky header row. */
+  scroll-padding-top: calc(var(--header-row-height) + var(--gutter) + 0.5rem);
 }
 
 body {
@@ -168,11 +170,6 @@ body.is-transitioning .route-veil {
 
 .section-gap {
   margin-top: var(--section-gap);
-}
-
-section,
-footer {
-  scroll-margin-top: 90px;
 }
 
 .site-header {

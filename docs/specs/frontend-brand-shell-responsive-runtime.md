@@ -149,6 +149,10 @@ Owner spot-check còn mở; source và gate P1.2 không tự được dùng làm
 - Typography montage không để true glyph bounding box vượt viewport ở mọi
   breakpoint; giữ composition đã duyệt của legacy closer.
 - Menu giữ dialog, focus, keyboard và reduced-motion contract hiện có.
+- Native scroll (focus, anchor) dừng dưới header: `html` giữ
+  `scroll-padding-top` bằng header row + gutter + `0.5rem`; không thêm
+  `scroll-margin-top` riêng cho section hoặc control (04/10/2026,
+  [evidence](../verification/mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026)).
 
 ## Localization, SEO và performance
 

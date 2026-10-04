@@ -30,6 +30,8 @@ const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercia
 const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];
 const results = [];
+// Resizes and route changes re-pick srcset candidates; the browser aborts the superseded image request.
+const supersededImage=request=>request.resourceType()==='image'&&request.failure()?.errorText==='net::ERR_ABORTED';
 async function saveRecord(record){results.push(record);await fs.appendFile(dir+'/observations.jsonl',JSON.stringify(record)+'\n');}
 async function textFixture(context,size){await context.addInitScript(size=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.style.fontSize=`${size}px`,{once:true}),size);}
 function measure(options = {}) {
@@ -148,8 +150,9 @@ async function checkBody(page,engine,label,options={}) {
     inactivePhoto:Boolean(e.closest('.advertising-photo-view')&&!document.body.classList.contains('is-advertising-photo')),
     inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-advertising-grid-cta],.detail-process')&&document.body.classList.contains('is-advertising-photo')),
     singlePageIndicator:e.matches('[data-advertising-photo-description-indicator]')&&e.hidden&&Number(e.closest('[data-advertising-photo-info]')?.querySelector('[data-advertising-photo-description-pager]')?.dataset.pageCount)===1,
+    silentMediaAudio:e.matches('[data-advertising-photo-audio-toggle]')&&e.hidden,
     scrollCueState:e.matches('.scroll-cue.is-hidden')?'accepted cue hidden after scrollY200':null})));
-  const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.inactivePhoto&&!e.inactiveGrid&&!e.singlePageIndicator);
+  const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.inactivePhoto&&!e.inactiveGrid&&!e.singlePageIndicator&&!e.silentMediaAudio);
   await saveRecord({kind:'inventory',engine,label,inventory,faults:missing.map(e=>`active copy has zero width: ${e.node} ${e.text.slice(0,60)}`)});
   const positions=await page.locator(bodySelector).evaluateAll(nodes=> {
     const y=window.TruongThinhMotion?.getLogicalScroll?.()??scrollY;
@@ -287,7 +290,7 @@ async function runAboutHistory(browser,engine) {
     let stage='direct';
     page.on('pageerror',error=>issues.push(error.message));
     page.on('console',message=>{if(message.type()==='error')issues.push(message.text());});
-    page.on('requestfailed',request=>issues.push(`${request.url()}: ${request.failure()?.errorText}`));
+    page.on('requestfailed',request=>{if(!supersededImage(request))issues.push(`${request.url()}: ${request.failure()?.errorText}`);});
     page.on('response',response=>{if(response.status()>=400)issues.push(`${response.url()}: HTTP ${response.status()}`);});
     page.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame())navigation.push(request.url());});
     try {
@@ -328,7 +331,7 @@ async function runAboutHistory(browser,engine) {
     page.on('request',request=>{if(request.isNavigationRequest()&&request.frame()===page.mainFrame())navigation.push(request.url());});
     page.on('pageerror',error=>issues.push(error.message));
     page.on('console',message=>{if(message.type()==='error')issues.push(message.text());});
-    page.on('requestfailed',request=>issues.push(`${request.url()}: ${request.failure()?.errorText}`));
+    page.on('requestfailed',request=>{if(!supersededImage(request))issues.push(`${request.url()}: ${request.failure()?.errorText}`);});
     page.on('response',response=>{if(response.status()>=400)issues.push(`${response.url()}: HTTP ${response.status()}`);});
     try {
       await page.goto(base+source,{waitUntil:'networkidle'});await ready(page);
@@ -377,7 +380,7 @@ async function runStates(browser,engine) {
     const page=await context.newPage(),issues=[];
     page.layoutTextSize=textSize;
     page.on('pageerror',e=>issues.push(e.message));page.on('console',m=>{if(m.type()==='error')issues.push(m.text());});
-    page.on('requestfailed',r=>issues.push(`${r.url()}: ${r.failure()?.errorText}`));page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
+    page.on('requestfailed',r=>{if(!supersededImage(r))issues.push(`${r.url()}: ${r.failure()?.errorText}`);});page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
     for(const route of (process.env.LAYOUT_STATE_ROUTES?.split(',')||canonicalRoutes)) {
       try {
         await page.goto(base+route,{waitUntil:'networkidle'});
@@ -398,7 +401,7 @@ async function runStates(browser,engine) {
   const context=await browser.newContext({viewport,hasTouch:true});await textFixture(context,textSize);
   const page=await context.newPage(),issues=[];page.layoutTextSize=textSize;
   page.on('pageerror',e=>issues.push(e.message));page.on('console',m=>{if(m.type()==='error')issues.push(m.text());});
-  page.on('requestfailed',r=>issues.push(`${r.url()}: ${r.failure()?.errorText}`));page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
+  page.on('requestfailed',r=>{if(!supersededImage(r))issues.push(`${r.url()}: ${r.failure()?.errorText}`);});page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   for(const locale of ['vi','en']) {
     try {
       await page.goto(`${base}/${locale}/advertising-products/`,{waitUntil:'networkidle'});await page.evaluate(size=>document.documentElement.style.fontSize=`${size}px`,textSize);await ready(page);
@@ -476,7 +479,7 @@ async function runStates(browser,engine) {
   if(scope==='advertising-states')return;
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true}),page=await context.newPage();
   const issues=[];page.on('pageerror',e=>issues.push(e.message));page.on('console',m=>{if(m.type()==='error')issues.push(m.text());});
-  page.on('requestfailed',r=>issues.push(`${r.url()}: ${r.failure()?.errorText}`));page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
+  page.on('requestfailed',r=>{if(!supersededImage(r))issues.push(`${r.url()}: ${r.failure()?.errorText}`);});page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   for(const route of canonicalRoutes) {
     try {
       await page.goto(base+route,{waitUntil:'networkidle'});await recordState(page,engine,`history direct ${route}`);
@@ -530,7 +533,7 @@ for (const engine of (process.env.LAYOUT_ENGINES || "chromium,firefox,webkit").s
   versions[engine]=browser.version();
   const context=await browser.newContext({hasTouch:true});const page=await context.newPage();const issues=[];
   page.on("pageerror",e=>issues.push(e.message));page.on("console",m=>{if(m.type()==="error")issues.push(m.text());});
-  page.on("requestfailed",r=>issues.push(`${r.url()}: ${r.failure()?.errorText}`));
+  page.on('requestfailed',r=>{if(!supersededImage(r))issues.push(`${r.url()}: ${r.failure()?.errorText}`);});
   page.on("response",r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   if(!['states','body','interactions','advertising-states','history','about-history'].includes(scope))for (const viewport of viewports) for (const route of routes) {
     await page.setViewportSize(viewport);

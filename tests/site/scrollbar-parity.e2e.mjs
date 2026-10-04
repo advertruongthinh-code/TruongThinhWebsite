@@ -72,7 +72,8 @@ try {
     near(hover[selector].w,idle[selector].w,`${selector} width`);
   }
   await page.mouse.move(600,300);
-  await page.mouse.wheel(0,500);
+  // Locomotive moves a fixed step per wheel event (0.4x on non-Windows), so send several notches.
+  for (let notch=0;notch<3;notch++) await page.mouse.wheel(0,500);
   await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll()>100);
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.c-scrollbar')).opacity) === 0);
   record('wheel settle',await measure(page));
@@ -160,10 +161,11 @@ try {
   await page.setViewportSize({width:1440,height:900});
   await page.goto(`${base}/vi/about/`); await ready(page);
   await page.locator('[data-site-header] a[href="/vi/residential/"]').click();
-  await page.waitForFunction(()=>location.pathname==='/vi/residential/'&&!document.body.classList.contains('is-transitioning'));
+  // About boundaries are native navigations (L04H), so body can be briefly null.
+  await page.waitForFunction(()=>location.pathname==='/vi/residential/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
   assert.equal((await measure(page)).count,1,'soft route owns one scrollbar');
   await page.goBack();
-  await page.waitForFunction(()=>location.pathname==='/vi/about/'&&!document.body.classList.contains('is-transitioning'));
+  await page.waitForFunction(()=>location.pathname==='/vi/about/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
   assert.equal((await measure(page)).count,1,'history return owns one scrollbar');
   await page.locator('[data-menu-open]').click();
   await page.locator('[data-language-option="en"]').click();
@@ -193,7 +195,7 @@ try {
   await page.close();
   console.log(`PASS: ${engine} ${browser.version()}`);
 } catch (error) {
-  console.error(engine,error.message,activePage && await measure(activePage));
+  console.error(engine,error.message,activePage && await measure(activePage).catch(e=>e.message));
   throw error;
 } finally {
   await mkdir('.tmp/scrollbar-parity',{recursive:true});

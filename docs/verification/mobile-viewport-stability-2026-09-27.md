@@ -162,6 +162,9 @@ hai source-asset review refs cũ
 trong photo-browse chỉ có ở primary checkout, không do viewport tạo ra.
 Không sửa link hoặc copy dữ liệu ảnh ngoài scope để làm sạch gate.
 
+Chạy lại cloud Chromium 04/10/2026 đạt; kết quả và gate còn mở tại
+[layout parity](mobile-layout-parity-2026-09-28.md#chạy-lại-trên-cloud-04102026).
+
 ## Chú thích thuật ngữ
 
 - **Stable basis**: kích thước layout không thay theo toolbar browser.

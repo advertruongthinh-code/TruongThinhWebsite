@@ -717,7 +717,6 @@ html[lang="en"]
 
 .project-index {
   width: min(calc(100% - 2 * var(--gutter)), 1500px);
-  scroll-margin-top: 90px;
 }
 
 .project-grid {
@@ -1662,7 +1661,7 @@ body.is-advertising-browse .advertising-grid {
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: 0.5rem;
   background: rgba(0, 0, 0, 0.72);
   color: #fff;
   font-size: 0.8rem;
@@ -2135,7 +2134,6 @@ body.is-advertising-browse .advertising-grid {
 
 .advertising-photo-view__image-action {
   --image-action-edge-padding: 14px;
-  scroll-margin-block-start: calc(var(--header-row-height) + var(--gutter) + 0.5rem);
   position: absolute;
   z-index: 3;
   bottom: 16px;
