@@ -167,8 +167,8 @@
     "i-have-adhd": {
       "repo": "ayghri/i-have-adhd",
       "commit": "839872f9d1cd634fed642b4589ce7226199cc15f",
-      "path": "skills/i-have-adhd",
-      "sha256": "fa5609f9135595dcef3a4a81420abdf20a55054d7f6f0990b7881cd2f4de751b"
+      "path": "override:scripts/tooling/skill-overrides/i-have-adhd",
+      "sha256": "513c4e302f2b71ea40248a66e2243048128b3fb4eeb01038de2f94e5fb0b6ff4"
     },
     "idea-refine": {
       "repo": "addyosmani/agent-skills",

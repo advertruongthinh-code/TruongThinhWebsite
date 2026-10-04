@@ -2,7 +2,7 @@
 
 ## Bắt đầu
 
-1. Mọi role dùng `i-have-adhd`, `caveman` ultra, `ponytail` ultra. Caveman nén prose, không nén nghĩa; safety/clarity override. Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
+1. Mọi role dùng `caveman` ultra, `ponytail` ultra; skill `i-have-adhd` tự gọi (override bỏ `disable-model-invocation`). Caveman nén prose, không nén nghĩa; safety/clarity override. Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
 4. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
