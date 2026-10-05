@@ -59,8 +59,8 @@ Head có `title` "Trường Thịnh — Hơn 20 năm vững tay nghề" (EN "Tr�
 `meta description` VI kèm `data-en-content`, `theme-color` trắng, favicon sáng, tối, preload hai font, CSS
 Locomotive chỉ từ 981px; không có canonical, alternate, Open Graph, JSON-LD. Build ghi `/vi/`, `/en/` từ
 cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)), link nội bộ `/vi/...`
-hoặc `/` thành `/<locale>/...`. Mọi chữ, `alt`, `aria-label` có cặp EN ở node lá, trừ nhãn nút dừng
-do runtime đặt (R3). Đổi ngôn ngữ tại chỗ theo [shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ).
+hoặc `/` thành `/<locale>/...`. Mọi chữ, `alt`, `aria-label` có cặp EN ở node lá; nhãn nút dừng
+có `data-en-aria-label`, runtime đổi theo trạng thái (R3). Đổi ngôn ngữ tại chỗ theo [shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ).
 
 ```gherkin
 Given output đã build
@@ -92,9 +92,8 @@ Then nút có aria-pressed="true", slide và marquee đứng yên
 
 Bốn `.hero-word` hiện dần theo từ, bắt đầu 0,9s sau khi trang mount, ở mọi lần vào (tải trực tiếp,
 route mềm); tải trực tiếp thì chạy song song lúc veil mở ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)).
-Slide 0 và shade hiện ngay lúc mount. Nhánh intro riêng trong `motion.js` (giữ nền tối, slide 0 mờ
-vào, kèm header intro) chỉ chạy khi `html` không có `route-enter`, mà head script thêm class này ở mọi
-lần tải trực tiếp không reduced motion, nên nhánh không chạy (Gate còn mở). Scroll cue "CUỘN XUỐNG" /
+Tải trực tiếp: nhánh intro (giữ nền tối, slide 0 mờ vào, kèm header intro) chạy dưới veil; route
+mềm bỏ nhánh này, slide 0 và shade hiện ngay lúc mount. Scroll cue "CUỘN XUỐNG" /
 "SCROLL DOWN": sau 3s ký tự lần lượt hiện rồi ẩn, lặp; bấm thì cuộn tới `#dich-vu`; cuộn quá 200px
 thì cue mờ đi, rời thứ tự Tab.
 
@@ -215,7 +214,7 @@ Then tiêu đề ba portal năng lực trượt lên lại bằng chữ EN, sect
 Reduced motion: chỉ slide đầu (slide khác `display: none`), không zoom, word fade, reveal (chữ, ảnh ở
 trạng thái cuối), nút dừng `hidden`, scroll cue tĩnh, marquee và hover zoom tắt. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): slide active và mọi target
-reveal ở trạng thái cuối, không slideshow. Không JavaScript: hero, chữ hiện; ba slide sau không tải.
+reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; ba slide sau không tải.
 
 ```gherkin
 Given trình duyệt bật reduced motion
@@ -252,9 +251,9 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
 | R3 | `TT_E2E_HERO_CONTINUITY_ONLY`, `TT_E2E_WHEEL_ONLY` (parallax hero); nút dừng chưa có test |
-| R4 | `TT_E2E_HERO_INTRO_ONLY` (ca giữ nền tối đỏ, xem Gate), `TT_E2E_SCROLL_CUE_ONLY` (đỏ, xem Gate) |
+| R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
-| R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (đỏ, xem Gate) |
+| R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |
 | R7 | `mobile-layout-parity.e2e.mjs` (chữ không cắt); khoảng thở ảnh chưa có test |
 | R8 | `TT_E2E_WHEEL_ONLY` (rail), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
 | R9 | `pnpm qa:client-assets`, `client-logo-marquee.e2e.cjs` |
@@ -264,28 +263,18 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 
 ## Gate còn mở
 
-- Hero intro không chạy: `mountPageMotion` bỏ nhánh giữ nền tối, slide 0 mờ vào khi có `route-enter`,
-  class có ở mọi lần tải trực tiếp (như header intro, [shell](site-shell.md#gate-còn-mở)); ca "holds
-  a shortened solid surface" của `TT_E2E_HERO_INTRO_ONLY` FAIL trên Chromium cloud. [CẦN LÀM RÕ: giữ
-  intro cùng veil như [vào thẳng trang](loading-glass-and-page-entry.md) hay bỏ nhánh, sửa test?] Owner.
-- Scroll cue (năm trang): runtime tạo `.scroll-cue-char`, CSS chỉ style `[data-scroll-cue-char]`, nên
-  ký tự `position: static`, chỉ opacity đổi (đo Chromium cloud), trái [motion](../../design-system/motion.md#text);
-  `TT_E2E_SCROLL_CUE_ONLY` 0/13. [CẦN LÀM RÕ: sửa CSS hay sửa motion.md và test?] Owner.
-- Dải quy trình: [mạch trang chủ](../../design-system/content.md#mạch-nội-dung-theo-route) và
-  `runRootProcessCheck` (full `pnpm qa:site`) còn đòi `.editorial-strip` bốn bước trên `/vi/`; source
-  chỉ còn phụ đề portal Quy trình (test FAIL, suy luận). [CẦN LÀM RÕ: sửa content.md, test hay thêm lại dải?] Owner.
-- `TT_E2E_P5_MEDIA_HOVER_ONLY` 0/2 trên Chromium cloud: tìm `.service-portal > img` nhưng build bọc
-  `<picture>`; còn đòi shade đổi màu khi hover, trái R6 (test cũ, suy luận). Main.
+- Dải quy trình: [mạch trang chủ](../../design-system/content.md#mạch-nội-dung-theo-route) còn đòi
+  `.editorial-strip` bốn bước trên `/vi/`; source chỉ còn phụ đề portal Quy trình. Test đã bỏ ca này;
+  owner chọn sửa docs theo trang hiện tại. Thread docs.
+- Ca "responsive offsets" của `TT_E2E_SCROLL_CUE_ONLY`: cue Advertising ở 390px cách đáy 93px, test đòi
+  110px; chưa rõ test cũ hay CSS lệch. Main.
 - Owner chưa nghiệm thu trên máy mình hover, overlay, chữ portal, ảnh portal Advertising, hero,
   heritage; khoảng thở dọc của ảnh heritage ở mọi breakpoint (intent owner) chưa có test. Owner, main.
 - Cache hit: tải lại, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame;
   chưa xác nhận vòng tải có lóe. Main đo lại.
-- Nút dừng hiện trong `motion-fallback` nhưng không làm gì, nhãn chỉ có VI (suy luận từ source).
-  [CẦN LÀM RÕ: ẩn nút trong fallback?] Owner.
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ `https://zalo.me/` placeholder ([PRODUCT](../../PRODUCT.md)); URL thật chờ owner.
-- `client-logo-marquee.e2e.cjs` cứng đường Chrome Windows, không chạy trên cloud. Main hoặc máy PC.
 
 ## Chú thích thuật ngữ
 

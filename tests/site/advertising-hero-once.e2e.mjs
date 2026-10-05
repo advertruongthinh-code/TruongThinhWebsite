@@ -27,6 +27,8 @@ async function waitForHeroSettled(page) {
     const hero = document.querySelector(".detail-index-hero");
     const title = hero?.querySelector("[data-motion-hero-title]");
     const words = title ? [...title.querySelectorAll(".motion-word")] : [];
+    // The direct-load veil blocks pointer input until the page has mounted.
+    if (document.documentElement.classList.contains("route-enter")) return false;
     if (!window.TruongThinhDetail?.mount || !window.gsap || words.length === 0) return false;
     const visible = words.every((word) => Number.parseFloat(getComputedStyle(word).opacity) >= 0.99);
     return visible && !window.gsap.isTweening(words);

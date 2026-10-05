@@ -120,7 +120,13 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await fs.writeFile(output + "/" + engine + "-height.json", JSON.stringify(changed, null, 2));
       assert.equal(current.width, previousHeight.width, "height-only probe retains layout width");
       assert.equal(current.coordinateHash, previousHeight.coordinateHash, "height-only probe retains real grid geometry");
-      assert.ok(removed.every(sample => sample.top >= current.boundary), "removed tail slots must lie beyond the new boundary");
+      // A tail shorter than a quarter card merges into the frame above it (skeleton spec).
+      const mergedAbove = sample => {
+        const [column, index] = sample.slot.split(":");
+        return current.samples.some(other => other.slot === `${column}:${index - 1}`);
+      };
+      assert.ok(removed.every(sample => sample.top >= current.boundary || mergedAbove(sample)),
+        "removed tail slots must lie beyond the new boundary or merge into the frame above");
       assert.ok(common.length && common.every(sample => sample.same), "every common-needed slot keeps its node");
       const visiblePairs = common.filter(sample => sample.visible
         && previousHeight.samples.find(old => old.slot === sample.slot).visible);
