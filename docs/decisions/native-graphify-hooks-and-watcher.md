@@ -19,8 +19,8 @@ Serena/Impeccable work không liên quan vào mọi agent session.
 ## Decision
 
 1. Không dùng host lifecycle hook hay project dispatcher. Graphify skill và CLI
-   cài ở user scope; `graphify hook install` quản lý `post-commit` và
-   `post-checkout`; `graphify watch <project-root>` chạy qua một PowerShell
+   cài ở user scope. Trên Windows, `graphify hook install` quản lý `post-commit`
+   và `post-checkout`; `graphify watch <project-root>` chạy qua một PowerShell
    wrapper dùng chung (VS Code task `Graphify: Watch` hoặc user terminal).
 2. Graphify-first: khi `graphify-out/graph.json` tồn tại, câu hỏi architecture,
    dependency, blast radius đi qua Graphify trước raw search; `rg` chỉ xác nhận
@@ -29,6 +29,8 @@ Serena/Impeccable work không liên quan vào mọi agent session.
 3. `scripts/tooling/invoke-graphify.ps1` là interface canonical cho
    `query`/`path`/`explain`: gọi executable global đã pin, giữ lock và AST
    update có coalesce ở project; AST update fail thì query dừng (fail closed).
+   Linux/cloud không có PowerShell: dùng `scripts/tooling/invoke-graphify.sh`
+   hoặc MCP `graphify`.
 4. Khi `Graphify: Watch` đang chạy và đã xử lý save gần nhất, dùng
    `-SkipAstRefresh`. Switch không chứng minh freshness, không build graph
    thiếu; graph thiếu hoặc nghi stale thì chạy default.

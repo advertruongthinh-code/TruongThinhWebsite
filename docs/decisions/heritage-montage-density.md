@@ -18,8 +18,8 @@ related_reports: []
 Heritage montage theo nhịp compact của reference: `max-width: 1300px`; image
 `13vw × 10vw`, chặn ở `200×150px`. Bốn frame đi cùng copy ngắn:
 `legacy-hands-384.webp`, `montage-cnc-tablet.webp`,
-`craft-384.webp` và product nội thất có tiền cảnh/hậu cảnh. Không thêm
-label lên image.
+`montage-commitment-option-3-knot.webp` và product nội thất có tiền
+cảnh/hậu cảnh. Không thêm label lên image.
 
 ## Hệ quả
 

@@ -16,7 +16,7 @@ related_reports: []
 ## Decision
 
 Xanh/cam là accent và chi tiết nhấn; nền chính giữ trung tính để công trình và
-logo đơn màu nổi bật.
+logo nổi bật.
 
 ## Hệ quả
 

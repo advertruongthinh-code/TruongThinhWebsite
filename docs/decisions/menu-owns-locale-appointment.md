@@ -22,7 +22,7 @@ locale toggle trùng. Mỗi shell expose đúng hai link
 reference và giữ GSAP open/close timing đã đo. Appointment ẩn ở tablet
 `≤960px` và hiện lại thành mobile row full-width ở `≤578px`.
 
-Bốn menu group expose 15 bilingual child route bằng taxonomy query string, không
+Bốn menu group expose 17 bilingual child route bằng taxonomy query string, không
 dùng fragment; child type, spacing, underline và stagger khớp menu contract đã
 đo. Calendar SVG dùng native `58.09×57.82` `viewBox`. Floating Zalo CTA dùng
 geometry, hover inversion và scroll-window choreography của appointment bubble

@@ -11,7 +11,7 @@ related_decisions:
   - decisions/static-shared-architecture.md
   - decisions/runtime-responsibility-boundaries.md
   - decisions/wrangler-deferred-until-cms.md
-  - decisions/sites-artifact-only-release-mirror.md
+  - decisions/cloudflare-workers-static-demo.md
 ---
 
 # Kiến trúc runtime Trường Thịnh

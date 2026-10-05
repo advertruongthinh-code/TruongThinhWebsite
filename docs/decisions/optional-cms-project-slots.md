@@ -20,7 +20,7 @@ Trường Thịnh dễ đọc trong mọi shell. Group 01–03 expose `data-menu
 metadata D1 `menu_group` và optional `menu_order` chỉ replace group có published
 record hợp lệ. `motion.js` sort theo order rồi slug và emit link canonical
 `/{locale}/projects/{slug}/`; API error, metadata thiếu hoặc localized name thiếu
-thì giữ static slot. Group 04 giữ social URL inert cho tới khi owner cung cấp fact.
+thì giữ static slot. Social URL ở footer giữ inert cho tới khi owner cung cấp fact.
 
 ## Hệ quả
 

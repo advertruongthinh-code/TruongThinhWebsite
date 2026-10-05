@@ -272,6 +272,8 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ `https://zalo.me/` placeholder ([PRODUCT](../../PRODUCT.md)); URL thật chờ owner.
+- [ADR hero trang chủ](../decisions/home-hero-crossfade-drift.md) ghi giữ media `2.6s` khi vào thẳng; code giữ `1s`
+  (`introOffset` trong `motion.js`). [CẦN LÀM RÕ: giữ `2.6s` hay `1s`?] Owner.
 
 ## Chú thích thuật ngữ
 
