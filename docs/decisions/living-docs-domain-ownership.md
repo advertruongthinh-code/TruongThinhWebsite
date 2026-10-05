@@ -5,7 +5,7 @@ date: 2026-09-09
 scope: documentation
 supersedes: []
 related_specs:
-  - ../specs/living-docs-design-system.md
+  - ../specs/docs-system.md
 related_reports:
   - ../verification/living-docs-2026-09-09.md
 ---
