@@ -16,7 +16,8 @@
   và sidecar Impeccable sinh từ `design-system/`, không sửa tay. T8: đã publish lên
   [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); owner duyệt bản 20 (checkpoint 2).
   T9: owner duyệt pilot [static-release](specs/static-release.md) và template.
-  T10: [shell](specs/site-shell.md) thay hai spec shell, menu và bốn verification cũ; T11 tiếp.
+  T10: [shell](specs/site-shell.md) thay hai spec shell, menu và bốn verification cũ.
+  T11: [trang chủ](specs/page-home.md) thay spec landing; T12 tiếp.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright

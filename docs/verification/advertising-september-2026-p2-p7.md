@@ -10,7 +10,7 @@ related_specs:
   - ../specs/advertising-photo-browse.md
   - ../specs/advertising-photo-morph-scroll.md
   - ../specs/site-shell.md
-  - ../specs/frontend-landing-page-foundation.md
+  - ../specs/page-home.md
 ---
 
 # Ledger Advertising AD-SEPT-2026 P2 đến P7

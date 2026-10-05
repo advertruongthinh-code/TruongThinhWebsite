@@ -90,7 +90,7 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
   `full-menu-reference-parity.md`, `mobile-browser-parity-capability-map.md`
   và verification menu, scrollbar, mobile. Capability map còn phần Advertising
   (skeleton, viewer, history), hấp thụ ở T13, T14.
-- [ ] T11. `page-home.md` thay phần home của `frontend-route-and-content.md`
+- [x] T11. `page-home.md` thay phần home của `frontend-route-and-content.md`
   và `frontend-landing-page-foundation.md`.
 - [ ] T12. `detail-pages.md` cho residential, commercial, about; xóa
   `frontend-route-and-content.md`.
