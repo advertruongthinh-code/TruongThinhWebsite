@@ -6,7 +6,7 @@ scope: static website release
 supersedes:
   - sites-artifact-only-release-mirror.md
 related_specs:
-  - ../specs/frontend-static-release.md
+  - ../specs/static-release.md
 related_reports: []
 ---
 

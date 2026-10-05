@@ -6,7 +6,7 @@ updated: 2026-09-25
 module_id: static-image-delivery
 capability_map: advertising-random-grid-and-image-loading-capability-map.md
 related_docs:
-  - frontend-static-release.md
+  - static-release.md
   - ../../design-system/content.md
   - ../../design-system/motion.md
   - ../decisions/sites-artifact-only-release-mirror.md
@@ -165,7 +165,7 @@ chưa đạt: home biến thiên quá lớn với 2 lượt; residential và com
 tử LCP là text nên LCP phụ thuộc font Google và JS từ CDN (gsap, Locomotive,
 Barba), không còn phụ thuộc ảnh. Hướng tiếp theo nằm ngoài pipeline ảnh: tự
 host font và thư viện, cache dài cho `/assets/vendor/*`, đã làm theo
-[spec](frontend-static-release.md#tự-host-font-thư-viện-và-cache-owner-duyệt-04102026). Raw trên PC:
+[spec](static-release.md#r4-font-và-thư-viện-tự-host). Raw trên PC:
 `.tmp/image-delivery/p11-demo-20261004`.
 
 Đo lại sau tự host (Worker `7ee4aaa9`, cùng cohort, 3 lượt, residential 7 lượt,

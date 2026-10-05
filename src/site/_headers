@@ -1,4 +1,4 @@
-# Cloudflare Workers static assets headers (not served). Spec: docs/specs/frontend-static-release.md R3.
+# Cloudflare Workers static assets headers (not served). Spec: docs/specs/static-release.md R9.
 /assets/vendor/*
   Cache-Control: public, max-age=31536000, immutable
 

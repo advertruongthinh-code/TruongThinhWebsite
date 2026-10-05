@@ -84,7 +84,7 @@ Checkpoint 2: owner mở Design System trên claude.ai, so với demo; duyệt.
 
 Mỗi task: viết spec mới từ code, xóa spec và verification cũ được hấp thụ.
 
-- [ ] T9. `static-release.md` (pilot) thay `frontend-static-release.md`.
+- [x] T9. `static-release.md` (pilot) thay `frontend-static-release.md`.
   Checkpoint: owner đọc pilot, xác nhận dễ đọc; chỉnh template nếu cần.
 - [ ] T10. `site-shell.md` thay `frontend-brand-shell-responsive-runtime.md`,
   `full-menu-reference-parity.md`, `mobile-browser-parity-capability-map.md`

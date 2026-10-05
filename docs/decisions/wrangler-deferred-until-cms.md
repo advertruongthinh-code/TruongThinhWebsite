@@ -5,7 +5,7 @@ date: 2026-09-01
 scope: release tooling
 supersedes: []
 related_specs:
-  - ../specs/frontend-static-release.md
+  - ../specs/static-release.md
 related_reports: []
 ---
 

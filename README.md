@@ -55,7 +55,7 @@ GitHub là source of truth. Pull request chạy static và browser smoke gate.
 Demo tĩnh chạy trên Cloudflare Workers static assets: owner chạy
 `pnpm deploy:demo` trên máy local theo
 [quyết định demo](docs/decisions/cloudflare-workers-static-demo.md) và
-[các bước phát hành](docs/specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
+[các bước phát hành](docs/specs/static-release.md#r11-phát-hành-demo-cloudflare).
 Không có CI deploy; CMS chưa activate.
 Trạng thái phát hành thực tế xem [STATE](docs/STATE.md), thay đổi xem
 [CHANGELOG](CHANGELOG.md).
