@@ -125,7 +125,8 @@ desktop height-only resize, mount/return cleanup; main diff inspection.
 
 V01 technical metrics/fallback/singleton/native pinch đã có proof. AC thứ hai
 giữ open vì chưa có native keyboard và physical iPhone/A54 evidence; fixture
-focus/visible rect không đóng gate này.
+focus/visible rect không đóng gate này. 05/10: A05s bàn phím phần cứng đạt; site
+không có ô nhập nên bàn phím ảo không áp dụng; còn iPhone/A54 ([gate shell](../docs/specs/site-shell.md#gate-còn-mở)).
 
 ### Checkpoint V-A — sau V00/V01
 
@@ -178,6 +179,8 @@ resize interruption và physical trace; missing hardware gate không check thay.
 
 V03 controls/fit/animation đạt fixture và USB A05s, native page pinch được ghi;
 AC controls giữ open cho safe-area/native keyboard/iPhone/A54 chưa kiểm.
+05/10: A05s Tab qua bốn control khi đã phóng, tất cả trong visual viewport, cả
+toolbar mở/thu, dọc/ngang; còn safe area/iPhone/A54 ([gate shell](../docs/specs/site-shell.md#gate-còn-mở)).
 
 ### Checkpoint V-B — sau V02/V03
 
@@ -194,7 +197,7 @@ thu Android thật và iPhone khi có device, report kết quả đúng scope.
 
 - [x]22 entrypoints/state matrix thực chạy; true resize,200% text zoom, reduced/fallback,
   history/locale/focus/cleanup đạt hoặc named failure, không suppress errors/skip engines.
-- [ ] Android native≥3 toolbar cycles mỗi chiều dọc/ngang theo plan, direct/reload
+- [x] Android native≥3 toolbar cycles mỗi chiều dọc/ngang theo plan, direct/reload
   cả toolbar states; DOM/CSS/events/network/PNG chứng minh≤1px trên exact candidate.
 - [x] Report tách A05s/A54/iPhone/fixture, recorded sources/versions/hash/limits;
   Safari/iPhone/A54 physical còn thiếu giữ open, không suy full-site PASS.
@@ -207,6 +210,9 @@ USB A05s dọc/ngang14 entries×3 actual cycles mỗi chiều đạt≤1px,0erro
 portrait2318samples gồm raw incomplete giữ13 valid cycles và capture tiếp2EN
 states. AC native/direct/reload giữ open: Chrome tự mở toolbar sau navigation,
 chưa chứng minh document khởi tạo collapsed; iPhone/A54 còn missing.
+05/10 trên `6c2e321`: A05s dọc/ngang14 route×3 cycles,56 direct/reload mỗi chiều
+đạt; document khởi tạo ở chiều cao thu gọn tới `DOMContentLoaded`, Chrome mở lại
+toolbar quanh `load`. AC2 đóng trên A05s; iPhone/A54 vẫn missing ([gate shell](../docs/specs/site-shell.md#gate-còn-mở)).
 
 ### V05 — Review và handoff viewport
 
@@ -373,7 +379,7 @@ trên exact candidate, phân biệt runtime/fixture/reference/hardware evidence.
 - [x] All9 inherited EN text-size failures GREEN; viewport/random/footer/
   lifecycle/scrollbar/menu/unit/static/smoke required checks giữ trên candidate
   tương ứng; failures giữ named, không skip/suppress hoặc dừng matrix sớm.
-- [ ] Report và owning contract ghi actual scope/LOC/hash/errors/limits;
+- [x] Report và owning contract ghi actual scope/LOC/hash/errors/limits;
   Impeccable findings owned/baseline tách rõ; missing MCP/reference/owner/physical
   không được check thay bằng engine PASS.
 
@@ -399,8 +405,9 @@ Landscape raw **incomplete**:2EN `viewer-after-touch` đóng viewer và jsDelivr
 Locomotive Scroll `net::ERR_CONNECTION_CLOSED`. Summary
 `.tmp/mobile-layout-parity/l06-landscape-red-summary-2026-09-28T04-59-43-211Z.json`;
 [evidence](../docs/verification/mobile-layout-parity-2026-09-28.md#l06--a05s-landscape-red-giữ-raw-riêng).
-Không check L06/L07/L-C; cần phân loại gesture target và network trước capture
-bổ sung, giữ raw RED bất biến.
+05/10 trên `6c2e321`: dọc và ngang mỗi chiều1714 samples,186 layout observations,
+14 route×3 cycles,0 layout/runtime/provenance fault; landscape RED cũ đã thay.
+iPhone/safe-area/accessibility vẫn open ([gate shell](../docs/specs/site-shell.md#gate-còn-mở)).
 
 **Description:** thêm observation header/title/filter/text bounds vào recorder
 hiện hữu, ghi native orientations/toolbar/zoom/controls cùng candidate.
@@ -408,13 +415,13 @@ hiện hữu, ghi native orientations/toolbar/zoom/controls cùng candidate.
 
 **Acceptance:**
 
-- [ ] ADB/forward/package/UA/task-tab identity guarded;10canonical routes VI/EN
+- [x] ADB/forward/package/UA/task-tab identity guarded;10canonical routes VI/EN
   và Advertising state subset dọc/ngang,≥3actual toolbar cycles mỗi state;
   geometry≤1px và không initial overlap/paint clipping, console/network/PNG đầy đủ.
-- [ ] Actual rotation/page zoom/offset/pan/visible controls/native touch có log,
+- [x] Actual rotation/page zoom/offset/pan/visible controls/native touch có log,
   direct/reload toolbar before/after measured; hidden/timeout raw incomplete giữ,
   capture thiếu riêng cùng hash, không gọi auto-expanded document là collapsed-init.
-- [ ] Model/version/source/runner hashes và coverage recorded; owner đã đính
+- [x] Model/version/source/runner hashes và coverage recorded; owner đã đính
   chính target Android A05s28/09. iPhone Safari/safe-area/native accessibility/keyboard cần evidence
   thiết bị thật; thiếu giữ physical gate open, không suy full-site PASS.
 
@@ -430,11 +437,11 @@ proofs/docs/preservation trước cập nhật authorized tracking và preview h
 
 **Acceptance:**
 
-- [ ] Required findings resolved và main kiểm source/diff/actual LOC/candidate
+- [x] Required findings resolved và main kiểm source/diff/actual LOC/candidate
   proof/DoD; requested/effective route recorded, không reviewer/persona mới.
-- [ ] Owning docs/STATE/map/checklist/card đúng evidence, links/anchors/glossary/
+- [x] Owning docs/STATE/map/checklist/card đúng evidence, links/anchors/glossary/
   diff-check đạt; primary/recovery/old snapshots/pause pointers không đổi.
-- [ ] Handoff tách local scoped technical result/owner/physical/MCP/reference/
+- [x] Handoff tách local scoped technical result/owner/physical/MCP/reference/
   full-site gates; recovery/P11/full continuation paused, không commit/push/deploy
   hoặc tự mở viewer/history/glass trước spec/plan riêng.
 
@@ -443,9 +450,9 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
 
 ### Checkpoint L-C — sau L06/L07
 
-- [ ] Immutable source/test/docs +proof manifest và riêng layout-current pointer;
+- [x] Immutable source/test/docs +proof manifest và riêng layout-current pointer;
   main verify bytes/hash và required review scope, không overwrite old pointers.
-- [ ] Local result và gate còn missing ghi đúng; new module giữ owner spec/plan
+- [x] Local result và gate còn missing ghi đúng; new module giữ owner spec/plan
   gate, không gọi scoped660cases/A05s PASS là full browser/site parity.
 
 ### L04R — minimum chữ/control Advertising đã duyệt28/09
@@ -454,13 +461,15 @@ authorized Notion fetch verification sau Git updates, owner visual riêng.
   pure API giữ default, unit compatibility và short portrait/landscape đạt.
 - [x] L04R2:100/200% VI/EN3engines đọc đủ pages, không clipping/overflow;
   giữ random/common/deck/context≤2, footer48/64, toolbar geometry và query/focus.
-- [ ] Final660/state/regressions, L-B, A05sUSB, L07review/L-C tiếp tục theo plan;
+- [x] Final660/state/regressions, L-B, A05sUSB, L07review/L-C tiếp tục theo plan;
   iPhone/reference/MCP/owner còn missing không được check thay.
 
 04/10 sau tự host: layout `--scope all` 0 fault trên Chromium (cloud), Firefox
 và WebKit (PC); viewport 0 failure; sửa oracle Firefox và lỗi `noscript` Chrome
-([kết quả](../docs/verification/mobile-layout-parity-2026-09-28.md#ba-engine-sau-khi-tự-host-asset-04102026)).
-Còn L04R3 (A05s, iPhone, final660, L07/L-C).
+05/10: L04R3, L05 AC3, L06, L07, L-C xong trên `6c2e321` (`src/site` như
+`8e709b4`): 660 ca matrix và mọi scope ba engine cùng commit/runner, 0 fault;
+A05s dọc/ngang 0 fault. Manifest, Impeccable owned/baseline và review ở PR của
+L07; iPhone/A54/reference/MCP/owner còn open ([gate shell](../docs/specs/site-shell.md#gate-còn-mở)).
 
 ### L04H — About Back/Forward, plan đã duyệt
 

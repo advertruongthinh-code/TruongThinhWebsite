@@ -273,14 +273,12 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
   reference live, visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R3
   chờ owner xem [preview](../verification/brand-lockup-logo-r3-2026-09-10.md).
-- V01 AC2 (bridge scroll với bàn phím native, iPhone), V03 AC2 (control viewer trong vùng nhìn
-  thấy với safe area, bàn phím, iPhone; chung spec detail Advertising), V04 AC2 (A05s tải trực
-  tiếp, reload khi thanh địa chỉ thu gọn lúc khởi tạo): chưa có evidence thiết bị. Owner, máy PC.
-  V-A thiếu source snapshot đúng thời điểm; owner hoặc main chấp nhận sai lệch.
-- L04R3: 660 ca trên một commit cho ba engine (hiện Chromium `0c9f98c`, Firefox `9c8f344`,
-  WebKit `bfad7ed`), A05s USB, iPhone. L05 AC3: báo cáo scope, tách finding Impeccable mới với
-  baseline; còn MCP, reference, owner, thiết bị. L06: replay A05s ngang sau sửa viewer tự đóng khi
-  chạm. L07 review gộp và snapshot L-C chưa làm. Main và máy PC.
+- V01 AC2, V03 AC2: A05s đạt bàn phím phần cứng 05/10 (control viewer, menu, toolbar mở và thu,
+  dọc và ngang); không có ô nhập nên bàn phím ảo không áp dụng. Còn iPhone, safe area, A54. V04
+  AC2 đạt trên A05s. V-A thiếu source snapshot đúng thời điểm; owner hoặc main chấp nhận sai lệch.
+- Layout L00–L07 xong 05/10 trên `6c2e321`: 660 ca và mọi scope ba engine cùng commit, A05s dọc
+  và ngang, 0 lỗi; manifest ở PR của L07. Main sau đó có thêm #96–#108, chưa chạy lại toàn bộ.
+  Còn iPhone, A54, reference, MCP, owner visual.
 - Main: chưa kiểm trình duyệt không hỗ trợ `svh`, iPhone Safari thật cho toàn shell, test paint và
   hit-test thứ tự lớp R1; MCP DevTools UI navigate layer blocked.
 - button-content-parity: chữ, icon trong nút lệch giữa iPhone và Android (owner, 27/09); chưa có
