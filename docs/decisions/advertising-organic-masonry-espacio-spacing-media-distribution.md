@@ -8,9 +8,9 @@ related_specs:
   - ../specs/advertising-masonry.md
   - ../specs/advertising-detail.md
 related_reports:
-  - ../archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md
-  - ../archive/reports/verification-advertising-products-organic-masonry-2026-09-01.md
-  - ../reports/research-espacio-motion-audit.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/verification-advertising-products-organic-masonry-2026-09-01.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/reports/research-espacio-motion-audit.md
 ---
 
 # Masonry Sản phẩm quảng cáo với spacing Espacio và phân bổ media độc lập

@@ -119,10 +119,11 @@ Checkpoint 3: không còn spec format cũ; ownership fail khi có file
 
 ## Phase 4: Dọn và rule
 
-- [ ] T17. Xóa `docs/verification/`, `docs/archive/`, `docs/reports/`,
+- [x] T17. Xóa `docs/verification/`, `docs/archive/`, `docs/reports/`,
   `docs/frontend/`; `docs/architecture/index.md` thành `docs/architecture.md`;
   chuyển output của tooling layout-motion parity sang `.tmp/`; sửa path trong
-  code comment.
+  code comment. Gate còn mở chuyển vào static-release, advertising-detail,
+  site-shell; evidence còn cần đọc trỏ permalink commit `a3428aa`.
 - [ ] T18. ADR: xóa ADR superseded; thêm ADR "Hệ thống tài liệu" thay
   `living-docs-domain-ownership.md`; cập nhật `git-notion-governance.md`.
 - [ ] T19. `STATE.md` dưới 50 dòng, `index.md` dưới 80 dòng; cập nhật

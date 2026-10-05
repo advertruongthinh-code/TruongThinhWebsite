@@ -9,8 +9,8 @@ related_specs:
   - ../specs/advertising-detail.md
   - ../specs/advertising-masonry.md
 related_reports:
-  - ../archive/reports/research-espacio-project-detail-templates-2026-08-30.md
-  - ../archive/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/research-espacio-project-detail-templates-2026-08-30.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md
 ---
 
 # Sáu trang nhóm Sản phẩm quảng cáo dùng một shared detail template
@@ -59,13 +59,13 @@ copy source, logo, font hoặc asset của Espacio.
 
 ## Bằng chứng
 
-- [Report template trang chi tiết Espacio](../archive/reports/research-espacio-project-detail-templates-2026-08-30.md)
+- [Report template trang chi tiết Espacio](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/research-espacio-project-detail-templates-2026-08-30.md)
   parse toàn bộ 45 trang archive; audit live ngày `2026-09-02` xác nhận lại đủ
   `45/45` route, `38` chuỗi block, `39` hero ảnh và `6` hero video.
 - Owner xác nhận hướng shared template trong discovery ngày `2026-08-30`.
 - Owner xác nhận sáu composition và media partition trong interview ngày
   `2026-09-02`; owner duyệt spec/plan và implementation đạt scoped current-hash
-  cùng ngày. Xem [report sáu composition](../archive/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md).
+  cùng ngày. Xem [report sáu composition](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/verification-advertising-detail-compositions-109-media-2026-09-02.md).
 
 ## Chú thích thuật ngữ
 

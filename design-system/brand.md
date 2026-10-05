@@ -173,7 +173,6 @@ sẵn sàng.
   `syncHeaderBrandSurface`, `colorHeader`, `playHeaderLockupScaleMotion` trong
   `motion.js`.
 - Tích hợp và test: [shell spec](../docs/specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
-- Kiểm chứng tỷ lệ gồm dấu: [LOGO-R3](../docs/verification/brand-lockup-logo-r3-2026-09-10.md).
 
 ## Chú thích thuật ngữ
 

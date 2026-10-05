@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { sha, csvParse, csvWrite } from './layout-motion-io.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const reportDir = path.join(root, 'docs', 'reports');
+const reportDir = path.join(root, '.tmp', 'reports');
 const candidatesPath = path.join(reportDir, 'research-espacio-motion-candidates.csv');
 const mapPath = path.join(reportDir, 'research-espacio-motion-candidate-map.csv');
 const obligationsPath = path.join(reportDir, 'research-espacio-motion-obligations.csv');

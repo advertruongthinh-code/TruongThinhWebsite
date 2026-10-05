@@ -6,7 +6,7 @@ import { sha, csvParse, csvWrite } from './layout-motion-io.mjs';
 import { excludedWithReason, exclusionForOrigin, exclusionPolicyErrors, isApprovedExclusion, isExcludedRuntimeRow, notRunOwnerApprovedExclusion } from './layout-motion-parity-exclusions.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const reports = path.join(root, 'docs', 'reports');
+const reports = path.join(root, '.tmp', 'reports');
 const obligationsPath = path.join(reports, 'research-espacio-layout-motion-obligations.csv');
 function outputFiles(mode = '') {
   const suffix = mode ? `-${mode}` : '';

@@ -6,7 +6,6 @@
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
   Deploy gần nhất 2026-10-05 `40e5f11` (Worker `5cd90669`), [cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare).
-  Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
   anchor, giới hạn dòng, sync spec, design-drift, preview sinh) chạy trên PR; T3–T6 tạo
@@ -23,7 +22,9 @@
   photo browse, morph và hai capability map. T15: [tải ảnh](specs/media-delivery.md) và
   [card nhiều media](specs/media-card.md) thay ba spec ảnh, media và map cuối. T16: [CMS](specs/cms.md)
   dormant thay spec CMS và backend; `qa:docs` fail khi file `src/site/` chưa có spec. T16b: spec skeleton
-  chờ ảnh và CTA cuối trang sang format mới, hết spec format cũ. Chờ owner ở checkpoint 3.
+  chờ ảnh và CTA cuối trang sang format mới, hết spec format cũ; owner duyệt checkpoint 3.
+  T17: xóa verification, archive, reports, frontend (gate còn mở chuyển vào spec),
+  [architecture](architecture.md) thành một file.
 - Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
   trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
   chung, scroll cue trượt chữ, Back/Forward Advertising về đúng Y; test cũ đã sửa theo thiết kế
@@ -37,11 +38,9 @@
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
   duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03),
   [tải ảnh](specs/media-delivery.md)).
-  M02b đã lên `main`, vẫn NOT ACCEPTED: các FAIL cloud là lỗi test, đã sửa;
-  [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#chạy-lại-trên-cloud-03102026).
+  M02b đã lên `main`, vẫn NOT ACCEPTED: các FAIL cloud là lỗi test, đã sửa.
   Landscape `Y=3` chỉ có trên emulator, A05s thật `Y=0` (giả lập và xoay vật lý).
-  Firefox/WebKit trên PC 2026-10-04 không có lỗi mới
-  ([kết quả](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#firefox-và-webkit-trên-pc-2026-10-04));
+  Firefox/WebKit trên PC 2026-10-04 không có lỗi mới;
   iPhone chưa kiểm vì chưa kết nối. M03–M09 ngoài Advertising vẫn PAUSED,
   trừ pinch viewer (M07b): đã lên `main` theo [spec](specs/advertising-viewer-touch-zoom.md), A05s dọc đạt 05/10.
   History H01–H02 rescope xong trên cloud; viewer không còn đóng khi vuốt từ nền
@@ -50,7 +49,7 @@
   WebKit; thứ tự filter có test, solver 350/350 lượt hard-safe
   ([evidence 04/10](specs/advertising-masonry.md#gate-còn-mở)). P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
   variant AVIF/WebP đã nối vào HTML tĩnh và Advertising runtime
-  ([pipeline](specs/media-delivery.md#r1-biến-thể-ảnh-nội-dung)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
+  ([pipeline](specs/media-delivery.md#r1-biến-thể-ảnh-nội-dung)).
   P6–P9 xong: owner chọn vòng xoay chờ, không byte progress; ảnh tĩnh dùng vòng
   CSS ([spec](specs/media-delivery.md#r6-vòng-tải-ảnh-tĩnh)). Advertising dùng skeleton chờ
   ảnh trên card và primary, primary đổi ảnh tại chỗ bằng crossfade
@@ -79,11 +78,12 @@
   biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Vòng tải đã
   dừng khi ảnh xong. Còn mở: hai finding nhỏ ở "Gate còn mở" của
   [tải ảnh](specs/media-delivery.md#gate-còn-mở).
-- Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 performance thật,
+- Verified limitations: full-site/Espacio parity còn NOT PASS
+  ([gate](specs/static-release.md#gate-còn-mở)); Galaxy A54 performance thật,
   owner visual các đợt cũ chưa đóng. Editor skeleton tạm đã gỡ khỏi public
   source trước ship; preset hiện hành giữ nguyên.
   COCO/decal còn lỗi chữ nhỏ theo review độc lập; giữ exact bản owner duyệt.
-  [Evidence index](verification/index.md) giữ ngày và scope từng run.
+  Evidence từng run nằm trong PR và Git history.
 - Hard boundary: owner đồng ý chuyển demo sang Workers; mỗi lần deploy vẫn cần
   owner đồng ý. Không suy ra quyền activate CMS, đổi audience/domain hoặc publish
   ảnh chưa duyệt.

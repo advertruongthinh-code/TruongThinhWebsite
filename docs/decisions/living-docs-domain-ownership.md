@@ -7,7 +7,7 @@ supersedes: []
 related_specs:
   - ../specs/docs-system.md
 related_reports:
-  - ../verification/living-docs-2026-09-09.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/living-docs-2026-09-09.md
 ---
 
 # Living docs theo domain

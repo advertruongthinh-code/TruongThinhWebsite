@@ -6,7 +6,7 @@ import { sha, csvParse, csvEscape } from './layout-motion-io.mjs';
 import { approvedExclusions, excludedWithReason, exclusionForOrigin, exclusionPolicyErrors, isExcludedRuntimeRow, notRunOwnerApprovedExclusion } from './layout-motion-parity-exclusions.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const reports = path.join(root, 'docs', 'reports');
+const reports = path.join(root, '.tmp', 'reports');
 const paths = {
   obligations: path.join(reports, 'research-espacio-layout-motion-obligations.csv'),
   runtime: path.join(reports, 'research-espacio-layout-motion-runtime.csv'),
@@ -122,7 +122,7 @@ ${table('hover-focus')}
 
 - Runtime rows: ${runtime.length}; coverage rows: ${summary.rows}.
 - Runtime non-pass: ${gate.runtime_non_pass}; coverage non-pass: ${gate.coverage_non_pass}; connection refused: ${gate.refused}; integrity errors: ${gate.integrity_errors}; Computer Use verified: ${gate.computer_use_verified}.
-- Coverage ledger: \`docs/reports/research-espacio-layout-motion-coverage.csv\`; obligations: \`docs/reports/research-espacio-layout-motion-obligations.csv\`; runtime results: \`docs/reports/research-espacio-layout-motion-runtime.csv\`.
+- Coverage ledger: \`.tmp/reports/research-espacio-layout-motion-coverage.csv\`; obligations: \`.tmp/reports/research-espacio-layout-motion-obligations.csv\`; runtime results: \`.tmp/reports/research-espacio-layout-motion-runtime.csv\`.
 - ${gate.ok ? '1:1 chỉ đạt khi toàn bộ runtime và coverage đều có evidence đầy đủ.' : '1:1 chưa đạt vì còn fail, blocked, mapping invalid, Computer Use chưa chạy hoặc ERR_CONNECTION_REFUSED.'}
 
 ## Owner-approved exclusions

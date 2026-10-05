@@ -162,7 +162,6 @@ dependency theo platform, không dùng `--no-optional`. Windows gọi
 `context`, `doctor`, `detect`. Provider hook active thì không chạy lại detect;
 context báo `MANUAL_DETECTOR_REQUIRED` thì chạy một lần sau UI xong. pnpm 12
 dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn frozen.
-Compatibility: [migration pnpm/Impeccable](../archive/reports/verification-pnpm-impeccable-major-2026-09-08.md).
 
 ## MCP
 

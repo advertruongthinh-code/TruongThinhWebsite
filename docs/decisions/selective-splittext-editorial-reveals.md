@@ -11,7 +11,7 @@ supersedes: []
 related_specs:
   - ../specs/advertising-masonry.md
 related_reports:
-  - ../reports/research-espacio-motion-audit.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/reports/research-espacio-motion-audit.md
 ---
 
 # SplitText chỉ áp dụng cho editorial reveal đã khai báo

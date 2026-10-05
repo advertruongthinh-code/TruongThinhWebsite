@@ -12,7 +12,7 @@
 
 Đã phát hành public trên Sites version 2: source GitHub `0654dca`, mirror Sites
 `557da5a` chỉ gồm `dist/` và manifest. Xem
-[checkpoint](docs/verification/release-cleanup-2026-09-24.md).
+[checkpoint](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/release-cleanup-2026-09-24.md).
 
 ### Thêm
 

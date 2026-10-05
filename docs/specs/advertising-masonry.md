@@ -281,7 +281,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
   tái hiện (suy luận từ `compileAdvertisingProductLayout`). Main quyết sửa hay chấp nhận.
 - `advertising-hero-once.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ca click trước runtime giữ import
   `catalog-runtime.mjs` khi không reduced motion nên veil R7 chặn click tới hết 30s. Main sửa ca test theo R3.
-- Thư viện ảnh: ảnh cần sửa, thay, chưa xác minh nguồn theo [audit](../verification/advertising-images-audit-2026-09-09.md); V6
+- Thư viện ảnh: ảnh cần sửa, thay, chưa xác minh nguồn theo [audit](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/advertising-images-audit-2026-09-09.md); V6
   sai tỷ lệ, COCO và decal lỗi chữ nhỏ; ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash; báo cáo HTML 10–20/09
   (93 ảnh, 69 cụm, ngoài Git) chờ owner xem. Owner.
 - Card nhiều media: runtime hỗ trợ nhưng catalog chưa có card nào; M03–M09 tạm dừng tới khi owner gửi ảnh và video gom

@@ -28,8 +28,8 @@ tooling được quản trị riêng trong
 Notion sở hữu draft, work item, plan, task, priority, status, NOW/Kanban,
 blocker, next action, discovery note, knowledge note và research synthesis.
 Git sở hữu accepted spec trong `docs/specs/`, decision record trong
-`docs/decisions/`, durable evidence trong `docs/reports/` và trạng thái
-canonical trong `docs/STATE.md`. `PRODUCT.md` và `DESIGN.md` là product/
+`docs/decisions/` và trạng thái canonical trong `docs/STATE.md`; evidence của
+mỗi thay đổi nằm trong mô tả PR. `PRODUCT.md` và `DESIGN.md` là product/
 visual-system truth khi đã được xác nhận.
 
 Notion page phải link tới Git document liên quan. Notion Spec phải có status

@@ -7,7 +7,7 @@ const archiveRoot = path.join(root, "research", "reference-site", "archive");
 const manifestPath = path.join(archiveRoot, "manifest.jsonl");
 const sourceRoot = path.join(root, "src", "site");
 const workerPath = path.join(root, "src", "worker", "index.js");
-const reportsRoot = path.join(root, "docs", "reports");
+const reportsRoot = path.join(root, ".tmp", "reports");
 const csvPath = path.join(reportsRoot, "research-espacio-motion-candidates.csv");
 const auditPath = path.join(reportsRoot, "research-espacio-motion-audit.md");
 

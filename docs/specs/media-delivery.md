@@ -29,7 +29,7 @@ và path trong `nonPublicSourceAssets`. Cạnh mỗi `<tên>.webp` nó ghi `<tê
 cả `.avif`, `.webp`; cỡ không nhỏ hơn bề rộng gốc thì bỏ. AVIF quality 55, WebP 78, effort 6. File đã có thì giữ;
 `--force` ghi lại. `--originals map.json` sinh từ PNG gốc khi cùng tỷ lệ với WebP (lệch dưới 0,005), không thì từ
 WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (owner,
-[danh sách](../verification/media-originals-2026-10-03.md)). `--check` chỉ liệt kê biến thể thiếu và exit 1; CI chạy
+[danh sách](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/media-originals-2026-10-03.md)). `--check` chỉ liệt kê biến thể thiếu và exit 1; CI chạy
 ([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`.
 
 ```gherkin

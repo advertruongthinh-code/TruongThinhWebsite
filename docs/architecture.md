@@ -2,16 +2,16 @@
 title: Kiến trúc runtime Trường Thịnh
 type: architecture
 status: living
-updated: 2026-09-24
+updated: 2026-10-05
 related_specs:
-  - ../specs/detail-pages.md
-  - ../specs/page-home.md
-  - ../specs/cms.md
+  - specs/detail-pages.md
+  - specs/page-home.md
+  - specs/cms.md
 related_decisions:
-  - ../decisions/static-shared-architecture.md
-  - ../decisions/runtime-responsibility-boundaries.md
-  - ../decisions/wrangler-deferred-until-cms.md
-  - ../decisions/sites-artifact-only-release-mirror.md
+  - decisions/static-shared-architecture.md
+  - decisions/runtime-responsibility-boundaries.md
+  - decisions/wrangler-deferred-until-cms.md
+  - decisions/sites-artifact-only-release-mirror.md
 ---
 
 # Kiến trúc runtime Trường Thịnh
@@ -37,7 +37,7 @@ flowchart LR
 | Lớp | Trạng thái | Nguồn và ranh giới |
 | --- | --- | --- |
 | Public static | Đang dùng | `src/site/`, local assets và shared CSS/JS; không cần D1, R2, Access hoặc CMS secret |
-| Static build | Đang dùng | `scripts/site/prepare-static-assets.mjs` copy source/vendor, tạo catalog artifact, sáu compatibility HTML và22 HTML VI/EN vào `.site-output/` |
+| Static build | Đang dùng | `scripts/site/prepare-static-assets.mjs` copy source/vendor, tạo catalog artifact, sáu compatibility HTML và 22 HTML VI/EN vào `.site-output/` |
 | Local preview | Đang dùng | `pnpm dev` chạy `prepare:site` rồi `scripts/tooling/serve-static-parity.mjs --port 8787` |
 | QA | Chỉ ở repository | `tests/` và scripts kiểm chứng source/build; không thuộc public output |
 | Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên Workers static assets qua `wrangler.static.toml`; không Worker script, không binding |
@@ -75,9 +75,10 @@ compatibility trong Worker dormant; không dùng chúng làm canonical source pa
 5. `scripts/tooling/serve-static-parity.mjs` phục vụ `.site-output/`; output
    generated không được edit.
 
-Architecture detail nằm trong [frontend guide](../frontend/index.md). Worker,
-admin, D1 và điều kiện mở CMS nằm trong [spec CMS](../specs/cms.md); guide và
-spec dẫn tới nguồn sở hữu contract thay vì chép lại toàn bộ requirement.
+Chi tiết từng phần website nằm trong spec theo
+[capability map](specs/docs-system.md#r2-capability-map-và-spec-sống). Worker,
+admin, D1 và điều kiện mở CMS nằm trong [spec CMS](specs/cms.md); spec dẫn tới
+nguồn sở hữu contract thay vì chép lại toàn bộ requirement.
 
 ## Trust boundary và fallback
 
@@ -94,8 +95,8 @@ hoặc CMS provider decision từ tài liệu này; các claim đó cần eviden
 
 ## Deployment và kiểm chứng
 
-Demo hosting theo [quyết định demo Cloudflare](../decisions/cloudflare-workers-static-demo.md);
-Wrangler cho CMS khóa tới CMS theo [decision deferred Wrangler](../decisions/wrangler-deferred-until-cms.md).
+Demo hosting theo [quyết định demo Cloudflare](decisions/cloudflare-workers-static-demo.md);
+Wrangler cho CMS khóa tới CMS theo [decision deferred Wrangler](decisions/wrangler-deferred-until-cms.md).
 
 Các command có trong repository:
 
@@ -109,15 +110,15 @@ pnpm qa:site
 
 `pnpm qa:worker:security` chỉ cần khi Worker source bị tác động; `qa:worker:static`
 và full Worker contract thuộc CMS gate. Browser evidence phải ghi route,
-viewport, console/network và accessibility theo [tests README](../../tests/README.md).
+viewport, console/network và accessibility theo [tests README](../tests/README.md).
 
 ## Canonical documents
 
-- Route và i18n: [phát hành tĩnh](../specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale), [ba trang con](../specs/detail-pages.md).
-- Trang chủ: [page-home](../specs/page-home.md).
-- CMS dormant và gate mở phase: [spec CMS](../specs/cms.md).
-- Current/planned detail frontend: [frontend guide](../frontend/index.md).
-- Project-wide phase/blocker: [STATE](../STATE.md).
+- Route và i18n: [phát hành tĩnh](specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale), [ba trang con](specs/detail-pages.md).
+- Trang chủ: [page-home](specs/page-home.md).
+- CMS dormant và gate mở phase: [spec CMS](specs/cms.md).
+- Từng phần website: [capability map](specs/docs-system.md#r2-capability-map-và-spec-sống).
+- Project-wide phase/blocker: [STATE](STATE.md).
 
 ## Chú thích thuật ngữ
 

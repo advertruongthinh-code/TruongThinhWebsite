@@ -20,12 +20,10 @@ graphify-out/
 .claude/settings.local.json
 CLAUDE.local.md
 
-# Local parity artifacts and raw runtime evidence. Markdown summaries remain project files.
+# Local parity artifacts and raw runtime evidence.
 /.tmp/
 /tmp-layout-motion-*/
 /research/reference-site/runtime-evidence/
-/docs/reports/*.csv
-/docs/reports/*.bak
 
 # Local backup of the deployed site; provenance and checksum manifest stay reviewable.
 /source-assets/site-backups/*/assets/
