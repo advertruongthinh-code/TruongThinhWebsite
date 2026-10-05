@@ -4,8 +4,8 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
-// tasks/archive/ leaves the tree in plan T20; tasks/plan.md and todo.md belong to another thread.
-const LEGACY = /^(tasks\/archive\/|tasks\/(plan|todo)\.md$)/;
+// tasks/plan.md and todo.md keep their pre-overhaul format until their batches close.
+const LEGACY = /^tasks\/(plan|todo)\.md$/;
 // Raw evidence under source-assets/ and research/ stays on the owner's PC by design (docs/index.md).
 const LOCAL_EVIDENCE = /^(source-assets|research)\//;
 const files = git('ls-files', '*.md').split('\n').filter((f) => f && !LEGACY.test(f));

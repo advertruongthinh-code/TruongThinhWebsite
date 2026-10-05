@@ -132,8 +132,10 @@ Checkpoint 3: không còn spec format cũ; ownership fail khi có file
   `AGENTS.md`, `docs/operations/agent-rule-*.md`, `README.md` (cây thư mục),
   `tests/README.md`; bật budget cho mọi file. Kèm sửa câu Caveman trong TOOLING
   và câu ignore trong graphify.
-- [ ] T20. Phối hợp thread "Rút gọn plan và todo": xóa `tasks/archive/`, gộp
-  file này vào `tasks/plan.md`.
+- [x] T20. Xóa `tasks/archive/` (thread "Rút gọn plan và todo" đã xong); link trong
+  `tasks/plan.md`, `tasks/todo.md` trỏ permalink. Plan này xóa khi owner duyệt
+  checkpoint cuối, không gộp vào `tasks/plan.md` (checklist xóa khi xong theo
+  [ADR hệ thống tài liệu](../docs/decisions/documentation-system.md)).
 - [ ] T21. Notion: rút body card về link spec và PR; hỏi owner trước mỗi đợt
   sửa.
 
