@@ -59,6 +59,10 @@
     data-detail-hero-profile="words-06"
     data-barba="wrapper"
   >
+    <script>
+      // Direct photo entry: hide the grid before first layout; catalog-runtime keeps or drops the class.
+      if (new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-advertising-photo");
+    </script>
     <div class="route-veil" aria-hidden="true">
       <i></i><i></i><i></i><i></i>
     </div>
