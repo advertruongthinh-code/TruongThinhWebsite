@@ -109,7 +109,8 @@
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; skeleton chờ ảnh, mở ảnh tại chỗ và kính hiện,
   tan trên ảnh vừa tải đã code, còn trace A05s (R9); [Kính dùng chung](specs/glass-surface.md)
-  đã code 04/10 cho kính cuối masonry, vùng dư primary và ảnh vừa tải, còn đo 30fps trên A05s;
+  đã code 04/10; kính cung đạt A05s với ba bậc; vào thẳng ảnh vẫn rơi gate long task (task
+  dài nhất `310ms` còn `~80ms` sau PR #107, [gate](specs/glass-surface.md#gate-còn-mở));
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/static-release.md#r11-phát-hành-demo-cloudflare); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
