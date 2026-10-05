@@ -2961,6 +2961,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Chrome silently drops history writes past 200 per 10 s, which lost photo pushes after a scroll.
   // Scroll is written at most every 300 ms; a pending write is dropped once the entry changes.
   let persistTimer = 0;
+  // The throttled write can miss the last scroll before Back/Forward; remember it per Barba entry.
+  const entryScroll = new Map();
+  const entryIndex = () => window.history.state?.index;
   const browseHistory = createAdvertisingBrowseHistoryController({
     cards,
     categories,
@@ -2972,9 +2975,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     softNavigation,
     getHref: () => window.location.href,
     getLogicalScroll,
-    onApply({ browse, reason }) {
+    onApply({ action, browse, reason }) {
       clearTimeout(persistTimer);
       persistTimer = 0;
+      if (action === "push") entryScroll.delete(entryIndex());
+      if (action === "pop" && entryScroll.has(entryIndex())) {
+        const scrollY = entryScroll.get(entryIndex());
+        browse = browse.photo
+          ? { ...browse, detail: { ...browse.detail, scrollY } }
+          : { ...browse, grid: { ...browse.grid, scrollY } };
+      }
       syncLocaleLinks(browse);
       if (reason === "category") return;
       if (browse.photo) {
@@ -3064,6 +3074,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     browseHistory.persistCurrent();
   };
   const scheduleBrowsePersistence = () => {
+    if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
     if (persistTimer || !ADVERTISING_ROOT_PATTERN.test(location.pathname)) return;
     persistTimer = setTimeout(() => {
       persistTimer = 0;
