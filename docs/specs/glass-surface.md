@@ -179,20 +179,16 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 
 ## Gate còn mở
 
-- R7 trên A05s, vào thẳng ảnh: vẫn rơi, không do Kính và không còn do
-  catalog. Catalog đã chia thành các task nhỏ (PR #107, #111; đo 05/10,
-  Chrome 154, median năm lần, bản chưa có sửa `motion.js`): task dài nhất
-  `310ms` còn `67–68ms`, task catalog dài nhất `41–46ms`, số task trên `50ms`
-  còn `2`: evaluate `motion.js` khoảng `67ms` và Layout đầu trang `47–60ms`.
-  `motion.js` sau đó không còn task dài: mount trang và Barba chạy sau frame
-  đầu nên không ép layout (đo cloud 05/10, CPU chậm 2x, năm lần: `84–103ms`
-  xuống `15–17ms`; A05s chưa đo lại). Layout đầu trang (`47–60ms` trên A05s)
-  dựng cả menu đóng và masonry dù ảnh sẽ che: menu đóng nay
-  `content-visibility: hidden`, URL có `?photo=` ẩn masonry trước Layout đầu
-  ([detail R7](advertising-detail.md#r7-related)). Đo cloud 05/10, CPU chậm 6x,
-  median năm lần, kiosk-posm-10 và print-decals-11: Layout dài nhất `105–109ms`
-  xuống `32–38ms`, task dài nhất `181–183ms` xuống `136–151ms`, tổng phần vượt
-  `50ms` `474–602ms` xuống `356–394ms`. A05s chưa đo lại.
+- R7 trên A05s, vào thẳng ảnh: gần đạt sau PR #107, #111, #116, #122 (đo 05/10,
+  `main` `9eed6a1`, Chrome thật, cold load, năm lần mỗi ảnh). kiosk-posm-10 và
+  print-decals-11: Layout dài nhất `11–29ms`, `motion.js` khoảng `10ms`, fps 1,5s
+  đầu `32.0` và `38.7`; 9/10 lần không task nào trên `50ms` theo longtask API.
+  Còn mở: một lần kiosk có task `67ms` (setTimeout rồi microtask, có GC), khớp
+  thời điểm bước related của catalog (`layoutRelated`, solver); chưa gán được
+  hàm vì lần đó không có CPU profile. Task `64–124ms` ở khoảng `1030ms` trong
+  các trace là do bộ đo: `WidgetBase::Shutdown` của tab `about:blank` mà
+  Playwright `newPage()` mở trước; mở URL thẳng bằng `Target.createTarget`
+  thì 0/5 lần có task này.
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long
