@@ -279,6 +279,8 @@ try {
       await sample("viewer-open"); await shot("viewer-open");
       await recordLayout(`${route}-viewer-open`);
       await evaluate("document.querySelector('[data-advertising-photo-zoom-in]').click()"); await sample("viewer-zoom");
+      // A touch stops a running zoom where it is (viewer touch zoom R6), so let the zoom land first.
+      for (let i = 0; i < 30 && await evaluate("document.querySelector('#advertising-photo-dialog').dataset.advertisingViewerState") !== "open"; i++) await pause(100);
       await swipe("up"); await swipe("down"); await shot("viewer-after-touch");
       await recordLayout(`${route}-viewer-after-touch`);
       await evaluate("document.querySelector('[data-advertising-photo-close]').click()"); await pause(500);
