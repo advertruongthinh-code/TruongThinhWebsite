@@ -54,6 +54,21 @@ test("locale navigation switches to English and survives reload", async ({ page 
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
+test("fail-open menu opens and closes without crashing the page", async ({ page }) => {
+  await page.route(/\/motion\.js$/, (route) => route.abort());
+  for (const route of ["/vi/", "/vi/advertising-products/"]) {
+    await page.goto(route, { waitUntil: "load" });
+    await expect(page.locator("html")).toHaveClass(/motion-fallback/);
+    for (const close of [() => page.locator("[data-menu-close]").click(), () => page.keyboard.press("Escape")]) {
+      await page.locator("[data-menu-open]").click();
+      await expect(page.locator("#site-menu")).toHaveJSProperty("open", true);
+      await close();
+      await expect(page.locator("#site-menu")).toHaveJSProperty("open", false);
+      await expect(page.locator("[data-menu-open]")).toBeFocused();
+    }
+  }
+});
+
 test("direct loads and reload play the route enter veil, then clear it", async ({ page }) => {
   await page.addInitScript(() => {
     new MutationObserver(() => {
