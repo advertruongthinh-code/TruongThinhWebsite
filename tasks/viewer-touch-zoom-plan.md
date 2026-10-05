@@ -104,8 +104,9 @@ console hay network.
     phép một lần trên thẻ): checkout `main`, `pnpm dev`,
     `adb reverse tcp:8787 tcp:8787`, `adb forward tcp:9222
     localabstract:chrome_devtools_remote`; chạy chính test touch với
-    `DEVICE_CDP=http://127.0.0.1:9222` trên Chrome thật, dọc theo màn thật,
-    ngang giả lập qua CDP như quy ước.
+    `DEVICE_CDP=http://127.0.0.1:9222` trên Chrome thật, theo hướng máy đang
+    cầm. Lần chạy 05/10 giả lập ngang qua CDP trên máy thật thì trang bị zoom,
+    nên ngang kiểm trên cloud; ngang trên máy thật chỉ khi máy đặt ngang.
   - Nhận: cùng assertion như cloud trên A05s; ghi kết quả vào mô tả PR hoặc
     comment; card Notion chuyển Done. Không deploy demo (deploy theo đợt do
     điều phối báo owner).
