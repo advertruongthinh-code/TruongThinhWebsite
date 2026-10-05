@@ -24,7 +24,8 @@
   dormant thay spec CMS và backend; `qa:docs` fail khi file `src/site/` chưa có spec. T16b: spec skeleton
   chờ ảnh và CTA cuối trang sang format mới, hết spec format cũ; owner duyệt checkpoint 3.
   T17: xóa verification, archive, reports, frontend (gate còn mở chuyển vào spec),
-  [architecture](architecture.md) thành một file.
+  [architecture](architecture.md) thành một file. T18: [ADR hệ thống tài liệu](decisions/documentation-system.md),
+  xóa 7 ADR cũ.
 - Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
   trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
   chung, scroll cue trượt chữ, Back/Forward Advertising về đúng Y; test cũ đã sửa theo thiết kế

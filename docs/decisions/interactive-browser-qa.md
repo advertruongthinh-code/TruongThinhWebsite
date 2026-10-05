@@ -22,8 +22,9 @@ cần các evidence surface khác nhau.
 UI change và website release dùng các nhóm evidence sau trên cùng live local
 web server:
 
-1. Current static contract chạy `pnpm qa:static`. Worker contract chỉ được thêm
-   lại khi owner mở CMS phase.
+1. Current static contract chạy `pnpm qa:static`; `pnpm qa:worker:security` khi
+   Worker source bị tác động. Worker contract đầy đủ chỉ được thêm lại khi owner
+   mở CMS phase.
 2. Playwright chạy route, viewport, interaction, locale, reduced-motion,
    console, network và overflow check có thể lặp lại.
 3. Computer Use chỉ dùng khi trigger khớp `AGENTS.md` rule 5: task thật sự cần

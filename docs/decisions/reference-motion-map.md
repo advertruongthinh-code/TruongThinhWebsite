@@ -18,7 +18,7 @@ related_reports: []
 Motion map theo web tham khảo, không nhập bundle production. Dùng white fade
 `.75s/1s`; full-menu dùng bốn background column, page scale `.9`,
 timeline `1.15×` và reverse `2.25×`; line/media timing theo
-`docs/reference/espacio/motion.md`. Public bundle của reference chỉ nằm trong
+[Motion](../../design-system/motion.md). Public bundle của reference chỉ nằm trong
 `research/reference-site/` để research, không được load bởi production website.
 
 ## Hệ quả

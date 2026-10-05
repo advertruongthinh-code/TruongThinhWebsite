@@ -23,7 +23,7 @@ Static trước, CMS sau: public site chạy không cần D1, R2, Access hoặc 
 secret. GitHub là source of truth; static output là fallback và rollback path.
 CMS chỉ activate sau khi bản tĩnh live ổn định và owner duyệt publishing
 workflow. Cơ chế phát hành static hiện hành nằm ở
-[Sites artifact-only release mirror](sites-artifact-only-release-mirror.md).
+[demo Cloudflare Workers static assets](cloudflare-workers-static-demo.md).
 
 Trong static phase:
 

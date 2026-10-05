@@ -2,10 +2,10 @@
 
 ## Rule
 
-- Git sở hữu accepted knowledge: spec, ADR/decision, runbook ổn định, report,
-  implementation evidence, `docs/STATE.md`, `PRODUCT.md`, `DESIGN.md`. Notion
-  sở hữu planning/status: draft, discovery, NOW/Kanban, priority, status,
-  blocker, next action. Notion link tới Git, không copy accepted document.
+- Git `main` sở hữu accepted knowledge: spec, ADR, runbook, `docs/STATE.md`,
+  `PRODUCT.md`, `design-system/`; evidence mỗi thay đổi nằm trong mô tả PR.
+  Notion chỉ giữ backlog card, link tới Git, không copy accepted document
+  ([quản trị Git–Notion](../decisions/git-notion-governance.md)).
 - Dùng Notion connector của host agent: Claude Code dùng claude.ai Notion
   connector (đã kết nối); Codex dùng Notion plugin. Connector unavailable:
   không giả lập update, ghi Git trước, báo blocker.
@@ -28,13 +28,12 @@
 
 1. Tìm work item trong NOW/Kanban; đọc `STATE.md` và Git document item liên kết.
 2. Implement một thin slice, verify bằng repository evidence.
-3. Cập nhật Git spec, decision hoặc report.
+3. Cập nhật Git spec hoặc decision; evidence vào mô tả PR.
 4. Cập nhật card: status, việc còn mở, blocker, link spec và PR. Evidence ở
    Git (spec, PR), không chép vào card.
 
-Notion **Spec** page chỉ là proposal. Khi owner approve, Git spec canonical ở
-`docs/specs/<descriptive-slug>.md` mới là implementation contract; Git spec có
-thể giữ frontmatter `notion:` link ngược về page.
+Spec chỉ viết trong Git (`docs/specs/<capability>.md`); frontmatter `notion:`
+của spec link tới card.
 
 ## Database Tasks
 

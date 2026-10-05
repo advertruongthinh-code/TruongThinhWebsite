@@ -4,7 +4,8 @@ status: accepted
 date: 2026-10-04
 scope: agent tooling
 tags: [claude-code, skills, cloud]
-supersedes: [claude-skills-vendored-from-pins.md]
+supersedes:
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/f7795ffa3b416af8187738d5f9445b48558fada7/docs/decisions/claude-skills-vendored-from-pins.md
 related_specs: []
 related_reports: []
 ---
