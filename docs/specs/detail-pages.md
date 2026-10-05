@@ -266,23 +266,22 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
   placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
 - About: `rebuildText` trong `detail.js` vẫn tween `.motion-word` của tiêu đề hero dù About không tách chữ; GSAP cảnh
   báo "target [object NodeList] not found" mỗi lần mount, nên 2 ca About của `TT_E2E_DETAIL_HERO_ONLY` và 2 ca wheel
-  About trong `TT_E2E_M1_ONLY` FAIL vì bắt console (Chromium cloud). Main sửa trong PR code. [CẦN LÀM RÕ: About giữ hook
-  chữ không chạy ([motion](../../design-system/motion.md#text) không liệt kê About) hay bật tách chữ?] Owner.
+  About trong `TT_E2E_M1_ONLY` FAIL vì bắt console (Chromium cloud). Owner chọn 05/10 sửa code cho hết cảnh báo,
+  About không tách chữ như [motion](../../design-system/motion.md#text). Thread code.
 - Test cũ: `TT_E2E_DETAIL_HERO_ONLY` ca "about hero media soft entry" chờ route mềm sang About nên hết giờ (suy luận);
   ca early accessibility của `TT_E2E_M1_ONLY` đòi `h1` Residential chứa "Không gian" trong khi copy duyệt là "Nơi tái
   tạo năng lượng sống". Main sửa test.
 - `TT_E2E_COMMERCIAL_HERO_ONLY` 4/12: 8 ca 320, 390, 768px FAIL "escaped bounds"; test đòi `white-space: nowrap`, CSS
-  tới 980px đặt `normal` để chữ 200% xuống hàng (nguyên nhân suy luận); Residential không đòi, 12/12. [CẦN LÀM RÕ: bỏ
-  điều kiện nowrap trong test hay giữ nowrap trên mobile?] Owner quyết, main sửa.
+  tới 980px đặt `normal` để chữ 200% xuống hàng (nguyên nhân suy luận); Residential không đòi, 12/12. Owner chọn 05/10
+  bỏ điều kiện nowrap trong test. Thread code.
 - GSAP có, SplitText lỗi tải: mọi target reveal và kicker giữ opacity 0, ảnh hero đứng ở scale 1.2 (đo Chromium
-  cloud, chặn file SplitText); không có fallback. Main đề xuất sửa, owner duyệt.
-- [CẦN LÀM RÕ: nhãn track gallery ghi số lượng ("chín lát cắt", "năm không gian"), quy tắc owner đòi nhãn trung tính,
-  không số lượng; bỏ số hay đổi quy tắc?] Owner.
-- `id="lien-he"` trùng giữa CTA và footer trên ba trang (HTML không hợp lệ, `#lien-he` trỏ CTA). [CẦN LÀM RÕ: đổi id
-  nào?] Owner quyết, main sửa.
-- [CẦN LÀM RÕ: hover ảnh gallery, duo, CTA dùng `:hover` thường (touch dính hover, reduced motion vẫn phóng tức thì),
-  portal loại hình không hover; chuyển sang primitive trang chủ R6?] Owner.
-- [Gallery](../../design-system/components/Gallery/README.md) ghi "một ảnh thì bỏ control", `detail.js` không xử lý; main thêm hoặc owner bỏ quy tắc.
+  cloud, chặn file SplitText); không có fallback. Owner chọn 05/10 thêm đường hiện chữ khi thiếu SplitText. Thread code.
+- Nhãn track gallery ghi số lượng ("chín lát cắt", "năm không gian"); quy tắc owner đòi nhãn trung tính. Owner chọn
+  05/10 bỏ số. Thread code.
+- `id="lien-he"` trùng giữa CTA và footer trên ba trang (HTML không hợp lệ, `#lien-he` trỏ CTA). Owner chọn 05/10
+  đổi id của CTA, footer giữ `#lien-he`. Thread code.
+- Hover ảnh gallery, duo, CTA dùng `:hover` thường (touch dính hover, reduced motion vẫn phóng tức thì), portal loại
+  hình không hover. Owner chọn 05/10 chuyển sang hover chung của trang chủ R6. Thread code.
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
 - Vòng tải khớp cả `article.editorial-item`; ở 390px ảnh 167px trong khung 350px nên vòng lộ ngoài ảnh khi đang tải
   (audit 04/10 F2, suy luận). Main đo.

@@ -7,7 +7,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 
 ## Hành vi
 
-- Ba khung mỗi cột, cùng gutter với ảnh, tỷ lệ theo nhóm ảnh; mặt trong là
+- Khung xếp tới đáy batch, cùng gutter với ảnh (2 đến 5 khung mỗi cột tùy
+  chiều cao); cao bằng bề rộng card nhân một trong ba band ngang `0.72`, vuông
+  `1`, đứng `1.32`, hai khung liền nhau trong cột khác band; mặt trong là
   gradient Flow nhiều màu chảy chậm (WebGL, 12 preset xáo ngẫu nhiên, không
   trùng trong một lần hiện).
 - Khung không nhận focus, `aria-hidden`; không shimmer. Chỉ khung trong viewport
