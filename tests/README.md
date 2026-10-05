@@ -54,8 +54,8 @@ input dùng bbox/scroll range, cấm DOM index/offset cố định cho random gr
 Scene qualification bounded8 fresh visits ghi mọi attempt trước input, không
 retry runtime assertion; reverse quan sát sau actual scroll và fade window.
 Current continuation vẫn FAIL tại first-DOM-frame `ready()` predicate;
-[report correction](../docs/verification/mobile-skeleton-correction-2026-09-27.md)
-giữ exact line/hash/raw và gate, không xem focused FPS/handoff là full PASS.
+[gate skeleton](../docs/specs/advertising-skeleton.md#gate-còn-mở) giữ lỗi này;
+không xem focused FPS/handoff là full PASS.
 
 ```powershell
 pnpm dev

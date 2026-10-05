@@ -32,25 +32,12 @@ lifecycle) nằm trong spec sở hữu.
 
 ## Contract hiện hành
 
-- [Intent và map browser parity](specs/mobile-browser-parity-capability-map.md):
-  module Advertising và Android QA còn lại; scrollbar, viewport, layout mobile và
-  gate còn mở ở [shell website](specs/site-shell.md#gate-còn-mở).
-  [Debug Android thật](operations/android-real-device-debugging.md)
-  giữ Chrome/USB và interaction PASS; [owner recording](verification/android-skeleton-observation-2026-09-27.md)
-  đã ghi nhận thay frame skeleton khi visual height đổi, gồm capture footer↔grid8792.
-  Owner nghiệm thu visual scrollbar; [chẩn đoán preview](verification/mobile-preview-diagnostics-2026-09-27.md)
-  giữ lỗi baseline random/landscape/WebKit. [Map bổ sung](specs/mobile-browser-parity-capability-map.md#feedback-preview--intent-và-map-bổ-sung-đã-duyệt)
-  đã duyệt; [delta skeleton lifecycle](specs/advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
-  đã duyệt bằng “Duyệt delta skeleton”; [plan correction](../tasks/plan.md#correction-baseline-và-skeleton--accepted-2026-09-27)
-  và [card correction](https://app.notion.com/p/3e8332849a0e8121bd20e1f62a275bb7) đã duyệt27/09.
-  [Correction evidence](verification/mobile-skeleton-correction-2026-09-27.md)
-  giữ random/Android functional và lịch sử C05 WebKit RED; [amendment C05R](../tasks/plan.md#amendment-c05r--accepted-2026-09-27)
-  cùng delta ownership đã duyệt. Owner duyệt A logical deck12/C06U; current
-  Android dọc/ngang1366common pairs không reset, lifecycle/clean80/smoke21/21 đạt.
-  Full continuation còn FAIL tại first-DOM-frame ready predicate; MCP UI QA
-  blocked. C06/C07 chưa nghiệm thu; checkpoint partial giữ nguyên các gate.
-  Kiểm local trước,
-  rồi mới debug Sites sau phát hành.
+- [Masonry Advertising](specs/advertising-masonry.md): trang, catalog, filter, thứ tự ngẫu nhiên,
+  hình học, ảo hóa và card; [batch skeleton](specs/advertising-skeleton.md) nối tiếp masonry tới
+  footer. Gate còn mở (A05s, iPhone, continuation FAIL) ở từng spec.
+  [Intent và map browser parity](specs/mobile-browser-parity-capability-map.md) giữ viewer, history
+  motion, glass; scrollbar, viewport, layout mobile ở [shell website](specs/site-shell.md#gate-còn-mở).
+  [Debug Android thật](operations/android-real-device-debugging.md) giữ Chrome/USB.
 - [Photo/masonry Advertising](specs/advertising-photo-browse.md): layout, history,
   primary, suggestion và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
   dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random masonry và
@@ -111,7 +98,7 @@ không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo
 | Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) |
 | Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo); không tự thành target |
 | Route, lifecycle, reuse contract | [Shell](specs/site-shell.md), [ba trang con](specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời) |
-| Masonry, catalog, renderer Advertising | [GRID-R4](specs/advertising-grid-span-organic.md), [Advertising](specs/advertising-products-turnkey-services.md) |
+| Masonry, catalog, renderer Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |
 
 Source chỉ cho thấy implementation hiện tại; owner hoặc spec đã duyệt mới nâng

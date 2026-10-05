@@ -5,7 +5,7 @@ date: 2026-09-01
 scope: Advertising product grid geometry and media distribution
 supersedes: []
 related_specs:
-  - ../specs/advertising-products-turnkey-services.md
+  - ../specs/advertising-masonry.md
   - ../specs/advertising-photo-browse.md
 related_reports:
   - ../archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md

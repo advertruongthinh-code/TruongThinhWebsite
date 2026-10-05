@@ -94,8 +94,10 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
   và `frontend-landing-page-foundation.md`.
 - [x] T12. `detail-pages.md` cho residential, commercial, about; xóa
   `frontend-route-and-content.md`.
-- [ ] T13. `advertising-masonry.md` thay grid, random, skeleton, turnkey,
+- [x] T13. `advertising-masonry.md` thay grid, random, skeleton, turnkey,
   kiosk, final-polish, media-review và hai capability map Advertising.
+  Tách `advertising-skeleton.md` để mỗi spec dưới 300 dòng. Hai capability
+  map còn vì STATE và T14, T15 trỏ tới; xóa ở T14, T15.
 - [ ] T14. `advertising-detail.md` thay `advertising-photo-browse.md`,
   `advertising-photo-morph-scroll.md` và verification history, detail.
 - [ ] T15. `media-delivery.md` thay `static-image-delivery.md`,

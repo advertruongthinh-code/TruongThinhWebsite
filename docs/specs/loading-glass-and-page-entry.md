@@ -27,7 +27,7 @@ spec này. Bản chạy thử:
 ### R1. Skeleton card trên card đang tải
 
 Mọi card đang mount của masonry chính và related mà ảnh chưa sẵn sàng đều hiện
-đúng skeleton card cuối masonry ([Skeleton Flow](advertising-skeleton-flow.md)),
+đúng skeleton card cuối masonry ([skeleton](advertising-skeleton.md)),
 không dựng component mới: cùng khung, mặt và canvas Flow
 (`.advertising-grid__cta-frame`, `__cta-surface`, `__cta-flow`), cùng renderer
 `createSkeletonFlowRenderer`, 12 preset và fade vào `600ms`. Khung skeleton phủ
@@ -198,7 +198,7 @@ Then skeleton không chuyển động, ảnh hiện ngay, không có kính, tran
 ### R9. Ngân sách hiệu năng
 
 Masonry đang tải phải đạt cùng gate điện thoại của skeleton
-([Skeleton Flow](advertising-skeleton-flow.md), R10): median tối thiểu `30fps`,
+([skeleton R8](advertising-skeleton.md#r8-hiệu-năng)): median tối thiểu `30fps`,
 không long task trên `50ms`, tối đa hai WebGL context đang chạy. Gate đo khi
 vuốt nhanh có nhiều card cùng chạy ba bước kính. Không hạ resolution, frame rate
 hay chất lượng preset để đạt gate. Nếu kính làm rơi gate, PR code báo owner kèm

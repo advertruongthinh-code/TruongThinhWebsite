@@ -122,7 +122,7 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
     runner nặng. Sửa: chờ `getAnimations()` xong rồi mới đọc màu.
   - skeleton-global-boundary-fade và grid-cta-skeleton-flow: test còn
     đòi mask trên container skeleton (R6/R8) và tối đa 3 frame mỗi cột (R11).
-    [R10 và P7.1](../specs/advertising-skeleton-flow.md#correction-p71--organic-continuation-và-paint-overflow)
+    [R10 và P7.1](../specs/advertising-skeleton.md#r1-batch-nối-tiếp-masonry)
     đã thay bằng một glass surface toàn cục và số frame theo ranh giới glass.
     Test nay kiểm glass `::before` có `linear-gradient` và `backdrop-filter`.
   - grid-cta-skeleton-flow `vi-320`: test đo hộp frame chưa cắt (vượt `54px`),

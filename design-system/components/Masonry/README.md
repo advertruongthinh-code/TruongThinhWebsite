@@ -21,7 +21,7 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 
 Đo trên website ngày 2026-10-04.
 - Không spacer, không giãn gutter, không crop để giả so le. Rule stagger và
-  chống nhịp gạch: [GRID-R4](../../../docs/specs/advertising-grid-span-organic.md).
+  chống nhịp gạch: [masonry R6](../../../docs/specs/advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí).
 - Chỉ mount card gần viewport; list có `aria-posinset`, `aria-setsize`; Tab
   vẫn đi qua được phần chưa mount.
 - Không có JavaScript: sáu card tĩnh trong HTML vẫn hiện.
