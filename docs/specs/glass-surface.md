@@ -7,7 +7,7 @@ tests:
   - tests/site/glass-surface.test.mjs
   - tests/site/glass-surface.e2e.mjs
 notion: none
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # Kính dùng chung cho mọi bề mặt glass
@@ -155,10 +155,10 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
-| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung năm bậc; dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
-| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`), `saturate(1.112)`, `brightness(1.0079)`; `.glass-surface__step--full` là `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
-| CSS | `--glass-grain`, `--glass-grain-size` trên `html` | Ảnh hạt nhiễu 160×160 sinh một lần bằng canvas, một hạt một pixel thiết bị |
-| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 5, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt mask và màu trắng; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
+| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó năm bậc đều đủ), rồi năm bậc chỉ phủ dải; lõi chuyển sang năm bậc qua `48px` bên trong cung nên không thấy đường nối, diện tích blur giảm khoảng 30%; dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch), `saturate(1.112)`, `brightness(1.0079)`; `.glass-surface__step--full` là `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
+| CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Ảnh hạt nhiễu 160×160 sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
+| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 5, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
 | Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass`; gắn kính hiện/tan cuối khung media card hoặc khung primary trong lúc ảnh hiện |
 
 ## UI
@@ -171,18 +171,19 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | --- | --- |
 | R1–R5 | `node tests/site/glass-surface.test.mjs` (CSS, hình học); `node tests/site/glass-surface.e2e.mjs` (Chromium, `BASE_URL`) |
 | R6 | `glass-surface.test.mjs` (mức kính theo thời gian); `image-loading-frame.e2e.mjs` (P9: năm bậc, chỉ opacity đổi, gỡ sau khi xong) |
-| R7 | trace Chrome trên A05s qua CDP, chưa chạy |
+| R7 | đo qua CDP trên A05s thật (05/10); script đo chưa vào repo |
 | R8 | `glass-surface.e2e.mjs`, ca giảm chuyển động |
 
 ## Gate còn mở
 
-- R7 trên A05s thật: chưa đo median fps và long task khi cuộn tới kính cung
-  và khi mở primary có kính. Đo tương đối trên cloud 04/10 (Chromium vẽ bằng
-  CPU, chậm CPU ×4, 390×844 DPR3, cuộn qua lại ở cuối masonry): `main` 55fps,
-  kính cung năm bậc 21–59fps (hai mode), cùng kính một bậc 60fps. Năm bậc là
-  phần nặng. Vào thẳng ảnh có kính phủ đều (1329×912, cùng cloud): số khung
-  trong 460ms đầu khi related xếp chỗ là `main` 22, Kính 17, Kính bỏ hạt nhiễu
-  22; hạt nhiễu `overlay` là phần nặng. Số cloud không thay A05s.
+- R7 trên A05s rơi gate (đo 05/10, Chrome 154, median ba lần, bản Kính so với
+  bản ngay trước Kính): vuốt thật ở cuối masonry `27fps` (26–31) so với `65fps`,
+  nặng ở paint, không có JS chặn; cuộn bằng script `36` so với `77fps`. Vào thẳng
+  ảnh có kính phủ đều: `33` so với `62fps` trong 1.5s đầu, long task dài nhất
+  204–266ms so với 197–220ms, nên gate long task đã rơi từ trước Kính. Cuộn
+  related `83` so với `88fps`, đạt. Lõi kính cung (05/10) giữ nguyên hình, giảm
+  diện tích blur khoảng 30%; trên cloud (chậm CPU ×4) cuộn ở cuối masonry từ
+  `29.5` lên `32.4fps`, chưa đo lại trên A05s. Giảm số bậc chờ owner chọn.
 - Safari trên iPhone thật chưa kiểm.
 
 ## Chú thích thuật ngữ

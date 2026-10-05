@@ -20,7 +20,7 @@ assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses t
 assert.match(runtime, /createGlassSurface\("even"\)/, "R1: the primary uses the even Kính");
 
 // R2, R5: stacked steps compound in quadrature to the five levels; saturate and brightness multiply.
-const increments = [...css.matchAll(/\.glass-surface__step:nth-child\(\d\) \{ --glass-step-blur: ([\d.]+)px; \}/g)]
+const increments = [...css.matchAll(/\.glass-surface__step:nth-last-child\(\d\) \{ --glass-step-blur: ([\d.]+)px; \}/g)]
   .map(([, value]) => Number(value));
 let sum = 0;
 assert.deepEqual(increments.map((value) => Math.round(Math.sqrt(sum += value * value) * 10) / 10), [2, 4.5, 9, 16, 28],

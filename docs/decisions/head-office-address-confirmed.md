@@ -5,7 +5,7 @@ date: 2026-08-26
 scope: public website owner fact
 supersedes: []
 related_specs:
-  - ../specs/frontend-brand-shell-responsive-runtime.md
+  - ../specs/site-shell.md
 related_reports:
   - ../archive/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md
 ---

@@ -130,7 +130,7 @@ Trang chủ:
 | Phần tử | Hiệu ứng |
 | --- | --- |
 | Ảnh card, project tile | `scale(1 → 1.15)`, `600ms ease-out` (`--media-hover-*`); khung giữ nguyên, ảnh bị clip |
-| Portal trang chủ | Ảnh `scale(1 → 1.1)`; lớp `media-label-overlay` giữ nguyên độ tối |
+| Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
 
@@ -202,8 +202,10 @@ outline. Touch không cần hover để mở ảnh.
   cũ mờ đi trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`, kính
   hiện `0` đến `0.26s` rồi tan tới `0.6s`; mở lần đầu thì ảnh mới hiện từ khung
   trống cùng nhịp. Reduced motion: không kính.
-- Viewer: transform từ khung hero tới fit và ngược lại; zoom nội suy giữa fit,
-  cover và hai lần cover; pan theo con trỏ tức thì, giới hạn theo ảnh đã phóng.
+- Viewer: transform từ khung hero tới fit và ngược lại; nút, con lăn, chạm đúp
+  và bật về sau pinch nội suy `200ms ease-in-out`; pinch và pan theo tay tức
+  thì, giới hạn theo ảnh đã phóng; vượt giới hạn khi pinch thì ảnh chỉ đi một
+  phần ba so với tay.
 - Nền primary là bản sao cover, chỉ animate opacity và transform; nhìn qua
   [Kính](components/Glass/README.md) dạng phủ đều đứng yên.
 

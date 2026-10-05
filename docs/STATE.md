@@ -15,7 +15,9 @@
   chỉ ghi ở nguồn tham khảo. T7: `DESIGN.md`
   và sidecar Impeccable sinh từ `design-system/`, không sửa tay. T8: đã publish lên
   [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); owner duyệt bản 20 (checkpoint 2).
-  T9: spec pilot [static-release](specs/static-release.md), chờ owner đọc thử.
+  T9: owner duyệt pilot [static-release](specs/static-release.md) và template.
+  T10: [shell](specs/site-shell.md) thay hai spec shell, menu và bốn verification cũ.
+  T11: [trang chủ](specs/page-home.md) thay spec landing; T12 tiếp.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
@@ -30,7 +32,8 @@
   Landscape `Y=3` chỉ có trên emulator, A05s thật `Y=0` (giả lập và xoay vật lý).
   Firefox/WebKit trên PC 2026-10-04 không có lỗi mới
   ([kết quả](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#firefox-và-webkit-trên-pc-2026-10-04));
-  iPhone chưa kiểm vì chưa kết nối. M03–M09 ngoài Advertising vẫn PAUSED.
+  iPhone chưa kiểm vì chưa kết nối. M03–M09 ngoài Advertising vẫn PAUSED,
+  trừ pinch viewer (M07b): đã code theo [spec](specs/advertising-viewer-touch-zoom.md), chờ chạy A05s.
   History H01–H02 rescope xong trên cloud; viewer không còn đóng khi vuốt từ nền
   (L06), chờ replay A05s ([evidence](verification/advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04)).
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
@@ -54,7 +57,7 @@
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
 - UI contract: [photo/masonry](specs/advertising-photo-browse.md),
   [capability map](specs/advertising-september-2026-capability-map.md),
-  [menu mở](specs/full-menu-reference-parity.md), [Design System](../design-system/README.md).
+  [shell](specs/site-shell.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
   navbar về All; skeleton/CTA/footer theo P7.5.
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,

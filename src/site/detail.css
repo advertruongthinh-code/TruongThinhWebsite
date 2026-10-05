@@ -1863,6 +1863,7 @@ body.is-advertising-browse .advertising-grid {
 /* Kính (docs/specs/glass-surface.md): one component for every glass surface. Stacked backdrop
    blurs compound, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward the levels 2, 4.5, 9, 16 and 28px;
    saturate() and brightness() multiply, so each step carries the fifth root of 1.7 and 1.04.
+   Steps count from the tint and the grain, so the arc's core in front of them shifts nothing.
    Only the steps own backdrop-filter. The box itself stays plain: opacity, a mask or a filter on it
    would cut the steps off from the page behind. */
 .glass-surface {
@@ -1883,11 +1884,11 @@ body.is-advertising-browse .advertising-grid {
   backdrop-filter: blur(var(--glass-step-blur)) saturate(1.112) brightness(1.0079);
 }
 
-.glass-surface__step:nth-child(1) { --glass-step-blur: 2px; }
-.glass-surface__step:nth-child(2) { --glass-step-blur: 4.03px; }
-.glass-surface__step:nth-child(3) { --glass-step-blur: 7.79px; }
-.glass-surface__step:nth-child(4) { --glass-step-blur: 13.23px; }
-.glass-surface__step:nth-child(5) { --glass-step-blur: 22.98px; }
+.glass-surface__step:nth-last-child(7) { --glass-step-blur: 2px; }
+.glass-surface__step:nth-last-child(6) { --glass-step-blur: 4.03px; }
+.glass-surface__step:nth-last-child(5) { --glass-step-blur: 7.79px; }
+.glass-surface__step:nth-last-child(4) { --glass-step-blur: 13.23px; }
+.glass-surface__step:nth-last-child(3) { --glass-step-blur: 22.98px; }
 
 .glass-surface__step--full {
   -webkit-backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
