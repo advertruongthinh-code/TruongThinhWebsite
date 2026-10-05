@@ -103,9 +103,9 @@ console hay network.
   - Làm: phiên Remote Control trên `E:\TruongThinh-Website` (owner bấm cho
     phép một lần trên thẻ): checkout `main`, `pnpm dev`,
     `adb reverse tcp:8787 tcp:8787`, `adb forward tcp:9222
-    localabstract:chrome_devtools_remote`; chạy chính test touch qua CDP trên
-    Chrome thật dọc và ngang (giả lập viewport như quy ước), chạm đúp bằng
-    `adb shell input tap` hai lần.
+    localabstract:chrome_devtools_remote`; chạy chính test touch với
+    `DEVICE_CDP=http://127.0.0.1:9222` trên Chrome thật, dọc theo màn thật,
+    ngang giả lập qua CDP như quy ước.
   - Nhận: cùng assertion như cloud trên A05s; ghi kết quả vào mô tả PR hoặc
     comment; card Notion chuyển Done. Không deploy demo (deploy theo đợt do
     điều phối báo owner).

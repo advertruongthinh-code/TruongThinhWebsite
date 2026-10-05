@@ -155,7 +155,7 @@ của [Viewer](../../design-system/components/Viewer/README.md). PR code sửa c
 | R1–R6 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
-| R1–R4 | A05s thật: cùng test chạm với `BASE_URL` qua `adb reverse`, Chrome qua `adb forward` (chưa chạy) |
+| R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; ngang giả lập qua CDP (chưa chạy) |
 
 ## Gate còn mở
 
