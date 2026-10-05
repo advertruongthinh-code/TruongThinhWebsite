@@ -1,6 +1,4 @@
-const freeze = (value) => Object.freeze(value);
-
-export const ADVERTISING_TAG_REGISTRY = freeze([
+export const ADVERTISING_TAG_REGISTRY = Object.freeze([
   {"id": "product-print-decals-product-13", "group": "product", "labelVi": "Bao bì và ly in F&B", "labelEn": "Printed food and beverage packaging"},
   {"id": "product-kiosk-posm-product-13", "group": "product", "labelVi": "Standee và khung quảng cáo", "labelEn": "Standees and advertising frames"},
   { id: "use-sampling", group: "use", labelVi: "Trưng bày dùng thử", labelEn: "Product sampling" },
@@ -87,7 +85,7 @@ export const ADVERTISING_TAG_REGISTRY = freeze([
   { id: "format-portrait", group: "framing", labelVi: "Khung dọc", labelEn: "Portrait framing" },
 ]);
 
-export const PHOTO_TAG_IDS_BY_RECORD_ID = freeze({
+const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
   "mobile-retail-21": ["group-mobile-retail", "product-mobile-retail-product-09", "format-landscape"],
   "print-decals-21": ["group-print-decals", "product-print-decals-product-11", "format-landscape"],
   "office-signs-wayfinding-31": ["group-office-signs-wayfinding", "product-office-signs-wayfinding-product-11", "format-landscape"],
@@ -244,7 +242,7 @@ export const PHOTO_TAG_IDS_BY_RECORD_ID = freeze({
   "print-decals-16": ["group-print-decals", "product-print-decals-product-04", "format-portrait"],
 });
 
-export const PHOTO_METADATA_BY_RECORD_ID = freeze({
+const PHOTO_METADATA_BY_RECORD_ID = Object.freeze({
   "mobile-retail-21": {"descriptionVi": "Quầy hội chợ ngoài trời với tủ khóa phía sau — ảnh minh họa AI về sản phẩm và bối cảnh sử dụng.", "descriptionEn": "Outdoor fair counter with rear lockable storage — AI-generated illustration of the product and its use context.", "source": "/assets/content/projects/advertising/mobile-retail/mobile-retail-21-owner-20260924.webp", "sha256": "f386373b56d33148154ab7d9a7d97ed52ba018fa846199f4f9e5f3861c2d15de", "provenance": "AI-generated illustration; owner approved 2026-09-24; original SHA256 aaa5b58ce7c4d1d257b557250ec61c26d326047914010feda5c304185c09c6bf."},
   "print-decals-21": {"descriptionVi": "Decal mờ trang trí kính phòng họp — ảnh minh họa AI về sản phẩm và bối cảnh sử dụng.", "descriptionEn": "Decorative frosted meeting-room window film — AI-generated illustration of the product and its use context.", "source": "/assets/content/projects/advertising/print-decals/print-decals-21-owner-20260924.webp", "sha256": "c343b01fac36d08404f56e9f7ff2a9c06170736c2f7d0b42e0e9fc99b116d715", "provenance": "AI-generated illustration; owner approved 2026-09-24; original SHA256 f68bceaa3940ae9723950d49cf0387f3d52849adab01a64eeda8f15316c5b84a."},
   "office-signs-wayfinding-31": {"descriptionVi": "Sơ đồ khu du lịch — ảnh minh họa AI về sản phẩm và bối cảnh sử dụng.", "descriptionEn": "Tourism site map — AI-generated illustration of the product and its use context.", "source": "/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924.webp", "sha256": "695c2a295525006809a08a3a314159d0b0cfa8687ba40fb3a3db7f2a10bf9372", "provenance": "AI-generated illustration; owner approved 2026-09-24; original SHA256 dac6ff66ce0390cf6fc8faaf39f03121f02c4361f3d3c1033b569daf6648f213."},
@@ -402,16 +400,16 @@ export const PHOTO_METADATA_BY_RECORD_ID = freeze({
 });
 
 export function attachPhotoMetadata(records) {
-  return freeze(records.map((record) => {
+  return Object.freeze(records.map((record) => {
     const metadata = PHOTO_METADATA_BY_RECORD_ID[record.id];
     const tagIds = PHOTO_TAG_IDS_BY_RECORD_ID[record.id];
     if (!metadata || !tagIds) throw new Error(`Missing authored photo metadata: ${record.id}`);
-    return freeze({
+    return Object.freeze({
       ...record,
       descriptionVi: metadata.descriptionVi,
       descriptionEn: metadata.descriptionEn,
-      tagIds: freeze([...tagIds]),
-      media: freeze({ ...record.media, source: metadata.source, sha256: metadata.sha256, provenance: metadata.provenance,
+      tagIds: Object.freeze([...tagIds]),
+      media: Object.freeze({ ...record.media, source: metadata.source, sha256: metadata.sha256, provenance: metadata.provenance,
         ...(metadata.suggestionPosition ? { suggestionPosition: metadata.suggestionPosition } : {}),
       }),
     });

@@ -78,9 +78,7 @@ const startedAt = Date.now();
 const results = [];
 let browser;
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
+const assert = require("node:assert");
 
 function unique(items) {
   return [...new Set(items.filter(Boolean))];
@@ -5496,202 +5494,6 @@ async function runAdvertisingHistoryRemountChecks() {
   }
 }
 
-async function runAdvertisingPhotoHistoryChecks() {
-  for (const testCase of [
-    { locale: "vi", viewport: { width: 1440, height: 900 } },
-    { locale: "en", viewport: { width: 390, height: 844 } },
-  ]) {
-    const root = `/${testCase.locale}/advertising-products/`;
-    await runPageCase(
-      `advertising photo A B Back grid ${testCase.locale} ${testCase.viewport.width}px`,
-      { route: root, viewport: testCase.viewport },
-      async (page) => {
-        const diagnostics = monitorPage(page);
-        await gotoRoute(page, root);
-        await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-        await page.evaluate(() => window.TruongThinhAdvertising.getAdapter().ensurePhoto("kiosk-posm-07", { scrollIntoView: true }));
-        const cardA = page.locator('[data-advertising-card="kiosk-posm-07"] > a');
-        await cardA.waitFor();
-        await cardA.evaluate((link) => link.addEventListener("click", () => {
-          window.__ttAdvertisingTestClickScroll = window.TruongThinhMotion.getLogicalScroll();
-        }, { capture: true, once: true }));
-        await cardA.click();
-        const gridScroll = await page.evaluate(() => window.__ttAdvertisingTestClickScroll);
-        await page.waitForFunction(() => new URL(location.href).searchParams.get("photo") === "kiosk-posm-07"
-          && document.body.classList.contains("is-advertising-photo")
-          && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
-          && document.querySelector("[data-advertising-photo-image]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
-        assert(await page.locator("[data-advertising-photo-view] [data-advertising-photo-cta]").count() === 1, "photo detail must expose one flow CTA");
-        assert(await page.locator("[data-advertising-photo-view] [data-advertising-back]").count() === 0, "photo detail must not expose a Back control");
-        const viewerUrl = page.url();
-        const expandButton = page.locator("[data-advertising-photo-expand]");
-        await expandButton.evaluate((button) => button.addEventListener("click", () => {
-          window.__ttAdvertisingTestViewerScroll = window.TruongThinhMotion.getLogicalScroll();
-        }, { capture: true, once: true }));
-        await expandButton.click();
-        const viewerScroll = await page.evaluate(() => window.__ttAdvertisingTestViewerScroll);
-        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open
-          && document.querySelector("[data-advertising-photo-expanded-image]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
-        await page.locator("[data-advertising-photo-zoom-in]").click();
-        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-zoom-status]")?.textContent === "150%"
-          && document.querySelector("[data-advertising-photo-expanded-image]")?.style.transform.includes("scale(1.5)"));
-        const beforePan = await page.locator("[data-advertising-photo-expanded-image]").evaluate((image) => image.style.transform);
-        const panKey = await page.locator("[data-advertising-photo-expanded-image]").evaluate((image) => {
-          const viewport = image.parentElement;
-          return image.getBoundingClientRect().width > viewport.clientWidth ? "ArrowRight" : "ArrowDown";
-        });
-        await page.keyboard.press(panKey);
-        const afterPan = await page.locator("[data-advertising-photo-expanded-image]").evaluate((image) => image.style.transform);
-        assert(afterPan !== beforePan, "viewer keyboard pan did not move a zoomed image");
-        await page.keyboard.press("Escape");
-        await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open
-          && document.activeElement?.matches("[data-advertising-photo-expand]"));
-        assert(page.url() === viewerUrl, "viewer changed the photo URL/history identity");
-        const viewerRestoredScroll = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-        assert(Math.abs(viewerRestoredScroll - viewerScroll) <= 2, `viewer close lost logical scroll: ${JSON.stringify({ viewerScroll, viewerRestoredScroll })}`);
-        await page.locator('[data-advertising-photo-tag="use-sampling"]').click();
-        await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling"
-          && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true"
-          && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
-        const relatedB = page.locator('[data-advertising-related-card="mobile-retail-04"] > a');
-        await relatedB.waitFor();
-        const relatedBState = await relatedB.evaluate((link) => ({
-          placement: link.parentElement.dataset.advertisingPlacementIndex,
-          slot: link.closest("[data-advertising-photo-related-grid]").dataset.advertisingSuggestionSlot,
-        }));
-        await relatedB.click();
-        await page.waitForFunction(() => new URL(location.href).searchParams.get("photo") === "mobile-retail-04"
-          && document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "mobile-retail-04");
-        await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]")
-          && Math.abs(window.TruongThinhMotion.getLogicalScroll()) <= 2);
-        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-        assert(await page.locator('[data-advertising-photo-image][src*="mobile-retail"]').count() === 1, "B did not become the only hero image");
-        assert(await page.locator("[data-advertising-photo-morph]").count() <= 1, "more than one photo morph clone is active");
-        if (testCase.viewport.width <= 980) {
-          await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
-        } else {
-          await page.mouse.move(testCase.viewport.width / 2, testCase.viewport.height - 80);
-          await page.mouse.wheel(0, 600);
-        }
-        await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll() > 100);
-        const detailBScroll = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-        await page.waitForFunction((expected) => Math.abs(window.TruongThinhAdvertising.getBrowseState().detail.scrollY - expected) <= 2, detailBScroll);
-        await Promise.all([
-          page.waitForURL((url) => url.searchParams.get("photo") === "kiosk-posm-07"),
-          page.goBack(),
-        ]);
-        await page.waitForFunction(({ placement, slot }) => {
-          const related = document.querySelector('[data-advertising-related-card="mobile-retail-04"]');
-          const grid = document.querySelector("[data-advertising-photo-related-grid]");
-          return document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
-            && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true"
-            && related?.dataset.advertisingPlacementIndex === placement
-            && grid?.dataset.advertisingSuggestionSlot === slot;
-        }, relatedBState);
-        assert(new URL(page.url()).searchParams.get("tag") === "use-sampling", "Back to A lost its tag state");
-        await Promise.all([
-          page.waitForURL((url) => url.searchParams.get("photo") === "mobile-retail-04"),
-          page.goForward(),
-        ]);
-        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "mobile-retail-04");
-        await page.waitForFunction((expected) => !document.querySelector("[data-advertising-photo-morph]")
-          && Math.abs(window.TruongThinhMotion.getLogicalScroll() - expected) <= 2, detailBScroll);
-        await page.evaluate(async () => {
-          await document.fonts?.ready;
-          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        });
-        const restoredBScroll = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-        assert(Math.abs(restoredBScroll - detailBScroll) <= 2, `Forward B lost its persisted detail scroll: ${JSON.stringify({ detailBScroll, restoredBScroll })}`);
-        const navigationScope = testCase.viewport.width <= 980 ? "#site-menu .menu-nav" : "[data-site-header]";
-        if (navigationScope === "#site-menu .menu-nav") await openMenu(page);
-        const advertisingNavigation = await findRouteLink(page, navigationScope, root);
-        await advertisingNavigation.click();
-        await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
-          && !document.body.classList.contains("is-advertising-photo"));
-        await page.waitForFunction(() => document.activeElement?.closest?.("[data-advertising-card]")?.dataset.advertisingCard === "mobile-retail-04");
-        await Promise.all([
-          page.waitForURL((url) => url.searchParams.get("photo") === "mobile-retail-04"),
-          page.goBack(),
-        ]);
-        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "mobile-retail-04");
-        await Promise.all([
-          page.waitForURL((url) => url.searchParams.get("photo") === "kiosk-posm-07"),
-          page.goBack(),
-        ]);
-        await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07");
-        await Promise.all([
-          page.waitForURL((url) => !url.searchParams.has("photo")),
-          page.goBack(),
-        ]);
-        await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
-          && !document.body.classList.contains("is-advertising-photo"));
-        await page.waitForFunction((expected) => !document.querySelector("[data-advertising-photo-morph]")
-          && Math.abs(window.TruongThinhMotion.getLogicalScroll() - expected) <= 2, gridScroll);
-        await page.evaluate(async () => {
-          await document.fonts?.ready;
-          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        });
-        const restored = await page.evaluate(() => ({
-          activeId: document.activeElement?.closest?.("[data-advertising-card]")?.dataset.advertisingCard || null,
-          scroll: window.TruongThinhMotion.getLogicalScroll(),
-          maximum: document.documentElement.scrollHeight - innerHeight,
-          gridHeight: document.querySelector("[data-project-grid]")?.getBoundingClientRect().height,
-          browse: window.TruongThinhAdvertising.getBrowseState(),
-        }));
-        assert(restored.activeId === "kiosk-posm-07", `grid focus was not restored to A: ${JSON.stringify(restored)}`);
-        assert(Math.abs(restored.scroll - gridScroll) <= 2, `grid logical scroll drifted beyond 2px: ${JSON.stringify({ gridScroll, restored })}`);
-        assertDiagnostics(diagnostics);
-      },
-    );
-  }
-
-  await runPageCase(
-    "advertising valid direct photo reload and Escape",
-    { route: "/vi/advertising-products/", viewport: { width: 1024, height: 900 } },
-    async (page) => {
-      const direct = "/vi/advertising-products/?photo=kiosk-posm-07&tag=use-sampling";
-      await gotoRoute(page, direct);
-      await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
-        && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true");
-      const localeHrefs = await page.locator("[data-language-option]").evaluateAll((links) => links.map((link) => link.href));
-      assert(localeHrefs.every((href) => new URL(href).searchParams.get("photo") === "kiosk-posm-07"
-        && new URL(href).searchParams.get("tag") === "use-sampling"), `locale anchors dropped direct photo state: ${JSON.stringify(localeHrefs)}`);
-      await page.reload();
-      await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === "kiosk-posm-07"
-        && document.querySelector('[data-advertising-photo-tag="use-sampling"]')?.getAttribute("aria-current") === "true");
-      await page.keyboard.press("Escape");
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
-        && document.activeElement?.closest?.("[data-advertising-card]")?.dataset.advertisingCard === "kiosk-posm-07");
-      assert(new URL(page.url()).searchParams.get("category") === "kiosk-posm", "direct Escape did not return to the containing grid");
-    },
-  );
-
-  await runPageCase(
-    "advertising invalid direct query cleans in place",
-    { route: "/vi/advertising-products/", viewport: { width: 390, height: 844 } },
-    async (page) => {
-      await gotoRoute(page, "/vi/advertising-products/?category=missing&photo=missing&tag=use-sampling");
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getBrowseState?.());
-      assert(new URL(page.url()).search === "", `invalid direct query remained visible: ${page.url()}`);
-      assert(await page.locator("[data-project-grid].advertising-grid").isVisible(), "invalid direct photo did not fail open to the grid");
-    },
-  );
-
-  await runPageCase(
-    "advertising reduced motion opens detail without a clone",
-    { route: "/vi/advertising-products/", viewport: { width: 390, height: 844 } },
-    async (page) => {
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      await gotoRoute(page, "/vi/advertising-products/");
-      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-      await page.evaluate(() => window.TruongThinhAdvertising.getAdapter().ensurePhoto("kiosk-posm-07", { scrollIntoView: true }));
-      await page.locator('[data-advertising-card="kiosk-posm-07"] > a').click();
-      await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
-      assert(await page.locator("[data-advertising-photo-morph]").count() === 0, "reduced motion created a transform clone");
-    },
-  );
-}
-
 async function runAdvertisingNoOpScrollCheck() {
   for (const width of [1440, 390]) {
     await runPageCase(
@@ -10261,14 +10063,6 @@ const BRAND_LOCKUP_ROUTE_CASES = ["vi", "en"].flatMap((locale) =>
   }),
 );
 
-const BRAND_MOTION_PREVIEW_URLS = (
-  process.env.TT_E2E_BRAND_MOTION_PREVIEW_URLS ||
-  "/vi/?brand-preview=expanded,/vi/?brand-preview=sticky,/vi/?brand-preview=compact"
-)
-  .split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
-
 const FOOTER_SOCIALS = ["facebook", "tiktok", "youtube"];
 const HEAD_OFFICE_ADDRESS =
   "E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long";
@@ -13556,8 +13350,6 @@ async function main() {
       await runAdvertisingFilterCheck();
     } else if (process.env.TT_E2E_ADVERTISING_SELECTION_ONLY === "1") {
       await runAdvertisingSelectionCheck();
-    } else if (process.env.TT_E2E_ADVERTISING_PHOTO_HISTORY_ONLY === "1") {
-      await runAdvertisingPhotoHistoryChecks();
     } else if (process.env.TT_E2E_ADVERTISING_HISTORY_ONLY === "1") {
       await runAdvertisingHistoryRemountChecks();
     } else if (process.env.TT_E2E_ADVERTISING_RAPID_FILTER_ONLY === "1") {

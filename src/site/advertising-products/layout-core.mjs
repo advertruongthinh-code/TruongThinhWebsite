@@ -1,7 +1,7 @@
 export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v14";
-export const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
-export const ADVERTISING_MIN_COLUMNS = 2;
-export const ADVERTISING_MAX_COLUMNS = 4;
+const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
+const ADVERTISING_MIN_COLUMNS = 2;
+const ADVERTISING_MAX_COLUMNS = 4;
 
 const DEFAULT_DATASET_VERSION = "2026-09-09.2";
 const DEFAULT_LANDSCAPE_THRESHOLD = 1.25;
@@ -715,7 +715,6 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
 
 // Public photos have a fixed span; legacy controls cannot influence geometry or cache identity.
 export function compileAdvertisingProductLayout(options = {}) {
-  if (!options || typeof options !== "object" || Array.isArray(options)) return compileAdvertisingLayout(options);
   const cards = Array.isArray(options.cards)
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))
     : options.cards;
@@ -788,7 +787,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
   const staggerMode = options?.staggerMode === "fallback" ? "fallback" : "preferred";
   let layoutViewportWidth = Number.NaN, filter = "all", cards = [], categoryOrder = [], datasetVersion = DEFAULT_DATASET_VERSION;
   let settings, columns, outer, interCardGap, initialColumnBottoms, operationBudget;
-  let terminalPhotoPeek, continuousDetail, allowAsymmetricSparseTail, suppliedCaptionPixelHeight, requestedPresentationOrder;
+  let terminalPhotoPeek, continuousDetail, suppliedCaptionPixelHeight, requestedPresentationOrder;
   try {
     if (!options || typeof options !== "object" || Array.isArray(options)) throw new Error("Advertising layout options must be an object");
     layoutViewportWidth = options.layoutViewportWidth ?? Number.NaN;
@@ -800,10 +799,8 @@ function compileAdvertisingLayoutPhase(options = {}) {
     settings = normalizeAdvertisingSettings(options.settings);
     columns = options.columns ?? columnsForWidth(layoutViewportWidth);
     operationBudget = options.operationBudget ?? ADVERTISING_SEARCH_OPERATION_BUDGET;
-    allowAsymmetricSparseTail = options.allowAsymmetricSparseTail ?? false;
     suppliedCaptionPixelHeight = options.captionPixelHeight;
     if (!Number.isInteger(operationBudget) || operationBudget < 1 || operationBudget > ADVERTISING_SEARCH_OPERATION_BUDGET) throw new Error("Invalid advertising operation budget");
-    if (typeof allowAsymmetricSparseTail !== "boolean") throw new Error("Invalid asymmetric sparse tail option");
     if (suppliedCaptionPixelHeight !== undefined && (!Number.isFinite(suppliedCaptionPixelHeight) || suppliedCaptionPixelHeight < 0)) throw new Error("Invalid advertising caption height");
     validateAdvertisingCards(cards, { categoryOrder });
     if (!Number.isFinite(layoutViewportWidth) || layoutViewportWidth <= 0) throw new Error("Invalid advertising viewport width");
@@ -832,7 +829,6 @@ function compileAdvertisingLayoutPhase(options = {}) {
   }
 
   const availableWidth = layoutViewportWidth - (2 * outer);
-  const effectiveOuter = (layoutViewportWidth - availableWidth) / 2;
   const cardWidth = (availableWidth - interCardGap * (columns - 1)) / columns;
   if (cardWidth <= 0) throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: [], violation: "Advertising columns do not fit the viewport" });
   const captionPixelHeight = suppliedCaptionPixelHeight ?? (productLayout ? 0 : 10 + (layoutViewportWidth <= 578 ? 15.68 : 17.92));
@@ -869,7 +865,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
       return `${card.id}:${card.category}:${card.sourceOrder}:${String(card.layoutSpan ?? "auto")}@${left},${width},${x.toFixed(6)},${y.toFixed(6)},${pixelWidth.toFixed(6)},${mediaPixelHeight.toFixed(6)},${captionHeight.toFixed(6)},${pixelHeight.toFixed(6)},${media.width}x${media.height}`;
     }).join("|");
     const coordinateHash = fnv1a32(`${datasetVersion}:${ADVERTISING_LAYOUT_ALGORITHM_VERSION}:${CAPTION_METRICS_VERSION}:${staggerMode}:${JSON.stringify(settings)}:${filter}:${layoutViewportWidth}:${columns}:${JSON.stringify(initialColumnBottoms)}:${JSON.stringify(terminalPhotoPeek)}:${continuousDetail}:${pool.map(({ id }) => id).join(",")}:${coordinates || "empty"}`).toString(16).padStart(8, "0");
-    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, effectiveOuter, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: ADVERTISING_LAYOUT_ALGORITHM_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
+    return { columns, filter, settings, staggerBasis: productLayout ? "image-height" : "column-width", staggerMinimumRatio: productLayout ? 0.10 : null, outer, interCardGap, spacing: { outer, interCardGap }, availableWidth, gridWidth: availableWidth, cardWidth, placements, initialColumnBottoms: initialColumnBottoms.slice(), columnBottoms: state.columnBottoms.slice(), totalHeight: totalPixelHeight, totalPixelHeight, coordinateHash, diagnostics: { ...diagnostics, algorithm: ADVERTISING_LAYOUT_ALGORITHM_VERSION, placementOrder: pool.map(({ id }) => id), staggerMode } };
   };
   const state = {
     productLayout,
@@ -900,7 +896,6 @@ function compileAdvertisingLayoutPhase(options = {}) {
   let terminalPhotoPeekRejects = 0;
   let preferredCandidateAttempts = 0;
   let alignedCandidateAttempts = 0;
-  let asymmetricSparseTailUsed = false;
   const frames = [];
   const consumeOperation = () => {
     if (operations >= operationBudget) throw layoutError("search-exhausted", { filter, width: layoutViewportWidth, ids: remaining.map((item) => item.id), violation: "operation-budget", budget: operationBudget, depth: state.placements.length, operations });
@@ -1002,20 +997,6 @@ function compileAdvertisingLayoutPhase(options = {}) {
         tailSpread <= Math.max(0, ...terminals.map((entry) => entry.placement.pixelHeight)) + interCardGap + 0.05 &&
         (realProductCount < columns || terminals.length === columns)
       );
-      const reservedPrimaryBottom = initialColumnBottoms[0];
-      const hasThreeColumnPrimaryReservation = initialColumnBottoms.length === 4
-        && reservedPrimaryBottom > 0
-        && initialColumnBottoms.slice(0, 3).every((bottom) => Math.abs(bottom - reservedPrimaryBottom) <= 0.05)
-        && Math.abs(initialColumnBottoms[3]) <= 0.05;
-      const asymmetricSparseTwo = allowAsymmetricSparseTail
-        && productLayout
-        && realProductCount === 2
-        && columns === 4
-        && terminalPhotoPeek !== undefined
-        && hasThreeColumnPrimaryReservation
-        && state.placements.some((placement) => placement.width === 1 && placement.left === 3 && Math.abs(placement.y) <= 0.05)
-        && state.placements.some((placement) => placement.width === 1 && placement.left < 3
-          && placement.y >= terminalPhotoPeek.primaryHeight + terminalPhotoPeek.gap - 0.05);
       const hasPhotoPeek = terminalPhotoPeek === undefined || state.placements.some((placement) => {
         const imageTop = terminalPhotoPeek.primaryTop + placement.y;
         const visibleHeight = Math.min(
@@ -1027,12 +1008,9 @@ function compileAdvertisingLayoutPhase(options = {}) {
           && visibleHeight >= terminalPhotoPeek.belowPeek - 0.05;
       });
       const photoPeekSatisfied = continuousDetail || hasPhotoPeek;
-      const packingSatisfied = productLayout || continuousDetail || tailsFilled || asymmetricSparseTwo;
+      const packingSatisfied = productLayout || continuousDetail || tailsFilled;
       const staggerSatisfied = state.allowAlignedFallback || state.staggerViolations === 0;
-      if (packingSatisfied && photoPeekSatisfied && staggerSatisfied && (state.allowAlignedFallback || !hasBrickRhythm(state.edges, columns, cardWidth))) {
-        if (!tailsFilled && asymmetricSparseTwo) asymmetricSparseTailUsed = true;
-        break;
-      }
+      if (packingSatisfied && photoPeekSatisfied && staggerSatisfied && (state.allowAlignedFallback || !hasBrickRhythm(state.edges, columns, cardWidth))) break;
       if (!hasPhotoPeek) terminalPhotoPeekRejects += 1;
       antiBrickLeafRejects += 1;
     }
@@ -1070,7 +1048,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
   }
 
   /** @type {Record<string, any>} */
-  const diagnostics = { operations, antiBrickLeafRejects, finalizedBrickRejects, mutableBrickDeferrals, mutableBrickBranches, terminalPhotoPeekRejects, preferredCandidateAttempts, alignedCandidateAttempts, asymmetricSparseTailUsed };
+  const diagnostics = { operations, antiBrickLeafRejects, finalizedBrickRejects, mutableBrickDeferrals, mutableBrickBranches, terminalPhotoPeekRejects, preferredCandidateAttempts, alignedCandidateAttempts };
   if (pool.length === 1) {
     diagnostics.code = "needs-media";
     diagnostics.ids = [pool[0].id];

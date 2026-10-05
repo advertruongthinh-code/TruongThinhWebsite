@@ -10,8 +10,6 @@ import {
   advanceSkeletonFlowPhase,
   createSkeletonFlowRenderer,
   createSkeletonFlowFrameLayout,
-  parseSkeletonFlowPreset,
-  parseSkeletonFlowPresets,
 } from "../../src/site/advertising-products/skeleton-flow.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -104,32 +102,6 @@ if (legacyWashRules.some((rule) => /\bbackground(?:-image)?\s*:/i.test(rule))) {
 }
 assert.deepEqual(r10ContractFailures, [],
   "R10 requires Scale 100, frozen P100 anchors, and no skeleton-local white wash");
-
-const exportedJson = JSON.stringify(SKELETON_FLOW_PRESETS);
-assert.deepEqual(parseSkeletonFlowPresets(exportedJson), SKELETON_FLOW_PRESETS,
-  "source presets must round-trip through the dev JSON parser");
-assert.deepEqual(parseSkeletonFlowPreset(JSON.stringify(SKELETON_FLOW_PRESETS[0])),
-  SKELETON_FLOW_PRESETS[0]);
-
-const invalid = structuredClone(SKELETON_FLOW_PRESETS[0]);
-invalid.colors.pop();
-assert.throws(() => parseSkeletonFlowPreset(invalid), /colors/i);
-invalid.colors.push("#000000");
-invalid.anchors[0].x = 1.01;
-assert.throws(() => parseSkeletonFlowPreset(invalid), /anchors/i);
-invalid.anchors[0].x = 0.5;
-invalid.bands = [0.25, 0.25, 0.75];
-assert.throws(() => parseSkeletonFlowPreset(invalid), /bands/i);
-invalid.bands = [0.25, 0.5, 0.75];
-invalid.field.speed = 101;
-assert.throws(() => parseSkeletonFlowPreset(invalid), /speed/i);
-invalid.field.speed = 30;
-invalid.finish.soften = 81;
-assert.throws(() => parseSkeletonFlowPreset(invalid), /soften/i);
-invalid.finish.soften = 0;
-invalid.unknown = true;
-assert.throws(() => parseSkeletonFlowPreset(invalid), /unknown/i);
-assert.throws(() => parseSkeletonFlowPresets([SKELETON_FLOW_PRESETS[0]]), /12/);
 
 assert.equal(typeof skeletonFlow.createSkeletonFlowBatchAssignments, "function",
   "Flow must expose a pure batch allocator for the accepted R5 invariants");

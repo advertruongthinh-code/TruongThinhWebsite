@@ -68,10 +68,6 @@ function assertOneColumn(layout, label) {
     assert.ok(Math.abs(p.pixelWidth - layout.cardWidth) < 0.05, `${label}: natural width`);
     assert.ok(Math.abs(p.mediaPixelHeight - p.pixelWidth * p.card.media.height / p.card.media.width) < 0.05, `${label}: natural height`);
   }
-  const inspection = inspectAdvertisingGrid({ layout: { ...layout, staggerBasis: "image-height" }, placements: layout.placements });
-  const permittedViolations = inspection.violations.filter((violation) =>
-    layout.diagnostics.asymmetricSparseTailUsed === true && violation.code === "terminal-fill");
-  assert.equal(permittedViolations.length, 0, `${label}: ${JSON.stringify(permittedViolations.slice(0, 3))}`);
   assert.ok(layout.diagnostics.operations <= 300000, `${label}: operation budget`);
   for (const p of layout.placements) {
     const reservedBottom = layout.initialColumnBottoms[p.left];

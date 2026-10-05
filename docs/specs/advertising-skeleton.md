@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Skeleton cuối masonry Advertising
@@ -45,14 +45,14 @@ And không khung nào thấp hơn 0.25 bề rộng card, không hai khung liền
 Mỗi khung có một canvas WebGL 240×160 phủ tràn 8% mỗi phía: gradient bốn màu chảy, xoáy chậm, có noise mịn. Source giữ
 đúng 12 preset: `iridescent-cloud`, `opal`, `lagoon`, `emerald`, `solar-flare`, `orchid`, `peach-glow`,
 `electric-tide`, `sunset`, `mint-ice`, `midnight-bloom`, `rose-gold`; field scale 100, soften 0 cho mọi preset.
-`parseSkeletonFlowPresets` từ chối danh sách không đủ 12 id khác nhau, thiếu hoặc thừa khóa, giá trị ngoài khoảng. Pha
+`SKELETON_FLOW_PRESETS` dựng và freeze một lần khi nạp module từ hằng trong source, không parse lúc chạy. Pha
 tăng `hướng × speed / 100 × 1.2 × min(dt, 0.05s)`. Không có WebGL: khung hiện gradient tĩnh của chính preset
 (`staticBackground`), không vẽ khung CPU, không vòng lặp.
 
 ```gherkin
-Given danh sách preset chỉ có 11 mục hoặc hai mục trùng id
-When gọi parseSkeletonFlowPresets
-Then hàm báo lỗi, không trả preset nào
+Given module skeleton-flow.mjs đã nạp
+When đọc SKELETON_FLOW_PRESETS
+Then có đúng 12 id khác nhau, field scale 100, mọi preset bị freeze
 ```
 
 ### R3. Deck và giữ assignment
@@ -150,7 +150,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
-| Hàm public | `SKELETON_FLOW_PRESETS`, `parseSkeletonFlowPresets`, `createSkeletonFlowBatchAssignments`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer; `catalog-runtime.mjs` gọi |
+| Hàm public | `SKELETON_FLOW_PRESETS`, `createSkeletonFlowBatchAssignments`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer; `catalog-runtime.mjs` gọi |
 | Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`catalog-runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 
 ## UI

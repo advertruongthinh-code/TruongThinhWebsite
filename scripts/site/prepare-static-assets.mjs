@@ -68,7 +68,7 @@ for (const layoutViewportWidth of PUBLIC_GRID_WIDTHS) {
 }
 
 await rm(outputRoot, { recursive: true, force: true });
-await cp(sourceRoot, outputRoot, { recursive: true, filter: (source) => source !== path.join(sourceRoot, "advertising-products", "detail-template.html") });
+await cp(sourceRoot, outputRoot, { recursive: true });
 await Promise.all(vendorAssets.map(async ([source, destination]) => {
   const target = path.join(outputRoot, destination);
   await mkdir(path.dirname(target), { recursive: true });

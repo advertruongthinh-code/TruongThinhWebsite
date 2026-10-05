@@ -156,127 +156,14 @@ const productKeysByCategory = Object.fromEntries(CATEGORY_TAXONOMY.map((entry) =
 
 validateAdvertisingMediaPool(ADVERTISING_MEDIA_MANIFEST, { productKeysByCategory, tagRegistry: ADVERTISING_TAG_REGISTRY });
 
-const mediaSourceId = (slug, index) => {
-  const id = `${slug}-${String(index).padStart(2, "0")}`;
-  const record = ADVERTISING_MEDIA_MANIFEST.find((item) => item.id === id);
-  if (!record) throw new Error(`Missing detail media: ${id}`);
-  return record.media.sourceId;
-};
-const mediaRange = (slug, start, end) => Array.from(
-  { length: end - start + 1 },
-  (_, offset) => mediaSourceId(slug, start + offset),
-);
-const block = (kind, sourceIds = []) => ({ kind, sourceIds });
-
-export const ADVERTISING_DETAIL_LAYOUTS = deepFreeze({
-  "kiosk-posm": {
-    layoutKey: "pollenca-long-form",
-    heroSourceId: mediaSourceId("kiosk-posm", 1),
-    sections: [
-      block("titular"), block("paragraph"), block("facts"), block("single", mediaRange("kiosk-posm", 2, 2)),
-      block("paragraph"), block("double", mediaRange("kiosk-posm", 3, 4)), block("titular"),
-      block("single", mediaRange("kiosk-posm", 5, 5)), block("paragraph"), block("gallery", mediaRange("kiosk-posm", 6, 17)),
-      block("titular"), block("single", mediaRange("kiosk-posm", 18, 18)), block("paragraph"),
-      block("double", mediaRange("kiosk-posm", 19, 20)), block("titular"), block("single", mediaRange("kiosk-posm", 21, 21)),
-      block("paragraph"), block("double", mediaRange("kiosk-posm", 22, 23)), block("paragraph"),
-      block("single", mediaRange("kiosk-posm", 24, 24)), block("gallery", mediaRange("kiosk-posm", 25, 37)),
-    ],
-  },
-  "mobile-retail": {
-    layoutKey: "ponent-gallery-rhythm",
-    heroSourceId: mediaSourceId("mobile-retail", 1),
-    sections: [
-      block("titular"), block("paragraph"), block("gallery", mediaRange("mobile-retail", 2, 6)), block("facts"),
-      block("paragraph"), block("gallery", mediaRange("mobile-retail", 7, 10)), block("paragraph"),
-      block("double", mediaRange("mobile-retail", 11, 12)), block("paragraph"), block("gallery", mediaRange("mobile-retail", 13, 21)),
-    ],
-  },
-  "signage-raised-letters": {
-    layoutKey: "can-molteni-banner",
-    heroSourceId: mediaSourceId("signage-raised-letters", 1),
-    sections: [
-      block("titular"), block("paragraph"), block("gallery", mediaRange("signage-raised-letters", 2, 17)), block("facts"),
-      block("paragraph"), block("single", mediaRange("signage-raised-letters", 18, 18)), block("paragraph"),
-      block("double", mediaRange("signage-raised-letters", 19, 20)), block("paragraph"),
-      block("single", mediaRange("signage-raised-letters", 21, 21)), block("paragraph"), block("titular"),
-      block("banner", mediaRange("signage-raised-letters", 22, 22)),
-      block("gallery", mediaRange("signage-raised-letters", 23, 26)),
-    ],
-  },
-  "office-signs-wayfinding": {
-    layoutKey: "lonja-columns",
-    heroSourceId: mediaSourceId("office-signs-wayfinding", 1),
-    sections: [
-      block("titular"), block("paragraph"), block("gallery", mediaRange("office-signs-wayfinding", 2, 5)), block("facts"),
-      block("single", mediaRange("office-signs-wayfinding", 6, 6)), block("paragraph"),
-      block("double", mediaRange("office-signs-wayfinding", 7, 8)), block("paragraph"),
-      block("gallery", mediaRange("office-signs-wayfinding", 9, 12)), block("columns"),
-      block("single", mediaRange("office-signs-wayfinding", 13, 13)),
-      block("gallery", mediaRange("office-signs-wayfinding", 14, 31)),
-    ],
-  },
-  "led-displays-lightboxes": {
-    layoutKey: "espalmador-balanced",
-    heroSourceId: mediaSourceId("led-displays-lightboxes", 1),
-    sections: [
-      block("titular"), block("paragraph"), block("gallery", mediaRange("led-displays-lightboxes", 2, 15)), block("facts"),
-      block("paragraph"), block("single", mediaRange("led-displays-lightboxes", 16, 16)), block("paragraph"),
-      block("double", mediaRange("led-displays-lightboxes", 17, 18)), block("paragraph"),
-    ],
-  },
-  "print-decals": {
-    layoutKey: "pantry-compact",
-    heroSourceId: mediaSourceId("print-decals", 1),
-    sections: [
-      block("titular"), block("paragraph"), block("facts"), block("gallery", mediaRange("print-decals", 2, 21)), block("paragraph"),
-    ],
-  },
-});
-
-export function validateAdvertisingDetailLayouts(layouts, records) {
-  const recordBySource = new Map(records.map((record) => [record.media.sourceId, record]));
-  const assigned = [];
-  const supportedKinds = new Set(["titular", "paragraph", "facts", "gallery", "single", "double", "columns", "banner"]);
-
-  for (const [slug, layout] of Object.entries(layouts)) {
-    if (!layout.layoutKey || !recordBySource.has(layout.heroSourceId)) throw new Error(`${slug} detail layout requires a valid layoutKey and heroSourceId`);
-    const categorySources = [layout.heroSourceId];
-    for (const section of layout.sections) {
-      if (!supportedKinds.has(section.kind)) throw new Error(`${slug} has unsupported detail block: ${section.kind}`);
-      const count = section.sourceIds?.length ?? 0;
-      if ((section.kind === "single" || section.kind === "banner") && count !== 1) throw new Error(`${slug} ${section.kind} requires one source`);
-      if (section.kind === "double" && count !== 2) throw new Error(`${slug} double requires two sources`);
-      if (section.kind === "gallery" && count < 2) throw new Error(`${slug} gallery requires at least two sources`);
-      if (!["single", "double", "gallery", "banner"].includes(section.kind) && count !== 0) throw new Error(`${slug} ${section.kind} cannot own media`);
-      categorySources.push(...(section.sourceIds ?? []));
-    }
-    for (const sourceId of categorySources) {
-      const record = recordBySource.get(sourceId);
-      if (!record || record.category !== slug) throw new Error(`${slug} references media outside its category: ${sourceId}`);
-    }
-    const expected = records.filter((record) => record.category === slug).map((record) => record.media.sourceId);
-    if (categorySources.length !== expected.length || new Set(categorySources).size !== expected.length || expected.some((sourceId) => !categorySources.includes(sourceId))) {
-      throw new Error(`${slug} detail layout must partition every category source exactly once`);
-    }
-    assigned.push(...categorySources);
-  }
-  if (assigned.length !== records.length || new Set(assigned).size !== records.length) throw new Error("Detail layouts must partition the canonical media pool exactly once");
-  return layouts;
-}
-
-validateAdvertisingDetailLayouts(ADVERTISING_DETAIL_LAYOUTS, ADVERTISING_MEDIA_MANIFEST);
-
 export const ADVERTISING_CATEGORIES = deepFreeze(CATEGORY_TAXONOMY.map((entry) => {
-  const detailMedia = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === entry.slug);
-  const [coverRecord, ...galleryRecords] = detailMedia;
+  const [coverRecord, ...galleryRecords] = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === entry.slug);
   return {
     ...entry,
     cover: coverRecord.media.src,
     coverWidth: coverRecord.media.width,
     coverHeight: coverRecord.media.height,
     gallery: galleryRecords.slice(0, 2).map(({ media }) => [media.src, media.altVi, media.altEn, media.width, media.height]),
-    detailLayout: ADVERTISING_DETAIL_LAYOUTS[entry.slug],
-    detailMedia,
   };
 }));
 
@@ -312,13 +199,6 @@ function deepFreeze(value) {
   return Object.freeze(value);
 }
 
-function artifactCategories(categories) {
-  return categories.map(({ detailLayout: _detailLayout, detailMedia: _detailMedia, ...entry }) => ({
-    ...entry,
-    products: entry.products.map(({ mediaIndex: _mediaIndex, ...product }) => product),
-  }));
-}
-
 export const ADVERTISING_CARDS = deepFreeze(compileCards(SOURCE_ADVERTISING_CARDS, ADVERTISING_CATEGORIES));
 
 export function compileAdvertisingLayout(options = {}) {
@@ -340,7 +220,7 @@ export function buildAdvertisingArtifact(options = {}) {
     layoutAlgorithmVersion: ADVERTISING_LAYOUT_ALGORITHM_VERSION,
     settings,
     tagRegistry: ADVERTISING_TAG_REGISTRY,
-    categories: artifactCategories(categories),
+    categories,
     cards: compiledCards,
   });
 }
