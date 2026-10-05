@@ -21,8 +21,8 @@
 
 - Thiết bị: iPhone chưa kết nối, Galaxy A54 chưa có; A05s là máy thật duy nhất
   ([gate shell](specs/site-shell.md#gate-còn-mở)).
-- Phát hành: smoke toàn site còn 53 FAIL có từ trước; parity Espacio chờ owner quyết còn là gate hay
-  không; LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)).
+- Phát hành: parity Espacio chờ owner quyết còn là gate hay không; LCP residential mobile hai mode
+  ([gate](specs/static-release.md#gate-còn-mở)).
 - Owner fact chưa xác nhận: URL Zalo, năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Gate từng phần nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 

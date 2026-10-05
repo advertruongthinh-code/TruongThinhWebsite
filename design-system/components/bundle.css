@@ -3574,6 +3574,14 @@ html[lang="vi"]
   font-size: clamp(2.75rem, 6.3vw, 5.45rem);
 }
 
+/* A nowrap line wider than the frame keeps its right edge on the frame. */
+@media (min-width: 1025px) {
+  .detail-index-hero .detail-hero-line-mask:last-of-type {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
 html[lang="en"]
   .detail-index-hero
   .detail-hero-line-mask:last-of-type
@@ -5698,7 +5706,8 @@ body.is-advertising-browse .floating-cta {
     height: auto;
     min-height: calc(var(--site-layout-viewport-height) - 50px);
     padding-top: calc(var(--header-row-height) + 25px + 0.5rem);
-    padding-bottom: calc(2rem + 11px);
+    /* The cue is the last row, so this is its distance from the hero bottom. */
+    padding-bottom: 30px;
     grid-template-rows: minmax(min-content, 1fr) auto auto;
     row-gap: 1rem;
   }
@@ -5749,6 +5758,12 @@ body.is-advertising-browse .floating-cta {
     max-width: 100%;
     transform: none;
     justify-self: center;
+  }
+}
+
+@media (max-width: 750px) {
+  .detail-page .detail-index-hero {
+    padding-bottom: 60px;
   }
 }
 

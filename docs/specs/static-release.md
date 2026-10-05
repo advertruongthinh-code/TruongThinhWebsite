@@ -281,8 +281,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
   `/vi/`, trả 404 hay giữ?]
 - [Quyết định demo](../decisions/cloudflare-workers-static-demo.md) ghi Wrangler pin trong `tooling-versions.json`;
   code pin `wrangler@4.124.0` trong script `demo:wrangler`. Owner chọn sửa ADR hay chuyển pin.
-- `site.e2e.cjs` (smoke toàn site) còn 53 FAIL có từ trước, chưa có lượt xanh; một phần ở gate [shell](site-shell.md#gate-còn-mở),
-  [trang chủ](page-home.md#gate-còn-mở), [trang con](detail-pages.md#gate-còn-mở). Main chạy lại, chia FAIL về spec sở hữu.
+- `site.e2e.cjs` (smoke toàn site) xanh trên Chromium cloud 05/10; chưa chạy WebKit và A05s (máy PC).
 - Parity Espacio (`run-layout-motion-parity.mjs`, output `.tmp/reports/`) lần chạy cuối còn fail, blocked, 864 candidate
   chưa map. [CẦN LÀM RÕ: parity Espacio còn là gate phát hành khi Design System chỉ mô tả Trường Thịnh?] Owner.
 

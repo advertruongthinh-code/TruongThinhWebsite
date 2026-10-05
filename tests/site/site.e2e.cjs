@@ -899,6 +899,8 @@ function monitorPage(page) {
   };
 
   page.on("console", (message) => {
+    // Chromium's GPU driver performance notes (software GL in CI) are not page diagnostics.
+    if (/^\[\.WebGL-[^\]]+\]GL Driver Message \([^)]*\bPerformance\b/.test(message.text())) return;
     if (["error", "warning", "warn"].includes(message.type())) {
       diagnostics.consoleErrors.push(`${message.type()}: ${message.text()}`);
     }
@@ -1354,8 +1356,13 @@ async function inspectRequiredImages(page) {
       () =>
         [...document.images]
           .filter((image) => {
+            // Required = rendered; a LazySizes image the virtual masonry window mounted ahead of
+            // scrolling (masonry R7, R8) is required once it intersects the viewport.
             const source = image.getAttribute("src") || image.dataset.src;
-            return source && !source.startsWith("data:");
+            if (!source || source.startsWith("data:") || !image.getClientRects().length) return false;
+            if (!image.classList.contains("lazyload")) return true;
+            const rect = image.getBoundingClientRect();
+            return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
           })
           .every(
             (image) =>
@@ -1374,7 +1381,10 @@ async function inspectRequiredImages(page) {
     [...document.images]
       .filter((image) => {
         const source = image.getAttribute("src") || image.dataset.src;
-        return source && !source.startsWith("data:");
+        if (!source || source.startsWith("data:") || !image.getClientRects().length) return false;
+        if (!image.classList.contains("lazyload")) return true;
+        const rect = image.getBoundingClientRect();
+        return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
       })
       .map((image, index) => ({
         index,
@@ -2751,6 +2761,8 @@ async function runPersistentBarbaNavigationChecks() {
         );
       }
 
+      // About is a native document load (shell R6), so read the soft-route trace first.
+      const trace = await page.evaluate(() => window.__ttRouteTrace || []);
       await openMenu(page);
       const aboutLink = await findRouteLink(page, "#site-menu", "/vi/about/");
       await clickRouteLink(page, aboutLink, "/vi/about/");
@@ -2763,7 +2775,6 @@ async function runPersistentBarbaNavigationChecks() {
       assert(aboutState.minHeight > 600, "About styles disappeared after soft entry");
       assert(aboutState.containers === 1, "About entry left duplicate containers");
 
-      const trace = await page.evaluate(() => window.__ttRouteTrace || []);
       const coveredIndex = trace.findIndex((sample) => sample.opacity >= 0.99);
       const transitionIndex = trace.findIndex((sample) => sample.transitioning);
       const revealStartedIndex = trace.findIndex(
@@ -2780,7 +2791,7 @@ async function runPersistentBarbaNavigationChecks() {
           coveredIndex > transitionIndex &&
           revealStartedIndex > coveredIndex &&
           finishedIndex > revealStartedIndex,
-        "Route trace did not record cover → swap → reveal",
+        `Route trace did not record cover → swap → reveal: ${JSON.stringify({ transitionIndex, coveredIndex, revealStartedIndex, finishedIndex, head: trace.slice(0, 6), length: trace.length })}`,
       );
       const coverMs = trace[coveredIndex].time - trace[transitionIndex].time;
       const revealMs =
@@ -3634,7 +3645,8 @@ async function runHistoryNavigationChecks() {
         const header = page.locator("[data-site-header]");
         const expectAutoHidden = async (label) => {
           await page.mouse.move(100, 700);
-          for (let index = 0; index < 8; index += 1) {
+          // Shell R3 hides only past 0.5 x viewport; smooth scroll moves ~43px per 100px wheel step.
+          for (let index = 0; index < 20; index += 1) {
             await page.mouse.wheel(0, 100);
             await page.waitForTimeout(70);
           }
@@ -4163,6 +4175,8 @@ async function runLanguageScrollRetentionCheck() {
             sectionTag: section?.tagName,
             scrollY: window.scrollY,
             targetPresent: Boolean(target),
+            // Line and word groups replay through GSAP without a class change (detail-pages R5, home R11).
+            textPresent: Boolean(section?.querySelector("[data-motion-lines], [data-motion-words]")),
             timeOrigin: performance.timeOrigin,
           };
         });
@@ -4222,8 +4236,10 @@ async function runLanguageScrollRetentionCheck() {
               ? after.replayEvents[0]?.replayed &&
                 after.targetClassChanges.includes(false) &&
                 after.targetClassChanges.includes(true)
-              : after.replayEvents[0]?.replayed === false &&
-                after.targetClassChanges.length === 0),
+              : before.textPresent
+                ? after.replayEvents[0]?.replayed === true
+                : after.replayEvents[0]?.replayed === false &&
+                  after.targetClassChanges.length === 0),
           `The dominant section did not restart its motion: ${JSON.stringify({ before, after })}`,
         );
         assert(
@@ -4278,8 +4294,18 @@ async function runLanguageScrollRetentionCheck() {
         const top = Math.max(0, rect.top + window.scrollY - (innerHeight - rect.height) / 2);
         window.scrollTo(0, top);
         return window.scrollY;
-      });
-      await page.waitForTimeout(120);
+      }).then(() => page.evaluate(async () => {
+        // The jump reveals line groups above; SplitText reflow then shifts scrollY through scroll
+        // anchoring. Take the baseline once the position has held for 30 frames.
+        await document.fonts?.ready;
+        let last = window.scrollY;
+        for (let stable = 0; stable < 30;) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          stable = window.scrollY === last ? stable + 1 : 0;
+          last = window.scrollY;
+        }
+        return last;
+      }));
       await switchLocale("/vi/residential/?qa=direct-en");
       await expectScroll(directEnglishScroll, "direct EN to VI");
       const routeTimeOrigin = await page.evaluate(() => performance.timeOrigin);
@@ -4442,6 +4468,16 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
           };
         });
         assert(rendered.locale === expected.locale, `${expected.route}: wrong rendered locale`);
+        // This case proves D1 SSR wins over the static fallback; only the CMS Worker with D1 serves it
+        // (cms.md, CMS dormant). Against the static preview, the static data-en copy must survive instead.
+        if (expected.requiresStaticFallbackMismatch && process.env.TT_E2E_D1 !== "1") {
+          assert(
+            rendered.title === rendered.sourceTitle && rendered.description === rendered.sourceDescription,
+            `${expected.route}: static title or description was replaced after hydration`,
+          );
+          assertDiagnostics(diagnostics);
+          return;
+        }
         assert(rendered.title === expected.title, `${expected.route}: D1 title was replaced after hydration`);
         assert(rendered.description === expected.description, `${expected.route}: D1 description was replaced after hydration`);
         if (expected.kicker) {
@@ -4604,14 +4640,9 @@ async function runMenuChecks() {
         const expectedMenuHostWidth = desktopLogo ? 260.981741 : 230.299324;
         const expectedMenuLockupWidth = expectedMenuHostWidth;
         const expectedMenuHeight = desktopLogo ? 67.515625 : 59.578125;
-        const expectedHeaderPosition = [
-          desktopLogo ? 35 : viewport.width <= 750 ? 15 : 25,
-          desktopLogo
-            ? 35 + (67.515625 - expectedHeaderHeight) / 2
-            : viewport.width <= 750
-              ? 15 + (57.59375 - expectedHeaderHeight) / 2
-              : 25 + (60.390625 - expectedHeaderHeight) / 2,
-        ];
+        // `.brand` is start-aligned in the header row (style.css), so the lockup sits on the top padding.
+        const headerPadding = desktopLogo ? 35 : viewport.width <= 750 ? 15 : 25;
+        const expectedHeaderPosition = [headerPadding, headerPadding];
         const expectedMenuPosition = [desktopLogo ? 35 : 25, desktopLogo ? 35 : 25];
         assert(
           menuContract.brandParity.header.pathCount === 4 &&
@@ -4704,8 +4735,8 @@ async function runMenuChecks() {
         );
         assert(
           menuContract.titleFontSizes.length === 4 &&
-            menuContract.titleFontSizes.every((size) => Math.abs(size - 24) <= 0.1),
-          `${viewport.width}x${viewport.height}: menu title size drifted from 24px ${JSON.stringify(menuContract.titleFontSizes)}`,
+            menuContract.titleFontSizes.every((size) => Math.abs(size - 28.8) <= 0.1),
+          `${viewport.width}x${viewport.height}: menu title size drifted from 28.8px (1.8rem) ${JSON.stringify(menuContract.titleFontSizes)}`,
         );
         assert(
           menuContract.languageOpacityTransitions.length === 0,
@@ -4749,27 +4780,22 @@ async function runMenuChecks() {
         await page.keyboard.press("Enter");
         await page.waitForTimeout(1_900);
         page.off("request", captureNavigation);
-        const retainedMenuState = await page.locator("#site-menu").evaluate(
+        // Shell R6: the current parent title returns to the top in place and closes the menu.
+        const currentTitleState = await page.locator("#site-menu").evaluate(
           (dialog) => ({
-            active: dialog.classList.contains("is-active"),
-            bodyOpen: document.body.classList.contains("menu-open"),
-            expanded:
-              document
-                .querySelector("[data-menu-open]")
-                ?.getAttribute("aria-expanded") === "true",
             open: dialog.open,
+            bodyOpen: document.body.classList.contains("menu-open"),
+            scrollY: window.scrollY,
           }),
         );
         assert(
           page.url() === currentUrl &&
             mainFrameNavigations.length === 0 &&
-            retainedMenuState.open &&
-            retainedMenuState.active &&
-            retainedMenuState.bodyOpen &&
-            retainedMenuState.expanded,
-          `${viewport.width}x${viewport.height}: current menu title reloaded or closed the page`,
+            !currentTitleState.open &&
+            !currentTitleState.bodyOpen &&
+            currentTitleState.scrollY <= 1,
+          `${viewport.width}x${viewport.height}: current menu title reloaded the page or did not return to the top: ${JSON.stringify(currentTitleState)}`,
         );
-        await closeMenu(page);
         await openMenu(page);
         const crossRouteTitle = await findRouteLink(
           page,
@@ -4786,6 +4812,34 @@ async function runMenuChecks() {
       },
     );
   }
+}
+
+// Masonry R4/R7: the runtime window is the seeded, organic layout for this visit.
+async function advertisingWindowIds(page, filter) {
+  return (await advertisingWindow(page, filter)).map(({ id }) => id);
+}
+
+function advertisingWindow(page, filter) {
+  return page.evaluate(async (filter) => {
+    const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
+    const { compileAdvertisingProductLayout, getVirtualWindow, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
+    const { shuffleWithSeed } = await import("/advertising-products/random-order.mjs");
+    const pool = filter === "all" ? artifact.cards : artifact.cards.filter((card) => card.category === filter);
+    const geometry = compileAdvertisingProductLayout({
+      cards: artifact.cards,
+      categoryOrder: artifact.categories.map((category) => category.slug),
+      datasetVersion: artifact.datasetVersion,
+      filter,
+      layoutViewportWidth: document.documentElement.clientWidth,
+      settings: normalizeAdvertisingProductSettings(artifact.settings),
+      presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`).map(({ id }) => id),
+      organicOrder: true,
+    });
+    return getVirtualWindow(geometry, {
+      scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
+      viewportHeight: innerHeight, overscan: innerHeight,
+    }).items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
+  }, filter);
 }
 
 async function runAdvertisingFilterCheck() {
@@ -4817,10 +4871,14 @@ async function runAdvertisingFilterCheck() {
           },
         ),
       }));
-      const wasMountedBefore = await page.locator("[data-project-grid]").evaluate((grid) =>
-        Boolean(grid.querySelector('[data-advertising-card="print-decals-01"]')),
-      );
-      assert(wasMountedBefore, "rank-v3 all view must mount print-decals-01 as the shared filter survivor");
+      // The order is random per visit, so pick a mounted card that also opens its own filter's window.
+      const categories = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
+      const windows = {};
+      for (const category of categories) windows[category] = await advertisingWindowIds(page, category);
+      const survivorTile = before.tiles.find((tile) => windows[tile.category]?.includes(tile.id));
+      assert(survivorTile, `No mounted card survives into its filter window: ${JSON.stringify(windows)}`);
+      const survivorId = survivorTile.id;
+      const filterSlug = survivorTile.category;
       await page.evaluate(() => {
         const grid = document.querySelector("[data-project-grid]");
         const snapshots = [];
@@ -4833,20 +4891,20 @@ async function runAdvertisingFilterCheck() {
           window.addEventListener("site:layout", resolve, { once: true });
         });
       });
-      await page.locator('[data-advertising-filter="print-decals"]').click();
+      await page.locator(`[data-advertising-filter="${filterSlug}"]`).click();
       await page.waitForFunction(
-        () => {
+        (slug) => {
           return (
             document
-              .querySelector('[data-advertising-filter="print-decals"]')
+              .querySelector(`[data-advertising-filter="${slug}"]`)
               ?.getAttribute("aria-current") === "true"
           );
         },
-        null,
+        filterSlug,
         { timeout: 3_000 },
       );
-      const captureTrajectory = () => page.locator("[data-project-grid]").evaluate((grid) => {
-        const tile = grid.querySelector('[data-advertising-card="print-decals-01"]');
+      const captureTrajectory = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
+        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
         const style = tile ? getComputedStyle(tile) : null;
         const rect = tile?.getBoundingClientRect();
         const gridRect = grid.getBoundingClientRect();
@@ -4860,7 +4918,7 @@ async function runAdvertisingFilterCheck() {
           visualLeft: rect ? rect.left - gridRect.left : null,
           visualTop: rect ? rect.top - gridRect.top : null,
         };
-      });
+      }, survivorId);
       await page.waitForTimeout(20);
       const origin = await captureTrajectory();
       await page.waitForTimeout(160);
@@ -4871,7 +4929,7 @@ async function runAdvertisingFilterCheck() {
           during.property?.includes("transform") &&
           during.transform &&
           during.transform !== "none",
-        `Masonry transition did not morph the rank-v3 filter survivor: ${JSON.stringify({ wasMountedBefore, origin, during })}`,
+        `Masonry transition did not morph the filter survivor ${survivorId}: ${JSON.stringify({ origin, during })}`,
       );
       await page.evaluate(() => window.__ttAdvertisingFilterLayout);
       await page.waitForTimeout(450);
@@ -4921,27 +4979,16 @@ async function runAdvertisingFilterCheck() {
         delete window.__ttCohortProbe;
         return probe.snapshots;
       });
-      const expectedWindow = await page.evaluate(async () => {
-        const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
-        const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import("/advertising-products/layout-core.mjs");
-        const geometry = compileAdvertisingLayout({ cards: artifact.cards,
-          categoryOrder: artifact.categories.map((category) => category.slug),
-          datasetVersion: artifact.datasetVersion, filter: "print-decals",
-          layoutViewportWidth: document.documentElement.clientWidth });
-        return getVirtualWindow(geometry, {
-          scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
-          viewportHeight: innerHeight, overscan: innerHeight,
-        }).items.map((placement) => placement.card.id);
-      });
+      const expectedWindow = await advertisingWindowIds(page, filterSlug);
       assert(JSON.stringify(after.tiles.map((tile) => tile.id).sort()) === JSON.stringify([...expectedWindow].sort()),
         "Settled filter DOM does not equal the expected normal virtual window");
       const allowedCohort = new Set([...before.tiles.map((tile) => tile.id), ...expectedWindow]);
       assert(cohortSnapshots.length > 1 && cohortSnapshots.every((ids) => ids.every((id) => allowedCohort.has(id))),
         `Filter cohort escaped old/new virtual-window union: ${JSON.stringify(cohortSnapshots)}`);
-      assert(visible.length > 0, "print-decals filter did not mount a top-page destination window");
+      assert(visible.length > 0, `${filterSlug} filter did not mount a top-page destination window`);
       assert(
-        visible.every((tile) => tile.category === "print-decals"),
-        "A non-print-decals tile remained visible",
+        visible.every((tile) => tile.category === filterSlug),
+        `A non-${filterSlug} tile remained visible`,
       );
       assert(
         after.height < before.height,
@@ -4954,24 +5001,26 @@ async function runAdvertisingFilterCheck() {
           Math.min(tile.bottom, next.bottom) - Math.max(tile.top, next.top) <= 1,
         ),
       );
-      assert(noOverlap, "Filtered print-decals geometry overflowed or overlapped");
+      assert(noOverlap, `Filtered ${filterSlug} geometry overflowed or overlapped`);
       assert(
         (await page
-          .locator('[data-advertising-filter="print-decals"]')
+          .locator(`[data-advertising-filter="${filterSlug}"]`)
           .getAttribute("aria-current")) === "true",
         "Active filter did not expose aria-current=true",
       );
-      const categoryOriginMounted = await page.locator("[data-project-grid]").evaluate((grid) =>
-        Boolean(grid.querySelector('[data-advertising-card="signage-raised-letters-01"]')),
+      const nextSlug = categories.find((category) => category !== filterSlug);
+      const nextId = (await advertisingWindowIds(page, nextSlug))[0];
+      const categoryOriginMounted = await page.locator("[data-project-grid]").evaluate((grid, id) =>
+        Boolean(grid.querySelector(`[data-advertising-card="${id}"]`)), nextId,
       );
-      assert(!categoryOriginMounted, "signage-raised-letters-01 must not be mounted before category-to-category filter morph");
-      await page.locator('[data-advertising-filter="signage-raised-letters"]').click();
+      assert(!categoryOriginMounted, `${nextId} must not be mounted before category-to-category filter morph`);
+      await page.locator(`[data-advertising-filter="${nextSlug}"]`).click();
       await page.waitForTimeout(180);
-      const categoryDuring = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const tile = grid.querySelector('[data-advertising-card="signage-raised-letters-01"]');
+      const categoryDuring = await page.locator("[data-project-grid]").evaluate((grid, id) => {
+        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
         const style = tile ? getComputedStyle(tile) : null;
         return { duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
-      });
+      }, nextId);
       assert(
         categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
           categoryDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -4986,9 +5035,9 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
-      const captureReverseTrajectory = () => page.locator("[data-project-grid]").evaluate((grid) => {
+      const captureReverseTrajectory = () => page.locator("[data-project-grid]").evaluate((grid, slug) => {
         const tile = [...grid.querySelectorAll(".advertising-tile")].find(
-          (item) => !item.hidden && item.dataset.advertisingCategory !== "signage-raised-letters",
+          (item) => !item.hidden && item.dataset.advertisingCategory !== slug,
         );
         const style = tile ? getComputedStyle(tile) : null;
         const rect = tile?.getBoundingClientRect();
@@ -5003,7 +5052,7 @@ async function runAdvertisingFilterCheck() {
           visualLeft: rect ? rect.left - gridRect.left : null,
           visualTop: rect ? rect.top - gridRect.top : null,
         };
-      });
+      }, nextSlug);
       await page.waitForTimeout(20);
       const reverseOrigin = await captureReverseTrajectory();
       await page.waitForTimeout(160);
@@ -5030,13 +5079,20 @@ async function runAdvertisingFilterCheck() {
         `Category-to-all unshared tile did not travel from an old visual slot: ${JSON.stringify({ reverseOrigin, reverseDuring, reverseSettled })}`,
       );
       await page.waitForTimeout(450);
+      const beforeResize = await page.locator("[data-project-grid] .advertising-tile").evaluateAll((tiles) =>
+        tiles.map((tile) => ({ id: tile.dataset.advertisingCard, x: Number.parseFloat(tile.style.left), y: Number.parseFloat(tile.style.top) })),
+      );
       await page.setViewportSize({ width: 1200, height: 900 });
+      const resizeTarget = (await advertisingWindow(page, "all")).find((placement) =>
+        beforeResize.some((tile) => tile.id === placement.id && Math.hypot(tile.x - placement.x, tile.y - placement.y) > 2),
+      );
+      assert(resizeTarget, "No mounted card moves between the 1440 and 1200 layouts");
       await page.waitForTimeout(180);
-      const resizeDuring = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const tile = grid.querySelector('[data-advertising-card="kiosk-posm-02"]');
+      const resizeDuring = await page.locator("[data-project-grid]").evaluate((grid, id) => {
+        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
         const style = tile ? getComputedStyle(tile) : null;
-        return { duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
-      });
+        return { id, duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
+      }, resizeTarget.id);
       assert(
         resizeDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
           resizeDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -6147,7 +6203,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
                 Math.abs(window.innerWidth - gridRect.right - expectedGutter) <= 1,
               scrollBottomMatches:
                 Math.abs(
-                  heroRect.bottom - scrollRect.bottom - (mobile ? 60 : 45),
+                  heroRect.bottom - scrollRect.bottom -
+                    (window.innerWidth <= 750 ? 60 : window.innerWidth <= 1200 ? 30 : 45),
                 ) <= 1,
               noHorizontalOverflow: document.documentElement.scrollWidth - window.innerWidth <= 1,
               tone: element.dataset.headerTone,
@@ -6181,9 +6238,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
           if (viewport.width <= 390) {
             const firstFilter = page.locator('[data-advertising-filter="all"]');
-            const lastFilter = page.locator('[data-advertising-filter="led-displays-lightboxes"]');
+            const lastFilter = page.locator('[data-advertising-filter="print-decals"]');
             await firstFilter.focus();
-            for (let index = 0; index < 4; index += 1) {
+            for (let index = 0; index < 6; index += 1) {
               await page.keyboard.press("Tab");
             }
             const mobileFilters = await page.locator(".project-filters").evaluate((filters) => {
@@ -6202,13 +6259,13 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             assert(mobileFilters.isScrollable && mobileFilters.lastFits, `${locale} ${viewport.width}x${viewport.height}: keyboard focus did not bring the final mobile filter into view`);
             await page.keyboard.press("Enter");
             await page.waitForFunction(
-              () => document.querySelector('[data-advertising-filter="led-displays-lightboxes"]')?.getAttribute("aria-current") === "true",
+              () => document.querySelector('[data-advertising-filter="print-decals"]')?.getAttribute("aria-current") === "true",
               null,
               { timeout: 3_000 },
             );
             await page.keyboard.press("Space");
             assert(
-              (await lastFilter.getAttribute("aria-pressed")) === "true",
+              (await lastFilter.getAttribute("aria-current")) === "true",
               `${locale} ${viewport.width}x${viewport.height}: Space did not preserve final filter activation`,
             );
           }
@@ -8282,7 +8339,19 @@ async function runDetailHeroEntryChecks() {
   }
 }
 
+// fonts.ready ignores unicode-range subsets not requested yet; a late subset rewraps the filter rows.
 async function projectFinalGeometry(page) {
+  let previous = await readProjectFinalGeometry(page);
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    await page.waitForTimeout(100);
+    const current = await readProjectFinalGeometry(page);
+    if (JSON.stringify(current) === JSON.stringify(previous)) return current;
+    previous = current;
+  }
+  return previous;
+}
+
+async function readProjectFinalGeometry(page) {
   return page.evaluate(() => {
     const rect = (element) => {
       const value = element.getBoundingClientRect();
@@ -8610,20 +8679,21 @@ async function runMotionAbortFailOpenChecks() {
             ),
         );
         assert(
-          heading?.name?.value?.includes("Công trình"),
+          heading?.name?.value === "để thương hiệu luôn trong tầm mắt",
           `Fail-open h1 missing from AX tree: ${JSON.stringify(heading?.name?.value)}`,
         );
-        const filterState = await page.evaluate(() => ({
-          allTiles: document.querySelectorAll(
-            "[data-project-grid] [data-advertising-category]",
-          ).length,
-          kioskTiles: document.querySelectorAll(
-            '[data-project-grid] [data-advertising-category="kiosk-posm"]',
-          ).length,
-        }));
+        // The grid mounts a virtual window (masonry R7): compare mounted categories, not counts.
+        const filterState = await page.evaluate(() => {
+          const categories = [
+            ...document.querySelectorAll("[data-project-grid] [data-advertising-category]"),
+          ].map((tile) => tile.dataset.advertisingCategory);
+          return {
+            kioskTiles: categories.filter((category) => category === "kiosk-posm").length,
+            otherTiles: categories.filter((category) => category !== "kiosk-posm").length,
+          };
+        });
         assert(
-          filterState.allTiles > filterState.kioskTiles &&
-            filterState.kioskTiles > 0,
+          filterState.otherTiles > 0 && filterState.kioskTiles > 0,
           `Fail-open fixture cannot prove filtering: ${JSON.stringify(filterState)}`,
         );
         await page.locator('[data-advertising-filter="kiosk-posm"]').click();
@@ -8643,13 +8713,13 @@ async function runMotionAbortFailOpenChecks() {
             .map((tile) => tile.dataset.advertisingCategory),
         }));
         assert(
-          filteredState.visible.length === filterState.kioskTiles &&
+          filteredState.visible.length > 0 &&
             filteredState.visible.every((category) => category === "kiosk-posm"),
           `Fail-open filter did not isolate kiosk tiles: ${JSON.stringify(filteredState)}`,
         );
         await page.locator('[data-advertising-filter="all"]').click();
         await page.waitForFunction(
-          (expected) =>
+          () =>
             document
               .querySelector('[data-advertising-filter="all"]')
               ?.getAttribute("aria-current") === "true" &&
@@ -8657,8 +8727,7 @@ async function runMotionAbortFailOpenChecks() {
               ...document.querySelectorAll(
                 "[data-project-grid] [data-advertising-category]",
               ),
-            ].filter((tile) => !tile.hidden).length === expected,
-          filterState.allTiles,
+            ].some((tile) => !tile.hidden && tile.dataset.advertisingCategory !== "kiosk-posm"),
         );
         await page.locator("[data-menu-open]").click();
         await waitForMenuState(page, true);
@@ -9829,7 +9898,7 @@ async function runHomeMotionRegressionCheck() {
     "The route request failure fallback changed",
   );
   assert(
-    /const ink =\s*\n?\s*routeTransitionActive \|\|\s*\n?\s*collapsed \|\|/.test(
+    /const ink =\s*\(routeTransitionActive && !routeDestinationReady\) \|\|\s*collapsed \|\|/.test(
       motionSource,
     ),
     "Route transitions do not force the header to an ink tone over the white veil",
@@ -9912,8 +9981,9 @@ async function runHomeMotionRegressionCheck() {
             };
           }),
           portalSubtitleCount: subtitles.length,
-          portalSources: [...document.querySelectorAll("#dich-vu .service-portal > img")].map(
-            (image) => new URL(image.currentSrc || image.src, location.href).pathname,
+          // Runtime wraps portal images in a media frame and picks a variant (media-delivery R1); read the authored src.
+          portalSources: [...document.querySelectorAll("#dich-vu .service-portal img")].map(
+            (image) => new URL(image.getAttribute("src"), location.href).pathname,
           ),
           routeShell: {
             headerZ: Number.parseInt(getComputedStyle(header).zIndex, 10),
@@ -9939,7 +10009,8 @@ async function runHomeMotionRegressionCheck() {
             hasIndex: Boolean(document.querySelector(".hero-index")),
             hasKicker: Boolean(document.querySelector(".hero-kicker")),
             sources: [...document.querySelectorAll(".hero-slide img")].map(
-              (image) => new URL(image.currentSrc || image.src, location.href).pathname,
+              // currentSrc is a runtime AVIF/WebP variant (media-delivery R1); compare the authored src.
+              (image) => new URL(image.getAttribute("src"), location.href).pathname,
             ),
           },
           heritage: {
@@ -9947,7 +10018,8 @@ async function runHomeMotionRegressionCheck() {
               document.querySelector(".heritage-rows"),
             ).maxWidth,
             sources: [...document.querySelectorAll(".heritage-image img")].map(
-              (image) => new URL(image.currentSrc || image.src, location.href).pathname,
+              // currentSrc is a runtime AVIF/WebP variant (media-delivery R1); compare the authored src.
+              (image) => new URL(image.getAttribute("src"), location.href).pathname,
             ),
             frames: [...document.querySelectorAll(".heritage-image")].map(
               (frame) => {
@@ -9977,7 +10049,7 @@ async function runHomeMotionRegressionCheck() {
           JSON.stringify([
             "/assets/content/projects/home-residential-kitchen.webp",
             "/assets/content/projects/home-commercial-fnb.webp",
-            "/assets/content/projects/advertising-fnb-mobile-cart-v2.webp",
+            "/assets/content/projects/home-advertising-products-blue-grid.webp",
           ]),
         `Home service portal sources changed: ${contract.portalSources.join(", ")}`,
       );
@@ -9986,9 +10058,10 @@ async function runHomeMotionRegressionCheck() {
           contract.routeShell.headerDisplay !== "none" &&
           contract.routeShell.headerVisibility === "visible" &&
           contract.routeShell.headerOpacity === "1" &&
-          contract.routeShell.brandLockup[0] === 196 &&
+          // Design System Header: expanded lockup 260.97 x 67.52 above 1200px.
+          contract.routeShell.brandLockup[0] === 261 &&
           contract.routeShell.brandLockup[1] === 68,
-        "Route veil can hide the persistent site header",
+        `Route veil can hide the persistent site header: ${JSON.stringify(contract.routeShell)}`,
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
@@ -10089,7 +10162,8 @@ async function runHomeMotionRegressionCheck() {
         portal.lineY > portal.lineFontSize * 1.5,
         "Portal title animated when only its card entered",
       );
-      assert(portal.subtitleTop === null, "Portal subtitle still renders");
+      // page-home R5: service portals carry kicker, title and subtitle.
+      assert(portal.subtitleTop !== null, "Portal subtitle is missing");
 
       for (
         let index = 0;

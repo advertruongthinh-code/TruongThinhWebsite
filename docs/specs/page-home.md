@@ -263,8 +263,6 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 
 ## Gate còn mở
 
-- Ca "responsive offsets" của `TT_E2E_SCROLL_CUE_ONLY`: cue Advertising ở 390px cách đáy 93px, test đòi
-  110px; chưa rõ test cũ hay CSS lệch. Main.
 - Owner chưa nghiệm thu trên máy mình hover, overlay, chữ portal, ảnh portal Advertising, hero,
   heritage; khoảng thở dọc của ảnh heritage ở mọi breakpoint (intent owner) chưa có test. Owner, main.
 - Cache hit: tải lại, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame;
