@@ -1174,8 +1174,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
-  // Direct photo entry: "primary" lays out the primary with no related, "related" runs only the
-  // solver (the primary geometry is unchanged) and leaves card mounting to the next task.
+  // Direct photo entry, one task per phase: "primary" lays out the primary with no related; "warm"
+  // runs the solver on a few cards so the full run does not also pay for cold code; "related" runs
+  // the full solver, keeps the primary geometry and leaves card mounting to the next task.
   let directEntryPhase = "";
   let relatedMeasuredGeometry = null;
   let suggestionSlots = [];
@@ -2448,7 +2449,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const renderRelatedWindow = ({ animate = false, origins } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
-    if (!animate && (relatedMotionFrame || relatedMotionTimer)) return;
+    // Direct entry mounts related cards in its own task; an earlier scroll or resize must not mount them unanimated.
+    if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
     const windowed = getVirtualWindow(relatedLayout.layout, {
@@ -2637,7 +2639,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
     relatedLayout = compileAdvertisingRelatedLayout({
-      cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo) : cards,
+      cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
+        : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
       categoryOrder, columns,
       datasetVersion: artifact.datasetVersion, heroId: browse.photo,
       layoutViewportWidth: viewportWidth, viewportHeight, headerHeight,
@@ -2671,7 +2674,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
     relatedPixelHeight = height;
     photoDescriptionIndicator.hidden = !needsDescriptionIndicator;
-    if (directEntryPhase === "related") {
+    if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Measured but not placed yet: keep it out of any frame painted before the mount task.
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
       return;
@@ -3401,14 +3404,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     directEntryPhase = deferRelated ? "primary" : "";
     renderPhoto(browseHistory.current, "direct");
     if (deferRelated) {
+      for (const phase of ["warm", "related"]) {
+        await nextTask();
+        if (controller.signal.aborted) return cleanup;
+        directEntryPhase = phase;
+        relatedLayoutKey = "";
+        if (activePhotoId) layoutRelated(browseHistory.current);
+      }
       await nextTask();
       if (controller.signal.aborted) return cleanup;
-      directEntryPhase = "related";
-      relatedLayoutKey = "";
-      if (activePhotoId) layoutRelated(browseHistory.current);
       directEntryPhase = "";
-      await nextTask();
-      if (controller.signal.aborted) return cleanup;
       if (activePhotoId) {
         renderRelatedWindow({ animate: true });
         window.dispatchEvent(new CustomEvent("site:layout"));
