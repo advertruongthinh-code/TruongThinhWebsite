@@ -116,6 +116,8 @@ Then ảnh về Fit, − và Reset disabled
 
 - Resize hoặc xoay máy: đang ở một nấc thì giữ nấc đó theo hình học mới; nằm
   giữa hai nấc thì giữ `s` và kẹp vào khoảng mới; pan kẹp lại.
+- Đóng sau resize: nút mở bị đẩy khỏi màn hình thì trang cuộn tức thì cho nút
+  về giữa ([detail R9](advertising-detail.md#r9-viewer)).
 - Bắt đầu chạm hoặc kéo khi đang zoom bằng animation: lấy transform đang hiện
   làm điểm bắt đầu, không nhảy. Khi đang mở, ảnh tới ngay mức Fit rồi nhận thao
   tác. Đang đóng thì bỏ qua thao tác chạm.
