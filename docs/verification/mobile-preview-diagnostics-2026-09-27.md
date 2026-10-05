@@ -6,7 +6,7 @@ updated: 2026-09-27
 related_specs:
   - ../specs/mobile-browser-parity-capability-map.md
   - ../specs/advertising-skeleton-flow.md
-  - ../specs/frontend-brand-shell-responsive-runtime.md
+  - ../specs/site-shell.md
 ---
 
 # Chẩn đoán preview — 27/09/2026
@@ -82,7 +82,7 @@ SHA-256 `63ef36bafcb8d59dab3a32e49ca6936440ae3879a5679cc8356f7579624f4179`.
 Main đã kiểm raw, source và screenshot của một agent QA/audit/code review
 duy nhất, requested `gpt-6-sol`/`ultra`, effective unknown.
 Emulation củng cố capture landscape Android thật trước đó trong
-[report scrollbar](scrollbar-parity-2026-09-27.md); không thay physical recheck
+report scrollbar (Git `40e5f11`, nay [shell website](../specs/site-shell.md)); không thay physical recheck
 sau fix hoặc nghiệm thu iPhone.
 
 ## WebKit: context pressure và cleanup là hai lỗi riêng

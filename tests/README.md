@@ -206,8 +206,8 @@ và Back/Forward/breakpoint. `all` chạy các nhóm cùng nhau. `advertising`,
 `LAYOUT_INTERACTION_WIDTH=390|838`, `LAYOUT_INTERACTION_FONT=16|32` chọn subset;
 result phải ghi selection, không gọi subset là full matrix.
 Rootfont16→32px là fixture,
-không thay setting accessibility/native pinch. [Evidence](../docs/verification/mobile-layout-parity-2026-09-28.md)
-giữ named baseline RED và gate thiết bị thật/reference/MCP còn thiếu.
+không thay setting accessibility/native pinch. [Gate còn mở](../docs/specs/site-shell.md#gate-còn-mở)
+giữ gate thiết bị thật/reference/MCP còn thiếu.
 
 Timestamp directory giữ streaming `observations.jsonl`, final `results.json`,
 failure PNG và phiên bản browser. Runner/catalog source SHA và8 source/served

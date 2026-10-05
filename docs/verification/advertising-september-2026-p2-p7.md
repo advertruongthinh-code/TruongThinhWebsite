@@ -9,7 +9,7 @@ related_specs:
   - ../specs/advertising-skeleton-flow.md
   - ../specs/advertising-photo-browse.md
   - ../specs/advertising-photo-morph-scroll.md
-  - ../specs/frontend-brand-shell-responsive-runtime.md
+  - ../specs/site-shell.md
   - ../specs/frontend-landing-page-foundation.md
 ---
 

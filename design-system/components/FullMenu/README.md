@@ -15,7 +15,7 @@ chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở b�
   `menu-title` dài thì xuống dòng.
 - Hàng đầu đệm 35px (25px ở max-width 1200px). Mobile đưa CTA xuống hàng thứ
   ba; 579–960px ẩn CTA
-  ([menu parity](../../../docs/specs/full-menu-reference-parity.md)).
+  ([shell spec](../../../docs/specs/site-shell.md#r4-full-menu)).
 
 ## Hình học
 

@@ -58,7 +58,7 @@ pointer sau cuộn ngẫu nhiên chưa có proof riêng. Không sửa ngược m
 | [Galaxy A05s portrait](../../.tmp/site-media-card/m02a-native-audio-20260930T044956540Z/manifest.json) | Android 15/Chrome 153, `6/6` case primary, audio, `hasAudio:false`, route cleanup đạt; runtime/CSS/build/served khớp SHA trên | Volume thay đổi qua media element; chưa kéo native volume UI, media synthetic |
 | [Galaxy A05s landscape ban đầu](../../.tmp/site-media-card/m02a-native-landscape-r1-20260930T045638746Z/manifest.json) | `8 PASS/1 RED` tại `838×331`: primary bottom `383.39`, visual bottom `331.43`, vượt `51.96 CSS px`; không có overflow ngang | RED thuộc oracle buộc toàn primary fit trong viewport; giữ raw. Một case viewer một con trỏ đạt, không đóng L06 EN landscape touch-close |
 
-[L04R đã duyệt](../specs/frontend-brand-shell-responsive-runtime.md) cho phép
+L04R đã duyệt (`40e5f11:docs/specs/frontend-brand-shell-responsive-runtime.md`) cho phép
 primary cao hơn vùng nhìn khi minimum ảnh, control và info không thể fit; user
 cuộn để tiếp cận CTA và related. [Follow-up A05s VI/EN
 landscape](../../.tmp/site-media-card/l04r-native-scroll-seal-20260930T051644461Z/manifest.json)

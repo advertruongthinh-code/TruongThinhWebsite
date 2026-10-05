@@ -172,7 +172,7 @@ sẵn sàng.
   `.brand-lockup`, `.site-header.is-brand-*`, `.menu-brand` trong `style.css`;
   `syncHeaderBrandSurface`, `colorHeader`, `playHeaderLockupScaleMotion` trong
   `motion.js`.
-- Tích hợp và test: [brand shell spec](../docs/specs/frontend-brand-shell-responsive-runtime.md#brand-lockup).
+- Tích hợp và test: [shell spec](../docs/specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
 - Kiểm chứng tỷ lệ gồm dấu: [LOGO-R3](../docs/verification/brand-lockup-logo-r3-2026-09-10.md).
 
 ## Chú thích thuật ngữ
