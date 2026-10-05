@@ -94,7 +94,8 @@ gần đầu viewport trước (top rồi left). Khung không có context hiện
 nên xoay máy không vượt ngân sách. Context giữ theo document và dùng lại: trả lease thì xóa program, buffer, texture,
 listener, RAF đúng một lần, giữ canvas và context; lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
 phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không gọi
-`loseContext` trên context đã mất.
+`loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước đó
+(R8); trong lúc chờ khung hiện frame tĩnh.
 
 ```gherkin
 Given điện thoại 838px ngang
