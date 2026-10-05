@@ -19,7 +19,7 @@ Khách xem ảnh công trình trên điện thoại hoặc máy tính bảng zoo
 trong viewer bằng tay, như app Thư viện: chụm hai ngón, kéo một ngón, chạm đúp.
 Spec này sở hữu thao tác chạm và zoom liên tục có nấc.
 Mở, đóng, morph, nút, con lăn, phím và khóa cuộn giữ theo
-[photo browse](advertising-photo-browse.md#viewer-và-điều-hướng) và R9 ở đó.
+[detail](advertising-detail.md#r9-viewer) và R9 ở đó.
 
 ## Hành vi
 

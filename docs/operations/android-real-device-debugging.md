@@ -4,7 +4,7 @@ type: operations
 status: connection-verified
 updated: 2026-09-27
 related_specs:
-  - ../specs/mobile-browser-parity-capability-map.md
+  - ../specs/site-shell.md
 ---
 
 # Debug Android thật qua USB

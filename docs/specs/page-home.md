@@ -126,7 +126,7 @@ And ba portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tr
 
 Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hover-zoom-trigger`, ảnh
 `.media-hover-zoom`, CSS ở `style.css`), cũng dùng cho card masonry, related, suggestion inactive
-([Advertising R12](advertising-photo-browse.md#r12-accepted--suggestion-active-state-và-exact-shared-hover)).
+([detail R5](advertising-detail.md#r5-suggestion)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
 card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`) giữ nguyên độ
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.

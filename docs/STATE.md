@@ -19,7 +19,8 @@
   T10: [shell](specs/site-shell.md) thay hai spec shell, menu và bốn verification cũ.
   T11: [trang chủ](specs/page-home.md) thay spec landing. T12: [trang con](specs/detail-pages.md)
   thay spec route. T13: [masonry](specs/advertising-masonry.md) và [skeleton](specs/advertising-skeleton.md)
-  thay bảy spec Advertising cũ; T14 tiếp.
+  thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
+  photo browse, morph và hai capability map; T15 tiếp.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
@@ -37,7 +38,7 @@
   iPhone chưa kiểm vì chưa kết nối. M03–M09 ngoài Advertising vẫn PAUSED,
   trừ pinch viewer (M07b): đã code theo [spec](specs/advertising-viewer-touch-zoom.md), chờ chạy A05s.
   History H01–H02 rescope xong trên cloud; viewer không còn đóng khi vuốt từ nền
-  (L06), chờ replay A05s ([evidence](verification/advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04)).
+  (L06), chờ replay A05s ([evidence](specs/advertising-detail.md#gate-còn-mở)).
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
   WebKit; thứ tự filter có test, solver 350/350 lượt hard-safe
   ([evidence 04/10](verification/advertising-random-grid-p0-p10-2026-10-04.md)). P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
@@ -57,8 +58,8 @@
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
-- UI contract: [photo/masonry](specs/advertising-photo-browse.md),
-  [capability map](specs/advertising-september-2026-capability-map.md),
+- UI contract: [masonry](specs/advertising-masonry.md), [detail](specs/advertising-detail.md),
+  [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md),
   [shell](specs/site-shell.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
   navbar về All; skeleton/CTA/footer theo P7.5.
