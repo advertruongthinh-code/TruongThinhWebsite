@@ -1783,7 +1783,7 @@ try {
         skeletonGlass: (({ glass = skeleton?.closest(".project-index")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
           hidden: glass.hidden,
           tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage,
-          blur: getComputedStyle(glass.querySelectorAll(".glass-surface__step")[4]).backdropFilter,
+          blur: getComputedStyle([...glass.querySelectorAll(".glass-surface__step")].at(-1)).backdropFilter,
         })({}),
         skeletonIsTile: skeleton?.classList.contains("advertising-tile") ?? null,
         viewportOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
