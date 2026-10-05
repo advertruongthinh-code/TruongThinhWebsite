@@ -94,11 +94,9 @@ export function createAdvertisingPhotoViewer({
     y: Math.max(0, (fitHeight * scale - viewport.clientHeight) / 2),
   });
   const updateControls = () => {
-    // aria-live status announces the end of a pinch, not every frame of it.
-    if (!pinch) {
-      zoomStatus.value = `${Math.round(scale * 100)}%`;
-      zoomStatus.textContent = zoomStatus.value;
-    }
+    // aria-live status announces a changed value at the end of a pinch, not every frame of it.
+    const status = `${Math.round(scale * 100)}%`;
+    if (!pinch && zoomStatus.textContent !== status) zoomStatus.value = zoomStatus.textContent = status;
     zoomOutButton.disabled = atFit();
     zoomInButton.disabled = atMax();
     if (resetButton) {
@@ -297,7 +295,9 @@ export function createAdvertisingPhotoViewer({
       return;
     }
     const closing = dialog.dataset.advertisingViewerState === "closing";
-    if (event.pointerType === "touch" && !closing && viewport.contains(event.target) && touches.size < 2) {
+    // A third finger is ignored: it neither drags nor ends the pinch.
+    if (event.pointerType === "touch" && touches.size === 2) return;
+    if (event.pointerType === "touch" && !closing && viewport.contains(event.target)) {
       touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
       if (touches.size === 2) {
         // Two fingers never close the viewer and end any one-finger drag or tap.
