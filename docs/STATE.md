@@ -62,7 +62,7 @@
   [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md),
   [shell](specs/site-shell.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
-  navbar về All; skeleton/CTA/footer theo P7.5.
+  navbar từ ảnh về nhóm đã chọn (ảnh vào thẳng về All); skeleton/CTA/footer theo P7.5.
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.

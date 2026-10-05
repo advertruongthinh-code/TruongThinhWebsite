@@ -46,7 +46,7 @@ try {
       assert.equal(clip.border, "rgba(0, 0, 0, 0)");
       let returnId = rect.id;
       if (via === "navbar-related") {
-        const related = page.locator("[data-advertising-related-card] > a").first();
+        const related = page.locator('[data-advertising-related-card^="office-signs-wayfinding-"] > a').first();
         returnId = await related.evaluate(el => el.parentElement.dataset.advertisingRelatedCard);
         await related.scrollIntoViewIfNeeded();
         await related.click();
@@ -61,7 +61,7 @@ try {
         assert(Math.abs(after.y - before.y) <= 1, `${width}/${via}: ${before.y} -> ${after.y}`);
         assert.deepEqual(after.batch, before.batch);
       } else {
-        assert.equal(new URL(after.url).search, "");
+        assert.equal(new URL(after.url).search, new URL(before.url).search, "navbar keeps the picked group");
         const returned = await page.locator(`[data-advertising-card="${returnId}"]`).boundingBox();
         assert(returned);
         const targetTop = via === "navbar-related" ? Math.max(0, (910 - returned.height) / 2) : rect.top;
