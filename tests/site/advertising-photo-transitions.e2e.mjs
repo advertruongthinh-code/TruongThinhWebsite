@@ -2057,7 +2057,11 @@ try {
     const openFromGroup = async () => {
       await page.goto(href(`/vi/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+      // A's stored anchor offset must match between stages: a click under the route veil makes Playwright
+      // retry with another scroll alignment, and html scroll-behavior would let it land mid-scroll.
+      await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
+      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id)
+        .scrollIntoView({ block: "nearest", behavior: "instant" }), A);
       await page.locator(`[data-advertising-card="${A}"] > a`).click();
       await ready(page, A);
     };
