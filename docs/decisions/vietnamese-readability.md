@@ -24,8 +24,8 @@ native hẹp hơn. Heritage giữ line height `1.08` và cap height được app
 Text mask theo font và layout render thật: Canvas `TextMetrics` đo top/bottom
 ink độc lập, đặt `--mask-ink-overflow` và mở cả hai clip edge (thay behavior cũ
 chỉ mở phía trên). `detail.js` rebuild line/word sau khi font sẵn sàng, resize
-hoặc đổi VI/EN; hero motto dùng cùng contract. Mục tiêu: reveal mask không cắt
-dấu tiếng Việt và không dùng padding cố định sai giữa font/viewport.
+hoặc đổi VI/EN. Mục tiêu: reveal mask không cắt dấu tiếng Việt và không dùng
+padding cố định sai giữa font/viewport.
 
 ## Hệ quả
 

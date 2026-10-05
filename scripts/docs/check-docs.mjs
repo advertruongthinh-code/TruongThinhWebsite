@@ -57,13 +57,12 @@ for (const file of files) {
   });
 }
 
-// Budgets apply to new-format specs only until the migration (tasks/docs-overhaul-plan.md T19).
-for (const file of files.filter((f) => f.startsWith('docs/specs/'))) {
-  const text = readFileSync(file, 'utf8');
-  const lines = text.split('\n').length;
-  if (/^status:\s*(live|planned|dormant)\s*$/m.test(text) && lines > 300) {
-    errors.push(`${file}: ${lines} dòng, vượt giới hạn 300 của spec`);
-  }
+// Line budgets (docs/specs/docs-system.md R4, R9).
+const BUDGET = { 'docs/STATE.md': 50, 'docs/index.md': 80 };
+for (const file of files) {
+  const max = file.startsWith('docs/specs/') ? 300 : BUDGET[file];
+  const lines = max && readFileSync(file, 'utf8').split('\n').length;
+  if (lines > max) errors.push(`${file}: ${lines} dòng, vượt giới hạn ${max}`);
 }
 
 // Specs own source files through the `source:` globs in their frontmatter.

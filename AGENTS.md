@@ -66,25 +66,22 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
 
 ## STATE và living docs
 
-- Living-docs gate cho mọi role: thay behavior, interface, schema, design,
-  command, ownership, tooling hoặc evidence thì cập nhật tài liệu sở hữu
-  contract trong cùng task; không có impact thì ghi lý do cụ thể khi bàn giao.
-  Chọn nguồn qua [docs routing](docs/index.md); supersession theo
-  [docs index](docs/index.md#supersession).
+- Living-docs gate: đổi file thuộc `source:` của spec thì sửa spec đó trong cùng PR,
+  hoặc ghi `Spec: không đổi - <lý do>` trong mô tả PR. `pnpm qa:docs` (CI) kiểm link,
+  budget dòng, ownership, sync và drift. Thay command, tooling, decision ngoài spec
+  thì sửa doc sở hữu qua [docs index](docs/index.md); supersession theo
+  [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
   publish lại claude.ai ([docs-system R7](docs/specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
   PR code của một mục trong `design-system/approved-designs.md` chuyển giá trị
   vào component và `motion.md` rồi xóa mục. CI không kiểm được hai việc này.
-- Không tạo report cho mọi sửa nhỏ, không copy contract sang nhiều file. Cập
-  nhật nguồn chuẩn, links và trạng thái supersession; main kiểm docs impact của
-  worker trước nghiệm thu.
-- `docs/STATE.md` là snapshot Git ngắn: phase, active work, hard boundary, canonical link, verified blocker, next repo action. Không là changelog, Kanban, work log, hay bản sao Notion.
-- Trước plan/implement: đọc toàn bộ `STATE.md`. Sau khi một field của snapshot đổi vì behavior, verification, blocker, handoff: verify evidence, update field và `Updated` trong cùng task.
-- Bỏ item resolved/hết hạn; link spec, decision, report thay vì copy evidence. Không refresh `Updated` nếu facts không đổi.
+- Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
+- `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
+- Trước plan/implement: đọc toàn bộ `STATE.md`. PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.
 - `STATE` mâu thuẫn hoặc nghi stale: repository evidence, test, accepted Git document thắng. Verify, sửa `STATE`; chưa rõ thì ghi unknown.
 - SSoT là GitHub, nhánh `main`. Checkout local, project memory, Notion đi theo `main`; lệch thì `main` thắng.
 - Project memory (`MEMORY.md` của Claude project, ngoài Git) chỉ giữ thứ repo không chứa: preference và cách làm việc của owner, thread nào sở hữu việc gì, device/Remote Control, link ngoài. Fact về repo (phase, active work, blocker, demo, command) thuộc `STATE` hoặc doc sở hữu; memory chỉ link tới, không copy.
-- Owner đổi cách làm việc: ghi memory; nếu đổi rule repo (branch, tool, gate) thì cập nhật `AGENTS.md`/doc sở hữu trong PR. Memory lệch `main` về fact repo: sửa memory. Mỗi PR đổi field `STATE` tự cập nhật `STATE` trong cùng PR.
+- Owner đổi cách làm việc: ghi memory; nếu đổi rule repo (branch, tool, gate) thì cập nhật `AGENTS.md`/doc sở hữu trong PR. Memory lệch `main` về fact repo: sửa memory.
 
 ## Viết và phản hồi
 

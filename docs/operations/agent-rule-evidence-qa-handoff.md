@@ -57,12 +57,12 @@ Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
 
-- Behavior/project policy đổi: update spec, decision hoặc dated Vietnamese verification report.
+- Behavior/project policy đổi: update spec hoặc decision; evidence (command, kết quả, scope) vào mô tả PR.
 - Handoff ghi: changed file, observed behavior, exact command, result, blocker, owner TODO, Notion status, Graphify semantic freshness.
 - Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#state-và-living-docs);
   chạy `pnpm qa:docs`, kiểm symbol/example, status. Test PASS không thay docs gate.
-- Migration docs kiểm SHA256 original và consumer trước/sau. Không chạy lại
-  full UI/parity chỉ vì đổi Markdown; evidence runtime cũ giữ ngày/hash/scope.
+- Xóa hoặc gộp docs: kiểm consumer (link, script) trước và sau; Git history giữ bản gốc.
+  Không chạy lại full UI/parity chỉ vì đổi Markdown.
 
 ## Chú thích thuật ngữ
 
