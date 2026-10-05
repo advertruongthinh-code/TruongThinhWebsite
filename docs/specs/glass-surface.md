@@ -179,13 +179,16 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 
 ## Gate còn mở
 
-- R7 trên A05s, vào thẳng ảnh: đạt sau PR #107, #111, #116, #122 (đo 05/10,
+- R7 trên A05s, vào thẳng ảnh: gần đạt sau PR #107, #111, #116, #122 (đo 05/10,
   `main` `9eed6a1`, Chrome thật, cold load, năm lần mỗi ảnh). kiosk-posm-10 và
-  print-decals-11: Layout dài nhất `11–29ms`, `motion.js` khoảng `10ms`, không
-  task nào trên `50ms` theo longtask API (một lần kiosk có `67ms`), fps 1,5s đầu
-  `32.0` và `38.7`. Còn mở: mọi trace có một task không tên ở khoảng `1030ms`
-  (`64–124ms`, timer trễ 1s từ `widget_base.cc`, không có script hay layout,
-  longtask API không thấy); nghi do chính việc trace, chưa kiểm.
+  print-decals-11: Layout dài nhất `11–29ms`, `motion.js` khoảng `10ms`, fps 1,5s
+  đầu `32.0` và `38.7`; 9/10 lần không task nào trên `50ms` theo longtask API.
+  Còn mở: một lần kiosk có task `67ms` (setTimeout rồi microtask, có GC), khớp
+  thời điểm bước related của catalog (`layoutRelated`, solver); chưa gán được
+  hàm vì lần đó không có CPU profile. Task `64–124ms` ở khoảng `1030ms` trong
+  các trace là do bộ đo: `WidgetBase::Shutdown` của tab `about:blank` mà
+  Playwright `newPage()` mở trước; mở URL thẳng bằng `Target.createTarget`
+  thì 0/5 lần có task này.
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long
