@@ -2928,7 +2928,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // A restored scroll needs the full height in one pass.
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
   const showPhoto = async (browse, reason) => {
-    const deferRelated = !browse.detail.scrollY && !browse.detail.anchorId;
+    // Only a new photo defers; a tag or locale change keeps its related cards on screen.
+    const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
     renderPhoto(browse, reason, deferRelated ? "primary" : "");
     const generation = detailRenderGeneration;
