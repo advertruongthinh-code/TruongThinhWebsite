@@ -778,9 +778,16 @@ try {
           return { x: 20, y: Math.max(rect.top + 20, headerBottom + 20) - rect.top };
         });
         await page.evaluate(() => { window.__ttM02bActivation = null; });
-        if (profile.contextOptions.hasTouch) await link.tap({ position });
-        else await link.click({ position });
-        const activation = await page.evaluate(() => window.__ttM02bActivation);
+        // A landscape related card is taller than the viewport, so locator.tap() first scrolls it into view;
+        // html scroll-behavior makes that smooth and still running when the photo resets scroll one task later.
+        if (profile.contextOptions.hasTouch) {
+          const box = await link.boundingBox();
+          const point = [box.x + position.x, box.y + position.y];
+          // Same actionability as tap(): the page entry veil must have left the point.
+          await page.waitForFunction(([node, x, y]) => node.contains(document.elementFromPoint(x, y)), [await link.elementHandle(), ...point]);
+          await page.touchscreen.tap(...point);
+        } else await link.click({ position });
+        const activation = await page.waitForFunction(() => window.__ttM02bActivation).then((handle) => handle.jsonValue());
         assert(activation?.trusted, "card activation must reach the trusted click observer");
         return activation;
       };

@@ -3063,8 +3063,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           ? { ...browse, detail: { ...browse.detail, scrollY } }
           : { ...browse, grid: { ...browse.grid, scrollY } };
       }
-      syncLocaleLinks(browse);
-      if (reason === "category") return;
+      // showPhoto and restoreGridEntry sync the locale links themselves.
+      if (reason === "category") {
+        syncLocaleLinks(browse);
+        return;
+      }
       if (browse.photo) {
         showPhoto(browse, reason);
         return;
