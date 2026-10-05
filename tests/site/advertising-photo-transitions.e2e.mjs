@@ -1163,7 +1163,9 @@ try {
     // The tag deep link reloads the page with its own related order, so pick from the cards mounted now.
     const topWindowIds = await relatedPage.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card]")]
       .filter((node) => node.getBoundingClientRect().top < innerHeight).map((node) => ({ id: node.dataset.advertisingRelatedCard })));
-    await relatedPage.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    // Native scrollTo races the smooth scroll still easing on desktop, so move the logical position and let it rest.
+    await relatedPage.evaluate(() => window.TruongThinhMotion.setLogicalScroll(document.documentElement.scrollHeight));
+    await restingScroll(relatedPage);
     await relatedPage.waitForFunction((records) => records.some((record) => (
       !document.querySelector(`[data-advertising-related-card="${record.id}"]`)
     )), topWindowIds);
@@ -1172,7 +1174,8 @@ try {
     )) || null, topWindowIds);
     assert(remountMedia, "bottom virtual window retained every top-window card");
     const recordsBeforeRemount = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length, remountMedia.id);
-    await relatedPage.evaluate(() => window.scrollTo(0, 0));
+    await relatedPage.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+    await restingScroll(relatedPage);
     await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img`), remountMedia.id);
     await relatedPage.waitForFunction(([id, before]) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length > before, [remountMedia.id, recordsBeforeRemount]);
     // Image decode can delay the fade start, so wait for the sampled fade to finish instead of a fixed delay.

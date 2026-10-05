@@ -3188,6 +3188,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     browseHistory.replaceCategory(nextFilter);
     setActiveFilter(nextFilter, { animate: true });
   }, { signal: controller.signal });
+  // Chrome does not scroll a partly visible link on focus; keep the focused filter whole on the mobile rail.
+  filters.addEventListener("focusin", (event) => {
+    event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, { signal: controller.signal });
   relatedGrid?.addEventListener("click", (event) => {
     const link = event.target.closest("[data-advertising-related-card] > a");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;

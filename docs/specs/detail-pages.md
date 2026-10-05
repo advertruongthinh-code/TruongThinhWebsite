@@ -263,8 +263,6 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 
 - Gate chung, áp dụng cả ba trang: Zalo placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
 - [Gallery](../../design-system/components/Gallery/README.md) ghi "một ảnh thì bỏ control", `detail.js` không xử lý; main thêm hoặc owner bỏ quy tắc.
-- `TT_E2E_COMMERCIAL_HERO_ONLY` 11/12: ca VI 1024px FAIL "left/right composition" (cũng FAIL trên `main`
-  trước PR này); chưa rõ test cũ hay CSS. Main.
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
 - Vòng tải khớp cả `article.editorial-item`; ở 390px ảnh 167px trong khung 350px nên vòng lộ ngoài ảnh khi đang tải
   (audit 04/10 F2, suy luận). Main đo.

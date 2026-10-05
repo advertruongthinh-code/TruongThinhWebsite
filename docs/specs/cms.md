@@ -216,7 +216,7 @@ Admin dùng `admin.css` riêng, không thuộc Design System và không đưa to
 | --- | --- |
 | R1 | chưa có test; đọc `wrangler.toml`, `package.json` |
 | R2 | `tests/worker/worker-static-contract.cjs` (cần Worker chạy); `tests/site/advertising-products-detail-routes.test.mjs` kiểm sáu slug |
-| R3 | `node tests/worker/advertising-detail-route.test.mjs`; `pnpm qa:worker:security` (thiếu page published trả 404); `worker-static-contract.cjs` |
+| R3 | `node tests/worker/advertising-detail-route.test.mjs`; `pnpm qa:worker:security` (thiếu page published trả 404); `worker-static-contract.cjs`; ca D1 `/en/about/` của "SSR CMS survives hydration" trong `site.e2e.cjs` chỉ chạy với `TT_E2E_D1=1` và `BASE_URL` là Worker có D1 seed (bản tĩnh kiểm chữ tĩnh giữ nguyên) |
 | R4 | phần public `tests/worker/worker-contract.cjs` (menu feed, catalog; cần Worker chạy) |
 | R5 | `pnpm qa:worker:security` (CI) |
 | R6 | chưa có test |

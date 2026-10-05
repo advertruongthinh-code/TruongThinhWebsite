@@ -48,7 +48,8 @@ Title "Sản phẩm Quảng cáo — Trường Thịnh" / "Advertising products 
 `aria-current="page"`. `body.detail-page[data-detail-hero-profile="words-06"]`, container
 `data-barba-namespace="advertising-products"`. `main#noi-dung` gồm: hero `.detail-index-hero#top` (kicker "Sản phẩm
 quảng cáo", `h1` hai dòng "để thương hiệu / luôn trong tầm mắt", EN "Keep your brand / always in sight", rail filter
-R3, scroll cue); `section.project-index#du-an` chứa `[data-project-grid]`, khung batch
+R3, scroll cue cách đáy như [Hero](../../design-system/components/Hero/README.md); trên 1024px dòng 2 neo mép phải
+khung); `section.project-index#du-an` chứa `[data-project-grid]`, khung batch
 `[data-advertising-cta-skeleton]` và CTA `section.detail-cta[data-advertising-grid-cta]` ("Dấu ấn tiếp theo / dành cho
 thương hiệu của bạn", link Zalo "Trao đổi ý tưởng"); `section[data-advertising-photo-view][hidden]` là detail. Khi
 duyệt masonry (không có `photo`), `body` có `is-advertising-browse`: floating CTA ẩn, footer không có khoảng phía trên.
@@ -91,6 +92,7 @@ Click chính không phím bổ trợ: không tải document, không request, kh�
 phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước khi runtime sẵn sàng (chỉ gặp khi không có veil
 [shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), tức reduced motion) được giữ lại, phát lại
 đúng một lần khi mount xong; mount lỗi thì tải hẳn URL của filter cuối. Đổi ngôn ngữ chỉ đổi chữ, `href`, ARIA.
+Rail hẹp cuộn ngang; focus bàn phím vào nút thì rail cuộn để nút hiện trọn.
 Navbar hoặc tiêu đề menu Advertising: đang ở All không có `photo` thì cuộn về 0
 ([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)); ở một nhóm thì thêm history entry về All; ở detail thì về
 nhóm đã chọn trước khi mở ảnh ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
