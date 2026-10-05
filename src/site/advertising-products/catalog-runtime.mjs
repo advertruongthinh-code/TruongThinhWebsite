@@ -1174,8 +1174,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
-  // Direct photo entry lays out the primary first; the related solver runs in the next task.
-  let relatedDeferred = false;
+  // Direct photo entry, one task per phase: "primary" lays out the primary with no related; "warm"
+  // runs the solver on a few cards so the full run does not also pay for cold code; "related" runs
+  // the full solver, keeps the primary geometry and leaves card mounting to the next task.
+  let directEntryPhase = "";
   let relatedMeasuredGeometry = null;
   let suggestionSlots = [];
   let suggestionSlotHeroId = "";
@@ -2449,7 +2451,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const renderRelatedWindow = ({ animate = false, origins } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
-    if (!animate && (relatedMotionFrame || relatedMotionTimer)) return;
+    // Direct entry mounts related cards in its own task; an earlier scroll or resize must not mount them unanimated.
+    if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
     const windowed = getVirtualWindow(relatedLayout.layout, {
@@ -2482,7 +2485,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const placement of relatedLayout.layout.placements) relatedPositions.set(placement.card.id, { x: placement.x, y: placement.y });
     normalPhotoKeep.forEach(ensureRelatedPhoto);
     if (keepSuggestion) ensureSuggestionCard();
-    else if (suggestionNode) suggestionNode.hidden = suggestionId ? true : suggestionSlots.length === 0;
+    // Unplaced inside the related grid (direct-entry primary phase) it stays hidden until the solver places it.
+    else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
     for (const [id, node] of relatedRendered) {
       if (keep.has(id)) {
         node.hidden = !normalKeep.has(id);
@@ -2573,16 +2577,20 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     photoView.dataset.advertisingPhotoLayout = suggestionInRelated ? "pinterest" : "split";
     let suggestionHeight = 0;
+    // In the related grid the suggestion is a related card: the primary phase leaves it to the solver phase.
+    const relatedSuggestion = suggestionInRelated && directEntryPhase !== "primary";
     if (suggestionSlots.length && suggestionNode) {
       suggestionNode.hidden = false;
       suggestionNode.style.width = `${suggestionWidth}px`;
       suggestionNode.style.height = "auto";
+    }
+    if (relatedSuggestion && suggestionSlots.length && suggestionNode) {
       suggestionHeight = Math.ceil(Math.max(
         suggestionNode.scrollHeight,
         suggestionNode.getBoundingClientRect().height,
       ));
     }
-    const suggestionCard = suggestionInRelated && suggestionSlots.length ? {
+    const suggestionCard = relatedSuggestion && suggestionSlots.length ? {
       id: "advertising-suggestion",
       kind: "suggestion",
       category: categoryOrder[0],
@@ -2633,7 +2641,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
     relatedLayout = compileAdvertisingRelatedLayout({
-      cards: relatedDeferred ? cards.filter((card) => card.id === browse.photo) : cards,
+      cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
+        : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
       categoryOrder, columns,
       datasetVersion: artifact.datasetVersion, heroId: browse.photo,
       layoutViewportWidth: viewportWidth, viewportHeight, headerHeight,
@@ -2667,6 +2676,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
     relatedPixelHeight = height;
     photoDescriptionIndicator.hidden = !needsDescriptionIndicator;
+    if (directEntryPhase === "related" || directEntryPhase === "warm") {
+      // Measured but not placed yet: keep it out of any frame painted before the mount task.
+      if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
+      return;
+    }
     paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
@@ -3381,20 +3395,40 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (browseHistory.current.photo) {
     // The grid stays hidden under a photo; ensurePhoto measures it on the way back.
     retainedPhotoIds.add(browseHistory.current.photo);
-    // Startup, primary photo and related solver each get their own task so none blocks input
-    // past 50ms on the A05s (docs/specs/advertising-detail.md). A restored scroll needs the full height.
+    // Each step below is its own task so none blocks input past 50ms on the A05s
+    // (docs/specs/advertising-detail.md R7). A restored scroll needs the full height in one pass.
     const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+    const deferRelated = !browseHistory.current.detail.scrollY && !browseHistory.current.detail.anchorId;
     await nextTask();
     if (controller.signal.aborted) return cleanup;
-    relatedDeferred = !browseHistory.current.detail.scrollY && !browseHistory.current.detail.anchorId;
+    // Pay the photo-mode style and layout before the primary work; hidden so no unsized frame paints.
+    document.body.classList.add("is-advertising-photo");
+    if (gridSection) gridSection.hidden = true;
+    if (photoView) {
+      photoView.hidden = false;
+      photoView.style.visibility = "hidden";
+    }
+    // Suggestions only rebuild for a new hero, so renderPhoto reuses these.
+    renderSuggestionLinks(browseHistory.current, locale === "en");
+    getLayoutViewportHeight();
+    await nextTask();
+    photoView?.style.removeProperty("visibility");
+    if (controller.signal.aborted) return cleanup;
+    directEntryPhase = deferRelated ? "primary" : "";
     renderPhoto(browseHistory.current, "direct");
-    if (relatedDeferred) {
+    if (deferRelated) {
+      for (const phase of ["warm", "related"]) {
+        await nextTask();
+        if (controller.signal.aborted) return cleanup;
+        directEntryPhase = phase;
+        relatedLayoutKey = "";
+        if (activePhotoId) layoutRelated(browseHistory.current);
+      }
       await nextTask();
       if (controller.signal.aborted) return cleanup;
-      relatedDeferred = false;
+      directEntryPhase = "";
       if (activePhotoId) {
-        relatedLayoutKey = "";
-        layoutRelated(browseHistory.current);
+        renderRelatedWindow({ animate: true });
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
     }
