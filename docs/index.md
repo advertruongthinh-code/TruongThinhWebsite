@@ -32,10 +32,9 @@ lifecycle) nằm trong spec sở hữu.
 
 ## Contract hiện hành
 
-- [Intent scrollbar và browser parity](specs/mobile-browser-parity-capability-map.md):
-  intent/map và [delta scrollbar](specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)
-  cùng [plan/card](../tasks/archive/plan.md) đã duyệt27/09;
-  [verification scrollbar](verification/scrollbar-parity-2026-09-27.md) giữ scoped result và gate còn mở.
+- [Intent và map browser parity](specs/mobile-browser-parity-capability-map.md):
+  module Advertising và Android QA còn lại; scrollbar, viewport, layout mobile và
+  gate còn mở ở [shell website](specs/site-shell.md#gate-còn-mở).
   [Debug Android thật](operations/android-real-device-debugging.md)
   giữ Chrome/USB và interaction PASS; [owner recording](verification/android-skeleton-observation-2026-09-27.md)
   đã ghi nhận thay frame skeleton khi visual height đổi, gồm capture footer↔grid8792.
@@ -71,8 +70,10 @@ lifecycle) nằm trong spec sở hữu.
   masonry và kính vùng dư primary; còn đo trên A05s.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
-- [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
-  và [Design System](../design-system/README.md): shell và visual authority.
+  [Viewer zoom hai ngón và chạm đúp](specs/advertising-viewer-touch-zoom.md):
+  owner duyệt 05/10, [plan](../tasks/viewer-touch-zoom-plan.md) chờ duyệt; thay ba mức zoom cố định.
+- [Shell website](specs/site-shell.md) và [Design System](../design-system/README.md):
+  shell và visual authority.
 - [Static release](specs/static-release.md): build/hosting;
   [changelog](../CHANGELOG.md) ghi thay đổi phát hành.
 - [STATE](STATE.md) giữ active work, blocker và next action;

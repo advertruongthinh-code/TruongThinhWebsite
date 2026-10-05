@@ -177,7 +177,7 @@ có thiết bị hoặc phương pháp được verify riêng.
 
 ## Preview correction scrollbar27/09
 
-[Scrollbar verification](../verification/scrollbar-parity-2026-09-27.md) dùng
+Verification scrollbar (gộp vào [shell website](../specs/site-shell.md#r9-scrollbar)) dùng
 preview8792 của managed checkout `codex/mobile-ui-contract`; source/build/served
 hash được đối chiếu riêng. Chỉ thêm `reverse --no-rebind tcp:8792 tcp:8792`.
 Mapping8790 và forward9223 giữ cho phiên debug đang dùng; recovery QA vẫn paused.

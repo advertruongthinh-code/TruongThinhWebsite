@@ -86,9 +86,10 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
 
 - [x] T9. `static-release.md` (pilot) thay `frontend-static-release.md`.
   Checkpoint: owner đọc pilot, xác nhận dễ đọc; chỉnh template nếu cần.
-- [ ] T10. `site-shell.md` thay `frontend-brand-shell-responsive-runtime.md`,
+- [x] T10. `site-shell.md` thay `frontend-brand-shell-responsive-runtime.md`,
   `full-menu-reference-parity.md`, `mobile-browser-parity-capability-map.md`
-  và verification menu, scrollbar, mobile.
+  và verification menu, scrollbar, mobile. Capability map còn phần Advertising
+  (skeleton, viewer, history), hấp thụ ở T13, T14.
 - [ ] T11. `page-home.md` thay phần home của `frontend-route-and-content.md`
   và `frontend-landing-page-foundation.md`.
 - [ ] T12. `detail-pages.md` cho residential, commercial, about; xóa
