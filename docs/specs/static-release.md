@@ -2,7 +2,10 @@
 title: Phát hành tĩnh
 status: live
 source:
-  - scripts/site/**
+  - scripts/site/prepare-static-assets.mjs
+  - scripts/site/non-public-source-assets.mjs
+  - scripts/site/sanitize-client-logos.ps1
+  - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
   - wrangler.static.toml
@@ -115,7 +118,7 @@ And thẻ html có lang="en" và data-route-locale="en"
 `<picture>` với source AVIF khi có `.avif` cùng tên. Có biến thể 480, 960 nhỏ
 hơn `width` thì thêm `srcset` (hoặc `data-srcset`) và `sizes`. Ảnh đã có
 `srcset`, có attribute `data-advertising-*` hoặc thiếu AVIF giữ nguyên. Pipeline
-biến thể thuộc [spec tải ảnh](static-image-delivery.md).
+biến thể thuộc [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
 
 ```gherkin
 Given <img src="/assets/content/a.webp" width="1600"> có a.avif, a-480.*, a-960.* cạnh nó
@@ -227,9 +230,8 @@ And .site-output/ không chứa file từ src/worker/, src/admin/ hoặc src/db/
 
 ### R13. Công cụ asset chạy tay
 
-`build-image-variants.mjs` ghi cạnh mỗi WebP public trong `src/site/assets/content`
-một AVIF cùng cỡ và AVIF, WebP 480, 960 px, bỏ qua danh sách R3; `--check` liệt
-kê biến thể thiếu, exit 1. `sanitize-client-logos.ps1` (PowerShell, máy owner) lọc
+`build-image-variants.mjs` sinh biến thể theo [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
+bỏ qua danh sách R3; `--check` liệt kê biến thể thiếu, exit 1. `sanitize-client-logos.ps1` (PowerShell, máy owner) lọc
 12 logo SVG từ `_temp/`, chỉ giữ hình học, ghi vào `assets/content/client-logos/`.
 
 ```gherkin

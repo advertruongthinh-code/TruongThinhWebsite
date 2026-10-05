@@ -11,7 +11,7 @@ const GRID = '/vi/advertising-products/';
 const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-26';
 const CLIP = '/__design_system__/clip.mp4';
 // Cards in the first viewport of the seeded grid, so their media load; shown as 1 item, 3 items, 11 items and a video cover
-// plus one image (docs/specs/site-media-card-playback.md).
+// plus one image (docs/specs/media-card.md).
 const MEDIA_CARDS = ['signage-raised-letters-24', 'led-displays-lightboxes-02', 'kiosk-posm-12', 'print-decals-08'];
 
 // The live catalog has single-image cards only, so MediaCard repeats each card's own image as extra items, as the e2e fixtures do.

@@ -11,7 +11,7 @@ Owner yêu cầu tạm dừng và lưu checkpoint ngày 30/09. Mọi thực thi 
 PAUSED đến khi owner chỉ đạo tiếp tục. Giới hạn scope đã chốt trước đó vẫn là
 `advertising-products` và các route con; M03–M05 Home/Residential/Commercial/
 About và QA/closure toàn website M08–M09 chưa mở lại. [Plan M00–M09](../../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
-và [spec media-card](../specs/site-media-card-playback.md) giữ nguyên phê duyệt.
+và [spec media-card](../specs/media-card.md) giữ nguyên phê duyệt.
 
 Managed worktree `C:\Users\halal\.codex\worktrees\mobile-ui-contract\TruongThinh-Website`
 ở branch `codex/mobile-ui-contract`, HEAD

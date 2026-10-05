@@ -75,8 +75,8 @@ lại sau khi rebase lên `77edd37`.
 
 ## Finding còn mở (chưa sửa)
 
-Nguồn sở hữu là mục "Gate còn mở" của [vòng tải](../specs/image-loading-progress.md#gate-còn-mở)
-và [tải ảnh](../specs/static-image-delivery.md#gate-còn-mở); bảng dưới là snapshot ngày 04/10.
+Nguồn sở hữu là mục "Gate còn mở" của [tải ảnh](../specs/media-delivery.md#gate-còn-mở)
+và [trang con](../specs/detail-pages.md#gate-còn-mở); bảng dưới là snapshot ngày 04/10.
 
 Review code do Claude subagent `code-reviewer` chạy, main kiểm lại các mục
 đánh dấu "đã kiểm".

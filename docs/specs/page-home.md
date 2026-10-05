@@ -25,7 +25,7 @@ Trang chủ `/vi/`, `/en/` (một file `src/site/index.html`) giới thiệu ba 
 nghề, công trình và khách hàng, rồi mời tư vấn qua Zalo. Spec giữ thứ tự section, nội dung, hero,
 reveal và responsive riêng của trang chủ. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build và route locale thuộc [phát hành tĩnh](static-release.md); file ảnh và
-vòng tải thuộc [tải ảnh](static-image-delivery.md).
+vòng tải thuộc [tải ảnh](media-delivery.md).
 
 ## Hành vi
 
@@ -187,7 +187,7 @@ Then track có is-running, mỗi nhóm 12 logo, khe giữa hai nhóm lệch tố
 Hero, portal, closer đặt chữ trắng trên ảnh. Ảnh chưa giải mã xong: khung nền `media-loading-surface`,
 chữ trắng vẫn hiện, ảnh opacity 0, shade ẩn; giải mã xong, runtime thêm `is-overlay-media-ready`, ảnh
 và shade hiện; `motion-fallback` bỏ cổng này. Khung ảnh nội dung có vòng tải CSS tới khi ảnh xong (trừ
-marquee); build bọc `<picture>` AVIF, `srcset` ([chuẩn file ảnh](static-image-delivery.md#chuẩn-file-ảnh)).
+marquee); build bọc `<picture>` AVIF, `srcset` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
 Given ảnh portal đầu của #dich-vu bị trễ

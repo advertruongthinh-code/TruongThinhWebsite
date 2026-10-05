@@ -1,4 +1,4 @@
-// Cold/warm image delivery measurement for the static-image-delivery spec (P0 baseline, P11 candidate).
+// Cold/warm image delivery measurement for docs/specs/media-delivery.md (P0 baseline, P11 candidate).
 // Usage: node tests/site/image-delivery-measure.mjs --base https://host --runs 5 [--warm] [--out dir]
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";

@@ -10,7 +10,7 @@ updated: 2026-09-30
 Owner yêu cầu dừng thực thi và lưu state ngày 30/09. Đây là checkpoint **dở
 dang**, không phải M02b GREEN hay feature/full-site PASS. Scope đang giữ chỉ
 gồm `advertising-products` và route con; M06/M07 chưa mở. M03–M05 và M08–M09
-toàn website tiếp tục PAUSED. [Spec](../specs/site-media-card-playback.md),
+toàn website tiếp tục PAUSED. [Spec](../specs/media-card.md),
 [plan](../../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
 và [RED baseline trước source patch](site-media-card-m02b-red-pause-2026-09-30.md)
 giữ riêng trạng thái, không hồi tố kết quả.

@@ -86,7 +86,7 @@ Then indicator thành "2 / N"; wheel dọc cuộn trang, không đổi trang mô
 `1.4s`; ảnh có sẵn crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, có nút `Bật tiếng` / `Unmute`; nút `Xem lớn hơn` ẩn với video. Card nhiều media có hàng thumbnail
-([media-card](site-media-card-playback.md)).
+([media-card](media-card.md#r6-media-trong-primary)).
 
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache

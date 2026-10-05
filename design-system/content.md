@@ -5,7 +5,7 @@ Cách viết copy và chọn ảnh cho website. Fact sản phẩm (khách hàng,
 Advertising ở [Ảnh Advertising](advertising-images.md). Contract kỹ thuật
 (node lá VI/EN, motion hook, gallery, file ảnh) ở
 [ba trang con](../docs/specs/detail-pages.md#r4-nội-dung-vien-và-hook)
-và [chuẩn file ảnh](../docs/specs/static-image-delivery.md#chuẩn-file-ảnh).
+và [chuẩn file ảnh](../docs/specs/media-delivery.md#r5-chuẩn-file-ảnh).
 
 ## Giọng điệu
 
