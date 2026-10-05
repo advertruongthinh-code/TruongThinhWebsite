@@ -785,6 +785,13 @@ try {
         return activation;
       };
       const positionCard = async (selector) => {
+        // Measure the card at rest: related cards still run their 0.4s placement after the photo opens.
+        await page.waitForFunction((target) => new Promise((resolve) => {
+          const top = document.querySelector(target)?.getBoundingClientRect().top;
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve(top !== undefined
+            && top === document.querySelector(target).getBoundingClientRect().top
+            && !document.querySelector(target).getAnimations().length)));
+        }), selector);
         await page.evaluate((target) => {
           const rect = document.querySelector(target).getBoundingClientRect();
           const top = document.querySelector("header").getBoundingClientRect().bottom + 20;
