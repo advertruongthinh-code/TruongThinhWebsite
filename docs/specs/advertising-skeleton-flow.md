@@ -356,7 +356,7 @@ plan `AD-SEPT-2026-P6`.
 ## Correction R8 accepted — glass blur rộng và white endpoint
 
 Glass của R8, R9 và R10 nay là [Kính](glass-surface.md) dạng cung: hình cung,
-năm bậc nhòe, màu trắng và số chốt thuộc spec đó. Full bleed, không phủ ảnh
+các bậc nhòe, màu trắng và số chốt thuộc spec đó. Full bleed, không phủ ảnh
 thật và đáy batch trắng tuyệt đối giữ nguyên.
 
 **Status:** accepted; owner xác nhận intent và cho phép Codex tự duyệt spec,

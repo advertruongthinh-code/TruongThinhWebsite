@@ -19,15 +19,22 @@ assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(28p
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even"\)/, "R1: the primary uses the even Kính");
 
-// R2, R5: stacked steps compound in quadrature to the five levels; saturate and brightness multiply.
-const increments = [...css.matchAll(/\.glass-surface__step:nth-last-child\(\d\) \{ --glass-step-blur: ([\d.]+)px; \}/g)]
-  .map(([, value]) => Number(value));
-let sum = 0;
-assert.deepEqual(increments.map((value) => Math.round(Math.sqrt(sum += value * value) * 10) / 10), [2, 4.5, 9, 16, 28],
-  "R2: steps reach 2, 4.5, 9, 16 and 28px");
-const [, saturate, brightness] = css.match(/\.glass-surface__step \{[^}]*?saturate\(([\d.]+)\) brightness\(([\d.]+)\)/);
-assert(Math.abs(saturate ** 5 - 1.7) < 0.005, "R5: saturation 1.7 across five steps");
-assert(Math.abs(brightness ** 5 - 1.04) < 0.001, "R5: brightness 1.04 across five steps");
+// R2, R5: stacked steps compound in quadrature to their levels; saturate and brightness multiply.
+const blurLevels = (scope) => {
+  let sum = 0;
+  return [...css.matchAll(new RegExp(`^${scope}\\.glass-surface__step:nth-last-child\\(\\d\\) \\{ --glass-step-blur: ([\\d.]+)px; \\}`, "gm"))]
+    .map(([, value]) => Math.round(Math.sqrt(sum += value * value) * 10) / 10);
+};
+const tone = (selector) => css.match(new RegExp(`^${selector} \\{\\s*--glass-step-saturate: ([\\d.]+);\\s*--glass-step-brightness: ([\\d.]+);`, "m"))
+  .slice(1).map(Number);
+const arc = '\\.glass-surface\\[data-glass-shape="arc"\\]';
+assert.deepEqual(blurLevels(""), [2, 4.5, 9, 16, 28], "R2: steps reach 2, 4.5, 9, 16 and 28px");
+assert.deepEqual(blurLevels(`${arc} > `), [4.5, 12, 28], "R2: the arc's band steps reach 4.5, 12 and 28px");
+for (const [selector, count] of [["\\.glass-surface", 5], [arc, 3]]) {
+  const [saturate, brightness] = tone(selector);
+  assert(Math.abs(saturate ** count - 1.7) < 0.005, `R5: saturation 1.7 across ${count} steps`);
+  assert(Math.abs(brightness ** count - 1.04) < 0.001, `R5: brightness 1.04 across ${count} steps`);
+}
 assert.match(css, /\.glass-surface__tint \{\s*background: rgba\(255, 255, 255, 0\.12\);/, "R5: tint alpha 0.12");
 // R4: overlay moves a mid tone by the full noise; opacity 0.08 caps the shift at 4%.
 assert.match(css, /\.glass-surface__grain \{[^}]*mix-blend-mode: overlay;[^}]*opacity: 0\.08;/, "R4: grain 4%, overlay");

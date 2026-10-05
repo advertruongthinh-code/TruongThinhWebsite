@@ -29,7 +29,7 @@ const arcState = () => {
   return {
     hidden: glass.hidden, width: box.width, owners,
     box: { opacity: boxStyle.opacity, mask: boxStyle.maskImage, filter: boxStyle.filter },
-    s0: top(steps[0]), s4: top(steps[4]),
+    s0: top(steps[0]), sLast: top(steps.at(-1)),
     centreX: Number.parseFloat(steps[0].style.maskImage.match(/circle at ([\d.]+)px/)[1]),
     centreY: top(steps[0]) + Number.parseFloat(steps[0].style.maskImage.match(/circle at [\d.]+px ([\d.]+)px/)[1]),
     clusterTop: copy.querySelector("h2").getBoundingClientRect().top - box.top - parallax,
@@ -74,8 +74,8 @@ try {
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
-      // Step 0 starts at the band edge, step 4 at 0.3 of the band, both above the apex yIn.
-      const band = (state.s4 - state.s0) / 0.7;
+      // Step 0 starts at the band edge, the last of three at 1/3 + 0.1 of the band, both above the apex yIn.
+      const band = (state.sLast - state.s0) / (2 / 3 - 0.1);
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
       check(Math.abs(yIn - (state.clusterTop + 0.5 * cluster)) <= 2,

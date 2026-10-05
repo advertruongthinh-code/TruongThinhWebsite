@@ -601,7 +601,7 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      assert.deepEqual(state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]), ["28", "2", "4.03", "7.79", "13.23", "22.98"],
+      assert.deepEqual(state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]), ["28", "4.5", "11.12", "25.3"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
       assert.deepEqual(state.photoGlassBlur, ["blur(28px) saturate(1.7) brightness(1.04)"],
         `${locale} ${viewport.width}: photo overflow is not one full Kính step`);
