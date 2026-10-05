@@ -547,7 +547,6 @@ body.is-transitioning .route-veil {
   position: fixed;
   z-index: 15000;
   inset: 0;
-  display: block;
   width: 100vw;
   max-width: none;
   height: 100%;
@@ -561,11 +560,6 @@ body.is-transitioning .route-veil {
   color: var(--ink);
   opacity: 0;
   pointer-events: none;
-}
-
-/* A closed menu stays display:block for the motion timeline; skip laying it out until it opens. */
-.site-menu:not([open]) {
-  content-visibility: hidden;
 }
 
 .site-menu[open] {
