@@ -72,8 +72,8 @@ lifecycle) nằm trong spec sở hữu.
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
   [Viewer zoom hai ngón và chạm đúp](specs/advertising-viewer-touch-zoom.md):
   owner duyệt 05/10, [plan](../tasks/viewer-touch-zoom-plan.md) chờ duyệt; thay ba mức zoom cố định.
-- [Shell website](specs/site-shell.md) và [Design System](../design-system/README.md):
-  shell và visual authority.
+- [Shell website](specs/site-shell.md), [Trang chủ](specs/page-home.md) và
+  [Design System](../design-system/README.md): shell, trang chủ và visual authority.
 - [Static release](specs/static-release.md): build/hosting;
   [changelog](../CHANGELOG.md) ghi thay đổi phát hành.
 - [STATE](STATE.md) giữ active work, blocker và next action;

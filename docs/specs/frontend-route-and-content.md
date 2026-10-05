@@ -2,7 +2,7 @@
 title: Contract route và content
 type: frontend
 status: accepted
-updated: 2026-09-28
+updated: 2026-10-05
 notion: none
 related_decisions:
   - ../decisions/head-office-address-confirmed.md
@@ -13,6 +13,7 @@ related_reports: []
 
 ## Scope
 
+- Trang chủ `/vi/`, `/en/` có spec riêng: [Trang chủ](page-home.md).
 - Root repository `/` là canonical.
 - Public route chuẩn: `/vi/`, `/vi/residential/`, `/vi/commercial/`,
   `/vi/advertising-products/`, `/vi/about/`; `/en/` có hierarchy tương đương.
@@ -35,7 +36,7 @@ related_reports: []
 
 | File | Trách nhiệm |
 | --- | --- |
-| `style.css` | Token, typography, header/menu/footer, home section, responsive |
+| `style.css` | Token, typography, header/menu/footer, responsive |
 | `motion.js` | VI/EN, route veil, header state, smooth scroll, hero, menu |
 | `detail.css` | Layout cho child/detail page |
 | `detail.js` | Detail reveal, horizontal gallery, điều phối catalog lifecycle |
@@ -139,7 +140,6 @@ dữ kiện chưa xác minh). Route không tự tạo bản sao fact hoặc plac
 ## Acceptance
 
 - Typography portal/hero theo [design system](../../design-system/README.md#typography).
-- Heritage inline image còn khoảng thở dọc ở mọi breakpoint.
 - Menu, filter, gallery, route link, Zalo CTA và back-to-top dùng được bằng bàn
   phím/touch.
 - Không horizontal overflow tại 320, 390, 768, 1024 và 1440 px.

@@ -98,8 +98,8 @@ không stage, commit, push hoặc deploy.
   tại `source-assets/projects/advertising/media-review-20260920/report.html`
   và `inventory.json`. Spec gốc đã xóa, xem Git `da2f13a`.
 - [shared-footer-boundary](site-shell.md#r10-floating-cta-và-footer)
-- [shared-media-hover](frontend-landing-page-foundation.md#shared-media-hover--accepted-p6)
-- [portal-type-fit](frontend-landing-page-foundation.md#portal-type-fit--accepted-p6)
+- [shared-media-hover](page-home.md#r6-hover-ảnh-dùng-chung)
+- [portal-type-fit](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)
 - [skeleton-cta-field](advertising-skeleton-flow.md#correction-r10-accepted--mobile-tail-scale-100-và-unified-glass)
 - [advertising-hero-once](advertising-final-polish-and-media.md#d21--correction-p7-hero-one-shot)
 - [photo-detail-layout P7](advertising-photo-browse.md#r15--correction-p7-pinterest-primary-và-description-pager)

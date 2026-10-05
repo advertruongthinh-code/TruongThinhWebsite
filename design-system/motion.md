@@ -130,7 +130,7 @@ Trang chủ:
 | Phần tử | Hiệu ứng |
 | --- | --- |
 | Ảnh card, project tile | `scale(1 → 1.15)`, `600ms ease-out` (`--media-hover-*`); khung giữ nguyên, ảnh bị clip |
-| Portal trang chủ | Ảnh `scale(1 → 1.1)`; lớp `media-label-overlay` giữ nguyên độ tối |
+| Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
 

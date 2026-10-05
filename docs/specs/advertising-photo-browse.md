@@ -493,7 +493,7 @@ audit selector có danh sách kết quả và owner tương ứng.
 ## R12 accepted — suggestion active state và exact shared hover
 
 R12 là consumer contract của module
-[`shared-media-hover`](frontend-landing-page-foundation.md#shared-media-hover--accepted-p6).
+[`shared-media-hover`](page-home.md#r6-hover-ảnh-dùng-chung).
 Owner duyệt R12 ngày `2026-09-22`; implementation chờ duyệt plan
 `AD-SEPT-2026-P6`.
 

@@ -123,7 +123,7 @@ khi implement.
 ## 9. Reference và history
 
 - [`../backend/index.md`](../backend/index.md#điều-kiện-mở-cms-phase)
-- [`frontend-landing-page-foundation.md`](frontend-landing-page-foundation.md)
+- [`page-home.md`](page-home.md)
 
 ## Chú thích thuật ngữ
 

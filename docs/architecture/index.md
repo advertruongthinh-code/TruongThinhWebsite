@@ -5,7 +5,7 @@ status: living
 updated: 2026-09-24
 related_specs:
   - ../specs/frontend-route-and-content.md
-  - ../specs/frontend-landing-page-foundation.md
+  - ../specs/page-home.md
   - ../specs/cms-content-publishing.md
 related_decisions:
   - ../decisions/static-shared-architecture.md
@@ -114,7 +114,7 @@ viewport, console/network và accessibility theo [tests README](../../tests/READ
 ## Canonical documents
 
 - Route và i18n: [frontend route spec](../specs/frontend-route-and-content.md).
-- Landing boundary: [frontend landing spec](../specs/frontend-landing-page-foundation.md).
+- Trang chủ: [page-home](../specs/page-home.md).
 - CMS contract tương lai: [CMS publishing spec](../specs/cms-content-publishing.md).
 - Current/dormant/planned detail: [frontend guide](../frontend/index.md), [backend guide](../backend/index.md).
 - Project-wide phase/blocker: [STATE](../STATE.md).
