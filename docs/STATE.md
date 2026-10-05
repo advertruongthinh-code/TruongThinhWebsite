@@ -12,9 +12,9 @@
 - Đại tu docs: [spec](specs/docs-system.md), [plan](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7); T1 tới T20 xong, còn T21 (Notion).
 - Sửa code lệch thiết kế (owner chọn 05/10): intro header dưới veil, header cuối trang, menu About,
-  hover ảnh trang con, scroll cue, Back/Forward Advertising
-  ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
-- Vào thẳng ảnh Advertising còn task dài ở Layout đầu trang ([gate Kính](specs/glass-surface.md#gate-còn-mở)).
+  hover ảnh trang con, scroll cue, Back/Forward Advertising đã merge (PR #104, #109, #116, #119); còn đo
+  A05s và WebKit ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
+- Vào thẳng ảnh Advertising: Layout đầu trang bỏ menu đóng và masonry (cloud `~107ms` xuống `~35ms`), A05s chưa đo lại ([gate Kính](specs/glass-surface.md#gate-còn-mở)).
 - Advertising (grid ngẫu nhiên, tải ảnh, M02b, skeleton, Kính, CTA) đã lên `main`, owner chưa nghiệm thu
   trên demo ([plan](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
@@ -31,7 +31,7 @@
 ## Next action
 
 1. Owner kiểm nhận đợt Advertising trên demo.
-2. Merge phần sửa code lệch thiết kế; đóng task dài khi vào thẳng ảnh.
+2. Đo lại task dài khi vào thẳng ảnh trên A05s (máy PC).
 3. Đại tu docs T21, rồi owner duyệt checkpoint cuối.
 
 ## Ranh giới

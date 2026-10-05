@@ -88,7 +88,7 @@ try {
     @{ label = "bootstrap"; text = $bootstrapRules }
   )) {
     if ($entry.text -notmatch 'using-agent-skills' -or $entry.text -notmatch 'Codex\s+chooses\s+native' -or $entry.text -notmatch 'main\s+agent\s+retains') { throw "$($entry.label) Codex native Agent Skills rule is missing" }
-    if ($entry.text -notmatch 'caveman`?\s+in\s+ultra\s+mode' -or $entry.text -notmatch 'ponytail`?\s+in\s+ultra\s+mode') { throw "$($entry.label) Caveman/Ponytail ultra rule is missing" }
+    if ($entry.text -notmatch 'Caveman\s+skills\s+run\s+only\s+when\s+the\s+user\s+invokes' -or $entry.text -notmatch 'ponytail`?\s+in\s+ultra\s+mode') { throw "$($entry.label) Caveman user-invoked/Ponytail ultra rule is missing" }
   }
   $passes += "Capability-based orchestration, explicit-request, and evidence rules"
   $passes += "Codex native Agent Skills routing and ultra modes"

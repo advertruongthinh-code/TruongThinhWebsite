@@ -563,6 +563,11 @@ body.is-transitioning .route-veil {
   pointer-events: none;
 }
 
+/* A closed menu stays display:block for the motion timeline; skip laying it out until it opens. */
+.site-menu:not([open]) {
+  content-visibility: hidden;
+}
+
 .site-menu[open] {
   opacity: 1;
   pointer-events: auto;

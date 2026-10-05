@@ -177,10 +177,10 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 ### R10. Gate CI
 
 Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`): `pnpm install
---frozen-lockfile`, `pnpm qa:static`, `build-image-variants.mjs --check`, `pnpm qa:worker:security`,
-`orphan-selectors.test.mjs` (class, `data-*` trong selector CSS hoặc query JS của `src/site/` phải có HTML, JS hay script
-build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi `pnpm dev` và Chromium smoke `tests/site/cross-browser.smoke.spec.cjs`
-(năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; nhịp ghi history).
+--frozen-lockfile`, `pnpm qa:static`, `tests/tooling/global-rules-sync.test.mjs`, `build-image-variants.mjs --check`,
+`pnpm qa:worker:security`, `orphan-selectors.test.mjs` (class, `data-*` trong selector CSS hoặc query JS của `src/site/`
+phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi `pnpm dev` và Chromium smoke
+`cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history).
 `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
 
 ```gherkin

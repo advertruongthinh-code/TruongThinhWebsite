@@ -47,7 +47,8 @@ PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccabl
 "$BIN/serena" init </dev/null >/dev/null
 
 # Global rules: mirror of the codex:global-stack block in scripts/tooling/bootstrap.ps1
-# (local Claude imports it through ~/.claude/CLAUDE.md). Keep both in sync.
+# (local Claude imports it through ~/.claude/CLAUDE.md). tests/tooling/global-rules-sync.test.mjs
+# fails CI when they drift or doctor.ps1 checks stop matching.
 cat > "$CFG/CLAUDE.md" <<'EOF'
 ## Global agent stack
 

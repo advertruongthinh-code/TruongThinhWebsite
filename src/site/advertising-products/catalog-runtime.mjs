@@ -3435,6 +3435,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     await nextTask();
     if (controller.signal.aborted) return cleanup;
   } else {
+    // An unknown ?photo= id falls back to the grid, which index.html hid before first layout.
+    document.body.classList.remove("is-advertising-photo");
     measure({ animate: true });
     restoreGridEntry(browseHistory.current, "direct");
   }

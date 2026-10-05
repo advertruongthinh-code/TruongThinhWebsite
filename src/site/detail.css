@@ -101,20 +101,6 @@ html[lang="vi"]
   font-size: clamp(1.1rem, 5.3vw, 4.15rem);
 }
 
-.detail-hero-motto {
-  max-width: min(42rem, 78vw);
-  margin: clamp(1rem, 2.2vh, 1.75rem) auto 0;
-  font-size: clamp(0.82rem, 1.15vw, 1.05rem);
-  font-weight: 600;
-  letter-spacing: 0.015em;
-  line-height: 1.35;
-  text-wrap: balance;
-}
-
-.detail-hero-motto .motion-line-mask {
-  padding-block: 0.04em 0.1em;
-}
-
 .detail-title__quiet,
 .detail-title__strong {
   display: block;
@@ -884,15 +870,6 @@ html[lang="en"]
     font-size: clamp(1.35rem, 7vw, 2.75rem);
   }
 
-  .detail-hero-motto {
-    max-width: 30rem;
-    margin-top: 1rem;
-    font-size: 0.84rem;
-    line-height: 1.4;
-    text-align: center;
-    text-wrap: pretty;
-  }
-
   .detail-intro {
     min-height: 20.8rem;
     padding: 2rem 0;
@@ -996,11 +973,6 @@ html[lang="en"]
     bottom: 5.8rem;
     left: 50%;
     transform: translateX(-50%);
-  }
-
-  .detail-index-hero .detail-hero-motto {
-    max-width: 24rem;
-    text-align: left;
   }
 
   .detail-index-hero h1 {
