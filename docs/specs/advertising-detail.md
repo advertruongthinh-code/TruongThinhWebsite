@@ -133,7 +133,7 @@ solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-t
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`. Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: primary dựng với related rỗng, solver related chạy ở task sau để không task nào quá `50ms` trên A05s; có `detail.scrollY` cần khôi phục thì một lượt như cũ.
+mới (R1, R8). Vào thẳng detail chia bốn task để không task nào quá `50ms` trên A05s: style chế độ ảnh cùng suggestion, primary với related rỗng, solver related, gắn card related; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Có `detail.scrollY` cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related
