@@ -14,7 +14,7 @@ const browser = await chromium.launch({ headless: true });
 const arcState = () => {
   const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
   const box = glass.getBoundingClientRect();
-  const steps = [...glass.querySelectorAll(".glass-surface__step")];
+  const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full)")];
   const top = (node) => Number.parseFloat(node.style.top);
   const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
@@ -37,7 +37,7 @@ const arcState = () => {
     realBottom: Number(document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaRealBottom),
     batchBottom: top(tint) + Number.parseFloat(tint.style.height) - 2,
     batchBottomOnScreen: box.top + top(tint) + Number.parseFloat(tint.style.height) - 2,
-    grain: getComputedStyle(document.documentElement).getPropertyValue("--glass-grain"),
+    grain: getComputedStyle(glass).getPropertyValue("--glass-grain"),
     grainBlend: getComputedStyle(glass.querySelector(".glass-surface__grain")).mixBlendMode,
   };
 };
@@ -69,7 +69,8 @@ try {
       const state = await page.evaluate(arcState);
       check(!state.hidden, `${label}: arc Kính hidden at the masonry end`);
       check(Math.abs(state.width - width) <= 1, `${label}: arc Kính does not span the viewport (${state.width}px)`);
-      check(JSON.stringify(state.owners) === JSON.stringify(["glass-surface__step"]),
+      // The five steps over the band and the arc's core, one full step inside the arc.
+      check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full"]),
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
