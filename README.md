@@ -84,7 +84,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 │                                   # specs, decisions, operations, reference
 ├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
 ├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
-├─ tasks/                           # plan/checklist đang mở, archive/ giữ phần đã xong; không thay Notion status
+├─ tasks/                           # plan/checklist đang mở, xóa khi xong; không thay Notion status
 ├─ design-system/                   # Design System: tokens.json, README; publish lên claude.ai
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md, .impeccable/ # DESIGN.md, design.json GENERATED từ design-system/
 ├─ .openai/hosting.json             # LEGACY: project Sites cũ, không còn dùng

@@ -29,7 +29,7 @@ layout_card: https://app.notion.com/p/3e8332849a0e81f18301f28c1091a9c3
 
 # Kế hoạch đang mở
 
-Chỉ giữ plan còn việc mở. Plan scrollbar, tinh gọn docs, inventory living docs và lịch sử plan Codex đã chuyển sang [lưu trữ](archive/plan.md).
+Chỉ giữ plan còn việc mở. Plan scrollbar, tinh gọn docs, inventory living docs và lịch sử plan Codex đã chuyển sang [lưu trữ](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/17227133f487cbaf15101efddcae87179327faeb/tasks/archive/plan.md) (Git history).
 
 ## Skeleton chờ ảnh, mở ảnh tại chỗ, vào thẳng trang — plan chờ duyệt 2026-10-04
 
