@@ -1506,8 +1506,12 @@ try {
     const link = page.locator("[data-advertising-card] > a").first();
     const photoId = await link.evaluate((node) => node.closest("[data-advertising-card]").dataset.advertisingCard);
     await link.scrollIntoViewIfNeeded();
-    const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    // click() may scroll again when the header covers the card, so record the Y the click itself saw.
+    await page.evaluate(() => addEventListener("click", () => {
+      window.__gridClickY = window.TruongThinhMotion.getLogicalScroll();
+    }, { once: true, capture: true }));
     await link.click();
+    const gridY = await page.evaluate(() => window.__gridClickY);
     await ready(page, photoId);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     await armNoGridMorphProbe(page);
@@ -1939,7 +1943,10 @@ try {
     assert.equal(compact.expandBorderRadius, "0px");
     assert(Math.abs(compact.expandRect.width - 48) <= 0.1 && Math.abs(compact.expandRect.height - 48) <= 0.1);
     stage("hover-labels");
-    await expandControl.hover(); await page.waitForTimeout(300);
+    // Software compositing in CI paints slowly, so wait for the hover transition to finish instead of a fixed delay.
+    await expandControl.hover();
+    await page.evaluate(frame);
+    await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
     const expandHover = await expandControl.evaluate((node) => ({
       labelOpacity: getComputedStyle(node.querySelector("span")).opacity,
       rect: node.getBoundingClientRect().toJSON(),

@@ -58,26 +58,27 @@ function expectedPhotoGeometry(evidence) {
   const columns = evidence.relatedColumns;
   const cardWidth = (gridWidth - gap * (columns - 1)) / columns;
   const top = evidence.headerRowHeight + headerOuter + outer + evidence.safeTop;
-  const belowPeek = 50;
-  const heightCap = evidence.windowHeight - top - gap - belowPeek - evidence.safeBottom;
   const ratio = evidence.image.naturalWidth / evidence.image.naturalHeight;
   const span = Math.min(3, columns);
   const width = span * cardWidth + (span - 1) * gap;
-  const mode = evidence.clientWidth <= 750 ? "stacked" : "split";
-  const needed = evidence.infoContentHeight;
+  // Detail spec R2: four columns split image and info; fewer stack them without the 50px peek.
+  const mode = span === columns ? "pinterest" : "split";
+  // Split leaves a gap and the 50px related peek; pinterest fills the viewport below the header.
+  const heightCap = evidence.windowHeight - top - evidence.safeBottom - (mode === "split" ? gap + 50 : 0);
   const imageZoneWidth = mode === "split"
     ? (span - 1) * cardWidth + Math.max(0, span - 2) * gap
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
-  const height = heightCap;
-  const available = height - gap;
-  const descriptionHeight = mode === "split" ? height
-    : Math.min(Math.max(available / 2, needed), available - Math.min(80, available / 2));
-  const imageZoneHeight = mode === "split" ? height : available - descriptionHeight;
+  // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport.
+  const descriptionCap = evidence.windowHeight * 0.28 - gap;
+  const descriptionHeight = mode === "split" ? heightCap : evidence.infoRect.height;
+  const imageZoneHeight = mode === "split" ? heightCap
+    : Math.min(width / ratio, evidence.windowHeight - top - evidence.safeBottom - descriptionHeight - gap);
+  const height = mode === "split" ? heightCap : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);
   const imageHeight = imageWidth / ratio;
   return { span, width, height, imageZoneWidth, imageZoneHeight, descriptionWidth, descriptionHeight,
-    imageWidth, imageHeight, mode, top, heightCap, belowPeek, gridWidth, cardWidth, gap, outer, headerOuter };
+    imageWidth, imageHeight, mode, top, heightCap, descriptionCap, gridWidth, cardWidth, gap, outer, headerOuter };
 }
 
 async function sha256(relativePath) {
@@ -351,9 +352,6 @@ async function layoutEvidence(page) {
       canvasRect: serializeRect(canvas),
       viewRect: serializeRect(photoView),
       infoRect: serializeRect(info),
-      infoContentHeight: info ? Math.ceil([...info.children].filter((node) => !node.hidden)
-        .reduce((sum, node, index) => sum + node.getBoundingClientRect().height
-          + (index ? parseFloat(getComputedStyle(info).rowGap) : 0), 0)) : 0,
       heroRect: serializeRect(hero),
       frameRect: serializeRect(frame),
       headerRect: serializeRect(header),
@@ -376,6 +374,10 @@ async function layoutEvidence(page) {
         scrollHeight: info.scrollHeight,
         scrollTop: info.scrollTop,
         overflowY: infoStyle.overflowY,
+        descriptionLines: (() => {
+          const description = info.querySelector("[data-advertising-photo-description]");
+          return description ? description.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(description).lineHeight) : null;
+        })(),
         tabIndex: info.tabIndex,
         role: info.getAttribute("role"),
       } : null,
@@ -414,7 +416,7 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   const intrinsicRatio = evidence.image.naturalWidth / evidence.image.naturalHeight;
   assert(Math.abs(renderedRatio - intrinsicRatio) < 0.02, `${label}: hero ratio ${renderedRatio} differs from intrinsic ${intrinsicRatio}`);
   assert.equal(evidence.image.objectFit, "contain", `${label}: hero media is not contained`);
-  assert.equal(evidence.photoLayout, expected.mode, `${label}: mode differs from the D18 responsive oracle`);
+  assert.equal(evidence.photoLayout, expected.mode, `${label}: mode differs from detail spec R2`);
   assert.equal(evidence.primarySpan, expected.span, `${label}: span differs from the span-three contract`);
   closeTo(evidence.primaryRect.width, expected.width, `${label}: primary width`);
   closeTo(evidence.primaryRect.height, expected.height, `${label}: primary height`);
@@ -426,14 +428,19 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
   assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap`);
-  assert.equal(evidence.info?.overflowY, "auto", `${label}: description overflow is not independently scrollable`);
+  // Detail spec R2: past the 28% cap only when one description line with group and CTA does not fit.
+  if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
+    assert(evidence.info?.descriptionLines < 1.5, `${label}: info exceeds 28% of the viewport with more than one description line`);
+  }
+  // Detail spec R3: the description pages by words instead of scrolling on its own.
+  assert(!["auto", "scroll"].includes(evidence.info?.overflowY), `${label}: description has its own scrollbar`);
   assert.equal(evidence.info?.tabIndex, 0, `${label}: description region is not keyboard focusable`);
   assert.equal(evidence.info?.role, "region", `${label}: description region role is absent`);
   assert.equal(evidence.relatedOverlapCount, 0, `${label}: related item overlaps primary`);
   assert.equal(evidence.visibleCtas, 1, `${label}: expected one visible detail CTA`);
   assert(evidence.horizontalOverflow <= 1, `${label}: horizontal overflow ${evidence.horizontalOverflow}px`);
-  if (expected.mode === "stacked") {
-    assert(evidence.infoRect.top >= evidence.heroRect.bottom + expected.gap - 1, `${label}: stacked description does not follow the responsive gap`);
+  if (expected.mode === "pinterest") {
+    assert(evidence.infoRect.top >= evidence.heroRect.bottom + expected.gap - 1, `${label}: pinterest description does not follow the responsive gap`);
   } else {
     assert(evidence.infoRect.left >= evidence.heroRect.right + expected.gap - 1, `${label}: split description does not follow the responsive gap`);
   }
@@ -441,7 +448,7 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
     assert(Math.abs(evidence.scrollY) <= 1 && Math.abs(evidence.logicalScroll) <= 1, `${label}: direct load is not at the logical top`);
     closeTo(evidence.headerRect.height, evidence.headerRowHeight + expected.headerOuter, `${label}: expanded header shell height`);
     closeTo(evidence.primaryRect.top, expected.top, `${label}: primary visible top`);
-    assert(evidence.primaryRect.bottom <= evidence.windowHeight - expected.gap - expected.belowPeek - evidence.safeBottom + 1, `${label}: primary frame exceeds visible viewport cap`);
+    assert(evidence.primaryRect.bottom <= expected.top + expected.heightCap + 1, `${label}: primary frame exceeds visible viewport cap`);
     assert(evidence.frameRect.top >= -1 && evidence.frameRect.bottom <= evidence.windowHeight + 1, `${label}: media frame does not fit the initial viewport`);
   }
   return expected;
@@ -476,7 +483,7 @@ function assertSuggestionAndRelated(evidence, label, expected, { textScale = 1 }
   assert.equal(evidence.suggestion.title.fontWeight, "700", `${label}: suggestion title weight`);
   closeTo(evidence.suggestion.linksGap, 8, `${label}: suggestion banner gap`, 0.1);
   closeTo(evidence.suggestion.linksMarginTop, 8, `${label}: suggestion title-banner gap`, 0.1);
-  assert.equal(evidence.suggestion.banners.length, 4, `${label}: D18 requires four suggestion slots`);
+  assert.equal(evidence.suggestion.banners.length, 4, `${label}: detail spec R5 fills four suggestion slots for this photo`);
   assert.equal(new Set(evidence.suggestion.banners.map((banner) => Math.round(banner.rect.left))).size, 1,
     `${label}: suggestion slots do not use one full-width column`);
   assert.equal(new Set(evidence.suggestion.banners.map((banner) => Math.round(banner.rect.top))).size, 4,

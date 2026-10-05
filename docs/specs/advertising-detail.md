@@ -267,11 +267,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- `history-grid-pointer-retained-morph` FAIL (cũng FAIL trên `main` trước PR sửa R8): test đọc Y masonry rồi mới click,
-  nhưng trang tự cuộn khoảng 300px trong 200ms sau `scrollIntoViewIfNeeded`; Back về đúng `grid.scrollY` đã lưu lúc click.
-  Chưa rõ thứ gì cuộn trang (không qua `setLogicalScroll` hay `window.scrollTo`). Main.
-- `square-controls-hover-and-return` FAIL "expand label did not reveal to left" (cũng FAIL trên `main`); chưa rõ test cũ hay
-  CSS. `p13-position-stuffing-and-remount` lúc PASS lúc FAIL "missing visible 400ms travel", cả trên `main`. Main.
+- `p13-position-stuffing-and-remount` lúc PASS lúc FAIL "missing visible 400ms travel", cả trên `main`. Main.
 - Landscape VI `Y=2` trên emulator FAIL; A05s thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay H01–H02 trên A05s chưa chạy;
   L06 (viewer không đóng khi vuốt từ nền) chưa replay A05s ngang, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
