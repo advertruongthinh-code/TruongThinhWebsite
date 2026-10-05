@@ -463,7 +463,8 @@
       return;
     }
     header.classList.add("is-brand-color-reset");
-    void header.offsetWidth;
+    // A style flush starts the fill transition from the reset color without forcing layout.
+    void getComputedStyle(header).color;
     headerBrandColorFrame = window.requestAnimationFrame(() => {
       headerBrandColorFrame = undefined;
       header.classList.remove("is-brand-color-reset");
@@ -478,7 +479,8 @@
     cancelHeaderBrandColorFrames();
     header.classList.remove("is-brand-color", "is-brand-inverse");
     header.classList.add("is-brand-color-reset");
-    void header.offsetWidth;
+    // A style flush starts the fill transition from the reset color without forcing layout.
+    void getComputedStyle(header).color;
     headerBrandColorFrame = window.requestAnimationFrame(() => {
       headerBrandColorFrame = undefined;
       header.classList.remove("is-brand-color-reset");
@@ -2340,14 +2342,15 @@
   });
 
   setLanguageFromDocument();
-  measureDesktopNav();
+  // The observer measures after the first layout; reading it here forced that layout inside this task.
+  if (typeof ResizeObserver === "undefined") measureDesktopNav();
   const directUrl = new URL(window.location.href);
   window.history.replaceState(
     window.history.state,
     "",
     `${directUrl.pathname}${directUrl.search}`,
   );
-  let directScroll = window.scrollY;
+  let directScroll;
   try {
     const saved = window.sessionStorage.getItem(localeScrollStateKey(directUrl));
     if (saved !== null && Number.isFinite(Number(saved))) directScroll = Number(saved);
@@ -2406,11 +2409,13 @@
       href: destination.href,
     };
   }, { capture: true, signal: runtimeAbort.signal });
+  // Mount and Barba read layout; after the first frame that layout is already done, so this script stays a short task.
+  const afterFirstFrame = new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve)));
   if (enteredViaRoute) prepareRouteDestination(directContainer);
-  const directMount = mountPage(directContainer, {
-    scrollY: directScroll,
+  const directMount = afterFirstFrame.then(() => mountPage(directContainer, {
+    scrollY: directScroll ?? window.scrollY,
     settledStartup,
-  });
+  }));
   const handleDirectMountFailure = (error) => {
     const intent = pendingAdvertisingFilter;
     clearPendingAdvertisingFilter();
@@ -2475,86 +2480,87 @@
     event.stopImmediatePropagation();
   }, { signal: runtimeAbort.signal });
 
-  if (window.barba) {
-    try {
-      window.barba.init({
-        preventRunning: true,
-        timeout: 15_000,
-        prefetchIgnore: true,
-        prevent: shouldPreventBarba,
-        requestError: (trigger, _action, url) => {
-          const fallbackUrl = new URL(
-            pendingLocaleNavigation?.url.href || url,
-            window.location.href,
-          );
-          clearPendingLocaleNavigation();
-          hardNavigate(fallbackUrl.href, trigger);
-          return false;
-        },
-        transitions: [
-          {
-            name: "persistent-shell",
-            sync: false,
-            beforeLeave(data) {
-              releaseHeaderInteractionState();
-              pinHeaderForRoute();
-              routeMountReady = false;
-              rememberCurrentScroll(data);
-            },
-            async leave(data) {
-              await coverRoute(closeMenu(false));
-              unmountPage();
-              data.current.container.hidden = true;
-            },
-            async beforeEnter(data) {
-              if (!syncDocumentState(data.next.html)) {
-                const fallbackUrl = new URL(
-                  pendingLocaleNavigation?.url.href || data.next.url.href,
-                  window.location.href,
-                );
-                hardNavigate(fallbackUrl.href);
-                return;
-              }
-              if (data.next.container.dataset.barbaNamespace === "advertising-products") {
-                try {
-                  await window.TruongThinhDetail?.ensureAdvertisingDependencies?.(data.next.url.href);
-                } catch (error) {
-                  console.error("[advertising-products] Barba dependency readiness failed", error);
-                  hardNavigate(data.next.url.href, data.trigger);
+  void afterFirstFrame.then(() => {
+    if (window.barba) {
+      try {
+        window.barba.init({
+          preventRunning: true,
+          timeout: 15_000,
+          prefetchIgnore: true,
+          prevent: shouldPreventBarba,
+          requestError: (trigger, _action, url) => {
+            const fallbackUrl = new URL(
+              pendingLocaleNavigation?.url.href || url,
+              window.location.href,
+            );
+            clearPendingLocaleNavigation();
+            hardNavigate(fallbackUrl.href, trigger);
+            return false;
+          },
+          transitions: [
+            {
+              name: "persistent-shell",
+              sync: false,
+              beforeLeave(data) {
+                releaseHeaderInteractionState();
+                pinHeaderForRoute();
+                routeMountReady = false;
+                rememberCurrentScroll(data);
+              },
+              async leave(data) {
+                await coverRoute(closeMenu(false));
+                unmountPage();
+                data.current.container.hidden = true;
+              },
+              async beforeEnter(data) {
+                if (!syncDocumentState(data.next.html)) {
+                  const fallbackUrl = new URL(
+                    pendingLocaleNavigation?.url.href || data.next.url.href,
+                    window.location.href,
+                  );
+                  hardNavigate(fallbackUrl.href);
                   return;
                 }
-              }
-              const nextUrl = new URL(data.next.url.href, window.location.href);
-              restorePendingLocaleUrl(nextUrl);
-              const scrollY = resolveNextScroll(data);
-              prepareRouteDestination(data.next.container);
-              try {
-                routeMountReady = await mountPage(data.next.container, {
-                  scrollY,
-                  softNavigation: true,
-                });
-              } catch (error) {
-                console.error("[advertising-products] destination mount failed", error);
-                hardNavigate(data.next.url.href, data.trigger);
-              }
+                if (data.next.container.dataset.barbaNamespace === "advertising-products") {
+                  try {
+                    await window.TruongThinhDetail?.ensureAdvertisingDependencies?.(data.next.url.href);
+                  } catch (error) {
+                    console.error("[advertising-products] Barba dependency readiness failed", error);
+                    hardNavigate(data.next.url.href, data.trigger);
+                    return;
+                  }
+                }
+                const nextUrl = new URL(data.next.url.href, window.location.href);
+                restorePendingLocaleUrl(nextUrl);
+                const scrollY = resolveNextScroll(data);
+                prepareRouteDestination(data.next.container);
+                try {
+                  routeMountReady = await mountPage(data.next.container, {
+                    scrollY,
+                    softNavigation: true,
+                  });
+                } catch (error) {
+                  console.error("[advertising-products] destination mount failed", error);
+                  hardNavigate(data.next.url.href, data.trigger);
+                }
+              },
+              async enter() {
+                if (routeMountReady) await playRouteEnter();
+              },
+              after() {
+                if (pendingLocaleNavigation && pageState) {
+                  setPageScroll(pageState, pendingLocaleNavigation.scrollY);
+                }
+                clearPendingLocaleNavigation(true);
+              },
             },
-            async enter() {
-              if (routeMountReady) await playRouteEnter();
-            },
-            after() {
-              if (pendingLocaleNavigation && pageState) {
-                setPageScroll(pageState, pendingLocaleNavigation.scrollY);
-              }
-              clearPendingLocaleNavigation(true);
-            },
-          },
-        ],
-      });
-    } catch {
-      clearRouteEntry();
+          ],
+        });
+      } catch {
+        clearRouteEntry();
+      }
     }
-  }
-
+  });
   window.addEventListener(
     "pageshow",
     (event) => {
