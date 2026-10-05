@@ -160,8 +160,8 @@ alt/ARIA ở node lá theo [content guide](../../design-system/content.md).
   theo phiên/phiên bản quan sát, không là quy luật chung của Pinterest.
 - **Giữ** morph ảnh primary ↔ viewer khi mở/đóng, zoom fit → cover → 2 × cover, pan giới hạn,
   focus/scroll lock và reduced-motion policy hiện có. Bổ sung yêu cầu pinch **hai ngón trên chính ảnh trong
-  viewer** để zoom ảnh nội bộ và pan khi phóng lớn, không đánh đồng với native page zoom. Không tự thêm
-  double-tap. L06 portrait page pinch không chứng minh viewer pinch; L06 landscape hai EN viewer tự đóng sau
+  viewer** để zoom ảnh nội bộ và pan khi phóng lớn, không đánh đồng với native page zoom. Pinch và double-tap
+  nay theo [spec zoom hai ngón](advertising-viewer-touch-zoom.md) owner yêu cầu 05/10. L06 portrait page pinch không chứng minh viewer pinch; L06 landscape hai EN viewer tự đóng sau
   touch và lỗi CDN vẫn là RED độc lập phải phân loại. Modal viewer và menu giữ top-layer/exclusivity đã
   accepted; header, route veil, CTA và local layer theo
   [shell spec](frontend-brand-shell-responsive-runtime.md), không còn lớp grid-detail morph trong tính năng
