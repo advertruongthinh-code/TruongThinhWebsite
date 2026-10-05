@@ -228,10 +228,9 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
     .filter((tag) => !authoredIds.has(tag.id)
       && ["product", "use"].includes(tag.group)
       && matchingCards(tag.id).some((card) => card.category === hero.category))
-    .sort((left, right) => {
-      return fnv1a32(`${hero.id}:${left.id}`) - fnv1a32(`${hero.id}:${right.id}`)
-        || left.id.localeCompare(right.id);
-    });
+    .map((tag) => ({ tag, hash: fnv1a32(`${hero.id}:${tag.id}`) }))
+    .sort((left, right) => left.hash - right.hash || left.tag.id.localeCompare(right.tag.id))
+    .map(({ tag }) => tag);
   const active = tagById.get(activeTag);
   const suggestions = [...authored, ...contextual];
   const suggestionLimit = Math.max(0, Number(limit) || 0);
@@ -1129,19 +1128,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
   }
-  let artifactDataHash;
-  try {
-    artifactDataHash = fnv1a32(JSON.stringify({
-      datasetVersion: artifact.datasetVersion,
-      layoutAlgorithmVersion: artifact.layoutAlgorithmVersion,
-      settings,
-      categories,
-      cards,
-    })).toString(16).padStart(8, "0");
-  } catch (error) {
-    console.error("[advertising-products] artifact identity validation failed", error);
-    throw new Error("Advertising artifact identity must be serializable", { cause: error });
-  }
   // Preserve the generated artifact reference as the cache identity; do not clone or mutate it.
   const artifactCacheIdentity = artifact;
   if (signal?.aborted) return () => {};
@@ -1188,6 +1174,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
+  // Direct photo entry lays out the primary first; the related solver runs in the next task.
+  let relatedDeferred = false;
   let relatedMeasuredGeometry = null;
   let suggestionSlots = [];
   let suggestionSlotHeroId = "";
@@ -1423,7 +1411,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const key = [
       artifactCacheIdentity.datasetVersion,
       artifactCacheIdentity.layoutAlgorithmVersion,
-      artifactDataHash,
       CAPTION_METRICS_VERSION,
       targetFilter,
       compileOptions.layoutViewportWidth,
@@ -2292,16 +2279,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     const pages = [];
     let start = 0;
+    // Most descriptions fit on one page: one layout instead of a search.
+    photoDescription.textContent = words.join(" ");
+    if (photoDescription.scrollHeight <= available + 1) {
+      pages.push(photoDescription.textContent);
+      start = words.length;
+    }
     while (start < words.length) {
-      let end = start + 1;
-      let best = end;
-      while (end <= words.length) {
+      // Binary search the longest fitting page: each probe forces a layout.
+      let best = start + 1;
+      let low = start + 2;
+      let high = words.length;
+      while (low <= high) {
+        const end = (low + high) >> 1;
         photoDescription.textContent = words.slice(start, end).join(" ");
-        if (photoDescription.scrollHeight > available + 1) break;
-        best = end;
-        end += 1;
+        if (photoDescription.scrollHeight > available + 1) high = end - 1;
+        else {
+          best = end;
+          low = end + 1;
+        }
       }
-      if (best === start) best = start + 1;
       pages.push(words.slice(start, best).join(" "));
       start = best;
     }
@@ -2634,7 +2631,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
     relatedLayout = compileAdvertisingRelatedLayout({
-      cards, categoryOrder, columns,
+      cards: relatedDeferred ? cards.filter((card) => card.id === browse.photo) : cards,
+      categoryOrder, columns,
       datasetVersion: artifact.datasetVersion, heroId: browse.photo,
       layoutViewportWidth: viewportWidth, viewportHeight, headerHeight,
       safeTop: parseFloat(viewStyle.getPropertyValue("--advertising-safe-top")) || 0,
@@ -2930,6 +2928,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     delete document.body.dataset.advertisingPhotoActive;
     const focusId = browse.grid.focusId;
     if (browse.category !== filter) setActiveFilter(browse.category);
+    if (!geometry) measure();
     const node = focusId ? ensurePhoto(focusId) : null;
     if (node && browse.grid.mediaId) {
       gridMediaById.set(focusId, browse.grid.mediaId);
@@ -3325,7 +3324,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     scheduleResize();
   };
-  document.fonts?.ready.then(refreshFontGeometry);
   document.fonts?.addEventListener("loadingdone", refreshFontGeometry, { signal: controller.signal });
 
   let cleaned = false;
@@ -3367,11 +3365,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   signal?.addEventListener("abort", cleanup, { once: true });
   activeInstance = { adapter, browseHistory, container, cleanup, syncSkeletonMotion };
-  measure({ animate: !browseHistory.current.photo });
   if (browseHistory.current.photo) {
-    adapter.retainPhoto(browseHistory.current.photo);
+    // The grid stays hidden under a photo; ensurePhoto measures it on the way back.
+    retainedPhotoIds.add(browseHistory.current.photo);
+    // Startup, primary photo and related solver each get their own task so none blocks input
+    // past 50ms on the A05s (docs/specs/advertising-detail.md). A restored scroll needs the full height.
+    const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+    await nextTask();
+    if (controller.signal.aborted) return cleanup;
+    relatedDeferred = !browseHistory.current.detail.scrollY && !browseHistory.current.detail.anchorId;
     renderPhoto(browseHistory.current, "direct");
+    if (relatedDeferred) {
+      await nextTask();
+      if (controller.signal.aborted) return cleanup;
+      relatedDeferred = false;
+      if (activePhotoId) {
+        relatedLayoutKey = "";
+        layoutRelated(browseHistory.current);
+        window.dispatchEvent(new CustomEvent("site:layout"));
+      }
+    }
+    await nextTask();
+    if (controller.signal.aborted) return cleanup;
   } else {
+    measure({ animate: true });
     restoreGridEntry(browseHistory.current, "direct");
   }
   browseHistory.persistCurrent();
