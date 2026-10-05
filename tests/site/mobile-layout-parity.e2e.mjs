@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= "E:/TruongThinh-Website/.tooling/browsers";
@@ -18,7 +20,14 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const runnerSha256 = hash(await fs.readFile(new URL(import.meta.url)));
 const sourceCatalogSha256 = hash(await fs.readFile("src/site/advertising-products/catalog.mjs"));
 const assets = {};
-for (const file of ["style.css", "detail.css", "motion.js", "detail.js", "advertising-products/catalog-runtime.mjs", "advertising-products/layout-core.mjs", "advertising-products/catalog-artifact.mjs", "advertising-products/photo-viewer.mjs"]) {
+// Every served script/style copied from src/site plus the generated artifact, and the Git candidate itself.
+const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
+const candidate = () => ({ head: git("rev-parse", "HEAD"), dirty: git("status", "--porcelain", "--", "src/site") });
+const startCandidate = candidate();
+assert.equal(startCandidate.dirty, "", "src/site must be committed before a layout run");
+const servedFiles = (await fs.readdir("src/site", { recursive: true })).map(f => f.replaceAll("\\", "/"))
+  .filter(f => /\.(css|js|mjs)$/.test(f) && existsSync(`.site-output/${f}`)).concat("advertising-products/catalog-artifact.mjs");
+for (const file of servedFiles) {
   const response = await fetch(`${base}/${file}`);
   assets[file] = { source: hash(await fs.readFile(`${file.endsWith('catalog-artifact.mjs')?'.site-output':'src/site'}/${file}`)), served: hash(Buffer.from(await response.arrayBuffer())), status: response.status };
   assert.equal(response.status, 200); assert.equal(assets[file].source, assets[file].served, file);
@@ -108,7 +117,8 @@ function faultsFor(measured) {
 }
 const intersection = (a,b) => a&&b ? Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)) : 0;
 async function ready(page, options = {}) {
-  if(!options.noScript)await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")||document.documentElement.classList.contains("motion-fallback"));
+  // Direct loads cover the page with an opaque route veil until the enter phase removes route-enter.
+  if(!options.noScript)await page.waitForFunction(() => (document.documentElement.classList.contains("motion-ready")||document.documentElement.classList.contains("motion-fallback"))&&!document.documentElement.classList.contains("route-enter"));
   if(options.noScript) {
     let loaded=false;
     for(let attempt=0;attempt<60;attempt++) {
@@ -246,13 +256,13 @@ async function checkCtaReflow(page,engine,label) {
   const heading=page.locator('[data-advertising-grid-cta] h2'),before=await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight}));
   const original=await heading.evaluate(e=>e.style.fontSize);
   try {
-    // Isolate a text/font reflow from footer and viewport changes.
+    // Isolate a text/font reflow from footer and viewport changes; the runtime refits the heading to the CTA.
     await heading.evaluate(e=>e.style.fontSize=`${parseFloat(getComputedStyle(e).fontSize)*1.5}px`);
     await page.locator('[data-advertising-grid-cta]').scrollIntoViewIfNeeded();await ready(page);
     await recordState(page,engine,`${label}: CTA text reflow`,{selector:'[data-advertising-grid-cta] h2,[data-advertising-grid-cta] a',viewportOnly:true});
     assert.deepEqual(await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight})),before,'CTA floor updates without viewport/footer resize');
-    const fit=await page.evaluate(()=>{const cta=document.querySelector('[data-advertising-grid-cta]'),copy=cta.querySelector('.detail-cta__copy');return{bottom:copy.getBoundingClientRect().bottom,limit:cta.getBoundingClientRect().bottom};});
-    assert.ok(fit.bottom<=fit.limit+1,'reflowed CTA copy fits its tail');
+    const fit=await page.evaluate(()=>{const cta=document.querySelector('[data-advertising-grid-cta]').getBoundingClientRect(),copy=document.querySelector('[data-advertising-grid-cta] .detail-cta__copy').getBoundingClientRect();return{top:copy.top,bottom:copy.bottom,ctaTop:cta.top,limit:cta.bottom};});
+    assert.ok(fit.top>=fit.ctaTop-1&&fit.bottom<=fit.limit+1,'reflowed CTA copy fits inside the CTA');
   } finally {await heading.evaluate((e,value)=>e.style.fontSize=value,original);await ready(page);await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));}
 }
 async function waitForDestination(page,href) {
@@ -563,13 +573,14 @@ for(const [file,expected] of Object.entries(assets)) {
 }
 if(hash(await fs.readFile("src/site/advertising-products/catalog.mjs"))!==sourceCatalogSha256)provenanceFaults.push('catalog source changed during run');
 if(hash(await fs.readFile(new URL(import.meta.url)))!==runnerSha256)provenanceFaults.push('runner changed during run');
+if(JSON.stringify(candidate())!==JSON.stringify(startCandidate))provenanceFaults.push('Git candidate changed during run');
 for(const [file,expected] of Object.entries(sourceHTML))if(hash(await fs.readFile(`src/site/${file}`))!==expected)provenanceFaults.push(`HTML changed during run: ${file}`);
 if(!['states','body','interactions','advertising-states','history','about-history'].includes(scope)) {
   const expected=(process.env.LAYOUT_ENGINES||'chromium,firefox,webkit').split(',').length*routes.length*viewports.length*2;
   const actual=results.filter(r=>!r.kind&&r.textSize).length;
   if(actual!==expected)provenanceFaults.push(`matrix coverage incomplete: expected ${expected}, actual ${actual}`);
 }
-await fs.writeFile(dir+"/results.json",JSON.stringify({phase,scope,selection:{engines:process.env.LAYOUT_ENGINES||'chromium,firefox,webkit',stateModes:process.env.LAYOUT_STATE_MODES||'native,text200,native-landscape,text200-landscape,reduced,fallback,no-js',stateRoutes:process.env.LAYOUT_STATE_ROUTES||canonicalRoutes,interactionWidth:process.env.LAYOUT_INTERACTION_WIDTH||'390,838',interactionFont:process.env.LAYOUT_INTERACTION_FONT||'16,32'},runnerSha256,sourceCatalogSha256,assets,sourceHTML,versions,provenanceFaults,results},null,2));
+await fs.writeFile(dir+"/results.json",JSON.stringify({phase,scope,candidate:startCandidate,selection:{engines:process.env.LAYOUT_ENGINES||'chromium,firefox,webkit',stateModes:process.env.LAYOUT_STATE_MODES||'native,text200,native-landscape,text200-landscape,reduced,fallback,no-js',stateRoutes:process.env.LAYOUT_STATE_ROUTES||canonicalRoutes,interactionWidth:process.env.LAYOUT_INTERACTION_WIDTH||'390,838',interactionFont:process.env.LAYOUT_INTERACTION_FONT||'16,32'},runnerSha256,sourceCatalogSha256,assets,sourceHTML,versions,provenanceFaults,results},null,2));
 const failures=results.filter(r=>r.error||r.faults?.length);
 console.log(JSON.stringify({dir,records:results.length,failures:failures.length,provenanceFaults,byEngine:Object.fromEntries(["chromium","firefox","webkit"].map(e=>[e,failures.filter(r=>r.engine===e).length]))}));
 if(failures.length||provenanceFaults.length)process.exitCode=1;
