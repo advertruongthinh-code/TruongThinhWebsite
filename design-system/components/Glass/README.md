@@ -20,7 +20,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   chồng mép lên bậc kế, không thấy bậc hay bóng ma hai lớp.
   Dạng phủ đều đứng yên dùng một bậc đủ `28px`, nhìn như năm bậc chồng mà nhẹ hơn.
   Dạng cung cũng dùng một bậc đủ làm lõi bên trong cung, ba bậc chỉ phủ dải;
-  lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối.
+  lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối:
+  lõi hiện đủ ở nửa ngoài trước khi các bậc tắt ở nửa trong, nên trang nét không lọt qua.
 - **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
   trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
   batch; trong cung nhòe tối đa, ra ngoài nhòe giảm dần về 0. Đỉnh cung ở `50%`
