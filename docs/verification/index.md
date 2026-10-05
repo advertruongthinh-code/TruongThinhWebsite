@@ -18,8 +18,8 @@ subset, không thay verdict toàn bộ. [Motion audit](../reports/research-espac
 là ledger source/runtime; [baseline Espacio](../reference/espacio/index.md) là
 reference có provenance, không là TT parity PASS.
 
-Owner spot-check một photo view VI và một EN theo AD-BROWSE-R1 vẫn là human
-acceptance đang mở. Flow này thay category carousel; docs hoặc focused tests
+Owner spot-check detail VI và EN vẫn là human acceptance đang mở
+([gate detail](../specs/advertising-detail.md#gate-còn-mở)). Flow này thay category carousel; docs hoặc focused tests
 không tự đóng gate hoặc cấp quyền deploy.
 
 ## Evidence sở hữu contract hiện hành
@@ -27,7 +27,7 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Claim cần truy nguyên | Report | Giới hạn |
 | --- | --- | --- |
 | Advertising random grid P1/P3 và khung tải ảnh P8–P9 | [Cloud 04/10](advertising-random-grid-p0-p10-2026-10-04.md) | Chromium cloud, CDN route từ npm; WebKit/iPhone/A05s không chạy; cache hit của vòng tĩnh chưa xác nhận |
-| QA và audit PR #13–#29, #39 (ảnh AVIF, vòng tải, focus header) | [QA 04/10](qa-audit-done-tasks-2026-10-04.md) | Chỉ Chromium cloud; FAIL có sẵn từ trước PR #13 được tách riêng; F1 vòng SMIL vẽ lại liên tục còn mở |
+| QA và audit PR #13–#29, #39 (ảnh AVIF, vòng tải, focus header) | [QA 04/10](qa-audit-done-tasks-2026-10-04.md) | Chỉ Chromium cloud; FAIL có sẵn từ trước PR #13 được tách riêng; F1 vòng SMIL: code đã thêm `is-media-settled`, chưa đo lại; F2 ở [gate ba trang con](../specs/detail-pages.md#gate-còn-mở) |
 | Ảnh gốc của media site tĩnh | [Kiểm kê 2026-10-03](media-originals-2026-10-03.md) | Quét PC owner một lần; manifest ngoài Git |
 | Đồng bộ board Notion và kiểm nhất quán Advertising 03/10 | [Notion sync](advertising-notion-sync-2026-10-03.md) | Chỉ tóm tắt `Not started`/`In progress`; 13 card `Done` không chép chi tiết. UI probe desktop 929×861, không thay thế M02b hoặc full-site acceptance |
 | M02b Advertising Claude PARTIAL / NOT ACCEPTED | [Checkpoint Claude 03/10](site-media-card-m02b-claude-checkpoint-2026-10-03.md) | Runtime `B1B3C8…`: Masonry instant-relayout fix, related seed `m02b-i`; related 4/6, landscape VI/EN `Y=3` FAIL chưa rõ gốc; full transitions 19/29 với fail đã biết/có sẵn; units58/59, qa:static PASS |
@@ -37,11 +37,8 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Media-card Advertising M02a: primary, thumbnail, audio và direct detail | [Checkpoint M02a 30/09](site-media-card-m02a-checkpoint-2026-09-30.md) | Scoped engineering GREEN trên source đã khóa; focused11, viewer controls12, photo-layout15, affected pointer harness và A05s portrait đạt. Raw landscape strict fit RED được L04R native scroll/reachability làm rõ; P14-L04R focused37/37, không đóng multi-engine/Android/660 matrix. Owner visual, clip thật, iPhone/Safari và full-site còn mở |
 | Media-card Advertising R6-R3: canvas cover và dải control grid/related | [Checkpoint R6-R3 28/09](site-media-card-r6-r3-checkpoint-2026-09-28.md) | Scoped browser R6 29/29, M01b 25/25, unit77/77, static/build/diffcheck; source/build/served layout/runtime/CSS khớp, seal118/118. Synthetic Chromium 320/390 VI/EN; native, clip public thật và full-site không thuộc checkpoint này |
 | Shell: full menu, scrollbar, viewport khi toolbar đổi, layout mobile toàn site | [Shell website](../specs/site-shell.md#gate-còn-mở) | Report menu 24/09, scrollbar, viewport 27/09, layout 28/09 đã gộp vào spec; bản gốc ở Git `40e5f11`. Gate thiết bị, owner, MCP, L04R3/L06/L07 còn mở theo spec |
-| Advertising history H01–H02 và viewer L06 | [Cloud 04/10](advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04) | H01 rescope theo M02b, không sửa source; full runner 29/30, FAIL là landscape emulator đã biết. L06 touch-close tái hiện và sửa trên Chromium, A05s chưa replay |
-| Advertising history scroll và offscreen photo morph | [H00 28/09](advertising-history-motion-2026-09-28.md) | Chromium EN/VI1543×884, grid Y0=0/detail Y1=480: geometry, computed paint và video cho thấy ảnh clone qua viewport hai chiều. Không tái hiện lỗi trên8792; tab gốc8790 khác candidate chưa xác minh, H01 source fix chưa mở, owner visual còn mở. Runner hash chỉ ghi posthoc, chưa chứng minh pre/post freeze |
-| Random phục hồi, visible skeleton và WebKit cleanup | [Correction27/09](mobile-skeleton-correction-2026-09-27.md) | Current C06U A/deck12 accepted;60unit/19random/6footer, lifecycle3engines/clean80, scrollbar405/smoke21/21 đạt; Android dọc/ngang1366common pairs0reset. Native GPU FPS/profile đạt; full continuation FAIL ready predicate/MCP blocked, C06/C07/device/owner mở; historical C05 RED/C05R GREEN giữ |
-| Preview random, skeleton, landscape và WebKit | [Diagnostic27/09](mobile-preview-diagnostics-2026-09-27.md) |8792 dùng baseline trước random; Android footer↔grid tái hiện; landscape settled lỗi ở emulation; delta skeleton và plan/card đã duyệt; implementation đang mở, iPhone chưa kiểm |
-| Android thật: skeleton thay frame khi visual height đổi | [Owner recording27/09](android-skeleton-observation-2026-09-27.md) | Galaxy A05s/Chrome153, local candidate66 staged;652 samples/49 ảnh; chưa sửa UI, chưa kiểm Sites2/iPhone hoặc FPS |
+| Advertising history H00–H02 và viewer L06 | [Detail](../specs/advertising-detail.md#gate-còn-mở) | H00 28/09 và cloud 04/10 đã gộp vào spec; bản gốc ở Git `ebb1fca`. Gate A05s (H01–H02, L06), iPhone, owner và FAIL Back/Forward còn mở theo spec |
+| Skeleton lifecycle, preview random, Android thật 27/09 | [Skeleton](../specs/advertising-skeleton.md#gate-còn-mở) | Correction, chẩn đoán preview và owner recording 27/09 đã gộp vào spec skeleton và [masonry](../specs/advertising-masonry.md); bản gốc ở Git `16e4983`. Gate A05s FPS, iPhone, continuation FAIL còn mở theo spec |
 | Catalog154, owner selection28 và5 ảnh ChatGPT | [Mapping/review24/09](../../source-assets/projects/advertising/owner-selection-20260924/README.md) |27 thêm,1 thay; COCO/decal còn lỗi chữ nhỏ; không5/5 rubric PASS |
 | History, footer, slideshow và logo correction | [P7.5](advertising-september-p7-5-2026-09-24.md) | Focused regression; full-site parity không đổi |
 | AD-SEPT-2026-P7.3: primary vừa viewport dưới navbar, nav một hàng và suggestion qua resize | [Run 2026-09-23](advertising-september-p7-3-2026-09-23.md) | Focused technical gate đạt; owner visual và Galaxy A54 thật còn mở; full-site vẫn NOT PASS |
@@ -52,7 +49,7 @@ không tự đóng gate hoặc cấp quyền deploy.
 | AD-BROWSE-R1, UI-FRAME-R4 và R6 | [Checkpoint R4/R6](advertising-grid-r4-2026-09-09.md#ad-browse-r1--ui-frame-r4-và-r6-2026-09-10) | Baseline detail/viewer/nhãn: G6 94/94, scrollbar 4/4, compatibility 14/14; không tự bao phủ policy v6 hoặc image-quality |
 | AD-BROWSE-R1-P1.1 một cột | [Policy v6 và geometry](advertising-grid-r4-2026-09-09.md#ad-browse-r1-p11--policy-một-cột-2026-09-10) | Node 34/34, grid 30/30, G3 6/6, viewer 94/94; build cuối một cột 6/6 và scrollbar 4/4; owner spot-check còn mở |
 | AD-BROWSE-R1-P1.2 | [Cân đáy, CTA và Back v7](advertising-grid-r4-2026-09-09.md#ad-browse-r1-p12--cân-đáy-cta-và-back-2026-09-10) | Node 38/38, 1.320 related cases; transitions 8/8, viewer 94/94, một cột browser 6/6; owner spot-check còn mở |
-| Advertising Products scoped work log 31/08–09/09 | [Evidence turnkey](advertising-products-turnkey-evidence.md) | Lịch sử scoped current-hash; contract ở spec |
+| Advertising Products scoped work log 31/08–09/09 | `advertising-products-turnkey-evidence.md` ở Git `16e4983` | Lịch sử scoped current-hash; contract ở [masonry](../specs/advertising-masonry.md) |
 | Audit + Critique 115 ảnh Advertising | [Bảng điểm đầy đủ](advertising-images-audit-2026-09-09.md) | 70 giữ, 23 sửa, 16 thay, 6 nguồn chưa xác minh; chưa thay ảnh hoặc nghiệm thu GRID-R4 |
 | Grid 109 media, spacing | [109 media](../archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md) | Scoped snapshot, khác rank-v2 và rank-v3 72 card |
 | Grid media re-entry | [Replay](../archive/reports/verification-advertising-products-media-reentry-detail-visibility-2026-09-01.md) | Phần detail 7/7 được regression dưới bổ sung |
@@ -69,9 +66,9 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Evidence cũ | Nguồn thay cho current behavior |
 | --- | --- |
 | Current-hash/single-column 2026-08-31, nghiên cứu batching 2026-08-30 | Accepted [organic spacing/media ADR](../decisions/advertising-organic-masonry-espacio-spacing-media-distribution.md) và report 109 media |
-| Organic 72 card, outer 20/gap 16 | Report 109 media và [Advertising spec](../specs/advertising-products-turnkey-services.md) |
+| Organic 72 card, outer 20/gap 16 | Report 109 media và [masonry](../specs/advertising-masonry.md) |
 | One-shot entrance không replay remount | Report re-entry; detail visibility dùng report regression 2026-09-02 |
-| Sáu category detail composition và Advertising carousel | [AD-BROWSE-R1](../specs/advertising-photo-browse.md) và [UI/compatibility proof](advertising-grid-r4-2026-09-09.md#ad-browse-r1--ui-frame-r4-và-r6-2026-09-10); giữ report gốc, không áp kết quả cũ cho photo view |
+| Sáu category detail composition và Advertising carousel | [detail](../specs/advertising-detail.md) và [UI/compatibility proof](advertising-grid-r4-2026-09-09.md#ad-browse-r1--ui-frame-r4-và-r6-2026-09-10); giữ report gốc, không áp kết quả cũ cho photo view |
 | Browser/project/bootstrap snapshot tháng 7–8 | Historical; tra current scope trong STATE, tooling runbook và report mới tương ứng |
 
 Không tự bỏ accepted ADR vì cũ. [Decision index](../decisions/index.md) giữ

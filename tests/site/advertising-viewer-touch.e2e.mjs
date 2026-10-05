@@ -2,7 +2,8 @@
 // one/two finger hand-off, double tap, stops for buttons, reduced motion. Backdrop swipe and tap (L06) stay in
 // advertising-photo-transitions.e2e.mjs. Touch goes through CDP so the
 // browser's own touch-to-pointer path runs. DEVICE_CDP (http://127.0.0.1:9222 after `adb forward tcp:9222
-// localabstract:chrome_devtools_remote`, with `adb reverse tcp:8787 tcp:8787`) drives a real phone's Chrome instead.
+// localabstract:chrome_devtools_remote`, with `adb reverse tcp:8787 tcp:8787`) drives a real phone's Chrome instead,
+// in whatever orientation the phone is held.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -60,27 +61,14 @@ function checkAnchor(before, after, from, to, label) {
   }
 }
 
-// A phone page and its CDP session. A real phone keeps its own screen in portrait; landscape swaps it over
-// CDP, the same viewport emulation the other A05s runs use.
+// A phone page and its CDP session. On a real phone each run gets a fresh tab on the phone's own screen:
+// emulating another size there misplaces touches, and reloading a zoomed tab restores its page zoom.
 async function phonePage({ width, height, reducedMotion = "no-preference" }) {
-  if (!device) {
-    const context = await browser.newContext({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 3, reducedMotion });
-    const page = await context.newPage();
-    return { page, cdp: await context.newCDPSession(page), close: () => context.close() };
-  }
-  const page = browser.contexts()[0].pages()[0] || await browser.contexts()[0].newPage();
-  const cdp = await page.context().newCDPSession(page);
-  if (width > height) {
-    const screen = await page.evaluate(() => [window.screen.width, window.screen.height]);
-    await cdp.send("Emulation.setDeviceMetricsOverride", { width: Math.max(...screen), height: Math.min(...screen),
-      deviceScaleFactor: 0, mobile: true, screenOrientation: { type: "landscapePrimary", angle: 90 } });
-  }
+  const context = device ? browser.contexts()[0]
+    : await browser.newContext({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+  const page = await context.newPage();
   await page.emulateMedia({ reducedMotion });
-  return { page, cdp, close: async () => {
-    await cdp.send("Emulation.clearDeviceMetricsOverride");
-    await page.emulateMedia({ reducedMotion: null });
-    await cdp.detach();
-  } };
+  return { page, cdp: await context.newCDPSession(page), close: () => (device ? page.close() : context.close()) };
 }
 
 // The image moved by (dx, dy) on every axis the pan limit leaves free.
@@ -119,9 +107,15 @@ const settled = (page) => page.waitForFunction(() => {
 
 // Pointer events from CDP touches land on the next frames, so each send waits two frames before returning.
 function touchDriver(page, cdp) {
+  const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const send = async (type, touchPoints) => {
     await cdp.send("Input.dispatchTouchEvent", { type, touchPoints });
-    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await frames();
+  };
+  // A page zoomed by an earlier gesture moves every later touch, so stop at the first one.
+  const unzoomed = async (what) => {
+    const scale = await page.evaluate(() => visualViewport.scale);
+    if (scale !== 1) throw new Error(`page zoomed to ${scale} before ${what}`);
   };
   const pair = (centre, distance) => [
     { x: centre.x - distance / 2, y: centre.y, id: 1 },
@@ -132,6 +126,7 @@ function touchDriver(page, cdp) {
     pair,
     // Two fingers spread from `from` to `to` px apart around `centre`, released unless `hold`.
     async pinch(centre, from, to, { hold = false, steps = 8 } = {}) {
+      await unzoomed("a pinch");
       await send("touchStart", [pair(centre, from)[0]]);
       await send("touchStart", pair(centre, from));
       for (let step = 1; step <= steps; step += 1) await send("touchMove", pair(centre, from + (to - from) * step / steps));
@@ -148,11 +143,14 @@ function touchDriver(page, cdp) {
       await send("touchStart", [{ ...point, id: 1 }]);
       await send("touchEnd", []);
     },
+    // Sent back to back: over adb, a frame wait per event would stretch the taps past the 300ms window.
     async doubleTap(point) {
+      await unzoomed("a double tap");
       for (let tap = 0; tap < 2; tap += 1) {
-        await send("touchStart", [{ ...point, id: 1 }]);
-        await send("touchEnd", []);
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ ...point, id: 1 }] });
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
       }
+      await frames();
     },
   };
 }
@@ -300,15 +298,18 @@ async function runMotion() {
         && !after.minusDisabled && !after.resetDisabled && !after.plusDisabled,
         `${label}: double tap animated or missed Cover ${JSON.stringify(after)}`);
     } else {
-      // Click + and start a pinch two frames later, inside the 200ms zoom, in one task so timing is fixed.
+      // Click + and start a pinch once the 200ms zoom has visibly moved (a real phone can hold it at 0 for a few frames).
       const sample = await page.evaluate(async () => {
         const image = document.querySelector("[data-advertising-photo-expanded-image]");
         const viewport = document.querySelector("[data-advertising-photo-viewport]");
         const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
         document.querySelector("[data-advertising-photo-zoom-in]").click();
-        await frame();
-        await frame();
-        const shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+        let shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+        for (let i = 0; i < 10 && shown.a <= 1; i++) {
+          await frame();
+          shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+        }
+        const midway = image.getAnimations().length;
         const box = viewport.getBoundingClientRect();
         const pointer = (type, id, x) => viewport.dispatchEvent(new PointerEvent(type, {
           bubbles: true, cancelable: true, pointerType: "touch", pointerId: id, isPrimary: id === 1,
@@ -321,9 +322,9 @@ async function runMotion() {
         const running = image.getAnimations().length;
         pointer("pointerup", 2, 40);
         pointer("pointerup", 1, -40);
-        return { shown: shown.a, adopted: adopted.a, x: adopted.m41 - shown.m41, y: adopted.m42 - shown.m42, phase, running };
+        return { shown: shown.a, adopted: adopted.a, x: adopted.m41 - shown.m41, y: adopted.m42 - shown.m42, phase, midway, running };
       });
-      check(sample.shown > 1 && sample.phase === "open" && sample.running === 0
+      check(sample.shown > 1 && sample.midway > 0 && sample.phase === "open" && sample.running === 0
         && Math.abs(sample.adopted - sample.shown) < 0.005 && Math.abs(sample.x) <= 1 && Math.abs(sample.y) <= 1,
         `${label}: touch mid zoom jumped ${JSON.stringify(sample)}`);
     }
@@ -351,6 +352,8 @@ try {
   await runPhone({ locale: "en", width: 844, height: 390 });
   await runMotion();
   if (!device) await runDesktop();
+} catch (error) {
+  failures.push(String(error.stack || error));
 } finally {
   await browser.close();
 }

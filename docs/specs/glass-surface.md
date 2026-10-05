@@ -15,7 +15,7 @@ updated: 2026-10-05
 ## Mục đích
 
 Mọi bề mặt glass của trang Advertising dùng một component Kính: nhòe tăng dần
-thật qua năm bậc, màu trắng theo cùng hình, hạt nhiễu mịn và màu sau kính rực
+thật qua nhiều bậc, màu trắng theo cùng hình, hạt nhiễu mịn và màu sau kính rực
 hơn, để vùng chuyển từ nét sang nhòe không còn ranh giới. Số do owner chốt trên
 bản chạy thử [Kính Trường Thịnh](https://claude.ai/artifact/3cmMiPqYxMMq9LAWCHwujH)
 (phiên bản 4). Giá trị nhìn thấy ở
@@ -51,8 +51,9 @@ và thấy chuyển động (owner, 04/10).
 
 Biên kính là một cung tròn, tâm ở giữa theo chiều ngang và nằm dưới batch.
 Trong cung, kính nhòe tối đa `28px`. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
-về 0 qua năm bậc `28`, `16`, `9`, `4.5`, `2px`; mỗi bậc chồng mép lên bậc kế để
-mắt không thấy bậc hay đường ranh giới. Không có vùng nào thấy ảnh nét và ảnh
+về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm ngày 05/10 để
+vuốt trên A05s đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
+hay đường ranh giới. Không có vùng nào thấy ảnh nét và ảnh
 nhòe chồng lên nhau. Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai
 lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tăng
 `sqrt(L² - L_trước²)`.
@@ -85,7 +86,7 @@ Lớp phủ trắng của kính đi theo cùng các cung đồng tâm với đ�
 dải không có trắng, tới cung đạt tint `0.12`, vào trong tăng tới trắng tuyệt
 đối ở vòng tròn đi qua hai góc đáy batch. Hai đoạn chuyển dùng smoothstep để
 không gãy ở cung. Quy tắc đáy trắng tuyệt đối của
-[Skeleton Flow](advertising-skeleton-flow.md#correction-r8-accepted--glass-blur-rộng-và-white-endpoint)
+[skeleton R6](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)
 giữ nguyên.
 
 ```gherkin
@@ -114,8 +115,8 @@ And vùng trắng tuyệt đối không có hạt nhiễu
 
 Kính tăng độ bão hòa của nội dung phía sau lên `1.7`, độ sáng
 `1.04`, tint trắng alpha `0.12`. `saturate()` và `brightness()` nhân dồn qua
-các bậc, nên mỗi bậc nhận căn bậc năm của giá trị tổng và độ rực tăng cùng độ
-nhòe.
+các bậc, nên mỗi bậc nhận căn bậc năm (dạng cung: căn bậc ba) của giá trị tổng
+và độ rực tăng cùng độ nhòe.
 
 ### R6. Hiện và tan bằng opacity từng bậc
 
@@ -140,7 +141,8 @@ Then chỉ opacity của các bậc đổi theo thời gian, backdrop-filter kh�
 Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
 trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
 median tối thiểu `30fps`, không long task trên `50ms`. Nếu số bậc làm rơi gate,
-báo owner kèm số đo trước khi đổi số bậc. Có tiền tố
+báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi gate, owner chọn ba
+bậc cho dạng cung). Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
@@ -155,10 +157,10 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
-| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó năm bậc đều đủ), rồi năm bậc chỉ phủ dải; lõi chuyển sang năm bậc qua `48px` bên trong cung nên không thấy đường nối, diện tích blur giảm khoảng 30%; dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
-| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch), `saturate(1.112)`, `brightness(1.0079)`; `.glass-surface__step--full` là `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
+| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi ba bậc chỉ phủ dải; lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần (owner thấy ở mép màn hình, 05/10); dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): năm bậc `2`, `4.03`, `7.79`, `13.23`, `22.98px`, dạng cung `4.5`, `11.12`, `25.3px`; `--glass-step-saturate`, `--glass-step-brightness` trên `.glass-surface` là `1.112`, `1.0079`, dạng cung `1.1935`, `1.0132`; `.glass-surface__step--full` là `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Ảnh hạt nhiễu 160×160 sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
-| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 5, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
+| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
 | Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass`; gắn kính hiện/tan cuối khung media card hoặc khung primary trong lúc ảnh hiện |
 
 ## UI
@@ -176,14 +178,17 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 
 ## Gate còn mở
 
-- R7 trên A05s rơi gate (đo 05/10, Chrome 154, median ba lần, bản Kính so với
-  bản ngay trước Kính): vuốt thật ở cuối masonry `27fps` (26–31) so với `65fps`,
-  nặng ở paint, không có JS chặn; cuộn bằng script `36` so với `77fps`. Vào thẳng
-  ảnh có kính phủ đều: `33` so với `62fps` trong 1.5s đầu, long task dài nhất
-  204–266ms so với 197–220ms, nên gate long task đã rơi từ trước Kính. Cuộn
-  related `83` so với `88fps`, đạt. Lõi kính cung (05/10) giữ nguyên hình, giảm
-  diện tích blur khoảng 30%; trên cloud (chậm CPU ×4) cuộn ở cuối masonry từ
-  `29.5` lên `32.4fps`, chưa đo lại trên A05s. Giảm số bậc chờ owner chọn.
+- R7 trên A05s, vào thẳng ảnh: vẫn rơi, không do Kính. Task dựng catalog
+  (hash cả catalog, masonry đang ẩn, related, chia trang mô tả) đã chia nhỏ
+  (PR #107, đo 05/10, Chrome 154, median năm lần): task dài nhất `310ms` còn
+  `77–81ms`, fps 1.5s đầu `20.9` lên `28.8`. Còn khoảng bốn task `60–85ms`:
+  `motion.js` chạy kèm layout ép (có cả trước PR), primary (style và layout
+  chế độ ảnh cộng solver lần đầu), related, rồi `mountPageMotion` cùng WebGL skeleton.
+- Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
+  bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
+  `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long
+  task. Đo trên code thật của bản ba bậc sau khi merge chưa chạy; số trên lấy
+  từ cùng bố cục dựng trong trang.
 - Safari trên iPhone thật chưa kiểm.
 
 ## Chú thích thuật ngữ

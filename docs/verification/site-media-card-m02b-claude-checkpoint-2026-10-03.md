@@ -94,7 +94,7 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
   Related shuffle PASS trên cloud.
 - Unit `node --test tests/site/*.test.mjs`: 116/120 trước, 120/120 sau. Bốn
   test lệch hành vi đã duyệt: hai assertion về grid-detail morph lease và
-  backdrop morph đã bị M02b bỏ ([spec](../specs/advertising-photo-browse.md)),
+  backdrop morph đã bị M02b bỏ ([spec](../specs/advertising-detail.md)),
   history state thiếu `mediaId`, R11 dùng tag nay có hai ảnh và đổi geometry ở
   `media` thay vì cover `mediaItems`.
 - p13: khôi phục `installRelatedMediaProbe`/`assertMediaFade` bị rơi khi restore;
@@ -122,7 +122,7 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
     runner nặng. Sửa: chờ `getAnimations()` xong rồi mới đọc màu.
   - skeleton-global-boundary-fade và grid-cta-skeleton-flow: test còn
     đòi mask trên container skeleton (R6/R8) và tối đa 3 frame mỗi cột (R11).
-    [R10 và P7.1](../specs/advertising-skeleton-flow.md#correction-p71--organic-continuation-và-paint-overflow)
+    [R10 và P7.1](../specs/advertising-skeleton.md#r1-batch-nối-tiếp-masonry)
     đã thay bằng một glass surface toàn cục và số frame theo ranh giới glass.
     Test nay kiểm glass `::before` có `linear-gradient` và `backdrop-filter`.
   - grid-cta-skeleton-flow `vi-320`: test đo hộp frame chưa cắt (vượt `54px`),

@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-04
+updated: 2026-10-05
 source:
   - scripts/docs/**
   - .github/pull_request_template.md
@@ -71,7 +71,8 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | shell | `site-shell.md` | header, menu, footer, locale, chuyển trang, scrollbar; `style.css`, `motion.js` |
 | home | `page-home.md` | `src/site/index.html` |
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` |
-| adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, skeleton |
+| adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random |
+| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs` |
 | adv-detail | `advertising-detail.md` | `?photo=`: primary, related, suggestion, viewer |
 | media | `media-delivery.md` | biến thể ảnh, vòng tải, media-card |
 | release | `static-release.md` | `scripts/site/`, preview, demo Cloudflare |

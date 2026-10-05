@@ -4,7 +4,7 @@ type: operations
 status: connection-verified
 updated: 2026-09-27
 related_specs:
-  - ../specs/mobile-browser-parity-capability-map.md
+  - ../specs/site-shell.md
 ---
 
 # Debug Android thật qua USB
@@ -150,8 +150,8 @@ có thể trả warning buffered trước attach; host receive time không là t
 warning phát sinh. Native screenshot ghi page content, không gồm toolbar/status
 bar của Chrome/Android. Logs viewport giữ tác động toolbar cho việc đối chiếu.
 
-[Kết quả quan sát skeleton27/09](../verification/android-skeleton-observation-2026-09-27.md)
-giữ timeline, source/raw hash và giới hạn. Đã ghi nhận frame thay khi visual
+Quan sát skeleton 27/09 (timeline, raw hash nằm trong Git history) đã vào
+[gate skeleton](../specs/advertising-skeleton.md#gate-còn-mở). Đã ghi nhận frame thay khi visual
 height đổi trong cùng batch; không gộp canvas-only virtualization hoặc abort
 lúc chuyển trang vào số lần skeleton reset. Recorder đã exit; mappings giữ
 để tiếp tục debug local khi có yêu cầu.

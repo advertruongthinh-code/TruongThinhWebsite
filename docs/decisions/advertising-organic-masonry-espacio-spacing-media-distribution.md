@@ -5,8 +5,8 @@ date: 2026-09-01
 scope: Advertising product grid geometry and media distribution
 supersedes: []
 related_specs:
-  - ../specs/advertising-products-turnkey-services.md
-  - ../specs/advertising-photo-browse.md
+  - ../specs/advertising-masonry.md
+  - ../specs/advertising-detail.md
 related_reports:
   - ../archive/reports/verification-advertising-products-109-media-spacing-2026-09-01.md
   - ../archive/reports/verification-advertising-products-organic-masonry-2026-09-01.md
@@ -23,7 +23,7 @@ morph, nhưng dùng outer `20px`, gap `16px`, không có content cap và chỉ c
 card. Implementation hiện tại đã thay baseline đó bằng geometry và pool media
 được quyết định dưới đây; evidence nằm trong report current-hash liên quan.
 
-Catalog hiện hành do [advertising-photo-browse](../specs/advertising-photo-browse.md)
+Catalog hiện hành do [advertising-masonry](../specs/advertising-masonry.md)
 sở hữu (`154` ảnh, dataset `2026-09-24.1`). Số `109` và phân bổ theo nhóm dưới
 đây là checkpoint ngày `2026-09-01`; geometry và packing contract vẫn hiệu lực.
 

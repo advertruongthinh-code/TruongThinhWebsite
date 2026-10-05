@@ -39,7 +39,7 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
 - Video ở primary tự phát, tắt tiếng; nút tiếng (`Bật tiếng` / `Unmute`) ẩn
   khi item ghi không có tiếng, nút `Xem lớn hơn` ẩn khi item là video.
 
-Rule đầy đủ: [photo browse](../../../docs/specs/advertising-photo-browse.md).
+Rule đầy đủ: [detail](../../../docs/specs/advertising-detail.md).
 
 Đổi ảnh diễn ra tại chính khung ảnh: ảnh đang tải mang
 [skeleton](../Skeleton/README.md), ảnh có sẵn crossfade từ ảnh đang xem

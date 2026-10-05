@@ -80,7 +80,9 @@ const clean = (html) => html
   .replace(/(<video\b[^>]*?)\ssrc="[^"]*"/g, '$1')
   .replace(/\s(?:srcset|sizes|data-srcset|data-sizes|loading)="[^"]*"/g, '')
   .replace(/\sclass="([^"]*)"/g, (_, c) => ` class="${c.split(/\s+/).filter((name) => !/^(lazy\w*|ls-is-cached)$/.test(name)).join(' ')}"`)
-  .replace(/\s(?:data-advertising-flow-(?:batch|phase|anchor-permutation))="[^"]*"/g, '');
+  .replace(/\s(?:data-advertising-flow-(?:batch|phase|anchor-permutation))="[^"]*"/g, '')
+  // The Kính grain is a blob URL that dies with the page.
+  .replace(/--glass-grain: url\(blob:[^)]*\);\s?/g, '');
 
 const browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {}) });
 mkdirSync(OUT, { recursive: true });

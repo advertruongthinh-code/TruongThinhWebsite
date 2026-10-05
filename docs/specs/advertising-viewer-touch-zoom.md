@@ -19,7 +19,7 @@ Khách xem ảnh công trình trên điện thoại hoặc máy tính bảng zoo
 trong viewer bằng tay, như app Thư viện: chụm hai ngón, kéo một ngón, chạm đúp.
 Spec này sở hữu thao tác chạm và zoom liên tục có nấc.
 Mở, đóng, morph, nút, con lăn, phím và khóa cuộn giữ theo
-[photo browse](advertising-photo-browse.md#viewer-và-điều-hướng) và R9 ở đó.
+[detail](advertising-detail.md#r9-viewer) và R9 ở đó.
 
 ## Hành vi
 
@@ -116,6 +116,8 @@ Then ảnh về Fit, − và Reset disabled
 
 - Resize hoặc xoay máy: đang ở một nấc thì giữ nấc đó theo hình học mới; nằm
   giữa hai nấc thì giữ `s` và kẹp vào khoảng mới; pan kẹp lại.
+- Đóng sau resize: nút mở bị đẩy khỏi màn hình thì trang cuộn tức thì cho nút
+  về giữa ([detail R9](advertising-detail.md#r9-viewer)).
 - Bắt đầu chạm hoặc kéo khi đang zoom bằng animation: lấy transform đang hiện
   làm điểm bắt đầu, không nhảy. Khi đang mở, ảnh tới ngay mức Fit rồi nhận thao
   tác. Đang đóng thì bỏ qua thao tác chạm.
@@ -155,12 +157,11 @@ của [Viewer](../../design-system/components/Viewer/README.md). PR code sửa c
 | R1–R6 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
-| R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; ngang giả lập qua CDP (chưa chạy) |
+| R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm. Đạt 05/10/2026 trên SM-A057F, Chrome 154, dọc (2/2 lượt); ngang trên máy thật chỉ khi đặt máy ngang (chưa chạy) |
 
 ## Gate còn mở
 
-- A05s thật chưa chạy; làm qua Remote Control trên PC theo
-  [plan](../../tasks/viewer-touch-zoom-plan.md).
+- A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud.
 - iPhone Safari chưa kiểm vì chưa kết nối thiết bị; WebKit desktop không thay
   bằng chứng iPhone.
 

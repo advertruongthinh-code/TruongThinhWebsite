@@ -18,8 +18,9 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
   thì. Đổi preference khi đang mở trang có hiệu lực ngay.
 - Chỉ animate `transform` và `opacity`; không animate width, height hay CSS
   blur mỗi frame.
-- Vòng đời (dọn observer, listener, timeline; BFCache) và thư viện animation
-  ở [route và content](../docs/specs/frontend-route-and-content.md#contract-motion).
+- Vòng đời (dọn observer, listener, timeline; BFCache) ở [shell](../docs/specs/site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)
+  và [ba trang con](../docs/specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời); thư viện animation ở
+  [phát hành tĩnh](../docs/specs/static-release.md#r4-font-và-thư-viện-tự-host).
 
 ## Shell
 
@@ -51,7 +52,7 @@ dung, speed dương làm nó chạy nhanh hơn.
 
 | Phần tử | Trang | Speed | Cảm nhận |
 | --- | --- | --- | --- |
-| Ảnh hero `.hero-slides` | Trang chủ | `-2` | Trôi chậm hơn cuộn 20% |
+| Ảnh hero `.hero-slides` | Trang chủ, Residential, Commercial | `-2` | Trôi chậm hơn cuộn 20% |
 | Rail dự án `.project-track` | Trang chủ | `4`, chiều ngang | Trượt ngang 0.4px mỗi px cuộn |
 | Ảnh `legacy-hands`, `design-sketch`, `workshop-wide` | About | `-0.12`, `-0.1`, `-0.12` | Trôi chậm hơn 1.2%, 1%, 1.2% |
 
@@ -131,6 +132,7 @@ Trang chủ:
 | --- | --- |
 | Ảnh card, project tile | `scale(1 → 1.15)`, `600ms ease-out` (`--media-hover-*`); khung giữ nguyên, ảnh bị clip |
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
+| Ảnh gallery, duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
 
@@ -171,17 +173,17 @@ outline. Touch không cần hover để mở ảnh.
 
 ### Skeleton tiếp nối
 
-- Ba frame rỗng mỗi cột nối từ đáy ảnh thật, cùng gutter, chứa CTA; kết thúc ở
-  đáy CTA cộng một gap masonry.
+- Frame rỗng nối từ đáy ảnh thật mỗi cột, cùng gutter, xếp tới đáy batch ngay
+  trên footer; CTA nằm trong batch.
 - Mặt frame là Flow: gradient bốn màu chảy và xoáy chậm, có noise mịn, vẽ
   bằng WebGL. Mỗi lần trang ổn định (tải, đổi filter, mở đóng detail,
   Back/Forward) 12 preset màu được xáo và chia cho các frame, không frame nào
   trùng preset; mỗi frame lệch anchor, pha và chiều chảy. Resize giữ nguyên.
-  Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton-flow.md#preset-source-controlled).
+  Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
-- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, stagger theo vị trí như
-  ảnh card; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
+- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, mỗi frame tự hiện khi
+  giao vùng nhìn thấy, không stagger; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
   không focus.
 - Cuối batch là [Kính](components/Glass/README.md) dạng cung, đứng yên: card
   phía trên nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối. CTA và

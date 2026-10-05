@@ -9,7 +9,7 @@ tags:
   - accessibility
 supersedes: []
 related_specs:
-  - ../specs/advertising-products-turnkey-services.md
+  - ../specs/advertising-masonry.md
 related_reports:
   - ../reports/research-espacio-motion-audit.md
 ---

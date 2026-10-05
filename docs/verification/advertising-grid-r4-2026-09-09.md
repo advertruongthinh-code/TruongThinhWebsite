@@ -6,7 +6,7 @@ Các checkpoint GRID-R4 bên dưới giữ evidence theo từng revision sau LOG
 Trạng thái UI hiện tại nằm ở mục AD-BROWSE-R1 — UI-FRAME-R4 và R6 cuối file;
 không dùng trạng thái chưa nghiệm thu của checkpoint cũ thay kết quả mới.
 Nguồn chuẩn GRID-R4 là
-[spec R4](../specs/advertising-grid-span-organic.md),
+[spec R4](../specs/advertising-masonry.md),
 [visual B1](../design/patterns.md#advertising-masonry-geometry)
 và [rubric ảnh](../design/advertising-image-quality.md).
 Chất lượng toàn pool và website vẫn chưa được nghiệm thu toàn bộ.
@@ -125,7 +125,7 @@ Chưa nghiệm thu toàn pool ảnh, toàn bộ lifecycle P5 hoặc full website
 ## AD-BROWSE-R1 — data và Auto, 2026-09-10
 
 Owner duyệt spec và plan AD-BROWSE-R1-P1; contract mới ở
-[photo browse](../specs/advertising-photo-browse.md). Evidence GRID-R4 ở trên là
+[photo browse](../specs/advertising-detail.md). Evidence GRID-R4 ở trên là
 lịch sử, không thay browser gate của revision mới.
 
 Main đối chiếu 109 record/file với baseline: ID, source ID, URL, dimensions,
@@ -163,7 +163,7 @@ SHA-256 tại checkpoint Auto:
 ## AD-BROWSE-R1 — UI-FRAME-R4 và R6, 2026-09-10
 
 Main đã kiểm source, generated output, review độc lập và các artifact dưới đây.
-[Photo browse](../specs/advertising-photo-browse.md) giữ contract hiện hành;
+[Photo browse](../specs/advertising-detail.md) giữ contract hiện hành;
 [Pinterest reference](../reference/pinterest-photo-view.md) giữ DOM/CSS và thao tác
 trên năm pin trong trình duyệt Codex đã đăng nhập. Bố cục split/stacked là cách
 áp dụng của Trường Thịnh; không suy Pinterest chọn layout chỉ từ tỷ lệ ảnh.
@@ -723,7 +723,7 @@ Giữ In progress; việc tách draft không tự hoàn thành các phạm vi n�
 
 Owner yêu cầu bắt đầu thực thi sau khi chốt intent tại
 [card detail3/2](https://app.notion.com/p/3d7332849a0e81dcaf93ee8955892b26).
-Contract là delta P1.4 trong [photo browse](../specs/advertising-photo-browse.md).
+Contract là delta P1.4 trong [photo browse](../specs/advertising-detail.md#r2-hình-học-primary).
 Source đổi ở `layout-core.mjs` (chỉ geometry primary), `catalog-runtime.mjs`,
 `advertising-products/index.html` và `detail.css`; không đổi navbar/controller,
 packing kernel v7, media, font delivery hoặc CTA grid. Code giữ worktree cũ;
@@ -822,7 +822,7 @@ không dùng evidence trước đó để claim đã triển khai những delta 
 
 Owner đã yêu cầu bỏ title/caption ở mọi grid Advertising và tiêu đề lớn của
 ảnh detail; giữ mô tả, tag và thông tin thay thế cho ảnh. Contract hiện hành
-ở [D8](../specs/advertising-final-polish-and-media.md). Đây là phần riêng,
+ở [D8](../specs/advertising-detail.md#r3-info-nhóm-mô-tả-cta). Đây là phần riêng,
 chưa bao gồm chuyển gợi ý vào mô tả hoặc toggle filter.
 
 Source hiện không render caption ở parent, related hoặc noscript; detail
@@ -871,7 +871,7 @@ không suy claim kiểm toàn delta từ hash prefix hoặc ledger.
 ## D9 — Ưu tiên so le10% 2026-09-13
 
 Owner thay strict20% bằng ưu tiên10%, cho phép hàng thẳng sau khi thử nhánh
-ưu tiên. Spec [D9](../specs/advertising-final-polish-and-media.md) sở hữu
+ưu tiên. Spec [D9](../specs/advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) sở hữu
 correction, áp parent/related. Source v10, metric caption-v2; code review
 độc lập PASS/APPROVED, không có finding Critical/Important. Đây là verdict
 code trong slice D9, không là nghiệm thu toàn T02.

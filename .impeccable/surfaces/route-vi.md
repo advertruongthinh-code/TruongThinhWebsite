@@ -9,7 +9,7 @@ related_targets: ["route:/en", "route:/vi/residential", "route:/en/residential",
 
 Home, Residential, Commercial, About ở VI và EN. Advertising có brief riêng.
 Token, component và motion dùng chung ở [Design System](../../design-system/README.md);
-route và content ở [spec route](../../docs/specs/frontend-route-and-content.md).
+route và content ở [trang chủ](../../docs/specs/page-home.md) và [ba trang con](../../docs/specs/detail-pages.md).
 
 ## Visitor mode
 

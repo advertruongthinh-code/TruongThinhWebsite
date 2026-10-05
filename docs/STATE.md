@@ -17,7 +17,14 @@
   [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); owner duyệt bản 20 (checkpoint 2).
   T9: owner duyệt pilot [static-release](specs/static-release.md) và template.
   T10: [shell](specs/site-shell.md) thay hai spec shell, menu và bốn verification cũ.
-  T11: [trang chủ](specs/page-home.md) thay spec landing; T12 tiếp.
+  T11: [trang chủ](specs/page-home.md) thay spec landing. T12: [trang con](specs/detail-pages.md)
+  thay spec route. T13: [masonry](specs/advertising-masonry.md) và [skeleton](specs/advertising-skeleton.md)
+  thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
+  photo browse, morph và hai capability map; T15 tiếp.
+- Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
+  trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
+  chung, scroll cue trượt chữ; test cũ đã sửa theo thiết kế. Còn: khôi phục scroll Back/Forward
+  Advertising, test Advertising cũ ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
@@ -33,9 +40,9 @@
   Firefox/WebKit trên PC 2026-10-04 không có lỗi mới
   ([kết quả](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#firefox-và-webkit-trên-pc-2026-10-04));
   iPhone chưa kiểm vì chưa kết nối. M03–M09 ngoài Advertising vẫn PAUSED,
-  trừ pinch viewer (M07b): đã code theo [spec](specs/advertising-viewer-touch-zoom.md), chờ chạy A05s.
+  trừ pinch viewer (M07b): đã lên `main` theo [spec](specs/advertising-viewer-touch-zoom.md), A05s dọc đạt 05/10.
   History H01–H02 rescope xong trên cloud; viewer không còn đóng khi vuốt từ nền
-  (L06), chờ replay A05s ([evidence](verification/advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04)).
+  (L06), chờ replay A05s ([evidence](specs/advertising-detail.md#gate-còn-mở)).
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
   WebKit; thứ tự filter có test, solver 350/350 lượt hard-safe
   ([evidence 04/10](verification/advertising-random-grid-p0-p10-2026-10-04.md)). P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
@@ -55,11 +62,11 @@
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
-- UI contract: [photo/masonry](specs/advertising-photo-browse.md),
-  [capability map](specs/advertising-september-2026-capability-map.md),
+- UI contract: [masonry](specs/advertising-masonry.md), [detail](specs/advertising-detail.md),
+  [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md),
   [shell](specs/site-shell.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
-  navbar về All; skeleton/CTA/footer theo P7.5.
+  navbar từ ảnh về nhóm đã chọn (ảnh vào thẳng về All); skeleton/CTA/footer theo P7.5.
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
@@ -102,7 +109,8 @@
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; skeleton chờ ảnh, mở ảnh tại chỗ và kính hiện,
   tan trên ảnh vừa tải đã code, còn trace A05s (R9); [Kính dùng chung](specs/glass-surface.md)
-  đã code 04/10 cho kính cuối masonry, vùng dư primary và ảnh vừa tải, còn đo 30fps trên A05s;
+  đã code 04/10; kính cung đạt A05s với ba bậc; vào thẳng ảnh vẫn rơi gate long task (task
+  dài nhất `310ms` còn `~80ms` sau PR #107, [gate](specs/glass-surface.md#gate-còn-mở));
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/static-release.md#r11-phát-hành-demo-cloudflare); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua

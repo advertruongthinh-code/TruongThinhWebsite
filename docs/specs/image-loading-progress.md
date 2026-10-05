@@ -10,7 +10,7 @@ related_docs:
   - static-image-delivery.md
   - ../../design-system/content.md
   - ../../design-system/motion.md
-  - advertising-skeleton-flow.md
+  - advertising-skeleton.md
 ---
 
 # Đặc tả khung chờ và vòng tải ảnh toàn website

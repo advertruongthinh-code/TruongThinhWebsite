@@ -1,16 +1,20 @@
 // Kính: one glass component for every glass surface (docs/specs/glass-surface.md).
-// Five blur steps (levels 2, 4.5, 9, 16, 28px; increments in detail.css), then the white tint and the grain.
+// Blur steps (increments in detail.css), then the white tint and the grain. A surface that fades step by step (spec R6)
+// has five (levels 2, 4.5, 9, 16, 28px); the arc's band has three (4.5, 12, 28px; owner, 05/10, for the A05s).
 const STEPS = 5;
+const ARC_STEPS = 3;
 // Owner's final arc (04/10): apex at half the CTA cluster, radius 4 viewport widths, band 1.2 cluster heights.
 const ARC = Object.freeze({ centre: 0.5, radius: 4, band: 1.2 });
 // Band position (0 on the arc, 1 at the band edge) where each step runs from fully on to off; neighbours overlap.
-const RAMPS = Array.from({ length: STEPS }, (_, index) =>
-  [Math.max(0, (STEPS - 1 - index) / STEPS - 0.1), Math.min(1, (STEPS - index) / STEPS + 0.1)]);
-// Inside the arc all five steps are fully on, so one full step (the core) stands in for them there and the steps
-// only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows. Each box
+const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
+  [Math.max(0, (ARC_STEPS - 1 - index) / ARC_STEPS - 0.1), Math.min(1, (ARC_STEPS - index) / ARC_STEPS + 0.1)]);
+// Inside the arc all band steps are fully on, so one full step (the core) stands in for them there and the steps
+// only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows: the core
+// ramps in over the outer half while the steps stay on, the steps ramp out over the inner half, so the sharp page
+// never shows through a gap where both are partial. Each box
 // runs past its mask by its blur reach, 3 sigma of its increment in detail.css (28px for the core).
 const FADE = 48;
-const STEP_REACH = [6, 12, 24, 40, 69];
+const STEP_REACH = [14, 34, 76];
 const CORE_REACH = 84;
 const GRAIN_SIZE = 160;
 let grain;
@@ -46,7 +50,7 @@ function makeGrain() {
 
 // A static even surface looks the same through one full step as through five stacked ones, at about half the cost;
 // a surface that fades in or out step by step (spec R6) asks for all five.
-export function createGlassSurface(shape, steps = shape === "arc" ? STEPS : 1) {
+export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 1) {
   if (grain === undefined) makeGrain();
   const glass = document.createElement("div");
   glass.className = "glass-surface";
@@ -137,11 +141,11 @@ export function layoutArcGlass(glass, { width, batchBottom, band, radius, cy, dF
   const [coreStep, ...steps] = glass.querySelectorAll(".glass-surface__step");
   const coreTop = Math.max(top, cy - radius - CORE_REACH);
   place(coreStep, coreTop);
-  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${core}px, transparent ${radius}px)`);
+  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
   steps.forEach((step, index) => {
     const outer = radius + RAMPS[index][1] * band;
     place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
-    setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius}px, `
+    setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
       + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
   });
   // White follows the same circles: pure from the corner circle, tint on the arc, none at the band edge.

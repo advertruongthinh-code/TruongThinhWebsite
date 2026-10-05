@@ -316,9 +316,10 @@
     };
 
     const SplitText = window.SplitText;
-    if (gsap && SplitText && !reduceMotion) {
+    if (gsap && !reduceMotion) {
       state.gsapContext = gsap.context(() => {
-        const splitRoute = new Set([
+        // Without SplitText the text stays whole and visible; media and hero motion still run.
+        const splitRoute = Boolean(SplitText) && new Set([
           "advertising-products",
           "residential",
           "commercial",
@@ -345,8 +346,9 @@
         const heroMediaZoom = container.querySelector(
           "[data-motion-hero-media]",
         );
-        const heroWordGroup = container.querySelector(
-          "[data-motion-words][data-motion-hero-title]",
+        // About keeps its title unsplit, so it has no hero word group to tween.
+        const heroWordGroup = wordGroups.find((group) =>
+          group.hasAttribute("data-motion-hero-title"),
         );
         const heroMotto = container.querySelector(
           "[data-motion-hero-motto]",

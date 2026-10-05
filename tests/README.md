@@ -54,8 +54,8 @@ input dùng bbox/scroll range, cấm DOM index/offset cố định cho random gr
 Scene qualification bounded8 fresh visits ghi mọi attempt trước input, không
 retry runtime assertion; reverse quan sát sau actual scroll và fade window.
 Current continuation vẫn FAIL tại first-DOM-frame `ready()` predicate;
-[report correction](../docs/verification/mobile-skeleton-correction-2026-09-27.md)
-giữ exact line/hash/raw và gate, không xem focused FPS/handoff là full PASS.
+[gate skeleton](../docs/specs/advertising-skeleton.md#gate-còn-mở) giữ lỗi này;
+không xem focused FPS/handoff là full PASS.
 
 ```powershell
 pnpm dev
@@ -121,7 +121,7 @@ Không flag, transition suite kiểm identity/morph, Back giữa animation, ản
 chậm, dependency lỗi; viewer suite kiểm ba engine, viewport 320–2560, fit/
 cover, pan, focus, reduced motion. Đây là browser emulation, không phải phần
 cứng thật. Diễn giải kết quả theo
-[photo browse spec](../docs/specs/advertising-photo-browse.md).
+[detail spec](../docs/specs/advertising-detail.md).
 
 ## Chạy bằng runtime project-local
 

@@ -487,7 +487,7 @@ function assertPersistentNavigationContracts() {
   );
 
   assert(
-    /const intro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \} \}\);[\s\S]*!enteredViaRoute[\s\S]*\.from\(header\.querySelector\("#header-logo"\), \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
+    /const intro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \} \}\);[\s\S]*!softNavigation[\s\S]*\.from\(header\.querySelector\("#header-logo"\), \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
       motionSource,
     ) && brandCss && !/transition:\s*transform\b/.test(brandCss),
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",
@@ -617,11 +617,9 @@ function assertPersistentNavigationContracts() {
     /const collapsed = scrollY > 100;/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
       /directionStartY - scrollY > 150/.test(motionSource) &&
-      /const isMiddle = scrollY > window\.innerHeight \* 0\.5;/.test(
+      /const isMiddle =\s*scrollY > window\.innerHeight \* 0\.5 &&\s*scrollY < pageHeight - window\.innerHeight \* 1\.25;/.test(
         motionSource,
       ) &&
-      /const clampedByLayout =[\s\S]*maxScroll < lastMaxScroll - 1[\s\S]*scrollY >= maxScroll - 2/.test(motionSource) &&
-      /if \(clampedByLayout\) \{\s*directionStartY = maxScroll;\s*\} else \{/.test(motionSource) &&
       /const headerHoverMedia = window\.matchMedia\(\s*"\(any-hover: hover\) and \(any-pointer: fine\)"\s*,?\s*\);/.test(
         motionSource,
       ) &&
@@ -1538,39 +1536,6 @@ async function runSmokeMatrix() {
   }
 }
 
-async function runRootProcessCheck() {
-  const viewport = { width: 390, height: 844 };
-  await runPageCase(
-    "root process order",
-    { route: "/vi/", viewport },
-    async (page) => {
-      const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
-      const labels = await page
-        .locator(".editorial-strip .editorial-item h3")
-        .allTextContents();
-      const normalized = labels.map((label) => label.trim());
-      const expected = ["Khảo sát", "Tư vấn", "Sản xuất", "Lắp đặt"];
-      assert(
-        JSON.stringify(normalized) === JSON.stringify(expected),
-        `Expected ${expected.join(" → ")}, received ${normalized.join(" → ")}`,
-      );
-      await page.setViewportSize({ width: 1440, height: 900 });
-      const frames = await page.locator(".editorial-strip .editorial-item").evaluateAll((items) =>
-        items.map((item) => ({
-          imageHeight: item.querySelector("img").getBoundingClientRect().height,
-          itemHeight: item.getBoundingClientRect().height,
-        })),
-      );
-      assert(
-        frames.every(({ imageHeight, itemHeight }) => Math.abs(imageHeight - itemHeight) <= 1),
-        `Process image frames are not synchronized: ${JSON.stringify(frames)}`,
-      );
-      assertDiagnostics(diagnostics);
-    },
-  );
-}
-
 async function runPortalAlignmentChecks() {
   for (const locale of ["vi", "en"]) {
     for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
@@ -1932,8 +1897,8 @@ async function runHeaderParityChecks() {
         );
         assert(
           expanded.navDisplay === (mobile ? "none" : "grid") &&
-            (mobile ||
-              expanded.navRows === (viewport.width <= 960 ? 2 : 1)) &&
+            // R2: a nav that would wrap is hidden, so the header stays one row.
+            (mobile || expanded.navRows === 1) &&
             Math.abs(expanded.navFont - 16) <= 0.1 &&
             Math.abs(expanded.navLine - 22.4) <= 0.2 &&
             JSON.stringify(expanded.labels) ===
@@ -1947,8 +1912,8 @@ async function runHeaderParityChecks() {
           `Header navigation contract drifted at ${viewport.width}: ${JSON.stringify(expanded)}`,
         );
         const rhythm = {
-          751: { header: 132.781, nav: 107.781 },
-          960: { header: 132.781, nav: 107.781 },
+          751: { header: 85.391, nav: 60.391 },
+          960: { header: 85.391, nav: 60.391 },
           1201: { header: 102.516, nav: 60.391 },
           1440: { header: 102.516, nav: 60.391 },
         }[viewport.width];
@@ -2162,12 +2127,13 @@ async function runHeaderParityChecks() {
       const toggleStart = afterSetup.find(
         (write) => write.target === "toggle" && !/^scale\(0(?:, 1)?\)/.test(write.value),
       )?.time - setup.time;
+      // The intro starts on the first frame after mount; the 0.3s and 1.5s offsets count from there.
       assert(
-        logoStart <= 80 &&
-          navStart >= 240 &&
-          navStart <= 380 &&
-          toggleStart >= 1_420 &&
-          toggleStart <= 1_620 &&
+        logoStart <= 160 &&
+          navStart - logoStart >= 240 &&
+          navStart - logoStart <= 380 &&
+          toggleStart - logoStart >= 1_420 &&
+          toggleStart - logoStart <= 1_620 &&
           intro.final.logo >= 0.999 &&
           intro.final.nav.every((value) => Math.abs(value) <= 0.1) &&
           intro.final.toggle >= 0.999,
@@ -3086,7 +3052,7 @@ async function runEspacioScrollCueChecks() {
           gsap.globalTimeline.timeScale(2);
           window.dispatchEvent(new Event("languagechange"));
           const characters = [
-            ...document.querySelectorAll("[data-scroll-cue-char]"),
+            ...document.querySelectorAll(".scroll-cue-char"),
           ];
           const rows = characters.map((character) => ({
             character: character.textContent,
@@ -3164,7 +3130,7 @@ async function runEspacioScrollCueChecks() {
             isButton: cue?.tagName === "BUTTON",
             label: label?.textContent.trim() || "",
             characters: [
-              ...(label?.querySelectorAll("[data-scroll-cue-char]") || []),
+              ...(label?.querySelectorAll(".scroll-cue-char") || []),
             ].map((character) => character.textContent),
             bottom: rect ? innerHeight - rect.bottom : Number.NaN,
             cueCount: document.querySelectorAll("[data-scroll-cue]").length,
@@ -3244,9 +3210,9 @@ async function runEspacioScrollCueChecks() {
     async (page) => {
       const diagnostics = monitorPage(page);
       const assertFreshCycle = async (label) => {
-        await page.waitForSelector("[data-scroll-cue-char]");
+        await page.waitForSelector(".scroll-cue-char");
         const state = await page
-          .locator("[data-scroll-cue-char]")
+          .locator(".scroll-cue-char")
           .first()
           .evaluate((character) => ({
             opacity: Number.parseFloat(getComputedStyle(character).opacity),
@@ -4752,7 +4718,7 @@ async function runMenuChecks() {
         );
         assert(
           menuContract.childGroupCount === 4 &&
-            menuContract.childItemCount === 15 &&
+            menuContract.childItemCount === 17 &&
             menuContract.fragmentLinkCount === 0 &&
             JSON.stringify(menuContract.titles) === JSON.stringify([
               "/vi/residential/",
@@ -7932,7 +7898,6 @@ async function runCommercialHeroTextCheck() {
               sourceFontSizes: sourceStyles.map((style) =>
                 Number.parseFloat(style.fontSize),
               ),
-              sourceWhiteSpace: sourceStyles.map((style) => style.whiteSpace),
               contentCenter,
               textCenters: textRects.map((value) => value.left + value.width / 2),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
@@ -7979,8 +7944,7 @@ async function runCommercialHeroTextCheck() {
               hero.verticalOrder &&
               hero.inViewport &&
               hero.noHorizontalOverflow &&
-              hero.contentRect.width <= 1001 &&
-              hero.sourceWhiteSpace.every((value) => value === "nowrap"),
+              hero.contentRect.width <= 1001,
             `${locale} ${viewport.width}x${viewport.height}: commercial hero text escaped its Espacio-style bounds`,
           );
 
@@ -8135,7 +8099,7 @@ async function runEarlyHeroAccessibilityCheck() {
           ),
       );
       assert(
-        heading?.name?.value?.includes("Không gian"),
+        heading?.name?.value?.toLowerCase().includes("nơi tái tạo"),
         `Early AX h1 missing: ${JSON.stringify(heading?.name?.value)}`,
       );
       const early = await page.locator("h1").evaluate((element) => {
@@ -8143,14 +8107,17 @@ async function runEarlyHeroAccessibilityCheck() {
         const contentStyle = getComputedStyle(
           element.closest(".hero-content") || element,
         );
+        const veil = document.querySelector(".route-veil");
         return {
           opacity: Number.parseFloat(contentStyle.opacity),
+          veilOpacity: veil ? Number.parseFloat(getComputedStyle(veil).opacity) : 0,
           visibility: style.visibility,
         };
       });
       releaseMotion();
+      // Direct loads hold the hero under the route-enter veil instead of fading its content.
       assert(
-        early.opacity <= 0.01 && early.visibility === "visible",
+        (early.opacity <= 0.01 || early.veilOpacity >= 0.99) && early.visibility === "visible",
         `Early hero is not opacity-held and AX-visible: ${JSON.stringify(early)}`,
       );
       await page.waitForLoadState("domcontentloaded");
@@ -8266,17 +8233,6 @@ async function runDetailHeroEntryChecks() {
           "[data-site-header]",
           "/vi/advertising-products/",
         );
-        await link.click();
-      },
-    },
-    {
-      label: "about hero media",
-      selector: "[data-motion-hero-media]",
-      source: "/vi/advertising-products/",
-      destination: "/vi/about/",
-      trigger: async (page) => {
-        await openMenu(page);
-        const link = await findRouteLink(page, "#site-menu", "/vi/about/");
         await link.click();
       },
     },
@@ -10308,7 +10264,7 @@ async function runSharedMediaHoverPortalChecks() {
         assert((await allPortals.count()) === 6, `Expected six shared media portals at ${locale}`);
         for (let index = 0; index < 6; index += 1) {
           const sharedPortal = allPortals.nth(index);
-          const sharedImage = sharedPortal.locator("> img");
+          const sharedImage = sharedPortal.locator(".media-hover-zoom");
           await sharedPortal.scrollIntoViewIfNeeded();
           const beforeRect = await sharedPortal.boundingBox();
           await sharedPortal.hover();
@@ -10333,7 +10289,7 @@ async function runSharedMediaHoverPortalChecks() {
           await page.mouse.move(0, 0);
         }
         const portal = page.locator("#dich-vu .service-portal").first();
-        const image = portal.locator("> img");
+        const image = portal.locator(".media-hover-zoom");
         const subtitle = portal.locator(".portal-subtitle");
         const shadeBefore = await portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
         await portal.hover();
@@ -10352,7 +10308,7 @@ async function runSharedMediaHoverPortalChecks() {
           `Portal hover timing drifted at ${locale}: ${JSON.stringify(hover)}`,
         );
         const shadeAfter = await portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
-        assert(shadeAfter !== shadeBefore, `Portal hover keeps shade state at ${locale}`);
+        assert(shadeAfter === shadeBefore, `Portal hover must keep the shade at ${locale}`);
         await page.mouse.move(0, 0);
         await portal.focus();
         await page.waitForTimeout(650);
@@ -10382,6 +10338,36 @@ async function runSharedMediaHoverPortalChecks() {
           reduced.transform === "none" && reduced.duration === "0s",
           `Portal reduced motion removes zoom and transition at ${locale}: ${JSON.stringify(reduced)}`,
         );
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
+  for (const route of ["/vi/residential/", "/vi/commercial/", "/vi/about/"]) {
+    await runPageCase(
+      `shared media-hover detail ${route}`,
+      { route, viewport: { width: 1440, height: 900 } },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        await gotoRoute(page, route);
+        const triggers = page.locator(".detail-gallery__item, .detail-duo figure, .detail-cta");
+        const count = await triggers.count();
+        assert(count >= 3, `Expected gallery, duo and CTA hover targets on ${route}`);
+        for (let index = 0; index < count; index += 1) {
+          const trigger = triggers.nth(index);
+          assert(await trigger.evaluate((element) => element.classList.contains("media-hover-zoom-trigger")),
+            `${route} target ${index + 1} is not a shared hover trigger`);
+          await trigger.scrollIntoViewIfNeeded();
+          await trigger.hover();
+          await page.waitForTimeout(650);
+          const scale = await trigger.locator(".media-hover-zoom").evaluate((image) =>
+            new DOMMatrixReadOnly(getComputedStyle(image).transform).a);
+          assert(Math.abs(scale - 1.15) < 0.01, `${route} target ${index + 1} hover zoom drifted: ${scale}`);
+          await page.mouse.move(0, 0);
+        }
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await triggers.first().hover();
+        const reduced = await triggers.first().locator(".media-hover-zoom").evaluate((image) => getComputedStyle(image).transform);
+        assert(reduced === "none", `${route} reduced motion keeps hover zoom: ${reduced}`);
         assertDiagnostics(diagnostics);
       },
     );
@@ -13584,7 +13570,6 @@ async function main() {
       await runHeroCarouselLifecycleCheck();
     } else {
       await runSmokeMatrix();
-      await runRootProcessCheck();
       await runPortalAlignmentChecks();
       await runDirectHeaderRouteChecks();
       await runPersistentBarbaNavigationChecks();

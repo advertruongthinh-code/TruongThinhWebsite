@@ -1,7 +1,7 @@
 # Advertising P7.5 — history, CTA, motion và ảnh gợi ý
 
 Phiên 2026-09-23–24; local port8787. Chưa commit/push/deploy. Contract:
-[photo browse P7.5](../specs/advertising-photo-browse.md#correction-p75--history-lingering-và-slideshow).
+[photo browse P7.5](../specs/advertising-detail.md#r6-slideshow-suggestion).
 
 ## Lỗi đã tái hiện và sửa
 

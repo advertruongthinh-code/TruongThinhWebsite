@@ -4,7 +4,7 @@ type: architecture
 status: living
 updated: 2026-09-24
 related_specs:
-  - ../specs/frontend-route-and-content.md
+  - ../specs/detail-pages.md
   - ../specs/page-home.md
   - ../specs/cms-content-publishing.md
 related_decisions:
@@ -113,7 +113,7 @@ viewport, console/network và accessibility theo [tests README](../../tests/READ
 
 ## Canonical documents
 
-- Route và i18n: [frontend route spec](../specs/frontend-route-and-content.md).
+- Route và i18n: [phát hành tĩnh](../specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale), [ba trang con](../specs/detail-pages.md).
 - Trang chủ: [page-home](../specs/page-home.md).
 - CMS contract tương lai: [CMS publishing spec](../specs/cms-content-publishing.md).
 - Current/dormant/planned detail: [frontend guide](../frontend/index.md), [backend guide](../backend/index.md).

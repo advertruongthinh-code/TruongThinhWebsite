@@ -74,11 +74,11 @@ assert.match(runtime, /\.disconnect\(\)/, "catalog cleanup disconnects its viewp
 assert.match(runtime, /const updateLocalizedContent = \(\) => \{[\s\S]*?querySelector\("\.advertising-tile__foreground"\)/, "foreground alone retains localized meaningful alt");
 assert.match(runtime, /let cleaned = false;[\s\S]*if \(cleaned\) return;[\s\S]*signal\?\.removeEventListener\("abort", cleanup\)/, "manual cleanup is idempotent and releases the parent abort listener");
 assert.match(viewerSource, /dialog\.showModal\(\)/, "expanded photo uses the native modal focus boundary");
-assert.match(viewerSource, /const targetLevel = clamp\(nextLevel, 0, 2\)/, "viewer exposes exactly the fit, cover, and 2x-cover states");
+assert.match(viewerSource, /const stops = \(\) => \[1, cover, 2 \* cover\]/, "buttons and wheel stop at fit, cover, and 2x-cover");
 assert.match(viewerSource, /Math\.max\(viewport\.clientWidth \/ fitWidth, viewport\.clientHeight \/ fitHeight\)/, "cover uses the limiting viewport axis instead of a fixed percentage");
-assert.match(viewerSource, /resetButton\?\.addEventListener\("click", \(\) => setLevel\(0\)/, "the maximum-level reset returns directly to fit");
-assert.match(viewerSource, /viewport\.addEventListener\("wheel"[\s\S]*?setLevel\(level \+ \(event\.deltaY < 0 \? 1 : -1\), event\)/, "wheel zoom reuses the shared level state and cursor anchor");
-assert.match(viewerSource, /event\.button === 1[\s\S]*?setLevel\(0\)/, "middle click returns the shared zoom state to fit");
+assert.match(viewerSource, /resetButton\?\.addEventListener\("click", \(\) => setScale\(1\)/, "reset returns directly to fit");
+assert.match(viewerSource, /viewport\.addEventListener\("wheel"[\s\S]*?setScale\(nextStop\(event\.deltaY < 0 \? 1 : -1\), event\)/, "wheel zoom reuses the shared scale stops and cursor anchor");
+assert.match(viewerSource, /event\.button === 1[\s\S]*?setScale\(1\)/, "middle click returns the shared zoom state to fit");
 assert.match(viewerSource, /pointerdown[\s\S]*setPointerCapture[\s\S]*pointermove[\s\S]*pointercancel/, "viewer supports bounded pointer and touch pan cleanup");
 assert.match(viewerSource, /event\.key === "ArrowLeft"[\s\S]*renderTransform\(\)/, "zoomed viewer exposes keyboard pan");
 assert.match(viewerSource, /event\.key === "Tab"[\s\S]*visibleControls/, "viewer traps focus across enabled visible controls");
@@ -466,11 +466,44 @@ fixtureHref = photoBEntry.href;
 fixtureState = photoBEntry.state;
 browseController.returnToGrid({ reason: "navbar" });
 assert.equal(fixtureApplies.at(-1).reason, "navbar");
-assert.equal(fixtureApplies.at(-1).browse.grid.focusId, "photo-b", "navbar targets the currently viewed photo");
-assert.equal(fixtureApplies.at(-1).browse.grid.anchorOffset, null, "a new photo is centered rather than borrowing A's offset");
-assert.equal(fixtureApplies.at(-1).browse.category, "all", "navbar always returns to All");
-assert.equal(new URL(fixtureEntries.at(-1).href).search, "", "navbar writes the All URL");
+assert.equal(fixtureApplies.at(-1).browse.category, "kiosk-posm", "navbar keeps the group picked on the source masonry");
+assert.equal(new URL(fixtureEntries.at(-1).href).search, "?category=kiosk-posm", "navbar writes the kept group URL");
+assert.equal(fixtureApplies.at(-1).browse.grid.focusId, "photo-a", "a related photo outside the kept group returns to the photo opened from it");
+assert.equal(fixtureApplies.at(-1).browse.grid.anchorOffset, 180, "the origin photo keeps its old viewport offset");
 assert.equal(fixtureEntries.at(-1).state.index, 10, "navbar return remains a Barba-owned push entry");
+
+const navbarCases = [
+  ["https://example.test/vi/advertising-products/?category=kiosk-posm", "photo-c", "?category=kiosk-posm", "photo-c", null],
+  ["https://example.test/vi/advertising-products/", "photo-b", "", "photo-b", null],
+  ["https://example.test/vi/advertising-products/?photo=photo-b", null, "", "photo-b", null],
+];
+for (const [startHref, related, search, focusId, anchorOffset] of navbarCases) {
+  let navbarHref = startHref;
+  let navbarState = null;
+  const navbarController = createAdvertisingBrowseHistoryController({
+    ...browseFixture,
+    cards: [...browseFixture.cards, { id: "photo-c", category: "kiosk-posm", tagIds: ["shared"] }],
+    browserHistory: {
+      get state() { return navbarState; },
+      pushState(state, _title, next) { navbarState = state; navbarHref = new URL(next, navbarHref).href; },
+      replaceState(state, _title, next) { navbarState = state; navbarHref = new URL(next, navbarHref).href; },
+    },
+    getHref: () => navbarHref,
+  });
+  if (!navbarController.current.photo) {
+    navbarController.captureGrid({ anchorOffset: 75, focusId: "photo-a", scrollY: 0, viewportWidth: 390 });
+    navbarController.openPhoto("photo-a");
+  }
+  if (related) navbarController.openPhoto(related);
+  const returned = navbarController.returnToGrid({ reason: "navbar" });
+  assert.equal(new URL(navbarHref).search, search, `navbar from ${startHref} lands on ${search || "All"}`);
+  assert.equal(returned.grid.focusId, focusId, `navbar from ${startHref} focuses ${focusId}`);
+  assert.equal(returned.grid.anchorOffset, anchorOffset, `navbar from ${startHref} centers a newly viewed photo`);
+  if (!related) continue;
+  navbarController.replaceCategory("print-decals");
+  navbarController.returnToGrid({ reason: "navbar" });
+  assert.equal(new URL(navbarHref).search, "", "navbar from a group grid without a photo still lands on All");
+}
 
 let englishHref = "https://example.test/en/advertising-products/";
 let englishAdds = 0;

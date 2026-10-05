@@ -4,8 +4,9 @@ type: cross-cutting
 status: accepted
 updated: 2026-10-04
 related_docs:
-  - advertising-photo-browse.md
-  - advertising-skeleton-flow.md
+  - advertising-detail.md
+  - advertising-masonry.md
+  - advertising-skeleton.md
   - ../../design-system/content.md
 ---
 
@@ -36,7 +37,8 @@ lại; chưa xây giao diện upload hoặc CMS.
 
 ## Spec module đã được owner duyệt
 
-- [`advertising-organic-random`](advertising-organic-random.md)
+- `advertising-organic-random`: nay ở [masonry R4](advertising-masonry.md#r4-thứ-tự-ngẫu-nhiên-theo-lượt-duyệt) và
+  [skeleton](advertising-skeleton.md)
 - [`static-image-delivery`](static-image-delivery.md)
 - [`image-loading-progress`](image-loading-progress.md)
 

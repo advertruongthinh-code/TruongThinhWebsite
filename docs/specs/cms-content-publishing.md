@@ -67,7 +67,7 @@ slice, sau đó ghi vào provider decision record.
 
 ### Interface
 
-Advertising theo [AD-BROWSE-R1, policy một cột](advertising-photo-browse.md#r1--ảnh-rộng-một-cột-xếp-organic).
+Advertising theo [masonry R5, mỗi card một cột](advertising-masonry.md#r5-hình-học-masonry).
 Owner đã bỏ lựa chọn Auto / 1 cột / 2 cột và threshold Auto chỉ dùng để chọn
 độ rộng ảnh. Form đăng/chỉnh ảnh không có trường chọn span, kể cả trường chỉ
 còn giá trị 1 cột. Nội dung mới không phải khai báo lựa chọn này; metadata cũ

@@ -1783,7 +1783,7 @@ try {
         skeletonGlass: (({ glass = skeleton?.closest(".project-index")?.querySelector(":scope > .glass-surface[data-glass-shape=arc]") }) => glass && {
           hidden: glass.hidden,
           tint: getComputedStyle(glass.querySelector(".glass-surface__tint")).backgroundImage,
-          blur: getComputedStyle(glass.querySelectorAll(".glass-surface__step")[4]).backdropFilter,
+          blur: getComputedStyle([...glass.querySelectorAll(".glass-surface__step")].at(-1)).backdropFilter,
         })({}),
         skeletonIsTile: skeleton?.classList.contains("advertising-tile") ?? null,
         viewportOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -2028,6 +2028,7 @@ try {
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
     await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, B);
+    assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
     await assertNoBack();
 
     stage("different-route-unmount");
@@ -2037,6 +2038,64 @@ try {
     await page.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "commercial");
     await assertNoBack();
     return { compact, expandHover, reducedMotion, viewerControls };
+  });
+
+  await caseRun("navbar-keeps-picked-group", { width: 1440, height: 900 }, async (page, stage) => {
+    const group = A.replace(/-\d+$/, "");
+    const openFromGroup = async () => {
+      await page.goto(href(`/vi/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
+      await page.locator(`[data-advertising-card="${A}"] > a`).click();
+      await ready(page, A);
+    };
+    const navbarReturn = async (focusId) => {
+      await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
+      await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+        && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, focusId);
+      assert.equal(new URL(page.url()).searchParams.get("category"), group, "navbar keeps the picked group in the URL");
+      assert.equal(await page.locator('[data-advertising-filter][aria-current="true"]').getAttribute("data-advertising-filter"), group,
+        "the picked group stays active on the filter rail");
+      const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+        .map((node) => node.dataset.advertisingCard));
+      assert(cards.length && cards.every((id) => id.startsWith(`${group}-`)), `masonry only shows ${group}`);
+      return page.evaluate((id) => {
+        const rect = document.querySelector(`[data-advertising-card="${id}"]`).getBoundingClientRect();
+        return { top: rect.top, height: rect.height };
+      }, focusId);
+    };
+
+    stage("same-photo-keeps-offset");
+    await openFromGroup();
+    const origin = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.anchorOffset);
+    const sameTop = await navbarReturn(A);
+    assert(Math.abs(sameTop.top - origin) <= 2, `A returns to its old offset: ${sameTop.top} != ${origin}`);
+
+    stage("related-in-group-centered");
+    await openFromGroup();
+    const inGroup = page.locator(`[data-advertising-related-card^="${group}-"] > a`).first();
+    const C = await inGroup.evaluate((node) => node.parentElement.dataset.advertisingRelatedCard);
+    await inGroup.scrollIntoViewIfNeeded();
+    await inGroup.click();
+    await ready(page, C);
+    const centered = await navbarReturn(C);
+    assert(Math.abs(centered.top - Math.max(0, (900 - centered.height) / 2)) <= 2, `related photo in the group is centered: ${centered.top}`);
+
+    stage("related-outside-group-returns-to-origin");
+    await openFromGroup();
+    await chooseB(page);
+    await ready(page, B);
+    const back = await navbarReturn(A);
+    assert(Math.abs(back.top - origin) <= 2, `A returns to its old offset: ${back.top} != ${origin}`);
+
+    stage("direct-photo-lands-on-all");
+    await page.goto(href(`/vi/advertising-products/?category=${group}&photo=${A}`), { waitUntil: "domcontentloaded" });
+    await ready(page, A);
+    await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
+    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+      && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
+    assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
+    return { group, origin, C };
   });
 
   await caseRun("skeleton-global-boundary-fade", { width: 1440, height: 900 }, async (page, stage) => {

@@ -6,8 +6,8 @@ updated: 2026-10-03
 source_notion: https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1
 related_specs:
   - ../specs/site-media-card-playback.md
-  - ../specs/advertising-organic-random.md
-  - ../specs/advertising-photo-browse.md
+  - ../specs/advertising-masonry.md
+  - ../specs/advertising-detail.md
   - ../specs/site-shell.md
 ---
 

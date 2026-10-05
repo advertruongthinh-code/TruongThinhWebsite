@@ -5,10 +5,8 @@ status: current
 updated: 2026-10-03
 scope: AD-SEPT-2026-P2, P3, P4, P5, P6 (P6.1, P6.2), P7
 related_specs:
-  - ../specs/advertising-september-2026-capability-map.md
-  - ../specs/advertising-skeleton-flow.md
-  - ../specs/advertising-photo-browse.md
-  - ../specs/advertising-photo-morph-scroll.md
+  - ../specs/advertising-skeleton.md
+  - ../specs/advertising-detail.md
   - ../specs/site-shell.md
   - ../specs/page-home.md
 ---
