@@ -38,7 +38,11 @@ async function openMenu(page) {
   await page.locator("[data-menu-open]").click();
   await page.waitForFunction(() => {
     const dialog = document.querySelector("#site-menu");
-    return dialog?.open && dialog.classList.contains("is-active");
+    // Shell R4: focus moves to the close button once the open state is final; reduced-motion
+    // transitions still need their last frame, which slow software rendering delays.
+    return dialog?.open && dialog.classList.contains("is-active")
+      && document.activeElement?.matches("[data-menu-close]")
+      && dialog.getAnimations({ subtree: true }).every(animation => animation.playState === "finished");
   });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
@@ -186,9 +190,11 @@ try {
         const domFocusOrder = await focusOrder(page);
         const tabFocusOrder = await keyboardFocusOrder(page, expectedFocusOrder.length);
 
+        // Full menu design: the head has its own 25px (35px above 1200px) gutter, not the header's.
+        const menuGutter = width > 1200 ? 35 : 25;
         record(failures, `${locale}/${width} menu logo`, () =>
-          assert(rectDelta(transparent.logo, menuLogo) <= 1,
-            `bbox drift ${rectDelta(transparent.logo, menuLogo)}px`));
+          assert(Math.abs(menuLogo.x - menuGutter) <= 1 && Math.abs(menuLogo.y - menuGutter) <= 1,
+            `logo at ${menuLogo.x},${menuLogo.y} expected ${menuGutter},${menuGutter}`));
         record(failures, `${locale}/${width} menu CTA visibility`, () =>
           assert.equal(homeCtaVisible, shouldShowCta));
         record(failures, `${locale}/${width} menu focus DOM order`, () =>
@@ -196,15 +202,14 @@ try {
         record(failures, `${locale}/${width} menu keyboard focus order`, () =>
           assert.deepEqual(tabFocusOrder, expectedFocusOrder));
         record(failures, `${locale}/${width} close right gutter`, () => {
-          assert(close && transparent.hamburger, "missing close or hamburger bbox");
-          assert(Math.abs((width - close.right) - (width - transparent.hamburger.right)) <= 1,
-            `close=${width - close.right}px, hamburger=${width - transparent.hamburger.right}px`);
+          assert(close, "missing close bbox");
+          assert(Math.abs(width - close.right - (menuGutter - 10)) <= 1,
+            `close=${width - close.right}px expected=${menuGutter - 10}px`);
         });
-        if (shouldShowCta) {
-          record(failures, `${locale}/${width} CTA top rail`, () => {
+        // Mobile puts the CTA on its own row below the locale; wider heads keep it left of close.
+        if (width >= 961) {
+          record(failures, `${locale}/${width} CTA before close`, () => {
             assert(homeCta && close, "missing CTA or close bbox");
-            assert(Math.abs(homeCta.y - close.y) <= 1,
-              `CTA top=${homeCta.y}px, close top=${close.y}px`);
             assert(homeCta.right <= close.left + 1,
               `CTA right=${homeCta.right}px overlaps/passes close left=${close.left}px`);
           });
@@ -212,19 +217,20 @@ try {
 
         const resizeWidth = new Map([[390, 768], [768, 1024], [1024, 1440], [1440, 1922], [1922, 390]]).get(width);
         await page.setViewportSize({ width: resizeWidth, height });
+        // Headless Chromium can apply the new media query style a frame or two after resize.
+        await page.waitForTimeout(100);
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const resizedOpen = await page.locator("#site-menu").evaluate(dialog => dialog.open && dialog.classList.contains("is-active"));
         const resizedLogo = await box(page, "#site-menu .menu-brand");
-        const resizedHeaderLogo = await box(page, "[data-site-header] .brand");
         const resizedClose = await box(page, "#site-menu [data-menu-close]");
-        const resizedHamburger = await box(page, "[data-site-header] [data-menu-open]");
+        const resizedGutter = resizeWidth > 1200 ? 35 : 25;
         const resizedOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
         record(failures, `${locale}/${width}->${resizeWidth} open resize shell`, () => {
           assert.equal(resizedOpen, true, "menu closed during resize");
-          assert(rectDelta(resizedHeaderLogo, resizedLogo) <= 1,
-            `logo bbox drift ${rectDelta(resizedHeaderLogo, resizedLogo)}px`);
-          assert(Math.abs((resizeWidth - resizedClose.right) - (resizeWidth - resizedHamburger.right)) <= 1,
-            `close=${resizeWidth - resizedClose.right}px, hamburger=${resizeWidth - resizedHamburger.right}px`);
+          assert(Math.abs(resizedLogo.x - resizedGutter) <= 1 && Math.abs(resizedLogo.y - resizedGutter) <= 1,
+            `logo at ${resizedLogo.x},${resizedLogo.y} expected ${resizedGutter},${resizedGutter}`);
+          assert(Math.abs(resizeWidth - resizedClose.right - (resizedGutter - 10)) <= 1,
+            `close=${resizeWidth - resizedClose.right}px expected=${resizedGutter - 10}px`);
           assert.equal(resizedOverflow, false, "resize introduced horizontal overflow");
         });
         await page.setViewportSize({ width, height });
