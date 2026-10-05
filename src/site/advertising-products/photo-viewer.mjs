@@ -230,7 +230,14 @@ export function createAdvertisingPhotoViewer({
     panX = panY = 0;
     renderTransform();
     unlock();
-    if (restoreFocus && expandButton.isConnected) expandButton.focus({ preventScroll: true });
+    if (!restoreFocus || !expandButton.isConnected) return;
+    expandButton.focus({ preventScroll: true });
+    // A resize while open can leave the restored focus target off-screen; centre it instantly.
+    const { top, height } = getVisibleViewport();
+    const bounds = expandButton.getBoundingClientRect();
+    if (bounds.top < top || bounds.bottom > top + height) {
+      scroll?.setLogicalScroll?.(scroll.getLogicalScroll() + bounds.top + bounds.height / 2 - top - height / 2);
+    }
   };
   const close = ({ restoreFocus = true, animate = restoreFocus } = {}) => {
     if (!dialog.open) return;

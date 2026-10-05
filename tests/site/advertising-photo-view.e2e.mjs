@@ -1007,6 +1007,28 @@ async function exerciseDialog(page, options) {
   assert(Math.abs(afterCloseWheel - scrollBeforeLock) > 2, `${options.label}: logical scroll did not respond to wheel after close`);
 }
 
+async function assertFocusVisibleAfterResize(page, label) {
+  // Park the button near the top so the resized layout can push it off-screen.
+  await page.evaluate(() => {
+    const motion = window.TruongThinhMotion;
+    motion.setLogicalScroll(motion.getLogicalScroll() + document.querySelector("[data-advertising-photo-expand]").getBoundingClientRect().top - 90);
+  });
+  await openDialog(page);
+  const original = page.viewportSize();
+  const resized = original.width < 700 ? { width: original.height, height: original.width } : { width: 390, height: 844 };
+  await page.setViewportSize(resized);
+  await page.waitForFunction((width) => innerWidth === width, resized.width);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
+  const target = await page.evaluate(() => {
+    const button = document.querySelector("[data-advertising-photo-expand]");
+    const { top, bottom } = button.getBoundingClientRect();
+    return { focused: document.activeElement === button, top, bottom, height: innerHeight };
+  });
+  assert(target.focused && target.top >= 0 && target.bottom <= target.height,
+    `${label}: Escape after resize focused an off-screen expand button ${JSON.stringify(target)}`);
+}
+
 async function runCase(browserName, browser, locale, record, viewport, { smoke = false, touch = false, reducedMotion = "no-preference" } = {}) {
   const label = `${browserName} ${locale} ${record.shape} ${viewport.width}x${viewport.height}`;
   let stage = "create-context";
@@ -1024,6 +1046,8 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
       await settleGeometry(page, stage, settlements, { requireScrollStable: true });
       stage = "viewer:controls-only";
       await exerciseDialog(page, { label, touch, keyboard: true, closeWithButton: false, reducedMotion, resize: true, settlements, setStage: (step) => { stage = `viewer:${step}`; } });
+      stage = "viewer:resize-focus";
+      await assertFocusVisibleAfterResize(page, label);
       assert.deepEqual(diagnostics, [], `${label}: local runtime diagnostics ${JSON.stringify(diagnostics)}`);
       results.push({ label, status: "passed", durationMs: Date.now() - started, viewport, locale, shape: record.shape, browser: browserName, reducedMotion, stage, settlements, diagnostics });
       return;

@@ -149,8 +149,10 @@ export function normalizeAdvertisingSettings(settings) {
 
 export function fnv1a32(value) {
   let hash = 0x811c9dc5;
-  for (const byte of new TextEncoder().encode(value)) {
-    hash ^= byte;
+  const bytes = new TextEncoder().encode(value);
+  // Indexed loop: the iterator form costs ~25ms per mount on the A05s for the artifact hash.
+  for (let index = 0; index < bytes.length; index += 1) {
+    hash ^= bytes[index];
     hash = Math.imul(hash, 0x01000193) >>> 0;
   }
   return hash >>> 0;

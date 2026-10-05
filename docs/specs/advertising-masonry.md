@@ -92,7 +92,8 @@ phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước k
 [shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), tức reduced motion) được giữ lại, phát lại
 đúng một lần khi mount xong; mount lỗi thì tải hẳn URL của filter cuối. Đổi ngôn ngữ chỉ đổi chữ, `href`, ARIA.
 Navbar hoặc tiêu đề menu Advertising: đang ở All không có `photo` thì cuộn về 0
-([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)); ở một nhóm hoặc detail thì thêm history entry về All.
+([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)); ở một nhóm thì thêm history entry về All; ở detail thì về
+nhóm đã chọn trước khi mở ảnh ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
 
 ```gherkin
 Given /vi/advertising-products/ ở All, runtime đã sẵn sàng
@@ -155,7 +156,7 @@ Then filter mới thắng, không còn card ở tọa độ cũ, không có hai 
 Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao
 vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được mount, cộng card đang giữ focus và card vừa mở detail.
 Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ
-tự rồi chuyển focus. Đóng menu trả focus về card đang theo dõi.
+tự rồi chuyển focus. Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry đang ẩn chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
 Given masonry All 154 card, đang ở đầu trang

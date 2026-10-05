@@ -22,6 +22,10 @@
   thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
   photo browse, morph và hai capability map. T15: [tải ảnh](specs/media-delivery.md) và
   [card nhiều media](specs/media-card.md) thay ba spec ảnh, media và map cuối; T16 tiếp.
+- Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
+  trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
+  chung, scroll cue trượt chữ; test cũ đã sửa theo thiết kế. Còn: khôi phục scroll Back/Forward
+  Advertising, test Advertising cũ ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
@@ -63,7 +67,7 @@
   [tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md),
   [shell](specs/site-shell.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
-  navbar về All; skeleton/CTA/footer theo P7.5.
+  navbar từ ảnh về nhóm đã chọn (ảnh vào thẳng về All); skeleton/CTA/footer theo P7.5.
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
@@ -106,7 +110,8 @@
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; skeleton chờ ảnh, mở ảnh tại chỗ và kính hiện,
   tan trên ảnh vừa tải đã code, còn trace A05s (R9); [Kính dùng chung](specs/glass-surface.md)
-  đã code 04/10 cho kính cuối masonry, vùng dư primary và ảnh vừa tải, còn đo 30fps trên A05s;
+  đã code 04/10; kính cung đạt A05s với ba bậc; vào thẳng ảnh vẫn rơi gate long task (task
+  dài nhất `310ms` còn `~80ms` sau PR #107, [gate](specs/glass-surface.md#gate-còn-mở));
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/static-release.md#r11-phát-hành-demo-cloudflare); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
