@@ -6,7 +6,7 @@ scope: agent tooling
 supersedes: []
 related_specs: []
 related_reports:
-  - ../archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/verification-2026-08-09-agent-workspace-bootstrap.md
 ---
 
 # Agent Skills dùng chung cho mọi host agent

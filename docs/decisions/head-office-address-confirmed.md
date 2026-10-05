@@ -7,7 +7,7 @@ supersedes: []
 related_specs:
   - ../specs/site-shell.md
 related_reports:
-  - ../archive/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/frontend-brand-shell-responsive-runtime-2026-08-26.md
 ---
 
 # Địa chỉ trụ sở đã được owner xác nhận

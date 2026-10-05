@@ -27,7 +27,7 @@ serve bằng static Node server của repository; current local preview không k
 ## Phạm vi hiện tại
 
 Năm route VI/EN tĩnh (home, residential, commercial, advertising-products,
-about); route table ở [architecture](docs/architecture/index.md). Static page
+about); route table ở [architecture](docs/architecture.md). Static page
 không cần D1, R2, Access hoặc CMS secret. Dynamic route, admin và publishing
 thuộc CMS phase.
 
@@ -65,8 +65,8 @@ khi owner mở CMS phase theo
 
 ## Cây thư mục và trạng thái
 
-Tài liệu theo công việc: [architecture](docs/architecture/index.md),
-[frontend](docs/frontend/index.md), [CMS](docs/specs/cms.md),
+Tài liệu theo công việc: [architecture](docs/architecture.md),
+[spec từng phần](docs/specs/docs-system.md#r2-capability-map-và-spec-sống), [CMS](docs/specs/cms.md),
 [Design System](design-system/README.md) (kèm [nguồn tham khảo](design-system/README.md#nguồn-tham-khảo)).
 [Docs index](docs/index.md) dẫn tới nguồn chuẩn và evidence.
 
@@ -80,9 +80,8 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ src/admin/, src/db/migrations/   # DEV: CMS shell và schema
 ├─ scripts/                         # site build, media, reference crawler, tooling
 ├─ tests/                           # QA trong GitHub; tests/reports/ GENERATED
-├─ docs/                            # STATE, index, architecture, frontend,
-│                                   # design, specs, decisions, operations,
-│                                   # reference, verification, reports, archive
+├─ docs/                            # STATE, index, goal, architecture.md,
+│                                   # specs, decisions, operations, reference
 ├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
 ├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
 ├─ tasks/                           # plan/checklist đang mở, archive/ giữ phần đã xong; không thay Notion status

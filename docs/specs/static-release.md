@@ -25,23 +25,20 @@ updated: 2026-10-05
 
 ## Mục đích
 
-Biến `src/site/` thành `.site-output/` tĩnh VI/EN, phục vụ local preview cổng
-8787 và đẩy cùng output lên demo Cloudflare khi owner đồng ý. Không cần D1, R2,
-Access hay CMS secret. Hành vi từng trang thuộc spec của capability đó; spec này
-giữ build, preview, cache header, CI và deploy demo. CMS Worker nằm ngoài.
+Biến `src/site/` thành `.site-output/` tĩnh VI/EN, phục vụ local preview cổng 8787 và đẩy cùng output lên demo
+Cloudflare khi owner đồng ý. Không cần D1, R2, Access hay CMS secret. Hành vi từng trang thuộc spec của capability đó;
+spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker nằm ngoài.
 
 ## Hành vi
 
 ### R1. Build `.site-output/` từ `src/site/`
 
-`pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu
-`pnpm dev` và `pnpm deploy:demo`) dừng nếu source hoặc output ra ngoài project.
-Thứ tự: đồng bộ brand lockup, preflight (R2), xóa `.site-output/`, chép
-`src/site/` trừ `advertising-products/detail-template.html`, vendor (R4), xóa
-asset không public (R3), artifact (R2), trang tương thích (R7), xử lý HTML (R5,
-R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source: chép
-hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm
-HTML trang; SVG gốc sai số `path`, `text` thì build dừng.
+`pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu `pnpm dev` và `pnpm deploy:demo`) dừng
+nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2), xóa `.site-output/`, chép
+`src/site/` trừ `advertising-products/detail-template.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
+trang tương thích (R7), xử lý HTML (R5, R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
+chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm HTML trang; SVG gốc sai số `path`,
+`text` thì build dừng.
 
 ```gherkin
 Given src/site/ và node_modules đã cài
@@ -276,15 +273,17 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 
 ## Gate còn mở
 
-- LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText,
-  GSAP trong `src/site/detail.js` đẩy LCP tới cuối animation (4,2 đến 5,5 s, 3/7
-  lượt), nếu không khoảng 3,25 s. Sửa cần spec motion reveal riêng; owner quyết.
-- Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`,
-  `/advertising-products/`, `/about/`; preview trả 404 cho `/`, demo có thể phục
-  vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về `/vi/`, trả 404 hay giữ?]
-- [Quyết định demo](../decisions/cloudflare-workers-static-demo.md) ghi Wrangler
-  pin trong `tooling-versions.json`; code pin `wrangler@4.124.0` trong script
-  `demo:wrangler`. Owner chọn sửa ADR hay chuyển pin.
+- LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText, GSAP trong `src/site/detail.js` đẩy LCP
+  tới cuối animation (4,2 đến 5,5 s, 3/7 lượt), nếu không khoảng 3,25 s. Sửa cần spec motion reveal riêng; owner quyết.
+- Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
+  trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
+  `/vi/`, trả 404 hay giữ?]
+- [Quyết định demo](../decisions/cloudflare-workers-static-demo.md) ghi Wrangler pin trong `tooling-versions.json`;
+  code pin `wrangler@4.124.0` trong script `demo:wrangler`. Owner chọn sửa ADR hay chuyển pin.
+- `site.e2e.cjs` (smoke toàn site) còn 53 FAIL có từ trước, chưa có lượt xanh; một phần ở gate [shell](site-shell.md#gate-còn-mở),
+  [trang chủ](page-home.md#gate-còn-mở), [trang con](detail-pages.md#gate-còn-mở). Main chạy lại, chia FAIL về spec sở hữu.
+- Parity Espacio (`run-layout-motion-parity.mjs`, output `.tmp/reports/`) lần chạy cuối còn fail, blocked, 864 candidate
+  chưa map. [CẦN LÀM RÕ: parity Espacio còn là gate phát hành khi Design System chỉ mô tả Trường Thịnh?] Owner.
 
 ## Chú thích thuật ngữ
 

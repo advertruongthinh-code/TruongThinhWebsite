@@ -183,7 +183,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
   bị gỡ dù đáy batch mới 14574,5; code gỡ đúng R1 (khung cao 1,2px dưới `0.25` bề rộng card), assertion "removed tail
   slots must lie beyond the new boundary" chưa tính luật này. Main sửa assertion.
 - Owner chưa xem Flow và 12 preset trên demo; mục tiêu cảm nhận 95–99% so với Feral Flow chưa có oracle ảnh chụp
-  ([đo Feral](../verification/feral-flow-measurement-2026-09-21.md)). Owner.
+  ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
 ## Chú thích thuật ngữ
 

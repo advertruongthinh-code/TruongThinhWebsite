@@ -54,10 +54,10 @@ field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status,
 - [Project Truong Thinh Website](https://app.notion.com/p/3b7332849a0e81c6bd2be63fe44e67ac): project record, relation Docs/Tasks.
 - [Truong Thinh — Docs & Notion Hub](https://app.notion.com/p/3b7332849a0e81098aeeef782b88657f): hub vận hành; quy tắc category cũ không ghi đè [docs routing](../index.md).
 - [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): card In progress cho phần việc còn mở.
-- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị ghi dòng `Chờ` đầu body vì schema không có status chờ. Đợt 2026-10-03: [report đồng bộ Advertising](../verification/advertising-notion-sync-2026-10-03.md).
+- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị ghi dòng `Chờ` đầu body vì schema không có status chờ.
 
 Link là mutable reference; page đổi thì verify record mới rồi cập nhật mục
-này. Audit link cũ: [living docs 2026-09-09](../verification/living-docs-2026-09-09.md).
+này.
 
 ## Chú thích thuật ngữ
 

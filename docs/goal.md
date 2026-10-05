@@ -6,7 +6,7 @@ updated: 2026-10-03
 related_docs:
   - STATE.md
   - ../PRODUCT.md
-  - architecture/index.md
+  - architecture.md
   - specs/static-release.md
   - specs/cms.md
 related_decisions:

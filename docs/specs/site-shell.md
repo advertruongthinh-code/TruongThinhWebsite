@@ -272,8 +272,8 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
   xanh. Chưa rõ test cũ hay lỗi code (suy luận). Main.
 - Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả trên
   reference live, visual landscape chồng lớp. Owner và máy PC.
-- Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R3
-  chờ owner xem [preview](../verification/brand-lockup-logo-r3-2026-09-10.md).
+- Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R5
+  ([Brand](../../design-system/brand.md#logo)) chờ owner nghiệm thu visual.
 - V01 AC2, V03 AC2: A05s đạt bàn phím phần cứng 05/10 (control viewer, menu, toolbar mở và thu,
   dọc và ngang); không có ô nhập nên bàn phím ảo không áp dụng. Còn iPhone, safe area, A54. V04
   AC2 đạt trên A05s. V-A thiếu source snapshot đúng thời điểm; owner hoặc main chấp nhận sai lệch.

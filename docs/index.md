@@ -2,24 +2,25 @@
 
 Bắt đầu bằng [STATE](STATE.md), sau đó chọn nguồn theo việc cần làm.
 Git giữ accepted engineering knowledge; [Notion](operations/notion.md) giữ
-planning/status. Không cần đọc toàn bộ reports để tìm contract hiện hành.
+planning/status. Report và verification cũ đã rời cây thư mục; Git history giữ
+bản gốc.
 
 ## Tìm theo công việc
 
 | Công việc | Nguồn bắt đầu | Nội dung |
 | --- | --- | --- |
 | Mục tiêu và phase dự án | [Goal](goal.md) | Static (đang ở) và CMS (chưa mở), nguyên tắc stack free/phí thấp |
-| Hiểu hệ thống/deploy | [Architecture](architecture/index.md) | Runtime static, source ownership, ranh giới CMS |
-| Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
+| Hiểu hệ thống/deploy | [Architecture](architecture.md) | Runtime static, source ownership, ranh giới CMS |
+| Sửa frontend | [Capability map](specs/docs-system.md#r2-capability-map-và-spec-sống) | Spec từng phần website: route, shell, masonry, detail và test |
 | Sửa Worker/admin/D1 | [CMS](specs/cms.md) | Code dormant, API, trust boundary, gate mở CMS |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md) | Token, component, motion, content, ảnh Advertising; [authority map](#authority-map) |
 | Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo) | Site tham khảo và báo cáo khảo sát cũ trong Git |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |
-| Kiểm acceptance | [Verification](verification/index.md) | Current evidence, supersession và parity NOT PASS |
+| Kiểm acceptance | Mục "Gate còn mở" của từng spec | Gate NOT PASS còn mở; evidence mỗi thay đổi nằm trong PR |
 | Dùng tool/agent | [AGENTS](../AGENTS.md), [Operations](operations/TOOLING.md) | Scope, workflow, command và recovery |
 | Đặt tên trong docs | [Tên gọi chuẩn](terminology.md) | masonry, grid, card, detail, viewer và tên không dùng |
 | Hiểu quyết định | [Decisions](decisions/index.md) | Accepted/superseded; không suy status từ tuổi file |
-| Truy nguyên report cũ | [Archive](archive/index.md) | Original bytes, mapping và giới hạn lịch sử |
+| Truy nguyên report cũ | `git log -- docs/verification docs/archive docs/reports` | Bản gốc trong Git history, đọc bằng `git show <commit>:<path>` |
 
 ## Nguồn chuẩn và artifact của Impeccable
 
@@ -44,9 +45,7 @@ lifecycle) nằm trong spec sở hữu.
 - [Card nhiều media](specs/media-card.md): runtime Advertising, hướng owner duyệt
   28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#media-card-toàn-website--plan-đã-duyệt-2026-09-28)
   đã duyệt, M03–M09 tạm dừng tới khi có ảnh và video thật. Supersession masonry-detail morph chỉ xảy ra khi triển khai;
-  viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
-  kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
-  chỉ tóm tắt card đang làm; chi tiết Done không được chép.
+  viewer morph và history-scroll giữ contract hiện hành.
   [Skeleton chờ ảnh và Kính hiện ảnh](specs/loading-glass-and-page-entry.md): đã code, thay
   vòng xoay ở Advertising; owner chưa nghiệm thu trên demo. Veil vào thẳng trang ở shell R7.
   [Kính dùng chung](specs/glass-surface.md): đã code 04/10 cho kính cuối
@@ -60,8 +59,8 @@ lifecycle) nằm trong spec sở hữu.
   [Design System](../design-system/README.md): shell, các trang và visual authority.
 - [Static release](specs/static-release.md): build/hosting;
   [changelog](../CHANGELOG.md) ghi thay đổi phát hành.
-- [STATE](STATE.md) giữ active work, blocker và next action;
-  [verification index](verification/index.md) giữ evidence có ngày/scope.
+- [STATE](STATE.md) giữ active work, blocker và next action; evidence có
+  ngày và scope nằm trong mô tả PR.
 - [Cây project](../README.md#cây-thư-mục-và-trạng-thái) là bản đồ ownership.
   Không lặp bản đồ thứ hai hoặc dùng nhãn Git cũ để quyết định xóa file.
 
@@ -70,15 +69,13 @@ lifecycle) nằm trong spec sở hữu.
 Living-docs gate ở [AGENTS.md](../AGENTS.md#state-và-living-docs); supersession
 ở [mục dưới](#supersession).
 
-Active docs tổ chức theo domain; độ sâu bổ sung chỉ dùng cho
-archive, không tạo folder theo từng ngày/task. Root Impeccable artifacts giữ
-nguyên path tool đọc. `docs/reports/` là compatibility cho machine report/CSV;
-không là nơi mặc định ghi tài liệu hướng dẫn mới. Original archive không sửa
-để làm đẹp; [mapping](archive/mapping.json) giải path trước/sau.
+Active docs tổ chức theo domain, không tạo folder theo từng ngày/task. Root
+Impeccable artifacts giữ nguyên path tool đọc. Machine report và CSV của tooling
+layout-motion parity ghi vào `.tmp/reports/`.
 
 Các link tới `.tmp/`, `research/reference-site/`, CSV generated và ảnh nguồn
 trong `source-assets/` là evidence local, không nằm trong gói website. Một số
-artifact nguồn không commit; bản clone dùng kết luận có scope trong verification,
+artifact nguồn không commit; bản clone dùng kết luận có scope trong spec và PR,
 không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo lại chúng.
 
 ## Authority map

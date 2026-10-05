@@ -10,7 +10,7 @@ tags:
 supersedes: []
 related_specs: []
 related_reports:
-  - ../archive/reports/research-espacio-typography-hero-route-motion-2026-08-27.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/research-espacio-typography-hero-route-motion-2026-08-27.md
 ---
 
 # Typography nhìn thấy theo cap-height Espacio

@@ -282,6 +282,9 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - `split` hết nửa ngân sách thì xếp mọi related dưới primary, cột 4 trống (`compileAdvertisingRelatedLayout`); intent owner
   21/09 đòi cột 4 luôn có ảnh khi còn related. Quét 19.840 tổ hợp (mọi ảnh, mọi tag, 8 seed, 1280–1920px) không tổ hợp nào
   rơi vào nhánh này với catalog hiện tại; giữ code, kiểm lại khi thêm ảnh. Main.
+- `advertising-photo-transitions.e2e.mjs` trên WebKit (máy PC) còn 3 FAIL, chưa đối chiếu với các ca FAIL Chromium ở trên.
+  Main chạy lại WebKit.
+- `advertising-photo-view.e2e.mjs` chạy đủ (oracle D18) chưa có lượt PASS ghi nhận. Main chạy đủ trên cloud.
 
 ## Chú thích thuật ngữ
 
