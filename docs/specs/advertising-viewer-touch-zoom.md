@@ -1,10 +1,12 @@
 ---
 title: Viewer Advertising zoom hai ngón và chạm đúp
-status: planned
+status: live
 source:
   - src/site/advertising-products/photo-viewer.mjs
 tests:
+  - tests/site/advertising-viewer-touch.e2e.mjs
   - tests/site/advertising-photo-view.e2e.mjs
+  - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
 updated: 2026-10-05
 ---
@@ -15,7 +17,7 @@ updated: 2026-10-05
 
 Khách xem ảnh công trình trên điện thoại hoặc máy tính bảng zoom vào chi tiết
 trong viewer bằng tay, như app Thư viện: chụm hai ngón, kéo một ngón, chạm đúp.
-Spec này chỉ thêm thao tác chạm và đổi ba nấc zoom cố định thành zoom liên tục.
+Spec này sở hữu thao tác chạm và zoom liên tục có nấc.
 Mở, đóng, morph, nút, con lăn, phím và khóa cuộn giữ theo
 [photo browse](advertising-photo-browse.md#viewer-và-điều-hướng) và R9 ở đó.
 
@@ -114,8 +116,9 @@ Then ảnh về Fit, − và Reset disabled
 
 - Resize hoặc xoay máy: đang ở một nấc thì giữ nấc đó theo hình học mới; nằm
   giữa hai nấc thì giữ `s` và kẹp vào khoảng mới; pan kẹp lại.
-- Bắt đầu chạm khi đang mở hoặc đang zoom bằng animation: lấy transform đang
-  hiện làm điểm bắt đầu, không nhảy. Đang đóng thì bỏ qua thao tác chạm.
+- Bắt đầu chạm hoặc kéo khi đang zoom bằng animation: lấy transform đang hiện
+  làm điểm bắt đầu, không nhảy. Khi đang mở, ảnh tới ngay mức Fit rồi nhận thao
+  tác. Đang đóng thì bỏ qua thao tác chạm.
 - Reduced motion: pinch và kéo vẫn theo tay; bật về (R2) và chạm đúp (R4) đổi
   tức thì, không animation.
 
@@ -149,14 +152,15 @@ của [Viewer](../../design-system/components/Viewer/README.md). PR code sửa c
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R6 | Chưa có test. PR code thêm ca touch vào `tests/site/advertising-photo-view.e2e.mjs`: Chromium `isMobile`, `hasTouch`, hai điểm qua CDP `Input.dispatchTouchEvent`, dọc và ngang, VI/EN, reduced motion |
-| R1–R4 | Chưa có test. A05s thật: Chrome qua CDP trên `adb forward`, pinch hai điểm và chạm đúp bằng `adb shell input tap` |
-| R5, R6 | Chạy lại ca nút, con lăn, middle-click, phím, resize hiện có (`PHOTO_VIEW_CONTROLS_ONLY=1`) trên Chromium, Firefox, WebKit |
+| R1–R6 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop |
+| R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
+| R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
+| R1–R4 | A05s thật: cùng test chạm với `BASE_URL` qua `adb reverse`, Chrome qua `adb forward` (chưa chạy) |
 
 ## Gate còn mở
 
-- Toàn bộ spec chưa code; làm sau khi owner duyệt spec và plan (card Notion ở
-  frontmatter).
+- A05s thật chưa chạy; làm qua Remote Control trên PC theo
+  [plan](../../tasks/viewer-touch-zoom-plan.md).
 - iPhone Safari chưa kiểm vì chưa kết nối thiết bị; WebKit desktop không thay
   bằng chứng iPhone.
 

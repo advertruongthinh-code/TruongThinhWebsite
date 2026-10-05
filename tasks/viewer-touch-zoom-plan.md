@@ -40,7 +40,7 @@ khác; xóa file này khi card Done.
 
 ## Phase 1: Mô hình tỷ lệ liên tục
 
-- [ ] T1. Đổi `level` sang `scale` có nấc, giữ nguyên hành vi hiện tại
+- [x] T1. Đổi `level` sang `scale` có nấc, giữ nguyên hành vi hiện tại
   - Làm: `stops`, `near`, `setScale`; nút `+`/`−`, con lăn tới nấc kế tiếp từ
     `scale`; Reset, middle-click về 1; disabled theo `near`; phím pan khi
     `scale > 1`; resize giữ nấc nếu đang ở nấc, nằm giữa thì giữ `scale` và kẹp.
@@ -53,7 +53,7 @@ Checkpoint 1: hành vi desktop không đổi; diff chỉ là refactor.
 
 ## Phase 2: Thao tác chạm
 
-- [ ] T2. Pinch hai ngón, rubber band và bật về (spec R1, R2)
+- [x] T2. Pinch hai ngón, rubber band và bật về (spec R1, R2)
   - Làm: map pointer, bắt đầu pinch khi pointer thứ hai xuống trong viewport;
     rubber band một phần ba, trần 15%; buông ngoài khoảng thì `setScale` về
     giới hạn (Max giữ anchor trung điểm, Fit pan về tâm); hai pointer không
@@ -64,14 +64,14 @@ Checkpoint 1: hành vi desktop không đổi; diff chỉ là refactor.
     không đổi; dialog vẫn mở.
   - Files: `photo-viewer.mjs`, `tests/site/advertising-viewer-touch.e2e.mjs`.
     Cỡ M.
-- [ ] T3. Kéo một ngón, chuyển một và hai ngón, chạm giữa motion (spec R3, R6)
+- [x] T3. Kéo một ngón, chuyển một và hai ngón, chạm giữa motion (spec R3, R6)
   - Làm: một ngón trên ảnh kéo khi `scale > 1`; một sang hai ngón và ngược lại
     không nhảy; `adoptDisplayed()` khi chạm lúc đang mở hoặc zoom; bỏ qua chạm
     khi đang đóng.
   - Nhận: test đo transform trước và sau mỗi lần chuyển, chênh ≤ 1 CSS px;
     vuốt từ nền ở Fit không đóng (giữ L06), chạm một lần lên nền vẫn đóng.
   - Files: như T2. Cỡ S.
-- [ ] T4. Chạm đúp, nút giữa hai nấc, reduced motion (spec R4, R5, R6)
+- [x] T4. Chạm đúp, nút giữa hai nấc, reduced motion (spec R4, R5, R6)
   - Làm: nhận chạm đúp theo 300 ms, 24 px, di ≤ 10 px, chỉ `pointerType`
     touch trên ảnh; Fit tới Cover tại điểm chạm, `s > 1` về Fit; status
     `aria-live` cập nhật cuối thao tác.
@@ -86,7 +86,7 @@ console hay network.
 
 ## Phase 3: Tài liệu, review, thiết bị thật
 
-- [ ] T5. Living docs trong cùng PR
+- [x] T5. Living docs trong cùng PR
   - Làm: spec `status: live`, `tests:` thêm file mới, bỏ gate đã đóng; Viewer
     README và dòng Viewer trong `motion.md` đổi "ba mức zoom" thành tỷ lệ liên
     tục có nấc, pinch, chạm đúp; `STATE.md` cập nhật dòng M07b.
