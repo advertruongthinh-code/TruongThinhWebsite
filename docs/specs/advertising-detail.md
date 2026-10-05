@@ -7,6 +7,7 @@ source:
 tests:
   - tests/site/advertising-photo-layout.test.mjs
   - tests/site/advertising-related-worker.test.mjs
+  - tests/site/advertising-related-worker.e2e.mjs
   - tests/site/advertising-full-span-p72.e2e.mjs
   - tests/site/advertising-primary-p14.e2e.mjs
   - tests/site/advertising-single-related.e2e.mjs
@@ -258,7 +259,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R4 | `CASE=delayed-image-resize-latest-wins`; test của [loading glass](loading-glass-and-page-entry.md#kiểm-tra) |
 | R5 | `advertising-suggestion-layout.e2e.mjs` (bốn chỗ); `advertising-suggestion-conditional.e2e.mjs` (split, pinterest, resize); `advertising-suggestion-info.e2e.mjs`; `CASE=related-suggestions-replace-state` |
 | R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
-| R7 | `advertising-related-worker.test.mjs` (Worker khớp luồng chính); `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
+| R7 | `advertising-related-worker.test.mjs` (Worker khớp luồng chính); `advertising-related-worker.e2e.mjs` (Worker, fail-open, bỏ kết quả cũ); `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
 | R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle` |
 | R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
