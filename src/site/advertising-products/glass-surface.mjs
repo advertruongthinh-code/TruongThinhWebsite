@@ -9,7 +9,9 @@ const ARC = Object.freeze({ centre: 0.5, radius: 4, band: 1.2 });
 const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
   [Math.max(0, (ARC_STEPS - 1 - index) / ARC_STEPS - 0.1), Math.min(1, (ARC_STEPS - index) / ARC_STEPS + 0.1)]);
 // Inside the arc all band steps are fully on, so one full step (the core) stands in for them there and the steps
-// only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows. Each box
+// only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows: the core
+// ramps in over the outer half while the steps stay on, the steps ramp out over the inner half, so the sharp page
+// never shows through a gap where both are partial. Each box
 // runs past its mask by its blur reach, 3 sigma of its increment in detail.css (28px for the core).
 const FADE = 48;
 const STEP_REACH = [14, 34, 76];
@@ -139,11 +141,11 @@ export function layoutArcGlass(glass, { width, batchBottom, band, radius, cy, dF
   const [coreStep, ...steps] = glass.querySelectorAll(".glass-surface__step");
   const coreTop = Math.max(top, cy - radius - CORE_REACH);
   place(coreStep, coreTop);
-  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${core}px, transparent ${radius}px)`);
+  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
   steps.forEach((step, index) => {
     const outer = radius + RAMPS[index][1] * band;
     place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
-    setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius}px, `
+    setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
       + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
   });
   // White follows the same circles: pure from the corner circle, tint on the arc, none at the band edge.
