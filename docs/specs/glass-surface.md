@@ -188,7 +188,12 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
   hàm vì lần đó không có CPU profile. Task `64–124ms` ở khoảng `1030ms` trong
   các trace là do bộ đo: `WidgetBase::Shutdown` của tab `about:blank` mà
   Playwright `newPage()` mở trước; mở URL thẳng bằng `Target.createTarget`
-  thì 0/5 lần có task này.
+  thì 0/5 lần có task này. Đo lại 05/10 trên `main` `890d320`, năm lần kiosk-posm-10:
+  5/5 lần không task trên `50ms`, veil mở median `1802ms`, card related đầu tiên
+  `789ms`. Thử solver related trong Web Worker (PR #133, đóng): cũng 5/5 lần sạch
+  nhưng veil chậm thêm khoảng `85ms`, card related chậm thêm `58ms`, nên giữ luồng chính.
+- R7 trên A05s, bấm card related đầu tiên sau khi vào thẳng (`main` `890d320`, ba
+  lần): 2–3 task trên `50ms` trong 3s, dài nhất median `74ms` (`71–106ms`).
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long
