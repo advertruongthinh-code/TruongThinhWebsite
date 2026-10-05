@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 
@@ -108,6 +109,10 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
     const a=box(header),b=box(e);
     if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)faults.push(`header overlap ${e.className}`);
   }
+  if(scrollY<=1&&viewport.scale===1&&title&&filters) {
+    const a=box(title),b=box(filters);
+    if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)faults.push('title/filter overlap');
+  }
   const dialog=document.querySelector('#advertising-photo-dialog');
   const viewerButtons=[...document.querySelectorAll('#advertising-photo-dialog button')];
   if(viewerStage&&(!dialog?.open||dialog.dataset.advertisingViewerState!=='open'||viewerButtons.length!==4))faults.push('viewer must be open with four controls');
@@ -181,6 +186,7 @@ const swipe = async direction => {
 };
 const routes = option("--routes", "vi/,vi/residential/,vi/commercial/,vi/about/,vi/advertising-products/,vi/advertising-products/kiosk-posm/,vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37").split(",");
 const navigate = async (route, reload = false) => {
+  const origin = await evaluate("performance.timeOrigin");
   const result = await call(reload ? "Page.reload" : "Page.navigate", reload ? { ignoreCache: true } : { url: `${base}/${route}` });
   assert.ok(!result.errorText, result.errorText);
   const alias = route.match(/^(vi|en)\/advertising-products\/(kiosk-posm|mobile-retail|signage-raised-letters|office-signs-wayfinding|led-displays-lightboxes|print-decals)\/$/);
@@ -188,17 +194,21 @@ const navigate = async (route, reload = false) => {
   for (let attempt = 0; attempt < 75; attempt++) {
     const frame = (await call("Page.getFrameTree")).frameTree.frame;
     if ((alias || !result.loaderId || frame.loaderId === result.loaderId)
-      && await evaluate(`location.href===${JSON.stringify(destination)} && document.readyState==='complete' && document.fonts.status==='loaded' && document.documentElement.classList.contains('motion-ready')`)) return;
+      && await evaluate(`performance.timeOrigin!==${origin} && location.href===${JSON.stringify(destination)} && document.readyState==='complete' && document.fonts.status==='loaded' && document.documentElement.classList.contains('motion-ready') && !document.documentElement.classList.contains('route-enter')`).catch(() => false)) return;
     await pause(200);
   }
   throw new Error(`${route}: page/fonts ready`);
 };
 const metadata = { phase, browser: version.Browser, package: version["Android-Package"], device: connected[0], serial, os: execFileSync(adb, ["-s", serial, "shell", "getprop", "ro.build.version.release"], { encoding: "utf8" }).trim(), target: taskTabs[0].id, assets: {}, routes, actions };
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-const guardedFiles = ['style.css','detail.css','motion.js','detail.js','advertising-products/catalog-runtime.mjs','advertising-products/layout-core.mjs','advertising-products/catalog-artifact.mjs','advertising-products/photo-viewer.mjs'];
+const guardedFiles = (await readdir('src/site', { recursive: true })).map(f => f.replaceAll('\\', '/'))
+  .filter(f => /\.(css|js|mjs)$/.test(f) && existsSync(`.site-output/${f}`)).concat('advertising-products/catalog-artifact.mjs');
+const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+const candidate = () => ({ head: git('rev-parse', 'HEAD'), dirty: git('status', '--porcelain', '--', 'src/site') });
 const sourceFiles = ['index.html','about/index.html','residential/index.html','commercial/index.html','advertising-products/index.html','advertising-products/catalog.mjs'];
 try {
   metadata.runnerSha256 = createHash("sha256").update(await readFile(new URL(import.meta.url))).digest("hex");
+  metadata.candidate = candidate(); assert.equal(metadata.candidate.dirty, '', 'src/site must be committed before a capture');
   metadata.binding = binding; metadata.userAgent = version["User-Agent"];
   for (const domain of ["Page", "Runtime", "Network", "Log"]) await call(`${domain}.enable`);
   metadata.sourceHashes = {};
@@ -249,7 +259,7 @@ try {
       await navigate(route, entry === "reload"); await pause(1600);
       const after = await sample(`${route}-${toolbar}-${entry}-after`);
       await recordLayout(`${route}-${toolbar}-${entry}-after`);
-      actions.push({ kind: "navigation-toolbar-state", route, toolbar, entry, before: before.visual, after: after.visual });
+      actions.push({ kind: "navigation-toolbar-state", route, toolbar, entry, initialHeight: initial.visual.height, before: before.visual, after: after.visual });
     }
     if (process.argv.includes("--native-pinch") && /advertising-products\/kiosk-posm\/$/.test(route)) {
       await evaluate("(() => {const frame=document.querySelector('[data-advertising-cta-frame]');window.TruongThinhMotion.setLogicalScroll(frame.getBoundingClientRect().top+scrollY-100)})()");
@@ -269,6 +279,8 @@ try {
       await sample("viewer-open"); await shot("viewer-open");
       await recordLayout(`${route}-viewer-open`);
       await evaluate("document.querySelector('[data-advertising-photo-zoom-in]').click()"); await sample("viewer-zoom");
+      // A touch stops a running zoom where it is (viewer touch zoom R6), so let the zoom land first.
+      for (let i = 0; i < 30 && await evaluate("document.querySelector('#advertising-photo-dialog').dataset.advertisingViewerState") !== "open"; i++) await pause(100);
       await swipe("up"); await swipe("down"); await shot("viewer-after-touch");
       await recordLayout(`${route}-viewer-after-touch`);
       await evaluate("document.querySelector('[data-advertising-photo-close]').click()"); await pause(500);
@@ -276,19 +288,22 @@ try {
     }
   }
   metadata.status = "observed";
+  const missingCycles=actions.filter(a=>a.kind==='native-toolbar-cycles'&&a.validCycles!==a.requiredCycles);
+  const notCollapsed=actions.filter(a=>a.kind==='navigation-toolbar-state'&&a.toolbar==='collapsed'&&a.before.height<=a.initialHeight+10);
+  metadata.runtimeFaults=events.filter(e=>e.method==='Runtime.exceptionThrown'||e.type==='error'||e.status>=400||e.method==='Network.loadingFailed');
   if(layoutOracles) {
     metadata.layoutFaults=layoutSamples.filter(s=>s.faults.length).map(s=>({label:s.label,faults:s.faults}));
-    const missingCycles=actions.filter(a=>a.kind==='native-toolbar-cycles'&&a.validCycles!==a.requiredCycles);
-    metadata.runtimeFaults=events.filter(e=>e.method==='Runtime.exceptionThrown'||e.type==='error'||e.status>=400||e.method==='Network.loadingFailed');
     assert.deepEqual(metadata.layoutFaults,[], 'native layout assertions');
-    assert.deepEqual(missingCycles,[], 'three actual toolbar cycles for every route');
-    assert.deepEqual(metadata.runtimeFaults,[], 'Android console/network assertions');
   }
+  assert.deepEqual(missingCycles,[], 'three actual toolbar cycles for every route');
+  assert.deepEqual(notCollapsed,[], 'collapsed direct/reload entries start from a collapsed toolbar');
+  assert.deepEqual(metadata.runtimeFaults,[], 'Android console/network assertions');
 } catch (error) { metadata.status = "incomplete"; metadata.error = error.message; process.exitCode = 1; }
 finally {
   metadata.provenanceFaults=[];
   try {
     if(hash(await readFile(new URL(import.meta.url)))!==metadata.runnerSha256)metadata.provenanceFaults.push('recorder changed during capture');
+    if(JSON.stringify(candidate())!==JSON.stringify(metadata.candidate))metadata.provenanceFaults.push('Git candidate changed during capture');
     for(const [file,expected] of Object.entries(metadata.sourceHashes||{}))if(hash(await readFile(file))!==expected)metadata.provenanceFaults.push(`source changed: ${file}`);
     for(const [file,expected] of Object.entries(metadata.assets)) {
       const response=await fetch(`http://127.0.0.1:8792/${file}`);

@@ -72,6 +72,8 @@
 - Verification mới: build/static, media/layout/lifecycle/skeleton37/37, Chromium smoke7/7,
   menu28 geometry +10 flow +2 text zoom, full-span VI/EN ngang/dọc/954px đạt.
   Dependency audit không có advisory. Đây là focused evidence, không full-site PASS.
+  Layout mobile L00–L07 xong 05/10: 660 ca ba engine cùng commit và A05s dọc,
+  ngang 0 lỗi; iPhone, A54, owner còn mở ([gate shell](specs/site-shell.md#gate-còn-mở)).
   QA/audit 04/10 các PR #13–#29, #39 trên Chromium cloud: gate đỏ là test chưa
   biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Vòng tải đã
   dừng khi ảnh xong. Còn mở: hai finding nhỏ ở "Gate còn mở" của

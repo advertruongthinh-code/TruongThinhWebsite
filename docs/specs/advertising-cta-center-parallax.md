@@ -153,6 +153,11 @@ trên `site:scroll` khi Locomotive chạy smooth scroll từ 981px. Lớp parall
 `.detail-cta__copy`, tách khỏi line reveal của tiêu đề. Chỉ animate `transform`.
 Khi đang xem ảnh, độ lệch bằng 0.
 
+Cụm CTA không trôi lên quá mép trên CTA, vì CTA cắt phần tràn: độ lệch không lớn
+hơn khoảng trống phía trên cụm. Chỉ CTA vừa khít cụm chữ chạm giới hạn này, như
+chữ 200% ở màn ngang (838×387); khi đó parallax đứng yên. Tiêu đề có đệm trên
+`0.15em` để dấu của dòng đầu không bị mép CTA cắt.
+
 ```gherkin
 Given CTA vừa vào viewport từ dưới lên
 When người xem cuộn thêm 100px
@@ -192,7 +197,7 @@ Then CTA không giật, và khi thanh địa chỉ đứng yên chân chữ dòn
 | --- | --- | --- |
 | Runtime | `renderCtaSkeleton` (`catalog-runtime.mjs`) | Tính chiều cao batch theo `D`, R2 và R5; ghi `--advertising-cta-top` |
 | Runtime | `measureCtaCopy`, `fitGridCtaHeading` (`catalog-runtime.mjs`) | Đo chân chữ dòng cuối và phần dưới nó; giảm cỡ tiêu đề theo R3 |
-| Runtime | `syncCtaParallax` (`catalog-runtime.mjs`) | Ghi `transform` parallax R6 lên `.detail-cta__copy` |
+| Runtime | `syncCtaParallax` (`catalog-runtime.mjs`) | Ghi `transform` parallax R6 lên `.detail-cta__copy`, không vượt mép trên CTA |
 | Code | `createSkeletonFlowFrameLayout` (`skeleton-flow.mjs`) | Card cuối mỗi cột có đáy trùng đáy batch |
 | CSS var | `--advertising-cta-footer-height`, `--advertising-cta-copy-below` | Runtime ghi; CSS đặt chân chữ theo `50dvh` trừ footer |
 | DOM hook | `data-advertising-cta-settled` | Bật trượt `0.4s` sau lần đặt đầu (R8) |
@@ -215,6 +220,7 @@ Then CTA không giật, và khi thanh địa chỉ đứng yên chân chữ dòn
 | R2 | `tests/site/advertising-skeleton-flow.test.mjs` (đáy card cuối mỗi cột); continuation (`footer-top-gap` 0, đáy batch trùng đáy CTA) |
 | R4 | `tests/site/footer-consistency.e2e.mjs`: ba icon, cỡ icon, footer gọn, tỉ lệ 38.2%, mười cỡ |
 | R7 | continuation: bật giảm chuyển động giữa trang thì độ lệch về 0 |
+| R6 giới hạn mép trên | `tests/site/mobile-layout-parity.e2e.mjs`: chữ 200% 838×387, tiêu đề không bị cắt và cụm nằm trong CTA, ba engine |
 | R8 | continuation: bộ lọc và đổi cỡ; thanh địa chỉ chưa có test |
 
 ## Gate còn mở

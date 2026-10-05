@@ -1335,7 +1335,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // The copy trails the page by 10% and lands on zero offset at the scroll limit.
   const syncCtaParallax = () => {
     if (!gridCtaCopy || !siteFooter) return;
-    const offset = reduced || activePhotoId ? 0 : (siteFooter.getBoundingClientRect().bottom - innerHeight) * -0.1;
+    // A CTA only as tall as its copy (200% text, landscape) has no room above it, and its clip would cut the heading.
+    const offset = reduced || activePhotoId ? 0
+      : Math.max((siteFooter.getBoundingClientRect().bottom - innerHeight) * -0.1, -gridCtaCopy.offsetTop);
     gridCtaCopy.style.transform = offset ? `translate3d(0, ${offset.toFixed(2)}px, 0)` : "";
   };
   let hasLaidOut = false;
