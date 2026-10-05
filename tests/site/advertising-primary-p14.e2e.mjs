@@ -624,7 +624,8 @@ async function wheelToHit(page, locator, label) {
     return { rect: rect.toJSON(), x, y, visible: bottom > top,
       hit: bottom > top && node.contains(document.elementFromPoint(x, y)) };
   });
-  for (let attempt = 0; attempt < 16; attempt += 1) {
+  // Locomotive 4 counts each wheel event as one tick (about 43px on Linux Chromium), so far targets need many steps.
+  for (let attempt = 0; attempt < 40; attempt += 1) {
     let state = await inspect();
     let stable = 0;
     for (let sample = 0; sample < 50 && stable < 3; sample += 1) {
