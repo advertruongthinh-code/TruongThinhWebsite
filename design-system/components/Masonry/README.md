@@ -7,7 +7,8 @@ Lưới ảnh sản phẩm so le trên trang Advertising. Vị trí do
 ## Hình học
 
 - Lề ngoài 15/25/35px (viewport `<= 750`, `<= 1200`, lớn hơn); khoảng giữa
-  cột 15/25/35px (`<= 960`, `<= 1200`, lớn hơn). Nội dung tối đa 1500px.
+  cột 15/25/35px (`<= 960`, `<= 1200`, lớn hơn). Masonry rộng hết viewport trừ
+  lề ngoài, không giới hạn bề rộng tối đa.
 - Số cột: `C = min(4, max(2, floor((gridWidth + G) / (220 + G))))`; mỗi ảnh
   rộng đúng một cột, cao theo tỷ lệ gốc.
 

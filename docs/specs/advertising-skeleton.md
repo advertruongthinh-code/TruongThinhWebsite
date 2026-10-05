@@ -184,11 +184,6 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
   slots must lie beyond the new boundary" chưa tính luật này. Main sửa assertion.
 - Owner chưa xem Flow và 12 preset trên demo; mục tiêu cảm nhận 95–99% so với Feral Flow chưa có oracle ảnh chụp
   ([đo Feral](../verification/feral-flow-measurement-2026-09-21.md)). Owner.
-- [CẦN LÀM RÕ: band khung là ba hằng `0.72`, `1`, `1.32`; intent đã duyệt nói lấy tỷ lệ từ ảnh thật trong batch. Giữ
-  hằng hay đổi code?] Owner.
-- [CẦN LÀM RÕ: [Skeleton](../../design-system/components/Skeleton/README.md) và [motion](../../design-system/motion.md#skeleton-tiếp-nối)
-  ghi ba khung mỗi cột và hiện stagger theo vị trí; code dựng khung tới đáy batch (đo Chromium: 2 đến 5 khung mỗi cột ở
-  390–2560px), không stagger. Sửa Design System hay code?] Owner.
 
 ## Chú thích thuật ngữ
 

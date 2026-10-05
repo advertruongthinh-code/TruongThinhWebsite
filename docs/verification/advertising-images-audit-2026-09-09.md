@@ -448,7 +448,7 @@ metadata, rubric và preview được lưu tại
 Catalog public vẫn 109 media; media mới chưa được mapping/tích hợp vào public.
 Không chạy lại test UI để chứng minh một thay đổi ảnh/docs.
 
-Owner đã duyệt [AD-BROWSE-R1](../specs/advertising-photo-browse.md); đây là
+Owner đã duyệt [AD-BROWSE-R1](../specs/advertising-masonry.md); đây là
 accepted spec grid/detail. Owner tiếp tục duyệt plan ngày 2026-09-10; triển khai
 UI bắt đầu sau checkpoint media này và giữ evidence riêng.
 Wording discovery/spec draft ở các checkpoint trước là lịch sử; không mở

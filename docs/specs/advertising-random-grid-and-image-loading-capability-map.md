@@ -4,7 +4,7 @@ type: cross-cutting
 status: accepted
 updated: 2026-10-04
 related_docs:
-  - advertising-photo-browse.md
+  - advertising-detail.md
   - advertising-masonry.md
   - advertising-skeleton.md
   - ../../design-system/content.md

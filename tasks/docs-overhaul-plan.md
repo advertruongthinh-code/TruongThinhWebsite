@@ -98,8 +98,9 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
   kiosk, final-polish, media-review và hai capability map Advertising.
   Tách `advertising-skeleton.md` để mỗi spec dưới 300 dòng. Hai capability
   map còn vì STATE và T14, T15 trỏ tới; xóa ở T14, T15.
-- [ ] T14. `advertising-detail.md` thay `advertising-photo-browse.md`,
-  `advertising-photo-morph-scroll.md` và verification history, detail.
+- [x] T14. `advertising-detail.md` thay `advertising-photo-browse.md`,
+  `advertising-photo-morph-scroll.md` và verification history, detail. Xóa luôn
+  capability map browser parity và map tháng 09; map random-grid còn cho T15.
 - [ ] T15. `media-delivery.md` thay `static-image-delivery.md`,
   `image-loading-progress.md`, `site-media-card-playback.md`.
 - [ ] T16. `cms.md` thay `cms-content-publishing.md` và

@@ -121,7 +121,7 @@ Không flag, transition suite kiểm identity/morph, Back giữa animation, ản
 chậm, dependency lỗi; viewer suite kiểm ba engine, viewport 320–2560, fit/
 cover, pan, focus, reduced motion. Đây là browser emulation, không phải phần
 cứng thật. Diễn giải kết quả theo
-[photo browse spec](../docs/specs/advertising-photo-browse.md).
+[detail spec](../docs/specs/advertising-detail.md).
 
 ## Chạy bằng runtime project-local
 

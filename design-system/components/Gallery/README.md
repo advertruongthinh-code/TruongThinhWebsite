@@ -13,7 +13,7 @@ Markup `section.detail-gallery` với `[data-gallery]`, style ở
 - Item rộng `min(32vw, 29rem)`, nền `media-loading-surface`, caption chữ hoa
   trên ảnh; hover zoom ảnh.
 - Cuộn native, không Swiper: nút gọi `scrollBy`, chuột kéo bằng pointer
-  event, touch cuộn tự nhiên (`detail.js`). Gallery một item thì bỏ control.
+  event, touch cuộn tự nhiên (`detail.js`).
   Quy tắc thêm, xóa `figure` ở [ba trang con](../../../docs/specs/detail-pages.md#r4-nội-dung-vien-và-hook).
 
 ## Chú thích thuật ngữ

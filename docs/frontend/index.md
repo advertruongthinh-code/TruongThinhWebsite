@@ -8,7 +8,7 @@ related_specs:
   - ../specs/site-shell.md
   - ../specs/advertising-masonry.md
   - ../specs/advertising-skeleton.md
-  - ../specs/advertising-photo-browse.md
+  - ../specs/advertising-detail.md
   - ../../design-system/content.md
 ---
 
@@ -91,7 +91,7 @@ Policy hiện hành là `advertising-grid-v14` trong `layout-core.mjs`
 parent, related và build preflight dùng chung solver; artifact có
 `settings: {}`, không còn lựa chọn Auto / 1 / 2 cột hay `layoutSpan`. Thuật
 toán và acceptance thuộc [masonry](../specs/advertising-masonry.md)
-và [photo browse spec](../specs/advertising-photo-browse.md); không lặp ở đây.
+và [detail](../specs/advertising-detail.md); không lặp ở đây.
 
 ## Advertising photo runtime
 

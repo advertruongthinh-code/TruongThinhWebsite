@@ -35,12 +35,10 @@ lifecycle) nằm trong spec sở hữu.
 - [Masonry Advertising](specs/advertising-masonry.md): trang, catalog, filter, thứ tự ngẫu nhiên,
   hình học, ảo hóa và card; [batch skeleton](specs/advertising-skeleton.md) nối tiếp masonry tới
   footer. Gate còn mở (A05s, iPhone, continuation FAIL) ở từng spec.
-  [Intent và map browser parity](specs/mobile-browser-parity-capability-map.md) giữ viewer, history
-  motion, glass; scrollbar, viewport, layout mobile ở [shell website](specs/site-shell.md#gate-còn-mở).
+  Scrollbar, viewport, layout mobile ở [shell website](specs/site-shell.md#gate-còn-mở).
   [Debug Android thật](operations/android-real-device-debugging.md) giữ Chrome/USB.
-- [Photo/masonry Advertising](specs/advertising-photo-browse.md): layout, history,
-  primary, suggestion và catalog154 ảnh. [Capability map](specs/advertising-september-2026-capability-map.md)
-  dẫn các correction; không áp checkpoint cũ thay delta mới. Đợt random masonry và
+- [Detail Advertising](specs/advertising-detail.md): `?photo=`, primary, suggestion, related,
+  viewer, history và vị trí cuộn. Đợt random masonry và
   tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
   cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
   đã duyệt, phần lớn đã code; việc còn mở ở [STATE](STATE.md).
@@ -58,7 +56,7 @@ lifecycle) nằm trong spec sở hữu.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
   [Viewer zoom hai ngón và chạm đúp](specs/advertising-viewer-touch-zoom.md):
-  đã code, [plan](../tasks/viewer-touch-zoom-plan.md) còn bước A05s; thay ba mức zoom cố định.
+  đã code, A05s dọc đạt; thay ba mức zoom cố định.
 - [Shell website](specs/site-shell.md), [Trang chủ](specs/page-home.md),
   [Residential, Commercial, About](specs/detail-pages.md) và
   [Design System](../design-system/README.md): shell, các trang và visual authority.

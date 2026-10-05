@@ -173,8 +173,8 @@ outline. Touch không cần hover để mở ảnh.
 
 ### Skeleton tiếp nối
 
-- Ba frame rỗng mỗi cột nối từ đáy ảnh thật, cùng gutter, chứa CTA; kết thúc ở
-  đáy CTA cộng một gap masonry.
+- Frame rỗng nối từ đáy ảnh thật mỗi cột, cùng gutter, xếp tới đáy batch ngay
+  trên footer; CTA nằm trong batch.
 - Mặt frame là Flow: gradient bốn màu chảy và xoáy chậm, có noise mịn, vẽ
   bằng WebGL. Mỗi lần trang ổn định (tải, đổi filter, mở đóng detail,
   Back/Forward) 12 preset màu được xáo và chia cho các frame, không frame nào
@@ -182,8 +182,8 @@ outline. Touch không cần hover để mở ảnh.
   Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
-- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, stagger theo vị trí như
-  ảnh card; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
+- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, mỗi frame tự hiện khi
+  giao vùng nhìn thấy, không stagger; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
   không focus.
 - Cuối batch là [Kính](components/Glass/README.md) dạng cung, đứng yên: card
   phía trên nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối. CTA và

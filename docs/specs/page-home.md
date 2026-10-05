@@ -125,7 +125,7 @@ And ba portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tr
 
 Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hover-zoom-trigger`, ảnh
 `.media-hover-zoom`, CSS ở `style.css`), cũng dùng cho card masonry, related, suggestion inactive
-([Advertising R12](advertising-photo-browse.md#r12-accepted--suggestion-active-state-và-exact-shared-hover)).
+([detail R5](advertising-detail.md#r5-suggestion)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
 card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`) giữ nguyên độ
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.
@@ -263,9 +263,6 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 
 ## Gate còn mở
 
-- Dải quy trình: [mạch trang chủ](../../design-system/content.md#mạch-nội-dung-theo-route) còn đòi
-  `.editorial-strip` bốn bước trên `/vi/`; source chỉ còn phụ đề portal Quy trình. Test đã bỏ ca này;
-  owner chọn sửa docs theo trang hiện tại. Thread docs.
 - Ca "responsive offsets" của `TT_E2E_SCROLL_CUE_ONLY`: cue Advertising ở 390px cách đáy 93px, test đòi
   110px; chưa rõ test cũ hay CSS lệch. Main.
 - Owner chưa nghiệm thu trên máy mình hover, overlay, chữ portal, ảnh portal Advertising, hero,

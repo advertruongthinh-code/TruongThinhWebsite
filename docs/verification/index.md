@@ -18,8 +18,8 @@ subset, không thay verdict toàn bộ. [Motion audit](../reports/research-espac
 là ledger source/runtime; [baseline Espacio](../reference/espacio/index.md) là
 reference có provenance, không là TT parity PASS.
 
-Owner spot-check một photo view VI và một EN theo AD-BROWSE-R1 vẫn là human
-acceptance đang mở. Flow này thay category carousel; docs hoặc focused tests
+Owner spot-check detail VI và EN vẫn là human acceptance đang mở
+([gate detail](../specs/advertising-detail.md#gate-còn-mở)). Flow này thay category carousel; docs hoặc focused tests
 không tự đóng gate hoặc cấp quyền deploy.
 
 ## Evidence sở hữu contract hiện hành
@@ -37,8 +37,7 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Media-card Advertising M02a: primary, thumbnail, audio và direct detail | [Checkpoint M02a 30/09](site-media-card-m02a-checkpoint-2026-09-30.md) | Scoped engineering GREEN trên source đã khóa; focused11, viewer controls12, photo-layout15, affected pointer harness và A05s portrait đạt. Raw landscape strict fit RED được L04R native scroll/reachability làm rõ; P14-L04R focused37/37, không đóng multi-engine/Android/660 matrix. Owner visual, clip thật, iPhone/Safari và full-site còn mở |
 | Media-card Advertising R6-R3: canvas cover và dải control grid/related | [Checkpoint R6-R3 28/09](site-media-card-r6-r3-checkpoint-2026-09-28.md) | Scoped browser R6 29/29, M01b 25/25, unit77/77, static/build/diffcheck; source/build/served layout/runtime/CSS khớp, seal118/118. Synthetic Chromium 320/390 VI/EN; native, clip public thật và full-site không thuộc checkpoint này |
 | Shell: full menu, scrollbar, viewport khi toolbar đổi, layout mobile toàn site | [Shell website](../specs/site-shell.md#gate-còn-mở) | Report menu 24/09, scrollbar, viewport 27/09, layout 28/09 đã gộp vào spec; bản gốc ở Git `40e5f11`. Gate thiết bị, owner, MCP, L04R3/L06/L07 còn mở theo spec |
-| Advertising history H01–H02 và viewer L06 | [Cloud 04/10](advertising-history-motion-2026-09-28.md#h01h02-rescope-và-chạy-cloud-2026-10-04) | H01 rescope theo M02b, không sửa source; full runner 29/30, FAIL là landscape emulator đã biết. L06 touch-close tái hiện và sửa trên Chromium, A05s chưa replay |
-| Advertising history scroll và offscreen photo morph | [H00 28/09](advertising-history-motion-2026-09-28.md) | Chromium EN/VI1543×884, grid Y0=0/detail Y1=480: geometry, computed paint và video cho thấy ảnh clone qua viewport hai chiều. Không tái hiện lỗi trên8792; tab gốc8790 khác candidate chưa xác minh, H01 source fix chưa mở, owner visual còn mở. Runner hash chỉ ghi posthoc, chưa chứng minh pre/post freeze |
+| Advertising history H00–H02 và viewer L06 | [Detail](../specs/advertising-detail.md#gate-còn-mở) | H00 28/09 và cloud 04/10 đã gộp vào spec; bản gốc ở Git `ebb1fca`. Gate A05s (H01–H02, L06), iPhone, owner và FAIL Back/Forward còn mở theo spec |
 | Skeleton lifecycle, preview random, Android thật 27/09 | [Skeleton](../specs/advertising-skeleton.md#gate-còn-mở) | Correction, chẩn đoán preview và owner recording 27/09 đã gộp vào spec skeleton và [masonry](../specs/advertising-masonry.md); bản gốc ở Git `16e4983`. Gate A05s FPS, iPhone, continuation FAIL còn mở theo spec |
 | Catalog154, owner selection28 và5 ảnh ChatGPT | [Mapping/review24/09](../../source-assets/projects/advertising/owner-selection-20260924/README.md) |27 thêm,1 thay; COCO/decal còn lỗi chữ nhỏ; không5/5 rubric PASS |
 | History, footer, slideshow và logo correction | [P7.5](advertising-september-p7-5-2026-09-24.md) | Focused regression; full-site parity không đổi |
@@ -69,7 +68,7 @@ không tự đóng gate hoặc cấp quyền deploy.
 | Current-hash/single-column 2026-08-31, nghiên cứu batching 2026-08-30 | Accepted [organic spacing/media ADR](../decisions/advertising-organic-masonry-espacio-spacing-media-distribution.md) và report 109 media |
 | Organic 72 card, outer 20/gap 16 | Report 109 media và [masonry](../specs/advertising-masonry.md) |
 | One-shot entrance không replay remount | Report re-entry; detail visibility dùng report regression 2026-09-02 |
-| Sáu category detail composition và Advertising carousel | [AD-BROWSE-R1](../specs/advertising-photo-browse.md) và [UI/compatibility proof](advertising-grid-r4-2026-09-09.md#ad-browse-r1--ui-frame-r4-và-r6-2026-09-10); giữ report gốc, không áp kết quả cũ cho photo view |
+| Sáu category detail composition và Advertising carousel | [detail](../specs/advertising-detail.md) và [UI/compatibility proof](advertising-grid-r4-2026-09-09.md#ad-browse-r1--ui-frame-r4-và-r6-2026-09-10); giữ report gốc, không áp kết quả cũ cho photo view |
 | Browser/project/bootstrap snapshot tháng 7–8 | Historical; tra current scope trong STATE, tooling runbook và report mới tương ứng |
 
 Không tự bỏ accepted ADR vì cũ. [Decision index](../decisions/index.md) giữ

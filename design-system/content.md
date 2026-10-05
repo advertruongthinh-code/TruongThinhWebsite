@@ -38,7 +38,7 @@ scroll cue và mép hàng ảnh đầu ở đáy viewport.
 
 | Route | Mạch | Hướng ảnh |
 | --- | --- | --- |
-| Trang chủ | Hero ba lĩnh vực, quy trình, ba portal, câu chuyện hơn 20 năm, vật liệu, xưởng, thi công, công trình, CTA | Bằng chứng thật: không gian, vật liệu, dụng cụ, tay nghề |
+| Trang chủ | Hero, ba portal lĩnh vực, tay nghề, năng lực (vật liệu, xưởng CNC, quy trình), công trình, câu chuyện hơn 20 năm, logo khách hàng, lời mời | Bằng chứng thật: không gian, vật liệu, dụng cụ, tay nghề |
 | Residential | Mở full-bleed, lời hứa nhà ở, chuỗi không gian, vật liệu và tay nghề, quy trình, CTA khảo sát | Ánh sáng, luồng đi, lưu trữ, vật liệu, sinh hoạt thật; cân bằng nhà phố, căn hộ, homestay |
 | Commercial | Mở theo vận hành; shop, F&B, văn phòng; độ bền vật liệu; công trình chọn lọc; CTA | Luồng khách, quầy, trưng bày, thanh toán, kho; không gian đang hoạt động |
 | Advertising | Hero, filter, masonry ảnh sản phẩm, CTA | Sản phẩm làm được: tổng thể, chi tiết cấu tạo và ánh sáng, gia công và lắp đặt |

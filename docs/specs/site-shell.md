@@ -116,7 +116,7 @@ alternate, JSON-LD, `lang`, locale, class body, cây phần tử header, CTA, me
 request lỗi thì `location.assign`. Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil. Link đúng URL
 hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại navbar hoặc
 tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm history
-([Advertising](advertising-photo-browse.md)).
+([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
 
 ```gherkin
 Given /vi/ ở 1440px
