@@ -70,8 +70,8 @@ cho phép Codex tự duyệt spec, plan, task; owner kiểm kết quả cuối:
 
 | Module id | Trách nhiệm | Phụ thuộc | Nguồn chuẩn |
 | --- | --- | --- | --- |
-| `advertising-hero-once` | Hero Advertising chỉ chạy một lần trong mỗi document load; filter chỉ cập nhật masonry | — | `advertising-final-polish-and-media.md` |
-| `skeleton-cta-field` | Preset Feral với Scale 100, solver mobile 1–2 canvas, tail một viewport và một surface glass `clear → blur → white` | `shared-footer-boundary` | `advertising-skeleton-flow.md` |
+| `advertising-hero-once` | Hero Advertising chỉ chạy một lần trong mỗi document load; filter chỉ cập nhật masonry | — | [masonry R9](advertising-masonry.md#r9-hero-một-lần) |
+| `skeleton-cta-field` | Preset Feral với Scale 100, solver mobile 1–2 canvas, tail một viewport và một surface glass `clear → blur → white` | `shared-footer-boundary` | [skeleton](advertising-skeleton.md) |
 | `photo-detail-layout` | Pinterest mode khi primary chiếm toàn bộ span, primary `100dvh`, description pager và suggestion là card đầu related masonry | `photo-morph-scroll`, `shared-media-hover` | `advertising-photo-browse.md` |
 | `shared-header-shell` | Giữ navbar geometry đã duyệt; phục hồi CTA Zalo trong menu và cân CTA/X trên cùng shared shell | — | `site-shell.md` |
 
@@ -88,20 +88,20 @@ không stage, commit, push hoặc deploy.
   kiosk-posm-25–30; provenance tại
   `source-assets/projects/advertising/kiosk-fair-publish-20260920/provenance.json`.
   Spec gốc đã xóa, xem Git `da2f13a`.
-- [skeleton-flow](advertising-skeleton-flow.md)
+- [skeleton-flow](advertising-skeleton.md)
 - [photo-morph-scroll](advertising-photo-morph-scroll.md)
 - [brand-lockup-typeset](../../design-system/components/BrandLockup/README.md)
 - [photo-detail-layout](advertising-photo-browse.md#r8--accepted-detail-span-3-và-suggestion-một-dòng--2026-09-21)
 - [photo-viewer-controls](advertising-photo-browse.md#r9--accepted-viewer-wheelmiddle-zoom--2026-09-21)
-- [advertising-page-shell](advertising-final-polish-and-media.md#d20--accepted-cta-giao-skeletonkhoảng-trắng-và-nav-reset--2026-09-21)
+- [advertising-page-shell](advertising-masonry.md#r11-cuối-masonry)
 - `media-review-report`: hoàn tất 2026-09-20, 93 exact image, 69 cụm; report
   tại `source-assets/projects/advertising/media-review-20260920/report.html`
   và `inventory.json`. Spec gốc đã xóa, xem Git `da2f13a`.
 - [shared-footer-boundary](site-shell.md#r10-floating-cta-và-footer)
 - [shared-media-hover](page-home.md#r6-hover-ảnh-dùng-chung)
 - [portal-type-fit](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)
-- [skeleton-cta-field](advertising-skeleton-flow.md#correction-r10-accepted--mobile-tail-scale-100-và-unified-glass)
-- [advertising-hero-once](advertising-final-polish-and-media.md#d21--correction-p7-hero-one-shot)
+- [skeleton-cta-field](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)
+- [advertising-hero-once](advertising-masonry.md#r9-hero-một-lần)
 - [photo-detail-layout P7](advertising-photo-browse.md#r15--correction-p7-pinterest-primary-và-description-pager)
 - [shared-header-shell](site-shell.md#r4-full-menu)
 

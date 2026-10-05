@@ -6,7 +6,7 @@ Các checkpoint GRID-R4 bên dưới giữ evidence theo từng revision sau LOG
 Trạng thái UI hiện tại nằm ở mục AD-BROWSE-R1 — UI-FRAME-R4 và R6 cuối file;
 không dùng trạng thái chưa nghiệm thu của checkpoint cũ thay kết quả mới.
 Nguồn chuẩn GRID-R4 là
-[spec R4](../specs/advertising-grid-span-organic.md),
+[spec R4](../specs/advertising-masonry.md),
 [visual B1](../design/patterns.md#advertising-masonry-geometry)
 và [rubric ảnh](../design/advertising-image-quality.md).
 Chất lượng toàn pool và website vẫn chưa được nghiệm thu toàn bộ.
@@ -822,7 +822,7 @@ không dùng evidence trước đó để claim đã triển khai những delta 
 
 Owner đã yêu cầu bỏ title/caption ở mọi grid Advertising và tiêu đề lớn của
 ảnh detail; giữ mô tả, tag và thông tin thay thế cho ảnh. Contract hiện hành
-ở [D8](../specs/advertising-final-polish-and-media.md). Đây là phần riêng,
+ở [D8](../specs/advertising-photo-browse.md). Đây là phần riêng,
 chưa bao gồm chuyển gợi ý vào mô tả hoặc toggle filter.
 
 Source hiện không render caption ở parent, related hoặc noscript; detail
@@ -871,7 +871,7 @@ không suy claim kiểm toàn delta từ hash prefix hoặc ledger.
 ## D9 — Ưu tiên so le10% 2026-09-13
 
 Owner thay strict20% bằng ưu tiên10%, cho phép hàng thẳng sau khi thử nhánh
-ưu tiên. Spec [D9](../specs/advertising-final-polish-and-media.md) sở hữu
+ưu tiên. Spec [D9](../specs/advertising-photo-browse.md) sở hữu
 correction, áp parent/related. Source v10, metric caption-v2; code review
 độc lập PASS/APPROVED, không có finding Critical/Important. Đây là verdict
 code trong slice D9, không là nghiệm thu toàn T02.

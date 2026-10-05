@@ -6,7 +6,8 @@ updated: 2026-10-03
 related_specs:
   - ../specs/detail-pages.md
   - ../specs/site-shell.md
-  - ../specs/advertising-products-turnkey-services.md
+  - ../specs/advertising-masonry.md
+  - ../specs/advertising-skeleton.md
   - ../specs/advertising-photo-browse.md
   - ../../design-system/content.md
 ---
@@ -85,11 +86,11 @@ Catalog hiện có 154 public record, dataset `2026-09-24.1`; registry có 84 ta
 (đọc từ `buildAdvertisingArtifact()`). Mapping ảnh mới giữ gate riêng trong
 [image audit](../verification/advertising-images-audit-2026-09-09.md).
 
-Policy hiện hành là `advertising-grid-v13` trong `layout-core.mjs`
+Policy hiện hành là `advertising-grid-v14` trong `layout-core.mjs`
 (`layoutAlgorithmVersion` của artifact): mọi ảnh rộng một cột, cao intrinsic;
 parent, related và build preflight dùng chung solver; artifact có
 `settings: {}`, không còn lựa chọn Auto / 1 / 2 cột hay `layoutSpan`. Thuật
-toán và acceptance thuộc [GRID-R4](../specs/advertising-grid-span-organic.md)
+toán và acceptance thuộc [masonry](../specs/advertising-masonry.md)
 và [photo browse spec](../specs/advertising-photo-browse.md); không lặp ở đây.
 
 ## Advertising photo runtime

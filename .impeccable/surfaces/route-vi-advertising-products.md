@@ -12,7 +12,7 @@ route con `?photo=` (primary, suggestion, viewer). Sáu URL detail cũ chỉ
 chuyển hướng về `?category=`. Component ở
 [Design System](../../design-system/README.md#components); hành vi ở
 [photo browse](../../docs/specs/advertising-photo-browse.md) và
-[GRID-R4](../../docs/specs/advertising-grid-span-organic.md).
+[masonry](../../docs/specs/advertising-masonry.md).
 
 ## Visitor mode
 

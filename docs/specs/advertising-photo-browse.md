@@ -1,6 +1,6 @@
 # AD-BROWSE-R1: Grid và detail ảnh Advertising
 
-**Delta accepted hiện hành:** [AD-FINAL-R1](advertising-final-polish-and-media.md)
+**Delta accepted hiện hành:** AD-FINAL-R1 (spec đã gỡ; phần masonry ở [masonry](advertising-masonry.md))
 được owner duyệt ngày2026-09-11. D1–D7 thay ngưỡng ratio, số cột related,
 placement suggestion, ngoại lệ sparse và nền dư; C1–C5 thay continuation/copy/hero.
 Những rule P1.4/v7 bên dưới trái delta này chỉ còn mô tả phiên bản đã triển khai
@@ -104,7 +104,7 @@ Source dùng policy một cột v7; trạng thái nghiệm thu ở [verification
 - Mọi ảnh sản phẩm chiếm đúng một cột ở mọi viewport; chiều cao tính từ tỷ lệ intrinsic, không đặt chiều cao đồng loạt. `imageWidth = W`, `imageHeight = W * intrinsicHeight / intrinsicWidth`. Public flow không để Auto hoặc literal span 2 làm ảnh rộng hơn một cột.
 - Owner xác nhận bỏ cả ba lựa chọn Auto / 1 cột / 2 cột khi chuyển sang policy này. Không giữ dropdown, nút hoặc trường chỉnh span chỉ còn một lựa chọn. Nội dung ảnh mới không phải gán `layoutSpan`; bỏ thiết lập/ngưỡng Auto chỉ dùng để chọn độ rộng. Contract CMS tương lai cũng không cung cấp lựa chọn này; không triển khai CMS trong slice hiện tại.
 - Giữ outer band, gutter, content cap và caption theo DESIGN. Parent giữ số cột responsive 2–4. Related thử số cột responsive trước, chỉ giảm sau khi search có giới hạn không tìm được layout đạt gate; tối thiểu một cột, theo approval owner ngày 2026-09-10. Đo lại khối nhãn và vùng primary khi chiều rộng cột đổi. Không overlap, crop, kéo méo, mất/trùng ảnh hoặc horizontal overflow.
-- Owner sửa gate stagger cho cả parent/related: mép dưới khung ảnh gần nhất ở hai cột kề lệch ít nhất `0.20 * max(imageHeightA, imageHeightB)`, gồm terminal frontier. `imageHeight` là chiều cao vùng ảnh đang hiển thị, không gồm caption. Ví dụ ảnh cao 400/600 CSS px cần lệch tối thiểu 120 CSS px. Quy tắc này thay `0.25 * W` và đề xuất tạm `0.25 * imageHeight`; giữ anti-brick và tie-break theo [hình học masonry](advertising-grid-span-organic.md#hình-học-masonry-grid-r4-visual). Không thêm spacer/filler, giãn gutter hoặc sửa tỷ lệ để giả so le.
+- Owner sửa gate stagger cho cả parent/related: mép dưới khung ảnh gần nhất ở hai cột kề lệch ít nhất `0.20 * max(imageHeightA, imageHeightB)`, gồm terminal frontier. `imageHeight` là chiều cao vùng ảnh đang hiển thị, không gồm caption. Ví dụ ảnh cao 400/600 CSS px cần lệch tối thiểu 120 CSS px. Quy tắc này thay `0.25 * W` và đề xuất tạm `0.25 * imageHeight`; giữ anti-brick và tie-break theo [hình học masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí). Không thêm spacer/filler, giãn gutter hoặc sửa tỷ lệ để giả so le.
 - Thuật toán được chọn lại thứ tự và vị trí để đạt organic, đồng thời ưu tiên lấp đầy các cột tới đoạn cuối trong các candidate đã đạt gate. Không để một cột kết thúc quá sớm tạo vùng trống dài như preview EN v6; không ép các đáy bằng nhau trái gate so le. Đo phần thiếu ở đáy trên ảnh sản phẩm thật, trước phần skeleton CTA. Kết quả deterministic theo cùng dữ liệu/viewport/settings. Không gọi search hữu hạn là tối ưu toàn cục.
 - Cân đáy trên cùng hệ tọa độ: chênh lệch đáy card ảnh thật cuối mỗi cột không vượt chiều cao card cuối lớn nhất cộng gutter. Không trừ seed riêng từng cột; loại khối nhãn và cột chỉ dành cho primary khỏi tập ảnh thật. Khi đủ ảnh thì mọi cột phải có ảnh thật. Related có thể giảm cột để đạt điều kiện này.
 - Tái dùng `layout-core.mjs`, oracle độc lập và tổng operation budget 300.000 cho mọi lượt thử số cột; không tạo solver thứ hai. Search hữu hạn thất bại không chứng minh số cột đó bất khả thi về toán học hoặc số cột trả về là lớn nhất khả thi. Ngoại lệ bridge span 2 của GRID-R4-B1 không còn áp dụng cho các ảnh một cột.
@@ -716,13 +716,13 @@ Evidence hiện tại: [P7.5](../verification/advertising-september-p7-5-2026-09
 
 ## Supersession random accepted
 
-[Organic random](advertising-organic-random.md) thay yêu cầu thứ tự/tọa độ tuyệt
+[Organic random](advertising-masonry.md#r4-thứ-tự-ngẫu-nhiên-theo-lượt-duyệt) thay yêu cầu thứ tự/tọa độ tuyệt
 đối qua direct/F5 ở P7.4/P7.5, sort related R6, slideshow5s thành3s và nhịp
 frame batch. Same-seed/filter/history/locale giữ context; ratio, frontier,
 khoảng CTA–footer giữ giá trị hiện hành với sai lệch đo≤1 CSS px, final viewport,
 glass, Flow và fade1600ms giữ nguyên. Shared footer top gap vẫn48/64px theo
 P6.1;≤1px không là gap tuyệt đối hoặc khoảng từ chữ CTA tới footer.
-[Delta lifecycle27/09](advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
+[Delta lifecycle27/09](advertising-skeleton.md#r3-deck-và-giữ-assignment)
 giữ common slot khi toolbar/resize/scroll, không thay yêu cầu full-exit replay.
 
 ## Amendment layout mobile L04R — accepted 28/09/2026

@@ -178,7 +178,7 @@ outline. Touch không cần hover để mở ảnh.
   bằng WebGL. Mỗi lần trang ổn định (tải, đổi filter, mở đóng detail,
   Back/Forward) 12 preset màu được xáo và chia cho các frame, không frame nào
   trùng preset; mỗi frame lệch anchor, pha và chiều chảy. Resize giữ nguyên.
-  Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton-flow.md#preset-source-controlled).
+  Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
 - Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, stagger theo vị trí như

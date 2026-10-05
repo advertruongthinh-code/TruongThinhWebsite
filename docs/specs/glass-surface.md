@@ -86,7 +86,7 @@ Lớp phủ trắng của kính đi theo cùng các cung đồng tâm với đ�
 dải không có trắng, tới cung đạt tint `0.12`, vào trong tăng tới trắng tuyệt
 đối ở vòng tròn đi qua hai góc đáy batch. Hai đoạn chuyển dùng smoothstep để
 không gãy ở cung. Quy tắc đáy trắng tuyệt đối của
-[Skeleton Flow](advertising-skeleton-flow.md#correction-r8-accepted--glass-blur-rộng-và-white-endpoint)
+[skeleton R6](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)
 giữ nguyên.
 
 ```gherkin

@@ -11,7 +11,7 @@ feedback_map_status: accepted
 feedback_map_approved: 2026-09-27
 related_specs:
   - site-shell.md
-  - advertising-skeleton-flow.md
+  - advertising-skeleton.md
   - advertising-photo-browse.md
 ---
 
@@ -23,13 +23,14 @@ không cấp quyền sửa UI, resume recovery hoặc phát hành candidate.
 
 Scrollbar, chữ/icon trong nút, viewport ổn định và layout mobile toàn website
 (gồm landscape) nay thuộc [shell website](site-shell.md), kể cả gate còn mở;
-file này chỉ giữ các module Advertising và Android QA còn lại.
+skeleton lifecycle, Android QA và preview random nay ở [skeleton](advertising-skeleton.md),
+[masonry](advertising-masonry.md) và [debug Android](../operations/android-real-device-debugging.md). File này chỉ
+giữ intent và map viewer, history motion, glass và typography Advertising.
 
 ## Intent đã xác nhận
 
 1. Scrollbar: chuyển sang [shell website](site-shell.md).
-2. Skeleton card theo cùng hành vi cuộn/reveal của card thường trong grid.
-   Cuộn qua một ngưỡng không tự reset batch hoặc phát lại hiệu ứng tải.
+2. Skeleton card: chuyển sang [skeleton](advertising-skeleton.md#r4-vào-viewport-và-vòng-lặp).
 3. Chữ/icon trong nút: chuyển sang [gate của shell website](site-shell.md#gate-còn-mở).
 4. Bổ sung contract từng phần, bắt đầu scrollbar. Feedback mới mở đúng phần
    liên quan, có evidence và điều kiện kiểm lại; không suy full-site parity.
@@ -37,26 +38,7 @@ file này chỉ giữ các module Advertising và Android QA còn lại.
    Bằng chứng Android không thay kiểm chứng iPhone. Giữ nội dung/design khác;
    recovery, QA/release cũ và P11 tiếp tục paused.
 
-Đối tượng là người dùng website public VI/EN. Lý do mở correction là scrollbar
-phá cảm giác shell, skeleton chạy lại khi kéo từ đáy lên và nội dung nút lệch
-giữa thiết bị. [Quan sát Android27/09](../verification/android-skeleton-observation-2026-09-27.md)
-đã tái hiện thay frame skeleton khi visual height đổi và đối chiếu source
-height/hash. Không suy nguyên nhân mọi lần reset skeleton từ một phiên capture.
-
-## Capability map đã duyệt
-
-| Module id | Trách nhiệm | Phụ thuộc để nghiệm thu | Nguồn sở hữu |
-| --- | --- | --- | --- |
-| `android-usb-qa` | Kết nối Chrome trên Android thật; lưu metadata, DOM/CSS, lỗi và thao tác cuộn | — | [Hướng dẫn debug](../operations/android-real-device-debugging.md); không thay UI contract |
-| `skeleton-card-lifecycle` | Giữ lifecycle/reveal khi cuộn như card thường; không reset batch do ngưỡng cuộn | `android-usb-qa` | Delta của [skeleton flow](advertising-skeleton-flow.md) và [photo/grid](advertising-photo-browse.md) |
-
-Các dependency trên là gate kiểm chứng, không đề xuất dependency runtime mới.
-`scrollbar-parity` và `button-content-parity` thuộc [shell website](site-shell.md).
-Thiết lập Android chạy độc lập theo yêu cầu hướng dẫn debug của owner.
-Mỗi module UI vẫn cần spec và plan được duyệt trước code. Không tạo lại spec
-monolithic hoặc nhân bản design token; dùng delta tại nguồn đã sở hữu contract.
-
-Skeleton lifecycle và plan/card C00–C07 đã duyệt27/09.
+Đối tượng là người dùng website public VI/EN.
 
 ## Quality bar và gate
 
@@ -86,52 +68,6 @@ giữ checkpoint66 staged paths; source commit/push/deploy candidate chưa có.
 Draft amendment Git gate cũ chưa được duyệt. Map mới không resume hoặc sửa
 checkpoint đó. Sites public vẫn version2 tại lần đọc native27/09/2026.
 
-<a id="feedback-preview--intent-xác-nhận-map-bổ-sung-chờ-duyệt"></a>
-
-## Feedback preview — intent và map bổ sung đã duyệt
-
-Owner xác nhận restate ngày27/09: “Xác nhận intent này”. Feedback cụ thể là
-**hành vi random trên preview mất**, không phải owner yêu cầu bỏ contract.
-Scrollbar visual được chấp nhận. [Chẩn đoán preview](../verification/mobile-preview-diagnostics-2026-09-27.md)
-và [capture footer↔grid8792](../verification/android-skeleton-observation-2026-09-27.md#bổ-sung-preview8792--footergrid)
-là input correction, không approval code hoặc release.
-
-Intent bổ sung đã xác nhận:
-
-1. Người xem website VI/EN nhận cùng một bản local giữ random grid đã duyệt
-   và scrollbar vừa đạt; preview correction không quay về runtime trước random.
-2. Skeleton theo card thường khi cuộn, không remount/reveal lại do toolbar hoặc
-   ngưỡng scroll trong lúc slot còn trong viewport. Tách Flow animation/pause
-   và entry hợp lệ khỏi việc dựng lại node do geometry.
-3. Title/filter/header không đè nhau trên landscape; WebKit không còn context
-   pressure hoặc loseContext lỗi. Bằng chứng Android không thay iPhone thật.
-4. Bổ sung contract từng phần, giữ media, preset, taxonomy, copy và design đã
-   chấp nhận; một agent Sol/ultra gộp QA/audit/code review, effective unknown.
-5. Recovery release/P11 tiếp tục paused; đợt này chưa commit/push/deploy.
-   Button-content parity vẫn giữ trong map cũ, chưa mở implementation.
-
-Owner duyệt boundary/dependency và thứ tự bên dưới ngày27/09:
-“Duyệt map bổ sung”. Approval này cho soạn module spec, chưa cho code.
-
-| Module id | Trách nhiệm correction | Phụ thuộc/gate | Nguồn sở hữu |
-| --- | --- | --- | --- |
-| `preview-contract-preservation` | Chọn snapshot preview chứa random đã có cùng scrollbar; lưu provenance và kiểm không rơi contract khi tích hợp | Contract `advertising-organic-random` đã accepted và `scrollbar-parity`; giữ recovery immutable | Contract random tại primary/recovery `docs/specs/advertising-organic-random.md`; report preview ghi exact checkout/hash |
-| `skeleton-card-lifecycle` | Mở rộng module hiện hữu: slot/reveal/Flow ổn định khi toolbar/scroll thay viewport; allocation/cleanup WebGL không gây error | `preview-contract-preservation`, `android-usb-qa`; WebKit matrix và iPhone gate riêng | Delta tại [skeleton flow](advertising-skeleton-flow.md) và [photo/grid](advertising-photo-browse.md) |
-
-Module `advertising-landscape-layout` gộp vào layout mobile của [shell website](site-shell.md).
-Thứ tự: chốt baseline preview → skeleton lifecycle/WebGL → landscape → focused
-matrix và physical checks trên cùng candidate. Dependency là gate verify;
-không thêm package/runtime layer hoặc cyclic dependency. Không đổi module id
-scrollbar/button/Android đã accepted. Owner duyệt [delta skeleton lifecycle](advertising-skeleton-flow.md#correction-mobile-lifecycle--accepted-2026-09-27)
-ngày27/09 bằng “Duyệt delta skeleton”. [Plan baseline/skeleton](../../tasks/plan.md#correction-baseline-và-skeleton--accepted-2026-09-27)
-đã duyệt cùng [card correction](https://app.notion.com/p/3e8332849a0e8121bd20e1f62a275bb7); spec/plan landscape và nút chưa mở implementation.
-
-[Contract random accepted](advertising-organic-random.md) được carry từ frozen recovery
-vào checkout correction trong C00; provenance/hash giữ tại owning spec. Tích hợp
-runtime candidate phải ghi các gate còn mở; không coi
-HEAD hoặc “preview lên được” là bằng chứng đã giữ behavior random.
-Không copy toàn dirty tree, sửa checkpoint recovery hoặc resume QA/P11 cũ.
-
 <a id="feedback-viewer-và-mobile-toàn-website--map-chờ-duyệt"></a>
 
 ## Feedback viewer và mobile toàn website — map đã duyệt
@@ -141,12 +77,6 @@ Owner xác nhận intent ngày27/09/2026 bằng “Xác nhận intent này”; c
 Owner mở rộng kiểm layout/mobile từ Advertising sang **mọi trang website**.
 Owner duyệt map và thứ tự phía dưới bằng “Duyệt map và thứ tự đề xuất”.
 Approval mở soạn delta theo thứ tự, chưa approval spec, plan hoặc runtime mới.
-
-[Acceptance A54](../verification/mobile-skeleton-correction-2026-09-27.md#owner-acceptance-a54--2026-09-27)
-đóng riêng triệu chứng skeleton reload footer↔grid theo xác nhận owner.
-Log USB A05s không đổi identity; A54 FPS, iPhone physical và full continuation
-failure vẫn có gate riêng. Giữ random, scrollbar và common skeleton lifecycle
-đã được chấp nhận; không overwrite checkpoint C06U partial.
 
 Intent mới:
 
@@ -167,7 +97,7 @@ Intent mới:
 | `mobile-viewport-stability`, `site-mobile-layout-parity` | Viewport ổn định và layout mobile toàn website | Gate thiết bị thật | [Shell website](site-shell.md) |
 | `advertising-viewer-gestures-motion` | Pinch/pan ảnh trong viewer; morph ảnh và clear↔blur khi mở/đóng, interruption/cleanup/focus | `mobile-viewport-stability`, `site-mobile-layout-parity` | Delta [photo browse](advertising-photo-browse.md); `photo-viewer.mjs`, `detail.css` |
 | `advertising-history-motion` | Crossfade/lingering có overlap; morph và zoom-blur đối xứng trên Back/Forward, giữ entry/scroll/random context | `mobile-viewport-stability`, `site-mobile-layout-parity`; history contract accepted | Delta [photo browse](advertising-photo-browse.md), [photo morph](advertising-photo-morph-scroll.md), [motion](../../design-system/motion.md); `catalog-runtime.mjs` và adapter shared hiện hữu |
-| `advertising-glass-typography` | Blur zone rộng hơn mà không đổi opacity-to-white; paragraph mô tả justified, pagination vẫn đúng | `mobile-viewport-stability`, `site-mobile-layout-parity`; glass/preset/media accepted | Delta [skeleton flow](advertising-skeleton-flow.md), [photo browse](advertising-photo-browse.md); `detail.css` và description pagination hiện hữu |
+| `advertising-glass-typography` | Blur zone rộng hơn mà không đổi opacity-to-white; paragraph mô tả justified, pagination vẫn đúng | `mobile-viewport-stability`, `site-mobile-layout-parity`; glass/preset/media accepted | Delta [skeleton](advertising-skeleton.md), [photo browse](advertising-photo-browse.md); `detail.css` và description pagination hiện hữu |
 
 Theo [spec media-card đã duyệt](site-media-card-playback.md), supersession M02b
 ngày 2026-09-30 thay phần morph card grid/related↔primary của intent và hàng
@@ -192,11 +122,6 @@ Map gate đã đạt ngày27/09/2026: boundary/dependency và thứ tự phía t
 owner duyệt trước delta đầu tiên. Mỗi delta vẫn cần state/oracle/evidence, owner duyệt spec và
 plan trước code. Android capture và WebKit desktop không thay iPhone thật;
 không gọi kiểm một route hoặc focused engine PASS là toàn website PASS.
-
-Owner đính chính Android là A05s khi duyệt delta/plan L04R ngày28/09 bằng
-“duyệt, và máy điện thoại là A05s.” Nhãn A54 trong intent trước đó được thay
-cho initiative viewport/layout hiện tại; không retag raw USB SM-A057F hoặc
-đóng historical release A54 FPS gate. iPhone Safari physical vẫn cần evidence.
 
 ## Chú thích thuật ngữ
 

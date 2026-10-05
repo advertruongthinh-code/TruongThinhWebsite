@@ -18,7 +18,8 @@
   T9: owner duyệt pilot [static-release](specs/static-release.md) và template.
   T10: [shell](specs/site-shell.md) thay hai spec shell, menu và bốn verification cũ.
   T11: [trang chủ](specs/page-home.md) thay spec landing. T12: [trang con](specs/detail-pages.md)
-  thay spec route; T13 tiếp.
+  thay spec route. T13: [masonry](specs/advertising-masonry.md) và [skeleton](specs/advertising-skeleton.md)
+  thay bảy spec Advertising cũ; T14 tiếp.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
