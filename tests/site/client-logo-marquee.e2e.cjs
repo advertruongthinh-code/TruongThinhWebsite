@@ -12,9 +12,7 @@ const viewports = [320, 390, 768, 1024, 1440].map((width) => ({
   height: width < 768 ? 844 : 900,
 }));
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
+const assert = require("node:assert");
 
 async function inspectMarquee(page, viewport) {
   await page.goto(`${baseUrl}${pagePath}`, { waitUntil: "networkidle" });

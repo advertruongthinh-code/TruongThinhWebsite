@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { ADVERTISING_CATEGORIES, ADVERTISING_DETAIL_LAYOUTS, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_LAYOUT_ALGORITHM_VERSION, columnsForWidth, compileAdvertisingProductLayout as compileAdvertisingLayout } from "../../src/site/advertising-products/layout-core.mjs";
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -50,11 +50,6 @@ assert.ok(artifact.cards.every((card) => !Object.hasOwn(card, "layoutSpan")), "p
 assert.ok(artifact.cards.every((card) => !Object.hasOwn(card, "fitMode") && !Object.hasOwn(card, "presentationCanvas")), "artifact cards do not carry legacy canvas fields");
 const kioskFairIds = ["kiosk-posm-25", "kiosk-posm-26", "kiosk-posm-27", "kiosk-posm-28", "kiosk-posm-29", "kiosk-posm-30"];
 assert.ok(kioskFairIds.every((id) => artifact.cards.some((card) => card.id === id)), "accepted trade-fair kiosk images appear in the parent-grid artifact");
-const kioskDetailSources = [
-  ADVERTISING_DETAIL_LAYOUTS["kiosk-posm"].heroSourceId,
-  ...ADVERTISING_DETAIL_LAYOUTS["kiosk-posm"].sections.flatMap((section) => section.sourceIds ?? []),
-];
-assert.ok(kioskFairIds.every((id) => kioskDetailSources.includes(artifact.cards.find((card) => card.id === id)?.media.sourceId)), "accepted trade-fair kiosk images appear in the detail layout");
 assert.ok(kioskFairIds.every((id) => !Object.hasOwn(artifact.cards.find((card) => card.id === id), "title")), "accepted trade-fair kiosk cards add no image title");
 assert.match(advertisingCss, /\.advertising-grid \{[\s\S]*?--advertising-gap: 15px;/, "mobile grid uses the 15px gap band");
 assert.match(advertisingCss, /\.detail-page \.project-index \{[\s\S]*?--advertising-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--advertising-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");

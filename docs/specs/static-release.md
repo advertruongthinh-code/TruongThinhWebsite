@@ -19,7 +19,7 @@ tests:
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Phát hành tĩnh
@@ -36,7 +36,7 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 
 `pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu `pnpm dev` và `pnpm deploy:demo`) dừng
 nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2), xóa `.site-output/`, chép
-`src/site/` trừ `advertising-products/detail-template.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
+`src/site/`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), xử lý HTML (R5, R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
 chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm HTML trang; SVG gốc sai số `path`,
 `text` thì build dừng.
@@ -45,7 +45,6 @@ chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline 
 Given src/site/ và node_modules đã cài
 When chạy pnpm prepare:site
 Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và vendor khai báo
-And .site-output/advertising-products/detail-template.html không tồn tại
 ```
 
 ### R2. Preflight masonry và catalog artifact
@@ -65,10 +64,10 @@ And .site-output/ của lần build trước vẫn còn nguyên
 
 ### R3. Loại asset không public
 
-`scripts/site/non-public-source-assets.mjs` liệt kê 27 path trong `src/site/`
+`scripts/site/non-public-source-assets.mjs` liệt kê 16 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
 manifest, photo tags, `content/client-logos.json`, SVG lockup gốc, ảnh cover và
-process cũ, WebP không còn được tham chiếu. Build xóa chúng khỏi output.
+process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
 
 ```gherkin
 Given src/site/advertising-products/catalog.mjs nằm trong danh sách non-public

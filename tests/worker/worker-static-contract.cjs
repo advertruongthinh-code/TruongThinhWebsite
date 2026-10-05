@@ -6,9 +6,7 @@ const ORIGIN = new URL(BASE_URL).origin;
 const ROUTES = ["", "residential", "commercial", "advertising-products", "about"];
 const ADVERTISING_DETAIL_SLUGS = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
+const assert = require("node:assert");
 
 async function request(pathname) {
   return fetch(`${BASE_URL}${pathname}`, { redirect: "manual" });

@@ -7,14 +7,8 @@ import { ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/cata
 const slugs = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
 const output = (path) => new URL("../../.site-output/" + path, import.meta.url);
 const worker = await readFile(new URL("../../src/worker/index.js", import.meta.url), "utf8");
-const detailTemplate = await readFile(new URL("../../src/site/advertising-products/detail-template.html", import.meta.url), "utf8");
 
 assert.equal(slugs.length, 6, "the compatibility contract covers six Advertising categories");
-assert.match(
-  detailTemplate,
-  /<div class="advertising-detail__composition"[^>]*>\s*{{composition}}\s*<\/div>/,
-  "the source historical detail template must remain available",
-);
 
 const runRedirect = (script, { pathname, search, lang }) => {
   let replaced;

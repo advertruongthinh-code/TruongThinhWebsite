@@ -594,7 +594,6 @@
     };
   };
   window.TruongThinhMotion = {
-    ...(window.TruongThinhMotion || {}),
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
     lockLogicalScroll() {

@@ -10,7 +10,6 @@ source:
   - src/site/advertising-products/media-contract.mjs
   - src/site/advertising-products/media-manifest.mjs
   - src/site/advertising-products/photo-tags.mjs
-  - src/site/advertising-products/detail-template.html
 tests:
   - tests/site/advertising-products-layout.test.mjs
   - tests/site/advertising-products-lifecycle.test.mjs
@@ -25,7 +24,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Masonry Advertising
@@ -75,7 +74,7 @@ gần vuông `0.9–1.1`, ngang `> 1.1`, cực `<= 0.625` hoặc `>= 1.6`. Card 
 `buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry`, `categories`,
 `cards`; build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
 Sáu URL nhóm cũ chỉ chuyển về `?category=` ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)); sáu bố cục
-detail cũ (`ADVERTISING_DETAIL_LAYOUTS`, `detail-template.html`) còn trong source nhưng không vào output.
+detail cũ (`ADVERTISING_DETAIL_LAYOUTS`, `detail-template.html`) đã bị xóa khỏi source.
 
 ```gherkin
 Given một card mới trùng media.sourceId với card đã có

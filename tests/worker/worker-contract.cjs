@@ -9,9 +9,7 @@ globalThis.crypto ||= webcrypto;
 const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8787").replace(/\/+$/, "");
 const ROUTES = ["", "residential", "commercial", "advertising-products", "about"];
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
+const assert = require("node:assert");
 
 function base64url(value) {
   const bytes = value instanceof Uint8Array ? value : new TextEncoder().encode(value);

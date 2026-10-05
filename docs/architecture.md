@@ -2,7 +2,7 @@
 title: Kiến trúc runtime Trường Thịnh
 type: architecture
 status: living
-updated: 2026-10-05
+updated: 2026-10-06
 related_specs:
   - specs/detail-pages.md
   - specs/page-home.md
@@ -29,7 +29,6 @@ flowchart LR
   P --> O[".site-output\ngenerated"]
   O --> V["serve-static-parity\nlocal preview"]
   C["catalog.mjs + layout-core"] --> P
-  T["detail-template.html"] --> P
   W["src/worker + src/admin\ndormant/dev"] -. CMS phase .-> D["D1/R2/Access\nplanned"]
   Q["tests/site + tests/worker"] --> S
 ```
@@ -55,7 +54,7 @@ Các route dưới đây là public static contract. `locale` là `vi` hoặc `e
 | `/{locale}/residential/` | `src/site/residential/index.html` | Detail nhà ở |
 | `/{locale}/commercial/` | `src/site/commercial/index.html` | Detail kinh doanh, horizontal gallery |
 | `/{locale}/advertising-products/` | `src/site/advertising-products/index.html` | Catalog, filter, masonry |
-| `/{locale}/advertising-products/{slug}/` | `src/site/advertising-products/detail-template.html` + `catalog.mjs` | Sáu compatibility entry chuyển về parent `?category=<slug>`; photo view hiện hành dùng query `photo` |
+| `/{locale}/advertising-products/{slug}/` | `scripts/site/prepare-static-assets.mjs` + `catalog.mjs` | Sáu compatibility entry chuyển về parent `?category=<slug>`; photo view hiện hành dùng query `photo` |
 | `/{locale}/about/` | `src/site/about/index.html` | About/detail |
 
 `/{locale}/projects/:slug/` là CMS target trong tương lai, không phải current

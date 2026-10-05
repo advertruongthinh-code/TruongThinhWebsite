@@ -135,17 +135,6 @@ const parseHex = (value) => [
   Number.parseInt(value.slice(5, 7), 16) / 255,
 ];
 
-function exactKeys(value, keys, label) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new TypeError(`${label} must be an object`);
-  }
-  const actual = Object.keys(value);
-  const unknown = actual.filter((key) => !keys.includes(key));
-  if (unknown.length) throw new TypeError(`${label} has unknown field: ${unknown.join(", ")}`);
-  const missing = keys.filter((key) => !actual.includes(key));
-  if (missing.length) throw new TypeError(`${label} is missing field: ${missing.join(", ")}`);
-}
-
 function rangedNumber(value, minimum, maximum, label) {
   if (!Number.isFinite(value) || value < minimum || value > maximum) {
     throw new TypeError(`${label} must be within ${minimum}..${maximum}`);
@@ -153,82 +142,24 @@ function rangedNumber(value, minimum, maximum, label) {
   return value;
 }
 
-function freezePreset(preset) {
-  preset.colors = Object.freeze(preset.colors);
-  preset.anchors = Object.freeze(preset.anchors.map((anchor) => Object.freeze(anchor)));
-  preset.bands = Object.freeze(preset.bands);
-  preset.field = Object.freeze(preset.field);
-  preset.finish = Object.freeze(preset.finish);
-  return Object.freeze(preset);
-}
-
-export function parseSkeletonFlowPreset(input) {
-  const value = typeof input === "string" ? JSON.parse(input) : input;
-  exactKeys(value, ["id", "colors", "anchors", "bands", "field", "finish"], "preset");
-  if (typeof value.id !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.id)) {
-    throw new TypeError("preset id must be a non-empty slug");
-  }
-  if (!Array.isArray(value.colors) || value.colors.length !== 4
-    || !value.colors.every((color) => /^#[0-9a-f]{6}$/i.test(color))) {
-    throw new TypeError("preset colors must contain exactly four hex colors");
-  }
-  if (!Array.isArray(value.anchors) || value.anchors.length !== 4) {
-    throw new TypeError("preset anchors must contain exactly four points");
-  }
-  const anchors = value.anchors.map((anchor, index) => {
-    exactKeys(anchor, ["x", "y"], `preset anchors[${index}]`);
-    return {
-      x: rangedNumber(anchor.x, 0, 1, `preset anchors[${index}].x`),
-      y: rangedNumber(anchor.y, 0, 1, `preset anchors[${index}].y`),
-    };
-  });
-  if (!Array.isArray(value.bands) || value.bands.length !== 3
-    || value.bands.some((band) => !Number.isFinite(band) || band <= 0 || band >= 1)
-    || value.bands.some((band, index) => index > 0 && band <= value.bands[index - 1])) {
-    throw new TypeError("preset bands must contain three strictly increasing values within 0..1");
-  }
-  exactKeys(value.field, ["scale", "distortion", "swirl", "speed"], "preset field");
-  exactKeys(value.finish, ["soften", "noise"], "preset finish");
-  return freezePreset({
-    id: value.id,
-    colors: value.colors.map((color) => color.toUpperCase()),
-    anchors,
-    bands: value.bands.map((band, index) => rangedNumber(band, 0, 1, `preset bands[${index}]`)),
-    field: {
-      scale: rangedNumber(value.field.scale, 0, 100, "preset field scale"),
-      distortion: rangedNumber(value.field.distortion, 0, 100, "preset field distortion"),
-      swirl: rangedNumber(value.field.swirl, 0, 100, "preset field swirl"),
-      speed: rangedNumber(value.field.speed, 0, 100, "preset field speed"),
-    },
-    finish: {
-      soften: rangedNumber(value.finish.soften, 0, 80, "preset finish soften"),
-      noise: rangedNumber(value.finish.noise, 0, 100, "preset finish noise"),
-    },
+function freezePreset({ id, colors, bands, field, finish }, anchors) {
+  return Object.freeze({
+    id,
+    colors: Object.freeze([...colors]),
+    anchors: Object.freeze(anchors.map(({ x, y }) => Object.freeze({ x, y }))),
+    bands: Object.freeze([...bands]),
+    field: Object.freeze({ ...field }),
+    finish: Object.freeze({ ...finish }),
   });
 }
 
-export function parseSkeletonFlowPresets(input) {
-  const values = typeof input === "string" ? JSON.parse(input) : input;
-  if (!Array.isArray(values) || values.length !== 12) {
-    throw new TypeError("Flow config must contain exactly 12 presets");
-  }
-  const presets = values.map(parseSkeletonFlowPreset);
-  if (new Set(presets.map(({ id }) => id)).size !== presets.length) {
-    throw new TypeError("Flow preset IDs must be unique");
-  }
-  return Object.freeze(presets);
-}
-
-const sourcePresets = RAW_PRESETS.map(({ id, colors, distortion, swirl, speed, noise }) => ({
+export const SKELETON_FLOW_PRESETS = Object.freeze(RAW_PRESETS.map(({ id, colors, distortion, swirl, speed, noise }) => freezePreset({
   id,
   colors,
-  anchors: P100_ANCHORS.map(([x, y]) => ({ x, y })),
-  bands: [...BANDS],
+  bands: BANDS,
   field: { scale: 100, distortion, swirl, speed },
   finish: { soften: 0, noise },
-}));
-
-export const SKELETON_FLOW_PRESETS = parseSkeletonFlowPresets(sourcePresets);
+}, P100_ANCHORS.map(([x, y]) => ({ x, y })))));
 
 const normalizedRandom = (random) => Math.min(0.999999, Math.max(0, Number(random()) || 0));
 
@@ -269,14 +200,7 @@ export function createSkeletonFlowBatchAssignments({
   if (count % 2) directions.push(normalizedRandom(random) < 0.5 ? -1 : 1);
   return presetOrder.map((source, index) => {
     const anchorPermutation = anchorOrders[index];
-    const preset = parseSkeletonFlowPreset({
-      ...source,
-      colors: [...source.colors],
-      anchors: anchorPermutation.map((anchorIndex) => ({ ...source.anchors[anchorIndex] })),
-      bands: [...source.bands],
-      field: { ...source.field },
-      finish: { ...source.finish },
-    });
+    const preset = freezePreset(source, anchorPermutation.map((anchorIndex) => source.anchors[anchorIndex]));
     return Object.freeze({
       preset,
       anchorPermutation: Object.freeze(anchorPermutation.slice()),
@@ -473,7 +397,7 @@ function createNoise(seed) {
 }
 
 export function createSkeletonFlowRenderer(canvas, {
-  preset: presetInput = SKELETON_FLOW_PRESETS[0],
+  preset = SKELETON_FLOW_PRESETS[0],
   seed = 0,
   initialPhase = FLOW_CLOCK_START,
   direction = 1,
@@ -484,7 +408,6 @@ export function createSkeletonFlowRenderer(canvas, {
   frameInterval = 0,
 } = {}) {
   if (!canvas?.getContext) return null;
-  const preset = parseSkeletonFlowPreset(presetInput);
   const renderWidth = Math.max(1, Math.round(Number(width) || FLOW_WIDTH));
   const renderHeight = Math.max(1, Math.round(Number(height) || FLOW_HEIGHT));
   canvas.width = renderWidth;

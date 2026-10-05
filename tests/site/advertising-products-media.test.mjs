@@ -7,9 +7,7 @@ import {
 import {
   ADVERTISING_CARDS,
   ADVERTISING_DATASET_VERSION,
-  ADVERTISING_DETAIL_LAYOUTS,
   buildAdvertisingArtifact,
-  validateAdvertisingDetailLayouts,
 } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
@@ -84,18 +82,6 @@ test("accepts an extra record without requiring a span choice", () => {
 
   assert.equal(validate(records), records);
   assert.equal(records.length, 110);
-});
-
-test("detail layouts partition all canonical media sources exactly once", () => {
-  assert.equal(validateAdvertisingDetailLayouts(ADVERTISING_DETAIL_LAYOUTS, ADVERTISING_MEDIA_MANIFEST), ADVERTISING_DETAIL_LAYOUTS);
-
-  const assigned = Object.values(ADVERTISING_DETAIL_LAYOUTS).flatMap((layout) => [
-    layout.heroSourceId,
-    ...layout.sections.flatMap((section) => section.sourceIds ?? []),
-  ]);
-  assert.equal(assigned.length, 154);
-  assert.equal(new Set(assigned).size, 154);
-  assert.deepEqual(new Set(assigned), new Set(ADVERTISING_MEDIA_MANIFEST.map(({ media }) => media.sourceId)));
 });
 
 test("rejects duplicate card ids and media paths", () => {
