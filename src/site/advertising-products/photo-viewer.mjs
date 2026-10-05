@@ -31,6 +31,10 @@ export function createAdvertisingPhotoViewer({
   let panX = 0;
   let panY = 0;
   let drag = null;
+  let pinch = null;
+  let tap = null;
+  let lastTap = null;
+  const touches = new Map();
   let backdropPress = false;
   let lockedScroll = 0;
   let imageAnimation = null;
@@ -90,8 +94,11 @@ export function createAdvertisingPhotoViewer({
     y: Math.max(0, (fitHeight * scale - viewport.clientHeight) / 2),
   });
   const updateControls = () => {
-    zoomStatus.value = `${Math.round(scale * 100)}%`;
-    zoomStatus.textContent = zoomStatus.value;
+    // aria-live status announces the end of a pinch, not every frame of it.
+    if (!pinch) {
+      zoomStatus.value = `${Math.round(scale * 100)}%`;
+      zoomStatus.textContent = zoomStatus.value;
+    }
     zoomOutButton.disabled = atFit();
     zoomInButton.disabled = atMax();
     if (resetButton) {
@@ -167,6 +174,51 @@ export function createAdvertisingPhotoViewer({
     const to = renderTransform();
     runMotion(from, to, 200, "ease-in-out", "zooming");
   };
+  // A gesture during a zoom animation continues from the frame on screen; during opening it starts from Fit.
+  const adoptDisplayed = () => {
+    if (!imageAnimation) return;
+    if (dialog.dataset.advertisingViewerState === "zooming") {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(expandedImage).transform);
+      scale = matrix.a;
+      panX = matrix.m41;
+      panY = matrix.m42;
+    }
+    cancelMotion();
+    dialog.dataset.advertisingViewerState = "open";
+    renderTransform();
+  };
+  // Back inside [Fit, Max] after a gesture; Max keeps `anchor` still, Fit recentres.
+  const settle = (anchor) => {
+    const target = clamp(scale, 1, 2 * cover);
+    if (target === scale) renderTransform();
+    else setScale(target, anchor);
+  };
+  const midpoint = () => {
+    const [a, b] = touches.values();
+    return { clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2, distance: Math.hypot(a.x - b.x, a.y - b.y) || 1 };
+  };
+  const startPinch = () => {
+    const { clientX, clientY, distance } = midpoint();
+    const bounds = viewport.getBoundingClientRect();
+    pinch = {
+      scale, distance, clientX, clientY,
+      localX: (clientX - bounds.left - bounds.width / 2 - panX) / scale,
+      localY: (clientY - bounds.top - bounds.height / 2 - panY) / scale,
+    };
+  };
+  const movePinch = () => {
+    const { clientX, clientY, distance } = midpoint();
+    const bounds = viewport.getBoundingClientRect();
+    const max = 2 * cover;
+    const raw = pinch.scale * distance / pinch.distance;
+    // Past a limit the image follows a third of the fingers, up to 15% over.
+    scale = raw > max ? Math.min(max + (raw - max) / 3, max * 1.15)
+      : raw < 1 ? Math.max(1 - (1 - raw) / 3, 0.85) : raw;
+    panX = clientX - bounds.left - bounds.width / 2 - scale * pinch.localX;
+    panY = clientY - bounds.top - bounds.height / 2 - scale * pinch.localY;
+    Object.assign(pinch, { clientX, clientY });
+    renderTransform();
+  };
   const unlock = () => {
     scroll?.unlockLogicalScroll?.(lockedScroll);
   };
@@ -174,7 +226,8 @@ export function createAdvertisingPhotoViewer({
     cancelMotion();
     dialog.close();
     delete dialog.dataset.advertisingViewerState;
-    drag = null;
+    drag = pinch = tap = lastTap = null;
+    touches.clear();
     scale = 1;
     panX = panY = 0;
     renderTransform();
@@ -243,11 +296,24 @@ export function createAdvertisingPhotoViewer({
       setScale(1);
       return;
     }
+    const closing = dialog.dataset.advertisingViewerState === "closing";
+    if (event.pointerType === "touch" && !closing && viewport.contains(event.target) && touches.size < 2) {
+      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (touches.size === 2) {
+        // Two fingers never close the viewer and end any one-finger drag or tap.
+        backdropPress = false;
+        drag = tap = lastTap = null;
+        adoptDisplayed();
+        startPinch();
+        event.preventDefault();
+        return;
+      }
+      tap = event.target === expandedImage ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+    }
     backdropPress = event.target === dialog || event.target === viewport;
     if (backdropPress) return;
-    if (atFit() || event.target !== expandedImage || dialog.dataset.advertisingViewerState === "closing") return;
-    cancelMotion();
-    dialog.dataset.advertisingViewerState = "open";
+    if (atFit() || event.target !== expandedImage || closing) return;
+    adoptDisplayed();
     drag = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY };
     viewport.setPointerCapture?.(event.pointerId);
     renderTransform();
@@ -259,20 +325,49 @@ export function createAdvertisingPhotoViewer({
     backdropPress = false;
   }, { signal: controller.signal });
   dialog.addEventListener("pointermove", (event) => {
+    const touch = touches.get(event.pointerId);
+    if (touch) Object.assign(touch, { x: event.clientX, y: event.clientY });
+    if (tap?.id === event.pointerId && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10) tap = null;
+    if (pinch && touch) {
+      movePinch();
+      event.preventDefault();
+      return;
+    }
     if (!drag || drag.id !== event.pointerId) return;
     panX = drag.panX + event.clientX - drag.x;
     panY = drag.panY + event.clientY - drag.y;
     renderTransform();
     event.preventDefault();
   }, { signal: controller.signal });
-  const endDrag = (event) => {
-    if (!drag || drag.id !== event.pointerId) return;
-    drag = null;
-    if (viewport.hasPointerCapture?.(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
-    updateControls();
+  const endPointer = (event) => {
+    if (!touches.delete(event.pointerId) && (!drag || drag.id !== event.pointerId)) return;
+    if (pinch) {
+      const anchor = pinch;
+      pinch = null;
+      const [rest] = touches;
+      // One finger left inside [Fit, Max] keeps panning; out of range the image springs back and it is ignored.
+      if (rest && scale >= 1 && scale <= 2 * cover) {
+        if (!atFit()) drag = { id: rest[0], x: rest[1].x, y: rest[1].y, panX, panY };
+        renderTransform();
+      } else settle(anchor);
+      return;
+    }
+    if (drag?.id === event.pointerId) {
+      drag = null;
+      if (viewport.hasPointerCapture?.(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+      settle();
+    }
+    if (tap?.id !== event.pointerId || event.type !== "pointerup") return;
+    tap = null;
+    // Double tap: Fit zooms to Cover around the tap, any other scale returns to Fit.
+    if (lastTap && event.timeStamp - lastTap.time <= 300
+      && Math.hypot(event.clientX - lastTap.x, event.clientY - lastTap.y) <= 24) {
+      lastTap = null;
+      setScale(atFit() ? cover : 1, event);
+    } else lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
   };
-  dialog.addEventListener("pointerup", endDrag, { signal: controller.signal });
-  dialog.addEventListener("pointercancel", endDrag, { signal: controller.signal });
+  dialog.addEventListener("pointerup", endPointer, { signal: controller.signal });
+  dialog.addEventListener("pointercancel", endPointer, { signal: controller.signal });
   dialog.addEventListener("keydown", (event) => {
     if (event.key === "Tab") {
       const controls = visibleControls();
