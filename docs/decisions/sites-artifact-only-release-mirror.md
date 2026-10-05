@@ -5,7 +5,7 @@ date: 2026-09-24
 scope: static website release
 supersedes: []
 related_specs:
-  - ../specs/frontend-static-release.md
+  - ../specs/static-release.md
 related_reports: []
 superseded_by: cloudflare-workers-static-demo.md
 ---

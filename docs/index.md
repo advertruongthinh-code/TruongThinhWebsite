@@ -73,7 +73,7 @@ lifecycle) nằm trong spec sở hữu.
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
   và [Design System](../design-system/README.md): shell và visual authority.
-- [Static release](specs/frontend-static-release.md): build/hosting;
+- [Static release](specs/static-release.md): build/hosting;
   [changelog](../CHANGELOG.md) ghi thay đổi phát hành.
 - [STATE](STATE.md) giữ active work, blocker và next action;
   [verification index](verification/index.md) giữ evidence có ngày/scope.

@@ -108,7 +108,7 @@ landing-page release.
 ## 9. Reference và history
 
 - [`frontend-route-and-content.md`](frontend-route-and-content.md)
-- [`frontend-static-release.md`](frontend-static-release.md)
+- [`static-release.md`](static-release.md)
 - [`../index.md`](../index.md#nguồn-chuẩn-và-artifact-của-impeccable)
 
 ## Shared media hover — accepted P6

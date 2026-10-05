@@ -8,7 +8,7 @@ related_docs:
   - ../PRODUCT.md
   - architecture/index.md
   - backend/index.md
-  - specs/frontend-static-release.md
+  - specs/static-release.md
   - specs/cms-content-publishing.md
 related_decisions:
   - decisions/wrangler-deferred-until-cms.md
@@ -40,7 +40,7 @@ public.
 
 | Phase | Trạng thái | Phạm vi | Nguồn chuẩn |
 | --- | --- | --- | --- |
-| 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/frontend-static-release.md), [STATE](STATE.md) |
+| 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/static-release.md), [STATE](STATE.md) |
 | 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [CMS contract](specs/cms-content-publishing.md), [Backend roadmap](backend/index.md) |
 
 Việc còn mở của phase 1 (owner kiểm nhận giao diện, full-site parity, fact chưa

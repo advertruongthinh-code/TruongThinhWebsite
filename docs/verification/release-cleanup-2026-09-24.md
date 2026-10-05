@@ -178,7 +178,7 @@ giữ ngày và phạm vi evidence lịch sử.
   lượt tiếp tục; các edit tooling, test và ảnh nguồn khác giữ ngoài scope commit.
 - Cây project đã tách website ở `src/site/`, kiểm thử ở `tests/`, build ở
   `.site-output/`, dữ liệu nguồn ở `source-assets/`; không cần move lại source.
-  Contract GitHub/Sites được ghi tại [static release](../specs/frontend-static-release.md),
+  Contract GitHub/Sites được ghi tại [static release](../specs/static-release.md),
   [architecture](../architecture/index.md) và [ADR](../decisions/sites-artifact-only-release-mirror.md).
 - Checkout `.tmp/sites-static-publish-20260924/` vẫn có HEAD version 1
   `85adc08077b75faf47249eb2a2a68ad9422deb3b`. Index mới có 286 file:
@@ -207,7 +207,7 @@ pre-push, được đẩy lên GitHub nhánh `codex/project-structure`. Build lo
 file source-only không có consumer trong static runtime, gồm module catalog,
 media, manifest, JSON nguồn, SVG brand và WebP không được tham chiếu. Các file
 gốc, test, script và docs vẫn thuộc GitHub theo
-[contract static release](../specs/frontend-static-release.md).
+[contract static release](../specs/static-release.md).
 
 Checkout sạch tại source SHA trên tạo 268 file `.site-output/`; so sánh SHA-256
 từng file với mirror `dist/` đạt 268/268. `pnpm qa:static` và hai test static

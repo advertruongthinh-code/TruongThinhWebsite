@@ -1,11 +1,11 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-04
+- Updated: 2026-10-05
 - Phase: public website static-first VI/EN. Source tại `src/site/`, build tại
   `.site-output/`; CMS/admin/D1/R2/Worker chưa activate.
 - Active work: demo chuyển từ ChatGPT Sites (owner hết gói) sang Cloudflare
   Workers static assets theo [decision demo](decisions/cloudflare-workers-static-demo.md).
-  Deploy gần nhất 2026-10-04 `8759d0a` (Worker `7ee4aaa9`), [evidence](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026).
+  Deploy gần nhất 2026-10-04 `8759d0a` (Worker `7ee4aaa9`), [cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare).
   Release Sites cũ: [checkpoint](verification/release-cleanup-2026-09-24.md).
 - Đại tu docs: [spec đã duyệt](specs/docs-system.md), [plan T1–T21](../tasks/docs-overhaul-plan.md),
   [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7). `pnpm qa:docs` (link,
@@ -14,7 +14,8 @@
   và trang sinh từ HTML/CSS, Advertising chụp từ runtime); chỉ mô tả Trường Thịnh, Espacio
   chỉ ghi ở nguồn tham khảo. T7: `DESIGN.md`
   và sidecar Impeccable sinh từ `design-system/`, không sửa tay. T8: đã publish lên
-  [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); chờ owner duyệt (checkpoint 2).
+  [claude.ai](https://claude.ai/artifact/HJ1a9QvMREYAFACZzQBQ88); owner duyệt bản 20 (checkpoint 2).
+  T9: spec pilot [static-release](specs/static-release.md), chờ owner đọc thử.
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright
@@ -94,14 +95,14 @@
   và cache (Worker `7ee4aaa9`): bytes, ảnh đầu và LCP không route nào vượt baseline
   ([kết quả](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
   LCP residential mobile còn hai mode do reveal SplitText ở hero title
-  ([gate](specs/frontend-static-release.md#gate-còn-mở)).
+  ([gate](specs/static-release.md#gate-còn-mở)).
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng
   khi vào thẳng trang đã sửa; skeleton chờ ảnh, mở ảnh tại chỗ và kính hiện,
   tan trên ảnh vừa tải đã code, còn trace A05s (R9); [Kính dùng chung](specs/glass-surface.md)
   đã code 04/10 cho kính cuối masonry, vùng dư primary và ảnh vừa tải, còn đo 30fps trên A05s;
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
-  phát hành lại theo [các bước](specs/frontend-static-release.md#phát-hành-demo-cloudflare--owner-đồng-ý-03102026); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
+  phát hành lại theo [các bước](specs/static-release.md#r11-phát-hành-demo-cloudflare); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
   regression, filter không replay. Ảnh nguồn và WebP có
   [provenance](../source-assets/projects/advertising/portal-20260924/README.md).
 
