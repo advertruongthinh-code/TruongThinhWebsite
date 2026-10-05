@@ -181,10 +181,12 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 
 - R7 trên A05s, vào thẳng ảnh: vẫn rơi, không do Kính và không còn do
   catalog. Catalog đã chia thành các task nhỏ (PR #107, #111; đo 05/10,
-  Chrome 154, median năm lần): task dài nhất `310ms` còn `67–68ms`, task
-  catalog dài nhất `41–46ms`, số task trên `50ms` còn `2`. Hai task còn lại
-  nằm ngoài catalog: evaluate `motion.js` khoảng `67ms` (thread sở hữu
-  `motion.js` đang xử lý) và Layout đầu trang `47–60ms`.
+  Chrome 154, median năm lần, bản chưa có sửa `motion.js`): task dài nhất
+  `310ms` còn `67–68ms`, task catalog dài nhất `41–46ms`, số task trên `50ms`
+  còn `2`: evaluate `motion.js` khoảng `67ms` và Layout đầu trang `47–60ms`.
+  `motion.js` sau đó không còn task dài: mount trang và Barba chạy sau frame
+  đầu nên không ép layout (đo cloud 05/10, CPU chậm 2x, năm lần: `84–103ms`
+  xuống `15–17ms`; A05s chưa đo lại). Còn Layout đầu trang.
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long

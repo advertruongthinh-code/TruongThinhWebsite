@@ -301,7 +301,7 @@
     };
     const scheduleHeroFrame = (callback) => {
       const run = () => scheduleFrame(() => scheduleFrame(callback));
-      if (document.readyState === "complete") {
+      if (document.readyState !== "loading") {
         run();
         return;
       }
