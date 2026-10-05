@@ -72,7 +72,7 @@ lifecycle) nằm trong spec sở hữu.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
   [Viewer zoom hai ngón và chạm đúp](specs/advertising-viewer-touch-zoom.md):
-  planned, chờ owner duyệt; thay ba mức zoom cố định của viewer.
+  owner duyệt 05/10, [plan](../tasks/viewer-touch-zoom-plan.md) chờ duyệt; thay ba mức zoom cố định.
 - [Menu mở](specs/full-menu-reference-parity.md), [brand shell](specs/frontend-brand-shell-responsive-runtime.md)
   và [Design System](../design-system/README.md): shell và visual authority.
 - [Static release](specs/static-release.md): build/hosting;
