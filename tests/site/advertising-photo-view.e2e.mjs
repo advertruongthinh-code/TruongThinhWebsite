@@ -1017,6 +1017,8 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
     await page.goto(new URL(route(locale, record.card), baseUrl).href, { waitUntil: "domcontentloaded" });
     await waitForPhoto(page);
     if (viewerControlsOnly) {
+      stage = "viewer:controls-only:geometry";
+      await settleGeometry(page, stage, settlements, { requireScrollStable: true });
       stage = "viewer:controls-only";
       await exerciseDialog(page, { label, touch, keyboard: true, closeWithButton: false, reducedMotion, resize: true, settlements, setStage: (step) => { stage = `viewer:${step}`; } });
       assert.deepEqual(diagnostics, [], `${label}: local runtime diagnostics ${JSON.stringify(diagnostics)}`);
