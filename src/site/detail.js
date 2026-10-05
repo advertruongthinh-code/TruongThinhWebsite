@@ -350,12 +350,9 @@
         const heroWordGroup = wordGroups.find((group) =>
           group.hasAttribute("data-motion-hero-title"),
         );
-        const heroMotto = container.querySelector(
-          "[data-motion-hero-motto]",
-        );
         const heroSettled = settled || advertisingHeroSettled;
         let advertisingHeroTextStarted = false;
-        const isHeroGroup = (group) => group === heroWordGroup || group === heroMotto;
+        const isHeroGroup = (group) => group === heroWordGroup;
         const isGroupSettled = (group) => settled || (
           isHeroGroup(group) && (
             advertisingHeroSettled || (
@@ -512,7 +509,6 @@
           if (
             !isGroupSettled(group) &&
             group !== heroWordGroup &&
-            group !== heroMotto &&
             !isRevealed &&
             !observedTextGroups.has(group)
           ) {
@@ -537,7 +533,7 @@
               const startHeroText = initial && !heroSettled && !advertisingHeroTextStarted;
               lineGroups.forEach(prepareTextGroup);
               wordGroups.forEach(prepareTextGroup);
-              if (startHeroText && (heroWordGroup || heroMotto)) advertisingHeroTextStarted = true;
+              if (startHeroText && heroWordGroup) advertisingHeroTextStarted = true;
               if (startHeroText && heroWordGroup) {
                 const titleDelay = heroProfile === "words-06" ? 0.6 : 0.9;
                 gsap.to(heroWordGroup.querySelectorAll(".motion-word"), {
@@ -548,12 +544,6 @@
                   stagger: 0.2,
                   onComplete: () => completedTextGroups.add(heroWordGroup),
                 });
-              }
-              if (startHeroText && heroMotto) {
-                revealTextGroup(
-                  heroMotto,
-                  getRemainingDelay(getDelay(heroMotto)),
-                );
               }
               window.dispatchEvent(new CustomEvent("site:layout"));
               resolveRebuild?.();
