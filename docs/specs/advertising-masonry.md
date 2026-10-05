@@ -275,7 +275,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 ## Gate còn mở
 
 - Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter; VI/EN, desktop và điện thoại. Owner.
-- `advertising-random-browse.e2e.mjs` phần WebKit chưa từng chạy xong; Safari trên iPhone thật chưa kiểm masonry. Main
+- `advertising-random-browse.e2e.mjs` phần Chromium PASS 15 case (05/10), phần WebKit chưa từng chạy xong (cloud thiếu thư viện hệ thống cho WebKit); Safari trên iPhone thật chưa kiểm masonry. Main
   (WebKit trên cloud), owner và máy PC (iPhone).
 - Thứ tự seed ném `search-exhausted` ở cả hai pha thì masonry báo lỗi thay vì trả layout kèm chẩn đoán; chưa pool nào
   tái hiện (suy luận từ `compileAdvertisingProductLayout`). Main quyết sửa hay chấp nhận.
