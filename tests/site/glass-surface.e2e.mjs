@@ -78,8 +78,8 @@ try {
       const band = (state.sLast - state.s0) / (2 / 3 - 0.1);
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
-      check(Math.abs(yIn - (state.clusterTop + 0.5 * cluster)) <= 2,
-        `${label}: R2 apex ${yIn.toFixed(1)} is not at half the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
+      check(Math.abs(yIn - (state.clusterTop + 0.45 * cluster)) <= 2,
+        `${label}: R2 apex ${yIn.toFixed(1)} is not at 45% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
       check(state.s0 >= state.realBottom - 1, `${label}: R2 band edge ${state.s0} rises above the real photos ${state.realBottom}`);
       check(Math.abs(band - 1.2 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
         `${label}: R2 band ${band.toFixed(1)} is not 1.2 cluster heights`);

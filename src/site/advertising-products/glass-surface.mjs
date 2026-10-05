@@ -3,8 +3,9 @@
 // has five (levels 2, 4.5, 9, 16, 28px); the arc's band has three (4.5, 12, 28px; owner, 05/10, for the A05s).
 const STEPS = 5;
 const ARC_STEPS = 3;
-// Owner's final arc (04/10): apex at half the CTA cluster, radius 4 viewport widths, band 1.2 cluster heights.
-const ARC = Object.freeze({ centre: 0.5, radius: 4, band: 1.2 });
+// Owner's arc (05/10): apex at 45% of the CTA cluster, radius 4 viewport widths, band 1.2 cluster heights,
+// white tint 0.35 on the arc.
+const ARC = Object.freeze({ centre: 0.45, radius: 4, band: 1.2, tint: 0.35 });
 // Band position (0 on the arc, 1 at the band edge) where each step runs from fully on to off; neighbours overlap.
 const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
   [Math.max(0, (ARC_STEPS - 1 - index) / ARC_STEPS - 0.1), Math.min(1, (ARC_STEPS - index) / ARC_STEPS + 0.1)]);
@@ -152,11 +153,11 @@ export function layoutArcGlass(glass, { width, batchBottom, band, radius, cy, dF
   const stops = [];
   for (let index = 0; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${(0.12 + 0.88 * smooth(1 - x)).toFixed(4)}) ${(dFull + (radius - dFull) * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${(ARC.tint + (1 - ARC.tint) * smooth(1 - x)).toFixed(4)}) ${(dFull + (radius - dFull) * x).toFixed(1)}px`);
   }
   for (let index = 1; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${(0.12 * smooth(1 - x)).toFixed(4)}) ${(radius + band * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${(ARC.tint * smooth(1 - x)).toFixed(4)}) ${(radius + band * x).toFixed(1)}px`);
   }
   const tint = glass.querySelector(".glass-surface__tint");
   place(tint, top);

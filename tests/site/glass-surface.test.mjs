@@ -13,9 +13,9 @@ const owners = [...css.matchAll(/([^{}]+)\{[^}]*?backdrop-filter:/g)].map(([, se
 assert.deepEqual([...new Set(owners)].sort(),
   [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--full"],
   "R1: no surface writes its own backdrop-filter");
-// A one-step surface blurs through the five steps' product.
-assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(28px\) saturate\(1\.7\) brightness\(1\.04\);/,
-  "R2, R5: one full step equals the five steps");
+// A one-step surface blurs through the steps' product (the tone checks below).
+assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(28px\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
+  "R2, R5: one full step equals the steps");
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even"\)/, "R1: the primary uses the even Kính");
 
@@ -25,15 +25,16 @@ const blurLevels = (scope) => {
   return [...css.matchAll(new RegExp(`^${scope}\\.glass-surface__step:nth-last-child\\(\\d\\) \\{ --glass-step-blur: ([\\d.]+)px; \\}`, "gm"))]
     .map(([, value]) => Math.round(Math.sqrt(sum += value * value) * 10) / 10);
 };
-const tone = (selector) => css.match(new RegExp(`^${selector} \\{\\s*--glass-step-saturate: ([\\d.]+);\\s*--glass-step-brightness: ([\\d.]+);`, "m"))
-  .slice(1).map(Number);
+const tone = (selector) => css.match(new RegExp(`^${selector} \\{\\s*--glass-saturate: ([\\d.]+);\\s*--glass-brightness: ([\\d.]+);`
+  + `\\s*--glass-step-saturate: ([\\d.]+);\\s*--glass-step-brightness: ([\\d.]+);`, "m")).slice(1).map(Number);
 const arc = '\\.glass-surface\\[data-glass-shape="arc"\\]';
 assert.deepEqual(blurLevels(""), [2, 4.5, 9, 16, 28], "R2: steps reach 2, 4.5, 9, 16 and 28px");
 assert.deepEqual(blurLevels(`${arc} > `), [4.5, 12, 28], "R2: the arc's band steps reach 4.5, 12 and 28px");
-for (const [selector, count] of [["\\.glass-surface", 5], [arc, 3]]) {
-  const [saturate, brightness] = tone(selector);
-  assert(Math.abs(saturate ** count - 1.7) < 0.005, `R5: saturation 1.7 across ${count} steps`);
-  assert(Math.abs(brightness ** count - 1.04) < 0.001, `R5: brightness 1.04 across ${count} steps`);
+for (const [selector, count, saturation, light] of [["\\.glass-surface", 5, 1.7, 1.04], [arc, 3, 1.55, 1.05]]) {
+  const [fullSaturate, fullBrightness, saturate, brightness] = tone(selector);
+  assert.deepEqual([fullSaturate, fullBrightness], [saturation, light], `R5: one full step carries ${saturation} and ${light}`);
+  assert(Math.abs(saturate ** count - saturation) < 0.005, `R5: saturation ${saturation} across ${count} steps`);
+  assert(Math.abs(brightness ** count - light) < 0.001, `R5: brightness ${light} across ${count} steps`);
 }
 assert.match(css, /\.glass-surface__tint \{\s*background: rgba\(255, 255, 255, 0\.12\);/, "R5: tint alpha 0.12");
 // R4: overlay moves a mid tone by the full noise; opacity 0.08 caps the shift at 4%.
@@ -42,7 +43,7 @@ assert.doesNotMatch(css, /\.glass-surface \{[^}]*(?:opacity|mask|filter)/, "R1: 
 
 // R2, R3: owner numbers and the two limits.
 const desktop = arcGlassGeometry({ width: 1440, batchBottom: 900, realBottom: 200, cardWidth: 320, clusterTop: 400, clusterBottom: 560 });
-assert.equal(desktop.yIn, 480, "R2: apex at half the CTA cluster");
+assert.equal(desktop.yIn, 472, "R2: apex at 45% of the CTA cluster");
 assert.equal(desktop.radius, 4 * 1440, "R2: radius 4 viewport widths");
 assert.equal(desktop.band, 1.2 * 160, "R2: band 1.2 cluster heights");
 assert.equal(desktop.cy, desktop.yIn + desktop.radius, "R2: centre under the batch, middle of the screen");

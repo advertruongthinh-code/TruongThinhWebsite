@@ -63,7 +63,7 @@ mép trên tiêu đề tới đáy nút.
 
 | Giá trị | Chốt 04/10 |
 | --- | --- |
-| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề + `0.50` × chiều cao cụm CTA |
+| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề + `0.45` × chiều cao cụm CTA (owner, 05/10) |
 | Bán kính | `4.0` × bề rộng viewport |
 | Dải giảm nhòe, đo từ cung ra ngoài | `1.20` × chiều cao cụm CTA |
 
@@ -83,7 +83,7 @@ And ảnh thật không bị phủ
 ### R3. Màu trắng theo cùng cung
 
 Lớp phủ trắng của kính đi theo cùng các cung đồng tâm với độ nhòe: ở mép ngoài
-dải không có trắng, tới cung đạt tint `0.12`, vào trong tăng tới trắng tuyệt
+dải không có trắng, tới cung đạt tint `0.35` (owner, 05/10), vào trong tăng tới trắng tuyệt
 đối ở vòng tròn đi qua hai góc đáy batch. Hai đoạn chuyển dùng smoothstep để
 không gãy ở cung. Quy tắc đáy trắng tuyệt đối của
 [skeleton R6](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)
@@ -114,7 +114,8 @@ And vùng trắng tuyệt đối không có hạt nhiễu
 ### R5. Màu sau kính rực hơn
 
 Kính tăng độ bão hòa của nội dung phía sau lên `1.7`, độ sáng
-`1.04`, tint trắng alpha `0.12`. `saturate()` và `brightness()` nhân dồn qua
+`1.04`, tint trắng alpha `0.12`. Dạng cung dùng bão hòa `1.55`, độ sáng `1.05`
+(owner, 05/10); tint của nó theo R3. `saturate()` và `brightness()` nhân dồn qua
 các bậc, nên mỗi bậc nhận căn bậc năm (dạng cung: căn bậc ba) của giá trị tổng
 và độ rực tăng cùng độ nhòe.
 
@@ -158,7 +159,7 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
 | DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi ba bậc chỉ phủ dải; lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần (owner thấy ở mép màn hình, 05/10); dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
-| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): năm bậc `2`, `4.03`, `7.79`, `13.23`, `22.98px`, dạng cung `4.5`, `11.12`, `25.3px`; `--glass-step-saturate`, `--glass-step-brightness` trên `.glass-surface` là `1.112`, `1.0079`, dạng cung `1.1935`, `1.0132`; `.glass-surface__step--full` là `blur(28px) saturate(1.7) brightness(1.04)`; tint, hạt nhiễu `overlay` opacity `0.08` |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): năm bậc `2`, `4.03`, `7.79`, `13.23`, `22.98px`, dạng cung `4.5`, `11.12`, `25.3px`; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.112`, `1.0079`, dạng cung `1.55`, `1.05`, `1.1573`, `1.0164`; `.glass-surface__step--full` là `blur(28px)` với tổng đó; tint, hạt nhiễu `overlay` opacity `0.08` |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Ảnh hạt nhiễu 160×160 sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
 | Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và hai giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
 | Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass`; gắn kính hiện/tan cuối khung media card hoặc khung primary trong lúc ảnh hiện |

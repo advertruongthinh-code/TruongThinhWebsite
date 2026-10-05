@@ -24,7 +24,7 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   lõi hiện đủ ở nửa ngoài trước khi các bậc tắt ở nửa trong, nên trang nét không lọt qua.
 - **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
   trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
-  batch; trong cung nhòe tối đa, ra ngoài nhòe giảm dần về 0. Đỉnh cung ở `50%`
+  batch; trong cung nhòe tối đa, ra ngoài nhòe giảm dần về 0. Đỉnh cung ở `45%`
   cụm CTA tính từ mép trên tiêu đề, bán kính `4.0` × bề rộng màn, dải giảm nhòe
   `1.20` × chiều cao cụm. Dải không lên quá ảnh thật; bán kính tăng nếu cần để
   hai góc đáy batch trắng tuyệt đối.
@@ -33,10 +33,9 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 - **Hạt nhiễu:** đơn sắc, tĩnh, đậm `4%` trên tông giữa, hòa trộn `overlay`, một
   hạt một pixel thiết bị; ở dạng cung, hạt mờ dần tới vòng trắng tuyệt đối nên
   vùng đó giữ trắng.
-- **Màu sau kính:** độ bão hòa `1.7`, độ sáng `1.04` (mỗi bậc căn bậc năm, dạng cung căn bậc ba),
-  tint trắng alpha `0.12`.
-- Kính cung có số mới đã duyệt, chờ code (tâm cung, tint, bão hòa, độ sáng):
-  [Đã duyệt, chờ code](../../approved-designs.md#kính-cung-số-mới).
+- **Màu sau kính:** độ bão hòa `1.7`, độ sáng `1.04` (mỗi bậc căn bậc năm),
+  tint trắng alpha `0.12`. Dạng cung: bão hòa `1.55`, độ sáng `1.05` (mỗi bậc căn
+  bậc ba), tint `0.35` ở cung (owner, 05/10).
 - Kính cung và kính nền primary đứng yên, giữ nguyên khi giảm chuyển động. Không có khúc xạ, viền sáng
   hay đổ bóng. Nền tối của [viewer](../Viewer/README.md) phóng to là lớp làm
   tối, không phải Kính.
