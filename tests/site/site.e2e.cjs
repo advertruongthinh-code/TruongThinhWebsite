@@ -18,7 +18,6 @@ const CANONICAL_ROUTES = [
   ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/vi/advertising-products/${slug}/`),
 ];
 const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
-const DIRECT_MOTTO_ROUTES = [];
 const VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
@@ -4003,25 +4002,6 @@ async function runLanguagePersistenceCheck() {
           null,
           { timeout: 3_000 },
         );
-        if (DIRECT_MOTTO_ROUTES.includes(route)) {
-          await page.waitForFunction(
-            () => {
-              const motto = document.querySelector(".detail-hero-motto");
-              const mask = motto?.querySelector(".motion-line-mask");
-              return (
-                motto?.closest(".hero") &&
-                motto.querySelector(".motion-line") &&
-                Number.parseFloat(
-                  getComputedStyle(mask).getPropertyValue(
-                    "--mask-ink-overflow",
-                  ),
-                ) > 0
-              );
-            },
-            null,
-            { timeout: 3_000 },
-          );
-        }
         const translated = await page.evaluate(() => {
           const meta = document.querySelector('meta[name="description"][data-en-content]');
           const text = [...document.querySelectorAll("main [data-en]")].find(
@@ -4031,10 +4011,6 @@ async function runLanguagePersistenceCheck() {
           );
           const image = document.querySelector("img[data-en-alt]");
           const labelled = document.querySelector("[data-en-aria-label]");
-          const motto = document.querySelector(".detail-hero-motto");
-          const mottoMask = motto?.querySelector(".motion-line-mask");
-          const mottoRect = motto?.getBoundingClientRect();
-          const heroRect = motto?.closest(".hero")?.getBoundingClientRect();
           return {
             projectLabels: [
               document.querySelector(
@@ -4052,21 +4028,6 @@ async function runLanguagePersistenceCheck() {
             expectedAlt: image?.dataset.enAlt,
             aria: labelled?.getAttribute("aria-label"),
             expectedAria: labelled?.dataset.enAriaLabel,
-            motto: motto
-              ? {
-                  text: motto.textContent.trim(),
-                  lines: motto.querySelectorAll(".motion-line").length,
-                  inkOverflow: Number.parseFloat(
-                    getComputedStyle(mottoMask).getPropertyValue(
-                      "--mask-ink-overflow",
-                    ),
-                  ),
-                  clipPath: getComputedStyle(mottoMask).clipPath,
-                  insideHero:
-                    mottoRect.top >= heroRect.top &&
-                    mottoRect.bottom <= heroRect.bottom,
-                }
-              : null,
           };
         });
         assert(
@@ -4099,16 +4060,6 @@ async function runLanguagePersistenceCheck() {
         if (route === "/vi/") {
           const retainedState = await page.evaluate(() => ({ search: location.search, hash: location.hash }));
           assert(retainedState.search === "?locale=test" && retainedState.hash === "", `${route}: locale switch lost query or retained a fragment`);
-        }
-        if (DIRECT_MOTTO_ROUTES.includes(route)) {
-          assert(
-            translated.motto?.text &&
-              translated.motto.lines > 0 &&
-              translated.motto.inkOverflow > 0 &&
-              translated.motto.clipPath !== "none" &&
-              translated.motto.insideHero,
-            `${route}: hero motto is not translation/motion/font-mask safe`,
-          );
         }
 
         await page.reload({ waitUntil: "domcontentloaded" });
