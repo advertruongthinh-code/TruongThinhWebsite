@@ -30,16 +30,22 @@ thoa hai nhóm chọn theo sản phẩm chính; không nhân bản ảnh sang ha
 
 ## Bối cảnh theo ngành khách hàng
 
-Ngành lấy từ [khách hàng owner xác nhận](../PRODUCT.md#khách-hàng-dịch-vụ-và-danh-mục);
-ứng dụng vào ảnh là suy luận thiết kế, không phải hồ sơ thi công.
+Ngành lấy từ [khách hàng owner xác nhận](../PRODUCT.md#khách-hàng-dịch-vụ-và-danh-mục)
+và dãy logo khách hàng trên trang chủ; ứng dụng vào ảnh là suy luận thiết kế,
+không phải hồ sơ thi công. Hoạt động của BCJ (Công ty CP Tư vấn xây dựng Bến
+Tre) và TTC Palace Bến Tre (tiệc cưới, hội nghị, nhà hàng nổi, khu ẩm thực của
+TTC Hospitality) tra từ nguồn web công khai.
 
 | Ngành | Cảnh và sản phẩm |
 | --- | --- |
 | Nhà máy dừa, thực phẩm, mỹ phẩm | Văn phòng chính, nhà điều hành, khu sản xuất: biển phòng, chỉ dẫn, biển khu vực, ấn phẩm, bảng hiệu bạt và pano khung sắt; gian hàng triển lãm |
 | Ngân hàng | Chữ nhôm đục lỗ gắn LED trên nóc, phòng ATM, quầy giao dịch; không thành ảnh máy ATM đơn lẻ |
-| Bệnh viện | Chữ nhôm đục lỗ gắn LED trên nóc, bảng vẫy dẫn xe cứu thương, biển khoa phòng |
-| Văn phòng, bảo hiểm, tư vấn | Sảnh, phòng họp, cửa phòng: chức danh, tên phòng, chỉ dẫn, văn phòng phẩm |
-| Khách sạn, hội nghị | Mặt tiền, lễ tân, sảnh hội nghị, số phòng, menu, ấn phẩm sự kiện |
+| Bệnh viện | Chữ nhôm đục lỗ gắn LED trên nóc, bảng vẫy dẫn xe cứu thương, biển khoa phòng ("KHOA NHI", "CHẨN ĐOÁN HÌNH ẢNH") |
+| Văn phòng, bảo hiểm | Sảnh, phòng họp, cửa phòng: chức danh, tên phòng, chỉ dẫn, văn phòng phẩm |
+| Tư vấn xây dựng, thiết kế | Văn phòng thiết kế: biển phòng, chức danh; công trình đang thi công: pano khung sắt, bảng thông tin dự án; hồ sơ năng lực in |
+| Khách sạn | Mặt tiền, lễ tân, số phòng, chỉ dẫn tầng, menu |
+| Trung tâm tiệc cưới, hội nghị | Sảnh tiệc, sân khấu: backdrop, bảng chào mừng, standee, sơ đồ chỗ ngồi, chữ nổi tên sảnh; thiệp, menu tiệc, ấn phẩm sự kiện |
+| Nhà hàng, ẩm thực | Nhà hàng ven sông hoặc nhà hàng nổi, khu ẩm thực: bảng hiệu, hộp đèn, menu, chỉ dẫn khu |
 
 Brief đi theo thứ tự **ngành, khu vực, vị trí lắp, công năng, góc chụp**, rồi
 mới chọn tỷ lệ. Bối cảnh nhận ra qua không gian, không cần logo thật. Quy mô,
@@ -117,7 +123,7 @@ Nam. Trái dừa trang trí không thay sản phẩm đóng gói.
 | Menu để bàn Mica | Đế Mica đục màu; có menu đồ uống và menu bánh riêng |
 | Menu in UV trên Mica | Mica sữa đục, thấy độ dày cạnh; không phải tấm trong kẹp giấy |
 | Canvas căng khung | Đặt dưới sàn dựa tường, thấy cạnh đáy chạm sàn và bóng tiếp xúc |
-| Quầy dừa sự kiện "COCONUT GROVE" | Khung sắt, mặt gỗ, kệ; trong siêu thị hoặc trung tâm thương mại đang hoạt động; không người |
+| Quầy dừa sự kiện | Khung sắt, mặt gỗ, kệ; chữ trên quầy chỉ nêu chức năng ("NƯỚC DỪA TƯƠI", "DÙNG THỬ SẢN PHẨM DỪA"), không tên thương hiệu; trong siêu thị hoặc trung tâm thương mại đang hoạt động; không người |
 | Quầy dùng thử trà trái cây | Trong hội chợ, trung tâm mua sắm hoặc siêu thị đang hoạt động |
 | Sơ đồ | Ba ảnh riêng: khu du lịch, khu công nghiệp, nhà máy; đường liên tục, chú giải, "Bạn đang ở đây" |
 | Kỷ niệm chương | Đủ ba vật liệu kim loại, gỗ, thủy tinh và hai cách làm: in UV (màu nằm trên mặt) và khắc (nét lõm vào vật liệu). Thấy độ dày, cạnh, đế; chữ chung như "GHI NHẬN ĐÓNG GÓP", không tên người hay tổ chức thật |
