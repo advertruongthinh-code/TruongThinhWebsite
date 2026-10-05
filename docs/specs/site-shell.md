@@ -265,7 +265,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 ## Gate còn mở
 
-- `TT_E2E_HEADER_ONLY` trên Chromium cloud 05/10: 18/43 FAIL (`main` trước đó 24/43). Còn đỏ: geometry
+- `TT_E2E_HEADER_ONLY` trên Chromium cloud 05/10: 21/43 FAIL (`main` trước đó 24/43). Còn đỏ: geometry
   320–1440px ("controls overlap", collapsed geometry), scroll direction (hover timeout), lifecycle Barba,
   focus navbar sau route mềm, locale replay, menu (cỡ tiêu đề, lockup). Intro và nav một hàng 751–960 đã
   xanh. Chưa rõ test cũ hay lỗi code (suy luận). Main.

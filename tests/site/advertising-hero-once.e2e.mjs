@@ -22,17 +22,17 @@ function observeAdvertisingQueryTraffic(page) {
   return traffic;
 }
 
-async function waitForHeroSettled(page) {
-  await page.waitForFunction(() => {
+async function waitForHeroSettled(page, { veilCleared = true } = {}) {
+  await page.waitForFunction((veilCleared) => {
     const hero = document.querySelector(".detail-index-hero");
     const title = hero?.querySelector("[data-motion-hero-title]");
     const words = title ? [...title.querySelectorAll(".motion-word")] : [];
     // The direct-load veil blocks pointer input until the page has mounted.
-    if (document.documentElement.classList.contains("route-enter")) return false;
+    if (veilCleared && document.documentElement.classList.contains("route-enter")) return false;
     if (!window.TruongThinhDetail?.mount || !window.gsap || words.length === 0) return false;
     const visible = words.every((word) => Number.parseFloat(getComputedStyle(word).opacity) >= 0.99);
     return visible && !window.gsap.isTweening(words);
-  });
+  }, veilCleared);
 }
 
 async function installHeroOnceProbe(page) {
@@ -184,15 +184,16 @@ async function runDelayedAdapterCase(browser) {
 
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-    await waitForHeroSettled(page);
+    // The held catalog keeps the direct-load veil up, so scroll is locked and only
+    // keyboard-style activation reaches the filters before the adapter is ready.
+    await waitForHeroSettled(page, { veilCleared: false });
     assert.equal(interceptedCatalogRequests, 1, "fixture did not hold the first catalog-runtime import");
     assert.equal(await page.evaluate(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.())), false,
       "fixture released the Advertising adapter before the pre-ready click");
     await installHeroOnceProbe(page);
-    await runEndHomeSequence(page);
 
-    await page.locator('[data-advertising-filter="kiosk-posm"]').click({ noWaitAfter: true });
-    await page.locator('[data-advertising-filter="print-decals"]').click({ noWaitAfter: true });
+    await page.locator('[data-advertising-filter="kiosk-posm"]').dispatchEvent("click");
+    await page.locator('[data-advertising-filter="print-decals"]').dispatchEvent("click");
     const queryStarted = await page.evaluate(() => window.__ttHeroOnceProbe.queryCalls.length > 0);
     if (queryStarted) {
       await page.waitForFunction(() => {
@@ -359,8 +360,8 @@ async function runPendingAdapterFailureCase(browser) {
   });
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-    await waitForHeroSettled(page);
-    await page.locator('[data-advertising-filter="kiosk-posm"]').click({ noWaitAfter: true });
+    await waitForHeroSettled(page, { veilCleared: false });
+    await page.locator('[data-advertising-filter="kiosk-posm"]').dispatchEvent("click");
     const trafficBeforeReject = [...queryTraffic];
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
