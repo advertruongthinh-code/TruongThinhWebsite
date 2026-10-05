@@ -219,7 +219,7 @@ binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build 
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
 `/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS. Mở CMS theo
-[khóa Wrangler](../decisions/wrangler-deferred-until-cms.md), [spec CMS](cms-content-publishing.md).
+[khóa Wrangler](../decisions/wrangler-deferred-until-cms.md), [spec CMS](cms.md).
 
 ```gherkin
 Given phase tĩnh

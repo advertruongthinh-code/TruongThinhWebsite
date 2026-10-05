@@ -76,15 +76,10 @@ const specs = files
   .filter((s) => s.globs.length);
 const owners = (path) => specs.filter((s) => s.globs.some((g) => matchesGlob(path, g)));
 
-// Ownership is report-only until every capability spec exists (plan T16).
-const OWNERSHIP_STRICT = false;
+// Every non-media file in src/site/ belongs to a spec.
 const MEDIA = /\.(avif|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
 const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
-if (unowned.length) {
-  const message = `ownership: ${unowned.length} file trong src/site/ chưa thuộc spec nào`;
-  if (OWNERSHIP_STRICT) errors.push(`${message}: ${unowned.join(', ')}`);
-  else console.log(`${message} (chưa bắt buộc)`);
-}
+if (unowned.length) errors.push(`ownership: ${unowned.length} file trong src/site/ chưa thuộc spec nào: ${unowned.join(', ')}`);
 
 // Sync runs on pull requests: CI sets DOCS_BASE to the base commit and PR_BODY to the description.
 if (process.env.DOCS_BASE) {
