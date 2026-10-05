@@ -12825,7 +12825,8 @@ async function runReducedMotionChecks() {
         if (route === "/vi/") {
           const readCloseIcon = () => page.locator(".menu-close__icon").evaluate((icon) => {
             const style = getComputedStyle(icon);
-            const matrix = new DOMMatrix(style.transform);
+            // A closed dialog is display:none, where the resolved transform is "none"; read the computed one.
+            const matrix = icon.computedStyleMap().get("transform").toMatrix();
             return {
               opacity: Number.parseFloat(style.opacity),
               transform: [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f],
