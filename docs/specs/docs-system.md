@@ -77,7 +77,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vòng tải, đo tốc độ |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
-| cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/` (dormant, planned) |
+| cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
 
 Mỗi spec theo `docs/specs/_template.md` mới:
 
@@ -115,7 +115,7 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 
 | Check | Fail khi |
 | --- | --- |
-| ownership | File trong `src/site/` (trừ media) không thuộc `source` của spec nào |
+| ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
 | sync | PR đổi file thuộc `source` của spec mà không đổi spec đó, và mô tả PR không có dòng `Spec: không đổi - <lý do>` |
 | budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng |
 | links | Link Markdown nội bộ hoặc anchor gãy |
@@ -129,7 +129,8 @@ Then check sync fail và nêu tên spec cần cập nhật
 ```
 
 Spec tham gia ownership và sync qua danh sách glob `source:` trong frontmatter;
-`_template.md` không tham gia. Sync chạy trong workflow `docs.yml` trên mọi PR,
+`_template.md` không tham gia. Ownership chỉ quét `src/site/`; source ngoài đó
+(như `src/worker/` của `cms.md`) khai `source:` để sync áp dụng. Sync chạy trong workflow `docs.yml` trên mọi PR,
 kể cả khi chỉ sửa mô tả PR. PR template có mục "Spec" để agent ghi spec đã cập
 nhật hoặc lý do không đổi.
 

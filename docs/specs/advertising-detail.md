@@ -66,7 +66,7 @@ And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới
 
 ### R3. Info: nhóm, mô tả, CTA
 
-Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, mô tả và CTA; không có tiêu đề ảnh. Mô tả không có thanh cuộn
+Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, mô tả căn trái và CTA; không có tiêu đề ảnh. Mô tả không có thanh cuộn
 riêng: `paginateDescription` chia theo từ cho vừa pager; indicator `n / N` (aria-label "Trang mô tả n trên N" /
 "Description page n of N") chỉ hiện khi nhiều trang. Lật trang bằng `ArrowLeft`/`ArrowRight`, wheel ngang (`|dx| > |dy|`,
 `|dx| >= 18`) hoặc kéo ngang: quá 8px theo chiều ngang thì giữ pointer, thả khi lệch từ 36px. Input dọc luôn cuộn trang.
@@ -128,7 +128,8 @@ And nút đang bật giữ nguyên ảnh
 ### R7. Related
 
 `selectAdvertisingRelated`: không tag thì mọi ảnh cùng nhóm trừ ảnh đang xem; có tag thì mọi ảnh mang tag ở mọi nhóm, trừ
-ảnh đang xem. `compileAdvertisingRelatedLayout` xáo pool theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>`, xếp bằng
+ảnh đang xem; pool rỗng thì related trống, không thông báo.
+`compileAdvertisingRelatedLayout` xáo pool theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>`, xếp bằng
 solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) với các cột của primary đã chiếm sẵn: `split` thử đặt
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
@@ -281,12 +282,6 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - `split` hết nửa ngân sách thì xếp mọi related dưới primary, cột 4 trống (`compileAdvertisingRelatedLayout`); intent owner
   21/09 đòi cột 4 luôn có ảnh khi còn related. Quét 19.840 tổ hợp (mọi ảnh, mọi tag, 8 seed, 1280–1920px) không tổ hợp nào
   rơi vào nhánh này với catalog hiện tại; giữ code, kiểm lại khi thêm ảnh. Main.
-- [CẦN LÀM RÕ: intent 27/09 đòi mô tả căn đều hai bên; `detail.css` để căn trái. Sửa CSS hay bỏ intent?] Owner.
-- [CẦN LÀM RÕ: intent 27/09 đòi nền viewer chuyển rõ sang nhòe cùng morph; code giữ `blur(4px)`, chỉ đổi opacity,
-  [Kính R1](glass-surface.md#r1-một-component-hai-dạng) giữ nguyên nền viewer. Coi là đạt?] Owner.
-- [CẦN LÀM RÕ: intent cũ giữ trang mô tả đang đọc khi đổi ngôn ngữ; code về trang 1. Giữ code?] Owner.
-- [CẦN LÀM RÕ: URL gõ tay có tag hợp lệ nhưng không còn ảnh khác thì related trống, không thông báo; intent cũ đòi empty
-  state (suy luận từ code). Thêm thông báo?] Owner.
 
 ## Chú thích thuật ngữ
 

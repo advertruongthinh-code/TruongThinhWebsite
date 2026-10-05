@@ -21,7 +21,8 @@
   thay spec route. T13: [masonry](specs/advertising-masonry.md) và [skeleton](specs/advertising-skeleton.md)
   thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
   photo browse, morph và hai capability map. T15: [tải ảnh](specs/media-delivery.md) và
-  [card nhiều media](specs/media-card.md) thay ba spec ảnh, media và map cuối; T16 tiếp.
+  [card nhiều media](specs/media-card.md) thay ba spec ảnh, media và map cuối. T16: [CMS](specs/cms.md)
+  dormant thay spec CMS và backend; `qa:docs` fail khi file `src/site/` chưa có spec. Chờ owner ở checkpoint 3.
 - Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
   trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
   chung, scroll cue trượt chữ, Back/Forward Advertising về đúng Y; test cũ đã sửa theo thiết kế

@@ -66,7 +66,7 @@ khi owner mở CMS phase theo
 ## Cây thư mục và trạng thái
 
 Tài liệu theo công việc: [architecture](docs/architecture/index.md),
-[frontend](docs/frontend/index.md), [backend](docs/backend/index.md),
+[frontend](docs/frontend/index.md), [CMS](docs/specs/cms.md),
 [Design System](design-system/README.md) (kèm [nguồn tham khảo](design-system/README.md#nguồn-tham-khảo)).
 [Docs index](docs/index.md) dẫn tới nguồn chuẩn và evidence.
 
@@ -80,7 +80,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ src/admin/, src/db/migrations/   # DEV: CMS shell và schema
 ├─ scripts/                         # site build, media, reference crawler, tooling
 ├─ tests/                           # QA trong GitHub; tests/reports/ GENERATED
-├─ docs/                            # STATE, index, architecture, frontend, backend,
+├─ docs/                            # STATE, index, architecture, frontend,
 │                                   # design, specs, decisions, operations,
 │                                   # reference, verification, reports, archive
 ├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
@@ -118,8 +118,7 @@ logo hoặc identifying reference-site URL.
 CMS tương lai có thể activate Worker dormant, selected structured-data storage,
 selected media object storage và Access-protected admin shell. Nó không được
 block hoặc destabilize static release. Xem
-[`docs/specs/cms-content-publishing.md`](docs/specs/cms-content-publishing.md) và
-[`docs/backend/index.md`](docs/backend/index.md).
+[`docs/specs/cms.md`](docs/specs/cms.md).
 
 ## Agent instruction
 

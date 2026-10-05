@@ -11,7 +11,7 @@ planning/status. Không cần đọc toàn bộ reports để tìm contract hi�
 | Mục tiêu và phase dự án | [Goal](goal.md) | Static (đang ở) và CMS (chưa mở), nguyên tắc stack free/phí thấp |
 | Hiểu hệ thống/deploy | [Architecture](architecture/index.md) | Runtime static, source ownership, ranh giới CMS |
 | Sửa frontend | [Frontend](frontend/index.md) | Route, shell, gallery/masonry/detail và test |
-| Sửa backend/admin/data | [Backend](backend/index.md) | Dormant/dev/planned, API/data/trust boundary |
+| Sửa Worker/admin/D1 | [CMS](specs/cms.md) | Code dormant, API, trust boundary, gate mở CMS |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md) | Token, component, motion, content, ảnh Advertising; [authority map](#authority-map) |
 | Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo) | Site tham khảo và báo cáo khảo sát cũ trong Git |
 | Brief ảnh theo sản phẩm khách hàng | [BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) | Sản phẩm, bao bì, nguồn xác minh và giới hạn áp dụng vào ảnh |

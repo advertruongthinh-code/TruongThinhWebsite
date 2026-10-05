@@ -6,7 +6,7 @@ updated: 2026-09-24
 related_specs:
   - ../specs/detail-pages.md
   - ../specs/page-home.md
-  - ../specs/cms-content-publishing.md
+  - ../specs/cms.md
 related_decisions:
   - ../decisions/static-shared-architecture.md
   - ../decisions/runtime-responsibility-boundaries.md
@@ -75,9 +75,9 @@ compatibility trong Worker dormant; không dùng chúng làm canonical source pa
 5. `scripts/tooling/serve-static-parity.mjs` phục vụ `.site-output/`; output
    generated không được edit.
 
-Architecture detail nằm trong [frontend guide](../frontend/index.md). Backend
-phase boundary nằm trong [backend guide](../backend/index.md); hai guide dẫn
-tới spec sở hữu contract thay vì chép lại toàn bộ requirement.
+Architecture detail nằm trong [frontend guide](../frontend/index.md). Worker,
+admin, D1 và điều kiện mở CMS nằm trong [spec CMS](../specs/cms.md); guide và
+spec dẫn tới nguồn sở hữu contract thay vì chép lại toàn bộ requirement.
 
 ## Trust boundary và fallback
 
@@ -115,8 +115,8 @@ viewport, console/network và accessibility theo [tests README](../../tests/READ
 
 - Route và i18n: [phát hành tĩnh](../specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale), [ba trang con](../specs/detail-pages.md).
 - Trang chủ: [page-home](../specs/page-home.md).
-- CMS contract tương lai: [CMS publishing spec](../specs/cms-content-publishing.md).
-- Current/dormant/planned detail: [frontend guide](../frontend/index.md), [backend guide](../backend/index.md).
+- CMS dormant và gate mở phase: [spec CMS](../specs/cms.md).
+- Current/planned detail frontend: [frontend guide](../frontend/index.md).
 - Project-wide phase/blocker: [STATE](../STATE.md).
 
 ## Chú thích thuật ngữ
