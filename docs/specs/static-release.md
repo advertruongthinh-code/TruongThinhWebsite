@@ -177,6 +177,7 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 
 Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push vào
 `main`): `pnpm install --frozen-lockfile`, `pnpm qa:static`,
+`tests/tooling/global-rules-sync.test.mjs`,
 `build-image-variants.mjs --check`, `pnpm qa:worker:security`, rồi `pnpm dev` và
 Chromium smoke `tests/site/cross-browser.smoke.spec.cjs` (năm route VI không lỗi
 console, request, tràn ngang; reduced motion; đổi EN; veil; nhịp ghi history).

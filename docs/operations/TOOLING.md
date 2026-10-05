@@ -86,7 +86,9 @@ directory"). Claude Code nạp
 plugin dạng này mọi session, không cần `settings.json` (docs cloud ghi user
 settings "not read"). Plugin local `cloud-stack` chỉ giữ MCP. Rule global ghi
 vào `~/.claude/CLAUDE.md` của VM, chép nguyên khối `codex:global-stack` trong
-`bootstrap.ps1`; đổi một bên thì đổi cả hai. ADHD tự gọi, Ponytail ultra luôn bật,
+`bootstrap.ps1`; đổi một bên thì đổi cả hai. CI chạy
+`tests/tooling/global-rules-sync.test.mjs`: fail khi hai khối lệch nhau hoặc
+pattern trong `doctor.ps1` không còn khớp khối đó. ADHD tự gọi, Ponytail ultra luôn bật,
 Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua hook.
 
 | Tool | Cài trên cloud |
