@@ -81,7 +81,7 @@ Public canonical routes theo locale:
 
 `{locale}` là `vi` hoặc `en`. Sáu slug hiện hành là `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`, `led-displays-lightboxes` và `print-decals`. `/{locale}/projects/:slug/` chỉ là contract CMS tương lai, chưa thuộc static runtime.
 
-Các đường dẫn legacy không locale (`/`, `/nha-o/`, `/kinh-doanh/`, `/quang-cao/`, `/gioi-thieu/`) chỉ là compatibility redirects đến route locale canonical; không dùng chúng làm route public mới. Root repository là source của website, không phải lý do để tạo thêm hierarchy public.
+Các đường dẫn legacy không locale (`/`, `/nha-o/`, `/kinh-doanh/`, `/quang-cao/`, `/gioi-thieu/`) không phải route canonical; không dùng chúng làm route public mới. Chỉ Worker CMS (`src/worker/`, chưa bật) chuyển hướng chúng về route locale canonical. Bản static hiện tại không chuyển hướng: `/` phục vụ thẳng trang chủ tiếng Việt, bốn path còn lại trả 404. Root repository là source của website, không phải lý do để tạo thêm hierarchy public.
 
 Quy trình nội dung canonical có bốn bước: **Khảo sát → Tư vấn → Sản xuất → Lắp đặt**. Bàn giao, khi có trong hồ sơ dự án, là phần kết thúc của lắp đặt và không tạo bước thứ năm.
 
@@ -114,13 +114,13 @@ Các nguồn chuẩn đã đọc cho bản ghi này:
 - Địa chỉ đã xác nhận: `docs/decisions/head-office-address-confirmed.md`.
 - Public source: `src/site/`, đặc biệt `src/site/style.css`, các route locale và `src/site/advertising-products/`.
 - Architecture boundary: `docs/architecture/index.md`.
-- Brand geometry và tone: `design-system/README.md`.
-- Inventory/provenance của R1: `.tmp/docs-living/design-inventory.md` và `.tmp/docs-living/reference-inventory.md`.
+- Brand geometry: `design-system/brand.md`; giọng văn: `design-system/content.md`.
+- Nguồn tham khảo R1 và báo cáo khảo sát: `design-system/README.md#nguồn-tham-khảo`.
 
 Trạng thái bằng chứng:
 
 - **Đã xác nhận:** route locale, sáu Advertising slug, địa chỉ, mark geometry, lockup, ngoại lệ favicon và asset đội ngũ.
-- **Quan sát từ source:** public runtime tĩnh, token CSS, shared advertising catalog/detail template, trạng thái CMYK chuyển động và các hook accessibility.
+- **Quan sát từ source:** public runtime tĩnh, token CSS, shared advertising catalog, sáu trang chuyển hướng category cũ, trạng thái CMYK chuyển động và các hook accessibility.
 - **Có test contract:** layout/lifecycle/media/static Advertising và browser checks trong `tests/site/`; dynamic audit đầy đủ chưa chạy trong task tài liệu này.
 - **Chưa xác minh:** URL hoặc số Zalo thật, năm thành lập chính xác, chính sách hoặc thời hạn bảo hành, và parity runtime với reference.
 
