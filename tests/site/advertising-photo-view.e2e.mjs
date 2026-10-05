@@ -762,11 +762,14 @@ async function wheelZoomAroundAnchor(page, { deltaY, label }) {
       localY,
       anchorUnclamped: Math.abs(desiredPanX) <= limitX + 0.01 && Math.abs(desiredPanY) <= limitY + 0.01,
       pageScroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY,
+      status: document.querySelector("[data-advertising-photo-zoom-status]")?.textContent,
     };
   }, deltaY);
   await page.mouse.move(anchor.clientX, anchor.clientY);
   await page.mouse.wheel(0, deltaY);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  // Firefox can resolve mouse.wheel before the event lands, so wait for the zoom it starts to finish.
+  await page.waitForFunction((status) => document.querySelector("[data-advertising-photo-zoom-status]")?.textContent !== status
+    && document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open", anchor.status);
   const after = await page.evaluate(({ clientX, clientY, localX, localY }) => {
     const image = document.querySelector("[data-advertising-photo-expanded-image]");
     const viewport = document.querySelector("[data-advertising-photo-viewport]");
