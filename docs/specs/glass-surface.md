@@ -179,12 +179,12 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 
 ## Gate còn mở
 
-- R7 trên A05s, vào thẳng ảnh: vẫn rơi, không do Kính. Task dựng catalog
-  (hash cả catalog, masonry đang ẩn, related, chia trang mô tả) đã chia nhỏ
-  (PR #107, đo 05/10, Chrome 154, median năm lần): task dài nhất `310ms` còn
-  `77–81ms`, fps 1.5s đầu `20.9` lên `28.8`. Còn khoảng bốn task `60–85ms`:
-  `motion.js` chạy kèm layout ép (có cả trước PR), primary (style và layout
-  chế độ ảnh cộng solver lần đầu), related, rồi `mountPageMotion` cùng WebGL skeleton.
+- R7 trên A05s, vào thẳng ảnh: vẫn rơi, không do Kính và không còn do
+  catalog. Catalog đã chia thành các task nhỏ (PR #107, #111; đo 05/10,
+  Chrome 154, median năm lần): task dài nhất `310ms` còn `67–68ms`, task
+  catalog dài nhất `41–46ms`, số task trên `50ms` còn `2`. Hai task còn lại
+  nằm ngoài catalog: evaluate `motion.js` khoảng `67ms` (thread sở hữu
+  `motion.js` đang xử lý) và Layout đầu trang `47–60ms`.
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long

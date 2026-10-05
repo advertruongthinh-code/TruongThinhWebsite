@@ -115,7 +115,7 @@
   khi vào thẳng trang đã sửa; skeleton chờ ảnh, mở ảnh tại chỗ và kính hiện,
   tan trên ảnh vừa tải đã code, còn trace A05s (R9); [Kính dùng chung](specs/glass-surface.md)
   đã code 04/10; kính cung đạt A05s với ba bậc; vào thẳng ảnh vẫn rơi gate long task (task
-  dài nhất `310ms` còn `~80ms` sau PR #107, [gate](specs/glass-surface.md#gate-còn-mở));
+  dài nhất `310ms` còn `~68ms` sau PR #107, #111; còn `motion.js` và Layout đầu trang, [gate](specs/glass-surface.md#gate-còn-mở));
   iPhone chưa kiểm. Owner kiểm nhận giao diện trên
   [demo workers.dev](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/);
   phát hành lại theo [các bước](specs/static-release.md#r11-phát-hành-demo-cloudflare); full-site/Espacio parity vẫn là gate riêng. Hero route-return VI/EN đã qua
