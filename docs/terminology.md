@@ -10,7 +10,7 @@ gãy link và lịch sử.
 | masonry | Bố cục card Advertising kiểu Pinterest: cột đều, card cao theo tỷ lệ media, xếp so le. Gồm masonry chính của trang Advertising và related masonry dưới detail. | grid, lưới, lưới organic, organic grid, Pinterest grid khi nói về bố cục này |
 | grid | Bố cục cột/hàng đều, ví dụ project grid 4/3/2/1, menu group, CSS grid. | masonry cho bố cục cột đều |
 | card | Một phần tử trong masonry hoặc grid. | tile, item khi nói về phần tử hiển thị |
-| media-card | Card có identity, một hoặc nhiều media và đích detail, theo [spec media-card](specs/site-media-card-playback.md). | card đa media khác tên |
+| media-card | Card có identity, một hoặc nhiều media và đích detail, theo [spec media-card](specs/media-card.md). | card đa media khác tên |
 | detail | View một card Advertising qua query `?photo=`, gồm primary và related. | photo view, trang ảnh |
 | primary | Vùng media chính và thông tin trong detail. | Không có tên thay thế đang dùng |
 | related | Masonry card liên quan dưới primary. | ảnh liên quan, masonry ảnh liên quan khi nói về thành phần |
@@ -20,9 +20,8 @@ gãy link và lịch sử.
 
 ## Ngoại lệ giữ nguyên
 
-- ID và tên file đã dùng trong link:
-  `advertising-random-grid-and-image-loading-capability-map.md`, GRID-R4,
-  capability `advertising-grid-geometry`, `advertising-grid-media`.
+- ID đã dùng trong link: GRID-R4, capability `advertising-grid-geometry`,
+  `advertising-grid-media`.
 - Code và selector: `advertising-grid-v14`, `[data-project-grid]`,
   `[data-advertising-card]`.
 - Report, verification và archive có ngày giữ nguyên chữ gốc.

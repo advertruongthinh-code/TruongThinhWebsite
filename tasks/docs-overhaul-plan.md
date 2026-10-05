@@ -101,8 +101,9 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
 - [x] T14. `advertising-detail.md` thay `advertising-photo-browse.md`,
   `advertising-photo-morph-scroll.md` và verification history, detail. Xóa luôn
   capability map browser parity và map tháng 09; map random-grid còn cho T15.
-- [ ] T15. `media-delivery.md` thay `static-image-delivery.md`,
-  `image-loading-progress.md`, `site-media-card-playback.md`.
+- [x] T15. `media-delivery.md` thay `static-image-delivery.md`,
+  `image-loading-progress.md`, `site-media-card-playback.md`. Tách `media-card.md`
+  để mỗi spec dưới 300 dòng; xóa map random-grid.
 - [ ] T16. `cms.md` thay `cms-content-publishing.md` và
   `docs/backend/index.md`; bật check ownership ở chế độ fail.
 

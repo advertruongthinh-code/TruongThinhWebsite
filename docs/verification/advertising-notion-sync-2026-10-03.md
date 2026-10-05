@@ -5,7 +5,7 @@ status: partial
 updated: 2026-10-03
 source_notion: https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1
 related_specs:
-  - ../specs/site-media-card-playback.md
+  - ../specs/media-card.md
   - ../specs/advertising-masonry.md
   - ../specs/advertising-detail.md
   - ../specs/site-shell.md
@@ -41,7 +41,7 @@ sao chép nội dung chi tiết của nhóm `Done`.
 
 | Kiểm tra | Kết quả | Bằng chứng |
 | --- | --- | --- |
-| Media-card contract và M02b status | Khớp | [`site-media-card-playback.md`](../specs/site-media-card-playback.md), [`site-media-card-m02b-checkpoint-2026-10-03.md`](site-media-card-m02b-checkpoint-2026-10-03.md), `docs/STATE.md` cùng ghi M02b partial/NOT ACCEPTED. |
+| Media-card contract và M02b status | Khớp | [`site-media-card-playback.md`](../specs/media-card.md), [`site-media-card-m02b-checkpoint-2026-10-03.md`](site-media-card-m02b-checkpoint-2026-10-03.md), `docs/STATE.md` cùng ghi M02b partial/NOT ACCEPTED. |
 | Random grid và virtual window | Khớp | Local runtime `:8792` parent VI/EN có `.advertising-grid`, `aria-setsize=154`, source/test sở hữu solver và lifecycle. |
 | Parent grid tại viewport 929×861 | Đạt contract hiện hành | `.advertising-grid` là `repeat(3, minmax(0, 1fr))`; VI render 19 card, EN render 18 card trong DOM window. |
 | Related grid tại `?category=print-decals&photo=print-decals-11` | Đạt contract hiện hành | `data-advertising-related-columns="3"`, 10 item visible; các item chiếm một cột trong grid 3 cột. |

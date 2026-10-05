@@ -10,7 +10,7 @@ updated: 2026-09-30
 Trên managed worktree `codex/mobile-ui-contract`, HEAD
 `e6cf065161cb19a8b59dd9efa8cda5d4af27fba1`, candidate local `:8792`,
 M02a đã đạt checkpoint kỹ thuật cho primary/thumbnail/audio và direct detail
-Advertising VI/EN. [Spec](../specs/site-media-card-playback.md) và
+Advertising VI/EN. [Spec](../specs/media-card.md) và
 [plan](../../tasks/plan.md#site-media-card-playback--plan-draft-2026-09-28)
 vẫn sở hữu contract. Owner ngày 30/09 tạm dừng việc trên Home, Residential,
 Commercial, About; M03–M05 và QA/closure toàn website M08–M09 giữ PAUSED.

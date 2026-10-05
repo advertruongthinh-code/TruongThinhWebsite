@@ -3,7 +3,7 @@
 Thanh chạy dọc cạnh dưới nút [Suggestion](../Suggestion/README.md) "Có thể
 bạn thích" khi ảnh nền của nút chưa tải xong; thay vòng xoay theo lựa chọn của
 owner ngày 2026-10-04
-([spec tải ảnh](../../../docs/specs/image-loading-progress.md)). Style ở
+([detail R6](../../../docs/specs/advertising-detail.md#r6-slideshow-suggestion)). Style ở
 `src/site/detail.css`, không có markup riêng.
 
 ## Hành vi

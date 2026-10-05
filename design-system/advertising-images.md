@@ -143,7 +143,7 @@ thêm khoảng trắng giả.
 - Ảnh tạo mới là minh họa AI, không nhận là công trình đã thi công.
 - Ảnh không có tiêu đề hiển thị; alt VI/EN mô tả nội dung cho người không nhìn
   thấy, không dùng làm tiêu đề. Metadata của card theo
-  [spec card nhiều media](../docs/specs/site-media-card-playback.md#media-card-và-detail).
+  [spec card nhiều media](../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
 
 ## Chú thích thuật ngữ
 

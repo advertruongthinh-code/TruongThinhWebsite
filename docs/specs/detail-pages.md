@@ -25,7 +25,7 @@ Ba trang con `/vi/residential/`, `/vi/commercial/`, `/vi/about/` (EN tương đ�
 `src/site/<trang>/index.html`) dùng chung `detail.css`, `detail.js`. Residential, Commercial giới thiệu một lĩnh vực
 nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vòng tải thuộc
-[tải ảnh](static-image-delivery.md); phần Advertising trong hai file chung thuộc spec Advertising.
+[tải ảnh](media-delivery.md); phần Advertising trong hai file chung thuộc spec Advertising.
 
 ## Hành vi
 
@@ -199,7 +199,7 @@ reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang ch�
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
 `is-overlay-media-ready` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
-cổng này. Khung ảnh nội dung có vòng tải tới khi ảnh xong; build bọc `<picture>` ([chuẩn file ảnh](static-image-delivery.md#chuẩn-file-ảnh)).
+cổng này. Khung ảnh nội dung có vòng tải tới khi ảnh xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
 Given ảnh figure đầu gallery /vi/residential/ bị trễ

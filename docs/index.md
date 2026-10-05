@@ -39,10 +39,9 @@ lifecycle) nằm trong spec sở hữu.
   [Debug Android thật](operations/android-real-device-debugging.md) giữ Chrome/USB.
 - [Detail Advertising](specs/advertising-detail.md): `?photo=`, primary, suggestion, related,
   viewer, history và vị trí cuộn. Đợt random masonry và
-  tải ảnh có [map đã duyệt](specs/advertising-random-grid-and-image-loading-capability-map.md)
-  cùng ba spec đã duyệt; [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
+  tải ảnh nằm ở masonry, detail và [tải ảnh](specs/media-delivery.md); [plan triển khai](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)
   đã duyệt, phần lớn đã code; việc còn mở ở [STATE](STATE.md).
-- [Media-card toàn website](specs/site-media-card-playback.md): spec đã duyệt
+- [Card nhiều media](specs/media-card.md): runtime Advertising, hướng owner duyệt
   28/09 cho các họ VI/EN; [plan M00–M09](../tasks/plan.md#media-card-toàn-website--plan-đã-duyệt-2026-09-28)
   đã duyệt, M03–M09 tạm dừng tới khi có ảnh và video thật. Supersession masonry-detail morph chỉ xảy ra khi triển khai;
   viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
@@ -91,7 +90,7 @@ không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo
 | Token, visual role, component, motion | [Design System](../design-system/README.md), [Motion](../design-system/motion.md) |
 | Câu chuyện thương hiệu, logo: tỷ lệ, màu, motion, state | [Brand guideline](../design-system/brand.md) |
 | Giọng văn, copy hero, mạch route, crop ảnh | [Content và media](../design-system/content.md) |
-| Node lá VI/EN, motion hook, file ảnh, loading, alt | [Ba trang con](specs/detail-pages.md#r4-nội-dung-vien-và-hook), [chuẩn file ảnh](specs/static-image-delivery.md#chuẩn-file-ảnh) |
+| Node lá VI/EN, motion hook, file ảnh, loading, alt | [Ba trang con](specs/detail-pages.md#r4-nội-dung-vien-và-hook), [chuẩn file ảnh](specs/media-delivery.md#r5-chuẩn-file-ảnh) |
 | Hướng ảnh sáu nhóm Advertising | [Ảnh Advertising](../design-system/advertising-images.md) |
 | Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) |
 | Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo); không tự thành target |

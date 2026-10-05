@@ -229,7 +229,7 @@ node tests/site/mobile-layout-parity.e2e.mjs --phase final --scope all
 
 ## Đo tốc độ tải ảnh
 
-Baseline và candidate của [static-image-delivery](../docs/specs/static-image-delivery.md):
+Baseline và candidate của [tải ảnh R7](../docs/specs/media-delivery.md#r7-đo-tốc-độ-và-ngân-sách):
 6 route × VI/EN × `390×844`/`1440×900`, Slow 4G và CPU 4x, mỗi lượt cache tắt.
 
 ```bash

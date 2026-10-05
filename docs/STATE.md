@@ -20,7 +20,8 @@
   T11: [trang chủ](specs/page-home.md) thay spec landing. T12: [trang con](specs/detail-pages.md)
   thay spec route. T13: [masonry](specs/advertising-masonry.md) và [skeleton](specs/advertising-skeleton.md)
   thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
-  photo browse, morph và hai capability map; T15 tiếp.
+  photo browse, morph và hai capability map. T15: [tải ảnh](specs/media-delivery.md) và
+  [card nhiều media](specs/media-card.md) thay ba spec ảnh, media và map cuối; T16 tiếp.
 - Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
   trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
   chung, scroll cue trượt chữ; test cũ đã sửa theo thiết kế. Còn: khôi phục scroll Back/Forward
@@ -33,7 +34,7 @@
 - Active execution scope: toàn bộ task trang `advertising-products` và route con
   `?photo=` VI/EN, gồm phần còn lại của M02b và convert media; owner giao và
   duyệt P0–P11 ngày 2026-10-03 ([quyết định](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03),
-  [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md)).
+  [tải ảnh](specs/media-delivery.md)).
   M02b đã lên `main`, vẫn NOT ACCEPTED: các FAIL cloud là lỗi test, đã sửa;
   [checkpoint Claude 03/10](verification/site-media-card-m02b-claude-checkpoint-2026-10-03.md#chạy-lại-trên-cloud-03102026).
   Landscape `Y=3` chỉ có trên emulator, A05s thật `Y=0` (giả lập và xoay vật lý).
@@ -45,11 +46,11 @@
   (L06), chờ replay A05s ([evidence](specs/advertising-detail.md#gate-còn-mở)).
 - Tải ảnh: P1–P3 (grid ngẫu nhiên) đã có trong source, test cloud PASS trừ phần
   WebKit; thứ tự filter có test, solver 350/350 lượt hard-safe
-  ([evidence 04/10](verification/advertising-random-grid-p0-p10-2026-10-04.md)). P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
+  ([evidence 04/10](specs/advertising-masonry.md#gate-còn-mở)). P0 baseline đo demo bằng `tests/site/image-delivery-measure.mjs` trên PC;
   variant AVIF/WebP đã nối vào HTML tĩnh và Advertising runtime
-  ([pipeline](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
+  ([pipeline](specs/media-delivery.md#r1-biến-thể-ảnh-nội-dung)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
   P6–P9 xong: owner chọn vòng xoay chờ, không byte progress; ảnh tĩnh dùng vòng
-  CSS ([spec](specs/image-loading-progress.md)). Advertising dùng skeleton chờ
+  CSS ([spec](specs/media-delivery.md#r6-vòng-tải-ảnh-tĩnh)). Advertising dùng skeleton chờ
   ảnh trên card và primary, primary đổi ảnh tại chỗ bằng crossfade, veil vào
   thẳng trang chỉ fallback khi motion.js lỗi hoặc tại `DOMContentLoaded`
   ([spec](specs/loading-glass-and-page-entry.md)); ảnh vừa tải hiện dưới Kính
@@ -58,12 +59,12 @@
   còn ba icon Facebook, TikTok, YouTube ([spec](specs/advertising-cta-center-parallax.md)).
   Chờ owner xem trên demo; thanh địa chỉ A05s thật chưa chạy.
   P8–P9 có e2e `image-loading-frame` 23 ca PASS trên cloud; còn mở: cache hit
-  của vòng tĩnh (home lóe tối đa 2 frame chưa xác nhận) ([evidence](verification/advertising-random-grid-p0-p10-2026-10-04.md#p8p9-khung-chờ-và-vòng-tải)).
+  của vòng tĩnh (home lóe tối đa 2 frame chưa xác nhận) ([evidence](specs/media-delivery.md#gate-còn-mở)).
 - Website hiện hành: catalog154 ảnh, dataset2026-09-24.1; đợt owner selection
   thêm27 và thay mobile-retail-05 bằng COCO BREEZE. Năm ảnh ChatGPT nằm trong28
   lựa chọn cuối. [Mapping/evidence](../source-assets/projects/advertising/owner-selection-20260924/README.md).
 - UI contract: [masonry](specs/advertising-masonry.md), [detail](specs/advertising-detail.md),
-  [capability map](specs/advertising-random-grid-and-image-loading-capability-map.md),
+  [tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md),
   [shell](specs/site-shell.md), [Design System](../design-system/README.md).
   Full-span vừa viewport dưới navbar; suggestion conditional; Back giữ entry,
   navbar từ ảnh về nhóm đã chọn (ảnh vào thẳng về All); skeleton/CTA/footer theo P7.5.
@@ -73,7 +74,7 @@
   QA/audit 04/10 các PR #13–#29, #39 trên Chromium cloud: gate đỏ là test chưa
   biết AVIF hoặc race, đã sửa; About hết tải ảnh hero hai lần. Vòng tải đã
   dừng khi ảnh xong. Còn mở: hai finding nhỏ ở "Gate còn mở" của
-  [tải ảnh](specs/static-image-delivery.md#gate-còn-mở).
+  [tải ảnh](specs/media-delivery.md#gate-còn-mở).
 - Verified limitations: full-site/Espacio parity còn NOT PASS; Galaxy A54 performance thật,
   owner visual các đợt cũ chưa đóng. Editor skeleton tạm đã gỡ khỏi public
   source trước ship; preset hiện hành giữ nguyên.
@@ -103,7 +104,7 @@
   đã xóa khỏi tree). Đọc như snapshot lịch sử, không áp status cũ lên hiện trạng.
 - Next repo action: P11 đạt trên demo 2026-10-04 sau khi tự host font, thư viện
   và cache (Worker `7ee4aaa9`): bytes, ảnh đầu và LCP không route nào vượt baseline
-  ([kết quả](specs/static-image-delivery.md#pipeline-biến-thể-đã-triển-khai-2026-10-04)).
+  ([kết quả](specs/media-delivery.md#r7-đo-tốc-độ-và-ngân-sách)).
   LCP residential mobile còn hai mode do reveal SplitText ở hero title
   ([gate](specs/static-release.md#gate-còn-mở)).
   M02b owner chưa đạt 04/10: lỗi Back (cuộn ghi history quá dày) và màn trắng

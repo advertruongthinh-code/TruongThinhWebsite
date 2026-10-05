@@ -124,7 +124,7 @@ Bề rộng tính từ `documentElement.clientWidth` (không gồm thanh cuộn)
 `<= 1200`, lớn hơn; khoảng giữa card 15/25/35px khi `<= 960`, `<= 1200`, lớn hơn. Masonry rộng bằng viewport trừ hai lề,
 không có bề rộng tối đa. Số cột `C = min(4, max(2, floor((W + G) / (220 + G))))` với `W` bề rộng masonry, `G` khoảng
 giữa. Mọi card rộng đúng một cột; cao bằng ảnh theo tỷ lệ gốc, không caption (card nhiều media thêm dải control 44px
-theo [media-card](site-media-card-playback.md)). Không spacer, không giãn khoảng giữa, không crop để giả so le.
+theo [media-card](media-card.md#r2-canvas-và-dải-điều-khiển)). Không spacer, không giãn khoảng giữa, không crop để giả so le.
 
 ```gherkin
 Given viewport 768px, masonry đang ở All
@@ -168,7 +168,7 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới `?category=<nhóm>&photo=<id>`; không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
-[tải ảnh](static-image-delivery.md), `data-sizes="auto"`). Ảnh hiện bằng opacity khi đã giải mã; card rời hẳn vùng nhìn
+[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Ảnh hiện bằng opacity khi đã giải mã; card rời hẳn vùng nhìn
 thấy (`intersectionRatio = 0`) thì lần vào sau hiện lại, kể cả ảnh đã cache; giao một phần thì không chạy lại
 ([motion](../../design-system/motion.md#ảnh-trong-card)). Ảnh chưa xong sau 150ms mang skeleton chờ ảnh
 ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
@@ -285,7 +285,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
   sai tỷ lệ, COCO và decal lỗi chữ nhỏ; ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash; báo cáo HTML 10–20/09
   (93 ảnh, 69 cụm, ngoài Git) chờ owner xem. Owner.
 - Card nhiều media: runtime hỗ trợ nhưng catalog chưa có card nào; M03–M09 tạm dừng tới khi owner gửi ảnh và video gom
-  theo từng sản phẩm ([media-card](site-media-card-playback.md)). Owner.
+  theo từng sản phẩm ([media-card](media-card.md#gate-còn-mở)). Owner.
 
 ## Chú thích thuật ngữ
 

@@ -17,7 +17,7 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   giữ nguyên.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 
-Metadata ảnh ở [card nhiều media](../../../docs/specs/site-media-card-playback.md#media-card-và-detail).
+Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
 
 Ảnh vừa tải hiện dưới [Kính](../Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải)
 phủ đều, rồi kính tan.
@@ -26,7 +26,7 @@ phủ đều, rồi kính tan.
 
 Card có từ hai media (ảnh hoặc video) thành carousel trong khung một cột.
 Contract runtime, history và test ở
-[spec media-card](../../../docs/specs/site-media-card-playback.md#media-card-và-detail).
+[spec media-card](../../../docs/specs/media-card.md).
 
 Catalog hiện chỉ có card một ảnh, nên trang public chưa hiện các trạng thái
 dưới đây. Preview chụp runtime thật ở 1440px với dữ liệu giả: một ảnh, ba
