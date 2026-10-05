@@ -94,7 +94,7 @@ headless, preview `8792`. Barba/Locomotive lấy từ npm cùng version vì
   Related shuffle PASS trên cloud.
 - Unit `node --test tests/site/*.test.mjs`: 116/120 trước, 120/120 sau. Bốn
   test lệch hành vi đã duyệt: hai assertion về grid-detail morph lease và
-  backdrop morph đã bị M02b bỏ ([spec](../specs/advertising-photo-browse.md)),
+  backdrop morph đã bị M02b bỏ ([spec](../specs/advertising-detail.md)),
   history state thiếu `mediaId`, R11 dùng tag nay có hai ảnh và đổi geometry ở
   `media` thay vì cover `mediaItems`.
 - p13: khôi phục `installRelatedMediaProbe`/`assertMediaFade` bị rơi khi restore;

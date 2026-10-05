@@ -14,13 +14,13 @@ gãy link và lịch sử.
 | detail | View một card Advertising qua query `?photo=`, gồm primary và related. | photo view, trang ảnh |
 | primary | Vùng media chính và thông tin trong detail. | Không có tên thay thế đang dùng |
 | related | Masonry card liên quan dưới primary. | ảnh liên quan, masonry ảnh liên quan khi nói về thành phần |
-| suggestion | Khối nút gợi ý trong primary info, mục active chạy slideshow ảnh related. Chữ "Gợi ý" chỉ là copy giao diện. | gợi ý khi nói về thành phần |
+| suggestion | Khối nút gợi ý trong primary info; nút chưa bật chạy slideshow ảnh mang tag, nút đang bật đứng yên. Chữ "Gợi ý" chỉ là copy giao diện. | gợi ý khi nói về thành phần |
 | viewer | Lớp phóng to media trong detail, có zoom/pan. | lightbox, enlarged viewer, photo viewer |
 | skeleton | Khung chờ có chuyển động khi masonry tải tiếp. | loading card |
 
 ## Ngoại lệ giữ nguyên
 
-- ID và tên file đã dùng trong link: `advertising-grid-span-organic.md`,
+- ID và tên file đã dùng trong link:
   `advertising-random-grid-and-image-loading-capability-map.md`, GRID-R4,
   capability `advertising-grid-geometry`, `advertising-grid-media`.
 - Code và selector: `advertising-grid-v14`, `[data-project-grid]`,

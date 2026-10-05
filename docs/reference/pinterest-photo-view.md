@@ -3,7 +3,7 @@
 Đo trong browser đã đăng nhập ngày 2026-09-10 (desktop 1569 × 912 CSS px,
 DPR 1) và 2026-09-11 (responsive, desktop và mobile emulation). Đây là
 reference hành vi và hình học cho
-[Advertising photo browse](../specs/advertising-photo-browse.md), không thay
+[detail Advertising](../specs/advertising-detail.md), không thay
 [DESIGN](../../DESIGN.md) hoặc khóa frontend của Trường Thịnh. Section
 responsive phân biệt số đo ổn định, công thức suy ra và giới hạn.
 

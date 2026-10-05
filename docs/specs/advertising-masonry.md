@@ -35,7 +35,7 @@ updated: 2026-10-05
 Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
 sáu nhóm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự,
 hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail `?photo=` ở
-[photo browse](advertising-photo-browse.md); header, menu, footer, veil ở [shell](site-shell.md).
+[detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md).
 
 ## Hành vi
 
@@ -172,7 +172,7 @@ thấy (`intersectionRatio = 0`) thì lần vào sau hiện lại, kể cả ả
 ([motion](../../design-system/motion.md#ảnh-trong-card)). Ảnh chưa xong sau 150ms mang skeleton chờ ảnh
 ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
 không dịch ([hover dùng chung](page-home.md#r6-hover-ảnh-dùng-chung)). Click chính mở detail tại chỗ (history push,
-[photo browse](advertising-photo-browse.md)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
+[detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
 
 ```gherkin
 Given card đã hiện ảnh
