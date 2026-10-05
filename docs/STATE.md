@@ -9,8 +9,6 @@
 
 ## Việc đang làm
 
-- Đại tu docs: [spec](specs/docs-system.md), [plan](../tasks/docs-overhaul-plan.md),
-  [card](https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7); T1 tới T20 xong, còn T21 (Notion).
 - Sửa code lệch thiết kế (owner chọn 05/10): intro header dưới veil, header cuối trang, menu About,
   hover ảnh trang con, scroll cue, Back/Forward Advertising đã merge (PR #104, #109, #116, #119); còn đo
   A05s và WebKit ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
@@ -32,7 +30,6 @@
 
 1. Owner kiểm nhận đợt Advertising trên demo.
 2. Đo lại task dài khi vào thẳng ảnh trên A05s (máy PC).
-3. Đại tu docs T21, rồi owner duyệt checkpoint cuối.
 
 ## Ranh giới
 
