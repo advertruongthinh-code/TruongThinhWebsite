@@ -21,6 +21,10 @@
   thay spec route. T13: [masonry](specs/advertising-masonry.md) và [skeleton](specs/advertising-skeleton.md)
   thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
   photo browse, morph và hai capability map; T15 tiếp.
+- Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
+  trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
+  chung, scroll cue trượt chữ; test cũ đã sửa theo thiết kế. Còn: khôi phục scroll Back/Forward
+  Advertising, test Advertising cũ ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
 - Cách làm việc: cloud first từ 2026-10-03; mọi việc (feature, test, QA, debug)
   chạy trong cloud thread trên GitHub, mỗi task một branch ngắn và PR vào `main`.
   Remote Control trên PC chỉ khi cần A05s/iPhone thật. Owner mở CDN Playwright

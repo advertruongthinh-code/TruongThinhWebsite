@@ -1285,7 +1285,7 @@ em {
   pointer-events: none;
 }
 
-.scroll-cue [data-scroll-cue-char] {
+.scroll-cue .scroll-cue-char {
   position: relative;
   display: inline-block;
   white-space: pre;
@@ -2938,6 +2938,11 @@ html[lang="en"] #nang-luc .portal-subtitle {
     transform: none;
     will-change: auto;
   }
+}
+
+/* Keep the settled hero geometry; the toggle has nothing to control without motion. */
+html.motion-fallback .motion-toggle {
+  visibility: hidden;
 }
 
 html.motion-fallback .route-veil {

@@ -101,7 +101,6 @@
   let toneRanges = [];
   let ticking = false;
   let lastScrollY = 0;
-  let lastMaxScroll = 0;
   let directionStartY = 0;
   let lastDirection = "";
   let lastHeaderCollapsed;
@@ -420,33 +419,27 @@
     if (routeTransitionActive) {
       header.classList.remove("is-hidden");
     } else if (!document.body.classList.contains("menu-open")) {
-      const clampedByLayout =
-        maxScroll < lastMaxScroll - 1 &&
-        scrollY >= maxScroll - 2;
-      const isMiddle = scrollY > window.innerHeight * 0.5;
+      const isMiddle =
+        scrollY > window.innerHeight * 0.5 &&
+        scrollY < pageHeight - window.innerHeight * 1.25;
       if (!isMiddle) header.classList.remove("is-hidden");
-      if (clampedByLayout) {
-        directionStartY = maxScroll;
-      } else {
-        const direction =
-          scrollY > lastScrollY + 1
-            ? "down"
-            : scrollY < lastScrollY - 1
-              ? "up"
-              : lastDirection;
-        if (direction && direction !== lastDirection) {
-          directionStartY = scrollY;
-          lastDirection = direction;
-        }
-        if (isMiddle && direction === "down" && scrollY - directionStartY > 150) {
-          header.classList.add("is-hidden");
-        } else if (isMiddle && direction === "up" && directionStartY - scrollY > 150) {
-          header.classList.remove("is-hidden");
-        }
+      const direction =
+        scrollY > lastScrollY + 1
+          ? "down"
+          : scrollY < lastScrollY - 1
+            ? "up"
+            : lastDirection;
+      if (direction && direction !== lastDirection) {
+        directionStartY = scrollY;
+        lastDirection = direction;
+      }
+      if (isMiddle && direction === "down" && scrollY - directionStartY > 150) {
+        header.classList.add("is-hidden");
+      } else if (isMiddle && direction === "up" && directionStartY - scrollY > 150) {
+        header.classList.remove("is-hidden");
       }
     }
     lastScrollY = Math.min(scrollY, maxScroll);
-    lastMaxScroll = maxScroll;
     ticking = false;
   };
 
@@ -825,7 +818,7 @@
       });
   };
 
-  const mountPageMotion = (state, enteredViaRoute, settledStartup = false) => {
+  const mountPageMotion = (state, softNavigation, settledStartup = false) => {
     const clientLogoTrack = state.container.querySelector(
       ".client-logo-marquee__track",
     );
@@ -924,8 +917,13 @@
               charsClass: "scroll-cue-char",
               aria: "auto",
             })).chars
-          : [...scrollCueLabel.textContent].map((character, index) => {
+          : [...scrollCueLabel.textContent].flatMap((character, index) => {
               if (index === 0) scrollCueLabel.replaceChildren();
+              // Spaces stay plain text, matching SplitText's char split on the other routes.
+              if (/\s/.test(character)) {
+                scrollCueLabel.append(character);
+                return [];
+              }
               const item = document.createElement("span");
               item.className = "scroll-cue-char";
               item.textContent = character;
@@ -1097,7 +1095,8 @@
 
       const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
       timelines.add(intro);
-      if (!settledStartup && !enteredViaRoute) {
+      // Direct loads play the intro under the veil; only soft navigation skips it.
+      if (!settledStartup && !softNavigation) {
         intro
           .from(header.querySelector("#header-logo"), { scale: 0, duration: 1.5 })
           .from(
@@ -1124,12 +1123,15 @@
           0.9,
         );
       }
+      // Start on the next frame so the mount's long task does not skip the intro's opening.
+      intro.pause();
+      window.requestAnimationFrame(() => intro.play());
       const slides = selectAll(".hero-slide");
       const carouselEnabled = slides.length > 1;
       let heroIntroPending = Boolean(
         state.hero?.hasAttribute("data-hero-intro") &&
           !settledStartup &&
-          !enteredViaRoute,
+          !softNavigation,
       );
       if (slides.length) gsap.set(slides, { autoAlpha: 0 });
       if (slides[0] && !heroIntroPending) gsap.set(slides[0], { autoAlpha: 1 });
@@ -1449,7 +1451,6 @@
   const mountPage = async (
     container,
     {
-      enteredViaRoute = false,
       scrollY = 0,
       settledStartup = false,
       softNavigation = false,
@@ -1467,7 +1468,6 @@
     };
     pageState = state;
     lastScrollY = state.smoothScrollY;
-    lastMaxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     directionStartY = state.smoothScrollY;
     lastDirection = "";
 
@@ -1494,7 +1494,7 @@
     ) return false;
     state.motionCleanup = mountPageMotion(
       state,
-      enteredViaRoute,
+      softNavigation,
       settledStartup,
     );
     if ("requestIdleCallback" in window) {
@@ -2408,7 +2408,6 @@
   }, { capture: true, signal: runtimeAbort.signal });
   if (enteredViaRoute) prepareRouteDestination(directContainer);
   const directMount = mountPage(directContainer, {
-    enteredViaRoute,
     scrollY: directScroll,
     settledStartup,
   });
@@ -2531,7 +2530,6 @@
               prepareRouteDestination(data.next.container);
               try {
                 routeMountReady = await mountPage(data.next.container, {
-                  enteredViaRoute: true,
                   scrollY,
                   softNavigation: true,
                 });

@@ -62,16 +62,17 @@ Then nav có inert và aria-hidden, header một hàng, logo và nút menu vẫn
 
 ### R3. Header ẩn khi cuộn xuống, hiện khi cuộn lên
 
-Khi `scrollY` quá nửa chiều cao cửa sổ: cuộn xuống quá 150px tính từ chỗ đổi chiều thì header
-`is-hidden`, cuộn lên quá 150px thì hiện; dưới nửa cửa sổ luôn hiện. Không có ngưỡng riêng gần
-cuối trang. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Trang ngắn lại làm
-`scrollY` bị kẹp không tính là cuộn lên. Chuột thật (`any-hover: hover` và `any-pointer: fine`)
-lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng giữ hiện.
+Header chỉ ẩn trong vùng `0.5 × viewport < scrollY < pageHeight - 1.25 × viewport`
+([motion](../../design-system/motion.md#shell)): trong vùng, cuộn xuống quá 150px tính từ chỗ đổi
+chiều thì header `is-hidden`, cuộn lên quá 150px thì hiện; ngoài vùng (đầu và cuối trang) hiện
+ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chuột thật (`any-hover: hover`
+và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng
+giữ hiện.
 
 ```gherkin
 Given trang dài đã cuộn quá nửa cửa sổ và header đang ẩn
-When nội dung ngắn lại làm vị trí cuộn bị kẹp ở cuối trang
-Then header vẫn ẩn, và cuộn lên quá 150px thì header hiện
+When cuộn tới cách cuối trang chưa tới 1,25 lần chiều cao cửa sổ
+Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px thì header ẩn lại
 ```
 
 ### R4. Full menu
@@ -264,14 +265,10 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 ## Gate còn mở
 
-- Intro header không chạy: `mountPageMotion` bỏ intro khi có `route-enter`, class có ở mọi lần tải
-  trực tiếp. Owner chọn 05/10 sửa code: intro chạy cùng veil như motion.md, brand.md. Thread code.
-- `TT_E2E_HEADER_ONLY` RED trên Chromium cloud: 24/43 case FAIL (intro, geometry 320 và 751–1440px,
-  scroll direction); case 751–960 đòi nav hai hàng, trái R2, có thể là test cũ (suy luận). Main.
-- [Motion](../../design-system/motion.md#shell) chỉ ẩn header khi `scrollY` dưới
-  `pageHeight - 1.25 × viewport`, code không có cận này. Owner chọn 05/10 sửa code. Thread code.
-- Menu About 15 mục, còn `?category=signage`, `?category=light-box` không khớp category nên về All;
-  lệch số mục buộc About đi native (R6). Owner chọn 05/10 đồng bộ với bốn trang kia. Thread code.
+- `TT_E2E_HEADER_ONLY` trên Chromium cloud 05/10: 21/43 FAIL (`main` trước đó 24/43). Còn đỏ: geometry
+  320–1440px ("controls overlap", collapsed geometry), scroll direction (hover timeout), lifecycle Barba,
+  focus navbar sau route mềm, locale replay, menu (cỡ tiêu đề, lockup). Intro và nav một hàng 751–960 đã
+  xanh. Chưa rõ test cũ hay lỗi code (suy luận). Main.
 - Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả trên
   reference live, visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R3
