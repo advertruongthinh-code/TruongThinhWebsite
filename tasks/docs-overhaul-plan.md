@@ -92,7 +92,7 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
   (skeleton, viewer, history), hấp thụ ở T13, T14.
 - [x] T11. `page-home.md` thay phần home của `frontend-route-and-content.md`
   và `frontend-landing-page-foundation.md`.
-- [ ] T12. `detail-pages.md` cho residential, commercial, about; xóa
+- [x] T12. `detail-pages.md` cho residential, commercial, about; xóa
   `frontend-route-and-content.md`.
 - [ ] T13. `advertising-masonry.md` thay grid, random, skeleton, turnkey,
   kiosk, final-polish, media-review và hai capability map Advertising.

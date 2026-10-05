@@ -4,7 +4,7 @@ type: frontend
 status: living
 updated: 2026-10-03
 related_specs:
-  - ../specs/frontend-route-and-content.md
+  - ../specs/detail-pages.md
   - ../specs/site-shell.md
   - ../specs/advertising-products-turnkey-services.md
   - ../specs/advertising-photo-browse.md
@@ -16,7 +16,7 @@ related_specs:
 Frontend hiện là static HTML với shared CSS/runtime. Không có importable
 `Header`, `Footer` hoặc `Shell` component; các route lặp markup để giữ static
 hosting đơn giản, còn behavior dùng chung nằm trong CSS/JS. Contract chi tiết
-thuộc [route spec](../specs/frontend-route-and-content.md), [shell spec](../specs/site-shell.md)
+thuộc [trang chủ](../specs/page-home.md), [ba trang con](../specs/detail-pages.md), [shell spec](../specs/site-shell.md)
 và [content/media guide](../../design-system/content.md).
 
 ## Route và source

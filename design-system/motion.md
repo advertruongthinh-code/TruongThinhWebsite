@@ -18,8 +18,9 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
   thì. Đổi preference khi đang mở trang có hiệu lực ngay.
 - Chỉ animate `transform` và `opacity`; không animate width, height hay CSS
   blur mỗi frame.
-- Vòng đời (dọn observer, listener, timeline; BFCache) và thư viện animation
-  ở [route và content](../docs/specs/frontend-route-and-content.md#contract-motion).
+- Vòng đời (dọn observer, listener, timeline; BFCache) ở [shell](../docs/specs/site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)
+  và [ba trang con](../docs/specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời); thư viện animation ở
+  [phát hành tĩnh](../docs/specs/static-release.md#r4-font-và-thư-viện-tự-host).
 
 ## Shell
 
@@ -51,7 +52,7 @@ dung, speed dương làm nó chạy nhanh hơn.
 
 | Phần tử | Trang | Speed | Cảm nhận |
 | --- | --- | --- | --- |
-| Ảnh hero `.hero-slides` | Trang chủ | `-2` | Trôi chậm hơn cuộn 20% |
+| Ảnh hero `.hero-slides` | Trang chủ, Residential, Commercial | `-2` | Trôi chậm hơn cuộn 20% |
 | Rail dự án `.project-track` | Trang chủ | `4`, chiều ngang | Trượt ngang 0.4px mỗi px cuộn |
 | Ảnh `legacy-hands`, `design-sketch`, `workshop-wide` | About | `-0.12`, `-0.1`, `-0.12` | Trôi chậm hơn 1.2%, 1%, 1.2% |
 
