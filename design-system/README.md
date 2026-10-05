@@ -127,10 +127,10 @@ chiều cao dòng.
   cuộn, hover hoặc kéo; hover track `scaleX 1.45`; transition 0.3s; thumb
   cursor `grab`, khi kéo `grabbing`. Mobile và reduced motion dùng scrollbar
   native. Thumb giữ bo 10px mặc định của thư viện scroll; không áp bo đó cho
-  UI ([brand shell spec](../docs/specs/frontend-brand-shell-responsive-runtime.md#scrollbar-parity--2026-09-27)).
+  UI ([shell spec](../docs/specs/site-shell.md#r9-scrollbar)).
 - **Mobile:** tới 980px hero Home, About theo luồng chữ tự nhiên, Advertising
   tới 1024px; chữ tăng 200% vẫn không đè header, title dài xuống dòng
-  ([mobile parity](../docs/specs/frontend-brand-shell-responsive-runtime.md#site-mobile-layout-parity--accepted-2026-09-28)).
+  ([shell spec](../docs/specs/site-shell.md#r12-layout-mobile-toàn-site)).
 
 **Quy tắc lưới tiêu điểm.** Layout mở chỗ cho ảnh, statement và khoảng thở;
 không thêm wrapper hay card grid để lấp chỗ trống.

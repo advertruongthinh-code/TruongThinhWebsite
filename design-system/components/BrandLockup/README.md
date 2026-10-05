@@ -24,8 +24,8 @@ màu theo [Brand guideline](../../brand.md#logo). Kích thước header: `brand-
   57.59375px ở max-width 1200px), sticky 49.640625px, full menu 67.515625px
   (59.578125px ở max-width 1200px). Chiều ngang theo tỷ lệ logo Trường Thịnh.
 
-Cách đo nghiệm thu, DOM và test ở
-[brand shell spec](../../../docs/specs/frontend-brand-shell-responsive-runtime.md#brand-lockup).
+Hành vi, DOM và test ở
+[shell spec](../../../docs/specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
 
 Preview hiện trạng thái expanded đơn sắc trên nền trắng.
 

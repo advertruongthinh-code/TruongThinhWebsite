@@ -8,7 +8,7 @@ related_specs:
   - ../specs/site-media-card-playback.md
   - ../specs/advertising-organic-random.md
   - ../specs/advertising-photo-browse.md
-  - ../specs/frontend-brand-shell-responsive-runtime.md
+  - ../specs/site-shell.md
 ---
 
 # Đồng bộ Notion và kiểm nhất quán Advertising — 2026-10-03

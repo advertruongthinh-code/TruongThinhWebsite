@@ -8,7 +8,7 @@ related_docs:
   - advertising-photo-browse.md
   - advertising-photo-morph-scroll.md
   - mobile-browser-parity-capability-map.md
-  - frontend-brand-shell-responsive-runtime.md
+  - site-shell.md
   - ../../design-system/content.md
   - ../../design-system/motion.md
 ---
@@ -164,7 +164,7 @@ alt/ARIA ở node lá theo [content guide](../../design-system/content.md).
   nay theo [spec zoom hai ngón](advertising-viewer-touch-zoom.md) owner yêu cầu 05/10. L06 portrait page pinch không chứng minh viewer pinch; L06 landscape hai EN viewer tự đóng sau
   touch và lỗi CDN vẫn là RED độc lập phải phân loại. Modal viewer và menu giữ top-layer/exclusivity đã
   accepted; header, route veil, CTA và local layer theo
-  [shell spec](frontend-brand-shell-responsive-runtime.md), không còn lớp grid-detail morph trong tính năng
+  [shell spec](site-shell.md), không còn lớp grid-detail morph trong tính năng
   này.
 
 ## Lịch phát, vùng trọng tâm và tải trước
