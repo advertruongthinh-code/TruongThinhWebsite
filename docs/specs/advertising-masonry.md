@@ -156,7 +156,7 @@ Then filter mới thắng, không còn card ở tọa độ cũ, không có hai 
 Masonry có `role="list"`; mỗi card `role="listitem"` với `aria-posinset`, `aria-setsize` theo toàn pool. Chỉ card giao
 vùng nhìn thấy cộng một chiều cao vùng nhìn thấy mỗi phía được mount, cộng card đang giữ focus và card vừa mở detail.
 Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shift+Tab sang card chưa mount thì mount card đó theo thứ
-tự rồi chuyển focus. Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry đang ẩn chưa tính tọa độ; về masonry mới tính.
+tự rồi chuyển focus. Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
 Given masonry All 154 card, đang ở đầu trang
