@@ -6,7 +6,7 @@ updated: 2026-09-02
 scope: UI architecture for advertising product category detail pages
 supersedes: []
 related_specs:
-  - ../specs/frontend-route-and-content.md
+  - ../specs/advertising-photo-browse.md
   - ../specs/advertising-products-turnkey-services.md
 related_reports:
   - ../archive/reports/research-espacio-project-detail-templates-2026-08-30.md

@@ -72,8 +72,9 @@ lifecycle) nằm trong spec sở hữu.
   đã code; thay khoảng CTA–footer cố định, còn chạy thanh địa chỉ trên A05s.
   [Viewer zoom hai ngón và chạm đúp](specs/advertising-viewer-touch-zoom.md):
   owner duyệt 05/10, [plan](../tasks/viewer-touch-zoom-plan.md) chờ duyệt; thay ba mức zoom cố định.
-- [Shell website](specs/site-shell.md), [Trang chủ](specs/page-home.md) và
-  [Design System](../design-system/README.md): shell, trang chủ và visual authority.
+- [Shell website](specs/site-shell.md), [Trang chủ](specs/page-home.md),
+  [Residential, Commercial, About](specs/detail-pages.md) và
+  [Design System](../design-system/README.md): shell, các trang và visual authority.
 - [Static release](specs/static-release.md): build/hosting;
   [changelog](../CHANGELOG.md) ghi thay đổi phát hành.
 - [STATE](STATE.md) giữ active work, blocker và next action;
@@ -105,11 +106,11 @@ không coi thiếu raw artifact là evidence đã kiểm lại hoặc tự tạo
 | Token, visual role, component, motion | [Design System](../design-system/README.md), [Motion](../design-system/motion.md) |
 | Câu chuyện thương hiệu, logo: tỷ lệ, màu, motion, state | [Brand guideline](../design-system/brand.md) |
 | Giọng văn, copy hero, mạch route, crop ảnh | [Content và media](../design-system/content.md) |
-| Node lá VI/EN, motion hook, file ảnh, loading, alt | [Route và content](specs/frontend-route-and-content.md#edit-content-và-media), [chuẩn file ảnh](specs/static-image-delivery.md#chuẩn-file-ảnh) |
+| Node lá VI/EN, motion hook, file ảnh, loading, alt | [Ba trang con](specs/detail-pages.md#r4-nội-dung-vien-và-hook), [chuẩn file ảnh](specs/static-image-delivery.md#chuẩn-file-ảnh) |
 | Hướng ảnh sáu nhóm Advertising | [Ảnh Advertising](../design-system/advertising-images.md) |
 | Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) |
 | Nguồn tham khảo thiết kế | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo); không tự thành target |
-| Route, lifecycle, reuse contract | [Route và content](specs/frontend-route-and-content.md#reuse-contract) |
+| Route, lifecycle, reuse contract | [Shell](specs/site-shell.md), [ba trang con](specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời) |
 | Masonry, catalog, renderer Advertising | [GRID-R4](specs/advertising-grid-span-organic.md), [Advertising](specs/advertising-products-turnkey-services.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |
 

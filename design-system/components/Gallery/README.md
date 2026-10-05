@@ -14,7 +14,7 @@ Markup `section.detail-gallery` với `[data-gallery]`, style ở
   trên ảnh; hover zoom ảnh.
 - Cuộn native, không Swiper: nút gọi `scrollBy`, chuột kéo bằng pointer
   event, touch cuộn tự nhiên (`detail.js`). Gallery một item thì bỏ control.
-  Quy tắc thêm, xóa `figure` ở [route và content](../../../docs/specs/frontend-route-and-content.md#edit-content-và-media).
+  Quy tắc thêm, xóa `figure` ở [ba trang con](../../../docs/specs/detail-pages.md#r4-nội-dung-vien-và-hook).
 
 ## Chú thích thuật ngữ
 

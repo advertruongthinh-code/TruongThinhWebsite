@@ -236,7 +236,7 @@ Checklist khi thêm hoặc thay ảnh:
    trong ngân sách; đã chạy `build-image-variants.mjs`.
 3. Alt VI và `data-en-alt`; ảnh trang trí `alt=""`; hero high priority, ảnh dưới
    fold lazy.
-4. Copy ở node lá, motion hook còn ([route và content](frontend-route-and-content.md#edit-content-và-media)).
+4. Copy ở node lá, motion hook còn ([ba trang con](detail-pages.md#r4-nội-dung-vien-và-hook)).
 5. Advertising: record trong `media-manifest.mjs`, slug khớp `catalog.mjs`,
    id/src/sourceId không trùng, đủ tỷ lệ mỗi nhóm theo
    [Ảnh Advertising](../../design-system/advertising-images.md#bộ-ảnh-và-masonry).
