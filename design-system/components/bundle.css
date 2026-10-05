@@ -4814,11 +4814,13 @@ body.is-advertising-browse .advertising-grid {
 /* Kính (docs/specs/glass-surface.md): one component for every glass surface. Stacked backdrop
    blurs compound, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward the levels 2, 4.5, 9, 16 and 28px
    (the arc's three steps: 4.5, 12 and 28px); saturate() and brightness() multiply, so each step
-   carries the fifth (arc: third) root of 1.7 and 1.04.
+   carries the fifth root of 1.7 and 1.04 (arc: the third root of 1.55 and 1.05).
    Steps count from the tint and the grain, so the arc's core in front of them shifts nothing.
    Only the steps own backdrop-filter. The box itself stays plain: opacity, a mask or a filter on it
    would cut the steps off from the page behind. */
 .glass-surface {
+  --glass-saturate: 1.7;
+  --glass-brightness: 1.04;
   --glass-step-saturate: 1.112;
   --glass-step-brightness: 1.0079;
   position: absolute;
@@ -4849,8 +4851,8 @@ body.is-advertising-browse .advertising-grid {
 .glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(3) { --glass-step-blur: 25.3px; }
 
 .glass-surface__step--full {
-  -webkit-backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
-  backdrop-filter: blur(28px) saturate(1.7) brightness(1.04);
+  -webkit-backdrop-filter: blur(28px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  backdrop-filter: blur(28px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
 }
 
 .glass-surface__tint {
@@ -4866,8 +4868,10 @@ body.is-advertising-browse .advertising-grid {
 
 /* The arc runtime places each layer (glass-surface.mjs); it spans the viewport over the batch. */
 .glass-surface[data-glass-shape="arc"] {
-  --glass-step-saturate: 1.1935;
-  --glass-step-brightness: 1.0132;
+  --glass-saturate: 1.55;
+  --glass-brightness: 1.05;
+  --glass-step-saturate: 1.1573;
+  --glass-step-brightness: 1.0164;
   left: calc(-1 * var(--advertising-outer));
   width: calc(100% + (2 * var(--advertising-outer)));
 }
