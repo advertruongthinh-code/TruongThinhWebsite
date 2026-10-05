@@ -778,13 +778,27 @@ try {
           return { x: 20, y: Math.max(rect.top + 20, headerBottom + 20) - rect.top };
         });
         await page.evaluate(() => { window.__ttM02bActivation = null; });
-        if (profile.contextOptions.hasTouch) await link.tap({ position });
-        else await link.click({ position });
-        const activation = await page.evaluate(() => window.__ttM02bActivation);
+        // A landscape related card is taller than the viewport, so locator.tap() first scrolls it into view;
+        // html scroll-behavior makes that smooth and still running when the photo resets scroll one task later.
+        if (profile.contextOptions.hasTouch) {
+          const box = await link.boundingBox();
+          const point = [box.x + position.x, box.y + position.y];
+          // Same actionability as tap(): the page entry veil must have left the point.
+          await page.waitForFunction(([node, x, y]) => node.contains(document.elementFromPoint(x, y)), [await link.elementHandle(), ...point]);
+          await page.touchscreen.tap(...point);
+        } else await link.click({ position });
+        const activation = await page.waitForFunction(() => window.__ttM02bActivation).then((handle) => handle.jsonValue());
         assert(activation?.trusted, "card activation must reach the trusted click observer");
         return activation;
       };
       const positionCard = async (selector) => {
+        // Measure the card at rest: related cards still run their 0.4s placement after the photo opens.
+        await page.waitForFunction((target) => new Promise((resolve) => {
+          const top = document.querySelector(target)?.getBoundingClientRect().top;
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve(top !== undefined
+            && top === document.querySelector(target).getBoundingClientRect().top
+            && !document.querySelector(target).getAnimations().length)));
+        }), selector);
         await page.evaluate((target) => {
           const rect = document.querySelector(target).getBoundingClientRect();
           const top = document.querySelector("header").getBoundingClientRect().bottom + 20;
@@ -923,6 +937,29 @@ try {
     }
     return evidence;
   });
+  // R7: the tap task only records history, the next task paints only the primary; the related solver and card mount run later.
+  await caseRun("related-tap-defers-related", { width: 412, height: 915 }, async (page) => {
+    const visibleRelated = () => [...document.querySelectorAll("[data-advertising-related-card]")].filter((card) => !card.hidden).length;
+    await page.goto(href("/vi/advertising-products/?photo=kiosk-posm-10"), { waitUntil: "domcontentloaded" });
+    await ready(page, "kiosk-posm-10");
+    await page.waitForFunction(visibleRelated);
+    const link = page.locator("[data-advertising-related-card] > a").first();
+    const nextId = await link.evaluate((node) => node.parentElement.dataset.advertisingRelatedCard);
+    const tapTask = await link.evaluate(async (node) => {
+      const photo = () => document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoId;
+      const before = photo();
+      node.click();
+      const unchanged = photo() === before;
+      await new Promise((resolve) => setTimeout(resolve));
+      return { unchanged, photo: photo(),
+        visibleRelated: [...document.querySelectorAll("[data-advertising-related-card]")].filter((card) => !card.hidden).length };
+    });
+    assert.deepEqual(tapTask, { unchanged: true, photo: nextId, visibleRelated: 0 },
+      "tap task only records history; the primary task leaves related cards to later tasks");
+    await ready(page, nextId);
+    await page.waitForFunction(visibleRelated);
+    return { nextId, tapTask };
+  }, { contextOptions: { isMobile: true, hasTouch: true } });
   await caseRun("related-selected-card-shuffle-cleanup", { width: 1569, height: 912 }, async (page, stage) => {
     const evidence = [];
     for (const scenario of [

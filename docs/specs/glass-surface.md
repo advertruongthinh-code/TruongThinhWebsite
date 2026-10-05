@@ -192,8 +192,11 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
   5/5 lần không task trên `50ms`, veil mở median `1802ms`, card related đầu tiên
   `789ms`. Thử solver related trong Web Worker (PR #133, đóng): cũng 5/5 lần sạch
   nhưng veil chậm thêm khoảng `85ms`, card related chậm thêm `58ms`, nên giữ luồng chính.
-- R7 trên A05s, bấm card related đầu tiên sau khi vào thẳng (`main` `890d320`, ba
-  lần): 2–3 task trên `50ms` trong 3s, dài nhất median `74ms` (`71–106ms`).
+- R7 trên A05s, bấm card related đầu tiên sau khi vào thẳng: đạt khi đo không trace
+  sau PR #135 (`86ea0a2`, ba lần, 0 task trên `50ms` trong 3s; `main` `890d320`
+  trước đó 2–3 task, dài nhất `71–106ms`). Còn mở: khi bật CPU profiler, 1/3 lần
+  có task `60.7ms` ở bước dựng renderer WebGL của skeleton ảnh đang tải
+  (shader, noise) và 1/3 lần `50.4ms` ở solver related; task cú bấm `40–42ms`.
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long

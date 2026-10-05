@@ -1,5 +1,12 @@
 const FLOW_WIDTH = 240;
 import { shuffleWithSeed } from "./random-order.mjs";
+// A context keeps the attributes of its first getContext call, so a pre-created lease must use these.
+export const SKELETON_FLOW_CONTEXT_ATTRIBUTES = Object.freeze({
+  alpha: false,
+  antialias: false,
+  depth: false,
+  stencil: false,
+});
 
 const FLOW_HEIGHT = 160;
 const FLOW_CLOCK_START = 20.75;
@@ -489,12 +496,7 @@ export function createSkeletonFlowRenderer(canvas, {
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
   }
 
-  let gl = canvas.getContext("webgl", {
-    alpha: false,
-    antialias: false,
-    depth: false,
-    stencil: false,
-  }) || canvas.getContext("experimental-webgl");
+  let gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES) || canvas.getContext("experimental-webgl");
   let program = null;
   let buffer = null;
   let texture = null;
@@ -632,12 +634,7 @@ export function createSkeletonFlowRenderer(canvas, {
   };
   const onContextRestored = () => {
     if (destroyed) return;
-    gl = canvas.getContext("webgl", {
-      alpha: false,
-      antialias: false,
-      depth: false,
-      stencil: false,
-    });
+    gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
     if (initializeWebGl()) {
       if (canvas.dataset) canvas.dataset.advertisingFlowBackend = "webgl";
       draw();

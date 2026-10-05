@@ -18,6 +18,7 @@ import {
   createSkeletonFlowBatchAssignments,
   createSkeletonFlowFrameLayout,
   createSkeletonFlowRenderer,
+  SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   SKELETON_FLOW_PRESETS,
   staticBackground,
 } from "./skeleton-flow.mjs";
@@ -63,8 +64,8 @@ const pruneSkeletonContexts = (budget) => {
     disposeSkeletonContext(skeletonNativeContexts.splice(index, 1)[0]);
   }
 };
-const rememberSkeletonContext = (canvas, renderer) => {
-  const record = { canvas, gl: renderer.context, renderer, disposed: false };
+const rememberSkeletonContext = (canvas, gl, renderer = null) => {
+  const record = { canvas, gl, renderer, disposed: false };
   record.onLost = event => event.preventDefault();
   record.onRestored = () => {
     if (!skeletonDocumentParked) activeInstance?.syncSkeletonMotion?.();
@@ -1174,7 +1175,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
-  // Direct photo entry, one task per phase: "primary" lays out the primary with no related; "warm"
+  // Photo opens (showPhoto), one task per phase: "primary" lays out the primary with no related; "warm"
   // runs the solver on a few cards so the full run does not also pay for cold code; "related" runs
   // the full solver, keeps the primary geometry and leaves card mounting to the next task.
   let directEntryPhase = "";
@@ -1649,7 +1650,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
     skeletonFlowByFrame.set(frame, renderer);
     if (renderer?.context) {
-      const record = lease || rememberSkeletonContext(canvas, renderer);
+      const record = lease || rememberSkeletonContext(canvas, renderer.context, renderer);
       record.renderer = renderer;
       skeletonLeaseByFrame.set(frame, record);
     }
@@ -1705,8 +1706,35 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!keep.has(frame)) releaseSkeletonRenderer(frame);
     }
     pruneSkeletonContexts(budget);
-    keep.forEach(mountSkeletonRenderer);
+    skeletonMountWanted = keep;
+    if ([...keep].some((frame) => !skeletonFlowByFrame.has(frame))) scheduleSkeletonMount();
   };
+  // A new context, then shaders and noise, each cost tens of ms on the A05s (R8): every renderer
+  // mounts in its own task after the frame, a new context one task before it; the static frame shows meanwhile.
+  let skeletonMountWanted = new Set();
+  let skeletonMountTimer = 0;
+  const scheduleSkeletonMount = () => {
+    if (skeletonMountTimer || controller.signal.aborted) return;
+    skeletonMountTimer = setTimeout(() => {
+      skeletonMountTimer = 0;
+      const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
+      if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
+      const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
+      if (!leased && skeletonNativeContexts.length < skeletonContextBudget()) {
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
+        if (gl) {
+          rememberSkeletonContext(canvas, gl);
+          scheduleSkeletonMount();
+          return;
+        }
+      }
+      mountSkeletonRenderer(frame);
+      // Over budget or on a lost context nothing mounts; the next visibility change retries.
+      if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
+    });
+  };
+  controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
     if (skeletonEntryFrames.has(frame) || frame.classList.contains("is-entry-ready")) return;
     const pending = { reveal: 0, fallback: 0, settle: null };
@@ -2549,7 +2577,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       renderRelatedWindow();
       return;
     }
-    const origins = relatedLayoutKey ? relatedVisualCoordinates() : undefined;
+    const origins = relatedLayoutKey && directEntryPhase !== "primary" ? relatedVisualCoordinates() : undefined;
     cancelRelatedMotion();
     const { outer, interCardGap } = advertisingSpacing(viewportWidth);
     const columns = columnsForWidth(viewportWidth);
@@ -2679,6 +2707,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Measured but not placed yet: keep it out of any frame painted before the mount task.
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
+      return;
+    }
+    if (directEntryPhase === "primary") {
+      // Hidden, not placed: the mount task animates them from their origins.
+      relatedRendered.forEach((node) => { node.hidden = true; });
+      if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
       return;
     }
     paginateDescription();
@@ -2866,9 +2900,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoAudioToggle.setAttribute("aria-label", label);
   };
   photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
-  const renderPhoto = (browse, reason) => {
+  const renderPhoto = (browse, reason, phase = "") => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;
+    directEntryPhase = phase;
     const previousPhotoId = activePhotoId;
     if (previousPhotoId && previousPhotoId !== record.id) {
       lastClosedPhotoId = previousPhotoId;
@@ -2921,6 +2956,31 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
     return true;
+  };
+  // Each phase is its own task so none blocks input past 50ms on the A05s (docs/specs/advertising-detail.md R7):
+  // primary with no related, solver warm-up on a few cards, full solver, then card mount.
+  // A restored scroll needs the full height in one pass.
+  const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+  const showPhoto = async (browse, reason) => {
+    // Only a new photo defers; a tag or locale change keeps its related cards on screen.
+    const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
+    const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
+    renderPhoto(browse, reason, deferRelated ? "primary" : "");
+    const generation = detailRenderGeneration;
+    for (const phase of deferRelated ? ["warm", "related", ""] : []) {
+      await nextTask();
+      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+      directEntryPhase = phase;
+      if (phase) {
+        relatedLayoutKey = "";
+        layoutRelated(browseHistory.current);
+        // Paginating forces a layout per probe, so it leaves the primary task.
+        if (phase === "warm") paginateDescription();
+      } else {
+        renderRelatedWindow({ animate: true, origins });
+        window.dispatchEvent(new CustomEvent("site:layout"));
+      }
+    }
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
@@ -2976,6 +3036,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Chrome silently drops history writes past 200 per 10 s, which lost photo pushes after a scroll.
   // Scroll is written at most every 300 ms; a pending write is dropped once the entry changes.
   let persistTimer = 0;
+  // Pending push of a related tap (R7); scroll is not recorded until it lands.
+  let relatedOpenTimer = 0;
+  controller.signal.addEventListener("abort", () => clearTimeout(relatedOpenTimer), { once: true });
   // The throttled write can miss the last scroll before Back/Forward; remember it per Barba entry.
   const entryScroll = new Map();
   const entryIndex = () => window.history.state?.index;
@@ -3000,10 +3063,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           ? { ...browse, detail: { ...browse.detail, scrollY } }
           : { ...browse, grid: { ...browse.grid, scrollY } };
       }
-      syncLocaleLinks(browse);
-      if (reason === "category") return;
+      // showPhoto and restoreGridEntry sync the locale links themselves.
+      if (reason === "category") {
+        syncLocaleLinks(browse);
+        return;
+      }
       if (browse.photo) {
-        renderPhoto(browse, reason);
+        showPhoto(browse, reason);
         return;
       }
       restoreGridEntry(browse, reason);
@@ -3089,6 +3155,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     browseHistory.persistCurrent();
   };
   const scheduleBrowsePersistence = () => {
+    if (relatedOpenTimer) return;
     if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
     if (persistTimer || !ADVERTISING_ROOT_PATTERN.test(location.pathname)) return;
     persistTimer = setTimeout(() => {
@@ -3209,7 +3276,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
-    browseHistory.openPhoto(nextId, activeId || null);
+    // The tap task only saves the anchor; the new entry and its primary come in the next task (R7).
+    // Focus leaves the related cards now, while style is clean, so it forces no recalc.
+    if (relatedGrid.contains(document.activeElement)) photoInfo?.focus({ preventScroll: true });
+    // Back returns to the Y of the tap, so a scroll still settling until the push does not overwrite it.
+    if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
+    const fromPhoto = browseHistory.current.photo;
+    clearTimeout(relatedOpenTimer);
+    relatedOpenTimer = setTimeout(() => {
+      relatedOpenTimer = 0;
+      if (!controller.signal.aborted && browseHistory.current.photo === fromPhoto) browseHistory.openPhoto(nextId, activeId || null);
+    });
   }, { signal: controller.signal });
   relatedGrid?.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || !relatedLayout) return;
@@ -3399,10 +3476,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (browseHistory.current.photo) {
     // The grid stays hidden under a photo; ensurePhoto measures it on the way back.
     retainedPhotoIds.add(browseHistory.current.photo);
-    // Each step below is its own task so none blocks input past 50ms on the A05s
-    // (docs/specs/advertising-detail.md R7). A restored scroll needs the full height in one pass.
-    const nextTask = () => new Promise((resolve) => setTimeout(resolve));
-    const deferRelated = !browseHistory.current.detail.scrollY && !browseHistory.current.detail.anchorId;
+    // Each step below is its own task so none blocks input past 50ms on the A05s (R7, showPhoto).
     await nextTask();
     if (controller.signal.aborted) return cleanup;
     // Pay the photo-mode style and layout before the primary work; hidden so no unsized frame paints.
@@ -3418,24 +3492,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     await nextTask();
     photoView?.style.removeProperty("visibility");
     if (controller.signal.aborted) return cleanup;
-    directEntryPhase = deferRelated ? "primary" : "";
-    renderPhoto(browseHistory.current, "direct");
-    if (deferRelated) {
-      for (const phase of ["warm", "related"]) {
-        await nextTask();
-        if (controller.signal.aborted) return cleanup;
-        directEntryPhase = phase;
-        relatedLayoutKey = "";
-        if (activePhotoId) layoutRelated(browseHistory.current);
-      }
-      await nextTask();
-      if (controller.signal.aborted) return cleanup;
-      directEntryPhase = "";
-      if (activePhotoId) {
-        renderRelatedWindow({ animate: true });
-        window.dispatchEvent(new CustomEvent("site:layout"));
-      }
-    }
+    await showPhoto(browseHistory.current, "direct");
     await nextTask();
     if (controller.signal.aborted) return cleanup;
   } else {
