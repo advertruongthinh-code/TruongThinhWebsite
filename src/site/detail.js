@@ -339,7 +339,6 @@
         const heroKicker = container.querySelector(
           "[data-motion-hero-kicker]",
         );
-        const heroZoom = container.querySelector("[data-motion-hero-zoom]");
         const heroWrapperZoom = container.querySelector(
           "[data-motion-hero-wrapper-zoom]",
         );
@@ -608,7 +607,6 @@
           );
           const sectionHeroItems = [
             heroKicker,
-            heroZoom,
             heroWrapperZoom,
             heroMediaZoom,
           ].filter((item) =>
@@ -657,15 +655,6 @@
           scheduleHeroFrame(() =>
             heroKicker.classList.add("is-motion-inview"),
           );
-        }
-        if (heroZoom && heroSettled) {
-          settleHeroItem(heroZoom);
-        } else if (heroZoom) {
-          heroZoom.style.setProperty(
-            "--motion-delay",
-            `${getRemainingDelay(0.9)}s`,
-          );
-          scheduleHeroFrame(() => heroZoom.classList.add("is-motion-inview"));
         }
         if (heroWrapperZoom && heroSettled) {
           settleHeroItem(heroWrapperZoom);

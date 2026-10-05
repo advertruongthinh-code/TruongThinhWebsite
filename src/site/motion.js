@@ -1233,17 +1233,6 @@
                 : "Tạm dừng chuyển động";
           motionToggle.setAttribute("aria-pressed", String(userPaused));
           motionToggle.setAttribute("aria-label", label);
-          const labelNode = motionToggle.querySelector("[data-motion-label]");
-          if (labelNode) {
-            labelNode.textContent =
-              currentLanguage === "en"
-                ? userPaused
-                  ? "Play"
-                  : "Pause"
-                : userPaused
-                  ? "Chạy"
-                  : "Dừng";
-          }
         }
       };
       const toggleMotion = () => {
