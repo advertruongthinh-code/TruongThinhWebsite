@@ -33,7 +33,7 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ~/.codex/agents/           bốn native persona review (Codex)
 ~/.codex/tooling/          Python, Node, jq, source, log, wrapper, backups/
 ~/.codex/config.toml       MCP global Codex và policy tắt hook
-~/.codex/AGENTS.md         rule global ADHD, Caveman ultra, Ponytail ultra
+~/.codex/AGENTS.md         rule global ADHD, Ponytail ultra, Caveman chỉ khi user gọi
 ~/.claude/CLAUDE.md        import @~/.codex/AGENTS.md
 ~/.claude/agents/*.md      bốn persona review, chép từ ~/.codex/agents/*.toml
 ~/.claude.json             MCP user scope Claude: serena, graphify qua mcp.ps1
@@ -86,8 +86,8 @@ directory"). Claude Code nạp
 plugin dạng này mọi session, không cần `settings.json` (docs cloud ghi user
 settings "not read"). Plugin local `cloud-stack` chỉ giữ MCP. Rule global ghi
 vào `~/.claude/CLAUDE.md` của VM, chép nguyên khối `codex:global-stack` trong
-`bootstrap.ps1`; đổi một bên thì đổi cả hai. ADHD, Caveman ultra, Ponytail ultra
-bật qua rule này như local, không qua hook.
+`bootstrap.ps1`; đổi một bên thì đổi cả hai. ADHD tự gọi, Ponytail ultra luôn bật,
+Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua hook.
 
 | Tool | Cài trên cloud |
 | --- | --- |

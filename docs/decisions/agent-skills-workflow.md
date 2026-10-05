@@ -40,7 +40,8 @@ host, thêm cache, adapter và installer không cần thiết.
 ## Hệ quả
 
 - Claude Code và Codex dùng chung một stack, cùng policy project.
-- Clone mới tái lập stack bằng pin và `pnpm tooling:bootstrap`.
+- Clone mới tái lập stack bằng pin và `pnpm tooling:bootstrap`; cloud dùng
+  `scripts/tooling/cloud-setup.sh`.
 
 ## Lịch sử
 

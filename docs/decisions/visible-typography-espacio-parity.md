@@ -71,15 +71,15 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
 - Không có text nhìn thấy ngoài brand lockup dưới weight `500` hoặc dưới
   `12.5px`; không có horizontal overflow trong matrix focused.
 
-Ghi chú 2026-10-03: `src/site` không có file font local; Plus Jakarta Sans
-tải từ Google Fonts qua `<link>` (weight `400/500/600/700`, italic `500`) trong
-HTML shell. Chữ "local" ở bản cũ không khớp source.
+Plus Jakarta Sans tự host trong `/assets/vendor/`, không tải từ Google Fonts
+([phát hành tĩnh](../specs/static-release.md#r4-font-và-thư-viện-tự-host)).
 
 ## Hệ quả
 
 - Heading và nhãn đậm hơn quyết định portal cũ; width nav tăng theo font metric.
-- Header breakpoint `751–960px` dùng bố cục hai hàng xác định để không clip ba
-  nhãn nav; typography và tọa độ vẫn bất biến giữa expanded/sticky.
+- Header breakpoint `751–960px` giữ một hàng, nav ẩn khi thiếu chỗ
+  ([shell R2](../specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop));
+  typography và tọa độ vẫn bất biến giữa expanded/sticky.
 - Canonical parity tổng vẫn `NOT PASS`; focused typography không thay thế full
   current-hash runner.
 

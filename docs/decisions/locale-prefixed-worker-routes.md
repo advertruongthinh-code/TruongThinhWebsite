@@ -23,8 +23,10 @@ structure/motion. Root, source shell và Vietnamese legacy path one-hop 308 sang
 
 ## Hệ quả
 
-Route này thuộc Worker dormant, chỉ hiệu lực khi CMS phase mở. Contract leaf
-attribute vẫn do [VI source, EN qua data attribute](vietnamese-source-english-leaf-attributes.md)
+Build tĩnh đã ghi route `/vi/…`, `/en/…`
+([phát hành tĩnh](../specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale)); SSR, head
+từ D1 và redirect 308 thuộc Worker dormant, chỉ hiệu lực khi CMS phase mở.
+Contract leaf attribute vẫn do [VI source, EN qua data attribute](vietnamese-source-english-leaf-attributes.md)
 sở hữu. Bản `root-canonical` cũ đã xóa ngày 2026-10-03; còn trong Git history.
 
 ## Chú thích thuật ngữ

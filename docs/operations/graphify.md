@@ -69,8 +69,9 @@ Agent không dừng watcher để query. Sau khi watcher xử lý save, agent d�
 
 `.graphifyignore` gồm meaningful non-media project content như source, Markdown,
 spec, ADR, configuration, SQL, HTML, JSON, YAML, PDF và Office document. Nó loại
-image, video, audio, font, generated output, runtime state, vendor tree và raw
-reference archive.
+image, video, audio, font, generated output, runtime state và vendor tree. Raw
+reference archive bị loại qua `.gitignore`: Graphify đọc `.gitignore` trừ khi chạy
+`--no-gitignore`.
 
 Upstream watcher và Git hook của Graphify cố ý ignore semantic document change.
 Khi `graphify-out/needs_update` tồn tại hoặc wrapper báo semantic file pending,

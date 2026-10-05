@@ -19,7 +19,7 @@ Suite mặc định kiểm Chromium/Firefox/WebKit và installed Chrome/Edge; d�
 Suite kiểm desktop input/state, native/reduced/fail-open,
 menu/viewer lock và VI/EN responsive matrix. `PLAYWRIGHT_BROWSERS_PATH` có thể
 trỏ runtime pinned đã cài ở checkout khác. Engine emulation không thay Android
-hoặc iPhone thật; contract và evidence nằm trong brand-shell spec. Native width/color
+hoặc iPhone thật; contract nằm trong [shell spec](../docs/specs/site-shell.md). Native width/color
 so với unstyled control cùng engine; property không hỗ trợ giữ giá trị rỗng,
 không gọi headless appearance là nghiệm thu native indicator trên thiết bị thật.
 
@@ -146,7 +146,7 @@ cần Playwright live interaction và Chrome DevTools MCP cùng route theo
 [evidence rule](../docs/operations/agent-rule-evidence-qa-handoff.md). Computer
 Use chỉ dùng khi trigger AGENTS.md rule 5 khớp (cần Windows UI theo human path
 mà tool chuyên biệt không đủ). Ghi route, viewport, kết quả, console/network,
-accessibility tree, screenshot trong verification report có ngày. Layer bắt
+accessibility tree, screenshot trong mô tả PR. Layer bắt
 buộc không chạy được thì release blocked, không pass.
 
 ## Mobile viewport stability
@@ -187,7 +187,7 @@ Status `observed` chỉ là capture hoàn tất, không tự là geometry PASS.
 ghi actual scale/offset và visible renderer; không là custom pinch viewer mới.
 Text-size runner đổi root font16→32px; không thay accessibility setting thật.
 Orientation/model/version thực được lưu; không gọi A05s là A54 hoặc WebKit
-là iPhone. Không đổi device settings, Sites, viewport flags hoặc CSS để tạo PASS.
+là iPhone. Không đổi device settings, viewport flags hoặc CSS để tạo PASS.
 
 ## Layout mobile toàn website
 

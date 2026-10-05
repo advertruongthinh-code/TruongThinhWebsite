@@ -20,7 +20,7 @@ bounded3 scenes0renderer trong khoảng1s, nguyên nhân resume chưa rõ. MCP U
 blocked; C06/C07 chưa hoàn tất. C02–C05 check theo focused proof, không thay
 current whole-suite/human/device gates hoặc xóa lịch sử RED.
 
-Gate, C00–C05 và checkpoint B/C đã xong: [lưu trữ](archive/todo.md#correction-baseline-và-skeleton--phần-đã-xong).
+Gate, C00–C05 và checkpoint B/C đã xong: [lưu trữ](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/17227133f487cbaf15101efddcae87179327faeb/tasks/archive/todo.md#correction-baseline-và-skeleton--phần-đã-xong) (Git history).
 
 ### C06 — Matrix và Android Chrome thật
 

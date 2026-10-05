@@ -113,7 +113,7 @@ Các nguồn chuẩn đã đọc cho bản ghi này:
 - Route và copy contract: `docs/specs/detail-pages.md`.
 - Địa chỉ đã xác nhận: `docs/decisions/head-office-address-confirmed.md`.
 - Public source: `src/site/`, đặc biệt `src/site/style.css`, các route locale và `src/site/advertising-products/`.
-- Architecture boundary: `docs/architecture/index.md`.
+- Architecture boundary: `docs/architecture.md`.
 - Brand geometry: `design-system/brand.md`; giọng văn: `design-system/content.md`.
 - Nguồn tham khảo R1 và báo cáo khảo sát: `design-system/README.md#nguồn-tham-khảo`.
 

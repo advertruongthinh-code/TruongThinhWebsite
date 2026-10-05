@@ -4,8 +4,8 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
-// tasks/archive/ leaves the tree in plan T20; tasks/plan.md and todo.md belong to another thread.
-const LEGACY = /^(tasks\/archive\/|tasks\/(plan|todo)\.md$)/;
+// tasks/plan.md and todo.md keep their pre-overhaul format until their batches close.
+const LEGACY = /^tasks\/(plan|todo)\.md$/;
 // Raw evidence under source-assets/ and research/ stays on the owner's PC by design (docs/index.md).
 const LOCAL_EVIDENCE = /^(source-assets|research)\//;
 const files = git('ls-files', '*.md').split('\n').filter((f) => f && !LEGACY.test(f));
@@ -57,13 +57,12 @@ for (const file of files) {
   });
 }
 
-// Budgets apply to new-format specs only until the migration (tasks/docs-overhaul-plan.md T19).
-for (const file of files.filter((f) => f.startsWith('docs/specs/'))) {
-  const text = readFileSync(file, 'utf8');
-  const lines = text.split('\n').length;
-  if (/^status:\s*(live|planned|dormant)\s*$/m.test(text) && lines > 300) {
-    errors.push(`${file}: ${lines} dòng, vượt giới hạn 300 của spec`);
-  }
+// Line budgets (docs/specs/docs-system.md R4, R9).
+const BUDGET = { 'docs/STATE.md': 50, 'docs/index.md': 80 };
+for (const file of files) {
+  const max = file.startsWith('docs/specs/') ? 300 : BUDGET[file];
+  const lines = max && readFileSync(file, 'utf8').split('\n').length;
+  if (lines > max) errors.push(`${file}: ${lines} dòng, vượt giới hạn ${max}`);
 }
 
 // Specs own source files through the `source:` globs in their frontmatter.

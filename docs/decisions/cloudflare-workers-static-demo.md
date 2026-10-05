@@ -4,7 +4,7 @@ status: accepted
 date: 2026-10-03
 scope: static website release
 supersedes:
-  - sites-artifact-only-release-mirror.md
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/f7795ffa3b416af8187738d5f9445b48558fada7/docs/decisions/sites-artifact-only-release-mirror.md
 related_specs:
   - ../specs/static-release.md
 related_reports: []

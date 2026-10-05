@@ -124,13 +124,18 @@ Checkpoint 3: không còn spec format cũ; ownership fail khi có file
   chuyển output của tooling layout-motion parity sang `.tmp/`; sửa path trong
   code comment. Gate còn mở chuyển vào static-release, advertising-detail,
   site-shell; evidence còn cần đọc trỏ permalink commit `a3428aa`.
-- [ ] T18. ADR: xóa ADR superseded; thêm ADR "Hệ thống tài liệu" thay
-  `living-docs-domain-ownership.md`; cập nhật `git-notion-governance.md`.
-- [ ] T19. `STATE.md` dưới 50 dòng, `index.md` dưới 80 dòng; cập nhật
+- [x] T18. ADR: xóa ADR superseded; thêm ADR "Hệ thống tài liệu" thay
+  `living-docs-domain-ownership.md`; cập nhật `git-notion-governance.md`. Xóa 7
+  ADR (owner duyệt 4 ADR đã bị spec thay), sửa câu lỗi thời ở 12 ADR; hero giữ
+  `2.6s` hay `1s` chuyển vào gate trang chủ.
+- [x] T19. `STATE.md` dưới 50 dòng, `index.md` dưới 80 dòng; cập nhật
   `AGENTS.md`, `docs/operations/agent-rule-*.md`, `README.md` (cây thư mục),
-  `tests/README.md`; bật budget cho mọi file.
-- [ ] T20. Phối hợp thread "Rút gọn plan và todo": xóa `tasks/archive/`, gộp
-  file này vào `tasks/plan.md`.
+  `tests/README.md`; bật budget cho mọi file. Kèm sửa câu Caveman trong TOOLING
+  và câu ignore trong graphify.
+- [x] T20. Xóa `tasks/archive/` (thread "Rút gọn plan và todo" đã xong); link trong
+  `tasks/plan.md`, `tasks/todo.md` trỏ permalink. Plan này xóa khi owner duyệt
+  checkpoint cuối, không gộp vào `tasks/plan.md` (checklist xóa khi xong theo
+  [ADR hệ thống tài liệu](../docs/decisions/documentation-system.md)).
 - [ ] T21. Notion: rút body card về link spec và PR; hỏi owner trước mỗi đợt
   sửa.
 

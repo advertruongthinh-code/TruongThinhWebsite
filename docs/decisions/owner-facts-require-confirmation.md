@@ -15,8 +15,9 @@ related_reports: []
 
 ## Decision
 
-Owner fact, gồm Zalo URL, address, founding year và warranty, ở trạng thái TODO cho
-tới khi chủ project xác nhận. Không phát hành cam kết hoặc dữ kiện giả.
+Owner fact, gồm Zalo URL, founding year và warranty, ở trạng thái TODO cho tới
+khi chủ project xác nhận ([địa chỉ trụ sở](head-office-address-confirmed.md) đã
+xác nhận). Không phát hành cam kết hoặc dữ kiện giả.
 
 ## Hệ quả
 
