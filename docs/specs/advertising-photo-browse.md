@@ -149,7 +149,7 @@ Navbar detail dùng nguyên shared collapse/hide/reveal; không ép luôn hiện
 Không có nút Back riêng. Mục Advertising không active underline khi đang xem
 photo; click về parent theo R3. Browser Back/Forward và Escape giữ history;
 đóng viewer chỉ trở về detail. Hành vi shared navbar gồm re-click về top do
-[brand shell](frontend-brand-shell-responsive-runtime.md#navbar-p13) sở hữu.
+[shell website](site-shell.md#r6-route-mềm-và-click-trong-shell) sở hữu.
 
 #### CTA trong continuation
 
@@ -493,7 +493,7 @@ audit selector có danh sách kết quả và owner tương ứng.
 ## R12 accepted — suggestion active state và exact shared hover
 
 R12 là consumer contract của module
-[`shared-media-hover`](frontend-landing-page-foundation.md#shared-media-hover--accepted-p6).
+[`shared-media-hover`](page-home.md#r6-hover-ảnh-dùng-chung).
 Owner duyệt R12 ngày `2026-09-22`; implementation chờ duyệt plan
 `AD-SEPT-2026-P6`.
 
@@ -727,7 +727,7 @@ giữ common slot khi toolbar/resize/scroll, không thay yêu cầu full-exit re
 
 ## Amendment layout mobile L04R — accepted 28/09/2026
 
-Owner duyệt [delta L04R](frontend-brand-shell-responsive-runtime.md#l04r--chiều-cao-tối-thiểu-cho-chữcontrol-advertising--accepted)
+Owner duyệt delta L04R (`40e5f11:docs/specs/frontend-brand-shell-responsive-runtime.md`)
 và plan cùng ngày. P7.2 cap giữ ở nơi chữ/control đã fit; nếu không đủ một dòng
 mô tả đầy đủ và category/CTA/indicator cần thiết, info/primary tăng tối thiểu.
 Indicator chỉ chiếm chỗ khi cần nhiều page. Measurement dùng full description

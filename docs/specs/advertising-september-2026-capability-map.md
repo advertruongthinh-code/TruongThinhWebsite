@@ -73,7 +73,7 @@ cho phép Codex tự duyệt spec, plan, task; owner kiểm kết quả cuối:
 | `advertising-hero-once` | Hero Advertising chỉ chạy một lần trong mỗi document load; filter chỉ cập nhật masonry | — | `advertising-final-polish-and-media.md` |
 | `skeleton-cta-field` | Preset Feral với Scale 100, solver mobile 1–2 canvas, tail một viewport và một surface glass `clear → blur → white` | `shared-footer-boundary` | `advertising-skeleton-flow.md` |
 | `photo-detail-layout` | Pinterest mode khi primary chiếm toàn bộ span, primary `100dvh`, description pager và suggestion là card đầu related masonry | `photo-morph-scroll`, `shared-media-hover` | `advertising-photo-browse.md` |
-| `shared-header-shell` | Giữ navbar geometry đã duyệt; phục hồi CTA Zalo trong menu và cân CTA/X trên cùng shared shell | — | `frontend-brand-shell-responsive-runtime.md` |
+| `shared-header-shell` | Giữ navbar geometry đã duyệt; phục hồi CTA Zalo trong menu và cân CTA/X trên cùng shared shell | — | `site-shell.md` |
 
 Build order P7: khóa regression rồi sửa `advertising-hero-once`; tiếp theo
 `skeleton-cta-field` và `photo-detail-layout` theo thứ tự vì cùng sở hữu
@@ -97,13 +97,13 @@ không stage, commit, push hoặc deploy.
 - `media-review-report`: hoàn tất 2026-09-20, 93 exact image, 69 cụm; report
   tại `source-assets/projects/advertising/media-review-20260920/report.html`
   và `inventory.json`. Spec gốc đã xóa, xem Git `da2f13a`.
-- [shared-footer-boundary](frontend-brand-shell-responsive-runtime.md#shared-footer-boundary--accepted-p6)
-- [shared-media-hover](frontend-landing-page-foundation.md#shared-media-hover--accepted-p6)
-- [portal-type-fit](frontend-landing-page-foundation.md#portal-type-fit--accepted-p6)
+- [shared-footer-boundary](site-shell.md#r10-floating-cta-và-footer)
+- [shared-media-hover](page-home.md#r6-hover-ảnh-dùng-chung)
+- [portal-type-fit](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)
 - [skeleton-cta-field](advertising-skeleton-flow.md#correction-r10-accepted--mobile-tail-scale-100-và-unified-glass)
 - [advertising-hero-once](advertising-final-polish-and-media.md#d21--correction-p7-hero-one-shot)
 - [photo-detail-layout P7](advertising-photo-browse.md#r15--correction-p7-pinterest-primary-và-description-pager)
-- [shared-header-shell](frontend-brand-shell-responsive-runtime.md#shared-header-shell--correction-p7)
+- [shared-header-shell](site-shell.md#r4-full-menu)
 
 ## Chú thích thuật ngữ
 

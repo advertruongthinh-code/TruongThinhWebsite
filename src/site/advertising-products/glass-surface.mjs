@@ -6,44 +6,59 @@ const ARC = Object.freeze({ centre: 0.5, radius: 4, band: 1.2 });
 // Band position (0 on the arc, 1 at the band edge) where each step runs from fully on to off; neighbours overlap.
 const RAMPS = Array.from({ length: STEPS }, (_, index) =>
   [Math.max(0, (STEPS - 1 - index) / STEPS - 0.1), Math.min(1, (STEPS - index) / STEPS + 0.1)]);
+// Inside the arc all five steps are fully on, so one full step (the core) stands in for them there and the steps
+// only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows. Each box
+// runs past its mask by its blur reach, 3 sigma of its increment in detail.css (28px for the core).
+const FADE = 48;
+const STEP_REACH = [6, 12, 24, 40, 69];
+const CORE_REACH = 84;
 const GRAIN_SIZE = 160;
-let grainReady = false;
+let grain;
+const waitingForGrain = [];
+
+// The grain lives on each Kính, not on html, so its late arrival restyles the glass and not the whole page.
+const setGrain = (glass) => {
+  glass.style.setProperty("--glass-grain", grain);
+  glass.style.setProperty("--glass-grain-size", `${GRAIN_SIZE / (window.devicePixelRatio || 1)}px`);
+};
 
 // Static mono noise, one texel per device pixel; overlay keeps pure white white.
-function ensureGrain() {
-  if (grainReady) return;
-  grainReady = true;
+function makeGrain() {
+  grain = "";
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = GRAIN_SIZE;
   const context = canvas.getContext("2d");
   if (!context) return;
   const image = context.createImageData(GRAIN_SIZE, GRAIN_SIZE);
+  const pixels = new Uint32Array(image.data.buffer);
   let state = 0x9e3779b9;
-  for (let index = 0; index < GRAIN_SIZE * GRAIN_SIZE; index += 1) {
+  for (let index = 0; index < pixels.length; index += 1) {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const value = state >>> 24;
-    image.data.set([value, value, value, 255], index * 4);
+    pixels[index] = 0xff000000 | (state >>> 24) * 0x10101;
   }
   context.putImageData(image, 0, 0);
-  const root = document.documentElement;
-  root.style.setProperty("--glass-grain-size", `${GRAIN_SIZE / (window.devicePixelRatio || 1)}px`);
-  canvas.toBlob((blob) => blob && root.style.setProperty("--glass-grain", `url(${URL.createObjectURL(blob)})`));
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    grain = `url(${URL.createObjectURL(blob)})`;
+    waitingForGrain.splice(0).forEach(setGrain);
+  });
 }
 
 // A static even surface looks the same through one full step as through five stacked ones, at about half the cost;
 // a surface that fades in or out step by step (spec R6) asks for all five.
 export function createGlassSurface(shape, steps = shape === "arc" ? STEPS : 1) {
-  ensureGrain();
+  if (grain === undefined) makeGrain();
   const glass = document.createElement("div");
   glass.className = "glass-surface";
   glass.dataset.glassShape = shape;
   glass.setAttribute("aria-hidden", "true");
-  for (let index = 0; index < steps; index += 1) {
-    glass.append(Object.assign(document.createElement("i"), {
-      className: steps === 1 ? "glass-surface__step glass-surface__step--full" : "glass-surface__step",
-    }));
-  }
+  if (grain) setGrain(glass);
+  else waitingForGrain.push(glass);
+  const layers = steps === 1 ? ["glass-surface__step glass-surface__step--full"] : Array(steps).fill("glass-surface__step");
+  // The core paints first, so the steps blend over it and never feed it a second blur.
+  if (shape === "arc") layers.unshift("glass-surface__step glass-surface__step--full");
   glass.append(
+    ...layers.map((className) => Object.assign(document.createElement("i"), { className })),
     Object.assign(document.createElement("i"), { className: "glass-surface__tint" }),
     Object.assign(document.createElement("i"), { className: "glass-surface__grain" }),
   );
@@ -113,14 +128,22 @@ const setMask = (node, value) => {
 
 export function layoutArcGlass(glass, { width, batchBottom, band, radius, cy, dFull }) {
   // Two pixels run under the footer so subpixel rounding never shows a frame edge.
-  const place = (node, top) => Object.assign(node.style, { top: `${top}px`, height: `${batchBottom + 2 - top}px` });
+  const place = (node, top, bottom = batchBottom + 2) => Object.assign(node.style, { top: `${top}px`, height: `${bottom - top}px` });
   const circle = (top) => `circle at ${width / 2}px ${cy - top}px`;
-  glass.querySelectorAll(".glass-surface__step").forEach((step, index) => {
-    const outer = radius + RAMPS[index][1] * band;
-    place(step, cy - outer);
-    setMask(step, `radial-gradient(${circle(cy - outer)}, #000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
-  });
+  const core = radius - FADE;
+  // The inner fade circle is lowest at the box sides.
+  const seam = cy - Math.sqrt(core * core - width * width / 4);
   const top = cy - radius - band;
+  const [coreStep, ...steps] = glass.querySelectorAll(".glass-surface__step");
+  const coreTop = Math.max(top, cy - radius - CORE_REACH);
+  place(coreStep, coreTop);
+  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${core}px, transparent ${radius}px)`);
+  steps.forEach((step, index) => {
+    const outer = radius + RAMPS[index][1] * band;
+    place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
+    setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius}px, `
+      + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
+  });
   // White follows the same circles: pure from the corner circle, tint on the arc, none at the band edge.
   const stops = [];
   for (let index = 0; index <= 8; index += 1) {
