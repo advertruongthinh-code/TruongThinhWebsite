@@ -548,7 +548,8 @@ for (const engine of (process.env.LAYOUT_ENGINES || "chromium,firefox,webkit").s
   page.on("response",r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   if(!['states','body','interactions','advertising-states','history','about-history'].includes(scope))for (const viewport of viewports) for (const route of routes) {
     await page.setViewportSize(viewport);
-    try { const response=await page.goto(base+route,{waitUntil:"networkidle"});assert.equal(response.status(),200);await ready(page);
+    // Product routes redirect in the page, and Firefox then resolves goto with null; keep the first document response.
+    try { const [response]=await Promise.all([page.waitForResponse(r=>r.url()===base+route&&r.request().isNavigationRequest()),page.goto(base+route,{waitUntil:"networkidle"})]);assert.equal(response.status(),200);await ready(page);
       for (const textSize of [100,200]) {
         await page.evaluate(size=>document.documentElement.style.fontSize=`${size/100*16}px`,textSize);
         const measured=await ready(page), faults=faultsFor(measured);

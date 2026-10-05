@@ -155,6 +155,9 @@ stable basis; visible-only vẫn cập nhật window/cleanup mà không re-pack.
 **Verification:** build/static/unit + Advertising portion viewport runner,
 random/footer/lifecycle focused regression trên cùng candidate; no full continuation.
 
+AC3 bị thay một phần từ 04/10: chế độ duyệt Advertising theo
+[CTA giữa viewport](../docs/specs/advertising-cta-center-parallax.md) R2, R3, R8.
+
 ### V03 — Viewer stable image stage
 
 **Description:** fit/cover/pan theo stable stage; backdrop/controls phản ánh
@@ -420,7 +423,8 @@ console/network/PNG; actual device nếu có, owner rotation khi tool không là
 
 ### L07 — Review và handoff layout
 
-**Description:** cùng reviewer Sol/ultra gộp QA/audit/review; main kiểm findings,
+**Description:** một reviewer gộp QA/audit/review (Sol/ultra của Codex đã thôi dùng,
+thay bằng Claude code-reviewer); main kiểm findings,
 proofs/docs/preservation trước cập nhật authorized tracking và preview handoff.
 **Dependencies:** L06. **Scope:** M,5Markdownfiles theo plan;20–30phút.
 

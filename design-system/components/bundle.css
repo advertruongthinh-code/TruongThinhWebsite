@@ -5697,7 +5697,10 @@ body.is-advertising-browse:not(.is-advertising-photo) {
   }
 }
 
+/* When the CTA is only as tall as its copy (200% text, landscape), the top padding keeps the
+   first line's accents inside the CTA's overflow clip. */
 .detail-cta[data-advertising-grid-cta] h2 {
+  padding-top: 0.15em;
   font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
   line-height: 1.2;
 }

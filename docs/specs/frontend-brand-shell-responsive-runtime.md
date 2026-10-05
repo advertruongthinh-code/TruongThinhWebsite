@@ -488,6 +488,11 @@ Shared token `--footer-top-gap` vẫn48/64px theo P6.1. Dung sai≤1px không l�
 gap tuyệt đối; không đồng nhất khoảng chữ CTA với khoảng section–footer.
 R10 final viewport dùng chiều cao layout ổn định, không tái packing theo toolbar.
 
+Thay một phần từ 04/10: ở chế độ duyệt Advertising, khoảng CTA–footer, cỡ tiêu đề
+CTA và vị trí chân chữ CTA theo [CTA giữa viewport](advertising-cta-center-parallax.md)
+R2, R3, R8 (`--footer-top-gap: 0`, tiêu đề co tới `1.3rem`, vị trí theo `50dvh`).
+Đoạn trên còn hiệu lực cho các trang khác và chế độ xem ảnh.
+
 ### Hai loại kích thước và ownership
 
 Phân biệt tại provider trong shared shell; consumer không tự lấy chiều cao
@@ -856,6 +861,8 @@ gap/footer padding và geometry mặc định nơi đang fit. CTA tail lấy max
 height hiện hành và minimum đo từ heading/link/gaps trong rows hiện hành;
 footer vẫn cách CTA bằng shared gap đã accepted, không chồng hoặc che CTA.
 Không bắt CTA+footer nằm trong một viewport khi text/control floor không thể fit.
+CTA của chế độ duyệt sau đó theo [CTA giữa viewport](advertising-cta-center-parallax.md)
+R2, R3: footer sát batch skeleton và tiêu đề được co, không còn giữ typography.
 
 Photo info phải chứa category, CTA, indicator cần thiết, gaps và ít nhất một
 dòng mô tả đầy đủ. Pager vẫn chia nội dung, ArrowLeft/Right đi đủ pages, không
