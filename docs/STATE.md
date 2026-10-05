@@ -12,7 +12,7 @@
 - Sửa code lệch thiết kế (owner chọn 05/10): intro header dưới veil, header cuối trang, menu About,
   hover ảnh trang con, scroll cue, Back/Forward Advertising đã merge (PR #104, #109, #116, #119); còn đo
   A05s và WebKit ([card](https://app.notion.com/p/3f0332849a0e81daa6d4dd730b393d47)).
-- Vào thẳng ảnh Advertising gần đạt gate long task trên A05s 05/10: 9/10 lần không task trên `50ms`, một lần `67ms` ở bước related ([gate Kính](specs/glass-surface.md#gate-còn-mở)).
+- Vào thẳng ảnh Advertising gần đạt gate long task trên A05s 05/10: 14/15 lần không task trên `50ms`, một lần `67ms` ở bước related; bấm card related còn 2–3 task trên `50ms` ([gate Kính](specs/glass-surface.md#gate-còn-mở)).
 - Advertising (grid ngẫu nhiên, tải ảnh, M02b, skeleton, Kính, CTA) đã lên `main`, owner chưa nghiệm thu
   trên demo ([plan](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
@@ -29,7 +29,6 @@
 ## Next action
 
 1. Owner kiểm nhận đợt Advertising trên demo.
-2. Đo lại task dài khi vào thẳng ảnh trên A05s (máy PC).
 
 ## Ranh giới
 
