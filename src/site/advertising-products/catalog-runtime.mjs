@@ -1174,7 +1174,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
-  // Direct photo entry, one task per phase: "primary" lays out the primary with no related; "warm"
+  // Photo opens (showPhoto), one task per phase: "primary" lays out the primary with no related; "warm"
   // runs the solver on a few cards so the full run does not also pay for cold code; "related" runs
   // the full solver, keeps the primary geometry and leaves card mounting to the next task.
   let directEntryPhase = "";
@@ -2681,7 +2681,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
       return;
     }
-    paginateDescription();
+    if (directEntryPhase !== "primary") paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
   // The primary changes inside its own frame (loading-glass-and-page-entry R4, R5): a loading photo
@@ -2866,9 +2866,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoAudioToggle.setAttribute("aria-label", label);
   };
   photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
-  const renderPhoto = (browse, reason) => {
+  const renderPhoto = (browse, reason, phase = "") => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;
+    directEntryPhase = phase;
     const previousPhotoId = activePhotoId;
     if (previousPhotoId && previousPhotoId !== record.id) {
       lastClosedPhotoId = previousPhotoId;
@@ -2921,6 +2922,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
     return true;
+  };
+  // Each phase is its own task so none blocks input past 50ms on the A05s (docs/specs/advertising-detail.md R7):
+  // primary with no related, solver warm-up on a few cards, full solver, then card mount.
+  // A restored scroll needs the full height in one pass.
+  const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+  const showPhoto = async (browse, reason) => {
+    const deferRelated = !browse.detail.scrollY && !browse.detail.anchorId;
+    const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
+    renderPhoto(browse, reason, deferRelated ? "primary" : "");
+    const generation = detailRenderGeneration;
+    for (const phase of deferRelated ? ["warm", "related", ""] : []) {
+      await nextTask();
+      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+      directEntryPhase = phase;
+      if (phase) {
+        relatedLayoutKey = "";
+        layoutRelated(browseHistory.current);
+        // Paginating forces a layout per probe, so it leaves the primary task.
+        if (phase === "warm") paginateDescription();
+      } else {
+        renderRelatedWindow({ animate: true, origins });
+        window.dispatchEvent(new CustomEvent("site:layout"));
+      }
+    }
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
@@ -3003,7 +3028,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       syncLocaleLinks(browse);
       if (reason === "category") return;
       if (browse.photo) {
-        renderPhoto(browse, reason);
+        showPhoto(browse, reason);
         return;
       }
       restoreGridEntry(browse, reason);
@@ -3399,10 +3424,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (browseHistory.current.photo) {
     // The grid stays hidden under a photo; ensurePhoto measures it on the way back.
     retainedPhotoIds.add(browseHistory.current.photo);
-    // Each step below is its own task so none blocks input past 50ms on the A05s
-    // (docs/specs/advertising-detail.md R7). A restored scroll needs the full height in one pass.
-    const nextTask = () => new Promise((resolve) => setTimeout(resolve));
-    const deferRelated = !browseHistory.current.detail.scrollY && !browseHistory.current.detail.anchorId;
+    // Each step below is its own task so none blocks input past 50ms on the A05s (R7, showPhoto).
     await nextTask();
     if (controller.signal.aborted) return cleanup;
     // Pay the photo-mode style and layout before the primary work; hidden so no unsized frame paints.
@@ -3418,24 +3440,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     await nextTask();
     photoView?.style.removeProperty("visibility");
     if (controller.signal.aborted) return cleanup;
-    directEntryPhase = deferRelated ? "primary" : "";
-    renderPhoto(browseHistory.current, "direct");
-    if (deferRelated) {
-      for (const phase of ["warm", "related"]) {
-        await nextTask();
-        if (controller.signal.aborted) return cleanup;
-        directEntryPhase = phase;
-        relatedLayoutKey = "";
-        if (activePhotoId) layoutRelated(browseHistory.current);
-      }
-      await nextTask();
-      if (controller.signal.aborted) return cleanup;
-      directEntryPhase = "";
-      if (activePhotoId) {
-        renderRelatedWindow({ animate: true });
-        window.dispatchEvent(new CustomEvent("site:layout"));
-      }
-    }
+    await showPhoto(browseHistory.current, "direct");
     await nextTask();
     if (controller.signal.aborted) return cleanup;
   } else {

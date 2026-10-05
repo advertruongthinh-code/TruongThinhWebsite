@@ -923,6 +923,24 @@ try {
     }
     return evidence;
   });
+  // R7: the tap task paints only the primary; the related solver and card mount run in later tasks.
+  await caseRun("related-tap-defers-related", { width: 412, height: 915 }, async (page) => {
+    const visibleRelated = () => [...document.querySelectorAll("[data-advertising-related-card]")].filter((card) => !card.hidden).length;
+    await page.goto(href("/vi/advertising-products/?photo=kiosk-posm-10"), { waitUntil: "domcontentloaded" });
+    await ready(page, "kiosk-posm-10");
+    await page.waitForFunction(visibleRelated);
+    const link = page.locator("[data-advertising-related-card] > a").first();
+    const nextId = await link.evaluate((node) => node.parentElement.dataset.advertisingRelatedCard);
+    const tapTask = await link.evaluate((node) => {
+      node.click();
+      return { photo: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoId,
+        visibleRelated: [...document.querySelectorAll("[data-advertising-related-card]")].filter((card) => !card.hidden).length };
+    });
+    assert.deepEqual(tapTask, { photo: nextId, visibleRelated: 0 }, "tap task leaves related cards to later tasks");
+    await ready(page, nextId);
+    await page.waitForFunction(visibleRelated);
+    return { nextId, tapTask };
+  }, { contextOptions: { isMobile: true, hasTouch: true } });
   await caseRun("related-selected-card-shuffle-cleanup", { width: 1569, height: 912 }, async (page, stage) => {
     const evidence = [];
     for (const scenario of [
