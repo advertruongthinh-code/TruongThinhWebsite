@@ -35,6 +35,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   vùng đó giữ trắng.
 - **Màu sau kính:** độ bão hòa `1.7`, độ sáng `1.04` (mỗi bậc căn bậc năm, dạng cung căn bậc ba),
   tint trắng alpha `0.12`.
+- Kính cung có số mới đã duyệt, chờ code (tâm cung, tint, bão hòa, độ sáng):
+  [Đã duyệt, chờ code](../../approved-designs.md#kính-cung-số-mới).
 - Kính cung và kính nền primary đứng yên, giữ nguyên khi giảm chuyển động. Không có khúc xạ, viền sáng
   hay đổ bóng. Nền tối của [viewer](../Viewer/README.md) phóng to là lớp làm
   tối, không phải Kính.
