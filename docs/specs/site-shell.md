@@ -265,13 +265,13 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 ## Gate còn mở
 
 - Intro header không chạy: `mountPageMotion` bỏ intro khi có `route-enter`, class có ở mọi lần tải
-  trực tiếp. [CẦN LÀM RÕ: giữ intro cùng veil như motion.md, brand.md, hay bỏ và sửa test?] Owner.
+  trực tiếp. Owner chọn 05/10 sửa code: intro chạy cùng veil như motion.md, brand.md. Thread code.
 - `TT_E2E_HEADER_ONLY` RED trên Chromium cloud: 24/43 case FAIL (intro, geometry 320 và 751–1440px,
   scroll direction); case 751–960 đòi nav hai hàng, trái R2, có thể là test cũ (suy luận). Main.
-- [CẦN LÀM RÕ: [motion](../../design-system/motion.md#shell) chỉ ẩn header khi `scrollY` dưới
-  `pageHeight - 1.25 × viewport`, code không có cận này; sửa code hay motion.md?] Owner quyết.
-- Menu About 15 mục; nhóm Advertising còn `?category=signage`, `?category=light-box` không khớp
-  category nên về All; lệch số mục buộc About đi native (R6). Owner chọn đồng bộ hay giữ.
+- [Motion](../../design-system/motion.md#shell) chỉ ẩn header khi `scrollY` dưới
+  `pageHeight - 1.25 × viewport`, code không có cận này. Owner chọn 05/10 sửa code. Thread code.
+- Menu About 15 mục, còn `?category=signage`, `?category=light-box` không khớp category nên về All;
+  lệch số mục buộc About đi native (R6). Owner chọn 05/10 đồng bộ với bốn trang kia. Thread code.
 - Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả trên
   reference live, visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R3

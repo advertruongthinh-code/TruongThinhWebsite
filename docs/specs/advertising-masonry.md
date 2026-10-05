@@ -285,8 +285,6 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
   (93 ảnh, 69 cụm, ngoài Git) chờ owner xem. Owner.
 - Card nhiều media: runtime hỗ trợ nhưng catalog chưa có card nào; M03–M09 tạm dừng tới khi owner gửi ảnh và video gom
   theo từng sản phẩm ([media-card](site-media-card-playback.md)). Owner.
-- [CẦN LÀM RÕ: [Masonry](../../design-system/components/Masonry/README.md) ghi nội dung tối đa 1500px, code không giới
-  hạn (đo Chromium: 1920px cho masonry 1850px, 2560px cho 2490px); giữ code hay thêm giới hạn?] Owner.
 
 ## Chú thích thuật ngữ
 

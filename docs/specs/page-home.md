@@ -266,14 +266,13 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 
 - Hero intro không chạy: `mountPageMotion` bỏ nhánh giữ nền tối, slide 0 mờ vào khi có `route-enter`,
   class có ở mọi lần tải trực tiếp (như header intro, [shell](site-shell.md#gate-còn-mở)); ca "holds
-  a shortened solid surface" của `TT_E2E_HERO_INTRO_ONLY` FAIL trên Chromium cloud. [CẦN LÀM RÕ: giữ
-  intro cùng veil như [vào thẳng trang](loading-glass-and-page-entry.md) hay bỏ nhánh, sửa test?] Owner.
+  a shortened solid surface" của `TT_E2E_HERO_INTRO_ONLY` FAIL trên Chromium cloud. Owner chọn 05/10 sửa
+  code: intro chạy cùng veil ([vào thẳng trang](loading-glass-and-page-entry.md)). Thread code.
 - Scroll cue (năm trang): runtime tạo `.scroll-cue-char`, CSS chỉ style `[data-scroll-cue-char]`, nên
   ký tự `position: static`, chỉ opacity đổi (đo Chromium cloud), trái [motion](../../design-system/motion.md#text);
-  `TT_E2E_SCROLL_CUE_ONLY` 0/13. [CẦN LÀM RÕ: sửa CSS hay sửa motion.md và test?] Owner.
-- Dải quy trình: [mạch trang chủ](../../design-system/content.md#mạch-nội-dung-theo-route) và
-  `runRootProcessCheck` (full `pnpm qa:site`) còn đòi `.editorial-strip` bốn bước trên `/vi/`; source
-  chỉ còn phụ đề portal Quy trình (test FAIL, suy luận). [CẦN LÀM RÕ: sửa content.md, test hay thêm lại dải?] Owner.
+  `TT_E2E_SCROLL_CUE_ONLY` 0/13. Owner chọn 05/10 sửa CSS. Thread code.
+- `runRootProcessCheck` (full `pnpm qa:site`) còn đòi `.editorial-strip` bốn bước trên `/vi/`; trang chủ
+  chỉ có phụ đề portal Quy trình (R1). Owner chọn 05/10 giữ trang, sửa test. Thread code.
 - `TT_E2E_P5_MEDIA_HOVER_ONLY` 0/2 trên Chromium cloud: tìm `.service-portal > img` nhưng build bọc
   `<picture>`; còn đòi shade đổi màu khi hover, trái R6 (test cũ, suy luận). Main.
 - Owner chưa nghiệm thu trên máy mình hover, overlay, chữ portal, ảnh portal Advertising, hero,
@@ -281,7 +280,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 - Cache hit: tải lại, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame;
   chưa xác nhận vòng tải có lóe. Main đo lại.
 - Nút dừng hiện trong `motion-fallback` nhưng không làm gì, nhãn chỉ có VI (suy luận từ source).
-  [CẦN LÀM RÕ: ẩn nút trong fallback?] Owner.
+  Owner chọn 05/10 sửa code: ẩn nút khi motion lỗi, thêm nhãn EN. Thread code.
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ `https://zalo.me/` placeholder ([PRODUCT](../../PRODUCT.md)); URL thật chờ owner.
