@@ -1,7 +1,7 @@
 # Kính
 
 Một component cho mọi bề mặt glass của trang Advertising. Runtime
-`glass-surface.mjs` dựng `div.glass-surface` gồm năm lớp bậc nhòe, một lớp
+`glass-surface.mjs` dựng `div.glass-surface` gồm các lớp bậc nhòe, một lớp
 tint trắng và một lớp hạt nhiễu; style ở mục Kính của `src/site/detail.css`.
 Không bề mặt nào khác tự viết `backdrop-filter`.
 
@@ -17,6 +17,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   cộng dồn nên mỗi lớp chỉ thêm phần tăng `2`, `4.03`, `7.79`, `13.23`,
   `22.98px`. Mỗi bậc chồng mép lên bậc kế, không thấy bậc hay bóng ma hai lớp.
   Dạng phủ đều đứng yên dùng một bậc đủ `28px`, nhìn như năm bậc chồng mà nhẹ hơn.
+  Dạng cung cũng dùng một bậc đủ làm lõi bên trong cung, năm bậc chỉ phủ dải;
+  lõi chuyển sang năm bậc qua `48px` bên trong cung nên không thấy đường nối.
 - **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
   trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
   batch; trong cung nhòe tối đa, ra ngoài nhòe giảm dần về 0. Đỉnh cung ở `50%`
