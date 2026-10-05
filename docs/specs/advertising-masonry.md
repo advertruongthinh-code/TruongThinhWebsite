@@ -240,7 +240,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `[data-project-grid]`, `[data-advertising-card]`, `[data-advertising-filter]`, `body.is-advertising-browse` | Masonry, card, filter, chế độ duyệt (R1, R3, R7, R8); test đọc |
 | DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
-| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; test có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` |
+| Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh; runtime và Worker related ([detail R7](advertising-detail.md#r7-related)) import; test có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` (khi đó không dùng Worker) |
 | Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); seed và xáo (R4) |
 | Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |

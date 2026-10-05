@@ -5,6 +5,7 @@ const runtime = await readFile(new URL("../../src/site/advertising-products/cata
 const detailSource = await readFile(new URL("../../src/site/detail.js", import.meta.url), "utf8");
 const motionSource = await readFile(new URL("../../src/site/motion.js", import.meta.url), "utf8");
 const viewerSource = await readFile(new URL("../../src/site/advertising-products/photo-viewer.mjs", import.meta.url), "utf8");
+const relatedSource = await readFile(new URL("../../src/site/advertising-products/related-layout.mjs", import.meta.url), "utf8");
 
 assert.match(detailSource, /import\("\/assets\/vendor\/swiper-14\.2\.0\/swiper\.mjs"\)/, "detail runtime loads the pinned Swiper core only for carousel routes");
 for (const moduleName of ["mousewheel", "pagination", "a11y"]) {
@@ -88,7 +89,7 @@ assert.match(runtime, /heroImage: photoImage[\s\S]*resetButton: photoZoomReset/,
 assert.match(runtime, /advertisingPhotoLayout = primary\.mode/, "photo mode comes from viewport-aware golden geometry");
 assert.match(detailSource, /mountAdvertisingCatalog\(container,[\s\S]*?softNavigation,/, "detail forwards the Barba remount context");
 assert.match(motionSource, /softNavigation:\s*true/, "Barba marks destination remounts");
-assert.match(runtime, /computeAdvertisingPhotoGeometry\(/, "the shared pure geometry owns responsive primary spans");
+assert.match(relatedSource, /computeAdvertisingPhotoGeometry\(/, "the shared pure geometry owns responsive primary spans");
 assert.doesNotMatch(runtime, /whenPhotoImageReady/, "morph feedback must not wait for a full image network request");
 assert.match(detailSource, /GSAP 3\.15\.0[\s\S]*optional: true[\s\S]*SplitText 3\.15\.0[\s\S]*optional: true/, "animation-only dependencies should not block catalog mount");
 assert.match(detailSource, /if \(!dependency\.optional\) throw error/, "required catalog dependencies should remain fail closed");

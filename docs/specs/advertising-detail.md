@@ -3,8 +3,10 @@ title: Detail Advertising
 status: live
 source:
   - src/site/advertising-products/suggestion-slideshow.mjs
+  - src/site/advertising-products/related-layout.mjs
 tests:
   - tests/site/advertising-photo-layout.test.mjs
+  - tests/site/advertising-related-worker.test.mjs
   - tests/site/advertising-full-span-p72.e2e.mjs
   - tests/site/advertising-primary-p14.e2e.mjs
   - tests/site/advertising-single-related.e2e.mjs
@@ -134,7 +136,7 @@ solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-t
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`. Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia năm task để không task nào quá `50ms` trên A05s: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Có `detail.scrollY` cần khôi phục thì primary và related một lượt như cũ.
+mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia task để không task nào quá `50ms` trên A05s: style chế độ ảnh cùng suggestion, primary với related rỗng (ghi lại input của solver), solver related chạy trong module Worker `related-layout.mjs` (tạo từ task đầu, chờ tối đa `600ms`), một task áp kết quả, một task gắn card related có chuyển động; mark `advertising-related:worker` hoặc `:main` ghi đường đã chạy. Worker lỗi, quá hạn, input đổi lúc chờ (tag, resize, font), Barba chuyển trang mềm hoặc artifact test bơm vào thì solver chạy trên luồng chính như cũ: thử trên vài card cho code nóng, rồi đầy đủ. Suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Có `detail.scrollY` cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related
@@ -227,7 +229,7 @@ Then không animation nào chạy; state, URL, scroll và focus giống khi có 
 | CSS var | `--advertising-photo-top`, `-primary-width\|height`, `-image-width\|height`, `-image-zone-width\|height`, `-description-width\|height`, `-internal-gap` | `layoutRelated` ghi, `detail.css` đọc (R2) |
 | URL | `?category=&photo=&tag=` (`serializeAdvertisingBrowseLocation`) | URL chuẩn (R1) |
 | Storage | history state `advertisingBrowse`: `category`, `photo`, `tag`, `seed`, `directPhotoRootId`, `grid`, `detail` | Theo entry (R8, R10) |
-| Hàm public | `parseAdvertisingBrowseLocation`, `selectAdvertisingSuggestions`, `selectAdvertisingRelated`, `compileAdvertisingRelatedLayout`, `createAdvertisingBrowseHistoryController` (`catalog-runtime.mjs`); `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Thuần, test unit gọi (R1, R2, R5, R7, R8) |
+| Hàm public | `parseAdvertisingBrowseLocation`, `selectAdvertisingSuggestions`, `createAdvertisingBrowseHistoryController` (`catalog-runtime.mjs`); `selectAdvertisingRelated`, `compileAdvertisingRelatedLayout` (`related-layout.mjs`, runtime export lại), `solveRelatedRequest`, `hydrateRelatedLayout` (Worker và luồng chính); `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Thuần, test unit gọi (R1, R2, R5, R7, R8) |
 | Hàm public | `suggestionDeck(key, cards)`, `mountSuggestionSlides(root, {cards, createImage, isReduced, signal})` → cleanup | Slideshow (R6) |
 | Hàm public | `createAdvertisingPhotoViewer` (`photo-viewer.mjs`): `close`, `setRecord`, `cleanup` | Viewer (R9) |
 | Hàm public | `window.TruongThinhAdvertising.navigatePhoto`, `navigateQuery(href, {reason})`, `handlePopState`, `captureDetail`, `replaceTag` | `motion.js` gọi (R8, R10) |
@@ -256,7 +258,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R4 | `CASE=delayed-image-resize-latest-wins`; test của [loading glass](loading-glass-and-page-entry.md#kiểm-tra) |
 | R5 | `advertising-suggestion-layout.e2e.mjs` (bốn chỗ); `advertising-suggestion-conditional.e2e.mjs` (split, pinterest, resize); `advertising-suggestion-info.e2e.mjs`; `CASE=related-suggestions-replace-state` |
 | R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
-| R7 | `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
+| R7 | `advertising-related-worker.test.mjs` (Worker khớp luồng chính); `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
 | R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle` |
 | R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |

@@ -1,10 +1,8 @@
 import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
-  ADVERTISING_SEARCH_OPERATION_BUDGET,
   advertisingSpacing,
   columnsForWidth,
-  computeAdvertisingPhotoGeometry,
   compileAdvertisingProductLayout,
   fnv1a32,
   getVirtualWindow,
@@ -12,6 +10,8 @@ import {
   validateAdvertisingCards,
 } from "./layout-core.mjs";
 import { createAdvertisingPhotoViewer } from "./photo-viewer.mjs";
+import { compareRelatedSource, compileAdvertisingRelatedLayout, hydrateRelatedLayout } from "./related-layout.mjs";
+export { compileAdvertisingRelatedLayout, selectAdvertisingRelated } from "./related-layout.mjs";
 import { mountSuggestionSlides, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { createAdvertisingSeed, createSeededRandom, shuffleWithSeed } from "./random-order.mjs";
 import {
@@ -27,6 +27,8 @@ let activeInstance;
 let lastClosedPhotoId = null;
 let artifactPromise;
 const GEOMETRY_CACHE_LIMIT = 24;
+// ponytail: fixed wait for the related Worker; tune from A05s traces (worker module load plus solve).
+const RELATED_WORKER_DEADLINE_MS = 600;
 const CAPTION_METRICS_VERSION = "advertising-caption-v2";
 const ADVERTISING_BROWSE_STATE_KEY = "advertisingBrowse";
 export const ADVERTISING_VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
@@ -191,25 +193,6 @@ export function serializeAdvertisingBrowseLocation(input, browse = {}) {
   return url;
 }
 
-const compareRelatedSource = (left, right) =>
-  left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
-
-export function selectAdvertisingRelated({ cards = [], categoryOrder = [], heroId, tag = null } = {}) {
-  const hero = cards.find((card) => card.id === heroId);
-  if (!hero) return [];
-  const categoryRank = new Map(categoryOrder.map((category, index) => [category, index]));
-  const related = cards.filter((card) => {
-    if (card.id === hero.id) return false;
-    if (!tag) return card.category === hero.category;
-    return Array.isArray(card.tagIds) && card.tagIds.includes(tag);
-  });
-  if (!tag) return related.sort(compareRelatedSource);
-  return related.sort((left, right) =>
-    (categoryRank.get(left.category) ?? Number.MAX_SAFE_INTEGER)
-      - (categoryRank.get(right.category) ?? Number.MAX_SAFE_INTEGER)
-    || compareRelatedSource(left, right));
-}
-
 export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = null, limit = 4, tagRegistry = [] } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
@@ -253,119 +236,6 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
     usedRepresentatives.add(representative.id);
     return { card: representative, tag };
   });
-}
-
-export function compileAdvertisingRelatedLayout({
-  cards = [], categoryOrder = [], columns: requestedColumns, datasetVersion, heroId,
-  layoutViewportWidth, viewportHeight = 900, headerHeight = 0, safeTop = 0, safeBottom = 0,
-  settings, measureDescriptionHeight, measureDescriptionMinimumHeight, minimumImageZoneHeight = 0,
-  suggestionCard = null, tag = null, seed = null, primaryMedia = null,
-  compile = compileAdvertisingProductLayout,
-} = {}) {
-  const hero = cards.find((card) => card.id === heroId);
-  if (!hero) throw new Error("Related layout requires a known photo");
-  const relatedPool = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag });
-  const related = seed === null
-    ? relatedPool
-    : shuffleWithSeed(relatedPool, seed, `related:${heroId}:${tag || "all"}`);
-  const preferredColumns = Number.isInteger(requestedColumns) && requestedColumns >= 1 && requestedColumns <= 4
-    ? requestedColumns : columnsForWidth(layoutViewportWidth);
-  const columns = preferredColumns;
-  const geometryOptions = {
-    layoutViewportWidth, viewportHeight, columns, headerHeight, safeTop, safeBottom,
-    imageWidth: primaryMedia?.width || hero.media.width,
-    imageHeight: primaryMedia?.height || hero.media.height, minimumImageZoneHeight,
-  };
-  const basePrimary = computeAdvertisingPhotoGeometry(geometryOptions);
-  const primary = typeof measureDescriptionHeight === "function" || typeof measureDescriptionMinimumHeight === "function"
-    ? computeAdvertisingPhotoGeometry({ ...geometryOptions,
-      descriptionHeight: typeof measureDescriptionHeight === "function" ? measureDescriptionHeight(basePrimary.descriptionWidth, basePrimary.mode) : 0,
-      minimumDescriptionHeight: typeof measureDescriptionMinimumHeight === "function" ? measureDescriptionMinimumHeight(basePrimary.descriptionWidth, basePrimary.mode, basePrimary) : 0 })
-    : basePrimary;
-  const { gap } = primary;
-  const hasSuggestion = suggestionCard?.kind === "suggestion" && primary.span === columns;
-  const singlePhotoBesidePrimary = !hasSuggestion && related.length === 1 && primary.span < columns;
-  const initialColumnBottoms = Array.from({ length: columns }, (_, index) => index < primary.span ? primary.height : 0);
-  const solverCategory = categoryOrder[0];
-  const solverSource = hasSuggestion ? [suggestionCard, ...related] : related;
-  const solverCards = solverSource.map((card, index) => ({
-    ...card, category: solverCategory, rank: index, sourceOrder: index,
-  }));
-  const terminalPhotoPeek = related.length && !singlePhotoBesidePrimary ? {
-    primaryWidth: primary.width, primaryHeight: primary.height, primaryTop: primary.top,
-    viewportHeight, safeBottom, belowPeek: primary.belowPeek, gap,
-  } : undefined;
-  const attempts = [];
-  const canTryBelowPrimary = solverCards.length > 1 && primary.span < columns;
-  const alongsideBudget = canTryBelowPrimary
-    ? Math.ceil(ADVERTISING_SEARCH_OPERATION_BUDGET / 2)
-    : ADVERTISING_SEARCH_OPERATION_BUDGET;
-  const compileAttempt = (mode, seed, operationBudget, attemptCards = solverCards) => {
-    try {
-      const compiled = compile({
-        cards: attemptCards, categoryOrder, columns, datasetVersion, filter: "all",
-        initialColumnBottoms: seed, layoutViewportWidth, operationBudget,
-        settings, terminalPhotoPeek, continuousDetail: true,
-        presentationOrder: attemptCards.map(({ id }) => id),
-        organicOrder: true,
-      });
-      attempts.push({ mode, columns, operations: compiled.diagnostics.operations, operationBudget });
-      return compiled;
-    } catch (error) {
-      const operations = Number(error?.diagnostic?.operations);
-      attempts.push({ mode, columns, operations: Number.isFinite(operations) ? operations : operationBudget, operationBudget });
-      throw error;
-    }
-  };
-  let layout;
-  try {
-    layout = compileAttempt("alongside", initialColumnBottoms, alongsideBudget);
-  } catch (error) {
-    const isSearchExhausted = error?.code === "search-exhausted";
-    const spent = attempts.reduce((total, attempt) => total + attempt.operations, 0);
-    const remainingBudget = ADVERTISING_SEARCH_OPERATION_BUDGET - spent;
-    if (!isSearchExhausted || !canTryBelowPrimary || remainingBudget <= 0) {
-      if (error?.diagnostic) {
-        error.diagnostic = {
-          ...error.diagnostic,
-          operations: spent,
-          budget: ADVERTISING_SEARCH_OPERATION_BUDGET,
-          attempts,
-        };
-      }
-      throw error;
-    }
-    const belowPrimaryInitialColumnBottoms = Array.from({ length: columns }, () => primary.height);
-    try {
-      layout = compileAttempt("below-primary", belowPrimaryInitialColumnBottoms, remainingBudget);
-    } catch (fallbackError) {
-      if (fallbackError?.diagnostic) {
-        fallbackError.diagnostic = {
-          ...fallbackError.diagnostic,
-          operations: attempts.reduce((total, attempt) => total + attempt.operations, 0),
-          budget: ADVERTISING_SEARCH_OPERATION_BUDGET,
-          attempts,
-        };
-      }
-      throw fallbackError;
-    }
-  }
-  layout.diagnostics = {
-    ...layout.diagnostics,
-    preferredColumns,
-    operations: attempts.reduce((total, attempt) => total + attempt.operations, 0),
-    budget: ADVERTISING_SEARCH_OPERATION_BUDGET,
-    attempts,
-  };
-  const original = new Map(solverSource.map((card) => [card.id, card]));
-  layout.placements = layout.placements.map((placement) => ({ ...placement, card: original.get(placement.card.id) }));
-  const suggestionPlacement = hasSuggestion
-    ? layout.placements.find((placement) => placement.card.id === suggestionCard.id)
-    : undefined;
-  const photoPlacements = layout.placements.filter((placement) => placement !== suggestionPlacement);
-  return {
-    cards: related, layout, primary, suggestionPlacement, photoPlacements,
-  };
 }
 
 const normalizeBrowseHistoryState = (value = {}) => ({
@@ -1178,6 +1048,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // runs the solver on a few cards so the full run does not also pay for cold code; "related" runs
   // the full solver, keeps the primary geometry and leaves card mounting to the next task.
   let directEntryPhase = "";
+  // Direct entry solves related in a Worker: the primary phase records the solver input, the
+  // related phase applies the reply only while that input still holds.
+  let relatedRequest = null;
+  let relatedSolved = null;
   let relatedMeasuredGeometry = null;
   let suggestionSlots = [];
   let suggestionSlotHeroId = "";
@@ -2584,13 +2458,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       suggestionNode.style.width = `${suggestionWidth}px`;
       suggestionNode.style.height = "auto";
     }
-    if (relatedSuggestion && suggestionSlots.length && suggestionNode) {
+    if (suggestionInRelated && suggestionSlots.length && suggestionNode) {
       suggestionHeight = Math.ceil(Math.max(
         suggestionNode.scrollHeight,
         suggestionNode.getBoundingClientRect().height,
       ));
     }
-    const suggestionCard = relatedSuggestion && suggestionSlots.length ? {
+    const gridSuggestion = suggestionInRelated && suggestionSlots.length ? {
       id: "advertising-suggestion",
       kind: "suggestion",
       category: categoryOrder[0],
@@ -2640,21 +2514,32 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
       2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
-    relatedLayout = compileAdvertisingRelatedLayout({
-      cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
-        : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
-      categoryOrder, columns,
-      datasetVersion: artifact.datasetVersion, heroId: browse.photo,
-      layoutViewportWidth: viewportWidth, viewportHeight, headerHeight,
+    const options = {
+      columns, heroId: browse.photo, layoutViewportWidth: viewportWidth, viewportHeight, headerHeight,
       safeTop: parseFloat(viewStyle.getPropertyValue("--advertising-safe-top")) || 0,
       safeBottom: parseFloat(viewStyle.getPropertyValue("--advertising-safe-bottom")) || 0,
-      settings, suggestionCard, tag: browse.tag,
-      seed: browse.seed,
+      tag: browse.tag, seed: browse.seed, minimumImageZoneHeight: imageControlMinimum,
+    };
+    const solved = directEntryPhase === "related" && relatedSolved?.pending === relatedRequest
+      && relatedRequest.key === nextLayoutKey ? relatedSolved : null;
+    if (directEntryPhase === "related") performance.mark(solved ? "advertising-related:worker" : "advertising-related:main");
+    const measured = [];
+    const recordInfo = (...args) => measured[measured.push(measureInfo(...args)) - 1];
+    relatedLayout = solved ? hydrateRelatedLayout(solved.solved, cards, gridSuggestion) : compileAdvertisingRelatedLayout({
+      ...options,
+      cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
+        : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
+      categoryOrder, datasetVersion: artifact.datasetVersion, settings,
+      suggestionCard: relatedSuggestion ? gridSuggestion : null,
       primaryMedia: cards.find((card) => card.id === browse.photo)?.mediaItems?.find((item) => item.id === activePrimaryMediaId),
-      measureDescriptionHeight: measureInfo,
-      measureDescriptionMinimumHeight: measureInfo,
-      minimumImageZoneHeight: imageControlMinimum,
+      measureDescriptionHeight: recordInfo,
+      measureDescriptionMinimumHeight: recordInfo,
     });
+    if (solved) needsDescriptionIndicator = solved.pending.needsDescriptionIndicator;
+    if (directEntryPhase === "primary") relatedRequest = { key: nextLayoutKey, needsDescriptionIndicator, request: {
+      ...options, suggestionCard: gridSuggestion, primaryMediaId: activePrimaryMediaId,
+      descriptionHeight: measured[0], minimumDescriptionHeight: measured[1],
+    } };
     relatedLayoutKey = nextLayoutKey;
     const primary = relatedLayout.primary;
     const pinterestMode = primary.span === relatedLayout.layout.columns;
@@ -3348,10 +3233,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (activePhotoId) {
       relatedLayoutKey = "";
       relatedMeasuredGeometry = null;
+      relatedRequest = null;
     }
     scheduleResize();
   };
   document.fonts?.addEventListener("loadingdone", refreshFontGeometry, { signal: controller.signal });
+
+  // Resolves with the Worker's layout, or null on error or deadline (then the main thread solves).
+  const solveRelatedOffThread = (worker, pending, deadline) => new Promise((resolve) => {
+    const settle = (data) => {
+      clearTimeout(timer);
+      resolve(data?.solved ? { pending, solved: data.solved } : null);
+    };
+    const timer = setTimeout(settle, Math.max(0, deadline - performance.now()));
+    worker.onmessage = ({ data }) => settle(data);
+    worker.addEventListener("error", () => settle());
+    worker.postMessage(pending.request);
+  });
 
   let cleaned = false;
   const cleanup = () => {
@@ -3399,6 +3297,22 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // (docs/specs/advertising-detail.md R7). A restored scroll needs the full height in one pass.
     const nextTask = () => new Promise((resolve) => setTimeout(resolve));
     const deferRelated = !browseHistory.current.detail.scrollY && !browseHistory.current.detail.anchorId;
+    // Created first so its module and catalog load while the primary tasks run; any failure
+    // falls back to the main-thread warm and related tasks below.
+    let relatedWorker = null;
+    const relatedDeadline = performance.now() + RELATED_WORKER_DEADLINE_MS;
+    if (deferRelated && !softNavigation && !window.__TT_ADVERTISING_ARTIFACT__) {
+      try {
+        relatedWorker = new Worker(new URL("./related-layout.mjs", import.meta.url), { type: "module" });
+        relatedWorker.onerror = (event) => {
+          event.preventDefault();
+          relatedWorker = null;
+        };
+        controller.signal.addEventListener("abort", () => relatedWorker?.terminate(), { once: true });
+      } catch {
+        relatedWorker = null;
+      }
+    }
     await nextTask();
     if (controller.signal.aborted) return cleanup;
     // Pay the photo-mode style and layout before the primary work; hidden so no unsized frame paints.
@@ -3417,13 +3331,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     directEntryPhase = deferRelated ? "primary" : "";
     renderPhoto(browseHistory.current, "direct");
     if (deferRelated) {
-      for (const phase of ["warm", "related"]) {
+      const worker = relatedWorker;
+      relatedSolved = worker && relatedRequest ? await solveRelatedOffThread(worker, relatedRequest, relatedDeadline) : null;
+      worker?.terminate();
+      if (controller.signal.aborted) return cleanup;
+      for (const phase of relatedSolved?.pending === relatedRequest ? ["related"] : ["warm", "related"]) {
         await nextTask();
         if (controller.signal.aborted) return cleanup;
         directEntryPhase = phase;
         relatedLayoutKey = "";
         if (activePhotoId) layoutRelated(browseHistory.current);
       }
+      relatedSolved = relatedRequest = null;
       await nextTask();
       if (controller.signal.aborted) return cleanup;
       directEntryPhase = "";
