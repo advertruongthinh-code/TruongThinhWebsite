@@ -63,7 +63,7 @@ mời rồi footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)). Ả
 | 7 | `.editorial-strip` | Bốn bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao (R8) | Cùng bốn bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
 | 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop & showroom, F&B · Cafe, Văn phòng | ink |
-| 10 | `.detail-cta#lien-he` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
+| 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
 
 ```gherkin
@@ -84,7 +84,7 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng."; lead "TRƯỚC KHI CÓ BẢN VẼ"; bốn bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt | ink |
 | 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `materials`, `cnc-operator-b` | ink |
 | 12–15 | `#cam-ket`, chapter lead, ảnh `workshop-wide`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài."; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
-| 16 | `.detail-cta#lien-he` | "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát.", nút "Trao đổi qua Zalo" | inverse |
+| 16 | `.detail-cta#tu-van` | "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát.", nút "Trao đổi qua Zalo" | inverse |
 | 17 | `.capability-marquee` | Giá trị và cách làm | ink |
 
 ```gherkin
@@ -130,7 +130,7 @@ Then ảnh hero đi từ scale 1.2 về gần 1 trong 2,5s, tiêu đề hiện t
 
 ### R6. Reveal, parallax, đổi ngôn ngữ và vòng đời
 
-Chỉ chạy khi có `motion-enabled` và `detail.js` có cả GSAP, SplitText. Residential, Commercial: `[data-motion-lines]`
+Chỉ chạy khi có `motion-enabled` và `detail.js` có GSAP; tách chữ cần thêm SplitText. Residential, Commercial: `[data-motion-lines]`
 tách dòng trong mask, vào viewport thì trượt `2em → -0.1em` (1,9s, stagger 0,1s); `[data-motion-words]` ngoài hero hiện
 theo từ (1s, stagger 0,2s); trễ theo `data-motion-delay`; tách lại sau `document.fonts.ready` và khi đổi kích thước,
 giữ tiến độ. About không tách chữ: hook chữ trên About không chạy. Cả ba trang: `[data-motion-fade]`, `[data-motion-up]`
@@ -150,7 +150,7 @@ Then tiêu đề gallery trượt lên lại bằng chữ EN, section khác khô
 ### R7. Gallery ngang
 
 `section.detail-gallery[data-gallery]` có `h2`, hai nút `[data-gallery-prev]`, `[data-gallery-next]` (nhãn "Xem ảnh
-trước", "Xem ảnh tiếp theo", có EN) và track `[data-gallery-track]` là `region` focus được có `aria-label`. Track bắt
+trước", "Xem ảnh tiếp theo", có EN) và track `[data-gallery-track]` là `region` focus được có `aria-label` trung tính, không ghi số ảnh. Track bắt
 buộc: thiếu thì `mount` ném lỗi; hai nút tùy chọn. Nút cuộn 0,82 lần bề rộng track, `smooth` (reduced motion: tức
 thì). Chuột kéo track (pointer không phải touch, nút chính, `is-dragging` lúc kéo); ảnh `draggable=false`, chặn
 `dragstart`; touch cuộn native. Track snap giữa ảnh, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), cao
@@ -192,11 +192,11 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
 
-`.detail-cta#lien-he`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/` ở tab mới (EN
-"Talk on Zalo"), `aria-label` riêng từng trang; footer cũng mang `id="lien-he"`. `.capability-marquee`: hai `.marquee-line`
+`.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/` ở tab mới (EN
+"Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
-reduced motion). Hover ảnh dùng `:hover` thường, không qua primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung):
-gallery `1.1`, duo `1.08`, CTA `1.1`, 0,6s ease-out. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
+reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
+(`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
 `is-overlay-media-ready` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
 cổng này. Khung ảnh nội dung có vòng tải tới khi ảnh xong; build bọc `<picture>` ([chuẩn file ảnh](static-image-delivery.md#chuẩn-file-ảnh)).
@@ -213,7 +213,7 @@ Reduced motion: không `motion-enabled`, không tách chữ, mọi target reveal
 không scale; `.detail-media img` vừa khung; gallery cuộn tức thì; marquee đứng; không Locomotive. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): `detail.js` mount settled, CSS đưa mọi target
 reveal, dòng, từ về trạng thái cuối, ảnh hero scale 1.005. Không JavaScript: chữ, ảnh hiện đủ, ảnh hero không scale.
-GSAP có mà SplitText lỗi tải: `motion-enabled` vẫn bật nhưng `detail.js` bỏ cả khối reveal (Gate).
+GSAP có mà SplitText lỗi tải: chữ giữ nguyên, hiện ngay; reveal ảnh, kicker, hero vẫn chạy.
 
 ```gherkin
 Given trình duyệt bật reduced motion
@@ -256,32 +256,15 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
 | R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |
-| R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (gallery Residential, CTA Commercial, hero About), `image-loading-frame.e2e.mjs`; hover, marquee chưa có test |
+| R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (gallery Residential, CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |
 | R11 | `TT_E2E_FAILOPEN_ONLY` (Residential), `runNoScriptHeroCheck` trong `TT_E2E_M1_ONLY`, `cross-browser.smoke.spec.cjs`; `TT_E2E_REDUCED_ONLY` chưa đếm `[data-motion-*]` |
 
 ## Gate còn mở
 
-- Gate chung, áp dụng cả ba trang: header intro, menu About 15 mục còn `?category=signage`, `?category=light-box`
-  ([shell](site-shell.md#gate-còn-mở)); scroll cue lệch class (`.scroll-cue-char` so với `[data-scroll-cue-char]`), Zalo
-  placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
-- About: `rebuildText` trong `detail.js` vẫn tween `.motion-word` của tiêu đề hero dù About không tách chữ; GSAP cảnh
-  báo "target [object NodeList] not found" mỗi lần mount, nên 2 ca About của `TT_E2E_DETAIL_HERO_ONLY` và 2 ca wheel
-  About trong `TT_E2E_M1_ONLY` FAIL vì bắt console (Chromium cloud). Owner chọn 05/10 sửa code cho hết cảnh báo,
-  About không tách chữ như [motion](../../design-system/motion.md#text). Thread code.
-- Test cũ: `TT_E2E_DETAIL_HERO_ONLY` ca "about hero media soft entry" chờ route mềm sang About nên hết giờ (suy luận);
-  ca early accessibility của `TT_E2E_M1_ONLY` đòi `h1` Residential chứa "Không gian" trong khi copy duyệt là "Nơi tái
-  tạo năng lượng sống". Main sửa test.
-- `TT_E2E_COMMERCIAL_HERO_ONLY` 4/12: 8 ca 320, 390, 768px FAIL "escaped bounds"; test đòi `white-space: nowrap`, CSS
-  tới 980px đặt `normal` để chữ 200% xuống hàng (nguyên nhân suy luận); Residential không đòi, 12/12. Owner chọn 05/10
-  bỏ điều kiện nowrap trong test. Thread code.
-- GSAP có, SplitText lỗi tải: mọi target reveal và kicker giữ opacity 0, ảnh hero đứng ở scale 1.2 (đo Chromium
-  cloud, chặn file SplitText); không có fallback. Owner chọn 05/10 thêm đường hiện chữ khi thiếu SplitText. Thread code.
-- Nhãn track gallery ghi số lượng ("chín lát cắt", "năm không gian"); quy tắc owner đòi nhãn trung tính. Owner chọn
-  05/10 bỏ số. Thread code.
-- `id="lien-he"` trùng giữa CTA và footer trên ba trang (HTML không hợp lệ, `#lien-he` trỏ CTA). Owner chọn 05/10
-  đổi id của CTA, footer giữ `#lien-he`. Thread code.
-- Hover ảnh gallery, duo, CTA dùng `:hover` thường (touch dính hover, reduced motion vẫn phóng tức thì), portal loại
-  hình không hover. Owner chọn 05/10 chuyển sang hover chung của trang chủ R6. Thread code.
+- Gate chung, áp dụng cả ba trang: Zalo placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
+- [Gallery](../../design-system/components/Gallery/README.md) ghi "một ảnh thì bỏ control", `detail.js` không xử lý; main thêm hoặc owner bỏ quy tắc.
+- `TT_E2E_COMMERCIAL_HERO_ONLY` 11/12: ca VI 1024px FAIL "left/right composition" (cũng FAIL trên `main`
+  trước PR này); chưa rõ test cũ hay CSS. Main.
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
 - Vòng tải khớp cả `article.editorial-item`; ở 390px ảnh 167px trong khung 350px nên vòng lộ ngoài ảnh khi đang tải
   (audit 04/10 F2, suy luận). Main đo.

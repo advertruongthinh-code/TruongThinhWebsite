@@ -7,7 +7,6 @@ const { chromium } = require("playwright");
 
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 const pagePath = process.env.PAGE_PATH || "/vi/";
-const chromePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const viewports = [320, 390, 768, 1024, 1440].map((width) => ({
   width,
   height: width < 768 ? 844 : 900,
@@ -78,7 +77,7 @@ async function inspectMarquee(page, viewport) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ executablePath: chromePath, headless: true });
+  const browser = await chromium.launch({ headless: true });
   const consoleProblems = [];
   const failedRequests = [];
   const results = [];

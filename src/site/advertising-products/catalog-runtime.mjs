@@ -618,13 +618,17 @@ export function createAdvertisingBrowseHistoryController({
       return write("replace", { ...current, tag }, "tag");
     },
     returnToGrid({ reason = "navbar" } = {}) {
-      const focusId = current.photo || current.grid.focusId;
+      const viewedId = current.photo || current.grid.focusId;
+      const viewedCategory = cardById.get(viewedId)?.category;
+      // From a photo, navbar keeps the group picked on the source masonry; a direct photo or a group grid lands on All.
+      const category = (current.photo && current.grid.category) || "all";
+      // A related photo outside that group is not in the masonry, so return to the photo opened from it.
+      const focusId = category === "all" || viewedCategory === category ? viewedId : current.grid.focusId;
       const returningToOrigin = focusId === current.grid.focusId;
-      const card = cardById.get(focusId);
       storeCurrent();
       return write("push", {
         ...current,
-        category: reason === "navbar" ? "all" : card?.category || current.category,
+        category,
         directPhotoRootId: null,
         photo: null,
         tag: null,
