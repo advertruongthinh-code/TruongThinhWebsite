@@ -22,7 +22,8 @@
   thay bảy spec Advertising cũ. T14: [detail Advertising](specs/advertising-detail.md) thay spec
   photo browse, morph và hai capability map. T15: [tải ảnh](specs/media-delivery.md) và
   [card nhiều media](specs/media-card.md) thay ba spec ảnh, media và map cuối. T16: [CMS](specs/cms.md)
-  dormant thay spec CMS và backend; `qa:docs` fail khi file `src/site/` chưa có spec. Chờ owner ở checkpoint 3.
+  dormant thay spec CMS và backend; `qa:docs` fail khi file `src/site/` chưa có spec. T16b: spec skeleton
+  chờ ảnh và CTA cuối trang sang format mới, hết spec format cũ. Chờ owner ở checkpoint 3.
 - Code lệch thiết kế (owner chọn sửa code 05/10): intro header chạy dưới veil, header không ẩn
   trong 1,25 màn hình cuối trang, menu About như bốn trang kia, hover ảnh trang con dùng primitive
   chung, scroll cue trượt chữ, Back/Forward Advertising về đúng Y; test cũ đã sửa theo thiết kế
@@ -52,9 +53,9 @@
   ([pipeline](specs/media-delivery.md#r1-biến-thể-ảnh-nội-dung)). [Ảnh không còn gốc](verification/media-originals-2026-10-03.md).
   P6–P9 xong: owner chọn vòng xoay chờ, không byte progress; ảnh tĩnh dùng vòng
   CSS ([spec](specs/media-delivery.md#r6-vòng-tải-ảnh-tĩnh)). Advertising dùng skeleton chờ
-  ảnh trên card và primary, primary đổi ảnh tại chỗ bằng crossfade, veil vào
-  thẳng trang chỉ fallback khi motion.js lỗi hoặc tại `DOMContentLoaded`
-  ([spec](specs/loading-glass-and-page-entry.md)); ảnh vừa tải hiện dưới Kính
+  ảnh trên card và primary, primary đổi ảnh tại chỗ bằng crossfade
+  ([spec](specs/loading-glass-and-page-entry.md)); veil vào thẳng trang chỉ fallback
+  khi motion.js lỗi hoặc tại `DOMContentLoaded` ([shell R7](specs/site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)); ảnh vừa tải hiện dưới Kính
   năm bậc rồi kính tan. CTA cuối masonry đã code 04/10: chân chữ dòng cuối tiêu
   đề nằm giữa viewport, có parallax; footer gọn ở cửa sổ nhỏ; footer mọi trang
   còn ba icon Facebook, TikTok, YouTube ([spec](specs/advertising-cta-center-parallax.md)).

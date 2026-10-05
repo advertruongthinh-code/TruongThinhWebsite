@@ -106,6 +106,10 @@ Mỗi task: viết spec mới từ code, xóa spec và verification cũ được
   để mỗi spec dưới 300 dòng; xóa map random-grid.
 - [x] T16. `cms.md` thay `cms-content-publishing.md` và
   `docs/backend/index.md`; bật check ownership ở chế độ fail.
+- [x] T16b. Chuyển `loading-glass-and-page-entry.md` và
+  `advertising-cta-center-parallax.md` sang format mới tại chỗ (`source: []`,
+  vì code thuộc spec khác); ý veil vào thẳng trang chuyển về shell R7. Xóa
+  `living-docs-design-system.md` (superseded bởi `docs-system.md`).
 
 Nhận chung mỗi task: spec dưới 300 dòng; mọi R có scenario và dòng trong bảng
 Kiểm tra; `qa:docs` xanh; owner đọc được không cần mở spec cũ.

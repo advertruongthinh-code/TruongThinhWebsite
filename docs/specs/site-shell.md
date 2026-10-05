@@ -132,7 +132,8 @@ mount không xong thì gỡ ngay; mount lỗi thì trang khác Advertising tải
 `window.__ttMotionBoot`: `motion.js` gọi `claim()`, `release()` sau hai khung; script lỗi hoặc chưa
 claim tại `DOMContentLoaded` thì `fail()`: thêm `motion-fallback`, bỏ `route-enter`, mount nội dung
 settled, nối menu mở, đóng, Escape tối thiểu; CSS fallback ẩn veil, hiện header, nội dung, reveal.
-Trang từ bfcache: đóng menu, gỡ veil ([intent owner](loading-glass-and-page-entry.md)).
+Mount xong thì veil mờ như chuyển trang (`playRouteEnter`) rồi entrance chạy; intro header chạy dưới veil.
+Mạng chậm giữ veil tới khi mount xong, không mốc thời gian từ `<head>`. Trang từ bfcache: đóng menu, gỡ veil.
 
 ```gherkin
 Given motion.js không tải được

@@ -47,9 +47,8 @@ lifecycle) nằm trong spec sở hữu.
   viewer morph và history-scroll giữ contract hiện hành. [Đồng bộ Notion và
   kiểm nhất quán Advertising 03/10](verification/advertising-notion-sync-2026-10-03.md)
   chỉ tóm tắt card đang làm; chi tiết Done không được chép.
-  [Skeleton chờ ảnh, mở ảnh tại chỗ, màn trắng vào trang](specs/loading-glass-and-page-entry.md):
-  owner chốt 04/10; veil khi tải trực tiếp (R6) đã code, phần còn lại chờ code
-  và thay vòng xoay Advertising khi triển khai.
+  [Skeleton chờ ảnh và Kính hiện ảnh](specs/loading-glass-and-page-entry.md): đã code, thay
+  vòng xoay ở Advertising; owner chưa nghiệm thu trên demo. Veil vào thẳng trang ở shell R7.
   [Kính dùng chung](specs/glass-surface.md): đã code 04/10 cho kính cuối
   masonry và kính vùng dư primary; còn đo trên A05s.
   [CTA giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax](specs/advertising-cta-center-parallax.md):
