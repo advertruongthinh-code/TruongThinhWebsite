@@ -17,6 +17,7 @@ tests:
   - tests/site/site-static-contract.cjs
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/client-logo-assets-contract.cjs
+  - tests/site/orphan-selectors.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-10-05
 ---
@@ -175,17 +176,17 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 
 ### R10. Gate CI
 
-Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push vào
-`main`): `pnpm install --frozen-lockfile`, `pnpm qa:static`,
-`build-image-variants.mjs --check`, `pnpm qa:worker:security`, rồi `pnpm dev` và
-Chromium smoke `tests/site/cross-browser.smoke.spec.cjs` (năm route VI không lỗi
-console, request, tràn ngang; reduced motion; đổi EN; veil; nhịp ghi history).
+Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`): `pnpm install
+--frozen-lockfile`, `pnpm qa:static`, `build-image-variants.mjs --check`, `pnpm qa:worker:security`,
+`orphan-selectors.test.mjs` (class, `data-*` trong selector CSS hoặc query JS của `src/site/` phải có HTML, JS hay script
+build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi `pnpm dev` và Chromium smoke `tests/site/cross-browser.smoke.spec.cjs`
+(năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; nhịp ghi history).
 `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
 
 ```gherkin
 Given pull request đổi src/site/
 When CI chạy job static-release
-Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker hoặc Chromium smoke fail
+Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker, selector mồ côi hoặc Chromium smoke fail
 And không bước nào gọi Wrangler hoặc deploy
 ```
 
@@ -266,7 +267,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R7 | `tests/site/advertising-products-detail-routes.test.mjs` |
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
-| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs` |
+| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs` |
 | R11 | chưa có test; `pnpm deploy:demo --dry-run` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
