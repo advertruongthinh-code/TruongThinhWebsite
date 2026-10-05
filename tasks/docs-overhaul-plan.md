@@ -128,9 +128,10 @@ Checkpoint 3: không còn spec format cũ; ownership fail khi có file
   `living-docs-domain-ownership.md`; cập nhật `git-notion-governance.md`. Xóa 7
   ADR (owner duyệt 4 ADR đã bị spec thay), sửa câu lỗi thời ở 12 ADR; hero giữ
   `2.6s` hay `1s` chuyển vào gate trang chủ.
-- [ ] T19. `STATE.md` dưới 50 dòng, `index.md` dưới 80 dòng; cập nhật
+- [x] T19. `STATE.md` dưới 50 dòng, `index.md` dưới 80 dòng; cập nhật
   `AGENTS.md`, `docs/operations/agent-rule-*.md`, `README.md` (cây thư mục),
-  `tests/README.md`; bật budget cho mọi file.
+  `tests/README.md`; bật budget cho mọi file. Kèm sửa câu Caveman trong TOOLING
+  và câu ignore trong graphify.
 - [ ] T20. Phối hợp thread "Rút gọn plan và todo": xóa `tasks/archive/`, gộp
   file này vào `tasks/plan.md`.
 - [ ] T21. Notion: rút body card về link spec và PR; hỏi owner trước mỗi đợt

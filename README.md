@@ -68,7 +68,7 @@ khi owner mở CMS phase theo
 Tài liệu theo công việc: [architecture](docs/architecture.md),
 [spec từng phần](docs/specs/docs-system.md#r2-capability-map-và-spec-sống), [CMS](docs/specs/cms.md),
 [Design System](design-system/README.md) (kèm [nguồn tham khảo](design-system/README.md#nguồn-tham-khảo)).
-[Docs index](docs/index.md) dẫn tới nguồn chuẩn và evidence.
+[Docs index](docs/index.md) dẫn tới nguồn chuẩn theo việc cần làm.
 
 Cây dưới mô tả ownership và lifecycle thực tế. Trạng thái Git thay đổi theo
 commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bản đồ lâu dài.
@@ -80,7 +80,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ src/admin/, src/db/migrations/   # DEV: CMS shell và schema
 ├─ scripts/                         # site build, media, reference crawler, tooling
 ├─ tests/                           # QA trong GitHub; tests/reports/ GENERATED
-├─ docs/                            # STATE, index, goal, architecture.md,
+├─ docs/                            # STATE, index, goal, architecture.md, terminology,
 │                                   # specs, decisions, operations, reference
 ├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
 ├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
@@ -89,7 +89,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md, .impeccable/ # DESIGN.md, design.json GENERATED từ design-system/
 ├─ .openai/hosting.json             # LEGACY: project Sites cũ, không còn dùng
 ├─ .github/, .vscode/               # CI/workflow và dev tasks
-├─ .agents/, .claude/, .codex/, .serena/ # agent config; cache giữ local
+├─ .claude/, .codex/, .serena/     # agent config; cache giữ local
 ├─ .site-output/, .tmp/, _temp/, test-results/ # GENERATED, không edit/commit
 ├─ .tooling/, graphify-out/, .wrangler/, node_modules/ # CACHE
 └─ package.json, pnpm-lock.yaml, playwright.config.cjs, tooling-versions.json,
