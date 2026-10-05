@@ -300,6 +300,8 @@ giữa, cuối đồng bộ và reduced motion không animate. Nút expand/colla
 
 Owner duyệt R9 ngày `2026-09-21`. Giữ ba mức hiện hành Fit, Cover và `2× Cover`;
 thêm input scheme mới nhưng không tạo zoom state thứ hai.
+Spec [zoom hai ngón và chạm đúp](advertising-viewer-touch-zoom.md) (planned)
+thay ba mức cố định bằng tỷ lệ liên tục có nấc khi code xong.
 
 - Cụm góc dưới phải giữ `+`, `−` và Reset. Mọi control luôn đọc/cập nhật cùng
   `level`, `scale`, `panX`, `panY` và status live. Disabled/focus/label phản ánh
