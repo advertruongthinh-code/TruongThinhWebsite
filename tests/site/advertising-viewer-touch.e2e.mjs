@@ -298,15 +298,18 @@ async function runMotion() {
         && !after.minusDisabled && !after.resetDisabled && !after.plusDisabled,
         `${label}: double tap animated or missed Cover ${JSON.stringify(after)}`);
     } else {
-      // Click + and start a pinch two frames later, inside the 200ms zoom, in one task so timing is fixed.
+      // Click + and start a pinch once the 200ms zoom has visibly moved (a real phone can hold it at 0 for a few frames).
       const sample = await page.evaluate(async () => {
         const image = document.querySelector("[data-advertising-photo-expanded-image]");
         const viewport = document.querySelector("[data-advertising-photo-viewport]");
         const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
         document.querySelector("[data-advertising-photo-zoom-in]").click();
-        await frame();
-        await frame();
-        const shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+        let shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+        for (let i = 0; i < 10 && shown.a <= 1; i++) {
+          await frame();
+          shown = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+        }
+        const midway = image.getAnimations().length;
         const box = viewport.getBoundingClientRect();
         const pointer = (type, id, x) => viewport.dispatchEvent(new PointerEvent(type, {
           bubbles: true, cancelable: true, pointerType: "touch", pointerId: id, isPrimary: id === 1,
@@ -319,9 +322,9 @@ async function runMotion() {
         const running = image.getAnimations().length;
         pointer("pointerup", 2, 40);
         pointer("pointerup", 1, -40);
-        return { shown: shown.a, adopted: adopted.a, x: adopted.m41 - shown.m41, y: adopted.m42 - shown.m42, phase, running };
+        return { shown: shown.a, adopted: adopted.a, x: adopted.m41 - shown.m41, y: adopted.m42 - shown.m42, phase, midway, running };
       });
-      check(sample.shown > 1 && sample.phase === "open" && sample.running === 0
+      check(sample.shown > 1 && sample.midway > 0 && sample.phase === "open" && sample.running === 0
         && Math.abs(sample.adopted - sample.shown) < 0.005 && Math.abs(sample.x) <= 1 && Math.abs(sample.y) <= 1,
         `${label}: touch mid zoom jumped ${JSON.stringify(sample)}`);
     }
