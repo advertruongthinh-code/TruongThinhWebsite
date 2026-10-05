@@ -9,6 +9,7 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 | --- | --- |
 | Cung (`data-glass-shape="arc"`) | Kính cuối masonry, nền cho cụm CTA trên batch [skeleton](../Skeleton/README.md) |
 | Phủ đều (`data-glass-shape="even"`) | Vùng dư quanh ảnh [primary](../Primary/README.md) khi ảnh contain còn chỗ trống |
+| Phủ đều, năm bậc (`data-glass-reveal`) | Ảnh [card](../MediaCard/README.md) và [primary](../Primary/README.md) vừa tải, chỉ trong lúc ảnh hiện |
 
 ## Hành vi
 
@@ -29,15 +30,34 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   vùng đó giữ trắng.
 - **Màu sau kính:** độ bão hòa `1.7`, độ sáng `1.04` (mỗi bậc căn bậc năm),
   tint trắng alpha `0.12`.
-- Kính đứng yên, giữ nguyên khi giảm chuyển động. Không có khúc xạ, viền sáng
+- Kính cung và kính nền primary đứng yên, giữ nguyên khi giảm chuyển động. Không có khúc xạ, viền sáng
   hay đổ bóng. Nền tối của [viewer](../Viewer/README.md) phóng to là lớp làm
   tối, không phải Kính.
 
 Preview dựng tay một khung ảnh có kính phủ đều ở nửa phải; class và style vẫn
 của website. Hạt nhiễu sinh lúc chạy nên preview không có.
 
-Đã duyệt, chờ code: kính hiện và tan trên ảnh card và primary vừa tải
-([Kính](../../approved-designs.md#kính)).
+## Hiện và tan trên ảnh vừa tải
+
+Ảnh của card hay primary giải mã xong thì kính phủ đều năm bậc hiện trên
+[skeleton](../Skeleton/README.md), crossfade skeleton sang ảnh diễn ra dưới
+kính, rồi kính tan. Ba bước chồng lên nhau, tổng `1.4s`:
+
+| Bước | Thời điểm | Đường cong |
+| --- | --- | --- |
+| Kính hiện trên skeleton | 0 đến 0.6s | `cubic-bezier(0, 0, 0.26, 1)` (`--ease`) |
+| Skeleton mờ, ảnh hiện | 0.3 đến 0.9s | `cubic-bezier(0.65, 0, 0.35, 1)` |
+| Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (`power4.inOut`) |
+
+- Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
+  opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
+  nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
+- Primary đổi sang ảnh có sẵn: kính phủ ảnh đang xem, cùng đường cong, thời
+  gian nhân `3/7`, tổng `0.6s` (kính hiện 0 đến 0.26s, tan 0.26 đến 0.6s).
+- Ảnh có sẵn ở card và giảm chuyển động: không kính.
+- Hiện xong thì gỡ kính khỏi DOM; card hay primary rời đi giữa chừng cũng gỡ.
+
+Thời gian ở [Motion](../../motion.md#ảnh-trong-card).
 
 Spec: [Kính dùng chung](../../../docs/specs/glass-surface.md).
 

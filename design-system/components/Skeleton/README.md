@@ -30,7 +30,8 @@ preset.
 Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối) và
 [Ảnh trong card](../../motion.md#ảnh-trong-card).
 
-Đã duyệt, chờ code: [Kính](../../approved-designs.md#kính) trên ảnh vừa tải.
+Lúc skeleton mờ sang ảnh, [Kính](../Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải)
+phủ đều hiện rồi tan trên khung.
 
 ## Chú thích thuật ngữ
 

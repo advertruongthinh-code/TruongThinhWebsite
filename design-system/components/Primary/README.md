@@ -45,7 +45,8 @@ Rule đầy đủ: [photo browse](../../../docs/specs/advertising-photo-browse.m
 [skeleton](../Skeleton/README.md), ảnh có sẵn crossfade từ ảnh đang xem
 ([Motion](../../motion.md#suggestion-và-detail)).
 
-Đã duyệt, chờ code: [Kính](../../approved-designs.md#kính) phủ đều khi đổi ảnh.
+Trong lúc đổi ảnh, [Kính](../Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) phủ
+đều hiện rồi tan trên khung ảnh.
 
 ## Chú thích thuật ngữ
 

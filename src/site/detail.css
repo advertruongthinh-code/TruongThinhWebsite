@@ -2033,8 +2033,14 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
-[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame > .glass-surface {
+[data-advertising-photo-glass="true"] .advertising-photo-view__hero-frame > .glass-surface,
+.advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] {
   display: block;
+}
+
+/* The reveal Kính covers the photo and the skeleton but stays under the image actions. */
+.advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] > i {
+  z-index: 2;
 }
 
 .advertising-photo-view__hero [data-advertising-photo-image],

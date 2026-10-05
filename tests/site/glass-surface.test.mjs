@@ -1,8 +1,8 @@
-// Kính contract (docs/specs/glass-surface.md R1-R5): CSS steps and arc geometry, no browser needed.
+// Kính contract (docs/specs/glass-surface.md R1-R6): CSS steps, arc geometry and reveal curve, no browser needed.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-import { arcGlassGeometry } from "../../src/site/advertising-products/glass-surface.mjs";
+import { arcGlassGeometry, glassRevealLevel } from "../../src/site/advertising-products/glass-surface.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
@@ -51,4 +51,12 @@ for (let seed = 1; seed < 400; seed += 1) {
   const arc = arcGlassGeometry({ width, batchBottom, realBottom: clusterTop - 400 * random(5), cardWidth, clusterTop, clusterBottom });
   assert(arc.dFull <= arc.radius - 0.25 * cardWidth + 1e-6, `R3: batch corners stay pure white (seed ${seed})`);
 }
+// R6: the reveal surface has all five steps; its level rises to full at 0.6 of 1.4s and falls back to none.
+assert.match(runtime, /createGlassSurface\("even", 5\)/, "R6: the reveal Kính has five steps");
+const levels = Array.from({ length: 141 }, (_, index) => glassRevealLevel(index / 140));
+const peak = 60;
+assert(Math.abs(levels[0]) < 1e-3 && Math.abs(levels[peak] - 1) < 1e-3 && Math.abs(levels[140]) < 1e-3,
+  "R6: no blur and no tint at the start and the end, full at 0.6s");
+assert(levels.slice(0, peak + 1).every((level, index) => !index || level >= levels[index - 1] - 1e-9)
+  && levels.slice(peak).every((level, index) => !index || level <= levels[peak + index - 1] + 1e-9), "R6: in, then out");
 console.log("glass-surface: PASS");

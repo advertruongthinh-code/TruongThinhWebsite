@@ -1,4 +1,4 @@
-// P8/P9 evidence: reserved frames, loading ring or skeleton state, request count and geometry while images load.
+// P8/P9 evidence: reserved frames, loading ring or skeleton and reveal Kính, request count and geometry while images load.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -157,6 +157,21 @@ try {
     // Longer delay so the entry layout settles while card images are still in flight.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    // Reveal Kính (loading-glass-and-page-entry R2, R4; glass-surface R6): record each one as it mounts.
+    await page.evaluate(() => {
+      window.__ttRevealGlass = [];
+      new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
+        if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
+        window.__ttRevealGlass.push({
+          host: node.closest("[data-advertising-photo-view]") ? "primary" : "card",
+          steps: node.querySelectorAll(".glass-surface__step").length,
+          animated: [...new Set([...node.children].flatMap((layer) => layer.getAnimations()
+            .flatMap((animation) => animation.effect.getKeyframes().flatMap((frame) => Object.keys(frame)))))]
+            .filter((key) => !["offset", "computedOffset", "easing", "composite"].includes(key)),
+        });
+      }))).observe(document.body, { childList: true, subtree: true });
+    });
+    const revealGlass = (host) => page.evaluate((name) => window.__ttRevealGlass.filter((glass) => glass.host === name), host);
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getBrowseState?.()?.seed
       && document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
     const geometry = () => page.evaluate(() => ({
@@ -190,11 +205,17 @@ try {
     // The reveal crossfade ends 1.4 s after the last image loads, then the skeleton node is removed.
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-advertising-loading-skeleton]"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the skeleton`));
+    const cardGlass = await revealGlass("card");
+    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
+      `${viewport.width}px: loading cards reveal through five Kính steps animating opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
+      `${viewport.width}px: the reveal Kính leaves the cards`);
 
     // Viewer: skeleton and aria-busy follow the current photo, including a fast hero swap.
     const viewer = () => page.evaluate(() => {
       const frame = document.querySelector("[data-advertising-photo-image]").parentElement;
-      return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
+      return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")),
+        glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
     });
     await page.locator("[data-advertising-card] a").first().click();
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.parentElement.getAttribute("aria-busy") === "true"
@@ -213,7 +234,11 @@ try {
     await page.waitForTimeout(DELAY + 300);
     const swapped = await viewer();
     assert.equal(swapped.photo, relatedId);
-    assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton }, { busy: null, skeleton: false }, `${viewport.width}px: earlier photo leaves no stale skeleton`);
+    assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
+      `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
+    const primaryGlass = await revealGlass("primary");
+    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
+      `${viewport.width}px: the primary reveals through five Kính steps animating opacity only ${JSON.stringify(primaryGlass)}`);
     await page.goBack();
     await page.goBack();
     await page.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === null);

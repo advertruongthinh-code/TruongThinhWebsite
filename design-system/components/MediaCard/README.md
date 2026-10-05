@@ -19,7 +19,8 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/site-media-card-playback.md#media-card-và-detail).
 
-Đã duyệt, chờ code: [Kính](../../approved-designs.md#kính) trên ảnh vừa tải.
+Ảnh vừa tải hiện dưới [Kính](../Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải)
+phủ đều, rồi kính tan.
 
 ## Nhiều media trong card
 

@@ -21,7 +21,7 @@ import {
   SKELETON_FLOW_PRESETS,
   staticBackground,
 } from "./skeleton-flow.mjs";
-import { arcGlassGeometry, createGlassSurface, layoutArcGlass } from "./glass-surface.mjs";
+import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 
 let activeInstance;
 let lastClosedPhotoId = null;
@@ -1844,6 +1844,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
     ];
   };
+  // Kính over the media for the reveal only (R2, R4): last in the media box, over the photo and the skeleton.
+  const revealGlass = (host) => {
+    const glass = createGlassSurface("even", 5);
+    glass.dataset.glassReveal = "";
+    host.append(glass);
+    return glass;
+  };
   const cardSkeletons = new Map();
   const cardSkeletonWaits = new Map();
   const cancelCardSkeletonWait = (node) => {
@@ -1867,6 +1874,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cardSkeletons.delete(node);
     entry.animations.forEach((animation) => animation.cancel());
     if (entry.animations.length) mediaLayers(node).forEach((media) => media.style.removeProperty("transition"));
+    entry.glass?.remove();
     detachLoadingSkeleton(entry.frame);
   };
   const revealCardSkeleton = (node) => {
@@ -1896,7 +1904,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         media.style.setProperty("transition", "none", "important");
         media.classList.add("is-advertising-media-ready");
       });
-      entry.animations = crossfadeLayers([entry.frame], layers, MEDIA_REVEAL_MS);
+      entry.glass = revealGlass(entry.frame.parentElement);
+      entry.animations = [...crossfadeLayers([entry.frame], layers, MEDIA_REVEAL_MS),
+        ...playGlassReveal(entry.glass, MEDIA_REVEAL_MS)];
       Promise.all(entry.animations.map(({ finished }) => finished))
         .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
     });
@@ -2662,11 +2672,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let primaryReveal = null;
   const settlePrimaryReveal = () => {
     if (!primaryReveal) return;
-    const { frame, outgoing, animations, timer } = primaryReveal;
+    const { frame, outgoing, animations, timer, glass } = primaryReveal;
     primaryReveal = null;
     clearTimeout(timer);
     animations.forEach((animation) => animation.cancel());
     outgoing.forEach((node) => node.remove());
+    glass?.remove();
     if (frame) detachLoadingSkeleton(frame);
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
@@ -2679,7 +2690,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    reveal.animations = crossfadeLayers(from, to, total);
+    reveal.glass = revealGlass(heroFrame);
+    reveal.animations = [...crossfadeLayers(from, to, total), ...playGlassReveal(reveal.glass, total)];
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };

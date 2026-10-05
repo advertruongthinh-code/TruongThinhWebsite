@@ -17,9 +17,8 @@ Owner thử M02b trên điện thoại ngày 2026-10-04 và thấy hai vấn đ�
 thì masonry Advertising chỉ có vùng trắng, không báo đang tải. Mở ảnh và F5 thì
 không có motion. Spec này định nghĩa ba motion owner đã chốt: skeleton chờ ảnh
 rồi hiện ảnh qua kính blur, mở ảnh tại chỗ, màn trắng khi vào thẳng trang.
-Kính trong R2 và R4 chưa nối vào [Kính dùng chung](glass-surface.md) (component
-đã có code); tới lúc đó website chạy riêng bước crossfade (xem R2). Lỗi Back history, dòng HTML thô sau
-F5 và motion phóng to của viewer nằm ngoài spec này. Bản chạy thử:
+Lỗi Back history, dòng HTML thô sau F5 và motion phóng to của viewer nằm ngoài
+spec này. Bản chạy thử:
 [Kính chờ Trường Thịnh](https://claude.ai/artifact/PNv9Hg2Tpc1b2sLEEjQxZf)
 (phiên bản 9).
 
@@ -69,9 +68,8 @@ bước.
 Xong bước 3, runtime gỡ kính và skeleton khỏi DOM và trả context WebGL về pool.
 Ảnh không đổi `transform`, nên hover zoom chạy như cũ.
 
-Tới khi có component Kính, website chỉ chạy bước 2 đúng mốc của nó trong tổng
-`1.4s` (crossfade `0.3s` đến `0.9s`), rồi gỡ skeleton. Ảnh chỉ được đổi chỗ khi
-`decode()` xong, nên crossfade không vẽ ảnh giải mã dở.
+Ảnh chỉ được đổi chỗ khi `decode()` xong, nên crossfade không vẽ ảnh giải mã
+dở.
 
 ```gherkin
 Given một card đang hiện skeleton
@@ -109,7 +107,7 @@ primary hiện tại chính khung của nó, không có ảnh bay từ card, kh�
   skeleton card hiện ra khi ảnh chưa tải (opacity `600ms ease-out`). Xem bảng UI.
 
 Ảnh primary cũ nằm lại thành lớp tạm phía trên ảnh mới cho tới hết crossfade,
-rồi bị gỡ. Chưa có Kính thì ảnh có sẵn chỉ chạy crossfade `0.13s` đến `0.39s`.
+rồi bị gỡ.
 Nền blur vùng dư của primary (`data-advertising-photo-glass`) đi cùng ảnh trong
 crossfade. Morph primary sang
 viewer phóng to (`photo-viewer.mjs`, đo từ ảnh primary) giữ nguyên.
@@ -221,15 +219,16 @@ Then trace đạt median 30fps, không long task trên 50ms, tối đa 2 context
 | DOM | `.advertising-grid__cta-frame[data-advertising-loading-skeleton="<media id>"]` trong `.advertising-card-media` hoặc khung primary | Thêm khi ảnh chưa xong sau `150ms` (card) hoặc `100ms` (primary), gỡ sau crossfade |
 | DOM | `.advertising-photo-view__outgoing`, `__outgoing-background` | Ảnh primary cũ và nền blur cũ, chỉ tồn tại trong crossfade của ảnh có sẵn (R4) |
 | DOM | `[data-advertising-photo-loading]` trên khung primary | Ẩn ảnh cũ khi không còn lớp tạm phía trên |
-| DOM | `.glass-surface[data-glass-shape="even"]` trong khung media hoặc primary | Chưa có; sẽ chỉ tồn tại trong ba bước ([Kính dùng chung](glass-surface.md)) |
+| DOM | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` trong khung media hoặc primary | Năm bậc, chỉ tồn tại trong ba bước ([Kính dùng chung](glass-surface.md) R6) |
+| Code | `playGlassReveal`, `glassRevealLevel` (`glass-surface.mjs`) | Mức kính theo thời gian, animate opacity từng lớp |
 | Root class | `route-enter` trên `<html>` | Prepaint thêm cho mọi lần vào thẳng trang (R6) |
 | Boot | `window.__ttMotionBoot` (`claim`, `release`) | Fallback khi `motion.js` lỗi tải hoặc tại `DOMContentLoaded` nếu chưa ai `claim` (R7) |
 
 ## UI
 
-Giá trị đã code nằm ở [Motion](../../design-system/motion.md): ảnh trong card,
-primary và route veil. Phần kính owner duyệt trong bản chạy thử nằm ở
-[Đã duyệt, chờ code](../../design-system/approved-designs.md#kính).
+Giá trị nằm ở [Motion](../../design-system/motion.md): ảnh trong card,
+primary và route veil. Bảng ba bước kính ở
+[Kính](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải).
 
 Owner chốt tổng `1.4s` và ba bước chồng lên nhau (2026-10-04): crossfade bắt
 đầu khi kính chưa hiện xong, kính bắt đầu tan khi crossfade chưa xong. Nhịp còn
@@ -250,7 +249,8 @@ không phải số đo mới:
 | R | Test hoặc command |
 | --- | --- |
 | R1, R3, R5 | `tests/site/image-loading-frame.e2e.mjs` (P9: skeleton phủ card đang tải, gỡ sau khi tải) |
-| R2, R4 | `tests/site/image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, đổi ảnh nhanh không để lại skeleton cũ); kính chưa có test |
+| R2, R4 | `tests/site/image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, đổi ảnh nhanh không để lại skeleton cũ; kính năm bậc có trong lúc hiện, chỉ đổi opacity, gỡ sau khi xong) |
+| R2, R4 (mức kính) | `node tests/site/glass-surface.test.mjs` (không kính ở đầu và cuối, đủ mức ở `3/7`, tăng rồi giảm) |
 | R1 (preset) | `node --test tests/site/advertising-skeleton-flow.test.mjs` |
 | R6–R7 | `pnpm qa:site` (`site.e2e.cjs`: motion chậm giữ veil, motion lỗi fallback ngay) |
 | R8 | chưa có test |
@@ -258,9 +258,6 @@ không phải số đo mới:
 
 ## Gate còn mở
 
-- Kính bước 1 và 3 của R2, R4: nối bề mặt năm bậc của
-  [Kính dùng chung](glass-surface.md) (R6); mục Kính trong
-  [Đã duyệt, chờ code](../../design-system/approved-designs.md#kính) giữ tới lúc đó.
 - R9 trên A05s, gồm nhiều kính chạy cùng lúc khi vuốt nhanh; WebKit chưa chạy.
 - R8 chưa có test tự động.
 

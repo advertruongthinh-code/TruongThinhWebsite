@@ -50,6 +50,45 @@ export function createGlassSurface(shape, steps = shape === "arc" ? STEPS : 1) {
   return glass;
 }
 
+// CSS cubic-bezier(x1, y1, x2, y2) as a function of time; x is monotonic, so bisection finds the parameter.
+const cubicBezier = (x1, y1, x2, y2) => {
+  const at = (a, b, t) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
+  return (x) => {
+    let low = 0;
+    let high = 1;
+    for (let pass = 0; pass < 24; pass += 1) {
+      const mid = (low + high) / 2;
+      if (at(x1, x2, mid) < x) low = mid;
+      else high = mid;
+    }
+    return at(y1, y2, (low + high) / 2);
+  };
+};
+// Approved reveal (design-system/components/Glass/README.md): in over 0.6s of 1.4s, out over the rest.
+const REVEAL_PEAK = 0.6 / 1.4;
+const REVEAL_IN = cubicBezier(0, 0, 0.26, 1);
+const REVEAL_OUT = cubicBezier(0.86, 0, 0.07, 1);
+const REVEAL_SAMPLES = 28;
+
+// Glass strength over the reveal, 0 to 1 and back to 0; t runs over the whole reveal.
+export function glassRevealLevel(t) {
+  return t <= REVEAL_PEAK ? REVEAL_IN(t / REVEAL_PEAK) : 1 - REVEAL_OUT((t - REVEAL_PEAK) / (1 - REVEAL_PEAK));
+}
+
+// Spec R6: steps come in light to strong and leave strong to light, by opacity only; tint and grain follow
+// the level, so the glass starts and ends with no blur and no tint. Sampled keyframes keep it on the compositor.
+export function playGlassReveal(glass, duration) {
+  const offsets = Array.from({ length: REVEAL_SAMPLES + 1 }, (_, index) => index / REVEAL_SAMPLES);
+  return [...glass.children].map((layer, index) => {
+    const step = layer.classList.contains("glass-surface__step");
+    const base = Number(getComputedStyle(layer).opacity);
+    return layer.animate(offsets.map((offset) => {
+      const level = glassRevealLevel(offset);
+      return { offset, opacity: base * (step ? Math.min(1, Math.max(0, STEPS * level - index)) : level) };
+    }), { duration, fill: "both" });
+  });
+}
+
 // Arc circle in the glass box's coordinates: apex yIn, radius R, band T, centre (W / 2, cy),
 // and dFull, the circle through the two batch bottom corners where the white turns pure.
 export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, clusterTop, clusterBottom }) {
