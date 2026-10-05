@@ -7,7 +7,7 @@ tests:
   - tests/site/advertising-skeleton-flow.test.mjs
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
-notion: https://app.notion.com/p/3e0332849a0e811dbac1e7bb09ea28be
+notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
 updated: 2026-10-05
 ---
 
