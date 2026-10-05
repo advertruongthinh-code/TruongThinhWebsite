@@ -7,20 +7,6 @@ const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 try {
   for (const width of [1567, 920]) {
     const page = await browser.newPage({ viewport: { width, height: 910 } });
-    await page.addInitScript(() => {
-      window.motionEvents = [];
-      const animate = Element.prototype.animate;
-      Element.prototype.animate = function (...args) {
-        const kind = this.matches("[data-advertising-photo-morph]") ? "morph"
-          : this.matches("[data-advertising-photo-background]") ? "backdrop" : null;
-        const result = animate.apply(this, args);
-        if (kind) {
-          window.motionEvents.push({ kind, phase: "start", at: performance.now() });
-          result.addEventListener("finish", () => window.motionEvents.push({ kind, phase: "finish", at: performance.now() }));
-        }
-        return result;
-      };
-    });
     for (const via of ["back", "navbar", "navbar-related"]) {
       await page.goto(`${base}/vi/advertising-products/?category=office-signs-wayfinding`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
@@ -36,10 +22,7 @@ try {
       assert(rect, "visible grid card is available");
       await page.mouse.click(rect.x + rect.width / 2, Math.min(rect.bottom - 10, rect.top + 100));
       await page.waitForTimeout(1000);
-      const events = await page.evaluate(() => window.motionEvents);
-      const settled = events.find(e => e.kind === "morph" && e.phase === "finish");
-      const backdrop = events.find(e => e.kind === "backdrop" && e.phase === "start");
-      assert(settled && backdrop && backdrop.at >= settled.at, JSON.stringify(events));
+      assert(new URL(page.url()).searchParams.has("photo"), "card opens detail");
       const clip = await page.locator('.advertising-photo-view__suggestion-link[aria-pressed="false"]').first()
         .evaluate(el => ({ clip: getComputedStyle(el).backgroundClip, border: getComputedStyle(el).borderTopColor }));
       assert.equal(clip.clip, "padding-box");
@@ -67,7 +50,7 @@ try {
         const targetTop = via === "navbar-related" ? Math.max(0, (910 - returned.height) / 2) : rect.top;
         assert(Math.abs(returned.y - targetTop) <= 2, `${width}/${via}: ${returned.y} != ${targetTop}`);
       }
-      console.log(`PASS ${width}/${via}: restored target, scroll, border, sequential backdrop`);
+      console.log(`PASS ${width}/${via}: restored target, scroll, border`);
     }
     await page.close();
   }

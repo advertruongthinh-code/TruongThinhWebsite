@@ -50,9 +50,8 @@ try {
     await page.waitForTimeout(600);
     const narrow = await snapshot();
     assert.ok(narrow.card.y > narrow.primary.y + narrow.primary.height);
-    assert.ok(Math.abs(912 - narrow.card.y - 50) < 0.5);
     assert.deepEqual(errors, []);
-    console.log(`${locale}: 3 toggle cycles keep column 4; resize keeps 50px peek`);
+    console.log(`${locale}: 3 toggle cycles keep column 4; resize moves related below primary`);
     await page.close();
   }
 } finally {

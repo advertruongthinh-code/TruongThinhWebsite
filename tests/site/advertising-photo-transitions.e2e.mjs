@@ -731,8 +731,10 @@ try {
       stage(`${locale}-detail-image-Y1`);
       await page.locator(`[data-advertising-photo-media-select="${card.coverMediaId}"]`).click();
       await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
-      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
-      await page.waitForFunction(() => Math.abs(window.TruongThinhMotion.getLogicalScroll() - 480) <= 1);
+      // The grid Y comes from the random layout, so pick a detail Y that stays clear of it.
+      const target = Math.abs(y0 - 480) > 150 ? 480 : 0;
+      await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), target);
+      await page.waitForFunction((y) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, target);
       const y1 = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(y0 - y1) > 100, `${locale}: fixture needs distinct entry scroll positions`);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: media switch must not push history`);
@@ -742,7 +744,7 @@ try {
       await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
       await page.waitForTimeout(650);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
-      assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0}`);
+      assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
       const gridMedia = await page.locator(`[data-advertising-card="${mediaCardId}"]`).getAttribute("data-advertising-active-media-id");
       assert.equal(gridMedia, mediaVideoId, `${locale}: Back restores grid entry media`);
 

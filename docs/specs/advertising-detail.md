@@ -145,7 +145,8 @@ Then ảnh related đầu nằm ở cột 4, cùng top với primary, không ch�
 
 Mỗi entry giữ state `advertisingBrowse`: nhóm, photo, tag, seed, `grid` và `detail` (`scrollY`, card neo, độ lệch neo, media,
 bề rộng viewport). Masonry → A → B là ba entry; tag và nhóm dùng `replaceState`. Scroll ghi vào history tối đa mỗi `300ms`
-(Chrome bỏ quá 200 lần ghi trong 10s) và khi `pagehide`. Back, Forward chỉ đổi query thì `motion.js` giao cho
+(Chrome bỏ quá 200 lần ghi trong 10s) và khi `pagehide`; Y cuộn cuối của mỗi entry còn giữ trong bộ nhớ trang nên
+Back, Forward ngay sau khi cuộn vẫn về đúng Y dù lượt ghi `300ms` chưa chạy. Back, Forward chỉ đổi query thì `motion.js` giao cho
 `handlePopState`, đổi view tại chỗ không veil. Về detail: đặt lại media và `detail.scrollY`; bề rộng viewport đổi thì đặt theo
 card related neo. Về masonry: đóng viewer, đánh dấu card vừa xem, khôi phục nhóm, media và `grid.scrollY` (bề rộng đổi thì theo
 card neo), focus link card không cuộn. Không clone, không khóa cuộn, không thêm entry hay tham số media vào URL.
@@ -265,10 +266,11 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- R8 FAIL (Chromium cloud 05/10, chạy riêng): `m02b-related-history-just-viewed-and-scroll` về detail ở Y=0 thay vì Y đã lưu
-  (2051 đến 2498); `history-entry-scroll-offscreen-morph` vẽ masonry ở Y=2316 thay vì 0; `m02b-entry-media-and-scroll-back-forward`
-  không dựng được hai Y khác nhau; `history-grid-scrollbar-resize` PASS. Chưa rõ lỗi runtime hay test. Main chẩn đoán
-  rồi sửa runtime hoặc test.
+- `history-grid-pointer-retained-morph` FAIL (cũng FAIL trên `main` trước PR sửa R8): test đọc Y masonry rồi mới click,
+  nhưng trang tự cuộn khoảng 300px trong 200ms sau `scrollIntoViewIfNeeded`; Back về đúng `grid.scrollY` đã lưu lúc click.
+  Chưa rõ thứ gì cuộn trang (không qua `setLogicalScroll` hay `window.scrollTo`). Main.
+- `square-controls-hover-and-return` FAIL "expand label did not reveal to left" (cũng FAIL trên `main`); chưa rõ test cũ hay
+  CSS. `p13-position-stuffing-and-remount` lúc PASS lúc FAIL "missing visible 400ms travel", cả trên `main`. Main.
 - Landscape VI `Y=2` trên emulator FAIL; A05s thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay H01–H02 trên A05s chưa chạy;
   L06 (viewer không đóng khi vuốt từ nền) chưa replay A05s ngang, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
@@ -276,12 +278,9 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   Back, navbar. Owner.
 - Hiệu năng: p95 click tới frame đầu `<= 100ms`, không task đồng bộ quá 50ms (Chrome 1329×912, 20 lượt mỗi luồng) chưa đo
   trên runtime hiện tại; chưa có trace detail trên Galaxy A54 hay A05s. Main và máy PC.
-- Test cũ FAIL (Chromium cloud 05/10): `advertising-single-related.e2e.mjs` đòi lộ 50px ở 820px (pinterest, R2 không chừa);
-  `advertising-return-p74.e2e.mjs` đòi sự kiện morph card sang primary đã bỏ. Main sửa test.
-- `advertising-primary-p14.e2e.mjs` 32/37: nhãn `Xem lớn hơn` không mở khi hover (320×568, 1440×900 EN), nút bị che ở ngang
-  838×331, 844×390, Tab không tới nút ở 390×844. Chưa rõ test cũ hay lỗi. Main.
-- `split` hết nửa ngân sách thì xếp mọi related dưới primary, cột 4 trống; intent owner 21/09 đòi cột 4 luôn có ảnh khi còn
-  related. Chưa pool nào tái hiện (suy luận). Main kiểm.
+- `split` hết nửa ngân sách thì xếp mọi related dưới primary, cột 4 trống (`compileAdvertisingRelatedLayout`); intent owner
+  21/09 đòi cột 4 luôn có ảnh khi còn related. Quét 19.840 tổ hợp (mọi ảnh, mọi tag, 8 seed, 1280–1920px) không tổ hợp nào
+  rơi vào nhánh này với catalog hiện tại; giữ code, kiểm lại khi thêm ảnh. Main.
 - [CẦN LÀM RÕ: intent 27/09 đòi mô tả căn đều hai bên; `detail.css` để căn trái. Sửa CSS hay bỏ intent?] Owner.
 - [CẦN LÀM RÕ: intent 27/09 đòi nền viewer chuyển rõ sang nhòe cùng morph; code giữ `blur(4px)`, chỉ đổi opacity,
   [Kính R1](glass-surface.md#r1-một-component-hai-dạng) giữ nguyên nền viewer. Coi là đạt?] Owner.
