@@ -83,7 +83,8 @@ smooth scroll, chạy timeline mở, thu nhỏ trang phía sau rồi focus nút 
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
 ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link, cột
-4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường đóng menu, đi route.
+4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường đóng menu, đi route. Dialog
+đóng giữ `display: block` (opacity 0) nhưng `content-visibility: hidden` để Layout đầu trang bỏ qua menu.
 
 ```gherkin
 Given trang 390px đã cuộn tới giữa

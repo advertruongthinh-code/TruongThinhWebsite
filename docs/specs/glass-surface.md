@@ -186,7 +186,13 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
   còn `2`: evaluate `motion.js` khoảng `67ms` và Layout đầu trang `47–60ms`.
   `motion.js` sau đó không còn task dài: mount trang và Barba chạy sau frame
   đầu nên không ép layout (đo cloud 05/10, CPU chậm 2x, năm lần: `84–103ms`
-  xuống `15–17ms`; A05s chưa đo lại). Còn Layout đầu trang.
+  xuống `15–17ms`; A05s chưa đo lại). Layout đầu trang (`47–60ms` trên A05s)
+  dựng cả menu đóng và masonry dù ảnh sẽ che: menu đóng nay
+  `content-visibility: hidden`, URL có `?photo=` ẩn masonry trước Layout đầu
+  ([detail R7](advertising-detail.md#r7-related)). Đo cloud 05/10, CPU chậm 6x,
+  median năm lần, kiosk-posm-10 và print-decals-11: Layout dài nhất `105–109ms`
+  xuống `32–38ms`, task dài nhất `181–183ms` xuống `136–151ms`, tổng phần vượt
+  `50ms` `474–602ms` xuống `356–394ms`. A05s chưa đo lại.
 - Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
   bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
   `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long
