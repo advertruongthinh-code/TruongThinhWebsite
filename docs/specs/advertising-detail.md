@@ -178,16 +178,16 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 ### R10. Navbar và Escape trên detail
 
 Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})`
-(`motion.js`) → `returnToGrid`: push entry masonry All, xóa nhóm, photo, tag. Vẫn ở ảnh A mở từ masonry thì A về đúng độ lệch
-cũ trong viewport; đã sang ảnh B hoặc vào thẳng thì B ở giữa viewport và mang "Vừa xem". Back vẫn về detail. Click có phím bổ
-trợ đi theo trình duyệt. Escape khi không có viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay
-entry bằng masonry nhóm của ảnh, focus card đó; còn lại thì `history.back()`. Masonry All không có photo: bấm lại navbar cuộn
-về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
+(`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo,
+tag; ảnh vào thẳng về All (owner 2026-10-05). Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng
+thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt.
+Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của
+ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
 
 ```gherkin
-Given masonry mở A, A mở related B
+Given masonry nhóm Kiosk & POSM mở A, A mở related B cùng nhóm
 When bấm Advertising trên navbar
-Then URL là /vi/advertising-products/, history thêm một entry, card B ở giữa viewport mang "Vừa xem"
+Then URL là ?category=kiosk-posm, rail sáng nhóm đó, history thêm một entry, card B ở giữa viewport mang "Vừa xem"
 ```
 
 ### R11. VI/EN
@@ -257,7 +257,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R7 | `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
 | R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`; `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle` |
-| R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `advertising-return-p74.e2e.mjs`; `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
+| R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
 | R11 | `CASE=active-photo-locale-switch` |
 | R12 | `advertising-primary-p14.e2e.mjs` (reduced motion); `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs` |
 

@@ -92,7 +92,8 @@ phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước k
 [shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), tức reduced motion) được giữ lại, phát lại
 đúng một lần khi mount xong; mount lỗi thì tải hẳn URL của filter cuối. Đổi ngôn ngữ chỉ đổi chữ, `href`, ARIA.
 Navbar hoặc tiêu đề menu Advertising: đang ở All không có `photo` thì cuộn về 0
-([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)); ở một nhóm hoặc detail thì thêm history entry về All.
+([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)); ở một nhóm thì thêm history entry về All; ở detail thì về
+nhóm đã chọn trước khi mở ảnh ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
 
 ```gherkin
 Given /vi/advertising-products/ ở All, runtime đã sẵn sàng
