@@ -57,7 +57,7 @@ archive và verification nằm chung với contract hiện hành; thiết kế r
 ## Evidence
 
 - Spec [docs-system](../specs/docs-system.md), owner duyệt 2026-10-04.
-- Plan [đại tu docs](../../tasks/docs-overhaul-plan.md).
+- Plan [đại tu docs](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/bd06c8de8ff9fd8d48d5eb189d646205896005b0/tasks/docs-overhaul-plan.md), xóa sau checkpoint cuối 2026-10-05.
 
 ## Chú thích thuật ngữ
 
