@@ -95,16 +95,20 @@ export function glassRevealLevel(t) {
   return t <= REVEAL_PEAK ? REVEAL_IN(t / REVEAL_PEAK) : 1 - REVEAL_OUT((t - REVEAL_PEAK) / (1 - REVEAL_PEAK));
 }
 
+const REVEAL_OFFSETS = Array.from({ length: REVEAL_SAMPLES + 1 }, (_, index) => index / REVEAL_SAMPLES);
+const REVEAL_LEVELS = REVEAL_OFFSETS.map(glassRevealLevel);
+
 // Spec R6: steps come in light to strong and leave strong to light, by opacity only; tint and grain follow
 // the level, so the glass starts and ends with no blur and no tint. Sampled keyframes keep it on the compositor.
 export function playGlassReveal(glass, duration) {
-  const offsets = Array.from({ length: REVEAL_SAMPLES + 1 }, (_, index) => index / REVEAL_SAMPLES);
-  return [...glass.children].map((layer, index) => {
+  const layers = [...glass.children];
+  // Read every base opacity before the first animate, so a reveal costs one style recalc.
+  const bases = layers.map((layer) => Number(getComputedStyle(layer).opacity));
+  return layers.map((layer, index) => {
     const step = layer.classList.contains("glass-surface__step");
-    const base = Number(getComputedStyle(layer).opacity);
-    return layer.animate(offsets.map((offset) => {
-      const level = glassRevealLevel(offset);
-      return { offset, opacity: base * (step ? Math.min(1, Math.max(0, STEPS * level - index)) : level) };
+    return layer.animate(REVEAL_OFFSETS.map((offset, sample) => {
+      const level = REVEAL_LEVELS[sample];
+      return { offset, opacity: bases[index] * (step ? Math.min(1, Math.max(0, STEPS * level - index)) : level) };
     }), { duration, fill: "both" });
   });
 }
