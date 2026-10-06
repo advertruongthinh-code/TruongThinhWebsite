@@ -1290,14 +1290,12 @@ Checklist chi tiết, acceptance, verification và estimate nằm trong
 
 Spec owner đã duyệt 2026-10-06: [Cảm giác cuộn chung](../docs/specs/scroll-feel.md)
 ([card](https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed)). Checklist ở
-[todo](todo.md#cảm-giác-cuộn-chung--s1s5). Ước lượng khoảng `350` đến `450 LOC`.
+[todo](todo.md#cảm-giác-cuộn-chung--s1s5). Ước lượng khoảng `250` đến `350 LOC`, chưa tính khối "Giữ nghề" theo Espacio.
 
 Quyết định:
 
 - Parallax tái dùng Locomotive `data-scroll-speed="-2"` như hero trang chủ; không thư viện, không speed mới.
-- Ảnh CTA có hover phóng (`media-hover-zoom`) nên `data-scroll` gắn lên lớp bọc ảnh, không gắn lên `img`.
-- Lớp media nền dài thêm đúng độ trôi lớn nhất ở hai đầu: `0.1 × (chiều cao section + chiều cao viewport)`,
-  để không lộ mép (R3).
+- Hero About tái dùng cách hero trang chủ giữ ảnh không lộ mép (ảnh phóng sẵn trong khung); đo lại ở mọi cỡ từ 981px (R3).
 - Độ mượt (R2) chỉ đo được trên PC thật: script trace chạy được cả cloud (mốc tương đối) lẫn PC (gate); PC
   chạy qua Remote Control, owner chỉ cần cho phép phiên.
 - Nguyên nhân khựng chọn từ trace, không đoán: ứng viên là gắn và gỡ card khi cuộn, `backdrop-filter` của Kính
@@ -1309,7 +1307,7 @@ sở hữu file trong cùng PR.
 | Bước | Việc | File | Cỡ |
 | --- | --- | --- | --- |
 | S1 | E2e chuẩn cuộn và parallax: đường trượt 11 trang bằng trang chủ (R1), bản đồ `data-scroll-speed` theo R4, không lộ mép ở 5 vị trí cuộn mỗi section (R3); đỏ trước S2 | `tests/site/scroll-feel.e2e.mjs`, `package.json` | S |
-| S2 | Parallax theo R4: thêm cho hero About, "Giữ nghề", CTA ba trang con; bỏ ba ảnh About; lớp bọc ảnh CTA, kéo dài lớp media | `motion.js`, `style.css`, `detail.css`, HTML About, Residential, Commercial | M |
+| S2 | Parallax theo R4: thêm cho hero About, bỏ ba ảnh About | `motion.js`, `detail.css`, HTML About | S |
 | S3 | Script trace: lăn chuột đều toàn trang, ghi task trên `50ms` và tỉ lệ frame rớt cho trang chủ, Advertising, lọc nhóm, detail ảnh | `scripts/qa/scroll-trace.mjs`, `package.json` | S |
 | S4 | Chạy S3 trên PC, sửa nguyên nhân lớn nhất, đo lại tới khi đạt R2 | Theo trace, trong `src/site/advertising-products/`, `detail.css` | M |
 | S5 | Chuyển quy tắc vào `motion.md`, xóa mục approved-designs, spec `live`, publish lại Design System, card Done | `design-system/`, `docs/specs/` | S |
@@ -1322,7 +1320,7 @@ Rủi ro:
 
 | Rủi ro | Mức | Cách xử lý |
 | --- | --- | --- |
-| Lớp media kéo dài đổi crop ảnh CTA và hero About | Trung bình | So ảnh chụp trước và sau ở 1280, 1440, 1920; giữ `object-position` |
+| Hero About lộ mép hoặc đổi crop | Thấp | So ảnh chụp trước và sau ở 1280, 1440, 1920; giữ `object-position` |
 | Nguyên nhân khựng nằm trong Kính hoặc masonry thread khác đang sửa | Trung bình | Báo điều phối, sửa qua thread sở hữu nếu trùng |
 | PC không sẵn sàng để trace | Trung bình | S1 đến S3 làm trước trên cloud; S4 chờ phiên Remote Control |
 

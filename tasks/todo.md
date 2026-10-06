@@ -980,7 +980,7 @@ chưa tính propagation hoặc sửa phát sinh.
 Plan: [Cảm giác cuộn chung](plan.md#cảm-giác-cuộn-chung-theo-trang-chủ--plan-chờ-duyệt-2026-10-06).
 
 - [ ] S1 e2e `tests/site/scroll-feel.e2e.mjs` đỏ đúng chỗ R3, R4 chưa làm; R1 xanh.
-- [ ] S2 parallax theo R4; S1 xanh; test Advertising, footer, mobile layout hiện có xanh.
+- [ ] S2 parallax theo R4 (hero About thêm, ba ảnh About bỏ); S1 xanh; test Advertising, footer, mobile layout hiện có xanh.
 - [ ] Checkpoint A: `pnpm qa:docs`; owner xem parallax.
 - [ ] S3 `scripts/qa/scroll-trace.mjs` chạy được trên cloud, in số cho 4 trang.
 - [ ] S4 trace trên PC đạt R2; sửa nguyên nhân, đo lại.

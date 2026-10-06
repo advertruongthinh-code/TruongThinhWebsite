@@ -50,18 +50,18 @@ And owner cuộn thử và xác nhận cảm giác giống trang chủ
 
 ### R3. Quy tắc parallax
 
-Parallax chỉ đặt ở section có tiêu đề hoặc chữ lớn nằm trên nền không đơn màu (ảnh hoặc video). Cơ chế tái dùng y hệt
+Parallax chỉ đặt ở hero có tiêu đề hoặc chữ lớn nằm trên nền không đơn màu (ảnh hoặc video). Ngoài hero, ngoại lệ
+duy nhất là CTA cuối Advertising với parallax riêng ([CTA](advertising-cta-center-parallax.md)). Cơ chế tái dùng y hệt
 hero trang chủ: lớp media nền nhận `data-scroll` với `data-scroll-speed="-2"`, trôi chậm hơn cuộn 20%; chữ, lớp tối
 (shade) và nút đi theo trang. Không có speed khác, không hiệu ứng mới. Vì dựa vào Locomotive, parallax chỉ chạy ở chế độ
 smooth của R1; dưới 981px và khi giảm chuyển động thì không lệch, giống trang chủ.
 
 Lớp media nền phủ kín section suốt lúc section nằm trong viewport: không lộ mép trên hay dưới ở bất kỳ vị trí cuộn nào,
-mọi cỡ cửa sổ từ 981px. Hiệu ứng hover phóng ảnh có sẵn trên CTA vẫn chạy như cũ, không chồng transform với parallax.
-Phần tử không thỏa quy tắc thì bỏ parallax.
+mọi cỡ cửa sổ từ 981px. Phần tử không thỏa quy tắc thì bỏ parallax.
 
 ```gherkin
-Given section có chữ lớn trên nền ảnh, cửa sổ từ 981px, không giảm chuyển động
-When cuộn section từ lúc vào tới lúc ra khỏi viewport
+Given hero có chữ lớn trên nền ảnh, cửa sổ từ 981px, không giảm chuyển động
+When cuộn từ đầu trang tới lúc hero ra khỏi viewport
 Then ảnh nền trôi chậm hơn chữ 20%, chữ đi theo trang
 And không lúc nào lộ mép ảnh
 ```
@@ -72,17 +72,17 @@ And không lúc nào lộ mép ảnh
 | --- | --- | --- | --- |
 | Hero trang chủ, Residential, Commercial | Ảnh | `-2` | Giữ, là chuẩn |
 | Hero About (`.about-hero__media`) | Ảnh | Không | Thêm `-2` |
-| "Giữ nghề. Không ngừng làm mới." trang chủ (`.legacy-closer`) | Ảnh | Không | Thêm `-2` |
-| CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh | Không | Thêm `-2` |
-| Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh, không có chữ đè | `-0.12`, `-0.1`, `-0.12` | Bỏ |
+| "Giữ nghề. Không ngừng làm mới." trang chủ (`.legacy-closer`) | Ảnh, ngoài hero | Không | Không |
+| CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh, ngoài hero | Không | Không |
+| Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh ngoài hero, không có chữ đè | `-0.12`, `-0.1`, `-0.12` | Bỏ |
 | Hero Advertising (mọi nhóm) | Đơn màu | Không | Không |
-| CTA cuối Advertising | Skeleton, Kính | Parallax riêng | Giữ theo [CTA](advertising-cta-center-parallax.md) |
+| CTA cuối Advertising | Skeleton, Kính | Parallax riêng | Giữ, ngoại lệ owner duyệt |
 | CTA footer "Có mặt bằng?" | Đơn màu | Không | Không |
 | Rail dự án trang chủ (trượt ngang) | Không phải chữ trên nền | `4` ngang | Giữ, là chuẩn trang chủ |
-| Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card, không phải nền section | Không | Không (owner duyệt) |
+| Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card, ngoài hero | Không | Không |
 
 Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ từ 40px và phần tử ảnh, video, canvas hoặc
-`background-image` nằm dưới nó. Section mới sau này theo R3, không cần sửa bảng trừ khi owner chỉnh quy tắc.
+`background-image` nằm dưới nó. Hero mới sau này theo R3, không cần sửa bảng trừ khi owner chỉnh quy tắc.
 
 ## Giao diện và dữ liệu
 
