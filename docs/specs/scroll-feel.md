@@ -135,7 +135,7 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `tests/site/scroll-feel.e2e.mjs` (trang chủ, ba trang con, Advertising, lọc nhóm ở 1440px) |
-| R2 | Chưa có test; Chrome trace trên PC của owner, script đo do plan thêm |
+| R2 | `pnpm qa:scroll-trace -- --headed --trace` trên PC của owner (`CHROME_CHANNEL=chrome`); trên cloud chỉ là mốc tương đối |
 | R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
 | R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
 

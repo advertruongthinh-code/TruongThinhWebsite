@@ -983,7 +983,7 @@ Plan: [Cảm giác cuộn chung](plan.md#cảm-giác-cuộn-chung-theo-trang-ch�
 - [x] S2 parallax theo R4 (hero About thêm, ba ảnh About bỏ); S1 xanh; test Advertising, footer, mobile layout hiện có xanh.
 - [x] S2b khối "Giữ nghề" theo R5, e2e 11 bề rộng xanh.
 - [ ] Checkpoint A: `pnpm qa:docs`; owner xem parallax.
-- [ ] S3 `scripts/qa/scroll-trace.mjs` chạy được trên cloud, in số cho 4 trang.
+- [x] S3 `scripts/qa/scroll-trace.mjs` chạy được trên cloud, in số cho 4 trang.
 - [ ] S4 trace trên PC đạt R2; sửa nguyên nhân, đo lại.
 - [ ] Checkpoint B: owner cuộn thử Advertising trên PC và xác nhận.
 - [ ] S5 docs, Design System publish, card Done.
