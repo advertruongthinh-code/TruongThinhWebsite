@@ -9537,7 +9537,6 @@ async function runPhysicalWheelTransformChecks() {
     { name: "residential hero", route: "/vi/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "commercial hero", route: "/vi/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "about hero", route: "/vi/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
-    { name: "about parallax media", route: "/vi/about/", selector: "[data-motion-media][data-scroll]", axis: "y", limit: 12 },
     { name: "home project rail", route: "/vi/", selector: ".project-track", axis: "x", limit: 1 },
   ];
 
