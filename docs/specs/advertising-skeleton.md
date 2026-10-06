@@ -175,7 +175,8 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 ## Gate còn mở
 
-- R8 trên A05s thật chưa có trace. Máy PC.
+- R8 trên A05s: trace trong PR #153 không có task trên `50ms` ở trang ảnh, trang Advertising ngang main. Trang ảnh
+  còn khoảng 9% frame trên `33ms` (main khoảng 1%) khi Kính hiện ảnh related; owner xem trên demo. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
 - `advertising-continuation.e2e.mjs` FAIL ở `ready()`: sau reload có reduced motion rồi tắt, khung DOM đầu không có
   `is-looping` trong 30s; chưa rõ nguyên nhân. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có
