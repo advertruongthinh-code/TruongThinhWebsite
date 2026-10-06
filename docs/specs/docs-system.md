@@ -237,10 +237,10 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 
 - Luôn: viết tiếng Việt, giữ English technical term; dùng
   [tên gọi chuẩn](../terminology.md); mỗi bước một PR nhỏ vào `main`.
-- Hỏi trước: xóa ADR còn hiệu lực, đổi `PRODUCT.md`, xóa hoặc gộp card
-  Notion, đổi hành vi website để khớp spec.
-- Không: sửa source website trong đợt đại tu docs; chạy semantic Graphify khi
-  chưa được yêu cầu; sửa `tasks/plan.md`, `tasks/todo.md` khi thread khác đang
+- Hỏi trước: xóa ADR còn hiệu lực, đổi `PRODUCT.md`, đổi hành vi website để
+  khớp spec.
+- Không: xóa vĩnh viễn card Notion (gộp thì archive); sửa source website trong
+  đợt đại tu docs; chạy semantic Graphify khi chưa được yêu cầu; sửa `tasks/plan.md`, `tasks/todo.md` khi thread khác đang
   giữ.
 
 ## Kiểm tra
