@@ -1096,10 +1096,15 @@
 
       const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
       timelines.add(intro);
-      // Direct loads play the intro under the veil; only soft navigation skips it.
+      const headerIntro = gsap.timeline({ defaults: { ease: "power4.out" }, paused: true });
+      timelines.add(headerIntro);
+      // Direct loads play the header intro once the veil starts to uncover; soft navigation skips it.
       if (!settledStartup && !softNavigation) {
-        intro
-          .from(header.querySelector("#header-logo"), { scale: 0, duration: 1.5 })
+        // A collapse FLIP from the mount scroll would become the intro's end value and leave the logo scaled.
+        gsap.killTweensOf(headerLogo, "x,y,scaleX,scaleY");
+        gsap.set(headerLogo, { clearProps: "transform,transformOrigin" });
+        headerIntro
+          .from(headerLogo, { scale: 0, duration: 1.5 })
           .from(
             header.querySelectorAll("#header-menu-items > ul > li"),
             { y: -150, duration: 1.5, stagger: 0.1 },
@@ -1127,6 +1132,8 @@
       // Start on the next frame so the mount's long task does not skip the intro's opening.
       intro.pause();
       window.requestAnimationFrame(() => intro.play());
+      if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
+      else window.requestAnimationFrame(() => headerIntro.play());
       const slides = selectAll(".hero-slide");
       const carouselEnabled = slides.length > 1;
       let heroIntroPending = Boolean(
@@ -1785,6 +1792,7 @@
     header.classList.add("is-route-pinned");
     document.body.classList.add("is-transitioning");
     setRouteVeil(1);
+    pageState?.headerIntro?.play();
     return new Promise((resolve) => {
       routeTimeline = window.gsap.to(routeVeil, {
         opacity: 0,
