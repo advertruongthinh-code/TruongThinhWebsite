@@ -313,11 +313,13 @@ test("product layouts reserve no caption height after image titles are removed",
 });
 
 test("R15 selects Pinterest geometry from full span at every responsive boundary", () => {
+  // Portrait viewport: landscape keeps the split layout even at full span.
+  const viewportHeight = 1100;
   for (const width of [719, 720, 1004, 1005]) {
     const columns = columnsForWidth(width);
     const geometry = computeAdvertisingPhotoGeometry({
       layoutViewportWidth: width,
-      viewportHeight: 900,
+      viewportHeight,
       columns,
       headerHeight: 90,
       imageWidth: 1600,
@@ -325,9 +327,11 @@ test("R15 selects Pinterest geometry from full span at every responsive boundary
     });
     const fullSpan = geometry.span === columns;
     assert.equal(geometry.mode, fullSpan ? "pinterest" : "split", `${width}px derives mode from span === columns`);
+    if (fullSpan) assert.equal(computeAdvertisingPhotoGeometry({ layoutViewportWidth: width, viewportHeight: width - 1, columns,
+      headerHeight: 90, imageWidth: 1600, imageHeight: 900 }).mode, "split", `${width}px landscape keeps split`);
     if (!fullSpan) continue;
-    assert.ok(geometry.top + geometry.height <= 900, `${width}px Pinterest primary fits below the header`);
-    assert.ok(geometry.descriptionHeight + geometry.internalGap <= 900 * 0.28,
+    assert.ok(geometry.top + geometry.height <= viewportHeight, `${width}px Pinterest primary fits below the header`);
+    assert.ok(geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28,
       `${width}px description and gap stay within the viewport-based 28% cap`);
     assert.ok(Math.abs(geometry.imageHeight - geometry.imageZoneHeight) <= 0.01,
       `${width}px image leaves no top or bottom overflow`);
@@ -336,7 +340,7 @@ test("R15 selects Pinterest geometry from full span at every responsive boundary
 
     const matchingRatio = computeAdvertisingPhotoGeometry({
       layoutViewportWidth: width,
-      viewportHeight: 900,
+      viewportHeight,
       columns,
       headerHeight: 90,
       imageWidth: geometry.imageZoneWidth,

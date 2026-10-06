@@ -8,9 +8,10 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 
 - Rộng `min(3, số cột)` cột masonry (`computeAdvertisingPhotoGeometry` trong
   `layout-core.mjs`).
-- Bốn cột (`split`): ảnh chiếm hai cột, chữ một cột; cao bằng viewport trừ
-  header, gutter và 50px để lộ hàng ảnh dưới. Hai hoặc ba cột (`pinterest`):
-  ảnh trên, chữ dưới, chữ cao tối đa 28% viewport.
+- Bốn cột hoặc màn hình ngang (`split`): ảnh bên trái, chữ một cột bên phải,
+  cao bằng viewport trừ header và gutter; bốn cột thì trừ thêm 50px để lộ hàng
+  ảnh dưới. Hai hoặc ba cột trên màn hình dọc (`pinterest`): ảnh trên, chữ
+  dưới, chữ cao tối đa 28% viewport.
 - Ảnh foreground giữ trọn tỷ lệ. Khi còn chỗ trống quanh ảnh, nền khung là bản
   sao cover của chính ảnh (`aria-hidden`, không nhận pointer) dưới
   [Kính](../Glass/README.md) dạng phủ đều.
@@ -18,6 +19,10 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
   [Viewer](../Viewer/README.md). Video có thêm nút tiếng.
 - Cột chữ: nhãn nhóm, mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
   [Suggestion](../Suggestion/README.md). Không có tiêu đề ảnh.
+- Mô tả dài chia trang trọn dòng. Từ 2 đến 5 trang, dưới mô tả là hàng chấm:
+  nút 24px, chấm tròn 8px viền 1px `ink`, trang đang xem tô `ink`; bấm chấm để
+  nhảy trang, focus outline 2px `ink`. Từ 6 trang là chữ `n / N` cỡ 0.75rem.
+  Quẹt ngang và phím mũi tên vẫn lật trang.
 - Ảnh liên quan xếp quanh primary bằng cùng solver masonry.
 
 ## Thumbnail media

@@ -283,7 +283,11 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
   const cardWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
   const top = headerHeight + outer + safeTop;
   const belowPeek = 50;
-  const heightCap = viewportHeight - top - interCardGap - belowPeek - safeBottom;
+  const span = Math.min(3, columns);
+  // Landscape keeps the image beside the info; portrait with every column taken stacks them.
+  const mode = span === columns && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
+  // Related cards sit below a full-width primary, so it has no row beside it to peek.
+  const heightCap = viewportHeight - top - interCardGap - (span === columns ? 0 : belowPeek) - safeBottom;
   if (gridWidth <= 0 || cardWidth <= 0 || heightCap <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the available viewport");
   }
@@ -292,9 +296,7 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
   if (!Number.isFinite(ratio) || ratio <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the intrinsic media ratio");
   }
-  const span = Math.min(3, columns);
   const width = span * cardWidth + (span - 1) * interCardGap;
-  const mode = span === columns ? "pinterest" : "split";
   const internalGap = interCardGap;
 
   let height;
