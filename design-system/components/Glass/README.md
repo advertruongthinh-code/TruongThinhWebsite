@@ -32,7 +32,9 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   trong tăng tới trắng tuyệt đối ở vòng qua hai góc đáy batch.
 - **Hạt nhiễu:** đơn sắc, tĩnh, đậm `4%` trên tông giữa, hòa trộn `overlay`, một
   hạt một pixel thiết bị; ở dạng cung, hạt mờ dần tới vòng trắng tuyệt đối nên
-  vùng đó giữ trắng.
+  vùng đó giữ trắng. Dạng cung dùng hạt trắng hòa trộn thường opacity `0.16`
+  (nhìn như overlay trên kính sáng, tint bớt `0.08`), vì lớp hòa trộn làm
+  Chromium bỏ nhòe khi trang cuộn bằng chuyển động.
 - **Màu sau kính:** độ bão hòa `1.7`, độ sáng `1.04` (mỗi bậc căn bậc năm),
   tint trắng alpha `0.12`. Dạng cung: bão hòa `1.55`, độ sáng `1.05` (mỗi bậc căn
   bậc ba), tint `0.35` ở cung (owner, 05/10).
