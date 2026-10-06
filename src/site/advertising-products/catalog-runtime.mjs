@@ -1077,7 +1077,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
   // Even Kính over the cover backdrop; CSS shows it only when the contained photo leaves room around it.
-  const photoGlass = createGlassSurface("even");
+  // No blur step: the backdrop photo carries the blur itself (detail.css), so a tile seam cannot show.
+  const photoGlass = createGlassSurface("even", 0);
   photoBackground?.after(photoGlass);
   const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
   const photoDescription = photoView?.querySelector("[data-advertising-photo-description]");
