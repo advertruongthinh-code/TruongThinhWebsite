@@ -251,6 +251,7 @@ async function snapshot(page) {
       photoGlassActive: document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoGlass === "true",
       photoGlassDisplay: photoGlass ? getComputedStyle(photoGlass).display : "",
       photoGlassBlur: glassFilters(photoGlass),
+      photoBackgroundFilter: (() => { const background = document.querySelector("[data-advertising-photo-background]"); return background ? getComputedStyle(background).filter : ""; })(),
       glassLeft: glassRect?.left ?? NaN,
       glassRight: glassRect?.right ?? NaN,
       glassBackground: glassTint ? getComputedStyle(glassTint).backgroundImage : "",
@@ -603,8 +604,10 @@ try {
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
       assert.deepEqual(state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]), ["28", "4.5", "11.12", "25.3"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
-      assert.deepEqual(state.photoGlassBlur, ["blur(28px) saturate(1.7) brightness(1.04)"],
-        `${locale} ${viewport.width}: photo overflow is not one full Kính step`);
+      // The primary photo carries the full step's blur itself; its even Kính keeps only tint and grain.
+      assert.deepEqual(state.photoGlassBlur, [], `${locale} ${viewport.width}: photo Kính still has a backdrop blur step`);
+      assert.equal(state.photoBackgroundFilter, "blur(28px) saturate(1.7) brightness(1.04)",
+        `${locale} ${viewport.width}: photo background does not carry the full Kính blur`);
       assert.equal(state.photoGlassDisplay, state.photoGlassActive ? "block" : "none",
         `${locale} ${viewport.width}: photo Kính does not follow contain overflow`);
       assert.equal(state.boundaryMask, "none",
