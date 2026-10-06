@@ -20,8 +20,8 @@ parallax ở nơi hợp lý. Trang chủ là chuẩn, không chỉnh. Spec này 
 
 ### R1. Một chuẩn cuộn cho mọi trang
 
-Trang chủ, Residential, Commercial, About, Advertising, 6 trang nhóm Advertising (`/advertising-products/<nhóm>/`) và
-detail ảnh (`?photo=<id>`) dùng đúng một cấu hình cuộn: Locomotive từ 981px, scroll native dưới 981px, khi giảm chuyển
+Trang chủ, Residential, Commercial, About, Advertising, Advertising lọc theo nhóm (`?category=<nhóm>`, đích của 6 route
+cũ `/advertising-products/<nhóm>/`) và detail ảnh (`?photo=<id>`) dùng đúng một cấu hình cuộn: Locomotive từ 981px, scroll native dưới 981px, khi giảm chuyển
 động hoặc khi menu mở ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)). Không trang nào có cấu hình
 riêng (`lerp`, `multiplier`, breakpoint). Cùng một lượt lăn chuột cho cùng quãng đường và cùng đường trượt trên mọi trang.
 
@@ -38,11 +38,11 @@ chuột (đo local, chưa có GPU thật). Sau thay đổi, cuộn bằng chuộ
 Đo bằng Chrome trace trên PC thật (GPU thật, cửa sổ thật), cùng một script lăn chuột cho trang chủ và từng trang đo.
 Nguyên nhân và cách sửa do plan xác định từ trace, không đoán trước.
 
-Trang đo: Advertising (masonry tất cả), một trang nhóm, một detail ảnh có related. Trang chủ đo cùng lượt làm mốc.
+Trang đo: Advertising (masonry tất cả), Advertising lọc một nhóm, một detail ảnh có related. Trang chủ đo cùng lượt làm mốc.
 
 ```gherkin
 Given PC của owner, Chrome, cửa sổ tối đa, trang đã tải xong ảnh trong viewport đầu
-When script lăn chuột đều từ đầu tới cuối trang Advertising, trang nhóm và detail ảnh
+When script lăn chuột đều từ đầu tới cuối trang Advertising, Advertising lọc nhóm và detail ảnh
 Then trong lúc cuộn không có task nào trên 50ms
 And tỉ lệ frame rớt không cao hơn trang chủ đo cùng lượt
 And owner cuộn thử và xác nhận cảm giác giống trang chủ
@@ -75,11 +75,11 @@ And không lúc nào lộ mép ảnh
 | "Giữ nghề. Không ngừng làm mới." trang chủ (`.legacy-closer`) | Ảnh | Không | Thêm `-2` |
 | CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh | Không | Thêm `-2` |
 | Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh, không có chữ đè | `-0.12`, `-0.1`, `-0.12` | Bỏ |
-| Hero Advertising và trang nhóm | Đơn màu | Không | Không |
+| Hero Advertising (mọi nhóm) | Đơn màu | Không | Không |
 | CTA cuối Advertising | Skeleton, Kính | Parallax riêng | Giữ theo [CTA](advertising-cta-center-parallax.md) |
 | CTA footer "Có mặt bằng?" | Đơn màu | Không | Không |
 | Rail dự án trang chủ (trượt ngang) | Không phải chữ trên nền | `4` ngang | Giữ, là chuẩn trang chủ |
-| Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card | Không | `[CẦN LÀM RÕ: card có tính là nền không; đề xuất không]` |
+| Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card, không phải nền section | Không | Không (owner duyệt) |
 
 Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ từ 40px và phần tử ảnh, video, canvas hoặc
 `background-image` nằm dưới nó. Section mới sau này theo R3, không cần sửa bảng trừ khi owner chỉnh quy tắc.
@@ -108,8 +108,6 @@ spec, quy tắc vào [Đã duyệt, chờ code](../../design-system/approved-des
 ## Gate còn mở
 
 - R2: cần trace trên PC thật của owner (Remote Control); máy cloud không có GPU nên không thay được.
-- R4: owner trả lời card portal và montage có tính là nền không.
-- Owner chưa duyệt spec.
 
 ## Chú thích thuật ngữ
 
@@ -118,5 +116,5 @@ spec, quy tắc vào [Đã duyệt, chờ code](../../design-system/approved-des
 - **Speed `-2`**: độ lệch bằng khoảng cách tâm viewport tới tâm phần tử nhân `0.2`, tức trôi chậm hơn 20%.
 - **Frame rớt**: frame trình duyệt không vẽ kịp trong nhịp màn hình, mắt thấy là khựng.
 - **Task trên 50ms**: việc chặn luồng chính đủ lâu để cuộn và nhập liệu bị trễ.
-- **Route con**: trang nhóm `/advertising-products/<nhóm>/` và detail ảnh `?photo=<id>`.
+- **Route con**: Advertising lọc nhóm `?category=<nhóm>` và detail ảnh `?photo=<id>`.
 - **Lộ mép**: khoảng trống hiện ra ở mép section khi lớp ảnh trôi lệch khỏi khung.

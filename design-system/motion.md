@@ -59,6 +59,8 @@ dung, speed dương làm nó chạy nhanh hơn.
 Hero và rail nhận thuộc tính lúc mount trong `motion.js`; ảnh About khai báo
 trong HTML.
 
+Quy tắc parallax chung đã duyệt, chờ code: [Đã duyệt, chờ code](approved-designs.md#cảm-giác-cuộn-chung-theo-trang-chủ).
+
 CTA cuối trang Advertising (`.detail-cta__copy`) có parallax riêng ở mọi chiều
 rộng, cả scroll native: độ lệch bằng (giới hạn cuộn trừ `scrollY`) nhân `-0.1`,
 tức trôi chậm hơn cuộn 10% và bằng 0 đúng tại cuối trang. Giảm chuyển động hoặc
