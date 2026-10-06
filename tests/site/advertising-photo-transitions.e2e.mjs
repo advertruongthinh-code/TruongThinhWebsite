@@ -1799,6 +1799,7 @@ try {
           borderWidth: surface ? getComputedStyle(surface).borderTopWidth : null,
           flowPreset: flow?.dataset.advertisingFlowPreset || null,
           flowBackend: flow?.tagName || null,
+          inView: rect.bottom > 0 && rect.top < innerHeight,
           flowFilter: flow ? getComputedStyle(flow).filter : null,
           top: rect.top - gridRect.top,
           width: rect.width,
@@ -1867,8 +1868,9 @@ try {
           `${label}: adjacent skeleton ratio bands repeat in column ${column}`);
         assert(frames.every((frame) => frame.maskImage === "none"), `${label}: frame retained a local fade mask`);
         assert(frames.every((frame) => frame.borderWidth === "0px"), `${label}: skeleton surface retained a border`);
-        assert(frames.every((frame) => frame.flowBackend === "CANVAS" && frame.flowPreset), `${label}: WebGL Flow canvas or preset is missing`);
-        assert(frames.every((frame) => frame.flowFilter === "none"), `${label}: Flow canvas retained a local blur/filter`);
+        // Skeleton R3: a frame draws its Flow assignment when it first enters the viewport.
+        assert(frames.every((frame) => !frame.inView || (frame.flowBackend === "CANVAS" && frame.flowPreset)), `${label}: WebGL Flow canvas or preset is missing`);
+        assert(frames.every((frame) => !frame.flowBackend || frame.flowFilter === "none"), `${label}: Flow canvas retained a local blur/filter ${JSON.stringify(frames.map((frame) => frame.flowFilter))}`);
         assert(frames.slice(1).every((frame, index) => frames[index].top < frame.top), `${label}: frame order in column ${column}`);
       }
       assert(state.skeletonGlass?.hidden === false && /radial-gradient/i.test(state.skeletonGlass.tint) && /blur/.test(state.skeletonGlass.blur),

@@ -14,7 +14,6 @@ try {
       await page.waitForTimeout(500);
       const read = () => ({
         y: window.TruongThinhMotion.getLogicalScroll(), url: location.href,
-        batch: [...document.querySelectorAll("[data-advertising-flow-preset]")].map(x => x.dataset.advertisingFlowPreset),
       });
       const before = await page.evaluate(read);
       const rect = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card] > a")]
@@ -42,7 +41,7 @@ try {
       if (via === "back") {
         assert.equal(after.url, before.url);
         assert(Math.abs(after.y - before.y) <= 1, `${width}/${via}: ${before.y} -> ${after.y}`);
-        assert.deepEqual(after.batch, before.batch);
+        // Skeleton R3: Back is a new page state, so Flow frames draw fresh assignments; only scroll is restored.
       } else {
         assert.equal(new URL(after.url).search, new URL(before.url).search, "navbar keeps the picked group");
         const returned = await page.locator(`[data-advertising-card="${returnId}"]`).boundingBox();

@@ -12,6 +12,8 @@ const results = [], errors = [];
 const ready = async page => {
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.() && window.TruongThinhAdvertising.getBrowseState().seed);
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+  // The direct-load veil covers the page and its header until the page has mounted.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
 };
 const read = page => page.evaluate(() => ({
   browse: window.TruongThinhAdvertising.getBrowseState(),
