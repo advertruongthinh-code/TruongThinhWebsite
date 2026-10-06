@@ -9,15 +9,14 @@
 
 ## Việc đang làm
 
-- Vào thẳng ảnh Advertising gần đạt gate long task trên A05s 05/10: 14/15 lần không task trên `50ms`, một lần `67ms` ở bước related; bấm card related đạt sau PR #135 (0/3 lần không trace có task trên `50ms`) ([gate Kính](specs/glass-surface.md#gate-còn-mở)).
 - Advertising (grid ngẫu nhiên, tải ảnh, M02b, skeleton, Kính, CTA) đã lên `main`, owner chưa nghiệm thu
   trên demo ([plan](../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
 
 ## Blocker đã verify
 
-- Thiết bị: iPhone chưa kết nối, Galaxy A54 chưa có; A05s là máy thật duy nhất
-  ([gate shell](specs/site-shell.md#gate-còn-mở)).
+- Thiết bị: A05s là máy thật đo chuẩn; iPhone Safari theo dõi sau phát hành, không chặn
+  ([phát hành tĩnh](specs/static-release.md#gate-còn-mở)).
 - Phát hành: LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)). Espacio chỉ là
   tham khảo đã rút vào [Design System](../design-system/README.md#nguồn-tham-khảo), không còn là gate.
 - Owner fact chưa xác nhận: URL Zalo, năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).

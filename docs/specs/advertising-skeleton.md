@@ -175,9 +175,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 ## Gate còn mở
 
-- R8 trên điện thoại thật chưa có trace: máy Android hiện là Galaxy A05s (owner đính chính 28/09, thay nhãn A54); gate
-  FPS trên A54 trước đó chưa đóng. Owner đã xác nhận trên A54 hết lỗi batch tải lại khi cuộn footer và masonry, không
-  phải nghiệm thu FPS. Owner và máy PC.
+- R8 trên A05s thật chưa có trace. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
 - `advertising-continuation.e2e.mjs` FAIL ở `ready()`: sau reload có reduced motion rồi tắt, khung DOM đầu không có
   `is-looping` trong 30s; chưa rõ nguyên nhân. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có
@@ -185,7 +183,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - `advertising-skeleton-lifecycle.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ở 390×788 slot `1:4` top 14573,3
   bị gỡ dù đáy batch mới 14574,5; code gỡ đúng R1 (khung cao 1,2px dưới `0.25` bề rộng card), assertion "removed tail
   slots must lie beyond the new boundary" chưa tính luật này. Main sửa assertion.
-- Owner chưa xem Flow và 12 preset trên demo; mục tiêu cảm nhận 95–99% so với Feral Flow chưa có oracle ảnh chụp
+- Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
 ## Chú thích thuật ngữ

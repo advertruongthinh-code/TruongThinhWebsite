@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Trang Residential, Commercial và About
@@ -266,7 +266,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
 - Vòng tải khớp cả `article.editorial-item`; ở 390px ảnh 167px trong khung 350px nên vòng lộ ngoài ảnh khi đang tải
   (audit 04/10 F2, suy luận). Main đo.
-- Carousel Swiper trong `detail.js` (namespace `advertising-product-detail`) không trang nào dùng; owner giữ (24/09) để
+- Không chặn phát hành. Carousel Swiper trong `detail.js` (namespace `advertising-product-detail`) không trang nào dùng; owner giữ (24/09) để
   thiết kế lại carousel cho Residential, Commercial. Owner giao spec khi làm.
 
 ## Chú thích thuật ngữ

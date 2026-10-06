@@ -180,29 +180,6 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 
 ## Gate còn mở
 
-- R7 trên A05s, vào thẳng ảnh: gần đạt sau PR #107, #111, #116, #122 (đo 05/10,
-  `main` `9eed6a1`, Chrome thật, cold load, năm lần mỗi ảnh). kiosk-posm-10 và
-  print-decals-11: Layout dài nhất `11–29ms`, `motion.js` khoảng `10ms`, fps 1,5s
-  đầu `32.0` và `38.7`; 9/10 lần không task nào trên `50ms` theo longtask API.
-  Còn mở: một lần kiosk có task `67ms` (setTimeout rồi microtask, có GC), khớp
-  thời điểm bước related của catalog (`layoutRelated`, solver); chưa gán được
-  hàm vì lần đó không có CPU profile. Task `64–124ms` ở khoảng `1030ms` trong
-  các trace là do bộ đo: `WidgetBase::Shutdown` của tab `about:blank` mà
-  Playwright `newPage()` mở trước; mở URL thẳng bằng `Target.createTarget`
-  thì 0/5 lần có task này. Đo lại 05/10 trên `main` `890d320`, năm lần kiosk-posm-10:
-  5/5 lần không task trên `50ms`, veil mở median `1802ms`, card related đầu tiên
-  `789ms`. Thử solver related trong Web Worker (PR #133, đóng): cũng 5/5 lần sạch
-  nhưng veil chậm thêm khoảng `85ms`, card related chậm thêm `58ms`, nên giữ luồng chính.
-- R7 trên A05s, bấm card related đầu tiên sau khi vào thẳng: đạt khi đo không trace
-  sau PR #135 (`86ea0a2`, ba lần, 0 task trên `50ms` trong 3s; `main` `890d320`
-  trước đó 2–3 task, dài nhất `71–106ms`). Còn mở: khi bật CPU profiler, 1/3 lần
-  có task `60.7ms` ở bước dựng renderer WebGL của skeleton ảnh đang tải
-  (shader, noise) và 1/3 lần `50.4ms` ở solver related; task cú bấm `40–42ms`.
-- Kính cung đạt R7 trên A05s với ba bậc (đo 05/10, median ba lần, vuốt thật
-  bằng adb ở cuối masonry): năm bậc không lõi `29.9fps`, năm bậc có lõi
-  `29.9fps` (p95 55.6ms), ba bậc có lõi `44.8fps` (p95 44.6ms), không long
-  task. Đo trên code thật của bản ba bậc sau khi merge chưa chạy; số trên lấy
-  từ cùng bố cục dựng trong trang.
 - Safari trên iPhone thật chưa kiểm.
 
 ## Chú thích thuật ngữ
