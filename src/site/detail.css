@@ -1779,6 +1779,7 @@ body.is-advertising-browse .advertising-grid {
   --glass-brightness: 1.04;
   --glass-step-saturate: 1.112;
   --glass-step-brightness: 1.0079;
+  --glass-full-blur: 100px;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1812,8 +1813,8 @@ body.is-advertising-browse .advertising-grid {
 .glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(3) { --glass-step-blur: 25.3px; }
 
 .glass-surface__step--full {
-  -webkit-backdrop-filter: blur(100px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
-  backdrop-filter: blur(100px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(var(--glass-full-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  backdrop-filter: blur(var(--glass-full-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
 }
 
 /* The arc's inner steps add blur only; colour comes from its core and band steps. */
@@ -1833,12 +1834,14 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.08;
 }
 
-/* The arc runtime places each layer (glass-surface.mjs); it spans the viewport over the batch. */
+/* The arc runtime places each layer (glass-surface.mjs); it spans the viewport over the batch. Its core holds the
+   band's 28px; its inner steps carry the blur on to the 100px ceiling. */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1.55;
   --glass-brightness: 1.05;
   --glass-step-saturate: 1.1573;
   --glass-step-brightness: 1.0164;
+  --glass-full-blur: 28px;
   left: calc(-1 * var(--advertising-outer));
   width: calc(100% + (2 * var(--advertising-outer)));
 }

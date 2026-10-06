@@ -14,8 +14,11 @@ assert.deepEqual([...new Set(owners)].sort(),
   [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--full"],
   "R1: no surface writes its own backdrop-filter");
 // A one-step surface blurs through the steps' product (the tone checks below).
-assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(100px\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
+assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var\(--glass-full-blur\)\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
   "R2, R5: one full step equals the steps");
+// R2: a full step is the 100px ceiling; the arc's core holds the band's 28px and its inner steps rise from there.
+assert.match(css, /^\.glass-surface \{[^}]*--glass-full-blur: 100px;/m, "R2: one full step reaches the 100px ceiling");
+assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the arc's core holds 28px");
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
 // The primary photo carries the full step's blur itself: a backdrop-filter there bakes a tile seam into Chrome's tab thumbnail.
