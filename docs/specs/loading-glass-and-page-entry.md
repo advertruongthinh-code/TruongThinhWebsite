@@ -15,7 +15,8 @@ updated: 2026-10-06
 ## Mục đích
 
 Khách không thấy vùng trắng khi ảnh Advertising chưa tải: card ở masonry, related và ảnh primary đang chờ mang skeleton
-cuối masonry; mọi lần ảnh card hiện đều qua Kính phủ đều cùng một nhịp `0.6s`; primary đổi ảnh tại chính khung của nó. Renderer, preset,
+cuối masonry; ảnh card phải chờ tải hiện qua Kính phủ đều nhịp `0.6s`, ảnh card đã có sẵn hiện ngay không motion; primary
+đổi ảnh tại chính khung của nó. Renderer, preset,
 WebGL context ở [skeleton](advertising-skeleton.md); cách Kính hiện, tan ở [Kính](glass-surface.md); card ở
 [masonry](advertising-masonry.md), primary ở [detail](advertising-detail.md); veil khi vào thẳng trang ở
 [shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache).
@@ -42,18 +43,19 @@ And hai khung skeleton đang thấy không chảy cùng pha
 
 ### R2. Hiện ảnh qua Kính
 
-Media của card giải mã xong khi card còn giao viewport thì runtime chờ `img.decode()` (video không chờ), rồi chạy ba
-bước chồng nhau trong `0.6s`, dù ảnh về nhanh hay chậm (`revealCard`):
+Media của card đang mang skeleton (R1) giải mã xong khi card còn giao viewport thì runtime chờ `img.decode()` (video không
+chờ), rồi chạy ba bước chồng nhau trong `0.6s`, dù ảnh về nhanh hay chậm (`revealCard`):
 
 1. Kính phủ đều năm bậc (`createGlassSurface("even", 5)`, `data-glass-reveal`) gắn cuối khung media và hiện dần.
-2. Dưới Kính, lớp dưới (skeleton theo R1, hoặc khung trống theo R3) mờ đi và media hiện lên (`crossfadeLayers`, chỉ
-   opacity).
+2. Dưới Kính, skeleton mờ đi và media hiện lên (`crossfadeLayers`, chỉ opacity).
 3. Kính tan, media rõ nét.
 
 Kính hiện, tan theo [Kính R6](glass-surface.md#r6-hiện-và-tan-bằng-opacity-từng-bậc); thời điểm và đường cong ở
-[UI](#ui), cùng nhịp `0.6s` với primary khi ảnh có sẵn (R4). Xong thì runtime hủy animation, gỡ Kính và skeleton khỏi DOM, trả WebGL context về pool. Media chỉ đổi
-opacity, không đổi `transform`, nên hover zoom ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)) giữ
-nguyên sau đó.
+[UI](#ui), cùng nhịp `0.6s` với primary khi ảnh có sẵn (R4). Trên điện thoại (cùng điều kiện `skeletonPhone` của
+[skeleton R1](advertising-skeleton.md)), card đến lượt hiện khi đang vuốt thì giữ skeleton tới khi trang ngừng cuộn
+`120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`) rồi mới chạy R2. Xong thì runtime hủy animation, gỡ Kính và skeleton khỏi DOM,
+trả WebGL context về pool. Media chỉ đổi opacity, không đổi `transform`, nên hover zoom
+([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)) giữ nguyên sau đó.
 
 ```gherkin
 Given một card đang hiện skeleton
@@ -65,15 +67,13 @@ And sau 0.6s card không còn node skeleton hay Kính, WebGL context đã về p
 ### R3. Ảnh có sẵn
 
 Card vào viewport khi media đã giải mã xong (cache, tải xong trước khi vào, hoặc vào lại sau khi ra hẳn viewport với
-`intersectionRatio = 0`, kể cả card ảo hóa gắn lại) thì không có skeleton; media hiện bằng R2 từ khung trống, cùng nhịp
-`0.6s`. Card còn giao một phần viewport thì không chạy lại. Trên điện thoại (cùng điều kiện `skeletonPhone` của
-[skeleton R1](advertising-skeleton.md)), card đến lượt hiện khi đang vuốt thì giữ khung trống (hoặc skeleton) tới khi trang
-ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`) rồi mới chạy R2; card bay qua lúc vuốt nhanh không chạy Kính.
+`intersectionRatio = 0`, kể cả card ảo hóa gắn lại) thì media hiện ngay ở opacity cuối: không skeleton, không Kính, không
+crossfade, không chờ trang ngừng cuộn. Áp cho masonry chính và masonry related; primary theo R4.
 
 ```gherkin
 Given ảnh của card đã có trong cache trình duyệt
 When card vào viewport
-Then không có skeleton, ảnh hiện dưới Kính trong 0.6s như mọi card
+Then ảnh hiện ngay ở frame đầu card giao viewport, không có skeleton, Kính hay crossfade
 ```
 
 ### R4. Mở ảnh tại chỗ
@@ -170,7 +170,7 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `.advertising-grid__cta-frame[data-advertising-loading-skeleton="<media id>"]` trong `.advertising-card-media` hoặc `.advertising-photo-view__hero-frame`; canvas `data-advertising-flow-batch="loading"` | Skeleton chờ ảnh (R1, R4); gỡ sau R2 hoặc khi rời đi, lỗi (R6, R7) |
-| DOM hook | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` | Kính năm bậc, chỉ có trong R2, R4 |
+| DOM hook | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` | Kính năm bậc, chỉ có trong R2, R4; không có ở R3 |
 | DOM hook | `.advertising-photo-view__outgoing`, `__outgoing-background` | Ảnh primary cũ và nền vùng dư cũ, chỉ có trong R4 khi ảnh có sẵn |
 | DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh cũ khi không có lớp tạm; primary đang chờ (R4, R5) |
 | Runtime | `attachCardSkeleton`, `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS`, `CACHED_PRIMARY_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
@@ -197,7 +197,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | --- | --- |
 | R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
-| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport chạy Kính `0.6s`, không skeleton) |
+| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
 | R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vòng tải trong masonry, detail chưa có test |
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |

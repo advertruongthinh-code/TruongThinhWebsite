@@ -169,16 +169,16 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới `?category=<nhóm>&photo=<id>`; không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
-[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Mỗi lần card vào vùng nhìn
-thấy, ảnh hiện dưới Kính cùng nhịp `0.6s`: từ skeleton chờ ảnh nếu ảnh chưa giải mã, từ khung trống nếu ảnh đã có, kể cả
-khi vào lại sau `intersectionRatio = 0`; giao một phần thì không chạy lại ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
+[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Card vào vùng nhìn
+thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
+vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
 không dịch ([hover dùng chung](page-home.md#r6-hover-ảnh-dùng-chung)). Click chính mở detail tại chỗ (history push,
 [detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
 
 ```gherkin
 Given card đã hiện ảnh
 When cuộn tới khi card ra hẳn khỏi viewport rồi cuộn lại
-Then ảnh hiện lại dưới Kính trong 0.6s một lần; khung card không đổi kích thước
+Then ảnh hiện ngay, không skeleton, không Kính; khung card không đổi kích thước
 ```
 
 ### R9. Hero một lần
