@@ -43,6 +43,8 @@ const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
+// Phones hold card reveals until the swipe settles: a fast fling otherwise starts a Kinh reveal per passing card.
+const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
   record.disposed = true;
@@ -1893,9 +1895,28 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     media.style.setProperty("transition", "none", "important");
     media.classList.remove("is-advertising-media-ready");
   });
+  const heldReveals = new Set();
+  let lastScrollAt = 0;
+  let revealHoldTimer = 0;
+  const releaseHeldReveals = () => {
+    const wait = lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
+    if (wait > 0) {
+      revealHoldTimer = setTimeout(releaseHeldReveals, wait);
+      return;
+    }
+    revealHoldTimer = 0;
+    const nodes = [...heldReveals];
+    heldReveals.clear();
+    if (!controller.signal.aborted) nodes.forEach((node) => node.isConnected && revealCard(node));
+  };
   const revealCard = (node) => {
     let entry = cardSkeletons.get(node);
     if (entry?.revealing) return;
+    if (!reduced && skeletonPhone() && performance.now() - lastScrollAt < PHONE_REVEAL_SCROLL_IDLE_MS) {
+      heldReveals.add(node);
+      revealHoldTimer ||= setTimeout(releaseHeldReveals, PHONE_REVEAL_SCROLL_IDLE_MS);
+      return;
+    }
     const id = mediaKey(node);
     const layer = mediaLayers(node).find((media) => !media.hidden);
     const failed = layer instanceof HTMLImageElement && !layer.naturalWidth;
@@ -3340,6 +3361,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
+  addEventListener("scroll", () => { lastScrollAt = performance.now(); }, { passive: true, signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
   reducedMotionQuery.addEventListener("change", ({ matches }) => {
@@ -3418,6 +3440,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cleaned = true;
     signal?.removeEventListener("abort", cleanup);
     controller.abort();
+    clearTimeout(revealHoldTimer);
     stopSuggestionSlides?.();
     if (photoVideo) {
       photoVideo.pause();

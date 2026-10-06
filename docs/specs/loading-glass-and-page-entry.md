@@ -66,7 +66,9 @@ And sau 0.6s card không còn node skeleton hay Kính, WebGL context đã về p
 
 Card vào viewport khi media đã giải mã xong (cache, tải xong trước khi vào, hoặc vào lại sau khi ra hẳn viewport với
 `intersectionRatio = 0`, kể cả card ảo hóa gắn lại) thì không có skeleton; media hiện bằng R2 từ khung trống, cùng nhịp
-`0.6s`. Card còn giao một phần viewport thì không chạy lại.
+`0.6s`. Card còn giao một phần viewport thì không chạy lại. Trên điện thoại (cùng điều kiện `skeletonPhone` của
+[skeleton R1](advertising-skeleton.md)), card đến lượt hiện khi đang vuốt thì giữ khung trống (hoặc skeleton) tới khi trang
+ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`) rồi mới chạy R2; card bay qua lúc vuốt nhanh không chạy Kính.
 
 ```gherkin
 Given ảnh của card đã có trong cache trình duyệt
@@ -171,7 +173,7 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 | DOM hook | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` | Kính năm bậc, chỉ có trong R2, R4 |
 | DOM hook | `.advertising-photo-view__outgoing`, `__outgoing-background` | Ảnh primary cũ và nền vùng dư cũ, chỉ có trong R4 khi ảnh có sẵn |
 | DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh cũ khi không có lớp tạm; primary đang chờ (R4, R5) |
-| Runtime | `attachCardSkeleton`, `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `MEDIA_REVEAL_MS`, `CACHED_PRIMARY_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
+| Runtime | `attachCardSkeleton`, `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS`, `CACHED_PRIMARY_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
 | Hàm public | `createGlassSurface`, `playGlassReveal`, `glassRevealLevel` (`glass-surface.mjs`); `createSkeletonFlowRenderer`, `staticBackground` (`skeleton-flow.mjs`) | Kính và renderer dùng lại nguyên |
 | Card | `figure.advertisingPendingMediaId()` | Media id đang chờ hoặc `null`; runtime hỏi trước khi gắn skeleton |
 
