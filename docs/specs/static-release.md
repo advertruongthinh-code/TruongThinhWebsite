@@ -273,6 +273,9 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 
 ## Gate còn mở
 
+Owner chốt 2026-10-06: A05s là máy Android đo chuẩn, bỏ gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
+phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham khảo. Mục iPhone trong spec khác thuộc nhóm này.
+
 - LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText, GSAP trong `src/site/detail.js` đẩy LCP
   tới cuối animation (4,2 đến 5,5 s, 3/7 lượt), nếu không khoảng 3,25 s. Sửa cần spec motion reveal riêng; owner quyết.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview

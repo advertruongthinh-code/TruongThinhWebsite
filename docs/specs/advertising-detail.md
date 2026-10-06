@@ -16,7 +16,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Detail Advertising
@@ -274,10 +274,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related,
   Back, navbar. Owner.
 - Hiệu năng: p95 click tới frame đầu `<= 100ms`, không task đồng bộ quá 50ms (Chrome 1329×912, 20 lượt mỗi luồng) chưa đo
-  trên runtime hiện tại; chưa có trace detail trên Galaxy A54 hay A05s. Main và máy PC.
-- `split` hết nửa ngân sách thì xếp mọi related dưới primary, cột 4 trống (`compileAdvertisingRelatedLayout`); intent owner
-  21/09 đòi cột 4 luôn có ảnh khi còn related. Quét 19.840 tổ hợp (mọi ảnh, mọi tag, 8 seed, 1280–1920px) không tổ hợp nào
-  rơi vào nhánh này với catalog hiện tại; giữ code, kiểm lại khi thêm ảnh. Main.
+  trên runtime hiện tại; chưa có trace detail trên A05s. Main và máy PC.
 - `advertising-photo-transitions.e2e.mjs` trên WebKit (máy PC) còn 3 FAIL, chưa đối chiếu với các ca FAIL Chromium ở trên.
   Main chạy lại WebKit.
 - `advertising-photo-view.e2e.mjs` chạy đủ (oracle D18) chưa có lượt PASS ghi nhận. Main chạy đủ trên cloud.

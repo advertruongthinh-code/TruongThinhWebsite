@@ -82,8 +82,7 @@ try {
         const bitmap = await createImageBitmap(await (await fetch(data)).blob());
         const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
         const ctx = canvas.getContext("2d"); ctx.drawImage(bitmap, 0, 0);
-        // The footer starts at the skeleton edge and its top line is drawn over the Kính by design (glass-surface spec),
-        // so only rows above the edge belong to the white skeleton fade.
+        // The footer's top line (glass-surface R2) can fall on the edge row, so the rows above it are checked.
         return [0.1, 0.35, 0.65, 0.9].flatMap(fraction => [-2, -1].map(offset =>
           [...ctx.getImageData(Math.floor(bitmap.width * fraction), Math.floor(edge) + offset, 1, 1).data].slice(0, 3)));
       }, { data: `data:image/png;base64,${png.toString("base64")}`, edge: geometry.edge });

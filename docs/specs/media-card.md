@@ -9,7 +9,7 @@ tests:
   - tests/site/site-media-card-m02a.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Card nhiều media
@@ -159,7 +159,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- M03–M09 tạm dừng tới khi owner gửi ảnh và video thật gom theo từng sản phẩm; catalog chưa có card nhiều media nên R2–R6
+- Không chặn phát hành. M03–M09 tạm dừng tới khi owner gửi ảnh và video thật gom theo từng sản phẩm; catalog chưa có card nhiều media nên R2–R6
   mới chứng minh bằng fixture synthetic, chưa có clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About

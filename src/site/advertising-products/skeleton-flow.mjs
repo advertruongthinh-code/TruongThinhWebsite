@@ -163,50 +163,45 @@ export const SKELETON_FLOW_PRESETS = Object.freeze(RAW_PRESETS.map(({ id, colors
 
 const normalizedRandom = (random) => Math.min(0.999999, Math.max(0, Number(random()) || 0));
 
-function shuffled(values, random) {
-  const output = values.slice();
-  for (let index = output.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(normalizedRandom(random) * (index + 1));
-    [output[index], output[swapIndex]] = [output[swapIndex], output[index]];
-  }
-  return output;
-}
-
 function permutations(values) {
   if (values.length <= 1) return [values.slice()];
   return values.flatMap((value, index) => permutations(values.filter((_, candidate) => candidate !== index))
     .map((tail) => [value, ...tail]));
 }
 
-export function createSkeletonFlowBatchAssignments({
-  count = SKELETON_FLOW_PRESETS.length,
+const FULL_TURN = Math.PI * 2;
+const MIN_SHARED_PRESET_PHASE_GAP = FULL_TURN / 4;
+const ANCHOR_PERMUTATIONS = Object.freeze(permutations([0, 1, 2, 3]).map(Object.freeze));
+const turnDistance = (a, b) => {
+  const delta = ((a - b) % FULL_TURN + FULL_TURN) % FULL_TURN;
+  return Math.min(delta, FULL_TURN - delta);
+};
+const pick = (values, random) => values[Math.floor(normalizedRandom(random) * values.length)];
+
+// Draws one frame's Flow when it first enters view; `neighbors` are adjacent frames' assignments (live phase allowed).
+export function drawSkeletonFlowAssignment({
+  neighbors = [],
   presets = SKELETON_FLOW_PRESETS,
   random = Math.random,
 } = {}) {
-  if (!Number.isInteger(count) || count < 0 || count > presets.length || count > 24) {
-    throw new TypeError("Flow batch count must be an integer within the available presets and permutations");
+  const neighborCount = (id) => neighbors.filter(({ preset }) => preset?.id === id).length;
+  const fewest = Math.min(...presets.map(({ id }) => neighborCount(id)));
+  const source = pick(presets.filter(({ id }) => neighborCount(id) === fewest), random);
+  const shared = neighbors.filter(({ preset }) => preset?.id === source.id).map(({ phase }) => Number(phase) || 0);
+  let phase;
+  let bestGap = -1;
+  for (let attempt = 0; attempt < 32 && bestGap < MIN_SHARED_PRESET_PHASE_GAP; attempt += 1) {
+    const candidate = FLOW_CLOCK_START + normalizedRandom(random) * FULL_TURN;
+    const gap = Math.min(FULL_TURN, ...shared.map((other) => turnDistance(candidate, other)));
+    if (gap > bestGap) [phase, bestGap] = [candidate, gap];
   }
-  if (typeof random !== "function") throw new TypeError("Flow batch random must be a function");
-  const presetOrder = shuffled(presets, random).slice(0, count);
-  const anchorOrders = shuffled(permutations([0, 1, 2, 3]), random).slice(0, count);
-  const phaseOffset = normalizedRandom(random) * Math.PI * 2;
-  const phases = shuffled(Array.from({ length: count }, (_, index) =>
-    FLOW_CLOCK_START + phaseOffset + index * Math.PI * 2 / Math.max(1, count)), random);
-  const directionPairs = Array.from({ length: Math.floor(count / 2) }, () => {
-    const first = normalizedRandom(random) < 0.5 ? -1 : 1;
-    return [first, -first];
-  });
-  const directions = shuffled(directionPairs, random).flat();
-  if (count % 2) directions.push(normalizedRandom(random) < 0.5 ? -1 : 1);
-  return presetOrder.map((source, index) => {
-    const anchorPermutation = anchorOrders[index];
-    const preset = freezePreset(source, anchorPermutation.map((anchorIndex) => source.anchors[anchorIndex]));
-    return Object.freeze({
-      preset,
-      anchorPermutation: Object.freeze(anchorPermutation.slice()),
-      phase: phases[index],
-      direction: directions[index],
-    });
+  const anchorPermutation = pick(ANCHOR_PERMUTATIONS, random);
+  return Object.freeze({
+    preset: freezePreset(source, anchorPermutation.map((anchorIndex) => source.anchors[anchorIndex])),
+    anchorPermutation,
+    phase,
+    direction: normalizedRandom(random) < 0.5 ? -1 : 1,
+    speedScale: 0.9 + normalizedRandom(random) * 0.2,
   });
 }
 
@@ -396,11 +391,105 @@ function createNoise(seed) {
   return data;
 }
 
+const smoothValue = (value) => {
+  const clamped = Math.min(1, Math.max(0, value));
+  return clamped * clamped * (3 - 2 * clamped);
+};
+const automaticAnchor = (index, time) => {
+  const anchorPhase = 0.37 * index;
+  const fx = 0.6 + 0.9 * ((index / 3) % 1);
+  const fy = 0.8 + (((index + 1) / 4) % 1);
+  return [0.5 + 0.5 * Math.sin(time * fx + anchorPhase), 0.5 + 0.5 * Math.cos(time * fy + 1.5 * anchorPhase)];
+};
+
+// CPU copy of SKELETON_FLOW_FRAGMENT_SHADER at `phase`, rows top to bottom. The grain is left out: at this
+// size it would upscale into blotches, and at its 3-4% opacity the live frame matches without it.
+export function renderSkeletonFlowPixels(preset, phase, { width = 48, height = 32 } = {}) {
+  const colors = preset.colors.map(parseHex);
+  const edges = [0, ...preset.bands, 1];
+  const balances = edges.slice(0, 4).map((edge, index) => 4 * (edges[index + 1] - edge));
+  const { scale, distortion, swirl } = preset.field;
+  const scaleFactor = 0.4 + 1.2 * scale / 100;
+  const anchors = preset.anchors.map(({ x, y }, index) => {
+    const now = automaticAnchor(index, phase);
+    const start = automaticAnchor(index, FLOW_CLOCK_START);
+    return [(x - 0.5) / scaleFactor + 0.5 + 0.2 * (now[0] - start[0]) / scaleFactor,
+      (y - 0.5) / scaleFactor + 0.5 + 0.2 * (now[1] - start[1]) / scaleFactor];
+  });
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  for (let row = 0; row < height; row += 1) {
+    for (let column = 0; column < width; column += 1) {
+      const u = (column + 0.5) / width;
+      const v = 1 - (row + 0.5) / height;
+      let px = (u - 0.5) / scaleFactor + 0.5;
+      let py = (v - 0.5) / scaleFactor + 0.5;
+      const radius = smoothValue(Math.hypot(px - 0.5, py - 0.5));
+      const edge = 1 - radius;
+      for (let z = 1; z <= 2; z += 1) {
+        px += (distortion / 100) * edge / z * Math.sin(phase + 0.4 * z * smoothValue(py))
+          * Math.cos(0.2 * phase + 2.4 * z * smoothValue(py));
+        py += (distortion / 100) * edge / z * Math.cos(phase + 2 * z * smoothValue(px));
+      }
+      const angle = -3 * (swirl / 100) * radius;
+      const [cx, cy] = [px - 0.5, py - 0.5];
+      px = cx * Math.cos(angle) - cy * Math.sin(angle) + 0.5;
+      py = cx * Math.sin(angle) + cy * Math.cos(angle) + 0.5;
+      let [red, green, blue, total] = [0, 0, 0, 0];
+      for (let index = 0; index < 4; index += 1) {
+        const distanceSquared = (px - anchors[index][0]) ** 2 + (py - anchors[index][1]) ** 2;
+        const weight = balances[index] / (distanceSquared * distanceSquared + 0.0001);
+        red += colors[index][0] * weight;
+        green += colors[index][1] * weight;
+        blue += colors[index][2] * weight;
+        total += weight;
+      }
+      const offset = (row * width + column) * 4;
+      pixels[offset] = red / total * 255;
+      pixels[offset + 1] = green / total * 255;
+      pixels[offset + 2] = blue / total * 255;
+      pixels[offset + 3] = 255;
+    }
+  }
+  return pixels;
+}
+
+// Still frame for a frame without a live renderer: the same Flow at `phase`, as a CSS image.
+// Encoded as an uncompressed 24-bit BMP by hand: canvas.toDataURL forced a GPU readback and PNG encode per still.
+const STILL_WIDTH = 48;
+const STILL_HEIGHT = 32;
+export function skeletonFlowStill(preset, phase) {
+  const pixels = renderSkeletonFlowPixels(preset, phase, { width: STILL_WIDTH, height: STILL_HEIGHT });
+  const rowBytes = STILL_WIDTH * 3;
+  const bytes = new Uint8Array(54 + rowBytes * STILL_HEIGHT);
+  const view = new DataView(bytes.buffer);
+  bytes[0] = 0x42;
+  bytes[1] = 0x4d;
+  view.setUint32(2, bytes.length, true);
+  view.setUint32(10, 54, true);
+  view.setUint32(14, 40, true);
+  view.setInt32(18, STILL_WIDTH, true);
+  view.setInt32(22, STILL_HEIGHT, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  for (let row = 0; row < STILL_HEIGHT; row += 1) {
+    // BMP rows run bottom-up in BGR order; 48 * 3 bytes needs no row padding.
+    const target = 54 + (STILL_HEIGHT - 1 - row) * rowBytes;
+    for (let column = 0; column < STILL_WIDTH; column += 1) {
+      const source = (row * STILL_WIDTH + column) * 4;
+      bytes[target + column * 3] = pixels[source + 2];
+      bytes[target + column * 3 + 1] = pixels[source + 1];
+      bytes[target + column * 3 + 2] = pixels[source];
+    }
+  }
+  return `url("data:image/bmp;base64,${btoa(String.fromCharCode(...bytes))}")`;
+}
+
 export function createSkeletonFlowRenderer(canvas, {
   preset = SKELETON_FLOW_PRESETS[0],
   seed = 0,
   initialPhase = FLOW_CLOCK_START,
   direction = 1,
+  speedScale = 1,
   width = FLOW_WIDTH,
   height = FLOW_HEIGHT,
   requestFrame = (callback) => requestAnimationFrame(callback),
@@ -413,8 +502,9 @@ export function createSkeletonFlowRenderer(canvas, {
   canvas.width = renderWidth;
   canvas.height = renderHeight;
   if (canvas.style) {
-    canvas.style.backgroundColor = preset.colors[3];
-    canvas.style.backgroundImage = staticBackground(preset);
+    // Keep a still the caller already painted; otherwise fall back to the static gradient.
+    canvas.style.backgroundColor ||= preset.colors[3];
+    canvas.style.backgroundImage ||= staticBackground(preset);
     canvas.style.filter = preset.finish.soften ? `blur(${preset.finish.soften}px)` : "none";
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
   }
@@ -504,7 +594,7 @@ export function createSkeletonFlowRenderer(canvas, {
       const currentTimestamp = Number(timestamp) || 0;
       if (lastTimestamp >= 0) {
         phase = advanceSkeletonFlowPhase(phase, (currentTimestamp - lastTimestamp) / 1000,
-          preset.field.speed, flowDirection);
+          preset.field.speed * speedScale, flowDirection);
       }
       lastTimestamp = currentTimestamp;
       gl.viewport(0, 0, renderWidth, renderHeight);

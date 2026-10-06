@@ -260,7 +260,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_LOCALE_ONLY`, `TT_E2E_LOCALE_SCROLL_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R6 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
-| R7 | `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
+| R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs` |
 | R9 | `scrollbar-parity.e2e.mjs` (`SCROLLBAR_ENGINES` chọn engine) |
 | R10 | `footer-consistency.e2e.mjs`, `TT_E2E_FOOTER_ONLY`, `shared-header-menu-p7.test.mjs` |
@@ -279,13 +279,13 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R5
   ([Brand](../../design-system/brand.md#logo)) chờ owner nghiệm thu visual.
 - V01 AC2, V03 AC2: A05s đạt bàn phím phần cứng 05/10 (control viewer, menu, toolbar mở và thu,
-  dọc và ngang); không có ô nhập nên bàn phím ảo không áp dụng. Còn iPhone, safe area, A54. V04
-  AC2 đạt trên A05s. V-A thiếu source snapshot đúng thời điểm; owner hoặc main chấp nhận sai lệch.
+  dọc và ngang); không có ô nhập nên bàn phím ảo không áp dụng. Còn iPhone, safe area. V04
+  AC2 đạt trên A05s; V-A owner chấp nhận sai lệch snapshot (2026-10-06).
 - Layout L00–L07 xong 05/10 trên `6c2e321`: 660 ca và mọi scope ba engine cùng commit, A05s dọc
   và ngang, 0 lỗi; manifest ở PR của L07. Main sau đó có thêm #96–#108, chưa chạy lại toàn bộ.
-  Còn iPhone, A54, MCP, owner visual.
+  Còn iPhone, owner visual.
 - Main: chưa kiểm trình duyệt không hỗ trợ `svh`, iPhone Safari thật cho toàn shell, test paint và
-  hit-test thứ tự lớp R1; MCP DevTools UI navigate layer blocked.
+  hit-test thứ tự lớp R1.
 - button-content-parity: chữ, icon trong nút lệch giữa iPhone và Android (owner, 27/09); chưa có
   spec, plan. Owner.
 

@@ -79,14 +79,16 @@ async function ready(page) {
   });
 }
 
+// Frames draw their assignment when they first enter view (skeleton R3), so only drawn frames carry one.
 async function flowAssignments(page) {
   return page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")]
+    .filter((frame) => frame.querySelector("[data-advertising-flow-preset]"))
     .map((frame) => {
       const canvas = frame.querySelector("[data-advertising-flow-preset]");
       return {
         slot: `${frame.dataset.advertisingCtaColumn}:${frame.dataset.advertisingCtaDepth}`,
-        batch: canvas?.dataset.advertisingFlowBatch,
         preset: canvas?.dataset.advertisingFlowPreset,
+        speedScale: Number(canvas?.dataset.advertisingFlowSpeedScale),
         anchorPermutation: canvas?.dataset.advertisingFlowAnchorPermutation,
         phase: Number(canvas?.dataset.advertisingFlowPhase),
         direction: Number(canvas?.dataset.advertisingFlowDirection),
@@ -97,26 +99,8 @@ async function flowAssignments(page) {
 }
 
 function assertFlowBatch(assignments, label) {
-  assert(assignments.length > 0, `${label}: Flow batch is empty`);
-  assert(assignments.every(({ batch }) => typeof batch === "string" && batch.length > 0),
-    `${label}: Flow assignment is missing its logical batch identity`);
-  const batches = Map.groupBy(assignments, ({ batch }) => batch);
-  for (const [batch, members] of batches) {
-    assert(members.length <= SKELETON_FLOW_PRESETS.length, `${label}: logical batch ${batch} exceeds its deck`);
-    assert.equal(new Set(members.map(({ preset }) => preset)).size, members.length,
-      `${label}: Flow batch repeats a preset`);
-    assert.equal(new Set(members.map(({ anchorPermutation }) => anchorPermutation)).size, members.length,
-      `${label}: Flow batch repeats an anchor permutation`);
-    assert.equal(new Set(members.map(({ phase }) => phase)).size, members.length,
-      `${label}: Flow batch repeats a starting phase`);
-    if (members.length === SKELETON_FLOW_PRESETS.length) {
-      const directionBalance = members.reduce((total, { direction }) => total + direction, 0);
-      assert(Math.abs(directionBalance) <= 1, `${label}: complete Flow deck directions are not near-balanced`);
-    }
-  }
-  assert.equal(new Set(assignments.map(({ preset, anchorPermutation, phase, direction }) =>
-    `${preset}|${anchorPermutation}|${phase}|${direction}`)).size, assignments.length,
-  `${label}: Flow batch repeats one complete assignment`);
+  assert(assignments.length > 0, `${label}: no Flow frame has drawn an assignment`);
+  assert(assignments.every(({ preset }) => flowPresetIds.has(preset)), `${label}: unknown Flow preset`);
   assert(assignments.every(({ anchorPermutation }) =>
     anchorPermutation?.split(",").map(Number).sort().join(",") === "0,1,2,3"),
   `${label}: Flow batch has an invalid anchor permutation`);
@@ -124,15 +108,23 @@ function assertFlowBatch(assignments, label) {
     `${label}: Flow batch has a non-finite starting phase`);
   assert(assignments.every(({ direction }) => direction === -1 || direction === 1),
     `${label}: Flow batch direction must be negative or positive`);
+  assert(assignments.every(({ speedScale }) => speedScale >= 0.9 && speedScale <= 1.1),
+    `${label}: Flow speed offset exceeds 10%`);
+  const bySlot = new Map(assignments.map((assignment) => [assignment.slot, assignment]));
+  for (const { slot, preset } of assignments) {
+    const [column, depth] = slot.split(":").map(Number);
+    assert.notEqual(bySlot.get(`${column}:${depth + 1}`)?.preset, preset,
+      `${label}: ${slot} and the frame below share a preset`);
+  }
 }
 
 function assignmentSignature(assignments) {
-  return assignments.map(({ slot, batch, preset, anchorPermutation, phase, direction, ratioBand }) =>
-    `${slot}|${batch}|${preset}|${anchorPermutation}|${phase}|${direction}|${ratioBand}`).join(";");
+  return assignments.map(({ slot, preset, anchorPermutation, phase, direction, ratioBand }) =>
+    `${slot}|${preset}|${anchorPermutation}|${phase}|${direction}|${ratioBand}`).join(";");
 }
 
-function stableFlowAssignment({ slot, batch, preset, anchorPermutation, phase, direction }) {
-  return { slot, batch, preset, anchorPermutation, phase, direction };
+function stableFlowAssignment({ slot, preset, anchorPermutation, phase, direction, speedScale }) {
+  return { slot, preset, anchorPermutation, phase, direction, speedScale };
 }
 
 async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
@@ -282,7 +274,8 @@ async function snapshot(page) {
         return {
           inViewport: rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth,
           state: frame.dataset.advertisingFlowState,
-          staticImage: getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none",
+          staticImage: Boolean(frame.querySelector("canvas"))
+            && getComputedStyle(frame.querySelector("canvas")).backgroundImage.startsWith("url("),
         };
       }),
       process: document.querySelectorAll(".detail-process, .process-step").length,
@@ -620,7 +613,7 @@ try {
         `${locale} ${viewport.width}: arc Kính does not turn pure white at the batch corners`);
       assert.equal(state.legacyWhiteWash, "none",
         `${locale} ${viewport.width}: legacy local white wash remains separate from global glass`);
-      assert.equal(state.flowCanvases, state.frameCount, `${locale} ${viewport.width}: Flow canvas count differs from frames`);
+      assert(state.flowCanvases <= state.frameCount, `${locale} ${viewport.width}: more Flow canvases than frames`);
       assert(state.flowPresets.every((id) => flowPresetIds.has(id)), `${locale} ${viewport.width}: unknown Flow preset`);
       const visibleFlowStates = state.flowStates.filter(({ inViewport }) => inViewport);
       const hiddenFlowStates = state.flowStates.filter(({ inViewport }) => !inViewport);
@@ -732,6 +725,7 @@ try {
   await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, beforeFilter);
   await ready(page);
   const filteredAssignments = await flowAssignments(page);
+  const filteredFrameCount = await page.locator("[data-advertising-cta-frame]").count();
   assertFlowBatch(filteredAssignments, "filter lifecycle");
   assert.notEqual(assignmentSignature(filteredAssignments), assignmentSignature(beforeFilterAssignments),
     "filter lifecycle reused the previous Flow batch");
@@ -762,10 +756,11 @@ try {
     const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
     return skeleton?.dataset.advertisingCtaSignature === signature
       && document.querySelectorAll("[data-advertising-cta-frame]").length === count;
-  }, { signature: beforeResizeSignature, count: filteredAssignments.length });
+  }, { signature: beforeResizeSignature, count: filteredFrameCount });
   await ready(page);
-  assert.deepEqual(await flowAssignments(page), filteredAssignments,
-    "resize round trip changed assignments within one stable Flow batch");
+  const roundTripBySlot = new Map((await flowAssignments(page)).map((assignment) => [assignment.slot, assignment]));
+  assert.deepEqual(filteredAssignments.map(({ slot }) => roundTripBySlot.get(slot)), filteredAssignments,
+    "resize round trip changed assignments within one page state");
 
   await page.reload({ waitUntil: "networkidle" });
   await ready(page);
@@ -781,8 +776,8 @@ try {
   await ready(page);
   const historyAssignments = await flowAssignments(page);
   assertFlowBatch(historyAssignments, "detail/history lifecycle");
-  assert.deepEqual(historyAssignments, reloadAssignments,
-    "photo Back preserves assignments in the same catalog visit (P7.4 and governing random contract)");
+  assert.notEqual(assignmentSignature(historyAssignments), assignmentSignature(reloadAssignments),
+    "photo Back starts a new page state and draws again (skeleton R3)");
 
   await page.evaluate(() => history.forward());
   await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
@@ -791,8 +786,8 @@ try {
   await ready(page);
   const secondHistoryAssignments = await flowAssignments(page);
   assertFlowBatch(secondHistoryAssignments, "native Back/Forward lifecycle");
-  assert.deepEqual(secondHistoryAssignments, historyAssignments,
-    "photo Forward/Back preserves the same catalog visit assignments");
+  assert.notEqual(assignmentSignature(secondHistoryAssignments), assignmentSignature(historyAssignments),
+    "photo Forward/Back draws again (skeleton R3)");
 
   const stableAssignments = secondHistoryAssignments;
   const timeline = await collectFlowWindow(page);
@@ -884,8 +879,8 @@ try {
     return {
       count: visible.length,
       running: visible.filter((frame) => frame.dataset.advertisingFlowState === "running").length,
-      staticFallbacks: visible.filter((frame) =>
-        getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none").length,
+      staticFallbacks: visible.filter((frame) => frame.querySelector("canvas")
+        && getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none").length,
       contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
     };
   });
@@ -949,7 +944,7 @@ try {
       const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")].map(frame => ({
         slot: frame.dataset.advertisingCtaSlot, top: frame.getBoundingClientRect().top,
         bottom: frame.getBoundingClientRect().bottom, x: frame.offsetLeft,
-        live: frame.querySelector("canvas").dataset.advertisingFlowBackend === "webgl",
+        live: frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl",
       }));
       const outgoing = frames.filter(frame => frame.live);
       const firstDelta = Math.ceil(Math.max(...outgoing.map(frame => frame.bottom))) + 2;
@@ -977,7 +972,7 @@ try {
     document.body.append(spacer);
     const scroll = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
     const bounds = frames.map(frame => ({ frame, rect: frame.getBoundingClientRect(),
-      live: frame.querySelector("canvas").dataset.advertisingFlowBackend === "webgl" }));
+      live: frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl" }));
     const outgoing = bounds.filter(row => row.live);
     const delta = Math.ceil(Math.max(...outgoing.map(row => row.rect.bottom))) + 2;
     const candidates = bounds.filter(row => !row.live && row.rect.bottom > delta && row.rect.top < delta + innerHeight)
@@ -990,7 +985,7 @@ try {
     window.__ttHandoffOpacity = [];
     window.__ttHandoffObserver = new MutationObserver(() => {
       const incomingCanvas = incomingFrame.querySelector("canvas");
-      if (incomingCanvas.dataset.advertisingFlowBackend !== "webgl") return;
+      if (incomingCanvas?.dataset.advertisingFlowBackend !== "webgl") return;
       window.__ttHandoffObserver.disconnect();
       let samples = 0;
       const sample = () => {
@@ -1044,7 +1039,7 @@ try {
     const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
     const current = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
     const bounds = frames.map(frame => ({ frame, rect: frame.getBoundingClientRect(),
-      live: frame.querySelector("canvas").dataset.advertisingFlowBackend === "webgl" }));
+      live: frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl" }));
     const retained = bounds.find(row => row.frame.dataset.advertisingCtaSlot === incoming);
     const outgoing = bounds.find(row => row.live && row !== retained);
     const delta = Math.ceil(outgoing.rect.bottom) + 2;
@@ -1120,8 +1115,12 @@ try {
     document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
   const freshReduced = await mobilePerformancePage.evaluate(() => ({
     contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
-    staticFrames: [...document.querySelectorAll("[data-advertising-cta-frame]")].every((frame) =>
-      getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none"
+    // Frames draw on first entry, so only frames in view must already show their still.
+    staticFrames: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
+      const rect = frame.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    }).every((frame) => frame.querySelector("canvas")
+      && getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none"
         && Number.parseFloat(getComputedStyle(frame.querySelector("canvas")).transitionDuration) <= 0.001),
   }));
   assert(freshReduced.contexts === 0 && freshReduced.staticFrames,
@@ -1135,8 +1134,8 @@ try {
     contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
     blanks: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
-      return rect.bottom > 0 && rect.top < innerHeight
-        && getComputedStyle(frame.querySelector("canvas")).backgroundImage === "none";
+      return rect.bottom > 0 && rect.top < innerHeight && (!frame.querySelector("canvas")
+        || getComputedStyle(frame.querySelector("canvas")).backgroundImage === "none");
     }).length,
   }));
   assert(resizedMobile.contexts <= 2 && resizedMobile.blanks === 0,

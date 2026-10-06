@@ -152,7 +152,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
-| Hàm public | `SKELETON_FLOW_PRESETS`, `createSkeletonFlowBatchAssignments`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer; `catalog-runtime.mjs` gọi |
+| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
 | Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`catalog-runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 
 ## UI
@@ -168,16 +168,15 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward) |
-| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px) |
+| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |
 | R8 | `advertising-continuation.e2e.mjs` (desktop 1569×912, cần Chrome có GPU); điện thoại chưa có test, đo bằng trace Chrome qua CDP ([debug Android](../operations/android-real-device-debugging.md)) |
 
 ## Gate còn mở
 
-- R8 trên điện thoại thật chưa có trace: máy Android hiện là Galaxy A05s (owner đính chính 28/09, thay nhãn A54); gate
-  FPS trên A54 trước đó chưa đóng. Owner đã xác nhận trên A54 hết lỗi batch tải lại khi cuộn footer và masonry, không
-  phải nghiệm thu FPS. Owner và máy PC.
+- R8 trên A05s: trace trong PR #153 không có task trên `50ms` ở trang ảnh, trang Advertising ngang main. Trang ảnh
+  còn khoảng 9% frame trên `33ms` (main khoảng 1%) khi Kính hiện ảnh related; owner xem trên demo. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
 - `advertising-continuation.e2e.mjs` FAIL ở `ready()`: sau reload có reduced motion rồi tắt, khung DOM đầu không có
   `is-looping` trong 30s; chưa rõ nguyên nhân. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có
@@ -185,7 +184,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - `advertising-skeleton-lifecycle.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ở 390×788 slot `1:4` top 14573,3
   bị gỡ dù đáy batch mới 14574,5; code gỡ đúng R1 (khung cao 1,2px dưới `0.25` bề rộng card), assertion "removed tail
   slots must lie beyond the new boundary" chưa tính luật này. Main sửa assertion.
-- Owner chưa xem Flow và 12 preset trên demo; mục tiêu cảm nhận 95–99% so với Feral Flow chưa có oracle ảnh chụp
+- Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
 ## Chú thích thuật ngữ
