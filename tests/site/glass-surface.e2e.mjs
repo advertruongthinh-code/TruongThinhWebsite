@@ -93,6 +93,11 @@ try {
       const { data } = await sharp(shot).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       const darkest = data.reduce((min, value) => Math.min(min, value), 255);
       check(darkest >= 254, `${label}: R3 batch bottom is not pure white (darkest channel ${darkest})`);
+      // The footer's top line (0.18 ink on white) stays over the arc layers that run under it.
+      const footerTop = await page.evaluate(() => document.querySelector(".site-footer").getBoundingClientRect().top);
+      const line = await page.screenshot({ clip: { x: 0, y: footerTop, width, height: 1 } });
+      const lineData = (await sharp(line).removeAlpha().raw().toBuffer()).reduce((min, value) => Math.min(min, value), 255);
+      check(lineData <= 230, `${label}: footer top line hidden by the arc Kính (darkest channel ${lineData})`);
       check(!errors.length, `${label}: page errors ${errors.join(" | ")}`);
     } finally {
       await page.close();

@@ -1836,6 +1836,12 @@ body.is-advertising-browse .advertising-grid {
   inset: auto 0;
 }
 
+/* The arc's layers run 2px under the footer; the footer stacks over them so its top line stays. */
+body.is-advertising-browse .site-footer {
+  position: relative;
+  z-index: 1;
+}
+
 .advertising-grid__cta-skeleton[hidden] {
   display: none;
 }
