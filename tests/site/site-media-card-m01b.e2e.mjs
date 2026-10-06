@@ -753,7 +753,8 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     const artifact = fixtureArtifact(true);
     const imageSrc = artifact.cards.find((item) => item.id === fixtureId).media.src;
     await page.route(`**${fixturePrefix}*`, (route) => route.fulfill({ status: 404, body: "" }));
-    await page.route(`**${imageSrc}`, (route) => route.fulfill({ status: 404, body: "" }));
+    // Fail the source and every responsive variant (name-480.avif and so on) the browser may pick.
+    await page.route(`**${imageSrc.replace(/\.[^.]+$/, "")}*`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.addInitScript((payload) => { window.__TT_ADVERTISING_ARTIFACT__ = payload; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // The direct-load veil blocks pointer input until the page has mounted.
