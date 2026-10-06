@@ -43,6 +43,8 @@ try {
       assert.deepEqual(await card.boundingBox(), rect, "Hover must not shift the card frame");
       await page.mouse.move(0, 0);
       await page.waitForTimeout(700);
+      // Slow CI frames can leave the 600ms ease-out a few frames short; wait for it to land.
+      await image.evaluate(image => Promise.all(image.getAnimations().map(animation => animation.finished)));
       assert.equal((await mediaMotion()).scale, 1);
       await page.keyboard.press("Tab");
       await card.locator("a").focus();
