@@ -2,7 +2,7 @@
 title: Kế hoạch đang mở
 type: implementation-plan
 status: accepted
-updated: 2026-10-04
+updated: 2026-10-06
 module_id: scrollbar-parity
 spec_approved: 2026-09-27
 plan_approved: 2026-09-27
@@ -1285,6 +1285,45 @@ Checklist chi tiết, acceptance, verification và estimate nằm trong
   card; không tự tạo/cập nhật card khi chưa có quyền và connector phù hợp.
 - Deploy candidate lên demo Cloudflare cần owner duyệt từng lần sau khi local
   preview/code review đạt (thay Sites từ 2026-10-03).
+
+## Cảm giác cuộn chung theo trang chủ — plan duyệt 2026-10-06
+
+Spec owner đã duyệt 2026-10-06: [Cảm giác cuộn chung](../docs/specs/scroll-feel.md)
+([card](https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed)). Checklist ở
+[todo](todo.md#cảm-giác-cuộn-chung--s1s5). Ước lượng khoảng `250` đến `350 LOC`, cộng khoảng `150 LOC` cho khối "Giữ nghề".
+
+Quyết định:
+
+- Parallax tái dùng Locomotive `data-scroll-speed="-2"` như hero trang chủ; không thư viện, không speed mới.
+- Hero About tái dùng cách hero trang chủ giữ ảnh không lộ mép (ảnh phóng sẵn trong khung); đo lại ở mọi cỡ từ 981px (R3).
+- Độ mượt (R2) chỉ đo được trên PC thật: script trace chạy được cả cloud (mốc tương đối) lẫn PC (gate); PC
+  chạy qua Remote Control, owner chỉ cần cho phép phiên.
+- Nguyên nhân khựng chọn từ trace, không đoán: ứng viên là gắn và gỡ card khi cuộn, `backdrop-filter` của Kính
+  trên nội dung đang trượt, decode ảnh.
+
+Thứ tự: S1 → S2 → S2b → checkpoint A → S3 → S4 → checkpoint B → S5. S1, S2, S2b một PR; S3, S4 một PR; mỗi PR sửa spec
+sở hữu file trong cùng PR.
+
+| Bước | Việc | File | Cỡ |
+| --- | --- | --- | --- |
+| S1 | E2e chuẩn cuộn và parallax: đường trượt 11 trang bằng trang chủ (R1), bản đồ `data-scroll-speed` theo R4, không lộ mép ở 5 vị trí cuộn mỗi section (R3); đỏ trước S2 | `tests/site/scroll-feel.e2e.mjs`, `package.json` | S |
+| S2 | Parallax theo R4: thêm cho hero About, bỏ ba ảnh About | `motion.js`, `detail.css`, HTML About | S |
+| S2b | Khối "Giữ nghề" theo R5: kích thước theo bảng, vùng chữ, cỡ chữ tự co, link About dùng phụ đề portal, focus ring; e2e 11 bề rộng | `index.html`, `style.css`, `motion.js`, `tests/site/scroll-feel.e2e.mjs`, `page-home.md` | M |
+| S3 | Script trace: lăn chuột đều toàn trang, ghi task trên `50ms` và tỉ lệ frame rớt cho trang chủ, Advertising, lọc nhóm, detail ảnh | `scripts/qa/scroll-trace.mjs`, `package.json` | S |
+| S4 | Chạy S3 trên PC, sửa nguyên nhân lớn nhất, đo lại tới khi đạt R2 | Theo trace, trong `src/site/advertising-products/`, `detail.css` | M |
+| S5 | Chuyển quy tắc vào `motion.md`, xóa mục approved-designs, spec `live`, publish lại Design System, card Done | `design-system/`, `docs/specs/` | S |
+
+Checkpoint A: `pnpm qa:docs`, S1 xanh, test Advertising và trang con hiện có không đỏ; owner xem parallax trên
+bản local hoặc demo khi owner cho deploy.
+Checkpoint B: trace PC đạt R2; owner cuộn thử Advertising trên PC và xác nhận.
+
+Rủi ro:
+
+| Rủi ro | Mức | Cách xử lý |
+| --- | --- | --- |
+| Hero About lộ mép hoặc đổi crop | Thấp | So ảnh chụp trước và sau ở 1280, 1440, 1920; giữ `object-position` |
+| Nguyên nhân khựng nằm trong Kính hoặc masonry thread khác đang sửa | Trung bình | Báo điều phối, sửa qua thread sở hữu nếu trùng |
+| PC không sẵn sàng để trace | Trung bình | S1 đến S3 làm trước trên cloud; S4 chờ phiên Remote Control |
 
 ## Chú thích thuật ngữ
 

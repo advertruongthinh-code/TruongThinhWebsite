@@ -52,12 +52,14 @@ dung, speed dương làm nó chạy nhanh hơn.
 
 | Phần tử | Trang | Speed | Cảm nhận |
 | --- | --- | --- | --- |
-| Ảnh hero `.hero-slides` | Trang chủ, Residential, Commercial | `-2` | Trôi chậm hơn cuộn 20% |
+| Ảnh hero `.hero-slides`, `.about-hero__media` | Trang chủ, Residential, Commercial, About | `-2` | Trôi chậm hơn cuộn 20% |
 | Rail dự án `.project-track` | Trang chủ | `4`, chiều ngang | Trượt ngang 0.4px mỗi px cuộn |
-| Ảnh `legacy-hands`, `design-sketch`, `workshop-wide` | About | `-0.12`, `-0.1`, `-0.12` | Trôi chậm hơn 1.2%, 1%, 1.2% |
 
-Hero và rail nhận thuộc tính lúc mount trong `motion.js`; ảnh About khai báo
-trong HTML.
+Quy tắc: parallax chỉ ở hero có chữ lớn trên nền ảnh hoặc video, lớp media nền
+speed `-2`, chữ đi theo trang, không lộ mép. Ngoài hero chỉ có rail trang chủ và
+CTA cuối Advertising (dưới). Mọi trang dùng chung một cấu hình cuộn của trang chủ
+([cảm giác cuộn](../docs/specs/scroll-feel.md)). Hero và rail nhận thuộc tính lúc
+mount trong `motion.js`.
 
 CTA cuối trang Advertising (`.detail-cta__copy`) có parallax riêng ở mọi chiều
 rộng, cả scroll native: độ lệch bằng (giới hạn cuộn trừ `scrollY`) nhân `-0.1`,

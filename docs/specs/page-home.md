@@ -42,7 +42,7 @@ vòng tải thuộc [tải ảnh](media-delivery.md).
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Khảo sát · Tư vấn · Sản xuất · Lắp đặt", thứ tự theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
 | 5 | `#du-an` | Năm `figure` công trình so le, caption "Nhóm / Chi tiết" | Không | ink |
-| 6 | `.legacy-closer` | Ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới.", nhãn "TRƯỜNG THỊNH · HƠN 20 NĂM" | Không | inverse |
+| 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới." tự co cỡ, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
 | sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo" mở `https://zalo.me/` ở tab mới | ink |
 

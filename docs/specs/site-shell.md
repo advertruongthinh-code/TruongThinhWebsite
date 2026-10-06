@@ -15,7 +15,7 @@ tests:
   - tests/site/mobile-*.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Shell website
@@ -146,7 +146,8 @@ Then tại DOMContentLoaded có motion-fallback, không còn route-enter, nội 
 ### R8. Scroll và history
 
 `history.scrollRestoration = "manual"`. Locomotive smooth chỉ chạy khi cửa sổ từ 981px, không
-reduced motion, menu đóng, có thư viện; còn lại scroll native. Qua 981px hai chiều thì hủy, dựng
+reduced motion, menu đóng, có thư viện; còn lại scroll native. Mọi trang dùng chung cấu hình này, parallax chỉ ở hero
+([cảm giác cuộn](scroll-feel.md)). Qua 981px hai chiều thì hủy, dựng
 lại, giữ logical scroll. Route mềm: Back/Forward khôi phục vị trí đã nhớ theo index history; điều
 hướng mới về 0. Tải trực tiếp: URL bỏ hash, giữ vị trí trình duyệt hoặc vị trí lưu khi đổi ngôn
 ngữ. `scroll-padding-top` của `html` bằng hàng header cộng gutter để focus, anchor không bị che.

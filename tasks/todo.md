@@ -975,6 +975,19 @@ Network/Performance trên demo sau deploy.
 **Dependencies:** P10 và owner release approval. **Estimate:** 60–120 phút,
 chưa tính propagation hoặc sửa phát sinh.
 
+## Cảm giác cuộn chung — S1–S5
+
+Plan: [Cảm giác cuộn chung](plan.md#cảm-giác-cuộn-chung-theo-trang-chủ--plan-duyệt-2026-10-06).
+
+- [x] S1 e2e `tests/site/scroll-feel.e2e.mjs` đỏ đúng chỗ R3, R4 chưa làm; R1 xanh.
+- [x] S2 parallax theo R4 (hero About thêm, ba ảnh About bỏ); S1 xanh; test Advertising, footer, mobile layout hiện có xanh.
+- [x] S2b khối "Giữ nghề" theo R5, e2e 11 bề rộng xanh.
+- [ ] Checkpoint A: `pnpm qa:docs`; owner xem parallax.
+- [x] S3 `scripts/qa/scroll-trace.mjs` chạy được trên cloud, in số cho 4 trang.
+- [x] S4 trace trên PC: dựng Flow chờ cuộn dừng 150ms; hết task trên 50ms.
+- [ ] Checkpoint B: owner cuộn thử Advertising trên PC và xác nhận.
+- [x] S5 docs, merge, Design System publish.
+
 ## Chú thích thuật ngữ
 
 - **Baseline**: source trước fix, dùng để chứng minh regression assertion.

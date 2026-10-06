@@ -1192,25 +1192,6 @@ em {
     white-space: normal;
     overflow-wrap: anywhere;
   }
-
-  [data-barba-namespace="home"] .legacy-closer {
-    display: grid;
-    height: auto;
-    min-height: 400px;
-    place-items: center;
-  }
-
-  .legacy-closer .legacy-copy {
-    position: relative;
-    inset: auto;
-    height: auto;
-    padding-block: 2rem;
-  }
-
-  .legacy-closer .legacy-copy h2 {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-  }
 }
 
 .motion-toggle {
@@ -1644,7 +1625,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   word-spacing: 0;
 }
 
-#dich-vu .portal-subtitle {
+#dich-vu .portal-subtitle,
+.legacy-link .portal-subtitle {
   position: relative;
   width: fit-content;
   max-width: 100%;
@@ -1652,7 +1634,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   white-space: nowrap;
 }
 
-#dich-vu .portal-subtitle::after {
+#dich-vu .portal-subtitle::after,
+.legacy-link .portal-subtitle::after {
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -1666,7 +1649,9 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 #dich-vu .service-portal:hover .portal-subtitle::after,
-#dich-vu .service-portal:focus-visible .portal-subtitle::after {
+#dich-vu .service-portal:focus-visible .portal-subtitle::after,
+.legacy-closer:hover .portal-subtitle::after,
+.legacy-link:focus-visible .portal-subtitle::after {
   transform: scaleX(1);
   transform-origin: left center;
 }
@@ -1920,7 +1905,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
 
 .legacy-closer {
   position: relative;
-  width: calc(100% - 70px);
+  width: min(calc(100% - 70px), 1500px);
   height: 600px;
   margin-right: auto;
   margin-left: auto;
@@ -1950,9 +1935,19 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 .legacy-shade {
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.54)),
-    rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.legacy-closer + * {
+  margin-top: 90px;
+}
+
+/* The whole block opens About; the label reuses the service portal subtitle. */
+.legacy-link::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: "";
 }
 
 .legacy-copy {
@@ -2517,11 +2512,6 @@ html[lang="en"] #nang-luc .portal-subtitle {
     height: 26rem;
   }
 
-  .legacy-closer {
-    height: 400px;
-    min-height: 0;
-  }
-
   .footer-intro {
     grid-template-columns: 1fr;
   }
@@ -2686,19 +2676,6 @@ html[lang="en"] #nang-luc .portal-subtitle {
     left: 20px;
     width: auto;
     transform: none;
-  }
-
-  .legacy-closer {
-    width: calc(100% - 30px);
-    height: 400px;
-  }
-
-  .legacy-copy {
-    text-align: center;
-  }
-
-  .legacy-copy h2 {
-    font-size: clamp(2.5rem, 12.3vw, 3rem);
   }
 
   .capability-marquee {
@@ -3016,4 +2993,27 @@ html.motion-fallback .site-menu.is-active .menu-shutters i {
 html.motion-fallback .site-menu.is-active .menu-inner {
   opacity: 1;
   visibility: visible;
+}
+
+/* Giu nghe block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
+@media (max-width: 960px) {
+  .legacy-closer {
+    height: 400px;
+  }
+
+  .legacy-closer + * {
+    margin-top: 60px;
+  }
+}
+
+@media (max-width: 750px) {
+  .legacy-closer {
+    width: calc(100% - 30px);
+  }
+}
+
+@media (max-width: 578px) {
+  .legacy-closer + * {
+    margin-top: 30px;
+  }
 }
