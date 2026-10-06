@@ -1536,6 +1536,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cancelAnimationFrame(pending.reveal);
     clearTimeout(pending.fallback);
     frame.removeEventListener("transitionend", pending.settle);
+    pending.animations.forEach((animation) => animation.cancel());
+    pending.glass?.remove();
     skeletonEntryFrames.delete(frame);
   };
   // Loading skeletons run on related cards and the primary too; the CTA batch is cleared while a photo is open.
@@ -1741,12 +1743,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
     if (skeletonEntryFrames.has(frame) || frame.classList.contains("is-entry-ready")) return;
-    const pending = { reveal: 0, fallback: 0, settle: null };
+    const pending = { reveal: 0, fallback: 0, settle: null, animations: [], glass: null };
     const settle = () => {
       if (skeletonEntryFrames.get(frame) !== pending) return;
-      clearTimeout(pending.fallback);
-      frame.removeEventListener("transitionend", pending.settle);
-      skeletonEntryFrames.delete(frame);
+      cancelSkeletonEntry(frame);
     };
     pending.settle = (event) => {
       if (event.target === frame && event.propertyName === "opacity") settle();
@@ -1756,9 +1756,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         skeletonEntryFrames.delete(frame);
         return;
       }
-      frame.addEventListener("transitionend", pending.settle);
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
+      // Batch frames enter like card photos: Flow appears under Kinh over an empty frame in 0.6s (skeleton R4).
+      if (frame.dataset.advertisingCtaFrame) {
+        pending.glass = revealGlass(frame);
+        pending.animations = [...crossfadeLayers([], [frame.querySelector(".advertising-grid__cta-surface")], CARD_REVEAL_MS),
+          ...playGlassReveal(pending.glass, CARD_REVEAL_MS)];
+        Promise.all(pending.animations.map(({ finished }) => finished)).then(settle, () => {});
+        return;
+      }
+      frame.addEventListener("transitionend", pending.settle);
       pending.fallback = setTimeout(settle, 650);
     });
     skeletonEntryFrames.set(frame, pending);
@@ -1805,7 +1813,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return;
       }
       if (skeletonCanLoop(frame)) {
-        // Flow runs from the first frame of the entry fade (R4).
+        // Flow runs from the first frame of the Kinh entry (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
         frame.classList.toggle("is-looping", Boolean(renderer));
         frame.dataset.advertisingFlowState = renderer ? "running" : "paused";
