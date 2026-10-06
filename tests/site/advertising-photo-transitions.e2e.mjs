@@ -1099,7 +1099,8 @@ try {
       stage(`${locale}-swipe-from-backdrop-mid-zoom`);
       await page.goto(href(`/${locale}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`));
       await ready(page, "kiosk-posm-37");
-      await page.locator("[data-advertising-photo-expand]").click();
+      // Touch screens keep the expand button for screen readers only (viewer touch R7).
+      await page.evaluate(() => document.querySelector("[data-advertising-photo-expand]").click());
       await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
       await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-in]").click());
       const target = await page.evaluate(() => document.elementFromPoint(461, 265)?.matches("[data-advertising-photo-viewport]"));

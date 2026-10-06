@@ -1,6 +1,9 @@
 import { responsiveSource } from "./responsive-image.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
+// Touch double tap: both taps within 300ms and 24px, each moving at most 10px (advertising-viewer-touch-zoom R4, R7).
+const isDoubleTap = (last, event) => last && event.timeStamp - last.time <= 300
+  && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 24;
 
 export function createAdvertisingPhotoViewer({
   dialog,
@@ -18,9 +21,10 @@ export function createAdvertisingPhotoViewer({
   signal,
 } = {}) {
   if (!dialog || !expandButton || !expandedImage || !viewport || !closeButton || !zoomInButton || !zoomOutButton || !zoomStatus) {
-    return { cleanup() {}, close() {}, setRecord() {} };
+    return { cleanup() {}, close() {}, popState: () => false, setRecord() {} };
   }
   const controller = new AbortController();
+  const heroFrame = heroImage?.parentElement;
   const parent = dialog.parentNode;
   const nextSibling = dialog.nextSibling;
   let record = null;
@@ -34,6 +38,11 @@ export function createAdvertisingPhotoViewer({
   let pinch = null;
   let tap = null;
   let lastTap = null;
+  let swipe = null;
+  let heroTap = null;
+  let heroLastTap = null;
+  let ownEntry = false;
+  let skipPop = false;
   const touches = new Map();
   let backdropPress = false;
   let lockedScroll = 0;
@@ -220,11 +229,56 @@ export function createAdvertisingPhotoViewer({
   const unlock = () => {
     scroll?.unlockLogicalScroll?.(lockedScroll);
   };
+  const setBackdropOpacity = (value) => {
+    if (value === 1) dialog.style.removeProperty("--advertising-viewer-backdrop-opacity");
+    else dialog.style.setProperty("--advertising-viewer-backdrop-opacity", `${value}`);
+  };
+  // Swipe to close (R9): at Fit the image follows the finger vertically and the backdrop fades with distance.
+  const moveSwipe = (event) => {
+    const dx = event.clientX - swipe.x;
+    const dy = event.clientY - swipe.y;
+    if (!swipe.active) {
+      if (Math.hypot(dx, dy) <= 10) return;
+      if (Math.abs(dy) <= Math.abs(dx)) {
+        swipe = null;
+        return;
+      }
+      swipe.active = true;
+      tap = lastTap = null;
+      dialog.dataset.advertisingViewerSwipe = "";
+    }
+    swipe.velocity = (event.clientY - swipe.lastY) / Math.max(1, event.timeStamp - swipe.lastTime);
+    Object.assign(swipe, { dy, lastY: event.clientY, lastTime: event.timeStamp });
+    expandedImage.style.transform = `translate3d(0, ${dy}px, 0) scale(1)`;
+    setBackdropOpacity(1 - Math.min(1, Math.abs(dy) / (0.5 * viewport.clientHeight)));
+  };
+  const endSwipe = (release) => {
+    const { active, dy, velocity } = swipe;
+    swipe = null;
+    if (!active) return;
+    delete dialog.dataset.advertisingViewerSwipe;
+    if (release && (Math.abs(dy) >= 0.15 * viewport.clientHeight || Math.abs(velocity) >= 0.5)) {
+      close();
+      return;
+    }
+    setBackdropOpacity(1);
+    const from = expandedImage.style.transform;
+    runMotion(from, renderTransform(), 200, "ease-in-out", "zooming");
+  };
   const finishClose = (restoreFocus) => {
     cancelMotion();
     dialog.close();
     delete dialog.dataset.advertisingViewerState;
-    drag = pinch = tap = lastTap = null;
+    delete dialog.dataset.advertisingViewerSwipe;
+    setBackdropOpacity(1);
+    // Closed by anything but Back: drop the viewer's history entry so the next Back leaves detail (R10).
+    // A flag, not a state key: the router may rewrite the entry's state while the viewer is open.
+    if (ownEntry) {
+      ownEntry = false;
+      skipPop = true;
+      history.back();
+    }
+    drag = pinch = tap = lastTap = swipe = null;
     touches.clear();
     scale = 1;
     panX = panY = 0;
@@ -265,6 +319,8 @@ export function createAdvertisingPhotoViewer({
     scale = 1;
     panX = panY = 0;
     dialog.showModal();
+    history.pushState(history.state, "");
+    ownEntry = true;
     updateVisibleControls();
     measureFit();
     const target = renderTransform();
@@ -275,6 +331,21 @@ export function createAdvertisingPhotoViewer({
     .filter((control) => control && !control.disabled && !control.hidden && control.getClientRects().length > 0);
 
   expandButton.addEventListener("click", open, { signal: controller.signal });
+  // Touch screens open the viewer with a double tap on the primary photo (R7).
+  heroFrame?.addEventListener("pointerdown", (event) => {
+    heroTap = event.pointerType === "touch" && event.isPrimary ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+  }, { signal: controller.signal });
+  heroFrame?.addEventListener("pointermove", (event) => {
+    if (heroTap?.id === event.pointerId && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) > 10) heroTap = null;
+  }, { signal: controller.signal });
+  heroFrame?.addEventListener("pointerup", (event) => {
+    if (heroTap?.id !== event.pointerId) return;
+    heroTap = null;
+    if (isDoubleTap(heroLastTap, event)) {
+      heroLastTap = null;
+      open();
+    } else heroLastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
+  }, { signal: controller.signal });
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
@@ -307,9 +378,14 @@ export function createAdvertisingPhotoViewer({
     if (event.pointerType === "touch" && !closing && viewport.contains(event.target)) {
       touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
       if (touches.size === 2) {
-        // Two fingers never close the viewer and end any one-finger drag or tap.
+        // Two fingers never close the viewer and end any one-finger drag, swipe or tap.
         backdropPress = false;
-        drag = tap = lastTap = null;
+        if (swipe?.active) {
+          delete dialog.dataset.advertisingViewerSwipe;
+          setBackdropOpacity(1);
+          renderTransform();
+        }
+        drag = tap = lastTap = swipe = null;
         adoptDisplayed();
         startPinch();
         event.preventDefault();
@@ -319,7 +395,14 @@ export function createAdvertisingPhotoViewer({
     }
     backdropPress = event.target === dialog || event.target === viewport;
     if (backdropPress) return;
-    if (atFit() || event.target !== expandedImage || closing) return;
+    if (event.target !== expandedImage || closing) return;
+    if (atFit()) {
+      if (event.pointerType !== "touch") return;
+      adoptDisplayed();
+      swipe = { id: event.pointerId, x: event.clientX, y: event.clientY,
+        lastY: event.clientY, lastTime: event.timeStamp, active: false };
+      return;
+    }
     adoptDisplayed();
     drag = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY };
     viewport.setPointerCapture?.(event.pointerId);
@@ -337,6 +420,11 @@ export function createAdvertisingPhotoViewer({
     if (tap?.id === event.pointerId && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10) tap = null;
     if (pinch && touch) {
       movePinch();
+      event.preventDefault();
+      return;
+    }
+    if (swipe?.id === event.pointerId) {
+      moveSwipe(event);
       event.preventDefault();
       return;
     }
@@ -359,6 +447,7 @@ export function createAdvertisingPhotoViewer({
       } else settle(anchor);
       return;
     }
+    if (swipe?.id === event.pointerId) endSwipe(event.type === "pointerup");
     if (drag?.id === event.pointerId) {
       drag = null;
       if (viewport.hasPointerCapture?.(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
@@ -367,8 +456,7 @@ export function createAdvertisingPhotoViewer({
     if (tap?.id !== event.pointerId || event.type !== "pointerup") return;
     tap = null;
     // Double tap: Fit zooms to Cover around the tap, any other scale returns to Fit.
-    if (lastTap && event.timeStamp - lastTap.time <= 300
-      && Math.hypot(event.clientX - lastTap.x, event.clientY - lastTap.y) <= 24) {
+    if (isDoubleTap(lastTap, event)) {
       lastTap = null;
       setScale(atFit() ? cover : 1, event);
     } else lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
@@ -418,6 +506,17 @@ export function createAdvertisingPhotoViewer({
   window.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resize, { passive: true, signal: controller.signal });
+  // The site router asks this before routing a popstate, so Back with the viewer open only closes it (R10).
+  const popState = () => {
+    if (skipPop) {
+      skipPop = false;
+      return true;
+    }
+    if (!ownEntry || !dialog.open || dialog.dataset.advertisingViewerState === "closing") return false;
+    ownEntry = false;
+    close();
+    return true;
+  };
   const cleanup = () => {
     close({ restoreFocus: false, animate: false });
     cancelMotion();
@@ -431,6 +530,7 @@ export function createAdvertisingPhotoViewer({
   return {
     cleanup,
     close,
+    popState,
     setRecord(nextRecord) {
       if (record?.id !== nextRecord?.id) close({ restoreFocus: false });
       record = nextRecord || null;

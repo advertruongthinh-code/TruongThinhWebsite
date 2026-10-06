@@ -1,5 +1,6 @@
-// Viewer touch zoom in Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R6): pinch, rubber band,
-// one/two finger hand-off, double tap, stops for buttons, reduced motion. Backdrop swipe and tap (L06) stay in
+// Viewer gestures in Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R10): pinch, rubber band,
+// one/two finger hand-off, double tap, stops for buttons, reduced motion, double tap to open, hidden buttons,
+// swipe to close, Back closes. Backdrop swipe and tap (L06) stay in
 // advertising-photo-transitions.e2e.mjs. Touch goes through CDP so the
 // browser's own touch-to-pointer path runs. DEVICE_CDP (http://127.0.0.1:9222 after `adb forward tcp:9222
 // localabstract:chrome_devtools_remote`, with `adb reverse tcp:8787 tcp:8787`) drives a real phone's Chrome instead,
@@ -16,7 +17,7 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const card = ADVERTISING_CARDS[0];
 const device = process.env.DEVICE_CDP;
-const browser = device ? await chromium.connectOverCDP(device) : await chromium.launch({ headless: true });
+const browser = device ? await chromium.connectOverCDP(device) : await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
 const failures = [];
 const check = (condition, message) => condition || failures.push(message);
@@ -81,14 +82,22 @@ function checkMoved(before, after, dx, dy, label) {
   }
 }
 
+// R7: touch screens open the viewer with a double tap on the primary photo.
 async function openViewer(page, touch) {
-  await page.waitForFunction(() => {
+  const point = await (await page.waitForFunction(() => {
     const image = document.querySelector("[data-advertising-photo-image]");
-    return image?.complete && image.naturalWidth > 0;
-  });
-  await touch.tap(page.locator("[data-advertising-photo-expand]"));
+    if (!image?.complete || !image.naturalWidth) return false;
+    const box = image.getBoundingClientRect();
+    const x = Math.round(box.left + box.width / 2);
+    const y = Math.round(box.top + box.height / 2);
+    return image.parentElement.contains(document.elementFromPoint(x, y)) && { x, y };
+  })).jsonValue();
+  await touch.doubleTap(point);
   await settled(page);
 }
+
+// R8: on touch screens the buttons are out of sight but still clickable by assistive tech.
+const press = (page, hook) => page.evaluate((selector) => document.querySelector(selector).click(), `[${hook}]`);
 
 // Reset is disabled at Fit, so click it only when there is something to reset.
 async function resetZoom(page) {
@@ -165,6 +174,10 @@ async function runPhone({ locale, width, height }) {
   const state = () => page.evaluate(readState);
   const start = await state();
   const label = `${locale} ${start.vw}x${start.vh}`;
+  // R7, R8: no visible button on the primary or in the viewer, and the page did not zoom on the double tap.
+  const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out", "zoom-reset"]
+    .filter((hook) => document.querySelector(`[data-advertising-photo-${hook}]`).getBoundingClientRect().width > 1));
+  check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
   const centre = { x: start.cx + 24, y: start.cy + 18 };
 
   // R1 + R5: pinch 100 -> 200px gives s = 2 under the fingers; status waits for the release.
@@ -196,10 +209,10 @@ async function runPhone({ locale, width, height }) {
   await settled(page);
   const between = await state();
   check(between.scale > 1.05 && between.scale < between.cover * 0.95, `${label} R5: pinch did not stop between stops (${between.scale})`);
-  await touch.tap(page.locator("[data-advertising-photo-zoom-in]"));
+  await press(page, "data-advertising-photo-zoom-in");
   await settled(page);
   check(near((await state()).scale, between.cover), `${label} R5: + from between stops did not reach Cover`);
-  await touch.tap(page.locator("[data-advertising-photo-zoom-out]"));
+  await press(page, "data-advertising-photo-zoom-out");
   await settled(page);
   const fitAgain = await state();
   check(near(fitAgain.scale, 1) && fitAgain.minusDisabled && fitAgain.resetDisabled, `${label} R5: - did not return to Fit`);
@@ -277,6 +290,43 @@ async function runPhone({ locale, width, height }) {
   const single = await state();
   check(single.scale === 1 && single.open, `${label} R4: single tap on the image changed the viewer`);
 
+  // R9: a short slow swipe springs back; a long swipe closes to the primary and stays on detail.
+  const url = page.url();
+  const swipeImage = async (distance, steps) => {
+    const from = { x: Math.round(single.cx), y: Math.round(single.cy), id: 1 };
+    await touch.send("touchStart", [from]);
+    for (let step = 1; step <= steps; step += 1) await touch.send("touchMove", [{ ...from, y: from.y + distance * step / steps }]);
+  };
+  await swipeImage(single.vh * 0.05, 6);
+  const dragged = await page.evaluate(() => ({ y: new DOMMatrixReadOnly(getComputedStyle(
+    document.querySelector("[data-advertising-photo-expanded-image]")).transform).m42,
+  opacity: getComputedStyle(document.querySelector("[data-advertising-photo-dialog]"), "::backdrop").opacity }));
+  check(Math.abs(dragged.y - single.vh * 0.05) <= 1 && Number(dragged.opacity) < 1,
+    `${label} R9: image or backdrop did not follow the swipe ${JSON.stringify(dragged)}`);
+  await page.waitForTimeout(150);
+  await touch.send("touchMove", [{ x: Math.round(single.cx), y: Math.round(single.cy + single.vh * 0.05), id: 1 }]);
+  await touch.send("touchEnd", []);
+  await settled(page);
+  const sprung = await state();
+  check(sprung.open && sprung.y === 0 && sprung.scale === 1, `${label} R9: short swipe did not spring back`);
+  await swipeImage(single.vh * 0.3, 6);
+  await touch.send("touchEnd", []);
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  check(page.url() === url && (await state()).scroll === start.scroll, `${label} R9: swipe close left detail or scrolled`);
+
+  // R10: Back closes the viewer only; the next Back leaves detail as before.
+  await page.waitForTimeout(100);
+  await openViewer(page, touch);
+  await page.evaluate(() => history.back());
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForTimeout(300);
+  check(page.url() === url && !(await page.locator("[data-advertising-photo-view]").isHidden()),
+    `${label} R10: Back left detail instead of closing the viewer`);
+  // Direct entry: the page before detail is whatever preceded the load.
+  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leaves the page: return before it unloads
+  await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
+    .catch(() => check(false, `${label} R10: second Back did not leave detail`));
+
   check(errors.length === 0, `${label}: page errors ${errors.join(" | ")}`);
   await close();
 }
@@ -344,6 +394,20 @@ async function runDesktop() {
   await page.waitForTimeout(300);
   const state = await page.evaluate(readState);
   check(state.scale === 1 && state.open, `desktop: double-click changed the viewer (${state.scale})`);
+  // R10 on desktop, and closing by button drops the history entry so Back leaves detail.
+  const url = page.url();
+  await page.evaluate(() => history.back());
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  check(page.url() === url, "desktop R10: Back left detail instead of closing the viewer");
+  await page.locator("[data-advertising-photo-expand]").click();
+  await settled(page);
+  await page.locator("[data-advertising-photo-close]").click();
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForTimeout(300);
+  check(page.url() === url, "desktop R10: closing by button changed the URL");
+  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leaves the page: return before it unloads
+  await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
+    .catch(() => check(false, "desktop R10: Back after a button close did not leave detail"));
   await context.close();
 }
 
