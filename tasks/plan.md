@@ -1325,6 +1325,52 @@ Rủi ro:
 | Nguyên nhân khựng nằm trong Kính hoặc masonry thread khác đang sửa | Trung bình | Báo điều phối, sửa qua thread sở hữu nếu trùng |
 | PC không sẵn sàng để trace | Trung bình | S1 đến S3 làm trước trên cloud; S4 chờ phiên Remote Control |
 
+## Motion card masonry, Flow random, veil che header — plan chờ duyệt 2026-10-06
+
+Spec owner đã duyệt (merge PR #150): [masonry R8, R11](../docs/specs/advertising-masonry.md),
+[skeleton R3–R5](../docs/specs/advertising-skeleton.md), [skeleton chờ ảnh R1–R4, R6](../docs/specs/loading-glass-and-page-entry.md),
+[shell R7](../docs/specs/site-shell.md), [motion](../design-system/motion.md)
+([card](https://app.notion.com/p/3f1332849a0e817099b2c51bf068b5dd)). Code trên `main` đang chậm hơn spec tới khi
+plan này merge. Ước lượng khoảng `300` đến `450 LOC` (gồm test).
+
+Quyết định:
+
+- Assignment bốc lười lúc khung vào viewport bằng hàm thuần mới trong `skeleton-flow.mjs`; bỏ deck 12 mục, bỏ
+  `LOADING_SKELETON_BATCH` và hash `fnv1a32`. Random dùng `Math.random`, test tiêm random có seed.
+- Tốc độ lệch là hệ số `speedScale` (0.9 đến 1.1) nhân vào bước pha của renderer; không đổi số preset.
+- Frame tĩnh giống Flow: một WebGL context dùng chung vẽ một khung ở pha của assignment rồi `drawImage` sang canvas
+  2D của khung (tính trong ngân sách context). Không có WebGL thì giữ `staticBackground`.
+- Ảnh card: bỏ chờ `150ms` và fade CSS; mọi lần vào viewport chạy cùng `crossfadeLayers` và `playGlassReveal` với
+  `0.6s`, lớp dưới là skeleton hoặc rỗng. Primary giữ hai nhánh.
+- Header: CSS ẩn header khi `html.route-enter` chưa uncover; intro header dời từ lúc mount sang lúc `playRouteEnter`
+  bắt đầu, sau `updateHeader()` nên kết thúc đúng `is-collapsed`.
+- Cuộn mượt thắng: bỏ cổng `SKELETON_MOUNT_SCROLL_IDLE_MS`, giữ một renderer mỗi task. Trace nào có task trên
+  `50ms` khi cuộn thì bật lại cổng cho đúng loại máy đó (điện thoại hoặc desktop), ghi số đo vào PR.
+
+Thứ tự: F1 → F2 → F3 → F4 → checkpoint A → F5 → checkpoint B → F6. Một PR; spec chỉ sửa bảng test và gate.
+
+| Bước | Việc | File | Cỡ |
+| --- | --- | --- | --- |
+| F1 | Veil che header khi tải trực tiếp, intro chạy lúc uncover, kết thúc thu gọn khi đã cuộn quá 100px; e2e F5 giữa trang có throttle mạng: không thấy header trước uncover, cuối cùng `is-collapsed` | `style.css`, `motion.js`, `tests/site/` (e2e mới) | S |
+| F2 | Hàm bốc assignment: tránh preset khung kề, pha liên tục, cùng preset thì lệch ít nhất 1/4 vòng, `speedScale` 0.9 đến 1.1; renderer nhận `speedScale`; unit test | `skeleton-flow.mjs`, `advertising-skeleton-flow.test.mjs` | M |
+| F3 | Runtime: batch và skeleton chờ ảnh bốc lúc vào viewport, giữ theo slot hoặc media id trong một trạng thái trang, bốc lại khi đổi filter, mở đóng detail, Back/Forward; bỏ cổng cuộn; frame tĩnh vẽ từ Flow | `catalog-runtime.mjs`, `skeleton-flow.mjs` | M |
+| F4 | Ảnh card một nhịp `0.6s` qua Kính: skeleton gắn ngay khi vào viewport, ảnh có sẵn và vào lại chạy từ khung trống; cập nhật `image-loading-frame.e2e.mjs` | `catalog-runtime.mjs`, `detail.css`, `tests/site/image-loading-frame.e2e.mjs` | M |
+| F5 | Đo: `pnpm qa:scroll-trace` trên PC (Remote Control) cho Advertising và detail, trace A05s qua CDP; vượt `50ms` thì bật cổng cho loại máy đó và đo lại | Theo trace | S |
+| F6 | Bảng test và gate trong spec, card Notion Done, xóa mục plan này | `docs/specs/`, `tasks/plan.md` | S |
+
+Checkpoint A: `pnpm qa:docs`, `pnpm qa:static`, unit skeleton, `image-loading-frame.e2e.mjs`, e2e F1 và test
+Advertising hiện có xanh trên cloud; quay video throttle "Slow 4G" kéo scrollbar cho owner xem.
+Checkpoint B: trace PC và A05s không task trên `50ms` khi cuộn; owner xem trên demo khi cho deploy.
+
+Rủi ro:
+
+| Rủi ro | Mức | Cách xử lý |
+| --- | --- | --- |
+| Dựng WebGL giữa lúc cuộn làm khựng | Trung bình | Một renderer mỗi task; trace F5 quyết định bật cổng theo loại máy |
+| Kính năm bậc trên nhiều card cùng lúc rơi gate A05s | Trung bình | Đo F5; vượt gate thì báo owner kèm số đo trước khi đổi số bậc ([Kính R7](../docs/specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt)) |
+| Frame tĩnh vẽ từ context chung tốn context trên điện thoại (ngân sách 2) | Thấp | Context chung tính vào ngân sách; thiếu thì dùng `staticBackground` |
+| Đổi lúc chạy intro header ảnh hưởng route mềm | Thấp | Chỉ đổi nhánh tải trực tiếp; e2e route mềm hiện có phải xanh |
+
 ## Chú thích thuật ngữ
 
 - **Source owner**: người chịu trách nhiệm sửa source trong task.
