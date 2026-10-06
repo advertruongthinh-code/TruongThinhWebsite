@@ -1,47 +1,47 @@
-// Kính: one glass component for every glass surface (docs/specs/glass-surface.md).
-// Blur steps (increments in detail.css), then the white tint and the grain. A surface that fades step by step (spec R6)
-// has five (levels 7.14, 16.07, 32.14, 57.14, 100px: the 100px ceiling, owner 06/10); the arc's band has three
-// (4.5, 12, 28px; owner, 05/10, for the A05s).
+// Kính: một component glass dùng chung cho mọi glass surface (docs/specs/glass-surface.md).
+// Các bước blur (increment trong detail.css), rồi tint trắng và grain. Surface mờ dần từng bước (spec R6)
+// có năm bước (level 7.14, 16.07, 32.14, 57.14, 100px: trần 100px, owner 06/10); band của arc có ba
+// (4.5, 12, 28px; owner, 05/10, cho A05s).
 const STEPS = 5;
 const ARC_STEPS = 3;
-// Owner's arc (06/10): apex at 35% of the CTA cluster, radius 3.5 viewport widths, band 1.75 cluster heights,
-// pure white from 0.35 card widths inside the batch corners, white tint 0.35 on the arc.
+// Arc của owner (06/10): apex ở 35% cụm CTA, bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
+// trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.35 trên arc.
 const ARC = Object.freeze({ centre: 0.35, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.35 });
-// Inside the arc the blur keeps rising from the band's 28px on the arc to the 100px ceiling on the pure white circle,
-// over 1 to 5 inner steps: as many as this device draws at TARGET_FPS with the arc on screen (owner, 06/10).
+// Bên trong arc blur tiếp tục tăng từ 28px của band trên arc đến trần 100px trên vòng tròn trắng tinh,
+// qua 1 đến 5 inner step: nhiều như thiết bị này vẽ được ở TARGET_FPS khi arc đang trên màn hình (owner, 06/10).
 const ARC_LEVEL = 28;
 const CEILING = 100;
 const INNER_MAX = 5;
 const TARGET_FPS = 50;
 let fittedInnerSteps;
 const geometries = new WeakMap();
-// Band position (0 on the arc, 1 at the band edge) where each step runs from fully on to off; neighbours overlap.
+// Vị trí trong band (0 trên arc, 1 ở mép band) nơi mỗi step chạy từ bật hoàn toàn đến tắt; các step lân cận chồng lên nhau.
 const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
   [Math.max(0, (ARC_STEPS - 1 - index) / ARC_STEPS - 0.1), Math.min(1, (ARC_STEPS - index) / ARC_STEPS + 0.1)]);
-// Inside the arc all band steps are fully on, so one full step (the core) stands in for them there and the steps
-// only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows: the core
-// ramps in over the outer half while the steps stay on, the steps ramp out over the inner half, so the sharp page
-// never shows through a gap where both are partial. Each box
-// runs past its mask by one sigma of its blur (28px for the core): a wider margin changes no pixel by more than 3/255,
-// and every row of a box is one more row blurred each frame.
+// Bên trong arc mọi band step bật hoàn toàn, nên một step đầy đủ (core) thay cho chúng ở đó và các step
+// chỉ phủ band. Core bàn giao cho các step qua FADE px bên trong arc, nên không lộ đường nối: core
+// vào dần ở nửa ngoài trong khi các step vẫn bật, các step ra dần ở nửa trong, nên trang gốc chưa blur
+// không bao giờ lộ qua khe nơi cả hai đều chỉ một phần. Mỗi box
+// vượt ra ngoài mask một sigma của blur (28px cho core): margin rộng hơn không đổi pixel nào quá 3/255,
+// và mỗi hàng của box là thêm một hàng bị blur mỗi frame.
 const FADE = 48;
 const STEP_REACH = [5, 12, 26];
 const CORE_REACH = 28;
 const GRAIN_SIZE = 160;
-// Mean white the arc's grain adds (opacity 0.16 x mean alpha 0.5, detail.css); the tint carries that much less.
+// Mean trắng mà grain của arc thêm vào (opacity 0.16 x mean alpha 0.5, detail.css); tint mang ít đi đúng bằng đó.
 const GRAIN_WHITE = 0.08;
 let grain;
 const waitingForGrain = [];
 
-// The grain lives on each Kính, not on html, so its late arrival restyles the glass and not the whole page.
+// Grain nằm trên từng Kính, không phải html, nên việc nó đến muộn chỉ restyle glass chứ không restyle cả trang.
 const setGrain = (glass) => {
   glass.style.setProperty("--glass-grain", grain.grey);
   glass.style.setProperty("--glass-grain-white", grain.white);
   glass.style.setProperty("--glass-grain-size", `${GRAIN_SIZE / (window.devicePixelRatio || 1)}px`);
 };
 
-// Static mono noise, one texel per device pixel: grey for overlay (overlay keeps pure white white), and the
-// same noise as white alpha for the arc (detail.css).
+// Noise mono tĩnh, một texel mỗi device pixel: xám cho overlay (overlay giữ trắng tinh vẫn trắng), và
+// cùng noise đó dạng white alpha cho arc (detail.css).
 function makeGrain() {
   grain = "";
   const canvas = document.createElement("canvas");
@@ -57,7 +57,7 @@ function makeGrain() {
     greyPixels[index] = 0xff000000 | value * 0x10101;
     whitePixels[index] = (value << 24 | 0xffffff) >>> 0;
   }
-  // toBlob copies the bitmap when called, so one canvas serves both.
+  // toBlob copy bitmap khi được gọi, nên một canvas phục vụ cả hai.
   const url = (image) => new Promise((resolve) => {
     context.putImageData(image, 0, 0);
     canvas.toBlob((blob) => resolve(blob && `url(${URL.createObjectURL(blob)})`));
@@ -69,8 +69,8 @@ function makeGrain() {
   });
 }
 
-// A static even surface looks the same through one full step as through five stacked ones, at about half the cost;
-// a surface that fades in or out step by step (spec R6) asks for all five.
+// Surface tĩnh đều trông giống nhau qua một step đầy đủ hay năm step xếp chồng, với khoảng nửa chi phí;
+// surface mờ vào/ra từng step (spec R6) cần cả năm.
 export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 1) {
   if (grain === undefined) makeGrain();
   const glass = document.createElement("div");
@@ -80,8 +80,8 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
   if (grain) setGrain(glass);
   else waitingForGrain.push(glass);
   const layers = steps === 1 ? ["glass-surface__step glass-surface__step--full"] : Array(steps).fill("glass-surface__step");
-  // The core paints first, so the steps blend over it and never feed it a second blur. Inner steps follow the core;
-  // the band steps stay last, so their nth-last-child rules in detail.css still hold.
+  // Core vẽ trước, nên các step blend lên nó và không bao giờ đưa nó blur lần hai. Inner step theo sau core;
+  // band step ở cuối, nên rule nth-last-child của chúng trong detail.css vẫn đúng.
   if (shape === "arc") {
     layers.unshift("glass-surface__step glass-surface__step--full",
       ...Array(INNER_MAX).fill("glass-surface__step glass-surface__step--inner"));
@@ -98,15 +98,15 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
       observer.disconnect();
       fitInnerSteps(glass);
     });
-    // The arc box spans the whole grid section, so its top enters the viewport long before the arc does; the tint
-    // starts at the band edge, so it marks when the arc itself is on screen.
+    // Box arc trải toàn bộ grid section, nên mép trên của nó vào viewport rất lâu trước arc; tint
+    // bắt đầu từ mép band, nên nó đánh dấu lúc chính arc xuất hiện trên màn hình.
     observer.observe(glass.querySelector(".glass-surface__tint"));
   }
   return glass;
 }
 
-// Median rAF rate over up to `frames` frames or 1.5s. The skeleton under the arc animates every frame, so the glass
-// is recomposited every frame and this rate is the cost the visitor feels.
+// Rate rAF trung vị qua tối đa `frames` frame hoặc 1.5s. Skeleton dưới arc animate mỗi frame, nên glass
+// được recomposite mỗi frame và rate này là chi phí người xem cảm nhận.
 const medianFps = (frames) => new Promise((resolve) => {
   const times = [];
   const tick = (now) => {
@@ -120,7 +120,7 @@ const medianFps = (frames) => new Promise((resolve) => {
   requestAnimationFrame(tick);
 });
 
-// Start at five inner steps and drop one while the rate stays under target; the count holds for the page's life.
+// Bắt đầu ở năm inner step và bớt một khi rate còn dưới target; số đếm giữ nguyên suốt đời trang.
 async function fitInnerSteps(glass) {
   let steps = INNER_MAX;
   for (;;) {
@@ -133,7 +133,7 @@ async function fitInnerSteps(glass) {
   fittedInnerSteps = steps;
 }
 
-// CSS cubic-bezier(x1, y1, x2, y2) as a function of time; x is monotonic, so bisection finds the parameter.
+// CSS cubic-bezier(x1, y1, x2, y2) như hàm của thời gian; x đơn điệu, nên bisection tìm ra tham số.
 const cubicBezier = (x1, y1, x2, y2) => {
   const at = (a, b, t) => 3 * a * t * (1 - t) ** 2 + 3 * b * t * t * (1 - t) + t ** 3;
   return (x) => {
@@ -147,13 +147,13 @@ const cubicBezier = (x1, y1, x2, y2) => {
     return at(y1, y2, (low + high) / 2);
   };
 };
-// Approved reveal (design-system/components/Glass/README.md): in over 0.6s of 1.4s, out over the rest.
+// Reveal đã duyệt (design-system/components/Glass/README.md): vào trong 0.6s của 1.4s, ra trong phần còn lại.
 const REVEAL_PEAK = 0.6 / 1.4;
 const REVEAL_IN = cubicBezier(0, 0, 0.26, 1);
 const REVEAL_OUT = cubicBezier(0.86, 0, 0.07, 1);
 const REVEAL_SAMPLES = 28;
 
-// Glass strength over the reveal, 0 to 1 and back to 0; t runs over the whole reveal.
+// Cường độ glass qua reveal, 0 đến 1 rồi về 0; t chạy qua toàn bộ reveal.
 export function glassRevealLevel(t) {
   return t <= REVEAL_PEAK ? REVEAL_IN(t / REVEAL_PEAK) : 1 - REVEAL_OUT((t - REVEAL_PEAK) / (1 - REVEAL_PEAK));
 }
@@ -161,11 +161,11 @@ export function glassRevealLevel(t) {
 const REVEAL_OFFSETS = Array.from({ length: REVEAL_SAMPLES + 1 }, (_, index) => index / REVEAL_SAMPLES);
 const REVEAL_LEVELS = REVEAL_OFFSETS.map(glassRevealLevel);
 
-// Spec R6: steps come in light to strong and leave strong to light, by opacity only; tint and grain follow
-// the level, so the glass starts and ends with no blur and no tint. Sampled keyframes keep it on the compositor.
+// Spec R6: step vào từ nhẹ đến mạnh và ra từ mạnh đến nhẹ, chỉ bằng opacity; tint và grain theo
+// level, nên glass bắt đầu và kết thúc không blur, không tint. Keyframe lấy mẫu giữ nó trên compositor.
 export function playGlassReveal(glass, duration) {
   const layers = [...glass.children];
-  // Read every base opacity before the first animate, so a reveal costs one style recalc.
+  // Đọc mọi base opacity trước animate đầu tiên, nên một reveal chỉ tốn một lần style recalc.
   const bases = layers.map((layer) => Number(getComputedStyle(layer).opacity));
   return layers.map((layer, index) => {
     const step = layer.classList.contains("glass-surface__step");
@@ -176,16 +176,16 @@ export function playGlassReveal(glass, duration) {
   });
 }
 
-// Arc circle in the glass box's coordinates: apex yIn, radius R, band T, centre (W / 2, cy),
-// and dFull, the circle through the two batch bottom corners where the white turns pure.
+// Vòng tròn arc theo tọa độ của glass box: apex yIn, bán kính R, band T, tâm (W / 2, cy),
+// và dFull, vòng tròn qua hai góc đáy batch nơi màu trắng thành trắng tinh.
 export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, clusterTop, clusterBottom }) {
   const whiteRamp = ARC.whiteRamp * cardWidth;
   const clusterHeight = clusterBottom - clusterTop;
   const yIn = Math.min(clusterTop + ARC.centre * clusterHeight, batchBottom - 2 * whiteRamp);
-  // The band edge never rises above the real photos.
+  // Mép band không bao giờ nhô lên trên các photo thật.
   const band = Math.max(8, Math.min(ARC.band * clusterHeight, yIn - realBottom));
   const depth = batchBottom - yIn;
-  // Smallest radius that keeps both bottom corners whiteRamp inside the arc, so they stay pure white.
+  // Bán kính nhỏ nhất giữ cả hai góc đáy whiteRamp bên trong arc, nên chúng vẫn trắng tinh.
   const minRadius = (depth * depth - whiteRamp * whiteRamp + width * width / 4) / (2 * (depth - whiteRamp));
   const radius = Math.max(ARC.radius * width, minRadius);
   const cy = yIn + radius;
@@ -201,11 +201,11 @@ const setMask = (node, value) => {
 export function layoutArcGlass(glass, geometry) {
   const { width, batchBottom, band, radius, cy, dFull } = geometry;
   geometries.set(glass, geometry);
-  // Two pixels run under the footer so subpixel rounding never shows a frame edge.
+  // Hai pixel chạy dưới footer để làm tròn subpixel không bao giờ lộ mép frame.
   const place = (node, top, bottom = batchBottom + 2) => Object.assign(node.style, { top: `${top}px`, height: `${bottom - top}px` });
   const circle = (top) => `circle at ${width / 2}px ${cy - top}px`;
   const core = radius - FADE;
-  // The inner fade circle is lowest at the box sides.
+  // Vòng fade trong thấp nhất ở hai bên box.
   const seam = cy - Math.sqrt(core * core - width * width / 4);
   const top = cy - radius - band;
   const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
@@ -220,8 +220,8 @@ export function layoutArcGlass(glass, geometry) {
     setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
       + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
   });
-  // Inner steps: level n of N is ARC_LEVEL + (CEILING - ARC_LEVEL) n / N, each adding its quadrature increment and
-  // ramping in over its share of the way from the arc to the pure white circle; neighbours overlap like RAMPS.
+  // Inner step: level n trên N là ARC_LEVEL + (CEILING - ARC_LEVEL) n / N, mỗi step thêm increment cầu phương của nó và
+  // vào dần trong phần của nó trên đường từ arc đến vòng tròn trắng tinh; các step lân cận chồng nhau như RAMPS.
   const count = Number(glass.dataset.glassInnerSteps) || INNER_MAX;
   const span = Math.max(1, radius - dFull);
   const level = (n) => ARC_LEVEL + (CEILING - ARC_LEVEL) * n / count;
@@ -236,8 +236,8 @@ export function layoutArcGlass(glass, geometry) {
     place(step, stepTop);
     setMask(step, `radial-gradient(${circle(stepTop)}, #000 ${to.toFixed(1)}px, transparent ${from.toFixed(1)}px)`);
   });
-  // White follows the same circles: pure from the corner circle, tint on the arc, none at the band edge.
-  // The grain (mask m below) adds GRAIN_WHITE * m on average, so the tint holds back that share.
+  // Trắng theo cùng các vòng tròn: tinh từ vòng góc, tint trên arc, không có ở mép band.
+  // Grain (mask m bên dưới) thêm trung bình GRAIN_WHITE * m, nên tint giữ lại phần đó.
   const white = (alpha, m) => Math.max(0, (alpha - GRAIN_WHITE * m) / (1 - GRAIN_WHITE * m)).toFixed(4);
   const stops = [];
   for (let index = 0; index <= 8; index += 1) {
@@ -253,7 +253,7 @@ export function layoutArcGlass(glass, geometry) {
   tint.style.background = `radial-gradient(${circle(top)}, #fff ${dFull.toFixed(1)}px, ${stops.join(", ")})`;
   const grain = glass.querySelector(".glass-surface__grain");
   place(grain, top);
-  // Grain fades out toward the pure white circle, so pure white stays grain free.
+  // Grain mờ dần về phía vòng tròn trắng tinh, nên trắng tinh không có grain.
   setMask(grain, `radial-gradient(${circle(top)}, transparent ${dFull.toFixed(1)}px, #000 ${((dFull + radius) / 2).toFixed(1)}px, `
     + `#000 ${radius}px, transparent ${radius + band}px)`);
 }

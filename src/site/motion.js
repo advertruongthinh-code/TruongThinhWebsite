@@ -1,6 +1,6 @@
-// The CSS loading ring keeps repainting under a loaded photo, so mark its frame settled.
+// Vòng loading CSS tiếp tục repaint dưới ảnh đã tải, nên đánh dấu frame của nó đã settle.
 (() => {
-  // The ring selector matches both <picture> and its wrapper.
+  // Selector của ring khớp cả <picture> và wrapper của nó.
   const settle = (image) => {
     const parent = image.parentElement;
     parent?.classList.add("is-media-settled");
@@ -464,7 +464,7 @@
       return;
     }
     header.classList.add("is-brand-color-reset");
-    // A style flush starts the fill transition from the reset color without forcing layout.
+    // Style flush bắt đầu transition fill từ màu reset mà không ép layout.
     void getComputedStyle(header).color;
     headerBrandColorFrame = window.requestAnimationFrame(() => {
       headerBrandColorFrame = undefined;
@@ -480,7 +480,7 @@
     cancelHeaderBrandColorFrames();
     header.classList.remove("is-brand-color", "is-brand-inverse");
     header.classList.add("is-brand-color-reset");
-    // A style flush starts the fill transition from the reset color without forcing layout.
+    // Style flush bắt đầu transition fill từ màu reset mà không ép layout.
     void getComputedStyle(header).color;
     headerBrandColorFrame = window.requestAnimationFrame(() => {
       headerBrandColorFrame = undefined;
@@ -558,13 +558,13 @@
     state.smoothScrollY = nextScroll;
     if (state.smoothScroll) {
       window.scrollTo(0, 0);
-      // Query navigation may replace a short detail with the much taller grid.
+      // Điều hướng bằng query có thể thay một detail ngắn bằng grid cao hơn nhiều.
       state.smoothScroll.update();
       state.smoothScroll.scrollTo(nextScroll, {
         duration: 0,
         disableLerp: true,
       });
-      // Locomotive 4.1.4 can defer a zero-duration scroll by one frame.
+      // Locomotive 4.1.4 có thể hoãn một scroll zero-duration thêm một frame.
       if (instant) state.smoothScroll.setScroll(0, nextScroll);
       state.smoothScroll.update();
     } else {
@@ -579,7 +579,7 @@
   viewportProbe.className = "site-viewport-metrics";
   viewportProbe.setAttribute("aria-hidden", "true");
   if (!viewportProbe.isConnected) document.body.append(viewportProbe);
-  // Resolve the native CSS viewport unit; visible metrics never own persistent geometry.
+  // Resolve đơn vị viewport CSS native; số đo hiển thị không bao giờ sở hữu geometry persistent.
   const getViewportMetrics = () => {
     const visible = window.visualViewport;
     return {
@@ -645,7 +645,7 @@
       smartphone: { smooth: false },
       tablet: { smooth: false, breakpoint: 981 },
     });
-    // Locomotive 4.1.4 omits the keyboard start timestamp and only flags stop().
+    // Locomotive 4.1.4 bỏ timestamp bắt đầu của keyboard và chỉ đặt flag cho stop().
     const smooth = state.smoothScroll;
     const core = smooth.scroll;
     if (core.scrollbarThumb) {
@@ -654,7 +654,7 @@
         window.cancelAnimationFrame(thumbMoveFrame);
         thumbMoveFrame = undefined;
       };
-      // Replace the unguarded vendor RAF at the instance boundary, keeping one input path.
+      // Thay RAF vendor không có guard tại ranh giới instance, giữ một đường input.
       window.removeEventListener("mousemove", core.moveScrollBar);
       core.moveScrollBar = (event) => {
         if (core.stop || !core.isDraggingScrollbar) return;
@@ -665,7 +665,7 @@
           const { clientY } = event;
           const { top } = core.scrollbarBCR;
           const y = clientY - top;
-          // The last reachable CSS pixel must reach the document limit.
+          // Pixel CSS cuối cùng với tới được phải chạm giới hạn document.
           core.instance.delta.y = Math.max(0, Math.min(core.instance.limit.y,
             y >= core.scrollbarHeight - 1 ? core.instance.limit.y
               : y / core.scrollbarHeight * core.instance.limit.y));
@@ -701,7 +701,7 @@
       };
       const start = smooth.start.bind(smooth);
       smooth.start = () => {
-        // Discard a thumb-move callback queued immediately before an overlay lock.
+        // Bỏ callback thumb-move được xếp hàng ngay trước overlay lock.
         core.instance.delta = { ...core.instance.scroll };
         start();
       };
@@ -778,7 +778,7 @@
     state.container
       .querySelectorAll(".hero-slide img[data-src]")
       .forEach((image) => {
-        // Build-time <picture> wrappers carry deferred variants as data-srcset.
+        // Wrapper <picture> build-time mang variant hoãn dưới dạng data-srcset.
         [image.previousElementSibling, image].forEach((node) => {
           if (!node?.dataset.srcset) return;
           node.srcset = node.dataset.srcset;
@@ -864,7 +864,7 @@
     clientLogoObserver?.observe(clientLogoTrack);
     if (!hasGsap || reduceMotion) {
       state.container.querySelector("[data-motion-toggle]")?.setAttribute("hidden", "");
-      // Follow a live preference change so CSS and runtime motion resume without a reload.
+      // Theo dõi thay đổi preference live để CSS và motion runtime tiếp tục mà không cần reload.
       const syncReducedPause = () =>
         document.body.classList.toggle(
           "motion-paused",
@@ -930,7 +930,7 @@
             })).chars
           : [...scrollCueLabel.textContent].flatMap((character, index) => {
               if (index === 0) scrollCueLabel.replaceChildren();
-              // Spaces stay plain text, matching SplitText's char split on the other routes.
+              // Khoảng trắng giữ dạng plain text, khớp char split của SplitText ở các route khác.
               if (/\s/.test(character)) {
                 scrollCueLabel.append(character);
                 return [];
@@ -1108,9 +1108,9 @@
       timelines.add(intro);
       const headerIntro = gsap.timeline({ defaults: { ease: "power4.out" }, paused: true });
       timelines.add(headerIntro);
-      // Direct loads play the header intro once the veil starts to uncover; soft navigation skips it.
+      // Direct load chạy intro header một lần khi veil bắt đầu lộ; soft navigation bỏ qua.
       if (!settledStartup && !softNavigation) {
-        // A collapse FLIP from the mount scroll would become the intro's end value and leave the logo scaled.
+        // FLIP collapse từ scroll lúc mount sẽ thành giá trị cuối của intro và để logo bị scale.
         gsap.killTweensOf(headerLogo, "x,y,scaleX,scaleY");
         gsap.set(headerLogo, { clearProps: "transform,transformOrigin" });
         headerIntro
@@ -1139,7 +1139,7 @@
           0.9,
         );
       }
-      // Start on the next frame so the mount's long task does not skip the intro's opening.
+      // Bắt đầu ở frame kế tiếp để long task của mount không làm mất phần mở đầu của intro.
       intro.pause();
       window.requestAnimationFrame(() => intro.play());
       if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
@@ -1494,7 +1494,7 @@
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
 
-    // Espacio fillText: 4rem down in 0.25rem steps until the copy box stops overflowing, 1.5rem minimum.
+    // Espacio fillText: 4rem giảm dần từng 0.25rem cho đến khi copy box hết overflow, tối thiểu 1.5rem.
     const legacyCopy = container.querySelector(".legacy-copy");
     const legacyTitle = legacyCopy?.querySelector("h2");
     if (legacyTitle) {
@@ -1770,7 +1770,7 @@
     updateToneRanges();
     updateHeader();
     setRouteVeil(0);
-    // An intro that never got to play would leave the header at its from() start values.
+    // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
   };
@@ -2373,7 +2373,7 @@
   });
 
   setLanguageFromDocument();
-  // The observer measures after the first layout; reading it here forced that layout inside this task.
+  // Observer đo sau layout đầu tiên; đọc nó ở đây từng ép layout đó chạy bên trong task này.
   if (typeof ResizeObserver === "undefined") measureDesktopNav();
   const directUrl = new URL(window.location.href);
   window.history.replaceState(
@@ -2440,7 +2440,7 @@
       href: destination.href,
     };
   }, { capture: true, signal: runtimeAbort.signal });
-  // Mount and Barba read layout; after the first frame that layout is already done, so this script stays a short task.
+  // Mount và Barba đọc layout; sau frame đầu tiên layout đó đã xong, nên script này vẫn là task ngắn.
   const afterFirstFrame = new Promise((resolve) => window.requestAnimationFrame(() => setTimeout(resolve)));
   if (enteredViaRoute) prepareRouteDestination(directContainer);
   const directMount = afterFirstFrame.then(() => mountPage(directContainer, {
@@ -2490,7 +2490,7 @@
 
   window.addEventListener("popstate", (event) => {
     const advertising = window.TruongThinhAdvertising;
-    // Back with the photo viewer open closes only the viewer (advertising-viewer-touch-zoom R10).
+    // Back khi photo viewer đang mở chỉ đóng viewer (advertising-viewer-touch-zoom R10).
     if (advertising?.handleViewerPopState?.()) {
       event.stopImmediatePropagation();
       return;
@@ -2498,7 +2498,7 @@
     const previousHref = advertising?.getCurrentHref?.() || window.barba?.history?.current?.url;
     const nextHref = window.location.href;
     if (!advertising?.canHandlePopState?.(previousHref, nextHref)) {
-      // Barba forces a native load for traversal during a running transition.
+      // Barba ép native load cho traversal trong lúc transition đang chạy.
       if (window.barba?.transitions?.isRunning
         && /^\/(?:vi|en)\/advertising-products\/?$/.test(location.pathname)) {
         event.stopImmediatePropagation();

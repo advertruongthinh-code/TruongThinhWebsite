@@ -150,7 +150,7 @@ export function normalizeAdvertisingSettings(settings) {
 export function fnv1a32(value) {
   let hash = 0x811c9dc5;
   const bytes = new TextEncoder().encode(value);
-  // Indexed loop: the iterator form costs ~25ms per mount on the A05s for the artifact hash.
+  // Vòng lặp theo chỉ số: dạng iterator tốn ~25ms mỗi mount trên A05s cho artifact hash.
   for (let index = 0; index < bytes.length; index += 1) {
     hash ^= bytes[index];
     hash = Math.imul(hash, 0x01000193) >>> 0;
@@ -284,9 +284,9 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
   const top = headerHeight + outer + safeTop;
   const belowPeek = 50;
   const span = Math.min(3, columns);
-  // Landscape keeps the image beside the info; portrait with every column taken stacks them.
+  // Landscape giữ ảnh bên cạnh info; portrait với mọi cột đã dùng thì xếp chồng chúng.
   const mode = span === columns && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
-  // Related cards sit below a full-width primary, so it has no row beside it to peek.
+  // Related card nằm dưới primary full-width, nên nó không có hàng bên cạnh để peek.
   const heightCap = viewportHeight - top - interCardGap - (span === columns ? 0 : belowPeek) - safeBottom;
   if (gridWidth <= 0 || cardWidth <= 0 || heightCap <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the available viewport");
@@ -577,7 +577,7 @@ function appendRhythmSide(tracker, side, index, edgeLists, log, changedIndices) 
     const oldDistance = oldEdge ? Math.abs(oldEdge.y - oppositeEdge.y) : Infinity;
     const better = newDistance < oldDistance ||
       (newDistance === oldDistance && (edge.y < oldEdge?.y || (edge.y === oldEdge?.y && edge.id.localeCompare(oldEdge?.id ?? "") < 0)));
-    // Edges append in ascending y. Once the new edge loses, it cannot be nearest to an earlier opposite edge.
+    // Edge append theo y tăng dần. Khi edge mới thua, nó không thể là gần nhất với một edge đối diện trước đó.
     if (!better) break;
     log.push({ side: 1 - side, index: oppositeIndex, oldNearest: oldIndex });
     setRhythmNearest(tracker, 1 - side, oppositeIndex, index, edgeLists, changedIndices);
@@ -656,7 +656,7 @@ function appendRhythms(state, occupied, cardWidth, previousMutableBrick, allowAl
       if (occupied.includes(boundary)) appendRhythmSide(tracker, 0, edgeLists[0].length - 1, edgeLists, log, changedIndices);
       if (occupied.includes(boundary + 1)) appendRhythmSide(tracker, 1, edgeLists[1].length - 1, edgeLists, log, changedIndices);
       logs.push({ tracker, edgeLists, log, finalizedCount: tracker.finalizedCount });
-      // Even the shortest future card cannot change a nearest edge behind this bound.
+      // Ngay cả card tương lai thấp nhất cũng không thể đổi một edge gần nhất phía sau cận này.
       const futureEdges = [boundary, boundary + 1].map((column) =>
         (state.columnBottoms[column] ? state.columnBottoms[column] + state.interCardGap : 0) + state.minimumMediaHeight + (kind === "card" ? state.captionPixelHeight : 0),
       );
@@ -715,7 +715,7 @@ function candidatePlacement(card, state, columns, cardWidth, gap, captionPixelHe
   return placements;
 }
 
-// Public photos have a fixed span; legacy controls cannot influence geometry or cache identity.
+// Photo public có span cố định; control legacy không thể ảnh hưởng geometry hoặc cache identity.
 export function compileAdvertisingProductLayout(options = {}) {
   const cards = Array.isArray(options.cards)
     ? options.cards.map((card) => ({ ...card, layoutSpan: 1 }))

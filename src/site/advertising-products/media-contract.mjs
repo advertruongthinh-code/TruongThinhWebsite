@@ -6,7 +6,7 @@ export const ADVERTISING_MEDIA_CATEGORY_COUNTS = Object.freeze({
   "led-displays-lightboxes": 18,
   "print-decals": 16,
 });
-// Baseline category counts remain available for fixtures and backward consumers; they are not a pool-size constraint.
+// Số đếm category baseline vẫn dùng được cho fixture và consumer cũ; chúng không phải ràng buộc kích thước pool.
 
 const isNonEmptyString = (value) => typeof value === "string" && value.length > 0;
 const isPositiveNumber = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;

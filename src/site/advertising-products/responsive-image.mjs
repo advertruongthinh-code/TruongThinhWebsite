@@ -1,7 +1,7 @@
-// Width variants written by scripts/site/build-image-variants.mjs next to each content WebP.
+// Các variant width do scripts/site/build-image-variants.mjs ghi cạnh mỗi WebP nội dung.
 const RESPONSIVE_WIDTHS = [480, 960];
 const AVIF_PROBE = "data:image/avif;base64,AAAAHGZ0eXBhdmlmAAAAAG1pZjFhdmlmbWlhZgAAANZtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABwaWN0AAAAAAAAAAAAAAAAAAAAACJpbG9jAAAAAERAAAEAAQAAAAAA+gABAAAAAAAAAB0AAAAjaWluZgAAAAAAAQAAABVpbmZlAgAAAAABAABhdjAxAAAAAA5waXRtAAAAAAABAAAAVmlwcnAAAAA4aXBjbwAAAAxhdjFDgSACAAAAABRpc3BlAAAAAAAAAAEAAAABAAAAEHBpeGkAAAAAAwgICAAAABZpcG1hAAAAAAAAAAEAAQOBAgMAAAAlbWRhdBIACgc4AAaQENBpMhAZQmMEwAA0AACQQMkcYIpq";
-// Images created before the probe settles keep WebP; the probe usually settles before the first card unveils.
+// Ảnh tạo trước khi probe xong giữ WebP; probe thường xong trước khi card đầu tiên unveil.
 let responsiveFormat = "webp";
 if (typeof Image === "function") {
   const probe = new Image();
