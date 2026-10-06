@@ -220,7 +220,7 @@ Then không có tràn ngang, chữ bị cắt hay header chồng tiêu đề
 
 `prefers-reduced-motion: reduce`: không veil, không smooth scroll, không FLIP lockup, màu header
 đổi ngay, menu không timeline, CSS rút animation và transition về 0,01ms, `scroll-behavior: auto`.
-Menu, route, đổi ngôn ngữ, scroll và history vẫn chạy đủ.
+Menu, route, đổi ngôn ngữ, scroll và history vẫn chạy đủ. Đổi preference khi trang mở: `motion-paused` theo ngay.
 
 ```gherkin
 Given trình duyệt bật reduced motion

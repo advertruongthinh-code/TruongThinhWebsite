@@ -87,6 +87,7 @@ Sau `pnpm prepare:site`, giữ `pnpm dev` tại 8787 và chạy
 | `advertising-suggestion-info.e2e.mjs` | Tag, bàn phím, history, phân trang mô tả khi text zoom |
 | `shared-header-bottom-p7-1.e2e.mjs` | Navbar không tự expand ở cuối trang VI/EN |
 | `shared-header-single-line.e2e.mjs` | Ẩn mục navbar khi không vừa một hàng |
+| `reduced-motion-live.e2e.mjs` | Đổi reduced motion khi trang mở thì motion-paused và skeleton theo ngay |
 
 Các suite có consumer release; không xóa. Gate hẹp không thay full-site parity.
 
