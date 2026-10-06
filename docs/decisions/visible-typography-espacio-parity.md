@@ -80,8 +80,6 @@ Plus Jakarta Sans tự host trong `/assets/vendor/`, không tải từ Google Fo
 - Header breakpoint `751–960px` giữ một hàng, nav ẩn khi thiếu chỗ
   ([shell R2](../specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop));
   typography và tọa độ vẫn bất biến giữa expanded/sticky.
-- Canonical parity tổng vẫn `NOT PASS`; focused typography không thay thế full
-  current-hash runner.
 
 ## Lịch sử
 

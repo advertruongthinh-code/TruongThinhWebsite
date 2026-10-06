@@ -78,12 +78,12 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ src/site/                        # LIVE: HTML/CSS/JS, media public, catalog
 ├─ src/worker/                      # DORMANT: route/SEO/API/CMS
 ├─ src/admin/, src/db/migrations/   # DEV: CMS shell và schema
-├─ scripts/                         # site build, media, reference crawler, tooling
+├─ scripts/                         # site build, media, tooling
 ├─ tests/                           # QA trong GitHub; tests/reports/ GENERATED
 ├─ docs/                            # STATE, index, goal, architecture.md, terminology,
 │                                   # specs, decisions, operations, reference
 ├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
-├─ research/reference-site/         # RESEARCH: crawl và runtime evidence local
+├─ research/reference-site/         # RESEARCH: archive cũ local, ngoài Git
 ├─ tasks/                           # plan/checklist đang mở, xóa khi xong; không thay Notion status
 ├─ design-system/                   # Design System: tokens.json, README; publish lên claude.ai
 ├─ PRODUCT.md, DESIGN.md, CHANGELOG.md, .impeccable/ # DESIGN.md, design.json GENERATED từ design-system/
@@ -99,18 +99,6 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 Source, config, test và Markdown đã chấp nhận cần Git quản lý; raw evidence,
 build output, research archive và cache nằm ngoài Git index. Rule edit,
 untracked và commit ở [`AGENTS.md`](AGENTS.md#routing-theo-path).
-
-## Reference research
-
-Crawler là generic có chủ đích và cần origin explicit:
-
-```powershell
-node scripts/reference/archive-reference.mjs --origin <url>
-```
-
-Source và media được generate ở `research/reference-site/archive/`, bị Git ignore
-và không được production website load. Không commit proprietary source, media,
-logo hoặc identifying reference-site URL.
 
 ## CMS phase
 

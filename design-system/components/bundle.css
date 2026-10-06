@@ -5032,6 +5032,14 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
+/* The primary Kính blurs this static photo with filter, not backdrop-filter: Chrome snapshots a backdrop per raster
+   tile when it re-rasters the page (tab hover thumbnail), clamps the blur at the tile edge and keeps the seam until
+   a full repaint. Same numbers as .glass-surface__step--full; the Kính above it keeps only tint and grain. */
+.advertising-photo-view__hero [data-advertising-photo-background],
+.advertising-photo-view__outgoing-background {
+  filter: blur(28px) saturate(1.7) brightness(1.04);
+}
+
 
 
 

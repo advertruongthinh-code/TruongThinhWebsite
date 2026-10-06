@@ -1077,7 +1077,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
   // Even Kính over the cover backdrop; CSS shows it only when the contained photo leaves room around it.
-  const photoGlass = createGlassSurface("even");
+  // No blur step: the backdrop photo carries the blur itself (detail.css), so a tile seam cannot show.
+  const photoGlass = createGlassSurface("even", 0);
   photoBackground?.after(photoGlass);
   const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
   const photoDescription = photoView?.querySelector("[data-advertising-photo-description]");
@@ -1302,6 +1303,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let lastLayoutViewportWidth = 0;
   let lastGeometrySignature = "";
   let gridPixelHeight = 0;
+  let announcedPageHeight = -1;
   let ctaGeometryHash = "";
   let lastCtaViewportHeight = 0;
   let ctaCopyKey = "";
@@ -2191,7 +2193,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         motionTimer = setTimeout(settleMotion, 400);
       }
       window.lazySizes?.loader?.checkElems?.();
-      window.dispatchEvent(new CustomEvent("site:layout"));
+      // site:layout runs Locomotive update(), which mid-scroll makes the page skip ahead a step; cards swapped by
+      // virtualization keep the page height, so only a new height announces a layout (scroll-feel R1).
+      const pageHeight = (grid.closest("[data-scroll-container]") || document.documentElement).offsetHeight;
+      if (pageHeight !== announcedPageHeight) {
+        announcedPageHeight = pageHeight;
+        window.dispatchEvent(new CustomEvent("site:layout"));
+      }
     };
     if (seeded.size && animate && !reduced) {
       void grid.offsetHeight;

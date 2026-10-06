@@ -90,7 +90,7 @@ Ràng buộc public:
 - Dùng data và block composition của source hiện có; không tạo component API, route CMS hoặc claim sản phẩm chưa có bằng chứng.
 - Filter, grid, gallery, route link, CTA và back-to-top phải có keyboard và touch path; locale phải giữ qua reload.
 - Nội dung, title, description, alt và aria khác ngôn ngữ phải có cặp VI/EN ở leaf node.
-- Espacio/R1 cung cấp measured baseline cho layout, câu chuyện, motion và alignment 1:1 theo accepted spec; không sao chép source, media hoặc nội dung, và exact revision hoặc cutoff chưa được khóa.
+- Espacio chỉ là nguồn tham khảo cho layout, câu chuyện và motion; giá trị đã dùng nằm trong Design System, không so khớp 1:1 và không là gate phát hành (owner, 2026-10-06). Không sao chép source, media hoặc nội dung.
 - Admin và Worker là dormant/dev; không trình bày primitive của chúng như public design system.
 
 ## Brand Commitments
@@ -122,7 +122,7 @@ Trạng thái bằng chứng:
 - **Đã xác nhận:** route locale, sáu Advertising slug, địa chỉ, mark geometry, lockup, ngoại lệ favicon và asset đội ngũ.
 - **Quan sát từ source:** public runtime tĩnh, token CSS, shared advertising catalog, sáu trang chuyển hướng category cũ, trạng thái CMYK chuyển động và các hook accessibility.
 - **Có test contract:** layout/lifecycle/media/static Advertising và browser checks trong `tests/site/`; dynamic audit đầy đủ chưa chạy trong task tài liệu này.
-- **Chưa xác minh:** URL hoặc số Zalo thật, năm thành lập chính xác, chính sách hoặc thời hạn bảo hành, và parity runtime với reference.
+- **Chưa xác minh:** URL hoặc số Zalo thật, năm thành lập chính xác, chính sách hoặc thời hạn bảo hành.
 
 ## Product Principles
 

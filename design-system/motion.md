@@ -31,8 +31,8 @@ Motion owner đã duyệt nhưng chưa có code nằm ở
 | Đổi tone header | Chữ nav và nét hamburger đổi màu cùng lúc `0.3s expo.out` theo `data-header-tone` của section dưới header |
 | Header ẩn/hiện | Chỉ trong vùng giữa `0.5 × viewportHeight < scrollY < pageHeight - 1.25 × viewportHeight`: đi xuống quá 150px thì ẩn, đi lên quá 150px thì hiện. Ngoài vùng hiện ngay |
 | Pointer reveal | Chuột (hover thật) có `mousemove.screenY <= 350` thì hiện header đang ẩn; touch và pen không giả hover |
-| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; body có `is-transitioning` trong lúc chuyển |
-| Vào thẳng trang | F5, gõ link, mở link từ ứng dụng khác, Back/Forward không qua bfcache: veil phủ trang từ khung hình đầu, header intro chạy cùng lúc; trang dựng xong thì uncover `1s power4.inOut` rồi entrance của trang chạy tiếp. Mạng chậm giữ veil tới khi trang dựng xong; script motion lỗi thì gỡ veil ngay, không motion. Back từ bfcache và reduced motion không có veil |
+| Route veil | Lớp trắng toàn màn hình `z-index 999` (header 1000, trừ lúc vào thẳng trang). Cover `0.75s power4.inOut`, uncover `1s power4.inOut`; header bỏ `is-hidden` khi bắt đầu chuyển route; body có `is-transitioning` trong lúc chuyển |
+| Vào thẳng trang | F5, gõ link, mở link từ ứng dụng khác, Back/Forward không qua bfcache: veil phủ cả trang lẫn header từ khung hình đầu; trang dựng xong thì uncover `1s power4.inOut`, header intro chạy khi veil tan và kết thúc đúng trạng thái theo vị trí cuộn (quá 100px thì thu gọn), entrance của trang chạy tiếp. Mạng chậm giữ veil tới khi trang dựng xong; script motion lỗi thì gỡ veil ngay, không motion. Back từ bfcache và reduced motion không có veil |
 | Route từ full menu | Menu reverse và route cover chạy đồng thời; URL chỉ commit khi cả hai xong |
 | Underline nav, footer, menu | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover hoặc đang chọn neo trái; mục Advertising ở trang detail không gạch chân khi nghỉ |
 | Hamburger, nút đóng menu | Hover `0.3s ease-out`: hamburger dòng trên, dưới `scaleX(.5)`, dòng giữa `scaleX(2)`; nút đóng xoay hai nét 90°; nhấn `scale(.8)` |
@@ -157,19 +157,20 @@ outline. Touch không cần hover để mở ảnh.
 
 ### Ảnh trong card
 
-- Chỉ ảnh foreground fade `opacity 0 → 1`, `0.6s ease-out`; khung card, link,
-  caption luôn hiện.
-- Ảnh chưa tải xong `150ms` sau khi card vào viewport thì khung media mang
-  [skeleton](components/Skeleton/README.md) cuối masonry (Flow, 12 preset chọn
-  theo media id, hiện `600ms`). Ảnh giải mã xong thì skeleton mờ đi, ảnh hiện
-  lên: crossfade `0.3s` đến `0.9s` trong nhịp `1.4s`,
-  `cubic-bezier(0.65, 0, 0.35, 1)`. [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải)
-  năm bậc phủ khung trong lúc đó: hiện `0` đến `0.6s`
-  `cubic-bezier(0, 0, 0.26, 1)`, tan `0.6s` đến `1.4s`
-  `cubic-bezier(0.86, 0, 0.07, 1)`, chỉ opacity.
-- Ảnh tải xong trong `150ms` không có skeleton, chỉ fade `0.6s`. Card rời
-  viewport hoàn toàn (`intersectionRatio = 0`) thì lần vào sau fade lại, kể cả
-  ảnh đã cache; card còn giao một phần thì không restart.
+Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị trí
+(mục trên) và ảnh hiện (mục này).
+
+- Mỗi lần card vào viewport, ảnh hiện dưới
+  [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) năm bậc cùng
+  một nhịp `0.6s`, chỉ opacity: kính hiện `0` đến `0.26s`
+  `cubic-bezier(0, 0, 0.26, 1)`; lớp dưới mờ đi, ảnh hiện lên `0.13s` đến
+  `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`; kính tan `0.26s` đến `0.6s`
+  `cubic-bezier(0.86, 0, 0.07, 1)`. Khung card, link luôn hiện.
+- Ảnh chưa giải mã khi card vào viewport: khung media mang ngay
+  [skeleton](components/Skeleton/README.md) cuối masonry (Flow chạy cả khi
+  đang cuộn), lớp dưới là skeleton. Ảnh đã có (cache, tải trước, hoặc vào lại
+  sau khi rời hẳn viewport với `intersectionRatio = 0`): lớp dưới là khung
+  trống. Card còn giao một phần viewport thì không chạy lại.
 - Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong, không kính.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 
@@ -178,15 +179,18 @@ outline. Touch không cần hover để mở ảnh.
 - Frame rỗng nối từ đáy ảnh thật mỗi cột, cùng gutter, xếp tới đáy batch ngay
   trên footer; CTA nằm trong batch.
 - Mặt frame là Flow: gradient bốn màu chảy và xoáy chậm, có noise mịn, vẽ
-  bằng WebGL. Mỗi lần trang ổn định (tải, đổi filter, mở đóng detail,
-  Back/Forward) 12 preset màu được xáo và chia cho các frame, không frame nào
-  trùng preset; mỗi frame lệch anchor, pha và chiều chảy. Resize giữ nguyên.
+  bằng WebGL. Mỗi frame (batch và skeleton chờ ảnh) bốc preset trong 12, hoán
+  vị anchor, chiều chảy, pha liên tục và tốc độ lệch tối đa 10% lúc vào
+  viewport, tránh preset của frame kề; buộc trùng thì pha lệch ít nhất một
+  phần tư vòng. Giữ màu tới khi trang ổn định lại (tải, đổi filter, mở đóng
+  detail, Back/Forward); cuộn và resize không đổi màu.
   Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
-- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, mỗi frame tự hiện khi
-  giao vùng nhìn thấy, không stagger; rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer,
-  không focus.
+- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, Flow chạy ngay từ đầu
+  kể cả khi đang cuộn; mỗi frame tự hiện khi giao vùng nhìn thấy, không stagger;
+  rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer, không focus.
+  Frame chưa có WebGL context hiện một khung hình Flow đứng yên của chính nó.
 - Cuối batch là [Kính](components/Glass/README.md) dạng cung, đứng yên: card
   phía trên nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối. CTA và
   footer nằm trên kính.

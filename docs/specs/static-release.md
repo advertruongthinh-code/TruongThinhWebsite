@@ -280,8 +280,6 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
   `/vi/`, trả 404 hay giữ?]
 - [Quyết định demo](../decisions/cloudflare-workers-static-demo.md) ghi Wrangler pin trong `tooling-versions.json`;
   code pin `wrangler@4.124.0` trong script `demo:wrangler`. Owner chọn sửa ADR hay chuyển pin.
-- Parity Espacio (`run-layout-motion-parity.mjs`, output `.tmp/reports/`) lần chạy cuối còn fail, blocked, 864 candidate
-  chưa map. [CẦN LÀM RÕ: parity Espacio còn là gate phát hành khi Design System chỉ mô tả Trường Thịnh?] Owner.
 
 ## Chú thích thuật ngữ
 

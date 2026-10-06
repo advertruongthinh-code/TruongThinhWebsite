@@ -134,7 +134,8 @@ mount không xong thì gỡ ngay; mount lỗi thì trang khác Advertising tải
 `window.__ttMotionBoot`: `motion.js` gọi `claim()`, `release()` sau hai khung; script lỗi hoặc chưa
 claim tại `DOMContentLoaded` thì `fail()`: thêm `motion-fallback`, bỏ `route-enter`, mount nội dung
 settled, nối menu mở, đóng, Escape tối thiểu; CSS fallback ẩn veil, hiện header, nội dung, reveal.
-Mount xong thì veil mờ như chuyển trang (`playRouteEnter`) rồi entrance chạy; intro header chạy dưới veil.
+Veil che cả header từ khung đầu; mount xong veil mờ như chuyển trang (`playRouteEnter`), rồi intro header chạy một lần,
+kết thúc đúng trạng thái theo vị trí cuộn (quá 100px là `is-collapsed`, R2), cùng entrance. Route mềm giữ header trên veil.
 Mạng chậm giữ veil tới khi mount xong, không mốc thời gian từ `<head>`. Trang từ bfcache: đóng menu, gỡ veil.
 
 ```gherkin
@@ -273,8 +274,8 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
   mềm, locale replay, menu đã xanh trong `site.e2e.cjs` toàn site. Còn đỏ: geometry 320–1440px
   ("controls overlap", collapsed geometry), scroll direction (hover timeout); chưa rõ test cũ hay lỗi
   code (suy luận). Main.
-- Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả trên
-  reference live, visual landscape chồng lớp. Owner và máy PC.
+- Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả,
+  visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R5
   ([Brand](../../design-system/brand.md#logo)) chờ owner nghiệm thu visual.
 - V01 AC2, V03 AC2: A05s đạt bàn phím phần cứng 05/10 (control viewer, menu, toolbar mở và thu,
@@ -282,7 +283,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
   AC2 đạt trên A05s. V-A thiếu source snapshot đúng thời điểm; owner hoặc main chấp nhận sai lệch.
 - Layout L00–L07 xong 05/10 trên `6c2e321`: 660 ca và mọi scope ba engine cùng commit, A05s dọc
   và ngang, 0 lỗi; manifest ở PR của L07. Main sau đó có thêm #96–#108, chưa chạy lại toàn bộ.
-  Còn iPhone, A54, reference, MCP, owner visual.
+  Còn iPhone, A54, MCP, owner visual.
 - Main: chưa kiểm trình duyệt không hỗ trợ `svh`, iPhone Safari thật cho toàn shell, test paint và
   hit-test thứ tự lớp R1; MCP DevTools UI navigate layer blocked.
 - button-content-parity: chữ, icon trong nút lệch giữa iPhone và Android (owner, 27/09); chưa có

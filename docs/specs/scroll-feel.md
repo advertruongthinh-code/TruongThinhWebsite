@@ -25,6 +25,7 @@ Trang chủ, Residential, Commercial, About, Advertising, Advertising lọc theo
 cũ `/advertising-products/<nhóm>/`) và detail ảnh (`?photo=<id>`) dùng đúng một cấu hình cuộn: Locomotive từ 981px, scroll native dưới 981px, khi giảm chuyển
 động hoặc khi menu mở ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)). Không trang nào có cấu hình
 riêng (`lerp`, `multiplier`, breakpoint). Cùng một lượt lăn chuột cho cùng quãng đường và cùng đường trượt trên mọi trang.
+Trong lúc trượt không có frame nào nhảy vượt hai frame kề bên; chỉ khi chiều cao trang đổi mới gọi Locomotive tính lại.
 
 ```gherkin
 Given cửa sổ PC rộng từ 981px, không giảm chuyển động
@@ -134,15 +135,10 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `tests/site/scroll-feel.e2e.mjs` (trang chủ, ba trang con, Advertising, lọc nhóm ở 1440px) |
+| R1 | `tests/site/scroll-feel.e2e.mjs` (trang chủ, ba trang con, Advertising, lọc nhóm ở 1440px; 40 nấc lăn không frame nào nhảy) |
 | R2 | `pnpm qa:scroll-trace -- --headed --trace` trên PC của owner (`CHROME_CHANNEL=chrome`); trên cloud chỉ là mốc tương đối |
 | R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
 | R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
-
-## Gate còn mở
-
-- R2: trace PC 2026-10-06 (sau khi Flow chờ cuộn dừng): không task nào trên 50ms; frame rớt Advertising và detail ảnh
-  0,3% so với trang chủ 0,2% (1 đến 3 frame, phía GPU), lọc nhóm 0%. Còn owner cuộn thử sau deploy batch.
 
 ## Chú thích thuật ngữ
 
@@ -152,4 +148,5 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 - **Frame rớt**: frame trình duyệt không vẽ kịp trong nhịp màn hình, mắt thấy là khựng.
 - **Task trên 50ms**: việc chặn luồng chính đủ lâu để cuộn và nhập liệu bị trễ.
 - **Route con**: Advertising lọc nhóm `?category=<nhóm>` và detail ảnh `?photo=<id>`.
+- **Frame nhảy**: frame trượt xa hơn 1,3 lần cả hai frame kề bên, mắt thấy là giật tốc độ.
 - **Lộ mép**: khoảng trống hiện ra ở mép section khi lớp ảnh trôi lệch khỏi khung.
