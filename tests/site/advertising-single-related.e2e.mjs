@@ -13,7 +13,7 @@ try {
     await page.goto(`http://127.0.0.1:8787/${locale}/advertising-products/?category=signage-raised-letters&photo=${hero}&tag=${tag}`, { waitUntil: "domcontentloaded" });
     const button = page.locator(`[data-advertising-suggestion-tag="${tag}"]`);
     await button.waitFor();
-    // Direct loads keep the route veil over the page until mount; a click before then makes Playwright scroll to retry.
+    // Direct load giữ route veil phủ trang cho đến khi mount; click trước đó khiến Playwright cuộn để thử lại.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
     await page.waitForTimeout(600);
     const snapshot = () => page.evaluate(() => {

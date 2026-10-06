@@ -89,7 +89,7 @@ async function runSecurityContract() {
       DB: { prepare: () => ({ bind: () => ({ first: async () => null }) }) },
     });
     assert(missingPage.status === 404, `missing published page returned ${missingPage.status}`);
-    // Runtime SSR is covered by runPublicContract against Wrangler, which provides HTMLRewriter.
+    // Runtime SSR được runPublicContract bao phủ trên Wrangler, vốn cung cấp HTMLRewriter.
 
     const token = await accessToken(pair.privateKey, "admin@example.test");
     const headers = {

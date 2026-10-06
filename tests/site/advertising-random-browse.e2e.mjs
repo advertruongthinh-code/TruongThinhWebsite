@@ -12,7 +12,7 @@ const results = [], errors = [];
 const ready = async page => {
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.() && window.TruongThinhAdvertising.getBrowseState().seed);
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
-  // The direct-load veil covers the page and its header until the page has mounted.
+  // Direct-load veil phủ trang và header cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
 };
 const read = page => page.evaluate(() => ({
@@ -99,7 +99,7 @@ try {
   await page.reload({ waitUntil: "networkidle" }); await ready(page);
   assert.notEqual((await read(page)).browse.seed, beforeReload.browse.seed);
   results.push({ case: "reload", seed: (await read(page)).browse.seed });
-  // Blocking the shell script exercises the real HTML native-language fallback.
+  // Chặn shell script để chạy fallback native-language của HTML thật.
   const nativePage = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
   let blockedMotion = 0, nativeRequests = 0;
   nativePage.on("request", request => { if (request.isNavigationRequest() && request.frame() === nativePage.mainFrame()) nativeRequests++; });
@@ -173,7 +173,7 @@ try {
   }
   await page.goto(base + "/en/advertising-products/", { waitUntil: "networkidle" }); await ready(page);
   assert.notEqual((await read(page)).browse.seed, seedBeforeFallback, "ordinary direct URL starts a new visit");
-  // Expected fetch failure above is recorded separately; never hide WebGL errors.
+  // Fetch failure mong đợi ở trên được ghi riêng; không bao giờ giấu lỗi WebGL.
   const unexpected = errors.filter(error => !error.includes("net::ERR_FAILED"));
   assert.deepEqual(unexpected, [], "no runtime/renderer errors");
   await page.screenshot({ path: output + "/random-grid.png", fullPage: false });

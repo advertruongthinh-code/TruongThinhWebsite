@@ -120,7 +120,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await fs.writeFile(output + "/" + engine + "-height.json", JSON.stringify(changed, null, 2));
       assert.equal(current.width, previousHeight.width, "height-only probe retains layout width");
       assert.equal(current.coordinateHash, previousHeight.coordinateHash, "height-only probe retains real grid geometry");
-      // A tail shorter than a quarter card merges into the frame above it (skeleton spec).
+      // Phần đuôi ngắn hơn một phần tư card gộp vào frame phía trên (spec skeleton).
       const mergedAbove = sample => {
         const [column, index] = sample.slot.split(":");
         return current.samples.some(other => other.slot === `${column}:${index - 1}`);
@@ -133,7 +133,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.ok(visiblePairs.length, "height-only probe has common visible pairs");
       for (const sample of common) {
         const old = previousHeight.samples.find(entry => entry.slot === sample.slot);
-        // A frame draws on first entry; once drawn it keeps the draw.
+        // Frame draw ở lần vào đầu tiên; đã draw thì giữ nguyên draw.
         if (old.assignment[1]) assert.deepEqual(sample.assignment, old.assignment, "common slot assignment remains stable");
         if (sample.visible && old.visible) assert.equal(sample.opacity, old.opacity, "common visible slot must not replay entry");
       }
@@ -149,7 +149,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     const portraitLedger = await ledger();
     assert.ok(portraitLedger.live <= 2 && portraitLedger.peak <= 2, "phone budget applies during allocation transitions");
     await page.evaluate(() => window.__observeFlowNativeEvents());
-    // Width/orientation changes keep common slots; extra slots still follow geometry.
+    // Đổi width/orientation giữ các slot chung; slot thừa vẫn theo geometry.
     await page.setViewportSize({ width: 838, height: 390 }); await page.waitForTimeout(800);
     const orientation = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")].map(node => ({
       slot: node.dataset.advertisingCtaSlot, common: window.__lifecycleFrames.has(node.dataset.advertisingCtaSlot),
@@ -188,7 +188,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       && window.__lossRecord.canvas.dataset.advertisingFlowBackend === "webgl");
     assert.equal(await page.evaluate(() => window.__lossOuter === document.querySelector('[data-advertising-cta-slot="' + window.__lossSlot + '"]')), true);
     assert.ok(await page.evaluate(() => window.__lossRecord.generation >= 2), "restored resource generation is new");
-    // Separate full exit from toolbar/RO reconciliation; reveal must arm only after true exit.
+    // Tách full exit khỏi đối soát toolbar/RO; reveal chỉ arm sau khi thật sự exit.
     await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(250);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame].is-entry-ready").length), 0);
     await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
@@ -197,7 +197,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.emulateMedia({ reducedMotion: "reduce" }); await page.waitForTimeout(250);
     assert.equal((await ledger()).running, 0, "reduced motion has zero running Flow");
     await page.emulateMedia({ reducedMotion: "no-preference" }); await page.waitForTimeout(800);
-    // Lost idle contexts occupy budget until their native restoration event.
+    // Context idle bị mất chiếm budget cho đến khi có restoration event native.
     await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
     await page.waitForFunction(() => window.__flowLedger.records.every(record => !record.canvas?.isConnected));
     await page.evaluate(() => {
@@ -233,7 +233,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     });
     const cycles = [];
     for (let cycle = 0; cycle < 20; cycle++) {
-      // Real route/filter inputs, plus viewport geometry changes; no controller remount override.
+      // Input route/filter thật, cộng thay đổi geometry viewport; không có override remount controller.
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       await page.waitForFunction(() => window.scrollY === 0);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -252,7 +252,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     const finalLedger = await ledger();
     assert.ok(finalLedger.live <= settled.live, "settled live contexts do not accumulate");
     assert.ok(finalLedger.allocations <= 2, "phone native allocations plateau at two leased or idle contexts");
-    // Barba route exit disposes leases, while the document-owned cache survives.
+    // Barba route exit giải phóng lease, trong khi cache thuộc document vẫn còn.
     const softEntry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
     await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
     await page.waitForFunction(() => scrollY === 0 && document.querySelector('#header-logo').getBoundingClientRect().top >= 0);

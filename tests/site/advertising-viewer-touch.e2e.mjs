@@ -1,10 +1,10 @@
-// Viewer gestures in Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R10): pinch, rubber band,
-// one/two finger hand-off, double tap, stops for buttons, reduced motion, double tap to open, hidden buttons,
-// swipe to close, Back closes. Backdrop swipe and tap (L06) stay in
-// advertising-photo-transitions.e2e.mjs. Touch goes through CDP so the
-// browser's own touch-to-pointer path runs. DEVICE_CDP (http://127.0.0.1:9222 after `adb forward tcp:9222
-// localabstract:chrome_devtools_remote`, with `adb reverse tcp:8787 tcp:8787`) drives a real phone's Chrome instead,
-// in whatever orientation the phone is held.
+// Gesture của viewer trong Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R10): pinch, rubber band,
+// hand-off một/hai ngón, double tap, điểm dừng cho nút, reduced motion, double tap để mở, nút ẩn,
+// swipe để đóng, Back đóng. Swipe và tap trên backdrop (L06) nằm ở
+// advertising-photo-transitions.e2e.mjs. Touch đi qua CDP để đường
+// touch-to-pointer của chính browser chạy. DEVICE_CDP (http://127.0.0.1:9222 sau `adb forward tcp:9222
+// localabstract:chrome_devtools_remote`, kèm `adb reverse tcp:8787 tcp:8787`) điều khiển Chrome của điện thoại thật,
+// theo hướng nào điện thoại đang cầm.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -50,7 +50,7 @@ const limits = (state, scale = state.scale) => ({
   y: Math.max(0, (state.fitH * scale - state.vh) / 2),
 });
 
-// The image point under `from` (before) must sit under `to` (after) on every axis the pan limit did not clamp.
+// Điểm ảnh dưới `from` (trước) phải nằm dưới `to` (sau) trên mọi trục mà pan limit không kẹp.
 function checkAnchor(before, after, from, to, label) {
   const bound = limits(after);
   for (const [axis, centre, pan] of [["x", "cx", "x"], ["y", "cy", "y"]]) {
@@ -62,8 +62,8 @@ function checkAnchor(before, after, from, to, label) {
   }
 }
 
-// A phone page and its CDP session. On a real phone each run gets a fresh tab on the phone's own screen:
-// emulating another size there misplaces touches, and reloading a zoomed tab restores its page zoom.
+// Một trang phone và CDP session của nó. Trên điện thoại thật mỗi lần chạy lấy một tab mới trên màn hình riêng của máy:
+// giả lập kích thước khác ở đó làm lệch touch, và reload tab đang zoom sẽ khôi phục page zoom.
 async function phonePage({ width, height, reducedMotion = "no-preference" }) {
   const context = device ? browser.contexts()[0]
     : await browser.newContext({ viewport: { width, height }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
@@ -72,7 +72,7 @@ async function phonePage({ width, height, reducedMotion = "no-preference" }) {
   return { page, cdp: await context.newCDPSession(page), close: () => (device ? page.close() : context.close()) };
 }
 
-// The image moved by (dx, dy) on every axis the pan limit leaves free.
+// Ảnh dịch (dx, dy) trên mọi trục mà pan limit để tự do.
 function checkMoved(before, after, dx, dy, label) {
   const bound = limits(after);
   for (const [axis, delta] of [["x", dx], ["y", dy]]) {
@@ -82,7 +82,7 @@ function checkMoved(before, after, dx, dy, label) {
   }
 }
 
-// R7: touch screens open the viewer with a double tap on the primary photo.
+// R7: màn cảm ứng mở viewer bằng double tap trên primary photo.
 async function openViewer(page, touch) {
   const point = await (await page.waitForFunction(() => {
     const image = document.querySelector("[data-advertising-photo-image]");
@@ -96,10 +96,10 @@ async function openViewer(page, touch) {
   await settled(page);
 }
 
-// R8: on touch screens the buttons are out of sight but still clickable by assistive tech.
+// R8: trên màn cảm ứng nút nằm ngoài tầm nhìn nhưng assistive tech vẫn click được.
 const press = (page, hook) => page.evaluate((selector) => document.querySelector(selector).click(), `[${hook}]`);
 
-// Reset is disabled at Fit, so click it only when there is something to reset.
+// Reset bị disable ở Fit, nên chỉ click khi có gì để reset.
 async function resetZoom(page) {
   await page.evaluate(() => {
     const reset = document.querySelector("[data-advertising-photo-zoom-reset]");
@@ -114,14 +114,14 @@ const settled = (page) => page.waitForFunction(() => {
     && document.querySelector("[data-advertising-photo-expanded-image]").getAnimations().length === 0;
 });
 
-// Pointer events from CDP touches land on the next frames, so each send waits two frames before returning.
+// Pointer event từ CDP touch tới ở các frame kế tiếp, nên mỗi lần gửi chờ hai frame rồi mới trả về.
 function touchDriver(page, cdp) {
   const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const send = async (type, touchPoints) => {
     await cdp.send("Input.dispatchTouchEvent", { type, touchPoints });
     await frames();
   };
-  // A page zoomed by an earlier gesture moves every later touch, so stop at the first one.
+  // Trang bị zoom bởi gesture trước làm lệch mọi touch sau, nên dừng ở lần đầu tiên.
   const unzoomed = async (what) => {
     const scale = await page.evaluate(() => visualViewport.scale);
     if (scale !== 1) throw new Error(`page zoomed to ${scale} before ${what}`);
@@ -133,7 +133,7 @@ function touchDriver(page, cdp) {
   return {
     send,
     pair,
-    // Two fingers spread from `from` to `to` px apart around `centre`, released unless `hold`.
+    // Hai ngón tay giãn từ `from` đến `to` px quanh `centre`, thả ra trừ khi `hold`.
     async pinch(centre, from, to, { hold = false, steps = 8 } = {}) {
       await unzoomed("a pinch");
       await send("touchStart", [pair(centre, from)[0]]);
@@ -141,7 +141,7 @@ function touchDriver(page, cdp) {
       for (let step = 1; step <= steps; step += 1) await send("touchMove", pair(centre, from + (to - from) * step / steps));
       if (!hold) await send("touchEnd", []);
     },
-    // Like Playwright's own tap, wait until the element takes the hit: the route veil covers it first.
+    // Như tap của Playwright, chờ đến khi element nhận hit: route veil che nó trước.
     async tap(locator) {
       const point = await (await page.waitForFunction((node) => {
         const box = node.getBoundingClientRect();
@@ -152,7 +152,7 @@ function touchDriver(page, cdp) {
       await send("touchStart", [{ ...point, id: 1 }]);
       await send("touchEnd", []);
     },
-    // Sent back to back: over adb, a frame wait per event would stretch the taps past the 300ms window.
+    // Gửi liên tiếp: qua adb, chờ frame cho mỗi event sẽ kéo giãn các tap vượt cửa sổ 300ms.
     async doubleTap(point) {
       await unzoomed("a double tap");
       for (let tap = 0; tap < 2; tap += 1) {
@@ -174,19 +174,19 @@ async function runPhone({ locale, width, height }) {
   const state = () => page.evaluate(readState);
   const start = await state();
   const label = `${locale} ${start.vw}x${start.vh}`;
-  // R7, R8: no visible button on the primary or in the viewer, and the page did not zoom on the double tap.
+  // R7, R8: không có nút hiển thị trên primary hay trong viewer, và trang không zoom khi double tap.
   const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out", "zoom-reset"]
     .filter((hook) => document.querySelector(`[data-advertising-photo-${hook}]`).getBoundingClientRect().width > 1));
   check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
   const centre = { x: start.cx + 24, y: start.cy + 18 };
 
-  // R1 + R5: pinch 100 -> 200px gives s = 2 under the fingers; status waits for the release.
+  // R1 + R5: pinch 100 -> 200px cho s = 2 dưới các ngón; status chờ đến khi thả.
   await touch.pinch(centre, 100, 200, { hold: true });
   const holding = await state();
   check(near(holding.scale, 2), `${label} R1: pinch 100->200 gave scale ${holding.scale}`);
   check(holding.status === start.status, `${label} R5: status changed mid-pinch (${holding.status})`);
   checkAnchor(start, holding, centre, centre, `${label} R1`);
-  // R1: a third finger on the image neither pans nor ends the pinch.
+  // R1: ngón thứ ba trên ảnh không pan cũng không kết thúc pinch.
   const third = { x: centre.x, y: centre.y + 40, id: 3 };
   await touch.send("touchStart", [...touch.pair(centre, 200), third]);
   await touch.send("touchMove", [...touch.pair(centre, 200), { ...third, x: third.x + 30 }]);
@@ -203,7 +203,7 @@ async function runPhone({ locale, width, height }) {
   check(pinched.open && pinched.scroll === start.scroll && pinched.pageZoom === 1,
     `${label} R1: dialog closed, page scrolled or page zoomed`);
 
-  // R5: between Fit and Cover, + goes to Cover and - back to Fit.
+  // R5: giữa Fit và Cover, + sang Cover và - về Fit.
   await resetZoom(page);
   await touch.pinch(centre, 100, 50 * (1 + start.cover));
   await settled(page);
@@ -217,12 +217,12 @@ async function runPhone({ locale, width, height }) {
   const fitAgain = await state();
   check(near(fitAgain.scale, 1) && fitAgain.minusDisabled && fitAgain.resetDisabled, `${label} R5: - did not return to Fit`);
 
-  // R2: pinch far past Max holds at most 15% over, then springs back to Max.
+  // R2: pinch xa quá Max giữ tối đa 15% vượt, rồi bật lại về Max.
   await resetZoom(page);
   await touch.pinch(centre, 30, 300, { hold: true });
   const over = await state();
   const max = 2 * over.cover;
-  // Cover here comes from rounded clientWidth, the runtime's from the float fit size: allow 1%.
+  // Cover ở đây tính từ clientWidth đã làm tròn, của runtime từ kích thước fit float: cho phép 1%.
   check(over.scale > max && over.scale <= max * 1.15 * 1.01, `${label} R2: over Max held at ${over.scale} (Max ${max})`);
   await touch.send("touchEnd", []);
   await settled(page);
@@ -230,7 +230,7 @@ async function runPhone({ locale, width, height }) {
   check(near(atMax.scale, max) && atMax.plusDisabled, `${label} R2: release over Max settled at ${atMax.scale}`);
   checkAnchor(over, atMax, centre, centre, `${label} R2`);
 
-  // R2: pinch in below Fit holds at least 0.85, then springs back to Fit centred.
+  // R2: pinch vào dưới Fit giữ ít nhất 0.85, rồi bật lại về Fit ở giữa.
   await resetZoom(page);
   await touch.pinch(centre, 300, 40, { hold: true });
   const under = await state();
@@ -240,7 +240,7 @@ async function runPhone({ locale, width, height }) {
   const back = await state();
   check(back.scale === 1 && back.x === 0 && back.y === 0 && back.open, `${label} R2: release under Fit settled at ${back.scale}`);
 
-  // R3: one finger pans, a second finger joins and leaves without a jump, the last finger keeps panning.
+  // R3: một ngón pan, ngón thứ hai vào và rời không giật, ngón cuối tiếp tục pan.
   await touch.pinch(centre, 80, 120 * start.cover);
   await settled(page);
   const before = await state();
@@ -257,7 +257,7 @@ async function runPhone({ locale, width, height }) {
   const joined = await state();
   check(Math.abs(joined.x - panned.x) <= 1 && Math.abs(joined.y - panned.y) <= 1 && near(joined.scale, panned.scale),
     `${label} R3: second finger made the image jump`);
-  // Both fingers slide together: the pinch starts from the panned transform, so the image follows exactly.
+  // Cả hai ngón trượt cùng nhau: pinch bắt đầu từ transform đã pan, nên ảnh bám sát chính xác.
   await touch.send("touchMove", [at(finger, 28, 17), at(second, 8, 5)]);
   const slid = await state();
   check(near(slid.scale, joined.scale), `${label} R3: sliding two fingers changed the scale`);
@@ -271,7 +271,7 @@ async function runPhone({ locale, width, height }) {
   await touch.send("touchEnd", []);
   await settled(page);
 
-  // R4: double tap Fit -> Cover at the tap point, then back to Fit centred; a single tap does nothing.
+  // R4: double tap Fit -> Cover tại điểm tap, rồi về lại Fit ở giữa; single tap không làm gì.
   await resetZoom(page);
   const fit = await state();
   const tapPoint = { x: Math.round(fit.cx + fit.fitW * 0.25), y: Math.round(fit.cy + fit.fitH * 0.2) };
@@ -290,7 +290,7 @@ async function runPhone({ locale, width, height }) {
   const single = await state();
   check(single.scale === 1 && single.open, `${label} R4: single tap on the image changed the viewer`);
 
-  // R9: a short slow swipe springs back; a long swipe closes to the primary and stays on detail.
+  // R9: swipe ngắn chậm bật lại; swipe dài đóng về primary và ở lại detail.
   const url = page.url();
   const swipeImage = async (distance, steps) => {
     const from = { x: Math.round(single.cx), y: Math.round(single.cy), id: 1 };
@@ -314,7 +314,7 @@ async function runPhone({ locale, width, height }) {
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
   check(page.url() === url && (await state()).scroll === start.scroll, `${label} R9: swipe close left detail or scrolled`);
 
-  // R10: Back closes the viewer only; the next Back leaves detail as before.
+  // R10: Back chỉ đóng viewer; Back kế tiếp rời detail như trước.
   await page.waitForTimeout(100);
   await openViewer(page, touch);
   await page.evaluate(() => history.back());
@@ -322,8 +322,8 @@ async function runPhone({ locale, width, height }) {
   await page.waitForTimeout(300);
   check(page.url() === url && !(await page.locator("[data-advertising-photo-view]").isHidden()),
     `${label} R10: Back left detail instead of closing the viewer`);
-  // Direct entry: the page before detail is whatever preceded the load.
-  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leaves the page: return before it unloads
+  // Vào trực tiếp: trang trước detail là bất cứ thứ gì có trước lần tải.
+  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // rời trang: trả về trước khi unload
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
     .catch(() => check(false, `${label} R10: second Back did not leave detail`));
 
@@ -331,7 +331,7 @@ async function runPhone({ locale, width, height }) {
   await close();
 }
 
-// R6: touching mid zoom animation starts from the displayed transform; reduced motion double tap is instant.
+// R6: chạm giữa animation zoom bắt đầu từ transform đang hiển thị; double tap reduced motion tức thì.
 async function runMotion() {
   for (const reducedMotion of ["no-preference", "reduce"]) {
     const label = `motion ${reducedMotion}`;
@@ -348,7 +348,7 @@ async function runMotion() {
         && !after.minusDisabled && !after.resetDisabled && !after.plusDisabled,
         `${label}: double tap animated or missed Cover ${JSON.stringify(after)}`);
     } else {
-      // Click + and start a pinch once the 200ms zoom has visibly moved (a real phone can hold it at 0 for a few frames).
+      // Click + và bắt đầu pinch khi zoom 200ms đã dịch thấy rõ (điện thoại thật có thể giữ ở 0 vài frame).
       const sample = await page.evaluate(async () => {
         const image = document.querySelector("[data-advertising-photo-expanded-image]");
         const viewport = document.querySelector("[data-advertising-photo-viewport]");
@@ -382,7 +382,7 @@ async function runMotion() {
   }
 }
 
-// Desktop keeps mouse behaviour: double-click on the image does not zoom.
+// Desktop giữ hành vi mouse: double-click trên ảnh không zoom.
 async function runDesktop() {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await context.newPage();
@@ -394,7 +394,7 @@ async function runDesktop() {
   await page.waitForTimeout(300);
   const state = await page.evaluate(readState);
   check(state.scale === 1 && state.open, `desktop: double-click changed the viewer (${state.scale})`);
-  // R10 on desktop, and closing by button drops the history entry so Back leaves detail.
+  // R10 trên desktop, và đóng bằng nút bỏ history entry nên Back rời detail.
   const url = page.url();
   await page.evaluate(() => history.back());
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
@@ -405,7 +405,7 @@ async function runDesktop() {
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
   await page.waitForTimeout(300);
   check(page.url() === url, "desktop R10: closing by button changed the URL");
-  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leaves the page: return before it unloads
+  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // rời trang: trả về trước khi unload
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
     .catch(() => check(false, "desktop R10: Back after a button close did not leave detail"));
   await context.close();

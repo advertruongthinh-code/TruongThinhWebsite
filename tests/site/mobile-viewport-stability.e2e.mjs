@@ -26,7 +26,7 @@ for (const file of ["motion.js", "style.css", "detail.css", "advertising-product
   assert.equal(assets[file].source, assets[file].served, `${file} source/served provenance`);
 }
 
-// This boundary fixture changes visible metrics only. It is not native toolbar evidence.
+// Fixture boundary này chỉ đổi metric hiển thị. Nó không phải evidence toolbar native.
 function installVisibleFixture() {
   const native = window.visualViewport;
   const viewport = new EventTarget();

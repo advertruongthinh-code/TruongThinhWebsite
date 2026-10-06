@@ -40,7 +40,7 @@ assert.doesNotMatch(surfaceRule, /\banimation\b/i,
   "R6 forbids floating, scale, and hover-like skeleton surface motion");
 assert.doesNotMatch(flowRule, /\bfilter\s*:/i,
   "R6 forbids a local blur/filter on each skeleton card");
-// R8-R10 glass moved to the shared Kính component: tests/site/glass-surface.test.mjs.
+// R8-R10 glass đã chuyển sang component Kính dùng chung: tests/site/glass-surface.test.mjs.
 assert.doesNotMatch(detailCss, /@keyframes\s+advertising-skeleton-float/i,
   "R6 removes the legacy floating skeleton keyframes");
 
@@ -103,7 +103,7 @@ if (legacyWashRules.some((rule) => /\bbackground(?:-image)?\s*:/i.test(rule))) {
 assert.deepEqual(r10ContractFailures, [],
   "R10 requires Scale 100, frozen P100 anchors, and no skeleton-local white wash");
 
-// R3: each frame draws its own assignment when it first enters view.
+// R3: mỗi frame draw assignment riêng khi lần đầu vào view.
 const draw = (seed, neighbors = []) => drawSkeletonFlowAssignment({ neighbors, random: seededRandom(seed) });
 assert.deepEqual(draw(20260921), draw(20260921), "a seeded draw must be deterministic");
 const stream = seededRandom(7);
@@ -268,7 +268,7 @@ assert.equal(
   fourColumnResize.find(({ slot }) => slot === "0:1")?.band,
   "a persistent skeleton slot keeps its ratio band when the grid changes from four to three columns",
 );
-// R5: the still matches the live frame's colours and moves with the phase.
+// R5: still khớp màu của frame live và chuyển theo phase.
 const still = renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21);
 assert.equal(still.length, 48 * 32 * 4);
 assert.deepEqual(still, renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21), "a still is deterministic");

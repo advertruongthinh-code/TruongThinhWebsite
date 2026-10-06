@@ -27,7 +27,7 @@ async function waitForHeroSettled(page, { veilCleared = true } = {}) {
     const hero = document.querySelector(".detail-index-hero");
     const title = hero?.querySelector("[data-motion-hero-title]");
     const words = title ? [...title.querySelectorAll(".motion-word")] : [];
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     if (veilCleared && document.documentElement.classList.contains("route-enter")) return false;
     if (!window.TruongThinhDetail?.mount || !window.gsap || words.length === 0) return false;
     const visible = words.every((word) => Number.parseFloat(getComputedStyle(word).opacity) >= 0.99);
@@ -184,8 +184,8 @@ async function runDelayedAdapterCase(browser) {
 
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-    // The held catalog keeps the direct-load veil up, so scroll is locked and only
-    // keyboard-style activation reaches the filters before the adapter is ready.
+    // Catalog bị giữ làm direct-load veil luôn bật, nên scroll bị khóa và chỉ
+    // kích hoạt kiểu bàn phím mới tới được filter trước khi adapter sẵn sàng.
     await waitForHeroSettled(page, { veilCleared: false });
     assert.equal(interceptedCatalogRequests, 1, "fixture did not hold the first catalog-runtime import");
     assert.equal(await page.evaluate(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.())), false,

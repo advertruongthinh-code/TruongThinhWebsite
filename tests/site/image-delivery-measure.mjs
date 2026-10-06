@@ -1,5 +1,5 @@
-// Cold/warm image delivery measurement for docs/specs/media-delivery.md (P0 baseline, P11 candidate).
-// Usage: node tests/site/image-delivery-measure.mjs --base https://host --runs 5 [--warm] [--out dir]
+// Đo image delivery cold/warm cho docs/specs/media-delivery.md (P0 baseline, P11 candidate).
+// Dùng: node tests/site/image-delivery-measure.mjs --base https://host --runs 5 [--warm] [--out dir]
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +21,7 @@ const allRoutes = ["", "residential/", "commercial/", "about/", "advertising-pro
 const only = arg("only", "");
 const routes = only ? allRoutes.filter((route) => (route || "home").startsWith(only)) : allRoutes;
 const viewports = [{ width: 390, height: 844, mobile: true }, { width: 1440, height: 900, mobile: false }];
-// DevTools "Slow 4G" preset: 562.5 ms RTT, 1.6 Mbps down x 0.9, 750 kbps up x 0.9; CPU 4x.
+// Preset DevTools "Slow 4G": 562.5 ms RTT, 1.6 Mbps xuống x 0.9, 750 kbps lên x 0.9; CPU 4x.
 const network = { offline: false, latency: 562.5, downloadThroughput: (1.6 * 1024 * 1024 / 8) * 0.9, uploadThroughput: (750 * 1024 / 8) * 0.9 };
 
 const probe = () => {
@@ -70,7 +70,7 @@ for (const viewport of viewports) for (const locale of ["vi", "en"]) for (const 
     const pending = new Map();
     const started = Date.now();
     let page;
-    // One hung or crashed run is recorded and skipped; it must not abort the pass.
+    // Một lần chạy treo hoặc crash được ghi lại và bỏ qua; không được abort cả pass.
     try {
       page = await context.newPage();
       const cdp = await context.newCDPSession(page);
@@ -84,7 +84,7 @@ for (const viewport of viewports) for (const locale of ["vi", "en"]) for (const 
       page.on("requestfailed", (request) => { pending.delete(request); errors.push(`${request.failure()?.errorText} ${request.url()}`); });
       await page.goto(url, { waitUntil: "load", timeout: 120_000 });
       await page.waitForTimeout(1500);
-      // Mark what is already visible, then scroll one viewport and time the next visible image.
+      // Đánh dấu thứ đã visible, rồi cuộn một viewport và đo giờ ảnh visible kế tiếp.
       await page.evaluate(() => {
         [...document.images].forEach((image) => {
           const rect = image.getBoundingClientRect();

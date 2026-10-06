@@ -1,5 +1,5 @@
-// Fails when a src/site CSS selector or JS query names a class or data-* attribute
-// that no markup, generator or script produces. Run: node --test tests/site/orphan-selectors.test.mjs
+// Fail khi một selector CSS hoặc JS query của src/site gọi tên class hoặc data-* attribute
+// mà không markup, generator hay script nào tạo ra. Chạy: node --test tests/site/orphan-selectors.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -7,9 +7,9 @@ import test from "node:test";
 
 const repo = path.resolve(import.meta.dirname, "../..");
 const ALLOWED = new Set([
-  // Created at runtime by vendor libraries (Locomotive Scroll, Swiper).
+  // Tạo lúc runtime bởi thư viện vendor (Locomotive Scroll, Swiper).
   "c-scrollbar", "swiper-pagination", "swiper-pagination-bullet", "swiper-pagination-bullet-active",
-  // Unused Swiper carousel kept by the owner for a Residential/Commercial redesign (docs/specs/detail-pages.md, Gate).
+  // Swiper carousel không dùng, owner giữ cho redesign Residential/Commercial (docs/specs/detail-pages.md, Gate).
   "advertising-detail__carousel", "advertising-detail__carousel-track", "advertising-detail__carousel-slide",
   "advertising-detail__carousel-pagination", "data-advertising-carousel", "data-advertising-carousel-viewport",
   "data-advertising-carousel-pagination",
@@ -33,7 +33,7 @@ const uses = site.flatMap(({ file, text }) => file.endsWith(".css")
     .flatMap((m) => namesIn(m[1]).map((name) => ({ name, file })))
   : [...text.matchAll(SELECTOR_CALL)].flatMap((m) => namesIn(m[2]).map((name) => ({ name, file }))));
 
-// Producers: everything except CSS, with selector queries and classList.contains removed.
+// Producer: mọi thứ trừ CSS, đã bỏ selector query và classList.contains.
 const producers = [...site.filter(({ file }) => !file.endsWith(".css")), ...generators]
   .map(({ text }) => text.replace(SELECTOR_CALL, "").replace(/classList\.contains\([^)]*\)/g, ""))
   .join("\n");

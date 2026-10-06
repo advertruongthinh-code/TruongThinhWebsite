@@ -1,4 +1,4 @@
-// Kính contract (docs/specs/glass-surface.md R1-R6): CSS steps, arc geometry and reveal curve, no browser needed.
+// Contract Kính (docs/specs/glass-surface.md R1-R6): CSS step, geometry cung và reveal curve, không cần browser.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
@@ -8,24 +8,24 @@ const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.ur
 const css = (await read("detail.css")) + (await read("style.css"));
 const runtime = await read("advertising-products/catalog-runtime.mjs");
 
-// R1: only the glass steps and the viewer's dim layer own backdrop-filter.
+// R1: chỉ các glass step và lớp dim của viewer sở hữu backdrop-filter.
 const owners = [...css.matchAll(/([^{}]+)\{[^}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
 assert.deepEqual([...new Set(owners)].sort(),
   [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--full"],
   "R1: no surface writes its own backdrop-filter");
-// A one-step surface blurs through the steps' product (the tone checks below).
+// Surface một step blur qua tích của các step (các check tone bên dưới).
 assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var\(--glass-full-blur\)\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
   "R2, R5: one full step equals the steps");
-// R2: a full step is the 100px ceiling; the arc's core holds the band's 28px and its inner steps rise from there.
+// R2: một step đầy là trần 100px; core của cung giữ 28px của band và các inner step tăng từ đó.
 assert.match(css, /^\.glass-surface \{[^}]*--glass-full-blur: 100px;/m, "R2: one full step reaches the 100px ceiling");
 assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the arc's core holds 28px");
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
-// The primary photo carries the full step's blur itself: a backdrop-filter there bakes a tile seam into Chrome's tab thumbnail.
+// Primary photo tự mang blur của step đầy: backdrop-filter ở đó in tile seam vào thumbnail tab của Chrome.
 assert.match(css, /\.advertising-photo-view__outgoing-background \{\s*filter: blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/,
   "R1: the primary photo blurs like one full step");
 
-// R2, R5: stacked steps compound in quadrature to their levels; saturate and brightness multiply.
+// R2, R5: các step xếp chồng hợp theo quadrature đến level của chúng; saturate và brightness nhân.
 const blurLevels = (scope) => {
   let sum = 0;
   return [...css.matchAll(new RegExp(`^${scope}\\.glass-surface__step:nth-last-child\\(\\d\\) \\{ --glass-step-blur: ([\\d.]+)px; \\}`, "gm"))]
@@ -43,15 +43,15 @@ for (const [selector, count, saturation, light] of [["\\.glass-surface", 5, 1.7,
   assert(Math.abs(brightness ** count - light) < 0.001, `R5: brightness ${light} across ${count} steps`);
 }
 assert.match(css, /\.glass-surface__tint \{\s*background: rgba\(255, 255, 255, 0\.12\);/, "R5: tint alpha 0.12");
-// R4: overlay moves a mid tone by the full noise; opacity 0.08 caps the shift at 4%.
+// R4: overlay dịch mid tone đúng bằng noise đầy; opacity 0.08 giới hạn dịch ở 4%.
 assert.match(css, /\.glass-surface__grain \{[^}]*mix-blend-mode: overlay;[^}]*opacity: 0\.08;/, "R4: grain 4%, overlay");
-// R4: the arc's white grain moves light glass as overlay does, 0.16 x noise x (1 - backdrop); its mean 0.08 leaves the tint.
+// R4: white grain của cung dịch glass sáng như overlay, 0.16 x noise x (1 - backdrop); mean 0.08 giữ nguyên tint.
 assert.match(css, new RegExp(`^${arc} > \\.glass-surface__grain \\{\\s*background-image: var\\(--glass-grain-white, none\\);`
   + "\\s*mix-blend-mode: normal;\\s*opacity: 0\\.16;", "m"),
   "R4: arc grain is white noise, normal blend, 0.16");
 assert.doesNotMatch(css, /\.glass-surface \{[^}]*(?:opacity|mask|filter)/, "R1: the Kính box has no opacity, mask or filter");
 
-// R2, R3: owner numbers and the two limits.
+// R2, R3: số của owner và hai giới hạn.
 const desktop = arcGlassGeometry({ width: 1440, batchBottom: 900, realBottom: 100, cardWidth: 320, clusterTop: 400, clusterBottom: 560 });
 assert.equal(desktop.yIn, 456, "R2: apex at 35% of the CTA cluster");
 assert.equal(desktop.radius, 3.5 * 1440, "R2: radius 3.5 viewport widths");
@@ -69,7 +69,7 @@ for (let seed = 1; seed < 400; seed += 1) {
   const arc = arcGlassGeometry({ width, batchBottom, realBottom: clusterTop - 400 * random(5), cardWidth, clusterTop, clusterBottom });
   assert(arc.dFull <= arc.radius - 0.35 * cardWidth + 1e-6, `R3: batch corners stay pure white (seed ${seed})`);
 }
-// R6: the reveal surface has all five steps; its level rises to full at 0.6 of 1.4s and falls back to none.
+// R6: reveal surface có đủ năm step; level tăng đến full ở 0.6 trên 1.4s rồi giảm về none.
 assert.match(runtime, /createGlassSurface\("even", 5\)/, "R6: the reveal Kính has five steps");
 const levels = Array.from({ length: 141 }, (_, index) => glassRevealLevel(index / 140));
 const peak = 60;

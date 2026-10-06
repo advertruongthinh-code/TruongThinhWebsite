@@ -19,7 +19,7 @@ try {
     await page.locator('#site-menu[open].is-active').waitFor();
     for (const width of widths) {
       await page.setViewportSize({ width, height: 910 });
-      // Headless Chromium can apply the new media query style a frame or two after resize.
+      // Headless Chromium có thể áp style media query mới sau resize một hai frame.
       await page.waitForTimeout(100);
       await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
       const m = await page.evaluate(() => {

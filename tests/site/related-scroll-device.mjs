@@ -1,5 +1,5 @@
-// Related-card history scroll check: PC emulator cases plus real Android touch via adb input.
-// Usage: node tests/site/related-scroll-device.mjs [--skip-emulator] [--skip-device]
+// Kiểm tra scroll history của related card: case PC emulator cộng touch Android thật qua adb input.
+// Dùng: node tests/site/related-scroll-device.mjs [--skip-emulator] [--skip-device]
 import { execFileSync, spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -48,7 +48,7 @@ async function runDevice() {
   const browser = await chromium.connectOverCDP(cdp);
   const page = browser.contexts()[0]?.pages()[0] || await browser.contexts()[0].newPage();
   if (args.includes("--rotate")) {
-    // Lock real landscape, restore the saved rotation settings on exit.
+    // Khóa landscape thật, khôi phục cài đặt rotation đã lưu khi thoát.
     const setting = (name, value) => adbRun(serial, "shell", "settings", value === undefined ? "get" : "put", "system", name, ...(value === undefined ? [] : [value]));
     const saved = ["accelerometer_rotation", "user_rotation"].map((name) => [name, setting(name)]);
     process.on("exit", () => saved.forEach(([name, value]) => setting(name, value)));
@@ -60,7 +60,7 @@ async function runDevice() {
   const orientation = await page.evaluate(() => (innerWidth > innerHeight ? "landscape" : "portrait"));
   log(`device ${model} (${serial}) ${orientation}; screen stays awake only while unlocked`);
 
-  // Map CSS px to touchscreen px with one calibration tap on a temporary full-viewport overlay.
+  // Map CSS px sang touchscreen px bằng một tap hiệu chỉnh trên overlay full-viewport tạm.
   const [screenW, screenH] = adbRun(serial, "shell", "wm", "size").match(/(\d+)x(\d+)/).slice(1).map(Number);
   const [touchW, touchH] = orientation === "landscape" ? [Math.max(screenW, screenH), Math.min(screenW, screenH)] : [Math.min(screenW, screenH), Math.max(screenW, screenH)];
   await page.goto(`http://localhost:${port}/vi/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });

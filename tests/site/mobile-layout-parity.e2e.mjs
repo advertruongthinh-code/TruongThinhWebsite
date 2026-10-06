@@ -20,7 +20,7 @@ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const runnerSha256 = hash(await fs.readFile(new URL(import.meta.url)));
 const sourceCatalogSha256 = hash(await fs.readFile("src/site/advertising-products/catalog.mjs"));
 const assets = {};
-// Every served script/style copied from src/site plus the generated artifact, and the Git candidate itself.
+// Mọi script/style được serve, sao từ src/site, cộng artifact generated, và chính Git candidate.
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
 const candidate = () => ({ head: git("rev-parse", "HEAD"), dirty: git("status", "--porcelain", "--", "src/site") });
 const startCandidate = candidate();
@@ -39,8 +39,8 @@ const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercia
 const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];
 const results = [];
-// Resizes and route changes re-pick srcset candidates; the browser aborts the superseded image request
-// (Chromium reports net::ERR_ABORTED, Firefox NS_BINDING_ABORTED).
+// Resize và đổi route chọn lại candidate srcset; browser hủy request ảnh bị thay
+// (Chromium báo net::ERR_ABORTED, Firefox NS_BINDING_ABORTED).
 const supersededImage=request=>request.resourceType()==='image'&&['net::ERR_ABORTED','NS_BINDING_ABORTED'].includes(request.failure()?.errorText);
 async function saveRecord(record){results.push(record);await fs.appendFile(dir+'/observations.jsonl',JSON.stringify(record)+'\n');}
 async function textFixture(context,size){await context.addInitScript(size=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.style.fontSize=`${size}px`,{once:true}),size);}
@@ -117,7 +117,7 @@ function faultsFor(measured) {
 }
 const intersection = (a,b) => a&&b ? Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)) : 0;
 async function ready(page, options = {}) {
-  // Direct loads cover the page with an opaque route veil until the enter phase removes route-enter.
+  // Direct load phủ trang bằng route veil đục cho đến khi phase enter gỡ route-enter.
   if(!options.noScript)await page.waitForFunction(() => (document.documentElement.classList.contains("motion-ready")||document.documentElement.classList.contains("motion-fallback"))&&!document.documentElement.classList.contains("route-enter"));
   if(options.noScript) {
     let loaded=false;
@@ -202,7 +202,7 @@ async function checkMenu(page,engine,label) {
   }
   await checkControls(page,engine,`${label}: menu head`,'#site-menu .menu-head a,#site-menu .menu-head button');
   await nav.locator('a').last().focus();
-  // Native modal traversal can visit browser chrome between its last and first stop.
+  // Native modal traversal có thể ghé browser chrome giữa điểm dừng cuối và đầu.
   await page.keyboard.press('Tab');
   const boundary=await page.evaluate(()=>({tag:document.activeElement.tagName,node:document.activeElement.className,hasFocus:document.hasFocus(),inside:document.querySelector('#site-menu').contains(document.activeElement)}));
   await saveRecord({kind:'focus',engine,label,boundary,faults:boundary.tag==='BODY'||boundary.inside?[]:['Tab reached background DOM']});
@@ -256,7 +256,7 @@ async function checkCtaReflow(page,engine,label) {
   const heading=page.locator('[data-advertising-grid-cta] h2'),before=await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight}));
   const original=await heading.evaluate(e=>e.style.fontSize);
   try {
-    // Isolate a text/font reflow from footer and viewport changes; the runtime refits the heading to the CTA.
+    // Cô lập text/font reflow khỏi thay đổi footer và viewport; runtime refit heading theo CTA.
     await heading.evaluate(e=>e.style.fontSize=`${parseFloat(getComputedStyle(e).fontSize)*1.5}px`);
     await page.locator('[data-advertising-grid-cta]').scrollIntoViewIfNeeded();await ready(page);
     await recordState(page,engine,`${label}: CTA text reflow`,{selector:'[data-advertising-grid-cta] h2,[data-advertising-grid-cta] a',viewportOnly:true});
@@ -548,7 +548,7 @@ for (const engine of (process.env.LAYOUT_ENGINES || "chromium,firefox,webkit").s
   page.on("response",r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   if(!['states','body','interactions','advertising-states','history','about-history'].includes(scope))for (const viewport of viewports) for (const route of routes) {
     await page.setViewportSize(viewport);
-    // Product routes redirect in the page, and Firefox then resolves goto with null; keep the first document response.
+    // Route product redirect trong trang, và Firefox khi đó resolve goto bằng null; giữ document response đầu tiên.
     try { const [response]=await Promise.all([page.waitForResponse(r=>r.url()===base+route&&r.request().isNavigationRequest()),page.goto(base+route,{waitUntil:"networkidle"})]);assert.equal(response.status(),200);await ready(page);
       for (const textSize of [100,200]) {
         await page.evaluate(size=>document.documentElement.style.fontSize=`${size/100*16}px`,textSize);

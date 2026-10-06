@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import process from "node:process";
 
-// A reduced-motion change while the page is open must resume or pause motion without a reload.
+// Thay đổi reduced-motion khi trang đang mở phải resume hoặc pause motion mà không reload.
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH });

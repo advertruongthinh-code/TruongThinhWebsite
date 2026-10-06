@@ -1,5 +1,5 @@
-// P8/P9 evidence: reserved frames, loading ring or skeleton and reveal Kính, request count and geometry while images load.
-// Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
+// Evidence P8/P9: frame reserved, loading ring hoặc skeleton và reveal Kính, số request và geometry khi ảnh đang tải.
+// Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -37,8 +37,8 @@ const open = async ({ delay = DELAY, javaScriptEnabled = true, viewport = viewpo
   return { context, page, counts };
 };
 
-// Native lazy never loads carousel slides parked off to the side, so only visible columns must settle.
-// Static content images only; Advertising grid/viewer and client logos have their own loaders.
+// Native lazy không bao giờ tải slide carousel đỗ sang bên, nên chỉ cột visible mới phải settle.
+// Chỉ ảnh content tĩnh; grid/viewer Advertising và logo client có loader riêng.
 const snapshot = page => page.evaluate(() => { const seen = new Map(); return [...document.querySelectorAll("img")]
   .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-advertising-photo-view]") && img.getClientRects().length)
   .map(img => {
@@ -53,7 +53,7 @@ const snapshot = page => page.evaluate(() => { const seen = new Map(); return [.
       ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, ring: getComputedStyle(frame).backgroundImage.includes("svg"), opacity,
     };
   }); });
-// Node-side timers so the walk also works with JavaScript disabled.
+// Timer phía Node để việc walk cũng chạy khi tắt JavaScript.
 const scrollThrough = async page => {
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   const step = (page.viewportSize()?.height || 800) / 2;
@@ -63,7 +63,7 @@ const scrollThrough = async page => {
   }
   await page.waitForTimeout(500);
 };
-// firstScreen limits the wait to images in the current viewport (no scroll walk).
+// firstScreen giới hạn việc chờ ở ảnh trong viewport hiện tại (không scroll walk).
 const settle = async (page, firstScreen = false) => {
   for (const started = Date.now(); Date.now() - started < 30_000; await page.waitForTimeout(250)) {
     if (await page.evaluate(firstScreen => [...document.querySelectorAll('img[src^="/assets/content/"]')]
@@ -75,14 +75,14 @@ const settle = async (page, firstScreen = false) => {
   throw new Error("visible content images did not settle");
 };
 const attributes = ({ src, alt, loading, priority }) => JSON.stringify([src, alt, loading, priority]);
-// Attributes as shipped in the HTML, parsed natively so entities decode the same way as the DOM.
+// Attribute như đã ship trong HTML, parse native để entity decode giống như DOM.
 const rawAttributes = page => page.evaluate(async () => [...new DOMParser()
   .parseFromString(await (await fetch(location.href)).text(), "text/html").images]
   .map(img => JSON.stringify([img.getAttribute("src"), img.getAttribute("alt"), img.getAttribute("loading"), img.getAttribute("fetchpriority")])))
   .then(list => new Set(list));
 
 try {
-  // P8: frames reserve their final box before the request finishes, then keep it.
+  // P8: frame reserve box cuối trước khi request xong, rồi giữ nó.
   for (const route of routes) {
     for (const viewport of viewports) {
       const { context, page, counts } = await open({ viewport });
@@ -91,7 +91,7 @@ try {
       const raw = await rawAttributes(page);
       await scrollThrough(page);
       await settle(page);
-      // load fires a task after complete flips; give a busy main thread time to drop rings.
+      // load bắn một task sau khi complete đổi; cho main thread bận thời gian bỏ ring.
       await page.waitForFunction(() => [...document.images].every(img => !img.complete || !img.naturalWidth
         || !getComputedStyle(img.closest(":not(img, picture)")).backgroundImage.includes("svg")), null, { timeout: 5000 }).catch(() => {});
       await page.waitForTimeout(400);
@@ -101,7 +101,7 @@ try {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
         if (!item.ready) assert.ok(item.ring, `${label}: ${item.src} shows the ring while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
-        // Images whose src is set by script (hero slides use data-src) have no raw src to compare.
+        // Ảnh có src set bằng script (slide hero dùng data-src) không có raw src để so sánh.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;
@@ -119,7 +119,7 @@ try {
     }
   }
 
-  // P8: no-script still shows every image.
+  // P8: no-script vẫn hiện mọi ảnh.
   for (const route of routes.filter(route => route.startsWith("/vi/"))) {
     const { context, page } = await open({ delay: false, javaScriptEnabled: false });
     await page.goto(base + route, { waitUntil: "load" });
@@ -131,7 +131,7 @@ try {
     await context.close();
   }
 
-  // P8: Barba navigation and Back keep the same frame contract.
+  // P8: Barba navigation và Back giữ cùng frame contract.
   {
     const { context, page } = await open();
     await page.goto(base + "/vi/", { waitUntil: "load" });
@@ -152,9 +152,9 @@ try {
     await context.close();
   }
 
-  // P9: Advertising cards, geometry and viewer while images load.
+  // P9: card Advertising, geometry và viewer trong khi ảnh đang tải.
   for (const viewport of viewports) {
-    // Longer delay so the entry layout settles while card images are still in flight.
+    // Delay dài hơn để entry layout settle khi ảnh card còn đang bay.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     // Reveal Kính (loading-glass-and-page-entry R2, R4; glass-surface R6): record each one as it mounts.
@@ -205,7 +205,7 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // The reveal ends 0.6 s after the last image loads, then the skeleton node is removed.
+    // Reveal kết thúc 0.6 s sau khi ảnh cuối tải xong, rồi node skeleton bị gỡ.
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-advertising-loading-skeleton]"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the skeleton`));
     const cardGlass = await revealGlass("card");
@@ -213,7 +213,7 @@ try {
       `${viewport.width}px: loading cards reveal through five Kính steps in 0.6 s, opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
       `${viewport.width}px: the reveal Kính leaves the cards`);
-    // A loaded card that left the viewport shows again at once: no Kính, no skeleton (R3).
+    // Card đã tải xong rời viewport hiện lại ngay: không Kính, không skeleton (R3).
     const loadedIds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
       .filter((card) => card.querySelector("img")?.naturalWidth > 0).map((card) => card.dataset.advertisingCard));
     const revealsBefore = cardGlass.length;
@@ -238,7 +238,7 @@ try {
       `${viewport.width}px: a re-entering loaded card shows without skeleton`);
     const reentryGlass = (await revealGlass("card")).slice(revealsBefore).filter(({ card }) => loadedIds.includes(card));
     assert.deepEqual(reentryGlass, [], `${viewport.width}px: a re-entering loaded card starts no Kính reveal`);
-    // Cards that finish loading right now still reveal from their skeleton; let those settle first.
+    // Card vừa tải xong ngay lúc này vẫn reveal từ skeleton của nó; để chúng settle trước.
     await page.waitForTimeout(700);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
       .filter((frame) => frame.parentElement.querySelector("img")?.naturalWidth > 0)
@@ -246,7 +246,7 @@ try {
         Boolean(frame.parentElement.querySelector("[data-glass-reveal]")), Math.round(frame.getBoundingClientRect().top)])), [],
     `${viewport.width}px: a loaded card re-enters without a skeleton`);
 
-    // Viewer: skeleton and aria-busy follow the current photo, including a fast hero swap.
+    // Viewer: skeleton và aria-busy theo photo hiện tại, kể cả hero swap nhanh.
     const viewer = () => page.evaluate(() => {
       const frame = document.querySelector("[data-advertising-photo-image]").parentElement;
       return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")),

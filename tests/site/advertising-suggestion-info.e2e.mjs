@@ -74,7 +74,7 @@ const browseState = () => historyPage.evaluate(() => {
       .map((node) => node.dataset.advertisingSuggestionTag),
   };
 });
-// Grid order is random per visit, so open whichever single-photo card renders first.
+// Thứ tự grid random theo mỗi lượt vào, nên mở card single-photo nào render đầu tiên.
 const firstCard = historyPage.locator("[data-advertising-card]:not(:has(.advertising-card-media--carousel)) > a").first();
 const openedId = await firstCard.evaluate((node) => node.parentElement.dataset.advertisingCard);
 await firstCard.click();

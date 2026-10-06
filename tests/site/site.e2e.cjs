@@ -897,7 +897,7 @@ function monitorPage(page) {
   };
 
   page.on("console", (message) => {
-    // Chromium's GPU driver performance notes (software GL in CI) are not page diagnostics.
+    // Ghi chú hiệu năng GPU driver của Chromium (software GL trong CI) không phải page diagnostic.
     if (/^\[\.WebGL-[^\]]+\]GL Driver Message \([^)]*\bPerformance\b/.test(message.text())) return;
     if (["error", "warning", "warn"].includes(message.type())) {
       diagnostics.consoleErrors.push(`${message.type()}: ${message.text()}`);
@@ -1354,8 +1354,8 @@ async function inspectRequiredImages(page) {
       () =>
         [...document.images]
           .filter((image) => {
-            // Required = rendered; a LazySizes image the virtual masonry window mounted ahead of
-            // scrolling (masonry R7, R8) is required once it intersects the viewport.
+            // Required = đã render; ảnh LazySizes mà cửa sổ masonry ảo mount trước khi
+            // cuộn (masonry R7, R8) thành required khi nó giao viewport.
             const source = image.getAttribute("src") || image.dataset.src;
             if (!source || source.startsWith("data:") || !image.getClientRects().length) return false;
             if (!image.classList.contains("lazyload")) return true;
@@ -1624,7 +1624,7 @@ async function runPortalAlignmentChecks() {
               );
               return image
                   ? {
-                    // The authored fallback src; currentSrc is a responsive AVIF/WebP variant.
+                    // src fallback gốc; currentSrc là variant AVIF/WebP responsive.
                     src: new URL(image.getAttribute("src"), location.href).pathname,
                     declaredWidth: Number(image.getAttribute("width")),
                     declaredHeight: Number(image.getAttribute("height")),
@@ -1904,7 +1904,7 @@ async function runHeaderParityChecks() {
         );
         assert(
           expanded.navDisplay === (mobile ? "none" : "grid") &&
-            // R2: a nav that would wrap is hidden, so the header stays one row.
+            // R2: nav sẽ wrap thì bị ẩn, để header giữ một hàng.
             (mobile || expanded.navRows === 1) &&
             Math.abs(expanded.navFont - 16) <= 0.1 &&
             Math.abs(expanded.navLine - 22.4) <= 0.2 &&
@@ -2134,7 +2134,7 @@ async function runHeaderParityChecks() {
       const toggleStart = afterSetup.find(
         (write) => write.target === "toggle" && !/^scale\(0(?:, 1)?\)/.test(write.value),
       )?.time - setup.time;
-      // The intro starts on the first frame after mount; the 0.3s and 1.5s offsets count from there.
+      // Intro bắt đầu ở frame đầu tiên sau mount; offset 0.3s và 1.5s tính từ đó.
       assert(
         logoStart <= 160 &&
           navStart - logoStart >= 240 &&
@@ -2759,7 +2759,7 @@ async function runPersistentBarbaNavigationChecks() {
         );
       }
 
-      // About is a native document load (shell R6), so read the soft-route trace first.
+      // About là native document load (shell R6), nên đọc soft-route trace trước.
       const trace = await page.evaluate(() => window.__ttRouteTrace || []);
       await openMenu(page);
       const aboutLink = await findRouteLink(page, "#site-menu", "/vi/about/");
@@ -3643,7 +3643,7 @@ async function runHistoryNavigationChecks() {
         const header = page.locator("[data-site-header]");
         const expectAutoHidden = async (label) => {
           await page.mouse.move(100, 700);
-          // Shell R3 hides only past 0.5 x viewport; smooth scroll moves ~43px per 100px wheel step.
+          // Shell R3 chỉ ẩn khi quá 0.5 x viewport; smooth scroll dịch ~43px mỗi bước wheel 100px.
           for (let index = 0; index < 20; index += 1) {
             await page.mouse.wheel(0, 100);
             await page.waitForTimeout(70);
@@ -4173,7 +4173,7 @@ async function runLanguageScrollRetentionCheck() {
             sectionTag: section?.tagName,
             scrollY: window.scrollY,
             targetPresent: Boolean(target),
-            // Line and word groups replay through GSAP without a class change (detail-pages R5, home R11).
+            // Nhóm line và word replay qua GSAP không đổi class (detail-pages R5, home R11).
             textPresent: Boolean(section?.querySelector("[data-motion-lines], [data-motion-words]")),
             timeOrigin: performance.timeOrigin,
           };
@@ -4293,8 +4293,8 @@ async function runLanguageScrollRetentionCheck() {
         window.scrollTo(0, top);
         return window.scrollY;
       }).then(() => page.evaluate(async () => {
-        // The jump reveals line groups above; SplitText reflow then shifts scrollY through scroll
-        // anchoring. Take the baseline once the position has held for 30 frames.
+        // Bước nhảy reveal các line group phía trên; SplitText reflow rồi dịch scrollY qua scroll
+        // anchoring. Lấy baseline khi vị trí đã giữ 30 frame.
         await document.fonts?.ready;
         let last = window.scrollY;
         for (let stable = 0; stable < 30;) {
@@ -4466,8 +4466,8 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
           };
         });
         assert(rendered.locale === expected.locale, `${expected.route}: wrong rendered locale`);
-        // This case proves D1 SSR wins over the static fallback; only the CMS Worker with D1 serves it
-        // (cms.md, CMS dormant). Against the static preview, the static data-en copy must survive instead.
+        // Case này chứng minh D1 SSR thắng static fallback; chỉ CMS Worker với D1 mới serve nó
+        // (cms.md, CMS dormant). Với static preview, copy data-en tĩnh phải còn sống thay vào đó.
         if (expected.requiresStaticFallbackMismatch && process.env.TT_E2E_D1 !== "1") {
           assert(
             rendered.title === rendered.sourceTitle && rendered.description === rendered.sourceDescription,
@@ -4638,7 +4638,7 @@ async function runMenuChecks() {
         const expectedMenuHostWidth = desktopLogo ? 260.981741 : 230.299324;
         const expectedMenuLockupWidth = expectedMenuHostWidth;
         const expectedMenuHeight = desktopLogo ? 67.515625 : 59.578125;
-        // `.brand` is start-aligned in the header row (style.css), so the lockup sits on the top padding.
+        // `.brand` căn start trong hàng header (style.css), nên lockup nằm trên padding đỉnh.
         const headerPadding = desktopLogo ? 35 : viewport.width <= 750 ? 15 : 25;
         const expectedHeaderPosition = [headerPadding, headerPadding];
         const expectedMenuPosition = [desktopLogo ? 35 : 25, desktopLogo ? 35 : 25];
@@ -4778,7 +4778,7 @@ async function runMenuChecks() {
         await page.keyboard.press("Enter");
         await page.waitForTimeout(1_900);
         page.off("request", captureNavigation);
-        // Shell R6: the current parent title returns to the top in place and closes the menu.
+        // Shell R6: parent title hiện tại về đỉnh tại chỗ và đóng menu.
         const currentTitleState = await page.locator("#site-menu").evaluate(
           (dialog) => ({
             open: dialog.open,
@@ -4812,12 +4812,12 @@ async function runMenuChecks() {
   }
 }
 
-// Masonry R4/R7: the runtime window is the seeded, organic layout for this visit.
+// Masonry R4/R7: cửa sổ runtime là layout organic đã seed cho lượt vào này.
 async function advertisingWindowIds(page, filter) {
   return (await advertisingWindow(page, filter)).map(({ id }) => id);
 }
 
-// `width` computes the window for a layout viewport the page has not resized to yet.
+// `width` tính cửa sổ cho layout viewport mà trang chưa resize tới.
 function advertisingWindow(page, filter, width = null) {
   return page.evaluate(async ({ filter, width }) => {
     const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
@@ -4841,8 +4841,8 @@ function advertisingWindow(page, filter, width = null) {
   }, { filter, width });
 }
 
-// Samples a masonry morph inside the page, timed from the triggering event: a CDP round trip under load can outlast
-// the 0.4s slide, so samples taken from the test side would only ever see the settled card.
+// Lấy mẫu masonry morph trong trang, tính giờ từ event kích hoạt: một vòng CDP khi tải nặng có thể dài hơn
+// slide 0.4s, nên mẫu lấy từ phía test chỉ thấy card đã settle.
 const armMorphSamples = (page, { event = "click", delays, id = null, notCategory = null }) => page.evaluate(
   ({ event, delays, id, notCategory }) => {
     const grid = document.querySelector("[data-project-grid]");
@@ -4910,7 +4910,7 @@ async function runAdvertisingFilterCheck() {
           },
         ),
       }));
-      // The order is random per visit, so pick a mounted card that also opens its own filter's window.
+      // Thứ tự random theo lượt vào, nên chọn card đã mount cũng mở cửa sổ của filter riêng nó.
       const categories = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
       const windows = {};
       for (const category of categories) windows[category] = await advertisingWindowIds(page, category);
@@ -7129,7 +7129,7 @@ async function runAdvertisingCompatibilityChecks() {
   }
 }
 
-// Superseded by AD-BROWSE-R1 photo detail; CAROUSEL_ONLY aliases compatibility to avoid retired composition assertions.
+// Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
   const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
@@ -7858,7 +7858,7 @@ async function runGalleryCheck() {
         .boundingBox();
       assert(imageBox, "Gallery image has no mouse target");
       const startX = imageBox.x + imageBox.width * 0.72;
-      // Middle of the image's visible part; scroll-padding under the sticky header can leave its center below the fold.
+      // Giữa phần visible của ảnh; scroll-padding dưới sticky header có thể để tâm của nó dưới fold.
       const y = (Math.max(imageBox.y, 0) + Math.min(imageBox.y + imageBox.height, viewport.height)) / 2;
       await page.mouse.move(startX, y);
       await page.mouse.down();
@@ -7935,7 +7935,7 @@ async function runEarlyHeroAccessibilityCheck() {
         };
       });
       releaseMotion();
-      // Direct loads hold the hero under the route-enter veil instead of fading its content.
+      // Direct load giữ hero dưới route-enter veil thay vì fade nội dung.
       assert(
         (early.opacity <= 0.01 || early.veilOpacity >= 0.99) && early.visibility === "visible",
         `Early hero is not opacity-held and AX-visible: ${JSON.stringify(early)}`,
@@ -8151,7 +8151,7 @@ async function runDetailHeroEntryChecks() {
   }
 }
 
-// fonts.ready ignores unicode-range subsets not requested yet; a late subset rewraps the filter rows.
+// fonts.ready bỏ qua subset unicode-range chưa được yêu cầu; subset đến muộn rewrap các hàng filter.
 async function projectFinalGeometry(page) {
   let previous = await readProjectFinalGeometry(page);
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -8494,7 +8494,7 @@ async function runMotionAbortFailOpenChecks() {
           heading?.name?.value === "để thương hiệu luôn trong tầm mắt",
           `Fail-open h1 missing from AX tree: ${JSON.stringify(heading?.name?.value)}`,
         );
-        // The grid mounts a virtual window (masonry R7): compare mounted categories, not counts.
+        // Grid mount cửa sổ ảo (masonry R7): so category đã mount, không so số lượng.
         const filterState = await page.evaluate(() => {
           const categories = [
             ...document.querySelectorAll("[data-project-grid] [data-advertising-category]"),
@@ -8644,7 +8644,7 @@ async function runMotionAbortFailOpenChecks() {
         timeout: 20_000,
       });
       await page.waitForFunction(() => document.body, null, { timeout: 3_000 });
-      // Past the old 2.5 s watchdog the page must still be veiled, not failed open.
+      // Quá watchdog 2.5 s cũ, trang vẫn phải bị veil, không fail open.
       await page.waitForTimeout(2_800);
       const waiting = await page.evaluate(() => ({
         routeEnter: document.documentElement.classList.contains("route-enter"),
@@ -8981,7 +8981,7 @@ async function runSlowMotionBootCheck() {
         lang: document.documentElement.lang,
         headerSamples: window.__ttTakeoverHeaderTrace.samples,
       }));
-      // The runtime swaps the locale in place, so no fail-open handler may request the page.
+      // Runtime swap locale tại chỗ, nên không handler fail-open nào được request trang.
       assert(
         targetRequests.length === 0,
         `Locale switch after claim requested the page: ${JSON.stringify(targetRequests)}`,
@@ -9272,7 +9272,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
         const mediaSeen = new Promise((resolve) => {
           markMediaSeen = resolve;
         });
-        // Gate whichever responsive AVIF/WebP variant the browser picks for this asset.
+        // Gate variant AVIF/WebP responsive nào browser chọn cho asset này.
         const assetName = testCase.asset.replace("**/", "").replace(/\.webp$/, "");
         await page.route(new RegExp(`/${assetName}(?:-\\d+)?\\.(?:webp|avif)$`), async (route) => {
           markMediaSeen();
@@ -9792,7 +9792,7 @@ async function runHomeMotionRegressionCheck() {
             };
           }),
           portalSubtitleCount: subtitles.length,
-          // Runtime wraps portal images in a media frame and picks a variant (media-delivery R1); read the authored src.
+          // Runtime bọc ảnh portal trong media frame và chọn variant (media-delivery R1); đọc src authored.
           portalSources: [...document.querySelectorAll("#dich-vu .service-portal img")].map(
             (image) => new URL(image.getAttribute("src"), location.href).pathname,
           ),
@@ -9820,7 +9820,7 @@ async function runHomeMotionRegressionCheck() {
             hasIndex: Boolean(document.querySelector(".hero-index")),
             hasKicker: Boolean(document.querySelector(".hero-kicker")),
             sources: [...document.querySelectorAll(".hero-slide img")].map(
-              // currentSrc is a runtime AVIF/WebP variant (media-delivery R1); compare the authored src.
+              // currentSrc là variant AVIF/WebP runtime (media-delivery R1); so src authored.
               (image) => new URL(image.getAttribute("src"), location.href).pathname,
             ),
           },
@@ -9829,7 +9829,7 @@ async function runHomeMotionRegressionCheck() {
               document.querySelector(".heritage-rows"),
             ).maxWidth,
             sources: [...document.querySelectorAll(".heritage-image img")].map(
-              // currentSrc is a runtime AVIF/WebP variant (media-delivery R1); compare the authored src.
+              // currentSrc là variant AVIF/WebP runtime (media-delivery R1); so src authored.
               (image) => new URL(image.getAttribute("src"), location.href).pathname,
             ),
             frames: [...document.querySelectorAll(".heritage-image")].map(
@@ -9869,7 +9869,7 @@ async function runHomeMotionRegressionCheck() {
           contract.routeShell.headerDisplay !== "none" &&
           contract.routeShell.headerVisibility === "visible" &&
           contract.routeShell.headerOpacity === "1" &&
-          // Design System Header: expanded lockup 260.97 x 67.52 above 1200px.
+          // Design System Header: lockup mở rộng 260.97 x 67.52 trên 1200px.
           contract.routeShell.brandLockup[0] === 261 &&
           contract.routeShell.brandLockup[1] === 68,
         `Route veil can hide the persistent site header: ${JSON.stringify(contract.routeShell)}`,
@@ -9973,7 +9973,7 @@ async function runHomeMotionRegressionCheck() {
         portal.lineY > portal.lineFontSize * 1.5,
         "Portal title animated when only its card entered",
       );
-      // page-home R5: service portals carry kicker, title and subtitle.
+      // page-home R5: portal dịch vụ mang kicker, title và subtitle.
       assert(portal.subtitleTop !== null, "Portal subtitle is missing");
 
       for (
@@ -12628,7 +12628,7 @@ async function runReducedMotionChecks() {
         if (route === "/vi/") {
           const readCloseIcon = () => page.locator(".menu-close__icon").evaluate((icon) => {
             const style = getComputedStyle(icon);
-            // A closed dialog is display:none, where the resolved transform is "none"; read the computed one.
+            // Dialog đóng là display:none, nơi transform resolved là "none"; đọc cái computed.
             const matrix = icon.computedStyleMap().get("transform").toMatrix();
             return {
               opacity: Number.parseFloat(style.opacity),
@@ -13059,7 +13059,7 @@ async function runP13NavbarChecks() {
         type: "touchStart",
         touchPoints: [{ x, y: fromY }],
       });
-      // A controlled swipe tests direction without flinging past the compact-header region.
+      // Swipe có kiểm soát test direction mà không vọt qua vùng header compact.
       for (let step = 1; step <= 12; step += 1) {
         await cdp.send("Input.dispatchTouchEvent", {
           type: "touchMove",

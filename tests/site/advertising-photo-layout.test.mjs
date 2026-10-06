@@ -166,7 +166,7 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
-    // A full-span primary has related cards below it, not beside it, so it keeps no peek.
+    // Primary full-span có related card bên dưới, không phải bên cạnh, nên không có peek.
     const peek = geometry.span === geometry.columns ? 0 : sample.peek;
     closeTo(
       geometry.heightCap,

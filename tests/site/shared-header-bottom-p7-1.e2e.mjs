@@ -17,7 +17,7 @@ async function scrollTo(page, target) {
   await page.waitForTimeout(80);
 }
 
-// Advertising restores its history scroll once the catalog mounts; scroll only after that.
+// Advertising khôi phục history scroll khi catalog mount; chỉ cuộn sau đó.
 const catalogSettled = page => page.waitForFunction(() => {
   const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
   return !skeleton || skeleton.dataset.advertisingCtaReady === "true";
@@ -45,7 +45,7 @@ try {
         assert(await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
           `${label}: downward scroll must hide header before bottom`);
 
-        // motion.md: hiding stops within 1.25 viewport heights of the page end.
+        // motion.md: ẩn dừng trong 1.25 chiều cao viewport tính từ cuối trang.
         const bottomZone = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight * 1.25);
         await scrollTo(page, Math.ceil(bottomZone) + 20);
         assert(!await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),

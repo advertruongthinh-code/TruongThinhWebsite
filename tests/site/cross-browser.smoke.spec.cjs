@@ -100,14 +100,14 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
   await page.mouse.move(400, 400);
   const before = await page.evaluate(() => window.historyWrites);
   const started = Date.now();
-  // Locomotive scales wheel input by 1 on Windows and 0.4 elsewhere; keep the full Windows distance inside the grid.
+  // Locomotive nhân wheel input với 1 trên Windows và 0.4 ở nơi khác; giữ trọn khoảng cách Windows trong grid.
   for (let step = 0; step < 80; step += 1) {
     await page.mouse.wheel(0, 20);
     await page.waitForTimeout(40);
   }
   await page.waitForTimeout(400);
   const writes = await page.evaluate(() => window.historyWrites) - before;
-  // Throttled scroll persistence writes about 3 times per second; Chrome's limit is 20 per second.
+  // Scroll persistence bị throttle ghi khoảng 3 lần mỗi giây; giới hạn của Chrome là 20 mỗi giây.
   expect(writes / ((Date.now() - started) / 1_000), "scroll history writes per second").toBeLessThan(5);
   const length = await page.evaluate(() => history.length);
   const photo = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-card]")].find((card) => {
