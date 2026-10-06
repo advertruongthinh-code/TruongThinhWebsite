@@ -12,6 +12,8 @@ Owner duyệt 2026-10-06 ([spec](../docs/specs/scroll-feel.md), [card](https://a
 - Parallax chỉ ở hero có chữ lớn trên nền ảnh hoặc video: lớp media nền `data-scroll-speed="-2"` như hero trang
   chủ, chữ đi theo trang, không lộ mép ảnh. Ngoại lệ duy nhất ngoài hero: CTA cuối Advertising giữ parallax riêng.
   Thêm cho hero About; bỏ ở ba ảnh About.
+- Khối "Giữ nghề" trang chủ theo banner CTA Espacio, có link sang About dùng phụ đề portal
+  ([spec R5](../docs/specs/scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)).
 
 ## Chú thích thuật ngữ
 

@@ -12,7 +12,7 @@ updated: 2026-10-06
 ## Mục đích
 
 Mọi trang cuộn với cùng cảm giác như trang chủ: cùng smooth scroll, cùng độ mượt, cùng một kiểu parallax và chỉ đặt
-parallax ở nơi hợp lý. Trang chủ là chuẩn, không chỉnh. Spec này giữ quy tắc chung; code nằm ở file do
+parallax ở nơi hợp lý. Kèm khối "Giữ nghề" trang chủ theo banner CTA của Espacio, có link sang About. Trang chủ là chuẩn, không chỉnh. Spec này giữ quy tắc chung; code nằm ở file do
 [shell](site-shell.md), [trang chủ](page-home.md), [ba trang con](detail-pages.md) và
 [masonry](advertising-masonry.md) sở hữu, nên PR code sửa spec sở hữu file trong cùng PR.
 
@@ -84,6 +84,38 @@ And không lúc nào lộ mép ảnh
 Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ từ 40px và phần tử ảnh, video, canvas hoặc
 `background-image` nằm dưới nó. Hero mới sau này theo R3, không cần sửa bảng trừ khi owner chỉnh quy tắc.
 
+### R5. Khối "Giữ nghề" theo banner CTA của Espacio
+
+Khối "Giữ nghề. Không ngừng làm mới." trên trang chủ (`.legacy-closer`) dựng giống khối "80 years shaping tradition
+into design" của Espacio (`layout-banner-cta`, đo trên PC thật 2026-10-06, Chrome desktop và giả lập điện thoại cho
+cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và token sẵn có của Design System:
+
+| Cửa sổ | Cao khối | Gutter hai bên | Khoảng dưới khối |
+| --- | --- | --- | --- |
+| Trên 1200px | 600px | 35px, khối rộng tối đa 1500px | 90px |
+| 961 tới 1200px | 500px | 25px | 90px |
+| 751 tới 960px | 400px | 25px | 60px |
+| 579 tới 750px | 400px | 15px | 60px |
+| Tới 578px | 400px | 15px | 30px |
+
+- Ảnh phủ kín khối (`object-fit: cover`, giữa), lớp đen phủ opacity `0.2`. Không parallax (R3).
+- Vùng chữ rộng và cao 85% khối, cách mép 7.5%, xếp cột căn giữa. Tiêu đề viết hoa, căn giữa, line-height `1.4`; cỡ chữ
+  bắt đầu 64px, giảm từng `0.25em` tới khi không tràn vùng chữ, thấp nhất `1.5em` (tức 24px), giữ nghĩa VI/EN, chữ 200%.
+- Dưới tiêu đề 16px là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), tái dùng phụ đề portal trang chủ
+  ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)): 16px, semibold, viết hoa, gạch chân 3px chạy từ trái
+  khi hover hoặc focus. Cả khối bấm được, đích `/vi/about/` hoặc `/en/about/`.
+- Hover cả khối: ảnh phóng theo hover ảnh dùng chung ([trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)).
+  Focus bàn phím có focus ring của Design System (Espacio bỏ focus ring, không chép).
+- Vào viewport: dòng tiêu đề trượt lên trong mask (`2em → -0.1em`, 1,9s, stagger 0,1s), link hiện sau 0,3s; dùng hook
+  reveal sẵn có, không thêm thư viện.
+
+```gherkin
+Given /vi/ ở bất kỳ bề rộng nào từ 320 tới 1920px, VI hoặc EN
+When cuộn tới khối "Giữ nghề"
+Then chiều cao, gutter, khoảng dưới khối đúng bảng R5, tiêu đề không tràn vùng chữ
+And bấm khối hoặc nhấn Enter khi focus mở trang About cùng ngôn ngữ
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -104,6 +136,7 @@ spec, quy tắc vào [Đã duyệt, chờ code](../../design-system/approved-des
 | R1 | Chưa có test; plan thêm e2e so đường trượt của 11 trang với trang chủ |
 | R2 | Chưa có test; Chrome trace trên PC của owner, script đo do plan thêm |
 | R3, R4 | Chưa có test; plan thêm e2e kiểm `data-scroll-speed` từng section và không lộ mép ảnh |
+| R5 | Chưa có test; plan thêm e2e đo khối ở 11 bề rộng, VI, EN, chữ 200%, link và focus |
 
 ## Gate còn mở
 

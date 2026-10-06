@@ -1290,7 +1290,7 @@ Checklist chi tiết, acceptance, verification và estimate nằm trong
 
 Spec owner đã duyệt 2026-10-06: [Cảm giác cuộn chung](../docs/specs/scroll-feel.md)
 ([card](https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed)). Checklist ở
-[todo](todo.md#cảm-giác-cuộn-chung--s1s5). Ước lượng khoảng `250` đến `350 LOC`, chưa tính khối "Giữ nghề" theo Espacio.
+[todo](todo.md#cảm-giác-cuộn-chung--s1s5). Ước lượng khoảng `250` đến `350 LOC`, cộng khoảng `150 LOC` cho khối "Giữ nghề".
 
 Quyết định:
 
@@ -1301,13 +1301,14 @@ Quyết định:
 - Nguyên nhân khựng chọn từ trace, không đoán: ứng viên là gắn và gỡ card khi cuộn, `backdrop-filter` của Kính
   trên nội dung đang trượt, decode ảnh.
 
-Thứ tự: S1 → S2 → checkpoint A → S3 → S4 → checkpoint B → S5. S1, S2 một PR; S3, S4 một PR; mỗi PR sửa spec
+Thứ tự: S1 → S2 → S2b → checkpoint A → S3 → S4 → checkpoint B → S5. S1, S2, S2b một PR; S3, S4 một PR; mỗi PR sửa spec
 sở hữu file trong cùng PR.
 
 | Bước | Việc | File | Cỡ |
 | --- | --- | --- | --- |
 | S1 | E2e chuẩn cuộn và parallax: đường trượt 11 trang bằng trang chủ (R1), bản đồ `data-scroll-speed` theo R4, không lộ mép ở 5 vị trí cuộn mỗi section (R3); đỏ trước S2 | `tests/site/scroll-feel.e2e.mjs`, `package.json` | S |
 | S2 | Parallax theo R4: thêm cho hero About, bỏ ba ảnh About | `motion.js`, `detail.css`, HTML About | S |
+| S2b | Khối "Giữ nghề" theo R5: kích thước theo bảng, vùng chữ, cỡ chữ tự co, link About dùng phụ đề portal, focus ring; e2e 11 bề rộng | `index.html`, `style.css`, `motion.js`, `tests/site/scroll-feel.e2e.mjs`, `page-home.md` | M |
 | S3 | Script trace: lăn chuột đều toàn trang, ghi task trên `50ms` và tỉ lệ frame rớt cho trang chủ, Advertising, lọc nhóm, detail ảnh | `scripts/qa/scroll-trace.mjs`, `package.json` | S |
 | S4 | Chạy S3 trên PC, sửa nguyên nhân lớn nhất, đo lại tới khi đạt R2 | Theo trace, trong `src/site/advertising-products/`, `detail.css` | M |
 | S5 | Chuyển quy tắc vào `motion.md`, xóa mục approved-designs, spec `live`, publish lại Design System, card Done | `design-system/`, `docs/specs/` | S |
