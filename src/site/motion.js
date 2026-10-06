@@ -13,9 +13,10 @@
 })();
 
 (() => {
-  const reduceMotion = window.matchMedia(
+  const reduceMotionQuery = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
-  ).matches;
+  );
+  const reduceMotion = reduceMotionQuery.matches;
   const { gsap, SplitText } = window;
   const hasGsap = typeof gsap !== "undefined";
   const smoothMedia = window.matchMedia("(min-width: 981px)");
@@ -863,7 +864,16 @@
     clientLogoObserver?.observe(clientLogoTrack);
     if (!hasGsap || reduceMotion) {
       state.container.querySelector("[data-motion-toggle]")?.setAttribute("hidden", "");
-      document.body.classList.add("motion-paused");
+      // Follow a live preference change so CSS and runtime motion resume without a reload.
+      const syncReducedPause = () =>
+        document.body.classList.toggle(
+          "motion-paused",
+          !hasGsap || reduceMotionQuery.matches,
+        );
+      syncReducedPause();
+      reduceMotionQuery.addEventListener("change", syncReducedPause, {
+        signal: state.abort.signal,
+      });
       document.addEventListener("visibilitychange", syncClientLogoMotion, {
         signal: state.abort.signal,
       });
@@ -1217,7 +1227,8 @@
         }
       };
       const syncMotionState = () => {
-        const pagePaused = userPaused || document.hidden;
+        const pagePaused =
+          userPaused || document.hidden || reduceMotionQuery.matches;
         document.body.classList.toggle("motion-paused", pagePaused);
         syncClientLogoMotion();
         heroTimelines.forEach((timeline) => {
@@ -1400,6 +1411,9 @@
         signal: state.abort.signal,
       });
       document.addEventListener("visibilitychange", syncMotionState, {
+        signal: state.abort.signal,
+      });
+      reduceMotionQuery.addEventListener("change", syncMotionState, {
         signal: state.abort.signal,
       });
       window.addEventListener("languagechange", () => {

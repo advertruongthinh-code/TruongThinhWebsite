@@ -26,12 +26,8 @@ CLAUDE.local.md
 /docs/reports/*.csv
 /research/reference-site/runtime-evidence/
 
-# Local backup of the deployed site; provenance and checksum manifest stay reviewable.
-/source-assets/site-backups/*/assets/
-/source-assets/site-backups/*/*.tar
-
-# Raw advertising media rounds stay on the owner's machine; tracked README/JSON stay tracked.
-/source-assets/projects/advertising/*/
+# Image sources, provenance and site backups stay on the owner's machine, outside Git.
+/source-assets/
 
 # Generated reference website archive.
 /research/reference-site/archive/

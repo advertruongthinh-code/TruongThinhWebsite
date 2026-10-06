@@ -34,7 +34,8 @@ mặt nào tự viết `backdrop-filter`. Component có hai dạng:
 | Phủ đều | Vùng dư quanh ảnh primary khi ảnh contain còn chỗ trống; card đang tải và primary đang mở, chỉ trong lúc ảnh hiện ([R2, R4](loading-glass-and-page-entry.md)) |
 
 Nền tối của viewer phóng to (`.advertising-photo-dialog::backdrop`) là lớp làm
-tối để xem ảnh, không phải Kính, và giữ nguyên.
+tối để xem ảnh, không phải component Kính; nó chỉ mượn blur `50px` và màu của
+Kính phủ đều ([detail R9](advertising-detail.md#r9-viewer)).
 
 ```gherkin
 Given trang Advertising có kính cuối masonry, primary và card đang tải

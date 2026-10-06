@@ -45,7 +45,7 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   bậc ba), tint `0.35` ở cung (owner, 05/10).
 - Kính cung và kính nền primary đứng yên, giữ nguyên khi giảm chuyển động. Không có khúc xạ, viền sáng
   hay đổ bóng. Nền tối của [viewer](../Viewer/README.md) phóng to là lớp làm
-  tối, không phải Kính.
+  tối, không phải component Kính; chỉ mượn blur `50px` và màu của kính phủ đều.
 
 Preview dựng tay một khung ảnh có kính phủ đều ở nửa phải; class và style vẫn
 của website. Hạt nhiễu sinh lúc chạy nên preview không có.
@@ -67,9 +67,9 @@ dùng nhịp đủ `1.4s`:
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
 - Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
-  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Mọi lần ảnh card hiện
-  (từ skeleton, từ khung trống khi ảnh có sẵn hoặc vào lại viewport) và
-  primary đổi sang ảnh có sẵn đều dùng nhịp này.
+  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Ảnh card hiện từ
+  skeleton và primary đổi sang ảnh có sẵn dùng nhịp này. Ảnh card đã có sẵn
+  (cache, vào lại viewport) hiện ngay, không kính.
 - Giảm chuyển động: không kính.
 - Hiện xong thì gỡ kính khỏi DOM; card hay primary rời đi giữa chừng cũng gỡ.
 

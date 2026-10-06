@@ -100,7 +100,7 @@ And không URL ảnh nào bị request hai lần
 ### R5. Chuẩn file ảnh
 
 `src/site/assets/content/` có `client-logos/` (SVG đã làm sạch), `projects/` (dự án, gallery; Advertising trong
-`projects/advertising/<nhóm>/`) và `shared/` (dùng chung); `source-assets/` ở gốc repo giữ file nguồn, không vào build. Tên chữ
+`projects/advertising/<nhóm>/`) và `shared/` (dùng chung); `source-assets/` ở gốc repo giữ file nguồn trên máy owner, ngoài Git, không vào build. Tên chữ
 thường, ASCII, kebab-case, mô tả dự án và góc chụp. WebP sRGB, đã xóa EXIF, GPS; `width`, `height` trong HTML bằng
 pixel thật. Alt VI và `data-en-alt` cho ảnh nội dung; ảnh trang trí `alt=""`. Ngân sách là mức xem lại, không phải gate:
 
