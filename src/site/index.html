@@ -15,7 +15,7 @@
     <meta name="theme-color" content="#ffffff" />
     <script>
       try {
-        // Every direct load (link, reload, Back/Forward) plays the route-transition enter phase.
+        // Mỗi lần tải trực tiếp (link, reload, Back/Forward) đều chạy pha enter của route-transition.
         if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
           document.documentElement.classList.add("route-enter");
         }
@@ -39,7 +39,7 @@
           addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
         };
         window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
-        // Deferred motion.js runs before DOMContentLoaded, so a slow network keeps the veil.
+        // motion.js (defer) chạy trước DOMContentLoaded, nên mạng chậm vẫn giữ veil.
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>

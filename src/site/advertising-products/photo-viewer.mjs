@@ -1,7 +1,7 @@
 import { responsiveSource } from "./responsive-image.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-// Touch double tap: both taps within 300ms and 24px, each moving at most 10px (advertising-viewer-touch-zoom R4, R7).
+// Double tap trên touch: cả hai tap trong 300ms và 24px, mỗi tap di chuyển tối đa 10px (advertising-viewer-touch-zoom R4, R7).
 const isDoubleTap = (last, event) => last && event.timeStamp - last.time <= 300
   && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 24;
 
@@ -59,8 +59,8 @@ export function createAdvertisingPhotoViewer({
     imageAnimation?.cancel();
     imageAnimation = null;
   };
-  // Fit, Cover and Max are stops for buttons and wheel; scale itself is continuous. Cover is measured with
-  // the fit so a resize can still tell which stop the scale was on.
+  // Fit, Cover và Max là các điểm dừng cho button và wheel; bản thân scale liên tục. Cover được đo cùng với
+  // fit để resize vẫn biết scale đang ở điểm dừng nào.
   const stops = () => [1, cover, 2 * cover];
   const near = (value, stop) => Math.abs(value - stop) <= stop * 0.01;
   const atFit = () => near(scale, 1);
@@ -103,7 +103,7 @@ export function createAdvertisingPhotoViewer({
     y: Math.max(0, (fitHeight * scale - viewport.clientHeight) / 2),
   });
   const updateControls = () => {
-    // aria-live status announces a changed value at the end of a pinch, not every frame of it.
+    // Status aria-live thông báo giá trị đã đổi ở cuối một pinch, không phải mỗi frame của nó.
     const status = `${Math.round(scale * 100)}%`;
     if (!pinch && zoomStatus.textContent !== status) zoomStatus.value = zoomStatus.textContent = status;
     zoomOutButton.disabled = atFit();
@@ -181,7 +181,7 @@ export function createAdvertisingPhotoViewer({
     const to = renderTransform();
     runMotion(from, to, 200, "ease-in-out", "zooming");
   };
-  // A gesture during a zoom animation continues from the frame on screen; during opening it starts from Fit.
+  // Một gesture trong lúc zoom animation tiếp tục từ frame đang trên màn hình; khi đang mở thì bắt đầu từ Fit.
   const adoptDisplayed = () => {
     if (!imageAnimation) return;
     if (dialog.dataset.advertisingViewerState === "zooming") {
@@ -194,7 +194,7 @@ export function createAdvertisingPhotoViewer({
     dialog.dataset.advertisingViewerState = "open";
     renderTransform();
   };
-  // Back inside [Fit, Max] after a gesture; Max keeps `anchor` still, Fit recentres.
+  // Quay lại trong [Fit, Max] sau gesture; Max giữ `anchor` đứng yên, Fit căn lại giữa.
   const settle = (anchor) => {
     const target = clamp(scale, 1, 2 * cover);
     if (target === scale) renderTransform();
@@ -218,7 +218,7 @@ export function createAdvertisingPhotoViewer({
     const bounds = viewport.getBoundingClientRect();
     const max = 2 * cover;
     const raw = pinch.scale * distance / pinch.distance;
-    // Past a limit the image follows a third of the fingers, up to 15% over.
+    // Vượt giới hạn, ảnh đi theo một phần ba chuyển động của ngón tay, tối đa vượt 15%.
     scale = raw > max ? Math.min(max + (raw - max) / 3, max * 1.15)
       : raw < 1 ? Math.max(1 - (1 - raw) / 3, 0.85) : raw;
     panX = clientX - bounds.left - bounds.width / 2 - scale * pinch.localX;
@@ -233,7 +233,7 @@ export function createAdvertisingPhotoViewer({
     if (value === 1) dialog.style.removeProperty("--advertising-viewer-backdrop-opacity");
     else dialog.style.setProperty("--advertising-viewer-backdrop-opacity", `${value}`);
   };
-  // Swipe to close (R9): at Fit the image follows the finger vertically and the backdrop fades with distance.
+  // Swipe để đóng (R9): ở Fit ảnh theo ngón tay theo chiều dọc và backdrop mờ dần theo khoảng cách.
   const moveSwipe = (event) => {
     const dx = event.clientX - swipe.x;
     const dy = event.clientY - swipe.y;
@@ -271,8 +271,8 @@ export function createAdvertisingPhotoViewer({
     delete dialog.dataset.advertisingViewerState;
     delete dialog.dataset.advertisingViewerSwipe;
     setBackdropOpacity(1);
-    // Closed by anything but Back: drop the viewer's history entry so the next Back leaves detail (R10).
-    // A flag, not a state key: the router may rewrite the entry's state while the viewer is open.
+    // Đóng bằng bất cứ thứ gì ngoài Back: bỏ history entry của viewer để lần Back kế tiếp rời detail (R10).
+    // Một flag, không phải state key: router có thể ghi đè state của entry khi viewer đang mở.
     if (ownEntry) {
       ownEntry = false;
       skipPop = true;
@@ -286,7 +286,7 @@ export function createAdvertisingPhotoViewer({
     unlock();
     if (!restoreFocus || !expandButton.isConnected) return;
     expandButton.focus({ preventScroll: true });
-    // A resize while open can leave the restored focus target off-screen; centre it instantly.
+    // Resize khi đang mở có thể để focus target đã khôi phục nằm ngoài màn hình; căn giữa nó ngay lập tức.
     const { top, height } = getVisibleViewport();
     const bounds = expandButton.getBoundingClientRect();
     if (bounds.top < top || bounds.bottom > top + height) {
@@ -331,7 +331,7 @@ export function createAdvertisingPhotoViewer({
     .filter((control) => control && !control.disabled && !control.hidden && control.getClientRects().length > 0);
 
   expandButton.addEventListener("click", open, { signal: controller.signal });
-  // Touch screens open the viewer with a double tap on the primary photo (R7).
+  // Màn cảm ứng mở viewer bằng double tap trên primary photo (R7).
   heroFrame?.addEventListener("pointerdown", (event) => {
     heroTap = event.pointerType === "touch" && event.isPrimary ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
   }, { signal: controller.signal });
@@ -373,12 +373,12 @@ export function createAdvertisingPhotoViewer({
       return;
     }
     const closing = dialog.dataset.advertisingViewerState === "closing";
-    // A third finger is ignored: it neither drags nor ends the pinch.
+    // Ngón thứ ba bị bỏ qua: nó không kéo cũng không kết thúc pinch.
     if (event.pointerType === "touch" && touches.size === 2) return;
     if (event.pointerType === "touch" && !closing && viewport.contains(event.target)) {
       touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
       if (touches.size === 2) {
-        // Two fingers never close the viewer and end any one-finger drag, swipe or tap.
+        // Hai ngón không bao giờ đóng viewer và kết thúc mọi drag, swipe hay tap một ngón.
         backdropPress = false;
         if (swipe?.active) {
           delete dialog.dataset.advertisingViewerSwipe;
@@ -409,7 +409,7 @@ export function createAdvertisingPhotoViewer({
     renderTransform();
     event.preventDefault();
   }, { signal: controller.signal });
-  // Close on a backdrop tap only; a touch swipe that starts there (e.g. mid zoom) fires no click.
+  // Chỉ đóng khi tap backdrop; một touch swipe bắt đầu ở đó (vd. giữa lúc zoom) không bắn click.
   dialog.addEventListener("click", (event) => {
     if (backdropPress && (event.target === dialog || event.target === viewport)) close();
     backdropPress = false;
@@ -440,7 +440,7 @@ export function createAdvertisingPhotoViewer({
       const anchor = pinch;
       pinch = null;
       const [rest] = touches;
-      // One finger left inside [Fit, Max] keeps panning; out of range the image springs back and it is ignored.
+      // Một ngón còn lại trong [Fit, Max] tiếp tục pan; ngoài khoảng đó ảnh bật về và nó bị bỏ qua.
       if (rest && scale >= 1 && scale <= 2 * cover) {
         if (!atFit()) drag = { id: rest[0], x: rest[1].x, y: rest[1].y, panX, panY };
         renderTransform();
@@ -455,7 +455,7 @@ export function createAdvertisingPhotoViewer({
     }
     if (tap?.id !== event.pointerId || event.type !== "pointerup") return;
     tap = null;
-    // Double tap: Fit zooms to Cover around the tap, any other scale returns to Fit.
+    // Double tap: Fit zoom lên Cover quanh điểm tap, mọi scale khác trả về Fit.
     if (isDoubleTap(lastTap, event)) {
       lastTap = null;
       setScale(atFit() ? cover : 1, event);
@@ -506,7 +506,7 @@ export function createAdvertisingPhotoViewer({
   window.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resize, { passive: true, signal: controller.signal });
-  // The site router asks this before routing a popstate, so Back with the viewer open only closes it (R10).
+  // Router của site hỏi hàm này trước khi route một popstate, nên Back khi viewer đang mở chỉ đóng nó (R10).
   const popState = () => {
     if (skipPop) {
       skipPop = false;

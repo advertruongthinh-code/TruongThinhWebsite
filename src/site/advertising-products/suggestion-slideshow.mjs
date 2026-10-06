@@ -1,7 +1,7 @@
 import { shuffleWithSeed } from "./random-order.mjs";
 const decks = new Map();
 
-// Keep each group's sampled set stable for this document's lifetime.
+// Giữ tập mẫu của mỗi nhóm ổn định trong vòng đời document này.
 export function suggestionDeck(key, cards) {
   if (!decks.has(key)) {
     decks.set(key, shuffleWithSeed(cards, Math.random(), key).slice(0, 9));
@@ -26,13 +26,13 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       || document.body.classList.contains("motion-paused")) return;
     const tag = button.dataset.advertisingSuggestionTag;
     const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
-    // Sparse groups remain static until they contain four distinct assets.
+    // Nhóm thưa giữ tĩnh cho đến khi có bốn asset khác nhau.
     if (deck.length < 4) return;
     const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
     const index = deck.findIndex(card => card.id === current?.dataset.advertisingSuggestionPhoto);
     const card = deck[(index + 1) % deck.length];
     const next = createImage(card);
-    // Eager drops "auto" from sizes; pin the button width before the request starts.
+    // Eager bỏ "auto" khỏi sizes; ghim width của button trước khi request bắt đầu.
     if (next.srcset) next.sizes = `${Math.ceil(rect.width)}px`;
     next.loading = "eager";
     next.dataset.advertisingSuggestionImageLayer = "next";

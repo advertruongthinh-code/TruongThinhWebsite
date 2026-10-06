@@ -1,6 +1,6 @@
 const FLOW_WIDTH = 240;
 import { shuffleWithSeed } from "./random-order.mjs";
-// A context keeps the attributes of its first getContext call, so a pre-created lease must use these.
+// Một context giữ attribute của lần getContext đầu tiên, nên lease tạo sẵn phải dùng những giá trị này.
 export const SKELETON_FLOW_CONTEXT_ATTRIBUTES = Object.freeze({
   alpha: false,
   antialias: false,
@@ -178,7 +178,7 @@ const turnDistance = (a, b) => {
 };
 const pick = (values, random) => values[Math.floor(normalizedRandom(random) * values.length)];
 
-// Draws one frame's Flow when it first enters view; `neighbors` are adjacent frames' assignments (live phase allowed).
+// Vẽ một frame Flow khi nó lần đầu vào view; `neighbors` là assignment của các frame kề (cho phép pha live).
 export function drawSkeletonFlowAssignment({
   neighbors = [],
   presets = SKELETON_FLOW_PRESETS,
@@ -304,7 +304,7 @@ export function createSkeletonFlowFrameLayout({
     if (rhythm.targetMet) break;
   }
 
-  // The last frame of each column ends on the batch bottom; a remainder under a quarter card goes to the frame above.
+  // Frame cuối của mỗi cột kết thúc ở đáy batch; phần dư dưới một phần tư card được cộng vào frame phía trên.
   const dropped = new Set();
   for (let column = 0; column < columns; column += 1) {
     const own = selectedFrames.filter((frame) => frame.column === column);
@@ -402,8 +402,8 @@ const automaticAnchor = (index, time) => {
   return [0.5 + 0.5 * Math.sin(time * fx + anchorPhase), 0.5 + 0.5 * Math.cos(time * fy + 1.5 * anchorPhase)];
 };
 
-// CPU copy of SKELETON_FLOW_FRAGMENT_SHADER at `phase`, rows top to bottom. The grain is left out: at this
-// size it would upscale into blotches, and at its 3-4% opacity the live frame matches without it.
+// Bản sao CPU của SKELETON_FLOW_FRAGMENT_SHADER tại `phase`, các hàng từ trên xuống. Grain bị bỏ: ở
+// kích thước này nó sẽ upscale thành vệt, và ở opacity 3-4% frame live vẫn khớp khi không có nó.
 export function renderSkeletonFlowPixels(preset, phase, { width = 48, height = 32 } = {}) {
   const colors = preset.colors.map(parseHex);
   const edges = [0, ...preset.bands, 1];
@@ -453,8 +453,8 @@ export function renderSkeletonFlowPixels(preset, phase, { width = 48, height = 3
   return pixels;
 }
 
-// Still frame for a frame without a live renderer: the same Flow at `phase`, as a CSS image.
-// Encoded as an uncompressed 24-bit BMP by hand: canvas.toDataURL forced a GPU readback and PNG encode per still.
+// Frame tĩnh cho frame không có renderer live: cùng Flow tại `phase`, dạng CSS image.
+// Mã hóa tay thành BMP 24-bit không nén: canvas.toDataURL ép GPU readback và PNG encode cho mỗi ảnh tĩnh.
 const STILL_WIDTH = 48;
 const STILL_HEIGHT = 32;
 export function skeletonFlowStill(preset, phase) {
@@ -472,7 +472,7 @@ export function skeletonFlowStill(preset, phase) {
   view.setUint16(26, 1, true);
   view.setUint16(28, 24, true);
   for (let row = 0; row < STILL_HEIGHT; row += 1) {
-    // BMP rows run bottom-up in BGR order; 48 * 3 bytes needs no row padding.
+    // Hàng BMP chạy từ dưới lên theo thứ tự BGR; 48 * 3 byte không cần row padding.
     const target = 54 + (STILL_HEIGHT - 1 - row) * rowBytes;
     for (let column = 0; column < STILL_WIDTH; column += 1) {
       const source = (row * STILL_WIDTH + column) * 4;
@@ -502,7 +502,7 @@ export function createSkeletonFlowRenderer(canvas, {
   canvas.width = renderWidth;
   canvas.height = renderHeight;
   if (canvas.style) {
-    // Keep a still the caller already painted; otherwise fall back to the static gradient.
+    // Giữ ảnh tĩnh mà caller đã vẽ; nếu không thì fallback về gradient tĩnh.
     canvas.style.backgroundColor ||= preset.colors[3];
     canvas.style.backgroundImage ||= staticBackground(preset);
     canvas.style.filter = preset.finish.soften ? `blur(${preset.finish.soften}px)` : "none";

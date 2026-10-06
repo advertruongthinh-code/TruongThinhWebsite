@@ -59,7 +59,7 @@ html {
   color: var(--ink);
   overflow-x: hidden;
   scroll-behavior: smooth;
-  /* Native focus and anchor scrolls stop below the sticky header row. */
+  /* Native focus và anchor scroll dừng bên dưới hàng sticky header. */
   scroll-padding-top: calc(var(--header-row-height) + var(--gutter) + 0.5rem);
 }
 
@@ -87,7 +87,7 @@ img {
   height: auto;
 }
 
-/* Build-time responsive wrappers must not add a layout box around content images. */
+/* Wrapper responsive build-time không được thêm layout box quanh ảnh nội dung. */
 picture {
   display: contents;
 }
@@ -121,12 +121,12 @@ a {
   color: white;
 }
 
-/* Keep the overlay thumb reachable above the fixed header's glass surface. */
+/* Giữ thumb overlay chạm tới được phía trên glass surface của header cố định. */
 .c-scrollbar {
   z-index: 1001;
 }
 
-/* Keep touch and drag rails usable without exposing a horizontal scrollbar. */
+/* Giữ rail touch và drag dùng được mà không lộ scrollbar ngang. */
 :where(.editorial-strip, .project-track, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
@@ -169,7 +169,7 @@ body.is-transitioning .route-veil {
   pointer-events: auto;
 }
 
-/* Direct loads keep the header under the veil until it uncovers; soft routes keep it above. */
+/* Direct load giữ header dưới veil đến khi nó lộ ra; route mềm giữ nó phía trên. */
 html.route-enter .site-header {
   z-index: 998;
 }
@@ -1124,7 +1124,7 @@ em {
     grid-row: 3;
   }
 
-  /* Font resizing must not leave the measured ink allowance at an old size. */
+  /* Đổi cỡ font không được để ink allowance đã đo ở size cũ. */
   .hero[data-hero-intro] .hero-line-mask {
     clip-path: inset(
       calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) 0
@@ -1893,7 +1893,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   margin-top: 90px;
 }
 
-/* The whole block opens About; the label reuses the service portal subtitle. */
+/* Cả khối mở About; label dùng lại subtitle của service portal. */
 .legacy-link::before {
   position: absolute;
   z-index: 1;
@@ -2032,7 +2032,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   animation-play-state: paused;
 }
 
-/* Painted on the media frame behind content photos so it shows before scripts run; motion.js adds .is-media-settled on load/error to stop SMIL repaints. */
+/* Vẽ trên media frame sau ảnh nội dung để hiện trước khi script chạy; motion.js thêm .is-media-settled khi load/error để dừng repaint SMIL. */
 :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(:is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke-width='2'%3E%3Ccircle cx='14' cy='14' r='13' stroke='%23ffffff2e'/%3E%3Cpath d='M14 1a13 13 0 0 1 13 13' stroke='%23ffffffb8'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 14 14' to='360 14 14' dur='0.9s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
   background-position: center;
@@ -2682,7 +2682,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
-/* Small windows: one compact footer so the content above stays the main area. */
+/* Cửa sổ nhỏ: một footer compact để nội dung phía trên vẫn là vùng chính. */
 @media (max-width: 750px), (max-height: 640px) {
   .site-footer {
     display: grid;
@@ -2867,7 +2867,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
-/* Keep the settled hero geometry; the toggle has nothing to control without motion. */
+/* Giữ geometry hero đã settle; toggle không có gì để điều khiển khi không có motion. */
 html.motion-fallback .motion-toggle {
   visibility: hidden;
 }
@@ -2946,7 +2946,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   visibility: visible;
 }
 
-/* Giu nghe block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
+/* Giữ nghề block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
 @media (max-width: 960px) {
   .legacy-closer {
     height: 400px;
@@ -3579,7 +3579,7 @@ html[lang="vi"]
   font-size: clamp(2.75rem, 6.3vw, 5.45rem);
 }
 
-/* A nowrap line wider than the frame keeps its right edge on the frame. */
+/* Dòng nowrap rộng hơn frame giữ mép phải của nó trên frame. */
 @media (min-width: 1025px) {
   .detail-index-hero .detail-hero-line-mask:last-of-type {
     display: flex;
@@ -3646,7 +3646,7 @@ html[lang="en"]
   gap: 35px;
 }
 
-/* display: contents has no box of its own, so with scripting on Chromium would lay out the raw fallback text. */
+/* display: contents không có box riêng, nên khi bật scripting Chromium sẽ layout văn bản fallback thô. */
 @media (scripting: none) {
   .project-grid > noscript {
     display: contents;
@@ -4019,7 +4019,7 @@ html[lang="en"]
   }
 }
 
-/* About page */
+/* Trang About */
 .about-page .about-hero {
   min-height: 46rem;
 }
@@ -4293,7 +4293,7 @@ html[lang="en"]
     );
   }
 
-  /* SplitText's inline overflow must not override the ink-aware clip path. */
+  /* Inline overflow của SplitText không được ghi đè clip path nhận biết ink. */
   .detail-page .motion-line-mask {
     overflow: visible !important;
   }
@@ -4556,7 +4556,7 @@ body.is-advertising-browse .advertising-grid {
     var(--media-hover-transform);
 }
 
-/* Loading media wears the masonry-end skeleton frame (docs/specs/loading-glass-and-page-entry.md R1). */
+/* Media đang tải mang frame skeleton cuối masonry (docs/specs/loading-glass-and-page-entry.md R1). */
 .advertising-card-media > .advertising-grid__cta-frame {
   z-index: 1;
   inset: 0;
@@ -4738,13 +4738,13 @@ body.is-advertising-browse .advertising-grid {
   overflow: hidden;
 }
 
-/* Kính (docs/specs/glass-surface.md): one component for every glass surface. Stacked backdrop
-   blurs compound, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward the levels 7.14, 16.07, 32.14, 57.14 and the 100px
-   ceiling (the arc's three band steps: 4.5, 12 and 28px; its inner steps are set by glass-surface.mjs); saturate() and brightness() multiply, so each step
-   carries the fifth root of 1.7 and 1.04 (arc: the third root of 1.55 and 1.05).
-   Steps count from the tint and the grain, so the arc's core in front of them shifts nothing.
-   Only the steps own backdrop-filter. The box itself stays plain: opacity, a mask or a filter on it
-   would cut the steps off from the page behind. */
+/* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
+   blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 7.14, 16.07, 32.14, 57.14 và trần
+   100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step
+   mang căn bậc năm của 1.7 và 1.04 (arc: căn bậc ba của 1.55 và 1.05).
+   Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
+   Chỉ các step sở hữu backdrop-filter. Bản thân box giữ trơn: opacity, mask hay filter trên nó
+   sẽ cắt các step khỏi trang phía sau. */
 .glass-surface {
   --glass-saturate: 1.7;
   --glass-brightness: 1.04;
@@ -4763,7 +4763,7 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
-/* Inner arc steps past this device's fitted count (glass-surface.mjs). */
+/* Inner step của arc vượt số đếm đã fit của thiết bị này (glass-surface.mjs). */
 .glass-surface > i[hidden] {
   display: none;
 }
@@ -4788,7 +4788,7 @@ body.is-advertising-browse .advertising-grid {
   backdrop-filter: blur(var(--glass-full-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
 }
 
-/* The arc's inner steps add blur only; colour comes from its core and band steps. */
+/* Inner step của arc chỉ thêm blur; màu đến từ core và band step của nó. */
 .glass-surface__step--inner {
   --glass-step-saturate: 1;
   --glass-step-brightness: 1;
@@ -4798,15 +4798,15 @@ body.is-advertising-browse .advertising-grid {
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Static mono grain at 4% on a mid tone; overlay leaves pure white untouched. */
+/* Grain mono tĩnh 4% trên mid tone; overlay để nguyên trắng tinh. */
 .glass-surface__grain {
   background: var(--glass-grain, none) 0 0 / var(--glass-grain-size, 160px) repeat;
   mix-blend-mode: overlay;
   opacity: 0.08;
 }
 
-/* The arc runtime places each layer (glass-surface.mjs); it spans the viewport over the batch. Its core holds the
-   band's 28px; its inner steps carry the blur on to the 100px ceiling. */
+/* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
+   28px của band; inner step của nó mang blur tiếp tới trần 100px. */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1.55;
   --glass-brightness: 1.05;
@@ -4821,9 +4821,9 @@ body.is-advertising-browse .advertising-grid {
   inset: auto 0;
 }
 
-/* Over the skeleton's WebGL layers in a composited page (smooth scroll), Chromium drops the steps' blur under a
-   blended sibling, so card edges show sharp through the arc. White noise with normal blending brightens by
-   0.16 x noise x (1 - backdrop), which is overlay's noise on the light glass; its mean 0.08 comes off the tint
+/* Trên các layer WebGL của skeleton trong trang composited (smooth scroll), Chromium bỏ blur của step dưới một
+   sibling blended, nên mép card lộ sắc nét qua arc. White noise với blending normal làm sáng thêm
+   0.16 x noise x (1 - backdrop), tức noise của overlay trên glass sáng; mean 0.08 của nó trừ khỏi tint
    (glass-surface.mjs). */
 .glass-surface[data-glass-shape="arc"] > .glass-surface__grain {
   background-image: var(--glass-grain-white, none);
@@ -4831,7 +4831,7 @@ body.is-advertising-browse .advertising-grid {
   opacity: 0.16;
 }
 
-/* The arc's layers run 2px under the footer; the footer stacks over them so its top line stays. */
+/* Layer của arc chạy 2px dưới footer; footer xếp trên chúng để đường viền trên của nó còn nguyên. */
 body.is-advertising-browse .site-footer {
   position: relative;
   z-index: 1;
@@ -4877,7 +4877,7 @@ body.is-advertising-browse .site-footer {
   opacity: var(--advertising-cta-frame-opacity);
 }
 
-/* Batch frames enter under Kinh from the runtime, so they take their final opacity at once (skeleton R4). */
+/* Frame batch vào dưới Kính từ runtime, nên lấy opacity cuối ngay (skeleton R4). */
 .advertising-grid__cta-frame[data-advertising-cta-frame] {
   transition: none;
 }
@@ -4965,7 +4965,7 @@ body.is-advertising-browse .site-footer {
   display: block;
 }
 
-/* The reveal Kính covers the photo and the skeleton but stays under the image actions. */
+/* Kính reveal phủ photo và skeleton nhưng ở dưới image action. */
 .advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] > i {
   z-index: 2;
 }
@@ -4986,7 +4986,7 @@ body.is-advertising-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-/* The skeleton sits above the photo and below the image actions; the photo waits under it until decoded. */
+/* Skeleton nằm trên photo và dưới image action; photo chờ dưới nó đến khi decode xong. */
 .advertising-photo-view__hero-frame > .advertising-grid__cta-frame {
   z-index: 2;
   inset: 0;
@@ -4997,7 +4997,7 @@ body.is-advertising-browse .site-footer {
   opacity: 0;
 }
 
-/* The outgoing photo keeps its old inline size and fades over the new one without taking clicks. */
+/* Photo đi ra giữ inline size cũ và mờ dần lên photo mới mà không nhận click. */
 .advertising-photo-view__outgoing {
   pointer-events: none;
 }
@@ -5056,9 +5056,9 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* The primary Kính blurs this static photo with filter, not backdrop-filter: Chrome snapshots a backdrop per raster
-   tile when it re-rasters the page (tab hover thumbnail), clamps the blur at the tile edge and keeps the seam until
-   a full repaint. Same numbers as .glass-surface__step--full; the Kính above it keeps only tint and grain. */
+/* Kính của primary blur photo tĩnh này bằng filter, không phải backdrop-filter: Chrome snapshot một backdrop theo từng raster
+   tile khi re-raster trang (thumbnail hover tab), clamp blur ở mép tile và giữ đường nối đến khi
+   repaint đầy đủ. Cùng số với .glass-surface__step--full; Kính phía trên chỉ giữ tint và grain. */
 .advertising-photo-view__hero [data-advertising-photo-background],
 .advertising-photo-view__outgoing-background {
   filter: blur(100px) saturate(1.7) brightness(1.04);
@@ -5272,7 +5272,7 @@ body.is-advertising-browse .site-footer {
   font-variant-numeric: tabular-nums;
 }
 
-/* 24px hit area per dot; the negative margin lines the first dot up with the text edge. */
+/* Vùng bấm 24px mỗi dot; margin âm căn dot đầu với mép text. */
 .advertising-photo-view__description-indicator button {
   display: grid;
   width: 24px;
@@ -5416,7 +5416,7 @@ body.is-advertising-browse .site-footer {
   transition: background-color 250ms ease-out, border-color 250ms ease-out;
 }
 
-/* Indeterminate bar painted along the bottom edge behind the photo until the photo covers it. */
+/* Thanh indeterminate vẽ dọc mép dưới sau photo cho đến khi photo phủ nó. */
 .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 2' preserveAspectRatio='none'%3E%3Crect width='100' height='2' fill='%23ffffff2e'/%3E%3Crect x='-30' width='30' height='2' fill='%23ffffffb8'%3E%3Canimate attributeName='x' from='-30' to='100' dur='1.2s' repeatCount='indefinite'/%3E%3C/rect%3E%3C/svg%3E");
   background-position: left bottom;
@@ -5523,9 +5523,9 @@ body.is-advertising-browse .site-footer {
 
 .advertising-photo-dialog::backdrop {
   background: rgba(32, 33, 32, 0.85);
-  /* The swipe-to-close fade sets the variable on the dialog (advertising-viewer-touch-zoom R9). */
+  /* Fade swipe-to-close đặt biến trên dialog (advertising-viewer-touch-zoom R9). */
   opacity: var(--advertising-viewer-backdrop-opacity, 1);
-  /* Kính blur with the even surface's colour lift, kept dark (advertising-detail R9). */
+  /* Kính blur với độ nâng màu của surface đều, giữ tối (advertising-detail R9). */
   backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
 }
 
@@ -5688,7 +5688,7 @@ body.is-advertising-browse .detail-cta[data-advertising-grid-cta] {
   left: 0;
 }
 
-/* The batch fills the space above the footer. */
+/* Batch lấp khoảng trống trên footer. */
 body.is-advertising-browse:not(.is-advertising-photo) {
   --footer-top-gap: 0px;
 }
@@ -5697,8 +5697,8 @@ body.is-advertising-browse:not(.is-advertising-photo) {
   content: none;
 }
 
-/* The last heading baseline sits on the centre of the dynamic viewport at the scroll limit,
-   or the link keeps one gap above the batch bottom when the window is too short. */
+/* Baseline heading cuối nằm ở tâm dynamic viewport tại giới hạn cuộn,
+   hoặc link giữ một gap phía trên đáy batch khi cửa sổ quá thấp. */
 .detail-cta[data-advertising-grid-cta] .detail-cta__copy {
   z-index: 2;
   width: min(78rem, 100%);
@@ -5707,28 +5707,28 @@ body.is-advertising-browse:not(.is-advertising-photo) {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* After the first placement, address bar resizes glide instead of jumping. */
+  /* Sau lần đặt đầu tiên, thay đổi kích thước thanh địa chỉ trượt mượt thay vì nhảy. */
   .detail-cta[data-advertising-grid-cta][data-advertising-cta-settled] .detail-cta__copy {
     transition: margin-bottom 0.4s ease-out;
   }
 }
 
-/* When the CTA is only as tall as its copy (200% text, landscape), the top padding keeps the
-   first line's accents inside the CTA's overflow clip. */
+/* Khi CTA chỉ cao bằng copy (text 200%, landscape), padding top giữ
+   dấu của dòng đầu trong overflow clip của CTA. */
 .detail-cta[data-advertising-grid-cta] h2 {
   padding-top: 0.15em;
   font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
   line-height: 1.2;
 }
 
-/* The runtime fits the size synchronously; the reduced-motion transition would report the old size. */
+/* Runtime fit size đồng bộ; transition của reduced-motion sẽ báo size cũ. */
 .detail-cta[data-advertising-grid-cta] h2,
 .detail-cta[data-advertising-grid-cta] h2 * {
   transition: none !important;
 }
 
-/* Split lines add 0.12em mask padding and rest 0.1em up after the reveal (detail.js),
-   so the link still sits one gap under the visible last line. */
+/* Dòng split thêm 0.12em mask padding và nằm 0.1em cao hơn sau reveal (detail.js),
+   nên link vẫn nằm cách dòng cuối nhìn thấy một gap. */
 .detail-cta[data-advertising-grid-cta] h2:has(> .motion-line-mask) {
   margin-bottom: -0.22em;
 }
@@ -5765,7 +5765,7 @@ body.is-advertising-browse .floating-cta {
   display: none;
 }
 
-/* Intrinsic rows keep title, filters and cue separate on short touch viewports. */
+/* Hàng intrinsic giữ title, filter và cue tách biệt trên viewport touch thấp. */
 @media (max-width: 980px) {
   .residential-hero .detail-title__quiet,
   .residential-hero .detail-title__strong,
@@ -5778,7 +5778,7 @@ body.is-advertising-browse .floating-cta {
   .residential-hero .motion-word,
   .commercial-hero .motion-word {
     max-width: 100%;
-    /* SplitText sets inline nowrap; long words must still honor text resizing. */
+    /* SplitText đặt inline nowrap; từ dài vẫn phải tôn trọng text resizing. */
     white-space: normal !important;
     overflow-wrap: anywhere;
   }
@@ -5797,7 +5797,7 @@ body.is-advertising-browse .floating-cta {
     height: auto;
     min-height: calc(var(--site-layout-viewport-height) - 50px);
     padding-top: calc(var(--header-row-height) + 25px + 0.5rem);
-    /* The cue is the last row, so this is its distance from the hero bottom. */
+    /* Cue là hàng cuối, nên đây là khoảng cách của nó đến đáy hero. */
     padding-bottom: 30px;
     grid-template-rows: minmax(min-content, 1fr) auto auto;
     row-gap: 1rem;
@@ -5909,8 +5909,8 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 }
 
-/* Touch screens open, zoom and close the viewer by gesture; the buttons stay for screen readers and show
-   again under keyboard focus (advertising-viewer-touch-zoom R7, R8). */
+/* Màn cảm ứng mở, zoom và đóng viewer bằng gesture; button còn lại cho screen reader và hiện
+   lại khi có keyboard focus (advertising-viewer-touch-zoom R7, R8). */
 @media (hover: none) and (pointer: coarse) {
   .advertising-photo-view__hero-frame {
     touch-action: manipulation;

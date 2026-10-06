@@ -1,4 +1,4 @@
-/* Self-hosted Plus Jakarta Sans variable (OFL), copied from @fontsource-variable by prepare-static-assets. */
+/* Plus Jakarta Sans variable tự host (OFL), copy từ @fontsource-variable bởi prepare-static-assets. */
 @font-face {
   font-family: "Plus Jakarta Sans";
   font-style: normal;
@@ -113,7 +113,7 @@ html {
   color: var(--ink);
   overflow-x: hidden;
   scroll-behavior: smooth;
-  /* Native focus and anchor scrolls stop below the sticky header row. */
+  /* Native focus và anchor scroll dừng bên dưới hàng sticky header. */
   scroll-padding-top: calc(var(--header-row-height) + var(--gutter) + 0.5rem);
 }
 
@@ -141,7 +141,7 @@ img {
   height: auto;
 }
 
-/* Build-time responsive wrappers must not add a layout box around content images. */
+/* Wrapper responsive build-time không được thêm layout box quanh ảnh nội dung. */
 picture {
   display: contents;
 }
@@ -175,12 +175,12 @@ a {
   color: white;
 }
 
-/* Keep the overlay thumb reachable above the fixed header's glass surface. */
+/* Giữ thumb overlay chạm tới được phía trên glass surface của header cố định. */
 .c-scrollbar {
   z-index: 1001;
 }
 
-/* Keep touch and drag rails usable without exposing a horizontal scrollbar. */
+/* Giữ rail touch và drag dùng được mà không lộ scrollbar ngang. */
 :where(.editorial-strip, .project-track, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
@@ -223,7 +223,7 @@ body.is-transitioning .route-veil {
   pointer-events: auto;
 }
 
-/* Direct loads keep the header under the veil until it uncovers; soft routes keep it above. */
+/* Direct load giữ header dưới veil đến khi nó lộ ra; route mềm giữ nó phía trên. */
 html.route-enter .site-header {
   z-index: 998;
 }
@@ -1178,7 +1178,7 @@ em {
     grid-row: 3;
   }
 
-  /* Font resizing must not leave the measured ink allowance at an old size. */
+  /* Đổi cỡ font không được để ink allowance đã đo ở size cũ. */
   .hero[data-hero-intro] .hero-line-mask {
     clip-path: inset(
       calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) 0
@@ -1947,7 +1947,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   margin-top: 90px;
 }
 
-/* The whole block opens About; the label reuses the service portal subtitle. */
+/* Cả khối mở About; label dùng lại subtitle của service portal. */
 .legacy-link::before {
   position: absolute;
   z-index: 1;
@@ -2086,7 +2086,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   animation-play-state: paused;
 }
 
-/* Painted on the media frame behind content photos so it shows before scripts run; motion.js adds .is-media-settled on load/error to stop SMIL repaints. */
+/* Vẽ trên media frame sau ảnh nội dung để hiện trước khi script chạy; motion.js thêm .is-media-settled khi load/error để dừng repaint SMIL. */
 :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(:is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke-width='2'%3E%3Ccircle cx='14' cy='14' r='13' stroke='%23ffffff2e'/%3E%3Cpath d='M14 1a13 13 0 0 1 13 13' stroke='%23ffffffb8'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 14 14' to='360 14 14' dur='0.9s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
   background-position: center;
@@ -2736,7 +2736,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
-/* Small windows: one compact footer so the content above stays the main area. */
+/* Cửa sổ nhỏ: một footer compact để nội dung phía trên vẫn là vùng chính. */
 @media (max-width: 750px), (max-height: 640px) {
   .site-footer {
     display: grid;
@@ -2921,7 +2921,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
-/* Keep the settled hero geometry; the toggle has nothing to control without motion. */
+/* Giữ geometry hero đã settle; toggle không có gì để điều khiển khi không có motion. */
 html.motion-fallback .motion-toggle {
   visibility: hidden;
 }
@@ -3000,7 +3000,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   visibility: visible;
 }
 
-/* Giu nghe block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
+/* Giữ nghề block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
 @media (max-width: 960px) {
   .legacy-closer {
     height: 400px;

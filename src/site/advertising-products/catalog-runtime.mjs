@@ -37,13 +37,13 @@ let skeletonDocumentParked = false;
 let skeletonDocumentEventsBound = false;
 const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
   || document.documentElement.clientWidth <= 750;
-// Wide desktops show 8-10 CTA frames at once; 12 keeps them all live and stays under Chrome's 16 contexts.
+// Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
-// Approved reveal: glass in 0-0.6s, crossfade 0.3-0.9s, glass out 0.6-1.4s; a cached primary scales it to 0.6s.
+// Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; primary đã cache thu thời lượng về 0.6s.
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
-// Phones hold card reveals until the swipe settles: a fast fling otherwise starts a Kinh reveal per passing card.
+// Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
@@ -130,7 +130,7 @@ export function consumeAdvertisingVisitSeedHandoff(storage, {
   try { serialized = storage?.getItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY); }
   catch { return null; }
   try { storage?.removeItem(ADVERTISING_VISIT_SEED_HANDOFF_KEY); }
-  catch { /* A readable value is still validated and consumed for this initialization. */ }
+  catch { /* Giá trị đọc được vẫn được validate và dùng cho lần khởi tạo này. */ }
   if (!serialized || navigationType !== "navigate" || !Number.isFinite(now)) return null;
   try {
     const handoff = JSON.parse(serialized);
@@ -618,9 +618,9 @@ export function createAdvertisingBrowseHistoryController({
     returnToGrid({ reason = "navbar" } = {}) {
       const viewedId = current.photo || current.grid.focusId;
       const viewedCategory = cardById.get(viewedId)?.category;
-      // From a photo, navbar keeps the group picked on the source masonry; a direct photo or a group grid lands on All.
+      // Từ một photo, navbar giữ nhóm đã chọn trên masonry nguồn; vào thẳng photo hoặc grid nhóm thì về All.
       const category = (current.photo && current.grid.category) || "all";
-      // A related photo outside that group is not in the masonry, so return to the photo opened from it.
+      // Related photo nằm ngoài nhóm đó không có trong masonry, nên quay về photo đã mở từ nó.
       const focusId = category === "all" || viewedCategory === category ? viewedId : current.grid.focusId;
       const returningToOrigin = focusId === current.grid.focusId;
       storeCurrent();
@@ -677,8 +677,8 @@ export function compileAdvertisingGeometry({ grid, options, compile = compileAdv
 }
 
 function createPhotoMedia(record, locale, { suggestion = false } = {}) {
-  // Keep the contracted LazySizes preload/class lifecycle for virtualized cards.
-  // Native loading alone has different viewport thresholds (design-system/motion.md).
+  // Giữ vòng đời preload/class LazySizes đã cam kết cho các card ảo hóa.
+  // Native loading riêng có ngưỡng viewport khác (design-system/motion.md).
   const image = document.createElement("img");
   image.className = suggestion
     ? "advertising-card-media__image media-hover-zoom"
@@ -772,7 +772,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dataset.advertisingActiveMediaId = items[coverIndex].id;
     }
 
-    // The skeleton frame is the visual; this node only keeps the loading status for assistive tech.
+    // Frame skeleton là phần nhìn thấy; node này chỉ giữ trạng thái loading cho công nghệ hỗ trợ.
     const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
     const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
@@ -961,7 +961,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       suppressClickUntil = performance.now() + 400;
     };
     if (hasCarousel) {
-      // Pointer events cover touch too; touch-action: pan-y leaves horizontal swipes to this handler.
+      // Pointer events bao gồm cả touch; touch-action: pan-y để swipe ngang cho handler này.
       link.addEventListener("pointerdown", (event) => {
         suppressClickUntil = 0;
         pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
@@ -1073,8 +1073,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoAudioToggle = photoView?.querySelector("[data-advertising-photo-audio-toggle]");
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
-  // Even Kính over the cover backdrop; CSS shows it only when the contained photo leaves room around it.
-  // No blur step: the backdrop photo carries the blur itself (detail.css), so a tile seam cannot show.
+  // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
+  // Không có bước blur: ảnh backdrop tự mang blur (detail.css), nên không thể lộ đường nối giữa các tile.
   const photoGlass = createGlassSurface("even", 0);
   photoBackground?.after(photoGlass);
   const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
@@ -1128,7 +1128,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
   }
-  // Preserve the generated artifact reference as the cache identity; do not clone or mutate it.
+  // Giữ nguyên tham chiếu artifact đã generate làm cache identity; không clone hay mutate.
   const artifactCacheIdentity = artifact;
   if (signal?.aborted) return () => {};
   if (typeof window.Masonry !== "function") {
@@ -1137,7 +1137,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
-  // Keep the CSS measurement available when the shell script fails to boot.
+  // Giữ sẵn số đo CSS khi script shell không khởi động được.
   if (!document.querySelector(".site-viewport-metrics")) {
     const probe = document.createElement("div");
     probe.className = "site-viewport-metrics";
@@ -1174,9 +1174,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
-  // Photo opens (showPhoto), one task per phase: "primary" lays out the primary with no related; "warm"
-  // runs the solver on a few cards so the full run does not also pay for cold code; "related" runs
-  // the full solver, keeps the primary geometry and leaves card mounting to the next task.
+  // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
+  // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
+  // solver đầy đủ, giữ geometry của primary và để việc mount card cho task kế tiếp.
   let directEntryPhase = "";
   let relatedMeasuredGeometry = null;
   let suggestionSlots = [];
@@ -1201,7 +1201,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     zoomOutButton: photoZoomOut,
     zoomStatus: photoZoomStatus,
   });
-  // Media keys that loaded once: a remounted card swaps them in without Kính once its cached copy arrives.
+  // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
   const loadedMediaKeys = new Set();
   const visibleMediaCards = new Set();
   const mediaKey = (node) => node.dataset.advertisingRelatedCard
@@ -1218,7 +1218,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       showMedia(node);
     } else revealCard(node);
   };
-  // Reduced motion still observes: loading skeletons appear only on cards in view.
+  // Reduced motion vẫn observe: skeleton loading chỉ hiện trên card đang trong view.
   const mediaObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       const node = entry.target;
@@ -1226,7 +1226,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!id) return;
       if (entry.intersectionRatio === 0) {
         visibleMediaCards.delete(id);
-        // The skeleton's colours stay with the media id, so dropping it here keeps them for the next entry.
+        // Màu của skeleton gắn với media id, nên bỏ nó ở đây vẫn giữ màu cho entry kế tiếp.
         dropCardSkeleton(node);
         return;
       }
@@ -1263,7 +1263,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let lastCtaViewportHeight = 0;
   let ctaCopyKey = "";
   let ctaCopyMetrics = { baseline: 0, below: 0 };
-  // A zero-size inline box at the heading's end sits on the last line's baseline.
+  // Một inline box kích thước 0 ở cuối heading nằm trên baseline của dòng cuối.
   const ctaBaselineProbe = document.createElement("span");
   ctaBaselineProbe.style.cssText = "display: inline-block; width: 0; height: 0;";
   const measureCtaCopy = () => {
@@ -1271,7 +1271,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       .filter((node) => !node.children.length && node.textContent.trim()).at(-1);
     (last || gridCtaHeading).append(ctaBaselineProbe);
     const line = last?.closest(".motion-line");
-    // Measure the revealed state: drop the line's current reveal offset, then rest it 0.1em up as detail.js does.
+    // Đo trạng thái đã reveal: bỏ offset reveal hiện tại của dòng, rồi đặt nó lên 0.1em như detail.js.
     const reveal = line ? new DOMMatrixReadOnly(getComputedStyle(line).transform).m42
       + 0.1 * Number.parseFloat(getComputedStyle(gridCtaHeading).fontSize) : 0;
     const copyRect = gridCtaCopy.getBoundingClientRect();
@@ -1279,7 +1279,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ctaBaselineProbe.remove();
     return { baseline, below: copyRect.height - baseline };
   };
-  // Shrinks the heading only as far as the space under its last baseline needs, never under 1.3rem.
+  // Thu heading vừa đủ để khoảng trống dưới baseline cuối đủ dùng, không nhỏ hơn 1.3rem.
   const fitGridCtaHeading = (room) => {
     gridCtaHeading.style.removeProperty("font-size");
     const css = measureCtaCopy();
@@ -1289,14 +1289,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     gridCtaHeading.style.fontSize = `${minSize}px`;
     const floor = measureCtaCopy();
     if (floor.below >= room || cssSize <= minSize) return floor;
-    // The space under the baseline grows linearly with the font size.
+    // Khoảng trống dưới baseline tăng tuyến tính theo font size.
     gridCtaHeading.style.fontSize = `${minSize + (cssSize - minSize) * (room - floor.below) / (css.below - floor.below)}px`;
     return measureCtaCopy();
   };
-  // The copy trails the page by 10% and lands on zero offset at the scroll limit.
+  // Phần copy chậm hơn trang 10% và về offset 0 tại giới hạn cuộn.
   const syncCtaParallax = () => {
     if (!gridCtaCopy || !siteFooter) return;
-    // A CTA only as tall as its copy (200% text, landscape) has no room above it, and its clip would cut the heading.
+    // CTA chỉ cao bằng copy (text 200%, landscape) không còn chỗ phía trên, và clip của nó sẽ cắt heading.
     const offset = reduced || activePhotoId ? 0
       : Math.max((siteFooter.getBoundingClientRect().bottom - innerHeight) * -0.1, -gridCtaCopy.offsetTop);
     gridCtaCopy.style.transform = offset ? `translate3d(0, ${offset.toFixed(2)}px, 0)` : "";
@@ -1514,7 +1514,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const skeletonFrameBySlot = new Map();
   const skeletonPhaseBySlot = new Map();
   const skeletonEntryFrames = new Map();
-  // Batch slots and loading media keep their draw for one page state (advertising-skeleton R3).
+  // Slot batch và media đang tải giữ nguyên lượt vẽ trong một trạng thái trang (advertising-skeleton R3).
   const skeletonAssignmentByKey = new Map();
   const skeletonStillByFrame = new WeakMap();
   const resetSkeletonAssignments = () => {
@@ -1537,7 +1537,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     pending.glass?.remove();
     skeletonEntryFrames.delete(frame);
   };
-  // Loading skeletons run on related cards and the primary too; the CTA batch is cleared while a photo is open.
+  // Skeleton loading chạy trên related card và cả primary; batch CTA được xóa khi đang mở photo.
   const skeletonMotionAllowed = () => !skeletonDocumentParked && !document.hidden
     && !skeletonMotionPreference.matches
     && !document.body.classList.contains("motion-paused") && !document.body.classList.contains("menu-open");
@@ -1557,12 +1557,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ?? `media:${frame.dataset.advertisingLoadingSkeleton}`;
   const skeletonPhase = (frame) => skeletonPhaseBySlot.get(skeletonKey(frame))
     ?? skeletonAssignmentByFrame.get(frame).phase;
-  // Without a live renderer the canvas shows a still of its own Flow at the saved phase (R5).
+  // Không có renderer live, canvas hiện ảnh tĩnh của chính Flow tại pha đã lưu (R5).
   const createSkeletonCanvas = (frame, canvas = document.createElement("canvas")) => {
     const assignment = skeletonAssignmentByFrame.get(frame);
     const { preset, anchorPermutation, direction, speedScale } = assignment;
     const phase = skeletonPhase(frame);
-    // Remounts reuse the still painted at release; only a new phase pays for a CPU render.
+    // Remount dùng lại ảnh tĩnh đã vẽ lúc release; chỉ khi sang pha khác mới tốn một lần render CPU.
     const cached = skeletonStillByFrame.get(frame);
     const still = cached?.assignment === assignment && cached.phase === phase
       ? cached.still
@@ -1581,7 +1581,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.style.filter = preset.finish.soften ? `blur(${preset.finish.soften}px)` : "none";
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
     canvas.setAttribute("aria-hidden", "true");
-    // The canvas overhangs the surface by 8% per side; the surface shows the same still under a fading canvas.
+    // Canvas tràn ra ngoài surface 8% mỗi bên; surface hiện cùng ảnh tĩnh dưới canvas đang mờ dần.
     const surface = frame.querySelector(".advertising-grid__cta-surface");
     surface.style.backgroundColor = preset.colors[3];
     surface.style.backgroundImage = still;
@@ -1597,8 +1597,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     frame.append(surface);
     return frame;
   };
-  // Adjacent: same column above or below, or the next column overlapping vertically (R3).
-  // `rects` holds rects read before any canvas append, so a batch of draws forces one layout.
+  // Kề nhau: cùng cột phía trên hoặc dưới, hoặc cột kế tiếp chồng lên theo chiều dọc (R3).
+  // `rects` giữ các rect đọc trước mọi lần append canvas, nên một batch vẽ chỉ ép một layout.
   const skeletonNeighbors = (frame, rects) => {
     const rectOf = (other) => rects?.get(other) ?? other.getBoundingClientRect();
     const rect = rectOf(frame);
@@ -1654,7 +1654,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     if (oldCanvas && oldCanvas !== canvas) oldCanvas.replaceWith(canvas);
     if (!canvas.isConnected) frame.querySelector(".advertising-grid__cta-surface")?.append(canvas);
-    // Draw once a leased canvas is in the frame; no paint runs in between, so it still shows the first frame.
+    // Vẽ một lần khi canvas được lease nằm trong frame; không có paint nào chen giữa, nên vẫn thấy frame đầu.
     renderer?.draw(performance.now());
     requestAnimationFrame(() => {
       if (!canvas.isConnected || skeletonFlowByFrame.get(frame) !== renderer
@@ -1688,7 +1688,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
-    // Card and CTA frames sit in different containers, so order them by viewport position.
+    // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport.
     const prioritized = [...visibleSkeletonFrames]
       .map((frame) => ({ frame, rect: frame.getBoundingClientRect() }))
       .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left)
@@ -1698,7 +1698,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (keep.size >= budget) break;
       keep.add(frame);
     }
-    // Release before allocation so phone rotation never overlaps context budgets.
+    // Release trước khi cấp phát để xoay điện thoại không bao giờ chồng ngân sách context.
     for (const frame of skeletonFlowByFrame.keys()) {
       if (!keep.has(frame)) releaseSkeletonRenderer(frame);
     }
@@ -1706,14 +1706,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonMountWanted = keep;
     if ([...keep].some((frame) => !skeletonFlowByFrame.has(frame))) scheduleSkeletonMount();
   };
-  // A new context, then shaders and noise, each cost tens of ms on the A05s (R8): every renderer
-  // mounts in its own task after the frame, a new context one task before it; the still frame shows meanwhile.
-  // Mounts do not wait for scroll to settle, so Flow runs while the scrollbar is held (R5).
+  // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên A05s (R8): mọi renderer
+  // mount trong task riêng sau frame, context mới một task trước nó; ảnh tĩnh hiện trong lúc đó.
+  // Mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
-    // Shader compiles and context creation stall the frames of a 0.4s card slide, so mounts wait for it to end.
+    // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc.
     skeletonMountTimer = setTimeout(() => {
       skeletonMountTimer = 0;
       if (performance.now() < motionUntil) {
@@ -1733,7 +1733,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         }
       }
       mountSkeletonRenderer(frame);
-      // Over budget or on a lost context nothing mounts; the next visibility change retries.
+      // Vượt ngân sách hoặc mất context thì không mount gì; lần đổi visibility kế tiếp thử lại.
       if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
     }, Math.max(0, motionUntil - performance.now()));
   };
@@ -1755,7 +1755,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
-      // Batch frames enter like card photos: Flow appears under Kinh over an empty frame in 0.6s (skeleton R4).
+      // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
       if (frame.dataset.advertisingCtaFrame) {
         pending.glass = revealGlass(frame);
         pending.animations = [...crossfadeLayers([], [frame.querySelector(".advertising-grid__cta-surface")], CARD_REVEAL_MS),
@@ -1810,7 +1810,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return;
       }
       if (skeletonCanLoop(frame)) {
-        // Flow runs from the first frame of the Kinh entry (R4).
+        // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
         frame.classList.toggle("is-looping", Boolean(renderer));
         frame.dataset.advertisingFlowState = renderer ? "running" : "paused";
@@ -1838,7 +1838,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       syncSkeletonMotion();
     });
   };
-  // Loading media shows the masonry-end skeleton frame itself (loading-glass-and-page-entry R1, R5).
+  // Media đang tải hiện chính frame skeleton cuối masonry (loading-glass-and-page-entry R1, R5).
   const attachLoadingSkeleton = (host, mediaId, before = null) => {
     const frame = createSkeletonFrame();
     frame.dataset.advertisingLoadingSkeleton = mediaId;
@@ -1861,7 +1861,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     frame.remove();
     scheduleSkeletonSync();
   };
-  // Crossfade step of the approved reveal: outgoing layers fade from their current opacity, incoming ones from 0.
+  // Bước crossfade của reveal đã duyệt: layer cũ mờ từ opacity hiện tại, layer mới từ 0.
   const crossfadeLayers = (from, to, total) => {
     const scale = total / MEDIA_REVEAL_MS;
     const timing = { delay: 300 * scale, duration: 600 * scale, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "both" };
@@ -1875,14 +1875,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ...to.map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], timing)),
     ];
   };
-  // Kính over the media for the reveal only (R2, R4): last in the media box, over the photo and the skeleton.
+  // Kính phủ lên media chỉ cho reveal (R2, R4): cuối cùng trong media box, trên photo và skeleton.
   const revealGlass = (host) => {
     const glass = createGlassSurface("even", 5);
     glass.dataset.glassReveal = "";
     host.append(glass);
     return glass;
   };
-  // Media that loads behind a skeleton reveals under Kính in 0.6s; media already loaded shows at once
+  // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
   const attachCardSkeleton = (node) => {
@@ -1935,7 +1935,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       cardSkeletons.set(node, entry);
     }
     entry.revealing = true;
-    // Swap only a decoded photo so the crossfade never paints a half-decoded frame (R2).
+    // Chỉ swap photo đã decode để crossfade không bao giờ vẽ frame decode dở (R2).
     const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
     decoded.then(() => {
       if (cardSkeletons.get(node) !== entry) return;
@@ -1999,12 +1999,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
       ctaCopyMetrics = fitGridCtaHeading(room);
-      // CSS places the copy against the dynamic viewport, so the address bar never rebuilds the batch.
+      // CSS đặt copy theo dynamic viewport, nên thanh địa chỉ không bao giờ dựng lại batch.
       gridCta.style.setProperty("--advertising-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--advertising-cta-copy-below", `${ctaCopyMetrics.below}px`);
       requestAnimationFrame(() => { gridCta.dataset.advertisingCtaSettled = "true"; });
     }
-    // The last baseline sits D above the batch bottom; too short a window keeps the button one gap above it.
+    // Baseline cuối nằm D phía trên đáy batch; cửa sổ quá thấp thì nút giữ cách nó một gap.
     const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(geometry.cardWidth * 0.25) + 1,
       viewportHeight - gap - footerHeight, Math.ceil(baselineGap + ctaCopyMetrics.baseline));
@@ -2013,7 +2013,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     gridCta?.style.setProperty("--advertising-cta-tail-height", `${tailHeight}px`);
     const ctaHeight = gridCta?.offsetHeight || 0;
     const gridBottom = ctaTop + ctaHeight;
-    // The batch ends right on the footer.
+    // Batch kết thúc ngay trên footer.
     const skeletonBoundaryBottom = gridBottom;
     const fragment = document.createDocumentFragment();
     const frameLayout = createSkeletonFlowFrameLayout({
@@ -2043,7 +2043,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         if (!frame) {
           frame = createSkeletonFrame();
           frame.dataset.advertisingCtaSlot = slot;
-          // A returning slot shows its colours at once; a new one draws when it first enters view.
+          // Slot quay lại hiện màu ngay; slot mới vẽ khi lần đầu vào view.
           if (skeletonAssignmentByKey.has(slot)) assignSkeleton(frame);
           if (revealedSkeletonSlots.has(slot)) frame.classList.add("is-entry-ready");
           fragment.append(frame);
@@ -2069,9 +2069,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ctaSkeleton.dataset.advertisingCtaRealBottom = String(geometry.totalPixelHeight);
     ctaSkeleton.dataset.advertisingCtaSignature = `${ctaGeometryHash}:${gridPixelHeight.toFixed(3)}`;
     if (arcGlass) {
-      // The CTA cluster (heading top to link bottom) at the scroll limit, where the parallax is zero.
+      // Cụm CTA (từ đầu heading đến cuối link) tại giới hạn cuộn, nơi parallax bằng 0.
       const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
-      // Shown before measuring: a hidden box has no width.
+      // Hiện trước khi đo: box ẩn không có width.
       arcGlass.hidden = false;
       layoutArcGlass(arcGlass, arcGlassGeometry({
         width: arcGlass.clientWidth,
@@ -2180,8 +2180,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         motionTimer = setTimeout(settleMotion, 400);
       }
       window.lazySizes?.loader?.checkElems?.();
-      // site:layout runs Locomotive update(), which mid-scroll makes the page skip ahead a step; cards swapped by
-      // virtualization keep the page height, so only a new height announces a layout (scroll-feel R1).
+      // site:layout chạy Locomotive update(), giữa lúc scroll làm trang nhảy tiến một bước; card bị hoán đổi do
+      // ảo hóa giữ nguyên chiều cao trang, nên chỉ khi chiều cao đổi mới báo layout (scroll-feel R1).
       const pageHeight = (grid.closest("[data-scroll-container]") || document.documentElement).offsetHeight;
       if (pageHeight !== announcedPageHeight) {
         announcedPageHeight = pageHeight;
@@ -2215,7 +2215,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     sizeNode(node, placement, geometry.placements.length);
     restoreCanonicalDomOrder();
     if (masonry) {
-      // An instant relayout mid-transition would stack the in-flight transform on the new top.
+      // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
       cancelMasonryTransitions();
       masonry.options.layoutInstant = true;
       masonry.reloadItems();
@@ -2298,7 +2298,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const pageLabel = (page) => locale === "en" ? `Description page ${page} of ${total}` : `Trang mô tả ${page} trên ${total}`;
       photoDescriptionIndicator.hidden = total <= 1;
       photoDescriptionIndicator.setAttribute("aria-label", pageLabel(current));
-      // Up to five pages show one dot per page; more fall back to "n / N".
+      // Tối đa năm trang hiện một dot mỗi trang; nhiều hơn thì dùng "n / N".
       if (total > 5) photoDescriptionIndicator.textContent = `${current} / ${total}`;
       else {
         if (photoDescriptionIndicator.children.length !== total) {
@@ -2327,14 +2327,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     const pages = [];
     let start = 0;
-    // Most descriptions fit on one page: one layout instead of a search.
+    // Hầu hết mô tả vừa một trang: một layout thay vì tìm kiếm.
     photoDescription.textContent = words.join(" ");
     if (photoDescription.scrollHeight <= available + 1) {
       pages.push(photoDescription.textContent);
       start = words.length;
     }
     while (start < words.length) {
-      // Binary search the longest fitting page: each probe forces a layout.
+      // Binary search trang dài nhất vừa khít: mỗi lần probe ép một layout.
       let best = start + 1;
       let low = start + 2;
       let high = words.length;
@@ -2495,7 +2495,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const renderRelatedWindow = ({ animate = false, origins } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
-    // Direct entry mounts related cards in its own task; an earlier scroll or resize must not mount them unanimated.
+    // Vào thẳng thì related card mount trong task riêng; scroll hoặc resize trước đó không được mount chúng khi chưa animate.
     if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
@@ -2529,7 +2529,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const placement of relatedLayout.layout.placements) relatedPositions.set(placement.card.id, { x: placement.x, y: placement.y });
     normalPhotoKeep.forEach(ensureRelatedPhoto);
     if (keepSuggestion) ensureSuggestionCard();
-    // Unplaced inside the related grid (direct-entry primary phase) it stays hidden until the solver places it.
+    // Chưa đặt trong related grid (pha primary của direct-entry) thì nó ẩn cho đến khi solver đặt.
     else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
     for (const [id, node] of relatedRendered) {
       if (keep.has(id)) {
@@ -2621,7 +2621,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     photoView.dataset.advertisingPhotoLayout = suggestionInRelated ? "pinterest" : "split";
     let suggestionHeight = 0;
-    // In the related grid the suggestion is a related card: the primary phase leaves it to the solver phase.
+    // Trong related grid, suggestion là một related card: pha primary nhường nó cho pha solver.
     const relatedSuggestion = suggestionInRelated && directEntryPhase !== "primary";
     if (suggestionSlots.length && suggestionNode) {
       suggestionNode.hidden = false;
@@ -2719,12 +2719,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     relatedPixelHeight = height;
     photoDescriptionIndicator.hidden = !needsDescriptionIndicator;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
-      // Measured but not placed yet: keep it out of any frame painted before the mount task.
+      // Đã đo nhưng chưa đặt: giữ nó ngoài mọi frame vẽ trước task mount.
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
       return;
     }
     if (directEntryPhase === "primary") {
-      // Hidden, not placed: the mount task animates them from their origins.
+      // Ẩn, chưa đặt: task mount animate chúng từ vị trí gốc.
       relatedRendered.forEach((node) => { node.hidden = true; });
       if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
       return;
@@ -2732,8 +2732,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
-  // The primary changes inside its own frame (loading-glass-and-page-entry R4, R5): a loading photo
-  // shows the skeleton at once, a cached one crossfades over the photo on screen.
+  // Primary đổi bên trong frame của chính nó (loading-glass-and-page-entry R4, R5): photo đang tải
+  // hiện skeleton ngay, photo đã cache thì crossfade lên photo đang hiển thị.
   const heroFrame = photoImage?.parentElement;
   let primaryReveal = null;
   const settlePrimaryReveal = () => {
@@ -2761,7 +2761,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
-  // The photo on screen stays as a temporary layer above the new one; no node flies in from the card.
+  // Photo đang hiển thị ở lại làm layer tạm phía trên layer mới; không node nào bay vào từ card.
   const snapshotPrimary = () => {
     const rect = photoImage.getBoundingClientRect();
     const image = document.createElement("img");
@@ -2823,10 +2823,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const reveal = { frame: null, outgoing, animations: [], timer: 0 };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
-      // Without a photo on screen, hide the stale one; otherwise the old photo stays up until the swap.
+      // Không có photo trên màn hình thì ẩn photo cũ; nếu có, photo cũ giữ nguyên đến khi swap.
       if (!outgoing.length) heroFrame.dataset.advertisingPhotoLoading = "true";
-      // Chrome reports even memory-cached photos as incomplete right after src changes, so a photo that
-      // decodes inside this window counts as cached; anything slower gets the skeleton at once (R4).
+      // Chrome báo cả photo cache trong bộ nhớ là incomplete ngay sau khi đổi src, nên photo
+      // decode trong khoảng này được tính là đã cache; chậm hơn thì hiện skeleton ngay (R4).
       reveal.timer = setTimeout(() => {
         if (primaryReveal !== reveal) return;
         reveal.outgoing.forEach((node) => node.remove());
@@ -2834,7 +2834,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         heroFrame.dataset.advertisingPhotoLoading = "true";
         reveal.frame = attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling);
       }, 100);
-      // decode() rejects on error or when a newer source replaces this one.
+      // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       photoImage.decode().then(() => {
         if (primaryReveal !== reveal) return;
         clearTimeout(reveal.timer);
@@ -2971,12 +2971,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     return true;
   };
-  // Each phase is its own task so none blocks input past 50ms on the A05s (docs/specs/advertising-detail.md R7):
-  // primary with no related, solver warm-up on a few cards, full solver, then card mount.
-  // A restored scroll needs the full height in one pass.
+  // Mỗi pha là một task riêng để không pha nào chặn input quá 50ms trên A05s (docs/specs/advertising-detail.md R7):
+  // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
+  // Scroll được khôi phục cần toàn bộ chiều cao trong một lượt.
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
   const showPhoto = async (browse, reason) => {
-    // Only a new photo defers; a tag or locale change keeps its related cards on screen.
+    // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
     renderPhoto(browse, reason, deferRelated ? "primary" : "");
@@ -2988,7 +2988,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (phase) {
         relatedLayoutKey = "";
         layoutRelated(browseHistory.current);
-        // Paginating forces a layout per probe, so it leaves the primary task.
+        // Phân trang ép một layout mỗi probe, nên nó rời task primary.
         if (phase === "warm") paginateDescription();
       } else {
         renderRelatedWindow({ animate: true, origins });
@@ -3047,13 +3047,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
   };
-  // Chrome silently drops history writes past 200 per 10 s, which lost photo pushes after a scroll.
-  // Scroll is written at most every 300 ms; a pending write is dropped once the entry changes.
+  // Chrome âm thầm bỏ các lần ghi history vượt 200 mỗi 10 s, làm mất các push photo sau một lần scroll.
+  // Scroll được ghi tối đa mỗi 300 ms; lần ghi đang chờ bị bỏ khi entry đổi.
   let persistTimer = 0;
-  // Pending push of a related tap (R7); scroll is not recorded until it lands.
+  // Push đang chờ của một lần tap related (R7); scroll không được ghi cho đến khi nó hạ cánh.
   let relatedOpenTimer = 0;
   controller.signal.addEventListener("abort", () => clearTimeout(relatedOpenTimer), { once: true });
-  // The throttled write can miss the last scroll before Back/Forward; remember it per Barba entry.
+  // Lần ghi bị throttle có thể bỏ lỡ scroll cuối trước Back/Forward; nhớ nó theo từng entry Barba.
   const entryScroll = new Map();
   const entryIndex = () => window.history.state?.index;
   const browseHistory = createAdvertisingBrowseHistoryController({
@@ -3077,9 +3077,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           ? { ...browse, detail: { ...browse.detail, scrollY } }
           : { ...browse, grid: { ...browse.grid, scrollY } };
       }
-      // Opening or closing a photo and Back/Forward start a new page state: frames draw again (skeleton R3).
+      // Mở hoặc đóng photo và Back/Forward bắt đầu một trạng thái trang mới: frame vẽ lại (skeleton R3).
       resetSkeletonAssignments();
-      // showPhoto and restoreGridEntry sync the locale links themselves.
+      // showPhoto và restoreGridEntry tự đồng bộ link locale.
       if (reason === "category") {
         syncLocaleLinks(browse);
         return;
@@ -3271,7 +3271,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     browseHistory.replaceCategory(nextFilter);
     setActiveFilter(nextFilter, { animate: true });
   }, { signal: controller.signal });
-  // Chrome does not scroll a partly visible link on focus; keep the focused filter whole on the mobile rail.
+  // Chrome không scroll link bị che một phần khi focus; giữ filter đang focus nguyên vẹn trên rail mobile.
   filters.addEventListener("focusin", (event) => {
     event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
   }, { signal: controller.signal });
@@ -3292,10 +3292,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
-    // The tap task only saves the anchor; the new entry and its primary come in the next task (R7).
-    // Focus leaves the related cards now, while style is clean, so it forces no recalc.
+    // Task tap chỉ lưu anchor; entry mới và primary của nó đến ở task kế tiếp (R7).
+    // Focus rời related card ngay bây giờ, khi style còn sạch, nên không ép recalc.
     if (relatedGrid.contains(document.activeElement)) photoInfo?.focus({ preventScroll: true });
-    // Back returns to the Y of the tap, so a scroll still settling until the push does not overwrite it.
+    // Back trả về Y của lần tap, nên scroll còn đang lắng đến lúc push không ghi đè nó.
     if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
     const fromPhoto = browseHistory.current.photo;
     clearTimeout(relatedOpenTimer);
@@ -3344,7 +3344,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       try {
         photoDescriptionPager.setPointerCapture?.(event.pointerId);
       } catch {
-        // Synthetic pointer sequences and cancelled pointers do not own capture.
+        // Chuỗi pointer tổng hợp và pointer bị cancel không sở hữu capture.
       }
     }
     if (descriptionPointer.horizontal) event.preventDefault();
@@ -3357,7 +3357,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     try {
       if (photoDescriptionPager.hasPointerCapture?.(event.pointerId)) photoDescriptionPager.releasePointerCapture(event.pointerId);
     } catch {
-      // Cancelled and synthetic pointers may already have released capture.
+      // Pointer bị cancel hoặc tổng hợp có thể đã release capture.
     }
     if (turnPage && horizontal && Math.abs(deltaX) >= 36) turnDescriptionPage(deltaX < 0 ? 1 : -1);
   };
@@ -3398,7 +3398,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ensurePhoto(browse.grid.focusId)?.querySelector("a")?.focus({ preventScroll: true });
   }, { signal: controller.signal });
   addEventListener("pagehide", () => {
-    // Preserve the native destination entry while Barba still owns the outgoing index.
+    // Giữ entry đích native trong khi Barba vẫn sở hữu index đi ra.
     if (!window.history.state?.ttAdvertisingHistoryFallback) captureScroll();
     if (pendingLocaleSeedHandoff) {
       writeAdvertisingVisitSeedHandoff(
@@ -3424,7 +3424,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedLayoutKey = "";
       relatedMeasuredGeometry = null;
     }
-    // The heading or the link moving the copy edge (late styles, font swap) invalidates the CTA metrics.
+    // Heading hoặc link làm dịch mép copy (style trễ, đổi font) làm số đo CTA không còn hợp lệ.
     if (entries.some((entry) => entry.target === gridCtaCopy)) {
       ctaCopyKey = "";
       ctaGeometryHash = "";
@@ -3444,7 +3444,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (photoInfo) [...photoInfo.children].forEach((node) => resizeObserver.observe(node));
   const refreshFontGeometry = () => {
     if (controller.signal.aborted) return;
-    // Web font metrics move the CTA baseline without resizing the heading box.
+    // Số đo web font làm dịch baseline CTA mà không đổi kích thước box heading.
     ctaCopyKey = "";
     ctaGeometryHash = "";
     if (activePhotoId) {
@@ -3493,19 +3493,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   signal?.addEventListener("abort", cleanup, { once: true });
   activeInstance = { adapter, browseHistory, container, cleanup, photoViewer, syncSkeletonMotion };
   if (browseHistory.current.photo) {
-    // The grid stays hidden under a photo; ensurePhoto measures it on the way back.
+    // Grid ở trạng thái ẩn dưới photo; ensurePhoto đo nó khi quay lại.
     retainedPhotoIds.add(browseHistory.current.photo);
-    // Each step below is its own task so none blocks input past 50ms on the A05s (R7, showPhoto).
+    // Mỗi bước dưới đây là một task riêng để không bước nào chặn input quá 50ms trên A05s (R7, showPhoto).
     await nextTask();
     if (controller.signal.aborted) return cleanup;
-    // Pay the photo-mode style and layout before the primary work; hidden so no unsized frame paints.
+    // Trả trước chi phí style và layout của chế độ photo trước việc primary; ẩn để không frame chưa có kích thước nào được vẽ.
     document.body.classList.add("is-advertising-photo");
     if (gridSection) gridSection.hidden = true;
     if (photoView) {
       photoView.hidden = false;
       photoView.style.visibility = "hidden";
     }
-    // Suggestions only rebuild for a new hero, so renderPhoto reuses these.
+    // Suggestion chỉ dựng lại khi có hero mới, nên renderPhoto dùng lại chúng.
     renderSuggestionLinks(browseHistory.current, locale === "en");
     getLayoutViewportHeight();
     await nextTask();
@@ -3515,7 +3515,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     await nextTask();
     if (controller.signal.aborted) return cleanup;
   } else {
-    // An unknown ?photo= id falls back to the grid, which index.html hid before first layout.
+    // Id ?photo= không xác định thì quay về grid, mà index.html đã ẩn trước layout đầu tiên.
     document.body.classList.remove("is-advertising-photo");
     measure({ animate: true });
     restoreGridEntry(browseHistory.current, "direct");

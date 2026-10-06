@@ -15,7 +15,7 @@
     <link rel="preload" href="/assets/vendor/plus-jakarta-sans-5.3.0/plus-jakarta-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <script>
       try {
-        // Every direct load (link, reload, Back/Forward) plays the route-transition enter phase.
+        // Mỗi lần tải trực tiếp (link, reload, Back/Forward) đều chạy pha enter của route-transition.
         if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
           document.documentElement.classList.add("route-enter");
         }
@@ -39,7 +39,7 @@
           addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
         };
         window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
-        // Deferred motion.js runs before DOMContentLoaded, so a slow network keeps the veil.
+        // motion.js (defer) chạy trước DOMContentLoaded, nên mạng chậm vẫn giữ veil.
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
@@ -60,7 +60,7 @@
     data-barba="wrapper"
   >
     <script>
-      // Direct photo entry: hide the grid before first layout; catalog-runtime keeps or drops the class.
+      // Vào thẳng detail theo photo: ẩn grid trước layout đầu tiên; catalog-runtime giữ hoặc bỏ class.
       if (new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-advertising-photo");
     </script>
     <div class="route-veil" aria-hidden="true">

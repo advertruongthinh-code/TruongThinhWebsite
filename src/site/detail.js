@@ -318,7 +318,7 @@
     const SplitText = window.SplitText;
     if (gsap && !reduceMotion) {
       state.gsapContext = gsap.context(() => {
-        // Without SplitText the text stays whole and visible; media and hero motion still run.
+        // Không có SplitText thì chữ giữ nguyên và hiện đủ; media và hero motion vẫn chạy.
         const splitRoute = Boolean(SplitText) && new Set([
           "advertising-products",
           "residential",
@@ -345,7 +345,7 @@
         const heroMediaZoom = container.querySelector(
           "[data-motion-hero-media]",
         );
-        // About keeps its title unsplit, so it has no hero word group to tween.
+        // About giữ title không split, nên không có nhóm word hero để tween.
         const heroWordGroup = wordGroups.find((group) =>
           group.hasAttribute("data-motion-hero-title"),
         );
