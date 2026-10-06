@@ -74,7 +74,7 @@ html[lang="vi"]
 
 .commercial-hero h1 {
   width: 100%;
-  font-size: clamp(2.5rem, 7.5vw, 5.75rem);
+  font-size: clamp(2.5rem, 7.4vw, 5.75rem);
   font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
@@ -98,7 +98,7 @@ html[lang="vi"]
 .commercial-hero
   .detail-hero-line-mask:last-of-type
   [data-motion-word-source] {
-  font-size: clamp(1.1rem, 5.3vw, 4.15rem);
+  font-size: clamp(1.1rem, 5.25vw, 4.15rem);
 }
 
 .detail-title__quiet,
