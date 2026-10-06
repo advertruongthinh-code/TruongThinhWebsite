@@ -17,7 +17,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
   và tab đang hiện mới chuyển động.
 - CTA: Plus Jakarta Sans 600, line-height 1.2, khung tối đa 78rem; EN là "The
   next mark / for your brand". Tại cuối trang, chân chữ dòng cuối nằm giữa
-  viewport, nút cách một gap; tiêu đề không nhỏ hơn `1.3rem`. Card cuối mỗi cột
+  viewport, nút cách một gap; tiêu đề không nhỏ hơn `1.3rem`, chừa `0.15em`
+  phía trên để dấu dòng đầu không bị cắt khi CTA chỉ cao bằng chữ (chữ 200%,
+  xoay ngang). Card cuối mỗi cột
   kéo tới đáy batch, ngay trên footer, không mỏng hơn `0.25` bề rộng card
   ([CTA giữa viewport](../../../docs/specs/advertising-cta-center-parallax.md)).
 

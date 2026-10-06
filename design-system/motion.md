@@ -63,7 +63,8 @@ mount trong `motion.js`.
 
 CTA cuối trang Advertising (`.detail-cta__copy`) có parallax riêng ở mọi chiều
 rộng, cả scroll native: độ lệch bằng (giới hạn cuộn trừ `scrollY`) nhân `-0.1`,
-tức trôi chậm hơn cuộn 10% và bằng 0 đúng tại cuối trang. Giảm chuyển động hoặc
+tức trôi chậm hơn cuộn 10% và bằng 0 đúng tại cuối trang; độ lệch không vượt
+khoảng trống phía trên cụm chữ nên tiêu đề không bị cắt. Giảm chuyển động hoặc
 đang xem ảnh thì không lệch. Vị trí cuối của cụm CTA đổi theo thanh địa chỉ thì
 trượt `margin-bottom 0.4s ease-out`
 ([CTA giữa viewport](../docs/specs/advertising-cta-center-parallax.md)).
