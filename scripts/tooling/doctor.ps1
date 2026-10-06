@@ -133,9 +133,11 @@ try {
 } catch { $failures += "Graphify Git hooks invalid: $($_.Exception.Message)" }
 
 try {
-  $hookStatus = & (Join-Path $PSScriptRoot "ponytail-git-hooks.ps1") -Action status 2>&1 | Out-String
-  foreach ($expected in @("pre-commit: installed", "pre-push: installed")) {
-    if ($hookStatus -notmatch [regex]::Escape($expected)) { throw "Missing '$expected'" }
+  # Wrapper chỉ có action install|run, nên kiểm tra trực tiếp hook đã cài có gọi wrapper không.
+  $hooksDirectory = Join-Path (& git -C $root rev-parse --path-format=absolute --git-common-dir).Trim() "hooks"
+  foreach ($name in @("pre-commit", "pre-push")) {
+    $path = Join-Path $hooksDirectory $name
+    if (-not ((Test-Path -LiteralPath $path) -and (Select-String -LiteralPath $path -SimpleMatch "ponytail-git-hooks.ps1" -Quiet))) { throw "Missing '${name}: installed'" }
   }
   $passes += "Ponytail pre-commit and pre-push hooks"
 } catch { $failures += "Ponytail Git hooks invalid: $($_.Exception.Message)" }
