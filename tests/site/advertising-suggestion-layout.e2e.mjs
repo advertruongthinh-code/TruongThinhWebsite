@@ -151,7 +151,8 @@ try {
     assert(new Set(narrow.buttons.map(({ rect }) => rect[1])).size > 1, `${locale}: stacked mobile must wrap`);
     await page.screenshot({ path: path.join(evidenceDirectory, `${locale}-390x844.png`) });
 
-    await page.setViewportSize({ width: 954, height: 910 });
+    // Full-span stacks only in portrait; a landscape viewport always splits (detail spec R2).
+    await page.setViewportSize({ width: 954, height: 1000 });
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout === "pinterest");
     await page.setViewportSize({ width: 1165, height: 910 });
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoLayout === "split");
