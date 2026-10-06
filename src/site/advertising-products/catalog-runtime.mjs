@@ -1597,25 +1597,27 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return frame;
   };
   // Adjacent: same column above or below, or the next column overlapping vertically (R3).
-  const skeletonNeighbors = (frame) => {
-    const rect = frame.getBoundingClientRect();
+  // `rects` holds rects read before any canvas append, so a batch of draws forces one layout.
+  const skeletonNeighbors = (frame, rects) => {
+    const rectOf = (other) => rects?.get(other) ?? other.getBoundingClientRect();
+    const rect = rectOf(frame);
     const reach = Math.max(48, rect.width * 0.25);
     return skeletonFrames().flatMap((other) => {
       const assignment = skeletonAssignmentByFrame.get(other);
       if (other === frame || !assignment) return [];
-      const box = other.getBoundingClientRect();
+      const box = rectOf(other);
       const dx = Math.max(0, Math.max(rect.left, box.left) - Math.min(rect.right, box.right));
       const dy = Math.max(0, Math.max(rect.top, box.top) - Math.min(rect.bottom, box.bottom));
       if (!((dx === 0 && dy <= reach) || (dy === 0 && dx <= reach))) return [];
       return [{ preset: assignment.preset, phase: skeletonFlowByFrame.get(other)?.phase ?? skeletonPhase(other) }];
     });
   };
-  const assignSkeleton = (frame) => {
+  const assignSkeleton = (frame, rects) => {
     if (skeletonAssignmentByFrame.has(frame)) return;
     const key = skeletonKey(frame);
     let assignment = skeletonAssignmentByKey.get(key);
     if (!assignment) {
-      assignment = drawSkeletonFlowAssignment({ neighbors: skeletonNeighbors(frame) });
+      assignment = drawSkeletonFlowAssignment({ neighbors: skeletonNeighbors(frame, rects) });
       skeletonAssignmentByKey.set(key, assignment);
       skeletonPhaseBySlot.delete(key);
     }
@@ -1756,14 +1758,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
+    const rects = new Map();
     for (const frame of skeletonFrames()) {
       const rect = frame.getBoundingClientRect();
+      rects.set(frame, rect);
       if (rect.width > 0 && rect.height > 0
         && rect.right > visible.left && rect.left < visible.left + visible.width
         && rect.bottom > visible.top && rect.top < visible.top + visible.height) visibleSkeletonFrames.add(frame);
       else visibleSkeletonFrames.delete(frame);
     }
-    visibleSkeletonFrames.forEach(assignSkeleton);
+    visibleSkeletonFrames.forEach((frame) => assignSkeleton(frame, rects));
     syncSkeletonRenderers();
     skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);

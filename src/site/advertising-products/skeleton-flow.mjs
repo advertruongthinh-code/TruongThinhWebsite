@@ -454,14 +454,34 @@ export function renderSkeletonFlowPixels(preset, phase, { width = 48, height = 3
 }
 
 // Still frame for a frame without a live renderer: the same Flow at `phase`, as a CSS image.
+// Encoded as an uncompressed 24-bit BMP by hand: canvas.toDataURL forced a GPU readback and PNG encode per still.
+const STILL_WIDTH = 48;
+const STILL_HEIGHT = 32;
 export function skeletonFlowStill(preset, phase) {
-  const canvas = globalThis.document?.createElement("canvas");
-  const context = canvas?.getContext("2d");
-  if (!context) return staticBackground(preset);
-  canvas.width = 48;
-  canvas.height = 32;
-  context.putImageData(new ImageData(renderSkeletonFlowPixels(preset, phase), 48, 32), 0, 0);
-  return `url("${canvas.toDataURL()}")`;
+  const pixels = renderSkeletonFlowPixels(preset, phase, { width: STILL_WIDTH, height: STILL_HEIGHT });
+  const rowBytes = STILL_WIDTH * 3;
+  const bytes = new Uint8Array(54 + rowBytes * STILL_HEIGHT);
+  const view = new DataView(bytes.buffer);
+  bytes[0] = 0x42;
+  bytes[1] = 0x4d;
+  view.setUint32(2, bytes.length, true);
+  view.setUint32(10, 54, true);
+  view.setUint32(14, 40, true);
+  view.setInt32(18, STILL_WIDTH, true);
+  view.setInt32(22, STILL_HEIGHT, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  for (let row = 0; row < STILL_HEIGHT; row += 1) {
+    // BMP rows run bottom-up in BGR order; 48 * 3 bytes needs no row padding.
+    const target = 54 + (STILL_HEIGHT - 1 - row) * rowBytes;
+    for (let column = 0; column < STILL_WIDTH; column += 1) {
+      const source = (row * STILL_WIDTH + column) * 4;
+      bytes[target + column * 3] = pixels[source + 2];
+      bytes[target + column * 3 + 1] = pixels[source + 1];
+      bytes[target + column * 3 + 2] = pixels[source];
+    }
+  }
+  return `url("data:image/bmp;base64,${btoa(String.fromCharCode(...bytes))}")`;
 }
 
 export function createSkeletonFlowRenderer(canvas, {
