@@ -1836,6 +1836,16 @@ body.is-advertising-browse .advertising-grid {
   inset: auto 0;
 }
 
+/* Over the skeleton's WebGL layers in a composited page (smooth scroll), Chromium drops the steps' blur under a
+   blended sibling, so card edges show sharp through the arc. White noise with normal blending brightens by
+   0.16 x noise x (1 - backdrop), which is overlay's noise on the light glass; its mean 0.08 comes off the tint
+   (glass-surface.mjs). */
+.glass-surface[data-glass-shape="arc"] > .glass-surface__grain {
+  background-image: var(--glass-grain-white, none);
+  mix-blend-mode: normal;
+  opacity: 0.16;
+}
+
 /* The arc's layers run 2px under the footer; the footer stacks over them so its top line stays. */
 body.is-advertising-browse .site-footer {
   position: relative;

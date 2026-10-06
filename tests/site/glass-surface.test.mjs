@@ -39,6 +39,10 @@ for (const [selector, count, saturation, light] of [["\\.glass-surface", 5, 1.7,
 assert.match(css, /\.glass-surface__tint \{\s*background: rgba\(255, 255, 255, 0\.12\);/, "R5: tint alpha 0.12");
 // R4: overlay moves a mid tone by the full noise; opacity 0.08 caps the shift at 4%.
 assert.match(css, /\.glass-surface__grain \{[^}]*mix-blend-mode: overlay;[^}]*opacity: 0\.08;/, "R4: grain 4%, overlay");
+// R4: the arc's white grain moves light glass as overlay does, 0.16 x noise x (1 - backdrop); its mean 0.08 leaves the tint.
+assert.match(css, new RegExp(`^${arc} > \\.glass-surface__grain \\{\\s*background-image: var\\(--glass-grain-white, none\\);`
+  + "\\s*mix-blend-mode: normal;\\s*opacity: 0\\.16;", "m"),
+  "R4: arc grain is white noise, normal blend, 0.16");
 assert.doesNotMatch(css, /\.glass-surface \{[^}]*(?:opacity|mask|filter)/, "R1: the Kính box has no opacity, mask or filter");
 
 // R2, R3: owner numbers and the two limits.
