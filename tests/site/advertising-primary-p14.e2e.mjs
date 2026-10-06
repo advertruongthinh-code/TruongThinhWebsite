@@ -445,7 +445,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert.equal(actual.background.pointerEvents, "none", `${label}: background accepts pointer input`);
   assert.equal(actual.background.objectFit, "cover", `${label}: background must use object-fit cover`);
   // The photo carries the full step's blur so a tab-hover raster tile cannot split it; the Kính keeps tint and grain.
-  assert.equal(actual.background.filter, "blur(28px) saturate(1.7) brightness(1.04)", `${label}: background does not carry the full Kính blur`);
+  assert.equal(actual.background.filter, "blur(100px) saturate(1.7) brightness(1.04)", `${label}: background does not carry the full Kính blur`);
   assert.equal(actual.glass?.shape, "even", `${label}: photo overflow is not the even Kính`);
   assert.equal(actual.glass.display, actual.containOverflow ? "block" : "none", `${label}: Kính does not follow contain overflow`);
   assert.deepEqual(actual.glass.steps, [], `${label}: photo Kính still has a backdrop blur step`);

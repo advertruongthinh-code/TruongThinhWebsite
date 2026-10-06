@@ -595,11 +595,13 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      assert.deepEqual(state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]), ["28", "4.5", "11.12", "25.3"],
+      // The core and the three band steps; the inner steps between them follow the device (glass-surface.mjs).
+      const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
+      assert.deepEqual([blurs[0], ...blurs.slice(-3)], ["100", "4.5", "11.12", "25.3"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
       // The primary photo carries the full step's blur itself; its even Kính keeps only tint and grain.
       assert.deepEqual(state.photoGlassBlur, [], `${locale} ${viewport.width}: photo Kính still has a backdrop blur step`);
-      assert.equal(state.photoBackgroundFilter, "blur(28px) saturate(1.7) brightness(1.04)",
+      assert.equal(state.photoBackgroundFilter, "blur(100px) saturate(1.7) brightness(1.04)",
         `${locale} ${viewport.width}: photo background does not carry the full Kính blur`);
       assert.equal(state.photoGlassDisplay, state.photoGlassActive ? "block" : "none",
         `${locale} ${viewport.width}: photo Kính does not follow contain overflow`);

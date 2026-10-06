@@ -16,7 +16,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 const arcState = () => {
   const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
   const box = glass.getBoundingClientRect();
-  const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full)")];
+  const steps = [...glass.querySelectorAll(".glass-surface__step:not(.glass-surface__step--full):not(.glass-surface__step--inner)")];
   const top = (node) => Number.parseFloat(node.style.top);
   const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
@@ -37,6 +37,7 @@ const arcState = () => {
     clusterTop: copy.querySelector("h2").getBoundingClientRect().top - box.top - parallax,
     clusterBottom: copy.getBoundingClientRect().bottom - box.top - parallax,
     realBottom: Number(document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaRealBottom),
+    cardWidth: document.querySelector("[data-advertising-cta-frame]").getBoundingClientRect().width,
     batchBottom: top(tint) + Number.parseFloat(tint.style.height) - 2,
     batchBottomOnScreen: box.top + top(tint) + Number.parseFloat(tint.style.height) - 2,
     grain: [getComputedStyle(glass).getPropertyValue("--glass-grain"), getComputedStyle(glass).getPropertyValue("--glass-grain-white")],
@@ -71,8 +72,8 @@ try {
       const state = await page.evaluate(arcState);
       check(!state.hidden, `${label}: arc Kính hidden at the masonry end`);
       check(Math.abs(state.width - width) <= 1, `${label}: arc Kính does not span the viewport (${state.width}px)`);
-      // The five steps over the band and the arc's core, one full step inside the arc.
-      check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full"]),
+      // The band steps, the arc's core and its inner steps.
+      check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full", "glass-surface__step glass-surface__step--inner"]),
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
@@ -80,14 +81,15 @@ try {
       const band = (state.sLast - state.s0) / (2 / 3 - 0.1);
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
-      check(Math.abs(yIn - (state.clusterTop + 0.45 * cluster)) <= 2,
-        `${label}: R2 apex ${yIn.toFixed(1)} is not at 45% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
+      // The apex rises only to keep two pure white ramps (0.35 card widths each) above the batch bottom.
+      check(Math.abs(yIn - Math.min(state.clusterTop + 0.35 * cluster, state.batchBottom - 0.7 * state.cardWidth)) <= 2,
+        `${label}: R2 apex ${yIn.toFixed(1)} is not at 35% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
       check(state.s0 >= state.realBottom - 1, `${label}: R2 band edge ${state.s0} rises above the real photos ${state.realBottom}`);
-      check(Math.abs(band - 1.2 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
-        `${label}: R2 band ${band.toFixed(1)} is not 1.2 cluster heights`);
+      check(Math.abs(band - 1.75 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
+        `${label}: R2 band ${band.toFixed(1)} is not 1.75 cluster heights`);
       check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
-      check(Math.abs(state.centreY - yIn - 4 * width) <= 1 || state.centreY - yIn > 4 * width,
-        `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 4 viewport widths`);
+      check(Math.abs(state.centreY - yIn - 3.5 * width) <= 1 || state.centreY - yIn > 3.5 * width,
+        `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 3.5 viewport widths`);
       // R4: the arc's grain is white noise blended normally (a blended layer drops the steps' blur in Chromium).
       check(state.grain.every((url) => url.startsWith("url(blob:")) && state.grainBlend === "normal", `${label}: R4 grain missing`);
       // R3, R4: the last row above the batch bottom (its corners sit on the pure white circle) stays white
@@ -141,7 +143,7 @@ try {
       });
       // The photo carries the blur, so no backdrop-filter can bake a tile seam into the primary (tab hover thumbnail).
       check(state.shape === "even" && state.layers === 2 && !state.backdrop
-        && state.filter === "blur(28px) saturate(1.7) brightness(1.04)", `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
+        && state.filter === "blur(100px) saturate(1.7) brightness(1.04)", `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
       check(state.flag === String(overflow) && state.display === (overflow ? "block" : "none"),
         `${photo}: primary Kính does not follow contain overflow ${JSON.stringify(state)}`);
     } finally {
