@@ -4739,8 +4739,8 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Kính (docs/specs/glass-surface.md): one component for every glass surface. Stacked backdrop
-   blurs compound, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward the levels 2, 4.5, 9, 16 and 28px
-   (the arc's three steps: 4.5, 12 and 28px); saturate() and brightness() multiply, so each step
+   blurs compound, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward the levels 7.14, 16.07, 32.14, 57.14 and the 100px
+   ceiling (the arc's three band steps: 4.5, 12 and 28px; its inner steps are set by glass-surface.mjs); saturate() and brightness() multiply, so each step
    carries the fifth root of 1.7 and 1.04 (arc: the third root of 1.55 and 1.05).
    Steps count from the tint and the grain, so the arc's core in front of them shifts nothing.
    Only the steps own backdrop-filter. The box itself stays plain: opacity, a mask or a filter on it
@@ -4762,24 +4762,35 @@ body.is-advertising-browse .advertising-grid {
   display: block;
 }
 
+/* Inner arc steps past this device's fitted count (glass-surface.mjs). */
+.glass-surface > i[hidden] {
+  display: none;
+}
+
 .glass-surface__step {
   -webkit-backdrop-filter: blur(var(--glass-step-blur)) saturate(var(--glass-step-saturate)) brightness(var(--glass-step-brightness));
   backdrop-filter: blur(var(--glass-step-blur)) saturate(var(--glass-step-saturate)) brightness(var(--glass-step-brightness));
 }
 
-.glass-surface__step:nth-last-child(7) { --glass-step-blur: 2px; }
-.glass-surface__step:nth-last-child(6) { --glass-step-blur: 4.03px; }
-.glass-surface__step:nth-last-child(5) { --glass-step-blur: 7.79px; }
-.glass-surface__step:nth-last-child(4) { --glass-step-blur: 13.23px; }
-.glass-surface__step:nth-last-child(3) { --glass-step-blur: 22.98px; }
+.glass-surface__step:nth-last-child(7) { --glass-step-blur: 7.14px; }
+.glass-surface__step:nth-last-child(6) { --glass-step-blur: 14.4px; }
+.glass-surface__step:nth-last-child(5) { --glass-step-blur: 27.84px; }
+.glass-surface__step:nth-last-child(4) { --glass-step-blur: 47.25px; }
+.glass-surface__step:nth-last-child(3) { --glass-step-blur: 82.07px; }
 
 .glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(5) { --glass-step-blur: 4.5px; }
 .glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(4) { --glass-step-blur: 11.12px; }
 .glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(3) { --glass-step-blur: 25.3px; }
 
 .glass-surface__step--full {
-  -webkit-backdrop-filter: blur(28px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
-  backdrop-filter: blur(28px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  -webkit-backdrop-filter: blur(100px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+  backdrop-filter: blur(100px) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+}
+
+/* The arc's inner steps add blur only; colour comes from its core and band steps. */
+.glass-surface__step--inner {
+  --glass-step-saturate: 1;
+  --glass-step-brightness: 1;
 }
 
 .glass-surface__tint {
@@ -5042,7 +5053,7 @@ body.is-advertising-browse .site-footer {
    a full repaint. Same numbers as .glass-surface__step--full; the Kính above it keeps only tint and grain. */
 .advertising-photo-view__hero [data-advertising-photo-background],
 .advertising-photo-view__outgoing-background {
-  filter: blur(28px) saturate(1.7) brightness(1.04);
+  filter: blur(100px) saturate(1.7) brightness(1.04);
 }
 
 
