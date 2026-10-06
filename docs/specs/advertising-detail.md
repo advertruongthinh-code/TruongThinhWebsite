@@ -166,14 +166,14 @@ And không frame nào vẽ ở Y của entry khác
 
 ### R9. Viewer
 
-Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
+Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm đúp ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-đúp-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
 `cubic-bezier(0.55, 0, 0, 1)`; nền viewer giữ lớp tối `rgba(32, 33, 32, 0.85)` với blur kiểu
 [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)` (một lớp, không tint, không hạt nhiễu), hiện, tắt
 bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
 trên trái; reset, `+`, `−` góc dưới phải, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
-đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng) hoặc lỗi ảnh (tức thì); đóng thì mở khóa
+đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
 cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về
 masonry thì đóng viewer. Pinch, chạm đúp, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
 

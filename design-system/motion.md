@@ -214,7 +214,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - Viewer: transform từ khung hero tới fit và ngược lại; nút, con lăn, chạm đúp
   và bật về sau pinch nội suy `200ms ease-in-out`; pinch và pan theo tay tức
   thì, giới hạn theo ảnh đã phóng; vượt giới hạn khi pinch thì ảnh chỉ đi một
-  phần ba so với tay.
+  phần ba so với tay. Màn cảm ứng vuốt dọc ảnh ở fit: ảnh theo tay, nền nhạt
+  dần; đủ xa hoặc đủ nhanh thì đóng như trên, chưa tới thì về chỗ `200ms
+  ease-in-out`.
 - Nền primary là bản sao cover, chỉ animate opacity và transform; nhìn qua
   [Kính](components/Glass/README.md) dạng phủ đều đứng yên.
 

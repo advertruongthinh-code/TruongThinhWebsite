@@ -151,7 +151,7 @@ Then viewer mở bằng morph, nút "Xem lớn hơn" không hiện, trang không
 
 Trên màn cảm ứng nút đóng, reset, `+`, `−` của viewer ẩn khỏi mắt (kiểu
 `sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
-zoom, đóng được. Zoom chỉ còn bằng pinch (R1) và chạm đúp (R4); về Fit bằng
+zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm đúp (R4); về Fit bằng
 chạm đúp. Desktop giữ nguyên nút.
 
 ### R9. Vuốt dọc ảnh để đóng
@@ -175,13 +175,12 @@ Then ảnh về giữa, nền rõ lại, viewer vẫn mở
 
 ### R10. Back đóng viewer
 
-Mở viewer thêm một entry lịch sử cùng URL (`history.pushState`, state có khóa
-`ttAdvertisingViewer`). Back khi viewer mở (nút hoặc cử chỉ back Android, vuốt
+Mở viewer thêm một entry lịch sử cùng URL (`history.pushState`). Router của
+site (`motion.js`) hỏi viewer trước khi xử lý `popstate`. Back khi viewer mở (nút hoặc cử chỉ back Android, vuốt
 mép trái hay nút back của Safari iOS, nút back trình duyệt desktop) chỉ đóng
 viewer bằng morph, ở lại detail, không chạy chuyển trang. Đóng bằng cách khác
 thì runtime gỡ entry đó bằng `history.back()` và nuốt `popstate` của nó, nên
-back kế tiếp vẫn rời detail như cũ. Forward vào lại entry đã đóng thì runtime
-lùi ngay về. Áp cho mọi thiết bị.
+back kế tiếp vẫn rời detail như cũ. Áp cho mọi thiết bị.
 
 ```gherkin
 Given viewer mở trên detail
@@ -201,9 +200,9 @@ Then rời detail về masonry như hiện nay
 | DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
 | DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm đúp mở viewer (R7), `touch-action: manipulation` |
 | CSS | `--advertising-viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
-| History | state `ttAdvertisingViewer` | Entry của viewer đang mở (R10) |
+| Hàm public | `TruongThinhAdvertising.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
 | DOM hook | `[data-advertising-photo-zoom-status]` | `round(s × 100)%` khi thao tác kết thúc |
-| Hàm public | `createAdvertisingPhotoViewer` | Thêm option `heroFrame` cho R7 |
+| Hàm public | `createAdvertisingPhotoViewer` | Giữ option; trả thêm `popState` (R10); chạm đúp nghe trên khung của `heroImage` (R7) |
 
 Pointer Events thuần, không thêm thư viện gesture. Page pinch ngoài viewer giữ
 nguyên vì meta viewport không đổi.

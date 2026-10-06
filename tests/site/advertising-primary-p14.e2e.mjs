@@ -490,7 +490,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
     minimumPrimaryHeight, fitsViewport, fitsInfoCap };
 }
 
-function assertControls(actual, locale) {
+function assertControls(actual, locale, touch = false) {
   const label = `${locale} controls ${actual.viewport.width}x${actual.viewport.height}`;
   assert.equal(actual.ctaCount, 1, `${label}: expected one CTA, got ${actual.ctaCount}`);
   assert.equal(actual.cta?.tag, "A", `${label}: CTA is not a native link`);
@@ -505,6 +505,11 @@ function assertControls(actual, locale) {
   assert(actual.cta.labelRect.width > 0 && actual.cta.labelOpacity >= 0.99, `${label}: CTA label is not visible`);
   closeTo(actual.cta.icon.contentWidth, 20, `${label}: CTA glyph width`, 1);
   closeTo(actual.cta.icon.contentHeight, 20, `${label}: CTA glyph height`, 1);
+  if (touch) {
+    // Touch screens open the viewer by double tap; the button stays for screen readers only.
+    assert(actual.expand.rect.width <= 1 && actual.expand.rect.height <= 1, `${label}: expand is visible on touch`);
+    return;
+  }
   closeTo(actual.expand.rect.width, 48, `${label}: expand normal width`, 1);
   closeTo(actual.expand.rect.height, 48, `${label}: expand normal height`, 1);
   assert(contained(actual.expand.rect, actual.frame), `${label}: expand leaves hero frame`);
@@ -527,9 +532,12 @@ async function focusByKeyboard(page, selector) {
     if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
   }
   await page.evaluate(() => document.activeElement?.blur());
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    await page.keyboard.press("Tab");
-    if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
+  // Tab order continues from the last focused control, which may sit after the target: try both directions.
+  for (const [key, attempts] of [["Tab", 40], ["Shift+Tab", 80]]) {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      await page.keyboard.press(key);
+      if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
+    }
   }
   throw new Error(`Keyboard focus did not reach ${selector}`);
 }
@@ -677,7 +685,7 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
   }, relatedId);
   const before = await geometry();
   assert(before.pageHeight > initial.viewport.height, `${test.label}: nonfit content has no document scroll`);
-  assertControls(initial, test.locale);
+  assertControls(initial, test.locale, test.hasTouch);
   const expand = await wheelToHit(page, page.locator("[data-advertising-photo-expand]"), `${test.label}: expand`);
   await page.mouse.click(expand.x, expand.y);
   await page.waitForFunction(() => Boolean(document.querySelector("[data-advertising-photo-dialog]")?.open));
@@ -771,7 +779,7 @@ async function runPageCase(browser, test) {
     }
     if (test.controls || test.touchOnly) {
       stage = "controls-normal";
-      assertControls(observed, test.locale);
+      assertControls(observed, test.locale, test.hasTouch);
     }
     if (test.controls) {
       stage = "controls-hover-focus";

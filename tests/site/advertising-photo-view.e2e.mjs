@@ -568,8 +568,10 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
   await page.waitForFunction(() => !document.body.classList.contains("is-transitioning"));
   if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
-  const baseline = await page.evaluate(() => {
-    const button = document.querySelector("[data-advertising-photo-expand]");
+  const baseline = await page.evaluate((touch) => {
+    // Touch screens open the viewer with a double tap on the primary photo (viewer touch R7).
+    const button = touch ? document.querySelector("[data-advertising-photo-image]").parentElement
+      : document.querySelector("[data-advertising-photo-expand]");
     window.__ttPhotoViewerBeforeOpen = undefined;
     const scrollStyle = () => ({
       bodyClass: document.body.className,
@@ -585,22 +587,28 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
       window.__ttPhotoViewerOpenMotion.states.push(dialog?.dataset.advertisingViewerState || null);
     });
     observer.observe(dialog, { attributes: true, attributeFilter: ["data-advertising-viewer-state"] });
-    button?.addEventListener("click", () => {
+    // A double tap opens on its second pointerup: sample the motion once the dialog is open.
+    const onOpen = () => {
+      if (dialog.open) return;
       window.__ttPhotoViewerBeforeOpen = window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
       requestAnimationFrame(() => {
+        if (!dialog.open) return;
+        button.removeEventListener(touch ? "pointerup" : "click", onOpen, { capture: true });
         window.__ttPhotoViewerOpenMotion.animations = document.querySelector("[data-advertising-photo-expanded-image]")?.getAnimations()
           .map((animation) => ({ duration: animation.effect?.getTiming().duration, easing: animation.effect?.getTiming().easing })) || [];
       });
-    }, { capture: true, once: true });
+    };
+    button?.addEventListener(touch ? "pointerup" : "click", onOpen, { capture: true });
     return window.__ttPhotoViewerOverflowBeforeOpen;
-  });
+  }, touch);
   if (touch) {
-    const box = await expand.boundingBox();
-    assert(box, "touch expand button has no bounding box");
+    const box = await page.locator("[data-advertising-photo-image]").boundingBox();
+    assert(box, "touch primary photo has no bounding box");
     await page.evaluate((rect) => {
       const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
       window.__ttTouchExpandProbe = { rect, scrollY, logical: window.TruongThinhMotion?.getLogicalScroll?.(), hit: hit?.outerHTML?.slice(0,200) };
     }, box);
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   } else {
     await expand.click();

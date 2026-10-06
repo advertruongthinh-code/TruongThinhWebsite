@@ -1,7 +1,6 @@
 import { responsiveSource } from "./responsive-image.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-const HISTORY_KEY = "ttAdvertisingViewer";
 // Touch double tap: both taps within 300ms and 24px, each moving at most 10px (advertising-viewer-touch-zoom R4, R7).
 const isDoubleTap = (last, event) => last && event.timeStamp - last.time <= 300
   && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 24;
@@ -11,7 +10,6 @@ export function createAdvertisingPhotoViewer({
   expandButton,
   expandedImage,
   heroImage,
-  heroFrame,
   viewport,
   closeButton,
   resetButton,
@@ -26,6 +24,7 @@ export function createAdvertisingPhotoViewer({
     return { cleanup() {}, close() {}, popState: () => false, setRecord() {} };
   }
   const controller = new AbortController();
+  const heroFrame = heroImage?.parentElement;
   const parent = dialog.parentNode;
   const nextSibling = dialog.nextSibling;
   let record = null;
@@ -42,6 +41,7 @@ export function createAdvertisingPhotoViewer({
   let swipe = null;
   let heroTap = null;
   let heroLastTap = null;
+  let ownEntry = false;
   let skipPop = false;
   const touches = new Map();
   let backdropPress = false;
@@ -272,7 +272,9 @@ export function createAdvertisingPhotoViewer({
     delete dialog.dataset.advertisingViewerSwipe;
     setBackdropOpacity(1);
     // Closed by anything but Back: drop the viewer's history entry so the next Back leaves detail (R10).
-    if (history.state?.[HISTORY_KEY]) {
+    // A flag, not a state key: the router may rewrite the entry's state while the viewer is open.
+    if (ownEntry) {
+      ownEntry = false;
       skipPop = true;
       history.back();
     }
@@ -317,7 +319,8 @@ export function createAdvertisingPhotoViewer({
     scale = 1;
     panX = panY = 0;
     dialog.showModal();
-    history.pushState({ ...history.state, [HISTORY_KEY]: true }, "");
+    history.pushState(history.state, "");
+    ownEntry = true;
     updateVisibleControls();
     measureFit();
     const target = renderTransform();
@@ -396,7 +399,7 @@ export function createAdvertisingPhotoViewer({
     if (atFit()) {
       if (event.pointerType !== "touch") return;
       adoptDisplayed();
-      swipe = { id: event.pointerId, x: event.clientX, y: event.clientY, dy: 0, velocity: 0,
+      swipe = { id: event.pointerId, x: event.clientX, y: event.clientY,
         lastY: event.clientY, lastTime: event.timeStamp, active: false };
       return;
     }
@@ -504,20 +507,13 @@ export function createAdvertisingPhotoViewer({
   window.visualViewport?.addEventListener("resize", resize, { passive: true, signal: controller.signal });
   window.visualViewport?.addEventListener("scroll", resize, { passive: true, signal: controller.signal });
   // The site router asks this before routing a popstate, so Back with the viewer open only closes it (R10).
-  const popState = (event) => {
+  const popState = () => {
     if (skipPop) {
       skipPop = false;
       return true;
     }
-    if (event.state?.[HISTORY_KEY]) {
-      // Forward onto a closed viewer's entry steps straight back.
-      if (!dialog.open) {
-        skipPop = true;
-        history.back();
-      }
-      return true;
-    }
-    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing") return false;
+    if (!ownEntry || !dialog.open || dialog.dataset.advertisingViewerState === "closing") return false;
+    ownEntry = false;
     close();
     return true;
   };

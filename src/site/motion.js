@@ -2491,7 +2491,7 @@
   window.addEventListener("popstate", (event) => {
     const advertising = window.TruongThinhAdvertising;
     // Back with the photo viewer open closes only the viewer (advertising-viewer-touch-zoom R10).
-    if (advertising?.handleViewerPopState?.(event)) {
+    if (advertising?.handleViewerPopState?.()) {
       event.stopImmediatePropagation();
       return;
     }

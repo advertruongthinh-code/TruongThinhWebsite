@@ -2938,16 +2938,16 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 }
 
-/* Touch screens open, zoom and close the viewer by gesture; the buttons stay for screen readers
-   (advertising-viewer-touch-zoom R7, R8). */
+/* Touch screens open, zoom and close the viewer by gesture; the buttons stay for screen readers and show
+   again under keyboard focus (advertising-viewer-touch-zoom R7, R8). */
 @media (hover: none) and (pointer: coarse) {
   .advertising-photo-view__hero-frame {
     touch-action: manipulation;
   }
 
-  .advertising-photo-view__image-action.advertising-photo-view__expand,
-  .advertising-photo-dialog__close,
-  .advertising-photo-dialog__controls button {
+  .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible),
+  .advertising-photo-dialog__close:not(:focus-visible),
+  .advertising-photo-dialog__controls button:not(:focus-visible) {
     position: absolute;
     width: 1px;
     height: 1px;

@@ -1192,7 +1192,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     dialog: photoDialog,
     expandButton: photoExpand,
     expandedImage: photoExpandedImage,
-    heroFrame: photoImage?.parentElement,
     heroImage: photoImage,
     resetButton: photoZoomReset,
     scroll,
@@ -3538,7 +3537,7 @@ window.TruongThinhAdvertising = {
   getCurrentHref: () => activeInstance?.browseHistory.currentHref || null,
   handlePopState: (event, previousHref, nextHref) =>
     activeInstance?.browseHistory.handlePopState(event, previousHref, nextHref) || false,
-  handleViewerPopState: (event) => activeInstance?.photoViewer.popState(event) || false,
+  handleViewerPopState: () => activeInstance?.photoViewer.popState() || false,
   mount: mountAdvertisingCatalog,
   navigatePhoto: (id) => Boolean(activeInstance?.browseHistory.openPhoto(id)),
   navigateQuery: (href, { reason = "navbar" } = {}) => {
