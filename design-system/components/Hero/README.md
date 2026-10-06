@@ -21,7 +21,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | Trang chủ | Slideshow ảnh full viewport | `clamp(5rem, 9vw, 10rem)`, line-height 0.86, chữ trắng | Căn giữa |
 | Residential, Commercial | Ảnh, `hero-shade` | Chữ hoa 600, line-height 1.4; Residential `clamp(3.05rem, 7.15vw, 7rem)`, Commercial `clamp(2.5rem, 7.4vw, 5.75rem)` (VI vừa khung `80%` từ 680px); dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em` |
 | About | Ảnh đội ngũ, shade thêm lớp ngang | `clamp(5.4rem, 9vw, 10.2rem)`, line-height 0.87, chữ thường; dòng 1 weight 500, dòng 2 700 nghiêng thụt `0.78em`; kicker 500 | Căn trái |
-| Advertising | `paper`, chữ `ink` | Chữ hoa 600, `clamp(3.05rem, 7.2vw, 7rem)`, line-height 1.4; dòng 2 nhỏ hơn | Căn trái, cao `100svh - 50px` |
+| Advertising | `paper`, chữ `ink` | Chữ hoa 600, `clamp(3.05rem, 7.2vw, 7rem)`, line-height 1.4; dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em`, cao `100svh - 50px` |
 
 Hero ảnh cao `100svh` (tối thiểu 42–46rem tùy trang); tới 980px chuyển sang
 luồng chữ tự nhiên để chữ tăng 200% không đè header. Ảnh đầu tải ngay với
@@ -51,6 +51,8 @@ ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
 - Khung chữ ở 1440: x 220, rộng 1000 (Residential, Commercial, Advertising);
   trang chủ x 35; About x 64.
 - Kicker 16/22.4 (14/19.6 ở Residential, Commercial tới 390px).
+- Advertising tới 680px căn giữa hai dòng; từ 1025px dòng 2 rộng hơn khung
+  vẫn giữ mép phải đúng mép khung.
 - Scroll cue chữ hoa 12.8/17.92, cách đáy hero 45px (`> 1200`), 30px
   (`<= 1200`), 60px (`<= 750`); không nhận click khi đã ẩn.
 

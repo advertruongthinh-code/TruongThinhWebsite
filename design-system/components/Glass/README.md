@@ -18,8 +18,10 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   cộng dồn nên mỗi lớp chỉ thêm phần tăng `7.14`, `14.4`, `27.84`, `47.25`, `82.07px`. Dạng cung có ba bậc `4.5`, `12`, `28px` (phần tăng
   `4.5`, `11.12`, `25.3px`) để vuốt trên điện thoại tầm trung đủ mượt. Mỗi bậc
   chồng mép lên bậc kế, không thấy bậc hay bóng ma hai lớp.
-  Dạng phủ đều đứng yên dùng một bậc đủ `100px`, nhìn như năm bậc chồng mà nhẹ hơn;
-  ảnh nền primary tự mang `blur(100px)`.
+  Kính nền primary (phủ đều, đứng yên) không có bậc nhòe, chỉ tint và hạt
+  nhiễu; ảnh nền phía dưới tự nhòe bằng `filter: blur(100px) saturate(1.7)
+  brightness(1.04)`, vì `backdrop-filter` trên ảnh tĩnh để lại đường nối ô
+  raster khi Chrome vẽ lại (rê chuột lên tab).
   Dạng cung cũng dùng một bậc đủ làm lõi bên trong cung, ba bậc chỉ phủ dải;
   lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối:
   lõi hiện đủ ở nửa ngoài trước khi các bậc tắt ở nửa trong, nên trang nét không lọt qua.
