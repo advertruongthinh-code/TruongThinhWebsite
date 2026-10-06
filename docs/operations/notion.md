@@ -18,8 +18,8 @@
   card: tạo card trước khi làm; task từ `200 LOC` ghi estimate trong card.
   `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
   lockfile, formatting-only, Markdown.
-- Tạo card và đổi status cho việc owner đã giao không cần hỏi lại; xóa, gộp,
-  đổi tên card cần owner duyệt. Trước mỗi lần ghi: `search`, `fetch`, rồi
+- Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
+  bị gộp thì archive, không xóa vĩnh viễn. Trước mỗi lần ghi: `search`, `fetch`, rồi
   `create/update`; không đoán database, schema, parent.
 - Link Notion cần kiểm quyền truy cập lẫn content drift. `object_not_found`
   không đủ kết luận đã xóa; timestamp payload cũ không là current verification.

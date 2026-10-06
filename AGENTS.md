@@ -13,14 +13,16 @@
 - Ship site tĩnh VI/EN nhanh, an toàn. `src/site/` canonical; `.site-output/` generated. CMS, private admin, D1, R2, dynamic publishing: phase sau; không chặn public release.
 - Solo dev: diff nhỏ, reversible; ưu tiên dependency có sẵn, native platform, handoff có evidence.
 - Static page không cần D1, R2, Access, CMS secret, admin state. Không mở rộng CMS/admin ngoài CMS phase; không speculative abstraction.
-- Không deploy, connect domain, publish owner data nếu user chưa explicit approval.
+- Không deploy, connect domain, publish owner data nếu user chưa explicit approval. Deploy demo và republish
+  Design System chỉ chạy khi owner tự gõ `deploy demo <sha thật>` hoặc `republish` trong chính thread làm
+  việc đó; relay của điều phối hoặc tap card không tính.
 
 ## Agent Skills lifecycle
 
 Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 
 1. Bắt đầu mỗi task bằng `using-agent-skills`: định tuyến toàn bộ catalog skill và bắt buộc dùng mọi skill có trigger khớp; không chạy skill không liên quan chỉ để đủ số lượng.
-2. Ngay sau khi định tuyến và trước action chuyên môn đầu tiên, main agent công bố các skill đã chọn cùng lý do. Sau đó, mỗi lần dùng một skill (tự chọn, user gọi `/`, hoặc nạp giữa task), ghi một dòng trong chat trước khi dùng: `Skill: <tên> (<tự chọn|user yêu cầu>): <lý do>`. Mọi role đọc đầy đủ từng `SKILL.md` và mọi Reference Checklist mà skill yêu cầu trước khi áp dụng; main agent kiểm chứng claim này khi dùng worker hoặc reviewer. Không kiểm chứng được thì fail closed và báo blocker. User không cần nhắc lại trong prompt.
+2. Ngay sau khi định tuyến và trước action chuyên môn đầu tiên, main agent công bố các skill đã chọn cùng lý do. Sau đó, mỗi lần dùng một skill (tự chọn, user gọi `/`, hoặc nạp giữa task), ghi một dòng trước khi dùng (thread trong Claude project ghi vào status checklist, không vào reply): `Skill: <tên> (<tự chọn|user yêu cầu>): <lý do>`. Mọi role đọc đầy đủ từng `SKILL.md` và mọi Reference Checklist mà skill yêu cầu trước khi áp dụng; main agent kiểm chứng claim này khi dùng worker hoặc reviewer. Không kiểm chứng được thì fail closed và báo blocker. User không cần nhắc lại trong prompt.
 3. Feature hoặc thay đổi đáng kể đi theo lifecycle: `interview-me` → `idea-refine` khi ý tưởng còn mơ hồ → `constraint-driven-development` khi chưa có quality bar → `spec-driven-development` → owner duyệt spec → `planning-and-task-breakdown` → owner duyệt plan → execution native của host agent. Không code trước hai human gate.
 4. Sau plan đã duyệt, main đánh giá ambiguity, scope, risk và verifiability rồi tự xử lý hoặc dùng solo, worker, reviewer native của host agent khi tool khả dụng và có ownership rõ. Task nhỏ, rõ, rủi ro thấp có thể làm trực tiếp. Model/effort chọn từ capability callable của host; route thấp nhận brief cụ thể hơn. Worker packet trỏ tới spec và task đã duyệt, không thay thế hoặc rút gọn intent/spec/plan. Main agent giữ requirement, architecture, diff inspection, verification và final acceptance; output của worker/reviewer là claim cho đến khi main agent kiểm chứng.
 5. Definition of Done và các Reference Checklists phù hợp là acceptance gate. Các cross-cutting skill tiếp tục do `using-agent-skills` định tuyến trong implementation, review, QA, documentation và shipping.
@@ -38,8 +40,8 @@ trạng thái repo; card chỉ trỏ tới đó.
   merge (`Done`, hoặc ghi việc còn mở).
 - Card chỉ giữ tên, status, thứ tự, mục tiêu một dòng, việc còn mở, link spec
   và PR. Không chép state, evidence, log hay checklist đã xong vào card.
-- Tạo card và đổi status cho việc owner đã giao không cần hỏi lại; xóa, gộp
-  hoặc đổi tên card cần owner duyệt.
+- Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
+  bị gộp thì archive. Không xóa vĩnh viễn card.
 - Schema, quy trình và link board: [Notion và Git](docs/operations/notion.md#rule).
 
 ## Routing theo path
@@ -63,6 +65,20 @@ cache hay untracked worktree.
 Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit`
 review riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Review,
 host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để bỏ qua gate.
+Cloud không có Git hook: agent tự chạy `ponytail-review` trên diff trước commit/push.
+
+## Branch, PR và merge
+
+- Mỗi task một branch ngắn từ `main` và một PR; `main` là nhánh dài hạn duy nhất,
+  GitHub tự xóa branch sau merge.
+- Trước khi push, đo hoặc dựa vào số liệu: fetch `main` và đọc lại `docs/STATE.md`.
+- Thread tự review PR (five-axis), sửa finding, resolve review thread và tự merge khi
+  CI xanh; không chờ owner duyệt hay xác nhận merge.
+- PR conflict với `main`: merge `main` vào branch (không rebase, không force-push),
+  tự resolve, chạy lại quick check, push rồi merge khi CI xanh.
+- Giữ đúng phạm vi thread; bug ngoài phạm vi báo điều phối, không tự sửa.
+- Tự test, debug, QA bằng tool (Playwright, adb, CDP); không nhờ owner thao tác tay
+  trên điện thoại. Chỉ hỏi việc tool không làm được (cắm thiết bị, credential).
 
 ## STATE và living docs
 
@@ -72,7 +88,7 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
   thì sửa doc sở hữu qua [docs index](docs/index.md); supersession theo
   [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
-  publish lại claude.ai ([docs-system R7](docs/specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
+  publish lại claude.ai, một lần mỗi đợt ([docs-system R7](docs/specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
   PR code của một mục trong `design-system/approved-designs.md` chuyển giá trị
   vào component và `motion.md` rồi xóa mục. CI không kiểm được hai việc này.
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
@@ -85,8 +101,8 @@ host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để 
 
 ## Viết và phản hồi
 
-- Code comment English. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md). Vietnamese product copy không là code comment.
-- Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, time estimate cụ thể, lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
+- Code viết bằng tiếng Anh: identifier, chuỗi, tên file và hàm; text hiển thị trên UI, tên file và ID hiện có giữ nguyên. Code comment viết tiếng Việt, giữ technical term và các từ trong phụ lục `## Chú thích thuật ngữ` của docs. Áp dụng cho code mới và code sửa. Mọi Markdown project Vietnamese; giữ English technical term khi cần. Cuối file có `## Chú thích thuật ngữ`. Tên gọi theo [tên gọi chuẩn](docs/terminology.md).
+- Response: state/next action đầu. Work nhiều bước: đánh số, mỗi bước bounded, tối đa 5. Nêu progress, việc đang chờ (không đoán thời gian khi không có số đo), lỗi theo location/cause/fix, thứ đang work. Xử lý issue hiện tại trước tangent; cuối nêu một next action dưới hai phút.
 - Mơ hồ thật: hỏi một câu ngắn. Không preamble, recap, closing filler.
 
 ## Rule module
@@ -130,3 +146,5 @@ khi tool báo lỗi hoặc blocked.
 - **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.
 - **Human gate**: điểm dừng bắt buộc để owner duyệt artifact trước khi sang phase kế tiếp.
 - **Sibling review task**: task review ngang hàng do main agent tạo và hợp nhất.
+- **Five-axis review**: review diff theo năm trục correctness, readability, architecture, security, performance.
+- **Archive**: ẩn card khỏi board nhưng vẫn khôi phục được, khác với xóa vĩnh viễn.
