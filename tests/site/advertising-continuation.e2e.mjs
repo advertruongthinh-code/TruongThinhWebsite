@@ -396,11 +396,20 @@ async function replaySkeletonEntry(page, label) {
   await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonEntryEvents = [];
     window.__ttSkeletonPaintTimeline = [];
-    window.__ttSkeletonEntryListener = (event) => {
-      window.__ttSkeletonEntryEvents.push({ at: performance.now(), property: event.propertyName, type: event.type });
-    };
-    frame.addEventListener("transitionrun", window.__ttSkeletonEntryListener);
-    frame.addEventListener("transitionend", window.__ttSkeletonEntryListener);
+    window.__ttSkeletonEntryObserver = new MutationObserver((records) => records.forEach((record) => {
+      const glass = (nodes) => [...nodes].some((node) => node.dataset && "glassReveal" in node.dataset);
+      const surface = frame.querySelector(".advertising-grid__cta-surface");
+      const endTimes = (node) => node.getAnimations({ subtree: true })
+        .map((animation) => Math.round(animation.effect.getComputedTiming().endTime));
+      const added = [...record.addedNodes].find((node) => node.dataset && "glassReveal" in node.dataset);
+      if (added) {
+        window.__ttSkeletonEntryEvents.push({
+          at: performance.now(), glass: endTimes(added), surface: endTimes(surface), type: "add",
+        });
+      }
+      if (glass(record.removedNodes)) window.__ttSkeletonEntryEvents.push({ at: performance.now(), type: "remove" });
+    }));
+    window.__ttSkeletonEntryObserver.observe(frame, { childList: true });
     const rect = frame.getBoundingClientRect();
     const motion = window.TruongThinhMotion;
     const current = motion?.getLogicalScroll?.() ?? window.scrollY;
@@ -408,29 +417,32 @@ async function replaySkeletonEntry(page, label) {
     if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
   });
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
-  await page.waitForTimeout(100);
-  await page.waitForTimeout(750);
+  await page.waitForFunction(() => window.__ttSkeletonEntryEvents.some(({ type }) => type === "remove"),
+    null, { timeout: 5000 });
   const result = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
-    frame.removeEventListener("transitionrun", window.__ttSkeletonEntryListener);
-    frame.removeEventListener("transitionend", window.__ttSkeletonEntryListener);
-    delete window.__ttSkeletonEntryListener;
+    window.__ttSkeletonEntryObserver.disconnect();
+    delete window.__ttSkeletonEntryObserver;
     const style = getComputedStyle(frame);
     return {
       endpointOpacity: Number(style.opacity),
       events: window.__ttSkeletonEntryEvents,
-      firstPaintAt: window.__ttSkeletonPaintTimeline[0]?.at,
+      glass: Boolean(frame.querySelector("[data-glass-reveal]")),
+      paints: window.__ttSkeletonPaintTimeline.map(({ at }) => at),
+      surfaceOpacity: Number(getComputedStyle(frame.querySelector(".advertising-grid__cta-surface")).opacity),
       targetOpacity: Number(style.getPropertyValue("--advertising-cta-frame-opacity")),
       transformY: new DOMMatrixReadOnly(style.transform).m42,
     };
   });
-  const opacityRun = result.events.find(({ property, type }) => property === "opacity" && type === "transitionrun");
-  const opacityEnd = result.events.find(({ property, type }) => property === "opacity" && type === "transitionend");
-  assert(opacityRun, `${label}: opacity entry did not run`);
-  assert(opacityEnd, `${label}: opacity entry did not settle`);
-  assert(!result.events.some(({ property }) => property === "transform"), `${label}: entry animated transform`);
-  assert(Number.isFinite(result.firstPaintAt), `${label}: WebGL did not start after viewport entry`);
-  assert(result.firstPaintAt >= opacityEnd.at,
-    `${label}: WebGL started before opacity entry settled`);
+  const added = result.events.filter(({ type }) => type === "add");
+  const removed = result.events.find(({ type }) => type === "remove");
+  assert.equal(added.length, 1, `${label}: Kinh reveal must run exactly once (${JSON.stringify(result.events)})`);
+  assert(added[0].glass.length > 0 && added[0].glass.every((end) => end === 600),
+    `${label}: Kinh reveal must last 600ms like card photos`);
+  assert(added[0].surface.length === 1 && added[0].surface[0] <= 600,
+    `${label}: Flow must fade in under Kinh within the 600ms reveal`);
+  assert(!result.glass, `${label}: Kinh reveal was not removed after entry`);
+  assert(result.paints.some((at) => at < removed.at), `${label}: Flow did not run during the Kinh reveal`);
+  assert(Math.abs(result.surfaceOpacity - 1) <= 0.01, `${label}: Flow did not reach full opacity`);
   assert(Math.abs(result.endpointOpacity - result.targetOpacity) <= 0.01,
     `${label}: entry opacity did not reach its endpoint`);
   assert(Math.abs(result.transformY) <= 0.1, `${label}: entry changed frame geometry`);
@@ -597,7 +609,7 @@ try {
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
       // The core and the three band steps; the inner steps between them follow the device (glass-surface.mjs).
       const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
-      assert.deepEqual([blurs[0], ...blurs.slice(-3)], ["100", "4.5", "11.12", "25.3"],
+      assert.deepEqual([blurs[0], ...blurs.slice(-3)], ["28", "4.5", "11.12", "25.3"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
       // The primary photo carries the full step's blur itself; its even Kính keeps only tint and grain.
       assert.deepEqual(state.photoGlassBlur, [], `${locale} ${viewport.width}: photo Kính still has a backdrop blur step`);
@@ -1172,21 +1184,10 @@ try {
     .every(canvas => getComputedStyle(canvas).backgroundImage !== "none")), "released offscreen frames retain filled static fallbacks");
 
   const entryContract = await skeletonEntryContract(page);
-  assert.deepEqual(entryContract.frame.opacity && {
-    duration: entryContract.frame.opacity.duration,
-    easing: entryContract.frame.opacity.easing,
-  }, entryContract.media.opacity && {
-    duration: entryContract.media.opacity.duration,
-    easing: entryContract.media.opacity.easing,
-  }, "skeleton opacity entry must reuse the grid media timing contract");
-  assert.equal(entryContract.frame.opacity?.duration, "0.6s", "skeleton opacity entry must last 600ms");
-  assert.equal(entryContract.frame.opacity?.easing, "ease-out", "skeleton opacity entry must use ease-out");
-  assert.deepEqual(entryContract.frame.transitionProperties, ["opacity"],
-    "skeleton entry must not transition transform, scale, or another property");
-  assert(entryContract.frame.transitionDelays.every((delay) => delay === "0s"),
-    "skeleton entry must not stagger frame timing");
-  assert(entryContract.stagger.every((delay) => delay === "0s"),
-    "skeleton opacity entry must not stagger frame timing");
+  // Batch frames enter under the 0.6s Kinh reveal from the runtime, never a CSS opacity fade (skeleton R4).
+  assert.equal(entryContract.frame.opacity, null, "skeleton frame must not fade its opacity in CSS");
+  assert(entryContract.stagger.every((delay) => delay === undefined),
+    "skeleton frames must not carry an opacity transition");
   assert(Math.abs(matrix(entryContract.frame.transform).y) <= 0.1,
     "skeleton frame must retain its geometry before entry");
   assert.equal(entryContract.frame.maskImage, "none", "frame retained a local fade mask");
@@ -1208,10 +1209,11 @@ try {
 
   await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
     window.__ttSkeletonVisibilityReplayCount = 0;
-    window.__ttSkeletonVisibilityListener = (event) => {
-      if (event.propertyName === "opacity") window.__ttSkeletonVisibilityReplayCount += 1;
-    };
-    frame.addEventListener("transitionrun", window.__ttSkeletonVisibilityListener);
+    window.__ttSkeletonVisibilityListener = new MutationObserver((records) => {
+      window.__ttSkeletonVisibilityReplayCount += records.filter((record) => [...record.addedNodes]
+        .some((node) => node.dataset && "glassReveal" in node.dataset)).length;
+    });
+    window.__ttSkeletonVisibilityListener.observe(frame, { childList: true });
   });
   for (let cycle = 0; cycle < 2; cycle += 1) {
     await page.evaluate(() => {
@@ -1226,7 +1228,7 @@ try {
     await page.waitForFunction(() => !document.hidden && document.querySelector("[data-advertising-cta-frame].is-looping"));
   }
   const visibilityReplay = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
-    frame.removeEventListener("transitionrun", window.__ttSkeletonVisibilityListener);
+    window.__ttSkeletonVisibilityListener.disconnect();
     const result = {
       count: window.__ttSkeletonVisibilityReplayCount,
       entryReady: frame.classList.contains("is-entry-ready"),
@@ -1237,7 +1239,7 @@ try {
     delete window.__ttSkeletonVisibilityReplayCount;
     return result;
   });
-  assert.equal(visibilityReplay.count, 0, "page visibility resume replayed skeleton entry opacity");
+  assert.equal(visibilityReplay.count, 0, "page visibility resume replayed the Kinh reveal");
   assert(visibilityReplay.entryReady && Math.abs(visibilityReplay.opacity - visibilityReplay.targetOpacity) <= 0.01,
     "page visibility resume lost the settled skeleton reveal state");
   assert.deepEqual(await flowAssignments(page), stableAssignments,

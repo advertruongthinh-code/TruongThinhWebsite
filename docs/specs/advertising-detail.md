@@ -168,7 +168,9 @@ And không frame nào vẽ ở Y của entry khác
 
 Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm đúp lên ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-dùng-cử-chỉ-thay-cho-nút)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
-`cubic-bezier(0.55, 0, 0, 1)`; nền viewer tối `blur(4px)` hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
+`cubic-bezier(0.55, 0, 0, 1)`; nền viewer giữ lớp tối `rgba(32, 33, 32, 0.85)` với blur kiểu
+[Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)` (một lớp, không tint, không hạt nhiễu), hiện, tắt
+bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
 trên trái; reset, `+`, `−` góc dưới phải, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng, trừ kéo xuống ở Fit trên màn cảm ứng) hoặc lỗi ảnh (tức thì); đóng thì mở khóa
@@ -272,6 +274,8 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
+- R9 nền viewer blur `50px` toàn cửa sổ chưa đo trên A05s: mở, đóng viewer phải giữ gate điện thoại của
+  [skeleton R8](advertising-skeleton.md#r8-hiệu-năng); rơi gate thì PR code báo owner kèm số đo. Main và máy PC.
 - `p13-position-stuffing-and-remount` lúc PASS lúc FAIL "missing visible 400ms travel", cả trên `main`. Main.
 - Landscape VI `Y=2` trên emulator FAIL; A05s thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay H01–H02 trên A05s chưa chạy;
   L06 (viewer không đóng khi vuốt từ nền) chưa replay A05s ngang, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.

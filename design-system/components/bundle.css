@@ -4877,6 +4877,11 @@ body.is-advertising-browse .site-footer {
   opacity: var(--advertising-cta-frame-opacity);
 }
 
+/* Batch frames enter under Kinh from the runtime, so they take their final opacity at once (skeleton R4). */
+.advertising-grid__cta-frame[data-advertising-cta-frame] {
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .advertising-grid__cta-frame {
     opacity: var(--advertising-cta-frame-opacity);
@@ -5520,7 +5525,8 @@ body.is-advertising-browse .site-footer {
   background: rgba(32, 33, 32, 0.85);
   /* Fades while a drag down dismisses the viewer. */
   opacity: calc(1 - var(--advertising-viewer-dismiss, 0));
-  backdrop-filter: blur(4px);
+  /* Kính blur with the even surface's colour lift, kept dark (advertising-detail R9). */
+  backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
 }
 
 .advertising-photo-dialog[data-advertising-viewer-state="opening"]::backdrop {
@@ -6039,11 +6045,11 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 }
 
 /* Touch screens use gestures: double tap opens the viewer, pinch and double tap zoom, drag down closes.
-   The buttons stay for screen readers. */
+   The buttons stay for screen readers and show again under keyboard focus. */
 @media (hover: none) and (pointer: coarse) {
-  .advertising-photo-view__expand,
-  .advertising-photo-dialog__close,
-  .advertising-photo-dialog__controls button {
+  .advertising-photo-view__expand:not(:focus-visible),
+  .advertising-photo-dialog__close:not(:focus-visible),
+  .advertising-photo-dialog__controls button:not(:focus-visible) {
     position: absolute;
     width: 1px;
     min-width: 0;

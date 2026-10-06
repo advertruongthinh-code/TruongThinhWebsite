@@ -161,17 +161,16 @@ outline. Touch không cần hover để mở ảnh.
 Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị trí
 (mục trên) và ảnh hiện (mục này).
 
-- Mỗi lần card vào viewport, ảnh hiện dưới
-  [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) năm bậc cùng
-  một nhịp `0.6s`, chỉ opacity: kính hiện `0` đến `0.26s`
-  `cubic-bezier(0, 0, 0.26, 1)`; lớp dưới mờ đi, ảnh hiện lên `0.13s` đến
-  `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`; kính tan `0.26s` đến `0.6s`
-  `cubic-bezier(0.86, 0, 0.07, 1)`. Khung card, link luôn hiện.
 - Ảnh chưa giải mã khi card vào viewport: khung media mang ngay
   [skeleton](components/Skeleton/README.md) cuối masonry (Flow chạy cả khi
-  đang cuộn), lớp dưới là skeleton. Ảnh đã có (cache, tải trước, hoặc vào lại
-  sau khi rời hẳn viewport với `intersectionRatio = 0`): lớp dưới là khung
-  trống. Card còn giao một phần viewport thì không chạy lại.
+  đang cuộn). Ảnh về thì hiện dưới
+  [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) năm bậc nhịp
+  `0.6s`, chỉ opacity: kính hiện `0` đến `0.26s`
+  `cubic-bezier(0, 0, 0.26, 1)`; skeleton mờ đi, ảnh hiện lên `0.13s` đến
+  `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`; kính tan `0.26s` đến `0.6s`
+  `cubic-bezier(0.86, 0, 0.07, 1)`. Khung card, link luôn hiện.
+- Ảnh đã có (cache, tải trước, hoặc vào lại sau khi rời hẳn viewport với
+  `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
 - Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong, không kính.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
 
