@@ -63,7 +63,8 @@ mount trong `motion.js`.
 
 CTA cuối trang Advertising (`.detail-cta__copy`) có parallax riêng ở mọi chiều
 rộng, cả scroll native: độ lệch bằng (giới hạn cuộn trừ `scrollY`) nhân `-0.1`,
-tức trôi chậm hơn cuộn 10% và bằng 0 đúng tại cuối trang. Giảm chuyển động hoặc
+tức trôi chậm hơn cuộn 10% và bằng 0 đúng tại cuối trang; độ lệch không vượt
+khoảng trống phía trên cụm chữ nên tiêu đề không bị cắt. Giảm chuyển động hoặc
 đang xem ảnh thì không lệch. Vị trí cuối của cụm CTA đổi theo thanh địa chỉ thì
 trượt `margin-bottom 0.4s ease-out`
 ([CTA giữa viewport](../docs/specs/advertising-cta-center-parallax.md)).
@@ -187,7 +188,8 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
-- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, Flow chạy ngay từ đầu
+- Vào viewport: reveal Kính `0.6s` như ảnh card (mục trên; lớp dưới là khung
+  trống, lớp hiện lên là Flow), Flow chạy ngay từ đầu
   kể cả khi đang cuộn; mỗi frame tự hiện khi giao vùng nhìn thấy, không stagger;
   rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer, không focus.
   Frame chưa có WebGL context hiện một khung hình Flow đứng yên của chính nó.

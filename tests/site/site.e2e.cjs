@@ -4817,8 +4817,9 @@ async function advertisingWindowIds(page, filter) {
   return (await advertisingWindow(page, filter)).map(({ id }) => id);
 }
 
-function advertisingWindow(page, filter) {
-  return page.evaluate(async (filter) => {
+// `width` computes the window for a layout viewport the page has not resized to yet.
+function advertisingWindow(page, filter, width = null) {
+  return page.evaluate(async ({ filter, width }) => {
     const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
     const { compileAdvertisingProductLayout, getVirtualWindow, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
     const { shuffleWithSeed } = await import("/advertising-products/random-order.mjs");
@@ -4828,7 +4829,7 @@ function advertisingWindow(page, filter) {
       categoryOrder: artifact.categories.map((category) => category.slug),
       datasetVersion: artifact.datasetVersion,
       filter,
-      layoutViewportWidth: document.documentElement.clientWidth,
+      layoutViewportWidth: width ?? document.documentElement.clientWidth,
       settings: normalizeAdvertisingProductSettings(artifact.settings),
       presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`).map(({ id }) => id),
       organicOrder: true,
@@ -4837,8 +4838,48 @@ function advertisingWindow(page, filter) {
       scrollTop: Math.max(0, -document.querySelector("[data-project-grid]").getBoundingClientRect().top),
       viewportHeight: innerHeight, overscan: innerHeight,
     }).items.map((placement) => ({ id: placement.card.id, x: placement.x, y: placement.y }));
-  }, filter);
+  }, { filter, width });
 }
+
+// Samples a masonry morph inside the page, timed from the triggering event: a CDP round trip under load can outlast
+// the 0.4s slide, so samples taken from the test side would only ever see the settled card.
+const armMorphSamples = (page, { event = "click", delays, id = null, notCategory = null }) => page.evaluate(
+  ({ event, delays, id, notCategory }) => {
+    const grid = document.querySelector("[data-project-grid]");
+    let pickedId = id;
+    const sample = () => {
+      const tile = pickedId
+        ? grid.querySelector(`[data-advertising-card="${pickedId}"]`)
+        : [...grid.querySelectorAll(".advertising-tile")].find((item) => !item.hidden && item.dataset.advertisingCategory !== notCategory);
+      pickedId ||= tile?.dataset.advertisingCard;
+      const style = tile ? getComputedStyle(tile) : null;
+      const rect = tile?.getBoundingClientRect();
+      const gridRect = grid.getBoundingClientRect();
+      return {
+        id: pickedId,
+        delay: style?.transitionDelay,
+        duration: style?.transitionDuration,
+        property: style?.transitionProperty,
+        transform: style?.transform,
+        left: Number.parseFloat(style?.left || "0"),
+        top: Number.parseFloat(style?.top || "0"),
+        visualLeft: rect ? rect.left - gridRect.left : null,
+        visualTop: rect ? rect.top - gridRect.top : null,
+      };
+    };
+    window.__ttMorphSamples = new Promise((resolve) => {
+      (event === "click" ? document : window).addEventListener(event, () => {
+        const samples = [];
+        delays.forEach((delay, index) => setTimeout(() => {
+          samples[index] = sample();
+          if (samples.filter(Boolean).length === delays.length) resolve(samples);
+        }, delay));
+      }, { capture: true, once: true });
+    });
+  },
+  { event, delays, id, notCategory },
+);
+const readMorphSamples = (page) => page.evaluate(() => window.__ttMorphSamples);
 
 async function runAdvertisingFilterCheck() {
   const viewport = { width: 1440, height: 900 };
@@ -4889,6 +4930,7 @@ async function runAdvertisingFilterCheck() {
           window.addEventListener("site:layout", resolve, { once: true });
         });
       });
+      await armMorphSamples(page, { delays: [20, 180], id: survivorId });
       await page.locator(`[data-advertising-filter="${filterSlug}"]`).click();
       await page.waitForFunction(
         (slug) => {
@@ -4917,10 +4959,7 @@ async function runAdvertisingFilterCheck() {
           visualTop: rect ? rect.top - gridRect.top : null,
         };
       }, survivorId);
-      await page.waitForTimeout(20);
-      const origin = await captureTrajectory();
-      await page.waitForTimeout(160);
-      const during = await captureTrajectory();
+      const [origin, during] = await readMorphSamples(page);
       assert(
         during.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
           during.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -5012,13 +5051,9 @@ async function runAdvertisingFilterCheck() {
         Boolean(grid.querySelector(`[data-advertising-card="${id}"]`)), nextId,
       );
       assert(!categoryOriginMounted, `${nextId} must not be mounted before category-to-category filter morph`);
+      await armMorphSamples(page, { delays: [180], id: nextId });
       await page.locator(`[data-advertising-filter="${nextSlug}"]`).click();
-      await page.waitForTimeout(180);
-      const categoryDuring = await page.locator("[data-project-grid]").evaluate((grid, id) => {
-        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
-        const style = tile ? getComputedStyle(tile) : null;
-        return { duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
-      }, nextId);
+      const [categoryDuring] = await readMorphSamples(page);
       assert(
         categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
           categoryDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -5026,6 +5061,7 @@ async function runAdvertisingFilterCheck() {
         `Masonry transition did not generalize to category-to-category destination: ${JSON.stringify({ categoryOriginMounted, categoryDuring })}`,
       );
       await page.waitForTimeout(450);
+      await armMorphSamples(page, { delays: [20, 180, 480], notCategory: nextSlug });
       await page.locator('[data-advertising-filter="all"]').click();
       await page.waitForFunction(
         () =>
@@ -5033,30 +5069,7 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
-      const captureReverseTrajectory = () => page.locator("[data-project-grid]").evaluate((grid, slug) => {
-        const tile = [...grid.querySelectorAll(".advertising-tile")].find(
-          (item) => !item.hidden && item.dataset.advertisingCategory !== slug,
-        );
-        const style = tile ? getComputedStyle(tile) : null;
-        const rect = tile?.getBoundingClientRect();
-        const gridRect = grid.getBoundingClientRect();
-        return {
-          id: tile?.dataset.advertisingCard,
-          duration: style?.transitionDuration,
-          delay: style?.transitionDelay,
-          transform: style?.transform,
-          left: Number.parseFloat(style?.left || "0"),
-          top: Number.parseFloat(style?.top || "0"),
-          visualLeft: rect ? rect.left - gridRect.left : null,
-          visualTop: rect ? rect.top - gridRect.top : null,
-        };
-      }, nextSlug);
-      await page.waitForTimeout(20);
-      const reverseOrigin = await captureReverseTrajectory();
-      await page.waitForTimeout(160);
-      const reverseDuring = await captureReverseTrajectory();
-      await page.waitForTimeout(300);
-      const reverseSettled = await captureReverseTrajectory();
+      const [reverseOrigin, reverseDuring, reverseSettled] = await readMorphSamples(page);
       const reverseTravel = {
         x: reverseSettled.left - reverseOrigin.left,
         y: reverseSettled.top - reverseOrigin.top,
@@ -5080,17 +5093,14 @@ async function runAdvertisingFilterCheck() {
       const beforeResize = await page.locator("[data-project-grid] .advertising-tile").evaluateAll((tiles) =>
         tiles.map((tile) => ({ id: tile.dataset.advertisingCard, x: Number.parseFloat(tile.style.left), y: Number.parseFloat(tile.style.top) })),
       );
-      await page.setViewportSize({ width: 1200, height: 900 });
-      const resizeTarget = (await advertisingWindow(page, "all")).find((placement) =>
+      const resizeWindow = await advertisingWindow(page, "all", 1200);
+      const resizeTarget = resizeWindow.find((placement) =>
         beforeResize.some((tile) => tile.id === placement.id && Math.hypot(tile.x - placement.x, tile.y - placement.y) > 2),
       );
       assert(resizeTarget, "No mounted card moves between the 1440 and 1200 layouts");
-      await page.waitForTimeout(180);
-      const resizeDuring = await page.locator("[data-project-grid]").evaluate((grid, id) => {
-        const tile = grid.querySelector(`[data-advertising-card="${id}"]`);
-        const style = tile ? getComputedStyle(tile) : null;
-        return { id, duration: style?.transitionDuration, delay: style?.transitionDelay, transform: style?.transform };
-      }, resizeTarget.id);
+      await armMorphSamples(page, { event: "resize", delays: [180], id: resizeTarget.id });
+      await page.setViewportSize({ width: 1200, height: 900 });
+      const [resizeDuring] = await readMorphSamples(page);
       assert(
         resizeDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
           resizeDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -5174,7 +5184,7 @@ async function runAdvertisingFilterCheck() {
         };
       }, target);
       assert(state.active === "true", `All filter did not remain active during deferred scroll: ${JSON.stringify(state)}`);
-      assert(state.scrollY >= target - 2 && state.count > 0 && state.count < 120 && state.intersectsExpectedRange && state.instant && state.layoutEvents === 2, `Virtual window did not perform exactly one pending-scroll catch-up after the filter layout: ${JSON.stringify(state)}`);
+      assert(state.scrollY >= target - 2 && state.count > 0 && state.count < 120 && state.intersectsExpectedRange && state.instant && state.layoutEvents === 1, `Virtual window did not catch up after the filter layout without a second site:layout (same page height, scroll-feel R1): ${JSON.stringify(state)}`);
       assertDiagnostics(diagnostics);
     },
   );
