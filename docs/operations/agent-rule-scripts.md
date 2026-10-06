@@ -45,12 +45,6 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Graph watcher | `pwsh -File scripts/tooling/watch-graphify.ps1` | Opt-in monitoring, không là bước mỗi task. |
 | Serena language | `pwsh -File scripts/tooling/sync-serena-languages.ps1 -Check|-Apply|-Watch` | Launcher/watcher sở hữu normal sync; repair fallback, không edit config tay. |
 
-## Reference research
-
-| Need | Entrypoint | Boundary |
-| --- | --- | --- |
-| Archive first-party reference | `node scripts/reference/archive-reference.mjs --origin <url>` | User-authorized research. Có `--archive-dir`, `--delay-ms`, caps, sitemap/legacy origin. |
-
 ## Managed/helper
 
 - MCP launcher: `global-mcp.ps1`, `start-serena-mcp.ps1`, `start-graphify-mcp.ps1`, `start-chrome-devtools-mcp.ps1`. Host agent launch MCP mỗi session; không chạy như Windows daemon.

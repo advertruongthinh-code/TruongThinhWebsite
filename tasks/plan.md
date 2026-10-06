@@ -872,7 +872,7 @@ finding thì rerun affected portion trước snapshot. Mỗi slice tối đa b�
 source/test estimate40–110 LOC; tổng khoảng170–235 phút gồm body. Rollback
 chỉ bỏ guard L04H và focused test hunks rồi rebuild; giữ mọi edit random,
 viewport, layout, recovery và user work khác. Không commit/push/deploy.
-Physical Safari/iPhone, MCP UI, owner visual và full Espacio vẫn là gate riêng.
+Physical Safari/iPhone, MCP UI và owner visual vẫn là gate riêng.
 Docs impact: owning shell spec/STATE/report/task status cập nhật theo evidence;
 Notion chỉ phản ánh status sau Git. Requested reviewer Sol/ultra, effective
 model/effort ghi theo tool nếu có, nếu không ghi unknown.

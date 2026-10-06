@@ -26,6 +26,7 @@ const COMPONENTS = [
     frames: [{ cls: 'show', height: 120 }] },
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
   { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
+  { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
   { name: 'Gallery', group: 'Page', height: 640, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
   // Advertising markup is built at runtime; capture-design-system.mjs snapshots it into scripts/docs/captures/.
   // pad: space kept above the focus element inside the frame; size: image variant width.
