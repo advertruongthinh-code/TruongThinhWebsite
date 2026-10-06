@@ -331,6 +331,7 @@ async function evidence(page) {
       } : null,
       indicator: descriptionIndicator ? {
         label: descriptionIndicator.getAttribute("aria-label"), text: descriptionIndicator.textContent.trim(),
+        dots: descriptionIndicator.querySelectorAll("[data-advertising-photo-description-dot]").length,
       } : null,
       suggestion: suggestion ? {
         first: visibleRelatedItems[0] === suggestion,
@@ -369,7 +370,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   const ratio = card.media.width / card.media.height;
   const gutter = actual.viewport.windowWidth <= 750 ? 15 : actual.viewport.windowWidth <= 1200 ? 25 : 35;
   const expectedSpan = Math.min(3, actual.relatedColumns);
-  const expectedLayout = expectedSpan === actual.relatedColumns ? "pinterest" : "split";
+  const fullSpan = expectedSpan === actual.relatedColumns;
+  const expectedLayout = fullSpan && actual.viewport.width <= actual.viewport.height ? "pinterest" : "split";
   const viewportBottom = actual.viewport.height - actual.safeBottom;
   const requiredPeek = 50;
   const minimumPrimaryHeight = expectedLayout === "pinterest"
@@ -428,7 +430,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
     }))
     .sort((a, b) => b.visiblePeek - a.visiblePeek);
   if (fitsViewport) assert(below.length > 0, `${label}: no real related image starts below primary with ${gutter}px gutter`);
-  if (expectedLayout === "split" && fitsViewport) {
+  if (!fullSpan && fitsViewport) {
     assert(below[0].visiblePeek >= requiredPeek - 2,
       `${label}: real related image peek ${below[0].visiblePeek}px is below ${requiredPeek}px`);
   }
@@ -459,9 +461,9 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   }
 
   assert.deepEqual(actual.flow.map(({ index }) => index), [0, 1, 2, 3], `${label}: info flow is not category-pager-indicator-CTA`);
-  assert.equal(actual.suggestion?.inInfo, expectedLayout === "split", `${label}: suggestion owner does not match primary span`);
-  assert.equal(actual.suggestion?.inRelated, expectedLayout === "pinterest", `${label}: suggestion related-grid ownership is wrong`);
-  assert.equal(actual.suggestion?.first, expectedLayout === "pinterest", `${label}: suggestion order does not match layout`);
+  assert.equal(actual.suggestion?.inInfo, !fullSpan, `${label}: suggestion owner does not match primary span`);
+  assert.equal(actual.suggestion?.inRelated, fullSpan, `${label}: suggestion related-grid ownership is wrong`);
+  assert.equal(actual.suggestion?.first, fullSpan, `${label}: suggestion order does not match layout`);
   assert.deepEqual([actual.suggestion.rank, actual.suggestion.sourceOrder], [0, 0], `${label}: suggestion does not own rank/sourceOrder zero`);
   assert(actual.suggestion.scrollHeight <= actual.suggestion.clientHeight + 1, `${label}: suggestion content is clipped`);
   assert.equal(actual.suggestion.buttons.length, 4, `${label}: suggestion does not expose four buttons`);
@@ -473,7 +475,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   const canonicalDescription = locale === "vi" ? card.descriptionVi : card.descriptionEn;
   assert(actual.copy.description && canonicalDescription.startsWith(actual.copy.description), `${label}: visible description page is not canonical copy`);
   assert(actual.pager?.count >= 1 && actual.pager.index >= 0 && actual.pager.index < actual.pager.count, `${label}: description pager state is invalid`);
-  assert(actual.indicator?.label && actual.indicator.text, `${label}: description indicator is not accessible`);
+  assert(actual.indicator?.label && (actual.indicator.text || actual.indicator.dots), `${label}: description indicator is not accessible`);
   if (normalCopyFit) {
     assert(actual.infoState.scrollHeight <= actual.infoState.clientHeight + 2,
       `${label}: normal copy scrolls ${actual.infoState.scrollHeight - actual.infoState.clientHeight}px`);
@@ -908,7 +910,8 @@ async function runP7PinterestContract(browser, locale) {
         infoScrollTop: info?.scrollTop || 0, infoScrollHeight: info?.scrollHeight || 0, infoClientHeight: info?.clientHeight || 0,
         pager: pager ? { index: Number(pager.dataset.pageIndex), count: Number(pager.dataset.pageCount),
           touchAction: getComputedStyle(pager).touchAction } : null,
-        indicator: indicator ? { label: indicator.getAttribute("aria-label"), text: indicator.textContent.trim() } : null,
+        indicator: indicator ? { label: indicator.getAttribute("aria-label"), text: indicator.textContent.trim(),
+          dots: indicator.querySelectorAll("[data-advertising-photo-description-dot]").length } : null,
         containOverflow: Boolean(frameRect && imageRect && (imageRect.width < frameRect.width - 1 || imageRect.height < frameRect.height - 1)),
         glassActive: Boolean(glass && getComputedStyle(glass).display !== "none"),
         suggestion: suggestion ? { first: items[0] === suggestion,
@@ -934,7 +937,7 @@ async function runP7PinterestContract(browser, locale) {
     assert.notEqual(initial.infoOverscroll, "contain", `${label}: description traps document scroll`);
     assert(initial.pager?.count >= 2 && initial.pager.index === 0, `${label}: overflow copy was not paginated`);
     assert.equal(initial.pager.touchAction, "pan-y", `${label}: pager blocks vertical touch scroll`);
-    assert(initial.indicator?.label && initial.indicator.text, `${label}: page indicator is not accessible`);
+    assert(initial.indicator?.label && (initial.indicator.text || initial.indicator.dots), `${label}: page indicator is not accessible`);
     assert.equal(initial.glassActive, initial.containOverflow, `${label}: zoom-glass does not follow contain overflow`);
     assert.equal(initial.suggestion?.inInfo, initial.layout === "split", `${label}: suggestion owner does not match primary span`);
     assert.equal(initial.suggestion?.inRelated, initial.layout === "pinterest", `${label}: suggestion related-grid ownership is wrong`);

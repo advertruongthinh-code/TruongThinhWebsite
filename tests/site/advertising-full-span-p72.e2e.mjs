@@ -16,7 +16,8 @@ try {
       [756, "kiosk-posm", "kiosk-posm-09", true],
       [954, "signage-raised-letters", "signage-raised-letters-07", true],
     ]) {
-      const page = await browser.newPage({ viewport: { width, height: 910 } });
+      // Portrait viewport: a full-span primary only stacks when the viewport is not landscape.
+      const page = await browser.newPage({ viewport: { width, height: 1000 } });
       try {
         await page.goto(`${origin}/${locale}/advertising-products/?category=${category}&photo=${photo}`);
         await page.waitForFunction(() => {
@@ -41,19 +42,19 @@ try {
             horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           };
         });
-        const label = `${locale} ${photo} ${width}x910`;
-        assert(state.primaryBottom <= 911, `${label}: primary extends below viewport (${state.primaryBottom}px)`);
+        const label = `${locale} ${photo} ${width}x1000`;
+        assert(state.primaryBottom <= 1001, `${label}: primary extends below viewport (${state.primaryBottom}px)`);
         assert(Math.abs(state.frameHeight - state.imageHeight) <= 1, `${label}: top/bottom overflow`);
-        assert(state.infoHeight + state.gap <= 910 * 0.28 + 1, `${label}: description exceeds cap`);
+        assert(state.infoHeight + state.gap <= 1000 * 0.28 + 1, `${label}: description exceeds cap`);
         assert.equal(state.horizontalOverflow, 0, `${label}: horizontal overflow`);
         if (capped) {
-          assert(Math.abs(state.primaryBottom - 910) <= 1, `${label}: tall image does not reach available viewport cap`);
+          assert(Math.abs(state.primaryBottom - 1000) <= 1, `${label}: tall image does not reach available viewport cap`);
           assert(state.imageWidth < state.frameWidth - 1, `${label}: side overflow is absent`);
           assert(Math.abs(state.imageLeft - state.frameLeft - (state.frameWidth - state.imageWidth) / 2) <= 1,
             `${label}: image is not horizontally centered`);
           assert.equal(state.glass, "true", `${label}: side glass is missing`);
         } else {
-          assert(state.primaryHeight < 810, `${label}: landscape primary is stretched`);
+          assert(state.primaryHeight < 900, `${label}: landscape primary is stretched`);
           assert(Math.abs(state.frameWidth - state.imageWidth) <= 1, `${label}: image does not fill width`);
           assert.equal(state.glass, "false", `${label}: fitted image has glass`);
         }

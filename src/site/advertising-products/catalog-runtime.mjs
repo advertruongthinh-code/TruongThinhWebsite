@@ -2290,11 +2290,25 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoDescriptionIndicator) {
       const current = descriptionPageIndex + 1;
       const total = descriptionPages.length;
-      photoDescriptionIndicator.textContent = `${current} / ${total}`;
+      const pageLabel = (page) => locale === "en" ? `Description page ${page} of ${total}` : `Trang mô tả ${page} trên ${total}`;
       photoDescriptionIndicator.hidden = total <= 1;
-      photoDescriptionIndicator.setAttribute("aria-label", locale === "en"
-        ? `Description page ${current} of ${total}`
-        : `Trang mô tả ${current} trên ${total}`);
+      photoDescriptionIndicator.setAttribute("aria-label", pageLabel(current));
+      // Up to five pages show one dot per page; more fall back to "n / N".
+      if (total > 5) photoDescriptionIndicator.textContent = `${current} / ${total}`;
+      else {
+        if (photoDescriptionIndicator.children.length !== total) {
+          photoDescriptionIndicator.replaceChildren(...descriptionPages.map((_, index) => {
+            const dot = document.createElement("button");
+            dot.type = "button";
+            dot.dataset.advertisingPhotoDescriptionDot = String(index);
+            return dot;
+          }));
+        }
+        [...photoDescriptionIndicator.children].forEach((dot, index) => {
+          dot.setAttribute("aria-label", pageLabel(index + 1));
+          dot.setAttribute("aria-current", String(index === descriptionPageIndex));
+        });
+      }
     }
   };
   const paginateDescription = () => {
@@ -2682,8 +2696,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     relatedLayoutKey = nextLayoutKey;
     const primary = relatedLayout.primary;
-    const pinterestMode = primary.span === relatedLayout.layout.columns;
-    if ((primary.mode === "pinterest") !== pinterestMode) throw new Error("Advertising photo layout mode is inconsistent with its grid span");
     photoView.dataset.advertisingPhotoLayout = primary.mode;
     photoView.dataset.advertisingPrimarySpan = String(primary.span);
     photoView.dataset.advertisingPhotoGlass = String(primary.hasContainOverflow);
@@ -3301,6 +3313,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     event.preventDefault();
     ensureRelatedPhoto(nextId)?.querySelector("a")?.focus({ preventScroll: true });
     restoreRelatedDomOrder();
+  }, { signal: controller.signal });
+  photoDescriptionIndicator?.addEventListener("click", (event) => {
+    const dot = event.target.closest("[data-advertising-photo-description-dot]");
+    if (dot) showDescriptionPage(Number(dot.dataset.advertisingPhotoDescriptionDot));
   }, { signal: controller.signal });
   photoDescriptionPager?.addEventListener("keydown", (event) => {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;

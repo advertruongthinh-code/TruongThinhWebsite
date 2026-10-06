@@ -5257,9 +5257,46 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-view__description-indicator {
+  display: flex;
   margin: 0;
   font-size: 0.75rem;
+  line-height: 24px;
   font-variant-numeric: tabular-nums;
+}
+
+/* 24px hit area per dot; the negative margin lines the first dot up with the text edge. */
+.advertising-photo-view__description-indicator button {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  place-items: center;
+  cursor: pointer;
+}
+
+.advertising-photo-view__description-indicator button:first-child {
+  margin-inline-start: -8px;
+}
+
+.advertising-photo-view__description-indicator button::before {
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  content: "";
+}
+
+.advertising-photo-view__description-indicator button[aria-current="true"]::before {
+  background: var(--ink);
+}
+
+.advertising-photo-view__description-indicator button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
 }
 
 .advertising-photo-view__cta {
