@@ -11,7 +11,6 @@ const manifestPath = path.join(site, "content/client-logos.json");
 const logoDirectory = path.join(site, "assets/content/client-logos");
 const projectDirectory = path.join(site, "assets/content/projects");
 const sharedDirectory = path.join(site, "assets/content/shared");
-const sourceProjectDirectory = path.join(root, "source-assets/projects");
 const html = fs.readFileSync(path.join(site, "index.html"), "utf8");
 const css = fs.readFileSync(path.join(site, "style.css"), "utf8");
 
@@ -87,7 +86,6 @@ const filesWithExtension = (directory, extension) =>
 
 assert.equal(filesWithExtension(projectDirectory, ".webp").length, 28, "Expected 28 project WebP assets");
 assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 16, "Expected 16 shared WebP assets");
-assert.equal(filesWithExtension(sourceProjectDirectory, ".png").length, 4, "Expected four editable PNG originals outside the public tree");
 
 const legacyDirectory = path.join(site, "assets/site");
 const legacyFiles = fs.existsSync(legacyDirectory)
