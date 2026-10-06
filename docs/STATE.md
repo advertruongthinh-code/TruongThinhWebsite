@@ -21,6 +21,11 @@
   tham khảo đã rút vào [Design System](../design-system/README.md#nguồn-tham-khảo), không còn là gate.
 - Owner fact chưa xác nhận: URL Zalo, năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Gate từng phần nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
+- Nợ kiểm thử, owner tạm dừng phiên PC và A05s 2026-10-06 ([card](https://app.notion.com/p/3f1332849a0e81c0bde0ef232b30d6d1)):
+  - `mobile-layout-parity`, `scrollbar-parity`: quá giờ trên cloud, chạy ở phiên PC.
+  - `site-media-card-playback`: chạy ở phiên PC với `SITE_MEDIA_OUTPUT_DIR` mới.
+  - FPS skeleton (`advertising-continuation` R4), Firefox WebGL (`skeleton-lifecycle`, `mobile-viewport-stability`): cần GPU thật.
+  - `advertising-photo-transitions`, `advertising-primary-p14`: đỏ không ổn định trên cloud, chạy lại ở phiên PC.
 
 ## Next action
 
