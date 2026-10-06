@@ -1906,6 +1906,11 @@ body.is-advertising-browse .site-footer {
   opacity: var(--advertising-cta-frame-opacity);
 }
 
+/* Batch frames enter under Kinh from the runtime, so they take their final opacity at once (skeleton R4). */
+.advertising-grid__cta-frame[data-advertising-cta-frame] {
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .advertising-grid__cta-frame {
     opacity: var(--advertising-cta-frame-opacity);
