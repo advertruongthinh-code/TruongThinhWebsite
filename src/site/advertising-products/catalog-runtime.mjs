@@ -1714,8 +1714,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let skeletonMountTimer = 0;
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
+    // Shader compiles and context creation stall the frames of a 0.4s card slide, so mounts wait for it to end.
     skeletonMountTimer = setTimeout(() => {
       skeletonMountTimer = 0;
+      if (performance.now() < motionUntil) {
+        scheduleSkeletonMount();
+        return;
+      }
       const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
       if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
@@ -1731,7 +1736,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       mountSkeletonRenderer(frame);
       // Over budget or on a lost context nothing mounts; the next visibility change retries.
       if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
-    });
+    }, Math.max(0, motionUntil - performance.now()));
   };
   controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
