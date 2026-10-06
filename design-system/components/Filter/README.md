@@ -11,6 +11,8 @@ nhóm. Markup tĩnh trong `src/site/advertising-products/index.html`
 - Chữ hoa 700, 1rem, màu `muted`; hover, focus và mục đang chọn đổi sang `ink`
   kèm gạch chân dày 3px, cách 4px.
 - Căn giữa, rộng tối đa 53.125rem, cách đáy hero 15vh; xuống dòng khi hẹp.
+- Tới 680px: một hàng cuộn ngang tràn bề rộng màn, snap gần, chừa 25px hai
+  bên; mục nhận focus bàn phím tự cuộn vào trọn khung.
 - Đổi filter: card bị loại ẩn ngay, card còn lại trượt về chỗ mới (xem
   [Motion](../../motion.md#vị-trí-card-masonry)). Đổi ngôn ngữ chỉ đổi text, URL,
   ARIA trên node có sẵn.

@@ -122,14 +122,14 @@ function mediaPath(value) {
 }
 
 async function assertPrimary(page, card, expectedId, locale) {
-  await page.waitForFunction(({ kind }) => {
-    const node = document.querySelector(`[data-advertising-photo-hero] ${kind === "video" ? "video" : "[data-advertising-photo-image]"}`);
-    if (!node || node.hidden) return false;
-    const style = getComputedStyle(node);
-    const box = node.getBoundingClientRect();
-    return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0
-      && box.width > 0 && box.height > 0;
-  }, { kind: card.mediaItems.find((item) => item.id === expectedId)?.kind }, { timeout: 3_000 });
+  // Wait on the same visibility rule primaryState reads, so an outgoing layer cannot satisfy it mid-swap.
+  await page.waitForFunction(({ kind }) => [...document.querySelectorAll(`[data-advertising-photo-hero] ${kind === "video" ? "video" : "img"}`)]
+    .some((node) => {
+      const style = getComputedStyle(node);
+      const box = node.getBoundingClientRect();
+      return !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
+        && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
+    }), { kind: card.mediaItems.find((item) => item.id === expectedId)?.kind }, { timeout: 3_000 });
   const state = await primaryState(page);
   const expected = card.mediaItems.find((item) => item.id === expectedId);
   assert(expected);

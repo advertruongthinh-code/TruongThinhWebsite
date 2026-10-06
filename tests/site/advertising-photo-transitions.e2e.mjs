@@ -1172,7 +1172,9 @@ try {
     const initialRelatedIds = new Set(relatedState.records.map(({ id }) => id));
     const initialMediaId = relatedState.records[0]?.id;
     assert(initialMediaId, "initial related window has no media fixture");
-    await relatedPage.locator(`[data-advertising-related-card="${initialMediaId}"]`).scrollIntoViewIfNeeded();
+    // Smooth scroll ignores native scrollIntoView; move the logical scroll to the card instead.
+    await relatedPage.locator(`[data-advertising-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
+      window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
     await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img`)?.classList.contains("is-advertising-media-ready"), initialMediaId);
     await relatedPage.waitForTimeout(650);
     const initialMediaRecords = await relatedPage.evaluate(() => window.__ttP13RelatedMedia.records);

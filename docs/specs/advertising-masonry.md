@@ -144,7 +144,8 @@ ngân sách ở cả hai pha (`search-exhausted`) làm masonry báo `data-advert
 nhóm tỷ lệ chỉ ghi chẩn đoán `needs-media`. Đổi filter hoặc bề rộng: card bị loại ẩn ngay, card còn lại và card mới đi
 từ vị trí cũ tới vị trí mới bằng `masonry-layout` ([motion](../../design-system/motion.md#vị-trí-card-masonry)); lần
 dựng đầu card đi từ đầu cột. Chỉ đổi chiều cao cửa sổ thì không đặt lại card. Cuộn trong lúc chuyển vị trí được gộp
-thành một lần cập nhật khi chuyển xong. `site:layout` chỉ phát khi tập card mount hoặc tọa độ đổi.
+thành một lần cập nhật khi chuyển xong. `site:layout` chỉ phát khi chiều cao trang đổi
+([scroll-feel R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)); thay card theo cửa sổ ảo mà giữ chiều cao thì không phát.
 
 ```gherkin
 Given masonry 4 cột ở 1440px
@@ -246,7 +247,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
 | Storage | history state `advertisingBrowse`; `sessionStorage` `tt-advertising-visit-seed-handoff-v1` | Seed, filter, vị trí theo entry; handoff ngôn ngữ (R4) |
-| Event | `site:layout` | Phát cho shell khi tập card hoặc tọa độ đổi (R6) |
+| Event | `site:layout` | Phát cho shell khi chiều cao trang đổi (R6) |
 
 ## UI
 

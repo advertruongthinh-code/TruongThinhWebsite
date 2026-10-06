@@ -22,10 +22,11 @@ const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
 // only cover the band. The core hands over to the steps across FADE px inside the arc, so no seam shows: the core
 // ramps in over the outer half while the steps stay on, the steps ramp out over the inner half, so the sharp page
 // never shows through a gap where both are partial. Each box
-// runs past its mask by its blur reach, 3 sigma of its increment in detail.css (28px for the core).
+// runs past its mask by one sigma of its blur (28px for the core): a wider margin changes no pixel by more than 3/255,
+// and every row of a box is one more row blurred each frame.
 const FADE = 48;
-const STEP_REACH = [14, 34, 76];
-const CORE_REACH = 84;
+const STEP_REACH = [5, 12, 26];
+const CORE_REACH = 28;
 const GRAIN_SIZE = 160;
 // Mean white the arc's grain adds (opacity 0.16 x mean alpha 0.5, detail.css); the tint carries that much less.
 const GRAIN_WHITE = 0.08;
@@ -230,7 +231,7 @@ export function layoutArcGlass(glass, geometry) {
     const increment = Math.sqrt(level(index + 1) ** 2 - level(index) ** 2);
     const from = radius - span * Math.max(0, index / count - 0.1);
     const to = radius - span * Math.min(1, (index + 1) / count + 0.1);
-    const stepTop = Math.max(top, cy - from - Math.ceil(3 * increment));
+    const stepTop = Math.max(top, cy - from - Math.ceil(increment));
     step.style.setProperty("--glass-step-blur", `${increment.toFixed(2)}px`);
     place(step, stepTop);
     setMask(step, `radial-gradient(${circle(stepTop)}, #000 ${to.toFixed(1)}px, transparent ${from.toFixed(1)}px)`);

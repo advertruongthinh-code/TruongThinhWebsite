@@ -74,16 +74,17 @@ Then mọi khung đang thấy giữ node, assignment và không chạy lại hi�
 
 ### R4. Vào viewport và vòng lặp
 
-Khung giao vùng nhìn thấy (visual viewport) hiện bằng opacity 0 → 1 trong 600ms ease-out (`is-entry-ready`; không có
-`transitionend` thì xong sau 650ms), Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn; rời hẳn vùng
-nhìn thấy thì lần vào sau chạy lại. Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
+Khung giao vùng nhìn thấy (visual viewport) hiện bằng reveal Kính `0.6s` giống card ảnh
+([Kính trên ảnh vừa tải](loading-glass-and-page-entry.md), owner 06/10): lớp dưới là khung trống, lớp hiện lên là
+Flow. Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn; rời hẳn vùng nhìn thấy thì lần vào sau
+chạy lại. Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 
 ```gherkin
 Given khung đã hiện xong và Flow đang chạy
 When ẩn tab rồi hiện lại hai lần
-Then opacity không chạy lại, Flow tiếp tục từ pha lúc dừng
+Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 ```
 
 ### R5. WebGL context
@@ -95,7 +96,8 @@ nên xoay máy không vượt ngân sách. Context giữ theo document và dùng
 listener, RAF đúng một lần, giữ canvas và context; lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
 phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không gọi
 `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước đó
-(R8) và không chờ cuộn dừng. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
+(R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
+làm trễ nhịp trượt. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
 hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
 gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó.
 
