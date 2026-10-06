@@ -223,6 +223,11 @@ body.is-transitioning .route-veil {
   pointer-events: auto;
 }
 
+/* Direct loads keep the header under the veil until it uncovers; soft routes keep it above. */
+html.route-enter .site-header {
+  z-index: 998;
+}
+
 .section-gap {
   margin-top: var(--section-gap);
 }
