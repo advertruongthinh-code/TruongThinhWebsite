@@ -26,6 +26,9 @@
   - `site-media-card-playback`: chạy ở phiên PC với `SITE_MEDIA_OUTPUT_DIR` mới.
   - FPS skeleton (`advertising-continuation` R4), Firefox WebGL (`skeleton-lifecycle`, `mobile-viewport-stability`): cần GPU thật.
   - `advertising-photo-transitions`, `advertising-primary-p14`: đỏ không ổn định trên cloud, chạy lại ở phiên PC.
+- Nợ đo A05s, cần phiên PC (owner tạm dừng 06/10): viewer xoay ngang trên máy thật
+  ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
+- Nợ đo A05s, cần phiên PC: fps mở, đóng viewer nền blur `50px` ([detail](specs/advertising-detail.md#gate-còn-mở)).
 
 ## Next action
 
