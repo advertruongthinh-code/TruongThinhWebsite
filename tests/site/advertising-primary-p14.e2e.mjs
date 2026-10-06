@@ -527,9 +527,12 @@ async function focusByKeyboard(page, selector) {
     if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
   }
   await page.evaluate(() => document.activeElement?.blur());
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    await page.keyboard.press("Tab");
-    if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
+  // Tab order continues from the last focused control, which may sit after the target: try both directions.
+  for (const [key, attempts] of [["Tab", 40], ["Shift+Tab", 80]]) {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      await page.keyboard.press(key);
+      if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
+    }
   }
   throw new Error(`Keyboard focus did not reach ${selector}`);
 }
