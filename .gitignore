@@ -29,5 +29,8 @@ CLAUDE.local.md
 # Image sources, provenance and site backups stay on the owner's machine, outside Git.
 /source-assets/
 
+# Raw advertising media rounds stay on the owner's machine; tracked README/JSON stay tracked.
+/source-assets/projects/advertising/*/
+
 # Generated reference website archive.
 /research/reference-site/archive/
