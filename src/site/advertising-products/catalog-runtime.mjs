@@ -40,6 +40,7 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
   || document.documentElement.clientWidth <= 750;
 // Wide desktops show 8-10 CTA frames at once; 12 keeps them all live and stays under Chrome's 16 contexts.
 const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
+const SKELETON_MOUNT_SCROLL_IDLE_MS = 150;
 // Loading skeletons pick their assignment by media id, so a remounted card keeps its colours.
 const LOADING_SKELETON_BATCH = createSkeletonFlowBatchAssignments({
   random: createSeededRandom("advertising-loading-skeleton"),
@@ -1711,12 +1712,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // A new context, then shaders and noise, each cost tens of ms on the A05s (R8): every renderer
   // mounts in its own task after the frame, a new context one task before it; the static frame shows meanwhile.
+  // Mounting mid-scroll drops frames on the PC too (scroll-feel R2), so mounts wait for scroll to settle.
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
+  let lastScrollAt = 0;
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
+    const wait = Math.max(0, lastScrollAt + SKELETON_MOUNT_SCROLL_IDLE_MS - performance.now());
     skeletonMountTimer = setTimeout(() => {
       skeletonMountTimer = 0;
+      if (performance.now() - lastScrollAt < SKELETON_MOUNT_SCROLL_IDLE_MS) {
+        scheduleSkeletonMount();
+        return;
+      }
       const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
       if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
@@ -1732,7 +1740,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       mountSkeletonRenderer(frame);
       // Over budget or on a lost context nothing mounts; the next visibility change retries.
       if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
-    });
+    }, wait);
   };
   controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
@@ -3167,6 +3175,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const y = Number(event.detail?.y);
     if (!Number.isFinite(y)) return;
     currentVisualY = Math.max(0, y);
+    lastScrollAt = performance.now();
     usesVisualScroll = true;
     syncCtaParallax();
     scheduleScroll();
@@ -3176,6 +3185,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const updateNativeScroll = () => {
     if (usesVisualScroll && window.scrollY === 0) return;
     currentVisualY = window.scrollY;
+    lastScrollAt = performance.now();
     usesVisualScroll = false;
     syncCtaParallax();
     scheduleScroll();
