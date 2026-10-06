@@ -55,29 +55,29 @@ When đọc SKELETON_FLOW_PRESETS
 Then có đúng 12 id khác nhau, field scale 100, mọi preset bị freeze
 ```
 
-### R3. Deck và giữ assignment
+### R3. Assignment ngẫu nhiên và giữ màu
 
-Batch lấy assignment từ deck 12 mục sinh bằng seed lượt duyệt ([masonry R4](advertising-masonry.md#r4-thứ-tự-ngẫu-nhiên-theo-lượt-duyệt))
-và số thứ tự deck: preset xáo, mỗi preset một hoán vị anchor (trong 24), pha chia đều vòng tròn rồi xáo, chiều chảy cân
-theo cặp. Cần quá 12 khung thì nối thêm deck: không trùng preset trong một deck, deck khác được trùng. Assignment gắn
-với slot. Đổi chiều cao hay bề rộng cửa sổ (kể cả thanh địa chỉ điện thoại): slot còn cần giữ node, assignment, deck,
-pha và trạng thái đã hiện; chỉ bỏ slot nằm ngoài đáy batch mới; slot quay lại nhận lại assignment cũ nếu chưa slot nào
-giữ. Đổi filter: bỏ hết, deck mới. Mở detail: gỡ khung, giữ assignment theo slot; đóng detail dựng lại cùng màu.
-Skeleton chờ ảnh dùng deck cố định (seed `advertising-loading-skeleton`), chọn theo hash media id nên card mount lại giữ
-màu.
+Mọi khung Flow (batch và skeleton chờ ảnh của card, primary) bốc assignment lúc khung vào vùng nhìn thấy lần đầu trong
+một trạng thái trang: preset ngẫu nhiên trong 12, một hoán vị anchor trong 24, chiều chảy ngẫu nhiên, pha liên tục ngẫu
+nhiên trên cả vòng (không chia mức cố định) và tốc độ lệch ngẫu nhiên tối đa 10% quanh `speed` của preset. Khi bốc, tránh
+preset của khung kề đang có assignment (trên, dưới cùng cột, hoặc chồng chiều dọc ở cột bên cạnh); hết preset để tránh
+thì được trùng, nhưng pha phải lệch ít nhất một phần tư vòng so với khung kề cùng preset. Trạng thái trang mới (tải trang,
+đổi filter, mở hoặc đóng detail, Back/Forward) bỏ mọi assignment và bốc lại. Trong một trạng thái trang, khung giữ
+assignment khi ra vào viewport, mount lại hay đổi bề rộng, chiều cao cửa sổ: batch theo slot, skeleton chờ ảnh theo
+media id. Đổi kích thước chỉ bỏ slot nằm ngoài đáy batch mới; slot quay lại nhận lại assignment cũ.
 
 ```gherkin
 Given batch đang hiện trên điện thoại dọc
 When thanh địa chỉ thu, mở làm chiều cao vùng nhìn thấy đổi qua lại
-Then mọi khung đang thấy giữ node, preset, deck và không chạy lại hiệu ứng vào
+Then mọi khung đang thấy giữ node, assignment và không chạy lại hiệu ứng vào
 ```
 
 ### R4. Vào viewport và vòng lặp
 
 Khung giao vùng nhìn thấy (visual viewport) hiện bằng opacity 0 → 1 trong 600ms ease-out (`is-entry-ready`; không có
-`transitionend` thì xong sau 650ms), xong mới chạy Flow; rời hẳn vùng nhìn thấy thì lần vào sau chạy lại. Flow chỉ chạy
-khi khung đang thấy, tab hiện, body không có `menu-open` hay `motion-paused`, không reduced motion. Tab ẩn hoặc
-`motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
+`transitionend` thì xong sau 650ms), Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn; rời hẳn vùng
+nhìn thấy thì lần vào sau chạy lại. Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
+`motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 
 ```gherkin
@@ -95,7 +95,9 @@ nên xoay máy không vượt ngân sách. Context giữ theo document và dùng
 listener, RAF đúng một lần, giữ canvas và context; lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
 phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không gọi
 `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước đó
-(R8); trong lúc chờ khung hiện frame tĩnh.
+(R8) và không chờ cuộn dừng. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
+hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
+gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó.
 
 ```gherkin
 Given điện thoại 838px ngang
@@ -164,7 +166,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | --- | --- |
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
-| R3 | `advertising-skeleton-flow.test.mjs` (deck theo seed, 12 khung một deck); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, deck) |
+| R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
@@ -190,7 +192,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 - **Batch**: tập khung skeleton nối tiếp masonry tới footer trong một lần dựng.
 - **Slot**: vị trí khung theo cột và độ sâu, khóa để giữ band và assignment.
-- **Deck**: bộ 12 assignment, mỗi preset một lần.
-- **Assignment**: preset, hoán vị anchor, pha và chiều chảy của một khung.
+- **Assignment**: preset, hoán vị anchor, pha, chiều chảy và tốc độ lệch của một khung.
+- **Trạng thái trang**: một lần masonry ổn định sau tải trang, đổi filter, mở hoặc đóng detail, Back/Forward.
 - **Lease**: quyền dùng tạm một WebGL context; context thuộc document, không thuộc khung.
 - **Flow**: hiệu ứng gradient chảy vẽ bằng WebGL.

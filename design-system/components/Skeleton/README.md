@@ -10,8 +10,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 - Khung xếp tới đáy batch, cùng gutter với ảnh (2 đến 5 khung mỗi cột tùy
   chiều cao); cao bằng bề rộng card nhân một trong ba band ngang `0.72`, vuông
   `1`, đứng `1.32`, hai khung liền nhau trong cột khác band; mặt trong là
-  gradient Flow nhiều màu chảy chậm (WebGL, 12 preset xáo ngẫu nhiên, không
-  trùng trong một lần hiện).
+  gradient Flow nhiều màu chảy chậm (WebGL, 12 preset). Mỗi khung bốc preset,
+  pha, chiều chảy và tốc độ ngẫu nhiên lúc vào viewport, tránh preset của khung
+  kề; trùng preset thì pha lệch xa. Giữ màu tới khi trang ổn định lại.
 - Khung không nhận focus, `aria-hidden`; không shimmer. Chỉ khung trong viewport
   và tab đang hiện mới chuyển động.
 - CTA: Plus Jakarta Sans 600, line-height 1.2, khung tối đa 78rem; EN là "The
@@ -24,10 +25,10 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
   vẫn nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối.
 
 Cùng khung này phủ kín [media card](../MediaCard/README.md) và ảnh
-[primary](../Primary/README.md) đang chờ ảnh: một khung mỗi ảnh, preset chọn
-theo media id, đủ độ đậm (không nhạt dần), gỡ sau khi ảnh hiện. Điện thoại chạy
-tối đa 2 khung WebGL, desktop 12; khung còn lại hiện frame tĩnh của chính
-preset.
+[primary](../Primary/README.md) đang chờ ảnh: một khung mỗi ảnh, cùng cách bốc
+màu, đủ độ đậm (không nhạt dần), gỡ sau khi ảnh hiện. Flow chạy cả khi đang
+cuộn. Điện thoại chạy tối đa 2 khung WebGL, desktop 12; khung còn lại hiện một
+khung hình Flow đứng yên của chính assignment.
 
 Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối) và
 [Ảnh trong card](../../motion.md#ảnh-trong-card).

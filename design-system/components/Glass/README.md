@@ -45,9 +45,10 @@ của website. Hạt nhiễu sinh lúc chạy nên preview không có.
 
 ## Hiện và tan trên ảnh vừa tải
 
-Ảnh của card hay primary giải mã xong thì kính phủ đều năm bậc hiện trên
-[skeleton](../Skeleton/README.md), crossfade skeleton sang ảnh diễn ra dưới
-kính, rồi kính tan. Ba bước chồng lên nhau, tổng `1.4s`:
+Ảnh hiện thì kính phủ đều năm bậc hiện trên lớp dưới
+([skeleton](../Skeleton/README.md) hoặc khung trống), crossfade lớp dưới sang
+ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Primary chờ ảnh
+dùng nhịp đủ `1.4s`:
 
 | Bước | Thời điểm | Đường cong |
 | --- | --- | --- |
@@ -58,9 +59,11 @@ kính, rồi kính tan. Ba bước chồng lên nhau, tổng `1.4s`:
 - Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
-- Primary đổi sang ảnh có sẵn: kính phủ ảnh đang xem, cùng đường cong, thời
-  gian nhân `3/7`, tổng `0.6s` (kính hiện 0 đến 0.26s, tan 0.26 đến 0.6s).
-- Ảnh có sẵn ở card và giảm chuyển động: không kính.
+- Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
+  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Mọi lần ảnh card hiện
+  (từ skeleton, từ khung trống khi ảnh có sẵn hoặc vào lại viewport) và
+  primary đổi sang ảnh có sẵn đều dùng nhịp này.
+- Giảm chuyển động: không kính.
 - Hiện xong thì gỡ kính khỏi DOM; card hay primary rời đi giữa chừng cũng gỡ.
 
 Thời gian ở [Motion](../../motion.md#ảnh-trong-card).
