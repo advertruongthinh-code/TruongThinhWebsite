@@ -1461,7 +1461,7 @@
     directionStartY = state.smoothScrollY;
     lastDirection = "";
 
-    const heroMedia = container.querySelector(".hero-slides");
+    const heroMedia = container.querySelector(".hero-slides, .about-hero__media");
     const projectTrack = container.querySelector(".project-track");
     if (heroMedia) {
       heroMedia.setAttribute("data-scroll", "");
@@ -1471,6 +1471,25 @@
       projectTrack.setAttribute("data-scroll", "");
       projectTrack.setAttribute("data-scroll-speed", "4");
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
+    }
+
+    // Espacio fillText: 4rem down in 0.25rem steps until the copy box stops overflowing, 1.5rem minimum.
+    const legacyCopy = container.querySelector(".legacy-copy");
+    const legacyTitle = legacyCopy?.querySelector("h2");
+    if (legacyTitle) {
+      const fitLegacyTitle = () => {
+        for (let size = 4; size >= 1.5; size -= 0.25) {
+          legacyTitle.style.fontSize = `${size}rem`;
+          const clipped = [legacyTitle, ...legacyTitle.querySelectorAll(".line-mask")]
+            .some((node) => node.scrollWidth > node.clientWidth);
+          if (!clipped && legacyCopy.scrollHeight <= legacyCopy.clientHeight) break;
+        }
+      };
+      const titleObserver = new ResizeObserver(fitLegacyTitle);
+      titleObserver.observe(legacyCopy);
+      titleObserver.observe(legacyTitle);
+      document.fonts?.ready.then(fitLegacyTitle);
+      state.abort.signal.addEventListener("abort", () => titleObserver.disconnect(), { once: true });
     }
 
     watchWhiteOverlayMedia(state);

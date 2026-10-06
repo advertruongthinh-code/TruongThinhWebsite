@@ -136,7 +136,7 @@ theo từ (1s, stagger 0,2s); trễ theo `data-motion-delay`; tách lại sau `d
 giữ tiến độ. About không tách chữ: hook chữ trên About không chạy. Cả ba trang: `[data-motion-fade]`, `[data-motion-up]`
 (thêm trượt từ 60px), `[data-motion-media]` (chờ ảnh tải) hiện trong 0,6s khi vào viewport. Portal reveal như
 [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ). Parallax Locomotive ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)):
-ba ảnh About speed `-0.12`, `-0.1`, `-0.12`. Đổi ngôn ngữ: revert split, thay chữ, tách lại khi font sẵn sàng, section
+ảnh hero About (`.about-hero__media`) speed `-2` như hero trang chủ ([cảm giác cuộn](scroll-feel.md)). Đổi ngôn ngữ: revert split, thay chữ, tách lại khi font sẵn sàng, section
 đang xem phát lại qua `replaySection` ([trang chủ R11](page-home.md#r11-đổi-ngôn-ngữ-phát-lại-section-đang-xem)). Rời
 trang: `unmount` hủy listener (AbortSignal), observer, frame, split, GSAP context. Không thêm thư viện animation ngoài
 [danh sách tự host](static-release.md#r4-font-và-thư-viện-tự-host).

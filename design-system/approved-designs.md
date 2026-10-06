@@ -4,16 +4,7 @@ Thiết kế owner đã duyệt nhưng website chưa chạy. Component và
 [Motion](motion.md) mô tả code hiện tại. PR code chuyển từng mục vào component
 và Motion, rồi xóa mục khỏi trang này.
 
-## Cảm giác cuộn chung theo trang chủ
-
-Owner duyệt 2026-10-06 ([spec](../docs/specs/scroll-feel.md), [card](https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed)).
-
-- Mọi trang dùng một cấu hình cuộn của trang chủ; Advertising và route con mượt như trang chủ khi đo trên PC.
-- Parallax chỉ ở hero có chữ lớn trên nền ảnh hoặc video: lớp media nền `data-scroll-speed="-2"` như hero trang
-  chủ, chữ đi theo trang, không lộ mép ảnh. Ngoại lệ duy nhất ngoài hero: CTA cuối Advertising giữ parallax riêng.
-  Thêm cho hero About; bỏ ở ba ảnh About.
-- Khối "Giữ nghề" trang chủ theo banner CTA Espacio, có link sang About dùng phụ đề portal
-  ([spec R5](../docs/specs/scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)).
+Hiện không có mục nào chờ code.
 
 ## Chú thích thuật ngữ
 

@@ -1286,7 +1286,7 @@ Checklist chi tiết, acceptance, verification và estimate nằm trong
 - Deploy candidate lên demo Cloudflare cần owner duyệt từng lần sau khi local
   preview/code review đạt (thay Sites từ 2026-10-03).
 
-## Cảm giác cuộn chung theo trang chủ — plan chờ duyệt 2026-10-06
+## Cảm giác cuộn chung theo trang chủ — plan duyệt 2026-10-06
 
 Spec owner đã duyệt 2026-10-06: [Cảm giác cuộn chung](../docs/specs/scroll-feel.md)
 ([card](https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed)). Checklist ở

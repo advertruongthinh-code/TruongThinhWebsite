@@ -1,8 +1,9 @@
 ---
 title: Cảm giác cuộn chung theo trang chủ
-status: planned
+status: live
 source: []
-tests: []
+tests:
+  - tests/site/scroll-feel.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed
 updated: 2026-10-06
 ---
@@ -126,21 +127,21 @@ And bấm khối hoặc nhấn Enter khi focus mở trang About cùng ngôn ng�
 
 ## UI
 
-Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motion.md#smooth-scroll-và-parallax). Khi owner duyệt
-spec, quy tắc vào [Đã duyệt, chờ code](../../design-system/approved-designs.md); PR code chuyển vào Motion rồi xóa mục.
+Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motion.md#smooth-scroll-và-parallax). Link khối
+"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site.
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | Chưa có test; plan thêm e2e so đường trượt của 11 trang với trang chủ |
+| R1 | `tests/site/scroll-feel.e2e.mjs` (trang chủ, ba trang con, Advertising, lọc nhóm ở 1440px) |
 | R2 | Chưa có test; Chrome trace trên PC của owner, script đo do plan thêm |
-| R3, R4 | Chưa có test; plan thêm e2e kiểm `data-scroll-speed` từng section và không lộ mép ảnh |
-| R5 | Chưa có test; plan thêm e2e đo khối ở 11 bề rộng, VI, EN, chữ 200%, link và focus |
+| R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
+| R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
 
 ## Gate còn mở
 
-- R2: cần trace trên PC thật của owner (Remote Control); máy cloud không có GPU nên không thay được.
+- R2: chưa đo; cần trace trên PC thật của owner (Remote Control), máy cloud không có GPU nên không thay được.
 
 ## Chú thích thuật ngữ
 
