@@ -11,7 +11,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Mục tiêu và phase | [Goal](goal.md): static (đang ở), CMS (chưa mở) |
 | Runtime, ownership, deploy | [Architecture](architecture.md), [phát hành tĩnh](specs/static-release.md) |
 | Sửa một phần website | [Capability map](specs/docs-system.md#r2-capability-map-và-spec-sống): mỗi phần một spec sống |
-| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md) |
+| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md) |
 | Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang](specs/advertising-cta-center-parallax.md) |
 | Ảnh, media, Kính | [Tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md), [skeleton chờ ảnh](specs/loading-glass-and-page-entry.md), [Kính](specs/glass-surface.md) |
 | Worker, admin, D1 | [CMS](specs/cms.md), dormant tới khi owner mở CMS phase |
