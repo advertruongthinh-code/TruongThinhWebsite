@@ -355,7 +355,7 @@ test("R11 keeps the use-sampling pool in one continuous coordinate space", () =>
   assert.equal(result.layout.diagnostics.attempts[0]?.mode, "alongside",
     "R11 diagnostics name the continuous solver branch");
 
-  // Geometry reads the cover media item (M01d), so halve it there as well as on the legacy field.
+  // Geometry đọc media item cover (M01d), nên cũng giảm một nửa ở đó như ở field legacy.
   const halve = (media) => ({ ...media, height: Math.max(1, Math.round(media.height / 2)) });
   const changedPinnedMedia = ADVERTISING_CARDS.map((card) => card.id === firstRelatedId ? {
     ...card,

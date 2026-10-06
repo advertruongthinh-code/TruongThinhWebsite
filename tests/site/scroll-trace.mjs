@@ -1,6 +1,6 @@
-// Wheel-scroll smoothness probe for docs/specs/scroll-feel.md R2.
-// Usage: node tests/site/scroll-trace.mjs [--headed] [--trace]
-// Env: BASE_URL (default http://127.0.0.1:8787), PLAYWRIGHT_EXECUTABLE_PATH or CHROME_CHANNEL=chrome on the PC.
+// Probe độ mượt wheel-scroll cho docs/specs/scroll-feel.md R2.
+// Dùng: node tests/site/scroll-trace.mjs [--headed] [--trace]
+// Env: BASE_URL (mặc định http://127.0.0.1:8787), PLAYWRIGHT_EXECUTABLE_PATH hoặc CHROME_CHANNEL=chrome trên PC.
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -54,7 +54,7 @@ try {
       cdp.on("Tracing.dataCollected", ({ value }) => chunks.push(...value));
       await cdp.send("Tracing.start", { categories: "devtools.timeline,disabled-by-default-devtools.timeline,disabled-by-default-devtools.timeline.frame" });
     }
-    // Steady wheel input from top to the end of the page, like a person rolling the mouse.
+    // Wheel input đều từ đỉnh đến cuối trang, như người lăn chuột.
     for (let step = 0; step < 400; step += 1) {
       const done = await page.evaluate(() => {
         const motion = window.TruongThinhMotion;

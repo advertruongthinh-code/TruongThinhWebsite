@@ -1,4 +1,4 @@
-// Kính in Chromium (docs/specs/glass-surface.md R1-R4, R8): arc at the masonry end, even around the primary.
+// Kính trong Chromium (docs/specs/glass-surface.md R1-R4, R8): cung ở cuối masonry, Kính đều quanh primary.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -9,7 +9,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
-// GPU compositing (SwiftShader) as on a real Chrome; software compositing blurs each layer's backdrop on its own.
+// GPU compositing (SwiftShader) như Chrome thật; software compositing blur backdrop của từng layer riêng.
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
   args: ["--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 
@@ -21,8 +21,8 @@ const arcState = () => {
   const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
   const parallax = new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
   const tint = glass.querySelector(".glass-surface__tint");
-  // Rendered elements whose own box carries a backdrop filter; the hidden photo view's even Kính and
-  // the closed viewer's ::backdrop are not rendered.
+  // Element được render có box riêng mang backdrop filter; Kính đều của photo view ẩn và
+  // ::backdrop của viewer đóng không được render.
   const owners = [...new Set([...document.querySelectorAll("*")].filter((node) => node.checkVisibility())
     .flatMap((node) => [null, "::before", "::after"]
     .filter((pseudo) => !["none", ""].includes(getComputedStyle(node, pseudo).backdropFilter))
@@ -60,7 +60,7 @@ try {
     try {
       await page.goto(`${origin}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
-      // Lazy cards above can grow the page, so scroll to the end until it settles.
+      // Lazy card phía trên có thể làm trang lớn thêm, nên cuộn đến cuối cho đến khi nó settle.
       for (let pass = 0, last = -1; pass < 8; pass += 1) {
         const end = await page.evaluate(() => document.documentElement.scrollHeight);
         if (end === last) break;
@@ -72,16 +72,16 @@ try {
       const state = await page.evaluate(arcState);
       check(!state.hidden, `${label}: arc Kính hidden at the masonry end`);
       check(Math.abs(state.width - width) <= 1, `${label}: arc Kính does not span the viewport (${state.width}px)`);
-      // The band steps, the arc's core and its inner steps.
+      // Các band step, core của cung và các inner step của nó.
       check(JSON.stringify(state.owners.sort()) === JSON.stringify(["glass-surface__step", "glass-surface__step glass-surface__step--full", "glass-surface__step glass-surface__step--inner"]),
         `${label}: R1 backdrop-filter outside the Kính steps ${JSON.stringify(state.owners)}`);
       check(state.box.opacity === "1" && state.box.mask === "none" && state.box.filter === "none",
         `${label}: R1 Kính box cuts its steps off from the page ${JSON.stringify(state.box)}`);
-      // Step 0 starts at the band edge, the last of three at 1/3 + 0.1 of the band, both above the apex yIn.
+      // Step 0 bắt đầu ở biên band, step cuối trong ba ở 1/3 + 0.1 band, cả hai trên apex yIn.
       const band = (state.sLast - state.s0) / (2 / 3 - 0.1);
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
-      // The apex rises only to keep two pure white ramps (0.35 card widths each) above the batch bottom.
+      // Apex chỉ nâng để giữ hai ramp trắng thuần (mỗi ramp 0.35 độ rộng card) trên đáy batch.
       check(Math.abs(yIn - Math.min(state.clusterTop + 0.35 * cluster, state.batchBottom - 0.7 * state.cardWidth)) <= 2,
         `${label}: R2 apex ${yIn.toFixed(1)} is not at 35% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
       check(state.s0 >= state.realBottom - 1, `${label}: R2 band edge ${state.s0} rises above the real photos ${state.realBottom}`);
@@ -90,21 +90,21 @@ try {
       check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
       check(Math.abs(state.centreY - yIn - 3.5 * width) <= 1 || state.centreY - yIn > 3.5 * width,
         `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 3.5 viewport widths`);
-      // R4: the arc's grain is white noise blended normally (a blended layer drops the steps' blur in Chromium).
+      // R4: grain của cung là white noise blend bình thường (layer blend làm mất blur của các step trong Chromium).
       check(state.grain.every((url) => url.startsWith("url(blob:")) && state.grainBlend === "normal", `${label}: R4 grain missing`);
-      // R3, R4: the last row above the batch bottom (its corners sit on the pure white circle) stays white
-      // within 1/255 and carries no grain.
+      // R3, R4: hàng cuối trên đáy batch (các góc nằm trên vòng tròn trắng thuần) vẫn trắng
+      // trong 1/255 và không có grain.
       const shot = await page.screenshot({ clip: { x: 0, y: Math.floor(state.batchBottomOnScreen) - 1, width, height: 1 } });
       const { data } = await sharp(shot).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       const darkest = data.reduce((min, value) => Math.min(min, value), 255);
       check(darkest >= 254, `${label}: R3 batch bottom is not pure white (darkest channel ${darkest})`);
-      // The footer's top line (0.18 ink on white) stays over the arc layers that run under it.
+      // Đường trên của footer (0.18 ink trên nền trắng) vẫn nằm trên các layer cung chạy dưới nó.
       const footerTop = await page.evaluate(() => document.querySelector(".site-footer").getBoundingClientRect().top);
       const line = await page.screenshot({ clip: { x: 0, y: footerTop, width, height: 1 } });
       const lineData = (await sharp(line).removeAlpha().raw().toBuffer()).reduce((min, value) => Math.min(min, value), 255);
       check(lineData <= 230, `${label}: footer top line hidden by the arc Kính (darkest channel ${lineData})`);
       if (width === 1440) {
-        // R2: black and white stripes under the core, below the CTA copy, blur away (sharp edges step by about 255).
+        // R2: sọc đen và trắng dưới core, dưới copy CTA, bị blur mất (cạnh sắc nhảy khoảng 255).
         const stripesTop = await page.evaluate(() => {
           const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
           const bottom = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc] .glass-surface__tint").getBoundingClientRect().bottom;
@@ -128,7 +128,7 @@ try {
     }
   }
 
-  // Even Kính around the primary: on only when the contained photo leaves room.
+  // Kính đều quanh primary: chỉ bật khi photo contained còn chỗ.
   for (const [width, height, photo, overflow] of [[1440, 900, "kiosk-posm-09", true], [390, 844, "kiosk-posm-28", false]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     try {
@@ -141,7 +141,7 @@ try {
           backdrop: [...(glass?.children || [])].some((layer) => getComputedStyle(layer).backdropFilter !== "none"),
           filter: getComputedStyle(document.querySelector("[data-advertising-photo-background]")).filter };
       });
-      // The photo carries the blur, so no backdrop-filter can bake a tile seam into the primary (tab hover thumbnail).
+      // Photo tự mang blur, nên không backdrop-filter nào có thể in tile seam vào primary (thumbnail hover của tab).
       check(state.shape === "even" && state.layers === 2 && !state.backdrop
         && state.filter === "blur(100px) saturate(1.7) brightness(1.04)", `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
       check(state.flag === String(overflow) && state.display === (overflow ? "block" : "none"),

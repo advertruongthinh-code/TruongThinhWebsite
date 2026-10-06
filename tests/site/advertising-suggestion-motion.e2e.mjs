@@ -258,7 +258,7 @@ try {
   });
   assert.equal(reducedMedia.transform, "none", "reduced motion removes the shared media zoom");
   assert.equal(reducedMedia.duration, "0s", "reduced motion leaves no suggestion media transition");
-  // Loaded links drop the bar; unsettle to read the loading style.
+  // Link đã tải bỏ thanh; unsettle để đọc loading style.
   const reducedBar = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
     .evaluate((link) => {
       link.classList.remove("is-media-settled");

@@ -78,7 +78,7 @@ for (const [groupIndex, group] of groupMatches.entries()) {
 assert.doesNotMatch(html, /client-logo-placeholder/, "Logo placeholders must be removed");
 assert.ok(fs.existsSync(logoDirectory), "Missing public client logo directory");
 
-// Responsive -480/-960 variants are build outputs of the originals, not separate assets.
+// Biến thể responsive -480/-960 là build output của bản gốc, không phải asset riêng.
 const filesWithExtension = (directory, extension) =>
   fs.readdirSync(directory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && path.extname(entry.name) === extension && !/-(?:480|960)\.[a-z]+$/.test(entry.name))

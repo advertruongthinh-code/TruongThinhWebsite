@@ -16,7 +16,7 @@ module.exports = defineConfig({
     video: "off",
   },
   projects: [
-    // Keep real Chrome's history rate limit (200 writes per 10 s), which Playwright turns off by default.
+    // Giữ giới hạn history rate của Chrome thật (200 lần ghi mỗi 10 s), vốn bị Playwright tắt theo mặc định.
     { name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: { ignoreDefaultArgs: ["--disable-ipc-flooding-protection"] } } },
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },

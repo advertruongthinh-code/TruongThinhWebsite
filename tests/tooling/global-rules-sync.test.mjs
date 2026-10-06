@@ -1,5 +1,5 @@
-// Fails when the global rule block drifts between bootstrap.ps1 and cloud-setup.sh,
-// or when doctor.ps1 rule checks stop matching that block.
+// Fail khi block rule global lệch giữa bootstrap.ps1 và cloud-setup.sh,
+// hoặc khi các check rule của doctor.ps1 thôi khớp block đó.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -23,7 +23,7 @@ test("doctor.ps1 rule checks match the global rules", () => {
   const checks = [...doctor.matchAll(/\$entry\.text -(not)?match '([^']+)'/g)];
   assert.ok(checks.length > 5);
   for (const [, not, pattern] of checks) {
-    // PowerShell -match is case-insensitive.
+    // PowerShell -match không phân biệt hoa thường.
     const found = new RegExp(pattern, "i").test(bootstrap);
     assert.equal(found, Boolean(not), `doctor.ps1 pattern ${not ? "missing" : "forbidden"}: ${pattern}`);
   }

@@ -40,12 +40,12 @@ try {
     await settle(page);
     await page.waitForTimeout(1500);
 
-    // R4: only hero media (and the homepage rail) carry Locomotive speeds.
+    // R4: chỉ media hero (và rail trang chủ) mang speed của Locomotive.
     const speeds = await page.evaluate(() => [...document.querySelectorAll("[data-scroll-speed]")]
       .map((node) => `.${node.classList[0]}:${node.dataset.scrollSpeed}`).sort());
     assert.deepEqual(speeds, [...parallax[name]].sort(), `${name}: parallax targets follow R4`);
 
-    // R3: hero media keeps covering the hero while it drifts.
+    // R3: media hero vẫn phủ hero khi nó trôi.
     const hero = await page.evaluate(() => document.querySelector(".hero")?.getBoundingClientRect().height || 0);
     for (const fraction of [0, 0.25, 0.5, 0.75, 1]) {
       await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), Math.round(hero * fraction));
@@ -62,7 +62,7 @@ try {
       assert.ok(gap <= 1, `${name}: hero media shows an edge at ${fraction} of the hero (${gap}px)`);
     }
 
-    // R1: the same wheel input travels the same distance on every page.
+    // R1: cùng wheel input đi cùng khoảng cách trên mọi trang.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForTimeout(300);
     await page.mouse.move(720, 450);
@@ -73,7 +73,7 @@ try {
     await page.waitForTimeout(1800);
     travel[name] = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 
-    // R1: a long roll (into the Advertising masonry) glides without a frame that skips ahead of its neighbours.
+    // R1: cuộn dài (vào masonry Advertising) lướt mượt, không có frame nhảy vượt các frame lân cận.
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.waitForTimeout(300);
     await page.evaluate(() => {
@@ -103,7 +103,7 @@ try {
   }
   await page.close();
 
-  // R5: the Giu nghe block follows the Espacio banner CTA at every width.
+  // R5: khối Giữ nghề theo CTA banner Espacio ở mọi width.
   const expected = (width) => ({
     height: width > 1200 ? 600 : width > 960 ? 500 : 400,
     gutter: width > 1200 ? Math.max(35, (width - 1500) / 2) : width > 750 ? 25 : 15,

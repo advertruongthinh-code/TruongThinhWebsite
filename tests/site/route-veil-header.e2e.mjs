@@ -7,12 +7,12 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
-// Site shell R7: on a direct load the veil hides the header until it uncovers; the intro ends in the scroll state.
+// Site shell R7: khi direct load, veil ẩn header đến khi nó mở ra; intro kết thúc ở scroll state.
 const sample = page => page.evaluate(() => {
   const header = document.querySelector("[data-site-header]");
   const logo = header?.querySelector(".brand");
   const veil = document.querySelector(".route-veil");
-  // Before the render-blocking stylesheet applies nothing paints, so only styled frames count.
+  // Trước khi stylesheet render-blocking áp dụng thì không có gì paint, nên chỉ frame đã style được tính.
   if (!logo || !veil || getComputedStyle(veil).position !== "fixed") return null;
   const rect = logo.getBoundingClientRect();
   const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -36,7 +36,7 @@ try {
     try {
       await page.goto(`${origin}${route}`);
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
-      // The locale fallback key feeds the direct mount scroll, standing in for a restored mid-page reload.
+      // Key fallback của locale cấp cho direct mount scroll, thay cho reload giữa trang đã khôi phục.
       await page.evaluate(([key, y]) => sessionStorage.setItem(key, String(y)), [`tt-locale-scroll:${route}`, scrollY]);
       const cdp = await page.context().newCDPSession(page);
       await cdp.send("Network.enable");

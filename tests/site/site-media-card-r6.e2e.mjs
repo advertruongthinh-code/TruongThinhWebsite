@@ -54,7 +54,7 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
     : "?category=signage-raised-letters";
   await page.goto(`${base}/${locale}/advertising-products/${search}`,
     { waitUntil: "domcontentloaded" });
-  // The direct-load veil blocks pointer input until the page has mounted.
+  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;

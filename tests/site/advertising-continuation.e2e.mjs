@@ -79,7 +79,7 @@ async function ready(page) {
   });
 }
 
-// Frames draw their assignment when they first enter view (skeleton R3), so only drawn frames carry one.
+// Frame nhận assignment khi lần đầu vào view (skeleton R3), nên chỉ frame đã draw mới có assignment.
 async function flowAssignments(page) {
   return page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")]
     .filter((frame) => frame.querySelector("[data-advertising-flow-preset]"))
@@ -186,7 +186,7 @@ async function snapshot(page) {
     const footer = document.querySelector("footer.site-footer");
     const gridRect = grid?.getBoundingClientRect();
     const sectionRect = section?.getBoundingClientRect();
-    // Kính (glass-surface.md): the arc on the grid section, the even one in the primary frame.
+    // Kính (glass-surface.md): cung trên grid section, Kính đều trong primary frame.
     const glass = section?.querySelector(":scope > .glass-surface[data-glass-shape=arc]");
     const glassRect = glass?.getBoundingClientRect();
     const glassTint = glass?.querySelector(".glass-surface__tint");
@@ -607,11 +607,11 @@ try {
       assert.equal(state.glassHidden, false, `${locale} ${viewport.width}: arc Kính is hidden at the masonry end`);
       assert(state.glassTop >= state.realBottom - 1,
         `${locale} ${viewport.width}: arc Kính band rises above the real photos (${state.glassTop} < ${state.realBottom})`);
-      // The core and the three band steps; the inner steps between them follow the device (glass-surface.mjs).
+      // Phần core và ba bước band; các bước inner nằm giữa chúng đổi theo thiết bị (glass-surface.mjs).
       const blurs = state.boundaryBlur.map((filter) => filter.match(/blur\(([\d.]+)px\)/)?.[1]);
       assert.deepEqual([blurs[0], ...blurs.slice(-3)], ["28", "4.5", "11.12", "25.3"],
         `${locale} ${viewport.width}: arc Kính steps differ from the shared component`);
-      // The primary photo carries the full step's blur itself; its even Kính keeps only tint and grain.
+      // Primary photo tự mang blur của step đầy; Kính đều của nó chỉ giữ tint và grain.
       assert.deepEqual(state.photoGlassBlur, [], `${locale} ${viewport.width}: photo Kính still has a backdrop blur step`);
       assert.equal(state.photoBackgroundFilter, "blur(100px) saturate(1.7) brightness(1.04)",
         `${locale} ${viewport.width}: photo background does not carry the full Kính blur`);
@@ -656,7 +656,7 @@ try {
       const finalViewport = await page.evaluate(async () => {
         const motion = window.TruongThinhMotion;
         const lastScroll = document.documentElement.scrollHeight - innerHeight;
-        // R6: 100px of scroll near the end moves the CTA copy 90px.
+        // R6: cuộn 100px gần cuối làm copy CTA dịch 90px.
         const copyNode = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
         const copyTopAt = async (y) => {
           if (!motion?.setLogicalScroll?.(y)) window.scrollTo(0, y);
@@ -668,7 +668,7 @@ try {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         await new Promise((resolve) => setTimeout(resolve, 900));
         const parallaxEnd = new DOMMatrixReadOnly(getComputedStyle(copyNode).transform).m42;
-        // The line reveal settles 0.1em above the layout box.
+        // Line reveal dừng cao hơn layout box 0.1em.
         const headingNode = document.querySelector("[data-advertising-grid-cta] h2");
         const fontSize = Number.parseFloat(getComputedStyle(headingNode).fontSize);
         const lines = [...headingNode.querySelectorAll(".motion-line")];
@@ -701,7 +701,7 @@ try {
       assert(finalViewport.headingTop >= -1 && finalViewport.linkTop >= finalViewport.headingBottom - 1
         && finalViewport.linkBottom <= finalViewport.viewportHeight + 1,
       `${locale} ${viewport.width}x${viewport.height}: final viewport clips or overlaps CTA content ${JSON.stringify(finalViewport)}`);
-      // R1: the last line's baseline sits on the viewport centre; R5 windows keep the link one gap above the batch.
+      // R1: baseline của dòng cuối nằm đúng tâm viewport; cửa sổ R5 giữ link cách batch một gap.
       const expectedCtaGap = viewport.width <= 960 ? 15 : viewport.width <= 1200 ? 25 : 35;
       const shortWindow = Math.abs(finalViewport.ctaBottom - finalViewport.linkBottom - expectedCtaGap) <= 1;
       assert(shortWindow || Math.abs(finalViewport.baseline - finalViewport.viewportHeight / 2) <= 1,
@@ -714,9 +714,9 @@ try {
     }
   }
 
-  // R7: switching to reduced motion drops the CTA parallax offset at once.
+  // R7: chuyển sang reduced motion bỏ ngay offset parallax của CTA.
   const parallaxOffset = () => page.evaluate(async () => {
-    // The global reduced-motion rule leaves a 0.01ms transition, so read after a short wait.
+    // Rule reduced-motion toàn cục để lại transition 0.01ms, nên đọc sau một khoảng chờ ngắn.
     await new Promise((resolve) => setTimeout(resolve, 200));
     const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
     return new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
@@ -1129,7 +1129,7 @@ try {
     document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
   const freshReduced = await mobilePerformancePage.evaluate(() => ({
     contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
-    // Frames draw on first entry, so only frames in view must already show their still.
+    // Frame draw ở lần vào đầu tiên, nên chỉ frame trong view mới phải hiện still.
     staticFrames: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight;
@@ -1171,7 +1171,7 @@ try {
   const firstExit = await exitSkeletonViewport(page);
   assert(firstExit.opacity <= 0.01, "offscreen skeleton did not reset to hidden opacity");
   assert(Math.abs(firstExit.transformY) <= 0.1, "offscreen skeleton changed frame geometry");
-  // Offscreen frames release their lease; reading a fallback with getContext would allocate an unmanaged context.
+  // Frame ngoài màn hình nhả lease; đọc fallback bằng getContext sẽ cấp phát một context không được quản lý.
   const pausedPaints = await page.evaluate(() => ({ ...window.__ttSkeletonPaints }));
   await page.evaluate(() => new Promise((resolve) => {
     const started = performance.now();
@@ -1184,7 +1184,7 @@ try {
     .every(canvas => getComputedStyle(canvas).backgroundImage !== "none")), "released offscreen frames retain filled static fallbacks");
 
   const entryContract = await skeletonEntryContract(page);
-  // Batch frames enter under the 0.6s Kinh reveal from the runtime, never a CSS opacity fade (skeleton R4).
+  // Frame của batch vào bằng Kính reveal 0.6s từ runtime, không bao giờ là CSS opacity fade (skeleton R4).
   assert.equal(entryContract.frame.opacity, null, "skeleton frame must not fade its opacity in CSS");
   assert(entryContract.stagger.every((delay) => delay === undefined),
     "skeleton frames must not carry an opacity transition");

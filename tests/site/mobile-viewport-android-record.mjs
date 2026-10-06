@@ -142,7 +142,7 @@ const recordLayout = async (label, selectedFilter = null) => {
     const viewerStage=label.endsWith('-viewer-open')?'fit':label.endsWith('-viewer-after-touch')?'one-zoom':null;
     const data=await evaluate(`(${layoutObservation.toString()})(${JSON.stringify(selectedFilter)},${JSON.stringify(viewerStage)})`);
     assert.equal(data.hidden,false,'Chrome foreground during layout observation');
-    // The repeating cue has a three-second hidden delay; observe its readable phase.
+    // Scroll cue lặp có độ trễ ẩn ba giây; quan sát phase đọc được của nó.
     const waitingForCue=data.faults.some(f=>f.startsWith('glyph paint hidden scroll-cue'))&&attempt<50;
     if(!data.busy&&!waitingForCue&&before===JSON.stringify(data)) {
       layoutSamples.push({label,settleAttempts:attempt,...data});
@@ -227,7 +227,7 @@ try {
     await pause(1600);
     const initial = await sample(`${route}-initial`); assert.equal(initial.hidden, false, "Chrome foreground");
     await recordLayout(`${route}-initial`);
-    // A navigation can leave Chrome's first gesture pending; require real toolbar deltas.
+    // Navigation có thể để gesture đầu của Chrome ở trạng thái pending; yêu cầu toolbar delta thật.
     let validCycles = 0;
     for (let cycle = 0; cycle < 3; cycle++) {
       let collapsed = await swipe("up");
@@ -279,7 +279,7 @@ try {
       await sample("viewer-open"); await shot("viewer-open");
       await recordLayout(`${route}-viewer-open`);
       await evaluate("document.querySelector('[data-advertising-photo-zoom-in]').click()"); await sample("viewer-zoom");
-      // A touch stops a running zoom where it is (viewer touch zoom R6), so let the zoom land first.
+      // Touch dừng zoom đang chạy tại chỗ (viewer touch zoom R6), nên để zoom settle trước.
       for (let i = 0; i < 30 && await evaluate("document.querySelector('#advertising-photo-dialog').dataset.advertisingViewerState") !== "open"; i++) await pause(100);
       await swipe("up"); await swipe("down"); await shot("viewer-after-touch");
       await recordLayout(`${route}-viewer-after-touch`);

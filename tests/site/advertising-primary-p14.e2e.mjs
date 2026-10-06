@@ -446,7 +446,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(actual.background.tabIndex < 0, `${label}: background is keyboard focusable`);
   assert.equal(actual.background.pointerEvents, "none", `${label}: background accepts pointer input`);
   assert.equal(actual.background.objectFit, "cover", `${label}: background must use object-fit cover`);
-  // The photo carries the full step's blur so a tab-hover raster tile cannot split it; the Kính keeps tint and grain.
+  // Photo mang blur của step đầy để raster tile khi tab-hover không thể tách nó; Kính chỉ giữ tint và grain.
   assert.equal(actual.background.filter, "blur(100px) saturate(1.7) brightness(1.04)", `${label}: background does not carry the full Kính blur`);
   assert.equal(actual.glass?.shape, "even", `${label}: photo overflow is not the even Kính`);
   assert.equal(actual.glass.display, actual.containOverflow ? "block" : "none", `${label}: Kính does not follow contain overflow`);
@@ -506,7 +506,7 @@ function assertControls(actual, locale, touch = false) {
   closeTo(actual.cta.icon.contentWidth, 20, `${label}: CTA glyph width`, 1);
   closeTo(actual.cta.icon.contentHeight, 20, `${label}: CTA glyph height`, 1);
   if (touch) {
-    // Touch screens open the viewer by double tap; the button stays for screen readers only.
+    // Màn cảm ứng mở viewer bằng double tap; nút chỉ còn cho screen reader.
     assert(actual.expand.rect.width <= 1 && actual.expand.rect.height <= 1, `${label}: expand is visible on touch`);
     return;
   }
@@ -532,7 +532,7 @@ async function focusByKeyboard(page, selector) {
     if (await page.evaluate((value) => document.activeElement?.matches(value), selector)) return;
   }
   await page.evaluate(() => document.activeElement?.blur());
-  // Tab order continues from the last focused control, which may sit after the target: try both directions.
+  // Tab order tiếp tục từ control focus gần nhất, có thể nằm sau target: thử cả hai hướng.
   for (const [key, attempts] of [["Tab", 40], ["Shift+Tab", 80]]) {
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       await page.keyboard.press(key);
@@ -635,7 +635,7 @@ async function wheelToHit(page, locator, label) {
     return { rect: rect.toJSON(), x, y, visible: bottom > top,
       hit: bottom > top && node.contains(document.elementFromPoint(x, y)) };
   });
-  // Locomotive 4 counts each wheel event as one tick (about 43px on Linux Chromium), so far targets need many steps.
+  // Locomotive 4 tính mỗi wheel event là một tick (khoảng 43px trên Linux Chromium), nên target xa cần nhiều bước.
   for (let attempt = 0; attempt < 40; attempt += 1) {
     let state = await inspect();
     let stable = 0;

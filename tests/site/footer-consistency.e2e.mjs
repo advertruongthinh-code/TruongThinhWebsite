@@ -31,7 +31,7 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Small windows (<=750px wide or <=640px tall) use the compact footer: two rows on narrow portrait, else one row.
+  // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: hai hàng ở dọc hẹp, còn lại một hàng.
   for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1440, 912], [1569, 912], [844, 390], [1280, 632]]) {
     const compact = width <= 750 || height <= 640;
     const twoRows = width <= 750 && width < height;
@@ -42,11 +42,11 @@ try {
       for (const route of [...routes, "advertising-products/?category=kiosk-posm&photo=kiosk-posm-06", ...detailRoutes]) {
         await page.goto(`http://127.0.0.1:8787/${locale}/${route}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector(".footer-contact");
-        // Detail routes redirect to the canonical Advertising route; wait for its runtime state.
+        // Route detail redirect về route Advertising canonical; chờ runtime state của nó.
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
           || document.body.classList.contains(location.search.includes("photo=") ? "is-advertising-photo" : "is-advertising-browse"));
         await page.evaluate(() => document.fonts.ready);
-        // Reduced motion still gives every property a 0.01ms transition, so let the class change settle.
+        // Reduced motion vẫn cho mọi property transition 0.01ms, nên để thay đổi class settle.
         await page.waitForTimeout(100);
         const result = await page.evaluate(() => {
           const footer = document.querySelector(".site-footer");
@@ -70,7 +70,7 @@ try {
             socialLabelWidth: footer.querySelector(".footer-socials > span").getBoundingClientRect().width,
           };
         });
-        // Advertising browse drops the gap above the footer: its skeleton batch fills that space.
+        // Advertising browse bỏ gap trên footer: skeleton batch của nó lấp khoảng đó.
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));

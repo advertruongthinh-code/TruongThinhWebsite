@@ -51,7 +51,7 @@ const results = [];
 
 function expectedPhotoGeometry(evidence) {
   const outer = evidence.clientWidth <= 750 ? 15 : evidence.clientWidth <= 1200 ? 25 : 35;
-  // Header media queries include the native scrollbar; grid geometry uses the content width.
+  // Media query của header gồm scrollbar native; geometry grid dùng content width.
   const headerOuter = evidence.windowWidth <= 750 ? 15 : evidence.windowWidth <= 1200 ? 25 : 35;
   const gap = evidence.clientWidth <= 960 ? 15 : evidence.clientWidth <= 1200 ? 25 : 35;
   const gridWidth = evidence.clientWidth - 2 * outer;
@@ -61,15 +61,15 @@ function expectedPhotoGeometry(evidence) {
   const ratio = evidence.image.naturalWidth / evidence.image.naturalHeight;
   const span = Math.min(3, columns);
   const width = span * cardWidth + (span - 1) * gap;
-  // Detail spec R2: four columns split image and info; fewer stack them without the 50px peek.
+  // Detail spec R2: bốn cột chia image và info; ít hơn thì xếp chồng, không có peek 50px.
   const mode = span === columns ? "pinterest" : "split";
-  // Split leaves a gap and the 50px related peek; pinterest fills the viewport below the header.
+  // Split chừa gap và related peek 50px; pinterest lấp đầy viewport bên dưới header.
   const heightCap = evidence.windowHeight - top - evidence.safeBottom - (mode === "split" ? gap + 50 : 0);
   const imageZoneWidth = mode === "split"
     ? (span - 1) * cardWidth + Math.max(0, span - 2) * gap
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
-  // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport.
+  // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
   const descriptionCap = evidence.windowHeight * 0.28 - gap;
   const descriptionHeight = mode === "split" ? heightCap : evidence.infoRect.height;
   const imageZoneHeight = mode === "split" ? heightCap
@@ -111,7 +111,7 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
-    // Chromium aborts superseded lazy image fetches (srcset/variant swap, unmount); not a load failure.
+    // Chromium hủy các fetch ảnh lazy bị thay thế (đổi srcset/variant, unmount); không phải lỗi tải.
     if (request.resourceType() === "image" && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (isLocalUrl(request.url())) issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
   });
@@ -221,8 +221,8 @@ async function wheelContent(page, deltaY, stage, settlements) {
 
 async function wheelUntilExpandVisible(page, label, settlements) {
   for (let attempt = 1; attempt <= 12; attempt += 1) {
-    // Wheel toward the button: a smooth-scrolled page keeps native scrollY at 0, so a locator click's
-    // native scrollIntoView would shift the page under Locomotive instead of scrolling it like a person.
+    // Wheel về phía nút: trang smooth-scroll giữ scrollY native ở 0, nên click của locator
+    // với scrollIntoView native sẽ dịch trang dưới Locomotive thay vì cuộn như người dùng.
     const offset = await page.evaluate(() => {
       const rect = document.querySelector("[data-advertising-photo-expand]")?.getBoundingClientRect();
       if (!rect) return null;
@@ -433,11 +433,11 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
   assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap`);
-  // Detail spec R2: past the 28% cap only when one description line with group and CTA does not fit.
+  // Detail spec R2: vượt cap 28% chỉ khi một dòng description cùng group và CTA không vừa.
   if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
     assert(evidence.info?.descriptionLines < 1.5, `${label}: info exceeds 28% of the viewport with more than one description line`);
   }
-  // Detail spec R3: the description pages by words instead of scrolling on its own.
+  // Detail spec R3: description phân trang theo từ thay vì tự cuộn.
   assert(!["auto", "scroll"].includes(evidence.info?.overflowY), `${label}: description has its own scrollbar`);
   assert.equal(evidence.info?.tabIndex, 0, `${label}: description region is not keyboard focusable`);
   assert.equal(evidence.info?.role, "region", `${label}: description region role is absent`);
@@ -564,12 +564,12 @@ async function assertDescriptionKeyboardScroll(page, label) {
 async function openDialog(page, { touch = false, label, settlements } = {}) {
   const expand = page.locator("[data-advertising-photo-expand]");
   await assertVisible(expand, "expand button");
-  // The pre-open style baseline must not catch the route transition class mid-flight.
+  // Style baseline trước khi mở không được bắt class route transition đang giữa chừng.
   await page.waitForFunction(() => !document.body.classList.contains("is-transitioning"));
   if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
   const baseline = await page.evaluate((touch) => {
-    // Touch screens open the viewer with a double tap on the primary photo (viewer touch R7).
+    // Màn cảm ứng mở viewer bằng double tap trên primary photo (viewer touch R7).
     const button = touch ? document.querySelector("[data-advertising-photo-image]").parentElement
       : document.querySelector("[data-advertising-photo-expand]");
     window.__ttPhotoViewerBeforeOpen = undefined;
@@ -587,7 +587,7 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
       window.__ttPhotoViewerOpenMotion.states.push(dialog?.dataset.advertisingViewerState || null);
     });
     observer.observe(dialog, { attributes: true, attributeFilter: ["data-advertising-viewer-state"] });
-    // A double tap opens on its second pointerup: sample the motion once the dialog is open.
+    // Double tap mở ở pointerup thứ hai: lấy mẫu motion sau khi dialog đã mở.
     const onOpen = () => {
       if (dialog.open) return;
       window.__ttPhotoViewerBeforeOpen = window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
@@ -775,7 +775,7 @@ async function wheelZoomAroundAnchor(page, { deltaY, label }) {
     const denominator = Math.max(0.001, Math.abs(nextScale / matrix.a - 1));
     const xOffset = limitX > 2 ? Math.min(image.clientWidth * matrix.a * 0.12, limitX / denominator * 0.5) : 0;
     const yOffset = !xOffset && limitY > 2 ? Math.min(image.clientHeight * matrix.a * 0.12, limitY / denominator * 0.5) : 0;
-    // Playwright dispatches integer mouse coordinates, matching browser PointerEvent.clientX/Y.
+    // Playwright gửi tọa độ mouse nguyên, khớp PointerEvent.clientX/Y của browser.
     const clientX = Math.round(centerX + xOffset);
     const clientY = Math.round(centerY + yOffset);
     const localX = (clientX - centerX - matrix.m41) / matrix.a;
@@ -794,7 +794,7 @@ async function wheelZoomAroundAnchor(page, { deltaY, label }) {
   }, deltaY);
   await page.mouse.move(anchor.clientX, anchor.clientY);
   await page.mouse.wheel(0, deltaY);
-  // Firefox can resolve mouse.wheel before the event lands, so wait for the zoom it starts to finish.
+  // Firefox có thể resolve mouse.wheel trước khi event tới nơi, nên chờ zoom mà nó khởi động kết thúc.
   await page.waitForFunction((status) => document.querySelector("[data-advertising-photo-zoom-status]")?.textContent !== status
     && document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open", anchor.status);
   const after = await page.evaluate(({ clientX, clientY, localX, localY }) => {
@@ -836,7 +836,7 @@ async function middleClickReset(page, point, label) {
   assert(Math.abs(after.scroll - beforeScroll) <= 1, `${label}: middle-click changed page scroll`);
 }
 
-// Touch screens keep the viewer buttons for screen readers only (viewer touch R8): press them the way assistive tech does.
+// Màn cảm ứng giữ nút viewer chỉ cho screen reader (viewer touch R8): bấm chúng như assistive tech.
 const press = (locator, touch) => (touch ? locator.evaluate((node) => node.click()) : locator.click());
 
 async function clickZoom(page, selector, { reducedMotion, label, touch }) {
@@ -1038,7 +1038,7 @@ async function exerciseDialog(page, options) {
 }
 
 async function assertFocusVisibleAfterResize(page, label) {
-  // Park the button near the top so the resized layout can push it off-screen.
+  // Đặt nút gần đỉnh để layout sau resize có thể đẩy nó ra ngoài màn hình.
   await page.evaluate(() => {
     const motion = window.TruongThinhMotion;
     motion.setLogicalScroll(motion.getLogicalScroll() + document.querySelector("[data-advertising-photo-expand]").getBoundingClientRect().top - 90);

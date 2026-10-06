@@ -1,5 +1,5 @@
-// Checkpoint A report: organic score and fallback reasons for uniform and hard pools.
-// Run: node tests/site/advertising-solver-report.mjs
+// Báo cáo Checkpoint A: organic score và lý do fallback cho pool uniform và hard.
+// Chạy: node tests/site/advertising-solver-report.mjs
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { compileAdvertisingProductLayout } from "../../src/site/advertising-products/layout-core.mjs";
 import { shuffleWithSeed } from "../../src/site/advertising-products/random-order.mjs";

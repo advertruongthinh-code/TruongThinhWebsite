@@ -129,7 +129,7 @@ async function setup(page, locale, videoCover = false) {
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(videoCover));
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-  // The direct-load veil blocks pointer input until the page has mounted.
+  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -151,7 +151,7 @@ async function setupSingleton(page, item) {
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-  // The direct-load veil blocks pointer input until the page has mounted.
+  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -163,7 +163,7 @@ async function setupSingleton(page, item) {
 async function setupMany(page, locale) {
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, manyImageArtifact());
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-  // The direct-load veil blocks pointer input until the page has mounted.
+  // Direct-load veil chặn pointer input cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -363,7 +363,7 @@ async function run(viewport, touch, locale) {
     if (outputDir) await writeFile(path.join(outputDir, `media-ratio-${locale}.json`),
       JSON.stringify({ dimensions, beforeRect: before.rect, afterRect: after.rect, withinFrame }, null, 2));
     assert(dimensions.cover.width > 0 && dimensions.video.width > 0 && dimensions.poster.width > 0
-      // Responsive variants round each edge to whole pixels, so compare ratios within that rounding.
+      // Variant responsive làm tròn mỗi cạnh về pixel nguyên, nên so ratio trong mức làm tròn đó.
       && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.video.width / dimensions.video.height) < 0.01
       && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.poster.width / dimensions.poster.height) < 0.01
       && withinFrame
@@ -502,7 +502,7 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
       window.__m01bBubbledClicks = 0;
       node.addEventListener("click", () => { window.__m01bBubbledClicks += 1; });
     });
-    // Real CDP touches produce the pointer events the runtime listens to.
+    // CDP touch thật tạo pointer event mà runtime lắng nghe.
     const client = await context.newCDPSession(page);
     const touchPath = async (from, to, id) => {
       await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: from, y: point.y, id }] });
@@ -522,7 +522,7 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
     assert(compatibility.prevented && compatibility.bubbled === 0,
       `touch swipe compatibility click must be suppressed: ${JSON.stringify(compatibility)}`);
     assert.equal(await swipeTouch(point.x2, point.x1, 62), fixtureId);
-    // A fresh tap inside the old 400ms guard must still open the detail of the active media.
+    // Tap mới trong guard 400ms cũ vẫn phải mở detail của media đang active.
     await touchPath(point.x1, point.x1, 63);
     await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
   } finally { await context.close(); await browser.close(); }
@@ -541,7 +541,7 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     });
     await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(true));
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -688,7 +688,7 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -753,11 +753,11 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     const artifact = fixtureArtifact(true);
     const imageSrc = artifact.cards.find((item) => item.id === fixtureId).media.src;
     await page.route(`**${fixturePrefix}*`, (route) => route.fulfill({ status: 404, body: "" }));
-    // Fail the source and every responsive variant (name-480.avif and so on) the browser may pick.
+    // Làm hỏng source và mọi variant responsive (name-480.avif v.v.) mà browser có thể chọn.
     await page.route(`**${imageSrc.replace(/\.[^.]+$/, "")}*`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.addInitScript((payload) => { window.__TT_ADVERTISING_ARTIFACT__ = payload; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -802,7 +802,7 @@ test("M01b failed next image restores the last valid card image", async () => {
     });
     await page.route(`**${fixturePrefix}missing-image.webp`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -971,7 +971,7 @@ test("M01b stale image error preserves newer selection and failed reselect falls
       await route.fulfill({ status: 404, body: "" });
     });
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -1100,7 +1100,7 @@ test("M01b six media still use dot controls", async () => {
     artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 6;
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
@@ -1128,7 +1128,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
       ? "?category=signage-raised-letters&photo=signage-raised-letters-02"
       : "?category=signage-raised-letters";
     await page.goto(`${base}/${locale}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
-    // The direct-load veil blocks pointer input until the page has mounted.
+    // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));

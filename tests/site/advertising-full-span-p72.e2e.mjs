@@ -16,7 +16,7 @@ try {
       [756, "kiosk-posm", "kiosk-posm-09", true],
       [954, "signage-raised-letters", "signage-raised-letters-07", true],
     ]) {
-      // Portrait viewport: a full-span primary only stacks when the viewport is not landscape.
+      // Viewport dọc: primary full-span chỉ xếp chồng khi viewport không phải ngang.
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       try {
         await page.goto(`${origin}/${locale}/advertising-products/?category=${category}&photo=${photo}`);

@@ -112,7 +112,7 @@ async function primaryState(page) {
   });
 }
 
-// Responsive AVIF/width variants count as their authored WebP source.
+// Variant AVIF/width responsive tính là source WebP gốc của chúng.
 function mediaPath(value) {
   if (!value) return "";
   const pathname = new URL(value, base).pathname;
@@ -122,7 +122,7 @@ function mediaPath(value) {
 }
 
 async function assertPrimary(page, card, expectedId, locale) {
-  // Wait on the same visibility rule primaryState reads, so an outgoing layer cannot satisfy it mid-swap.
+  // Chờ theo cùng rule visibility mà primaryState đọc, để layer đang ra không thỏa nó giữa lúc swap.
   await page.waitForFunction(({ kind }) => [...document.querySelectorAll(`[data-advertising-photo-hero] ${kind === "video" ? "video" : "img"}`)]
     .some((node) => {
       const style = getComputedStyle(node);

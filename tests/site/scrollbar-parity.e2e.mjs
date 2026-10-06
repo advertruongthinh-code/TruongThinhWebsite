@@ -39,11 +39,11 @@ for (const engine of (process.env.SCROLLBAR_ENGINES||Object.keys(engines).join('
 const type=engines[engine];
 const channel=['chrome','msedge'].includes(engine)?engine:undefined;
 const browser = await type.launch({ headless:true, channel, ignoreDefaultArgs:['--hide-scrollbars'] });
-// Compare with the browser's own unstyled native document, including headless defaults.
+// So với document native không style của chính browser, gồm cả mặc định headless.
 const control=await browser.newPage({viewport:{width:390,height:844}});
 await control.setContent('<!doctype html><html><body><p style="height:3000px">Native control</p></body></html>');
 const nativeDefault=await control.evaluate(()=>({width:getComputedStyle(document.documentElement).scrollbarWidth,color:getComputedStyle(document.documentElement).getPropertyValue('scrollbar-color')}));
-// Keep the native control window alive until browser teardown (Firefox last-window context-close bug).
+// Giữ cửa sổ control native sống đến khi browser teardown (bug context-close cửa sổ cuối của Firefox).
 const record = (name,m) => results.push({engine,version:browser.version(),case:name,...m});
 try {
   const page = await browser.newPage({ viewport:{width:1440,height:900} });
@@ -72,7 +72,7 @@ try {
     near(hover[selector].w,idle[selector].w,`${selector} width`);
   }
   await page.mouse.move(600,300);
-  // Locomotive moves a fixed step per wheel event (0.4x on non-Windows), so send several notches.
+  // Locomotive dịch một bước cố định mỗi wheel event (0.4x ngoài Windows), nên gửi vài nấc.
   for (let notch=0;notch<3;notch++) await page.mouse.wheel(0,500);
   await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll()>100);
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.c-scrollbar')).opacity) === 0);
@@ -161,7 +161,7 @@ try {
   await page.setViewportSize({width:1440,height:900});
   await page.goto(`${base}/vi/about/`); await ready(page);
   await page.locator('[data-site-header] a[href="/vi/residential/"]').click();
-  // About boundaries are native navigations (L04H), so body can be briefly null.
+  // Biên About là navigation native (L04H), nên body có thể null trong chốc lát.
   await page.waitForFunction(()=>location.pathname==='/vi/residential/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
   assert.equal((await measure(page)).count,1,'soft route owns one scrollbar');
   await page.goBack();

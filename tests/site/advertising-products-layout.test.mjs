@@ -313,7 +313,7 @@ test("product layouts reserve no caption height after image titles are removed",
 });
 
 test("R15 selects Pinterest geometry from full span at every responsive boundary", () => {
-  // Portrait viewport: landscape keeps the split layout even at full span.
+  // Viewport dọc: ngang vẫn giữ layout split kể cả full span.
   const viewportHeight = 1100;
   for (const width of [719, 720, 1004, 1005]) {
     const columns = columnsForWidth(width);
