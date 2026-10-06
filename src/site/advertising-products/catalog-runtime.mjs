@@ -1192,6 +1192,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     dialog: photoDialog,
     expandButton: photoExpand,
     expandedImage: photoExpandedImage,
+    heroFrame: photoImage?.parentElement,
     heroImage: photoImage,
     resetButton: photoZoomReset,
     scroll,
@@ -3491,7 +3492,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (activeInstance?.container === container) activeInstance = undefined;
   };
   signal?.addEventListener("abort", cleanup, { once: true });
-  activeInstance = { adapter, browseHistory, container, cleanup, syncSkeletonMotion };
+  activeInstance = { adapter, browseHistory, container, cleanup, photoViewer, syncSkeletonMotion };
   if (browseHistory.current.photo) {
     // The grid stays hidden under a photo; ensurePhoto measures it on the way back.
     retainedPhotoIds.add(browseHistory.current.photo);
@@ -3537,6 +3538,7 @@ window.TruongThinhAdvertising = {
   getCurrentHref: () => activeInstance?.browseHistory.currentHref || null,
   handlePopState: (event, previousHref, nextHref) =>
     activeInstance?.browseHistory.handlePopState(event, previousHref, nextHref) || false,
+  handleViewerPopState: (event) => activeInstance?.photoViewer.popState(event) || false,
   mount: mountAdvertisingCatalog,
   navigatePhoto: (id) => Boolean(activeInstance?.browseHistory.openPhoto(id)),
   navigateQuery: (href, { reason = "navbar" } = {}) => {

@@ -2476,6 +2476,11 @@
 
   window.addEventListener("popstate", (event) => {
     const advertising = window.TruongThinhAdvertising;
+    // Back with the photo viewer open closes only the viewer (advertising-viewer-touch-zoom R10).
+    if (advertising?.handleViewerPopState?.(event)) {
+      event.stopImmediatePropagation();
+      return;
+    }
     const previousHref = advertising?.getCurrentHref?.() || window.barba?.history?.current?.url;
     const nextHref = window.location.href;
     if (!advertising?.canHandlePopState?.(previousHref, nextHref)) {

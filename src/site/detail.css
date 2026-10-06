@@ -2547,8 +2547,13 @@ body.is-advertising-browse .site-footer {
 
 .advertising-photo-dialog::backdrop {
   background: rgba(32, 33, 32, 0.85);
-  opacity: 1;
+  /* The swipe-to-close fade sets the variable on the dialog (advertising-viewer-touch-zoom R9). */
+  opacity: var(--advertising-viewer-backdrop-opacity, 1);
   backdrop-filter: blur(4px);
+}
+
+.advertising-photo-dialog:not([data-advertising-viewer-swipe])::backdrop {
+  transition: opacity 200ms ease-in-out;
 }
 
 .advertising-photo-dialog[data-advertising-viewer-state="opening"]::backdrop {
@@ -2565,7 +2570,7 @@ body.is-advertising-browse .site-footer {
 }
 
 @keyframes advertising-photo-viewer-backdrop-out {
-  from { opacity: 1; }
+  from { opacity: var(--advertising-viewer-backdrop-opacity, 1); }
   to { opacity: 0; }
 }
 
@@ -2925,6 +2930,29 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
     right: 8px;
   }
 
+}
+
+/* Touch screens open, zoom and close the viewer by gesture; the buttons stay for screen readers
+   (advertising-viewer-touch-zoom R7, R8). */
+@media (hover: none) and (pointer: coarse) {
+  .advertising-photo-view__hero-frame {
+    touch-action: manipulation;
+  }
+
+  .advertising-photo-view__image-action.advertising-photo-view__expand,
+  .advertising-photo-dialog__close,
+  .advertising-photo-dialog__controls button {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
