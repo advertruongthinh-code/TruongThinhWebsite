@@ -97,7 +97,9 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
       observer.disconnect();
       fitInnerSteps(glass);
     });
-    observer.observe(glass);
+    // The arc box spans the whole grid section, so its top enters the viewport long before the arc does; the tint
+    // starts at the band edge, so it marks when the arc itself is on screen.
+    observer.observe(glass.querySelector(".glass-surface__tint"));
   }
   return glass;
 }
