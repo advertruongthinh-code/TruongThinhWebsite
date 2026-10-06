@@ -140,11 +140,6 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 | R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
 | R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
 
-## Gate còn mở
-
-- R2: trace PC 2026-10-06 (sau khi Flow chờ cuộn dừng): không task nào trên 50ms; frame rớt Advertising và detail ảnh
-  0,3% so với trang chủ 0,2% (1 đến 3 frame, phía GPU), lọc nhóm 0%. Còn owner cuộn thử sau deploy batch.
-
 ## Chú thích thuật ngữ
 
 - **Smooth scroll**: cuộn có quán tính do Locomotive tính, thay vì nhảy theo từng nấc chuột.
