@@ -5518,7 +5518,8 @@ body.is-advertising-browse .site-footer {
 
 .advertising-photo-dialog::backdrop {
   background: rgba(32, 33, 32, 0.85);
-  opacity: 1;
+  /* Fades while a drag down dismisses the viewer. */
+  opacity: calc(1 - var(--advertising-viewer-dismiss, 0));
   backdrop-filter: blur(4px);
 }
 
@@ -5536,7 +5537,7 @@ body.is-advertising-browse .site-footer {
 }
 
 @keyframes advertising-photo-viewer-backdrop-out {
-  from { opacity: 1; }
+  from { opacity: calc(1 - var(--advertising-viewer-dismiss, 0)); }
   to { opacity: 0; }
 }
 
@@ -6034,5 +6035,24 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .legacy-closer > picture > img
     ):not(.is-overlay-media-ready) {
     opacity: 0;
+  }
+}
+
+/* Touch screens use gestures: double tap opens the viewer, pinch and double tap zoom, drag down closes.
+   The buttons stay for screen readers. */
+@media (hover: none) and (pointer: coarse) {
+  .advertising-photo-view__expand,
+  .advertising-photo-dialog__close,
+  .advertising-photo-dialog__controls button {
+    position: absolute;
+    width: 1px;
+    min-width: 0;
+    height: 1px;
+    min-height: 0;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
   }
 }

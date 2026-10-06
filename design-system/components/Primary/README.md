@@ -16,7 +16,7 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
   sao cover của chính ảnh (`aria-hidden`, không nhận pointer) dưới
   [Kính](../Glass/README.md) dạng phủ đều.
 - Nút `Xem lớn hơn` vuông 48px, viền 1px, neo phải trong vùng ảnh; mở
-  [Viewer](../Viewer/README.md). Video có thêm nút tiếng.
+  [Viewer](../Viewer/README.md). Màn cảm ứng ẩn nút này, chạm đúp ảnh để mở. Video có thêm nút tiếng.
 - Cột chữ: nhãn nhóm, mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
   [Suggestion](../Suggestion/README.md). Không có tiêu đề ảnh.
 - Mô tả dài chia trang trọn dòng. Từ 2 đến 5 trang, dưới mô tả là hàng chấm:

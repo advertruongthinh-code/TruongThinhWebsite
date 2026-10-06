@@ -34,6 +34,8 @@ export function createAdvertisingPhotoViewer({
   let pinch = null;
   let tap = null;
   let lastTap = null;
+  let dismiss = null;
+  let heroTap = null;
   const touches = new Map();
   let backdropPress = false;
   let lockedScroll = 0;
@@ -224,7 +226,8 @@ export function createAdvertisingPhotoViewer({
     cancelMotion();
     dialog.close();
     delete dialog.dataset.advertisingViewerState;
-    drag = pinch = tap = lastTap = null;
+    drag = pinch = tap = lastTap = dismiss = null;
+    dialog.style.removeProperty("--advertising-viewer-dismiss");
     touches.clear();
     scale = 1;
     panX = panY = 0;
@@ -275,6 +278,15 @@ export function createAdvertisingPhotoViewer({
     .filter((control) => control && !control.disabled && !control.hidden && control.getClientRects().length > 0);
 
   expandButton.addEventListener("click", open, { signal: controller.signal });
+  // Touch screens hide the expand button: a double tap on the primary photo opens the viewer instead.
+  heroImage?.parentElement?.addEventListener("pointerup", (event) => {
+    if (event.pointerType !== "touch" || expandButton.hidden || event.target.closest("button")) return;
+    if (heroTap && event.timeStamp - heroTap.time <= 300
+      && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) <= 24) {
+      heroTap = null;
+      open();
+    } else heroTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
+  }, { signal: controller.signal });
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
@@ -310,12 +322,19 @@ export function createAdvertisingPhotoViewer({
         // Two fingers never close the viewer and end any one-finger drag or tap.
         backdropPress = false;
         drag = tap = lastTap = null;
+        if (dismiss) {
+          dismiss = null;
+          dialog.style.removeProperty("--advertising-viewer-dismiss");
+        }
         adoptDisplayed();
         startPinch();
         event.preventDefault();
         return;
       }
       tap = event.target === expandedImage ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+      // At Fit a one-finger drag down closes the viewer, like a phone photo app.
+      dismiss = atFit() && dialog.dataset.advertisingViewerState !== "opening"
+        ? { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp, dy: 0, active: false } : null;
     }
     backdropPress = event.target === dialog || event.target === viewport;
     if (backdropPress) return;
@@ -340,6 +359,25 @@ export function createAdvertisingPhotoViewer({
       event.preventDefault();
       return;
     }
+    if (dismiss?.id === event.pointerId) {
+      const dx = event.clientX - dismiss.x;
+      const dy = event.clientY - dismiss.y;
+      if (!dismiss.active && Math.hypot(dx, dy) > 10) {
+        if (dy <= Math.abs(dx)) {
+          dismiss = null;
+          return;
+        }
+        adoptDisplayed();
+        dismiss.active = true;
+        backdropPress = false;
+      }
+      if (!dismiss.active) return;
+      dismiss.dy = Math.max(0, dy);
+      expandedImage.style.transform = `translate3d(0, ${dismiss.dy}px, 0) scale(1)`;
+      dialog.style.setProperty("--advertising-viewer-dismiss", String(Math.min(1, dismiss.dy / viewport.clientHeight * 2)));
+      event.preventDefault();
+      return;
+    }
     if (!drag || drag.id !== event.pointerId) return;
     panX = drag.panX + event.clientX - drag.x;
     panY = drag.panY + event.clientY - drag.y;
@@ -347,6 +385,21 @@ export function createAdvertisingPhotoViewer({
     event.preventDefault();
   }, { signal: controller.signal });
   const endPointer = (event) => {
+    if (dismiss?.id === event.pointerId && dismiss.active) {
+      const { dy, time } = dismiss;
+      dismiss = null;
+      touches.delete(event.pointerId);
+      tap = null;
+      // Past 100px, or a quick flick, closes; otherwise the photo returns to Fit.
+      if (event.type === "pointerup" && (dy > 100 || dy / Math.max(1, event.timeStamp - time) > 0.5)) {
+        close();
+        return;
+      }
+      dialog.style.removeProperty("--advertising-viewer-dismiss");
+      runMotion(expandedImage.style.transform, renderTransform(), 200, "ease-in-out", "zooming");
+      return;
+    }
+    if (dismiss?.id === event.pointerId) dismiss = null;
     if (!touches.delete(event.pointerId) && (!drag || drag.id !== event.pointerId)) return;
     if (pinch) {
       const anchor = pinch;

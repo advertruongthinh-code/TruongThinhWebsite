@@ -1,4 +1,4 @@
-// Viewer touch zoom in Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R6): pinch, rubber band,
+// Viewer touch zoom in Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R7): pinch, rubber band,
 // one/two finger hand-off, double tap, stops for buttons, reduced motion. Backdrop swipe and tap (L06) stay in
 // advertising-photo-transitions.e2e.mjs. Touch goes through CDP so the
 // browser's own touch-to-pointer path runs. DEVICE_CDP (http://127.0.0.1:9222 after `adb forward tcp:9222
@@ -86,8 +86,52 @@ async function openViewer(page, touch) {
     const image = document.querySelector("[data-advertising-photo-image]");
     return image?.complete && image.naturalWidth > 0;
   });
-  await touch.tap(page.locator("[data-advertising-photo-expand]"));
+  // Touch screens hide the expand button; a double tap on the primary photo opens the viewer.
+  // Like the tap helper, wait until the photo takes the hit: the route veil covers it first.
+  const point = await (await page.waitForFunction(() => {
+    const box = document.querySelector("[data-advertising-photo-image]").getBoundingClientRect();
+    const x = Math.round(box.left + box.width / 2);
+    const y = Math.round(box.top + box.height / 2);
+    return document.querySelector(".advertising-photo-view__hero-frame").contains(document.elementFromPoint(x, y)) && { x, y };
+  })).jsonValue();
+  await touch.doubleTap(point);
   await settled(page);
+}
+
+// Gestures replace the buttons on touch: they stay only for screen readers, a drag down at Fit closes.
+async function runGestures() {
+  const label = "gestures";
+  const { page, cdp, close } = await phonePage({ width: 390, height: 844 });
+  await page.goto(`${origin}/vi/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
+  const touch = touchDriver(page, cdp);
+  await openViewer(page, touch);
+  const hidden = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out", "zoom-reset"]
+    .map((name) => document.querySelector(`[data-advertising-photo-${name}]`).getBoundingClientRect().width));
+  check(hidden.every((width) => width <= 1), `${label}: buttons still visible on touch ${hidden}`);
+  const drag = async (dx, dy) => {
+    const fit = await page.evaluate(readState);
+    const from = { x: Math.round(fit.cx), y: Math.round(fit.cy - 100), id: 1 };
+    await touch.send("touchStart", [from]);
+    for (let step = 1; step <= 6; step += 1) {
+      await touch.send("touchMove", [{ ...from, x: from.x + dx * step / 6, y: from.y + dy * step / 6 }]);
+    }
+    return { fit, during: await page.evaluate(readState), end: () => touch.send("touchEnd", []) };
+  };
+  const sideways = await drag(150, 20);
+  await sideways.end();
+  await page.waitForTimeout(300);
+  check((await page.evaluate(readState)).open, `${label}: sideways drag closed the viewer`);
+  const short = await drag(0, 60);
+  check(Math.abs(short.during.y - 60) <= 1 && short.during.scale === 1, `${label}: photo did not follow the drag down ${JSON.stringify(short.during)}`);
+  await page.waitForTimeout(400);
+  await short.end();
+  await settled(page);
+  const back = await page.evaluate(readState);
+  check(back.open && back.y === 0 && back.scale === 1, `${label}: short slow drag did not return to Fit ${JSON.stringify(back)}`);
+  const long = await drag(0, 220);
+  await long.end();
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await close();
 }
 
 // Reset is disabled at Fit, so click it only when there is something to reset.
@@ -131,17 +175,6 @@ function touchDriver(page, cdp) {
       await send("touchStart", pair(centre, from));
       for (let step = 1; step <= steps; step += 1) await send("touchMove", pair(centre, from + (to - from) * step / steps));
       if (!hold) await send("touchEnd", []);
-    },
-    // Like Playwright's own tap, wait until the element takes the hit: the route veil covers it first.
-    async tap(locator) {
-      const point = await (await page.waitForFunction((node) => {
-        const box = node.getBoundingClientRect();
-        const x = box.left + box.width / 2;
-        const y = box.top + box.height / 2;
-        return node.contains(document.elementFromPoint(x, y)) && { x, y };
-      }, await locator.elementHandle())).jsonValue();
-      await send("touchStart", [{ ...point, id: 1 }]);
-      await send("touchEnd", []);
     },
     // Sent back to back: over adb, a frame wait per event would stretch the taps past the 300ms window.
     async doubleTap(point) {
@@ -196,10 +229,11 @@ async function runPhone({ locale, width, height }) {
   await settled(page);
   const between = await state();
   check(between.scale > 1.05 && between.scale < between.cover * 0.95, `${label} R5: pinch did not stop between stops (${between.scale})`);
-  await touch.tap(page.locator("[data-advertising-photo-zoom-in]"));
+  // Touch hides the buttons for screen readers only; activate them the way a screen reader does.
+  await page.locator("[data-advertising-photo-zoom-in]").evaluate((node) => node.click());
   await settled(page);
   check(near((await state()).scale, between.cover), `${label} R5: + from between stops did not reach Cover`);
-  await touch.tap(page.locator("[data-advertising-photo-zoom-out]"));
+  await page.locator("[data-advertising-photo-zoom-out]").evaluate((node) => node.click());
   await settled(page);
   const fitAgain = await state();
   check(near(fitAgain.scale, 1) && fitAgain.minusDisabled && fitAgain.resetDisabled, `${label} R5: - did not return to Fit`);
@@ -351,6 +385,7 @@ try {
   await runPhone({ locale: "vi", width: 390, height: 844 });
   await runPhone({ locale: "en", width: 844, height: 390 });
   await runMotion();
+  await runGestures();
   if (!device) await runDesktop();
 } catch (error) {
   failures.push(String(error.stack || error));

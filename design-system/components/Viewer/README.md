@@ -13,6 +13,9 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
   trỏ hoặc một ngón, giới hạn trong ảnh.
 - Nút đóng góc trái trên, cụm thu nhỏ, phóng to, thu về góc phải dưới; mỗi nút
   vuông 48px, viền 1px theo màu chữ, icon 24px nét 1.5.
+- Màn cảm ứng không hiện nút: chạm đúp ảnh primary để mở, chụm hoặc chạm đúp
+  để zoom, kéo ảnh xuống ở mức fit để đóng (ảnh theo tay, nền mờ dần, quá
+  100px thì đóng). Nút vẫn còn cho trình đọc màn hình.
 - Nền nút `white`; hover và nhấn dùng `media-control-hover`,
   `media-control-active`; nút disabled nền `control-disabled-surface`, icon
   `control-disabled-icon`, không hover motion.

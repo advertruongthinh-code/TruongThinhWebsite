@@ -1,5 +1,5 @@
 ---
-title: Viewer Advertising zoom hai ngón và chạm đúp
+title: Viewer Advertising zoom hai ngón, chạm đúp và cử chỉ
 status: live
 source:
   - src/site/advertising-products/photo-viewer.mjs
@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-05
+updated: 2026-10-06
 ---
 
 # Viewer Advertising zoom hai ngón và chạm đúp
@@ -17,7 +17,8 @@ updated: 2026-10-05
 
 Khách xem ảnh công trình trên điện thoại hoặc máy tính bảng zoom vào chi tiết
 trong viewer bằng tay, như app Thư viện: chụm hai ngón, kéo một ngón, chạm đúp.
-Spec này sở hữu thao tác chạm và zoom liên tục có nấc.
+Spec này sở hữu thao tác chạm, zoom liên tục có nấc và việc màn cảm ứng
+dùng cử chỉ thay cho nút.
 Mở, đóng, morph, nút, con lăn, phím và khóa cuộn giữ theo
 [detail](advertising-detail.md#r9-viewer) và R9 ở đó.
 
@@ -65,7 +66,8 @@ And sau khi buông, s = 2c và trạng thái nút khớp Max
 ### R3. Kéo một ngón và chuyển giữa một, hai ngón
 
 Một ngón kéo trên ảnh pan ảnh khi `s > 1`, như kéo chuột hiện nay. Ở Fit, một
-ngón không làm gì; vuốt bắt đầu trên nền không đóng viewer (giữ L06). Đang kéo
+ngón kéo xuống đóng viewer (R7); kéo theo chiều khác không làm gì, vuốt bắt đầu
+trên nền khi đang zoom không đóng viewer (giữ L06). Đang kéo
 một ngón mà ngón thứ hai chạm xuống thì chuyển sang pinch từ đúng transform
 đang hiện, không nhảy. Đang pinch mà nhấc một ngón: nếu `s` trong khoảng thì
 ngón còn lại kéo tiếp từ vị trí hiện tại, không nhảy; nếu đang vượt thì áp
@@ -130,6 +132,31 @@ When chạm đúp lên ảnh
 Then ảnh tới Cover ngay trong frame kế tiếp, nút và trạng thái khớp Cover
 ```
 
+### R7. Màn cảm ứng dùng cử chỉ thay cho nút
+
+Màn cảm ứng là `(hover: none) and (pointer: coarse)`. Ở đó nút `Xem lớn hơn`,
+nút đóng, `+`, `−`, reset chỉ còn cho trình đọc màn hình (ẩn khỏi màn, vẫn
+trong cây truy cập và vẫn bấm được); chuột và bàn phím giữ nguyên như R5.
+
+- Chạm đúp lên ảnh primary (cùng ngưỡng `300ms`, `24 CSS px` của R4) mở viewer
+  như bấm `Xem lớn hơn`. Video không mở viewer.
+- Ở Fit, một ngón kéo xuống (vượt `10px` và dọc nhiều hơn ngang) thì ảnh đi
+  theo tay theo chiều dọc, nền mờ dần theo quãng kéo. Buông khi đã kéo quá
+  `100px` hoặc vuốt nhanh hơn `0.5px/ms` thì đóng như R9 của detail (morph về
+  khung primary `250ms`); buông sớm hơn thì ảnh về Fit `200ms ease-in-out`.
+  Ngón thứ hai chạm xuống thì bỏ kéo, chuyển sang pinch.
+- Chạm một lần lên nền vẫn đóng viewer.
+
+```gherkin
+Given điện thoại dọc ở detail
+When chạm đúp lên ảnh primary
+Then viewer mở, không thấy nút nào trên màn
+When kéo ảnh xuống 60px rồi giữ và buông
+Then ảnh đi theo tay rồi về Fit, viewer vẫn mở
+When kéo ảnh xuống 220px rồi buông
+Then viewer đóng
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -154,7 +181,7 @@ của [Viewer](../../design-system/components/Viewer/README.md). PR code sửa c
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R6 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop |
+| R1–R7 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop, chạm đúp primary và kéo xuống đóng |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
 | R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm. Đạt 05/10/2026 trên SM-A057F, Chrome 154, dọc (2/2 lượt); ngang trên máy thật chỉ khi đặt máy ngang (chưa chạy) |
