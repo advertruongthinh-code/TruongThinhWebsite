@@ -660,7 +660,7 @@ async function assertVisible(locator, label) {
   assert(box && box.width > 0 && box.height > 0, `${label} is not visible`);
 }
 
-async function assertDialogFit(page, label) {
+async function assertDialogFit(page, label, touch = false) {
   await page.waitForFunction(() => {
     const image = document.querySelector("[data-advertising-photo-expanded-image]");
     return Boolean(image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
@@ -699,6 +699,10 @@ async function assertDialogFit(page, label) {
   assert(resetControl && !resetControl.hidden && resetControl.disabled, `${label}: reset control must remain visible and disabled at Fit`);
   for (const control of evidence.controls) {
     if (control.hidden) continue;
+    if (touch) {
+      assert(control.rect.width <= 1 && control.rect.height <= 1, `${label}: control is visible on touch`);
+      continue;
+    }
     assert(control.rect.width >= 44 && control.rect.height >= 44, `${label}: control is smaller than 44px`);
     assert(control.rect.left >= -1 && control.rect.top >= -1 && control.rect.right <= evidence.innerWidth + 1 && control.rect.bottom <= evidence.innerHeight + 1, `${label}: control is outside browser viewport`);
   }
@@ -832,7 +836,10 @@ async function middleClickReset(page, point, label) {
   assert(Math.abs(after.scroll - beforeScroll) <= 1, `${label}: middle-click changed page scroll`);
 }
 
-async function clickZoom(page, selector, { reducedMotion, label }) {
+// Touch screens keep the viewer buttons for screen readers only (viewer touch R8): press them the way assistive tech does.
+const press = (locator, touch) => (touch ? locator.evaluate((node) => node.click()) : locator.click());
+
+async function clickZoom(page, selector, { reducedMotion, label, touch }) {
   await page.evaluate((target) => {
     const button = document.querySelector(target);
     const dialog = document.querySelector("[data-advertising-photo-dialog]");
@@ -844,7 +851,7 @@ async function clickZoom(page, selector, { reducedMotion, label }) {
         .map((animation) => ({ duration: animation.effect?.getTiming().duration, easing: animation.effect?.getTiming().easing })) || [];
     }), { capture: true, once: true });
   }, selector);
-  await page.locator(selector).click();
+  await press(page.locator(selector), touch);
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
   const motion = await page.evaluate(() => window.__ttPhotoViewerZoomMotion);
   if (!reducedMotion) {
@@ -860,7 +867,7 @@ async function exerciseDialog(page, options) {
   options.setStage?.("open-motion");
   await assertViewerMotion(page, { phase: "open", reducedMotion, label: options.label });
   options.setStage?.("fit");
-  await assertDialogFit(page, options.label);
+  await assertDialogFit(page, options.label, options.touch);
   options.setStage?.("lock");
   await assertViewerLock(page, scrollBeforeLock, baseline, options.label, options.settlements);
   const close = page.locator("[data-advertising-photo-close]");
@@ -876,11 +883,11 @@ async function exerciseDialog(page, options) {
   let level = await zoomState(page);
   assert(level.minusDisabled && !level.plusDisabled && !level.resetHidden && level.resetDisabled, `${options.label}: fit controls are incorrect`);
   options.setStage?.("zoom-cover");
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label });
+  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled && !level.resetHidden && !level.resetDisabled, `${options.label}: first plus is not cover`);
   options.setStage?.("zoom-max-pan");
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label });
+  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled && !level.resetHidden && !level.resetDisabled, `${options.label}: second plus is not two-times cover max`);
   const beforePan = await transformEvidence(page);
@@ -903,17 +910,17 @@ async function exerciseDialog(page, options) {
   await assertViewerLock(page, scrollBeforeLock, baseline, `${options.label} after zoom/pan`, options.settlements);
   assert.equal(page.url(), beforeUrl, `${options.label}: zoom/pan changed URL`);
   options.setStage?.("reset");
-  await zoomReset.click();
+  await press(zoomReset, options.touch);
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.resetHidden && level.resetDisabled, `${options.label}: reset did not return to fit`);
   options.setStage?.("zoom-out-sequence");
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label });
-  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label });
-  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label });
+  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.resetHidden && !level.resetDisabled, `${options.label}: minus did not return max to cover`);
-  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label });
+  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
   assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.resetHidden && level.resetDisabled,
     `${options.label}: second minus did not return cover to fit`);
@@ -1000,7 +1007,7 @@ async function exerciseDialog(page, options) {
   }
   options.setStage?.("close");
   await observeCloseMotion(page);
-  if (options.closeWithButton) await close.click();
+  if (options.closeWithButton) await press(close, options.touch);
   else await page.keyboard.press("Escape");
   await assertViewerMotion(page, { phase: "close", reducedMotion, label: options.label });
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open === false);
