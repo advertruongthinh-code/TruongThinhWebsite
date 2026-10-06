@@ -228,10 +228,10 @@ const embedVietnameseText = (html, filePath) => {
   return output;
 };
 
-// Wraps content WebP <img> tags in <picture> with AVIF and width variants from build-image-variants.mjs.
-// Deferred data-src images get data-srcset, which motion.js copies when it hydrates them. Images without
-// variants on disk, images that already declare srcset and runtime-managed Advertising images (the runtime
-// swaps their src, which a <source> would override) stay unchanged.
+// Bọc thẻ <img> WebP content trong <picture> với AVIF và các biến thể width từ build-image-variants.mjs.
+// Ảnh deferred data-src nhận data-srcset, motion.js chép khi hydrate. Ảnh không có variant
+// trên disk, ảnh đã khai báo srcset và ảnh Advertising do runtime quản lý (runtime
+// đổi src của chúng, mà <source> sẽ ghi đè) giữ nguyên.
 const RESPONSIVE_WIDTHS = [480, 960];
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
@@ -242,7 +242,7 @@ const responsivePictures = (html) =>
     const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && ["webp", "avif"].every((format) => existsSync(path.join(outputRoot, `${src}-${width}.${format}`))));
     const set = (format) => [...widths.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
     if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" ${srcset}="${src}.avif">${tag}</picture>`;
-    // Lazy images let the browser use their laid-out width ("auto"); 100vw is the fallback for older browsers.
+    // Ảnh lazy để browser dùng width đã layout ("auto"); 100vw là fallback cho browser cũ.
     const declared = tag.match(/\ssizes="([^"]+)"/)?.[1];
     const sizes = declared || (/\sloading="lazy"/.test(tag) ? "auto, 100vw" : "100vw");
     const img = tag.replace(/^<img\b/, `<img ${srcset}="${set("webp")}"${declared ? "" : ` sizes="${sizes}"`}`);

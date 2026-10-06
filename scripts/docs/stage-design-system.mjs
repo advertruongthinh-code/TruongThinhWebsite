@@ -1,6 +1,6 @@
-// Stages design-system/ as the claude.ai Design System file table under .tmp/design-system-publish/project/ (docs/specs/docs-system.md R7).
-// Photos are artifact uploads: previews point at /_blob/<id> from design-system.json; links leaving design-system/ point at GitHub.
-// Usage: node scripts/docs/stage-design-system.mjs, then publish with the Artifact tool as design-system/README.md says.
+// Stage design-system/ thành file table Design System của claude.ai dưới .tmp/design-system-publish/project/ (docs/specs/docs-system.md R7).
+// Photo là artifact upload: preview trỏ tới /_blob/<id> từ design-system.json; link rời design-system/ trỏ về GitHub.
+// Cách dùng: node scripts/docs/stage-design-system.mjs, rồi publish bằng Artifact tool như design-system/README.md hướng dẫn.
 import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
 
@@ -22,7 +22,7 @@ for (const path of walk(SRC)) {
   const rel = posix.relative(SRC, path);
   if (rel.startsWith('assets/Photos/') && rel.endsWith('.webp')) {
     const record = photos[posix.basename(rel)];
-    // A new or regenerated photo needs a fresh upload before publishing.
+    // Photo mới hoặc vừa regenerate cần upload lại trước khi publish.
     if (!record || record.size !== statSync(path).size) missing.push(path);
     continue;
   }

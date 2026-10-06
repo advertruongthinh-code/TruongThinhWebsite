@@ -177,7 +177,7 @@ def watch(root: Path, debounce: float) -> None:
                 result = synchronize(root, apply=True)
                 if result["applied"]:
                     run_health_check(root)
-            except Exception as exc:  # watcher must survive individual failures
+            except Exception as exc:  # watcher phải sống sót khi từng lỗi riêng lẻ
                 log = root / ".tooling" / "logs" / "serena-language-watch.log"
                 log.parent.mkdir(parents=True, exist_ok=True)
                 with log.open("a", encoding="utf-8") as handle:

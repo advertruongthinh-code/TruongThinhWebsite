@@ -1,25 +1,25 @@
 #!/bin/bash
-# Setup script for the Claude Code cloud environment ("Default" at claude.ai/code).
-# Installs the owner's global agent stack for every cloud session and every repo:
+# Setup script cho môi trường cloud của Claude Code ("Default" tại claude.ai/code).
+# Cài global agent stack của owner cho mọi cloud session và mọi repo:
 # agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena.
 #
-# Owner rule: skills, commands, agents and MCP only, never agent lifecycle hooks.
-# Each plugin loads as a skills-directory plugin (~/.claude/skills/<name>/ with
-# .claude-plugin/plugin.json) linking the pinned checkout, its hooks stripped.
-# MCP servers live in the local "cloud-stack" plugin. Pins mirror tooling-versions.json.
-# Always exits 0 so a failed install never blocks the session; read
-# /opt/agent-tools/setup.log for the per-item result.
+# Rule của owner: chỉ skill, command, agent và MCP, không bao giờ dùng agent lifecycle hook.
+# Mỗi plugin nạp dưới dạng skills-directory plugin (~/.claude/skills/<name>/ cùng
+# .claude-plugin/plugin.json) liên kết tới checkout đã pin, đã gỡ hook.
+# MCP server nằm trong plugin local "cloud-stack". Pin khớp với tooling-versions.json.
+# Luôn exit 0 để cài lỗi không chặn session; xem
+# /opt/agent-tools/setup.log để biết kết quả từng mục.
 set -uo pipefail
 
 CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 T="${AGENT_TOOLS_DIR:-/opt/agent-tools}"
 BIN="$HOME/.local/bin"
 mkdir -p "$T/src" "$CFG/skills"
-# Plain file redirect: with `exec > >(tee ...)`, a bare `wait` also waits for tee and deadlocks.
+# Redirect file thường: với `exec > >(tee ...)`, lệnh `wait` trần cũng chờ tee và bị deadlock.
 exec >"$T/setup.log" 2>&1 </dev/null
 export DO_NOT_TRACK=1 CAVEMAN_TELEMETRY=0 GIT_TERMINAL_PROMPT=0
 
-fetch() { # <owner/repo> <sha>: shallow checkout of one pinned commit
+fetch() { # <owner/repo> <sha>: checkout nông (shallow) của một commit đã pin
   local d="$T/src/${1#*/}"
   rm -rf "$d" && git init -q "$d" &&
     git -C "$d" fetch -q --depth 1 "https://github.com/$1.git" "$2" &&
@@ -37,18 +37,18 @@ npm install -g --silent --no-audit --no-fund \
   @caveman-ai/cli@2.0.1 impeccable@4.1.0 chrome-devtools-mcp@1.10.1 &
 wait
 
-# Companion binaries and runtime caches. Never run `caveman enable`/`caveman claude`:
-# they reroute ANTHROPIC_BASE_URL through a local proxy and break the cloud session.
+# Binary đi kèm và runtime cache. Không bao giờ chạy `caveman enable`/`caveman claude`:
+# chúng đổi hướng ANTHROPIC_BASE_URL qua proxy local và làm hỏng cloud session.
 caveman telemetry off >/dev/null
 caveman setup --install </dev/null
 (cd "$T/src/ponytail/ponytail-mcp" && npm install --silent --no-audit --no-fund --omit=dev)
-# Hide the npm CLI (engine 0.1.5) so the launcher caches the skill's pinned engine.
+# Ẩn npm CLI (engine 0.1.5) để launcher cache engine đã pin của skill.
 PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
 "$BIN/serena" init </dev/null >/dev/null
 
-# Global rules: mirror of the codex:global-stack block in scripts/tooling/bootstrap.ps1
-# (local Claude imports it through ~/.claude/CLAUDE.md). tests/tooling/global-rules-sync.test.mjs
-# fails CI when they drift or doctor.ps1 checks stop matching.
+# Global rules: bản sao của block codex:global-stack trong scripts/tooling/bootstrap.ps1
+# (Claude local import qua ~/.claude/CLAUDE.md). tests/tooling/global-rules-sync.test.mjs
+# làm CI fail khi hai bản lệch nhau hoặc check của doctor.ps1 không còn khớp.
 cat > "$CFG/CLAUDE.md" <<'EOF'
 ## Global agent stack
 
@@ -64,18 +64,18 @@ Apply these rules in the main agent and every coordinator, explorer, worker, rev
 8. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
 9. Each time a skill is used, whether self-selected, user-invoked with `/`, or loaded mid-task, first write one chat line: `Skill: <name> (<self|user>): <reason>`.
 EOF
-"$BIN/graphify" install </dev/null  # skill plus its registration block appended to CLAUDE.md
+"$BIN/graphify" install </dev/null  # skill cùng block đăng ký được nối vào CLAUDE.md
 
-# One Chromium for impeccable, caveman-browse and chrome-devtools; root needs --no-sandbox.
+# Một Chromium cho impeccable, caveman-browse và chrome-devtools; root cần --no-sandbox.
 cat > /usr/local/bin/chromium <<'EOF'
 #!/bin/sh
 exec /opt/pw-browsers/chromium --no-sandbox "$@"
 EOF
 chmod +x /usr/local/bin/chromium
 
-# Strip hooks in place: drop the default hooks/hooks.json and the manifest `hooks` key.
-# Keep hooks/ itself (ponytail-mcp imports from it). Symlinked component dirs are
-# rejected as "path escapes plugin directory", so link the checkout root itself.
+# Gỡ hook tại chỗ: bỏ hooks/hooks.json mặc định và key `hooks` trong manifest.
+# Giữ nguyên hooks/ (ponytail-mcp import từ đó). Thư mục component là symlink bị
+# từ chối với lỗi "path escapes plugin directory", nên link chính root của checkout.
 unhook() { # <checkout> <name>
   local m="$1/.claude-plugin/plugin.json"
   rm -f "$1/hooks/hooks.json"
@@ -87,16 +87,16 @@ unhook "$T/src/caveman" caveman
 unhook "$T/src/ponytail" ponytail
 unhook "$T/src/impeccable/plugin" impeccable
 unhook "$T/src/i-have-adhd" i-have-adhd
-# Owner choice: i-have-adhd self-invokes (same as local-setup.ps1).
+# Owner chọn: i-have-adhd tự gọi (giống local-setup.ps1).
 sed -i -e '/^disable-model-invocation:/d' \
   -e 's|Invoke with /i-have-adhd;|Use for every response to the owner, or on /i-have-adhd;|' \
   "$T/src/i-have-adhd/skills/i-have-adhd/SKILL.md"
-# Owner choice: caveman skills are user-invoked only (same as local-setup.ps1).
+# Owner chọn: skill caveman chỉ chạy khi user gọi (giống local-setup.ps1).
 for f in "$T"/src/caveman/skills/*/SKILL.md; do
   grep -q '^disable-model-invocation:' "$f" || sed -i '1a disable-model-invocation: true' "$f"
 done
 
-# Local plugin carrying the MCP servers.
+# Plugin local chứa các MCP server.
 P="$T/cloud-stack"
 mkdir -p "$P/.claude-plugin"
 cat > "$P/.claude-plugin/plugin.json" <<'EOF'

@@ -1,8 +1,8 @@
-# Local counterpart of cloud-setup.sh for Claude Code skills: installs the pinned
-# agent-skills, caveman, ponytail, impeccable and i-have-adhd plugins into
-# ~/.claude/skills as skills-directory plugins, with the same owner rules:
-# no lifecycle hooks, i-have-adhd self-invokes, caveman skills are user-invoked only.
-# MCP servers stay with bootstrap.ps1. Run once per machine, then restart Claude Code:
+# Bản local của cloud-setup.sh cho skill Claude Code: cài các plugin đã pin
+# agent-skills, caveman, ponytail, impeccable và i-have-adhd vào
+# ~/.claude/skills dưới dạng skills-directory plugin, với cùng rule của owner:
+# không lifecycle hook, i-have-adhd tự gọi, skill caveman chỉ chạy khi user gọi.
+# MCP server vẫn do bootstrap.ps1 lo. Chạy một lần mỗi máy, rồi restart Claude Code:
 #   pwsh -NoProfile -File scripts/tooling/local-setup.ps1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -35,7 +35,7 @@ foreach ($name in $plugins.Keys) {
   git -C $dir checkout -q FETCH_HEAD
   $root = if ($name -eq "impeccable") { Join-Path $dir "plugin" } else { $dir }
 
-  # Strip hooks: default hooks/hooks.json plus the manifest key (hooks/ stays for ponytail-mcp).
+  # Gỡ hook: hooks/hooks.json mặc định cùng key trong manifest (hooks/ giữ lại cho ponytail-mcp).
   Remove-Item -LiteralPath (Join-Path $root "hooks/hooks.json") -Force -ErrorAction SilentlyContinue
   $manifest = Join-Path $root ".claude-plugin/plugin.json"
   $json = Get-Content -Raw $manifest | ConvertFrom-Json

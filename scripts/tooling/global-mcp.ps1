@@ -2,7 +2,7 @@ param(
   [Parameter(Mandatory)]
   [ValidateSet("serena", "graphify", "chrome-devtools")]
   [string]$Service,
-  # Serena context per host: Codex config omits it; Claude Code passes claude-code.
+  # Serena context theo từng host: config Codex bỏ qua nó; Claude Code truyền claude-code.
   [ValidateSet("codex", "claude-code")]
   [string]$Context = "codex"
 )

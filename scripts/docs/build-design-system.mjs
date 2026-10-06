@@ -1,20 +1,20 @@
-// Builds design-system/components/bundle.css and component previews from the live site source (docs/specs/docs-system.md R5.3).
-// Usage: node scripts/docs/build-design-system.mjs [--check]
+// Dựng design-system/components/bundle.css và preview component từ source site live (docs/specs/docs-system.md R5.3).
+// Cách dùng: node scripts/docs/build-design-system.mjs [--check]
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 
 const OUT = 'design-system';
 const FONT = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap">';
-// motion-fallback is the site's own no-animation final state (motion.js); previews render that state.
+// motion-fallback là trạng thái cuối không animation của site (motion.js); preview render đúng trạng thái đó.
 const boot = (extra) => `<script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready"${extra ? `, "${extra}"` : ''});</script>`;
-// A transformed wrapper becomes the containing block for position: fixed, so fixed shell parts stay inside their frame.
+// Wrapper có transform trở thành containing block của position: fixed, nên phần shell fixed nằm gọn trong frame.
 const frame = (markup, { cls = '', bg = 'var(--paper)', height }) =>
   `<div style="position: relative; height: ${height}px; overflow: hidden; transform: translateZ(0); background: ${bg};">\n`
   + markup.replace(/class="([^"]*)"/, (_, c) => `class="${[c, cls].filter(Boolean).join(' ')}"`) + '\n</div>';
 
-// start: regex for the opening tag; open: show the dialog as motion.js leaves it (open, is-active); htmlClass: extra root class; frames: one framed copy per state class;
-// endStyle: inline end values motion.js sets that have no CSS fallback;
-// boot: false skips motion-fallback where it would override the state classes (header tone).
+// start: regex cho opening tag; open: hiện dialog đúng như motion.js để lại (open, is-active); htmlClass: class phụ trên root; frames: mỗi state class một bản có frame;
+// endStyle: giá trị cuối inline do motion.js đặt mà CSS không có fallback;
+// boot: false bỏ motion-fallback ở chỗ nó sẽ ghi đè state class (header tone).
 const COMPONENTS = [
   { name: 'Header', group: 'Shell', height: 420, file: 'src/site/index.html', start: /<header class="site-header"/, boot: false,
     frames: [{ cls: 'is-brand-inverse', bg: 'var(--ink)', height: 140 }, { cls: 'is-ink', height: 140 }, { cls: 'is-collapsed is-brand-color', height: 140 }] },
@@ -28,18 +28,18 @@ const COMPONENTS = [
   { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
   { name: 'Gallery', group: 'Page', height: 640, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
-  // Advertising markup is built at runtime; capture-design-system.mjs snapshots it into scripts/docs/captures/.
-  // pad: space kept above the focus element inside the frame; size: image variant width.
+  // Markup Advertising dựng lúc runtime; capture-design-system.mjs chụp snapshot vào scripts/docs/captures/.
+  // pad: khoảng trống giữ phía trên element focus trong frame; size: độ rộng image variant.
   ...[['Filter', 240, 40], ['MediaCard', 420, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
     ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size]) => ({ name, group: 'Advertising', height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
-  // Kính is runtime markup (glass-surface.mjs); the photo host and the half-width placement are written here.
+  // Kính là markup runtime (glass-surface.mjs); photo host và vị trí nửa chiều rộng được ghi ở đây.
   { name: 'Glass', group: 'Advertising', height: 300, file: 'src/site/advertising-products/glass-surface.mjs', start: /glass\.className = "glass-surface"/,
     markup: '<div style="position: relative; width: 384px; height: 256px; margin: 20px 35px; overflow: hidden;">\n'
       + '<img src="/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-26-owner-20260924.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">\n'
       + '<div style="position: absolute; inset: 0 0 0 50%;"><div class="glass-surface" data-glass-shape="even" aria-hidden="true">'
       + '<i class="glass-surface__step glass-surface__step--full"></i><i class="glass-surface__tint"></i><i class="glass-surface__grain"></i></div></div>\n</div>' },
-  // The bar shows only until a suggestion photo paints, so the buttons are written here without photos; the bar itself is detail.css.
+  // Thanh chỉ hiện đến khi ảnh suggestion được paint, nên nút được ghi ở đây không kèm ảnh; bản thân thanh nằm ở detail.css.
   { name: 'LoadBar', group: 'Advertising', height: 280, file: 'src/site/detail.css', start: /Indeterminate bar painted along the bottom edge/,
     markup: '<div class="advertising-photo-view__suggestion-links" style="width: 316px; margin: 20px 35px;">\n'
       + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Chữ nổi Mica</span></button>\n'
@@ -47,7 +47,7 @@ const COMPONENTS = [
       + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label">Bảng vẫy Mica hút nổi</span></button>\n</div>' },
 ];
 
-// Returns the outer HTML of the element whose opening tag matches `start`, balancing nested tags of the same name.
+// Trả về outer HTML của element có opening tag khớp `start`, cân bằng các tag lồng cùng tên.
 function extract(html, start) {
   const at = html.search(start);
   if (at < 0) throw new Error(`không tìm thấy ${start}`);
@@ -65,8 +65,8 @@ function extract(html, start) {
 const outputs = new Map();
 const photos = new Map();
 
-// Site images point at /assets/content/...; previews use a WebP variant copied under design-system/assets/Photos/:
-// 960px by default, 480px for card-sized components.
+// Ảnh site trỏ tới /assets/content/...; preview dùng biến thể WebP chép vào design-system/assets/Photos/:
+// mặc định 960px, 480px cho component cỡ card.
 function localizeImages(markup, size = 960) {
   return markup
     .replace(/\s+data-src="[^"]*"/g, '')
@@ -80,8 +80,8 @@ function localizeImages(markup, size = 960) {
     });
 }
 
-// A capture starts with <!-- capture ... html="..." body="..." -->; the preview restores those root classes,
-// then scrolls its frame to the [data-ds-focus] element once layout settles, since ancestors keep the page offsets.
+// Capture bắt đầu bằng <!-- capture ... html="..." body="..." -->; preview khôi phục các root class đó,
+// rồi cuộn frame tới element [data-ds-focus] sau khi layout ổn định, vì ancestor giữ page offset.
 function fromCapture(c, html) {
   const [, head, body] = html.match(/^<!-- capture (.*?) -->\n([\s\S]*)$/);
   const attr = (key) => head.match(new RegExp(`${key}="([^"]*)"`))[1];
@@ -115,7 +115,7 @@ for (const c of COMPONENTS) {
 
 outputs.set(`${OUT}/components/bundle.css`,
   '/* GENERATED by scripts/docs/build-design-system.mjs from src/site/style.css and src/site/detail.css; do not edit. */\n'
-  // Self-hosted @font-face URLs do not resolve on claude.ai; previews load the font from Google instead.
+  // @font-face URL self-hosted không resolve được trên claude.ai; preview tải font từ Google thay thế.
   + readFileSync('src/site/style.css', 'utf8').replace(/^\/\* Self-hosted[^\n]*\n|^@font-face \{[^}]*\}\n+/gm, '') + '\n' + readFileSync('src/site/detail.css', 'utf8'));
 
 const check = process.argv.includes('--check');

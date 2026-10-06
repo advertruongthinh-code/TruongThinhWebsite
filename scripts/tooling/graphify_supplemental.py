@@ -201,7 +201,7 @@ def main() -> int:
     args = parse_args()
     try:
         result = restore(args)
-    except Exception as error:  # noqa: BLE001 - CLI boundary reports one concise failure.
+    except Exception as error:  # noqa: BLE001 - biên CLI chỉ báo một lỗi ngắn gọn.
         print(json.dumps({"status": "error", "error": str(error)}, ensure_ascii=False))
         return 2
     print(json.dumps(result, ensure_ascii=False))

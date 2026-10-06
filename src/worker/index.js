@@ -303,8 +303,8 @@ async function renderRoute(request, env, url, route) {
     rewriter = rewriter.on("a[href]", new LocaleLink("vi"));
   }
 
-  // Static English attributes provide the non-SSR shell fallback. Apply D1
-  // fields afterward so canonical locale routes cannot be reverted by them.
+  // Attribute tiếng Anh tĩnh làm shell fallback khi không có SSR. Áp field D1
+  // sau đó để route locale canonical không bị chúng đảo ngược.
   if (content) {
     rewriter = rewriter
       .on(

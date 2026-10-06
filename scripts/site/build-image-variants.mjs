@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Builds AVIF/WebP responsive variants next to each public WebP under src/site/assets/content.
-// Usage: node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]
-//   map.json: { "assets/content/.../name.webp": "C:/abs/original.png" }; missing entries encode from the WebP.
+// Dựng biến thể AVIF/WebP responsive cạnh mỗi WebP public dưới src/site/assets/content.
+// Cách dùng: node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]
+//   map.json: { "assets/content/.../name.webp": "C:/abs/original.png" }; entry thiếu thì encode từ WebP.
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +21,7 @@ const walk = async (dir) => (await Promise.all((await readdir(dir, { withFileTyp
   return entry.isDirectory() ? walk(full) : [full];
 }))).flat();
 
-// Variant path for a WebP: name.avif (full width), name-480.webp, name-480.avif, ...
+// Đường dẫn variant của một WebP: name.avif (full width), name-480.webp, name-480.avif, ...
 const variantPaths = (file) => {
   const stem = file.slice(0, -".webp".length);
   return [{ file: `${stem}.avif`, width: null, format: "avif" },
@@ -41,7 +41,7 @@ for (const file of files) {
     if (variant.width && variant.width >= width) continue;
     if (!force && await stat(variant.file).catch(() => null)) continue;
     if (check) { missing.push(path.relative(sourceRoot, variant.file)); continue; }
-    // Originals are used only when they keep the published aspect ratio; otherwise the WebP stays the source.
+    // Chỉ dùng bản gốc khi chúng giữ đúng aspect ratio đã publish; nếu không, WebP vẫn là source.
     const original = originals[relative];
     const meta = original ? await sharp(original).metadata().catch(() => null) : null;
     const input = meta && Math.abs(meta.width / meta.height - width / height) < 0.005 ? original : file;

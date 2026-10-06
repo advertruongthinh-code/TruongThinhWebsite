@@ -1,12 +1,12 @@
-// Builds DESIGN.md and the .impeccable/design.json sidecar for Impeccable from design-system/ (docs/specs/docs-system.md R6).
-// Usage: node scripts/docs/build-design-md.mjs [--check]
+// Dựng DESIGN.md và sidecar .impeccable/design.json cho Impeccable từ design-system/ (docs/specs/docs-system.md R6).
+// Cách dùng: node scripts/docs/build-design-md.mjs [--check]
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { posix } from 'node:path';
 
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
 const readme = readFileSync('design-system/README.md', 'utf8');
 const title = `Design System: ${tokens.name}`;
-// JSON strings are valid YAML double-quoted scalars, so values with quotes or colons need no extra escaping.
+// JSON string là YAML double-quoted scalar hợp lệ, nên giá trị có dấu nháy hoặc dấu hai chấm không cần escape thêm.
 const q = (value) => (typeof value === 'number' ? String(value) : JSON.stringify(value));
 const map = (entries) => entries.map(([key, value]) => `  ${key}: ${q(value)}`).join('\n');
 
@@ -14,7 +14,7 @@ const description = readme.split('\n\n')[1].replace(/\s+/g, ' ').match(/^(.+?\.)
 const typography = tokens.type.groups.flatMap((g) => g.styles).map((s) => [
   `  ${s.name}:`,
   `    fontFamily: ${q(tokens.type.families[s.family ?? 'sans'] ?? tokens.type.families.sans)}`,
-  // tokens.json keeps the clamp() ceiling; the real CSS value is recorded in usage.
+  // tokens.json giữ trần của clamp(); giá trị CSS thật được ghi trong usage.
   `    fontSize: ${q(s.usage.match(/clamp\([^)]*\)/)?.[0] ?? s.fontSize)}`,
   `    fontWeight: ${q(s.fontWeight)}`,
   `    lineHeight: ${q(s.lineHeight)}`,
@@ -33,7 +33,7 @@ const frontmatter = [
   '---',
 ].join('\n');
 
-// README links are relative to design-system/; DESIGN.md sits at the repo root.
+// Link trong README tính theo design-system/; DESIGN.md nằm ở gốc repo.
 const body = readme
   .replace(/^# .*$/m, `# ${title}`)
   .replace(/\]\((?!https?:|#)([^)#]*)(#[^)]*)?\)/g, (_, path, hash = '') => `](${posix.normalize(posix.join('design-system', path))}${hash})`);

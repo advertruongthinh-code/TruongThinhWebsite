@@ -1,9 +1,9 @@
--- Optional placement metadata for the full-menu project slots.
+-- Metadata vị trí tùy chọn cho các slot project của full-menu.
 ALTER TABLE project_categories ADD COLUMN kind TEXT NOT NULL DEFAULT 'product' CHECK (
   kind IN ('project', 'product')
 );
--- SQLite only permits constant defaults when adding a column. Existing rows are
--- backfilled below; normal category updates refresh this field in the worker.
+-- SQLite chỉ cho default là hằng số khi thêm cột. Các row hiện có được
+-- backfill bên dưới; update category thông thường refresh field này trong worker.
 ALTER TABLE project_categories ADD COLUMN updated_at TEXT NOT NULL DEFAULT '';
 UPDATE project_categories
 SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
@@ -31,8 +31,8 @@ UPDATE project_categories
 SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE kind = 'project' AND updated_at = '';
 
--- Existing project rows used the shared product category IDs before category kind
--- was explicit. Preserve them by moving them to the nearest project category.
+-- Các row project hiện có từng dùng chung ID category product trước khi category kind
+-- được khai báo rõ. Giữ chúng bằng cách chuyển sang category project gần nhất.
 UPDATE projects
 SET category_id = CASE category_id
   WHEN 'signage-3d' THEN 'signage-project'
