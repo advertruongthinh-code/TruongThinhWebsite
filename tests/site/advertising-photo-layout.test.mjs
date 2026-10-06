@@ -166,13 +166,16 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
+    // A full-span primary has related cards below it, not beside it, so it keeps no peek.
+    const peek = geometry.span === geometry.columns ? 0 : sample.peek;
     closeTo(
       geometry.heightCap,
-      sample.height - geometry.top - sample.gap - sample.peek - 7,
+      sample.height - geometry.top - sample.gap - peek - 7,
     );
+    assert.equal(geometry.mode, geometry.span === geometry.columns && sample.width <= sample.height ? "pinterest" : "split");
     if (geometry.mode === "split") {
       closeTo(geometry.height, geometry.heightCap);
-      assert.ok(geometry.top + geometry.height + geometry.gap + geometry.belowPeek + 7 <= sample.height);
+      assert.ok(geometry.top + geometry.height + geometry.gap + peek + 7 <= sample.height);
     } else {
       assert.ok(geometry.top + geometry.height + 7 <= sample.height);
       assert.ok(geometry.imageZoneHeight <= geometry.width / (3000 / base.imageHeight) + 1e-9);
@@ -280,7 +283,8 @@ test("preserves output fields and contains every catalog photo across measured v
       cases += 1;
       assert.deepEqual(Object.keys(first).sort(), expectedFields);
       assert.equal(first.span, expectedSpan);
-      assert.equal(first.mode, first.span === first.columns ? "pinterest" : "split");
+      const fullSpan = first.span === first.columns;
+      assert.equal(first.mode, fullSpan && viewport.layoutViewportWidth <= viewport.viewportHeight ? "pinterest" : "split");
       assert.ok(first.imageWidth > 0);
       assert.ok(first.imageHeight > 0);
       assert.ok(first.descriptionWidth > 0);
@@ -292,7 +296,7 @@ test("preserves output fields and contains every catalog photo across measured v
         first.imageWidth < first.imageZoneWidth - 0.5 || first.imageHeight < first.imageZoneHeight - 0.5);
       if (first.mode === "split") {
         closeTo(first.height, first.heightCap);
-        assert.ok(first.top + first.height + first.gap + first.belowPeek <= viewport.viewportHeight + 1e-9);
+        assert.ok(first.top + first.height + first.gap + (fullSpan ? 0 : first.belowPeek) <= viewport.viewportHeight + 1e-9);
       } else {
         assert.ok(first.top + first.height <= viewport.viewportHeight);
         assert.ok(first.imageZoneHeight <= first.width / ratio + 1e-9);
@@ -346,7 +350,7 @@ test("validates finite inputs and rejects physically impossible geometry", () =>
     viewportHeight: 180,
     headerHeight: 100,
   }), RangeError);
-  const compactPinterest = computeAdvertisingPhotoGeometry({
+  const compactLandscape = computeAdvertisingPhotoGeometry({
     ...base,
     layoutViewportWidth: 390,
     columns: columnsForWidth(390),
@@ -354,7 +358,17 @@ test("validates finite inputs and rejects physically impossible geometry", () =>
     headerHeight: 100,
     imageWidth: 2000,
   });
+  assert.equal(compactLandscape.mode, "split");
+  assert.ok(compactLandscape.top + compactLandscape.height <= 188);
+  const compactPinterest = computeAdvertisingPhotoGeometry({
+    ...base,
+    layoutViewportWidth: 390,
+    columns: columnsForWidth(390),
+    viewportHeight: 400,
+    headerHeight: 280,
+    imageWidth: 2000,
+  });
   assert.equal(compactPinterest.mode, "pinterest");
-  assert.ok(compactPinterest.height <= 188);
-  assert.ok(compactPinterest.descriptionHeight + compactPinterest.internalGap <= 188 * 0.28);
+  assert.ok(compactPinterest.top + compactPinterest.height <= 400);
+  assert.ok(compactPinterest.descriptionHeight + compactPinterest.internalGap <= 400 * 0.28);
 });

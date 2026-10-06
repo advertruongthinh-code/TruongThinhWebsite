@@ -49,35 +49,40 @@ And không có clone ảnh giữa card và primary
 
 ### R2. Hình học primary
 
-`computeAdvertisingPhotoGeometry` (`layout-core.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4). `N = 4`
-là `split`: vùng ảnh hai cột, info một cột, cao bằng phần viewport dưới header trừ gap, `50px` và safe area, nên hàng related
-dưới lộ 50px. `N <= 3` là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
+`computeAdvertisingPhotoGeometry` (`layout-core.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
+không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột, info một cột,
+cao bằng phần viewport dưới header trừ gap và safe area; primary chưa chiếm hết cột thì trừ thêm `50px` để hàng related dưới
+lộ 50px, chiếm hết cột (điện thoại ngang) thì related xếp dưới, không chừa 50px. `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
 hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa phần viewport dưới header, không chừa 50px. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-advertising-photo-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ một dòng mô tả
 cùng nhóm, CTA, indicator thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
 ```gherkin
-Given viewport 1569×912 (4 cột) và viewport 820×912 (3 cột)
+Given viewport 1569×912 (4 cột), 820×912 (3 cột) và 891×360 (3 cột, điện thoại ngang)
 When mở cùng một ảnh ngang
 Then 1569px: layout split, primary span 3, ảnh hai cột, primary chừa 50px ở đáy viewport
 And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới header, info không quá 28% viewport
+And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao bằng vùng ảnh, related xếp dưới primary
 ```
 
 ### R3. Info: nhóm, mô tả, CTA
 
 Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, mô tả căn trái và CTA; không có tiêu đề ảnh. Mô tả không có thanh cuộn
-riêng: `paginateDescription` chia theo từ cho vừa pager; indicator `n / N` (aria-label "Trang mô tả n trên N" /
-"Description page n of N") chỉ hiện khi nhiều trang. Lật trang bằng `ArrowLeft`/`ArrowRight`, wheel ngang (`|dx| > |dy|`,
+riêng: `paginateDescription` chia theo từ cho vừa pager, mỗi trang trọn dòng; indicator (aria-label "Trang mô tả n trên N" /
+"Description page n of N") chỉ hiện khi nhiều trang. Từ 2 đến 5 trang, indicator là hàng chấm: mỗi trang một nút 24px chứa
+chấm tròn 8px viền `ink`, trang đang xem tô `ink` và `aria-current="true"`; bấm chấm nhảy tới trang đó. Từ 6 trang, indicator
+là chữ `n / N`. Lật trang bằng `ArrowLeft`/`ArrowRight`, wheel ngang (`|dx| > |dy|`,
 `|dx| >= 18`) hoặc kéo ngang: quá 8px theo chiều ngang thì giữ pointer, thả khi lệch từ 36px. Input dọc luôn cuộn trang.
 Resize, font tải xong tính lại trang và giữ trang đang đọc nếu còn. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab
 mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
 khoảng trên footer của site ([CTA giữa viewport R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn)).
 
 ```gherkin
-Given detail có mô tả dài hơn pager
+Given detail có mô tả dài hơn pager, từ 2 đến 5 trang
 When nhấn ArrowRight trong pager rồi wheel dọc trên mô tả
-Then indicator thành "2 / N"; wheel dọc cuộn trang, không đổi trang mô tả
+Then chấm thứ hai có aria-current="true"; wheel dọc cuộn trang, không đổi trang mô tả
+And bấm chấm cuối hiện trang cuối
 ```
 
 ### R4. Media primary và nền
