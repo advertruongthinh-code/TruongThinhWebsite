@@ -249,7 +249,7 @@ không sửa tay preview:
 | Nhóm | Component |
 | --- | --- |
 | Shell | [Header](design-system/components/Header/README.md), [Brand lockup](design-system/components/BrandLockup/README.md), [Full menu](design-system/components/FullMenu/README.md), [Footer](design-system/components/Footer/README.md), [Floating CTA](design-system/components/FloatingCta/README.md) |
-| Trang | [Hero](design-system/components/Hero/README.md), [Project reel](design-system/components/ProjectReel/README.md), [Gallery ngang](design-system/components/Gallery/README.md) |
+| Trang | [Hero](design-system/components/Hero/README.md), [Project reel](design-system/components/ProjectReel/README.md), [Gallery ngang](design-system/components/Gallery/README.md), [Banner CTA](design-system/components/BannerCta/README.md) |
 | Advertising | [Filter](design-system/components/Filter/README.md), [Media card](design-system/components/MediaCard/README.md), [Masonry](design-system/components/Masonry/README.md), [Skeleton](design-system/components/Skeleton/README.md), [Kính](design-system/components/Glass/README.md), [Primary](design-system/components/Primary/README.md), [Suggestion](design-system/components/Suggestion/README.md), [Viewer](design-system/components/Viewer/README.md), [Thanh tải](design-system/components/LoadBar/README.md) |
 
 Mẫu chưa có preview riêng:
@@ -278,8 +278,10 @@ Mẫu chưa có preview riêng:
 ## Nguồn tham khảo
 
 Design System chỉ mô tả Trường Thịnh. Nhịp layout, chữ và phần lớn motion
-tham khảo từ [Espacio Home Design](https://espaciohomedesign.com/); các báo
-cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commit>:<path>`:
+tham khảo từ [Espacio Home Design](https://espaciohomedesign.com/). Espacio chỉ
+là tham khảo: giá trị đã dùng được rút vào Design System và spec, không so khớp
+1:1, không là gate phát hành (owner, 2026-10-06). Các báo cáo khảo sát cũ và
+script đo parity nằm trong lịch sử Git, đọc bằng `git show <commit>:<path>`:
 
 - `3afef50:docs/reports/REFERENCE-MOTION-AUDIT.md`: audit source và đo live
   2026-08-01, chi tiết nhất.
@@ -291,6 +293,8 @@ cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commi
 - `fae6529:docs/archive/guides/motion-map.md`,
   `f76c14f:docs/reference/espacio/components.md`,
   `116367c:docs/specs/full-menu-reference-parity.md`.
+- `14170bb:scripts/tooling/run-layout-motion-parity.mjs` và các script
+  `*motion*` cùng thư mục, `14170bb:scripts/reference/archive-reference.mjs`.
 
 Hero dựng như title card theo cảm hứng owner chọn: chữ lớn mở cảnh của
 [Resident Evil Requiem](https://www.jank.cool/resident-evil-requiems-big-text-splashes-explained/)

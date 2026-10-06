@@ -42,8 +42,7 @@ public.
 | 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/static-release.md), [STATE](STATE.md) |
 | 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [Spec CMS](specs/cms.md) |
 
-Việc còn mở của phase 1 (owner kiểm nhận giao diện, full-site parity, fact chưa
-xác minh) được [STATE](STATE.md) theo dõi; không lặp lại ở đây.
+Việc còn mở của phase 1 (owner kiểm nhận giao diện, fact chưa xác minh) được [STATE](STATE.md) theo dõi; không lặp lại ở đây.
 
 ## Điều kiện chuyển sang phase 2
 

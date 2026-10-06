@@ -69,7 +69,8 @@
         "signage-raised-letters-26-owner-20260924.webp",
         "storefront.webp",
         "survey-modern.webp",
-        "washroom-projecting-03-480.webp"
+        "washroom-projecting-03-480.webp",
+        "workshop-wide.webp"
       ],
       "files": {
         "cnc.webp": {
@@ -388,6 +389,12 @@
           "name": "washroom-projecting-03-480.webp",
           "blob": "815761ac2e743b4193054def1f2025c4",
           "size": 11738,
+          "type": "image/webp"
+        },
+        "workshop-wide.webp": {
+          "name": "workshop-wide.webp",
+          "blob": "08e00bbc9a3e4b4c738c7e2884b3b9f5",
+          "size": 72228,
           "type": "image/webp"
         }
       }

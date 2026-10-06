@@ -174,7 +174,7 @@ không sửa tay preview:
 | Nhóm | Component |
 | --- | --- |
 | Shell | [Header](components/Header/README.md), [Brand lockup](components/BrandLockup/README.md), [Full menu](components/FullMenu/README.md), [Footer](components/Footer/README.md), [Floating CTA](components/FloatingCta/README.md) |
-| Trang | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md) |
+| Trang | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md), [Banner CTA](components/BannerCta/README.md) |
 | Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Kính](components/Glass/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Thanh tải](components/LoadBar/README.md) |
 
 Mẫu chưa có preview riêng:
@@ -203,8 +203,10 @@ Mẫu chưa có preview riêng:
 ## Nguồn tham khảo
 
 Design System chỉ mô tả Trường Thịnh. Nhịp layout, chữ và phần lớn motion
-tham khảo từ [Espacio Home Design](https://espaciohomedesign.com/); các báo
-cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commit>:<path>`:
+tham khảo từ [Espacio Home Design](https://espaciohomedesign.com/). Espacio chỉ
+là tham khảo: giá trị đã dùng được rút vào Design System và spec, không so khớp
+1:1, không là gate phát hành (owner, 2026-10-06). Các báo cáo khảo sát cũ và
+script đo parity nằm trong lịch sử Git, đọc bằng `git show <commit>:<path>`:
 
 - `3afef50:docs/reports/REFERENCE-MOTION-AUDIT.md`: audit source và đo live
   2026-08-01, chi tiết nhất.
@@ -216,6 +218,8 @@ cáo khảo sát cũ nằm trong lịch sử Git, đọc bằng `git show <commi
 - `fae6529:docs/archive/guides/motion-map.md`,
   `f76c14f:docs/reference/espacio/components.md`,
   `116367c:docs/specs/full-menu-reference-parity.md`.
+- `14170bb:scripts/tooling/run-layout-motion-parity.mjs` và các script
+  `*motion*` cùng thư mục, `14170bb:scripts/reference/archive-reference.mjs`.
 
 Hero dựng như title card theo cảm hứng owner chọn: chữ lớn mở cảnh của
 [Resident Evil Requiem](https://www.jank.cool/resident-evil-requiems-big-text-splashes-explained/)
