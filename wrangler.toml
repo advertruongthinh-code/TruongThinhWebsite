@@ -1,5 +1,5 @@
-# Dormant until the owner activates the CMS phase.
-# Current static workflows must not invoke this configuration.
+# Dormant đến khi owner kích hoạt phase CMS.
+# Workflow static hiện tại không được gọi cấu hình này.
 name = "truong-thinh-website"
 main = "src/worker/index.js"
 compatibility_date = "2026-07-31"

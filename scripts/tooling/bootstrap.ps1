@@ -68,9 +68,9 @@ function Install-GlobalPython {
       throw "Global Serena installation failed and no locked launcher exists for safe repair."
     }
 
-    # pip cannot replace a running Windows console launcher. Restore the wheel
-    # payload without touching the generic launcher; new MCP processes then use
-    # the upgraded package while existing processes finish on their loaded code.
+    # pip không thay được launcher console Windows đang chạy. Khôi phục payload
+    # của wheel mà không động vào launcher chung; MCP process mới sau đó dùng
+    # package đã nâng cấp trong khi process đang chạy tiếp tục với code đã nạp.
     $serenaStage = Join-Path $stagingRoot "serena-locked-repair"
     New-Item -ItemType Directory -Force -Path $serenaStage | Out-Null
     & $python -m pip install --disable-pip-version-check --no-deps --target $serenaStage "serena-agent==$($pins.python.'serena-agent')"
@@ -104,7 +104,7 @@ function Install-GlobalNode {
     }
   }
   Write-Utf8Atomic (Join-Path $nodeRoot "package.json") (($package | ConvertTo-Json -Depth 5) + [Environment]::NewLine)
-  # Impeccable 4 ships its engine as a platform-specific optional dependency.
+  # Impeccable 4 phát hành engine dưới dạng optional dependency theo platform.
   & (Get-ProjectPnpm) --dir $nodeRoot install --no-frozen-lockfile
   if ($LASTEXITCODE -ne 0) { throw "Global Node dependency installation failed." }
 }
@@ -123,8 +123,8 @@ function Install-PnpmShim {
 }
 
 function Install-GlobalSkills {
-  # Claude Code skills come from the pinned plugins (local-setup.ps1), same as cloud-setup.sh.
-  # Codex reinstalls its own skills when needed; only the Graphify skill is kept here.
+  # Skill của Claude Code đến từ plugin đã pin (local-setup.ps1), giống cloud-setup.sh.
+  # Codex tự cài lại skill của nó khi cần; ở đây chỉ giữ skill Graphify.
   & (Join-Path $PSScriptRoot "local-setup.ps1")
   & (Join-Path $globalRoot "python\Scripts\graphify.exe") install --platform agents
   if ($LASTEXITCODE -ne 0) { throw "Graphify global skill installation failed." }

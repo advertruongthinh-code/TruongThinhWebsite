@@ -1,18 +1,18 @@
-// Docs gate (docs/specs/docs-system.md R4): links, line budgets, spec ownership and code-spec sync.
+// Docs gate (docs/specs/docs-system.md R4): link, line budget, ownership của spec và sync code-spec.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
-// tasks/plan.md and todo.md keep their pre-overhaul format until their batches close.
+// tasks/plan.md và todo.md giữ format cũ trước overhaul đến khi batch của chúng đóng.
 const LEGACY = /^tasks\/(plan|todo)\.md$/;
-// Raw evidence under source-assets/ and research/ stays on the owner's PC by design (docs/index.md).
+// Evidence thô dưới source-assets/ và research/ nằm trên PC của owner theo thiết kế (docs/index.md).
 const LOCAL_EVIDENCE = /^(source-assets|research)\//;
 const files = git('ls-files', '*.md').split('\n').filter((f) => f && !LEGACY.test(f));
 const errors = [];
 const anchorCache = new Map();
 
-// GitHub heading slug: lowercase, drop punctuation, spaces to hyphens, number duplicates.
+// GitHub heading slug: chữ thường, bỏ dấu câu, space thành hyphen, đánh số khi trùng.
 function anchors(file) {
   if (!anchorCache.has(file)) {
     const seen = new Map();
@@ -57,7 +57,7 @@ for (const file of files) {
   });
 }
 
-// Line budgets (docs/specs/docs-system.md R4, R9).
+// Line budget (docs/specs/docs-system.md R4, R9).
 const BUDGET = { 'docs/STATE.md': 50, 'docs/index.md': 80 };
 for (const file of files) {
   const max = file.startsWith('docs/specs/') ? 300 : BUDGET[file];
@@ -65,7 +65,7 @@ for (const file of files) {
   if (lines > max) errors.push(`${file}: ${lines} dòng, vượt giới hạn ${max}`);
 }
 
-// Specs own source files through the `source:` globs in their frontmatter.
+// Spec sở hữu file source qua glob `source:` trong frontmatter.
 const specs = files
   .filter((f) => f.startsWith('docs/specs/') && !f.endsWith('_template.md'))
   .map((file) => {
@@ -75,12 +75,12 @@ const specs = files
   .filter((s) => s.globs.length);
 const owners = (path) => specs.filter((s) => s.globs.some((g) => matchesGlob(path, g)));
 
-// Every non-media file in src/site/ belongs to a spec.
+// Mọi file không phải media trong src/site/ thuộc về một spec.
 const MEDIA = /\.(avif|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
 const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
 if (unowned.length) errors.push(`ownership: ${unowned.length} file trong src/site/ chưa thuộc spec nào: ${unowned.join(', ')}`);
 
-// Sync runs on pull requests: CI sets DOCS_BASE to the base commit and PR_BODY to the description.
+// Sync chạy trên pull request: CI đặt DOCS_BASE là base commit và PR_BODY là mô tả.
 if (process.env.DOCS_BASE) {
   const changed = git('diff', '--name-only', `${process.env.DOCS_BASE}...HEAD`).split('\n').filter(Boolean);
   const waived = /^Spec: không đổi - \S/m.test(process.env.PR_BODY ?? '');
@@ -92,7 +92,7 @@ if (process.env.DOCS_BASE) {
   }
 }
 
-// Design drift (R5.2): each custom property in the top :root block of style.css has a same-named token with the same value.
+// Design drift (R5.2): mỗi custom property trong khối :root trên cùng của style.css có token cùng tên và cùng giá trị.
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
 const tokenValues = new Map(Object.values(tokens).flatMap((family) => family?.tokens ?? [])
   .map((t) => [t.name, typeof t.value === 'string' ? t.value : Object.values(t.value)[0]]));
@@ -105,7 +105,7 @@ for (const [name, raw] of rootVars) {
   else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} là ${value} trong CSS nhưng token ghi ${tokenValues.get(name)}`);
 }
 
-// Generated files: previews, bundle.css and photos match the site source (R5.3); DESIGN.md and its sidecar match design-system/ (R6).
+// File generated: preview, bundle.css và ảnh khớp source site (R5.3); DESIGN.md và sidecar khớp design-system/ (R6).
 for (const script of ['build-design-system.mjs', 'build-design-md.mjs']) {
   try {
     execFileSync(process.execPath, [`scripts/docs/${script}`, '--check'], { encoding: 'utf8', stdio: 'pipe' });
@@ -114,7 +114,7 @@ for (const script of ['build-design-system.mjs', 'build-design-md.mjs']) {
   }
 }
 
-// Captured Advertising markup (R5.3): every class in a preview still exists in the site source (CSS, runtime, HTML), else re-capture.
+// Markup Advertising đã capture (R5.3): mọi class trong preview vẫn còn trong source site (CSS, runtime, HTML), nếu không thì capture lại.
 const siteText = git('ls-files', 'src/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
 for (const preview of git('ls-files', 'design-system/components/*/preview.html').split('\n').filter(Boolean)) {
   const classes = new Set([...readFileSync(preview, 'utf8').matchAll(/\sclass="([^"]*)"/g)].flatMap(([, list]) => list.split(/\s+/)).filter(Boolean));

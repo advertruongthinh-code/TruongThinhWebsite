@@ -1,4 +1,4 @@
--- Forward-only and repeat-safe: reconcile databases that already applied 0001.
+-- Forward-only và an toàn khi chạy lại: đối soát các database đã áp 0001.
 UPDATE pages
 SET
   content_json = json_set(
