@@ -1201,7 +1201,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     zoomOutButton: photoZoomOut,
     zoomStatus: photoZoomStatus,
   });
-  const armedMediaCards = new Set();
+  // Media keys that loaded once: a remounted card swaps them in without Kính once its cached copy arrives.
+  const loadedMediaKeys = new Set();
   const visibleMediaCards = new Set();
   const mediaKey = (node) => node.dataset.advertisingRelatedCard
     ? `related:${node.dataset.advertisingRelatedCard}` : `grid:${node.dataset.advertisingCard}`;
@@ -1210,8 +1211,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     .forEach((media) => media.classList.add("is-advertising-media-ready"));
   const handleMediaLoaded = (node) => {
     const id = mediaKey(node);
-    if (cardSkeletons.has(node) || (visibleMediaCards.has(id) && armedMediaCards.has(id))) revealCard(node);
-    else if (reduced || visibleMediaCards.has(id)) showMedia(node);
+    const seen = loadedMediaKeys.has(id);
+    loadedMediaKeys.add(id);
+    if (!cardSkeletons.has(node) || seen) {
+      dropCardSkeleton(node);
+      showMedia(node);
+    } else revealCard(node);
   };
   // Reduced motion still observes: loading skeletons appear only on cards in view.
   const mediaObserver = new IntersectionObserver((entries) => {
@@ -1221,29 +1226,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!id) return;
       if (entry.intersectionRatio === 0) {
         visibleMediaCards.delete(id);
-        armedMediaCards.add(id);
         // The skeleton's colours stay with the media id, so dropping it here keeps them for the next entry.
         dropCardSkeleton(node);
-        if (!reduced) hideCardMedia(node);
         return;
       }
       if (!entry.isIntersecting) return;
       visibleMediaCards.add(id);
-      if (node.advertisingPendingMediaId?.()) attachCardSkeleton(node);
-      else if (armedMediaCards.has(id) && node.dataset.advertisingMediaLoaded === "true") revealCard(node);
+      attachCardSkeleton(node);
     });
   }, { threshold: 0 });
-  const observeMediaCard = (node) => {
-    const id = mediaKey(node);
-    armedMediaCards.add(id);
-    mediaObserver.observe(node);
-  };
+  const observeMediaCard = (node) => mediaObserver.observe(node);
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
     node.querySelectorAll("video").forEach((video) => video.pause());
     mediaObserver.unobserve(node);
     visibleMediaCards.delete(id);
-    armedMediaCards.add(id);
     dropCardSkeleton(node);
   };
   let filter = new URLSearchParams(location.search).get("category") || "all";
@@ -1885,8 +1882,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     host.append(glass);
     return glass;
   };
-  // Every viewport entry reveals media under Kính in 0.6s: from the skeleton while it loads, else from an empty
-  // frame (loading-glass-and-page-entry R1-R3).
+  // Media that loads behind a skeleton reveals under Kính in 0.6s; media already loaded shows at once
+  // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
   const attachCardSkeleton = (node) => {
     const mediaId = node.advertisingPendingMediaId?.();
@@ -1903,11 +1900,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     entry.glass?.remove();
     if (entry.frame) detachLoadingSkeleton(entry.frame);
   };
-  // Media leaving the viewport goes back to an empty frame, so the next entry reveals it again.
-  const hideCardMedia = (node) => mediaLayers(node).forEach((media) => {
-    media.style.setProperty("transition", "none", "important");
-    media.classList.remove("is-advertising-media-ready");
-  });
   const heldReveals = new Set();
   let lastScrollAt = 0;
   let revealHoldTimer = 0;
@@ -1935,7 +1927,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const failed = layer instanceof HTMLImageElement && !layer.naturalWidth;
     if (failed || reduced || !visibleMediaCards.has(id)) {
       dropCardSkeleton(node);
-      if (reduced && !failed) showMedia(node);
+      if (!failed) showMedia(node);
       return;
     }
     if (!entry) {
@@ -1943,13 +1935,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       cardSkeletons.set(node, entry);
     }
     entry.revealing = true;
-    armedMediaCards.delete(id);
     // Swap only a decoded photo so the crossfade never paints a half-decoded frame (R2).
     const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
     decoded.then(() => {
       if (cardSkeletons.get(node) !== entry) return;
       if (!visibleMediaCards.has(id)) {
         dropCardSkeleton(node);
+        showMedia(node);
         return;
       }
       const layers = mediaLayers(node);

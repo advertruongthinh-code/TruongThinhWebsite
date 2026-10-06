@@ -2553,7 +2553,8 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-dialog::backdrop {
   background: rgba(32, 33, 32, 0.85);
   opacity: 1;
-  backdrop-filter: blur(4px);
+  /* Kính blur with the even surface's colour lift, kept dark (advertising-detail R9). */
+  backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
 }
 
 .advertising-photo-dialog[data-advertising-viewer-state="opening"]::backdrop {

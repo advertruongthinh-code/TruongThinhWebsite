@@ -164,6 +164,7 @@ try {
         if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
         window.__ttRevealGlass.push({
           host: node.closest("[data-advertising-photo-view]") ? "primary" : "card",
+          card: node.closest("[data-advertising-card]")?.dataset.advertisingCard,
           steps: node.querySelectorAll(".glass-surface__step").length,
           end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
             .map((animation) => animation.effect.getComputedTiming().endTime))),
@@ -212,16 +213,31 @@ try {
       `${viewport.width}px: loading cards reveal through five Kính steps in 0.6 s, opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
       `${viewport.width}px: the reveal Kính leaves the cards`);
-    // A loaded card that left the viewport reveals again from an empty frame, same 0.6 s Kính (R3).
+    // A loaded card that left the viewport shows again at once: no Kính, no skeleton (R3).
+    const loadedIds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+      .filter((card) => card.querySelector("img")?.naturalWidth > 0).map((card) => card.dataset.advertisingCard));
     const revealsBefore = cardGlass.length;
     const scrollTo = (y) => page.evaluate((top) => window.TruongThinhMotion.setLogicalScroll(top), y);
     await scrollTo(4000);
     await page.waitForTimeout(600);
     await scrollTo(0);
-    await page.waitForFunction((count) => window.__ttRevealGlass.filter(({ host }) => host === "card").length > count,
-      revealsBefore, { timeout: 5000 }).catch(() => assert.fail(`${viewport.width}px: a re-entering card reveals under Kính`));
-    const reentry = (await revealGlass("card")).slice(revealsBefore);
-    assert.ok(reentry.every(({ steps, end }) => steps === 5 && end <= 601), `${viewport.width}px: re-entry uses the 0.6 s Kính ${JSON.stringify(reentry.slice(0, 2))}`);
+    // Remounted cards may hold a skeleton until their cached copy arrives; then it swaps in without Kính.
+    const inView = () => page.evaluate((ids) => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
+      .filter((card) => ids.includes(card.dataset.advertisingCard))
+      .filter((card) => { const { top, bottom } = card.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
+      .map((card) => ({ id: card.dataset.advertisingCard, skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton]")),
+        opacity: getComputedStyle(card.querySelector("img")).opacity })), loadedIds);
+    let reentry = [];
+    for (let tries = 0; tries < 50; tries += 1) {
+      reentry = await inView();
+      if (reentry.length && reentry.every(({ skeleton, opacity }) => !skeleton && opacity === "1")) break;
+      await page.waitForTimeout(200);
+    }
+    assert.ok(reentry.length, `${viewport.width}px: loaded cards are back in view`);
+    assert.deepEqual(reentry.filter(({ skeleton, opacity }) => skeleton || opacity !== "1"), [],
+      `${viewport.width}px: a re-entering loaded card shows without skeleton`);
+    const reentryGlass = (await revealGlass("card")).slice(revealsBefore).filter(({ card }) => loadedIds.includes(card));
+    assert.deepEqual(reentryGlass, [], `${viewport.width}px: a re-entering loaded card starts no Kính reveal`);
     // Cards that finish loading right now still reveal from their skeleton; let those settle first.
     await page.waitForTimeout(700);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]

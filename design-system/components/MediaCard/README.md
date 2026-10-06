@@ -11,8 +11,8 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 - Vị trí và kích thước do masonry đặt bằng inline style (`left`, `top`,
   `width`, `height`).
 - Vào viewport khi ảnh chưa tải thì khung media mang ngay
-  [skeleton](../Skeleton/README.md) cuối masonry; mỗi lần ảnh hiện (từ skeleton
-  hoặc từ khung trống) đều qua Kính `0.6s` ([Motion](../../motion.md#ảnh-trong-card)).
+  [skeleton](../Skeleton/README.md) cuối masonry, ảnh về thì hiện qua Kính
+  `0.6s`; ảnh đã có sẵn hiện ngay, không motion ([Motion](../../motion.md#ảnh-trong-card)).
 - Card một ảnh: hover hoặc focus thì ảnh `scale(1.15)` trong `600ms`, khung
   giữ nguyên.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
