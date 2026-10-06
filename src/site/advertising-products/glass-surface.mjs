@@ -18,33 +18,43 @@ const FADE = 48;
 const STEP_REACH = [14, 34, 76];
 const CORE_REACH = 84;
 const GRAIN_SIZE = 160;
+// Mean white the arc's grain adds (opacity 0.16 x mean alpha 0.5, detail.css); the tint carries that much less.
+const GRAIN_WHITE = 0.08;
 let grain;
 const waitingForGrain = [];
 
 // The grain lives on each Kính, not on html, so its late arrival restyles the glass and not the whole page.
 const setGrain = (glass) => {
-  glass.style.setProperty("--glass-grain", grain);
+  glass.style.setProperty("--glass-grain", grain.grey);
+  glass.style.setProperty("--glass-grain-white", grain.white);
   glass.style.setProperty("--glass-grain-size", `${GRAIN_SIZE / (window.devicePixelRatio || 1)}px`);
 };
 
-// Static mono noise, one texel per device pixel; overlay keeps pure white white.
+// Static mono noise, one texel per device pixel: grey for overlay (overlay keeps pure white white), and the
+// same noise as white alpha for the arc (detail.css).
 function makeGrain() {
   grain = "";
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = GRAIN_SIZE;
   const context = canvas.getContext("2d");
   if (!context) return;
-  const image = context.createImageData(GRAIN_SIZE, GRAIN_SIZE);
-  const pixels = new Uint32Array(image.data.buffer);
+  const [grey, white] = [0, 1].map(() => context.createImageData(GRAIN_SIZE, GRAIN_SIZE));
+  const [greyPixels, whitePixels] = [grey, white].map((image) => new Uint32Array(image.data.buffer));
   let state = 0x9e3779b9;
-  for (let index = 0; index < pixels.length; index += 1) {
+  for (let index = 0; index < greyPixels.length; index += 1) {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    pixels[index] = 0xff000000 | (state >>> 24) * 0x10101;
+    const value = state >>> 24;
+    greyPixels[index] = 0xff000000 | value * 0x10101;
+    whitePixels[index] = (value << 24 | 0xffffff) >>> 0;
   }
-  context.putImageData(image, 0, 0);
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    grain = `url(${URL.createObjectURL(blob)})`;
+  // toBlob copies the bitmap when called, so one canvas serves both.
+  const url = (image) => new Promise((resolve) => {
+    context.putImageData(image, 0, 0);
+    canvas.toBlob((blob) => resolve(blob && `url(${URL.createObjectURL(blob)})`));
+  });
+  Promise.all([url(grey), url(white)]).then(([greyUrl, whiteUrl]) => {
+    if (!greyUrl || !whiteUrl) return;
+    grain = { grey: greyUrl, white: whiteUrl };
     waitingForGrain.splice(0).forEach(setGrain);
   });
 }
@@ -154,14 +164,16 @@ export function layoutArcGlass(glass, { width, batchBottom, band, radius, cy, dF
       + `#000 ${radius + RAMPS[index][0] * band}px, transparent ${outer}px)`);
   });
   // White follows the same circles: pure from the corner circle, tint on the arc, none at the band edge.
+  // The grain (mask m below) adds GRAIN_WHITE * m on average, so the tint holds back that share.
+  const white = (alpha, m) => Math.max(0, (alpha - GRAIN_WHITE * m) / (1 - GRAIN_WHITE * m)).toFixed(4);
   const stops = [];
   for (let index = 0; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${(ARC.tint + (1 - ARC.tint) * smooth(1 - x)).toFixed(4)}) ${(dFull + (radius - dFull) * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${white(ARC.tint + (1 - ARC.tint) * smooth(1 - x), Math.min(1, 2 * x))}) ${(dFull + (radius - dFull) * x).toFixed(1)}px`);
   }
   for (let index = 1; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${(ARC.tint * smooth(1 - x)).toFixed(4)}) ${(radius + band * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${white(ARC.tint * smooth(1 - x), 1 - x)}) ${(radius + band * x).toFixed(1)}px`);
   }
   const tint = glass.querySelector(".glass-surface__tint");
   place(tint, top);

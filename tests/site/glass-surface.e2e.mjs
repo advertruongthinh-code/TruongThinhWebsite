@@ -9,7 +9,9 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
-const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
+// GPU compositing (SwiftShader) as on a real Chrome; software compositing blurs each layer's backdrop on its own.
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
+  args: ["--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 
 const arcState = () => {
   const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
@@ -37,7 +39,7 @@ const arcState = () => {
     realBottom: Number(document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaRealBottom),
     batchBottom: top(tint) + Number.parseFloat(tint.style.height) - 2,
     batchBottomOnScreen: box.top + top(tint) + Number.parseFloat(tint.style.height) - 2,
-    grain: getComputedStyle(glass).getPropertyValue("--glass-grain"),
+    grain: [getComputedStyle(glass).getPropertyValue("--glass-grain"), getComputedStyle(glass).getPropertyValue("--glass-grain-white")],
     grainBlend: getComputedStyle(glass.querySelector(".glass-surface__grain")).mixBlendMode,
   };
 };
@@ -86,7 +88,8 @@ try {
       check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
       check(Math.abs(state.centreY - yIn - 4 * width) <= 1 || state.centreY - yIn > 4 * width,
         `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 4 viewport widths`);
-      check(state.grain.startsWith("url(blob:") && state.grainBlend === "overlay", `${label}: R4 grain missing`);
+      // R4: the arc's grain is white noise blended normally (a blended layer drops the steps' blur in Chromium).
+      check(state.grain.every((url) => url.startsWith("url(blob:")) && state.grainBlend === "normal", `${label}: R4 grain missing`);
       // R3, R4: the last row above the batch bottom (its corners sit on the pure white circle) stays white
       // within 1/255 and carries no grain.
       const shot = await page.screenshot({ clip: { x: 0, y: Math.floor(state.batchBottomOnScreen) - 1, width, height: 1 } });
@@ -98,6 +101,25 @@ try {
       const line = await page.screenshot({ clip: { x: 0, y: footerTop, width, height: 1 } });
       const lineData = (await sharp(line).removeAlpha().raw().toBuffer()).reduce((min, value) => Math.min(min, value), 255);
       check(lineData <= 230, `${label}: footer top line hidden by the arc Kính (darkest channel ${lineData})`);
+      if (width === 1440) {
+        // R2: black and white stripes under the core, below the CTA copy, blur away (sharp edges step by about 255).
+        const stripesTop = await page.evaluate(() => {
+          const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
+          const bottom = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc] .glass-surface__tint").getBoundingClientRect().bottom;
+          const node = Object.assign(document.createElement("div"), { id: "glass-stripes" });
+          Object.assign(node.style, { position: "absolute", left: "0", width: "300px", height: "200px",
+            top: `${bottom - skeleton.getBoundingClientRect().top - 200}px`, background: "repeating-linear-gradient(90deg, #000 0 40px, #fff 40px 80px)" });
+          skeleton.append(node);
+          return bottom - 200;
+        });
+        await page.waitForTimeout(600);
+        const shot = await page.screenshot({ clip: { x: 0, y: stripesTop, width: 300, height: 160 } });
+        const pixels = await sharp(shot).removeAlpha().greyscale().raw().toBuffer();
+        let step = 0;
+        for (let index = 0; index < pixels.length - 4; index += 1) if (index % 300 < 296) step = Math.max(step, Math.abs(pixels[index] - pixels[index + 4]));
+        check(step <= 30, `${label}: R2 stripes under the arc core stay sharp (4px step ${step})`);
+        await page.evaluate(() => document.getElementById("glass-stripes").remove());
+      }
       check(!errors.length, `${label}: page errors ${errors.join(" | ")}`);
     } finally {
       await page.close();
