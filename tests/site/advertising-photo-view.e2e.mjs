@@ -221,14 +221,19 @@ async function wheelContent(page, deltaY, stage, settlements) {
 
 async function wheelUntilExpandVisible(page, label, settlements) {
   for (let attempt = 1; attempt <= 12; attempt += 1) {
-    const visible = await page.evaluate(() => {
+    // Wheel toward the button: a smooth-scrolled page keeps native scrollY at 0, so a locator click's
+    // native scrollIntoView would shift the page under Locomotive instead of scrolling it like a person.
+    const offset = await page.evaluate(() => {
       const rect = document.querySelector("[data-advertising-photo-expand]")?.getBoundingClientRect();
-      return Boolean(rect && rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth);
+      if (!rect) return null;
+      if (rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth) return 0;
+      return rect.top + rect.height / 2 - innerHeight / 2;
     });
-    if (visible) return;
-    await wheelContent(page, -500, `${label}:reopen-wheel-${attempt}`, settlements);
+    if (offset === 0) return;
+    const deltaY = offset === null ? -500 : Math.max(-500, Math.min(500, offset));
+    await wheelContent(page, deltaY, `${label}:expand-wheel-${attempt}`, settlements);
   }
-  assert.fail(`${label}: expand button did not return to viewport after 12 real content-wheel attempts`);
+  assert.fail(`${label}: expand button did not reach the viewport after 12 real content-wheel attempts`);
 }
 
 async function ensureParentMediaHydrated(page, label, settlements) {
@@ -556,9 +561,12 @@ async function assertDescriptionKeyboardScroll(page, label) {
   closeTo(await page.evaluate(pageScroll), initialPageScroll, `${label}: wheel must scroll only the description`, 2);
 }
 
-async function openDialog(page, { touch = false } = {}) {
+async function openDialog(page, { touch = false, label, settlements } = {}) {
   const expand = page.locator("[data-advertising-photo-expand]");
   await assertVisible(expand, "expand button");
+  // The pre-open style baseline must not catch the route transition class mid-flight.
+  await page.waitForFunction(() => !document.body.classList.contains("is-transitioning"));
+  if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
   const baseline = await page.evaluate(() => {
     const button = document.querySelector("[data-advertising-photo-expand]");

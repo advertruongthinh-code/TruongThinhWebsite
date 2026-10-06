@@ -444,10 +444,11 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(actual.background.tabIndex < 0, `${label}: background is keyboard focusable`);
   assert.equal(actual.background.pointerEvents, "none", `${label}: background accepts pointer input`);
   assert.equal(actual.background.objectFit, "cover", `${label}: background must use object-fit cover`);
-  assert.equal(actual.background.filter, "none", `${label}: source image still owns the blur effect`);
+  // The photo carries the full step's blur so a tab-hover raster tile cannot split it; the Kính keeps tint and grain.
+  assert.equal(actual.background.filter, "blur(28px) saturate(1.7) brightness(1.04)", `${label}: background does not carry the full Kính blur`);
   assert.equal(actual.glass?.shape, "even", `${label}: photo overflow is not the even Kính`);
   assert.equal(actual.glass.display, actual.containOverflow ? "block" : "none", `${label}: Kính does not follow contain overflow`);
-  assert.deepEqual(actual.glass.steps, ["blur(28px) saturate(1.7) brightness(1.04)"], `${label}: photo Kính is not one full step`);
+  assert.deepEqual(actual.glass.steps, [], `${label}: photo Kính still has a backdrop blur step`);
   assert.equal(actual.glass.tint, "rgba(255, 255, 255, 0.12)", `${label}: photo overflow changed the Kính tint`);
   assert(!actual.background.morph, `${label}: background participates in morph`);
   assert(["hidden", "clip"].includes(actual.frameOverflow), `${label}: hero frame does not clip decorative background`);

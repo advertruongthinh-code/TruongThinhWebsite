@@ -15,6 +15,8 @@ try {
     for (const detail of [true, false]) {
       const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
       await page.goto(`http://127.0.0.1:8787/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+      // The direct-load veil blocks pointer input until the page has mounted.
+      await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       const card = page.locator(detail ? "[data-advertising-related-card]" : "[data-advertising-card]").first();
       await card.scrollIntoViewIfNeeded();
       const image = card.locator("img");
@@ -68,6 +70,8 @@ try {
     });
     const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
     await page.goto(`http://127.0.0.1:8787/vi/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     const selector = detail ? "[data-advertising-related-card]" : "[data-advertising-card]";
     const card = page.locator(selector).first();
     await card.scrollIntoViewIfNeeded();

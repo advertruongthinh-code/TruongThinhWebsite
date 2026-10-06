@@ -62,7 +62,7 @@ assert.doesNotMatch(index, /class="detail-cta__skeleton"/, "legacy three-column 
 assert.match(runtime, /geometry\.columnBottoms[\s\S]*?dataset\.advertisingCtaFrame/, "CTA continuation starts from the compiled column frontiers");
 assert.doesNotMatch(runtime + advertisingCss, /skeleton-dev|skeleton-flow-devtools|createSkeletonFlowDevtools/, "temporary skeleton editor must not ship");
 assert.equal(existsSync(new URL("../../src/site/advertising-products/skeleton-flow-devtools.mjs", import.meta.url)), false, "temporary editor module is removed, not merely disabled");
-assert.match(runtime, /const skeletonFlowAssignmentBySlot = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
+assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
 assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
 assert.match(runtime, /gridPixelHeight[\s\S]*?createMasonry\(grid, positions, \(\) => gridPixelHeight\)/, "Masonry owns the complete photo and skeleton height");
 assert.doesNotMatch(index, /data-advertising-photo-back(?:\s|=|>)/, "photo state does not expose a dedicated Back control");
@@ -92,7 +92,7 @@ assert.match(runtime, /rank:\s*0/, "synthetic suggestion owns rank zero");
 assert.match(runtime, /sourceOrder:\s*0/, "synthetic suggestion owns sourceOrder zero");
 assert.match(index, /data-advertising-photo-expand[\s\S]*?<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/, "photo expand uses the simple two-arrow icon");
 assert.match(index, /data-advertising-photo-zoom-reset[\s\S]*?<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/, "photo reset uses the matching two-arrow icon");
-assert.doesNotMatch(css, /\[data-advertising-photo-background\][^{]*\{[^}]*filter:\s*blur\(/, "photo overflow does not fake glass by blurring its source image");
+assert.match(css, /\[data-advertising-photo-background\][^{]*\{[^}]*filter:\s*blur\(28px\) saturate\(1\.7\) brightness\(1\.04\);/, "primary background owns its static blur so tab thumbnails do not split the glass");
 assert.doesNotMatch(runtime, /photoBackground\.style\.filter|filter:\s*"blur\(/, "photo overflow motion leaves blur ownership to the shared glass surface");
   assert.match(css, /\.advertising-photo-view__image-action\s*\{[\s\S]*?--image-action-edge-padding:\s*14px;/, "photo image action defines balanced horizontal edge padding");
   assert.match(css, /\.advertising-photo-view__image-action span\s*\{[\s\S]*?calc\(var\(--image-action-edge-padding\) \+ 3px\)/, "expanded photo action balances real text ink against the icon path");
