@@ -220,11 +220,10 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 | R1–R10 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop, vuốt đóng, back |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
-| R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm. Đạt 05/10/2026 trên SM-A057F, Chrome 154, dọc (2/2 lượt); ngang trên máy thật chỉ khi đặt máy ngang (chưa chạy) |
+| R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm. Đạt 05/10/2026 trên SM-A057F, Chrome 154, dọc (2/2 lượt); R7 đến R10 đạt 06/10/2026, Chrome 154, dọc (2/2 lượt), kèm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` (2/2) và vuốt `adb shell input swipe` 30% chiều cao; ngang trên máy thật chỉ khi đặt máy ngang (chưa chạy) |
 
 ## Gate còn mở
 
-- Nút back phần cứng Android (CloseWatcher của `dialog`) chỉ kiểm được trên A05s thật bằng `adb shell input keyevent KEYCODE_BACK`; cloud kiểm back bằng `history.back()`.
 
 - A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud.
 - iPhone Safari chưa kiểm vì chưa kết nối thiết bị; WebKit desktop không thay

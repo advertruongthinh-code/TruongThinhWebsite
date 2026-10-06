@@ -323,7 +323,7 @@ async function runPhone({ locale, width, height }) {
   check(page.url() === url && !(await page.locator("[data-advertising-photo-view]").isHidden()),
     `${label} R10: Back left detail instead of closing the viewer`);
   // Direct entry: the page before detail is whatever preceded the load.
-  await page.evaluate(() => history.back());
+  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leaves the page: return before it unloads
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
     .catch(() => check(false, `${label} R10: second Back did not leave detail`));
 
@@ -405,7 +405,7 @@ async function runDesktop() {
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
   await page.waitForTimeout(300);
   check(page.url() === url, "desktop R10: closing by button changed the URL");
-  await page.evaluate(() => history.back());
+  await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // leaves the page: return before it unloads
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
     .catch(() => check(false, "desktop R10: Back after a button close did not leave detail"));
   await context.close();
