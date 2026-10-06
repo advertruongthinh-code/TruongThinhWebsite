@@ -3,13 +3,14 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import * as skeletonFlow from "../../src/site/advertising-products/skeleton-flow.mjs";
 import {
   SKELETON_FLOW_FRAGMENT_SHADER,
   SKELETON_FLOW_PRESETS,
   advanceSkeletonFlowPhase,
   createSkeletonFlowRenderer,
   createSkeletonFlowFrameLayout,
+  drawSkeletonFlowAssignment,
+  renderSkeletonFlowPixels,
 } from "../../src/site/advertising-products/skeleton-flow.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -43,7 +44,6 @@ assert.doesNotMatch(flowRule, /\bfilter\s*:/i,
 assert.doesNotMatch(detailCss, /@keyframes\s+advertising-skeleton-float/i,
   "R6 removes the legacy floating skeleton keyframes");
 
-const createSeededRandom = (seed, scope = "") => seededRandom([...String(seed) + scope].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 1));
 const seededRandom = (seed) => () => {
   seed = (seed * 1664525 + 1013904223) >>> 0;
   return seed / 0x1_0000_0000;
@@ -103,37 +103,36 @@ if (legacyWashRules.some((rule) => /\bbackground(?:-image)?\s*:/i.test(rule))) {
 assert.deepEqual(r10ContractFailures, [],
   "R10 requires Scale 100, frozen P100 anchors, and no skeleton-local white wash");
 
-assert.equal(typeof skeletonFlow.createSkeletonFlowBatchAssignments, "function",
-  "Flow must expose a pure batch allocator for the accepted R5 invariants");
-const createBatch = (seed) => skeletonFlow.createSkeletonFlowBatchAssignments({
-  count: 12,
-  presets: SKELETON_FLOW_PRESETS,
-  random: seededRandom(seed),
-});
-const batch = createBatch(20260921);
-assert.deepEqual(batch, createBatch(20260921), "seeded batch allocation must be deterministic");
-assert.equal(batch.length, 12, "one full Advertising batch must allocate 12 frames");
-assert.equal(new Set(batch.map(({ preset }) => preset.id)).size, 12,
-  "one full batch must consume every preset exactly once");
-assert(batch.every(({ anchorPermutation }) =>
-  Array.isArray(anchorPermutation)
-    && anchorPermutation.length === 4
-    && [...anchorPermutation].sort().join(",") === "0,1,2,3"),
-"every frame must receive a complete four-anchor permutation");
-assert.equal(new Set(batch.map(({ anchorPermutation }) => anchorPermutation.join(","))).size, 12,
-  "one full batch must not repeat an anchor permutation");
-assert.equal(new Set(batch.map(({ phase }) => phase)).size, 12,
-  "one full batch must not repeat a starting phase");
-assert(batch.every(({ direction }) => direction === -1 || direction === 1),
-  "Flow direction must be either negative or positive");
-const directionCounts = batch.reduce((counts, { direction }) => {
-  counts[direction] = (counts[direction] || 0) + 1;
-  return counts;
-}, {});
-assert(Math.abs((directionCounts[1] || 0) - (directionCounts[-1] || 0)) <= 1,
-  "positive and negative Flow directions must be near-balanced");
-assert.equal(batch.slice(1).some(({ direction }, index) => direction === batch[index].direction), true,
-  "balanced Flow directions must be shuffled instead of locked to alternating slots");
+// R3: each frame draws its own assignment when it first enters view.
+const draw = (seed, neighbors = []) => drawSkeletonFlowAssignment({ neighbors, random: seededRandom(seed) });
+assert.deepEqual(draw(20260921), draw(20260921), "a seeded draw must be deterministic");
+const stream = seededRandom(7);
+const draws = Array.from({ length: 400 }, () => drawSkeletonFlowAssignment({ random: stream }));
+assert.equal(new Set(draws.map(({ preset }) => preset.id)).size, 12, "draws must reach every preset");
+assert.equal(new Set(draws.map(({ anchorPermutation }) => anchorPermutation.join(","))).size, 24,
+  "draws must reach every anchor permutation");
+assert(draws.every(({ anchorPermutation }) => [...anchorPermutation].sort().join(",") === "0,1,2,3"),
+  "every frame must receive a complete four-anchor permutation");
+assert(draws.every(({ direction }) => direction === -1 || direction === 1), "direction is -1 or 1");
+assert(draws.some(({ direction }) => direction === -1) && draws.some(({ direction }) => direction === 1));
+assert.equal(new Set(draws.map(({ phase }) => phase)).size, draws.length, "phase is continuous, not a few fixed levels");
+assert(draws.every(({ phase }) => phase >= 20.75 && phase < 20.75 + Math.PI * 2), "phase covers one full turn");
+assert(draws.every(({ speedScale }) => speedScale >= 0.9 && speedScale <= 1.1), "speed stays within 10%");
+assert(Math.max(...draws.map(({ speedScale }) => speedScale)) - Math.min(...draws.map(({ speedScale }) => speedScale)) > 0.15,
+  "speed offsets spread across the range");
+const turnGap = (a, b) => {
+  const delta = ((a - b) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  return Math.min(delta, Math.PI * 2 - delta);
+};
+for (let seed = 1; seed <= 200 * 7919; seed += 7919) {
+  const neighbors = SKELETON_FLOW_PRESETS.slice(0, 11).map((preset, index) => ({ preset, phase: 21 + index }));
+  assert.equal(draw(seed, neighbors).preset.id, SKELETON_FLOW_PRESETS[11].id, "an unused preset beats every neighbour's");
+  const crowded = SKELETON_FLOW_PRESETS.map((preset, index) => ({ preset, phase: 20.75 + index * 0.5 }));
+  const repeated = draw(seed, crowded);
+  const shared = crowded.find(({ preset }) => preset.id === repeated.preset.id);
+  assert(turnGap(repeated.phase, shared.phase) >= Math.PI / 2,
+    `seed ${seed}: a repeated preset must sit at least a quarter turn from its neighbour`);
+}
 
 const frameLayoutInput = {
   columnBottoms: [100, 160, 220, 280],
@@ -269,18 +268,12 @@ assert.equal(
   fourColumnResize.find(({ slot }) => slot === "0:1")?.band,
   "a persistent skeleton slot keeps its ratio band when the grid changes from four to three columns",
 );
-const batchA = skeletonFlow.createSkeletonFlowBatchAssignments({
-  count: 6, presets: SKELETON_FLOW_PRESETS, random: createSeededRandom("visit-a", "batch"),
-});
-const batchARepeat = skeletonFlow.createSkeletonFlowBatchAssignments({
-  count: 6, presets: SKELETON_FLOW_PRESETS, random: createSeededRandom("visit-a", "batch"),
-});
-const batchB = skeletonFlow.createSkeletonFlowBatchAssignments({
-  count: 6, presets: SKELETON_FLOW_PRESETS, random: createSeededRandom("visit-b", "batch"),
-});
-assert.deepEqual(batchA, batchARepeat, "a visit seed keeps batch assignments stable");
-assert.notDeepEqual(batchA.map(({ preset, anchorPermutation }) => [preset.id, anchorPermutation]),
-  batchB.map(({ preset, anchorPermutation }) => [preset.id, anchorPermutation]), "a new visit seed changes batch assignments");
+// R5: the still matches the live frame's colours and moves with the phase.
+const still = renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21);
+assert.equal(still.length, 48 * 32 * 4);
+assert.deepEqual(still, renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 21), "a still is deterministic");
+assert.notDeepEqual(still, renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[0], 22), "a still follows the phase");
+assert.notDeepEqual(still, renderSkeletonFlowPixels(SKELETON_FLOW_PRESETS[8], 21), "a still follows the preset");
 
 assert.equal(advanceSkeletonFlowPhase(20.75, 1, 30), 20.768,
   "clock delta must cap at 50ms");
@@ -386,6 +379,12 @@ renderer.draw(0);
 renderer.draw(1000);
 assert.equal(calls.draw, 2);
 assert.equal(renderer.phase, 20.75 + (30 / 100) * 1.2 * 0.05);
+const scaledGl = createFakeWebGl().gl;
+const scaled = createSkeletonFlowRenderer({ style: {}, getContext: (name) => name === "webgl" ? scaledGl : null },
+  { preset: SKELETON_FLOW_PRESETS[0], speedScale: 1.1, requestFrame: () => 0, cancelFrame() {} });
+scaled.draw(0);
+scaled.draw(50);
+assert.equal(scaled.phase, 20.75 + (30 * 1.1 / 100) * 1.2 * 0.05, "speedScale scales the preset speed");
 renderer.start();
 assert.equal(typeof queued, "function", "start must request an animation frame");
 queued(1016);

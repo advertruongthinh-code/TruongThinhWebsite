@@ -484,7 +484,7 @@ function assertPersistentNavigationContracts() {
   );
 
   assert(
-    /const intro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \} \}\);[\s\S]*!softNavigation[\s\S]*\.from\(header\.querySelector\("#header-logo"\), \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
+    /const headerIntro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*!softNavigation[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
       motionSource,
     ) && brandCss && !/transition:\s*transform\b/.test(brandCss),
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",

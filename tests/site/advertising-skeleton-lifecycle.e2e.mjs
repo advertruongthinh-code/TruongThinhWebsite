@@ -99,9 +99,9 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
         return { slot: node.dataset.advertisingCtaSlot, top: Number.parseFloat(node.style.top),
           visible: rect.bottom > 0 && rect.top < innerHeight, opacity: getComputedStyle(node).opacity,
           same: window.__lifecycleFrames?.get(node.dataset.advertisingCtaSlot) === node,
-          assignment: [node.dataset.advertisingCtaRatioBand, canvas.dataset.advertisingFlowBatch,
-            canvas.dataset.advertisingFlowPreset, canvas.dataset.advertisingFlowAnchorPermutation,
-            canvas.dataset.advertisingFlowPhase, canvas.dataset.advertisingFlowDirection] };
+          assignment: [node.dataset.advertisingCtaRatioBand, canvas?.dataset.advertisingFlowPreset,
+            canvas?.dataset.advertisingFlowAnchorPermutation, canvas?.dataset.advertisingFlowPhase,
+            canvas?.dataset.advertisingFlowDirection, canvas?.dataset.advertisingFlowSpeedScale] };
       });
       window.__lifecycleFrames = new Map(frames.map(node => [node.dataset.advertisingCtaSlot, node]));
       return { width: document.documentElement.clientWidth, height: innerHeight,
@@ -133,7 +133,8 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.ok(visiblePairs.length, "height-only probe has common visible pairs");
       for (const sample of common) {
         const old = previousHeight.samples.find(entry => entry.slot === sample.slot);
-        assert.deepEqual(sample.assignment, old.assignment, "common slot assignment and deck remain stable");
+        // A frame draws on first entry; once drawn it keeps the draw.
+        if (old.assignment[1]) assert.deepEqual(sample.assignment, old.assignment, "common slot assignment remains stable");
         if (sample.visible && old.visible) assert.equal(sample.opacity, old.opacity, "common visible slot must not replay entry");
       }
       previousHeight = current;

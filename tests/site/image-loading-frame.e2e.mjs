@@ -165,6 +165,8 @@ try {
         window.__ttRevealGlass.push({
           host: node.closest("[data-advertising-photo-view]") ? "primary" : "card",
           steps: node.querySelectorAll(".glass-surface__step").length,
+          end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
+            .map((animation) => animation.effect.getComputedTiming().endTime))),
           animated: [...new Set([...node.children].flatMap((layer) => layer.getAnimations()
             .flatMap((animation) => animation.effect.getKeyframes().flatMap((frame) => Object.keys(frame)))))]
             .filter((key) => !["offset", "computedOffset", "easing", "composite"].includes(key)),
@@ -189,7 +191,7 @@ try {
       return { covers: [box.left - media.left, box.top - media.top, box.width - media.width, box.height - media.height].every(gap => Math.abs(gap) <= 1),
         busy: Boolean(frame.parentElement.querySelector("img.lazyloading, img.lazyload")) };
     });
-    assert.deepEqual(loading, { covers: true, busy: true }, `${viewport.width}px: loading card wears the skeleton frame after 150 ms`);
+    assert.deepEqual(loading, { covers: true, busy: true }, `${viewport.width}px: loading card wears the skeleton frame as it enters view`);
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
       previous = duringLoad;
@@ -202,14 +204,31 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // The reveal crossfade ends 1.4 s after the last image loads, then the skeleton node is removed.
+    // The reveal ends 0.6 s after the last image loads, then the skeleton node is removed.
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-advertising-loading-skeleton]"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the skeleton`));
     const cardGlass = await revealGlass("card");
-    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
-      `${viewport.width}px: loading cards reveal through five Kính steps animating opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
+    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated, end }) => steps === 5 && animated.join() === "opacity" && end <= 601),
+      `${viewport.width}px: loading cards reveal through five Kính steps in 0.6 s, opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
       `${viewport.width}px: the reveal Kính leaves the cards`);
+    // A loaded card that left the viewport reveals again from an empty frame, same 0.6 s Kính (R3).
+    const revealsBefore = cardGlass.length;
+    const scrollTo = (y) => page.evaluate((top) => window.TruongThinhMotion.setLogicalScroll(top), y);
+    await scrollTo(4000);
+    await page.waitForTimeout(600);
+    await scrollTo(0);
+    await page.waitForFunction((count) => window.__ttRevealGlass.filter(({ host }) => host === "card").length > count,
+      revealsBefore, { timeout: 5000 }).catch(() => assert.fail(`${viewport.width}px: a re-entering card reveals under Kính`));
+    const reentry = (await revealGlass("card")).slice(revealsBefore);
+    assert.ok(reentry.every(({ steps, end }) => steps === 5 && end <= 601), `${viewport.width}px: re-entry uses the 0.6 s Kính ${JSON.stringify(reentry.slice(0, 2))}`);
+    // Cards that finish loading right now still reveal from their skeleton; let those settle first.
+    await page.waitForTimeout(700);
+    assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
+      .filter((frame) => frame.parentElement.querySelector("img")?.naturalWidth > 0)
+      .map((frame) => [frame.closest("[data-advertising-card]").dataset.advertisingCard, frame.parentElement.querySelector("img").className,
+        Boolean(frame.parentElement.querySelector("[data-glass-reveal]")), Math.round(frame.getBoundingClientRect().top)])), [],
+    `${viewport.width}px: a loaded card re-enters without a skeleton`);
 
     // Viewer: skeleton and aria-busy follow the current photo, including a fast hero swap.
     const viewer = () => page.evaluate(() => {

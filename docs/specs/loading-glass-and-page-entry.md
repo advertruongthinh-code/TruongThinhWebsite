@@ -43,7 +43,7 @@ And hai khung skeleton đang thấy không chảy cùng pha
 ### R2. Hiện ảnh qua Kính
 
 Media của card giải mã xong khi card còn giao viewport thì runtime chờ `img.decode()` (video không chờ), rồi chạy ba
-bước chồng nhau trong `0.6s`, dù ảnh về nhanh hay chậm (`revealCardSkeleton`):
+bước chồng nhau trong `0.6s`, dù ảnh về nhanh hay chậm (`revealCard`):
 
 1. Kính phủ đều năm bậc (`createGlassSurface("even", 5)`, `data-glass-reveal`) gắn cuối khung media và hiện dần.
 2. Dưới Kính, lớp dưới (skeleton theo R1, hoặc khung trống theo R3) mờ đi và media hiện lên (`crossfadeLayers`, chỉ
@@ -171,7 +171,7 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 | DOM hook | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` | Kính năm bậc, chỉ có trong R2, R4 |
 | DOM hook | `.advertising-photo-view__outgoing`, `__outgoing-background` | Ảnh primary cũ và nền vùng dư cũ, chỉ có trong R4 khi ảnh có sẵn |
 | DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh cũ khi không có lớp tạm; primary đang chờ (R4, R5) |
-| Runtime | `queueCardSkeleton`, `revealCardSkeleton`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `settlePrimaryReveal`; hằng `LOADING_SKELETON_BATCH`, `MEDIA_REVEAL_MS`, `CACHED_PRIMARY_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
+| Runtime | `attachCardSkeleton`, `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `MEDIA_REVEAL_MS`, `CACHED_PRIMARY_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
 | Hàm public | `createGlassSurface`, `playGlassReveal`, `glassRevealLevel` (`glass-surface.mjs`); `createSkeletonFlowRenderer`, `staticBackground` (`skeleton-flow.mjs`) | Kính và renderer dùng lại nguyên |
 | Card | `figure.advertisingPendingMediaId()` | Media id đang chờ hoặc `null`; runtime hỏi trước khi gắn skeleton |
 
@@ -193,9 +193,9 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); pha khác nhau giữa các khung đang thấy chưa có test |
-| R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
-| R3 | chưa có test (ảnh có sẵn và vào lại viewport chạy Kính `0.6s`) |
+| R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
+| R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
+| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport chạy Kính `0.6s`, không skeleton) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
 | R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vòng tải trong masonry, detail chưa có test |
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |

@@ -1756,6 +1756,8 @@
     updateToneRanges();
     updateHeader();
     setRouteVeil(0);
+    // An intro that never got to play would leave the header at its from() start values.
+    if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
   };
 

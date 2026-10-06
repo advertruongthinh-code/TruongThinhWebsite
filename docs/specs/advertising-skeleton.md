@@ -152,7 +152,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
-| Hàm public | `SKELETON_FLOW_PRESETS`, `createSkeletonFlowBatchAssignments`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer; `catalog-runtime.mjs` gọi |
+| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
 | Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`catalog-runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 
 ## UI
@@ -168,7 +168,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward) |
-| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px) |
+| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |
 | R8 | `advertising-continuation.e2e.mjs` (desktop 1569×912, cần Chrome có GPU); điện thoại chưa có test, đo bằng trace Chrome qua CDP ([debug Android](../operations/android-real-device-debugging.md)) |
