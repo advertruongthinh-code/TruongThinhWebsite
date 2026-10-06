@@ -141,7 +141,8 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 
 ## Gate còn mở
 
-- R2: chưa đo; cần trace trên PC thật của owner (Remote Control), máy cloud không có GPU nên không thay được.
+- R2: trace PC 2026-10-06 (sau khi Flow chờ cuộn dừng): không task nào trên 50ms; frame rớt Advertising và detail ảnh
+  0,3% so với trang chủ 0,2% (1 đến 3 frame, phía GPU), lọc nhóm 0%. Còn owner cuộn thử sau deploy batch.
 
 ## Chú thích thuật ngữ
 

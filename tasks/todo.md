@@ -984,9 +984,9 @@ Plan: [Cảm giác cuộn chung](plan.md#cảm-giác-cuộn-chung-theo-trang-ch�
 - [x] S2b khối "Giữ nghề" theo R5, e2e 11 bề rộng xanh.
 - [ ] Checkpoint A: `pnpm qa:docs`; owner xem parallax.
 - [x] S3 `scripts/qa/scroll-trace.mjs` chạy được trên cloud, in số cho 4 trang.
-- [ ] S4 trace trên PC đạt R2; sửa nguyên nhân, đo lại.
+- [x] S4 trace trên PC: dựng Flow chờ cuộn dừng 150ms; hết task trên 50ms.
 - [ ] Checkpoint B: owner cuộn thử Advertising trên PC và xác nhận.
-- [ ] S5 docs, Design System publish, card Done.
+- [x] S5 docs, merge, Design System publish.
 
 ## Chú thích thuật ngữ
 
