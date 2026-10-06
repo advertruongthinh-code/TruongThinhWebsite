@@ -59,7 +59,8 @@ lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tă
 `sqrt(L² - L_trước²)`.
 
 Số đo ở vị trí cuộn cuối trang, khi parallax của CTA bằng 0. Cụm CTA tính từ
-mép trên tiêu đề tới đáy nút.
+mép trên tiêu đề tới đáy nút. Các lớp kính chạy quá đáy batch `2px` để không lộ mép khi làm tròn
+subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer luôn hiện.
 
 | Giá trị | Chốt 04/10 |
 | --- | --- |
@@ -215,3 +216,4 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 - **Overlay**: chế độ hòa trộn giữ nguyên trắng và đen tuyệt đối.
 - **Batch skeleton**: nhóm card skeleton nối tiếp masonry ở cuối trang.
 - **Long task**: tác vụ chiếm luồng chính của trình duyệt quá 50ms.
+- **Subpixel**: phần lẻ dưới một pixel khi trình duyệt làm tròn vị trí.
