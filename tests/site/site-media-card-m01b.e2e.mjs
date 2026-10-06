@@ -129,6 +129,8 @@ async function setup(page, locale, videoCover = false) {
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(videoCover));
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  // The direct-load veil blocks pointer input until the page has mounted.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -149,6 +151,8 @@ async function setupSingleton(page, item) {
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  // The direct-load veil blocks pointer input until the page has mounted.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -159,6 +163,8 @@ async function setupSingleton(page, item) {
 async function setupMany(page, locale) {
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, manyImageArtifact());
   await page.goto(`${base}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  // The direct-load veil blocks pointer input until the page has mounted.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
   const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -357,8 +363,9 @@ async function run(viewport, touch, locale) {
     if (outputDir) await writeFile(path.join(outputDir, `media-ratio-${locale}.json`),
       JSON.stringify({ dimensions, beforeRect: before.rect, afterRect: after.rect, withinFrame }, null, 2));
     assert(dimensions.cover.width > 0 && dimensions.video.width > 0 && dimensions.poster.width > 0
-      && dimensions.cover.width * dimensions.video.height === dimensions.cover.height * dimensions.video.width
-      && dimensions.cover.width * dimensions.poster.height === dimensions.cover.height * dimensions.poster.width
+      // Responsive variants round each edge to whole pixels, so compare ratios within that rounding.
+      && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.video.width / dimensions.video.height) < 0.01
+      && Math.abs(dimensions.cover.width / dimensions.cover.height - dimensions.poster.width / dimensions.poster.height) < 0.01
       && withinFrame
       && Math.abs((dimensions.videoRect.right - dimensions.videoRect.left)
         / (dimensions.videoRect.bottom - dimensions.videoRect.top) - dimensions.video.width / dimensions.video.height) < 0.02,
@@ -534,6 +541,8 @@ test("M01b synthetic video cover starts muted with poster", async () => {
     });
     await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(true));
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -679,6 +688,8 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     const videoResponse = page.waitForResponse((response) => response.url().endsWith("clip-audio-3x2.mp4") && response.status() === 404);
     const posterResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -745,6 +756,8 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     await page.route(`**${imageSrc}`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.addInitScript((payload) => { window.__TT_ADVERTISING_ARTIFACT__ = payload; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -788,6 +801,8 @@ test("M01b failed next image restores the last valid card image", async () => {
     });
     await page.route(`**${fixturePrefix}missing-image.webp`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -955,6 +970,8 @@ test("M01b stale image error preserves newer selection and failed reselect falls
       await route.fulfill({ status: 404, body: "" });
     });
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -1082,6 +1099,8 @@ test("M01b six media still use dot controls", async () => {
     artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 6;
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
@@ -1108,6 +1127,8 @@ async function runWideCover(locale, related = false, mode = "normal") {
       ? "?category=signage-raised-letters&photo=signage-raised-letters-02"
       : "?category=signage-raised-letters";
     await page.goto(`${base}/${locale}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
+    // The direct-load veil blocks pointer input until the page has mounted.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");
     await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
     const selector = related ? `[data-advertising-related-card="${wideFixtureId}"]` : `[data-advertising-card="${wideFixtureId}"]`;
