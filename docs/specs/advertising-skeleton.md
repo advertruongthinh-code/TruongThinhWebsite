@@ -95,7 +95,8 @@ nên xoay máy không vượt ngân sách. Context giữ theo document và dùng
 listener, RAF đúng một lần, giữ canvas và context; lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
 phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không gọi
 `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước đó
-(R8) và không chờ cuộn dừng. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
+(R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
+làm trễ nhịp trượt. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
 hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
 gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó.
 
