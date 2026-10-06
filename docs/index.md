@@ -23,7 +23,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [Android thật](operations/android-real-device-debugging.md) |
 | Tên gọi | [Tên gọi chuẩn](terminology.md) |
 | Giấy phép bên thứ ba | [Thông báo](third-party-notices.md) |
-| Nguồn ảnh, provenance | Máy owner: [chọn ảnh 24/09](../source-assets/projects/advertising/owner-selection-20260924/README.md), [portal](../source-assets/projects/advertising/portal-20260924/README.md), [backup Sites v1](../source-assets/site-backups/live-v1-20260924/README.md) |
+| Nguồn ảnh, provenance | Máy owner, ngoài Git (`source-assets/` bị ignore) |
 
 ## Authority map
 

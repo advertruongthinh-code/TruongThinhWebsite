@@ -82,7 +82,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ tests/                           # QA trong GitHub; tests/reports/ GENERATED
 ├─ docs/                            # STATE, index, goal, architecture.md, terminology,
 │                                   # specs, decisions, operations, reference
-├─ source-assets/                   # nguồn ảnh/provenance, backup live; không deploy
+├─ source-assets/                   # LOCAL: nguồn ảnh/provenance, backup live, ngoài Git
 ├─ research/reference-site/         # RESEARCH: archive cũ local, ngoài Git
 ├─ tasks/                           # plan/checklist đang mở, xóa khi xong; không thay Notion status
 ├─ design-system/                   # Design System: tokens.json, README; publish lên claude.ai
