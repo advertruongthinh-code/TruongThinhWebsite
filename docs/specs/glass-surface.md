@@ -122,8 +122,8 @@ và độ rực tăng cùng độ nhòe.
 
 ### R6. Hiện và tan bằng opacity từng bậc
 
-Card đang tải và primary đang mở của
-[Skeleton chờ ảnh](loading-glass-and-page-entry.md) (R2, R4) hiện rồi tan kính
+Ảnh card mỗi lần hiện và primary đang mở của
+[Skeleton chờ ảnh](loading-glass-and-page-entry.md) (R2 đến R4) hiện rồi tan kính
 dạng phủ đều đủ năm bậc. Các bậc nhòe hiện lần lượt từ nhẹ tới mạnh và tan theo
 chiều ngược lại, chỉ bằng `opacity`; tint và hạt nhiễu theo cùng mức, nên kính
 bắt đầu và kết thúc không nhòe, không tint. Không animate bán kính blur mỗi

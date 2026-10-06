@@ -169,17 +169,16 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới `?category=<nhóm>&photo=<id>`; không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
-[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Ảnh hiện bằng opacity khi đã giải mã; card rời hẳn vùng nhìn
-thấy (`intersectionRatio = 0`) thì lần vào sau hiện lại, kể cả ảnh đã cache; giao một phần thì không chạy lại
-([motion](../../design-system/motion.md#ảnh-trong-card)). Ảnh chưa xong sau 150ms mang skeleton chờ ảnh
-([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
+[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Mỗi lần card vào vùng nhìn
+thấy, ảnh hiện dưới Kính cùng nhịp `0.6s`: từ skeleton chờ ảnh nếu ảnh chưa giải mã, từ khung trống nếu ảnh đã có, kể cả
+khi vào lại sau `intersectionRatio = 0`; giao một phần thì không chạy lại ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
 không dịch ([hover dùng chung](page-home.md#r6-hover-ảnh-dùng-chung)). Click chính mở detail tại chỗ (history push,
 [detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
 
 ```gherkin
 Given card đã hiện ảnh
 When cuộn tới khi card ra hẳn khỏi viewport rồi cuộn lại
-Then ảnh hiện lại bằng opacity một lần; khung card không đổi kích thước
+Then ảnh hiện lại dưới Kính trong 0.6s một lần; khung card không đổi kích thước
 ```
 
 ### R9. Hero một lần
@@ -216,7 +215,7 @@ Then masonry ẩn, container có data-advertising-fallback="failed", không còn
 Dưới card thật cuối là batch skeleton ([skeleton R1](advertising-skeleton.md#r1-batch-nối-tiếp-masonry)), CTA và
 [Kính](glass-surface.md) dạng cung; chữ CTA, parallax, footer theo [CTA giữa viewport](advertising-cta-center-parallax.md).
 Masonry chỉ cung cấp đáy từng cột, bề rộng card, khoảng giữa, hash tọa độ; mở detail gỡ batch, đóng thì dựng lại.
-Renderer Flow chỉ mount sau khi cuộn dừng 150ms ([cảm giác cuộn R2](scroll-feel.md#r2-advertising-và-route-con-mượt-như-trang-chủ-trên-pc)).
+Renderer Flow mount cả khi đang cuộn, trừ loại máy bị hoãn theo [skeleton R5](advertising-skeleton.md#r5-webgl-context).
 
 ```gherkin
 Given masonry đã dựng ở bất kỳ filter nào
