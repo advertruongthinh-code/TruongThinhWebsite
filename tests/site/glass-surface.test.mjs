@@ -17,7 +17,10 @@ assert.deepEqual([...new Set(owners)].sort(),
 assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(28px\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
   "R2, R5: one full step equals the steps");
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
-assert.match(runtime, /createGlassSurface\("even"\)/, "R1: the primary uses the even Kính");
+assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
+// The primary photo carries the full step's blur itself: a backdrop-filter there bakes a tile seam into Chrome's tab thumbnail.
+assert.match(css, /\.advertising-photo-view__outgoing-background \{\s*filter: blur\(28px\) saturate\(1\.7\) brightness\(1\.04\);/,
+  "R1: the primary photo blurs like one full step");
 
 // R2, R5: stacked steps compound in quadrature to their levels; saturate and brightness multiply.
 const blurLevels = (scope) => {

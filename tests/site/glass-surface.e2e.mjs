@@ -9,7 +9,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
 const arcState = () => {
   const glass = document.querySelector(".project-index > .glass-surface[data-glass-shape=arc]");
@@ -113,9 +113,13 @@ try {
       const state = await page.evaluate(() => {
         const glass = document.querySelector(".advertising-photo-view__hero-frame > .glass-surface");
         return { shape: glass?.dataset.glassShape, display: glass && getComputedStyle(glass).display,
-          layers: glass?.children.length, flag: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass };
+          layers: glass?.children.length, flag: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass,
+          backdrop: [...(glass?.children || [])].some((layer) => getComputedStyle(layer).backdropFilter !== "none"),
+          filter: getComputedStyle(document.querySelector("[data-advertising-photo-background]")).filter };
       });
-      check(state.shape === "even" && state.layers === 3, `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
+      // The photo carries the blur, so no backdrop-filter can bake a tile seam into the primary (tab hover thumbnail).
+      check(state.shape === "even" && state.layers === 2 && !state.backdrop
+        && state.filter === "blur(28px) saturate(1.7) brightness(1.04)", `${photo}: primary Kính is not the even component ${JSON.stringify(state)}`);
       check(state.flag === String(overflow) && state.display === (overflow ? "block" : "none"),
         `${photo}: primary Kính does not follow contain overflow ${JSON.stringify(state)}`);
     } finally {
