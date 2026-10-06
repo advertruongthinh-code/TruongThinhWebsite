@@ -187,7 +187,8 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   Tên và màu preset ở [skeleton spec](../docs/specs/advertising-skeleton.md#r2-flow-và-12-preset).
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
-- Vào viewport: chỉ opacity `0 → 1`, `600ms ease-out`, Flow chạy ngay từ đầu
+- Vào viewport: reveal Kính `0.6s` như ảnh card (mục trên; lớp dưới là khung
+  trống, lớp hiện lên là Flow), Flow chạy ngay từ đầu
   kể cả khi đang cuộn; mỗi frame tự hiện khi giao vùng nhìn thấy, không stagger;
   rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer, không focus.
   Frame chưa có WebGL context hiện một khung hình Flow đứng yên của chính nó.
