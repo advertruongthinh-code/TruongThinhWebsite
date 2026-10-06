@@ -21,9 +21,9 @@
   tham khảo đã rút vào [Design System](../design-system/README.md#nguồn-tham-khảo), không còn là gate.
 - Owner fact chưa xác nhận: URL Zalo, năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Gate từng phần nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
-- Nợ đo A05s (owner tạm dừng 06/10, cần phiên PC): viewer xoay ngang trên máy thật
-  ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)); fps mở, đóng viewer nền blur `50px`
-  ([detail](specs/advertising-detail.md#gate-còn-mở)).
+- Nợ đo A05s, cần phiên PC (owner tạm dừng 06/10): viewer xoay ngang trên máy thật
+  ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
+- Nợ đo A05s, cần phiên PC: fps mở, đóng viewer nền blur `50px` ([detail](specs/advertising-detail.md#gate-còn-mở)).
 
 ## Next action
 
