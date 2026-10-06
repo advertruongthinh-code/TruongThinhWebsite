@@ -72,6 +72,31 @@ try {
     }
     await page.waitForTimeout(1800);
     travel[name] = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+
+    // R1: a long roll (into the Advertising masonry) glides without a frame that skips ahead of its neighbours.
+    await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+    await page.waitForTimeout(300);
+    await page.evaluate(() => {
+      window.scrollFeelY = [];
+      const sample = () => {
+        window.scrollFeelY.push(window.TruongThinhMotion.getLogicalScroll());
+        if (!window.scrollFeelY.done) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    for (let tick = 0; tick < 40; tick += 1) {
+      await page.mouse.wheel(0, 100);
+      await page.waitForTimeout(50);
+    }
+    await page.waitForTimeout(500);
+    const skips = await page.evaluate(() => {
+      const ys = window.scrollFeelY;
+      ys.done = true;
+      const steps = ys.slice(1).map((y, index) => y - ys[index]);
+      return steps.filter((step, index) => index > 0 && index < steps.length - 1 && step > 2
+        && step > 1.3 * steps[index - 1] && step > 1.3 * steps[index + 1]).length;
+    });
+    assert.equal(skips, 0, `${name}: ${skips} frames skip ahead while scrolling`);
   }
   for (const [name, distance] of Object.entries(travel)) {
     assert.ok(Math.abs(distance - travel.home) <= 1, `${name}: wheel travel ${distance} matches home ${travel.home}`);
