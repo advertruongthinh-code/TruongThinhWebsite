@@ -4,8 +4,8 @@
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
-  deploy gần nhất 2026-10-07 commit `6decf2e` (Wrangler version `072cb006`) ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)).
-  Owner kiểm nhận giao diện trên [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/).
+  workflow `Deploy demo` tự deploy [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/) khi CI xanh
+  trên `main` ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)); owner kiểm nhận giao diện trên đó.
 
 ## Việc đang làm
 
@@ -32,11 +32,11 @@
 
 ## Next action
 
-1. Owner kiểm nhận demo `6decf2e` và gửi ba fact còn thiếu.
+1. Owner thêm secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` cho `Deploy demo`, kiểm nhận demo, gửi ba fact còn thiếu.
 
 ## Ranh giới
 
-- Mỗi lần deploy cần owner đồng ý. Không activate CMS, đổi domain hoặc audience, publish ảnh chưa duyệt.
+- Agent không deploy tay. Không activate CMS, đổi domain hoặc audience, publish ảnh chưa duyệt.
 - Không bypass Git hook; giữ nguồn ảnh, archive và thay đổi không liên quan.
 - Cloud first: mỗi task một branch ngắn và PR vào `main`; Remote Control trên PC chỉ khi cần máy thật
   ([TOOLING](operations/TOOLING.md#claude-code-cloud-environment)).

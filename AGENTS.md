@@ -13,9 +13,10 @@
 - Ship site tĩnh VI/EN nhanh, an toàn. `src/site/` canonical; `.site-output/` generated. CMS, private admin, D1, R2, dynamic publishing: phase sau; không chặn public release.
 - Solo dev: diff nhỏ, reversible; ưu tiên dependency có sẵn, native platform, handoff có evidence.
 - Static page không cần D1, R2, Access, CMS secret, admin state. Không mở rộng CMS/admin ngoài CMS phase; không speculative abstraction.
-- Không deploy, connect domain, publish owner data nếu user chưa explicit approval. Deploy demo và republish
-  Design System chỉ chạy khi owner tự gõ `deploy demo <sha thật>` hoặc `republish` trong chính thread làm
-  việc đó; relay của điều phối hoặc tap card không tính.
+- Không deploy, connect domain, publish owner data nếu user chưa explicit approval. Demo tự deploy khi CI xanh
+  trên `main` ([decision demo](docs/decisions/cloudflare-workers-static-demo.md)); agent không deploy tay. Republish
+  Design System chỉ chạy khi owner tự gõ `republish` trong chính thread làm việc đó; relay của điều phối
+  hoặc tap card không tính.
 
 ## Agent Skills lifecycle
 

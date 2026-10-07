@@ -10,6 +10,7 @@ source:
   - src/site/_headers
   - wrangler.static.toml
   - .github/workflows/ci.yml
+  - .github/workflows/deploy-demo.yml
 tests:
   - tests/site/static-locales.test.mjs
   - tests/site/advertising-products-detail-routes.test.mjs
@@ -194,19 +195,19 @@ And không bước nào gọi Wrangler hoặc deploy
 `wrangler.static.toml`: Worker chỉ có asset `truong-thinh-demo`, `workers_dev`,
 `[assets] directory = ".site-output"`, không `main`, không binding. `pnpm deploy:demo`
 build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler`
-gọi `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Mỗi lần deploy cần owner
-đồng ý rõ ([quyết định](../decisions/cloudflare-workers-static-demo.md)); agent chỉ
-chạy `--dry-run`. Owner login một lần (`pnpm demo:wrangler login`); mỗi lần phát
-hành: checkout commit đã qua CI, `pnpm qa:static`, `pnpm deploy:demo`, mở `/vi/`,
-`/en/`, ghi commit, Worker version ID, URL vào PR hoặc handoff. Rollback:
+gọi `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo`
+(`.github/workflows/deploy-demo.yml`) chạy `pnpm deploy:demo` từ đúng commit khi CI
+xanh trên `main`, dùng secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi
+commit và Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback:
 `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
 Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>.
 
 ```gherkin
-Given owner đã đồng ý rõ cho lần phát hành này và đã login Wrangler
-When owner chạy pnpm deploy:demo từ commit đã qua CI
-Then .site-output/ được build lại và upload lên Worker truong-thinh-demo
-And khi chưa có đồng ý đó, agent chỉ chạy pnpm deploy:demo --dry-run
+Given một push vào main và job CI static-release xanh
+When workflow Deploy demo chạy
+Then .site-output/ của đúng commit đó được build lại và upload lên Worker truong-thinh-demo
+And CI đỏ, PR hoặc push từ fork không deploy
 ```
 
 ### R12. Ranh giới với CMS dormant
@@ -267,7 +268,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
 | R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs` |
-| R11 | chưa có test; `pnpm deploy:demo --dry-run` |
+| R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
 
