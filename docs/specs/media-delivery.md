@@ -8,7 +8,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Tải ảnh nội dung
@@ -153,8 +153,8 @@ qua Playwright; sáu route (trang chủ, Residential, Commercial, About, Adverti
 tắt cache qua CDP, `--warm` chạy một lượt cold rồi N lượt dùng cache. Mỗi lượt chờ `load` thêm 1,5s, cuộn một viewport
 rồi ghi LCP và phần tử LCP, CLS, thời điểm ảnh đầu trong viewport sẵn sàng, thời gian tới ảnh kế sau cuộn, số request và
 byte ảnh, 8 card Advertising đầu (cohort). Lượt cold không có byte truyền bị đếm `excluded`; lượt treo hay lỗi ghi `failure` rồi chạy tiếp. Kết quả ở
-`.tmp/image-delivery/<thời điểm>/`: `runs.json` và `summary.json` (median). Đo trên demo sau deploy (mỗi lần deploy cần
-owner đồng ý), không dùng preview local vì không nén và `no-store`
+`.tmp/image-delivery/<thời điểm>/`: `runs.json` và `summary.json` (median). Đo trên demo sau deploy (tự chạy khi CI xanh
+trên `main`), không dùng preview local vì không nén và `no-store`
 ([phát hành tĩnh R8](static-release.md#r8-preview-local-cổng-8787)).
 
 Ngân sách (owner duyệt cùng spec tải ảnh 25/09 và plan 03/10): Advertising median ảnh đầu sẵn sàng nhanh hơn baseline
