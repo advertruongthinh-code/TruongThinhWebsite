@@ -4,11 +4,9 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
-// tasks/plan.md và todo.md giữ format cũ trước overhaul đến khi batch của chúng đóng.
-const LEGACY = /^tasks\/(plan|todo)\.md$/;
 // Evidence thô dưới source-assets/ và research/ nằm trên PC của owner theo thiết kế (docs/index.md).
 const LOCAL_EVIDENCE = /^(source-assets|research)\//;
-const files = git('ls-files', '*.md').split('\n').filter((f) => f && !LEGACY.test(f));
+const files = git('ls-files', '*.md').split('\n').filter(Boolean);
 const errors = [];
 const anchorCache = new Map();
 

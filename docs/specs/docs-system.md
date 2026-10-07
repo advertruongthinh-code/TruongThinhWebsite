@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-05
+updated: 2026-10-07
 source:
   - scripts/docs/**
   - .github/pull_request_template.md
@@ -53,7 +53,7 @@ docs/architecture.md              runtime, build, ranh giới CMS
 docs/specs/<capability>.md        spec sống, một file một capability
 docs/decisions/<slug>.md          ADR còn hiệu lực
 docs/operations/*.md              runbook: tooling, release, thiết bị, Notion
-tasks/plan.md, tasks/todo.md      thay đổi đang làm, xóa phần đã xong
+tasks/plan.md, tasks/todo.md      thay đổi đang làm, tạo khi cần, xóa khi xong
 ```
 
 ```gherkin

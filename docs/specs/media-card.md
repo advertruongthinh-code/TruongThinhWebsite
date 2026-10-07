@@ -179,7 +179,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   metadata cho video kế trong vùng đệm. Code chỉ tạo video khi item thành active, `preload="metadata"`. Ngân sách byte,
   lề preload, buffer chưa khóa, cần clip thật và trace thiết bị. Owner gửi clip; Main trace.
 - Định dạng video: không lưu GIF public; owner chọn 03/10 AV1/WebM kèm MP4 H.264, poster WebP
-  ([quyết định](../../tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)). Code gán một `src` cho
+  ([quyết định](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/8138757/tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)). Code gán một `src` cho
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.
 - Thời điểm phát video qua Back, Forward, đổi ngôn ngữ và khi chuyển masonry sang detail chưa chốt; không tự bật lại âm
   thanh hay hứa giữ thời điểm. Owner.
