@@ -136,6 +136,8 @@ cùng xong một lúc, path bắt đầu muộn thì đổi nhanh hơn:
 | 3 magenta | `0.14s` / `0.86s` | `0.07s` / `0.93s` |
 | 4 cyan | `0.21s` / `0.79s` | `0.21s` / `0.79s` |
 
+Owner đã duyệt chuỗi màu mới (các dải mọc lên), chờ code: [Đã duyệt, chờ code](approved-designs.md#mark-đổi-màu-các-dải-mọc-lên).
+
 FLIP chạy song song với chuỗi màu và không hủy nó. Giảm chuyển động: không
 intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
 
