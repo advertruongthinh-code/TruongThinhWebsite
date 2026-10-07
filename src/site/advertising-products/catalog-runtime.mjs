@@ -1938,7 +1938,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Chỉ swap photo đã decode để crossfade không bao giờ vẽ frame decode dở (R2).
     const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
     decoded.then(() => {
-      if (cardSkeletons.get(node) !== entry) return;
+      // Card rời view lúc decode thì skeleton đã bị drop; vẫn phải hiện ảnh, không thì kẹt opacity 0.
+      if (cardSkeletons.get(node) !== entry) {
+        if (!cardSkeletons.has(node)) showMedia(node);
+        return;
+      }
       if (!visibleMediaCards.has(id)) {
         dropCardSkeleton(node);
         showMedia(node);
