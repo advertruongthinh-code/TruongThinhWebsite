@@ -70,9 +70,12 @@ Ponytail chạy theo bốn mốc:
    riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Cloud không có Git hook:
    agent tự chạy `ponytail-review` trên diff. Review, host agent hoặc hook lỗi thì fail
    closed; không dùng `--no-verify` để bỏ qua gate.
-3. `ponytail-audit` ultra chỉ chạy trong thread code review của wrap-up session hoặc khi
-   owner gọi; không chạy tự động.
-4. `ponytail-debt` chạy cùng audit trong wrap-up; nợ còn mở ghi vào card Notion, không tạo file báo cáo.
+   Phạm vi chỉ là over-engineering; correctness và security thuộc five-axis review.
+3. `ponytail-audit` ultra quét cả repo, chỉ báo cáo, không tự sửa. Chạy trong thread code
+   review của wrap-up session hoặc khi owner gọi; không chạy tự động.
+4. Shortcut có chủ đích (giới hạn đã biết) đánh dấu bằng comment `ponytail: <ceiling>, <upgrade path>`.
+   `ponytail-debt` gom các comment đó, chạy cùng audit; nợ cần xử lý ghi vào card Notion,
+   không tạo file ledger.
 
 ## Branch, PR và merge
 
