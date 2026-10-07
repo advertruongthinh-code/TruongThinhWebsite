@@ -28,7 +28,7 @@ updated: 2026-10-07
 ## Mục đích
 
 Biến `src/site/` thành `.site-output/` tĩnh VI/EN, phục vụ local preview cổng 8787 và đẩy cùng output lên demo
-Cloudflare khi owner đồng ý. Không cần D1, R2, Access hay CMS secret. Hành vi từng trang thuộc spec của capability đó;
+Cloudflare khi CI xanh trên `main`. Không cần D1, R2, Access hay CMS secret. Hành vi từng trang thuộc spec của capability đó;
 spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker nằm ngoài.
 
 ## Hành vi
