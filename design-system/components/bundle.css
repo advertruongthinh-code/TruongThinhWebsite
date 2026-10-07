@@ -4804,11 +4804,11 @@ body.is-advertising-browse .advertising-grid {
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Grain mono tĩnh 4% trên mid tone; overlay để nguyên trắng tinh. */
+/* Grain mono tĩnh 3% trên mid tone; overlay để nguyên trắng tinh. */
 .glass-surface__grain {
   background: var(--glass-grain, none) 0 0 / var(--glass-grain-size, 160px) repeat;
   mix-blend-mode: overlay;
-  opacity: 0.08;
+  opacity: 0.06;
 }
 
 /* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
@@ -4829,12 +4829,12 @@ body.is-advertising-browse .advertising-grid {
 
 /* Trên các layer WebGL của skeleton trong trang composited (smooth scroll), Chromium bỏ blur của step dưới một
    sibling blended, nên mép card lộ sắc nét qua arc. White noise với blending normal làm sáng thêm
-   0.16 x noise x (1 - backdrop), tức noise của overlay trên glass sáng; mean 0.08 của nó trừ khỏi tint
+   0.12 x noise x (1 - backdrop), tức noise của overlay trên glass sáng; mean 0.06 của nó trừ khỏi tint
    (glass-surface.mjs). */
 .glass-surface[data-glass-shape="arc"] > .glass-surface__grain {
   background-image: var(--glass-grain-white, none);
   mix-blend-mode: normal;
-  opacity: 0.16;
+  opacity: 0.12;
 }
 
 /* Layer của arc chạy 2px dưới footer; footer xếp trên chúng để đường viền trên của nó còn nguyên. */

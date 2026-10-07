@@ -43,12 +43,12 @@ for (const [selector, count, saturation, light] of [["\\.glass-surface", 5, 1.7,
   assert(Math.abs(brightness ** count - light) < 0.001, `R5: brightness ${light} across ${count} steps`);
 }
 assert.match(css, /\.glass-surface__tint \{\s*background: rgba\(255, 255, 255, 0\.12\);/, "R5: tint alpha 0.12");
-// R4: overlay dịch mid tone đúng bằng noise đầy; opacity 0.08 giới hạn dịch ở 4%.
-assert.match(css, /\.glass-surface__grain \{[^}]*mix-blend-mode: overlay;[^}]*opacity: 0\.08;/, "R4: grain 4%, overlay");
-// R4: white grain của cung dịch glass sáng như overlay, 0.16 x noise x (1 - backdrop); mean 0.08 giữ nguyên tint.
+// R4: overlay dịch mid tone đúng bằng noise đầy; opacity 0.06 giới hạn dịch ở 3%.
+assert.match(css, /\.glass-surface__grain \{[^}]*mix-blend-mode: overlay;[^}]*opacity: 0\.06;/, "R4: grain 3%, overlay");
+// R4: white grain của cung dịch glass sáng như overlay, 0.12 x noise x (1 - backdrop); mean 0.06 giữ nguyên tint.
 assert.match(css, new RegExp(`^${arc} > \\.glass-surface__grain \\{\\s*background-image: var\\(--glass-grain-white, none\\);`
-  + "\\s*mix-blend-mode: normal;\\s*opacity: 0\\.16;", "m"),
-  "R4: arc grain is white noise, normal blend, 0.16");
+  + "\\s*mix-blend-mode: normal;\\s*opacity: 0\\.12;", "m"),
+  "R4: arc grain is white noise, normal blend, 0.12");
 assert.doesNotMatch(css, /\.glass-surface \{[^}]*(?:opacity|mask|filter)/, "R1: the Kính box has no opacity, mask or filter");
 
 // R2, R3: số của owner và hai giới hạn.

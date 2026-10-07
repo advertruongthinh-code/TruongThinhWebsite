@@ -28,8 +28,8 @@ const FADE = 48;
 const STEP_REACH = [5, 12, 26];
 const CORE_REACH = 28;
 const GRAIN_SIZE = 160;
-// Mean trắng mà grain của arc thêm vào (opacity 0.16 x mean alpha 0.5, detail.css); tint mang ít đi đúng bằng đó.
-const GRAIN_WHITE = 0.08;
+// Mean trắng mà grain của arc thêm vào (opacity 0.12 x mean alpha 0.5, detail.css); tint mang ít đi đúng bằng đó.
+const GRAIN_WHITE = 0.06;
 let grain;
 const waitingForGrain = [];
 
