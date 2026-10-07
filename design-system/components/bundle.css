@@ -1426,6 +1426,8 @@ em {
 .portal-title-mask,
 .portal-title__quiet,
 .portal-title__strong {
+  /* clip-path trên inline bọc block con làm mất cả dòng chữ; block để mask có box thật */
+  display: block;
   overflow: visible;
   clip-path: inset(
     calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
@@ -1535,7 +1537,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   line-height: 1.08;
 }
 
-#dich-vu .portal-copy strong br {
+/* hai dòng tiêu đề đã là block nên <br> thừa */
+.portal-copy strong br {
   display: none;
 }
 
@@ -2006,6 +2009,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   min-width: max-content;
   align-items: center;
   gap: 2.8rem;
+  /* chừa đúng một gap ở cuối để chỗ nối hai dòng lặp cách đều */
+  padding-inline-end: 2.8rem;
   animation: marquee 25s linear infinite;
   font-size: clamp(1.5rem, 2.8vw, 3.2rem);
   font-weight: 600;
@@ -2639,6 +2644,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
 
   .marquee-line {
     gap: 1.5rem;
+    padding-inline-end: 1.5rem;
   }
 
   .site-footer {
