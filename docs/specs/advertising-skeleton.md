@@ -76,9 +76,11 @@ Then mọi khung đang thấy giữ node, assignment và không chạy lại hi�
 
 Khung giao vùng nhìn thấy (visual viewport) hiện bằng reveal Kính `0.6s` giống card ảnh
 ([Kính trên ảnh vừa tải](loading-glass-and-page-entry.md), owner 06/10): lớp dưới là khung trống, lớp hiện lên là
-Flow. Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Reveal chỉ chạy lần đầu khung vào
-vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải, vì reveal chạy lại dưới Kính cung trông như
-các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner thấy trên PC, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
+Flow. Flow chạy ngay từ đầu lúc hiện, kể cả khi cuộn native (điện thoại). Lúc cuộn mượt trên desktop (`html` có
+`has-scroll-scrolling` của Locomotive), Flow đứng ở frame hiện tại và chạy tiếp từ pha đó khi cuộn dừng: Chrome bỏ
+blur các bậc Kính cung trên canvas WebGL đang vẽ trong trang đang dịch transform (đo trên PC owner, 07/10). Reveal chỉ chạy lần đầu khung vào
+vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải, vì reveal chạy lại làm khung nháy trắng 1-3 frame
+khi cuộn lên xuống ở CTA (owner chọn, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 

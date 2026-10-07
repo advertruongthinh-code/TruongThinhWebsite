@@ -1812,9 +1812,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (skeletonCanLoop(frame)) {
         // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
-        frame.classList.toggle("is-looping", Boolean(renderer));
-        frame.dataset.advertisingFlowState = renderer ? "running" : "paused";
-        renderer?.start();
+        // Locomotive đang dịch trang (smooth scroll): Chrome bỏ blur các bậc Kính cung trên canvas WebGL đang vẽ,
+        // nên Flow đứng ở frame hiện tại tới khi cuộn dừng (skeleton R4).
+        const looping = Boolean(renderer) && !document.documentElement.classList.contains("has-scroll-scrolling");
+        frame.classList.toggle("is-looping", looping);
+        frame.dataset.advertisingFlowState = looping ? "running" : "paused";
+        if (looping) renderer.start();
+        else renderer?.stop();
         return;
       }
       cancelSkeletonEntry(frame);
@@ -1828,6 +1832,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
   const skeletonPauseObserver = new MutationObserver(syncSkeletonMotion);
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  skeletonPauseObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
   controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
   let skeletonSyncFrame = 0;
