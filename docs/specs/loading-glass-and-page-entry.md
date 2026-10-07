@@ -6,8 +6,9 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/glass-surface.test.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
+  - tests/site/advertising-reveal-offscreen.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -118,6 +119,8 @@ Then khung primary có aria-busy="true" và skeleton, không có vòng tải nà
 - Card ra hẳn khỏi viewport (`intersectionRatio = 0`): đang chạy R2 thì hủy animation, gỡ Kính và skeleton ngay, lần vào
   sau chạy lại theo R1 hoặc R3. Skeleton chưa tới R2 thì ở lại trong khung và nhả WebGL
   context; ảnh tải xong khi card còn ngoài viewport thì skeleton gỡ không qua Kính.
+  Card ra khỏi viewport khi đang chờ `decode()` của R2: decode xong thì media hiện ngay ở opacity cuối, không Kính
+  (`tests/site/advertising-reveal-offscreen.e2e.mjs`).
 - Card bị gỡ khỏi masonry hoặc related (ảo hóa, đổi filter, đổi tag, đóng detail): gỡ skeleton và Kính.
 - Primary đổi sang ảnh khác trước khi R4 xong: lượt cũ dừng, gỡ skeleton, lớp tạm, Kính cũ, rồi lượt mới bắt đầu
   (`settlePrimaryReveal`). Về masonry (`restoreGridEntry`) hoặc runtime unmount: gỡ hết.
