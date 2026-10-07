@@ -185,7 +185,6 @@ async function snapshot(page) {
     const cta = document.querySelector("[data-advertising-grid-cta]");
     const footer = document.querySelector("footer.site-footer");
     const gridRect = grid?.getBoundingClientRect();
-    const sectionRect = section?.getBoundingClientRect();
     // Kính (glass-surface.md): cung trên grid section, Kính đều trong primary frame.
     const glass = section?.querySelector(":scope > .glass-surface[data-glass-shape=arc]");
     const glassRect = glass?.getBoundingClientRect();

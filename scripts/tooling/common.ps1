@@ -38,14 +38,6 @@ function Get-GraphifyExe {
   return $exe
 }
 
-function Get-GlobalNodePackage([string]$Name) {
-  $path = Join-Path (Get-GlobalToolingRoot) "node\node_modules\$Name\package.json"
-  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-    throw "Global Node package is missing: $Name. Run pnpm tooling:bootstrap."
-  }
-  return $path
-}
-
 function Get-ProjectNode {
   $command = Get-Command node -ErrorAction SilentlyContinue
   if ($command) { return $command.Source }
