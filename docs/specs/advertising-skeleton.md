@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Skeleton cuối masonry Advertising
@@ -76,12 +76,17 @@ Then mọi khung đang thấy giữ node, assignment và không chạy lại hi�
 
 Khung giao vùng nhìn thấy (visual viewport) hiện bằng reveal Kính `0.6s` giống card ảnh
 ([Kính trên ảnh vừa tải](loading-glass-and-page-entry.md), owner 06/10): lớp dưới là khung trống, lớp hiện lên là
-Flow. Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn; rời hẳn vùng nhìn thấy thì lần vào sau
-chạy lại. Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
+Flow. Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Reveal chỉ chạy lần đầu khung vào
+vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải, vì reveal chạy lại dưới Kính cung trông như
+các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner thấy trên PC, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 
 ```gherkin
+Given khung đã hiện xong và Flow đang chạy
+When cuộn khung ra hẳn vùng nhìn thấy rồi vào lại
+Then khung hiện ngay, không trống, reveal Kính không chạy lại
+
 Given khung đã hiện xong và Flow đang chạy
 When ẩn tab rồi hiện lại hai lần
 Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng

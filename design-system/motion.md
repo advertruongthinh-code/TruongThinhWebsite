@@ -191,7 +191,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - Vào viewport: reveal Kính `0.6s` như ảnh card (mục trên; lớp dưới là khung
   trống, lớp hiện lên là Flow), Flow chạy ngay từ đầu
   kể cả khi đang cuộn; mỗi frame tự hiện khi giao vùng nhìn thấy, không stagger;
-  rời hẳn viewport thì lần sau chạy lại. Không hover, không shimmer, không focus.
+  chỉ lần đầu vào; rời hẳn viewport rồi vào lại thì hiện ngay. Không hover, không shimmer, không focus.
   Frame chưa có WebGL context hiện một khung hình Flow đứng yên của chính nó.
 - Cuối batch là [Kính](components/Glass/README.md) dạng cung, đứng yên: card
   phía trên nét, nhòe tăng dần vào cụm CTA, đáy batch trắng tuyệt đối. CTA và
