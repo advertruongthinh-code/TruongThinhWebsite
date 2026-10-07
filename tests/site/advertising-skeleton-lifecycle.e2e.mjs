@@ -188,12 +188,13 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       && window.__lossRecord.canvas.dataset.advertisingFlowBackend === "webgl");
     assert.equal(await page.evaluate(() => window.__lossOuter === document.querySelector('[data-advertising-cta-slot="' + window.__lossSlot + '"]')), true);
     assert.ok(await page.evaluate(() => window.__lossRecord.generation >= 2), "restored resource generation is new");
-    // Tách full exit khỏi đối soát toolbar/RO; reveal chỉ arm sau khi thật sự exit.
+    // Ra hẳn rồi vào lại: khung đã hiện giữ nguyên, không chạy lại reveal Kính (R4).
     await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(250);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame].is-entry-ready").length), 0);
+    assert.ok(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame].is-entry-ready").length) > 0, "revealed frames stay revealed off screen");
     await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
-    await page.waitForTimeout(800);
-    assert.ok(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame].is-entry-ready").length) > 0);
+    await page.waitForTimeout(50);
+    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame] .glass-surface[data-glass-reveal]").length), 0, "re-entry replays no reveal");
+    await page.waitForTimeout(750);
     await page.emulateMedia({ reducedMotion: "reduce" }); await page.waitForTimeout(250);
     assert.equal((await ledger()).running, 0, "reduced motion has zero running Flow");
     await page.emulateMedia({ reducedMotion: "no-preference" }); await page.waitForTimeout(800);

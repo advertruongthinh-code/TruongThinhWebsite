@@ -1794,9 +1794,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return;
       }
       if (!visibleSkeletonFrames.has(frame)) {
+        // Khung đã hiện giữ nguyên khi ra vào viewport, như card ảnh đã tải (skeleton R4); chạy lại thì nháy trắng dưới Kính.
         cancelSkeletonEntry(frame);
-        frame.classList.remove("is-looping", "is-entry-ready");
-        revealedSkeletonSlots.delete(skeletonKey(frame));
+        frame.classList.remove("is-looping");
         frame.dataset.advertisingFlowState = "paused";
         renderer?.stop();
         return;
