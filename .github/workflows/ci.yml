@@ -32,7 +32,6 @@ jobs:
       - run: node --test tests/tooling/global-rules-sync.test.mjs
       - run: node scripts/site/build-image-variants.mjs --check
       - run: pnpm qa:worker:security
-      - run: node --test tests/site/orphan-selectors.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
 
       - name: Start local static preview
@@ -44,6 +43,9 @@ jobs:
           done
           cat static-server.log
           exit 1
+
+      # pnpm dev đã chạy prepare:site, nên .site-output/ sẵn cho unit test.
+      - run: node --test tests/site/*.test.mjs
 
       - run: pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium
         env:

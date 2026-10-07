@@ -151,6 +151,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/check-updates.ps1
 
 Doctor chỉ diagnose issue đã report. Update notify-only: review upstream
 release, sửa `tooling-versions.json`, chạy bootstrap, commit pin cùng evidence.
+Dependabot (`.github/dependabot.yml`) chỉ mở PR cập nhật GitHub Actions hằng tuần; npm giữ pin tay.
 Sau khi đổi global config hoặc persona, start session mới để host nhận MCP.
 
 Watcher (Graphify, Serena language) là monitoring tùy chọn; xem
