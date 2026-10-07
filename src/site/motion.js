@@ -1,17 +1,3 @@
-// Vòng loading CSS tiếp tục repaint dưới ảnh đã tải, nên đánh dấu frame của nó đã settle.
-(() => {
-  // Selector của ring khớp cả <picture> và wrapper của nó.
-  const settle = (image) => {
-    const parent = image.parentElement;
-    parent?.classList.add("is-media-settled");
-    if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
-  };
-  const onSettle = ({ target }) => target.tagName === "IMG" && settle(target);
-  document.addEventListener("load", onSettle, true);
-  document.addEventListener("error", onSettle, true);
-  document.querySelectorAll("img[src]").forEach((image) => image.complete && settle(image));
-})();
-
 (() => {
   const reduceMotionQuery = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
@@ -820,6 +806,18 @@
       });
   };
 
+  // Vệt sáng chờ ảnh dừng khi khung ra ngoài viewport; khung đã settle thì thôi theo dõi (media-delivery R6).
+  const pauseOffscreenMediaSweeps = (state) => {
+    const observer = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
+      if (target.classList.contains("is-media-settled")) observer.unobserve(target);
+      else target.classList.toggle("is-media-offscreen", !isIntersecting);
+    }));
+    state.container
+      .querySelectorAll(':has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, .is-media-settled)')
+      .forEach((frame) => observer.observe(frame));
+    state.abort.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+  };
+
   const mountPageMotion = (state, softNavigation, settledStartup = false) => {
     const clientLogoTrack = state.container.querySelector(
       ".client-logo-marquee__track",
@@ -1514,6 +1512,7 @@
     }
 
     watchWhiteOverlayMedia(state);
+    pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });

@@ -173,7 +173,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   `intersectionRatio = 0`): hiện ngay, không kính, không crossfade.
 - Reduced motion: skeleton đứng yên, ảnh thay ngay khi giải mã xong, không kính.
 - Batch mới nối vào cột thấp nhất; card cũ không chạy lại motion.
-- Loading ảnh ngoài masonry và nút suggestion: owner đã duyệt vệt sáng lướt qua, chờ code ([Đã duyệt, chờ code](approved-designs.md#loading-ảnh-vệt-sáng-lướt-qua)).
+- Ảnh nội dung ngoài masonry và nút suggestion chờ bằng [vệt sáng](components/LoadSweep/README.md): dải sáng
+  nghiêng 60 độ lướt `1.6s` linear, chỉ `transform`; ảnh hiện sau load và `decode()`, opacity `0.45s`
+  `cubic-bezier(0.16, 1, 0.3, 1)`. Reduced motion: sáng tối nhẹ `2s`.
 
 ### Skeleton tiếp nối
 

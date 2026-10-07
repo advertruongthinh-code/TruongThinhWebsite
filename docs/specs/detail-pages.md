@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Trang Residential, Commercial và About
@@ -24,7 +24,7 @@ updated: 2026-10-06
 Ba trang con `/vi/residential/`, `/vi/commercial/`, `/vi/about/` (EN tương đương, mỗi trang một file
 `src/site/<trang>/index.html`) dùng chung `detail.css`, `detail.js`. Residential, Commercial giới thiệu một lĩnh vực
 nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo. Header, menu, footer, veil, scroll thuộc
-[shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vòng tải thuộc
+[shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vệt sáng chờ ảnh thuộc
 [tải ảnh](media-delivery.md); phần Advertising trong hai file chung thuộc spec Advertising.
 
 ## Hành vi
@@ -166,7 +166,7 @@ Then track cuộn sang phải, rồi dịch ít nhất 150px, không có dragsta
 ### R8. Dải quy trình, duo, portal loại hình
 
 Dải `.editorial-strip.detail-process-editorial` là `region` focus được, gắn nhãn bằng tiêu đề quy trình: bốn
-`article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh, `h3`, đoạn; bốn cột, tới 980px hai cột,
+`article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3`, đoạn; bốn cột, tới 980px hai cột,
 tới 680px một cột. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh đầu tràn mép. `.portal-stage`: ba
 `article.service-portal` không link, không hover zoom, chữ theo [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
@@ -199,7 +199,7 @@ reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang ch�
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
 `is-overlay-media-ready` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
-cổng này. Khung ảnh nội dung có vòng tải tới khi ảnh xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
+cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
 Given ảnh figure đầu gallery /vi/residential/ bị trễ
@@ -264,8 +264,6 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 - Gate chung, áp dụng cả ba trang: Zalo placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
 - [Gallery](../../design-system/components/Gallery/README.md) ghi "một ảnh thì bỏ control", `detail.js` không xử lý; main thêm hoặc owner bỏ quy tắc.
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
-- Vòng tải khớp cả `article.editorial-item`; ở 390px ảnh 167px trong khung 350px nên vòng lộ ngoài ảnh khi đang tải
-  (audit 04/10 F2, suy luận). Main đo.
 - Không chặn phát hành. Carousel Swiper trong `detail.js` (namespace `advertising-product-detail`) không trang nào dùng; owner giữ (24/09) để
   thiết kế lại carousel cho Residential, Commercial. Owner giao spec khi làm.
 

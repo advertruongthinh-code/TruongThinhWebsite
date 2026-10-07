@@ -1,4 +1,4 @@
-// Evidence P8/P9: frame reserved, loading ring hoặc skeleton và reveal Kính, số request và geometry khi ảnh đang tải.
+// Evidence P8/P9: frame reserved, vệt sáng (media-delivery R6) hoặc skeleton và reveal Kính, số request và geometry khi ảnh đang tải.
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -50,7 +50,7 @@ const snapshot = page => page.evaluate(() => { const seen = new Map(); return [.
     return {
       key: src + "#" + seen.get(src), raw: !img.hasAttribute("data-src"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
       loading: img.getAttribute("loading"), priority: img.getAttribute("fetchpriority"),
-      ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, ring: getComputedStyle(frame).backgroundImage.includes("svg"), opacity,
+      ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, sweep: /^media-(sweep|breathe)$/.test(getComputedStyle(frame, "::before").animationName), settled: frame.classList.contains("is-media-settled"), imageOpacity: Number(getComputedStyle(img).opacity), opacity,
     };
   }); });
 // Timer phía Node để việc walk cũng chạy khi tắt JavaScript.
@@ -91,22 +91,23 @@ try {
       const raw = await rawAttributes(page);
       await scrollThrough(page);
       await settle(page);
-      // load bắn một task sau khi complete đổi; cho main thread bận thời gian bỏ ring.
+      // Khung settle sau load và decode() bất đồng bộ; chờ thêm cho fade 0.45s chạy xong.
       await page.waitForFunction(() => [...document.images].every(img => !img.complete || !img.naturalWidth
-        || !getComputedStyle(img.closest(":not(img, picture)")).backgroundImage.includes("svg")), null, { timeout: 5000 }).catch(() => {});
-      await page.waitForTimeout(400);
+        || img.closest(".is-media-settled") || !img.closest("[class]")), null, { timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(600);
       const after = new Map((await snapshot(page)).map(item => [item.key, item]));
       const label = `${route} ${viewport.width}px`;
       for (const item of before) {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
-        if (!item.ready) assert.ok(item.ring, `${label}: ${item.src} shows the ring while loading`);
+        if (!item.ready) assert.ok(item.sweep && item.imageOpacity === 0, `${label}: ${item.src} shows the sweep and hides the image while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
         // Ảnh có src set bằng script (slide hero dùng data-src) không có raw src để so sánh.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;
         if (done.columnVisible) assert.ok(done.ready, `${label}: ${item.src} finishes loading`);
-        if (done.ready) assert.ok(!done.ring, `${label}: ${item.src} drops the ring once loaded`);
+        // Opacity sau settle còn do reveal của detail.js quyết, nên chỉ kiểm khung đã settle và hết vệt.
+        if (done.ready) assert.ok(done.settled && !done.sweep, `${label}: ${item.src} settles and drops the sweep once decoded`);
         assert.ok(Math.abs(done.w - item.w) <= 1 && Math.abs(done.h - item.h) <= 1,
           `${label}: ${item.src} keeps its box ${item.w}x${item.h} -> ${done.w}x${done.h}`);
       }
@@ -117,6 +118,34 @@ try {
       results.push({ case: "p8-frame", route, width: viewport.width, images: before.length, requests: counts.size, cls: Number(cls.toFixed(4)) });
       await context.close();
     }
+  }
+
+  // R6: chụp mỗi 100ms trong lúc ảnh tải dở, không ảnh chưa xong nào được lộ ra.
+  {
+    const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
+    await page.goto(base + "/vi/residential/", { waitUntil: "domcontentloaded" });
+    let samples = 0;
+    for (let tick = 0; tick < 40; tick++, await page.waitForTimeout(100)) {
+      const leaked = await page.evaluate(() => [...document.querySelectorAll('img[src^="/assets/content/"]')]
+        .filter(img => !img.complete && img.getClientRects().length && Number(getComputedStyle(img).opacity) > 0)
+        .map(img => img.getAttribute("src")));
+      assert.deepEqual(leaked, [], `residential 1440px: no partially loaded image is visible at ${tick * 100}ms`);
+      samples++;
+    }
+    results.push({ case: "r6-no-partial-image", samples });
+    await context.close();
+  }
+
+  // R6: reduced motion không lướt, khung sáng tối nhẹ.
+  {
+    const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
+    const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate :not(picture):has(> img[src^=\"/assets/content/\"], > picture > img[src^=\"/assets/content/\"]):not(.is-media-settled)")]
+      .map(frame => getComputedStyle(frame, "::before").animationName));
+    assert.ok(frames.length && frames.every(name => name === "media-breathe"), `about reduced motion: frames breathe instead of sweeping ${JSON.stringify(frames)}`);
+    results.push({ case: "r6-reduced-motion", frames: frames.length });
+    await context.close();
   }
 
   // P8: no-script vẫn hiện mọi ảnh.

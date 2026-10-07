@@ -278,6 +278,7 @@ html[lang="vi"]
 }
 
 .detail-media {
+  position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #d9d7d0;
@@ -459,6 +460,7 @@ html[lang="vi"]
 }
 
 .detail-duo figure {
+  position: relative;
   overflow: hidden;
 }
 
@@ -2445,17 +2447,36 @@ body.is-advertising-browse .site-footer {
   transition: background-color 250ms ease-out, border-color 250ms ease-out;
 }
 
-/* Thanh indeterminate vẽ dọc mép dưới sau photo cho đến khi photo phủ nó. */
-.advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 2' preserveAspectRatio='none'%3E%3Crect width='100' height='2' fill='%23ffffff2e'/%3E%3Crect x='-30' width='30' height='2' fill='%23ffffffb8'%3E%3Canimate attributeName='x' from='-30' to='100' dur='1.2s' repeatCount='indefinite'/%3E%3C/rect%3E%3C/svg%3E");
-  background-position: left bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 3px;
+/* Nút chưa bật chờ ảnh nền bằng vệt sáng chung của ảnh nội dung (style.css), dưới overlay và nhãn. */
+.media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
+  background-color: var(--media-loading-surface);
+}
+
+.media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) img {
+  opacity: 0;
+}
+
+.media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto 0 0;
+  width: 400%;
+  content: "";
+  background: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 5%) 47.5%, rgb(255 255 255 / 16%) 50%, rgb(255 255 255 / 5%) 52.5%, transparent 55%);
+  animation: media-sweep 1.6s linear infinite;
+  pointer-events: none;
+}
+
+.media-gate .advertising-photo-view__suggestion-link.is-media-settled > img {
+  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 2' preserveAspectRatio='none'%3E%3Crect width='100' height='2' fill='%23ffffff2e'/%3E%3Crect x='0' width='30' height='2' fill='%23ffffffb8'/%3E%3C/svg%3E");
+  .media-gate .advertising-photo-view__suggestion-link:not([aria-pressed="true"], .is-media-settled)::before {
+    inset: 0;
+    width: auto;
+    background: rgb(255 255 255 / 8%);
+    animation: media-breathe 2s ease-in-out infinite;
   }
 }
 

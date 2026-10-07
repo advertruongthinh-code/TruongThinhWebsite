@@ -124,9 +124,8 @@ Then khung ảnh đúng tỷ lệ trước khi tải, build bọc <picture> có 
 
 ### R6. Vệt sáng chờ ảnh tĩnh
 
-Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07
-([mục chờ code](../../design-system/approved-designs.md#loading-ảnh-vệt-sáng-lướt-qua), PR code chuyển vào
-[motion](../../design-system/motion.md#ảnh-trong-card) rồi xóa mục).
+Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sáng](../../design-system/components/LoadSweep/README.md),
+[motion](../../design-system/motion.md#ảnh-trong-card)).
 
 Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, hoặc `picture > img` như vậy; không áp trong
 `[data-project-grid]`, `[data-advertising-photo-view]` (Advertising dùng skeleton,
@@ -212,7 +211,7 @@ tải ảnh ở đó thì cập nhật cả spec này.
 
 Vệt sáng theo [motion ảnh trong card](../../design-system/motion.md#ảnh-trong-card); mọi khung chờ dùng token
 `media-loading-surface` làm nền dưới vệt. Liên quan:
-[Thanh tải](../../design-system/components/LoadBar/README.md), [Skeleton](../../design-system/components/Skeleton/README.md),
+[Vệt sáng](../../design-system/components/LoadSweep/README.md), [Skeleton](../../design-system/components/Skeleton/README.md),
 [ảnh trong card](../../design-system/motion.md#ảnh-trong-card), [Content và media](../../design-system/content.md).
 
 ## Kiểm tra
@@ -235,8 +234,6 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 
 - Cache hit: ảnh từ cache vẫn qua `decode()` rồi fade `0.45s`, nên có thể lóe nền tối một nhịp khi chuyển trang Barba
   (suy luận, cùng gate ở [trang chủ](page-home.md#gate-còn-mở)). Main đo; owner xem trên demo.
-- Khung lớn hơn ảnh (`.editorial-item`, [trang con](detail-pages.md#gate-còn-mở)): nền tối và vệt phủ cả phần ngoài ảnh
-  trong lúc chờ (suy luận từ CSS). Main chụp khi code.
 - Số lần Paint khi trang đứng yên (audit 04/10: 509 với vòng SMIL, 311 khi bỏ) đo lại sau khi đổi sang vệt. Main.
 - Ảnh tĩnh lỗi tải chưa có ca test (khung giữ tỷ lệ, alt). Main.
 - Probe AVIF bất đồng bộ: deep link `?photo=` có thể tải primary WebP rồi viewer tải lại AVIF (suy luận). Main kiểm

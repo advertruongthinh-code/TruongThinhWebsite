@@ -250,7 +250,7 @@ không sửa tay preview:
 | --- | --- |
 | Shell | [Header](design-system/components/Header/README.md), [Brand lockup](design-system/components/BrandLockup/README.md), [Full menu](design-system/components/FullMenu/README.md), [Footer](design-system/components/Footer/README.md), [Floating CTA](design-system/components/FloatingCta/README.md) |
 | Trang | [Hero](design-system/components/Hero/README.md), [Project reel](design-system/components/ProjectReel/README.md), [Gallery ngang](design-system/components/Gallery/README.md), [Banner CTA](design-system/components/BannerCta/README.md) |
-| Advertising | [Filter](design-system/components/Filter/README.md), [Media card](design-system/components/MediaCard/README.md), [Masonry](design-system/components/Masonry/README.md), [Skeleton](design-system/components/Skeleton/README.md), [Kính](design-system/components/Glass/README.md), [Primary](design-system/components/Primary/README.md), [Suggestion](design-system/components/Suggestion/README.md), [Viewer](design-system/components/Viewer/README.md), [Thanh tải](design-system/components/LoadBar/README.md) |
+| Advertising | [Filter](design-system/components/Filter/README.md), [Media card](design-system/components/MediaCard/README.md), [Masonry](design-system/components/Masonry/README.md), [Skeleton](design-system/components/Skeleton/README.md), [Kính](design-system/components/Glass/README.md), [Primary](design-system/components/Primary/README.md), [Suggestion](design-system/components/Suggestion/README.md), [Viewer](design-system/components/Viewer/README.md), [Vệt sáng](design-system/components/LoadSweep/README.md) |
 
 Mẫu chưa có preview riêng:
 

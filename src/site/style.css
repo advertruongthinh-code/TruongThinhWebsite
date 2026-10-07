@@ -1343,18 +1343,25 @@ em {
   overflow: hidden;
 }
 
-.editorial-item img {
+.editorial-media {
   position: relative;
   z-index: 1;
+  display: block;
   width: 100%;
-  height: 100%;
   min-width: 0;
   min-height: 0;
   max-height: 100%;
   grid-column: 1;
   grid-row: 1;
-  object-fit: cover;
+  overflow: hidden;
   align-self: stretch;
+}
+
+.editorial-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .editorial-item:first-of-type img {
@@ -2091,17 +2098,66 @@ html[lang="en"] #nang-luc .portal-subtitle {
   animation-play-state: paused;
 }
 
-/* Vẽ trên media frame sau ảnh nội dung để hiện trước khi script chạy; motion.js thêm .is-media-settled khi load/error để dừng repaint SMIL. */
-:has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(:is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke-width='2'%3E%3Ccircle cx='14' cy='14' r='13' stroke='%23ffffff2e'/%3E%3Cpath d='M14 1a13 13 0 0 1 13 13' stroke='%23ffffffb8'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 14 14' to='360 14 14' dur='0.9s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 1.75rem;
+/* Khung ảnh nội dung chờ bằng vệt sáng tới khi script head thêm .is-media-settled sau load và decode; không JavaScript thì không có .media-gate nên ảnh hiện như thường. */
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) {
+  overflow: clip;
+  background-color: var(--media-loading-surface);
+}
+
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) > img,
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) > picture > img {
+  opacity: 0;
+}
+
+/* Dải rộng 400% khung trượt -75% tới 0 nên vệt vào từ ngoài mép trái và ra hẳn mép phải; chỉ animate transform. */
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled)::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 400%;
+  content: "";
+  background: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 5%) 47.5%, rgb(255 255 255 / 16%) 50%, rgb(255 255 255 / 5%) 52.5%, transparent 55%);
+  animation: media-sweep 1.6s linear infinite;
+  pointer-events: none;
+}
+
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled).is-media-offscreen::before {
+  animation-play-state: paused;
+}
+
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *).is-media-settled > img,
+.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *).is-media-settled > picture > img {
+  animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes media-sweep {
+  from {
+    transform: translateX(-75%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes media-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes media-breathe {
+  50% {
+    opacity: 0.45;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(:is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke-width='2'%3E%3Ccircle cx='14' cy='14' r='13' stroke='%23ffffff2e'/%3E%3Cpath d='M14 1a13 13 0 0 1 13 13' stroke='%23ffffffb8'%3E%3C/path%3E%3C/svg%3E");
+  /* Không lướt; cả lớp sáng tối nhẹ chu kỳ 2s. */
+  .media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled)::before {
+    inset: 0;
+    width: auto;
+    background: rgb(255 255 255 / 8%);
+    animation: media-breathe 2s ease-in-out infinite;
   }
 }
 
@@ -2604,7 +2660,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .editorial-item img {
+  .editorial-media {
     width: 100%;
   }
 

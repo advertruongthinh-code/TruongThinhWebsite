@@ -111,7 +111,7 @@ giữ status ẩn cho trình đọc màn hình theo [media-card R5](media-card.m
 ```gherkin
 Given detail đang mở, primary đổi sang một ảnh chưa tải
 When ảnh đang tải
-Then khung primary có aria-busy="true" và skeleton, không có vòng tải nào trong masonry hay primary
+Then khung primary có aria-busy="true" và skeleton, không có vệt sáng nào trong masonry hay primary
 ```
 
 ### R6. Rời đi giữa chừng
@@ -202,7 +202,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
 | R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
-| R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vòng tải trong masonry, detail chưa có test |
+| R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vệt sáng trong masonry, detail chưa có test |
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |
 | R7 | chưa có test |
 | R8 | chưa có test |

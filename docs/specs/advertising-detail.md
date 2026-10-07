@@ -248,7 +248,7 @@ detail ở đó thì cập nhật cả spec này.
 ## UI
 
 [Primary](../../design-system/components/Primary/README.md), [Suggestion](../../design-system/components/Suggestion/README.md),
-[Viewer](../../design-system/components/Viewer/README.md), [Thanh tải](../../design-system/components/LoadBar/README.md),
+[Viewer](../../design-system/components/Viewer/README.md), [Vệt sáng](../../design-system/components/LoadSweep/README.md),
 [Kính](../../design-system/components/Glass/README.md), [motion detail](../../design-system/motion.md#suggestion-và-detail).
 
 ## Kiểm tra

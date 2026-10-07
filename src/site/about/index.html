@@ -22,6 +22,18 @@
         const routeLocale = document.documentElement.dataset.routeLocale;
         document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
       } catch {}
+      // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
+      document.documentElement.classList.add("media-gate");
+      (() => {
+        const settle = (image) => {
+          const parent = image.parentElement;
+          parent?.classList.add("is-media-settled");
+          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+        };
+        const isImage = (target) => target.tagName === "IMG";
+        document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+      })();
     </script>
     <script>
       (() => {

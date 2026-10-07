@@ -26,22 +26,6 @@ state machine màu giữ nguyên.
   chân.
 - Reduced motion: đổi màu ngay.
 
-## Loading ảnh: vệt sáng lướt qua
-
-Owner duyệt 2026-10-07 trên cùng bản chạy thử, kiểu 1. Thay vòng xoay SVG
-của ảnh nội dung trong `style.css` và thanh chạy dưới đáy nút "Có thể bạn
-thích" (`.advertising-photo-view__suggestion-link`). Skeleton của masonry
-Advertising giữ nguyên.
-
-- Khung giữ nền `media-loading-surface` `#2b2c2b`; một dải sáng mờ đối xứng,
-  trắng `16%` ở tâm, nghiêng 60 độ (cùng góc dải mark), rộng khoảng một phần
-  ba khung.
-- Vệt vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục không nghỉ, mỗi
-  lượt `1.6s` linear. Chỉ animate `transform`; dừng khi khung rời viewport.
-- Ảnh chỉ hiện sau `load` và `decode()`: opacity `0` sang `1` trong `0.45s`
-  `cubic-bezier(0.16, 1, 0.3, 1)`, để không lộ ảnh tải dở bị vỡ khối.
-- Reduced motion: không lướt; khung sáng tối nhẹ trong `2s`.
-
 ## Chú thích thuật ngữ
 
 - **Component**: khối giao diện dùng lại được, có README riêng trong Design

@@ -14,7 +14,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-05
+updated: 2026-10-07
 ---
 
 # Trang chủ
@@ -25,7 +25,7 @@ Trang chủ `/vi/`, `/en/` (một file `src/site/index.html`) giới thiệu ba 
 nghề, công trình và khách hàng, rồi mời tư vấn qua Zalo. Spec giữ thứ tự section, nội dung, hero,
 reveal và responsive riêng của trang chủ. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build và route locale thuộc [phát hành tĩnh](static-release.md); file ảnh và
-vòng tải thuộc [tải ảnh](media-delivery.md).
+vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 ## Hành vi
 
@@ -171,7 +171,7 @@ Closer: ảnh xưởng phủ khung có shade; `h2` hai dòng trượt lên trong
 hiện sau; hover zoom ảnh nhẹ; tới 980px khung cao 400px, chữ ngắt dòng trong khung.
 
 Marquee: hai nhóm 12 logo giống hệt, nhóm sau `aria-hidden`, `alt=""`; thứ tự, tên, file khớp
-`content/client-logos.json` (chỉ build, test đọc; không ra output). Logo tải `eager`, không vòng tải.
+`content/client-logos.json` (chỉ build, test đọc; không ra output). Logo tải `eager`, không vệt sáng.
 Track chạy CSS `client-logo-marquee` lặp, không lộ mép nối, chỉ chạy (`is-running`) khi trong viewport,
 tab hiện và chuyển động không bị dừng (R3). Reduced motion: đứng yên ở nhóm đầu.
 
@@ -185,8 +185,8 @@ Then track có is-running, mỗi nhóm 12 logo, khe giữa hai nhóm lệch tố
 
 Hero, portal, closer đặt chữ trắng trên ảnh. Ảnh chưa giải mã xong: khung nền `media-loading-surface`,
 chữ trắng vẫn hiện, ảnh opacity 0, shade ẩn; giải mã xong, runtime thêm `is-overlay-media-ready`, ảnh
-và shade hiện; `motion-fallback` bỏ cổng này. Khung ảnh nội dung có vòng tải CSS tới khi ảnh xong (trừ
-marquee); build bọc `<picture>` AVIF, `srcset` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
+và shade hiện; `motion-fallback` bỏ cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong (trừ
+marquee, [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)); build bọc `<picture>` AVIF, `srcset` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
 Given ảnh portal đầu của #dich-vu bị trễ
@@ -266,7 +266,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 - Owner chưa nghiệm thu trên máy mình hover, overlay, chữ portal, ảnh portal Advertising, hero,
   heritage; khoảng thở dọc của ảnh heritage ở mọi breakpoint (intent owner) chưa có test. Owner, main.
 - Cache hit: tải lại, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame;
-  chưa xác nhận vòng tải có lóe. Main đo lại.
+  chưa xác nhận vệt sáng có lóe. Main đo lại.
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ `https://zalo.me/` placeholder ([PRODUCT](../../PRODUCT.md)); URL thật chờ owner.
