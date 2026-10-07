@@ -1757,9 +1757,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
       if (frame.dataset.advertisingCtaFrame) {
-        pending.glass = revealGlass(frame);
+        // Khung dưới Kính cung chỉ crossfade: Kính reveal ở đó làm Chrome bỏ blur các bậc của cung (skeleton R4).
+        const arcTint = arcGlass?.hidden ? null : arcGlass?.querySelector(".glass-surface__tint");
+        if (!arcTint || frame.getBoundingClientRect().bottom <= arcTint.getBoundingClientRect().top) pending.glass = revealGlass(frame);
         pending.animations = [...crossfadeLayers([], [frame.querySelector(".advertising-grid__cta-surface")], CARD_REVEAL_MS),
-          ...playGlassReveal(pending.glass, CARD_REVEAL_MS)];
+          ...(pending.glass ? playGlassReveal(pending.glass, CARD_REVEAL_MS) : [])];
         Promise.all(pending.animations.map(({ finished }) => finished)).then(settle, () => {});
         return;
       }
