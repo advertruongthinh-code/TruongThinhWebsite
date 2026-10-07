@@ -4,13 +4,13 @@
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
-  deploy gần nhất 2026-10-07 commit `6decf2e` (Wrangler version `072cb006`) ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)).
+  deploy gần nhất 2026-10-07 commit `4a8102b` (Wrangler version `bf374cc5`) ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)).
   Owner kiểm nhận giao diện trên [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/).
 
 ## Việc đang làm
 
-- Không thread code nào đang mở. Mọi thay đổi tới `6decf2e` (Advertising, Kính, viewer cử chỉ tay) đã lên
-  demo, chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
+- Không thread code nào đang mở. Mọi thay đổi tới `4a8102b` (Advertising, Kính, viewer cử chỉ tay, ảnh kẹt ẩn
+  trong masonry) đã lên demo, chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
 
 ## Blocker đã verify
@@ -32,7 +32,7 @@
 
 ## Next action
 
-1. Owner kiểm nhận demo `6decf2e` và gửi ba fact còn thiếu.
+1. Owner kiểm nhận demo `4a8102b` và gửi ba fact còn thiếu.
 
 ## Ranh giới
 
