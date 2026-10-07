@@ -42,7 +42,7 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 Bootstrap gọi `local-setup.ps1` cho skill Claude. Persona Claude
 là bản chép tay; đổi persona Codex thì chép lại. Serena dùng
 `--project-from-cwd` với context của host: cloud `claude-code`
-(`cloud-setup.sh`); `start-serena-mcp.ps1` trên PC còn ghi `codex`. Chrome DevTools MCP chưa
+(`cloud-setup.sh`); `global-mcp.ps1` (chép thành `mcp.ps1`) trên PC mặc định `codex`. Chrome DevTools MCP chưa
 đăng ký cho Claude Code vì app có browser riêng.
 
 ## Machine mới hoặc repair

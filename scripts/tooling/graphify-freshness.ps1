@@ -135,20 +135,6 @@ function Test-GraphUpdateRequired {
   return (Get-GraphCorpusFingerprint) -ne $stored
 }
 
-function Mark-GraphDirtyIfChanged([string]$Trigger, [string]$EventLabel = "PostToolUse") {
-  $current = Get-GraphCorpusFingerprint
-  $stored = Get-StoredGraphFingerprint
-  $dirtyPath = Get-GraphifyStatePath "dirty.json"
-  if ($stored -and $current -eq $stored) {
-    if (Test-Path -LiteralPath $dirtyPath) { Remove-Item -LiteralPath $dirtyPath -Force }
-    Write-GraphifyLog $EventLabel "graphify unchanged after $Trigger; no dirty marker"
-    return $false
-  }
-  Write-GraphDirtyMarker $current $Trigger $EventLabel
-  Write-GraphifyLog $EventLabel "graphify marked dirty after $Trigger fingerprint=$current"
-  return $true
-}
-
 function Invoke-GraphifySupplementalRestore([string]$EventLabel, [switch]$CheckOnly) {
   $root = Get-ProjectRoot
   $helper = Join-Path $PSScriptRoot "graphify_supplemental.py"

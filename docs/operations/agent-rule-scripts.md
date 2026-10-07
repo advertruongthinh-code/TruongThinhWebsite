@@ -47,8 +47,8 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 
 ## Managed/helper
 
-- MCP launcher: `global-mcp.ps1`, `start-serena-mcp.ps1`, `start-graphify-mcp.ps1`, `start-chrome-devtools-mcp.ps1`. Host agent launch MCP mỗi session; không chạy như Windows daemon.
-- Internal: `common.ps1`, `graphify-freshness.ps1`, `graphify-semantic-status.py`, `graphify_supplemental.py`, `serena_sync.py`, `mcp_probe.py`, `write-install-manifest.ps1`, patch/test fixture. Chỉ tool-maintenance task được user approve mới gọi.
+- MCP launcher: `global-mcp.ps1` (bootstrap chép thành `mcp.ps1`). Host agent launch MCP mỗi session; không chạy như Windows daemon.
+- Internal: `common.ps1`, `graphify-freshness.ps1`, `graphify-semantic-status.py`, `graphify_supplemental.py`, `serena_sync.py`, `mcp_probe.py`, patch. Chỉ tool-maintenance task được user approve mới gọi.
 
 ## Chú thích thuật ngữ
 
