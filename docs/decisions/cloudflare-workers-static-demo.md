@@ -1,9 +1,10 @@
 ---
 title: Demo tĩnh chạy trên Cloudflare Workers static assets
 status: accepted
-date: 2026-10-03
+date: 2026-10-07
 scope: static website release
 supersedes:
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/982f33612ad019b11807627624daaa11e0b6b88d/docs/decisions/cloudflare-workers-static-demo.md
   - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/f7795ffa3b416af8187738d5f9445b48558fada7/docs/decisions/sites-artifact-only-release-mirror.md
 related_specs:
   - ../specs/static-release.md
@@ -29,10 +30,11 @@ hướng CMS trong [goal](../goal.md). Owner đồng ý chuyển ngày 2026-10-0
    gọi Wrangler bản pin trong `tooling-versions.json` qua `pnpm dlx`, chỉ dùng
    cho login, dry-run và rollback của demo. Wrangler không vào dependency hay
    lockfile.
-3. Deploy chạy tay trên máy owner, đăng nhập bằng `wrangler login` vào tài
-   khoản Cloudflare của owner. Không có CI deploy, không API token hay secret
-   trong repository, CI hoặc chat.
-4. Mỗi lần deploy cần owner đồng ý rõ ràng. Agent chỉ chạy `--dry-run`.
+3. Owner chốt 2026-10-07: workflow `Deploy demo` tự chạy `pnpm deploy:demo`
+   khi CI xanh trên `main`. Token nằm trong GitHub secret `CLOUDFLARE_API_TOKEN`
+   và `CLOUDFLARE_ACCOUNT_ID`, không nằm trong repository hay chat.
+4. Merge vào `main` là đồng ý deploy. Agent không deploy tay, chỉ chạy
+   `--dry-run`; owner vẫn deploy tay được bằng `wrangler login`.
 5. CMS vẫn khóa: `wrangler.toml`, `src/worker/` và Worker contract test giữ
    dormant. Không dùng `wrangler.toml` cho demo.
 

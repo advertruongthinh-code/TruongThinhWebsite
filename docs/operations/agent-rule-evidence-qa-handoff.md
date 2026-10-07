@@ -22,7 +22,7 @@ Playwright và DevTools là evidence layer riêng. Computer Use chỉ thành lay
 Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được
 duyệt. Ngoại lệ duy nhất: `pnpm deploy:demo` và `pnpm demo:wrangler` theo
 [decision demo Cloudflare](../decisions/cloudflare-workers-static-demo.md);
-agent chỉ chạy `--dry-run`, deploy thật cần owner đồng ý.
+agent chỉ chạy `--dry-run`; deploy thật do workflow `Deploy demo` chạy khi CI xanh trên `main`.
 
 ## Chấm ảnh Advertising
 

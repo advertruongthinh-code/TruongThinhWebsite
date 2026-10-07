@@ -16,7 +16,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Copy static source | `pnpm prepare:site` | Generate `.site-output/`; không edit output. |
 | Image variants | `node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]` | Ghi AVIF full + AVIF/WebP 480/960 cạnh WebP public trong `src/site/assets/content`; bỏ qua file đã có. `--originals` map đường dẫn WebP sang PNG gốc trên PC (chỉ dùng khi cùng tỉ lệ). Bỏ qua danh sách `scripts/site/non-public-source-assets.mjs`. |
 | Local web | `pnpm dev` | Static Node server; không Worker, không deploy. |
-| Deploy demo | `pnpm deploy:demo` | Workers static assets; owner chạy, agent chỉ `--dry-run`. [Decision](../decisions/cloudflare-workers-static-demo.md). |
+| Deploy demo | `pnpm deploy:demo` | Workers static assets; workflow `Deploy demo` tự chạy khi CI xanh trên `main`, agent chỉ `--dry-run`. [Decision](../decisions/cloudflare-workers-static-demo.md). |
 | Static contract | `pnpm qa:static` | Current static QA evidence. |
 | Docs gate | `pnpm qa:docs` | Link, anchor, giới hạn dòng spec, ownership (chỉ báo cáo), sync code-spec (khi có `DOCS_BASE`), design-drift và preview Design System; workflow `docs.yml` chạy trên PR. Bỏ qua lịch sử chờ xóa và evidence local theo [spec docs](../specs/docs-system.md). |
 | Sinh Design System | `node scripts/docs/build-design-system.mjs` | Sinh lại preview component, `components/bundle.css` và ảnh preview trong `design-system/` sau khi sửa HTML hoặc CSS website; không sửa tay file sinh. |
