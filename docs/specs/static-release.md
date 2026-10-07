@@ -19,7 +19,7 @@ tests:
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Phát hành tĩnh
@@ -177,15 +177,15 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 
 Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`): `pnpm install
 --frozen-lockfile`, `pnpm qa:static`, `tests/tooling/global-rules-sync.test.mjs`, `build-image-variants.mjs --check`,
-`pnpm qa:worker:security`, `orphan-selectors.test.mjs` (class, `data-*` trong selector CSS hoặc query JS của `src/site/`
-phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi `pnpm dev` và Chromium smoke
+`pnpm qa:worker:security`, `pnpm dev` rồi mọi `tests/site/*.test.mjs` (gồm `orphan-selectors.test.mjs`: class, `data-*` trong selector CSS hoặc query JS của `src/site/`
+phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi Chromium smoke
 `cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history).
 `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
 
 ```gherkin
 Given pull request đổi src/site/
 When CI chạy job static-release
-Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker, selector mồ côi hoặc Chromium smoke fail
+Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker, unit test site hoặc Chromium smoke fail
 And không bước nào gọi Wrangler hoặc deploy
 ```
 

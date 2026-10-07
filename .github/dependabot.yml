@@ -1,0 +1,7 @@
+# Chỉ cập nhật GitHub Actions; dependency npm giữ pin tay theo tooling-versions.json.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
