@@ -1,10 +1,10 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-06
+- Updated: 2026-10-07
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
-  deploy gần nhất 2026-10-06 commit `3c358e8` (Wrangler version `7edc54d6`) ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)).
+  deploy gần nhất 2026-10-07 commit `6decf2e` (Wrangler version `072cb006`) ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)).
   Owner kiểm nhận giao diện trên [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/).
 
 ## Việc đang làm
