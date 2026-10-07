@@ -22,6 +22,18 @@
         const routeLocale = document.documentElement.dataset.routeLocale;
         document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
       } catch {}
+      // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
+      document.documentElement.classList.add("media-gate");
+      (() => {
+        const settle = (image) => {
+          const parent = image.parentElement;
+          parent?.classList.add("is-media-settled");
+          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+        };
+        const isImage = (target) => target.tagName === "IMG";
+        document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+      })();
     </script>
     <script>
       (() => {
@@ -476,22 +488,22 @@
           </svg>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 514 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-1" /></svg>
-            <img src="/assets/content/projects/process-commercial-survey-v2.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Khảo sát công trình kinh doanh bằng thiết bị đo laser" data-en-alt="Surveying a commercial site with a laser measuring device" />
+            <span class="editorial-media"><img src="/assets/content/projects/process-commercial-survey-v2.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Khảo sát công trình kinh doanh bằng thiết bị đo laser" data-en-alt="Surveying a commercial site with a laser measuring device" /></span>
             <div><h3 data-en="Survey">Khảo sát</h3><p data-en="Measure the site, study customer flow, and identify operational bottlenecks.">Đo hiện trạng, đọc luồng khách và nhận diện điểm nghẽn vận hành.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 489 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-2" /></svg>
-            <img src="/assets/content/projects/kiosk-posm-materials.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Phối hợp vật liệu kiosk và POSM" data-en-alt="Coordinating kiosk and POSM materials" />
+            <span class="editorial-media"><img src="/assets/content/projects/kiosk-posm-materials.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Phối hợp vật liệu kiosk và POSM" data-en-alt="Coordinating kiosk and POSM materials" /></span>
             <div><h3 data-en="Consultation">Tư vấn</h3><p data-en="Align function, materials, and budget before developing the design.">Chốt công năng, vật liệu và ngân sách trước khi triển khai sâu.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 505 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-3" /></svg>
-            <img src="/assets/content/projects/fabrication-hands.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Gia công chi tiết quảng cáo tại xưởng" data-en-alt="Fabricating advertising components in the workshop" />
+            <span class="editorial-media"><img src="/assets/content/projects/fabrication-hands.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Gia công chi tiết quảng cáo tại xưởng" data-en-alt="Fabricating advertising components in the workshop" /></span>
             <div><h3 data-en="Production">Sản xuất</h3><p data-en="CNC, edge banding, and workshop finishing with controlled tolerances.">CNC, dán cạnh và hoàn thiện tại xưởng theo sai số được kiểm soát.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 540 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-4" /></svg>
-            <img src="/assets/content/projects/process-commercial-handover.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Lắp đặt và bàn giao công trình kinh doanh" data-en-alt="Installing and handing over a commercial project" />
+            <span class="editorial-media"><img src="/assets/content/projects/process-commercial-handover.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Lắp đặt và bàn giao công trình kinh doanh" data-en-alt="Installing and handing over a commercial project" /></span>
             <div><h3 data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-en="Install precisely and hand over cleanly so the business can open sooner.">Lắp đúng nhịp, căn chuẩn và bàn giao gọn để sớm vận hành.</p></div>
           </article>
         </section>

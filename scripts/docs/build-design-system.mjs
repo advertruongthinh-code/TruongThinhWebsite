@@ -39,12 +39,15 @@ const COMPONENTS = [
       + '<img src="/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-26-owner-20260924.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">\n'
       + '<div style="position: absolute; inset: 0 0 0 50%;"><div class="glass-surface" data-glass-shape="even" aria-hidden="true">'
       + '<i class="glass-surface__step glass-surface__step--full"></i><i class="glass-surface__tint"></i><i class="glass-surface__grain"></i></div></div>\n</div>' },
-  // Thanh chỉ hiện đến khi ảnh suggestion được paint, nên nút được ghi ở đây không kèm ảnh; bản thân thanh nằm ở detail.css.
-  { name: 'LoadBar', group: 'Advertising', height: 280, file: 'src/site/detail.css', start: /Thanh indeterminate vẽ dọc mép dưới/,
-    markup: '<div class="advertising-photo-view__suggestion-links" style="width: 316px; margin: 20px 35px;">\n'
+  // Vệt chỉ hiện tới khi ảnh settle; preview không có script head nên khung và nút giữ trạng thái chờ.
+  // src nháy đơn để localizeImages bỏ qua: khung vẫn khớp selector /assets/content/ mà ảnh không bao giờ hiện.
+  { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /Khung ảnh nội dung chờ bằng vệt sáng/, htmlClass: 'media-gate',
+    markup: '<div style="display: grid; gap: 20px; width: 316px; margin: 20px 35px;">\n'
+      + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials.webp\' width="1536" height="1024" alt=""></figure>\n'
+      + '<div class="advertising-photo-view__suggestion-links">\n'
       + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Chữ nổi Mica</span></button>\n'
       + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Logo và chữ nổi tòa nhà</span></button>\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label">Bảng vẫy Mica hút nổi</span></button>\n</div>' },
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label">Bảng vẫy Mica hút nổi</span></button>\n</div>\n</div>' },
 ];
 
 // Trả về outer HTML của element có opening tag khớp `start`, cân bằng các tag lồng cùng tên.

@@ -16,7 +16,7 @@ updated: 2026-10-07
 ## Mục đích
 
 Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể AVIF, WebP; HTML tĩnh
-và runtime Advertising chọn biến thể; khung ảnh tĩnh có vòng tải tới khi ảnh xong; một script đo tốc độ trên demo.
+và runtime Advertising chọn biến thể; khung ảnh tĩnh có vệt sáng tới khi ảnh giải mã xong; một script đo tốc độ trên demo.
 Bọc `<picture>` lúc build, font, thư viện, cache header thuộc [phát hành tĩnh](static-release.md); skeleton chờ ảnh
 Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều ảnh và video ở [media-card](media-card.md).
 
@@ -46,7 +46,7 @@ Build bọc `<img>` nội dung trong `<picture>` ([phát hành tĩnh R6](static-
 `width` và cỡ 480, 960 đủ hai định dạng: `<source type="image/avif">` và `<img>` (WebP) cùng mang `srcset` gồm các cỡ
 đó cộng bản gốc theo `width`; `sizes` giữ giá trị tác giả, không có thì ảnh `loading="lazy"` nhận `auto, 100vw` (trình
 duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` hoặc không có cỡ nhỏ hơn thì `<source>` chỉ có
-`<tên>.avif`. `src` WebP gốc giữ làm fallback và làm hook cho vòng tải (R6). Slide hero trang chủ ở `data-src` nhận
+`<tên>.avif`. `src` WebP gốc giữ làm fallback và làm hook cho vệt sáng (R6). Slide hero trang chủ ở `data-src` nhận
 `data-srcset`; `hydrateDeferredHeroImages` (`motion.js`) chép sang `srcset` trên `<source>` và `<img>` rồi gán `src`
 ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). `picture { display: contents }` nên không thêm box;
 selector nhắm ảnh viết thêm `X > picture > img`.
@@ -84,7 +84,7 @@ And card masonry dùng data-srcset AVIF 480w, 960w và bản gốc
 ### R4. Thứ tự ưu tiên tải
 
 Ảnh đầu hero của trang chủ, Residential, Commercial, About có `fetchpriority="high"`, không lazy; ba slide sau của
-trang chủ ở `data-src`. Ảnh nội dung khác `loading="lazy"`; logo khách hàng `eager`, không vòng
+trang chủ ở `data-src`. Ảnh nội dung khác `loading="lazy"`; logo khách hàng `eager`, không vệt
 ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). Không preload ảnh: `<link rel="preload">` chỉ dành
 cho hai file font ([phát hành tĩnh R4](static-release.md#r4-font-và-thư-viện-tự-host)), vì preload cạnh `<picture>`
 làm tải ảnh hai lần. Mọi `<img>` nội dung có `width`, `height` (trừ nền primary Advertising) nên khung giữ chỗ trước khi
@@ -122,27 +122,48 @@ When thêm vào HTML với width="1536" height="1024" và alt VI, data-en-alt
 Then khung ảnh đúng tỷ lệ trước khi tải, build bọc <picture> có biến thể, CI --check đạt
 ```
 
-### R6. Vòng tải ảnh tĩnh
+### R6. Vệt sáng chờ ảnh tĩnh
 
-Khối cuối `style.css`: phần tử có con trực tiếp `img[src^="/assets/content/"]`, hoặc `picture > img` như vậy, được vẽ
-vòng SVG 1,75rem ở giữa làm `background-image`, nằm dưới ảnh: rãnh trắng alpha 0,18, cung một phần tư trắng alpha 0,72
-quay 0,9s bằng SMIL. Chỉ CSS nên vòng có ngay khi stylesheet áp dụng, trước script, không trễ hay chặn request. Không áp
-trong `[data-project-grid]`, `[data-advertising-photo-view]` (Advertising dùng skeleton,
-[loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)), `.client-logo-marquee`, và khi khung có
-`.is-media-settled`. IIFE đầu `motion.js` nghe `load`, `error` ở capture phase và quét `img[src]` đã `complete` lúc
-script chạy, thêm `.is-media-settled` lên cha của ảnh, và lên khung ngoài khi cha là `<picture>`: vòng gỡ khi ảnh xong
-hoặc lỗi, để SMIL thôi vẽ lại. Ảnh lỗi vẫn giữ khung theo `width`, `height` (suy luận, chưa có test). Ảnh `data-src`
-chưa có `src` nên chưa có vòng. Vòng là nền của khung nên không nhận focus hay pointer. Không số, không phần trăm,
-không `aria-busy` (owner bỏ tiến trình theo byte). Reduced motion: cung đứng yên. Không JavaScript hoặc `motion.js` lỗi:
-vòng không được gỡ, vẫn quay dưới ảnh đã tải (suy luận). Không có trễ nên ảnh từ cache chưa vẽ ở frame đầu có thể lóe
-vòng (gate). Thanh tải nút suggestion thuộc
-[detail R6](advertising-detail.md#r6-slideshow-suggestion) và dùng chung `.is-media-settled`.
+Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sáng](../../design-system/components/LoadSweep/README.md),
+[motion](../../design-system/motion.md#ảnh-trong-card)).
+
+Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, hoặc `picture > img` như vậy; không áp trong
+`[data-project-grid]`, `[data-advertising-photo-view]` (Advertising dùng skeleton,
+[loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)), `.client-logo-marquee`. Khung chưa
+`.is-media-settled`:
+
+- Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
+- Một dải sáng đối xứng, trắng `16%` ở tâm, nghiêng 60 độ, rộng khoảng một phần ba khung, vào từ ngoài mép trái,
+  ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Vệt không nhận pointer
+  hay focus; không số, không phần trăm, không `aria-busy`.
+- Khung ngoài viewport thì vệt dừng.
+- Reduced motion: không lướt; khung sáng tối nhẹ chu kỳ `2s`.
+
+Ảnh chỉ hiện sau `load` và `decode()`: khung nhận `.is-media-settled`, vệt gỡ, ảnh `opacity` `0` sang `1` trong
+`0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
+`.is-media-settled` ngay, ảnh hiện để thấy alt, khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
+nên chưa có vệt.
+
+Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (đã có ở mọi trang), đăng ký trước khi trình
+duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script đó thêm class lên `<html>`; CSS chỉ ẩn ảnh khi có
+class này, nên không JavaScript thì ảnh hiện như thường (không vệt chặn). `motion.js` không còn IIFE settle.
+
+Nút suggestion detail dùng cùng vệt thay thanh chạy đáy ([detail R6](advertising-detail.md#r6-slideshow-suggestion)).
 
 ```gherkin
 Given ảnh /assets/content/ của /vi/about/ bị trễ 1,5s, viewport 390px
 When trang vẽ trước khi ảnh về
-Then mỗi khung ảnh đang hiện đã đúng kích thước cuối và có vòng ở giữa
-And khi ảnh tải xong, khung có is-media-settled, không còn vòng, kích thước lệch tối đa 1px, CLS dưới 0,1
+Then mỗi khung ảnh đang hiện đã đúng kích thước cuối, nền #2b2c2b, có vệt lướt và ảnh opacity 0
+And khi ảnh load và decode xong, khung có is-media-settled, không còn vệt, ảnh fade lên opacity 1 trong 0.45s
+And kích thước khung lệch tối đa 1px, CLS dưới 0,1
+
+Given mạng Slow 4G, PC 1440px, ảnh lớn progressive đang tải dở
+When chụp khung mỗi 100ms tới khi ảnh xong
+Then không ảnh chụp nào thấy ảnh tải dở, chỉ thấy vệt hoặc ảnh đầy đủ
+
+Given trình duyệt tắt JavaScript
+When mở /vi/residential/
+Then ảnh hiện ngay khi tải, không bị opacity 0
 ```
 
 ### R7. Đo tốc độ và ngân sách
@@ -177,7 +198,7 @@ And so với baseline cùng cohort, không mục nào vượt ngân sách
 | Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`responsive-image.mjs`) | `catalog-runtime.mjs`, `photo-viewer.mjs` import (R3) |
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
-| Class | `.is-media-settled` | `motion.js` ghi; vòng (R6) và thanh suggestion đọc |
+| Class | `.is-media-settled` | Script inline `<head>` ghi; vệt (R6) và nút suggestion đọc |
 | Data | `nonPublicSourceAssets` (`non-public-source-assets.mjs`) | Path bỏ qua khi sinh biến thể (R1) |
 | Command | `node tests/site/image-delivery-measure.mjs --base --runs --warm --only --detail --out` | Đo (R7); output `.tmp/image-delivery/` |
 
@@ -188,9 +209,9 @@ tải ảnh ở đó thì cập nhật cả spec này.
 
 ## UI
 
-Vòng tải là một trong các chi tiết tròn được phép ([Shapes](../../design-system/README.md#shapes)); Design System chưa có
-component riêng cho vòng. Khung tối như hero dùng token `media-loading-surface` làm nền chờ dưới vòng trắng. Liên quan:
-[Thanh tải](../../design-system/components/LoadBar/README.md), [Skeleton](../../design-system/components/Skeleton/README.md),
+Vệt sáng theo [motion ảnh trong card](../../design-system/motion.md#ảnh-trong-card); mọi khung chờ dùng token
+`media-loading-surface` làm nền dưới vệt. Liên quan:
+[Vệt sáng](../../design-system/components/LoadSweep/README.md), [Skeleton](../../design-system/components/Skeleton/README.md),
 [ảnh trong card](../../design-system/motion.md#ảnh-trong-card), [Content và media](../../design-system/content.md).
 
 ## Kiểm tra
@@ -204,20 +225,16 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
-| R6 | `image-loading-frame.e2e.mjs` (16 ca khung và vòng, no-script, Barba và Back); reduced motion, cache hit chưa có test |
+| R6 | `image-loading-frame.e2e.mjs` (khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, chụp Slow 4G); A05s qua CDP |
 | R7 | Chính script, chạy tay trên demo |
 
 ## Gate còn mở
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Cache hit: tải lại trang chủ, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame; vòng không có
-  trễ nên có thể lóe, chưa xác nhận vòng có hiện (cùng gate ở [trang chủ](page-home.md#gate-còn-mở)). Main đo.
-- Vòng trắng trên khung không có nền tối (rail công trình trang chủ, editorial, duo; `.detail-media` nền xám nhạt) gần
-  như không thấy trên nền trắng (suy luận từ CSS, chưa chụp); vòng lộ ngoài ảnh ở `.editorial-item` theo
-  [trang con](detail-pages.md#gate-còn-mở). Main chụp; owner chọn màu vòng hoặc nền khung.
-- Số lần Paint khi trang đứng yên (audit 04/10: 509 so với 311 khi bỏ vòng, 2s, `/vi/residential/` 1440px) chưa đo lại
-  sau `.is-media-settled`; test chỉ kiểm vòng đã gỡ. Main.
+- Cache hit: ảnh từ cache vẫn qua `decode()` rồi fade `0.45s`, nên có thể lóe nền tối một nhịp khi chuyển trang Barba
+  (suy luận, cùng gate ở [trang chủ](page-home.md#gate-còn-mở)). Main đo; owner xem trên demo.
+- Số lần Paint khi trang đứng yên (audit 04/10: 509 với vòng SMIL, 311 khi bỏ) đo lại sau khi đổi sang vệt. Main.
 - Ảnh tĩnh lỗi tải chưa có ca test (khung giữ tỷ lệ, alt). Main.
 - Probe AVIF bất đồng bộ: deep link `?photo=` có thể tải primary WebP rồi viewer tải lại AVIF (suy luận). Main kiểm
   network; Thread code sửa nếu đúng.
@@ -230,7 +247,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - [CẦN LÀM RÕ: chuẩn file ảnh đã duyệt ghi thư mục phẳng theo loại, không thư mục con theo dự án; Advertising nằm trong
   `projects/advertising/<nhóm>/`. Giữ thư mục con theo nhóm làm chuẩn?] Owner.
 - LCP residential mobile hai mode do SplitText ở hero: gate ở [phát hành tĩnh](static-release.md#gate-còn-mở).
-- Safari iPhone thật chưa kiểm `<picture>` AVIF, biến thể và vòng tải; WebKit desktop không thay. Owner, máy PC.
+- Safari iPhone thật chưa kiểm `<picture>` AVIF, biến thể và vệt sáng; WebKit desktop không thay. Owner, máy PC.
 
 ## Chú thích thuật ngữ
 

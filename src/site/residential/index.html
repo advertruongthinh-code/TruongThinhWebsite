@@ -22,6 +22,18 @@
         const routeLocale = document.documentElement.dataset.routeLocale;
         document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
       } catch {}
+      // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
+      document.documentElement.classList.add("media-gate");
+      (() => {
+        const settle = (image) => {
+          const parent = image.parentElement;
+          parent?.classList.add("is-media-settled");
+          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+        };
+        const isImage = (target) => target.tagName === "IMG";
+        document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+      })();
     </script>
     <script>
       (() => {
@@ -570,22 +582,22 @@
           </svg>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 514 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-1" /></svg>
-            <img src="/assets/content/projects/process-residential-survey-v2.webp" width="1024" height="1536" loading="lazy" decoding="async" alt="Khảo sát hiện trạng nhà ở bằng thiết bị đo laser" data-en-alt="Surveying a home with a laser measuring device" />
+            <span class="editorial-media"><img src="/assets/content/projects/process-residential-survey-v2.webp" width="1024" height="1536" loading="lazy" decoding="async" alt="Khảo sát hiện trạng nhà ở bằng thiết bị đo laser" data-en-alt="Surveying a home with a laser measuring device" /></span>
             <div><h3 data-en="Survey">Khảo sát</h3><p data-en="Measure the home, read its light and circulation, and listen to how the household lives.">Đo hiện trạng, đọc ánh sáng, lối đi và lắng nghe cách gia đình sinh hoạt.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 489 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-2" /></svg>
-            <img src="/assets/content/shared/consultation-materials.webp" width="1024" height="1536" loading="lazy" decoding="async" alt="Tư vấn vật liệu hoàn thiện cho nhà ở" data-en-alt="Consulting on finish materials for a home" />
+            <span class="editorial-media"><img src="/assets/content/shared/consultation-materials.webp" width="1024" height="1536" loading="lazy" decoding="async" alt="Tư vấn vật liệu hoàn thiện cho nhà ở" data-en-alt="Consulting on finish materials for a home" /></span>
             <div><h3 data-en="Consultation">Tư vấn</h3><p data-en="Align layout, storage, materials, and budget before detailing the design.">Chốt mặt bằng, lưu trữ, vật liệu và ngân sách trước khi triển khai chi tiết.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 505 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-3" /></svg>
-            <img src="/assets/content/shared/cnc.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Sản xuất chi tiết nội thất nhà ở trên máy CNC" data-en-alt="Producing residential interior components on a CNC machine" />
+            <span class="editorial-media"><img src="/assets/content/shared/cnc.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Sản xuất chi tiết nội thất nhà ở trên máy CNC" data-en-alt="Producing residential interior components on a CNC machine" /></span>
             <div><h3 data-en="Production">Sản xuất</h3><p data-en="CNC, edge band, assemble, and finish each component with controlled tolerances.">CNC, dán cạnh, lắp ráp và hoàn thiện tại xưởng theo sai số được kiểm soát.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 540 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-4" /></svg>
-            <img src="/assets/content/shared/installation.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Lắp đặt và bàn giao nội thất nhà ở" data-en-alt="Installing and handing over a residential interior" />
+            <span class="editorial-media"><img src="/assets/content/shared/installation.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Lắp đặt và bàn giao nội thất nhà ở" data-en-alt="Installing and handing over a residential interior" /></span>
             <div><h3 data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-en="Install precisely, resolve every junction, and hand over a clean, ready-to-live-in home.">Lắp chính xác, xử lý từng điểm giao và bàn giao sạch để vào ở.</p></div>
           </article>
         </section>

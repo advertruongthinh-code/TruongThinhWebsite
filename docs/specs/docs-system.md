@@ -74,7 +74,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random |
 | adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs` |
 | adv-detail | `advertising-detail.md` | `?photo=`: primary, related, suggestion, viewer |
-| media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vòng tải, đo tốc độ |
+| media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
 | cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |

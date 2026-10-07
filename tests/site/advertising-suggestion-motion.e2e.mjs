@@ -122,19 +122,24 @@ try {
     borderWidth: "1px",
     labelColor: "rgb(32, 33, 32)",
   }, "active suggestion is white with black text and border");
-  const loadBar = (link) => link.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { image: style.backgroundImage, position: style.backgroundPosition, size: style.backgroundSize };
+  // Vệt sáng chờ ảnh (media-delivery R6): ::before của nút, dưới nhãn.
+  const sweep = (link) => link.evaluate((node) => {
+    const style = getComputedStyle(node, "::before");
+    // Tắt transition opacity của ảnh để đọc giá trị đích thay vì frame đang chạy.
+    const image = node.querySelector("img");
+    image.style.transition = "none";
+    const opacity = Number(getComputedStyle(image).opacity);
+    image.style.removeProperty("transition");
+    return { animation: style.animationName, zIndex: style.zIndex, image: opacity };
   });
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
-  assert.equal((await loadBar(inactiveLink)).image, "none", "loaded suggestion stops the loading bar");
+  assert.equal((await sweep(inactiveLink)).animation, "none", "loaded suggestion stops the sweep");
   await inactiveLink.evaluate((link) => link.classList.remove("is-media-settled"));
-  const inactiveBar = await loadBar(inactiveLink);
+  const inactiveSweep = await sweep(inactiveLink);
   await inactiveLink.evaluate((link) => link.classList.add("is-media-settled"));
-  assert.match(inactiveBar.image, /animate attributeName=.x/, "inactive suggestion paints the moving loading bar behind its photo");
-  assert.deepEqual([inactiveBar.position, inactiveBar.size], ["0% 100%", "100% 3px"],
-    "suggestion loading bar runs along the bottom edge");
-  assert.equal((await loadBar(activeLink)).image, "none", "active suggestion has no loading bar behind its hidden photo");
+  assert.deepEqual(inactiveSweep, { animation: "media-sweep", zIndex: "1", image: 0 },
+    "inactive suggestion sweeps under its label and hides the photo until it decodes");
+  assert.equal((await sweep(activeLink)).animation, "none", "active suggestion has no sweep behind its hidden photo");
   await activeLink.hover();
   await page.waitForTimeout(650);
   const activeHoverMedia = await activeLink.evaluate((link) => [...link.querySelectorAll(".advertising-card-media__image")].map((image) => {
@@ -258,16 +263,15 @@ try {
   });
   assert.equal(reducedMedia.transform, "none", "reduced motion removes the shared media zoom");
   assert.equal(reducedMedia.duration, "0s", "reduced motion leaves no suggestion media transition");
-  // Link đã tải bỏ thanh; unsettle để đọc loading style.
-  const reducedBar = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
+  // Link đã tải bỏ vệt; unsettle để đọc loading style.
+  const reducedSweep = await reduced.locator(`[data-advertising-suggestion-tag="${reducedAlternate}"]`)
     .evaluate((link) => {
       link.classList.remove("is-media-settled");
-      const image = getComputedStyle(link).backgroundImage;
+      const name = getComputedStyle(link, "::before").animationName;
       link.classList.add("is-media-settled");
-      return image;
+      return name;
     });
-  assert.match(reducedBar, /svg/, "reduced motion keeps the suggestion loading bar");
-  assert.doesNotMatch(reducedBar, /animate/, "reduced motion suggestion bar does not move");
+  assert.equal(reducedSweep, "media-breathe", "reduced motion suggestion breathes instead of sweeping");
   await reduced.close();
 
   const direct = await browser.newPage({ viewport: { width: 820, height: 1180 } });
