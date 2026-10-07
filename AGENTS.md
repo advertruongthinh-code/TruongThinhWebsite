@@ -63,10 +63,16 @@ File/project source `untracked` cần review riêng trước khi stage. Không m
 xóa, stage hoặc commit hàng loạt generated output, research archive, tooling
 cache hay untracked worktree.
 
-Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit`
-review riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Review,
-host agent hoặc hook lỗi thì fail closed; không dùng `--no-verify` để bỏ qua gate.
-Cloud không có Git hook: agent tự chạy `ponytail-review` trên diff trước commit/push.
+Ponytail chạy theo bốn mốc:
+
+1. `ponytail` ultra luôn bật cho mọi việc code.
+2. Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit` review
+   riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Cloud không có Git hook:
+   agent tự chạy `ponytail-review` trên diff. Review, host agent hoặc hook lỗi thì fail
+   closed; không dùng `--no-verify` để bỏ qua gate.
+3. `ponytail-audit` ultra chỉ chạy trong thread code review của wrap-up session hoặc khi
+   owner gọi; không chạy tự động.
+4. `ponytail-debt` chạy cùng audit trong wrap-up; nợ còn mở ghi vào card Notion, không tạo file báo cáo.
 
 ## Branch, PR và merge
 
@@ -148,4 +154,5 @@ khi tool báo lỗi hoặc blocked.
 - **Human gate**: điểm dừng bắt buộc để owner duyệt artifact trước khi sang phase kế tiếp.
 - **Sibling review task**: task review ngang hàng do main agent tạo và hợp nhất.
 - **Five-axis review**: review diff theo năm trục correctness, readability, architecture, security, performance.
+- **Wrap-up session**: phiên dọn cuối đợt khi mọi thread xong việc (docs, Notion, merge, code review).
 - **Archive**: ẩn card khỏi board nhưng vẫn khôi phục được, khác với xóa vĩnh viễn.
