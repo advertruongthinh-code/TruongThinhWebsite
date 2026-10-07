@@ -103,7 +103,7 @@ And không có skeleton, không ảnh bay hay clone từ card
 
 ### R5. Skeleton thay vòng xoay
 
-Advertising không có vòng tải: vòng CSS của [tải ảnh R6](media-delivery.md#r6-vòng-tải-ảnh-tĩnh) không áp trong
+Advertising không có vệt sáng: vệt CSS của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) không áp trong
 `[data-project-grid]` và `[data-advertising-photo-view]` (`style.css`); card và primary chờ ảnh bằng skeleton (R1, R4),
 không spinner. Khung primary mang `aria-busy="true"` từ lúc đổi `src` tới khi ảnh giải mã xong hoặc lỗi. Card nhiều media
 giữ status ẩn cho trình đọc màn hình theo [media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media).

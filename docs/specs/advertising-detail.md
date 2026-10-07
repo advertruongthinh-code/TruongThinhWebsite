@@ -16,7 +16,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Detail Advertising
@@ -121,7 +121,8 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Mỗi `3s`, nút chưa bật đang trong viewport giải mã ảnh kế rồi crossfade
 `1.6s` (`mountSuggestionSlides`), không zoom; zoom chỉ khi hover. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, nút ngoài
 viewport, body `motion-paused`, reduced motion hoặc lượt trước chưa xong; ra viewport hay ẩn tab thì crossfade đang chạy
-dừng. Bộ dưới 4 ảnh đứng yên. Ảnh nền chưa xong thì nút hiện thanh tải. Đổi ảnh primary thì dọn slideshow cũ.
+dừng. Bộ dưới 4 ảnh đứng yên. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
+[tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
 
 ```gherkin
 Given suggestion có nút chưa bật với bộ từ 4 ảnh và một nút đang bật
