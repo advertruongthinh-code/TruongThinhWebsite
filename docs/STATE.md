@@ -9,8 +9,8 @@
 
 ## Việc đang làm
 
-- Không thread code nào đang mở. Mọi thay đổi tới `6decf2e` (Advertising, Kính, viewer cử chỉ tay) đã lên
-  demo, chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
+- Không thread code nào đang mở. Mọi thay đổi tới `4a8102b` (Advertising, Kính, viewer cử chỉ tay, ảnh kẹt ẩn
+  trong masonry) đã lên demo, chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
 
 ## Blocker đã verify
@@ -32,7 +32,7 @@
 
 ## Next action
 
-1. Owner thêm secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` cho `Deploy demo`, kiểm nhận demo, gửi ba fact còn thiếu.
+1. Owner thêm secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` cho `Deploy demo`, kiểm nhận demo `4a8102b`, gửi ba fact còn thiếu.
 
 ## Ranh giới
 

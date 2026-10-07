@@ -131,7 +131,7 @@ Then check sync fail và nêu tên spec cần cập nhật
 Spec tham gia ownership và sync qua danh sách glob `source:` trong frontmatter;
 `_template.md` không tham gia. Ownership chỉ quét `src/site/`; source ngoài đó
 (như `src/worker/` của `cms.md`) khai `source:` để sync áp dụng. Sync chạy trong workflow `docs.yml` trên mọi PR,
-kể cả khi chỉ sửa mô tả PR. PR template có mục "Spec" để agent ghi spec đã cập
+kể cả khi chỉ sửa mô tả PR; PR của Dependabot (chỉ nâng version action) tự được miễn. PR template có mục "Spec" để agent ghi spec đã cập
 nhật hoặc lý do không đổi.
 
 ### R5. Design System là nguồn chuẩn visual

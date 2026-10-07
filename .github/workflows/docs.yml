@@ -28,4 +28,5 @@ jobs:
       - run: node scripts/docs/check-docs.mjs
         env:
           DOCS_BASE: ${{ github.event.pull_request.base.sha }}
-          PR_BODY: ${{ github.event.pull_request.body }}
+          # PR Dependabot chỉ nâng version action, không đổi spec.
+          PR_BODY: "${{ github.event.pull_request.user.login == 'dependabot[bot]' && 'Spec: không đổi - Dependabot' || github.event.pull_request.body }}"
