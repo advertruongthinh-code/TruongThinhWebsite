@@ -51,6 +51,24 @@ duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` ho�
 ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). `picture { display: contents }` nên không thêm box;
 selector nhắm ảnh viết thêm `X > picture > img`.
 
+`sizes` tĩnh chỉ biết bề rộng khung, nên khung `object-fit: cover` hẹp hơn tỷ lệ ảnh (gallery dọc, portal, card dự án)
+nhận bản nhỏ hơn phần thật sự hiển thị: đo 2026-10-07 ở 1440px DPR 1, gallery Residential khung 461×720 cần 1080px
+nhưng tải bản 480 (đủ 44%), portal 410×600 cần 900px nhận 480; ở 390px DPR 3 card dự án cần 1728px nhận 960. Vì vậy
+runtime ghi lại `sizes` theo phần hiển thị sau crop: bề rộng hiển thị là `max(rộng khung, cao khung × width/height)`
+đo bằng `getBoundingClientRect()` (gồm cả `scale` tĩnh như hero About), làm tròn lên px, ghi lên `<img>` và
+`<source>` cùng `<picture>`. Chạy khi mount trang (cả Barba) cho ảnh chưa bắt đầu tải (`currentSrc` rỗng) và cho slide
+hero trước khi `hydrateDeferredHeroImages` gán `src`; ảnh đã tải hoặc đang tải giữ lựa chọn cũ để không tải hai lần. Cửa
+sổ to ra (resize, xoay máy) thì ghi lại cho mọi ảnh; trình duyệt tự tải bản lớn hơn nếu cần, không bao giờ đổi sang bản
+nhỏ. Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536)
+dùng bản gốc; sinh thêm cỡ lớn hơn nằm ngoài phần này.
+
+```gherkin
+Given /vi/residential/ ở 1440×900 DPR 1, mạng thường
+When cuộn tới gallery và ảnh gallery tải xong
+Then mỗi ảnh gallery tải biến thể có bề rộng ít nhất 0.9 lần phần hiển thị sau crop (hoặc bản gốc nếu gốc nhỏ hơn)
+And không ảnh nào bị request hai lần cùng URL
+```
+
 ```gherkin
 Given <img src="/assets/content/projects/storefront.webp" width="1536" loading="lazy"> trong HTML nguồn
 When build xong
@@ -221,7 +239,7 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check` (CI) |
-| R2 | `image-loading-frame.e2e.mjs` (thuộc tính HTML, không request trùng); `site.e2e.cjs` chặn ảnh theo mọi biến thể; giá trị `sizes` chưa có test |
+| R2 | `image-loading-frame.e2e.mjs` (thuộc tính HTML, không request trùng, biến thể đủ phần hiển thị sau crop ở 390px DPR 3 và 1440px DPR 1, 2); `site.e2e.cjs` chặn ảnh theo mọi biến thể |
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
