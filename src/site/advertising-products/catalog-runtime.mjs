@@ -1854,7 +1854,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const skeletonObserver = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
-  const skeletonPauseObserver = new MutationObserver(syncSkeletonMotion);
+  // Class body đổi ngay trong task chạm card (is-advertising-photo); đồng bộ ở frame kế để đọc rect không ép thêm
+  // một lần style và layout trong task đó (decision a05s-frame-budget).
+  const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
@@ -2975,6 +2977,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     document.body.classList.add("is-advertising-photo");
     document.body.dataset.advertisingPhotoActive = "true";
     if (gridSection) gridSection.hidden = true;
+    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
+    // và task chạm card không bị ép style lần hai (decision a05s-frame-budget).
+    const layoutWidth = document.documentElement.clientWidth;
+    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
+    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
     photoView.hidden = false;
     rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
     const english = locale === "en";
