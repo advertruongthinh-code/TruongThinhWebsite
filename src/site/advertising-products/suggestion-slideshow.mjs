@@ -9,6 +9,9 @@ export function suggestionDeck(key, cards) {
   return decks.get(key);
 }
 
+// Slide dưới viewer hoặc menu đang mở chỉ bắt backdrop blur tính lại mỗi frame (decision a05s-frame-budget).
+const covered = () => document.querySelector("dialog[open]") !== null;
+
 export function mountSuggestionSlides(root, { cards, createImage, isReduced, signal }) {
   const pending = new Map();
   let stopped = false;
@@ -23,7 +26,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     const rect = button.getBoundingClientRect();
     if (stopped || isReduced() || document.hidden || root.hidden || button.getAttribute("aria-pressed") === "true"
       || rect.bottom <= 0 || rect.top >= innerHeight || pending.has(button)
-      || document.body.classList.contains("motion-paused")) return;
+      || document.body.classList.contains("motion-paused") || covered()) return;
     const tag = button.dataset.advertisingSuggestionTag;
     const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
     // Nhóm thưa giữ tĩnh cho đến khi có bốn asset khác nhau.
@@ -69,7 +72,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     if (isReduced() || preference.matches) { clear(); return; }
     pending.forEach(({ animation }, button) => {
       const rect = button.getBoundingClientRect();
-      if (document.hidden || document.body.classList.contains("motion-paused")
+      if (document.hidden || document.body.classList.contains("motion-paused") || covered()
         || button.getAttribute("aria-pressed") === "true" || rect.bottom <= 0 || rect.top >= innerHeight) animation?.pause();
       else animation?.play();
     });
@@ -80,6 +83,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   const observer = new MutationObserver(onVisibility);
   observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   observer.observe(root, { attributes: true, attributeFilter: ["aria-pressed"], subtree: true });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
   const preference = matchMedia("(prefers-reduced-motion: reduce)");
   preference.addEventListener("change", onVisibility, { signal });
   return () => {

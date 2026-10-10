@@ -56,9 +56,8 @@ Demo tĩnh chạy trên Cloudflare Workers static assets: workflow `Deploy demo`
 tự chạy `pnpm deploy:demo` khi CI xanh trên `main` theo
 [quyết định demo](docs/decisions/cloudflare-workers-static-demo.md) và
 [các bước phát hành](docs/specs/static-release.md#r11-phát-hành-demo-cloudflare).
-Không có CI deploy; CMS chưa activate.
-Trạng thái phát hành thực tế xem [STATE](docs/STATE.md), thay đổi xem
-[CHANGELOG](CHANGELOG.md).
+CMS chưa activate. Trạng thái phát hành thực tế xem [STATE](docs/STATE.md); lịch sử thay đổi
+đọc trong PR và `git log`.
 Wrangler cho CMS Worker chỉ được cài và activate
 khi owner mở CMS phase theo
 [`Khóa Wrangler đến phase CMS`](docs/decisions/wrangler-deferred-until-cms.md).
@@ -86,7 +85,7 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ research/reference-site/         # RESEARCH: archive cũ local, ngoài Git
 ├─ tasks/                           # plan/checklist đang làm (tạo khi cần), xóa khi xong
 ├─ design-system/                   # Design System: tokens.json, README; publish lên claude.ai
-├─ PRODUCT.md, DESIGN.md, CHANGELOG.md, .impeccable/ # DESIGN.md, design.json GENERATED từ design-system/
+├─ PRODUCT.md, DESIGN.md, .impeccable/ # DESIGN.md, design.json GENERATED từ design-system/
 ├─ .openai/hosting.json             # LEGACY: project Sites cũ, không còn dùng
 ├─ .github/, .vscode/               # CI/workflow và dev tasks
 ├─ .claude/, .codex/, .serena/     # agent config; cache giữ local
