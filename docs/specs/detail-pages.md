@@ -39,7 +39,7 @@ preload hai font, CSS Locomotive chỉ từ 981px, `style.css`, `detail.css`, sc
 JSON-LD. `body.detail-page` (About thêm `about-page`) có `data-detail-hero-profile` `words-09` (Residential, About) hoặc
 `zoom-09` (Commercial); namespace Barba là tên trang. Script `defer`: GSAP, SplitText, Locomotive, Barba, `detail.js`,
 `motion.js`; không Swiper. Build ghi `/vi/`, `/en/` từ cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)).
-Vào hoặc rời About từ trang chuẩn khác cùng locale luôn tải document mới ([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)).
+Vào hoặc rời About đi route mềm như các trang khác ([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)).
 
 ```gherkin
 Given output đã build
