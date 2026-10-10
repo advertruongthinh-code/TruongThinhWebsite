@@ -51,6 +51,9 @@ chờ), rồi chạy ba bước chồng nhau trong `0.6s`, dù ảnh về nhanh 
 2. Dưới Kính, skeleton mờ đi và media hiện lên (`crossfadeLayers`, chỉ opacity).
 3. Kính tan, media rõ nét.
 
+Kính cung CTA đang giao viewport thì bỏ bước 1 và 3, chỉ crossfade; cung vào viewport giữa chừng thì Kính bị gỡ ngay
+([skeleton R4](advertising-skeleton.md)).
+
 Kính hiện, tan theo [Kính R6](glass-surface.md#r6-hiện-và-tan-bằng-opacity-từng-bậc); thời điểm và đường cong ở
 [UI](#ui), cùng nhịp `0.6s` với primary khi ảnh có sẵn (R4). Trên điện thoại (cùng điều kiện `skeletonPhone` của
 [skeleton R1](advertising-skeleton.md)), card đến lượt hiện khi đang vuốt thì giữ skeleton tới khi trang ngừng cuộn

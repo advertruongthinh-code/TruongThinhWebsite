@@ -1757,9 +1757,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
       if (frame.dataset.advertisingCtaFrame) {
-        pending.glass = revealGlass(frame);
+        pending.glass = cardRevealGlass(frame);
         pending.animations = [...crossfadeLayers([], [frame.querySelector(".advertising-grid__cta-surface")], CARD_REVEAL_MS),
-          ...playGlassReveal(pending.glass, CARD_REVEAL_MS)];
+          ...(pending.glass ? playGlassReveal(pending.glass, CARD_REVEAL_MS) : [])];
         Promise.all(pending.animations.map(({ finished }) => finished)).then(settle, () => {});
         return;
       }
@@ -1882,6 +1882,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     host.append(glass);
     return glass;
   };
+  // Kính reveal bất kỳ còn trong DOM khi cung đang thấy làm Chrome bỏ blur các bậc của cung (skeleton R4):
+  // cung vào viewport thì gỡ Kính reveal của grid, card và frame chỉ còn crossfade.
+  let arcInView = false;
+  const arcTint = arcGlass?.querySelector(".glass-surface__tint");
+  const arcObserver = arcTint && new IntersectionObserver(([entry]) => {
+    arcInView = entry.isIntersecting;
+    if (arcInView) grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
+  });
+  arcObserver?.observe(arcTint);
+  controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
+  const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
@@ -1953,9 +1964,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         media.style.setProperty("transition", "none", "important");
         media.classList.add("is-advertising-media-ready");
       });
-      entry.glass = revealGlass(node.querySelector(".advertising-card-media"));
+      entry.glass = cardRevealGlass(node.querySelector(".advertising-card-media"));
       entry.animations = [...crossfadeLayers(entry.frame ? [entry.frame] : [], layers, CARD_REVEAL_MS),
-        ...playGlassReveal(entry.glass, CARD_REVEAL_MS)];
+        ...(entry.glass ? playGlassReveal(entry.glass, CARD_REVEAL_MS) : [])];
       Promise.all(entry.animations.map(({ finished }) => finished))
         .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
     });
