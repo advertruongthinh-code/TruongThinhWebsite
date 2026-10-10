@@ -2448,10 +2448,10 @@ async function runHeaderParityChecks() {
       await page.waitForTimeout(80);
       await page.evaluate(() => scrollTo(0, 700));
       await page.waitForTimeout(1_050);
+      // Điện thoại: header khuất bằng transform đi theo cuộn (phone-header-scroll R2), không dùng is-hidden.
+      const headerHidden = (element) => element.getBoundingClientRect().bottom <= 0;
       assert(
-        await page.locator("[data-site-header]").evaluate((element) =>
-          element.classList.contains("is-hidden"),
-        ),
+        await page.locator("[data-site-header]").evaluate(headerHidden),
         "Touch-only context could not establish the hidden header state",
       );
       await page.touchscreen.tap(100, 100);
@@ -2465,7 +2465,7 @@ async function runHeaderParityChecks() {
         await page.locator("[data-site-header]").evaluate(
           (element) =>
             !element.classList.contains("forceShow") &&
-            element.classList.contains("is-hidden"),
+            element.getBoundingClientRect().bottom <= 0,
         ),
         "Touch-only context triggered the mouse-only force-show region",
       );

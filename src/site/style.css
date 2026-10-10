@@ -304,6 +304,11 @@ html.route-enter .site-header {
   transform: translateY(-100%);
 }
 
+/* Điện thoại: transform đi theo ngón tay nên bỏ transition của transform (phone-header-scroll R3). */
+.site-header.is-follow {
+  transition-property: padding, color, border-color, background-color;
+}
+
 .site-header.is-route-pinned {
   transform: translateY(0) !important;
 }
