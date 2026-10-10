@@ -21,14 +21,15 @@ Owner chốt intent 2026-10-10 qua interview-me.
 
 ### R1. Phạm vi điện thoại
 
-Áp dụng khi `(hover: none) and (pointer: coarse) and (max-width: 750px)` (mốc 750px là mốc đã ẩn nav
-desktop, agent chọn). Ngoài điều kiện này, kể cả điện thoại xoay ngang rộng hơn 750px, header chạy Shell R3.
-Đổi qua lại điều kiện (xoay máy, resize) thì header về hiện đủ rồi chạy theo chế độ mới.
+Áp dụng trên màn hình cảm ứng (`(hover: none) and (pointer: coarse)`) có cạnh ngắn tối đa 750px, tức
+`(max-width: 750px), (max-height: 750px)`; điện thoại cả dọc lẫn ngang đều theo spec này (owner chốt
+2026-10-10). Tablet và desktop theo Shell R3. Đổi qua lại điều kiện (resize) thì header về hiện đủ rồi
+chạy theo chế độ mới.
 
 ```gherkin
 Given A05s dọc (khoảng 412px CSS, touch)
-When đổi sang ngang rộng hơn 750px
-Then header hiện đủ và theo Shell R3; xoay về dọc thì theo spec này
+When xoay sang ngang
+Then header vẫn đi theo quãng cuộn như R2; ở 1440px chuột thì header theo Shell R3
 ```
 
 ### R2. Header đi theo quãng cuộn
@@ -85,7 +86,7 @@ tối đa 5% frame dưới 60fps (p5 SurfaceFlinger từ 60), không long task t
 | R | Test hoặc command |
 | --- | --- |
 | R1–R4 | Playwright touch emulation 412×915 (`hasTouch`, `isMobile`): đo `translateY` của header sau từng lần cuộn; chưa có test |
-| R1 | Playwright 1440px và 920px: header vẫn theo Shell R3 |
+| R1 | Playwright touch ngang 915×412 theo spec này; 1440px chuột theo Shell R3 |
 | Hiệu năng | Đo A05s thật qua adb, xin điều phối trước khi dùng máy |
 
 ## Gate còn mở
