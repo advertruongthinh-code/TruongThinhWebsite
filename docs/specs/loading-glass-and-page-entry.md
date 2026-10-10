@@ -33,7 +33,8 @@ không chờ mốc thời gian, kể cả khi đang cuộn hay giữ thanh cuộ
 ([skeleton R3](advertising-skeleton.md#r3-assignment-ngẫu-nhiên-và-giữ-màu)) và lưu theo media id tới khi trang ổn định
 lại, nên card ra vào hay mount lại vẫn giữ màu. Khung hiện, chạy Flow và nhận WebGL context như khung batch
 ([skeleton R4](advertising-skeleton.md#r4-vào-viewport-và-vòng-lặp), [R5](advertising-skeleton.md#r5-webgl-context)).
-Card mount sẵn ngoài viewport chưa có skeleton. Skeleton nằm trong khung media nên đi cùng card khi card đổi vị trí.
+Card mount sẵn ngoài viewport chưa có skeleton. Skeleton nằm trong khung media nên đi cùng card khi card đổi vị trí
+hay đổi thứ tự trong DOM, giữ node và nhịp hiện dần, không fade lại từ 0.
 
 ```gherkin
 Given masonry Advertising trên điện thoại, ảnh tải chậm
@@ -201,7 +202,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
+| R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang skeleton card đầu giữ một node, hiện dần một lần); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
 | R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
