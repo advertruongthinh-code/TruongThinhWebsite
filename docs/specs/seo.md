@@ -3,7 +3,7 @@ title: SEO cho người, Google và AI
 status: planned
 source: []
 tests: []
-notion: none
+notion: https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b
 updated: 2026-10-10
 ---
 
