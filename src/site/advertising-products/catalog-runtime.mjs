@@ -51,6 +51,7 @@ const CARD_REVEAL_MS = 600;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
+const PHONE_SCROLL_SETTLE_MS = 500;
 // Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
 let sharedSkeletonFlow;
 const disposeSkeletonContext = (record) => {
@@ -1245,6 +1246,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const id = mediaKey(node);
       if (!id) return;
       if (entry.intersectionRatio === 0) {
+        // Card bị dời trong DOM (restoreCanonicalDomOrder) báo một entry rỗng không có rootBounds rồi entry thật
+        // ngay sau; bỏ skeleton ở đây làm nó chớp lại từ opacity 0.
+        if (!entry.rootBounds && node.isConnected) return;
         visibleMediaCards.delete(id);
         // Màu của skeleton gắn với media id, nên bỏ nó ở đây vẫn giữ màu cho entry kế tiếp.
         dropCardSkeleton(node);
@@ -1275,9 +1279,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let lastScrollAt = 0;
   let scrollActive = false;
   // Fling bận làm khoảng cách giữa hai scroll event vượt 120ms, nên đo thời gian một mình thấy "đã dừng" giữa fling;
-  // có scrollend thì chờ nó, rồi vẫn giữ 120ms như cũ.
-  const phoneScrollWait = () => scrollActive ? PHONE_REVEAL_SCROLL_IDLE_MS
-    : lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
+  // có scrollend thì chờ nó, rồi vẫn giữ 120ms như cũ. Scroll do layout hoặc code (mở detail nhảy về y=0)
+  // không bắn scrollend, nên quá PHONE_SCROLL_SETTLE_MS không có scroll event thì coi là đã dừng.
+  const phoneScrollWait = () => scrollActive && performance.now() - lastScrollAt < PHONE_SCROLL_SETTLE_MS
+    ? PHONE_REVEAL_SCROLL_IDLE_MS : lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
   let motionTimer = 0;
   let pendingScroll = false;
   let lastMeasuredGridWidth = 0;
@@ -1463,7 +1468,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         cursor = cursor.nextElementSibling;
         continue;
       }
-      grid.insertBefore(node, cursor);
+      // moveBefore giữ transition fade của skeleton; insertBefore tháo node nên opacity nhảy thẳng tới đích.
+      (grid.isConnected && grid.moveBefore ? grid.moveBefore : grid.insertBefore).call(grid, node, cursor);
     }
     if (activeElement?.isConnected && document.activeElement !== activeElement) activeElement.focus({ preventScroll: true });
   };

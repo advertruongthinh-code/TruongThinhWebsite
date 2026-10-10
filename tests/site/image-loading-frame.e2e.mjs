@@ -243,7 +243,8 @@ try {
       new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
         if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
         window.__ttRevealGlass.push({
-          host: node.closest("[data-advertising-photo-view]") ? "primary" : "card",
+          // Card related cũng nằm trong photo view; Kính của nó là Kính card, không phải primary.
+          host: node.closest("[data-advertising-card], [data-advertising-related-card]") ? "card" : "primary",
           card: node.closest("[data-advertising-card]")?.dataset.advertisingCard,
           steps: node.querySelectorAll(".glass-surface__step").length,
           end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
