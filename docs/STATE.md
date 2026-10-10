@@ -21,14 +21,14 @@
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 - Chờ owner quyết: giữ hay xóa `scripts/site/sanitize-client-logos.ps1`; gộp nhãn trùng giữa
   `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
-- Thiết bị: A05s là máy thật đo chuẩn; iPhone Safari theo dõi sau phát hành, không chặn
-  ([phát hành tĩnh](specs/static-release.md#gate-còn-mở)).
-- Nợ cần phiên PC và A05s cho phiên sau ([card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
+- Nợ cần phiên PC và A05s (máy đo chuẩn, [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
   - A05s: nút Back phần cứng đóng viewer, viewer xoay ngang
     ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)), skeleton sau Kính `0.6s`.
   - `mobile-layout-parity`, `scrollbar-parity`, `site-media-card-playback`, `advertising-photo-transitions`,
     `advertising-primary-p14`: chạy ở phiên PC.
   - FPS skeleton (`advertising-continuation` R4), Firefox WebGL (`skeleton-lifecycle`, `mobile-viewport-stability`): cần GPU thật.
+  - FPS header khi cuộn trên A05s ([header điện thoại](specs/phone-header-scroll.md#gate-còn-mở)).
+- CI chạy trên runner WSL ở PC owner ([R10](specs/static-release.md#r10-gate-ci)); job `queued` lâu là runner offline.
 
 ## Next action
 
