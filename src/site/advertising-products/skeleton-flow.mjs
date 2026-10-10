@@ -380,14 +380,9 @@ function createNoise(seed) {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 0x1_0000_0000;
   };
-  const data = new Uint8Array(256 * 256 * 4);
-  for (let offset = 0; offset < data.length; offset += 4) {
-    const value = Math.round((random() + random()) * 0.5 * 255);
-    data[offset] = value;
-    data[offset + 1] = value;
-    data[offset + 2] = value;
-    data[offset + 3] = 255;
-  }
+  // Một kênh LUMINANCE: shader chỉ đọc .r, nên ít hơn 4 lần byte phải ghi và upload mà ảnh không đổi.
+  const data = new Uint8Array(256 * 256);
+  for (let offset = 0; offset < data.length; offset += 1) data[offset] = Math.round((random() + random()) * 0.5 * 255);
   return data;
 }
 
@@ -579,8 +574,8 @@ export function createSkeletonFlowRenderer(canvas, {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 256, 0,
-      gl.RGBA, gl.UNSIGNED_BYTE, createNoise(seed));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 256, 0,
+      gl.LUMINANCE, gl.UNSIGNED_BYTE, createNoise(seed));
     gl.uniform1i(uniform("uNoise"), 0);
     backend = "webgl";
     return true;
