@@ -147,7 +147,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       phase: window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()).map(entry => entry.phase),
     }));
     const portraitLedger = await ledger();
-    assert.ok(portraitLedger.live <= 2 && portraitLedger.peak <= 2, "phone budget applies during allocation transitions");
+    assert.ok(portraitLedger.live <= 12 && portraitLedger.peak <= 12, "phone budget applies during allocation transitions");
     await page.evaluate(() => window.__observeFlowNativeEvents());
     // Đổi width/orientation giữ các slot chung; slot thừa vẫn theo geometry.
     await page.setViewportSize({ width: 838, height: 390 }); await page.waitForTimeout(800);
@@ -156,7 +156,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       same: window.__lifecycleFrames.get(node.dataset.advertisingCtaSlot) === node,
     })));
     assert.ok(orientation.filter(frame => frame.common).every(frame => frame.same), "orientation preserves common outer slots");
-    assert.ok((await ledger()).peak <= 2, "838px phone landscape still uses at most two contexts");
+    assert.ok((await ledger()).peak <= 12, "838px phone landscape stays within the 12-context budget");
     await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(500);
     await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
     await page.waitForTimeout(700);
@@ -208,14 +208,15 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       window.__idleLossExtension.loseContext();
     });
     await page.waitForFunction(() => window.__idleLossRecord.gl.isContextLost());
+    const allocationsBeforeReentry = (await ledger()).allocations;
     await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
     await page.waitForTimeout(750);
-    assert.equal((await ledger()).allocations, 2, "lost idle context stays quarantined without allocating a replacement");
+    assert.equal((await ledger()).allocations, allocationsBeforeReentry, "lost idle context stays quarantined without allocating a replacement");
     assert.equal(await page.evaluate(() => window.__idleLossRecord.canvas.isConnected), false);
     await page.evaluate(() => window.__idleLossExtension.restoreContext());
     await page.waitForFunction(() => !window.__idleLossRecord.gl.isContextLost());
     await page.waitForTimeout(350);
-    assert.equal((await ledger()).allocations, 2, "restored idle canvas becomes reusable without a new context");
+    assert.equal((await ledger()).allocations, allocationsBeforeReentry, "restored idle canvas becomes reusable without a new context");
     await page.locator("[data-menu-open]").evaluate(node => node.focus({preventScroll:true}));
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => document.body.classList.contains("menu-open"));
@@ -248,11 +249,11 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       const appliedCategory = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().category);
       cycles.push({ cycle, category, appliedCategory, ...sample });
       assert.equal(appliedCategory, category, "each stress cycle must apply the requested filter");
-      assert.ok(sample.live <= 2 && sample.peak <= 2, "twenty filter/resize cycles never increase phone context budget");
+      assert.ok(sample.live <= 12 && sample.peak <= 12, "twenty filter/resize cycles never increase phone context budget");
     }
     const finalLedger = await ledger();
     assert.ok(finalLedger.live <= settled.live, "settled live contexts do not accumulate");
-    assert.ok(finalLedger.allocations <= 2, "phone native allocations plateau at two leased or idle contexts");
+    assert.ok(finalLedger.allocations <= 12, "phone native allocations plateau within the 12-context budget");
     // Barba route exit giải phóng lease, trong khi cache thuộc document vẫn còn.
     const softEntry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
     await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
@@ -266,13 +267,14 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       && document.querySelector('[data-advertising-cta-skeleton]')?.dataset.advertisingCtaReady === "true");
     assert.equal(await page.evaluate(() => performance.timeOrigin), softEntry.timeOrigin, "Barba return uses the same document cache");
     assert.equal(await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed), softEntry.seed);
-    assert.equal((await ledger()).allocations, 2, "controller remount reuses the two native contexts");
+    assert.equal((await ledger()).allocations, finalLedger.allocations, "controller remount reuses the existing native contexts");
     await fs.writeFile(output + "/" + engine + "-ledger.json", JSON.stringify({ portraitLedger, orientation, settled, cycles, finalLedger }, null, 2));
 
 
     await page.screenshot({ path: output + "/" + engine + ".png" });
     results.push({ engine, version: browser.version(), heightOnly: changed, errors });
     assert.deepEqual(errors, [], "no renderer/runtime error");
+    const entryLive = (await ledger()).live;
     const entry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed, timeOrigin:performance.timeOrigin,nativeDisposals:window.__flowLedger.nativeDisposals}));
     await page.goto(base + "/vi/", {waitUntil:"networkidle"});
     await page.goBack({waitUntil:"domcontentloaded"});
@@ -292,7 +294,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.deepEqual(shown.phases, hide.phases, "BFCache retains the parked phase before the next paint");
       assert.equal(returned.timeOrigin, entry.timeOrigin);
     } else {
-      assert.equal(hide.nativeDisposals - entry.nativeDisposals, 2, "uncached document exit disposes both native contexts once");
+      assert.equal(hide.nativeDisposals - entry.nativeDisposals, entryLive, "uncached document exit disposes every native context once");
       assert.notEqual(returned.timeOrigin, entry.timeOrigin, "uncached Back reconstructs the document");
     }
     await fs.writeFile(output + "/" + engine + "-native-events.json", JSON.stringify({entry,returned,nativeEvents},null,2));

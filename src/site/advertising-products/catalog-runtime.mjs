@@ -41,7 +41,8 @@ let skeletonDocumentEventsBound = false;
 const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0
   || document.documentElement.clientWidth <= 750;
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
-const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
+// Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
+const SKELETON_CONTEXT_BUDGET = 12;
 // Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; primary đã cache thu thời lượng về 0.6s.
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
@@ -1661,7 +1662,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const assignment = skeletonAssignmentByFrame.get(frame);
     if (!assignment) return;
     const { preset, direction, speedScale } = assignment;
-    const budget = skeletonContextBudget();
+    const budget = SKELETON_CONTEXT_BUDGET;
     const lease = skeletonNativeContexts.find(record => !record.renderer && !record.gl.isContextLost());
     if (!lease && skeletonNativeContexts.length >= budget) return;
     const oldCanvas = frame.querySelector("canvas");
@@ -1713,7 +1714,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
   const syncSkeletonRenderers = (rects) => {
-    const budget = skeletonContextBudget();
+    const budget = SKELETON_CONTEXT_BUDGET;
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
@@ -1758,7 +1759,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
       if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
-      if (!leased && skeletonNativeContexts.length < skeletonContextBudget()) {
+      if (!leased && skeletonNativeContexts.length < SKELETON_CONTEXT_BUDGET) {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
         if (gl) {
