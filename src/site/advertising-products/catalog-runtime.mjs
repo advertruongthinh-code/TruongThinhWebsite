@@ -1923,6 +1923,24 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
   const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
+  // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
+  // nhòe sẵn: vẽ ở 1/8 kích thước rồi phóng 8 lần, blur cộng dồn bằng blur chồng của bậc gốc (detail.css).
+  const BAKED_SCALE = 8;
+  const bakedRevealGlass = (host) => {
+    const glass = revealGlass(host);
+    const frame = host.getBoundingClientRect();
+    const photo = photoImage.getBoundingClientRect();
+    for (const step of glass.querySelectorAll(".glass-surface__step")) {
+      const image = Object.assign(document.createElement("img"), { alt: "", src: photoImage.currentSrc });
+      Object.assign(image.style, {
+        left: `${(photo.left - frame.left) / BAKED_SCALE}px`, top: `${(photo.top - frame.top) / BAKED_SCALE}px`,
+        width: `${photo.width / BAKED_SCALE}px`, height: `${photo.height / BAKED_SCALE}px`,
+      });
+      step.classList.add("glass-surface__step--baked");
+      step.append(image);
+    }
+    return glass;
+  };
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
@@ -2801,8 +2819,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    reveal.glass = revealGlass(heroFrame);
-    reveal.animations = [...crossfadeLayers(from, to, total), ...playGlassReveal(reveal.glass, total)];
+    reveal.glass = bakedRevealGlass(heroFrame);
+    // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
+    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > img")];
+    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
