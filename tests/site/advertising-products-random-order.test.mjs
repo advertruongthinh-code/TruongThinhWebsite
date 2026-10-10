@@ -464,7 +464,7 @@ for (const scenario of [
   });
 }
 
-test("suggestion cadence advances at 3000ms, crossfades for 1600ms, and pauses hidden/reduced/active/covered", async t => {
+test("suggestion cadence advances at 5000ms, crossfades for 1600ms with the hero zoom, and pauses hidden/reduced/active/covered", async t => {
   const { mountSuggestionSlides } = await import("../../src/site/advertising-products/suggestion-slideshow.mjs");
   const names = ["document", "innerHeight", "MutationObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
   const saved = names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
@@ -500,9 +500,9 @@ test("suggestion cadence advances at 3000ms, crossfades for 1600ms, and pauses h
     const image = {
       dataset: {}, style: { removeProperty() {} }, nextSibling: null,
       decode: () => Promise.resolve(), remove() { this.removed = true; },
-      animate: (_frames, options) => {
+      animate: (frames, options) => {
         const animation = new EventTarget();
-        Object.assign(animation, { options, cancel() {}, pause() {}, play() {} });
+        Object.assign(animation, { frames, options, cancel() {}, pause() {}, play() {} });
         animations.push(animation);
         return animation;
       },
@@ -526,22 +526,24 @@ test("suggestion cadence advances at 3000ms, crossfades for 1600ms, and pauses h
     }
     now = end;
   };
-  await advance(2999);
-  assert.equal(created.length, 0, "no advance before three seconds");
+  await advance(4999);
+  assert.equal(created.length, 0, "no advance before five seconds");
   await advance(1);
-  assert.equal(created.length, 1, "one decoded image at the three-second tick");
+  assert.equal(created.length, 1, "one decoded image at the five-second tick");
   assert.equal(animations[0].options.duration, 1600, "approved crossfade duration");
+  assert.deepEqual(animations[1].frames, [{ transform: "scale(1.06)" }, { transform: "scale(1)" }], "hero zoom endpoints");
+  assert.equal(animations[1].options.duration, 6600, "hero zoom spans hold plus crossfade");
   current = inserted[0];
   animations[0].dispatchEvent(new Event("finish"));
-  document.hidden = true; await advance(3000);
+  document.hidden = true; await advance(5000);
   assert.equal(created.length, 1, "hidden tab pauses the deck");
-  document.hidden = false; reduced = true; await advance(3000);
+  document.hidden = false; reduced = true; await advance(5000);
   assert.equal(created.length, 1, "reduced motion remains static");
-  reduced = false; active = true; await advance(3000);
+  reduced = false; active = true; await advance(5000);
   assert.equal(created.length, 1, "active suggestion remains static");
-  active = false; covered = true; await advance(3000);
+  active = false; covered = true; await advance(5000);
   assert.equal(created.length, 1, "open viewer or menu dialog keeps the deck static");
-  covered = false; await advance(3000);
+  covered = false; await advance(5000);
   assert.equal(created.length, 2, "same deck resumes at the next permitted tick");
 });
 

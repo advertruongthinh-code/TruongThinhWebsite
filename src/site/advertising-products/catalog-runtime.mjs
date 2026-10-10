@@ -2508,7 +2508,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       suggestionSlots.forEach(({ card, tag }, index) => {
         const link = document.createElement("button");
         link.type = "button";
-        link.className = "advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media media-hover-zoom-trigger";
+        link.className = "advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media";
         link.dataset.advertisingSuggestionTag = tag.id;
         link.dataset.advertisingSuggestionIndex = String(index);
         const first = suggestionDeck(tag.id, cards.filter(candidate => candidate.tagIds?.includes(tag.id)))[0] || card;
@@ -2518,6 +2518,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         image.dataset.advertisingSuggestionPhoto = first.id;
         const label = document.createElement("span");
         label.className = "advertising-photo-view__suggestion-label";
+        // Span ôm chữ để gạch chân hover dài đúng bằng dòng chữ (rule chung với portal, style.css).
+        label.append(document.createElement("span"));
         link.append(image, label);
         links.append(link);
       });
@@ -2534,7 +2536,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const slot = suggestionSlots.find(({ tag }) => tag.id === link.dataset.advertisingSuggestionTag);
       if (!slot) return;
       link.setAttribute("aria-pressed", String(browse.tag === slot.tag.id));
-      link.querySelector(".advertising-photo-view__suggestion-label").textContent = english ? slot.tag.labelEn : slot.tag.labelVi;
+      link.querySelector(".advertising-photo-view__suggestion-label > span").textContent = english ? slot.tag.labelEn : slot.tag.labelVi;
     });
     suggestionNode.hidden = suggestionSlots.length === 0;
     suggestionNode.dataset.advertisingRelatedItem = "advertising-suggestion";

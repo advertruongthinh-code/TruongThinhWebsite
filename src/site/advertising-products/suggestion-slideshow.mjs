@@ -12,8 +12,11 @@ export function suggestionDeck(key, cards) {
 // Slide dưới viewer hoặc menu đang mở chỉ bắt backdrop blur tính lại mỗi frame (decision a05s-frame-budget).
 const covered = () => document.querySelector("dialog[open]") !== null;
 
+// Nhịp và easing lấy theo hero trang chủ (motion.js): mỗi 5s chuyển mờ 1.6s power2.inOut, ảnh mới zoom 1.06 -> 1
+// trong 6.6s sine.inOut từ frame đầu crossfade. Ảnh đầu đã settle giữ scale 1 như slide hero settle.
 export function mountSuggestionSlides(root, { cards, createImage, isReduced, signal }) {
   const pending = new Map();
+  const zooms = new Map();
   let stopped = false;
   const clear = () => {
     pending.forEach(({ image, animation }) => {
@@ -21,6 +24,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       image.remove();
     });
     pending.clear();
+    zooms.forEach(zoom => zoom.cancel());
+    zooms.clear();
   };
   const tick = async (button) => {
     const rect = button.getBoundingClientRect();
@@ -56,7 +61,12 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       duration: 1600, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards",
     });
     state.animation = animation;
+    const previousZoom = zooms.get(button);
+    zooms.set(button, next.animate([{ transform: "scale(1.06)" }, { transform: "scale(1)" }], {
+      duration: 6600, easing: "cubic-bezier(0.37, 0, 0.63, 1)", fill: "forwards",
+    }));
     animation.addEventListener("finish", () => {
+      previousZoom?.cancel();
       current?.remove();
       next.dataset.advertisingSuggestionImageLayer = "current";
       next.style.removeProperty("opacity");
@@ -67,15 +77,17 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   };
   const timer = setInterval(() => {
     root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => { void tick(button); });
-  }, 3000);
+  }, 5000);
   const onVisibility = () => {
     if (isReduced() || preference.matches) { clear(); return; }
-    pending.forEach(({ animation }, button) => {
+    const sync = (animation, button) => {
       const rect = button.getBoundingClientRect();
       if (document.hidden || document.body.classList.contains("motion-paused") || covered()
         || button.getAttribute("aria-pressed") === "true" || rect.bottom <= 0 || rect.top >= innerHeight) animation?.pause();
-      else animation?.play();
-    });
+      else if (animation?.playState === "paused") animation.play();
+    };
+    pending.forEach(({ animation }, button) => sync(animation, button));
+    zooms.forEach(sync);
   };
   document.addEventListener("visibilitychange", onVisibility, { signal });
   addEventListener("scroll", onVisibility, { passive: true, signal });

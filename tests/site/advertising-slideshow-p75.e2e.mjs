@@ -11,10 +11,11 @@ try {
   await button.scrollIntoViewIfNeeded();
   const image = button.locator('[data-advertising-suggestion-image-layer="current"]');
   const first = await image.getAttribute("src");
-  await page.waitForTimeout(7000);
+  await page.waitForTimeout(8000);
   const second = await image.getAttribute("src");
   assert.notEqual(second, first, "inactive suggestion crossfades to another related image");
-  assert.equal(await image.evaluate(el => getComputedStyle(el).transform), "none", "autoplay does not zoom");
+  assert.equal(await image.evaluate(el => el.getAnimations().some(animation => animation.effect.getKeyframes()[0].transform === "scale(1.06)")), true,
+    "autoplay zooms the new image like the home hero");
   await button.click();
   const active = await image.getAttribute("src");
   await page.waitForTimeout(7000);
@@ -25,7 +26,7 @@ try {
   const readSlides = () => [...document.querySelectorAll("[data-advertising-suggestion-tag]")].map(button => ({ tag: button.dataset.advertisingSuggestionTag,
     src: button.querySelector('[data-advertising-suggestion-image-layer="current"]').getAttribute("src") }));
   const before = await page.evaluate(readSlides);
-  await page.waitForTimeout(7200);
+  await page.waitForTimeout(8000);
   const after = await page.evaluate(readSlides);
   assert.equal(before.length, 4);
   before.forEach((item, index) => assert.notEqual(after[index].src, item.src, `${item.tag}: new media fills the sparse deck`));
@@ -39,5 +40,5 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("[data-advertising-suggestion-tag]").first().scrollIntoViewIfNeeded();
   await page.screenshot({ path: ".tmp/p75-suggestion-mobile.png" });
-  console.log("PASS suggestion crossfade, no autoplay zoom, active stays white");
+  console.log("PASS suggestion crossfade with hero zoom, active stays white");
 } finally { await browser.close(); }
