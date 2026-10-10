@@ -75,8 +75,8 @@ assert.match(runtime, /const updateLocalizedContent = \(\) => \{[\s\S]*?querySel
 assert.match(runtime, /let cleaned = false;[\s\S]*if \(cleaned\) return;[\s\S]*signal\?\.removeEventListener\("abort", cleanup\)/, "manual cleanup is idempotent and releases the parent abort listener");
 assert.match(viewerSource, /dialog\.showModal\(\)/, "expanded photo uses the native modal focus boundary");
 assert.match(viewerSource, /const stops = \(\) => \[1, cover, 2 \* cover\]/, "buttons and wheel stop at fit, cover, and 2x-cover");
-assert.match(viewerSource, /Math\.max\(viewport\.clientWidth \/ fitWidth, viewport\.clientHeight \/ fitHeight\)/, "cover uses the limiting viewport axis instead of a fixed percentage");
-assert.match(viewerSource, /resetButton\?\.addEventListener\("click", \(\) => setScale\(1\)/, "reset returns directly to fit");
+assert.match(viewerSource, /Math\.max\(viewport\.clientWidth \/ visualWidth, viewport\.clientHeight \/ visualHeight\)/, "cover uses the limiting viewport axis of the turned image instead of a fixed percentage");
+assert.match(viewerSource, /resetButton\?\.addEventListener\("click", \(\) => \{[\s\S]*?moveTo\(1, undefined, turnTo\(0\)\)/, "reset returns directly to fit at 0 degrees");
 assert.match(viewerSource, /viewport\.addEventListener\("wheel"[\s\S]*?setScale\(nextStop\(event\.deltaY < 0 \? 1 : -1\), event\)/, "wheel zoom reuses the shared scale stops and cursor anchor");
 assert.match(viewerSource, /event\.button === 1[\s\S]*?setScale\(1\)/, "middle click returns the shared zoom state to fit");
 assert.match(viewerSource, /pointerdown[\s\S]*setPointerCapture[\s\S]*pointermove[\s\S]*pointercancel/, "viewer supports bounded pointer and touch pan cleanup");
