@@ -51,6 +51,11 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8787
 
+      # Script tự đặt browser path về .tooling/browsers khi env trống; trỏ về cache của playwright install.
+      - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/image-loading-frame.e2e.mjs
+        env:
+          BASE_URL: http://127.0.0.1:8787
+
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@v7

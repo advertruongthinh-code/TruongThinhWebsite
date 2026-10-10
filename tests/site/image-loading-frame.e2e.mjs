@@ -352,7 +352,9 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
+    // glass-surface R7: điện thoại (cảm ứng) chỉ crossfade ảnh chính, không Kính.
+    if (viewport.hasTouch) assert.deepEqual(primaryGlass, [], `${viewport.width}px: touch primary crossfades without Kính`);
+    else assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
       `${viewport.width}px: the primary reveals through five Kính steps animating opacity only ${JSON.stringify(primaryGlass)}`);
     await page.goBack();
     await page.goBack();
