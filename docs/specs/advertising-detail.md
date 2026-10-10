@@ -10,6 +10,7 @@ tests:
   - tests/site/advertising-single-related.e2e.mjs
   - tests/site/advertising-suggestion-conditional.e2e.mjs
   - tests/site/advertising-suggestion-info.e2e.mjs
+  - tests/site/advertising-suggestion-wave.e2e.mjs
   - tests/site/advertising-suggestion-layout.e2e.mjs
   - tests/site/advertising-suggestion-motion.e2e.mjs
   - tests/site/advertising-slideshow-p75.e2e.mjs
@@ -118,18 +119,17 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 ### R6. Slideshow suggestion
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
-(`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe, khuất thì dừng), rồi nút chưa bật đang trong
-viewport giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`; owner chọn 10/10), ảnh không zoom (owner bỏ 10/10)
-(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
-rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, nút ngoài
+(`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`; owner chọn 10/10), ảnh không zoom (owner bỏ 10/10)
+(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
+rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
-chưa xong; ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
+chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
 
 ```gherkin
 Given suggestion có nút chưa bật với bộ từ 2 ảnh và một nút đang bật
 When chờ 5s
-Then nút chưa bật đẩy ngang sang ảnh khác, nút dưới trễ 0.4s, ảnh không zoom
+Then nút chưa bật đẩy ngang sang ảnh khác, nút dưới trễ 0.4s kể cả nút dưới mép màn hình điện thoại, ảnh không zoom
 And hover nút chưa bật thì nhãn gạch chân, ảnh không zoom 1.15
 And nút đang bật giữ nguyên ảnh
 ```
@@ -265,7 +265,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R3 | `advertising-suggestion-info.e2e.mjs` (pager khi chữ 200%); `advertising-primary-p14.e2e.mjs` (CTA, chữ vừa) |
 | R4 | `CASE=delayed-image-resize-latest-wins`; test của [loading glass](loading-glass-and-page-entry.md#kiểm-tra) |
 | R5 | `advertising-suggestion-layout.e2e.mjs` (bốn chỗ); `advertising-suggestion-conditional.e2e.mjs` (split, pinterest, resize); `advertising-suggestion-info.e2e.mjs`; `CASE=related-suggestions-replace-state` |
-| R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
+| R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-suggestion-wave.e2e.mjs` (412×780, nút dưới mép màn hình); `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
 | R7 | `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`, `related-tap-defers-related`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
 | R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle` |
