@@ -352,6 +352,17 @@ function compileShader(gl, type, source) {
   return shader;
 }
 
+// Shader giống nhau cho mọi preset (uniform đặt riêng mỗi lease), nên mỗi context chỉ compile một lần: compile chặn
+// main thread khoảng 60ms trên A05s. Context mất rồi khôi phục thì isProgram trả false và compile lại.
+const programByContext = new WeakMap();
+function contextProgram(gl) {
+  const cached = programByContext.get(gl);
+  if (cached && gl.isProgram?.(cached) !== false) return cached;
+  const program = createProgram(gl);
+  if (program) programByContext.set(gl, program);
+  return program;
+}
+
 function createProgram(gl) {
   const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, SKELETON_FLOW_FRAGMENT_SHADER);
@@ -384,14 +395,9 @@ function createNoise() {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 0x1_0000_0000;
   };
-  const data = new Uint8Array(256 * 256 * 4);
-  for (let offset = 0; offset < data.length; offset += 4) {
-    const value = Math.round((random() + random()) * 0.5 * 255);
-    data[offset] = value;
-    data[offset + 1] = value;
-    data[offset + 2] = value;
-    data[offset + 3] = 255;
-  }
+  // Một kênh LUMINANCE: shader chỉ đọc .r, nên ít hơn 4 lần byte phải ghi và upload mà ảnh không đổi.
+  const data = new Uint8Array(256 * 256);
+  for (let offset = 0; offset < data.length; offset += 1) data[offset] = Math.round((random() + random()) * 0.5 * 255);
   return (sharedNoise = data);
 }
 
@@ -536,7 +542,6 @@ export function createSkeletonFlowRenderer(canvas, {
         gl.bindTexture(gl.TEXTURE_2D, null);
         if (texture) gl.deleteTexture(texture);
         if (buffer) gl.deleteBuffer(buffer);
-        if (program) gl.deleteProgram(program);
       }
     } catch {}
     texture = null;
@@ -547,7 +552,7 @@ export function createSkeletonFlowRenderer(canvas, {
 
   const initializeWebGl = () => {
     if (!gl || gl.isContextLost?.()) return false;
-    program = createProgram(gl);
+    program = contextProgram(gl);
     buffer = program && gl.createBuffer();
     texture = program && gl.createTexture();
     if (!program || !buffer || !texture) {
@@ -582,8 +587,8 @@ export function createSkeletonFlowRenderer(canvas, {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 256, 0,
-      gl.RGBA, gl.UNSIGNED_BYTE, createNoise());
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 256, 0,
+      gl.LUMINANCE, gl.UNSIGNED_BYTE, createNoise());
     gl.uniform1i(uniform("uNoise"), 0);
     backend = "webgl";
     return true;
@@ -641,6 +646,7 @@ export function createSkeletonFlowRenderer(canvas, {
 
   const onContextLost = (event) => {
     event.preventDefault();
+    programByContext.delete(gl);
     const wasRunning = isRunning;
     stop();
     resumeAfterRestore = wasRunning;
