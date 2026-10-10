@@ -569,7 +569,7 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
   if (!touch && label) await wheelUntilExpandVisible(page, label, settlements);
   const beforeUrl = page.url();
   const baseline = await page.evaluate((touch) => {
-    // Màn cảm ứng mở viewer bằng double tap trên primary photo (viewer touch R7).
+    // Màn cảm ứng mở viewer bằng một tap trên primary photo (viewer touch R7).
     const button = touch ? document.querySelector("[data-advertising-photo-image]").parentElement
       : document.querySelector("[data-advertising-photo-expand]");
     window.__ttPhotoViewerBeforeOpen = undefined;
@@ -587,7 +587,7 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
       window.__ttPhotoViewerOpenMotion.states.push(dialog?.dataset.advertisingViewerState || null);
     });
     observer.observe(dialog, { attributes: true, attributeFilter: ["data-advertising-viewer-state"] });
-    // Double tap mở ở pointerup thứ hai: lấy mẫu motion sau khi dialog đã mở.
+    // Tap mở ở pointerup: lấy mẫu motion sau khi dialog đã mở.
     const onOpen = () => {
       if (dialog.open) return;
       window.__ttPhotoViewerBeforeOpen = window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
@@ -608,7 +608,6 @@ async function openDialog(page, { touch = false, label, settlements } = {}) {
       const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
       window.__ttTouchExpandProbe = { rect, scrollY, logical: window.TruongThinhMotion?.getLogicalScroll?.(), hit: hit?.outerHTML?.slice(0,200) };
     }, box);
-    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   } else {
     await expand.click();
