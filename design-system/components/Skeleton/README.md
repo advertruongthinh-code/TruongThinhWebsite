@@ -29,8 +29,9 @@ CTA "Dấu ấn tiếp theo / dành cho thương hiệu của bạn" nằm trên
 Cùng khung này phủ kín [media card](../MediaCard/README.md) và ảnh
 [primary](../Primary/README.md) đang chờ ảnh: một khung mỗi ảnh, cùng cách bốc
 màu, đủ độ đậm (không nhạt dần), gỡ sau khi ảnh hiện. Flow chạy cả khi đang
-cuộn. Điện thoại chạy tối đa 2 khung WebGL, desktop 12; khung còn lại hiện một
-khung hình Flow đứng yên của chính assignment.
+cuộn. Điện thoại và desktop chạy tối đa 12 khung WebGL, đủ cho mọi khung trong
+viewport; khung chưa có context hiện một khung hình Flow đứng yên của chính
+assignment.
 
 Chi tiết chuyển động ở [Motion](../../motion.md#skeleton-tiếp-nối) và
 [Ảnh trong card](../../motion.md#ảnh-trong-card).

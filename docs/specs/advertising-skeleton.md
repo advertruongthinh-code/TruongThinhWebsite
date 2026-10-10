@@ -111,7 +111,7 @@ gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện fra
 ```gherkin
 Given điện thoại 838px ngang
 When cuộn qua batch, đổi filter và xoay máy nhiều lần
-Then không lúc nào quá 2 context, không lỗi "too many active WebGL contexts" hay lose context hai lần
+Then không lúc nào quá 12 context, không lỗi "too many active WebGL contexts" hay lose context hai lần
 ```
 
 ### R6. CTA, Kính và footer trên batch
@@ -145,7 +145,7 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [A05s trên 60fps](../decisions/a05s-frame-budget.md)
-(trên 60fps), tối đa 2 context đang chạy. Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
+(trên 60fps). Điện thoại và desktop cùng tối đa 12 context, đủ cho mọi khung trong viewport (owner 10/10). Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
 Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
