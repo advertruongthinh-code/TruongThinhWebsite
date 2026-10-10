@@ -126,7 +126,7 @@ trên Windows, chỉ khi Locomotive đang chạy (từ 981px, không giảm chuy
 chuyển động trang cuộn native nên trình duyệt tự lo.
 
 - Bắt đầu: nhấn chuột giữa lên chỗ không phải link, nút, ô nhập liệu hay viewer ảnh. Tại điểm nhấn hiện biểu tượng
-  gốc (ô vuông 48px, xem mục UI). Nhấn chuột giữa lên link vẫn mở tab mới như cũ.
+  gốc (vòng tròn 48px, xem mục UI). Nhấn chuột giữa lên link vẫn mở tab mới như cũ.
 - Cuộn: chuột cách gốc theo chiều dọc `d` CSS px. Trong vùng chết `|d| <= 15` trang đứng yên; ngoài vùng đó trang cuộn
   theo hướng chuột với vận tốc `0.04 × |d|^2.2` px/giây, không có trần, đổi ngay khi chuột di chuyển. Đây đúng là công
   thức autoscroll của Chrome (`autoscroll_controller.cc`: `0.000008 × |d|^2.2` nhân `5000` của `FixedVelocityCurve`),
@@ -167,10 +167,10 @@ Then không có biểu tượng gốc
 ## UI
 
 Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motion.md#smooth-scroll-và-parallax). Link khối
-"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site. Biểu tượng gốc R6 là ô vuông 48px góc vuông,
-nền `white`, viền `ink` 2px, hai tam giác đặc `ink` (rộng 16px, cao 8px, đỉnh cách mép 8px) và chấm vuông `ink` 8px ở
-tâm, không animation khi hiện hoặc ẩn. Mọi cạnh ngang dọc nằm trên lưới 4px; vị trí và độ dày viền làm tròn theo pixel
-màn hình, nên không răng cưa hay viền mờ ở tỉ lệ 100%, 125%, 150%, 200%.
+"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site. Biểu tượng gốc R6 là vòng tròn 48px,
+nền `white`, viền `ink` 2px, hai tam giác đặc `ink` (rộng 16px, cao 8px, đỉnh cách mép 8px) và chấm tròn `ink` 8px ở
+tâm, không animation khi hiện hoặc ẩn. Không dùng nét mảnh dưới 2px; cạnh đáy tam giác nằm trên lưới 4px; vị trí
+làm tròn theo pixel màn hình, nên không răng cưa ở tỉ lệ 100%, 125%, 150%, 200%.
 
 ## Kiểm tra
 
