@@ -63,6 +63,9 @@ dùng nhịp đủ `1.4s`:
 | Skeleton mờ, ảnh hiện | 0.3 đến 0.9s | `cubic-bezier(0.65, 0, 0.35, 1)` |
 | Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (`power4.inOut`) |
 
+- Primary detail dùng bậc nhòe dựng sẵn (`glass-surface__step--baked`, owner 10/10): ảnh mới vẽ `1/8` rồi phóng
+  8 lần, cùng blur cộng dồn và màu của năm bậc, trên nền màu skeleton, hiện theo crossfade của ảnh. Năm bậc
+  `backdrop-filter` phủ cả hero rơi gate A05s.
 - Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
