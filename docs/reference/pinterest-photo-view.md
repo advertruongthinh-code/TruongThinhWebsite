@@ -298,7 +298,7 @@ test mọi thiết bị vật lý, Safari native hoặc toàn bộ template Pint
 
 Kết quả này bổ sung reference, chưa thay contract layout Trường Thịnh.
 Khi áp dụng phải giữ font, góc vuông, outer band/gutter/content cap, ảnh
-intrinsic không crop, organic stagger, CTA và Espacio motion đã khóa. Chưa có
+intrinsic không crop, organic stagger, CTA và motion đã khóa trong [Motion](../../design-system/motion.md). Chưa có
 quyết định dùng device-UA branching hoặc cách chọn split/stacked mới.
 
 ### Trạng thái nút viewer

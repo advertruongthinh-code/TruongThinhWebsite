@@ -12,6 +12,8 @@ structural freshness. Agent lifecycle hook bị disabled.
 & ".\scripts\tooling\invoke-graphify.ps1" explain "node"
 ```
 
+Cloud/Linux không có PowerShell: `scripts/tooling/invoke-graphify.sh query "..."` hoặc MCP `graphify`.
+
 Wrapper block query khi structural refresh fail, report semantic lag riêng. Dùng
 Serena sau Graphify cho exact symbol, reference, diagnostic, refactor.
 
