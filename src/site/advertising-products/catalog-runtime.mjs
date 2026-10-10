@@ -1,3 +1,6 @@
+//# allFunctionsCalledOnLoad
+// Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
+// (khoảng 20% task click khi mở detail; decision a05s-frame-budget).
 import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
@@ -43,6 +46,7 @@ const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
+const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const disposeSkeletonContext = (record) => {
@@ -1066,6 +1070,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
   const arcGlass = gridSectionStyleTarget?.appendChild(Object.assign(createGlassSurface("arc"), { hidden: true }));
   const photoView = container.querySelector("[data-advertising-photo-view]");
+  // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
+  // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision a05s-frame-budget).
+  if (photoView?.hidden) globalThis.requestIdleCallback?.(() => {
+    if (photoView.hidden) for (const node of [photoView, ...photoView.querySelectorAll("*")]) getComputedStyle(node).color;
+  });
   const photoCanvas = photoView?.querySelector("[data-advertising-photo-canvas]");
   const photoPrimary = photoView?.querySelector("[data-advertising-photo-primary]");
   const photoImage = photoView?.querySelector("[data-advertising-photo-image]");
@@ -1648,7 +1657,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.getBoundingClientRect();
     const renderer = createSkeletonFlowRenderer(canvas, {
       preset,
-      seed: fnv1a32(`${skeletonKey(frame)}:${preset.id}`),
       initialPhase: skeletonPhase(frame),
       direction,
       speedScale,
@@ -1697,8 +1705,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
-    // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport.
-    const prioritized = [...visibleSkeletonFrames]
+    // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport. Dùng lại rect đã đọc
+    // trước khi append canvas: đọc lại ép thêm một layout (A05s, decision a05s-frame-budget).
+    const prioritized = [...visibleSkeletonFrames].filter((frame) => skeletonAssignmentByFrame.has(frame))
       .map((frame) => ({ frame, rect: rects?.get(frame) ?? frame.getBoundingClientRect() }))
       .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left)
       .map(({ frame }) => frame)
@@ -1790,7 +1799,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         && rect.bottom > visible.top && rect.top < visible.top + visible.height) visibleSkeletonFrames.add(frame);
       else visibleSkeletonFrames.delete(frame);
     }
-    visibleSkeletonFrames.forEach((frame) => assignSkeleton(frame, rects));
+    // Mỗi ảnh tĩnh là một lần render CPU; mở detail có thể cần hơn chục cái cùng lúc. Vượt ngân sách
+    // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision a05s-frame-budget).
+    const assignUntil = performance.now() + SKELETON_ASSIGN_BUDGET_MS;
+    for (const frame of visibleSkeletonFrames) {
+      if (!skeletonAssignmentByFrame.has(frame) && performance.now() > assignUntil) {
+        scheduleSkeletonAssign();
+        break;
+      }
+      assignSkeleton(frame, rects);
+    }
     syncSkeletonRenderers(rects);
     skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
@@ -1820,6 +1838,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderer?.stop();
         return;
       }
+      if (!skeletonAssignmentByFrame.has(frame)) return;
       if (skeletonCanLoop(frame)) {
         // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
@@ -1834,10 +1853,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       renderer?.stop();
     });
   };
+  let skeletonAssignTimer = 0;
+  const scheduleSkeletonAssign = () => {
+    if (skeletonAssignTimer || controller.signal.aborted) return;
+    skeletonAssignTimer = setTimeout(() => {
+      skeletonAssignTimer = 0;
+      syncSkeletonMotion();
+    });
+  };
+  controller.signal.addEventListener("abort", () => clearTimeout(skeletonAssignTimer), { once: true });
   const skeletonObserver = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
-  const skeletonPauseObserver = new MutationObserver(syncSkeletonMotion);
+  // Class body đổi ngay trong task chạm card (is-advertising-photo); đồng bộ ở frame kế để đọc rect không ép thêm
+  // một lần style và layout trong task đó (decision a05s-frame-budget).
+  const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
@@ -1904,6 +1934,24 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
   const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
+  // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
+  // nhòe sẵn: vẽ ở 1/8 kích thước rồi phóng 8 lần, blur cộng dồn bằng blur chồng của bậc gốc (detail.css).
+  const BAKED_SCALE = 8;
+  const bakedRevealGlass = (host) => {
+    const glass = revealGlass(host);
+    const frame = host.getBoundingClientRect();
+    const photo = photoImage.getBoundingClientRect();
+    for (const step of glass.querySelectorAll(".glass-surface__step")) {
+      const image = Object.assign(document.createElement("img"), { alt: "", src: photoImage.currentSrc });
+      Object.assign(image.style, {
+        left: `${(photo.left - frame.left) / BAKED_SCALE}px`, top: `${(photo.top - frame.top) / BAKED_SCALE}px`,
+        width: `${photo.width / BAKED_SCALE}px`, height: `${photo.height / BAKED_SCALE}px`,
+      });
+      step.classList.add("glass-surface__step--baked");
+      step.append(image);
+    }
+    return glass;
+  };
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
@@ -2775,14 +2823,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const playPrimaryReveal = (reveal, from, to, total) => {
     if (primaryReveal !== reveal) return;
+    // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
+    if (photoView.hidden) {
+      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total));
+      return;
+    }
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
     if (reduced) {
       settlePrimaryReveal();
       return;
     }
-    reveal.glass = revealGlass(heroFrame);
-    reveal.animations = [...crossfadeLayers(from, to, total), ...playGlassReveal(reveal.glass, total)];
+    reveal.glass = bakedRevealGlass(heroFrame);
+    // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
+    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > img")];
+    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
@@ -2939,7 +2994,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoAudioToggle.setAttribute("aria-label", label);
   };
   photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
-  const renderPhoto = (browse, reason, phase = "") => {
+  const renderPhoto = (browse, reason, phase = "", reveal = true) => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;
     directEntryPhase = phase;
@@ -2954,10 +3009,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;
     photoImage.dataset.advertisingPhotoId = record.id;
-    document.body.classList.add("is-advertising-photo");
-    document.body.dataset.advertisingPhotoActive = "true";
-    if (gridSection) gridSection.hidden = true;
-    photoView.hidden = false;
     rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
     const english = locale === "en";
     renderPrimaryThumbs(record);
@@ -2976,6 +3027,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const category = categoryById.get(record.category);
     if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;
     renderSuggestionLinks(browse, english);
+    if (reveal) revealPhotoView(browse, generation);
+    return true;
+  };
+  // Hiện photo view rồi layout và khôi phục scroll; tách khỏi renderPhoto để mở từ grid dựng DOM ở task chạm card
+  // và hiện ở task sau (decision a05s-frame-budget).
+  const revealPhotoView = (browse, generation) => {
+    document.body.classList.add("is-advertising-photo");
+    document.body.dataset.advertisingPhotoActive = "true";
+    if (gridSection) gridSection.hidden = true;
+    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
+    // và không bị ép style lần hai (decision a05s-frame-budget).
+    const layoutWidth = document.documentElement.clientWidth;
+    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
+    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
+    photoView.hidden = false;
     layoutRelated(browse);
     relatedRendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     let restoredScroll = browse.detail.scrollY;
@@ -2994,7 +3060,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (generation !== detailRenderGeneration || controller.signal.aborted) return;
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
-    return true;
   };
   // Mỗi pha là một task riêng để không pha nào chặn input quá 50ms trên A05s (docs/specs/advertising-detail.md R7):
   // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
@@ -3004,8 +3069,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
-    renderPhoto(browse, reason, deferRelated ? "primary" : "");
+    // Mở từ grid: task chạm card chỉ dựng DOM detail đang ẩn, task sau mới hiện và layout.
+    const fromGrid = deferRelated && photoView?.hidden;
+    renderPhoto(browse, reason, deferRelated ? "primary" : "", !fromGrid);
     const generation = detailRenderGeneration;
+    if (fromGrid) {
+      await nextTask();
+      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+      revealPhotoView(browse, generation);
+    }
     for (const phase of deferRelated ? ["warm", "related", ""] : []) {
       await nextTask();
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;

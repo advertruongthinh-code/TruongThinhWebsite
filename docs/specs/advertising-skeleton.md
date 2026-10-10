@@ -146,6 +146,8 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [A05s trên 60fps](../decisions/a05s-frame-budget.md)
 (trên 60fps), tối đa 2 context đang chạy. Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
+Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
+assignment ở task sau và chưa vào entry trước đó.
 
 ```gherkin
 Given Chrome có GPU, cửa sổ 1569×912, batch đầy viewport

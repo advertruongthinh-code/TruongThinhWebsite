@@ -534,11 +534,12 @@
   };
 
   const setPageScroll = (state, scrollY, { instant = false } = {}) => {
-    const maxScroll = Math.max(
-      0,
-      document.documentElement.scrollHeight - window.innerHeight,
+    const target = Math.max(0, Number(scrollY) || 0);
+    // Về đầu trang không cần clamp: không đọc scrollHeight, nên không ép layout trong task gọi nó.
+    const nextScroll = target && Math.min(
+      target,
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
     );
-    const nextScroll = Math.min(Math.max(0, Number(scrollY) || 0), maxScroll);
     state.smoothScrollY = nextScroll;
     if (state.smoothScroll) {
       window.scrollTo(0, 0);
@@ -555,6 +556,16 @@
       window.scrollTo({ top: nextScroll, left: 0, behavior: instant ? "instant" : "auto" });
     }
     lastScrollY = nextScroll;
+    // Scroll tức thì về đầu trang (mở detail Advertising) đo header ở frame kế, trước paint, để style và layout
+    // của trang mới chỉ chạy một lần thay vì bị ép thêm trong task chạm card (decision a05s-frame-budget).
+    if (instant && !nextScroll && !state.smoothScroll) {
+      cancelAnimationFrame(state.headerSyncFrame);
+      state.headerSyncFrame = requestAnimationFrame(() => {
+        updateToneRanges();
+        updateHeader(getPageScroll());
+      });
+      return;
+    }
     updateToneRanges();
     updateHeader(nextScroll);
   };

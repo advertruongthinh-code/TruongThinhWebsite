@@ -5014,6 +5014,30 @@ body.is-advertising-browse .site-footer {
   display: block;
 }
 
+.glass-surface__step--baked {
+  /* Bậc nhòe sẵn của Kính reveal trên primary (catalog-runtime.mjs bakedRevealGlass): ảnh mới vẽ ở 1/8 rồi phóng 8 lần,
+     blur bằng căn tổng bình phương các bậc gốc tới bậc đó, saturate và brightness cộng dồn như bậc gốc. Nền bậc thay
+     phần skeleton đã nhòe trong backdrop gốc; ảnh nhòe hiện dần trên nó theo crossfade. */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  overflow: hidden;
+  background: var(--media-loading-surface);
+}
+
+.glass-surface__step--baked > img {
+  position: absolute;
+  max-width: none;
+  transform: scale(8);
+  transform-origin: 0 0;
+  filter: blur(calc(var(--glass-baked-blur) / 8)) saturate(var(--glass-baked-saturate)) brightness(var(--glass-baked-brightness));
+}
+
+.glass-surface__step--baked:nth-last-child(7) { --glass-baked-blur: 7.14px; --glass-baked-saturate: 1.112; --glass-baked-brightness: 1.0079; }
+.glass-surface__step--baked:nth-last-child(6) { --glass-baked-blur: 16.07px; --glass-baked-saturate: 1.2365; --glass-baked-brightness: 1.0159; }
+.glass-surface__step--baked:nth-last-child(5) { --glass-baked-blur: 32.15px; --glass-baked-saturate: 1.375; --glass-baked-brightness: 1.0239; }
+.glass-surface__step--baked:nth-last-child(4) { --glass-baked-blur: 57.15px; --glass-baked-saturate: 1.529; --glass-baked-brightness: 1.032; }
+.glass-surface__step--baked:nth-last-child(3) { --glass-baked-blur: 100px; --glass-baked-saturate: 1.7; --glass-baked-brightness: 1.04; }
+
 /* Kính reveal phủ photo và skeleton nhưng ở dưới image action. */
 .advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] > i {
   z-index: 2;
