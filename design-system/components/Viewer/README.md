@@ -8,7 +8,8 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 
 - Ảnh mở từ khung primary tới mức fit. Tỷ lệ zoom liên tục từ fit tới hai lần
   cover; nút và con lăn nhảy giữa ba nấc fit, cover, hai lần cover. Trên màn
-  cảm ứng chụm hai ngón zoom theo tay, chạm đúp chuyển fit và cover
+  cảm ứng chụm hai ngón zoom theo tay, vặn hai ngón xoay ảnh rồi buông thì hít
+  về bội 90°, chạm một lần chuyển fit và cover
   ([spec](../../../docs/specs/advertising-viewer-touch-zoom.md)). Pan theo con
   trỏ hoặc một ngón, giới hạn trong ảnh.
 - Nút đóng góc trái trên, cụm thu nhỏ, phóng to, thu về góc phải dưới; mỗi nút
@@ -19,7 +20,7 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Nền tối `rgba(32, 33, 32, 0.85)`, không blur (owner bỏ 2026-10-10 để đạt
   60fps trên A05s).
 - Màn cảm ứng (`hover: none`, `pointer: coarse`) không hiện nút: chụm hoặc
-  chạm đúp để zoom; ở fit vuốt ảnh lên hoặc xuống thì ảnh theo tay, nền nhạt
+  chạm một lần để zoom, vặn để xoay; ở fit vuốt ảnh lên hoặc xuống thì ảnh theo tay, nền nhạt
   dần, quá `15%` chiều cao hoặc vuốt nhanh thì đóng, chưa tới thì về chỗ.
   Nút vẫn còn cho trình đọc màn hình và hiện lại khi focus bàn phím.
 - Back (nút back Android, vuốt mép iOS, nút back trình duyệt) chỉ đóng viewer.

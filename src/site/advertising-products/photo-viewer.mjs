@@ -1,9 +1,14 @@
 import { responsiveSource } from "./responsive-image.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-// Double tap trên touch: cả hai tap trong 300ms và 24px, mỗi tap di chuyển tối đa 10px (advertising-viewer-touch-zoom R4, R7).
+// Double tap trên touch: cả hai tap trong 300ms và 24px, mỗi tap di chuyển tối đa 10px (advertising-viewer-touch-zoom R7).
 const isDoubleTap = (last, event) => last && event.timeStamp - last.time <= 300
   && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 24;
+// Xoay vector (x, y) một góc `degrees` theo chiều kim đồng hồ của màn hình, như CSS rotate().
+const rotate = (x, y, degrees) => {
+  const radians = degrees * Math.PI / 180;
+  return [x * Math.cos(radians) - y * Math.sin(radians), x * Math.sin(radians) + y * Math.cos(radians)];
+};
 
 export function createAdvertisingPhotoViewer({
   dialog,
@@ -29,6 +34,8 @@ export function createAdvertisingPhotoViewer({
   const nextSibling = dialog.nextSibling;
   let record = null;
   let scale = 1;
+  // Góc xoay ảnh theo độ; tự do khi đang pinch, ngoài ra luôn là bội 90 (R11).
+  let angle = 0;
   let fitWidth = 1;
   let fitHeight = 1;
   let cover = 1;
@@ -37,7 +44,6 @@ export function createAdvertisingPhotoViewer({
   let drag = null;
   let pinch = null;
   let tap = null;
-  let lastTap = null;
   let swipe = null;
   let heroTap = null;
   let heroLastTap = null;
@@ -80,8 +86,12 @@ export function createAdvertisingPhotoViewer({
       right: bounds.right - left - width, bottom: bounds.bottom - top - height,
     })) dialog.style.setProperty(`--advertising-viewer-visible-${edge}`, `${Math.max(0, value)}px`);
   };
-  const measureFit = () => {
-    const stop = stops().findIndex((value) => near(scale, value));
+  // Ở 90° và 270° ảnh nằm ngang thành dọc nên khung vừa và cover tính theo chiều đã đổi (R11).
+  const sideways = () => Math.abs(Math.round(angle / 90)) % 2 === 1;
+  const visualSize = () => (sideways() ? [fitHeight, fitWidth] : [fitWidth, fitHeight]);
+  // `previousWidth`: giữ nguyên kích thước ảnh đang hiện khi đổi góc, scale tính lại theo khung mới.
+  const measureFit = (previousWidth) => {
+    const stop = previousWidth ? -1 : stops().findIndex((value) => near(scale, value));
     fitGeometryKey = geometryKey();
     const styles = getComputedStyle(dialog);
     const insetX = viewport.clientWidth <= 750 ? 0 : viewport.clientWidth <= 960 ? 16 : 64;
@@ -91,17 +101,22 @@ export function createAdvertisingPhotoViewer({
       - (parseFloat(styles.paddingLeft) || 0) - (parseFloat(styles.paddingRight) || 0));
     const availableHeight = Math.max(1, viewport.clientHeight - insetTop - insetBottom);
     const ratio = record.media.width / record.media.height;
-    fitWidth = Math.min(record.media.width, availableWidth, availableHeight * ratio);
+    const [boxWidth, boxHeight] = sideways() ? [availableHeight, availableWidth] : [availableWidth, availableHeight];
+    fitWidth = Math.min(record.media.width, boxWidth, boxHeight * ratio);
     fitHeight = fitWidth / ratio;
     expandedImage.style.width = `${fitWidth}px`;
     expandedImage.style.height = `${fitHeight}px`;
-    cover = Math.max(viewport.clientWidth / fitWidth, viewport.clientHeight / fitHeight);
-    scale = stop >= 0 ? stops()[stop] : clamp(scale, 1, 2 * cover);
+    const [visualWidth, visualHeight] = visualSize();
+    cover = Math.max(viewport.clientWidth / visualWidth, viewport.clientHeight / visualHeight);
+    scale = previousWidth ? scale * previousWidth / fitWidth : stop >= 0 ? stops()[stop] : clamp(scale, 1, 2 * cover);
   };
-  const panLimits = () => ({
-    x: Math.max(0, (fitWidth * scale - viewport.clientWidth) / 2),
-    y: Math.max(0, (fitHeight * scale - viewport.clientHeight) / 2),
-  });
+  const panLimits = () => {
+    const [visualWidth, visualHeight] = visualSize();
+    return {
+      x: Math.max(0, (visualWidth * scale - viewport.clientWidth) / 2),
+      y: Math.max(0, (visualHeight * scale - viewport.clientHeight) / 2),
+    };
+  };
   const updateControls = () => {
     // Status aria-live thông báo giá trị đã đổi ở cuối một pinch, không phải mỗi frame của nó.
     const status = `${Math.round(scale * 100)}%`;
@@ -110,7 +125,7 @@ export function createAdvertisingPhotoViewer({
     zoomInButton.disabled = atMax();
     if (resetButton) {
       resetButton.hidden = false;
-      resetButton.disabled = atFit();
+      resetButton.disabled = atFit() && !angle;
     }
     expandedImage.style.cursor = atFit() ? "default" : drag ? "grabbing" : "grab";
     const active = document.activeElement;
@@ -123,7 +138,7 @@ export function createAdvertisingPhotoViewer({
     const limits = panLimits();
     panX = clamp(panX, -limits.x, limits.x);
     panY = clamp(panY, -limits.y, limits.y);
-    expandedImage.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${scale})`;
+    expandedImage.style.transform = `translate3d(${panX}px, ${panY}px, 0) rotate(${angle}deg) scale(${scale})`;
     updateControls();
     return expandedImage.style.transform;
   };
@@ -160,33 +175,45 @@ export function createAdvertisingPhotoViewer({
     const y = source.y + source.height / 2 - (bounds.y + bounds.height / 2);
     return `translate3d(${x}px, ${y}px, 0) scale(${source.width / fitWidth})`;
   };
+  const displayed = () => {
+    const transform = getComputedStyle(expandedImage).transform;
+    return new DOMMatrix(transform === "none" ? undefined : transform);
+  };
+  // Đổi góc và đo lại khung; trả frame đang hiện quy về kích thước phần tử mới để animation không nhảy.
+  const turnTo = (degrees, from = displayed()) => {
+    if (degrees === angle) return from;
+    const width = fitWidth;
+    angle = degrees;
+    measureFit(width);
+    return from.scale(width / fitWidth);
+  };
+  // Đưa ảnh tới `target` ở góc hiện tại; điểm ảnh dưới `anchor` (đọc từ frame `matrix`) giữ chỗ khi target > Fit.
+  const moveTo = (target, anchor, matrix = displayed()) => {
+    if (target > 1 && Number.isFinite(anchor?.clientX) && Number.isFinite(anchor?.clientY)) {
+      const bounds = viewport.getBoundingClientRect();
+      const offsetX = anchor.clientX - bounds.left - bounds.width / 2;
+      const offsetY = anchor.clientY - bounds.top - bounds.height / 2;
+      const local = matrix.inverse().transformPoint({ x: offsetX, y: offsetY });
+      const [x, y] = rotate(local.x * target, local.y * target, angle);
+      panX = offsetX - x;
+      panY = offsetY - y;
+    }
+    scale = target;
+    if (scale === 1) panX = panY = 0;
+    runMotion(matrix.toString(), renderTransform(), 200, "ease-in-out", "zooming");
+  };
   const setScale = (target, anchor) => {
     if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || target === undefined) return;
-    const from = getComputedStyle(expandedImage).transform;
     const nextScale = clamp(target, 1, 2 * cover);
-    if (nextScale === scale) return;
-    const matrix = new DOMMatrixReadOnly(from === "none" ? undefined : from);
-    if (nextScale > 1 && Number.isFinite(anchor?.clientX) && Number.isFinite(anchor?.clientY)) {
-      const bounds = viewport.getBoundingClientRect();
-      const centerX = bounds.left + bounds.width / 2;
-      const centerY = bounds.top + bounds.height / 2;
-      const visualScale = matrix.a || scale;
-      const localX = (anchor.clientX - centerX - matrix.m41) / visualScale;
-      const localY = (anchor.clientY - centerY - matrix.m42) / visualScale;
-      panX = anchor.clientX - centerX - nextScale * localX;
-      panY = anchor.clientY - centerY - nextScale * localY;
-    }
-    scale = nextScale;
-    if (scale === 1) panX = panY = 0;
-    const to = renderTransform();
-    runMotion(from, to, 200, "ease-in-out", "zooming");
+    if (nextScale !== scale) moveTo(nextScale, anchor);
   };
   // Một gesture trong lúc zoom animation tiếp tục từ frame đang trên màn hình; khi đang mở thì bắt đầu từ Fit.
   const adoptDisplayed = () => {
     if (!imageAnimation) return;
     if (dialog.dataset.advertisingViewerState === "zooming") {
       const matrix = new DOMMatrixReadOnly(getComputedStyle(expandedImage).transform);
-      scale = matrix.a;
+      scale = Math.hypot(matrix.a, matrix.b);
+      angle = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
       panX = matrix.m41;
       panY = matrix.m42;
     }
@@ -194,35 +221,42 @@ export function createAdvertisingPhotoViewer({
     dialog.dataset.advertisingViewerState = "open";
     renderTransform();
   };
-  // Quay lại trong [Fit, Max] sau gesture; Max giữ `anchor` đứng yên, Fit căn lại giữa.
+  // Quay lại trong [Fit, Max] và hít góc về bội 90 sau gesture; `anchor` đứng yên, Fit căn lại giữa (R2, R11).
   const settle = (anchor) => {
+    const snapped = ((Math.round(angle / 90) * 90) % 360 + 360) % 360;
     const target = clamp(scale, 1, 2 * cover);
-    if (target === scale) renderTransform();
-    else setScale(target, anchor);
+    if (snapped === angle && target === scale) renderTransform();
+    else {
+      const from = turnTo(snapped);
+      moveTo(clamp(scale, 1, 2 * cover), anchor, from);
+    }
   };
   const midpoint = () => {
     const [a, b] = touches.values();
-    return { clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2, distance: Math.hypot(a.x - b.x, a.y - b.y) || 1 };
+    return { clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2, distance: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+      twist: Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI };
   };
   const startPinch = () => {
-    const { clientX, clientY, distance } = midpoint();
+    const { clientX, clientY, distance, twist } = midpoint();
     const bounds = viewport.getBoundingClientRect();
-    pinch = {
-      scale, distance, clientX, clientY,
-      localX: (clientX - bounds.left - bounds.width / 2 - panX) / scale,
-      localY: (clientY - bounds.top - bounds.height / 2 - panY) / scale,
-    };
+    // Điểm ảnh dưới trung điểm, trong hệ tọa độ ảnh chưa xoay và chưa scale.
+    const [localX, localY] = rotate((clientX - bounds.left - bounds.width / 2 - panX) / scale,
+      (clientY - bounds.top - bounds.height / 2 - panY) / scale, -angle);
+    pinch = { scale, angle, distance, twist, clientX, clientY, localX, localY };
   };
   const movePinch = () => {
-    const { clientX, clientY, distance } = midpoint();
+    const { clientX, clientY, distance, twist } = midpoint();
     const bounds = viewport.getBoundingClientRect();
     const max = 2 * cover;
+    // Vặn hai ngón xoay ảnh tự do theo góc đường nối hai ngón (R11).
+    angle = pinch.angle + ((twist - pinch.twist + 540) % 360) - 180;
     const raw = pinch.scale * distance / pinch.distance;
     // Vượt giới hạn, ảnh đi theo một phần ba chuyển động của ngón tay, tối đa vượt 15%.
     scale = raw > max ? Math.min(max + (raw - max) / 3, max * 1.15)
       : raw < 1 ? Math.max(1 - (1 - raw) / 3, 0.85) : raw;
-    panX = clientX - bounds.left - bounds.width / 2 - scale * pinch.localX;
-    panY = clientY - bounds.top - bounds.height / 2 - scale * pinch.localY;
+    const [x, y] = rotate(scale * pinch.localX, scale * pinch.localY, angle);
+    panX = clientX - bounds.left - bounds.width / 2 - x;
+    panY = clientY - bounds.top - bounds.height / 2 - y;
     Object.assign(pinch, { clientX, clientY });
     renderTransform();
   };
@@ -244,12 +278,12 @@ export function createAdvertisingPhotoViewer({
         return;
       }
       swipe.active = true;
-      tap = lastTap = null;
+      tap = null;
       dialog.dataset.advertisingViewerSwipe = "";
     }
     swipe.velocity = (event.clientY - swipe.lastY) / Math.max(1, event.timeStamp - swipe.lastTime);
     Object.assign(swipe, { dy, lastY: event.clientY, lastTime: event.timeStamp });
-    expandedImage.style.transform = `translate3d(0, ${dy}px, 0) scale(1)`;
+    expandedImage.style.transform = `translate3d(0, ${dy}px, 0) rotate(${angle}deg) scale(1)`;
     setBackdropOpacity(1 - Math.min(1, Math.abs(dy) / (0.5 * viewport.clientHeight)));
   };
   const endSwipe = (release) => {
@@ -278,9 +312,10 @@ export function createAdvertisingPhotoViewer({
       skipPop = true;
       history.back();
     }
-    drag = pinch = tap = lastTap = swipe = null;
+    drag = pinch = tap = swipe = null;
     touches.clear();
     scale = 1;
+    angle = 0;
     panX = panY = 0;
     renderTransform();
     unlock();
@@ -317,6 +352,7 @@ export function createAdvertisingPhotoViewer({
     expandedImage.height = record.media.height;
     expandedImage.fetchPriority = "high";
     scale = 1;
+    angle = 0;
     panX = panY = 0;
     dialog.showModal();
     history.pushState(history.state, "");
@@ -349,7 +385,11 @@ export function createAdvertisingPhotoViewer({
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
-  resetButton?.addEventListener("click", () => setScale(1), { signal: controller.signal });
+  // Reset về Fit và góc 0 (R5, R11).
+  resetButton?.addEventListener("click", () => {
+    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing") return;
+    moveTo(1, undefined, turnTo(0));
+  }, { signal: controller.signal });
   viewport.addEventListener("wheel", (event) => {
     if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || event.deltaY === 0) return;
     event.preventDefault();
@@ -385,7 +425,7 @@ export function createAdvertisingPhotoViewer({
           setBackdropOpacity(1);
           renderTransform();
         }
-        drag = tap = lastTap = swipe = null;
+        drag = tap = swipe = null;
         adoptDisplayed();
         startPinch();
         event.preventDefault();
@@ -440,8 +480,8 @@ export function createAdvertisingPhotoViewer({
       const anchor = pinch;
       pinch = null;
       const [rest] = touches;
-      // Một ngón còn lại trong [Fit, Max] tiếp tục pan; ngoài khoảng đó ảnh bật về và nó bị bỏ qua.
-      if (rest && scale >= 1 && scale <= 2 * cover) {
+      // Một ngón còn lại trong [Fit, Max] ở góc bội 90 tiếp tục pan; còn lại ảnh bật về và nó bị bỏ qua.
+      if (rest && scale >= 1 && scale <= 2 * cover && angle % 90 === 0) {
         if (!atFit()) drag = { id: rest[0], x: rest[1].x, y: rest[1].y, panX, panY };
         renderTransform();
       } else settle(anchor);
@@ -455,11 +495,8 @@ export function createAdvertisingPhotoViewer({
     }
     if (tap?.id !== event.pointerId || event.type !== "pointerup") return;
     tap = null;
-    // Double tap: Fit zoom lên Cover quanh điểm tap, mọi scale khác trả về Fit.
-    if (isDoubleTap(lastTap, event)) {
-      lastTap = null;
-      setScale(atFit() ? cover : 1, event);
-    } else lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
+    // Một tap: Fit zoom lên Cover quanh điểm tap, mọi scale khác trả về Fit (R4).
+    setScale(atFit() ? cover : 1, event);
   };
   dialog.addEventListener("pointerup", endPointer, { signal: controller.signal });
   dialog.addEventListener("pointercancel", endPointer, { signal: controller.signal });
