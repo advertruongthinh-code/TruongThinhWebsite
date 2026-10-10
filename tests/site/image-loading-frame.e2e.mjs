@@ -364,6 +364,19 @@ try {
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();
   }
+  // Barba dựng container ngoài document: ảnh load xong trước khi gắn vào vẫn phải settle, không kẹt vệt sáng.
+  for (const route of ["/vi/commercial/", "/vi/residential/"]) {
+    const { context, page } = await open({ delay: 0, viewport: viewports[1] });
+    await page.goto(base + "/vi/", { waitUntil: "load" });
+    // Click sớm thì ảnh có thể load sau khi gắn vào nên không tái hiện lỗi; chờ như người xem thật.
+    await page.waitForTimeout(2000);
+    await page.locator(`a[href="${route}"]`).first().click();
+    await page.waitForFunction(() => document.querySelector(".detail-hero .hero-slide.is-active picture"));
+    await page.waitForFunction(() => document.querySelector(".detail-hero .hero-slide.is-active picture").classList.contains("is-media-settled"), null, { timeout: 5000 })
+      .catch(() => assert.fail(`${route}: hero after soft navigation stays unsettled`));
+    results.push({ case: "soft-nav-hero-settled", route });
+    await context.close();
+  }
   console.log("PASS image loading frame: " + results.length + " cases");
 } finally {
   await fs.writeFile(output + "/results.json", JSON.stringify(results, null, 2));
