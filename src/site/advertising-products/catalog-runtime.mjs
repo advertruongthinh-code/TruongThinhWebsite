@@ -3610,6 +3610,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (browseHistory.current.photo) renderPhoto(browseHistory.current, "locale");
   }, { signal: controller.signal });
   let observedCtaHeight = gridCta?.offsetHeight || 0;
+  let observedCopySize = "";
   const resizeObserver = new ResizeObserver((entries) => {
     if (activePhotoId && !suggestionNode?.hidden
       && entries.some(entry => entry.target.matches(".advertising-photo-view__suggestion-links"))
@@ -3617,8 +3618,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedLayoutKey = "";
       relatedMeasuredGeometry = null;
     }
-    // Heading hoặc link làm dịch mép copy (style trễ, đổi font) làm số đo CTA không còn hợp lệ.
-    if (entries.some((entry) => entry.target === gridCtaCopy)) {
+    // Heading hoặc link làm dịch mép copy (style trễ, đổi font) làm số đo CTA không còn hợp lệ. Grid ẩn khi mở
+    // detail rồi hiện lại cùng cỡ thì giữ số đo, để task Back không fit lại heading (decision a05s-frame-budget).
+    const copyEntry = entries.find((entry) => entry.target === gridCtaCopy);
+    const copySize = copyEntry && `${copyEntry.contentRect.width}x${copyEntry.contentRect.height}`;
+    if (copyEntry?.contentRect.width && copySize !== observedCopySize) {
+      observedCopySize = copySize;
       ctaCopyKey = "";
       ctaGeometryHash = "";
     }
