@@ -12,11 +12,12 @@ const ARC = Object.freeze({ centre: 0.35, radius: 3.5, band: 1.75, whiteRamp: 0.
 const ARC_LEVEL = 28;
 const CEILING = 100;
 const INNER_MAX = 5;
-// Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC đủ 9 lớp (core, 5 inner, 3 band); phone 3 lớp
-// (core và 2 band step trong cùng). Inner step phủ gần nửa màn nên trên A05s mọi trần đều 81-88% frame chậm
-// (vòng 26); trần 100px trên phone chờ owner chọn. Phone nhận biết như skeleton (catalog-runtime).
-const PHONE_LAYERS = Object.freeze({ band: 2, inner: 0 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX });
+// Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC đủ 9 lớp (core 28px, 5 inner, 3 band); phone 2 lớp
+// (core 50px và band step trong cùng). Trên A05s blur của core không đổi fps, core 50px giống PC nhất; inner step
+// (81-88% frame chậm, vòng 26) hay band step thứ hai (30% frame chậm, vòng 29) đều trượt gate.
+// Phone nhận biết như skeleton (catalog-runtime).
+const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, core: 50 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX, core: ARC_LEVEL });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -27,13 +28,10 @@ const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
 // chỉ phủ band. Core bàn giao cho các step qua FADE px bên trong arc, nên không lộ đường nối: core
 // vào dần ở nửa ngoài trong khi các step vẫn bật, các step ra dần ở nửa trong, nên trang gốc chưa blur
 // không bao giờ lộ qua khe nơi cả hai đều chỉ một phần. Mỗi box
-// vượt ra ngoài mask một sigma của blur (28px cho core): margin rộng hơn không đổi pixel nào quá 3/255,
+// vượt ra ngoài mask một sigma của blur (bằng blur của core): margin rộng hơn không đổi pixel nào quá 3/255,
 // và mỗi hàng của box là thêm một hàng bị blur mỗi frame.
 const FADE = 48;
 const STEP_REACH = [5, 12, 26];
-const CORE_REACH = 28;
-// Mask lõi phone qua band: [vị trí trong band, độ đậm]; chọn trên A05s bằng so điểm ảnh với đủ chín lớp PC (owner 10/10).
-const PHONE_FALLOUT = [[0, 1], [0.15, 0.85], [0.4, 0.5], [0.7, 0.15], [1, 0]];
 const GRAIN_SIZE = 160;
 // Mean trắng mà grain của arc thêm vào (opacity 0.12 x mean alpha 0.5, detail.css); tint mang ít đi đúng bằng đó.
 const GRAIN_WHITE = 0.06;
@@ -179,18 +177,11 @@ export function layoutArcGlass(glass, geometry) {
   const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
   const inner = rest.slice(0, INNER_MAX);
   const steps = rest.slice(INNER_MAX);
-  const { band: bandSteps, inner: count } = arcLayers();
-  if (bandSteps) {
-    const coreTop = Math.max(top, cy - radius - CORE_REACH);
-    place(coreStep, coreTop);
-    setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
-  } else {
-    // Phone (owner 10/10): core 28px phủ band với mask mờ dần thay cho ba bậc; vùng chuyển là ảnh nét và ảnh
-    // nhòe chồng lên nhau (owner chấp nhận).
-    place(coreStep, top);
-    const stops = PHONE_FALLOUT.map(([x, alpha]) => `rgba(0, 0, 0, ${alpha}) ${(radius + band * x).toFixed(1)}px`);
-    setMask(coreStep, `radial-gradient(${circle(top)}, ${stops.join(", ")})`);
-  }
+  const { band: bandSteps, inner: count, core: coreBlur } = arcLayers();
+  glass.style.setProperty("--glass-full-blur", `${coreBlur}px`);
+  const coreTop = Math.max(top, cy - radius - coreBlur);
+  place(coreStep, coreTop);
+  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
   steps.forEach((step, index) => {
     step.hidden = index < ARC_STEPS - bandSteps;
     const outer = radius + RAMPS[index][1] * band;

@@ -4888,7 +4888,7 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
-   28px của band; inner step của nó mang blur tiếp tới trần 100px. */
+   28px của band (runtime đặt 50px trên phone); inner step của nó mang blur tiếp tới trần 100px. */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1.55;
   --glass-brightness: 1.05;
