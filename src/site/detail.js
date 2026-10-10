@@ -264,6 +264,7 @@
       gsapContext: undefined,
       observers,
       splitInstances: new Map(),
+      splitObservers: new Map(),
     };
     activePage = state;
 
@@ -392,6 +393,8 @@
           lineTweens.delete(group);
           state.splitInstances.get(group)?.revert();
           state.splitInstances.delete(group);
+          state.splitObservers.get(group)?.disconnect();
+          state.splitObservers.delete(group);
         };
         const syncSplitAria = (group) => {
           group.setAttribute(
@@ -417,7 +420,6 @@
             linesClass: "motion-line",
             mask: "lines",
             aria: "auto",
-            autoSplit: true,
             onSplit: (self) => {
               const lineState = captureLineState(group);
               lineTweens.get(group)?.kill();
@@ -450,6 +452,21 @@
             },
           });
           state.splitInstances.set(group, split);
+          // Thay autoSplit của SplitText: nó split lại cả khi group bị ẩn (width 0), như CTA của grid lúc mở detail
+          // Advertising, tốn hơn 50ms trên A05s rồi lại split khi Back (decision a05s-frame-budget).
+          let width = group.offsetWidth;
+          let timer;
+          const observer = new ResizeObserver(() => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+              const next = group.offsetWidth;
+              if (!next || next === width || state.splitInstances.get(group) !== split) return;
+              width = next;
+              split.split();
+            }, 200);
+          });
+          observer.observe(group);
+          state.splitObservers.set(group, observer);
           syncSplitAria(group);
           return split.lines;
         };
@@ -554,6 +571,8 @@
           cancelPendingRebuild();
           state.splitInstances.forEach((split) => split.revert());
           state.splitInstances.clear();
+          state.splitObservers.forEach((observer) => observer.disconnect());
+          state.splitObservers.clear();
           [...lineGroups, ...wordGroups].forEach((group) => {
             observedTextGroups.delete(group);
           });
