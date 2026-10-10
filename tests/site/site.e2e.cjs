@@ -547,7 +547,7 @@ function assertPersistentNavigationContracts() {
       /\.brand-lockup\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-header-height\);[\s\S]*?overflow:\s*visible;[\s\S]*?fill:\s*currentColor;/.test(
         styleSource,
       ) &&
-      /path\.animate\(\s*\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \},\s*\{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)", fill: "backwards" \},/.test(
+      /const timing = \{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)" \};[\s\S]*?slot\.animate\(\{ clipPath: \["inset\(0 0 -1px 0\)", "inset\(0 0 calc\(100% - 1px\) 0\)"\] \}, \{ \.\.\.timing, fill: "both" \}\);\s*return path\.animate\(\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \}, \{ \.\.\.timing, fill: "backwards" \}\)/.test(
         motionSource,
       ) &&
       /\.menu-brand\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*max-content;[\s\S]*?justify-self:\s*start;/.test(
@@ -640,7 +640,7 @@ function assertPersistentNavigationContracts() {
       /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
         motionSource,
       ) &&
-      /path\.animate\(\s*\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \},\s*\{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)", fill: "backwards" \},/.test(
+      /const timing = \{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)" \};[\s\S]*?slot\.animate\(\{ clipPath: \["inset\(0 0 -1px 0\)", "inset\(0 0 calc\(100% - 1px\) 0\)"\] \}, \{ \.\.\.timing, fill: "both" \}\);\s*return path\.animate\(\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \}, \{ \.\.\.timing, fill: "backwards" \}\)/.test(
         motionSource,
       ) &&
       /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
