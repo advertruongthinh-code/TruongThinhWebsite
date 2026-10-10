@@ -13,11 +13,10 @@ const ARC_LEVEL = 28;
 const CEILING = 100;
 const INNER_MAX = 5;
 // Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC đủ 9 lớp (core 28px, 5 inner, 3 band); phone 2 lớp
-// (core 50px và band step trong cùng). Trên A05s blur của core không đổi fps, core 50px giống PC nhất; inner step
-// (81-88% frame chậm, vòng 26) hay band step thứ hai (30% frame chậm, vòng 29) đều trượt gate.
-// Phone nhận biết như skeleton (catalog-runtime).
-const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, core: 50 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX, core: ARC_LEVEL });
+// (core 28px như PC và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
+// thứ hai (30% frame chậm, vòng 29) đều trượt gate trên A05s. Phone nhận biết như skeleton (catalog-runtime).
+const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -177,9 +176,8 @@ export function layoutArcGlass(glass, geometry) {
   const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
   const inner = rest.slice(0, INNER_MAX);
   const steps = rest.slice(INNER_MAX);
-  const { band: bandSteps, inner: count, core: coreBlur } = arcLayers();
-  glass.style.setProperty("--glass-full-blur", `${coreBlur}px`);
-  const coreTop = Math.max(top, cy - radius - coreBlur);
+  const { band: bandSteps, inner: count } = arcLayers();
+  const coreTop = Math.max(top, cy - radius - ARC_LEVEL);
   place(coreStep, coreTop);
   setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
   steps.forEach((step, index) => {
