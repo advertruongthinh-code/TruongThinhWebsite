@@ -1935,21 +1935,36 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
   const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
   // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
-  // nhòe sẵn: vẽ ở 1/8 kích thước rồi phóng 8 lần, blur cộng dồn bằng blur chồng của bậc gốc (detail.css).
+  // nhòe sẵn: vẽ một lần vào canvas 1/8 kích thước với blur cộng dồn bằng blur chồng của bậc gốc, rồi phóng 8 lần
+  // (detail.css). CSS filter trên ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
   const BAKED_SCALE = 8;
+  // Blur bằng căn tổng bình phương các bậc gốc tới bậc đó; saturate và brightness cộng dồn như bậc gốc.
+  const BAKED_FILTERS = [[7.14, 1.112, 1.0079], [16.07, 1.2365, 1.0159], [32.15, 1.375, 1.0239],
+    [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
+    .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
   const bakedRevealGlass = (host) => {
     const glass = revealGlass(host);
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
-    for (const step of glass.querySelectorAll(".glass-surface__step")) {
-      const image = Object.assign(document.createElement("img"), { alt: "", src: photoImage.currentSrc });
-      Object.assign(image.style, {
+    const width = Math.max(1, Math.ceil(photo.width / BAKED_SCALE));
+    const height = Math.max(1, Math.ceil(photo.height / BAKED_SCALE));
+    // Thu nhỏ ảnh một lần, các bậc chỉ blur bản nhỏ này.
+    const source = Object.assign(document.createElement("canvas"), { width, height });
+    const sourceContext = source.getContext("2d");
+    sourceContext.imageSmoothingQuality = "high";
+    sourceContext.drawImage(photoImage, 0, 0, width, height);
+    glass.querySelectorAll(".glass-surface__step").forEach((step, index) => {
+      const canvas = Object.assign(document.createElement("canvas"), { width, height });
+      Object.assign(canvas.style, {
         left: `${(photo.left - frame.left) / BAKED_SCALE}px`, top: `${(photo.top - frame.top) / BAKED_SCALE}px`,
-        width: `${photo.width / BAKED_SCALE}px`, height: `${photo.height / BAKED_SCALE}px`,
+        width: `${width}px`, height: `${height}px`,
       });
+      const context = canvas.getContext("2d");
+      context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
+      context.drawImage(source, 0, 0);
       step.classList.add("glass-surface__step--baked");
-      step.append(image);
-    }
+      step.append(canvas);
+    });
     return glass;
   };
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
@@ -2836,7 +2851,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     reveal.glass = bakedRevealGlass(heroFrame);
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > img")];
+    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
     reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
