@@ -163,7 +163,8 @@ Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, ho�
 - Reduced motion: không lướt; khung sáng tối nhẹ chu kỳ `2s`.
 
 Ảnh chỉ hiện sau `load` và `decode()`: khung nhận `.is-media-settled`, vệt gỡ, ảnh `opacity` `0` sang `1` trong
-`0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
+`0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`. Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
+`document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
 `.is-media-settled` ngay, ảnh hiện để thấy alt, khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
 nên chưa có vệt.
 
