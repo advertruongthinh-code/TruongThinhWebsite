@@ -12,6 +12,7 @@
 - PR đang mở xem [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls). Thay đổi đã merge tự lên demo,
   chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
+- Từ khóa SEO tạm dừng tới khi site đủ feature ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
 
 ## Blocker đã verify
 
