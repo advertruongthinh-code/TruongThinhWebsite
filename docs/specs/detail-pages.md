@@ -116,7 +116,7 @@ Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), c�
 Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
-tính từ lúc mount: ảnh hero `scale 1.2 → 1.005` trong 2,5s; kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
+tính từ lúc mount: ảnh hero About `scale 1.2 → 1.005` trong 2,5s (ảnh hero Residential, Commercial đứng yên, không zoom); kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
 Residential, Commercial tách `h1` theo từ, hiện dần tại 0,9s; About không tách nên `h1` hiện ngay. `zoom-09` khác
 `words-09` chỉ ở chỗ xóa transform GSAP còn sót trên ảnh hero. Tải trực tiếp: entrance chạy song song lúc veil mở; hero
 không có nhánh intro riêng nên việc `route-enter` bỏ header intro ([shell](site-shell.md#gate-còn-mở)) không chạm hero.
@@ -212,7 +212,7 @@ Then caption trắng hiện ngay trên media-loading-surface, ảnh opacity 0 t�
 Reduced motion: không `motion-enabled`, không tách chữ, mọi target reveal ở trạng thái cuối; ảnh hero, ảnh About
 không scale; `.detail-media img` vừa khung; gallery cuộn tức thì; marquee đứng; không Locomotive. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): `detail.js` mount settled, CSS đưa mọi target
-reveal, dòng, từ về trạng thái cuối, ảnh hero scale 1.005. Không JavaScript: chữ, ảnh hiện đủ, ảnh hero không scale.
+reveal, dòng, từ về trạng thái cuối, ảnh hero About scale 1.005. Không JavaScript: chữ, ảnh hiện đủ, ảnh hero không scale.
 GSAP có mà SplitText lỗi tải: chữ giữ nguyên, hiện ngay; reveal ảnh, kicker, hero vẫn chạy.
 
 ```gherkin
@@ -226,7 +226,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `body[data-detail-hero-profile]` (`words-09`, `zoom-09`; `words-06` của Advertising) | Nhịp hero (R5); `detail.js` đọc |
-| DOM hook | `[data-motion-hero-media]`, `[data-motion-hero-kicker]`, `[data-motion-hero-title]`, `.detail-hero-line-mask`, `[data-scroll-cue]` | Hero (R5) |
+| DOM hook | `[data-motion-hero-media]` (chỉ About), `[data-motion-hero-kicker]`, `[data-motion-hero-title]`, `.detail-hero-line-mask`, `[data-scroll-cue]` | Hero (R5) |
 | DOM hook | `[data-motion-lines]`, `[data-motion-words]`, `[data-motion-*-source]`, `[data-motion-fade]`, `[data-motion-up]`, `[data-motion-media]`, `data-motion-delay`, `data-scroll-speed` | Reveal, parallax (R6) |
 | DOM hook | `[data-gallery]`, `[data-gallery-track]`, `[data-gallery-prev]`, `[data-gallery-next]` | Gallery (R7) |
 | Class runtime | `motion-line`, `motion-word`, `is-motion-inview`, `is-motion-ready`, `is-dragging`, `is-overlay-media-ready` | `detail.js`, `motion.js` ghi |
