@@ -51,6 +51,8 @@ const CARD_REVEAL_MS = 600;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
+// Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
+let sharedSkeletonFlow;
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
   record.disposed = true;
@@ -1658,17 +1660,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonAssignmentByFrame.set(frame, assignment);
     frame.querySelector(".advertising-grid__cta-surface").append(createSkeletonCanvas(frame));
   };
-  // SPIKE: ?flow=shared vẽ mọi khung batch bằng một context; ?flowScale= đổi độ phân giải canvas chung.
-  const spikeParams = new URLSearchParams(location.search);
-  let sharedFlow = null;
+  // Mọi khung batch vẽ trên một canvas WebGL chung nửa độ phân giải (advertising-skeleton R5).
   const sharedFlowFor = (frame) => {
-    if (spikeParams.get("flow") !== "shared") return null;
     const container = frame.closest(".advertising-grid__cta-skeleton");
     if (!container) return null;
-    if (sharedFlow?.container !== container) {
-      sharedFlow = { container, layer: createSharedSkeletonFlowLayer(container, { scale: Number(spikeParams.get("flowScale")) || 1 }) };
+    if (sharedSkeletonFlow === undefined) {
+      sharedSkeletonFlow = createSharedSkeletonFlowLayer();
+      addEventListener("pagehide", (event) => { if (!event.persisted) sharedSkeletonFlow?.dispose(); });
     }
-    return sharedFlow.layer;
+    // Batch dựng lại xóa hoặc thêm khung sau canvas; canvas phải là con cuối để nằm trên khung, dưới Kính và CTA.
+    const canvas = sharedSkeletonFlow?.canvas;
+    if (canvas && container.lastElementChild !== canvas) container.append(canvas);
+    return sharedSkeletonFlow;
   };
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
@@ -1677,7 +1680,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const { preset, direction, speedScale } = assignment;
     const sharedLayer = sharedFlowFor(frame);
     if (sharedLayer) {
-      skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale }));
+      const surface = frame.querySelector(".advertising-grid__cta-surface");
+      // Đang reveal thì canvas chung theo opacity của surface; xong reveal thì 1 (R4).
+      const alpha = () => (skeletonEntryFrames.has(frame) ? Number(getComputedStyle(surface).opacity) : 1);
+      skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale, alpha }));
       return;
     }
     const budget = SKELETON_CONTEXT_BUDGET;

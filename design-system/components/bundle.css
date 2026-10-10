@@ -4802,6 +4802,15 @@ body.is-advertising-browse .advertising-grid {
   overflow: hidden;
 }
 
+/* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. */
+.advertising-grid__cta-shared-flow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 7.14, 16.07, 32.14, 57.14 và trần
    100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step

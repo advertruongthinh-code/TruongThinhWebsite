@@ -172,7 +172,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | DOM hook | `[data-advertising-cta-frame]` với `data-advertising-cta-slot`, `-column`, `-depth`, `-ratio-band`, `data-advertising-flow-state`; canvas `data-advertising-flow-backend` | Khung (R1, R3); trạng thái renderer, backend WebGL hay tĩnh (R4, R5) |
 | Class | `is-entry-ready`, `is-looping` trên khung | Đã hiện; Flow đang chạy (R4) |
 | CSS | `--advertising-cta-top`, `--advertising-cta-tail-height`, `--advertising-cta-frame-opacity` | Runtime ghi, CSS đặt CTA và khung |
-| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase` (`skeleton-flow.mjs`) | Thuần trừ renderer và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
+| Hàm public | `SKELETON_FLOW_PRESETS`, `drawSkeletonFlowAssignment`, `createSkeletonFlowFrameLayout`, `createSkeletonFlowRenderer` (`speedScale`), `renderSkeletonFlowPixels`, `skeletonFlowStill`, `staticBackground`, `advanceSkeletonFlowPhase`, `createSharedSkeletonFlowLayer` (`skeleton-flow.mjs`) | Thuần trừ renderer, layer chung và `skeletonFlowStill`; `catalog-runtime.mjs` gọi |
 | Runtime | `skeletonNativeContexts`, `mountSkeletonRenderer`, `releaseSkeletonRenderer`, `renderCtaSkeleton` (`catalog-runtime.mjs`) | Lease pool, dựng batch (R1, R3, R5) |
 
 ## UI

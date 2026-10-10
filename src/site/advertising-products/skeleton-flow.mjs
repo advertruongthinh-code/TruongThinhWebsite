@@ -363,6 +363,33 @@ function contextProgram(gl) {
   return program;
 }
 
+// Tam giác phủ viewport và noise texture ở unit 0; renderer riêng và canvas chung dùng chung.
+function bindQuadAndNoise(gl, program, buffer, texture) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const position = gl.getAttribLocation(program, "aPosition");
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 256, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, createNoise());
+  gl.uniform1i(gl.getUniformLocation(program, "uNoise"), 0);
+}
+
+function presetUniforms(preset) {
+  const edges = [0, ...preset.bands, 1];
+  return {
+    colors: new Float32Array(preset.colors.flatMap(parseHex)),
+    anchors: new Float32Array(preset.anchors.flatMap(({ x, y }) => [x, y])),
+    balances: new Float32Array(edges.slice(0, 4).map((edge, index) => 4 * (edges[index + 1] - edge))),
+  };
+}
+
 function createProgram(gl) {
   const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, SKELETON_FLOW_FRAGMENT_SHADER);
@@ -561,18 +588,10 @@ export function createSkeletonFlowRenderer(canvas, {
       return false;
     }
     gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const position = gl.getAttribLocation(program, "aPosition");
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    bindQuadAndNoise(gl, program, buffer, texture);
     const uniform = (name) => gl.getUniformLocation(program, name);
     timeLocation = uniform("uTime");
-    const colors = new Float32Array(preset.colors.flatMap(parseHex));
-    const anchors = new Float32Array(preset.anchors.flatMap(({ x, y }) => [x, y]));
-    const edges = [0, ...preset.bands, 1];
-    const balances = new Float32Array(edges.slice(0, 4).map((edge, index) =>
-      4 * (edges[index + 1] - edge)));
+    const { colors, anchors, balances } = presetUniforms(preset);
     gl.uniform1f(uniform("uScale"), preset.field.scale);
     gl.uniform1f(uniform("uDistortion"), preset.field.distortion);
     gl.uniform1f(uniform("uSwirl"), preset.field.swirl);
@@ -580,16 +599,6 @@ export function createSkeletonFlowRenderer(canvas, {
     gl.uniform2fv(uniform("uAnchors[0]"), anchors);
     gl.uniform3fv(uniform("uColors[0]"), colors);
     gl.uniform4fv(uniform("uBalances"), balances);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 256, 0,
-      gl.LUMINANCE, gl.UNSIGNED_BYTE, createNoise());
-    gl.uniform1i(uniform("uNoise"), 0);
     backend = "webgl";
     return true;
   };
@@ -697,50 +706,49 @@ export function createSkeletonFlowRenderer(canvas, {
   };
 }
 
-// Một context WebGL vẽ mọi khung skeleton: 7-8 context riêng làm GPU A05s quá tải (vòng 18, owner 2026-10-10).
-// Canvas nằm trong `container` (cuộn cùng nội dung, compositor dời được), cao gấp đôi viewport và chỉ dời khi
-// viewport ra khỏi nó; mỗi khung vẽ bằng viewport/scissor tại vị trí offset của nó.
-export function createSharedSkeletonFlowLayer(container, { scale = 1 } = {}) {
+// Một context WebGL vẽ mọi khung batch: 7-8 context riêng làm GPU A05s quá tải (vòng 18), canvas chung nửa
+// độ phân giải đạt gate (vòng 20, advertising-skeleton R5). Canvas cao 2 viewport, chỉ dời khi viewport ra khỏi nó.
+// Một layer cho cả document: runtime gắn canvas vào batch hiện tại, controller remount dùng lại context.
+export function createSharedSkeletonFlowLayer() {
+  const scale = 0.5;
   const canvas = document.createElement("canvas");
   canvas.className = "advertising-grid__cta-shared-flow";
   canvas.setAttribute("aria-hidden", "true");
-  Object.assign(canvas.style, { position: "absolute", left: "0", top: "0", width: "100%", pointerEvents: "none" });
-  const gl = canvas.getContext("webgl", { ...SKELETON_FLOW_CONTEXT_ATTRIBUTES, alpha: true, premultipliedAlpha: true });
-  const program = gl && contextProgram(gl);
-  if (!program) return null;
-  container.append(canvas);
-  gl.useProgram(program);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  const position = gl.getAttribLocation(program, "aPosition");
-  gl.enableVertexAttribArray(position);
-  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-  const texture = gl.createTexture();
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 256, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, createNoise());
-  const uniform = (name) => gl.getUniformLocation(program, name);
-  gl.uniform1i(uniform("uNoise"), 0);
-  const locations = {
-    time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
-    noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+  const attributes = { ...SKELETON_FLOW_CONTEXT_ATTRIBUTES, alpha: true, premultipliedAlpha: true };
+  let gl = canvas.getContext("webgl", attributes);
+  let locations = null;
+  // Dựng program, buffer, noise texture; gọi lại sau webglcontextrestored.
+  const setup = () => {
+    const program = gl && contextProgram(gl);
+    if (!program) return false;
+    gl.useProgram(program);
+    bindQuadAndNoise(gl, program, gl.createBuffer(), gl.createTexture());
+    const uniform = (name) => gl.getUniformLocation(program, name);
+    locations = {
+      time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
+      noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+    };
+    // Alpha reveal qua blend hằng số: shader dùng chung với renderer riêng nên không thêm uniform.
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.CONSTANT_ALPHA, gl.ZERO);
+    return true;
   };
-  gl.enable(gl.SCISSOR_TEST);
+  if (!setup()) return null;
 
   const entries = new Set();
   let frameId = 0;
+  let lost = false;
   let lastTimestamp = -1;
   let bandTop = -1;
   let bandHeight = 0;
+  let container = null;
 
   const placeBand = () => {
     const viewport = innerHeight;
+    if (container !== canvas.parentElement) {
+      container = canvas.parentElement;
+      bandHeight = 0;
+    }
     const height = Math.min(container.offsetHeight, viewport * 2);
     const visibleTop = -container.getBoundingClientRect().top;
     if (height !== bandHeight || visibleTop < bandTop || visibleTop + viewport > bandTop + bandHeight) {
@@ -754,31 +762,45 @@ export function createSharedSkeletonFlowLayer(container, { scale = 1 } = {}) {
       if (canvas.height !== pixels) canvas.height = pixels;
     }
   };
-
-  const tick = (timestamp) => {
-    frameId = 0;
-    if (!entries.size) return;
-    const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
-    lastTimestamp = timestamp;
-    placeBand();
+  const clear = () => {
     gl.disable(gl.SCISSOR_TEST);
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
+  };
+  const halt = () => {
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+    lastTimestamp = -1;
+  };
+  const resume = () => {
+    if (!frameId && !lost && entries.size) frameId = requestAnimationFrame(tick);
+  };
+
+  function tick(timestamp) {
+    frameId = 0;
+    if (!entries.size || lost || !canvas.parentElement) return;
+    const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+    placeBand();
+    clear();
     gl.enable(gl.SCISSOR_TEST);
     for (const entry of entries) {
       entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
       const { frame } = entry;
+      // Khung chưa vào entry không vẽ; khung đang entry vẽ theo opacity của reveal (R4).
       if (!frame.isConnected || !frame.classList.contains("is-entry-ready")) continue;
+      const alpha = entry.alpha();
       const top = frame.offsetTop - bandTop;
       const height = frame.offsetHeight;
-      if (top + height < 0 || top > bandHeight) continue;
+      if (alpha <= 0 || top + height < 0 || top > bandHeight) continue;
       const x = Math.round(frame.offsetLeft * scale);
       const w = Math.round(frame.offsetWidth * scale);
       const h = Math.round(height * scale);
       const y = canvas.height - Math.round(top * scale) - h;
       gl.viewport(x, y, w, h);
       gl.scissor(x, y, w, h);
+      gl.blendColor(0, 0, 0, alpha);
       const { field, finish } = entry.preset;
       gl.uniform1f(locations.time, entry.phase);
       gl.uniform1f(locations.scale, field.scale);
@@ -791,26 +813,39 @@ export function createSharedSkeletonFlowLayer(container, { scale = 1 } = {}) {
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
     frameId = requestAnimationFrame(tick);
-  };
+  }
+
+  // Mất context: canvas trống nên frame tĩnh dưới mỗi khung hiện ra; khôi phục thì dựng lại và chạy tiếp.
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    programByContext.delete(gl);
+    lost = true;
+    halt();
+  });
+  canvas.addEventListener("webglcontextrestored", () => {
+    gl = canvas.getContext("webgl", attributes);
+    lost = !setup();
+    resume();
+  });
 
   return {
-    attach(frame, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1 }) {
-      const edges = [0, ...preset.bands, 1];
+    canvas,
+    // Rời document không vào BFCache: trả context đúng một lần.
+    dispose() {
+      entries.clear();
+      halt();
+      if (!gl.isContextLost()) gl.getExtension("WEBGL_lose_context")?.loseContext();
+    },
+    attach(frame, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1, alpha }) {
       const entry = {
-        frame, preset, direction: direction < 0 ? -1 : 1, speedScale, phase: Number(initialPhase) || FLOW_CLOCK_START,
-        colors: new Float32Array(preset.colors.flatMap(parseHex)),
-        anchors: new Float32Array(preset.anchors.flatMap(({ x, y }) => [x, y])),
-        balances: new Float32Array(edges.slice(0, 4).map((edge, index) => 4 * (edges[index + 1] - edge))),
+        frame, preset, alpha, direction: direction < 0 ? -1 : 1, speedScale, phase: Number(initialPhase) || FLOW_CLOCK_START,
+        ...presetUniforms(preset),
       };
       const stop = () => {
         entries.delete(entry);
-        if (!entries.size && frameId) {
-          cancelAnimationFrame(frameId);
-          frameId = 0;
-          lastTimestamp = -1;
-          gl.disable(gl.SCISSOR_TEST);
-          gl.clear(gl.COLOR_BUFFER_BIT);
-        }
+        if (entries.size || !frameId) return;
+        halt();
+        clear();
       };
       return {
         backend: "webgl",
@@ -818,7 +853,7 @@ export function createSharedSkeletonFlowLayer(container, { scale = 1 } = {}) {
         draw() { return true; },
         start() {
           entries.add(entry);
-          if (!frameId) frameId = requestAnimationFrame(tick);
+          resume();
         },
         stop,
         destroy: stop,
