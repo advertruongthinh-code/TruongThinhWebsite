@@ -4,8 +4,9 @@ status: live
 source: []
 tests:
   - tests/site/scroll-feel.e2e.mjs
+  - tests/site/middle-autoscroll.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed
-updated: 2026-10-06
+updated: 2026-10-10
 ---
 
 # Cảm giác cuộn chung theo trang chủ
@@ -118,6 +119,38 @@ Then chiều cao, gutter, khoảng dưới khối đúng bảng R5, tiêu đề 
 And bấm khối hoặc nhấn Enter khi focus mở trang About cùng ngôn ngữ
 ```
 
+### R6. Cuộn bằng chuột giữa như Chrome trên PC
+
+Locomotive (R1) chặn cuộn native nên autoscroll của trình duyệt không chạy. Site tự làm lại autoscroll kiểu Chrome
+trên Windows, chỉ khi Locomotive đang chạy (từ 981px, không giảm chuyển động, menu đóng); dưới 981px và khi giảm
+chuyển động trang cuộn native nên trình duyệt tự lo.
+
+- Bắt đầu: nhấn chuột giữa lên chỗ không phải link, nút, ô nhập liệu hay viewer ảnh. Tại điểm nhấn hiện biểu tượng
+  gốc (vòng tròn 32px, chấm giữa, hai mũi tên lên xuống). Nhấn chuột giữa lên link vẫn mở tab mới như cũ.
+- Cuộn: chuột cách gốc theo chiều dọc `d` px. Trong vùng chết `|d| <= 16` trang đứng yên; ngoài vùng đó trang cuộn theo
+  hướng chuột với vận tốc `(|d| - 16) × 6` px/giây, tối đa `6000` px/giây, đổi ngay khi chuột di chuyển. Chuyển động
+  đi qua Locomotive như lăn chuột, nên header ẩn hiện (shell R3), parallax và giới hạn đầu cuối trang giữ nguyên.
+  Con trỏ là mũi tên lên khi `d < -16`, mũi tên xuống khi `d > 16`, còn lại là con trỏ cuộn bốn hướng.
+- Hai kiểu như Chrome: nhả chuột giữa khi chuột chưa ra khỏi vùng chết thì vào chế độ dính, tiếp tục cuộn theo chuột
+  tới khi nhấn bất kỳ nút chuột nào, lăn chuột, nhấn phím bất kỳ hoặc cửa sổ mất focus. Nhấn giữ rồi kéo ra khỏi vùng
+  chết thì nhả chuột giữa là dừng.
+- Dừng thì biểu tượng biến mất ngay, trang trượt hết quán tính Locomotive rồi đứng. Cú nhấn để dừng không kích hoạt
+  link hay nút bên dưới.
+- Không bắt đầu, hoặc dừng ngay nếu đang chạy, khi viewer ảnh hay full menu mở hoặc cuộn logic bị khóa
+  (`lockLogicalScroll`), khi cửa sổ thu dưới 981px, hoặc khi điều hướng sang route khác.
+
+```gherkin
+Given trang chủ ở cửa sổ 1440×900, không giảm chuyển động
+When nhấn rồi nhả chuột giữa ở chỗ trống và đưa chuột xuống dưới gốc 216px
+Then biểu tượng gốc hiện tại điểm nhấn và trang cuộn xuống khoảng 1200px mỗi giây
+When lăn chuột
+Then biểu tượng biến mất và trang dừng sau quán tính
+When nhấn giữ chuột giữa, kéo lên trên gốc 116px rồi nhả
+Then trang cuộn lên trong lúc giữ và dừng khi nhả
+When nhấn chuột giữa lên một link
+Then không có biểu tượng gốc
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -125,11 +158,13 @@ And bấm khối hoặc nhấn Enter khi focus mở trang About cùng ngôn ng�
 | DOM hook | `[data-scroll]`, `[data-scroll-speed]` | Locomotive đọc; gắn trên lớp media nền theo R3 |
 | Cấu hình | `initSmoothScroll` trong `src/site/motion.js` | Cấu hình cuộn duy nhất của R1 |
 | Hàm public | `window.TruongThinhMotion` | Khóa, đặt, đọc vị trí cuộn logic; Advertising dùng chung |
+| Phần tử | `.autoscroll-origin` | Biểu tượng gốc của R6, `aria-hidden`, gắn vào `body` khi bắt đầu và gỡ khi dừng |
 
 ## UI
 
 Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motion.md#smooth-scroll-và-parallax). Link khối
-"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site.
+"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site. Biểu tượng gốc R6 nền `white`, viền và
+mũi tên màu chữ `ink`, không animation khi hiện hoặc ẩn.
 
 ## Kiểm tra
 
@@ -139,6 +174,7 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 | R2 | `pnpm qa:scroll-trace -- --headed --trace` trên PC của owner (`CHROME_CHANNEL=chrome`); trên cloud chỉ là mốc tương đối |
 | R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
 | R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
+| R6 | `tests/site/middle-autoscroll.e2e.mjs` (1440px: chế độ dính, nhấn giữ kéo, vận tốc, dừng bằng lăn, nút, phím; link, viewer, menu, 390px, giảm chuyển động không bắt đầu) |
 
 ## Chú thích thuật ngữ
 
@@ -150,3 +186,6 @@ Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motio
 - **Route con**: Advertising lọc nhóm `?category=<nhóm>` và detail ảnh `?photo=<id>`.
 - **Frame nhảy**: frame trượt xa hơn 1,3 lần cả hai frame kề bên, mắt thấy là giật tốc độ.
 - **Lộ mép**: khoảng trống hiện ra ở mép section khi lớp ảnh trôi lệch khỏi khung.
+- **Autoscroll**: nhấn chuột giữa rồi đưa chuột ra xa điểm nhấn để trang tự cuộn, tốc độ theo khoảng cách.
+- **Vùng chết**: khoảng quanh gốc mà chuột di trong đó trang không cuộn.
+- **Chế độ dính**: autoscroll tiếp tục sau khi nhả chuột giữa, tới khi người dùng nhấn hoặc lăn để dừng.
