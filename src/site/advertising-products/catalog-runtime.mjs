@@ -3471,6 +3471,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
+        // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
+        // nên cả masonry trượt như một khối (đo trên PC, vòng 28).
+        geometry?.placements.forEach(({ card, x, y }) => origins.has(card.id) || origins.set(card.id, { x, y }));
         cancelMotion();
         measure({ animate: true, origins });
       } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
