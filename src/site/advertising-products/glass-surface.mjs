@@ -16,8 +16,9 @@ const INNER_MAX = 5;
 // (core 50px và band step trong cùng). Trên A05s blur của core không đổi fps, core 50px giống PC nhất; inner step
 // (81-88% frame chậm, vòng 26) hay band step thứ hai (30% frame chậm, vòng 29) đều trượt gate.
 // Phone nhận biết như skeleton (catalog-runtime).
-const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, core: 50 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX, core: ARC_LEVEL });
+// Phone chỉ một band step nên band nhòe yếu; apex dời lên trên đầu cụm CTA để chữ nằm trong core (owner 10/10).
+const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, core: 50, centre: -0.15 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX, core: ARC_LEVEL, centre: ARC.centre });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -147,7 +148,7 @@ export function playGlassReveal(glass, duration) {
 export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, clusterTop, clusterBottom }) {
   const whiteRamp = ARC.whiteRamp * cardWidth;
   const clusterHeight = clusterBottom - clusterTop;
-  const yIn = Math.min(clusterTop + ARC.centre * clusterHeight, batchBottom - 2 * whiteRamp);
+  const yIn = Math.min(clusterTop + arcLayers().centre * clusterHeight, batchBottom - 2 * whiteRamp);
   // Mép band không bao giờ nhô lên trên các photo thật.
   const band = Math.max(8, Math.min(ARC.band * clusterHeight, yIn - realBottom));
   const depth = batchBottom - yIn;
