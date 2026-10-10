@@ -1983,23 +1983,32 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const glass = revealGlass(host);
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
-    const width = Math.max(1, Math.ceil(photo.width / BAKED_SCALE));
-    const height = Math.max(1, Math.ceil(photo.height / BAKED_SCALE));
+    // Canvas phủ cả frame: left/top không bị scale(8) phóng, nên vị trí photo vẽ vào trong canvas thay vì đặt bằng left.
+    const width = Math.max(1, Math.ceil(frame.width / BAKED_SCALE));
+    const height = Math.max(1, Math.ceil(frame.height / BAKED_SCALE));
     const canvases = [...glass.querySelectorAll(".glass-surface__step")].map((step) => {
       const canvas = Object.assign(document.createElement("canvas"), { width, height });
-      Object.assign(canvas.style, {
-        left: `${(photo.left - frame.left) / BAKED_SCALE}px`, top: `${(photo.top - frame.top) / BAKED_SCALE}px`,
-        width: `${width}px`, height: `${height}px`,
-      });
+      Object.assign(canvas.style, { left: "0", top: "0", width: `${width}px`, height: `${height}px` });
       step.classList.add("glass-surface__step--baked");
       step.append(canvas);
       return canvas;
     });
+    if (!bitmap) return glass;
+    const x = (photo.left - frame.left) / BAKED_SCALE;
+    const y = (photo.top - frame.top) / BAKED_SCALE;
+    // Photo contain (hero có Kính) nằm trên nền blur cover của chính nó; vẽ nền cover tràn mép thêm bán kính blur lớn nhất
+    // để mép frame không lộ nền màu skeleton.
+    const cover = photoView.dataset.advertisingPhotoGlass === "true";
+    const scale = Math.max(width / bitmap.width, height / bitmap.height);
+    const bleed = 100 / BAKED_SCALE * 2;
+    const coverWidth = bitmap.width * scale + bleed * 2;
+    const coverHeight = bitmap.height * scale + bleed * 2;
     // Canvas software (willReadFrequently) để mỗi bậc không tạo GPU context; blur trên ảnh 1/8 chỉ vài nghìn pixel.
-    if (bitmap) canvases.forEach((canvas, index) => {
+    canvases.forEach((canvas, index) => {
       const context = canvas.getContext("2d", { willReadFrequently: true });
       context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
-      context.drawImage(bitmap, 0, 0, width, height);
+      if (cover) context.drawImage(bitmap, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
+      context.drawImage(bitmap, x, y, photo.width / BAKED_SCALE, photo.height / BAKED_SCALE);
     });
     return glass;
   };
