@@ -126,11 +126,13 @@ trên Windows, chỉ khi Locomotive đang chạy (từ 981px, không giảm chuy
 chuyển động trang cuộn native nên trình duyệt tự lo.
 
 - Bắt đầu: nhấn chuột giữa lên chỗ không phải link, nút, ô nhập liệu hay viewer ảnh. Tại điểm nhấn hiện biểu tượng
-  gốc (vòng tròn 32px, chấm giữa, hai mũi tên lên xuống). Nhấn chuột giữa lên link vẫn mở tab mới như cũ.
-- Cuộn: chuột cách gốc theo chiều dọc `d` px. Trong vùng chết `|d| <= 16` trang đứng yên; ngoài vùng đó trang cuộn theo
-  hướng chuột với vận tốc `(|d| - 16) × 6` px/giây, tối đa `6000` px/giây, đổi ngay khi chuột di chuyển. Chuyển động
-  đi qua Locomotive như lăn chuột, nên header ẩn hiện (shell R3), parallax và giới hạn đầu cuối trang giữ nguyên.
-  Con trỏ là mũi tên lên khi `d < -16`, mũi tên xuống khi `d > 16`, còn lại là con trỏ cuộn bốn hướng.
+  gốc (vòng tròn 48px, xem mục UI). Nhấn chuột giữa lên link vẫn mở tab mới như cũ.
+- Cuộn: chuột cách gốc theo chiều dọc `d` CSS px. Trong vùng chết `|d| <= 15` trang đứng yên; ngoài vùng đó trang cuộn
+  theo hướng chuột với vận tốc `0.04 × |d|^2.2` px/giây, không có trần, đổi ngay khi chuột di chuyển. Đây đúng là công
+  thức autoscroll của Chrome (`autoscroll_controller.cc`: `0.000008 × |d|^2.2` nhân `5000` của `FixedVelocityCurve`),
+  nên cảm giác như website thường: 50px khoảng 220, 100px khoảng 1000, 200px khoảng 4600, 300px khoảng 11300 px/giây.
+  Chuyển động đi qua Locomotive như lăn chuột, nên header ẩn hiện (shell R3), parallax và giới hạn đầu cuối trang giữ
+  nguyên. Con trỏ là mũi tên lên khi `d < -15`, mũi tên xuống khi `d > 15`, còn lại là con trỏ cuộn bốn hướng.
 - Hai kiểu như Chrome: nhả chuột giữa khi chuột chưa ra khỏi vùng chết thì vào chế độ dính, tiếp tục cuộn theo chuột
   tới khi nhấn bất kỳ nút chuột nào, lăn chuột, nhấn phím bất kỳ hoặc cửa sổ mất focus. Nhấn giữ rồi kéo ra khỏi vùng
   chết thì nhả chuột giữa là dừng.
@@ -141,8 +143,10 @@ chuyển động trang cuộn native nên trình duyệt tự lo.
 
 ```gherkin
 Given trang chủ ở cửa sổ 1440×900, không giảm chuyển động
-When nhấn rồi nhả chuột giữa ở chỗ trống và đưa chuột xuống dưới gốc 216px
-Then biểu tượng gốc hiện tại điểm nhấn và trang cuộn xuống khoảng 1200px mỗi giây
+When nhấn rồi nhả chuột giữa ở chỗ trống và đưa chuột xuống dưới gốc 116px
+Then biểu tượng gốc hiện tại điểm nhấn và trang cuộn xuống khoảng 1400px mỗi giây
+When đưa chuột xuống dưới gốc 216px
+Then trang cuộn xuống khoảng 5500px mỗi giây
 When lăn chuột
 Then biểu tượng biến mất và trang dừng sau quán tính
 When nhấn giữ chuột giữa, kéo lên trên gốc 116px rồi nhả
@@ -163,8 +167,10 @@ Then không có biểu tượng gốc
 ## UI
 
 Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motion.md#smooth-scroll-và-parallax). Link khối
-"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site. Biểu tượng gốc R6 nền `white`, viền và
-mũi tên màu chữ `ink`, không animation khi hiện hoặc ẩn.
+"Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site. Biểu tượng gốc R6 là vòng tròn 48px,
+nền `white`, viền `ink` 2px, hai tam giác đặc `ink` (rộng 16px, cao 8px, đỉnh cách mép 8px) và chấm tròn `ink` 8px ở
+tâm, không animation khi hiện hoặc ẩn. Không dùng nét mảnh dưới 2px; cạnh đáy tam giác nằm trên lưới 4px; vị trí
+làm tròn theo pixel màn hình, nên không răng cưa ở tỉ lệ 100%, 125%, 150%, 200%.
 
 ## Kiểm tra
 
@@ -174,7 +180,7 @@ mũi tên màu chữ `ink`, không animation khi hiện hoặc ẩn.
 | R2 | `pnpm qa:scroll-trace -- --headed --trace` trên PC của owner (`CHROME_CHANNEL=chrome`); trên cloud chỉ là mốc tương đối |
 | R3, R4 | `tests/site/scroll-feel.e2e.mjs` (`data-scroll-speed` từng trang, hero không lộ mép ở 5 vị trí cuộn) |
 | R5 | `tests/site/scroll-feel.e2e.mjs` (11 bề rộng, VI, EN: cao, gutter, khoảng dưới, cỡ chữ, link) |
-| R6 | `tests/site/middle-autoscroll.e2e.mjs` (1440px: chế độ dính, nhấn giữ kéo, vận tốc, dừng bằng lăn, nút, phím; link, viewer, menu, 390px, giảm chuyển động không bắt đầu) |
+| R6 | `tests/site/middle-autoscroll.e2e.mjs` (1440px: chế độ dính, nhấn giữ kéo, vận tốc ở 116px và 216px theo công thức Chrome, icon bám pixel ở DPR 1, 1.25, 1.5, dừng bằng lăn, nút, phím; link, viewer, menu, 390px, giảm chuyển động không bắt đầu) |
 
 ## Chú thích thuật ngữ
 

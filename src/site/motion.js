@@ -2426,7 +2426,7 @@
   // qua đúng đường của wheel; Locomotive không chạy hoặc đang khóa thì để trình duyệt tự lo.
   let autoscroll;
   let swallowClick = false;
-  const autoscrollDeadZone = 16;
+  const autoscrollDeadZone = 15;
   const stopAutoscroll = () => {
     if (!autoscroll) return;
     window.cancelAnimationFrame(autoscroll.frame);
@@ -2441,8 +2441,9 @@
       return;
     }
     const distance = autoscroll.mouseY - autoscroll.y;
+    // Công thức autoscroll của Chrome: 0.000008 × |d|^2.2 nhân 5000 của FixedVelocityCurve, không có trần.
     const speed = Math.abs(distance) <= autoscrollDeadZone ? 0
-      : Math.sign(distance) * Math.min((Math.abs(distance) - autoscrollDeadZone) * 6, 6000);
+      : Math.sign(distance) * 0.04 * Math.abs(distance) ** 2.2;
     document.documentElement.dataset.autoscroll = speed < 0 ? "up" : speed > 0 ? "down" : "idle";
     const seconds = Math.min(0.1, (time - (autoscroll.time ?? time)) / 1000);
     autoscroll.time = time;
@@ -2470,10 +2471,12 @@
     const origin = document.createElement("div");
     origin.className = "autoscroll-origin";
     origin.setAttribute("aria-hidden", "true");
-    origin.style.left = `${event.clientX}px`;
-    origin.style.top = `${event.clientY}px`;
-    origin.innerHTML = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15"/><circle cx="16" cy="16" r="2"/>'
-      + '<path d="M11 10l5-5 5 5M11 22l5 5 5-5"/></svg>';
+    // Làm tròn theo pixel màn hình để cạnh icon không rơi vào nửa pixel ở tỉ lệ 125%, 150%.
+    const snap = (value) => Math.round(value * window.devicePixelRatio) / window.devicePixelRatio;
+    origin.style.left = `${snap(event.clientX)}px`;
+    origin.style.top = `${snap(event.clientY)}px`;
+    origin.innerHTML = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="23"/><circle cx="24" cy="24" r="4"/>'
+      + '<path d="M24 8l8 8H16zM24 40l8-8H16z"/></svg>';
     document.body.append(origin);
     autoscroll = { core, origin, y: event.clientY, mouseY: event.clientY, moved: false };
     autoscroll.frame = window.requestAnimationFrame(stepAutoscroll);
