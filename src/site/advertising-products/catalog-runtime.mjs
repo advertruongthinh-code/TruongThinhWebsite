@@ -1487,6 +1487,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       item.layoutPosition();
     });
   };
+  // Vị trí đã tính sẵn; Masonry chỉ cần cho chuyển động. Layout tức thì bỏ qua nó để không đo lại mọi card
+  // (getSize) trong frame cuộn và task Back (decision a05s-frame-budget). Ghi left/top như Masonry: grid không padding.
+  const placeRendered = () => {
+    for (const [id, node] of rendered) {
+      const position = positions.get(id);
+      if (!position) continue;
+      const left = `${position.x}px`;
+      const top = `${position.y}px`;
+      if (node.style.left !== left) node.style.left = left;
+      if (node.style.top !== top) node.style.top = top;
+    }
+  };
   const settleMotion = () => {
     motionTimer = 0;
     if (performance.now() < motionUntil) {
@@ -1501,11 +1513,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       renderWindow();
       return;
     }
-    masonry?.reloadItems();
-    if (masonry) {
-      masonry.options.layoutInstant = true;
-      masonry.layout();
-    }
+    placeRendered();
   };
   const cancelMotion = () => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
@@ -2328,14 +2336,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (seeded.size) void grid.offsetHeight;
     grid.style.height = `${gridPixelHeight}px`;
     const applyLayout = () => {
-      if (!masonry) masonry = createMasonry(grid, positions, () => gridPixelHeight);
-      masonry.options.layoutInstant = !shouldAnimate || reduced;
-      masonry.options.transitionDuration = reduced ? 0 : "0.4s";
-      masonry.reloadItems();
-      masonry.items.forEach((item) => {
-        item.isLayoutInstant = !shouldAnimate || item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard)) || reduced;
-      });
-      masonry.layout();
+      if (!shouldAnimate || reduced) placeRendered();
+      else {
+        if (!masonry) masonry = createMasonry(grid, positions, () => gridPixelHeight);
+        masonry.options.transitionDuration = "0.4s";
+        masonry.reloadItems();
+        masonry.items.forEach((item) => {
+          item.isLayoutInstant = item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard));
+        });
+        masonry.layout();
+      }
       hasLaidOut = true;
       lastGeometrySignature = geometrySignature;
       if (shouldAnimate && !reduced) {
@@ -2378,13 +2388,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     node.hidden = false;
     sizeNode(node, placement, geometry.placements.length);
     restoreCanonicalDomOrder();
-    if (masonry) {
-      // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
-      cancelMasonryTransitions();
-      masonry.options.layoutInstant = true;
-      masonry.reloadItems();
-      masonry.layout();
-    }
+    // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
+    cancelMasonryTransitions();
+    placeRendered();
     const anchor = node.querySelector("a");
     if (focus) anchor?.focus({ preventScroll: true });
     if (scrollIntoView) node.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
