@@ -96,7 +96,7 @@ Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 ### R5. WebGL context
 
 Ngân sách context tính cả context đang dùng và đang rảnh, chung cho batch và skeleton chờ ảnh: điện thoại (pointer
-coarse, có touch hoặc `clientWidth <= 750`) 2, máy khác 12. Khung đang thấy giữ context đã có; còn chỗ thì cấp cho khung
+coarse, có touch hoặc `clientWidth <= 750`) và máy khác cùng 12. Khung đang thấy giữ context đã có; còn chỗ thì cấp cho khung
 gần đầu viewport trước (top rồi left). Khung không có context hiện frame tĩnh của preset. Nhả context trước khi cấp mới
 nên xoay máy không vượt ngân sách. Context giữ theo document và dùng lại: trả lease thì xóa buffer, texture,
 listener, RAF đúng một lần, giữ canvas, context và program đã compile (compile mất khoảng 60ms trên A05s); lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
@@ -106,7 +106,8 @@ phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `de
 làm trễ nhịp trượt. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
 hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
 gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó. Điện thoại hoãn như vậy (A05s, 10/10):
-"cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt không có `scrollend` thì `120ms` sau scroll event cuối.
+"cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt không có `scrollend` thì `120ms` sau scroll event cuối. Scroll
+không kèm `scrollend` (layout, mở detail nhảy về đầu trang) coi là đã dừng sau `500ms` không có scroll event.
 
 ```gherkin
 Given điện thoại 838px ngang
@@ -181,7 +182,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward) |
-| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px) |
+| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |
 | R8 | `advertising-continuation.e2e.mjs` (desktop 1569×912, cần Chrome có GPU); điện thoại chưa có test, đo bằng trace Chrome qua CDP ([debug Android](../operations/android-real-device-debugging.md)) |
