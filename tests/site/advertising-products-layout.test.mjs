@@ -286,8 +286,8 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     assert.deepEqual(ADVERTISING_CARDS.filter(({ sourceOrder }) => sourceOrder === cycle).map(({ category }) => category), expected, `round-robin cycle ${cycle}`);
   }
   for (const card of ADVERTISING_CARDS) {
-    assert.equal(card.media.altVi, `${card.titleVi} — ảnh minh họa AI`, `${card.id} keeps Vietnamese alt text`);
-    assert.equal(card.media.altEn, `${card.titleEn} — AI-generated illustration`, `${card.id} keeps English alt text`);
+    assert.equal(card.media.altVi, card.titleVi, `${card.id} keeps Vietnamese alt text`);
+    assert.equal(card.media.altEn, card.titleEn, `${card.id} keeps English alt text`);
     assert.deepEqual(readWebpSize(new URL(`../../src/site${card.media.src}`, import.meta.url)), [card.media.width, card.media.height], `${card.id} intrinsic dimensions match its file`);
   }
   for (const viewport of [...publicWidths, ...boundaryWidths]) {
