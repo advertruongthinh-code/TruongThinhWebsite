@@ -553,6 +553,10 @@ export function createAdvertisingBrowseHistoryController({
     get currentHref() {
       return currentHref;
     },
+    // Đổi ngôn ngữ tại chỗ dùng replaceState: đồng bộ để popState kế tiếp so với URL /en/ thật.
+    syncHref() {
+      currentHref = href();
+    },
     escapeDirectPhoto() {
       if (!current.directPhotoRootId || current.photo !== current.directPhotoRootId) return false;
       const card = cardById.get(current.photo);
@@ -3711,6 +3715,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
   }, { signal: controller.signal });
   addEventListener("languagechange", () => {
+    browseHistory.syncHref();
     const nextLocale = currentLocale();
     if (pendingLocaleSeedHandoff?.locale === nextLocale) pendingLocaleSeedHandoff = null;
     locale = nextLocale;

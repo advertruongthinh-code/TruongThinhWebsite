@@ -478,6 +478,17 @@ async function runDesktop() {
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
   await page.waitForTimeout(300);
   check(page.url() === url, "desktop R10: closing by button changed the URL");
+  // Back trong 250ms animation đóng chỉ ăn entry của viewer, không lùi thêm một entry.
+  await page.locator("[data-advertising-photo-expand]").click();
+  await settled(page);
+  await page.evaluate(() => {
+    document.querySelector("[data-advertising-photo-close]").click();
+    history.back();
+  });
+  await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+  await page.waitForTimeout(600);
+  check(page.url() === url && !(await page.locator("[data-advertising-photo-view]").isHidden()),
+    `desktop R10: Back during the close animation left detail (${page.url()})`);
   await page.evaluate(() => { setTimeout(() => history.back(), 0); }); // rời trang: trả về trước khi unload
   await page.waitForURL((next) => next.href !== url, { timeout: 5000 })
     .catch(() => check(false, "desktop R10: Back after a button close did not leave detail"));
