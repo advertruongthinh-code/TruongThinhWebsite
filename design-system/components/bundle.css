@@ -2098,7 +2098,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 8%);
-    animation: media-breathe 2s ease-in-out infinite;
+    /* !important để thắng reset animation toàn cục của reduced motion bên dưới. */
+    animation: media-breathe 2s ease-in-out infinite !important;
   }
 }
 
@@ -5542,7 +5543,8 @@ body.is-advertising-browse .site-footer {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 8%);
-    animation: media-breathe 2s ease-in-out infinite;
+    /* !important để thắng reset animation toàn cục của reduced motion. */
+    animation: media-breathe 2s ease-in-out infinite !important;
   }
 }
 

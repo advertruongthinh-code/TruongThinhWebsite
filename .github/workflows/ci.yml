@@ -34,35 +34,34 @@ jobs:
       - run: pnpm qa:worker:security
       - run: pnpm exec playwright install chromium
 
+      # Các runner instance trên cùng PC dùng chung network: mỗi job lấy port trống riêng,
+      # nếu không job sau sẽ test nhầm server của job khác đang giữ 8787.
       - name: Start local static preview
         run: |
-          pnpm dev > static-server.log 2>&1 &
+          pnpm prepare:site
+          port="$(node -e 'const s = require("node:net").createServer().listen(0, "127.0.0.1", () => { console.log(s.address().port); s.close(); })')"
+          node scripts/tooling/serve-static-parity.mjs --port "$port" > static-server.log 2>&1 &
+          server=$!
+          echo "BASE_URL=http://127.0.0.1:$port" >> "$GITHUB_ENV"
           for attempt in {1..30}; do
-            curl --fail --silent http://127.0.0.1:8787/vi/ > /dev/null && exit 0
+            kill -0 "$server" 2>/dev/null || break
+            curl --fail --silent "http://127.0.0.1:$port/vi/" > /dev/null && exit 0
             sleep 1
           done
           cat static-server.log
           exit 1
 
-      # pnpm dev đã chạy prepare:site, nên .site-output/ sẵn cho unit test.
+      # Bước trên đã chạy prepare:site, nên .site-output/ sẵn cho unit test.
       - run: node --test tests/site/*.test.mjs
 
       - run: pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium
-        env:
-          BASE_URL: http://127.0.0.1:8787
 
       # Script tự đặt browser path về .tooling/browsers khi env trống; trỏ về cache của playwright install.
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/image-loading-frame.e2e.mjs
-        env:
-          BASE_URL: http://127.0.0.1:8787
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/advertising-skeleton-slow-network.e2e.mjs
-        env:
-          BASE_URL: http://127.0.0.1:8787
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/phone-header-scroll.e2e.mjs
-        env:
-          BASE_URL: http://127.0.0.1:8787
 
       - name: Upload failure evidence
         if: failure()

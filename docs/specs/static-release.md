@@ -20,7 +20,7 @@ tests:
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-07
+updated: 2026-10-10
 ---
 
 # Phát hành tĩnh
@@ -148,7 +148,7 @@ root `.site-output`). Path trong `ROUTES` dựng bằng `localeHtml` mỗi reque
 `Content-Language`; path khác phục vụ file dưới root, còn path kết thúc bằng `/`
 (kể cả `/`), không phải file hoặc ra ngoài root trả 404. Mọi response có
 `Cache-Control: no-store`, hỗ trợ `Range`; không nén, không áp `_headers`, nên
-số đo tốc độ local không thay số đo demo.
+số đo tốc độ local không thay số đo demo. CI chạy server này trên port trống riêng mỗi job.
 
 ```gherkin
 Given pnpm dev đang chạy

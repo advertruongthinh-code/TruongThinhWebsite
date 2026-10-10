@@ -12,7 +12,8 @@ const photos = index.assetGroups.Photos?.files ?? {};
 const missing = [];
 
 const walk = (dir) => readdirSync(dir).flatMap((name) => {
-  const path = join(dir, name);
+  // posix.join để rel luôn dùng '/' trên Windows; fs của Node nhận được cả hai dấu.
+  const path = posix.join(dir, name);
   return statSync(path).isDirectory() ? walk(path) : [path];
 });
 

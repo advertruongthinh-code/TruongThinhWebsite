@@ -59,7 +59,8 @@ for (const file of files) {
 const BUDGET = { 'docs/STATE.md': 50, 'docs/index.md': 80 };
 for (const file of files) {
   const max = file.startsWith('docs/specs/') ? 300 : BUDGET[file];
-  const lines = max && readFileSync(file, 'utf8').split('\n').length;
+  // Không đếm chuỗi rỗng sau newline cuối file.
+  const lines = max && readFileSync(file, 'utf8').replace(/\n$/, '').split('\n').length;
   if (lines > max) errors.push(`${file}: ${lines} lines, over the ${max} limit`);
 }
 
