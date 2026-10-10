@@ -52,9 +52,9 @@
 .autoscroll-origin {
   position: fixed;
   z-index: 10000;
-  width: 32px;
-  height: 32px;
-  margin: -16px 0 0 -16px;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
   pointer-events: none;
 }
 
@@ -62,13 +62,10 @@
   display: block;
   width: 100%;
   height: 100%;
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  fill: var(--ink);
 }
 
-.autoscroll-origin circle:first-child { fill: var(--white); }
-.autoscroll-origin circle:nth-child(2) { fill: var(--ink); stroke: none; }
+.autoscroll-origin circle:first-child { fill: var(--white); stroke: var(--ink); stroke-width: 2; }
 html[data-autoscroll="idle"] * { cursor: all-scroll !important; }
 html[data-autoscroll="up"] * { cursor: n-resize !important; }
 html[data-autoscroll="down"] * { cursor: s-resize !important; }
@@ -6124,12 +6121,15 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   }
 }
 
+/* Ảnh hero đã được script head đánh dấu settled (load và decode xong) thì không chờ motion.js nữa,
+   tránh pha hiện, ẩn, hiện lại khi motion.js chạy. */
 @media (scripting: enabled) {
   html:not(.motion-fallback)
     .hero:not(
       :has(
         .hero-slide.is-active img.is-overlay-media-ready,
-        .about-hero__media img.is-overlay-media-ready
+        .about-hero__media img.is-overlay-media-ready,
+        :is(.hero-slide.is-active, .about-hero__media) picture.is-media-settled > img
       )
     )
     .hero-shade,
@@ -6156,7 +6156,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .detail-cta > picture > img,
       .legacy-closer > img,
       .legacy-closer > picture > img
-    ):not(.is-overlay-media-ready),
+    ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img),
   html:not(.motion-enabled):not(.motion-fallback)
     :is(
       .hero-slide img,
@@ -6169,7 +6169,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .detail-cta > picture > img,
       .legacy-closer > img,
       .legacy-closer > picture > img
-    ):not(.is-overlay-media-ready) {
+    ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img) {
     opacity: 0;
   }
 }

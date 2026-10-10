@@ -73,8 +73,9 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 
 Bốn ảnh nền trang trí (`aria-hidden`, `alt=""`): ảnh 0 `residential-space` tải ngay, `fetchpriority="high"`;
 ba ảnh sau giữ ở `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có
-`requestIdleCallback` thì sau 250ms). Mỗi slide zoom chậm rồi crossfade sang slide kế, lặp vòng, ảnh vào
-không nhảy scale. Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
+`requestIdleCallback` thì sau 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; ở giây 5 crossfade 1,6s sang
+slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
 `-2`. Hero cao `100svh`; tới 980px theo luồng chữ, nút dừng và cue xếp dưới tiêu đề nên chữ 200% không
@@ -185,7 +186,8 @@ Then track có is-running, mỗi nhóm 12 logo, khe giữa hai nhóm lệch tố
 
 Hero, portal, closer đặt chữ trắng trên ảnh. Ảnh chưa giải mã xong: khung nền `media-loading-surface`,
 chữ trắng vẫn hiện, ảnh opacity 0, shade ẩn; giải mã xong, runtime thêm `is-overlay-media-ready`, ảnh
-và shade hiện; `motion-fallback` bỏ cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong (trừ
+và shade hiện. Ảnh hero có `<picture>` mang `is-media-settled` (script head) thì hiện luôn, không chờ runtime;
+`motion-fallback` bỏ cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong (trừ
 marquee, [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh)); build bọc `<picture>` AVIF, `srcset` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin

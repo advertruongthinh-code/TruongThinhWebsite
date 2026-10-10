@@ -1156,13 +1156,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const getLayoutViewportHeight = () => scroll?.getViewportMetrics?.().layoutHeight
     || document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height
     || innerHeight;
-  // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe, nên không ép style recalc mỗi frame cuộn.
-  const getVisibleViewport = () => ({
+  // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe. Đọc visualViewport vẫn ép style recalc,
+  // nên giữ số đo tới khi viewport đổi (decision a05s-frame-budget).
+  let visibleViewport = null;
+  const getVisibleViewport = () => visibleViewport ??= {
     width: window.visualViewport?.width ?? innerWidth,
     height: window.visualViewport?.height ?? innerHeight,
     left: window.visualViewport?.offsetLeft ?? 0,
     top: window.visualViewport?.offsetTop ?? 0,
-  });
+  };
+  const resetVisibleViewport = () => { visibleViewport = null; };
+  window.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
+  window.visualViewport?.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
+  window.visualViewport?.addEventListener("scroll", resetVisibleViewport, { signal: controller.signal });
   document.body.classList.add("is-advertising-browse");
   let locale = currentLocale();
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1481,6 +1487,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       item.layoutPosition();
     });
   };
+  // Vị trí đã tính sẵn; Masonry chỉ cần cho chuyển động. Layout tức thì bỏ qua nó để không đo lại mọi card
+  // (getSize) trong frame cuộn và task Back (decision a05s-frame-budget). Ghi left/top như Masonry: grid không padding.
+  const placeRendered = () => {
+    for (const [id, node] of rendered) {
+      const position = positions.get(id);
+      if (!position) continue;
+      const left = `${position.x}px`;
+      const top = `${position.y}px`;
+      if (node.style.left !== left) node.style.left = left;
+      if (node.style.top !== top) node.style.top = top;
+    }
+  };
   const settleMotion = () => {
     motionTimer = 0;
     if (performance.now() < motionUntil) {
@@ -1495,11 +1513,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       renderWindow();
       return;
     }
-    masonry?.reloadItems();
-    if (masonry) {
-      masonry.options.layoutInstant = true;
-      masonry.layout();
-    }
+    placeRendered();
   };
   const cancelMotion = () => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
@@ -1790,6 +1804,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     skeletonEntryFrames.set(frame, pending);
   };
+  // rAF của scheduleSkeletonSync chung task với frame cuộn và layout masonry; ảnh tĩnh render CPU ở task sau, nếu
+  // không task frame vượt 50ms trên A05s lúc vuốt nhanh (R8, decision a05s-frame-budget).
+  let skeletonSyncInFrame = false;
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
     const rects = new Map();
@@ -1805,7 +1822,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision a05s-frame-budget).
     const assignUntil = performance.now() + SKELETON_ASSIGN_BUDGET_MS;
     for (const frame of visibleSkeletonFrames) {
-      if (!skeletonAssignmentByFrame.has(frame) && performance.now() > assignUntil) {
+      if (!skeletonAssignmentByFrame.has(frame) && (skeletonSyncInFrame || performance.now() > assignUntil)) {
         scheduleSkeletonAssign();
         break;
       }
@@ -1878,7 +1895,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (skeletonSyncFrame || controller.signal.aborted) return;
     skeletonSyncFrame = requestAnimationFrame(() => {
       skeletonSyncFrame = 0;
+      skeletonSyncInFrame = true;
       syncSkeletonMotion();
+      skeletonSyncInFrame = false;
     });
   };
   // Media đang tải hiện chính frame skeleton cuối masonry (loading-glass-and-page-entry R1, R5).
@@ -2317,14 +2336,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (seeded.size) void grid.offsetHeight;
     grid.style.height = `${gridPixelHeight}px`;
     const applyLayout = () => {
-      if (!masonry) masonry = createMasonry(grid, positions, () => gridPixelHeight);
-      masonry.options.layoutInstant = !shouldAnimate || reduced;
-      masonry.options.transitionDuration = reduced ? 0 : "0.4s";
-      masonry.reloadItems();
-      masonry.items.forEach((item) => {
-        item.isLayoutInstant = !shouldAnimate || item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard)) || reduced;
-      });
-      masonry.layout();
+      if (!shouldAnimate || reduced) placeRendered();
+      else {
+        if (!masonry) masonry = createMasonry(grid, positions, () => gridPixelHeight);
+        masonry.options.transitionDuration = "0.4s";
+        masonry.reloadItems();
+        masonry.items.forEach((item) => {
+          item.isLayoutInstant = item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard));
+        });
+        masonry.layout();
+      }
       hasLaidOut = true;
       lastGeometrySignature = geometrySignature;
       if (shouldAnimate && !reduced) {
@@ -2367,13 +2388,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     node.hidden = false;
     sizeNode(node, placement, geometry.placements.length);
     restoreCanonicalDomOrder();
-    if (masonry) {
-      // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
-      cancelMasonryTransitions();
-      masonry.options.layoutInstant = true;
-      masonry.reloadItems();
-      masonry.layout();
-    }
+    // Relayout tức thì giữa transition sẽ chồng transform đang chạy lên top mới.
+    cancelMasonryTransitions();
+    placeRendered();
     const anchor = node.querySelector("a");
     if (focus) anchor?.focus({ preventScroll: true });
     if (scrollIntoView) node.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
@@ -3158,8 +3175,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
-    // Mở từ grid: task chạm card chỉ dựng DOM detail đang ẩn, task sau mới hiện và layout.
+    // Mở từ grid: dựng DOM detail đang ẩn, task sau mới hiện và layout.
     const fromGrid = deferRelated && photoView?.hidden;
+    // Bấm card grid: task của cú bấm chỉ ghi history; dựng primary ở task sau để task input dưới 50ms trên A05s.
+    if (fromGrid && reason === "photo") {
+      const pending = ++detailRenderGeneration;
+      await nextTask();
+      if (pending !== detailRenderGeneration || controller.signal.aborted) return;
+    }
     renderPhoto(browse, reason, deferRelated ? "primary" : "", !fromGrid);
     const generation = detailRenderGeneration;
     if (fromGrid) {

@@ -118,8 +118,9 @@ delay `0.6s`; filter `opacity 0, y 20px`, delay `1.3s`, `1s expo.out`, stagger
 
 Trang chủ:
 
-- Hero slideshow zoom `scale 1.06 → 1` trong `5s sine.inOut`, chuyển slide mờ
-  `1.6s power2.inOut`; dừng khi hero ngoài viewport hoặc tab ẩn. Word fade
+- Hero slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`; tại giây 5 chuyển slide mờ
+  `1.6s power2.inOut`, hai ảnh cùng zoom suốt lúc chuyển; dừng khi hero ngoài viewport hoặc tab ẩn.
+  Word fade
   tiêu đề bắt đầu tại 0.9s.
 - Dòng heritage `y 2em → -0.1em`, `1.9s power4.out`; dòng `--delay` trễ 0.3s.
   Ảnh xen chữ `scale 0.9 → 1` và `opacity 0 → 1`, `0.6s` `--ease`, delay 0.6s.
