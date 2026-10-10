@@ -150,6 +150,28 @@ try {
       await page.close();
     }
   }
+  // Bậc nhòe dựng sẵn của reveal phủ đủ frame, kể cả photo contain: left/top không nhân scale(8) từng chỉ phủ một phần.
+  {
+    const page = await browser.newPage({ viewport: { width: 1920, height: 900 } });
+    try {
+      await page.route("**/*.avif", async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        await route.continue();
+      });
+      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
+      await page.waitForSelector(".glass-surface__step--baked > canvas", { state: "attached", timeout: 20000 });
+      const boxes = await page.evaluate(() => {
+        const box = (node) => { const { x, y, width, height } = node.getBoundingClientRect(); return [x, y, width, height]; };
+        const frame = document.querySelector(".advertising-photo-view__hero-frame");
+        return { frame: box(frame), canvases: [...frame.querySelectorAll(".glass-surface__step--baked > canvas")].map(box) };
+      });
+      check(boxes.canvases.length && boxes.canvases.every((canvas) => canvas.every((value, index) =>
+        index < 2 ? Math.abs(value - boxes.frame[index]) <= 1 : value >= boxes.frame[index] - 1)),
+      `baked reveal glass does not cover the primary frame ${JSON.stringify(boxes)}`);
+    } finally {
+      await page.close();
+    }
+  }
   assert.deepEqual(failures, [], "Kính contract");
   process.stdout.write("[glass-surface] arc and even Kính passed\n");
 } finally {
