@@ -43,7 +43,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   Chromium bỏ nhòe khi trang cuộn bằng chuyển động.
 - **Màu sau kính:** độ bão hòa `1.7`, độ sáng `1.04` (mỗi bậc căn bậc năm),
   tint trắng alpha `0.12`. Dạng cung: bão hòa `1.55`, độ sáng `1.05` (mỗi bậc căn
-  bậc ba), tint `0.55` ở cung (owner 10/10).
+  bậc ba; lõi chỉ `1.25`, `1.025` để không lộ gờ màu tại cung), tint `0.55` ở cung
+  (owner 10/10).
 - Kính cung và kính nền primary đứng yên, giữ nguyên khi giảm chuyển động. Không có khúc xạ, viền sáng
   hay đổ bóng. Nền tối của [viewer](../Viewer/README.md) phóng to là lớp làm
   tối, không phải component Kính.

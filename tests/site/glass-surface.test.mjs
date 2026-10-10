@@ -36,9 +36,10 @@ const tone = (selector) => css.match(new RegExp(`^${selector} \\{\\s*--glass-sat
 const arc = '\\.glass-surface\\[data-glass-shape="arc"\\]';
 assert.deepEqual(blurLevels(""), [7.1, 16.1, 32.1, 57.1, 100], "R2: steps reach the 100px ceiling");
 assert.deepEqual(blurLevels(`${arc} > `), [4.5, 12, 28], "R2: the arc's band steps reach 4.5, 12 and 28px");
-for (const [selector, count, saturation, light] of [["\\.glass-surface", 5, 1.7, 1.04], [arc, 3, 1.55, 1.05]]) {
+// Core của arc nhẹ hơn tổng band vì nó chồng band step tại cung (R5).
+for (const [selector, count, saturation, light, core = [saturation, light]] of [["\\.glass-surface", 5, 1.7, 1.04], [arc, 3, 1.55, 1.05, [1.25, 1.025]]]) {
   const [fullSaturate, fullBrightness, saturate, brightness] = tone(selector);
-  assert.deepEqual([fullSaturate, fullBrightness], [saturation, light], `R5: one full step carries ${saturation} and ${light}`);
+  assert.deepEqual([fullSaturate, fullBrightness], core, `R5: one full step carries ${core}`);
   assert(Math.abs(saturate ** count - saturation) < 0.005, `R5: saturation ${saturation} across ${count} steps`);
   assert(Math.abs(brightness ** count - light) < 0.001, `R5: brightness ${light} across ${count} steps`);
 }

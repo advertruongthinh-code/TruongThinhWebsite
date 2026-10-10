@@ -4829,6 +4829,8 @@ body.is-advertising-browse .advertising-grid {
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 7.14, 16.07, 32.14, 57.14 và trần
    100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step
    mang căn bậc năm của 1.7 và 1.04 (arc: căn bậc ba của 1.55 và 1.05).
+   Core của arc chỉ 1.25 và 1.025: nó chồng các band step trong dải fade tại cung, 1.55 ở core làm màu
+   tăng hai lần thành gờ đậm dọc cung (owner 10/10).
    Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
    Chỉ các step sở hữu backdrop-filter. Bản thân box giữ trơn: opacity, mask hay filter trên nó
    sẽ cắt các step khỏi trang phía sau. */
@@ -4895,8 +4897,8 @@ body.is-advertising-browse .advertising-grid {
 /* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
    28px của band; inner step của nó mang blur tiếp tới trần 100px. */
 .glass-surface[data-glass-shape="arc"] {
-  --glass-saturate: 1.55;
-  --glass-brightness: 1.05;
+  --glass-saturate: 1.25;
+  --glass-brightness: 1.025;
   --glass-step-saturate: 1.1573;
   --glass-step-brightness: 1.0164;
   --glass-full-blur: 28px;
