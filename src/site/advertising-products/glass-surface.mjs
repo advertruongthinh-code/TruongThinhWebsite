@@ -278,3 +278,82 @@ export function layoutArcGlass(glass, geometry) {
   setMask(grain, `radial-gradient(${circle(top)}, transparent ${dFull.toFixed(1)}px, #000 ${((dFull + radius) / 2).toFixed(1)}px, `
     + `#000 ${radius}px, transparent ${radius + band}px)`);
 }
+
+// Phone (owner 10/10): thay mọi step backdrop-filter của arc bằng một ảnh nhòe dựng sẵn. Dưới cung chỉ có
+// skeleton card (R2), nên runtime vẽ chúng một lần vào canvas nhỏ, blur sẵn từng level của arc (band 0 đến 28px,
+// trong cung tới 100px, màu cộng dồn như các step) rồi crossfade các level theo khoảng cách tới tâm cung.
+// Màn hình chỉ composite một ảnh tĩnh mỗi frame, không blur lại.
+const BAKE_SCALE = 0.5;
+const BLUR_PX = 3;
+const ARC_SATURATE = 1.55;
+const ARC_BRIGHTNESS = 1.05;
+const BAKE_LEVELS = [4.5, 12, 28, 42.4, 56.8, 71.2, 85.6, 100];
+
+// cards: [{ left, top, width, height, color, image }] theo tọa độ glass box; image đã decode.
+export function bakeArcGlass(glass, cards, paper) {
+  const geometry = geometries.get(glass);
+  if (!geometry) return;
+  const { width, batchBottom, band, radius, cy, dFull } = geometry;
+  const top = cy - radius - band;
+  const height = batchBottom + 2 - top;
+  const canvas = () => Object.assign(document.createElement("canvas"),
+    { width: Math.ceil(width * BAKE_SCALE), height: Math.ceil(height * BAKE_SCALE) });
+  const source = canvas();
+  const context = source.getContext("2d");
+  context.scale(BAKE_SCALE, BAKE_SCALE);
+  context.translate(0, -top);
+  context.fillStyle = paper;
+  context.fillRect(0, top, width, height);
+  for (const card of cards) {
+    context.fillStyle = card.color;
+    context.fillRect(card.left, card.top, card.width, card.height);
+    // Canvas flow tràn 8% mỗi bên của surface (detail.css), nên card chỉ hiện phần giữa của ảnh tĩnh.
+    const { naturalWidth: w, naturalHeight: h } = card.image;
+    context.drawImage(card.image, w * 0.08 / 1.16, h * 0.08 / 1.16, w / 1.16, h / 1.16,
+      card.left, card.top, card.width, card.height);
+  }
+  // Level theo khoảng cách d tới tâm: tăng tuyến tính 0 đến 28px qua band, 28 đến 100px từ cung tới vòng trắng tinh.
+  const distanceAt = (level) => level <= ARC_LEVEL ? radius + band * (1 - level / ARC_LEVEL)
+    : radius - Math.max(1, radius - dFull) * (level - ARC_LEVEL) / (CEILING - ARC_LEVEL);
+  const baked = canvas();
+  const output = baked.getContext("2d");
+  const layer = canvas();
+  const layerContext = layer.getContext("2d");
+  const [x, y] = [width / 2 * BAKE_SCALE, (cy - top) * BAKE_SCALE];
+  const small = document.createElement("canvas");
+  const smallContext = small.getContext("2d");
+  BAKE_LEVELS.forEach((level, index) => {
+    // Band step k nhân saturate/brightness lên căn bậc ba của tổng arc; core và inner giữ tổng.
+    const k = Math.min(3, index + 1) / 3;
+    // Blur ở độ phân giải giảm theo level (sigma khoảng 3px) rồi phóng lại: blur canvas trên CPU tốn theo
+    // sigma nhân diện tích, nên level 100px chỉ là ảnh vài chục pixel.
+    const scale = Math.min(1, BLUR_PX / (level * BAKE_SCALE));
+    small.width = Math.ceil(source.width * scale);
+    small.height = Math.ceil(source.height * scale);
+    smallContext.filter = `blur(${level * BAKE_SCALE * scale}px) saturate(${ARC_SATURATE ** k}) brightness(${ARC_BRIGHTNESS ** k})`;
+    smallContext.drawImage(source, 0, 0, small.width, small.height);
+    layerContext.globalCompositeOperation = "copy";
+    layerContext.drawImage(small, 0, 0, layer.width, layer.height);
+    // Mask level: 0 nơi arc đạt level trước, 1 từ nơi nó đạt level này vào trong; lớp sau phủ lên lớp trước.
+    const outer = distanceAt(index ? BAKE_LEVELS[index - 1] : 0) * BAKE_SCALE;
+    const inner = distanceAt(level) * BAKE_SCALE;
+    const mask = layerContext.createRadialGradient(x, y, 0, x, y, outer);
+    mask.addColorStop(inner / outer, "#000");
+    mask.addColorStop(1, "transparent");
+    layerContext.globalCompositeOperation = "destination-in";
+    layerContext.fillStyle = mask;
+    layerContext.fillRect(0, 0, layer.width, layer.height);
+    output.drawImage(layer, 0, 0);
+  });
+  // Gắn chính canvas: toDataURL ép readback và PNG encode (hơn 0.5s khi CPU chậm 4 lần).
+  baked.className = "glass-surface__baked";
+  Object.assign(baked.style, { top: `${top}px`, height: `${height}px` });
+  glass.querySelector(".glass-surface__baked")?.remove();
+  glass.prepend(baked);
+  glass.dataset.glassBaked = "true";
+}
+
+export function clearArcGlassBake(glass) {
+  glass.querySelector(".glass-surface__baked")?.remove();
+  delete glass.dataset.glassBaked;
+}
