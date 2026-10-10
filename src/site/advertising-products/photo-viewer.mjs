@@ -570,9 +570,10 @@ export function createAdvertisingPhotoViewer({
       skipPop = false;
       return true;
     }
-    if (!ownEntry || !dialog.open || dialog.dataset.advertisingViewerState === "closing") return false;
+    if (!ownEntry || !dialog.open) return false;
+    // Back giữa animation đóng cũng ăn entry của viewer; nếu không finishClose sẽ history.back() thêm lần nữa.
     ownEntry = false;
-    close();
+    if (dialog.dataset.advertisingViewerState !== "closing") close();
     return true;
   };
   const cleanup = () => {
