@@ -28,7 +28,7 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 - **Dạng cung:** chỉ làm nền cho cụm CTA (tiêu đề và nút); card skeleton phía
   trên vẫn nét và thấy chuyển động. Biên là cung tròn, tâm giữa màn hình và dưới
   batch. Nhòe tăng liên tục từ 0 ở mép dải, `28px` ở cung, tới trần `100px` ở
-  vòng trắng tuyệt đối. Số lớp cố định theo máy, không đo fps: PC 9 lớp (lõi, 5
+  vòng trắng tuyệt đối. Số lớp cố định theo máy, không đo fps: PC 5 lớp (lõi, 1
   bậc trong cung, 3 bậc dải); điện thoại 2 lớp (lõi `28px` và bậc dải trong
   cùng). Đỉnh cung cao hơn mép trên tiêu đề
   `15%` chiều cao cụm CTA (chữ nằm trong lõi), bán kính `3.5` × bề rộng màn, dải giảm nhòe
