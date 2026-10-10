@@ -696,3 +696,135 @@ export function createSkeletonFlowRenderer(canvas, {
     },
   };
 }
+
+// Một context WebGL vẽ mọi khung skeleton: 7-8 context riêng làm GPU A05s quá tải (vòng 18, owner 2026-10-10).
+// Canvas nằm trong `container` (cuộn cùng nội dung, compositor dời được), cao gấp đôi viewport và chỉ dời khi
+// viewport ra khỏi nó; mỗi khung vẽ bằng viewport/scissor tại vị trí offset của nó.
+export function createSharedSkeletonFlowLayer(container, { scale = 1 } = {}) {
+  const canvas = document.createElement("canvas");
+  canvas.className = "advertising-grid__cta-shared-flow";
+  canvas.setAttribute("aria-hidden", "true");
+  Object.assign(canvas.style, { position: "absolute", left: "0", top: "0", width: "100%", pointerEvents: "none" });
+  const gl = canvas.getContext("webgl", { ...SKELETON_FLOW_CONTEXT_ATTRIBUTES, alpha: true, premultipliedAlpha: true });
+  const program = gl && contextProgram(gl);
+  if (!program) return null;
+  container.append(canvas);
+  gl.useProgram(program);
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const position = gl.getAttribLocation(program, "aPosition");
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+  const texture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 256, 256, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, createNoise());
+  const uniform = (name) => gl.getUniformLocation(program, name);
+  gl.uniform1i(uniform("uNoise"), 0);
+  const locations = {
+    time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
+    noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+  };
+  gl.enable(gl.SCISSOR_TEST);
+
+  const entries = new Set();
+  let frameId = 0;
+  let lastTimestamp = -1;
+  let bandTop = -1;
+  let bandHeight = 0;
+
+  const placeBand = () => {
+    const viewport = innerHeight;
+    const height = Math.min(container.offsetHeight, viewport * 2);
+    const visibleTop = -container.getBoundingClientRect().top;
+    if (height !== bandHeight || visibleTop < bandTop || visibleTop + viewport > bandTop + bandHeight) {
+      bandTop = Math.max(0, Math.min(container.offsetHeight - height, visibleTop - viewport / 2));
+      bandHeight = height;
+      canvas.style.height = `${height}px`;
+      canvas.style.transform = `translateY(${bandTop}px)`;
+      const width = Math.round(container.offsetWidth * scale);
+      const pixels = Math.round(height * scale);
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== pixels) canvas.height = pixels;
+    }
+  };
+
+  const tick = (timestamp) => {
+    frameId = 0;
+    if (!entries.size) return;
+    const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+    placeBand();
+    gl.disable(gl.SCISSOR_TEST);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.SCISSOR_TEST);
+    for (const entry of entries) {
+      entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
+      const { frame } = entry;
+      if (!frame.isConnected || !frame.classList.contains("is-entry-ready")) continue;
+      const top = frame.offsetTop - bandTop;
+      const height = frame.offsetHeight;
+      if (top + height < 0 || top > bandHeight) continue;
+      const x = Math.round(frame.offsetLeft * scale);
+      const w = Math.round(frame.offsetWidth * scale);
+      const h = Math.round(height * scale);
+      const y = canvas.height - Math.round(top * scale) - h;
+      gl.viewport(x, y, w, h);
+      gl.scissor(x, y, w, h);
+      const { field, finish } = entry.preset;
+      gl.uniform1f(locations.time, entry.phase);
+      gl.uniform1f(locations.scale, field.scale);
+      gl.uniform1f(locations.distortion, field.distortion);
+      gl.uniform1f(locations.swirl, field.swirl);
+      gl.uniform1f(locations.noise, 0.5 * finish.noise / 100);
+      gl.uniform2fv(locations.anchors, entry.anchors);
+      gl.uniform3fv(locations.colors, entry.colors);
+      gl.uniform4fv(locations.balances, entry.balances);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    frameId = requestAnimationFrame(tick);
+  };
+
+  return {
+    attach(frame, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1 }) {
+      const edges = [0, ...preset.bands, 1];
+      const entry = {
+        frame, preset, direction: direction < 0 ? -1 : 1, speedScale, phase: Number(initialPhase) || FLOW_CLOCK_START,
+        colors: new Float32Array(preset.colors.flatMap(parseHex)),
+        anchors: new Float32Array(preset.anchors.flatMap(({ x, y }) => [x, y])),
+        balances: new Float32Array(edges.slice(0, 4).map((edge, index) => 4 * (edges[index + 1] - edge))),
+      };
+      const stop = () => {
+        entries.delete(entry);
+        if (!entries.size && frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = 0;
+          lastTimestamp = -1;
+          gl.disable(gl.SCISSOR_TEST);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+        }
+      };
+      return {
+        backend: "webgl",
+        context: null,
+        draw() { return true; },
+        start() {
+          entries.add(entry);
+          if (!frameId) frameId = requestAnimationFrame(tick);
+        },
+        stop,
+        destroy: stop,
+        get phase() { return entry.phase; },
+        get running() { return entries.has(entry); },
+      };
+    },
+  };
+}

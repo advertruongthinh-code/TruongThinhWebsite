@@ -20,6 +20,7 @@ import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
   createSkeletonFlowRenderer,
+  createSharedSkeletonFlowLayer,
   drawSkeletonFlowAssignment,
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
@@ -1657,11 +1658,28 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonAssignmentByFrame.set(frame, assignment);
     frame.querySelector(".advertising-grid__cta-surface").append(createSkeletonCanvas(frame));
   };
+  // SPIKE: ?flow=shared vẽ mọi khung batch bằng một context; ?flowScale= đổi độ phân giải canvas chung.
+  const spikeParams = new URLSearchParams(location.search);
+  let sharedFlow = null;
+  const sharedFlowFor = (frame) => {
+    if (spikeParams.get("flow") !== "shared") return null;
+    const container = frame.closest(".advertising-grid__cta-skeleton");
+    if (!container) return null;
+    if (sharedFlow?.container !== container) {
+      sharedFlow = { container, layer: createSharedSkeletonFlowLayer(container, { scale: Number(spikeParams.get("flowScale")) || 1 }) };
+    }
+    return sharedFlow.layer;
+  };
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);
     if (!assignment) return;
     const { preset, direction, speedScale } = assignment;
+    const sharedLayer = sharedFlowFor(frame);
+    if (sharedLayer) {
+      skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale }));
+      return;
+    }
     const budget = SKELETON_CONTEXT_BUDGET;
     const lease = skeletonNativeContexts.find(record => !record.renderer && !record.gl.isContextLost());
     if (!lease && skeletonNativeContexts.length >= budget) return;
@@ -1758,6 +1776,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
       if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
+      if (sharedFlowFor(frame)) {
+        mountSkeletonRenderer(frame);
+        syncSkeletonMotion();
+        return;
+      }
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
       if (!leased && skeletonNativeContexts.length < SKELETON_CONTEXT_BUDGET) {
         const canvas = document.createElement("canvas");
