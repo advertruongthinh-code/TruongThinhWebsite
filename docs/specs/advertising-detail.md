@@ -16,7 +16,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-07
+updated: 2026-10-10
 ---
 
 # Detail Advertising
@@ -51,7 +51,7 @@ And không có clone ảnh giữa card và primary
 
 `computeAdvertisingPhotoGeometry` (`layout-core.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột, info một cột,
-cao bằng phần viewport dưới header trừ gap và safe area; primary chưa chiếm hết cột thì trừ thêm `50px` để hàng related dưới
+cao bằng phần viewport dưới header thu gọn (R10) trừ gap và safe area; primary chưa chiếm hết cột thì trừ thêm `50px` để hàng related dưới
 lộ 50px, chiếm hết cột (điện thoại ngang) thì related xếp dưới, không chừa 50px. `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
 hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa phần viewport dưới header, không chừa 50px. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-advertising-photo-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ một dòng mô tả
@@ -187,17 +187,17 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 
 ### R10. Navbar và Escape trên detail
 
-Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})`
-(`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo,
-tag; ảnh vào thẳng về All (owner 2026-10-05). Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng
-thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt.
-Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của
-ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
+Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All (owner 2026-10-05). Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
+Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px (đo 2026-10-10). Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
 
 ```gherkin
 Given masonry nhóm Kiosk & POSM mở A, A mở related B cùng nhóm
 When bấm Advertising trên navbar
 Then URL là ?category=kiosk-posm, rail sáng nhóm đó, history thêm một entry, card B ở giữa viewport mang "Vừa xem"
+
+Given ?category=kiosk-posm&photo=kiosk-posm-07 vào thẳng ở 390×844, scrollY 0
+When cuộn xuống 400px rồi cuộn ngược về 0, sau đó đóng detail về masonry ở scrollY 0
+Then header luôn is-collapsed, nền trắng, cao 71px khi ở detail; về masonry thì bỏ is-collapsed
 ```
 
 ### R11. VI/EN
@@ -267,7 +267,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R7 | `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`, `related-tap-defers-related`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
 | R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle` |
-| R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
+| R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `advertising-photo-header.e2e.mjs` (header thu gọn, 390px và 1440px); `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
 | R11 | `CASE=active-photo-locale-switch` |
 | R12 | `advertising-primary-p14.e2e.mjs` (reduced motion); `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs` |
 
