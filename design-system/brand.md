@@ -115,6 +115,19 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 - Favicon là ngoại lệ mark-only duy nhất: hai file `favicon-black.svg`,
   `favicon-white.svg` cùng `viewBox`, bốn path, chỉ khác màu đơn sắc.
 
+### Mark cỡ nhỏ
+
+Lockup ở header và full menu hiện mark dưới `100px` (PC `67.52`, thu gọn `49.64`,
+điện thoại `57.59`, menu `59.58`). Ở cỡ này `motion.js` dựng lại bốn path theo lưới
+device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/10):
+
+- Đáy tam giác rơi đúng pixel gần nhất (dịch tối đa nửa device pixel), không còn
+  hàng pixel mờ dưới đáy.
+- Khe giữa các dải và chu kỳ dải là số nguyên device pixel, khe tối thiểu `2`,
+  nên ba khe dày bằng nhau.
+- Giữ chiều cao, chiều ngang mark và hình dựng `Y`; màu, thứ tự dải không đổi.
+- Lockup ở chỗ khác, favicon và bản in dùng mark gốc.
+
 ### Motion
 
 | Motion | Thông số | Khi nào |
@@ -188,7 +201,7 @@ sẵn sàng.
 
 - Code: `truong-thinh-lockup.svg` và mười bản inline ở năm trang; CSS
   `.brand-lockup`, `.site-header.is-brand-*`, `.menu-brand` trong `style.css`;
-  `syncHeaderBrandSurface`, `paintHeaderMark`, `colorHeader`, `playHeaderLockupScaleMotion` trong
+  `syncHeaderBrandSurface`, `paintHeaderMark`, `snapBrandMark`, `colorHeader`, `playHeaderLockupScaleMotion` trong
   `motion.js`.
 - Tích hợp và test: [shell spec](../docs/specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
 
