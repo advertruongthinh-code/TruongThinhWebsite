@@ -464,15 +464,17 @@ for (const scenario of [
   });
 }
 
-test("suggestion cadence advances at 3000ms, crossfades for 1600ms, and pauses hidden/reduced/active", async t => {
+test("suggestion cadence advances at 3000ms, crossfades for 1600ms, and pauses hidden/reduced/active/covered", async t => {
   const { mountSuggestionSlides } = await import("../../src/site/advertising-products/suggestion-slideshow.mjs");
   const names = ["document", "innerHeight", "MutationObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
   const saved = names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
-  let now = 0, nextTick = 0, cadence = 0, tick, reduced = false, active = false;
+  let now = 0, nextTick = 0, cadence = 0, tick, reduced = false, active = false, covered = false;
   const animations = [], created = [], inserted = [];
   const document = new EventTarget(), events = new EventTarget(), preference = new EventTarget();
   document.hidden = false;
   document.body = { classList: { contains: () => false } };
+  document.documentElement = {};
+  document.querySelector = selector => selector === "dialog[open]" && covered ? {} : null;
   preference.matches = false;
   const button = {
     dataset: { advertisingSuggestionTag: "cadence-test" }, isConnected: true,
@@ -537,7 +539,9 @@ test("suggestion cadence advances at 3000ms, crossfades for 1600ms, and pauses h
   assert.equal(created.length, 1, "reduced motion remains static");
   reduced = false; active = true; await advance(3000);
   assert.equal(created.length, 1, "active suggestion remains static");
-  active = false; await advance(3000);
+  active = false; covered = true; await advance(3000);
+  assert.equal(created.length, 1, "open viewer or menu dialog keeps the deck static");
+  covered = false; await advance(3000);
   assert.equal(created.length, 2, "same deck resumes at the next permitted tick");
 });
 
