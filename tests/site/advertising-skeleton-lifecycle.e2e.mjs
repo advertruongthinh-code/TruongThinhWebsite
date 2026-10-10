@@ -102,6 +102,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       const samples = frames.map(node => {
         const rect = node.getBoundingClientRect(), canvas = node.querySelector("canvas");
         return { slot: node.dataset.advertisingCtaSlot, top: Number.parseFloat(node.style.top),
+          column: node.dataset.advertisingCtaColumn, depth: Number(node.dataset.advertisingCtaDepth),
           visible: rect.bottom > 0 && rect.top < innerHeight, opacity: getComputedStyle(node).opacity,
           same: window.__lifecycleFrames?.get(node.dataset.advertisingCtaSlot) === node,
           assignment: [node.dataset.advertisingCtaRatioBand, canvas?.dataset.advertisingFlowPreset,
@@ -127,8 +128,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.equal(current.coordinateHash, previousHeight.coordinateHash, "height-only probe retains real grid geometry");
       // Phần đuôi ngắn hơn một phần tư card gộp vào frame phía trên (spec skeleton).
       const mergedAbove = sample => {
-        const [column, index] = sample.slot.split(":");
-        return current.samples.some(other => other.slot === `${column}:${index - 1}`);
+        return current.samples.some(other => other.column === sample.column && other.depth === sample.depth - 1);
       };
       assert.ok(removed.every(sample => sample.top >= current.boundary || mergedAbove(sample)),
         "removed tail slots must lie beyond the new boundary or merge into the frame above");

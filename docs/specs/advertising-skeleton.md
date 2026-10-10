@@ -30,8 +30,10 @@ của cột; batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đu
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng card nhân một trong ba band: ngang `0.72`, vuông `1`, đứng
 `1.32`. Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
 seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đầu và không quá 3 khung liền cùng band trong 12 khung
-đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Band
-gắn với slot (`cột:độ sâu`), dựng lại giữ band cũ. Batch chỉ có khi masonry đang hiện, không có khi mở detail.
+đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
+là thứ tự khung nối tiếp masonry (`0`, `1`, ...), không phải ô cột và độ sâu: đổi số cột thì khung thứ k vẫn là item
+k của cùng lưới, nên resize trượt cả card và khung như một masonry (owner 10/10). Band gắn với slot, dựng lại giữ band
+cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch chỉ có khi masonry đang hiện, không có khi mở detail.
 
 ```gherkin
 Given masonry kết thúc ở bất kỳ độ cao nào, 2 tới 4 cột

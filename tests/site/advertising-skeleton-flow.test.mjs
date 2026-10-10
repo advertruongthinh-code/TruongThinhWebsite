@@ -242,18 +242,23 @@ for (let depth = 0; depth < 3; depth += 1) {
   assert(row.slice(1).every((frame, index) => frame.band !== row[index].band),
     `aligned skeleton row ${depth} must vary adjacent ratio bands across columns`);
 }
+// Slot là thứ tự khung nối tiếp masonry, nên resize đổi số cột vẫn giữ item k là khung k (owner 10/10).
+assert.deepEqual(frameLayout.map(({ slot }) => slot), frameLayout.map((_, index) => String(index)).filter((slot) =>
+  frameLayout.some((frame) => frame.slot === slot)), "skeleton slots follow masonry order");
+assert.ok(frameLayout.every(({ slot }, index) => index === 0 || Number(slot) > Number(frameLayout[index - 1].slot)),
+  "skeleton slots increase in masonry order");
 const twoColumnLayout = createSkeletonFlowFrameLayout({
   ...frameLayoutInput,
   columnBottoms: frameLayoutInput.columnBottoms.slice(0, 2),
   columns: 2,
+  bandAssignments: new Map(frameLayout.map(({ slot, band }) => [slot, band])),
 });
-assert.deepEqual(
-  twoColumnLayout.filter(({ slot }) => frameLayout.some((frame) => frame.slot === slot))
-    .map(({ slot, band }) => [slot, band]),
-  frameLayout.filter(({ slot }) => twoColumnLayout.some((frame) => frame.slot === slot))
-    .map(({ slot, band }) => [slot, band]),
-  "shared skeleton slots must preserve ratio bands across responsive column counts",
-);
+// Slot chung giữ band, trừ khi cột mới đặt nó ngay dưới khung cùng band (R1).
+for (const frame of twoColumnLayout) {
+  const old = frameLayout.find(({ slot }) => slot === frame.slot);
+  const above = twoColumnLayout.filter(({ column, depth }) => column === frame.column && depth === frame.depth - 1)[0];
+  if (old && above?.band !== old.band) assert.equal(frame.band, old.band, `shared skeleton slot ${frame.slot} keeps its ratio band`);
+}
 const fourColumnResize = createSkeletonFlowFrameLayout({
   columnBottoms: [100, 100, 100, 100], columns: 4, cardWidth: 200, gap: 35,
   boundaryBottom: 900, seed: "visit-4",

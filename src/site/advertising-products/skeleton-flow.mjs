@@ -241,10 +241,14 @@ export function createSkeletonFlowFrameLayout({
       const top = Number(bottoms[column]) + gap;
       if (top >= boundaryBottom) break;
       const depth = depths[column];
-      const slot = `${column}:${depth}`;
+      // Slot là thứ tự khung nối tiếp masonry, không phải ô cột:độ sâu: resize đổi số cột thì khung k vẫn là
+      // item k của cùng một lưới, nên nó trượt cùng card phía trên (owner 10/10).
+      const slot = String(frames.length);
       let source;
       const assignedBand = bandAssignments?.get?.(slot);
-      const preservedBand = SKELETON_RATIO_BANDS.find((band) => band.id === assignedBand);
+      // Band cũ giữ theo slot, trừ khi cột mới đặt nó ngay dưới khung cùng band.
+      const preservedBand = SKELETON_RATIO_BANDS.find((band) => band.id === assignedBand
+        && band.id !== previousBandByColumn.get(column)?.id);
       if (preservedBand) {
         source = preservedBand;
       } else if (candidateSeed === null) {
