@@ -37,6 +37,53 @@
   ];
 
   if (!header || !routeVeil || !dialog || !openButton || !closeButton) return;
+  // Mark cỡ nhỏ (brand.md Logo): header, menu dựng lại 4 dải theo lưới device pixel để đáy
+  // nằm đúng pixel, khe sọc và chu kỳ dải là số nguyên pixel; mark gốc khe 7.48 đơn vị.
+  // ponytail: giả định mép trên svg nằm trên pixel nguyên (đúng ở DPR 1); DPR lẻ có thể lệch dưới 1 device pixel.
+  const brandLockups = [...document.querySelectorAll("[data-site-header] .brand-lockup, #site-menu .brand-lockup")];
+  const brandMarkDeviceHeight = new WeakMap();
+  const snapBrandMark = (svg) => {
+    const paths = [...svg.querySelectorAll(".brand-lockup__mark > path")];
+    const deviceHeight = brandMarkDeviceHeight.get(svg);
+    if (paths.length !== 4 || !deviceHeight) return;
+    // Đơn vị mark sang device pixel: viewBox cao 153.667, mark scale 0.62.
+    const unit = (deviceHeight * 0.62) / 153.667;
+    // Đáy dịch tối đa nửa device pixel về pixel gần nhất; giữ chiều cao, bề rộng mark gốc.
+    const base = Math.round(deviceHeight);
+    const width = (2 * deviceHeight) / Math.sqrt(3);
+    const gap = Math.max(2, Math.round(7.48 * unit));
+    const period = Math.round((width + gap) / 4);
+    // Điểm trên đường song song cạnh trái, đi từ chân x tới cạnh phải tam giác.
+    const toRightEdge = (x) => {
+      const t = (width - x) / 2;
+      return [x + t, base - t * Math.sqrt(3)];
+    };
+    paths.forEach((path, index) => {
+      // DOM: đen, vàng, magenta, cyan; cyan là dải trái nhất.
+      const band = 3 - index;
+      const left = band * period;
+      const right = band === 3 ? width : left + period - gap;
+      const points = [[left, base], [right, base], toRightEdge(right), toRightEdge(left)];
+      path.setAttribute("d", `M${points.map(([x, y]) => `${(x / unit).toFixed(3)} ${(y / unit).toFixed(3)}`).join("L")}Z`);
+    });
+  };
+  if (typeof ResizeObserver !== "undefined") {
+    const brandMarkObserver = new ResizeObserver((entries) => entries.forEach((entry) => {
+      // devicePixelContentBoxSize đã làm tròn; cần chiều cao thật để biết pixel nào là đáy.
+      const deviceHeight = entry.contentRect.height * window.devicePixelRatio;
+      if (!deviceHeight) return;
+      brandMarkDeviceHeight.set(entry.target, deviceHeight);
+      snapBrandMark(entry.target);
+    }));
+    brandLockups.forEach((svg) => {
+      try {
+        brandMarkObserver.observe(svg, { box: "device-pixel-content-box" });
+      } catch {
+        brandMarkObserver.observe(svg);
+      }
+    });
+    runtimeAbort.signal.addEventListener("abort", () => brandMarkObserver.disconnect());
+  }
   const headerLogo = header.querySelector("#header-logo");
   const desktopNav = header.querySelector("#header-menu-items");
   const desktopNavList = desktopNav?.querySelector("ul");
@@ -1972,6 +2019,8 @@
       ),
     );
     if (!persistentReady) return false;
+    // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
+    brandLockups.forEach(snapBrandMark);
     setLanguageFromDocument();
     return true;
   };
