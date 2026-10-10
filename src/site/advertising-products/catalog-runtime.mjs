@@ -1274,6 +1274,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let masonry;
   let scrollFrame = 0;
   let resizeFrame = 0;
+  let lastResizeAt = -Infinity;
   let layoutFrame = 0;
   let motionUntil = 0;
   let lastScrollAt = 0;
@@ -2184,6 +2185,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     node.animate([{ translate: `${dx}px ${dy}px`, scale, transformOrigin: "0 0" }, { translate: "0 0", scale: "1 1", transformOrigin: "0 0" }],
       { duration: 400, easing: "ease" });
   };
+  const cancelCtaSlides = (nodes) => [...nodes].forEach((node) => node.getAnimations().forEach((animation) => {
+    if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
+  }));
   const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
   const renderCtaSkeleton = ({ slide = false } = {}) => {
     if (!ctaSkeleton || !geometry || activePhotoId) {
@@ -2193,9 +2197,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
     const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
-    slideOrigins?.forEach((_, node) => node.getAnimations().forEach((animation) => {
-      if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
-    }));
+    cancelCtaSlides(slideOrigins?.keys() || []);
     const gap = geometry.interCardGap;
     const ctaTop = geometry.totalPixelHeight + gap;
     gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
@@ -3510,7 +3512,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         // nên cả masonry trượt như một khối (đo trên PC, vòng 28).
         geometry?.placements.forEach(({ card, x, y, pixelWidth: w, pixelHeight: h }) => origins.has(card.id) || origins.set(card.id, { x, y, w, h }));
         cancelMotion();
-        measure({ animate: true, origins });
+        // Đang kéo cạnh cửa sổ (relayout bề rộng liên tiếp dưới 250ms): đặt thẳng vị trí mỗi frame, không trượt. Mỗi lần
+        // relayout tốn khoảng 100ms nên trượt 0.4s bị khởi động lại liên tục, item kẹt giữa layout cũ và mới, chồng
+        // nhau (đo trên PC, vòng 44). Resize đơn lẻ vẫn trượt.
+        const now = performance.now();
+        const dragging = now - lastResizeAt < 250;
+        lastResizeAt = now;
+        if (dragging) cancelCtaSlides(ctaSlideNodes());
+        measure({ animate: !dragging, origins });
       } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
