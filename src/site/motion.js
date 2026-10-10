@@ -2347,6 +2347,82 @@
     },
     { passive: true, signal: runtimeAbort.signal },
   );
+  // Autoscroll chuột giữa kiểu Chrome (scroll-feel R6): Locomotive chặn autoscroll native nên đẩy delta
+  // qua đúng đường của wheel; Locomotive không chạy hoặc đang khóa thì để trình duyệt tự lo.
+  let autoscroll;
+  let swallowClick = false;
+  const autoscrollDeadZone = 16;
+  const stopAutoscroll = () => {
+    if (!autoscroll) return;
+    window.cancelAnimationFrame(autoscroll.frame);
+    autoscroll.origin.remove();
+    delete document.documentElement.dataset.autoscroll;
+    autoscroll = undefined;
+  };
+  const stepAutoscroll = (time) => {
+    const { core } = autoscroll;
+    if (core !== pageState?.smoothScroll?.scroll || core.stop) {
+      stopAutoscroll();
+      return;
+    }
+    const distance = autoscroll.mouseY - autoscroll.y;
+    const speed = Math.abs(distance) <= autoscrollDeadZone ? 0
+      : Math.sign(distance) * Math.min((Math.abs(distance) - autoscrollDeadZone) * 6, 6000);
+    document.documentElement.dataset.autoscroll = speed < 0 ? "up" : speed > 0 ? "down" : "idle";
+    const seconds = Math.min(0.1, (time - (autoscroll.time ?? time)) / 1000);
+    autoscroll.time = time;
+    if (speed && seconds) {
+      // updateDelta trừ deltaY × multiplier như một sự kiện wheel đảo chiều của virtual-scroll.
+      core.updateDelta({ deltaX: 0, deltaY: -speed * seconds / core.multiplier });
+      if (!core.isScrolling) core.startScrolling();
+    }
+    autoscroll.frame = window.requestAnimationFrame(stepAutoscroll);
+  };
+  document.addEventListener("mousedown", (event) => {
+    if (autoscroll) {
+      // Cú nhấn dừng autoscroll không tới link hay nút bên dưới.
+      stopAutoscroll();
+      swallowClick = true;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+    swallowClick = false;
+    const core = pageState?.smoothScroll?.scroll;
+    if (event.button !== 1 || !core || core.stop
+      || event.target.closest?.("a[href], button, input, textarea, select, label, dialog, [contenteditable]")) return;
+    event.preventDefault();
+    const origin = document.createElement("div");
+    origin.className = "autoscroll-origin";
+    origin.setAttribute("aria-hidden", "true");
+    origin.style.left = `${event.clientX}px`;
+    origin.style.top = `${event.clientY}px`;
+    origin.innerHTML = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15"/><circle cx="16" cy="16" r="2"/>'
+      + '<path d="M11 10l5-5 5 5M11 22l5 5 5-5"/></svg>';
+    document.body.append(origin);
+    autoscroll = { core, origin, y: event.clientY, mouseY: event.clientY, moved: false };
+    autoscroll.frame = window.requestAnimationFrame(stepAutoscroll);
+  }, { capture: true, signal: runtimeAbort.signal });
+  document.addEventListener("mousemove", (event) => {
+    if (!autoscroll) return;
+    autoscroll.mouseY = event.clientY;
+    if (Math.abs(event.clientY - autoscroll.y) > autoscrollDeadZone) autoscroll.moved = true;
+  }, { passive: true, signal: runtimeAbort.signal });
+  // Nhả chuột giữa trong vùng chết thì vào chế độ dính; đã kéo ra ngoài thì dừng.
+  document.addEventListener("mouseup", (event) => {
+    if (autoscroll && event.button === 1 && autoscroll.moved) stopAutoscroll();
+  }, { signal: runtimeAbort.signal });
+  for (const type of ["click", "auxclick"]) {
+    document.addEventListener(type, (event) => {
+      if (!swallowClick) return;
+      swallowClick = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, { capture: true, signal: runtimeAbort.signal });
+  }
+  for (const type of ["wheel", "keydown", "blur"]) {
+    window.addEventListener(type, stopAutoscroll, { capture: true, passive: true, signal: runtimeAbort.signal });
+  }
   smoothMedia.addEventListener(
     "change",
     () => {
