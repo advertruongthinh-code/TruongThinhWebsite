@@ -547,8 +547,8 @@ function assertPersistentNavigationContracts() {
       /\.brand-lockup\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*auto;[\s\S]*?height:\s*var\(--brand-header-height\);[\s\S]*?overflow:\s*visible;[\s\S]*?fill:\s*currentColor;/.test(
         styleSource,
       ) &&
-      /\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill 1s cubic-bezier\(0\.16, 1, 0\.3, 1\);/.test(
-        styleSource,
+      /path\.animate\(\s*\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \},\s*\{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)", fill: "backwards" \},/.test(
+        motionSource,
       ) &&
       /\.menu-brand\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*max-content;[\s\S]*?justify-self:\s*start;/.test(
         styleSource,
@@ -640,8 +640,8 @@ function assertPersistentNavigationContracts() {
       /gsap\s*\.timeline\(\{[\s\S]*?duration:\s*0\.3,[\s\S]*?ease:\s*"expo\.out"[\s\S]*?\.to\(colorTargets,\s*\{\s*color(?:\s*:\s*color)?\s*\},\s*0\)[\s\S]*?\.to\(strokeTargets,\s*\{\s*stroke:\s*color\s*\},\s*0\)/.test(
         motionSource,
       ) &&
-      /\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill 1s cubic-bezier\(0\.16, 1, 0\.3, 1\);/.test(
-        styleSource,
+      /path\.animate\(\s*\{ clipPath: \["inset\(100% 0 0 0\)", "inset\(0\)"\] \},\s*\{ delay, duration: 1000 - delay, easing: "cubic-bezier\(0\.16, 1, 0\.3, 1\)", fill: "backwards" \},/.test(
+        motionSource,
       ) &&
       /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
       /const isExactCurrentUrl[\s\S]*?normalizePathname\(url\.pathname\)[\s\S]*?url\.search === window\.location\.search/.test(
@@ -10357,23 +10357,9 @@ function assertBrandShellSourceContracts() {
     "Header brand bbox and independent Espacio row-height matrices drifted",
   );
   assert(
-    /\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill\s+1s\s+cubic-bezier\(0\.16, 1, 0\.3, 1\);/.test(
-      styleSource,
-    ) &&
-      /data-logo-motion="sequence"[\s\S]*?path:nth-child\(2\)[\s\S]*?transition-duration:\s*0\.93s;[\s\S]*?transition-delay:\s*0\.07s;/.test(
+    /const delay = index \* 70;/.test(motionSource) &&
+      !/\.brand-lockup__mark path\s*\{[\s\S]*?transition:\s*fill|is-brand-color-reset/.test(
         styleSource,
-      ) &&
-      /data-logo-motion="sequence"[\s\S]*?path:nth-child\(3\)[\s\S]*?transition-duration:\s*0\.86s;[\s\S]*?transition-delay:\s*0\.14s;/.test(
-        styleSource,
-      ) &&
-      /data-logo-motion="sequence"[\s\S]*?path:nth-child\(4\)[\s\S]*?transition-duration:\s*0\.79s;[\s\S]*?transition-delay:\s*0\.21s;/.test(
-        styleSource,
-      ) &&
-      !/data-logo-motion="(?:crossfade|wipe)"|brand-lockup-mark-color-wipe/.test(
-        styleSource,
-      ) &&
-      /header\.setAttribute\(\s*"data-logo-motion",\s*"sequence"\s*\)/.test(
-        motionSource,
       ) &&
       !/logoMotionVariants|searchParams\.get\(\s*"logo-motion"|playHeaderMarkColorMotion/.test(
         motionSource,
@@ -10386,7 +10372,7 @@ function assertBrandShellSourceContracts() {
         motionSource,
       ) &&
       /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
-      /function syncHeaderBrandSurface\(whiteSurface,[\s\S]*?replayHeaderBrandColor\(\)/.test(
+      /function syncHeaderBrandSurface\(whiteSurface\)[\s\S]*?paintHeaderMark\("is-brand-color", \{ from: markBlack \}\)/.test(
         motionSource,
       ) &&
       /classList\.toggle\(\s*"is-logo-ink"\s*,\s*collapsed\s*\)/.test(
@@ -11035,16 +11021,14 @@ async function runBrandColorMotionCheck() {
               window.__ttWhiteSurfaceLogoTrace.samples.push({
                 elapsed,
                 fills: paths.map((path) => getComputedStyle(path).fill),
+                underlay: [
+                  ...document.querySelectorAll(
+                    "#header-logo .brand-lockup__mark-underlay path",
+                  ),
+                ].map((path) => path.getAttribute("fill")),
                 totals: paths.map((path) => {
-                  const style = getComputedStyle(path);
-                  const seconds = (value) =>
-                    value.endsWith("ms")
-                      ? Number.parseFloat(value) / 1000
-                      : Number.parseFloat(value);
-                  return (
-                    seconds(style.transitionDuration) +
-                    seconds(style.transitionDelay)
-                  );
+                  const timing = path.getAnimations()[0]?.effect?.getTiming();
+                  return timing ? timing.delay + timing.duration : 0;
                 }),
               });
               if (elapsed < 1_150) requestAnimationFrame(sample);
@@ -11079,24 +11063,18 @@ async function runBrandColorMotionCheck() {
           "rgb(229, 9, 127)",
           "rgb(0, 160, 227)",
         ];
-        const startsBlack = trace.findIndex(
-          ({ fills }) => JSON.stringify(fills) === JSON.stringify(black),
-        );
-        const endsCmyk = trace.findIndex(
-          ({ fills }, index) =>
-            index > startsBlack &&
+        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ.
+        const rising = trace.find(
+          ({ fills, underlay }) =>
+            JSON.stringify(underlay) === JSON.stringify(black) &&
             JSON.stringify(fills) === JSON.stringify(cmyk),
         );
-        const active = trace.find(
-          ({ fills }, index) =>
-            index > startsBlack &&
-            fills.some((fill, pathIndex) => fill !== black[pathIndex]),
-        );
+        const settled = trace.at(-1);
         assert(
-          startsBlack >= 0 &&
-            endsCmyk > startsBlack &&
-            active?.totals.every((total) => Math.abs(total - 1) <= 0.02),
-          `Direct white-surface mark did not replay black-to-CMYK in 1s: ${JSON.stringify({ startsBlack, endsCmyk, active, end: trace.at(-1) })}`,
+          rising?.totals.every((total) => total === 1000) &&
+            settled.underlay.length === 0 &&
+            JSON.stringify(settled.fills) === JSON.stringify(cmyk),
+          `Direct white-surface mark did not rise CMYK over black in 1s: ${JSON.stringify({ rising, settled })}`,
         );
         assertDiagnostics(diagnostics);
       },
@@ -11156,18 +11134,7 @@ async function runBrandColorMotionCheck() {
       await gotoRoute(page, "/vi/");
       await waitForBrandFonts(page);
       const before = await page.evaluate(() => {
-        const readTiming = (path) => {
-          const style = getComputedStyle(path);
-          const milliseconds = (value) =>
-            value.endsWith("ms")
-              ? Number.parseFloat(value)
-              : Number.parseFloat(value) * 1000;
-          return {
-            delay: milliseconds(style.transitionDelay),
-            duration: milliseconds(style.transitionDuration),
-            fill: style.fill,
-          };
-        };
+        const readTiming = (path) => ({ fill: getComputedStyle(path).fill });
         const menuPaths = [
           ...document.querySelectorAll(
             "#site-menu .menu-brand .brand-lockup__mark path",
@@ -11191,10 +11158,7 @@ async function runBrandColorMotionCheck() {
             "rgb(229, 9, 127)",
             "rgb(0, 160, 227)",
           ]) &&
-          before.header.length === 4 &&
-          before.header.every(
-            ({ delay, duration }) => Math.abs(delay + duration - 1000) <= 1,
-          ),
+          before.header.length === 4,
         "Closed hamburger mark or header sequence does not preserve its CMYK/1s color contract: " +
           JSON.stringify(before),
       );
@@ -11407,6 +11371,14 @@ async function runBrandColorMotionCheck() {
             [...document.querySelectorAll("#header-logo .brand-lockup__mark path")].map(
               (path) => getComputedStyle(path).fill,
             ),
+            // Lớp cũ bên dưới cũng là màu đang hiển thị khi mark mọc.
+            [
+              ...document.querySelectorAll(
+                "#header-logo .brand-lockup__mark-underlay path",
+              ),
+            ]
+              .slice(0, 4)
+              .map((path) => path.getAttribute("fill")),
           );
           requestAnimationFrame(sample);
         };
@@ -11446,7 +11418,7 @@ async function runBrandColorMotionCheck() {
   );
 
   await runPageCase(
-    "interrupted mark transition reverses from current fills",
+    "interrupted mark rise keeps the visible layers and rises again from the foot",
     { route: "/vi/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -11457,218 +11429,79 @@ async function runBrandColorMotionCheck() {
         "rgb(0, 160, 227)",
       ];
       const white = cmyk.map(() => "rgb(255, 255, 255)");
+      const readMark = () =>
+        page.evaluate(() => ({
+          fills: [
+            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+          ].map((path) => getComputedStyle(path).fill),
+          times: [
+            ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
+          ].map((path) => Number(path.getAnimations()[0]?.currentTime ?? -1)),
+          underlay: [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark-underlay path",
+            ),
+          ].map((path) => ({
+            fill: path.getAttribute("fill"),
+            clip: path.style.clipPath,
+          })),
+        }));
       await gotoRoute(page, "/vi/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
       await page.waitForFunction(
-        (expected) => {
-          const fills = [
-            ...document.querySelectorAll(
-              "#header-logo .brand-lockup__mark path",
-            ),
-          ].map((path) => getComputedStyle(path).fill);
-          return JSON.stringify(fills) === JSON.stringify(expected);
-        },
-        cmyk,
+        () =>
+          document
+            .querySelector("[data-site-header]")
+            ?.classList.contains("is-brand-color") &&
+          !document.querySelector(".brand-lockup__mark-underlay"),
+        null,
         { timeout: 4_000 },
       );
-      await page.evaluate(() => {
-        document.documentElement.style.scrollBehavior = "auto";
-        const paths = [
-          ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
-        ];
-        const readTransitions = () =>
-          paths.map((path, index) => {
-            const transition = path
-              .getAnimations()
-              .find((animation) => animation.transitionProperty === "fill");
-            const timing = transition?.effect?.getComputedTiming();
-            const keyframes = transition?.effect?.getKeyframes() || [];
-            return {
-              index,
-              activeDurationMs: Number(timing?.activeDuration),
-              nominalDurationMs: Number.parseFloat(getComputedStyle(path).transitionDuration) * 1000,
-              progress: Number(timing?.progress),
-              startFill: keyframes[0]?.fill || "",
-            };
-          });
-        const probe = {
-          phase: "forward",
-          departureStartedAt: 0,
-          reverseStartedAt: 0,
-          events: [],
-          readTransitions,
-        };
-        paths.forEach((path, index) => {
-          path.addEventListener("transitionrun", (event) => {
-            if (event.propertyName === "fill") {
-              probe.events.push({
-                type: event.type,
-                phase: probe.phase,
-                elapsedMs: event.elapsedTime * 1000,
-                index,
-                at: performance.now(),
-              });
-            }
-          });
-          path.addEventListener("transitionend", (event) => {
-            if (event.propertyName === "fill") {
-              probe.events.push({
-                type: event.type,
-                phase: probe.phase,
-                elapsedMs: event.elapsedTime * 1000,
-                index,
-                at: performance.now(),
-              });
-            }
-          });
-        });
-        window.__ttBrandInterruptProbe = probe;
-      });
-      await page.keyboard.press("Home");
-      await page.waitForFunction(
-        () =>
-          !document
-            .querySelector("[data-site-header]")
-            ?.classList.contains("is-collapsed"),
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+      await page.waitForFunction(() =>
+        document
+          .querySelector("[data-site-header]")
+          ?.classList.contains("is-brand-inverse"),
       );
-      await page.waitForFunction((expected) => {
-        const fills = [
-          ...document.querySelectorAll(
-            "#header-logo .brand-lockup__mark path",
-          ),
-        ].map((path) => getComputedStyle(path).fill);
-        const departed = fills.some(
-          (fill, index) => fill !== expected[index],
-        );
-        if (departed) {
-          window.__ttBrandInterruptProbe.departureStartedAt = performance.now();
-        }
-        return departed;
-      }, cmyk);
-      await page.waitForTimeout(450);
-      const intermediate = await page.evaluate(() => ({
-        elapsedMs:
-          performance.now() - window.__ttBrandInterruptProbe.departureStartedAt,
-        forward: window.__ttBrandInterruptProbe.readTransitions(),
-        fills: [
-          ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
-        ].map((path) => getComputedStyle(path).fill),
-      }));
-      assert(
-        intermediate.elapsedMs >= 400 &&
-          intermediate.elapsedMs <= 750 &&
-          intermediate.forward.every(
-            ({ activeDurationMs, progress }) =>
-              Number.isFinite(activeDurationMs) &&
-              activeDurationMs > 0 &&
-              Number.isFinite(progress) &&
-              progress > 0 &&
-              progress < 1,
-          ) &&
-          intermediate.fills.some(
-         (fill, index) => fill !== cmyk[index] && fill !== white[index],
-       ),
-        `Interrupted departure did not expose intermediate computed fills: ${JSON.stringify(intermediate)}`,
-      );
-      await page.evaluate(() => {
-        const probe = window.__ttBrandInterruptProbe;
-        probe.phase = "reverse";
+      await page.waitForTimeout(120);
+      await page.evaluate(() =>
         document
           .querySelector("#tay-nghe")
-          ?.scrollIntoView({ block: "start", behavior: "instant" });
-      });
-      await page.waitForFunction(() =>
-        window.__ttBrandInterruptProbe.events.filter(
-          (event) => event.phase === "reverse" && event.type === "transitionrun",
-        ).length >= 3,
-      );
-      await page.evaluate(
-        () =>
-          new Promise((resolve) =>
-            requestAnimationFrame(() =>
-              requestAnimationFrame(() => {
-                const probe = window.__ttBrandInterruptProbe;
-                probe.reverseStartedAt = Math.min(
-                  ...probe.events
-                    .filter(
-                      (event) =>
-                        event.phase === "reverse" &&
-                        event.type === "transitionrun",
-                    )
-                    .map((event) => event.at),
-                );
-                probe.reverse = probe.readTransitions();
-                resolve();
-              }),
-            ),
-          ),
-      );
-      await page.waitForFunction(() =>
-        window.__ttBrandInterruptProbe.events.filter(
-          (event) => event.phase === "reverse" && event.type === "transitionend",
-        ).length === 4,
+          ?.scrollIntoView({ block: "start", behavior: "instant" }),
       );
       await page.waitForFunction(
-        (expected) => {
-          const fills = [
-            ...document.querySelectorAll(
-              "#header-logo .brand-lockup__mark path",
-            ),
-          ].map((path) => getComputedStyle(path).fill);
-          return JSON.stringify(fills) === JSON.stringify(expected);
-        },
-        cmyk,
-        { timeout: 2_000 },
+        () =>
+          document.querySelectorAll(
+            "#header-logo .brand-lockup__mark-underlay path",
+          ).length === 8,
       );
-      const reverse = await page.evaluate(() => {
-        const probe = window.__ttBrandInterruptProbe;
-        return {
-          elapsedMs: performance.now() - probe.reverseStartedAt,
-          forward: probe.forward,
-          transitions: probe.reverse,
-          events: probe.events,
-        };
-      });
-      const forwardByIndex = new Map(
-        intermediate.forward.map((transition) => [transition.index, transition]),
-      );
-      const reverseEnds = reverse.events.filter(
-        (event) => event.phase === "reverse" && event.type === "transitionend",
-      );
-      const channels = (fill) =>
-        String(fill)
-          .match(/-?\d+(?:\.\d+)?/g)
-          ?.map(Number) || [];
-      const channelDelta = (left, right) => {
-        const a = channels(left);
-        const b = channels(right);
-        return a.length === b.length && a.length > 0
-          ? Math.max(...a.map((value, index) => Math.abs(value - b[index])))
-          : Infinity;
+      const reversed = await readMark();
+      // Lớp cũ gồm CMYK đầy đủ bên dưới và lớp trắng đang mọc dở giữ nguyên clip lúc đổi hướng.
+      const partial = (clip) => {
+        const top = Number.parseFloat(clip.match(/inset\(([\d.]+)%/)?.[1]);
+        return top > 0 && top < 100;
       };
       assert(
-        reverse.transitions.length >= 3 &&
-          reverseEnds.length >= 3 &&
-          reverse.transitions.every((transition) => {
-            const forward = forwardByIndex.get(transition.index);
-            const end = reverseEnds.find(
-              (event) => event.index === transition.index,
-            );
-            return (
-              forward &&
-              Number.isFinite(transition.activeDurationMs) &&
-              transition.activeDurationMs > 0 &&
-              transition.activeDurationMs < transition.nominalDurationMs &&
-              transition.activeDurationMs <= 1000 &&
-              channelDelta(
-                transition.startFill,
-                intermediate.fills[transition.index],
-              ) <= 12 &&
-              end &&
-              Math.abs(end.elapsedMs - transition.activeDurationMs) <= 20
-            );
-          }),
-        `Interrupted reverse reset an endpoint or missed proportional transition completion: ${JSON.stringify({ intermediate, reverse })}`,
+        JSON.stringify(reversed.underlay.slice(0, 4).map(({ fill }) => fill)) ===
+          JSON.stringify(cmyk) &&
+          reversed.underlay.slice(0, 4).every(({ clip }) => clip === "none") &&
+          JSON.stringify(reversed.underlay.slice(4).map(({ fill }) => fill)) ===
+            JSON.stringify(white) &&
+          reversed.underlay.slice(4).some(({ clip }) => partial(clip)) &&
+          JSON.stringify(reversed.fills) === JSON.stringify(cmyk) &&
+          reversed.times.every((time) => time >= 0 && time < 400),
+        `Interrupted rise did not keep the visible layers or restart from the foot: ${JSON.stringify(reversed)}`,
+      );
+      await page.waitForFunction(
+        () => !document.querySelector(".brand-lockup__mark-underlay"),
+        null,
+        { timeout: 2_000 },
+      );
+      const settled = await readMark();
+      assert(
+        JSON.stringify(settled.fills) === JSON.stringify(cmyk) &&
+          settled.times.every((time) => time === -1),
+        `Interrupted rise did not settle to CMYK: ${JSON.stringify(settled)}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -11751,6 +11584,7 @@ async function runBrandColorMotionCheck() {
       const state = await page.evaluate(() => ({
         classes: document.querySelector("[data-site-header]")?.className || "",
         transitions: window.__ttDirectDarkFillTransitions,
+        rising: document.querySelectorAll(".brand-lockup__mark-underlay").length,
         fills: [
           ...document.querySelectorAll("#header-logo .brand-lockup__mark path"),
         ].map((path) => getComputedStyle(path).fill),
@@ -11759,7 +11593,8 @@ async function runBrandColorMotionCheck() {
         state.fills.length === 4 &&
           state.fills.every((fill) => fill === "rgb(255, 255, 255)") &&
           !state.classes.includes("is-brand-color") &&
-          state.transitions === 0,
+          state.transitions === 0 &&
+          state.rising === 0,
         `Direct dark load did not paint white immediately: ${JSON.stringify(state)}`,
       );
       assertDiagnostics(diagnostics);
@@ -11785,9 +11620,19 @@ async function runBrandColorMotionCheck() {
               "#header-logo .brand-lockup__mark path",
             ),
           ].map((path) => getComputedStyle(path).fill);
+          const underlay = [
+            ...document.querySelectorAll(
+              "#header-logo .brand-lockup__mark-underlay path",
+            ),
+          ]
+            .slice(0, 4)
+            .map((path) => path.getAttribute("fill"));
           if (
-            fills.length === 4 &&
-            fills.every((fill) => fill === "rgb(43, 42, 41)")
+            [fills, underlay].some(
+              (layer) =>
+                layer.length === 4 &&
+                layer.every((fill) => fill === "rgb(43, 42, 41)"),
+            )
           ) {
             sessionStorage.setItem(key, "1");
           }
@@ -11812,7 +11657,11 @@ async function runBrandColorMotionCheck() {
               "#header-logo .brand-lockup__mark path",
             ),
           ].map((path) => getComputedStyle(path).fill);
-          return JSON.stringify(fills) === JSON.stringify(expected);
+          // Chờ lớp CMYK mọc xong để vị trí cuộn đã ổn định trước khi rời trang.
+          return (
+            JSON.stringify(fills) === JSON.stringify(expected) &&
+            !document.querySelector(".brand-lockup__mark-underlay")
+          );
         },
         cmyk,
         { timeout: 4_000 },
@@ -12224,36 +12073,6 @@ async function runBrandHeaderBboxMatrixChecks() {
             Math.abs(state.height - 49.641) <= 0.1,
           testCase.name + " must settle without spatial transform: " +
             JSON.stringify(state),
-        );
-        assertDiagnostics(diagnostics);
-      },
-    );
-  }
-
-  for (const testCase of [
-    {
-      name: "brand logo motion defaults to sequence",
-      route: "/vi/",
-      expected: "sequence",
-    },
-    {
-      name: "legacy brand logo motion query cannot override selected sequence",
-      route: "/vi/?logo-motion=wipe",
-      expected: "sequence",
-    },
-  ]) {
-    await runPageCase(
-      testCase.name,
-      { route: testCase.route, viewport: { width: 1440, height: 900 } },
-      async (page) => {
-        const diagnostics = monitorPage(page);
-        await gotoRoute(page, testCase.route);
-        const actual = await page
-          .locator("[data-site-header]")
-          .getAttribute("data-logo-motion");
-        assert(
-          actual === testCase.expected,
-          `${testCase.name} expected ${testCase.expected}, got ${actual}`,
         );
         assertDiagnostics(diagnostics);
       },

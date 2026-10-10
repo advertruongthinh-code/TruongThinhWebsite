@@ -314,51 +314,11 @@ html.route-enter .site-header {
   fill: currentColor;
 }
 
-.brand-lockup__mark path {
-  transition: fill 1s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.site-header[data-logo-motion="sequence"].is-brand-color
-  .brand-lockup__mark
-  path:nth-child(2),
-.site-header[data-logo-motion="sequence"]:not(.is-brand-color)
-  .brand-lockup__mark
-  path:nth-child(3) {
-  transition-duration: 0.93s;
-  transition-delay: 0.07s;
-}
-
-.site-header[data-logo-motion="sequence"].is-brand-color
-  .brand-lockup__mark
-  path:nth-child(3),
-.site-header[data-logo-motion="sequence"]:not(.is-brand-color)
-  .brand-lockup__mark
-  path:nth-child(2) {
-  transition-duration: 0.86s;
-  transition-delay: 0.14s;
-}
-
-.site-header[data-logo-motion="sequence"] .brand-lockup__mark path:nth-child(4) {
-  transition-duration: 0.79s;
-  transition-delay: 0.21s;
-}
-
 .site-header.is-brand-color .brand-lockup {
   --logo-mark-black: #2b2a29;
   --logo-mark-yellow: #ffed00;
   --logo-mark-magenta: #e5097f;
   --logo-mark-cyan: #00a0e3;
-}
-
-.site-header.is-brand-color-reset .brand-lockup {
-  --logo-mark-black: #2b2a29;
-  --logo-mark-yellow: #2b2a29;
-  --logo-mark-magenta: #2b2a29;
-  --logo-mark-cyan: #2b2a29;
-}
-
-.site-header.is-brand-color-reset .brand-lockup__mark path {
-  transition: none;
 }
 
 .site-header.is-brand-inverse .brand-lockup {

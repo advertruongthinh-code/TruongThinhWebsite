@@ -71,7 +71,7 @@ trượt `margin-bottom 0.4s ease-out`
 
 ### Lockup header
 
-Intro, FLIP scale `300ms expo.out`, tone cụm chữ và chuỗi màu bốn path của
+Intro, FLIP scale `300ms expo.out`, tone cụm chữ và bốn dải màu mọc lên của
 mark ở [Brand guideline](brand.md#motion).
 
 ### Full menu
