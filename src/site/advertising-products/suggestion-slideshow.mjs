@@ -82,9 +82,12 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     }, { once: true });
     onVisibility();
   };
+  // Giữ mỗi ảnh đúng 5s theo đồng hồ zoom của chính nút: zoom bị pause khi nút khuất thì nhịp cũng dừng, như timeline hero.
   const timer = setInterval(() => {
-    root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => { void tick(button); });
-  }, 5000);
+    root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => {
+      if (!(zooms.get(button)?.currentTime < 5000)) void tick(button);
+    });
+  }, 200);
   const onVisibility = () => {
     if (isReduced() || preference.matches) { clear(); return; }
     const sync = (animation, button) => {
