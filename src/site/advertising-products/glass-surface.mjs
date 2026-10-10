@@ -8,12 +8,27 @@ const ARC_STEPS = 3;
 // trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.35 trên arc.
 const ARC = Object.freeze({ centre: 0.35, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.35 });
 // Bên trong arc blur tiếp tục tăng từ 28px của band trên arc đến trần 100px trên vòng tròn trắng tinh,
-// qua 1 đến 5 inner step: nhiều như thiết bị này vẽ được ở TARGET_FPS khi arc đang trên màn hình (owner, 06/10).
+// qua tối đa 5 inner step. Máy yếu bớt inner step rồi tới band step, có thể chỉ còn core 28px, để giữ
+// TARGET_FPS khi arc đang trên màn hình (owner 06/10, band từ 10/10).
 const ARC_LEVEL = 28;
 const CEILING = 100;
 const INNER_MAX = 5;
-const TARGET_FPS = 50;
-let fittedInnerSteps;
+// Gate A05s trên 60fps (owner chọn 10/10, docs/decisions/a05s-frame-budget.md).
+const TARGET_FPS = 60;
+const FIT_MAX = INNER_MAX + ARC_STEPS;
+const FIT_KEY = "glass-arc-steps";
+// Phone chỉ vẽ core 28px, không đo: trên A05s đo lúc đang vuốt làm trượt gate, kết quả fit không ổn định
+// và ba lớp blur vẫn dưới 60fps (owner chọn 10/10). Máy khác nhớ số step đã fit qua các lần tải trang,
+// nên chỉ lần đầu phải trả các frame chậm lúc đo.
+let fittedSteps = (() => {
+  try {
+    if (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0) return 0;
+    const stored = localStorage.getItem(FIT_KEY);
+    return stored === null ? undefined : Number(stored);
+  } catch {
+    return undefined;
+  }
+})();
 const geometries = new WeakMap();
 // Vị trí trong band (0 trên arc, 1 ở mép band) nơi mỗi step chạy từ bật hoàn toàn đến tắt; các step lân cận chồng lên nhau.
 const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
@@ -85,14 +100,14 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
   if (shape === "arc") {
     layers.unshift("glass-surface__step glass-surface__step--full",
       ...Array(INNER_MAX).fill("glass-surface__step glass-surface__step--inner"));
-    glass.dataset.glassInnerSteps = String(fittedInnerSteps || INNER_MAX);
+    glass.dataset.glassSteps = String(fittedSteps ?? FIT_MAX);
   }
   glass.append(
     ...layers.map((className) => Object.assign(document.createElement("i"), { className })),
     Object.assign(document.createElement("i"), { className: "glass-surface__tint" }),
     Object.assign(document.createElement("i"), { className: "glass-surface__grain" }),
   );
-  if (shape === "arc" && !fittedInnerSteps && typeof IntersectionObserver === "function") {
+  if (shape === "arc" && fittedSteps === undefined && typeof IntersectionObserver === "function") {
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return;
       observer.disconnect();
@@ -120,17 +135,21 @@ const medianFps = (frames) => new Promise((resolve) => {
   requestAnimationFrame(tick);
 });
 
-// Bắt đầu ở năm inner step và bớt một khi rate còn dưới target; số đếm giữ nguyên suốt đời trang.
+// Bắt đầu với mọi inner step và band step, bớt một khi rate còn dưới target (inner trước, rồi band từ
+// step ngoài cùng); core luôn còn.
 async function fitInnerSteps(glass) {
-  let steps = INNER_MAX;
+  let steps = FIT_MAX;
   for (;;) {
     await medianFps(10);
-    if (steps === 1 || await medianFps(45) >= TARGET_FPS) break;
+    if (steps === 0 || await medianFps(45) >= TARGET_FPS) break;
     steps -= 1;
-    glass.dataset.glassInnerSteps = String(steps);
+    glass.dataset.glassSteps = String(steps);
     if (geometries.has(glass)) layoutArcGlass(glass, geometries.get(glass));
   }
-  fittedInnerSteps = steps;
+  fittedSteps = steps;
+  try {
+    localStorage.setItem(FIT_KEY, String(steps));
+  } catch {}
 }
 
 // CSS cubic-bezier(x1, y1, x2, y2) như hàm của thời gian; x đơn điệu, nên bisection tìm ra tham số.
@@ -214,7 +233,9 @@ export function layoutArcGlass(glass, geometry) {
   const coreTop = Math.max(top, cy - radius - CORE_REACH);
   place(coreStep, coreTop);
   setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
+  const fit = Number(glass.dataset.glassSteps ?? FIT_MAX);
   steps.forEach((step, index) => {
+    step.hidden = index < ARC_STEPS - Math.min(fit, ARC_STEPS);
     const outer = radius + RAMPS[index][1] * band;
     place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
     setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
@@ -222,7 +243,7 @@ export function layoutArcGlass(glass, geometry) {
   });
   // Inner step: level n trên N là ARC_LEVEL + (CEILING - ARC_LEVEL) n / N, mỗi step thêm increment cầu phương của nó và
   // vào dần trong phần của nó trên đường từ arc đến vòng tròn trắng tinh; các step lân cận chồng nhau như RAMPS.
-  const count = Number(glass.dataset.glassInnerSteps) || INNER_MAX;
+  const count = Math.max(0, fit - ARC_STEPS);
   const span = Math.max(1, radius - dFull);
   const level = (n) => ARC_LEVEL + (CEILING - ARC_LEVEL) * n / count;
   inner.forEach((step, index) => {
