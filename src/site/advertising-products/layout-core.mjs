@@ -1,3 +1,6 @@
+//# allFunctionsCalledOnLoad
+// Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
+// (khoảng 20% task click khi mở detail; decision a05s-frame-budget).
 export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v14";
 const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
 const ADVERTISING_MIN_COLUMNS = 2;

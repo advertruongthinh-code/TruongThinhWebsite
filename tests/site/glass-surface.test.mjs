@@ -11,7 +11,7 @@ const runtime = await read("advertising-products/catalog-runtime.mjs");
 // R1: chỉ các glass step sở hữu backdrop-filter; nền viewer không blur (decision a05s-frame-budget).
 const owners = [...css.matchAll(/([^{}]+)\{[^}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
 assert.deepEqual([...new Set(owners)].sort(),
-  [".glass-surface__step", ".glass-surface__step--full"],
+  [".glass-surface__step", ".glass-surface__step--baked", ".glass-surface__step--full"],
   "R1: no surface writes its own backdrop-filter");
 // Surface một step blur qua tích của các step (các check tone bên dưới).
 assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var\(--glass-full-blur\)\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,

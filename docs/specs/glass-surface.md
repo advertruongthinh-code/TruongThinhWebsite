@@ -165,7 +165,10 @@ trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng h
 gate [A05s trên 60fps](../decisions/a05s-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi gate, owner chọn ba
 bậc cho dạng cung). Số bậc trong cung tự chọn theo máy (R2) để giữ gate; trần
-`100px` của dạng phủ đều và ảnh nền primary chưa đo trên A05s. Có tiền tố
+`100px` của ảnh nền primary chưa đo trên A05s. Kính hiện/tan trên primary detail: năm bậc `backdrop-filter`
+phủ cả hero rơi gate pha mở (A05s p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
+là ảnh mới vẽ `1/8` rồi phóng 8 lần với `filter` blur cộng dồn bằng bậc gốc, trên nền màu skeleton, hiện theo
+crossfade của ảnh (`glass-surface__step--baked`); đo được 4-12% frame chậm. Kính hiện/tan trên card giữ năm bậc. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
