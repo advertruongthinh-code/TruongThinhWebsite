@@ -116,11 +116,12 @@ Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), c�
 Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
-tính từ lúc mount: ảnh hero `scale 1.2 → 1.005` trong 2,5s; kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
+tính từ lúc mount: ảnh hero About `scale 1.2 → 1.005` trong 2,5s (ảnh hero Residential, Commercial đứng yên, không zoom); kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
 Residential, Commercial tách `h1` theo từ, hiện dần tại 0,9s; About không tách nên `h1` hiện ngay. `zoom-09` khác
 `words-09` chỉ ở chỗ xóa transform GSAP còn sót trên ảnh hero. Tải trực tiếp: entrance chạy song song lúc veil mở; hero
 không có nhánh intro riêng nên việc `route-enter` bỏ header intro ([shell](site-shell.md#gate-còn-mở)) không chạm hero.
-Scroll cue như [trang chủ R4](page-home.md#r4-hero-vào-trang-và-scroll-cue), bấm thì cuộn tới khối ngay sau hero.
+Scroll cue như [trang chủ R4](page-home.md#r4-hero-vào-trang-và-scroll-cue), bấm thì cuộn tới khối ngay sau hero. Intro xong, resize
+cửa sổ thì tiêu đề hero mọi trang (kể cả Advertising) về chỗ mới ngay, không trượt.
 
 ```gherkin
 Given /vi/residential/ ở 1440px, không reduced motion
@@ -212,7 +213,7 @@ Then caption trắng hiện ngay trên media-loading-surface, ảnh opacity 0 t�
 Reduced motion: không `motion-enabled`, không tách chữ, mọi target reveal ở trạng thái cuối; ảnh hero, ảnh About
 không scale; `.detail-media img` vừa khung; gallery cuộn tức thì; marquee đứng; không Locomotive. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): `detail.js` mount settled, CSS đưa mọi target
-reveal, dòng, từ về trạng thái cuối, ảnh hero scale 1.005. Không JavaScript: chữ, ảnh hiện đủ, ảnh hero không scale.
+reveal, dòng, từ về trạng thái cuối, ảnh hero About scale 1.005. Không JavaScript: chữ, ảnh hiện đủ, ảnh hero không scale.
 GSAP có mà SplitText lỗi tải: chữ giữ nguyên, hiện ngay; reveal ảnh, kicker, hero vẫn chạy.
 
 ```gherkin
@@ -226,7 +227,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `body[data-detail-hero-profile]` (`words-09`, `zoom-09`; `words-06` của Advertising) | Nhịp hero (R5); `detail.js` đọc |
-| DOM hook | `[data-motion-hero-media]`, `[data-motion-hero-kicker]`, `[data-motion-hero-title]`, `.detail-hero-line-mask`, `[data-scroll-cue]` | Hero (R5) |
+| DOM hook | `[data-motion-hero-media]` (chỉ About), `[data-motion-hero-kicker]`, `[data-motion-hero-title]`, `.detail-hero-line-mask`, `[data-scroll-cue]` | Hero (R5) |
 | DOM hook | `[data-motion-lines]`, `[data-motion-words]`, `[data-motion-*-source]`, `[data-motion-fade]`, `[data-motion-up]`, `[data-motion-media]`, `data-motion-delay`, `data-scroll-speed` | Reveal, parallax (R6) |
 | DOM hook | `[data-gallery]`, `[data-gallery-track]`, `[data-gallery-prev]`, `[data-gallery-next]` | Gallery (R7) |
 | Class runtime | `motion-line`, `motion-word`, `is-motion-inview`, `is-motion-ready`, `is-dragging`, `is-overlay-media-ready` | `detail.js`, `motion.js` ghi |
@@ -251,7 +252,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R2 | `assertPersistentNavigationContracts`, `TT_E2E_RESIDENTIAL_HERO_ONLY`, `TT_E2E_COMMERCIAL_HERO_ONLY` (đỏ, xem Gate); thứ tự khối chưa có test |
 | R3 | `TT_E2E_DETAIL_HERO_ONLY` (một cue, không chapter; đỏ, xem Gate); thứ tự khối chưa có test |
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
-| R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_M1_ONLY`, `TT_E2E_WHEEL_ONLY` (`.hero-slides`) |
+| R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_M1_ONLY`, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About; đỏ trong M1, xem Gate) |
 | R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
