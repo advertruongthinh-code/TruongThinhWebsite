@@ -2616,8 +2616,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const gridWidth = viewportWidth - (2 * outer);
     const suggestionWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
     photoView.style.setProperty("--gutter", `${outer}px`);
-    const headerPadding = matchMedia("(max-width: 750px)").matches ? 15 : matchMedia("(max-width: 1200px)").matches ? 25 : 35;
-    const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-row-height")) + headerPadding;
+    // Header trên detail luôn thu gọn: padding 10px trên, dưới và viền 1px (advertising-detail R10).
+    const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) + 21;
     const viewStyle = getComputedStyle(photoView);
     const suggestionParent = suggestionInRelated ? relatedGrid : photoInfo;
     if (suggestionNode && suggestionParent && suggestionNode.parentElement !== suggestionParent) {

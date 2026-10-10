@@ -611,7 +611,7 @@ function assertPersistentNavigationContracts() {
     "Desktop nav focus must match the live outline-only state without opening the hover underline",
   );
   assert(
-    /const collapsed = scrollY > 100;/.test(motionSource) &&
+    /const collapsed = scrollY > 100 \|\| document\.body\.classList\.contains\("is-advertising-photo"\);/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
       /directionStartY - scrollY > 150/.test(motionSource) &&
       /const isMiddle =\s*scrollY > window\.innerHeight \* 0\.5 &&\s*scrollY < pageHeight - window\.innerHeight \* 1\.25;/.test(

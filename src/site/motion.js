@@ -365,7 +365,8 @@
     const activeSection = toneRanges.find(
       ({ top, bottom }) => top <= probeY && bottom > probeY,
     )?.section;
-    const collapsed = scrollY > 100;
+    // Detail ảnh Advertising không có hero nên header luôn thu gọn (advertising-detail R10).
+    const collapsed = scrollY > 100 || document.body.classList.contains("is-advertising-photo");
     const ink =
       (routeTransitionActive && !routeDestinationReady) ||
       collapsed ||
