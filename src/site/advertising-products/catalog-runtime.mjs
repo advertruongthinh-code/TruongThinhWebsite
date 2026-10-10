@@ -24,7 +24,7 @@ import {
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
-import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
+import { arcGlassGeometry, bakeArcGlass, clearArcGlassBake, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 
 let activeInstance;
 let lastClosedPhotoId = null;
@@ -1534,6 +1534,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const skeletonAssignmentByKey = new Map();
   // Theo key chứ không theo frame: card ra vào view tạo frame mới cho cùng media, nên cache theo frame luôn trượt.
   const skeletonStillByKey = new Map();
+  const arcBakedFrames = new Set();
   const resetSkeletonAssignments = () => {
     skeletonAssignmentByKey.clear();
     revealedSkeletonSlots.clear();
@@ -1703,11 +1704,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
-      if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
+      if (visibleSkeletonFrames.has(frame) && !arcBakedFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
     // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport. Dùng lại rect đã đọc
     // trước khi append canvas: đọc lại ép thêm một layout (A05s, decision a05s-frame-budget).
-    const prioritized = [...visibleSkeletonFrames].filter((frame) => skeletonAssignmentByFrame.has(frame))
+    const prioritized = [...visibleSkeletonFrames]
+      .filter((frame) => skeletonAssignmentByFrame.has(frame) && !arcBakedFrames.has(frame))
       .map((frame) => ({ frame, rect: rects?.get(frame) ?? frame.getBoundingClientRect() }))
       .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left)
       .map(({ frame }) => frame)
@@ -1930,6 +1932,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const arcObserver = arcTint && new IntersectionObserver(([entry]) => {
     arcInView = entry.isIntersecting;
     if (arcInView) grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
+    scheduleArcBake();
   });
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
@@ -1952,6 +1955,60 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     return glass;
   };
+  // Phone (owner 10/10): khi cung trên màn hình và swipe đã dừng, các frame dưới cung thành ảnh tĩnh và
+  // arc dùng ảnh nhòe dựng sẵn của chúng thay cho backdrop-filter. Trước đó arc giữ core 28px.
+  let arcBakeTimer = 0;
+  let arcBakeRun = 0;
+  const clearArcBake = () => {
+    arcBakeRun += 1;
+    clearTimeout(arcBakeTimer);
+    arcBakeTimer = 0;
+    arcBakedFrames.clear();
+    clearArcGlassBake(arcGlass);
+  };
+  const bakeArc = async () => {
+    const run = arcBakeRun;
+    const box = arcGlass.getBoundingClientRect();
+    const bandTop = arcTint.getBoundingClientRect().top;
+    const frames = [...skeletonFrameBySlot.values()]
+      .map((frame) => ({ frame, rect: frame.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.bottom > bandTop);
+    frames.forEach(({ frame }) => {
+      arcBakedFrames.add(frame);
+      releaseSkeletonRenderer(frame);
+    });
+    // Mỗi ảnh tĩnh là một lần render CPU: vẽ một frame mỗi task (advertising-skeleton R8), bake ở task sau cùng.
+    const pending = frames.find(({ frame }) => !skeletonAssignmentByFrame.has(frame));
+    if (pending) {
+      assignSkeleton(pending.frame);
+      arcBakeTimer = setTimeout(() => {
+        arcBakeTimer = 0;
+        if (run === arcBakeRun) bakeArc().catch(() => {});
+      });
+      return;
+    }
+    const cards = await Promise.all(frames.map(async ({ frame, rect }) => {
+      const canvas = frame.querySelector("canvas");
+      const image = new Image();
+      image.src = canvas.style.backgroundImage.slice(5, -2);
+      await image.decode();
+      return { left: rect.left - box.left, top: rect.top - box.top, width: rect.width, height: rect.height,
+        color: canvas.style.backgroundColor, image };
+    }));
+    if (run !== arcBakeRun || !arcInView) return;
+    bakeArcGlass(arcGlass, cards, getComputedStyle(document.body).backgroundColor);
+    syncSkeletonMotion();
+  };
+  const scheduleArcBake = () => {
+    if (!arcGlass || arcGlass.dataset.glassSteps !== "0" || !arcInView || arcBakeTimer
+      || arcGlass.dataset.glassBaked || controller.signal.aborted) return;
+    arcBakeTimer = setTimeout(() => {
+      arcBakeTimer = 0;
+      if (phoneScrollWait() > 0) scheduleArcBake();
+      else bakeArc().catch(() => {});
+    }, Math.max(0, phoneScrollWait()));
+  };
+  controller.signal.addEventListener("abort", () => clearTimeout(arcBakeTimer), { once: true });
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
@@ -2146,6 +2203,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const clusterBottom = skeletonBoundaryBottom - baselineGap + ctaCopyMetrics.below;
       // Hiện trước khi đo: box ẩn không có width.
       arcGlass.hidden = false;
+      clearArcBake();
       layoutArcGlass(arcGlass, arcGlassGeometry({
         width: arcGlass.clientWidth,
         batchBottom: skeletonBoundaryBottom,
@@ -2154,6 +2212,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         clusterTop: clusterBottom - ctaCopyMetrics.baseline - ctaCopyMetrics.below,
         clusterBottom,
       }));
+      scheduleArcBake();
     }
     ctaSkeleton.style.height = `${skeletonBoundaryBottom}px`;
     grid.style.height = `${gridPixelHeight}px`;

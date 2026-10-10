@@ -107,6 +107,8 @@ làm trễ nhịp trượt. Trong lúc chờ context, khung hiện frame tĩnh l
 hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
 gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó. Điện thoại hoãn như vậy (A05s, 10/10):
 "cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt không có `scrollend` thì `120ms` sau scroll event cuối.
+Khi Kính cung đã dùng ảnh nhòe dựng sẵn trên điện thoại ([glass-surface R2](glass-surface.md#r2-dạng-cung-nền-cho-cụm-cta-nhòe-tăng-dần)),
+các khung từ mép band trở xuống giữ frame tĩnh, không dựng renderer, để khớp ảnh đã bake (owner, 10/10).
 
 ```gherkin
 Given điện thoại 838px ngang
