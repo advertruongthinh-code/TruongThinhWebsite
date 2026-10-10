@@ -168,8 +168,8 @@ Then không có biểu tượng gốc
 
 Chuẩn cuộn và quy tắc parallax ghi ở [Motion](../../design-system/motion.md#smooth-scroll-và-parallax). Link khối
 "Giữ nghề" dùng phụ đề portal trang chủ, focus ring chung của site. Biểu tượng gốc R6 là vòng tròn 48px,
-nền `white`, viền `ink` 2px, hai tam giác đặc `ink` (rộng 16px, cao 8px, đỉnh cách mép 8px) và chấm tròn `ink` 8px ở
-tâm, không animation khi hiện hoặc ẩn. Không dùng nét mảnh dưới 2px; cạnh đáy tam giác nằm trên lưới 4px; vị trí
+nền `ink`, viền `white` 2px, hai tam giác đặc `white` (rộng 16px, cao 8px, đỉnh cách mép 8px) và chấm tròn `white`
+8px ở tâm, không animation khi hiện hoặc ẩn. Không dùng nét mảnh dưới 2px; cạnh đáy tam giác nằm trên lưới 4px; vị trí
 làm tròn theo pixel màn hình, nên không răng cưa ở tỉ lệ 100%, 125%, 150%, 200%.
 
 ## Kiểm tra
