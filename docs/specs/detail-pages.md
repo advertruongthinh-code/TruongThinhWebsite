@@ -198,7 +198,7 @@ giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút d�
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
-`is-overlay-media-ready` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
+`is-overlay-media-ready`, riêng ảnh hero chỉ chờ `is-media-settled` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
 cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin

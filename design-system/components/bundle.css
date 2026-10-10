@@ -6124,12 +6124,15 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   }
 }
 
+/* Ảnh hero đã được script head đánh dấu settled (load và decode xong) thì không chờ motion.js nữa,
+   tránh pha hiện, ẩn, hiện lại khi motion.js chạy. */
 @media (scripting: enabled) {
   html:not(.motion-fallback)
     .hero:not(
       :has(
         .hero-slide.is-active img.is-overlay-media-ready,
-        .about-hero__media img.is-overlay-media-ready
+        .about-hero__media img.is-overlay-media-ready,
+        :is(.hero-slide.is-active, .about-hero__media) picture.is-media-settled > img
       )
     )
     .hero-shade,
@@ -6156,7 +6159,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .detail-cta > picture > img,
       .legacy-closer > img,
       .legacy-closer > picture > img
-    ):not(.is-overlay-media-ready),
+    ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img),
   html:not(.motion-enabled):not(.motion-fallback)
     :is(
       .hero-slide img,
@@ -6169,7 +6172,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .detail-cta > picture > img,
       .legacy-closer > img,
       .legacy-closer > picture > img
-    ):not(.is-overlay-media-ready) {
+    ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img) {
     opacity: 0;
   }
 }
