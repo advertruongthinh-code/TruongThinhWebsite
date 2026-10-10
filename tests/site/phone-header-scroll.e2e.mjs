@@ -1,4 +1,4 @@
-// Header đi theo quãng cuộn trên điện thoại (docs/specs/phone-header-scroll.md R1-R4).
+// Header đi theo quãng cuộn trên điện thoại (docs/specs/phone-header-scroll.md R1-R4, R6).
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -32,6 +32,17 @@ try {
     const page = await open(viewport, true);
     try {
       assert.equal((await headerBox(page)).top, 0, `${label}: header fully visible at page top`);
+      // R6: một chiều cao header trên điện thoại, logo cùng cỡ trước và sau mốc thu gọn 100px.
+      const size = () => page.evaluate(() => {
+        const header = document.querySelector("[data-site-header]");
+        const logo = header.querySelector(".brand-lockup").getBoundingClientRect();
+        return { header: header.offsetHeight, logo: [Math.round(logo.width), Math.round(logo.height)] };
+      });
+      const topSize = await size();
+      await scrollTo(page, 150);
+      assert.ok(await page.evaluate(() => document.querySelector("[data-site-header]").classList.contains("is-collapsed")));
+      assert.deepEqual(await size(), topSize, `${label}: collapsing keeps header and logo size (R6)`);
+      await scrollTo(page, 0);
       await scrollTo(page, 30);
       assert.equal((await headerBox(page)).top, -30, `${label}: scrolling 30px shifts the header 30px (R2)`);
       await scrollTo(page, 20);
@@ -63,6 +74,11 @@ try {
 
   const desktop = await open({ width: 1440, height: 900 }, false);
   try {
+    const tall = await desktop.evaluate(() => document.querySelector("[data-site-header]").offsetHeight);
+    await scrollTo(desktop, 150);
+    assert.ok(await desktop.evaluate(() => document.querySelector("[data-site-header]").offsetHeight) < tall,
+      "1440px mouse: collapsing still shrinks the header (R6 is phone only)");
+    await scrollTo(desktop, 0);
     await scrollTo(desktop, 30);
     assert.equal((await headerBox(desktop)).top, 0, "1440px mouse: header follows Shell R3, not the scroll");
     assert.equal(await desktop.evaluate(() => document.querySelector("[data-site-header]").classList.contains("is-follow")), false);

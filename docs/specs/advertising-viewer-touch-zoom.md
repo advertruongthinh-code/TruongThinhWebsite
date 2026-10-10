@@ -275,7 +275,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 ## Gate còn mở
 
 
-- A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud.
+- A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud, gồm Fit chạm cạnh R8 (2026-10-10).
 - R4 chạm đúp, vùng chết pan, ngưỡng xoay R11 (owner 10/10/2026: chạm đúp bị pan, zoom bị xoay) và R7 chạm một lần mở
   chưa kiểm trên A05s thật; ngưỡng có thể chỉnh theo cảm nhận của owner trên demo.
 - R4 chạm một lần và R11 xoay chưa kiểm trên A05s thật (dọc và ngang) và chưa đo fps theo

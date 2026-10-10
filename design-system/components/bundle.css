@@ -2438,6 +2438,26 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
+/* Điện thoại dọc và ngang: header đầu trang cao bằng header thu gọn, chỉ nền, viền và màu đổi khi qua 100px;
+   lockup cùng cỡ nên FLIP scale không chạy (phone-header-scroll R6). */
+@media (hover: none) and (pointer: coarse) and (max-width: 750px),
+  (hover: none) and (pointer: coarse) and (max-height: 750px) {
+  .site-header {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    grid-template-rows: var(--header-collapsed-row-height);
+    border-bottom: 1px solid transparent;
+  }
+
+  .site-header .brand-lockup {
+    height: min(49.640625px, var(--header-collapsed-row-height));
+  }
+
+  .site-header .brand {
+    align-self: center;
+  }
+}
+
 @media (max-width: 750px) {
   :root {
     --brand-header-height: 57.59375px;
