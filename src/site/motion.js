@@ -37,7 +37,6 @@
   ];
 
   if (!header || !routeVeil || !dialog || !openButton || !closeButton) return;
-  header.setAttribute("data-logo-motion", "sequence");
   const headerLogo = header.querySelector("#header-logo");
   const desktopNav = header.querySelector("#header-menu-items");
   const desktopNavList = desktopNav?.querySelector("ul");
@@ -96,8 +95,6 @@
   let routeInFlight = false;
   let routeDestinationReady = false;
   let routeMountReady = false;
-  let headerBrandColorFrame;
-  let headerBrandColorActivationFrame;
   let lastHeaderWhiteSurface;
   let hardFallbackPending = false;
   let menuTimeline;
@@ -436,63 +433,63 @@
     ticking = true;
     window.requestAnimationFrame(() => updateHeader());
   };
-  const cancelHeaderBrandColorFrames = () => {
-    window.cancelAnimationFrame(headerBrandColorFrame);
-    window.cancelAnimationFrame(headerBrandColorActivationFrame);
-    headerBrandColorFrame = undefined;
-    headerBrandColorActivationFrame = undefined;
-  };
-  const setHeaderBrandInverse = () => {
-    cancelHeaderBrandColorFrames();
-    header.classList.remove("is-brand-color");
-    header.classList.add("is-brand-inverse");
-    if (lastHeaderWhiteSurface !== undefined) {
-      header.classList.remove("is-brand-color-reset");
-      return;
-    }
-    header.classList.add("is-brand-color-reset");
-    // Style flush bắt đầu transition fill từ màu reset mà không ép layout.
-    void getComputedStyle(header).color;
-    headerBrandColorFrame = window.requestAnimationFrame(() => {
-      headerBrandColorFrame = undefined;
-      header.classList.remove("is-brand-color-reset");
-    });
-  };
-  const setHeaderBrandColor = () => {
-    cancelHeaderBrandColorFrames();
-    header.classList.remove("is-brand-color-reset", "is-brand-inverse");
-    header.classList.add("is-brand-color");
-  };
-  const replayHeaderBrandColor = () => {
-    cancelHeaderBrandColorFrames();
+  const headerMark = header.querySelector(".brand-lockup__mark");
+  const headerMarkPaths = [...(headerMark?.querySelectorAll("path") || [])];
+  const markBlack = headerMarkPaths.map(() => "rgb(43, 42, 41)");
+  let headerMarkUnderlay;
+  let headerMarkRise = 0;
+  // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, phủ lớp đang hiển thị (brand.md Motion).
+  const paintHeaderMark = (
+    className,
+    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true } = {},
+  ) => {
+    // Đọc clip đang chạy trước khi hủy để giữ đúng phần lớp mới đã mọc khi đổi hướng giữa chừng.
+    const clips = headerMarkPaths.map((path) => getComputedStyle(path).clipPath);
     header.classList.remove("is-brand-color", "is-brand-inverse");
-    header.classList.add("is-brand-color-reset");
-    // Style flush bắt đầu transition fill từ màu reset mà không ép layout.
-    void getComputedStyle(header).color;
-    headerBrandColorFrame = window.requestAnimationFrame(() => {
-      headerBrandColorFrame = undefined;
-      header.classList.remove("is-brand-color-reset");
-      headerBrandColorActivationFrame = window.requestAnimationFrame(() => {
-        headerBrandColorActivationFrame = undefined;
-        header.classList.add("is-brand-color");
-      });
-    });
+    header.classList.add(className);
+    if (!rise || reduceMotion || !headerMark) return;
+    if (!headerMarkUnderlay) {
+      headerMarkUnderlay = headerMark.cloneNode(false);
+      headerMarkUnderlay.removeAttribute("id");
+      headerMarkUnderlay.setAttribute("class", "brand-lockup__mark-underlay");
+      headerMark.before(headerMarkUnderlay);
+    }
+    const token = ++headerMarkRise;
+    Promise.all(headerMarkPaths.map((path, index) => {
+      const layer = path.cloneNode(false);
+      layer.setAttribute("fill", from[index]);
+      layer.style.clipPath = clips[index];
+      headerMarkUnderlay.append(layer);
+      path.getAnimations().forEach((animation) => animation.cancel());
+      // Dải 1 đen tới 4 cyan bắt đầu lệch 0.07s, cả bốn cùng xong ở 1s.
+      const delay = index * 70;
+      return path.animate(
+        { clipPath: ["inset(100% 0 0 0)", "inset(0)"] },
+        { delay, duration: 1000 - delay, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "backwards" },
+      ).finished;
+    })).then(() => {
+      if (token !== headerMarkRise) return;
+      headerMarkUnderlay.remove();
+      headerMarkUnderlay = undefined;
+    }, () => {});
   };
-  function syncHeaderBrandSurface(whiteSurface, { replay = false } = {}) {
+  function syncHeaderBrandSurface(whiteSurface) {
     if (whiteSurface) {
-      if (replay || lastHeaderWhiteSurface === undefined) {
-        replayHeaderBrandColor();
+      if (lastHeaderWhiteSurface === undefined) {
+        // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
+        paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
         lastHeaderWhiteSurface !== true ||
         !header.classList.contains("is-brand-color")
       ) {
-        setHeaderBrandColor();
+        paintHeaderMark("is-brand-color");
       }
     } else if (
       lastHeaderWhiteSurface !== false ||
       !header.classList.contains("is-brand-inverse")
     ) {
-      setHeaderBrandInverse();
+      // Mở trang trên nền ảnh: vẽ trắng ngay, không chuyển động.
+      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined });
     }
     lastHeaderWhiteSurface = whiteSurface;
   };
