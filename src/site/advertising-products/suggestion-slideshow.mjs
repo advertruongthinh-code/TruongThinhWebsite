@@ -13,14 +13,19 @@ export function suggestionDeck(key, cards) {
 const covered = () => document.querySelector("dialog[open]") !== null;
 
 // Nhịp và easing lấy theo hero trang chủ (motion.js): mỗi 5s chuyển mờ 1.6s power2.inOut, ảnh mới zoom 1.06 -> 1
-// trong 6.6s sine.inOut từ frame đầu crossfade. Ảnh đầu đã settle giữ scale 1 như slide hero settle.
+// trong 6.6s sine.inOut từ frame đầu crossfade; ảnh đầu zoom ngay lúc mount. Bộ một ảnh crossfade sang chính nó
+// để vòng zoom out vẫn lặp như hero.
 export function mountSuggestionSlides(root, { cards, createImage, isReduced, signal }) {
   const pending = new Map();
   const zooms = new Map();
   let stopped = false;
+  const zoom = image => image.animate([{ transform: "scale(1.06)" }, { transform: "scale(1)" }], {
+    duration: 6600, easing: "cubic-bezier(0.37, 0, 0.63, 1)", fill: "forwards",
+  });
   const clear = () => {
-    pending.forEach(({ image, animation }) => {
+    pending.forEach(({ image, animation, previousZoom }) => {
       animation?.cancel();
+      previousZoom?.cancel();
       image.remove();
     });
     pending.clear();
@@ -34,8 +39,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       || document.body.classList.contains("motion-paused") || covered()) return;
     const tag = button.dataset.advertisingSuggestionTag;
     const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
-    // Nhóm thưa giữ tĩnh cho đến khi có bốn asset khác nhau.
-    if (deck.length < 4) return;
+    if (!deck.length) return;
     const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
     const index = deck.findIndex(card => card.id === current?.dataset.advertisingSuggestionPhoto);
     const card = deck[(index + 1) % deck.length];
@@ -61,10 +65,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       duration: 1600, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards",
     });
     state.animation = animation;
-    const previousZoom = zooms.get(button);
-    zooms.set(button, next.animate([{ transform: "scale(1.06)" }, { transform: "scale(1)" }], {
-      duration: 6600, easing: "cubic-bezier(0.37, 0, 0.63, 1)", fill: "forwards",
-    }));
+    const previousZoom = state.previousZoom = zooms.get(button);
+    zooms.set(button, zoom(next));
     animation.addEventListener("finish", () => {
       previousZoom?.cancel();
       current?.remove();
@@ -98,6 +100,11 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
   const preference = matchMedia("(prefers-reduced-motion: reduce)");
   preference.addEventListener("change", onVisibility, { signal });
+  if (!isReduced()) root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => {
+    const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
+    if (current) zooms.set(button, zoom(current));
+  });
+  onVisibility();
   return () => {
     stopped = true;
     clearInterval(timer);

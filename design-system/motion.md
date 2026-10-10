@@ -230,8 +230,8 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Suggestion chưa bật chạy [slideshow hero](#motion-theo-bề-mặt-ui): mỗi 5s chuyển mờ `1.6s
   cubic-bezier(0.65, 0, 0.35, 1)` (power2.inOut), ảnh mới zoom `1.06 → 1` trong `6.6s
-  cubic-bezier(0.37, 0, 0.63, 1)` (sine.inOut) (`suggestion-slideshow.mjs`); ảnh đầu giữ scale 1 như
-  slide hero đã settle. Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
+  cubic-bezier(0.37, 0, 0.63, 1)` (sine.inOut) (`suggestion-slideshow.mjs`); ảnh đầu zoom ngay khi
+  hiện, mọi nút đều chạy (bộ một ảnh crossfade sang chính nó để zoom lặp lại). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, nút ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
