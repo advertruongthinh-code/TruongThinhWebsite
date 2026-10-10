@@ -4167,6 +4167,17 @@ async function runLanguageScrollRetentionCheck() {
             },
             { once: true },
           );
+          // Đổi ngôn ngữ phủ veil như route mềm (site-shell R5); ghi opacity cao nhất của veil.
+          const veil = document.querySelector(".route-veil");
+          window.__ttLocaleSwitchProbe.veilPeak = 0;
+          const sampleVeil = () => {
+            window.__ttLocaleSwitchProbe.veilPeak = Math.max(
+              window.__ttLocaleSwitchProbe.veilPeak,
+              Number(getComputedStyle(veil).opacity),
+            );
+            window.requestAnimationFrame(sampleVeil);
+          };
+          sampleVeil();
           return {
             historyLength: history.length,
             sectionClass: section?.className,
@@ -4201,7 +4212,11 @@ async function runLanguageScrollRetentionCheck() {
           { timeout: 6_000 },
         );
         await page.evaluate(() => document.fonts?.ready);
-        await page.waitForTimeout(120);
+        await page.waitForFunction(
+          () => !document.body.classList.contains("is-transitioning"),
+          null,
+          { timeout: 6_000 },
+        );
         const after = await page.evaluate(() => ({
           containerIdentity:
             window.__ttLocaleSwitchProbe.container ===
@@ -4213,13 +4228,15 @@ async function runLanguageScrollRetentionCheck() {
           targetClassChanges: window.__ttLocaleSwitchProbe.targetClassChanges,
           timeOrigin: performance.timeOrigin,
           transitioning: document.body.classList.contains("is-transitioning"),
+          veilPeak: window.__ttLocaleSwitchProbe.veilPeak,
         }));
         assert(
           after.containerIdentity &&
             after.timeOrigin === before.timeOrigin &&
             after.historyLength === before.historyLength &&
-            !after.transitioning,
-          `Locale switch replaced the document or entered route motion: ${JSON.stringify({ before, after })}`,
+            !after.transitioning &&
+            after.veilPeak === 1,
+          `Locale switch replaced the document or skipped the route veil: ${JSON.stringify({ before, after })}`,
         );
         assert(
           after.languageEvents.length === 1 &&
@@ -4394,11 +4411,11 @@ async function runLocaleResponsivePreferenceChecks() {
             location.pathname === "/en/residential/" &&
             document.documentElement.lang === "en" &&
             !document.querySelector("#site-menu")?.open &&
-            window.__ttLocaleModeProbe?.replay,
+            window.__ttLocaleModeProbe?.replay &&
+            !document.body.classList.contains("is-transitioning"),
           null,
           { timeout: 6_000 },
         );
-        await page.waitForTimeout(120);
         const after = await page.evaluate(() => ({
           containerIdentity:
             window.__ttLocaleModeProbe.container ===

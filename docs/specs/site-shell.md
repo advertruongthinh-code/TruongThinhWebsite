@@ -15,7 +15,7 @@ tests:
   - tests/site/mobile-*.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-10-06
+updated: 2026-10-10
 ---
 
 # Shell website
@@ -95,12 +95,12 @@ Then nền không cuộn theo, Tab chỉ đi trong menu; đóng xong vị trí c
 
 ### R5. Đổi ngôn ngữ và ghi nhớ
 
-Click thường vào `[data-language-option]`: đóng menu, `history.replaceState` sang `/<locale>/...`
-(không thêm entry), đặt `lang`, `data-route-locale`, đổi chữ `data-en`/`data-vi` và `aria-label`,
-`alt`, `content`, dựng lại SplitText, đổi link nội bộ, canonical, alternate, `og:locale`, `og:url`,
-giữ vị trí cuộn, lưu `localStorage['tt-lang']`, phát `languagechange`. Khi tải, locale theo
-`data-route-locale`, thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng `location.assign`,
-lưu vị trí cuộn vào `sessionStorage` và khôi phục khi tải.
+Click thường vào `[data-language-option]`: đóng menu, veil phủ và mở như R6, không tải lại;
+`history.replaceState` sang `/<locale>/...` (không thêm entry), đặt `lang`, `data-route-locale`, đổi chữ
+`data-en`/`data-vi` và `aria-label`, `alt`, `content`, dựng lại SplitText, đổi link nội bộ, canonical,
+alternate, `og:locale`, `og:url`, giữ vị trí cuộn, lưu `localStorage['tt-lang']`, phát `languagechange`.
+Khi tải, locale theo `data-route-locale`, thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng
+`location.assign`, lưu vị trí cuộn vào `sessionStorage`, khôi phục khi tải.
 
 ```gherkin
 Given /vi/residential/ đã cuộn 1200px
@@ -110,15 +110,15 @@ Then URL thành /en/residential/, history không thêm entry, vị trí cuộn g
 
 ### R6. Route mềm và click trong shell
 
-Barba (transition `persistent-shell`, timeout 15s) xử lý link nội bộ. Điều hướng native khi: chọn
-ngôn ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, có `target`,
-`download`, phím modifier, giữa About và route chuẩn khác cùng locale. Luồng: pin header (ink, mark
-CMYK, hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
-alternate, JSON-LD, `lang`, locale, class body, cây phần tử header, CTA, menu; lệch số con hoặc
-request lỗi thì `location.assign`. Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil. Link đúng URL
-hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại navbar hoặc
-tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm history
-([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
+Barba (transition `persistent-shell`, timeout 15s) xử lý link nội bộ. Điều hướng native khi: chọn ngôn
+ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, có `target`, `download`,
+phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (ink,
+mark CMYK, hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
+alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ underlay của mark), CTA, menu;
+lệch số con hoặc request lỗi thì `location.assign`. Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil.
+Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
+navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
+history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
 
 ```gherkin
 Given /vi/ ở 1440px
