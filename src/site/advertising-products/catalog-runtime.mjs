@@ -3169,8 +3169,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
-    // Mở từ grid: task chạm card chỉ dựng DOM detail đang ẩn, task sau mới hiện và layout.
+    // Mở từ grid: dựng DOM detail đang ẩn, task sau mới hiện và layout.
     const fromGrid = deferRelated && photoView?.hidden;
+    // Bấm card grid: task của cú bấm chỉ ghi history; dựng primary ở task sau để task input dưới 50ms trên A05s.
+    if (fromGrid && reason === "photo") {
+      const pending = ++detailRenderGeneration;
+      await nextTask();
+      if (pending !== detailRenderGeneration || controller.signal.aborted) return;
+    }
     renderPhoto(browse, reason, deferRelated ? "primary" : "", !fromGrid);
     const generation = detailRenderGeneration;
     if (fromGrid) {

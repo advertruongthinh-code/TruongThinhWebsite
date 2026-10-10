@@ -61,7 +61,8 @@ try {
       const expectedPhoto = await card.locator("a").evaluate(e => new URL(e.href).searchParams.get("photo"));
       await page.keyboard.press("Enter");
       await page.waitForFunction(id => new URL(location.href).searchParams.get("photo") === id, expectedPhoto);
-      assert.equal(await page.locator(".advertising-photo-view").getAttribute("data-advertising-photo-id"), expectedPhoto);
+      // Primary dựng ở task sau cú bấm (advertising-detail R7), nên chờ photo view thay vì đọc ngay.
+      await page.waitForFunction(id => document.querySelector(".advertising-photo-view")?.dataset.advertisingPhotoId === id, expectedPhoto);
       console.log(`${locale} ${detail ? "detail" : "parent"} hover/focus/reduced/Enter passed`);
     }
     await page.close();
