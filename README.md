@@ -86,9 +86,8 @@ commit; kiểm bằng `git status --short`, không gắn nhãn tracked vào bả
 ├─ tasks/                           # plan/checklist đang làm (tạo khi cần), xóa khi xong
 ├─ design-system/                   # Design System: tokens.json, README; publish lên claude.ai
 ├─ PRODUCT.md, DESIGN.md, .impeccable/ # DESIGN.md, design.json GENERATED từ design-system/
-├─ .openai/hosting.json             # LEGACY: project Sites cũ, không còn dùng
 ├─ .github/, .vscode/               # CI/workflow và dev tasks
-├─ .claude/, .codex/, .serena/     # agent config; cache giữ local
+├─ .claude/, .serena/              # agent config; cache giữ local
 ├─ .site-output/, .tmp/, _temp/, test-results/ # GENERATED, không edit/commit
 ├─ .tooling/, graphify-out/, .wrangler/, node_modules/ # CACHE
 └─ package.json, pnpm-lock.yaml, playwright.config.cjs, tooling-versions.json,

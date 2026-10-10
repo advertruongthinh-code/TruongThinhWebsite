@@ -1,5 +1,0 @@
-# Project kế thừa Codex stack user-global.
-# Skill caveman chỉ chạy khi user gọi (xem AGENTS.md rule 1).
-# Không thêm lifecycle hook hoặc MCP/package path riêng của project ở đây.
-model_verbosity = "low"
-model_reasoning_summary = "auto"
