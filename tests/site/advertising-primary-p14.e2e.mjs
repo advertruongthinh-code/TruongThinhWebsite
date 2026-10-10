@@ -506,7 +506,7 @@ function assertControls(actual, locale, touch = false) {
   closeTo(actual.cta.icon.contentWidth, 20, `${label}: CTA glyph width`, 1);
   closeTo(actual.cta.icon.contentHeight, 20, `${label}: CTA glyph height`, 1);
   if (touch) {
-    // Màn cảm ứng mở viewer bằng double tap; nút chỉ còn cho screen reader.
+    // Màn cảm ứng mở viewer bằng một tap; nút chỉ còn cho screen reader.
     assert(actual.expand.rect.width <= 1 && actual.expand.rect.height <= 1, `${label}: expand is visible on touch`);
     return;
   }

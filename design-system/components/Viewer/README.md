@@ -1,7 +1,7 @@
 # Viewer ảnh Advertising
 
 Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
-[Primary](../Primary/README.md), hoặc chạm đúp ảnh primary trên màn cảm ứng. Markup `dialog.advertising-photo-dialog` tĩnh,
+[Primary](../Primary/README.md), hoặc chạm ảnh primary trên màn cảm ứng. Markup `dialog.advertising-photo-dialog` tĩnh,
 `photo-viewer.mjs` điều khiển zoom và pan.
 
 ## Hành vi

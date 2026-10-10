@@ -170,7 +170,7 @@ And không frame nào vẽ ở Y của entry khác
 
 ### R9. Viewer
 
-Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm đúp ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-đúp-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
+Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
 `cubic-bezier(0.55, 0, 0, 1)`; nền viewer máy có chuột (`hover: hover`, `pointer: fine`) là lớp tối `0.85` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
 điện thoại không blur ([gate A05s](../decisions/a05s-frame-budget.md)), lớp tối `0.9`, màu `rgba(32, 33, 32)` (owner 2026-10-10), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
