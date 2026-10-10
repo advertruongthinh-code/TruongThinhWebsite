@@ -50,7 +50,7 @@ try {
   await page.mouse.up({ button: "middle" });
   assert.equal(await origin(page), 1, "sticky press shows the origin icon");
   const icon = await page.locator(".autoscroll-origin").boundingBox();
-  assert.ok(icon.width === 48 && icon.height === 48, `origin icon is 48px, got ${icon.width}x${icon.height}`);
+  assert.ok(icon.width === 32 && icon.height === 32, `origin icon is 32px, got ${icon.width}x${icon.height}`);
   const measure = async (distance, seconds, warmup = 600) => {
     // Về đầu trang trước mỗi lần đo để không chạm giới hạn cuối trang.
     await page.mouse.move(point.x, point.y);

@@ -2475,8 +2475,8 @@
     const snap = (value) => Math.round(value * window.devicePixelRatio) / window.devicePixelRatio;
     origin.style.left = `${snap(event.clientX)}px`;
     origin.style.top = `${snap(event.clientY)}px`;
-    origin.innerHTML = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="23"/><circle cx="24" cy="24" r="4"/>'
-      + '<path d="M24 8l8 8H16zM24 40l8-8H16z"/></svg>';
+    origin.innerHTML = '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="15"/><circle cx="16" cy="16" r="3"/>'
+      + '<path d="M16 6l6 6H10zM16 26l6-6H10z"/></svg>';
     document.body.append(origin);
     autoscroll = { core, origin, y: event.clientY, mouseY: event.clientY, moved: false };
     autoscroll.frame = window.requestAnimationFrame(stepAutoscroll);
