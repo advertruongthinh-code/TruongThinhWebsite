@@ -1779,13 +1779,16 @@ body.is-advertising-browse .advertising-grid {
   overflow: hidden;
 }
 
-/* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. */
+/* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. Lớp compositor riêng
+   để dời band lúc fling không cập nhật property tree cả trang (PrePaint 53ms trên A05s, vòng 22). */
 .advertising-grid__cta-shared-flow {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   pointer-events: none;
+  will-change: transform;
+  contain: strict;
 }
 
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop

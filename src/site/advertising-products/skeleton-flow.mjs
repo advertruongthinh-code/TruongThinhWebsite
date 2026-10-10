@@ -751,12 +751,14 @@ export function createSharedSkeletonFlowLayer() {
     }
     const height = Math.min(container.offsetHeight, viewport * 2);
     const visibleTop = -container.getBoundingClientRect().top;
-    if (height !== bandHeight || visibleTop < bandTop || visibleTop + viewport > bandTop + bandHeight) {
+    // Resize cửa sổ đổi bề ngang batch mà band không dời, nên so cả width của canvas.
+    const width = Math.round(container.offsetWidth * scale);
+    if (height !== bandHeight || width !== canvas.width
+      || visibleTop < bandTop || visibleTop + viewport > bandTop + bandHeight) {
       bandTop = Math.max(0, Math.min(container.offsetHeight - height, visibleTop - viewport / 2));
       bandHeight = height;
       canvas.style.height = `${height}px`;
       canvas.style.transform = `translateY(${bandTop}px)`;
-      const width = Math.round(container.offsetWidth * scale);
       const pixels = Math.round(height * scale);
       if (canvas.width !== width) canvas.width = width;
       if (canvas.height !== pixels) canvas.height = pixels;

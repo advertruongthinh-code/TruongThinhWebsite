@@ -15,14 +15,13 @@ const CEILING = 100;
 const INNER_MAX = 5;
 // Gate A05s trên 60fps (owner chọn 10/10, docs/decisions/a05s-frame-budget.md).
 const TARGET_FPS = 60;
+const SLOW_SHARE = 0.05;
 const FIT_MAX = INNER_MAX + ARC_STEPS;
-const FIT_KEY = "glass-arc-steps";
-// Phone chỉ vẽ core 28px, không đo: trên A05s đo lúc đang vuốt làm trượt gate, kết quả fit không ổn định
-// và ba lớp blur vẫn dưới 60fps (owner chọn 10/10). Máy khác nhớ số step đã fit qua các lần tải trang,
-// nên chỉ lần đầu phải trả các frame chậm lúc đo.
+const FIT_KEY = "glass-arc-steps-p5";
+// Mọi máy, cả phone, đo và nhớ số step đã fit qua các lần tải trang (owner 10/10 thử lại trên A05s sau
+// canvas Flow chung), nên chỉ lần đầu phải trả các frame chậm lúc đo. Fit về 0 thì chỉ còn core 28px.
 let fittedSteps = (() => {
   try {
-    if (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0) return 0;
     const stored = localStorage.getItem(FIT_KEY);
     return stored === null ? undefined : Number(stored);
   } catch {
@@ -122,28 +121,29 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
   return glass;
 }
 
-// Rate rAF trung vị qua tối đa `frames` frame hoặc 1.5s. Skeleton dưới arc animate mỗi frame, nên glass
-// được recomposite mỗi frame và rate này là chi phí người xem cảm nhận.
-const medianFps = (frames) => new Promise((resolve) => {
+// Tỉ lệ khoảng rAF dài hơn một frame 60fps qua tối đa `frames` frame hoặc 1.5s, theo gate A05s (tối đa 5% frame
+// dưới 60fps): median không thấy frame chậm, A05s median vẫn 90 với 3 lớp mà 30% frame chậm (vòng 23). Skeleton
+// dưới arc animate mỗi frame, nên glass được recomposite mỗi frame và tỉ lệ này là chi phí người xem cảm nhận.
+const slowShare = (frames) => new Promise((resolve) => {
   const times = [];
   const tick = (now) => {
     times.push(now);
     if (times.length <= frames && now - times[0] < 1500) requestAnimationFrame(tick);
     else {
-      const gaps = times.slice(1).map((time, index) => time - times[index]).sort((a, b) => a - b);
-      resolve(1000 / gaps[gaps.length >> 1]);
+      const gaps = times.slice(1).map((time, index) => time - times[index]);
+      resolve(gaps.filter((gap) => gap > 1000 / TARGET_FPS).length / gaps.length);
     }
   };
   requestAnimationFrame(tick);
 });
 
-// Bắt đầu với mọi inner step và band step, bớt một khi rate còn dưới target (inner trước, rồi band từ
+// Bắt đầu với mọi inner step và band step, bớt một khi còn quá SLOW_SHARE frame chậm (inner trước, rồi band từ
 // step ngoài cùng); core luôn còn.
 async function fitInnerSteps(glass) {
   let steps = FIT_MAX;
   for (;;) {
-    await medianFps(10);
-    if (steps === 0 || await medianFps(45) >= TARGET_FPS) break;
+    await slowShare(10);
+    if (steps === 0 || await slowShare(90) <= SLOW_SHARE) break;
     steps -= 1;
     glass.dataset.glassSteps = String(steps);
     if (geometries.has(glass)) layoutArcGlass(glass, geometries.get(glass));
