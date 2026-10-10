@@ -191,7 +191,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - Frame không viền, phủ lớp chéo 135° trắng alpha 0.08 tới đen alpha 0.10.
   Nền dưới canvas là `#a9abad`; không có WebGL thì frame đứng yên.
 - Vào viewport: reveal Kính `0.6s` như ảnh card (mục trên; lớp dưới là khung
-  trống, lớp hiện lên là Flow); frame nằm dưới Kính cung chỉ crossfade, Flow chạy ngay từ đầu
+  trống, lớp hiện lên là Flow); Kính cung đang trong viewport thì frame và card chỉ crossfade, Flow chạy ngay từ đầu
   kể cả khi đang cuộn; mỗi frame tự hiện khi giao vùng nhìn thấy, không stagger;
   chỉ lần đầu vào; rời hẳn viewport rồi vào lại thì hiện ngay. Không hover, không shimmer, không focus.
   Frame chưa có WebGL context hiện một khung hình Flow đứng yên của chính nó.
