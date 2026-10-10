@@ -1523,7 +1523,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const skeletonEntryFrames = new Map();
   // Slot batch và media đang tải giữ nguyên lượt vẽ trong một trạng thái trang (advertising-skeleton R3).
   const skeletonAssignmentByKey = new Map();
-  const skeletonStillByFrame = new WeakMap();
+  // Theo key chứ không theo frame: card ra vào view tạo frame mới cho cùng media, nên cache theo frame luôn trượt.
+  const skeletonStillByKey = new Map();
   const resetSkeletonAssignments = () => {
     skeletonAssignmentByKey.clear();
     revealedSkeletonSlots.clear();
@@ -1570,11 +1571,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const { preset, anchorPermutation, direction, speedScale } = assignment;
     const phase = skeletonPhase(frame);
     // Remount dùng lại ảnh tĩnh đã vẽ lúc release; chỉ khi sang pha khác mới tốn một lần render CPU.
-    const cached = skeletonStillByFrame.get(frame);
+    const cached = skeletonStillByKey.get(skeletonKey(frame));
     const still = cached?.assignment === assignment && cached.phase === phase
       ? cached.still
       : skeletonFlowStill(preset, phase);
-    skeletonStillByFrame.set(frame, { assignment, phase, still });
+    skeletonStillByKey.set(skeletonKey(frame), { assignment, phase, still });
     canvas.className = "advertising-grid__cta-flow";
     canvas.dataset.advertisingFlowPreset = preset.id;
     canvas.dataset.advertisingFlowAnchorPermutation = anchorPermutation.join(",");
@@ -3185,7 +3186,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       scrollFrame = 0;
       renderWindow();
       renderRelatedWindow();
-      syncSkeletonMotion();
+      // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s.
+      // Chỉ khi pinch-zoom, vùng thấy (visual viewport) mới lệch khỏi vùng IntersectionObserver đo.
+      if ((window.visualViewport?.scale ?? 1) > 1) syncSkeletonMotion();
     });
   };
   const captureScroll = () => {
