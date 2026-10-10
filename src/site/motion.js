@@ -437,8 +437,9 @@
   const headerMarkPaths = [...(headerMark?.querySelectorAll("path") || [])];
   const markBlack = headerMarkPaths.map(() => "rgb(43, 42, 41)");
   let headerMarkUnderlay;
+  let headerMarkSlots = [];
   let headerMarkRise = 0;
-  // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, phủ lớp đang hiển thị (brand.md Motion).
+  // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, lớp cũ lùi theo mép mọc (brand.md Motion).
   const paintHeaderMark = (
     className,
     { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true } = {},
@@ -456,21 +457,34 @@
     }
     const token = ++headerMarkRise;
     Promise.all(headerMarkPaths.map((path, index) => {
+      // Mỗi dải có một slot chứa lớp cũ; slot lùi từ chân theo mép mọc nên mép trái, phải, đỉnh không chồng hai lớp.
+      // Đổi hướng giữa chừng: slot cũ đứng yên ở clip hiện tại và nằm trong slot mới cùng phần dải đã mọc.
+      const slot = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      const previous = headerMarkSlots[index];
+      if (previous) {
+        const clip = getComputedStyle(previous).clipPath;
+        previous.getAnimations().forEach((animation) => animation.cancel());
+        previous.style.clipPath = clip;
+        slot.append(previous);
+      }
       const layer = path.cloneNode(false);
       layer.setAttribute("fill", from[index]);
       layer.style.clipPath = clips[index];
-      headerMarkUnderlay.append(layer);
+      slot.append(layer);
+      headerMarkUnderlay.append(slot);
+      headerMarkSlots[index] = slot;
       path.getAnimations().forEach((animation) => animation.cancel());
       // Dải 1 đen tới 4 cyan bắt đầu lệch 0.07s, cả bốn cùng xong ở 1s.
       const delay = index * 70;
-      return path.animate(
-        { clipPath: ["inset(100% 0 0 0)", "inset(0)"] },
-        { delay, duration: 1000 - delay, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "backwards" },
-      ).finished;
+      const timing = { delay, duration: 1000 - delay, easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
+      // Lớp cũ thừa 1px dưới mép mọc để không hở khe giữa hai lớp.
+      slot.animate({ clipPath: ["inset(0 0 -1px 0)", "inset(0 0 calc(100% - 1px) 0)"] }, { ...timing, fill: "both" });
+      return path.animate({ clipPath: ["inset(100% 0 0 0)", "inset(0)"] }, { ...timing, fill: "backwards" }).finished;
     })).then(() => {
       if (token !== headerMarkRise) return;
       headerMarkUnderlay.remove();
       headerMarkUnderlay = undefined;
+      headerMarkSlots = [];
     }, () => {});
   };
   function syncHeaderBrandSurface(whiteSurface) {
