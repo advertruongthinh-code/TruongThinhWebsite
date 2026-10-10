@@ -464,7 +464,7 @@ for (const scenario of [
   });
 }
 
-test("suggestion holds each photo 5000ms on its own zoom clock, crossfades for 1600ms with the hero zoom, and pauses hidden/reduced/active/covered", async t => {
+test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next photo in for 900ms with the hero zoom, and pauses hidden/reduced/active/covered", async t => {
   const { mountSuggestionSlides } = await import("../../src/site/advertising-products/suggestion-slideshow.mjs");
   const names = ["document", "innerHeight", "MutationObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
   const saved = names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
@@ -508,7 +508,10 @@ test("suggestion holds each photo 5000ms on its own zoom clock, crossfades for 1
           pause() { held ??= now - start; },
           play() { if (held !== null) { start = now - held; held = null; } },
         });
-        Object.defineProperty(animation, "currentTime", { get: () => held ?? now - start });
+        Object.defineProperty(animation, "currentTime", {
+          get: () => held ?? now - start,
+          set: value => { if (held === null) start = now - value; else held = value; },
+        });
         Object.defineProperty(animation, "playState", { get: () => held === null ? "running" : "paused" });
         animations.push(animation);
         return animation;
@@ -539,9 +542,10 @@ test("suggestion holds each photo 5000ms on its own zoom clock, crossfades for 1
   assert.equal(created.length, 0, "no advance before five seconds");
   await advance(1);
   assert.equal(created.length, 1, "one decoded image at the five-second tick");
-  const fadeIn = animations.find(animation => animation.frames?.[0]?.opacity === 0);
-  const zoom = animations.at(-1);
-  assert.equal(fadeIn.options.duration, 1600, "approved crossfade duration");
+  const fadeIn = animations.find(animation => animation.frames?.[0]?.transform === "translateX(100%)");
+  const zoom = animations.find(animation => animation.options.duration === 6600 && animation !== animations[0]);
+  assert.equal(fadeIn.options.duration, 900, "approved push duration");
+  assert.equal(fadeIn.options.composite, "add", "push adds onto the running zoom");
   assert.deepEqual(zoom.frames, [{ transform: "scale(1.06)" }, { transform: "scale(1)" }], "hero zoom endpoints");
   assert.equal(zoom.options.duration, 6600, "hero zoom spans hold plus crossfade");
   current = inserted[0];
@@ -555,7 +559,7 @@ test("suggestion holds each photo 5000ms on its own zoom clock, crossfades for 1
   await advance(1);
   assert.equal(created.length, 2, "next photo after five visible seconds");
   current = inserted[1];
-  animations.findLast(animation => animation.frames?.[0]?.opacity === 0).dispatchEvent(new Event("finish"));
+  animations.findLast(animation => animation.frames?.[0]?.transform === "translateX(100%)").dispatchEvent(new Event("finish"));
   document.hidden = true; await advance(5000);
   assert.equal(created.length, 2, "hidden tab pauses the deck");
   document.hidden = false; reduced = true; await advance(5000);
@@ -566,8 +570,8 @@ test("suggestion holds each photo 5000ms on its own zoom clock, crossfades for 1
   assert.equal(created.length, 2, "open viewer or menu dialog keeps the deck static");
   covered = false; await advance(5000);
   assert.equal(created.length, 3, "same deck resumes at the next permitted tick");
-  assert.ok(animations.some(animation => animation.frames?.[0]?.opacity === 1 && animation.frames[1].opacity === 0
-    && animation.options.duration === 1600), "outgoing photo fades out with the incoming one, like the hero");
+  assert.ok(animations.some(animation => animation.frames?.[1]?.transform === "translateX(-35%)"
+    && animation.options.duration === 900), "incoming photo pushes the outgoing one to the left");
 });
 
 
