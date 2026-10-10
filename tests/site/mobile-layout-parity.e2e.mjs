@@ -319,8 +319,8 @@ async function runAboutHistory(browser,engine) {
       await page.waitForTimeout(10000);
       await waitForDestination(page,base+destination);
       const stable=await documentSnapshot(page);
-      assert.equal(after.timeOrigin!==before.timeOrigin,true,'click performs native document navigation');
-      assert.deepEqual(navigation,[base+destination],'one main-frame navigation to target');
+      assert.equal(after.timeOrigin,before.timeOrigin,'About route keeps Barba document');
+      assert.deepEqual(navigation,[],'About route has no main-frame navigation');
       assert.equal(stable.timeOrigin,after.timeOrigin,'destination document does not self-reload');
       assert.equal(stable.length,before.length+1,'click creates one history entry');
       stage='Back';
