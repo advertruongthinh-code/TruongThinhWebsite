@@ -51,8 +51,8 @@ const outputs = new Map([
 const check = process.argv.includes('--check');
 const stale = [...outputs].filter(([path, text]) => !existsSync(path) || readFileSync(path, 'utf8') !== text).map(([path]) => path);
 if (check && stale.length) {
-  console.error(`${stale.join(', ')} lệch design-system/; sửa design-system/ rồi chạy node scripts/docs/build-design-md.mjs`);
+  console.error(`${stale.join(', ')} out of sync with design-system/; edit design-system/ then run node scripts/docs/build-design-md.mjs`);
   process.exit(1);
 }
 if (!check) for (const [path, text] of outputs) writeFileSync(path, text);
-console.log(`DESIGN.md ${check ? 'khớp' : 'đã sinh từ'} design-system/`);
+console.log(`DESIGN.md ${check ? 'matches' : 'generated from'} design-system/`);

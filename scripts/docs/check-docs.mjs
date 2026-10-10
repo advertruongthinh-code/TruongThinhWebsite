@@ -45,22 +45,22 @@ for (const file of files) {
       const target = path ? join(dirname(file), path) : file;
       const where = `${file}:${i + 1}`;
       if (!existsSync(target)) {
-        if (!ignored(target) && !LOCAL_EVIDENCE.test(target)) errors.push(`${where}: link gãy ${raw}`);
+        if (!ignored(target) && !LOCAL_EVIDENCE.test(target)) errors.push(`${where}: broken link ${raw}`);
         continue;
       }
       if (hash && target.endsWith('.md') && statSync(target).isFile() && !anchors(target).has(hash.toLowerCase())) {
-        errors.push(`${where}: anchor không tồn tại ${raw}`);
+        errors.push(`${where}: missing anchor ${raw}`);
       }
     }
   });
 }
 
-// Line budget (docs/specs/docs-system.md R4, R9).
+// Giới hạn số dòng (docs/specs/docs-system.md R4, R9).
 const BUDGET = { 'docs/STATE.md': 50, 'docs/index.md': 80 };
 for (const file of files) {
   const max = file.startsWith('docs/specs/') ? 300 : BUDGET[file];
   const lines = max && readFileSync(file, 'utf8').split('\n').length;
-  if (lines > max) errors.push(`${file}: ${lines} dòng, vượt giới hạn ${max}`);
+  if (lines > max) errors.push(`${file}: ${lines} lines, over the ${max} limit`);
 }
 
 // Spec sở hữu file source qua glob `source:` trong frontmatter.
@@ -76,7 +76,7 @@ const owners = (path) => specs.filter((s) => s.globs.some((g) => matchesGlob(pat
 // Mọi file không phải media trong src/site/ thuộc về một spec.
 const MEDIA = /\.(avif|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
 const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
-if (unowned.length) errors.push(`ownership: ${unowned.length} file trong src/site/ chưa thuộc spec nào: ${unowned.join(', ')}`);
+if (unowned.length) errors.push(`ownership: ${unowned.length} files in src/site/ not owned by any spec: ${unowned.join(', ')}`);
 
 // Sync chạy trên pull request: CI đặt DOCS_BASE là base commit và PR_BODY là mô tả.
 if (process.env.DOCS_BASE) {
@@ -85,7 +85,7 @@ if (process.env.DOCS_BASE) {
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
     if (touched.length && !changed.includes(spec.file) && !waived) {
-      errors.push(`sync: ${touched.join(', ')} đổi nhưng ${spec.file} không đổi; cập nhật spec hoặc ghi "Spec: không đổi - <lý do>" trong mô tả PR`);
+      errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add "Spec: không đổi - <lý do>" to the PR body`);
     }
   }
 }
@@ -99,8 +99,8 @@ const rootVars = new Map([...readFileSync('src/site/style.css', 'utf8').match(/^
 for (const [name, raw] of rootVars) {
   if (name in (tokens.meta?.cssOnly ?? {})) continue;
   const value = raw.replace(/^var\(--([\w-]+)\)$/, (whole, ref) => rootVars.get(ref) ?? whole);
-  if (!tokenValues.has(name)) errors.push(`design drift: --${name} trong :root của src/site/style.css chưa có token trong design-system/tokens.json`);
-  else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} là ${value} trong CSS nhưng token ghi ${tokenValues.get(name)}`);
+  if (!tokenValues.has(name)) errors.push(`design drift: --${name} in :root of src/site/style.css has no token in design-system/tokens.json`);
+  else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} is ${value} in CSS but the token says ${tokenValues.get(name)}`);
 }
 
 // File generated: preview, bundle.css và ảnh khớp source site (R5.3); DESIGN.md và sidecar khớp design-system/ (R6).
@@ -117,12 +117,12 @@ const siteText = git('ls-files', 'src/site').split('\n').filter((f) => /\.(css|m
 for (const preview of git('ls-files', 'design-system/components/*/preview.html').split('\n').filter(Boolean)) {
   const classes = new Set([...readFileSync(preview, 'utf8').matchAll(/\sclass="([^"]*)"/g)].flatMap(([, list]) => list.split(/\s+/)).filter(Boolean));
   const gone = [...classes].filter((name) => !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));
-  if (gone.length) errors.push(`design-system: ${preview} dùng class không còn trong src/site (${gone.join(', ')}); chạy node scripts/docs/capture-design-system.mjs rồi build-design-system.mjs`);
+  if (gone.length) errors.push(`design-system: ${preview} uses classes no longer in src/site (${gone.join(', ')}); run node scripts/docs/capture-design-system.mjs then build-design-system.mjs`);
 }
 
 if (errors.length) {
   console.error(errors.join('\n'));
-  console.error(`qa:docs FAIL: ${errors.length} lỗi`);
+  console.error(`qa:docs FAIL: ${errors.length} errors`);
   process.exit(1);
 }
-console.log(`qa:docs PASS: ${files.length} file Markdown`);
+console.log(`qa:docs PASS: ${files.length} Markdown files`);

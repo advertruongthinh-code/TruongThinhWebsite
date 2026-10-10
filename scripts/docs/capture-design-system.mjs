@@ -105,4 +105,4 @@ for (const capture of CAPTURES) {
   await page.close();
 }
 await browser.close();
-console.log(`đã chụp ${CAPTURES.length} component vào ${OUT}`);
+console.log(`captured ${CAPTURES.length} components into ${OUT}`);

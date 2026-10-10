@@ -28,7 +28,7 @@ function runEmulator() {
   try {
     execFileSync(process.execPath, ["tests/site/advertising-photo-transitions.e2e.mjs"], { cwd: root, stdio: "ignore",
       env: { ...process.env, BASE_URL: base, CASE: "m02b-related-history-just-viewed-and-scroll", PHOTO_TRANSITIONS_OUTPUT_DIR: dir } });
-  } catch { /* Failures are read from the results file below. */ }
+  } catch { /* Lỗi được đọc từ file kết quả bên dưới. */ }
   const results = JSON.parse(readFileSync(path.join(dir, "cp3-transition-e2e-results.json"), "utf8"));
   for (const item of results.results) {
     const evidence = Array.isArray(item.evidence) ? item.evidence.find((entry) => entry.profile) : null;

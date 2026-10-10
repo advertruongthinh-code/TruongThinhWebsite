@@ -31,21 +31,21 @@ try {
     const label = `${viewport.width}x${viewport.height}`;
     const page = await open(viewport, true);
     try {
-      assert.equal((await headerBox(page)).top, 0, `${label}: header hiện đủ ở đầu trang`);
+      assert.equal((await headerBox(page)).top, 0, `${label}: header fully visible at page top`);
       await scrollTo(page, 30);
-      assert.equal((await headerBox(page)).top, -30, `${label}: cuộn 30px thì header lệch 30px (R2)`);
+      assert.equal((await headerBox(page)).top, -30, `${label}: scrolling 30px shifts the header 30px (R2)`);
       await scrollTo(page, 20);
-      assert.equal((await headerBox(page)).top, -20, `${label}: cuộn lên 10px thì lộ lại 10px (R2)`);
+      assert.equal((await headerBox(page)).top, -20, `${label}: scrolling up 10px reveals 10px again (R2)`);
       await page.waitForTimeout(400);
-      assert.equal((await headerBox(page)).top, -20, `${label}: dừng cuộn thì giữ nguyên (R3)`);
+      assert.equal((await headerBox(page)).top, -20, `${label}: stopping the scroll keeps the position (R3)`);
 
       await scrollTo(page, 1500);
-      assert((await headerBox(page)).bottom <= 0, `${label}: cuộn xa thì header khuất hẳn`);
+      assert((await headerBox(page)).bottom <= 0, `${label}: scrolling far hides the header fully`);
       await scrollTo(page, 1490);
-      assert.equal((await headerBox(page)).bottom, 10, `${label}: cuộn lên 10px thì lộ 10px`);
+      assert.equal((await headerBox(page)).bottom, 10, `${label}: scrolling up 10px reveals 10px`);
       const max = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
       await scrollTo(page, max);
-      assert((await headerBox(page)).bottom <= 0, `${label}: cuối trang không tự hiện`);
+      assert((await headerBox(page)).bottom <= 0, `${label}: page end does not reveal the header`);
 
       // Header đang khuất nên bấm bằng DOM; R4 chỉ cần mở rồi đóng menu.
       await page.evaluate(() => document.querySelector("[data-menu-open]").click());
@@ -53,9 +53,9 @@ try {
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => !document.body.classList.contains("menu-open"));
       await frames(page);
-      assert.equal((await headerBox(page)).top, 0, `${label}: đóng menu thì header hiện đủ (R4)`);
+      assert.equal((await headerBox(page)).top, 0, `${label}: closing the menu shows the full header (R4)`);
       await scrollTo(page, max - 40);
-      assert.equal((await headerBox(page)).top, 0, `${label}: cuộn lên sau menu thì vẫn hiện đủ`);
+      assert.equal((await headerBox(page)).top, 0, `${label}: scrolling up after the menu keeps the header fully visible`);
     } finally {
       await page.close();
     }
@@ -64,7 +64,7 @@ try {
   const desktop = await open({ width: 1440, height: 900 }, false);
   try {
     await scrollTo(desktop, 30);
-    assert.equal((await headerBox(desktop)).top, 0, "1440px chuột: header theo Shell R3, không đi theo cuộn");
+    assert.equal((await headerBox(desktop)).top, 0, "1440px mouse: header follows Shell R3, not the scroll");
     assert.equal(await desktop.evaluate(() => document.querySelector("[data-site-header]").classList.contains("is-follow")), false);
   } finally {
     await desktop.close();
