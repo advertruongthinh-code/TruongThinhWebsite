@@ -2823,6 +2823,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const playPrimaryReveal = (reveal, from, to, total) => {
     if (primaryReveal !== reveal) return;
+    // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
+    if (photoView.hidden) {
+      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total));
+      return;
+    }
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
     if (reduced) {
@@ -2989,7 +2994,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoAudioToggle.setAttribute("aria-label", label);
   };
   photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
-  const renderPhoto = (browse, reason, phase = "") => {
+  const renderPhoto = (browse, reason, phase = "", reveal = true) => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;
     directEntryPhase = phase;
@@ -3004,15 +3009,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     syncLocaleLinks(browse);
     photoView.dataset.advertisingPhotoId = record.id;
     photoImage.dataset.advertisingPhotoId = record.id;
-    document.body.classList.add("is-advertising-photo");
-    document.body.dataset.advertisingPhotoActive = "true";
-    if (gridSection) gridSection.hidden = true;
-    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
-    // và task chạm card không bị ép style lần hai (decision a05s-frame-budget).
-    const layoutWidth = document.documentElement.clientWidth;
-    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
-    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
-    photoView.hidden = false;
     rendered.forEach((card) => syncJustViewedMarker(card, locale, false));
     const english = locale === "en";
     renderPrimaryThumbs(record);
@@ -3031,6 +3027,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const category = categoryById.get(record.category);
     if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;
     renderSuggestionLinks(browse, english);
+    if (reveal) revealPhotoView(browse, generation);
+    return true;
+  };
+  // Hiện photo view rồi layout và khôi phục scroll; tách khỏi renderPhoto để mở từ grid dựng DOM ở task chạm card
+  // và hiện ở task sau (decision a05s-frame-budget).
+  const revealPhotoView = (browse, generation) => {
+    document.body.classList.add("is-advertising-photo");
+    document.body.dataset.advertisingPhotoActive = "true";
+    if (gridSection) gridSection.hidden = true;
+    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
+    // và không bị ép style lần hai (decision a05s-frame-budget).
+    const layoutWidth = document.documentElement.clientWidth;
+    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
+    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
+    photoView.hidden = false;
     layoutRelated(browse);
     relatedRendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     let restoredScroll = browse.detail.scrollY;
@@ -3049,7 +3060,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (generation !== detailRenderGeneration || controller.signal.aborted) return;
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
-    return true;
   };
   // Mỗi pha là một task riêng để không pha nào chặn input quá 50ms trên A05s (docs/specs/advertising-detail.md R7):
   // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
@@ -3059,8 +3069,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
-    renderPhoto(browse, reason, deferRelated ? "primary" : "");
+    // Mở từ grid: task chạm card chỉ dựng DOM detail đang ẩn, task sau mới hiện và layout.
+    const fromGrid = deferRelated && photoView?.hidden;
+    renderPhoto(browse, reason, deferRelated ? "primary" : "", !fromGrid);
     const generation = detailRenderGeneration;
+    if (fromGrid) {
+      await nextTask();
+      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+      revealPhotoView(browse, generation);
+    }
     for (const phase of deferRelated ? ["warm", "related", ""] : []) {
       await nextTask();
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
