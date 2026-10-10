@@ -1996,10 +1996,10 @@ body.is-advertising-browse .site-footer {
   display: block;
 }
 
-/* Bậc nhòe sẵn của Kính reveal trên primary (catalog-runtime.mjs bakedRevealGlass): ảnh mới vẽ ở 1/8 rồi phóng 8 lần,
-   blur bằng căn tổng bình phương các bậc gốc tới bậc đó, saturate và brightness cộng dồn như bậc gốc. */
-/* Nền bậc thay phần skeleton đã nhòe trong backdrop gốc; ảnh nhòe hiện dần trên nó theo crossfade. */
 .glass-surface__step--baked {
+  /* Bậc nhòe sẵn của Kính reveal trên primary (catalog-runtime.mjs bakedRevealGlass): ảnh mới vẽ ở 1/8 rồi phóng 8 lần,
+     blur bằng căn tổng bình phương các bậc gốc tới bậc đó, saturate và brightness cộng dồn như bậc gốc. Nền bậc thay
+     phần skeleton đã nhòe trong backdrop gốc; ảnh nhòe hiện dần trên nó theo crossfade. */
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   overflow: hidden;
