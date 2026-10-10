@@ -14,6 +14,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md) |
 | Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang](specs/advertising-cta-center-parallax.md) |
 | Ảnh, media, Kính | [Tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md), [skeleton chờ ảnh](specs/loading-glass-and-page-entry.md), [Kính](specs/glass-surface.md) |
+| SEO, Google, bot AI | [SEO](specs/seo.md), planned, tạm dừng tới khi đủ feature website |
 | Worker, admin, D1 | [CMS](specs/cms.md), dormant tới khi owner mở CMS phase |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md), [authority map](#authority-map) |
 | Reference hành vi | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo), [Pinterest photo view](reference/pinterest-photo-view.md); không tự thành target |
