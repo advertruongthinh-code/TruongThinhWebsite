@@ -40,7 +40,7 @@ tối để xem ảnh, không phải component Kính ([detail R9](advertising-de
 Given trang Advertising có kính cuối masonry, primary và card đang tải
 When đọc CSS đang áp dụng của các lớp kính
 Then mọi lớp kính thuộc component Kính, cùng bộ custom property
-And không phần tử nào ngoài component Kính có backdrop-filter, trừ nền viewer
+And không phần tử nào ngoài component Kính có backdrop-filter
 ```
 
 ### R2. Dạng cung: nền cho cụm CTA, nhòe tăng dần
