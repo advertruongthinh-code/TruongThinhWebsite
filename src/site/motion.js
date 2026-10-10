@@ -1875,7 +1875,10 @@
   const syncElementTree = (current, next) => {
     if (!current || !next || current.tagName !== next.tagName) return false;
     syncAttributes(current, next);
-    const currentChildren = [...current.children];
+    // Lớp underlay do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
+    const currentChildren = [...current.children].filter(
+      (child) => !child.classList.contains("brand-lockup__mark-underlay"),
+    );
     const nextChildren = [...next.children];
     if (currentChildren.length !== nextChildren.length) return false;
     if (!currentChildren.length) {
@@ -2051,17 +2054,6 @@
     ) {
       return true;
     }
-    const canonical = /^\/(vi|en)\/(?:(about|residential|commercial|advertising-products)\/)?$/;
-    const currentRoute = canonical.exec(normalizePathname(window.location.pathname));
-    const nextRoute = canonical.exec(normalizePathname(url.pathname));
-    if (
-      currentRoute &&
-      nextRoute &&
-      currentRoute[1] === nextRoute[1] &&
-      (currentRoute[2] === "about") !== (nextRoute[2] === "about")
-    ) {
-      return true;
-    }
     return (
       url.pathname === window.location.pathname &&
       url.search === window.location.search
@@ -2137,8 +2129,12 @@
     localeSwitchPromise = (async () => {
       const section = pageState?.menuContextSection || getDominantSection();
       const scrollY = Math.max(0, getPageScroll());
-      await closeMenu(false);
-      if (nextLanguage === currentLanguage) return true;
+      if (nextLanguage === currentLanguage) {
+        await closeMenu(false);
+        return true;
+      }
+      // Đổi ngôn ngữ dùng cùng veil với route mềm: phủ, đổi chữ dưới veil, rồi mở; reduced motion không veil.
+      await (reduceMotion ? closeMenu(false) : coverRoute(closeMenu(false)));
 
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
@@ -2158,12 +2154,14 @@
       const previousOverflowAnchor = document.documentElement.style.overflowAnchor;
       document.documentElement.style.overflowAnchor = "none";
       let replay;
+      let reveal;
       try {
         await applyLanguage(nextLanguage);
         updateLocaleLinks(nextLanguage);
         updateLocaleHead(url, nextLanguage);
         await nextFrame();
         await nextFrame();
+        if (!reduceMotion) reveal = playRouteEnter();
         replay = await replayVisibleSection(section);
         pageState?.smoothScroll?.update();
         setPageScroll(pageState, scrollY);
@@ -2171,12 +2169,15 @@
         await nextFrame();
       } finally {
         document.documentElement.style.overflowAnchor = previousOverflowAnchor;
+        // Lỗi trước khi mở veil thì gỡ veil ngay để trang không kẹt dưới lớp trắng.
+        if (!reveal && !reduceMotion) clearRouteEntry();
       }
       setPageScroll(pageState, scrollY);
       requestLayoutUpdate();
       window.dispatchEvent(
         new CustomEvent("site:section-replay", { detail: replay }),
       );
+      await reveal;
       return true;
     })().finally(() => {
       if (pageState) pageState.menuContextSection = undefined;
