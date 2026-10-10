@@ -175,7 +175,7 @@ trên trái; reset, `+`, `−` góc dưới phải, status phần trăm; nút t�
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
 cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về
-masonry thì đóng viewer. Pinch, chạm đúp, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
+masonry thì đóng viewer. Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
 
 ```gherkin
 Given detail đã cuộn tới Y1

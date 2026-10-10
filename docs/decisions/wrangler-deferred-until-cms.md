@@ -29,8 +29,9 @@ Trong static phase:
 
 - `pnpm dev` dùng static Node server của repository tại
   `scripts/tooling/serve-static-parity.mjs`;
-- Wrangler không là dependency, không được CI hoặc deploy workflow gọi;
-- Không có Cloudflare deploy workflow; chưa activate CMS hoặc đọc secret;
+- Wrangler không là dependency; chỉ `pnpm deploy:demo` gọi Wrangler pin qua `pnpm dlx`, từ
+  workflow `Deploy demo` ([demo](cloudflare-workers-static-demo.md));
+- Workflow đó chỉ deploy static assets; chưa activate CMS hoặc đọc secret CMS;
 - `src/worker/`, `wrangler.toml` và Worker contract test được giữ dormant để
   không mất thiết kế CMS đã có.
 
@@ -44,7 +45,7 @@ là quyết định riêng đó: chỉ `pnpm deploy:demo` gọi Wrangler, không
 ## Hệ quả
 
 - Local preview và static browser QA không phụ thuộc Cloudflare runtime.
-- Không có production deployment command đang active trong repository.
+- Ngoài demo static, không có production hoặc CMS deployment command đang active.
 - Worker route, redirect, SSR, D1, R2 và Access contract không thuộc static gate
   hiện tại.
 - CMS phase có thể phục hồi Wrangler bằng một migration có kiểm chứng thay vì
@@ -61,7 +62,7 @@ là quyết định riêng đó: chỉ `pnpm deploy:demo` gọi Wrangler, không
 ## Lịch sử
 
 2026-10-03 gộp và xóa `static-before-cms`, `static-first-release`; bỏ quy tắc cũ
-"PR smoke và manual deploy". Bản gốc còn trong Git history.
+"PR smoke và manual deploy". Bản gốc còn trong Git history. 2026-10-10 sửa câu "không có deploy workflow" cho khớp workflow `Deploy demo`.
 
 ## Chú thích thuật ngữ
 

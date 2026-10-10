@@ -1,24 +1,22 @@
 ---
-title: Typography nhìn thấy theo cap-height Espacio
+title: Typography nhìn thấy theo cap-height
 status: accepted
 date: 2026-08-27
 scope: Public site typography VI và EN
 tags:
   - ui
   - typography
-  - espacio-parity
 supersedes: []
 related_specs: []
-related_reports:
-  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/archive/reports/research-espacio-typography-hero-route-motion-2026-08-27.md
+related_reports: []
 ---
 
-# Typography nhìn thấy theo cap-height Espacio
+# Typography nhìn thấy theo cap-height
 
 ## Context
 
 Owner yêu cầu tăng weight và độ cao của toàn bộ chữ nhìn thấy trên website
-Trường Thịnh theo các route tương ứng của Espacio. Độ cao được so bằng glyph cơ
+Trường Thịnh (ban đầu đo theo route tương ứng của web tham khảo). Độ cao được so bằng glyph cơ
 sở không dấu, không dùng dấu tiếng Việt làm chiều cao chuẩn. Brand lockup là
 ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
 
@@ -53,23 +51,9 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
 | Đo bounding box có dấu | Phản ánh chuỗi tiếng Việt thực | Dấu làm sai mục tiêu owner về độ cao thân chữ |
 | Đổi toàn bộ font sang Silka | Có thể khớp metric gần hơn | Không có quyền asset/font và tăng phụ thuộc không cần thiết |
 
-## Evidence
+## Kiểm chứng
 
-- Canvas TextMetrics đo glyph `H`, không dùng dấu.
-- Focused current-source suite đạt `20/20` typography route/viewport trong
-  nhóm tổng `28/28`: 10 route VI/EN tại `390px` và `1440px`.
-- Runtime Home `1569px`: portal giữ hierarchy đã duyệt; nhãn editorial
-  `20px/700`, cap-height `15px`; body `16px/500`, cap-height `12px`. Tại
-  `320px`, cả hai role là `16px`, cap-height `12px` và overflow `0` ở VI/EN.
-- Portal hierarchy VI/EN pass `8/8` tại `320`, `768`, `1024`, `1440px`: category
-  và subtitle dưới cùng metric; title center lệch card center không quá `1px`;
-  gap phía trên luôn nhỏ hơn gap phía dưới và không phát sinh overflow.
-- Hero Home pass `8/8`: copy và gap `0.05em` đúng ở VI/EN tại `320`, `768`,
-  `1569px`; hai contract motion intro hiện hữu không regress.
-- Footer pass `10/10` trên năm route tại `390px` và `1440px`; computed extra
-  line-height là `14px`, không phát sinh horizontal overflow.
-- Không có text nhìn thấy ngoài brand lockup dưới weight `500` hoặc dưới
-  `12.5px`; không có horizontal overflow trong matrix focused.
+Canvas TextMetrics đo glyph `H`, không dùng dấu; evidence từng lần đo nằm trong PR.
 
 Plus Jakarta Sans tự host trong `/assets/vendor/`, không tải từ Google Fonts
 ([phát hành tĩnh](../specs/static-release.md#r4-font-và-thư-viện-tự-host)).
@@ -84,7 +68,8 @@ Plus Jakarta Sans tự host trong `/assets/vendor/`, không tải từ Google Fo
 ## Lịch sử
 
 2026-10-03 xóa `portal-typography-weight-parity` (đã supersede); bản gốc còn
-trong Git history.
+trong Git history. 2026-10-10 đổi tên từ `visible-typography-espacio-parity` (gate parity
+Espacio đã gỡ ở PR #148), bỏ report và evidence đo cũ; giá trị giữ nguyên.
 
 ## Chú thích thuật ngữ
 

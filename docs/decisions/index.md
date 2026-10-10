@@ -31,7 +31,6 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 | 2026-08-01 | accepted | [CMS project slot là optional trên static menu baseline](optional-cms-project-slots.md) |
 | 2026-07-30 | accepted | [Owner fact không được suy đoán](owner-facts-require-confirmation.md) |
 | 2026-07-30 | accepted | [Process là invariant](process-order-invariant.md) |
-| 2026-07-31 | accepted | [Reference archive tách khỏi runtime](reference-archive-isolated.md) |
 | 2026-07-30 | accepted | [Motion map theo web tham khảo, không nhập bundle production](reference-motion-map.md) |
 | 2026-07-30 | accepted | [Header route-first, không dùng fragment navigation](route-first-navigation.md) |
 | 2026-08-08 | accepted | [Repository boundary theo runtime responsibility](runtime-responsibility-boundaries.md) |
@@ -39,7 +38,7 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 | 2026-07-30 | accepted | [Static architecture dùng chung](static-shared-architecture.md) |
 | 2026-08-01 | accepted | [Readability tiếng Việt ưu tiên hơn mật độ reference](vietnamese-readability.md) |
 | 2026-07-30 | accepted | [VI source, EN qua data attribute](vietnamese-source-english-leaf-attributes.md) |
-| 2026-08-27 | accepted | [Typography nhìn thấy theo cap-height Espacio](visible-typography-espacio-parity.md) |
+| 2026-08-27 | accepted | [Typography nhìn thấy theo cap-height](visible-typography-cap-height.md) |
 | 2026-09-01 | accepted | [Khóa Wrangler đến phase CMS](wrangler-deferred-until-cms.md) |
 
 ## Chú thích thuật ngữ
