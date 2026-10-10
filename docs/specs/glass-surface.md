@@ -70,7 +70,7 @@ subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer 
 
 | Giá trị | Chốt 06/10 (owner) |
 | --- | --- |
-| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề + `0.35` × chiều cao cụm CTA; phone `-0.15` (trên tiêu đề) để chữ nằm trong lõi, vì phone chỉ có 1 bậc band (owner 10/10) |
+| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi; owner 10/10) |
 | Bán kính | `3.5` × bề rộng viewport |
 | Dải giảm nhòe, đo từ cung ra ngoài | `1.75` × chiều cao cụm CTA |
 | Vùng trắng tuyệt đối | `0.35` × bề rộng card |

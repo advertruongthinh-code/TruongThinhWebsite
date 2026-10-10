@@ -4,9 +4,9 @@
 // (4.5, 12, 28px; owner, 05/10, cho A05s).
 const STEPS = 5;
 const ARC_STEPS = 3;
-// Arc của owner (06/10): apex ở 35% cụm CTA, bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
+// Arc của owner (06/10): apex ở -15% cụm CTA (trên mép tiêu đề, owner 10/10, để chữ nằm trong core), bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
 // trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.35 trên arc.
-const ARC = Object.freeze({ centre: 0.35, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.35 });
+const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.35 });
 // Bên trong arc blur tiếp tục tăng từ 28px của band trên arc đến trần 100px trên vòng tròn trắng tinh,
 // qua 5 inner step trên PC, 2 trên phone (owner 06/10, số lớp theo máy từ 10/10).
 const ARC_LEVEL = 28;
@@ -16,9 +16,8 @@ const INNER_MAX = 5;
 // (core 50px và band step trong cùng). Trên A05s blur của core không đổi fps, core 50px giống PC nhất; inner step
 // (81-88% frame chậm, vòng 26) hay band step thứ hai (30% frame chậm, vòng 29) đều trượt gate.
 // Phone nhận biết như skeleton (catalog-runtime).
-// Phone chỉ một band step nên band nhòe yếu; apex dời lên trên đầu cụm CTA để chữ nằm trong core (owner 10/10).
-const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, core: 50, centre: -0.15 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX, core: ARC_LEVEL, centre: ARC.centre });
+const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, core: 50 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: INNER_MAX, core: ARC_LEVEL });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -148,7 +147,7 @@ export function playGlassReveal(glass, duration) {
 export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, clusterTop, clusterBottom }) {
   const whiteRamp = ARC.whiteRamp * cardWidth;
   const clusterHeight = clusterBottom - clusterTop;
-  const yIn = Math.min(clusterTop + arcLayers().centre * clusterHeight, batchBottom - 2 * whiteRamp);
+  const yIn = Math.min(clusterTop + ARC.centre * clusterHeight, batchBottom - 2 * whiteRamp);
   // Mép band không bao giờ nhô lên trên các photo thật.
   const band = Math.max(8, Math.min(ARC.band * clusterHeight, yIn - realBottom));
   const depth = batchBottom - yIn;
