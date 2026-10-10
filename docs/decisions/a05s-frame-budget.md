@@ -23,8 +23,9 @@ Owner thêm yêu cầu phi chức năng ngày 2026-10-10: "phải đạt trên 6
 ## Decision
 
 Trên A05s, Chrome thật, màn chạy 90Hz: mọi trang public và mọi hiệu ứng (cuộn, mở và đóng chi tiết, viewer, menu,
-skeleton, Kính) có median khoảng cách frame dưới `16.7ms` (trên `60fps`), mục tiêu `11.1ms` (`90fps`), không long
-task trên `50ms`. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
+skeleton, Kính) có p5 fps của frame hiển thị (SurfaceFlinger, layer Chrome) từ `60fps` trở lên, tức tối đa 5% frame
+dài hơn `16.7ms`; mục tiêu `90fps` (`11.1ms`); không long task trên `50ms`. Median không dùng làm gate vì ở 90Hz
+median luôn `90fps` kể cả khi giật. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
 và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).
 
 ## Alternative đã cân nhắc
@@ -47,8 +48,10 @@ và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).
 
 ## Evidence
 
-- Cách đo: cử chỉ thật qua `adb shell input swipe`, probe rAF và long task như `tests/site/scroll-trace.mjs`,
-  `dumpsys gfxinfo com.android.chrome`. Số đo hiện trạng nằm ở mô tả PR thêm decision này.
+- Cách đo: cử chỉ thật qua `adb shell input swipe`; nguồn chính `dumpsys SurfaceFlinger --timestats`
+  (present-to-present của layer Chrome); phụ là probe rAF và long task như `tests/site/scroll-trace.mjs`.
+  `dumpsys gfxinfo com.android.chrome` không dùng được vì Chrome vẽ qua surface riêng.
+- Số đo hiện trạng 2026-10-10 (demo `main`, 3 lượt mỗi dòng) nằm ở mô tả PR thêm decision này.
 
 ## Follow-up
 
@@ -60,4 +63,6 @@ và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).
 - **Alternative**: hướng khác đã được xem xét.
 - **Long task**: tác vụ chiếm main thread quá `50ms`, làm rớt frame.
 - **Probe rAF**: script ghi khoảng cách giữa các `requestAnimationFrame` để tính fps.
+- **p5 fps**: mức fps mà 95% frame đạt hoặc vượt.
+- **SurfaceFlinger**: dịch vụ Android ghép và đưa frame lên màn.
 - **Follow-up**: việc cần làm tiếp theo.
