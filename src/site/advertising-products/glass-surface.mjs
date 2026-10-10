@@ -42,6 +42,8 @@ const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
 const FADE = 48;
 const STEP_REACH = [5, 12, 26];
 const CORE_REACH = 28;
+// Mask lõi phone qua band: [vị trí trong band, độ đậm]; chọn trên A05s bằng so điểm ảnh với đủ chín lớp PC (owner 10/10).
+const PHONE_FALLOUT = [[0, 1], [0.15, 0.85], [0.4, 0.5], [0.7, 0.15], [1, 0]];
 const GRAIN_SIZE = 160;
 // Mean trắng mà grain của arc thêm vào (opacity 0.12 x mean alpha 0.5, detail.css); tint mang ít đi đúng bằng đó.
 const GRAIN_WHITE = 0.06;
@@ -230,10 +232,18 @@ export function layoutArcGlass(glass, geometry) {
   const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
   const inner = rest.slice(0, INNER_MAX);
   const steps = rest.slice(INNER_MAX);
-  const coreTop = Math.max(top, cy - radius - CORE_REACH);
-  place(coreStep, coreTop);
-  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
   const fit = Number(glass.dataset.glassSteps ?? FIT_MAX);
+  if (fit) {
+    const coreTop = Math.max(top, cy - radius - CORE_REACH);
+    place(coreStep, coreTop);
+    setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
+  } else {
+    // Phone (owner 10/10): một lớp 28px, mask mờ dần qua band thay cho ba bậc; vùng chuyển là ảnh nét và ảnh
+    // nhòe chồng lên nhau (owner chấp nhận).
+    place(coreStep, top);
+    const stops = PHONE_FALLOUT.map(([x, alpha]) => `rgba(0, 0, 0, ${alpha}) ${(radius + band * x).toFixed(1)}px`);
+    setMask(coreStep, `radial-gradient(${circle(top)}, ${stops.join(", ")})`);
+  }
   steps.forEach((step, index) => {
     step.hidden = index < ARC_STEPS - Math.min(fit, ARC_STEPS);
     const outer = radius + RAMPS[index][1] * band;
@@ -280,14 +290,14 @@ export function layoutArcGlass(glass, geometry) {
 }
 
 // Phone (owner 10/10): thay mọi step backdrop-filter của arc bằng một ảnh nhòe dựng sẵn. Dưới cung chỉ có
-// skeleton card (R2), nên runtime vẽ chúng một lần vào canvas nhỏ, blur sẵn từng level của arc (band 0 đến 28px,
-// trong cung tới 100px, màu cộng dồn như các step) rồi crossfade các level theo khoảng cách tới tâm cung.
+// skeleton card (R2), nên runtime vẽ chúng một lần vào canvas nhỏ, blur sẵn từng level của arc (band 28px theo
+// mask PHONE_FALLOUT, trong cung tới 100px) rồi crossfade các level theo khoảng cách tới tâm cung.
 // Màn hình chỉ composite một ảnh tĩnh mỗi frame, không blur lại.
 const BAKE_SCALE = 0.5;
 const BLUR_PX = 3;
 const ARC_SATURATE = 1.55;
 const ARC_BRIGHTNESS = 1.05;
-const BAKE_LEVELS = [4.5, 12, 28, 42.4, 56.8, 71.2, 85.6, 100];
+const BAKE_LEVELS = [28, 42.4, 56.8, 71.2, 85.6, 100];
 
 // cards: [{ left, top, width, height, color, image }] theo tọa độ glass box; image đã decode.
 export function bakeArcGlass(glass, cards, paper) {
@@ -312,9 +322,9 @@ export function bakeArcGlass(glass, cards, paper) {
     context.drawImage(card.image, w * 0.08 / 1.16, h * 0.08 / 1.16, w / 1.16, h / 1.16,
       card.left, card.top, card.width, card.height);
   }
-  // Level theo khoảng cách d tới tâm: tăng tuyến tính 0 đến 28px qua band, 28 đến 100px từ cung tới vòng trắng tinh.
-  const distanceAt = (level) => level <= ARC_LEVEL ? radius + band * (1 - level / ARC_LEVEL)
-    : radius - Math.max(1, radius - dFull) * (level - ARC_LEVEL) / (CEILING - ARC_LEVEL);
+  // Band là lớp 28px với cùng mask PHONE_FALLOUT như lõi lúc cuộn, nên thay bằng ảnh dựng sẵn không nhảy; trong cung
+  // level tăng tuyến tính 28 đến 100px từ cung tới vòng trắng tinh.
+  const distanceAt = (level) => radius - Math.max(1, radius - dFull) * (level - ARC_LEVEL) / (CEILING - ARC_LEVEL);
   const baked = canvas();
   const output = baked.getContext("2d");
   const layer = canvas();
@@ -323,22 +333,20 @@ export function bakeArcGlass(glass, cards, paper) {
   const small = document.createElement("canvas");
   const smallContext = small.getContext("2d");
   BAKE_LEVELS.forEach((level, index) => {
-    // Band step k nhân saturate/brightness lên căn bậc ba của tổng arc; core và inner giữ tổng.
-    const k = Math.min(3, index + 1) / 3;
     // Blur ở độ phân giải giảm theo level (sigma khoảng 3px) rồi phóng lại: blur canvas trên CPU tốn theo
     // sigma nhân diện tích, nên level 100px chỉ là ảnh vài chục pixel.
     const scale = Math.min(1, BLUR_PX / (level * BAKE_SCALE));
     small.width = Math.ceil(source.width * scale);
     small.height = Math.ceil(source.height * scale);
-    smallContext.filter = `blur(${level * BAKE_SCALE * scale}px) saturate(${ARC_SATURATE ** k}) brightness(${ARC_BRIGHTNESS ** k})`;
+    smallContext.filter = `blur(${level * BAKE_SCALE * scale}px) saturate(${ARC_SATURATE}) brightness(${ARC_BRIGHTNESS})`;
     smallContext.drawImage(source, 0, 0, small.width, small.height);
     layerContext.globalCompositeOperation = "copy";
     layerContext.drawImage(small, 0, 0, layer.width, layer.height);
     // Mask level: 0 nơi arc đạt level trước, 1 từ nơi nó đạt level này vào trong; lớp sau phủ lên lớp trước.
-    const outer = distanceAt(index ? BAKE_LEVELS[index - 1] : 0) * BAKE_SCALE;
-    const inner = distanceAt(level) * BAKE_SCALE;
+    const outer = (index ? distanceAt(BAKE_LEVELS[index - 1]) : radius + band) * BAKE_SCALE;
     const mask = layerContext.createRadialGradient(x, y, 0, x, y, outer);
-    mask.addColorStop(inner / outer, "#000");
+    if (index) mask.addColorStop(distanceAt(level) * BAKE_SCALE / outer, "#000");
+    else PHONE_FALLOUT.forEach(([at, alpha]) => mask.addColorStop((radius + band * at) / (radius + band), `rgba(0, 0, 0, ${alpha})`));
     mask.addColorStop(1, "transparent");
     layerContext.globalCompositeOperation = "destination-in";
     layerContext.fillStyle = mask;

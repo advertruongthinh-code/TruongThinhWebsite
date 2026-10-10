@@ -59,15 +59,18 @@ bớt một bậc mỗi lần còn dưới `60fps` (gate [A05s trên 60fps](../d
 owner chọn 10/10): bậc trong trước, rồi bậc band từ `4.5px` vào trong, thấp nhất
 chỉ còn lõi `28px`. Số này lưu trong `localStorage`, nên chỉ lần đầu trên máy
 phải trả các frame chậm lúc đo. Phone (`pointer: coarse` hoặc có touch) không đo,
-chỉ vẽ lõi `28px` (owner chọn 10/10): trên A05s đo lúc đang vuốt làm trượt gate,
-kết quả không ổn định, và lõi cộng hai bậc band vẫn p5 `45.5fps`; chỉ lõi đạt p5 `90fps`.
-Khi cung trên màn hình và swipe đã dừng, phone thay mọi bậc bằng một ảnh nhòe dựng sẵn
+chỉ vẽ một lớp lõi `28px` (owner chọn 10/10): trên A05s đo lúc đang vuốt làm trượt gate,
+kết quả không ổn định, và lõi cộng hai bậc band vẫn p5 `45.5fps`. Hộp lõi phone phủ cả band; mask
+đậm `100%` tại cung, `85%`, `50%`, `15%` ở `15%`, `40%`, `70%` bề rộng band, `0` ở mép band (chọn trên
+A05s bằng so điểm ảnh với đủ chín lớp PC), nên band là ảnh nét và ảnh nhòe chồng lên nhau (owner chấp
+nhận 10/10). Khi cung trên màn hình và swipe đã dừng, phone thay mọi bậc bằng một ảnh nhòe dựng sẵn
 (owner chọn 10/10): các card dưới cung thành ảnh tĩnh, runtime vẽ chúng một lần vào canvas
-nửa độ phân giải, blur sẵn tám mức (`4.5`, `12`, `28`, rồi tới `100px`, màu cộng dồn như các bậc)
-và crossfade theo cùng hàm mức của cung; màn hình chỉ ghép canvas đó, không còn `backdrop-filter`. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
+nửa độ phân giải, blur sẵn sáu mức (`28` rồi tới `100px`): band dùng mức `28px` với cùng mask trên để
+thay ảnh không nhảy, trong cung crossfade theo cùng hàm mức của cung; màn hình chỉ ghép canvas đó,
+không còn `backdrop-filter`. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
 về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm ngày 05/10 để
 vuốt trên A05s đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
-hay đường ranh giới. Không có vùng nào thấy ảnh nét và ảnh
+hay đường ranh giới. Ngoài band của phone, không có vùng nào thấy ảnh nét và ảnh
 nhòe chồng lên nhau. Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai
 lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tăng
 `sqrt(L² - L_trước²)`.
