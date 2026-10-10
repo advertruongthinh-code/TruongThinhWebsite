@@ -20,9 +20,9 @@ if [ "$installed" != "v$pin" ]; then
 fi
 export PATH="$(uv tool dir --bin):$PATH"
 
-# Chỉ rebuild khi HEAD hoặc tập file dirty đổi kể từ lần refresh trước.
+# Chỉ rebuild khi HEAD, tập file dirty hoặc nội dung của chúng đổi kể từ lần refresh trước.
 stamp="graphify-out/.cloud-fingerprint"
-fingerprint="$( { git rev-parse HEAD; git status --porcelain --untracked-files=all; } | sha256sum | cut -d' ' -f1)"
+fingerprint="$( { git rev-parse HEAD; git status --porcelain --untracked-files=all; git diff HEAD; git ls-files -o --exclude-standard -z | xargs -0 -r sha256sum; } | sha256sum | cut -d' ' -f1)"
 if [ ! -f graphify-out/graph.json ] || [ "$(cat "$stamp" 2>/dev/null)" != "$fingerprint" ]; then
   graphify update . >&2
   echo "$fingerprint" > "$stamp"

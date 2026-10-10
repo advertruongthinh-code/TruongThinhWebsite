@@ -142,8 +142,9 @@ try {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
     const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate :not(picture):has(> img[src^=\"/assets/content/\"], > picture > img[src^=\"/assets/content/\"]):not(.is-media-settled)")]
-      .map(frame => getComputedStyle(frame, "::before").animationName));
-    assert.ok(frames.length && frames.every(name => name === "media-breathe"), `about reduced motion: frames breathe instead of sweeping ${JSON.stringify(frames)}`);
+      .map(frame => { const style = getComputedStyle(frame, "::before"); return `${style.animationName} ${style.animationDuration} ${style.animationIterationCount}`; }));
+    // Reset reduced motion toàn cục không được cắt nhịp thở 2s còn 0.01ms.
+    assert.ok(frames.length && frames.every(value => value === "media-breathe 2s infinite"), `about reduced motion: frames breathe instead of sweeping ${JSON.stringify(frames)}`);
     results.push({ case: "r6-reduced-motion", frames: frames.length });
     await context.close();
   }
