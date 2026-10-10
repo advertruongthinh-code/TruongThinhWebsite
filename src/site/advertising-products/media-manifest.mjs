@@ -180,8 +180,8 @@ const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
     src,
     width,
     height,
-    altVi: `${titleVi} — ảnh minh họa AI`,
-    altEn: `${titleEn} — AI-generated illustration`,
+    altVi: titleVi,
+    altEn: titleEn,
   }),
 })));
 
