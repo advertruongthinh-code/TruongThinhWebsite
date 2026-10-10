@@ -1,8 +1,9 @@
 ---
 title: Header đi theo ngón tay trên điện thoại
-status: planned
+status: live
 source: []
-tests: []
+tests:
+  - tests/site/phone-header-scroll.e2e.mjs
 notion: none
 updated: 2026-10-10
 ---
@@ -35,7 +36,8 @@ Then header vẫn đi theo quãng cuộn như R2; ở 1440px chuột thì header
 ### R2. Header đi theo quãng cuộn
 
 Gọi `H` là quãng để header khuất hẳn (gutter trên cộng hàng header). Header có độ lệch `offset` trong
-`[0, H]`, vẽ bằng `translateY(-offset)`. Mỗi lần `scrollY` đổi một lượng `delta` thì
+`[0, H]`, vẽ bằng `translateY(-offset)` inline trên `.site-header.is-follow` (class này bỏ transition của
+transform). Mỗi lần `scrollY` đổi một lượng `delta` thì
 `offset = clamp(offset + delta, 0, H)`, rồi `offset = min(offset, scrollY)`. Cuộn xuống bao nhiêu thì
 header khuất bấy nhiêu, cuộn lên bao nhiêu thì lộ ra bấy nhiêu, kể cả từ đầu trang. Không ngưỡng
 150px, không vùng giữa trang, không tự hiện gần cuối trang. Cuộn quán tính sau khi thả tay vẫn tính
@@ -60,8 +62,8 @@ Then header vẫn lộ một nửa
 
 ### R4. Lúc header hiện đủ
 
-`offset = 0` khi: mở menu, bắt đầu chuyển route mềm, `pageshow`, focus vào phần tử trong header,
-khôi phục vị trí cuộn khi Back. Sau đó cuộn tiếp thì tính lại theo R2. Đang khóa cuộn (menu, viewer)
+`offset = 0` khi: mở hoặc đóng menu, đang chuyển route (route mềm, veil lúc tải trực tiếp), `pageshow`,
+khôi phục vị trí cuộn khi Back; focus trong header giữ hiện bằng CSS `:focus-within` của Shell. Sau đó cuộn tiếp thì tính lại theo R2. Đang khóa cuộn (menu, viewer)
 thì không tính delta.
 
 ```gherkin
@@ -78,20 +80,20 @@ của người dùng, không tự chạy (agent chọn).
 
 ## Hiệu năng
 
-Chỉ ghi `transform` một lần mỗi frame, không đọc layout trong vòng cuộn. Giữ NFR fps hiện có trên A05s:
+Chỉ ghi `transform` một lần mỗi frame. `H` đọc `offsetHeight` một lần khi header đổi thu gọn, resize
+hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ NFR fps hiện có trên A05s:
 tối đa 5% frame dưới 60fps (p5 SurfaceFlinger từ 60), không long task trên 50ms khi cuộn trang dài.
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R4 | Playwright touch emulation 412×915 (`hasTouch`, `isMobile`): đo `translateY` của header sau từng lần cuộn; chưa có test |
-| R1 | Playwright touch ngang 915×412 theo spec này; 1440px chuột theo Shell R3 |
+| R1–R4 | `tests/site/phone-header-scroll.e2e.mjs`: touch 412×915 và 915×412 đo vị trí header sau từng lần cuộn, dừng, menu; 1440px chuột theo Shell R3 |
 | Hiệu năng | Đo A05s thật qua adb, xin điều phối trước khi dùng máy |
 
 ## Gate còn mở
 
-- Owner duyệt spec này, rồi duyệt plan. Owner.
+- Chưa đo fps khi cuộn trên A05s thật; agent đo khi điều phối giao máy.
 - Owner vuốt thử trên A05s sau khi code, so cảm giác với X. Owner.
 
 ## Chú thích thuật ngữ

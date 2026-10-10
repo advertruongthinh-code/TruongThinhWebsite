@@ -9,6 +9,10 @@
   const headerHoverMedia = window.matchMedia(
     "(any-hover: hover) and (any-pointer: fine)",
   );
+  // Điện thoại cả dọc lẫn ngang: header đi theo quãng cuộn (phone-header-scroll R1).
+  const headerFollowMedia = window.matchMedia(
+    "(hover: none) and (pointer: coarse) and (max-width: 750px), (hover: none) and (pointer: coarse) and (max-height: 750px)",
+  );
   const header = document.querySelector("[data-site-header]");
   const routeVeil = document.querySelector(".route-veil");
   const floatingCta = document.querySelector(".floating-cta");
@@ -137,6 +141,9 @@
   let directionStartY = 0;
   let lastDirection = "";
   let lastHeaderCollapsed;
+  let headerOffset = 0;
+  let headerFollowHeight = Infinity;
+  let headerFollowStale = true;
   let currentHeaderColor = "";
   let routeTimeline;
   let routeInFlight = false;
@@ -401,6 +408,12 @@
     });
   };
 
+  const showHeader = () => {
+    header.classList.remove("is-hidden");
+    headerOffset = 0;
+    header.style.removeProperty("transform");
+  };
+
   const updateHeader = (scrollY = getPageScroll()) => {
     const routeTransitionActive =
       document.body.classList.contains("is-transitioning") ||
@@ -429,6 +442,7 @@
       syncHeaderBrandSurface(ink);
     }
     if (collapsedChanged) {
+      headerFollowStale = true;
       playHeaderLockupScaleMotion(logoBeforeRect);
     }
     lastHeaderCollapsed = collapsed;
@@ -448,9 +462,33 @@
       pageState.scrollCue.tabIndex = cueHidden ? -1 : 0;
     }
 
+    const follow = headerFollowMedia.matches;
+    const settledY = Math.max(0, Math.min(scrollY, maxScroll));
+    if (follow !== header.classList.contains("is-follow")) {
+      header.classList.toggle("is-follow", follow);
+      showHeader();
+    }
     if (routeTransitionActive) {
-      header.classList.remove("is-hidden");
-    } else if (!document.body.classList.contains("menu-open")) {
+      showHeader();
+    } else if (document.body.classList.contains("menu-open")) {
+      // Khóa cuộn: không tính delta (phone-header-scroll R4).
+    } else if (follow) {
+      // Lệch đúng bằng quãng cuộn, kẹp trong [0, chiều cao header] và không quá scrollY;
+      // dừng cuộn thì giữ nguyên (phone-header-scroll R2, R3).
+      if (headerFollowStale) {
+        // Đo lại chiều cao; header đang khuất hẳn thì giữ khuất hẳn theo chiều cao mới.
+        const height = header.offsetHeight;
+        if (headerOffset >= headerFollowHeight) headerOffset = height;
+        headerFollowHeight = height;
+        headerFollowStale = false;
+      }
+      headerOffset = Math.min(
+        Math.max(0, Math.min(headerOffset + settledY - lastScrollY, headerFollowHeight)),
+        settledY,
+      );
+      if (headerOffset) header.style.transform = `translateY(${-headerOffset}px)`;
+      else header.style.removeProperty("transform");
+    } else {
       const isMiddle =
         scrollY > window.innerHeight * 0.5 &&
         scrollY < pageHeight - window.innerHeight * 1.25;
@@ -471,7 +509,7 @@
         header.classList.remove("is-hidden");
       }
     }
-    lastScrollY = Math.min(scrollY, maxScroll);
+    lastScrollY = settledY;
     ticking = false;
   };
 
@@ -586,6 +624,7 @@
     if (layoutUpdateFrame) return;
     layoutUpdateFrame = window.requestAnimationFrame(() => {
       layoutUpdateFrame = undefined;
+      headerFollowStale = true;
       measureDesktopNav();
       pageState?.smoothScroll?.update();
       updateToneRanges();
@@ -1697,7 +1736,7 @@
     dialog.classList.remove("is-active");
     document.body.classList.remove("menu-open");
     openButton.setAttribute("aria-expanded", "false");
-    header.classList.remove("is-hidden");
+    showHeader();
     if (pageState?.smoothScroll) {
       pageState.smoothScroll.start();
     } else if (pageState && smoothMedia.matches && !reduceMotion) {
@@ -1760,7 +1799,7 @@
       }
     });
     openButton.setAttribute("aria-expanded", "true");
-    header.classList.remove("is-hidden");
+    showHeader();
     pageState?.smoothScroll?.stop();
     if (!hasGsap || reduceMotion) {
       dialog.querySelectorAll(".menu-shutters i").forEach((shutter) => {
@@ -1875,7 +1914,7 @@
       return Promise.resolve();
     }
     routeTimeline?.kill();
-    header.classList.remove("is-hidden");
+    showHeader();
     header.classList.add("is-route-pinned");
     document.body.classList.add("is-transitioning");
     setRouteVeil(1);
@@ -2402,6 +2441,16 @@
     { signal: runtimeAbort.signal },
   );
 
+  // Padding header đổi dần khi thu gọn: đo lại chiều cao sau transition (phone-header-scroll R2).
+  header.addEventListener(
+    "transitionend",
+    (event) => {
+      if (event.target !== header || !event.propertyName.startsWith("padding")) return;
+      headerFollowStale = true;
+      requestHeaderUpdate();
+    },
+    { signal: runtimeAbort.signal },
+  );
   window.addEventListener("scroll", requestHeaderUpdate, {
     passive: true,
     signal: runtimeAbort.signal,
@@ -2760,7 +2809,7 @@
         finishClose(false);
         clearRouteEntry();
       }
-      header.classList.remove("is-hidden");
+      showHeader();
       requestLayoutUpdate();
     },
     { signal: runtimeAbort.signal },

@@ -67,7 +67,7 @@ Header chỉ ẩn trong vùng `0.5 × viewport < scrollY < pageHeight - 1.25 × 
 chiều thì header `is-hidden`, cuộn lên quá 150px thì hiện; ngoài vùng (đầu và cuối trang) hiện
 ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chuột thật (`any-hover: hover`
 và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng
-giữ hiện.
+giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](phone-header-scroll.md) thay cho R3.
 
 ```gherkin
 Given trang dài đã cuộn quá nửa cửa sổ và header đang ẩn
