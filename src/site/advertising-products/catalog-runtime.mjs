@@ -2914,11 +2914,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    reveal.glass = bakedRevealGlass(heroFrame, bitmap);
+    // Điện thoại chỉ crossfade: Kính phủ cả hero làm pha mở rơi dưới 60fps trên A05s (owner chọn 10/10, glass-surface R7).
+    reveal.glass = skeletonPhone() ? null : bakedRevealGlass(heroFrame, bitmap);
     bitmap?.close();
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
-    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
+    const baked = [...reveal.glass?.querySelectorAll(".glass-surface__step--baked > canvas") ?? []];
+    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total),
+      ...(reveal.glass ? playGlassReveal(reveal.glass, total) : [])];
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
@@ -2997,7 +2999,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }, 100);
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
-      const bitmap = reduced ? null : bakedBitmap(source);
+      const bitmap = reduced || skeletonPhone() ? null : bakedBitmap(source);
       photoImage.decode().then(() => bitmap).then((baked) => {
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
