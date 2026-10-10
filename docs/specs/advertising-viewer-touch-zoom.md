@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-06
+updated: 2026-10-10
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -17,14 +17,15 @@ updated: 2026-10-06
 
 Khách xem ảnh công trình trên điện thoại hoặc máy tính bảng dùng viewer bằng
 tay, như app Thư viện, không cần nút: chạm đúp ảnh primary để mở, chụm hai
-ngón, kéo một ngón, chạm đúp để zoom, vuốt dọc hoặc back để đóng. Spec này sở
-hữu thao tác chạm, zoom liên tục có nấc, cách ẩn nút trên màn cảm ứng và back.
+ngón, vặn hai ngón để xoay, kéo một ngón, chạm một lần để zoom, vuốt dọc hoặc
+back để đóng. Spec này sở hữu thao tác chạm, zoom liên tục có nấc, xoay, cách ẩn
+nút trên màn cảm ứng và back.
 Morph, nút trên desktop, con lăn, phím và khóa cuộn giữ theo
 [detail](advertising-detail.md#r9-viewer) và R9 ở đó.
 
 ## Hành vi
 
-Ký hiệu: `s` là tỷ lệ ảnh so với mức vừa khung. Ba nấc: Fit `s = 1`, Cover
+Ký hiệu: `s` là tỷ lệ ảnh so với mức vừa khung ở góc xoay hiện tại (R11). Ba nấc: Fit `s = 1`, Cover
 `s = c` (ảnh phủ kín vùng nhìn, như hiện nay), Max `s = 2c`. Hai giá trị cách
 nhau dưới 1% coi là bằng nhau. Mọi thao tác chạm chỉ áp dụng khi dialog đang
 mở và không đang đóng.
@@ -78,21 +79,23 @@ When ngón thứ hai chạm xuống rồi nhấc lên
 Then transform ảnh không nhảy ở cả hai lần chuyển
 ```
 
-### R4. Chạm đúp
+### R4. Chạm một lần lên ảnh để zoom
 
-Hai lần chạm bằng touch trên ảnh, cách nhau tối đa `300ms` và `24 CSS px`, mỗi
-lần di không quá `10 CSS px` và không thuộc pinch, là chạm đúp. Ở Fit, ảnh
-phóng tới Cover, anchor là điểm chạm lần hai. Ở mọi `s > 1`, ảnh về Fit và pan
-về tâm. Chuyển động `200ms ease-in-out`. Chạm một lần lên ảnh vẫn không làm
-gì, chạm một lần lên nền vẫn đóng viewer. Chạm đúp không gây zoom trang của
-trình duyệt. Double-click chuột trên desktop không đổi hành vi hiện tại.
+Một lần chạm bằng touch lên ảnh, di không quá `10 CSS px` và không thuộc pinch
+hay vuốt, đổi zoom ngay khi nhấc tay, không chờ lần chạm thứ hai. Ở Fit, ảnh
+phóng tới Cover, anchor là điểm chạm. Ở mọi `s > 1`, ảnh về Fit và pan về tâm.
+Chuyển động `200ms ease-in-out`. Chạm một lần lên nền vẫn đóng viewer. Chạm
+không gây zoom trang của trình duyệt. Chuột trên desktop không đổi hành vi
+hiện tại: click ảnh không làm gì, double-click không zoom.
 
 ```gherkin
-Given viewer ở Fit
-When chạm đúp lên một góc ảnh
+Given viewer ở Fit trên điện thoại
+When chạm một lần lên một góc ảnh
 Then ảnh tới Cover, điểm ảnh dưới chỗ chạm giữ nguyên vị trí khi chưa chạm giới hạn pan
-When chạm đúp lần nữa
+When chạm một lần nữa lên ảnh
 Then ảnh về Fit, pan về tâm, viewer vẫn mở
+When chạm một lần lên nền
+Then viewer đóng
 ```
 
 ### R5. Nút, con lăn, phím và trạng thái dùng chung một tỷ lệ
@@ -101,7 +104,7 @@ Thay ba mức cố định bằng `s` liên tục; ba nấc chỉ còn là đi�
 con lăn. `+` (và con lăn lên) tới nấc nhỏ nhất lớn hơn `s`; `−` (và con lăn
 xuống) tới nấc lớn nhất nhỏ hơn `s`; Reset và middle-click về Fit. `+` disabled
 khi `s` bằng Max; `−` và Reset disabled khi `s` bằng Fit. Phím mũi tên pan khi
-`s > 1`. Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
+`s > 1`. Reset còn đưa góc xoay về `0°` (R11). Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
 khi thao tác kết thúc, không cập nhật từng frame lúc pinch. Anchor của con lăn
 và chuyển động `200ms ease-in-out` giữ như R9.
 
@@ -116,18 +119,19 @@ Then ảnh về Fit, − và Reset disabled
 ### R6. Resize, motion đang chạy và reduced motion
 
 - Resize hoặc xoay máy: đang ở một nấc thì giữ nấc đó theo hình học mới; nằm
-  giữa hai nấc thì giữ `s` và kẹp vào khoảng mới; pan kẹp lại.
+  giữa hai nấc thì giữ `s` và kẹp vào khoảng mới; pan kẹp lại. Góc xoay ảnh
+  (R11) giữ nguyên.
 - Đóng sau resize: nút mở bị đẩy khỏi màn hình thì trang cuộn tức thì cho nút
   về giữa ([detail R9](advertising-detail.md#r9-viewer)).
 - Bắt đầu chạm hoặc kéo khi đang zoom bằng animation: lấy transform đang hiện
   làm điểm bắt đầu, không nhảy. Khi đang mở, ảnh tới ngay mức Fit rồi nhận thao
   tác. Đang đóng thì bỏ qua thao tác chạm.
-- Reduced motion: pinch và kéo vẫn theo tay; bật về (R2) và chạm đúp (R4) đổi
-  tức thì, không animation.
+- Reduced motion: pinch, xoay và kéo vẫn theo tay; bật về (R2), chạm (R4) và
+  hít góc (R11) đổi tức thì, không animation.
 
 ```gherkin
 Given prefers-reduced-motion: reduce và viewer ở Fit
-When chạm đúp lên ảnh
+When chạm một lần lên ảnh
 Then ảnh tới Cover ngay trong frame kế tiếp, nút và trạng thái khớp Cover
 ```
 
@@ -151,8 +155,8 @@ Then viewer mở bằng morph, nút "Xem lớn hơn" không hiện, trang không
 
 Trên màn cảm ứng nút đóng, reset, `+`, `−` của viewer ẩn khỏi mắt (kiểu
 `sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
-zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm đúp (R4); về Fit bằng
-chạm đúp. Desktop giữ nguyên nút.
+zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm (R4); về Fit bằng
+chạm. Desktop giữ nguyên nút.
 
 ### R9. Vuốt dọc ảnh để đóng
 
@@ -161,7 +165,8 @@ ngang, thì ảnh dịch dọc theo tay (`dy`) và nền viewer mờ dần: opac
 `1 − min(1, |dy| / (0.5 × chiều cao viewport))`. Buông tay khi `|dy|` từ `15%`
 chiều cao viewport hoặc tốc độ cuối từ `0.5 px/ms` thì viewer đóng: ảnh morph
 từ vị trí đang hiện về khung primary `250ms`, nền mờ tiếp từ opacity đang có.
-Chưa đủ thì ảnh và nền về chỗ `200ms ease-in-out`. Ngón thứ hai chạm xuống thì
+Ảnh đang xoay (R11) thì morph đóng đưa góc về `0°` cùng lúc. Chưa đủ thì ảnh
+và nền về chỗ `200ms ease-in-out`. Ngón thứ hai chạm xuống thì
 bỏ vuốt, ảnh về chỗ ngay và bắt đầu pinch. Chỉ áp cho touch; kéo chuột ở Fit
 vẫn không làm gì. Reduced motion: ảnh vẫn theo tay, đóng và về chỗ tức thì.
 
@@ -190,12 +195,35 @@ When bấm back lần nữa
 Then rời detail về masonry như hiện nay
 ```
 
+### R11. Vặn hai ngón để xoay ảnh
+
+Trong pinch (R1), góc ảnh đổi theo góc đường nối hai ngón: `θ = θ0 + (α − α0)`,
+`α` là góc đường nối, `θ0`, `α0` lấy lúc bắt đầu. Xoay tự do, không ngưỡng,
+cùng lúc với zoom, quanh trung điểm hai ngón; điểm ảnh dưới trung điểm vẫn nằm
+dưới trung điểm như R1. Buông tay (ngón cuối nhấc lên, `pointercancel`, hoặc
+nhấc một ngón khi pinch kết thúc) thì góc hít về bội `90°` gần nhất (`0°`,
+`90°`, `180°`, `270°`) trong `200ms ease-in-out`, cùng lúc với bật về R2. Ở
+`90°` và `270°` Fit, Cover, Max và giới hạn pan tính theo ảnh đã đổi chiều rộng
+và cao; `s` tính lại theo khung mới rồi áp R2 và kẹp pan. Góc giữ khi kéo một
+ngón, chạm (R4) và resize; mỗi lần mở viewer bắt đầu ở `0°`. Chỉ áp cho touch.
+
+```gherkin
+Given viewer mở ở Fit trên điện thoại dọc với ảnh ngang
+When hai ngón vặn 70° rồi buông
+Then ảnh hít về 90° trong 200ms
+And ảnh xoay vừa khung theo chiều mới, không cắt mép, viewer vẫn mở
+When hai ngón vặn thêm 30° rồi buông
+Then ảnh về lại 90°
+When vuốt dọc ảnh để đóng
+Then morph đóng đưa ảnh về khung primary ở 0°
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-advertising-photo-viewport]` | Nhận pointer cho pinch, kéo, chạm đúp; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
-| DOM hook | `[data-advertising-photo-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) scale(s)` |
+| DOM hook | `[data-advertising-photo-viewport]` | Nhận pointer cho pinch, xoay, kéo, chạm; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
+| DOM hook | `[data-advertising-photo-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
 | DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out`, `-zoom-reset` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
 | DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
 | DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm đúp mở viewer (R7), `touch-action: manipulation` |
@@ -205,11 +233,12 @@ Then rời detail về masonry như hiện nay
 | Hàm public | `createAdvertisingPhotoViewer` | Giữ option; trả thêm `popState` (R10); chạm đúp nghe trên khung của `heroImage` (R7) |
 
 Pointer Events thuần, không thêm thư viện gesture. Page pinch ngoài viewer giữ
-nguyên vì meta viewport không đổi.
+nguyên vì meta viewport không đổi. Xoay chỉ đổi `transform` của ảnh, không đổi
+layout hay filter, để giữ [gate fps A05s](../decisions/a05s-frame-budget.md).
 
 ## UI
 
-Không có giá trị hình ảnh mới: dùng lại nhịp zoom `200ms ease-in-out`, morph
+Không có giá trị hình ảnh mới: hít góc dùng lại nhịp zoom `200ms ease-in-out`, morph
 đóng `250ms` và nút của [Viewer](../../design-system/components/Viewer/README.md).
 Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 
@@ -217,7 +246,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R10 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, double-click desktop, vuốt đóng, back |
+| R1–R11 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, chạm một lần, vặn xoay và hít góc, double-click desktop, vuốt đóng, back |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
 | R1–R6 | A05s thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm. Đạt 05/10/2026 trên SM-A057F, Chrome 154, dọc (2/2 lượt); R7 đến R10 đạt 06/10/2026, Chrome 154, dọc (2/2 lượt), kèm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` (2/2) và vuốt `adb shell input swipe` 30% chiều cao; ngang trên máy thật chỉ khi đặt máy ngang (chưa chạy) |
@@ -226,12 +255,15 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 
 
 - A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud.
+- R4 chạm một lần và R11 xoay chưa kiểm trên A05s thật (dọc và ngang) và chưa đo fps theo
+  [gate A05s](../decisions/a05s-frame-budget.md); kiểm ở cuối đợt.
 - iPhone Safari chưa kiểm vì chưa kết nối thiết bị; WebKit desktop không thay
   bằng chứng iPhone.
 
 ## Chú thích thuật ngữ
 
 - **Pinch**: chụm hoặc mở hai ngón để đổi tỷ lệ ảnh trong viewer, khác zoom trang của trình duyệt.
+- **Hít góc**: khi buông tay, góc xoay tự trượt về bội 90° gần nhất.
 - **Anchor**: điểm ảnh được giữ đứng yên trên màn hình khi đổi tỷ lệ.
 - **Pan**: kéo dịch ảnh khi đang phóng to.
 - **Nấc**: điểm dừng Fit, Cover, Max mà nút và con lăn nhảy tới.
