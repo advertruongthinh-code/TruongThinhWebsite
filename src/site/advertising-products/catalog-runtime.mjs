@@ -3003,7 +3003,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.decode().then(() => bitmap).then((baked) => {
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS, baked);
+        // Điện thoại: nền blur 100px nằm yên dưới skeleton đang tan, để GPU không tính lại blur mỗi frame crossfade.
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], skeletonPhone() ? [photoImage] : incoming, MEDIA_REVEAL_MS, baked);
         else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
         else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
       }, () => {
@@ -3166,15 +3167,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       revealPhotoView(browse, generation);
     }
-    for (const phase of deferRelated ? ["warm", "related", ""] : []) {
+    for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
       await nextTask();
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+      // Phân trang ép một layout mỗi probe, nên nó có task riêng: gộp với warm thành task 55ms trên A05s.
+      if (phase === "pages") {
+        paginateDescription();
+        continue;
+      }
       directEntryPhase = phase;
       if (phase) {
         relatedLayoutKey = "";
         layoutRelated(browseHistory.current);
-        // Phân trang ép một layout mỗi probe, nên nó rời task primary.
-        if (phase === "warm") paginateDescription();
       } else {
         renderRelatedWindow({ animate: true, origins });
         window.dispatchEvent(new CustomEvent("site:layout"));
