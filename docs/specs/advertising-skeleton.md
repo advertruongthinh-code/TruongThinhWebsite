@@ -30,8 +30,10 @@ của cột; batch kết thúc ở đáy CTA, ngay trên footer; chiều cao đu
 Khung đặt vào cột có đáy thấp nhất trước, cao bằng bề rộng card nhân một trong ba band: ngang `0.72`, vuông `1`, đứng
 `1.32`. Một cột không có hai khung liền cùng band; cùng độ sâu ưu tiên band khác. Runtime thử tối đa 8 phương án theo
 seed lượt duyệt, chọn phương án có ít nhất 2 band trong 4 khung đầu và không quá 3 khung liền cùng band trong 12 khung
-đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Band
-gắn với slot (`cột:độ sâu`), dựng lại giữ band cũ. Batch chỉ có khi masonry đang hiện, không có khi mở detail.
+đầu. Khung cuối mỗi cột kéo tới đáy batch; phần còn lại ngắn hơn `0.25` bề rộng card thì gộp vào khung phía trên. Slot
+là thứ tự khung nối tiếp masonry (`0`, `1`, ...), không phải ô cột và độ sâu: đổi số cột thì khung thứ k vẫn là item
+k của cùng lưới, nên resize trượt cả card và khung như một masonry (owner 10/10). Band gắn với slot, dựng lại giữ band
+cũ, trừ khi cột mới đặt slot ngay dưới khung cùng band. Batch chỉ có khi masonry đang hiện, không có khi mở detail.
 
 ```gherkin
 Given masonry kết thúc ở bất kỳ độ cao nào, 2 tới 4 cột
@@ -203,19 +205,17 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - R8 trên A05s: trace trong PR #153 không có task trên `50ms` ở trang ảnh, trang Advertising ngang main. Trang ảnh
   còn khoảng 9% frame trên `33ms` (main khoảng 1%) khi Kính hiện ảnh related; owner xem trên demo. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
-- `advertising-continuation.e2e.mjs` FAIL ở `ready()`: sau reload có reduced motion rồi tắt, khung DOM đầu không có
-  `is-looping` trong 30s; chưa rõ nguyên nhân. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có
-  GPU. Main và máy PC.
-- `advertising-skeleton-lifecycle.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ở 390×788 slot `1:4` top 14573,3
-  bị gỡ dù đáy batch mới 14574,5; code gỡ đúng R1 (khung cao 1,2px dưới `0.25` bề rộng card), assertion "removed tail
-  slots must lie beyond the new boundary" chưa tính luật này. Main sửa assertion.
+- `advertising-continuation.e2e.mjs` FAIL: test còn giả định ngân sách 2 WebGL context trên điện thoại và đo paint theo
+  từng canvas, trong khi từ #252 mọi khung vẽ trên một canvas chung (R5). #252 đã sửa phần đếm context; phần đo paint
+  cần chuyển sang canvas chung. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có GPU. Main và
+  máy PC.
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
 ## Chú thích thuật ngữ
 
 - **Batch**: tập khung skeleton nối tiếp masonry tới footer trong một lần dựng.
-- **Slot**: vị trí khung theo cột và độ sâu, khóa để giữ band và assignment.
+- **Slot**: thứ tự khung nối tiếp masonry, khóa để giữ band và assignment.
 - **Assignment**: preset, hoán vị anchor, pha, chiều chảy và tốc độ lệch của một khung.
 - **Trạng thái trang**: một lần masonry ổn định sau tải trang, đổi filter, mở hoặc đóng detail, Back/Forward.
 - **Lease**: quyền dùng tạm một WebGL context; context thuộc document, không thuộc khung.

@@ -1274,6 +1274,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let masonry;
   let scrollFrame = 0;
   let resizeFrame = 0;
+  let lastResizeAt = -Infinity;
   let layoutFrame = 0;
   let motionUntil = 0;
   let lastScrollAt = 0;
@@ -1487,8 +1488,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     restoreCanonicalDomOrder();
   };
+  // Card đổi cỡ cùng nhịp với vị trí: con của card co giãn từ cỡ cũ quanh góc trên trái của card, nên card lớn
+  // lên không phủ item kế bên giữa lúc trượt (owner 10/10). Masonry giữ `transform`, nên scale nằm ở con.
+  const isSizeMorph = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.scale);
+  const morphSize = (node, from) => {
+    const sx = from.w / node.offsetWidth;
+    const sy = from.h / node.offsetHeight;
+    if (Math.abs(sx - 1) <= 0.01 && Math.abs(sy - 1) <= 0.01) return;
+    for (const child of node.children) {
+      const transformOrigin = `${-child.offsetLeft}px ${-child.offsetTop}px`;
+      child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: 400, easing: "ease" });
+    }
+  };
   const cancelMasonryTransitions = (instance = masonry) => {
     instance?.items.forEach((item) => {
+      for (const child of item.element.children) child.getAnimations().forEach((animation) => isSizeMorph(animation) && animation.cancel());
       item.disableTransition();
       item._transn.ingProperties = {};
       item._transn.clean = {};
@@ -1541,7 +1555,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const [id, node] of rendered) {
       if (node.hidden) continue;
       const rect = node.getBoundingClientRect();
-      coordinates.set(id, { x: rect.left - gridRect.left, y: rect.top - gridRect.top });
+      // Cỡ đang thấy, kể cả lượt co giãn đang chạy (morphSize).
+      const link = node.firstElementChild;
+      const scaleY = link?.offsetHeight ? link.getBoundingClientRect().height / link.offsetHeight : 1;
+      coordinates.set(id, { x: rect.left - gridRect.left, y: rect.top - gridRect.top,
+        w: link?.getBoundingClientRect().width || rect.width, h: node.offsetHeight * scaleY });
     }
     coordinates.gridTop = gridRect.top;
     return coordinates;
@@ -2160,9 +2178,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const after = node.getBoundingClientRect();
     const dx = before.left - after.left;
     const dy = before.top - after.top;
-    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
-    node.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: 400, easing: "ease" });
+    // Khung batch co giãn từ cỡ cũ như card (morphSize); cụm CTA và Kính chỉ trượt.
+    const scale = node.dataset.advertisingCtaFrame && after.width && after.height
+      ? `${before.width / after.width} ${before.height / after.height}` : "1 1";
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && scale === "1 1") return;
+    node.animate([{ translate: `${dx}px ${dy}px`, scale, transformOrigin: "0 0" }, { translate: "0 0", scale: "1 1", transformOrigin: "0 0" }],
+      { duration: 400, easing: "ease" });
   };
+  const cancelCtaSlides = (nodes) => [...nodes].forEach((node) => node.getAnimations().forEach((animation) => {
+    if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
+  }));
   const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
   const renderCtaSkeleton = ({ slide = false } = {}) => {
     if (!ctaSkeleton || !geometry || activePhotoId) {
@@ -2172,9 +2197,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
     const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
-    slideOrigins?.forEach((_, node) => node.getAnimations().forEach((animation) => {
-      if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
-    }));
+    cancelCtaSlides(slideOrigins?.keys() || []);
     const gap = geometry.interCardGap;
     const ctaTop = geometry.totalPixelHeight + gap;
     gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
@@ -2284,6 +2307,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (cta && glass) slideOrigins.set(arcGlass, new DOMRect(arcGlass.getBoundingClientRect().left,
         arcGlass.getBoundingClientRect().top + cta.top - gridCta.getBoundingClientRect().top));
     }
+    // Khung mới xuất phát ngay dưới khung đứng trước nó trong layout cũ, như item kế tiếp của masonry cũ.
+    if (slideOrigins) {
+      let previous = null;
+      frameLayout.forEach(({ slot }) => {
+        const frame = skeletonFrameBySlot.get(slot);
+        if (!slideOrigins.has(frame) && previous) {
+          const { width, height } = frame.getBoundingClientRect();
+          const scale = previous.width / width;
+          slideOrigins.set(frame, new DOMRect(previous.left, previous.bottom + gap * scale, previous.width, height * scale));
+        }
+        previous = slideOrigins.get(frame);
+      });
+    }
     slideOrigins?.forEach((before, node) => slideFrom(node, before));
   };
 
@@ -2295,7 +2331,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // màn, nếu không chúng bay lệch đúng bằng độ kẹp rồi giật về (đo trên PC, vòng 26).
     if (origins?.gridTop !== undefined) {
       const shift = origins.gridTop - grid.getBoundingClientRect().top;
-      if (shift) origins = new Map([...origins].map(([id, { x, y }]) => [id, { x, y: y + shift }]));
+      if (shift) origins = new Map([...origins].map(([id, origin]) => [id, { ...origin, y: origin.y + shift }]));
     }
     if (layoutFrame && !animate) return;
     if (layoutFrame) {
@@ -2375,6 +2411,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           item.isLayoutInstant = item.element.hidden || (created.has(item.element.dataset.advertisingCard) && !seeded.has(item.element.dataset.advertisingCard));
         });
         masonry.layout();
+        for (const [id, node] of rendered) if (!node.hidden && origins?.get(id)?.w) morphSize(node, origins.get(id));
       }
       hasLaidOut = true;
       lastGeometrySignature = geometrySignature;
@@ -3473,9 +3510,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const origins = visualCoordinates();
         // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
         // nên cả masonry trượt như một khối (đo trên PC, vòng 28).
-        geometry?.placements.forEach(({ card, x, y }) => origins.has(card.id) || origins.set(card.id, { x, y }));
+        geometry?.placements.forEach(({ card, x, y, pixelWidth: w, pixelHeight: h }) => origins.has(card.id) || origins.set(card.id, { x, y, w, h }));
         cancelMotion();
-        measure({ animate: true, origins });
+        // Đang kéo cạnh cửa sổ (relayout bề rộng liên tiếp dưới 250ms): đặt thẳng vị trí mỗi frame, không trượt. Mỗi lần
+        // relayout tốn khoảng 100ms nên trượt 0.4s bị khởi động lại liên tục, item kẹt giữa layout cũ và mới, chồng
+        // nhau (đo trên PC, vòng 44). Resize đơn lẻ vẫn trượt.
+        const now = performance.now();
+        const dragging = now - lastResizeAt < 250;
+        lastResizeAt = now;
+        if (dragging) cancelCtaSlides(ctaSlideNodes());
+        measure({ animate: !dragging, origins });
       } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
