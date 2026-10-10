@@ -105,7 +105,8 @@ phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `de
 (R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
 làm trễ nhịp trượt. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
 hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
-gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó.
+gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó. Điện thoại hoãn như vậy (A05s, 10/10):
+"cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt không có `scrollend` thì `120ms` sau scroll event cuối.
 
 ```gherkin
 Given điện thoại 838px ngang

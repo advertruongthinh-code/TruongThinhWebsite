@@ -1147,12 +1147,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const getLayoutViewportHeight = () => scroll?.getViewportMetrics?.().layoutHeight
     || document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height
     || innerHeight;
-  const getVisibleViewport = () => scroll?.getViewportMetrics?.().visible || {
+  // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe, nên không ép style recalc mỗi frame cuộn.
+  const getVisibleViewport = () => ({
     width: window.visualViewport?.width ?? innerWidth,
     height: window.visualViewport?.height ?? innerHeight,
     left: window.visualViewport?.offsetLeft ?? 0,
     top: window.visualViewport?.offsetTop ?? 0,
-  };
+  });
   document.body.classList.add("is-advertising-browse");
   let locale = currentLocale();
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1252,6 +1253,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let resizeFrame = 0;
   let layoutFrame = 0;
   let motionUntil = 0;
+  let lastScrollAt = 0;
+  let scrollActive = false;
+  // Fling bận làm khoảng cách giữa hai scroll event vượt 120ms, nên đo thời gian một mình thấy "đã dừng" giữa fling;
+  // có scrollend thì chờ nó, rồi vẫn giữ 120ms như cũ.
+  const phoneScrollWait = () => scrollActive ? PHONE_REVEAL_SCROLL_IDLE_MS
+    : lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
   let motionTimer = 0;
   let pendingScroll = false;
   let lastMeasuredGridWidth = 0;
@@ -1681,7 +1688,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const oldCanvas = frame.querySelector("canvas");
     if (oldCanvas && skeletonAssignmentByFrame.has(frame)) oldCanvas.replaceWith(createSkeletonCanvas(frame));
   };
-  const syncSkeletonRenderers = () => {
+  // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
+  const syncSkeletonRenderers = (rects) => {
     const budget = skeletonContextBudget();
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
@@ -1690,7 +1698,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport.
     const prioritized = [...visibleSkeletonFrames]
-      .map((frame) => ({ frame, rect: frame.getBoundingClientRect() }))
+      .map((frame) => ({ frame, rect: rects?.get(frame) ?? frame.getBoundingClientRect() }))
       .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left)
       .map(({ frame }) => frame)
       .filter((frame) => !keep.has(frame));
@@ -1708,15 +1716,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên A05s (R8): mọi renderer
   // mount trong task riêng sau frame, context mới một task trước nó; ảnh tĩnh hiện trong lúc đó.
-  // Mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
+  // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
+  // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Điện thoại
+  // còn chờ swipe dừng: trace A05s cho thấy dựng renderer giữa fling gây task trên 50ms (R5 "cuộn mượt thắng").
+  const skeletonMountWait = () => Math.max(motionUntil - performance.now(), skeletonPhone() ? phoneScrollWait() : 0);
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
-    // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc.
     skeletonMountTimer = setTimeout(() => {
       skeletonMountTimer = 0;
-      if (performance.now() < motionUntil) {
+      if (skeletonMountWait() > 0) {
         scheduleSkeletonMount();
         return;
       }
@@ -1735,7 +1745,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       mountSkeletonRenderer(frame);
       // Vượt ngân sách hoặc mất context thì không mount gì; lần đổi visibility kế tiếp thử lại.
       if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
-    }, Math.max(0, motionUntil - performance.now()));
+    }, Math.max(0, skeletonMountWait()));
   };
   controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
@@ -1780,7 +1790,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       else visibleSkeletonFrames.delete(frame);
     }
     visibleSkeletonFrames.forEach((frame) => assignSkeleton(frame, rects));
-    syncSkeletonRenderers();
+    syncSkeletonRenderers(rects);
     skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
       if (skeletonMotionPreference.matches) {
@@ -1912,10 +1922,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (entry.frame) detachLoadingSkeleton(entry.frame);
   };
   const heldReveals = new Set();
-  let lastScrollAt = 0;
   let revealHoldTimer = 0;
   const releaseHeldReveals = () => {
-    const wait = lastScrollAt + PHONE_REVEAL_SCROLL_IDLE_MS - performance.now();
+    const wait = phoneScrollWait();
     if (wait > 0) {
       revealHoldTimer = setTimeout(releaseHeldReveals, wait);
       return;
@@ -1928,7 +1937,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const revealCard = (node) => {
     let entry = cardSkeletons.get(node);
     if (entry?.revealing) return;
-    if (!reduced && skeletonPhone() && performance.now() - lastScrollAt < PHONE_REVEAL_SCROLL_IDLE_MS) {
+    if (!reduced && skeletonPhone() && phoneScrollWait() > 0) {
       heldReveals.add(node);
       revealHoldTimer ||= setTimeout(releaseHeldReveals, PHONE_REVEAL_SCROLL_IDLE_MS);
       return;
@@ -3208,9 +3217,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (usesVisualScroll && window.scrollY === 0) return;
     currentVisualY = window.scrollY;
     usesVisualScroll = false;
-    syncCtaParallax();
     scheduleScroll();
     scheduleBrowsePersistence();
+    // Ghi transform sau mọi lần đọc scroll, nếu không lần đọc kế tiếp ép style recalc giữa scroll event.
+    syncCtaParallax();
   };
   const scheduleResize = () => {
     if (resizeFrame) return;
@@ -3397,7 +3407,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
-  addEventListener("scroll", () => { lastScrollAt = performance.now(); }, { passive: true, signal: controller.signal });
+  addEventListener("scroll", () => { lastScrollAt = performance.now(); scrollActive = "onscrollend" in window; }, { passive: true, signal: controller.signal });
+  addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
   reducedMotionQuery.addEventListener("change", ({ matches }) => {
