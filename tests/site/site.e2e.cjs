@@ -7604,7 +7604,7 @@ async function runResidentialHeroTextCheck() {
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
               hero.slideCount === 1 &&
-              hero.mediaCount === 1 &&
+              hero.mediaCount === 0 &&
               hero.motionToggleCount === 0 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: residential hero copy or reading order drifted`,
@@ -7771,7 +7771,7 @@ async function runCommercialHeroTextCheck() {
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
               hero.slideCount === 1 &&
-              hero.mediaCount === 1 &&
+              hero.mediaCount === 0 &&
               hero.motionToggleCount === 0 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: commercial hero copy or reading order drifted`,
@@ -7991,16 +7991,6 @@ async function runDetailHeroEntryChecks() {
       selector: "[data-motion-hero-media]",
       label: "about hero media",
     },
-    {
-      route: "/vi/residential/",
-      selector: "[data-motion-hero-media]",
-      label: "residential hero media",
-    },
-    {
-      route: "/vi/commercial/",
-      selector: "[data-motion-hero-media]",
-      label: "commercial hero media",
-    },
   ]) {
     await runPageCase(
       `${entry.label} direct entry runs 1.2 to 1 over 2.5s`,
@@ -8069,34 +8059,6 @@ async function runDetailHeroEntryChecks() {
           page,
           "[data-site-header]",
           "/vi/advertising-products/",
-        );
-        await link.click();
-      },
-    },
-    {
-      label: "residential hero media",
-      selector: "[data-motion-hero-media]",
-      source: "/vi/",
-      destination: "/vi/residential/",
-      trigger: async (page) => {
-        const link = await findRouteLink(
-          page,
-          "[data-site-header]",
-          "/vi/residential/",
-        );
-        await link.click();
-      },
-    },
-    {
-      label: "commercial hero media",
-      selector: "[data-motion-hero-media]",
-      source: "/vi/",
-      destination: "/vi/commercial/",
-      trigger: async (page) => {
-        const link = await findRouteLink(
-          page,
-          "[data-site-header]",
-          "/vi/commercial/",
         );
         await link.click();
       },
@@ -9038,22 +9000,24 @@ async function runHeroCarouselLifecycleCheck() {
         }));
         assert(
           state.slideCount === 1 &&
-            state.mediaCount === 1 &&
+            state.mediaCount === 0 &&
             state.labelCount === 0 &&
             state.motionToggleCount === 0 &&
             state.scrollCueCount === 1,
           `Service hero still exposes slideshow UI: ${JSON.stringify(state)}`,
         );
-        await page.waitForTimeout(3_000);
-        const settled = await page
-          .locator("[data-motion-hero-media]")
-          .evaluate((media) => ({
-            inview: media.classList.contains("is-motion-inview"),
-            scale: new DOMMatrixReadOnly(getComputedStyle(media).transform).a,
-          }));
+        const transforms = [];
+        for (let sample = 0; sample < 4; sample += 1) {
+          transforms.push(
+            await page
+              .locator(".hero-slide img")
+              .evaluate((media) => getComputedStyle(media).transform),
+          );
+          await page.waitForTimeout(400);
+        }
         assert(
-          settled.inview && settled.scale >= 1 && settled.scale <= 1.01,
-          `Service hero did not stop after its one-shot entrance: ${JSON.stringify(settled)}`,
+          transforms.every((value) => value === "none"),
+          `Service hero image still zooms: ${JSON.stringify(transforms)}`,
         );
         assertDiagnostics(diagnostics);
       },
