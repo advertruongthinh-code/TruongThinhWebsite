@@ -502,7 +502,7 @@ lease.start();
 lease.destroy({ releaseContext: false });
 lease.destroy({ releaseContext: false });
 assert.equal(handoffFixture.calls.lost || 0, 0, "handoff retains the native context");
-assert.equal(handoffFixture.calls.deleted - deletedBeforeHandoff, 3, "handoff deletes its program, buffer and texture once");
+assert.equal(handoffFixture.calls.deleted - deletedBeforeHandoff, 2, "handoff deletes its buffer and texture once and keeps the context program");
 assert.equal(handoffListeners.size, 0, "handoff releases renderer event listeners");
 assert.equal(handoffCancelled, 1, "handoff cancels its RAF once");
 assert.equal(lease.draw(100), false, "released lease cannot draw again");
@@ -511,7 +511,7 @@ const nextLease = createSkeletonFlowRenderer(handoffCanvas, {
 });
 assert.equal(nextLease.phase, 38, "new lease starts at the saved phase");
 assert.equal(nextLease.context, handoffFixture.gl, "cache receives the owned native context");
-assert.notEqual(handoffProgram, programBeforeHandoff, "new lease rebuilds the program generation");
+assert.equal(handoffProgram, programBeforeHandoff, "new lease reuses the compiled program of the context");
 nextLease.draw(0);
 nextLease.destroy(); nextLease.destroy();
 assert.equal(handoffFixture.calls.lost, 1, "default destroy still disposes native context once");

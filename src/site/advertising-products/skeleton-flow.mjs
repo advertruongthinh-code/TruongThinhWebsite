@@ -352,6 +352,17 @@ function compileShader(gl, type, source) {
   return shader;
 }
 
+// Shader giống nhau cho mọi preset (uniform đặt riêng mỗi lease), nên mỗi context chỉ compile một lần: compile chặn
+// main thread khoảng 60ms trên A05s. Context mất rồi khôi phục thì isProgram trả false và compile lại.
+const programByContext = new WeakMap();
+function contextProgram(gl) {
+  const cached = programByContext.get(gl);
+  if (cached && gl.isProgram?.(cached) !== false) return cached;
+  const program = createProgram(gl);
+  if (program) programByContext.set(gl, program);
+  return program;
+}
+
 function createProgram(gl) {
   const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, SKELETON_FLOW_FRAGMENT_SHADER);
@@ -528,7 +539,6 @@ export function createSkeletonFlowRenderer(canvas, {
         gl.bindTexture(gl.TEXTURE_2D, null);
         if (texture) gl.deleteTexture(texture);
         if (buffer) gl.deleteBuffer(buffer);
-        if (program) gl.deleteProgram(program);
       }
     } catch {}
     texture = null;
@@ -539,7 +549,7 @@ export function createSkeletonFlowRenderer(canvas, {
 
   const initializeWebGl = () => {
     if (!gl || gl.isContextLost?.()) return false;
-    program = createProgram(gl);
+    program = contextProgram(gl);
     buffer = program && gl.createBuffer();
     texture = program && gl.createTexture();
     if (!program || !buffer || !texture) {
@@ -633,6 +643,7 @@ export function createSkeletonFlowRenderer(canvas, {
 
   const onContextLost = (event) => {
     event.preventDefault();
+    programByContext.delete(gl);
     const wasRunning = isRunning;
     stop();
     resumeAfterRestore = wasRunning;

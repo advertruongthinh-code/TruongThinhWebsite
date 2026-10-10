@@ -98,8 +98,8 @@ Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 Ngân sách context tính cả context đang dùng và đang rảnh, chung cho batch và skeleton chờ ảnh: điện thoại (pointer
 coarse, có touch hoặc `clientWidth <= 750`) 2, máy khác 12. Khung đang thấy giữ context đã có; còn chỗ thì cấp cho khung
 gần đầu viewport trước (top rồi left). Khung không có context hiện frame tĩnh của preset. Nhả context trước khi cấp mới
-nên xoay máy không vượt ngân sách. Context giữ theo document và dùng lại: trả lease thì xóa program, buffer, texture,
-listener, RAF đúng một lần, giữ canvas và context; lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
+nên xoay máy không vượt ngân sách. Context giữ theo document và dùng lại: trả lease thì xóa buffer, texture,
+listener, RAF đúng một lần, giữ canvas, context và program đã compile (compile mất khoảng 60ms trên A05s); lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
 phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không gọi
 `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước đó
 (R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
