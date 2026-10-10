@@ -7,7 +7,7 @@ tests:
   - tests/site/glass-surface.test.mjs
   - tests/site/glass-surface.e2e.mjs
 notion: none
-updated: 2026-10-06
+updated: 2026-10-10
 ---
 
 # Kính dùng chung cho mọi bề mặt glass
@@ -165,6 +165,13 @@ bậc cho dạng cung). Số bậc trong cung tự chọn theo máy (R2) để g
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
+
+Kính hiện/tan (R6) không được nằm trong DOM cùng lúc Kính cung giao viewport: chỉ
+một Kính hiện/tan, kể cả ở xa cung, cũng làm Chrome bỏ blur các bậc dải và bậc
+trong cung, còn lại lõi, cho tới 1-2 frame sau khi nó bị gỡ. Số bậc trong cung
+không liên quan; PC RTX 3090 giữ 5 bậc suốt (đo trên Chrome của owner, 07/10).
+Cách giữ: [skeleton](advertising-skeleton.md) gỡ mọi Kính hiện/tan khi cung vào
+viewport, khung dưới cung chỉ crossfade; owner xác nhận hết lỗi 10/10.
 
 ### R8. Giảm chuyển động
 
