@@ -22,7 +22,6 @@ import {
   createSkeletonFlowRenderer,
   drawSkeletonFlowAssignment,
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
-  skeletonFlowProgramReady,
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
@@ -1749,16 +1748,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
         if (gl) {
           rememberSkeletonContext(canvas, gl);
-          skeletonFlowProgramReady(gl);
           scheduleSkeletonMount();
           return;
         }
-      }
-      // Shader còn compile ở GPU process thì chờ frame sau thay vì chặn main thread (decision a05s-frame-budget).
-      const lease = skeletonNativeContexts.find((record) => !record.renderer && !record.gl.isContextLost());
-      if (lease && !skeletonFlowProgramReady(lease.gl)) {
-        setTimeout(scheduleSkeletonMount, 16);
-        return;
       }
       mountSkeletonRenderer(frame);
       // Vượt ngân sách hoặc mất context thì không mount gì; lần đổi visibility kế tiếp thử lại.

@@ -147,8 +147,7 @@ Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [A05s trên 60fps](../decisions/a05s-frame-budget.md)
 (trên 60fps), tối đa 2 context đang chạy. Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
 Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
-assignment ở task sau và chưa vào entry trước đó. Có `KHR_parallel_shader_compile` thì mount chờ shader compile
-xong ở GPU process (hỏi lại sau `16ms`), không hỏi trạng thái compile chặn main thread.
+assignment ở task sau và chưa vào entry trước đó.
 
 ```gherkin
 Given Chrome có GPU, cửa sổ 1569×912, batch đầy viewport

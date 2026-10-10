@@ -11,7 +11,6 @@ import {
   createSkeletonFlowFrameLayout,
   drawSkeletonFlowAssignment,
   renderSkeletonFlowPixels,
-  skeletonFlowProgramReady,
 } from "../../src/site/advertising-products/skeleton-flow.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -345,22 +344,6 @@ function createFakeWebGl() {
   };
   return { calls, gl };
 }
-
-// R8: với KHR_parallel_shader_compile, mount chờ COMPLETION_STATUS thay vì hỏi trạng thái chặn main thread.
-const parallelFixture = createFakeWebGl();
-let compiled = false;
-const blockingQueries = [];
-parallelFixture.gl.COMPLETION_STATUS_KHR = 0x91B1;
-parallelFixture.gl.getExtension = (name) => name === "KHR_parallel_shader_compile" ? { COMPLETION_STATUS_KHR: 0x91B1 } : null;
-parallelFixture.gl.getShaderParameter = (_shader, name) => { blockingQueries.push(name); return true; };
-parallelFixture.gl.getProgramParameter = (_program, name) => {
-  if (name !== 0x91B1) blockingQueries.push(name);
-  return name === 0x91B1 ? compiled : true;
-};
-assert.equal(skeletonFlowProgramReady(parallelFixture.gl), false, "a program still compiling is not ready");
-assert.deepEqual(blockingQueries, [], "starting a compile must not ask a blocking status");
-compiled = true;
-assert.equal(skeletonFlowProgramReady(parallelFixture.gl), true, "the same program becomes ready once compiled");
 
 const { calls, gl } = createFakeWebGl();
 const listeners = new Map();

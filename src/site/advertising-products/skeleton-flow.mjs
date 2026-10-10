@@ -345,46 +345,44 @@ function compileShader(gl, type, source) {
   if (!shader) return null;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
-  // Không hỏi COMPILE_STATUS: lỗi compile làm link lỗi, và LINK_STATUS được hỏi khi program đã xong.
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    gl.deleteShader(shader);
+    return null;
+  }
   return shader;
 }
 
-// Shader giống nhau cho mọi preset (uniform đặt riêng mỗi lease), nên mỗi context chỉ compile một lần.
-// Context mất rồi khôi phục thì isProgram trả false và compile lại.
+// Shader giống nhau cho mọi preset (uniform đặt riêng mỗi lease), nên mỗi context chỉ compile một lần: compile chặn
+// main thread khoảng 60ms trên A05s. Context mất rồi khôi phục thì isProgram trả false và compile lại.
 const programByContext = new WeakMap();
-// Bắt đầu compile và link mà không hỏi trạng thái: câu hỏi đầu tiên chặn main thread chờ GPU process.
-function startProgram(gl) {
+function contextProgram(gl) {
+  const cached = programByContext.get(gl);
+  if (cached && gl.isProgram?.(cached) !== false) return cached;
+  const program = createProgram(gl);
+  if (program) programByContext.set(gl, program);
+  return program;
+}
+
+function createProgram(gl) {
   const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
   const fragment = compileShader(gl, gl.FRAGMENT_SHADER, SKELETON_FLOW_FRAGMENT_SHADER);
-  const program = vertex && fragment && gl.createProgram();
-  if (program) {
-    gl.attachShader(program, vertex);
-    gl.attachShader(program, fragment);
-    gl.linkProgram(program);
+  if (!vertex || !fragment) {
+    if (vertex) gl.deleteShader(vertex);
+    if (fragment) gl.deleteShader(fragment);
+    return null;
   }
-  if (vertex) gl.deleteShader(vertex);
-  if (fragment) gl.deleteShader(fragment);
-  return program || null;
-}
-
-// Với KHR_parallel_shader_compile, GPU process compile nền: trả true khi program của context đã xong, không chặn
-// (A05s: compile đồng bộ 30-175ms trong task mount). Không có extension thì compile ngay như trước.
-export function skeletonFlowProgramReady(gl) {
-  const cached = programByContext.get(gl);
-  const program = cached && gl.isProgram?.(cached) !== false ? cached : startProgram(gl);
-  if (!program) return true;
-  programByContext.set(gl, program);
-  const parallel = gl.getExtension?.("KHR_parallel_shader_compile");
-  return !parallel || gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR) !== false;
-}
-
-function contextProgram(gl) {
-  skeletonFlowProgramReady(gl);
-  const program = programByContext.get(gl);
-  if (program && gl.getProgramParameter(program, gl.LINK_STATUS)) return program;
-  if (program) gl.deleteProgram(program);
-  programByContext.delete(gl);
-  return null;
+  const program = gl.createProgram();
+  if (!program) return null;
+  gl.attachShader(program, vertex);
+  gl.attachShader(program, fragment);
+  gl.linkProgram(program);
+  gl.deleteShader(vertex);
+  gl.deleteShader(fragment);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    gl.deleteProgram(program);
+    return null;
+  }
+  return program;
 }
 
 // Một noise chung cho mọi renderer: grain chỉ hiện 3-4%, còn tạo lại 256x256 mỗi lần mount tốn hơn 10ms trên A05s
