@@ -1884,7 +1884,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   background: rgba(0, 0, 0, 0.2);
 }
 
-.legacy-closer + * {
+/* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision a05s-frame-budget). */
+.legacy-closer + section {
   margin-top: 90px;
 }
 
@@ -2999,7 +3000,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     height: 400px;
   }
 
-  .legacy-closer + * {
+  .legacy-closer + section {
     margin-top: 60px;
   }
 }
@@ -3011,7 +3012,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 @media (max-width: 578px) {
-  .legacy-closer + * {
+  .legacy-closer + section {
     margin-top: 30px;
   }
 }
