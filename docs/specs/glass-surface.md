@@ -70,7 +70,7 @@ subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer 
 
 | Giá trị | Chốt 06/10 (owner) |
 | --- | --- |
-| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi; owner 10/10); phone giữ `+0.35` và tint trên cung `0.85` thay `0.35` (đỉnh cao hơn làm A05s vuốt 7-9% frame chậm, vòng 34) |
+| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi; owner 10/10); phone giữ `+0.35` (đỉnh cao hơn làm A05s vuốt 7-9% frame chậm, vòng 34) |
 | Bán kính | `3.5` × bề rộng viewport |
 | Dải giảm nhòe, đo từ cung ra ngoài | `1.75` × chiều cao cụm CTA |
 | Vùng trắng tuyệt đối | `0.35` × bề rộng card |
@@ -94,7 +94,7 @@ And ảnh thật không bị phủ
 ### R3. Màu trắng theo cùng cung
 
 Lớp phủ trắng của kính đi theo cùng các cung đồng tâm với độ nhòe: ở mép ngoài
-dải không có trắng, tới cung đạt tint `0.35` (owner, 05/10), vào trong tăng tới trắng tuyệt
+dải không có trắng, tới cung đạt tint `0.55` (owner 10/10, trước `0.35`), vào trong tăng tới trắng tuyệt
 đối ở vòng tròn đi qua hai góc đáy batch. Hai đoạn chuyển dùng smoothstep để
 không gãy ở cung. Quy tắc đáy trắng tuyệt đối của
 [skeleton R6](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)

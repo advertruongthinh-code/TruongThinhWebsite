@@ -5,8 +5,8 @@
 const STEPS = 5;
 const ARC_STEPS = 3;
 // Arc của owner (06/10): apex ở -15% cụm CTA (trên mép tiêu đề, owner 10/10, để chữ nằm trong core), bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
-// trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.35 trên arc.
-const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.35 });
+// trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.55 trên arc (owner 10/10, trước 0.35).
+const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.55 });
 // Bên trong arc blur tiếp tục tăng từ 28px của band trên arc đến trần 100px trên vòng tròn trắng tinh,
 // qua tối đa INNER_MAX inner step (PC dùng 1, phone 0) (owner 06/10, số lớp theo máy từ 10/10).
 const ARC_LEVEL = 28;
@@ -15,10 +15,9 @@ const INNER_MAX = 5;
 // Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 5 lớp (core 28px, 1 inner lên 100px, 3 band); phone 2 lớp
 // (core 28px như PC và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
 // thứ hai (30% frame chậm, vòng 29) đều trượt gate trên A05s. Phone nhận biết như skeleton (catalog-runtime).
-// Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s vuốt 7-9% frame chậm (vòng 34); thay vào đó tint
-// đậm hơn (không phải blur, gần như không tốn GPU) làm nhạt mép card sau chữ CTA.
-const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, centre: 0.35, tint: 0.85 });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: 1, centre: ARC.centre, tint: ARC.tint });
+// Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s vuốt 7-9% frame chậm (vòng 34).
+const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, centre: 0.35 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: 1, centre: ARC.centre });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -178,7 +177,7 @@ export function layoutArcGlass(glass, geometry) {
   const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
   const inner = rest.slice(0, INNER_MAX);
   const steps = rest.slice(INNER_MAX);
-  const { band: bandSteps, inner: count, tint: arcTint } = arcLayers();
+  const { band: bandSteps, inner: count } = arcLayers();
   const coreTop = Math.max(top, cy - radius - ARC_LEVEL);
   place(coreStep, coreTop);
   setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
@@ -212,11 +211,11 @@ export function layoutArcGlass(glass, geometry) {
   const stops = [];
   for (let index = 0; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${white(arcTint + (1 - arcTint) * smooth(1 - x), Math.min(1, 2 * x))}) ${(dFull + (radius - dFull) * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${white(ARC.tint + (1 - ARC.tint) * smooth(1 - x), Math.min(1, 2 * x))}) ${(dFull + (radius - dFull) * x).toFixed(1)}px`);
   }
   for (let index = 1; index <= 8; index += 1) {
     const x = index / 8;
-    stops.push(`rgba(255, 255, 255, ${white(arcTint * smooth(1 - x), 1 - x)}) ${(radius + band * x).toFixed(1)}px`);
+    stops.push(`rgba(255, 255, 255, ${white(ARC.tint * smooth(1 - x), 1 - x)}) ${(radius + band * x).toFixed(1)}px`);
   }
   const tint = glass.querySelector(".glass-surface__tint");
   place(tint, top);
