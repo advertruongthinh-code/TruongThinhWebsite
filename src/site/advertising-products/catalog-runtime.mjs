@@ -3431,9 +3431,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return;
       }
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
-        const origins = visualCoordinates();
+        // Resize đặt card ngay như batch skeleton, để hai phần đi cùng một masonry (owner 10/10).
         cancelMotion();
-        measure({ animate: true, origins });
+        measure();
       } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));

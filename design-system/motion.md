@@ -172,9 +172,10 @@ outline. Touch không cần hover để mở ảnh.
 
 - `masonry-layout` là engine duy nhất cho re-layout và chuyển vị trí; không
   có FLIP tự viết song song.
-- Mọi thay đổi tọa độ (filter, resize, đổi số cột) chạy cùng một pipeline:
-  card cũ ẩn ngay không fade; card còn lại và card mới đi từ vị trí cũ tới vị
-  trí mới bằng `transform 0.4s ease`, không delay, không stagger.
+- Đổi filter: card cũ ẩn ngay không fade; card còn lại và card mới đi từ vị
+  trí cũ tới vị trí mới bằng `transform 0.4s ease`, không delay, không stagger.
+- Resize cửa sổ (cả đổi số cột): card và khung skeleton của batch đặt ngay vào
+  vị trí mới, không trượt, nên cả hai đọc như một masonry (owner 10/10).
 - Tải lần đầu: card trong cửa sổ hiển thị đi từ đầu cột tới tọa độ đích
   cùng `400ms`; điểm xuất phát có từ prepaint.
 - Tọa độ không đổi thì không có motion. Card gắn lại do ảo hóa tại tọa độ cũ

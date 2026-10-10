@@ -53,20 +53,17 @@ Biên kính là một cung tròn, tâm ở giữa theo chiều ngang và nằm d
 Độ nhòe tăng liên tục từ mép dải vào tâm, không có đoạn phẳng (owner, 06/10):
 tại cung nhòe `28px`, vào trong tăng tiếp tới trần `100px` ở vòng trắng tuyệt
 đối (R3), qua tối đa 5 bậc trong cung chồng mép nhau. Mức của bậc thứ n trong N
-là `28 + 72 × n / N px`. Số bậc chọn theo sức máy: lúc Kính cung hiện lần đầu,
-runtime bắt đầu với 5 bậc trong và 3 bậc band, đo tỉ lệ khoảng rAF dài hơn một frame `60fps` qua 90 frame và
-bớt một bậc mỗi lần tỉ lệ đó trên `5%` (gate [A05s trên 60fps](../decisions/a05s-frame-budget.md),
-owner chọn 10/10; fps trung vị không thấy frame chậm: A05s trung vị 90 với 3 lớp mà 30% frame chậm): bậc trong
-trước, rồi bậc band từ `4.5px` vào trong, thấp nhất chỉ còn lõi `28px`. Số này lưu trong `localStorage`, nên chỉ
-lần đầu trên máy phải trả các frame chậm lúc đo. Mọi máy, cả phone, đều đo như vậy (owner 10/10 sau canvas Flow
-chung, thay cho phone luôn một lớp). Fit về 0 bậc thì chỉ còn lõi `28px` phủ cả band; mask
+là `28 + 72 × n / N px`. Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 9 lớp (lõi, 5 bậc
+trong, 3 bậc band); phone (`pointer: coarse` hoặc có touch) 3 lớp: lõi `28px` và 2 bậc band trong cùng. Bậc trong
+phủ gần nửa màn nên trên A05s mọi trần đều 81-88% frame chậm (vòng 26); trần `100px` trên phone chờ owner chọn.
+Máy chỉ còn lõi thì lõi `28px` phủ cả band; mask
 đậm `100%` tại cung, `85%`, `50%`, `15%` ở `15%`, `40%`, `70%` bề rộng band, `0` ở mép band (chọn trên
 A05s bằng so điểm ảnh với đủ chín lớp PC), nên band là ảnh nét và ảnh nhòe chồng lên nhau (owner chấp
-nhận 10/10). Lúc cuộn và lúc dừng máy dùng cùng số bậc đã fit, không thay bằng ảnh nhòe dựng sẵn (owner
+nhận 10/10). Lúc cuộn và lúc dừng máy dùng cùng số lớp, không thay bằng ảnh nhòe dựng sẵn (owner
 10/10). Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
 về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm ngày 05/10 để
 vuốt trên A05s đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
-hay đường ranh giới. Ngoài band của lõi một lớp, không có vùng nào thấy ảnh nét và ảnh
+hay đường ranh giới. Ngoài band của lõi phone, không có vùng nào thấy ảnh nét và ảnh
 nhòe chồng lên nhau. Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai
 lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tăng
 `sqrt(L² - L_trước²)`.
@@ -167,7 +164,7 @@ Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.m
 trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
 gate [A05s trên 60fps](../decisions/a05s-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi gate, owner chọn ba
-bậc cho dạng cung). Số bậc trong cung tự chọn theo máy (R2) để giữ gate; trần
+bậc cho dạng cung). Số lớp theo loại máy (R2); trần
 `100px` của ảnh nền primary chưa đo trên A05s. Kính hiện/tan trên primary detail: năm bậc `backdrop-filter`
 phủ cả hero rơi gate pha mở (A05s p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
 là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
@@ -198,7 +195,7 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi năm bậc `glass-surface__step--inner` tăng nhòe vào trong (bậc vượt số N của máy có `hidden`), rồi ba bậc chỉ phủ dải; lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần (owner thấy ở mép màn hình, 05/10); dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); kính phủ đều quanh primary không có bậc, chỉ tint và hạt nhiễu, còn ảnh nền primary tự mang `filter: blur(100px) saturate(1.7) brightness(1.04)` vì Chrome chụp backdrop theo từng raster tile khi chụp thumbnail lúc rê chuột lên tab, kẹp blur ở mép tile và để lại đường nối tới lần repaint đầy đủ (owner thấy 06/10); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
 | CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): năm bậc `7.14`, `14.4`, `27.84`, `47.25`, `82.07px` (mức `7.14`, `16.07`, `32.14`, `57.14`, `100px`), dạng cung `4.5`, `11.12`, `25.3px`, bậc trong cung do runtime đặt inline và không đổi màu (`--glass-step-saturate`, `--glass-step-brightness` bằng 1); `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.112`, `1.0079`, dạng cung `1.55`, `1.05`, `1.1573`, `1.0164`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, riêng lõi dạng cung `28px` để các bậc trong cung tăng tiếp tới trần (R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Hai ảnh hạt nhiễu 160×160 cùng nhiễu, xám cho overlay và trắng theo alpha cho dạng cung (`--glass-grain-white`), sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
-| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, bậc trong cung, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); lần đầu Kính cung vào viewport, runtime đo fps để chọn số bậc trong cung và bậc band (R2), lưu ở `localStorage`; máy fit về 0 bậc chỉ có lõi phủ band với mask mờ dần (R2); `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
+| Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, bậc trong cung, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); số lớp theo loại máy (R2): PC 5 bậc trong cung và 3 bậc band, phone 2 bậc band; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
 | Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass`; gắn kính hiện/tan cuối khung media card hoặc khung primary trong lúc ảnh hiện |
 
 ## UI

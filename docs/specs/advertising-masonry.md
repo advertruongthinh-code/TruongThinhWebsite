@@ -142,9 +142,10 @@ hơn; mép ảnh và mép card không lặp nhịp gạch (lượng tử lệch 
 nhau liền nhau). Hết nửa ngân sách 300.000 phép thử thì pha dự phòng cho phép thẳng hàng, không bao giờ chồng card.
 Cùng dataset, filter, bề rộng và thứ tự cho cùng tọa độ (`coordinateHash`). Lỗi đầu vào (`invalid-input`) hoặc hết
 ngân sách ở cả hai pha (`search-exhausted`) làm masonry báo `data-advertising-layout-status="failed"`; pool không đủ
-nhóm tỷ lệ chỉ ghi chẩn đoán `needs-media`. Đổi filter hoặc bề rộng: card bị loại ẩn ngay, card còn lại và card mới đi
+nhóm tỷ lệ chỉ ghi chẩn đoán `needs-media`. Đổi filter: card bị loại ẩn ngay, card còn lại và card mới đi
 từ vị trí cũ tới vị trí mới bằng `masonry-layout` ([motion](../../design-system/motion.md#vị-trí-card-masonry)); lần
-dựng đầu card đi từ đầu cột. Chỉ đổi chiều cao cửa sổ thì không đặt lại card. Cuộn trong lúc chuyển vị trí được gộp
+dựng đầu card đi từ đầu cột. Đổi bề rộng cửa sổ: card đặt ngay vào vị trí mới, cùng nhịp với khung skeleton của batch,
+nên cả hai đọc như một masonry (owner 10/10). Chỉ đổi chiều cao cửa sổ thì không đặt lại card. Cuộn trong lúc chuyển vị trí được gộp
 thành một lần cập nhật khi chuyển xong. `site:layout` chỉ phát khi chiều cao trang đổi
 ([scroll-feel R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)); thay card theo cửa sổ ảo mà giữ chiều cao thì không phát.
 
