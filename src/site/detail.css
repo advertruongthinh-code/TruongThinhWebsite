@@ -2603,9 +2603,18 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog::backdrop {
-  background: rgba(32, 33, 32, 0.85);
+  /* Phone không blur (rớt gate A05s), bù bằng lớp tối 90% (advertising-detail R9). */
+  background: rgba(32, 33, 32, 0.9);
   /* Fade swipe-to-close đặt biến trên dialog (advertising-viewer-touch-zoom R9). */
   opacity: var(--advertising-viewer-backdrop-opacity, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .advertising-photo-dialog::backdrop {
+    background: rgba(32, 33, 32, 0.85);
+    /* Kính blur với độ nâng màu của surface đều, giữ tối (advertising-detail R9). */
+    backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
+  }
 }
 
 .advertising-photo-dialog:not([data-advertising-viewer-swipe])::backdrop {
