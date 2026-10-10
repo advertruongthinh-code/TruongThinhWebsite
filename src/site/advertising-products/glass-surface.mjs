@@ -200,7 +200,9 @@ export function layoutArcGlass(glass, geometry) {
     const stepTop = Math.max(top, cy - from - Math.ceil(increment));
     step.style.setProperty("--glass-step-blur", `${increment.toFixed(2)}px`);
     place(step, stepTop);
-    setMask(step, `radial-gradient(${circle(stepTop)}, #000 ${to.toFixed(1)}px, transparent ${from.toFixed(1)}px)`);
+    // Vào dần theo smoothstep, không tuyến tính: độ dốc 0 tại cung nên không lộ đường ranh trong và ngoài cung.
+    const stops = [0, 0.25, 0.5, 0.75, 1].map((x) => `rgba(0, 0, 0, ${smooth(1 - x).toFixed(3)}) ${(to + (from - to) * x).toFixed(1)}px`);
+    setMask(step, `radial-gradient(${circle(stepTop)}, ${stops.join(", ")})`);
   });
   // Trắng theo cùng các vòng tròn: tinh từ vòng góc, tint trên arc, không có ở mép band.
   // Grain (mask m bên dưới) thêm trung bình GRAIN_WHITE * m, nên tint giữ lại phần đó.
