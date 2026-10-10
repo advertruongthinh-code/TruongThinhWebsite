@@ -1030,7 +1030,10 @@
         if (!(scrollCueLabel instanceof HTMLElement)) return;
         scrollCueTimeline?.kill();
         if (scrollCueTimeline) timelines.delete(scrollCueTimeline);
+        // revert() ghi lại HTML lúc split (ngôn ngữ cũ); giữ text translateTree vừa đặt.
+        const label = scrollCueLabel.textContent;
         scrollCueSplit?.revert();
+        scrollCueLabel.textContent = label;
         const characters = splitCueRoute && SplitText
           ? (scrollCueSplit = SplitText.create(scrollCueLabel, {
               type: "chars",
@@ -2384,7 +2387,9 @@
         destination.pathname === window.location.pathname &&
         destination.search === window.location.search;
       if (!sameDocument) {
+        // Ctrl/Shift/Meta+click mở tab mới, không có route nào clear lớp ghim.
         if (
+          plainPrimaryClick &&
           !isExcludedRoute(destination) &&
           !link.target &&
           !link.hasAttribute("download")
