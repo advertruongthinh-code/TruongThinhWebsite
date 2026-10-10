@@ -264,7 +264,7 @@ async function snapshot(page) {
       physicalLines: cta.querySelectorAll("h2 > .motion-line-mask").length,
       looping: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => frame.classList.contains("is-looping")).length,
       flowCanvases: document.querySelectorAll("[data-advertising-cta-frame] canvas[data-advertising-flow-preset]").length,
-      liveWebglContexts: document.querySelectorAll('[data-advertising-cta-frame] canvas[data-advertising-flow-backend="webgl"]').length,
+      liveWebglContexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-cta-frame] canvas[data-advertising-flow-backend="webgl"]').length,
       flowPresets: [...document.querySelectorAll("[data-advertising-flow-preset]")].map((canvas) => canvas.dataset.advertisingFlowPreset),
       frameState,
       frontierGaps,
@@ -631,9 +631,8 @@ try {
       const visibleFlowStates = state.flowStates.filter(({ inViewport }) => inViewport);
       const hiddenFlowStates = state.flowStates.filter(({ inViewport }) => !inViewport);
       assert(visibleFlowStates.length > 0, `${locale} ${viewport.width}: no Flow frame is visible`);
+      // Mọi khung trong viewport đều chạy (advertising-skeleton R8); phone hoãn dựng tới khi cuộn dừng và hiện frame tĩnh (R5).
       if (viewport.width <= 750) {
-        assert(visibleFlowStates.filter(({ state: flowState }) => flowState === "running").length <= 2,
-          `${locale} ${viewport.width}: more than two mobile Flow cards are running`);
         assert(visibleFlowStates.every(({ state: flowState, staticImage }) => flowState === "running" || staticImage),
           `${locale} ${viewport.width}: paused Flow card lost its preset fallback`);
       } else {

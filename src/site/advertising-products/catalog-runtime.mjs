@@ -20,6 +20,7 @@ import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
   createSkeletonFlowRenderer,
+  createSharedSkeletonFlowLayer,
   drawSkeletonFlowAssignment,
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
@@ -51,6 +52,8 @@ const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
+// Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
+let sharedSkeletonFlow;
 const disposeSkeletonContext = (record) => {
   if (record.disposed) return;
   record.disposed = true;
@@ -1540,6 +1543,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const rect = node.getBoundingClientRect();
       coordinates.set(id, { x: rect.left - gridRect.left, y: rect.top - gridRect.top });
     }
+    coordinates.gridTop = gridRect.top;
     return coordinates;
   };
 
@@ -1663,11 +1667,32 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonAssignmentByFrame.set(frame, assignment);
     frame.querySelector(".advertising-grid__cta-surface").append(createSkeletonCanvas(frame));
   };
+  // Mọi khung batch vẽ trên một canvas WebGL chung nửa độ phân giải (advertising-skeleton R5).
+  const sharedFlowFor = (frame) => {
+    const container = frame.closest(".advertising-grid__cta-skeleton");
+    if (!container) return null;
+    if (sharedSkeletonFlow === undefined) {
+      sharedSkeletonFlow = createSharedSkeletonFlowLayer();
+      addEventListener("pagehide", (event) => { if (!event.persisted) sharedSkeletonFlow?.dispose(); });
+    }
+    // Batch dựng lại xóa hoặc thêm khung sau canvas; canvas phải là con cuối để nằm trên khung, dưới Kính và CTA.
+    const canvas = sharedSkeletonFlow?.canvas;
+    if (canvas && container.lastElementChild !== canvas) container.append(canvas);
+    return sharedSkeletonFlow;
+  };
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);
     if (!assignment) return;
     const { preset, direction, speedScale } = assignment;
+    const sharedLayer = sharedFlowFor(frame);
+    if (sharedLayer) {
+      const surface = frame.querySelector(".advertising-grid__cta-surface");
+      // Đang reveal thì canvas chung theo opacity của surface; xong reveal thì 1 (R4).
+      const alpha = () => (skeletonEntryFrames.has(frame) ? Number(getComputedStyle(surface).opacity) : 1);
+      skeletonFlowByFrame.set(frame, sharedLayer.attach(frame, { preset, initialPhase: skeletonPhase(frame), direction, speedScale, alpha }));
+      return;
+    }
     const budget = SKELETON_CONTEXT_BUDGET;
     const lease = skeletonNativeContexts.find(record => !record.renderer && !record.gl.isContextLost());
     if (!lease && skeletonNativeContexts.length >= budget) return;
@@ -1764,6 +1789,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
       if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
+      if (sharedFlowFor(frame)) {
+        mountSkeletonRenderer(frame);
+        syncSkeletonMotion();
+        return;
+      }
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
       if (!leased && skeletonNativeContexts.length < SKELETON_CONTEXT_BUDGET) {
         const canvas = document.createElement("canvas");
@@ -2122,12 +2152,29 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     delete ctaSkeleton.dataset.advertisingCtaReady;
     delete ctaSkeleton.dataset.advertisingCtaSignature;
   };
-  const renderCtaSkeleton = () => {
+  // Khung batch, cụm CTA và Kính cung trượt từ vị trí cũ cùng nhịp transform 0.4s ease của card masonry, nên cả
+  // trang đọc như một masonry khi resize hay đổi filter (owner 10/10). Dùng `translate` để không đè transform
+  // parallax của CTA.
+  const slideFrom = (node, before) => {
+    if (!before || !node.isConnected) return;
+    const after = node.getBoundingClientRect();
+    const dx = before.left - after.left;
+    const dy = before.top - after.top;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    node.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: 400, easing: "ease" });
+  };
+  const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
+  const renderCtaSkeleton = ({ slide = false } = {}) => {
     if (!ctaSkeleton || !geometry || activePhotoId) {
       gridPixelHeight = geometry?.totalPixelHeight || 0;
       clearCtaSkeleton();
       return;
     }
+    // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
+    const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
+    slideOrigins?.forEach((_, node) => node.getAnimations().forEach((animation) => {
+      if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
+    }));
     const gap = geometry.interCardGap;
     const ctaTop = geometry.totalPixelHeight + gap;
     gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
@@ -2230,11 +2277,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     syncSkeletonMotion();
     syncCtaParallax();
+    // Kính cung đổi hình theo bề rộng mới; nó trượt theo độ dời của cụm CTA.
+    if (slideOrigins && gridCta && arcGlass) {
+      const cta = slideOrigins.get(gridCta);
+      const glass = slideOrigins.get(arcGlass);
+      if (cta && glass) slideOrigins.set(arcGlass, new DOMRect(arcGlass.getBoundingClientRect().left,
+        arcGlass.getBoundingClientRect().top + cta.top - gridCta.getBoundingClientRect().top));
+    }
+    slideOrigins?.forEach((before, node) => slideFrom(node, before));
   };
 
-  const renderWindow = ({ animate = false, origins } = {}) => {
+  const renderWindow = ({ animate = false, origins: visualOrigins } = {}) => {
     if (!geometry || activePhotoId) return;
-    renderCtaSkeleton();
+    let origins = visualOrigins;
+    renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
+    // Grid đổi chiều cao làm trình duyệt kẹp scroll (đang ở cuối trang); card phải xuất phát từ chỗ đang thấy trên
+    // màn, nếu không chúng bay lệch đúng bằng độ kẹp rồi giật về (đo trên PC, vòng 26).
+    if (origins?.gridTop !== undefined) {
+      const shift = origins.gridTop - grid.getBoundingClientRect().top;
+      if (shift) origins = new Map([...origins].map(([id, { x, y }]) => [id, { x, y: y + shift }]));
+    }
     if (layoutFrame && !animate) return;
     if (layoutFrame) {
       cancelAnimationFrame(layoutFrame);
@@ -3341,6 +3403,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (scrollFrame) return;
     scrollFrame = requestAnimationFrame(() => {
       scrollFrame = 0;
+      // Resize ở cuối trang kẹp scroll ngay khi grid đổi chiều cao, sau khi frame này đã được hẹn; đặt card tức thì
+      // lúc chúng đang trượt làm card bay lệch (vòng 26), nên hoãn tới khi trượt xong như scroll trong lúc chuyển.
+      if (layoutFrame || performance.now() < motionUntil) {
+        pendingScroll = true;
+        return;
+      }
       renderWindow();
       renderRelatedWindow();
       // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s.
@@ -3403,6 +3471,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
+        // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
+        // nên cả masonry trượt như một khối (đo trên PC, vòng 28).
+        geometry?.placements.forEach(({ card, x, y }) => origins.has(card.id) || origins.set(card.id, { x, y }));
         cancelMotion();
         measure({ animate: true, origins });
       } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {

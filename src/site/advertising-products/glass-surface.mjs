@@ -4,31 +4,22 @@
 // (4.5, 12, 28px; owner, 05/10, cho A05s).
 const STEPS = 5;
 const ARC_STEPS = 3;
-// Arc của owner (06/10): apex ở 35% cụm CTA, bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
-// trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.35 trên arc.
-const ARC = Object.freeze({ centre: 0.35, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.35 });
+// Arc của owner (06/10): apex ở -15% cụm CTA (trên mép tiêu đề, owner 10/10, để chữ nằm trong core), bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
+// trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.55 trên arc (owner 10/10, trước 0.35).
+const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.55 });
 // Bên trong arc blur tiếp tục tăng từ 28px của band trên arc đến trần 100px trên vòng tròn trắng tinh,
-// qua tối đa 5 inner step. Máy yếu bớt inner step rồi tới band step, có thể chỉ còn core 28px, để giữ
-// TARGET_FPS khi arc đang trên màn hình (owner 06/10, band từ 10/10).
+// qua tối đa INNER_MAX inner step (PC dùng 1, phone 0) (owner 06/10, số lớp theo máy từ 10/10).
 const ARC_LEVEL = 28;
 const CEILING = 100;
 const INNER_MAX = 5;
-// Gate A05s trên 60fps (owner chọn 10/10, docs/decisions/a05s-frame-budget.md).
-const TARGET_FPS = 60;
-const FIT_MAX = INNER_MAX + ARC_STEPS;
-const FIT_KEY = "glass-arc-steps";
-// Phone chỉ vẽ core 28px, không đo: trên A05s đo lúc đang vuốt làm trượt gate, kết quả fit không ổn định
-// và ba lớp blur vẫn dưới 60fps (owner chọn 10/10). Máy khác nhớ số step đã fit qua các lần tải trang,
-// nên chỉ lần đầu phải trả các frame chậm lúc đo.
-let fittedSteps = (() => {
-  try {
-    if (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0) return 0;
-    const stored = localStorage.getItem(FIT_KEY);
-    return stored === null ? undefined : Number(stored);
-  } catch {
-    return undefined;
-  }
-})();
+// Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 5 lớp (core 28px, 1 inner lên 100px, 3 band); phone 2 lớp
+// (core 28px như PC và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
+// thứ hai (30% frame chậm, vòng 29) đều trượt gate trên A05s. Phone nhận biết như skeleton (catalog-runtime).
+// Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s vuốt 7-9% frame chậm (vòng 34).
+const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, centre: 0.35 });
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: 1, centre: ARC.centre });
+const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
+  ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
 // Vị trí trong band (0 trên arc, 1 ở mép band) nơi mỗi step chạy từ bật hoàn toàn đến tắt; các step lân cận chồng lên nhau.
 const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
@@ -37,13 +28,10 @@ const RAMPS = Array.from({ length: ARC_STEPS }, (_, index) =>
 // chỉ phủ band. Core bàn giao cho các step qua FADE px bên trong arc, nên không lộ đường nối: core
 // vào dần ở nửa ngoài trong khi các step vẫn bật, các step ra dần ở nửa trong, nên trang gốc chưa blur
 // không bao giờ lộ qua khe nơi cả hai đều chỉ một phần. Mỗi box
-// vượt ra ngoài mask một sigma của blur (28px cho core): margin rộng hơn không đổi pixel nào quá 3/255,
+// vượt ra ngoài mask một sigma của blur (bằng blur của core): margin rộng hơn không đổi pixel nào quá 3/255,
 // và mỗi hàng của box là thêm một hàng bị blur mỗi frame.
 const FADE = 48;
 const STEP_REACH = [5, 12, 26];
-const CORE_REACH = 28;
-// Mask lõi phone qua band: [vị trí trong band, độ đậm]; chọn trên A05s bằng so điểm ảnh với đủ chín lớp PC (owner 10/10).
-const PHONE_FALLOUT = [[0, 1], [0.15, 0.85], [0.4, 0.5], [0.7, 0.15], [1, 0]];
 const GRAIN_SIZE = 160;
 // Mean trắng mà grain của arc thêm vào (opacity 0.12 x mean alpha 0.5, detail.css); tint mang ít đi đúng bằng đó.
 const GRAIN_WHITE = 0.06;
@@ -102,56 +90,13 @@ export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 
   if (shape === "arc") {
     layers.unshift("glass-surface__step glass-surface__step--full",
       ...Array(INNER_MAX).fill("glass-surface__step glass-surface__step--inner"));
-    glass.dataset.glassSteps = String(fittedSteps ?? FIT_MAX);
   }
   glass.append(
     ...layers.map((className) => Object.assign(document.createElement("i"), { className })),
     Object.assign(document.createElement("i"), { className: "glass-surface__tint" }),
     Object.assign(document.createElement("i"), { className: "glass-surface__grain" }),
   );
-  if (shape === "arc" && fittedSteps === undefined && typeof IntersectionObserver === "function") {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      observer.disconnect();
-      fitInnerSteps(glass);
-    });
-    // Box arc trải toàn bộ grid section, nên mép trên của nó vào viewport rất lâu trước arc; tint
-    // bắt đầu từ mép band, nên nó đánh dấu lúc chính arc xuất hiện trên màn hình.
-    observer.observe(glass.querySelector(".glass-surface__tint"));
-  }
   return glass;
-}
-
-// Rate rAF trung vị qua tối đa `frames` frame hoặc 1.5s. Skeleton dưới arc animate mỗi frame, nên glass
-// được recomposite mỗi frame và rate này là chi phí người xem cảm nhận.
-const medianFps = (frames) => new Promise((resolve) => {
-  const times = [];
-  const tick = (now) => {
-    times.push(now);
-    if (times.length <= frames && now - times[0] < 1500) requestAnimationFrame(tick);
-    else {
-      const gaps = times.slice(1).map((time, index) => time - times[index]).sort((a, b) => a - b);
-      resolve(1000 / gaps[gaps.length >> 1]);
-    }
-  };
-  requestAnimationFrame(tick);
-});
-
-// Bắt đầu với mọi inner step và band step, bớt một khi rate còn dưới target (inner trước, rồi band từ
-// step ngoài cùng); core luôn còn.
-async function fitInnerSteps(glass) {
-  let steps = FIT_MAX;
-  for (;;) {
-    await medianFps(10);
-    if (steps === 0 || await medianFps(45) >= TARGET_FPS) break;
-    steps -= 1;
-    glass.dataset.glassSteps = String(steps);
-    if (geometries.has(glass)) layoutArcGlass(glass, geometries.get(glass));
-  }
-  fittedSteps = steps;
-  try {
-    localStorage.setItem(FIT_KEY, String(steps));
-  } catch {}
 }
 
 // CSS cubic-bezier(x1, y1, x2, y2) như hàm của thời gian; x đơn điệu, nên bisection tìm ra tham số.
@@ -202,7 +147,7 @@ export function playGlassReveal(glass, duration) {
 export function arcGlassGeometry({ width, batchBottom, realBottom, cardWidth, clusterTop, clusterBottom }) {
   const whiteRamp = ARC.whiteRamp * cardWidth;
   const clusterHeight = clusterBottom - clusterTop;
-  const yIn = Math.min(clusterTop + ARC.centre * clusterHeight, batchBottom - 2 * whiteRamp);
+  const yIn = Math.min(clusterTop + arcLayers().centre * clusterHeight, batchBottom - 2 * whiteRamp);
   // Mép band không bao giờ nhô lên trên các photo thật.
   const band = Math.max(8, Math.min(ARC.band * clusterHeight, yIn - realBottom));
   const depth = batchBottom - yIn;
@@ -232,20 +177,12 @@ export function layoutArcGlass(glass, geometry) {
   const [coreStep, ...rest] = glass.querySelectorAll(".glass-surface__step");
   const inner = rest.slice(0, INNER_MAX);
   const steps = rest.slice(INNER_MAX);
-  const fit = Number(glass.dataset.glassSteps ?? FIT_MAX);
-  if (fit) {
-    const coreTop = Math.max(top, cy - radius - CORE_REACH);
-    place(coreStep, coreTop);
-    setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
-  } else {
-    // Phone (owner 10/10): một lớp 28px, mask mờ dần qua band thay cho ba bậc; vùng chuyển là ảnh nét và ảnh
-    // nhòe chồng lên nhau (owner chấp nhận).
-    place(coreStep, top);
-    const stops = PHONE_FALLOUT.map(([x, alpha]) => `rgba(0, 0, 0, ${alpha}) ${(radius + band * x).toFixed(1)}px`);
-    setMask(coreStep, `radial-gradient(${circle(top)}, ${stops.join(", ")})`);
-  }
+  const { band: bandSteps, inner: count } = arcLayers();
+  const coreTop = Math.max(top, cy - radius - ARC_LEVEL);
+  place(coreStep, coreTop);
+  setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${radius - FADE / 2}px, transparent ${radius}px)`);
   steps.forEach((step, index) => {
-    step.hidden = index < ARC_STEPS - Math.min(fit, ARC_STEPS);
+    step.hidden = index < ARC_STEPS - bandSteps;
     const outer = radius + RAMPS[index][1] * band;
     place(step, cy - outer, Math.min(batchBottom + 2, seam + STEP_REACH[index]));
     setMask(step, `radial-gradient(${circle(cy - outer)}, transparent ${core}px, #000 ${radius - FADE / 2}px, `
@@ -253,7 +190,6 @@ export function layoutArcGlass(glass, geometry) {
   });
   // Inner step: level n trên N là ARC_LEVEL + (CEILING - ARC_LEVEL) n / N, mỗi step thêm increment cầu phương của nó và
   // vào dần trong phần của nó trên đường từ arc đến vòng tròn trắng tinh; các step lân cận chồng nhau như RAMPS.
-  const count = Math.max(0, fit - ARC_STEPS);
   const span = Math.max(1, radius - dFull);
   const level = (n) => ARC_LEVEL + (CEILING - ARC_LEVEL) * n / count;
   inner.forEach((step, index) => {
@@ -265,7 +201,9 @@ export function layoutArcGlass(glass, geometry) {
     const stepTop = Math.max(top, cy - from - Math.ceil(increment));
     step.style.setProperty("--glass-step-blur", `${increment.toFixed(2)}px`);
     place(step, stepTop);
-    setMask(step, `radial-gradient(${circle(stepTop)}, #000 ${to.toFixed(1)}px, transparent ${from.toFixed(1)}px)`);
+    // Vào dần theo smoothstep, không tuyến tính: độ dốc 0 tại cung nên không lộ đường ranh trong và ngoài cung.
+    const stops = [0, 0.25, 0.5, 0.75, 1].map((x) => `rgba(0, 0, 0, ${smooth(1 - x).toFixed(3)}) ${(to + (from - to) * x).toFixed(1)}px`);
+    setMask(step, `radial-gradient(${circle(stepTop)}, ${stops.join(", ")})`);
   });
   // Trắng theo cùng các vòng tròn: tinh từ vòng góc, tint trên arc, không có ở mép band.
   // Grain (mask m bên dưới) thêm trung bình GRAIN_WHITE * m, nên tint giữ lại phần đó.

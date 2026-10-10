@@ -1785,10 +1785,23 @@ body.is-advertising-browse .advertising-grid {
   overflow: hidden;
 }
 
+/* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. Lớp compositor riêng
+   để dời band lúc fling không cập nhật property tree cả trang (PrePaint 53ms trên A05s, vòng 22). */
+.advertising-grid__cta-shared-flow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  will-change: transform;
+  contain: strict;
+}
+
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
    blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 7.14, 16.07, 32.14, 57.14 và trần
    100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step
-   mang căn bậc năm của 1.7 và 1.04 (arc: căn bậc ba của 1.55 và 1.05).
+   mang căn bậc năm của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
+   chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
    Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
    Chỉ các step sở hữu backdrop-filter. Bản thân box giữ trơn: opacity, mask hay filter trên nó
    sẽ cắt các step khỏi trang phía sau. */
@@ -1835,12 +1848,6 @@ body.is-advertising-browse .advertising-grid {
   backdrop-filter: blur(var(--glass-full-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
 }
 
-/* Inner step của arc chỉ thêm blur; màu đến từ core và band step của nó. */
-.glass-surface__step--inner {
-  --glass-step-saturate: 1;
-  --glass-step-brightness: 1;
-}
-
 .glass-surface__tint {
   background: rgba(255, 255, 255, 0.12);
 }
@@ -1855,10 +1862,10 @@ body.is-advertising-browse .advertising-grid {
 /* Runtime arc đặt từng layer (glass-surface.mjs); nó trải viewport trên batch. Core của nó giữ
    28px của band; inner step của nó mang blur tiếp tới trần 100px. */
 .glass-surface[data-glass-shape="arc"] {
-  --glass-saturate: 1.55;
-  --glass-brightness: 1.05;
-  --glass-step-saturate: 1.1573;
-  --glass-step-brightness: 1.0164;
+  --glass-saturate: 1;
+  --glass-brightness: 1;
+  --glass-step-saturate: 1;
+  --glass-step-brightness: 1;
   --glass-full-blur: 28px;
   left: calc(-1 * var(--advertising-outer));
   width: calc(100% + (2 * var(--advertising-outer)));
