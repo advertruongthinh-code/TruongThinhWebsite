@@ -1070,6 +1070,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
   const arcGlass = gridSectionStyleTarget?.appendChild(Object.assign(createGlassSurface("arc"), { hidden: true }));
   const photoView = container.querySelector("[data-advertising-photo-view]");
+  // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
+  // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision a05s-frame-budget).
+  if (photoView?.hidden) globalThis.requestIdleCallback?.(() => {
+    if (photoView.hidden) for (const node of [photoView, ...photoView.querySelectorAll("*")]) getComputedStyle(node).color;
+  });
   const photoCanvas = photoView?.querySelector("[data-advertising-photo-canvas]");
   const photoPrimary = photoView?.querySelector("[data-advertising-photo-primary]");
   const photoImage = photoView?.querySelector("[data-advertising-photo-image]");
