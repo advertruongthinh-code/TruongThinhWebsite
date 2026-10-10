@@ -16,6 +16,22 @@ try {
   assert.notEqual(second, first, "inactive suggestion crossfades to another related image");
   assert.equal(await image.evaluate(el => el.getAnimations().some(animation => animation.effect.getKeyframes()[0].transform === "scale(1.06)")), true,
     "autoplay zooms the new image like the home hero");
+  // Bộ thưa (dưới 4 ảnh) vẫn zoom ngay khi hiện, như hero.
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?photo=signage-raised-letters-20`, { waitUntil: "networkidle" });
+  await page.locator("[data-advertising-suggestion-tag]").first().scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1000);
+  assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('[data-advertising-suggestion-tag][aria-pressed="false"]')]
+    .filter(b => b.getBoundingClientRect().bottom <= innerHeight)
+    .map(b => b.querySelector('[data-advertising-suggestion-image-layer="current"]').getAnimations()
+      .some(a => a.playState === "running" && a.effect.getKeyframes()[0].transform === "scale(1.06)"))
+    .filter(running => !running)), [], "every visible suggestion zooms out on mount, sparse decks included");
+  const sparseFirst = await page.evaluate(() => document.querySelector("[data-advertising-suggestion-tag]")
+    .querySelector('[data-advertising-suggestion-image-layer="current"]').dataset.advertisingSuggestionPhoto);
+  await page.waitForTimeout(7000);
+  assert.ok(await page.evaluate(() => document.querySelector('[data-advertising-suggestion-tag] [data-advertising-suggestion-image-layer="current"]')
+    .getAnimations().some(a => a.effect.getKeyframes()[0].transform === "scale(1.06)")), `sparse deck (${sparseFirst}) restarts the zoom after the crossfade`);
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "networkidle" });
+  await button.scrollIntoViewIfNeeded();
   await button.click();
   const active = await image.getAttribute("src");
   await page.waitForTimeout(7000);
