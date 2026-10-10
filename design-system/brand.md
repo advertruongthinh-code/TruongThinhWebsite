@@ -125,9 +125,13 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 | Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
-Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, phủ
-lớp cũ; hình dải không đổi, mép lớp mới nằm ngang. Hai chiều (vào và rời CMYK)
-giống hệt nhau về hướng, thứ tự và timing. Mỗi dải chạy trong chiều cao riêng
+Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, đồng
+thời lớp cũ lùi lên đúng bằng phần lớp mới đã phủ; hình dải không đổi, mép lớp
+mới nằm ngang. Ở mọi frame, mỗi điểm của dải chỉ thuộc một lớp: lớp mới dưới
+mép mọc, lớp cũ trên mép mọc. Hai lớp chỉ chồng nhau trong dải ngang `1px`
+ngay dưới mép mọc để không hở khe; mép trái, phải, đỉnh và chân dải không bao
+giờ có hai lớp chồng nhau, nên không lộ viền mảnh của lớp cũ quanh dải. Hai
+chiều (vào và rời CMYK) giống hệt nhau về hướng, thứ tự và timing. Mỗi dải chạy trong chiều cao riêng
 của nó, chân chung ở đáy mark. Đường cong `cubic-bezier(0.16, 1, 0.3, 1)`;
 `delay + duration = 1s` ở mọi dải nên cả bốn cùng xong một lúc:
 
@@ -139,8 +143,17 @@ của nó, chân chung ở đáy mark. Đường cong `cubic-bezier(0.16, 1, 0.3
 | 4 cyan | `0.21s` / `0.79s` |
 
 Đổi hướng giữa chừng: phần đang hiển thị (kể cả dải mọc dở) giữ làm lớp cũ,
-lớp mới mọc lại từ chân. Lớp cũ là bản sao bốn path trong
-`.brand-lockup__mark-underlay`, gỡ khi lớp mới mọc xong.
+lớp mới mọc lại từ chân và toàn bộ lớp cũ lùi theo cùng mép mọc như trên. Lớp
+cũ là bản sao bốn path trong `.brand-lockup__mark-underlay`, gỡ khi lớp mới
+mọc xong.
+
+```gherkin
+Given trang chủ ở đầu trang, mark trắng trên hero, trên điện thoại hoặc PC
+When cuộn thành sticky rồi cuộn về đầu trang, dừng ảnh ở 0.1s, 0.5s và 0.9s mỗi chiều
+Then trên và dưới mép mọc chỉ có một lớp, quanh mép trái, phải, đỉnh dải không có
+  điểm ảnh nào mang màu lớp cũ
+And kiểu mọc, thứ tự đen, vàng, magenta, cyan và mốc 1s giữ nguyên
+```
 
 FLIP chạy song song với màu mark và không hủy nó. Giảm chuyển động: không
 intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
