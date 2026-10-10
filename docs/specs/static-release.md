@@ -182,7 +182,7 @@ Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push v�
 phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi Chromium smoke
 `cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history),
 rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm), rồi `advertising-skeleton-slow-network.e2e.mjs` (skeleton không chớp, Flow chạy khi mở detail), rồi `phone-header-scroll.e2e.mjs` (header điện thoại đi theo quãng cuộn).
-`pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
+CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
 
 ```gherkin
 Given pull request đổi src/site/

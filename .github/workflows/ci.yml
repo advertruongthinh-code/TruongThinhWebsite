@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   static-release:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, wsl]
     timeout-minutes: 20
 
     steps:
@@ -32,7 +32,7 @@ jobs:
       - run: node --test tests/tooling/global-rules-sync.test.mjs
       - run: node scripts/site/build-image-variants.mjs --check
       - run: pnpm qa:worker:security
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install chromium
 
       - name: Start local static preview
         run: |

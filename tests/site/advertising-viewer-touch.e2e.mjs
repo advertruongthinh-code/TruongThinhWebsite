@@ -1,5 +1,5 @@
 // Gesture của viewer trong Chromium (docs/specs/advertising-viewer-touch-zoom.md R1-R11): pinch, rubber band,
-// hand-off một/hai ngón, tap để zoom, điểm dừng cho nút, reduced motion, double tap để mở, nút ẩn,
+// hand-off một/hai ngón, tap để zoom, double tap, điểm dừng cho nút, reduced motion, tap để mở, nút ẩn,
 // swipe để đóng, Back đóng, vặn hai ngón để xoay. Swipe và tap trên backdrop (L06) nằm ở
 // advertising-photo-transitions.e2e.mjs. Touch đi qua CDP để đường
 // touch-to-pointer của chính browser chạy. DEVICE_CDP (http://127.0.0.1:9222 sau `adb forward tcp:9222
@@ -86,8 +86,8 @@ function checkMoved(before, after, dx, dy, label) {
   }
 }
 
-// R7: màn cảm ứng mở viewer bằng double tap trên primary photo.
-async function openViewer(page, touch) {
+// R7: màn cảm ứng mở viewer bằng một tap trên primary photo; `double` mở bằng double tap theo thói quen cũ.
+async function openViewer(page, touch, { double = false } = {}) {
   const point = await (await page.waitForFunction(() => {
     const image = document.querySelector("[data-advertising-photo-image]");
     if (!image?.complete || !image.naturalWidth) return false;
@@ -96,7 +96,7 @@ async function openViewer(page, touch) {
     const y = Math.round(box.top + box.height / 2);
     return image.parentElement.contains(document.elementFromPoint(x, y)) && { x, y };
   })).jsonValue();
-  await touch.doubleTap(point);
+  await (double ? touch.doubleTap(point) : touch.tapAt(point));
   await settled(page);
 }
 
@@ -191,7 +191,7 @@ async function runPhone({ locale, width, height }) {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(`${origin}/${locale}/advertising-products/?photo=${card.id}`, { waitUntil: "domcontentloaded" });
   const touch = touchDriver(page, cdp);
-  await openViewer(page, touch);
+  await openViewer(page, touch, { double: true });
   const state = () => page.evaluate(readState);
   const start = await state();
   const label = `${locale} ${start.vw}x${start.vh}`;
@@ -199,6 +199,8 @@ async function runPhone({ locale, width, height }) {
   const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out", "zoom-reset"]
     .filter((hook) => document.querySelector(`[data-advertising-photo-${hook}]`).getBoundingClientRect().width > 1));
   check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
+  // R4, R7: tap thứ hai của double tap mở viewer bị nuốt, ảnh vẫn ở Fit.
+  check(start.scale === 1 && start.x === 0 && start.y === 0, `${label} R7: double tap open zoomed the image ${start.scale}`);
   const centre = { x: start.cx + 24, y: start.cy + 18 };
 
   // R1 + R5: pinch 100 -> 200px cho s = 2 dưới các ngón; status chờ đến khi thả.
@@ -270,6 +272,10 @@ async function runPhone({ locale, width, height }) {
   const finger = { x: centre.x, y: centre.y, id: 1 };
   const at = (point, dx, dy) => ({ ...point, x: point.x + dx, y: point.y + dy });
   await touch.send("touchStart", [finger]);
+  // R3: di trong vùng chết 10px không pan.
+  await touch.send("touchMove", [at(finger, 6, 4)]);
+  const still = await state();
+  check(Math.abs(still.x - before.x) <= 0.5 && Math.abs(still.y - before.y) <= 0.5, `${label} R3: 7px finger jitter panned the image`);
   await touch.send("touchMove", [at(finger, 20, 12)]);
   const panned = await state();
   checkMoved(before, panned, 20, 12, `${label} R3 one finger`);
@@ -301,15 +307,34 @@ async function runPhone({ locale, width, height }) {
   const covered = await state();
   check(near(covered.scale, covered.cover), `${label} R4: tap at Fit gave ${covered.scale}, Cover ${covered.cover}`);
   checkAnchor(fit, covered, tapPoint, tapPoint, `${label} R4`);
+  await page.waitForTimeout(350);
   await touch.tapAt(tapPoint);
   await settled(page);
   const unzoomed = await state();
   check(unzoomed.scale === 1 && unzoomed.x === 0 && unzoomed.y === 0 && unzoomed.open, `${label} R4: second tap did not return to Fit`);
 
+  // R4: double tap chỉ zoom một lần; tap thứ hai lệch vài px không pan, không về Fit.
+  await page.waitForTimeout(350);
+  await touch.doubleTap(tapPoint);
+  await settled(page);
+  const doubled = await state();
+  check(near(doubled.scale, doubled.cover) && Math.abs(doubled.x - covered.x) <= 1 && Math.abs(doubled.y - covered.y) <= 1,
+    `${label} R4: double tap did not zoom once to Cover ${JSON.stringify(doubled)}`);
+  await page.waitForTimeout(350);
+  await touch.tapAt(tapPoint);
+  await settled(page);
+
+  // R11: pinch zoom kèm vặn nhẹ 15° không xoay ảnh.
+  await touch.twist({ x: fit.cx, y: fit.cy }, 160, 0, 15, { hold: true });
+  check(Math.abs((await state()).angle) <= 0.5, `${label} R11: a 15 degree twist rotated the image`);
+  await touch.send("touchEnd", []);
+  await settled(page);
+
   // R11: vặn 70° theo tay, buông thì hít về 90° và ảnh xoay vừa khung; vặn thêm 30° thì về lại 90°.
+  // R11: quá ngưỡng 20° ảnh xoay theo tay tính từ ngưỡng: vặn 70° cho 50°.
   await touch.twist({ x: fit.cx, y: fit.cy }, 160, 0, 70, { hold: true });
   const twisting = await state();
-  check(Math.abs(twisting.angle - 70) <= 1, `${label} R11: image did not follow the twist (${twisting.angle})`);
+  check(Math.abs(twisting.angle - 50) <= 1, `${label} R11: image did not follow the twist (${twisting.angle})`);
   await touch.send("touchEnd", []);
   await settled(page);
   const turned = await state();
@@ -322,6 +347,8 @@ async function runPhone({ locale, width, height }) {
   if (!portrait) {
     await touch.tapAt({ x: Math.round(fit.cx), y: Math.round(fit.cy) });
     await settled(page);
+    // Qua cửa sổ double tap để lần chạm kế là swipe, không bị nuốt.
+    await page.waitForTimeout(350);
   }
   const single = await state();
   check(Math.abs(single.angle - 90) <= 0.5 && single.scale === 1 && single.inside,
@@ -387,8 +414,9 @@ async function runMotion() {
       check(near(after.scale, after.cover) && after.animations === 0 && after.status === `${Math.round(after.scale * 100)}%`
         && !after.minusDisabled && !after.resetDisabled && !after.plusDisabled,
         `${label}: tap animated or missed Cover ${JSON.stringify(after)}`);
+      await page.waitForTimeout(350);
       await touch.tapAt({ x: Math.round(fit.cx), y: Math.round(fit.cy) });
-      await touch.twist({ x: fit.cx, y: fit.cy }, 160, 0, -60);
+      await touch.twist({ x: fit.cx, y: fit.cy }, 160, 0, -80);
       const snapped = await page.evaluate(readState);
       check(Math.abs(snapped.angle + 90) <= 0.5 && snapped.animations === 0,
         `${label}: snap animated or missed -90 degrees ${JSON.stringify(snapped)}`);
