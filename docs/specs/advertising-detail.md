@@ -120,8 +120,8 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Mỗi `3s`, nút chưa bật đang trong viewport giải mã ảnh kế rồi crossfade
 `1.6s` (`mountSuggestionSlides`), không zoom; zoom chỉ khi hover. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, nút ngoài
-viewport, body `motion-paused`, reduced motion hoặc lượt trước chưa xong; ra viewport hay ẩn tab thì crossfade đang chạy
-dừng. Bộ dưới 4 ảnh đứng yên. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
+viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
+chưa xong; ra viewport, ẩn tab hay mở `dialog` thì crossfade đang chạy dừng. Bộ dưới 4 ảnh đứng yên. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
 
 ```gherkin
