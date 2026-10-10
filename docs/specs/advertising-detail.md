@@ -119,17 +119,17 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ zoom của nút (khuất thì dừng), rồi nút chưa bật đang trong
-viewport giải mã ảnh kế rồi crossfade `1.6s` power2.inOut (ảnh cũ mờ đi cùng lúc ảnh mới hiện, như hero), ảnh mới zoom `1.06 → 1` trong `6.6s` sine.inOut từ frame đầu
-crossfade (`mountSuggestionSlides`); ảnh đầu zoom ngay khi mount. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
+viewport giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%`; owner chọn 10/10), ảnh mới zoom `1.06 → 1` trong `6.6s` sine.inOut từ
+frame đầu (`mountSuggestionSlides`); ảnh đầu zoom ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
 rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, nút ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
-chưa xong; ra viewport, ẩn tab hay mở `dialog` thì crossfade và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh crossfade sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
+chưa xong; ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
 
 ```gherkin
 Given suggestion có nút chưa bật với bộ từ 2 ảnh và một nút đang bật
 When chờ 5s
-Then nút chưa bật crossfade sang ảnh khác, ảnh mới zoom 1.06 về 1 trong 6.6s
+Then nút chưa bật đẩy ngang sang ảnh khác, nút dưới trễ 0.4s, ảnh mới zoom 1.06 về 1 trong 6.6s
 And hover nút chưa bật thì nhãn gạch chân, ảnh không zoom 1.15
 And nút đang bật giữ nguyên ảnh
 ```
@@ -170,10 +170,10 @@ And không frame nào vẽ ở Y của entry khác
 
 ### R9. Viewer
 
-Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm đúp ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-đúp-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
+Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
-`cubic-bezier(0.55, 0, 0, 1)`; nền viewer chỉ là lớp tối `rgba(32, 33, 32, 0.85)`, không blur (blur `50px` toàn màn rớt
-[gate A05s](../decisions/a05s-frame-budget.md), owner bỏ 2026-10-10), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
+`cubic-bezier(0.55, 0, 0, 1)`; nền viewer máy có chuột (`hover: hover`, `pointer: fine`) là lớp tối `0.85` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
+điện thoại không blur ([gate A05s](../decisions/a05s-frame-budget.md)), lớp tối `0.9`, màu `rgba(32, 33, 32)` (owner 2026-10-10), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
 trên trái; reset, `+`, `−` góc dưới phải, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa

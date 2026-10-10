@@ -1,7 +1,7 @@
 # Viewer ảnh Advertising
 
 Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
-[Primary](../Primary/README.md), hoặc chạm đúp ảnh primary trên màn cảm ứng. Markup `dialog.advertising-photo-dialog` tĩnh,
+[Primary](../Primary/README.md), hoặc chạm ảnh primary trên màn cảm ứng. Markup `dialog.advertising-photo-dialog` tĩnh,
 `photo-viewer.mjs` điều khiển zoom và pan.
 
 ## Hành vi
@@ -17,8 +17,8 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Nền nút `white`; hover và nhấn dùng `media-control-hover`,
   `media-control-active`; nút disabled nền `control-disabled-surface`, icon
   `control-disabled-icon`, không hover motion.
-- Nền tối `rgba(32, 33, 32, 0.85)`, không blur (owner bỏ 2026-10-10 để đạt
-  60fps trên A05s).
+- Máy có chuột: nền tối `rgba(32, 33, 32, 0.85)` cộng blur `50px`. Điện thoại:
+  không blur (giữ 60fps trên A05s), nền tối `rgba(32, 33, 32, 0.9)` (owner 2026-10-10).
 - Màn cảm ứng (`hover: none`, `pointer: coarse`) không hiện nút: chụm hoặc
   chạm một lần để zoom, vặn để xoay; ở fit vuốt ảnh lên hoặc xuống thì ảnh theo tay, nền nhạt
   dần, quá `15%` chiều cao hoặc vuốt nhanh thì đóng, chưa tới thì về chỗ.

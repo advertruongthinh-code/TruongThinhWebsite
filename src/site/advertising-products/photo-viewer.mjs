@@ -1,9 +1,14 @@
 import { responsiveSource } from "./responsive-image.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
-// Double tap trên touch: cả hai tap trong 300ms và 24px, mỗi tap di chuyển tối đa 10px (advertising-viewer-touch-zoom R7).
-const isDoubleTap = (last, event) => last && event.timeStamp - last.time <= 300
-  && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 24;
+// Tap thứ hai của double tap: chạm xuống trong 300ms và 40px từ tap trước (advertising-viewer-touch-zoom R4).
+const isSecondTap = (last, event) => last && event.timeStamp - last.time <= 300
+  && Math.hypot(event.clientX - last.x, event.clientY - last.y) <= 40;
+// Ngón tay di quá 10px mới là kéo; dưới mức đó vẫn là tap, ảnh không pan (R3, R4).
+const TOUCH_SLOP = 10;
+// Hai ngón chỉ xoay khi vặn quá 20° trước khi zoom đổi quá 20%; pinch zoom thường không xoay (R11).
+const TWIST_THRESHOLD = 20;
+const ZOOM_LOCK = 1.2;
 // Xoay vector (x, y) một góc `degrees` theo chiều kim đồng hồ của màn hình, như CSS rotate().
 const rotate = (x, y, degrees) => {
   const radians = degrees * Math.PI / 180;
@@ -46,7 +51,8 @@ export function createAdvertisingPhotoViewer({
   let tap = null;
   let swipe = null;
   let heroTap = null;
-  let heroLastTap = null;
+  // Tap gần nhất trên ảnh hoặc primary; tap kế trong cửa sổ double tap bị nuốt (R4, R7).
+  let lastTap = null;
   let ownEntry = false;
   let skipPop = false;
   const touches = new Map();
@@ -242,15 +248,21 @@ export function createAdvertisingPhotoViewer({
     // Điểm ảnh dưới trung điểm, trong hệ tọa độ ảnh chưa xoay và chưa scale.
     const [localX, localY] = rotate((clientX - bounds.left - bounds.width / 2 - panX) / scale,
       (clientY - bounds.top - bounds.height / 2 - panY) / scale, -angle);
-    pinch = { scale, angle, distance, twist, clientX, clientY, localX, localY };
+    pinch = { scale, angle, distance, twist, clientX, clientY, localX, localY, turning: null };
   };
   const movePinch = () => {
     const { clientX, clientY, distance, twist } = midpoint();
     const bounds = viewport.getBoundingClientRect();
     const max = 2 * cover;
-    // Vặn hai ngón xoay ảnh tự do theo góc đường nối hai ngón (R11).
-    angle = pinch.angle + ((twist - pinch.twist + 540) % 360) - 180;
-    const raw = pinch.scale * distance / pinch.distance;
+    const ratio = distance / pinch.distance;
+    const turn = ((twist - pinch.twist + 540) % 360) - 180;
+    // Vặn quá ngưỡng thì xoay theo tay, tính từ ngưỡng nên không giật; zoom đổi rõ trước thì khóa xoay cả gesture (R11).
+    if (pinch.turning === null) {
+      if (Math.abs(turn) >= TWIST_THRESHOLD) pinch.turning = Math.sign(turn) * TWIST_THRESHOLD;
+      else if (ratio > ZOOM_LOCK || ratio < 1 / ZOOM_LOCK) pinch.turning = false;
+    }
+    if (pinch.turning) angle = pinch.angle + turn - pinch.turning;
+    const raw = pinch.scale * ratio;
     // Vượt giới hạn, ảnh đi theo một phần ba chuyển động của ngón tay, tối đa vượt 15%.
     scale = raw > max ? Math.min(max + (raw - max) / 3, max * 1.15)
       : raw < 1 ? Math.max(1 - (1 - raw) / 3, 0.85) : raw;
@@ -272,7 +284,7 @@ export function createAdvertisingPhotoViewer({
     const dx = event.clientX - swipe.x;
     const dy = event.clientY - swipe.y;
     if (!swipe.active) {
-      if (Math.hypot(dx, dy) <= 10) return;
+      if (Math.hypot(dx, dy) <= TOUCH_SLOP) return;
       if (Math.abs(dy) <= Math.abs(dx)) {
         swipe = null;
         return;
@@ -367,20 +379,19 @@ export function createAdvertisingPhotoViewer({
     .filter((control) => control && !control.disabled && !control.hidden && control.getClientRects().length > 0);
 
   expandButton.addEventListener("click", open, { signal: controller.signal });
-  // Màn cảm ứng mở viewer bằng double tap trên primary photo (R7).
+  // Màn cảm ứng mở viewer bằng một tap trên primary photo (R7).
   heroFrame?.addEventListener("pointerdown", (event) => {
     heroTap = event.pointerType === "touch" && event.isPrimary ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
   }, { signal: controller.signal });
   heroFrame?.addEventListener("pointermove", (event) => {
-    if (heroTap?.id === event.pointerId && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) > 10) heroTap = null;
+    if (heroTap?.id === event.pointerId && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) > TOUCH_SLOP) heroTap = null;
   }, { signal: controller.signal });
   heroFrame?.addEventListener("pointerup", (event) => {
     if (heroTap?.id !== event.pointerId) return;
     heroTap = null;
-    if (isDoubleTap(heroLastTap, event)) {
-      heroLastTap = null;
-      open();
-    } else heroLastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
+    open();
+    // Thói quen double tap: tap thứ hai rơi vào viewer vừa mở và bị nuốt, không zoom.
+    lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
   }, { signal: controller.signal });
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
@@ -431,6 +442,13 @@ export function createAdvertisingPhotoViewer({
         event.preventDefault();
         return;
       }
+      // Tap thứ hai của double tap chỉ đổi zoom một lần với tap đầu: không pan, không vuốt, không đóng (R4).
+      if (isSecondTap(lastTap, event)) {
+        lastTap = null;
+        tap = null;
+        backdropPress = false;
+        return;
+      }
       tap = event.target === expandedImage ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
     }
     backdropPress = event.target === dialog || event.target === viewport;
@@ -444,7 +462,7 @@ export function createAdvertisingPhotoViewer({
       return;
     }
     adoptDisplayed();
-    drag = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY };
+    drag = { id: event.pointerId, x: event.clientX, y: event.clientY, panX, panY, moved: event.pointerType !== "touch" };
     viewport.setPointerCapture?.(event.pointerId);
     renderTransform();
     event.preventDefault();
@@ -457,7 +475,7 @@ export function createAdvertisingPhotoViewer({
   dialog.addEventListener("pointermove", (event) => {
     const touch = touches.get(event.pointerId);
     if (touch) Object.assign(touch, { x: event.clientX, y: event.clientY });
-    if (tap?.id === event.pointerId && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10) tap = null;
+    if (tap?.id === event.pointerId && Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > TOUCH_SLOP) tap = null;
     if (pinch && touch) {
       movePinch();
       event.preventDefault();
@@ -469,10 +487,12 @@ export function createAdvertisingPhotoViewer({
       return;
     }
     if (!drag || drag.id !== event.pointerId) return;
+    event.preventDefault();
+    if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= TOUCH_SLOP) return;
+    drag.moved = true;
     panX = drag.panX + event.clientX - drag.x;
     panY = drag.panY + event.clientY - drag.y;
     renderTransform();
-    event.preventDefault();
   }, { signal: controller.signal });
   const endPointer = (event) => {
     if (!touches.delete(event.pointerId) && (!drag || drag.id !== event.pointerId)) return;
@@ -482,7 +502,7 @@ export function createAdvertisingPhotoViewer({
       const [rest] = touches;
       // Một ngón còn lại trong [Fit, Max] ở góc bội 90 tiếp tục pan; còn lại ảnh bật về và nó bị bỏ qua.
       if (rest && scale >= 1 && scale <= 2 * cover && angle % 90 === 0) {
-        if (!atFit()) drag = { id: rest[0], x: rest[1].x, y: rest[1].y, panX, panY };
+        if (!atFit()) drag = { id: rest[0], x: rest[1].x, y: rest[1].y, panX, panY, moved: true };
         renderTransform();
       } else settle(anchor);
       return;
@@ -495,6 +515,7 @@ export function createAdvertisingPhotoViewer({
     }
     if (tap?.id !== event.pointerId || event.type !== "pointerup") return;
     tap = null;
+    lastTap = { time: event.timeStamp, x: event.clientX, y: event.clientY };
     // Một tap: Fit zoom lên Cover quanh điểm tap, mọi scale khác trả về Fit (R4).
     setScale(atFit() ? cover : 1, event);
   };

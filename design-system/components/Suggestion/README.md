@@ -12,8 +12,9 @@ chuỗi ảnh nền.
 - Bấm để lọc ảnh liên quan theo tag; chỉ một tag bật, bấm lại để tắt. Trạng
   thái bật dùng `aria-pressed`, khác hover và focus; thứ tự nút không đổi khi
   bật hoặc tắt.
-- Nút chưa bật chạy [slideshow hero](../../motion.md#motion-theo-bề-mặt-ui):
-  mỗi 5s chuyển mờ `1.6s`, ảnh zoom chậm `1.06 → 1` trong `6.6s`. Nút đang bật
+- Nút chưa bật giữ ảnh 5s và zoom chậm `1.06 → 1` trong `6.6s` như
+  [slideshow hero](../../motion.md#suggestion-và-detail), rồi ảnh mới đẩy ngang
+  ảnh cũ trong `0.9s`; nút sau trễ nút trước `0.4s` thành sóng. Nút đang bật
   và reduced motion giữ ảnh tĩnh.
 - Hover chuột hoặc focus bàn phím: nhãn chạy
   [gạch chân](../../motion.md#motion-theo-bề-mặt-ui) như nav và portal; ảnh
