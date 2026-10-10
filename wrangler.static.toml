@@ -1,5 +1,5 @@
-# Static demo hosting: assets-only Worker, no script and no bindings.
-# The CMS Worker config in wrangler.toml stays dormant until the CMS phase.
+# Hosting demo tĩnh: Worker chỉ có assets, không script, không binding.
+# Config CMS Worker trong wrangler.toml giữ dormant đến CMS phase.
 name = "truong-thinh-demo"
 compatibility_date = "2026-07-31"
 workers_dev = true

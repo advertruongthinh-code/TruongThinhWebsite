@@ -41,7 +41,7 @@ for (const path of walk(SRC)) {
   if (rel !== 'design-system.json') staged.push(`project/${rel}`);
 }
 if (missing.length) {
-  console.error(`Ảnh chưa upload hoặc đã đổi (upload rồi ghi id vào ${SRC}/design-system.json): ${missing.join(', ')}`);
+  console.error(`Images not uploaded or changed (upload them, then record the ids in ${SRC}/design-system.json): ${missing.join(', ')}`);
   process.exit(1);
 }
 console.log(JSON.stringify({ root: OUT, file_path: 'project/design-system.json', files: Object.fromEntries(staged.map((p) => [p, p])) }, null, 2));
