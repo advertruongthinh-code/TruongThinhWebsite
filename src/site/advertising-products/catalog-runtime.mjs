@@ -1938,32 +1938,38 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // nhòe sẵn: vẽ một lần vào canvas 1/8 kích thước với blur cộng dồn bằng blur chồng của bậc gốc, rồi phóng 8 lần
   // (detail.css). CSS filter trên ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
   const BAKED_SCALE = 8;
+  // Ảnh nguồn cho bậc nhòe: rộng hơn hero rộng nhất chia 8 một chút.
+  const BAKED_SOURCE_WIDTH = 192;
+  // Thu nhỏ từ img trên main thread tốn 50-160ms trên A05s (drawImage hay createImageBitmap(img)); từ Blob thì Chrome
+  // decode và thu nhỏ ngoài main thread, ảnh lấy lại từ HTTP cache. Lỗi thì bậc chỉ còn nền màu skeleton.
+  const bakedBitmap = (source) => fetch(source).then((response) => response.blob())
+    .then((blob) => createImageBitmap(blob, { resizeWidth: BAKED_SOURCE_WIDTH, resizeQuality: "high" }))
+    .catch(() => null);
   // Blur bằng căn tổng bình phương các bậc gốc tới bậc đó; saturate và brightness cộng dồn như bậc gốc.
   const BAKED_FILTERS = [[7.14, 1.112, 1.0079], [16.07, 1.2365, 1.0159], [32.15, 1.375, 1.0239],
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
-  const bakedRevealGlass = (host) => {
+  const bakedRevealGlass = (host, bitmap) => {
     const glass = revealGlass(host);
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
     const width = Math.max(1, Math.ceil(photo.width / BAKED_SCALE));
     const height = Math.max(1, Math.ceil(photo.height / BAKED_SCALE));
-    // Thu nhỏ ảnh một lần, các bậc chỉ blur bản nhỏ này.
-    const source = Object.assign(document.createElement("canvas"), { width, height });
-    const sourceContext = source.getContext("2d");
-    sourceContext.imageSmoothingQuality = "high";
-    sourceContext.drawImage(photoImage, 0, 0, width, height);
-    glass.querySelectorAll(".glass-surface__step").forEach((step, index) => {
+    const canvases = [...glass.querySelectorAll(".glass-surface__step")].map((step) => {
       const canvas = Object.assign(document.createElement("canvas"), { width, height });
       Object.assign(canvas.style, {
         left: `${(photo.left - frame.left) / BAKED_SCALE}px`, top: `${(photo.top - frame.top) / BAKED_SCALE}px`,
         width: `${width}px`, height: `${height}px`,
       });
-      const context = canvas.getContext("2d");
-      context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
-      context.drawImage(source, 0, 0);
       step.classList.add("glass-surface__step--baked");
       step.append(canvas);
+      return canvas;
+    });
+    // Canvas software (willReadFrequently) để mỗi bậc không tạo GPU context; blur trên ảnh 1/8 chỉ vài nghìn pixel.
+    if (bitmap) canvases.forEach((canvas, index) => {
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
+      context.drawImage(bitmap, 0, 0, width, height);
     });
     return glass;
   };
@@ -2836,11 +2842,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
   };
-  const playPrimaryReveal = (reveal, from, to, total) => {
-    if (primaryReveal !== reveal) return;
+  const playPrimaryReveal = (reveal, from, to, total, bitmap) => {
+    if (primaryReveal !== reveal) return bitmap?.close();
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
     if (photoView.hidden) {
-      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total));
+      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
       return;
     }
     delete heroFrame.dataset.advertisingPhotoLoading;
@@ -2849,7 +2855,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    reveal.glass = bakedRevealGlass(heroFrame);
+    reveal.glass = bakedRevealGlass(heroFrame, bitmap);
+    bitmap?.close();
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
     const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
     reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
@@ -2930,13 +2937,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         reveal.frame = attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling);
       }, 100);
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
-      photoImage.decode().then(() => {
-        if (primaryReveal !== reveal) return;
+      // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
+      const bitmap = reduced ? null : bakedBitmap(source);
+      photoImage.decode().then(() => bitmap).then((baked) => {
+        if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS);
-        else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS);
-        else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS);
-      }, () => primaryReveal === reveal && settlePrimaryReveal());
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS, baked);
+        else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
+        else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
+      }, () => {
+        bitmap?.then((baked) => baked?.close());
+        if (primaryReveal === reveal) settlePrimaryReveal();
+      });
     }
     photoViewer.setRecord(video ? null : { ...record, media: item });
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
