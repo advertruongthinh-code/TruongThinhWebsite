@@ -1,3 +1,6 @@
+//# allFunctionsCalledOnLoad
+// Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
+// (khoảng 20% task click khi mở detail; decision a05s-frame-budget).
 import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
@@ -43,6 +46,7 @@ const skeletonContextBudget = () => skeletonPhone() ? 2 : 12;
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
+const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const disposeSkeletonContext = (record) => {
@@ -1640,7 +1644,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.getBoundingClientRect();
     const renderer = createSkeletonFlowRenderer(canvas, {
       preset,
-      seed: fnv1a32(`${skeletonKey(frame)}:${preset.id}`),
       initialPhase: skeletonPhase(frame),
       direction,
       speedScale,
@@ -1681,16 +1684,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const oldCanvas = frame.querySelector("canvas");
     if (oldCanvas && skeletonAssignmentByFrame.has(frame)) oldCanvas.replaceWith(createSkeletonCanvas(frame));
   };
-  const syncSkeletonRenderers = () => {
+  const syncSkeletonRenderers = (rects) => {
     const budget = skeletonContextBudget();
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
-    // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport.
-    const prioritized = [...visibleSkeletonFrames]
-      .map((frame) => ({ frame, rect: frame.getBoundingClientRect() }))
+    // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport. Dùng lại rect đã đọc
+    // trước khi append canvas: đọc lại ép thêm một layout (A05s, decision a05s-frame-budget).
+    const prioritized = [...visibleSkeletonFrames].filter((frame) => skeletonAssignmentByFrame.has(frame))
+      .map((frame) => ({ frame, rect: rects?.get(frame) ?? frame.getBoundingClientRect() }))
       .sort((left, right) => left.rect.top - right.rect.top || left.rect.left - right.rect.left)
       .map(({ frame }) => frame)
       .filter((frame) => !keep.has(frame));
@@ -1779,8 +1783,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         && rect.bottom > visible.top && rect.top < visible.top + visible.height) visibleSkeletonFrames.add(frame);
       else visibleSkeletonFrames.delete(frame);
     }
-    visibleSkeletonFrames.forEach((frame) => assignSkeleton(frame, rects));
-    syncSkeletonRenderers();
+    // Mỗi ảnh tĩnh là một lần render CPU; mở detail có thể cần hơn chục cái cùng lúc. Vượt ngân sách
+    // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision a05s-frame-budget).
+    const assignUntil = performance.now() + SKELETON_ASSIGN_BUDGET_MS;
+    for (const frame of visibleSkeletonFrames) {
+      if (!skeletonAssignmentByFrame.has(frame) && performance.now() > assignUntil) {
+        scheduleSkeletonAssign();
+        break;
+      }
+      assignSkeleton(frame, rects);
+    }
+    syncSkeletonRenderers(rects);
     skeletonFrames().forEach((frame) => {
       const renderer = skeletonFlowByFrame.get(frame);
       if (skeletonMotionPreference.matches) {
@@ -1809,6 +1822,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderer?.stop();
         return;
       }
+      if (!skeletonAssignmentByFrame.has(frame)) return;
       if (skeletonCanLoop(frame)) {
         // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
@@ -1823,6 +1837,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       renderer?.stop();
     });
   };
+  let skeletonAssignTimer = 0;
+  const scheduleSkeletonAssign = () => {
+    if (skeletonAssignTimer || controller.signal.aborted) return;
+    skeletonAssignTimer = setTimeout(() => {
+      skeletonAssignTimer = 0;
+      syncSkeletonMotion();
+    });
+  };
+  controller.signal.addEventListener("abort", () => clearTimeout(skeletonAssignTimer), { once: true });
   const skeletonObserver = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });

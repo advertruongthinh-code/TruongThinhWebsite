@@ -374,8 +374,12 @@ function createProgram(gl) {
   return program;
 }
 
-function createNoise(seed) {
-  let state = (Number(seed) || 0) >>> 0;
+// Một noise chung cho mọi renderer: grain chỉ hiện 3-4%, còn tạo lại 256x256 mỗi lần mount tốn hơn 10ms trên A05s
+// (decision a05s-frame-budget).
+let sharedNoise;
+function createNoise() {
+  if (sharedNoise) return sharedNoise;
+  let state = 0x2f6b;
   const random = () => {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 0x1_0000_0000;
@@ -388,7 +392,7 @@ function createNoise(seed) {
     data[offset + 2] = value;
     data[offset + 3] = 255;
   }
-  return data;
+  return (sharedNoise = data);
 }
 
 const smoothValue = (value) => {
@@ -486,7 +490,6 @@ export function skeletonFlowStill(preset, phase) {
 
 export function createSkeletonFlowRenderer(canvas, {
   preset = SKELETON_FLOW_PRESETS[0],
-  seed = 0,
   initialPhase = FLOW_CLOCK_START,
   direction = 1,
   speedScale = 1,
@@ -580,7 +583,7 @@ export function createSkeletonFlowRenderer(canvas, {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 256, 0,
-      gl.RGBA, gl.UNSIGNED_BYTE, createNoise(seed));
+      gl.RGBA, gl.UNSIGNED_BYTE, createNoise());
     gl.uniform1i(uniform("uNoise"), 0);
     backend = "webgl";
     return true;
