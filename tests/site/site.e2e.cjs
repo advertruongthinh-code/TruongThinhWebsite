@@ -6,7 +6,7 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
-const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:4173").replace(
+const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8787").replace(
   /\/+$/,
   "",
 );
