@@ -1156,13 +1156,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const getLayoutViewportHeight = () => scroll?.getViewportMetrics?.().layoutHeight
     || document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height
     || innerHeight;
-  // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe, nên không ép style recalc mỗi frame cuộn.
-  const getVisibleViewport = () => ({
+  // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe. Đọc visualViewport vẫn ép style recalc,
+  // nên giữ số đo tới khi viewport đổi (decision a05s-frame-budget).
+  let visibleViewport = null;
+  const getVisibleViewport = () => visibleViewport ??= {
     width: window.visualViewport?.width ?? innerWidth,
     height: window.visualViewport?.height ?? innerHeight,
     left: window.visualViewport?.offsetLeft ?? 0,
     top: window.visualViewport?.offsetTop ?? 0,
-  });
+  };
+  const resetVisibleViewport = () => { visibleViewport = null; };
+  window.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
+  window.visualViewport?.addEventListener("resize", resetVisibleViewport, { signal: controller.signal });
+  window.visualViewport?.addEventListener("scroll", resetVisibleViewport, { signal: controller.signal });
   document.body.classList.add("is-advertising-browse");
   let locale = currentLocale();
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1790,6 +1796,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     skeletonEntryFrames.set(frame, pending);
   };
+  // rAF của scheduleSkeletonSync chung task với frame cuộn và layout masonry; ảnh tĩnh render CPU ở task sau, nếu
+  // không task frame vượt 50ms trên A05s lúc vuốt nhanh (R8, decision a05s-frame-budget).
+  let skeletonSyncInFrame = false;
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
     const rects = new Map();
@@ -1805,7 +1814,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision a05s-frame-budget).
     const assignUntil = performance.now() + SKELETON_ASSIGN_BUDGET_MS;
     for (const frame of visibleSkeletonFrames) {
-      if (!skeletonAssignmentByFrame.has(frame) && performance.now() > assignUntil) {
+      if (!skeletonAssignmentByFrame.has(frame) && (skeletonSyncInFrame || performance.now() > assignUntil)) {
         scheduleSkeletonAssign();
         break;
       }
@@ -1878,7 +1887,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (skeletonSyncFrame || controller.signal.aborted) return;
     skeletonSyncFrame = requestAnimationFrame(() => {
       skeletonSyncFrame = 0;
+      skeletonSyncInFrame = true;
       syncSkeletonMotion();
+      skeletonSyncInFrame = false;
     });
   };
   // Media đang tải hiện chính frame skeleton cuối masonry (loading-glass-and-page-entry R1, R5).
