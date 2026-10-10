@@ -13,7 +13,7 @@ const viewports = [{ width: 390, height: 844, isMobile: true, hasTouch: true }, 
 const isContent = url => new URL(url).pathname.startsWith("/assets/content/") && !url.includes("/client-logos/");
 const results = [];
 await fs.mkdir(output, { recursive: true });
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
 const open = async ({ delay = DELAY, javaScriptEnabled = true, viewport = viewports[0] } = {}) => {
   const { width, height, ...device } = viewport;
@@ -145,6 +145,33 @@ try {
       .map(frame => getComputedStyle(frame, "::before").animationName));
     assert.ok(frames.length && frames.every(name => name === "media-breathe"), `about reduced motion: frames breathe instead of sweeping ${JSON.stringify(frames)}`);
     results.push({ case: "r6-reduced-motion", frames: frames.length });
+    await context.close();
+  }
+
+  // R6: vệt dừng ở giữa khung 1440×600, độ sáng mượt, không mép sắc hay điểm gãy.
+  {
+    // Lấy gradient thật từ khung đang chờ rồi vẽ lại trên probe đứng yên.
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 }, delay: 3000 });
+    await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => {
+      const frame = document.querySelector(".media-gate :not(picture):has(> img[src^=\"/assets/content/\"], > picture > img[src^=\"/assets/content/\"]):not(.is-media-settled)");
+      const sweep = getComputedStyle(frame, "::before").backgroundImage;
+      document.body.insertAdjacentHTML("beforeend", `<style>#sweep-probe{position:fixed;inset:0 auto auto 0;z-index:2147483647;width:1440px;height:600px;overflow:clip;background:#2b2c2b}#sweep-probe::before{position:absolute;inset:0 auto 0 0;width:400%;content:"";background-image:${sweep};transform:translateX(-37.5%)}</style><div id="sweep-probe"></div>`);
+    });
+    const { default: sharp } = await import("sharp");
+    const { data, info } = await sharp(await page.locator("#sweep-probe").screenshot()).raw().toBuffer({ resolveWithObject: true });
+    const row = Array.from({ length: info.width }, (_, x) => data[(300 * info.width + x) * info.channels]);
+    const peak = Math.max(...row), center = row.indexOf(peak);
+    const slopes = [];
+    for (let x = 24; x < row.length; x += 24) slopes.push((row[x] - row[x - 24]) / 24);
+    const maxStep = Math.max(...row.slice(1).map((value, x) => Math.abs(value - row[x])));
+    const maxSlopeJump = Math.max(...slopes.slice(1).map((slope, i) => Math.abs(slope - slopes[i])));
+    // Chromium dither gradient nên pixel kề có thể lệch ngược 1 mức; xét chiều tăng giảm với dung sai đó.
+    const monotonic = row.every((value, x) => x === 0 || (x <= center ? value >= row[x - 1] - 1 : value <= row[x - 1] + 1));
+    assert.ok(peak >= 68 && peak <= 72 && Math.min(...row) === 43, `sweep peak ${peak} within 68-72 on #2b2c2b`);
+    assert.ok(monotonic && maxStep <= 1, `sweep rises then falls without hard edges (max step ${maxStep})`);
+    assert.ok(maxSlopeJump <= 0.1, `sweep has no brightness kink (max slope jump ${maxSlopeJump})`);
+    results.push({ case: "r6-sweep-smooth", peak, maxStep, maxSlopeJump });
     await context.close();
   }
 
