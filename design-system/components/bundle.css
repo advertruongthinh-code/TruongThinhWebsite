@@ -4846,19 +4846,6 @@ body.is-advertising-browse .advertising-grid {
   backdrop-filter: blur(var(--glass-full-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
 }
 
-/* Phone: ảnh nhòe dựng sẵn thay mọi step của arc (glass-surface.mjs bakeArcGlass). */
-.glass-surface[data-glass-baked] > .glass-surface__step {
-  display: none;
-}
-
-.glass-surface__baked {
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  display: block;
-  width: 100%;
-}
-
 /* Inner step của arc chỉ thêm blur; màu đến từ core và band step của nó. */
 .glass-surface__step--inner {
   --glass-step-saturate: 1;
