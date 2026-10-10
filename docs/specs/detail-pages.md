@@ -120,8 +120,8 @@ tính từ lúc mount: ảnh hero About `scale 1.2 → 1.005` trong 2,5s (ảnh 
 Residential, Commercial tách `h1` theo từ, hiện dần tại 0,9s; About không tách nên `h1` hiện ngay. `zoom-09` khác
 `words-09` chỉ ở chỗ xóa transform GSAP còn sót trên ảnh hero. Tải trực tiếp: entrance chạy song song lúc veil mở; hero
 không có nhánh intro riêng nên việc `route-enter` bỏ header intro ([shell](site-shell.md#gate-còn-mở)) không chạm hero.
-Scroll cue như [trang chủ R4](page-home.md#r4-hero-vào-trang-và-scroll-cue), bấm thì cuộn tới khối ngay sau hero. Intro xong, resize
-cửa sổ thì tiêu đề hero mọi trang (kể cả Advertising) về chỗ mới ngay, không trượt.
+Scroll cue như [trang chủ R4](page-home.md#r4-hero-vào-trang-và-scroll-cue), bấm thì cuộn tới khối ngay sau hero. Resize cửa sổ (kể cả
+giữa intro) thì tiêu đề hero mọi trang, kể cả Advertising, về chỗ mới ngay, không trượt.
 
 ```gherkin
 Given /vi/residential/ ở 1440px, không reduced motion
