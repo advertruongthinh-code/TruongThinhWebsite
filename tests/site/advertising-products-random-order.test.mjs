@@ -483,7 +483,8 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
     querySelector: () => current,
     insertBefore: next => inserted.push(next),
   };
-  const root = { hidden: false, querySelectorAll: () => [button] };
+  // Một nút nên vị trí của cụm trùng nút; slideshow dừng theo cả cụm, không theo nút lẻ.
+  const root = { hidden: false, querySelectorAll: () => [button], getBoundingClientRect: () => button.getBoundingClientRect() };
   let current;
   const globals = {
     document, innerHeight: 800,

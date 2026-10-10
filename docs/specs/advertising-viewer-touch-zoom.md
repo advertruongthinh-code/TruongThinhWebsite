@@ -165,7 +165,14 @@ Then viewer mở ở Fit, không zoom
 Trên màn cảm ứng nút đóng, reset, `+`, `−` của viewer ẩn khỏi mắt (kiểu
 `sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
 zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm (R4); về Fit bằng
-chạm. Desktop giữ nguyên nút.
+chạm. Desktop giữ nguyên nút. Vì không còn nút hiện trên ảnh, Fit trên màn cảm ứng không chừa lề: ảnh chạm cạnh
+màn hình theo chiều giới hạn, cả dọc lẫn ngang (owner 2026-10-10); desktop giữ lề `80px` trên dưới và `16px`/`64px` hai bên.
+
+```gherkin
+Given điện thoại ngang 915×412 cảm ứng
+When chạm ảnh primary ngang 3:2 để mở viewer
+Then ảnh ở Fit cao 412px, chạm mép trên và dưới
+```
 
 ### R9. Vuốt dọc ảnh để đóng
 
@@ -268,7 +275,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 ## Gate còn mở
 
 
-- A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud.
+- A05s thật đặt ngang chưa chạy; ngang hiện chỉ kiểm bằng giả lập trên cloud, gồm Fit chạm cạnh R8 (2026-10-10).
 - R4 chạm đúp, vùng chết pan, ngưỡng xoay R11 (owner 10/10/2026: chạm đúp bị pan, zoom bị xoay) và R7 chạm một lần mở
   chưa kiểm trên A05s thật; ngưỡng có thể chỉnh theo cảm nhận của owner trên demo.
 - R4 chạm một lần và R11 xoay chưa kiểm trên A05s thật (dọc và ngang) và chưa đo fps theo

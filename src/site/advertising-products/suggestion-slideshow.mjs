@@ -21,6 +21,11 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   const clocks = new Map();
   let stopped = false;
   const clock = (image, delay = 0) => image.animate([], { duration: 5000, fill: "forwards", delay });
+  // Cả cụm chung một trạng thái hiện/khuất: dừng từng nút theo viewport làm nút dưới màn hình lệch sóng (điện thoại).
+  const offscreen = () => {
+    const rect = root.getBoundingClientRect();
+    return rect.bottom <= 0 || rect.top >= innerHeight;
+  };
   const push = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
   const clear = () => {
     pending.forEach(({ image, animation, pushOut, previousClock }) => {
@@ -34,9 +39,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     clocks.clear();
   };
   const tick = async (button) => {
-    const rect = button.getBoundingClientRect();
     if (stopped || isReduced() || document.hidden || root.hidden || button.getAttribute("aria-pressed") === "true"
-      || rect.bottom <= 0 || rect.top >= innerHeight || pending.has(button)
+      || offscreen() || pending.has(button)
       || document.body.classList.contains("motion-paused") || covered()) return;
     const tag = button.dataset.advertisingSuggestionTag;
     const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
@@ -46,7 +50,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     const card = deck[(index + 1) % deck.length];
     const next = createImage(card);
     // Eager bỏ "auto" khỏi sizes; ghim width của button trước khi request bắt đầu.
-    if (next.srcset) next.sizes = `${Math.ceil(rect.width)}px`;
+    if (next.srcset) next.sizes = `${Math.ceil(button.getBoundingClientRect().width)}px`;
     next.loading = "eager";
     next.dataset.advertisingSuggestionImageLayer = "next";
     next.dataset.advertisingSuggestionPhoto = card.id;
@@ -62,7 +66,11 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     }
     button.insertBefore(next, current?.nextSibling || null);
     const previousClock = state.previousClock = clocks.get(button);
-    clocks.set(button, clock(next));
+    const nextClock = clock(next);
+    // Bù phần trễ do poll 200ms và decode để nhịp 0.4s giữa các nút không trôi sau mỗi vòng.
+    const late = (previousClock?.currentTime ?? 0) - 5000 - (previousClock?.effect?.getTiming().delay || 0);
+    if (late > 0 && late < 5000) nextClock.currentTime = late;
+    clocks.set(button, nextClock);
     const animation = next.animate([{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], push);
     state.animation = animation;
     state.pushOut = current?.animate([
@@ -86,10 +94,10 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   }, 200);
   const onVisibility = () => {
     if (isReduced() || preference.matches) { clear(); return; }
+    const hidden = offscreen();
     const sync = (animation, button) => {
-      const rect = button.getBoundingClientRect();
       if (document.hidden || document.body.classList.contains("motion-paused") || covered()
-        || button.getAttribute("aria-pressed") === "true" || rect.bottom <= 0 || rect.top >= innerHeight) animation?.pause();
+        || button.getAttribute("aria-pressed") === "true" || hidden) animation?.pause();
       else if (animation?.playState === "paused") animation.play();
     };
     pending.forEach(({ animation, pushOut }, button) => { sync(animation, button); sync(pushOut, button); });

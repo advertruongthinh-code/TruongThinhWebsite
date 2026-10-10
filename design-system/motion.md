@@ -93,7 +93,7 @@ trượt `margin-bottom 0.4s ease-out`
 
 ### Lockup header
 
-Intro, FLIP scale `300ms expo.out`, tone cụm chữ và bốn dải màu mọc lên của
+Intro, FLIP scale `300ms expo.out` (điện thoại không chạy vì header đầu trang và thu gọn cùng cỡ), tone cụm chữ và bốn dải màu mọc lên của
 mark ở [Brand guideline](brand.md#motion).
 
 ### Full menu
@@ -237,8 +237,8 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Suggestion chưa bật chạy nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), không zoom (owner bỏ 10/10), chuyển ảnh
   bằng đẩy ngang: ảnh mới `translateX(100% → 0)`, ảnh cũ `0 → -35%` và opacity `1 → 0.4`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)`
-  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
-  motion giữ ảnh tĩnh; dừng khi tab ẩn, nút ngoài viewport hoặc `dialog` mở.
+  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
+  motion giữ ảnh tĩnh; dừng khi tab ẩn, cả cụm ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 - Primary đổi ảnh tại chỗ, cả lần mở đầu từ masonry lẫn khi bấm related. Ảnh
@@ -247,7 +247,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   cũ mờ đi trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`, kính
   hiện `0` đến `0.26s` rồi tan tới `0.6s`; mở lần đầu thì ảnh mới hiện từ khung
   trống cùng nhịp. Reduced motion: không kính.
-- Viewer: transform từ khung hero tới fit và ngược lại; nút, con lăn, chạm đúp
+- Viewer: transform từ khung hero tới fit và ngược lại (màn cảm ứng: fit chạm cạnh màn hình, cả khi xoay ngang); nút, con lăn, chạm đúp
   và bật về sau pinch nội suy `200ms ease-in-out`; pinch và pan theo tay tức
   thì, giới hạn theo ảnh đã phóng; vượt giới hạn khi pinch thì ảnh chỉ đi một
   phần ba so với tay. Màn cảm ứng vuốt dọc ảnh ở fit: ảnh theo tay, nền nhạt

@@ -74,9 +74,22 @@ Then header hiện đủ; cuộn xuống 40px thì khuất 40px
 
 ### R5. Giữ nguyên phần còn lại
 
-Kích thước thanh, logo, `is-collapsed` khi `scrollY > 100`, FLIP lockup, tone theo section, menu,
-floating CTA giữ như Shell R2, R4, R10. Reduced motion vẫn đi theo cuộn vì header chỉ đi theo thao tác
+`is-collapsed` khi `scrollY > 100`, tone theo section, menu, floating CTA giữ như Shell R2, R4, R10;
+kích thước thanh và logo theo R6. Reduced motion vẫn đi theo cuộn vì header chỉ đi theo thao tác
 của người dùng, không tự chạy (agent chọn).
+
+### R6. Một chiều cao header
+
+Trong phạm vi R1, header đầu trang dùng đúng kích thước header thu gọn: padding trên dưới `10px`, hàng
+`--header-collapsed-row-height`, lockup cao `49.64px`, viền dưới `1px` trong suốt (owner chốt 2026-10-10: thu
+thấp cho bằng nhau, tiết kiệm màn hình). Qua `100px` chỉ nền trắng, viền xám và màu chữ đổi; lockup cùng cỡ nên
+FLIP scale của Shell R2 không chạy. Tablet và desktop giữ hai kích thước của Shell R2.
+
+```gherkin
+Given trang ở scrollY 0 trên điện thoại 412×915 hoặc 915×412
+When cuộn quá 100px
+Then header và logo giữ nguyên chiều cao (412×915: header 71px, logo 50px), chỉ nền và màu đổi
+```
 
 ## Hiệu năng
 
@@ -88,13 +101,14 @@ tối đa 5% frame dưới 60fps (p5 SurfaceFlinger từ 60), không long task t
 
 | R | Test hoặc command |
 | --- | --- |
-| R1–R4 | `tests/site/phone-header-scroll.e2e.mjs`: touch 412×915 và 915×412 đo vị trí header sau từng lần cuộn, dừng, menu; 1440px chuột theo Shell R3 |
+| R1–R4, R6 | `tests/site/phone-header-scroll.e2e.mjs`: touch 412×915 và 915×412 đo vị trí header sau từng lần cuộn, dừng, menu, cỡ header và logo trước sau 100px; 1440px chuột theo Shell R3, header vẫn thu nhỏ |
 | Hiệu năng | Đo A05s thật qua adb, xin điều phối trước khi dùng máy |
 
 ## Gate còn mở
 
 - Chưa đo fps khi cuộn trên A05s thật; agent đo khi điều phối giao máy.
 - Owner vuốt thử trên A05s sau khi code, so cảm giác với X. Owner.
+- R6 chỉ kiểm bằng giả lập touch trên cloud; chưa xem và đo fps trên A05s thật dọc và ngang (phiên PC sau).
 
 ## Chú thích thuật ngữ
 

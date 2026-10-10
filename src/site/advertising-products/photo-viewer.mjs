@@ -63,6 +63,8 @@ export function createAdvertisingPhotoViewer({
   let resizeFrame = 0;
   let fitGeometryKey = "";
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  // Màn cảm ứng ẩn nút viewer (R8) nên Fit không chừa lề cho nút: ảnh chạm cạnh màn hình, cả khi xoay ngang.
+  const touchScreen = matchMedia("(hover: none) and (pointer: coarse)");
 
   document.body.append(dialog);
 
@@ -100,9 +102,10 @@ export function createAdvertisingPhotoViewer({
     const stop = previousWidth ? -1 : stops().findIndex((value) => near(scale, value));
     fitGeometryKey = geometryKey();
     const styles = getComputedStyle(dialog);
-    const insetX = viewport.clientWidth <= 750 ? 0 : viewport.clientWidth <= 960 ? 16 : 64;
-    const insetTop = Math.max(80, (parseFloat(styles.paddingTop) || 0) + 64);
-    const insetBottom = Math.max(80, (parseFloat(styles.paddingBottom) || 0) + 64);
+    const touch = touchScreen.matches;
+    const insetX = touch || viewport.clientWidth <= 750 ? 0 : viewport.clientWidth <= 960 ? 16 : 64;
+    const insetTop = touch ? 0 : Math.max(80, (parseFloat(styles.paddingTop) || 0) + 64);
+    const insetBottom = touch ? 0 : Math.max(80, (parseFloat(styles.paddingBottom) || 0) + 64);
     const availableWidth = Math.max(1, viewport.clientWidth - 2 * insetX
       - (parseFloat(styles.paddingLeft) || 0) - (parseFloat(styles.paddingRight) || 0));
     const availableHeight = Math.max(1, viewport.clientHeight - insetTop - insetBottom);

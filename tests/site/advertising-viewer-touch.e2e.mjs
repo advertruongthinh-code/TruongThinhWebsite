@@ -217,8 +217,9 @@ async function runPhone({ locale, width, height }) {
   check(Math.abs(tripled.x - holding.x) <= 1 && Math.abs(tripled.y - holding.y) <= 1 && near(tripled.scale, holding.scale),
     `${label} R1: third finger moved the image`);
   await touch.send("touchEnd", [{ ...third, x: third.x + 30 }]);
-  await touch.send("touchMove", touch.pair(centre, 260));
-  check(near((await state()).scale, 2.6), `${label} R1: pinch stopped following after a third finger`);
+  // 230px giữ s = 2.3 dưới Max (2 × Cover) cả khi Fit chạm cạnh màn hình ngang.
+  await touch.send("touchMove", touch.pair(centre, 230));
+  check(near((await state()).scale, 2.3), `${label} R1: pinch stopped following after a third finger`);
   await touch.send("touchEnd", []);
   await settled(page);
   const pinched = await state();
