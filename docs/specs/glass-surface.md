@@ -57,8 +57,10 @@ là `28 + 72 × n / N px`. Số bậc chọn theo sức máy: lúc Kính cung hi
 runtime bắt đầu với 5 bậc trong và 3 bậc band, đo tốc độ khung hình trung vị và
 bớt một bậc mỗi lần còn dưới `60fps` (gate [A05s trên 60fps](../decisions/a05s-frame-budget.md),
 owner chọn 10/10): bậc trong trước, rồi bậc band từ `4.5px` vào trong, thấp nhất
-chỉ còn lõi `28px` (owner chọn 10/10; A05s chỉ lõi đạt p5 `90fps`). Số này lưu
-trong `localStorage`, nên chỉ lần đầu trên máy phải trả các frame chậm lúc đo. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
+chỉ còn lõi `28px`. Số này lưu trong `localStorage`, nên chỉ lần đầu trên máy
+phải trả các frame chậm lúc đo. Phone (`pointer: coarse` hoặc có touch) không đo,
+chỉ vẽ lõi `28px` (owner chọn 10/10): trên A05s đo lúc đang vuốt làm trượt gate,
+kết quả không ổn định, và lõi cộng hai bậc band vẫn p5 `45.5fps`; chỉ lõi đạt p5 `90fps`. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
 về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm ngày 05/10 để
 vuốt trên A05s đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
 hay đường ranh giới. Không có vùng nào thấy ảnh nét và ảnh

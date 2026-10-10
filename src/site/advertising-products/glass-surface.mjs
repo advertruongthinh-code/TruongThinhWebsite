@@ -17,9 +17,12 @@ const INNER_MAX = 5;
 const TARGET_FPS = 60;
 const FIT_MAX = INNER_MAX + ARC_STEPS;
 const FIT_KEY = "glass-arc-steps";
-// Số step đã fit được nhớ qua các lần tải trang, nên chỉ lần đầu trên máy phải trả các frame chậm lúc đo.
+// Phone chỉ vẽ core 28px, không đo: trên A05s đo lúc đang vuốt làm trượt gate, kết quả fit không ổn định
+// và ba lớp blur vẫn dưới 60fps (owner chọn 10/10). Máy khác nhớ số step đã fit qua các lần tải trang,
+// nên chỉ lần đầu phải trả các frame chậm lúc đo.
 let fittedSteps = (() => {
   try {
+    if (matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0) return 0;
     const stored = localStorage.getItem(FIT_KEY);
     return stored === null ? undefined : Number(stored);
   } catch {
