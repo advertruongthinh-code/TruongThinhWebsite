@@ -148,6 +148,30 @@ try {
     await context.close();
   }
 
+  // R2: variant đủ nét cho phần ảnh hiện ra sau crop cover, hoặc ảnh gốc; không request trùng.
+  for (const [route, selector, viewport] of [
+    ["/vi/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 1 }],
+    ["/vi/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 2 }],
+    ["/vi/", ".project-card__media img", { ...viewports[0], deviceScaleFactor: 3 }],
+  ]) {
+    const { context, page, counts } = await open({ viewport });
+    await page.goto(base + route, { waitUntil: "load" });
+    await scrollThrough(page);
+    await settle(page);
+    const label = `${route} ${viewport.width}px DPR ${viewport.deviceScaleFactor}`;
+    const images = await page.evaluate(selector => [...document.querySelectorAll(selector)].filter(img => img.currentSrc).map(img => {
+      const { width, height } = img.getBoundingClientRect();
+      const shown = Math.max(width, height * img.getAttribute("width") / img.getAttribute("height")) * devicePixelRatio;
+      const variant = Number(img.currentSrc.match(/-(\d+)\.\w+$/)?.[1]);
+      return { src: img.getAttribute("src"), shown: Math.round(shown), loaded: variant || "original", sharp: !variant || variant >= 0.9 * shown };
+    }), selector);
+    assert.ok(images.length, `${label}: ${selector} images loaded`);
+    assert.deepEqual(images.filter(image => !image.sharp), [], `${label}: each image loads a variant of at least 0.9x its cropped visible width`);
+    assert.deepEqual([...counts].filter(([, count]) => count > 1), [], `${label}: no duplicate image requests`);
+    results.push({ case: "r2-crop-sizes", route, width: viewport.width, dpr: viewport.deviceScaleFactor, images: images.length });
+    await context.close();
+  }
+
   // P8: no-script vẫn hiện mọi ảnh.
   for (const route of routes.filter(route => route.startsWith("/vi/"))) {
     const { context, page } = await open({ delay: false, javaScriptEnabled: false });

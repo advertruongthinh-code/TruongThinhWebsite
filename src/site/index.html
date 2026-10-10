@@ -33,6 +33,20 @@
         const isImage = (target) => target.tagName === "IMG";
         document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
         document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+        // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
+        // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
+        const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {
+          const { width, height } = image.getBoundingClientRect();
+          const ratio = image.getAttribute("width") / image.getAttribute("height");
+          const needed = Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width);
+          const loaded = image.currentSrc.replace(/\.\w+$/, "");
+          if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= needed * devicePixelRatio))) return;
+          [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${needed}px`));
+        }));
+        const fitted = 'picture > img[loading="lazy"], picture > img[data-srcset]';
+        new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => node.nodeType === 1
+          && [node, ...node.querySelectorAll(fitted)].forEach((image) => image.matches(fitted) && fit.observe(image)))))
+          .observe(document, { childList: true, subtree: true });
       })();
     </script>
     <script>

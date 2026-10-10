@@ -8,7 +8,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-07
+updated: 2026-10-10
 ---
 
 # Tải ảnh nội dung
@@ -56,10 +56,13 @@ nhận bản nhỏ hơn phần thật sự hiển thị: đo 2026-10-07 ở 1440
 nhưng tải bản 480 (đủ 44%), portal 410×600 cần 900px nhận 480; ở 390px DPR 3 card dự án cần 1728px nhận 960. Vì vậy
 runtime ghi lại `sizes` theo phần hiển thị sau crop: bề rộng hiển thị là `max(rộng khung, cao khung × width/height)`
 đo bằng `getBoundingClientRect()` (gồm cả `scale` tĩnh như hero About), làm tròn lên px, ghi lên `<img>` và
-`<source>` cùng `<picture>`. Chạy khi mount trang (cả Barba) cho ảnh chưa bắt đầu tải (`currentSrc` rỗng) và cho slide
-hero trước khi `hydrateDeferredHeroImages` gán `src`; ảnh đã tải hoặc đang tải giữ lựa chọn cũ để không tải hai lần. Cửa
-sổ to ra (resize, xoay máy) thì ghi lại cho mọi ảnh; trình duyệt tự tải bản lớn hơn nếu cần, không bao giờ đổi sang bản
-nhỏ. Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536)
+`<source>` cùng `<picture>`. Việc ghi do một `ResizeObserver` trong script đầu trang làm, gắn qua `MutationObserver`
+cho ảnh lazy và slide hero hoãn (`data-srcset`), kể cả ảnh Barba chèn sau. `ResizeObserver` báo sau layout nhưng trước
+khi lazy load bắt đầu tải, nên `sizes` đã đúng trước request đầu tiên; ghi từ `motion.js` thì muộn, vì lúc đó ảnh trong
+vùng lazy đã đang tải (`currentSrc` vẫn rỗng) và trình duyệt hủy request để tải lại. Ảnh eager có `src` (hero đầu) để
+nguyên, vì preload scanner đã tải. Khung đổi cỡ (resize, xoay máy) thì observer chạy lại: chỉ ghi khi file đang hiện
+nhỏ hơn nhu cầu mới, nên trình duyệt chỉ nâng lên bản lớn hơn, không đổi sang bản nhỏ; ảnh đang hiện bản gốc thì thôi.
+Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536)
 dùng bản gốc; sinh thêm cỡ lớn hơn nằm ngoài phần này.
 
 ```gherkin
@@ -216,6 +219,7 @@ And so với baseline cùng cohort, không mục nào vượt ngân sách
 | Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`responsive-image.mjs`) | `catalog-runtime.mjs`, `photo-viewer.mjs` import (R3) |
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
+| Attribute | `sizes` dạng px trên ảnh lazy và slide hero | Script đầu trang ghi theo phần hiển thị sau crop (R2) |
 | Class | `.is-media-settled` | Script inline `<head>` ghi; vệt (R6) và nút suggestion đọc |
 | Data | `nonPublicSourceAssets` (`non-public-source-assets.mjs`) | Path bỏ qua khi sinh biến thể (R1) |
 | Command | `node tests/site/image-delivery-measure.mjs --base --runs --warm --only --detail --out` | Đo (R7); output `.tmp/image-delivery/` |
