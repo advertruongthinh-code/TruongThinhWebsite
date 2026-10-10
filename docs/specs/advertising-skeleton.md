@@ -205,19 +205,17 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - R8 trên A05s: trace trong PR #153 không có task trên `50ms` ở trang ảnh, trang Advertising ngang main. Trang ảnh
   còn khoảng 9% frame trên `33ms` (main khoảng 1%) khi Kính hiện ảnh related; owner xem trên demo. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
-- `advertising-continuation.e2e.mjs` FAIL ở `ready()`: sau reload có reduced motion rồi tắt, khung DOM đầu không có
-  `is-looping` trong 30s; chưa rõ nguyên nhân. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có
-  GPU. Main và máy PC.
-- `advertising-skeleton-lifecycle.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ở 390×788 slot `1:4` top 14573,3
-  bị gỡ dù đáy batch mới 14574,5; code gỡ đúng R1 (khung cao 1,2px dưới `0.25` bề rộng card), assertion "removed tail
-  slots must lie beyond the new boundary" chưa tính luật này. Main sửa assertion.
+- `advertising-continuation.e2e.mjs` FAIL: test còn giả định ngân sách 2 WebGL context trên điện thoại và đo paint theo
+  từng canvas, trong khi từ #252 mọi khung vẽ trên một canvas chung (R5). #252 đã sửa phần đếm context; phần đo paint
+  cần chuyển sang canvas chung. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có GPU. Main và
+  máy PC.
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
 ## Chú thích thuật ngữ
 
 - **Batch**: tập khung skeleton nối tiếp masonry tới footer trong một lần dựng.
-- **Slot**: vị trí khung theo cột và độ sâu, khóa để giữ band và assignment.
+- **Slot**: thứ tự khung nối tiếp masonry, khóa để giữ band và assignment.
 - **Assignment**: preset, hoán vị anchor, pha, chiều chảy và tốc độ lệch của một khung.
 - **Trạng thái trang**: một lần masonry ổn định sau tải trang, đổi filter, mở hoặc đóng detail, Back/Forward.
 - **Lease**: quyền dùng tạm một WebGL context; context thuộc document, không thuộc khung.

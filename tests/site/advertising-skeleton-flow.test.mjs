@@ -243,8 +243,6 @@ for (let depth = 0; depth < 3; depth += 1) {
     `aligned skeleton row ${depth} must vary adjacent ratio bands across columns`);
 }
 // Slot là thứ tự khung nối tiếp masonry, nên resize đổi số cột vẫn giữ item k là khung k (owner 10/10).
-assert.deepEqual(frameLayout.map(({ slot }) => slot), frameLayout.map((_, index) => String(index)).filter((slot) =>
-  frameLayout.some((frame) => frame.slot === slot)), "skeleton slots follow masonry order");
 assert.ok(frameLayout.every(({ slot }, index) => index === 0 || Number(slot) > Number(frameLayout[index - 1].slot)),
   "skeleton slots increase in masonry order");
 const twoColumnLayout = createSkeletonFlowFrameLayout({

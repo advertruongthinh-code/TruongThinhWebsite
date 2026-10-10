@@ -1494,7 +1494,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const morphSize = (node, from) => {
     const sx = from.w / node.offsetWidth;
     const sy = from.h / node.offsetHeight;
-    if (!(Math.abs(sx - 1) > 0.01 || Math.abs(sy - 1) > 0.01)) return;
+    if (Math.abs(sx - 1) <= 0.01 && Math.abs(sy - 1) <= 0.01) return;
     for (const child of node.children) {
       const transformOrigin = `${-child.offsetLeft}px ${-child.offsetTop}px`;
       child.animate([{ scale: `${sx} ${sy}`, transformOrigin }, { scale: "1 1", transformOrigin }], { duration: 400, easing: "ease" });

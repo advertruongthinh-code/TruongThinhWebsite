@@ -127,9 +127,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       assert.equal(current.width, previousHeight.width, "height-only probe retains layout width");
       assert.equal(current.coordinateHash, previousHeight.coordinateHash, "height-only probe retains real grid geometry");
       // Phần đuôi ngắn hơn một phần tư card gộp vào frame phía trên (spec skeleton).
-      const mergedAbove = sample => {
-        return current.samples.some(other => other.column === sample.column && other.depth === sample.depth - 1);
-      };
+      const mergedAbove = sample => current.samples.some(other => other.column === sample.column && other.depth === sample.depth - 1);
       assert.ok(removed.every(sample => sample.top >= current.boundary || mergedAbove(sample)),
         "removed tail slots must lie beyond the new boundary or merge into the frame above");
       assert.ok(common.length && common.every(sample => sample.same), "every common-needed slot keeps its node");
