@@ -31,7 +31,7 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   vòng trắng tuyệt đối. Số lớp cố định theo máy, không đo fps: PC 5 lớp (lõi, 1
   bậc trong cung, 3 bậc dải); điện thoại 2 lớp (lõi `28px` và bậc dải trong
   cùng). Đỉnh cung cao hơn mép trên tiêu đề
-  `15%` chiều cao cụm CTA (chữ nằm trong lõi; điện thoại ngang mép tiêu đề), bán kính `3.5` × bề rộng màn, dải giảm nhòe
+  `15%` chiều cao cụm CTA (chữ nằm trong lõi; điện thoại giữ `35%` dưới mép tiêu đề, tint `0.85`), bán kính `3.5` × bề rộng màn, dải giảm nhòe
   `1.75` × chiều cao cụm, vùng trắng tuyệt đối `0.35` × bề rộng card. Dải không
   lên quá ảnh thật; bán kính tăng nếu cần để hai góc đáy batch trắng tuyệt đối.
 - **Trắng theo cùng cung:** ngoài dải không có trắng, tới cung đạt tint, vào
