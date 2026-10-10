@@ -180,13 +180,14 @@ Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push v�
 --frozen-lockfile`, `pnpm qa:static`, `tests/tooling/global-rules-sync.test.mjs`, `build-image-variants.mjs --check`,
 `pnpm qa:worker:security`, `pnpm dev` rồi mọi `tests/site/*.test.mjs` (gồm `orphan-selectors.test.mjs`: class, `data-*` trong selector CSS hoặc query JS của `src/site/`
 phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi Chromium smoke
-`cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history).
+`cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history),
+rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm).
 `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
 
 ```gherkin
 Given pull request đổi src/site/
 When CI chạy job static-release
-Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker, unit test site hoặc Chromium smoke fail
+Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker, unit test site, Chromium smoke hoặc khung ảnh fail
 And không bước nào gọi Wrangler hoặc deploy
 ```
 
@@ -267,7 +268,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R7 | `tests/site/advertising-products-detail-routes.test.mjs` |
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
-| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs` |
+| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs`, `tests/site/image-loading-frame.e2e.mjs` |
 | R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
