@@ -678,6 +678,13 @@
         if (heroWrapperZoom && heroSettled) {
           settleHeroItem(heroWrapperZoom);
         } else if (heroWrapperZoom) {
+          // Intro zoom xong thì bỏ transition: qua mốc 1024px transform đổi, title phải về chỗ ngay như trang khác.
+          const endZoom = (event) => {
+            if (event.target !== heroWrapperZoom) return;
+            heroWrapperZoom.style.transition = "none";
+            heroWrapperZoom.removeEventListener("transitionend", endZoom);
+          };
+          heroWrapperZoom.addEventListener("transitionend", endZoom);
           scheduleHeroFrame(() =>
             heroWrapperZoom.classList.add("is-motion-inview"),
           );

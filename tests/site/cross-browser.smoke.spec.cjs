@@ -139,3 +139,18 @@ test("crossing the smooth-scroll breakpoint and back keeps the scroll position",
   const after = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
   expect(after, `scroll before ${before}`).toBeGreaterThan(before / 2);
 });
+
+test("advertising hero title snaps to its new place on resize, like other pages", async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await expect(page.locator("html")).not.toHaveClass(/route-enter/);
+  // Chờ intro zoom 2.5s của hero chạy xong.
+  await page.waitForTimeout(3_500);
+  const titleLeft = () => page.evaluate(() => document.querySelector("#page-title").getBoundingClientRect().left);
+  // Qua mốc 1024px, hero đổi từ căn giữa bằng translate sang layout thường.
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await page.waitForTimeout(150);
+  const early = await titleLeft();
+  await page.waitForTimeout(3_000);
+  expect(Math.abs(early - await titleLeft())).toBeLessThan(2);
+});
