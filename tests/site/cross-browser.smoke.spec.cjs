@@ -154,3 +154,17 @@ test("advertising hero title snaps to its new place on resize, like other pages"
   await page.waitForTimeout(3_000);
   expect(Math.abs(early - await titleLeft())).toBeLessThan(2);
 });
+
+test("advertising hero title snaps on resize during the intro zoom", async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await expect(page.locator("html")).toHaveClass(/motion-ready/);
+  await expect(page.locator("[data-motion-hero-wrapper-zoom]")).toHaveClass(/is-motion-inview/);
+  const titleLeft = () => page.evaluate(() => document.querySelector("#page-title").getBoundingClientRect().left);
+  // Resize khi intro zoom 2.5s còn chạy.
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await page.waitForTimeout(150);
+  const early = await titleLeft();
+  await page.waitForTimeout(3_000);
+  expect(Math.abs(early - await titleLeft())).toBeLessThan(2);
+});
