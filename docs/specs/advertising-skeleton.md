@@ -95,23 +95,29 @@ Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 
 ### R5. WebGL context
 
-Ngân sách context tính cả context đang dùng và đang rảnh, chung cho batch và skeleton chờ ảnh: điện thoại (pointer
-coarse, có touch hoặc `clientWidth <= 750`) 2, máy khác 12. Khung đang thấy giữ context đã có; còn chỗ thì cấp cho khung
-gần đầu viewport trước (top rồi left). Khung không có context hiện frame tĩnh của preset. Nhả context trước khi cấp mới
-nên xoay máy không vượt ngân sách. Context giữ theo document và dùng lại: trả lease thì xóa buffer, texture,
-listener, RAF đúng một lần, giữ canvas, context và program đã compile (compile mất khoảng 60ms trên A05s); lease mới bắt đầu ở pha đã lưu. Mất context: hiện frame tĩnh, khôi
-phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không gọi
-`loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước đó
-(R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
-làm trễ nhịp trượt. Trong lúc chờ context, khung hiện frame tĩnh là một khung hình Flow của chính assignment ở pha
-hiện tại, nên lúc chuyển sang chạy không nhảy. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn
-gây task trên 50ms thì hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh đó. Điện thoại hoãn như vậy (A05s, 10/10):
-"cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt không có `scrollend` thì `120ms` sau scroll event cuối.
+Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.advertising-grid__cta-skeleton`:
+7-8 context riêng làm GPU A05s quá tải (p5 45.5fps, GPU process bận 46%), một context ở nửa độ phân giải đạt gate
+(p5 90fps, 0.3-0.8% frame chậm đứng yên, 13.9%; vòng 20, owner chọn 10/10). Canvas cao gấp đôi viewport, cuộn cùng
+nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
+suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung
+chưa vào entry không vẽ, khung đang entry vẽ với alpha theo opacity của reveal Kính (R4). Canvas nằm trên khung và
+dưới Kính, CTA. Dưới canvas mỗi khung vẫn hiện frame tĩnh là một khung hình Flow của chính assignment ở pha hiện tại,
+nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống và lúc chuyển sang chạy không nhảy. Mất context:
+xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
+
+Skeleton chờ ảnh trong media card và primary vẫn dùng renderer riêng mỗi khung, ngân sách 12 context tính cả context
+đang dùng và đang rảnh. Khung đang thấy giữ context đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi
+left). Context giữ theo document và dùng lại: trả lease thì xóa buffer, texture, listener, RAF đúng một lần, giữ canvas,
+context và program đã compile (compile mất khoảng 60ms trên A05s); lease mới bắt đầu ở pha đã lưu. `destroy()` gọi
+nhiều lần vẫn an toàn và không gọi `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame,
+chờ card masonry trượt `0.4s` xong (đổi filter, resize). Cuộn mượt thắng: điện thoại hoãn dựng renderer tới khi cuộn
+dừng (A05s, 10/10): "cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt không có `scrollend` thì `120ms` sau
+scroll event cuối.
 
 ```gherkin
 Given điện thoại 838px ngang
 When cuộn qua batch, đổi filter và xoay máy nhiều lần
-Then không lúc nào quá 12 context, không lỗi "too many active WebGL contexts" hay lose context hai lần
+Then batch chỉ dùng một context, tổng không lúc nào quá 12, không lỗi "too many active WebGL contexts" hay lose context hai lần
 ```
 
 ### R6. CTA, Kính và footer trên batch
@@ -145,7 +151,8 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [A05s trên 60fps](../decisions/a05s-frame-budget.md)
-(trên 60fps). Điện thoại và desktop cùng tối đa 12 context, đủ cho mọi khung trong viewport (owner 10/10). Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
+(trên 60fps), mọi khung trong viewport đều chạy (owner 10/10). Batch đạt gate nhờ một canvas chung nửa độ phân
+giải (R5); không hạ preset, noise hay số khung chạy để đạt gate.
 Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
