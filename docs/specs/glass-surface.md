@@ -55,7 +55,7 @@ tại cung nhòe `28px`, vào trong tăng tiếp tới trần `100px` ở vòng 
 đối (R3), qua 1 đến 5 bậc trong cung chồng mép nhau. Mức của bậc thứ n trong N
 là `28 + 72 × n / N px`. Số bậc N chọn theo sức máy: lúc Kính cung hiện lần đầu,
 runtime bắt đầu với 5 bậc, đo tốc độ khung hình trung vị và bớt một bậc mỗi lần
-còn dưới `50fps`, thấp nhất 1 bậc; số này giữ suốt phiên. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
+còn dưới `60fps` (gate [A05s trên 60fps](../decisions/a05s-frame-budget.md), owner chọn 10/10), thấp nhất 1 bậc; số này giữ suốt phiên. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
 về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm ngày 05/10 để
 vuốt trên A05s đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
 hay đường ranh giới. Không có vùng nào thấy ảnh nét và ảnh
@@ -204,7 +204,6 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 ## Gate còn mở
 
 - Safari trên iPhone thật chưa kiểm.
-- R2 bớt bậc khi còn dưới `50fps`, thấp hơn gate trên `60fps` của [A05s trên 60fps](../decisions/a05s-frame-budget.md); chờ số đo A05s rồi owner chọn ngưỡng.
 
 ## Chú thích thuật ngữ
 

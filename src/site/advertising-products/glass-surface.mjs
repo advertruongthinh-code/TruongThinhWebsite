@@ -12,7 +12,8 @@ const ARC = Object.freeze({ centre: 0.35, radius: 3.5, band: 1.75, whiteRamp: 0.
 const ARC_LEVEL = 28;
 const CEILING = 100;
 const INNER_MAX = 5;
-const TARGET_FPS = 50;
+// Gate A05s trên 60fps (owner chọn 10/10, docs/decisions/a05s-frame-budget.md).
+const TARGET_FPS = 60;
 let fittedInnerSteps;
 const geometries = new WeakMap();
 // Vị trí trong band (0 trên arc, 1 ở mép band) nơi mỗi step chạy từ bật hoàn toàn đến tắt; các step lân cận chồng lên nhau.
