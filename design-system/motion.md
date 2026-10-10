@@ -31,7 +31,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | --- | --- | --- |
 | Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md). Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
 | Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | [Media card](components/MediaCard/README.md) masonry và related, [Project reel](components/ProjectReel/README.md), portal trang chủ, [Gallery](components/Gallery/README.md), duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
-| Slideshow hero | Ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng zoom và nhịp giữ, chuyển bằng đẩy ngang (`suggestion-slideshow.mjs`) |
+| Slideshow hero | Ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`suggestion-slideshow.mjs`) |
 | Vệt sáng chờ ảnh | Dải sáng nghiêng lướt `1.6s` linear tới khi ảnh giải mã | [Vệt sáng](components/LoadSweep/README.md): ảnh nội dung ngoài masonry, [Suggestion](components/Suggestion/README.md) |
 | Kính reveal | Năm bậc trong `0.6s`, chỉ opacity | [Media card](components/MediaCard/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md) ([Kính](components/Glass/README.md)) |
 | Flow | Gradient bốn màu chảy bằng WebGL, 12 preset | [Skeleton](components/Skeleton/README.md) |
@@ -229,10 +229,9 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 ### Suggestion và detail
 
-- Suggestion chưa bật chạy zoom và nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), chuyển ảnh bằng đẩy ngang: ảnh mới
-  `translateX(100% → 0)`, ảnh cũ `0 → -35%`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)` (power3.inOut), cộng (`composite: add`)
-  lên zoom `1.06 → 1` `6.6s cubic-bezier(0.37, 0, 0.63, 1)` (sine.inOut) (`suggestion-slideshow.mjs`). Ảnh đầu zoom ngay khi
-  hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
+- Suggestion chưa bật chạy nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), không zoom (owner bỏ 10/10), chuyển ảnh
+  bằng đẩy ngang: ảnh mới `translateX(100% → 0)`, ảnh cũ `0 → -35%` và opacity `1 → 0.4`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)`
+  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, nút ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.

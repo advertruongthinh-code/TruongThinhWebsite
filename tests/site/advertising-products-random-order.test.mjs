@@ -464,7 +464,7 @@ for (const scenario of [
   });
 }
 
-test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next photo in for 900ms with the hero zoom, and pauses hidden/reduced/active/covered", async t => {
+test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next photo in for 900ms without zoom, and pauses hidden/reduced/active/covered", async t => {
   const { mountSuggestionSlides } = await import("../../src/site/advertising-products/suggestion-slideshow.mjs");
   const names = ["document", "innerHeight", "MutationObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
   const saved = names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
@@ -543,11 +543,11 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   await advance(1);
   assert.equal(created.length, 1, "one decoded image at the five-second tick");
   const fadeIn = animations.find(animation => animation.frames?.[0]?.transform === "translateX(100%)");
-  const zoom = animations.find(animation => animation.options.duration === 6600 && animation !== animations[0]);
   assert.equal(fadeIn.options.duration, 900, "approved push duration");
-  assert.equal(fadeIn.options.composite, "add", "push adds onto the running zoom");
-  assert.deepEqual(zoom.frames, [{ transform: "scale(1.06)" }, { transform: "scale(1)" }], "hero zoom endpoints");
-  assert.equal(zoom.options.duration, 6600, "hero zoom spans hold plus crossfade");
+  assert.ok(animations.some(animation => animation.frames.length === 0 && animation.options.duration === 5000),
+    "new photo gets a keyframe-less five-second hold clock");
+  assert.ok(!animations.some(animation => animation.frames.some(frame => frame.transform?.includes("scale"))),
+    "owner removed the zoom out");
   current = inserted[0];
   fadeIn.dispatchEvent(new Event("finish"));
   await advance(2000);
@@ -572,6 +572,7 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   assert.equal(created.length, 3, "same deck resumes at the next permitted tick");
   assert.ok(animations.some(animation => animation.frames?.[1]?.transform === "translateX(-35%)"
     && animation.options.duration === 900), "incoming photo pushes the outgoing one to the left");
+  assert.ok(animations.some(animation => animation.frames?.[1]?.opacity === 0.4), "outgoing photo dims while pushed out");
 });
 
 

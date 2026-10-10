@@ -12,28 +12,26 @@ export function suggestionDeck(key, cards) {
 // Slide dưới viewer hoặc menu đang mở chỉ bắt backdrop blur tính lại mỗi frame (decision a05s-frame-budget).
 const covered = () => document.querySelector("dialog[open]") !== null;
 
-// Nhịp lấy theo hero trang chủ (motion.js): mỗi ảnh giữ 5s, ảnh mới zoom 1.06 -> 1 trong 6.6s sine.inOut từ frame
-// đầu lúc chuyển; ảnh đầu zoom ngay lúc mount. Chuyển kiểu đẩy ngang (owner chọn D+B 2026-10-10): ảnh mới trượt vào
+// Nhịp lấy theo hero trang chủ (motion.js): mỗi ảnh giữ 5s, đếm bằng một animation không keyframe trên ảnh (owner bỏ
+// zoom out 2026-10-10) nên pause khi khuất là nhịp dừng theo. Chuyển kiểu đẩy ngang (owner chọn D+B 2026-10-10): ảnh mới trượt vào
 // từ phải, đẩy ảnh cũ sang trái 0.9s power3.inOut; nút sau lệch nút trước 0.4s thành sóng. Bộ một ảnh đẩy sang
 // chính nó để vòng vẫn lặp.
 export function mountSuggestionSlides(root, { cards, createImage, isReduced, signal }) {
   const pending = new Map();
-  const zooms = new Map();
+  const clocks = new Map();
   let stopped = false;
-  const zoom = (image, delay = 0) => image.animate([{ transform: "scale(1.06)" }, { transform: "scale(1)" }], {
-    duration: 6600, easing: "cubic-bezier(0.37, 0, 0.63, 1)", fill: "both", delay,
-  });
-  const push = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", composite: "add", fill: "forwards" };
+  const clock = (image, delay = 0) => image.animate([], { duration: 5000, fill: "forwards", delay });
+  const push = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
   const clear = () => {
-    pending.forEach(({ image, animation, pushOut, previousZoom }) => {
+    pending.forEach(({ image, animation, pushOut, previousClock }) => {
       animation?.cancel();
       pushOut?.cancel();
-      previousZoom?.cancel();
+      previousClock?.cancel();
       image.remove();
     });
     pending.clear();
-    zooms.forEach(zoom => zoom.cancel());
-    zooms.clear();
+    clocks.forEach(clock => clock.cancel());
+    clocks.clear();
   };
   const tick = async (button) => {
     const rect = button.getBoundingClientRect();
@@ -63,15 +61,15 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       pending.delete(button); return;
     }
     button.insertBefore(next, current?.nextSibling || null);
-    const previousZoom = state.previousZoom = zooms.get(button);
-    zooms.set(button, zoom(next));
-    // composite add: translate cộng lên scale của zoom; tạo sau zoom để nằm trên zoom trong stack animation.
+    const previousClock = state.previousClock = clocks.get(button);
+    clocks.set(button, clock(next));
     const animation = next.animate([{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], push);
     state.animation = animation;
-    // Chỉ transform: composite add cộng cả opacity nên không làm mờ ảnh cũ được trong cùng animation.
-    state.pushOut = current?.animate([{ transform: "translateX(0)" }, { transform: "translateX(-35%)" }], push);
+    state.pushOut = current?.animate([
+      { transform: "translateX(0)", opacity: 1 }, { transform: "translateX(-35%)", opacity: 0.4 },
+    ], push);
     animation.addEventListener("finish", () => {
-      previousZoom?.cancel();
+      previousClock?.cancel();
       current?.remove();
       next.dataset.advertisingSuggestionImageLayer = "current";
       animation.cancel();
@@ -79,11 +77,11 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     }, { once: true });
     onVisibility();
   };
-  // Giữ mỗi ảnh đúng 5s theo đồng hồ zoom của chính nút: zoom bị pause khi nút khuất thì nhịp cũng dừng, như timeline hero.
+  // Giữ mỗi ảnh đúng 5s theo đồng hồ của chính nút: đồng hồ bị pause khi nút khuất thì nhịp cũng dừng, như timeline hero.
   const timer = setInterval(() => {
     root.querySelectorAll("[data-advertising-suggestion-tag]").forEach(button => {
-      const clock = zooms.get(button);
-      if (!(clock?.currentTime < 5000 + (clock?.effect?.getTiming().delay || 0))) void tick(button);
+      const time = clocks.get(button);
+      if (!(time?.currentTime < 5000 + (time?.effect?.getTiming().delay || 0))) void tick(button);
     });
   }, 200);
   const onVisibility = () => {
@@ -95,7 +93,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       else if (animation?.playState === "paused") animation.play();
     };
     pending.forEach(({ animation, pushOut }, button) => { sync(animation, button); sync(pushOut, button); });
-    zooms.forEach(sync);
+    clocks.forEach(sync);
   };
   document.addEventListener("visibilitychange", onVisibility, { signal });
   addEventListener("scroll", onVisibility, { passive: true, signal });
@@ -106,12 +104,12 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["open"], subtree: true });
   const preference = matchMedia("(prefers-reduced-motion: reduce)");
   preference.addEventListener("change", onVisibility, { signal });
-  // Zoom đầu của nút thứ i trễ 0.4s * i để cả cụm chuyển ảnh lệch nhịp từ trên xuống. Dùng delay, không lùi
+  // Đồng hồ đầu của nút thứ i trễ 0.4s * i để cả cụm chuyển ảnh lệch nhịp từ trên xuống. Dùng delay, không lùi
   // currentTime về âm: play() sau pause sẽ tua animation có currentTime âm về 0.
   if (!isReduced()) root.querySelectorAll("[data-advertising-suggestion-tag]").forEach((button, index) => {
     const current = button.querySelector('[data-advertising-suggestion-image-layer="current"]');
     if (!current) return;
-    zooms.set(button, zoom(current, 400 * index));
+    clocks.set(button, clock(current, 400 * index));
   });
   onVisibility();
   return () => {
