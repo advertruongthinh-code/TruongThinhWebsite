@@ -44,17 +44,29 @@ try {
   const point = await blank(page);
   assert.ok(point, "a blank point exists on the home page");
 
-  // Chế độ dính: nhả ngay, chuột dưới gốc 216px thì cuộn khoảng 1200px mỗi giây.
+  // Chế độ dính: nhả ngay, tốc độ theo công thức Chrome 0.04 × d^2.2 (116px khoảng 1393, 216px khoảng 5468px/giây).
   await page.mouse.move(point.x, point.y);
   await page.mouse.down({ button: "middle" });
   await page.mouse.up({ button: "middle" });
   assert.equal(await origin(page), 1, "sticky press shows the origin icon");
-  await page.mouse.move(point.x, point.y + 216);
-  await page.waitForTimeout(600);
-  const before = await scrollY(page);
-  await page.waitForTimeout(1000);
-  const speed = (await scrollY(page)) - before;
-  assert.ok(speed > 1080 && speed < 1320, `sticky speed about 1200px/s, got ${speed}`);
+  const icon = await page.locator(".autoscroll-origin").boundingBox();
+  assert.ok(icon.width === 48 && icon.height === 48, `origin icon is 48px, got ${icon.width}x${icon.height}`);
+  const measure = async (distance, seconds, warmup = 600) => {
+    // Về đầu trang trước mỗi lần đo để không chạm giới hạn cuối trang.
+    await page.mouse.move(point.x, point.y);
+    await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+    await page.waitForTimeout(300);
+    await page.mouse.move(point.x, point.y + distance);
+    await page.waitForTimeout(warmup);
+    const before = await scrollY(page);
+    await page.waitForTimeout(seconds * 1000);
+    return ((await scrollY(page)) - before) / seconds;
+  };
+  const speed = await measure(116, 1);
+  assert.ok(speed > 1250 && speed < 1530, `sticky speed at 116px about 1393px/s, got ${speed}`);
+  // Trang chủ chỉ cao khoảng 5500px nên đo cửa sổ ngắn trước khi chạm cuối trang; quán tính Locomotive chưa bắt kịp hết nên cận dưới rộng hơn.
+  const fast = await measure(216, 0.3, 300);
+  assert.ok(fast > 4400 && fast < 6000, `sticky speed at 216px about 5468px/s, got ${fast}`);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.autoscroll), "down", "cursor points down");
 
   // Lăn chuột thì dừng: biểu tượng mất, trang đứng sau quán tính.
@@ -64,7 +76,7 @@ try {
   const stopped = await rest(page);
   await page.waitForTimeout(500);
   assert.ok(Math.abs((await scrollY(page)) - stopped) < 1, "page stays still after a wheel stop");
-  console.log(`PASS sticky ${Math.round(speed)}px/s, wheel stop`);
+  console.log(`PASS sticky ${Math.round(speed)} and ${Math.round(fast)}px/s, wheel stop`);
 
   // Nhấn giữ kéo lên rồi nhả: cuộn lên trong lúc giữ, dừng khi nhả.
   await page.mouse.move(point.x, point.y);
@@ -117,6 +129,22 @@ try {
     await other.close();
   }
   console.log("PASS native fallback");
+
+  // Icon bám pixel màn hình ở tỉ lệ Windows 125% và 150%: góc trên trái rơi đúng pixel thiết bị.
+  for (const deviceScaleFactor of [1.25, 1.5]) {
+    const scaled = await open({ viewport: { width: 1440, height: 900 }, deviceScaleFactor });
+    const spot = await blank(scaled);
+    await scaled.mouse.move(spot.x + 0.3, spot.y + 0.3);
+    await scaled.mouse.down({ button: "middle" });
+    await scaled.mouse.up({ button: "middle" });
+    const box = await scaled.locator(".autoscroll-origin").boundingBox();
+    for (const edge of [box.x, box.y]) {
+      assert.ok(Math.abs(edge * deviceScaleFactor - Math.round(edge * deviceScaleFactor)) < 0.01,
+        `origin icon edge ${edge} lands on a device pixel at ${deviceScaleFactor}`);
+    }
+    await scaled.close();
+  }
+  console.log("PASS icon pixel snap");
 } finally {
   await browser.close();
 }
