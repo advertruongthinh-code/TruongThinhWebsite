@@ -158,7 +158,7 @@ Then chỉ opacity của các bậc đổi theo thời gian, backdrop-filter kh�
 
 Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
 trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
-median tối thiểu `30fps`, không long task trên `50ms`. Nếu số bậc làm rơi gate,
+gate [A05s trên 60fps](../decisions/a05s-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi gate, owner chọn ba
 bậc cho dạng cung). Số bậc trong cung tự chọn theo máy (R2) để giữ gate; trần
 `100px` của dạng phủ đều và ảnh nền primary chưa đo trên A05s. Có tiền tố
@@ -205,6 +205,7 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 ## Gate còn mở
 
 - Safari trên iPhone thật chưa kiểm.
+- R2 bớt bậc khi còn dưới `50fps`, thấp hơn gate trên `60fps` của [A05s trên 60fps](../decisions/a05s-frame-budget.md); chờ số đo A05s rồi owner chọn ngưỡng.
 
 ## Chú thích thuật ngữ
 

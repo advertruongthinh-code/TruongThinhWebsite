@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-07
+updated: 2026-10-10
 ---
 
 # Skeleton cuối masonry Advertising
@@ -143,8 +143,8 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 ### R8. Hiệu năng
 
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
-30fps, vòng lặp không có long task trên 50ms. Điện thoại: median ít nhất 30fps, không long task trên 50ms, tối đa 2
-context đang chạy. Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
+30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [A05s trên 60fps](../decisions/a05s-frame-budget.md)
+(trên 60fps), tối đa 2 context đang chạy. Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
 
 ```gherkin
 Given Chrome có GPU, cửa sổ 1569×912, batch đầy viewport
