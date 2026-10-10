@@ -227,7 +227,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 ### Suggestion và detail
 
-- Suggestion chưa bật chạy [slideshow hero](#motion-theo-bề-mặt-ui): mỗi 5s chuyển mờ `1.6s
+- Suggestion chưa bật chạy [slideshow hero](#motion-theo-bề-mặt-ui): mỗi 5s ảnh cũ mờ đi và ảnh mới hiện cùng lúc trong `1.6s
   cubic-bezier(0.65, 0, 0.35, 1)` (power2.inOut), ảnh mới zoom `1.06 → 1` trong `6.6s
   cubic-bezier(0.37, 0, 0.63, 1)` (sine.inOut) (`suggestion-slideshow.mjs`); ảnh đầu zoom ngay khi
   hiện, mọi nút đều chạy (bộ một ảnh crossfade sang chính nó để zoom lặp lại). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced

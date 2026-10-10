@@ -545,6 +545,8 @@ test("suggestion cadence advances at 5000ms, crossfades for 1600ms with the hero
   assert.equal(created.length, 1, "open viewer or menu dialog keeps the deck static");
   covered = false; await advance(5000);
   assert.equal(created.length, 2, "same deck resumes at the next permitted tick");
+  assert.ok(animations.some(animation => animation.frames?.[0]?.opacity === 1 && animation.frames[1].opacity === 0
+    && animation.options.duration === 1600), "outgoing photo fades out with the incoming one, like the hero");
 });
 
 

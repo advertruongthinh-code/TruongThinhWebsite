@@ -23,8 +23,9 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     duration: 6600, easing: "cubic-bezier(0.37, 0, 0.63, 1)", fill: "forwards",
   });
   const clear = () => {
-    pending.forEach(({ image, animation, previousZoom }) => {
+    pending.forEach(({ image, animation, fadeOut, previousZoom }) => {
       animation?.cancel();
+      fadeOut?.cancel();
       previousZoom?.cancel();
       image.remove();
     });
@@ -65,6 +66,10 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
       duration: 1600, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards",
     });
     state.animation = animation;
+    // Như hero: ảnh cũ mờ đi cùng lúc ảnh mới hiện, lộ nền tối của nút ở giữa nhịp.
+    state.fadeOut = current?.animate([{ opacity: 1 }, { opacity: 0 }], {
+      duration: 1600, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards",
+    });
     const previousZoom = state.previousZoom = zooms.get(button);
     zooms.set(button, zoom(next));
     animation.addEventListener("finish", () => {
@@ -88,7 +93,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
         || button.getAttribute("aria-pressed") === "true" || rect.bottom <= 0 || rect.top >= innerHeight) animation?.pause();
       else if (animation?.playState === "paused") animation.play();
     };
-    pending.forEach(({ animation }, button) => sync(animation, button));
+    pending.forEach(({ animation, fadeOut }, button) => { sync(animation, button); sync(fadeOut, button); });
     zooms.forEach(sync);
   };
   document.addEventListener("visibilitychange", onVisibility, { signal });
