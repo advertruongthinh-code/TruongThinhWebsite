@@ -1906,9 +1906,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const crossfadeLayers = (from, to, total) => {
     const scale = total / MEDIA_REVEAL_MS;
     const timing = { delay: 300 * scale, duration: 600 * scale, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "both" };
+    // Đọc hết opacity trước khi ghi, để cả lượt chỉ tốn một lần style recalc (decision a05s-frame-budget).
+    const opacities = from.map((node) => getComputedStyle(node).opacity);
     return [
-      ...from.map((node) => {
-        const opacity = getComputedStyle(node).opacity;
+      ...from.map((node, index) => {
+        const opacity = opacities[index];
         node.style.transition = "none";
         node.style.opacity = opacity;
         return node.animate([{ opacity }, { opacity: 0 }], timing);
@@ -1950,9 +1952,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
   const bakedRevealGlass = (host, bitmap) => {
-    const glass = revealGlass(host);
+    // Đo trước khi gắn Kính, để không ép thêm một lần layout.
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
+    const glass = revealGlass(host);
     const width = Math.max(1, Math.ceil(photo.width / BAKED_SCALE));
     const height = Math.max(1, Math.ceil(photo.height / BAKED_SCALE));
     const canvases = [...glass.querySelectorAll(".glass-surface__step")].map((step) => {
@@ -2849,19 +2852,27 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
       return;
     }
-    delete heroFrame.dataset.advertisingPhotoLoading;
-    heroFrame.removeAttribute("aria-busy");
     if (reduced) {
+      delete heroFrame.dataset.advertisingPhotoLoading;
+      heroFrame.removeAttribute("aria-busy");
       settlePrimaryReveal();
       return;
     }
+    // Dựng Kính ẩn ở task này, khởi động animation ở frame kế: gộp chung thành một task 58ms trên A05s.
     reveal.glass = bakedRevealGlass(heroFrame, bitmap);
+    reveal.glass.hidden = true;
     bitmap?.close();
-    // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
-    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
-    Promise.all(reveal.animations.map(({ finished }) => finished))
-      .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+    requestAnimationFrame(() => {
+      if (primaryReveal !== reveal) return;
+      delete heroFrame.dataset.advertisingPhotoLoading;
+      heroFrame.removeAttribute("aria-busy");
+      reveal.glass.hidden = false;
+      // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
+      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
+      reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
+      Promise.all(reveal.animations.map(({ finished }) => finished))
+        .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+    });
   };
   // Photo đang hiển thị ở lại làm layer tạm phía trên layer mới; không node nào bay vào từ card.
   const snapshotPrimary = () => {
