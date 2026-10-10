@@ -1213,7 +1213,8 @@
           timeline.fromTo(
             slide.querySelector("img"),
             { scale: 1.06 },
-            { scale: 1, duration: 5, ease: "sine.inOut" },
+            // Zoom kéo dài qua cả crossfade (5s hiện + 1.6s fade), để ảnh cũ còn chuyển động tới khi mờ hẳn.
+            { scale: 1, duration: 6.6, ease: "sine.inOut" },
             introOffset,
           );
         }
@@ -1231,18 +1232,17 @@
             );
         }
         if (next !== slide) {
-          const nextImage = next.querySelector("img");
+          // Ảnh mới bắt đầu zoom từ frame đầu crossfade, chồng lên phần zoom còn lại của ảnh cũ.
           timeline
-            .set(nextImage, { scale: 1.06 }, introOffset + 4.2)
             .to(
               next,
               { autoAlpha: 1, duration: 1.6, ease: "power2.inOut" },
-              introOffset + 4.2,
+              introOffset + 5,
             )
             .to(
               slide,
               { autoAlpha: 0, duration: 1.6, ease: "power2.inOut" },
-              introOffset + 4.2,
+              introOffset + 5,
             )
             .call(() => startSlide(nextIndex), null, introOffset + 5);
         }
