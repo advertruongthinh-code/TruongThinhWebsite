@@ -1807,6 +1807,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // rAF của scheduleSkeletonSync chung task với frame cuộn và layout masonry; ảnh tĩnh render CPU ở task sau, nếu
   // không task frame vượt 50ms trên A05s lúc vuốt nhanh (R8, decision a05s-frame-budget).
   let skeletonSyncInFrame = false;
+  let skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
   const syncSkeletonMotion = () => {
     const visible = getVisibleViewport();
     const rects = new Map();
@@ -1820,13 +1821,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Mỗi ảnh tĩnh là một lần render CPU; mở detail có thể cần hơn chục cái cùng lúc. Vượt ngân sách
     // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision a05s-frame-budget).
-    const assignUntil = performance.now() + SKELETON_ASSIGN_BUDGET_MS;
+    const assignUntil = performance.now() + skeletonAssignBudget;
+    let assigned = 0;
     for (const frame of visibleSkeletonFrames) {
-      if (!skeletonAssignmentByFrame.has(frame) && (skeletonSyncInFrame || performance.now() > assignUntil)) {
+      if (skeletonAssignmentByFrame.has(frame)) continue;
+      if (skeletonSyncInFrame || (assigned && performance.now() > assignUntil)) {
         scheduleSkeletonAssign();
         break;
       }
       assignSkeleton(frame, rects);
+      assigned += 1;
     }
     syncSkeletonRenderers(rects);
     skeletonFrames().forEach((frame) => {
@@ -1875,12 +1879,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let skeletonAssignTimer = 0;
   const scheduleSkeletonAssign = () => {
     if (skeletonAssignTimer || controller.signal.aborted) return;
-    skeletonAssignTimer = setTimeout(() => {
+    // Chạy trong idle sau frame: layout đã sạch nên đọc rect không ép style, và ngân sách vừa phần rảnh của frame
+    // thay vì một task 17ms chen giữa hai frame lúc vuốt nhanh trên A05s (decision a05s-frame-budget). Luôn gán ít
+    // nhất một khung mỗi lượt để không treo khi idle hết hạn.
+    const run = (deadline) => {
       skeletonAssignTimer = 0;
+      if (controller.signal.aborted) return;
+      skeletonAssignBudget = Math.min(SKELETON_ASSIGN_BUDGET_MS, deadline?.timeRemaining() ?? SKELETON_ASSIGN_BUDGET_MS);
       syncSkeletonMotion();
-    });
+      skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
+    };
+    skeletonAssignTimer = globalThis.requestIdleCallback?.(run, { timeout: 250 }) ?? setTimeout(run);
   };
-  controller.signal.addEventListener("abort", () => clearTimeout(skeletonAssignTimer), { once: true });
   const skeletonObserver = typeof IntersectionObserver === "function"
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
