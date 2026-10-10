@@ -174,9 +174,12 @@ outline. Touch không cần hover để mở ảnh.
   có FLIP tự viết song song.
 - Mọi thay đổi tọa độ (filter, resize, đổi số cột) chạy cùng một pipeline:
   card cũ ẩn ngay không fade; card còn lại và card mới đi từ vị trí cũ tới vị
-  trí mới bằng `transform 0.4s ease`, không delay, không stagger. Khung skeleton
-  của batch còn giữ, cụm CTA và Kính cung trượt cùng nhịp bằng `translate`, nên
-  cả trang đọc như một masonry (owner 10/10).
+  trí mới bằng `transform 0.4s ease`, không delay, không stagger. Đổi cỡ thì con
+  của card co giãn `scale` từ cỡ cũ cùng nhịp, quanh góc trên trái card, nên card
+  lớn lên không phủ item kế bên. Khung skeleton của batch là item nối tiếp
+  masonry: khung còn giữ trượt và co giãn từ chỗ cũ, khung mới xuất phát ngay dưới
+  khung đứng trước trong layout cũ; cụm CTA và Kính cung trượt cùng nhịp bằng
+  `translate`, nên cả trang đọc như một masonry (owner 10/10).
 - Tải lần đầu: card trong cửa sổ hiển thị đi từ đầu cột tới tọa độ đích
   cùng `400ms`; điểm xuất phát có từ prepaint.
 - Tọa độ không đổi thì không có motion. Card gắn lại do ảo hóa tại tọa độ cũ
