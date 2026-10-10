@@ -24,7 +24,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-06
+updated: 2026-10-10
 ---
 
 # Masonry Advertising
@@ -70,7 +70,8 @@ có `id`, `category`, `sourceOrder`, `productKey`, tên và mô tả VI/EN, `tag
 không có đủ 12 `productKey` khác nhau hoặc thiếu một sản phẩm; trùng `id`, `src` hoặc `sourceId`; thiếu chữ VI/EN,
 provenance hay kích thước dương; tag không có trong registry; nhóm thiếu một trong bốn loại tỷ lệ w/h: đứng `< 0.9`,
 gần vuông `0.9–1.1`, ngang `> 1.1`, cực `<= 0.625` hoặc `>= 1.6`. Card không còn nhận `presentationCanvas`, `fitMode`,
-`mediaCandidates`; ảnh giữ tỷ lệ gốc. `rank` xếp round-robin theo thứ tự nhóm, trong nhóm theo `sourceOrder`.
+`mediaCandidates`; ảnh giữ tỷ lệ gốc. Alt VI/EN là tên card; alt và mô tả không gắn nhãn AI, nguồn gốc ảnh chỉ ghi
+ở `provenance` (không hiển thị). `rank` xếp round-robin theo thứ tự nhóm, trong nhóm theo `sourceOrder`.
 `buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry`, `categories`,
 `cards`; build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
 Sáu URL nhóm cũ chỉ chuyển về `?category=` ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)); sáu bố cục
