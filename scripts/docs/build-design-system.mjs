@@ -45,9 +45,9 @@ const COMPONENTS = [
     markup: '<div style="display: grid; gap: 20px; width: 316px; margin: 20px 35px;">\n'
       + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials.webp\' width="1536" height="1024" alt=""></figure>\n'
       + '<div class="advertising-photo-view__suggestion-links">\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Chữ nổi Mica</span></button>\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label">Logo và chữ nổi tòa nhà</span></button>\n'
-      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label">Bảng vẫy Mica hút nổi</span></button>\n</div>\n</div>' },
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label"><span>Chữ nổi Mica</span></span></button>\n'
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="false"><span class="advertising-photo-view__suggestion-label"><span>Logo và chữ nổi tòa nhà</span></span></button>\n'
+      + '<button type="button" class="advertising-photo-view__suggestion-link" aria-pressed="true"><span class="advertising-photo-view__suggestion-label"><span>Bảng vẫy Mica hút nổi</span></span></button>\n</div>\n</div>' },
 ];
 
 // Trả về outer HTML của element có opening tag khớp `start`, cân bằng các tag lồng cùng tên.

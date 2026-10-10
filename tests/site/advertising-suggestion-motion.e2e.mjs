@@ -147,6 +147,8 @@ try {
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction, property: style.transitionProperty };
   }));
   assert.equal(activeHoverMedia.length, 1, "active hover keeps one inert representative layer");
+  assert.equal(await activeLink.locator(".advertising-photo-view__suggestion-label > span").evaluate((span) => getComputedStyle(span, "::after").transform),
+    "matrix(0, 0, 0, 1, 0, 0)", "active suggestion hover keeps the underline hidden");
   assert(activeHoverMedia.every(({ transform }) => transform === "none"),
     "active suggestion hover keeps media transform inert");
   await page.mouse.move(0, 0);
@@ -165,17 +167,22 @@ try {
     "image-backed inactive suggestion hover has no visible black border");
   const hoverStyle = await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).evaluate((link) => ({
     filter: getComputedStyle(link, "::after").filter,
-    shadow: getComputedStyle(link, "::after").boxShadow,
-    media: {
-      transform: getComputedStyle(link.querySelector(".advertising-card-media__image")).transform,
-      duration: getComputedStyle(link.querySelector(".advertising-card-media__image")).transitionDuration,
-      easing: getComputedStyle(link.querySelector(".advertising-card-media__image")).transitionTimingFunction,
-      property: getComputedStyle(link.querySelector(".advertising-card-media__image")).transitionProperty,
-    },
+    media: getComputedStyle(link.querySelector(".advertising-card-media__image")).transform,
   }));
   assert.equal(hoverStyle.filter, "none", "hover keeps the same inactive overlay darkness");
-  assert.match(hoverStyle.media.transform, /matrix\(1\.15, 0, 0, 1\.15/, "suggestion hover reuses the shared media zoom");
-  assert(hasSharedMediaTiming(hoverStyle.media), "suggestion hover exposes the shared 600ms ease-out media contract");
+  assert.doesNotMatch(hoverStyle.media, /matrix\(1\.15, 0, 0, 1\.15/, "suggestion hover no longer zooms the photo");
+  // Gạch chân dùng chung rule với portal và nav: 3px, cách chữ 4px, scaleX 0.3s.
+  const underline = (tag) => page.locator(`[data-advertising-suggestion-tag="${tag}"] .advertising-photo-view__suggestion-label > span`)
+    .evaluate((span) => {
+      const style = getComputedStyle(span, "::after");
+      return { transform: style.transform, height: style.height, bottom: style.bottom, duration: style.transitionDuration,
+        easing: style.transitionTimingFunction, width: style.width, text: span.getBoundingClientRect().width };
+    });
+  const hovered = await underline(alternate);
+  assert.equal(hovered.transform, "matrix(1, 0, 0, 1, 0, 0)", "suggestion hover draws the underline");
+  assert.deepEqual([hovered.height, hovered.bottom, hovered.duration, hovered.easing],
+    ["3px", "-4px", "0.3s", "cubic-bezier(0.4, 0, 0, 1)"], "suggestion underline reuses the nav and portal underline");
+  assert.equal(Math.round(parseFloat(hovered.width)), Math.round(hovered.text), "underline spans the label text only");
   const relatedLink = page.locator("[data-advertising-related-card] > a").first();
   await relatedLink.focus();
   await page.waitForTimeout(650);
@@ -183,16 +190,14 @@ try {
     const style = getComputedStyle(link.querySelector(".advertising-card-media__image"));
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction, property: style.transitionProperty };
   });
-  assert.equal(relatedMedia.transform, hoverStyle.media.transform, "suggestion and grid card media share the same zoom endpoint");
-  assert(hasSharedMediaTiming(relatedMedia) && hasSharedMediaTiming(hoverStyle.media),
-    "suggestion and grid card media share the 600ms ease-out transform contract");
+  assert.match(relatedMedia.transform, /matrix\(1\.15, 0, 0, 1\.15/, "related card keeps the shared media zoom");
+  assert(hasSharedMediaTiming(relatedMedia), "related card media keeps the 600ms ease-out transform contract");
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(650);
+  assert.equal((await underline(alternate)).transform, "matrix(0, 0, 0, 1, 0, 0)", "underline retracts when hover leaves");
   await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).focus();
   await page.waitForTimeout(650);
-  assert.match(
-    await page.locator(`[data-advertising-suggestion-tag="${alternate}"] .advertising-card-media__image`).evaluate((image) => getComputedStyle(image).transform),
-    /matrix\(1\.15, 0, 0, 1\.15/,
-    "suggestion keyboard focus reuses the shared media zoom",
-  );
+  assert.equal((await underline(alternate)).transform, "matrix(1, 0, 0, 1, 0, 0)", "suggestion keyboard focus draws the underline");
   assert.match(detailCss, /suggestion-link:focus-visible \{[\s\S]*?outline: 2px solid var\(--ink\);/, "focus has a dedicated ring");
   assert.doesNotMatch(detailCss, /aria-pressed="true"[^}]*background-clip:\s*text/s,
     "active suggestion text is not image-masked");

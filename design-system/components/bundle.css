@@ -1577,8 +1577,13 @@ html[lang="en"] #nang-luc .portal-subtitle {
   white-space: nowrap;
 }
 
+.advertising-photo-view__suggestion-label > span {
+  position: relative;
+}
+
 #dich-vu .portal-subtitle::after,
-.legacy-link .portal-subtitle::after {
+.legacy-link .portal-subtitle::after,
+.advertising-photo-view__suggestion-label > span::after {
   position: absolute;
   bottom: -4px;
   left: 0;
@@ -1594,7 +1599,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
 #dich-vu .service-portal:hover .portal-subtitle::after,
 #dich-vu .service-portal:focus-visible .portal-subtitle::after,
 .legacy-closer:hover .portal-subtitle::after,
-.legacy-link:focus-visible .portal-subtitle::after {
+.legacy-link:focus-visible .portal-subtitle::after,
+.advertising-photo-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible) .advertising-photo-view__suggestion-label > span::after {
   transform: scaleX(1);
   transform-origin: left center;
 }
