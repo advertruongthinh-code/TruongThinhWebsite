@@ -119,17 +119,17 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ zoom của nút (khuất thì dừng), rồi nút chưa bật đang trong
-viewport giải mã ảnh kế rồi crossfade `1.6s` power2.inOut (ảnh cũ mờ đi cùng lúc ảnh mới hiện, như hero), ảnh mới zoom `1.06 → 1` trong `6.6s` sine.inOut từ frame đầu
-crossfade (`mountSuggestionSlides`); ảnh đầu zoom ngay khi mount. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
+viewport giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%`; owner chọn 10/10), ảnh mới zoom `1.06 → 1` trong `6.6s` sine.inOut từ
+frame đầu (`mountSuggestionSlides`); ảnh đầu zoom ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
 rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, nút ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
-chưa xong; ra viewport, ẩn tab hay mở `dialog` thì crossfade và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh crossfade sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
+chưa xong; ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
 
 ```gherkin
 Given suggestion có nút chưa bật với bộ từ 2 ảnh và một nút đang bật
 When chờ 5s
-Then nút chưa bật crossfade sang ảnh khác, ảnh mới zoom 1.06 về 1 trong 6.6s
+Then nút chưa bật đẩy ngang sang ảnh khác, nút dưới trễ 0.4s, ảnh mới zoom 1.06 về 1 trong 6.6s
 And hover nút chưa bật thì nhãn gạch chân, ảnh không zoom 1.15
 And nút đang bật giữ nguyên ảnh
 ```

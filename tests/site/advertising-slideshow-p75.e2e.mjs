@@ -25,6 +25,11 @@ try {
     .map(b => b.querySelector('[data-advertising-suggestion-image-layer="current"]').getAnimations()
       .some(a => a.playState === "running" && a.effect.getKeyframes()[0].transform === "scale(1.06)"))
     .filter(running => !running)), [], "every visible suggestion zooms out on mount, sparse decks included");
+  const clocks = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-suggestion-tag]")]
+    .map(b => b.querySelector('[data-advertising-suggestion-image-layer="current"]').getAnimations()
+      .find(a => a.effect.getKeyframes()[0].transform === "scale(1.06)")?.effect.getTiming().delay));
+  clocks.slice(1).forEach((clock, index) => assert.equal(clock - clocks[index], 400,
+    `suggestion ${index + 1} trails the one above by 0.4s (wave): ${clocks}`));
   const sparseFirst = await page.evaluate(() => document.querySelector("[data-advertising-suggestion-tag]")
     .querySelector('[data-advertising-suggestion-image-layer="current"]').dataset.advertisingSuggestionPhoto);
   await page.waitForTimeout(7000);
@@ -56,5 +61,5 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("[data-advertising-suggestion-tag]").first().scrollIntoViewIfNeeded();
   await page.screenshot({ path: ".tmp/p75-suggestion-mobile.png" });
-  console.log("PASS suggestion crossfade with hero zoom, active stays white");
+  console.log("PASS suggestion push wave with hero zoom, active stays white");
 } finally { await browser.close(); }
