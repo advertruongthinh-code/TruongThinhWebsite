@@ -787,17 +787,20 @@ export function createSharedSkeletonFlowLayer() {
     placeBand();
     clear();
     gl.enable(gl.SCISSOR_TEST);
+    // Rect thay cho offsetTop: khung trượt bằng `translate` khi masonry dời chỗ, canvas vẽ theo vị trí đang thấy.
+    const origin = container.getBoundingClientRect();
     for (const entry of entries) {
       entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
       const { frame } = entry;
       // Khung chưa vào entry không vẽ; khung đang entry vẽ theo opacity của reveal (R4).
       if (!frame.isConnected || !frame.classList.contains("is-entry-ready")) continue;
       const alpha = entry.alpha();
-      const top = frame.offsetTop - bandTop;
-      const height = frame.offsetHeight;
+      const box = frame.getBoundingClientRect();
+      const top = box.top - origin.top - bandTop;
+      const { height } = box;
       if (alpha <= 0 || top + height < 0 || top > bandHeight) continue;
-      const x = Math.round(frame.offsetLeft * scale);
-      const w = Math.round(frame.offsetWidth * scale);
+      const x = Math.round((box.left - origin.left) * scale);
+      const w = Math.round(box.width * scale);
       const h = Math.round(height * scale);
       const y = canvas.height - Math.round(top * scale) - h;
       gl.viewport(x, y, w, h);

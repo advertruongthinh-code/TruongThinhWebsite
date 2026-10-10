@@ -1543,6 +1543,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const rect = node.getBoundingClientRect();
       coordinates.set(id, { x: rect.left - gridRect.left, y: rect.top - gridRect.top });
     }
+    coordinates.gridTop = gridRect.top;
     return coordinates;
   };
 
@@ -2151,12 +2152,29 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     delete ctaSkeleton.dataset.advertisingCtaReady;
     delete ctaSkeleton.dataset.advertisingCtaSignature;
   };
-  const renderCtaSkeleton = () => {
+  // Khung batch, cụm CTA và Kính cung trượt từ vị trí cũ cùng nhịp transform 0.4s ease của card masonry, nên cả
+  // trang đọc như một masonry khi resize hay đổi filter (owner 10/10). Dùng `translate` để không đè transform
+  // parallax của CTA.
+  const slideFrom = (node, before) => {
+    if (!before || !node.isConnected) return;
+    const after = node.getBoundingClientRect();
+    const dx = before.left - after.left;
+    const dy = before.top - after.top;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    node.animate([{ translate: `${dx}px ${dy}px` }, { translate: "0 0" }], { duration: 400, easing: "ease" });
+  };
+  const ctaSlideNodes = () => [...skeletonFrameBySlot.values(), gridCta, arcGlass].filter(Boolean);
+  const renderCtaSkeleton = ({ slide = false } = {}) => {
     if (!ctaSkeleton || !geometry || activePhotoId) {
       gridPixelHeight = geometry?.totalPixelHeight || 0;
       clearCtaSkeleton();
       return;
     }
+    // Đọc vị trí đang thấy (kể cả lượt trượt trước) rồi mới hủy lượt đó.
+    const slideOrigins = slide ? new Map(ctaSlideNodes().map((node) => [node, node.getBoundingClientRect()])) : null;
+    slideOrigins?.forEach((_, node) => node.getAnimations().forEach((animation) => {
+      if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();
+    }));
     const gap = geometry.interCardGap;
     const ctaTop = geometry.totalPixelHeight + gap;
     gridSectionStyleTarget?.style.setProperty("--advertising-cta-top", `${ctaTop}px`);
@@ -2259,11 +2277,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     syncSkeletonMotion();
     syncCtaParallax();
+    // Kính cung đổi hình theo bề rộng mới; nó trượt theo độ dời của cụm CTA.
+    if (slideOrigins && gridCta && arcGlass) {
+      const cta = slideOrigins.get(gridCta);
+      const glass = slideOrigins.get(arcGlass);
+      if (cta && glass) slideOrigins.set(arcGlass, new DOMRect(arcGlass.getBoundingClientRect().left,
+        arcGlass.getBoundingClientRect().top + cta.top - gridCta.getBoundingClientRect().top));
+    }
+    slideOrigins?.forEach((before, node) => slideFrom(node, before));
   };
 
-  const renderWindow = ({ animate = false, origins } = {}) => {
+  const renderWindow = ({ animate = false, origins: visualOrigins } = {}) => {
     if (!geometry || activePhotoId) return;
-    renderCtaSkeleton();
+    let origins = visualOrigins;
+    renderCtaSkeleton({ slide: animate && hasLaidOut && !reduced });
+    // Grid đổi chiều cao làm trình duyệt kẹp scroll (đang ở cuối trang); card phải xuất phát từ chỗ đang thấy trên
+    // màn, nếu không chúng bay lệch đúng bằng độ kẹp rồi giật về (đo trên PC, vòng 26).
+    if (origins?.gridTop !== undefined) {
+      const shift = origins.gridTop - grid.getBoundingClientRect().top;
+      if (shift) origins = new Map([...origins].map(([id, { x, y }]) => [id, { x, y: y + shift }]));
+    }
     if (layoutFrame && !animate) return;
     if (layoutFrame) {
       cancelAnimationFrame(layoutFrame);
@@ -3370,6 +3403,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (scrollFrame) return;
     scrollFrame = requestAnimationFrame(() => {
       scrollFrame = 0;
+      // Resize ở cuối trang kẹp scroll ngay khi grid đổi chiều cao, sau khi frame này đã được hẹn; đặt card tức thì
+      // lúc chúng đang trượt làm card bay lệch (vòng 26), nên hoãn tới khi trượt xong như scroll trong lúc chuyển.
+      if (layoutFrame || performance.now() < motionUntil) {
+        pendingScroll = true;
+        return;
+      }
       renderWindow();
       renderRelatedWindow();
       // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s.
@@ -3431,9 +3470,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return;
       }
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
-        // Resize đặt card ngay như batch skeleton, để hai phần đi cùng một masonry (owner 10/10).
+        const origins = visualCoordinates();
         cancelMotion();
-        measure();
+        measure({ animate: true, origins });
       } else if (!ctaGeometryHash || viewportHeight !== lastCtaViewportHeight) {
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
