@@ -150,7 +150,8 @@ Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy
 (trên 60fps), tối đa 2 context đang chạy. Không hạ độ phân giải, preset, noise hay số renderer để đạt gate.
 Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
-masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau.
+masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
+rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt).
 
 ```gherkin
 Given Chrome có GPU, cửa sổ 1569×912, batch đầy viewport
