@@ -154,8 +154,9 @@ Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, ho�
 `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
-- Một dải sáng đối xứng, trắng `16%` ở tâm, nghiêng 60 độ, rộng khoảng một phần ba khung, vào từ ngoài mép trái,
-  ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Vệt không nhận pointer
+- Một quầng sáng đối xứng, trắng `13%` ở tâm, giảm về 0 ở hai mép theo đường cosine (raised cosine) nên không có mép
+  sắc hay điểm gãy độ sáng; owner duyệt làm mịn 2026-10-10 thay dải 5 điểm nối thẳng tâm `16%` từng lộ mép và sọc trên
+  hero. Nghiêng 60 độ, rộng khoảng nửa khung, vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục `1.6s` linear. Chỉ animate `transform`, không Paint mỗi frame. Vệt không nhận pointer
   hay focus; không số, không phần trăm, không `aria-busy`.
 - Khung ngoài viewport thì vệt dừng.
 - Reduced motion: không lướt; khung sáng tối nhẹ chu kỳ `2s`.
@@ -181,6 +182,11 @@ And kích thước khung lệch tối đa 1px, CLS dưới 0,1
 Given mạng Slow 4G, PC 1440px, ảnh lớn progressive đang tải dở
 When chụp khung mỗi 100ms tới khi ảnh xong
 Then không ảnh chụp nào thấy ảnh tải dở, chỉ thấy vệt hoặc ảnh đầy đủ
+
+Given khung 1440×600 nền #2b2c2b, vệt dừng với tâm ở giữa khung
+When đọc độ sáng một hàng pixel ngang qua tâm
+Then độ sáng tăng dần từ nền tới tâm rồi giảm dần, tâm từ 68 đến 72 (nền 43), hai pixel kề lệch tối đa 1 mức
+And độ dốc trung bình trên cửa sổ 24px đổi tối đa 0,1 mức/px giữa hai cửa sổ kề (dải cũ 0,33)
 
 Given trình duyệt tắt JavaScript
 When mở /vi/residential/
