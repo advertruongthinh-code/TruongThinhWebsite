@@ -134,6 +134,8 @@ try {
   });
   await page.waitForFunction((link) => link.classList.contains("is-media-settled"), await inactiveLink.elementHandle());
   assert.equal((await sweep(inactiveLink)).animation, "none", "loaded suggestion stops the sweep");
+  // Đọc lúc không có cú đẩy: animation đẩy ảnh cũ ghi đè opacity CSS trong 0.9s chuyển ảnh.
+  await page.waitForFunction((link) => !link.querySelector('[data-advertising-suggestion-image-layer="next"]'), await inactiveLink.elementHandle());
   await inactiveLink.evaluate((link) => link.classList.remove("is-media-settled"));
   const inactiveSweep = await sweep(inactiveLink);
   await inactiveLink.evaluate((link) => link.classList.add("is-media-settled"));
