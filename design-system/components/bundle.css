@@ -3296,6 +3296,9 @@ html[lang="vi"]
 .detail-media {
   position: relative;
   aspect-ratio: 16 / 9;
+  /* Media gate đổi overflow sang clip (không tạo BFC, không phải scroll container): flow-root chặn margin âm của ảnh collapse ra ngoài khung, min-height 0 chặn ảnh cao 120% kéo khung cao thêm; nếu không khung đổi vị trí và cỡ lúc settle (CLS). */
+  display: flow-root;
+  min-height: 0;
   overflow: hidden;
   background: #d9d7d0;
 }
