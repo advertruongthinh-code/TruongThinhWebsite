@@ -168,7 +168,7 @@ try {
     const maxSlopeJump = Math.max(...slopes.slice(1).map((slope, i) => Math.abs(slope - slopes[i])));
     // Chromium dither gradient nên pixel kề có thể lệch ngược 1 mức; xét chiều tăng giảm với dung sai đó.
     const monotonic = row.every((value, x) => x === 0 || (x <= center ? value >= row[x - 1] - 1 : value <= row[x - 1] + 1));
-    assert.ok(peak >= 68 && peak <= 72 && Math.min(...row) === 43, `sweep peak ${peak} within 68-72 on #2b2c2b`);
+    assert.ok(peak >= 75 && peak <= 79 && Math.min(...row) === 43, `sweep peak ${peak} within 75-79 on #2b2c2b`);
     assert.ok(monotonic && maxStep <= 1, `sweep rises then falls without hard edges (max step ${maxStep})`);
     assert.ok(maxSlopeJump <= 0.1, `sweep has no brightness kink (max slope jump ${maxSlopeJump})`);
     results.push({ case: "r6-sweep-smooth", peak, maxStep, maxSlopeJump });

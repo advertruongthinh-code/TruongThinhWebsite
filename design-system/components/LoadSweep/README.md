@@ -10,9 +10,9 @@ Advertising dùng [Skeleton](../Skeleton/README.md), không dùng vệt.
 ## Hành vi
 
 - Khung nền `media-loading-surface` `#2b2c2b`, ảnh `opacity: 0`.
-- Một quầng sáng đối xứng, trắng `13%` ở tâm, giảm về 0 theo đường cosine nên
-  không có mép sắc (owner duyệt 2026-10-10), nghiêng 60 độ (cùng góc dải mark),
-  rộng khoảng nửa khung, vẽ bằng `::before` của khung.
+- Một dải sáng đối xứng, trắng `16%` ở tâm, nghiêng 60 độ (cùng góc dải mark),
+  rộng khoảng hai phần năm khung, vẽ bằng `::before` của khung. Độ sáng giảm
+  về 0 qua 17 điểm màu theo đường cosine nên mép mờ dần (owner 2026-10-10).
 - Vệt vào từ ngoài mép trái, ra hẳn mép phải, lặp liên tục, mỗi lượt `1.6s`
   linear. Chỉ animate `transform`; khung ra ngoài viewport thì vệt dừng.
 - Ảnh load và `decode()` xong: khung có `.is-media-settled`, vệt gỡ, ảnh

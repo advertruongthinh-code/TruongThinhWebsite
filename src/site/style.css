@@ -2093,13 +2093,13 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 /* Dải rộng 400% khung trượt -75% tới 0 nên vệt vào từ ngoài mép trái và ra hẳn mép phải; chỉ animate transform.
-   Quầng trắng tâm 13% giảm theo raised cosine nên không có mép sắc (docs/specs/media-delivery.md R6). */
+   Dải trắng tâm 16% rộng như bản gốc, 17 điểm màu theo raised cosine nên mép mờ dần, không gãy (docs/specs/media-delivery.md R6). */
 .media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled)::before {
   position: absolute;
   inset: 0 auto 0 0;
   width: 400%;
   content: "";
-  background: linear-gradient(120deg, transparent 43.75%, rgb(255 255 255 / 0.87%) 44.79%, rgb(255 255 255 / 3.25%) 45.83%, rgb(255 255 255 / 6.5%) 46.88%, rgb(255 255 255 / 9.75%) 47.92%, rgb(255 255 255 / 12.13%) 48.96%, rgb(255 255 255 / 13%) 50%, rgb(255 255 255 / 12.13%) 51.04%, rgb(255 255 255 / 9.75%) 52.08%, rgb(255 255 255 / 6.5%) 53.13%, rgb(255 255 255 / 3.25%) 54.17%, rgb(255 255 255 / 0.87%) 55.21%, transparent 56.25%);
+  background: linear-gradient(120deg, transparent 45%, rgb(255 255 255 / 0.61%) 45.625%, rgb(255 255 255 / 2.34%) 46.25%, rgb(255 255 255 / 4.94%) 46.875%, rgb(255 255 255 / 8%) 47.5%, rgb(255 255 255 / 11.06%) 48.125%, rgb(255 255 255 / 13.66%) 48.75%, rgb(255 255 255 / 15.39%) 49.375%, rgb(255 255 255 / 16%) 50%, rgb(255 255 255 / 15.39%) 50.625%, rgb(255 255 255 / 13.66%) 51.25%, rgb(255 255 255 / 11.06%) 51.875%, rgb(255 255 255 / 8%) 52.5%, rgb(255 255 255 / 4.94%) 53.125%, rgb(255 255 255 / 2.34%) 53.75%, rgb(255 255 255 / 0.61%) 54.375%, transparent 55%);
   animation: media-sweep 1.6s linear infinite;
   pointer-events: none;
 }
