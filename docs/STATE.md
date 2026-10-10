@@ -23,8 +23,7 @@
 - Thiết bị: A05s là máy thật đo chuẩn; iPhone Safari theo dõi sau phát hành, không chặn
   ([phát hành tĩnh](specs/static-release.md#gate-còn-mở)).
 - Nợ cần phiên PC và A05s cho phiên sau ([card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
-  - A05s: nút Back phần cứng đóng viewer, fps mở và đóng viewer nền blur `50px`
-    ([detail](specs/advertising-detail.md#gate-còn-mở)), viewer xoay ngang
+  - A05s: nút Back phần cứng đóng viewer, viewer xoay ngang
     ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)), skeleton sau Kính `0.6s`.
   - `mobile-layout-parity`, `scrollbar-parity`, `site-media-card-playback`, `advertising-photo-transitions`,
     `advertising-primary-p14`: chạy ở phiên PC.
