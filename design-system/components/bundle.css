@@ -4536,6 +4536,13 @@ body.is-advertising-browse .advertising-grid {
   width: calc(100% - (2 * var(--advertising-outer)));
 }
 
+/* Lúc mở detail, grid giữ style và layout đã tính thay vì display: none, nên Back không phải dựng lại cả grid trong task popstate (decision a05s-frame-budget). */
+.detail-page .project-index[hidden] {
+  display: block;
+  position: absolute;
+  content-visibility: hidden;
+}
+
 @media (min-width: 751px) {
   .detail-page .project-index {
     --advertising-outer: 25px;
@@ -5780,8 +5787,9 @@ body.is-advertising-browse .detail-cta[data-advertising-grid-cta] {
   left: 0;
 }
 
-/* Batch lấp khoảng trống trên footer. */
-body.is-advertising-browse:not(.is-advertising-photo) {
+/* Batch lấp khoảng trống trên footer. Đặt biến trên footer, không trên body: biến kế thừa đổi trên body làm
+   mở detail và Back restyle cả trang (decision a05s-frame-budget). */
+body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
   --footer-top-gap: 0px;
 }
 
