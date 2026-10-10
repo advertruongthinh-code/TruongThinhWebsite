@@ -13,7 +13,7 @@ Owner xác nhận thiết bị là Android, browser Chrome, máy host Windows ch
 Codex. Trang chạy trên điện thoại thật; viewport desktop emulation không thay
 gate này. Ngày27/09/2026 đã đọc DOM và chụp ảnh trang Advertising local qua
 Chrome DevTools MCP trên Galaxy A05s thật. Đây là PASS kết nối/debug; chưa là
-nghiệm thu giao diện. Owner yêu cầu local trước, sau phát hành mới debug Sites.
+nghiệm thu giao diện. Owner yêu cầu local trước, sau phát hành mới debug demo Cloudflare.
 
 ## Cài đặt điện thoại
 
@@ -95,7 +95,7 @@ Cách thay thế là Chrome host Port forwarding ánh xạ phone8790 tới
 `localhost:8790` của PC, theo [Google port forwarding](https://developer.chrome.com/docs/devtools/remote-debugging/local-server#case-2-set-up-port-forwarding-through-usb-for-your-android-device).
 Không bật đồng thời hai cách trên cùng phone port.
 
-Baseline Sites và candidate local phải được gắn version/source riêng. Không
+Baseline demo Cloudflare và candidate local phải được gắn version/source riêng. Không
 gọi kết quả local là kết quả bản public. Không thêm desktop viewport override,
 đổi font/display scale, animation scale hoặc browser flags để làm ảnh giống nhau.
 
@@ -115,7 +115,7 @@ gọi kết quả local là kết quả bản public. Không thêm desktop viewp
   `E:\TruongThinh-Website\.tmp\advertising-random-media\.site-output\`;
   served HTML SHA-256
   `9b145a3a880511562d4d92987f393384b0ca742550fe8ca4d71473fe047f7405`.
-  Đây là preview candidate đã có, không là source commit sạch hoặc Sites2.
+  Đây là preview candidate đã có, không là source commit sạch hoặc bản demo.
 - Raw evidence local: [.tmp/android-usb-debug/connection.json](../../.tmp/android-usb-debug/connection.json)
   và [screenshot](../../.tmp/android-usb-debug/android-chrome-website.png).
   Transport/MCP listing, DOM read và screenshot PASS; scrollbar/skeleton/nút,
@@ -159,7 +159,7 @@ lúc chuyển trang vào số lần skeleton reset. Recorder đã exit; mappings
 ## Bằng chứng cần thu khi QA giao diện
 
 - Model, Android/Chrome version, orientation, CSS viewport, visualViewport,
-  DPR, font/display scale, locale và source SHA/Sites version.
+  DPR, font/display scale, locale và source SHA của demo.
 - Nút: screenshot thật cùng rect/computed font, line-height, padding và vị trí
   chữ/icon; ghi thời điểm font ready. Không kết luận chỉ từ screenshot scaled.
 - Skeleton: cuộn bằng tay từ đáy lên qua vùng báo lỗi; correlate card identity,

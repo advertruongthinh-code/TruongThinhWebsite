@@ -16,8 +16,8 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Nền nút `white`; hover và nhấn dùng `media-control-hover`,
   `media-control-active`; nút disabled nền `control-disabled-surface`, icon
   `control-disabled-icon`, không hover motion.
-- Nền tối `rgba(32, 33, 32, 0.85)` với blur kiểu [Kính](../Glass/README.md)
-  `blur(50px) saturate(1.7) brightness(1.04)`, không tint, không hạt nhiễu.
+- Nền tối `rgba(32, 33, 32, 0.85)`, không blur (owner bỏ 2026-10-10 để đạt
+  60fps trên A05s).
 - Màn cảm ứng (`hover: none`, `pointer: coarse`) không hiện nút: chụm hoặc
   chạm đúp để zoom; ở fit vuốt ảnh lên hoặc xuống thì ảnh theo tay, nền nhạt
   dần, quá `15%` chiều cao hoặc vuốt nhanh thì đóng, chưa tới thì về chỗ.

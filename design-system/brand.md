@@ -122,28 +122,32 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
-| Màu mark | Chuỗi bốn path, mỗi path kết thúc đúng `1s` | Theo state machine dưới |
+| Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
-Chuỗi màu mark dùng CSS transition `fill`, đường cong
-`cubic-bezier(0.16, 1, 0.3, 1)`; `delay + duration = 1s` ở mọi path nên cả bốn
-cùng xong một lúc, path bắt đầu muộn thì đổi nhanh hơn:
+Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, phủ
+lớp cũ; hình dải không đổi, mép lớp mới nằm ngang. Hai chiều (vào và rời CMYK)
+giống hệt nhau về hướng, thứ tự và timing. Mỗi dải chạy trong chiều cao riêng
+của nó, chân chung ở đáy mark. Đường cong `cubic-bezier(0.16, 1, 0.3, 1)`;
+`delay + duration = 1s` ở mọi dải nên cả bốn cùng xong một lúc:
 
-| Path | Vào CMYK: delay / duration | Rời CMYK: delay / duration |
-| --- | --- | --- |
-| 1 đen | `0` / `1s` | `0` / `1s` |
-| 2 vàng | `0.07s` / `0.93s` | `0.14s` / `0.86s` |
-| 3 magenta | `0.14s` / `0.86s` | `0.07s` / `0.93s` |
-| 4 cyan | `0.21s` / `0.79s` | `0.21s` / `0.79s` |
+| Dải | Delay / duration |
+| --- | --- |
+| 1 đen | `0` / `1s` |
+| 2 vàng | `0.07s` / `0.93s` |
+| 3 magenta | `0.14s` / `0.86s` |
+| 4 cyan | `0.21s` / `0.79s` |
 
-Owner đã duyệt chuỗi màu mới (các dải mọc lên), chờ code: [Đã duyệt, chờ code](approved-designs.md#mark-đổi-màu-các-dải-mọc-lên).
+Đổi hướng giữa chừng: phần đang hiển thị (kể cả dải mọc dở) giữ làm lớp cũ,
+lớp mới mọc lại từ chân. Lớp cũ là bản sao bốn path trong
+`.brand-lockup__mark-underlay`, gỡ khi lớp mới mọc xong.
 
-FLIP chạy song song với chuỗi màu và không hủy nó. Giảm chuyển động: không
+FLIP chạy song song với màu mark và không hủy nó. Giảm chuyển động: không
 intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
 
 ### State machine màu
 
-Header có một trong ba trạng thái màu mark. Header ở tone mực (nền trắng) khi
+Header có một trong hai trạng thái màu mark. Header ở tone mực (nền trắng) khi
 một trong ba điều kiện đúng: đã cuộn quá `100px` (sticky), section đang dưới
 header có `data-header-tone="ink"`, hoặc đang chuyển route mà trang đích chưa
 sẵn sàng.
@@ -151,16 +155,15 @@ sẵn sàng.
 | Trạng thái | Lớp header | Mark |
 | --- | --- | --- |
 | Trắng | `is-brand-inverse` | Bốn path trắng |
-| Đen tạm | `is-brand-color-reset` | Bốn path `#2b2a29`, không transition |
 | CMYK | `is-brand-color` | Bốn màu |
 
 | Từ | Sự kiện | Tới | Cách chuyển |
 | --- | --- | --- | --- |
 | Chưa vẽ | Mở trang (direct, F5) trên nền ảnh | Trắng | Ngay, không transition |
-| Chưa vẽ | Mở trang trên nền trắng | Đen tạm, rồi CMYK | Vẽ đen một frame, frame sau chạy chuỗi vào CMYK |
-| Trắng | Cuộn thành sticky, vào section nền trắng, bắt đầu chuyển route | CMYK | Chuỗi vào CMYK, đi thẳng từ trắng |
-| CMYK | Về đầu trang trên ảnh, vào section nền tối, trang đích có hero ảnh | Trắng | Chuỗi rời CMYK |
-| Đang chuyển | Đổi hướng giữa chừng | Trạng thái mới | Đi tiếp từ màu đang hiển thị, không nhảy hay reset |
+| Chưa vẽ | Mở trang trên nền trắng | CMYK | CMYK mọc lên trên lớp đen `#2b2a29` |
+| Trắng | Cuộn thành sticky, vào section nền trắng, bắt đầu chuyển route | CMYK | CMYK mọc lên trên lớp trắng |
+| CMYK | Về đầu trang trên ảnh, vào section nền tối, trang đích có hero ảnh | Trắng | Trắng mọc lên trên lớp CMYK |
+| Đang mọc | Đổi hướng giữa chừng | Trạng thái mới | Phần đang hiển thị thành lớp cũ, lớp mới mọc lại từ chân |
 
 - Chuyển route: khi bấm link, header ghim lại ở tone mực và mark chuyển sang
   CMYK; khi HTML trang đích sẵn sàng, mark chuyển theo tone của trang đích
@@ -172,7 +175,7 @@ sẵn sàng.
 
 - Code: `truong-thinh-lockup.svg` và mười bản inline ở năm trang; CSS
   `.brand-lockup`, `.site-header.is-brand-*`, `.menu-brand` trong `style.css`;
-  `syncHeaderBrandSurface`, `colorHeader`, `playHeaderLockupScaleMotion` trong
+  `syncHeaderBrandSurface`, `paintHeaderMark`, `colorHeader`, `playHeaderLockupScaleMotion` trong
   `motion.js`.
 - Tích hợp và test: [shell spec](../docs/specs/site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop).
 
