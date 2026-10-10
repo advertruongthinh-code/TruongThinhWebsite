@@ -689,10 +689,10 @@
       document.body.classList.contains("menu-open") ||
       typeof window.LocomotiveScroll === "undefined"
     ) {
-      window.scrollTo(0, scrollY);
+      window.scrollTo({ top: scrollY, behavior: "instant" });
       return;
     }
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "instant" });
     state.smoothScroll = new window.LocomotiveScroll({
       el: state.container,
       smooth: true,
@@ -800,7 +800,9 @@
       element.style.removeProperty("will-change");
     });
     document.body.style.removeProperty("height");
-    window.scrollTo(0, scrollY);
+    // html có scroll-behavior: smooth; khôi phục vị trí phải tức thì, nếu không scrollY trượt dần từ 0 và
+    // lần đổi mode kế tiếp (resize nhanh qua mốc 981px) đọc nhầm vị trí giữa chừng.
+    window.scrollTo({ top: scrollY, behavior: "instant" });
   };
 
   const destroySmoothScroll = (state) => {
@@ -2508,7 +2510,7 @@
       const scrollY = getPageScroll();
       destroySmoothScroll(pageState);
       initSmoothScroll(pageState, scrollY);
-      setPageScroll(pageState, scrollY);
+      setPageScroll(pageState, scrollY, { instant: true });
     },
     { signal: runtimeAbort.signal },
   );

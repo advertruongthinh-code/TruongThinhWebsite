@@ -121,3 +121,21 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
   await page.goBack();
   await expect(page).toHaveURL(/\/vi\/advertising-products\/(\?(?!.*photo=).*)?$/);
 });
+
+test("crossing the smooth-scroll breakpoint and back keeps the scroll position", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await expect(page.locator("html")).not.toHaveClass(/route-enter/);
+  await expect(page.locator("html")).toHaveClass(/has-scroll-smooth/);
+  await page.waitForTimeout(1_000);
+  await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(6_000));
+  await page.waitForTimeout(500);
+  const before = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+  expect(before).toBeGreaterThan(5_000);
+  // Kéo cửa sổ nhanh qua mốc 981px rồi quay lại: scroll khôi phục phải tức thì, không trượt theo CSS smooth.
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForTimeout(1_500);
+  const after = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+  expect(after, `scroll before ${before}`).toBeGreaterThan(before / 2);
+});
