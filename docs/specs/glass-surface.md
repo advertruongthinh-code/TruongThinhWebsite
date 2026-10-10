@@ -171,7 +171,8 @@ báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi 
 bậc cho dạng cung). Số bậc trong cung tự chọn theo máy (R2) để giữ gate; trần
 `100px` của ảnh nền primary chưa đo trên A05s. Kính hiện/tan trên primary detail: năm bậc `backdrop-filter`
 phủ cả hero rơi gate pha mở (A05s p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
-là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame), trên nền màu skeleton, hiện theo
+là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
+trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
 crossfade của ảnh (`glass-surface__step--baked`); vẫn 5-10% frame chậm, nên điện thoại (pointer coarse hoặc
 cảm ứng) chỉ crossfade ảnh chính (owner 10/10). Kính hiện/tan trên card giữ năm bậc. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
