@@ -23,7 +23,7 @@ updated: 2026-10-07
 
 Ba trang con `/vi/residential/`, `/vi/commercial/`, `/vi/about/` (EN tương đương, mỗi trang một file
 `src/site/<trang>/index.html`) dùng chung `detail.css`, `detail.js`. Residential, Commercial giới thiệu một lĩnh vực
-nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo. Header, menu, footer, veil, scroll thuộc
+nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo trong `.detail-cta`. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vệt sáng chờ ảnh thuộc
 [tải ảnh](media-delivery.md); phần Advertising trong hai file chung thuộc spec Advertising.
 
@@ -49,8 +49,9 @@ Then html có lang="en", title "Commercial spaces — Trường Thịnh", hero p
 
 ### R2. Residential và Commercial: section và nội dung
 
-`main#noi-dung` có một `h1`, mười một khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là lời
-mời rồi footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
+`main#noi-dung` có một `h1`, mười một khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
+footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã
+mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
@@ -238,7 +239,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 ## UI
 
 Component [Hero](../../design-system/components/Hero/README.md), [Gallery](../../design-system/components/Gallery/README.md),
-[Footer](../../design-system/components/Footer/README.md) (lời mời). Motion [text](../../design-system/motion.md#text),
+[Footer](../../design-system/components/Footer/README.md). Motion [text](../../design-system/motion.md#text),
 [hover](../../design-system/motion.md#hover), [parallax](../../design-system/motion.md#smooth-scroll-và-parallax). Copy và
 ảnh: [hero ba route](../../design-system/content.md#hero-ba-route-dịch-vụ), [mạch nội dung](../../design-system/content.md#mạch-nội-dung-theo-route),
 [crop](../../design-system/content.md#crop-và-con-người). Màu, chữ, layout: [Design System](../../design-system/README.md).
