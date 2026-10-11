@@ -545,6 +545,9 @@ html[lang="vi"]
 
 .detail-cta__copy a {
   display: inline-flex;
+  /* Vùng chạm 44px như .site-invitation__link; gạch chân vẫn là border-bottom. */
+  min-height: 44px;
+  align-items: center;
   padding-bottom: 0.25rem;
   margin-top: 2rem;
   gap: 2rem;
