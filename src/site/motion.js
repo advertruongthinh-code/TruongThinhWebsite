@@ -1593,6 +1593,8 @@
     };
   };
 
+  const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+
   const unmountPage = () => {
     if (!pageState) return;
     const state = pageState;
@@ -1667,6 +1669,8 @@
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
+    // Motion trang là task riêng, không cộng vào task render của catalog.
+    if (softNavigation) await nextTask();
     if (
       pageState !== state ||
       state.abort.signal.aborted ||
@@ -2802,10 +2806,15 @@
               },
               async leave(data) {
                 await coverRoute(closeMenu(false));
+                // Unmount chạy ngoài frame vừa kết thúc veil.
+                await nextTask();
                 unmountPage();
                 data.current.container.hidden = true;
               },
               async beforeEnter(data) {
+                // Mỗi bước nặng (unmount, đồng bộ document, mount) là một task riêng để không long task > 50ms
+                // trên A05s (decision a05s-frame-budget).
+                await nextTask();
                 if (!syncDocumentState(data.next.html)) {
                   const fallbackUrl = new URL(
                     pendingLocaleNavigation?.url.href || data.next.url.href,
@@ -2823,6 +2832,7 @@
                     return;
                   }
                 }
+                await nextTask();
                 const nextUrl = new URL(data.next.url.href, window.location.href);
                 restorePendingLocaleUrl(nextUrl);
                 const scrollY = resolveNextScroll(data);
