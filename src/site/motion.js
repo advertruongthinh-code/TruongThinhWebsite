@@ -609,7 +609,7 @@
   };
   function syncHeaderBrandSurface(whiteSurface, fade) {
     if (whiteSurface) {
-      if (lastHeaderWhiteSurface === undefined) {
+      if (lastHeaderWhiteSurface === undefined && !fade) {
         // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
         paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
@@ -1914,12 +1914,15 @@
     routeInFlight = false;
     routeDestinationReady = false;
     routeMountReady = false;
-    routeMarkHeld = false;
     document.documentElement.classList.remove("route-enter");
     document.body.classList.remove("is-transitioning");
     header.classList.remove("is-route-pinned");
     updateToneRanges();
     updateHeader();
+    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; vẫn sửa bằng crossfade, không mọc
+    // (logo-route-crossfade R2).
+    if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
+    routeMarkHeld = false;
     setRouteVeil(0);
     // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
