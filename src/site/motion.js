@@ -679,7 +679,9 @@
     );
     state.smoothScrollY = nextScroll;
     if (state.smoothScroll) {
-      window.scrollTo(0, 0);
+      // Không truyền behavior thì `html { scroll-behavior: smooth }` trượt native scroll lệch về 0 qua nhiều frame;
+      // Chrome bỏ qua style inline mới đặt với scrollTo(0, 0) vì không cập nhật style cho tọa độ này.
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       // Điều hướng bằng query có thể thay một detail ngắn bằng grid cao hơn nhiều.
       state.smoothScroll.update();
       state.smoothScroll.scrollTo(nextScroll, {
