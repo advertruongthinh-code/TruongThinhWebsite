@@ -2699,6 +2699,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     relatedLayoutKey = "";
     relatedMeasuredGeometry = null;
   };
+  // Card đã đặt kích thước theo relatedLayout nào; cùng layout thì cuộn không ghi lại.
+  const relatedSized = new WeakMap();
   const ensureRelatedPhoto = (id) => {
     const placement = relatedLayout?.photoPlacements.find((entry) => entry.card.id === id);
     if (!placement || !relatedGrid) return null;
@@ -2711,7 +2713,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedGrid.append(node);
       setPlacementStyle(node, placement);
       node.dataset.advertisingRelatedItem = id;
-    }
+    } else if (relatedSized.get(node) === relatedLayout) return node;
+    relatedSized.set(node, relatedLayout);
     node.style.width = `${placement.pixelWidth}px`;
     node.style.height = `${placement.pixelHeight}px`;
     node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
@@ -2818,9 +2821,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const columnHead = destination.x < relatedLayout.primary.width
         ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
       const origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
-      node.style.left = `${origin.x}px`;
-      node.style.top = `${origin.y}px`;
-      node.style.transform = "none";
+      // Chỉ ghi khi đổi: cuộn related ghi lại mọi card đang mount ở mỗi lần cửa sổ đổi.
+      const left = `${origin.x}px`;
+      const top = `${origin.y}px`;
+      if (node.style.left !== left) node.style.left = left;
+      if (node.style.top !== top) node.style.top = top;
+      if (node.style.transform !== "none") node.style.transform = "none";
     }
     if (keepSuggestion && suggestionNode) {
       const destination = relatedPositions.get(suggestionId);
@@ -2830,27 +2836,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       suggestionNode.style.transform = "none";
     }
     restoreRelatedDomOrder();
-    const applyLayout = () => {
+    // Không motion thì vị trí đã ghi ở trên; bỏ Masonry như placeRendered, vì layout() đo lại mọi card (getSize)
+    // trong lúc cuộn related, long task trên A05s (decision a05s-frame-budget).
+    if (!motion) {
+      relatedGrid.style.height = `${relatedPixelHeight}px`;
+      return;
+    }
+    void relatedGrid.offsetHeight;
+    relatedMotionFrame = requestAnimationFrame(() => {
       relatedMotionFrame = 0;
       if (!relatedMasonry) relatedMasonry = createMasonry(relatedGrid, relatedPositions, () => relatedPixelHeight, {
         itemSelector: "[data-advertising-related-item]",
         getId: (node) => node.dataset.advertisingRelatedItem,
       });
-      relatedMasonry.options.layoutInstant = !motion;
-      relatedMasonry.options.transitionDuration = reduced ? 0 : "0.4s";
+      relatedMasonry.options.layoutInstant = false;
+      relatedMasonry.options.transitionDuration = "0.4s";
       relatedMasonry.reloadItems();
-      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = !motion || item.element.hidden; });
+      relatedMasonry.items.forEach((item) => { item.isLayoutInstant = item.element.hidden; });
       relatedMasonry.layout();
-      if (motion) relatedMotionTimer = setTimeout(() => {
+      relatedMotionTimer = setTimeout(() => {
         relatedMotionTimer = 0;
         cancelMasonryTransitions(relatedMasonry);
         renderRelatedWindow();
       }, 400);
-    };
-    if (motion) {
-      void relatedGrid.offsetHeight;
-      relatedMotionFrame = requestAnimationFrame(applyLayout);
-    } else applyLayout();
+    });
   };
   const relatedTypographyKey = () => [document.documentElement, photoInfo, photoDescription]
     .map((node) => node ? getComputedStyle(node).fontSize : "").join(":");
@@ -3033,8 +3042,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    // Điện thoại chỉ crossfade: Kính phủ cả hero làm pha mở rơi dưới 60fps trên A05s (owner chọn 10/10, glass-surface R7).
-    reveal.glass = skeletonPhone() ? null : bakedRevealGlass(heroFrame, bitmap);
+    reveal.glass = bakedRevealGlass(heroFrame, bitmap);
     bitmap?.close();
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
     const baked = [...reveal.glass?.querySelectorAll(".glass-surface__step--baked > canvas") ?? []];
@@ -3118,12 +3126,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }, 100);
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
-      const bitmap = reduced || skeletonPhone() ? null : bakedBitmap(source);
+      const bitmap = reduced ? null : bakedBitmap(source);
       photoImage.decode().then(() => bitmap).then((baked) => {
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
-        // Điện thoại: nền blur 100px nằm yên dưới skeleton đang tan, để GPU không tính lại blur mỗi frame crossfade.
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], skeletonPhone() ? [photoImage] : incoming, MEDIA_REVEAL_MS, baked);
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS, baked);
         else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
         else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
       }, () => {

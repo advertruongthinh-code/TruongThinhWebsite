@@ -1,10 +1,11 @@
 ---
 title: Trên 60fps trên A05s
 status: accepted
-date: 2026-10-10
+date: 2026-10-11
 scope: mọi trang public và hiệu ứng
 tags: [performance, mobile]
-supersedes: []
+supersedes:
+  - https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/9bc719b/docs/decisions/a05s-frame-budget.md
 related_specs:
   - ../specs/advertising-skeleton.md
   - ../specs/glass-surface.md
@@ -19,13 +20,16 @@ related_reports: []
 Owner thêm yêu cầu phi chức năng ngày 2026-10-10: "phải đạt trên 60 fps trên A05s". A05s (SM-A057F) là máy Android
 đo chuẩn ([phát hành tĩnh](../specs/static-release.md#gate-còn-mở)); màn tối đa 90Hz theo
 [GSMArena](https://www.gsmarena.com/samsung_galaxy_a05s-review-2646p3.php). Các spec trước chỉ đặt sàn `30fps`.
+Ngày 2026-10-11 owner hạ gate: "trên a05s >= 60 fps là pass", chọn fps trung bình và bỏ điều kiện long task. Bản p5
+cũ: [a05s-frame-budget.md tại 9bc719b](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/9bc719b/docs/decisions/a05s-frame-budget.md).
 
 ## Decision
 
 Trên A05s, Chrome thật, màn chạy 90Hz: mọi trang public và mọi hiệu ứng (cuộn, mở và đóng chi tiết, viewer, menu,
-skeleton, Kính) có p5 fps của frame hiển thị (SurfaceFlinger, layer Chrome) từ `60fps` trở lên, tức tối đa 5% frame
-dài hơn `16.7ms`; mục tiêu `90fps` (`11.1ms`); không long task trên `50ms`. Median không dùng làm gate vì ở 90Hz
-median luôn `90fps` kể cả khi giật. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
+skeleton, Kính) có fps trung bình của frame hiển thị (SurfaceFlinger, layer Chrome) từ `60fps` trở lên; mục tiêu
+`90fps` (`11.1ms`). Fps trung bình là số frame chia tổng khoảng present-to-present trong lượt đo, bỏ các khoảng lặng
+từ `100ms` (trang đứng yên, không phải giật). Long task không còn là điều kiện pass; p5 và long task vẫn ghi để tìm
+chỗ giật. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
 và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).
 
 ## Alternative đã cân nhắc
@@ -64,5 +68,6 @@ và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).
 - **Long task**: tác vụ chiếm main thread quá `50ms`, làm rớt frame.
 - **Probe rAF**: script ghi khoảng cách giữa các `requestAnimationFrame` để tính fps.
 - **p5 fps**: mức fps mà 95% frame đạt hoặc vượt.
+- **Fps trung bình**: số frame chia tổng thời gian giữa các frame trong lượt đo.
 - **SurfaceFlinger**: dịch vụ Android ghép và đưa frame lên màn.
 - **Follow-up**: việc cần làm tiếp theo.
