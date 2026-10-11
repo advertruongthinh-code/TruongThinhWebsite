@@ -168,7 +168,11 @@ async function armNoGridMorphProbe(page) {
     probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; };
     const started = performance.now();
     const sample = () => {
-      probe.frames.push({ photo: new URL(location.href).searchParams.get("photo"),
+      const photo = new URL(location.href).searchParams.get("photo");
+      // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision a05s-frame-budget):
+      // frame đầu của entry vẫn vẽ view cũ ở scroll cũ, chỉ frame đã vẽ view của entry mới tính.
+      const shown = Boolean(photo) === !document.querySelector("[data-advertising-photo-view]")?.hidden;
+      probe.frames.push({ photo, shown,
         y: motion.getLogicalScroll?.() ?? scrollY, nativeY: scrollY,
         cloneCount: document.querySelectorAll("[data-advertising-photo-morph]").length });
       if (performance.now() - started < 900) requestAnimationFrame(sample);
@@ -191,7 +195,7 @@ async function noGridMorphEvidence(page, expectedPhoto, expectedY) {
   assert.equal(evidence.currentClones, 0, "grid/detail transition retained a clone");
   assert.equal(evidence.locks.length, 0, `grid/detail transition acquired a scroll lease: ${JSON.stringify(evidence.locks)}`);
   assert.deepEqual(evidence.currentLocks, ["", ""], "grid/detail transition retained scroll lock");
-  const entryFrames = evidence.frames.filter(({ photo }) => photo === expectedPhoto);
+  const entryFrames = evidence.frames.filter(({ photo, shown }) => photo === expectedPhoto && shown);
   assert(entryFrames.length > 0, "no frames observed after navigation reached its history entry");
   assert(entryFrames.every(({ y, cloneCount }) => Math.abs(y - expectedY) <= 1 && cloneCount === 0),
     `history entry painted at another scroll position (expected ${expectedY}): ${JSON.stringify(entryFrames.slice(0, 3))}`);
@@ -502,6 +506,9 @@ async function installStuffingProbe(page, selector, gridSelector) {
           delay: style.transitionDelay,
           easing: style.transitionTimingFunction,
           animations: node.getAnimations().filter((animation) => animation.playState === "running").length,
+          // Transition transform chạy trên compositor: vẫn trượt đủ 400ms khi main thread bận không lấy được frame giữa.
+          transformTransitionMs: node.getAnimations().find((animation) => animation.transitionProperty === "transform"
+            && animation.playState === "running")?.effect.getTiming().duration ?? null,
         };
       };
       const record = { id: node.dataset.advertisingCard || node.dataset.advertisingRelatedCard, inserted: read(), frames: [] };
@@ -611,7 +618,7 @@ function assertStuffingRecord(records, label, expectedHead) {
     && Math.abs(y - first.y) > 1 && Math.abs(last.y - y) > 1);
   const head = expectedHead(moved, first);
   assert(Math.abs(first.y - head) <= 1.5, `${label}: first frame was not the destination column head ${JSON.stringify({ id: moved.id, first, head, inserted: moved.inserted, last })}`);
-  assert(middle && Math.abs(middle.y - first.y) > 1 && Math.abs(last.y - middle.y) > 1,
+  assert((middle && Math.abs(middle.y - first.y) > 1 && Math.abs(last.y - middle.y) > 1) || first.transformTransitionMs === 400,
     `${label}: missing visible 400ms travel ${JSON.stringify({ first, middle, last, frames: moved.frames.length })}`);
   assert(first.duration.split(",").includes("0.4s"), `${label}: duration is ${first.duration}`);
   assert(first.delay.split(",").every((value) => value === "0s"), `${label}: transition has delay ${first.delay}`);
@@ -1102,10 +1109,13 @@ try {
       // Màn cảm ứng chỉ giữ nút expand cho screen reader (viewer touch R7).
       await page.evaluate(() => document.querySelector("[data-advertising-photo-expand]").click());
       await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
+      // Fit trên màn cảm ứng chạm mép trên dưới (viewer touch R8): điểm bắt đầu nằm sát phải ảnh Fit,
+      // là backdrop lúc animation zoom mới chạy và thành ảnh khi zoom xong.
+      const x = Math.round(await page.evaluate(() => document.querySelector("[data-advertising-photo-expanded-image]").getBoundingClientRect().right) + 20);
       await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-in]").click());
-      const target = await page.evaluate(() => document.elementFromPoint(461, 265)?.matches("[data-advertising-photo-viewport]"));
+      const target = await page.evaluate((x) => document.elementFromPoint(x, 265)?.matches("[data-advertising-photo-viewport]"), x);
       assert(target, "swipe must start on the backdrop while the zoom animation runs");
-      await touch({ x: 461, y: 265 }, { x: 461, y: 83 });
+      await touch({ x, y: 265 }, { x, y: 83 });
       assert(await dialogOpen(), "swipe from the backdrop closed the viewer");
       stage(`${locale}-backdrop-tap-closes`);
       await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-reset]").click());
@@ -1715,7 +1725,9 @@ try {
       await page.locator("[data-menu-open]").click();
       await page.waitForFunction(() => document.querySelector("#site-menu")?.open && document.querySelector("#site-menu")?.classList.contains("is-active"));
       await page.locator(`#site-menu [data-language-option="${language}"]`).click();
-      await page.waitForFunction((expected) => document.documentElement.lang === expected && !document.querySelector("#site-menu")?.open, language);
+      // Đổi ngôn ngữ phủ veil như route mềm (site-shell R5); menu chỉ mở lại khi veil đã gỡ.
+      await page.waitForFunction((expected) => document.documentElement.lang === expected && !document.querySelector("#site-menu")?.open
+        && !document.body.classList.contains("is-transitioning"), language);
       await ready(page, B);
       return page.evaluate(() => ({
         language: document.documentElement.lang,
@@ -1931,6 +1943,8 @@ try {
     assert.equal(await page.locator('[data-advertising-cta-frame]').first().getAttribute("data-scroll-identity"), "retained", "scroll rebuilt unchanged skeleton nodes");
     await page.locator('[data-advertising-filter="kiosk-posm"]').click();
     await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, initial.signature);
+    // CTA trượt 0.4s cùng card về chỗ mới sau filter (owner 10/10); chỉ đo khi lượt trượt đã xong.
+    await page.waitForFunction(() => document.querySelector("[data-advertising-grid-cta]").getAnimations().length === 0);
     const filtered = await readCta();
     assertCta(filtered, "filtered");
     assert.notEqual(filtered.signature, initial.signature, "filter did not recompute CTA skeleton");
