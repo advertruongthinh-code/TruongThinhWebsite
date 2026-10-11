@@ -597,6 +597,15 @@ async function activateWithoutViewer(page, context, action, externalRequests, la
     return;
   }
   if (action === "keyboard") await focusByKeyboard(page, "[data-advertising-photo-cta]");
+  // Tab qua control trước đó kéo smooth scroll, smooth scroll snap về đích khi xong; chuột và chạm bấm khi trang
+  // đã đứng yên như người dùng (Playwright đòi CTA đứng yên, GPU phần mềm trên cloud chỉ ~15fps nên lerp kéo dài).
+  else await page.evaluate(async () => {
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    for (let previous = NaN, current; (current = window.TruongThinhMotion.getLogicalScroll()) !== previous; previous = current) {
+      await frame();
+      await frame();
+    }
+  });
   const activate = action === "keyboard" ? () => page.keyboard.press("Enter")
     : action === "touch" ? () => cta.tap()
       : () => cta.click();

@@ -73,6 +73,9 @@ function watch(page) {
 async function advertisingReady(page, route = "advertising-products/") {
   await page.goto(url(route), { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()), undefined, { timeout: 12_000 });
+  // Veil vào trang còn nhận hit test tới khi gỡ; chạm và elementFromPoint chỉ đo khi veil đã gỡ.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+    && !document.body.classList.contains("is-transitioning"));
 }
 
 async function settledHistory(page, expectedPhoto) {
@@ -336,7 +339,8 @@ try {
   await runCase(browser, "viewer-two-finger-image-pinch", async (page, context) => {
     await advertisingReady(page, `vi/advertising-products/?photo=${photoId}`);
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.naturalWidth > 0);
-    await page.locator("[data-advertising-photo-expand]").click();
+    // Màn cảm ứng ẩn nút expand khỏi mắt, chạm ảnh primary mở viewer (viewer touch R7, R8).
+    await page.locator("[data-advertising-photo-image]").tap();
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
     const image = page.locator("[data-advertising-photo-expanded-image]");
     const box = await image.boundingBox();
