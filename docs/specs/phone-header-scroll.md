@@ -5,7 +5,7 @@ source: []
 tests:
   - tests/site/phone-header-scroll.e2e.mjs
 notion: none
-updated: 2026-10-10
+updated: 2026-10-11
 ---
 
 # Header đi theo ngón tay trên điện thoại
@@ -94,8 +94,8 @@ Then header và logo giữ nguyên chiều cao (412×915: header 71px, logo 50px
 ## Hiệu năng
 
 Chỉ ghi `transform` một lần mỗi frame. `H` đọc `offsetHeight` một lần khi header đổi thu gọn, resize
-hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ NFR fps hiện có trên A05s:
-tối đa 5% frame dưới 60fps (p5 SurfaceFlinger từ 60), không long task trên 50ms khi cuộn trang dài.
+hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate A05s](../decisions/a05s-frame-budget.md)
+(fps trung bình từ 60) khi cuộn trang dài.
 
 ## Kiểm tra
 
