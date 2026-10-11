@@ -31,7 +31,7 @@ let activeInstance;
 
 const startLayoutWorker = () => new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
 // Một lần compile trên Worker riêng; null khi Worker hoặc clone lỗi để caller compile đồng bộ.
-const compileInWorker = (options, worker = startLayoutWorker()) => new Promise((resolve) => {
+const compileInWorker = (options, worker) => new Promise((resolve) => {
   worker.onmessage = ({ data }) => resolve(data);
   worker.onerror = () => resolve(null);
   try {
@@ -1126,8 +1126,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoZoomReset = photoView?.querySelector("[data-advertising-photo-zoom-reset]");
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
 
-  // Khởi động Worker song song với lúc tải artifact.
-  const layoutWorker = startLayoutWorker();
+  // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó, các lần sau mở Worker mới.
+  let idleWorker = startLayoutWorker();
+  const takeWorker = () => {
+    const worker = idleWorker || startLayoutWorker();
+    idleWorker = undefined;
+    return worker;
+  };
   const artifact = await loadArtifact();
   if (!artifact || typeof artifact !== "object") {
     const error = new Error("Advertising artifact must be an object");
@@ -1442,7 +1447,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const prewarmGeometry = async (targetFilter) => {
     const { key, compileOptions } = geometryRequest(targetFilter);
     if (geometries.has(key)) return;
-    const layout = (await compileInWorker(compileOptions, layoutWorker))?.layout;
+    const layout = (await compileInWorker(compileOptions, takeWorker()))?.layout;
     const code = Reflect.get(layout?.diagnostics ?? {}, "code");
     if (layout && (!code || code === "needs-media") && !geometries.has(key)) cacheGeometry(key, layout);
   };
@@ -3301,7 +3306,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       } finally {
         relatedCompile = compileAdvertisingProductLayout;
       }
-      const result = await compileInWorker(pending.options);
+      const result = await compileInWorker(pending.options, takeWorker());
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return false;
       if (!result) {
         relatedLayoutKey = "";
@@ -3621,6 +3626,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       scrollY: getLogicalScroll(),
       viewportWidth: document.documentElement.clientWidth,
     });
+    // Scroll ngay trước tap chưa kịp vào entryScroll (scroll event đến frame sau); Back phải về đúng Y lúc tap.
+    entryScroll.delete(entryIndex());
     browseHistory.openPhoto(card.dataset.advertisingCard, activeId || null);
   }, { signal: controller.signal });
   grid.addEventListener("keydown", (event) => {
@@ -3843,7 +3850,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const cleanup = () => {
     if (cleaned) return;
     cleaned = true;
-    layoutWorker.terminate();
+    idleWorker?.terminate();
     signal?.removeEventListener("abort", cleanup);
     controller.abort();
     clearTimeout(revealHoldTimer);
