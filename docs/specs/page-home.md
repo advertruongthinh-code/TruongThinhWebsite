@@ -78,7 +78,7 @@ slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặ
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
-`-2`. Hero cao `100svh`; tới 980px theo luồng chữ, nút dừng và cue xếp dưới tiêu đề nên chữ 200% không
+`-2`. Hero cao `100svh`; tới 980px theo luồng chữ, tối thiểu `100svh`, nút dừng và cue xếp dưới tiêu đề nên chữ 200% không
 đè header; tới 680px tiêu đề căn trái.
 
 ```gherkin

@@ -1066,7 +1066,8 @@ html[lang="en"]
 
 /* Trang About */
 .about-page .about-hero {
-  min-height: 46rem;
+  /* Hero theo luồng chữ tới 980px vẫn phủ kín màn hình. */
+  min-height: max(46rem, 100svh);
 }
 
 .about-hero__media,
@@ -1368,7 +1369,7 @@ html[lang="en"]
   }
 
   .about-page .about-hero {
-    min-height: 44rem;
+    min-height: max(44rem, 100svh);
   }
 
   .about-hero__media img {

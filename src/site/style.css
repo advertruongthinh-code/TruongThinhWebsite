@@ -1283,10 +1283,9 @@ em {
   min-height: 15rem;
   padding: 0 35px;
   margin-inline: auto;
-  /* Hai cột tới cả PC: bốn cột ép cột chữ còn khoảng 130px ở 1440. */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: stretch;
-  gap: 3rem clamp(2rem, 2.5vw, 2.5rem);
+  gap: clamp(1.5rem, 2.5vw, 2.5rem);
 }
 
 .editorial-strip:focus-visible,
@@ -2536,6 +2535,16 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     min-height: 38rem;
   }
 
+  /* Hero trang chủ theo luồng chữ nhưng vẫn phủ kín màn hình; chữ phóng to đẩy hero cao thêm. */
+  .hero[data-hero-intro] {
+    min-height: max(38rem, 100svh);
+  }
+
+  .editorial-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem 2rem;
+  }
+
   .editorial-item {
     --editorial-image-height: 13rem;
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
@@ -2651,6 +2660,10 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
   .hero {
     min-height: 35rem;
+  }
+
+  .hero[data-hero-intro] {
+    min-height: max(35rem, 100svh);
   }
 
   .hero-content {
