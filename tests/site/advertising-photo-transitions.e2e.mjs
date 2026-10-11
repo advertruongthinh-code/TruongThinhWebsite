@@ -461,6 +461,8 @@ async function installRelatedMediaProbe(page) {
           opacity: Number(style.opacity),
           duration: style.transitionDuration,
           easing: style.transitionTimingFunction,
+          // Như stuffing: transition opacity vẫn chạy khi main thread bận không lấy được frame giữa.
+          fading: image.getAnimations().some((animation) => animation.transitionProperty === "opacity" && animation.playState === "running"),
         });
         if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
         else sampling.delete(image);
@@ -481,7 +483,9 @@ function assertMediaFade(record, label) {
   const first = record.frames[0];
   const middle = record.frames.find(({ opacity }) => opacity > 0.05 && opacity < 0.95);
   const last = record.frames.at(-1);
-  assert(first.opacity <= 0.05 && middle?.opacity > first.opacity && middle.opacity < 1 && last.opacity >= 0.99,
+  const travelled = (middle?.opacity > first.opacity && middle.opacity < 1)
+    || record.frames.some(({ opacity, fading }) => fading && opacity <= 0.05);
+  assert(first.opacity <= 0.05 && travelled && last.opacity >= 0.99,
     `${label}: opacity did not travel 0 to 1 ${JSON.stringify({ first, middle, last })}`);
   assert(first.duration.split(",").includes("0.6s") && first.easing.split(",").includes("ease-out"),
     `${label}: media timing differs from 0.6s ease-out ${JSON.stringify(first)}`);
