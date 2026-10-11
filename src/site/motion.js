@@ -1648,12 +1648,16 @@
     const legacyTitle = legacyCopy?.querySelector("h2");
     if (legacyTitle) {
       const fitLegacyTitle = () => {
-        for (let size = 4; size >= 1.5; size -= 0.25) {
+        legacyCopy.classList.remove("is-overflowing");
+        let fits = false;
+        for (let size = 4; size >= 1.5 && !fits; size -= 0.25) {
           legacyTitle.style.fontSize = `${size}rem`;
           const clipped = [legacyTitle, ...legacyTitle.querySelectorAll(".line-mask")]
             .some((node) => node.scrollWidth > node.clientWidth);
-          if (!clipped && legacyCopy.scrollHeight <= legacyCopy.clientHeight) break;
+          fits = !clipped && legacyCopy.scrollHeight <= legacyCopy.clientHeight;
         }
+        // Tới 1.5rem vẫn tràn (chữ 200%, màn thấp): trả vùng chữ về flow để khối cao theo chữ.
+        legacyCopy.classList.toggle("is-overflowing", !fits);
       };
       const titleObserver = new ResizeObserver(fitLegacyTitle);
       titleObserver.observe(legacyCopy);
