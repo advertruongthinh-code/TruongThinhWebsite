@@ -3528,6 +3528,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
+      // Thanh địa chỉ ẩn, hiện chỉ đổi innerHeight (batch theo svh không dựng lại): parallax CTA phải tính lại theo innerHeight mới.
+      syncCtaParallax();
       scheduleScroll();
     });
   };
