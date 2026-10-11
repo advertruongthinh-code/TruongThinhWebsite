@@ -3045,9 +3045,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     reveal.glass = bakedRevealGlass(heroFrame, bitmap);
     bitmap?.close();
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-    const baked = [...reveal.glass?.querySelectorAll(".glass-surface__step--baked > canvas") ?? []];
-    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total),
-      ...(reveal.glass ? playGlassReveal(reveal.glass, total) : [])];
+    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
+    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
     Promise.all(reveal.animations.map(({ finished }) => finished))
       .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };

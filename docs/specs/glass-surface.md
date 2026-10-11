@@ -166,8 +166,9 @@ bậc cho dạng cung). Số lớp theo loại máy (R2); trần
 phủ cả hero rơi gate pha mở (A05s p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
 là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
 trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
-crossfade của ảnh (`glass-surface__step--baked`). Điện thoại chạy cùng motion này như PC (owner 11/10, sau khi hạ
-gate A05s về `60fps`). Kính hiện/tan trên card giữ năm bậc. Có tiền tố
+crossfade của ảnh (`glass-surface__step--baked`). Điện thoại chạy đúng như PC (owner 11/10,
+[R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)); dưới gate thì dừng, báo owner kèm số đo.
+Kính hiện/tan trên card giữ năm bậc. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
@@ -204,7 +205,7 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | R | Test hoặc command |
 | --- | --- |
 | R1–R5 | `node tests/site/glass-surface.test.mjs` (CSS, hình học); `node tests/site/glass-surface.e2e.mjs` (Chromium, `BASE_URL`) |
-| R6 | `glass-surface.test.mjs` (mức kính theo thời gian); `image-loading-frame.e2e.mjs` (P9: năm bậc, chỉ opacity đổi, gỡ sau khi xong; primary trên cảm ứng giống PC) |
+| R6 | `glass-surface.test.mjs` (mức kính theo thời gian); `image-loading-frame.e2e.mjs` (P9: năm bậc, chỉ opacity đổi, gỡ sau khi xong; primary phone khớp PC) |
 | R7 | đo qua CDP trên A05s thật (05/10); script đo chưa vào repo |
 | R8 | `glass-surface.e2e.mjs`, ca giảm chuyển động |
 
