@@ -2438,6 +2438,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!shouldAnimate || reduced) placeRendered();
       else {
         if (!masonry) masonry = createMasonry(grid, positions, () => gridPixelHeight);
+        // Thiếu option này Outlayer coi lần layout đầu là tức thì: lần dựng đầu mất motion từ đầu cột.
+        masonry.options.layoutInstant = false;
         masonry.options.transitionDuration = "0.4s";
         masonry.reloadItems();
         masonry.items.forEach((item) => {
