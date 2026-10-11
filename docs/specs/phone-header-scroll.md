@@ -106,9 +106,7 @@ tối đa 5% frame dưới 60fps (p5 SurfaceFlinger từ 60), không long task t
 
 ## Gate còn mở
 
-- Chưa đo fps khi cuộn trên A05s thật; agent đo khi điều phối giao máy.
 - Owner vuốt thử trên A05s sau khi code, so cảm giác với X. Owner.
-- R6 chỉ kiểm bằng giả lập touch trên cloud; chưa xem và đo fps trên A05s thật dọc và ngang (phiên PC sau).
 
 ## Chú thích thuật ngữ
 
