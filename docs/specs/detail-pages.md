@@ -116,7 +116,7 @@ Then mỗi trang một h1, không có bước nhảy cấp heading, không phầ
 Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), có kicker, `h1` hai dòng, scroll cue. Residential,
 Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
-không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
+không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ, cao tối thiểu `100svh`. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
 tính từ lúc mount: ảnh hero About `scale 1.2 → 1.005` trong 2,5s (ảnh hero Residential, Commercial đứng yên, không zoom); kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
 Residential, Commercial tách `h1` theo từ, hiện dần tại 0,9s; About không tách nên `h1` hiện ngay. `zoom-09` khác
 `words-09` chỉ ở chỗ xóa transform GSAP còn sót trên ảnh hero. Tải trực tiếp: entrance chạy song song lúc veil mở; hero
@@ -169,7 +169,7 @@ Then track cuộn sang phải, rồi dịch ít nhất 150px, không có dragsta
 
 Dải `.editorial-strip.detail-process-editorial` là `region` focus được, gắn nhãn bằng tiêu đề quy trình: bốn
 `article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
-đoạn; hai cột, tới 680px một cột và chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
+đoạn; bốn cột, tới 980px hai cột, tới 680px một cột và chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
 đầu tràn mép. `.portal-stage`: ba
 `article.service-portal` không link, không hover zoom, chữ theo [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.

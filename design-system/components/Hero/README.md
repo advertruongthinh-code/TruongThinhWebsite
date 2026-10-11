@@ -24,7 +24,8 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | Advertising | `paper`, chữ `ink` | Chữ hoa 600, `clamp(3.05rem, 7.2vw, 7rem)`, line-height 1.4; dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em`, cao `100svh - 50px` |
 
 Hero ảnh cao `100svh` (tối thiểu 42–46rem tùy trang); tới 980px chuyển sang
-luồng chữ tự nhiên để chữ tăng 200% không đè header. Ảnh đầu tải ngay với
+luồng chữ tự nhiên để chữ tăng 200% không đè header, nhưng vẫn cao tối thiểu
+`100svh` để phủ kín màn hình phone (owner 2026-10-11). Ảnh đầu tải ngay với
 `fetchpriority="high"`.
 
 ## Theo width
@@ -42,9 +43,9 @@ ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
 
 | Trang | Cao hero 320–390 | 768 | 1024–1440 |
 | --- | ---: | ---: | ---: |
-| Trang chủ | 560 | 608 | 900 |
+| Trang chủ | 844 | 900 | 900 |
 | Residential, Commercial | 844 | 900 | 900 |
-| About | 704 | 736 | 900 |
+| About | 844 | 900 | 900 |
 | Advertising | 794 | 850 | 850 |
 
 - Trang chủ và About dùng một cỡ cho hai dòng; dòng 2 nghiêng.
