@@ -273,6 +273,7 @@ html[lang="vi"]
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .detail-intro__copy {
@@ -410,7 +411,8 @@ html[lang="vi"]
 .detail-heading h2 {
   margin-top: 0.5rem;
   font-size: clamp(3rem, 5.8vw, 6.8rem);
-  line-height: 1;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 
 .detail-process {
@@ -1377,6 +1379,7 @@ html[lang="en"]
   .about-hero h1 {
     max-width: 8ch;
     font-size: clamp(4.4rem, 20vw, 5.7rem);
+    line-height: 1.15;
   }
 
   .about-hero .detail-title__strong {

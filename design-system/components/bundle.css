@@ -1033,6 +1033,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 .legacy-copy h2 {
   font-size: clamp(3.5rem, 6.7vw, 7.5rem);
   line-height: 0.98;
+  text-wrap: balance;
 }
 
 em {
@@ -1405,7 +1406,8 @@ em {
   font-size: clamp(3.05rem, 4.167vw, 4rem);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
-  line-height: 1.08;
+  line-height: 1.18;
+  text-wrap: balance;
   word-spacing: 0.1em;
 }
 
@@ -2655,7 +2657,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
   .portal-copy strong {
     font-size: clamp(2.7rem, 12vw, 4rem);
-    line-height: 1.08;
   }
 
   .portal-copy small {
@@ -2673,6 +2674,13 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
   .heritage-montage {
     padding: 2.5rem 20px;
+  }
+
+  /* Hàng wrap trên phone: nới khoảng giữa các dòng và giữa các hàng để dấu tiếng Việt dòng dưới không chạm chữ dòng trên. */
+  .heritage-row {
+    margin-block: 0.15em;
+    row-gap: 0.3em;
+    line-height: 1.2;
   }
 
   .story-link {
@@ -3339,6 +3347,7 @@ html[lang="vi"]
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  text-wrap: balance;
 }
 
 .detail-intro__copy {
@@ -3476,7 +3485,8 @@ html[lang="vi"]
 .detail-heading h2 {
   margin-top: 0.5rem;
   font-size: clamp(3rem, 5.8vw, 6.8rem);
-  line-height: 1;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 
 .detail-process {
@@ -4443,6 +4453,7 @@ html[lang="en"]
   .about-hero h1 {
     max-width: 8ch;
     font-size: clamp(4.4rem, 20vw, 5.7rem);
+    line-height: 1.15;
   }
 
   .about-hero .detail-title__strong {

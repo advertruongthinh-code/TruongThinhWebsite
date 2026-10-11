@@ -178,7 +178,8 @@ Kicker hero 14/19.6 ở Residential và Commercial tới 390px.
 **Quy tắc đọc trước.** Display tạo nhịp, body truyền thông tin, label định vị
 control. Không dùng weight hay tracking display cho đoạn đọc dài. Chữ không
 được clip dấu tiếng Việt (`Á`, `Ả`, `Ắ`); không dùng `overflow: hidden` để giả
-chiều cao dòng.
+chiều cao dòng. Chữ display nhiều dòng giữ line-height đủ để dấu dòng dưới
+không chạm chữ dòng trên (đo ở 360 và 390px, tiếng Việt).
 
 ## Layout
 
