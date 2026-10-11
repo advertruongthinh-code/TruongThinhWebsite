@@ -6,7 +6,7 @@ tests:
   - tests/site/scroll-feel.e2e.mjs
   - tests/site/middle-autoscroll.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed
-updated: 2026-10-10
+updated: 2026-10-11
 ---
 
 # Cảm giác cuộn chung theo trang chủ
@@ -104,6 +104,8 @@ cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và to
 - Ảnh phủ kín khối (`object-fit: cover`, giữa), lớp đen phủ opacity `0.2`. Không parallax (R3).
 - Vùng chữ rộng và cao 85% khối, cách mép 7.5%, xếp cột căn giữa. Tiêu đề viết hoa, căn giữa, line-height `1.4`; cỡ chữ
   bắt đầu 64px, giảm từng `0.25em` tới khi không tràn vùng chữ, thấp nhất `1.5em` (tức 24px), giữ nghĩa VI/EN, chữ 200%.
+  Vùng chữ căn giữa kiểu `safe` để phần tràn dồn xuống dưới, phép đo tràn thấy được. Không JS, motion fallback, hoặc tới
+  `1.5em` vẫn tràn: cao trong bảng là tối thiểu, vùng chữ nằm trong flow nên khối cao theo chữ, tiêu đề tối đa `12vw`.
 - Dưới tiêu đề 16px là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), tái dùng phụ đề portal trang chủ
   ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)): 16px, semibold, viết hoa, gạch chân 3px chạy từ trái
   khi hover hoặc focus. Cả khối bấm được, đích `/vi/about/` hoặc `/en/about/`.
