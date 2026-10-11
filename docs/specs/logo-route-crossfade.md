@@ -79,8 +79,8 @@ lớp đích hiện dần theo R1. Không frame nào trống mark hoặc có hai
 
 ## Hiệu năng
 
-Crossfade chỉ ghi `opacity` của lớp màu, không đọc layout mỗi frame. Giữ NFR fps trên A05s: tối đa 5% frame
-dưới 60fps (p5 SurfaceFlinger từ 60), không long task trên 50ms trong lúc chuyển trang.
+Crossfade chỉ ghi `opacity` của lớp màu, không đọc layout mỗi frame. Giữ [gate A05s](../decisions/a05s-frame-budget.md)
+(fps trung bình từ 60) trong lúc chuyển trang.
 
 ## UI
 
