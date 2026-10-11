@@ -63,6 +63,8 @@ jobs:
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/phone-header-scroll.e2e.mjs
 
+      - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/logo-route-crossfade.e2e.mjs
+
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@v7

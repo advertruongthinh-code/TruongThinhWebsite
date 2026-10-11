@@ -11,7 +11,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Mục tiêu và phase | [Goal](goal.md): static (đang ở), CMS (chưa mở) |
 | Runtime, ownership, deploy | [Architecture](architecture.md), [phát hành tĩnh](specs/static-release.md) |
 | Sửa một phần website | [Capability map](specs/docs-system.md#r2-capability-map-và-spec-sống): mỗi phần một spec sống |
-| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md) |
+| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md), [logo crossfade khi chuyển trang](specs/logo-route-crossfade.md) |
 | Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang](specs/advertising-cta-center-parallax.md) |
 | Ảnh, media, Kính | [Tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md), [skeleton chờ ảnh](specs/loading-glass-and-page-entry.md), [Kính](specs/glass-surface.md) |
 | SEO, Google, bot AI | [SEO](specs/seo.md), planned, tạm dừng tới khi đủ feature website |

@@ -150,6 +150,8 @@
   let routeDestinationReady = false;
   let routeMountReady = false;
   let lastHeaderWhiteSurface;
+  let routeMarkHeld = false;
+  let pageHeaderInk = false;
   let hardFallbackPending = false;
   let menuTimeline;
   let menuPageTween;
@@ -424,10 +426,9 @@
     )?.section;
     // Detail ảnh Advertising không có hero nên header luôn thu gọn (advertising-detail R10).
     const collapsed = scrollY > 100 || document.body.classList.contains("is-advertising-photo");
-    const ink =
-      (routeTransitionActive && !routeDestinationReady) ||
-      collapsed ||
-      activeSection?.dataset.headerTone === "ink";
+    // Tone của chính trang, bỏ qua lớp ghim route; playRouteEnter đọc để đổi mark lúc veil mở.
+    pageHeaderInk = collapsed || activeSection?.dataset.headerTone === "ink";
+    const ink = (routeTransitionActive && !routeDestinationReady) || pageHeaderInk;
     const collapsedChanged =
       lastHeaderCollapsed !== undefined && lastHeaderCollapsed !== collapsed;
     const logoBeforeRect =
@@ -438,7 +439,7 @@
     header.classList.toggle("is-logo-ink", collapsed);
     header.classList.toggle("is-collapsed", collapsed);
     colorHeader(ink ? "#2f2f2f" : "#ffffff");
-    if (activeSection || routeTransitionActive || collapsed) {
+    if (!routeMarkHeld && (activeSection || routeTransitionActive || collapsed)) {
       syncHeaderBrandSurface(ink);
     }
     if (collapsedChanged) {
@@ -524,15 +525,49 @@
   let headerMarkUnderlay;
   let headerMarkSlots = [];
   let headerMarkRise = 0;
+  let headerMarkFade;
   // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, lớp cũ lùi theo mép mọc (brand.md Motion).
+  // `fade` (chuyển trang, logo-route-crossfade R1, R2): lớp cũ nằm trên lớp mới và mờ dần theo nhịp veil.
   const paintHeaderMark = (
     className,
-    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true } = {},
+    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, fade } = {},
   ) => {
     // Đọc clip đang chạy trước khi hủy để giữ đúng phần lớp mới đã mọc khi đổi hướng giữa chừng.
     const clips = headerMarkPaths.map((path) => getComputedStyle(path).clipPath);
     header.classList.remove("is-brand-color", "is-brand-inverse");
     header.classList.add(className);
+    const previousFade = headerMarkFade;
+    headerMarkFade = undefined;
+    if (previousFade) gsap.killTweensOf(previousFade);
+    if (fade && hasGsap && !reduceMotion && headerMark) {
+      // Lớp cũ là đúng phần đang hiển thị: lớp fade dở, lớp mọc dở (slot và dải đã mọc) đứng yên tại frame hiện tại.
+      const layer = headerMark.cloneNode(false);
+      layer.removeAttribute("id");
+      layer.setAttribute("class", "brand-lockup__mark-fade");
+      if (previousFade) layer.append(previousFade);
+      headerMarkSlots.forEach((slot) => {
+        const clip = getComputedStyle(slot).clipPath;
+        slot.getAnimations().forEach((animation) => animation.cancel());
+        slot.style.clipPath = clip;
+      });
+      if (headerMarkUnderlay) layer.append(...headerMarkUnderlay.children);
+      headerMarkUnderlay?.remove();
+      headerMarkUnderlay = undefined;
+      headerMarkSlots = [];
+      headerMarkRise += 1;
+      headerMarkPaths.forEach((path, index) => {
+        path.getAnimations().forEach((animation) => animation.cancel());
+        const copy = path.cloneNode(false);
+        copy.setAttribute("fill", from[index]);
+        copy.style.clipPath = clips[index];
+        layer.append(copy);
+      });
+      headerMark.after(layer);
+      headerMarkFade = layer;
+      gsap.to(layer, { opacity: 0, ...fade, onComplete: () => layer.remove() });
+      return;
+    }
+    previousFade?.remove();
     if (!rise || reduceMotion || !headerMark) return;
     if (!headerMarkUnderlay) {
       headerMarkUnderlay = headerMark.cloneNode(false);
@@ -572,7 +607,7 @@
       headerMarkSlots = [];
     }, () => {});
   };
-  function syncHeaderBrandSurface(whiteSurface) {
+  function syncHeaderBrandSurface(whiteSurface, fade) {
     if (whiteSurface) {
       if (lastHeaderWhiteSurface === undefined) {
         // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
@@ -581,14 +616,14 @@
         lastHeaderWhiteSurface !== true ||
         !header.classList.contains("is-brand-color")
       ) {
-        paintHeaderMark("is-brand-color");
+        paintHeaderMark("is-brand-color", { fade });
       }
     } else if (
       lastHeaderWhiteSurface !== false ||
       !header.classList.contains("is-brand-inverse")
     ) {
       // Mở trang trên nền ảnh: vẽ trắng ngay, không chuyển động.
-      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined });
+      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined, fade });
     }
     lastHeaderWhiteSurface = whiteSurface;
   };
@@ -596,7 +631,8 @@
     routeDestinationReady = true;
     const destinationWhiteSurface =
       container?.querySelector("[data-header-tone]")?.dataset.headerTone === "ink";
-    syncHeaderBrandSurface(destinationWhiteSurface);
+    // Route mềm giữ mark CMYK dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
+    if (!routeMarkHeld) syncHeaderBrandSurface(destinationWhiteSurface);
     return destinationWhiteSurface;
   };
   const releaseHeaderInteractionState = () => {
@@ -615,7 +651,8 @@
     header.classList.add("is-route-pinned", "is-ink");
     routeDestinationReady = false;
     colorHeader("#2f2f2f");
-    syncHeaderBrandSurface(true);
+    routeMarkHeld = true;
+    syncHeaderBrandSurface(true, { duration: 0.75, ease: "power4.inOut" });
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
@@ -1881,6 +1918,7 @@
     routeInFlight = false;
     routeDestinationReady = false;
     routeMountReady = false;
+    routeMarkHeld = false;
     document.documentElement.classList.remove("route-enter");
     document.body.classList.remove("is-transitioning");
     header.classList.remove("is-route-pinned");
@@ -1926,6 +1964,13 @@
     document.body.classList.add("is-transitioning");
     setRouteVeil(1);
     pageState?.headerIntro?.play();
+    if (routeMarkHeld) {
+      // Mark đổi theo trang đích cùng nhịp veil mở (logo-route-crossfade R2, R3); vẫn giữ tới clearRouteEntry
+      // để updateHeader trong lúc veil mở không vẽ lại mark.
+      updateToneRanges();
+      updateHeader();
+      syncHeaderBrandSurface(pageHeaderInk, { duration: 1, ease: "power4.inOut" });
+    }
     return new Promise((resolve) => {
       routeTimeline = window.gsap.to(routeVeil, {
         opacity: 0,
@@ -1970,9 +2015,11 @@
   const syncElementTree = (current, next) => {
     if (!current || !next || current.tagName !== next.tagName) return false;
     syncAttributes(current, next);
-    // Lớp underlay do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
+    // Lớp underlay, fade do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
     const currentChildren = [...current.children].filter(
-      (child) => !child.classList.contains("brand-lockup__mark-underlay"),
+      (child) =>
+        !child.classList.contains("brand-lockup__mark-underlay") &&
+        !child.classList.contains("brand-lockup__mark-fade"),
     );
     const nextChildren = [...next.children];
     if (currentChildren.length !== nextChildren.length) return false;
@@ -2060,12 +2107,15 @@
     if (nextProfile) document.body.dataset.detailHeroProfile = nextProfile;
     else delete document.body.dataset.detailHeroProfile;
 
+    // Class màu mark là state runtime; HTML trang mới không có nên giữ lại để mark không vẽ lại.
+    const brandClasses = [...header.classList].filter((name) => name.startsWith("is-brand-"));
     const persistentReady = persistentSelectors.every((selector) =>
       syncElementTree(
         document.querySelector(selector),
         nextDocument.querySelector(selector),
       ),
     );
+    header.classList.add(...brandClasses);
     if (!persistentReady) return false;
     // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
     brandLockups.forEach(snapBrandMark);

@@ -135,7 +135,8 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | Intro | Toàn cụm `scale 0 → 1`, `1.5s power4.out`; hamburger chạy sau `1.5s` | Chỉ lần vào site đầu tiên, không chạy khi chuyển route |
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
-| Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới |
+| Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới, trừ chuyển trang |
+| Màu mark khi chuyển trang | Crossfade: lớp cũ nằm trên lớp mới, opacity `1 → 0` cùng nhịp veil (phủ `0.75s`, mở `1s`, `power4.inOut`) | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
 Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, đồng
@@ -187,13 +188,17 @@ sẵn sàng.
 | --- | --- | --- | --- |
 | Chưa vẽ | Mở trang (direct, F5) trên nền ảnh | Trắng | Ngay, không transition |
 | Chưa vẽ | Mở trang trên nền trắng | CMYK | CMYK mọc lên trên lớp đen `#2b2a29` |
-| Trắng | Cuộn thành sticky, vào section nền trắng, bắt đầu chuyển route | CMYK | CMYK mọc lên trên lớp trắng |
-| CMYK | Về đầu trang trên ảnh, vào section nền tối, trang đích có hero ảnh | Trắng | Trắng mọc lên trên lớp CMYK |
+| Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | CMYK mọc lên trên lớp trắng |
+| CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Trắng mọc lên trên lớp CMYK |
+| Trắng | Bắt đầu chuyển route | CMYK | Crossfade cùng veil phủ |
+| CMYK | Veil mở, trang đích có hero ảnh | Trắng | Crossfade cùng veil mở |
 | Đang mọc | Đổi hướng giữa chừng | Trạng thái mới | Phần đang hiển thị thành lớp cũ, lớp mới mọc lại từ chân |
 
-- Chuyển route: khi bấm link, header ghim lại ở tone mực và mark chuyển sang
-  CMYK; khi HTML trang đích sẵn sàng, mark chuyển theo tone của trang đích
-  ngay dưới lớp veil, không chờ ảnh hero.
+- Chuyển route: khi bấm link, header ghim lại ở tone mực và mark crossfade sang
+  CMYK; mark giữ CMYK suốt lúc veil phủ kín (HTML trang đích không làm vẽ lại
+  mark), rồi crossfade theo tone trang đích cùng lúc veil mở. Trang hero trắng
+  đổi màu tối đa một lần. Bấm link lúc mark đang mọc dở thì phần đang hiển thị
+  thành lớp cũ của crossfade.
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
   mở lại menu không có pha đen.
 
