@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-10
+- Updated: 2026-10-11
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -22,12 +22,11 @@
 - Chờ owner quyết: giữ hay xóa `scripts/site/sanitize-client-logos.ps1`; gộp nhãn trùng giữa
   `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
 - Nợ cần phiên PC và A05s (máy đo chuẩn, [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
-  - A05s: nút Back phần cứng đóng viewer, viewer xoay ngang
-    ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)), skeleton sau Kính `0.6s`.
+  - A05s: skeleton sau Kính `0.6s`; pinch, xoay hai ngón R11 bằng tay
+    ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
   - `mobile-layout-parity`, `scrollbar-parity`, `site-media-card-playback`, `advertising-photo-transitions`,
     `advertising-primary-p14`: chạy ở phiên PC.
   - FPS skeleton (`advertising-continuation` R4), Firefox WebGL (`skeleton-lifecycle`, `mobile-viewport-stability`): cần GPU thật.
-  - FPS header khi cuộn trên A05s ([header điện thoại](specs/phone-header-scroll.md#gate-còn-mở)).
 - CI chạy trên runner WSL ở PC owner ([R10](specs/static-release.md#r10-gate-ci)); job `queued` lâu là runner offline.
 
 ## Next action
