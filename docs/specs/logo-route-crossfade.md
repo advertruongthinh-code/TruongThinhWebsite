@@ -1,6 +1,6 @@
 ---
 title: Logo crossfade khi chuyển trang
-status: planned
+status: live
 source: []
 tests:
   - tests/site/logo-route-crossfade.e2e.mjs
@@ -13,7 +13,7 @@ updated: 2026-10-11
 ## Mục đích
 
 Khi chuyển trang, mark của logo đổi giữa trắng và CMYK bằng crossfade thay cho kiểu bốn dải mọc từ chân.
-Spec này thay phần "Chuyển route" trong [state machine màu](../../design-system/brand.md#state-machine-màu)
+Spec này mô tả phần "Chuyển route" trong [state machine màu](../../design-system/brand.md#state-machine-màu)
 và luồng pin header của [Shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell). Cuộn trong trang, lần
 vẽ đầu và full menu giữ [Brand](../../design-system/brand.md#motion). Veil giữ nguyên
 ([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Owner chốt intent 2026-10-11 qua interview-me.
@@ -83,7 +83,8 @@ dưới 60fps (p5 SurfaceFlinger từ 60), không long task trên 50ms trong lú
 ## UI
 
 Logo: [BrandLockup](../../design-system/components/BrandLockup/README.md), [Brand motion](../../design-system/brand.md#motion).
-Thiết kế chờ code: [Đã duyệt, chờ code](../../design-system/approved-designs.md#logo-crossfade-khi-chuyển-trang).
+Code: `paintHeaderMark` (tùy chọn `fade`, lớp `.brand-lockup__mark-fade`), `pinHeaderForRoute`, `playRouteEnter`,
+`syncDocumentState` (giữ class `is-brand-*`) trong `src/site/motion.js`.
 
 ## Kiểm tra
 
@@ -95,8 +96,7 @@ Thiết kế chờ code: [Đã duyệt, chờ code](../../design-system/approved
 
 ## Gate còn mở
 
-- Chưa code. Owner duyệt spec, rồi plan, rồi code.
-- Đo fps chuyển trang trên A05s thật: A05s đang rút khỏi PC, ghi vào nợ phiên sau.
+- Đo fps chuyển trang trên A05s thật: chờ điều phối giao máy.
 - Owner xem visual trên demo sau khi merge. Owner.
 
 ## Chú thích thuật ngữ
