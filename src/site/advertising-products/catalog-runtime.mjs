@@ -3053,8 +3053,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    // Điện thoại chỉ crossfade: Kính phủ cả hero làm pha mở rơi dưới 60fps trên A05s (owner chọn 10/10, glass-surface R7).
-    reveal.glass = skeletonPhone() ? null : bakedRevealGlass(heroFrame, bitmap);
+    reveal.glass = bakedRevealGlass(heroFrame, bitmap);
     bitmap?.close();
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
     const baked = [...reveal.glass?.querySelectorAll(".glass-surface__step--baked > canvas") ?? []];
@@ -3138,12 +3137,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }, 100);
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
-      const bitmap = reduced || skeletonPhone() ? null : bakedBitmap(source);
+      const bitmap = reduced ? null : bakedBitmap(source);
       photoImage.decode().then(() => bitmap).then((baked) => {
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
-        // Điện thoại: nền blur 100px nằm yên dưới skeleton đang tan, để GPU không tính lại blur mỗi frame crossfade.
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], skeletonPhone() ? [photoImage] : incoming, MEDIA_REVEAL_MS, baked);
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS, baked);
         else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
         else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
       }, () => {
