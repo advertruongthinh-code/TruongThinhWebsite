@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-transitions.e2e.mjs
   - tests/site/advertising-reveal-offscreen.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-10-07
+updated: 2026-10-11
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -98,11 +98,18 @@ thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không kh
 Xong thì gỡ lớp tạm, Kính, skeleton và bỏ `aria-busy`. Media video ở primary không có skeleton hay Kính. Morph sang
 viewer theo [detail R9](advertising-detail.md#r9-viewer).
 
+Điện thoại (cảm ứng, mọi chiều xoay) chạy đúng R4 như PC: cùng Kính nhòe dựng sẵn, cùng crossfade ảnh và nền vùng dư,
+cùng nhịp, ở mọi đường mở (owner 11/10). Không có nhánh motion riêng cho phone.
+
 ```gherkin
 Given primary đang xem ảnh A, ảnh B đã có trong cache
 When bấm card related B
 Then Kính phủ lên A, A mờ đi để lộ B dưới Kính, rồi Kính tan, cả ba bước xong trong 0.6s
 And không có skeleton, không ảnh bay hay clone từ card
+
+Given điện thoại và PC mở cùng detail, ảnh primary tải chậm
+When ảnh giải mã xong, rồi bấm related, rồi Back
+Then hai máy chạy cùng chuỗi Kính năm bậc, cùng thời lượng, chỉ opacity, nền vùng dư crossfade cùng ảnh
 ```
 
 ### R5. Skeleton thay vòng xoay
@@ -205,7 +212,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang skeleton card đầu giữ một node, hiện dần một lần); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
 | R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính) |
-| R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
+| R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity, phone khớp PC); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
 | R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vệt sáng trong masonry, detail chưa có test |
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |
 | R7 | chưa có test |

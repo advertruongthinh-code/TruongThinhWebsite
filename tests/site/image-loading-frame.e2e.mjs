@@ -234,6 +234,7 @@ try {
   }
 
   // P9: card Advertising, geometry và viewer trong khi ảnh đang tải.
+  const primaryReveals = [];
   for (const viewport of viewports) {
     // Delay dài hơn để entry layout settle khi ảnh card còn đang bay.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
@@ -354,11 +355,14 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    // glass-surface R7: điện thoại (cảm ứng) chỉ crossfade ảnh chính, không Kính.
-    if (viewport.hasTouch) assert.deepEqual(primaryGlass, [], `${viewport.width}px: touch primary crossfades without Kính`);
-    else assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
+    // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc.
+    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
       `${viewport.width}px: the primary reveals through five Kính steps animating opacity only ${JSON.stringify(primaryGlass)}`);
+    // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).
     await page.goBack();
+    await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id
+      && !document.querySelector("[data-advertising-photo-image]").parentElement.hasAttribute("aria-busy"), first.photo);
+    primaryReveals.push(await revealGlass("primary"));
     await page.goBack();
     await page.waitForFunction(() => window.TruongThinhAdvertising.getBrowseState().photo === null);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-photo-view] [data-advertising-loading-skeleton]").length), 0, `${viewport.width}px: closing the viewer clears the skeleton`);
@@ -366,6 +370,8 @@ try {
     results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
     await context.close();
   }
+  // Phone và PC cùng chuỗi Kính trên primary: số lượt, số bậc, thời lượng, thuộc tính animate.
+  assert.deepEqual(primaryReveals[0], primaryReveals[1], `phone primary reveals match PC ${JSON.stringify(primaryReveals)}`);
   // Barba dựng container ngoài document: ảnh load xong trước khi gắn vào vẫn phải settle, không kẹt vệt sáng.
   for (const route of ["/vi/commercial/", "/vi/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });
