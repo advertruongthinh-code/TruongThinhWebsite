@@ -167,8 +167,9 @@ Then track cuộn sang phải, rồi dịch ít nhất 150px, không có dragsta
 ### R8. Dải quy trình, duo, portal loại hình
 
 Dải `.editorial-strip.detail-process-editorial` là `region` focus được, gắn nhãn bằng tiêu đề quy trình: bốn
-`article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3`, đoạn; bốn cột, tới 980px hai cột,
-tới 680px một cột. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh đầu tràn mép. `.portal-stage`: ba
+`article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
+đoạn; hai cột, tới 680px một cột và chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
+đầu tràn mép. `.portal-stage`: ba
 `article.service-portal` không link, không hover zoom, chữ theo [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
 
