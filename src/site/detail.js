@@ -366,6 +366,7 @@
         };
         const startedAt = performance.now();
         let rebuildFrame;
+        let rebuildTimer;
         let resolveRebuild;
 
         const getDelay = (element) =>
@@ -534,6 +535,7 @@
           return parts;
         };
         const cancelPendingRebuild = () => {
+          clearTimeout(rebuildTimer);
           if (rebuildFrame === undefined) return;
           cancelFrame(rebuildFrame);
           rebuildFrame = undefined;
@@ -544,11 +546,22 @@
           cancelPendingRebuild();
           return new Promise((resolve) => {
             resolveRebuild = resolve;
-            rebuildFrame = scheduleFrame(() => {
+            const groups = [...lineGroups, ...wordGroups];
+            // Split mỗi group ép một lần layout; chia thành nhiều task khoảng 8ms để không long task > 50ms trên A05s
+            // khi vào trang (decision a05s-frame-budget). rebuildFrame giữ giá trị tới khi xong để cancel được.
+            const prepareBatch = (index) => {
+              const deadline = performance.now() + 8;
+              do prepareTextGroup(groups[index++]);
+              while (index < groups.length && performance.now() < deadline);
+              if (index < groups.length) {
+                rebuildTimer = setTimeout(() => prepareBatch(index));
+                return;
+              }
+              finishRebuild();
+            };
+            const finishRebuild = () => {
               rebuildFrame = undefined;
               const startHeroText = initial && !heroSettled && !advertisingHeroTextStarted;
-              lineGroups.forEach(prepareTextGroup);
-              wordGroups.forEach(prepareTextGroup);
               if (startHeroText && heroWordGroup) advertisingHeroTextStarted = true;
               if (startHeroText && heroWordGroup) {
                 const titleDelay = heroProfile === "words-06" ? 0.6 : 0.9;
@@ -564,6 +577,10 @@
               window.dispatchEvent(new CustomEvent("site:layout"));
               resolveRebuild?.();
               resolveRebuild = undefined;
+            };
+            rebuildFrame = scheduleFrame(() => {
+              if (groups.length) prepareBatch(0);
+              else finishRebuild();
             });
           });
         };
