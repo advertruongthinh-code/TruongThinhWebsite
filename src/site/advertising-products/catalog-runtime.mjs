@@ -28,6 +28,18 @@ import {
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 
 let activeInstance;
+
+const startLayoutWorker = () => new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
+// Một lần compile trên Worker riêng; null khi Worker hoặc clone lỗi để caller compile đồng bộ.
+const compileInWorker = (options, worker = startLayoutWorker()) => new Promise((resolve) => {
+  worker.onmessage = ({ data }) => resolve(data);
+  worker.onerror = () => resolve(null);
+  try {
+    worker.postMessage(options);
+  } catch {
+    resolve(null);
+  }
+}).finally(() => worker.terminate());
 let lastClosedPhotoId = null;
 let artifactPromise;
 const GEOMETRY_CACHE_LIMIT = 24;
@@ -1115,7 +1127,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
 
   // Khởi động Worker song song với lúc tải artifact.
-  const layoutWorker = new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
+  const layoutWorker = startLayoutWorker();
   const artifact = await loadArtifact();
   if (!artifact || typeof artifact !== "object") {
     const error = new Error("Advertising artifact must be an object");
@@ -1202,6 +1214,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
+  let relatedCompile = compileAdvertisingProductLayout;
   const relatedLayouts = new Map();
   // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
   // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
@@ -1430,16 +1443,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const prewarmGeometry = async (targetFilter) => {
     const { key, compileOptions } = geometryRequest(targetFilter);
     if (geometries.has(key)) return;
-    const layout = await new Promise((resolve) => {
-      layoutWorker.onmessage = ({ data }) => resolve(data);
-      layoutWorker.onerror = () => resolve(null);
-      try {
-        layoutWorker.postMessage(compileOptions);
-      } catch {
-        resolve(null);
-      }
-    });
-    layoutWorker.terminate();
+    const layout = (await compileInWorker(compileOptions, layoutWorker))?.layout;
     const code = Reflect.get(layout?.diagnostics ?? {}, "code");
     if (layout && (!code || code === "needs-media") && !geometries.has(key)) cacheGeometry(key, layout);
   };
@@ -2977,6 +2981,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       measureDescriptionHeight: measureInfo,
       measureDescriptionMinimumHeight: measureInfo,
       minimumImageZoneHeight: imageControlMinimum,
+      compile: relatedCompile,
     });
     if (!cachedRelated) {
       if (relatedLayouts.size >= GEOMETRY_CACHE_LIMIT) relatedLayouts.delete(relatedLayouts.keys().next().value);
@@ -3284,6 +3289,38 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
   // Scroll được khôi phục cần toàn bộ chiều cao trong một lượt.
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+  // Solver đầy đủ của related là long task trên A05s (decision a05s-frame-budget): chạy layoutRelated với compile
+  // giả, mỗi lần compile còn thiếu thì tính trên Worker rồi chạy lại; số đo DOM vẫn ở main thread. Trả false khi bị
+  // thay; Worker lỗi thì compile đồng bộ.
+  const layoutRelatedInWorker = async (browse, generation) => {
+    const results = new Map();
+    for (;;) {
+      let pending;
+      relatedCompile = (options) => {
+        const result = results.get(JSON.stringify(options));
+        if (!result) throw (pending = { options });
+        if (result.error) throw Object.assign(new Error(result.error.message), result.error);
+        return result.layout;
+      };
+      try {
+        relatedLayoutKey = "";
+        layoutRelated(browse);
+        return true;
+      } catch (error) {
+        if (!pending || error !== pending) throw error;
+      } finally {
+        relatedCompile = compileAdvertisingProductLayout;
+      }
+      const result = await compileInWorker(pending.options);
+      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return false;
+      if (!result) {
+        relatedLayoutKey = "";
+        layoutRelated(browse);
+        return true;
+      }
+      results.set(JSON.stringify(pending.options), result);
+    }
+  };
   const showPhoto = async (browse, reason) => {
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
@@ -3312,7 +3349,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         continue;
       }
       directEntryPhase = phase;
-      if (phase) {
+      if (phase === "related") {
+        if (!await layoutRelatedInWorker(browseHistory.current, generation)) return;
+      } else if (phase) {
         relatedLayoutKey = "";
         layoutRelated(browseHistory.current);
       } else {
