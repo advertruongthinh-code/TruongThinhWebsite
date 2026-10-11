@@ -1202,6 +1202,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
+  const relatedLayouts = new Map();
   // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
   // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
   // solver đầy đủ, giữ geometry của primary và để việc mount card cho task kế tiếp.
@@ -2955,7 +2956,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
       2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
-    relatedLayout = compileAdvertisingRelatedLayout({
+    // Vào lại cùng photo bằng Back/Forward dùng lại layout đã compile: compile related là long task trên A05s
+    // (decision a05s-frame-budget). Key gồm mọi số đo đầu vào của compile.
+    const relatedCacheKey = `${nextLayoutKey}:${directEntryPhase}:${suggestionWidth}:${suggestionHeight}:${imageControlMinimum}`;
+    const cachedRelated = relatedLayouts.get(relatedCacheKey);
+    if (cachedRelated) ({ relatedLayout, needsDescriptionIndicator } = cachedRelated);
+    else relatedLayout = compileAdvertisingRelatedLayout({
       cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
         : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
       categoryOrder, columns,
@@ -2970,6 +2976,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       measureDescriptionMinimumHeight: measureInfo,
       minimumImageZoneHeight: imageControlMinimum,
     });
+    if (!cachedRelated) {
+      if (relatedLayouts.size >= GEOMETRY_CACHE_LIMIT) relatedLayouts.delete(relatedLayouts.keys().next().value);
+      relatedLayouts.set(relatedCacheKey, { relatedLayout, needsDescriptionIndicator });
+    }
     relatedLayoutKey = nextLayoutKey;
     const primary = relatedLayout.primary;
     photoView.dataset.advertisingPhotoLayout = primary.mode;
