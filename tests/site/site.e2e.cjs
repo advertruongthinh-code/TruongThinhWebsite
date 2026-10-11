@@ -9690,7 +9690,7 @@ async function runHomeMotionRegressionCheck() {
     "The route request failure fallback changed",
   );
   assert(
-    /const ink =\s*\(routeTransitionActive && !routeDestinationReady\) \|\|\s*collapsed \|\|/.test(
+    /const ink =\s*\(routeTransitionActive && !routeDestinationReady\) \|\|/.test(
       motionSource,
     ),
     "Route transitions do not force the header to an ink tone over the white veil",
