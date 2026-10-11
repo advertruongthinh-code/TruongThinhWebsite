@@ -8,7 +8,7 @@ tests:
   - tests/site/footer-consistency.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-05
+updated: 2026-10-11
 ---
 
 # CTA Advertising giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax
@@ -154,7 +154,8 @@ cao layout viewport đổi thì tính lại batch; cùng chiều cao layout thì
 cỡ, và khi font tải xong.
 
 Batch và cỡ tiêu đề theo chiều cao layout viewport (`svh` từ 980px trở xuống), nên thanh địa chỉ ẩn, hiện không dựng lại
-skeleton. Vị trí chân chữ đặt bằng CSS theo `50dvh`, nên đúng sau khi thanh địa chỉ đứng yên. Sau lần đo đầu, runtime gắn
+skeleton. Vị trí chân chữ đặt bằng CSS theo `50dvh`, nên đúng sau khi thanh địa chỉ đứng yên; mọi `resize` vẫn tính
+lại parallax R6 theo `innerHeight` mới, nếu không cụm chữ giữ độ lệch cũ (A05s 11/10: cao hơn đường giữa 5.5px). Sau lần đo đầu, runtime gắn
 `data-advertising-cta-settled` ở khung hình kế; từ đó khoảng dưới cụm chữ đổi bằng transition `margin-bottom` thay vì nhảy,
 trừ khi giảm chuyển động.
 
@@ -208,8 +209,8 @@ E2E cần `pnpm dev`, `BASE_URL`. `advertising-continuation.e2e.mjs` chạy ph�
 
 ## Gate còn mở
 
-- R8 thanh địa chỉ chưa chạy trên Galaxy A05s thật. Thread code, khi PC bật Remote Control và A05s cắm USB
-  ([card thiết bị thật](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)).
+- R8 thanh địa chỉ: A05s 11/10 đạt fps và không dựng lại batch; lệch 5.5px khi thanh địa chỉ ẩn đã sửa, chưa đo lại trên
+  A05s ([card thiết bị thật](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Máy PC.
 - Owner chưa xem CTA giữa viewport, parallax và footer gọn trên demo. Owner.
 
 ## Chú thích thuật ngữ
