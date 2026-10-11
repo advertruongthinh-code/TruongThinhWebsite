@@ -1,7 +1,8 @@
 # Footer
 
-Cuối mọi trang: lời mời liên hệ, câu tuyên bố display và lưới thông tin liên
-hệ. Markup gồm `div.site-invitation` và `footer.site-footer`.
+Cuối mọi trang: lưới thông tin liên hệ `footer.site-footer`. Trang chủ thêm
+lời mời liên hệ và câu tuyên bố display `div.site-invitation` ngay trên footer;
+Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã mời.
 
 ## Cấu trúc
 
