@@ -461,8 +461,10 @@ async function installRelatedMediaProbe(page) {
           opacity: Number(style.opacity),
           duration: style.transitionDuration,
           easing: style.transitionTimingFunction,
-          // Như stuffing: transition opacity vẫn chạy khi main thread bận không lấy được frame giữa.
-          fading: image.getAnimations().some((animation) => animation.transitionProperty === "opacity" && animation.playState === "running"),
+          // Như stuffing: fade opacity vẫn chạy khi main thread bận không lấy được frame giữa. Ảnh có skeleton
+          // fade bằng crossfade WAAPI thay cho transition CSS.
+          fading: image.getAnimations().some((animation) => animation.playState === "running"
+            && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
         if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
         else sampling.delete(image);
@@ -1140,6 +1142,9 @@ try {
 
     stage("cached-remount");
     const firstId = parentStuffing.id;
+    // Lần layout đầu có motion 0.4s từ đầu cột; đọc tọa độ gốc sau khi motion dừng.
+    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`)?.getAnimations()
+      .every(({ playState }) => playState !== "running"), firstId);
     const initial = await page.locator(`[data-advertising-card="${firstId}"]`).evaluate((node) => {
       const rect = node.getBoundingClientRect();
       const grid = node.closest("[data-project-grid]").getBoundingClientRect();
