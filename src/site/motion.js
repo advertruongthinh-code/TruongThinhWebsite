@@ -1661,7 +1661,8 @@
         // Tới 1.5rem vẫn tràn (chữ 200%, màn thấp): trả vùng chữ về flow để khối cao theo chữ.
         legacyCopy.classList.toggle("is-overflowing", !fits);
       };
-      const titleObserver = new ResizeObserver(fitLegacyTitle);
+      // Fit trong rAF, không trong callback: đổi cỡ ngay trong callback làm WebKit báo "ResizeObserver loop" khi chữ 200%.
+      const titleObserver = new ResizeObserver(() => requestAnimationFrame(fitLegacyTitle));
       titleObserver.observe(legacyCopy);
       titleObserver.observe(legacyTitle);
       document.fonts?.ready.then(fitLegacyTitle);

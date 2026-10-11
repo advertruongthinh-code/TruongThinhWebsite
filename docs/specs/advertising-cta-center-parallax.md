@@ -209,8 +209,6 @@ E2E cần `pnpm dev`, `BASE_URL`. `advertising-continuation.e2e.mjs` chạy ph�
 
 ## Gate còn mở
 
-- R8 thanh địa chỉ: A05s 11/10 đạt fps và không dựng lại batch; lệch 5.5px khi thanh địa chỉ ẩn đã sửa, chưa đo lại trên
-  A05s ([card thiết bị thật](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Máy PC.
 - Owner chưa xem CTA giữa viewport, parallax và footer gọn trên demo. Owner.
 
 ## Chú thích thuật ngữ
