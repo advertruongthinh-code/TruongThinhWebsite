@@ -20,7 +20,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | --- | --- | --- | --- |
 | Trang chủ | Slideshow ảnh full viewport | `clamp(5rem, 9vw, 10rem)`, line-height 0.86, chữ trắng | Căn giữa |
 | Residential, Commercial | Ảnh, `hero-shade` | Chữ hoa 600, line-height 1.4; Residential `clamp(3.05rem, 7.15vw, 7rem)`, Commercial `clamp(2.5rem, 7.4vw, 5.75rem)` (VI vừa khung `80%` từ 680px); dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em` |
-| About | Ảnh đội ngũ, shade thêm lớp ngang | `clamp(5.4rem, 9vw, 10.2rem)`, line-height 0.87, chữ thường; dòng 1 weight 500, dòng 2 700 nghiêng thụt `0.78em`; kicker 500 | Căn trái |
+| About | Ảnh đội ngũ, shade thêm lớp ngang | `clamp(5.4rem, 9vw, 10.2rem)`, line-height 0.87 (1.15 tới 680px để chân chữ g không chạm dấu dòng dưới), chữ thường; dòng 1 weight 500, dòng 2 700 nghiêng thụt `0.78em`; kicker 500 | Căn trái |
 | Advertising | `paper`, chữ `ink` | Chữ hoa 600, `clamp(3.05rem, 7.2vw, 7rem)`, line-height 1.4; dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em`, cao `100svh - 50px` |
 
 Hero ảnh cao `100svh` (tối thiểu 42–46rem tùy trang); tới 980px chuyển sang
@@ -37,7 +37,7 @@ ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
 | Trang chủ | 65.6/56.42 | 74.1/63.73 | 80/68.8 | 92.16/79.26 | 129.6/111.46 |
 | Residential | 40/56 \| 26.24/36.74 | 46.8/65.52 \| 31.98/44.77 | 54.91/76.88 \| 51.84/72.58 | 73.22/102.5 \| 69.12/96.77 | 102.96/144.14 \| 97.2/136.08 |
 | Commercial | 24/33.6 \| 17.6/24.64 | 29.25/40.95 \| 21.45/30.03 | 57.6/80.64 \| 40.7/56.99 | 76.8/107.52 \| 54.27/75.98 | 92/128.8 \| 66.4/92.96 |
-| About | 70.4/61.25 | 78/67.86 | 86.4/75.17 | 92.16/80.18 | 129.6/112.75 |
+| About | 70.4/80.96 | 78/89.7 | 86.4/75.17 | 92.16/80.18 | 129.6/112.75 |
 | Advertising | 29.12/40.77 \| 22.08/30.91 | 35.49/49.69 \| 26.91/37.67 | 55.3/77.41 \| 48.38/67.74 | 73.73/103.22 \| 64.51/90.32 | 103.68/145.15 \| 87.2/122.08 |
 
 | Trang | Cao hero 320–390 | 768 | 1024–1440 |
