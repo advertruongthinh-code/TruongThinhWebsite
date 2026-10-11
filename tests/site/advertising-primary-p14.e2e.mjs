@@ -659,7 +659,9 @@ async function wheelToHit(page, locator, label) {
       assert(state.hit, `${label}: visible control is covered at its pointer target`);
       return state;
     }
-    const direction = state.rect.top >= viewport.height ? 1 : -1;
+    // Target chưa visible nằm hẳn trên hoặc dưới vùng nhìn; so với nửa viewport để mép 2px của inspect
+    // (top trong [height - 2, height)) không đảo hướng lăn qua lại mãi.
+    const direction = state.rect.top > viewport.height / 2 ? 1 : -1;
     const distance = direction > 0 ? state.rect.top - viewport.height * 0.65
       : viewport.height * 0.35 - state.rect.bottom;
     const beforeTop = await page.locator("[data-advertising-photo-primary]").evaluate((node) => node.getBoundingClientRect().top);
