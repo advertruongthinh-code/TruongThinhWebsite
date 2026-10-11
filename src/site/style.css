@@ -1812,7 +1812,6 @@ html[lang="en"] #nang-luc .portal-subtitle {
 
 .project-reel {
   position: relative;
-  min-height: 784px;
   padding: 35px 35px 0;
   overflow: hidden;
   background: var(--white);
@@ -1904,13 +1903,6 @@ html[lang="en"] #nang-luc .portal-subtitle {
 .project-card:nth-child(4) figcaption::before {
   border-color: var(--blue);
   background: var(--blue);
-}
-
-.project-reel .story-link {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .legacy-closer {
@@ -2577,7 +2569,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 
   .project-reel {
-    min-height: 43rem;
     padding-right: 0;
     padding-left: 0;
   }
@@ -2753,7 +2744,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 
   .project-reel {
-    min-height: 41rem;
     padding-top: 20px;
   }
 
@@ -2769,14 +2759,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
   .project-card__media {
     height: 24rem;
-  }
-
-  .project-reel .story-link {
-    right: 20px;
-    bottom: 0;
-    left: 20px;
-    width: auto;
-    transform: none;
   }
 
   .capability-marquee {

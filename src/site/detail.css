@@ -892,7 +892,7 @@ html[lang="en"]
   }
 
   .detail-intro {
-    min-height: 20.8rem;
+    min-height: 0;
     padding: 2rem 0;
     gap: 2rem;
   }
@@ -927,7 +927,7 @@ html[lang="en"]
   }
 
   .detail-heading {
-    min-height: 14rem;
+    min-height: 0;
   }
 
   .detail-heading h2 {
@@ -940,8 +940,8 @@ html[lang="en"]
   }
 
   .process-step {
-    min-height: 17rem;
     padding: 1.25rem 0;
+    gap: 1rem;
   }
 
   .process-step + .process-step {
