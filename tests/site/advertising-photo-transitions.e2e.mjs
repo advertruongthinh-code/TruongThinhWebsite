@@ -165,8 +165,7 @@ async function armNoGridMorphProbe(page) {
       probe.locks.push({ at: performance.now(), url: location.href });
       return lock.apply(this, args);
     };
-    probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; };
-    const started = performance.now();
+    probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; probe.stopped = true; };
     const sample = () => {
       const photo = new URL(location.href).searchParams.get("photo");
       // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision a05s-frame-budget):
@@ -175,7 +174,8 @@ async function armNoGridMorphProbe(page) {
       probe.frames.push({ photo, shown,
         y: motion.getLogicalScroll?.() ?? scrollY, nativeY: scrollY,
         cloneCount: document.querySelectorAll("[data-advertising-photo-morph]").length });
-      if (performance.now() - started < 900) requestAnimationFrame(sample);
+      // Lấy mẫu tới khi đọc evidence: detail có thể hiện muộn hơn một khung cố định trên máy chậm.
+      if (!probe.stopped) requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
     window.__ttM02bProbe = probe;
