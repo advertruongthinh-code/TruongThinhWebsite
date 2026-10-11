@@ -33,6 +33,8 @@ const measure = page => page.evaluate(() => {
 const ready = async page => {
   await page.waitForFunction(()=>document.fonts.status==='loaded');
   await page.waitForFunction(() => window.TruongThinhMotion && document.documentElement.classList.contains('motion-ready'));
+  // Veil route-enter còn chặn wheel; chờ hết như mobile-layout-parity.
+  await page.waitForFunction(() => !document.documentElement.classList.contains('route-enter'));
 };
 const engines = {chromium,firefox,webkit,chrome:chromium,msedge:chromium};
 for (const engine of (process.env.SCROLLBAR_ENGINES||Object.keys(engines).join(',')).split(',')) {
@@ -132,7 +134,7 @@ try {
   if (engine!=='firefox') assert.notEqual(native.nativeTrack,'rgb(255, 255, 255)','no app-owned white document track');
   for(const mode of ['reduced','dependency-failure']) {
     const fallback=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:mode==='reduced'?'reduce':'no-preference'});
-    if(mode==='dependency-failure') await fallback.route('**/locomotive-scroll@4.1.4/dist/locomotive-scroll.min.js',request=>request.abort());
+    if(mode==='dependency-failure') await fallback.route('**/assets/vendor/locomotive-scroll-4.1.4.min.js',request=>request.abort());
     await fallback.goto(`${base}/vi/about/`); await ready(fallback);
     const m=await measure(fallback); assert.equal(m.count,0); assert.equal(m.smooth,false); assert.equal(m.transform,'');
     assert.equal(m.rootScrollbar,nativeDefault.width);

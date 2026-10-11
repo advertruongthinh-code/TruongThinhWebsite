@@ -38,6 +38,8 @@ And không path nào của mark có animation clip-path
 Trang đích có hero ảnh (section đầu không có `data-header-tone="ink"`): mark giữ CMYK suốt lúc veil phủ kín,
 rồi CMYK mờ dần, trắng hiện dần cùng lúc và cùng nhịp với veil mở (`1s power4.inOut`). Trang đích hero trắng
 thì mark giữ CMYK, không chạy gì. Từ trang ảnh sang trang ảnh có đúng hai crossfade: R1 rồi R2 (owner chốt).
+Lúc gỡ veil, nếu tone trang đích đã đổi so với lúc veil bắt đầu mở (layout còn dịch), mark sửa bằng crossfade
+ngắn `0.3s power2.out`, không bao giờ mọc dải trong lúc chuyển trang.
 
 ```gherkin
 Given /vi/ ở đầu trang

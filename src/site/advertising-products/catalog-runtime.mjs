@@ -1114,6 +1114,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoZoomReset = photoView?.querySelector("[data-advertising-photo-zoom-reset]");
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
 
+  // Khởi động Worker song song với lúc tải artifact.
+  const layoutWorker = new Worker(new URL("./layout-worker.mjs", import.meta.url), { type: "module" });
   const artifact = await loadArtifact();
   if (!artifact || typeof artifact !== "object") {
     const error = new Error("Advertising artifact must be an object");
@@ -1183,6 +1185,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMotionQuery.matches;
   const geometries = new Map();
+  let geometryPending = false;
   const rendered = new Map();
   const gridMediaById = new Map();
   const relatedMediaById = new Map();
@@ -1199,6 +1202,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
+  const relatedLayouts = new Map();
   // Khi mở photo (showPhoto), mỗi pha một task: "primary" dàn primary không có related; "warm"
   // chạy solver trên vài card để lần chạy đầy đủ không phải trả giá cho code lạnh; "related" chạy
   // solver đầy đủ, giữ geometry của primary và để việc mount card cho task kế tiếp.
@@ -1390,7 +1394,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   grid.setAttribute("role", "list");
   relatedGrid?.setAttribute("role", "list");
 
-  const geometryFor = (targetFilter) => {
+  const geometryRequest = (targetFilter) => {
     const categoryPool = targetFilter === "all" ? cards : cards.filter((card) => card.category === targetFilter);
     const presentationOrder = shuffleWithSeed(
       categoryPool,
@@ -1415,6 +1419,32 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       compileOptions.layoutViewportWidth,
       presentationOrder.join(","),
     ].join(":");
+    return { key, compileOptions };
+  };
+  const cacheGeometry = (key, layout) => {
+    if (geometries.size >= GEOMETRY_CACHE_LIMIT) geometries.delete(geometries.keys().next().value);
+    geometries.set(key, layout);
+  };
+  // Compile lần đầu chạy trong Worker để không thành long task khi chuyển trang trên A05s (decision a05s-frame-budget);
+  // Worker lỗi thì geometryFor compile đồng bộ như cũ.
+  const prewarmGeometry = async (targetFilter) => {
+    const { key, compileOptions } = geometryRequest(targetFilter);
+    if (geometries.has(key)) return;
+    const layout = await new Promise((resolve) => {
+      layoutWorker.onmessage = ({ data }) => resolve(data);
+      layoutWorker.onerror = () => resolve(null);
+      try {
+        layoutWorker.postMessage(compileOptions);
+      } catch {
+        resolve(null);
+      }
+    });
+    layoutWorker.terminate();
+    const code = Reflect.get(layout?.diagnostics ?? {}, "code");
+    if (layout && (!code || code === "needs-media") && !geometries.has(key)) cacheGeometry(key, layout);
+  };
+  const geometryFor = (targetFilter) => {
+    const { key, compileOptions } = geometryRequest(targetFilter);
     let layout = geometries.get(key);
     if (layout) {
       geometries.delete(key);
@@ -1423,8 +1453,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       return layout;
     }
     layout = compileAdvertisingGeometry({ grid, options: compileOptions });
-    if (geometries.size >= GEOMETRY_CACHE_LIMIT) geometries.delete(geometries.keys().next().value);
-    geometries.set(key, layout);
+    cacheGeometry(key, layout);
     return layout;
   };
 
@@ -2929,7 +2958,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
       2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
-    relatedLayout = compileAdvertisingRelatedLayout({
+    // Vào lại cùng photo bằng Back/Forward dùng lại layout đã compile: compile related là long task trên A05s
+    // (decision a05s-frame-budget). Key gồm mọi số đo đầu vào của compile.
+    const relatedCacheKey = `${nextLayoutKey}:${directEntryPhase}:${suggestionWidth}:${suggestionHeight}:${imageControlMinimum}`;
+    const cachedRelated = relatedLayouts.get(relatedCacheKey);
+    if (cachedRelated) ({ relatedLayout, needsDescriptionIndicator } = cachedRelated);
+    else relatedLayout = compileAdvertisingRelatedLayout({
       cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
         : directEntryPhase === "warm" ? cards.filter((card, index) => index < 12 || card.id === browse.photo) : cards,
       categoryOrder, columns,
@@ -2944,6 +2978,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       measureDescriptionMinimumHeight: measureInfo,
       minimumImageZoneHeight: imageControlMinimum,
     });
+    if (!cachedRelated) {
+      if (relatedLayouts.size >= GEOMETRY_CACHE_LIMIT) relatedLayouts.delete(relatedLayouts.keys().next().value);
+      relatedLayouts.set(relatedCacheKey, { relatedLayout, needsDescriptionIndicator });
+    }
     relatedLayoutKey = nextLayoutKey;
     const primary = relatedLayout.primary;
     photoView.dataset.advertisingPhotoLayout = primary.mode;
@@ -3512,6 +3550,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         window.dispatchEvent(new CustomEvent("site:layout"));
         return;
       }
+      // Mount còn chờ geometry từ Worker và sẽ tự measure.
+      if (geometryPending) return;
       if (grid.clientWidth !== lastMeasuredGridWidth || document.documentElement.clientWidth !== lastLayoutViewportWidth) {
         const origins = visualCoordinates();
         // Card chưa mount (ngoài virtual window) xuất phát từ chỗ của nó trong layout cũ, không từ đầu grid,
@@ -3530,6 +3570,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderCtaSkeleton();
         window.dispatchEvent(new CustomEvent("site:layout"));
       }
+      // Thanh địa chỉ ẩn, hiện chỉ đổi innerHeight (batch theo svh không dựng lại): parallax CTA phải tính lại theo innerHeight mới.
+      syncCtaParallax();
       scheduleScroll();
     });
   };
@@ -3772,6 +3814,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const cleanup = () => {
     if (cleaned) return;
     cleaned = true;
+    layoutWorker.terminate();
     signal?.removeEventListener("abort", cleanup);
     controller.abort();
     clearTimeout(revealHoldTimer);
@@ -3830,6 +3873,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   } else {
     // Id ?photo= không xác định thì quay về grid, mà index.html đã ẩn trước layout đầu tiên.
     document.body.classList.remove("is-advertising-photo");
+    geometryPending = true;
+    await prewarmGeometry(filter);
+    geometryPending = false;
+    if (controller.signal.aborted) return cleanup;
     measure({ animate: true });
     restoreGridEntry(browseHistory.current, "direct");
   }

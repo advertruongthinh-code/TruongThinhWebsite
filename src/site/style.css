@@ -1913,8 +1913,11 @@ html[lang="en"] #nang-luc .portal-subtitle {
 
 .legacy-closer {
   position: relative;
+  display: flex;
   width: min(calc(100% - 70px), 1500px);
-  height: 600px;
+  /* min-height: khối cao theo chữ khi không có fit bằng JS (scroll-feel R5). */
+  min-height: 600px;
+  padding-block: 30px;
   margin-right: auto;
   margin-left: auto;
   overflow: hidden;
@@ -1960,17 +1963,24 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 .legacy-copy {
-  position: absolute;
+  position: relative;
   z-index: 1;
-  top: 7.5%;
-  left: 7.5%;
   display: flex;
   width: 85%;
-  height: 85%;
+  margin: auto;
   flex-flow: column;
   align-items: center;
-  justify-content: center;
+  /* safe: chữ tràn dồn xuống dưới để scrollHeight của fitLegacyTitle thấy được. */
+  justify-content: safe center;
   text-align: center;
+}
+
+/* motion.js fit chữ trong box cố định 85% (fitLegacyTitle); không JS, motion fallback hoặc tới cỡ nhỏ nhất vẫn tràn thì copy nằm trong flow để khối cao theo chữ. */
+html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
+  position: absolute;
+  inset: 7.5%;
+  width: auto;
+  margin: 0;
 }
 
 .legacy-copy > p {
@@ -1994,7 +2004,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 .legacy-copy h2 {
-  font-size: 4rem;
+  /* Trần theo vw thay fit bằng JS khi motion không chạy; motion ghi đè bằng inline style. */
+  font-size: min(4rem, 12vw);
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -2341,7 +2352,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
 
   .legacy-closer {
     width: calc(100% - 50px);
-    height: 500px;
+    min-height: 500px;
   }
 
   .menu-language {
@@ -2977,6 +2988,12 @@ html[lang="en"] #nang-luc .portal-subtitle {
     transition-duration: 0.01ms !important;
   }
 
+  /* Transition 0.01ms làm font-size kế thừa trễ một frame, fitLegacyTitle đo sai cỡ cũ. */
+  .legacy-copy h2,
+  .legacy-copy h2 * {
+    transition: none !important;
+  }
+
   .site-menu {
     animation: none !important;
     transition: all 0s ease 0s !important;
@@ -3081,7 +3098,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 /* Giữ nghề block: Espacio banner CTA breakpoints (docs/specs/scroll-feel.md R5). */
 @media (max-width: 960px) {
   .legacy-closer {
-    height: 400px;
+    min-height: 400px;
   }
 
   .legacy-closer + section {

@@ -609,7 +609,7 @@
   };
   function syncHeaderBrandSurface(whiteSurface, fade) {
     if (whiteSurface) {
-      if (lastHeaderWhiteSurface === undefined) {
+      if (lastHeaderWhiteSurface === undefined && !fade) {
         // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
         paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
@@ -1593,6 +1593,8 @@
     };
   };
 
+  const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+
   const unmountPage = () => {
     if (!pageState) return;
     const state = pageState;
@@ -1648,12 +1650,16 @@
     const legacyTitle = legacyCopy?.querySelector("h2");
     if (legacyTitle) {
       const fitLegacyTitle = () => {
-        for (let size = 4; size >= 1.5; size -= 0.25) {
+        legacyCopy.classList.remove("is-overflowing");
+        let fits = false;
+        for (let size = 4; size >= 1.5 && !fits; size -= 0.25) {
           legacyTitle.style.fontSize = `${size}rem`;
           const clipped = [legacyTitle, ...legacyTitle.querySelectorAll(".line-mask")]
             .some((node) => node.scrollWidth > node.clientWidth);
-          if (!clipped && legacyCopy.scrollHeight <= legacyCopy.clientHeight) break;
+          fits = !clipped && legacyCopy.scrollHeight <= legacyCopy.clientHeight;
         }
+        // Tới 1.5rem vẫn tràn (chữ 200%, màn thấp): trả vùng chữ về flow để khối cao theo chữ.
+        legacyCopy.classList.toggle("is-overflowing", !fits);
       };
       const titleObserver = new ResizeObserver(fitLegacyTitle);
       titleObserver.observe(legacyCopy);
@@ -1667,6 +1673,8 @@
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
+    // Motion trang là task riêng, không cộng vào task render của catalog.
+    if (softNavigation) await nextTask();
     if (
       pageState !== state ||
       state.abort.signal.aborted ||
@@ -1914,12 +1922,15 @@
     routeInFlight = false;
     routeDestinationReady = false;
     routeMountReady = false;
-    routeMarkHeld = false;
     document.documentElement.classList.remove("route-enter");
     document.body.classList.remove("is-transitioning");
     header.classList.remove("is-route-pinned");
     updateToneRanges();
     updateHeader();
+    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; vẫn sửa bằng crossfade, không mọc
+    // (logo-route-crossfade R2).
+    if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
+    routeMarkHeld = false;
     setRouteVeil(0);
     // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
@@ -2802,10 +2813,15 @@
               },
               async leave(data) {
                 await coverRoute(closeMenu(false));
+                // Unmount chạy ngoài frame vừa kết thúc veil.
+                await nextTask();
                 unmountPage();
                 data.current.container.hidden = true;
               },
               async beforeEnter(data) {
+                // Mỗi bước nặng (unmount, đồng bộ document, mount) là một task riêng để không long task > 50ms
+                // trên A05s (decision a05s-frame-budget).
+                await nextTask();
                 if (!syncDocumentState(data.next.html)) {
                   const fallbackUrl = new URL(
                     pendingLocaleNavigation?.url.href || data.next.url.href,
@@ -2823,6 +2839,7 @@
                     return;
                   }
                 }
+                await nextTask();
                 const nextUrl = new URL(data.next.url.href, window.location.href);
                 restorePendingLocaleUrl(nextUrl);
                 const scrollY = resolveNextScroll(data);
