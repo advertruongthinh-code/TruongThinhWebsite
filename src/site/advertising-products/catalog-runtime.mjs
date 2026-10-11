@@ -2540,18 +2540,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     measure({ animate, origins });
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
-  const setLogicalScroll = (scrollY) => {
-    const rootStyle = document.documentElement.style;
-    const behavior = rootStyle.getPropertyValue("scroll-behavior");
-    const priority = rootStyle.getPropertyPriority("scroll-behavior");
-    rootStyle.setProperty("scroll-behavior", "auto", "important");
-    try {
-      return scroll?.setLogicalScroll?.(scrollY) ?? false;
-    } finally {
-      if (behavior) rootStyle.setProperty("scroll-behavior", behavior, priority);
-      else rootStyle.removeProperty("scroll-behavior");
-    }
-  };
+  const setLogicalScroll = (scrollY) => scroll?.setLogicalScroll?.(scrollY) ?? false;
   const ensurePhoto = (id, { focus = false, scrollIntoView = false } = {}) => {
     const card = cards.find((entry) => entry.id === id);
     if (!card) return null;
