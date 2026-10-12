@@ -8,6 +8,7 @@ source:
   - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
+  - src/site/404.html
   - wrangler.static.toml
   - .github/workflows/ci.yml
   - .github/workflows/deploy-demo.yml
@@ -20,7 +21,7 @@ tests:
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Phát hành tĩnh
@@ -39,7 +40,7 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2), xóa `.site-output/`, chép
 `src/site/`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), xử lý HTML (R5, R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
-chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm HTML trang; SVG gốc sai số `path`,
+chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm HTML trang và `404.html`; SVG gốc sai số `path`,
 `text` thì build dừng.
 
 ```gherkin
@@ -143,12 +144,11 @@ And không thêm history entry
 
 ### R8. Preview local cổng 8787
 
-`pnpm dev` chạy build rồi `serve-static-parity.mjs --port 8787` (host `127.0.0.1`,
-root `.site-output`). Path trong `ROUTES` dựng bằng `localeHtml` mỗi request, kèm
-`Content-Language`; path khác phục vụ file dưới root, còn path kết thúc bằng `/`
-(kể cả `/`), không phải file hoặc ra ngoài root trả 404. Mọi response có
-`Cache-Control: no-store`, hỗ trợ `Range`; không nén, không áp `_headers`, nên
-số đo tốc độ local không thay số đo demo. CI chạy server này trên port trống riêng mỗi job.
+`pnpm dev` chạy build rồi `serve-static-parity.mjs --port 8787` (host `127.0.0.1`, root `.site-output`). Path
+trong `ROUTES` dựng bằng `localeHtml` mỗi request, kèm `Content-Language`; path khác phục vụ file dưới root, còn path
+kết thúc bằng `/` (kể cả `/`), không phải file hoặc ra ngoài root trả 404 kèm trang 404 như demo (R11). Mọi response
+có `Cache-Control: no-store`, hỗ trợ `Range`; không nén, không áp `_headers`, nên số đo tốc độ local không thay số đo
+demo. CI chạy server này trên port trống riêng mỗi job.
 
 ```gherkin
 Given pnpm dev đang chạy
@@ -193,15 +193,14 @@ And không bước nào gọi Wrangler hoặc deploy
 
 ### R11. Phát hành demo Cloudflare
 
-`wrangler.static.toml`: Worker chỉ có asset `truong-thinh-demo`, `workers_dev`,
-`[assets] directory = ".site-output"`, không `main`, không binding. `pnpm deploy:demo`
-build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler`
-gọi `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo`
-(`.github/workflows/deploy-demo.yml`) chạy `pnpm deploy:demo` từ đúng commit khi CI
-xanh trên `main`, dùng secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi
-commit và Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback:
-`pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
+`wrangler.static.toml`: Worker chỉ có asset `truong-thinh-demo`, `workers_dev`, `[assets] directory = ".site-output"`,
+`not_found_handling = "404-page"`, không `main`, không binding. Path không có file trả 404 kèm `404.html` gần nhất:
+`/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
+`pnpm deploy:demo` build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
+`wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
+chạy `pnpm deploy:demo` từ đúng commit khi CI xanh trên `main`, dùng secret `CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và
+Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
 Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>.
 
 ```gherkin
@@ -269,7 +268,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
 | R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs`, `tests/site/image-loading-frame.e2e.mjs`, `tests/site/advertising-skeleton-slow-network.e2e.mjs`, `tests/site/phone-header-scroll.e2e.mjs`, `tests/site/logo-route-crossfade.e2e.mjs` |
-| R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run` |
+| R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run`; trang 404: `tests/site/static-locales.test.mjs` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
 

@@ -12,6 +12,7 @@ const consumers = [
   "commercial/index.html",
   "advertising-products/index.html",
   "about/index.html",
+  "404.html",
 ];
 const lockupPattern = /<svg class="brand-lockup" viewBox="[^\"]*" aria-hidden="true" data-parity-media>[\s\S]*?<\/svg>/g;
 const subtitleEnglishCopy = "INTERIORS · ADVERTISING";

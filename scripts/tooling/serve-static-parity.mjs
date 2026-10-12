@@ -105,9 +105,10 @@ function byteRange(header, size) {
 
 function handler(root) {
   return (request, response) => {
+    const pathname = new URL(request.url, "http://local").pathname;
     let resolved;
     try {
-      resolved = requestFile(root, new URL(request.url, "http://local").pathname);
+      resolved = requestFile(root, pathname);
       if (!resolved) throw new Error("not-found");
       const info = statSync(resolved.file);
       if (!info.isFile()) throw new Error("not-found");
@@ -141,8 +142,13 @@ function handler(root) {
       if (request.method === "HEAD") response.end();
       else createReadStream(resolved.file, { start, end }).pipe(response);
     } catch {
-      response.writeHead(404, { "Content-Type": "text/plain; charset=UTF-8", "Cache-Control": "no-store" });
-      response.end("Not Found");
+      // Giống demo (not_found_handling = "404-page"): trả trang 404 theo locale, thiếu file thì về text.
+      let page;
+      try {
+        page = readFileSync(resolve(root, pathname.startsWith("/en/") ? "en/404.html" : "404.html"));
+      } catch {}
+      response.writeHead(404, { "Content-Type": page ? MIME.get(".html") : "text/plain; charset=UTF-8", "Cache-Control": "no-store" });
+      response.end(page ?? "Not Found");
     }
   };
 }
