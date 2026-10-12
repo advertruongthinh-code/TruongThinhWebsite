@@ -100,6 +100,7 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 | Bốn màu CMYK | Bốn màu dưới | `#2f2f2f` ở header, `ink` ở menu | Header trên nền trắng hoặc sticky; full menu |
 | Đơn màu trắng | `#fff` | `#fff` | Header trên ảnh hero hoặc nền tối |
 | Đơn màu đen | `#2b2a29` | `#2f2f2f` | Trạng thái tạm một frame trước CMYK (xem dưới) |
+| Đơn màu đậm | `#2f2f2f` | `#2f2f2f` | Header trên veil khi chuyển trang, như Espacio |
 | Favicon | `#000000` hoặc `#ffffff` | Không có chữ | OS sáng dùng bản đen, OS tối dùng bản trắng |
 
 | Path | Màu | Token | Hex |
@@ -136,7 +137,7 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
 | Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới, trừ chuyển trang |
-| Màu mark khi chuyển trang | Crossfade: lớp cũ nằm trên lớp mới, opacity `1 → 0` `0.3s expo.out`, cùng tween màu chữ; sang CMYK lúc bấm, về trắng lúc veil bắt đầu mở | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Màu mark khi chuyển trang | Tween `fill` từng dải `0.3s expo.out`, cùng tween màu chữ: sang đậm `#2f2f2f` lúc bấm, về màu trang đích (trắng hoặc CMYK) lúc veil bắt đầu mở | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
 | Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
@@ -175,7 +176,7 @@ intro, không FLIP, màu và tone đổi ngay sang trạng thái cuối.
 
 ### State machine màu
 
-Header có một trong hai trạng thái màu mark. Header ở tone mực (nền trắng) khi
+Header có một trong ba trạng thái màu mark. Header ở tone mực (nền trắng) khi
 một trong ba điều kiện đúng: đã cuộn quá `100px` (sticky), section đang dưới
 header có `data-header-tone="ink"`, hoặc đang chuyển route mà trang đích chưa
 sẵn sàng.
@@ -184,6 +185,7 @@ sẵn sàng.
 | --- | --- | --- |
 | Trắng | `is-brand-inverse` | Bốn path trắng |
 | CMYK | `is-brand-color` | Bốn màu |
+| Đậm | `is-brand-ink` | Bốn path `#2f2f2f`, chỉ khi chuyển route |
 
 | Từ | Sự kiện | Tới | Cách chuyển |
 | --- | --- | --- | --- |
@@ -191,16 +193,15 @@ sẵn sàng.
 | Chưa vẽ | Mở trang trên nền trắng | CMYK | CMYK mọc lên trên lớp đen `#2b2a29` |
 | Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | CMYK mọc lên trên lớp trắng |
 | CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Trắng mọc lên trên lớp CMYK |
-| Trắng | Bấm link chuyển route | CMYK | Crossfade `0.3s` cùng chữ |
-| CMYK | Veil bắt đầu mở, trang đích có hero ảnh | Trắng | Crossfade `0.3s` cùng chữ |
+| Trắng, CMYK | Bấm link chuyển route | Đậm | Tween màu `0.3s` cùng chữ |
+| Đậm | Veil bắt đầu mở | Trắng hoặc CMYK theo trang đích | Tween màu `0.3s` cùng chữ |
 | Đang mọc | Đổi hướng giữa chừng | Trạng thái mới | Phần đang hiển thị thành lớp cũ, lớp mới mọc lại từ chân |
 
-- Chuyển route: khi bấm link, header ghim lại ở tone mực và mark crossfade sang
-  CMYK cùng chữ; logo luôn hiện trên veil, mark giữ CMYK suốt lúc veil phủ kín
-  (HTML trang đích không làm vẽ lại mark), rồi crossfade theo tone trang đích
-  lúc veil bắt đầu mở. Trang hero trắng
-  đổi màu tối đa một lần. Bấm link lúc mark đang mọc dở thì phần đang hiển thị
-  thành lớp cũ của crossfade.
+- Chuyển route: khi bấm link, header ghim lại ở tone mực và mark tween sang
+  `#2f2f2f` cùng chữ, như Espacio; logo luôn hiện trên veil, mark giữ màu đậm
+  suốt lúc veil phủ kín (HTML trang đích không làm vẽ lại mark), rồi tween theo
+  tone trang đích lúc veil bắt đầu mở. Bấm link lúc mark đang mọc dở thì kiểu
+  mọc dừng, từng dải tween từ màu đang có.
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
   mở lại menu không có pha đen.
 

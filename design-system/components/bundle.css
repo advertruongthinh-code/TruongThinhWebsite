@@ -301,6 +301,14 @@ html.route-enter .site-header {
   --logo-mark-cyan: #fff;
 }
 
+/* Mark đậm cùng màu chữ trong lúc chuyển trang (logo-route-crossfade R1). */
+.site-header.is-brand-ink .brand-lockup {
+  --logo-mark-black: #2f2f2f;
+  --logo-mark-yellow: #2f2f2f;
+  --logo-mark-magenta: #2f2f2f;
+  --logo-mark-cyan: #2f2f2f;
+}
+
 .menu-brand .brand-lockup {
   --logo-mark-black: #2b2a29;
   --logo-mark-yellow: #ffed00;
