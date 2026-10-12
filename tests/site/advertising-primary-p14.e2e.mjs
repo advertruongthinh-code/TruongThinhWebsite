@@ -494,7 +494,7 @@ function assertControls(actual, locale, touch = false) {
   const label = `${locale} controls ${actual.viewport.width}x${actual.viewport.height}`;
   assert.equal(actual.ctaCount, 1, `${label}: expected one CTA, got ${actual.ctaCount}`);
   assert.equal(actual.cta?.tag, "A", `${label}: CTA is not a native link`);
-  assert.equal(actual.cta.href, "https://zalo.me/", `${label}: CTA href changed`);
+  assert.equal(actual.cta.href, "https://zalo.me/0949131050", `${label}: CTA href changed`);
   assert.equal(actual.cta.target, "_blank", `${label}: CTA target changed`);
   assert(actual.cta.rel.split(/\s+/).includes("noreferrer"), `${label}: CTA rel lacks noreferrer`);
   assert(actual.cta.label.includes(locale === "vi" ? "Trao đổi ý tưởng" : "Discuss an idea"), `${label}: CTA label changed`);
