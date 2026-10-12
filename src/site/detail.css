@@ -6,6 +6,12 @@
   min-height: 44rem;
 }
 
+/* Ảnh hero Residential, Commercial hiện cắt cứng khi giải mã xong như hero Espacio, bỏ fade của khung chờ ảnh.
+   Selector khung chờ ảnh của media-gate có specificity rất cao nên cần !important. */
+.media-gate .detail-hero .hero-slide img {
+  animation: none !important;
+}
+
 .detail-hero .hero-content {
   width: min(82rem, calc(100% - 2 * var(--gutter)));
 }

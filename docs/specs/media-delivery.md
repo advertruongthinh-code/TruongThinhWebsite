@@ -8,7 +8,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-10
+updated: 2026-10-12
 ---
 
 # Tải ảnh nội dung
@@ -163,7 +163,8 @@ Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, ho�
 - Reduced motion: không lướt; khung sáng tối nhẹ chu kỳ `2s`.
 
 Ảnh chỉ hiện sau `load` và `decode()`: khung nhận `.is-media-settled`, vệt gỡ, ảnh `opacity` `0` sang `1` trong
-`0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`. Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
+`0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (ảnh hero Residential, Commercial hiện cắt cứng, không fade, như
+hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
 `document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
 `.is-media-settled` ngay, ảnh hiện để thấy alt, khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
 nên chưa có vệt.
