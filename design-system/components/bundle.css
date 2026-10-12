@@ -842,6 +842,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   line-height: 1.4;
 }
 
+/* Tiêu đề nhỏ: loại nhóm cùng dòng số thứ tự, để tiêu đề lớn chỉ còn tên nhóm, gọn một dòng. */
+.menu-group__kind {
+  margin-left: 0.6em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .menu-group__title {
   width: 100%;
   overflow-wrap: anywhere;
@@ -1081,7 +1088,6 @@ em {
     transform: none;
   }
 
-  .hero[data-hero-intro] .motion-toggle,
   .hero[data-hero-intro] .scroll-cue,
   .about-hero .scroll-cue {
     position: relative;
@@ -1093,15 +1099,6 @@ em {
     grid-row: 2;
     justify-self: center;
     transform: none;
-  }
-
-  .hero[data-hero-intro] .motion-toggle {
-    margin-left: var(--gutter);
-    justify-self: start;
-  }
-
-  .hero[data-hero-intro] .scroll-cue {
-    grid-row: 3;
   }
 
   /* Đổi cỡ font không được để ink allowance đã đo ở size cũ. */
@@ -1125,12 +1122,14 @@ em {
   }
 }
 
-/* Góc trái dưới hero; góc phải dưới là chỗ của floating CTA, đang hiện ở màn đầu. */
+/* Cột phải hero, ngay trên floating CTA (đang hiện ở màn đầu, cao 47px) và thẳng mép phải với nút.
+   Hero cao hơn viewport (min-height, màn ngang thấp) thì cộng phần dư để nút vẫn ở màn đầu, trên CTA. */
 .motion-toggle {
+  --toggle-overflow: max(0px, 100% - var(--site-layout-viewport-height, 100svh));
   position: absolute;
   z-index: 3;
-  left: var(--gutter);
-  bottom: 6.25rem;
+  right: 35px;
+  bottom: calc(var(--toggle-overflow) + 35px + 47px + 16px);
   display: grid;
   width: 2.75rem;
   height: 2.75rem;
@@ -1144,6 +1143,21 @@ em {
   transition:
     background-color 0.25s ease,
     transform 0.25s ease;
+}
+
+@media (max-width: 1200px) {
+  .motion-toggle {
+    right: 25px;
+    bottom: calc(var(--toggle-overflow) + 25px + 47px + 16px);
+  }
+}
+
+/* Từ 750px trở xuống CTA là nút vuông 57px cách mép phải 15px: nút dừng thẳng trục giữa với CTA. */
+@media (max-width: 750px) {
+  .motion-toggle {
+    right: calc(15px + (57px - 2.75rem) / 2);
+    bottom: calc(var(--toggle-overflow) + 25px + 57px + 14px);
+  }
 }
 
 .motion-toggle:hover {

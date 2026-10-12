@@ -8,11 +8,13 @@ chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở b�
 
 - Hàng đầu: brand lockup màu CMYK, locale `TIẾNG VIỆT` / `ENGLISH` (mục đang
   dùng gạch chân), CTA `Gọi Zalo tư vấn`, nút đóng.
-- Bốn cột nhóm có số `01`–`04`, tiêu đề display và danh sách mục con;
+- Bốn cột nhóm có số `01`–`04` cùng tiêu đề nhỏ (loại nhóm: Không gian,
+  Sản phẩm, Về chúng tôi; 700 chữ hoa), tiêu đề lớn chỉ tên nhóm (Nhà ở, Kinh
+  doanh, Quảng cáo, Trường Thịnh) nên gọn một dòng, và danh sách mục con;
   4/3/2/1 cột ở mặc định, 1200, 960, 578px; cột ngăn bằng viền `line`.
 - Mục con dẫn tới URL canonical kèm query, không dùng section hash. Mục chữ
   hoa 700, 0.85rem, cao dòng tối thiểu 22.4px, cách nhau 15px; tiêu đề nhóm
-  `menu-title` dài thì xuống dòng.
+  `menu-title` vẫn được xuống dòng nếu cửa sổ quá hẹp.
 - Hàng đầu đệm 35px (25px ở max-width 1200px). Mobile đưa CTA xuống hàng thứ
   ba; 579–960px ẩn CTA
   ([shell spec](../../../docs/specs/site-shell.md#r4-full-menu)).
@@ -29,7 +31,7 @@ chuyển ngôn ngữ và CTA hẹn Zalo. Markup là `dialog.site-menu`; mở b�
 | 1440 | 137.52 | `260.97 × 67.52` ở 35, 35 | 4 | |
 
 - Nút đóng `50 × 50`. CTA `166.63 × 50`.
-- Nhóm: số 12.8/17.92 weight 500; tiêu đề 28.8/40.32 600 chữ hoa; mục con
+- Nhóm: số 12.8/17.92 weight 500, tiêu đề nhỏ cùng dòng weight 700; tiêu đề 28.8/40.32 600 chữ hoa; mục con
   13.6/22.4 700 chữ hoa. Số tới tiêu đề 15px, tiêu đề tới danh sách 30px,
   bước giữa hai mục 37.41px.
 - Đường kẻ dưới hàng đầu và giữa các cột màu `line`, mở dần theo

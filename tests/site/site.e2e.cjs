@@ -268,9 +268,10 @@ function assertPersistentNavigationContracts() {
       `${relativePath} must own locale, appointment, and four groups inside the full menu only`,
     );
     assert(
-      (source.match(/data-vi="Sản phẩm Quảng cáo"/g) || []).length >=
+      // Header giữ nhãn đầy đủ; full menu tách tiêu đề nhỏ/lớn nên nhãn đầy đủ nằm ở aria-label.
+      (source.match(/(?:data-vi|\saria-label)="Sản phẩm Quảng cáo"/g) || []).length >=
         2 &&
-        (source.match(/data-en="Advertising products"/g) || []).length >= 2,
+        (source.match(/data-en(?:-aria-label)?="Advertising products"/g) || []).length >= 2,
       `${relativePath} has inconsistent project/product labels in the header or full menu`,
     );
     assert(
@@ -3979,14 +3980,15 @@ async function runLanguagePersistenceCheck() {
               !element.matches(".hero-word"),
           );
           return {
+            // Full menu tách tiêu đề nhỏ/lớn; tên đầy đủ của link là aria-label.
             projectLabels: [
-              document.querySelector(
-                '[data-site-header] a[href="/vi/advertising-products/"]',
-              ),
-              document.querySelector(
-                '#site-menu .menu-group a[href="/vi/advertising-products/"] [data-vi]',
-              ),
-            ].map((element) => element?.textContent?.replace(/\s+/g, " ").trim()),
+              document
+                .querySelector('[data-site-header] a[href="/vi/advertising-products/"]')
+                ?.textContent,
+              document
+                .querySelector('#site-menu .menu-group__title[href="/vi/advertising-products/"]')
+                ?.getAttribute("aria-label"),
+            ].map((label) => label?.replace(/\s+/g, " ").trim()),
             title: document.title,
             meta: document.querySelector('meta[name="description"]')?.getAttribute("content"),
             text: leaf?.textContent?.replace(/\s+/g, " ").trim(),
@@ -4014,14 +4016,15 @@ async function runLanguagePersistenceCheck() {
           const image = document.querySelector("img[data-en-alt]");
           const labelled = document.querySelector("[data-en-aria-label]");
           return {
+            // Full menu tách tiêu đề nhỏ/lớn; tên đầy đủ của link là aria-label.
             projectLabels: [
-              document.querySelector(
-                '[data-site-header] a[href="/en/advertising-products/"]',
-              ),
-              document.querySelector(
-                '#site-menu .menu-group a[href="/en/advertising-products/"] [data-en]',
-              ),
-            ].map((element) => element?.textContent?.replace(/\s+/g, " ").trim()),
+              document
+                .querySelector('[data-site-header] a[href="/en/advertising-products/"]')
+                ?.textContent,
+              document
+                .querySelector('#site-menu .menu-group__title[href="/en/advertising-products/"]')
+                ?.getAttribute("aria-label"),
+            ].map((label) => label?.replace(/\s+/g, " ").trim()),
             title: document.title,
             meta: meta?.getAttribute("content"),
             text: text?.textContent?.replace(/\s+/g, " ").trim(),

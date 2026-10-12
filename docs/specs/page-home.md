@@ -79,9 +79,10 @@ slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặ
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
-`-2`. Hero cao `100svh`; tới 980px theo luồng chữ, tối thiểu `100svh`, nút dừng và cue xếp dưới tiêu đề nên chữ 200% không
-đè header; tới 680px tiêu đề căn trái. Nút dừng nằm góc trái dưới hero (cách mép `gutter`) ở mọi cỡ, vì góc phải dưới là
-floating CTA đang hiện ở màn đầu ([shell R10](site-shell.md#r10-floating-cta-và-footer)); hai nút không chồng nhau.
+`-2`. Hero cao `100svh`; tới 980px theo luồng chữ, tối thiểu `100svh`, cue xếp dưới tiêu đề nên chữ 200% không
+đè header; tới 680px tiêu đề căn trái. Nút dừng nằm cột phải hero, ngay trên floating CTA đang hiện ở màn đầu
+([shell R10](site-shell.md#r10-floating-cta-và-footer)): cách 16px, thẳng mép phải nút chữ; từ 750px trở xuống thẳng
+trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion

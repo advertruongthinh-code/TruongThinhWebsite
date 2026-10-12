@@ -83,8 +83,8 @@ smooth scroll, chạy timeline mở, thu nhỏ trang phía sau rồi focus nút 
 `[data-menu-close]` chạy ngược timeline, đóng dialog, chạy lại smooth scroll, giữ vị trí cuộn, focus
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
-ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link, cột
-4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường đóng menu, đi route. Dialog
+ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link (số và tiêu đề nhỏ
+`.menu-group__kind` một dòng, tiêu đề lớn một dòng, `aria-label` giữ tên đầy đủ), cột 4/3/2/1, vùng link cuộn riêng. Click link thường đóng menu, đi route. Dialog
 đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
 làm Chromium crash khi đóng menu lúc `motion.js` lỗi).
 
