@@ -14,7 +14,7 @@ updated: 2026-10-12
 Trang Advertising lọc theo sáu cụm khái niệm và các sản phẩm cụ thể trong từng cụm, mỗi cụm và sản phẩm có
 URL riêng để Google index. Phân loại là dữ liệu sửa được, không hard-code trong code render; phase CMS cho
 người hoặc AI sửa. EmbeddingGemma 2 chấm điểm ảnh để gợi ý gắn loại và xếp related. Spec planned: intent
-owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, chờ owner duyệt; chưa có code nào thuộc spec này. Spec thay
+owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, owner duyệt spec 2026-10-12; chưa có code nào thuộc spec này. Spec thay
 phần nhóm và filter của [masonry R2, R3](advertising-masonry.md#r2-catalog-và-artifact) khi code xong.
 
 ## Hành vi
