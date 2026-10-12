@@ -180,9 +180,9 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ,
 trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
 là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
-Hotline (600) xếp trên Văn phòng (500), dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
+Hotline xếp trên Văn phòng, cùng độ đậm 500, dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
 Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới. CTA ẩn khi footer lọt vào
-viewport (404) nên footer không chừa làn nút: đệm dọc rộng, ba cột như Espacio giãn đều giữa hai biên bằng nhau (148px ở 1440px): địa chỉ (cùng cỡ chữ hai số), Hotline trên Văn phòng cách 16px, mạng xã hội xếp dọc; kéo chuột bôi đen copy được số. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+viewport (404) nên footer không chừa làn nút: đệm dọc rộng, ba cột như Espacio giãn đều giữa hai biên `gutter`: địa chỉ (cùng cỡ chữ hai số), Hotline trên Văn phòng cách 16px, mạng xã hội xếp ngang; kéo chuột bôi đen copy được số. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình

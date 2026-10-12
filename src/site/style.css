@@ -2190,10 +2190,9 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Ba cột như footer Espacio: địa chỉ | hai số điện thoại | mạng xã hội xếp dọc. Ba cột co theo nội dung, giãn
-   đều giữa hai biên bằng nhau (15vw - 68px: 148px ở 1440px, owner 12/10 chọn nửa biên khi cụm ba cột căn giữa).
-   Đệm dọc rộng cho footer thoáng; floating CTA không hiện cùng footer nên không chừa làn nút. Nhịp theo
-   Espacio: hai số cách 16px, line-height 1.4. */
+/* Ba cột như footer Espacio: địa chỉ | hai số điện thoại | mạng xã hội xếp ngang. Ba cột co theo nội dung, giãn
+   đều giữa hai biên gutter nên thẳng mép logo và nội dung trang. Đệm dọc rộng cho footer thoáng; floating CTA
+   không hiện cùng footer nên không chừa làn nút. Nhịp theo Espacio: hai số cách 16px, line-height 1.4. */
 .site-footer {
   display: grid;
   grid-template-columns: repeat(3, auto);
@@ -2203,7 +2202,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   align-items: baseline;
   gap: 16px clamp(56px, 7vw, 136px);
   margin-block-start: var(--footer-top-gap);
-  padding: clamp(40px, 3.5vw, 64px) max(var(--gutter), 15vw - 68px);
+  padding: clamp(40px, 3.5vw, 64px) var(--gutter);
   border-top: 1px solid var(--line);
   background: var(--white);
 }
@@ -2265,7 +2264,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: 0.65rem;
-  font-size: clamp(1.125rem, 1.5vw, 1.625rem);
+  /* Từ 1440px một dòng chữ cao 36px (1.6rem x 1.4), bằng icon mạng xã hội. */
+  font-size: clamp(1.125rem, 1.8vw, 1.6rem);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -2276,12 +2276,11 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   max-width: 18em;
 }
 
-/* Hotline (cũng là số Zalo) đậm hơn số bàn; hai số xếp cột giữa, chữ số thẳng hàng. Link có
+/* Hotline (cũng là số Zalo) và số bàn cùng độ đậm 500; hai số xếp cột giữa, chữ số thẳng hàng. Link có
    draggable="false", user-select text và không kéo đi để kéo chuột bôi đen copy được số; motion.js chặn
    tel: khi click kết thúc một lần bôi đen. */
 .footer-hotline {
   grid-area: 1 / 2;
-  font-weight: 600;
 }
 
 .footer-office {
@@ -2323,9 +2322,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
 .footer-social-list {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 
 .footer-social {
@@ -2839,11 +2837,11 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 /* Footer gọn trên điện thoại: chữ và icon nhỏ lại. Điện thoại ngang: địa chỉ hàng trên, hai số cạnh nhau
-   hàng dưới. Điện thoại dọc: địa chỉ rồi hai số ở cột trái. Icon luôn xếp dọc ở cột phải. */
+   hàng dưới, icon xếp ngang bên phải. Điện thoại dọc: địa chỉ rồi hai số ở cột trái, icon xếp dọc cột phải. */
 @media (max-width: 750px) {
   .site-footer {
     column-gap: 24px;
-    padding: 32px var(--gutter);
+    padding-block: 32px;
   }
 
   .footer-hotline,
@@ -2901,20 +2899,20 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     grid-area: 1 / 2 / span 3;
   }
 
+  .footer-social-list {
+    flex-direction: column;
+  }
+
   /* Cột hẹp: pretty ngắt sau "Hưng Phú," thay vì cắt đôi tên. */
   .footer-address strong {
     text-wrap: pretty;
   }
 }
 
-/* Desktop thấp (laptop 1366×768): đệm và cột icon gọn để CTA Advertising giữ cỡ tiêu đề. */
+/* Desktop thấp (laptop 1366×768): đệm dọc gọn để CTA Advertising giữ cỡ tiêu đề. */
 @media (min-width: 751px) and (max-height: 799px) {
   .site-footer {
     padding-block: 24px;
-  }
-
-  .footer-social-list {
-    gap: 10px;
   }
 }
 

@@ -74,8 +74,8 @@ không có transition để runtime đo đúng cỡ mới ngay.
 Dưới chân chữ cần chỗ cho phần còn lại của dòng cuối, một khoảng giữa, nút và một khoảng giữa tới đáy batch.
 `fitGridCtaHeading` so phần dưới chân chữ ở cỡ CSS với chỗ còn `vh/2 − footer − khoảng giữa`: đủ thì giữ cỡ CSS; thiếu thì
 đo lại ở `1.3rem` và nội suy tuyến tính giữa hai cỡ, ghi `font-size` inline vừa đủ chỗ, không dưới `1.3rem` và không quá
-cỡ CSS. Phần trên chân chữ không giới hạn cỡ chữ vì CTA cao thêm (R2). Ví dụ: 844×390 thu về 20.8px; 1366×645 với footer
-laptop gọn (177px, R4) giữ cỡ CSS.
+cỡ CSS. Phần trên chân chữ không giới hạn cỡ chữ vì CTA cao thêm (R2). Ví dụ: 844×390 dùng 20.8px; 1366×645 với footer
+laptop gọn (134px, R4) giữ cỡ CSS.
 
 ```gherkin
 Given cửa sổ 844×390
@@ -90,13 +90,13 @@ Footer ở mọi trang VI/EN không cao quá `38.2%` viewport khi rộng tới 7
 `61.8%`; giữ nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): địa chỉ,
 Hotline, Văn phòng, mạng xã hội. Footer gọn (`@media (max-width: 750px)` trong `style.css`):
 
-- Icon mạng xã hội luôn xếp dọc ở cột phải, 28px cách 16px; đệm dọc 32px; lề hai bên bằng `gutter`; hai số cách
+- Icon mạng xã hội 28px cách 16px, xếp dọc ở cột phải khi điện thoại dọc, xếp ngang khi nằm ngang; đệm dọc 32px; lề hai bên bằng `gutter`; hai số cách
   16px (10px khi cửa sổ cao `≤640px`).
 - Dọc: địa chỉ rồi hai số ở cột trái, chữ 18px. Cao khoảng 223px ở 390×844, 211px ở 320×568 (37.1%).
 - Cửa sổ cao `≤640px` nằm ngang (cả màn rộng hơn 750px): icon 24px cách 8px, đệm dọc 14px. Dưới 750px địa chỉ hàng
-  trên, hai số cạnh nhau hàng dưới. Cao 117px (568×320: 36.6%, 844×390: 30%).
-- Laptop rộng hơn 750px, cao 641-799px: đệm dọc 24px, icon cách 10px, cao 177px, để tiêu đề CTA giữ cỡ CSS ở
-  1366×657 (footer 245px làm tiêu đề thu về 20.8px).
+  trên, hai số cạnh nhau hàng dưới. Cao 115px ở 568×320 (35.8%), 89px ở 844×390 (22.9%).
+- Laptop rộng hơn 750px, cao 641-799px: đệm dọc 24px, cao 134px ở 1366px, để tiêu đề CTA giữ cỡ CSS (footer cao
+  245px từng làm tiêu đề 1366×657 thu về 20.8px).
 - Floating CTA không hiện ở cuối trang (đã có nút Zalo của trang) và ẩn khi footer lọt vào viewport (404), nên footer
   không chừa làn nút.
 - Icon thay nhãn chữ; nhãn ẩn bằng mắt cho trình đọc màn hình; footer có viền trên.

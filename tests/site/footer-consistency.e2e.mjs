@@ -82,14 +82,14 @@ try {
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
-        // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
+        // Viền trên tràn mép trang; không logo; hotline cùng độ đậm số bàn. Không chừa làn floating CTA:
         // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Ba cột giãn đều: biên trái tới địa chỉ bằng
-        // biên phải sau mạng xã hội xếp dọc; địa chỉ cùng cỡ chữ hai số; kéo chuột bôi đen được số (link không kéo đi).
+        // biên phải sau mạng xã hội; địa chỉ cùng cỡ chữ hai số; kéo chuột bôi đen được số (link không kéo đi).
         // Cửa sổ thấp nằm ngang dùng icon 24px để footer không quá 38.2% viewport.
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
-        assert.deepEqual(result.weights, ["600", "500"]);
+        assert.deepEqual(result.weights, ["500", "500"]);
         const [padTop, padRight, padLeft] = result.padding;
         assert.equal(padRight, padLeft, JSON.stringify({ width, route, result }));
         if (!small) assert.ok(padTop >= 40, JSON.stringify({ width, route, result }));
