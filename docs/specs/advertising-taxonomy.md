@@ -36,7 +36,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (12); Chữ nổi (10); Hộp đèn (tách từ cụm LED và bảng hiệu); Bảng vẫy (4) |
 | Standee, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
 | In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
-| Màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
+| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (chưa có ảnh); Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
 | Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
 | Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
 
@@ -89,7 +89,7 @@ document, `replaceState`, card chuyển vị trí); đổi luôn `document.title
 
 ```gherkin
 Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng
-When hover cụm "Màn hình & bảng LED" rồi bấm "Bảng LED chạy chữ" trong danh sách
+When hover cụm "LED decor, màn hình & bảng LED" rồi bấm "Bảng LED chạy chữ" trong danh sách
 Then URL thành /vi/advertising-products/man-hinh-bang-led/bang-led-chay-chu/ bằng replaceState
 And chỉ card thuộc sản phẩm đó còn trong masonry, không có request document
 And HTML tĩnh của trang gốc đã chứa link tới mọi cụm và sản phẩm đủ ngưỡng
@@ -238,7 +238,7 @@ Không đổi typography hay layout ngoài rail.
 
 ## Chú thích thuật ngữ
 
-- **Cụm**: nhóm khái niệm đóng trên rail, ví dụ "Màn hình & bảng LED".
+- **Cụm**: nhóm khái niệm đóng trên rail, ví dụ "LED decor, màn hình & bảng LED".
 - **Sản phẩm**: mục cụ thể trong cụm, lọc được, có trang riêng.
 - **Tag**: nhãn biến thể hoặc vật liệu gắn trên media, không lên rail.
 - **Rail**: dải link lọc phía trên masonry (`.project-filters`).
