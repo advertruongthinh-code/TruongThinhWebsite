@@ -48,7 +48,8 @@ nút. Footer không cao quá 38.2% viewport:
   (cách trên 10px); đệm dọc 20px. Cao khoảng 191px ở 390×844.
 - Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ; đệm dọc 14px.
   Cao khoảng 112px ở 568×320.
-- Ở mọi cửa sổ, floating CTA hiện ở cuối trang không đè nội dung footer.
+- Floating CTA không hiện ở cuối trang vì lời mời và `.detail-cta` đã có nút
+  Zalo; làn phải vẫn chừa cho 404, nơi footer nằm trong màn đầu cùng nút.
 
 Spec: [CTA giữa viewport](../../../docs/specs/advertising-cta-center-parallax.md#r4-footer-ở-cửa-sổ-nhỏ-và-điện-thoại).
 

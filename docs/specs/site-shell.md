@@ -177,17 +177,17 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 
 ### R10. Floating CTA và footer
 
-Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
-hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải; từ 750px trở xuống là nút vuông chỉ
-icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
+Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ,
+trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
+là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
 Hotline (600) xếp trên Văn phòng (500), dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
 Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới; lề phải chừa làn CTA nên
-CTA không đè nội dung. Rộng hơn 980px footer là một dải cao bằng làn CTA, cùng đường tâm với nút. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+CTA không đè nội dung khi footer nằm trong màn đầu (404). Rộng hơn 980px footer là một dải cao bằng làn CTA, cùng đường tâm với nút. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình
 When cuộn từ đầu tới giữa rồi tới cuối trang
-Then floating CTA hiện ở màn đầu, ẩn ở giữa, hiện lại gần cuối; Tab bỏ qua icon footer
+Then floating CTA hiện ở màn đầu, ẩn ở giữa và cuối trang; Tab bỏ qua icon footer
 ```
 
 ### R11. Viewport ổn định khi thanh địa chỉ đổi

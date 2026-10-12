@@ -98,23 +98,34 @@ try {
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
         assert.equal(result.copyright, 0);
         assert.equal(result.overflow, false, JSON.stringify({ width, route, locale }));
-        // Cuối trang floating CTA hiện; nó không được đè nội dung footer. Bỏ qua Advertising:
-        // browse nối batch khi cuộn tới cuối, photo view ẩn CTA; footer dùng chung CSS nên các route khác đã phủ.
-        const ctaHit = !route.startsWith("advertising-products") && await page.evaluate(async () => {
+        // Cuối trang đã có nút Zalo của trang (lời mời, .detail-cta) nên floating CTA không hiện lại.
+        // Bỏ qua Advertising: browse nối batch khi cuộn tới cuối, photo view có luật CTA riêng.
+        const ctaShownAtEnd = !route.startsWith("advertising-products") && await page.evaluate(async () => {
           scrollTo(0, document.documentElement.scrollHeight);
           await new Promise(resolve => setTimeout(resolve, 300));
           const cta = document.querySelector(".floating-cta");
-          if (!cta?.classList.contains("show") || getComputedStyle(cta).visibility === "hidden") return null;
-          const c = cta.getBoundingClientRect();
-          return [...document.querySelectorAll(".site-footer :is(a, strong, p, svg)")]
-            .filter(e => e.getClientRects().length)
-            .map(e => e.getBoundingClientRect())
-            .filter(r => c.left < r.right && r.left < c.right && c.top < r.bottom && r.top < c.bottom)
-            .map(r => [r.left, r.top, r.right, r.bottom]);
+          return Boolean(cta?.classList.contains("show") && getComputedStyle(cta).visibility !== "hidden");
         });
-        if (ctaHit) assert.deepEqual(ctaHit, [], JSON.stringify({ width, height, route, locale }));
+        assert.equal(ctaShownAtEnd, false, JSON.stringify({ width, height, route, locale }));
         count++;
       }
+    }
+    // 404 vừa một màn hình nên floating CTA hiện cùng footer; làn phải giữ nút khỏi đè nội dung.
+    for (const locale of ["vi", "en"]) {
+      await page.goto(`http://127.0.0.1:8787/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
+      await page.waitForSelector(".footer-contact");
+      await page.waitForTimeout(1200);
+      const hits = await page.evaluate(() => {
+        const cta = document.querySelector(".floating-cta");
+        if (!cta?.classList.contains("show")) return [];
+        const c = cta.getBoundingClientRect();
+        return [...document.querySelectorAll(".site-footer :is(a, strong, p, svg)")]
+          .filter(e => e.getClientRects().length)
+          .map(e => e.getBoundingClientRect())
+          .filter(r => c.left < r.right && r.left < c.right && c.top < r.bottom && r.top < c.bottom)
+          .map(r => [r.left, r.top, r.right, r.bottom]);
+      });
+      assert.deepEqual(hits, [], JSON.stringify({ width, height, locale, route: "404" }));
     }
     console.log(JSON.stringify({ width, height, footerHeight: expectedHeight }));
     await page.close();
