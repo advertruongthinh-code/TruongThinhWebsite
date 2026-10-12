@@ -10225,9 +10225,9 @@ function extractInlineBrandLockups(source, relativePath) {
     ),
   ].map((match) => match[0]);
   assert(
-    lockups.length === 3,
+    lockups.length === 2,
     relativePath +
-      " must expose exactly three inline brand lockups (header, full menu, footer); found " +
+      " must expose exactly two inline brand lockups (header and full menu); found " +
       lockups.length,
   );
   return lockups;
@@ -10308,8 +10308,8 @@ function assertBrandShellSourceContracts() {
   });
 
   assert(
-    lockupCount === 15,
-    "The five routes must expose fifteen inline Trường Thịnh lockups; found " +
+    lockupCount === 10,
+    "The five routes must expose ten inline Trường Thịnh lockups; found " +
       lockupCount,
   );
   assert(
@@ -12186,8 +12186,8 @@ async function runFooterRuntimeChecks() {
           const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
-              // Desktop đệm đáy 32px; điện thoại dọc đệm 0 vì cột mạng xã hội đã chừa chỗ cho CTA.
-              state.spacing.paddingBottom === (viewport.width <= 750 ? 0 : 32) &&
+              // Desktop một dải đệm dọc 18px, điện thoại dọc 20px; nút Zalo có làn riêng bên phải.
+              state.spacing.paddingBottom === (viewport.width <= 750 ? 20 : 18) &&
               state.address &&
               state.social.every(
                 (item) =>

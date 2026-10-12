@@ -97,7 +97,7 @@ hai dòng (owner chốt R4, 20/09); khối `4Y` vẫn tính cả dấu. Ghi chú
 
 | Dạng | Mark | Cụm chữ | Dùng ở |
 | --- | --- | --- | --- |
-| Bốn màu CMYK | Bốn màu dưới | `#2f2f2f` ở header, `ink` ở menu, footer | Header trên nền trắng hoặc sticky; full menu; footer |
+| Bốn màu CMYK | Bốn màu dưới | `#2f2f2f` ở header, `ink` ở menu | Header trên nền trắng hoặc sticky; full menu |
 | Đơn màu trắng | `#fff` | `#fff` | Header trên ảnh hero hoặc nền tối |
 | Đơn màu đen | `#2b2a29` | `#2f2f2f` | Trạng thái tạm một frame trước CMYK (xem dưới) |
 | Favicon | `#000000` hoặc `#ffffff` | Không có chữ | OS sáng dùng bản đen, OS tối dùng bản trắng |

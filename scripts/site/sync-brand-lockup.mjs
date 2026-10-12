@@ -37,21 +37,21 @@ for (const relativePath of consumers) {
   const target = path.join(siteRoot, relativePath);
   const source = await readFile(target, "utf8");
   const matches = [...source.matchAll(lockupPattern)];
-  if (matches.length !== 3 || matches.some((match) => !/class="brand-lockup__geometry"/.test(match[0]))) {
-    throw new Error(`${relativePath} must contain exactly three recognizable inline brand lockups (header, menu, footer).`);
+  if (matches.length !== 2 || matches.some((match) => !/class="brand-lockup__geometry"/.test(match[0]))) {
+    throw new Error(`${relativePath} must contain exactly two recognizable inline brand lockups.`);
   }
   const next = source.replace(lockupPattern, (markup) =>
     markup.replace(/>[\s\S]*<\/svg>$/, `>\n${consumerGeometry}\n</svg>`),
   );
-  if ((next.match(lockupPattern) || []).length !== 3) {
+  if ((next.match(lockupPattern) || []).length !== 2) {
     throw new Error(`${relativePath} lockup replacement changed the consumer count.`);
   }
   if (next !== source) await writeFile(target, next, "utf8");
   synchronized += matches.length;
 }
 
-if (synchronized !== consumers.length * 3) {
-  throw new Error(`Expected ${consumers.length * 3} inline lockups; synchronized ${synchronized}.`);
+if (synchronized !== consumers.length * 2) {
+  throw new Error(`Expected ${consumers.length * 2} inline lockups; synchronized ${synchronized}.`);
 }
 
 console.log(`[brand-lockup] synchronized ${synchronized} inline consumers from canonical SVG`);
