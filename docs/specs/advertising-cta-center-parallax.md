@@ -75,7 +75,7 @@ Dưới chân chữ cần chỗ cho phần còn lại của dòng cuối, một 
 `fitGridCtaHeading` so phần dưới chân chữ ở cỡ CSS với chỗ còn `vh/2 − footer − khoảng giữa`: đủ thì giữ cỡ CSS; thiếu thì
 đo lại ở `1.3rem` và nội suy tuyến tính giữa hai cỡ, ghi `font-size` inline vừa đủ chỗ, không dưới `1.3rem` và không quá
 cỡ CSS. Phần trên chân chữ không giới hạn cỡ chữ vì CTA cao thêm (R2). Ví dụ: 844×390 dùng 20.8px; 1366×645 với footer
-laptop gọn (134px, R4) giữ cỡ CSS.
+laptop gọn (118px, R4) giữ cỡ CSS.
 
 ```gherkin
 Given cửa sổ 844×390
@@ -95,7 +95,7 @@ Hotline, Văn phòng, mạng xã hội. Footer gọn (`@media (max-width: 750px)
 - Dọc: địa chỉ rồi hai số ở cột trái, chữ 18px. Cao khoảng 223px ở 390×844, 211px ở 320×568 (37.1%).
 - Cửa sổ cao `≤640px` nằm ngang (cả màn rộng hơn 750px): icon 24px cách 8px, đệm dọc 14px. Dưới 750px địa chỉ hàng
   trên, hai số cạnh nhau hàng dưới. Cao 115px ở 568×320 (35.8%), 89px ở 844×390 (22.9%).
-- Laptop rộng hơn 750px, cao 641-799px: đệm dọc 24px, cao 134px ở 1366px, để tiêu đề CTA giữ cỡ CSS (footer cao
+- Laptop rộng hơn 750px, cao 641-799px: đệm dọc 24px, cao 118px ở 1366px, để tiêu đề CTA giữ cỡ CSS (footer cao
   245px từng làm tiêu đề 1366×657 thu về 20.8px).
 - Floating CTA không hiện ở cuối trang (đã có nút Zalo của trang) và ẩn khi footer lọt vào viewport (404), nên footer
   không chừa làn nút.

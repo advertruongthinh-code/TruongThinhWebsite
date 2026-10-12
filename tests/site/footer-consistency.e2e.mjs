@@ -31,7 +31,7 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Rộng hơn 750px ba cột; từ 750px trở xuống footer gọn: dọc hai cột (icon xếp dọc), ngang địa chỉ trên hai số.
+  // Rộng hơn 750px bốn cột (751-1023px ba cột); từ 750px trở xuống footer gọn: dọc hai cột (icon xếp dọc), ngang địa chỉ trên hai số.
   for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [568, 320], [667, 375], [844, 390], [1280, 632]]) {
     const small = width <= 750 || height <= 640;
     let expectedHeight;
@@ -83,7 +83,7 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Viền trên tràn mép trang; không logo; hotline cùng độ đậm số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Ba cột giãn đều: biên trái tới địa chỉ bằng
+        // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Các cột giãn đều: biên trái tới địa chỉ bằng
         // biên phải sau mạng xã hội; địa chỉ cùng cỡ chữ hai số; kéo chuột bôi đen được số (link không kéo đi).
         // Cửa sổ thấp nằm ngang dùng icon 24px để footer không quá 38.2% viewport.
         assert.equal(result.width, width);

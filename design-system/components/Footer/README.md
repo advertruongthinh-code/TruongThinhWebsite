@@ -15,16 +15,17 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   mép trang, không viền dưới.
 - Đệm dọc `clamp(40px, 3.5vw, 64px)`, lề hai bên `gutter`; không chừa làn
   [Floating CTA](../FloatingCta/README.md) vì nút ẩn khi footer lọt vào viewport.
-- Ba cột như footer Espacio (`repeat(3, auto)`, `justify-content: space-between`):
-  địa chỉ, hai số điện thoại, icon mạng xã hội xếp ngang, giãn đều giữa hai biên
+- Bốn cột (`repeat(4, auto)`, `justify-content: space-between`): địa chỉ,
+  Hotline Zalo, Văn phòng, icon mạng xã hội xếp ngang, giãn đều giữa hai biên
   `gutter`, thẳng mép logo và nội dung trang. Dòng đầu các cột thẳng baseline.
-  Cao khoảng 217px ở 1920px, 189px ở 1440px, 157px ở 768px.
+  Cao khoảng 201px ở 1920px, 173px ở 1440px.
+- Tablet 751-1023px: ba cột, Văn phòng xếp dưới Hotline cách 16px để địa chỉ
+  giữ hai dòng; cao 147px ở 768px.
 - Laptop cao 641-799px: đệm dọc 24px để tiêu đề CTA Advertising không bị thu nhỏ.
-- Nhịp theo Espacio: hai số cách 16px (10px khi cửa sổ cao `≤640px`),
-  line-height 1.4, cột cách ít nhất `clamp(56px, 7vw, 136px)`.
+- Line-height 1.4, cột cách ít nhất `clamp(32px, 3vw, 64px)`.
 - Địa chỉ cùng cỡ chữ hai số: `clamp(1.125rem, 1.8vw, 1.6rem)`; từ 1440px một
   dòng cao 36px, bằng icon mạng xã hội. Địa chỉ rộng tối đa 18em (hai dòng), `text-wrap: balance`.
-- Hotline (cũng là số Zalo) xếp trên Văn phòng, cùng độ đậm 500, chữ số `tabular-nums`
+- Hotline (cũng là số Zalo) đứng trước Văn phòng, cùng độ đậm 500, chữ số `tabular-nums`
   nên thẳng hàng. Số màu `ink`, dạng `+84`, link `tel:`, cùng chuỗi ở VI và EN.
   Kéo chuột bôi đen copy được số (`-webkit-user-drag: none`,
   `draggable="false"`); click sau khi bôi đen không mở `tel:`, bấm thường vẫn
@@ -52,10 +53,10 @@ Từ 750px trở xuống: địa chỉ và hai số `1.125rem`, cột cách 24px
 `gutter`, đệm dọc 32px, icon mạng xã hội 28px cách 16px.
 Footer không cao quá 38.2% viewport:
 
-- Dọc: hai cột, địa chỉ (`text-wrap: pretty`, ngắt sau "Hưng Phú,") rồi hai số ở
-  cột trái, icon xếp dọc ở cột phải. Cao khoảng 223px ở 390×844.
+- Dọc: hai cột, địa chỉ (`text-wrap: pretty`, ngắt sau "Hưng Phú,") rồi hai số
+  cách 16px ở cột trái, icon xếp dọc ở cột phải. Cao khoảng 223px ở 390×844.
 - Cửa sổ cao `≤640px` nằm ngang: icon 24px cách 8px, đệm dọc 14px; dưới 750px
-  địa chỉ hàng trên, hai số cạnh nhau hàng dưới. Cao 117px ở 568×320.
+  địa chỉ hàng trên, hai số cạnh nhau hàng dưới. Cao 115px ở 568×320.
 - Floating CTA không hiện ở cuối trang vì lời mời và `.detail-cta` đã có nút
   Zalo, và ẩn khi footer lọt vào viewport (404).
 
