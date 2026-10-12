@@ -37,7 +37,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | Standee, kệ trưng bày & gian hàng (Trưng bày; `standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
 | In ấn & decal (In ấn; `in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
 | Màn hình & bảng LED (LED; `man-hinh-bang-led` / `led-displays`) | Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
-| Bảng tên & biển văn phòng (Bảng tên; `bang-ten-bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
+| Biển văn phòng, bảng tên & kỷ niệm chương (Biển văn phòng; `bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
 | Xe & quầy bán hàng lưu động (Xe bán hàng; `xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
 
 Tên theo cụm từ có lượt tìm cao hơn (số liệu trong mô tả PR #312 và báo cáo Library). Quy tắc kèm theo:
@@ -70,9 +70,9 @@ phẩm hay tag không có; trùng slug trong cùng locale; slug VI có dấu; th
 media-sản phẩm, embedding media); schema D1 thuộc [CMS](cms.md).
 
 ```gherkin
-Given dữ liệu chuyển tag "Kỷ niệm chương pha lê" thành sản phẩm riêng trong cụm "Bảng tên & biển văn phòng"
+Given dữ liệu chuyển tag "Kỷ niệm chương pha lê" thành sản phẩm riêng trong cụm "Biển văn phòng"
 When chạy pnpm prepare:site
-Then rail, trang /vi/advertising-products/bang-ten-bien-van-phong/<slug mới>/ và artifact có sản phẩm đó
+Then rail, trang /vi/advertising-products/bien-van-phong/<slug mới>/ và artifact có sản phẩm đó
 And không file code render nào đổi
 ```
 
