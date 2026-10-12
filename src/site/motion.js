@@ -451,9 +451,9 @@
 
     const pageHeight = document.documentElement.scrollHeight;
     const maxScroll = Math.max(0, pageHeight - window.innerHeight);
-    const nextCtaShown =
-      scrollY <= window.innerHeight ||
-      scrollY >= pageHeight - window.innerHeight * 1.75;
+    // Floating CTA chỉ ở màn đầu: cuối mỗi trang đã có nút Zalo riêng (lời mời trang chủ,
+    // `.detail-cta`) nên nút nổi không lặp lại ở đó (owner 12/10).
+    const nextCtaShown = scrollY <= window.innerHeight;
     if (nextCtaShown !== pageState?.floatingCtaShown) {
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta.classList.toggle("show", nextCtaShown);

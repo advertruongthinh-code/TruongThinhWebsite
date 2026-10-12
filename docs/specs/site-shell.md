@@ -83,9 +83,9 @@ smooth scroll, chạy timeline mở, thu nhỏ trang phía sau rồi focus nút 
 `[data-menu-close]` chạy ngược timeline, đóng dialog, chạy lại smooth scroll, giữ vị trí cuộn, focus
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
-ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link, cột
-4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường: menu reverse cùng veil phủ, đóng khi veil kín và chữ menu hết, đi route. Dialog
-đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
+ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link (số và tiêu đề nhỏ
+`.menu-group__kind` một dòng, tiêu đề lớn một dòng, `aria-label` giữ tên đầy đủ), cột 4/3/2/1, vùng link cuộn riêng. Click link thường: menu reverse
+cùng veil phủ, đóng khi veil kín và chữ menu hết, đi route. Dialog đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
 làm Chromium crash khi đóng menu lúc `motion.js` lỗi).
 
 ```gherkin
@@ -177,17 +177,17 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 
 ### R10. Floating CTA và footer
 
-Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
-hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải; từ 750px trở xuống là nút vuông chỉ
-icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang:
-địa chỉ, Hotline và Văn phòng dạng `+84` link `tel:` ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok, YouTube
-chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`; dòng bản quyền. Khoảng trên footer là `--footer-top-gap`; footer gọn
-khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ,
+trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
+là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
+Hotline (600) xếp trên Văn phòng (500), dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
+Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới; lề phải chừa làn CTA nên
+CTA không đè nội dung khi footer nằm trong màn đầu (404). Rộng hơn 980px footer là một dải cao bằng làn CTA, cùng đường tâm với nút. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình
 When cuộn từ đầu tới giữa rồi tới cuối trang
-Then floating CTA hiện ở màn đầu, ẩn ở giữa, hiện lại gần cuối; Tab bỏ qua icon footer
+Then floating CTA hiện ở màn đầu, ẩn ở giữa và cuối trang; Tab bỏ qua icon footer
 ```
 
 ### R11. Viewport ổn định khi thanh địa chỉ đổi
