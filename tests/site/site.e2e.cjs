@@ -268,9 +268,10 @@ function assertPersistentNavigationContracts() {
       `${relativePath} must own locale, appointment, and four groups inside the full menu only`,
     );
     assert(
-      (source.match(/data-vi="Sản phẩm Quảng cáo"/g) || []).length >=
+      // Header giữ nhãn đầy đủ; full menu tách tiêu đề nhỏ/lớn nên nhãn đầy đủ nằm ở aria-label.
+      (source.match(/(?:data-vi|\saria-label)="Sản phẩm Quảng cáo"/g) || []).length >=
         2 &&
-        (source.match(/data-en="Advertising products"/g) || []).length >= 2,
+        (source.match(/data-en(?:-aria-label)?="Advertising products"/g) || []).length >= 2,
       `${relativePath} has inconsistent project/product labels in the header or full menu`,
     );
     assert(
@@ -732,7 +733,7 @@ function assertPersistentNavigationContracts() {
     "The approved 0.75s cover / 1s reveal veil timing changed",
   );
   assert(
-    /async leave\(data\)[\s\S]*await coverRoute\([\s\S]*unmountPage\(\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
+    /async leave\(data\)[\s\S]*await coverRouteFromMenu\(\)[\s\S]*unmountPage\(\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
       motionSource,
     ),
     "The outgoing Barba container is not removed from flow while fully covered",
@@ -3356,7 +3357,6 @@ async function runEspacioTypographyChecks() {
                 detailLabel: readRole(
                   ".detail-eyebrow, .detail-gallery__head h2, .detail-index-hero__kicker",
                 ),
-                footerLabel: readRole(".footer-contact span"),
               },
             };
           });
@@ -3378,13 +3378,6 @@ async function runEspacioTypographyChecks() {
               state.roles.cue.capHeight >= 8 &&
               state.roles.cue.capHeight <= 11,
             `Scroll cue cap-height drifted on ${route}: ${JSON.stringify(state.roles.cue)}`,
-          );
-          assert(
-            state.roles.footerLabel &&
-              state.roles.footerLabel.weight >= 700 &&
-              state.roles.footerLabel.capHeight >= 8 &&
-              state.roles.footerLabel.capHeight <= 11,
-            `Footer label cap-height drifted on ${route}: ${JSON.stringify(state.roles.footerLabel)}`,
           );
           if (viewport.width === 1440) {
             assert(
@@ -3987,14 +3980,15 @@ async function runLanguagePersistenceCheck() {
               !element.matches(".hero-word"),
           );
           return {
+            // Full menu tách tiêu đề nhỏ/lớn; tên đầy đủ của link là aria-label.
             projectLabels: [
-              document.querySelector(
-                '[data-site-header] a[href="/vi/advertising-products/"]',
-              ),
-              document.querySelector(
-                '#site-menu .menu-group a[href="/vi/advertising-products/"] [data-vi]',
-              ),
-            ].map((element) => element?.textContent?.replace(/\s+/g, " ").trim()),
+              document
+                .querySelector('[data-site-header] a[href="/vi/advertising-products/"]')
+                ?.textContent,
+              document
+                .querySelector('#site-menu .menu-group__title[href="/vi/advertising-products/"]')
+                ?.getAttribute("aria-label"),
+            ].map((label) => label?.replace(/\s+/g, " ").trim()),
             title: document.title,
             meta: document.querySelector('meta[name="description"]')?.getAttribute("content"),
             text: leaf?.textContent?.replace(/\s+/g, " ").trim(),
@@ -4022,14 +4016,15 @@ async function runLanguagePersistenceCheck() {
           const image = document.querySelector("img[data-en-alt]");
           const labelled = document.querySelector("[data-en-aria-label]");
           return {
+            // Full menu tách tiêu đề nhỏ/lớn; tên đầy đủ của link là aria-label.
             projectLabels: [
-              document.querySelector(
-                '[data-site-header] a[href="/en/advertising-products/"]',
-              ),
-              document.querySelector(
-                '#site-menu .menu-group a[href="/en/advertising-products/"] [data-en]',
-              ),
-            ].map((element) => element?.textContent?.replace(/\s+/g, " ").trim()),
+              document
+                .querySelector('[data-site-header] a[href="/en/advertising-products/"]')
+                ?.textContent,
+              document
+                .querySelector('#site-menu .menu-group__title[href="/en/advertising-products/"]')
+                ?.getAttribute("aria-label"),
+            ].map((label) => label?.replace(/\s+/g, " ").trim()),
             title: document.title,
             meta: meta?.getAttribute("content"),
             text: text?.textContent?.replace(/\s+/g, " ").trim(),
@@ -4465,7 +4460,8 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
             const label = link?.matches("[data-vi], [data-en]")
               ? link
               : link?.querySelector("[data-vi], [data-en]");
-            return normalize(label?.textContent || link?.textContent || "");
+            // Full menu tách tiêu đề nhỏ/lớn: tên đầy đủ nằm ở aria-label.
+            return normalize(link?.getAttribute("aria-label") || label?.textContent || link?.textContent || "");
           };
           const title = document.querySelector("title[data-en]");
           const description = document.querySelector('meta[name="description"]');
@@ -8573,6 +8569,8 @@ async function runMotionAbortFailOpenChecks() {
         await page.waitForFunction(() =>
           document.documentElement.classList.contains("motion-fallback"),
         );
+        // Chờ catalog Advertising dựng xong: catalog gắn sau khi đã cuộn sẽ kéo trang từ 640 về khoảng 132.
+        await page.evaluate(() => window.TruongThinhDetail?.mount());
         await page.evaluate(() => {
           document.documentElement.style.scrollBehavior = "auto";
           window.scrollTo(0, 640);
@@ -9673,15 +9671,15 @@ async function runHomeMotionRegressionCheck() {
     "Automatic cross-document View Transition code is still active",
   );
   const routeMotionTokens = [
-    "const coverRoute = (waitFor) => {",
+    "const coverRoute = () => {",
     'document.body.classList.add("is-transitioning")',
     "const fade = new Promise((resolve) => {",
     "opacity: 1,",
     "duration: 0.75,",
     'ease: "power4.inOut"',
-    "return Promise.all([fade, Promise.resolve(waitFor)]);",
+    "return fade;",
     "async leave(data) {",
-    "await coverRoute(closeMenu(false));",
+    "await coverRouteFromMenu();",
     "data.current.container.hidden = true;",
   ];
   let routeMotionCursor = -1;
@@ -12190,7 +12188,8 @@ async function runFooterRuntimeChecks() {
           const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
-              state.spacing.paddingBottom === 0 &&
+              // Desktop một dải đệm dọc 18px, điện thoại dọc 20px; nút Zalo có làn riêng bên phải.
+              state.spacing.paddingBottom === (viewport.width <= 750 ? 20 : 18) &&
               state.address &&
               state.social.every(
                 (item) =>
@@ -12200,8 +12199,8 @@ async function runFooterRuntimeChecks() {
                    item.label &&
                    item.svg &&
                    item.viewBox === "0 0 24 24" &&
-                   Math.abs(item.width - (viewport.width <= 750 ? 24 : 30)) <= 0.1 &&
-                   Math.abs(item.height - (viewport.width <= 750 ? 24 : 30)) <= 0.1 &&
+                   Math.abs(item.width - (viewport.width <= 750 ? 24 : 28)) <= 0.1 &&
+                   Math.abs(item.height - (viewport.width <= 750 ? 24 : 28)) <= 0.1 &&
                    !item.hasStroke &&
                    item.tabIndex < 0,
               ) &&

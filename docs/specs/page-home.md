@@ -13,8 +13,9 @@ tests:
   - tests/site/client-logo-marquee.e2e.cjs
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
+  - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-07
+updated: 2026-10-12
 ---
 
 # Trang chủ
@@ -44,7 +45,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | 5 | `#du-an` | Năm `figure` công trình so le, caption "Nhóm / Chi tiết" | Không | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới." tự co cỡ, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
-| sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo" mở `https://zalo.me/0949131050` ở tab mới | ink |
+| sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
 
 ```gherkin
 Given output đã build
@@ -78,8 +79,10 @@ slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặ
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
-`-2`. Hero cao `100svh`; tới 980px theo luồng chữ, tối thiểu `100svh`, nút dừng và cue xếp dưới tiêu đề nên chữ 200% không
-đè header; tới 680px tiêu đề căn trái.
+`-2`. Hero cao `100svh`; tới 980px theo luồng chữ, tối thiểu `100svh`, cue xếp dưới tiêu đề nên chữ 200% không
+đè header; tới 680px tiêu đề căn trái. Nút dừng nằm cột phải hero, ngay trên floating CTA đang hiện ở màn đầu
+([shell R10](site-shell.md#r10-floating-cta-và-footer)): cách 16px, thẳng mép phải nút chữ; từ 750px trở xuống thẳng
+trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
@@ -144,12 +147,15 @@ Then ảnh không còn transform hay transition
 Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa; từ
 981px hàng trái và phải lệch ra mép gutter. Khi vào viewport, chữ trong mask trượt lên, từ thứ hai
 của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Tới 980px hàng xuống dòng, từ dài ngắt trong khung.
+Tới 680px cỡ chữ `min((100vw - 40px) / 7.2, 4rem)` để từ dài nhất vẫn vừa một dòng, nhịp dòng đều 1.32em;
+section không có padding dọc riêng nên khoảng trên và dưới chỉ bằng `section-gap`, link cách chữ 2rem.
 Link "Xem cách chúng tôi làm" có mũi tên trượt khi hover.
 
 ```gherkin
 Given /vi/ ở 390px
 When cuộn tới #tay-nghe
 Then bốn hàng hiện đủ chữ và ảnh, chữ không bị cắt, document không tràn ngang
+And chữ cỡ khoảng 48.6px, khoảng từ section trước tới chữ và từ link tới section sau đều 64px
 ```
 
 ### R8. Rail công trình
@@ -252,7 +258,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | --- | --- |
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
-| R3 | `TT_E2E_HERO_CONTINUITY_ONLY`, `TT_E2E_WHEEL_ONLY` (parallax hero); nút dừng chưa có test |
+| R3 | `TT_E2E_HERO_CONTINUITY_ONLY`, `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |

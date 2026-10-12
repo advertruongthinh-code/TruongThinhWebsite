@@ -451,9 +451,9 @@
 
     const pageHeight = document.documentElement.scrollHeight;
     const maxScroll = Math.max(0, pageHeight - window.innerHeight);
-    const nextCtaShown =
-      scrollY <= window.innerHeight ||
-      scrollY >= pageHeight - window.innerHeight * 1.75;
+    // Floating CTA chỉ ở màn đầu: cuối mỗi trang đã có nút Zalo riêng (lời mời trang chủ,
+    // `.detail-cta`) nên nút nổi không lặp lại ở đó (owner 12/10).
+    const nextCtaShown = scrollY <= window.innerHeight;
     if (nextCtaShown !== pageState?.floatingCtaShown) {
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta.classList.toggle("show", nextCtaShown);
@@ -526,49 +526,33 @@
   let headerMarkUnderlay;
   let headerMarkSlots = [];
   let headerMarkRise = 0;
-  let headerMarkFade;
   // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, lớp cũ lùi theo mép mọc (brand.md Motion).
-  // `fade` (chuyển trang, logo-route-crossfade R1, R2): lớp cũ nằm trên lớp mới và mờ dần cùng tween màu chữ.
+  // `tween` (chuyển trang, logo-route-crossfade R1, R2): từng dải tween màu cùng tween màu chữ, như Espacio.
   const paintHeaderMark = (
     className,
-    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, fade } = {},
+    { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, tween } = {},
   ) => {
     // Đọc clip đang chạy trước khi hủy để giữ đúng phần lớp mới đã mọc khi đổi hướng giữa chừng.
     const clips = headerMarkPaths.map((path) => getComputedStyle(path).clipPath);
-    header.classList.remove("is-brand-color", "is-brand-inverse");
+    header.classList.remove("is-brand-color", "is-brand-inverse", "is-brand-ink");
     header.classList.add(className);
-    const previousFade = headerMarkFade;
-    headerMarkFade = undefined;
-    if (previousFade) gsap.killTweensOf(previousFade);
-    if (fade && hasGsap && !reduceMotion && headerMark) {
-      // Lớp cũ là đúng phần đang hiển thị: lớp fade dở, lớp mọc dở (slot và dải đã mọc) đứng yên tại frame hiện tại.
-      const layer = headerMark.cloneNode(false);
-      layer.removeAttribute("id");
-      layer.setAttribute("class", "brand-lockup__mark-fade");
-      if (previousFade) layer.append(previousFade);
-      headerMarkSlots.forEach((slot) => {
-        const clip = getComputedStyle(slot).clipPath;
-        slot.getAnimations().forEach((animation) => animation.cancel());
-        slot.style.clipPath = clip;
-      });
-      if (headerMarkUnderlay) layer.append(...headerMarkUnderlay.children);
+    if (hasGsap) gsap.killTweensOf(headerMarkPaths);
+    headerMarkPaths.forEach((path) => path.style.removeProperty("fill"));
+    if (tween && hasGsap && !reduceMotion && headerMark) {
+      // Dừng kiểu mọc đang chạy; tween đi từ màu đang hiển thị của từng dải.
       headerMarkUnderlay?.remove();
       headerMarkUnderlay = undefined;
       headerMarkSlots = [];
       headerMarkRise += 1;
-      headerMarkPaths.forEach((path, index) => {
-        path.getAnimations().forEach((animation) => animation.cancel());
-        const copy = path.cloneNode(false);
-        copy.setAttribute("fill", from[index]);
-        copy.style.clipPath = clips[index];
-        layer.append(copy);
-      });
-      headerMark.after(layer);
-      headerMarkFade = layer;
-      gsap.to(layer, { opacity: 0, ...fade, onComplete: () => layer.remove() });
+      headerMarkPaths.forEach((path) => path.getAnimations().forEach((animation) => animation.cancel()));
+      const to = headerMarkPaths.map((path) => getComputedStyle(path).fill);
+      gsap.fromTo(
+        headerMarkPaths,
+        { fill: (index) => from[index] },
+        { fill: (index) => to[index], ...tween, clearProps: "fill" },
+      );
       return;
     }
-    previousFade?.remove();
     if (!rise || reduceMotion || !headerMark) return;
     if (!headerMarkUnderlay) {
       headerMarkUnderlay = headerMark.cloneNode(false);
@@ -608,23 +592,23 @@
       headerMarkSlots = [];
     }, () => {});
   };
-  function syncHeaderBrandSurface(whiteSurface, fade) {
+  function syncHeaderBrandSurface(whiteSurface, tween) {
     if (whiteSurface) {
-      if (lastHeaderWhiteSurface === undefined && !fade) {
+      if (lastHeaderWhiteSurface === undefined && !tween) {
         // Mở trang trên nền trắng: CMYK mọc lên trên lớp đen.
         paintHeaderMark("is-brand-color", { from: markBlack });
       } else if (
         lastHeaderWhiteSurface !== true ||
         !header.classList.contains("is-brand-color")
       ) {
-        paintHeaderMark("is-brand-color", { fade });
+        paintHeaderMark("is-brand-color", { tween });
       }
     } else if (
       lastHeaderWhiteSurface !== false ||
       !header.classList.contains("is-brand-inverse")
     ) {
       // Mở trang trên nền ảnh: vẽ trắng ngay, không chuyển động.
-      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined, fade });
+      paintHeaderMark("is-brand-inverse", { rise: lastHeaderWhiteSurface !== undefined, tween });
     }
     lastHeaderWhiteSurface = whiteSurface;
   };
@@ -632,7 +616,7 @@
     routeDestinationReady = true;
     const destinationWhiteSurface =
       container?.querySelector("[data-header-tone]")?.dataset.headerTone === "ink";
-    // Route mềm giữ mark CMYK dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
+    // Route mềm giữ mark đậm dưới veil, đổi theo trang đích lúc veil mở (playRouteEnter).
     if (!routeMarkHeld) syncHeaderBrandSurface(destinationWhiteSurface);
     return destinationWhiteSurface;
   };
@@ -653,7 +637,8 @@
     routeDestinationReady = false;
     colorHeader("#2f2f2f");
     routeMarkHeld = true;
-    syncHeaderBrandSurface(true, { duration: 0.3, ease: "expo.out" });
+    // Mark đậm cùng chữ lúc bấm, như Espacio (logo-route-crossfade R1).
+    paintHeaderMark("is-brand-ink", { rise: false, tween: { duration: 0.3, ease: "expo.out" } });
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
@@ -1904,6 +1889,8 @@
         { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
         0,
       )
+      // Hết shutter, bắt đầu chữ menu; route đóng menu tại đây khi reverse (coverRouteFromMenu).
+      .addLabel("content")
       .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
       .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
       .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
@@ -1931,7 +1918,7 @@
     header.classList.remove("is-route-pinned");
     updateToneRanges();
     updateHeader();
-    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; vẫn sửa bằng crossfade, không mọc
+    // Tone trang đích đọc lúc veil mở có thể lệch khi layout còn đổi; vẫn sửa bằng tween màu, không mọc
     // (logo-route-crossfade R2).
     if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
     routeMarkHeld = false;
@@ -1941,7 +1928,7 @@
     pageState?.smoothScroll?.start();
   };
 
-  const coverRoute = (waitFor) => {
+  const coverRoute = () => {
     routeInFlight = true;
     routeMountReady = false;
     pinHeaderForRoute();
@@ -1961,7 +1948,27 @@
         onComplete: resolve,
       });
     });
-    return Promise.all([fade, Promise.resolve(waitFor)]);
+    return fade;
+  };
+
+  // Route từ full menu: menu reverse cùng lúc veil phủ. Shutter trắng trùng veil và trang cũ nằm dưới veil, nên
+  // đóng menu ngay khi veil phủ kín và chữ menu đã reverse xong, không chờ shutter và page scale.
+  const coverRouteFromMenu = () => {
+    const covered = coverRoute();
+    const closing = closeMenu(false);
+    if (dialog.open && hasGsap && !reduceMotion && menuTimeline) {
+      const contentGone = new Promise((resolve) => window.gsap.delayedCall(
+        // timeScale() âm khi timeline đang reverse.
+        Math.max(0, menuTimeline.time() - menuTimeline.labels.content) / Math.abs(menuTimeline.timeScale()),
+        resolve,
+      ));
+      Promise.all([covered, contentGone]).then(() => {
+        if (menuClosePromise !== closing) return;
+        menuPageTween?.eventCallback("onComplete", null);
+        finishClose(false);
+      });
+    }
+    return Promise.all([covered, closing]);
   };
 
   const playRouteEnter = () => {
@@ -1976,7 +1983,7 @@
     setRouteVeil(1);
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
-      // Mark crossfade theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);
+      // Mark tween màu theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);
       // vẫn giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
       updateToneRanges();
       updateHeader();
@@ -2026,11 +2033,9 @@
   const syncElementTree = (current, next) => {
     if (!current || !next || current.tagName !== next.tagName) return false;
     syncAttributes(current, next);
-    // Lớp underlay, fade do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
+    // Lớp underlay do paintHeaderMark chèn lúc runtime, HTML trang mới không có; bỏ qua khi so cây.
     const currentChildren = [...current.children].filter(
-      (child) =>
-        !child.classList.contains("brand-lockup__mark-underlay") &&
-        !child.classList.contains("brand-lockup__mark-fade"),
+      (child) => !child.classList.contains("brand-lockup__mark-underlay"),
     );
     const nextChildren = [...next.children];
     if (currentChildren.length !== nextChildren.length) return false;
@@ -2292,7 +2297,7 @@
         return true;
       }
       // Đổi ngôn ngữ dùng cùng veil với route mềm: phủ, đổi chữ dưới veil, rồi mở; reduced motion không veil.
-      await (reduceMotion ? closeMenu(false) : coverRoute(closeMenu(false)));
+      await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
@@ -2820,7 +2825,7 @@
                 rememberCurrentScroll(data);
               },
               async leave(data) {
-                await coverRoute(closeMenu(false));
+                await coverRouteFromMenu();
                 // Chờ catalog trước khi unmount: gỡ smooth scroll làm scrollbar native hiện và đẩy header sang trái
                 // suốt lúc chờ mạng.
                 await advertisingCatalogLoad;

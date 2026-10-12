@@ -83,9 +83,9 @@ smooth scroll, chạy timeline mở, thu nhỏ trang phía sau rồi focus nút 
 `[data-menu-close]` chạy ngược timeline, đóng dialog, chạy lại smooth scroll, giữ vị trí cuộn, focus
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
-ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link, cột
-4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường đóng menu, đi route. Dialog
-đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
+ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link (số và tiêu đề nhỏ
+`.menu-group__kind` một dòng, tiêu đề lớn một dòng, `aria-label` giữ tên đầy đủ), cột 4/3/2/1, vùng link cuộn riêng. Click link thường: menu reverse
+cùng veil phủ, đóng khi veil kín và chữ menu hết, đi route. Dialog đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
 làm Chromium crash khi đóng menu lúc `motion.js` lỗi).
 
 ```gherkin
@@ -114,8 +114,8 @@ Then URL thành /en/residential/, history không thêm entry, vị trí cuộn g
 Barba (transition `persistent-shell`, timeout 15s) xử lý link nội bộ. Điều hướng native khi: chọn ngôn
 ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, có `target`, `download`,
 phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (ink,
-mark crossfade sang CMYK theo [logo crossfade](logo-route-crossfade.md), hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
-alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ underlay, lớp fade và class `is-brand-*` của mark), CTA, menu;
+mark tween sang màu đậm cùng chữ theo [logo đổi màu](logo-route-crossfade.md), hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
+alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ underlay và class `is-brand-*` của mark), CTA, menu;
 lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil. Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ; gỡ trang cũ sau khi tải xong để scrollbar native không đẩy header.
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
 navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
@@ -177,17 +177,17 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 
 ### R10. Floating CTA và footer
 
-Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
-hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải; từ 750px trở xuống là nút vuông chỉ
-icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang:
-địa chỉ, Hotline và Văn phòng dạng `+84` link `tel:` ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok, YouTube
-chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`; dòng bản quyền. Khoảng trên footer là `--footer-top-gap`; footer gọn
-khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ,
+trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
+là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
+Hotline (600) xếp trên Văn phòng (500), dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
+Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới; lề phải chừa làn CTA nên
+CTA không đè nội dung khi footer nằm trong màn đầu (404). Rộng hơn 980px footer là một dải cao bằng làn CTA, cùng đường tâm với nút. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình
 When cuộn từ đầu tới giữa rồi tới cuối trang
-Then floating CTA hiện ở màn đầu, ẩn ở giữa, hiện lại gần cuối; Tab bỏ qua icon footer
+Then floating CTA hiện ở màn đầu, ẩn ở giữa và cuối trang; Tab bỏ qua icon footer
 ```
 
 ### R11. Viewport ổn định khi thanh địa chỉ đổi
@@ -258,7 +258,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R1 | `pnpm qa:static`, `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
 | R2 | `TT_E2E_HEADER_ONLY`, `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_ONLY` |
-| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
+| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_LOCALE_ONLY`, `TT_E2E_LOCALE_SCROLL_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |

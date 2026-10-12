@@ -31,10 +31,9 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: hai hàng ở dọc hẹp, còn lại một hàng.
-  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1440, 912], [1569, 912], [844, 390], [1280, 632]]) {
-    const compact = width <= 750 || height <= 640;
-    const twoRows = width <= 750 && width < height;
+  // Từ 750px trở xuống footer gọn: dọc một cột, ngang hai cột. Rộng hơn 980px footer cao bằng làn floating CTA.
+  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [568, 320], [667, 375], [844, 390], [1280, 632]]) {
+    const small = width <= 750 || height <= 640;
     let expectedHeight;
     const page = await browser.newPage({ viewport: { width, height }, reducedMotion: "reduce" });
     await page.route(/\.(?:avif|gif|jpe?g|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
@@ -51,11 +50,14 @@ try {
         const result = await page.evaluate(() => {
           const footer = document.querySelector(".site-footer");
           const rect = footer.getBoundingClientRect();
-          const bottom = footer.querySelector(".footer-bottom").getBoundingClientRect();
           const previous = footer.previousElementSibling?.getBoundingClientRect();
           const url = new URL(location.href);
           return {
-            height: rect.height, bottomHeight: bottom.height, trailing: rect.bottom - bottom.bottom,
+            height: rect.height, width: rect.width,
+            borderTop: getComputedStyle(footer).borderTopWidth,
+            lockups: footer.querySelectorAll(".brand-lockup").length,
+            weights: [".footer-hotline", ".footer-office"].map(s => getComputedStyle(footer.querySelector(s)).fontWeight),
+            copyright: footer.querySelectorAll(".footer-bottom").length,
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
             advertisingBrowse: url.pathname.endsWith("/advertising-products/") && !url.searchParams.has("photo"),
@@ -63,41 +65,92 @@ try {
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,
             address: footer.querySelector(".footer-address strong").textContent,
-            phones: [...footer.querySelectorAll(".footer-phones a")].map(e => [e.getAttribute("href"), e.querySelector("strong").textContent]),
-            copyright: footer.querySelector(".footer-bottom").textContent.trim(),
+            phones: [...footer.querySelectorAll(".footer-hotline, .footer-office")].map(e => [e.getAttribute("href"), e.querySelector("strong").textContent]),
             overflow: document.documentElement.scrollWidth > innerWidth + 1,
             socials: [...footer.querySelectorAll(".footer-social[aria-label]")].map(e => e.dataset.footerSocial),
             socialSize: footer.querySelector(".footer-social").getBoundingClientRect().width,
-            socialLabelWidth: footer.querySelector(".footer-socials > span").getBoundingClientRect().width,
+            labelWidth: Math.max(...[...footer.querySelectorAll("span")].map(e => e.getBoundingClientRect().width)),
+            icons: footer.querySelectorAll(".footer-icon[aria-hidden='true']").length,
           };
         });
         // Advertising browse bỏ gap trên footer: skeleton batch của nó lấp khoảng đó.
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
-        if (!compact) assert.equal(result.bottomHeight, 72);
-        if (twoRows) assert.equal(result.bottomHeight, 44);
-        if (!compact || twoRows) assert.equal(result.trailing, 0);
-        if (compact) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
+        // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn; rộng hơn 980px footer cao đúng
+        // làn floating CTA (hai lần khoảng cách đáy cộng 47px) để nội dung cùng đường tâm với nút.
+        assert.equal(result.width, width);
+        assert.equal(result.borderTop, "1px");
+        assert.equal(result.lockups, 0);
+        assert.deepEqual(result.weights, ["600", "500"]);
+        if (width > 980) assert.equal(result.height, width > 1200 ? 117 : 97, JSON.stringify({ width, height, result }));
+        if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));
         assert.equal(result.marginTop, expectedTopGap);
-        assert.deepEqual(result.children, ["footer-address", "footer-phones", "footer-socials"]);
+        assert.deepEqual(result.children, ["footer-hotline", "footer-office", "footer-address", "footer-socials"]);
         assert.deepEqual(result.phones, [["tel:+84949131050", "+84 949 131 050"], ["tel:+842753813753", "+84 275 381 3753"]]);
         assert.equal(result.invitation, 0);
         assert.deepEqual(result.socials, ["facebook", "tiktok", "youtube"]);
-        assert.equal(result.socialSize, compact ? 24 : 30);
-        assert.equal(result.socialLabelWidth <= 1, compact, "compact footer hides the social label visually");
+        assert.equal(result.socialSize, width <= 750 ? 24 : 28);
+        assert.ok(result.labelWidth <= 1, "icons replace visible footer labels");
+        assert.equal(result.icons, 3);
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
-        assert.equal(result.copyright, "© 2026 Trường Thịnh");
+        assert.equal(result.copyright, 0);
         assert.equal(result.overflow, false, JSON.stringify({ width, route, locale }));
+        // Cuối trang đã có nút Zalo của trang (lời mời, .detail-cta) nên floating CTA không hiện lại.
+        // Bỏ qua Advertising: browse nối batch khi cuộn tới cuối, photo view có luật CTA riêng.
+        const ctaShownAtEnd = !route.startsWith("advertising-products") && await page.evaluate(async () => {
+          scrollTo(0, document.documentElement.scrollHeight);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          const cta = document.querySelector(".floating-cta");
+          return Boolean(cta?.classList.contains("show") && getComputedStyle(cta).visibility !== "hidden");
+        });
+        assert.equal(ctaShownAtEnd, false, JSON.stringify({ width, height, route, locale }));
         count++;
       }
     }
-    console.log(JSON.stringify({ width, height, footerHeight: expectedHeight, compact, twoRows }));
+    // 404 vừa một màn hình nên floating CTA hiện cùng footer; làn phải giữ nút khỏi đè nội dung.
+    for (const locale of ["vi", "en"]) {
+      await page.goto(`http://127.0.0.1:8787/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
+      await page.waitForSelector(".footer-contact");
+      await page.waitForTimeout(1200);
+      const hits = await page.evaluate(() => {
+        const cta = document.querySelector(".floating-cta");
+        if (!cta?.classList.contains("show")) return [];
+        const c = cta.getBoundingClientRect();
+        return [...document.querySelectorAll(".site-footer :is(a, strong, p, svg)")]
+          .filter(e => e.getClientRects().length)
+          .map(e => e.getBoundingClientRect())
+          .filter(r => c.left < r.right && r.left < c.right && c.top < r.bottom && r.top < c.bottom)
+          .map(r => [r.left, r.top, r.right, r.bottom]);
+      });
+      assert.deepEqual(hits, [], JSON.stringify({ width, height, locale, route: "404" }));
+    }
+    console.log(JSON.stringify({ width, height, footerHeight: expectedHeight }));
     await page.close();
   }
   console.log(`Footer consistency: ${count} route/locale/viewport checks passed`);
+  // Màn đầu trang chủ: floating CTA hiện cùng nút dừng hero; hai nút không được chồng nhau.
+  // Nút dừng chỉ có khi không reduced motion.
+  for (const [width, height] of [[320, 568], [360, 800], [390, 844], [430, 932], [750, 912], [568, 320], [667, 375], [844, 390], [1024, 600], [1280, 632], [1440, 900]]) {
+    const page = await browser.newPage({ viewport: { width, height } });
+    for (const locale of ["vi", "en"]) {
+      await page.goto(`http://127.0.0.1:8787/${locale}/`, { waitUntil: "load" });
+      await page.waitForFunction(() => document.querySelector(".floating-cta.show")
+        && document.querySelector("[data-motion-toggle]:not([hidden])")?.getClientRects().length);
+      // Chờ CTA trượt vào xong (transform 1s).
+      await page.waitForTimeout(1200);
+      const rects = await page.evaluate(() => [".floating-cta", "[data-motion-toggle]"]
+        .map(selector => document.querySelector(selector).getBoundingClientRect())
+        .map(r => [r.left, r.top, r.right, r.bottom]));
+      const [c, t] = rects;
+      assert.ok(!(c[0] < t[2] && t[0] < c[2] && c[1] < t[3] && t[1] < c[3]),
+        `floating CTA covers the hero motion toggle ${JSON.stringify({ width, height, locale, rects })}`);
+    }
+    await page.close();
+  }
+  console.log("Hero motion toggle clear of floating CTA");
 } finally {
   await browser.close();
 }
