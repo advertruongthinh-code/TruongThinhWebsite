@@ -31,8 +31,8 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: hai hàng ở dọc hẹp, còn lại một hàng.
-  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1440, 912], [1569, 912], [844, 390], [1280, 632]]) {
+  // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: ba hàng ở dọc hẹp, còn lại hai hàng.
+  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1440, 912], [1569, 912], [667, 375], [844, 390], [1280, 632]]) {
     const compact = width <= 750 || height <= 640;
     const twoRows = width <= 750 && width < height;
     let expectedHeight;
@@ -91,6 +91,20 @@ try {
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
         assert.equal(result.copyright, "© 2026 Trường Thịnh");
         assert.equal(result.overflow, false, JSON.stringify({ width, route, locale }));
+        // Cuối trang floating CTA hiện; nó không được đè dòng bản quyền hay số điện thoại. Bỏ qua Advertising:
+        // browse nối batch khi cuộn tới cuối, photo view ẩn CTA; footer dùng chung CSS nên các route khác đã phủ.
+        const ctaHit = !route.startsWith("advertising-products") && await page.evaluate(async () => {
+          scrollTo(0, document.documentElement.scrollHeight);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          const cta = document.querySelector(".floating-cta");
+          if (!cta?.classList.contains("show") || getComputedStyle(cta).visibility === "hidden") return null;
+          const c = cta.getBoundingClientRect();
+          return [...document.querySelectorAll(".footer-bottom p, .footer-phones a")]
+            .map(e => e.getBoundingClientRect())
+            .filter(r => c.left < r.right && r.left < c.right && c.top < r.bottom && r.top < c.bottom)
+            .map(r => [r.left, r.top, r.right, r.bottom]);
+        });
+        if (ctaHit) assert.deepEqual(ctaHit, [], JSON.stringify({ width, height, route, locale }));
         count++;
       }
     }
