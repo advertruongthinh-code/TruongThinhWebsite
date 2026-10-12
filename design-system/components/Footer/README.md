@@ -13,43 +13,52 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   word-spacing display.
 - Không logo (header đã có), không dòng bản quyền. Viền trên `line` tràn ra
   mép trang, không viền dưới.
-- Rộng hơn 980px: một dải cao bằng làn [Floating CTA](../FloatingCta/README.md)
-  (`2 × 35px + 47px` = 117px, 97px ở `≤1200px`), nội dung căn giữa dọc nên
-  cùng đường tâm với nút: hai số xếp cột | địa chỉ rộng tối đa 24rem | icon
-  mạng xã hội sát làn nút. Đệm dọc 18px; lề phải `gutter + 185px` chừa làn nút
-  nên nút không đè nội dung. Cột cách nhau `clamp(2.5rem, 5.5vw, 6rem)`, 2.5rem
-  ở `≤1200px`.
-- Từ 980px trở xuống: cột trái Hotline, Văn phòng, icon mạng xã hội; cột phải
-  địa chỉ. Cao khoảng 124px.
-- Hotline (cũng là số Zalo) 600 xếp trên Văn phòng 500, cách 4px; cùng cỡ
-  `clamp(1rem, 1.2vw, 1.15rem)`, chữ số `tabular-nums` nên thẳng hàng. Số màu
-  `ink`, dạng `+84`, link `tel:`, cùng chuỗi ở VI và EN. Hover không có motion
-  hay gạch chân; không dùng `blue` vì blue chỉ dành cho `::selection` và
-  indicator route.
-- Dùng icon thay nhãn chữ: ghim bản đồ cho địa chỉ, điện thoại di động cho
-  Hotline, ống nghe cho Văn phòng (Remix Icon 4.6.0 `map-pin-2-fill`,
-  `smartphone-fill`, `phone-fill`), inline SVG một màu `muted`, `aria-hidden`,
-  rộng `1.3em`, cao một dòng chữ. Nhãn "Trụ sở", "Hotline", "Văn phòng",
+- Đệm dọc `clamp(40px, 3.5vw, 64px)`, lề hai bên `gutter`; không chừa làn
+  [Floating CTA](../FloatingCta/README.md) vì nút ẩn khi footer lọt vào viewport.
+- Bốn cột (`repeat(4, auto)`, `justify-content: space-between`): địa chỉ,
+  Hotline Zalo, Văn phòng, icon mạng xã hội xếp ngang, giãn đều giữa hai biên
+  `gutter`, thẳng mép logo và nội dung trang. Dòng đầu các cột thẳng baseline.
+  Cao khoảng 201px ở 1920px, 173px ở 1440px.
+- Tablet 751-1023px: ba cột, Văn phòng xếp dưới Hotline cách 16px để địa chỉ
+  giữ hai dòng; cao 147px ở 768px.
+- Laptop cao 641-799px: đệm dọc 24px để tiêu đề CTA Advertising không bị thu nhỏ.
+- Line-height 1.4, cột cách ít nhất `clamp(32px, 3vw, 64px)`.
+- Địa chỉ cùng cỡ chữ hai số: `clamp(1.125rem, 1.8vw, 1.6rem)`; từ 1440px một
+  dòng cao 36px, bằng icon mạng xã hội. Địa chỉ rộng tối đa 18em (hai dòng), `text-wrap: balance`.
+- Hotline (cũng là số Zalo) đứng trước Văn phòng, cùng độ đậm 500, chữ số `tabular-nums`
+  nên thẳng hàng. Số màu `ink`, dạng `+84`, link `tel:`, cùng chuỗi ở VI và EN.
+  Kéo chuột bôi đen copy được số (`-webkit-user-drag: none`,
+  `draggable="false"`); click sau khi bôi đen không mở `tel:`, bấm thường vẫn
+  gọi. Hover không có motion hay gạch chân; không dùng `blue` vì blue chỉ dành
+  cho `::selection` và indicator route.
+- Dùng icon thay nhãn chữ, inline SVG một màu `muted`, `aria-hidden`, rộng
+  `1.3em`, cao một dòng chữ: ghim bản đồ cho địa chỉ (Remix Icon 4.6.0
+  `map-pin-2-fill`); icon Zalo cho Hotline vì đây cũng là số Zalo (badge app
+  Zalo bản một màu: khung squircle, bong bóng chat khoét bằng `mask`, chữ "Zalo"
+  bên trong; path lấy từ Wikimedia Commons `Icon_of_Zalo.svg`, khớp ảnh badge
+  chính thức trên zalo.me; Zalo không công bố brand guideline); điện
+  thoại bàn cho Văn phòng (vẽ theo lưới 24px, góc bo và độ đậm của Remix, vì
+  Remix không có icon điện thoại bàn). Nhãn "Trụ sở", "Hotline", "Văn phòng",
   "Mạng xã hội" (EN "Head office", "Hotline", "Office", "Social networks") vẫn
   trong DOM nhưng ẩn bằng mắt, làm tên cho trình đọc màn hình.
 - Địa chỉ trụ sở giữ nguyên chuỗi ở cả VI và EN (xem
   [Content](../../content.md#song-ngữ-vien)), `text-wrap: balance`.
-- Ba icon mạng xã hội 28px cách nhau 1.5rem theo thứ tự Facebook, TikTok,
+- Ba icon mạng xã hội 36px cách nhau 24px, xếp ngang, theo thứ tự Facebook, TikTok,
   YouTube (Remix Icon 4.6.0), inline SVG một màu; chưa có URL nên
   `aria-disabled`, không nhận focus.
 
 ## Footer gọn
 
-Từ 750px trở xuống (nút Zalo vuông 57px cách mép 15px), chữ liên hệ `1rem`,
-icon mạng xã hội 24px cách nhau 14px, lề phải `15px + 57px + 16px` chừa làn
-nút. Footer không cao quá 38.2% viewport:
+Từ 750px trở xuống: địa chỉ và hai số `1.125rem`, cột cách 24px, lề hai bên
+`gutter`, đệm dọc 32px, icon mạng xã hội 28px cách 16px.
+Footer không cao quá 38.2% viewport:
 
-- Dọc: một cột Hotline, Văn phòng, địa chỉ (cách trên 8px), icon nằm ngang
-  (cách trên 10px); đệm dọc 20px. Cao khoảng 191px ở 390×844.
-- Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ; đệm dọc 14px.
-  Cao khoảng 112px ở 568×320.
+- Dọc: hai cột, địa chỉ (`text-wrap: pretty`, ngắt sau "Hưng Phú,") rồi hai số
+  cách 16px ở cột trái, icon xếp dọc ở cột phải. Cao khoảng 223px ở 390×844.
+- Cửa sổ cao `≤640px` nằm ngang: icon 24px cách 8px, đệm dọc 14px; dưới 750px
+  địa chỉ hàng trên, hai số cạnh nhau hàng dưới. Cao 115px ở 568×320.
 - Floating CTA không hiện ở cuối trang vì lời mời và `.detail-cta` đã có nút
-  Zalo; làn phải vẫn chừa cho 404, nơi footer nằm trong màn đầu cùng nút.
+  Zalo, và ẩn khi footer lọt vào viewport (404).
 
 Spec: [CTA giữa viewport](../../../docs/specs/advertising-cta-center-parallax.md#r4-footer-ở-cửa-sổ-nhỏ-và-điện-thoại).
 
@@ -58,5 +67,6 @@ Spec: [CTA giữa viewport](../../../docs/specs/advertising-cta-center-parallax.
 - **Display**: cỡ chữ lớn cho tiêu đề và tuyên bố.
 - **Gutter**: lề hai bên trang.
 - **Tabular-nums**: chữ số cùng bề rộng để các số điện thoại thẳng hàng.
-- **Footer gọn**: footer từ 750px trở xuống, một cột khi dọc, hai cột khi ngang.
+- **Footer gọn**: footer từ 750px trở xuống, hai cột khi dọc, ba cột khi ngang.
+- **Squircle**: hình vuông bo góc mềm như icon app.
 - **Placeholder**: icon giữ chỗ, chưa có link thật.
