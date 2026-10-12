@@ -75,6 +75,8 @@ try {
             columnGap: Number.parseFloat(getComputedStyle(footer).columnGap),
             contactRight: Math.max(...[".footer-address", ".footer-hotline", ".footer-office"].map(s => footer.querySelector(s).getBoundingClientRect().right)),
             socialsLeft: footer.querySelector(".footer-socials").getBoundingClientRect().left,
+            contactLeft: footer.querySelector(".footer-address").getBoundingClientRect().left,
+            socialsRight: footer.querySelector(".footer-socials").getBoundingClientRect().right,
           };
         });
         // Advertising browse bỏ gap trên footer: skeleton batch của nó lấp khoảng đó.
@@ -82,7 +84,7 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, rộng hơn 980px đệm dọc bằng gutter. Cột mạng xã hội sát cột liên hệ, cách đúng column-gap.
+        // lề phải bằng lề trái, rộng hơn 980px đệm dọc bằng gutter. Cột mạng xã hội sát cột liên hệ, cách đúng column-gap; cả khối căn giữa.
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
@@ -93,6 +95,8 @@ try {
           assert.equal(padTop, padLeft, JSON.stringify({ width, route, result }));
         }
         assert.ok(Math.abs(result.socialsLeft - result.contactRight - result.columnGap) <= 1, JSON.stringify({ width, route, result }));
+        // Khối hai cột căn giữa: lề trái bằng lề phải.
+        assert.ok(Math.abs(result.contactLeft - (width - result.socialsRight)) <= 1, JSON.stringify({ width, route, result }));
         if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));

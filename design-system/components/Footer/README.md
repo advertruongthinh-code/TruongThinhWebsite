@@ -15,9 +15,9 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   mép trang, không viền dưới.
 - Đệm bốn phía bằng `gutter`; không chừa làn
   [Floating CTA](../FloatingCta/README.md) vì nút ẩn khi footer lọt vào viewport.
-- Hai cột sát nhau ở mọi cỡ, căn trái: cột liên hệ (địa chỉ trên cùng, rồi
-  Hotline, Văn phòng) rộng theo địa chỉ, co lại và xuống dòng khi thiếu chỗ;
-  cột mạng xã hội ngay cạnh. Phần còn lại bên phải để trống. Cao khoảng 176px ở
+- Hai cột sát nhau ở mọi cỡ: cột liên hệ (địa chỉ trên cùng, rồi Hotline, Văn
+  phòng) rộng theo địa chỉ, co lại và xuống dòng khi thiếu chỗ; cột mạng xã hội
+  ngay cạnh. Cả khối căn giữa, cách đều hai biên; chữ trong cột căn trái. Cao khoảng 176px ở
   1440px, 150px ở 1024px.
 - Nhịp theo Espacio: các dòng xếp chồng cách 16px (10px khi cửa sổ cao
   `≤640px`), cột cách 70px, 35px ở `≤1200px`, line-height 1.4.
