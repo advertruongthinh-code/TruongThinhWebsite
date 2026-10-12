@@ -144,15 +144,23 @@ Then ảnh không còn transform hay transition
 
 ### R7. Heritage montage
 
-Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa; từ
+Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa; chữ nối
+(và, là, trong, từng; EN and, are, to, every) bằng nửa cỡ từ khóa (`.heritage-text--minor`); từ
 981px hàng trái và phải lệch ra mép gutter. Khi vào viewport, chữ trong mask trượt lên, từ thứ hai
 của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Tới 980px hàng xuống dòng, từ dài ngắt trong khung.
-Link "Xem cách chúng tôi làm" có mũi tên trượt khi hover.
+Tới 680px cỡ chữ `min((100vw - 40px) / 7.2, 4rem)` để từ dài nhất vẫn vừa một dòng, nhịp dòng đều 1.32em;
+section không có padding dọc riêng nên khoảng trên và dưới chỉ bằng `section-gap`, link cách chữ 2rem.
+Ảnh tính theo em của hàng (1.875em x 1.44em, giữ tỉ lệ chữ/ảnh như PC 1440px), cách chữ bằng `column-gap`
+0.15em nên ảnh đầu dòng thẳng mép trái; không ảnh nào che mực chữ, kể cả dấu tiếng Việt.
+Từ 681 tới 1339px các hàng cách nhau thêm 0.2em để dấu dưới Ệ và móc Ẩ không bị ảnh hàng kề che
+(dịch ngang phải quá 2em mới né được). Link "Xem cách chúng tôi làm" có mũi tên trượt khi hover.
 
 ```gherkin
 Given /vi/ ở 390px
 When cuộn tới #tay-nghe
 Then bốn hàng hiện đủ chữ và ảnh, chữ không bị cắt, document không tràn ngang
+And chữ cỡ khoảng 48.6px, khoảng từ section trước tới chữ và từ link tới section sau đều 64px
+And ảnh khoảng 91x70px, không đè lên mực chữ của dòng nào
 ```
 
 ### R8. Rail công trình
