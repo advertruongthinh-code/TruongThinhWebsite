@@ -2876,6 +2876,22 @@
             },
           ],
         });
+        // Barba coi mọi status khác 200 là lỗi rồi tải lại cả document, nên Back về trang 404 mất veil phủ và chạy
+        // lại intro header. Trang 404 của site (status 404) vẫn đi route mềm như mọi trang khác (Shell R6).
+        // barba.request là API nội bộ của bản vendor 2.10.3; nâng Barba thì chạy lại not-found-routes.e2e.mjs.
+        const barbaRequest = window.barba.request;
+        window.barba.request = (href, timeout, onError, cache, headers) =>
+          barbaRequest(href, timeout, (url, error) => error?.status === 404 || onError(url, error), cache, headers)
+            .catch(async (error) => {
+              if (error?.status !== 404) throw error;
+              const html = await fetch(href).then((response) => response.text()).catch(() => "");
+              if (!html.includes('data-barba-namespace="not-found"')) {
+                onError(href, error);
+                throw error;
+              }
+              cache.update(href, { status: "fulfilled", target: href });
+              return { html, url: { href, ...window.barba.url.parse(href) } };
+            });
       } catch {
         clearRouteEntry();
       }

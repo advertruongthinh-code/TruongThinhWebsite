@@ -2167,7 +2167,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   min-height: 150px;
   margin-right: calc(-1 * var(--gutter));
   margin-left: calc(-1 * var(--gutter));
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -2204,6 +2204,15 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
 .footer-contact a strong {
   color: var(--blue);
+}
+
+.footer-phones {
+  gap: 1rem;
+}
+
+.footer-phones a {
+  display: grid;
+  gap: 2px;
 }
 
 .footer-social-list {
@@ -2780,7 +2789,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 @media (max-width: 750px), (max-height: 640px) {
   .site-footer {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     align-items: center;
     column-gap: 32px;
     border-top: 1px solid var(--line);
@@ -2805,6 +2814,16 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .footer-contact strong {
     max-width: none;
     font-size: 1rem;
+  }
+
+  .footer-phones {
+    gap: 2px;
+  }
+
+  .footer-phones a {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
   }
 
   .footer-socials {
@@ -2844,10 +2863,17 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     padding-top: 14px;
   }
 
-  .footer-address {
+  .footer-address,
+  .footer-phones {
     grid-column: 1 / -1;
     gap: 4px;
     padding-block: 0;
+  }
+
+  .footer-phones {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 24px;
   }
 
   .footer-socials,

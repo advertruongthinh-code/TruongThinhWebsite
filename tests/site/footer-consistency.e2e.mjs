@@ -63,6 +63,7 @@ try {
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,
             address: footer.querySelector(".footer-address strong").textContent,
+            phones: [...footer.querySelectorAll(".footer-phones a")].map(e => [e.getAttribute("href"), e.querySelector("strong").textContent]),
             copyright: footer.querySelector(".footer-bottom").textContent.trim(),
             overflow: document.documentElement.scrollWidth > innerWidth + 1,
             socials: [...footer.querySelectorAll(".footer-social[aria-label]")].map(e => e.dataset.footerSocial),
@@ -81,7 +82,8 @@ try {
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));
         assert.equal(result.marginTop, expectedTopGap);
-        assert.deepEqual(result.children, ["footer-address", "footer-socials"]);
+        assert.deepEqual(result.children, ["footer-address", "footer-phones", "footer-socials"]);
+        assert.deepEqual(result.phones, [["tel:+84949131050", "+84 949 131 050"], ["tel:+842753813753", "+84 275 381 3753"]]);
         assert.equal(result.invitation, 0);
         assert.deepEqual(result.socials, ["facebook", "tiktok", "youtube"]);
         assert.equal(result.socialSize, compact ? 24 : 30);

@@ -16,7 +16,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/logo-route-crossfade.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Shell website
@@ -116,7 +116,7 @@ ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, c
 phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (ink,
 mark crossfade sang CMYK theo [logo crossfade](logo-route-crossfade.md), hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
 alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ underlay, lớp fade và class `is-brand-*` của mark), CTA, menu;
-lệch số con hoặc request lỗi thì `location.assign`. Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil.
+lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil.
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
 navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
 history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
@@ -180,8 +180,8 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 Floating CTA (Zalo, href `https://zalo.me/`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
 hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải; từ 750px trở xuống là nút vuông chỉ
 icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang:
-địa chỉ, ba icon Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`,
-`tabindex="-1"`, không `href`; dòng bản quyền. Khoảng trên footer là `--footer-top-gap`; footer gọn
+địa chỉ, Hotline và Văn phòng dạng `+84` link `tel:` ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok, YouTube
+chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`; dòng bản quyền. Khoảng trên footer là `--footer-top-gap`; footer gọn
 khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
@@ -260,7 +260,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_ONLY` |
 | R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_LOCALE_ONLY`, `TT_E2E_LOCALE_SCROLL_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
-| R6 | `logo-route-crossfade.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
+| R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
 | R9 | `scrollbar-parity.e2e.mjs` (`SCROLLBAR_ENGINES` chọn engine) |
