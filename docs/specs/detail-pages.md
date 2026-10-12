@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-07
+updated: 2026-10-12
 ---
 
 # Trang Residential, Commercial và About
@@ -117,7 +117,9 @@ Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), c�
 Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ, cao tối thiểu `100svh`. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
-tính từ lúc mount: ảnh hero About `scale 1.2 → 1.005` trong 2,5s (ảnh hero Residential, Commercial đứng yên, không zoom); kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
+tính từ lúc mount: ảnh hero (`data-motion-hero-media`) `scale 1.2 → 1.005` trong 2,5s `ease` rồi đứng yên, như hero
+Espacio interior-design (Residential) và kitchens (Commercial) đo từ frame; ảnh hero Residential, Commercial hiện cắt
+cứng khi decode xong, không fade của khung chờ ảnh; kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
 Residential, Commercial tách `h1` theo từ, hiện dần tại 0,9s; About không tách nên `h1` hiện ngay. `zoom-09` khác
 `words-09` chỉ ở chỗ xóa transform GSAP còn sót trên ảnh hero. Tải trực tiếp: entrance chạy song song lúc veil mở; hero
 không có nhánh intro riêng nên việc `route-enter` bỏ header intro ([shell](site-shell.md#gate-còn-mở)) không chạm hero.
