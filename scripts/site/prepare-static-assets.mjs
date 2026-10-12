@@ -271,4 +271,9 @@ for (const [route, source] of ROUTES) {
   await writeFile(destination, localeHtml(html, route.startsWith("/en/") ? "en" : "vi"), "utf8");
 }
 
+// not_found_handling = "404-page" lấy 404.html gần nhất theo path: /en/* dùng /en/404.html, path khác dùng bản vi ở root.
+const notFoundHtml = await readFile(path.join(outputRoot, "404.html"), "utf8");
+await writeFile(path.join(outputRoot, "en", "404.html"), localeHtml(notFoundHtml, "en"), "utf8");
+await writeFile(path.join(outputRoot, "404.html"), localeHtml(notFoundHtml, "vi"), "utf8");
+
 console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_CATEGORIES.length} advertising detail pages, and embedded bilingual runtime text`);

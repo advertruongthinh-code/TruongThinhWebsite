@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Trang bạn tìm không tồn tại hoặc đã được chuyển."
+      data-en-content="The page you are looking for does not exist or has moved."
+    />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-black.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-white.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" href="/assets/vendor/plus-jakarta-sans-5.3.0/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/vendor/plus-jakarta-sans-5.3.0/plus-jakarta-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      try {
+        // Mỗi lần tải trực tiếp (link, reload, Back/Forward) đều chạy pha enter của route-transition.
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          document.documentElement.classList.add("route-enter");
+        }
+        const routeLocale = document.documentElement.dataset.routeLocale;
+        document.documentElement.lang = routeLocale === "en" ? "en" : "vi";
+      } catch {}
+      // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
+      document.documentElement.classList.add("media-gate");
+      (() => {
+        const settle = (image) => {
+          const parent = image.parentElement;
+          parent?.classList.add("is-media-settled");
+          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+        };
+        const isImage = (target) => target.tagName === "IMG";
+        document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+        // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
+        // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
+        const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {
+          const { width, height } = image.getBoundingClientRect();
+          const ratio = image.getAttribute("width") / image.getAttribute("height");
+          const needed = Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width);
+          const loaded = image.currentSrc.replace(/\.\w+$/, "");
+          if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= needed * devicePixelRatio))) return;
+          [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${needed}px`));
+        }));
+        const fitted = 'picture > img[loading="lazy"], picture > img[data-srcset]';
+        // Container Barba dựng ngoài document nên ảnh có thể load xong trước khi gắn vào, event load không tới document;
+        // ảnh như vậy được settle ngay khi gắn vào.
+        new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => node.nodeType === 1
+          && [node, ...node.querySelectorAll("img")].forEach((image) => {
+            if (image.matches(fitted)) fit.observe(image);
+            if (isImage(image) && image.complete && image.naturalWidth) image.decode().catch(() => {}).then(() => settle(image));
+          }))))
+          .observe(document, { childList: true, subtree: true });
+      })();
+    </script>
+    <script>
+      (() => {
+        const r=document.documentElement,a=new AbortController(),s={signal:a.signal},k=u=>`tt-locale-scroll:${u.pathname}${u.search}`;let close;
+        const b=window.__ttMotionBoot={claimed:false,fallback:false,claim(){this.claimed=true;return this.fallback},release(){close?.(false);a.abort();r.classList.remove("motion-fallback");this.fallback=false}};
+        const fail=()=>{
+          if(b.claimed||b.fallback)return;if(!document.body)return document.addEventListener("DOMContentLoaded",fail,{once:true});
+          b.fallback=true;r.classList.add("motion-fallback");r.classList.remove("route-enter");document.body.classList.remove("is-transitioning","menu-open","motion-paused");
+          const c=document.querySelector("[data-barba=container]");if(c)c.hidden=false;window.TruongThinhDetail?.mount(c,{settled:true});
+          try{const u=new URL(location.href),s=sessionStorage.getItem(k(u));sessionStorage.removeItem(k(u));if(s!==null){const restore=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,+s||0)));document.readyState==="complete"?restore():addEventListener("load",restore,{once:true,signal:a.signal})}}catch{}
+          const d=document.querySelector("#site-menu"),o=document.querySelector("[data-menu-open]");
+          close=(focus=true)=>{if(d?.open)d.close();d?.classList.remove("is-active");document.body.classList.remove("menu-open");o?.setAttribute("aria-expanded","false");if(focus)o?.focus({preventScroll:true})};
+          document.addEventListener("click",e=>{if(b.claimed)return;const t=e.target,l=t.closest("[data-language-option]");if(l){e.preventDefault();const u=new URL(l.href);u.search=location.search;u.hash="";try{sessionStorage.setItem(k(u),String(Math.round(scrollY)))}catch{}location.assign(u.href)}else if(t.closest("[data-menu-open]")&&!d?.open){d?.showModal();d?.classList.add("is-active");document.body.classList.add("menu-open");o?.setAttribute("aria-expanded","true");document.querySelector("[data-menu-close]")?.focus({preventScroll:true})}else if(t.closest("[data-menu-close]"))close()},s);
+          d?.addEventListener("cancel",e=>{e.preventDefault();close()},s);
+          addEventListener("pageshow",e=>{if(e.persisted&&!b.claimed)close(false)},s);
+        };
+        window.addEventListener("error",e=>{if(e.target?.matches?.('script[src$="/motion.js"]'))fail()},{capture:true,...s});
+        // motion.js (defer) chạy trước DOMContentLoaded, nên mạng chậm vẫn giữ veil.
+        document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
+      })();
+    </script>
+    <title data-en="404 — Trường Thịnh">
+      404 — Trường Thịnh
+    </title>
+    <link
+      rel="stylesheet"
+      href="/assets/vendor/locomotive-scroll-4.1.4.min.css"
+      media="(min-width: 981px)"
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/detail.css" />
+    <style>
+      /* Chỉ trang 404: số lớn và một dòng chữ căn giữa, theo mẫu 404 của Espacio (không dải logo, owner 2026-10-12). */
+      .not-found {
+        display: grid;
+        min-height: 75svh;
+        padding: 140px 20px 40px;
+        place-content: center;
+        text-align: center;
+      }
+
+      .not-found h1 {
+        margin: 0;
+        font-size: clamp(7rem, 30vw, 10rem);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: var(--tracking-display);
+      }
+
+      .not-found p {
+        margin: 2rem 0 0;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.4;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body data-barba="wrapper">
+    <div class="route-veil" aria-hidden="true">
+      <i></i><i></i><i></i><i></i>
+    </div>
+
+    <header class="site-header" data-site-header>
+      <a
+        id="header-logo"
+        class="brand"
+        href="/"
+        aria-label="TRƯỜNG THỊNH NỘI THẤT · QUẢNG CÁO — Trang chủ"
+        data-en-aria-label="TRƯỜNG THỊNH INTERIORS · ADVERTISING — Home"
+      >
+        <svg class="brand-lockup" viewBox="0 25.4515 594 153.667" aria-hidden="true" data-parity-media>
+
+  <g class="brand-lockup__geometry" fill="currentColor">
+    <g class="brand-lockup__mark" transform="translate(0 25.4515) scale(0.62)">
+      <path fill="var(--logo-mark-black, currentColor)" d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" />
+      <path fill="var(--logo-mark-yellow, currentColor)" d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" />
+      <path fill="var(--logo-mark-magenta, currentColor)" d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" />
+      <path fill="var(--logo-mark-cyan, currentColor)" d="M143.1 0l32.48 56.25c-36.88,63.87 -73.75,127.74 -110.62,191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" />
+    </g>
+    <g class="brand-lockup__copy">
+      <text class="brand-lockup__title" x="203.05517" y="98.47574" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="46.68365" font-weight="600" letter-spacing="0" word-spacing="0" textLength="390.63185" lengthAdjust="spacing">TRƯỜNG THỊNH</text>
+      <text class="brand-lockup__subtitle" data-en="INTERIORS · ADVERTISING" x="201.57159" y="147.19920" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="28.85050" font-weight="600" letter-spacing="0" word-spacing="0" textLength="390.87000" lengthAdjust="spacing">NỘI THẤT · QUẢNG CÁO</text>
+    </g>
+  </g>
+
+</svg>
+        <span class="sr-only" data-en="— go to homepage">— về trang chủ</span>
+      </a>
+
+      <nav
+        id="header-menu-items"
+        class="desktop-nav"
+        aria-label="Điều hướng chính"
+        data-en-aria-label="Primary navigation"
+      >
+        <ul>
+          <li>
+            <a href="/vi/residential/" data-vi="Không gian Nhà ở" data-en="Residential spaces"
+              >Không gian Nhà ở</a
+            >
+          </li>
+          <li>
+            <a
+              href="/vi/commercial/"
+              data-vi="Không gian Kinh doanh"
+              data-en="Commercial spaces"
+              >Không gian Kinh doanh</a
+            >
+          </li>
+          <li>
+            <a
+              href="/vi/advertising-products/"
+              data-vi="Sản phẩm Quảng cáo"
+              data-en="Advertising products"
+              >Sản phẩm Quảng cáo</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <button
+        id="header-menu-toggle"
+        class="menu-button"
+        type="button"
+        aria-label="Mở menu"
+        data-en-aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="site-menu"
+        data-menu-open
+      >
+        <svg id="header-toggle-svg" viewBox="0 0 35 19" aria-hidden="true">
+          <line class="top" x1="0" y1="1.5" x2="35" y2="1.5" />
+          <line class="middle" x1="8.75" y1="9.5" x2="26.25" y2="9.5" />
+          <line class="bottom" x1="0" y1="17.5" x2="35" y2="17.5" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- TODO(owner): Thay placeholder này bằng URL Zalo chính thức đã xác minh. -->
+    <a
+      class="floating-cta"
+      href="https://zalo.me/"
+      target="_blank"
+      rel="noreferrer"
+      aria-label="Trao đổi công trình qua Zalo"
+      data-en-aria-label="Discuss your project on Zalo"
+    >
+      <span data-en="Talk on Zalo">Trao đổi qua Zalo</span>
+      <svg viewBox="0 0 58.09 57.82" aria-hidden="true"><rect x="3.66" y="9.64" width="50.77" height="44.28" /><line x1="15.01" x2="15.01" y1="1.9" y2="14.69" /><line x1="29.04" x2="29.04" y1="1.9" y2="14.69" /><line x1="43.08" x2="43.08" y1="1.9" y2="14.69" /><line x1="3.66" x2="54.43" y1="23.59" y2="23.59" /></svg>
+    </a>
+
+    <dialog class="site-menu" id="site-menu" aria-label="Menu Trường Thịnh" data-en-aria-label="Trường Thịnh menu">
+      <div class="menu-shutters" aria-hidden="true">
+        <i></i><i></i><i></i><i></i>
+      </div>
+      <div class="menu-inner">
+        <div class="menu-head">
+          <a class="menu-brand" href="/vi/" aria-label="Trường Thịnh — về trang chủ" data-en-aria-label="Trường Thịnh — back to home">
+            <svg class="brand-lockup" viewBox="0 25.4515 594 153.667" aria-hidden="true" data-parity-media>
+
+  <g class="brand-lockup__geometry" fill="currentColor">
+    <g class="brand-lockup__mark" transform="translate(0 25.4515) scale(0.62)">
+      <path fill="var(--logo-mark-black, currentColor)" d="M253.13 190.58l33.07 57.27 -66.14 0c11.02,-19.09 22.05,-38.18 33.07,-57.27z" />
+      <path fill="var(--logo-mark-yellow, currentColor)" d="M216.22 126.66l33.17 57.44c-12.27,21.25 -24.54,42.5 -36.81,63.75l-66.33 0c23.33,-40.4 46.65,-80.79 69.97,-121.19z" />
+      <path fill="var(--logo-mark-magenta, currentColor)" d="M179.32 62.73l33.16 57.45c-24.57,42.55 -49.14,85.11 -73.71,127.67l-66.33 0c35.63,-61.7 71.25,-123.41 106.88,-185.12z" />
+      <path fill="var(--logo-mark-cyan, currentColor)" d="M143.1 0l32.48 56.25c-36.88,63.87 -73.75,127.74 -110.62,191.6l-64.96 0 71.55 -123.92 71.55 -123.93z" />
+    </g>
+    <g class="brand-lockup__copy">
+      <text class="brand-lockup__title" x="203.05517" y="98.47574" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="46.68365" font-weight="600" letter-spacing="0" word-spacing="0" textLength="390.63185" lengthAdjust="spacing">TRƯỜNG THỊNH</text>
+      <text class="brand-lockup__subtitle" data-en="INTERIORS · ADVERTISING" x="201.57159" y="147.19920" font-family="Plus Jakarta Sans, Arial, sans-serif" font-size="28.85050" font-weight="600" letter-spacing="0" word-spacing="0" textLength="390.87000" lengthAdjust="spacing">NỘI THẤT · QUẢNG CÁO</text>
+    </g>
+  </g>
+
+</svg>
+          </a>
+          <div class="menu-language" role="group" aria-label="Chọn ngôn ngữ" data-en-aria-label="Choose language"><a href="/vi/" data-language-option="vi" lang="vi" data-en="Vietnamese">Tiếng Việt</a><a href="/en/" data-language-option="en" lang="en" data-en="English">English</a></div>
+          <a class="menu-appointment" href="https://zalo.me/" target="_blank" rel="noreferrer" aria-label="Gọi Zalo tư vấn" data-en-aria-label="Talk to us on Zalo"><svg data-menu-calendar viewBox="0 0 58.09 57.82" aria-hidden="true"><rect x="3.66" y="9.64" width="50.77" height="44.28" /><line x1="15.01" x2="15.01" y1="1.9" y2="14.69" /><line x1="29.04" x2="29.04" y1="1.9" y2="14.69" /><line x1="43.08" x2="43.08" y1="1.9" y2="14.69" /><line x1="3.66" x2="54.43" y1="23.59" y2="23.59" /></svg><span data-en="Talk to us on Zalo">Gọi Zalo tư vấn</span></a>
+          <button class="menu-close" type="button" aria-label="Đóng menu" data-en-aria-label="Close menu" data-menu-close><div class="menu-close__icon"><svg width="100%" height="100%" aria-hidden="true"><line class="top" x1="0" y1="0" x2="100%" y2="100%" /><line class="middle" x1="100%" y1="0" x2="0" y2="100%" /></svg></div></button>
+        </div>
+        <nav
+          class="menu-nav"
+          aria-label="Menu toàn trang"
+          data-en-aria-label="Full-site menu"
+        >
+          <div class="menu-group"><span class="menu-group__number">01</span><a class="menu-group__title" href="/vi/residential/"><span data-vi="Không gian Nhà ở" data-en="Residential spaces">Không gian Nhà ở</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/residential/?type=townhouse" data-en="Townhouses">Nhà phố</a><a class="menu-option" href="/vi/residential/?type=apartment" data-en="Apartments">Căn hộ</a><a class="menu-option" href="/vi/residential/?type=homestay" data-en="Homestays">Homestay</a></div></div>
+          <div class="menu-group"><span class="menu-group__number">02</span><a class="menu-group__title" href="/vi/commercial/"><span data-vi="Không gian Kinh doanh" data-en="Commercial spaces">Không gian Kinh doanh</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/commercial/?type=shop-showroom" data-en="Shop &amp; showroom">Shop &amp; showroom</a><a class="menu-option" href="/vi/commercial/?type=fnb" data-en="F&amp;B &amp; cafés">F&amp;B &amp; cafe</a><a class="menu-option" href="/vi/commercial/?type=office" data-en="Offices">Văn phòng</a><a class="menu-option" href="/vi/commercial/?type=retail" data-en="Retail stores">Cửa hàng bán lẻ</a></div></div>
+          <div class="menu-group"><span class="menu-group__number">03</span><a class="menu-group__title" href="/vi/advertising-products/"><span data-vi="Sản phẩm Quảng cáo" data-en="Advertising products">Sản phẩm Quảng cáo</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/advertising-products/?category=kiosk-posm" data-en="Kiosk &amp; POSM">Kiosk &amp; POSM</a><a class="menu-option" href="/vi/advertising-products/?category=mobile-retail" data-en="Mobile retail">Xe bán hàng</a><a class="menu-option" href="/vi/advertising-products/?category=signage-raised-letters" data-en="Signage &amp; raised letters">Bảng hiệu &amp; chữ nổi</a><a class="menu-option" href="/vi/advertising-products/?category=office-signs-wayfinding" data-en="Office signs &amp; wayfinding">Biển văn phòng &amp; chỉ dẫn</a><a class="menu-option" href="/vi/advertising-products/?category=led-displays-lightboxes" data-en="LED, displays &amp; light boxes">LED, màn hình &amp; hộp đèn</a><a class="menu-option" href="/vi/advertising-products/?category=print-decals" data-en="Quick print &amp; decals">In nhanh &amp; decal</a></div></div>
+          <div class="menu-group"><span class="menu-group__number">04</span><a class="menu-group__title" href="/vi/about/"><span data-en="About us">Về chúng tôi</span></a><div class="menu-group__links"><a class="menu-option" href="/vi/about/?topic=heritage" data-en="Heritage">Di sản</a><a class="menu-option" href="/vi/about/?topic=process" data-en="How we work">Cách làm</a><a class="menu-option" href="/vi/about/?topic=commitment" data-en="Commitment">Cam kết</a><a class="menu-option" href="/vi/about/?topic=contact" data-en="Contact">Liên hệ</a></div></div>
+        </nav>
+      </div>
+    </dialog>
+
+    <div
+      class="page-shell"
+      data-scroll-container
+      data-barba="container"
+      data-barba-namespace="not-found"
+    >
+      <main id="noi-dung">
+        <section class="not-found" data-header-tone="ink" aria-labelledby="page-title">
+          <div class="reveal">
+            <h1 id="page-title">404</h1>
+            <p data-en="The page you are looking for does not exist or has moved.">Trang bạn tìm không tồn tại hoặc đã được chuyển.</p>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer" id="lien-he" data-header-tone="ink">
+        <div class="footer-contact">
+          <div class="footer-address">
+            <span data-en="Head office">Trụ sở</span>
+            <strong data-en="E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long">E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long</strong>
+          </div>
+          <div class="footer-socials" aria-label="Mạng xã hội" data-en-aria-label="Social networks">
+            <span data-en="Social networks">Mạng xã hội</span>
+            <div class="footer-social-list">
+              <a class="footer-social" data-footer-social="facebook" role="link" aria-disabled="true" tabindex="-1" aria-label="Facebook">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12.001 2C6.47813 2 2.00098 6.47715 2.00098 12C2.00098 16.9913 5.65783 21.1283 10.4385 21.8785V14.8906H7.89941V12H10.4385V9.79688C10.4385 7.29063 11.9314 5.90625 14.2156 5.90625C15.3097 5.90625 16.4541 6.10156 16.4541 6.10156V8.5625H15.1931C13.9509 8.5625 13.5635 9.33334 13.5635 10.1242V12H16.3369L15.8936 14.8906H13.5635V21.8785C18.3441 21.1283 22.001 16.9913 22.001 12C22.001 6.47715 17.5238 2 12.001 2Z" />
+                </svg>
+              </a>
+              <a class="footer-social" data-footer-social="tiktok" role="link" aria-disabled="true" tabindex="-1" aria-label="TikTok">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16 8.24537V15.5C16 19.0899 13.0899 22 9.5 22C5.91015 22 3 19.0899 3 15.5C3 11.9101 5.91015 9 9.5 9C10.0163 9 10.5185 9.06019 11 9.17393V12.3368C10.5454 12.1208 10.0368 12 9.5 12C7.567 12 6 13.567 6 15.5C6 17.433 7.567 19 9.5 19C11.433 19 13 17.433 13 15.5V2H16C16 4.76142 18.2386 7 21 7V10C19.1081 10 17.3696 9.34328 16 8.24537Z" />
+                </svg>
+              </a>
+              <a class="footer-social" data-footer-social="youtube" role="link" aria-disabled="true" tabindex="-1" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12.2439 4C12.778 4.00294 14.1143 4.01586 15.5341 4.07273L16.0375 4.09468C17.467 4.16236 18.8953 4.27798 19.6037 4.4755C20.5486 4.74095 21.2913 5.5155 21.5423 6.49732C21.942 8.05641 21.992 11.0994 21.9982 11.8358L21.9991 11.9884L21.9991 11.9991C21.9991 11.9991 21.9991 12.0028 21.9991 12.0099L21.9982 12.1625C21.992 12.8989 21.942 15.9419 21.5423 17.501C21.2878 18.4864 20.5451 19.261 19.6037 19.5228C18.8953 19.7203 17.467 19.8359 16.0375 19.9036L15.5341 19.9255C14.1143 19.9824 12.778 19.9953 12.2439 19.9983L12.0095 19.9991L11.9991 19.9991C11.9991 19.9991 11.9956 19.9991 11.9887 19.9991L11.7545 19.9983C10.6241 19.9921 5.89772 19.941 4.39451 19.5228C3.4496 19.2573 2.70692 18.4828 2.45587 17.501C2.0562 15.9419 2.00624 12.8989 2 12.1625V11.8358C2.00624 11.0994 2.0562 8.05641 2.45587 6.49732C2.7104 5.51186 3.45308 4.73732 4.39451 4.4755C5.89772 4.05723 10.6241 4.00622 11.7545 4H12.2439ZM9.99911 8.49914V15.4991L15.9991 11.9991L9.99911 8.49914Z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>© 2026 Trường Thịnh</p>
+        </div>
+      </footer>
+    </div>
+
+    <script defer src="/assets/vendor/gsap-3.15.0.min.js"></script>
+    <script defer src="/assets/vendor/SplitText-3.15.0.min.js"></script>
+    <script defer src="/assets/vendor/locomotive-scroll-4.1.4.min.js"></script>
+    <script defer src="/assets/vendor/barba-2.10.3.umd.js"></script>
+    <script defer src="/detail.js"></script>
+    <script defer src="/motion.js"></script>
+  </body>
+</html>
