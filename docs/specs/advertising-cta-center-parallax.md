@@ -91,10 +91,11 @@ Footer ở mọi trang VI/EN không cao quá `38.2%` viewport khi rộng tới 7
 mạng xã hội. Footer gọn (`@media (max-width: 750px)` trong `style.css`):
 
 - Dọc (`orientation: portrait`): một cột Hotline, Văn phòng, địa chỉ, icon mạng xã hội nằm ngang; lề hai bên bằng
-  `gutter`. Cao khoảng 191px ở 390×844.
-- Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ. Cao khoảng 112px (568×320: 34.9%).
-- Màn ngang thấp rộng hơn 750px dùng footer thường: một dải khoảng 100px, hai cột khoảng 138px từ 980px trở xuống
-  (844×390: 35.3%).
+  `gutter`; các dòng cách 16px. Cao khoảng 203px ở 390×844.
+- Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ. Cửa sổ cao `≤640px` dòng cách 10px. Cao khoảng 118px
+  (568×320: 36.8%).
+- Màn ngang thấp rộng hơn 750px dùng footer thường: một dải khoảng 112px, hai cột khoảng 144px từ 980px trở xuống
+  (844×390: 36.9%).
 - Floating CTA không hiện ở cuối trang (đã có nút Zalo của trang) và ẩn khi footer lọt vào viewport (404), nên footer
   không chừa làn nút.
 - Icon thay nhãn chữ; nhãn ẩn bằng mắt cho trình đọc màn hình; footer có viền trên.

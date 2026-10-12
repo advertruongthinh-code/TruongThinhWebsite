@@ -2137,12 +2137,13 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 /* Một dải: hai số xếp cột | địa chỉ | mạng xã hội sát lề phải. Đệm bốn phía bằng gutter;
-   floating CTA không hiện cùng footer nên không chừa làn nút. */
+   floating CTA không hiện cùng footer nên không chừa làn nút. Nhịp theo Espacio: các dòng xếp chồng
+   cách 16px, cột cách 70px (35px ở <=1200px), line-height 1.4. */
 .site-footer {
   display: grid;
   grid-template-columns: max-content minmax(0, 24rem) 1fr;
   align-items: center;
-  gap: 4px clamp(2.5rem, 5.5vw, 6rem);
+  gap: 16px 70px;
   margin-block-start: var(--footer-top-gap);
   padding: var(--gutter);
   border-top: 1px solid var(--line);
@@ -2253,7 +2254,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
 @media (max-width: 1200px) {
   .site-footer {
-    column-gap: 2.5rem;
+    column-gap: 35px;
   }
 }
 
@@ -2271,7 +2272,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .footer-socials {
     grid-area: 3 / 1;
     justify-self: start;
-    margin-top: 6px;
   }
 }
 
@@ -2818,7 +2818,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 @media (max-width: 750px) and (orientation: portrait) {
   .site-footer {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 6px;
     padding-block: 20px;
   }
 
@@ -2828,13 +2827,12 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .footer-socials {
     grid-area: auto;
   }
+}
 
-  .footer-address {
-    margin-top: 8px;
-  }
-
-  .footer-socials {
-    margin-top: 10px;
+/* Cửa sổ thấp (điện thoại ngang): dòng cách 10px để footer không cao quá 38.2% viewport. */
+@media (max-height: 640px) {
+  .site-footer {
+    row-gap: 10px;
   }
 }
 
