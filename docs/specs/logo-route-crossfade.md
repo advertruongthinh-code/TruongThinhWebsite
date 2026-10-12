@@ -121,11 +121,10 @@ trong `src/site/motion.js`.
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm số lần đổi màu, chỉ cho opacity, không clip-path |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: mỗi frame opacity cụm logo cộng opacity veil bằng 1, logo bằng 0 khi veil phủ kín, về 1 sau veil; mark, chữ, nav, hamburger giữ `1`; bấm link lúc veil mở; reduced motion logo giữ `1` |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY` |
-| Hiệu năng | Đo A05s thật qua adb khi điều phối giao máy |
+| Hiệu năng | A05s thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (số đo trong PR đóng gate) |
 
 ## Gate còn mở
 
-- Đo fps chuyển trang trên A05s thật: chờ điều phối giao máy.
 - Owner xem visual trên demo sau khi merge. Owner.
 
 ## Chú thích thuật ngữ
