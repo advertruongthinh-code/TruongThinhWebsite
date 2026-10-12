@@ -51,8 +51,9 @@ try {
           performance.getEntriesByType("resource").find((entry) => entry.name.endsWith(`/${name}`))?.startTime])),
       }), files);
       assert(covered, `${locale}: the veil never covered`);
-      // Còn một hai frame giữa lúc chèn trang mới và smooth scroll khởi động, ở mọi route.
-      assert(shift < 120, `${locale}: native scrollbar pushed the header for ${Math.round(shift)}ms`);
+      // Còn vài frame giữa lúc chèn trang mới và smooth scroll khởi động, ở mọi route (đo 31-130ms); chờ mạng
+      // trên main là 370ms trở lên.
+      assert(shift < 250, `${locale}: native scrollbar pushed the header for ${Math.round(shift)}ms`);
       for (const name of files) {
         assert(starts[name] < covered, `${locale}: ${name} must start before the veil covers: ${JSON.stringify({ covered, starts })}`);
       }
