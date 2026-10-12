@@ -124,6 +124,7 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | Word fade | `data-motion-words` | `1s expo.out`, stagger `0.2s` |
 | Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` và rời thứ tự Tab |
 | Media reveal | `data-motion-media` | `0.6s cubic-bezier(0, 0, .26, 1)` (`--ease`) |
+| Cụm 404 | `.not-found__copy` (CSS trong `404.html`) | Cả cụm số `404` và dòng chữ, không split: `scale 1.1 → 1` `2.5s` `--ease` cùng opacity `0 → 1` `1s expo.out`; đứng ở frame đầu dưới veil, chạy khi veil bắt đầu mở. Reduced motion và script lỗi hiện ngay trạng thái cuối |
 
 Route và target:
 
