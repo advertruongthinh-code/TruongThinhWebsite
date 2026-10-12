@@ -149,6 +149,7 @@
   let routeInFlight = false;
   let routeDestinationReady = false;
   let routeMountReady = false;
+  let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
   let pageHeaderInk = false;
@@ -2816,10 +2817,10 @@
               name: "persistent-shell",
               sync: false,
               beforeLeave(data) {
-                if (/^\/(?:vi|en)\/advertising-products\/?$/.test(data.next.url.path)) {
-                  // Tải catalog song song với veil phủ; lỗi để beforeEnter và mount xử lý như cũ.
-                  window.TruongThinhDetail?.loadAdvertisingCatalog?.().catch(() => {});
-                }
+                // Đích Advertising: tải catalog song song với veil phủ; lỗi để beforeEnter và mount xử lý như cũ.
+                advertisingCatalogLoad = /^\/(?:vi|en)\/advertising-products\/?$/.test(data.next.url.path)
+                  ? window.TruongThinhDetail?.loadAdvertisingCatalog?.().catch(() => {})
+                  : undefined;
                 releaseHeaderInteractionState();
                 pinHeaderForRoute();
                 routeMountReady = false;
@@ -2827,6 +2828,9 @@
               },
               async leave(data) {
                 await coverRoute(closeMenu(false));
+                // Chờ catalog trước khi unmount: gỡ smooth scroll làm scrollbar native hiện và đẩy header sang trái
+                // suốt lúc chờ mạng.
+                await advertisingCatalogLoad;
                 // Unmount chạy ngoài frame vừa kết thúc veil.
                 await nextTask();
                 unmountPage();
