@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Trang bạn tìm không có hoặc đã được chuyển. Quay về trang chủ Trường Thịnh."
-      data-en-content="The page you are looking for does not exist or has moved. Go back to the Trường Thịnh home page."
+      content="Trang bạn tìm không tồn tại hoặc đã được chuyển."
+      data-en-content="The page you are looking for does not exist or has moved."
     />
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#ffffff" />
@@ -75,8 +75,8 @@
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
-    <title data-en="Page not found — Trường Thịnh">
-      Không tìm thấy trang — Trường Thịnh
+    <title data-en="404 — Trường Thịnh">
+      404 — Trường Thịnh
     </title>
     <link
       rel="stylesheet"
@@ -86,10 +86,29 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/detail.css" />
     <style>
-      /* Chỉ trang 404: khối "Giữ nghề" phủ cả màn hình, header nằm trên ảnh. */
-      .legacy-closer.not-found {
-        width: 100%;
-        min-height: 100svh;
+      /* Chỉ trang 404: số lớn và một dòng chữ căn giữa, theo mẫu 404 của Espacio. */
+      .not-found {
+        display: grid;
+        min-height: 75svh;
+        padding: 140px 20px 40px;
+        place-content: center;
+        text-align: center;
+      }
+
+      .not-found h1 {
+        margin: 0;
+        font-size: clamp(7rem, 30vw, 10rem);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: var(--tracking-display);
+      }
+
+      .not-found p {
+        margin: 2rem 0 0;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.4;
+        text-transform: uppercase;
       }
     </style>
   </head>
@@ -235,31 +254,48 @@
       data-barba-namespace="not-found"
     >
       <main id="noi-dung">
-        <section class="legacy-closer not-found" data-header-tone="inverse">
-          <img
-            src="/assets/content/shared/workshop-wide.webp"
-            width="1536"
-            height="1024"
-            sizes="max(100vw, 150vh)"
-            alt="Toàn cảnh xưởng Trường Thịnh với đội ngũ đang sản xuất"
-            data-en-alt="Trường Thịnh workshop and production team"
-          />
-          <span class="legacy-shade" aria-hidden="true"></span>
-          <div class="legacy-copy">
-            <h2>
-              <span class="line-mask"><span data-en="Page not found.">Không tìm thấy trang.</span></span>
-              <span class="line-mask"
-                ><span
-                  ><span data-en="Error">Lỗi</span>
-                  <em>404.</em></span
-                ></span
-              >
-            </h2>
-            <p>
-              <a class="legacy-link" href="/vi/"
-                ><span class="portal-subtitle" data-en="BACK TO HOME">VỀ TRANG CHỦ</span></a
-              >
-            </p>
+        <section class="not-found" data-header-tone="ink" aria-labelledby="page-title">
+          <div class="reveal">
+            <h1 id="page-title">404</h1>
+            <p data-en="The page you are looking for does not exist or has moved.">Trang bạn tìm không tồn tại hoặc đã được chuyển.</p>
+          </div>
+        </section>
+
+        <section
+          class="capability-marquee capability-marquee--clients client-logo-marquee section-gap"
+          aria-label="Khách hàng tiêu biểu"
+          data-en-aria-label="Selected clients"
+          data-header-tone="ink"
+        >
+          <div class="client-logo-marquee__track">
+            <div class="client-logo-marquee__group">
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bcj.svg" width="200" height="80" loading="eager" decoding="async" alt="BCJ" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/beinco.svg" width="200" height="80" loading="eager" decoding="async" alt="Beinco" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/benh-vien-minh-duc.svg" width="200" height="80" loading="eager" decoding="async" alt="Bệnh viện Minh Đức" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/betrimex.svg" width="200" height="80" loading="eager" decoding="async" alt="Betrimex" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bidv.svg" width="200" height="80" loading="eager" decoding="async" alt="BIDV" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/cannes-hotel.svg" width="200" height="80" loading="eager" decoding="async" alt="Cannes Hotel" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/dua-cuu-long.svg" width="200" height="80" loading="eager" decoding="async" alt="Dừa Cửu Long" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/hdbank.svg" width="200" height="80" loading="eager" decoding="async" alt="HDBank" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/prudential.svg" width="200" height="80" loading="eager" decoding="async" alt="Prudential" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietcombank.svg" width="200" height="80" loading="eager" decoding="async" alt="Vietcombank" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietinbank.svg" width="200" height="80" loading="eager" decoding="async" alt="VietinBank" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/ttc-hospitality.svg" width="200" height="80" loading="eager" decoding="async" alt="TTC Hospitality" /></span>
+            </div>
+            <div class="client-logo-marquee__group" aria-hidden="true">
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bcj.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/beinco.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/benh-vien-minh-duc.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/betrimex.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/bidv.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/cannes-hotel.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/dua-cuu-long.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/hdbank.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/prudential.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietcombank.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/vietinbank.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+              <span class="client-logo-slot"><img class="client-logo-image" src="/assets/content/client-logos/ttc-hospitality.svg" width="200" height="80" loading="eager" decoding="async" alt="" /></span>
+            </div>
           </div>
         </section>
       </main>
