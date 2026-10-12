@@ -31,8 +31,8 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: dọc hẹp có cột icon dọc bên phải, còn lại hai hàng.
-  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [667, 375], [844, 390], [1280, 632]]) {
+  // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: dọc hẹp có cột icon dọc bên phải, màn ngang thấp hai cột không logo.
+  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [568, 320], [667, 375], [844, 390], [1280, 632]]) {
     const compact = width <= 750 || height <= 640;
     const portrait = width <= 750 && width < height;
     let expectedHeight;
@@ -51,15 +51,14 @@ try {
         const result = await page.evaluate(() => {
           const footer = document.querySelector(".site-footer");
           const rect = footer.getBoundingClientRect();
-          const contact = footer.querySelector(".footer-contact");
-          const cell = contact.lastElementChild;
+          const lockup = footer.querySelector(".brand-lockup");
           const previous = footer.previousElementSibling?.getBoundingClientRect();
           const url = new URL(location.href);
           return {
-            height: rect.height, trailing: rect.bottom - cell.getBoundingClientRect().bottom,
-            cellHeight: cell.getBoundingClientRect().height,
-            contactWidth: contact.getBoundingClientRect().width,
-            contactBorderBottom: getComputedStyle(contact).borderBottomWidth,
+            height: rect.height, width: rect.width,
+            borderTop: getComputedStyle(footer).borderTopWidth,
+            lockupVisible: lockup.getClientRects().length > 0,
+            hotlineSize: Number.parseFloat(getComputedStyle(footer.querySelector(".footer-hotline")).fontSize),
             copyright: footer.querySelectorAll(".footer-bottom").length,
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
@@ -68,11 +67,11 @@ try {
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,
             address: footer.querySelector(".footer-address strong").textContent,
-            phones: [...footer.querySelectorAll(".footer-phones a")].map(e => [e.getAttribute("href"), e.querySelector("strong").textContent]),
+            phones: [...footer.querySelectorAll(".footer-hotline, .footer-office")].map(e => [e.getAttribute("href"), e.querySelector("strong").textContent]),
             overflow: document.documentElement.scrollWidth > innerWidth + 1,
             socials: [...footer.querySelectorAll(".footer-social[aria-label]")].map(e => e.dataset.footerSocial),
             socialSize: footer.querySelector(".footer-social").getBoundingClientRect().width,
-            labelWidth: Math.max(...[...footer.querySelectorAll(".footer-contact span")].map(e => e.getBoundingClientRect().width)),
+            labelWidth: Math.max(...[...footer.querySelectorAll("span")].map(e => e.getBoundingClientRect().width)),
             icons: footer.querySelectorAll(".footer-icon[aria-hidden='true']").length,
           };
         });
@@ -80,23 +79,20 @@ try {
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
-        // Desktop: lưới liên hệ tràn mép trang, không viền dưới, đường chia ô chạy tới đáy;
-        // ô cuối cao ít nhất 2 x gutter + 47px để tâm ô trùng tâm floating CTA.
-        if (!compact) {
-          assert.equal(result.trailing, 0);
-          assert.equal(result.contactWidth, width);
-          assert.equal(result.contactBorderBottom, "0px");
-          assert.ok(result.cellHeight >= (width > 1200 ? 117 : 97), JSON.stringify({ width, result }));
-        }
+        // Viền trên tràn mép trang; hotline dẫn đầu lớn hơn chữ liên hệ; logo ẩn ở màn ngang thấp.
+        assert.equal(result.width, width);
+        assert.equal(result.borderTop, "1px");
+        assert.ok(result.hotlineSize >= 22, JSON.stringify({ width, result }));
+        assert.equal(result.lockupVisible, !compact || portrait, JSON.stringify({ width, height, result }));
         if (compact) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));
         assert.equal(result.marginTop, expectedTopGap);
-        assert.deepEqual(result.children, ["footer-address", "footer-phones", "footer-socials"]);
+        assert.deepEqual(result.children, ["footer-hotline", "footer-office", "footer-address", "footer-socials"]);
         assert.deepEqual(result.phones, [["tel:+84949131050", "+84 949 131 050"], ["tel:+842753813753", "+84 275 381 3753"]]);
         assert.equal(result.invitation, 0);
         assert.deepEqual(result.socials, ["facebook", "tiktok", "youtube"]);
-        assert.equal(result.socialSize, compact ? 24 : 30);
+        assert.equal(result.socialSize, compact ? 24 : 28);
         assert.ok(result.labelWidth <= 1, "icons replace visible footer labels");
         assert.equal(result.icons, 3);
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
@@ -111,6 +107,7 @@ try {
           if (!cta?.classList.contains("show") || getComputedStyle(cta).visibility === "hidden") return null;
           const c = cta.getBoundingClientRect();
           return [...document.querySelectorAll(".site-footer :is(a, strong, p, svg)")]
+            .filter(e => e.getClientRects().length)
             .map(e => e.getBoundingClientRect())
             .filter(r => c.left < r.right && r.left < c.right && c.top < r.bottom && r.top < c.bottom)
             .map(r => [r.left, r.top, r.right, r.bottom]);

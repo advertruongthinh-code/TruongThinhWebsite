@@ -4460,7 +4460,8 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
             const label = link?.matches("[data-vi], [data-en]")
               ? link
               : link?.querySelector("[data-vi], [data-en]");
-            return normalize(label?.textContent || link?.textContent || "");
+            // Full menu tách tiêu đề nhỏ/lớn: tên đầy đủ nằm ở aria-label.
+            return normalize(link?.getAttribute("aria-label") || label?.textContent || link?.textContent || "");
           };
           const title = document.querySelector("title[data-en]");
           const description = document.querySelector('meta[name="description"]');
@@ -10224,9 +10225,9 @@ function extractInlineBrandLockups(source, relativePath) {
     ),
   ].map((match) => match[0]);
   assert(
-    lockups.length === 2,
+    lockups.length === 3,
     relativePath +
-      " must expose exactly two inline brand lockups (header and full menu); found " +
+      " must expose exactly three inline brand lockups (header, full menu, footer); found " +
       lockups.length,
   );
   return lockups;
@@ -10307,8 +10308,8 @@ function assertBrandShellSourceContracts() {
   });
 
   assert(
-    lockupCount === 10,
-    "The five routes must expose ten inline Trường Thịnh lockups; found " +
+    lockupCount === 15,
+    "The five routes must expose fifteen inline Trường Thịnh lockups; found " +
       lockupCount,
   );
   assert(
@@ -12185,7 +12186,8 @@ async function runFooterRuntimeChecks() {
           const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
-              state.spacing.paddingBottom === 0 &&
+              // Desktop đệm đáy 32px; điện thoại dọc đệm 0 vì cột mạng xã hội đã chừa chỗ cho CTA.
+              state.spacing.paddingBottom === (viewport.width <= 750 ? 0 : 32) &&
               state.address &&
               state.social.every(
                 (item) =>
@@ -12195,8 +12197,8 @@ async function runFooterRuntimeChecks() {
                    item.label &&
                    item.svg &&
                    item.viewBox === "0 0 24 24" &&
-                   Math.abs(item.width - (viewport.width <= 750 ? 24 : 30)) <= 0.1 &&
-                   Math.abs(item.height - (viewport.width <= 750 ? 24 : 30)) <= 0.1 &&
+                   Math.abs(item.width - (viewport.width <= 750 ? 24 : 28)) <= 0.1 &&
+                   Math.abs(item.height - (viewport.width <= 750 ? 24 : 28)) <= 0.1 &&
                    !item.hasStroke &&
                    item.tabIndex < 0,
               ) &&

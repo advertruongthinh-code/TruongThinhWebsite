@@ -301,7 +301,8 @@ html.route-enter .site-header {
   --logo-mark-cyan: #fff;
 }
 
-.menu-brand .brand-lockup {
+.menu-brand .brand-lockup,
+.site-footer .brand-lockup {
   --logo-mark-black: #2b2a29;
   --logo-mark-yellow: #ffed00;
   --logo-mark-magenta: #e5097f;
@@ -2128,9 +2129,20 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
+/* Một dải: hotline cỡ display | số bàn, địa chỉ, mạng xã hội xếp dọc | logo bên phải. Khi cuộn hết trang
+   floating CTA nằm dưới logo; cột logo rộng hơn nút (tối thiểu 180px) nên nút không đè cột trái, và
+   footer cao tối thiểu bằng đệm trên, logo, 12px, chỗ nút (cách đáy 35px, cao 47px). */
 .site-footer {
+  --footer-lockup-width: clamp(180px, 17vw, 260px);
+  display: grid;
+  min-height: calc(48px + var(--footer-lockup-width) * 153.667 / 594 + 12px + 35px + 47px);
+  grid-template-columns: max-content minmax(0, max-content) minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: start;
+  gap: 12px 3rem;
   margin-block-start: var(--footer-top-gap);
-  padding: 0 var(--gutter);
+  padding: 48px var(--gutter) 32px;
+  border-top: 1px solid var(--line);
   background: var(--white);
 }
 
@@ -2170,43 +2182,11 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 .footer-contact {
-  display: grid;
-  margin-right: calc(-1 * var(--gutter));
-  margin-left: calc(-1 * var(--gutter));
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-}
-
-/* Không viền dưới: đường chia ô chạy tới đáy trang. Ô cao tối thiểu 2 x gutter + 47px nên
-   tâm ô trùng tâm floating CTA (cách đáy gutter, cao 47px): nút đứng cùng hàng nội dung ở góc phải. */
-.footer-contact > * {
-  display: flex;
-  min-width: 0;
-  min-height: calc(2 * var(--gutter) + 47px);
-  padding: 1.25rem var(--gutter);
-  flex-direction: column;
-  justify-content: center;
-}
-
-.footer-contact > * + * {
-  border-left: 1px solid var(--line);
-}
-
-/* Ô thứ ba không đủ rộng cho icon và CTA: icon mạng xã hội xuống hàng riêng tràn hai cột, CTA ở phải. */
-@media (min-width: 751px) and (max-width: 1200px) and (min-height: 641px) {
-  .footer-contact {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .footer-contact > .footer-socials {
-    grid-column: 1 / -1;
-    border-top: 1px solid var(--line);
-    border-left: 0;
-  }
+  display: contents;
 }
 
 /* Icon thay nhãn chữ trên màn hình; nhãn giữ cho trình đọc màn hình. */
-.footer-contact span {
+.site-footer span {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -2215,49 +2195,117 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   white-space: nowrap;
 }
 
-.footer-address,
-.footer-phones a {
+.footer-hotline,
+.footer-office,
+.footer-address {
   display: grid;
+  min-width: 0;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
-  align-content: center;
   column-gap: 0.75rem;
+  font-size: clamp(1rem, 1.25vw, 1.2rem);
+  font-weight: 500;
+  line-height: 1.4;
 }
 
-/* Icon cao bằng một dòng chữ giá trị (line-height 1.4) để căn giữa dòng đầu. */
+.footer-hotline {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  align-self: center;
+  align-items: center;
+  column-gap: 0.3em;
+  font-size: clamp(2rem, 3.4vw, 3.6rem);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .footer-icon {
-  width: clamp(1.25rem, 2vw, 1.75rem);
-  height: calc(1.4 * clamp(1.1rem, 1.7vw, 1.6rem));
+  width: 1.4em;
+  height: 1.4em;
   color: var(--muted);
 }
 
+.footer-hotline .footer-icon {
+  width: 0.62em;
+  height: 0.62em;
+}
+
 .footer-contact strong {
-  max-width: 24rem;
-  font-size: clamp(1.1rem, 1.7vw, 1.6rem);
-  font-weight: 500;
+  font-weight: inherit;
+}
+
+.footer-address strong {
+  max-width: 22rem;
   text-wrap: balance;
 }
 
-.footer-contact b {
-  margin-left: 1rem;
-  font-weight: 500;
+.footer-office {
+  grid-column: 2;
+  grid-row: 1;
 }
 
-.footer-phones {
-  gap: 0.5rem;
+.footer-address {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.footer-socials {
+  grid-column: 2;
+  grid-row: 3;
+  margin-top: 4px;
+}
+
+.site-footer .brand-lockup {
+  grid-column: 4;
+  grid-row: 1 / span 3;
+  width: var(--footer-lockup-width);
+  height: auto;
+}
+
+@media (max-width: 1200px) {
+  .site-footer {
+    min-height: calc(48px + var(--footer-lockup-width) * 153.667 / 594 + 12px + 25px + 47px);
+    column-gap: 2rem;
+  }
+}
+
+/* Hẹp hơn 980px không đủ một dải: hotline ở trên, chi tiết xếp dưới, logo bên phải. */
+@media (max-width: 980px) {
+  .site-footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .footer-hotline {
+    grid-row: 1;
+    align-self: start;
+    margin-bottom: 12px;
+  }
+
+  .footer-office,
+  .footer-address,
+  .footer-socials {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .site-footer .brand-lockup {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
 }
 
 .footer-social-list {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: clamp(1.2rem, 2.2vw, 2.4rem);
+  gap: 1.5rem;
 }
 
 .footer-social {
   display: block;
-  width: 1.875rem;
-  height: 1.875rem;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   color: var(--ink);
   cursor: default;
@@ -2766,57 +2814,40 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .footer-statement {
     font-size: clamp(2.8rem, 13vw, 4.2rem);
   }
-
-  .footer-contact {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-contact > * {
-    min-height: 8rem;
-    padding: 1.25rem var(--gutter);
-  }
-
-  .footer-contact > * + * {
-    border-top: 1px solid var(--line);
-    border-left: 0;
-  }
-
-  .footer-contact strong {
-    font-size: 1.35rem;
-  }
 }
 
-/* Cửa sổ nhỏ: một footer compact để nội dung phía trên vẫn là vùng chính. */
+/* Cửa sổ nhỏ: footer gọn để nội dung phía trên vẫn là vùng chính. Màn ngang thấp: hai cột hotline,
+   số bàn | địa chỉ, mạng xã hội; bỏ logo (header đã có). Lề phải chừa làn floating CTA (nút chữ rộng
+   khoảng 161px cộng 24px) để không đè chữ khi CTA hiện ở cuối trang. */
 @media (max-width: 750px), (max-height: 640px) {
-  /* Hai hàng: địa chỉ | điện thoại, rồi icon | bản quyền. Lề phải chừa làn floating CTA
-     (nút chữ EN rộng khoảng 161px cộng 24px) để không đè chữ khi CTA hiện ở cuối trang. */
   .site-footer {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: 32px;
-    padding-right: calc(var(--gutter) + 185px);
-    border-top: 1px solid var(--line);
-  }
-
-  .footer-contact {
-    display: contents;
-  }
-
-  .footer-contact > *,
-  .footer-contact > * + * {
     min-height: 0;
-    padding: 0;
-    border: 0;
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    gap: 0 24px;
+    padding: 14px calc(var(--gutter) + 185px) 14px var(--gutter);
+  }
+
+  .footer-hotline {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    margin-bottom: 0;
+    font-size: 1.4rem;
+  }
+
+  .footer-office {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .footer-address {
-    padding-block: 12px;
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 
-  .footer-address,
-  .footer-phones a {
-    column-gap: 8px;
+  .footer-office,
+  .footer-address {
+    font-size: 1rem;
   }
 
   .footer-icon {
@@ -2824,36 +2855,28 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     height: 1.4rem;
   }
 
-  .footer-contact strong {
-    max-width: none;
-    font-size: 1rem;
+  .footer-hotline .footer-icon {
+    width: 20px;
+    height: 20px;
   }
 
-  /* Dòng số cuối thẳng hàng với dòng địa chỉ cuối. */
-  .footer-phones {
-    gap: 2px;
-    align-self: end;
-    padding-block: 12px;
+  .site-footer .brand-lockup {
+    display: none;
   }
 
   .footer-socials {
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 0;
   }
 
   .footer-social-list {
-    gap: 8px;
+    gap: 12px;
   }
 
   .footer-social {
     width: 24px;
     height: 24px;
-  }
-
-  .footer-socials {
-    display: flex;
-    min-height: 44px;
   }
 }
 
@@ -2864,38 +2887,49 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Dọc hẹp: cột phải rộng bằng floating CTA (57px, cách mép 15px); icon mạng xã hội xếp dọc trên nút,
-   chừa đủ chỗ dưới cho nút (cách đáy 25px, cao 57px, cộng 12px) nên CTA không đè nội dung. */
+/* Dọc hẹp: hotline tràn ngang ở trên; dưới là số bàn, địa chỉ, logo bên trái và cột phải rộng bằng
+   floating CTA (57px, cách mép 15px) với icon mạng xã hội xếp dọc, chừa chỗ dưới cho nút (cách đáy
+   25px, cao 57px, cộng 12px). Logo dồn đáy, tâm thẳng hàng tâm nút (25px + 57px / 2 từ đáy). */
 @media (max-width: 750px) and (orientation: portrait) {
   .site-footer {
     grid-template-columns: minmax(0, 1fr) 57px;
+    grid-template-rows: auto auto auto 1fr;
     column-gap: 16px;
-    row-gap: 8px;
-    padding-top: 16px;
-    padding-right: 15px;
+    row-gap: 10px;
+    padding: 24px 15px 0 var(--gutter);
   }
 
-  .footer-address,
-  .footer-phones {
-    padding-block: 0;
+  .footer-hotline {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 8px;
+    font-size: clamp(1.8rem, 9vw, 2.6rem);
   }
 
-  .footer-phones {
-    gap: 8px;
+  .footer-office,
+  .footer-address {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .site-footer .brand-lockup {
+    display: block;
+    grid-column: 1;
+    grid-row: 4;
+    align-self: end;
+    width: 160px;
+    margin-bottom: calc(25px + 57px / 2 - 160px * 153.667 / 594 / 2);
   }
 
   .footer-socials {
-    grid-row: 1 / span 3;
     grid-column: 2;
-    align-self: start;
-    justify-content: center;
-    min-height: 0;
+    grid-row: 2 / span 3;
+    justify-self: center;
     margin-bottom: calc(25px + 57px + 12px);
   }
 
   .footer-social-list {
     flex-direction: column;
-    gap: 12px;
   }
 }
 
