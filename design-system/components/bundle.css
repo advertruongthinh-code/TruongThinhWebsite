@@ -1678,6 +1678,14 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
+/* 681-1339px: hàng sát nhau nên dấu dưới Ệ và móc Ẩ chạm ảnh hàng kề. Dịch ngang phải quá 2em
+   mới né được (vỡ bố cục), nên nới khoảng hàng 0.2em; từ 1340px ảnh đã đủ xa chữ. */
+@media (min-width: 681px) and (max-width: 1339px) {
+  .heritage-row + .heritage-row {
+    margin-top: 0.2em;
+  }
+}
+
 @media (min-width: 1440px) {
   .heritage-row--start {
     transform: translateX(
@@ -1700,6 +1708,11 @@ html[lang="en"] #nang-luc .portal-subtitle {
 .heritage-line {
   display: block;
   will-change: transform;
+}
+
+/* Chữ nối (và, là, trong, từng) nhỏ hơn để từ khóa chính nổi lên. */
+.heritage-text--minor {
+  font-size: 0.5em;
 }
 
 .heritage-image {
