@@ -1035,8 +1035,6 @@
     const context = gsap.context(() => {
       const selectAll = (selector) => [...state.container.querySelectorAll(selector)];
       const revealItems = selectAll(".reveal");
-      // Cụm chữ vào nguyên khối (trang 404): cả nhóm zoom-out, mỗi cụm fade nguyên câu, không tách từ.
-      const phraseGroups = selectAll("[data-motion-phrase]");
       const revealGroups = selectAll(".legacy-copy h2");
       const legacyLabels = selectAll(".legacy-copy > p");
       const heritageTextMasks = selectAll(".heritage-text");
@@ -1136,10 +1134,6 @@
         if (heroWords.length) gsap.set(heroWords, { opacity: 1 });
       } else {
         if (revealItems.length) gsap.set(revealItems, { opacity: 0, y: 60 });
-        phraseGroups.forEach((group) => {
-          gsap.set(group, { scale: 1.1 });
-          gsap.set(group.querySelectorAll("[data-motion-phrase-item]"), { opacity: 0 });
-        });
         revealGroups.forEach((group) =>
           gsap.set(group.querySelectorAll(".line-mask > span"), { y: "2em" }),
         );
@@ -1156,17 +1150,7 @@
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           const target = entry.target;
-          if (target.matches("[data-motion-phrase]")) {
-            gsap.to(target, { scale: 1, duration: 2.5, ease: "power3.out" });
-            target.querySelectorAll("[data-motion-phrase-item]").forEach((item) =>
-              gsap.to(item, {
-                opacity: 1,
-                duration: 1,
-                delay: Number(item.dataset.motionPhraseItem) || 0,
-                ease: "expo.out",
-              }),
-            );
-          } else if (target.matches(".reveal")) {
+          if (target.matches(".reveal")) {
             gsap.to(target, {
               opacity: 1,
               y: 0,
@@ -1188,7 +1172,6 @@
       observers.push(revealObserver);
       if (!settledStartup) {
         revealItems.forEach((item) => revealObserver.observe(item));
-        phraseGroups.forEach((group) => revealObserver.observe(group));
         revealGroups.forEach((group) => revealObserver.observe(group));
       }
 
