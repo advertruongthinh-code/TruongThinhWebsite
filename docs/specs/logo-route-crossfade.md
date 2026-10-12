@@ -89,7 +89,8 @@ phủ kín không thấy logo; rồi đi `0 → 1` cùng lúc và cùng nhịp v
 luôn cùng một độ mờ ở mọi frame, không phần nào mờ trước phần nào. Crossfade màu của mark (R1 tới R3) và
 đổi màu chữ theo tone header vẫn chạy như cũ, chỉ diễn ra bên trong lúc cụm đang mờ hoặc đang hiện.
 Áp dụng cho PC và điện thoại, mọi route mềm, đổi ngôn ngữ, route từ full menu, kể cả trang hero trắng.
-Bấm link lúc cụm đang hiện dở: cụm mờ tiếp từ độ mờ đang có, không nhảy về `1`.
+Bấm link lúc veil đang mở: route không chạy lại (Barba bỏ qua click giữa lúc chuyển), cụm tiếp tục hiện cùng
+veil, không đứng hình rồi nhảy về `1`. Đổi tone header giữa chừng chỉ hủy tween màu, không hủy opacity của cụm.
 
 ```gherkin
 Given /vi/ ở đầu trang, 1440px hoặc 412×915
@@ -109,14 +110,16 @@ Crossfade và R7 chỉ ghi `opacity` (lớp màu, cụm logo), không đọc lay
 
 Logo: [BrandLockup](../../design-system/components/BrandLockup/README.md), [Brand motion](../../design-system/brand.md#motion).
 Code: `paintHeaderMark` (tùy chọn `fade`, lớp `.brand-lockup__mark-fade`), `pinHeaderForRoute`, `playRouteEnter`,
-`syncDocumentState` (giữ class `is-brand-*`) trong `src/site/motion.js`.
+`coverRoute` và `playRouteEnter` (opacity `#header-logo` trong cùng timeline với veil), `clearRouteEntry` (trả opacity),
+`colorHeader` (chỉ hủy tween `color`, `stroke`), `syncDocumentState` (giữ class `is-brand-*` và opacity logo)
+trong `src/site/motion.js`.
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm số lần đổi màu, chỉ cho opacity, không clip-path |
-| R7 | `tests/site/logo-route-crossfade.e2e.mjs`: ghi opacity của cụm logo mỗi frame lúc veil phủ và mở, so với opacity veil; mark và chữ không có opacity riêng; menu, hamburger giữ `1` |
+| R7 | `tests/site/logo-route-crossfade.e2e.mjs`: mỗi frame opacity cụm logo cộng opacity veil bằng 1, logo bằng 0 khi veil phủ kín, về 1 sau veil; mark, chữ, nav, hamburger giữ `1`; bấm link lúc veil mở; reduced motion logo giữ `1` |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY` |
 | Hiệu năng | Đo A05s thật qua adb khi điều phối giao máy |
 

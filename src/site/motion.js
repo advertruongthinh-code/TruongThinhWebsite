@@ -339,14 +339,15 @@
       !hasGsap ||
       reduceMotion
     ) {
-      if (hasGsap) gsap.killTweensOf(targets);
+      if (hasGsap) gsap.killTweensOf(targets, "color,stroke");
       colorTargets.forEach((target) => target.style.setProperty("color", color));
       strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
       return;
     }
-    gsap.killTweensOf(targets);
+    // Chỉ hủy tween màu: opacity của cụm logo đang chạy cùng veil (logo-route-crossfade R7).
+    gsap.killTweensOf(targets, "color,stroke");
     gsap
-      .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: true } })
+      .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: "auto" } })
       .to(colorTargets, { color }, 0)
       .to(strokeTargets, { stroke: color }, 0);
   };
@@ -1935,6 +1936,8 @@
     if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
     routeMarkHeld = false;
     setRouteVeil(0);
+    // Route hủy hoặc lỗi giữa chừng không để logo kẹt ở độ mờ dở (logo-route-crossfade R7).
+    if (hasGsap) window.gsap.set(headerLogo, { clearProps: "opacity" });
     // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
@@ -1953,12 +1956,12 @@
         return;
       }
       routeTimeline?.kill();
-      routeTimeline = window.gsap.to(routeVeil, {
-        opacity: 1,
-        duration: 0.75,
-        ease: "power4.inOut",
-        onComplete: resolve,
-      });
+      // Cả cụm logo mờ cùng tween với veil, từ độ mờ đang có (logo-route-crossfade R7).
+      const cover = { duration: 0.75, ease: "power4.inOut" };
+      routeTimeline = window.gsap
+        .timeline({ onComplete: resolve })
+        .to(routeVeil, { opacity: 1, ...cover }, 0)
+        .to(headerLogo, { opacity: 0, ...cover }, 0);
     });
     return Promise.all([fade, Promise.resolve(waitFor)]);
   };
@@ -1982,15 +1985,16 @@
       syncHeaderBrandSurface(pageHeaderInk, { duration: 1, ease: "power4.inOut" });
     }
     return new Promise((resolve) => {
-      routeTimeline = window.gsap.to(routeVeil, {
-        opacity: 0,
-        duration: 1,
-        ease: "power4.inOut",
-        onComplete: () => {
-          clearRouteEntry();
-          resolve();
-        },
-      });
+      const uncover = { duration: 1, ease: "power4.inOut" };
+      routeTimeline = window.gsap
+        .timeline({
+          onComplete: () => {
+            clearRouteEntry();
+            resolve();
+          },
+        })
+        .to(routeVeil, { opacity: 0, ...uncover }, 0)
+        .to(headerLogo, { opacity: 1, ...uncover }, 0);
     });
   };
 
@@ -2119,6 +2123,8 @@
 
     // Class màu mark là state runtime; HTML trang mới không có nên giữ lại để mark không vẽ lại.
     const brandClasses = [...header.classList].filter((name) => name.startsWith("is-brand-"));
+    // Opacity cụm logo đang mờ dưới veil (R7) cũng là state runtime; syncAttributes xóa style inline.
+    const logoOpacity = headerLogo?.style.opacity;
     const persistentReady = persistentSelectors.every((selector) =>
       syncElementTree(
         document.querySelector(selector),
@@ -2126,6 +2132,7 @@
       ),
     );
     header.classList.add(...brandClasses);
+    if (logoOpacity) headerLogo.style.opacity = logoOpacity;
     if (!persistentReady) return false;
     // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
     brandLockups.forEach(snapBrandMark);
