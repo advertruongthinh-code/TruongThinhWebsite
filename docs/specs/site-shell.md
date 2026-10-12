@@ -177,7 +177,7 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 
 ### R10. Floating CTA và footer
 
-Floating CTA (Zalo, href `https://zalo.me/`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
+Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
 hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải; từ 750px trở xuống là nút vuông chỉ
 icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang:
 địa chỉ, Hotline và Văn phòng dạng `+84` link `tel:` ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok, YouTube

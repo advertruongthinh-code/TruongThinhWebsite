@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-11
+- Updated: 2026-10-12
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -16,7 +16,7 @@
 
 ## Blocker đã verify
 
-- Owner fact chưa xác nhận: URL Zalo, năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
+- Owner fact chưa xác nhận: năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Phát hành: LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)); các câu
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 - Chờ owner quyết: giữ hay xóa `scripts/site/sanitize-client-logos.ps1`; gộp nhãn trùng giữa
@@ -31,7 +31,7 @@
 
 ## Next action
 
-1. Owner kiểm nhận [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/) bản `main` mới nhất, gửi ba fact còn thiếu.
+1. Owner kiểm nhận [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/) bản `main` mới nhất, gửi hai fact còn thiếu.
 
 ## Ranh giới
 
