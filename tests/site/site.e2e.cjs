@@ -12188,8 +12188,8 @@ async function runFooterRuntimeChecks() {
           const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
-              // Desktop một dải đệm dọc 18px, điện thoại dọc 20px; nút Zalo có làn riêng bên phải.
-              state.spacing.paddingBottom === (viewport.width <= 750 ? 20 : 18) &&
+              // Desktop đệm dọc bằng gutter 35px, điện thoại dọc 20px; không chừa làn floating CTA.
+              state.spacing.paddingBottom === (viewport.width <= 750 ? 20 : 35) &&
               state.address &&
               state.social.every(
                 (item) =>

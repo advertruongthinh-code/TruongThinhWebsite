@@ -2190,18 +2190,16 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Một dải cao bằng làn floating CTA (cách đáy 35px, cao 47px, cách trên 35px): hai số xếp cột |
-   địa chỉ | mạng xã hội, cùng đường tâm với nút. Lề phải chừa làn nút (nút chữ rộng khoảng 161px
-   cộng 24px) nên nút không đè nội dung khi hiện ở cuối trang. */
+/* Một dải: hai số xếp cột | địa chỉ | mạng xã hội sát lề phải. Đệm bốn phía bằng gutter;
+   floating CTA không hiện cùng footer nên không chừa làn nút. */
 .site-footer {
   display: grid;
-  min-height: calc(2 * 35px + 47px);
   grid-template-columns: max-content minmax(0, 24rem) 1fr;
   align-content: center;
   align-items: center;
   gap: 4px clamp(2.5rem, 5.5vw, 6rem);
   margin-block-start: var(--footer-top-gap);
-  padding: 18px calc(var(--gutter) + 185px) 18px var(--gutter);
+  padding: var(--gutter);
   border-top: 1px solid var(--line);
   background: var(--white);
 }
@@ -2310,7 +2308,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
 @media (max-width: 1200px) {
   .site-footer {
-    min-height: calc(2 * 25px + 47px);
     column-gap: 2.5rem;
   }
 }
@@ -2838,10 +2835,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     padding-inline-end: 1.5rem;
   }
 
-  .site-footer {
-    min-height: 0;
-  }
-
   .footer-intro {
     min-height: auto;
     grid-template-columns: 1fr;
@@ -2853,12 +2846,11 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Từ 750px trở xuống CTA là nút vuông 57px cách mép phải 15px: lề phải chừa làn nút. */
+/* Footer gọn: đệm dọc 14px để footer không cao quá 38.2% viewport ở điện thoại ngang. */
 @media (max-width: 750px) {
   .site-footer {
-    min-height: 0;
     column-gap: 24px;
-    padding: 14px calc(15px + 57px + 16px) 14px var(--gutter);
+    padding-block: 14px;
   }
 
   .footer-hotline,
@@ -2877,7 +2869,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Điện thoại dọc: một cột hai số, địa chỉ, mạng xã hội nằm ngang; nút Zalo ở làn phải. */
+/* Điện thoại dọc: một cột hai số, địa chỉ, mạng xã hội nằm ngang. */
 @media (max-width: 750px) and (orientation: portrait) {
   .site-footer {
     grid-template-columns: minmax(0, 1fr);

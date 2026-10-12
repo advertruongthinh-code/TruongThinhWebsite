@@ -181,8 +181,8 @@ Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY`
 trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
 là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
 Hotline (600) xếp trên Văn phòng (500), dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
-Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới; lề phải chừa làn CTA nên
-CTA không đè nội dung khi footer nằm trong màn đầu (404). Rộng hơn 980px footer là một dải cao bằng làn CTA, cùng đường tâm với nút. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới. CTA ẩn khi footer lọt vào
+viewport (404) nên footer không chừa làn nút: đệm bốn phía bằng `gutter`, rộng hơn 980px là một dải, icon mạng xã hội sát lề phải. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình

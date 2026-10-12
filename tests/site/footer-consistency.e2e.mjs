@@ -31,7 +31,7 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Từ 750px trở xuống footer gọn: dọc một cột, ngang hai cột. Rộng hơn 980px footer cao bằng làn floating CTA.
+  // Từ 750px trở xuống footer gọn: dọc một cột, ngang hai cột. Rộng hơn 980px footer một dải, đệm bốn phía bằng gutter.
   for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [568, 320], [667, 375], [844, 390], [1280, 632]]) {
     const small = width <= 750 || height <= 640;
     let expectedHeight;
@@ -71,19 +71,26 @@ try {
             socialSize: footer.querySelector(".footer-social").getBoundingClientRect().width,
             labelWidth: Math.max(...[...footer.querySelectorAll("span")].map(e => e.getBoundingClientRect().width)),
             icons: footer.querySelectorAll(".footer-icon[aria-hidden='true']").length,
+            padding: ["Top", "Right", "Left"].map(side => Number.parseFloat(getComputedStyle(footer)[`padding${side}`])),
+            socialsRight: footer.querySelector(".footer-socials").getBoundingClientRect().right,
           };
         });
         // Advertising browse bỏ gap trên footer: skeleton batch của nó lấp khoảng đó.
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
-        // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn; rộng hơn 980px footer cao đúng
-        // làn floating CTA (hai lần khoảng cách đáy cộng 47px) để nội dung cùng đường tâm với nút.
+        // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
+        // lề phải bằng lề trái, rộng hơn 980px icon mạng xã hội chạm lề phải và đệm dọc bằng gutter.
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
         assert.deepEqual(result.weights, ["600", "500"]);
-        if (width > 980) assert.equal(result.height, width > 1200 ? 117 : 97, JSON.stringify({ width, height, result }));
+        const [padTop, padRight, padLeft] = result.padding;
+        assert.equal(padRight, padLeft, JSON.stringify({ width, route, result }));
+        if (width > 980) {
+          assert.equal(padTop, padLeft, JSON.stringify({ width, route, result }));
+          assert.ok(Math.abs(result.socialsRight - (width - padRight)) <= 1, JSON.stringify({ width, route, result }));
+        }
         if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));
@@ -110,7 +117,7 @@ try {
         count++;
       }
     }
-    // 404 vừa một màn hình nên floating CTA hiện cùng footer; làn phải giữ nút khỏi đè nội dung.
+    // 404 vừa một màn hình: floating CTA ẩn khi footer lọt vào viewport nên không đè nội dung footer.
     for (const locale of ["vi", "en"]) {
       await page.goto(`http://127.0.0.1:8787/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
       await page.waitForSelector(".footer-contact");

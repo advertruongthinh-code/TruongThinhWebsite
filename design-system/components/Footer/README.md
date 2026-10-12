@@ -13,14 +13,14 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   word-spacing display.
 - Không logo (header đã có), không dòng bản quyền. Viền trên `line` tràn ra
   mép trang, không viền dưới.
-- Rộng hơn 980px: một dải cao bằng làn [Floating CTA](../FloatingCta/README.md)
-  (`2 × 35px + 47px` = 117px, 97px ở `≤1200px`), nội dung căn giữa dọc nên
-  cùng đường tâm với nút: hai số xếp cột | địa chỉ rộng tối đa 24rem | icon
-  mạng xã hội sát làn nút. Đệm dọc 18px; lề phải `gutter + 185px` chừa làn nút
-  nên nút không đè nội dung. Cột cách nhau `clamp(2.5rem, 5.5vw, 6rem)`, 2.5rem
-  ở `≤1200px`.
+- Đệm bốn phía bằng `gutter`; không chừa làn
+  [Floating CTA](../FloatingCta/README.md) vì nút ẩn khi footer lọt vào viewport.
+- Rộng hơn 980px: một dải, nội dung căn giữa dọc: hai số xếp cột | địa chỉ rộng
+  tối đa 24rem | icon mạng xã hội sát lề phải. Cao khoảng 123px ở 1440px,
+  100px ở `≤1200px`. Cột cách nhau `clamp(2.5rem, 5.5vw, 6rem)`, 2.5rem ở
+  `≤1200px`.
 - Từ 980px trở xuống: cột trái Hotline, Văn phòng, icon mạng xã hội; cột phải
-  địa chỉ. Cao khoảng 124px.
+  địa chỉ. Cao khoảng 138px.
 - Hotline (cũng là số Zalo) 600 xếp trên Văn phòng 500, cách 4px; cùng cỡ
   `clamp(1rem, 1.2vw, 1.15rem)`, chữ số `tabular-nums` nên thẳng hàng. Số màu
   `ink`, dạng `+84`, link `tel:`, cùng chuỗi ở VI và EN. Hover không có motion
@@ -40,16 +40,15 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
 
 ## Footer gọn
 
-Từ 750px trở xuống (nút Zalo vuông 57px cách mép 15px), chữ liên hệ `1rem`,
-icon mạng xã hội 24px cách nhau 14px, lề phải `15px + 57px + 16px` chừa làn
-nút. Footer không cao quá 38.2% viewport:
+Từ 750px trở xuống, chữ liên hệ `1rem`, icon mạng xã hội 24px cách nhau 14px,
+lề hai bên `gutter`. Footer không cao quá 38.2% viewport:
 
 - Dọc: một cột Hotline, Văn phòng, địa chỉ (cách trên 8px), icon nằm ngang
   (cách trên 10px); đệm dọc 20px. Cao khoảng 191px ở 390×844.
 - Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ; đệm dọc 14px.
   Cao khoảng 112px ở 568×320.
 - Floating CTA không hiện ở cuối trang vì lời mời và `.detail-cta` đã có nút
-  Zalo; làn phải vẫn chừa cho 404, nơi footer nằm trong màn đầu cùng nút.
+  Zalo, và ẩn khi footer lọt vào viewport (404).
 
 Spec: [CTA giữa viewport](../../../docs/specs/advertising-cta-center-parallax.md#r4-footer-ở-cửa-sổ-nhỏ-và-điện-thoại).
 
