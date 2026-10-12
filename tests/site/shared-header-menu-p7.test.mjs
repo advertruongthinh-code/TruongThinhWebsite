@@ -51,7 +51,7 @@ for (const { name, file, source } of sources) {
 test("all source routes share one menu Zalo href", () => {
   const hrefs = sources.map(({ source }) => attribute(element(source, "menu-appointment"), "href"));
   assert.equal(new Set(hrefs).size, 1, `menu hrefs differ: ${JSON.stringify(hrefs)}`);
-  assert.equal(hrefs[0], "https://zalo.me/", "P7 must preserve the existing Zalo href");
+  assert.equal(hrefs[0], "https://zalo.me/0949131050", "P7 must preserve the existing Zalo href");
 });
 
 test("Advertising does not add a route-specific menu CTA hide", () => {

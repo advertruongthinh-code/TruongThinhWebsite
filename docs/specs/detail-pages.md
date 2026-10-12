@@ -197,7 +197,7 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
 
-`.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/` ở tab mới (EN
+`.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)

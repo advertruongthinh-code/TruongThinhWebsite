@@ -44,7 +44,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | 5 | `#du-an` | Năm `figure` công trình so le, caption "Nhóm / Chi tiết" | Không | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới." tự co cỡ, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
-| sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo" mở `https://zalo.me/` ở tab mới | ink |
+| sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo" mở `https://zalo.me/0949131050` ở tab mới | ink |
 
 ```gherkin
 Given output đã build
@@ -271,7 +271,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
   chưa xác nhận vệt sáng có lóe. Main đo lại.
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
-- Lời mời và floating CTA trỏ `https://zalo.me/` placeholder ([PRODUCT](../../PRODUCT.md)); URL thật chờ owner.
+- Lời mời và floating CTA trỏ Zalo `https://zalo.me/0949131050`, cùng số hotline ([PRODUCT](../../PRODUCT.md)).
 - [ADR hero trang chủ](../decisions/home-hero-crossfade-drift.md) ghi giữ media `2.6s` khi vào thẳng; code giữ `1s`
   (`introOffset` trong `motion.js`). [CẦN LÀM RÕ: giữ `2.6s` hay `1s`?] Owner.
 
