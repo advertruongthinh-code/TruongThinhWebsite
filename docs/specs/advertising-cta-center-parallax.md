@@ -8,7 +8,7 @@ tests:
   - tests/site/footer-consistency.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # CTA Advertising giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ và parallax
@@ -87,11 +87,11 @@ And tiêu đề không nhỏ hơn 20.8px
 ### R4. Footer ở cửa sổ nhỏ và điện thoại
 
 Cửa sổ nhỏ (`@media (max-width: 750px), (max-height: 640px)` trong `style.css`) dùng footer gọn ở mọi trang VI/EN, giữ
-nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): địa chỉ, mạng xã hội, bản quyền.
+nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): địa chỉ, điện thoại, mạng xã hội, bản quyền.
 
-- Rộng tới 750px và dọc (`orientation: portrait`): hai hàng, hàng đầu nhãn "Trụ sở" và địa chỉ; hàng hai icon bên trái,
-  bản quyền bên phải. Footer cao khoảng 130px.
-- Cửa sổ nhỏ còn lại: một hàng địa chỉ, icon, bản quyền, cao 67 tới 90px.
+- Rộng tới 750px và dọc (`orientation: portrait`): ba hàng, hàng đầu nhãn "Trụ sở" và địa chỉ; hàng hai hai số điện
+  thoại, mỗi số có nhãn đứng trước; hàng ba icon bên trái, bản quyền bên phải. Footer cao khoảng 135 tới 185px.
+- Cửa sổ nhỏ còn lại: một hàng địa chỉ, điện thoại (hai số xếp dọc), icon, bản quyền, cao 67 tới 90px.
 - Nhãn "Mạng xã hội" ẩn bằng mắt, nhóm giữ `aria-label`; footer có viền trên.
 
 Footer gọn không cao quá `38.2%` viewport, để vùng CTA chiếm ít nhất `61.8%`. Cỡ icon, khoảng cách, chiều cao hàng ở
