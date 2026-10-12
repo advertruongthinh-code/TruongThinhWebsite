@@ -2727,20 +2727,23 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
   }
 
+  /* Khoảng trên dưới chỉ còn section-gap như các section khác trên phone. */
   .heritage-montage {
-    padding: 2.5rem 20px;
+    padding: 0 20px;
   }
 
-  /* Hàng wrap trên phone: nới khoảng giữa các dòng và giữa các hàng để dấu tiếng Việt dòng dưới không chạm chữ dòng trên. */
+  /* Hàng wrap trên phone: line-height 1.2 cộng row-gap giữ dấu tiếng Việt dòng dưới không chạm chữ dòng trên,
+     nhịp dòng đều 1.32em trong hàng và giữa các hàng. Cỡ chữ theo bề rộng khung để từ dài nhất ("commitment", 6.95em) vẫn vừa một dòng; trần 4rem nối liền cỡ ở 681px. */
   .heritage-row {
-    margin-block: 0.15em;
-    row-gap: 0.3em;
+    font-size: min(calc((100vw - 40px) / 7.2), 4rem);
+    margin-block: 0.06em;
+    row-gap: 0.12em;
     line-height: 1.2;
   }
 
   .story-link {
     width: 100%;
-    margin-top: 3rem;
+    margin-top: 2rem;
     justify-content: space-between;
     gap: 0.75rem;
   }
