@@ -83,7 +83,7 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Ba cột nằm giữa trang: biên trái tới địa chỉ bằng
+        // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Ba cột giãn đều: biên trái tới địa chỉ bằng
         // biên phải sau mạng xã hội xếp dọc; địa chỉ cùng cỡ chữ hai số; kéo chuột bôi đen được số (link không kéo đi).
         // Cửa sổ thấp nằm ngang dùng icon 24px để footer không quá 38.2% viewport.
         assert.equal(result.width, width);

@@ -2190,19 +2190,20 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Ba cột như footer Espacio: địa chỉ | hai số điện thoại | mạng xã hội xếp dọc. Ba cột co theo nội dung và
-   cụm ba cột nằm giữa trang nên biên trái phải bằng nhau. Đệm dọc rộng cho footer thoáng; floating CTA không
-   hiện cùng footer nên không chừa làn nút. Nhịp theo Espacio: hai số cách 16px, line-height 1.4. */
+/* Ba cột như footer Espacio: địa chỉ | hai số điện thoại | mạng xã hội xếp dọc. Ba cột co theo nội dung, giãn
+   đều giữa hai biên bằng nhau (15vw - 68px: 148px ở 1440px, owner 12/10 chọn nửa biên khi cụm ba cột căn giữa).
+   Đệm dọc rộng cho footer thoáng; floating CTA không hiện cùng footer nên không chừa làn nút. Nhịp theo
+   Espacio: hai số cách 16px, line-height 1.4. */
 .site-footer {
   display: grid;
   grid-template-columns: repeat(3, auto);
-  justify-content: center;
+  justify-content: space-between;
   /* Hàng hai 1fr hút phần cao dư của địa chỉ nhiều dòng để hai số luôn cách đúng 16px. */
   grid-template-rows: auto 1fr;
   align-items: baseline;
   gap: 16px clamp(56px, 7vw, 136px);
   margin-block-start: var(--footer-top-gap);
-  padding: clamp(40px, 3.5vw, 64px) var(--gutter);
+  padding: clamp(40px, 3.5vw, 64px) max(var(--gutter), 15vw - 68px);
   border-top: 1px solid var(--line);
   background: var(--white);
 }
@@ -2842,7 +2843,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 @media (max-width: 750px) {
   .site-footer {
     column-gap: 24px;
-    padding-block: 32px;
+    padding: 32px var(--gutter);
   }
 
   .footer-hotline,

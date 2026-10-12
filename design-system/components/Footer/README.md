@@ -13,16 +13,16 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   word-spacing display.
 - Không logo (header đã có), không dòng bản quyền. Viền trên `line` tràn ra
   mép trang, không viền dưới.
-- Đệm dọc `clamp(40px, 3.5vw, 64px)`, lề hai bên `gutter`; không chừa làn
+- Đệm dọc `clamp(40px, 3.5vw, 64px)`; không chừa làn
   [Floating CTA](../FloatingCta/README.md) vì nút ẩn khi footer lọt vào viewport.
-- Ba cột như footer Espacio (`repeat(3, auto)`, `justify-content: center`): địa
-  chỉ, hai số điện thoại, icon mạng xã hội xếp dọc. Cụm ba cột nằm giữa trang nên
-  biên trái phải bằng nhau (295px ở 1440px). Dòng đầu các cột thẳng baseline.
+- Ba cột như footer Espacio (`repeat(3, auto)`, `justify-content: space-between`):
+  địa chỉ, hai số điện thoại, icon mạng xã hội xếp dọc, giãn đều giữa hai biên bằng
+  nhau `max(gutter, 15vw - 68px)` (148px ở 1440px, 220px ở 1920px). Dòng đầu các cột thẳng baseline.
   Cao khoảng 277px ở 1920px, 250px ở 1440px, 229px ở 1024px.
 - Laptop cao 641-799px: đệm dọc 24px, icon cách 10px, cao 177px, để tiêu đề CTA
   Advertising không bị thu nhỏ.
 - Nhịp theo Espacio: hai số cách 16px (10px khi cửa sổ cao `≤640px`),
-  line-height 1.4, cột cách `clamp(56px, 7vw, 136px)`.
+  line-height 1.4, cột cách ít nhất `clamp(56px, 7vw, 136px)`.
 - Địa chỉ cùng cỡ chữ hai số: `clamp(1.125rem, 1.5vw, 1.625rem)` (26px ở 1920px,
   21.6px ở 1440px). Địa chỉ rộng tối đa 18em (hai dòng), `text-wrap: balance`.
 - Hotline (cũng là số Zalo) 600 xếp trên Văn phòng 500, chữ số `tabular-nums`
