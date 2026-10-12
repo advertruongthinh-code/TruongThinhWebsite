@@ -116,7 +116,7 @@ ngữ, khác origin, path `/admin`, `/api`, `/assets`, `/media`, `/downloads`, c
 phím modifier. Mọi route trong site, cả About, giữ header, không chạy intro. Luồng: pin header (ink,
 mark crossfade sang CMYK theo [logo crossfade](logo-route-crossfade.md), hiện); menu đóng đồng thời veil phủ; `syncDocumentState` đồng bộ title, meta, canonical,
 alternate, JSON-LD, `lang`, locale, class body, cây phần tử header (trừ underlay, lớp fade và class `is-brand-*` của mark), CTA, menu;
-lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil.
+lệch số con hoặc request lỗi thì `location.assign`; response 404 là trang 404 của site vẫn đi route mềm (Back về 404). Vào trang: mount, đặt vị trí cuộn (R8), gỡ veil. Đích Advertising tải vendor, catalog, artifact, layout Worker ngay lúc bấm, song song veil phủ.
 Link đúng URL hiện tại, link `aria-disabled` bị chặn; `.brand` cùng document cuộn về đầu; click lại
 navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (không `photo`) cuộn về 0, không thêm
 history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
@@ -260,7 +260,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_ONLY` |
 | R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_LOCALE_ONLY`, `TT_E2E_LOCALE_SCROLL_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
-| R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
+| R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
 | R9 | `scrollbar-parity.e2e.mjs` (`SCROLLBAR_ENGINES` chọn engine) |

@@ -2816,6 +2816,10 @@
               name: "persistent-shell",
               sync: false,
               beforeLeave(data) {
+                if (/^\/(?:vi|en)\/advertising-products\/?$/.test(data.next.url.path)) {
+                  // Tải catalog song song với veil phủ; lỗi để beforeEnter và mount xử lý như cũ.
+                  window.TruongThinhDetail?.loadAdvertisingCatalog?.().catch(() => {});
+                }
                 releaseHeaderInteractionState();
                 pinHeaderForRoute();
                 routeMountReady = false;
