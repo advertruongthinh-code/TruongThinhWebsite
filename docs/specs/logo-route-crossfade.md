@@ -5,18 +5,20 @@ source: []
 tests:
   - tests/site/logo-route-crossfade.e2e.mjs
 notion: none
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Logo crossfade khi chuyển trang
 
 ## Mục đích
 
-Khi chuyển trang, mark của logo đổi giữa trắng và CMYK bằng crossfade thay cho kiểu bốn dải mọc từ chân.
+Khi chuyển trang, mark của logo đổi giữa trắng và CMYK bằng crossfade thay cho kiểu bốn dải mọc từ chân,
+và cả cụm logo (mark và chữ) mờ đi rồi hiện lại cùng veil (R7).
 Spec này mô tả phần "Chuyển route" trong [state machine màu](../../design-system/brand.md#state-machine-màu)
 và luồng pin header của [Shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell). Cuộn trong trang, lần
 vẽ đầu và full menu giữ [Brand](../../design-system/brand.md#motion). Veil giữ nguyên
-([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Owner chốt intent 2026-10-11 qua interview-me.
+([Shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)). Owner chốt intent 2026-10-11 qua interview-me;
+R7 owner chốt 2026-10-12 qua interview-me.
 
 ## Hành vi
 
@@ -74,12 +76,33 @@ lớp đích hiện dần theo R1. Không frame nào trống mark hoặc có hai
 
 - Cuộn trong một trang (sticky, section trắng hoặc tối, về đầu trang) vẫn mọc từ chân theo Brand.
 - Tải trực tiếp, F5, Back không qua bfcache: lần vẽ đầu giữ như Brand (CMYK mọc trên lớp đen dưới veil).
-- Full menu, intro, FLIP scale, tone chữ header, thời lượng và easing của veil không đổi.
-- Reduced motion: không veil, mark đổi ngay sang trạng thái cuối ([Shell R13](site-shell.md#r13-reduced-motion)).
+- Full menu, intro, FLIP scale, tone chữ header, thời lượng và easing của veil không đổi; mục menu và hamburger
+  không mờ theo R7.
+- Reduced motion: không veil, mark đổi ngay sang trạng thái cuối, cụm logo không mờ
+  ([Shell R13](site-shell.md#r13-reduced-motion)).
+
+### R7. Cả cụm logo mờ và hiện cùng veil
+
+Mỗi lần chuyển trang theo R1 tới R4, cả cụm logo trên header (mark, chữ "TRƯỜNG THỊNH" và dòng phụ "NỘI THẤT · QUẢNG CÁO") là một
+khối: `opacity` của cụm đi `1 → 0` cùng lúc và cùng nhịp với veil phủ (`0.75s power4.inOut`), nên lúc veil
+phủ kín không thấy logo; rồi đi `0 → 1` cùng lúc và cùng nhịp với veil mở (`1s power4.inOut`). Mark và chữ
+luôn cùng một độ mờ ở mọi frame, không phần nào mờ trước phần nào. Crossfade màu của mark (R1 tới R3) và
+đổi màu chữ theo tone header vẫn chạy như cũ, chỉ diễn ra bên trong lúc cụm đang mờ hoặc đang hiện.
+Áp dụng cho PC và điện thoại, mọi route mềm, đổi ngôn ngữ, route từ full menu, kể cả trang hero trắng.
+Bấm link lúc cụm đang hiện dở: cụm mờ tiếp từ độ mờ đang có, không nhảy về `1`.
+
+```gherkin
+Given /vi/ ở đầu trang, 1440px hoặc 412×915
+When click Residential
+Then trong lúc veil phủ, opacity của cụm logo giảm cùng nhịp veil và bằng 0 khi veil phủ kín
+And trong lúc veil mở, opacity của cụm tăng cùng nhịp veil và bằng 1 khi veil mở xong
+And mark và chữ không có opacity riêng lệch nhau
+And mục menu và hamburger không đổi opacity
+```
 
 ## Hiệu năng
 
-Crossfade chỉ ghi `opacity` của lớp màu, không đọc layout mỗi frame. Giữ [gate A05s](../decisions/a05s-frame-budget.md)
+Crossfade và R7 chỉ ghi `opacity` (lớp màu, cụm logo), không đọc layout mỗi frame. Giữ [gate A05s](../decisions/a05s-frame-budget.md)
 (fps trung bình từ 60) trong lúc chuyển trang.
 
 ## UI
@@ -93,6 +116,7 @@ Code: `paintHeaderMark` (tùy chọn `fade`, lớp `.brand-lockup__mark-fade`), 
 | R | Test hoặc command |
 | --- | --- |
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm số lần đổi màu, chỉ cho opacity, không clip-path |
+| R7 | `tests/site/logo-route-crossfade.e2e.mjs`: ghi opacity của cụm logo mỗi frame lúc veil phủ và mở, so với opacity veil; mark và chữ không có opacity riêng; menu, hamburger giữ `1` |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY` |
 | Hiệu năng | Đo A05s thật qua adb khi điều phối giao máy |
 
