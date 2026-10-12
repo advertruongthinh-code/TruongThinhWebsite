@@ -2792,7 +2792,17 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     font-size: min(calc((100vw - 40px) / 7.2), 4rem);
     margin-block: 0.06em;
     row-gap: 0.12em;
+    column-gap: 0.15em;
     line-height: 1.2;
+  }
+
+  /* Ảnh theo em của hàng để giữ tỉ lệ chữ/ảnh như PC 1440px (100px chữ, ảnh 187x144).
+     Khoảng cách chữ/ảnh dùng column-gap nên ảnh đầu dòng thẳng mép trái với chữ. */
+  .heritage-image {
+    top: -0.1em;
+    width: 1.875em;
+    height: 1.44em;
+    margin: 0;
   }
 
   .story-link {
