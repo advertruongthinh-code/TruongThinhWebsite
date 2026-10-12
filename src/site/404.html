@@ -88,8 +88,9 @@
     <style>
       /* Chỉ trang 404: số lớn và một dòng chữ căn giữa, theo mẫu 404 của Espacio (không dải logo, owner 2026-10-12). */
       /* Trang vừa khít một màn hình, không cuộn (owner 2026-10-12): container cao đúng 100svh, footer nằm đáy,
-         cụm chữ căn giữa phần còn lại dưới header; số 404 co theo chiều cao để màn hình thấp vẫn vừa. */
-      [data-barba-namespace="not-found"] {
+         cụm chữ căn giữa phần còn lại dưới header; số 404 co theo chiều cao để màn hình thấp vẫn vừa.
+         :not([hidden]) vì Barba leave ẩn container cũ bằng hidden; display flex đè lên thì trang kế bị lệch parallax. */
+      [data-barba-namespace="not-found"]:not([hidden]) {
         display: flex;
         flex-direction: column;
         height: 100svh;
