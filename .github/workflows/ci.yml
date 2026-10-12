@@ -67,6 +67,8 @@ jobs:
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/not-found-routes.e2e.mjs
 
+      - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/advertising-route-preload.e2e.mjs
+
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@v7

@@ -92,19 +92,29 @@
 
   const ensureAdvertisingDependencies = () => {
     if (advertisingDependenciesPromise) return advertisingDependenciesPromise;
-    advertisingDependenciesPromise = ADVERTISING_DEPENDENCIES.reduce(
-      (ready, dependency) => ready.then(() => loadAdvertisingDependency(dependency).catch((error) => {
+    // Tải song song; script async=false vẫn chạy theo đúng thứ tự khai báo.
+    advertisingDependenciesPromise = Promise.all(ADVERTISING_DEPENDENCIES.map(
+      (dependency) => loadAdvertisingDependency(dependency).catch((error) => {
         if (!dependency.optional) throw error;
         console.warn(`[advertising-products] optional dependency unavailable: ${dependency.name}`);
-      })),
-      Promise.resolve(),
-    ).catch((error) => {
+      }),
+    )).catch((error) => {
       advertisingDependenciesPromise = undefined;
       console.error("[advertising-products] dependency readiness failed", error);
       throw error;
     });
     return advertisingDependenciesPromise;
   };
+
+  // Vendor, module catalog và artifact tải cùng lúc. Route mềm gọi ngay lúc bấm link để mạng chạy song song với veil phủ
+  // thay vì nối đuôi sau veil (Shell R6).
+  const loadAdvertisingCatalog = () => Promise.all([
+    ensureAdvertisingDependencies(),
+    import("/advertising-products/catalog-runtime.mjs").then((runtime) => {
+      runtime.preloadAdvertisingCatalog();
+      return runtime;
+    }),
+  ]).then(([, runtime]) => runtime);
 
   const ensureAdvertisingCarouselStyle = () => {
     if (advertisingCarouselStylePromise) return advertisingCarouselStylePromise;
@@ -273,8 +283,7 @@
     }
 
     if (container.dataset.barbaNamespace === "advertising-products") {
-      state.catalogReady = ensureAdvertisingDependencies()
-        .then(() => import("/advertising-products/catalog-runtime.mjs"))
+      state.catalogReady = loadAdvertisingCatalog()
         .then(({ mountAdvertisingCatalog }) => {
           if (!abort.signal.aborted) {
             return mountAdvertisingCatalog(container, {
@@ -820,7 +829,7 @@
   const revertSplitText = () => activePage?.revertSplitText?.();
   const rebuildSplitText = () => activePage?.rebuildSplitText?.();
 
-  window.TruongThinhDetail = { mount, replaySection, revertSplitText, rebuildSplitText, ensureAdvertisingDependencies, unmount };
+  window.TruongThinhDetail = { mount, replaySection, revertSplitText, rebuildSplitText, ensureAdvertisingDependencies, loadAdvertisingCatalog, unmount };
   if (document.documentElement.classList.contains("motion-fallback")) {
     mount(undefined, { settled: true });
   }

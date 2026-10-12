@@ -665,6 +665,13 @@ const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT
   ? Promise.resolve(window.__TT_ADVERTISING_ARTIFACT__)
   : import("./catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
 
+let warmWorker;
+// Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ.
+export const preloadAdvertisingCatalog = () => {
+  warmWorker ||= startLayoutWorker();
+  loadArtifact().catch(() => {});
+};
+
 const currentLocale = () => document.documentElement.lang === "en" ? "en" : "vi";
 
 function surfaceAdvertisingLayoutStatus(grid, layout) {
@@ -1127,7 +1134,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
 
   // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó, các lần sau mở Worker mới.
-  let idleWorker = startLayoutWorker();
+  let idleWorker = warmWorker || startLayoutWorker();
+  warmWorker = undefined;
   const takeWorker = () => {
     const worker = idleWorker || startLayoutWorker();
     idleWorker = undefined;
