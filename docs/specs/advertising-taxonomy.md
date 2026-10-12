@@ -37,12 +37,14 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | Standee, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
 | In ấn & decal (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
 | Màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
-| Bảng tên & biển văn phòng (`bang-ten-bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển phòng ban & chỉ dẫn (20); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
+| Bảng tên & biển văn phòng (`bang-ten-bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
 | Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
 
 Tên theo cụm từ có lượt tìm cao hơn (số liệu trong mô tả PR #312 và báo cáo Library). Quy tắc kèm theo:
 
 - Vật liệu và cấu tạo (inox, mica, alu, hiflex, siêu mỏng, nắp hít) lặp ở nhiều sản phẩm nên là tag, không thành tầng.
+- Biển chỉ dẫn gắn tag nơi dùng (khu công nghiệp, nhà máy, văn phòng, tòa nhà) và loại (thoát hiểm, tiêu lệnh PCCC,
+  WC); chữ của tag vào đoạn giới thiệu và alt. Tag đủ ngưỡng R5 và có lượt tìm thì nâng thành sản phẩm (R2).
 - Không làm trang theo tỉnh trong spec này: "bảng hiệu bến tre" 10-100, "quảng cáo bến tre", "in ấn bến tre" 50,
   "bảng hiệu vĩnh long" không có dữ liệu. Đoạn giới thiệu nêu khu vực phục vụ; trang địa phương thuộc [SEO](seo.md).
 
@@ -50,8 +52,8 @@ Ngoài phạm vi: dịch vụ thiết kế logo, nhận diện (dịch vụ, kh�
 trang Commercial), theo owner 2026-10-11.
 
 ```gherkin
-Given media print-decals-21 gắn sản phẩm "Decal, in bạt & tranh canvas" và "Biển phòng ban & chỉ dẫn"
-When lọc sản phẩm "Biển phòng ban & chỉ dẫn"
+Given media print-decals-21 gắn sản phẩm "Decal, in bạt & tranh canvas" và "Biển chỉ dẫn & sơ đồ tòa nhà"
+When lọc sản phẩm "Biển chỉ dẫn & sơ đồ tòa nhà"
 Then card của print-decals-21 có trong kết quả
 And lọc cụm "In ấn & decal" cũng có card đó
 ```
@@ -176,7 +178,7 @@ And không có request tải file vector
 Cùng đợt code:
 
 1. Sửa ba ảnh gắn nhầm do chạy thử phát hiện (owner xác nhận qua báo cáo): `office-signs-wayfinding-02` và `-13`
-   sang "Biển phòng ban & chỉ dẫn"; `led-displays-lightboxes-04` sang "Hộp đèn" hoặc "Màn hình LED" theo nội dung ảnh.
+   sang "Biển phòng ban" hoặc "Biển chỉ dẫn & sơ đồ tòa nhà"; `led-displays-lightboxes-04` sang "Hộp đèn" hoặc "Màn hình LED" theo nội dung ảnh.
 2. Gắn thêm sản phẩm cho năm ảnh mơ hồ: `led-displays-lightboxes-09`, `-15`, `mobile-retail-05`,
    `print-decals-21`, `signage-raised-letters-14` (sản phẩm cụ thể chốt trong plan).
 3. Thêm 11 ảnh owner duyệt 2026-10-12: tám ảnh Kỷ niệm chương, ba ảnh Bao bì, thẻ & vé. Bản gốc, SHA-256, prompt
