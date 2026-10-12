@@ -111,17 +111,23 @@
         text-transform: uppercase;
       }
 
-      /* Cả cụm 404 và dòng chữ như Espacio đo frame (owner 2026-10-12, không tách từ): zoom 1.1 về 1 trong 2.5s --ease
-         từ lúc trang bắt đầu lộ; hiện dần 1s expo.out sau 0.6s, nhịp chữ "404" của Espacio, lúc veil đã tan gần hết.
+      /* Cụm chữ như Espacio đo frame (owner 2026-10-12): cả cụm zoom 1.1 về 1 trong 2.5s --ease từ lúc trang bắt đầu lộ;
+         câu rồi số hiện dần nguyên khối 1s expo.out, trễ 0.3s và 0.6s, không tách từ.
          Dừng ở frame đầu dưới veil, chạy khi veil bắt đầu mở (body.is-transitioning) hoặc khi route-enter đã gỡ. */
       @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
         html:not(.motion-fallback) .not-found__copy {
-          animation:
-            not-found-zoom 2.5s var(--ease) both,
-            not-found-fade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+          animation: not-found-zoom 2.5s var(--ease) both;
         }
 
-        html.route-enter body:not(.is-transitioning) .not-found__copy {
+        html:not(.motion-fallback) .not-found__copy > * {
+          animation: not-found-fade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+        }
+
+        html:not(.motion-fallback) .not-found__copy > p {
+          animation-delay: 0.3s;
+        }
+
+        html.route-enter body:not(.is-transitioning) :is(.not-found__copy, .not-found__copy > *) {
           animation-play-state: paused;
         }
       }
