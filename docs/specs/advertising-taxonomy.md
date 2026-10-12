@@ -31,20 +31,20 @@ Cây chọn theo nghiên cứu SEO 2026-10-12 (Keyword Planner miền Tây và c
 thủ; báo cáo ở `advertising-taxonomy/seo/` trong Library project). Số ảnh tính cả R8; sản phẩm tách mới đếm lại
 trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 
-| Cụm (slug VI / EN) | Sản phẩm (số ảnh) |
+| Cụm, tên đầy đủ cho title và h1 (nhãn rail; slug VI / EN) | Sản phẩm (số ảnh) |
 | --- | --- |
-| Bảng hiệu quảng cáo (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (12); Chữ nổi (10); Hộp đèn (tách từ cụm LED và bảng hiệu); Bảng vẫy (4) |
-| Standee, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
-| In ấn & decal (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
-| Màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
-| Bảng tên & biển văn phòng (`bang-ten-bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
-| Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
+| Bảng hiệu quảng cáo (Bảng hiệu; `bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (12); Chữ nổi (10); Hộp đèn (tách từ cụm LED và bảng hiệu); Bảng vẫy (4) |
+| Standee, kệ trưng bày & gian hàng (Trưng bày; `standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
+| In ấn & decal (In ấn; `in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
+| Màn hình & bảng LED (LED; `man-hinh-bang-led` / `led-displays`) | Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
+| Bảng tên & biển văn phòng (Bảng tên; `bang-ten-bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
+| Xe & quầy bán hàng lưu động (Xe bán hàng; `xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
 
 Tên theo cụm từ có lượt tìm cao hơn (số liệu trong mô tả PR #312 và báo cáo Library). Quy tắc kèm theo:
 
 - Vật liệu và cấu tạo (inox, mica, alu, hiflex, siêu mỏng, nắp hít) lặp ở nhiều sản phẩm nên là tag, không thành tầng.
-- Biển chỉ dẫn gắn tag nơi dùng (khu công nghiệp, nhà máy, văn phòng, tòa nhà) và loại (thoát hiểm, tiêu lệnh PCCC,
-  WC); chữ của tag vào đoạn giới thiệu và alt. Tag đủ ngưỡng R5 và có lượt tìm thì nâng thành sản phẩm (R2).
+- Biển chỉ dẫn gắn tag nơi dùng (khu công nghiệp, nhà máy, văn phòng, tòa nhà) và loại (thoát hiểm, WC; không làm biển
+  PCCC theo owner 2026-10-12); chữ của tag vào đoạn giới thiệu và alt. Tag đủ ngưỡng R5 và có lượt tìm thì nâng thành sản phẩm (R2).
 - Không làm trang theo tỉnh trong spec này: "bảng hiệu bến tre" 10-100, "quảng cáo bến tre", "in ấn bến tre" 50,
   "bảng hiệu vĩnh long" không có dữ liệu. Đoạn giới thiệu nêu khu vực phục vụ; trang địa phương thuộc [SEO](seo.md).
 
@@ -61,7 +61,7 @@ And lọc cụm "In ấn & decal" cũng có card đó
 ### R2. Dữ liệu phân loại sửa được
 
 Cụm, sản phẩm và gắn media nằm trong dữ liệu tĩnh của `src/site/advertising-products/`, không trong code
-render. Mỗi cụm: slug VI (không dấu) và slug EN, nhãn, title, meta description, h1, đoạn giới thiệu VI/EN, thứ tự. Mỗi sản phẩm: các
+render. Mỗi cụm: slug VI (không dấu) và slug EN, nhãn rail ngắn (tối đa ba chữ), tên đầy đủ, title, meta description, h1, đoạn giới thiệu VI/EN, thứ tự. Mỗi sản phẩm: các
 trường như cụm, cộng `cluster`, mô tả dài dùng cho embedding (R6). Mỗi media: danh sách `productIds`, `tagIds`.
 Thêm, đổi tên, đổi thứ tự, nâng một tag thành sản phẩm hay chuyển sản phẩm sang cụm khác chỉ sửa dữ liệu; build
 sinh lại rail, trang và artifact. Validator từ chối pool khi: sản phẩm trỏ cụm không tồn tại; media trỏ sản
@@ -78,7 +78,7 @@ And không file code render nào đổi
 
 ### R3. Rail cụm và sản phẩm
 
-Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn). Hàng một: "Tất cả" rồi sáu cụm. Mỗi cụm có danh sách
+Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn). Hàng một: "Tất cả" rồi sáu cụm bằng nhãn rail ngắn (R1), nên không dài hơn rail hiện tại; tên đầy đủ nằm ở title và h1. Mỗi cụm có danh sách
 sản phẩm kèm số ảnh, dựng sẵn trong HTML tĩnh, ẩn bằng CSS, hiện khi hover hoặc focus vào cụm. Bấm cụm lọc cả cụm
 và hiện hàng chip sản phẩm của cụm bên dưới; bấm chip hoặc mục trong danh sách lọc riêng sản phẩm đó, chip đang
 chọn có `aria-current="true"`. Điện thoại: chạm cụm lọc cụm và hiện hàng chip cuộn ngang; không có danh sách
