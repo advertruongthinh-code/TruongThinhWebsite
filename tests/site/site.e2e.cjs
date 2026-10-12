@@ -3356,7 +3356,6 @@ async function runEspacioTypographyChecks() {
                 detailLabel: readRole(
                   ".detail-eyebrow, .detail-gallery__head h2, .detail-index-hero__kicker",
                 ),
-                footerLabel: readRole(".footer-contact span"),
               },
             };
           });
@@ -3378,13 +3377,6 @@ async function runEspacioTypographyChecks() {
               state.roles.cue.capHeight >= 8 &&
               state.roles.cue.capHeight <= 11,
             `Scroll cue cap-height drifted on ${route}: ${JSON.stringify(state.roles.cue)}`,
-          );
-          assert(
-            state.roles.footerLabel &&
-              state.roles.footerLabel.weight >= 700 &&
-              state.roles.footerLabel.capHeight >= 8 &&
-              state.roles.footerLabel.capHeight <= 11,
-            `Footer label cap-height drifted on ${route}: ${JSON.stringify(state.roles.footerLabel)}`,
           );
           if (viewport.width === 1440) {
             assert(

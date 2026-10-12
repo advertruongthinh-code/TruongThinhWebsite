@@ -13,8 +13,9 @@ tests:
   - tests/site/client-logo-marquee.e2e.cjs
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
+  - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-07
+updated: 2026-10-12
 ---
 
 # Trang chủ
@@ -79,7 +80,8 @@ Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc b�
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
 `-2`. Hero cao `100svh`; tới 980px theo luồng chữ, tối thiểu `100svh`, nút dừng và cue xếp dưới tiêu đề nên chữ 200% không
-đè header; tới 680px tiêu đề căn trái.
+đè header; tới 680px tiêu đề căn trái. Nút dừng nằm góc trái dưới hero (cách mép `gutter`) ở mọi cỡ, vì góc phải dưới là
+floating CTA đang hiện ở màn đầu ([shell R10](site-shell.md#r10-floating-cta-và-footer)); hai nút không chồng nhau.
 
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
@@ -252,7 +254,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | --- | --- |
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
-| R3 | `TT_E2E_HERO_CONTINUITY_ONLY`, `TT_E2E_WHEEL_ONLY` (parallax hero); nút dừng chưa có test |
+| R3 | `TT_E2E_HERO_CONTINUITY_ONLY`, `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |

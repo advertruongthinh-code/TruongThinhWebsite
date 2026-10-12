@@ -1162,8 +1162,8 @@ em {
   }
 
   .hero[data-hero-intro] .motion-toggle {
-    margin-right: var(--gutter);
-    justify-self: end;
+    margin-left: var(--gutter);
+    justify-self: start;
   }
 
   .hero[data-hero-intro] .scroll-cue {
@@ -1191,10 +1191,11 @@ em {
   }
 }
 
+/* Góc trái dưới hero; góc phải dưới là chỗ của floating CTA, đang hiện ở màn đầu. */
 .motion-toggle {
   position: absolute;
   z-index: 3;
-  right: var(--gutter);
+  left: var(--gutter);
   bottom: 6.25rem;
   display: grid;
   width: 2.75rem;
@@ -2222,7 +2223,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
 .footer-contact {
   display: grid;
-  min-height: 150px;
+  min-height: 120px;
   margin-right: calc(-1 * var(--gutter));
   margin-left: calc(-1 * var(--gutter));
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2235,18 +2236,37 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   min-width: 0;
   padding: 1.25rem var(--gutter);
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .footer-contact > * + * {
   border-left: 1px solid var(--line);
 }
 
+/* Icon thay nhãn chữ trên màn hình; nhãn giữ cho trình đọc màn hình. */
 .footer-contact span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.footer-address,
+.footer-phones a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  align-content: center;
+  column-gap: 0.75rem;
+}
+
+/* Icon cao bằng một dòng chữ giá trị (line-height 1.4) để căn giữa dòng đầu. */
+.footer-icon {
+  width: clamp(1.25rem, 2vw, 1.75rem);
+  height: calc(1.4 * clamp(1.1rem, 1.7vw, 1.6rem));
   color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
 }
 
 .footer-contact strong {
@@ -2261,12 +2281,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 .footer-phones {
-  gap: 1rem;
-}
-
-.footer-phones a {
-  display: grid;
-  gap: 2px;
+  gap: 0.5rem;
 }
 
 .footer-social-list {
@@ -2292,9 +2307,10 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   overflow: visible;
 }
 
+/* Hàng bản quyền cao bằng chỗ floating CTA chiếm (cách đáy gutter, nút cao 47px) nên nút không chạm lưới liên hệ. */
 .footer-bottom {
   display: grid;
-  min-height: 72px;
+  min-height: calc(var(--gutter) + 47px);
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 2rem;
@@ -2864,8 +2880,17 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 
   .footer-address {
-    gap: 2px;
     padding-block: 12px;
+  }
+
+  .footer-address,
+  .footer-phones a {
+    column-gap: 8px;
+  }
+
+  .footer-icon {
+    width: 20px;
+    height: 1.4rem;
   }
 
   .footer-contact strong {
@@ -2880,24 +2905,10 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     padding-block: 12px;
   }
 
-  .footer-phones a {
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
-  }
-
   .footer-socials {
     flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
-  }
-
-  .footer-socials > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
   }
 
   .footer-social-list {
@@ -2923,38 +2934,41 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Dọc hẹp: icon lên góc phải hàng địa chỉ, bản quyền nằm trái hàng cuối; CTA giữ góc phải dưới. */
+/* Dọc hẹp: cột phải rộng bằng floating CTA (57px, cách mép 15px); icon mạng xã hội xếp dọc trên nút,
+   chừa đủ chỗ dưới cho nút (cách đáy 25px, cao 57px, cộng 12px) nên CTA không đè nội dung. */
 @media (max-width: 750px) and (orientation: portrait) {
   .site-footer {
+    grid-template-columns: minmax(0, 1fr) 57px;
     column-gap: 16px;
-    row-gap: 4px;
-    padding-top: 14px;
-    padding-right: var(--gutter);
+    row-gap: 8px;
+    padding-top: 16px;
+    padding-right: 15px;
   }
 
   .footer-address,
   .footer-phones {
-    gap: 4px;
     padding-block: 0;
   }
 
+  .footer-phones {
+    gap: 8px;
+  }
+
   .footer-socials {
-    grid-row: 1;
+    grid-row: 1 / span 3;
     grid-column: 2;
     align-self: start;
+    justify-content: center;
     min-height: 0;
+    margin-bottom: calc(25px + 57px + 12px);
   }
 
-  .footer-phones,
+  .footer-social-list {
+    flex-direction: column;
+    gap: 12px;
+  }
   .footer-bottom {
-    grid-column: 1 / -1;
-  }
-
-  .footer-phones {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    column-gap: 24px;
+    align-self: end;
   }
 }
 
