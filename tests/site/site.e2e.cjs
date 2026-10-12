@@ -12074,7 +12074,7 @@ async function runBrandHeaderBboxMatrixChecks() {
 }
 
 async function readFooterRuntimeState(page) {
-  return page.evaluate(() => {
+  return page.evaluate((FOOTER_SOCIALS) => {
     const footer = document.querySelector("footer");
     const statement = footer?.querySelector(".footer-statement");
     const statementStyle = statement ? getComputedStyle(statement) : null;
@@ -12165,7 +12165,7 @@ async function readFooterRuntimeState(page) {
       fullWidthLines,
       overflow: document.documentElement.scrollWidth - innerWidth,
     };
-  });
+  }, FOOTER_SOCIALS);
 }
 
 async function runFooterRuntimeChecks() {
@@ -12186,7 +12186,8 @@ async function runFooterRuntimeChecks() {
           });
           await page.waitForTimeout(350);
           const state = await readFooterRuntimeState(page);
-          const expectedTopGap = viewport.width <= 750 ? 64 : viewport.width <= 1200 ? 70 : 90;
+          // Giá trị khớp footer-consistency.e2e.mjs; Advertising browse bỏ gap vì skeleton batch lấp chỗ đó.
+          const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
               state.spacing.paddingBottom === 0 &&
