@@ -68,6 +68,7 @@ jobs:
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/not-found-routes.e2e.mjs
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/advertising-route-preload.e2e.mjs
+      - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/shared-header-menu-route-close.e2e.mjs
 
       - name: Upload failure evidence
         if: failure()
