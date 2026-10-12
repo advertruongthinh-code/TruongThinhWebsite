@@ -79,14 +79,20 @@ const MEDIA = /\.(avif|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
 const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
 if (unowned.length) errors.push(`ownership: ${unowned.length} files in src/site/ not owned by any spec: ${unowned.join(', ')}`);
 
-// Sync chạy trên pull request: CI đặt DOCS_BASE là base commit và PR_BODY là mô tả.
+// Sync chạy trên pull request: CI đặt DOCS_BASE là base commit và PR_NUMBER là số PR.
+// Mô tả PR đọc qua API lúc chạy, không lấy từ event: re-run sau khi sửa mô tả đọc bản mới.
+// Chạy local không có PR_NUMBER thì đọc PR_BODY.
 if (process.env.DOCS_BASE) {
+  const { PR_NUMBER, GITHUB_API_URL, GITHUB_REPOSITORY, GH_TOKEN } = process.env;
+  const res = PR_NUMBER && await fetch(`${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}`, { headers: { authorization: `Bearer ${GH_TOKEN}` } });
+  if (res && !res.ok) throw new Error(`sync: cannot read PR body, HTTP ${res.status}`);
+  const body = res ? (await res.json()).body ?? '' : process.env.PR_BODY ?? '';
   const changed = git('diff', '--name-only', `${process.env.DOCS_BASE}...HEAD`).split('\n').filter(Boolean);
-  const waived = /^Spec: không đổi - \S/m.test(process.env.PR_BODY ?? '');
+  const waived = /^Spec: không đổi - \S/m.test(body);
   for (const spec of specs) {
     const touched = changed.filter((f) => f !== spec.file && owners(f).includes(spec));
     if (touched.length && !changed.includes(spec.file) && !waived) {
-      errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add "Spec: không đổi - <lý do>" to the PR body`);
+      errors.push(`sync: ${touched.join(', ')} changed but ${spec.file} did not; update the spec or add this line, alone and unformatted, to the PR body: Spec: không đổi - <lý do>`);
     }
   }
 }

@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -24,9 +25,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      # Body đi qua env, không bao giờ nội suy vào script.
+      # Script đọc mô tả PR qua API lúc chạy, nên re-run sau khi sửa mô tả PR đọc bản mới.
       - run: node scripts/docs/check-docs.mjs
         env:
-          DOCS_BASE: ${{ github.event.pull_request.base.sha }}
-          # PR Dependabot chỉ nâng version action, không đổi spec.
-          PR_BODY: "${{ github.event.pull_request.user.login == 'dependabot[bot]' && 'Spec: không đổi - Dependabot' || github.event.pull_request.body }}"
+          # PR Dependabot chỉ nâng version action, không đổi spec: bỏ sync.
+          DOCS_BASE: ${{ github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.base.sha || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}

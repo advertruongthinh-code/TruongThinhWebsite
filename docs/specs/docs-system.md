@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-10
+updated: 2026-10-12
 source:
   - scripts/docs/**
   - .github/pull_request_template.md
@@ -132,7 +132,8 @@ Then check sync fail và nêu tên spec cần cập nhật
 Spec tham gia ownership và sync qua danh sách glob `source:` trong frontmatter;
 `_template.md` không tham gia. Ownership chỉ quét `src/site/`; source ngoài đó
 (như `src/worker/` của `cms.md`) khai `source:` để sync áp dụng. Sync chạy trong workflow `docs.yml` trên mọi PR,
-kể cả khi chỉ sửa mô tả PR; PR của Dependabot (chỉ nâng version action) tự được miễn. PR template có mục "Spec" để agent ghi spec đã cập
+kể cả khi chỉ sửa mô tả PR; script đọc mô tả PR qua API lúc chạy, nên re-run một lần đỏ cũ sau khi sửa mô tả cũng
+đọc bản mới. PR của Dependabot (chỉ nâng version action) bỏ qua sync. PR template có mục "Spec" để agent ghi spec đã cập
 nhật hoặc lý do không đổi. `docs.yml` chạy trên self-hosted runner như CI ([R10 static-release](static-release.md#r10-gate-ci)).
 
 ### R5. Design System là nguồn chuẩn visual
