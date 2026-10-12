@@ -2211,25 +2211,38 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
 .footer-contact {
   display: grid;
-  min-height: 120px;
   margin-right: calc(-1 * var(--gutter));
   margin-left: calc(-1 * var(--gutter));
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--line);
 }
 
-/* Không viền dưới: đường chia ô chạy tới đáy trang. Đáy ô chừa chỗ floating CTA
-   (cách đáy gutter, nút cao 47px) nên nút không đè nội dung khi cuộn hết trang. */
+/* Không viền dưới: đường chia ô chạy tới đáy trang. Ô cao tối thiểu 2 x gutter + 47px nên
+   tâm ô trùng tâm floating CTA (cách đáy gutter, cao 47px): nút đứng cùng hàng nội dung ở góc phải. */
 .footer-contact > * {
   display: flex;
   min-width: 0;
-  padding: 1.25rem var(--gutter) calc(var(--gutter) + 47px + 1.25rem);
+  min-height: calc(2 * var(--gutter) + 47px);
+  padding: 1.25rem var(--gutter);
   flex-direction: column;
   justify-content: center;
 }
 
 .footer-contact > * + * {
   border-left: 1px solid var(--line);
+}
+
+/* Ô thứ ba không đủ rộng cho icon và CTA: icon mạng xã hội xuống hàng riêng tràn hai cột, CTA ở phải. */
+@media (min-width: 751px) and (max-width: 1200px) and (min-height: 641px) {
+  .footer-contact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-contact > .footer-socials {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
 }
 
 /* Icon thay nhãn chữ trên màn hình; nhãn giữ cho trình đọc màn hình. */
@@ -2262,6 +2275,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   max-width: 24rem;
   font-size: clamp(1.1rem, 1.7vw, 1.6rem);
   font-weight: 500;
+  text-wrap: balance;
 }
 
 .footer-contact b {

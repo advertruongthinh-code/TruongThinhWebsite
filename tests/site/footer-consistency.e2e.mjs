@@ -32,7 +32,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
   // Cửa sổ nhỏ (<=750px rộng hoặc <=640px cao) dùng footer gọn: dọc hẹp có cột icon dọc bên phải, còn lại hai hàng.
-  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1440, 912], [1569, 912], [667, 375], [844, 390], [1280, 632]]) {
+  for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [667, 375], [844, 390], [1280, 632]]) {
     const compact = width <= 750 || height <= 640;
     const portrait = width <= 750 && width < height;
     let expectedHeight;
@@ -57,7 +57,7 @@ try {
           const url = new URL(location.href);
           return {
             height: rect.height, trailing: rect.bottom - cell.getBoundingClientRect().bottom,
-            cellPadBottom: Number.parseFloat(getComputedStyle(cell).paddingBottom),
+            cellHeight: cell.getBoundingClientRect().height,
             contactWidth: contact.getBoundingClientRect().width,
             contactBorderBottom: getComputedStyle(contact).borderBottomWidth,
             copyright: footer.querySelectorAll(".footer-bottom").length,
@@ -81,12 +81,12 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Desktop: lưới liên hệ tràn mép trang, không viền dưới, đường chia ô chạy tới đáy;
-        // đáy ô chừa gutter + 47px + 20px cho floating CTA.
+        // ô cuối cao ít nhất 2 x gutter + 47px để tâm ô trùng tâm floating CTA.
         if (!compact) {
           assert.equal(result.trailing, 0);
           assert.equal(result.contactWidth, width);
           assert.equal(result.contactBorderBottom, "0px");
-          assert.equal(result.cellPadBottom, (width > 1200 ? 82 : 72) + 20);
+          assert.ok(result.cellHeight >= (width > 1200 ? 117 : 97), JSON.stringify({ width, result }));
         }
         if (compact) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,

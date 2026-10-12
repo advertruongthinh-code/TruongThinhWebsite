@@ -11,11 +11,15 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   `white`. Trang Advertising lúc duyệt dùng `0` vì batch skeleton lấp chỗ đó.
 - Tuyên bố: font 600, `clamp(2.8rem, 4.5vw, 5.4rem)`, tracking và
   word-spacing display.
-- Lưới liên hệ ba cột (địa chỉ, điện thoại, mạng xã hội), cao tối thiểu
-  120px, tràn ra mép trang, chỉ viền trên `line`; không viền dưới nên đường
-  chia ô chạy tới đáy trang. Đáy ô chừa `gutter + 47px + 1.25rem` cho
-  [Floating CTA](../FloatingCta/README.md) nên nút không đè nội dung. Không có
-  dòng bản quyền.
+- Lưới liên hệ ba cột (địa chỉ, điện thoại, mạng xã hội), tràn ra mép trang,
+  chỉ viền trên `line`; không viền dưới nên đường chia ô chạy tới đáy trang.
+  Không có dòng bản quyền. Mỗi ô cao tối thiểu `2 × gutter + 47px` (117px,
+  97px ở `≤1200px`), nội dung căn giữa dọc, nên tâm hàng trùng tâm
+  [Floating CTA](../FloatingCta/README.md): ở cuối trang nút đứng cùng hàng
+  icon mạng xã hội, góc phải, không đè nội dung. Địa chỉ `text-wrap: balance`.
+- Từ 751 tới 1200px (cao `>640px`) ô thứ ba không đủ chỗ cho icon và nút nên
+  lưới hai cột: địa chỉ | điện thoại, rồi icon mạng xã hội tràn hai cột trên
+  một hàng riêng có viền trên, nút ở bên phải hàng đó.
 - Dùng icon thay nhãn chữ: ghim bản đồ cho địa chỉ, điện thoại di động cho
   Hotline, ống nghe cho Văn phòng (Remix Icon 4.6.0 `map-pin-2-fill`,
   `smartphone-fill`, `phone-fill`), inline SVG một màu `muted`, `aria-hidden`.

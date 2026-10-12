@@ -182,7 +182,7 @@ hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải
 icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ: địa chỉ,
 Hotline và Văn phòng dạng `+84` link `tel:` màu `ink`, hover không motion ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok,
 YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`; không dòng bản quyền. Lưới liên hệ tràn mép
-trang, không viền dưới; ở cuối trang CTA không đè nội dung footer. Khoảng trên là `--footer-top-gap`; gọn khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+trang, không viền dưới; ở cuối trang CTA đứng cùng hàng icon mạng xã hội, không đè nội dung footer. Khoảng trên là `--footer-top-gap`; gọn khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình
