@@ -34,6 +34,11 @@ Website phục vụ khách hàng, văn phòng và xưởng trong chuỗi từ kh
 
 `E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long`
 
+Số điện thoại owner xác nhận ngày 12/10/2026, hiển thị kèm mã quốc gia, link `tel:` dạng `+84`:
+
+- Hotline: `+84 949 131 050` (`0949 131 050`).
+- Điện thoại bàn văn phòng: `+84 275 381 3753` (`0275 381 3753`).
+
 URL hoặc số Zalo thật, năm thành lập chính xác và chính sách hoặc thời hạn bảo hành vẫn là dữ kiện chưa xác minh. Href Zalo hiện tại `https://zalo.me/` là placeholder, không phải URL đã được owner xác nhận.
 
 ### Khách hàng, dịch vụ và danh mục
@@ -119,7 +124,7 @@ Các nguồn chuẩn đã đọc cho bản ghi này:
 
 Trạng thái bằng chứng:
 
-- **Đã xác nhận:** route locale, sáu Advertising slug, địa chỉ, mark geometry, lockup, ngoại lệ favicon và asset đội ngũ.
+- **Đã xác nhận:** route locale, sáu Advertising slug, địa chỉ, hotline, điện thoại bàn, mark geometry, lockup, ngoại lệ favicon và asset đội ngũ.
 - **Quan sát từ source:** public runtime tĩnh, token CSS, shared advertising catalog, sáu trang chuyển hướng category cũ, trạng thái CMYK chuyển động và các hook accessibility.
 - **Có test contract:** layout/lifecycle/media/static Advertising và browser checks trong `tests/site/`; dynamic audit đầy đủ chưa chạy trong task tài liệu này.
 - **Chưa xác minh:** URL hoặc số Zalo thật, năm thành lập chính xác, chính sách hoặc thời hạn bảo hành.
