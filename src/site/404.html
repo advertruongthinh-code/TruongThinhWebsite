@@ -87,17 +87,30 @@
     <link rel="stylesheet" href="/detail.css" />
     <style>
       /* Chỉ trang 404: số lớn và một dòng chữ căn giữa, theo mẫu 404 của Espacio (không dải logo, owner 2026-10-12). */
+      /* Trang vừa khít một màn hình, không cuộn (owner 2026-10-12): container cao đúng 100svh, footer nằm đáy,
+         cụm chữ căn giữa phần còn lại dưới header; số 404 co theo chiều cao để màn hình thấp vẫn vừa. */
+      [data-barba-namespace="not-found"] {
+        display: flex;
+        flex-direction: column;
+        height: 100svh;
+      }
+
+      [data-barba-namespace="not-found"] main {
+        display: grid;
+        flex: 1;
+        min-height: 0;
+      }
+
       .not-found {
         display: grid;
-        min-height: 75svh;
-        padding: 140px 20px 40px;
+        padding: calc(var(--header-row-height) + var(--gutter)) 20px var(--gutter);
         place-content: center;
         text-align: center;
       }
 
       .not-found h1 {
         margin: 0;
-        font-size: clamp(7rem, 30vw, 10rem);
+        font-size: clamp(4rem, min(30vw, 22svh), 10rem);
         font-weight: 600;
         line-height: 1;
         letter-spacing: var(--tracking-display);
