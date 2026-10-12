@@ -95,7 +95,6 @@ try {
           assert.equal(padTop, padLeft, JSON.stringify({ width, route, result }));
         }
         assert.ok(Math.abs(result.socialsLeft - result.contactRight - result.columnGap) <= 1, JSON.stringify({ width, route, result }));
-        // Khối hai cột căn giữa: lề trái bằng lề phải.
         assert.ok(Math.abs(result.contactLeft - (width - result.socialsRight)) <= 1, JSON.stringify({ width, route, result }));
         if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
