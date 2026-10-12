@@ -84,7 +84,7 @@ smooth scroll, chạy timeline mở, thu nhỏ trang phía sau rồi focus nút 
 về nút mở (trừ khi đang chuyển route), phát `site:menu-closed`; tween treo thì đóng sau 1,75s. Không
 mở khi route đang chạy; reduced motion hoặc thiếu GSAP: trạng thái cuối ngay. Menu có brand, ngôn
 ngữ (R5), CTA Zalo `.menu-appointment` (cùng href floating CTA, trước nút đóng), bốn nhóm link, cột
-4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường đóng menu, đi route. Dialog
+4/3/2/1 theo breakpoint, vùng link cuộn riêng. Click link thường: menu reverse cùng veil phủ, đóng khi veil kín và chữ menu hết, đi route. Dialog
 đóng dùng `display: none` mặc định của `dialog` để Layout đầu trang bỏ qua menu (`content-visibility: hidden`
 làm Chromium crash khi đóng menu lúc `motion.js` lỗi).
 
@@ -258,7 +258,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R1 | `pnpm qa:static`, `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
 | R2 | `TT_E2E_HEADER_ONLY`, `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_ONLY` |
-| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
+| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_LOCALE_ONLY`, `TT_E2E_LOCALE_SCROLL_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
