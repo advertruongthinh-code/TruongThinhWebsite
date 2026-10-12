@@ -61,8 +61,8 @@ ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
 
 - Tiêu đề: word fade `data-motion-words`, `1s expo.out`, stagger `0.2s`.
 - Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`.
-- Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh About `scale 1.2 →
-  1.005`, `2.5s ease`.
+- Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh Residential, Commercial,
+  About `scale 1.2 → 1.005`, `2.5s ease`.
 - Trang chủ: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`.
 - Reduced motion hiện ngay trạng thái cuối. Chi tiết ở
   [Motion](../../motion.md#text).

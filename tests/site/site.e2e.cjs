@@ -7604,7 +7604,7 @@ async function runResidentialHeroTextCheck() {
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
               hero.slideCount === 1 &&
-              hero.mediaCount === 0 &&
+              hero.mediaCount === 1 &&
               hero.motionToggleCount === 0 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: residential hero copy or reading order drifted`,
@@ -7771,7 +7771,7 @@ async function runCommercialHeroTextCheck() {
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
               hero.slideCount === 1 &&
-              hero.mediaCount === 0 &&
+              hero.mediaCount === 1 &&
               hero.motionToggleCount === 0 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: commercial hero copy or reading order drifted`,
@@ -7990,6 +7990,16 @@ async function runDetailHeroEntryChecks() {
       route: "/vi/about/",
       selector: "[data-motion-hero-media]",
       label: "about hero media",
+    },
+    {
+      route: "/vi/residential/",
+      selector: "[data-motion-hero-media]",
+      label: "residential hero media",
+    },
+    {
+      route: "/vi/commercial/",
+      selector: "[data-motion-hero-media]",
+      label: "commercial hero media",
     },
   ]) {
     await runPageCase(
@@ -9000,24 +9010,26 @@ async function runHeroCarouselLifecycleCheck() {
         }));
         assert(
           state.slideCount === 1 &&
-            state.mediaCount === 0 &&
+            state.mediaCount === 1 &&
             state.labelCount === 0 &&
             state.motionToggleCount === 0 &&
             state.scrollCueCount === 1,
           `Service hero still exposes slideshow UI: ${JSON.stringify(state)}`,
         );
-        const transforms = [];
-        for (let sample = 0; sample < 4; sample += 1) {
-          transforms.push(
+        // Zoom vào trang chạy một lần rồi đứng ở scale 1.005, không lặp như slideshow trang chủ.
+        await page.waitForTimeout(2_800);
+        const scales = [];
+        for (let sample = 0; sample < 3; sample += 1) {
+          scales.push(
             await page
               .locator(".hero-slide img")
-              .evaluate((media) => getComputedStyle(media).transform),
+              .evaluate((media) => new DOMMatrixReadOnly(getComputedStyle(media).transform).a),
           );
           await page.waitForTimeout(400);
         }
         assert(
-          transforms.every((value) => value === "none"),
-          `Service hero image still zooms: ${JSON.stringify(transforms)}`,
+          scales.every((value) => Math.abs(value - 1.005) < 0.001),
+          `Service hero image did not settle at 1.005: ${JSON.stringify(scales)}`,
         );
         assertDiagnostics(diagnostics);
       },

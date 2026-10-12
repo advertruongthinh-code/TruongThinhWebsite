@@ -6,12 +6,6 @@
   min-height: 44rem;
 }
 
-.detail-hero .hero-slide img {
-  /* Hero trang con đứng yên: bỏ scale khởi đầu của slideshow trang chủ. */
-  transform: none;
-  will-change: auto;
-}
-
 .detail-hero .hero-content {
   width: min(82rem, calc(100% - 2 * var(--gutter)));
 }
