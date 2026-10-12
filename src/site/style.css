@@ -2193,13 +2193,14 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 /* Hai cột sát nhau: cột liên hệ (địa chỉ, Hotline, Văn phòng) rộng theo địa chỉ, rồi cột mạng xã hội;
    cả khối căn giữa, cách đều hai biên. Đệm bốn phía bằng gutter; floating CTA không hiện cùng footer nên
    không chừa làn nút. Nhịp theo Espacio: dòng xếp chồng cách 16px, cột cách 70px (35px ở <=1200px),
-   line-height 1.4. */
+   line-height 1.4. Rộng hơn 1200px cột cách theo 8vw (70-160px) và chữ lớn dần theo 1.25vw để khối bớt
+   lề trắng hai bên trên màn PC lớn. */
 .site-footer {
   display: grid;
   grid-template-columns: minmax(0, max-content) max-content;
   justify-content: center;
   align-items: start;
-  gap: 16px 70px;
+  gap: 16px clamp(70px, 8vw, 160px);
   margin-block-start: var(--footer-top-gap);
   padding: var(--gutter);
   border-top: 1px solid var(--line);
@@ -2263,7 +2264,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: 0.65rem;
-  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  font-size: clamp(1rem, 1.25vw, 1.5rem);
   font-weight: 500;
   line-height: 1.4;
 }
