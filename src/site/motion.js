@@ -452,8 +452,11 @@
     const pageHeight = document.documentElement.scrollHeight;
     const maxScroll = Math.max(0, pageHeight - window.innerHeight);
     // Floating CTA chỉ ở màn đầu: cuối mỗi trang đã có nút Zalo riêng (lời mời trang chủ,
-    // `.detail-cta`) nên nút nổi không lặp lại ở đó (owner 12/10).
-    const nextCtaShown = scrollY <= window.innerHeight;
+    // `.detail-cta`) nên nút nổi không lặp lại ở đó (owner 12/10). Ẩn cả khi footer lọt vào
+    // viewport (trang ngắn như 404) để footer không phải chừa làn nút.
+    const footerTop =
+      toneRanges.find(({ section }) => section.classList.contains("site-footer"))?.top ?? Infinity;
+    const nextCtaShown = scrollY <= window.innerHeight && scrollY + window.innerHeight <= footerTop;
     if (nextCtaShown !== pageState?.floatingCtaShown) {
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta.classList.toggle("show", nextCtaShown);
@@ -2687,6 +2690,11 @@
     }
     hardNavigate(intent.href);
   };
+  // Kéo chuột bôi đen số điện thoại footer để copy thì không mở link tel: (owner 12/10).
+  document.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest(".footer-hotline, .footer-office")
+      && getSelection().toString()) event.preventDefault();
+  });
   document.addEventListener("click", (event) => {
     if (!advertisingFilterQueueEnabled || window.TruongThinhAdvertising?.getAdapter?.()) return;
     const control = event.target instanceof Element

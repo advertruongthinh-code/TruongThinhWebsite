@@ -10,7 +10,8 @@ Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floati
   chỉ còn icon.
 - Hiện khi `scrollY` trong một viewport đầu; ngoài đó trượt ra phải
   (`translateX(130%)`). Cuối trang không hiện lại vì lời mời trang chủ và
-  `.detail-cta` đã có nút "Gọi Zalo tư vấn".
+  `.detail-cta` đã có nút "Gọi Zalo tư vấn". Ẩn cả khi footer lọt vào
+  viewport (trang ngắn như 404), nên footer không chừa làn nút.
 - Hover: nền trắng, chữ `ink`, `0.3s ease-out`.
 
 Preview hiện trạng thái `show`.
