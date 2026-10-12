@@ -2195,7 +2195,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 .site-footer {
   display: grid;
   grid-template-columns: max-content minmax(0, 24rem) 1fr;
-  align-content: center;
   align-items: center;
   gap: 4px clamp(2.5rem, 5.5vw, 6rem);
   margin-block-start: var(--footer-top-gap);
