@@ -36,7 +36,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | Kính reveal | Năm bậc trong `0.6s`, chỉ opacity | [Media card](components/MediaCard/README.md), [Skeleton](components/Skeleton/README.md), [Primary](components/Primary/README.md) ([Kính](components/Glass/README.md)) |
 | Flow | Gradient bốn màu chảy bằng WebGL, 12 preset | [Skeleton](components/Skeleton/README.md) |
 | Line reveal, word fade | `1.9s power4.out` theo dòng; `1s expo.out` theo từ | Tiêu đề [Hero](components/Hero/README.md), tiêu đề section và [Banner CTA](components/BannerCta/README.md) (mục Text) |
-| Cụm chữ nguyên khối | Cả khối `scale 1.1 → 1` `2.5s power3.out`; mỗi cụm (số, câu) fade nguyên khối `1s expo.out`, câu delay `0.3s`, số delay `0.6s`; không tách từ, không trượt | Trang 404 (`data-motion-phrase`), mẫu 404 của Espacio |
+| Cụm chữ nguyên khối | Cả khối `scale 1.1 → 1` `2.5s cubic-bezier(0, 0, .26, 1)` (`--ease`) từ lúc trang bắt đầu lộ; câu rồi số fade nguyên khối `1s expo.out`, trễ `0.3s` và `0.6s`; không tách từ, không trượt | Trang 404 (mục Text), mẫu 404 của Espacio |
 | Parallax | Media trôi chậm hơn cuộn 20%; rail ngang `4`; CTA Advertising 10% | [Hero](components/Hero/README.md), [Project reel](components/ProjectReel/README.md), [Banner CTA](components/BannerCta/README.md) Advertising |
 | Chuyển vị trí card | `transform 0.4s ease` qua `masonry-layout` | [Masonry](components/Masonry/README.md), [Filter](components/Filter/README.md) |
 | Đổi nền hover | `0.3s ease-out` nền và chữ đảo màu | [Floating CTA](components/FloatingCta/README.md), nút [Gallery](components/Gallery/README.md) |
@@ -124,8 +124,8 @@ navigation, filter, card title, portal title hoặc `.sr-only`.
 | Line reveal | `data-motion-lines` | `1.9s power4.out`, stagger `0.1s`, khi vào viewport |
 | Word fade | `data-motion-words` | `1s expo.out`, stagger `0.2s` |
 | Scroll cue | `[data-scroll-cue-label]` | Character split; sau 3s từng ký tự vào từ `top -20px` (0.4s, stagger 0.1s), giữ 3s, ra tới `top 20px` cùng nhịp, lặp sau 3s. Cuộn quá 200px thì mờ đi `1s` và rời thứ tự Tab |
-| Cụm nguyên khối | `data-motion-phrase` (nhóm), `data-motion-phrase-item="<delay giây>"` (cụm) | Nhóm `2.5s power3.out` `1.1 → 1`; cụm opacity `1s expo.out`; không split |
 | Media reveal | `data-motion-media` | `0.6s cubic-bezier(0, 0, .26, 1)` (`--ease`) |
+| Cụm 404 | `.not-found__copy` (CSS trong `404.html`) | Cả cụm số `404` và câu, không split: `scale 1.1 → 1` `2.5s` `--ease` từ lúc veil bắt đầu mở; câu rồi số hiện dần `1s expo.out` trễ `0.3s` và `0.6s` (nhịp Espacio, đo frame 2026-10-12). Trước đó đứng ở frame đầu dưới veil. Reduced motion và script lỗi hiện ngay trạng thái cuối |
 
 Route và target:
 
