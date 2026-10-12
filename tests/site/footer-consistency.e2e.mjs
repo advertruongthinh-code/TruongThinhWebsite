@@ -31,7 +31,7 @@ for (const route of detailRoutes) {
 const browser = await chromium.launch({ headless: true });
 try {
   let count = 0;
-  // Từ 750px trở xuống footer gọn: dọc một cột, ngang hai cột. Rộng hơn 980px footer một dải, đệm bốn phía bằng gutter.
+  // Rộng hơn 750px ba cột; từ 750px trở xuống footer gọn: dọc hai cột (icon xếp dọc), ngang địa chỉ trên hai số.
   for (const [width, height] of [[320, 912], [390, 912], [750, 912], [751, 912], [768, 912], [1024, 912], [1201, 912], [1440, 912], [1569, 912], [568, 320], [667, 375], [844, 390], [1280, 632]]) {
     const small = width <= 750 || height <= 640;
     let expectedHeight;
@@ -72,9 +72,8 @@ try {
             labelWidth: Math.max(...[...footer.querySelectorAll("span")].map(e => e.getBoundingClientRect().width)),
             icons: footer.querySelectorAll(".footer-icon[aria-hidden='true']").length,
             padding: ["Top", "Right", "Left"].map(side => Number.parseFloat(getComputedStyle(footer)[`padding${side}`])),
-            columnGap: Number.parseFloat(getComputedStyle(footer).columnGap),
-            contactRight: Math.max(...[".footer-address", ".footer-hotline", ".footer-office"].map(s => footer.querySelector(s).getBoundingClientRect().right)),
-            socialsLeft: footer.querySelector(".footer-socials").getBoundingClientRect().left,
+            fontSizes: [".footer-address", ".footer-hotline"].map(s => Number.parseFloat(getComputedStyle(footer.querySelector(s)).fontSize)),
+            numbersDraggable: [".footer-hotline", ".footer-office"].map(s => getComputedStyle(footer.querySelector(s)).webkitUserDrag),
             contactLeft: footer.querySelector(".footer-address").getBoundingClientRect().left,
             socialsRight: footer.querySelector(".footer-socials").getBoundingClientRect().right,
           };
@@ -84,7 +83,8 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, rộng hơn 980px đệm dọc bằng gutter. Cột mạng xã hội sát cột liên hệ, cách đúng column-gap; cả khối căn giữa.
+        // lề phải bằng lề trái, rộng hơn 980px đệm dọc bằng gutter. Ba cột: địa chỉ sát lề trái, mạng xã hội
+        // sát lề phải; địa chỉ chữ lớn hơn hai số; kéo chuột bôi đen được số (link không kéo đi).
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
@@ -94,7 +94,8 @@ try {
         if (width > 980) {
           assert.equal(padTop, padLeft, JSON.stringify({ width, route, result }));
         }
-        assert.ok(Math.abs(result.socialsLeft - result.contactRight - result.columnGap) <= 1, JSON.stringify({ width, route, result }));
+        assert.ok(result.fontSizes[0] > result.fontSizes[1], JSON.stringify({ width, route, result }));
+        assert.deepEqual(result.numbersDraggable, ["none", "none"]);
         assert.ok(Math.abs(result.contactLeft - (width - result.socialsRight)) <= 1, JSON.stringify({ width, route, result }));
         if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
@@ -104,7 +105,7 @@ try {
         assert.deepEqual(result.phones, [["tel:+84949131050", "+84 949 131 050"], ["tel:+842753813753", "+84 275 381 3753"]]);
         assert.equal(result.invitation, 0);
         assert.deepEqual(result.socials, ["facebook", "tiktok", "youtube"]);
-        assert.equal(result.socialSize, width <= 750 ? 24 : 28);
+        assert.equal(result.socialSize, width <= 750 ? 28 : 36);
         assert.ok(result.labelWidth <= 1, "icons replace visible footer labels");
         assert.equal(result.icons, 3);
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));

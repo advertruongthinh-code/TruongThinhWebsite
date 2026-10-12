@@ -12199,8 +12199,8 @@ async function runFooterRuntimeChecks() {
                    item.label &&
                    item.svg &&
                    item.viewBox === "0 0 24 24" &&
-                   Math.abs(item.width - (viewport.width <= 750 ? 24 : 28)) <= 0.1 &&
-                   Math.abs(item.height - (viewport.width <= 750 ? 24 : 28)) <= 0.1 &&
+                   Math.abs(item.width - (viewport.width <= 750 ? 28 : 36)) <= 0.1 &&
+                   Math.abs(item.height - (viewport.width <= 750 ? 28 : 36)) <= 0.1 &&
                    !item.hasStroke &&
                    item.tabIndex < 0,
               ) &&

@@ -2690,6 +2690,11 @@
     }
     hardNavigate(intent.href);
   };
+  // Kéo chuột bôi đen số điện thoại footer để copy thì không mở link tel: (owner 12/10).
+  document.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest(".footer-hotline, .footer-office")
+      && getSelection().toString()) event.preventDefault();
+  });
   document.addEventListener("click", (event) => {
     if (!advertisingFilterQueueEnabled || window.TruongThinhAdvertising?.getAdapter?.()) return;
     const control = event.target instanceof Element

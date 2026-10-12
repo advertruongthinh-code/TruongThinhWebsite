@@ -2136,17 +2136,16 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Hai cột sát nhau: cột liên hệ (địa chỉ, Hotline, Văn phòng) rộng theo địa chỉ, rồi cột mạng xã hội;
-   cả khối căn giữa, cách đều hai biên. Đệm bốn phía bằng gutter; floating CTA không hiện cùng footer nên
-   không chừa làn nút. Nhịp theo Espacio: dòng xếp chồng cách 16px, cột cách 70px (35px ở <=1200px),
-   line-height 1.4. Rộng hơn 1200px cột cách theo 8vw (70-160px) và chữ lớn dần theo 1.25vw để khối bớt
-   lề trắng hai bên trên màn PC lớn. */
+/* Ba cột như footer Espacio: địa chỉ sát lề trái | hai số điện thoại giữa trang | mạng xã hội sát lề phải.
+   Cột giữa `auto` nằm giữa hai cột `1fr` nên căn giữa trang. Đệm bốn phía bằng gutter; floating CTA
+   không hiện cùng footer nên không chừa làn nút. Nhịp theo Espacio: hai số cách 16px, line-height 1.4. */
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0, max-content) max-content;
-  justify-content: center;
-  align-items: start;
-  gap: 16px clamp(70px, 8vw, 160px);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  /* Hàng hai 1fr hút phần cao dư của địa chỉ nhiều dòng để hai số luôn cách đúng 16px. */
+  grid-template-rows: auto 1fr;
+  align-items: baseline;
+  gap: 16px clamp(35px, 4vw, 70px);
   margin-block-start: var(--footer-top-gap);
   padding: var(--gutter);
   border-top: 1px solid var(--line);
@@ -2210,14 +2209,34 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: 0.65rem;
-  font-size: clamp(1rem, 1.25vw, 1.5rem);
+  font-size: clamp(1rem, 1.1vw, 1.25rem);
   font-weight: 500;
   line-height: 1.4;
 }
 
-/* Hotline (cũng là số Zalo) đậm hơn số bàn; hai số xếp dưới địa chỉ, chữ số thẳng hàng. */
+/* Địa chỉ chữ lớn hơn hai số, chiếm cột trái suốt hai hàng. */
+.footer-address {
+  grid-area: 1 / 1 / span 2;
+  max-width: 24em;
+  font-size: clamp(1.125rem, 1.5vw, 1.625rem);
+}
+
+/* Hotline (cũng là số Zalo) đậm hơn số bàn; hai số xếp cột giữa, chữ số thẳng hàng. Link có
+   draggable="false", user-select text và không kéo đi để kéo chuột bôi đen copy được số; motion.js chặn
+   tel: khi click kết thúc một lần bôi đen. */
 .footer-hotline {
+  grid-area: 1 / 2;
   font-weight: 600;
+}
+
+.footer-office {
+  grid-area: 2 / 2;
+}
+
+.footer-hotline,
+.footer-office {
+  user-select: text;
+  -webkit-user-drag: none;
 }
 
 .footer-hotline strong,
@@ -2242,25 +2261,21 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 .footer-socials {
-  grid-area: 1 / 2 / span 3;
-}
-
-@media (max-width: 1200px) {
-  .site-footer {
-    column-gap: 35px;
-  }
+  grid-area: 1 / 3 / span 2;
+  align-self: start;
+  justify-self: end;
 }
 
 .footer-social-list {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 28px;
 }
 
 .footer-social {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
   color: var(--ink);
   cursor: default;
@@ -2767,7 +2782,9 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Footer gọn: đệm dọc 14px để footer không cao quá 38.2% viewport ở điện thoại ngang. */
+/* Footer gọn: chữ và icon nhỏ lại, đệm dọc 14px để footer không cao quá 38.2% viewport. Điện thoại ngang:
+   địa chỉ hàng trên, hai số cạnh nhau hàng dưới, icon nằm ngang bên phải. Điện thoại dọc: địa chỉ rồi hai số
+   ở cột trái, icon xếp dọc ở cột phải. */
 @media (max-width: 750px) {
   .site-footer {
     column-gap: 24px;
@@ -2775,27 +2792,66 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 
   .footer-hotline,
-  .footer-office,
-  .footer-address {
+  .footer-office {
     font-size: 1rem;
   }
 
-  /* Icon xếp dọc thành cột hẹp cạnh cột liên hệ, nhường bề ngang cho địa chỉ; cách 8px để cột icon
-     (88px) không cao hơn ba dòng liên hệ ở điện thoại ngang. */
+  .footer-address {
+    font-size: 1.125rem;
+  }
+
   .footer-social-list {
-    flex-direction: column;
-    gap: 8px;
+    gap: 16px;
   }
 
   .footer-social {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 750px) and (orientation: landscape) {
+  .site-footer {
+    grid-template-columns: max-content max-content minmax(0, 1fr);
+  }
+
+  .footer-address {
+    grid-area: 1 / 1 / auto / span 2;
+  }
+
+  .footer-hotline {
+    grid-area: 2 / 1;
+  }
+
+  .footer-office {
+    grid-area: 2 / 2;
   }
 }
 
 @media (max-width: 750px) and (orientation: portrait) {
   .site-footer {
+    grid-template-columns: minmax(0, 1fr) auto;
     padding-block: 20px;
+  }
+
+  .footer-address {
+    grid-area: 1 / 1;
+  }
+
+  .footer-hotline {
+    grid-area: 2 / 1;
+  }
+
+  .footer-office {
+    grid-area: 3 / 1;
+  }
+
+  .footer-socials {
+    grid-area: 1 / 2 / span 3;
+  }
+
+  .footer-social-list {
+    flex-direction: column;
   }
 }
 
