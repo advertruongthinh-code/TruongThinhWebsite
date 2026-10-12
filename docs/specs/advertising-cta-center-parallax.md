@@ -87,12 +87,12 @@ And tiêu đề không nhỏ hơn 20.8px
 ### R4. Footer ở cửa sổ nhỏ và điện thoại
 
 Cửa sổ nhỏ (`@media (max-width: 750px), (max-height: 640px)` trong `style.css`) dùng footer gọn ở mọi trang VI/EN, giữ
-nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): địa chỉ, điện thoại, mạng xã hội, bản quyền.
+nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): địa chỉ, điện thoại, mạng xã hội.
 
-- Rộng tới 750px và dọc (`orientation: portrait`): cột trái địa chỉ, hai số điện thoại, bản quyền; cột phải thẳng trục
+- Rộng tới 750px và dọc (`orientation: portrait`): cột trái địa chỉ, hai số điện thoại; cột phải thẳng trục
   floating CTA, icon mạng xã hội xếp dọc phía trên nút. Footer cao khoảng 207px.
-- Cửa sổ nhỏ còn lại: hai hàng, địa chỉ | hai số xếp dọc rồi icon | bản quyền; lề phải chừa làn floating CTA (nút chữ
-  `gutter + 185px`, nút vuông từ 750px trở xuống `gutter + 72px`). Cao 110 tới 136px.
+- Cửa sổ nhỏ còn lại: hai hàng, địa chỉ | hai số xếp dọc rồi icon; lề phải chừa làn floating CTA (nút chữ
+  `gutter + 185px`, nút vuông từ 750px trở xuống `gutter + 72px`). Cao khoảng 116px, 136px khi địa chỉ xuống dòng.
 - Floating CTA hiện ở cuối trang không đè nội dung footer.
 - Icon thay nhãn chữ; nhãn ẩn bằng mắt cho trình đọc màn hình; footer có viền trên.
 
@@ -103,7 +103,7 @@ Footer gọn không cao quá `38.2%` viewport, để vùng CTA chiếm ít nhấ
 ```gherkin
 Given điện thoại 390×844 ở bất kỳ trang nào
 When người xem cuộn tới footer
-Then footer gọn giữ địa chỉ, điện thoại, mạng xã hội xếp dọc, bản quyền, cao không quá 38.2% viewport
+Then footer gọn giữ địa chỉ, điện thoại, mạng xã hội xếp dọc, cao không quá 38.2% viewport
 And floating CTA không đè nội dung footer
 ```
 

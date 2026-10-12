@@ -121,7 +121,7 @@ không chạm chữ dòng trên (đo ở 360 và 390px, tiếng Việt).
 - **Advertising:** masonry tính bằng `layout-core.mjs`, không dùng CSS grid
   hoặc solver thứ hai; cột và gutter theo width ở
   [Masonry](components/Masonry/README.md#hình-học).
-- **Footer:** trụ sở, điện thoại, mạng xã hội, bản quyền; icon thay nhãn chữ; ba
+- **Footer:** trụ sở, điện thoại, mạng xã hội; icon thay nhãn chữ; ba
   cột desktop, footer gọn ở cửa sổ rộng `≤750px` hoặc cao `≤640px`. Lời mời và
   CTA nằm trước footer; góc phải dưới chừa cho floating CTA.
 - **Scrollbar:** desktop dùng track overlay 11px bên phải (Locomotive), không

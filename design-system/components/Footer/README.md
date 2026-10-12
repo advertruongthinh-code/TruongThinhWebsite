@@ -12,7 +12,10 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
 - Tuyên bố: font 600, `clamp(2.8rem, 4.5vw, 5.4rem)`, tracking và
   word-spacing display.
 - Lưới liên hệ ba cột (địa chỉ, điện thoại, mạng xã hội), cao tối thiểu
-  120px, nội dung căn giữa dọc, tràn ra mép trang, viền trên dưới `line`.
+  120px, tràn ra mép trang, chỉ viền trên `line`; không viền dưới nên đường
+  chia ô chạy tới đáy trang. Đáy ô chừa `gutter + 47px + 1.25rem` cho
+  [Floating CTA](../FloatingCta/README.md) nên nút không đè nội dung. Không có
+  dòng bản quyền.
 - Dùng icon thay nhãn chữ: ghim bản đồ cho địa chỉ, điện thoại di động cho
   Hotline, ống nghe cho Văn phòng (Remix Icon 4.6.0 `map-pin-2-fill`,
   `smartphone-fill`, `phone-fill`), inline SVG một màu `muted`, `aria-hidden`.
@@ -21,11 +24,8 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   office", "Hotline", "Office", "Social networks") vẫn trong DOM nhưng ẩn bằng
   mắt, làm tên cho trình đọc màn hình.
 - Số điện thoại màu `ink` cùng cỡ địa chỉ, dạng `+84`, link `tel:`; cùng chuỗi
-  ở VI và EN. Hover hoặc focus gạch chân 3px như nav desktop; không dùng `blue`
+  ở VI và EN. Hover không có motion hay gạch chân; không dùng `blue`
   vì blue chỉ dành cho `::selection` và indicator route.
-- Hàng bản quyền `footer-bottom` cao tối thiểu `gutter + 47px` (82px, 72px ở
-  `≤1200px`), bằng chỗ [Floating CTA](../FloatingCta/README.md) chiếm từ đáy
-  nên nút không chạm lưới liên hệ; chữ `muted` 0.8rem bên trái.
 - Địa chỉ trụ sở giữ nguyên chuỗi ở cả VI và EN (xem
   [Content](../../content.md#song-ngữ-vien)).
 - Ba icon mạng xã hội 30px theo thứ tự Facebook, TikTok, YouTube (Remix Icon
@@ -37,13 +37,13 @@ Cửa sổ nhỏ (rộng `≤750px` hoặc cao `≤640px`) dùng footer gọn �
 không quá 38.2% viewport:
 
 - Rộng `≤750px` và dọc: cột trái địa chỉ `1rem`, hai số điện thoại xếp dọc
-  cách 8px, rồi bản quyền ở đáy (hàng 44px). Cột phải rộng 57px, cách mép
+  cách 8px. Cột phải rộng 57px, cách mép
   15px, thẳng trục floating CTA: ba icon mạng xã hội xếp dọc cách 12px phía
   trên nút, chừa dưới `25px + 57px + 12px` cho nút. Cao khoảng 207px.
 - Cửa sổ nhỏ khác: hai hàng, địa chỉ | hai số xếp dọc (dòng cuối thẳng dòng
-  địa chỉ cuối), rồi icon mạng xã hội | bản quyền cao 44px; lề phải chừa
+  địa chỉ cuối), rồi icon mạng xã hội cao 44px; lề phải chừa
   `gutter + 185px` (nút chữ) hoặc `gutter + 72px` (nút vuông `≤750px`). Cao
-  110 đến 136px.
+  khoảng 116px, 136px khi địa chỉ xuống dòng.
 - Ở mọi cửa sổ, floating CTA hiện ở cuối trang không đè nội dung footer.
 - Icon liên hệ 20px; icon mạng xã hội 24px cách nhau 8px. Viền trên một đường
   `line`.

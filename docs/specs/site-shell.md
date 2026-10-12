@@ -180,9 +180,9 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ
 hoặc trong 1,75 chiều cao cửa sổ cuối trang, trượt vào từ phải; từ 750px trở xuống là nút vuông chỉ
 icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ: địa chỉ,
-Hotline và Văn phòng dạng `+84` link `tel:` màu `ink`, hover gạch chân như nav ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok,
-YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`; dòng bản quyền. Ở cuối trang
-CTA không đè nội dung footer. Khoảng trên là `--footer-top-gap`; gọn khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+Hotline và Văn phòng dạng `+84` link `tel:` màu `ink`, hover không motion ([PRODUCT](../../PRODUCT.md)), ba icon Facebook, TikTok,
+YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`; không dòng bản quyền. Lưới liên hệ tràn mép
+trang, không viền dưới; ở cuối trang CTA không đè nội dung footer. Khoảng trên là `--footer-top-gap`; gọn khi rộng tới 750px hoặc cao tới 640px ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình

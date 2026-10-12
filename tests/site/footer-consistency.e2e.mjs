@@ -51,11 +51,16 @@ try {
         const result = await page.evaluate(() => {
           const footer = document.querySelector(".site-footer");
           const rect = footer.getBoundingClientRect();
-          const bottom = footer.querySelector(".footer-bottom").getBoundingClientRect();
+          const contact = footer.querySelector(".footer-contact");
+          const cell = contact.lastElementChild;
           const previous = footer.previousElementSibling?.getBoundingClientRect();
           const url = new URL(location.href);
           return {
-            height: rect.height, bottomHeight: bottom.height, trailing: rect.bottom - bottom.bottom,
+            height: rect.height, trailing: rect.bottom - cell.getBoundingClientRect().bottom,
+            cellPadBottom: Number.parseFloat(getComputedStyle(cell).paddingBottom),
+            contactWidth: contact.getBoundingClientRect().width,
+            contactBorderBottom: getComputedStyle(contact).borderBottomWidth,
+            copyright: footer.querySelectorAll(".footer-bottom").length,
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
             advertisingBrowse: url.pathname.endsWith("/advertising-products/") && !url.searchParams.has("photo"),
@@ -64,7 +69,6 @@ try {
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,
             address: footer.querySelector(".footer-address strong").textContent,
             phones: [...footer.querySelectorAll(".footer-phones a")].map(e => [e.getAttribute("href"), e.querySelector("strong").textContent]),
-            copyright: footer.querySelector(".footer-bottom").textContent.trim(),
             overflow: document.documentElement.scrollWidth > innerWidth + 1,
             socials: [...footer.querySelectorAll(".footer-social[aria-label]")].map(e => e.dataset.footerSocial),
             socialSize: footer.querySelector(".footer-social").getBoundingClientRect().width,
@@ -76,9 +80,14 @@ try {
         const expectedTopGap = result.advertisingBrowse ? 0 : width <= 750 ? 48 : 64;
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
-        // Hàng bản quyền desktop cao bằng gutter + 47px (chỗ floating CTA).
-        if (!compact) assert.equal(result.bottomHeight, width > 1200 ? 82 : 72);
-        if (!compact || portrait) assert.equal(result.trailing, 0);
+        // Desktop: lưới liên hệ tràn mép trang, không viền dưới, đường chia ô chạy tới đáy;
+        // đáy ô chừa gutter + 47px + 20px cho floating CTA.
+        if (!compact) {
+          assert.equal(result.trailing, 0);
+          assert.equal(result.contactWidth, width);
+          assert.equal(result.contactBorderBottom, "0px");
+          assert.equal(result.cellPadBottom, (width > 1200 ? 82 : 72) + 20);
+        }
         if (compact) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));
@@ -91,7 +100,7 @@ try {
         assert.ok(result.labelWidth <= 1, "icons replace visible footer labels");
         assert.equal(result.icons, 3);
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
-        assert.equal(result.copyright, "© 2026 Trường Thịnh");
+        assert.equal(result.copyright, 0);
         assert.equal(result.overflow, false, JSON.stringify({ width, route, locale }));
         // Cuối trang floating CTA hiện; nó không được đè nội dung footer. Bỏ qua Advertising:
         // browse nối batch khi cuộn tới cuối, photo view ẩn CTA; footer dùng chung CSS nên các route khác đã phủ.
