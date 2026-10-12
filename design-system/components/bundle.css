@@ -2143,7 +2143,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 .site-footer {
   display: grid;
   grid-template-columns: minmax(0, max-content) max-content;
-  justify-content: start;
   align-items: start;
   gap: 16px 70px;
   margin-block-start: var(--footer-top-gap);
@@ -2205,7 +2204,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 .footer-office,
 .footer-address {
   display: grid;
-  grid-column: 1;
   min-width: 0;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
