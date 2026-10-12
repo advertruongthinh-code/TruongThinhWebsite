@@ -20,6 +20,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
+  - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-10-12
 ---
@@ -181,7 +182,7 @@ Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push v�
 `pnpm qa:worker:security`, `pnpm dev` rồi mọi `tests/site/*.test.mjs` (gồm `orphan-selectors.test.mjs`: class, `data-*` trong selector CSS hoặc query JS của `src/site/`
 phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi Chromium smoke
 `cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history),
-rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm), rồi `advertising-skeleton-slow-network.e2e.mjs` (skeleton không chớp, Flow chạy khi mở detail), rồi `phone-header-scroll.e2e.mjs` (header điện thoại đi theo quãng cuộn), rồi `logo-route-crossfade.e2e.mjs` (mark crossfade khi chuyển trang).
+rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm), rồi `advertising-skeleton-slow-network.e2e.mjs` (skeleton không chớp, Flow chạy khi mở detail), rồi `phone-header-scroll.e2e.mjs` (header điện thoại đi theo quãng cuộn), rồi `logo-route-crossfade.e2e.mjs` (mark crossfade khi chuyển trang), rồi `not-found-routes.e2e.mjs` (rời 404 sang route chính: 404 ẩn khi veil mở, trang đích ở đỉnh và cuộn được).
 CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
 
 ```gherkin
@@ -267,8 +268,8 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R7 | `tests/site/advertising-products-detail-routes.test.mjs` |
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
-| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs`, `tests/site/image-loading-frame.e2e.mjs`, `tests/site/advertising-skeleton-slow-network.e2e.mjs`, `tests/site/phone-header-scroll.e2e.mjs`, `tests/site/logo-route-crossfade.e2e.mjs` |
-| R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run`; trang 404: `tests/site/static-locales.test.mjs` |
+| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs`, `tests/site/image-loading-frame.e2e.mjs`, `tests/site/advertising-skeleton-slow-network.e2e.mjs`, `tests/site/phone-header-scroll.e2e.mjs`, `tests/site/logo-route-crossfade.e2e.mjs`, `tests/site/not-found-routes.e2e.mjs` |
+| R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run`; trang 404: `tests/site/static-locales.test.mjs`, `tests/site/not-found-routes.e2e.mjs` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
 
