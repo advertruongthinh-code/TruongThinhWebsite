@@ -339,15 +339,14 @@
       !hasGsap ||
       reduceMotion
     ) {
-      if (hasGsap) gsap.killTweensOf(targets, "color,stroke");
+      if (hasGsap) gsap.killTweensOf(targets);
       colorTargets.forEach((target) => target.style.setProperty("color", color));
       strokeTargets.forEach((target) => target.style.setProperty("stroke", color));
       return;
     }
-    // Chỉ hủy tween màu: opacity của cụm logo đang chạy cùng veil (logo-route-crossfade R7).
-    gsap.killTweensOf(targets, "color,stroke");
+    gsap.killTweensOf(targets);
     gsap
-      .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: "auto" } })
+      .timeline({ defaults: { duration: 0.3, ease: "expo.out", overwrite: true } })
       .to(colorTargets, { color }, 0)
       .to(strokeTargets, { stroke: color }, 0);
   };
@@ -528,7 +527,7 @@
   let headerMarkRise = 0;
   let headerMarkFade;
   // Đổi lớp màu mark; lớp mới mọc từ chân lên đỉnh từng dải, lớp cũ lùi theo mép mọc (brand.md Motion).
-  // `fade` (chuyển trang, logo-route-crossfade R1, R2): lớp cũ nằm trên lớp mới và mờ dần theo nhịp veil.
+  // `fade` (chuyển trang, logo-route-crossfade R1, R2): lớp cũ nằm trên lớp mới và mờ dần cùng tween màu chữ.
   const paintHeaderMark = (
     className,
     { from = headerMarkPaths.map((path) => getComputedStyle(path).fill), rise = true, fade } = {},
@@ -653,7 +652,7 @@
     routeDestinationReady = false;
     colorHeader("#2f2f2f");
     routeMarkHeld = true;
-    syncHeaderBrandSurface(true, { duration: 0.75, ease: "power4.inOut" });
+    syncHeaderBrandSurface(true, { duration: 0.3, ease: "expo.out" });
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
@@ -1936,8 +1935,6 @@
     if (routeMarkHeld) syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "power2.out" });
     routeMarkHeld = false;
     setRouteVeil(0);
-    // Route hủy hoặc lỗi giữa chừng không để logo kẹt ở độ mờ dở (logo-route-crossfade R7).
-    if (hasGsap) window.gsap.set(headerLogo, { clearProps: "opacity" });
     // Intro chưa từng được chạy sẽ để header ở giá trị bắt đầu from() của nó.
     if (pageState?.headerIntro?.paused()) pageState.headerIntro.progress(1);
     pageState?.smoothScroll?.start();
@@ -1956,12 +1953,12 @@
         return;
       }
       routeTimeline?.kill();
-      // Cả cụm logo mờ cùng tween với veil, từ độ mờ đang có (logo-route-crossfade R7).
-      const cover = { duration: 0.75, ease: "power4.inOut" };
-      routeTimeline = window.gsap
-        .timeline({ onComplete: resolve })
-        .to(routeVeil, { opacity: 1, ...cover }, 0)
-        .to(headerLogo, { opacity: 0, ...cover }, 0);
+      routeTimeline = window.gsap.to(routeVeil, {
+        opacity: 1,
+        duration: 0.75,
+        ease: "power4.inOut",
+        onComplete: resolve,
+      });
     });
     return Promise.all([fade, Promise.resolve(waitFor)]);
   };
@@ -1978,23 +1975,22 @@
     setRouteVeil(1);
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
-      // Mark đổi theo trang đích cùng nhịp veil mở (logo-route-crossfade R2, R3); vẫn giữ tới clearRouteEntry
-      // để updateHeader trong lúc veil mở không vẽ lại mark.
+      // Mark crossfade theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);
+      // vẫn giữ tới clearRouteEntry để updateHeader trong lúc veil mở không vẽ lại mark.
       updateToneRanges();
       updateHeader();
-      syncHeaderBrandSurface(pageHeaderInk, { duration: 1, ease: "power4.inOut" });
+      syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "expo.out" });
     }
     return new Promise((resolve) => {
-      const uncover = { duration: 1, ease: "power4.inOut" };
-      routeTimeline = window.gsap
-        .timeline({
-          onComplete: () => {
-            clearRouteEntry();
-            resolve();
-          },
-        })
-        .to(routeVeil, { opacity: 0, ...uncover }, 0)
-        .to(headerLogo, { opacity: 1, ...uncover }, 0);
+      routeTimeline = window.gsap.to(routeVeil, {
+        opacity: 0,
+        duration: 1,
+        ease: "power4.inOut",
+        onComplete: () => {
+          clearRouteEntry();
+          resolve();
+        },
+      });
     });
   };
 
@@ -2123,8 +2119,6 @@
 
     // Class màu mark là state runtime; HTML trang mới không có nên giữ lại để mark không vẽ lại.
     const brandClasses = [...header.classList].filter((name) => name.startsWith("is-brand-"));
-    // Opacity cụm logo đang mờ dưới veil (R7) cũng là state runtime; syncAttributes xóa style inline.
-    const logoOpacity = headerLogo?.style.opacity;
     const persistentReady = persistentSelectors.every((selector) =>
       syncElementTree(
         document.querySelector(selector),
@@ -2132,7 +2126,6 @@
       ),
     );
     header.classList.add(...brandClasses);
-    if (logoOpacity) headerLogo.style.opacity = logoOpacity;
     if (!persistentReady) return false;
     // syncAttributes vừa trả `d` của mark về bản gốc từ HTML trang mới.
     brandLockups.forEach(snapBrandMark);
