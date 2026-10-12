@@ -136,8 +136,8 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | FLIP scale | Toàn cụm, `300ms expo.out`, neo góc trái trên | Đổi giữa expanded và sticky, cả hai chiều, cả mobile |
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
 | Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới, trừ chuyển trang |
-| Màu mark khi chuyển trang | Crossfade: lớp cũ nằm trên lớp mới, opacity `1 → 0` cùng nhịp veil (phủ `0.75s`, mở `1s`, `power4.inOut`) | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
-| Cụm logo khi chuyển trang | Cả cụm (mark và chữ) opacity `1 → 0` cùng veil phủ `0.75s`, `0 → 1` cùng veil mở `1s`, `power4.inOut` | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cả-cụm-logo-mờ-và-hiện-cùng-veil)) |
+| Màu mark khi chuyển trang | Crossfade: lớp cũ nằm trên lớp mới, opacity `1 → 0` `0.3s expo.out`, cùng tween màu chữ; sang CMYK lúc bấm, về trắng lúc veil bắt đầu mở | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Cụm logo khi chuyển trang | Cả cụm luôn hiện (opacity `1`) trên veil, theo Espacio | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cụm-logo-luôn-hiện-trên-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
 Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, đồng
@@ -191,13 +191,14 @@ sẵn sàng.
 | Chưa vẽ | Mở trang trên nền trắng | CMYK | CMYK mọc lên trên lớp đen `#2b2a29` |
 | Trắng | Cuộn thành sticky, vào section nền trắng | CMYK | CMYK mọc lên trên lớp trắng |
 | CMYK | Về đầu trang trên ảnh, vào section nền tối | Trắng | Trắng mọc lên trên lớp CMYK |
-| Trắng | Bắt đầu chuyển route | CMYK | Crossfade cùng veil phủ |
-| CMYK | Veil mở, trang đích có hero ảnh | Trắng | Crossfade cùng veil mở |
+| Trắng | Bấm link chuyển route | CMYK | Crossfade `0.3s` cùng chữ |
+| CMYK | Veil bắt đầu mở, trang đích có hero ảnh | Trắng | Crossfade `0.3s` cùng chữ |
 | Đang mọc | Đổi hướng giữa chừng | Trạng thái mới | Phần đang hiển thị thành lớp cũ, lớp mới mọc lại từ chân |
 
 - Chuyển route: khi bấm link, header ghim lại ở tone mực và mark crossfade sang
-  CMYK; mark giữ CMYK suốt lúc veil phủ kín (HTML trang đích không làm vẽ lại
-  mark), rồi crossfade theo tone trang đích cùng lúc veil mở. Trang hero trắng
+  CMYK cùng chữ; logo luôn hiện trên veil, mark giữ CMYK suốt lúc veil phủ kín
+  (HTML trang đích không làm vẽ lại mark), rồi crossfade theo tone trang đích
+  lúc veil bắt đầu mở. Trang hero trắng
   đổi màu tối đa một lần. Bấm link lúc mark đang mọc dở thì phần đang hiển thị
   thành lớp cũ của crossfade.
 - Full menu đứng ngoài state machine: mark luôn CMYK từ frame đầu, đóng hay
