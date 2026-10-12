@@ -733,7 +733,7 @@ function assertPersistentNavigationContracts() {
     "The approved 0.75s cover / 1s reveal veil timing changed",
   );
   assert(
-    /async leave\(data\)[\s\S]*await coverRoute\([\s\S]*unmountPage\(\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
+    /async leave\(data\)[\s\S]*await coverRouteFromMenu\(\)[\s\S]*unmountPage\(\);[\s\S]*data\.current\.container\.hidden\s*=\s*true/.test(
       motionSource,
     ),
     "The outgoing Barba container is not removed from flow while fully covered",
@@ -8569,6 +8569,8 @@ async function runMotionAbortFailOpenChecks() {
         await page.waitForFunction(() =>
           document.documentElement.classList.contains("motion-fallback"),
         );
+        // Chờ catalog Advertising dựng xong: catalog gắn sau khi đã cuộn sẽ kéo trang từ 640 về khoảng 132.
+        await page.evaluate(() => window.TruongThinhDetail?.mount());
         await page.evaluate(() => {
           document.documentElement.style.scrollBehavior = "auto";
           window.scrollTo(0, 640);
@@ -9669,15 +9671,15 @@ async function runHomeMotionRegressionCheck() {
     "Automatic cross-document View Transition code is still active",
   );
   const routeMotionTokens = [
-    "const coverRoute = (waitFor) => {",
+    "const coverRoute = () => {",
     'document.body.classList.add("is-transitioning")',
     "const fade = new Promise((resolve) => {",
     "opacity: 1,",
     "duration: 0.75,",
     'ease: "power4.inOut"',
-    "return Promise.all([fade, Promise.resolve(waitFor)]);",
+    "return fade;",
     "async leave(data) {",
-    "await coverRoute(closeMenu(false));",
+    "await coverRouteFromMenu();",
     "data.current.container.hidden = true;",
   ];
   let routeMotionCursor = -1;

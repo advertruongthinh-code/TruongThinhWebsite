@@ -1889,6 +1889,8 @@
         { height: "100vh", duration: 0.6, ease: "power4.inOut", stagger: 0.15 },
         0,
       )
+      // Hết shutter, bắt đầu chữ menu; route đóng menu tại đây khi reverse (coverRouteFromMenu).
+      .addLabel("content")
       .fromTo(menuBrand, { y: -140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, 1.15)
       .fromTo(menuLanguageItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
       .fromTo(menuAppointmentItems, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "expo.out" }, 1.15)
@@ -1926,7 +1928,7 @@
     pageState?.smoothScroll?.start();
   };
 
-  const coverRoute = (waitFor) => {
+  const coverRoute = () => {
     routeInFlight = true;
     routeMountReady = false;
     pinHeaderForRoute();
@@ -1946,7 +1948,27 @@
         onComplete: resolve,
       });
     });
-    return Promise.all([fade, Promise.resolve(waitFor)]);
+    return fade;
+  };
+
+  // Route từ full menu: menu reverse cùng lúc veil phủ. Shutter trắng trùng veil và trang cũ nằm dưới veil, nên
+  // đóng menu ngay khi veil phủ kín và chữ menu đã reverse xong, không chờ shutter và page scale.
+  const coverRouteFromMenu = () => {
+    const covered = coverRoute();
+    const closing = closeMenu(false);
+    if (dialog.open && hasGsap && !reduceMotion && menuTimeline) {
+      const contentGone = new Promise((resolve) => window.gsap.delayedCall(
+        // timeScale() âm khi timeline đang reverse.
+        Math.max(0, menuTimeline.time() - menuTimeline.labels.content) / Math.abs(menuTimeline.timeScale()),
+        resolve,
+      ));
+      Promise.all([covered, contentGone]).then(() => {
+        if (menuClosePromise !== closing) return;
+        menuPageTween?.eventCallback("onComplete", null);
+        finishClose(false);
+      });
+    }
+    return Promise.all([covered, closing]);
   };
 
   const playRouteEnter = () => {
@@ -2275,7 +2297,7 @@
         return true;
       }
       // Đổi ngôn ngữ dùng cùng veil với route mềm: phủ, đổi chữ dưới veil, rồi mở; reduced motion không veil.
-      await (reduceMotion ? closeMenu(false) : coverRoute(closeMenu(false)));
+      await (reduceMotion ? closeMenu(false) : coverRouteFromMenu());
 
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
@@ -2803,7 +2825,7 @@
                 rememberCurrentScroll(data);
               },
               async leave(data) {
-                await coverRoute(closeMenu(false));
+                await coverRouteFromMenu();
                 // Chờ catalog trước khi unmount: gỡ smooth scroll làm scrollbar native hiện và đẩy header sang trái
                 // suốt lúc chờ mạng.
                 await advertisingCatalogLoad;
