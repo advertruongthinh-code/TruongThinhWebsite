@@ -137,6 +137,7 @@ device pixel mỗi khi lockup đổi cỡ và sau route mềm (owner duyệt 10/
 | Tone cụm chữ | Đổi đen và trắng `0.3s expo.out`, cùng nav và hamburger | Mỗi lần header đổi tone |
 | Màu mark | Bốn dải mọc từ chân lên, cùng xong ở `1s` | Theo state machine dưới, trừ chuyển trang |
 | Màu mark khi chuyển trang | Crossfade: lớp cũ nằm trên lớp mới, opacity `1 → 0` cùng nhịp veil (phủ `0.75s`, mở `1s`, `power4.inOut`) | Route mềm và đổi ngôn ngữ ([spec](../docs/specs/logo-route-crossfade.md)) |
+| Cụm logo khi chuyển trang | Cả cụm (mark và chữ) opacity `1 → 0` cùng veil phủ `0.75s`, `0 → 1` cùng veil mở `1s`, `power4.inOut` | Route mềm và đổi ngôn ngữ ([R7](../docs/specs/logo-route-crossfade.md#r7-cả-cụm-logo-mờ-và-hiện-cùng-veil)) |
 | Vào full menu | Cụm `y -140 → 0`, opacity `0 → 1`, `0.6s expo.out` | Mark CMYK ngay frame đầu, không pha đen |
 
 Mỗi lần mark đổi màu, lớp màu mới mọc từ chân lên tới đỉnh của từng dải, đồng
