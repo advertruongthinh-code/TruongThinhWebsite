@@ -72,7 +72,9 @@ try {
             labelWidth: Math.max(...[...footer.querySelectorAll("span")].map(e => e.getBoundingClientRect().width)),
             icons: footer.querySelectorAll(".footer-icon[aria-hidden='true']").length,
             padding: ["Top", "Right", "Left"].map(side => Number.parseFloat(getComputedStyle(footer)[`padding${side}`])),
-            socialsRight: footer.querySelector(".footer-socials").getBoundingClientRect().right,
+            columnGap: Number.parseFloat(getComputedStyle(footer).columnGap),
+            contactRight: Math.max(...[".footer-address", ".footer-hotline", ".footer-office"].map(s => footer.querySelector(s).getBoundingClientRect().right)),
+            socialsLeft: footer.querySelector(".footer-socials").getBoundingClientRect().left,
           };
         });
         // Advertising browse bỏ gap trên footer: skeleton batch của nó lấp khoảng đó.
@@ -80,7 +82,7 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, rộng hơn 980px icon mạng xã hội chạm lề phải và đệm dọc bằng gutter.
+        // lề phải bằng lề trái, rộng hơn 980px đệm dọc bằng gutter. Cột mạng xã hội sát cột liên hệ, cách đúng column-gap.
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
@@ -89,13 +91,13 @@ try {
         assert.equal(padRight, padLeft, JSON.stringify({ width, route, result }));
         if (width > 980) {
           assert.equal(padTop, padLeft, JSON.stringify({ width, route, result }));
-          assert.ok(Math.abs(result.socialsRight - (width - padRight)) <= 1, JSON.stringify({ width, route, result }));
         }
+        assert.ok(Math.abs(result.socialsLeft - result.contactRight - result.columnGap) <= 1, JSON.stringify({ width, route, result }));
         if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
         assert.ok(Math.abs(result.topGap - expectedTopGap) <= 1,
           JSON.stringify({ width, route, locale, result, expectedTopGap }));
         assert.equal(result.marginTop, expectedTopGap);
-        assert.deepEqual(result.children, ["footer-hotline", "footer-office", "footer-address", "footer-socials"]);
+        assert.deepEqual(result.children, ["footer-address", "footer-hotline", "footer-office", "footer-socials"]);
         assert.deepEqual(result.phones, [["tel:+84949131050", "+84 949 131 050"], ["tel:+842753813753", "+84 275 381 3753"]]);
         assert.equal(result.invitation, 0);
         assert.deepEqual(result.socials, ["facebook", "tiktok", "youtube"]);

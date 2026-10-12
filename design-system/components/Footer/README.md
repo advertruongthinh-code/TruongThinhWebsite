@@ -15,13 +15,12 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
   mép trang, không viền dưới.
 - Đệm bốn phía bằng `gutter`; không chừa làn
   [Floating CTA](../FloatingCta/README.md) vì nút ẩn khi footer lọt vào viewport.
-- Rộng hơn 980px: một dải, nội dung căn giữa dọc: hai số xếp cột | địa chỉ rộng
-  tối đa 24rem | icon mạng xã hội sát lề phải. Cao khoảng 135px ở 1440px,
-  112px ở `≤1200px`.
+- Hai cột sát nhau ở mọi cỡ, căn trái: cột liên hệ (địa chỉ trên cùng, rồi
+  Hotline, Văn phòng) rộng theo địa chỉ, co lại và xuống dòng khi thiếu chỗ;
+  cột mạng xã hội ngay cạnh. Phần còn lại bên phải để trống. Cao khoảng 176px ở
+  1440px, 150px ở 1024px.
 - Nhịp theo Espacio: các dòng xếp chồng cách 16px (10px khi cửa sổ cao
   `≤640px`), cột cách 70px, 35px ở `≤1200px`, line-height 1.4.
-- Từ 980px trở xuống: cột trái Hotline, Văn phòng, icon mạng xã hội; cột phải
-  địa chỉ.
 - Hotline (cũng là số Zalo) 600 xếp trên Văn phòng 500; cùng cỡ
   `clamp(1rem, 1.2vw, 1.15rem)`, chữ số `tabular-nums` nên thẳng hàng. Số màu
   `ink`, dạng `+84`, link `tel:`, cùng chuỗi ở VI và EN. Hover không có motion
@@ -41,13 +40,12 @@ Nhà ở, Kinh doanh, Giới thiệu bỏ khối này vì `.detail-cta` đã m�
 
 ## Footer gọn
 
-Từ 750px trở xuống, chữ liên hệ `1rem`, icon mạng xã hội 24px cách nhau 14px,
-lề hai bên `gutter`. Footer không cao quá 38.2% viewport:
+Từ 750px trở xuống, chữ liên hệ `1rem`, cột cách 24px, lề hai bên `gutter`.
+Icon mạng xã hội 24px xếp dọc, cách nhau 8px, để cột icon hẹp và không cao hơn
+ba dòng liên hệ. Footer không cao quá 38.2% viewport:
 
-- Dọc: một cột Hotline, Văn phòng, địa chỉ, icon nằm ngang; đệm dọc 20px.
-  Cao khoảng 203px ở 390×844.
-- Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ; đệm dọc 14px.
-  Cao khoảng 118px ở 568×320.
+- Dọc: đệm dọc 20px; địa chỉ xuống hai dòng. Cao khoảng 163px ở 390×844.
+- Ngang: đệm dọc 14px; địa chỉ một dòng. Cao khoảng 117px ở 568×320.
 - Floating CTA không hiện ở cuối trang vì lời mời và `.detail-cta` đã có nút
   Zalo, và ẩn khi footer lọt vào viewport (404).
 

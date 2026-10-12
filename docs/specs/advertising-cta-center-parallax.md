@@ -87,15 +87,13 @@ And tiêu đề không nhỏ hơn 20.8px
 ### R4. Footer ở cửa sổ nhỏ và điện thoại
 
 Footer ở mọi trang VI/EN không cao quá `38.2%` viewport khi rộng tới 750px hoặc cao tới 640px, để vùng CTA chiếm ít nhất
-`61.8%`; giữ nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): Hotline, Văn phòng, địa chỉ,
-mạng xã hội. Footer gọn (`@media (max-width: 750px)` trong `style.css`):
+`61.8%`; giữ nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): cột liên hệ (địa chỉ,
+Hotline, Văn phòng) và cột mạng xã hội sát cạnh. Footer gọn (`@media (max-width: 750px)` trong `style.css`):
 
-- Dọc (`orientation: portrait`): một cột Hotline, Văn phòng, địa chỉ, icon mạng xã hội nằm ngang; lề hai bên bằng
-  `gutter`; các dòng cách 16px. Cao khoảng 203px ở 390×844.
-- Ngang: cột trái Hotline, Văn phòng, icon; cột phải địa chỉ. Cửa sổ cao `≤640px` dòng cách 10px. Cao khoảng 118px
-  (568×320: 36.8%).
-- Màn ngang thấp rộng hơn 750px dùng footer thường: một dải khoảng 112px, hai cột khoảng 144px từ 980px trở xuống
-  (844×390: 36.9%).
+- Icon mạng xã hội xếp dọc, cách 8px, thành cột hẹp cạnh cột liên hệ; lề hai bên bằng `gutter`; các dòng cách 16px.
+- Dọc: địa chỉ hai dòng. Cao khoảng 163px ở 390×844.
+- Ngang: địa chỉ một dòng; cửa sổ cao `≤640px` dòng cách 10px. Cao khoảng 117px (568×320: 36.6%).
+- Màn ngang thấp rộng hơn 750px dùng footer thường, cao khoảng 138px (844×390: 35.4%).
 - Floating CTA không hiện ở cuối trang (đã có nút Zalo của trang) và ẩn khi footer lọt vào viewport (404), nên footer
   không chừa làn nút.
 - Icon thay nhãn chữ; nhãn ẩn bằng mắt cho trình đọc màn hình; footer có viền trên.
@@ -105,7 +103,7 @@ Cỡ icon, khoảng cách, chiều cao hàng ở [UI](#ui).
 ```gherkin
 Given điện thoại 390×844 ở bất kỳ trang nào
 When người xem cuộn tới footer
-Then footer gọn giữ điện thoại, địa chỉ, mạng xã hội trong một cột, cao không quá 38.2% viewport
+Then footer gọn giữ địa chỉ, điện thoại trong một cột, icon mạng xã hội xếp dọc bên cạnh, cao không quá 38.2% viewport
 And floating CTA không hiện, nút Zalo của trang thay nó
 ```
 
