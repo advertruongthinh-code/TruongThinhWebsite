@@ -12188,8 +12188,8 @@ async function runFooterRuntimeChecks() {
           const expectedTopGap = route.endsWith("/advertising-products/") ? 0 : viewport.width <= 750 ? 48 : 64;
           assert(
             state.spacing?.marginTop === expectedTopGap &&
-              // Desktop đệm dọc bằng gutter 35px, điện thoại dọc 20px; không chừa làn floating CTA.
-              state.spacing.paddingBottom === (viewport.width <= 750 ? 20 : 35) &&
+              // Đệm dọc desktop 3.5vw (1440px: 50.4px), điện thoại dọc 32px; không chừa làn floating CTA.
+              Math.abs(state.spacing.paddingBottom - (viewport.width <= 750 ? 32 : 50.4)) <= 0.1 &&
               state.address &&
               state.social.every(
                 (item) =>

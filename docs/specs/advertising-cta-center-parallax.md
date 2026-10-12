@@ -74,11 +74,11 @@ không có transition để runtime đo đúng cỡ mới ngay.
 Dưới chân chữ cần chỗ cho phần còn lại của dòng cuối, một khoảng giữa, nút và một khoảng giữa tới đáy batch.
 `fitGridCtaHeading` so phần dưới chân chữ ở cỡ CSS với chỗ còn `vh/2 − footer − khoảng giữa`: đủ thì giữ cỡ CSS; thiếu thì
 đo lại ở `1.3rem` và nội suy tuyến tính giữa hai cỡ, ghi `font-size` inline vừa đủ chỗ, không dưới `1.3rem` và không quá
-cỡ CSS. Phần trên chân chữ không giới hạn cỡ chữ vì CTA cao thêm (R2). Ví dụ với footer thường: 1366×645 còn khoảng
-34.6px, 1366×662 giữ cỡ CSS.
+cỡ CSS. Phần trên chân chữ không giới hạn cỡ chữ vì CTA cao thêm (R2). Ví dụ: 844×390 thu về 20.8px; 1366×645 với footer
+laptop gọn (177px, R4) giữ cỡ CSS.
 
 ```gherkin
-Given cửa sổ 1366×645 với footer thường
+Given cửa sổ 844×390
 When người xem cuộn tới cuối trang
 Then tiêu đề nhỏ lại vừa đủ để chân chữ dòng cuối nằm trên đường giữa
 And tiêu đề không nhỏ hơn 20.8px
@@ -90,10 +90,13 @@ Footer ở mọi trang VI/EN không cao quá `38.2%` viewport khi rộng tới 7
 `61.8%`; giữ nội dung và thứ tự của [footer thường](site-shell.md#r10-floating-cta-và-footer): địa chỉ,
 Hotline, Văn phòng, mạng xã hội. Footer gọn (`@media (max-width: 750px)` trong `style.css`):
 
-- Icon mạng xã hội 28px cách 16px; lề hai bên bằng `gutter`; hai số cách 16px (10px khi cửa sổ cao `≤640px`).
-- Dọc: địa chỉ rồi hai số ở cột trái, icon xếp dọc ở cột phải. Cao khoảng 193px ở 390×844.
-- Ngang: địa chỉ hàng trên, hai số cạnh nhau hàng dưới, icon nằm ngang bên phải. Cao khoảng 112px (568×320: 34.9%).
-- Màn ngang thấp rộng hơn 750px dùng footer ba cột, cao khoảng 127px (844×390: 32.5%).
+- Icon mạng xã hội luôn xếp dọc ở cột phải, 28px cách 16px; đệm dọc 32px; lề hai bên bằng `gutter`; hai số cách
+  16px (10px khi cửa sổ cao `≤640px`).
+- Dọc: địa chỉ rồi hai số ở cột trái. Cao khoảng 187px ở 390×844, 197px ở 320×568 (34.7%).
+- Cửa sổ cao `≤640px` nằm ngang (cả màn rộng hơn 750px): icon 24px cách 8px, đệm dọc 14px. Dưới 750px địa chỉ hàng
+  trên, hai số cạnh nhau hàng dưới. Cao 117px (568×320: 36.6%, 844×390: 30%).
+- Laptop rộng hơn 750px, cao 641-799px: đệm dọc 24px, icon cách 10px, cao 177px, để tiêu đề CTA giữ cỡ CSS ở
+  1366×657 (footer 245px làm tiêu đề thu về 20.8px).
 - Floating CTA không hiện ở cuối trang (đã có nút Zalo của trang) và ẩn khi footer lọt vào viewport (404), nên footer
   không chừa làn nút.
 - Icon thay nhãn chữ; nhãn ẩn bằng mắt cho trình đọc màn hình; footer có viền trên.
@@ -205,7 +208,7 @@ E2E cần `pnpm dev`, `BASE_URL`. `advertising-continuation.e2e.mjs` chạy ph�
 | R1 | `advertising-continuation.e2e.mjs` (chân chữ trên đường giữa sai số 1px, nút một khoảng giữa dưới dòng cuối, CTA và footer không bị cắt); 320px, route mềm, Back chưa có ca CTA |
 | R2 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch trùng đáy CTA, chiều cao grid); `node --test tests/site/advertising-skeleton-flow.test.mjs` (đáy khung cuối mỗi cột) |
 | R3 | `advertising-continuation.e2e.mjs` (tiêu đề từ 20.8px); ca giảm cỡ 1366×645 chưa có test |
-| R4 | `footer-consistency.e2e.mjs` (mười ba cỡ, icon 28px, nhãn ẩn, không logo, không quá 38.2% viewport kể cả 568×320, CTA ẩn ở cuối trang, không đè nội dung footer ở 404) |
+| R4 | `footer-consistency.e2e.mjs` (mười ba cỡ, icon 36/28/24px, nhãn ẩn, không logo, không quá 38.2% viewport kể cả 568×320, CTA ẩn ở cuối trang, không đè nội dung footer ở 404) |
 | R5 | `advertising-continuation.e2e.mjs` (chấp nhận nhánh nút cách đáy CTA một khoảng giữa); 568×280 chưa có ca riêng |
 | R6 | `advertising-continuation.e2e.mjs` (100px cuộn lệch 90px, 0 tại cuối); `mobile-layout-parity.e2e.mjs` (`checkCtaReflow`: chữ phóng to ở 390×844 và 838×387, cụm nằm trong CTA, ba engine) |
 | R7 | `advertising-continuation.e2e.mjs` (bật giảm chuyển động giữa trang thì độ lệch về 0) |

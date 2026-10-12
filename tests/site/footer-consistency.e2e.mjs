@@ -83,18 +83,17 @@ try {
         expectedHeight ??= result.height;
         assert.ok(Math.abs(result.height - expectedHeight) < 1, JSON.stringify({ width, route, locale, result, expectedHeight }));
         // Viền trên tràn mép trang; không logo; hotline đậm hơn số bàn. Không chừa làn floating CTA:
-        // lề phải bằng lề trái, rộng hơn 980px đệm dọc bằng gutter. Ba cột: địa chỉ sát lề trái, mạng xã hội
-        // sát lề phải; địa chỉ chữ lớn hơn hai số; kéo chuột bôi đen được số (link không kéo đi).
+        // lề phải bằng lề trái, màn thường đệm dọc từ 40px. Ba cột: địa chỉ sát lề trái, mạng xã hội
+        // xếp dọc sát lề phải; địa chỉ cùng cỡ chữ hai số; kéo chuột bôi đen được số (link không kéo đi).
+        // Cửa sổ thấp nằm ngang dùng icon 24px để footer không quá 38.2% viewport.
         assert.equal(result.width, width);
         assert.equal(result.borderTop, "1px");
         assert.equal(result.lockups, 0);
         assert.deepEqual(result.weights, ["600", "500"]);
         const [padTop, padRight, padLeft] = result.padding;
         assert.equal(padRight, padLeft, JSON.stringify({ width, route, result }));
-        if (width > 980) {
-          assert.equal(padTop, padLeft, JSON.stringify({ width, route, result }));
-        }
-        assert.ok(result.fontSizes[0] > result.fontSizes[1], JSON.stringify({ width, route, result }));
+        if (!small) assert.ok(padTop >= 40, JSON.stringify({ width, route, result }));
+        assert.equal(result.fontSizes[0], result.fontSizes[1], JSON.stringify({ width, route, result }));
         assert.deepEqual(result.numbersDraggable, ["none", "none"]);
         assert.ok(Math.abs(result.contactLeft - (width - result.socialsRight)) <= 1, JSON.stringify({ width, route, result }));
         if (small) assert.ok(result.height <= height * 0.382, JSON.stringify({ width, height, route, result }));
@@ -105,7 +104,7 @@ try {
         assert.deepEqual(result.phones, [["tel:+84949131050", "+84 949 131 050"], ["tel:+842753813753", "+84 275 381 3753"]]);
         assert.equal(result.invitation, 0);
         assert.deepEqual(result.socials, ["facebook", "tiktok", "youtube"]);
-        assert.equal(result.socialSize, width <= 750 ? 28 : 36);
+        assert.equal(result.socialSize, height <= 640 && width > height ? 24 : width <= 750 ? 28 : 36);
         assert.ok(result.labelWidth <= 1, "icons replace visible footer labels");
         assert.equal(result.icons, 3);
         assert.ok(result.address.includes("E16 Khu đô thị Hưng Phú"));
