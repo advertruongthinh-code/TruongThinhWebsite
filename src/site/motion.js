@@ -653,7 +653,7 @@
     routeDestinationReady = false;
     colorHeader("#2f2f2f");
     routeMarkHeld = true;
-    syncHeaderBrandSurface(true, { duration: 0.75, ease: "power4.inOut" });
+    syncHeaderBrandSurface(true, { duration: 0.3, ease: "expo.out" });
     void header.offsetHeight;
     header.style.removeProperty("transition-duration");
   };
@@ -1956,12 +1956,9 @@
         return;
       }
       routeTimeline?.kill();
-      // Cả cụm logo mờ cùng tween với veil, từ độ mờ đang có (logo-route-crossfade R7).
-      const cover = { duration: 0.75, ease: "power4.inOut" };
       routeTimeline = window.gsap
         .timeline({ onComplete: resolve })
-        .to(routeVeil, { opacity: 1, ...cover }, 0)
-        .to(headerLogo, { opacity: 0, ...cover }, 0);
+        .to(routeVeil, { opacity: 1, duration: 0.75, ease: "power4.inOut" }, 0);
     });
     return Promise.all([fade, Promise.resolve(waitFor)]);
   };
@@ -1982,10 +1979,9 @@
       // để updateHeader trong lúc veil mở không vẽ lại mark.
       updateToneRanges();
       updateHeader();
-      syncHeaderBrandSurface(pageHeaderInk, { duration: 1, ease: "power4.inOut" });
+      syncHeaderBrandSurface(pageHeaderInk, { duration: 0.3, ease: "expo.out" });
     }
     return new Promise((resolve) => {
-      const uncover = { duration: 1, ease: "power4.inOut" };
       routeTimeline = window.gsap
         .timeline({
           onComplete: () => {
@@ -1993,8 +1989,7 @@
             resolve();
           },
         })
-        .to(routeVeil, { opacity: 0, ...uncover }, 0)
-        .to(headerLogo, { opacity: 1, ...uncover }, 0);
+        .to(routeVeil, { opacity: 0, duration: 1, ease: "power4.inOut" }, 0);
     });
   };
 
