@@ -2190,16 +2190,17 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   }
 }
 
-/* Ba cột như footer Espacio: địa chỉ sát lề trái | hai số điện thoại giữa trang | mạng xã hội xếp dọc sát lề
-   phải. Cột giữa `auto` nằm giữa hai cột `1fr` nên căn giữa trang. Đệm dọc rộng cho footer thoáng; floating
-   CTA không hiện cùng footer nên không chừa làn nút. Nhịp theo Espacio: hai số cách 16px, line-height 1.4. */
+/* Ba cột như footer Espacio: địa chỉ | hai số điện thoại | mạng xã hội xếp dọc. Ba cột co theo nội dung và
+   cụm ba cột nằm giữa trang nên biên trái phải bằng nhau. Đệm dọc rộng cho footer thoáng; floating CTA không
+   hiện cùng footer nên không chừa làn nút. Nhịp theo Espacio: hai số cách 16px, line-height 1.4. */
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
   /* Hàng hai 1fr hút phần cao dư của địa chỉ nhiều dòng để hai số luôn cách đúng 16px. */
   grid-template-rows: auto 1fr;
   align-items: baseline;
-  gap: 16px clamp(35px, 4vw, 70px);
+  gap: 16px clamp(56px, 7vw, 136px);
   margin-block-start: var(--footer-top-gap);
   padding: clamp(40px, 3.5vw, 64px) var(--gutter);
   border-top: 1px solid var(--line);
@@ -2263,7 +2264,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: 0.65rem;
-  font-size: clamp(1rem, 1.25vw, 1.375rem);
+  font-size: clamp(1.125rem, 1.5vw, 1.625rem);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -2271,7 +2272,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 /* Địa chỉ cùng cỡ chữ với hai số, chiếm cột trái suốt hai hàng. */
 .footer-address {
   grid-area: 1 / 1 / span 2;
-  max-width: 24em;
+  max-width: 18em;
 }
 
 /* Hotline (cũng là số Zalo) đậm hơn số bàn; hai số xếp cột giữa, chữ số thẳng hàng. Link có
@@ -2847,7 +2848,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .footer-hotline,
   .footer-office,
   .footer-address {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 
   .footer-social-list {
@@ -2897,6 +2898,11 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 
   .footer-socials {
     grid-area: 1 / 2 / span 3;
+  }
+
+  /* Cột hẹp: pretty ngắt sau "Hưng Phú," thay vì cắt đôi tên. */
+  .footer-address strong {
+    text-wrap: pretty;
   }
 }
 

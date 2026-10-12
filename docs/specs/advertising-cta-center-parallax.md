@@ -92,7 +92,7 @@ Hotline, Văn phòng, mạng xã hội. Footer gọn (`@media (max-width: 750px)
 
 - Icon mạng xã hội luôn xếp dọc ở cột phải, 28px cách 16px; đệm dọc 32px; lề hai bên bằng `gutter`; hai số cách
   16px (10px khi cửa sổ cao `≤640px`).
-- Dọc: địa chỉ rồi hai số ở cột trái. Cao khoảng 187px ở 390×844, 197px ở 320×568 (34.7%).
+- Dọc: địa chỉ rồi hai số ở cột trái, chữ 18px. Cao khoảng 223px ở 390×844, 211px ở 320×568 (37.1%).
 - Cửa sổ cao `≤640px` nằm ngang (cả màn rộng hơn 750px): icon 24px cách 8px, đệm dọc 14px. Dưới 750px địa chỉ hàng
   trên, hai số cạnh nhau hàng dưới. Cao 117px (568×320: 36.6%, 844×390: 30%).
 - Laptop rộng hơn 750px, cao 641-799px: đệm dọc 24px, icon cách 10px, cao 177px, để tiêu đề CTA giữ cỡ CSS ở

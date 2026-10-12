@@ -182,7 +182,7 @@ trượt vào từ phải; cuối trang không hiện lại vì đã có nút Za
 là nút vuông chỉ icon; Advertising browse ẩn nó. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
 Hotline (600) xếp trên Văn phòng (500), dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
 Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới. CTA ẩn khi footer lọt vào
-viewport (404) nên footer không chừa làn nút: lề hai bên `gutter`, đệm dọc rộng, ba cột như Espacio: địa chỉ (cùng cỡ chữ hai số) sát lề trái, Hotline trên Văn phòng ở giữa trang cách 16px, mạng xã hội xếp dọc sát lề phải; kéo chuột bôi đen copy được số. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
+viewport (404) nên footer không chừa làn nút: lề hai bên `gutter`, đệm dọc rộng, ba cột như Espacio, cụm ba cột nằm giữa trang với biên trái phải bằng nhau: địa chỉ (cùng cỡ chữ hai số), Hotline trên Văn phòng cách 16px, mạng xã hội xếp dọc; kéo chuột bôi đen copy được số. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
 
 ```gherkin
 Given trang chủ 1440px dài nhiều màn hình
