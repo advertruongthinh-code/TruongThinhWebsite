@@ -225,8 +225,89 @@
       mask.style.setProperty("--mask-ink-overflow-bottom", bottomValue);
     });
   };
+  // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
+  // max(0.1em, 6px); thiếu thì chỉ giãn đúng cặp dòng đó. Mực từng ký tự đo bằng canvas, vị trí chữ
+  // lấy ở trạng thái cuối animation (.heritage-line nâng 0.1em khi motion bật).
+  const fitHeritageGaps = () => {
+    if (!maskContext) return false;
+    const root = document.documentElement;
+    const lift = root.classList.contains("motion-enabled") && !root.classList.contains("motion-fallback") ? 0.1 : 0;
+    let changed = false;
+    document.querySelectorAll(".heritage-rows").forEach((rowsRoot) => {
+      const rows = [...rowsRoot.querySelectorAll(".heritage-row")];
+      const before = rows.map((row) => row.style.cssText);
+      rows.forEach((row) => {
+        row.style.removeProperty("margin-top");
+        row.style.removeProperty("row-gap");
+      });
+      const images = [];
+      const inks = [];
+      rows.forEach((row, rowIndex) => {
+        row.querySelectorAll(".heritage-image").forEach((image) => {
+          // Tâm lấy từ rect, kích thước từ layout box để bỏ scale lúc reveal.
+          const { left, top, width, height } = image.getBoundingClientRect();
+          const dx = (width - image.offsetWidth) / 2;
+          const dy = (height - image.offsetHeight) / 2;
+          images.push({ row: rowIndex, left: left + dx, right: left + width - dx, top: top + dy, bottom: top + height - dy });
+        });
+        row.querySelectorAll(".heritage-text").forEach((mask) => {
+          const line = mask.querySelector(".heritage-line");
+          if (!line) return;
+          const style = getComputedStyle(line);
+          const fontSize = Number.parseFloat(style.fontSize);
+          maskContext.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          // Bỏ transform đang chạy của dòng chữ, thay bằng vị trí cuối.
+          const shift = line.getBoundingClientRect().top - mask.getBoundingClientRect().top + lift * fontSize;
+          const range = document.createRange();
+          [...line.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).forEach((node) => {
+            const text = node.textContent;
+            for (let index = 0; index < text.length; index += 1) {
+              if (!text[index].trim()) continue;
+              range.setStart(node, index);
+              range.setEnd(node, index + 1);
+              const box = range.getBoundingClientRect();
+              // Motto luôn text-transform uppercase.
+              const metrics = maskContext.measureText(text[index].toUpperCase());
+              const baseline = box.top - shift + metrics.fontBoundingBoxAscent;
+              const top = baseline - metrics.actualBoundingBoxAscent;
+              inks.push({ row: rowIndex, left: box.left, right: box.right, top, bottom: baseline + metrics.actualBoundingBoxDescent });
+            }
+          });
+        });
+      });
+      const marginAdd = rows.map(() => 0);
+      const rowGapAdd = rows.map(() => 0);
+      images.forEach((image) => {
+        const fontSize = Number.parseFloat(getComputedStyle(rows[image.row]).fontSize);
+        // +1px cho viền antialias của dấu.
+        const need = Math.max(0.1 * fontSize, 6) + 1;
+        inks.forEach((ink) => {
+          if (ink.right <= image.left || ink.left >= image.right) return;
+          const below = ink.top + ink.bottom > image.top + image.bottom;
+          const add = need - (below ? ink.top - image.bottom : image.top - ink.bottom);
+          if (add <= 0) return;
+          const upper = below ? image.row : ink.row;
+          const lower = below ? ink.row : image.row;
+          // Cùng hàng là dòng wrap trên phone: giãn row-gap của hàng; khác hàng: giãn margin hàng dưới.
+          if (upper === lower) rowGapAdd[upper] = Math.max(rowGapAdd[upper], add);
+          else if (lower === upper + 1) marginAdd[lower] = Math.max(marginAdd[lower], add);
+        });
+      });
+      rows.forEach((row, index) => {
+        const style = getComputedStyle(row);
+        if (marginAdd[index]) row.style.marginTop = `${Number.parseFloat(style.marginTop) + marginAdd[index]}px`;
+        if (rowGapAdd[index]) row.style.rowGap = `${(Number.parseFloat(style.rowGap) || 0) + rowGapAdd[index]}px`;
+        if (row.style.cssText !== before[index]) changed = true;
+      });
+    });
+    return changed;
+  };
   const scheduleTextMaskMeasurement = () =>
-    window.requestAnimationFrame(measureTextMasks);
+    window.requestAnimationFrame(() => {
+      measureTextMasks();
+      // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
+      if (fitHeritageGaps()) requestLayoutUpdate();
+    });
 
   const translateTree = (root, language) => {
     const textNodes = [

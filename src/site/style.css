@@ -1171,11 +1171,6 @@ em {
     );
   }
 
-  .heritage-row {
-    max-width: 100%;
-    flex-wrap: wrap;
-  }
-
   .heritage-row .heritage-text {
     min-width: 0;
     max-width: 100%;
@@ -1697,9 +1692,12 @@ html[lang="en"] #nang-luc .portal-subtitle {
   overflow-x: visible;
 }
 
+/* Hàng dài hơn khung (EN "our commitment" ở 981-1282px) xuống dòng thay vì tràn mép trái. */
 .heritage-row {
   display: flex;
   width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
   margin: 0;
   align-items: center;
   font-size: min(9.506vw, 6.25rem);
@@ -3086,9 +3084,11 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     transition-duration: 0.01ms !important;
   }
 
-  /* Transition 0.01ms làm font-size kế thừa trễ một frame, fitLegacyTitle đo sai cỡ cũ. */
+  /* Transition 0.01ms làm giá trị đổi trễ một frame: fitLegacyTitle đo sai cỡ chữ cũ,
+     fitHeritageGaps đo sai khoảng dòng motto cũ. */
   .legacy-copy h2,
-  .legacy-copy h2 * {
+  .legacy-copy h2 *,
+  .heritage-row {
     transition: none !important;
   }
 
