@@ -45,8 +45,13 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      khung); không mặt nghiêng, không kính hay mặt bóng hướng về máy;
    - đo vùng hiển thị thật của slot trong code khi ảnh bị cover crop hoặc có chữ
      đè, rồi ghi vị trí chủ thể theo vùng đó;
-   - giữ chữ trong ảnh ít, ngắn, đủ lớn để đọc đúng dấu; biển một mặt quay về
-     máy; chữ LED ma trận không đặt ở cỡ nhỏ;
+   - chữ trên biển, hộp đèn, decal là tên gọi hấp dẫn bằng từ ghép kèm một dòng
+     phụ (slogan, motto), không ghi một từ trơn; thiết kế bắt mắt, đọc rõ từ xa
+     theo tinh thần "để thương hiệu luôn trong tầm mắt" (không in câu này); chữ
+     đủ lớn để đọc đúng dấu; biển một mặt quay về máy; chữ LED ma trận không đặt
+     ở cỡ nhỏ (owner chốt 2026-10-14);
+   - không dùng xe đẩy inox kiểu cũ có tủ kính ba mặt (như xe hủ tiếu), owner
+     loại 2026-10-14;
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
@@ -59,8 +64,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - bố cục tả bằng lời (cảnh toàn, trung, cận; trái, giữa, phải; góc máy), không
      dùng phần trăm khung hình;
    - bối cảnh tỉnh lẻ miền Tây ghi rõ nhà thấp tầng, không tòa tháp, không resort;
-   - tối đa một dòng chữ trong ảnh, prompt đánh vần từng dấu; biển nền không có
-     chữ đọc được;
+   - chữ chủ thể gồm tên và một dòng phụ, prompt đánh vần từng dấu; biển nền
+     không có chữ đọc được;
    - tư thế người không mâu thuẫn với cách giấu mặt (nhân viên trao ly thì khách
      buộc phải quay về máy);
    - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
