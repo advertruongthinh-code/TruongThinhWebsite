@@ -53,15 +53,24 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
    ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
-   - điều cấm và chủ thể đặt ở đầu prompt, không dồn cuối;
+   - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí
+     cụ thể ("bình gas ở đầu TRÁI xe"), vì câu cấm hay bị bỏ qua;
    - bố cục tả bằng lời (cảnh toàn, trung, cận; trái, giữa, phải; góc máy), không
      dùng phần trăm khung hình;
    - bối cảnh tỉnh lẻ miền Tây ghi rõ nhà thấp tầng, không tòa tháp, không resort;
-   - hai phương án khác nhau có chủ đích: đổi góc máy hoặc giờ, ánh sáng;
+   - tối đa một dòng chữ trong ảnh, prompt đánh vần từng dấu; biển nền không có
+     chữ đọc được;
+   - tư thế người không mâu thuẫn với cách giấu mặt (nhân viên trao ly thì khách
+     buộc phải quay về máy);
+   - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
+     bố cục, người, chữ, thương hiệu;
+   - phương án 2 khác có chủ đích: brief có trường `variant_b` (một câu tiếng Anh
+     đổi góc máy hoặc ánh sáng) nối vào prompt của phương án 2; prompt đúng của
+     từng phương án lưu `p-<id>-<số>.txt`;
    - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
      một dấu là chữ chủ thể sai.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
-   `p<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
+   `p-<id>-<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
    kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
