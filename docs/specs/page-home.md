@@ -146,16 +146,17 @@ Then ảnh không còn transform hay transition
 
 Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa. Từ 681px chữ
 nối (và, là, trong, từng; EN and, are, to, every) còn nửa cỡ (`.heritage-text--minor`) và cách ảnh bằng
-margin ảnh như từ khóa; tới 680px mọi chữ cùng cỡ. Từ
-981px hàng trái và phải lệch ra mép gutter. Khi vào viewport, chữ trong mask trượt lên, từ thứ hai
-của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Tới 980px hàng xuống dòng, từ dài ngắt trong khung.
+margin ảnh như từ khóa; tới 680px mọi chữ cùng cỡ. Từ 981px hàng trái và phải lệch ra mép gutter. Khi vào
+viewport, chữ trong mask trượt lên, từ thứ hai của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Hàng dài hơn
+khung (EN "our commitment" ở 981-1282px) xuống dòng thay vì tràn mép trái; tới 980px từ dài còn ngắt.
 Tới 680px cỡ chữ `min((100vw - 40px) / 7.2, 4rem)` để từ dài nhất vẫn vừa một dòng, nhịp dòng đều 1.32em;
 section không có padding dọc riêng nên khoảng trên và dưới chỉ bằng `section-gap`, link cách chữ 2rem.
 Ảnh tính theo em của hàng (1.875em x 1.44em, giữ tỉ lệ chữ/ảnh như PC 1440px), cách chữ bằng `column-gap`
-0.15em nên ảnh đầu dòng thẳng mép trái; không ảnh nào che mực chữ, kể cả dấu tiếng Việt.
-Từ 681 tới 1299px các hàng cách thêm 0.2em, riêng 981-1279px hàng 1 và 2 dịch ngang (`translate`),
-để dấu dưới Ệ, Ạ và móc Ẩ không bị ảnh hàng kề che. Link "Xem cách chúng tôi
-làm" có mũi tên trượt khi hover.
+0.15em nên ảnh đầu dòng thẳng mép trái. Từ 681 tới 1299px các hàng cách thêm 0.2em, riêng 981-1279px hàng
+1 và 2 dịch ngang (`translate`). Ở mọi bề rộng, mực ký tự nằm trong cột của ảnh dòng kề (cả dấu tiếng Việt)
+cách ảnh ít nhất `max(0.1em, 6px)` ở vị trí cuối sau animation; thiếu thì `fitHeritageGaps` (`motion.js`)
+chỉ giãn đúng cặp dòng đó (margin hàng dưới, hoặc `row-gap` với dòng wrap cùng hàng), chạy lại khi tải
+trang, đổi bề rộng, đổi ngôn ngữ. Link "Xem cách chúng tôi làm" có mũi tên trượt khi hover.
 
 ```gherkin
 Given /vi/ ở 390px
@@ -163,6 +164,7 @@ When cuộn tới #tay-nghe
 Then bốn hàng hiện đủ chữ và ảnh, chữ không bị cắt, document không tràn ngang
 And chữ cỡ khoảng 48.6px, khoảng từ section trước tới chữ và từ link tới section sau đều 64px
 And ảnh khoảng 91x70px, không đè lên mực chữ của dòng nào
+And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nhất 10px
 ```
 
 ### R8. Rail công trình
@@ -246,7 +248,7 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | DOM hook | `.heritage-text > .heritage-line`, `.heritage-line--delay`, `.heritage-image`, `.project-track`, `.legacy-copy`, `.client-logo-marquee__track`, `__group` | Reveal, rail, marquee |
 | Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-overlay-media-ready`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
 | Data | `src/site/content/client-logos.json` | 12 logo: id, tên, file, viewBox, thứ tự; build và test đọc |
-| Hàm, event | `mountPageMotion`, `hydrateDeferredHeroImages`, `state.replayMotion(section)` trong `motion.js`; event `site:section-replay` | Nội bộ, không export; test nghe event |
+| Hàm, event | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7), `state.replayMotion(section)` trong `motion.js`; event `site:section-replay` | Nội bộ, không export; test nghe event |
 | Script | `scripts/site/sanitize-client-logos.ps1` | Làm sạch SVG logo khách hàng trước khi đưa vào `assets/content/client-logos/` |
 
 ## UI
