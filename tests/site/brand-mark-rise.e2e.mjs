@@ -31,8 +31,9 @@ const seekMark = (at) => document.querySelectorAll("#header-logo .brand-lockup__
 const isolateMark = `html, body { background: rgb(128, 128, 128) !important; } body * { visibility: hidden !important; }
   #header-logo .brand-lockup__mark, #header-logo .brand-lockup__mark *,
   #header-logo .brand-lockup__mark-underlay, #header-logo .brand-lockup__mark-underlay * { visibility: visible !important; }`;
-// Ba ảnh cùng một frame: đủ lớp, chỉ lớp mới, chỉ nền. Đếm điểm ảnh lớp mới đang phủ (cách mép mọc trên 2px)
-// mà lớp cũ làm đổi màu, tức viền lớp cũ lộ quanh dải.
+// Ba ảnh cùng một frame: đủ lớp, chỉ lớp mới, chỉ nền. Đếm điểm ảnh lớp mới đang phủ mà lớp cũ làm đổi màu, tức viền
+// lớp cũ lộ quanh dải. Bỏ dải 1px CSS ngay dưới mép mọc: lớp cũ cố ý thừa 1px ở đó để không hở khe (motion.js), mép
+// antialias của dải mới chồng lên lớp cũ trong dải này là thiết kế. DPR 3 nên 1px CSS là 3 hàng điểm ảnh.
 const countFringe = async ([full, newOnly, empty]) => {
   const load = async (data) => {
     const image = new Image();
@@ -54,7 +55,7 @@ const countFringe = async ([full, newOnly, empty]) => {
   let fringe = 0;
   for (let at = 0; at < a.length; at += 4) {
     const row = width * 4;
-    if (covered(at) && covered(at - row) && covered(at - 2 * row) && differs(a, b, at)) fringe += 1;
+    if ([0, 1, 2, 3].every((step) => covered(at - step * row)) && differs(a, b, at)) fringe += 1;
   }
   return fringe;
 };
@@ -93,6 +94,8 @@ try {
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("[data-site-header]").classList.contains("is-brand-color"));
     if (reducedMotion === "reduce") {
+      // Chrome tính lại fill="var(...)" của path chậm hơn class header, máy bận có thể trễ một frame: chờ hai frame.
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const state = await page.evaluate(readRise, 0);
       assert.deepEqual(state, { hidden: [0, 0, 0, 0], fills: cmyk, underlay: [] }, `${label}: colour changes at once`);
       console.log(`PASS ${label}: no rise`);
