@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
+const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 const routes = ["", "about/", "residential/", "commercial/", "advertising-products/"];
 const detailRoutes = [
   "kiosk-posm",
@@ -39,7 +40,7 @@ try {
     await page.route(/\.(?:avif|gif|jpe?g|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
     for (const locale of ["vi", "en"]) {
       for (const route of [...routes, "advertising-products/?category=kiosk-posm&photo=kiosk-posm-06", ...detailRoutes]) {
-        await page.goto(`http://127.0.0.1:8787/${locale}/${route}`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${baseUrl}/${locale}/${route}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector(".footer-contact");
         // Route detail redirect về route Advertising canonical; chờ runtime state của nó.
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
@@ -124,7 +125,7 @@ try {
     }
     // 404 vừa một màn hình: floating CTA ẩn khi footer lọt vào viewport nên không đè nội dung footer.
     for (const locale of ["vi", "en"]) {
-      await page.goto(`http://127.0.0.1:8787/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
+      await page.goto(`${baseUrl}/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
       await page.waitForSelector(".footer-contact");
       await page.waitForTimeout(1200);
       const hits = await page.evaluate(() => {
@@ -148,7 +149,7 @@ try {
   for (const [width, height] of [[320, 568], [360, 800], [390, 844], [430, 932], [750, 912], [568, 320], [667, 375], [844, 390], [1024, 600], [1280, 632], [1440, 900]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     for (const locale of ["vi", "en"]) {
-      await page.goto(`http://127.0.0.1:8787/${locale}/`, { waitUntil: "load" });
+      await page.goto(`${baseUrl}/${locale}/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".floating-cta.show")
         && document.querySelector("[data-motion-toggle]:not([hidden])")?.getClientRects().length);
       // Chờ CTA trượt vào xong (transform 1s).

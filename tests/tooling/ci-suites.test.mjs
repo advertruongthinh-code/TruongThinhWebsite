@@ -24,9 +24,9 @@ test("chọn bộ theo file PR sửa", () => {
   assert.deepEqual(select(["docs/STATE.md", "README.md"]), []);
   assert.deepEqual(select(["AGENTS.md"]), ["fast"]);
   assert.deepEqual(select(["src/site/style.css"]), all);
-  // home, detail-pages chưa có test (việc 6) nên chỉ media bảo vệ hai trang này.
-  assert.deepEqual(select(["src/site/index.html"]), ["fast", "media"]);
-  assert.deepEqual(select(["src/site/residential/index.html"]), ["fast", "media"]);
+  // home, detail-pages chưa có test (việc 6) nên media và footer (footer chung mọi trang) bảo vệ hai trang này.
+  assert.deepEqual(select(["src/site/index.html"]), ["fast", "footer", "media"]);
+  assert.deepEqual(select(["src/site/residential/index.html"]), ["fast", "footer", "media"]);
   assert.deepEqual(select(["src/site/advertising-products/skeleton-flow.mjs"]), ["fast", "adv-grid"]);
   assert.deepEqual(select(["tests/site/not-found-routes.e2e.mjs"]), ["fast", "route"]);
   assert.deepEqual(select(["src/site/new-page/index.html"]), all);
