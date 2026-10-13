@@ -41,7 +41,7 @@ And test fail nếu một file thuộc hai bộ
 
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
-| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, rules sync, biến thể ảnh, worker security, `qa:client-assets`, preview self-test; không mở browser, luôn chạy |
+| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, rules sync, biến thể ảnh, worker security, `qa:client-assets`, preview self-test; không mở browser, chạy với mọi PR có code |
 | `shell` | site-shell, phone-header-scroll, logo-route-crossfade, scroll-feel | smoke Chromium, header, menu, footer, đổi ngôn ngữ, veil, 404, reduced motion, header điện thoại, logo đổi màu |
 | `home` | page-home | hero, portal, marquee logo khách |
 | `detail-pages` | detail-pages | Residential, Commercial, About |
@@ -56,7 +56,7 @@ spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn th�
 
 Job `select` so file đổi của PR với merge base của `main`:
 
-1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): chỉ `fast`.
+1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
 2. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
    `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,
    `scripts/tooling/serve-static-parity.mjs`, `scripts/ci/**`, `tests/ci-suites.json`, `.github/workflows/ci.yml`,
@@ -64,7 +64,7 @@ Job `select` so file đổi của PR với merge base của `main`:
 3. File khớp đường kích hoạt của một bộ: bộ đó.
 4. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
 
-Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. `fast` luôn chạy.
+Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. PR có code luôn chạy `fast`.
 
 ```gherkin
 Given PR chỉ đổi src/site/residential/index.html
