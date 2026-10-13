@@ -10,7 +10,6 @@ source:
   - src/site/_headers
   - src/site/404.html
   - wrangler.static.toml
-  - .github/workflows/ci.yml
   - .github/workflows/deploy-demo.yml
 tests:
   - tests/site/static-locales.test.mjs
@@ -177,17 +176,14 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 
 ### R10. Gate CI
 
-Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`): `pnpm install
---frozen-lockfile`, `pnpm qa:static`, `tests/tooling/global-rules-sync.test.mjs`, `build-image-variants.mjs --check`,
-`pnpm qa:worker:security`, `pnpm dev` rồi mọi `tests/site/*.test.mjs` (gồm `orphan-selectors.test.mjs`: class, `data-*` trong selector CSS hoặc query JS của `src/site/`
-phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi Chromium smoke
-`cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history),
-rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm), rồi `advertising-skeleton-slow-network.e2e.mjs` (skeleton không chớp, Flow chạy khi mở detail), rồi `phone-header-scroll.e2e.mjs` (header điện thoại đi theo quãng cuộn), rồi `logo-route-crossfade.e2e.mjs` (mark đổi màu khi chuyển trang), rồi `not-found-routes.e2e.mjs` (rời 404 sang route chính: 404 ẩn khi veil mở, trang đích ở đỉnh và cuộn được).
-CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. PR chỉ đổi `docs/`, `research/` hoặc Markdown ở root (trừ `AGENTS.md`, `CLAUDE.md`) thì job `static-release` bỏ qua các bước build và test nhưng vẫn xanh để Automerge hoạt động; push vào `main` luôn chạy đủ. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge. Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để Deploy demo (nhận `push` và `workflow_dispatch`) chạy tiếp. Windows Update (cài WSL) có thể tắt VM WSL: task Windows `WSL keep-alive (GitHub runner)` có trigger lặp 5 phút và 3 service runner có `Restart=always`, nên runner tự hồi phục; job `queued` lâu vẫn là dấu hiệu kiểm tra runner.
+Workflow `CI` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`) chạy các bộ test theo phần website
+song song rồi gom thành check `static-release`; cách chọn bộ, danh sách bộ và lệnh `pnpm qa:suite` thuộc
+[bộ test CI](ci-test-suites.md).
+CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge. Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để Deploy demo (nhận `push` và `workflow_dispatch`) chạy tiếp. Windows Update (cài WSL) có thể tắt VM WSL: task Windows `WSL keep-alive (GitHub runner)` có trigger lặp 5 phút và 3 service runner có `Restart=always`, nên runner tự hồi phục; job `queued` lâu vẫn là dấu hiệu kiểm tra runner.
 ```gherkin
 Given pull request đổi src/site/
-When CI chạy job static-release
-Then job fail nếu static contract, kiểm biến thể ảnh, security fixture Worker, unit test site, Chromium smoke hoặc khung ảnh fail
+When workflow CI chạy
+Then check static-release fail nếu một bộ test được chọn fail
 And không bước nào gọi Wrangler hoặc deploy
 ```
 
@@ -267,7 +263,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R7 | `tests/site/advertising-products-detail-routes.test.mjs` |
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
-| R10 | `.github/workflows/ci.yml`, `tests/site/cross-browser.smoke.spec.cjs`, `tests/site/orphan-selectors.test.mjs`, `tests/site/image-loading-frame.e2e.mjs`, `tests/site/advertising-skeleton-slow-network.e2e.mjs`, `tests/site/phone-header-scroll.e2e.mjs`, `tests/site/logo-route-crossfade.e2e.mjs`, `tests/site/not-found-routes.e2e.mjs` |
+| R10 | [bộ test CI](ci-test-suites.md#kiểm-tra); `tests/tooling/ci-suites.test.mjs` |
 | R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run`; trang 404: `tests/site/static-locales.test.mjs`, `tests/site/not-found-routes.e2e.mjs` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |

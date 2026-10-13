@@ -3,7 +3,7 @@
 // node scripts/ci/suites.mjs <id>        -> build, mở preview port trống, chạy lệnh của bộ
 // node scripts/ci/suites.mjs --changed   -> chạy các bộ mà --select chọn so với origin/main
 import { execFileSync, spawn, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { openSync, readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { matchesGlob } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -49,7 +49,9 @@ async function run(suiteIds) {
   execFileSync("pnpm", ["prepare:site"], { stdio: "inherit" });
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  const server = spawn("node", ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { stdio: "ignore" });
+  // Log preview ghi ra file để CI đính kèm khi bộ đỏ.
+  const log = openSync("static-server.log", "w");
+  const server = spawn("node", ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { stdio: ["ignore", log, log] });
   try {
     for (let i = 0; !(await fetch(`${baseUrl}/vi/`).then((r) => r.ok, () => false)); i++) {
       if (i > 30) throw new Error(`preview did not start on ${baseUrl}`);
