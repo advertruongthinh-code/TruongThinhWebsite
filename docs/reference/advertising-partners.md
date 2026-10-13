@@ -42,7 +42,7 @@ tích) chỉ là bối cảnh, không đưa vào ảnh. Bản đầy đủ có �
 | VietinBank | Không* | [Có](https://www.vietinbank.vn/thong-bao-thay-doi-mang-luoi/chuyen-dia-diem-chi-nhanh-chi-nhanh-ben-tre-150317-50-html) | Không* | [Có](https://www.vietinbank.vn/thong-bao-thay-doi-mang-luoi/chuyen-dia-diem-chi-nhanh-chi-nhanh-ben-tre-150317-50-html) | [Có](https://vnba.org.vn/vi/vietinbank-dong-hanh-cung-hoi-cho-viec-lam-cua-hoc-vien-ngan-hang-10610.htm), hội chợ việc làm | [Có](https://tapchicongthuong.vn/nhan-qua-khi-check-in-gian-hang-vietinbank-tai-trien-lam-thanh-tuu-dat-nuoc-217299.htm) |
 | Bệnh viện Minh Đức | Không* | [Có](https://baodongkhoi.vn/benh-vien-da-khoa-minh-duc-nang-cao-chat-luong-phuc-vu-benh-nhan-26022025-a142907.html) | Không* | [Có](https://benhvienminhduc.com/service-details/9) | Chưa rõ | Chưa rõ |
 | Prudential | Không* | [Có](https://www.prudential.com.vn/vi/lien-he/van-phong-giao-dich-gan-nhat/) | Không* | [Có](https://www.prudential.com.vn/vi/kenh-thanh-toan-phi-bao-hiem/thanh-toan-tai-quay-giao-dich/) | Chưa rõ | Chưa rõ |
-| BCJ | Chưa rõ | Có, cả hai ứng viên | Không* | Không* | Chưa rõ | Chưa rõ |
+| BCJ | Không*, có phòng thí nghiệm | [Có](https://dns1.moc.gov.vn/Images/editor/files/gcn%202021/2024/SXD_B%E1%BA%BFn%20Tre_3059-GCN-LAS-XD%2007_002_12122023.pdf) | Không* | Không* | Chưa rõ | Chưa rõ |
 | Cannes Hotel | Không* | Chưa rõ | Không* | [Có](https://www.canneshotel.vn/vi) | Chưa rõ | Chưa rõ |
 | TTC Hospitality | Không* | [Có](https://static2.vietstock.vn/vietstock/2022/4/19/20220419_20220419___vng___bctn_nam_2021.pdf) | [Không](https://www.ttcgroup.vn/en-US/business-sectors/hospitality/overview-4) | [Có](https://www.ttcgroup.vn/en-US/business-sectors/hospitality/other-news-3/ttc-hospitalitys-2-destinations-in-the-10-typical-tourist-destinations-of-the-mekong-delta-in-2023) | [Có](https://ttchospitality.vn/offer/ttc-hospitality-tai-vitm-2026-ket-noi-trai-nghiem-mo-rong-hanh-trinh) | [Có](https://ttchospitality.vn/blogs/ite-hcmc-2022-su-tro-lai-cua-ttc-hospitality-tai-hoi-cho-du-lich-quoc-te-thuong-nien) |
 | BEINCO | [Có](https://www.beinco.com.vn/gioi-thieu) | [Có](https://www.beinco.com.vn/tuyen-dung/nhan-vien-sale-kenh-mt-tai-tphcm) | [Có](https://www.beinco.com.vn/gioi-thieu) | Chưa rõ, có kệ siêu thị | [Có](https://www.beinco.com.vn/en/beinco-participates-in-anuga-2025-affirming-the-position-of-vietnamese-coconut-products-in-the-global-market) | [Có](https://www.beinco.com.vn/tuyen-dung) |
@@ -91,13 +91,11 @@ Vĩnh Long cũ và một ở TP. Trà Vinh cũ ([danh sách chính thức](https
 Tự tổ chức "Ngày hội Prudential" ở địa phương và tài trợ cuộc thi Văn hay chữ tốt khu vực ĐBSCL; chưa
 thấy gian hội chợ hay triển lãm.
 
-**BCJ: chưa xác định danh tính.** Logo trong repo (chữ B, vòng C ôm quả cầu đỏ sọc trắng, chữ j) không đủ
-để nhận diện. Hai ứng viên đều ở TP. Bến Tre cũ và thuộc ngành xây dựng: Công ty CP Tư vấn xây dựng Bến
-Tre, có phòng thí nghiệm vật liệu được Sở Xây dựng cấp chứng nhận năm 2023
-([giấy chứng nhận](https://dns1.moc.gov.vn/Images/editor/files/gcn%202021/2024/SXD_B%E1%BA%BFn%20Tre_3059-GCN-LAS-XD%2007_002_12122023.pdf)),
-khớp nhóm "tư vấn" của PRODUCT.md; và Công ty TNHH MTV BCJ Xây Dựng Bến Tre, doanh nghiệp thi công, chỉ
-thấy trong danh bạ bên thứ ba. [Ảnh Advertising](../../design-system/advertising-images.md#bối-cảnh-theo-ngành-khách-hàng)
-đang ghi BCJ là ứng viên thứ nhất mà không có nguồn. Cần owner xác nhận tên đầy đủ hoặc mã số thuế.
+**BCJ.** Owner xác nhận 2026-10-13: Công ty CP Tư vấn xây dựng Bến Tre, trụ sở ở TP. Bến Tre cũ. Tư
+vấn đầu tư xây dựng; có phòng thí nghiệm cơ học đất và vật liệu xây dựng được Sở Xây dựng Bến Tre cấp
+chứng nhận năm 2023 ([giấy chứng nhận](https://dns1.moc.gov.vn/Images/editor/files/gcn%202021/2024/SXD_B%E1%BA%BFn%20Tre_3059-GCN-LAS-XD%2007_002_12122023.pdf)).
+Chưa tìm thấy website, hội chợ hay triển lãm. Không nhầm với Công ty TNHH MTV BCJ Xây Dựng Bến Tre,
+một doanh nghiệp thi công khác.
 
 **Điểm chạm ưu tiên cho ảnh (suy luận).** Mặt tiền văn phòng nhà phố nhiều tầng ở thành phố tỉnh, quầy
 giao dịch, phòng họp và phòng đào tạo, hội trường khách sạn cho hội thảo khách hàng; với tư vấn xây dựng:
