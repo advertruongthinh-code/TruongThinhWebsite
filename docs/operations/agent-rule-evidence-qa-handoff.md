@@ -39,12 +39,37 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    chép chữ, logo, người, watermark hay thiết kế y nguyên.
 2. **Brief.** Agent viết brief từng ảnh, một agent độc lập phản biện, sửa rồi
    tạo. Owner không duyệt brief, trừ sản phẩm chưa từng có ảnh trên site.
+   Brief nào cũng phải:
+   - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
+     máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
+     khung); không mặt nghiêng, không kính hay mặt bóng hướng về máy;
+   - đo vùng hiển thị thật của slot trong code khi ảnh bị cover crop hoặc có chữ
+     đè, rồi ghi vị trí chủ thể theo vùng đó;
+   - giữ chữ trong ảnh ít, ngắn, đủ lớn để đọc đúng dấu; biển một mặt quay về
+     máy; chữ LED ma trận không đặt ở cỡ nhỏ;
+   - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
-   khảo>`), mỗi brief 2 phương án. Codex không có cách chọn model ảnh nên model
+   khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
+   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
    ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
+   Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
+   - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí
+     cụ thể ("bình gas ở đầu TRÁI xe"), vì câu cấm hay bị bỏ qua;
+   - bố cục tả bằng lời (cảnh toàn, trung, cận; trái, giữa, phải; góc máy), không
+     dùng phần trăm khung hình;
+   - bối cảnh tỉnh lẻ miền Tây ghi rõ nhà thấp tầng, không tòa tháp, không resort;
+   - tối đa một dòng chữ trong ảnh, prompt đánh vần từng dấu; biển nền không có
+     chữ đọc được;
+   - tư thế người không mâu thuẫn với cách giấu mặt (nhân viên trao ly thì khách
+     buộc phải quay về máy);
+   - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
+     bố cục, người, chữ, thương hiệu;
+   - prompt đúng của từng ảnh lưu `p-<id>.txt`;
+   - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
+     một dấu là chữ chủ thể sai.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
-   `p<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
+   `p-<id>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
    kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
@@ -52,7 +77,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 
 ### Chấm điểm
 
-Phương án tốt nhất của mỗi brief phải đạt **Audit ≥ 8/10 và Critique ≥ 8/10**;
+Ảnh của mỗi brief phải đạt **Audit ≥ 8/10 và Critique ≥ 8/10**;
 không lấy trung bình.
 
 | Audit | Điểm |

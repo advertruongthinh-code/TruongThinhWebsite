@@ -53,8 +53,9 @@ Thứ tự bảo trì nội dung: Advertising, Commercial, Residential.
 - Route khác có thể `object-fit: cover`. Giữ chủ thể trong vùng giữa khoảng 60%
   ngang và 70% dọc, không đặt tay, dụng cụ, mép đồ quan trọng sát 10% biên.
   Kiểm crop ở 320, 390, 768, 1024, 1440px trước khi đổi `object-position`.
-- Không có khuôn mặt nhận diện được: quay lưng, chỉ bàn tay, hoặc nhòe chuyển
-  động. Kiểm phản chiếu, màn hình, ảnh trên tường. Ngoại lệ duy nhất:
+- Không có khuôn mặt nhận diện được: quay lưng, đi ra xa, đầu khuất sau vật
+  hoặc ngoài khung; nhòe chuyển động hay "chỉ thấy tay" không đủ khi tư thế vẫn
+  hướng mặt về máy. Kiểm phản chiếu, màn hình, ảnh trên tường. Ngoại lệ duy nhất:
   `assets/content/shared/legacy-team.webp`.
 - Không chữ giả, logo giả, watermark, tay hoặc dụng cụ méo. Logo và thông tin
   khách thật chỉ khi đã có quyền công bố; xóa địa chỉ, ảnh gia đình, thông tin
