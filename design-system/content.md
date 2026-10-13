@@ -60,7 +60,24 @@ Thứ tự bảo trì nội dung: Advertising, Commercial, Residential.
   khách thật chỉ khi đã có quyền công bố; xóa địa chỉ, ảnh gia đình, thông tin
   riêng tư.
 
+## Sức sống và chủ thể
+
+- Ảnh cửa hàng, hội chợ, sự kiện cần sức sống: thêm người theo
+  [Crop và con người](#crop-và-con-người), ưu tiên người đi lại nhòe chuyển
+  động; người không che chủ thể.
+- Cần nhấn chủ thể thì chụp kiểu phơi sáng: chủ thể đứng yên sắc nét, người,
+  xe và vật phụ xung quanh nhòe chuyển động.
+
+## Card nhiều media
+
+Ảnh của một [card nhiều media](../docs/specs/media-card.md#r1-dữ-liệu-media-của-card)
+giữ nguyên chủ thể (sản phẩm, vật liệu, chữ, màu) và đổi góc chụp, bối cảnh,
+tình huống, giờ trong ngày, thời tiết. Ví dụ ấn phẩm in: lúc trên tay người
+dùng, lúc đặt yên trên bàn, quầy, kệ. Ảnh đầu tiên đã duyệt làm tham chiếu chủ
+thể cho các ảnh sau.
+
 ## Chú thích thuật ngữ
 
 - **Safe crop**: crop vẫn giữ chủ thể và thông tin quan trọng.
 - **Qualifier**: dòng nhãn nhỏ phía trên tiêu đề hero.
+- **Phơi sáng**: chụp tốc độ chậm; vật đứng yên rõ nét, vật chuyển động nhòe.
