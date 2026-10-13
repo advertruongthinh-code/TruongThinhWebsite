@@ -2797,10 +2797,10 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     padding: 0 20px;
   }
 
-  /* Hàng wrap trên phone: line-height 1.2 cộng row-gap giữ dấu tiếng Việt dòng dưới không chạm chữ dòng trên,
-     nhịp dòng đều 1.32em trong hàng và giữa các hàng. Cỡ chữ theo bề rộng khung để từ dài nhất ("commitment", 6.95em) vẫn vừa một dòng; trần 4rem nối liền cỡ ở 681px. */
+  /* Cỡ chữ 6.5vw bằng motto Espacio cùng bề rộng nên mỗi hàng vừa một dòng (hàng rộng nhất EN
+     "our commitment ... to" chiếm 97% khung ở 320px). line-height 1.2 cộng row-gap chỉ còn tác dụng nếu hàng wrap. */
   .heritage-row {
-    font-size: min(calc((100vw - 40px) / 7.2), 4rem);
+    font-size: 6.5vw;
     margin-block: 0.06em;
     row-gap: 0.12em;
     column-gap: 0.15em;

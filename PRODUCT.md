@@ -53,7 +53,7 @@ chứng minh công trình đã làm. Brief ảnh dùng các thông tin này ở
 | Nhà máy dừa, thực phẩm, mỹ phẩm | BEINCO, Betrimex, Dừa Cửu Long |
 | Ngân hàng | BIDV, HDBank, Vietcombank, VietinBank |
 | Bệnh viện | Minh Đức |
-| Văn phòng, bảo hiểm, tư vấn | Prudential, BCJ |
+| Văn phòng, bảo hiểm, tư vấn | Prudential, BCJ (Công ty CP Tư vấn xây dựng Bến Tre, owner xác nhận 2026-10-13) |
 | Khách sạn, hội nghị | Cannes Hotel, TTC Palace Bến Tre |
 
 Mười hai khách, phần lớn ở Bến Tre.

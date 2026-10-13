@@ -83,7 +83,8 @@ Ponytail chạy theo bốn mốc:
   GitHub tự xóa branch sau merge.
 - Trước khi push, đo hoặc dựa vào số liệu: fetch `main` và đọc lại `docs/STATE.md`.
 - Thread tự review PR (five-axis), sửa finding, resolve review thread và tự merge khi
-  CI xanh; không chờ owner duyệt hay xác nhận merge.
+  CI xanh; không chờ owner duyệt hay xác nhận merge. Workflow `Automerge` tự merge PR khi CI và Docs xanh, kể cả
+  khi thread không còn chạy; muốn giữ PR chưa merge thì để draft hoặc gắn nhãn `hold`.
 - PR conflict với `main`: merge `main` vào branch (không rebase, không force-push),
   tự resolve, chạy lại quick check, push rồi merge khi CI xanh.
 - Giữ đúng phạm vi thread; bug ngoài phạm vi báo điều phối, không tự sửa.

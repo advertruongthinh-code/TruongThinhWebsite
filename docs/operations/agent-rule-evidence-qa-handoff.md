@@ -26,15 +26,38 @@ agent chỉ chạy `--dry-run`; deploy thật do workflow `Deploy demo` chạy k
 
 ## Chấm ảnh Advertising
 
-Ảnh mới tạo bằng **ChatGPT Images 2.5** qua công cụ mà agent hoặc owner có; ghi
-model và metadata nếu tool trả về, thiếu thì ghi unknown. Không tự đổi model.
-Brief theo [Ảnh Advertising](../../design-system/advertising-images.md).
+Áp dụng cho mọi ảnh tạo bằng AI trên site. Brief theo
+[Ảnh Advertising](../../design-system/advertising-images.md) và
+[Content và media](../../design-system/content.md); bối cảnh hợp ngành của
+khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/advertising-client-products.md).
 
-Mỗi ảnh đạt **Audit ≥ 8/10 và Critique ≥ 8/10**; không lấy trung bình.
+### Tạo ảnh
+
+1. **Tham khảo trước.** Mỗi brief có 2 đến 4 ảnh thực tế ở Việt Nam, tìm trên
+   Pinterest trước, thiếu mới tìm Google Ảnh; lưu link nguồn. Chưa có tham khảo
+   thì chưa tạo. Tham khảo chỉ để học loại sản phẩm, vật liệu, cấu tạo; không
+   chép chữ, logo, người, watermark hay thiết kế y nguyên.
+2. **Brief.** Agent viết brief từng ảnh, một agent độc lập phản biện, sửa rồi
+   tạo. Owner không duyệt brief, trừ sản phẩm chưa từng có ảnh trên site.
+3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
+   khảo>`), mỗi brief 2 phương án. Codex không có cách chọn model ảnh nên model
+   ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
+   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
+4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
+   `p<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
+   kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
+   `sources.json`.
+5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
+   link tham khảo. Chỉ ảnh owner lấy mới vào PR.
+
+### Chấm điểm
+
+Phương án tốt nhất của mỗi brief phải đạt **Audit ≥ 8/10 và Critique ≥ 8/10**;
+không lấy trung bình.
 
 | Audit | Điểm |
 | --- | --- |
-| Đúng nhóm, sản phẩm, bối cảnh, góc chụp theo brief | 3 |
+| Đúng nhóm, sản phẩm, bối cảnh, ngành khách hàng, góc chụp theo brief | 3 |
 | Kết cấu, vật liệu, tỷ lệ, khả năng gia công và lắp đặt | 3 |
 | Không lỗi hình học, chữ, ánh sáng, phản chiếu, chi tiết AI | 2 |
 | Đúng tỷ lệ ảnh, pixel thật, metadata, provenance | 2 |
@@ -47,13 +70,23 @@ Mỗi ảnh đạt **Audit ≥ 8/10 và Critique ≥ 8/10**; không lấy trung 
 | Bổ sung khác biệt hữu ích cho bộ ảnh | 2 |
 
 **Loại thẳng dù đủ điểm**: mặt nhận diện được; thương hiệu hoặc watermark sao
-chép; chữ chủ thể sai; kết cấu bất khả thi; sai nhóm; sản phẩm lớn bị cắt;
-crop hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại
-coi như ảnh mới.
+chép; chép chữ, logo hoặc thiết kế của ảnh tham khảo; chữ chủ thể sai; kết cấu
+bất khả thi hoặc xưởng không làm được; sai nhóm; sản phẩm lớn bị cắt; crop
+hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại coi
+như ảnh mới.
 
-Một subagent độc lập với agent tạo ảnh mở ảnh để chấm, ghi điểm từng mục và
-lỗi. Main kiểm lại, không tự nâng điểm. Ảnh sửa thì chấm lại đúng SHA-256 mới.
-Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
+Ba agent chấm, độc lập với agent tạo ảnh và với nhau. Mỗi agent mở ảnh, chấm
+đủ hai bảng, ghi điểm từng mục và lỗi, nhưng tấn công theo hướng riêng:
+
+| Agent | Tính cách | Tấn công |
+| --- | --- | --- |
+| Thợ cả xưởng | Khó tính, quen gia công và lắp đặt | Kết cấu, vật liệu, liên kết, tỷ lệ, logic sản phẩm |
+| Pháp chứng ảnh | Soi từng chi tiết | Chi tiết AI, chữ và dấu, hình học, ánh sáng, phản chiếu, sao chép tham khảo |
+| Giám đốc sáng tạo | Khách hàng khó chiều | Bố cục, thumbnail, sức sống, ngành khách hàng, độ đa dạng của bộ ảnh |
+
+Ảnh đạt khi cả ba agent cho đủ ngưỡng; một agent nêu lỗi loại thẳng là loại.
+Main kiểm lại, không tự nâng điểm. Ảnh sửa thì chấm lại đúng SHA-256 mới. Owner
+phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
 
@@ -73,3 +106,4 @@ Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 - **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.
 - **Audit**: kiểm độ đúng kỹ thuật và nội dung của ảnh.
 - **Critique**: đánh giá chất lượng thị giác và đóng góp cho bộ ảnh.
+- **Pháp chứng ảnh**: soi ảnh để tìm dấu vết sinh ảnh, sửa ảnh hoặc sao chép.

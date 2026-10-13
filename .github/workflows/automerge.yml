@@ -1,0 +1,56 @@
+name: Automerge
+
+# Tự merge PR khi CI và Docs cùng xanh, không cần agent. Mặc định bật; giữ PR lại bằng
+# draft hoặc nhãn `hold`. Chỉ đọc metadata, không checkout code của PR.
+on:
+  workflow_run:
+    workflows: [CI, Docs]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  merge:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: [self-hosted, linux, wsl]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            const required = ['static-release', 'qa-docs'];
+            for (const { number } of context.payload.workflow_run.pull_requests) {
+              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+              if (pr.state !== 'open' || pr.draft || pr.head.sha !== sha) continue;
+              if (pr.labels.some((label) => label.name === 'hold')) {
+                core.info(`PR #${number}: nhãn hold, giữ lại.`);
+                continue;
+              }
+              const runs = await github.paginate(github.rest.checks.listForRef, { owner, repo, ref: sha });
+              const green = required.every((name) =>
+                runs.some((run) => run.name === name && run.conclusion === 'success'));
+              if (!green) {
+                core.info(`PR #${number}: chưa đủ check xanh (${required.join(', ')}).`);
+                continue;
+              }
+              try {
+                await github.rest.pulls.merge({ owner, repo, pull_number: number, sha, merge_method: 'merge' });
+              } catch (error) {
+                // Conflict hoặc PR đã được run song song merge: để thread xử lý.
+                core.warning(`PR #${number}: không merge được: ${error.message}`);
+                continue;
+              }
+              core.info(`PR #${number}: đã merge.`);
+              // Merge bằng GITHUB_TOKEN không kích hoạt CI push; dispatch tay để Deploy demo chạy tiếp.
+              await github.rest.actions.createWorkflowDispatch({
+                owner, repo, workflow_id: 'ci.yml', ref: pr.base.ref,
+              });
+            }
