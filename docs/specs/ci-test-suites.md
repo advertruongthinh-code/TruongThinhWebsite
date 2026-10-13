@@ -31,13 +31,15 @@ hợp các glob `source:` trong frontmatter của các spec đó cộng chính c
 bộ tự theo. Hai bộ được cùng bảo vệ một spec (ví dụ `media` kiểm khung ảnh của trang chủ). Mục `ignore` là tài liệu,
 `fastOnly` là file chỉ cần `fast`, `shared` là file dùng chung cả website, `manual` là test không vào CI kèm lý do,
 `pending` là script chưa chuyển vào bộ (rỗng khi xong việc). Mỗi file `tests/site/*.e2e.*` nằm ở đúng một chỗ trong
-bộ, `manual` hoặc `pending`; riêng `site.e2e.cjs` chia theo mode, mỗi mode ở một bộ.
+bộ, `manual` hoặc `pending`; riêng `site.e2e.cjs` chia theo mode: mỗi mode `TT_E2E_*_ONLY` trong source nằm đúng một
+lần ở lệnh của bộ, `manual` hoặc `pending` (mục pending dạng `tests/site/site.e2e.cjs TT_E2E_X_ONLY`).
 
 ```gherkin
 Given một file test e2e mới trong tests/site/
 When chạy node --test tests/tooling/ci-suites.test.mjs
 Then test fail nếu file chưa thuộc bộ nào và không nằm trong manual
 And test fail nếu một file thuộc hai bộ
+And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 ```
 
 ### R2. Bộ dự kiến
@@ -49,8 +51,8 @@ And test fail nếu một file thuộc hai bộ
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
 | `scroll` | scroll-feel | cảm giác cuộn, cuộn bằng nút giữa chuột |
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình |
-| `home` | page-home | hero, portal, marquee logo khách |
-| `detail-pages` | detail-pages | Residential, Commercial, About |
+| `home` | page-home | hero, portal, marquee logo khách, scroll cue, wheel, media hover |
+| `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
 | `adv-grid` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | lưới, lọc, card, hero một lần, skeleton cuối lưới, CTA, footer route |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: primary, related, gợi ý, slideshow, viewer, chuyển ảnh, preload route |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính, card nhiều media |

@@ -44,7 +44,8 @@
         "pnpm qa:client-assets",
         "node scripts/tooling/serve-static-parity.mjs --self-test",
         "node --test tests/site/*.test.mjs",
-        "pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium"
+        "pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium",
+        "TT_E2E_STATIC_ONLY=1 node tests/site/site.e2e.cjs"
       ]
     },
     "shell": {
@@ -80,8 +81,30 @@
       "specs": ["site-shell", "page-home", "detail-pages", "advertising-cta-center-parallax"],
       "tests": ["node tests/site/footer-consistency.e2e.mjs"]
     },
-    "home": { "specs": ["page-home"], "tests": [] },
-    "detail-pages": { "specs": ["detail-pages"], "tests": [] },
+    "home": {
+      "specs": ["page-home"],
+      "tests": [
+        "node tests/site/client-logo-marquee.e2e.cjs",
+        "TT_E2E_HERO_INTRO_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_HERO_CONTINUITY_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_PORTAL_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_SCROLL_CUE_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_WHEEL_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_P5_MEDIA_HOVER_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_MEDIA_FALLBACK_ONLY=1 node tests/site/site.e2e.cjs"
+      ]
+    },
+    "detail-pages": {
+      "specs": ["detail-pages"],
+      "tests": [
+        "TT_E2E_RESIDENTIAL_HERO_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_COMMERCIAL_HERO_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_DETAIL_HERO_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_DELAYED_DETAIL_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_BOOT_RACE_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_FULL_FAILURES_ONLY=1 node tests/site/site.e2e.cjs"
+      ]
+    },
     "adv-grid": {
       "specs": ["advertising-masonry", "advertising-skeleton", "advertising-cta-center-parallax"],
       "tests": [
@@ -124,11 +147,46 @@
     "tests/site/advertising-suggestion-motion.e2e.mjs",
     "tests/site/advertising-suggestion-wave.e2e.mjs",
     "tests/site/advertising-viewer-touch.e2e.mjs",
-    "tests/site/client-logo-marquee.e2e.cjs",
     "tests/site/glass-surface.e2e.mjs",
     "tests/site/site-media-card-m01b.e2e.mjs",
     "tests/site/site-media-card-m02a.e2e.mjs",
     "tests/site/site-media-card-r6.e2e.mjs",
-    "tests/site/site.e2e.cjs"
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_3K_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_CAROUSEL_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_COMPATIBILITY_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_DEFAULT_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_GRID_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_HERO_MOTION_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_HERO_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_HISTORY_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_KEYBOARD_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_LOCALE_LIFECYCLE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_PROOF_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_SELECTION_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_BRAND_COLOR_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_BRAND_HEADER_BBOX_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_BRAND_SHELL_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ESPACIO_TYPE_MOTION_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_FAILOPEN_BFCACHE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_FAILOPEN_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_FOOTER_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_FRAGMENT_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_HEADER_GEOMETRY_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_HEADER_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_HISTORY_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_LOCALE_MODES_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_LOCALE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_LOCALE_SCROLL_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_M1_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_M2_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_MENU_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_P13_NAVBAR_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_REAL_BFCACHE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_REDUCED_ONLY"
   ]
 }
