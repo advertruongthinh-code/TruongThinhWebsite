@@ -4926,8 +4926,10 @@ async function runAdvertisingFilterCheck() {
       // Thứ tự random theo lượt vào, nên chọn card đã mount cũng mở cửa sổ của filter riêng nó.
       const categories = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
       const windows = {};
-      for (const category of categories) windows[category] = await advertisingWindowIds(page, category);
-      const survivorTile = before.tiles.find((tile) => windows[tile.category]?.includes(tile.id));
+      for (const category of categories) windows[category] = await advertisingWindow(page, category);
+      // Card đứng yên chỗ cũ trong layout filter thì không có morph để đo; chọn card phải dời chỗ.
+      const survivorTile = before.tiles.find((tile) => windows[tile.category]?.some((entry) =>
+        entry.id === tile.id && Math.hypot(entry.x - tile.left, entry.y - tile.top) > 2));
       assert(survivorTile, `No mounted card survives into its filter window: ${JSON.stringify(windows)}`);
       const survivorId = survivorTile.id;
       const filterSlug = survivorTile.category;
