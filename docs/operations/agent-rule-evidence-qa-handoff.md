@@ -39,8 +39,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    chép chữ, logo, người, watermark hay thiết kế y nguyên.
 2. **Brief.** Agent viết brief từng ảnh, một agent độc lập phản biện, sửa rồi
    tạo. Owner không duyệt brief, trừ sản phẩm chưa từng có ảnh trên site.
-3. **Tạo.** Model **ChatGPT Images 2.5 Sunburst** qua Codex CLI trên PC, đính
-   ảnh tham khảo, mỗi brief 2 phương án. Codex lỗi hoặc hết lượt thì dùng model
+3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
+   khảo>`), mỗi brief 2 phương án. Codex không có cách chọn model ảnh nên model
+   ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
    ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
    `p<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance

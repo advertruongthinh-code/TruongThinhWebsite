@@ -19,7 +19,7 @@ jobs:
     # Chỉ push vào main của chính repo; PR từ fork có branch tên main không được dùng secret.
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
+      contains(fromJSON('["push","workflow_dispatch"]'), github.event.workflow_run.event) &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: [self-hosted, linux, wsl]
     timeout-minutes: 10
@@ -27,7 +27,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+      # dest riêng mỗi runner: các instance cùng user dùng chung ~/setup-pnpm nên self-install đè nhau.
       - uses: pnpm/action-setup@v6
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@v7
         with:
           node-version: 22

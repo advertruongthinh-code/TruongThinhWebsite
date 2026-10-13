@@ -22,7 +22,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Phát hành tĩnh
@@ -183,8 +183,7 @@ Job `static-release` (`.github/workflows/ci.yml`, mọi pull request và push v�
 phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALLOWED`), rồi Chromium smoke
 `cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history),
 rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm), rồi `advertising-skeleton-slow-network.e2e.mjs` (skeleton không chớp, Flow chạy khi mở detail), rồi `phone-header-scroll.e2e.mjs` (header điện thoại đi theo quãng cuộn), rồi `logo-route-crossfade.e2e.mjs` (mark đổi màu khi chuyển trang), rồi `not-found-routes.e2e.mjs` (rời 404 sang route chính: 404 ẩn khi veil mở, trang đích ở đỉnh và cuộn được).
-CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
-
+CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge. Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để Deploy demo (nhận `push` và `workflow_dispatch`) chạy tiếp.
 ```gherkin
 Given pull request đổi src/site/
 When CI chạy job static-release
