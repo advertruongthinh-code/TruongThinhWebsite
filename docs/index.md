@@ -18,7 +18,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Worker, admin, D1 | [CMS](specs/cms.md), dormant tới khi owner mở CMS phase |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md), [authority map](#authority-map) |
 | Reference hành vi | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo), [Pinterest photo view](reference/pinterest-photo-view.md); không tự thành target |
-| Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md) |
+| Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) |
 | Gate NOT PASS còn mở | Mục "Gate còn mở" của spec sở hữu |
 | Quyết định | [Decisions](decisions/index.md) |
 | Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [Android thật](operations/android-real-device-debugging.md) |
