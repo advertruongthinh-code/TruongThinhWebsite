@@ -1678,44 +1678,21 @@ html[lang="en"] #nang-luc .portal-subtitle {
   }
 }
 
-/* 681-1439px: dấu dưới Ệ, Ạ và móc Ẩ chạm ảnh hàng kề. Dịch ngang từng hàng theo khoảng bề rộng để dấu
-   nằm ngoài ảnh; translate cộng thêm vào transform canh gutter sẵn có. Khoảng hàng 0.05em đủ cho móc Ẩ qua mép dưới ảnh hàng 3. Số đo bằng Playwright, VI và EN, bước 10px. */
-@media (min-width: 681px) and (max-width: 1439px) {
+/* 681-1299px: dấu dưới Ệ, Ạ và móc Ẩ chạm ảnh hàng kề. Hàng cách thêm 0.2em; 981-1279px hàng 1 (Kinh
+   nghiệm) và hàng 2 (Sáng tạo) dịch ngang để dấu nằm ngoài ảnh, translate cộng vào transform canh gutter.
+   Số đo bằng Playwright, VI và EN; từ 1300px không cần. */
+@media (min-width: 681px) and (max-width: 1299px) {
   .heritage-row + .heritage-row {
-    margin-top: 0.05em;
+    margin-top: 0.2em;
   }
 }
 
-@media (min-width: 681px) and (max-width: 980px) {
+@media (min-width: 981px) and (max-width: 1279px) {
   .heritage-row:nth-child(1) {
     translate: -0.4em;
   }
 
   .heritage-row:nth-child(2) {
-    translate: 0.5em;
-  }
-
-  .heritage-row:nth-child(3) {
-    translate: -0.3em;
-  }
-
-  .heritage-row:nth-child(4) {
-    translate: 0.1em;
-  }
-}
-
-@media (min-width: 981px) and (max-width: 1159px) {
-  .heritage-row:nth-child(1) {
-    translate: -0.1em;
-  }
-
-  .heritage-row:nth-child(2) {
-    translate: 0.9em;
-  }
-}
-
-@media (min-width: 1160px) and (max-width: 1439px) {
-  .heritage-row:nth-child(1) {
     translate: 0.7em;
   }
 }
@@ -1744,23 +1721,10 @@ html[lang="en"] #nang-luc .portal-subtitle {
   will-change: transform;
 }
 
-/* Chữ nối (và, là, trong, từng) nhỏ còn nửa trên PC, phone giữ đều cỡ. Từ 981px dùng scale để hàng giữ
-   bề rộng và vị trí như khi chữ đủ cỡ, chữ nhỏ bám mép ngoài; 681-980px dùng font-size vì hàng giữ bề rộng
-   chữ đủ cỡ sẽ xuống dòng. */
-@media (min-width: 681px) and (max-width: 980px) {
+/* Chữ nối (và, là, trong, từng) nhỏ còn nửa trên PC, phone giữ đều cỡ; cách ảnh bằng margin ảnh như từ khóa. */
+@media (min-width: 681px) {
   .heritage-text--minor {
     font-size: 0.5em;
-  }
-}
-
-@media (min-width: 981px) {
-  .heritage-text--minor {
-    transform: scale(0.5);
-    transform-origin: right center;
-  }
-
-  .heritage-text--minor:first-child {
-    transform-origin: left center;
   }
 }
 

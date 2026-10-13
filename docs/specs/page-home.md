@@ -145,16 +145,16 @@ Then ảnh không còn transform hay transition
 ### R7. Heritage montage
 
 Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa. Từ 681px chữ
-nối (và, là, trong, từng; EN and, are, to, every) còn nửa cỡ (`.heritage-text--minor`): từ 981px scale
-bám mép ngoài nên hàng giữ bề rộng như chữ đủ cỡ, 681-980px giảm font-size; tới 680px mọi chữ cùng cỡ. Từ
+nối (và, là, trong, từng; EN and, are, to, every) còn nửa cỡ (`.heritage-text--minor`) và cách ảnh bằng
+margin ảnh như từ khóa; tới 680px mọi chữ cùng cỡ. Từ
 981px hàng trái và phải lệch ra mép gutter. Khi vào viewport, chữ trong mask trượt lên, từ thứ hai
 của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Tới 980px hàng xuống dòng, từ dài ngắt trong khung.
 Tới 680px cỡ chữ `min((100vw - 40px) / 7.2, 4rem)` để từ dài nhất vẫn vừa một dòng, nhịp dòng đều 1.32em;
 section không có padding dọc riêng nên khoảng trên và dưới chỉ bằng `section-gap`, link cách chữ 2rem.
 Ảnh tính theo em của hàng (1.875em x 1.44em, giữ tỉ lệ chữ/ảnh như PC 1440px), cách chữ bằng `column-gap`
 0.15em nên ảnh đầu dòng thẳng mép trái; không ảnh nào che mực chữ, kể cả dấu tiếng Việt.
-Từ 681 tới 1439px các hàng dịch ngang (`translate`) theo ba khoảng 681-980, 981-1159, 1160-1439px,
-các hàng cách thêm 0.05em, để dấu dưới Ệ, Ạ và móc Ẩ không bị ảnh hàng kề che. Link "Xem cách chúng tôi
+Từ 681 tới 1299px các hàng cách thêm 0.2em, riêng 981-1279px hàng 1 và 2 dịch ngang (`translate`),
+để dấu dưới Ệ, Ạ và móc Ẩ không bị ảnh hàng kề che. Link "Xem cách chúng tôi
 làm" có mũi tên trượt khi hover.
 
 ```gherkin
