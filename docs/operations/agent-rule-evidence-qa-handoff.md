@@ -39,6 +39,15 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    chép chữ, logo, người, watermark hay thiết kế y nguyên.
 2. **Brief.** Agent viết brief từng ảnh, một agent độc lập phản biện, sửa rồi
    tạo. Owner không duyệt brief, trừ sản phẩm chưa từng có ảnh trên site.
+   Brief nào cũng phải:
+   - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
+     máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
+     khung); không mặt nghiêng, không kính hay mặt bóng hướng về máy;
+   - đo vùng hiển thị thật của slot trong code khi ảnh bị cover crop hoặc có chữ
+     đè, rồi ghi vị trí chủ thể theo vùng đó;
+   - giữ chữ trong ảnh ít, ngắn, đủ lớn để đọc đúng dấu; biển một mặt quay về
+     máy; chữ LED ma trận không đặt ở cỡ nhỏ;
+   - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi brief 2 phương án. Codex không có cách chọn model ảnh nên model
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
