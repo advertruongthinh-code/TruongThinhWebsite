@@ -27,7 +27,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+      # dest riêng mỗi runner: các instance cùng user dùng chung ~/setup-pnpm nên self-install đè nhau.
       - uses: pnpm/action-setup@v6
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
       - uses: actions/setup-node@v7
         with:
           node-version: 22
