@@ -80,6 +80,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
 | cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) |
+| ci-suites | `ci-test-suites.md` | bộ test CI theo phần website, chọn bộ theo file PR sửa (planned) |
 
 Mỗi spec theo `docs/specs/_template.md` mới:
 

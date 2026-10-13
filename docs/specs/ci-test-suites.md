@@ -1,0 +1,179 @@
+---
+title: Bộ test CI chia theo phần website
+status: planned
+source:
+  - tests/ci-suites.json
+  - scripts/ci/**
+tests:
+  - tests/tooling/ci-suites.test.mjs
+notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
+updated: 2026-10-13
+---
+
+# Bộ test CI chia theo phần website
+
+## Mục đích
+
+CI chia thành nhiều bộ test nhỏ, mỗi bộ ứng với một phần website trong
+[capability map](docs-system.md#r2-capability-map-và-spec-sống). PR chỉ chạy bộ của phần nó sửa, các bộ chạy
+song song trên runner WSL ở PC owner. Merge vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
+demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
+`.github/workflows/ci.yml` chuyển từ [phát hành tĩnh](static-release.md#r10-gate-ci) sang spec này ở PR code đầu tiên.
+
+## Hành vi
+
+### R1. Manifest bộ test
+
+`tests/ci-suites.json` là nguồn duy nhất liệt kê bộ test. Mỗi bộ có `id`, `specs` (tên file spec trong `docs/specs/`
+mà bộ bảo vệ) và `tests` (lệnh chạy, mỗi lệnh một file test hoặc một mode của `site.e2e.cjs`). Đường kích hoạt của bộ là
+hợp các glob `source:` trong frontmatter của các spec đó cộng chính các file test của bộ, nên spec đổi `source:` thì
+bộ tự theo. Mục `shared` liệt kê file dùng chung cả website; mục `manual` liệt kê test không vào CI kèm lý do.
+Mỗi file `tests/site/*.e2e.*` thuộc đúng một bộ hoặc nằm trong `manual`.
+
+```gherkin
+Given một file test e2e mới trong tests/site/
+When chạy node --test tests/tooling/ci-suites.test.mjs
+Then test fail nếu file chưa thuộc bộ nào và không nằm trong manual
+And test fail nếu một file thuộc hai bộ
+```
+
+### R2. Bộ dự kiến
+
+| Bộ | Spec | Nội dung chính |
+| --- | --- | --- |
+| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, rules sync, biến thể ảnh, worker security, `qa:client-assets`, preview self-test; không mở browser, luôn chạy |
+| `shell` | site-shell, phone-header-scroll, logo-route-crossfade, scroll-feel | smoke Chromium, header, menu, footer, đổi ngôn ngữ, veil, 404, reduced motion, header điện thoại, logo đổi màu |
+| `home` | page-home | hero, portal, marquee logo khách |
+| `detail-pages` | detail-pages | Residential, Commercial, About |
+| `adv-grid` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | lưới, lọc, card, hero một lần, skeleton cuối lưới, CTA, footer route |
+| `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: primary, related, gợi ý, slideshow, viewer, chuyển ảnh, preload route |
+| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card | khung ảnh, CLS, skeleton chờ ảnh, Kính, card nhiều media |
+
+Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner PC thì tách đôi theo
+spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
+
+### R3. Chọn bộ theo file PR sửa
+
+Job `select` so file đổi của PR với merge base của `main`:
+
+1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): chỉ `fast`.
+2. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
+   `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,
+   `scripts/tooling/serve-static-parity.mjs`, `scripts/ci/**`, `tests/ci-suites.json`, `.github/workflows/ci.yml`,
+   helper dùng chung trong `tests/site/`): mọi bộ.
+3. File khớp đường kích hoạt của một bộ: bộ đó.
+4. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
+
+Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. `fast` luôn chạy.
+
+```gherkin
+Given PR chỉ đổi src/site/residential/index.html
+When job select chạy
+Then chỉ fast và detail-pages được chọn
+
+Given PR đổi src/site/style.css
+When job select chạy
+Then mọi bộ được chọn
+
+Given CI chạy do push vào main
+Then mọi bộ được chọn
+```
+
+### R4. Chạy song song và độc lập
+
+Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `[self-hosted, linux, wsl]`. Job tự build
+`.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau trên cùng PC. Một bộ đỏ
+không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview và
+`test-results/` của bộ đó.
+
+```gherkin
+Given bộ home và bộ adv-grid cùng được chọn
+When adv-grid fail
+Then home vẫn chạy hết và báo kết quả riêng
+And check của PR ghi rõ bộ adv-grid đỏ
+```
+
+### R5. Check tổng giữ tên `static-release`
+
+Job `static-release` chạy sau mọi bộ (`if: always()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy.
+Bộ không được chọn không tính là đỏ. Workflow `Automerge` và `Deploy demo` giữ nguyên vì vẫn đọc check
+`static-release` và kết luận của workflow CI.
+
+```gherkin
+Given PR chỉ đổi tài liệu
+When CI xong
+Then static-release xanh dù không bộ browser nào chạy
+And Automerge merge được khi qa-docs cũng xanh
+```
+
+### R6. Chạy local cùng lệnh với CI
+
+`pnpm qa:suite <id>` chạy một bộ, `pnpm qa:suite --changed` chạy các bộ mà R3 chọn cho thay đổi hiện tại so với
+`origin/main`. CI gọi đúng lệnh này nên agent và runner chạy cùng một thứ. Lệnh tự build, tự mở preview và tự dọn.
+
+```gherkin
+Given agent vừa sửa src/site/about/index.html
+When chạy pnpm qa:suite --changed
+Then chạy fast và detail-pages giống CI
+```
+
+### R7. Đưa test chạy tay vào bộ
+
+Khoảng 30 script e2e đang chạy tay được đưa vào bộ, mỗi lần một bộ. Script phải xanh trên runner PC trước khi vào
+manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
+sửa theo demo trong cùng PR. Chỗ demo trông như lỗi (vỡ layout, lỗi console) thì gom lại hỏi owner một lần, không tự
+quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
+
+```gherkin
+Given script shared-header-single-line đỏ vì test đòi hành vi demo đã đổi
+When đưa vào bộ shell
+Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
+```
+
+### R8. Test ngoài CI
+
+`manual` giữ test cần phần cứng thật hoặc ma trận quá lớn, chạy tay trên PC: đo FPS và WebGL
+(`advertising-continuation`), A05s (`mobile-viewport-android-record`), ma trận nhiều engine
+(`mobile-layout-parity`, `mobile-viewport-stability`, `scrollbar-parity`), công cụ đo (`image-delivery-measure`,
+`scroll-trace`, `related-scroll-device`, `advertising-solver-report`). Phần độ phủ phụ thuộc
+[phân loại Advertising](advertising-taxonomy.md) chưa làm ở đây.
+
+## Giao diện và dữ liệu
+
+| Loại | Tên | Vai trò |
+| --- | --- | --- |
+| Data | `tests/ci-suites.json` | Bộ, spec, lệnh test, `shared`, `manual`; agent sửa khi thêm test |
+| Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ, dọn server; exit khác 0 khi có lệnh đỏ |
+| Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
+| Check | `static-release` | Check tổng mà Automerge đọc |
+
+## Kiểm tra
+
+| R | Test hoặc command |
+| --- | --- |
+| R1, R3 | `tests/tooling/ci-suites.test.mjs`: mọi e2e thuộc đúng một bộ, bảng chọn bộ theo file mẫu |
+| R4, R5 | Run CI thật trên một PR docs-only, một PR một phần, một PR đổi `style.css` |
+| R6 | `pnpm qa:suite --changed` cho cùng danh sách bộ với job `select` |
+| R7 | Mỗi bộ xanh trên runner PC tại PR đưa nó vào |
+| R2 | Thời gian từng job trong log Actions, ghi vào mô tả PR |
+
+## Gate còn mở
+
+- Mục tiêu thời gian, mặc định đề xuất: PR sửa một phần xong dưới 5 phút; chạy đủ mọi bộ xong dưới 12 phút khi đủ
+  runner rảnh. [CẦN LÀM RÕ: owner giữ hai số này hay đặt số khác?]
+- File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
+  gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
+- Matrix 7 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
+  2026-10-11). Số runner cần thêm đo ở PR đầu.
+- WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
+  thuộc spec này.
+
+## Chú thích thuật ngữ
+
+- **Bộ test (suite)**: nhóm test bảo vệ một phần website, chạy thành một job CI.
+- **Manifest**: file JSON liệt kê bộ và test của từng bộ.
+- **Matrix**: một job GitHub Actions nhân thành nhiều job theo danh sách giá trị.
+- **Merge base**: commit chung gần nhất giữa nhánh PR và `main`.
+- **Check tổng**: job gom kết quả mọi bộ thành một check duy nhất.
+- **Runner**: máy chạy job GitHub Actions; ở đây là WSL trên PC owner.
+- **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm.
