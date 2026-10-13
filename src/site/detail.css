@@ -282,6 +282,7 @@ html[lang="vi"]
   font-size: clamp(1.55rem, 2.2vw, 2.45rem);
   letter-spacing: 0;
   line-height: 1.4;
+  word-spacing: var(--word-spacing-body);
 }
 
 .detail-media {
@@ -308,6 +309,7 @@ html[lang="vi"]
   font-size: clamp(1.45rem, 2vw, 2.1rem);
   letter-spacing: 0;
   line-height: 1.4;
+  word-spacing: var(--word-spacing-body);
 }
 
 .detail-gallery {
@@ -1182,6 +1184,7 @@ html[lang="en"]
   font-size: clamp(1.25rem, 1.75vw, 1.8rem);
   letter-spacing: 0;
   line-height: 1.45;
+  word-spacing: var(--word-spacing-body);
 }
 
 .about-timeline__copy strong {
@@ -1206,6 +1209,7 @@ html[lang="en"]
   font-size: clamp(1.6rem, 2.35vw, 2.7rem);
   letter-spacing: 0;
   line-height: 1.4;
+  word-spacing: var(--word-spacing-body);
 }
 
 .about-process-note {
@@ -1225,6 +1229,7 @@ html[lang="en"]
   font-size: clamp(1.45rem, 2vw, 2.1rem);
   letter-spacing: 0;
   line-height: 1.4;
+  word-spacing: var(--word-spacing-body);
 }
 
 .about-commitments {
