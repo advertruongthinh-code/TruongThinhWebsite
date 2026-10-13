@@ -28,7 +28,7 @@ test("chọn bộ theo file PR sửa", () => {
   assert.deepEqual(select(["src/site/index.html"]), ["fast", "media"]);
   assert.deepEqual(select(["src/site/residential/index.html"]), ["fast", "media"]);
   assert.deepEqual(select(["src/site/advertising-products/skeleton-flow.mjs"]), ["fast", "adv-grid"]);
-  assert.deepEqual(select(["tests/site/not-found-routes.e2e.mjs"]), ["fast", "shell"]);
+  assert.deepEqual(select(["tests/site/not-found-routes.e2e.mjs"]), ["fast", "route"]);
   assert.deepEqual(select(["src/site/new-page/index.html"]), all);
   assert.deepEqual(select(["docs/STATE.md"], "push"), all);
 });

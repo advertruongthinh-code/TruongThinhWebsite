@@ -45,7 +45,8 @@ And test fail nếu một file thuộc hai bộ
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
 | `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
-| `shell` | site-shell, phone-header-scroll, logo-route-crossfade, scroll-feel, static-release | header, menu, footer, đổi ngôn ngữ, veil, 404, reduced motion, header điện thoại, logo đổi màu |
+| `shell` | site-shell, phone-header-scroll, scroll-feel | header, menu, đổi ngôn ngữ, header điện thoại |
+| `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, 404, reduced motion |
 | `home` | page-home | hero, portal, marquee logo khách |
 | `detail-pages` | detail-pages | Residential, Commercial, About |
 | `adv-grid` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | lưới, lọc, card, hero một lần, skeleton cuối lưới, CTA, footer route |
@@ -169,7 +170,7 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 7 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
+- Matrix 8 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
   2026-10-11). Số runner cần thêm đo ở PR đầu.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này.

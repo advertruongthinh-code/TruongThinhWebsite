@@ -48,12 +48,24 @@
       ]
     },
     "shell": {
-      "specs": ["site-shell", "phone-header-scroll", "logo-route-crossfade", "scroll-feel", "static-release"],
+      "specs": ["site-shell", "phone-header-scroll", "scroll-feel"],
       "tests": [
         "node tests/site/phone-header-scroll.e2e.mjs",
+        "node tests/site/shared-header-menu-route-close.e2e.mjs",
+        "node tests/site/shared-header-bottom-p7-1.e2e.mjs",
+        "node tests/site/shared-header-locale.e2e.mjs",
+        "node tests/site/shared-header-menu-p7.e2e.mjs",
+        "node tests/site/shared-header-single-line.e2e.mjs",
+        "node tests/site/menu-reference-parity.e2e.mjs"
+      ]
+    },
+    "route": {
+      "specs": ["site-shell", "logo-route-crossfade", "static-release"],
+      "tests": [
         "node tests/site/logo-route-crossfade.e2e.mjs",
         "node tests/site/not-found-routes.e2e.mjs",
-        "node tests/site/shared-header-menu-route-close.e2e.mjs"
+        "node tests/site/route-veil-header.e2e.mjs",
+        "node tests/site/reduced-motion-live.e2e.mjs"
       ]
     },
     "home": { "specs": ["page-home"], "tests": [] },
@@ -104,15 +116,8 @@
     "tests/site/client-logo-marquee.e2e.cjs",
     "tests/site/footer-consistency.e2e.mjs",
     "tests/site/glass-surface.e2e.mjs",
-    "tests/site/menu-reference-parity.e2e.mjs",
     "tests/site/middle-autoscroll.e2e.mjs",
-    "tests/site/reduced-motion-live.e2e.mjs",
-    "tests/site/route-veil-header.e2e.mjs",
     "tests/site/scroll-feel.e2e.mjs",
-    "tests/site/shared-header-bottom-p7-1.e2e.mjs",
-    "tests/site/shared-header-locale.e2e.mjs",
-    "tests/site/shared-header-menu-p7.e2e.mjs",
-    "tests/site/shared-header-single-line.e2e.mjs",
     "tests/site/site-media-card-m01b.e2e.mjs",
     "tests/site/site-media-card-m02a.e2e.mjs",
     "tests/site/site-media-card-r6.e2e.mjs",
