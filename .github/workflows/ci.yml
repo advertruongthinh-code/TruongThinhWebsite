@@ -21,27 +21,51 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      # PR chỉ đổi tài liệu (docs/, research/, Markdown ở root trừ AGENTS.md, CLAUDE.md) thì bỏ qua
+      # bước nặng nhưng job vẫn xanh để Automerge hoạt động. Push vào main luôn chạy đủ.
+      - id: changes
+        run: |
+          code=true
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            files=$(git diff --name-only HEAD^1 HEAD | grep -vE '^(docs|research)/' | grep -vE '^[^/]+\.md$' || true)
+            core=$(git diff --name-only HEAD^1 HEAD | grep -E '^(AGENTS|CLAUDE)\.md$' || true)
+            code=false
+            [ -n "$files$core" ] && code=true
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
 
       # dest riêng mỗi runner: các instance cùng user dùng chung ~/setup-pnpm nên self-install đè nhau.
       - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.code == 'true'
         with:
           dest: ${{ runner.temp }}/setup-pnpm
 
       - uses: actions/setup-node@v7
+        if: steps.changes.outputs.code == 'true'
         with:
           node-version: 22
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+        if: steps.changes.outputs.code == 'true'
       - run: pnpm qa:static
+        if: steps.changes.outputs.code == 'true'
       - run: node --test tests/tooling/global-rules-sync.test.mjs
+        if: steps.changes.outputs.code == 'true'
       - run: node scripts/site/build-image-variants.mjs --check
+        if: steps.changes.outputs.code == 'true'
       - run: pnpm qa:worker:security
+        if: steps.changes.outputs.code == 'true'
       - run: pnpm exec playwright install chromium
+        if: steps.changes.outputs.code == 'true'
 
       # Các runner instance trên cùng PC dùng chung network: mỗi job lấy port trống riêng,
       # nếu không job sau sẽ test nhầm server của job khác đang giữ 8787.
       - name: Start local static preview
+        if: steps.changes.outputs.code == 'true'
         run: |
           pnpm prepare:site
           port="$(node -e 'const s = require("node:net").createServer().listen(0, "127.0.0.1", () => { console.log(s.address().port); s.close(); })')"
@@ -58,25 +82,34 @@ jobs:
 
       # Bước trên đã chạy prepare:site, nên .site-output/ sẵn cho unit test.
       - run: node --test tests/site/*.test.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - run: pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium
+        if: steps.changes.outputs.code == 'true'
 
       # Script tự đặt browser path về .tooling/browsers khi env trống; trỏ về cache của playwright install.
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/image-loading-frame.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/advertising-skeleton-slow-network.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/phone-header-scroll.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/logo-route-crossfade.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/not-found-routes.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/advertising-route-preload.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
       - run: PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/ms-playwright" node tests/site/shared-header-menu-route-close.e2e.mjs
+        if: steps.changes.outputs.code == 'true'
 
       - name: Upload failure evidence
-        if: failure()
+        if: failure() && steps.changes.outputs.code == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: qa-failure-evidence
