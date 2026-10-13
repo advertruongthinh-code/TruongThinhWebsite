@@ -27,8 +27,10 @@ demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi t�
 `tests/ci-suites.json` là nguồn duy nhất liệt kê bộ test. Mỗi bộ có `id`, `specs` (tên file spec trong `docs/specs/`
 mà bộ bảo vệ) và `tests` (lệnh chạy, mỗi lệnh một file test hoặc một mode của `site.e2e.cjs`). Đường kích hoạt của bộ là
 hợp các glob `source:` trong frontmatter của các spec đó cộng chính các file test của bộ, nên spec đổi `source:` thì
-bộ tự theo. Mục `shared` liệt kê file dùng chung cả website; mục `manual` liệt kê test không vào CI kèm lý do.
-Mỗi file `tests/site/*.e2e.*` thuộc đúng một bộ hoặc nằm trong `manual`.
+bộ tự theo. Hai bộ được cùng bảo vệ một spec (ví dụ `media` kiểm khung ảnh của trang chủ). Mục `ignore` là tài liệu,
+`fastOnly` là file chỉ cần `fast`, `shared` là file dùng chung cả website, `manual` là test không vào CI kèm lý do,
+`pending` là script chưa chuyển vào bộ (rỗng khi xong việc). Mỗi file `tests/site/*.e2e.*` nằm ở đúng một chỗ trong
+bộ, `manual` hoặc `pending`; riêng `site.e2e.cjs` chia theo mode, mỗi mode ở một bộ.
 
 ```gherkin
 Given một file test e2e mới trong tests/site/
@@ -41,13 +43,13 @@ And test fail nếu một file thuộc hai bộ
 
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
-| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, rules sync, biến thể ảnh, worker security, `qa:client-assets`, preview self-test; không mở browser, chạy với mọi PR có code |
-| `shell` | site-shell, phone-header-scroll, logo-route-crossfade, scroll-feel | smoke Chromium, header, menu, footer, đổi ngôn ngữ, veil, 404, reduced motion, header điện thoại, logo đổi màu |
+| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
+| `shell` | site-shell, phone-header-scroll, logo-route-crossfade, scroll-feel, static-release | header, menu, footer, đổi ngôn ngữ, veil, 404, reduced motion, header điện thoại, logo đổi màu |
 | `home` | page-home | hero, portal, marquee logo khách |
 | `detail-pages` | detail-pages | Residential, Commercial, About |
 | `adv-grid` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | lưới, lọc, card, hero một lần, skeleton cuối lưới, CTA, footer route |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: primary, related, gợi ý, slideshow, viewer, chuyển ảnh, preload route |
-| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card | khung ảnh, CLS, skeleton chờ ảnh, Kính, card nhiều media |
+| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính, card nhiều media |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner PC thì tách đôi theo
 spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
@@ -57,19 +59,21 @@ spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn th�
 Job `select` so file đổi của PR với merge base của `main`:
 
 1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
-2. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
+2. File khớp `fastOnly` (`AGENTS.md`, `CLAUDE.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow
+   khác CI): chỉ `fast`.
+3. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
    `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,
    `scripts/tooling/serve-static-parity.mjs`, `scripts/ci/**`, `tests/ci-suites.json`, `.github/workflows/ci.yml`,
    helper dùng chung trong `tests/site/`): mọi bộ.
-3. File khớp đường kích hoạt của một bộ: bộ đó.
-4. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
+4. File khớp đường kích hoạt của một bộ: bộ đó.
+5. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
 
 Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. PR có code luôn chạy `fast`.
 
 ```gherkin
 Given PR chỉ đổi src/site/residential/index.html
 When job select chạy
-Then chỉ fast và detail-pages được chọn
+Then chỉ fast, detail-pages và media được chọn
 
 Given PR đổi src/site/style.css
 When job select chạy
@@ -117,7 +121,7 @@ And Automerge merge được khi qa-docs cũng xanh
 ```gherkin
 Given agent vừa sửa src/site/about/index.html
 When chạy pnpm qa:suite --changed
-Then chạy fast và detail-pages giống CI
+Then chạy fast, detail-pages và media giống CI
 ```
 
 ### R7. Đưa test chạy tay vào bộ

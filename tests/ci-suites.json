@@ -1,0 +1,121 @@
+{
+  "ignore": ["docs/**", "research/**", "*.md"],
+  "fastOnly": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "design-system/**",
+    "scripts/docs/**",
+    "tests/tooling/**",
+    "src/worker/**",
+    "src/admin/**",
+    "src/db/**",
+    "wrangler.toml",
+    ".github/workflows/docs.yml",
+    ".github/workflows/automerge.yml",
+    ".github/workflows/deploy-demo.yml",
+    ".claude/**",
+    ".impeccable/**"
+  ],
+  "shared": [
+    "src/site/motion.js",
+    "src/site/style.css",
+    "src/site/assets/brand/**",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "playwright.config.cjs",
+    "tooling-versions.json",
+    "scripts/site/**",
+    "scripts/tooling/serve-static-parity.mjs",
+    "scripts/ci/**",
+    "tests/ci-suites.json",
+    "tests/site/fixtures/**",
+    "tests/site/advertising-grid-oracle.mjs",
+    ".github/workflows/ci.yml"
+  ],
+  "suites": {
+    "fast": {
+      "specs": ["static-release", "cms"],
+      "tests": [
+        "pnpm qa:static",
+        "node --test tests/tooling/*.test.mjs",
+        "node scripts/site/build-image-variants.mjs --check",
+        "pnpm qa:worker:security",
+        "pnpm qa:client-assets",
+        "node scripts/tooling/serve-static-parity.mjs --self-test",
+        "node --test tests/site/*.test.mjs",
+        "pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium"
+      ]
+    },
+    "shell": {
+      "specs": ["site-shell", "phone-header-scroll", "logo-route-crossfade", "scroll-feel", "static-release"],
+      "tests": [
+        "node tests/site/phone-header-scroll.e2e.mjs",
+        "node tests/site/logo-route-crossfade.e2e.mjs",
+        "node tests/site/not-found-routes.e2e.mjs",
+        "node tests/site/shared-header-menu-route-close.e2e.mjs"
+      ]
+    },
+    "home": { "specs": ["page-home"], "tests": [] },
+    "detail-pages": { "specs": ["detail-pages"], "tests": [] },
+    "adv-grid": {
+      "specs": ["advertising-masonry", "advertising-skeleton", "advertising-cta-center-parallax"],
+      "tests": [
+        "node tests/site/advertising-skeleton-slow-network.e2e.mjs",
+        "node tests/site/advertising-route-preload.e2e.mjs"
+      ]
+    },
+    "adv-detail": { "specs": ["advertising-detail", "advertising-viewer-touch-zoom"], "tests": [] },
+    "media": {
+      "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages"],
+      "tests": ["node tests/site/image-loading-frame.e2e.mjs"]
+    }
+  },
+  "manual": {
+    "tests/site/advertising-continuation.e2e.mjs": "FPS và WebGL cần GPU thật",
+    "tests/site/mobile-layout-parity.e2e.mjs": "ma trận 660 ca, ba engine",
+    "tests/site/mobile-viewport-stability.e2e.mjs": "ba engine, đo trên PC",
+    "tests/site/scrollbar-parity.e2e.mjs": "ba engine và Chrome, Edge cài trên máy",
+    "tests/site/site-media-card-playback.e2e.mjs": "phát video thật, chạy ở phiên PC"
+  },
+  "pending": [
+    "tests/site/advertising-card-interactions.e2e.mjs",
+    "tests/site/advertising-full-span-p72.e2e.mjs",
+    "tests/site/advertising-hero-once.e2e.mjs",
+    "tests/site/advertising-no-titles.e2e.mjs",
+    "tests/site/advertising-photo-header.e2e.mjs",
+    "tests/site/advertising-photo-transitions.e2e.mjs",
+    "tests/site/advertising-photo-view.e2e.mjs",
+    "tests/site/advertising-primary-p14.e2e.mjs",
+    "tests/site/advertising-random-browse.e2e.mjs",
+    "tests/site/advertising-return-p74.e2e.mjs",
+    "tests/site/advertising-reveal-offscreen.e2e.mjs",
+    "tests/site/advertising-route-footer-p75.e2e.mjs",
+    "tests/site/advertising-single-related.e2e.mjs",
+    "tests/site/advertising-skeleton-lifecycle.e2e.mjs",
+    "tests/site/advertising-slideshow-p75.e2e.mjs",
+    "tests/site/advertising-suggestion-conditional.e2e.mjs",
+    "tests/site/advertising-suggestion-info.e2e.mjs",
+    "tests/site/advertising-suggestion-layout.e2e.mjs",
+    "tests/site/advertising-suggestion-motion.e2e.mjs",
+    "tests/site/advertising-suggestion-wave.e2e.mjs",
+    "tests/site/advertising-viewer-touch.e2e.mjs",
+    "tests/site/brand-mark-rise.e2e.mjs",
+    "tests/site/client-logo-marquee.e2e.cjs",
+    "tests/site/footer-consistency.e2e.mjs",
+    "tests/site/glass-surface.e2e.mjs",
+    "tests/site/menu-reference-parity.e2e.mjs",
+    "tests/site/middle-autoscroll.e2e.mjs",
+    "tests/site/reduced-motion-live.e2e.mjs",
+    "tests/site/route-veil-header.e2e.mjs",
+    "tests/site/scroll-feel.e2e.mjs",
+    "tests/site/shared-header-bottom-p7-1.e2e.mjs",
+    "tests/site/shared-header-locale.e2e.mjs",
+    "tests/site/shared-header-menu-p7.e2e.mjs",
+    "tests/site/shared-header-single-line.e2e.mjs",
+    "tests/site/site-media-card-m01b.e2e.mjs",
+    "tests/site/site-media-card-m02a.e2e.mjs",
+    "tests/site/site-media-card-r6.e2e.mjs",
+    "tests/site/site.e2e.cjs"
+  ]
+}
