@@ -45,15 +45,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # dest riêng mỗi runner: các instance cùng user dùng chung ~/setup-pnpm nên self-install đè nhau.
+      # dest riêng mỗi runner: các instance cùng user dùng chung ~/setup-pnpm nên self-install đè nhau. Đặt trong
+      # tool cache (giữ qua các job, khác runner.temp bị xóa sau mỗi job) để pnpm và store của nó không tải lại; vì
+      # store nằm sẵn trên máy nên bỏ cache pnpm của setup-node (tải 42 MB từ GitHub mất khoảng 40 giây mỗi job).
       - uses: pnpm/action-setup@v6
         with:
-          dest: ${{ runner.temp }}/setup-pnpm
+          dest: ${{ runner.tool_cache }}/setup-pnpm
 
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: pnpm
+          package-manager-cache: false
 
       - run: pnpm install --frozen-lockfile
 
