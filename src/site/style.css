@@ -1623,7 +1623,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.4;
-  word-spacing: 0;
+  word-spacing: var(--word-spacing-body);
 }
 
 #dich-vu .portal-title__strong {
