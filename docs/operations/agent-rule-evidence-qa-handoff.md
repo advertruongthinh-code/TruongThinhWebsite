@@ -49,7 +49,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      máy; chữ LED ma trận không đặt ở cỡ nhỏ;
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
-   khảo>`), mỗi brief 2 phương án. Codex không có cách chọn model ảnh nên model
+   khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
+   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
    ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
@@ -64,13 +65,11 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      buộc phải quay về máy);
    - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
      bố cục, người, chữ, thương hiệu;
-   - phương án 2 khác có chủ đích: brief có trường `variant_b` (một câu tiếng Anh
-     đổi góc máy hoặc ánh sáng) nối vào prompt của phương án 2; prompt đúng của
-     từng phương án lưu `p-<id>-<số>.txt`;
+   - prompt đúng của từng ảnh lưu `p-<id>.txt`;
    - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
      một dấu là chữ chủ thể sai.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
-   `p-<id>-<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
+   `p-<id>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
    kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
@@ -78,7 +77,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 
 ### Chấm điểm
 
-Phương án tốt nhất của mỗi brief phải đạt **Audit ≥ 8/10 và Critique ≥ 8/10**;
+Ảnh của mỗi brief phải đạt **Audit ≥ 8/10 và Critique ≥ 8/10**;
 không lấy trung bình.
 
 | Audit | Điểm |
