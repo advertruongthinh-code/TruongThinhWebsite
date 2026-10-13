@@ -149,7 +149,7 @@ nối (và, là, trong, từng; EN and, are, to, every) còn nửa cỡ (`.herit
 margin ảnh như từ khóa; tới 680px mọi chữ cùng cỡ. Từ 981px hàng trái và phải lệch ra mép gutter. Khi vào
 viewport, chữ trong mask trượt lên, từ thứ hai của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Hàng dài hơn
 khung (EN "our commitment" ở 981-1282px) xuống dòng thay vì tràn mép trái; tới 980px từ dài còn ngắt.
-Tới 680px cỡ chữ `min((100vw - 40px) / 7.2, 4rem)` để từ dài nhất vẫn vừa một dòng, nhịp dòng đều 1.32em;
+Tới 680px cỡ chữ `6.5vw` (bằng motto Espacio cùng bề rộng) nên mỗi hàng nằm trên một dòng;
 section không có padding dọc riêng nên khoảng trên và dưới chỉ bằng `section-gap`, link cách chữ 2rem.
 Ảnh tính theo em của hàng (1.875em x 1.44em, giữ tỉ lệ chữ/ảnh như PC 1440px), cách chữ bằng `column-gap`
 0.15em nên ảnh đầu dòng thẳng mép trái. Từ 681 tới 1299px các hàng cách thêm 0.2em, riêng 981-1279px hàng
@@ -162,8 +162,8 @@ trang, đổi bề rộng, đổi ngôn ngữ. Link "Xem cách chúng tôi làm"
 Given /vi/ ở 390px
 When cuộn tới #tay-nghe
 Then bốn hàng hiện đủ chữ và ảnh, chữ không bị cắt, document không tràn ngang
-And chữ cỡ khoảng 48.6px, khoảng từ section trước tới chữ và từ link tới section sau đều 64px
-And ảnh khoảng 91x70px, không đè lên mực chữ của dòng nào
+And chữ cỡ khoảng 25.4px, mỗi hàng một dòng, khoảng từ section trước tới chữ và từ link tới section sau đều 64px
+And ảnh khoảng 48x37px, không đè lên mực chữ của dòng nào
 And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nhất 10px
 ```
 
