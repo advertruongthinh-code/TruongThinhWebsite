@@ -9888,7 +9888,7 @@ async function runHomeMotionRegressionCheck() {
         JSON.stringify(contract.heritage.sources) ===
           JSON.stringify([
             "/assets/content/shared/legacy-hands-384.webp",
-            "/assets/content/shared/montage-cnc-tablet.webp",
+            "/assets/content/shared/montage-creativity-designer-wave-wall.webp",
             "/assets/content/shared/montage-commitment-option-3-knot.webp",
             "/assets/content/shared/montage-residential-product-detail.webp",
           ]),
