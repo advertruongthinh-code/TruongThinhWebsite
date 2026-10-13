@@ -107,13 +107,15 @@
   };
 
   // Vendor, module catalog và artifact tải cùng lúc. Route mềm gọi ngay lúc bấm link để mạng chạy song song với veil phủ
-  // thay vì nối đuôi sau veil (Shell R6).
+  // thay vì nối đuôi sau veil (Shell R6). Artifact import cùng lúc với runtime: runtime import lại đúng URL này nên dùng
+  // chung module, không tải hai lần; nếu chờ runtime tải xong mới import thì artifact trễ một vòng mạng.
   const loadAdvertisingCatalog = () => Promise.all([
     ensureAdvertisingDependencies(),
     import("/advertising-products/catalog-runtime.mjs").then((runtime) => {
       runtime.preloadAdvertisingCatalog();
       return runtime;
     }),
+    import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
   ]).then(([, runtime]) => runtime);
 
   const ensureAdvertisingCarouselStyle = () => {
