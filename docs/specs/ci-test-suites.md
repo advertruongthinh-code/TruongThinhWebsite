@@ -81,6 +81,9 @@ Then mọi bộ được chọn
 
 ### R4. Chạy song song và độc lập
 
+Mục tiêu (owner duyệt 2026-10-13): PR sửa một phần xong dưới 5 phút; chạy đủ mọi bộ xong dưới 12 phút khi đủ
+runner rảnh.
+
 Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `[self-hosted, linux, wsl]`. Job tự build
 `.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau trên cùng PC. Một bộ đỏ
 không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview và
@@ -159,8 +162,6 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 
 ## Gate còn mở
 
-- Mục tiêu thời gian, mặc định đề xuất: PR sửa một phần xong dưới 5 phút; chạy đủ mọi bộ xong dưới 12 phút khi đủ
-  runner rảnh. [CẦN LÀM RÕ: owner giữ hai số này hay đặt số khác?]
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
 - Matrix 7 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
