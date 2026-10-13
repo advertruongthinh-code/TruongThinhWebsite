@@ -52,6 +52,14 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    khảo>`), mỗi brief 2 phương án. Codex không có cách chọn model ảnh nên model
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
    ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
+   Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
+   - điều cấm và chủ thể đặt ở đầu prompt, không dồn cuối;
+   - bố cục tả bằng lời (cảnh toàn, trung, cận; trái, giữa, phải; góc máy), không
+     dùng phần trăm khung hình;
+   - bối cảnh tỉnh lẻ miền Tây ghi rõ nhà thấp tầng, không tòa tháp, không resort;
+   - hai phương án khác nhau có chủ đích: đổi góc máy hoặc giờ, ánh sáng;
+   - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
+     một dấu là chữ chủ thể sai.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
    `p<số>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
    kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
