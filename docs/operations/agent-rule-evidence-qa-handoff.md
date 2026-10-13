@@ -100,18 +100,15 @@ bất khả thi hoặc xưởng không làm được; sai nhóm; sản phẩm l�
 hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại coi
 như ảnh mới.
 
-Ba agent chấm, độc lập với agent tạo ảnh và với nhau. Mỗi agent mở ảnh, chấm
-đủ hai bảng, ghi điểm từng mục và lỗi, nhưng tấn công theo hướng riêng:
+Một agent chấm, độc lập với agent tạo ảnh (owner chốt 2026-10-13, thay cho ba
+agent). Agent mở ảnh, chấm đủ hai bảng, ghi điểm từng mục và lỗi; soi cả kết
+cấu, vật liệu, chi tiết AI, chữ và dấu, bố cục, thumbnail, ngành khách hàng.
+Lỗi loại thẳng là loại.
 
-| Agent | Tính cách | Tấn công |
-| --- | --- | --- |
-| Thợ cả xưởng | Khó tính, quen gia công và lắp đặt | Kết cấu, vật liệu, liên kết, tỷ lệ, logic sản phẩm |
-| Pháp chứng ảnh | Soi từng chi tiết | Chi tiết AI, chữ và dấu, hình học, ánh sáng, phản chiếu, sao chép tham khảo |
-| Giám đốc sáng tạo | Khách hàng khó chiều | Bố cục, thumbnail, sức sống, ngành khách hàng, độ đa dạng của bộ ảnh |
-
-Ảnh đạt khi cả ba agent cho đủ ngưỡng; một agent nêu lỗi loại thẳng là loại.
-Main kiểm lại, không tự nâng điểm. Ảnh sửa thì chấm lại đúng SHA-256 mới. Owner
-phát hiện lỗi thì acceptance cũ mất hiệu lực.
+Mỗi yêu cầu tạo tối đa 3 lần: ảnh trượt thì sửa prompt theo lý do agent chấm
+nêu rồi tạo lại một ảnh. Ba lần đều không đạt thì dừng, trình owner cả ba ảnh
+kèm điểm từng bảng và lý do loại. Main kiểm lại, không tự nâng điểm. Ảnh sửa
+thì chấm lại đúng SHA-256 mới. Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
 
@@ -131,4 +128,3 @@ phát hiện lỗi thì acceptance cũ mất hiệu lực.
 - **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.
 - **Audit**: kiểm độ đúng kỹ thuật và nội dung của ảnh.
 - **Critique**: đánh giá chất lượng thị giác và đóng góp cho bộ ảnh.
-- **Pháp chứng ảnh**: soi ảnh để tìm dấu vết sinh ảnh, sửa ảnh hoặc sao chép.
