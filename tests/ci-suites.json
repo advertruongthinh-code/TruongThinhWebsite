@@ -48,7 +48,7 @@
       ]
     },
     "shell": {
-      "specs": ["site-shell", "phone-header-scroll", "scroll-feel"],
+      "specs": ["site-shell", "phone-header-scroll"],
       "tests": [
         "node tests/site/phone-header-scroll.e2e.mjs",
         "node tests/site/shared-header-menu-route-close.e2e.mjs",
@@ -65,8 +65,20 @@
         "node tests/site/logo-route-crossfade.e2e.mjs",
         "node tests/site/not-found-routes.e2e.mjs",
         "node tests/site/route-veil-header.e2e.mjs",
-        "node tests/site/reduced-motion-live.e2e.mjs"
+        "node tests/site/reduced-motion-live.e2e.mjs",
+        "node tests/site/brand-mark-rise.e2e.mjs"
       ]
+    },
+    "scroll": {
+      "specs": ["scroll-feel"],
+      "tests": [
+        "node tests/site/scroll-feel.e2e.mjs",
+        "node tests/site/middle-autoscroll.e2e.mjs"
+      ]
+    },
+    "footer": {
+      "specs": ["site-shell", "page-home", "detail-pages", "advertising-cta-center-parallax"],
+      "tests": ["node tests/site/footer-consistency.e2e.mjs"]
     },
     "home": { "specs": ["page-home"], "tests": [] },
     "detail-pages": { "specs": ["detail-pages"], "tests": [] },
@@ -112,12 +124,8 @@
     "tests/site/advertising-suggestion-motion.e2e.mjs",
     "tests/site/advertising-suggestion-wave.e2e.mjs",
     "tests/site/advertising-viewer-touch.e2e.mjs",
-    "tests/site/brand-mark-rise.e2e.mjs",
     "tests/site/client-logo-marquee.e2e.cjs",
-    "tests/site/footer-consistency.e2e.mjs",
     "tests/site/glass-surface.e2e.mjs",
-    "tests/site/middle-autoscroll.e2e.mjs",
-    "tests/site/scroll-feel.e2e.mjs",
     "tests/site/site-media-card-m01b.e2e.mjs",
     "tests/site/site-media-card-m02a.e2e.mjs",
     "tests/site/site-media-card-r6.e2e.mjs",

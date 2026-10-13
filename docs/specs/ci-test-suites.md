@@ -45,8 +45,10 @@ And test fail nếu một file thuộc hai bộ
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
 | `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
-| `shell` | site-shell, phone-header-scroll, scroll-feel | header, menu, đổi ngôn ngữ, header điện thoại |
-| `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, 404, reduced motion |
+| `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
+| `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
+| `scroll` | scroll-feel | cảm giác cuộn, cuộn bằng nút giữa chuột |
+| `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình |
 | `home` | page-home | hero, portal, marquee logo khách |
 | `detail-pages` | detail-pages | Residential, Commercial, About |
 | `adv-grid` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | lưới, lọc, card, hero một lần, skeleton cuối lưới, CTA, footer route |
@@ -75,7 +77,7 @@ Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. PR có code lu
 ```gherkin
 Given PR chỉ đổi src/site/residential/index.html
 When job select chạy
-Then chỉ fast, detail-pages và media được chọn
+Then chỉ fast, detail-pages, footer và media được chọn
 
 Given PR đổi src/site/style.css
 When job select chạy
@@ -123,7 +125,7 @@ And Automerge merge được khi qa-docs cũng xanh
 ```gherkin
 Given agent vừa sửa src/site/about/index.html
 When chạy pnpm qa:suite --changed
-Then chạy fast, detail-pages và media giống CI
+Then chạy fast, detail-pages, footer và media giống CI
 ```
 
 ### R7. Đưa test chạy tay vào bộ
@@ -170,7 +172,7 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 8 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
+- Matrix 10 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
   2026-10-11). Số runner cần thêm đo ở PR đầu.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này.
