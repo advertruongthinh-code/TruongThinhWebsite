@@ -1,7 +1,8 @@
 ---
 title: Bộ test CI chia theo phần website
-status: planned
+status: live
 source:
+  - .github/workflows/ci.yml
   - tests/ci-suites.json
   - scripts/ci/**
 tests:
@@ -18,7 +19,7 @@ CI chia thành nhiều bộ test nhỏ, mỗi bộ ứng với một phần webs
 [capability map](docs-system.md#r2-capability-map-và-spec-sống). PR chỉ chạy bộ của phần nó sửa, các bộ chạy
 song song trên runner WSL ở PC owner. Merge vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
 demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
-`.github/workflows/ci.yml` chuyển từ [phát hành tĩnh](static-release.md#r10-gate-ci) sang spec này ở PR code đầu tiên.
+Runner, Automerge và Deploy demo nằm ở [phát hành tĩnh R10](static-release.md#r10-gate-ci).
 
 ## Hành vi
 
