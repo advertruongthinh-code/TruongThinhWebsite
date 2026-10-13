@@ -19,7 +19,7 @@ jobs:
     # Chỉ push vào main của chính repo; PR từ fork có branch tên main không được dùng secret.
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
+      contains(fromJSON('["push","workflow_dispatch"]'), github.event.workflow_run.event) &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: [self-hosted, linux, wsl]
     timeout-minutes: 10

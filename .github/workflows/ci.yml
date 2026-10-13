@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Automerge dispatch CI trên main sau khi merge, vì merge bằng GITHUB_TOKEN không kích hoạt push.
+  workflow_dispatch:
 
 permissions:
   contents: read

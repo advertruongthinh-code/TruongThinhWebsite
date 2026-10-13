@@ -12,6 +12,7 @@ source:
   - wrangler.static.toml
   - .github/workflows/ci.yml
   - .github/workflows/deploy-demo.yml
+  - .github/workflows/automerge.yml
 tests:
   - tests/site/static-locales.test.mjs
   - tests/site/advertising-products-detail-routes.test.mjs
@@ -22,7 +23,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Phát hành tĩnh
@@ -184,6 +185,11 @@ phải có HTML, JS hay script build sinh ra; ngoại lệ ghi lý do trong `ALL
 `cross-browser.smoke.spec.cjs` (năm route VI không lỗi console, request, tràn ngang; reduced motion; đổi EN; veil; history),
 rồi `image-loading-frame.e2e.mjs` (khung ảnh, CLS dưới `0.1`, skeleton và Kính khi ảnh tải chậm), rồi `advertising-skeleton-slow-network.e2e.mjs` (skeleton không chớp, Flow chạy khi mở detail), rồi `phone-header-scroll.e2e.mjs` (header điện thoại đi theo quãng cuộn), rồi `logo-route-crossfade.e2e.mjs` (mark đổi màu khi chuyển trang), rồi `not-found-routes.e2e.mjs` (rời 404 sang route chính: 404 ẩn khi veil mở, trang đích ở đỉnh và cuộn được).
 CI, Docs và Deploy demo chạy trên self-hosted runner `[self-hosted, linux, wsl]` (WSL Ubuntu trên PC owner) vì repo private gói Free hết phút GitHub Actions; system deps Playwright Chromium cài sẵn trên runner. `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)).
+
+Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi cả `static-release` (CI) và `qa-docs` (Docs)
+xanh trên head hiện tại, không cần agent hay owner. Mặc định bật cho mọi PR; PR draft hoặc có nhãn `hold` không merge.
+Merge bằng `GITHUB_TOKEN` không kích hoạt CI push, nên workflow dispatch `ci.yml` trên `main` để `Deploy demo` chạy tiếp
+(Deploy demo nhận event `push` và `workflow_dispatch`). PR conflict không merge: thread merge `main` vào branch rồi chờ lại.
 
 ```gherkin
 Given pull request đổi src/site/
