@@ -52,6 +52,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      ở cỡ nhỏ (owner chốt 2026-10-14);
    - không dùng xe đẩy inox kiểu cũ có tủ kính ba mặt (như xe hủ tiếu), owner
      loại 2026-10-14;
+   - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
+     nhận diện đậm, đơn giản, nhận ra từ xa; hạn chế ảnh sản phẩm đặt tại xưởng,
+     ưu tiên nơi dùng thật (owner chốt 2026-10-14);
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
