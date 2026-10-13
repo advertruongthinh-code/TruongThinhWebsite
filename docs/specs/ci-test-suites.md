@@ -53,7 +53,9 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình |
 | `home` | page-home | hero, portal, marquee logo khách, scroll cue, wheel, media hover |
 | `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
-| `adv-grid` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | lưới, lọc, card, hero một lần, skeleton cuối lưới, CTA, footer route |
+| `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
+| `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route |
+| `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: primary, related, gợi ý, slideshow, viewer, chuyển ảnh, preload route |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính, card nhiều media |
 
@@ -177,7 +179,8 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 - Matrix 10 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
   2026-10-11). Số runner cần thêm đo ở PR đầu.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
-  thuộc spec này.
+  thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
+  `RANDOM_BROWSE_ENGINES`); Firefox, WebKit chạy tay.
 
 ## Chú thích thuật ngữ
 

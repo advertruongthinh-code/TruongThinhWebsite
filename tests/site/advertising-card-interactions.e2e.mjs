@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
+const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
 function hasSharedMediaTiming({ duration, easing }) {
   return duration.split(",").every((value) => value.trim() === "0.6s")
@@ -14,7 +15,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     for (const detail of [true, false]) {
       const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
-      await page.goto(`http://127.0.0.1:8787/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${baseUrl}/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
       // Direct-load veil chặn pointer input cho đến khi trang mount xong.
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       const card = page.locator(detail ? "[data-advertising-related-card]" : "[data-advertising-card]").first();
@@ -72,7 +73,7 @@ try {
       viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
     });
     const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
-    await page.goto(`http://127.0.0.1:8787/vi/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/vi/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     const selector = detail ? "[data-advertising-related-card]" : "[data-advertising-card]";

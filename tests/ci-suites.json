@@ -106,10 +106,41 @@
       ]
     },
     "adv-grid": {
+      "specs": ["advertising-masonry"],
+      "tests": [
+        "TT_E2E_ADVERTISING_GRID_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_MEDIA_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_3K_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_KEYBOARD_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_RAPID_FILTER_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_SELECTION_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_PROOF_ONLY=1 node tests/site/site.e2e.cjs",
+        "node tests/site/advertising-card-interactions.e2e.mjs",
+        "node tests/site/advertising-no-titles.e2e.mjs"
+      ]
+    },
+    "adv-browse": {
+      "specs": ["advertising-masonry"],
+      "tests": [
+        "RANDOM_BROWSE_ENGINES=chromium node tests/site/advertising-random-browse.e2e.mjs",
+        "node tests/site/advertising-hero-once.e2e.mjs",
+        "TT_E2E_ADVERTISING_HERO_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_HERO_MOTION_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_HISTORY_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_LOCALE_LIFECYCLE_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_COMPATIBILITY_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY=1 node tests/site/site.e2e.cjs",
+        "node tests/site/advertising-route-preload.e2e.mjs",
+        "node tests/site/advertising-route-footer-p75.e2e.mjs"
+      ]
+    },
+    "adv-load": {
       "specs": ["advertising-masonry", "advertising-skeleton", "advertising-cta-center-parallax"],
       "tests": [
+        "TT_E2E_ADVERTISING_DEFAULT_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-skeleton-slow-network.e2e.mjs",
-        "node tests/site/advertising-route-preload.e2e.mjs"
+        "LIFECYCLE_ENGINES=chromium node tests/site/advertising-skeleton-lifecycle.e2e.mjs",
+        "node tests/site/advertising-reveal-offscreen.e2e.mjs"
       ]
     },
     "adv-detail": { "specs": ["advertising-detail", "advertising-viewer-touch-zoom"], "tests": [] },
@@ -123,23 +154,18 @@
     "tests/site/mobile-layout-parity.e2e.mjs": "ma trận 660 ca, ba engine",
     "tests/site/mobile-viewport-stability.e2e.mjs": "ba engine, đo trên PC",
     "tests/site/scrollbar-parity.e2e.mjs": "ba engine và Chrome, Edge cài trên máy",
-    "tests/site/site-media-card-playback.e2e.mjs": "phát video thật, chạy ở phiên PC"
+    "tests/site/site-media-card-playback.e2e.mjs": "phát video thật, chạy ở phiên PC",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_CAROUSEL_ONLY": "trùng TT_E2E_ADVERTISING_COMPATIBILITY_ONLY (cùng gọi runAdvertisingCompatibilityChecks)"
   },
   "pending": [
-    "tests/site/advertising-card-interactions.e2e.mjs",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY",
     "tests/site/advertising-full-span-p72.e2e.mjs",
-    "tests/site/advertising-hero-once.e2e.mjs",
-    "tests/site/advertising-no-titles.e2e.mjs",
     "tests/site/advertising-photo-header.e2e.mjs",
     "tests/site/advertising-photo-transitions.e2e.mjs",
     "tests/site/advertising-photo-view.e2e.mjs",
     "tests/site/advertising-primary-p14.e2e.mjs",
-    "tests/site/advertising-random-browse.e2e.mjs",
     "tests/site/advertising-return-p74.e2e.mjs",
-    "tests/site/advertising-reveal-offscreen.e2e.mjs",
-    "tests/site/advertising-route-footer-p75.e2e.mjs",
     "tests/site/advertising-single-related.e2e.mjs",
-    "tests/site/advertising-skeleton-lifecycle.e2e.mjs",
     "tests/site/advertising-slideshow-p75.e2e.mjs",
     "tests/site/advertising-suggestion-conditional.e2e.mjs",
     "tests/site/advertising-suggestion-info.e2e.mjs",
@@ -151,22 +177,6 @@
     "tests/site/site-media-card-m01b.e2e.mjs",
     "tests/site/site-media-card-m02a.e2e.mjs",
     "tests/site/site-media-card-r6.e2e.mjs",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_3K_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_CAROUSEL_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_COMPATIBILITY_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_DEFAULT_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_GRID_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_HERO_MOTION_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_HERO_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_HISTORY_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_KEYBOARD_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_LOCALE_LIFECYCLE_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_PROOF_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_SELECTION_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_COLOR_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_HEADER_BBOX_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY",
