@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { test } from "node:test";
-import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_DATASET_VERSION } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_DATASET_VERSION, ADVERTISING_LEGACY_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   advertisingSpacing,
@@ -150,16 +152,16 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
     `related frame must use 16:9 cover: ${placement.pixelWidth}x${placement.mediaPixelHeight}`);
 });
 
-test("M01d original 154 cards retain coordinate hash, order and no filler", () => {
+test("M01d cards retain coordinate hash, order and no filler", () => {
   const order = ADVERTISING_CARDS.map((card) => card.id);
-  for (const [layoutViewportWidth, expectedHash] of [[390, "8090c910"], [1440, "15171343"]]) {
+  for (const [layoutViewportWidth, expectedHash] of [[390, "43fc606d"], [1440, "6d309bc4"]]) {
     const layout = compileAdvertisingProductLayout({
       cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
     });
     assert.equal(layout.coordinateHash, expectedHash);
     assert.deepEqual(layout.diagnostics.placementOrder, order);
-    assert.equal(layout.placements.length, 154);
+    assert.equal(layout.placements.length, ADVERTISING_CARDS.length);
     assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
   }
 });
@@ -255,21 +257,26 @@ function knownFeasibleFixture(count = 3000) {
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
   assert.equal(ADVERTISING_LAYOUT_ALGORITHM_VERSION, "advertising-grid-v14");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.deepEqual(categoryOrder, ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"]);
+  assert.deepEqual(categoryOrder, ADVERTISING_CLUSTERS.map(({ id }) => id));
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
   assert.deepEqual(normalizeAdvertisingSettings(), { landscapeThreshold: 1.25 });
   assert.throws(() => normalizeAdvertisingSettings({ landscapeThreshold: 1 }), /finite number greater than 1/i);
-  assert.equal(ADVERTISING_CARDS.length, 154);
-  assert.deepEqual(ADVERTISING_CARDS.map(({ rank }) => rank), Array.from({ length: 154 }, (_, index) => index));
-  assert.equal(new Set(ADVERTISING_CARDS.map(({ id }) => id)).size, 154);
-  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.src)).size, 154);
-  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.sourceId)).size, 154);
-  for (const category of ADVERTISING_CATEGORIES) {
-    const categoryCards = ADVERTISING_CARDS.filter((card) => card.category === category.slug);
+  const cardCount = ADVERTISING_MEDIA_MANIFEST.length;
+  assert.equal(ADVERTISING_CARDS.length, cardCount);
+  assert.deepEqual(ADVERTISING_CARDS.map(({ rank }) => rank), Array.from({ length: cardCount }, (_, index) => index));
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ id }) => id)).size, cardCount);
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.src)).size, cardCount);
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.sourceId)).size, cardCount);
+  for (const slug of categoryOrder) {
+    const clusterCards = ADVERTISING_CARDS.filter((card) => card.category === slug);
+    assert.deepEqual(clusterCards.map(({ sourceOrder }) => sourceOrder), Array.from({ length: clusterCards.length }, (_, index) => index), `${slug} keeps source order`);
+  }
+  // Nhóm cũ còn trong manifest và trang tương thích; card đã chuyển sang cụm.
+  for (const category of ADVERTISING_LEGACY_CATEGORIES) {
+    const categoryCards = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === category.slug);
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
     assert.equal(category.products.length, ["kiosk-posm", "print-decals"].includes(category.slug) ? 13 : 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
-    assert.deepEqual(categoryCards.map(({ sourceOrder }) => sourceOrder), Array.from({ length: categoryCards.length }, (_, index) => index), `${category.slug} keeps source order`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, category.products.length, `${category.slug} covers all taxonomy products`);
     for (const card of categoryCards) {
       const productIndex = Number(card.productKey.slice(-2)) - 1;
@@ -524,8 +531,8 @@ test("keeps a repairable anti-brick prefix and backtracks when a conflict become
 
 test("prunes irreversible LED rhythm conflicts before permuting unrelated tail cards", () => {
   for (const layoutViewportWidth of [735, 959, 961]) {
-    const layout = compileAdvertisingProductLayout({ cards: ADVERTISING_CARDS, categoryOrder, filter: "led-displays-lightboxes", layoutViewportWidth });
-    assertGrid(layout, `LED rhythm pruning ${layoutViewportWidth}px`, ADVERTISING_CARDS.filter((card) => card.category === "led-displays-lightboxes").length);
+    const layout = compileAdvertisingProductLayout({ cards: ADVERTISING_CARDS, categoryOrder, filter: "led-displays", layoutViewportWidth });
+    assertGrid(layout, `LED rhythm pruning ${layoutViewportWidth}px`, ADVERTISING_CARDS.filter((card) => card.category === "led-displays").length);
     assert.ok(layout.diagnostics.operations < 1000, "a small LED group must not revisit tens of thousands of irreparable leaves");
   }
 });

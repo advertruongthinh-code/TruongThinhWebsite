@@ -199,7 +199,7 @@ export function validateAdvertisingMediaPool(records, options) {
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PRODUCT_TEXT_FIELDS = ["label", "title", "intro"];
-const CLUSTER_TEXT_FIELDS = [...PRODUCT_TEXT_FIELDS, "description"];
+const CLUSTER_TEXT_FIELDS = [...PRODUCT_TEXT_FIELDS, "description", "railLabel"];
 
 // Kiểm cụm và sản phẩm (spec advertising-taxonomy R2); trả danh sách lỗi để gộp với lỗi của pool.
 function validateAdvertisingTaxonomy(clusters, products) {

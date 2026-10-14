@@ -21,7 +21,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-13
+updated: 2026-10-14
 ---
 
 # Phát hành tĩnh
@@ -53,9 +53,10 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 
 Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
 chạy `compileAdvertisingLayout` ở 320, 390, 768, 1024, 1440, 1920, 2560 px với
-filter `all` và sáu category. Filter có card mà layout báo `needs-media` hoặc
+filter `all` và sáu cụm. Filter có card mà layout báo `needs-media` hoặc
 thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
-`advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`.
+`advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`. Build thay
+`<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`.
 
 ```gherkin
 Given một category có card nhưng layout ở 390 px thiếu vị trí
@@ -128,12 +129,13 @@ And <img data-advertising-photo-background> giữ nguyên, không bọc
 
 ### R7. Sáu trang tương thích Advertising
 
-Mỗi category trong `ADVERTISING_CATEGORIES` có `advertising-products/<slug>/index.html`
+Mỗi nhóm cũ trong `ADVERTISING_LEGACY_CATEGORIES` có `advertising-products/<slug>/index.html`
 cùng bản VI, EN: tiêu đề, mô tả, `<main data-advertising-compatibility-route>`
 với một link, canonical `../`, không ảnh hay carousel. Script đầu trang gọi
 `location.replace` tới `/<locale>/advertising-products/`: bỏ `category`, `photo`,
 `tag` cũ, đặt `category=<slug>`, giữ query khác; locale theo path, không khớp thì
-theo `lang`. Không JavaScript thì `<noscript>` refresh về `../?category=<slug>`.
+theo `lang`. Không JavaScript thì `<noscript>` refresh về `../?category=<slug>`. Runtime masonry
+đổi slug cũ sang slug cụm ([masonry R3](advertising-masonry.md#r3-filter)).
 
 ```gherkin
 Given URL /en/advertising-products/print-decals/?utm=a&photo=x&tag=y
@@ -242,7 +244,7 @@ Then job fail và liệt kê file biến thể còn thiếu
 | Hàm public | `ROUTES`, `localeHtml(html, locale)` | Export từ `serve-static-parity.mjs`; build, preview, test dùng chung |
 | Data | `nonPublicSourceAssets` | Path không public (R3), export từ `non-public-source-assets.mjs` |
 | Data | `catalog-artifact.mjs` | Build sinh trong output, runtime Advertising import |
-| Input | `ADVERTISING_CATEGORIES`, `buildAdvertisingArtifact`, `compileAdvertisingLayout` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
+| Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact`, `compileAdvertisingLayout` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
 | DOM hook | `[data-advertising-compatibility-route]` | `main` của trang tương thích |
 | Attribute | `data-en`, `data-vi`, `data-en-*`, `data-vi-*`, `data-route-locale` | Build và runtime đổi ngôn ngữ |
 
