@@ -2962,9 +2962,17 @@ async function runEspacioRouteLogoTimingChecks() {
           sample.fills[3]?.[1] >= 145 &&
           sample.fills[3]?.[2] >= 210,
       );
+      // Tween bắt đầu lúc veil mở, tức mẫu đen cuối trước khi đủ CMYK; mẫu đen đầu tiên còn tính cả lúc chờ veil,
+      // runner bận làm khoảng chờ đó dài ra.
+      const tweenStart = advertisingTrace.findLastIndex(
+        (sample, index) =>
+          index < endsCmyk &&
+          sample.fills.length === 4 &&
+          sample.fills.every((fill) => fill.every((channel) => channel >= 30 && channel <= 70)),
+      );
       const colorDuration =
         startsBlack >= 0 && endsCmyk >= 0
-          ? advertisingTrace[endsCmyk].time - advertisingTrace[startsBlack].time
+          ? advertisingTrace[endsCmyk].time - advertisingTrace[tweenStart].time
           : Number.NaN;
       assert(
         advertisingStart >= 0 && startsBlack >= advertisingStart,
@@ -3079,8 +3087,20 @@ async function runEspacioScrollCueChecks() {
           }));
           const startedAt = performance.now();
           const deadline = startedAt + 4_600;
+          // Độ phân giải đo: GSAP chỉ đổi opacity mỗi frame, runner bận có frame 100ms nên hai chữ có thể đổi cùng frame.
+          let resolution = 0;
+          let lastFrame = startedAt;
+          const trackFrame = (now) => {
+            resolution = Math.max(resolution, now - lastFrame);
+            lastFrame = now;
+            if (now < deadline) requestAnimationFrame(trackFrame);
+          };
+          requestAnimationFrame(trackFrame);
+          let lastSample = startedAt;
           while (performance.now() < deadline) {
             const elapsed = performance.now() - startedAt;
+            resolution = Math.max(resolution, performance.now() - lastSample);
+            lastSample = performance.now();
             characters.forEach((character, index) => {
               const opacity = Number.parseFloat(
                 getComputedStyle(character).opacity,
@@ -3106,6 +3126,7 @@ async function runEspacioScrollCueChecks() {
             rows.slice(1).map((row, index) => row[key] - rows[index][key]);
           return {
             rows,
+            resolution,
             enterIntervals: intervals("enterStart"),
             exitIntervals: intervals("exitStart"),
           };
@@ -3113,9 +3134,13 @@ async function runEspacioScrollCueChecks() {
           gsap.globalTimeline.timeScale(originalTimeScale);
         }
       });
-      const isUniform = (intervals) =>
-        intervals.length > 0 &&
-        intervals.every((interval) => interval >= 25 && interval <= 80);
+      // Trung bình nằm trong 25-80ms; từng khoảng chỉ được lệch thêm đúng độ phân giải đo của lần chạy đó.
+      const isUniform = (intervals) => {
+        const mean = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+        const slack = Math.max(0, timing.resolution - 17);
+        return intervals.length > 0 && mean >= 25 && mean <= 80 &&
+          intervals.every((interval) => interval >= 25 - slack && interval <= 80 + slack);
+      };
       assert(
         timing &&
           isUniform(timing.enterIntervals) &&
