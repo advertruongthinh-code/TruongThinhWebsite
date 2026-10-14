@@ -50,7 +50,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
 | `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |
-| `brand` | site-shell, logo-route-crossfade | logo: màu, bbox, lockup, co giãn khi đổi cỡ màn hình |
+| `brand` | site-shell, logo-route-crossfade | logo: màu, bbox, co giãn khi đổi cỡ màn hình |
 | `shell-motion` | site-shell, logo-route-crossfade | menu, reduced motion, bfcache, nhịp chữ và logo kiểu Espacio, link nội bộ |
 | `scroll` | scroll-feel | cảm giác cuộn, cuộn bằng nút giữa chuột |
 | `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình, footer khi chạy |

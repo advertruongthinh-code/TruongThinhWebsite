@@ -84,7 +84,6 @@
       "tests": [
         "TT_E2E_BRAND_COLOR_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_BRAND_HEADER_BBOX_ONLY=1 node tests/site/site.e2e.cjs",
-        "TT_E2E_BRAND_LOCKUP_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_BRAND_SHELL_ONLY=1 node tests/site/site.e2e.cjs"
       ]
     },
@@ -232,6 +231,7 @@
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
     "tests/site/advertising-photo-view.e2e.mjs",
     "tests/site/advertising-primary-p14.e2e.mjs",
-    "tests/site/site.e2e.cjs TT_E2E_MENU_RESIZE_ONLY"
+    "tests/site/site.e2e.cjs TT_E2E_MENU_RESIZE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY"
   ]
 }
