@@ -51,23 +51,32 @@ try {
   assert.equal(await origin(page), 1, "sticky press shows the origin icon");
   const icon = await page.locator(".autoscroll-origin").boundingBox();
   assert.ok(icon.width === 32 && icon.height === 32, `origin icon is 32px, got ${icon.width}x${icon.height}`);
-  const measure = async (distance, seconds, warmup = 600) => {
+  // Đo từ lúc đứng yên tới lúc đứng yên: kéo chuột ra rồi về điểm gốc (vùng chết, tốc độ 0), chờ quán tính dừng.
+  // Lúc đó cuộn logic đã bắt kịp đích nên quãng đường đúng bằng công thức nhân thời gian; đo giữa chừng thì độ trễ
+  // quán tính Locomotive dao động theo độ dài frame và runner bận làm tốc độ đo lệch 15% trở lên.
+  const measure = async (distance, seconds) => {
     // Về đầu trang trước mỗi lần đo để không chạm giới hạn cuối trang.
     await page.mouse.move(point.x, point.y);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
-    await page.waitForTimeout(300);
+    const before = await rest(page);
+    await page.evaluate(() => {
+      if (!window.__ttMoves) addEventListener("mousemove", (event) => window.__ttMoves.push(event.timeStamp));
+      window.__ttMoves = [];
+    });
     await page.mouse.move(point.x, point.y + distance);
-    await page.waitForTimeout(warmup);
-    const before = await scrollY(page);
     await page.waitForTimeout(seconds * 1000);
-    return ((await scrollY(page)) - before) / seconds;
+    const cursor = await page.evaluate(() => document.documentElement.dataset.autoscroll);
+    await page.mouse.move(point.x, point.y);
+    const after = await rest(page);
+    const [start, end] = (await page.evaluate(() => window.__ttMoves)).slice(-2);
+    return { speed: ((after - before) * 1000) / (end - start), cursor };
   };
-  const speed = await measure(116, 1);
+  const { speed } = await measure(116, 1.5);
   assert.ok(speed > 1250 && speed < 1530, `sticky speed at 116px about 1393px/s, got ${speed}`);
-  // Trang chủ chỉ cao khoảng 5500px nên đo cửa sổ ngắn trước khi chạm cuối trang; quán tính Locomotive chưa bắt kịp hết nên cận dưới rộng hơn.
-  const fast = await measure(216, 0.3, 300);
-  assert.ok(fast > 4400 && fast < 6000, `sticky speed at 216px about 5468px/s, got ${fast}`);
-  assert.equal(await page.evaluate(() => document.documentElement.dataset.autoscroll), "down", "cursor points down");
+  // Trang chủ cuộn được khoảng 4400px nên cửa sổ 216px chỉ 0.6 giây; sai số một frame quanh hai cú di chuột lớn hơn.
+  const { speed: fast, cursor } = await measure(216, 0.6);
+  assert.ok(fast > 4900 && fast < 6000, `sticky speed at 216px about 5468px/s, got ${fast}`);
+  assert.equal(cursor, "down", "cursor points down");
 
   // Lăn chuột thì dừng: biểu tượng mất, trang đứng sau quán tính.
   await page.mouse.wheel(0, 1);

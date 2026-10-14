@@ -286,7 +286,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   trên runtime hiện tại; chưa có trace detail trên A05s. Main và máy PC.
 - `advertising-photo-transitions.e2e.mjs` trên WebKit (máy PC) còn 3 FAIL, chưa đối chiếu với các ca FAIL Chromium ở trên.
   Main chạy lại WebKit.
-- `advertising-photo-view.e2e.mjs` chạy đủ (oracle D18) chưa có lượt PASS ghi nhận. Main chạy đủ trên cloud.
+- `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
+  Firefox, WebKit chưa có lượt PASS ghi nhận. Main chạy tay trên PC.
 
 ## Chú thích thuật ngữ
 

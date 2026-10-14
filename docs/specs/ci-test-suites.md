@@ -17,7 +17,7 @@ updated: 2026-10-13
 
 CI chia thành nhiều bộ test nhỏ, mỗi bộ ứng với một phần website trong
 [capability map](docs-system.md#r2-capability-map-và-spec-sống). PR chỉ chạy bộ của phần nó sửa, các bộ chạy
-song song trên runner WSL ở PC owner. Merge vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
+song song trên runner WSL ở PC owner. Merge có code vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
 demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
 Runner, Automerge và Deploy demo nằm ở [phát hành tĩnh R10](static-release.md#r10-gate-ci).
 
@@ -38,7 +38,7 @@ lần ở lệnh của bộ, `manual` hoặc `pending` (mục pending dạng `te
 Given một file test e2e mới trong tests/site/
 When chạy node --test tests/tooling/ci-suites.test.mjs
 Then test fail nếu file chưa thuộc bộ nào và không nằm trong manual
-And test fail nếu một file thuộc hai bộ
+And test fail nếu một file thuộc hai bộ, trừ các shard `*_SHARD=k/n` của cùng một file
 And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 ```
 
@@ -62,6 +62,8 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
+| `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
+| `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal |
 | `media-card` | media-card, glass-surface | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung |
 
@@ -73,7 +75,7 @@ spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn th�
 Job `select` so file đổi của PR với merge base của `main`:
 
 1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
-2. File khớp `fastOnly` (`AGENTS.md`, `CLAUDE.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow
+2. File khớp `fastOnly` (`AGENTS.md`, `CLAUDE.md`, `design-system/**`, `tests/tooling/**`, cấu hình Serena, code CMS dormant, workflow
    khác CI): chỉ `fast`.
 3. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
    `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,
@@ -82,7 +84,8 @@ Job `select` so file đổi của PR với merge base của `main`:
 4. File khớp đường kích hoạt của một bộ: bộ đó.
 5. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
 
-Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. PR có code luôn chạy `fast`.
+Push vào `main` và `workflow_dispatch` so với commit `main` trước đó: chỉ có tài liệu (mục 1) thì không bộ nào chạy,
+còn lại chạy mọi bộ. PR có code luôn chạy `fast`.
 
 ```gherkin
 Given PR chỉ đổi src/site/residential/index.html
@@ -93,8 +96,11 @@ Given PR đổi src/site/style.css
 When job select chạy
 Then mọi bộ được chọn
 
-Given CI chạy do push vào main
+Given CI chạy do push vào main và merge có file code
 Then mọi bộ được chọn
+
+Given CI chạy do push vào main và merge chỉ đổi docs/STATE.md
+Then không bộ nào được chọn
 ```
 
 ### R4. Chạy song song và độc lập
@@ -184,8 +190,8 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 18 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
-  2026-10-11). Số runner cần thêm đo ở PR đầu.
+- Owner chốt một runner (2026-10-14) vì máy ảo WSL chiếm quá nhiều tài nguyên PC, nên matrix chạy lần lượt: đủ mọi
+  bộ mất khoảng 1 giờ, mục tiêu 12 phút chỉ đạt khi có thêm runner. Thêm runner cần owner đồng ý.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
   `RANDOM_BROWSE_ENGINES`); Firefox, WebKit chạy tay.

@@ -20,9 +20,9 @@ const testFiles = (cmd) => cmd.match(/tests\/site\/[\w.*-]+/g) ?? [];
 const any = (file, globs) => globs.some((glob) => matchesGlob(file, glob));
 
 export function select(files, event = "pull_request") {
-  if (event !== "pull_request") return ids;
   const code = files.filter((file) => !any(file, manifest.ignore) || any(file, manifest.fastOnly));
   if (!code.length) return [];
+  if (event !== "pull_request") return ids;
   const picked = new Set(["fast"]);
   for (const file of code) {
     if (any(file, manifest.fastOnly)) continue;
