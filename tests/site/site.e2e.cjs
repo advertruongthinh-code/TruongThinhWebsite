@@ -7099,10 +7099,11 @@ async function runAdvertisingMediaFocusedChecks() {
           runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
         };
       }, replayFixtureId);
+      // loading-glass R3, masonry R8: card đã tải ảnh gắn lại thì hiện ảnh ngay, không chạy lại hiệu ứng vào.
       assert(
         !replay.oldConnected && !replay.sameNode && replay.ready &&
-          (replay.opacity < 0.999 || replay.runningAnimations > 0),
-        `Virtual remount skipped its approved media replay: ${JSON.stringify(replay)}`,
+          replay.opacity >= 0.999 && replay.runningAnimations === 0,
+        `Virtual remount replayed its media entrance instead of showing it at once: ${JSON.stringify(replay)}`,
       );
       await page.waitForFunction(
         () => {
