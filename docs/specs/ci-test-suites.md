@@ -190,8 +190,8 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 25 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
-  2026-10-11). Số runner cần thêm đo ở PR đầu.
+- Owner chốt một runner (2026-10-14) vì máy ảo WSL chiếm quá nhiều tài nguyên PC, nên matrix chạy lần lượt: đủ mọi
+  bộ mất khoảng 1 giờ, mục tiêu 12 phút chỉ đạt khi có thêm runner. Thêm runner cần owner đồng ý.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
   `RANDOM_BROWSE_ENGINES`); Firefox, WebKit chạy tay.
