@@ -6780,11 +6780,13 @@ async function runAdvertisingMediaEntranceChecks() {
           }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
           // loading-glass R3: card vào lại sau khi ra hẳn viewport (kể cả ảo hóa gắn lại) hiện ảnh thẳng ở opacity
           // cuối, không skeleton, Kính hay crossfade. Ảo hóa tạo img mới, ảnh lấy từ cache vẫn cần giải mã nên được
-          // trống lúc giải mã: một tới ba frame, tới 300ms trên máy cloud bận; trần 500ms bắt lỗi chờ thứ khác.
+          // trống lúc giải mã: một tới ba frame, tới 300ms trên máy cloud bận; trần 500ms bắt lỗi chờ thứ khác. Runner
+          // bận có một frame dài 590ms, nên trống tối đa ba frame cũng tính là giải mã dù quá 500ms.
           const visible = replay.samples.filter((sample) => sample.intersectsViewport);
           const firstReady = visible.findIndex((sample) => sample.ready);
+          const blankFrames = replay.samples.findIndex((sample) => sample.ready);
           assert(
-            firstReady >= 0 && replay.decodeMs <= 500 &&
+            firstReady >= 0 && (replay.decodeMs <= 500 || blankFrames <= 3) &&
               visible.every((sample, index) => (index < firstReady ? sample.opacity === 0 : sample.ready &&
                 sample.opacity >= 0.999) && sample.shellOpacity >= 0.999 && !sample.overlay &&
                 sample.animations === 0) &&
@@ -11219,7 +11221,10 @@ async function runBrandColorMotionCheck() {
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              if (elapsed < 1_150) requestAnimationFrame(sample);
+              // Animation 1s bắt đầu khi trang mount, có lúc sau mốc lấy mẫu 130ms: lấy mẫu tới khi lớp đen đã gỡ
+              // (trần 2.5s) thay vì dừng cứng ở 1.15s.
+              const underlayGone = !document.querySelector("#header-logo .brand-lockup__mark-underlay path");
+              if (elapsed < 1_150 || (!underlayGone && elapsed < 2_500)) requestAnimationFrame(sample);
               else window.__ttWhiteSurfaceLogoTrace.done = true;
             };
             sample();
@@ -11251,11 +11256,13 @@ async function runBrandColorMotionCheck() {
           "rgb(229, 9, 127)",
           "rgb(0, 160, 227)",
         ];
-        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ.
+        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ. Lấy mẫu đã gắn animation: runner bận có
+        // frame đã đổi màu đích nhưng animation chưa gắn (totals 0).
         const rising = trace.find(
-          ({ fills, underlay }) =>
+          ({ fills, underlay, totals }) =>
             JSON.stringify(underlay) === JSON.stringify(black) &&
-            JSON.stringify(fills) === JSON.stringify(cmyk),
+            JSON.stringify(fills) === JSON.stringify(cmyk) &&
+            totals.every((total) => total > 0),
         );
         const settled = trace.at(-1);
         assert(
