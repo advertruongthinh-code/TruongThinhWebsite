@@ -303,8 +303,26 @@ try {
     const scrollTo = (y) => page.evaluate((top) => window.TruongThinhMotion.setLogicalScroll(top), y);
     await scrollTo(4000);
     await page.waitForTimeout(600);
-    await scrollTo(0);
-    // Remounted cards may hold a skeleton until their cached copy arrives; then it swaps in without Kính.
+    // Lấy mẫu mỗi frame trong 1 s sau khi cuộn về: card đã tải gắn lại không có frame nào mang skeleton hay opacity
+    // dở dang (mờ dần), bản cache hiện thẳng ở opacity cuối (R3).
+    const fades = await page.evaluate(async (ids) => {
+      const seen = [];
+      window.TruongThinhMotion.setLogicalScroll(0);
+      const startedAt = performance.now();
+      while (performance.now() - startedAt < 1000) {
+        await new Promise(requestAnimationFrame);
+        for (const card of document.querySelectorAll("[data-project-grid] [data-advertising-card]")) {
+          const { top, bottom } = card.getBoundingClientRect();
+          if (!ids.includes(card.dataset.advertisingCard) || bottom <= 0 || top >= innerHeight) continue;
+          const opacity = Number.parseFloat(getComputedStyle(card.querySelector("img")).opacity);
+          if (card.querySelector("[data-advertising-loading-skeleton]") || (opacity > 0.02 && opacity < 0.98)) {
+            seen.push({ id: card.dataset.advertisingCard, opacity, at: Math.round(performance.now() - startedAt) });
+          }
+        }
+      }
+      return seen;
+    }, loadedIds);
+    assert.deepEqual(fades.slice(0, 5), [], `${viewport.width}px: a re-entering loaded card shows at once, no skeleton or fade`);
     const inView = () => page.evaluate((ids) => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
       .filter((card) => ids.includes(card.dataset.advertisingCard))
       .filter((card) => { const { top, bottom } = card.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
