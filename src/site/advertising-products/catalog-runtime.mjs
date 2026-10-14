@@ -1582,10 +1582,33 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (node.style.top !== top) node.style.top = top;
     }
   };
+  // Thời gian còn lại của transition transform (Masonry) và lượt co giãn đang chạy trên card.
+  const remainingMotion = () => {
+    let remaining = 0;
+    masonry?.items.forEach((item) => {
+      const animations = [
+        ...item.element.getAnimations().filter((animation) => animation.transitionProperty === "transform"),
+        ...[...item.element.children].flatMap((child) => child.getAnimations().filter(isSizeMorph)),
+      ];
+      for (const animation of animations) {
+        if (animation.playState !== "running") continue;
+        remaining = Math.max(remaining, animation.effect.getComputedTiming().endTime - (Number(animation.currentTime) || 0));
+      }
+    });
+    return remaining;
+  };
   const settleMotion = () => {
     motionTimer = 0;
     if (performance.now() < motionUntil) {
       motionTimer = setTimeout(settleMotion, Math.max(0, motionUntil - performance.now()));
+      return;
+    }
+    // Raster vùng mới sau cú cuộn xa giữ frame, transition bắt đầu trễ so với hẹn 400ms; cắt ngang lúc đó làm card
+    // đứng rồi nhảy thẳng tới chỗ mới (masonry R6). Chờ phần còn lại; tab ẩn không chạy frame nên đặt luôn.
+    const remaining = document.hidden ? 0 : remainingMotion();
+    if (remaining > 0) {
+      motionUntil = performance.now() + remaining;
+      motionTimer = setTimeout(settleMotion, remaining);
       return;
     }
     motionUntil = 0;
