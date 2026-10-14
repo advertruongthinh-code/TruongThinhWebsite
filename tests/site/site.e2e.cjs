@@ -911,6 +911,11 @@ function monitorPage(page) {
     try {
       const isSameOrigin = new URL(request.url()).origin === BASE_ORIGIN;
       if (!isSameOrigin && !trackedExternalTypes.has(request.resourceType())) return;
+      // Ảnh, video bị hủy khi rời trang hoặc gỡ card (ERR_ABORTED) là hành vi trình duyệt, không phải lỗi tải.
+      if (
+        request.failure()?.errorText === "net::ERR_ABORTED" &&
+        ["image", "media"].includes(request.resourceType())
+      ) return;
       diagnostics.requestFailures.push(
         `${request.method()} ${request.url()} — ${
           request.failure()?.errorText || "request failed"
