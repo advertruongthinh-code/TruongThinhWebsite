@@ -61,6 +61,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      chiếu; hộp đèn sáng đều, trông mới, không loang lổ (owner chốt 2026-10-14);
    - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng;
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
+   - không gian chỉnh chu, sạch sẽ, tử tế: tường sơn phẳng, sàn khô sạch, đồ xếp
+     gọn; không bẩn, ố, rêu, bong tróc, rác, vũng nước. Độ thật lấy từ ánh sáng và
+     nhiễu ảnh, không từ vết bẩn (owner chốt 2026-10-14).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
