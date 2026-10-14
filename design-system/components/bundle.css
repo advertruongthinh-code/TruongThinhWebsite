@@ -99,6 +99,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* html có overflow-x riêng nên overflow của body không lan lên viewport; khóa cả html. */
+html:has(> body.menu-open),
 body.menu-open {
   overflow: hidden;
 }
