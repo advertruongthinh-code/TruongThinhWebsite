@@ -239,10 +239,15 @@ try {
   }, offscreenTag);
   await page.evaluate((tag) => document.querySelector(`[data-advertising-suggestion-tag="${tag}"]`).click(), offscreenTag);
   await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, offscreenTag);
+  // Cú đẩy đang chạy lúc cụm ra viewport hoặc nút được bật thì dừng tại chỗ (R6), layer "next" có thể còn trong DOM
+  // nhưng nút bật ẩn ảnh (CSS transition opacity); điều cần giữ là không animation slideshow nào của hàng đó còn chạy.
+  const runningLayers = tag => page.evaluate(id => [...document.querySelectorAll(`[data-advertising-suggestion-tag="${id}"] img`)]
+    .flatMap(image => image.getAnimations()).filter(animation => animation.constructor === Animation && animation.playState === "running").length, tag);
   await page.waitForTimeout(200);
-  assert.equal(await page.locator(`[data-advertising-suggestion-tag="${offscreenTag}"] [data-advertising-suggestion-image-layer="next"]`).count(), 0, "offscreen active row has no hidden slideshow");
+  assert.equal(await runningLayers(offscreenTag), 0, "offscreen active row has no hidden slideshow");
   await page.locator(`[data-advertising-suggestion-tag="${offscreenTag}"]`).scrollIntoViewIfNeeded();
-  assert.equal(await page.locator(`[data-advertising-suggestion-tag="${offscreenTag}"] [data-advertising-suggestion-image-layer="next"]`).count(), 0, "onscreen active row stays static");
+  await page.waitForTimeout(200);
+  assert.equal(await runningLayers(offscreenTag), 0, "onscreen active row stays static");
 
   await page.evaluate(() => window.TruongThinhAdvertising.unmount());
   await page.waitForTimeout(6_000);
