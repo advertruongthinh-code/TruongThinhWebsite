@@ -31,7 +31,15 @@ try {
   for (const category of [...filters, ...filters].filter(value => value !== "all")) {
     await page.locator(`[data-advertising-filter="${category}"]`).click();
     await page.waitForFunction(value => new URL(location.href).searchParams.get("category") === value, category);
-    await page.waitForTimeout(650);
+    // Chờ khối CTA đứng yên giữa hai lần đọc thay cho 650ms cố định: runner bận còn đang chuyển khi đọc.
+    await page.waitForFunction(() => {
+      const cta = document.querySelector("[data-advertising-grid-cta]");
+      const key = `${cta?.getBoundingClientRect().bottom}:${cta?.offsetHeight}:${document.querySelector("footer.site-footer")?.getBoundingClientRect().top}`;
+      const settled = key === window.__ttCtaKey && !cta?.getAnimations().length &&
+        [...document.querySelectorAll("[data-project-grid] .advertising-tile")].every((tile) => getComputedStyle(tile).transform === "none");
+      window.__ttCtaKey = key;
+      return settled;
+    }, null, { polling: 150, timeout: 5_000 });
     const sample = await page.evaluate(read);
     assert(sample.hash, `${category}: geometry signature exists`);
     if (signatures.has(category)) assert.deepEqual(sample, signatures.get(category), `${category}: repeated filtering keeps coordinates and tail height`);
