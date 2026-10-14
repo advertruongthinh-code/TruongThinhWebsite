@@ -133,7 +133,6 @@ language_servers:
 - html
 - scss
 - powershell
-- markdown
 - json
 - toml
 - yaml

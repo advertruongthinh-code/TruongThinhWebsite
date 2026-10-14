@@ -37,8 +37,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    Pinterest trước, thiếu mới tìm Google Ảnh; lưu link nguồn. Chưa có tham khảo
    thì chưa tạo. Tham khảo chỉ để học loại sản phẩm, vật liệu, cấu tạo; không
    chép chữ, logo, người, watermark hay thiết kế y nguyên.
-2. **Brief.** Agent viết brief từng ảnh, một agent độc lập phản biện, sửa rồi
-   tạo. Owner không duyệt brief, trừ sản phẩm chưa từng có ảnh trên site.
+2. **Brief.** Agent viết brief từng ảnh rồi tạo, không qua agent phản biện brief
+   (owner chốt 2026-10-14). Owner không duyệt brief, trừ sản phẩm chưa từng có
+   ảnh trên site.
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
@@ -55,12 +56,22 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
      nhận diện đậm, đơn giản, nhận ra từ xa; hạn chế ảnh sản phẩm đặt tại xưởng,
      ưu tiên nơi dùng thật (owner chốt 2026-10-14);
+   - chỉ tả sản phẩm Trường Thịnh làm: không màn LED cho thuê sự kiện, màn treo truss
+     sân khấu, màn LED lớn gắn tường nhà; màn LED trong nhà không được giống màn máy
+     chiếu; hộp đèn sáng đều, trông mới, không loang lổ (owner chốt 2026-10-14);
+   - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng;
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
+   - không gian chỉnh chu, sạch sẽ, tử tế: tường sơn phẳng, sàn khô sạch, đồ xếp
+     gọn; không bẩn, ố, rêu, bong tróc, rác, vũng nước. Độ thật lấy từ ánh sáng và
+     nhiễu ảnh, không từ vết bẩn (owner chốt 2026-10-14).
+   - hạn chế chữ xưng hô (cô, chú, dì, bà) trên biển; chỉ dùng khi không gian mộc
+     mạc, thân tình và đúng món đang bán (owner chốt 2026-10-14).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
-   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
+   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model. Không bao giờ dùng
+   model astra ở bất kỳ bước dựng ảnh nào (owner chốt 2026-10-14).
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
    - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí
      cụ thể ("bình gas ở đầu TRÁI xe"), vì câu cấm hay bị bỏ qua;

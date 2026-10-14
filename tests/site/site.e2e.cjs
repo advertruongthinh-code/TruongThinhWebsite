@@ -2098,6 +2098,9 @@ async function runHeaderParityChecks() {
                 window.__ttHeaderIntroWrites.push({
                   target,
                   time: performance.now() - startedAt,
+                  // Giờ tick GSAP: timeline neo play vào tick trước nên long task giữa hai tick làm giờ thật lệch
+                  // còn giờ tick thì không.
+                  tick: (window.gsap?.ticker.time ?? Number.NaN) * 1_000,
                   value,
                 });
                 CSSStyleDeclaration.prototype.setProperty.call(
@@ -2144,14 +2147,14 @@ async function runHeaderParityChecks() {
       const afterSetup = intro.writes.filter((write) => write.time >= setup.time);
       const logoStart = afterSetup.find(
         (write) => write.target === "logo" && !/^scale\(0(?:, 0)?\)/.test(write.value),
-      )?.time - setup.time;
+      )?.tick - setup.tick;
       const navStart = afterSetup.find(
         (write) =>
           write.target === "nav-0" && !/-150(?:\.0+)?px/.test(write.value),
-      )?.time - setup.time;
+      )?.tick - setup.tick;
       const toggleStart = afterSetup.find(
         (write) => write.target === "toggle" && !/^scale\(0(?:, 1)?\)/.test(write.value),
-      )?.time - setup.time;
+      )?.tick - setup.tick;
       // Intro: nav tại 0.3s, hamburger tại 1.5s (motion.md). Lần ghi đầu của mỗi phần lệch theo frame (long task lúc
       // mount, GSAP lấy giờ tick trước làm mốc play), đo được tới khoảng 150ms trên runner bận, nên khoảng nav tới
       // hamburger (1.2s) cho dung sai 200ms, logo tới nav cho lỏng.
@@ -2962,9 +2965,17 @@ async function runEspacioRouteLogoTimingChecks() {
           sample.fills[3]?.[1] >= 145 &&
           sample.fills[3]?.[2] >= 210,
       );
+      // Tween bắt đầu lúc veil mở, tức mẫu đen cuối trước khi đủ CMYK; mẫu đen đầu tiên còn tính cả lúc chờ veil,
+      // runner bận làm khoảng chờ đó dài ra.
+      const tweenStart = advertisingTrace.findLastIndex(
+        (sample, index) =>
+          index < endsCmyk &&
+          sample.fills.length === 4 &&
+          sample.fills.every((fill) => fill.every((channel) => channel >= 30 && channel <= 70)),
+      );
       const colorDuration =
         startsBlack >= 0 && endsCmyk >= 0
-          ? advertisingTrace[endsCmyk].time - advertisingTrace[startsBlack].time
+          ? advertisingTrace[endsCmyk].time - advertisingTrace[tweenStart].time
           : Number.NaN;
       assert(
         advertisingStart >= 0 && startsBlack >= advertisingStart,
@@ -3079,8 +3090,20 @@ async function runEspacioScrollCueChecks() {
           }));
           const startedAt = performance.now();
           const deadline = startedAt + 4_600;
+          // Độ phân giải đo: GSAP chỉ đổi opacity mỗi frame, runner bận có frame 100ms nên hai chữ có thể đổi cùng frame.
+          let resolution = 0;
+          let lastFrame = startedAt;
+          const trackFrame = (now) => {
+            resolution = Math.max(resolution, now - lastFrame);
+            lastFrame = now;
+            if (now < deadline) requestAnimationFrame(trackFrame);
+          };
+          requestAnimationFrame(trackFrame);
+          let lastSample = startedAt;
           while (performance.now() < deadline) {
             const elapsed = performance.now() - startedAt;
+            resolution = Math.max(resolution, performance.now() - lastSample);
+            lastSample = performance.now();
             characters.forEach((character, index) => {
               const opacity = Number.parseFloat(
                 getComputedStyle(character).opacity,
@@ -3106,6 +3129,7 @@ async function runEspacioScrollCueChecks() {
             rows.slice(1).map((row, index) => row[key] - rows[index][key]);
           return {
             rows,
+            resolution,
             enterIntervals: intervals("enterStart"),
             exitIntervals: intervals("exitStart"),
           };
@@ -3113,9 +3137,13 @@ async function runEspacioScrollCueChecks() {
           gsap.globalTimeline.timeScale(originalTimeScale);
         }
       });
-      const isUniform = (intervals) =>
-        intervals.length > 0 &&
-        intervals.every((interval) => interval >= 25 && interval <= 80);
+      // Trung bình nằm trong 25-80ms; từng khoảng chỉ được lệch thêm đúng độ phân giải đo của lần chạy đó.
+      const isUniform = (intervals) => {
+        const mean = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+        const slack = Math.max(0, timing.resolution - 17);
+        return intervals.length > 0 && mean >= 25 && mean <= 80 &&
+          intervals.every((interval) => interval >= 25 - slack && interval <= 80 + slack);
+      };
       assert(
         timing &&
           isUniform(timing.enterIntervals) &&
@@ -6272,12 +6300,15 @@ async function runAdvertisingGridFocusedChecks() {
         );
         await page.locator('[data-advertising-filter="kiosk-posm"]').click();
         await page.locator('[data-advertising-filter="all"]').click();
-        // Chờ lưới settle (hết transform, vị trí đứng yên giữa hai lần đọc) thay cho 450ms cố định: runner bận
-        // còn để card kiosk ở chỗ cũ khi đọc.
+        // Chờ lưới settle (hết transform, hết fade, không còn animation, vị trí đứng yên giữa hai lần đọc) thay cho
+        // 450ms cố định: runner bận còn để card kiosk ở chỗ cũ, card đang mờ dần chưa rời DOM khi đọc.
         await page.waitForFunction(() => {
-          const tiles = [...document.querySelectorAll("[data-project-grid] .advertising-tile")];
+          const grid = document.querySelector("[data-project-grid]");
+          const tiles = [...grid.querySelectorAll(".advertising-tile")];
           const key = tiles.map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`).join();
-          const settled = tiles.every((tile) => getComputedStyle(tile).transform === "none") && key === window.__ttGridKey;
+          const settled = !grid.getAnimations({ subtree: true }).length &&
+            tiles.every((tile) => getComputedStyle(tile).transform === "none" && getComputedStyle(tile).opacity === "1") &&
+            key === window.__ttGridKey;
           window.__ttGridKey = key;
           return settled;
         }, null, { polling: 100, timeout: 5_000 });
@@ -6749,11 +6780,13 @@ async function runAdvertisingMediaEntranceChecks() {
           }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
           // loading-glass R3: card vào lại sau khi ra hẳn viewport (kể cả ảo hóa gắn lại) hiện ảnh thẳng ở opacity
           // cuối, không skeleton, Kính hay crossfade. Ảo hóa tạo img mới, ảnh lấy từ cache vẫn cần giải mã nên được
-          // trống lúc giải mã: một tới ba frame, tới 300ms trên máy cloud bận; trần 500ms bắt lỗi chờ thứ khác.
+          // trống lúc giải mã: một tới ba frame, tới 300ms trên máy cloud bận; trần 500ms bắt lỗi chờ thứ khác. Runner
+          // bận có một frame dài 590ms, nên trống tối đa ba frame cũng tính là giải mã dù quá 500ms.
           const visible = replay.samples.filter((sample) => sample.intersectsViewport);
           const firstReady = visible.findIndex((sample) => sample.ready);
+          const blankFrames = replay.samples.findIndex((sample) => sample.ready);
           assert(
-            firstReady >= 0 && replay.decodeMs <= 500 &&
+            firstReady >= 0 && (replay.decodeMs <= 500 || blankFrames <= 3) &&
               visible.every((sample, index) => (index < firstReady ? sample.opacity === 0 : sample.ready &&
                 sample.opacity >= 0.999) && sample.shellOpacity >= 0.999 && !sample.overlay &&
                 sample.animations === 0) &&
@@ -9236,6 +9269,7 @@ async function runHeroCrossFadeContinuityChecks() {
             return Math.hypot(matrix.a, matrix.b);
           };
           const samples = [];
+          const times = [];
           let activeIndex = slides.findIndex((slide) =>
             slide.classList.contains("is-active"),
           );
@@ -9275,6 +9309,7 @@ async function runHeroCrossFadeContinuityChecks() {
                 };
               }
               samples.push(current);
+              times.push(now);
               if (now - startedAt < 6_200) requestAnimationFrame(sample);
               else resolve();
             };
@@ -9286,11 +9321,13 @@ async function runHeroCrossFadeContinuityChecks() {
           for (let frame = 1; frame < samples.length; frame += 1) {
             const previous = samples[frame - 1];
             const current = samples[frame];
+            // Quy về một frame 60fps: runner bận rơi frame thì zoom đều cũng nhảy xa hơn giữa hai mẫu.
+            const frameScale = 1_000 / 60 / Math.max(1_000 / 60, times[frame] - times[frame - 1]);
             current.forEach((sample, index) => {
               if (sample.opacity > 0.01 || previous[index].opacity > 0.01) {
                 maxVisibleScaleJump = Math.max(
                   maxVisibleScaleJump,
-                  Math.abs(sample.scale - previous[index].scale),
+                  Math.abs(sample.scale - previous[index].scale) * frameScale,
                 );
               }
             });
@@ -9640,8 +9677,10 @@ async function runHomeHeroIntroReadabilityCheck() {
       );
       const finalSamples = trace.samples.filter(({ elapsed }) => elapsed >= 2_750);
 
+      // Phủ cả cửa sổ 250-850ms thay vì đếm mẫu: runner bận chạy dưới 60fps nên số frame ít hơn.
       assert(
-        solidSamples.length > 20 &&
+        solidSamples[0]?.elapsed <= 320 &&
+          solidSamples.at(-1).elapsed >= 780 &&
           solidSamples.every(
             ({ background, maxSlideOpacity }) =>
               background === "rgb(43, 44, 43)" && maxSlideOpacity <= 0.02,
@@ -11182,7 +11221,10 @@ async function runBrandColorMotionCheck() {
                   return timing ? timing.delay + timing.duration : 0;
                 }),
               });
-              if (elapsed < 1_150) requestAnimationFrame(sample);
+              // Animation 1s bắt đầu khi trang mount, có lúc sau mốc lấy mẫu 130ms: lấy mẫu tới khi lớp đen đã gỡ
+              // (trần 2.5s) thay vì dừng cứng ở 1.15s.
+              const underlayGone = !document.querySelector("#header-logo .brand-lockup__mark-underlay path");
+              if (elapsed < 1_150 || (!underlayGone && elapsed < 2_500)) requestAnimationFrame(sample);
               else window.__ttWhiteSurfaceLogoTrace.done = true;
             };
             sample();
@@ -11214,11 +11256,13 @@ async function runBrandColorMotionCheck() {
           "rgb(229, 9, 127)",
           "rgb(0, 160, 227)",
         ];
-        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ.
+        // CMYK mọc lên trên lớp đen; bốn dải cùng xong ở 1s rồi lớp đen bị gỡ. Lấy mẫu đã gắn animation: runner bận có
+        // frame đã đổi màu đích nhưng animation chưa gắn (totals 0).
         const rising = trace.find(
-          ({ fills, underlay }) =>
+          ({ fills, underlay, totals }) =>
             JSON.stringify(underlay) === JSON.stringify(black) &&
-            JSON.stringify(fills) === JSON.stringify(cmyk),
+            JSON.stringify(fills) === JSON.stringify(cmyk) &&
+            totals.every((total) => total > 0),
         );
         const settled = trace.at(-1);
         assert(
