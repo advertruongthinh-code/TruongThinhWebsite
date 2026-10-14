@@ -55,12 +55,17 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
      nhận diện đậm, đơn giản, nhận ra từ xa; hạn chế ảnh sản phẩm đặt tại xưởng,
      ưu tiên nơi dùng thật (owner chốt 2026-10-14);
+   - chỉ tả sản phẩm Trường Thịnh làm: không màn LED cho thuê sự kiện, màn treo truss
+     sân khấu, màn LED lớn gắn tường nhà; màn LED trong nhà không được giống màn máy
+     chiếu; hộp đèn sáng đều, trông mới, không loang lổ (owner chốt 2026-10-14);
+   - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng;
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
    ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
-   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model.
+   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model. Không bao giờ dùng
+   model astra ở bất kỳ bước dựng ảnh nào (owner chốt 2026-10-14).
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
    - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí
      cụ thể ("bình gas ở đầu TRÁI xe"), vì câu cấm hay bị bỏ qua;
