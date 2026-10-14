@@ -105,11 +105,6 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await page.waitForFunction(old => document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaSignature !== old, before);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     };
-    // Cuộn qua smooth scroll của site và gọi lại tới khi về 0: layout đổi sau resize/filter có thể kéo trang xuống vài px.
-    const scrollToTop = () => page.waitForFunction(() => {
-      if (window.scrollY !== 0) window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo({ top: 0, behavior: "instant" });
-      return window.scrollY === 0;
-    });
     const heightState = () => page.evaluate(() => {
       const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
       const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
@@ -176,7 +171,8 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.ok(orientation.filter(frame => frame.common).every(frame => frame.same), "orientation preserves common outer slots");
     assert.ok((await ledger()).peak <= 12, "838px phone landscape stays within the 12-context budget");
     await resizeTo({ width: 390, height: 844 }); await page.waitForTimeout(500);
-    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
+    // html có scroll-behavior smooth: cuộn mặc định còn trượt khi lệnh cuộn sau chạy, Chromium chạy nốt phần trượt cũ.
+    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
     await page.waitForTimeout(700);
     // Batch vẽ trên một canvas chung (R5): mất context thì frame tĩnh dưới khung hiện, khôi phục thì vẽ tiếp.
     assert.equal(await page.evaluate(() => window.__flowLedger.records.filter(entry => entry.gl && !entry.gl.isContextLost()
@@ -209,7 +205,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     // Ra hẳn rồi vào lại: khung đã hiện giữ nguyên, không chạy lại reveal Kính (R4).
     await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(250);
     assert.ok(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame].is-entry-ready").length) > 0, "revealed frames stay revealed off screen");
-    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
+    await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
     await page.waitForTimeout(50);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-advertising-cta-frame] .glass-surface[data-glass-reveal]").length), 0, "re-entry replays no reveal");
     await page.waitForTimeout(750);
@@ -235,13 +231,14 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     const cycles = [];
     for (let cycle = 0; cycle < 20; cycle++) {
       // Input route/filter thật, cộng thay đổi geometry viewport; không có override remount controller.
-      await scrollToTop();
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      await page.waitForFunction(() => window.scrollY === 0);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const category = cycle % 2 ? "all" : "kiosk-posm";
       await page.locator('[data-advertising-filter="' + category + '"]').click();
       await page.waitForTimeout(550);
       await page.setViewportSize({ width: 390, height: cycle % 2 ? 844 : 788 });
-      await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
+      await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo({ top: window.scrollY + node.getBoundingClientRect().top - 120, behavior: "instant" }));
       await page.waitForTimeout(750);
       const sample = await ledger();
       const appliedCategory = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().category);
@@ -255,8 +252,8 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.ok(finalLedger.allocations <= 12, "phone native allocations plateau within the 12-context budget");
     // Barba route exit giải phóng lease, trong khi cache thuộc document vẫn còn.
     const softEntry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
-    await scrollToTop();
-    await page.waitForFunction(() => document.querySelector('#header-logo').getBoundingClientRect().top >= 0);
+    await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
+    await page.waitForFunction(() => scrollY === 0 && document.querySelector('#header-logo').getBoundingClientRect().top >= 0);
     await page.locator('#header-logo').click();
     await page.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "home"
       && location.pathname === "/vi/" && !window.barba.transitions.isRunning);
