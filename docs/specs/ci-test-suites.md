@@ -190,8 +190,10 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Owner chốt 2 runner trong máy ảo WSL giới hạn 4 GB RAM, 4 luồng, swap 2 GB (2026-10-14) để CI không chiếm tài nguyên PC; các
-  job chia nhau 4 luồng nên chưa biết mục tiêu 12 phút có đạt không. Đổi số runner hoặc trần WSL cần owner đồng ý.
+- Owner chốt 2 runner trong máy ảo WSL giới hạn 4 GB RAM, 4 luồng, swap 2 GB (2026-10-14) để CI không chiếm tài nguyên PC.
+  Đo PR #357 (2026-10-14): 25 bộ cộng lại 110 phút job, mỗi bộ 1.7 tới 6.5 phút, chạy đủ mất 50 phút, trượt mục tiêu
+  12 phút. PR sửa một phần đạt dưới 5 phút với phần lớn bộ khi runner rảnh; `adv-view-2`, `media`, `shell-motion`
+  vượt (5.8 tới 6.5 phút), và PR phải xếp hàng khi runner đang chạy đủ. Đổi số runner hoặc trần WSL cần owner đồng ý.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
   `RANDOM_BROWSE_ENGINES`); Firefox, WebKit chạy tay.

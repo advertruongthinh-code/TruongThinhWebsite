@@ -7,6 +7,10 @@ Node server của repository; không cài hoặc khởi động Wrangler.
 
 ## Chạy chuẩn
 
+CI chia test thành bộ trong `tests/ci-suites.json`: `pnpm qa:suite <id>` chạy một bộ, `pnpm qa:suite --changed`
+chạy các bộ mà thay đổi hiện tại chạm tới ([spec bộ test CI](../docs/specs/ci-test-suites.md)). Test thêm mới
+phải vào một bộ, `manual` (kèm lý do) hoặc `pending`.
+
 Scrollbar correction27/09 có focused gate riêng sau build và preview8792:
 
 ```powershell

@@ -253,13 +253,13 @@
     "tests/site/scrollbar-parity.e2e.mjs": "ba engine và Chrome, Edge cài trên máy",
     "tests/site/site-media-card-playback.e2e.mjs": "phát video thật, chạy ở phiên PC",
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_CAROUSEL_ONLY": "trùng TT_E2E_ADVERTISING_COMPATIBILITY_ONLY (cùng gọi runAdvertisingCompatibilityChecks)",
+    "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY": "runner WSL render chữ Việt lệch 0.62-0.74px; xanh trên cloud và Chrome Windows (đo 2026-10-14)",
     "tests/site/site.e2e.cjs TT_E2E_HEADER_ONLY": "trùng HEADER_GEOMETRY, FRAGMENT, M1, HISTORY, MENU, REDUCED, HERO_CONTINUITY (gọi lại đúng các hàm đó)",
     "tests/site/site.e2e.cjs TT_E2E_LOCALE_ONLY": "trùng FRAGMENT và LOCALE_MODES",
     "tests/site/site.e2e.cjs TT_E2E_LOCALE_SCROLL_ONLY": "trùng FRAGMENT (cùng gọi runLanguageScrollRetentionCheck)",
     "tests/site/site.e2e.cjs TT_E2E_M2_ONLY": "trùng FAILOPEN, DELAYED_DETAIL, BOOT_RACE, DETAIL_HERO (gọi lại đúng các hàm đó)"
   },
   "pending": [
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY"
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY"
   ]
 }
