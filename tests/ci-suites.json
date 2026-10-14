@@ -201,6 +201,34 @@
       "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
       "tests": ["node tests/site/advertising-photo-transitions.e2e.mjs"]
     },
+    "adv-primary": {
+      "specs": ["advertising-detail"],
+      "tests": ["node tests/site/advertising-primary-p14.e2e.mjs"]
+    },
+    "adv-view-1": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["PHOTO_VIEW_SHARD=1/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+    },
+    "adv-view-2": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["PHOTO_VIEW_SHARD=2/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+    },
+    "adv-view-3": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["PHOTO_VIEW_SHARD=3/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+    },
+    "adv-view-4": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["PHOTO_VIEW_SHARD=4/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+    },
+    "adv-view-5": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["PHOTO_VIEW_SHARD=5/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+    },
+    "adv-view-6": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["PHOTO_VIEW_SHARD=6/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
+    },
     "media": {
       "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages"],
       "tests": ["node tests/site/image-loading-frame.e2e.mjs"]
@@ -229,8 +257,6 @@
   },
   "pending": [
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
-    "tests/site/advertising-photo-view.e2e.mjs",
-    "tests/site/advertising-primary-p14.e2e.mjs",
     "tests/site/site.e2e.cjs TT_E2E_MENU_RESIZE_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY"
   ]

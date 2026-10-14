@@ -11,7 +11,8 @@ test("mọi file e2e thuộc đúng một chỗ: bộ, manual hoặc pending", (
   const files = readdirSync("tests/site").filter((f) => /\.(e2e|spec)\.c?m?js$/.test(f)).map((f) => `tests/site/${f}`);
   const site = "tests/site/site.e2e.cjs";
   for (const file of files.filter((f) => f !== site)) {
-    const inSuites = commands.filter((cmd) => cmd.includes(file)).length;
+    // Shard của cùng một file (`*_SHARD=k/n`) tính là một lệnh.
+    const inSuites = new Set(commands.filter((cmd) => cmd.includes(file)).map((cmd) => cmd.replace(/\w+_SHARD=\S+ /, ""))).size;
     const places = (inSuites ? 1 : 0) + (file in manifest.manual) + manifest.pending.includes(file);
     assert.equal(places, 1, `${file}: ${places} chỗ`);
     assert.ok(inSuites <= 1, `${file} nằm ở ${inSuites} lệnh`);

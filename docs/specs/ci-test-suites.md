@@ -38,7 +38,7 @@ lần ở lệnh của bộ, `manual` hoặc `pending` (mục pending dạng `te
 Given một file test e2e mới trong tests/site/
 When chạy node --test tests/tooling/ci-suites.test.mjs
 Then test fail nếu file chưa thuộc bộ nào và không nằm trong manual
-And test fail nếu một file thuộc hai bộ
+And test fail nếu một file thuộc hai bộ, trừ các shard `*_SHARD=k/n` của cùng một file
 And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 ```
 
@@ -62,6 +62,8 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
+| `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
+| `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal |
 | `media-card` | media-card, glass-surface | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung |
 
@@ -184,7 +186,7 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 18 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
+- Matrix 25 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
   2026-10-11). Số runner cần thêm đo ở PR đầu.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
