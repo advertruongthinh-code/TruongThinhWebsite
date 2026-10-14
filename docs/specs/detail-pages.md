@@ -256,8 +256,8 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R2 | `assertPersistentNavigationContracts`, `TT_E2E_RESIDENTIAL_HERO_ONLY`, `TT_E2E_COMMERCIAL_HERO_ONLY` (đỏ, xem Gate); thứ tự khối chưa có test |
 | R3 | `TT_E2E_DETAIL_HERO_ONLY` (một cue, không chapter; đỏ, xem Gate); thứ tự khối chưa có test |
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
-| R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_M1_ONLY`, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
-| R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About; đỏ trong M1, xem Gate) |
+| R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
+| R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
 | R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
 | R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |

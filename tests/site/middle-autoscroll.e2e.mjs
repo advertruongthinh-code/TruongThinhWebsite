@@ -78,10 +78,13 @@ try {
   assert.ok(Math.abs((await scrollY(page)) - stopped) < 1, "page stays still after a wheel stop");
   console.log(`PASS sticky ${Math.round(speed)} and ${Math.round(fast)}px/s, wheel stop`);
 
-  // Nhấn giữ kéo lên rồi nhả: cuộn lên trong lúc giữ, dừng khi nhả.
-  await page.mouse.move(point.x, point.y);
+  // Nhấn giữ kéo lên rồi nhả: cuộn lên trong lúc giữ, dừng khi nhả. Trang đã cuộn nên tìm lại điểm trống:
+  // điểm cũ có thể rơi vào link và chuột giữa lên link không bắt đầu autoscroll.
+  const holdPoint = await blank(page);
+  assert.ok(holdPoint, "a blank point exists after the sticky run");
+  await page.mouse.move(holdPoint.x, holdPoint.y);
   await page.mouse.down({ button: "middle" });
-  await page.mouse.move(point.x, point.y - 116, { steps: 4 });
+  await page.mouse.move(holdPoint.x, holdPoint.y - 116, { steps: 4 });
   await page.waitForTimeout(800);
   const held = await scrollY(page);
   assert.ok(held < stopped - 200, `hold-drag scrolls up, ${stopped} -> ${held}`);
