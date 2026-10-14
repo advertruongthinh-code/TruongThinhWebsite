@@ -131,6 +131,7 @@ activation_command_timeout: 180.0
 language_servers:
 - typescript
 - html
+- scss
 - powershell
 - json
 - toml
