@@ -132,13 +132,14 @@ try {
           await restingPage.goto(base + "/vi/advertising-products/", {waitUntil:"networkidle"}); await ready(restingPage);
           const restingSeed = (await read(restingPage)).browse.seed;
           const restingOrigin = await restingPage.evaluate(() => performance.timeOrigin);
-          const point = await restingPage.evaluate(() => {
+          // Header điện thoại đi theo cuộn (phone-header-scroll) nên có lúc đã rời chỗ logo khi chuột bấm;
+          // ca này kiểm route và Back giữ vị trí, nên bấm logo bằng click() của DOM.
+          await restingPage.evaluate(() => {
             scrollTo({top:80,behavior:"instant"});
-            const node = document.querySelector("#header-logo"), rect = node.getBoundingClientRect();
+            const node = document.querySelector("#header-logo");
             node.addEventListener("click", () => {window.__restingRouteScroll = scrollY;}, {once:true,capture:true});
-            return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};
+            node.click();
           });
-          await restingPage.mouse.click(point.x,point.y);
           const scroll = await restingPage.evaluate(() => window.__restingRouteScroll);
           assert.equal(scroll,80,"resting route fixture starts at the exact native offset");
           await restingPage.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "home"

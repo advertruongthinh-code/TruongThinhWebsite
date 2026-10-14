@@ -911,6 +911,11 @@ function monitorPage(page) {
     try {
       const isSameOrigin = new URL(request.url()).origin === BASE_ORIGIN;
       if (!isSameOrigin && !trackedExternalTypes.has(request.resourceType())) return;
+      // Ảnh, video bị hủy khi rời trang hoặc gỡ card (ERR_ABORTED) là hành vi trình duyệt, không phải lỗi tải.
+      if (
+        request.failure()?.errorText === "net::ERR_ABORTED" &&
+        ["image", "media"].includes(request.resourceType())
+      ) return;
       diagnostics.requestFailures.push(
         `${request.method()} ${request.url()} — ${
           request.failure()?.errorText || "request failed"
@@ -3715,10 +3720,24 @@ async function runBfcacheCleanupCheck() {
   );
 }
 
+// Preview local gửi `no-store` (static-release R8) nên Chrome không cho vào bfcache; probe thay bằng
+// header mặc định của Cloudflare cho HTML để đo đúng như production.
+async function useProductionCacheHeaders(context) {
+  await context.route("**/*", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      headers: { ...response.headers(), "cache-control": "public, max-age=0, must-revalidate" },
+    });
+  });
+}
+
 async function runRealBfcacheProbe() {
   const executablePath =
     process.env.SYSTEM_CHROME_PATH ||
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    (process.platform === "win32"
+      ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      : chromium.executablePath());
   assert(
     fs.existsSync(executablePath),
     `System Chrome not found at ${executablePath}`,
@@ -3733,6 +3752,7 @@ async function runRealBfcacheProbe() {
     const context = await probeBrowser.newContext({
       viewport: { width: 1440, height: 900 },
     });
+    await useProductionCacheHeaders(context);
     await context.addInitScript(() => {
       window.__ttRealBfcachePageshow = [];
       window.addEventListener("pageshow", (event) => {
@@ -3784,7 +3804,9 @@ async function runRealBfcacheProbe() {
 async function runFailOpenRealBfcacheProbe() {
   const executablePath =
     process.env.SYSTEM_CHROME_PATH ||
-    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    (process.platform === "win32"
+      ? "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      : chromium.executablePath());
   assert(
     fs.existsSync(executablePath),
     `System Chrome not found at ${executablePath}`,
@@ -3799,6 +3821,7 @@ async function runFailOpenRealBfcacheProbe() {
     const context = await probeBrowser.newContext({
       viewport: { width: 1440, height: 900 },
     });
+    await useProductionCacheHeaders(context);
     await context.addInitScript(() => {
       window.__ttFailOpenBfcachePageshow = [];
       window.addEventListener("pageshow", (event) => {
@@ -6668,6 +6691,10 @@ async function runAdvertisingMediaEntranceChecks() {
                     ready: image.classList.contains("is-advertising-media-ready"),
                     intersectsViewport: rect.bottom > 0 && rect.top < innerHeight,
                     shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
+                    // Skeleton là canvas, Kính reveal có data-glass-reveal (loading-glass R1, R2).
+                    overlay: Boolean(tile.querySelector("canvas, [data-glass-reveal]")),
+                    animations: tile.getAnimations({ subtree: true })
+                      .filter((animation) => animation.playState === "running").length,
                   });
                 }
                 if (
@@ -6684,15 +6711,14 @@ async function runAdvertisingMediaEntranceChecks() {
             }
             return { events, samples };
           }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
-          const intermediateReplay = replay.samples.find((sample) =>
-            sample.intersectsViewport && sample.opacity > 0.02 && sample.opacity < 0.98);
-          const finalReplay = replay.samples.at(-1);
+          // loading-glass R3: card vào lại sau khi ra hẳn viewport (kể cả ảo hóa gắn lại) hiện ảnh ngay ở frame
+          // đầu giao viewport, không skeleton, Kính hay crossfade.
+          const visible = replay.samples.filter((sample) => sample.intersectsViewport);
           assert(
-            intermediateReplay && finalReplay?.ready && finalReplay.opacity >= 0.999 &&
-              replay.events.includes("transitionrun") && replay.events.includes("transitionstart") &&
-              replay.events.includes("transitionend") && replay.samples.every((sample) =>
-                sample.shellOpacity >= 0.999),
-            `${locale} media re-entry cycle ${cycle} did not replay image-only fade: ${JSON.stringify(replay)}`,
+            visible.length && visible.every((sample) => sample.ready && sample.opacity >= 0.999 &&
+              sample.shellOpacity >= 0.999 && !sample.overlay && sample.animations === 0) &&
+              replay.events.length === 0,
+            `${locale} media re-entry cycle ${cycle} replayed its entrance instead of showing at once: ${JSON.stringify(replay)}`,
           );
           const partial = await page.evaluate(async (targetId) => {
             const events = [];
@@ -7099,10 +7125,11 @@ async function runAdvertisingMediaFocusedChecks() {
           runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
         };
       }, replayFixtureId);
+      // loading-glass R3, masonry R8: card đã tải ảnh gắn lại thì hiện ảnh ngay, không chạy lại hiệu ứng vào.
       assert(
         !replay.oldConnected && !replay.sameNode && replay.ready &&
-          (replay.opacity < 0.999 || replay.runningAnimations > 0),
-        `Virtual remount skipped its approved media replay: ${JSON.stringify(replay)}`,
+          replay.opacity >= 0.999 && replay.runningAnimations === 0,
+        `Virtual remount replayed its media entrance instead of showing it at once: ${JSON.stringify(replay)}`,
       );
       await page.waitForFunction(
         () => {
@@ -10425,15 +10452,12 @@ function assertBrandShellSourceContracts() {
     "Footer markup is not canonical across the five public routes",
   );
   assert(
-    /--brand-header-height:\s*49\.640625px;/.test(styleSource) &&
-      /--brand-header-height:\s*57\.59375px;/.test(styleSource) &&
+    /--brand-header-height:\s*57\.59375px;/.test(styleSource) &&
       /--brand-header-height:\s*67\.515625px;/.test(styleSource) &&
+      /height:\s*min\(49\.640625px,\s*var\(--header-collapsed-row-height\)\)/.test(styleSource) &&
       /--header-row-height:\s*67\.515625px;/.test(styleSource) &&
       /--header-collapsed-row-height:\s*60\.390625px;/.test(styleSource) &&
-      /@media \(max-width:\s*1200px\)[\s\S]*?--header-row-height:\s*60\.390625px;/.test(
-        styleSource,
-      ) &&
-      /@media \(max-width:\s*960px\)[\s\S]*?--header-row-height:\s*107\.78125px;[\s\S]*?--header-collapsed-row-height:\s*107\.78125px;/.test(
+      /@media \(max-width:\s*1200px\)[\s\S]*?--header-row-height:\s*60\.390625px;[\s\S]*?--header-collapsed-row-height:\s*60\.390625px;/.test(
         styleSource,
       ) &&
       /@media \(max-width:\s*750px\)[\s\S]*?--header-row-height:\s*57\.59375px;[\s\S]*?--header-collapsed-row-height:\s*49\.640625px;/.test(
@@ -10457,7 +10481,7 @@ function assertBrandShellSourceContracts() {
         motionSource,
       ) &&
       /\.site-header\.is-brand-color \.brand-lockup/.test(styleSource) &&
-      /function syncHeaderBrandSurface\(whiteSurface\)[\s\S]*?paintHeaderMark\("is-brand-color", \{ from: markBlack \}\)/.test(
+      /function syncHeaderBrandSurface\(whiteSurface\b[^)]*\)[\s\S]*?paintHeaderMark\("is-brand-color", \{ from: markBlack \}\)/.test(
         motionSource,
       ) &&
       /classList\.toggle\(\s*"is-logo-ink"\s*,\s*collapsed\s*\)/.test(
@@ -11566,13 +11590,14 @@ async function runBrandColorMotionCheck() {
         const top = Number.parseFloat(clip.match(/inset\(([\d.]+)%/)?.[1]);
         return top > 0 && top < 100;
       };
+      // Underlay xếp theo từng path: lớp màu rồi lớp trắng của path đó.
+      const colorLayers = reversed.underlay.filter((_, index) => index % 2 === 0);
+      const whiteLayers = reversed.underlay.filter((_, index) => index % 2 === 1);
       assert(
-        JSON.stringify(reversed.underlay.slice(0, 4).map(({ fill }) => fill)) ===
-          JSON.stringify(cmyk) &&
-          reversed.underlay.slice(0, 4).every(({ clip }) => clip === "none") &&
-          JSON.stringify(reversed.underlay.slice(4).map(({ fill }) => fill)) ===
-            JSON.stringify(white) &&
-          reversed.underlay.slice(4).some(({ clip }) => partial(clip)) &&
+        JSON.stringify(colorLayers.map(({ fill }) => fill)) === JSON.stringify(cmyk) &&
+          colorLayers.every(({ clip }) => clip === "none") &&
+          JSON.stringify(whiteLayers.map(({ fill }) => fill)) === JSON.stringify(white) &&
+          whiteLayers.some(({ clip }) => partial(clip)) &&
           JSON.stringify(reversed.fills) === JSON.stringify(cmyk) &&
           reversed.times.every((time) => time >= 0 && time < 400),
         `Interrupted rise did not keep the visible layers or restart from the foot: ${JSON.stringify(reversed)}`,

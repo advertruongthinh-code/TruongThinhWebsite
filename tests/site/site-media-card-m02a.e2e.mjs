@@ -122,14 +122,23 @@ function mediaPath(value) {
 }
 
 async function assertPrimary(page, card, expectedId, locale) {
-  // Chờ theo cùng rule visibility mà primaryState đọc, để layer đang ra không thỏa nó giữa lúc swap.
-  await page.waitForFunction(({ kind }) => [...document.querySelectorAll(`[data-advertising-photo-hero] ${kind === "video" ? "video" : "img"}`)]
-    .some((node) => {
-      const style = getComputedStyle(node);
-      const box = node.getBoundingClientRect();
-      return !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
-        && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
-    }), { kind: card.mediaItems.find((item) => item.id === expectedId)?.kind }, { timeout: 3_000 });
+  // Chờ layer của media đích hiện liên tục 700ms, hết animation trong hero, theo cùng rule visibility mà
+  // primaryState đọc: layer cũ có thể cùng ảnh, và layer mới chỉ bắt đầu lộ sau mốc giải mã 100ms (loading-glass R4).
+  const target = card.mediaItems.find((item) => item.id === expectedId);
+  await page.evaluate(() => { window.__ttPrimaryStableSince = null; });
+  await page.waitForFunction(({ kind, src }) => {
+    const shown = !document.querySelector("[data-advertising-photo-hero]").getAnimations({ subtree: true }).length
+      && [...document.querySelectorAll(`[data-advertising-photo-hero] ${kind === "video" ? "video" : "img"}`)].some((node) => {
+        const style = getComputedStyle(node);
+        const box = node.getBoundingClientRect();
+        const path = new URL(node.currentSrc || node.src, location.href).pathname.replace(/(?:-(?:480|960))?\.(?:avif|webp)$/, ".webp");
+        return path === src && !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
+          && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
+      });
+    if (!shown) window.__ttPrimaryStableSince = null;
+    else window.__ttPrimaryStableSince ??= performance.now();
+    return shown && performance.now() - window.__ttPrimaryStableSince >= 700;
+  }, { kind: target?.kind, src: target?.src }, { timeout: 8_000 });
   const state = await primaryState(page);
   const expected = card.mediaItems.find((item) => item.id === expectedId);
   assert(expected);

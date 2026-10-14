@@ -187,8 +187,9 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   `box-sizing: border-box` ở `style.css:105`). `site-media-card-r6.e2e.mjs:156` cộng viền vào bề rộng border-box nên báo
   8px. Giữ 6px hay đổi 8px?] Owner quyết; Main sửa test.
 - Mọi asset của card đều lỗi: chưa có UI kết thúc riêng. Owner chọn UI; Thread code.
-- Ca video cần trình duyệt có H.264: `m02a` có 2 ca video FAIL trên Chromium cloud (không có H.264) và trên WebKit PC
-  (nghi codec, chưa xác nhận); ca EN grid active video của M02b chưa phân loại; `site-media-card-playback.e2e.mjs` chưa có kết quả trong tree. Máy PC.
+- Clip fixture của `m01b`, `m02a`, `r6` là AV1 + Opus trong MP4 vì Chromium của Playwright (CI, cloud) không giải mã
+  H.264/AAC; WebKit chỉ phát AV1 trên phần cứng mới nên chạy tay WebKit có thể đỏ ca video. Nhánh H.264 của video
+  thật chưa có test trên trình duyệt có H.264; `site-media-card-playback.e2e.mjs` chưa có kết quả trong tree. Máy PC.
 - Android thật, iPhone Safari, owner xem trên demo, full suite chưa chạy cho card nhiều media. Owner, máy PC.
 
 ## Chú thích thuật ngữ
