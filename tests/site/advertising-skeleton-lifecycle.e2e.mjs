@@ -96,6 +96,20 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       });
       return visible.length && visible.every(node => getComputedStyle(node).opacity === "1");
     });
+    // Chờ runtime dựng lại batch theo viewport mới (chữ ký đổi) rồi thêm hai frame; CPU bận làm frame dài,
+    // nên chờ cố định có thể đọc trạng thái nửa chừng.
+    const resizeTo = async (size) => {
+      const signature = () => document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaSignature;
+      const before = await page.evaluate(signature);
+      await page.setViewportSize(size);
+      await page.waitForFunction(old => document.querySelector("[data-advertising-cta-skeleton]").dataset.advertisingCtaSignature !== old, before);
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    };
+    // Cuộn qua smooth scroll của site và gọi lại tới khi về 0: layout đổi sau resize/filter có thể kéo trang xuống vài px.
+    const scrollToTop = () => page.waitForFunction(() => {
+      if (window.scrollY !== 0) window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo({ top: 0, behavior: "instant" });
+      return window.scrollY === 0;
+    });
     const heightState = () => page.evaluate(() => {
       const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
       const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
@@ -118,7 +132,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     let previousHeight = await heightState();
     const changed = [];
     for (const height of [788, 844, 788, 844, 788]) {
-      await page.setViewportSize({ width: 390, height }); await page.waitForTimeout(120);
+      await resizeTo({ width: 390, height }); await page.waitForTimeout(120);
       const current = await heightState();
       const common = current.samples.filter(sample => previousHeight.samples.some(old => old.slot === sample.slot));
       const removed = previousHeight.samples.filter(old => !current.samples.some(sample => old.slot === sample.slot));
@@ -138,7 +152,8 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
         const old = previousHeight.samples.find(entry => entry.slot === sample.slot);
         // Frame draw ở lần vào đầu tiên; đã draw thì giữ nguyên draw.
         if (old.assignment[1]) assert.deepEqual(sample.assignment, old.assignment, "common slot assignment remains stable");
-        if (sample.visible && old.visible) assert.equal(sample.opacity, old.opacity, "common visible slot must not replay entry");
+        // Slot đã hiện xong (opacity 1) không được chạy lại entry; slot chưa vào lần đầu (đáy màn hình) được vào.
+        if (sample.visible && old.visible && old.opacity === "1") assert.equal(sample.opacity, "1", "common visible slot must not replay entry");
       }
       previousHeight = current;
     }
@@ -153,14 +168,14 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.ok(portraitLedger.live <= 12 && portraitLedger.peak <= 12, "phone budget applies during allocation transitions");
     await page.evaluate(() => window.__observeFlowNativeEvents());
     // Đổi width/orientation giữ các slot chung; slot thừa vẫn theo geometry.
-    await page.setViewportSize({ width: 838, height: 390 }); await page.waitForTimeout(800);
+    await resizeTo({ width: 838, height: 390 }); await page.waitForTimeout(800);
     const orientation = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-cta-frame]")].map(node => ({
       slot: node.dataset.advertisingCtaSlot, common: window.__lifecycleFrames.has(node.dataset.advertisingCtaSlot),
       same: window.__lifecycleFrames.get(node.dataset.advertisingCtaSlot) === node,
     })));
     assert.ok(orientation.filter(frame => frame.common).every(frame => frame.same), "orientation preserves common outer slots");
     assert.ok((await ledger()).peak <= 12, "838px phone landscape stays within the 12-context budget");
-    await page.setViewportSize({ width: 390, height: 844 }); await page.waitForTimeout(500);
+    await resizeTo({ width: 390, height: 844 }); await page.waitForTimeout(500);
     await page.locator("[data-advertising-cta-frame]").first().evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().top - 120));
     await page.waitForTimeout(700);
     // Batch vẽ trên một canvas chung (R5): mất context thì frame tĩnh dưới khung hiện, khôi phục thì vẽ tiếp.
@@ -220,8 +235,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     const cycles = [];
     for (let cycle = 0; cycle < 20; cycle++) {
       // Input route/filter thật, cộng thay đổi geometry viewport; không có override remount controller.
-      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-      await page.waitForFunction(() => window.scrollY === 0);
+      await scrollToTop();
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const category = cycle % 2 ? "all" : "kiosk-posm";
       await page.locator('[data-advertising-filter="' + category + '"]').click();
@@ -241,8 +255,8 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.ok(finalLedger.allocations <= 12, "phone native allocations plateau within the 12-context budget");
     // Barba route exit giải phóng lease, trong khi cache thuộc document vẫn còn.
     const softEntry = await page.evaluate(() => ({seed:window.TruongThinhAdvertising.getBrowseState().seed,timeOrigin:performance.timeOrigin}));
-    await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
-    await page.waitForFunction(() => scrollY === 0 && document.querySelector('#header-logo').getBoundingClientRect().top >= 0);
+    await scrollToTop();
+    await page.waitForFunction(() => document.querySelector('#header-logo').getBoundingClientRect().top >= 0);
     await page.locator('#header-logo').click();
     await page.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "home"
       && location.pathname === "/vi/" && !window.barba.transitions.isRunning);

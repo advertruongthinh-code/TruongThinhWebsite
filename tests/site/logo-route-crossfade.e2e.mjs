@@ -12,7 +12,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 
 // Ghi mỗi frame: animation clip-path (kiểu mọc) trên path của mark, tween fill inline, class màu header, opacity veil,
 // opacity cụm logo, opacity riêng của mark, chữ, nav, hamburger.
-const startRecorder = () => {
+const startRecorder = (selector) => {
   const t0 = performance.now();
   const header = document.querySelector("[data-site-header]");
   const veil = document.querySelector(".route-veil");
@@ -21,7 +21,7 @@ const startRecorder = () => {
     ...header.querySelectorAll(".desktop-nav, .menu-button")];
   const record = { rises: 0, tweens: [], veilClosed: undefined, veilOpen: undefined, logoMin: 1, partsBelowOne: 0 };
   const seen = new WeakSet();
-  let tween;
+  let tween, last = 0;
   const tick = () => {
     const now = Math.round(performance.now() - t0);
     document.querySelectorAll("#header-logo .brand-lockup__mark path").forEach((item) =>
@@ -36,7 +36,8 @@ const startRecorder = () => {
       : undefined;
     if (to !== tween?.to) {
       if (tween) tween.end = now;
-      tween = to ? { start: now, to } : undefined;
+      // prev: frame trước đó chưa có tween, nên tween bắt đầu trong khoảng (prev, start].
+      tween = to ? { start: now, prev: last, to } : undefined;
       if (tween) record.tweens.push(tween);
     }
     const opacity = Number(getComputedStyle(veil).opacity);
@@ -45,10 +46,13 @@ const startRecorder = () => {
     record.partsBelowOne += parts.filter((part) => Number(getComputedStyle(part).opacity) < 1).length;
     if (opacity === 1 && record.veilClosed === undefined) record.veilClosed = now;
     if (opacity === 0 && record.veilClosed !== undefined && record.veilOpen === undefined) record.veilOpen = now;
+    last = now;
     if (now < 5000) requestAnimationFrame(tick);
   };
   tick();
   window.__logoRecord = record;
+  document.querySelector(selector).click();
+  record.click = Math.round(performance.now() - t0);
 };
 const readRecord = (page) => page.evaluate(() => ({
   ...window.__logoRecord,
@@ -66,8 +70,7 @@ const open = async (viewport, reducedMotion, route) => {
 };
 // Click bằng script để link trong menu (ẩn ở điện thoại) cũng đi qua Barba như click thật.
 const go = async (page, selector) => {
-  await page.evaluate(startRecorder);
-  await page.evaluate((target) => document.querySelector(target).click(), selector);
+  await page.evaluate(startRecorder, selector);
   await page.waitForTimeout(400);
   await settle(page);
   await page.waitForTimeout(1200);
@@ -93,7 +96,8 @@ try {
       // R1, R2: tween màu 0.3s cùng tween màu chữ; sang đậm ngay lúc bấm, về màu trang đích lúc veil phủ kín rồi bắt đầu mở.
       for (const tween of record.tweens) {
         assert.ok(tween.end - tween.start < 500, `${label}: colour tween lasts about 0.3s ${JSON.stringify(record)}`);
-        if (tween.to === "is-brand-ink") assert.ok(tween.start < 100, `${label}: ink tween starts at the click ${JSON.stringify(record)}`);
+        // Đo theo frame: frame dài lúc CPU bận chỉ làm trễ lần thấy, nên so frame cuối chưa có tween với lúc click.
+        if (tween.to === "is-brand-ink") assert.ok(tween.prev - record.click < 100, `${label}: ink tween starts at the click ${JSON.stringify(record)}`);
         else assert.ok(tween.start >= record.veilClosed && tween.start < record.veilOpen, `${label}: destination tween starts under the full veil ${JSON.stringify(record)}`);
       }
       // R7: cụm logo luôn hiện trên veil; mark, chữ, nav, hamburger không có opacity riêng.
