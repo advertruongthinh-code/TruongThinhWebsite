@@ -1231,6 +1231,10 @@ try {
     await relatedPage.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     stage("related-cached-remount");
     // Deep link theo tag tải lại trang với thứ tự related riêng, nên chọn trong các card đang mount.
+    // loading-glass R3 chỉ áp cho media đã tải xong trước khi ra khỏi viewport, nên chờ card trong màn đầu hiện ảnh.
+    await relatedPage.waitForFunction(() => [...document.querySelectorAll("[data-advertising-related-card]")]
+      .filter((node) => node.getBoundingClientRect().top < innerHeight)
+      .every((node) => node.querySelector(".advertising-tile__foreground.is-advertising-media-ready")));
     const topWindowIds = await relatedPage.evaluate(() => [...document.querySelectorAll("[data-advertising-related-card]")]
       .filter((node) => node.getBoundingClientRect().top < innerHeight).map((node) => ({ id: node.dataset.advertisingRelatedCard })));
     // scrollTo native chạy đua với smooth scroll còn đang giảm tốc trên desktop, nên dời logical position rồi để nó yên.
@@ -1250,8 +1254,11 @@ try {
     await relatedPage.waitForFunction(([id, before]) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).length > before, [remountMedia.id, recordsBeforeRemount]);
     // Image decode có thể làm trễ lúc fade bắt đầu, nên chờ fade được lấy mẫu kết thúc thay vì chờ cố định.
     await relatedPage.waitForFunction((id) => (window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1)?.frames.at(-1)?.opacity ?? 0) >= 0.99, remountMedia.id);
-    const remountedMediaRecord = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1), remountMedia.id);
-    const remountedMedia = assertMediaFade(remountedMediaRecord, "related cached remount media");
+    const remountedMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.filter((record) => record.id === id).at(-1), remountMedia.id);
+    // loading-glass R3: media đã tải hiện thẳng opacity cuối khi gắn lại, không fade (trống lúc giải mã thì được).
+    assert(remountedMedia?.frames.length && remountedMedia.frames.at(-1).opacity >= 0.99
+      && remountedMedia.frames.every(({ opacity, fading }) => !fading && (opacity <= 0.05 || opacity >= 0.99)),
+      `related cached remount media faded instead of showing at once ${JSON.stringify(remountedMedia)}`);
     const relatedRemount = await relatedPage.locator(`[data-advertising-related-card="${remountMedia.id}"]`).evaluate(async (node) => {
       const first = node.getBoundingClientRect().toJSON();
       await new Promise((resolve) => requestAnimationFrame(resolve));
