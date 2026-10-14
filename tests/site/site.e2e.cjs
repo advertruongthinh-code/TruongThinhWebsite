@@ -4926,8 +4926,10 @@ async function runAdvertisingFilterCheck() {
       // Thứ tự random theo lượt vào, nên chọn card đã mount cũng mở cửa sổ của filter riêng nó.
       const categories = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
       const windows = {};
-      for (const category of categories) windows[category] = await advertisingWindowIds(page, category);
-      const survivorTile = before.tiles.find((tile) => windows[tile.category]?.includes(tile.id));
+      for (const category of categories) windows[category] = await advertisingWindow(page, category);
+      // Card đứng yên chỗ cũ trong layout filter thì không có morph để đo; chọn card phải dời chỗ.
+      const survivorTile = before.tiles.find((tile) => windows[tile.category]?.some((entry) =>
+        entry.id === tile.id && Math.hypot(entry.x - tile.left, entry.y - tile.top) > 2));
       assert(survivorTile, `No mounted card survives into its filter window: ${JSON.stringify(windows)}`);
       const survivorId = survivorTile.id;
       const filterSlug = survivorTile.category;
@@ -5275,13 +5277,14 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
     const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
       pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
     );
+    const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
     const artifact = buildAdvertisingArtifact();
     if (expectedCardCount === "current") expectedCardCount = artifact.cards.length;
     assert(
       artifact.cards.length === expectedCardCount,
       `Advertising Barba contract expected ${expectedCardCount} cards, got ${artifact.cards.length}`,
     );
-    runtimeContract = { artifact, compileAdvertisingLayout, getVirtualWindow };
+    runtimeContract = { artifact, compileAdvertisingLayout, getVirtualWindow, shuffleWithSeed };
   }
   const cases = [
     { locale: "vi", viewport: { width: 1440, height: 900 }, slowVendor: true },
@@ -5353,6 +5356,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
             viewportHeight: window.innerHeight,
             artifactCards: artifact?.ADVERTISING_CATALOG_ARTIFACT?.cards?.length ?? null,
             transitioning: document.body.classList.contains("is-transitioning"),
+            seed: window.TruongThinhAdvertising?.getBrowseState?.()?.seed ?? null,
           };
         }, expectedCardCount);
         const expectedRuntime = runtimeContract
@@ -5363,6 +5367,10 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
                 datasetVersion: runtimeContract.artifact.datasetVersion,
                 filter: "all",
                 layoutViewportWidth: state.layoutViewportWidth,
+                // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): dựng lại cùng seed với runtime.
+                presentationOrder: runtimeContract.shuffleWithSeed(runtimeContract.artifact.cards, state.seed, "grid:all")
+                  .map(({ id }) => id),
+                organicOrder: true,
               });
               const ids = runtimeContract.getVirtualWindow(layout, {
                 scrollTop: Math.max(0, state.scrollY - state.gridTop),
@@ -6104,8 +6112,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
 async function runAdvertisingGridFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { ADVERTISING_LAYOUT_ALGORITHM_VERSION, compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
   const categoryOrder = ADVERTISING_CATEGORIES.map((category) => category.slug);
   const matrixWidths = [320, 390, 640, 750, 768, 960, 1024, 1200, 1440, 1920, 2560];
@@ -6114,7 +6123,8 @@ async function runAdvertisingGridFocusedChecks() {
   const thresholdWidths = [...new Set([...contractBoundaryWidths, ...columnBoundaryWidths])]
     .flatMap((width) => [width - 1, width, width + 1]);
   const widths = [...new Set([...matrixWidths, ...thresholdWidths])].sort((left, right) => left - right);
-  assert(artifact.layoutAlgorithmVersion === "advertising-grid-v9", `Advertising artifact version is not v9: ${artifact.layoutAlgorithmVersion}`);
+  // Bản thuật toán do unit test advertising-products-layout ghim; ở đây chỉ kiểm artifact đi cùng compiler.
+  assert(artifact.layoutAlgorithmVersion === ADVERTISING_LAYOUT_ALGORITHM_VERSION, `Advertising artifact version ${artifact.layoutAlgorithmVersion} differs from compiler ${ADVERTISING_LAYOUT_ALGORITHM_VERSION}`);
   assert(
     artifact.cards.every((card) => !Object.prototype.hasOwnProperty.call(card, "presentationCanvas") && !Object.prototype.hasOwnProperty.call(card, "fitMode") && !Object.prototype.hasOwnProperty.call(card, "layoutSpan")),
     "Advertising artifact retained legacy canvas or span authoring fields",
@@ -6166,10 +6176,13 @@ async function runAdvertisingGridFocusedChecks() {
         });
         const expectedOuter = measured.viewportWidth <= 750 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
         const expectedGap = measured.viewportWidth <= 960 ? 15 : measured.viewportWidth <= 1200 ? 25 : 35;
-        const expectedGridWidth = Math.min(measured.viewportWidth - 2 * expectedOuter, 1500);
-        const expectedEffectiveOuter = (measured.viewportWidth - expectedGridWidth) / 2;
-        const expectedColumns = Math.min(4, Math.max(2, Math.floor(expectedGridWidth / 235)));
+        // advertising-masonry R5: không có bề rộng tối đa, C = min(4, max(2, floor((W + G) / (220 + G)))).
+        const expectedGridWidth = measured.viewportWidth - 2 * expectedOuter;
+        const expectedEffectiveOuter = expectedOuter;
+        const expectedColumns = Math.min(4, Math.max(2, Math.floor((expectedGridWidth + expectedGap) / (220 + expectedGap))));
         const expectedCardWidth = (expectedGridWidth - expectedGap * (expectedColumns - 1)) / expectedColumns;
+        // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed như runtime.
+        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
         const expectedLayout = compileAdvertisingLayout({
           cards: artifact.cards,
           categoryOrder,
@@ -6177,6 +6190,8 @@ async function runAdvertisingGridFocusedChecks() {
           settings: artifact.settings,
           filter: "all",
           layoutViewportWidth: measured.viewportWidth,
+          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
+          organicOrder: true,
         });
         /** @type {Map<string, any>} */
         const expectedById = new Map();
@@ -6369,9 +6384,8 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
   const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
   );
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  const expected = [...artifact.cards]
-    .sort((left, right) => left.rank - right.rank || left.id.localeCompare(right.id));
 
   await runPageCase(
     "advertising keyboard crosses virtual frontiers",
@@ -6381,13 +6395,19 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0);
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
+      // Thứ tự Tab theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
+      const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
       const layout = compileAdvertisingLayout({
         cards: artifact.cards,
         categoryOrder: artifact.categories.map((category) => category.slug),
         datasetVersion: artifact.datasetVersion,
+        settings: artifact.settings,
         filter: "all",
         layoutViewportWidth,
+        presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
+        organicOrder: true,
       });
+      const expected = layout.placements.map((placement) => placement.card);
       const readState = () => page.locator("[data-project-grid]").evaluate((grid) => {
         const activeItem = document.activeElement?.closest("[data-advertising-card]");
         const gridTop = grid.getBoundingClientRect().top + window.scrollY;
@@ -6419,11 +6439,19 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
           state.activeId === expected[index].id,
           `Tab left canonical advertising order before item ${index + 1}: ${JSON.stringify(state)}`,
         );
-        const expectedWindowCount = getVirtualWindow(layout, {
-          scrollTop: Math.max(0, state.scrollY - state.gridTop),
-          viewportHeight: 900,
-          overscan: 900,
-        }).items.length;
+        // Locomotive cuộn mượt (lerp) nên runtime dựng cửa sổ ảo ở vị trí cuộn của frame trước; lấy cửa sổ lớn nhất
+        // trong đoạn cuộn từ lần đo trước tới lần đo này làm trần, cộng card đang giữ focus.
+        const scrollTop = Math.max(0, state.scrollY - state.gridTop);
+        const previousScrollTop = states.length ? Math.max(0, states.at(-1).scrollY - states.at(-1).gridTop) : scrollTop;
+        let expectedWindowCount = 0;
+        for (let top = Math.min(scrollTop, previousScrollTop); ; top = Math.min(top + 8, Math.max(scrollTop, previousScrollTop))) {
+          expectedWindowCount = Math.max(expectedWindowCount, getVirtualWindow(layout, {
+            scrollTop: top,
+            viewportHeight: 900,
+            overscan: 900,
+          }).items.length);
+          if (top >= Math.max(scrollTop, previousScrollTop)) break;
+        }
         assert(
           state.domCount <= expectedWindowCount + 1 && state.domCount < expected.length,
           `Keyboard virtualization became unbounded at item ${index + 1}: ${JSON.stringify({ state, expectedWindowCount })}`,
@@ -6437,9 +6465,20 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
         `Advertising virtual-list semantics drifted: ${JSON.stringify(states.filter((state, index) =>
           state.gridRole !== "list" || state.activeRole !== "listitem" || state.activePosition !== index + 1 || state.activeSetSize !== expected.length))}`,
       );
-      const endMounted = new Set(states.at(-1).mountedPositions);
+      // Frontier lùi phụ thuộc tốc độ lerp nên dựng chắc chắn: kéo trang về đầu, card cuối đang focus phải được giữ lại (R7).
+      await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
+      await page.waitForFunction(
+        (id) => !document.querySelector(`[data-project-grid] [data-advertising-card="${id}"]`),
+        expected.at(-2).id,
+      );
+      const endState = await readState();
+      assert(
+        endState.activeId === expected.at(-1).id && endState.mountedPositions.includes(expected.length),
+        `Focused advertising card was not retained outside the virtual window: ${JSON.stringify(endState)}`,
+      );
+      const endMounted = new Set(endState.mountedPositions);
       const firstBackwardPosition = expected.length - 1;
-      assert(!endMounted.has(firstBackwardPosition), `No backward virtual frontier remained after item 109: ${JSON.stringify([...endMounted])}`);
+      assert(!endMounted.has(firstBackwardPosition), `No backward virtual frontier remained after item ${expected.length}: ${JSON.stringify([...endMounted])}`);
       for (let index = expected.length - 2; index >= expected.length - 12; index -= 1) {
         await page.keyboard.press("Shift+Tab");
         await page.waitForTimeout(25);
@@ -6461,16 +6500,26 @@ async function runAdvertisingMediaEntranceChecks() {
   const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
   );
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  const layout = compileAdvertisingLayout({
-    cards: artifact.cards,
-    categoryOrder: artifact.categories.map((category) => category.slug),
-    datasetVersion: artifact.datasetVersion,
-    filter: "all",
-    layoutViewportWidth: 1440,
-  });
-  const target = layout.placements.reduce((deepest, placement) =>
-    placement.y > deepest.y ? placement : deepest);
+  // Lưới xếp ngẫu nhiên theo lượt xem (masonry R4): card sâu nhất lấy từ layout dựng lại cùng seed với runtime.
+  const deepestTarget = async (page) => {
+    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
+    const layout = compileAdvertisingLayout({
+      cards: artifact.cards,
+      categoryOrder: artifact.categories.map((category) => category.slug),
+      datasetVersion: artifact.datasetVersion,
+      filter: "all",
+      layoutViewportWidth: 1440,
+      presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
+      organicOrder: true,
+    });
+    return layout.placements.reduce((deepest, placement) =>
+      placement.y > deepest.y ? placement : deepest);
+  };
+  // Ảnh tải theo biến thể srcset (media-delivery R3): quy URL biến thể về path WebP gốc để so.
+  const basePath = (url) => new URL(url, "http://localhost").pathname
+    .replace(/(?:-(?:480|960))?\.(?:avif|webp)$/, ".webp");
 
   for (const locale of ["vi", "en"]) {
     const route = `/${locale}/advertising-products/`;
@@ -6480,18 +6529,23 @@ async function runAdvertisingMediaEntranceChecks() {
       async (page) => {
         const diagnostics = monitorPage(page);
         let targetImageDelayed = false;
-        await page.route(`**${target.card.media.src}`, async (requestRoute) => {
-          targetImageDelayed = true;
-          const response = await requestRoute.fetch();
-          await new Promise((resolve) => setTimeout(resolve, 180));
-          await requestRoute.fulfill({ response });
-        });
+        let target = null;
+        await page.route(
+          (url) => target !== null && basePath(url.href) === basePath(target.card.media.src),
+          async (requestRoute) => {
+            targetImageDelayed = true;
+            const response = await requestRoute.fetch();
+            await new Promise((resolve) => setTimeout(resolve, 180));
+            await requestRoute.fulfill({ response });
+          },
+        );
         await gotoRoute(page, route);
         await page.waitForFunction(
           () => document.querySelectorAll("[data-project-grid] .advertising-tile").length > 0,
           null,
           { timeout: 6_000 },
         );
+        target = await deepestTarget(page);
         const gridTop = await page.locator("[data-project-grid]").evaluate(
           (grid) => grid.getBoundingClientRect().top + window.scrollY,
         );
@@ -6512,14 +6566,12 @@ async function runAdvertisingMediaEntranceChecks() {
             complete: false,
             naturalWidth: 0,
             intersectsViewport: false,
-            transitionProperty: "",
-            transitionDuration: "",
-            transitionTiming: "",
+            opacityAnimations: [],
             shellOpacity: -1,
           }];
           const startedAt = performance.now();
           let readyAt = -1;
-          window.scrollTo(0, scrollTop);
+          window.scrollTo({ top: scrollTop, behavior: "instant" });
           await new Promise((resolve) => {
             const sample = () => {
               const tile = document.querySelector(`[data-advertising-card="${targetId}"]`);
@@ -6535,18 +6587,23 @@ async function runAdvertisingMediaEntranceChecks() {
                   complete: image.complete,
                   naturalWidth: image.naturalWidth,
                   intersectsViewport: tileRect.bottom > 0 && tileRect.top < innerHeight,
-                  transitionProperty: imageStyle.transitionProperty,
-                  transitionDuration: imageStyle.transitionDuration,
-                  transitionTiming: imageStyle.transitionTimingFunction,
+                  // Reveal Kính chạy opacity ảnh bằng Web Animations, không bằng CSS transition (loading glass R2).
+                  opacityAnimations: image.getAnimations()
+                    .filter((animation) => animation.effect.getKeyframes().some((frame) => "opacity" in frame))
+                    .map((animation) => {
+                      const { delay, duration, endTime, easing } = animation.effect.getComputedTiming();
+                      return { delay, duration, endTime, easing };
+                    }),
                   shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
                 });
                 if (image.classList.contains("is-advertising-media-ready") && readyAt < 0) {
                   readyAt = performance.now();
                 }
               }
+              // Máy tải nặng làm frame thưa: lấy mẫu tới khi ảnh đạt opacity cuối, không theo mốc 750ms cố định.
               if (
                 (readyAt < 0 && performance.now() - startedAt < 6_000) ||
-                (readyAt >= 0 && performance.now() - readyAt < 750)
+                (readyAt >= 0 && trace.at(-1).imageOpacity < 0.999 && performance.now() - readyAt < 3_000)
               ) requestAnimationFrame(sample);
               else resolve(undefined);
             };
@@ -6554,30 +6611,23 @@ async function runAdvertisingMediaEntranceChecks() {
           });
           return trace.slice(1);
         }, { targetId: target.card.id, scrollTop: gridTop + target.y - 200 });
-        const intermediate = trace.find((sample) =>
-          sample.intersectsViewport && sample.imageOpacity > 0.02 && sample.imageOpacity < 0.98);
+        // Ảnh đã ready mà chưa hiện hết vì đang chạy fade opacity (frame thưa có thể không rơi giữa fade).
+        const fading = trace.find((sample) => sample.intersectsViewport && sample.imageReady &&
+          sample.imageOpacity < 0.98 && sample.opacityAnimations.length > 0);
         const final = trace.at(-1);
-        const transitionProperties = (intermediate?.transitionProperty || "")
-          .split(",")
-          .map((value) => value.trim());
-        const opacityIndex = transitionProperties.indexOf("opacity");
-        const transitionDurations = (intermediate?.transitionDuration || "")
-          .split(",")
-          .map((value) => Number.parseFloat(value));
-        const transitionTimings = (intermediate?.transitionTiming || "")
-          .split(",")
-          .map((value) => value.trim());
+        // Nhịp 0.6s (design-system motion.md, ảnh trong card): ảnh hiện 0.13s đến 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
+        const fade = fading?.opacityAnimations[0];
         assert(
-          targetImageDelayed && intermediate && final?.imageReady && final.imageOpacity >= 0.999 &&
+          targetImageDelayed && fading && final?.imageReady && final.imageOpacity >= 0.999 &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
-            opacityIndex >= 0 && Math.abs(transitionDurations[opacityIndex] - 0.6) <= 0.01 &&
-            transitionTimings[opacityIndex] === "ease-out" &&
+            fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
+            fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)" &&
             trace.every((sample) => sample.shellOpacity >= 0.999),
-          `${locale} fresh deep card skipped the image-only 0.6s ease-out fade: ${JSON.stringify(trace)}`,
+          `${locale} fresh deep card skipped the image-only fade of the 0.6s reveal: ${JSON.stringify(trace)}`,
         );
 
         const captureReplay = async (cycle) => {
-          await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop);
+          await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), gridTop);
           await page.waitForFunction(
             (targetId) => !document.querySelector(`[data-advertising-card="${targetId}"]`),
             target.card.id,
@@ -6597,7 +6647,7 @@ async function runAdvertisingMediaEntranceChecks() {
             for (const type of ["transitionrun", "transitionstart", "transitionend"]) {
               document.addEventListener(type, capture, true);
             }
-            window.scrollTo(0, scrollTop);
+            window.scrollTo({ top: scrollTop, behavior: "instant" });
             const samples = [];
             const startedAt = performance.now();
             let mountedAt = -1;
@@ -6688,11 +6738,12 @@ async function runAdvertisingMediaEntranceChecks() {
           null,
           { timeout: 6_000 },
         );
+        const target = await deepestTarget(page);
         const gridTop = await page.locator("[data-project-grid]").evaluate(
           (grid) => grid.getBoundingClientRect().top + window.scrollY,
         );
         await page.evaluate(
-          (scrollTop) => window.scrollTo(0, scrollTop),
+          (scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }),
           gridTop + target.y - 200,
         );
         await page.waitForFunction(
@@ -6735,16 +6786,11 @@ async function runAdvertisingMediaFocusedChecks() {
   const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
   );
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const artifact = buildAdvertisingArtifact();
-  const expectedCounts = {
-    "kiosk-posm": 30,
-    "mobile-retail": 16,
-    "signage-raised-letters": 22,
-    "office-signs-wayfinding": 13,
-    "led-displays-lightboxes": 18,
-    "print-decals": 16,
-  };
   const categoryOrder = artifact.categories.map((category) => category.slug);
+  // Số card mỗi nhóm do catalog quyết định (taxonomy còn thêm ảnh); ở đây kiểm media không trùng, rank liền, FIFO.
+  const expectedCounts = Object.fromEntries(categoryOrder.map((slug) => [slug, artifact.cards.filter((card) => card.category === slug).length]));
   const expectedMediaPaths = new Set(
     artifact.cards.map((card) => new URL(card.media.src, "http://localhost").pathname),
   );
@@ -6775,7 +6821,7 @@ async function runAdvertisingMediaFocusedChecks() {
     const pool = new Map(cards.map((card) => [card.media.src, card.media]));
     const coverMedia = pool.get(category.cover);
     assert(
-      category.products.length === 12 &&
+      category.products.length > 0 &&
         coverMedia && Reflect.get(coverMedia, "width") === category.coverWidth &&
         Reflect.get(coverMedia, "height") === category.coverHeight &&
         category.gallery.length === 2 &&
@@ -6800,6 +6846,20 @@ async function runAdvertisingMediaFocusedChecks() {
         .every((rank, index) => rank === index),
     `All layout did not retain all ${expectedCardCount} ranked cards`,
   );
+  // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
+  const browseLayout = async (page, filter, layoutViewportWidth) => {
+    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
+    const pool = filter === "all" ? artifact.cards : artifact.cards.filter((card) => card.category === filter);
+    return compileAdvertisingLayout({
+      cards: artifact.cards,
+      categoryOrder,
+      datasetVersion: artifact.datasetVersion,
+      filter,
+      layoutViewportWidth,
+      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`).map(({ id }) => id),
+      organicOrder: true,
+    });
+  };
 
   const readGridState = (page) => page.locator("[data-project-grid]").evaluate((grid) => {
     const bounds = grid.getBoundingClientRect();
@@ -6876,14 +6936,16 @@ async function runAdvertisingMediaFocusedChecks() {
       const diagnostics = monitorPage(page);
       const mediaRequestPaths = new Set();
       const mediaResponseStatuses = new Map();
+      // Trình duyệt tải variant responsive (name.avif, name-480.webp, name-960.avif...); quy về file gốc của card.
+      const mediaPath = (url) => new URL(url).pathname.replace(/(?:-(?:480|960))?\.(?:avif|webp)$/, ".webp");
       page.on("request", (request) => {
-        const pathname = new URL(request.url()).pathname;
+        const pathname = mediaPath(request.url());
         if (request.resourceType() === "image" && pathname.startsWith("/assets/content/projects/advertising/")) {
           mediaRequestPaths.add(pathname);
         }
       });
       page.on("response", (response) => {
-        const pathname = new URL(response.url()).pathname;
+        const pathname = mediaPath(response.url());
         if (response.request().resourceType() !== "image" || !pathname.startsWith("/assets/content/projects/advertising/")) return;
         const previous = mediaResponseStatuses.get(pathname);
         mediaResponseStatuses.set(pathname, previous ? `${previous},${response.status()}` : String(response.status()));
@@ -6896,7 +6958,8 @@ async function runAdvertisingMediaFocusedChecks() {
       );
       await page.waitForTimeout(500);
       const initial = await readGridState(page);
-      assertGridState(initial, rankedLayout, "initial direct load");
+      const pageLayout = await browseLayout(page, "all", 1440);
+      assertGridState(initial, pageLayout, "initial direct load");
       await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile__foreground")?.classList.contains("is-advertising-media-ready"));
       const hoverTile = page.locator("[data-project-grid] .advertising-tile").first();
       await hoverTile.hover();
@@ -6922,13 +6985,15 @@ async function runAdvertisingMediaFocusedChecks() {
           (expected) =>
             document.documentElement.lang === expected &&
             location.pathname === `/${expected}/advertising-products/` &&
-            !document.querySelector("#site-menu")?.hasAttribute("open"),
+            !document.querySelector("#site-menu")?.hasAttribute("open") &&
+            // Chờ chuyển trang đổi ngôn ngữ xong: trang còn thu phóng và menu chưa nhận click.
+            !document.body.classList.contains("is-transitioning"),
           language,
           { timeout: 6_000 },
         );
         await page.waitForTimeout(500);
         const localized = await readGridState(page);
-        assertGridState(localized, rankedLayout, `${language} locale round-trip`);
+        assertGridState(localized, pageLayout, `${language} locale round-trip`);
         assert(
           JSON.stringify(localized.tiles.map((tile) => tile.id)) === JSON.stringify(initialTileIds) &&
             (await page.evaluate(() => performance.timeOrigin)) === timeOrigin,
@@ -6945,13 +7010,7 @@ async function runAdvertisingMediaFocusedChecks() {
           { timeout: 3_000 },
         );
         await page.waitForTimeout(500);
-        const filteredLayout = compileAdvertisingLayout({
-          cards: artifact.cards,
-          categoryOrder,
-          datasetVersion: artifact.datasetVersion,
-          filter: category.slug,
-          layoutViewportWidth: 1440,
-        });
+        const filteredLayout = await browseLayout(page, category.slug, 1440);
         const filtered = await readGridState(page);
         assertGridState(filtered, filteredLayout, `${category.slug} filter`);
         assert(
@@ -6971,13 +7030,7 @@ async function runAdvertisingMediaFocusedChecks() {
       await page.waitForTimeout(500);
       await page.setViewportSize({ width: 1200, height: 900 });
       await page.waitForTimeout(500);
-      const resizedLayout = compileAdvertisingLayout({
-        cards: artifact.cards,
-        categoryOrder,
-        datasetVersion: artifact.datasetVersion,
-        filter: "all",
-        layoutViewportWidth: 1200,
-      });
+      const resizedLayout = await browseLayout(page, "all", 1200);
       assertGridState(await readGridState(page), resizedLayout, "1200px resize");
 
       await page.setViewportSize({ width: 1440, height: 900 });
@@ -6994,12 +7047,12 @@ async function runAdvertisingMediaFocusedChecks() {
       });
       const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
       const step = 450;
-      for (let localY = 0; localY <= rankedLayout.totalPixelHeight; localY += step) {
+      for (let localY = 0; localY <= pageLayout.totalPixelHeight; localY += step) {
         const requestedBefore = new Set(mediaRequestPaths);
         await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop + localY);
         await page.waitForTimeout(180);
         const state = await readGridState(page);
-        assertGridState(state, rankedLayout, `stepped scroll ${localY}px`);
+        assertGridState(state, pageLayout, `stepped scroll ${localY}px`);
         const mounted = new Set(state.tiles.map((tile) => tile.source));
         const requestedNow = [...mediaRequestPaths].filter((pathname) => !requestedBefore.has(pathname));
         assert(
@@ -7071,10 +7124,11 @@ async function runAdvertisingMediaFocusedChecks() {
         focusedId && focusedBefore.activeId === focusedId && focusedBefore.retained === focusedId,
         `Virtual card did not receive focus before deep scroll: ${JSON.stringify({ focusedId, focusedBefore })}`,
       );
-      const focusedTarget = gridTop + Math.max(0, rankedLayout.totalPixelHeight - 900);
-      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), focusedTarget);
+      const focusedTarget = gridTop + Math.max(0, pageLayout.totalPixelHeight - 900);
+      // html có scroll-behavior: smooth; cuộn tức thì để cửa sổ ảo đo đúng tại focusedTarget.
+      await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), focusedTarget);
       await page.waitForTimeout(400);
-      const focusedWindowCount = getVirtualWindow(rankedLayout, {
+      const focusedWindowCount = getVirtualWindow(pageLayout, {
         scrollTop: Math.max(0, focusedTarget - gridTop),
         viewportHeight: 900,
         overscan: 900,
@@ -7146,11 +7200,13 @@ async function runAdvertisingCompatibilityChecks() {
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
   const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
   const viewport = { width: 1440, height: 900 };
   const interCardGap = 35;
-  const cardWidth = (Math.min(viewport.width - 70, 1500) - interCardGap * 3) / 4;
+  // R5: masonry rộng bằng viewport trừ hai lề, không còn bề rộng tối đa.
+  const cardWidth = (viewport.width - 70 - interCardGap * 3) / 4;
   const captionPixelHeight = 0;
   const quantum = 0.125 * cardWidth;
   const rowStep = 8 * cardWidth;
@@ -7172,8 +7228,9 @@ async function runAdvertisingThreeThousandCardProbe() {
       sourceOrder: index,
       media: {
         src: svg(cardWidth, mediaPixelHeight, ["#8ba9bf", "#c0aa88", "#8da88d", "#b38b8b"][column]),
-        width: cardWidth,
-        height: mediaPixelHeight,
+        // Media contract đòi width/height nguyên dương; nhân 4 rồi làm tròn để giữ tỷ lệ gốc.
+        width: Math.round(cardWidth * 4),
+        height: Math.round(mediaPixelHeight * 4),
         altVi: "Mẫu kiểm tra ảo hóa",
         altEn: "Virtualization test sample",
       },
@@ -7192,6 +7249,29 @@ async function runAdvertisingThreeThousandCardProbe() {
   });
   const feasibleInspection = inspectAdvertisingGrid({ layout: feasibleLayout, placements: feasibleLayout.placements });
   assert(feasibleInspection.valid && feasibleLayout.placements.length === 3000 && feasibleLayout.diagnostics.operations <= 300000, `3K fixture is not independently feasible: ${JSON.stringify({ operations: feasibleLayout.diagnostics.operations, violations: feasibleInspection.violations.slice(0, 3) })}`);
+  // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
+  const browseLayout = async (page, filter, layoutViewportWidth) => {
+    const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
+    const pool = filter === "all" ? artifact.cards : artifact.cards.filter((card) => card.category === filter);
+    return compileAdvertisingLayout({
+      cards: artifact.cards,
+      categoryOrder: artifact.categories.map((category) => category.slug),
+      datasetVersion: artifact.datasetVersion,
+      settings: artifact.settings,
+      filter,
+      layoutViewportWidth,
+      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`).map(({ id }) => id),
+      organicOrder: true,
+    });
+  };
+  const scrollTargetFor = async (page, layout, id) => {
+    const target = layout.placements.find((placement) => placement.card.id === id);
+    if (!target) throw new Error(`artifact placement missing: ${id}`);
+    const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
+    return gridTop + target.y;
+  };
+  // html có scroll-behavior: smooth; cuộn instant để vị trí có ngay.
+  const scrollInstant = (page, top) => page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), top);
   await runPageCase(
     "advertising 3000-card virtual window",
     { route: "/vi/advertising-products/", viewport },
@@ -7230,10 +7310,13 @@ async function runAdvertisingThreeThousandCardProbe() {
       assert(composition.every((entry) => entry.fitAttribute === null && entry.backplates === 0 && entry.foregrounds === 1 && entry.foregroundAlt === "Mẫu kiểm tra ảo hóa"), `natural media gained legacy canvas treatment: ${JSON.stringify(composition)}`);
       const initialGeometryHeight = await page.locator("[data-project-grid]").evaluate((grid) => Number.parseFloat(grid.style.height));
       assert(initialGeometryHeight > 200_000, `3000-card injection did not reach runtime: grid height ${initialGeometryHeight}`);
-      const target = await advertisingArtifactScrollTarget(page, artifact, "benchmark-2800");
-      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), target);
+      const deepLayout = await browseLayout(page, "all", await page.evaluate(() => document.documentElement.clientWidth));
+      // Card sâu là card ở vị trí trình bày 2800 của lượt duyệt, không phải id cố định.
+      const deepId = deepLayout.placements[2800].card.id;
+      const target = await scrollTargetFor(page, deepLayout, deepId);
+      await scrollInstant(page, target);
       await page.waitForTimeout(600);
-      const nearFrontier = await page.locator("[data-project-grid]").evaluate((grid) => {
+      const nearFrontier = await page.locator("[data-project-grid]").evaluate((grid, deepId) => {
         const tiles = [...grid.querySelectorAll(".advertising-tile")];
         const rectangles = tiles.map((tile) => {
           const rect = tile.getBoundingClientRect();
@@ -7245,7 +7328,7 @@ async function runAdvertisingThreeThousandCardProbe() {
         ));
         return {
           count: tiles.length,
-          has2800: Boolean(grid.querySelector('[data-advertising-card="benchmark-2800"]')),
+          has2800: Boolean(grid.querySelector(`[data-advertising-card="${deepId}"]`)),
           ids: tiles.map((tile) => tile.dataset.advertisingCard),
           hasEarly: Boolean(grid.querySelector('[data-advertising-card="tt-0000"]')),
           height: Number.parseFloat(grid.style.height),
@@ -7255,15 +7338,7 @@ async function runAdvertisingThreeThousandCardProbe() {
           overlap,
           prefix: tiles.slice(0, 24).map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
         };
-      });
-      const deepLayout = compileAdvertisingLayout({
-        cards: artifact.cards,
-        categoryOrder: artifact.categories.map((category) => category.slug),
-        datasetVersion: artifact.datasetVersion,
-        settings: artifact.settings,
-        filter: "all",
-        layoutViewportWidth: 1440,
-      });
+      }, deepId);
       const expectedDeepWindow = getVirtualWindow(deepLayout, {
         scrollTop: Math.max(0, nearFrontier.scrollY - nearFrontier.gridTop),
         viewportHeight: viewport.height,
@@ -7277,7 +7352,7 @@ async function runAdvertisingThreeThousandCardProbe() {
 
       await page.locator('[data-advertising-filter="mobile-retail"]').click();
       await page.locator('[data-advertising-filter="all"]').click();
-      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), target);
+      await scrollInstant(page, target);
       await page.waitForTimeout(600);
       const afterFilter = await page.locator("[data-project-grid]").evaluate((grid) => ({
         scrollY: window.scrollY,
@@ -7288,14 +7363,15 @@ async function runAdvertisingThreeThousandCardProbe() {
 
       await page.setViewportSize({ width: 1200, height: 900 });
       await page.waitForTimeout(500);
-      const resizedTarget = await advertisingArtifactScrollTarget(page, artifact, "benchmark-2800");
-      await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), resizedTarget);
+      const resizedLayout = await browseLayout(page, "all", await page.evaluate(() => document.documentElement.clientWidth));
+      const resizedTarget = await scrollTargetFor(page, resizedLayout, deepId);
+      await scrollInstant(page, resizedTarget);
       await page.waitForTimeout(500);
-      const afterResize = await page.locator("[data-project-grid]").evaluate((grid) => ({
+      const afterResize = await page.locator("[data-project-grid]").evaluate((grid, deepId) => ({
         count: grid.querySelectorAll(".advertising-tile").length,
         overflow: document.documentElement.scrollWidth - innerWidth,
-        has2800: Boolean(grid.querySelector('[data-advertising-card="benchmark-2800"]')),
-      }));
+        has2800: Boolean(grid.querySelector(`[data-advertising-card="${deepId}"]`)),
+      }), deepId);
       assert(afterResize.count > 0 && afterResize.count < 120 && afterResize.overflow <= 1 && afterResize.has2800, `resize lost the bounded deep virtual window: ${JSON.stringify(afterResize)}`);
       assertDiagnostics(diagnostics);
     },
@@ -7304,6 +7380,8 @@ async function runAdvertisingThreeThousandCardProbe() {
 
 async function runAdvertisingLocaleLifecycleChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const { compileAdvertisingProductLayout: compileAdvertisingLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const virtualizedCards = Array.from({ length: 3000 }, (_, index) => {
     const kiosk = index < 3;
     const primaryKiosk = index === 0;
@@ -7373,7 +7451,8 @@ async function runAdvertisingLocaleLifecycleChecks() {
             throw new Error(`language ${language} did not update the route: ${error.message}`);
           });
         await page
-          .waitForFunction(() => window.__ttAdvertisingLocaleSettled === true)
+          // Replay phát trước khi veil mở xong; menu không mở khi route còn chạy (site-shell R4), nên chờ cả hai.
+          .waitForFunction(() => window.__ttAdvertisingLocaleSettled === true && !document.body.classList.contains("is-transitioning"))
           .catch(async (error) => {
             const state = await page.evaluate(() => ({
               language: document.documentElement.lang,
@@ -7387,14 +7466,29 @@ async function runAdvertisingLocaleLifecycleChecks() {
         assert(await page.evaluate(() => performance.timeOrigin) === timeOrigin, "locale switch must stay in the current document");
       };
       const virtualizeKiosk = async () => {
-        const target = await advertisingArtifactScrollTarget(page, artifact, "locale-2800");
-        await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), target);
+        // Thứ tự ngẫu nhiên theo lượt duyệt (advertising-masonry R4): dựng lại layout cùng seed để biết vị trí kiosk.
+        const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
+        const layout = compileAdvertisingLayout({
+          cards: artifact.cards,
+          categoryOrder: artifact.categories.map((category) => category.slug),
+          datasetVersion: artifact.datasetVersion,
+          settings: artifact.settings,
+          filter: "all",
+          layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
+          presentationOrder: shuffleWithSeed(artifact.cards, seed, "grid:all").map(({ id }) => id),
+          organicOrder: true,
+        });
+        const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
+        // Cuộn tới placement xa kiosk nhất để kiosk chắc chắn rời DOM ảo hóa.
+        const far = layout.placements.reduce((best, placement) => (Math.abs(placement.y - kiosk.y) > Math.abs(best.y - kiosk.y) ? placement : best));
+        const gridTop = await page.locator("[data-project-grid]").evaluate((grid) => grid.getBoundingClientRect().top + window.scrollY);
+        await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), gridTop + far.y);
         await page
           .waitForFunction(() => !document.querySelector('[data-advertising-card="kiosk-posm-01"]'))
           .catch((error) => {
             throw new Error(`virtualized kiosk did not leave the DOM: ${error.message}`);
           });
-        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), Math.max(0, gridTop + kiosk.y - 100));
         await page
           .waitForFunction(() => Boolean(document.querySelector('[data-advertising-card="kiosk-posm-01"]')))
           .catch(async (error) => {
@@ -7442,7 +7536,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".advertising-tile__foreground");
         return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/kiosk-posm/", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
+      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/?category=kiosk-posm&photo=kiosk-posm-01", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
 
       await switchLanguage("vi");
       await virtualizeKiosk();
@@ -7452,7 +7546,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".advertising-tile__foreground");
         return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/kiosk-posm/", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-01", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
       await page.locator(".advertising-tile a").first().focus();
       await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());

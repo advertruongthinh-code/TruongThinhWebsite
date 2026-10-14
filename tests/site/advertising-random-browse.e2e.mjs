@@ -61,7 +61,8 @@ try {
   const pendingTarget = await page.evaluate(() => {
     window.__pendingBrowseScrollTime = null;
     window.addEventListener("scroll", () => { window.__pendingBrowseScrollTime = performance.now(); }, { once: true });
-    window.scrollTo(0, 900);
+    // html có scroll-behavior: smooth; cuộn tức thì để đọc link đang hiện ngay trong frame này.
+    window.scrollTo({ top: 900, behavior: "instant" });
     const link = [...document.querySelectorAll('[data-advertising-card] a')].find(node => {
       const r = node.getBoundingClientRect(); return r.top >= 10 && r.top < innerHeight - 100;
     });
@@ -119,7 +120,8 @@ try {
   assert.equal(await nativePage.evaluate(() => sessionStorage.getItem("tt-advertising-visit-seed-handoff-v1")), null);
   results.push({ case: "native-locale", injection: "abort motion.js in both documents", blockedMotion, nativeRequests, seed: seedBeforeFallback });
   await nativePage.close();
-  for (const engine of [chromium, webkit]) {
+  // CI chỉ cài Chromium nên chạy RANDOM_BROWSE_ENGINES=chromium; chạy tay mặc định thêm WebKit.
+  for (const engine of (process.env.RANDOM_BROWSE_ENGINES || "chromium,webkit").split(",").map((name) => ({ chromium, webkit })[name])) {
     const earlyBrowser = engine === chromium ? browser : await engine.launch({ headless: true });
     try {
       for (let attempt = 0; attempt < 3; attempt++) {
