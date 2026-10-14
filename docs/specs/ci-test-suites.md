@@ -56,7 +56,8 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
 | `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route |
 | `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình |
-| `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: primary, related, gợi ý, slideshow, viewer, chuyển ảnh, preload route |
+| `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
+| `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính, card nhiều media |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner PC thì tách đôi theo
@@ -176,7 +177,7 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 10 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
+- Matrix 13 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
   2026-10-11). Số runner cần thêm đo ở PR đầu.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,

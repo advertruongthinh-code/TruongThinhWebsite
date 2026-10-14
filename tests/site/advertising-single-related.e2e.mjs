@@ -10,7 +10,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.goto(`http://127.0.0.1:8787/${locale}/advertising-products/?category=signage-raised-letters&photo=${hero}&tag=${tag}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/${locale}/advertising-products/?category=signage-raised-letters&photo=${hero}&tag=${tag}`, { waitUntil: "domcontentloaded" });
     const button = page.locator(`[data-advertising-suggestion-tag="${tag}"]`);
     await button.waitFor();
     // Direct load giữ route veil phủ trang cho đến khi mount; click trước đó khiến Playwright cuộn để thử lại.

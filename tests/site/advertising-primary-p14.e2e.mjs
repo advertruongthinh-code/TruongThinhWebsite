@@ -81,6 +81,8 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
+    // Ảnh bị hủy khi card gỡ khỏi DOM hoặc đổi srcset là hành vi bình thường của trình duyệt.
+    if (request.resourceType() === "image" && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (new URL(request.url()).origin === baseOrigin || ["font", "stylesheet", "script"].includes(request.resourceType())) {
       issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
     }

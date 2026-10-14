@@ -644,7 +644,18 @@ try {
       await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
       const card = page.locator(`[data-advertising-card="${A}"] > a`);
       await card.scrollIntoViewIfNeeded();
-      const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+      // Y của masonry đổi tiếp vài frame sau khi cuộn tới card; chỉ lấy khi đứng yên 5 frame liền.
+      const gridY = await page.evaluate(() => new Promise((resolve) => {
+        let last = NaN;
+        let still = 0;
+        const tick = () => {
+          const y = window.TruongThinhMotion.getLogicalScroll();
+          still = y === last ? still + 1 : 0;
+          last = y;
+          if (still >= 5) resolve(y); else requestAnimationFrame(tick);
+        };
+        tick();
+      }));
       await armNoGridMorphProbe(page);
       await card.click();
       await ready(page, A);
