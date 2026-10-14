@@ -2894,6 +2894,12 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .footer-address strong {
     text-wrap: pretty;
   }
+
+  /* Cột 1fr có bề rộng cố định: cỡ chữ thường số vừa một dòng, phóng chữ 200% thì số xuống dòng thay vì tràn ngang. */
+  .footer-hotline strong,
+  .footer-office strong {
+    white-space: normal;
+  }
 }
 
 /* Tablet ngang 751-1023px không đủ chỗ cho bốn cột: hai số xếp chồng ở cột giữa. Hàng hai 1fr hút phần cao dư của
@@ -5509,8 +5515,10 @@ body.is-advertising-browse .site-footer {
   overflow: clip;
 }
 
+/* min-height giữ dòng 24px cả lúc chưa có dot, để paginateDescription đo pager đúng chiều cao cuối (detail R3). */
 .advertising-photo-view__description-indicator {
   display: flex;
+  min-height: 24px;
   margin: 0;
   font-size: 0.75rem;
   line-height: 24px;

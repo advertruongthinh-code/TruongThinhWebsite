@@ -1261,8 +1261,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const mediaKey = (node) => node.dataset.advertisingRelatedCard
     ? `related:${node.dataset.advertisingRelatedCard}` : `grid:${node.dataset.advertisingCard}`;
   const mediaLayers = (node) => [...node.querySelectorAll(".advertising-tile__foreground")];
-  const showMedia = (node) => mediaLayers(node)
-    .forEach((media) => media.classList.add("is-advertising-media-ready"));
+  // Hiện ngay ở opacity cuối, không qua transition opacity của CSS (R3): đọc style để chốt `none` trước khi trả lại.
+  const showMedia = (node) => mediaLayers(node).forEach((media) => {
+    media.style.setProperty("transition", "none", "important");
+    media.classList.add("is-advertising-media-ready");
+    getComputedStyle(media).opacity;
+    media.style.removeProperty("transition");
+  });
   const handleMediaLoaded = (node) => {
     const id = mediaKey(node);
     const seen = loadedMediaKeys.has(id);
@@ -1278,6 +1283,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const node = entry.target;
       const id = mediaKey(node);
       if (!id) return;
+      // Card gắn lại có media đã tải: unveil ngay từ entry đầu, không chờ nhịp throttle của LazySizes, để bản cache
+      // sẵn trước khi card vào viewport (loading-glass R3).
+      if (loadedMediaKeys.has(id)) {
+        mediaLayers(node).forEach((media) => media.classList.contains("lazyload") && window.lazySizes?.loader?.unveil(media));
+      }
       if (entry.intersectionRatio === 0) {
         // Card bị dời trong DOM (restoreCanonicalDomOrder) báo một entry rỗng không có rootBounds rồi entry thật
         // ngay sau; bỏ skeleton ở đây làm nó chớp lại từ opacity 0.
@@ -2121,7 +2131,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const cardSkeletons = new Map();
   const attachCardSkeleton = (node) => {
     const mediaId = node.advertisingPendingMediaId?.();
-    if (cardSkeletons.has(node) || !mediaId) return;
+    // Card gắn lại có media đã tải thì không skeleton (loading-glass R3).
+    if (cardSkeletons.has(node) || !mediaId || loadedMediaKeys.has(mediaKey(node))) return;
     const frame = attachLoadingSkeleton(node.querySelector(".advertising-card-media"), mediaId);
     cardSkeletons.set(node, { frame, revealing: false, animations: [] });
   };
