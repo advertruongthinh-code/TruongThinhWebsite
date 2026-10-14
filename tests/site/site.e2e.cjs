@@ -6272,7 +6272,15 @@ async function runAdvertisingGridFocusedChecks() {
         );
         await page.locator('[data-advertising-filter="kiosk-posm"]').click();
         await page.locator('[data-advertising-filter="all"]').click();
-        await page.waitForTimeout(450);
+        // Chờ lưới settle (hết transform, vị trí đứng yên giữa hai lần đọc) thay cho 450ms cố định: runner bận
+        // còn để card kiosk ở chỗ cũ khi đọc.
+        await page.waitForFunction(() => {
+          const tiles = [...document.querySelectorAll("[data-project-grid] .advertising-tile")];
+          const key = tiles.map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`).join();
+          const settled = tiles.every((tile) => getComputedStyle(tile).transform === "none") && key === window.__ttGridKey;
+          window.__ttGridKey = key;
+          return settled;
+        }, null, { polling: 100, timeout: 5_000 });
         const secondPass = await page.locator("[data-project-grid]").evaluate((grid) =>
           [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
         );
