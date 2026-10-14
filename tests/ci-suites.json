@@ -165,6 +165,15 @@
     "media": {
       "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages"],
       "tests": ["node tests/site/image-loading-frame.e2e.mjs"]
+    },
+    "media-card": {
+      "specs": ["media-card", "glass-surface"],
+      "tests": [
+        "node tests/site/glass-surface.e2e.mjs",
+        "node tests/site/site-media-card-m01b.e2e.mjs",
+        "node tests/site/site-media-card-m02a.e2e.mjs",
+        "node tests/site/site-media-card-r6.e2e.mjs"
+      ]
     }
   },
   "manual": {
@@ -180,10 +189,6 @@
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
     "tests/site/advertising-photo-view.e2e.mjs",
     "tests/site/advertising-primary-p14.e2e.mjs",
-    "tests/site/glass-surface.e2e.mjs",
-    "tests/site/site-media-card-m01b.e2e.mjs",
-    "tests/site/site-media-card-m02a.e2e.mjs",
-    "tests/site/site-media-card-r6.e2e.mjs",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_COLOR_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_HEADER_BBOX_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY",
