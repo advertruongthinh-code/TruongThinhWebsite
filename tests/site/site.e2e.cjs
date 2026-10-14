@@ -9236,6 +9236,7 @@ async function runHeroCrossFadeContinuityChecks() {
             return Math.hypot(matrix.a, matrix.b);
           };
           const samples = [];
+          const times = [];
           let activeIndex = slides.findIndex((slide) =>
             slide.classList.contains("is-active"),
           );
@@ -9275,6 +9276,7 @@ async function runHeroCrossFadeContinuityChecks() {
                 };
               }
               samples.push(current);
+              times.push(now);
               if (now - startedAt < 6_200) requestAnimationFrame(sample);
               else resolve();
             };
@@ -9286,11 +9288,13 @@ async function runHeroCrossFadeContinuityChecks() {
           for (let frame = 1; frame < samples.length; frame += 1) {
             const previous = samples[frame - 1];
             const current = samples[frame];
+            // Quy về một frame 60fps: runner bận rơi frame thì zoom đều cũng nhảy xa hơn giữa hai mẫu.
+            const frameScale = 1_000 / 60 / Math.max(1_000 / 60, times[frame] - times[frame - 1]);
             current.forEach((sample, index) => {
               if (sample.opacity > 0.01 || previous[index].opacity > 0.01) {
                 maxVisibleScaleJump = Math.max(
                   maxVisibleScaleJump,
-                  Math.abs(sample.scale - previous[index].scale),
+                  Math.abs(sample.scale - previous[index].scale) * frameScale,
                 );
               }
             });
@@ -9640,8 +9644,10 @@ async function runHomeHeroIntroReadabilityCheck() {
       );
       const finalSamples = trace.samples.filter(({ elapsed }) => elapsed >= 2_750);
 
+      // Phủ cả cửa sổ 250-850ms thay vì đếm mẫu: runner bận chạy dưới 60fps nên số frame ít hơn.
       assert(
-        solidSamples.length > 20 &&
+        solidSamples[0]?.elapsed <= 320 &&
+          solidSamples.at(-1).elapsed >= 780 &&
           solidSamples.every(
             ({ background, maxSlideOpacity }) =>
               background === "rgb(43, 44, 43)" && maxSlideOpacity <= 0.02,
