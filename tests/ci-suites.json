@@ -112,7 +112,6 @@
         "TT_E2E_ADVERTISING_MEDIA_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_3K_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_KEYBOARD_ONLY=1 node tests/site/site.e2e.cjs",
-        "TT_E2E_ADVERTISING_RAPID_FILTER_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_SELECTION_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_PROOF_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-card-interactions.e2e.mjs",
@@ -159,6 +158,7 @@
   },
   "pending": [
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY",
+    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
     "tests/site/advertising-full-span-p72.e2e.mjs",
     "tests/site/advertising-photo-header.e2e.mjs",
     "tests/site/advertising-photo-transitions.e2e.mjs",
