@@ -6,6 +6,7 @@ import {
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
+import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "./taxonomy.mjs";
 
 export const ADVERTISING_DATASET_VERSION = "2026-09-24.1";
 
@@ -149,12 +150,13 @@ const CATEGORY_TAXONOMY = [
   }),
 ];
 
-const productKeysByCategory = Object.fromEntries(CATEGORY_TAXONOMY.map((entry) => [
-  entry.slug,
-  entry.products.map((_, index) => `${entry.slug}-product-${String(index + 1).padStart(2, "0")}`),
-]));
+validateAdvertisingMediaPool(ADVERTISING_MEDIA_MANIFEST, {
+  tagRegistry: ADVERTISING_TAG_REGISTRY,
+  clusters: ADVERTISING_CLUSTERS,
+  products: ADVERTISING_PRODUCTS,
+});
 
-validateAdvertisingMediaPool(ADVERTISING_MEDIA_MANIFEST, { productKeysByCategory, tagRegistry: ADVERTISING_TAG_REGISTRY });
+const clusterIdByProductId = new Map(ADVERTISING_PRODUCTS.map((product) => [product.id, product.cluster]));
 
 export const ADVERTISING_CATEGORIES = deepFreeze(CATEGORY_TAXONOMY.map((entry) => {
   const [coverRecord, ...galleryRecords] = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === entry.slug);
@@ -182,6 +184,8 @@ function selectCardMedia(record) {
   const { mediaItems, coverMediaId } = validateAdvertisingCardMedia(record);
   return {
     ...card,
+    // Fixture test không có productIds; card thật luôn có (validator kiểm).
+    clusterIds: [...new Set((card.productIds ?? []).map((productId) => clusterIdByProductId.get(productId)))],
     media: selectedMedia,
     mediaItems,
     coverMediaId,
@@ -221,6 +225,8 @@ export function buildAdvertisingArtifact(options = {}) {
     settings,
     tagRegistry: ADVERTISING_TAG_REGISTRY,
     categories,
+    clusters: ADVERTISING_CLUSTERS,
+    products: ADVERTISING_PRODUCTS,
     cards: compiledCards,
   });
 }

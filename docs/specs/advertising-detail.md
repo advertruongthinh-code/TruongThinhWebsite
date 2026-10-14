@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-11
+updated: 2026-10-14
 ---
 
 # Detail Advertising
@@ -102,7 +102,7 @@ Then ảnh A crossfade sang B tại khung primary trong 0.6s, không skeleton
 
 ### R5. Suggestion
 
-`selectAdvertisingSuggestions` chọn tối đa bốn tag nhóm `product` hoặc `use` có ảnh: tag gắn trên ảnh trước, sau đó tag có
+`selectAdvertisingSuggestions` chọn tối đa bốn tag nhóm `variant` hoặc `use` có ảnh: tag gắn trên ảnh trước, sau đó tag có
 ảnh cùng nhóm theo thứ tự băm `fnv1a32("<photo>:<tag>")`; tag đang chọn luôn có chỗ. Thứ tự cố định theo photo, không theo
 locale; bật, tắt tag không đổi vị trí nút. Mỗi nút một dòng, nhãn VI/EN, `aria-pressed`; nút đang bật nền trắng, chữ và viền
 đen, không ảnh. Bấm nút bật tag (bấm lại thì tắt) bằng `replaceTag`: `replaceState`, không thêm entry, giữ ảnh primary, đổi
