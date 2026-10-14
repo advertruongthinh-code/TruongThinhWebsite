@@ -81,9 +81,12 @@ try {
       const band = (state.sLast - state.s0) / (2 / 3 - 0.1);
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
-      // Apex chỉ nâng để giữ hai ramp trắng thuần (mỗi ramp 0.35 độ rộng card) trên đáy batch.
-      check(Math.abs(yIn - Math.min(state.clusterTop + 0.35 * cluster, state.batchBottom - 0.7 * state.cardWidth)) <= 2,
-        `${label}: R2 apex ${yIn.toFixed(1)} is not at 35% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
+      // R2: apex ở -15% cụm CTA (trên mép tiêu đề), phone giữ +35%; chỉ nâng để giữ hai ramp trắng thuần
+      // (mỗi ramp 0.35 độ rộng card) trên đáy batch.
+      const phone = await page.evaluate(() => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
+      const apexShare = phone ? 0.35 : -0.15;
+      check(Math.abs(yIn - Math.min(state.clusterTop + apexShare * cluster, state.batchBottom - 0.7 * state.cardWidth)) <= 2,
+        `${label}: R2 apex ${yIn.toFixed(1)} is not at ${apexShare * 100}% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
       check(state.s0 >= state.realBottom - 1, `${label}: R2 band edge ${state.s0} rises above the real photos ${state.realBottom}`);
       check(Math.abs(band - 1.75 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
         `${label}: R2 band ${band.toFixed(1)} is not 1.75 cluster heights`);
