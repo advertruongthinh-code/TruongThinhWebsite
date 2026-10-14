@@ -9,7 +9,6 @@
     ".js": "typescript", ".mjs": "typescript", ".cjs": "typescript", ".jsx": "typescript",
     ".ts": "typescript", ".mts": "typescript", ".cts": "typescript", ".tsx": "typescript",
     ".html": "html", ".htm": "html",
-    ".css": "scss", ".scss": "scss", ".sass": "scss",
     ".ps1": "powershell", ".psm1": "powershell", ".psd1": "powershell",
     ".json": "json", ".jsonc": "json",
     ".toml": "toml", ".yaml": "yaml", ".yml": "yaml",
@@ -27,7 +26,7 @@
   },
   "unsupported": [".sql", ".astro", ".less"],
   "ignored_extensions": [
-    ".md", ".mdx", ".lock", ".txt", ".csv", ".xml", ".ico", ".woff", ".woff2", ".ttf",
+    ".md", ".mdx", ".css", ".scss", ".sass", ".lock", ".txt", ".csv", ".xml", ".ico", ".woff", ".woff2", ".ttf",
     ".pdf", ".zip", ".gz", ".map", ".pyc", ".graphify-bak"
   ],
   "excluded_directories": [
