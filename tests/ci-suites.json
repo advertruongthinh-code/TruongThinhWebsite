@@ -93,6 +93,7 @@
       "specs": ["site-shell", "logo-route-crossfade"],
       "tests": [
         "TT_E2E_MENU_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_MENU_RESIZE_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_REDUCED_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_FAILOPEN_BFCACHE_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_REAL_BFCACHE_ONLY=1 node tests/site/site.e2e.cjs",
@@ -259,7 +260,6 @@
   },
   "pending": [
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
-    "tests/site/site.e2e.cjs TT_E2E_MENU_RESIZE_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY"
   ]
 }

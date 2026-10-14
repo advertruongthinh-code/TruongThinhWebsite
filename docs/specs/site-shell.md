@@ -258,7 +258,7 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R1 | `pnpm qa:static`, `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
 | R2 | `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
 | R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_GEOMETRY_ONLY` |
-| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`, `TT_E2E_MENU_RESIZE_ONLY` (đỏ, xem Gate); `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
+| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`, `TT_E2E_MENU_RESIZE_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
 | R5 | `TT_E2E_FRAGMENT_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
@@ -271,8 +271,6 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 ## Gate còn mở
 
-- Menu mở dưới 981px: phím End cuộn trang nền (đo 2026-10-14 ở 959px và 1199px sau khi thu nhỏ rồi phóng
-  lại), trái R4. `TT_E2E_MENU_RESIZE_ONLY` đỏ, để `pending` trong `tests/ci-suites.json`; chờ owner.
 - `TT_E2E_BRAND_LOCKUP_ONLY` xanh trên cloud, trên runner WSL mép phải hai dòng chữ Việt lệch 0.62-0.74px (dung sai
   0.5px), để `pending`; cần đo trên Chrome Windows để biết do môi trường render hay do lockup.
 - Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả,
