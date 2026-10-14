@@ -2,18 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   ADVERTISING_CARDS,
-  ADVERTISING_CATEGORIES,
   buildAdvertisingArtifact,
 } from "../../src/site/advertising-products/catalog.mjs";
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "../../src/site/advertising-products/media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
+import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "../../src/site/advertising-products/taxonomy.mjs";
 
-const productKeysByCategory = Object.fromEntries(ADVERTISING_CATEGORIES.map(({ slug, products }) => [
-  slug,
-  products.map((_, index) => `${slug}-product-${String(index + 1).padStart(2, "0")}`),
-]));
-const poolOptions = { productKeysByCategory, tagRegistry: ADVERTISING_TAG_REGISTRY };
+const poolOptions = { tagRegistry: ADVERTISING_TAG_REGISTRY, clusters: ADVERTISING_CLUSTERS, products: ADVERTISING_PRODUCTS };
 
 function imageItem(record) {
   return { id: record.id, kind: "image", ...record.media };
