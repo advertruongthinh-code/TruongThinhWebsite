@@ -4885,9 +4885,10 @@ function advertisingWindow(page, filter, width = null) {
 }
 
 // Lấy mẫu masonry morph trong trang, tính giờ từ event kích hoạt: một vòng CDP khi tải nặng có thể dài hơn
-// slide 0.4s, nên mẫu lấy từ phía test chỉ thấy card đã settle.
-const armMorphSamples = (page, { event = "click", delays, id = null, notCategory = null }) => page.evaluate(
-  ({ event, delays, id, notCategory }) => {
+// slide 0.4s, nên mẫu lấy từ phía test chỉ thấy card đã settle. `fromMotion`: tính giờ từ frame đầu card có
+// transform (slide bắt đầu), vì runner bận có thể chưa dựng layout mới sau 20ms kể từ cú bấm.
+const armMorphSamples = (page, { event = "click", delays, id = null, notCategory = null, fromMotion = false }) => page.evaluate(
+  ({ event, delays, id, notCategory, fromMotion }) => {
     const grid = document.querySelector("[data-project-grid]");
     let pickedId = id;
     const sample = () => {
@@ -4913,14 +4914,23 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
     window.__ttMorphSamples = new Promise((resolve) => {
       (event === "click" ? document : window).addEventListener(event, () => {
         const samples = [];
-        delays.forEach((delay, index) => setTimeout(() => {
+        const start = () => delays.forEach((delay, index) => setTimeout(() => {
           samples[index] = sample();
           if (samples.filter(Boolean).length === delays.length) resolve(samples);
         }, delay));
+        if (!fromMotion) return start();
+        // Hết 1,5s vẫn chưa trượt thì lấy mẫu luôn để assert báo đúng card đứng yên.
+        const deadline = performance.now() + 1_500;
+        const wait = () => {
+          const transform = sample().transform;
+          if ((transform && transform !== "none") || performance.now() > deadline) start();
+          else requestAnimationFrame(wait);
+        };
+        requestAnimationFrame(wait);
       }, { capture: true, once: true });
     });
   },
-  { event, delays, id, notCategory },
+  { event, delays, id, notCategory, fromMotion },
 );
 const readMorphSamples = (page) => page.evaluate(() => window.__ttMorphSamples);
 
@@ -4975,7 +4985,7 @@ async function runAdvertisingFilterCheck() {
           window.addEventListener("site:layout", resolve, { once: true });
         });
       });
-      await armMorphSamples(page, { delays: [20, 180], id: survivorId });
+      await armMorphSamples(page, { delays: [0, 160], id: survivorId, fromMotion: true });
       await page.locator(`[data-advertising-filter="${filterSlug}"]`).click();
       await page.waitForFunction(
         (slug) => {
@@ -5106,7 +5116,7 @@ async function runAdvertisingFilterCheck() {
         `Masonry transition did not generalize to category-to-category destination: ${JSON.stringify({ categoryOriginMounted, categoryDuring })}`,
       );
       await page.waitForTimeout(450);
-      await armMorphSamples(page, { delays: [20, 180, 480], notCategory: nextSlug });
+      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug, fromMotion: true });
       await page.locator('[data-advertising-filter="all"]').click();
       await page.waitForFunction(
         () =>
