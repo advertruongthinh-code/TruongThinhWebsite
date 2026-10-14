@@ -17,7 +17,7 @@ updated: 2026-10-13
 
 CI chia thành nhiều bộ test nhỏ, mỗi bộ ứng với một phần website trong
 [capability map](docs-system.md#r2-capability-map-và-spec-sống). PR chỉ chạy bộ của phần nó sửa, các bộ chạy
-song song trên runner WSL ở PC owner. Merge vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
+song song trên runner WSL ở PC owner. Merge có code vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
 demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
 Runner, Automerge và Deploy demo nằm ở [phát hành tĩnh R10](static-release.md#r10-gate-ci).
 
@@ -84,7 +84,8 @@ Job `select` so file đổi của PR với merge base của `main`:
 4. File khớp đường kích hoạt của một bộ: bộ đó.
 5. File code không khớp quy tắc nào (ví dụ file mới trong `src/site/` chưa có spec sở hữu): mọi bộ.
 
-Push vào `main` và `workflow_dispatch` luôn chạy mọi bộ. PR có code luôn chạy `fast`.
+Push vào `main` và `workflow_dispatch` so với commit `main` trước đó: chỉ có tài liệu (mục 1) thì không bộ nào chạy,
+còn lại chạy mọi bộ. PR có code luôn chạy `fast`.
 
 ```gherkin
 Given PR chỉ đổi src/site/residential/index.html
@@ -95,8 +96,11 @@ Given PR đổi src/site/style.css
 When job select chạy
 Then mọi bộ được chọn
 
-Given CI chạy do push vào main
+Given CI chạy do push vào main và merge có file code
 Then mọi bộ được chọn
+
+Given CI chạy do push vào main và merge chỉ đổi docs/STATE.md
+Then không bộ nào được chọn
 ```
 
 ### R4. Chạy song song và độc lập

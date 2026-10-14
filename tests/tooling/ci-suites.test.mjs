@@ -35,5 +35,7 @@ test("chọn bộ theo file PR sửa", () => {
   assert.deepEqual(select(["src/site/advertising-products/skeleton-flow.mjs"]), ["fast", "adv-load"]);
   assert.deepEqual(select(["tests/site/not-found-routes.e2e.mjs"]), ["fast", "route"]);
   assert.deepEqual(select(["src/site/new-page/index.html"]), all);
-  assert.deepEqual(select(["docs/STATE.md"], "push"), all);
+  // Main: merge chỉ có tài liệu không chạy bộ nào; có code thì chạy đủ.
+  assert.deepEqual(select(["docs/STATE.md"], "push"), []);
+  assert.deepEqual(select(["docs/STATE.md", "AGENTS.md"], "workflow_dispatch"), all);
 });
