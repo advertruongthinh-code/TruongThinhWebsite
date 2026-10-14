@@ -155,6 +155,7 @@
         "TT_E2E_ADVERTISING_KEYBOARD_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_SELECTION_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_PROOF_ONLY=1 node tests/site/site.e2e.cjs",
+        "TT_E2E_ADVERTISING_RAPID_FILTER_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-card-interactions.e2e.mjs",
         "node tests/site/advertising-no-titles.e2e.mjs"
       ]
@@ -259,7 +260,6 @@
     "tests/site/site.e2e.cjs TT_E2E_M2_ONLY": "trùng FAILOPEN, DELAYED_DETAIL, BOOT_RACE, DETAIL_HERO (gọi lại đúng các hàm đó)"
   },
   "pending": [
-    "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_BRAND_LOCKUP_ONLY"
   ]
 }
