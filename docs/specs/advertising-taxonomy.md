@@ -1,10 +1,12 @@
 ---
 title: Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
 status: planned
-source: []
-tests: []
+source:
+  - src/site/advertising-products/taxonomy.mjs
+tests:
+  - tests/site/advertising-products-media.test.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-10-12
+updated: 2026-10-14
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -14,7 +16,8 @@ updated: 2026-10-12
 Trang Advertising lọc theo sáu cụm khái niệm và các sản phẩm cụ thể trong từng cụm, mỗi cụm và sản phẩm có
 URL riêng để Google index. Phân loại là dữ liệu sửa được, không hard-code trong code render; phase CMS cho
 người hoặc AI sửa. EmbeddingGemma 2 chấm điểm ảnh để gợi ý gắn loại và xếp related. Spec planned: intent
-owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, owner duyệt spec 2026-10-12; chưa có code nào thuộc spec này. Spec thay
+owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, owner duyệt spec 2026-10-12; đã có dữ liệu
+và validator R2, giao diện chưa đổi. Spec thay
 phần nhóm và filter của [masonry R2, R3](advertising-masonry.md#r2-catalog-và-artifact) khi code xong.
 
 ## Hành vi
@@ -53,16 +56,17 @@ Ngoài phạm vi: dịch vụ thiết kế logo, nhận diện (dịch vụ, kh�
 trang Commercial), theo owner 2026-10-11.
 
 ```gherkin
-Given media print-decals-21 gắn sản phẩm "Decal, in bạt & tranh canvas" và "Biển chỉ dẫn & sơ đồ tòa nhà"
-When lọc sản phẩm "Biển chỉ dẫn & sơ đồ tòa nhà"
+Given media print-decals-21 gắn sản phẩm "Decal, in bạt & tranh canvas" và "Biển phòng ban"
+When lọc sản phẩm "Biển phòng ban"
 Then card của print-decals-21 có trong kết quả
 And lọc cụm "In ấn, decal & menu" cũng có card đó
 ```
 
 ### R2. Dữ liệu phân loại sửa được
 
-Cụm, sản phẩm và gắn media nằm trong dữ liệu tĩnh của `src/site/advertising-products/`, không trong code
-render. Mỗi cụm: slug VI (không dấu) và slug EN, nhãn (dùng cho rail và h1), title, meta description, h1, đoạn giới thiệu VI/EN, thứ tự. Mỗi sản phẩm: các
+Cụm, sản phẩm và ngưỡng R5 nằm trong `taxonomy.mjs`, gắn media trong `photo-tags.mjs`, không trong code render.
+Id cụm, sản phẩm là slug EN lúc tạo (`printing-decals/menus`), giữ nguyên khi slug đổi; thứ tự mảng là thứ tự rail. Tag sản
+phẩm cũ có nhóm `variant` và `productId`; `productIds` của media suy từ `productKey` cũ qua tag đó, trừ ảnh sửa nhãn R8. Mỗi cụm: slug VI (không dấu) và slug EN, nhãn (dùng cho rail và h1), title, meta description, h1, đoạn giới thiệu VI/EN, thứ tự. Mỗi sản phẩm: các
 trường như cụm, cộng `cluster`, mô tả dài dùng cho embedding (R6). Mỗi media: danh sách `productIds`, `tagIds`.
 Thêm, đổi tên, đổi thứ tự, nâng một tag thành sản phẩm hay chuyển sản phẩm sang cụm khác chỉ sửa dữ liệu; build
 sinh lại rail, trang và artifact. Validator từ chối pool khi: sản phẩm trỏ cụm không tồn tại; media trỏ sản
@@ -198,12 +202,12 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Data | dữ liệu cụm, sản phẩm (file trong `advertising-products/`, tên chốt trong plan) | R2, người hoặc CMS sửa |
-| Data | `photo-tags.mjs` | thêm `productIds` mỗi media; tag sản phẩm cũ thành tag chi tiết |
+| Data | `taxonomy.mjs` | cụm, sản phẩm, slug, chữ VI/EN, ngưỡng R5; người hoặc CMS sửa |
+| Data | `photo-tags.mjs` | tag `variant` mang `productId`; `productIds` mỗi media, sửa nhãn R8 |
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
 | Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4 |
 | DOM hook | `[data-advertising-filter]` | giữ cho cụm; thêm hook cho sản phẩm và danh sách hover, tên chốt trong plan |
-| Artifact | `catalog-artifact.mjs` | thêm cụm, sản phẩm, láng giềng related |
+| Artifact | `catalog-artifact.mjs` | `clusters`, `products`; card có `productIds`, `clusterIds`; láng giềng related chưa có |
 
 ## UI
 
@@ -215,23 +219,24 @@ Không đổi typography hay layout ngoài rail.
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R5 | chưa có test (validator dữ liệu, test node) |
+| R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5) |
+| R5 | chưa có test (rail và trang theo ngưỡng) |
 | R3 | chưa có test (e2e rail, không request document) |
 | R4 | chưa có test (build sinh trang, canonical, hreflang, thay `?category=`) |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |
 | R7 | chưa có test (thứ tự related theo điểm) |
-| R8 | chưa có test (đếm card theo sản phẩm, provenance) |
+| R8 | `advertising-products-media.test.mjs` (sửa nhãn); chưa có test cho ảnh bổ sung, provenance |
 
 ## Gate còn mở
 
-- Title, meta description, h1 và đoạn giới thiệu từng trang: viết trong plan theo tên R1 và báo cáo SEO; số
-  Keyword Planner cả nước đủ 92 từ khóa chưa có (mới có 20 dòng), cần thì owner tải thêm một lần.
+- Số Keyword Planner cả nước đủ 92 từ khóa chưa có (mới có 20 dòng), cần thì owner tải thêm một lần để soát lại
+  title, meta description trong `taxonomy.mjs`.
 - Thiết kế rail hai tầng (PC, điện thoại): Impeccable, owner duyệt trước code.
 - 301 phía server cho `?category=` và slug cũ: làm khi có Worker CMS.
 - Cách tính vector lúc upload ở phase CMS (trình duyệt hay PC): chốt ở phase CMS.
 - Map 84 URL site cũ sang trang mới: thuộc [SEO](seo.md); danh sách 84 URL đã thu lại ngày 2026-10-12 (Library
   `advertising-taxonomy/seo/goi-y-tim-kiem-va-site-cu.md`).
-- Sửa theo spec này khi code: [masonry R2, R3](advertising-masonry.md#r2-catalog-và-artifact),
+- Sửa theo spec này khi code: [masonry R3](advertising-masonry.md#r3-filter),
   [detail R5, R7](advertising-detail.md#r5-suggestion), [phát hành tĩnh R2, R7](static-release.md#r7-sáu-trang-tương-thích-advertising),
   `PRODUCT.md` (danh mục), [Ảnh Advertising](../../design-system/advertising-images.md) và dòng "đúng nhóm, sản phẩm" của
   [chấm ảnh](../operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) thành "đúng cụm, sản phẩm, tag".

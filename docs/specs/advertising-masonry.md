@@ -25,7 +25,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-11
+updated: 2026-10-14
 ---
 
 # Masonry Advertising
@@ -63,18 +63,18 @@ And body có is-advertising-browse, floating CTA không hiện
 
 ### R2. Catalog và artifact
 
-Dữ liệu tĩnh trong `catalog.mjs`, `media-manifest.mjs`, `photo-tags.mjs`; `media-contract.mjs` kiểm. Sáu nhóm theo thứ
-tự: `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`, `led-displays-lightboxes`,
-`print-decals`; mỗi nhóm có tên, statement VI/EN và danh sách sản phẩm (`productKey` dạng `<slug>-product-NN`). Mỗi card
-có `id`, `category`, `sourceOrder`, `productKey`, tên và mô tả VI/EN, `tagIds`, `media` (`src`, `sourceId`, `width`,
-`height`, alt VI/EN, `source`, `sha256`, `provenance`), `mediaItems`, `coverMediaId`, `rank`. Pool bị từ chối khi: nhóm
-không có đủ 12 `productKey` khác nhau hoặc thiếu một sản phẩm; trùng `id`, `src` hoặc `sourceId`; thiếu chữ VI/EN,
-provenance hay kích thước dương; tag không có trong registry; nhóm thiếu một trong bốn loại tỷ lệ w/h: đứng `< 0.9`,
-gần vuông `0.9–1.1`, ngang `> 1.1`, cực `<= 0.625` hoặc `>= 1.6`. Card không còn nhận `presentationCanvas`, `fitMode`,
-`mediaCandidates`; ảnh giữ tỷ lệ gốc. Alt VI/EN là tên card; alt và mô tả không gắn nhãn AI, nguồn gốc ảnh chỉ ghi
-ở `provenance` (không hiển thị). `rank` xếp round-robin theo thứ tự nhóm, trong nhóm theo `sourceOrder`.
-`buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry`, `categories`,
-`cards`; build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
+Dữ liệu tĩnh trong `catalog.mjs`, `media-manifest.mjs`, `photo-tags.mjs`, `taxonomy.mjs`; `media-contract.mjs` kiểm. Rail
+và filter chạy theo sáu nhóm cũ: `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`,
+`led-displays-lightboxes`, `print-decals`; mỗi nhóm có tên, statement VI/EN, danh sách sản phẩm cũ. Mỗi card có `id`,
+`category`, `sourceOrder`, `productKey` (`<slug>-product-NN`), `productIds`, `clusterIds` ([phân loại R2](advertising-taxonomy.md#r2-dữ-liệu-phân-loại-sửa-được)),
+tên và mô tả VI/EN, `tagIds`, `media` (`src`, `sourceId`, `width`, `height`, alt VI/EN, `source`, `sha256`, `provenance`),
+`mediaItems`, `coverMediaId`, `rank`. Pool bị từ chối khi: trùng `id`, `src` hoặc `sourceId`; thiếu chữ VI/EN, provenance
+hay kích thước dương; tag hoặc sản phẩm không có; dữ liệu phân loại sai (phân loại R2); cụm thiếu một trong bốn loại tỷ lệ
+w/h: đứng `< 0.9`, gần vuông `0.9–1.1`, ngang `> 1.1`, cực `<= 0.625` hoặc `>= 1.6`. Card không còn nhận
+`presentationCanvas`, `fitMode`, `mediaCandidates`; ảnh giữ tỷ lệ gốc. Alt VI/EN là tên card; alt và mô tả không gắn nhãn
+AI, nguồn gốc ảnh chỉ ghi ở `provenance` (không hiển thị). `rank` xếp round-robin theo thứ tự nhóm, trong nhóm theo
+`sourceOrder`. `buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry`,
+`categories`, `clusters`, `products`, `cards`; build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
 Sáu URL nhóm cũ chỉ chuyển về `?category=` ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)); sáu bố cục
 detail cũ (`ADVERTISING_DETAIL_LAYOUTS`, `detail-template.html`) đã bị xóa khỏi source.
 

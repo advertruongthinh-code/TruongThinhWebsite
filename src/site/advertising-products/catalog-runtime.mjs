@@ -242,11 +242,11 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
     .sort(compareRelatedSource);
   const authored = (hero.tagIds || [])
     .map((tagId) => tagById.get(tagId))
-    .filter((tag) => tag && ["product", "use"].includes(tag.group) && matchingCards(tag.id).length > 0);
+    .filter((tag) => tag && ["variant", "use"].includes(tag.group) && matchingCards(tag.id).length > 0);
   const authoredIds = new Set(authored.map((tag) => tag.id));
   const contextual = tagRegistry
     .filter((tag) => !authoredIds.has(tag.id)
-      && ["product", "use"].includes(tag.group)
+      && ["variant", "use"].includes(tag.group)
       && matchingCards(tag.id).some((card) => card.category === hero.category))
     .map((tag) => ({ tag, hash: fnv1a32(`${hero.id}:${tag.id}`) }))
     .sort((left, right) => left.hash - right.hash || left.tag.id.localeCompare(right.tag.id))
