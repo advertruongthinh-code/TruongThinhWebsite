@@ -5,6 +5,8 @@
     "CLAUDE.md",
     "design-system/**",
     "scripts/docs/**",
+    ".serena/**",
+    "scripts/tooling/*serena*",
     "tests/tooling/**",
     "src/worker/**",
     "src/admin/**",
