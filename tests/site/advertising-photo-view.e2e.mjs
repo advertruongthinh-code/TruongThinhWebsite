@@ -24,6 +24,10 @@ const p5LayoutOnly = process.env.PHOTO_VIEW_P5_LAYOUT_ONLY === "1";
 const viewerControlsOnly = process.env.PHOTO_VIEW_CONTROLS_ONLY === "1";
 const caseLimit = Number.parseInt(process.env.PHOTO_VIEW_CASE_LIMIT || (quick ? "1" : "0"), 10) || Number.POSITIVE_INFINITY;
 const labelFilter = process.env.PHOTO_VIEW_LABEL_FILTER || "";
+// CI chia ma trận viewport: PHOTO_VIEW_SHARD=k/n chạy viewport thứ k, k+n, ...; phần cuối chạy thêm reduced motion và sweep.
+const [shardIndex, shardCount] = (process.env.PHOTO_VIEW_SHARD || "1/1").split("/").map(Number);
+assert(shardIndex >= 1 && shardIndex <= shardCount, `Invalid PHOTO_VIEW_SHARD: ${process.env.PHOTO_VIEW_SHARD}`);
+const lastShard = shardIndex === shardCount;
 
 if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
   process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(root, ".tooling/browsers");
@@ -51,34 +55,35 @@ const results = [];
 
 function expectedPhotoGeometry(evidence) {
   const outer = evidence.clientWidth <= 750 ? 15 : evidence.clientWidth <= 1200 ? 25 : 35;
-  // Media query của header gồm scrollbar native; geometry grid dùng content width.
-  const headerOuter = evidence.windowWidth <= 750 ? 15 : evidence.windowWidth <= 1200 ? 25 : 35;
   const gap = evidence.clientWidth <= 960 ? 15 : evidence.clientWidth <= 1200 ? 25 : 35;
   const gridWidth = evidence.clientWidth - 2 * outer;
   const columns = evidence.relatedColumns;
   const cardWidth = (gridWidth - gap * (columns - 1)) / columns;
-  const top = evidence.headerRowHeight + headerOuter + outer + evidence.safeTop;
+  // Detail spec R10: header luôn thu gọn, cao bằng hàng thu gọn cộng padding 10px hai đầu và viền 1px.
+  const headerHeight = evidence.headerCollapsedRowHeight + 21;
+  const top = headerHeight + outer + evidence.safeTop;
   const ratio = evidence.image.naturalWidth / evidence.image.naturalHeight;
   const span = Math.min(3, columns);
   const width = span * cardWidth + (span - 1) * gap;
-  // Detail spec R2: bốn cột chia image và info; ít hơn thì xếp chồng, không có peek 50px.
-  const mode = span === columns ? "pinterest" : "split";
-  // Split chừa gap và related peek 50px; pinterest lấp đầy viewport bên dưới header.
-  const heightCap = evidence.windowHeight - top - evidence.safeBottom - (mode === "split" ? gap + 50 : 0);
+  // Detail spec R2: pinterest khi primary chiếm hết cột và viewport dọc; còn lại split.
+  const mode = span === columns && evidence.clientWidth <= evidence.windowHeight ? "pinterest" : "split";
   const imageZoneWidth = mode === "split"
-    ? (span - 1) * cardWidth + Math.max(0, span - 2) * gap
+    ? Math.max(1, span - 1) * cardWidth + Math.max(0, span - 2) * gap
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
+  const available = evidence.windowHeight - top - evidence.safeBottom;
+  // Split chừa gap, và related peek 50px khi primary chưa chiếm hết cột; pinterest vừa phần dưới header.
+  const heightCap = mode === "split" ? available - gap - (span === columns ? 0 : 50) : available;
   // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
-  const descriptionCap = evidence.windowHeight * 0.28 - gap;
+  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, available - gap - 1);
   const descriptionHeight = mode === "split" ? heightCap : evidence.infoRect.height;
-  const imageZoneHeight = mode === "split" ? heightCap
-    : Math.min(width / ratio, evidence.windowHeight - top - evidence.safeBottom - descriptionHeight - gap);
-  const height = mode === "split" ? heightCap : imageZoneHeight + descriptionHeight + gap;
+  const imageZoneHeight = mode === "split" ? descriptionHeight
+    : Math.min(width / ratio, available - descriptionHeight - gap);
+  const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);
   const imageHeight = imageWidth / ratio;
   return { span, width, height, imageZoneWidth, imageZoneHeight, descriptionWidth, descriptionHeight,
-    imageWidth, imageHeight, mode, top, heightCap, descriptionCap, gridWidth, cardWidth, gap, outer, headerOuter };
+    imageWidth, imageHeight, mode, top, headerHeight, heightCap, descriptionCap, gridWidth, cardWidth, gap, outer };
 }
 
 async function sha256(relativePath) {
@@ -368,7 +373,7 @@ async function layoutEvidence(page) {
       clientWidth: document.documentElement.clientWidth,
       windowWidth: innerWidth,
       windowHeight: window.visualViewport?.height || innerHeight,
-      headerRowHeight: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-row-height")),
+      headerCollapsedRowHeight: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")),
       safeTop: Number.parseFloat(getComputedStyle(photoView).getPropertyValue("--advertising-safe-top")) || 0,
       safeBottom: Number.parseFloat(getComputedStyle(photoView).getPropertyValue("--advertising-safe-bottom")) || 0,
       scrollY,
@@ -451,7 +456,7 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   }
   if (initialDirect) {
     assert(Math.abs(evidence.scrollY) <= 1 && Math.abs(evidence.logicalScroll) <= 1, `${label}: direct load is not at the logical top`);
-    closeTo(evidence.headerRect.height, evidence.headerRowHeight + expected.headerOuter, `${label}: expanded header shell height`);
+    closeTo(evidence.headerRect.height, expected.headerHeight, `${label}: collapsed header shell height`);
     closeTo(evidence.primaryRect.top, expected.top, `${label}: primary visible top`);
     assert(evidence.primaryRect.bottom <= expected.top + expected.heightCap + 1, `${label}: primary frame exceeds visible viewport cap`);
     assert(evidence.frameRect.top >= -1 && evidence.frameRect.bottom <= evidence.windowHeight + 1, `${label}: media frame does not fit the initial viewport`);
@@ -670,7 +675,7 @@ async function assertDialogFit(page, label, touch = false) {
     const image = imageNode?.getBoundingClientRect();
     const dialog = document.querySelector("[data-advertising-photo-dialog]");
     const controls = [...document.querySelectorAll("[data-advertising-photo-close], [data-advertising-photo-zoom-reset], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]")]
-      .map((node) => ({ reset: node.matches("[data-advertising-photo-zoom-reset]"), disabled: node.disabled, hidden: node.hidden, rect: node.getBoundingClientRect().toJSON() }));
+      .map((node) => ({ reset: node.matches("[data-advertising-photo-zoom-reset]"), disabled: node.disabled, hidden: node.hidden, focusVisible: node.matches(":focus-visible"), rect: node.getBoundingClientRect().toJSON() }));
     const ratio = image ? image.width / image.height : null;
     const naturalRatio = imageNode ? imageNode.naturalWidth / imageNode.naturalHeight : null;
     const dialogStyle = dialog ? getComputedStyle(dialog) : null;
@@ -698,7 +703,8 @@ async function assertDialogFit(page, label, touch = false) {
   assert(resetControl && !resetControl.hidden && resetControl.disabled, `${label}: reset control must remain visible and disabled at Fit`);
   for (const control of evidence.controls) {
     if (control.hidden) continue;
-    if (touch) {
+    // Viewer touch R8: nút ẩn khỏi mắt trên màn cảm ứng, trừ nút đang có focus bàn phím.
+    if (touch && !control.focusVisible) {
       assert(control.rect.width <= 1 && control.rect.height <= 1, `${label}: control is visible on touch`);
       continue;
     }
@@ -1102,7 +1108,7 @@ async function runCase(browserName, browser, locale, record, viewport, { smoke =
       await page.waitForFunction((expectedWidth) => document.querySelector("[data-advertising-photo-dialog]")?.open === true && innerWidth === expectedWidth, resized.width);
       stage = `resize:${resized.width}x${resized.height}`;
       await settleGeometry(page, stage, settlements);
-      await assertDialogFit(page, `${label} live resize`);
+      await assertDialogFit(page, `${label} live resize`, touch);
       await page.keyboard.press("Escape");
     }
     stage = "diagnostics";
@@ -1486,7 +1492,8 @@ for (const browserName of selectedEngines) {
     headless: true,
     ...(browserName === "chromium" && scrollbarRegressionOnly ? { ignoreDefaultArgs: ["--hide-scrollbars"] } : {}),
   });
-  const viewports = browserName === "chromium" ? fullViewports : smokeViewports;
+  const viewports = (browserName === "chromium" ? fullViewports : smokeViewports)
+    .filter((_, index) => index % shardCount === shardIndex - 1);
   console.log(`CHECKPOINT ${browserName}: ${viewports.length} viewport groups`);
   if (p13GeometryOnly) {
     if (browserName === "chromium") await runP13GeometryGate(browser);
@@ -1515,10 +1522,10 @@ for (const browserName of selectedEngines) {
     if (results.length >= caseLimit) break;
     console.log(`CHECKPOINT ${browserName}: completed ${viewport.width}x${viewport.height}`);
   }
-  if (browserName === "chromium" && !quick && !sweepOnly && !scrollbarRegressionOnly && !oneColumnOnly && (!labelFilter || includeReducedMotionProbe || reducedMotionOnly)) {
+  if (browserName === "chromium" && lastShard && !quick && !sweepOnly && !scrollbarRegressionOnly && !oneColumnOnly && (!labelFilter || includeReducedMotionProbe || reducedMotionOnly)) {
     await runCase(browserName, browser, "vi", records[0], { width: 390, height: 844 }, { smoke: true, reducedMotion: "reduce" });
   }
-  if (browserName === "chromium" && !quick && !scrollbarRegressionOnly && !oneColumnOnly && (!labelFilter || sweepOnly)) {
+  if (browserName === "chromium" && lastShard && !quick && !scrollbarRegressionOnly && !oneColumnOnly && (!labelFilter || sweepOnly)) {
     await runResizeSweep(browser);
   }
   if (browserName === "chromium" && scrollbarRegressionOnly) await runScrollbarRegression(browser);

@@ -142,7 +142,26 @@
         "node tests/site/advertising-reveal-offscreen.e2e.mjs"
       ]
     },
-    "adv-detail": { "specs": ["advertising-detail", "advertising-viewer-touch-zoom"], "tests": [] },
+    "adv-detail": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": [
+        "node tests/site/advertising-full-span-p72.e2e.mjs",
+        "node tests/site/advertising-photo-header.e2e.mjs",
+        "node tests/site/advertising-single-related.e2e.mjs",
+        "node tests/site/advertising-suggestion-conditional.e2e.mjs",
+        "node tests/site/advertising-suggestion-info.e2e.mjs",
+        "node tests/site/advertising-suggestion-layout.e2e.mjs",
+        "node tests/site/advertising-suggestion-motion.e2e.mjs",
+        "node tests/site/advertising-suggestion-wave.e2e.mjs",
+        "node tests/site/advertising-slideshow-p75.e2e.mjs",
+        "node tests/site/advertising-return-p74.e2e.mjs",
+        "node tests/site/advertising-viewer-touch.e2e.mjs"
+      ]
+    },
+    "adv-viewer": {
+      "specs": ["advertising-detail", "advertising-viewer-touch-zoom"],
+      "tests": ["node tests/site/advertising-photo-transitions.e2e.mjs"]
+    },
     "media": {
       "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages"],
       "tests": ["node tests/site/image-loading-frame.e2e.mjs"]
@@ -159,20 +178,8 @@
   "pending": [
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY",
     "tests/site/site.e2e.cjs TT_E2E_ADVERTISING_RAPID_FILTER_ONLY",
-    "tests/site/advertising-full-span-p72.e2e.mjs",
-    "tests/site/advertising-photo-header.e2e.mjs",
-    "tests/site/advertising-photo-transitions.e2e.mjs",
     "tests/site/advertising-photo-view.e2e.mjs",
     "tests/site/advertising-primary-p14.e2e.mjs",
-    "tests/site/advertising-return-p74.e2e.mjs",
-    "tests/site/advertising-single-related.e2e.mjs",
-    "tests/site/advertising-slideshow-p75.e2e.mjs",
-    "tests/site/advertising-suggestion-conditional.e2e.mjs",
-    "tests/site/advertising-suggestion-info.e2e.mjs",
-    "tests/site/advertising-suggestion-layout.e2e.mjs",
-    "tests/site/advertising-suggestion-motion.e2e.mjs",
-    "tests/site/advertising-suggestion-wave.e2e.mjs",
-    "tests/site/advertising-viewer-touch.e2e.mjs",
     "tests/site/glass-surface.e2e.mjs",
     "tests/site/site-media-card-m01b.e2e.mjs",
     "tests/site/site-media-card-m02a.e2e.mjs",
