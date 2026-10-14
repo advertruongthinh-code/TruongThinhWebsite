@@ -7126,7 +7126,12 @@ async function runAdvertisingMediaFocusedChecks() {
           category.slug,
           { timeout: 3_000 },
         );
-        await page.waitForTimeout(500);
+        // Card chỉ được đặt cố định khi transition chạy hết (R6); runner bận làm việc đó muộn hơn 400ms.
+        await page.waitForFunction(
+          () => [...document.querySelectorAll("[data-project-grid] .advertising-tile")].every((tile) => !tile.style.transform),
+          null,
+          { timeout: 3_000 },
+        );
         const filteredLayout = await browseLayout(page, category.slug, 1440);
         const filtered = await readGridState(page);
         assertGridState(filtered, filteredLayout, `${category.slug} filter`);
