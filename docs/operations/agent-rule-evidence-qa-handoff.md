@@ -43,7 +43,12 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
-     khung); không mặt nghiêng, không kính hay mặt bóng hướng về máy;
+     khung); không kính hay mặt bóng hướng về máy; người buộc phải hướng về máy
+     (người bán quay về phía khách) thì mặt không trực diện, chìm trong bóng che
+     hoặc ngược sáng (owner chốt 2026-10-14);
+   - xe bán hàng, quầy di động chụp từ hướng khách hàng, thấy trọn mặt trước xe;
+     người bán đứng trong quầy, quay về phía khách (owner chốt 2026-10-14);
+   - ngành kinh doanh khớp bối cảnh thật (không quầy khách sạn trong hội chợ);
    - đo vùng hiển thị thật của slot trong code khi ảnh bị cover crop hoặc có chữ
      đè, rồi ghi vị trí chủ thể theo vùng đó;
    - chữ trên biển, hộp đèn, decal là tên gọi hấp dẫn bằng từ ghép kèm một dòng
@@ -59,13 +64,20 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - chỉ tả sản phẩm Trường Thịnh làm: không màn LED cho thuê sự kiện, màn treo truss
      sân khấu, màn LED lớn gắn tường nhà; màn LED trong nhà không được giống màn máy
      chiếu; hộp đèn sáng đều, trông mới, không loang lổ (owner chốt 2026-10-14);
-   - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng;
+   - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng, cảnh
+     trong văn phòng hoặc mặt tiền tòa nhà (owner chốt 2026-10-14);
+   - ảnh có thể thuộc nhiều phân loại (vừa bảng hiệu vừa LED decor): mọi sản phẩm
+     Trường Thịnh làm hiện trong ảnh đều chỉnh chu, độc đáo, đúng tinh thần slogan;
+     giá treo, tay đỡ, khung trông mới (owner chốt 2026-10-14);
    - không lặp cảnh, chữ của ảnh owner đã giữ trong cùng nhóm.
    - không gian chỉnh chu, sạch sẽ, tử tế: tường sơn phẳng, sàn khô sạch, đồ xếp
      gọn; không bẩn, ố, rêu, bong tróc, rác, vũng nước. Độ thật lấy từ ánh sáng và
-     nhiễu ảnh, không từ vết bẩn (owner chốt 2026-10-14).
+     nhiễu ảnh, không từ vết bẩn (owner chốt 2026-10-14). Quán xưa cũ có gu là
+     niche được giữ: không gian làm nền, sản phẩm nổi bật và hợp chất liệu với
+     không gian (hộp đèn khung gỗ trong quán cổ).
    - hạn chế chữ xưng hô (cô, chú, dì, bà) trên biển; chỉ dùng khi không gian mộc
-     mạc, thân tình và đúng món đang bán (owner chốt 2026-10-14).
+     mạc, bình dân, thân thuộc với người địa phương và đúng món đang bán; không
+     dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
