@@ -37,8 +37,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    Pinterest trước, thiếu mới tìm Google Ảnh; lưu link nguồn. Chưa có tham khảo
    thì chưa tạo. Tham khảo chỉ để học loại sản phẩm, vật liệu, cấu tạo; không
    chép chữ, logo, người, watermark hay thiết kế y nguyên.
-2. **Brief.** Agent viết brief từng ảnh, một agent độc lập phản biện, sửa rồi
-   tạo. Owner không duyệt brief, trừ sản phẩm chưa từng có ảnh trên site.
+2. **Brief.** Agent viết brief từng ảnh rồi tạo, không qua agent phản biện brief
+   (owner chốt 2026-10-14). Owner không duyệt brief, trừ sản phẩm chưa từng có
+   ảnh trên site.
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
