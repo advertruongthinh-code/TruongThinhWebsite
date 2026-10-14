@@ -2098,6 +2098,9 @@ async function runHeaderParityChecks() {
                 window.__ttHeaderIntroWrites.push({
                   target,
                   time: performance.now() - startedAt,
+                  // Giờ tick GSAP: timeline neo play vào tick trước nên long task giữa hai tick làm giờ thật lệch
+                  // còn giờ tick thì không.
+                  tick: (window.gsap?.ticker.time ?? Number.NaN) * 1_000,
                   value,
                 });
                 CSSStyleDeclaration.prototype.setProperty.call(
@@ -2144,14 +2147,14 @@ async function runHeaderParityChecks() {
       const afterSetup = intro.writes.filter((write) => write.time >= setup.time);
       const logoStart = afterSetup.find(
         (write) => write.target === "logo" && !/^scale\(0(?:, 0)?\)/.test(write.value),
-      )?.time - setup.time;
+      )?.tick - setup.tick;
       const navStart = afterSetup.find(
         (write) =>
           write.target === "nav-0" && !/-150(?:\.0+)?px/.test(write.value),
-      )?.time - setup.time;
+      )?.tick - setup.tick;
       const toggleStart = afterSetup.find(
         (write) => write.target === "toggle" && !/^scale\(0(?:, 1)?\)/.test(write.value),
-      )?.time - setup.time;
+      )?.tick - setup.tick;
       // Intro: nav tại 0.3s, hamburger tại 1.5s (motion.md). Lần ghi đầu của mỗi phần lệch theo frame (long task lúc
       // mount, GSAP lấy giờ tick trước làm mốc play), đo được tới khoảng 150ms trên runner bận, nên khoảng nav tới
       // hamburger (1.2s) cho dung sai 200ms, logo tới nav cho lỏng.
@@ -6297,12 +6300,15 @@ async function runAdvertisingGridFocusedChecks() {
         );
         await page.locator('[data-advertising-filter="kiosk-posm"]').click();
         await page.locator('[data-advertising-filter="all"]').click();
-        // Chờ lưới settle (hết transform, vị trí đứng yên giữa hai lần đọc) thay cho 450ms cố định: runner bận
-        // còn để card kiosk ở chỗ cũ khi đọc.
+        // Chờ lưới settle (hết transform, hết fade, không còn animation, vị trí đứng yên giữa hai lần đọc) thay cho
+        // 450ms cố định: runner bận còn để card kiosk ở chỗ cũ, card đang mờ dần chưa rời DOM khi đọc.
         await page.waitForFunction(() => {
-          const tiles = [...document.querySelectorAll("[data-project-grid] .advertising-tile")];
+          const grid = document.querySelector("[data-project-grid]");
+          const tiles = [...grid.querySelectorAll(".advertising-tile")];
           const key = tiles.map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`).join();
-          const settled = tiles.every((tile) => getComputedStyle(tile).transform === "none") && key === window.__ttGridKey;
+          const settled = !grid.getAnimations({ subtree: true }).length &&
+            tiles.every((tile) => getComputedStyle(tile).transform === "none" && getComputedStyle(tile).opacity === "1") &&
+            key === window.__ttGridKey;
           window.__ttGridKey = key;
           return settled;
         }, null, { polling: 100, timeout: 5_000 });
