@@ -73,7 +73,9 @@ And sau 0.6s card không còn node skeleton hay Kính, WebGL context đã về p
 
 Card vào viewport khi media đã giải mã xong (cache, tải xong trước khi vào, hoặc vào lại sau khi ra hẳn viewport với
 `intersectionRatio = 0`, kể cả card ảo hóa gắn lại) thì media hiện ngay ở opacity cuối: không skeleton, không Kính, không
-crossfade, không chờ trang ngừng cuộn. Áp cho masonry chính và masonry related; primary theo R4.
+crossfade, không chờ trang ngừng cuộn. Card ảo hóa gắn lại tạo `img` mới; ảnh lấy từ cache vẫn phải giải mã nên khung
+được trống lúc giải mã (đo 2026-10-14: một tới ba frame) rồi hiện thẳng opacity cuối. Áp cho masonry chính và masonry related;
+primary theo R4.
 
 ```gherkin
 Given ảnh của card đã có trong cache trình duyệt
@@ -211,7 +213,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | --- | --- |
 | R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang skeleton card đầu giữ một node, hiện dần một lần); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính năm bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (năm bậc, mức Kính theo thời gian) |
-| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính) |
+| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính), `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` (card ảo hóa gắn lại) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính năm bậc chỉ opacity, phone khớp PC); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
 | R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vệt sáng trong masonry, detail chưa có test |
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |

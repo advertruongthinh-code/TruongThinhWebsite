@@ -30,7 +30,7 @@ test("chọn bộ theo file PR sửa", () => {
   assert.deepEqual(select(["src/site/style.css"]), all);
   // Footer chung mọi trang và khung ảnh của media cũng bảo vệ trang chủ, trang detail.
   assert.deepEqual(select(["src/site/index.html"]), ["fast", "footer", "home", "media"]);
-  assert.deepEqual(select(["src/site/residential/index.html"]), ["fast", "footer", "detail-pages", "media"]);
+  assert.deepEqual(select(["src/site/residential/index.html"]), ["fast", "footer", "detail-pages", "entry", "media"]);
   assert.deepEqual(select(["src/site/advertising-products/skeleton-flow.mjs"]), ["fast", "adv-load"]);
   assert.deepEqual(select(["tests/site/not-found-routes.e2e.mjs"]), ["fast", "route"]);
   assert.deepEqual(select(["src/site/new-page/index.html"]), all);

@@ -256,10 +256,10 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `pnpm qa:static`, `TT_E2E_BRAND_SHELL_ONLY`; thứ tự lớp chưa có test paint, hit-test |
-| R2 | `TT_E2E_HEADER_ONLY`, `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
-| R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_ONLY` |
-| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`; `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
-| R5 | `TT_E2E_LOCALE_ONLY`, `TT_E2E_LOCALE_SCROLL_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
+| R2 | `TT_E2E_HEADER_GEOMETRY_ONLY`, `TT_E2E_BRAND_COLOR_ONLY`, `TT_E2E_BRAND_LOCKUP_ONLY`, `TT_E2E_BRAND_HEADER_BBOX_ONLY`, `shared-header-single-line.e2e.mjs` |
+| R3 | `shared-header-bottom-p7-1.e2e.mjs`, `TT_E2E_HEADER_GEOMETRY_ONLY` |
+| R4 | `menu-reference-parity.e2e.mjs`, `shared-header-menu-p7.test.mjs`, `shared-header-menu-p7.e2e.mjs`, `shared-header-menu-route-close.e2e.mjs`, `TT_E2E_MENU_ONLY`, `TT_E2E_MENU_RESIZE_ONLY` (đỏ, xem Gate); `cross-browser.smoke.spec.cjs` (mở, đóng menu khi `motion.js` lỗi) |
+| R5 | `TT_E2E_FRAGMENT_ONLY`, `TT_E2E_LOCALE_MODES_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R6 | `logo-route-crossfade.e2e.mjs`, `not-found-routes.e2e.mjs`, `advertising-route-preload.e2e.mjs`, `TT_E2E_HISTORY_ONLY`, `TT_E2E_P13_NAVBAR_ONLY`, `mobile-layout-parity.e2e.mjs --scope about-history` |
 | R7 | `route-veil-header.e2e.mjs` (header dưới veil, intro kết thúc đúng trạng thái thu gọn), `TT_E2E_FAILOPEN_ONLY`, `TT_E2E_BOOT_RACE_ONLY`, `TT_E2E_FAILOPEN_BFCACHE_ONLY`, `TT_E2E_REAL_BFCACHE_ONLY`, `cross-browser.smoke.spec.cjs` |
 | R8 | `TT_E2E_HISTORY_ONLY`, `TT_E2E_WHEEL_ONLY`, `scrollbar-parity.e2e.mjs`, `cross-browser.smoke.spec.cjs` (qua lại 981px giữ vị trí) |
@@ -271,10 +271,8 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 ## Gate còn mở
 
-- `TT_E2E_HEADER_ONLY` trên Chromium cloud 05/10: 21/43 FAIL. Lifecycle Barba, focus navbar sau route
-  mềm, locale replay, menu đã xanh trong `site.e2e.cjs` toàn site. Còn đỏ: geometry 320–1440px
-  ("controls overlap", collapsed geometry), scroll direction (hover timeout); chưa rõ test cũ hay lỗi
-  code (suy luận). Main.
+- Menu mở dưới 981px: phím End cuộn trang nền (đo 2026-10-14 ở 959px và 1199px sau khi thu nhỏ rồi phóng
+  lại), trái R4. `TT_E2E_MENU_RESIZE_ONLY` đỏ, để `pending` trong `tests/ci-suites.json`; chờ owner.
 - Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả,
   visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R5

@@ -49,13 +49,17 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
 | `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
+| `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |
+| `brand` | site-shell, logo-route-crossfade | logo: màu, bbox, lockup, co giãn khi đổi cỡ màn hình |
+| `shell-motion` | site-shell, logo-route-crossfade | menu, reduced motion, bfcache, nhịp chữ và logo kiểu Espacio, link nội bộ |
 | `scroll` | scroll-feel | cảm giác cuộn, cuộn bằng nút giữa chuột |
-| `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình |
+| `footer` | site-shell, page-home, detail-pages, advertising-cta-center-parallax | footer chung mọi trang ở mười ba cỡ màn hình, footer khi chạy |
 | `home` | page-home | hero, portal, marquee logo khách, scroll cue, wheel, media hover |
 | `detail-pages` | detail-pages | Residential, Commercial, About: hero, carousel, detail chậm, boot chậm, ảnh lỗi tải lại |
+| `entry` | detail-pages, site-shell | chuyển trang Barba, hero detail, gallery, noscript, motion hỏng vẫn mở trang |
 | `adv-grid` | advertising-masonry | hình học lưới, ảo hóa 3.000 card, bàn phím, lọc, card, không tiêu đề |
 | `adv-browse` | advertising-masonry | lượt duyệt ngẫu nhiên, hero một lần, history, đổi ngôn ngữ, URL cũ, preload route, footer route |
-| `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình |
+| `adv-load` | advertising-masonry, advertising-skeleton, advertising-cta-center-parallax | SSR, skeleton cuối lưới, mạng chậm, reveal ngoài màn hình, card vào lại |
 | `adv-detail` | advertising-detail, advertising-viewer-touch-zoom | `?photo=`: tiêu đề, related, gợi ý, slideshow, quay lại masonry, viewer cảm ứng |
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal |
@@ -152,7 +156,9 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 `manual` giữ test cần phần cứng thật hoặc ma trận quá lớn, chạy tay trên PC: đo FPS và WebGL
 (`advertising-continuation`), A05s (`mobile-viewport-android-record`), ma trận nhiều engine
 (`mobile-layout-parity`, `mobile-viewport-stability`, `scrollbar-parity`), công cụ đo (`image-delivery-measure`,
-`scroll-trace`, `related-scroll-device`, `advertising-solver-report`). Phần độ phủ phụ thuộc
+`scroll-trace`, `related-scroll-device`, `advertising-solver-report`). Mode `site.e2e.cjs` chỉ gọi lại các hàm
+mà mode trong bộ đã gọi (`HEADER`, `LOCALE`, `M2`...) cũng nằm ở `manual`, ghi rõ trùng mode nào, để một kiểm tra
+không chạy hai lần. Phần độ phủ phụ thuộc
 [phân loại Advertising](advertising-taxonomy.md) chưa làm ở đây.
 
 ## Giao diện và dữ liệu
@@ -178,7 +184,7 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Matrix 14 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
+- Matrix 18 bộ cần đủ runner để không xếp hàng; thread được phép tự thêm runner instance trên PC (luật owner
   2026-10-11). Số runner cần thêm đo ở PR đầu.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
