@@ -7006,6 +7006,7 @@ async function runAdvertisingMediaFocusedChecks() {
       noscript: grid.querySelector("noscript") !== null,
       activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.getAttribute("data-advertising-filter"),
       categoryQuery: new URLSearchParams(location.search).get("category"),
+      pathname: location.pathname,
     };
   });
   const assertGridState = (state, layout, label) => {
@@ -7132,7 +7133,9 @@ async function runAdvertisingMediaFocusedChecks() {
         const filtered = await readGridState(page);
         assertGridState(filtered, filteredLayout, `${category.slug} filter`);
         assert(
-          filtered.activeFilter === category.slug && filtered.categoryQuery === category.slugVi &&
+          // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
+          filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
+            filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
             filtered.tiles.every((tile) => tile.category === category.slug),
           `${category.slug} filter retained a wrong category or URL state`,
         );

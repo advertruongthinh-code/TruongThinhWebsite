@@ -2503,9 +2503,11 @@
         && persistentAdvertisingLink
         && !link.target
         && !link.hasAttribute("download")
-        && destination.pathname === window.location.pathname
+        // Detail hoặc trang cụm, sản phẩm cùng locale về masonry tại chỗ (taxonomy R4).
+        && isAdvertisingPath(window.location.pathname)
+        && destination.pathname.slice(0, 4) === window.location.pathname.slice(0, 4)
         && destination.search === ""
-        && destination.search !== window.location.search
+        && destination.pathname !== `${window.location.pathname}${window.location.search}`
         && window.TruongThinhAdvertising?.getAdapter?.()
       ) {
         const navigateToAdvertisingParent = () => {
