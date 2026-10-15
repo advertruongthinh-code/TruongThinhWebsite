@@ -151,11 +151,11 @@ a {
 }
 
 /* Giữ rail touch và drag dùng được mà không lộ scrollbar ngang. */
-:where(.editorial-strip, .project-track, .detail-gallery__track, .project-filters) {
+:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .project-track, .detail-gallery__track, .project-filters, .advertising-detail__carousel)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters, .advertising-detail__carousel)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -1256,10 +1256,32 @@ em {
   gap: clamp(1.5rem, 2.5vw, 2.5rem);
 }
 
-/* Năm bước quy trình: ba cột để cột chữ giữ đủ rộng cho tiêu đề EN; tới 980px theo .editorial-strip. */
+/* Năm bước quy trình cùng một hàng: mỗi bước ảnh trên, chữ dưới; tới 980px thành rail vuốt ngang. */
 .detail-process-editorial {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  row-gap: 3rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.detail-process-editorial .editorial-item {
+  height: auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--editorial-image-height) auto;
+  row-gap: 1rem;
+}
+
+.detail-process-editorial .editorial-number,
+.detail-process-editorial .editorial-item div {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.detail-process-editorial .editorial-number {
+  height: 8rem;
+  align-self: start;
+}
+
+.detail-process-editorial .editorial-item h3 {
+  /* Cột hẹp nhất ở 981px còn khoảng 165px: "CONSULTATION" vẫn lọt một dòng. */
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
 }
 
 .editorial-strip:focus-visible,
@@ -2586,6 +2608,20 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
   .editorial-item {
     --editorial-image-height: 13rem;
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  }
+
+  /* Rail vuốt ngang để năm bước vẫn một hàng; hai class để thắng .editorial-strip tới 680px. */
+  .editorial-strip.detail-process-editorial {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(72vw, 18rem);
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .detail-process-editorial .editorial-item {
+    scroll-snap-align: center;
   }
 
   .service-portals {
@@ -4123,20 +4159,21 @@ html[lang="en"]
     width: min(56vw, 23rem);
   }
 
+  /* Năm bước vẫn một hàng: rail vuốt ngang. */
   .detail-process {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(72vw, 16rem);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
   }
 
-  .process-step:nth-child(odd) {
-    border-left: 0;
+  .process-step {
+    scroll-snap-align: center;
   }
 
   .process-step h3 {
     font-size: 1.8rem;
-  }
-
-  .process-step:nth-child(n + 3) {
-    border-top: 1px solid var(--line);
   }
 
   .project-grid {
@@ -4281,18 +4318,9 @@ html[lang="en"]
     font-size: 3.25rem;
   }
 
-  .detail-process {
-    grid-template-columns: 1fr;
-  }
-
   .process-step {
-    padding: 1.25rem 0;
+    padding: 1.25rem 1rem;
     gap: 1rem;
-  }
-
-  .process-step + .process-step {
-    border-top: 1px solid var(--line);
-    border-left: 0;
   }
 
   .detail-duo {
