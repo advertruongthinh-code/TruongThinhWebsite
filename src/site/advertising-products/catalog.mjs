@@ -266,7 +266,7 @@ function attachRelated(cards) {
     const primary = hero.productIds?.[0];
     const tiers = new Map();
     for (const card of cards) {
-      const samePrimary = Boolean(primary) && Boolean(card.productIds?.includes(primary));
+      const samePrimary = Boolean(primary && card.productIds?.includes(primary));
       if (card === hero || (!samePrimary && card.category !== hero.category)) continue;
       // 1000 lớn hơn mọi số tag chung, nên card cùng sản phẩm chính luôn đứng trước.
       const score = (samePrimary ? 1000 : 0) + (card.tagIds || []).filter((id) => heroTags.has(id)).length;
