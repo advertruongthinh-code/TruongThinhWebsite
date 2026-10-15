@@ -12966,13 +12966,14 @@ async function runP13NavbarChecks() {
       await gotoRoute(page, "/vi/advertising-products/?category=kiosk-posm");
       await openMenu(page);
       const historyLength = await page.evaluate(() => history.length);
+      // Menu trỏ thẳng trang cụm (taxonomy R4).
       const link = page.locator(
-        '#site-menu .menu-option[href*="category=mobile-retail"]',
+        '#site-menu .menu-option[href="/vi/advertising-products/xe-ban-hang-luu-dong/"]',
       ).first();
       assert(await link.count(), "Advertising menu has no mobile-retail option");
       await link.click();
       await page.waitForFunction(
-        () => new URL(location.href).searchParams.get("category") === "xe-ban-hang-luu-dong",
+        () => location.pathname === "/vi/advertising-products/xe-ban-hang-luu-dong/",
       );
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({
