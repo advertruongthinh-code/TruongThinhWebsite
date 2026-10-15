@@ -170,9 +170,9 @@ export const ADVERTISING_LEGACY_CATEGORIES = deepFreeze(LEGACY_CATEGORY_TAXONOMY
   };
 }));
 
-// Filter và rail theo cụm (taxonomy R3): slug là id cụm, nhãn rail là railLabel ngắn của taxonomy.mjs.
-export const ADVERTISING_CATEGORIES = deepFreeze(ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn, legacySlug, railLabelVi, railLabelEn }) => ({
-  slug: id, slugVi, slugEn, legacySlug, titleVi: railLabelVi, titleEn: railLabelEn,
+// Filter và rail theo cụm (taxonomy R3): slug là id cụm, nhãn rail là label đầy đủ của taxonomy.mjs.
+export const ADVERTISING_CATEGORIES = deepFreeze(ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn, legacySlug, labelVi, labelEn }) => ({
+  slug: id, slugVi, slugEn, legacySlug, titleVi: labelVi, titleEn: labelEn,
 })));
 
 const CATEGORY_ORDER = ADVERTISING_CATEGORIES.map((entry) => entry.slug);

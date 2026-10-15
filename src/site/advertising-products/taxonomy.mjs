@@ -1,6 +1,5 @@
 // Dữ liệu phân loại Advertising (spec advertising-taxonomy R1, R2): cụm, sản phẩm, slug và chữ VI/EN.
 // Id nội bộ là slug EN lúc tạo; slug đổi về sau thì giữ id. Thứ tự mảng là thứ tự rail.
-// railLabel là nhãn ngắn cho rail và dòng nhóm ở detail; label đầy đủ cho title, h1.
 // legacySlug là slug nhóm cũ, `?category=` cũ vẫn lọc đúng cụm (R4).
 // Sản phẩm dưới ngưỡng trang mỏng (R5) không lên rail và không có trang.
 export const ADVERTISING_THIN_PRODUCT_THRESHOLD = 3;
@@ -9,7 +8,6 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   {
     id: "signage", slugVi: "bang-hieu-quang-cao", slugEn: "signage", legacySlug: "signage-raised-letters",
     labelVi: "Bảng hiệu, chữ nổi & hộp đèn", labelEn: "Signage, raised letters & light boxes",
-    railLabelVi: "Bảng hiệu & hộp đèn", railLabelEn: "Signage & light boxes",
     titleVi: "Làm bảng hiệu quảng cáo, chữ nổi, hộp đèn — Trường Thịnh",
     titleEn: "Shop signs, raised letters and light boxes — Trường Thịnh",
     descriptionVi: "Thiết kế, sản xuất và lắp đặt bảng hiệu alu, mặt dựng, chữ nổi inox, mica, hộp đèn và bảng vẫy cho cửa hàng, văn phòng tại Vĩnh Long và miền Tây.",
@@ -20,7 +18,6 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   {
     id: "displays-booths", slugVi: "standee-ke-trung-bay", slugEn: "displays-booths", legacySlug: "kiosk-posm",
     labelVi: "Standee, kệ trưng bày & gian hàng", labelEn: "Standees, displays & booths",
-    railLabelVi: "Standee & kệ", railLabelEn: "Displays & booths",
     titleVi: "Standee, kệ trưng bày, gian hàng triển lãm — Trường Thịnh",
     titleEn: "Standees, display shelving and exhibition booths — Trường Thịnh",
     descriptionVi: "Standee, backdrop, POSM, kệ và tủ trưng bày, kiosk, gian hàng triển lãm và quầy sampling làm theo yêu cầu, giao và lắp tại Vĩnh Long, Cần Thơ, Đồng Tháp.",
@@ -31,7 +28,6 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   {
     id: "printing-decals", slugVi: "in-an-decal", slugEn: "printing-decals", legacySlug: "print-decals",
     labelVi: "In ấn, decal & menu", labelEn: "Printing, decals & menus",
-    railLabelVi: "In ấn & decal", railLabelEn: "Printing & decals",
     titleVi: "In ấn, in decal, menu — Trường Thịnh",
     titleEn: "Printing, decals and menus — Trường Thịnh",
     descriptionVi: "In danh thiếp, tờ rơi, catalogue, decal dán kính, in bạt, tranh canvas, menu và bao bì cho cửa hàng, quán và doanh nghiệp tại Vĩnh Long và miền Tây.",
@@ -42,7 +38,6 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   {
     id: "led-displays", slugVi: "man-hinh-bang-led", slugEn: "led-displays", legacySlug: "led-displays-lightboxes",
     labelVi: "LED decor, màn hình & bảng LED", labelEn: "LED decor, screens & LED signs",
-    railLabelVi: "LED & màn hình", railLabelEn: "LED & screens",
     titleVi: "Màn hình LED, bảng LED chạy chữ — Trường Thịnh",
     titleEn: "LED screens and scrolling LED signs — Trường Thịnh",
     descriptionVi: "Lắp đặt màn hình LED trong nhà, ngoài trời, sự kiện, bảng LED chạy chữ đơn sắc, full color và LED trang trí tại Vĩnh Long, Cần Thơ, Đồng Tháp.",
@@ -53,7 +48,6 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   {
     id: "office-signs", slugVi: "bien-van-phong", slugEn: "office-signs", legacySlug: "office-signs-wayfinding",
     labelVi: "Biển văn phòng, bảng tên & kỷ niệm chương", labelEn: "Office signs, nameplates & awards",
-    railLabelVi: "Biển văn phòng & bảng tên", railLabelEn: "Office signs & nameplates",
     titleVi: "Biển văn phòng, biển chỉ dẫn, kỷ niệm chương — Trường Thịnh",
     titleEn: "Office signs, wayfinding signs and award plaques — Trường Thịnh",
     descriptionVi: "Biển số nhà, bảng tên công ty, biển phòng ban, biển chỉ dẫn, sơ đồ tòa nhà, bảng chức danh để bàn và kỷ niệm chương in UV, khắc trên kim loại, gỗ, thủy tinh.",
@@ -64,7 +58,6 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   {
     id: "mobile-retail", slugVi: "xe-ban-hang-luu-dong", slugEn: "mobile-retail", legacySlug: "mobile-retail",
     labelVi: "Xe & quầy bán hàng lưu động", labelEn: "Mobile carts & counters",
-    railLabelVi: "Xe & quầy lưu động", railLabelEn: "Mobile carts & counters",
     titleVi: "Xe bán hàng lưu động, quầy bán hàng di động — Trường Thịnh",
     titleEn: "Mobile retail carts and counters — Trường Thịnh",
     descriptionVi: "Đóng xe bán cà phê, trà sữa, đồ ăn, xe đẩy và quầy bán hàng di động, quầy gấp gọn theo nhận diện thương hiệu, giao tại Vĩnh Long và miền Tây.",

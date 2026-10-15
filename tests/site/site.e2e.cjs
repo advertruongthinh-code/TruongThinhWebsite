@@ -6107,7 +6107,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               kickerLeadsTitle:
                 kickerRect.top < headingRect.top &&
                 kickerRect.bottom <= headingRect.top + 1,
-              filtersAreLower: filtersRect.top >= heroRect.top + heroRect.height * 0.6,
+              // Nhãn cụm dài làm rail tablet xuống nhiều dòng và mọc lên trên; rail vẫn phải nằm dưới tiêu đề hoặc trong 40% dưới hero.
+              filtersAreLower: filtersRect.top >= Math.min(headingRect.bottom, heroRect.top + heroRect.height * 0.6),
               viewportMinusFifty:
                 heroRect.top <= 1 &&
                 Math.abs(heroRect.height - (window.innerHeight - 50)) <= 1,
