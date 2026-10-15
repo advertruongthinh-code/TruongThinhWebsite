@@ -64,8 +64,8 @@ try {
       assert.ok(detail.relatedTiles.every((tile) => Math.abs(tile.height - tile.imageHeight) <= 1), `${locale} ${viewport.width}px: related tile reserves caption height`);
 
       await page.goto(`${baseUrl}/${locale}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });
-      // Trang tương thích chuyển tới slug nhóm cũ; runtime đổi sang slug cụm theo locale.
-      await page.waitForURL(new RegExp(`/${locale}/advertising-products/\\?category=${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}`));
+      // Trang tương thích chuyển thẳng tới trang cụm theo slug của locale (taxonomy R4).
+      await page.waitForURL(new RegExp(`/${locale}/advertising-products/${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}/$`));
       await page.waitForSelector("[data-advertising-card]");
       await page.close();
     }

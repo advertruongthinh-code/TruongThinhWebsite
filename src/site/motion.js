@@ -2795,9 +2795,11 @@
       || link.hasAttribute("download")
     ) return;
     const destination = new URL(link.href, window.location.href);
+    // Rail trỏ tới trang cụm (taxonomy R4); cùng gốc /<locale>/advertising-products thì vẫn xếp hàng lọc tại chỗ.
+    const advertisingRoot = (pathname) => pathname.split("/").slice(0, 3).join("/");
     if (
       destination.origin !== window.location.origin
-      || normalizePathname(destination.pathname) !== normalizePathname(window.location.pathname)
+      || advertisingRoot(destination.pathname) !== advertisingRoot(window.location.pathname)
     ) return;
     event.preventDefault();
     event.stopImmediatePropagation();
