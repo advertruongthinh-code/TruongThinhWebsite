@@ -112,6 +112,13 @@ html[lang="vi"]
   display: block;
 }
 
+/* PC canh trái/phải: dấu chấm giữ trong khung, chỉ treo khi canh giữa trên phone. */
+@media (min-width: 681px) {
+  .commercial-hero .text-hang-end {
+    width: auto;
+  }
+}
+
 .detail-title__quiet {
   font-weight: 500;
 }

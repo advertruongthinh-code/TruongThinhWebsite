@@ -427,10 +427,10 @@ function assertPersistentNavigationContracts() {
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
       commercialHeroContent?.includes("SHOP · F&amp;B · SHOWROOM · VĂN PHÒNG") &&
       commercialHeroContent?.includes('data-en="SHOP · F&amp;B · SHOWROOM · OFFICE"') &&
-      commercialHeroContent?.includes("Thiết kế để bán tốt.") &&
-      commercialHeroContent?.includes("Thi công để vận hành bền.") &&
-      commercialHeroContent?.includes('data-en="Designed to sell."') &&
-      commercialHeroContent?.includes('data-en="Built to perform."') &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế để bán tốt.") &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thi công để vận hành bền.") &&
+      commercialHeroContent?.includes('data-en="Designed to sell"') &&
+      commercialHeroContent?.includes('data-en="Built to perform"') &&
       !commercialHeroContent?.includes("detail-hero-motto"),
     "Commercial hero must use the approved Espacio-style two-line VI/EN copy without a separate motto",
   );
