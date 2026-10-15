@@ -73,9 +73,9 @@ hay kích thước dương; tag hoặc sản phẩm không có; dữ liệu phâ
 w/h: đứng `< 0.9`, gần vuông `0.9–1.1`, ngang `> 1.1`, cực `<= 0.625` hoặc `>= 1.6`. Card không còn nhận
 `presentationCanvas`, `fitMode`, `mediaCandidates`; ảnh giữ tỷ lệ gốc. Alt VI/EN là tên card; alt và mô tả không gắn nhãn
 AI, nguồn gốc ảnh chỉ ghi ở `provenance` (không hiển thị). `rank` xếp round-robin theo thứ tự cụm, trong cụm theo
-`sourceOrder`. `buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry`,
-`categories`, `clusters`, `products`, `cards`; build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
-Sáu URL nhóm cũ chỉ chuyển về `?category=<slug cũ>` ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)).
+`sourceOrder`. `buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry` (có tag nhóm `product`),
+`categories`, `clusters`, `products`, `pages`, `cards` (kèm `related`, [taxonomy R7](advertising-taxonomy.md#r7-related-có-thể-bạn-thích)); build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
+Sáu URL nhóm cũ chuyển tới trang cụm mới ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)).
 
 ```gherkin
 Given một card mới trùng media.sourceId với card đã có
