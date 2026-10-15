@@ -5205,10 +5205,11 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
+      // Thứ tự card là ngẫu nhiên theo seed nên không có id cố định nào chắc chắn nằm trong cửa sổ ảo; lấy tile đang mount.
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile"), null, { timeout: 3_000 });
       const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const tile = grid.querySelector('[data-advertising-card="mobile-retail-01"]');
-        const style = tile ? getComputedStyle(tile) : null;
-        return { duration: style?.transitionDuration, transform: style?.transform };
+        const style = getComputedStyle(grid.querySelector(".advertising-tile"));
+        return { duration: style.transitionDuration, transform: style.transform };
       });
       assert(
         reduced.duration?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&

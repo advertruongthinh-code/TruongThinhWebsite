@@ -154,7 +154,7 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
 
 test("M01d cards retain coordinate hash, order and no filler", () => {
   const order = ADVERTISING_CARDS.map((card) => card.id);
-  for (const [layoutViewportWidth, expectedHash] of [[390, "22e07f4c"], [1440, "08b38572"]]) {
+  for (const [layoutViewportWidth, expectedHash] of [[390, "b6970fde"], [1440, "a6aaa2d0"]]) {
     const layout = compileAdvertisingProductLayout({
       cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -275,7 +275,7 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
   for (const category of ADVERTISING_LEGACY_CATEGORIES) {
     const categoryCards = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === category.slug);
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
-    assert.equal(category.products.length, ["kiosk-posm", "print-decals"].includes(category.slug) ? 13 : 12, `${category.slug} keeps authored taxonomy products`);
+    assert.equal(category.products.length, ["kiosk-posm", "print-decals", "office-signs-wayfinding"].includes(category.slug) ? 13 : 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, category.products.length, `${category.slug} covers all taxonomy products`);
     for (const card of categoryCards) {
