@@ -8879,11 +8879,12 @@ async function runMotionAbortFailOpenChecks() {
           window.__ttLateFilterLayoutEvents += 1;
         });
       });
-      await page.locator('[data-advertising-filter="displays-booths"]').click();
+      // Cụm đầu rail nằm ở hàng một; bấm cụm ở hàng dưới thì trang cuộn và header ẩn trước khi mở menu.
+      await page.locator('[data-advertising-filter="signage"]').click();
       await page.waitForFunction(
         () =>
           document
-            .querySelector('[data-advertising-filter="displays-booths"]')
+            .querySelector('[data-advertising-filter="signage"]')
             ?.getAttribute("aria-current") === "true" &&
           window.__ttLateFilterLayoutEvents === 1,
       );
