@@ -3012,7 +3012,7 @@ async function runEspacioRouteLogoTimingChecks() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/");
       // Ảnh tải theo biến thể srcset AVIF/WebP (media-delivery R3).
-      await page.route(/residential-detail(?:-(?:480|960))?\.(?:avif|webp)$/, async (requestRoute) => {
+      await page.route(/residential-detail-x1(?:-(?:480|960))?\.(?:avif|webp)$/, async (requestRoute) => {
         await new Promise((resolve) => setTimeout(resolve, 1_800));
         delayedHeroReleased = true;
         await requestRoute.continue();
@@ -5650,7 +5650,7 @@ async function runAdvertisingRapidFilterCheck() {
       rank: index,
       sourceOrder: Math.floor(index / categorySlugs.length),
       media: {
-        src: "/assets/content/projects/advertising-kiosk-posm-cover.webp",
+        src: "/assets/content/projects/advertising-kiosk-posm-cover-v2.webp",
         width: 1536,
         height: 1024,
         altVi: "Mẫu kiểm tra rapid-filter",
@@ -7509,7 +7509,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
       rank: index,
       sourceOrder: kiosk ? index : index - 3,
       media: {
-        src: "/assets/content/projects/advertising-kiosk-posm-cover.webp",
+        src: "/assets/content/projects/advertising-kiosk-posm-cover-v2.webp",
         width: 1536,
         height: 1024,
         altVi: primaryKiosk ? "Gian hàng triển lãm do Trường Thịnh thực hiện" : "Mẫu kiểm tra ảo hóa",
@@ -9425,7 +9425,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/residential-space.webp",
+      asset: "**/residential-space-x3.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9434,7 +9434,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/residential-space.webp",
+      asset: "**/residential-space-x3.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9453,7 +9453,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "service portal",
       route: "/vi/?media-fallback=portal",
-      asset: "**/home-residential-kitchen.webp",
+      asset: "**/home-residential-kitchen-v2.webp",
       surface: "#dich-vu .service-portal:first-child",
       image: "img",
       text: ".portal-copy",
@@ -10097,8 +10097,8 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.portalSources) ===
           JSON.stringify([
-            "/assets/content/projects/home-residential-kitchen.webp",
-            "/assets/content/projects/home-commercial-fnb.webp",
+            "/assets/content/projects/home-residential-kitchen-v2.webp",
+            "/assets/content/projects/home-commercial-fnb-v2.webp",
             "/assets/content/projects/home-advertising-products-blue-grid.webp",
           ]),
         `Home service portal sources changed: ${contract.portalSources.join(", ")}`,
@@ -10118,7 +10118,7 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.hero.sources) ===
           JSON.stringify([
-            "/assets/content/projects/residential-space.webp",
+            "/assets/content/projects/residential-space-x3.webp",
             "/assets/content/projects/hero-v2.webp",
             "/assets/content/projects/hero-kiosk.webp",
             "/assets/content/projects/mobile-retail.webp",
