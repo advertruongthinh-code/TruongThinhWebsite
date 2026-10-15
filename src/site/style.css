@@ -1080,7 +1080,9 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
-.hero h1,
+/* Trang cụm, sản phẩm: kicker là h1, khẩu hiệu là p.hero-title giữ cùng hình. */
+.hero h1:where(:not(.hero-kicker)),
+.hero p:where(.hero-title),
 .legacy-copy h2 {
   margin: 0;
   font-weight: 600;
@@ -1088,7 +1090,8 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   word-spacing: var(--word-spacing-display);
 }
 
-.hero h1 {
+.hero h1:where(:not(.hero-kicker)),
+.hero p:where(.hero-title) {
   font-size: clamp(5rem, 9vw, 10rem);
   line-height: 0.86;
 }
@@ -2743,7 +2746,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     text-align: left;
   }
 
-  .hero h1 {
+  .hero h1:where(:not(.hero-kicker)),
+  .hero p:where(.hero-title) {
     font-size: clamp(4.6rem, 19vw, 6.5rem);
     line-height: 0.86;
   }
@@ -3076,7 +3080,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 @media (max-width: 360px) {
-  .hero h1 {
+  .hero h1:where(:not(.hero-kicker)),
+  .hero p:where(.hero-title) {
     font-size: 4.1rem;
   }
 
