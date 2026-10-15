@@ -60,7 +60,7 @@ thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
 `vi/advertising-products/<slug VI>/` và `en/advertising-products/<slug EN>/`: title, meta, canonical, hreflang vi, en,
-x-default (path gốc, chưa có origin), mục rail đang chọn, `<noscript>` có đoạn giới thiệu và link mọi trang.
+x-default (path gốc, chưa có origin), mục rail đang chọn, link ngôn ngữ trỏ path trang ở từng locale, `<noscript>` có đoạn giới thiệu và link mọi trang.
 
 ```gherkin
 Given một category có card nhưng layout ở 390 px thiếu vị trí
@@ -105,7 +105,7 @@ Mọi HTML output: phần tử có `data-en` mà chưa có `data-vi` được th
 từ chữ của chính nó; đếm lệch thì build dừng và nêu file. Rồi build ghi 22
 route trong `ROUTES` (năm trang và sáu trang tương thích, VI và EN) bằng
 `localeHtml(html, locale)`: đặt `lang`, `data-route-locale`; bản EN thay chữ
-`data-en` và `alt`, `aria-label`, `content` từ `data-en-*`, giữ bản Việt ở
+`data-en` và `alt`, `aria-label`, `content`, `href` từ `data-en-*` (runtime đổi ngôn ngữ cũng vậy), giữ bản Việt ở
 `data-vi-*`; link nội bộ đổi sang `/<locale>/...`, trừ `[data-language-option]`.
 Preview (R8) dùng cùng hàm nên host tĩnh không cần rewrite.
 

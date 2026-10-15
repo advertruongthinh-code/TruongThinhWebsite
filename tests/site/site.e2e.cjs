@@ -7006,6 +7006,7 @@ async function runAdvertisingMediaFocusedChecks() {
       noscript: grid.querySelector("noscript") !== null,
       activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.getAttribute("data-advertising-filter"),
       categoryQuery: new URLSearchParams(location.search).get("category"),
+      pathname: location.pathname,
     };
   });
   const assertGridState = (state, layout, label) => {
@@ -7132,7 +7133,9 @@ async function runAdvertisingMediaFocusedChecks() {
         const filtered = await readGridState(page);
         assertGridState(filtered, filteredLayout, `${category.slug} filter`);
         assert(
-          filtered.activeFilter === category.slug && filtered.categoryQuery === category.slugVi &&
+          // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
+          filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
+            filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
             filtered.tiles.every((tile) => tile.category === category.slug),
           `${category.slug} filter retained a wrong category or URL state`,
         );
@@ -12963,13 +12966,14 @@ async function runP13NavbarChecks() {
       await gotoRoute(page, "/vi/advertising-products/?category=kiosk-posm");
       await openMenu(page);
       const historyLength = await page.evaluate(() => history.length);
+      // Menu trỏ thẳng trang cụm (taxonomy R4).
       const link = page.locator(
-        '#site-menu .menu-option[href*="category=mobile-retail"]',
+        '#site-menu .menu-option[href="/vi/advertising-products/xe-ban-hang-luu-dong/"]',
       ).first();
       assert(await link.count(), "Advertising menu has no mobile-retail option");
       await link.click();
       await page.waitForFunction(
-        () => new URL(location.href).searchParams.get("category") === "xe-ban-hang-luu-dong",
+        () => location.pathname === "/vi/advertising-products/xe-ban-hang-luu-dong/",
       );
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({

@@ -87,7 +87,7 @@ Then validator từ chối pool và nêu id trùng
 
 Rail `.project-filters` (`role="group"`) có bảy link `[data-advertising-filter]`: `all` ("Tất cả" / "All", về URL gốc)
 rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML, `href` là trang cụm theo slug locale); mục đang chọn có `aria-current="true"`. Cụm lấy card có sản phẩm chính
-thuộc cụm. `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All. Không có `?category=` thì filter theo path trang cụm, sản phẩm ([taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)); filter trùng path thì URL bỏ `?category=`, khác path thì về URL gốc.
+thuộc cụm. `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All. Không có `?category=` thì filter theo path trang cụm, sản phẩm ([taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)); đổi filter ghi path trang của filter đó theo slug locale (đổi `document.title` và kicker), filter không có trang về URL gốc kèm `?category=`.
 Click chính không phím bổ trợ: không tải document, không request, không cuộn bằng code; URL đổi bằng `replaceState`
 (không thêm history entry); card đổi vị trí theo R6; container, hero, thứ tự và vị trí bảy nút giữ nguyên. Click có
 phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước khi runtime sẵn sàng (chỉ gặp khi không có veil

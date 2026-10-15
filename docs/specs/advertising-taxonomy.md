@@ -90,8 +90,8 @@ sản phẩm kèm số ảnh, dựng sẵn trong HTML tĩnh, ẩn bằng CSS, hi
 và hiện hàng chip sản phẩm của cụm bên dưới; bấm chip hoặc mục trong danh sách lọc riêng sản phẩm đó, chip đang
 chọn có `aria-current="true"`. Điện thoại: chạm cụm lọc cụm và hiện hàng chip cuộn ngang; không có danh sách
 hover. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
-document, `replaceState`, card chuyển vị trí); đổi luôn `document.title`, h1 và đoạn giới thiệu theo trang
-đích. Sản phẩm dưới ngưỡng R5 không lên rail. Hình ảnh rail theo thiết kế Impeccable owner duyệt (Gate còn mở).
+document, `replaceState`, card chuyển vị trí); URL thành path trang đích, đổi luôn `document.title` và kicker (h1 của trang tĩnh) theo trang
+đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Sản phẩm dưới ngưỡng R5 không lên rail. Hình ảnh rail theo thiết kế Impeccable owner duyệt (Gate còn mở).
 
 ```gherkin
 Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng
@@ -222,7 +222,7 @@ Không đổi typography hay layout ngoài rail.
 | R | Test hoặc command |
 | --- | --- |
 | R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo sản phẩm chính và lọc sản phẩm) |
-| R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); chưa có test rail hai tầng, chip sản phẩm |
+| R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path); chưa có test rail hai tầng, chip sản phẩm |
 | R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm); chưa có test đổi URL thành path khi bấm (T5) |
 | R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang); chưa có test rail theo ngưỡng |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |

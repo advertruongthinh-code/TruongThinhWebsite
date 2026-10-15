@@ -167,6 +167,8 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
   .replace(/<p(\s+class="hero-kicker"[\s\S]*?)data-en="[^"]*"(\s*)>[\s\S]*?<\/p>/,
     (_match, attributes, space) => `<h1${attributes}data-en="${escapeHtml(page.labelEn)}"${space}>${escapeHtml(page.labelVi)}</h1>`)
+  .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${pageHref("vi", page)}" data-language-option="vi"`)
+  .replace('href="/en/advertising-products/" data-language-option="en"', `href="${pageHref("en", page)}" data-language-option="en"`)
   .replace(/(data-advertising-filter="all") aria-current="true"/, "$1 aria-current=\"false\"")
   .replace(`data-advertising-filter="${page.cluster}"`, `data-advertising-filter="${page.cluster}" aria-current="true"`)
   .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);

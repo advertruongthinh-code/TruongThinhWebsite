@@ -902,7 +902,8 @@ try {
         await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
         assert.deepEqual(markerFailures, [], `related marker failures: ${JSON.stringify(markerFailures)}`);
         assert.equal(await page.evaluate(() => history.length), initialLength + 2, `${locale}: related history must not add entries`);
-        assert.deepEqual([...new URL(page.url()).searchParams.keys()].sort(), ["category", "photo"], `${locale}: no marker/media URL parameter`);
+        // Cụm nằm trong path trang cụm (taxonomy R4), query chỉ còn photo.
+        assert.deepEqual([...new URL(page.url()).searchParams.keys()].sort(), ["photo"], `${locale}: no marker/media URL parameter`);
 
         stage(`${profile.name}-${locale}-related-virtualization-remount`);
         const away = await page.evaluate(({ id, originY }) => {
@@ -1563,7 +1564,7 @@ try {
       assert.equal(backState.focusId, id, locale + ": Back lost card focus");
       assert.equal(forwardState.length, initial.length + 1, locale + ": click created wrong history length");
       assert.equal(backState.length, forwardState.length, locale + ": traversal added history entry");
-      assert.equal(new URL(page.url()).pathname, "/" + locale + "/advertising-products/", locale + ": locale changed");
+      assert.ok(new URL(page.url()).pathname.startsWith("/" + locale + "/advertising-products/"), locale + ": locale changed");
       assert.deepEqual(networkFailures, [], locale + ": fixture/network failure");
       evidence.push({ locale, clickedY, detailY, grid, forward, back, forwardState, backState, networkFailures: [] });
     }
@@ -2159,7 +2160,7 @@ try {
       await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
       await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
         && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, focusId);
-      assert.equal(new URL(page.url()).searchParams.get("category"), groupSlug, "navbar keeps the picked group in the URL");
+      assert.equal(new URL(page.url()).pathname, `/vi/advertising-products/${groupSlug}/`, "navbar keeps the picked group in the URL");
       assert.equal(await page.locator('[data-advertising-filter][aria-current="true"]').getAttribute("data-advertising-filter"), group,
         "the picked group stays active on the filter rail");
       const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]

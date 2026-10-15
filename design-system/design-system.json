@@ -18,6 +18,8 @@
       "tile": "m",
       "order": [
         "cnc.webp",
+        "completed-detail-x1.webp",
+        "completed-detail-x3.webp",
         "completed-detail.webp",
         "consultation.webp",
         "design-sketch.webp",
@@ -56,6 +58,7 @@
         "print-decals-15-brochures-and-folded-leaflets-480.webp",
         "print-decals-16-catalogues-480.webp",
         "print-decals-20-owner-20260924-480.webp",
+        "residential-space-x3.webp",
         "residential-space.webp",
         "signage-detail.webp",
         "signage-raised-letters-07-acrylic-dimensional-letters.webp",
@@ -72,6 +75,8 @@
         "survey-modern.webp",
         "washroom-projecting-03-480.webp",
         "workshop-wide-v2.webp",
+        "workshop-wide-x2.webp",
+        "workshop-wide-x7.webp",
         "workshop-wide.webp"
       ],
       "files": {
@@ -79,6 +84,18 @@
           "name": "cnc.webp",
           "blob": "7b799f3a3c84d748a4ae98eda5419f41",
           "size": 49466,
+          "type": "image/webp"
+        },
+        "completed-detail-x1.webp": {
+          "name": "completed-detail-x1.webp",
+          "blob": "933e519c84c8f9cb36bb7479caee3735",
+          "size": 60842,
+          "type": "image/webp"
+        },
+        "completed-detail-x3.webp": {
+          "name": "completed-detail-x3.webp",
+          "blob": "1262978ed492c2c9f2f2800fa7304e4c",
+          "size": 36394,
           "type": "image/webp"
         },
         "completed-detail.webp": {
@@ -309,6 +326,12 @@
           "size": 30934,
           "type": "image/webp"
         },
+        "residential-space-x3.webp": {
+          "name": "residential-space-x3.webp",
+          "blob": "86c714cd6d1777832d91492910a4ed26",
+          "size": 42662,
+          "type": "image/webp"
+        },
         "residential-space.webp": {
           "name": "residential-space.webp",
           "blob": "d306d15a70e8403a8d819e66e9735edb",
@@ -405,6 +428,18 @@
           "size": 64960,
           "type": "image/webp"
         },
+        "workshop-wide-x2.webp": {
+          "name": "workshop-wide-x2.webp",
+          "blob": "155a11cbf6495d18ded05d7a046065f9",
+          "size": 107726,
+          "type": "image/webp"
+        },
+        "workshop-wide-x7.webp": {
+          "name": "workshop-wide-x7.webp",
+          "blob": "99f8d359ebdf0987de623163e569907a",
+          "size": 102830,
+          "type": "image/webp"
+        },
         "workshop-wide.webp": {
           "name": "workshop-wide.webp",
           "blob": "08e00bbc9a3e4b4c738c7e2884b3b9f5",
@@ -421,8 +456,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-15T16:10:00Z",
+    "at": "2026-10-15T18:20:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt main 952a2c4: #348 #369 #373 (khóa scroll menu, căn giữa CTA, ảnh CTA mới); #367 #371 đợt sau"
+    "note": "Đợt main 9b80eab: #371 #367 #379 (treo dấu chấm hero/motto, chữ portal Kinh doanh, taxonomy Advertising T4)"
   }
 }
