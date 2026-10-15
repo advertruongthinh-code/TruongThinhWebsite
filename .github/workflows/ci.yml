@@ -94,3 +94,10 @@ jobs:
           echo "select=${{ needs.select.result }} suites=${{ needs.select.outputs.suites }} result=${{ needs.suite.result }}"
           [ "${{ needs.select.result }}" = success ] || exit 1
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
+
+  # Deploy demo chỉ chạy trên main (push hoặc dispatch của Automerge) khi static-release xanh.
+  deploy-demo:
+    needs: static-release
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    uses: ./.github/workflows/deploy-demo.yml
+    secrets: inherit
