@@ -26,6 +26,7 @@
         "home.webp",
         "installation.webp",
         "kiosk-active.webp",
+        "kiosk-active-v2.webp",
         "kiosk-posm-08-event-reception-counters-480.webp",
         "kiosk-posm-12-campaign-posm-sets-480.webp",
         "kiosk-posm-20-event-reception-counters-480.webp",
@@ -132,6 +133,12 @@
           "name": "kiosk-active.webp",
           "blob": "849492de3e3d8b038ee6218ec4911f58",
           "size": 49582,
+          "type": "image/webp"
+        },
+        "kiosk-active-v2.webp": {
+          "name": "kiosk-active-v2.webp",
+          "blob": "af7b6f455eef2346251376a8b988f747",
+          "size": 246468,
           "type": "image/webp"
         },
         "kiosk-posm-08-event-reception-counters-480.webp": {
@@ -456,8 +463,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-15T18:20:00Z",
+    "at": "2026-10-15T20:05:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt main 9b80eab: #371 #367 #379 (treo dấu chấm hero/motto, chữ portal Kinh doanh, taxonomy Advertising T4)"
+    "note": "Đợt main c6db667: #368 #382 #386 (bước 5 Hậu mãi, taxonomy Advertising T5, quy trình năm bước một hàng) và ảnh kiosk-active-v2"
   }
 }
