@@ -174,6 +174,15 @@ try {
       await earlyPage.close();
     } finally { if (earlyBrowser !== browser) await earlyBrowser.close(); }
   }
+  // Slug nhóm cũ và slug cụm cho cùng filter; URL đổi sang slug cụm theo locale (taxonomy R4).
+  for (const slug of ["print-decals", "printing-decals", "in-an-decal"]) {
+    await page.goto(base + "/vi/advertising-products/?category=" + slug, { waitUntil: "networkidle" }); await ready(page);
+    const sample = await read(page);
+    assert.equal(sample.browse.category, "printing-decals", slug);
+    assert.ok(sample.ids.length && sample.ids.every(id => ADVERTISING_CARDS.find(card => card.id === id)?.category === "printing-decals"), slug);
+    assert.equal(new URL(page.url()).searchParams.get("category"), "in-an-decal", slug);
+    results.push({ case: "category-alias", slug, rendered: sample.ids.length });
+  }
   await page.goto(base + "/en/advertising-products/", { waitUntil: "networkidle" }); await ready(page);
   assert.notEqual((await read(page)).browse.seed, seedBeforeFallback, "ordinary direct URL starts a new visit");
   // Fetch failure mong đợi ở trên được ghi riêng; không bao giờ giấu lỗi WebGL.

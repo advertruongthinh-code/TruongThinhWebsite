@@ -4,7 +4,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= "E:/TruongThinh-Website/.tooling/browsers";
 const engines = await import("playwright");
@@ -372,11 +372,12 @@ async function runAboutHistory(browser,engine) {
       await page.locator('[data-menu-open]').click();
       await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu a[href="${destination}"]`).first().click();
-      await waitForDestination(page,base+destination);
+      // Menu còn slug nhóm cũ; runtime đổi URL sang slug cụm theo locale (taxonomy R4).
+      await waitForDestination(page,`${base}/${locale}/advertising-products/?category=${locale==='en'?'displays-booths':'standee-ke-trung-bay'}`);
       const after=await documentSnapshot(page);
       assert.notEqual(after.timeOrigin,before.timeOrigin,'About query route uses native navigation');
       assert.equal(after.length,before.length+1,'query route creates one history entry');
-      assert.equal(await page.evaluate(()=>window.TruongThinhAdvertising?.getBrowseState?.().category),'kiosk-posm','query category preserved');
+      assert.equal(await page.evaluate(()=>window.TruongThinhAdvertising?.getBrowseState?.().category),'displays-booths','query category preserved');
       await saveRecord({kind:'about-query',engine,source,destination,before,after,faults:[]});
     }catch(error){await saveRecord({kind:'about-query',engine,source,destination,error:error.message});}
     finally{await context.close();}
@@ -417,7 +418,7 @@ async function runStates(browser,engine) {
     try {
       await page.goto(`${base}/${locale}/advertising-products/`,{waitUntil:'networkidle'});await page.evaluate(size=>document.documentElement.style.fontSize=`${size}px`,textSize);await ready(page);
       await checkCtaReflow(page,engine,`${locale}: ${textSize}px`);
-      for(const category of ['all',...slugs]) {
+      for(const category of ['all',...ADVERTISING_CATEGORIES.map(({slug})=>slug)]) {
         await page.locator(`[data-advertising-filter="${category}"]`).click();
         await page.waitForFunction(category=>window.TruongThinhAdvertising?.getBrowseState().category===category,category);
         await recordState(page,engine,`${locale}: category ${category}`);

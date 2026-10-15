@@ -11,6 +11,7 @@ import {
   compileAdvertisingProductLayout,
   fnv1a32,
   getVirtualWindow,
+  matchesAdvertisingFilter,
   normalizeAdvertisingProductSettings,
   validateAdvertisingCards,
 } from "./layout-core.mjs";
@@ -185,15 +186,19 @@ export function isAdvertisingQueryOnlyNavigation(previousHref, nextHref) {
     && previous.search !== next.search;
 }
 
+// ?category= nhận id cụm, slug VI/EN, slug nhóm cũ (taxonomy R4) hoặc id sản phẩm; trả id filter hoặc null.
+const resolveAdvertisingFilter = (value, categories, cards) =>
+  categories.find((entry) => [entry.slug, entry.slugVi, entry.slugEn, entry.legacySlug].includes(value))?.slug
+  ?? (cards.some((card) => card.productIds?.includes(value)) ? value : null);
+
 export function parseAdvertisingBrowseLocation(input, { cards = [], categories = [], tagRegistry = [] } = {}) {
   const url = input instanceof URL ? input : new URL(input, "https://invalid.local");
   const cardById = new Map(cards.map((card) => [card.id, card]));
-  const categoryIds = new Set(categories.map((entry) => entry.slug));
   const tagIds = new Set(tagRegistry.map((entry) => entry.id));
   const requestedPhoto = url.searchParams.get("photo");
   const photoRecord = cardById.get(requestedPhoto);
   const requestedCategory = url.searchParams.get("category");
-  const category = photoRecord?.category || (categoryIds.has(requestedCategory) ? requestedCategory : "all");
+  const category = photoRecord?.category || resolveAdvertisingFilter(requestedCategory, categories, cards) || "all";
   const requestedTag = url.searchParams.get("tag");
   return {
     category,
@@ -202,10 +207,13 @@ export function parseAdvertisingBrowseLocation(input, { cards = [], categories =
   };
 }
 
-export function serializeAdvertisingBrowseLocation(input, browse = {}) {
+export function serializeAdvertisingBrowseLocation(input, browse = {}, categories = []) {
   const url = input instanceof URL ? new URL(input.href) : new URL(input, "https://invalid.local");
   for (const key of ["category", "photo", "tag"]) url.searchParams.delete(key);
-  if (browse.category && browse.category !== "all") url.searchParams.set("category", browse.category);
+  // Cụm ghi slug theo locale của URL; id sản phẩm ghi nguyên.
+  const entry = categories.find((item) => item.slug === browse.category);
+  const category = entry?.[url.pathname.startsWith("/en/") ? "slugEn" : "slugVi"] ?? browse.category;
+  if (category && category !== "all") url.searchParams.set("category", category);
   if (browse.photo) url.searchParams.set("photo", browse.photo);
   if (browse.tag) url.searchParams.set("tag", browse.tag);
   return url;
@@ -484,7 +492,7 @@ export function createAdvertisingBrowseHistoryController({
     grid: matchingInitialHistory ? initialHistory.grid : undefined,
     detail: matchingInitialHistory ? initialHistory.detail : undefined,
   });
-  const canonicalInitialUrl = serializeAdvertisingBrowseLocation(currentHref, current);
+  const canonicalInitialUrl = serializeAdvertisingBrowseLocation(currentHref, current, categories);
   const suppliedInitialUrl = new URL(currentHref);
   if (`${canonicalInitialUrl.pathname}${canonicalInitialUrl.search}` !== `${suppliedInitialUrl.pathname}${suppliedInitialUrl.search}`) {
     if (barbaHistoryReady() && typeof barbaHistory.store === "function") {
@@ -526,7 +534,7 @@ export function createAdvertisingBrowseHistoryController({
   };
   const write = (action, browse, reason) => {
     const normalized = normalizeBrowseHistoryState(browse);
-    const url = serializeAdvertisingBrowseLocation(href(), normalized);
+    const url = serializeAdvertisingBrowseLocation(href(), normalized, categories);
     if (barbaHistoryReady() && typeof barbaHistory.add === "function") {
       barbaHistory.add(url.href, "barba", action, {
         [ADVERTISING_BROWSE_STATE_KEY]: normalized,
@@ -629,7 +637,7 @@ export function createAdvertisingBrowseHistoryController({
       }, "photo");
     },
     replaceCategory(category) {
-      const valid = category === "all" || categories.some((entry) => entry.slug === category);
+      const valid = category === "all" || resolveAdvertisingFilter(category, categories, cards) === category;
       if (!valid) return false;
       storeCurrent();
       return write("replace", { ...current, category }, "category");
@@ -642,11 +650,10 @@ export function createAdvertisingBrowseHistoryController({
     },
     returnToGrid({ reason = "navbar" } = {}) {
       const viewedId = current.photo || current.grid.focusId;
-      const viewedCategory = cardById.get(viewedId)?.category;
       // Từ một photo, navbar giữ nhóm đã chọn trên masonry nguồn; vào thẳng photo hoặc grid nhóm thì về All.
       const category = (current.photo && current.grid.category) || "all";
       // Related photo nằm ngoài nhóm đó không có trong masonry, nên quay về photo đã mở từ nó.
-      const focusId = category === "all" || viewedCategory === category ? viewedId : current.grid.focusId;
+      const focusId = matchesAdvertisingFilter(cardById.get(viewedId), category) ? viewedId : current.grid.focusId;
       const returningToOrigin = focusId === current.grid.focusId;
       storeCurrent();
       return write("push", {
@@ -1310,7 +1317,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
   };
-  let filter = new URLSearchParams(location.search).get("category") || "all";
+  let filter = resolveAdvertisingFilter(new URLSearchParams(location.search).get("category"), categories, cards) || "all";
   let currentVisualY = window.scrollY;
   let usesVisualScroll = false;
   let geometry;
@@ -1377,7 +1384,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     gridCtaCopy.style.transform = offset ? `translate3d(0, ${offset.toFixed(2)}px, 0)` : "";
   };
   let hasLaidOut = false;
-  if (!categories.some((entry) => entry.slug === filter)) filter = "all";
 
   const updateLocalizedContent = () => {
     const entries = [
@@ -1397,7 +1403,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         control.className = "project-filter";
         control.dataset.advertisingFilter = entry.slug;
       }
-      control.href = `/${locale}/advertising-products/${entry.slug === "all" ? "" : `?category=${entry.slug}`}`;
+      control.href = `/${locale}/advertising-products/${entry.slug === "all" ? "" : `?category=${locale === "en" ? entry.slugEn : entry.slugVi}`}`;
       control.dataset.en = entry.titleEn;
       control.textContent = locale === "en" ? entry.titleEn : entry.titleVi;
       control.setAttribute("aria-current", String(filter === entry.slug));
@@ -1430,7 +1436,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   relatedGrid?.setAttribute("role", "list");
 
   const geometryRequest = (targetFilter) => {
-    const categoryPool = targetFilter === "all" ? cards : cards.filter((card) => card.category === targetFilter);
+    const categoryPool = cards.filter((card) => matchesAdvertisingFilter(card, targetFilter));
     const presentationOrder = shuffleWithSeed(
       categoryPool,
       browseHistory.current.seed,
@@ -2586,7 +2592,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const ensurePhoto = (id, { focus = false, scrollIntoView = false } = {}) => {
     const card = cards.find((entry) => entry.id === id);
     if (!card) return null;
-    if (filter !== card.category && filter !== "all") setActiveFilter(card.category);
+    if (!matchesAdvertisingFilter(card, filter)) setActiveFilter(card.category);
     if (!geometry) measure();
     const placement = geometry?.placements.find((entry) => entry.card.id === id);
     if (!placement) return null;
@@ -2725,7 +2731,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const syncLocaleLinks = (browse) => {
     document.querySelectorAll("[data-language-option]").forEach((link) => {
-      link.href = serializeAdvertisingBrowseLocation(link.href, browse).href;
+      link.href = serializeAdvertisingBrowseLocation(link.href, browse, categories).href;
     });
   };
   const clearRelatedCards = () => {

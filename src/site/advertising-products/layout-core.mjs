@@ -221,6 +221,10 @@ export function validateAdvertisingCards(cards, options = {}) {
   return cards;
 }
 
+// Filter là "all", id cụm (cụm của sản phẩm chính, taxonomy R1) hoặc id sản phẩm (mọi sản phẩm gắn trên media).
+export const matchesAdvertisingFilter = (card, filter) =>
+  filter === "all" || card?.category === filter || Boolean(card?.productIds?.includes(filter));
+
 const bySource = (left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 const byRank = (left, right) => left.rank - right.rank || left.id.localeCompare(right.id);
 
@@ -737,9 +741,7 @@ export function compileAdvertisingProductLayout(options = {}) {
     return { ...layout, settings };
   }
 
-  const eligibleCards = options.filter && options.filter !== "all"
-    ? cards.filter((card) => card.category === options.filter)
-    : cards;
+  const eligibleCards = options.filter ? cards.filter((card) => matchesAdvertisingFilter(card, options.filter)) : cards;
   const solution = solveAdvertisingOrganicPresentationOrder(eligibleCards, requestedOrder);
   const hardSafe = compileAdvertisingLayout(compileOptions);
   const hardSafeRhythm = scoreAdvertisingOrganicRhythm(hardSafe.placements);
@@ -827,7 +829,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
     else if (!Array.isArray(suppliedInitialColumnBottoms) || suppliedInitialColumnBottoms.length !== columns || suppliedInitialColumnBottoms.some((bottom) => !Number.isFinite(bottom) || bottom < 0)) {
       throw new Error("Invalid initialColumnBottoms: expected one finite non-negative bottom per column");
     } else initialColumnBottoms = suppliedInitialColumnBottoms.slice();
-    if (filter !== "all" && !categoryOrder.includes(filter)) throw new Error(`Unknown advertising filter: ${filter}`);
+    if (filter !== "all" && !categoryOrder.includes(filter) && !cards.some((card) => card.productIds?.includes(filter))) throw new Error(`Unknown advertising filter: ${filter}`);
     ({ outer, interCardGap } = advertisingSpacing(layoutViewportWidth));
   } catch (error) {
     throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: Array.isArray(cards) ? cards.map((card) => card?.id).filter(Boolean) : [], violation: error.message });
@@ -837,7 +839,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
   const cardWidth = (availableWidth - interCardGap * (columns - 1)) / columns;
   if (cardWidth <= 0) throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: [], violation: "Advertising columns do not fit the viewport" });
   const captionPixelHeight = suppliedCaptionPixelHeight ?? (productLayout ? 0 : 10 + (layoutViewportWidth <= 578 ? 15.68 : 17.92));
-  const canonicalPool = (filter === "all" ? cards : cards.filter((card) => card.category === filter)).slice().sort(bySource);
+  const canonicalPool = cards.filter((card) => matchesAdvertisingFilter(card, filter)).sort(bySource);
   let pool = canonicalPool;
   if (requestedPresentationOrder !== undefined) {
     const poolById = new Map(canonicalPool.map((card) => [card.id, card]));

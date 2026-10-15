@@ -1,11 +1,12 @@
 // Dữ liệu phân loại Advertising (spec advertising-taxonomy R1, R2): cụm, sản phẩm, slug và chữ VI/EN.
 // Id nội bộ là slug EN lúc tạo; slug đổi về sau thì giữ id. Thứ tự mảng là thứ tự rail.
+// legacySlug là slug nhóm cũ, `?category=` cũ vẫn lọc đúng cụm (R4).
 // Sản phẩm dưới ngưỡng trang mỏng (R5) không lên rail và không có trang.
 export const ADVERTISING_THIN_PRODUCT_THRESHOLD = 3;
 
 export const ADVERTISING_CLUSTERS = Object.freeze([
   {
-    id: "signage", slugVi: "bang-hieu-quang-cao", slugEn: "signage",
+    id: "signage", slugVi: "bang-hieu-quang-cao", slugEn: "signage", legacySlug: "signage-raised-letters",
     labelVi: "Bảng hiệu, chữ nổi & hộp đèn", labelEn: "Signage, raised letters & light boxes",
     titleVi: "Làm bảng hiệu quảng cáo, chữ nổi, hộp đèn — Trường Thịnh",
     titleEn: "Shop signs, raised letters and light boxes — Trường Thịnh",
@@ -15,7 +16,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     introEn: "Trường Thịnh surveys the frontage, then designs and builds aluminium signs, facades, raised letters, light boxes and projecting signs, from small shops to whole buildings. We serve Vĩnh Long (including former Bến Tre and Trà Vinh), Cần Thơ, Đồng Tháp and the wider Mekong Delta.",
   },
   {
-    id: "displays-booths", slugVi: "standee-ke-trung-bay", slugEn: "displays-booths",
+    id: "displays-booths", slugVi: "standee-ke-trung-bay", slugEn: "displays-booths", legacySlug: "kiosk-posm",
     labelVi: "Standee, kệ trưng bày & gian hàng", labelEn: "Standees, displays & booths",
     titleVi: "Standee, kệ trưng bày, gian hàng triển lãm — Trường Thịnh",
     titleEn: "Standees, display shelving and exhibition booths — Trường Thịnh",
@@ -25,7 +26,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     introEn: "Display pieces for retail and events: standees, backdrops, shelving, cabinets, kiosks, exhibition booths and sampling counters. Our workshop builds the frames, timber and acrylic in house, so each piece follows your size and brand.",
   },
   {
-    id: "printing-decals", slugVi: "in-an-decal", slugEn: "printing-decals",
+    id: "printing-decals", slugVi: "in-an-decal", slugEn: "printing-decals", legacySlug: "print-decals",
     labelVi: "In ấn, decal & menu", labelEn: "Printing, decals & menus",
     titleVi: "In ấn, in decal, menu — Trường Thịnh",
     titleEn: "Printing, decals and menus — Trường Thịnh",
@@ -35,7 +36,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     introEn: "Office print, window and wall decals, banners, canvas prints, menus and printed packaging for cafes and businesses. We print, die-cut and install decals on site.",
   },
   {
-    id: "led-displays", slugVi: "man-hinh-bang-led", slugEn: "led-displays",
+    id: "led-displays", slugVi: "man-hinh-bang-led", slugEn: "led-displays", legacySlug: "led-displays-lightboxes",
     labelVi: "LED decor, màn hình & bảng LED", labelEn: "LED decor, screens & LED signs",
     titleVi: "Màn hình LED, bảng LED chạy chữ — Trường Thịnh",
     titleEn: "LED screens and scrolling LED signs — Trường Thịnh",
@@ -45,7 +46,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     introEn: "LED screens for halls, showrooms, events and building fronts, scrolling LED signs in single colour, three colours or full colour, and decorative LED for interiors.",
   },
   {
-    id: "office-signs", slugVi: "bien-van-phong", slugEn: "office-signs",
+    id: "office-signs", slugVi: "bien-van-phong", slugEn: "office-signs", legacySlug: "office-signs-wayfinding",
     labelVi: "Biển văn phòng, bảng tên & kỷ niệm chương", labelEn: "Office signs, nameplates & awards",
     titleVi: "Biển văn phòng, biển chỉ dẫn, kỷ niệm chương — Trường Thịnh",
     titleEn: "Office signs, wayfinding signs and award plaques — Trường Thịnh",
@@ -55,7 +56,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     introEn: "Sign systems for offices, factories, industrial parks and buildings: house numbers, company nameplates, room signs, wayfinding, directories, desk nameplates and award plaques.",
   },
   {
-    id: "mobile-retail", slugVi: "xe-ban-hang-luu-dong", slugEn: "mobile-retail",
+    id: "mobile-retail", slugVi: "xe-ban-hang-luu-dong", slugEn: "mobile-retail", legacySlug: "mobile-retail",
     labelVi: "Xe & quầy bán hàng lưu động", labelEn: "Mobile carts & counters",
     titleVi: "Xe bán hàng lưu động, quầy bán hàng di động — Trường Thịnh",
     titleEn: "Mobile retail carts and counters — Trường Thịnh",

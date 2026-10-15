@@ -927,6 +927,10 @@ async function runP7PinterestContract(browser, locale) {
         layout: view?.dataset.advertisingPhotoLayout,
         primary: rect("[data-advertising-photo-primary]"), hero: rect("[data-advertising-photo-hero]"),
         info: rect("[data-advertising-photo-info]"), gap: Number.parseFloat(getComputedStyle(primary).gap) || 0,
+        // Sàn info như assertCore: các dòng ngoài pager cộng một dòng mô tả.
+        infoMinimum: [...info.children].filter((node) => node !== pager && !node.hidden && getComputedStyle(node).display !== "none")
+          .reduce((sum, node) => sum + node.getBoundingClientRect().height + (Number.parseFloat(getComputedStyle(info).rowGap) || 0),
+            Number.parseFloat(getComputedStyle(pager.querySelector("[data-advertising-photo-description]") || pager).lineHeight) || 0),
         infoOverflowY: getComputedStyle(info).overflowY, infoOverscroll: getComputedStyle(info).overscrollBehaviorY,
         infoScrollTop: info?.scrollTop || 0, infoScrollHeight: info?.scrollHeight || 0, infoClientHeight: info?.clientHeight || 0,
         pager: pager ? { index: Number(pager.dataset.pageIndex), count: Number(pager.dataset.pageCount),
@@ -951,7 +955,9 @@ async function runP7PinterestContract(browser, locale) {
     assert.equal(initial.span, initial.columns, `${label}: fixture must exercise full-span mode`);
     assert.equal(initial.layout, "pinterest", `${label}: full span did not select Pinterest mode`);
     assert(initial.primary.bottom <= initial.viewportHeight + 1.5, `${label}: primary extends below viewport`);
-    assert(initial.info.height + initial.gap <= initial.viewportHeight * 0.28 + 1.5,
+    // Nhãn cụm dài xuống dòng ở 32px nên sàn info có thể vượt 28%; khi đó info không được cao hơn sàn.
+    const infoCap = Math.max(initial.viewportHeight * 0.28, initial.infoMinimum + initial.gap + 1);
+    assert(initial.info.height + initial.gap <= infoCap + 1.5,
       `${label}: description and gap exceed the viewport-based 28% cap`);
     closeTo(initial.hero.height + initial.gap + initial.info.height, initial.primary.height, `${label}: primary vertical allocation`, 2);
     assert(!["auto", "scroll"].includes(initial.infoOverflowY), `${label}: description retains inner scroll`);
