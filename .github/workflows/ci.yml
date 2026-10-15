@@ -17,7 +17,7 @@ concurrency:
 # Bộ test theo phần website (docs/specs/ci-test-suites.md): chọn bộ, chạy song song, gom thành check static-release.
 jobs:
   select:
-    runs-on: [self-hosted, linux, wsl]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       suites: ${{ steps.select.outputs.suites }}
@@ -36,7 +36,7 @@ jobs:
     needs: select
     if: needs.select.outputs.suites != '[]'
     name: ${{ matrix.suite }}
-    runs-on: [self-hosted, linux, wsl]
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -45,25 +45,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # dest riêng mỗi runner: các instance cùng user dùng chung ~/setup-pnpm nên self-install đè nhau. Đặt trong
-      # tool cache (giữ qua các job, khác runner.temp bị xóa sau mỗi job) để pnpm và store của nó không tải lại; vì
-      # store nằm sẵn trên máy nên bỏ cache pnpm của setup-node (tải 42 MB từ GitHub mất khoảng 40 giây mỗi job).
       - uses: pnpm/action-setup@v6
-        with:
-          dest: ${{ runner.tool_cache }}/setup-pnpm
 
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          package-manager-cache: false
+          cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
       # Script e2e tự đặt browser path về .tooling/browsers khi env trống; trỏ mọi bước về cache của playwright install.
+      # Runner GitHub-hosted trắng mỗi job nên cài Chromium cùng system deps.
       - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
-      - run: pnpm exec playwright install chromium
+      - run: pnpm exec playwright install --with-deps chromium
 
-      # Script tự build, mở preview ở port trống riêng (các runner trên cùng PC dùng chung network) và dọn server.
+      # Script tự build, mở preview ở port trống riêng và dọn server.
       - run: pnpm qa:suite ${{ matrix.suite }}
 
       - name: Upload failure evidence
@@ -81,7 +77,7 @@ jobs:
   static-release:
     needs: [select, suite]
     if: always()
-    runs-on: [self-hosted, linux, wsl]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - run: |
