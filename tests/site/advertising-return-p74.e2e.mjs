@@ -8,7 +8,7 @@ try {
   for (const width of [1567, 920]) {
     const page = await browser.newPage({ viewport: { width, height: 910 } });
     for (const via of ["back", "navbar", "navbar-related"]) {
-      await page.goto(`${base}/vi/advertising-products/?category=office-signs-wayfinding`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(1150));
       await page.waitForTimeout(500);

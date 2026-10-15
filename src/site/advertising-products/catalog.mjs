@@ -19,7 +19,7 @@ const category = ({ slug, titleVi, titleEn, statementVi, statementEn, products }
   products: products.map(([productVi, productEn]) => ({ titleVi: productVi, titleEn: productEn })),
 });
 
-const CATEGORY_TAXONOMY = [
+const LEGACY_CATEGORY_TAXONOMY = [
   category({
     slug: "kiosk-posm",
     titleVi: "Kiosk & POSM",
@@ -159,7 +159,8 @@ validateAdvertisingMediaPool(ADVERTISING_MEDIA_MANIFEST, {
 
 const clusterIdByProductId = new Map(ADVERTISING_PRODUCTS.map((product) => [product.id, product.cluster]));
 
-export const ADVERTISING_CATEGORIES = deepFreeze(CATEGORY_TAXONOMY.map((entry) => {
+// Sáu nhóm cũ chỉ còn cho trang tương thích /advertising-products/<slug cũ>/ (phát hành tĩnh R7).
+export const ADVERTISING_LEGACY_CATEGORIES = deepFreeze(LEGACY_CATEGORY_TAXONOMY.map((entry) => {
   const [coverRecord, ...galleryRecords] = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === entry.slug);
   return {
     ...entry,
@@ -169,6 +170,11 @@ export const ADVERTISING_CATEGORIES = deepFreeze(CATEGORY_TAXONOMY.map((entry) =
     gallery: galleryRecords.slice(0, 2).map(({ media }) => [media.src, media.altVi, media.altEn, media.width, media.height]),
   };
 }));
+
+// Filter và rail theo cụm (taxonomy R3): slug là id cụm, nhãn rail là label đầy đủ của taxonomy.mjs.
+export const ADVERTISING_CATEGORIES = deepFreeze(ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn, legacySlug, labelVi, labelEn }) => ({
+  slug: id, slugVi, slugEn, legacySlug, titleVi: labelVi, titleEn: labelEn,
+})));
 
 const CATEGORY_ORDER = ADVERTISING_CATEGORIES.map((entry) => entry.slug);
 const SOURCE_ADVERTISING_CARDS = ADVERTISING_MEDIA_MANIFEST;
@@ -185,8 +191,8 @@ function selectCardMedia(record) {
   const { mediaItems, coverMediaId } = validateAdvertisingCardMedia(record);
   return {
     ...card,
-    // Fixture test không có productIds; card thật luôn có (validator kiểm).
-    clusterIds: [...new Set((card.productIds ?? []).map((productId) => clusterIdByProductId.get(productId)))],
+    // Card thuộc cụm của sản phẩm chính (taxonomy R1); fixture test không có productIds thì giữ category.
+    category: card.productIds ? clusterIdByProductId.get(card.productIds[0]) : card.category,
     media: selectedMedia,
     mediaItems,
     coverMediaId,
@@ -195,7 +201,13 @@ function selectCardMedia(record) {
 
 function compileCards(cards, categories) {
   const categoryOrder = categories.map((entry) => entry.slug);
-  return scheduleAdvertisingRank(cards.map(selectCardMedia), categoryOrder);
+  // sourceOrder của manifest đếm theo nhóm cũ; đánh lại theo cụm, giữ thứ tự manifest.
+  const nextSourceOrder = new Map();
+  return scheduleAdvertisingRank(cards.map(selectCardMedia).map((card) => {
+    const sourceOrder = nextSourceOrder.get(card.category) ?? 0;
+    nextSourceOrder.set(card.category, sourceOrder + 1);
+    return { ...card, sourceOrder };
+  }), categoryOrder);
 }
 
 function deepFreeze(value) {

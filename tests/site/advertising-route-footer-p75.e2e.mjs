@@ -30,7 +30,7 @@ try {
   const signatures = new Map();
   for (const category of [...filters, ...filters].filter(value => value !== "all")) {
     await page.locator(`[data-advertising-filter="${category}"]`).click();
-    await page.waitForFunction(value => new URL(location.href).searchParams.get("category") === value, category);
+    await page.waitForFunction(value => window.TruongThinhAdvertising.getBrowseState().category === value, category);
     // Chờ khối CTA đứng yên giữa hai lần đọc thay cho 650ms cố định: runner bận còn đang chuyển khi đọc.
     await page.waitForFunction(() => {
       const cta = document.querySelector("[data-advertising-grid-cta]");
