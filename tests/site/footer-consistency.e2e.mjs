@@ -61,7 +61,8 @@ try {
             copyright: footer.querySelectorAll(".footer-bottom").length,
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
-            advertisingBrowse: url.pathname.endsWith("/advertising-products/") && !url.searchParams.has("photo"),
+            // Trang gốc, trang cụm và trang sản phẩm (taxonomy R4) đều là masonry browse.
+            advertisingBrowse: url.pathname.includes("/advertising-products/") && !url.searchParams.has("photo"),
             bodyClass: document.body.className,
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,

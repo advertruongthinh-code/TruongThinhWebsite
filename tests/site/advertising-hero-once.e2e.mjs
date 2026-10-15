@@ -337,8 +337,7 @@ async function runFailedAdapterFallbackCase(browser) {
     ));
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
-      return /^\/(?:vi|en)\/advertising-products\/$/.test(url.pathname)
-        && url.searchParams.get("category") === "standee-ke-trung-bay"
+      return url.pathname === "/vi/advertising-products/standee-ke-trung-bay/"
         && ["document", "fetch", "xhr"].includes(request.resourceType());
     });
     await page.locator('[data-advertising-filter="displays-booths"]').click({ noWaitAfter: true });
@@ -366,8 +365,7 @@ async function runPendingAdapterFailureCase(browser) {
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
       return request.resourceType() === "document"
-        && /^\/(?:vi|en)\/advertising-products\/$/.test(url.pathname)
-        && url.searchParams.get("category") === "standee-ke-trung-bay";
+        && url.pathname === "/vi/advertising-products/standee-ke-trung-bay/";
     });
     rejectCatalog();
     const request = await fallbackRequest;
@@ -407,11 +405,12 @@ try {
   assert.equal(delayed.probe.wordOpacityDrops, 0, "pre-adapter filter click faded hero words again");
   assert.equal(delayed.probe.activeFilter, "printing-decals",
     "latest queued pre-adapter filter intent was not activated after catalog ready");
-  assert.equal(new URL(fallback.url).searchParams.get("category"), "standee-ke-trung-bay",
+  // Rail trỏ tới trang cụm (taxonomy R4), nên fallback anchor mở thẳng trang đó.
+  assert.equal(new URL(fallback.url).pathname, "/vi/advertising-products/standee-ke-trung-bay/",
     "failed adapter kept the synchronous filter queue locked instead of restoring anchor fallback");
   assert.deepEqual(pendingFailure.trafficBeforeReject, [],
     "pending filter escaped before the delayed catalog import rejected");
-  assert.equal(new URL(pendingFailure.request.url).searchParams.get("category"), "standee-ke-trung-bay",
+  assert.equal(new URL(pendingFailure.request.url).pathname, "/vi/advertising-products/standee-ke-trung-bay/",
     "rejected catalog import swallowed the pending filter destination");
 
   assert.deepEqual(ready.queryTraffic, [], "ready filter loop performed document/XHR query navigation");

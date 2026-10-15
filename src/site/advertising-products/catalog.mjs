@@ -6,7 +6,7 @@ import {
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
-import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "./taxonomy.mjs";
+import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "./taxonomy.mjs";
 
 export const ADVERTISING_DATASET_VERSION = "2026-09-24.1";
 
@@ -217,6 +217,22 @@ function deepFreeze(value) {
 }
 
 export const ADVERTISING_CARDS = deepFreeze(compileCards(SOURCE_ADVERTISING_CARDS, ADVERTISING_CATEGORIES));
+
+// Trang tĩnh cụm và sản phẩm (taxonomy R4); sản phẩm dưới ngưỡng trang mỏng không có trang (R5).
+// vi, en là path sau /<locale>/advertising-products/; filter là id cụm hoặc id sản phẩm.
+const clusterById = new Map(ADVERTISING_CLUSTERS.map((cluster) => [cluster.id, cluster]));
+export const ADVERTISING_PAGES = deepFreeze([
+  ...ADVERTISING_CLUSTERS.map((cluster) => ({ ...cluster, filter: cluster.id, cluster: cluster.id, vi: cluster.slugVi, en: cluster.slugEn })),
+  ...ADVERTISING_PRODUCTS
+    .filter(({ id }) => ADVERTISING_CARDS.filter((card) => card.productIds?.includes(id)).length >= ADVERTISING_THIN_PRODUCT_THRESHOLD)
+    .map((product) => {
+      const cluster = clusterById.get(product.cluster);
+      return {
+        ...product, filter: product.id, descriptionVi: product.introVi, descriptionEn: product.introEn,
+        vi: `${cluster.slugVi}/${product.slugVi}`, en: `${cluster.slugEn}/${product.slugEn}`,
+      };
+    }),
+]);
 
 export function compileAdvertisingLayout(options = {}) {
   return compileLayout({

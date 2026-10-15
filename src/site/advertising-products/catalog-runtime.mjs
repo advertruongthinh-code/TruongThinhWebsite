@@ -191,14 +191,25 @@ const resolveAdvertisingFilter = (value, categories, cards) =>
   categories.find((entry) => [entry.slug, entry.slugVi, entry.slugEn, entry.legacySlug].includes(value))?.slug
   ?? (cards.some((card) => card.productIds?.includes(value)) ? value : null);
 
-export function parseAdvertisingBrowseLocation(input, { cards = [], categories = [], tagRegistry = [] } = {}) {
+// Trang cụm, sản phẩm (taxonomy R4) đặt filter theo path /<locale>/advertising-products/<cụm>/[<sản phẩm>/].
+const ADVERTISING_PAGE_PATTERN = /^\/(?:vi|en)\/advertising-products\/([^/]+)\/(?:([^/]+)\/)?$/;
+const advertisingPathFilter = (pathname, categories, products) => {
+  const [, clusterSlug, productSlug] = pathname.match(ADVERTISING_PAGE_PATTERN) || [];
+  if (!clusterSlug) return null;
+  const cluster = categories.find((entry) => entry.slugVi === clusterSlug || entry.slugEn === clusterSlug);
+  if (!cluster || !productSlug) return cluster?.slug ?? null;
+  return products.find((entry) => entry.cluster === cluster.slug && (entry.slugVi === productSlug || entry.slugEn === productSlug))?.id ?? null;
+};
+
+export function parseAdvertisingBrowseLocation(input, { cards = [], categories = [], products = [], tagRegistry = [] } = {}) {
   const url = input instanceof URL ? input : new URL(input, "https://invalid.local");
   const cardById = new Map(cards.map((card) => [card.id, card]));
   const tagIds = new Set(tagRegistry.map((entry) => entry.id));
   const requestedPhoto = url.searchParams.get("photo");
   const photoRecord = cardById.get(requestedPhoto);
   const requestedCategory = url.searchParams.get("category");
-  const category = photoRecord?.category || resolveAdvertisingFilter(requestedCategory, categories, cards) || "all";
+  const category = photoRecord?.category || resolveAdvertisingFilter(requestedCategory, categories, cards)
+    || advertisingPathFilter(url.pathname, categories, products) || "all";
   const requestedTag = url.searchParams.get("tag");
   return {
     category,
@@ -207,13 +218,16 @@ export function parseAdvertisingBrowseLocation(input, { cards = [], categories =
   };
 }
 
-export function serializeAdvertisingBrowseLocation(input, browse = {}, categories = []) {
+export function serializeAdvertisingBrowseLocation(input, browse = {}, categories = [], products = []) {
   const url = input instanceof URL ? new URL(input.href) : new URL(input, "https://invalid.local");
   for (const key of ["category", "photo", "tag"]) url.searchParams.delete(key);
+  // Trang cụm, sản phẩm: filter trùng path thì không ghi ?category=, khác thì về URL gốc /<locale>/advertising-products/.
+  const pathFilter = advertisingPathFilter(url.pathname, categories, products);
+  if (pathFilter && pathFilter !== browse.category) url.pathname = `${url.pathname.slice(0, 4)}advertising-products/`;
   // Cụm ghi slug theo locale của URL; id sản phẩm ghi nguyên.
   const entry = categories.find((item) => item.slug === browse.category);
   const category = entry?.[url.pathname.startsWith("/en/") ? "slugEn" : "slugVi"] ?? browse.category;
-  if (category && category !== "all") url.searchParams.set("category", category);
+  if (category && category !== "all" && browse.category !== pathFilter) url.searchParams.set("category", category);
   if (browse.photo) url.searchParams.set("photo", browse.photo);
   if (browse.tag) url.searchParams.set("tag", browse.tag);
   return url;
@@ -433,6 +447,7 @@ export function readAdvertisingBrowseHistoryState(browserState) {
 export function createAdvertisingBrowseHistoryController({
   cards = [],
   categories = [],
+  products = [],
   tagRegistry = [],
   barbaHistory,
   browserHistory,
@@ -450,7 +465,7 @@ export function createAdvertisingBrowseHistoryController({
   getLogicalScroll = () => 0,
   onApply = () => {},
 } = {}) {
-  const schema = { cards, categories, tagRegistry };
+  const schema = { cards, categories, products, tagRegistry };
   const cardById = new Map(cards.map((card) => [card.id, card]));
   const nativeHistory = browserHistory || globalThis.history;
   const href = getHref || (() => globalThis.location.href);
@@ -492,7 +507,7 @@ export function createAdvertisingBrowseHistoryController({
     grid: matchingInitialHistory ? initialHistory.grid : undefined,
     detail: matchingInitialHistory ? initialHistory.detail : undefined,
   });
-  const canonicalInitialUrl = serializeAdvertisingBrowseLocation(currentHref, current, categories);
+  const canonicalInitialUrl = serializeAdvertisingBrowseLocation(currentHref, current, categories, products);
   const suppliedInitialUrl = new URL(currentHref);
   if (`${canonicalInitialUrl.pathname}${canonicalInitialUrl.search}` !== `${suppliedInitialUrl.pathname}${suppliedInitialUrl.search}`) {
     if (barbaHistoryReady() && typeof barbaHistory.store === "function") {
@@ -534,7 +549,7 @@ export function createAdvertisingBrowseHistoryController({
   };
   const write = (action, browse, reason) => {
     const normalized = normalizeBrowseHistoryState(browse);
-    const url = serializeAdvertisingBrowseLocation(href(), normalized, categories);
+    const url = serializeAdvertisingBrowseLocation(href(), normalized, categories, products);
     if (barbaHistoryReady() && typeof barbaHistory.add === "function") {
       barbaHistory.add(url.href, "barba", action, {
         [ADVERTISING_BROWSE_STATE_KEY]: normalized,
@@ -1172,6 +1187,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const categories = artifact.categories;
+  const products = artifact.products || [];
   const cards = artifact.cards;
   const categoryOrder = categories.map((entry) => entry?.slug);
   try {
@@ -1317,7 +1333,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
   };
-  let filter = resolveAdvertisingFilter(new URLSearchParams(location.search).get("category"), categories, cards) || "all";
+  let filter = resolveAdvertisingFilter(new URLSearchParams(location.search).get("category"), categories, cards)
+    || advertisingPathFilter(location.pathname, categories, products) || "all";
   let currentVisualY = window.scrollY;
   let usesVisualScroll = false;
   let geometry;
@@ -1403,7 +1420,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         control.className = "project-filter";
         control.dataset.advertisingFilter = entry.slug;
       }
-      control.href = `/${locale}/advertising-products/${entry.slug === "all" ? "" : `?category=${locale === "en" ? entry.slugEn : entry.slugVi}`}`;
+      control.href = `/${locale}/advertising-products/${entry.slug === "all" ? "" : `${locale === "en" ? entry.slugEn : entry.slugVi}/`}`;
       control.dataset.en = entry.titleEn;
       control.textContent = locale === "en" ? entry.titleEn : entry.titleVi;
       control.setAttribute("aria-current", String(filter === entry.slug));
@@ -2731,7 +2748,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const syncLocaleLinks = (browse) => {
     document.querySelectorAll("[data-language-option]").forEach((link) => {
-      link.href = serializeAdvertisingBrowseLocation(link.href, browse, categories).href;
+      link.href = serializeAdvertisingBrowseLocation(link.href, browse, categories, products).href;
     });
   };
   const clearRelatedCards = () => {
@@ -3461,6 +3478,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const browseHistory = createAdvertisingBrowseHistoryController({
     cards,
     categories,
+    products,
     tagRegistry: artifact.tagRegistry || [],
     barbaHistory: window.barba?.history,
     browserHistory: window.history,

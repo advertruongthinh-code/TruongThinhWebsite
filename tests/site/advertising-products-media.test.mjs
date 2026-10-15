@@ -377,11 +377,11 @@ const PLAN_RELABELS = {
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
 
-test("taxonomy has six clusters and 23 products in plan order with a thin-page threshold of 3", () => {
+test("taxonomy has six clusters and 23 products in plan order with a thin-page threshold of 9", () => {
   assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
   assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
   assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");
-  assert.equal(ADVERTISING_THIN_PRODUCT_THRESHOLD, 3);
+  assert.equal(ADVERTISING_THIN_PRODUCT_THRESHOLD, 9);
 });
 
 test("every old product tag becomes a variant that maps to its plan product", () => {

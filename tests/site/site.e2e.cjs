@@ -16,6 +16,9 @@ const ADVERTISING_CATEGORY_SLUGS = ["kiosk-posm", "mobile-retail", "signage-rais
 const CANONICAL_ROUTES = [
   ...ROUTES,
   ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/vi/advertising-products/${slug}/`),
+  // Trang cụm (taxonomy R4) mà rail trang gốc link tới.
+  ...["bang-hieu-quang-cao", "standee-ke-trung-bay", "in-an-decal", "man-hinh-bang-led", "bien-van-phong", "xe-ban-hang-luu-dong"]
+    .map((slug) => `/vi/advertising-products/${slug}/`),
 ];
 const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
 const VIEWPORTS = [
@@ -7272,8 +7275,8 @@ async function runAdvertisingMediaFocusedChecks() {
 async function runAdvertisingCompatibilityChecks() {
   const { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
   const categoryTitles = new Map(ADVERTISING_LEGACY_CATEGORIES.map((category) => [category.slug, { vi: category.titleVi, en: category.titleEn }]));
-  // Runtime đổi slug nhóm cũ sang slug cụm theo locale (taxonomy R4).
-  const clusterSlug = (slug, locale) => ADVERTISING_CATEGORIES.find((category) => category.legacySlug === slug)?.[locale === "en" ? "slugEn" : "slugVi"];
+  // Trang tương thích chuyển tới trang cụm mới theo slug của locale (taxonomy R4); EN mobile-retail là chính trang cụm.
+  const clusterPath = (slug, locale) => `/${locale}/advertising-products/${ADVERTISING_CATEGORIES.find((category) => category.legacySlug === slug)?.[locale === "en" ? "slugEn" : "slugVi"]}/`;
   for (const locale of ["vi", "en"]) {
     for (const slug of ADVERTISING_CATEGORY_SLUGS) {
       await runPageCase(
@@ -7284,9 +7287,9 @@ async function runAdvertisingCompatibilityChecks() {
           await gotoRoute(page, `/${locale}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`);
           const url = new URL(page.url());
           assert(
-            url.origin === BASE_ORIGIN && canonicalPathname(url) === `/${locale}/advertising-products/` &&
-              url.searchParams.get("category") === clusterSlug(slug, locale) && !url.searchParams.has("photo") && !url.searchParams.has("tag"),
-            `${locale}/${slug} did not cleanly replace to its parent category query: ${url}`,
+            url.origin === BASE_ORIGIN && canonicalPathname(url) === clusterPath(slug, locale) &&
+              !url.searchParams.has("category") && !url.searchParams.has("photo") && !url.searchParams.has("tag"),
+            `${locale}/${slug} did not cleanly replace to its cluster page: ${url}`,
           );
           const photoState = await page.locator("[data-advertising-photo-view]").evaluate((view) => ({ hidden: view.hidden, active: view.dataset.advertisingPhotoId || null }));
           assert(photoState.hidden && !photoState.active, `compatibility route must leave the reusable photo view inactive: ${JSON.stringify(photoState)}`);
@@ -7302,14 +7305,14 @@ async function runAdvertisingCompatibilityChecks() {
       async (page) => {
         const response = await page.request.get(pageUrl(`/${locale}/advertising-products/${slug}/`));
         const html = await response.text();
-        assert(response.ok() && /<link\b[^>]*rel="canonical"[^>]*href="\.\.\/"/i.test(html) && /<noscript[\s>]/i.test(html) && new RegExp(`category=${slug}`).test(html) && html.replaceAll("&amp;", "&").includes(categoryTitles.get(slug)?.[locale]), `${locale}/${slug} raw localized fallback drifted`);
+        assert(response.ok() && html.includes(`<link rel="canonical" href="${clusterPath(slug, locale)}"`) && /<noscript[\s>]/i.test(html) && html.includes(`url=${clusterPath(slug, locale)}`) && html.replaceAll("&amp;", "&").includes(categoryTitles.get(slug)?.[locale]), `${locale}/${slug} raw localized fallback drifted`);
       },
     );
     const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
     const noJsPage = await context.newPage();
     try {
       await noJsPage.goto(pageUrl(`/${locale}/advertising-products/${slug}/`), { waitUntil: "domcontentloaded" });
-      await noJsPage.waitForURL((url) => canonicalPathname(url) === `/${locale}/advertising-products/` && url.searchParams.get("category") === slug, { timeout: 5_000 });
+      await noJsPage.waitForURL((url) => canonicalPathname(url) === clusterPath(slug, locale), { timeout: 5_000 });
     } finally { await context.close(); }
   }
 }
