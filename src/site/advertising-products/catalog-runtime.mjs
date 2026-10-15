@@ -236,21 +236,32 @@ export function serializeAdvertisingBrowseLocation(input, browse = {}, categorie
 const compareRelatedSource = (left, right) =>
   left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 
-export function selectAdvertisingRelated({ cards = [], categoryOrder = [], heroId, tag = null } = {}) {
+export function selectAdvertisingRelated({ cards = [], categoryOrder = [], heroId, tag = null, seed = null } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
-  const categoryRank = new Map(categoryOrder.map((category, index) => [category, index]));
-  const related = cards.filter((card) => {
-    if (card.id === hero.id) return false;
-    if (!tag) return card.category === hero.category;
-    return Array.isArray(card.tagIds) && card.tagIds.includes(tag);
-  });
-  if (!tag) return related.sort(compareRelatedSource);
-  return related.sort((left, right) =>
-    (categoryRank.get(left.category) ?? Number.MAX_SAFE_INTEGER)
-      - (categoryRank.get(right.category) ?? Number.MAX_SAFE_INTEGER)
-    || compareRelatedSource(left, right));
+  // Tầng điểm build sẵn trong artifact (taxonomy R7); card thiếu related (fixture) dùng một tầng cùng cụm.
+  const cardById = new Map(cards.map((card) => [card.id, card]));
+  let tiers = hero.related?.map((ids) => ids.map((id) => cardById.get(id)).filter(Boolean))
+    ?? [cards.filter((card) => card.id !== hero.id && card.category === hero.category).sort(compareRelatedSource)];
+  if (tag) {
+    const hasTag = (card) => Array.isArray(card.tagIds) && card.tagIds.includes(tag);
+    const ranked = new Set(tiers.flat());
+    const categoryRank = new Map(categoryOrder.map((category, index) => [category, index]));
+    // Card mang tag ngoài láng giềng xếp sau, theo thứ tự cụm rồi sourceOrder như trước.
+    const rest = cards.filter((card) => card.id !== hero.id && !ranked.has(card) && hasTag(card)).sort((left, right) =>
+      (categoryRank.get(left.category) ?? Number.MAX_SAFE_INTEGER)
+        - (categoryRank.get(right.category) ?? Number.MAX_SAFE_INTEGER)
+      || compareRelatedSource(left, right));
+    tiers = [...tiers.map((tier) => tier.filter(hasTag)), rest];
+  }
+  // Seed chỉ xáo trong một tầng để thứ tự điểm giữ nguyên.
+  return tiers.flatMap((tier, index) => seed === null
+    ? tier
+    : shuffleWithSeed(tier, seed, `related:${heroId}:${tag || "all"}:${index}`));
 }
+
+// Nút gợi ý lấy từ sản phẩm (tag nhóm product, taxonomy R7) và tag của ảnh.
+const SUGGESTION_TAG_GROUPS = new Set(["product", "variant", "use"]);
 
 export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = null, limit = 4, tagRegistry = [] } = {}) {
   const hero = cards.find((card) => card.id === heroId);
@@ -264,11 +275,11 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
     .sort(compareRelatedSource);
   const authored = (hero.tagIds || [])
     .map((tagId) => tagById.get(tagId))
-    .filter((tag) => tag && ["variant", "use"].includes(tag.group) && matchingCards(tag.id).length > 0);
+    .filter((tag) => tag && SUGGESTION_TAG_GROUPS.has(tag.group) && matchingCards(tag.id).length > 0);
   const authoredIds = new Set(authored.map((tag) => tag.id));
   const contextual = tagRegistry
     .filter((tag) => !authoredIds.has(tag.id)
-      && ["variant", "use"].includes(tag.group)
+      && SUGGESTION_TAG_GROUPS.has(tag.group)
       && matchingCards(tag.id).some((card) => card.category === hero.category))
     .map((tag) => ({ tag, hash: fnv1a32(`${hero.id}:${tag.id}`) }))
     .sort((left, right) => left.hash - right.hash || left.tag.id.localeCompare(right.tag.id))
@@ -281,7 +292,12 @@ export function selectAdvertisingSuggestions({ cards = [], heroId, activeTag = n
     if (activeIndex >= suggestionLimit) suggestions.splice(activeIndex, 1);
     if (activeIndex < 0 || activeIndex >= suggestionLimit) suggestions.splice(suggestionLimit - 1, 0, active);
   }
-  const uniqueSuggestions = [...new Map(suggestions.map((tag) => [tag.id, tag])).values()];
+  // Tag cũ trùng nhãn với sản phẩm chỉ giữ một nút: nút đầu tiên, trừ khi tag sau đang bật.
+  const byLabel = new Map();
+  for (const tag of suggestions) {
+    if (!byLabel.has(tag.labelVi) || tag.id === active?.id) byLabel.set(tag.labelVi, tag);
+  }
+  const uniqueSuggestions = [...byLabel.values()];
   const usedRepresentatives = new Set();
   return uniqueSuggestions.slice(0, suggestionLimit).map((tag) => {
     const matches = matchingCards(tag.id);
@@ -306,10 +322,7 @@ export function compileAdvertisingRelatedLayout({
 } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) throw new Error("Related layout requires a known photo");
-  const relatedPool = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag });
-  const related = seed === null
-    ? relatedPool
-    : shuffleWithSeed(relatedPool, seed, `related:${heroId}:${tag || "all"}`);
+  const related = selectAdvertisingRelated({ cards, categoryOrder, heroId, tag, seed });
   const preferredColumns = Number.isInteger(requestedColumns) && requestedColumns >= 1 && requestedColumns <= 4
     ? requestedColumns : columnsForWidth(layoutViewportWidth);
   const columns = preferredColumns;

@@ -102,8 +102,8 @@ Then ảnh A crossfade sang B tại khung primary trong 0.6s, không skeleton
 
 ### R5. Suggestion
 
-`selectAdvertisingSuggestions` chọn tối đa bốn tag nhóm `variant` hoặc `use` có ảnh: tag gắn trên ảnh trước, sau đó tag có
-ảnh cùng nhóm theo thứ tự băm `fnv1a32("<photo>:<tag>")`; tag đang chọn luôn có chỗ. Thứ tự cố định theo photo, không theo
+`selectAdvertisingSuggestions` chọn tối đa bốn tag nhóm `product`, `variant` hoặc `use` có ảnh, mỗi nhãn một nút: tag gắn
+trên ảnh trước (sản phẩm đứng đầu), sau đó tag có ảnh cùng nhóm theo thứ tự băm `fnv1a32("<photo>:<tag>")`; tag đang chọn luôn có chỗ. Thứ tự cố định theo photo, không theo
 locale; bật, tắt tag không đổi vị trí nút. Mỗi nút một dòng, nhãn VI/EN, `aria-pressed`; nút đang bật nền trắng, chữ và viền
 đen, không ảnh. Bấm nút bật tag (bấm lại thì tắt) bằng `replaceTag`: `replaceState`, không thêm entry, giữ ảnh primary, đổi
 related; focus về nút. Không có tag nào thì ẩn khối. Ở `split` khối nằm cuối info; ở `pinterest` là card đầu related
@@ -136,9 +136,9 @@ And nút đang bật giữ nguyên ảnh
 
 ### R7. Related
 
-`selectAdvertisingRelated`: không tag thì mọi ảnh cùng nhóm trừ ảnh đang xem; có tag thì mọi ảnh mang tag ở mọi nhóm, trừ
-ảnh đang xem; pool rỗng thì related trống, không thông báo.
-`compileAdvertisingRelatedLayout` xáo pool theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>`, xếp bằng
+`selectAdvertisingRelated`: không tag thì pool và thứ tự theo tầng điểm của [taxonomy R7](advertising-taxonomy.md#r7-related-có-thể-bạn-thích); có tag thì
+card mang tag trong các tầng đó trước, rồi card mang tag còn lại theo thứ tự nhóm; pool rỗng thì related trống, không thông báo.
+`compileAdvertisingRelatedLayout` xáo trong từng tầng theo seed của lượt duyệt và khóa `related:<photo>:<tag|all>:<tầng>`, xếp bằng
 solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí) với các cột của primary đã chiếm sẵn: `split` thử đặt
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy

@@ -179,12 +179,10 @@ assert.match(siteCss, /media-hover-zoom-trigger:not\(\[aria-pressed="true"\]\):h
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*advertising-card-media__image[\s\S]*transform: none !important;/, "shared media zoom has a reduced-motion path");
 assert.match(runtime, /const nextTag = browseHistory\.current\.tag === tag \? null : tag/, "clicking the current suggestion tag should toggle it off through replaceState history");
 const sameCategory = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id });
-assert.ok(sameCategory.length > 0 && sameCategory.every((card) => card.category === samplingHero.category && card.id !== samplingHero.id));
-assert.deepEqual(
-  sameCategory.map((card) => [card.sourceOrder, card.id]),
-  [...sameCategory].sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id)).map((card) => [card.sourceOrder, card.id]),
-  "reset/no-tag order is stable within the hero category",
-);
+assert.ok(sameCategory.length > 0 && sameCategory.every((card) => card.id !== samplingHero.id
+  && (card.category === samplingHero.category || card.productIds.includes(samplingHero.productIds[0]))));
+assert.deepEqual(sameCategory, samplingHero.related.flat().map((id) => artifact.cards.find((card) => card.id === id)),
+  "reset/no-tag order follows the build-time score tiers (taxonomy R7)");
 const samplingRelated = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "use-sampling" });
 assert.ok(samplingRelated.some((card) => card.id === samplingCrossGroup.id), "authored sampling tag must cross category groups");
 assert.ok(samplingRelated.every((card) => card.id !== samplingHero.id), "hero cannot appear in related results");

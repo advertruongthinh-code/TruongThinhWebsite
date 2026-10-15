@@ -6,7 +6,7 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } f
 
 // Runtime đọc window lúc import; test chỉ dùng hàm thuần nên gán window rỗng.
 globalThis.window ??= {};
-const { parseAdvertisingBrowseLocation, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+const { parseAdvertisingBrowseLocation, selectAdvertisingRelated, selectAdvertisingSuggestions, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
 const read = (path) => readFile(new URL(`../../.site-output/${path}`, import.meta.url), "utf8");
 const artifact = buildAdvertisingArtifact();
 
@@ -70,4 +70,16 @@ test("taxonomy R4: trang gốc trong artifact.pages khớp title và kicker củ
   const root = artifact.pages.find(({ filter }) => filter === "all");
   assert.match(html, new RegExp(`<title data-en="${root.titleEn}">\\s*${root.titleVi}\\s*</title>`));
   assert.match(html, new RegExp(`data-en="${root.labelEn}"\\s*>\\s*${root.labelVi}\\s*</p>`, "i"));
+});
+
+test("taxonomy R7: related của ảnh Kỷ niệm chương đặt card Kỷ niệm chương trước card khác cùng cụm; nút gợi ý có sản phẩm", () => {
+  const hero = artifact.cards.find((card) => card.productIds[0] === "office-signs/awards-plaques");
+  const related = selectAdvertisingRelated({ cards: artifact.cards, heroId: hero.id, seed: "r7" });
+  const isAward = (card) => card.productIds.includes("office-signs/awards-plaques");
+  const firstOther = related.findIndex((card) => !isAward(card));
+  assert.ok(firstOther > 0 && related.slice(firstOther).every((card) => !isAward(card) && card.category === hero.category));
+  assert.equal(related.length, artifact.cards.filter((card) => card !== hero && (isAward(card) || card.category === hero.category)).length);
+  const suggestions = selectAdvertisingSuggestions({ cards: artifact.cards, heroId: hero.id, tagRegistry: artifact.tagRegistry });
+  assert.equal(suggestions[0].tag.id, "office-signs/awards-plaques");
+  assert.equal(new Set(suggestions.map(({ tag }) => tag.labelVi)).size, suggestions.length, "không có hai nút trùng nhãn");
 });

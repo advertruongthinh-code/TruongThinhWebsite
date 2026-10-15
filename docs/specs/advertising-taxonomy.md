@@ -20,7 +20,7 @@ URL riêng để Google index. Phân loại là dữ liệu sửa được, khô
 người hoặc AI sửa. EmbeddingGemma 2 chấm điểm ảnh để gợi ý gắn loại và xếp related. Spec planned: intent
 owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, owner duyệt spec 2026-10-12; đã có dữ liệu
 và validator R2; rail một tầng sáu cụm và filter cụm, sản phẩm đã chạy ([masonry R2, R3](advertising-masonry.md#r3-filter)),
-chưa có trang R4, rail hai tầng, related R7.
+đã có trang R4 và related R7 theo tag; chưa có rail hai tầng, vector R6.
 
 ## Hành vi
 
@@ -168,8 +168,8 @@ Then script in ba sản phẩm điểm cao nhất kèm điểm, không sửa fil
 ### R7. Related "Có thể bạn thích"
 
 Thay [detail R7](advertising-detail.md#r7-related) phần chọn pool: không tag thì pool là card cùng sản phẩm chính
-với ảnh đang xem, rồi card cùng cụm; có tag thì mọi card mang tag như hiện tại. Trong pool, card xếp theo điểm giảm dần
-rồi đưa vào solver. Điểm cộng ba phần giống ứng viên của CMS (spec `cms-cards` R4 phase 2): độ giống vector, số tag
+với ảnh đang xem, rồi card cùng cụm; có tag thì card mang tag trong pool đó trước, rồi mọi card mang tag còn lại. Trong
+pool, card xếp theo điểm giảm dần rồi đưa vào solver; seed của lượt duyệt chỉ xáo các card cùng điểm. Điểm cộng ba phần giống ứng viên của CMS (spec `cms-cards` R4 phase 2): độ giống vector, số tag
 chung, cùng sản phẩm hoặc cụm; card không có vector chỉ có hai phần sau. Phase tĩnh tự lấy theo điểm; phase CMS người
 duyệt ứng viên và chọn top 4 xuất bản, điểm này là thứ tự gợi ý ban đầu.
 Danh sách láng giềng tính lúc build, ghi vào artifact; trình duyệt không tải vector. Suggestion
@@ -209,7 +209,7 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
 | Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4 |
 | DOM hook | `[data-advertising-filter]` | giữ cho cụm; thêm hook cho sản phẩm và danh sách hover, tên chốt trong plan |
-| Artifact | `catalog-artifact.mjs` | `clusters`, `products`; card có `productIds`, `category` là cụm của sản phẩm chính; láng giềng related chưa có |
+| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `category` là cụm của sản phẩm chính, `related` là id láng giềng theo tầng điểm giảm dần (R7) |
 
 ## UI
 
@@ -223,10 +223,10 @@ Không đổi typography hay layout ngoài rail.
 | --- | --- |
 | R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo sản phẩm chính và lọc sản phẩm) |
 | R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path); chưa có test rail hai tầng, chip sản phẩm |
-| R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm); chưa có test đổi URL thành path khi bấm (T5) |
+| R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm) |
 | R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang); chưa có test rail theo ngưỡng |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |
-| R7 | chưa có test (thứ tự related theo điểm) |
+| R7 | `advertising-pages.test.mjs` (Kỷ niệm chương đứng trước, nút gợi ý theo sản phẩm), `advertising-products-static.test.mjs` (thứ tự theo tầng); chưa có test điểm vector (T8) |
 | R8 | `advertising-products-media.test.mjs` (sửa nhãn); chưa có test cho ảnh bổ sung, provenance |
 
 ## Gate còn mở

@@ -193,6 +193,8 @@ function selectCardMedia(record) {
     ...card,
     // Card thuộc cụm của sản phẩm chính (taxonomy R1); fixture test không có productIds thì giữ category.
     category: card.productIds ? clusterIdByProductId.get(card.productIds[0]) : card.category,
+    // Sản phẩm của ảnh cũng là tag nhóm product, nên ?tag= và nút gợi ý chạy với sản phẩm mới (taxonomy R7).
+    ...(card.productIds ? { tagIds: [...card.productIds, ...card.tagIds] } : {}),
     media: selectedMedia,
     mediaItems,
     coverMediaId,
@@ -248,6 +250,32 @@ export function compileAdvertisingLayout(options = {}) {
   });
 }
 
+// Tag nhóm product sinh từ taxonomy, đứng trước tag cũ trong artifact.
+const ARTIFACT_TAG_REGISTRY = [
+  ...ADVERTISING_PRODUCTS.map(({ id, labelVi, labelEn }) => ({ id, group: "product", labelVi, labelEn })),
+  ...ADVERTISING_TAG_REGISTRY,
+];
+const RELATED_TAG_GROUPS = new Set(["product", "variant", "use", "service"]);
+const tagGroupById = new Map(ARTIFACT_TAG_REGISTRY.map((tag) => [tag.id, tag.group]));
+
+// Láng giềng related (taxonomy R7): card chứa sản phẩm chính của ảnh trước, rồi card cùng cụm; trong mỗi phần
+// điểm là số tag chung (bỏ tag khung hình). Ghi id card theo tầng điểm giảm dần; runtime chỉ xáo trong một tầng.
+function attachRelated(cards) {
+  return cards.map((hero) => {
+    const heroTags = new Set((hero.tagIds || []).filter((id) => RELATED_TAG_GROUPS.has(tagGroupById.get(id))));
+    const primary = hero.productIds?.[0];
+    const tiers = new Map();
+    for (const card of cards) {
+      const samePrimary = Boolean(primary) && Boolean(card.productIds?.includes(primary));
+      if (card === hero || (!samePrimary && card.category !== hero.category)) continue;
+      // 1000 lớn hơn mọi số tag chung, nên card cùng sản phẩm chính luôn đứng trước.
+      const score = (samePrimary ? 1000 : 0) + (card.tagIds || []).filter((id) => heroTags.has(id)).length;
+      tiers.set(score, [...(tiers.get(score) || []), card.id]);
+    }
+    return { ...hero, related: [...tiers].sort(([left], [right]) => right - left).map(([, ids]) => ids) };
+  });
+}
+
 /** @param {any} [options] */
 export function buildAdvertisingArtifact(options = {}) {
   const { categories = ADVERTISING_CATEGORIES, cards = SOURCE_ADVERTISING_CARDS } = options;
@@ -257,13 +285,13 @@ export function buildAdvertisingArtifact(options = {}) {
     datasetVersion: ADVERTISING_DATASET_VERSION,
     layoutAlgorithmVersion: ADVERTISING_LAYOUT_ALGORITHM_VERSION,
     settings,
-    tagRegistry: ADVERTISING_TAG_REGISTRY,
+    tagRegistry: ARTIFACT_TAG_REGISTRY,
     categories,
     clusters: ADVERTISING_CLUSTERS,
     products: ADVERTISING_PRODUCTS,
     // Trang gốc (filter "all", path rỗng) cùng trang cụm, sản phẩm: runtime đổi path, title và kicker theo filter.
     pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES]
       .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn }) => ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn })),
-    cards: compiledCards,
+    cards: attachRelated(compiledCards),
   });
 }
