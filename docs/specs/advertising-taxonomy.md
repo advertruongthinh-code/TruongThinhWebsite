@@ -7,6 +7,7 @@ tests:
   - tests/site/advertising-products-media.test.mjs
   - tests/site/advertising-random-browse.e2e.mjs
   - tests/site/advertising-pages.test.mjs
+  - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
 updated: 2026-10-15
 ---
@@ -19,8 +20,8 @@ Trang Advertising lọc theo sáu cụm khái niệm và các sản phẩm cụ 
 URL riêng để Google index. Phân loại là dữ liệu sửa được, không hard-code trong code render; phase CMS cho
 người hoặc AI sửa. EmbeddingGemma 2 chấm điểm ảnh để gợi ý gắn loại và xếp related. Spec planned: intent
 owner đã chốt qua `interview-me` 2026-10-11, cây R1 chọn theo nghiên cứu SEO 2026-10-12, owner duyệt spec 2026-10-12; đã có dữ liệu
-và validator R2; rail một tầng sáu cụm và filter cụm, sản phẩm đã chạy ([masonry R2, R3](advertising-masonry.md#r3-filter)),
-đã có trang R4 và related R7 theo tag; chưa có rail hai tầng, vector R6.
+và validator R2; filter cụm, sản phẩm đã chạy ([masonry R2, R3](advertising-masonry.md#r3-filter)),
+đã có rail hai tầng R3, trang R4 và related R7 theo tag; chưa có vector R6.
 
 ## Hành vi
 
@@ -91,12 +92,16 @@ và hiện hàng chip sản phẩm của cụm bên dưới; bấm chip hoặc m
 chọn có `aria-current="true"`. Điện thoại: chạm cụm lọc cụm và hiện hàng chip cuộn ngang; không có danh sách
 hover. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
 document, `replaceState`, card chuyển vị trí); URL thành path trang đích, đổi luôn `document.title` và kicker (h1 của trang tĩnh) theo trang
-đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Sản phẩm dưới ngưỡng R5 không lên rail. Hình ảnh rail theo thiết kế Impeccable owner duyệt (Gate còn mở).
+đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Sản phẩm dưới ngưỡng R5 không lên rail.
+Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
+sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
+([Filter](../../design-system/components/Filter/README.md)): danh sách chỉ có trên PC từ 1025px dùng chuột; hàng
+chip thay chỗ chữ "Cuộn xuống" từ 1025px, nằm ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip.
 
 ```gherkin
 Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng
-When hover cụm "LED decor, màn hình & bảng LED" rồi bấm "Bảng LED chạy chữ" trong danh sách
-Then URL thành /vi/advertising-products/man-hinh-bang-led/bang-led-chay-chu/ bằng replaceState
+When hover cụm "Bảng hiệu, chữ nổi & hộp đèn" rồi bấm "Chữ nổi" trong danh sách
+Then URL thành /vi/advertising-products/bang-hieu-quang-cao/chu-noi/ bằng replaceState
 And chỉ card thuộc sản phẩm đó còn trong masonry, không có request document
 And HTML tĩnh của trang gốc đã chứa link tới mọi cụm và sản phẩm đủ ngưỡng
 ```
@@ -223,9 +228,9 @@ Không đổi typography hay layout ngoài rail.
 | R | Test hoặc command |
 | --- | --- |
 | R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo sản phẩm chính và lọc sản phẩm) |
-| R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path); chưa có test rail hai tầng, chip sản phẩm |
+| R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path, link sản phẩm tĩnh); `advertising-rail-two-tier.e2e.mjs` (gherkin ở 1440px, chip trên điện thoại) |
 | R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm) |
-| R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang); chưa có test rail theo ngưỡng |
+| R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang, không lên rail) |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |
 | R7 | `advertising-pages.test.mjs` (Kỷ niệm chương đứng trước, nút gợi ý theo sản phẩm), `advertising-products-static.test.mjs` (thứ tự theo tầng); chưa có test điểm vector (T8) |
 | R8 | `advertising-products-media.test.mjs` (sửa nhãn); chưa có test cho ảnh bổ sung, provenance |
@@ -234,7 +239,6 @@ Không đổi typography hay layout ngoài rail.
 
 - Số Keyword Planner cả nước đủ 92 từ khóa chưa có (mới có 20 dòng), cần thì owner tải thêm một lần để soát lại
   title, meta description trong `taxonomy.mjs`.
-- Thiết kế rail hai tầng (PC, điện thoại): Impeccable, owner duyệt trước code.
 - 301 phía server cho `?category=` và slug cũ: làm khi có Worker CMS.
 - Cách tính vector lúc upload ở phase CMS (trình duyệt hay PC): chốt ở phase CMS.
 - Map 84 URL site cũ sang trang mới: thuộc [SEO](seo.md); danh sách 84 URL đã thu lại ngày 2026-10-12 (Library
