@@ -1256,6 +1256,12 @@ em {
   gap: clamp(1.5rem, 2.5vw, 2.5rem);
 }
 
+/* Năm bước quy trình: ba cột để cột chữ giữ đủ rộng cho tiêu đề EN; tới 980px theo .editorial-strip. */
+.detail-process-editorial {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  row-gap: 3rem;
+}
+
 .editorial-strip:focus-visible,
 .project-track:focus-visible {
   outline-width: 3px;
@@ -1322,6 +1328,11 @@ em {
 
 .editorial-item:first-of-type img {
   object-position: 58% 50%;
+}
+
+/* Ảnh Hậu mãi: giữ bản lề và tay cầm tua vít trong khung hẹp. */
+.editorial-item:last-of-type img {
+  object-position: 70% 50%;
 }
 
 .editorial-item div {
@@ -1497,7 +1508,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 #nang-luc .portal-subtitle {
-  font-size: min(1rem, 3.8cqw);
+  /* 3.3cqw: phụ đề Quy trình năm bước vẫn một dòng, cách mép card ít nhất 8px cả khi font CI render rộng hơn (page-home R5). */
+  font-size: min(1rem, 3.3cqw);
   white-space: nowrap;
 }
 
@@ -3620,7 +3632,7 @@ html[lang="vi"]
 .detail-process {
   display: grid;
   min-height: 28rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -3645,7 +3657,8 @@ html[lang="vi"]
 
 .process-step h3 {
   margin: auto 0 1rem;
-  font-size: clamp(1.8rem, 2.3vw, 2.8rem);
+  /* 5 cột: "Consultation" (~6.2em) phải lọt cột hẹp nhất, cả ở 981px lẫn khung max 1370px. */
+  font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
   word-spacing: 0.08em;
@@ -3997,8 +4010,12 @@ html[lang="en"]
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .process-step:nth-child(3) {
+  .process-step:nth-child(odd) {
     border-left: 0;
+  }
+
+  .process-step h3 {
+    font-size: 1.8rem;
   }
 
   .process-step:nth-child(n + 3) {
