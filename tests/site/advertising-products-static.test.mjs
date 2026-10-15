@@ -30,9 +30,11 @@ try {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
 
-assert.equal((index.match(/data-advertising-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
-assert.deepEqual([...index.matchAll(/data-advertising-filter="([^"]+)"/g)].map(([, slug]) => slug),
-  ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)], "All and the six filters keep their canonical order");
+// Rail sinh lúc build từ taxonomy.mjs (taxonomy R3), nên đọc HTML đã build.
+const builtIndex = await read(".site-output/advertising-products/index.html");
+assert.equal((builtIndex.match(/data-advertising-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
+assert.deepEqual([...builtIndex.matchAll(/data-advertising-filter="([^"]+)"/g)].map(([, slug]) => slug),
+  ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)], "All and the six clusters keep taxonomy order");
 assert.doesNotMatch(sharedScripts, /Math\.random|random-order|shuffle/, "grid routes outside Advertising are never randomized");
 assert.equal((index.match(/<noscript>/g) || []).length, 1, "no-JS fallback remains available");
 assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\s*display: contents;/,

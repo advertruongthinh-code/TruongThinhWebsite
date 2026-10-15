@@ -33,7 +33,7 @@ updated: 2026-10-15
 ## Mục đích
 
 Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
-sáu nhóm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự,
+sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự,
 hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail `?photo=` ở
 [detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md).
 
@@ -64,19 +64,18 @@ And body có is-advertising-browse, floating CTA không hiện
 ### R2. Catalog và artifact
 
 Dữ liệu tĩnh trong `catalog.mjs`, `media-manifest.mjs`, `photo-tags.mjs`, `taxonomy.mjs`; `media-contract.mjs` kiểm. Rail
-và filter chạy theo sáu nhóm cũ: `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`,
-`led-displays-lightboxes`, `print-decals`; mỗi nhóm có tên, statement VI/EN, danh sách sản phẩm cũ. Mỗi card có `id`,
-`category`, `sourceOrder`, `productKey` (`<slug>-product-NN`), `productIds`, `clusterIds` ([phân loại R2](advertising-taxonomy.md#r2-dữ-liệu-phân-loại-sửa-được)),
+và filter chạy theo sáu cụm ([phân loại R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)): `ADVERTISING_CATEGORIES` có `slug` là id cụm, nhãn rail; sáu
+nhóm cũ (`kiosk-posm`...) chỉ còn trong manifest và `ADVERTISING_LEGACY_CATEGORIES` cho trang tương thích. Mỗi card có `id`,
+`category` (cụm của sản phẩm chính), `sourceOrder` (đếm lại trong cụm), `productKey`, `productIds` ([phân loại R2](advertising-taxonomy.md#r2-dữ-liệu-phân-loại-sửa-được)),
 tên và mô tả VI/EN, `tagIds`, `media` (`src`, `sourceId`, `width`, `height`, alt VI/EN, `source`, `sha256`, `provenance`),
 `mediaItems`, `coverMediaId`, `rank`. Pool bị từ chối khi: trùng `id`, `src` hoặc `sourceId`; thiếu chữ VI/EN, provenance
 hay kích thước dương; tag hoặc sản phẩm không có; dữ liệu phân loại sai (phân loại R2); cụm thiếu một trong bốn loại tỷ lệ
 w/h: đứng `< 0.9`, gần vuông `0.9–1.1`, ngang `> 1.1`, cực `<= 0.625` hoặc `>= 1.6`. Card không còn nhận
 `presentationCanvas`, `fitMode`, `mediaCandidates`; ảnh giữ tỷ lệ gốc. Alt VI/EN là tên card; alt và mô tả không gắn nhãn
-AI, nguồn gốc ảnh chỉ ghi ở `provenance` (không hiển thị). `rank` xếp round-robin theo thứ tự nhóm, trong nhóm theo
+AI, nguồn gốc ảnh chỉ ghi ở `provenance` (không hiển thị). `rank` xếp round-robin theo thứ tự cụm, trong cụm theo
 `sourceOrder`. `buildAdvertisingArtifact()` trả `datasetVersion`, `layoutAlgorithmVersion`, `settings`, `tagRegistry`,
 `categories`, `clusters`, `products`, `cards`; build ghi artifact và chạy preflight ([phát hành tĩnh R2](static-release.md#r2-preflight-masonry-và-catalog-artifact)).
-Sáu URL nhóm cũ chỉ chuyển về `?category=` ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)); sáu bố cục
-detail cũ (`ADVERTISING_DETAIL_LAYOUTS`, `detail-template.html`) đã bị xóa khỏi source.
+Sáu URL nhóm cũ chỉ chuyển về `?category=<slug cũ>` ([R7](static-release.md#r7-sáu-trang-tương-thích-advertising)).
 
 ```gherkin
 Given một card mới trùng media.sourceId với card đã có
@@ -87,7 +86,8 @@ Then validator từ chối pool và nêu id trùng
 ### R3. Filter
 
 Rail `.project-filters` (`role="group"`) có bảy link `[data-advertising-filter]`: `all` ("Tất cả" / "All", về URL gốc)
-rồi sáu nhóm theo thứ tự R2 (`?category=<slug>`); mục đang chọn có `aria-current="true"`. `?category=` lạ thì về All.
+rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML); mục đang chọn có `aria-current="true"`. Cụm lấy card có sản phẩm chính
+thuộc cụm. `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All.
 Click chính không phím bổ trợ: không tải document, không request, không cuộn bằng code; URL đổi bằng `replaceState`
 (không thêm history entry); card đổi vị trí theo R6; container, hero, thứ tự và vị trí bảy nút giữ nguyên. Click có
 phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước khi runtime sẵn sàng (chỉ gặp khi không có veil
@@ -171,7 +171,7 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 ### R8. Card và ảnh trong card
 
-Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới `?category=<nhóm>&photo=<id>`; không tên,
+Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới `?category=<id cụm>&photo=<id>`; không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
@@ -266,7 +266,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 | --- | --- |
 | R1 | `advertising-products-static.test.mjs` (markup, noscript, CTA); `advertising-no-titles.e2e.mjs` |
 | R2 | `advertising-products-media.test.mjs` (pool, provenance); `advertising-products-layout.test.mjs` (rank); `pnpm prepare:site` (preflight) |
-| R3 | `advertising-random-browse.e2e.mjs` (thứ tự, vị trí nút, EN); `advertising-hero-once.e2e.mjs` (click trước runtime, mười vòng); `TT_E2E_ADVERTISING_RAPID_FILTER_ONLY`, `_HISTORY_ONLY` |
+| R3 | `advertising-random-browse.e2e.mjs` (thứ tự, vị trí nút, EN, slug cũ và mới); `advertising-products-media.test.mjs` (cụm, sản phẩm, slug); `advertising-hero-once.e2e.mjs` (click trước runtime, mười vòng); `TT_E2E_ADVERTISING_RAPID_FILTER_ONLY`, `_HISTORY_ONLY` |
 | R4 | `advertising-products-random-order.test.mjs` (seed, history, handoff, reload); `advertising-random-browse.e2e.mjs`; `advertising-route-footer-p75.e2e.mjs` (route mới, F5) |
 | R5 | `advertising-products-layout.test.mjs` (cột, lề, khoảng giữa mọi filter ở 320–2560px); `advertising-products-static.test.mjs` (CSS) |
 | R6 | `advertising-one-column.test.mjs` (so le 10%, dự phòng); `advertising-products-layout.test.mjs` (hash, nhịp gạch, organic); `node tests/site/advertising-solver-report.mjs`; `TT_E2E_ADVERTISING_GRID_ONLY` |

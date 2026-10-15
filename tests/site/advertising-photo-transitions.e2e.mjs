@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
@@ -851,7 +851,7 @@ try {
       for (const locale of [profile.locale]) {
         stage(`${profile.name}-${locale}-grid-to-A`);
         // Seed giữ A reachable cho related virtualization trên desktop, nơi related grid ngắn ghim một số card.
-        await m02bFixture(page, locale, false, "m02b-i");
+        await m02bFixture(page, locale, false, "m02b-l");
         await page.evaluate(() => {
           document.addEventListener("click", (event) => {
             const card = event.target.closest("[data-advertising-card], [data-advertising-related-card]");
@@ -1490,7 +1490,7 @@ try {
       await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       let initial = null;
-      for (const candidate of ADVERTISING_CARDS.filter((card) => card.category === "signage-raised-letters")) {
+      for (const candidate of ADVERTISING_CARDS.filter((card) => card.category === "signage")) {
         await page.evaluate((photoId) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(photoId), candidate.id);
         initial = await page.evaluate((photoId) => {
           const card = document.querySelector('[data-advertising-card="' + photoId + '"]');
@@ -1558,8 +1558,8 @@ try {
       }));
       assert.equal(forwardState.seed, initial.seed, locale + ": Forward changed seed");
       assert.equal(backState.seed, initial.seed, locale + ": Back changed seed");
-      assert.equal(forwardState.category, "signage-raised-letters", locale + ": Forward changed category");
-      assert.equal(backState.category, "signage-raised-letters", locale + ": Back changed category");
+      assert.equal(forwardState.category, "signage", locale + ": Forward changed category");
+      assert.equal(backState.category, "signage", locale + ": Back changed category");
       assert.equal(backState.focusId, id, locale + ": Back lost card focus");
       assert.equal(forwardState.length, initial.length + 1, locale + ": click created wrong history length");
       assert.equal(backState.length, forwardState.length, locale + ": traversal added history entry");
@@ -1973,7 +1973,7 @@ try {
     });
     await page.evaluate(frame);
     assert.equal(await page.locator('[data-advertising-cta-frame]').first().getAttribute("data-scroll-identity"), "retained", "scroll rebuilt unchanged skeleton nodes");
-    await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+    await page.locator('[data-advertising-filter="displays-booths"]').click();
     await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, initial.signature);
     // CTA trượt 0.4s cùng card về chỗ mới sau filter (owner 10/10); chỉ đo khi lượt trượt đã xong.
     await page.waitForFunction(() => document.querySelector("[data-advertising-grid-cta]").getAnimations().length === 0);
@@ -2141,7 +2141,9 @@ try {
   });
 
   await caseRun("navbar-keeps-picked-group", { width: 1440, height: 900 }, async (page, stage) => {
-    const group = A.replace(/-\d+$/, "");
+    const group = ADVERTISING_CARDS.find((card) => card.id === A).category;
+    // URL ghi slug cụm theo locale (taxonomy R4).
+    const groupSlug = ADVERTISING_CATEGORIES.find((category) => category.slug === group).slugVi;
     const openFromGroup = async () => {
       await page.goto(href(`/vi/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
@@ -2157,12 +2159,12 @@ try {
       await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
       await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
         && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, focusId);
-      assert.equal(new URL(page.url()).searchParams.get("category"), group, "navbar keeps the picked group in the URL");
+      assert.equal(new URL(page.url()).searchParams.get("category"), groupSlug, "navbar keeps the picked group in the URL");
       assert.equal(await page.locator('[data-advertising-filter][aria-current="true"]').getAttribute("data-advertising-filter"), group,
         "the picked group stays active on the filter rail");
       const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
         .map((node) => node.dataset.advertisingCard));
-      assert(cards.length && cards.every((id) => id.startsWith(`${group}-`)), `masonry only shows ${group}`);
+      assert(cards.length && cards.every((id) => ADVERTISING_CARDS.find((card) => card.id === id)?.category === group), `masonry only shows ${group}`);
       return page.evaluate((id) => {
         const rect = document.querySelector(`[data-advertising-card="${id}"]`).getBoundingClientRect();
         return { top: rect.top, height: rect.height };
@@ -2177,7 +2179,8 @@ try {
 
     stage("related-in-group-centered");
     await openFromGroup();
-    const inGroup = page.locator(`[data-advertising-related-card^="${group}-"] > a`).first();
+    // Mọi ảnh kiosk-posm có sản phẩm chính trong cụm của A.
+    const inGroup = page.locator(`[data-advertising-related-card^="${A.replace(/-\d+$/, "")}-"] > a`).first();
     const C = await inGroup.evaluate((node) => node.parentElement.dataset.advertisingRelatedCard);
     await inGroup.scrollIntoViewIfNeeded();
     await inGroup.click();

@@ -320,7 +320,7 @@ try {
         && forward.photo === photoId && back.photo === null,
       localeCategorySeedTag: [grid, detail, back, forward].every((item) =>
         new URL(item.url).pathname === "/vi/advertising-products/"
-        && item.category === "signage-raised-letters" && item.seed === grid.seed && item.tag === grid.tag),
+        && item.category === "signage" && item.seed === grid.seed && item.tag === grid.tag),
       oneHistoryEntry: detail.length === grid.length + 1 && back.length === detail.length && forward.length === detail.length,
     };
     return { status: Object.values(checks).every(Boolean) ? "PASS_BASELINE" : "RED_BEHAVIOR",

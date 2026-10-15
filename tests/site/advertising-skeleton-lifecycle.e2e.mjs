@@ -234,7 +234,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
       await page.waitForFunction(() => window.scrollY === 0);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      const category = cycle % 2 ? "all" : "kiosk-posm";
+      const category = cycle % 2 ? "all" : "displays-booths";
       await page.locator('[data-advertising-filter="' + category + '"]').click();
       await page.waitForTimeout(550);
       await page.setViewportSize({ width: 390, height: cycle % 2 ? 844 : 788 });

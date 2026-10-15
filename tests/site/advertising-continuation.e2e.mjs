@@ -135,6 +135,11 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
   await page.goto(`${baseUrl}${canonicalPath}${query}`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
   const sourceUrl = new URL(page.url());
+  // URL ghi slug cụm theo locale, browse state giữ id cụm (taxonomy R4).
+  const sourceBrowse = await page.evaluate(() => {
+    const { category, photo, tag } = window.TruongThinhAdvertising.getBrowseState();
+    return { category, photo, tag };
+  });
   const selector = mobile
     ? '#site-menu .menu-group__title[href$="/advertising-products/"]'
     : '.desktop-nav a[href$="/advertising-products/"]';
@@ -158,11 +163,6 @@ async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
 
   await page.evaluate(() => history.back());
   await page.waitForFunction((href) => location.href === href, sourceUrl.href);
-  const sourceBrowse = {
-    category: sourceUrl.searchParams.get("category") || "all",
-    photo: sourceUrl.searchParams.get("photo"),
-    tag: sourceUrl.searchParams.get("tag"),
-  };
   await page.waitForFunction((expected) => {
     const browse = window.TruongThinhAdvertising?.getBrowseState?.();
     return browse?.category === expected.category
@@ -732,8 +732,8 @@ try {
   await ready(page);
   const beforeFilterAssignments = await flowAssignments(page);
   const beforeFilter = await page.locator("[data-advertising-cta-skeleton]").getAttribute("data-advertising-cta-signature");
-  await scrollLogicalTargetIntoView(page, '[data-advertising-filter="kiosk-posm"]');
-  await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+  await scrollLogicalTargetIntoView(page, '[data-advertising-filter="displays-booths"]');
+  await page.locator('[data-advertising-filter="displays-booths"]').click();
   await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, beforeFilter);
   await ready(page);
   const filteredAssignments = await flowAssignments(page);
@@ -1304,9 +1304,9 @@ try {
   assert(Math.abs(afterHover - 1) <= 0.01, "Advertising detail nav underline does not reach scaleX(1)");
 
   for (const navCase of [
-    { locale: "vi", mobile: false, query: "?category=kiosk-posm" },
-    { locale: "vi", mobile: true, query: "?category=kiosk-posm&photo=kiosk-posm-01" },
-    { locale: "en", mobile: false, query: "?category=kiosk-posm&photo=kiosk-posm-01&tag=product-kiosk-posm-product-06" },
+    { locale: "vi", mobile: false, query: "?category=standee-ke-trung-bay" },
+    { locale: "vi", mobile: true, query: "?category=standee-ke-trung-bay&photo=kiosk-posm-01" },
+    { locale: "en", mobile: false, query: "?category=displays-booths&photo=kiosk-posm-01&tag=product-kiosk-posm-product-06" },
   ]) {
     await assertCanonicalAdvertisingNav(page, navCase);
   }

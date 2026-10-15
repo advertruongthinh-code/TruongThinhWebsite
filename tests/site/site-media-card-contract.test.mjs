@@ -67,7 +67,8 @@ test("parent and related cards retain ordered image/video items, cover IDs, and 
   assert.equal(validateAdvertisingMediaPool(pool, poolOptions), pool);
 
   const artifact = buildAdvertisingArtifact({ cards: [parent, related] });
-  assert.deepEqual(artifact.cards.map(({ id }) => id), [parent.id, related.id]);
+  // Artifact xếp card theo thứ tự cụm, không theo thứ tự đầu vào.
+  assert.deepEqual(artifact.cards.map(({ id }) => id).sort(), [parent.id, related.id].sort());
   for (const input of [parent, related]) {
     const card = artifact.cards.find(({ id }) => id === input.id);
     assert.deepEqual(card.media, input.media);

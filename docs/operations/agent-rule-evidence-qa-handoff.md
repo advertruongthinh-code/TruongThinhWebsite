@@ -113,7 +113,7 @@ không lấy trung bình.
 
 | Audit | Điểm |
 | --- | --- |
-| Đúng nhóm, sản phẩm, bối cảnh, ngành khách hàng, góc chụp theo brief | 3 |
+| Đúng cụm, sản phẩm, tag, bối cảnh, ngành khách hàng, góc chụp theo brief | 3 |
 | Kết cấu, vật liệu, tỷ lệ, khả năng gia công và lắp đặt | 3 |
 | Không lỗi hình học, chữ, ánh sáng, phản chiếu, chi tiết AI | 2 |
 | Đúng tỷ lệ ảnh, pixel thật, metadata, provenance | 2 |

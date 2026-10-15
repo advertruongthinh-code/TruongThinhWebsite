@@ -63,13 +63,11 @@ Mười hai khách, phần lớn ở Bến Tre.
   ở trung tâm triển lãm, hội chợ, show kinh doanh theo ngành và siêu thị.
 - **Thi công theo mẫu chuỗi nhượng quyền:** xe bán hàng lưu động và kiosk làm
   đúng mẫu thiết kế chuỗi giao.
-- **Danh mục sản phẩm:** owner có năm mục I–V, ánh xạ vào sáu nhóm public trong
-  `catalog.mjs`: I Bảng hiệu, II Biển văn phòng, III LED, IV In nhanh, phần
-  POSM của V là Kiosk. Xe bán hàng là nhóm owner bổ sung. Dịch vụ thiết kế ở V
-  không thành nhóm thứ bảy.
+- **Danh mục sản phẩm:** sáu cụm và các sản phẩm trong `taxonomy.mjs`
+  ([phân loại](docs/specs/advertising-taxonomy.md)); owner sửa dữ liệu, không sửa
+  code. Dịch vụ thiết kế không thành cụm.
 - **Kỷ niệm chương** (kim loại, gỗ, thủy tinh; in UV hoặc khắc), owner bổ sung
-  2026-10-04, xếp vào `office-signs-wayfinding` vì cùng vật liệu và cách gia
-  công với bảng chức danh (suy luận, owner đổi nhóm được).
+  2026-10-04, là sản phẩm trong cụm Biển văn phòng, bảng tên & kỷ niệm chương.
 
 ## Capabilities and Constraints
 
@@ -84,7 +82,7 @@ Public canonical routes theo locale:
 | `/{locale}/about/` | Kinh nghiệm, xưởng, đội ngũ và cam kết |
 | `/{locale}/advertising-products/{slug}/` | Sáu URL cũ, chỉ chuyển hướng về `/{locale}/advertising-products/?category={slug}` |
 
-`{locale}` là `vi` hoặc `en`. Sáu slug hiện hành là `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`, `led-displays-lightboxes` và `print-decals`. `/{locale}/projects/:slug/` chỉ là contract CMS tương lai, chưa thuộc static runtime.
+`{locale}` là `vi` hoặc `en`. Sáu slug URL cũ là `kiosk-posm`, `mobile-retail`, `signage-raised-letters`, `office-signs-wayfinding`, `led-displays-lightboxes` và `print-decals`; filter dùng slug cụm trong `taxonomy.mjs`. `/{locale}/projects/:slug/` chỉ là contract CMS tương lai, chưa thuộc static runtime.
 
 Các đường dẫn legacy không locale (`/`, `/nha-o/`, `/kinh-doanh/`, `/quang-cao/`, `/gioi-thieu/`) không phải route canonical; không dùng chúng làm route public mới. Chỉ Worker CMS (`src/worker/`, chưa bật) chuyển hướng chúng về route locale canonical. Bản static hiện tại không chuyển hướng: `/` phục vụ thẳng trang chủ tiếng Việt, bốn path còn lại trả 404. Root repository là source của website, không phải lý do để tạo thêm hierarchy public.
 
