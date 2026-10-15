@@ -1126,6 +1126,13 @@ em {
   display: inline-block;
 }
 
+/* Dấu chấm cuối title canh giữa treo ra lề phải: hộp rộng 0 nên phần chữ đúng tâm, line breaker và
+   max-content không tính dấu (owner 15/10). */
+.text-hang-end {
+  display: inline-block;
+  width: 0;
+}
+
 @media (max-width: 980px) {
   .hero[data-hero-intro] .hero-word {
     max-width: 100%;
@@ -2040,6 +2047,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 .legacy-copy h2 {
+  /* Rộng bằng khung thay vì co theo chữ: dấu chấm treo (.text-hang-end) cần chỗ bên phải dòng dài nhất. */
+  align-self: stretch;
   /* Trần theo vw thay fit bằng JS khi motion không chạy; motion ghi đè bằng inline style. */
   font-size: min(4rem, 12vw);
   line-height: 1.4;

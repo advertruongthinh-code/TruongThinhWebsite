@@ -427,10 +427,10 @@ function assertPersistentNavigationContracts() {
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
       commercialHeroContent?.includes("SHOP · F&amp;B · SHOWROOM · VĂN PHÒNG") &&
       commercialHeroContent?.includes('data-en="SHOP · F&amp;B · SHOWROOM · OFFICE"') &&
-      commercialHeroContent?.includes("Thiết kế để bán tốt.") &&
-      commercialHeroContent?.includes("Thi công để vận hành bền.") &&
-      commercialHeroContent?.includes('data-en="Designed to sell."') &&
-      commercialHeroContent?.includes('data-en="Built to perform."') &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế để bán tốt.") &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thi công để vận hành bền.") &&
+      commercialHeroContent?.includes('data-en="Designed to sell"') &&
+      commercialHeroContent?.includes('data-en="Built to perform"') &&
       !commercialHeroContent?.includes("detail-hero-motto"),
     "Commercial hero must use the approved Espacio-style two-line VI/EN copy without a separate motto",
   );
@@ -7944,7 +7944,11 @@ async function runCommercialHeroTextCheck() {
                 Number.parseFloat(style.fontSize),
               ),
               contentCenter,
-              textCenters: textRects.map((value) => value.left + value.width / 2),
+              // Phone treo dấu chấm (.text-hang-end): tâm tính theo phần chữ, không gồm dấu.
+              letterCenters: sources.map((source) => {
+                const value = textRect(source.querySelector("[data-en]") ?? source);
+                return value.left + value.width / 2;
+              }),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
               verticalOrder:
                 kickerTextRect.bottom < textRects[0].top &&
@@ -8003,7 +8007,7 @@ async function runCommercialHeroTextCheck() {
             );
           } else {
             assert(
-              hero.textCenters.every(
+              hero.letterCenters.every(
                 (center) => Math.abs(center - hero.contentCenter) <= 2,
               ) &&
                 Math.abs(
