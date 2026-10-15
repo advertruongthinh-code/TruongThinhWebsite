@@ -27,7 +27,7 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
   [Motion](../../motion.md#vị-trí-card-masonry)). Đổi ngôn ngữ chỉ đổi text, URL,
   ARIA trên node có sẵn.
 
-Preview chụp từ trang chạy thật, trạng thái `Tất cả`; chưa chụp lại sau rail hai tầng.
+Preview chụp từ trang chạy thật, trạng thái `Tất cả` (danh sách sản phẩm ẩn tới khi hover).
 
 ## Chú thích thuật ngữ
 
