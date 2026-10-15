@@ -198,7 +198,8 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
 
 `.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
-"Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. `.capability-marquee`: hai `.marquee-line`
+"Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Dấu chấm cuối `h2` là `.text-hang-end` treo ra lề
+(margin âm bằng advance của dấu) để phần chữ canh giữa cùng eyebrow và nút; `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong

@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   qa-docs:
-    runs-on: [self-hosted, linux, wsl]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
