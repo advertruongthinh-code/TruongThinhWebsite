@@ -1487,6 +1487,12 @@ em {
   font-weight: 700;
 }
 
+/* Kinh doanh: mọi dòng tiêu đề portal cùng weight với dòng strong (owner 2026-10-15) */
+[data-barba-namespace="commercial"] #loai-hinh .portal-copy strong,
+[data-barba-namespace="commercial"] #loai-hinh .portal-title__quiet {
+  font-weight: 700;
+}
+
 .portal-title-mask,
 .portal-title__quiet,
 .portal-title__strong {
