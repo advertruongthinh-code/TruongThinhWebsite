@@ -1327,6 +1327,11 @@ em {
   object-position: 58% 50%;
 }
 
+/* Ảnh Hậu mãi: giữ bản lề và tay cầm tua vít trong khung hẹp. */
+.editorial-item:last-of-type img {
+  object-position: 70% 50%;
+}
+
 .editorial-item div {
   position: relative;
   z-index: 2;

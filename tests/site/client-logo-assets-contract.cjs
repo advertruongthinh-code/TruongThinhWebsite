@@ -85,7 +85,7 @@ const filesWithExtension = (directory, extension) =>
     .map((entry) => entry.name);
 
 assert.equal(filesWithExtension(projectDirectory, ".webp").length, 30, "Expected 30 project WebP assets");
-assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 16, "Expected 16 shared WebP assets");
+assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 17, "Expected 17 shared WebP assets");
 
 const legacyDirectory = path.join(site, "assets/site");
 const legacyFiles = fs.existsSync(legacyDirectory)
