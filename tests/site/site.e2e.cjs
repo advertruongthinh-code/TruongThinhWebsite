@@ -5205,10 +5205,11 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
+      // Thứ tự card là ngẫu nhiên theo seed nên không có id cố định nào chắc chắn nằm trong cửa sổ ảo; lấy tile đang mount.
+      await page.waitForFunction(() => document.querySelector("[data-project-grid] .advertising-tile"), null, { timeout: 3_000 });
       const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const tile = grid.querySelector('[data-advertising-card="mobile-retail-01"]');
-        const style = tile ? getComputedStyle(tile) : null;
-        return { duration: style?.transitionDuration, transform: style?.transform };
+        const style = getComputedStyle(grid.querySelector(".advertising-tile"));
+        return { duration: style.transitionDuration, transform: style.transform };
       });
       assert(
         reduced.duration?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -5720,6 +5721,9 @@ async function runAdvertisingRapidFilterCheck() {
           .filter((item) => !item.element.hidden && item.element.dataset.advertisingCategory === "mobile-retail")
           .sort((left, right) => Math.abs(left.position.y - futureCenter) - Math.abs(right.position.y - futureCenter))[0];
         if (!trackedItem) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
+        // Giữ transition transform của card theo dõi: hết chuyển động phải là "finished", bị cắt ngang là "idle".
+        grid.__rapidMorph = trackedItem.element.getAnimations().find((animation) => animation.transitionProperty === "transform");
+        if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a transform transition on the tracked item");
         grid.__rapidOldTransitionEnds = 0;
         trackedItem.on("transitionEnd", () => {
           grid.__rapidOldTransitionEnds += 1;
@@ -5727,9 +5731,13 @@ async function runAdvertisingRapidFilterCheck() {
         window.scrollTo({ top: scrollTarget, behavior: "instant" });
         window.dispatchEvent(new Event("scroll"));
         window.dispatchEvent(new CustomEvent("site:scroll", { detail: { y: window.scrollY } }));
-        return { before, membersBeforeScroll, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.advertisingCard };
+        const morph = {
+          duration: grid.__rapidMorph.effect.getComputedTiming().duration,
+          to: grid.__rapidMorph.effect.getKeyframes().at(-1).transform,
+        };
+        return { before, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.advertisingCard };
       });
-      const { before, membersBeforeScroll, scrollTarget, trackedId } = rapidStart;
+      const { before, membersBeforeScroll, morph, scrollTarget, trackedId } = rapidStart;
       const capture = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
         const tile = [...grid.querySelectorAll(".advertising-tile")]
           .find((item) => !item.hidden && item.dataset.advertisingCard === id);
@@ -5739,6 +5747,7 @@ async function runAdvertisingRapidFilterCheck() {
         return {
           duration: style?.transitionDuration,
           members: [...grid.querySelectorAll(".advertising-tile")].map((item) => item.dataset.advertisingCard),
+          morph: grid.__rapidMorph?.playState,
           staleTransitionEnds: grid.__rapidOldTransitionEnds || 0,
           transform: style?.transform,
           target: { x: Number.parseFloat(style?.left || "0"), y: Number.parseFloat(style?.top || "0") },
@@ -5746,9 +5755,17 @@ async function runAdvertisingRapidFilterCheck() {
         };
       }, trackedId);
       const origin = await capture();
-      await page.waitForTimeout(160);
+      // Runner không GPU raster vùng mới sau cú cuộn xa, frame có thể trễ vài trăm ms; đo giữa chừng theo thời gian
+      // của chính transition thay vì đồng hồ.
+      await page.waitForFunction(() => {
+        const morph = document.querySelector("[data-project-grid]").__rapidMorph;
+        return morph?.playState !== "running" || morph.currentTime >= 100;
+      }, null, { polling: 10, timeout: 2_000 }).catch(() => {});
       const during = await capture();
-      await page.waitForTimeout(280);
+      await page.waitForFunction((id) => {
+        const grid = document.querySelector("[data-project-grid]");
+        return grid.__rapidMorph?.playState !== "running" && !grid.querySelector(`[data-advertising-card="${id}"]`)?.style.transform;
+      }, trackedId, { timeout: 2_000 }).catch(() => {});
       const settled = await capture();
       await page.locator("[data-project-grid]").evaluate(async (grid, id) => {
         if (!grid.__blockRapidTransitionEnd) return;
@@ -5766,7 +5783,9 @@ async function runAdvertisingRapidFilterCheck() {
       const nearestOrigin = Math.min(...before.map((slot) => Math.hypot(seededOrigin.x - slot.x, seededOrigin.y - slot.y)));
       const travel = Math.hypot(settled.target.x - seededOrigin.x, settled.target.y - seededOrigin.y);
       const progressed = Math.hypot(during.visual.x - seededOrigin.x, during.visual.y - seededOrigin.y);
-      const remaining = Math.hypot(during.visual.x - settled.target.x, during.visual.y - settled.target.y);
+      // Frame trễ trên runner có thể nhảy qua giữa chừng; transition phải đi trọn từ gốc tới đích trong 0.4s.
+      const [morphX, morphY] = (morph.to.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+      const morphGap = Math.hypot(seededOrigin.x + morphX - settled.target.x, seededOrigin.y + morphY - settled.target.y);
       const membershipChanged = membersBeforeScroll.length !== settled.members.length ||
         membersBeforeScroll.some((id) => !settled.members.includes(id)) ||
         settled.members.some((id) => !membersBeforeScroll.includes(id));
@@ -5778,13 +5797,13 @@ async function runAdvertisingRapidFilterCheck() {
       assert(
         origin.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
           during.transform && during.transform !== "none" &&
-          nearestOrigin <= 3 && travel > 1 && progressed > 2 && remaining > 2 &&
-          membershipChanged &&
+          nearestOrigin <= 3 && travel > 1 && progressed > 2 && morph.duration === 400 && morphGap <= 2 &&
+          membershipChanged && settled.morph === "finished" &&
           Math.hypot(settled.visual.x - settled.target.x, settled.visual.y - settled.target.y) <= 2 &&
           (!settled.transform || settled.transform === "none") &&
           staleEndWasInert &&
           Math.abs((await page.evaluate(() => window.scrollY)) - scrollTarget) <= 2,
-        `Rapid filter snapped instead of continuing the Masonry coordinate morph: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, nearestOrigin, travel, progressed, remaining, membershipChanged, staleEndWasInert, scrollTarget })}`,
+        `Rapid filter snapped instead of continuing the Masonry coordinate morph: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, morph, morphGap, nearestOrigin, travel, progressed, membershipChanged, staleEndWasInert, scrollTarget })}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -7108,7 +7127,12 @@ async function runAdvertisingMediaFocusedChecks() {
           category.slug,
           { timeout: 3_000 },
         );
-        await page.waitForTimeout(500);
+        // Card chỉ được đặt cố định khi transition chạy hết (R6); runner bận làm việc đó muộn hơn 400ms.
+        await page.waitForFunction(
+          () => [...document.querySelectorAll("[data-project-grid] .advertising-tile")].every((tile) => !tile.style.transform),
+          null,
+          { timeout: 3_000 },
+        );
         const filteredLayout = await browseLayout(page, category.slug, 1440);
         const filtered = await readGridState(page);
         assertGridState(filtered, filteredLayout, `${category.slug} filter`);
@@ -9436,7 +9460,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "legacy closer",
       route: "/vi/?media-fallback=legacy",
-      asset: "**/workshop-wide.webp",
+      asset: "**/workshop-wide-v2.webp",
       surface: ".legacy-closer",
       image: ":scope > img, :scope > picture > img",
       text: ".legacy-copy",
@@ -10073,7 +10097,7 @@ async function runHomeMotionRegressionCheck() {
         JSON.stringify(contract.hero.sources) ===
           JSON.stringify([
             "/assets/content/projects/residential-space.webp",
-            "/assets/content/projects/hero.webp",
+            "/assets/content/projects/hero-v2.webp",
             "/assets/content/projects/hero-kiosk.webp",
             "/assets/content/projects/mobile-retail.webp",
           ]),
@@ -13396,7 +13420,7 @@ async function main() {
       await runAdvertisingDependencyRecoveryChecks();
       await runAdvertisingHistoryRemountChecks();
       await runAdvertisingFilterCheck();
-      // Lọc nhanh kèm cuộn ở mode RAPID_FILTER, đang chờ owner (demo lệch masonry R6).
+      // Lọc nhanh kèm cuộn chạy ở mode RAPID_FILTER (suite adv-grid).
       await runAdvertisingNoOpScrollCheck();
       await runAdvertisingDirectFailureCheck();
       await runPublicSelectionCheck();

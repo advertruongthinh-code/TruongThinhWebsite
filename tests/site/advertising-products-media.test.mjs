@@ -11,14 +11,24 @@ import {
 } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
+import {
+  ADVERTISING_CLUSTERS,
+  ADVERTISING_PRODUCTS,
+  ADVERTISING_THIN_PRODUCT_THRESHOLD,
+} from "../../src/site/advertising-products/taxonomy.mjs";
 
 const categoryEntries = Object.entries(ADVERTISING_MEDIA_CATEGORY_COUNTS);
-const productKeysByCategory = Object.fromEntries(
-  categoryEntries.map(([category]) => [
-    category,
-    Array.from({ length: ["kiosk-posm", "print-decals"].includes(category) ? 13 : 12 }, (_, index) => category + "-product-" + String(index + 1).padStart(2, "0")),
-  ]),
-);
+// Fixture: mỗi nhóm cũ gắn sản phẩm đầu tiên của một cụm, đủ bốn loại tỷ lệ mỗi cụm.
+const clusterByCategory = {
+  "kiosk-posm": "displays-booths",
+  "mobile-retail": "mobile-retail",
+  "signage-raised-letters": "signage",
+  "office-signs-wayfinding": "office-signs",
+  "led-displays-lightboxes": "led-displays",
+  "print-decals": "printing-decals",
+};
+const productIdByCategory = Object.fromEntries(Object.entries(clusterByCategory)
+  .map(([category, cluster]) => [category, ADVERTISING_PRODUCTS.find((product) => product.cluster === cluster).id]));
 
 function makeValidPool() {
   return categoryEntries.flatMap(([category, count]) =>
@@ -34,7 +44,8 @@ function makeValidPool() {
       return {
         id: category + "-" + number,
         category,
-        productKey: productKeysByCategory[category][sourceOrder % productKeysByCategory[category].length],
+        productKey: category + "-product-01",
+        productIds: [productIdByCategory[category]],
         sourceOrder,
         titleVi: "Sản phẩm " + (sourceOrder + 1),
         titleEn: "Product " + (sourceOrder + 1),
@@ -57,7 +68,10 @@ function makeValidPool() {
   );
 }
 
-const validate = (records) => validateAdvertisingMediaPool(records, { productKeysByCategory, tagRegistry: ADVERTISING_TAG_REGISTRY });
+const taxonomy = () => ({ clusters: structuredClone(ADVERTISING_CLUSTERS), products: structuredClone(ADVERTISING_PRODUCTS) });
+const validate = (records, { clusters, products } = taxonomy()) => validateAdvertisingMediaPool(records, {
+  tagRegistry: ADVERTISING_TAG_REGISTRY, clusters, products,
+});
 
 test("accepts the canonical 109-record pool without a span choice", () => {
   const records = makeValidPool();
@@ -102,16 +116,69 @@ test("rejects reuse of one source through another filename or crop", () => {
   assert.throws(() => validate(records), /duplicate media\.sourceId/i);
 });
 
-test("rejects missing product coverage", () => {
+test("accepts products without photos now that the 12-product rule is gone", () => {
   const records = makeValidPool();
-  const missingKey = productKeysByCategory["kiosk-posm"][11];
-  for (const record of records) {
-    if (record.category === "kiosk-posm" && record.productKey === missingKey) {
-      record.productKey = productKeysByCategory["kiosk-posm"][10];
-    }
-  }
+  assert.ok(ADVERTISING_PRODUCTS.some((product) => !records.some((record) => record.productIds.includes(product.id))));
+  assert.equal(validate(records), records);
+});
 
-  assert.throws(() => validate(records), new RegExp("kiosk-posm.*missing product key.*" + missingKey, "i"));
+test("rejects a product that points to a missing cluster", () => {
+  const data = taxonomy();
+  data.products[1].cluster = "no-such-cluster";
+  assert.throws(() => validate(makeValidPool(), data), new RegExp(data.products[1].id + " has unknown cluster no-such-cluster"));
+});
+
+test("rejects a photo that points to a missing product or has no product", () => {
+  const unknown = makeValidPool();
+  unknown[0].productIds = ["signage/no-such-product"];
+  assert.throws(() => validate(unknown), /kiosk-posm-01 has unknown product ID signage\/no-such-product/);
+
+  const empty = makeValidPool();
+  empty[0].productIds = [];
+  assert.throws(() => validate(empty), /kiosk-posm-01 requires product IDs/);
+});
+
+test("rejects a duplicate slug within one locale but allows the same word across locales", () => {
+  for (const locale of ["Vi", "En"]) {
+    const data = taxonomy();
+    data.products[1]["slug" + locale] = data.products[0]["slug" + locale];
+    assert.throws(() => validate(makeValidPool(), data), new RegExp("duplicate taxonomy slug" + locale));
+  }
+  // Slug VI của sản phẩm trùng slug EN của một cụm vẫn hợp lệ: hai locale là hai không gian URL.
+  const data = taxonomy();
+  data.products[0].slugVi = data.clusters[1].slugEn;
+  assert.equal(validate(makeValidPool(), data).length, 109);
+});
+
+test("rejects a Vietnamese slug with diacritics", () => {
+  const data = taxonomy();
+  data.clusters[0].slugVi = "bảng-hiệu";
+  assert.throws(() => validate(makeValidPool(), data), /signage slugVi must be lowercase ASCII/);
+});
+
+test("rejects missing Vietnamese or English text on clusters and products", () => {
+  for (const [kind, field] of [["clusters", "labelVi"], ["clusters", "descriptionEn"], ["products", "titleEn"], ["products", "introVi"]]) {
+    const data = taxonomy();
+    data[kind][0][field] = "";
+    assert.throws(() => validate(makeValidPool(), data), new RegExp(data[kind][0].id + " requires " + field));
+  }
+});
+
+test("rejects a cluster that lacks one of the four ratio classes", () => {
+  for (const [label, keep] of [
+    ["portrait", (ratio) => ratio >= 0.9],
+    ["near-square", (ratio) => ratio < 0.9 || ratio > 1.1],
+    ["landscape", (ratio) => ratio <= 1.1],
+    ["extreme", (ratio) => ratio > 0.625 && ratio < 1.6],
+  ]) {
+    // Ảnh không đạt điều kiện của cụm signage chuyển sang sản phẩm cụm khác, giữ nguyên số ảnh.
+    const records = makeValidPool().map((record) => (
+      record.category === "signage-raised-letters" && !keep(record.media.width / record.media.height)
+        ? { ...record, productIds: [productIdByCategory["kiosk-posm"]] }
+        : record
+    ));
+    assert.throws(() => validate(records), new RegExp("signage missing " + label + " ratio"));
+  }
 });
 
 test("rejects non-positive intrinsic dimensions", () => {
@@ -150,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 154);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 190);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -234,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 154);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 190);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
@@ -268,4 +335,82 @@ test("artifact retains the tag registry with custom card fixtures", () => {
   const artifact = buildAdvertisingArtifact({ cards: [ADVERTISING_MEDIA_MANIFEST[0]] });
   assert.deepEqual(artifact.tagRegistry, ADVERTISING_TAG_REGISTRY);
   assert.equal(artifact.cards.length, 1);
+});
+
+// Bảng map của plan advertising-taxonomy: sản phẩm mới <- số thứ tự sản phẩm cũ trong từng nhóm cũ.
+const PLAN_MAP = {
+  "signage/aluminium-signs-facades": { "signage-raised-letters": [1, 2, 3] },
+  "signage/raised-letters": { "signage-raised-letters": [6, 7, 8, 9] },
+  "signage/light-boxes": { "signage-raised-letters": [4, 5], "led-displays-lightboxes": [10, 11, 12] },
+  "signage/projecting-signs": { "signage-raised-letters": [10, 11, 12] },
+  "displays-booths/standees-backdrops-posm": { "kiosk-posm": [11, 12, 13] },
+  "displays-booths/display-shelves-cabinets": { "kiosk-posm": [2, 3, 4, 9, 10] },
+  "displays-booths/exhibition-booths": { "kiosk-posm": [1] },
+  "displays-booths/retail-kiosks": { "kiosk-posm": [5, 6] },
+  "displays-booths/sampling-booths-reception-counters": { "kiosk-posm": [7, 8] },
+  "printing-decals/decals-banners-canvas": { "print-decals": [10, 11, 12] },
+  "printing-decals/office-printing": { "print-decals": [1, 2, 3, 4, 5, 6] },
+  "printing-decals/menus": { "print-decals": [7, 8, 9] },
+  "printing-decals/packaging-cards-tickets": { "print-decals": [13] },
+  "led-displays/decorative-led": {},
+  "led-displays/led-screens": { "led-displays-lightboxes": [4, 5, 6, 7, 8, 9] },
+  "led-displays/scrolling-led-signs": { "led-displays-lightboxes": [1, 2, 3] },
+  "office-signs/house-numbers-company-nameplates": { "office-signs-wayfinding": [1, 2] },
+  "office-signs/wayfinding-building-directories": { "office-signs-wayfinding": [3, 4, 10, 11, 12] },
+  "office-signs/room-signs": { "office-signs-wayfinding": [8, 9] },
+  "office-signs/desk-nameplates": { "office-signs-wayfinding": [5, 6, 7] },
+  "office-signs/awards-plaques": { "office-signs-wayfinding": [13] },
+  "mobile-retail/carts": { "mobile-retail": [1, 2, 3, 7, 12] },
+  "mobile-retail/mobile-counters": { "mobile-retail": [4, 5, 6, 8, 9, 10, 11] },
+};
+// Bảng sửa nhãn R8 của plan; ảnh không có trong bảng giữ sản phẩm suy ra từ sản phẩm cũ.
+const PLAN_RELABELS = {
+  "office-signs-wayfinding-02": ["office-signs/wayfinding-building-directories"],
+  "office-signs-wayfinding-13": ["office-signs/wayfinding-building-directories"],
+  "led-displays-lightboxes-04": ["led-displays/led-screens"],
+  "led-displays-lightboxes-09": ["led-displays/led-screens"],
+  "led-displays-lightboxes-15": ["led-displays/led-screens", "led-displays/scrolling-led-signs"],
+  "mobile-retail-05": ["mobile-retail/mobile-counters", "displays-booths/sampling-booths-reception-counters"],
+  "print-decals-21": ["printing-decals/decals-banners-canvas", "office-signs/room-signs"],
+  "signage-raised-letters-14": ["signage/aluminium-signs-facades", "signage/light-boxes"],
+};
+const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
+  .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
+
+test("taxonomy has six clusters and 23 products in plan order with a thin-page threshold of 3", () => {
+  assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
+  assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
+  assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");
+  assert.equal(ADVERTISING_THIN_PRODUCT_THRESHOLD, 3);
+});
+
+test("every old product tag becomes a variant that maps to its plan product", () => {
+  const variants = ADVERTISING_TAG_REGISTRY.filter((tag) => tag.id.startsWith("product-"));
+  assert.equal(variants.length, 75);
+  assert.equal(planProductByLegacyKey.size, 75);
+  for (const tag of variants) {
+    assert.equal(tag.group, "variant", tag.id);
+    assert.equal(tag.productId, planProductByLegacyKey.get(tag.id.slice("product-".length)), tag.id);
+  }
+  assert.ok(!ADVERTISING_TAG_REGISTRY.some((tag) => tag.group === "product"));
+});
+
+test("card products and per-product card counts follow the plan map and R8 relabels", () => {
+  const expectedIds = (record) => PLAN_RELABELS[record.id] ?? [planProductByLegacyKey.get(record.productKey)];
+  for (const card of ADVERTISING_CARDS) {
+    assert.deepEqual(card.productIds, expectedIds(card), card.id);
+    const clusterOf = (productId) => ADVERTISING_PRODUCTS.find((product) => product.id === productId).cluster;
+    assert.deepEqual(card.clusterIds, [...new Set(card.productIds.map(clusterOf))], card.id);
+  }
+  // Số card mỗi sản phẩm tính từ dữ liệu, không viết cứng: ảnh mới chỉ mang productKey cũ vẫn khớp.
+  for (const { id } of ADVERTISING_PRODUCTS) {
+    assert.equal(
+      ADVERTISING_CARDS.filter((card) => card.productIds.includes(id)).length,
+      ADVERTISING_MEDIA_MANIFEST.filter((record) => expectedIds(record).includes(id)).length,
+      id,
+    );
+  }
+  const artifact = buildAdvertisingArtifact();
+  assert.deepEqual(artifact.clusters, ADVERTISING_CLUSTERS);
+  assert.deepEqual(artifact.products, ADVERTISING_PRODUCTS);
 });

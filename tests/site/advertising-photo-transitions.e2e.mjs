@@ -1509,6 +1509,9 @@ try {
       await link.click();
       await ready(page, id);
       await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
+      // Detail mở mới dựng related qua nhiều task (advertising-detail R7); trước task mount trang chỉ cao bằng primary,
+      // setLogicalScroll(480) bị kẹp đúng về đáy đó (272px ở 1543x884) và không tự lên lại.
+      await page.waitForFunction(() => document.querySelector("[data-advertising-related-card]:not([hidden])"));
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(480));
       await page.waitForFunction(() => Math.abs(window.TruongThinhAdvertising.getBrowseState().detail.scrollY - 480) <= 1);
       const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());

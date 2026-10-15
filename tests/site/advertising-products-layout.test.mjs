@@ -150,16 +150,16 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
     `related frame must use 16:9 cover: ${placement.pixelWidth}x${placement.mediaPixelHeight}`);
 });
 
-test("M01d original 154 cards retain coordinate hash, order and no filler", () => {
+test("M01d original 190 cards retain coordinate hash, order and no filler", () => {
   const order = ADVERTISING_CARDS.map((card) => card.id);
-  for (const [layoutViewportWidth, expectedHash] of [[390, "8090c910"], [1440, "15171343"]]) {
+  for (const [layoutViewportWidth, expectedHash] of [[390, "c41c2bd6"], [1440, "27f352b1"]]) {
     const layout = compileAdvertisingProductLayout({
       cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
     });
     assert.equal(layout.coordinateHash, expectedHash);
     assert.deepEqual(layout.diagnostics.placementOrder, order);
-    assert.equal(layout.placements.length, 154);
+    assert.equal(layout.placements.length, 190);
     assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
   }
 });
@@ -259,15 +259,15 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
   assert.deepEqual(normalizeAdvertisingSettings(), { landscapeThreshold: 1.25 });
   assert.throws(() => normalizeAdvertisingSettings({ landscapeThreshold: 1 }), /finite number greater than 1/i);
-  assert.equal(ADVERTISING_CARDS.length, 154);
-  assert.deepEqual(ADVERTISING_CARDS.map(({ rank }) => rank), Array.from({ length: 154 }, (_, index) => index));
-  assert.equal(new Set(ADVERTISING_CARDS.map(({ id }) => id)).size, 154);
-  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.src)).size, 154);
-  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.sourceId)).size, 154);
+  assert.equal(ADVERTISING_CARDS.length, 190);
+  assert.deepEqual(ADVERTISING_CARDS.map(({ rank }) => rank), Array.from({ length: 190 }, (_, index) => index));
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ id }) => id)).size, 190);
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.src)).size, 190);
+  assert.equal(new Set(ADVERTISING_CARDS.map(({ media }) => media.sourceId)).size, 190);
   for (const category of ADVERTISING_CATEGORIES) {
     const categoryCards = ADVERTISING_CARDS.filter((card) => card.category === category.slug);
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
-    assert.equal(category.products.length, ["kiosk-posm", "print-decals"].includes(category.slug) ? 13 : 12, `${category.slug} keeps authored taxonomy products`);
+    assert.equal(category.products.length, ["kiosk-posm", "print-decals", "office-signs-wayfinding"].includes(category.slug) ? 13 : 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
     assert.deepEqual(categoryCards.map(({ sourceOrder }) => sourceOrder), Array.from({ length: categoryCards.length }, (_, index) => index), `${category.slug} keeps source order`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, category.products.length, `${category.slug} covers all taxonomy products`);

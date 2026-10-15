@@ -89,22 +89,14 @@ export function validateAdvertisingCardMedia(record) {
 export function validateAdvertisingMediaPool(records, options) {
   if (!Array.isArray(records)) throw new TypeError("Advertising media records must be an array");
 
-  const productKeysByCategory = options?.productKeysByCategory;
   const tagIds = new Set(options?.tagRegistry?.map((tag) => tag.id) ?? []);
-  const errors = new Array();
+  const clusters = options?.clusters ?? [];
+  const products = options?.products ?? [];
+  const errors = validateAdvertisingTaxonomy(clusters, products);
+  const clusterIdByProductId = new Map(products.map((product) => [product.id, product.cluster]));
+  const ratiosByCluster = new Map(clusters.map((cluster) => [cluster.id, new Array()]));
   const expectedEntries = Object.entries(ADVERTISING_MEDIA_CATEGORY_COUNTS);
   const grouped = new Map(expectedEntries.map(([category]) => [category, new Array()]));
-  const expectedProducts = new Map();
-
-  for (const [category] of expectedEntries) {
-    const keys = productKeysByCategory?.[category];
-    if (!Array.isArray(keys) || keys.length < 12 || new Set(keys).size !== keys.length || keys.some((key) => !isNonEmptyString(key))) {
-      errors.push(`${category} must declare at least 12 unique product keys`);
-      expectedProducts.set(category, new Set());
-    } else {
-      expectedProducts.set(category, new Set(keys));
-    }
-  }
 
   records.forEach((record, inputIndex) => {
     if (!record || typeof record !== "object") {
@@ -123,8 +115,15 @@ export function validateAdvertisingMediaPool(records, options) {
     }
     if (!isNonEmptyString(record.id)) errors.push(`record ${inputIndex} requires a non-empty id`);
     if (!isNonEmptyString(record.productKey)) errors.push(`${record.id ?? `record ${inputIndex}`} requires a non-empty productKey`);
-    if (!expectedProducts.get(record.category).has(record.productKey)) {
-      errors.push(`${record.category} has unknown product key ${String(record.productKey)}`);
+    if (!Array.isArray(record.productIds) || record.productIds.length === 0) {
+      errors.push(`${record.id ?? `record ${inputIndex}`} requires product IDs`);
+    } else {
+      const ratio = record.media?.width / record.media?.height;
+      for (const productId of record.productIds) {
+        const clusterId = clusterIdByProductId.get(productId);
+        if (clusterId === undefined) errors.push(`${record.id ?? `record ${inputIndex}`} has unknown product ID ${String(productId)}`);
+        else ratiosByCluster.get(clusterId)?.push(ratio);
+      }
     }
     if (!Number.isInteger(record.sourceOrder) || record.sourceOrder < 0) {
       errors.push(`${record.id ?? `record ${inputIndex}`} requires a non-negative integer sourceOrder`);
@@ -179,29 +178,50 @@ export function validateAdvertisingMediaPool(records, options) {
   }
 
   for (const [category] of expectedEntries) {
-    const categoryRecords = grouped.get(category) ?? [];
-
-    categoryRecords.forEach((record, categoryIndex) => {
+    grouped.get(category).forEach((record, categoryIndex) => {
       if (record.sourceOrder !== categoryIndex) {
         errors.push(`${category} sourceOrder must follow input order at index ${categoryIndex}`);
       }
     });
+  }
 
-    for (const productKey of expectedProducts.get(category)) {
-      if (!categoryRecords.some((record) => record.productKey === productKey)) {
-        errors.push(`${category} missing product key ${productKey}`);
-      }
-    }
-
-    const ratios = categoryRecords
-      .filter((record) => isPositiveNumber(record.media?.width) && isPositiveNumber(record.media?.height))
-      .map((record) => record.media.width / record.media.height);
-    if (!ratios.some((ratio) => ratio < 0.9)) errors.push(`${category} missing portrait ratio`);
-    if (!ratios.some((ratio) => ratio >= 0.9 && ratio <= 1.1)) errors.push(`${category} missing near-square ratio`);
-    if (!ratios.some((ratio) => ratio > 1.1)) errors.push(`${category} missing landscape ratio`);
-    if (!ratios.some((ratio) => ratio <= 0.625 || ratio >= 1.6)) errors.push(`${category} missing extreme ratio`);
+  // Bốn loại tỷ lệ xét ở cấp cụm; card thuộc mọi cụm của các sản phẩm nó gắn.
+  for (const [clusterId, ratios] of ratiosByCluster) {
+    if (!ratios.some((ratio) => ratio < 0.9)) errors.push(`${clusterId} missing portrait ratio`);
+    if (!ratios.some((ratio) => ratio >= 0.9 && ratio <= 1.1)) errors.push(`${clusterId} missing near-square ratio`);
+    if (!ratios.some((ratio) => ratio > 1.1)) errors.push(`${clusterId} missing landscape ratio`);
+    if (!ratios.some((ratio) => ratio <= 0.625 || ratio >= 1.6)) errors.push(`${clusterId} missing extreme ratio`);
   }
 
   if (errors.length > 0) throw new Error(`Invalid advertising media pool:\n- ${errors.join("\n- ")}`);
   return records;
+}
+
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const PRODUCT_TEXT_FIELDS = ["label", "title", "intro"];
+const CLUSTER_TEXT_FIELDS = [...PRODUCT_TEXT_FIELDS, "description"];
+
+// Kiểm cụm và sản phẩm (spec advertising-taxonomy R2); trả danh sách lỗi để gộp với lỗi của pool.
+function validateAdvertisingTaxonomy(clusters, products) {
+  const errors = [];
+  const clusterIds = new Set(clusters.map((cluster) => cluster.id));
+  const entries = [...clusters, ...products];
+  for (const entry of entries) {
+    // Sản phẩm dùng intro làm meta description; cụm có description riêng.
+    const textFields = Object.hasOwn(entry, "cluster") ? PRODUCT_TEXT_FIELDS : CLUSTER_TEXT_FIELDS;
+    for (const locale of ["Vi", "En"]) {
+      if (!SLUG.test(entry[`slug${locale}`] ?? "")) errors.push(`${entry.id} slug${locale} must be lowercase ASCII words joined by hyphens`);
+      for (const field of textFields) {
+        if (!isNonEmptyString(entry[`${field}${locale}`])) errors.push(`${entry.id} requires ${field}${locale}`);
+      }
+    }
+  }
+  for (const product of products) {
+    if (!clusterIds.has(product.cluster)) errors.push(`${product.id} has unknown cluster ${String(product.cluster)}`);
+  }
+  for (const [label, readValue] of [["id", (entry) => entry.id], ["slugVi", (entry) => entry.slugVi], ["slugEn", (entry) => entry.slugEn]]) {
+    const duplicate = duplicateValue(entries, readValue);
+    if (duplicate !== null) errors.push(`duplicate taxonomy ${label}: ${duplicate}`);
+  }
+  return errors;
 }
