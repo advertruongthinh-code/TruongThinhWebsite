@@ -1300,6 +1300,12 @@ em {
   gap: clamp(1.5rem, 2.5vw, 2.5rem);
 }
 
+/* Năm bước quy trình: ba cột để cột chữ giữ đủ rộng cho tiêu đề EN; tới 980px theo .editorial-strip. */
+.detail-process-editorial {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  row-gap: 3rem;
+}
+
 .editorial-strip:focus-visible,
 .project-track:focus-visible {
   outline-width: 3px;
@@ -1535,7 +1541,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 #nang-luc .portal-subtitle {
-  font-size: min(1rem, 3.8cqw);
+  /* 3.5cqw: phụ đề Quy trình năm bước vẫn một dòng, cách mép card ít nhất 8px (page-home R5). */
+  font-size: min(1rem, 3.5cqw);
   white-space: nowrap;
 }
 
