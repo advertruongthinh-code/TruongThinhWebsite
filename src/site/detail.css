@@ -724,6 +724,11 @@ html[lang="en"]
   transition: transform 0.6s ease-out;
 }
 
+/* Ảnh bìa kiosk: chữ hộp đèn lệch phải, dịch khung cắt 3:4 sang phải để giữ đủ chữ. */
+.project-tile:not(.advertising-tile) img[src*="advertising-kiosk-posm-cover"] {
+  object-position: 58% 50%;
+}
+
 .project-tile figcaption {
   position: relative;
   padding: 0.75rem 0 0.35rem;
