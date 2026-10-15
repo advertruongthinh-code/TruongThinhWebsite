@@ -131,18 +131,23 @@ try {
           below: next.top - box.bottom,
           fontSize: parseFloat(getComputedStyle(title).fontSize),
           fits: titleBox.top >= copy.top - 1 && titleBox.bottom <= copy.bottom + 1
-            && [title, ...title.querySelectorAll(".line-mask")].every((node) => node.scrollWidth <= node.clientWidth + 1),
+            // Chừa 0.3em cho dấu chấm treo (.text-hang-end) khi dòng chạm mép ở cửa sổ hẹp.
+            && [title, ...title.querySelectorAll(".line-mask")].every((node) =>
+              node.scrollWidth <= node.clientWidth + 0.3 * parseFloat(getComputedStyle(title).fontSize)),
           href: link?.getAttribute("href"),
           linkGap: label ? label.top - titleBox.bottom : null,
         };
       });
       const target = expected(width);
       const label = `${locale} ${width}px`;
-      assert.ok(Math.abs(block.height - target.height) <= 1, `${label}: block height ${block.height}`);
+      // Chiều cao bảng R5 là tối thiểu: tiêu đề cỡ CTA chung không co, khối cao theo chữ.
+      assert.ok(block.height >= target.height - 1, `${label}: block height ${block.height}`);
       assert.ok(Math.abs(block.left - target.gutter) <= 1 && Math.abs(block.right - target.gutter) <= 1,
         `${label}: gutters ${block.left}/${block.right}`);
       assert.ok(Math.abs(block.below - target.below) <= 1, `${label}: space below ${block.below}`);
-      assert.ok(block.fontSize >= 24 && block.fontSize <= 64, `${label}: title size ${block.fontSize}`);
+      // Cỡ tiêu đề CTA chung clamp(3.2rem, 6vw, 7rem), bằng CTA trang con.
+      const ctaSize = Math.min(Math.max(51.2, width * 0.06), 112);
+      assert.ok(Math.abs(block.fontSize - ctaSize) <= 1, `${label}: title size ${block.fontSize} vs ${ctaSize}`);
       assert.ok(block.fits, `${label}: title fits the copy box`);
       assert.equal(block.href, `/${locale}/about/`, `${label}: link goes to About`);
       assert.ok(block.linkGap >= 15 && block.linkGap <= 24, `${label}: link sits under the title (${block.linkGap}px)`);

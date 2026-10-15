@@ -67,8 +67,9 @@ And chân chữ dòng cuối cách đáy batch đúng D
 
 ### R3. Tiêu đề luôn lớn hơn nút
 
-Tiêu đề không nhỏ hơn `1.3rem` (20.8px), bằng cỡ chữ nút (`0.8rem`) nhân tỉ lệ vàng. Cỡ chữ gốc lấy từ CSS theo
-breakpoint; hai quy tắc màn thấp (`max-height: 640px`, rộng tới 750px hoặc từ 751px) có mức tối thiểu `1.3rem`. Tiêu đề
+Tiêu đề không nhỏ hơn `1.3rem` (20.8px), vẫn lớn hơn nhãn nút (`1rem`). Cỡ chữ gốc là cỡ CTA chung
+([trang con R10](detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)) giới hạn `14svh`; hai quy tắc màn thấp
+(`max-height: 640px`, rộng tới 750px hoặc từ 751px) có mức tối thiểu `1.3rem`. Tiêu đề
 không có transition để runtime đo đúng cỡ mới ngay.
 
 Dưới chân chữ cần chỗ cho phần còn lại của dòng cuối, một khoảng giữa, nút và một khoảng giữa tới đáy batch.

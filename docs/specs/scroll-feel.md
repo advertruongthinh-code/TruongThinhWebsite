@@ -102,10 +102,10 @@ cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và to
 | Tới 578px | 400px | 15px | 30px |
 
 - Ảnh phủ kín khối (`object-fit: cover`, giữa), lớp đen phủ opacity `0.2`. Không parallax (R3).
-- Vùng chữ rộng và cao 85% khối, cách mép 7.5%, xếp cột căn giữa. Tiêu đề viết hoa, căn giữa, line-height `1.4`; cỡ chữ
-  bắt đầu 64px, giảm từng `0.25em` tới khi không tràn vùng chữ, thấp nhất `1.5em` (tức 24px), giữ nghĩa VI/EN, chữ 200%.
-  Vùng chữ căn giữa kiểu `safe` để phần tràn dồn xuống dưới, phép đo tràn thấy được. Không JS, motion fallback, hoặc tới
-  `1.5em` vẫn tràn: cao trong bảng là tối thiểu, vùng chữ nằm trong flow nên khối cao theo chữ, tiêu đề tối đa `12vw`.
+- Vùng chữ rộng 85% khối, nằm trong flow, xếp cột căn giữa. Tiêu đề theo rule CTA chung
+  ([trang con R10](detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)): chữ thường, căn giữa, weight 600,
+  cỡ `--cta-title-size`, line-height `0.98`, không JS co chữ (owner 2026-10-15). Cao trong bảng là tối thiểu; chữ dài
+  hơn (cửa sổ hẹp, chữ 200%) thì khối cao theo chữ.
 - Dưới tiêu đề 16px là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), tái dùng phụ đề portal trang chủ
   ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)): 16px, semibold, viết hoa, gạch chân 3px chạy từ trái
   khi hover hoặc focus. Cả khối bấm được, đích `/vi/about/` hoặc `/en/about/`.
@@ -117,7 +117,7 @@ cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và to
 ```gherkin
 Given /vi/ ở bất kỳ bề rộng nào từ 320 tới 1920px, VI hoặc EN
 When cuộn tới khối "Giữ nghề"
-Then chiều cao, gutter, khoảng dưới khối đúng bảng R5, tiêu đề không tràn vùng chữ
+Then chiều cao (tối thiểu), gutter, khoảng dưới khối đúng bảng R5, tiêu đề cỡ CTA chung và không tràn vùng chữ
 And bấm khối hoặc nhấn Enter khi focus mở trang About cùng ngôn ngữ
 ```
 

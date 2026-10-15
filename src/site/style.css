@@ -74,6 +74,8 @@
   --media-hover-easing: ease-out;
   --media-hover-transform: transform var(--media-hover-duration) var(--media-hover-easing);
   --tracking-display: 0.001px;
+  /* Cỡ tiêu đề CTA dùng chung: Giữ nghề, CTA trang con, CTA Advertising (detail-pages R10). */
+  --cta-title-size: clamp(3.2rem, 6vw, 7rem);
   --word-spacing-body: 0.1em;
   --word-spacing-display: 0.1em;
   --word-spacing-montage: 0.1em;
@@ -1097,7 +1099,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 }
 
 .legacy-copy h2 {
-  font-size: clamp(3.5rem, 6.7vw, 7.5rem);
+  font-size: var(--cta-title-size);
   line-height: 0.98;
   text-wrap: balance;
 }
@@ -1701,7 +1703,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
 #dich-vu .service-portal:hover .portal-subtitle::after,
 #dich-vu .service-portal:focus-visible .portal-subtitle::after,
 .legacy-closer:hover .portal-subtitle::after,
-.legacy-link:focus-visible .portal-subtitle::after,
+.legacy-link:is(:hover, :focus-visible) .portal-subtitle::after,
 .advertising-photo-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible) .advertising-photo-view__suggestion-label > span::after {
   transform: scaleX(1);
   transform-origin: left center;
@@ -1984,7 +1986,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   padding-block: 30px;
   margin-right: auto;
   margin-left: auto;
-  overflow: hidden;
+  /* clip, không hidden: lớp bấm -100vmax của .legacy-link không tạo vùng cuộn ẩn. */
+  overflow: clip;
   background: var(--media-loading-surface);
   color: white;
 }
@@ -2018,11 +2021,12 @@ html[lang="en"] #nang-luc .portal-subtitle {
   margin-top: 90px;
 }
 
-/* Cả khối mở About; label dùng lại subtitle của service portal. */
+/* Cả khối bấm được (Giữ nghề, CTA trang con); label dùng lại subtitle của service portal.
+   Vùng chữ là containing block nên lớp bấm tràn ra -100vmax, overflow: clip của khối cắt đúng mép. */
 .legacy-link::before {
   position: absolute;
   z-index: 1;
-  inset: 0;
+  inset: -100vmax;
   content: "";
 }
 
@@ -2034,17 +2038,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   margin: auto;
   flex-flow: column;
   align-items: center;
-  /* safe: chữ tràn dồn xuống dưới để scrollHeight của fitLegacyTitle thấy được. */
-  justify-content: safe center;
+  justify-content: center;
   text-align: center;
-}
-
-/* motion.js fit chữ trong box cố định 85% (fitLegacyTitle); không JS, motion fallback hoặc tới cỡ nhỏ nhất vẫn tràn thì copy nằm trong flow để khối cao theo chữ. */
-html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
-  position: absolute;
-  inset: 7.5%;
-  width: auto;
-  margin: 0;
 }
 
 .legacy-copy > p {
@@ -2070,10 +2065,6 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 .legacy-copy h2 {
   /* Rộng bằng khung thay vì co theo chữ: dấu chấm treo (.text-hang-end) cần chỗ bên phải dòng dài nhất. */
   align-self: stretch;
-  /* Trần theo vw thay fit bằng JS khi motion không chạy; motion ghi đè bằng inline style. */
-  font-size: min(4rem, 12vw);
-  line-height: 1.4;
-  text-transform: uppercase;
 }
 
 .legacy-copy h2 em {
@@ -3124,10 +3115,7 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     transition-duration: 0.01ms !important;
   }
 
-  /* Transition 0.01ms làm giá trị đổi trễ một frame: fitLegacyTitle đo sai cỡ chữ cũ,
-     fitHeritageGaps đo sai khoảng dòng motto cũ. */
-  .legacy-copy h2,
-  .legacy-copy h2 *,
+  /* Transition 0.01ms làm giá trị đổi trễ một frame: fitHeritageGaps đo sai khoảng dòng motto cũ. */
   .heritage-row {
     transition: none !important;
   }

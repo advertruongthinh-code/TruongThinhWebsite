@@ -1,6 +1,8 @@
 # Banner CTA
 
 Khối "Giữ nghề. Không ngừng làm mới." cuối trang chủ, cả khối dẫn sang About.
+Rule chữ CTA chung (tiêu đề, nhãn nút, hover) dùng cho cả `.detail-cta` của Nhà ở,
+Kinh doanh, Giới thiệu và CTA Advertising ([trang con R10](../../../docs/specs/detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)).
 Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành vi
 đầy đủ ở [cảm giác cuộn R5](../../../docs/specs/scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio).
 
@@ -15,10 +17,14 @@ Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành v
 | Tới 578px | 400px | 15px | 30px |
 
 - Ảnh phủ kín (`object-fit: cover`), lớp đen opacity `0.2`, không parallax.
-- Vùng chữ 85% khối, cách mép 7.5%, căn giữa. Tiêu đề chữ hoa, line-height
-  `1.4`, bắt đầu 4rem, giảm từng 0.25rem tới khi không tràn, thấp nhất 1.5rem.
-- Link "VỀ CHÚNG TÔI" cách tiêu đề 16px, dùng phụ đề portal trang chủ.
-- Hover: ảnh `scale(1.1)` `0.6s ease-out`. Focus giữ focus ring của Design System.
+- Vùng chữ rộng 85% khối, căn giữa, khối cao theo chữ khi chữ dài. Tiêu đề style
+  `cta-title`: chữ thường, weight 600, cỡ `--cta-title-size`
+  (`clamp(3.2rem, 6vw, 7rem)`), line-height `0.98`.
+- Nhãn nút `.legacy-link` + `.portal-subtitle` ("VỀ CHÚNG TÔI", "GỌI ZALO TƯ VẤN"):
+  16px, viết hoa, không mũi tên; subtitle (nếu có) nằm trên tiêu đề.
+- Hover: ảnh `scale(1.1)` `0.6s ease-out`, gạch chân 3px của nhãn chạy từ trái;
+  lớp bấm phủ cả khối. CTA Advertising là ngoại lệ: không ảnh, chỉ hover nút.
+  Focus giữ focus ring của Design System.
 - Vào viewport: line reveal của tiêu đề ([motion](../../motion.md)), link hiện
   sau 0.3s.
 

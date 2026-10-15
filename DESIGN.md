@@ -41,6 +41,12 @@ typography:
     fontWeight: 600
     lineHeight: 1.4
     letterSpacing: "normal"
+  cta-title:
+    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
+    fontSize: "clamp(3.2rem, 6vw, 7rem)"
+    fontWeight: 600
+    lineHeight: 0.98
+    letterSpacing: "0.001px"
   menu-title:
     fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
     fontSize: "1.8rem"
