@@ -333,7 +333,8 @@ test("producer still rejects unsupported legacy fields before selection", () => 
 
 test("artifact retains the tag registry with custom card fixtures", () => {
   const artifact = buildAdvertisingArtifact({ cards: [ADVERTISING_MEDIA_MANIFEST[0]] });
-  assert.deepEqual(artifact.tagRegistry, ADVERTISING_TAG_REGISTRY);
+  assert.deepEqual(artifact.tagRegistry.filter(({ group }) => group !== "product"), ADVERTISING_TAG_REGISTRY);
+  assert.deepEqual(artifact.tagRegistry.filter(({ group }) => group === "product").map(({ id }) => id), ADVERTISING_PRODUCTS.map(({ id }) => id));
   assert.equal(artifact.cards.length, 1);
 });
 

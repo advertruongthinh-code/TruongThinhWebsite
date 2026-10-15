@@ -286,7 +286,7 @@ test("organic solver remains bounded and diagnostic when a future 100-image pool
 test("related detail solver preserves the complete tagged set and scores its shuffled layout", () => {
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   const hero = ADVERTISING_CARDS.find((card) => card.tagIds?.length);
-  const tag = hero.tagIds[0];
+  const tag = hero.tagIds.find((id) => !hero.productIds.includes(id));
   const related = advertisingRuntime.selectAdvertisingRelated({
     cards: ADVERTISING_CARDS,
     categoryOrder,
