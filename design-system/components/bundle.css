@@ -1440,6 +1440,12 @@ em {
   font-weight: 700;
 }
 
+/* Kinh doanh: mọi dòng tiêu đề portal cùng weight với dòng strong (owner 2026-10-15) */
+[data-barba-namespace="commercial"] #loai-hinh .portal-copy strong,
+[data-barba-namespace="commercial"] #loai-hinh .portal-title__quiet {
+  font-weight: 700;
+}
+
 .portal-title-mask,
 .portal-title__quiet,
 .portal-title__strong {
@@ -3910,6 +3916,11 @@ html[lang="en"]
   height: 100%;
   object-fit: cover;
   transition: transform 0.6s ease-out;
+}
+
+/* Ảnh bìa kiosk: chữ hộp đèn lệch phải, dịch khung cắt 3:4 sang phải để giữ đủ chữ. */
+.project-tile:not(.advertising-tile) img[src*="advertising-kiosk-posm-cover"] {
+  object-position: 58% 50%;
 }
 
 .project-tile figcaption {
