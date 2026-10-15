@@ -36,9 +36,9 @@ function videoItem(record) {
   };
 }
 
-test("canonical 154 image cards expose one stable cover item without changing legacy media", () => {
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 154);
-  assert.equal(ADVERTISING_CARDS.length, 154);
+test("canonical 179 image cards expose one stable cover item without changing legacy media", () => {
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 179);
+  assert.equal(ADVERTISING_CARDS.length, 179);
   for (const record of ADVERTISING_MEDIA_MANIFEST) {
     assert.equal(record.coverMediaId, record.id);
     assert.deepEqual(record.mediaItems, [imageItem(record)]);
@@ -50,7 +50,7 @@ test("canonical 154 image cards expose one stable cover item without changing le
 });
 
 test("parent and related cards retain ordered image/video items, cover IDs, and legacy image media", () => {
-  const parentBase = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const parentBase = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const relatedBase = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-06");
   const parent = {
     ...parentBase,
@@ -67,7 +67,8 @@ test("parent and related cards retain ordered image/video items, cover IDs, and 
   assert.equal(validateAdvertisingMediaPool(pool, poolOptions), pool);
 
   const artifact = buildAdvertisingArtifact({ cards: [parent, related] });
-  assert.deepEqual(artifact.cards.map(({ id }) => id), [parent.id, related.id]);
+  // Artifact xếp card theo thứ tự cụm, không theo thứ tự đầu vào.
+  assert.deepEqual(artifact.cards.map(({ id }) => id).sort(), [parent.id, related.id].sort());
   for (const input of [parent, related]) {
     const card = artifact.cards.find(({ id }) => id === input.id);
     assert.deepEqual(card.media, input.media);
@@ -78,14 +79,14 @@ test("parent and related cards retain ordered image/video items, cover IDs, and 
 });
 
 test("media contract rejects missing cover and duplicate media IDs", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const good = { ...record, mediaItems: [imageItem(record), videoItem(record)] };
   assert.throws(() => buildAdvertisingArtifact({ cards: [{ ...good, coverMediaId: "missing" }] }), /coverMediaId/i);
   assert.throws(() => buildAdvertisingArtifact({ cards: [{ ...good, mediaItems: [imageItem(record), { ...videoItem(record), id: record.id }] }] }), /duplicate media id/i);
 });
 
 test("video items require poster, duration, audio flag, and provenance", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   for (const [field, value] of Object.entries({
     posterSrc: "",
     durationSeconds: 0,
@@ -99,14 +100,14 @@ test("video items require poster, duration, audio flag, and provenance", () => {
 });
 
 test("scaled 3:2 image, video, and poster accept a video cover", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const video = videoItem(record);
   const card = { ...record, mediaItems: [imageItem(record), video], coverMediaId: video.id };
   assert.deepEqual(validateAdvertisingCardMedia(card), { mediaItems: card.mediaItems, coverMediaId: video.id });
 });
 
 test("mixed 3:2 and 16:9 media are rejected for either cover kind", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const image = imageItem(record);
   const video = { ...videoItem(record), width: 640, height: 360 };
   assert.throws(() => validateAdvertisingCardMedia({ ...record, mediaItems: [image, video], coverMediaId: image.id }), /ratio/i);
@@ -115,7 +116,7 @@ test("mixed 3:2 and 16:9 media are rejected for either cover kind", () => {
 });
 
 test("image and video intrinsic dimensions must be positive safe integers", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   for (const item of [imageItem(record), videoItem(record)]) {
     for (const { field, value } of [
       { field: "width", value: undefined },
@@ -132,7 +133,7 @@ test("image and video intrinsic dimensions must be positive safe integers", () =
 });
 
 test("video poster dimensions are required positive safe integers with the card ratio", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   for (const { field, value } of [
     { field: "posterWidth", value: undefined },
     { field: "posterHeight", value: undefined },
@@ -147,7 +148,7 @@ test("video poster dimensions are required positive safe integers with the card 
 });
 
 test("exact ratio comparison handles large safe integers without float tolerance", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const image = { ...imageItem(record), width: 9_000_000_000_000_000, height: 6_000_000_000_000_000 };
   const video = { ...videoItem(record), width: 9_000_000_000_000_000, height: 6_000_000_000_000_000, posterWidth: 9_000_000_000_000_000, posterHeight: 6_000_000_000_000_000 };
   assert.equal(validateAdvertisingCardMedia({ ...record, mediaItems: [image, video] }).mediaItems.length, 2);
@@ -155,7 +156,7 @@ test("exact ratio comparison handles large safe integers without float tolerance
 });
 
 test("visible same-src legacy image cover requires integer dimensions and the card ratio", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const mediaItems = [imageItem(record), videoItem(record)];
   assert.throws(() => validateAdvertisingCardMedia({ ...record, media: { ...record.media, width: 1200, height: 900 }, mediaItems }), /legacy cover ratio/i);
   assert.throws(() => validateAdvertisingCardMedia({ ...record, media: { ...record.media, width: 1536.5 }, mediaItems }), /legacy cover.*width and height/i);
@@ -163,7 +164,7 @@ test("visible same-src legacy image cover requires integer dimensions and the ca
 });
 
 test("legacy image metadata may differ when a video or different image is cover", () => {
-  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "signage-raised-letters-02");
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   const image = imageItem(record);
   const video = videoItem(record);
   const legacy = { ...record.media, width: 1200, height: 900 };

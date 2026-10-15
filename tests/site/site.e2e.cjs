@@ -9449,7 +9449,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "legacy closer",
       route: "/vi/?media-fallback=legacy",
-      asset: "**/workshop-wide.webp",
+      asset: "**/workshop-wide-v2.webp",
       surface: ".legacy-closer",
       image: ":scope > img, :scope > picture > img",
       text: ".legacy-copy",
@@ -10086,7 +10086,7 @@ async function runHomeMotionRegressionCheck() {
         JSON.stringify(contract.hero.sources) ===
           JSON.stringify([
             "/assets/content/projects/residential-space.webp",
-            "/assets/content/projects/hero.webp",
+            "/assets/content/projects/hero-v2.webp",
             "/assets/content/projects/hero-kiosk.webp",
             "/assets/content/projects/mobile-retail.webp",
           ]),
