@@ -3717,6 +3717,26 @@ html[lang="vi"]
   word-spacing: var(--word-spacing-display);
 }
 
+/* Treo dấu chấm cuối tiêu đề khi canh giữa: dấu chấm không chiếm bề rộng nên dòng cuối canh giữa theo phần chữ,
+   dòng trên không bị dịch. Dùng width 0 thay margin âm vì SplitText nhân bản span rỗng, margin sẽ bị cộng hai
+   lần. Phone canh trái (max-width 680px) giữ dấu chấm thường. */
+@media (min-width: 681px) {
+  .detail-cta__period {
+    display: inline-block;
+    width: 0;
+  }
+
+  /* Mask của dòng chỉ nới theo chiều dọc; nới thêm chiều ngang để dấu chấm treo ra ngoài không bị cắt. Inline
+     overflow clip của SplitText cũng cắt nên đè như rule max-width 980px. */
+  .detail-cta__copy h2 .motion-line-mask {
+    overflow: visible !important;
+    clip-path: inset(
+      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) -0.5em
+      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em))
+    );
+  }
+}
+
 .detail-cta__copy a {
   display: inline-flex;
   /* Vùng chạm 44px như .site-invitation__link; gạch chân vẫn là border-bottom. */
