@@ -1562,8 +1562,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
 }
 
 #nang-luc .portal-subtitle {
-  /* 3.5cqw: phụ đề Quy trình năm bước vẫn một dòng, cách mép card ít nhất 8px (page-home R5). */
-  font-size: min(1rem, 3.5cqw);
+  /* 3.3cqw: phụ đề Quy trình năm bước vẫn một dòng, cách mép card ít nhất 8px cả khi font CI render rộng hơn (page-home R5). */
+  font-size: min(1rem, 3.3cqw);
   white-space: nowrap;
 }
 
