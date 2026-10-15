@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import vm from "node:vm";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_LEGACY_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 
-const slugs = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
+const slugs = ADVERTISING_LEGACY_CATEGORIES.map(({ slug }) => slug);
 const output = (path) => new URL("../../.site-output/" + path, import.meta.url);
 const worker = await readFile(new URL("../../src/worker/index.js", import.meta.url), "utf8");
 

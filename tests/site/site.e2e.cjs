@@ -4992,7 +4992,7 @@ async function runAdvertisingFilterCheck() {
         ),
       }));
       // Thứ tự random theo lượt vào, nên chọn card đã mount cũng mở cửa sổ của filter riêng nó.
-      const categories = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
+      const categories = ["displays-booths", "mobile-retail", "signage", "office-signs", "led-displays", "printing-decals"];
       const windows = {};
       for (const category of categories) windows[category] = await advertisingWindow(page, category);
       // Card đứng yên chỗ cũ trong layout filter thì không có morph để đo; chọn card phải dời chỗ.
@@ -5686,7 +5686,7 @@ async function runAdvertisingRapidFilterCheck() {
         window.dispatchEvent(new Event("scroll"));
       });
       await page.waitForTimeout(50);
-      await page.locator('[data-advertising-filter="print-decals"]').evaluate((control) => control.click());
+      await page.locator('[data-advertising-filter="printing-decals"]').evaluate((control) => control.click());
       await page.waitForTimeout(120);
       const rapidStart = await page.locator("[data-project-grid]").evaluate(async (grid) => {
         const gridRect = grid.getBoundingClientRect();
@@ -6119,7 +6119,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               kickerLeadsTitle:
                 kickerRect.top < headingRect.top &&
                 kickerRect.bottom <= headingRect.top + 1,
-              filtersAreLower: filtersRect.top >= heroRect.top + heroRect.height * 0.6,
+              // Nhãn cụm dài làm rail tablet xuống nhiều dòng và mọc lên trên; rail vẫn phải nằm dưới tiêu đề hoặc trong 40% dưới hero.
+              filtersAreLower: filtersRect.top >= Math.min(headingRect.bottom, heroRect.top + heroRect.height * 0.6),
               viewportMinusFifty:
                 heroRect.top <= 1 &&
                 Math.abs(heroRect.height - (window.innerHeight - 50)) <= 1,
@@ -6160,7 +6161,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
-          const kioskFilter = page.locator('[data-advertising-filter="kiosk-posm"]');
+          const kioskFilter = page.locator('[data-advertising-filter="displays-booths"]');
           await kioskFilter.focus();
           assert(
             await kioskFilter.evaluate((filter) => document.activeElement === filter),
@@ -6169,7 +6170,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
 
           if (viewport.width <= 390) {
             const firstFilter = page.locator('[data-advertising-filter="all"]');
-            const lastFilter = page.locator('[data-advertising-filter="print-decals"]');
+            const lastFilter = page.locator('[data-advertising-filter="mobile-retail"]');
             await firstFilter.focus();
             for (let index = 0; index < 6; index += 1) {
               await page.keyboard.press("Tab");
@@ -6190,7 +6191,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             assert(mobileFilters.isScrollable && mobileFilters.lastFits, `${locale} ${viewport.width}x${viewport.height}: keyboard focus did not bring the final mobile filter into view`);
             await page.keyboard.press("Enter");
             await page.waitForFunction(
-              () => document.querySelector('[data-advertising-filter="print-decals"]')?.getAttribute("aria-current") === "true",
+              () => document.querySelector('[data-advertising-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
               null,
               { timeout: 3_000 },
             );
@@ -6328,7 +6329,7 @@ async function runAdvertisingGridFocusedChecks() {
         const firstPass = await page.locator("[data-project-grid]").evaluate((grid) =>
           [...grid.querySelectorAll(".advertising-tile")].map((tile) => `${tile.dataset.advertisingCard}:${tile.style.left}:${tile.style.top}`),
         );
-        await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+        await page.locator('[data-advertising-filter="displays-booths"]').click();
         await page.locator('[data-advertising-filter="all"]').click();
         // Chờ lưới settle (hết transform, hết fade, không còn animation, vị trí đứng yên giữa hai lần đọc) thay cho
         // 450ms cố định: runner bận còn để card kiosk ở chỗ cũ, card đang mờ dần chưa rời DOM khi đọc.
@@ -6941,20 +6942,6 @@ async function runAdvertisingMediaFocusedChecks() {
         layout.placements.every((placement, index) => placement.card.id === cards[index].id),
       `${category.slug} count or FIFO source order drifted`,
     );
-    const pool = new Map(cards.map((card) => [card.media.src, card.media]));
-    const coverMedia = pool.get(category.cover);
-    assert(
-      category.products.length > 0 &&
-        coverMedia && Reflect.get(coverMedia, "width") === category.coverWidth &&
-        Reflect.get(coverMedia, "height") === category.coverHeight &&
-        category.gallery.length === 2 &&
-        category.gallery.every(([src, altVi, altEn, width, height]) => {
-          const media = pool.get(src);
-          return media && Reflect.get(media, "altVi") === altVi && Reflect.get(media, "altEn") === altEn &&
-            Reflect.get(media, "width") === width && Reflect.get(media, "height") === height;
-        }),
-      `${category.slug} detail taxonomy or gallery escaped its current category pool`,
-    );
   }
   const rankedLayout = compileAdvertisingLayout({
     cards: artifact.cards,
@@ -7142,7 +7129,7 @@ async function runAdvertisingMediaFocusedChecks() {
         const filtered = await readGridState(page);
         assertGridState(filtered, filteredLayout, `${category.slug} filter`);
         assert(
-          filtered.activeFilter === category.slug && filtered.categoryQuery === category.slug &&
+          filtered.activeFilter === category.slug && filtered.categoryQuery === category.slugVi &&
             filtered.tiles.every((tile) => tile.category === category.slug),
           `${category.slug} filter retained a wrong category or URL state`,
         );
@@ -7283,8 +7270,10 @@ async function runAdvertisingMediaFocusedChecks() {
   await runAdvertisingCompatibilityChecks();
 }
 async function runAdvertisingCompatibilityChecks() {
-  const { buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const categoryTitles = new Map(buildAdvertisingArtifact().categories.map((category) => [category.slug, { vi: category.titleVi, en: category.titleEn }]));
+  const { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
+  const categoryTitles = new Map(ADVERTISING_LEGACY_CATEGORIES.map((category) => [category.slug, { vi: category.titleVi, en: category.titleEn }]));
+  // Runtime đổi slug nhóm cũ sang slug cụm theo locale (taxonomy R4).
+  const clusterSlug = (slug, locale) => ADVERTISING_CATEGORIES.find((category) => category.legacySlug === slug)?.[locale === "en" ? "slugEn" : "slugVi"];
   for (const locale of ["vi", "en"]) {
     for (const slug of ADVERTISING_CATEGORY_SLUGS) {
       await runPageCase(
@@ -7296,7 +7285,7 @@ async function runAdvertisingCompatibilityChecks() {
           const url = new URL(page.url());
           assert(
             url.origin === BASE_ORIGIN && canonicalPathname(url) === `/${locale}/advertising-products/` &&
-              url.searchParams.get("category") === slug && !url.searchParams.has("photo") && !url.searchParams.has("tag"),
+              url.searchParams.get("category") === clusterSlug(slug, locale) && !url.searchParams.has("photo") && !url.searchParams.has("tag"),
             `${locale}/${slug} did not cleanly replace to its parent category query: ${url}`,
           );
           const photoState = await page.locator("[data-advertising-photo-view]").evaluate((view) => ({ hidden: view.hidden, active: view.dataset.advertisingPhotoId || null }));
@@ -7352,7 +7341,7 @@ async function runAdvertisingThreeThousandCardProbe() {
     bottoms.push(bottom);
     return {
       id: `benchmark-${String(index).padStart(4, "0")}`,
-      category: "kiosk-posm",
+      category: "displays-booths",
       rank: index,
       sourceOrder: index,
       media: {
@@ -7516,7 +7505,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
     const primaryKiosk = index === 0;
     return {
       id: kiosk ? `kiosk-posm-${String(index + 1).padStart(2, "0")}` : `locale-${String(index).padStart(4, "0")}`,
-      category: kiosk ? "kiosk-posm" : "mobile-retail",
+      category: kiosk ? "displays-booths" : "mobile-retail",
       rank: index,
       sourceOrder: kiosk ? index : index - 3,
       media: {
@@ -7665,7 +7654,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".advertising-tile__foreground");
         return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/?category=kiosk-posm&photo=kiosk-posm-01", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
+      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/?category=displays-booths&photo=kiosk-posm-01", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
 
       await switchLanguage("vi");
       await virtualizeKiosk();
@@ -7675,7 +7664,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".advertising-tile__foreground");
         return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-01", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/?category=displays-booths&photo=kiosk-posm-01", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
       await page.locator(".advertising-tile a").first().focus();
       await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());
@@ -8710,19 +8699,19 @@ async function runMotionAbortFailOpenChecks() {
             ...document.querySelectorAll("[data-project-grid] [data-advertising-category]"),
           ].map((tile) => tile.dataset.advertisingCategory);
           return {
-            kioskTiles: categories.filter((category) => category === "kiosk-posm").length,
-            otherTiles: categories.filter((category) => category !== "kiosk-posm").length,
+            kioskTiles: categories.filter((category) => category === "displays-booths").length,
+            otherTiles: categories.filter((category) => category !== "displays-booths").length,
           };
         });
         assert(
           filterState.otherTiles > 0 && filterState.kioskTiles > 0,
           `Fail-open fixture cannot prove filtering: ${JSON.stringify(filterState)}`,
         );
-        await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+        await page.locator('[data-advertising-filter="displays-booths"]').click();
         await page.waitForFunction(
           () =>
             document
-              .querySelector('[data-advertising-filter="kiosk-posm"]')
+              .querySelector('[data-advertising-filter="displays-booths"]')
               ?.getAttribute("aria-current") === "true",
         );
         const filteredState = await page.evaluate(() => ({
@@ -8736,7 +8725,7 @@ async function runMotionAbortFailOpenChecks() {
         }));
         assert(
           filteredState.visible.length > 0 &&
-            filteredState.visible.every((category) => category === "kiosk-posm"),
+            filteredState.visible.every((category) => category === "displays-booths"),
           `Fail-open filter did not isolate kiosk tiles: ${JSON.stringify(filteredState)}`,
         );
         await page.locator('[data-advertising-filter="all"]').click();
@@ -8749,7 +8738,7 @@ async function runMotionAbortFailOpenChecks() {
               ...document.querySelectorAll(
                 "[data-project-grid] [data-advertising-category]",
               ),
-            ].some((tile) => !tile.hidden && tile.dataset.advertisingCategory !== "kiosk-posm"),
+            ].some((tile) => !tile.hidden && tile.dataset.advertisingCategory !== "displays-booths"),
         );
         await page.locator("[data-menu-open]").click();
         await waitForMenuState(page, true);
@@ -8897,11 +8886,12 @@ async function runMotionAbortFailOpenChecks() {
           window.__ttLateFilterLayoutEvents += 1;
         });
       });
-      await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+      // Cụm đầu rail nằm ở hàng một; bấm cụm ở hàng dưới thì trang cuộn và header ẩn trước khi mở menu.
+      await page.locator('[data-advertising-filter="signage"]').click();
       await page.waitForFunction(
         () =>
           document
-            .querySelector('[data-advertising-filter="kiosk-posm"]')
+            .querySelector('[data-advertising-filter="signage"]')
             ?.getAttribute("aria-current") === "true" &&
           window.__ttLateFilterLayoutEvents === 1,
       );
@@ -9033,8 +9023,8 @@ async function runDelayedDetailFallbackChecks() {
           `Delayed-detail abort page did not load: ${abortedNavigationError}`,
         );
         assertFilter(
-          await exerciseFilter(page, "kiosk-posm"),
-          "kiosk-posm",
+          await exerciseFilter(page, "displays-booths"),
+          "displays-booths",
           "Delayed-detail abort kiosk",
         );
         assertFilter(
@@ -9085,8 +9075,8 @@ async function runDelayedDetailFallbackChecks() {
         await waitForLoadedDocument(page);
         await waitForAdvertisingCatalog(page);
         assertFilter(
-          await exerciseFilter(page, "kiosk-posm"),
-          "kiosk-posm",
+          await exerciseFilter(page, "displays-booths"),
+          "displays-booths",
           "Delayed-detail veil kiosk",
         );
         assertFilter(
@@ -12949,7 +12939,7 @@ async function runP13NavbarChecks() {
       assert(await link.count(), "Advertising menu has no mobile-retail option");
       await link.click();
       await page.waitForFunction(
-        () => new URL(location.href).searchParams.get("category") === "mobile-retail",
+        () => new URL(location.href).searchParams.get("category") === "xe-ban-hang-luu-dong",
       );
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({

@@ -14,7 +14,7 @@ const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true });
 
 try {
-  for (const [locale, categoryLabel] of [["vi", "kiosk-posm"], ["en", "kiosk-posm"]]) {
+  for (const [locale, categoryLabel] of [["vi", "displays-booths"], ["en", "displays-booths"]]) {
     for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
       const page = await browser.newPage({ viewport });
       const browseUrl = `${baseUrl}/${locale}/advertising-products/?category=${categoryLabel}`;
@@ -64,7 +64,8 @@ try {
       assert.ok(detail.relatedTiles.every((tile) => Math.abs(tile.height - tile.imageHeight) <= 1), `${locale} ${viewport.width}px: related tile reserves caption height`);
 
       await page.goto(`${baseUrl}/${locale}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });
-      await page.waitForURL(new RegExp(`/${locale}/advertising-products/\\?category=kiosk-posm`));
+      // Trang tương thích chuyển tới slug nhóm cũ; runtime đổi sang slug cụm theo locale.
+      await page.waitForURL(new RegExp(`/${locale}/advertising-products/\\?category=${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}`));
       await page.waitForSelector("[data-advertising-card]");
       await page.close();
     }
