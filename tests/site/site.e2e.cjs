@@ -9450,7 +9450,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "detail CTA",
       route: "/vi/commercial/?media-fallback=cta",
-      asset: "**/site-detail.webp",
+      asset: "**/commercial-cta-survey.webp",
       surface: ".detail-cta",
       image: ":scope > img, :scope > picture > img",
       text: ".detail-cta__copy",
