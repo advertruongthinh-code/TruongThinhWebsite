@@ -2,7 +2,7 @@
 // Id nội bộ là slug EN lúc tạo; slug đổi về sau thì giữ id. Thứ tự mảng là thứ tự rail.
 // legacySlug là slug nhóm cũ, `?category=` cũ vẫn lọc đúng cụm (R4).
 // Sản phẩm dưới ngưỡng trang mỏng (R5) không lên rail và không có trang.
-export const ADVERTISING_THIN_PRODUCT_THRESHOLD = 3;
+export const ADVERTISING_THIN_PRODUCT_THRESHOLD = 9;
 
 export const ADVERTISING_CLUSTERS = Object.freeze([
   {

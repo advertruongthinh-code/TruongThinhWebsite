@@ -271,8 +271,8 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
 
 ## Gate còn mở
 
-- `TT_E2E_BRAND_LOCKUP_ONLY` xanh trên cloud, trên runner WSL mép phải hai dòng chữ Việt lệch 0.62-0.74px (dung sai
-  0.5px), để `pending`; cần đo trên Chrome Windows để biết do môi trường render hay do lockup.
+- `TT_E2E_BRAND_LOCKUP_ONLY` xanh trên cloud và Chrome Windows (3/3, đo 2026-10-14), chỉ runner WSL lệch mép phải
+  hai dòng chữ Việt 0.62-0.74px (dung sai 0.5px) do môi trường render; để `manual`, chạy tay khi đổi lockup.
 - Scrollbar: owner đã nghiệm thu visual desktop; thiếu iPhone thật, Firefox headful, kéo, thả,
   visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R5

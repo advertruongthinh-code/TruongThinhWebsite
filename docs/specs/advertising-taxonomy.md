@@ -6,8 +6,9 @@ source:
 tests:
   - tests/site/advertising-products-media.test.mjs
   - tests/site/advertising-random-browse.e2e.mjs
+  - tests/site/advertising-pages.test.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-10-14
+updated: 2026-10-15
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -109,7 +110,7 @@ Build sinh trang tĩnh cho mỗi locale:
 
 Trang `/vi/` dùng slug VI không dấu, trang `/en/` dùng slug EN (R1); đoạn path `advertising-products` giữ nguyên
 cho cả hai locale. Mỗi trang là trang masonry Advertising với filter đặt sẵn, có title, meta description, h1, đoạn giới thiệu riêng
-trong HTML tĩnh, canonical trỏ chính nó, hreflang VI/EN. Sáu URL tương thích `/advertising-products/<slug cũ>/`
+trong HTML tĩnh (h1 là dòng kicker mang tên cụm, sản phẩm; khẩu hiệu giữ hình nhưng là `p.hero-title`, owner 2026-10-15), canonical trỏ chính nó, hreflang VI/EN. Sáu URL tương thích `/advertising-products/<slug cũ>/`
 ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)) chuyển hướng tới trang cụm mới tương
 ứng. `?category=<slug cũ hoặc mới>` trên URL gốc: runtime thay URL bằng path cụm mới (`replaceState`), giữ `photo`, `tag` và query
 khác. Site tĩnh không trả được 301 theo query; 301 phía server làm khi có Worker CMS (Gate còn mở). Slug đổi về sau
@@ -118,7 +119,7 @@ cụm và sản phẩm như trên trang gốc.
 
 ```gherkin
 Given build xong
-When tải thẳng /en/advertising-products/printing-decals/menus/ không JavaScript
+When tải thẳng /en/advertising-products/printing-decals/office-printing/ không JavaScript
 Then HTML có h1, đoạn giới thiệu, canonical chính nó và link tới mọi cụm, sản phẩm
 And tải /vi/advertising-products/?category=print-decals thì URL thành /vi/advertising-products/in-an-decal/
 ```
@@ -128,9 +129,9 @@ một phần card cho Google? Mặc định: giữ như R10, chữ và link tron
 
 ### R5. Trang mỏng
 
-Sản phẩm có từ 3 ảnh đã gắn và duyệt mới lên rail và có trang. Dưới ngưỡng: không lên rail, không sinh trang,
-ảnh vẫn hiện trong cụm. Cụm luôn có trang. Ngưỡng là một hằng số trong dữ liệu (R2). Cây tạm R1 có mọi sản phẩm
-từ 3 ảnh.
+Sản phẩm có từ 9 ảnh đã gắn và duyệt mới lên rail và có trang (owner 2026-10-15). Dưới ngưỡng: không lên rail, không sinh trang,
+ảnh vẫn hiện trong cụm. Cụm luôn có trang. Ngưỡng là một hằng số trong dữ liệu (R2). Cây tạm R1 vẫn giữ mọi sản phẩm
+từ 3 ảnh để gắn tag.
 
 ```gherkin
 Given sản phẩm X chỉ có 2 ảnh
@@ -221,9 +222,9 @@ Không đổi typography hay layout ngoài rail.
 | R | Test hoặc command |
 | --- | --- |
 | R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo sản phẩm chính và lọc sản phẩm) |
-| R5 | chưa có test (rail và trang theo ngưỡng) |
 | R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); chưa có test rail hai tầng, chip sản phẩm |
-| R4 | `advertising-products-media.test.mjs`, `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm); chưa có test trang tĩnh, canonical, hreflang, path |
+| R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm); chưa có test đổi URL thành path khi bấm (T5) |
+| R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang); chưa có test rail theo ngưỡng |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |
 | R7 | chưa có test (thứ tự related theo điểm) |
 | R8 | `advertising-products-media.test.mjs` (sửa nhãn); chưa có test cho ảnh bổ sung, provenance |

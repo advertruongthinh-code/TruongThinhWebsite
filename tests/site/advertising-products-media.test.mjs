@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 190);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 192);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -301,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 190);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 192);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
@@ -377,11 +377,11 @@ const PLAN_RELABELS = {
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
 
-test("taxonomy has six clusters and 23 products in plan order with a thin-page threshold of 3", () => {
+test("taxonomy has six clusters and 23 products in plan order with a thin-page threshold of 9", () => {
   assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
   assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
   assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");
-  assert.equal(ADVERTISING_THIN_PRODUCT_THRESHOLD, 3);
+  assert.equal(ADVERTISING_THIN_PRODUCT_THRESHOLD, 9);
 });
 
 test("every old product tag becomes a variant that maps to its plan product", () => {

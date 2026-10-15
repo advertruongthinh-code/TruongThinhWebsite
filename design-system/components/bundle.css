@@ -1026,7 +1026,9 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
-.hero h1,
+/* Trang cụm, sản phẩm: kicker là h1, khẩu hiệu là p.hero-title giữ cùng hình. */
+.hero h1:where(:not(.hero-kicker)),
+.hero p:where(.hero-title),
 .legacy-copy h2 {
   margin: 0;
   font-weight: 600;
@@ -1034,7 +1036,8 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   word-spacing: var(--word-spacing-display);
 }
 
-.hero h1 {
+.hero h1:where(:not(.hero-kicker)),
+.hero p:where(.hero-title) {
   font-size: clamp(5rem, 9vw, 10rem);
   line-height: 0.86;
 }
@@ -1448,6 +1451,12 @@ em {
 }
 
 .portal-title__strong {
+  font-weight: 700;
+}
+
+/* Kinh doanh: mọi dòng tiêu đề portal cùng weight với dòng strong (owner 2026-10-15) */
+[data-barba-namespace="commercial"] #loai-hinh .portal-copy strong,
+[data-barba-namespace="commercial"] #loai-hinh .portal-title__quiet {
   font-weight: 700;
 }
 
@@ -2701,7 +2710,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
     text-align: left;
   }
 
-  .hero h1 {
+  .hero h1:where(:not(.hero-kicker)),
+  .hero p:where(.hero-title) {
     font-size: clamp(4.6rem, 19vw, 6.5rem);
     line-height: 0.86;
   }
@@ -3034,7 +3044,8 @@ html.motion-ready:not(.motion-fallback) .legacy-copy:not(.is-overflowing) {
 }
 
 @media (max-width: 360px) {
-  .hero h1 {
+  .hero h1:where(:not(.hero-kicker)),
+  .hero p:where(.hero-title) {
     font-size: 4.1rem;
   }
 
@@ -3209,7 +3220,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   width: min(82rem, calc(100% - 2 * var(--gutter)));
 }
 
-.detail-hero h1 {
+.detail-hero h1:where(:not(.hero-kicker)),
+.detail-hero p:where(.hero-title) {
   font-size: clamp(4.8rem, 8.2vw, 9.4rem);
   line-height: 0.9;
 }
@@ -3789,7 +3801,8 @@ html[lang="vi"]
   text-transform: uppercase;
 }
 
-.detail-index-hero h1 {
+.detail-index-hero h1:where(:not(.hero-kicker)),
+.detail-index-hero p:where(.hero-title) {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -3925,6 +3938,11 @@ html[lang="en"]
   transition: transform 0.6s ease-out;
 }
 
+/* Ảnh bìa kiosk: chữ hộp đèn lệch phải, dịch khung cắt 3:4 sang phải để giữ đủ chữ. */
+.project-tile:not(.advertising-tile) img[src*="advertising-kiosk-posm-cover"] {
+  object-position: 58% 50%;
+}
+
 .project-tile figcaption {
   position: relative;
   padding: 0.75rem 0 0.35rem;
@@ -4018,7 +4036,8 @@ html[lang="en"]
     top: 47%;
   }
 
-  .detail-hero h1 {
+  .detail-hero h1:where(:not(.hero-kicker)),
+  .detail-hero p:where(.hero-title) {
     font-size: clamp(3.8rem, 17vw, 5.6rem);
   }
 
@@ -4206,12 +4225,14 @@ html[lang="en"]
     transform: translateX(-50%);
   }
 
-  .detail-index-hero h1 {
+  .detail-index-hero h1:where(:not(.hero-kicker)),
+  .detail-index-hero p:where(.hero-title) {
     margin-top: 0;
     font-size: clamp(1.75rem, 9.1vw, 2.25rem);
   }
 
-  html[lang="en"] .detail-index-hero h1 {
+  html[lang="en"] .detail-index-hero h1:where(:not(.hero-kicker)),
+  html[lang="en"] .detail-index-hero p:where(.hero-title) {
     font-size: clamp(1.65rem, 8.4vw, 2.1rem);
   }
 

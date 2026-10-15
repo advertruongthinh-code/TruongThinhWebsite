@@ -86,8 +86,8 @@ Then validator từ chối pool và nêu id trùng
 ### R3. Filter
 
 Rail `.project-filters` (`role="group"`) có bảy link `[data-advertising-filter]`: `all` ("Tất cả" / "All", về URL gốc)
-rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML); mục đang chọn có `aria-current="true"`. Cụm lấy card có sản phẩm chính
-thuộc cụm. `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All.
+rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML, `href` là trang cụm theo slug locale); mục đang chọn có `aria-current="true"`. Cụm lấy card có sản phẩm chính
+thuộc cụm. `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All. Không có `?category=` thì filter theo path trang cụm, sản phẩm ([taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)); filter trùng path thì URL bỏ `?category=`, khác path thì về URL gốc.
 Click chính không phím bổ trợ: không tải document, không request, không cuộn bằng code; URL đổi bằng `replaceState`
 (không thêm history entry); card đổi vị trí theo R6; container, hero, thứ tự và vị trí bảy nút giữ nguyên. Click có
 phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước khi runtime sẵn sàng (chỉ gặp khi không có veil
@@ -164,7 +164,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 190 card, đang ở đầu trang
+Given masonry All 192 card, đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```

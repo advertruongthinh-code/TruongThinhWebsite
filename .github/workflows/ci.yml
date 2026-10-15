@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+    # PR nháp chỉ chạy bộ fast; chuyển sang sẵn sàng (ready_for_review) thì chạy đủ bộ được chọn.
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
   # Automerge dispatch CI trên main sau khi merge, vì merge bằng GITHUB_TOKEN không kích hoạt push.
@@ -10,9 +12,10 @@ on:
 permissions:
   contents: read
 
+# Push mới hủy lượt cũ của cùng PR; trên main không hủy để lượt đã chạy dở vẫn tới Deploy demo khi merge dồn dập.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Bộ test theo phần website (docs/specs/ci-test-suites.md): chọn bộ, chạy song song, gom thành check static-release.
 jobs:
@@ -30,7 +33,12 @@ jobs:
         with:
           node-version: 22
       - id: select
-        run: echo "suites=$(node scripts/ci/suites.mjs --select --event "$GITHUB_EVENT_NAME" --base HEAD^1)" >> "$GITHUB_OUTPUT"
+        env:
+          DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          suites=$(node scripts/ci/suites.mjs --select --event "$GITHUB_EVENT_NAME" --base HEAD^1)
+          if [ "$DRAFT" = true ] && [ "$suites" != "[]" ]; then suites='["fast"]'; fi
+          echo "suites=$suites" >> "$GITHUB_OUTPUT"
 
   suite:
     needs: select
@@ -73,8 +81,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # Automerge và Deploy demo đọc check này; bộ không được chọn (skipped) không tính là đỏ.
+  # Automerge và Deploy demo đọc check này; bộ không được chọn (skipped) không tính là đỏ. Lượt PR nháp đổi tên
+  # check để Automerge không merge bằng kết quả chỉ có bộ fast.
   static-release:
+    name: ${{ github.event.pull_request.draft && 'static-release-draft' || 'static-release' }}
     needs: [select, suite]
     if: always()
     runs-on: ubuntu-latest
@@ -84,3 +94,10 @@ jobs:
           echo "select=${{ needs.select.result }} suites=${{ needs.select.outputs.suites }} result=${{ needs.suite.result }}"
           [ "${{ needs.select.result }}" = success ] || exit 1
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
+
+  # Deploy demo chỉ chạy trên main (push hoặc dispatch của Automerge) khi static-release xanh.
+  deploy-demo:
+    needs: static-release
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    uses: ./.github/workflows/deploy-demo.yml
+    secrets: inherit
