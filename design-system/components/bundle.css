@@ -3931,6 +3931,124 @@ html[lang="en"]
   text-decoration-skip-ink: none;
 }
 
+/* Rail hai tầng (taxonomy R3). Tầng sản phẩm chữ thường, nhỏ hơn, gạch chân 2px. Danh sách chỉ có trên PC
+   dùng chuột; nơi khác wrapper là display: contents nên rail cụm giữ nguyên layout cũ. */
+.detail-index-hero .rail-cluster {
+  display: contents;
+}
+
+.detail-index-hero .rail-panel {
+  display: none;
+}
+
+.detail-index-hero .rail-panel__item,
+.detail-index-hero .rail-chip {
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.3s ease-out;
+}
+
+.detail-index-hero :is(.rail-panel__item, .rail-chip):is(:hover, :focus-visible, [aria-current="true"]) {
+  color: var(--ink);
+}
+
+.detail-index-hero :is(.rail-panel__item, .rail-chip):is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+  text-decoration: underline 2px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+}
+
+/* Sàn chữ 12.5px của site (Espacio typography). */
+.detail-index-hero .rail-count,
+.detail-index-hero .rail-chip sup {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.detail-index-hero .rail-chip sup {
+  margin-left: 0.25em;
+  vertical-align: 0.45em;
+  line-height: 0;
+}
+
+.detail-index-hero .rail-chips {
+  position: absolute;
+  bottom: calc(15vh - 3.25rem);
+  left: 50%;
+  display: flex;
+  width: min(100%, 60rem);
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.75rem;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.detail-index-hero .rail-chips[hidden] {
+  display: none;
+}
+
+.detail-index-hero .rail-chip {
+  font-size: 0.875rem;
+}
+
+@media (min-width: 1025px) {
+  /* Hàng chip nằm đúng chỗ chữ "Cuộn xuống". */
+  .detail-index-hero:has(.rail-chips:not([hidden])) .scroll-cue {
+    visibility: hidden;
+  }
+}
+
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  /* Danh sách thả xuống tràn qua đáy hero, đè lên đầu masonry. */
+  .detail-page .detail-index-hero {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  .detail-index-hero .rail-cluster {
+    position: relative;
+    display: inline-block;
+  }
+
+  .detail-index-hero .rail-panel {
+    position: absolute;
+    top: calc(100% - 0.5rem);
+    left: 1.5625rem;
+    display: block;
+    min-width: 17.5rem;
+    padding: 0.625rem 0 0.75rem;
+    background: var(--paper);
+    box-shadow: 0 18px 40px -18px rgba(32, 33, 32, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    text-align: left;
+    transform: translateY(-6px);
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+    z-index: 6;
+  }
+
+  .detail-index-hero .rail-cluster:is(:hover, :has(:focus-visible)) .rail-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .detail-index-hero .rail-panel__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 0.4375rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+}
+
 .project-index {
   width: min(calc(100% - 2 * var(--gutter)), 1500px);
 }
@@ -6206,6 +6324,15 @@ body.is-advertising-browse .floating-cta {
     justify-self: center;
   }
 
+  .detail-index-hero .rail-chips {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    transform: none;
+    justify-self: center;
+  }
+
   .detail-index-hero .scroll-cue {
     position: relative;
     bottom: auto;
@@ -6220,6 +6347,24 @@ body.is-advertising-browse .floating-cta {
 @media (max-width: 750px) {
   .detail-page .detail-index-hero {
     padding-bottom: 60px;
+  }
+}
+
+@media (max-width: 680px) {
+  .detail-index-hero .rail-chips {
+    width: 100vw;
+    flex-wrap: nowrap;
+    justify-content: start;
+    gap: 0 1.375rem;
+    overflow-x: auto;
+    /* Khung cuộn cắt cả trục dọc: chừa chỗ cho gạch chân 2px. */
+    padding: 0.25rem 25px 0.5rem;
+    scrollbar-width: none;
+  }
+
+  .detail-index-hero .rail-chip {
+    flex: 0 0 auto;
+    font-size: 0.8125rem;
   }
 }
 

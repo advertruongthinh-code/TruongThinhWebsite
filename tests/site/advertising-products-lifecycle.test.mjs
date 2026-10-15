@@ -49,10 +49,10 @@ assert.match(runtime, /const cancelMasonryTransitions = \(instance = masonry\) =
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");
 assert.match(runtime, /node === document\.activeElement \|\| node\.contains\(document\.activeElement\)/, "focused cards remain mounted");
 assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualization mounts direct placements instead of closed batches");
-const filterClickHandler = runtime.slice(runtime.indexOf('filters.addEventListener("click"'));
+const filterClickHandler = runtime.slice(runtime.indexOf("const onRailClick = (event) => {"));
 assert.ok(
   filterClickHandler.indexOf("event.preventDefault();")
-    < filterClickHandler.indexOf("control.dataset.advertisingFilter === filter"),
+    < filterClickHandler.indexOf("if (nextFilter === filter) return;"),
   "active filter clicks are canceled before the same-filter no-op",
 );
 assert.match(runtime, /normalizeAdvertisingProductSettings/);
