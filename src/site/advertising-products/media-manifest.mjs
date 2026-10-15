@@ -193,6 +193,7 @@ const MEDIA_ROWS = [
   ["print-decals-24","print-decals",23,"print-decals-product-13","Bao bì và ly in F&B","Printed food and beverage packaging","owner-approved:2026-10-12:2fa8a114b32e9f3a","/assets/content/projects/advertising/print-decals/print-decals-24-owner-20261012.webp",1672,941],
   ["kiosk-posm-41","kiosk-posm",40,"kiosk-posm-product-08","Quầy lễ tân sự kiện","Event reception counters","imagegen:2026-10-15:kiosk-posm-08-x1","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-41-imagegen-20261015.webp",1254,1254],
   ["kiosk-posm-42","kiosk-posm",41,"kiosk-posm-product-08","Quầy lễ tân sự kiện","Event reception counters","imagegen:2026-10-15:kiosk-posm-08-x3","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-42-imagegen-20261015.webp",1254,1254],
+  ["mobile-retail-27","mobile-retail",26,"mobile-retail-product-02","Xe bán cafe","Mobile coffee carts","imagegen:2026-10-15:new-led-decor-c12","/assets/content/projects/advertising/mobile-retail/mobile-retail-27-imagegen-20261015.webp",1448,1086],
 ];
 
 const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([

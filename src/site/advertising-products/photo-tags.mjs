@@ -87,6 +87,7 @@ export const ADVERTISING_TAG_REGISTRY = Object.freeze([
 ]);
 
 const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
+  "mobile-retail-27": ["group-mobile-retail","product-mobile-retail-product-02","format-landscape"],
   "kiosk-posm-41": ["group-kiosk-posm","product-kiosk-posm-product-08","format-square"],
   "kiosk-posm-42": ["group-kiosk-posm","product-kiosk-posm-product-08","format-square"],
   "office-signs-wayfinding-33": ["group-office-signs-wayfinding","product-office-signs-wayfinding-product-13","format-landscape"],
@@ -282,6 +283,7 @@ const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
 });
 
 const PHOTO_METADATA_BY_RECORD_ID = Object.freeze({
+  "mobile-retail-27": {"descriptionVi":"Xe rơ moóc cà phê với biển neon và LED trang trí tại chợ đêm ven sông.","descriptionEn":"Coffee trailer with a neon sign and decorative LED at a riverside night market.","source":"/assets/content/projects/advertising/mobile-retail/mobile-retail-27-imagegen-20261015.webp","sha256":"4c3db564e13af44971127154f897f6656711eea558c11cb96ea7b3683b23f6f6","provenance":"AI-generated illustration; source ID imagegen:2026-10-15:new-led-decor-c12; original SHA256 830d211ccc68e7349c1f61a7fa4c26ed2a21a7c1ffb5d586d91cf30d01033c67."},
   "kiosk-posm-41": {"descriptionVi":"Quầy lễ tân hội thảo y khoa mặt solid-surface trắng, đèn viền và panel hình trái tim.","descriptionEn":"Medical conference reception counter in white solid surface with edge lighting and a heart graphic panel.","source":"/assets/content/projects/advertising/kiosk-posm/kiosk-posm-41-imagegen-20261015.webp","sha256":"cbb966e1358e0e7caadab04b1d24b04990cbc264a2b04d99e49976e827205c39","provenance":"AI-generated illustration; source ID imagegen:2026-10-15:kiosk-posm-08-x1; original SHA256 1bc7290a5439864b3adcb49ce2cfe84b67113ea7ab0c3a37a81ff3381ff45832."},
   "kiosk-posm-42": {"descriptionVi":"Quầy đón khách tiệc cưới bằng mica hộp hoa và mặt gỗ óc chó.","descriptionEn":"Wedding reception counter of acrylic flower boxes with a walnut top.","source":"/assets/content/projects/advertising/kiosk-posm/kiosk-posm-42-imagegen-20261015.webp","sha256":"90d93887f935abd98ef269b08d3d287566101392d1c3e69c8b20bb41cb560ba4","provenance":"AI-generated illustration; source ID imagegen:2026-10-15:kiosk-posm-08-x3; original SHA256 2a1a725b8533cd4d1825c070032b8bd05c39fef55692aab59d15df5173bfbd83."},
   "office-signs-wayfinding-33": {"descriptionVi":"Bộ kỷ niệm chương ba vật liệu: gỗ, kim loại, pha lê.","descriptionEn":"Award set in three materials: timber, metal and crystal.","source":"/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-33-owner-20261012.webp","sha256":"cbc4578bf839f9a177cfe1aa70858fa43c00c3b742312e2430a6bc80d4009d9c","provenance":"AI-generated illustration; owner approved 2026-10-12; original SHA256 1be51ed9a12dd456abc7a1d54077c068fa7eca1d009583d187237f13d49f1e41."},
