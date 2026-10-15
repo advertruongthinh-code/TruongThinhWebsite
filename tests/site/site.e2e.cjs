@@ -8535,43 +8535,66 @@ async function runMotionAbortFailOpenChecks() {
             releaseRoute = resolve;
           });
         });
-        const target = await findRouteLink(
-          page,
-          "[data-site-header]",
-          "/vi/residential/",
-        );
-        await target.evaluate((element) => element.click());
-        await routeSeen;
-        await page.waitForFunction(() =>
-          document.querySelector("[data-site-header]")?.classList.contains("is-route-pinned"),
-        );
-        await page.evaluate(() => {
-          document.documentElement.classList.add("motion-fallback");
-          document.body.classList.remove(
-            "is-transitioning",
-            "menu-open",
-            "motion-paused",
+        // Route đang giữ mà case fail sớm sẽ làm context.close() treo; luôn nhả route.
+        try {
+          const target = await findRouteLink(
+            page,
+            "[data-site-header]",
+            "/vi/residential/",
           );
-        });
-        const tone = await page.evaluate(() => {
-          const header = document.querySelector("[data-site-header]");
-          const channel = (value) =>
-            Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
-          return [
-            getComputedStyle(header.querySelector(".brand-lockup")).fill,
-            getComputedStyle(header.querySelector("#header-logo")).color,
-            getComputedStyle(header.querySelector(".desktop-nav a")).color,
-            getComputedStyle(header.querySelector(".menu-button line")).stroke,
-          ].map(channel);
-        });
-        assert(
-          tone.every((value) => Math.abs(value - fixture.expected) <= 1),
-          `Fallback did not restore ${fixture.label} leaf tone: ${JSON.stringify(tone)}`,
-        );
-        assertDiagnostics(diagnostics);
-        await pendingRoute.abort("failed");
-        releaseRoute();
-        await page.unroute("**/vi/residential/**");
+          await target.evaluate((element) => element.click());
+          // Có giới hạn: route không tới thì báo trạng thái trang thay vì treo tới timeout của job CI.
+          let stalled;
+          const seenOrStalled = await Promise.race([
+            routeSeen.then(() => "seen"),
+            new Promise((resolve) => {
+              stalled = setTimeout(() => resolve("stalled"), 15_000);
+            }),
+          ]);
+          clearTimeout(stalled);
+          if (seenOrStalled === "stalled") {
+            const state = await page.evaluate(() => ({
+              path: location.pathname,
+              body: document.body.className,
+              header: document.querySelector("[data-site-header]")?.className,
+              boot: window.__ttMotionBoot,
+            })).catch((error) => ({ evaluateError: error.message }));
+            releaseRoute?.();
+            throw new Error(`Route /vi/residential/ was never requested after click: ${JSON.stringify(state)}`);
+          }
+          await page.waitForFunction(() =>
+            document.querySelector("[data-site-header]")?.classList.contains("is-route-pinned"),
+          );
+          await page.evaluate(() => {
+            document.documentElement.classList.add("motion-fallback");
+            document.body.classList.remove(
+              "is-transitioning",
+              "menu-open",
+              "motion-paused",
+            );
+          });
+          const tone = await page.evaluate(() => {
+            const header = document.querySelector("[data-site-header]");
+            const channel = (value) =>
+              Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
+            return [
+              getComputedStyle(header.querySelector(".brand-lockup")).fill,
+              getComputedStyle(header.querySelector("#header-logo")).color,
+              getComputedStyle(header.querySelector(".desktop-nav a")).color,
+              getComputedStyle(header.querySelector(".menu-button line")).stroke,
+            ].map(channel);
+          });
+          assert(
+            tone.every((value) => Math.abs(value - fixture.expected) <= 1),
+            `Fallback did not restore ${fixture.label} leaf tone: ${JSON.stringify(tone)}`,
+          );
+          assertDiagnostics(diagnostics);
+          await pendingRoute.abort("failed");
+          releaseRoute();
+          await page.unroute("**/vi/residential/**");
+        } finally {
+          releaseRoute?.();
+        }
       },
     );
   }
