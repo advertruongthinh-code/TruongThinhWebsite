@@ -5,7 +5,6 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
-import { ADVERTISING_TAG_REGISTRY } from "../../src/site/advertising-products/photo-tags.mjs";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -62,7 +61,8 @@ const p13RegressionCases = new Set([
   "delayed-image-resize-latest-wins",
   "related-selected-card-shuffle-cleanup",
 ]);
-const tagLabels = new Map(ADVERTISING_TAG_REGISTRY.map((tag) => [tag.id, { vi: tag.labelVi, en: tag.labelEn }]));
+// Registry của artifact có thêm tag nhóm product (taxonomy R7).
+const tagLabels = new Map(ADVERTISING_CATALOG_ARTIFACT.tagRegistry.map((tag) => [tag.id, { vi: tag.labelVi, en: tag.labelEn }]));
 
 const href = (route) => new URL(route, baseUrl).href;
 const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
