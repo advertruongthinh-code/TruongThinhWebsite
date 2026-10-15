@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-13
+- Updated: 2026-10-15
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -27,7 +27,7 @@
   - `mobile-layout-parity`, `scrollbar-parity`, `site-media-card-playback`, `advertising-photo-transitions`,
     `advertising-primary-p14`: chạy ở phiên PC.
   - FPS skeleton (`advertising-continuation` R4), Firefox WebGL (`skeleton-lifecycle`, `mobile-viewport-stability`): cần GPU thật.
-- CI chạy trên runner WSL ở PC owner ([R10](specs/static-release.md#r10-gate-ci)); job `queued` lâu là runner offline.
+- Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
 - PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)); giữ PR lại bằng draft hoặc nhãn `hold`.
 
 ## Next action
