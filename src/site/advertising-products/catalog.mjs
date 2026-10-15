@@ -103,6 +103,7 @@ const CATEGORY_TAXONOMY = [
       ["Biển chỉ dẫn tầng", "Floor wayfinding signs"],
       ["Sơ đồ tòa nhà", "Building directories"],
       ["Biển cảnh báo và biển WC", "Warning and washroom signs"],
+      ["Kỷ niệm chương", "Award plaques"],
     ],
   }),
   category({
