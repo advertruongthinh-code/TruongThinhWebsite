@@ -1,7 +1,7 @@
 import { attachPhotoMetadata } from "./photo-tags.mjs";
 
 const MEDIA_ROWS = [
-  ["kiosk-posm-01","kiosk-posm",0,"kiosk-posm-product-01","Gian hàng triển lãm","Exhibition booths","imagegen:2026-10-15:kiosk-posm-01-a","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-01-exhibition-booths-v3.webp",1672,941],
+  ["kiosk-posm-01","kiosk-posm",0,"kiosk-posm-product-01","Gian hàng triển lãm","Exhibition booths","imagegen:2026-09-01:kiosk-posm:01","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-01-exhibition-booths.webp",1672,941],
   ["kiosk-posm-02","kiosk-posm",1,"kiosk-posm-product-02","Quầy kệ trưng bày sản phẩm","Product display counters and shelving","imagegen:2026-10-15:kiosk-posm-02-a","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-02-product-display-counters-and-shelving-v2.webp",1448,1086],
   ["kiosk-posm-03","kiosk-posm",2,"kiosk-posm-product-03","Tủ trưng bày theo yêu cầu","Custom display cabinets","imagegen:2026-09-01:kiosk-posm:03","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-03-custom-display-cabinets.webp",1774,887],
   ["kiosk-posm-04","kiosk-posm",3,"kiosk-posm-product-04","Kệ trang trí theo yêu cầu","Custom display shelving","imagegen:2026-09-01:kiosk-posm:04","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-04-custom-display-shelving.webp",1536,1024],
