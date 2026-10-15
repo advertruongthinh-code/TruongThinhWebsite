@@ -1,11 +1,10 @@
 name: Deploy demo
 
 # Tự deploy demo khi CI xanh trên main (decision cloudflare-workers-static-demo.md).
+# Được ci.yml gọi (job deploy-demo) thay vì workflow_run: lượt CI do Automerge dispatch bằng
+# GITHUB_TOKEN không kích hoạt workflow_run, nên demo từng không cập nhật sau PR tự merge.
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  workflow_call:
 
 permissions:
   contents: read
@@ -16,17 +15,10 @@ concurrency:
 
 jobs:
   deploy:
-    # Chỉ push vào main của chính repo; PR từ fork có branch tên main không được dùng secret.
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      contains(fromJSON('["push","workflow_dispatch"]'), github.event.workflow_run.event) &&
-      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
