@@ -545,6 +545,12 @@ html[lang="vi"]
   word-spacing: var(--word-spacing-display);
 }
 
+/* Dấu chấm cuối treo ra lề (bằng advance 0.347em của "." Plus Jakarta Sans 600) để chữ title canh giữa
+   theo phần chữ, trùng tâm eyebrow và nút (owner 15/10). SplitText để lại một bản clone rỗng; bỏ qua nó. */
+.detail-cta__copy .text-hang-end:not(:empty) {
+  margin-inline-end: -0.347em;
+}
+
 .detail-cta__copy a {
   display: inline-flex;
   /* Vùng chạm 44px như .site-invitation__link; gạch chân vẫn là border-bottom. */
