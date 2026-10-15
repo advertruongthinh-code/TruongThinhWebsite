@@ -1279,7 +1279,9 @@ try {
       const visible = () => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
         .filter((node) => !node.hidden).map((node) => ({ id: node.dataset.advertisingCard, rect: node.getBoundingClientRect().toJSON() }));
       const beforeFilter = visible();
-      document.querySelector('[data-advertising-filter="displays-booths"]').click();
+      // Thứ tự card ngẫu nhiên theo seed nên lọc theo nhóm của card đầu đang mount, luôn có card được giữ lại để so vị trí.
+      const category = document.querySelector("[data-project-grid] [data-advertising-card]:not([hidden])").dataset.advertisingCategory;
+      document.querySelector(`[data-advertising-filter="${category}"]`).click();
       return { beforeFilter, during: visible() };
     });
     const beforeById = new Map(beforeFilter.map((card) => [card.id, card.rect]));

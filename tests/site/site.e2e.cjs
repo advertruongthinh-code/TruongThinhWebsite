@@ -427,10 +427,10 @@ function assertPersistentNavigationContracts() {
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
       commercialHeroContent?.includes("SHOP · F&amp;B · SHOWROOM · VĂN PHÒNG") &&
       commercialHeroContent?.includes('data-en="SHOP · F&amp;B · SHOWROOM · OFFICE"') &&
-      commercialHeroContent?.includes("Thiết kế để bán tốt.") &&
-      commercialHeroContent?.includes("Thi công để vận hành bền.") &&
-      commercialHeroContent?.includes('data-en="Designed to sell."') &&
-      commercialHeroContent?.includes('data-en="Built to perform."') &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế để bán tốt.") &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thi công để vận hành bền.") &&
+      commercialHeroContent?.includes('data-en="Designed to sell"') &&
+      commercialHeroContent?.includes('data-en="Built to perform"') &&
       !commercialHeroContent?.includes("detail-hero-motto"),
     "Commercial hero must use the approved Espacio-style two-line VI/EN copy without a separate motto",
   );
@@ -7944,7 +7944,11 @@ async function runCommercialHeroTextCheck() {
                 Number.parseFloat(style.fontSize),
               ),
               contentCenter,
-              textCenters: textRects.map((value) => value.left + value.width / 2),
+              // Phone treo dấu chấm (.text-hang-end): tâm tính theo phần chữ, không gồm dấu.
+              letterCenters: sources.map((source) => {
+                const value = textRect(source.querySelector("[data-en]") ?? source);
+                return value.left + value.width / 2;
+              }),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
               verticalOrder:
                 kickerTextRect.bottom < textRects[0].top &&
@@ -8003,7 +8007,7 @@ async function runCommercialHeroTextCheck() {
             );
           } else {
             assert(
-              hero.textCenters.every(
+              hero.letterCenters.every(
                 (center) => Math.abs(center - hero.contentCenter) <= 2,
               ) &&
                 Math.abs(
@@ -8531,43 +8535,66 @@ async function runMotionAbortFailOpenChecks() {
             releaseRoute = resolve;
           });
         });
-        const target = await findRouteLink(
-          page,
-          "[data-site-header]",
-          "/vi/residential/",
-        );
-        await target.evaluate((element) => element.click());
-        await routeSeen;
-        await page.waitForFunction(() =>
-          document.querySelector("[data-site-header]")?.classList.contains("is-route-pinned"),
-        );
-        await page.evaluate(() => {
-          document.documentElement.classList.add("motion-fallback");
-          document.body.classList.remove(
-            "is-transitioning",
-            "menu-open",
-            "motion-paused",
+        // Route đang giữ mà case fail sớm sẽ làm context.close() treo; luôn nhả route.
+        try {
+          const target = await findRouteLink(
+            page,
+            "[data-site-header]",
+            "/vi/residential/",
           );
-        });
-        const tone = await page.evaluate(() => {
-          const header = document.querySelector("[data-site-header]");
-          const channel = (value) =>
-            Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
-          return [
-            getComputedStyle(header.querySelector(".brand-lockup")).fill,
-            getComputedStyle(header.querySelector("#header-logo")).color,
-            getComputedStyle(header.querySelector(".desktop-nav a")).color,
-            getComputedStyle(header.querySelector(".menu-button line")).stroke,
-          ].map(channel);
-        });
-        assert(
-          tone.every((value) => Math.abs(value - fixture.expected) <= 1),
-          `Fallback did not restore ${fixture.label} leaf tone: ${JSON.stringify(tone)}`,
-        );
-        assertDiagnostics(diagnostics);
-        await pendingRoute.abort("failed");
-        releaseRoute();
-        await page.unroute("**/vi/residential/**");
+          await target.evaluate((element) => element.click());
+          // Có giới hạn: route không tới thì báo trạng thái trang thay vì treo tới timeout của job CI.
+          let stalled;
+          const seenOrStalled = await Promise.race([
+            routeSeen.then(() => "seen"),
+            new Promise((resolve) => {
+              stalled = setTimeout(() => resolve("stalled"), 15_000);
+            }),
+          ]);
+          clearTimeout(stalled);
+          if (seenOrStalled === "stalled") {
+            const state = await page.evaluate(() => ({
+              path: location.pathname,
+              body: document.body.className,
+              header: document.querySelector("[data-site-header]")?.className,
+              boot: window.__ttMotionBoot,
+            })).catch((error) => ({ evaluateError: error.message }));
+            releaseRoute?.();
+            throw new Error(`Route /vi/residential/ was never requested after click: ${JSON.stringify(state)}`);
+          }
+          await page.waitForFunction(() =>
+            document.querySelector("[data-site-header]")?.classList.contains("is-route-pinned"),
+          );
+          await page.evaluate(() => {
+            document.documentElement.classList.add("motion-fallback");
+            document.body.classList.remove(
+              "is-transitioning",
+              "menu-open",
+              "motion-paused",
+            );
+          });
+          const tone = await page.evaluate(() => {
+            const header = document.querySelector("[data-site-header]");
+            const channel = (value) =>
+              Number.parseFloat(value.match(/[\d.]+/)?.[0] || "NaN");
+            return [
+              getComputedStyle(header.querySelector(".brand-lockup")).fill,
+              getComputedStyle(header.querySelector("#header-logo")).color,
+              getComputedStyle(header.querySelector(".desktop-nav a")).color,
+              getComputedStyle(header.querySelector(".menu-button line")).stroke,
+            ].map(channel);
+          });
+          assert(
+            tone.every((value) => Math.abs(value - fixture.expected) <= 1),
+            `Fallback did not restore ${fixture.label} leaf tone: ${JSON.stringify(tone)}`,
+          );
+          assertDiagnostics(diagnostics);
+          await pendingRoute.abort("failed");
+          releaseRoute();
+          await page.unroute("**/vi/residential/**");
+        } finally {
+          releaseRoute?.();
+        }
       },
     );
   }
@@ -9445,7 +9472,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "detail CTA",
       route: "/vi/commercial/?media-fallback=cta",
-      asset: "**/site-detail.webp",
+      asset: "**/commercial-cta-survey.webp",
       surface: ".detail-cta",
       image: ":scope > img, :scope > picture > img",
       text: ".detail-cta__copy",
