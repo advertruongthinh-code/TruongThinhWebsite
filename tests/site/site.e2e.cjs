@@ -7950,7 +7950,11 @@ async function runCommercialHeroTextCheck() {
                 Number.parseFloat(style.fontSize),
               ),
               contentCenter,
-              textCenters: textRects.map((value) => value.left + value.width / 2),
+              // Phone treo dấu chấm (.text-hang-end): tâm tính theo phần chữ, không gồm dấu.
+              letterCenters: sources.map((source) => {
+                const value = textRect(source.querySelector("[data-en]") ?? source);
+                return value.left + value.width / 2;
+              }),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
               verticalOrder:
                 kickerTextRect.bottom < textRects[0].top &&
@@ -8009,7 +8013,7 @@ async function runCommercialHeroTextCheck() {
             );
           } else {
             assert(
-              hero.textCenters.every(
+              hero.letterCenters.every(
                 (center) => Math.abs(center - hero.contentCenter) <= 2,
               ) &&
                 Math.abs(
