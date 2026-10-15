@@ -51,7 +51,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 Given output đã build
 When mở /vi/ và đọc main
 Then có một h1 và bảy section theo thứ tự hero, #dich-vu, #tay-nghe, #nang-luc, #du-an, closer, marquee
-And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là bốn bước Khảo sát tới Lắp đặt
+And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là năm bước Khảo sát tới Hậu mãi
 ```
 
 ### R2. Head và bản EN

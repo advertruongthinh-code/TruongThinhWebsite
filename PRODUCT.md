@@ -86,7 +86,7 @@ Public canonical routes theo locale:
 
 Các đường dẫn legacy không locale (`/`, `/nha-o/`, `/kinh-doanh/`, `/quang-cao/`, `/gioi-thieu/`) không phải route canonical; không dùng chúng làm route public mới. Chỉ Worker CMS (`src/worker/`, chưa bật) chuyển hướng chúng về route locale canonical. Bản static hiện tại không chuyển hướng: `/` phục vụ thẳng trang chủ tiếng Việt, bốn path còn lại trả 404. Root repository là source của website, không phải lý do để tạo thêm hierarchy public.
 
-Quy trình nội dung canonical có bốn bước: **Khảo sát → Tư vấn → Sản xuất → Lắp đặt**. Bàn giao, khi có trong hồ sơ dự án, là phần kết thúc của lắp đặt và không tạo bước thứ năm.
+Quy trình nội dung canonical có năm bước: **Khảo sát → Tư vấn → Sản xuất → Lắp đặt → Hậu mãi** (owner thêm Hậu mãi 2026-10-15). Bàn giao, khi có trong hồ sơ dự án, là phần kết thúc của lắp đặt, không tạo bước riêng. Hậu mãi là cam kết chung, không ghi thời hạn hay điều khoản bảo hành khi owner chưa xác nhận.
 
 Ràng buộc public:
 

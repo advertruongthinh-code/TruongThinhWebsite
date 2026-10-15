@@ -25,7 +25,7 @@ dịch vụ đều **chỉn chu, tận tâm, chuyên nghiệp**.
 Khi viết copy:
 
 - Mỗi cam kết đi kèm bằng chứng thật: ảnh công trình, xưởng, vật liệu, quy
-  trình Khảo sát, Tư vấn, Sản xuất, Lắp đặt. Giọng điệu theo
+  trình Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi. Giọng điệu theo
   [Content và media](content.md#giọng-điệu).
 - Dùng "hơn 20 năm"; không suy ra năm thành lập.
 - Hậu mãi là cam kết chung; không ghi thời hạn hay điều khoản bảo hành khi
