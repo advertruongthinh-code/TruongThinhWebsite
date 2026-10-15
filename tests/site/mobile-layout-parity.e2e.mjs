@@ -55,7 +55,7 @@ function measure(options = {}) {
       const languageDim=a.matches('.menu-language [data-language-option]')&&a.dataset.languageOption!==document.documentElement.lang&&!a.matches('.is-active,:hover,:focus-visible');
       paint.push({node,opacity:Number(s.opacity),minimum:languageDim?0.449:0.999,visibility:s.visibility});
       const x=["hidden","clip","auto","scroll"].includes(s.overflowX),y=["hidden","clip","auto","scroll"].includes(s.overflowY);
-      if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel")&&s.overflowX==="auto"});
+      if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel")&&s.overflowX==="auto"});
       if(s.clipPath!=="none") {
         const tokens=s.clipPath.match(/^inset\(([^)]+)\)$/)?.[1].trim().split(/\s+/);
         if(tokens&&tokens.length<=4&&tokens.every(t=>/^-?[\d.]+(px|%)$/.test(t)||t==="0")) {
@@ -178,12 +178,12 @@ async function checkBody(page,engine,label,options={}) {
   }
   for(let index=0;index<await page.locator(bodySelector).count();index++) {
     const node=page.locator(bodySelector).nth(index);
-    const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')));
+    const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')));
     if(!rail)continue;
     await node.evaluate(e=>(e.closest('a,button,[tabindex]')||e).focus());
     if(options.noScript)await node.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center',inline:'center'}));
     else await node.scrollIntoViewIfNeeded();
-    await node.evaluate(e=>{const rail=e.closest('.editorial-strip,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel'),box=e.getBoundingClientRect(),r=rail.getBoundingClientRect();rail.scrollLeft+=box.left-r.left-(rail.clientWidth-box.width)/2;});
+    await node.evaluate(e=>{const rail=e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel'),box=e.getBoundingClientRect(),r=rail.getBoundingClientRect();rail.scrollLeft+=box.left-r.left-(rail.clientWidth-box.width)/2;});
     await recordState(page,engine,`${label}: reached rail item ${index}`,{...options,selector:bodySelector,index,viewportOnly:true});
   }
 }

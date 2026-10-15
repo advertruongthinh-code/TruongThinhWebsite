@@ -61,7 +61,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
 | 5 | `.detail-gallery#cong-trinh` | `h2` "MỘT NGÔI NHÀ, NHIỀU LỚP", 9 `figure` có caption (R7) | "KHÔNG GIAN TIÊU BIỂU", 5 `figure` | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
-| 7 | `.editorial-strip` | Năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
+| 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
 | 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office"); ba tiêu đề cùng `font-weight` 700 | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
@@ -171,7 +171,7 @@ Then track cuộn sang phải, rồi dịch ít nhất 150px, không có dragsta
 
 Dải `.editorial-strip.detail-process-editorial` là `region` focus được, gắn nhãn bằng tiêu đề quy trình: năm
 `article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
-đoạn; ba cột (hàng hai có hai bước) để cột chữ đủ rộng cho tiêu đề EN, tới 980px hai cột, tới 680px một cột và chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
+đoạn; năm bước luôn cùng một hàng (owner): năm cột, mỗi bước ảnh trên, chữ và chữ số dưới; tới 980px thành rail vuốt ngang (scroll snap), tới 680px chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
 đầu tràn mép. `.portal-stage`: ba
 `article.service-portal` không link, không hover zoom, chữ theo [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
@@ -179,14 +179,14 @@ tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, t
 ```gherkin
 Given /vi/residential/ ở 390px
 When cuộn qua #quy-trinh và #loai-hinh
-Then năm bước xếp một cột, ba portal cao ít nhất 400px, document không tràn ngang
+Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít nhất 400px, document không tràn ngang
 ```
 
 ### R9. About: dòng thời gian, quy trình, cam kết
 
 `.about-timeline`: `h2.sr-only`, hai mốc có đoạn kể; đường dọc ở 54% bề rộng, tới 980px 47%, tới 680px sát trái.
-`.detail-process`: năm `article.process-step` hiện lần lượt (`data-motion-up`, trễ 0; 0,15; 0,3; 0,45; 0,6s); năm cột, tới
-980px hai, tới 680px một. Chapter lead và `.about-process-note` hai cột 1:2, tới 980px một cột. `.about-commitments`: ba
+`.detail-process`: năm `article.process-step` hiện lần lượt (`data-motion-up`, trễ 0; 0,15; 0,3; 0,45; 0,6s); năm cột cùng một hàng,
+tới 980px thành rail vuốt ngang. Chapter lead và `.about-process-note` hai cột 1:2, tới 980px một cột. `.about-commitments`: ba
 cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc thời gian trung tính, chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin

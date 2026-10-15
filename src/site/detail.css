@@ -802,20 +802,21 @@ html[lang="en"]
     width: min(56vw, 23rem);
   }
 
+  /* Năm bước vẫn một hàng: rail vuốt ngang. */
   .detail-process {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(72vw, 16rem);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
   }
 
-  .process-step:nth-child(odd) {
-    border-left: 0;
+  .process-step {
+    scroll-snap-align: center;
   }
 
   .process-step h3 {
     font-size: 1.8rem;
-  }
-
-  .process-step:nth-child(n + 3) {
-    border-top: 1px solid var(--line);
   }
 
   .project-grid {
@@ -960,18 +961,9 @@ html[lang="en"]
     font-size: 3.25rem;
   }
 
-  .detail-process {
-    grid-template-columns: 1fr;
-  }
-
   .process-step {
-    padding: 1.25rem 0;
+    padding: 1.25rem 1rem;
     gap: 1rem;
-  }
-
-  .process-step + .process-step {
-    border-top: 1px solid var(--line);
-    border-left: 0;
   }
 
   .detail-duo {

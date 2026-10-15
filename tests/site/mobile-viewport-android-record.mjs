@@ -70,7 +70,7 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
       const s = getComputedStyle(a), r = box(a), node = a.id || a.className;
       paint.push({node, opacity:Number(s.opacity), visibility:s.visibility});
       const x=['hidden','clip','auto','scroll'].includes(s.overflowX), y=['hidden','clip','auto','scroll'].includes(s.overflowY);
-      if(x||y) list.push({node,box:r,x,y,rail:a.matches('.editorial-strip,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')&&s.overflowX==='auto'});
+      if(x||y) list.push({node,box:r,x,y,rail:a.matches('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')&&s.overflowX==='auto'});
       if(s.clipPath!=='none') {
         const tokens=s.clipPath.match(/^inset\(([^)]+)\)$/)?.[1].trim().split(/\s+/);
         if(tokens&&tokens.length<=4&&tokens.every(t=>/^-?[\d.]+(px|%)$/.test(t)||t==='0')) {
