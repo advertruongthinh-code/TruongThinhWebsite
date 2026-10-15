@@ -13,7 +13,7 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
   `ink` kèm gạch chân dày 3px, cách 4px. Căn giữa, rộng tối đa 53.125rem, cách
   đáy hero 15vh; xuống dòng khi hẹp.
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
-  chân 2px dưới tên. Số ảnh 0.6875rem, 700, `tabular-nums`.
+  chân 2px dưới tên. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
 - PC từ 1025px có chuột: hover hoặc focus bàn phím vào cụm hiện danh sách sản
   phẩm ngay dưới tên cụm (nền `paper`, bóng mờ, số ảnh bên phải), mờ dần và
   trượt 6px trong 0.3s `--ease`, đè lên đầu masonry. Màn khác không có danh sách.
