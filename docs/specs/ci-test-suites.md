@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-10-13
+updated: 2026-10-15
 ---
 
 # Bộ test CI chia theo phần website
@@ -113,7 +113,17 @@ Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạ
 không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview và
 `test-results/` của bộ đó.
 
+Push mới lên cùng PR hủy lượt CI đang chạy của PR đó; trên `main` lượt đang chạy không bị hủy để Deploy demo vẫn chạy khi merge dồn dập (lượt chờ mới nhất thay lượt chờ cũ hơn). PR nháp chỉ chạy bộ `fast` (khi R3 chọn ít nhất
+một bộ); đủ bộ chạy khi PR chuyển sang sẵn sàng (`ready_for_review`), để PR đang làm dở không chiếm runner (owner chọn
+2026-10-15). Merge queue của GitHub không dùng được: chỉ có ở repo của tổ chức (public, hoặc private gói Enterprise
+Cloud).
+
 ```gherkin
+Given PR nháp sửa `style.css`
+When CI chạy
+Then chỉ bộ fast chạy và check tên `static-release-draft`
+And khi PR chuyển sang sẵn sàng thì chạy đủ mọi bộ
+
 Given bộ home và bộ adv-grid cùng được chọn
 When adv-grid fail
 Then home vẫn chạy hết và báo kết quả riêng
@@ -123,7 +133,8 @@ And check của PR ghi rõ bộ adv-grid đỏ
 ### R5. Check tổng giữ tên `static-release`
 
 Job `static-release` chạy sau mọi bộ (`if: always()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy.
-Bộ không được chọn không tính là đỏ. Workflow `Automerge` và `Deploy demo` giữ nguyên vì vẫn đọc check
+Bộ không được chọn không tính là đỏ. Lượt PR nháp đặt tên check là `static-release-draft` để Automerge không
+merge bằng kết quả chỉ có bộ `fast`. Workflow `Automerge` và `Deploy demo` giữ nguyên vì vẫn đọc check
 `static-release` và kết luận của workflow CI.
 
 ```gherkin
@@ -181,7 +192,7 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 | R | Test hoặc command |
 | --- | --- |
 | R1, R3 | `tests/tooling/ci-suites.test.mjs`: mọi e2e thuộc đúng một bộ, bảng chọn bộ theo file mẫu |
-| R4, R5 | Run CI thật trên một PR docs-only, một PR một phần, một PR đổi `style.css` |
+| R4, R5 | Run CI thật trên một PR docs-only, một PR một phần, một PR đổi `style.css`, một PR nháp rồi chuyển sẵn sàng |
 | R6 | `pnpm qa:suite --changed` cho cùng danh sách bộ với job `select` |
 | R7 | Mỗi bộ xanh trên runner CI tại PR đưa nó vào |
 | R2 | Thời gian từng job trong log Actions, ghi vào mô tả PR |
