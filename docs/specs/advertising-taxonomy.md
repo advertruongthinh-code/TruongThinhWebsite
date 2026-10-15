@@ -172,7 +172,8 @@ với ảnh đang xem, rồi card cùng cụm; có tag thì card mang tag trong 
 pool, card xếp theo điểm giảm dần rồi đưa vào solver; seed của lượt duyệt chỉ xáo các card cùng điểm. Điểm cộng ba phần giống ứng viên của CMS (spec `cms-cards` R4 phase 2): độ giống vector, số tag
 chung, cùng sản phẩm hoặc cụm; card không có vector chỉ có hai phần sau. Phase tĩnh tự lấy theo điểm; phase CMS người
 duyệt ứng viên và chọn top 4 xuất bản, điểm này là thứ tự gợi ý ban đầu.
-Danh sách láng giềng tính lúc build, ghi vào artifact; trình duyệt không tải vector. Suggestion
+Danh sách láng giềng có điểm tính lúc build, ghi vào artifact; card cùng cụm điểm 0 không ghi (artifact không phình
+theo bình phương số card), runtime nối chúng thành tầng cuối. Trình duyệt không tải vector. Suggestion
 ([detail R5](advertising-detail.md#r5-suggestion)) lấy nút từ sản phẩm và tag của ảnh, cơ chế bật tắt giữ nguyên.
 
 ```gherkin
@@ -209,7 +210,7 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
 | Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4 |
 | DOM hook | `[data-advertising-filter]` | giữ cho cụm; thêm hook cho sản phẩm và danh sách hover, tên chốt trong plan |
-| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `category` là cụm của sản phẩm chính, `related` là id láng giềng theo tầng điểm giảm dần (R7) |
+| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7) |
 
 ## UI
 

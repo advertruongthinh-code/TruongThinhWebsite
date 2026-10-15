@@ -239,10 +239,12 @@ const compareRelatedSource = (left, right) =>
 export function selectAdvertisingRelated({ cards = [], categoryOrder = [], heroId, tag = null, seed = null } = {}) {
   const hero = cards.find((card) => card.id === heroId);
   if (!hero) return [];
-  // Tầng điểm build sẵn trong artifact (taxonomy R7); card thiếu related (fixture) dùng một tầng cùng cụm.
+  // Tầng điểm build sẵn trong artifact (taxonomy R7); card cùng cụm còn lại (điểm 0) là tầng cuối.
   const cardById = new Map(cards.map((card) => [card.id, card]));
-  let tiers = hero.related?.map((ids) => ids.map((id) => cardById.get(id)).filter(Boolean))
-    ?? [cards.filter((card) => card.id !== hero.id && card.category === hero.category).sort(compareRelatedSource)];
+  let tiers = (hero.related || []).map((ids) => ids.map((id) => cardById.get(id)).filter(Boolean));
+  const scored = new Set(tiers.flat());
+  tiers.push(cards.filter((card) => card.id !== hero.id && !scored.has(card) && card.category === hero.category)
+    .sort(compareRelatedSource));
   if (tag) {
     const hasTag = (card) => Array.isArray(card.tagIds) && card.tagIds.includes(tag);
     const ranked = new Set(tiers.flat());

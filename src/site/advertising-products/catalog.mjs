@@ -260,6 +260,7 @@ const tagGroupById = new Map(ARTIFACT_TAG_REGISTRY.map((tag) => [tag.id, tag.gro
 
 // Láng giềng related (taxonomy R7): card chứa sản phẩm chính của ảnh trước, rồi card cùng cụm; trong mỗi phần
 // điểm là số tag chung (bỏ tag khung hình). Ghi id card theo tầng điểm giảm dần; runtime chỉ xáo trong một tầng.
+// Tầng điểm 0 (cùng cụm, không tag chung) không ghi để artifact không phình theo n²; runtime tự nối vào cuối.
 function attachRelated(cards) {
   return cards.map((hero) => {
     const heroTags = new Set((hero.tagIds || []).filter((id) => RELATED_TAG_GROUPS.has(tagGroupById.get(id))));
@@ -270,6 +271,7 @@ function attachRelated(cards) {
       if (card === hero || (!samePrimary && card.category !== hero.category)) continue;
       // 1000 lớn hơn mọi số tag chung, nên card cùng sản phẩm chính luôn đứng trước.
       const score = (samePrimary ? 1000 : 0) + (card.tagIds || []).filter((id) => heroTags.has(id)).length;
+      if (!score) continue;
       tiers.set(score, [...(tiers.get(score) || []), card.id]);
     }
     return { ...hero, related: [...tiers].sort(([left], [right]) => right - left).map(([, ids]) => ids) };

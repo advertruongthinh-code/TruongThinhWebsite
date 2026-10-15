@@ -181,8 +181,11 @@ assert.match(runtime, /const nextTag = browseHistory\.current\.tag === tag \? nu
 const sameCategory = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id });
 assert.ok(sameCategory.length > 0 && sameCategory.every((card) => card.id !== samplingHero.id
   && (card.category === samplingHero.category || card.productIds.includes(samplingHero.productIds[0]))));
-assert.deepEqual(sameCategory, samplingHero.related.flat().map((id) => artifact.cards.find((card) => card.id === id)),
+const scoredIds = samplingHero.related.flat();
+assert.deepEqual(sameCategory.slice(0, scoredIds.length).map((card) => card.id), scoredIds,
   "reset/no-tag order follows the build-time score tiers (taxonomy R7)");
+assert.ok(sameCategory.slice(scoredIds.length).every((card) => card.category === samplingHero.category),
+  "unscored same-category cards come last");
 const samplingRelated = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "use-sampling" });
 assert.ok(samplingRelated.some((card) => card.id === samplingCrossGroup.id), "authored sampling tag must cross category groups");
 assert.ok(samplingRelated.every((card) => card.id !== samplingHero.id), "hero cannot appear in related results");
