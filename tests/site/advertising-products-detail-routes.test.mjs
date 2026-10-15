@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import vm from "node:vm";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { ADVERTISING_LEGACY_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 
 const slugs = ADVERTISING_LEGACY_CATEGORIES.map(({ slug }) => slug);
 const output = (path) => new URL("../../.site-output/" + path, import.meta.url);
@@ -33,11 +33,12 @@ for (const slug of slugs) {
   const path = "advertising-products/" + slug + "/index.html";
   assert.ok(existsSync(output(path)), slug + " legacy static route is missing");
   const html = await readFile(output(path), "utf8");
-  const parentTarget = "../?category=" + encodeURIComponent(slug);
-  const escapedTarget = parentTarget.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  assert.match(html, /<link rel="canonical" href="\.\.\/">/);
-  assert.match(html, new RegExp('<noscript>\\s*<meta http-equiv="refresh" content="0; url=' + escapedTarget + '">\\s*<\/noscript>'));
-  assert.match(html, new RegExp('<a href="' + escapedTarget + '"'));
+  // Trang tương thích chuyển tới trang cụm mới (taxonomy R4).
+  const cluster = ADVERTISING_CATEGORIES.find(({ legacySlug }) => legacySlug === slug);
+  const targets = { vi: "/vi/advertising-products/" + cluster.slugVi + "/", en: "/en/advertising-products/" + cluster.slugEn + "/" };
+  assert.match(html, new RegExp('<link rel="canonical" href="' + targets.vi + '" data-en-href="' + targets.en + '">'));
+  assert.match(html, new RegExp('<noscript>\\s*<meta http-equiv="refresh" content="0; url=' + targets.vi + '" data-en-content="0; url=' + targets.en + '">\\s*<\/noscript>'));
+  assert.match(html, new RegExp('<a href="' + targets.vi + '" data-en-href="' + targets.en + '"'));
   assert.match(html, /data-en="/, slug + " fallback copy has no English data attribute");
   assert.doesNotMatch(html, /<img\b|<figure\b|swiper|data-advertising-carousel|data-advertising-source-id|advertising-detail__composition|advertising-detail__hero/i, slug + " must not inline the retired pool or carousel");
   const script = html.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
@@ -49,10 +50,10 @@ for (const slug of slugs) {
       lang: locale,
     });
     assert.equal(finalUrl.origin, "https://local.test");
-    assert.equal(finalUrl.pathname, "/" + locale + "/advertising-products/");
+    assert.equal(finalUrl.pathname, targets[locale]);
     assert.equal(finalUrl.searchParams.get("utm"), "é");
     assert.deepEqual(finalUrl.searchParams.getAll("keep"), ["1", "two words"]);
-    assert.equal(finalUrl.searchParams.get("category"), slug);
+    assert.equal(finalUrl.searchParams.has("category"), false);
     assert.equal(finalUrl.searchParams.has("photo"), false);
     assert.equal(finalUrl.searchParams.has("tag"), false);
   }
@@ -61,9 +62,9 @@ for (const slug of slugs) {
     search: "?category=stale&encoded=D%C6%B0a",
     lang: "en-US",
   });
-  assert.equal(languageFallback.pathname, "/en/advertising-products/");
+  assert.equal(languageFallback.pathname, targets.en);
   assert.equal(languageFallback.searchParams.get("encoded"), "Dưa");
-  assert.equal(languageFallback.searchParams.get("category"), slug);
+  assert.equal(languageFallback.searchParams.has("category"), false);
   assert.match(worker, new RegExp('"' + slug + '"'), slug + " is not registered in the worker route set");
 }
 

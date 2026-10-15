@@ -15,13 +15,14 @@ tests:
   - tests/site/static-locales.test.mjs
   - tests/site/advertising-products-detail-routes.test.mjs
   - tests/site/advertising-products-static.test.mjs
+  - tests/site/advertising-pages.test.mjs
   - tests/site/site-static-contract.cjs
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-14
+updated: 2026-10-15
 ---
 
 # Phát hành tĩnh
@@ -56,7 +57,10 @@ chạy `compileAdvertisingLayout` ở 320, 390, 768, 1024, 1440, 1920, 2560 px v
 filter `all` và sáu cụm. Filter có card mà layout báo `needs-media` hoặc
 thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`. Build thay
-`<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`.
+`<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
+build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
+`vi/advertising-products/<slug VI>/` và `en/advertising-products/<slug EN>/`: title, meta, canonical, hreflang vi, en,
+x-default (path gốc, chưa có origin), mục rail đang chọn, `<noscript>` có đoạn giới thiệu và link mọi trang.
 
 ```gherkin
 Given một category có card nhưng layout ở 390 px thiếu vị trí
@@ -131,23 +135,23 @@ And <img data-advertising-photo-background> giữ nguyên, không bọc
 
 Mỗi nhóm cũ trong `ADVERTISING_LEGACY_CATEGORIES` có `advertising-products/<slug>/index.html`
 cùng bản VI, EN: tiêu đề, mô tả, `<main data-advertising-compatibility-route>`
-với một link, canonical `../`, không ảnh hay carousel. Script đầu trang gọi
-`location.replace` tới `/<locale>/advertising-products/`: bỏ `category`, `photo`,
-`tag` cũ, đặt `category=<slug>`, giữ query khác; locale theo path, không khớp thì
-theo `lang`. Không JavaScript thì `<noscript>` refresh về `../?category=<slug>`. Runtime masonry
-đổi slug cũ sang slug cụm ([masonry R3](advertising-masonry.md#r3-filter)).
+với một link, canonical là trang cụm mới, không ảnh hay carousel. Script đầu trang gọi
+`location.replace` tới trang cụm `/<locale>/advertising-products/<slug cụm theo locale>/`: bỏ `category`, `photo`,
+`tag` cũ, giữ query khác; locale theo path, không khớp thì theo `lang`. Không JavaScript thì `<noscript>` refresh về
+trang cụm đó. `/en/advertising-products/mobile-retail/` trùng slug EN của cụm nên là trang cụm, không phải trang tương thích.
 
 ```gherkin
 Given URL /en/advertising-products/print-decals/?utm=a&photo=x&tag=y
 When trang tương thích chạy script
-Then trình duyệt thay URL bằng /en/advertising-products/?utm=a&category=print-decals
+Then trình duyệt thay URL bằng /en/advertising-products/printing-decals/?utm=a
 And không thêm history entry
 ```
 
 ### R8. Preview local cổng 8787
 
 `pnpm dev` chạy build rồi `serve-static-parity.mjs --port 8787` (host `127.0.0.1`, root `.site-output`). Path
-trong `ROUTES` dựng bằng `localeHtml` mỗi request, kèm `Content-Language`; path khác phục vụ file dưới root, còn path
+trong `ROUTES` (gồm trang cụm, sản phẩm R2) dựng bằng `localeHtml` mỗi request, kèm `Content-Language`; `localeHtml` bản EN
+đổi `alt`, `aria-label`, `content`, `href` sang giá trị `data-en-*`; path khác phục vụ file dưới root, còn path
 kết thúc bằng `/` (kể cả `/`), không phải file hoặc ra ngoài root trả 404 kèm trang 404 như demo (R11). Mọi response
 có `Cache-Control: no-store`, hỗ trợ `Range`; không nén, không áp `_headers`, nên số đo tốc độ local không thay số đo
 demo. CI chạy server này trên port trống riêng mỗi job.

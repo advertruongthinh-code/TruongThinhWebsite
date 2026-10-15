@@ -2,6 +2,7 @@ import { createReadStream, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 
 export const ROUTES = new Map([
   ["/vi/", "index.html"],
@@ -13,6 +14,8 @@ export const ROUTES = new Map([
   ["/vi/advertising-products/", "advertising-products/index.html"],
   ["/en/advertising-products/", "advertising-products/index.html"],
   ...["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"].flatMap((slug) => [[`/vi/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`], [`/en/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`]]),
+  // Trang cụm, sản phẩm Advertising (taxonomy R4): build ghi sẵn file theo slug từng locale.
+  ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/${page[locale]}/`, `${locale}/advertising-products/${page[locale]}/index.html`])),
   ["/vi/about/", "about/index.html"],
   ["/en/about/", "about/index.html"],
 ]);
@@ -65,7 +68,7 @@ export function localeHtml(source, locale = "vi") {
   if (locale === "en") {
     html = html.replace(/<[^>]+>/g, (tag) => {
       let output = tag;
-      for (const name of ["alt", "aria-label", "content"]) {
+      for (const name of ["alt", "aria-label", "content", "href"]) {
         const english = attribute(output, `data-en-${name}`);
         if (english === null) continue;
         const vietnamese = attribute(output, name);
