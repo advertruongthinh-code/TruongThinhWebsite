@@ -47,17 +47,27 @@ test("taxonomy R4: rail trang gốc link tới trang cụm theo slug của local
   }
 });
 
-test("taxonomy R4: filter lấy từ path, ?category= thắng, URL trùng path không ghi ?category=", () => {
-  const schema = { cards: artifact.cards, categories: artifact.categories, products: artifact.products };
+test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang ghi path, không trang ghi ?category=", () => {
+  const schema = { cards: artifact.cards, categories: artifact.categories, pages: artifact.pages };
   const parse = (href) => parseAdvertisingBrowseLocation(`https://local.test${href}`, schema).category;
   assert.equal(parse("/vi/advertising-products/in-an-decal/"), "printing-decals");
   assert.equal(parse("/en/advertising-products/printing-decals/office-printing/"), "printing-decals/office-printing");
   assert.equal(parse("/vi/advertising-products/in-an-decal/?category=signage"), "signage");
   assert.equal(parse("/vi/advertising-products/khong-co/"), "all");
-  const serialize = (href, category) =>
-    serializeAdvertisingBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, artifact.products);
-  const same = serialize("/vi/advertising-products/in-an-decal/", "printing-decals");
-  assert.equal(`${same.pathname}${same.search}`, "/vi/advertising-products/in-an-decal/");
-  const other = serialize("/en/advertising-products/printing-decals/office-printing/?utm=a", "signage");
-  assert.equal(`${other.pathname}${other.search}`, "/en/advertising-products/?utm=a&category=signage");
+  const serialize = (href, category) => {
+    const url = serializeAdvertisingBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, artifact.pages);
+    return `${url.pathname}${url.search}`;
+  };
+  assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals"), "/vi/advertising-products/in-an-decal/");
+  assert.equal(serialize("/en/advertising-products/printing-decals/office-printing/?utm=a", "signage"), "/en/advertising-products/signage/?utm=a");
+  assert.equal(serialize("/vi/advertising-products/?utm=a", "printing-decals/office-printing"), "/vi/advertising-products/in-an-decal/in-an-van-phong/?utm=a");
+  assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals/menus"), "/vi/advertising-products/?category=printing-decals%2Fmenus");
+  assert.equal(serialize("/en/advertising-products/signage/", "all"), "/en/advertising-products/");
+});
+
+test("taxonomy R4: trang gốc trong artifact.pages khớp title và kicker của index.html", async () => {
+  const html = await readFile(new URL("../../src/site/advertising-products/index.html", import.meta.url), "utf8");
+  const root = artifact.pages.find(({ filter }) => filter === "all");
+  assert.match(html, new RegExp(`<title data-en="${root.titleEn}">\\s*${root.titleVi}\\s*</title>`));
+  assert.match(html, new RegExp(`data-en="${root.labelEn}"\\s*>\\s*${root.labelVi}\\s*</p>`, "i"));
 });

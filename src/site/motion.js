@@ -22,6 +22,9 @@
   const runtimeAbort = new AbortController();
   const originalText = new WeakMap();
   const originalAttributes = new WeakMap();
+  // Trang gốc Advertising và trang cụm, sản phẩm (taxonomy R4) cùng một trang masonry.
+  const isAdvertisingPath = (pathname) =>
+    /^\/(?:vi|en)\/advertising-products(?:\/(?:[^/]+\/){0,2})?$/.test(pathname);
   const localeScrollStateKey = (url) =>
     `tt-locale-scroll:${url.pathname}${url.search}`;
   const textMaskSelector =
@@ -325,6 +328,8 @@
       ["aria-label", "enAriaLabel"],
       ["alt", "enAlt"],
       ["content", "enContent"],
+      // Link trang cụm Advertising: slug EN khác slug VI nên không đổi được chỉ bằng tiền tố locale.
+      ["href", "enHref"],
     ].forEach(([attribute, dataKey]) => {
       const nodes = [
         ...(root.matches?.(`[data-en-${attribute}]`) ? [root] : []),
@@ -2093,7 +2098,7 @@
     url.hash = "";
     if (["popstate", "back", "forward"].includes(trigger)
       && url.origin === location.origin && url.pathname === location.pathname && url.search === location.search
-      && /^\/(?:vi|en)\/advertising-products\/?$/.test(url.pathname)
+      && isAdvertisingPath(url.pathname)
       && window.history.state) {
       try {
         window.history.replaceState({
@@ -2385,7 +2390,10 @@
 
       const url = new URL(window.location.href);
       const suffix = url.pathname.replace(/^\/(?:vi|en)(?=\/|$)/, "") || "/";
-      url.pathname = `/${nextLanguage}${suffix}`;
+      // Trang cụm, sản phẩm Advertising: link ngôn ngữ đã mang path đúng slug của locale đích.
+      const option = isAdvertisingPath(url.pathname)
+        && document.querySelector(`[data-language-option="${nextLanguage}"][href]`);
+      url.pathname = option ? new URL(option.href).pathname : `/${nextLanguage}${suffix}`;
       url.hash = "";
       if (window.barba?.history?.update && window.barba.history.store) {
         window.barba.history.update({
@@ -2868,7 +2876,7 @@
     if (!advertising?.canHandlePopState?.(previousHref, nextHref)) {
       // Barba ép native load cho traversal trong lúc transition đang chạy.
       if (window.barba?.transitions?.isRunning
-        && /^\/(?:vi|en)\/advertising-products\/?$/.test(location.pathname)) {
+        && isAdvertisingPath(location.pathname)) {
         event.stopImmediatePropagation();
         hardNavigate(nextHref, "popstate");
       }
@@ -2907,7 +2915,7 @@
               sync: false,
               beforeLeave(data) {
                 // Đích Advertising: tải catalog song song với veil phủ; lỗi để beforeEnter và mount xử lý như cũ.
-                advertisingCatalogLoad = /^\/(?:vi|en)\/advertising-products\/?$/.test(data.next.url.path)
+                advertisingCatalogLoad = isAdvertisingPath(data.next.url.path)
                   ? window.TruongThinhDetail?.loadAdvertisingCatalog?.().catch(() => {})
                   : undefined;
                 releaseHeaderInteractionState();
