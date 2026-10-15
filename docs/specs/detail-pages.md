@@ -55,7 +55,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế để bán tốt. / Thi công để vận hành bền." | inverse |
+| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế để bán tốt. / Thi công để vận hành bền." (dấu chấm `.text-hang-end` chỉ treo khi canh giữa ở phone) | inverse |
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
@@ -199,7 +199,7 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 
 `.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Dấu chấm cuối `h2` là `.text-hang-end` treo ra lề
-(margin âm bằng advance của dấu) để phần chữ canh giữa cùng eyebrow và nút; `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
+(rule chung `.text-hang-end` rộng 0 trong `style.css`) để phần chữ canh giữa cùng eyebrow và nút; `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong

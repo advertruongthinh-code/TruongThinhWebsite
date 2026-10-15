@@ -67,9 +67,11 @@
         "signage-raised-letters-24-owner-20260924-480.webp",
         "signage-raised-letters-25-owner-20260924-480.webp",
         "signage-raised-letters-26-owner-20260924.webp",
+        "storefront-v2.webp",
         "storefront.webp",
         "survey-modern.webp",
         "washroom-projecting-03-480.webp",
+        "workshop-wide-v2.webp",
         "workshop-wide.webp"
       ],
       "files": {
@@ -373,6 +375,12 @@
           "size": 38652,
           "type": "image/webp"
         },
+        "storefront-v2.webp": {
+          "name": "storefront-v2.webp",
+          "blob": "09ce44ec0f4308dc5f8348b309df2625",
+          "size": 88460,
+          "type": "image/webp"
+        },
         "storefront.webp": {
           "name": "storefront.webp",
           "blob": "051b0d9a711ed995d88a4705f8344122",
@@ -391,6 +399,12 @@
           "size": 11738,
           "type": "image/webp"
         },
+        "workshop-wide-v2.webp": {
+          "name": "workshop-wide-v2.webp",
+          "blob": "a2cc285801be294ef9707d99f190043e",
+          "size": 64960,
+          "type": "image/webp"
+        },
         "workshop-wide.webp": {
           "name": "workshop-wide.webp",
           "blob": "08e00bbc9a3e4b4c738c7e2884b3b9f5",
@@ -407,8 +421,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-04T21:35:00Z",
-    "via": "Claude Code",
-    "note": "Media card nhiều media (chấm, bộ đếm, video) và thumbnail primary"
+    "at": "2026-10-15T16:10:00Z",
+    "via": "Claude Code (cloud)",
+    "note": "Đợt main 952a2c4: #348 #369 #373 (khóa scroll menu, căn giữa CTA, ảnh CTA mới); #367 #371 đợt sau"
   }
 }

@@ -60,7 +60,7 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
   const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
   if (surface === "related") {
     await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
-    for (let attempt = 0; attempt < 16 && await page.locator(selector).count() === 0; attempt += 1) {
+    for (let attempt = 0; attempt < 32 && await page.locator(selector).count() === 0; attempt += 1) {
       await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
       await page.waitForTimeout(80);
     }

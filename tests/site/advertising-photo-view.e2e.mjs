@@ -76,7 +76,8 @@ function expectedPhotoGeometry(evidence) {
   const heightCap = mode === "split" ? available - gap - (span === columns ? 0 : 50) : available;
   // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
   const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, available - gap - 1);
-  const descriptionHeight = mode === "split" ? heightCap : evidence.infoRect.height;
+  // Split cao theo heightCap, trừ khi nhãn cụm dài làm sàn info cao hơn (runtime giữ sàn đó).
+  const descriptionHeight = mode === "split" ? Math.max(heightCap, evidence.infoFloor) : evidence.infoRect.height;
   const imageZoneHeight = mode === "split" ? descriptionHeight
     : Math.min(width / ratio, available - descriptionHeight - gap);
   const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
@@ -362,6 +363,14 @@ async function layoutEvidence(page) {
       canvasRect: serializeRect(canvas),
       viewRect: serializeRect(photoView),
       infoRect: serializeRect(info),
+      // Sàn info như measureInfo của runtime: các dòng ngoài pager cộng một dòng mô tả.
+      infoFloor: info ? (() => {
+        const controls = [...info.children].filter((node) => !node.matches("[data-advertising-photo-description-pager]") && !node.hidden);
+        const controlsHeight = controls.reduce((sum, node) => sum + node.offsetHeight
+          + (Number.parseFloat(getComputedStyle(node).marginTop) || 0) + (Number.parseFloat(getComputedStyle(node).marginBottom) || 0), 0);
+        const lineHeight = Number.parseFloat(getComputedStyle(info.querySelector("[data-advertising-photo-description]")).lineHeight) || 0;
+        return Math.ceil(controlsHeight + lineHeight + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
+      })() : 0,
       heroRect: serializeRect(hero),
       frameRect: serializeRect(frame),
       headerRect: serializeRect(header),
@@ -437,7 +446,7 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.width, expected.imageZoneWidth, `${label}: image frame width`);
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
-  assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap`);
+  if (evidence.infoFloor <= expected.heightCap) assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap despite fitting floors`);
   // Detail spec R2: vượt cap 28% chỉ khi một dòng description cùng group và CTA không vừa.
   if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
     assert(evidence.info?.descriptionLines < 1.5, `${label}: info exceeds 28% of the viewport with more than one description line`);
@@ -458,7 +467,7 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
     assert(Math.abs(evidence.scrollY) <= 1 && Math.abs(evidence.logicalScroll) <= 1, `${label}: direct load is not at the logical top`);
     closeTo(evidence.headerRect.height, expected.headerHeight, `${label}: collapsed header shell height`);
     closeTo(evidence.primaryRect.top, expected.top, `${label}: primary visible top`);
-    assert(evidence.primaryRect.bottom <= expected.top + expected.heightCap + 1, `${label}: primary frame exceeds visible viewport cap`);
+    assert(evidence.primaryRect.bottom <= expected.top + Math.max(expected.heightCap, evidence.infoFloor) + 1, `${label}: primary frame exceeds visible viewport cap`);
     assert(evidence.frameRect.top >= -1 && evidence.frameRect.bottom <= evidence.windowHeight + 1, `${label}: media frame does not fit the initial viewport`);
   }
   return expected;

@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ADVERTISING_CATEGORIES, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
@@ -132,12 +132,20 @@ const renderCompatibilityPage = (category) => {
     "</html>",
   ].join("\n");
 };
-for (const category of ADVERTISING_CATEGORIES) {
+for (const category of ADVERTISING_LEGACY_CATEGORIES) {
   const html = renderCompatibilityPage(category);
   const destination = path.join(outputRoot, "advertising-products", category.slug, "index.html");
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, html, { encoding: "utf8", flush: true });
 }
+
+// Rail cụm sinh từ taxonomy.mjs (taxonomy R3); link dùng slug VI vì HTML nguồn là bản VI.
+const advertisingIndexPath = path.join(outputRoot, "advertising-products", "index.html");
+await writeFile(advertisingIndexPath, (await readFile(advertisingIndexPath, "utf8")).replace(
+  "<!-- advertising-cluster-filters -->",
+  ADVERTISING_CATEGORIES.map(({ slug, slugVi, titleVi, titleEn }) =>
+    `<a class="project-filter" href="/vi/advertising-products/?category=${slugVi}" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
+), "utf8");
 
 const decodeHtmlText = (value) =>
   value
@@ -276,4 +284,4 @@ const notFoundHtml = await readFile(path.join(outputRoot, "404.html"), "utf8");
 await writeFile(path.join(outputRoot, "en", "404.html"), localeHtml(notFoundHtml, "en"), "utf8");
 await writeFile(path.join(outputRoot, "404.html"), localeHtml(notFoundHtml, "vi"), "utf8");
 
-console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_CATEGORIES.length} advertising detail pages, and embedded bilingual runtime text`);
+console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_LEGACY_CATEGORIES.length} advertising detail pages, and embedded bilingual runtime text`);

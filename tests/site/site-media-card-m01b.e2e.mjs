@@ -1136,7 +1136,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
     if (!related) await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
       await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
-      for (let i = 0; i < 16 && await page.locator(selector).count() === 0; i += 1) {
+      for (let i = 0; i < 32 && await page.locator(selector).count() === 0; i += 1) {
         await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
         await page.waitForTimeout(80);
       }

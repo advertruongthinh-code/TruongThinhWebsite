@@ -400,7 +400,7 @@ test("card products and per-product card counts follow the plan map and R8 relab
   for (const card of ADVERTISING_CARDS) {
     assert.deepEqual(card.productIds, expectedIds(card), card.id);
     const clusterOf = (productId) => ADVERTISING_PRODUCTS.find((product) => product.id === productId).cluster;
-    assert.deepEqual(card.clusterIds, [...new Set(card.productIds.map(clusterOf))], card.id);
+    assert.equal(card.category, clusterOf(card.productIds[0]), card.id);
   }
   // Số card mỗi sản phẩm tính từ dữ liệu, không viết cứng: ảnh mới chỉ mang productKey cũ vẫn khớp.
   for (const { id } of ADVERTISING_PRODUCTS) {
@@ -413,4 +413,34 @@ test("card products and per-product card counts follow the plan map and R8 relab
   const artifact = buildAdvertisingArtifact();
   assert.deepEqual(artifact.clusters, ADVERTISING_CLUSTERS);
   assert.deepEqual(artifact.products, ADVERTISING_PRODUCTS);
+});
+
+test("filter matches the primary product's cluster or any product, and ?category= accepts old and new slugs", async () => {
+  const { matchesAdvertisingFilter } = await import("../../src/site/advertising-products/layout-core.mjs");
+  const previousWindow = globalThis.window;
+  globalThis.window = {};
+  const { parseAdvertisingBrowseLocation, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+  globalThis.window = previousWindow;
+  // Gherkin R1: lọc sản phẩm phụ vẫn có card; lọc cụm theo sản phẩm chính.
+  const decal = ADVERTISING_CARDS.find(({ id }) => id === "print-decals-21");
+  assert.ok(matchesAdvertisingFilter(decal, "office-signs/room-signs"));
+  assert.ok(matchesAdvertisingFilter(decal, "printing-decals"));
+  assert.ok(!matchesAdvertisingFilter(decal, "office-signs"));
+  assert.deepEqual(Object.fromEntries(ADVERTISING_CLUSTERS.map(({ legacySlug, id }) => [legacySlug, id])), clusterByCategory);
+  const artifact = buildAdvertisingArtifact();
+  const schema = { cards: artifact.cards, categories: artifact.categories };
+  const browseAt = (locale, category) => parseAdvertisingBrowseLocation(
+    `https://example.test/${locale}/advertising-products/?category=${encodeURIComponent(category)}`, schema).category;
+  for (const cluster of ADVERTISING_CLUSTERS) {
+    for (const slug of [cluster.legacySlug, cluster.id, cluster.slugVi, cluster.slugEn]) {
+      assert.equal(browseAt("vi", slug), cluster.id, slug);
+      assert.equal(browseAt("en", slug), cluster.id, slug);
+    }
+    for (const [locale, slug] of [["vi", cluster.slugVi], ["en", cluster.slugEn]]) {
+      const url = serializeAdvertisingBrowseLocation(`https://example.test/${locale}/advertising-products/`, { category: cluster.id }, artifact.categories);
+      assert.equal(url.searchParams.get("category"), slug);
+    }
+  }
+  assert.equal(browseAt("vi", "office-signs/room-signs"), "office-signs/room-signs");
+  assert.equal(browseAt("vi", "office-signs/no-such-product"), "all");
 });

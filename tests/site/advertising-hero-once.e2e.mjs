@@ -192,8 +192,8 @@ async function runDelayedAdapterCase(browser) {
       "fixture released the Advertising adapter before the pre-ready click");
     await installHeroOnceProbe(page);
 
-    await page.locator('[data-advertising-filter="kiosk-posm"]').dispatchEvent("click");
-    await page.locator('[data-advertising-filter="print-decals"]').dispatchEvent("click");
+    await page.locator('[data-advertising-filter="displays-booths"]').dispatchEvent("click");
+    await page.locator('[data-advertising-filter="printing-decals"]').dispatchEvent("click");
     const queryStarted = await page.evaluate(() => window.__ttHeroOnceProbe.queryCalls.length > 0);
     if (queryStarted) {
       await page.waitForFunction(() => {
@@ -204,7 +204,7 @@ async function runDelayedAdapterCase(browser) {
     }
     releaseCatalog();
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
-    await page.waitForFunction(() => document.querySelector('[data-advertising-filter="print-decals"]')?.getAttribute("aria-current") === "true");
+    await page.waitForFunction(() => document.querySelector('[data-advertising-filter="printing-decals"]')?.getAttribute("aria-current") === "true");
 
     return {
       interceptedCatalogRequests,
@@ -228,7 +228,7 @@ async function runReadyLoopCase(browser) {
     await runEndHomeSequence(page);
 
     for (let index = 0; index < 10; index += 1) {
-      const filter = index % 2 === 0 ? "kiosk-posm" : "all";
+      const filter = index % 2 === 0 ? "displays-booths" : "all";
       await page.locator(`[data-advertising-filter="${filter}"]`).click();
       await page.waitForFunction((expected) => (
         document.querySelector(`[data-advertising-filter="${expected}"]`)?.getAttribute("aria-current") === "true"
@@ -256,7 +256,7 @@ async function runRouteEntryCase(browser) {
     await installHeroOnceProbe(page);
     await runEndHomeSequence(page);
 
-    for (const filter of ["kiosk-posm", "all", "signage-raised-letters", "all"]) {
+    for (const filter of ["displays-booths", "all", "signage", "all"]) {
       await page.locator(`[data-advertising-filter="${filter}"]`).click();
       await page.waitForFunction((expected) => (
         document.querySelector(`[data-advertising-filter="${expected}"]`)?.getAttribute("aria-current") === "true"
@@ -286,9 +286,9 @@ async function runRouteReturnCase(browser, locale) {
     await page.waitForURL(`${baseUrl}/${locale}/advertising-products/`);
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
     await waitForHeroSettled(page);
-    await page.locator('[data-advertising-filter="kiosk-posm"]').click();
+    await page.locator('[data-advertising-filter="displays-booths"]').click();
     await page.waitForFunction(() => (
-      document.querySelector('[data-advertising-filter="kiosk-posm"]')?.getAttribute("aria-current") === "true"
+      document.querySelector('[data-advertising-filter="displays-booths"]')?.getAttribute("aria-current") === "true"
     ));
     return await readProbe(page);
   } finally {
@@ -338,10 +338,10 @@ async function runFailedAdapterFallbackCase(browser) {
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
       return /^\/(?:vi|en)\/advertising-products\/$/.test(url.pathname)
-        && url.searchParams.get("category") === "kiosk-posm"
+        && url.searchParams.get("category") === "standee-ke-trung-bay"
         && ["document", "fetch", "xhr"].includes(request.resourceType());
     });
-    await page.locator('[data-advertising-filter="kiosk-posm"]').click({ noWaitAfter: true });
+    await page.locator('[data-advertising-filter="displays-booths"]').click({ noWaitAfter: true });
     const request = await fallbackRequest;
     return { resourceType: request.resourceType(), url: request.url() };
   } finally {
@@ -361,13 +361,13 @@ async function runPendingAdapterFailureCase(browser) {
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
     await waitForHeroSettled(page, { veilCleared: false });
-    await page.locator('[data-advertising-filter="kiosk-posm"]').dispatchEvent("click");
+    await page.locator('[data-advertising-filter="displays-booths"]').dispatchEvent("click");
     const trafficBeforeReject = [...queryTraffic];
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
       return request.resourceType() === "document"
         && /^\/(?:vi|en)\/advertising-products\/$/.test(url.pathname)
-        && url.searchParams.get("category") === "kiosk-posm";
+        && url.searchParams.get("category") === "standee-ke-trung-bay";
     });
     rejectCatalog();
     const request = await fallbackRequest;
@@ -405,13 +405,13 @@ try {
     "pre-adapter filter click replayed Advertising hero motion");
   assert.deepEqual(delayed.probe.heroClassDrops, [], "pre-adapter filter click restarted hero CSS motion");
   assert.equal(delayed.probe.wordOpacityDrops, 0, "pre-adapter filter click faded hero words again");
-  assert.equal(delayed.probe.activeFilter, "print-decals",
+  assert.equal(delayed.probe.activeFilter, "printing-decals",
     "latest queued pre-adapter filter intent was not activated after catalog ready");
-  assert.equal(new URL(fallback.url).searchParams.get("category"), "kiosk-posm",
+  assert.equal(new URL(fallback.url).searchParams.get("category"), "standee-ke-trung-bay",
     "failed adapter kept the synchronous filter queue locked instead of restoring anchor fallback");
   assert.deepEqual(pendingFailure.trafficBeforeReject, [],
     "pending filter escaped before the delayed catalog import rejected");
-  assert.equal(new URL(pendingFailure.request.url).searchParams.get("category"), "kiosk-posm",
+  assert.equal(new URL(pendingFailure.request.url).searchParams.get("category"), "standee-ke-trung-bay",
     "rejected catalog import swallowed the pending filter destination");
 
   assert.deepEqual(ready.queryTraffic, [], "ready filter loop performed document/XHR query navigation");
@@ -432,9 +432,9 @@ try {
   assert.equal(routeEntry.probe.wordOpacityDrops, 0, "route-entry filter loop faded hero words again");
 
   assert.equal(routeReturn.sameDocument, true, "route-return fixture created a new document");
-  assert.equal(routeReturn.activeFilter, "kiosk-posm", "route-return filter did not activate");
+  assert.equal(routeReturn.activeFilter, "displays-booths", "route-return filter did not activate");
   assert.equal(englishRouteReturn.sameDocument, true, "English route-return fixture created a new document");
-  assert.equal(englishRouteReturn.activeFilter, "kiosk-posm", "English route-return filter did not activate");
+  assert.equal(englishRouteReturn.activeFilter, "displays-booths", "English route-return filter did not activate");
 
   for (const result of [routeReturn, englishRouteReturn]) {
     assert.deepEqual(result.heroWordStaggers, [0.2], "route return must reveal words once; filter must not replay them");
