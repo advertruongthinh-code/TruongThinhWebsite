@@ -17,7 +17,7 @@ updated: 2026-10-13
 
 CI chia thành nhiều bộ test nhỏ, mỗi bộ ứng với một phần website trong
 [capability map](docs-system.md#r2-capability-map-và-spec-sống). PR chỉ chạy bộ của phần nó sửa, các bộ chạy
-song song trên runner WSL ở PC owner. Merge có code vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
+song song trên runner `ubuntu-latest` của GitHub. Merge có code vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
 demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
 Runner, Automerge và Deploy demo nằm ở [phát hành tĩnh R10](static-release.md#r10-gate-ci).
 
@@ -67,7 +67,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal |
 | `media-card` | media-card, glass-surface | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung |
 
-Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner PC thì tách đôi theo
+Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo
 spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
 
 ### R3. Chọn bộ theo file PR sửa
@@ -106,10 +106,10 @@ Then không bộ nào được chọn
 ### R4. Chạy song song và độc lập
 
 Mục tiêu (owner duyệt 2026-10-13): PR sửa một phần xong dưới 5 phút; chạy đủ mọi bộ xong dưới 12 phút khi đủ
-runner rảnh.
+runner rảnh (GitHub cấp tới khoảng 20 job cùng lúc cho gói Free).
 
-Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `[self-hosted, linux, wsl]`. Job tự build
-`.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau trên cùng PC. Một bộ đỏ
+Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build
+`.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ
 không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview và
 `test-results/` của bộ đó.
 
@@ -146,7 +146,7 @@ Then chạy fast, detail-pages, footer và media giống CI
 
 ### R7. Đưa test chạy tay vào bộ
 
-Khoảng 30 script e2e đang chạy tay được đưa vào bộ, mỗi lần một bộ. Script phải xanh trên runner PC trước khi vào
+Khoảng 30 script e2e đang chạy tay được đưa vào bộ, mỗi lần một bộ. Script phải xanh trên runner CI trước khi vào
 manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
 sửa theo demo trong cùng PR. Chỗ demo trông như lỗi (vỡ layout, lỗi console) thì gom lại hỏi owner một lần, không tự
 quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
@@ -183,17 +183,14 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 | R1, R3 | `tests/tooling/ci-suites.test.mjs`: mọi e2e thuộc đúng một bộ, bảng chọn bộ theo file mẫu |
 | R4, R5 | Run CI thật trên một PR docs-only, một PR một phần, một PR đổi `style.css` |
 | R6 | `pnpm qa:suite --changed` cho cùng danh sách bộ với job `select` |
-| R7 | Mỗi bộ xanh trên runner PC tại PR đưa nó vào |
+| R7 | Mỗi bộ xanh trên runner CI tại PR đưa nó vào |
 | R2 | Thời gian từng job trong log Actions, ghi vào mô tả PR |
 
 ## Gate còn mở
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Owner chốt 2 runner trong máy ảo WSL giới hạn 4 GB RAM, 4 luồng, swap 2 GB (2026-10-14) để CI không chiếm tài nguyên PC.
-  Đo PR #357 (2026-10-14): 25 bộ cộng lại 110 phút job, mỗi bộ 1.7 tới 6.5 phút, chạy đủ mất 50 phút, trượt mục tiêu
-  12 phút. PR sửa một phần đạt dưới 5 phút với phần lớn bộ khi runner rảnh; `adv-view-2`, `media`, `shell-motion`
-  vượt (5.8 tới 6.5 phút), và PR phải xếp hàng khi runner đang chạy đủ. Đổi số runner hoặc trần WSL cần owner đồng ý.
+- Repo public từ 2026-10-15 nên CI chạy trên runner GitHub-hosted; số job cùng lúc là giới hạn gói Free, chưa đo lại mục tiêu 12 phút trên runner mới.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở) nhưng CI chưa chạy WebKit; chưa
   thuộc spec này. Runner chỉ cài Chromium nên script nhiều engine chạy Chromium trong CI (`LIFECYCLE_ENGINES`,
   `RANDOM_BROWSE_ENGINES`); Firefox, WebKit chạy tay.
@@ -205,5 +202,5 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 - **Matrix**: một job GitHub Actions nhân thành nhiều job theo danh sách giá trị.
 - **Merge base**: commit chung gần nhất giữa nhánh PR và `main`.
 - **Check tổng**: job gom kết quả mọi bộ thành một check duy nhất.
-- **Runner**: máy chạy job GitHub Actions; ở đây là WSL trên PC owner.
+- **Runner**: máy chạy job GitHub Actions; ở đây là `ubuntu-latest` do GitHub cấp.
 - **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm.
