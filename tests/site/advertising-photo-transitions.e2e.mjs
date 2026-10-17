@@ -1443,7 +1443,11 @@ try {
       gridY: window.TruongThinhAdvertising.getBrowseState().grid.scrollY,
       length: history.length,
     }));
-    await chooseB(page, async () => { a.y = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()); });
+    // click() có thể cuộn thêm khi header che card related, nên ghi Y mà chính click thấy.
+    await chooseB(page, () => page.evaluate(() => addEventListener("click", () => {
+      window.__relatedClickY = window.TruongThinhMotion.getLogicalScroll();
+    }, { once: true, capture: true })));
+    a.y = await page.evaluate(() => window.__relatedClickY);
     await ready(page, B);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     const b = await page.evaluate(() => ({
