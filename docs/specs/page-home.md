@@ -4,6 +4,7 @@ status: live
 source:
   - src/site/index.html
   - src/site/content/client-logos.json
+  - src/site/content/project-reel.json
   - src/site/assets/content/client-logos/**
   - src/site/assets/content/projects/home-*
 tests:
@@ -42,7 +43,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Khảo sát · Tư vấn · Sản xuất · Lắp đặt", thứ tự theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
-| 5 | `#du-an` | Năm `figure` công trình so le, caption "Nhóm / Chi tiết" | Không | ink |
+| 5 | `#du-an` | Sáu `figure` công trình so le sinh từ dữ liệu, caption "Lĩnh vực / Hạng mục" (R8) | Không | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới." tự co cỡ, rộng bằng khung, dấu chấm cuối dòng là `.text-hang-end`, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
 | sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
@@ -169,16 +170,15 @@ And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nh
 
 ### R8. Rail công trình
 
-Năm card ảnh cao so le, caption có ô vuông màu. Track là `region` focus được (`tabindex="0"`, nhãn
-"Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh.
-Từ 981px: lưới năm cột; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì
-caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang
-([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
+Card cuối dùng chung ảnh `home-commercial-fnb-v2` với portal Kinh doanh (R1), tạm thời tới khi portal có ảnh mới (owner 2026-10-17). Nguồn duy nhất là `src/site/content/project-reel.json` (chỉ build, test đọc): `renderProjectReel` (`scripts/site/project-reel.mjs`) validate, rồi build và preview Design System thay `<!-- project-reel-cards -->` trong `.project-track` bằng `figure.project-card` theo `order`; dữ liệu sai thì build dừng trước khi xóa output cũ. Ràng buộc, cũng là contract cho CMS phase ([CMS](cms.md)): 3 tới 6 card (dưới 3 mất nhịp so le, trên 6 card ở lưới 981px hẹp dưới 130px); `id` kebab-case, `order` nguyên dương, cả hai duy nhất, `id` giữ nguyên khi sửa nội dung; `variant` là `high`, `mid` hoặc `low` (`mid`, `low` cùng độ lệch), xen kẽ cao, thấp theo `order` vì tới 980px card chẵn luôn đẩy xuống; `src` là WebP `/assets/content/...` có trong `src/site/`, đã sinh biến thể ([tải ảnh R5](media-delivery.md#r5-chuẩn-file-ảnh)), `width`, `height` bằng pixel thật; `altVi`, `altEn`, `captionVi`, `captionEn` không rỗng, caption "Lĩnh vực / Hạng mục" (Xưởng, Quảng cáo, Kinh doanh, Nhà ở), không nêu tên thương hiệu trong ảnh. Card ảnh cao so le, caption có ô vuông màu lặp ba (xanh, cam, viền). Track là `region` focus được (`tabindex="0"`, nhãn "Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh. Từ 981px: lưới mỗi card một cột, cao tối thiểu 650px, caption dài thì lưới cao thêm, không bị cắt; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
 
 ```gherkin
 Given /vi/ ở 390px
 When vuốt ngang track công trình
 Then track dừng ở từng card, mọi card tới được, document không tràn ngang
+Given project-reel.json có hai card trùng id hoặc ảnh không tồn tại
+When chạy pnpm prepare:site
+Then build dừng với lỗi "project-reel data invalid", .site-output/ cũ còn nguyên
 ```
 
 ### R9. Closer và marquee khách hàng
@@ -247,7 +247,7 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | DOM hook | `.service-portal`, `.portal-line`, `.portal-title__quiet`, `.portal-title__strong`, `.portal-title-mask`, `.portal-subtitle`, `.media-hover-zoom-trigger`, `.media-hover-zoom` | Portal và hover chung (R5, R6) |
 | DOM hook | `.heritage-text > .heritage-line`, `.heritage-line--delay`, `.heritage-image`, `.project-track`, `.legacy-copy`, `.client-logo-marquee__track`, `__group` | Reveal, rail, marquee |
 | Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-overlay-media-ready`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
-| Data | `src/site/content/client-logos.json` | 12 logo: id, tên, file, viewBox, thứ tự; build và test đọc |
+| Data | `src/site/content/client-logos.json`, `content/project-reel.json` | 12 logo: id, tên, file, viewBox, thứ tự; card rail (R8); build và test đọc |
 | Hàm, event | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7), `state.replayMotion(section)` trong `motion.js`; event `site:section-replay` | Nội bộ, không export; test nghe event |
 | Script | `scripts/site/sanitize-client-logos.ps1` | Làm sạch SVG logo khách hàng trước khi đưa vào `assets/content/client-logos/` |
 
@@ -272,7 +272,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |
 | R7 | `mobile-layout-parity.e2e.mjs` (chữ không cắt); khoảng thở ảnh chưa có test |
-| R8 | `TT_E2E_WHEEL_ONLY` (rail), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
+| R8 | `project-reel.test.mjs` (validate, số card, caption, ảnh VI/EN), `TT_E2E_WHEEL_ONLY` (rail), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
 | R9 | `pnpm qa:client-assets`, `client-logo-marquee.e2e.cjs` |
 | R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (hero, hero reduced, portal, closer), `image-loading-frame.e2e.mjs` |
 | R11 | chưa có test trên trang chủ (`TT_E2E_LOCALE_SCROLL_ONLY` kiểm Residential) |

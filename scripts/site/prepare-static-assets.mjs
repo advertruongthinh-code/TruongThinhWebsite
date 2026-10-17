@@ -8,6 +8,7 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGE
 import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
+import { renderProjectReel } from "./project-reel.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -66,8 +67,14 @@ for (const layoutViewportWidth of PUBLIC_GRID_WIDTHS) {
   }
 }
 
+// Rail công trình trang chủ: validate dữ liệu và placeholder trước khi xóa output cũ (page-home R8).
+const projectReelCards = await renderProjectReel(JSON.parse(await readFile(path.join(sourceRoot, "content", "project-reel.json"), "utf8")), sourceRoot);
+const homeTemplate = await readFile(path.join(sourceRoot, "index.html"), "utf8");
+if (!homeTemplate.includes("<!-- project-reel-cards -->")) throw new Error("index.html lost <!-- project-reel-cards -->");
+
 await rm(outputRoot, { recursive: true, force: true });
 await cp(sourceRoot, outputRoot, { recursive: true });
+await writeFile(path.join(outputRoot, "index.html"), homeTemplate.replace("<!-- project-reel-cards -->", () => projectReelCards), "utf8");
 await Promise.all(vendorAssets.map(async ([source, destination]) => {
   const target = path.join(outputRoot, destination);
   await mkdir(path.dirname(target), { recursive: true });

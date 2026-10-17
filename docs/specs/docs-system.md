@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-12
+updated: 2026-10-18
 source:
   - scripts/docs/**
   - .github/pull_request_template.md
@@ -154,12 +154,12 @@ nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như
    tải, thanh tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
    CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`,
    bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
-   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website, bundle
+   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card rail công trình chèn từ dữ liệu như build), bundle
    và ảnh `assets/Photos/`; `qa:docs` chạy chế độ `--check`, file sinh lệch
    source thì fail. Phần Advertising do JavaScript dựng được
    `scripts/docs/capture-design-system.mjs` chụp từ trang chạy thật vào
    `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
-   trong `src/site/`. Catalog public chưa có card nhiều media nên capture
+   trong `src/site/` hay generator `scripts/site/`. Catalog public chưa có card nhiều media nên capture
    MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
    như test e2e; video chỉ giữ poster.
 4. Motion là section `motion.md` (format không có nhóm token motion).
