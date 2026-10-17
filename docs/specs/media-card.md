@@ -60,7 +60,7 @@ And chuyển sang video chậm tải thì khung card, canvas, dải lệch tối
 
 ### R3. Đổi media trên card
 
-2–6 item: một hàng chấm trong dải, mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
+2–6 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
 xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 7 item: nút "Media trước" / "Previous
 media" và "Media tiếp" / "Next media" 44×44px, bộ đếm `i/N` (`role="status"`, `aria-live="polite"`); nút trước vô hiệu ở
 item đầu, nút sau ở item cuối. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
@@ -185,9 +185,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.
 - Thời điểm phát video qua Back, Forward, đổi ngôn ngữ và khi chuyển masonry sang detail chưa chốt; không tự bật lại âm
   thanh hay hứa giữ thời điểm. Owner.
-- [CẦN LÀM RÕ: intent duyệt chấm nhìn thấy khoảng 8px; CSS vẽ 6px (`detail.css:1752`, viền tính trong 6px vì
-  `box-sizing: border-box` ở `style.css:105`). `site-media-card-r6.e2e.mjs:156` cộng viền vào bề rộng border-box nên báo
-  8px. Giữ 6px hay đổi 8px?] Owner quyết; Main sửa test.
+- Chấm 8px theo UI chấm Gallery (owner 2026-10-17), test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
+  của Gallery để giữ vùng bấm 20×44px.
 - Mọi asset của card đều lỗi: chưa có UI kết thúc riêng. Owner chọn UI; Thread code.
 - Clip fixture của `m01b`, `m02a`, `r6` là AV1 + Opus trong MP4 vì Chromium của Playwright (CI, cloud) không giải mã
   H.264/AAC; WebKit chỉ phát AV1 trên phần cứng mới nên chạy tay WebKit có thể đỏ ca video. Nhánh H.264 của video

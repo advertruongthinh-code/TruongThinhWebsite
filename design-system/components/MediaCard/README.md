@@ -39,10 +39,10 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 | Số item | Dải dưới canvas | Điều khiển |
 | --- | --- | --- |
 | 1 | Không có | Không chỉ báo; video vẫn có duration và playback |
-| 2 tới 6 | 44px | Một hàng chấm; vùng bấm 20×44px, chấm 6px viền 1px, chấm đang xem tô đặc |
+| 2 tới 6 | 44px | Một hàng chấm dùng lại chấm [Gallery](../Gallery/README.md): 8px, đen 20%, chấm đang xem `ink`; vùng bấm 20×44px |
 | Từ 7 | 44px | Nút trước, bộ đếm `7/11`, nút sau; nút tối thiểu 44×44px |
 
-- Dải nằm đáy card, rộng bằng card, nền `paper`, chấm và chữ `ink`.
+- Dải nằm đáy card, rộng bằng card, nền `paper`, chữ `ink`.
 - Bộ đếm `0.8rem`, `tabular-nums`. Mũi tên 8px nét 2px; nút ở hai đầu bị
   disabled, opacity 0.5.
 - Chỉ chấm và nút nhận click; chỗ trống của dải mở detail như thân card.

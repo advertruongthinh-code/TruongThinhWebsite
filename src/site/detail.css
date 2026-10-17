@@ -1754,16 +1754,19 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: auto;
 }
 
+/* Chấm dùng lại UI chấm của Gallery (bullet Swiper, owner 2026-10-17): 8px, chấm thường đen 20%, chấm đang xem `ink`. */
 .advertising-card-media__dot::before {
   content: "";
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentColor;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background: #000;
+  opacity: 0.2;
 }
 
 .advertising-card-media__dot[aria-current="true"]::before {
-  background: currentColor;
+  background: var(--ink);
+  opacity: 1;
 }
 
 .advertising-card-media__indicator--numeric {
