@@ -15,7 +15,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Trang chủ
@@ -75,7 +75,7 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 Sáu ảnh nền trang trí (`aria-hidden`, `alt=""`), owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
 phòng ngủ óc chó (`home-hero-*`, 1920×1280), rồi `hero-kiosk`, `mobile-retail` tới khi có hero Advertising mới. Ảnh 0 tải ngay,
 `fetchpriority="high"`; năm ảnh sau ở `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có
-`requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+`requestIdleCallback` thì 250ms). Mỗi lần tải trang (cả route mềm), runtime xáo ngẫu nhiên thứ tự DOM năm slide sau, slide 0 luôn chiếu đầu: ảnh đã tải ưu tiên nên màn đầu không trống, không nhảy ảnh. Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -87,7 +87,7 @@ trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
 When chờ slideshow đi hết sáu slide
-Then mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
+Then slide 0 hiện đầu, năm slide sau theo thứ tự ngẫu nhiên mỗi lần tải, mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
 When bấm nút dừng chuyển động
 Then nút có aria-pressed="true", slide và marquee đứng yên
 ```
@@ -267,7 +267,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | --- | --- |
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
-| R3 | `TT_E2E_HERO_CONTINUITY_ONLY`, `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
+| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (cả thứ tự xáo với `Math.random` stub), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |
