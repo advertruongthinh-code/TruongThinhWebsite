@@ -53,7 +53,15 @@ try {
   const productIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(product)).map((card) => card.id));
   const shown = await page.evaluate(() => [...document.querySelectorAll(".advertising-grid [data-advertising-card]")].map((node) => node.dataset.advertisingCard));
   assert.ok(shown.length && shown.every((id) => productIds.has(id)), "masonry chỉ còn card của sản phẩm");
-  assert.equal(await page.locator(".scroll-cue").evaluate((node) => getComputedStyle(node).visibility), "hidden", "chip thay chỗ chữ Cuộn xuống");
+  // Từ 1025px rail một hàng nâng lên, chip nằm chỗ rail cũ, chữ "Cuộn xuống" vẫn hiện bên dưới chip.
+  const stack = await page.evaluate(() => {
+    const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+    const cue = document.querySelector(".scroll-cue");
+    return { rail: box(".project-filters").bottom, chipsTop: box(".rail-chips:not([hidden])").top,
+      chipsBottom: box(".rail-chips:not([hidden])").bottom, cueTop: box(".scroll-cue").top, cueVisibility: getComputedStyle(cue).visibility };
+  });
+  assert.equal(stack.cueVisibility, "visible", "chữ Cuộn xuống vẫn hiện khi có chip");
+  assert.ok(stack.rail <= stack.chipsTop && stack.chipsBottom < stack.cueTop, `rail, chip, Cuộn xuống không chồng nhau: ${JSON.stringify(stack)}`);
 
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
