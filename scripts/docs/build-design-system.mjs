@@ -2,6 +2,7 @@
 // Cách dùng: node scripts/docs/build-design-system.mjs [--check]
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { renderProjectReel } from '../site/project-reel.mjs';
 
 const OUT = 'design-system';
 const FONT = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">';
@@ -99,8 +100,11 @@ addEventListener("load", () => requestAnimationFrame(() => {
   return frame(`<div data-ds-frame>\n${body.trim()}\n</div>`, { height: c.height });
 }
 
+// Card rail công trình sinh lúc build từ content/project-reel.json (page-home R8); preview chèn như build, build đã validate.
+const projectReelCards = renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')));
+
 for (const c of COMPONENTS) {
-  const html = readFileSync(c.file, 'utf8');
+  const html = readFileSync(c.file, 'utf8').replace('<!-- project-reel-cards -->', () => projectReelCards);
   if (c.capture) {
     const markup = localizeImages(fromCapture(c, html), c.size);
     outputs.set(`${OUT}/components/${c.name}/preview.html`,

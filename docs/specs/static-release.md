@@ -38,8 +38,8 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 ### R1. Build `.site-output/` từ `src/site/`
 
 `pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu `pnpm dev` và `pnpm deploy:demo`) dừng
-nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2), xóa `.site-output/`, chép
-`src/site/`, vendor (R4), xóa asset không public (R3), artifact (R2),
+nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; rail công trình, [trang chủ R8](page-home.md#r8-rail-công-trình)), xóa `.site-output/`, chép
+`src/site/` rồi chèn card rail vào `index.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), xử lý HTML (R5, R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
 chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm HTML trang và `404.html`; SVG gốc sai số `path`,
 `text` thì build dừng.
@@ -71,9 +71,9 @@ And .site-output/ của lần build trước vẫn còn nguyên
 
 ### R3. Loại asset không public
 
-`scripts/site/non-public-source-assets.mjs` liệt kê 16 path trong `src/site/`
+`scripts/site/non-public-source-assets.mjs` liệt kê 17 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
-manifest, photo tags, `content/client-logos.json`, SVG lockup gốc, ảnh cover và
+manifest, photo tags, `content/client-logos.json`, `content/project-reel.json`, SVG lockup gốc, ảnh cover và
 process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
 
 ```gherkin

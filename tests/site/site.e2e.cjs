@@ -10293,7 +10293,7 @@ async function runHomeMotionRegressionCheck() {
         "A text mask can clip Vietnamese font ink",
       );
       assert(
-        contract.media.length === 5 &&
+        contract.media.length === require(path.join(SITE_ROOT, "content", "project-reel.json")).length &&
           contract.media.every(
             ({ overflow, height }) =>
               overflow === "hidden" && Math.abs(height - 420) <= 1,
