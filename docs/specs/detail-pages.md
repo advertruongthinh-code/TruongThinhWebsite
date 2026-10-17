@@ -59,7 +59,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 29 `figure`, bốn chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 6 `figure` | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 36 `figure`, năm chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 6 `figure` | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
@@ -70,7 +70,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 ```gherkin
 Given output đã build
 When mở /vi/residential/ và /vi/commercial/
-Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có hai mươi chín và sáu figure
+Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có ba mươi sáu và sáu figure
 ```
 
 ### R3. About: section và nội dung
@@ -163,9 +163,10 @@ trái `--gutter`, tràn ra phải; snap `start` kiểu proximity. `figure.detail
 `.detail-gallery__media` (vệt sáng chờ ảnh, hover zoom) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu
 `ink`, không nới bề rộng figure. Chuột kéo track (pointer không phải touch, nút chính, `is-dragging` lúc kéo, tắt
 snap); ảnh `draggable=false`, chặn `dragstart`; touch cuộn native; ẩn thanh cuộn ngang
-([shell R9](site-shell.md#r9-scrollbar)). Residential là một dải bốn chuỗi công trình theo thứ tự nhà ống, nhà giếng trời, căn hộ
-hai phòng ngủ Thủ Đức, homestay bên rạch; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay: ngoại thất), caption "<CÔNG TRÌNH> ·
-<KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4).
+([shell R9](site-shell.md#r9-scrollbar)). Residential là một dải năm chuỗi công trình theo thứ tự nhà ống, nhà giếng trời, căn hộ
+hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay: ngoại thất; nhà phố
+ba tầng: bếp), rồi theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là
+thêm `figure` (R4).
 
 ```gherkin
 Given /vi/commercial/ ở 1440px với chuột
