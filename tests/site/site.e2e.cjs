@@ -1285,14 +1285,15 @@ async function steppedScroll(page, viewport) {
         new Promise((resolve) =>
           requestAnimationFrame(() => requestAnimationFrame(resolve)),
         );
-      tracks.forEach((track) =>
-        track.scrollTo({ left: track.scrollWidth / 2, behavior: "instant" }),
-      );
-      await paint();
-      tracks.forEach((track) => {
+      // Quét track từng bề rộng một để mọi ảnh lazy (gallery Nhà ở 29 ảnh) đều vào vùng tải.
+      for (const track of tracks) {
+        for (let left = 0; left < track.scrollWidth; left += track.clientWidth) {
+          track.scrollTo({ left, behavior: "instant" });
+          await paint();
+        }
         track.scrollTo({ left: track.scrollWidth, behavior: "instant" });
         track.dataset.qaLazySwept = "true";
-      });
+      }
       await paint();
     });
   }
