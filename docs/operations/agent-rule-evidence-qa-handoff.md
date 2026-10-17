@@ -78,6 +78,20 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - hạn chế chữ xưng hô (cô, chú, dì, bà) trên biển; chỉ dùng khi không gian mộc
      mạc, bình dân, thân thuộc với người địa phương và đúng món đang bán; không
      dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
+   - ảnh như chụp bằng máy ảnh thật: ánh sáng tự nhiên, nhiễu cảm biến, độ sâu
+     trường ảnh; không bề mặt mịn bóng kiểu dựng 3D, không dàn cảnh đối xứng
+     (owner chốt 2026-10-13, nhắc lại 2026-10-17);
+   - nội thất đúng công năng và kỹ thuật: lối đi, chân cầu thang thông thoáng;
+     sofa quay vào phòng, hướng TV; máy hút mùi rộng bằng bếp và thẳng tâm bếp;
+     không tủ cao sát bếp (owner chốt 2026-10-17);
+   - chuỗi nhiều ảnh của một công trình (khối "Một ngôi nhà, nhiều lớp"): vẽ mặt
+     bằng từng tầng trước (phòng, cầu thang, giếng trời, cửa, hướng sáng, vật
+     liệu); brief từng ảnh ghi tầng, phòng, hướng máy và lấy ảnh tổng quan đã
+     duyệt làm gốc; mọi ảnh định vị được trên mặt bằng, không mâu thuẫn nhau
+     (owner chốt 2026-10-17);
+   - ảnh có chữ của site đè lên (hero trang chủ): vùng chữ đo trong code để là
+     mặt phẳng tối, trơn; chủ thể nằm dưới vùng chữ, giữa theo chiều ngang để
+     điện thoại vẫn thấy; decor nhẹ đặt hai bên vùng chữ (owner chốt 2026-10-17).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
@@ -104,7 +118,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
-   link tham khảo. Chỉ ảnh owner lấy mới vào PR.
+   link tham khảo. Chỉ ảnh owner lấy mới vào PR. Mọi tin báo owner ghi số thẻ ảnh
+   trong trang đó (ví dụ #104) (owner chốt 2026-10-17). Lựa chọn cho việc chạy
+   trên PC phải là chữ owner gõ trong thread làm việc; bấm card không tới được PC.
 
 ### Chấm điểm
 
@@ -129,7 +145,8 @@ không lấy trung bình.
 chép; chép chữ, logo hoặc thiết kế của ảnh tham khảo; chữ chủ thể sai; kết cấu
 bất khả thi hoặc xưởng không làm được; sai nhóm; sản phẩm lớn bị cắt; crop
 hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại coi
-như ảnh mới.
+như ảnh mới; ảnh trong chuỗi không định vị được trên mặt bằng hoặc mâu thuẫn ảnh
+khác của chuỗi; chủ thể hoặc chi tiết sáng nằm trong vùng chữ của slot.
 
 Một agent chấm, độc lập với agent tạo ảnh (owner chốt 2026-10-13, thay cho ba
 agent). Agent mở ảnh, chấm đủ hai bảng, ghi điểm từng mục và lỗi; soi cả kết
@@ -138,7 +155,9 @@ Lỗi loại thẳng là loại.
 
 Mỗi yêu cầu tạo tối đa 3 lần: ảnh trượt thì sửa prompt theo lý do agent chấm
 nêu rồi tạo lại một ảnh. Ba lần đều không đạt thì dừng, trình owner cả ba ảnh
-kèm điểm từng bảng và lý do loại. Main kiểm lại, không tự nâng điểm. Ảnh sửa
+kèm điểm từng bảng và lý do loại; owner có thể giữ một ảnh trượt, lỗi nhỏ sửa bằng
+retouch trước khi lên site (owner giữ bếp F15 ngày 2026-10-17). Main kiểm lại,
+không tự nâng điểm. Ảnh sửa
 thì chấm lại đúng SHA-256 mới. Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
