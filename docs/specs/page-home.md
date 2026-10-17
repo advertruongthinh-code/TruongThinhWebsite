@@ -113,7 +113,7 @@ Then scroll cue có is-hidden và tabindex="-1"
 
 Portal dịch vụ có kicker, tiêu đề, phụ đề; portal năng lực có tiêu đề, phụ đề; tiêu đề nằm giữa card
 theo chiều dọc. Cỡ chữ theo bề rộng card (container query) nên ba portal cùng nhóm cùng cỡ cho từng vai
-trò. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
+trò. Toàn site chung token chữ portal (owner 2026-10-17): `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal năng lực có trần `cqw` thấp hơn vì copy dài. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
 không ép bằng `scaleX` hay `textLength`. Layout ba cột cao 600px; tới 980px một cột cao `72svh`; tới
 680px cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
 hoặc focus portal dịch vụ gạch chân phụ đề.

@@ -1388,7 +1388,6 @@ html[lang="en"]
   }
 
   .detail-page .service-portal {
-    display: grid;
     height: auto;
     min-height: max(calc(var(--site-layout-viewport-height) * 0.72), 34rem);
   }
@@ -1397,21 +1396,6 @@ html[lang="en"]
   .detail-page .service-portal > picture > img {
     position: absolute;
     inset: 0;
-  }
-
-  .detail-page .portal-copy {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    padding: 2rem 0.75rem;
-    justify-content: center;
-    transform: none;
-  }
-
-  .detail-page .portal-copy strong {
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
   }
 
   .about-hero .detail-title__strong {
