@@ -62,7 +62,7 @@ khi lazy load bắt đầu tải, nên `sizes` đã đúng trước request đ�
 vùng lazy đã đang tải (`currentSrc` vẫn rỗng) và trình duyệt hủy request để tải lại. Ảnh eager có `src` (hero đầu) để
 nguyên, vì preload scanner đã tải. Khung đổi cỡ (resize, xoay máy) thì observer chạy lại: chỉ ghi khi file đang hiện
 nhỏ hơn nhu cầu mới, nên trình duyệt chỉ nâng lên bản lớn hơn, không đổi sang bản nhỏ; ảnh đang hiện bản gốc thì thôi.
-Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536)
+Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536 hoặc 1920)
 dùng bản gốc; sinh thêm cỡ lớn hơn nằm ngoài phần này.
 
 ```gherkin
@@ -104,7 +104,7 @@ And card masonry dùng data-srcset AVIF 480w, 960w và bản gốc
 
 ### R4. Thứ tự ưu tiên tải
 
-Ảnh đầu hero của trang chủ, Residential, Commercial, About có `fetchpriority="high"`, không lazy; ba slide sau của
+Ảnh đầu hero của trang chủ, Residential, Commercial, About có `fetchpriority="high"`, không lazy; các slide sau của
 trang chủ ở `data-src`. Ảnh nội dung khác `loading="lazy"`; logo khách hàng `eager`, không vệt
 ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). Không preload ảnh: `<link rel="preload">` chỉ dành
 cho hai file font ([phát hành tĩnh R4](static-release.md#r4-font-và-thư-viện-tự-host)), vì preload cạnh `<picture>`
