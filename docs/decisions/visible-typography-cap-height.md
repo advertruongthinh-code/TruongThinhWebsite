@@ -42,6 +42,9 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
 7. Statement footer dùng chung trên năm route giữ nguyên font size/weight và tăng
    riêng extra line-height từ `10px` lên `14px`, tức tăng khoảng cách hai dòng
    đúng `4px` ở mọi breakpoint.
+8. Ngoại lệ của mục 2: tiêu đề `h2` của gallery ngang trên trang chi tiết dùng `300`,
+   theo khối Espacio owner duyệt ngày 2026-10-17
+   ([detail-pages R7](../specs/detail-pages.md#r7-gallery-ngang)).
 
 ## Alternative đã cân nhắc
 
