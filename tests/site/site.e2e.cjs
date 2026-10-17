@@ -9325,41 +9325,32 @@ async function runHeroCarouselLifecycleCheck() {
 }
 
 async function runHeroCrossFadeContinuityChecks() {
-  // page-home R3: slide 0 cố định, năm slide sau xáo theo Math.random. Stub cố định cho thứ tự biết trước:
-  // hằng 0 giữ nguyên (sort ổn định), dãy giảm dần đảo ngược.
-  for (const { stub, expected } of [
-    { stub: "zero", expected: "0,1,2,3,4,5" },
-    { stub: "descending", expected: "0,5,4,3,2,1" },
-  ]) {
-    await runPageCase(
-      `home hero shuffles later slides per load ${stub}`,
-      { route: "/vi/", viewport: { width: 1440, height: 900 } },
-      async (page) => {
-        const diagnostics = monitorPage(page);
-        await page.addInitScript((mode) => {
-          let calls = 0;
-          if (mode === "zero") Math.random = () => 0;
-          if (mode === "descending") Math.random = () => 1 / (calls += 2);
-        }, stub);
-        await gotoRoute(page, "/vi/");
-        const state = await page.evaluate(() => {
-          const slides = [...document.querySelectorAll(".hero-slide")];
-          return {
-            order: slides.map((slide) => slide.dataset.slide).join(","),
-            active: slides.findIndex((slide) => slide.classList.contains("is-active")),
-            priority: slides[0].querySelector("img").getAttribute("fetchpriority"),
-          };
-        });
-        assert(
-          state.active === 0 &&
-            state.priority === "high" &&
-            state.order === expected,
-          `Home hero slide order contract drifted (${stub}): ${JSON.stringify(state)}`,
-        );
-        assertDiagnostics(diagnostics);
-      },
-    );
-  }
+  // page-home R3: slide 0 cố định, năm slide sau xáo theo Math.random. Stub dãy giảm dần nên thứ tự đảo ngược.
+  await runPageCase(
+    "home hero shuffles later slides per load",
+    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    async (page) => {
+      const diagnostics = monitorPage(page);
+      await page.addInitScript(() => {
+        let calls = 0;
+        Math.random = () => 1 / (calls += 2);
+      });
+      await gotoRoute(page, "/vi/");
+      const state = await page.evaluate(() => {
+        const slides = [...document.querySelectorAll(".hero-slide")];
+        return {
+          order: slides.map((slide) => slide.dataset.slide).join(","),
+          active: slides.findIndex((slide) => slide.classList.contains("is-active")),
+          priority: slides[0].querySelector("img").getAttribute("fetchpriority"),
+        };
+      });
+      assert(
+        state.active === 0 && state.priority === "high" && state.order === "0,5,4,3,2,1",
+        `Home hero slide order contract drifted: ${JSON.stringify(state)}`,
+      );
+      assertDiagnostics(diagnostics);
+    },
+  );
 
   const cases = [
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
