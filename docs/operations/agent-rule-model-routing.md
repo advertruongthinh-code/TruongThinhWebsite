@@ -38,7 +38,7 @@ Không dùng mức ngoài Pareto. Giới hạn: Index là điểm tổng quát, 
 | Relay, kiểm tra CI/PR, đổi status card, search chỉ đọc | haiku medium | haiku không sửa code sẽ merge |
 | Đo thiết bị bằng script (adb, CDP) | haiku xhigh | chẩn đoán số đo thuộc thread perf |
 | Chạy lại hoặc thêm runner CI | haiku xhigh | không đổi |
-| Chấm ảnh | sonnet high | Index không đo vision; theo gate trong [QA ảnh](agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) |
+| Chấm ảnh | sonnet high | Index không đo vision; theo gate trong [QA ảnh](agent-rule-ad-images.md#chấm-điểm) |
 | Wrap-up deep code-review | owner đặt | khởi động không kèm tham số |
 
 Không đặt override effort cố định cho một thread; chỉ owner đặt lại khi cần. `ponytail-audit` và `ponytail-debt` ngoài wrap-up chạy opus medium, chỉ khi owner gọi.

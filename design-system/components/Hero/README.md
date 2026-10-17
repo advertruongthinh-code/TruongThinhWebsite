@@ -26,7 +26,8 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 Hero ảnh cao `100svh` (tối thiểu 42–46rem tùy trang); tới 980px chuyển sang
 luồng chữ tự nhiên để chữ tăng 200% không đè header, nhưng vẫn cao tối thiểu
 `100svh` để phủ kín màn hình phone (owner 2026-10-11). Ảnh đầu tải ngay với
-`fetchpriority="high"`.
+`fetchpriority="high"`; trang chủ chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
+([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
 
 ## Theo width
 
@@ -63,7 +64,8 @@ ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
 - Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`.
 - Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh Residential, Commercial,
   About `scale 1.2 → 1.005`, `2.5s ease`.
-- Trang chủ: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`.
+- Trang chủ: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`; thứ tự sáu slide, gồm ảnh
+  đầu, ngẫu nhiên mỗi lần tải.
 - Reduced motion hiện ngay trạng thái cuối. Chi tiết ở
   [Motion](../../motion.md#text).
 
