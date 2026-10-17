@@ -539,6 +539,26 @@ html[lang="vi"]
   width: min(66rem, calc(100% - 3rem));
 }
 
+/* picture là display: contents nên <source> thành grid item rỗng, chiếm một hàng và đẩy copy xuống dưới tâm khối. */
+.detail-cta > picture > source {
+  display: none;
+}
+
+/* Hai hàng 1fr bằng nhau quanh tiêu đề: eyebrow và nút treo hai bên, tiêu đề nằm đúng tâm khối (owner 17/10). */
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+}
+
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy p {
+  align-self: end;
+}
+
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy a {
+  align-self: start;
+  justify-self: center;
+}
+
 .detail-cta__copy p {
   margin: 0 0 1rem;
   font-size: 0.8rem;
