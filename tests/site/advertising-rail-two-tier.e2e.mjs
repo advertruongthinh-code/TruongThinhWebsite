@@ -72,6 +72,25 @@ try {
   assert.equal(stack.cueVisibility, "visible", "chữ Cuộn xuống vẫn hiện khi có chip");
   assert.ok(stack.rail <= stack.chipsTop && stack.chipsBottom < stack.cueTop, `rail, chip, Cuộn xuống không chồng nhau: ${JSON.stringify(stack)}`);
 
+  // Neo dọc (owner 2026-10-17): cụm một hàng và cụm nhiều hàng có hàng chip đầu cùng một vị trí.
+  const firstRowTop = async (cluster) => {
+    await page.locator(`[data-advertising-filter="${cluster}"]`).click();
+    await page.waitForFunction((c) => !document.querySelector(`[data-advertising-chips="${c}"]`).hidden
+      && [...document.querySelectorAll(`[data-advertising-chips="${c}"] .rail-chip`)].every((chip) => !chip.getAnimations().length), cluster);
+    return page.evaluate((c) => {
+      const chips = [...document.querySelectorAll(`[data-advertising-chips="${c}"] .rail-chip`)].map((chip) => chip.getBoundingClientRect());
+      return { top: Math.round(Math.min(...chips.map((r) => r.top))), rows: new Set(chips.map((r) => Math.round(r.top))).size,
+        scroll: window.TruongThinhMotion.getLogicalScroll() };
+    }, cluster);
+  };
+  const oneRow = await firstRowTop("signage");
+  const manyRows = await firstRowTop("office-signs");
+  assert.equal(oneRow.rows, 1, "Bảng hiệu một hàng chip");
+  assert.ok(manyRows.rows > 1, "Biển văn phòng nhiều hàng chip");
+  assert.equal(manyRows.top, oneRow.top, `hàng chip đầu cố định dọc: ${JSON.stringify({ oneRow, manyRows })}`);
+
+  await page.locator('[data-advertising-filter="signage"]').click();
+  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
   // Chip sản phẩm chưa có trang (taxonomy R5): lọc tại chỗ, URL là trang cụm kèm ?category=, kicker của cụm.
