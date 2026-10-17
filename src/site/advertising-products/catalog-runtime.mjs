@@ -1446,7 +1446,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         .filter((control) => control instanceof HTMLAnchorElement)
         .map((control) => [control.dataset.advertisingFilter, control]),
     );
-    // Cụm nằm trong .rail-cluster cùng danh sách sản phẩm (taxonomy R3), nên không sắp lại con của rail.
     entries.forEach((entry) => {
       let control = existing.get(entry.slug);
       if (!control) {

@@ -3954,17 +3954,7 @@ html[lang="en"]
   text-decoration-skip-ink: none;
 }
 
-/* Rail hai tầng (taxonomy R3). Tầng sản phẩm chữ thường, nhỏ hơn, gạch chân 2px. Danh sách chỉ có trên PC
-   dùng chuột; nơi khác wrapper là display: contents nên rail cụm giữ nguyên layout cũ. */
-.detail-index-hero .rail-cluster {
-  display: contents;
-}
-
-.detail-index-hero .rail-panel {
-  display: none;
-}
-
-.detail-index-hero .rail-panel__item,
+/* Rail hai tầng (taxonomy R3). Tầng sản phẩm (hàng chip) chữ thường, nhỏ hơn, gạch chân 2px. */
 .detail-index-hero .rail-chip {
   color: var(--muted);
   font-weight: 500;
@@ -3974,26 +3964,22 @@ html[lang="en"]
   transition: color 0.3s ease-out;
 }
 
-.detail-index-hero :is(.rail-panel__item, .rail-chip):is(:hover, :focus-visible, [aria-current="true"]) {
+.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) {
   color: var(--ink);
 }
 
-.detail-index-hero :is(.rail-panel__item, .rail-chip):is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+.detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
   text-decoration: underline 2px;
   text-underline-offset: 4px;
   text-decoration-skip-ink: none;
 }
 
 /* Sàn chữ 12.5px của site (Espacio typography). */
-.detail-index-hero .rail-count,
 .detail-index-hero .rail-chip sup {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: 0.06em;
-}
-
-.detail-index-hero .rail-chip sup {
   margin-left: 0.25em;
   vertical-align: 0.45em;
   line-height: 0;
@@ -4024,57 +4010,6 @@ html[lang="en"]
   /* Hàng chip nằm đúng chỗ chữ "Cuộn xuống". */
   .detail-index-hero:has(.rail-chips:not([hidden])) .scroll-cue {
     visibility: hidden;
-  }
-}
-
-@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
-  /* Danh sách thả xuống tràn qua đáy hero, đè lên đầu masonry. */
-  .detail-page .detail-index-hero {
-    overflow-x: clip;
-    overflow-y: visible;
-  }
-
-  .detail-index-hero .rail-cluster {
-    position: relative;
-    display: inline-block;
-  }
-
-  .detail-index-hero .rail-panel {
-    position: absolute;
-    top: calc(100% - 0.5rem);
-    left: 1.5625rem;
-    display: block;
-    min-width: 17.5rem;
-    padding: 0.625rem 0 0.75rem;
-    background: var(--paper);
-    box-shadow: 0 18px 40px -18px rgba(32, 33, 32, 0.32);
-    opacity: 0;
-    pointer-events: none;
-    text-align: left;
-    transform: translateY(-6px);
-    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
-    z-index: 6;
-  }
-
-  .detail-index-hero .rail-cluster:is(:hover, :has(:focus-visible)) .rail-panel {
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-  }
-
-  /* Rail và hàng chip cùng z-index 3, chip đứng sau trong DOM nên vẽ đè lên danh sách thả xuống; nâng rail lên
-     để danh sách nằm trên hàng chip. */
-  .detail-index-hero .project-filters {
-    z-index: 4;
-  }
-
-  .detail-index-hero .rail-panel__item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 2rem;
-    padding: 0.4375rem 1.25rem;
-    font-size: 0.9375rem;
   }
 }
 

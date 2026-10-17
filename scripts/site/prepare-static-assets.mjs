@@ -139,8 +139,8 @@ for (const category of ADVERTISING_LEGACY_CATEGORIES) {
   await writeFile(destination, html, { encoding: "utf8", flush: true });
 }
 
-// Rail hai tầng sinh từ taxonomy.mjs (taxonomy R3): cụm link tới trang cụm, kèm danh sách sản phẩm có trang (R5) và
-// số ảnh; hàng chip của mỗi cụm ẩn sẵn, runtime hiện hàng của cụm đang chọn. data-en-href là path slug EN.
+// Rail hai tầng sinh từ taxonomy.mjs (taxonomy R3): cụm link tới trang cụm; hàng chip sản phẩm có trang (R5) kèm số
+// ảnh của mỗi cụm ẩn sẵn, runtime hiện hàng của cụm đang chọn. data-en-href là path slug EN.
 const productLink = (page, className, count) =>
   `<a class="${className}" href="/vi/advertising-products/${page.vi}/" data-en-href="/en/advertising-products/${page.en}/" data-advertising-product="${page.filter}"><span data-en="${escapeHtml(page.labelEn)}">${escapeHtml(page.labelVi)}</span>${count}</a>`;
 const productPages = (cluster) => ADVERTISING_PAGES.filter((page) => page.filter !== cluster && page.cluster === cluster)
@@ -149,8 +149,7 @@ const advertisingIndexPath = path.join(outputRoot, "advertising-products", "inde
 const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).replace(
   "<!-- advertising-cluster-filters -->",
   ADVERTISING_CATEGORIES.map(({ slug, slugVi, slugEn, titleVi, titleEn }) =>
-    `<span class="rail-cluster"><a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`
-    + `<span class="rail-panel">${productPages(slug).map(({ page, count }) => productLink(page, "rail-panel__item", `<span class="rail-count">${count}</span>`)).join("")}</span></span>`).join("\n            "),
+    `<a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
 ).replace(
   "<!-- advertising-product-chips -->",
   ADVERTISING_CATEGORIES.map(({ slug, titleVi, titleEn }) =>
