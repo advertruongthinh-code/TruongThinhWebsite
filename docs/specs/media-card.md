@@ -1,7 +1,8 @@
 ---
 title: Card nhiều media
 status: live
-source: []
+source:
+  - src/site/advertising-products/placeholder-media.mjs
 tests:
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/site-media-card-m01b.e2e.mjs
@@ -19,7 +20,7 @@ updated: 2026-10-15
 Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
 và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 194 card hiện chỉ có một ảnh
 mỗi card. Phát tự động, vùng trọng tâm và các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
-file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
+file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này chỉ sở hữu dữ liệu media tạm `placeholder-media.mjs`.
 
 ## Hành vi
 
@@ -159,8 +160,9 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Không chặn phát hành. M03–M09 tạm dừng tới khi owner gửi ảnh và video thật gom theo từng sản phẩm; catalog chưa có card nhiều media nên R2–R6
-  mới chứng minh bằng fixture synthetic, chưa có clip thật, chất lượng hay ngân sách byte. Owner.
+- Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm; chờ ảnh nhiều góc thật, `placeholder-media.mjs`
+  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước, `main` để rỗng.
+  Chưa có clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
   timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn dải 44px thì kiểm riêng trước khi chọn fallback.
