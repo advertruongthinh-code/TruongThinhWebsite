@@ -2486,11 +2486,14 @@
         && destination.pathname !== `${window.location.pathname}${window.location.search}`
         && window.TruongThinhAdvertising?.getAdapter?.()
       ) {
-        const navigateToAdvertisingParent = () => {
+        // Từ photo, navbar về đúng chỗ trên masonry nguồn; từ masonry đang lọc thì về Tất cả ở đầu trang.
+        const fromGrid = !new URL(window.location.href).searchParams.has("photo");
+        const navigateToAdvertisingParent = (instant = false) => {
           if (window.TruongThinhAdvertising?.navigateQuery?.(
             destination.href,
             { reason: "navbar" },
           )) {
+            if (fromGrid) setPageScroll(pageState, 0, { instant });
             return true;
           }
           if (window.barba?.go) {
@@ -2503,7 +2506,7 @@
         if (link.closest("#site-menu")) {
           event.preventDefault();
           event.stopImmediatePropagation();
-          void closeMenu(false).then(navigateToAdvertisingParent);
+          void closeMenu(false).then(() => navigateToAdvertisingParent(true));
           return;
         }
         if (navigateToAdvertisingParent()) {

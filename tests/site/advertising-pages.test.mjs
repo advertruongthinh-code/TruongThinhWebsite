@@ -47,16 +47,16 @@ test("taxonomy R4: rail trang gốc link tới trang cụm theo slug của local
   }
 });
 
-test("taxonomy R3, R5: rail chỉ có sản phẩm đủ ngưỡng, mỗi sản phẩm một mục danh sách và một chip; trang sản phẩm hiện sẵn hàng chip", async () => {
+test("taxonomy R3, R5: rail chỉ có sản phẩm đủ ngưỡng, mỗi sản phẩm một chip; trang sản phẩm hiện sẵn hàng chip", async () => {
   const html = await read("vi/advertising-products/index.html");
   const products = ADVERTISING_PAGES.filter(({ filter }) => filter.includes("/"));
   const linked = [...html.matchAll(/data-advertising-product="([^"]+)"/g)].map(([, id]) => id);
   assert.deepEqual([...new Set(linked)].sort(), products.map(({ filter }) => filter).sort());
-  assert.ok(products.every(({ filter }) => linked.filter((id) => id === filter).length === 2), "danh sách hover và chip");
+  assert.ok(products.every(({ filter }) => linked.filter((id) => id === filter).length === 1), "một chip mỗi sản phẩm");
   assert.equal((html.match(/data-advertising-chips="[^"]+" hidden/g) || []).length, ADVERTISING_CATEGORIES.length, "trang gốc ẩn mọi hàng chip");
   const page = await read("vi/advertising-products/bang-hieu-quang-cao/chu-noi/index.html");
   assert.match(page, /data-advertising-chips="signage">/);
-  assert.equal((page.match(/data-advertising-product="signage\/raised-letters" aria-current="true"/g) || []).length, 2);
+  assert.equal((page.match(/data-advertising-product="signage\/raised-letters" aria-current="true"/g) || []).length, 1);
 });
 
 test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang ghi path, không trang ghi ?category=", () => {
