@@ -4002,8 +4002,11 @@ html[lang="en"]
     bottom: calc(15vh + 3.25rem);
   }
 
+  /* Neo dọc: khung chỉ cao đúng một hàng (14px x 1.4), các hàng chip thêm tràn xuống dưới nên hàng đầu luôn đứng một chỗ (owner 2026-10-17). */
   .detail-index-hero .rail-chips {
     bottom: 15vh;
+    height: 1.225rem;
+    align-content: flex-start;
   }
 }
 

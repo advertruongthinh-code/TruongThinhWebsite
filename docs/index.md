@@ -18,7 +18,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Worker, admin, D1 | [CMS](specs/cms.md), dormant tới khi owner mở CMS phase |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md), [authority map](#authority-map) |
 | Reference hành vi | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo), [Pinterest photo view](reference/pinterest-photo-view.md); không tự thành target |
-| Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) |
+| Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) (mỗi họ một file, chỉ nạp họ cần) |
 | Gate NOT PASS còn mở | Mục "Gate còn mở" của spec sở hữu |
 | Quyết định | [Decisions](decisions/index.md) |
 | Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [bộ test CI](specs/ci-test-suites.md), [Android thật](operations/android-real-device-debugging.md) |
@@ -36,7 +36,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Giọng văn, copy hero, mạch route, crop ảnh | [Content và media](../design-system/content.md) |
 | Node lá VI/EN, motion hook, file ảnh, loading, alt | [Ba trang con](specs/detail-pages.md#r4-nội-dung-vien-và-hook), [chuẩn file ảnh](specs/media-delivery.md#r5-chuẩn-file-ảnh) |
 | Hướng ảnh sáu nhóm Advertising | [Ảnh Advertising](../design-system/advertising-images.md) |
-| Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) |
+| Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-ad-images.md#chấm-điểm) |
 | Route, lifecycle, reuse contract | [Shell](specs/site-shell.md), [ba trang con](specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời) |
 | Masonry, catalog, renderer Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |

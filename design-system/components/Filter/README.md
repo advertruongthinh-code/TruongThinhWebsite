@@ -18,7 +18,8 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
   chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
   số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh, chữ "Cuộn xuống" vẫn
-  hiện bên dưới (owner 2026-10-17); tới 1024px nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
+  hiện bên dưới (owner 2026-10-17). Hàng chip đầu neo dọc: khung cao đúng một hàng, nhiều hàng thì hàng thêm
+  tràn xuống dưới nên hàng đầu luôn đứng một vị trí; tới 1024px nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
 - Tới 680px: rail cụm và hàng chip là hai hàng cuộn ngang tràn bề rộng màn,
   chừa 25px hai bên; chip đang chọn tự cuộn vào khung, mục nhận focus bàn phím
   tự cuộn vào trọn khung.
