@@ -166,7 +166,7 @@ Kéo, vuốt như gallery Espacio (owner 2026-10-17, đo 2026-10-18): gallery c�
 0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải
 trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen
 20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
-Ảnh `draggable=false`, chặn `dragstart`; track và hàng chấm `user-select: none` nên kéo bắt đầu ở khe dưới caption hay hàng chấm không bôi đen caption. Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
+Ảnh `draggable=false`, chặn `dragstart`; hàng chấm nằm trong track như Espacio và cả track nhận kéo (`touchEventsTarget: "container"`), nên kéo bắt đầu ở khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption (chữ vẫn chọn được). Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
 snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: năm chuỗi công trình theo thứ tự nhà
 ống, nhà giếng trời, căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
 ngoại thất; nhà phố ba tầng: bếp), theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4).

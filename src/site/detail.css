@@ -359,18 +359,14 @@ html[lang="vi"]
   display: flex;
 }
 
-/* Kéo bắt đầu ngoài track (khe dưới caption, hàng chấm) không bôi đen caption, như Espacio. */
-.detail-gallery__track,
-.detail-gallery__pagination {
-  user-select: none;
-}
 
 .detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
   width: max-content;
   gap: 20px;
 }
 
-/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ. */
+/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ.
+   Chấm nằm trong track như Espacio nên kéo từ khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption. */
 .detail-gallery__pagination {
   --swiper-pagination-color: var(--ink);
   --swiper-pagination-bottom: auto;
