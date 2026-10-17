@@ -35,7 +35,7 @@ foreach ($name in $plugins.Keys) {
   git -C $dir checkout -q FETCH_HEAD
   $root = if ($name -eq "impeccable") { Join-Path $dir "plugin" } else { $dir }
 
-  # Gỡ hook: hooks/hooks.json mặc định cùng key trong manifest (hooks/ giữ lại cho ponytail-mcp).
+  # Gỡ hook: hooks/hooks.json mặc định cùng key trong manifest.
   Remove-Item -LiteralPath (Join-Path $root "hooks/hooks.json") -Force -ErrorAction SilentlyContinue
   $manifest = Join-Path $root ".claude-plugin/plugin.json"
   $json = Get-Content -Raw $manifest | ConvertFrom-Json

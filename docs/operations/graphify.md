@@ -1,6 +1,6 @@
 # Vận hành Graphify
 
-Graphify 0.9.74 ở user scope. Đây là runbook setup/repair, không phải checklist
+Graphify 0.9.92 ở user scope. Đây là runbook setup/repair, không phải checklist
 mỗi task. Normal task chỉ query wrapper; Git hook, watcher và wrapper sở hữu
 structural freshness. Agent lifecycle hook bị disabled.
 
@@ -107,7 +107,7 @@ reproduce được zero-AST case.
 
 Nếu command vẫn fail, kiểm tra pinned upstream Graphify README và release tương
 ứng trước khi thêm workaround:
-<https://github.com/Graphify-Labs/graphify/tree/0b60d47e6cd9338c51143f39f35b6c45c8453385>.
+<https://github.com/Graphify-Labs/graphify/tree/86c57be8204673c2a1b9849a3292a7dd3ab373d8>.
 
 ## Chú thích thuật ngữ
 
