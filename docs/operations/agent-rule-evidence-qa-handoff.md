@@ -65,9 +65,10 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      và hội trường (backdrop sân khấu có khung trang trí, màn hội trường, phòng họp);
      ảnh phải thấy rõ màn ghép module (đường ghép đều, cabinet, khung đỡ hoặc treo
      chắc, mới, sạch) để không giống màn máy chiếu (owner chốt 2026-10-17, thay chốt
-     2026-10-14). Màn LED cho thuê sự kiện và màn LED ngoài trời gắn tường nhà: owner
-     chưa chốt, hỏi owner trước khi tạo (owner chốt 2026-10-17); hộp đèn sáng đều,
-     trông mới, không loang lổ;
+     2026-10-14). Chỉ làm màn LED ghép module lắp cố định cho sân khấu và hội trường;
+     màn LED cho thuê sự kiện (dựng tạm, truss cho thuê) và màn LED ngoài trời gắn
+     tường nhà không làm, ảnh các loại đó là sai nhóm (owner chốt 2026-10-17); hộp
+     đèn sáng đều, trông mới, không loang lổ;
    - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng, cảnh
      trong văn phòng hoặc mặt tiền tòa nhà (owner chốt 2026-10-14);
    - ảnh có thể thuộc nhiều phân loại (vừa bảng hiệu vừa LED decor): mọi sản phẩm
