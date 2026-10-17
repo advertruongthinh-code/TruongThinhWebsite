@@ -97,7 +97,7 @@ Link sản phẩm mang `data-advertising-product` (không phải `data-advertisi
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
 ([Filter](../../design-system/components/Filter/README.md)): danh sách chỉ có trên PC từ 1025px dùng chuột; hàng
 chip thay chỗ chữ "Cuộn xuống" từ 1025px, nằm ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip.
-Khi danh sách hover đang mở, hàng chip ẩn tạm để hai tầng không đè lên nhau.
+Danh sách hover nằm trên hàng chip theo trục z, che phần chip bên dưới.
 
 ```gherkin
 Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng
