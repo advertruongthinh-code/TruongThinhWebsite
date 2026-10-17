@@ -19,7 +19,9 @@ Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành v
 - Ảnh phủ kín (`object-fit: cover`), lớp đen opacity `0.2`, không parallax.
 - Vùng chữ rộng 85% khối, căn giữa, khối cao theo chữ khi chữ dài. Tiêu đề style
   `cta-title`: chữ thường, weight 600, cỡ `--cta-title-size`
-  (`clamp(3.2rem, 6vw, 7rem)`), line-height `0.98`.
+  (`clamp(3.2rem, 6vw, 7rem)`), line-height `0.98`. Dấu chấm cuối không treo: cả dòng
+  kể cả dấu nằm giữa khối. CTA Advertising giữ cỡ riêng nhỏ hơn
+  (`min(clamp(2.5rem, 4.5vw, 5rem), 14svh)`) để cụm CTA và Kính không phủ hết batch.
 - Nhãn nút `.legacy-link` + `.portal-subtitle` ("VỀ CHÚNG TÔI", "GỌI ZALO TƯ VẤN"):
   16px, viết hoa, không mũi tên; subtitle (nếu có) nằm trên tiêu đề.
 - Hover: ảnh `scale(1.1)` `0.6s ease-out`, gạch chân 3px của nhãn chạy từ trái;
