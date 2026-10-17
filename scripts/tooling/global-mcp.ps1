@@ -27,7 +27,7 @@ switch ($Service) {
       & $python $sync --root $projectRoot --apply | Out-Null
       if ($LASTEXITCODE -ne 0) { throw "Serena language sync failed." }
     }
-    & $env:SERENA_EXE start-mcp-server --transport stdio --context $Context --project-from-cwd --enable-web-dashboard false --open-web-dashboard false
+    & $env:SERENA_EXE start-mcp-server --transport stdio --context $Context --project-from-cwd --agent-interface tools --enable-web-dashboard false --open-web-dashboard false
     exit $LASTEXITCODE
   }
   "graphify" {

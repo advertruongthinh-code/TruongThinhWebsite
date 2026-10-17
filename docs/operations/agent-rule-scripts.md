@@ -38,7 +38,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Graphify Linux/cloud | `scripts/tooling/invoke-graphify.sh query|path|explain ...` | Tự cài Graphify pin, refresh AST khi tree đổi. |
 | Health | `pnpm tooling:doctor`, `pnpm tooling:doctor -- -Mcp` | Diagnose reported setup/MCP issue. |
 | Update report | `pwsh -File scripts/tooling/check-updates.ps1 [-IfDue]` | Notify-only; không install. |
-| Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.5.0; `context` một lần mỗi session, `doctor` cho maintenance; không cài agent lifecycle hook. |
+| Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.6.0; `context` một lần mỗi session, `doctor` cho maintenance; không cài agent lifecycle hook. |
 | Graphify query | `& ".\scripts\tooling\invoke-graphify.ps1" query|path|explain ...`; khi watcher active: thêm `-SkipAstRefresh` trước command | Mặc định refresh fail closed; switch chỉ dùng graph hiện có sau save đã được watcher xử lý. |
 | Graph hook | `pwsh -File scripts/tooling/graphify-git-hooks.ps1 -Action status` | Diagnose/approved repair; hook tự refresh khi active. |
 | Ponytail Git gate | `pwsh -File scripts/tooling/ponytail-git-hooks.ps1 -Action install` | `pre-commit`/`pre-push` gọi `claude -p /ponytail-review` mức ultra, chặn khi net cắt > 20 dòng hoặc lỗi; install chỉ approved repair, gỡ bằng xóa `.git/hooks/pre-*`. |
