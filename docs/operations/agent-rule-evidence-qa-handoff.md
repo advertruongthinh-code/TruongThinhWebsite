@@ -61,9 +61,10 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
      nhận diện đậm, đơn giản, nhận ra từ xa; hạn chế ảnh sản phẩm đặt tại xưởng,
      ưu tiên nơi dùng thật (owner chốt 2026-10-14);
-   - chỉ tả sản phẩm Trường Thịnh làm: không màn LED cho thuê sự kiện, màn treo truss
-     sân khấu, màn LED lớn gắn tường nhà; màn LED trong nhà không được giống màn máy
-     chiếu; hộp đèn sáng đều, trông mới, không loang lổ (owner chốt 2026-10-14);
+   - chỉ tả sản phẩm Trường Thịnh làm: màn hình LED module (backdrop sân khấu có
+     khung trang trí, màn hội trường, phòng họp) có làm, thấy rõ lưới module để không
+     giống màn máy chiếu (owner chốt 2026-10-17, thay chốt 2026-10-14); không màn LED
+     lớn gắn tường ngoài nhà; hộp đèn sáng đều, trông mới, không loang lổ;
    - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng, cảnh
      trong văn phòng hoặc mặt tiền tòa nhà (owner chốt 2026-10-14);
    - ảnh có thể thuộc nhiều phân loại (vừa bảng hiệu vừa LED decor): mọi sản phẩm
@@ -79,24 +80,15 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      mạc, bình dân, thân thuộc với người địa phương và đúng món đang bán; không
      dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
    - ảnh như chụp bằng máy ảnh thật: ánh sáng tự nhiên, nhiễu cảm biến, độ sâu
-     trường ảnh; không bề mặt mịn bóng kiểu dựng 3D, không dàn cảnh đối xứng
-     (owner chốt 2026-10-13, nhắc lại 2026-10-17);
-   - nội thất đúng công năng và kỹ thuật: lối đi, chân cầu thang thông thoáng;
-     sofa quay vào phòng, hướng TV; máy hút mùi rộng bằng bếp và thẳng tâm bếp;
-     không tủ cao sát bếp (owner chốt 2026-10-17);
-   - chuỗi nhiều ảnh của một công trình (khối "Một ngôi nhà, nhiều lớp"): vẽ mặt
-     bằng từng tầng trước (phòng, cầu thang, giếng trời, cửa, hướng sáng, vật
-     liệu); brief từng ảnh ghi tầng, phòng, hướng máy và lấy ảnh tổng quan đã
-     duyệt làm gốc; mọi ảnh định vị được trên mặt bằng, không mâu thuẫn nhau
-     (owner chốt 2026-10-17);
-   - ảnh có chữ của site đè lên (hero trang chủ): vùng chữ đo trong code để là
-     mặt phẳng tối, trơn; chủ thể nằm dưới vùng chữ, giữa theo chiều ngang để
-     điện thoại vẫn thấy; decor nhẹ đặt hai bên vùng chữ (owner chốt 2026-10-17).
+     trường ảnh; không bề mặt mịn bóng kiểu dựng 3D (owner chốt 2026-10-13);
+   - nội thất đúng công năng: lối đi, chân cầu thang thông thoáng; sofa quay vào
+     phòng, không chắn lối; không tủ cao sát bếp (owner chốt 2026-10-17).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
-   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
-   ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
-   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model. Không bao giờ dùng
+   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên `record.json`
+   ghi model đọc từ C2PA của ảnh ("ChatGPT gpt-image"); phiên Codex chạy gpt-6-sol
+   (owner chốt 2026-10-17). Codex lỗi hoặc hết lượt thì dừng và báo; không dùng
+   RunningHub (owner chốt 2026-10-15). Không tự đổi model. Không bao giờ dùng
    model astra ở bất kỳ bước dựng ảnh nào (owner chốt 2026-10-14).
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
    - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí
@@ -110,17 +102,28 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      buộc phải quay về máy);
    - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
      bố cục, người, chữ, thương hiệu;
+   - không dùng từ headline, title, caption trong prompt vì model in chữ vào ảnh;
+     ảnh không chữ ghi rõ không có chữ ở bất kỳ đâu (owner chốt 2026-10-17);
+   - chuỗi ảnh cùng một nhà: khối HOUSE PLAN cố định giống hệt trong mọi prompt,
+     mỗi ảnh ghi vị trí máy, hướng nhìn và tường nào ở trái/phải khung; tạo ảnh
+     chính trước làm tham chiếu; ưu tiên góc cùng hướng ảnh chính; không phối
+     cảnh xung đột (owner chốt 2026-10-17);
+   - sửa ảnh owner đã chọn bằng chế độ image edit trên chính ảnh đó, liệt kê phần
+     giữ nguyên và phần sửa (owner chốt 2026-10-17);
+   - thiết bị mặt trơn không logo; hút mùi rộng bằng bếp và đúng tâm bếp;
+   - ảnh hero trang chủ: chữ hero canh giữa khung (`src/site/style.css`
+     `.hero-content` top 50%), nên dải giữa khung để trơn, chủ thể ở phần ba dưới
+     để cắt dọc điện thoại vẫn thấy; decor nhẹ chỉ ở hai bên (owner chốt 2026-10-17);
    - prompt đúng của từng ảnh lưu `p-<id>.txt`;
    - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
      một dấu là chữ chủ thể sai.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
    `p-<id>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
-   kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
+   kèm model đọc từ C2PA, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
-   link tham khảo. Chỉ ảnh owner lấy mới vào PR. Mọi tin báo owner ghi số thẻ ảnh
-   trong trang đó (ví dụ #104) (owner chốt 2026-10-17). Lựa chọn cho việc chạy
-   trên PC phải là chữ owner gõ trong thread làm việc; bấm card không tới được PC.
+   link tham khảo. Chỉ ảnh owner lấy mới vào PR. Lựa chọn cho việc chạy trên PC
+   phải là chữ owner gõ trong thread làm việc; bấm card không tới được PC.
 
 ### Chấm điểm
 
@@ -155,9 +158,10 @@ Lỗi loại thẳng là loại.
 
 Mỗi yêu cầu tạo tối đa 3 lần: ảnh trượt thì sửa prompt theo lý do agent chấm
 nêu rồi tạo lại một ảnh. Ba lần đều không đạt thì dừng, trình owner cả ba ảnh
-kèm điểm từng bảng và lý do loại; owner có thể giữ một ảnh trượt, lỗi nhỏ sửa bằng
-retouch trước khi lên site (owner giữ bếp F15 ngày 2026-10-17). Main kiểm lại,
-không tự nâng điểm. Ảnh sửa
+kèm điểm từng bảng và lý do loại; owner có thể ra lệnh một đợt mới 3 lần với
+brief đã sửa, hoặc giữ một ảnh trượt (báo cáo ghi rõ owner giữ dù chưa qua gate)
+(owner chốt 2026-10-17). Báo cáo cho owner gọi ảnh bằng số thẻ trong báo cáo
+(owner chốt 2026-10-17). Main kiểm lại, không tự nâng điểm. Ảnh sửa
 thì chấm lại đúng SHA-256 mới. Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
