@@ -54,15 +54,7 @@ try {
   assert.ok(shown.length && shown.every((id) => productIds.has(id)), "masonry chỉ còn card của sản phẩm");
   assert.equal(await page.locator(".scroll-cue").evaluate((node) => getComputedStyle(node).visibility), "hidden", "chip thay chỗ chữ Cuộn xuống");
 
-  // Hover cụm khi hàng chip đang hiện: danh sách mở thì hàng chip ẩn, không trộn hai tầng.
-  const chipRow = page.locator('.rail-chips:not([hidden])');
   await page.mouse.move(10, 300);
-  await page.waitForFunction(() => getComputedStyle(document.querySelector(".rail-chips:not([hidden])")).visibility === "visible");
-  await page.hover('[data-advertising-filter="office-signs"]');
-  await page.waitForFunction(() => getComputedStyle(document.querySelector(".rail-chips:not([hidden])")).opacity === "0");
-  assert.equal(await chipRow.evaluate((node) => getComputedStyle(node).visibility), "hidden", "danh sách mở thì hàng chip ẩn");
-  await page.mouse.move(10, 300);
-  await page.waitForFunction(() => getComputedStyle(document.querySelector(".rail-chips:not([hidden])")).visibility === "visible");
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
   await page.locator('[data-advertising-filter="all"]').click();
@@ -70,6 +62,26 @@ try {
   assert.deepEqual((await railState(page)).chips, [], "về Tất cả thì hàng chip ẩn");
   assert.deepEqual(documents, [], "chip và Tất cả không tải document");
   await page.close();
+
+  // Ảnh lỗi của owner: cụm đang chọn ở hàng cuối, danh sách hover phải nằm trên hàng chip theo trục z.
+  const office = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await office.goto(`${baseUrl}/vi/advertising-products/bien-van-phong/`, { waitUntil: "networkidle" });
+  await office.waitForFunction(() => !document.querySelector('[data-advertising-filter="office-signs"]').style.transform
+    && getComputedStyle(document.querySelector('[data-advertising-filter="office-signs"]')).opacity === "1");
+  await office.hover('[data-advertising-filter="office-signs"]');
+  await office.waitForFunction(() => getComputedStyle(document.querySelector('[data-advertising-filter="office-signs"] + .rail-panel')).opacity === "1");
+  const onTop = await office.evaluate(() => {
+    const chips = document.querySelector('[data-advertising-chips="office-signs"]').getBoundingClientRect();
+    const panel = document.querySelector('[data-advertising-filter="office-signs"] + .rail-panel').getBoundingClientRect();
+    const left = Math.max(chips.left, panel.left);
+    const right = Math.min(chips.right, panel.right);
+    const top = Math.max(chips.top, panel.top);
+    const bottom = Math.min(chips.bottom, panel.bottom);
+    if (left >= right || top >= bottom) return "không chồng nhau";
+    return document.elementFromPoint((left + right) / 2, (top + bottom) / 2)?.closest(".rail-panel, .rail-chips")?.className;
+  });
+  assert.equal(onTop, "rail-panel", "danh sách hover nằm trên hàng chip");
+  await office.close();
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await phone.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
