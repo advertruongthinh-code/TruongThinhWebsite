@@ -1350,6 +1350,22 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Filter sản phẩm (id "<cụm>/<slug>") vẫn đánh dấu cụm của nó trên rail.
   const isRailCurrent = (slug) => filter === slug || filter.startsWith(`${slug}/`);
+  // Rail hai tầng (taxonomy R3): cụm đang chọn hiện hàng chip; mục sản phẩm đúng filter có aria-current.
+  const chipGroups = [...container.querySelectorAll("[data-advertising-chips]")];
+  const syncRail = () => {
+    filters.querySelectorAll("[data-advertising-filter]").forEach((item) => {
+      item.setAttribute("aria-current", String(isRailCurrent(item.dataset.advertisingFilter)));
+    });
+    container.querySelectorAll("[data-advertising-product]").forEach((item) => {
+      item.setAttribute("aria-current", String(item.dataset.advertisingProduct === filter));
+    });
+    chipGroups.forEach((group) => {
+      group.hidden = !isRailCurrent(group.dataset.advertisingChips);
+      // Hàng chip cuộn ngang trên điện thoại: đưa chip đang chọn vào khung, chỉ trục ngang để không kéo trang.
+      const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
+      if (current) group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
+    });
+  };
   let filter = resolveAdvertisingFilter(new URLSearchParams(location.search).get("category"), categories, cards)
     || advertisingPathFilter(location.pathname, pages) || "all";
   let currentVisualY = window.scrollY;
@@ -1430,22 +1446,20 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         .filter((control) => control instanceof HTMLAnchorElement)
         .map((control) => [control.dataset.advertisingFilter, control]),
     );
-    entries.forEach((entry, index) => {
+    // Cụm nằm trong .rail-cluster cùng danh sách sản phẩm (taxonomy R3), nên không sắp lại con của rail.
+    entries.forEach((entry) => {
       let control = existing.get(entry.slug);
       if (!control) {
         control = document.createElement("a");
         control.className = "project-filter";
         control.dataset.advertisingFilter = entry.slug;
+        filters.append(control);
       }
       control.href = `/${locale}/advertising-products/${entry.slug === "all" ? "" : `${locale === "en" ? entry.slugEn : entry.slugVi}/`}`;
       control.dataset.en = entry.titleEn;
       control.textContent = locale === "en" ? entry.titleEn : entry.titleVi;
-      control.setAttribute("aria-current", String(isRailCurrent(entry.slug)));
-      const current = filters.children[index];
-      if (current !== control) filters.insertBefore(control, current || null);
-      existing.delete(entry.slug);
     });
-    existing.forEach((control) => control.remove());
+    syncRail();
     for (const cardMap of [rendered, relatedRendered]) {
       cardMap.forEach((node, id) => {
         const record = cards.find((card) => card.id === id);
@@ -2631,9 +2645,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     resetSkeletonAssignments();
     skeletonRatioBandBySlot.clear();
     filter = nextFilter;
-    filters.querySelectorAll("[data-advertising-filter]").forEach((item) => {
-      item.setAttribute("aria-current", String(isRailCurrent(item.dataset.advertisingFilter)));
-    });
+    syncRail();
     syncPageHeading();
     measure({ animate, origins });
   };
@@ -3738,17 +3750,19 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     focusVirtualPlacement(nextPlacement);
   }, { signal: controller.signal });
 
-  filters.addEventListener("click", (event) => {
-    const control = event.target.closest("[data-advertising-filter]");
+  const onRailClick = (event) => {
+    const control = event.target.closest("[data-advertising-filter], [data-advertising-product]");
     if (!control || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (control.dataset.advertisingFilter === filter) return;
+    const nextFilter = control.dataset.advertisingFilter ?? control.dataset.advertisingProduct;
+    if (nextFilter === filter) return;
     if (grid.contains(document.activeElement)) control.focus();
-    const nextFilter = control.dataset.advertisingFilter;
     browseHistory.replaceCategory(nextFilter);
     setActiveFilter(nextFilter, { animate: true });
-  }, { signal: controller.signal });
+  };
+  filters.addEventListener("click", onRailClick, { signal: controller.signal });
+  chipGroups.forEach((group) => group.addEventListener("click", onRailClick, { signal: controller.signal }));
   // Chrome không scroll link bị che một phần khi focus; giữ filter đang focus nguyên vẹn trên rail mobile.
   filters.addEventListener("focusin", (event) => {
     event.target.scrollIntoView({ block: "nearest", inline: "nearest" });

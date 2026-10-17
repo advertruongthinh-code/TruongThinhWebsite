@@ -172,7 +172,8 @@
         "TT_E2E_ADVERTISING_COMPATIBILITY_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_DIRECT_FAILURE_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-route-preload.e2e.mjs",
-        "node tests/site/advertising-route-footer-p75.e2e.mjs"
+        "node tests/site/advertising-route-footer-p75.e2e.mjs",
+        "node tests/site/advertising-rail-two-tier.e2e.mjs"
       ]
     },
     "adv-load": {

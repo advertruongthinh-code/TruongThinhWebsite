@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
@@ -139,12 +139,23 @@ for (const category of ADVERTISING_LEGACY_CATEGORIES) {
   await writeFile(destination, html, { encoding: "utf8", flush: true });
 }
 
-// Rail cụm sinh từ taxonomy.mjs (taxonomy R3), link tới trang cụm; data-en-href là path slug EN.
+// Rail hai tầng sinh từ taxonomy.mjs (taxonomy R3): cụm link tới trang cụm, kèm danh sách sản phẩm có trang (R5) và
+// số ảnh; hàng chip của mỗi cụm ẩn sẵn, runtime hiện hàng của cụm đang chọn. data-en-href là path slug EN.
+const productLink = (page, className, count) =>
+  `<a class="${className}" href="/vi/advertising-products/${page.vi}/" data-en-href="/en/advertising-products/${page.en}/" data-advertising-product="${page.filter}"><span data-en="${escapeHtml(page.labelEn)}">${escapeHtml(page.labelVi)}</span>${count}</a>`;
+const productPages = (cluster) => ADVERTISING_PAGES.filter((page) => page.filter !== cluster && page.cluster === cluster)
+  .map((page) => ({ page, count: ADVERTISING_CARDS.filter((card) => card.productIds?.includes(page.filter)).length }));
 const advertisingIndexPath = path.join(outputRoot, "advertising-products", "index.html");
 const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).replace(
   "<!-- advertising-cluster-filters -->",
   ADVERTISING_CATEGORIES.map(({ slug, slugVi, slugEn, titleVi, titleEn }) =>
-    `<a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
+    `<span class="rail-cluster"><a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`
+    + `<span class="rail-panel">${productPages(slug).map(({ page, count }) => productLink(page, "rail-panel__item", `<span class="rail-count">${count}</span>`)).join("")}</span></span>`).join("\n            "),
+).replace(
+  "<!-- advertising-product-chips -->",
+  ADVERTISING_CATEGORIES.map(({ slug, titleVi, titleEn }) =>
+    `<div class="rail-chips" role="group" aria-label="${escapeHtml(titleVi)}" data-en-aria-label="${escapeHtml(titleEn)}" data-advertising-chips="${slug}" hidden>`
+    + `${productPages(slug).map(({ page, count }) => productLink(page, "rail-chip", `<sup>${count}</sup>`)).join("")}</div>`).join("\n          "),
 );
 await writeFile(advertisingIndexPath, advertisingTemplate, "utf8");
 
@@ -171,6 +182,8 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replace('href="/en/advertising-products/" data-language-option="en"', `href="${pageHref("en", page)}" data-language-option="en"`)
   .replace(/(data-advertising-filter="all") aria-current="true"/, "$1 aria-current=\"false\"")
   .replace(`data-advertising-filter="${page.cluster}"`, `data-advertising-filter="${page.cluster}" aria-current="true"`)
+  .replace(`data-advertising-chips="${page.cluster}" hidden`, `data-advertising-chips="${page.cluster}"`)
+  .replaceAll(`data-advertising-product="${page.filter}"`, `data-advertising-product="${page.filter}" aria-current="true"`)
   .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
 for (const page of ADVERTISING_PAGES) {
   const html = renderAdvertisingPage(page);

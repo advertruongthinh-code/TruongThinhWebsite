@@ -16,9 +16,9 @@ const ADVERTISING_CATEGORY_SLUGS = ["kiosk-posm", "mobile-retail", "signage-rais
 const CANONICAL_ROUTES = [
   ...ROUTES,
   ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/vi/advertising-products/${slug}/`),
-  // Trang cụm (taxonomy R4) mà rail trang gốc link tới.
-  ...["bang-hieu-quang-cao", "standee-ke-trung-bay", "in-an-decal", "man-hinh-bang-led", "bien-van-phong", "xe-ban-hang-luu-dong"]
-    .map((slug) => `/vi/advertising-products/${slug}/`),
+  // Trang cụm, sản phẩm (taxonomy R4) mà rail hai tầng trang gốc link tới.
+  ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_PAGES
+    .map((page) => `/vi/advertising-products/${page.vi}/`),
 ];
 const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
 const VIEWPORTS = [
