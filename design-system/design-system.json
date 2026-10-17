@@ -107,7 +107,15 @@
         "workshop-wide-v2.webp",
         "workshop-wide-x2.webp",
         "workshop-wide-x7.webp",
-        "workshop-wide.webp"
+        "workshop-wide.webp",
+        "home-hero-tube-house-living.webp",
+        "ong-bep.webp",
+        "xam-bep.webp",
+        "xam-cau-thang.webp",
+        "xam-phong-khach.webp",
+        "xam-phong-ngu.webp",
+        "xam-phong-tam.webp",
+        "xam-tu-ao.webp"
       ],
       "files": {
         "can-ho-bep.webp": {
@@ -655,6 +663,54 @@
           "blob": "08e00bbc9a3e4b4c738c7e2884b3b9f5",
           "size": 72228,
           "type": "image/webp"
+        },
+        "home-hero-tube-house-living.webp": {
+          "name": "home-hero-tube-house-living.webp",
+          "blob": "58b5467de269238b398b4a32abd89bb2",
+          "size": 33908,
+          "type": "image/webp"
+        },
+        "ong-bep.webp": {
+          "name": "ong-bep.webp",
+          "blob": "ef22ff1e36953061cd6c3502de697ba7",
+          "size": 76016,
+          "type": "image/webp"
+        },
+        "xam-bep.webp": {
+          "name": "xam-bep.webp",
+          "blob": "8ed7c96a99c208eada747f408c057c86",
+          "size": 53742,
+          "type": "image/webp"
+        },
+        "xam-cau-thang.webp": {
+          "name": "xam-cau-thang.webp",
+          "blob": "148004fd81c749be72c762fd508e2109",
+          "size": 60378,
+          "type": "image/webp"
+        },
+        "xam-phong-khach.webp": {
+          "name": "xam-phong-khach.webp",
+          "blob": "54b68dc91d67b83a9173043f3eb935b8",
+          "size": 40782,
+          "type": "image/webp"
+        },
+        "xam-phong-ngu.webp": {
+          "name": "xam-phong-ngu.webp",
+          "blob": "1dd8c7f140d4cf958a2fdb38f474289d",
+          "size": 30192,
+          "type": "image/webp"
+        },
+        "xam-phong-tam.webp": {
+          "name": "xam-phong-tam.webp",
+          "blob": "e3b737684f6fb25c01f969f5413f1e0e",
+          "size": 49668,
+          "type": "image/webp"
+        },
+        "xam-tu-ao.webp": {
+          "name": "xam-tu-ao.webp",
+          "blob": "a2028f956e3abb88ec4385e1d395cc00",
+          "size": 45704,
+          "type": "image/webp"
         }
       }
     }
@@ -666,8 +722,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-17T11:50:22Z",
+    "at": "2026-10-17T19:40:17.000Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt main a16dfd9: #399 #403 (gallery Nhà ở theo khối Espacio; rail Advertising nâng một bậc, giữ chữ Cuộn xuống)"
+    "note": "Republish sau #416 (motion), #422 (chip từ 3 ảnh), #417 (Bảng hiệu LED), #426 (chữ portal)"
   }
 }

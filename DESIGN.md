@@ -53,6 +53,24 @@ typography:
     fontWeight: 600
     lineHeight: 0.98
     letterSpacing: "0.001px"
+  portal-title:
+    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
+    fontSize: "4rem"
+    fontWeight: 600
+    lineHeight: 1.08
+    letterSpacing: "0.001px"
+  portal-kicker:
+    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 700
+    lineHeight: 1.4
+    letterSpacing: "normal"
+  portal-tagline:
+    fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 700
+    lineHeight: 1.4
+    letterSpacing: "normal"
   menu-title:
     fontFamily: "\"Plus Jakarta Sans\", Arial, sans-serif"
     fontSize: "1.8rem"

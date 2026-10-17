@@ -41,7 +41,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | 1 | `.hero#top` | Sáu ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid. / Made different.", dấu chấm EN là `.text-hang-end`: inline-block rộng 0 treo ra lề để chữ đúng tâm, `data-en` ở span chữ), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
-| 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Khảo sát · Tư vấn · Sản xuất · Lắp đặt", thứ tự theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
+| 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
 | 5 | `#du-an` | Năm `figure` công trình so le, caption "Nhóm / Chi tiết" | Không | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới." tự co cỡ, rộng bằng khung, dấu chấm cuối dòng là `.text-hang-end`, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
@@ -51,7 +51,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 Given output đã build
 When mở /vi/ và đọc main
 Then có một h1 và bảy section theo thứ tự hero, #dich-vu, #tay-nghe, #nang-luc, #du-an, closer, marquee
-And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là năm bước Khảo sát tới Hậu mãi
+And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là "Năm bước: Khảo sát đến Hậu mãi"
 ```
 
 ### R2. Head và bản EN
@@ -112,7 +112,7 @@ Then scroll cue có is-hidden và tabindex="-1"
 
 Portal dịch vụ có kicker, tiêu đề, phụ đề; portal năng lực có tiêu đề, phụ đề; tiêu đề nằm giữa card
 theo chiều dọc. Cỡ chữ theo bề rộng card (container query) nên ba portal cùng nhóm cùng cỡ cho từng vai
-trò. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
+trò. Toàn site chung token chữ portal (owner 2026-10-17): `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal năng lực cùng token, copy rút gọn để vừa (owner 2026-10-17). Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
 không ép bằng `scaleX` hay `textLength`. Layout ba cột cao 600px; tới 980px một cột cao `72svh`; tới
 680px cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
 hoặc focus portal dịch vụ gạch chân phụ đề.
