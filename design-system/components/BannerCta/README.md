@@ -24,7 +24,8 @@ Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành v
   (`min(clamp(2.5rem, 4.5vw, 5rem), 14svh)`) để cụm CTA và Kính không phủ hết batch.
 - Nhãn nút `.legacy-link` + `.portal-subtitle` ("VỀ CHÚNG TÔI", "GỌI ZALO TƯ VẤN"):
   16px, viết hoa, không mũi tên; subtitle (nếu có) nằm trên tiêu đề. CTA trang con
-  đặt tiêu đề đúng tâm khối theo chiều dọc, subtitle và nút treo hai bên.
+  đặt nét chữ nhìn thấy của tiêu đề (không tính dấu) đúng tâm khối theo chiều
+  dọc, subtitle và nút treo hai bên.
 - Hover: ảnh `scale(1.1)` `0.6s ease-out`, gạch chân 3px của nhãn chạy từ trái;
   lớp bấm phủ cả khối. CTA Advertising là ngoại lệ: không ảnh, chỉ hover nút.
   Focus giữ focus ring của Design System.
