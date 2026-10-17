@@ -73,9 +73,7 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 ### R3. Hero: slideshow và nút dừng
 
 Sáu ảnh nền trang trí (`aria-hidden`, `alt=""`), owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
-phòng ngủ óc chó (`home-hero-*`, 1920×1280), rồi `hero-kiosk`, `mobile-retail` tới khi có hero Advertising mới. Ảnh 0 tải ngay,
-`fetchpriority="high"`; năm ảnh sau ở `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có
-`requestIdleCallback` thì 250ms). Mỗi lần tải trang (cả route mềm), runtime xáo ngẫu nhiên thứ tự DOM năm slide sau, slide 0 luôn chiếu đầu: ảnh đã tải ưu tiên nên màn đầu không trống, không nhảy ảnh. Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+phòng ngủ óc chó (`home-hero-*`, 1920×1280), rồi `hero-kiosk`, `mobile-retail` tới khi có hero Advertising mới. Thứ tự cả sáu slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. Năm ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -87,7 +85,8 @@ trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
 When chờ slideshow đi hết sáu slide
-Then slide 0 hiện đầu, năm slide sau theo thứ tự ngẫu nhiên mỗi lần tải, mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
+Then sáu slide, gồm ảnh đầu, theo thứ tự ngẫu nhiên mỗi lần tải; ảnh đầu là ảnh đã preload, chỉ tải một lần
+And mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
 When bấm nút dừng chuyển động
 Then nút có aria-pressed="true", slide và marquee đứng yên
 ```
@@ -96,15 +95,15 @@ Then nút có aria-pressed="true", slide và marquee đứng yên
 
 Bốn `.hero-word` hiện dần theo từ, bắt đầu 0,9s sau khi trang mount, ở mọi lần vào (tải trực tiếp,
 route mềm); tải trực tiếp thì chạy song song lúc veil mở ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)).
-Tải trực tiếp: nhánh intro (giữ nền tối, slide 0 mờ vào, kèm header intro) chạy dưới veil; route
-mềm bỏ nhánh này, slide 0 và shade hiện ngay lúc mount. Scroll cue "CUỘN XUỐNG" /
+Tải trực tiếp: nhánh intro (giữ nền tối, slide đầu mờ vào, kèm header intro) chạy dưới veil; route
+mềm bỏ nhánh này, slide đầu và shade hiện ngay lúc mount. Scroll cue "CUỘN XUỐNG" /
 "SCROLL DOWN": sau 3s ký tự lần lượt hiện rồi ẩn, lặp; bấm thì cuộn tới `#dich-vu`; cuộn quá 200px
 thì cue mờ đi, rời thứ tự Tab.
 
 ```gherkin
 Given /vi/ ở 768px, không reduced motion
 When tải trực tiếp trang
-Then veil phủ rồi mở, slide 0 hiện đầy đủ ngay khi trang dựng xong, tiêu đề hiện theo từ
+Then veil phủ rồi mở, slide đầu hiện đầy đủ ngay khi trang dựng xong, tiêu đề hiện theo từ
 When cuộn xuống 300px
 Then scroll cue có is-hidden và tabindex="-1"
 ```
@@ -217,7 +216,7 @@ Then ảnh có is-overlay-media-ready, ảnh và shade hiện
 
 Đổi ngôn ngữ tại chỗ thì section chiếm nhiều diện tích nhất trong viewport (hoặc section lúc mở
 menu) phát lại entrance: tiêu đề portal và phụ đề, dòng heritage và ảnh, closer, rail, word fade
-hero; nếu là hero thì slideshow chạy lại từ slide 0. Section khác giữ trạng thái. Runtime phát
+hero; nếu là hero thì slideshow chạy lại từ slide đầu của lần tải đó. Section khác giữ trạng thái. Runtime phát
 `site:section-replay` kèm section đã phát lại.
 
 ```gherkin
@@ -231,7 +230,8 @@ Then tiêu đề ba portal năng lực trượt lên lại bằng chữ EN, sect
 Reduced motion: chỉ slide đầu (slide khác `display: none`), không zoom, word fade, reveal (chữ, ảnh ở
 trạng thái cuối), nút dừng `hidden`, scroll cue tĩnh, marquee và hover zoom tắt. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): slide active và mọi target
-reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; năm slide sau không tải.
+reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; không slide nào nhận `src`,
+`.hero-slides` hiện nền cố định `home-hero-tube-house-living.webp` qua `@media (scripting: none)`.
 
 ```gherkin
 Given trình duyệt bật reduced motion
@@ -267,7 +267,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | --- | --- |
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
-| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (cả thứ tự xáo với `Math.random` stub), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
+| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (ảnh đầu khác slide 0, thứ tự xáo, preload khớp ảnh đầu với `Math.random` stub), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |
