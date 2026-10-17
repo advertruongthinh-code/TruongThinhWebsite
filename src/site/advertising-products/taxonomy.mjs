@@ -46,10 +46,10 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
     railVi: "Bảng LED", railEn: "LED signs",
     titleVi: "Màn hình LED, bảng LED chạy chữ — Trường Thịnh",
     titleEn: "LED screens and scrolling LED signs — Trường Thịnh",
-    descriptionVi: "Lắp đặt màn hình LED trong nhà, ngoài trời, sự kiện, bảng LED chạy chữ đơn sắc, full color và LED trang trí tại Vĩnh Long, Cần Thơ, Đồng Tháp.",
-    descriptionEn: "Indoor, outdoor and event LED screens, single-colour and full-colour scrolling LED signs and decorative LED, installed in Vĩnh Long, Cần Thơ and Đồng Tháp.",
-    introVi: "Màn hình LED cho hội trường, showroom, sự kiện và mặt tiền, bảng LED chạy chữ đơn sắc, ba màu, full color, và LED trang trí cho không gian.",
-    introEn: "LED screens for halls, showrooms, events and building fronts, scrolling LED signs in single colour, three colours or full colour, and decorative LED for interiors.",
+    descriptionVi: "Lắp đặt màn hình LED trong nhà, ngoài trời, sự kiện, bảng LED chạy chữ đơn sắc, full color, bảng hiệu LED, bảng vẫy LED và LED trang trí tại Vĩnh Long, Cần Thơ, Đồng Tháp.",
+    descriptionEn: "Indoor, outdoor and event LED screens, single-colour and full-colour scrolling LED signs, LED sign boards, LED projecting signs and decorative LED, installed in Vĩnh Long, Cần Thơ and Đồng Tháp.",
+    introVi: "Màn hình LED cho hội trường, showroom, sự kiện và mặt tiền, bảng LED chạy chữ đơn sắc, ba màu, full color, bảng hiệu viền LED, bảng vẫy LED và LED trang trí cho không gian.",
+    introEn: "LED screens for halls, showrooms, events and building fronts, scrolling LED signs in single colour, three colours or full colour, LED-bordered sign boards, LED projecting signs and decorative LED for interiors.",
   },
   {
     id: "office-signs", slugVi: "bien-van-phong", slugEn: "office-signs", legacySlug: "office-signs-wayfinding",
@@ -188,6 +188,13 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
     titleVi: "Bảng LED chạy chữ đơn sắc, full color — Trường Thịnh", titleEn: "Single-colour and full-colour scrolling LED signs — Trường Thịnh",
     introVi: "Bảng LED ma trận chạy chữ đơn sắc, ba màu và full color cho cửa hàng, nhà thuốc, ngân hàng.",
     introEn: "Single-colour, three-colour and full-colour matrix scrolling LED signs for shops, pharmacies and banks.",
+  },
+  {
+    id: "led-displays/led-sign-boards", cluster: "led-displays", slugVi: "bang-hieu-led", slugEn: "led-sign-boards",
+    labelVi: "Bảng hiệu LED", labelEn: "LED sign boards",
+    titleVi: "Bảng hiệu LED, bảng vẫy LED ruồi, LED neon — Trường Thịnh", titleEn: "LED sign boards, LED projecting signs and LED neon signs — Trường Thịnh",
+    introVi: "Bảng hiệu viền LED dot, LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in: bảng vẫy LED, bảng đứng, bảng treo, bảng neon cho cửa hàng nhỏ. Phục vụ Vĩnh Long (gồm Bến Tre, Trà Vinh cũ), Cần Thơ, Đồng Tháp và các tỉnh miền Tây.",
+    introEn: "Sign boards with LED dot or LED strip borders and pixel LED, LED neon flex or printed faces: LED projecting signs, standing signs, hanging signs and neon signs for small shops. We serve Vĩnh Long (including former Bến Tre and Trà Vinh), Cần Thơ, Đồng Tháp and the wider Mekong Delta.",
   },
   {
     id: "office-signs/house-numbers-company-nameplates", cluster: "office-signs", slugVi: "bien-so-nha-bang-ten-cong-ty", slugEn: "house-numbers-company-nameplates",
