@@ -30,7 +30,7 @@
   const textMaskSelector =
     ".hero-line-mask, .line-mask, .heritage-text, .portal-title-mask, .portal-title__quiet, .portal-title__strong, .detail-line, .motion-line-mask";
   const whiteOverlayMediaSelector =
-    ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-gallery__item, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-gallery__item, .detail-cta, .legacy-closer) > picture > img";
+    ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
   const maskContext = document.createElement("canvas").getContext("2d");
   const runtimeBodyClasses = [
     "is-transitioning",

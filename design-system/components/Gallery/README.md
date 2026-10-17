@@ -1,22 +1,27 @@
 # Gallery ngang
 
-Carousel ảnh cuộn ngang trên trang Residential và Commercial.
-Markup `section.detail-gallery` với `[data-gallery]`, style ở
-`src/site/detail.css`.
+Dải ảnh cuộn ngang trên trang Residential và Commercial, theo khối "The
+balance within the spaces" của Espacio interior-design. Markup
+`section.detail-gallery` với `[data-gallery]`, style ở `src/site/detail.css`.
 
 ## Cấu trúc
 
-- Đầu khối: tiêu đề nhãn bên trái, hai nút prev/next vuông 2.7rem, viền
-  `line`, hover nền `ink` chữ `white`; nút có nhãn ARIA.
-- Track cao `min(50vw, 45rem)`, padding ngang `gutter`, gap 20px, scroll snap
-  giữa, kéo được bằng chuột.
-- Item rộng `min(32vw, 29rem)`, nền `media-loading-surface`, caption chữ hoa
-  trên ảnh; hover zoom ảnh.
-- Cuộn native, không Swiper: nút gọi `scrollBy`, chuột kéo bằng pointer
-  event, touch cuộn tự nhiên (`detail.js`).
+- Tiêu đề `h2` riêng một hàng, canh giữa, `clamp(2.5rem, 4.45vw, 4rem)`
+  (64px ở 1440px), weight 300, line-height 1.1, chữ thường kiểu câu; phần cuối
+  nghiêng trong `<i>`. Không nút prev/next.
+- Track padding ngang `gutter`, gap 20px (tới 750px 10px), snap `start`
+  proximity, kéo được bằng chuột, tràn ra mép phải.
+- Mọi ảnh cao `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo tỷ lệ thật
+  của ảnh (`height` cố định, `width: auto`, giữ `width`/`height` trên `img`),
+  không crop. Khung `.detail-gallery__media` nền `media-loading-surface`,
+  hover zoom ảnh.
+- Caption `figcaption` dưới ảnh 10px, label 0.8rem, 700, hoa, màu `ink`;
+  không nới bề rộng figure, chữ dài xuống dòng.
+- Cuộn native, không Swiper: chuột kéo bằng pointer event, touch và bàn phím
+  cuộn tự nhiên (`detail.js`).
   Quy tắc thêm, xóa `figure` ở [ba trang con](../../../docs/specs/detail-pages.md#r4-nội-dung-vien-và-hook).
 
 ## Chú thích thuật ngữ
 
-- **Scroll snap**: cuộn dừng đúng vào từng item.
+- **Scroll snap**: cuộn dừng đúng vào từng item; proximity chỉ hút khi dừng gần.
 - **Native**: dùng tính năng trình duyệt, không cần thư viện.

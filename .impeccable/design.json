@@ -2,12 +2,6 @@
   "schemaVersion": 2,
   "title": "Design System: Trường Thịnh",
   "extensions": {
-    "shadows": [
-      {
-        "name": "caption-text-shadow",
-        "value": "0 1px 8px rgba(0, 0, 0, 0.55)",
-        "purpose": "text-shadow của caption đặt trên ảnh gallery detail. Không có box-shadow cho container."
-      }
-    ]
+    "shadows": []
   }
 }

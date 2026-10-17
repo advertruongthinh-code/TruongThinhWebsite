@@ -74,6 +74,7 @@ Fonts. Không đổi font.
 | `display` | Hero, headline lớn | `clamp(5rem, 9vw, 10rem)`, 600, line-height 0.86 |
 | `detail-hero` | Tiêu đề trang detail | `clamp(3.25rem, 8vw, 8.5rem)`, 500, 0.9 |
 | `detail-statement` | Statement trong detail | `clamp(2.7rem, 4.2vw, 4rem)`, 600 |
+| `gallery-title` | Tiêu đề [Gallery ngang](components/Gallery/README.md) | `clamp(2.5rem, 4.45vw, 4rem)`, 300, 1.1, phần cuối nghiêng |
 | `menu-title` | Nhóm link trong full menu | 1.8rem, 600, title dài wrap |
 | `body` | Đoạn văn, metadata | 16px, 500, 1.4, word-spacing 0.1em |
 | `filter` | Filter Advertising | 1rem, 700; mục chọn gạch chân 3px |
@@ -140,9 +141,8 @@ không thêm wrapper hay card grid để lấp chỗ trống.
 ## Elevation & Depth
 
 Phẳng, phân lớp bằng tông: `paper`, `ink`, `line`, `media-loading-surface`.
-Không có box-shadow cho container. Bóng duy nhất là `caption-text-shadow`
-(text-shadow) cho caption nằm trên ảnh gallery. Focus ring là tín hiệu tương
-tác, không phải elevation.
+Không có box-shadow cho container, không có text-shadow. Focus ring là tín
+hiệu tương tác, không phải elevation.
 
 ## Shapes
 

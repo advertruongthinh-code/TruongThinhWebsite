@@ -765,19 +765,6 @@
 
     selectAll("[data-gallery]").forEach((gallery) => {
       const track = gallery.querySelector("[data-gallery-track]");
-      const previous = gallery.querySelector("[data-gallery-prev]");
-      const next = gallery.querySelector("[data-gallery-next]");
-      const move = (direction) =>
-        track.scrollBy({
-          left: direction * track.clientWidth * 0.82,
-          behavior: reduceMotion ? "auto" : "smooth",
-        });
-      previous?.addEventListener("click", () => move(-1), {
-        signal: abort.signal,
-      });
-      next?.addEventListener("click", () => move(1), {
-        signal: abort.signal,
-      });
       track.querySelectorAll("img").forEach((image) => {
         image.draggable = false;
       });

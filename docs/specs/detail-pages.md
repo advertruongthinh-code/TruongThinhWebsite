@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-15
+updated: 2026-10-17
 ---
 
 # Trang Residential, Commercial và About
@@ -59,7 +59,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "MỘT NGÔI NHÀ, NHIỀU LỚP", 9 `figure` có caption (R7) | "KHÔNG GIAN TIÊU BIỂU", 5 `figure` | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 29 `figure`, bốn chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 6 `figure` | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
@@ -70,7 +70,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 ```gherkin
 Given output đã build
 When mở /vi/residential/ và /vi/commercial/
-Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có chín và năm figure
+Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có hai mươi chín và sáu figure
 ```
 
 ### R3. About: section và nội dung
@@ -153,18 +153,25 @@ Then tiêu đề gallery trượt lên lại bằng chữ EN, section khác khô
 
 ### R7. Gallery ngang
 
-`section.detail-gallery[data-gallery]` có `h2`, hai nút `[data-gallery-prev]`, `[data-gallery-next]` (nhãn "Xem ảnh
-trước", "Xem ảnh tiếp theo", có EN) và track `[data-gallery-track]` là `region` focus được có `aria-label` trung tính, không ghi số ảnh. Track bắt
-buộc: thiếu thì `mount` ném lỗi; hai nút tùy chọn. Nút cuộn 0,82 lần bề rộng track, `smooth` (reduced motion: tức
-thì). Chuột kéo track (pointer không phải touch, nút chính, `is-dragging` lúc kéo); ảnh `draggable=false`, chặn
-`dragstart`; touch cuộn native. Track snap giữa ảnh, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), cao
-`min(50vw, 45rem)`, ảnh rộng `min(32vw, 29rem)`, khe 20px; tới 980px cao 28rem, ảnh `min(56vw, 23rem)`; tới 680px cao
-75vw, ảnh 47vw, khe 10px. Caption chữ trắng trên ảnh (R10).
+`section.detail-gallery[data-gallery]` theo khối "The balance within the spaces" của Espacio interior-design (owner
+duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 300, chữ thường kiểu câu, phần cuối trong `<i>` (`data-en`
+ở `span` và `i`, R4), cỡ `clamp(2.5rem, 4.45vw, 4rem)` (64px ở 1440px), vẫn tách dòng (R6). Dưới là track
+`[data-gallery-track]`: `region` focus được (phím mũi tên cuộn), `aria-label` trung tính, không ghi số ảnh; không nút
+prev/next. Track bắt buộc: thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`),
+rộng theo `width`, `height` của ảnh nên không crop và khung đúng tỷ lệ trước khi tải; khe 20px (tới 750px 10px), lề
+trái `--gutter`, tràn ra phải; snap `start` kiểu proximity. `figure.detail-gallery__item` gồm khung
+`.detail-gallery__media` (vệt sáng chờ ảnh, hover zoom) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu
+`ink`, không nới bề rộng figure. Chuột kéo track (pointer không phải touch, nút chính, `is-dragging` lúc kéo, tắt
+snap); ảnh `draggable=false`, chặn `dragstart`; touch cuộn native; ẩn thanh cuộn ngang
+([shell R9](site-shell.md#r9-scrollbar)). Residential là một dải bốn chuỗi công trình theo thứ tự nhà ống, nhà giếng trời, căn hộ
+hai phòng ngủ Thủ Đức, homestay bên rạch; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay: ngoại thất), caption "<CÔNG TRÌNH> ·
+<KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4).
 
 ```gherkin
 Given /vi/commercial/ ở 1440px với chuột
-When bấm nút tiếp theo, rồi kéo track sang trái 220px
-Then track cuộn sang phải, rồi dịch ít nhất 150px, không có dragstart hay pointercancel
+When đo gallery rồi kéo track sang trái 220px
+Then mọi ảnh cao 720px đúng tỷ lệ, caption cách ảnh 10px, không có nút prev/next
+And track dịch ít nhất 150px, không có dragstart hay pointercancel
 ```
 
 ### R8. Dải quy trình, duo, portal loại hình
@@ -210,21 +217,21 @@ nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertisi
 (`.detail-cta__copy .text-hang-end` rộng auto): cả dòng kể cả dấu nằm giữa khối (owner 2026-10-17); `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
-(`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
+(`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
 `is-overlay-media-ready`, riêng ảnh hero chỉ chờ `is-media-settled` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
-cổng này. Khung ảnh nội dung có vệt sáng tới khi ảnh giải mã xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
+cổng này. Khung ảnh nội dung (gồm gallery) có vệt sáng tới khi ảnh giải mã xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
-Given ảnh figure đầu gallery /vi/residential/ bị trễ
-When gallery vào viewport rồi ảnh tải xong
-Then caption trắng hiện ngay trên media-loading-surface, ảnh opacity 0 tới khi có is-overlay-media-ready
+Given ảnh nền CTA /vi/commercial/ bị trễ
+When CTA vào viewport rồi ảnh tải xong
+Then chữ trắng hiện ngay trên media-loading-surface, lớp tối ẩn, ảnh opacity 0 tới khi có is-overlay-media-ready
 ```
 
 ### R11. Reduced motion, fallback, không JavaScript
 
 Reduced motion: không `motion-enabled`, không tách chữ, mọi target reveal ở trạng thái cuối; ảnh hero, ảnh About
-không scale; `.detail-media img` vừa khung; gallery cuộn tức thì; marquee đứng; không Locomotive. `motion-fallback`
+không scale; `.detail-media img` vừa khung; marquee đứng; không Locomotive. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): `detail.js` mount settled, CSS đưa mọi target
 reveal, dòng, từ về trạng thái cuối, ảnh hero About scale 1.005. Không JavaScript: chữ, ảnh hiện đủ, ảnh hero không scale.
 GSAP có mà SplitText lỗi tải: chữ giữ nguyên, hiện ngay; reveal ảnh, kicker, hero vẫn chạy.
@@ -242,7 +249,7 @@ Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee 
 | DOM hook | `body[data-detail-hero-profile]` (`words-09`, `zoom-09`; `words-06` của Advertising) | Nhịp hero (R5); `detail.js` đọc |
 | DOM hook | `[data-motion-hero-media]` (chỉ About), `[data-motion-hero-kicker]`, `[data-motion-hero-title]`, `.detail-hero-line-mask`, `[data-scroll-cue]` | Hero (R5) |
 | DOM hook | `[data-motion-lines]`, `[data-motion-words]`, `[data-motion-*-source]`, `[data-motion-fade]`, `[data-motion-up]`, `[data-motion-media]`, `data-motion-delay`, `data-scroll-speed` | Reveal, parallax (R6) |
-| DOM hook | `[data-gallery]`, `[data-gallery-track]`, `[data-gallery-prev]`, `[data-gallery-next]` | Gallery (R7) |
+| DOM hook | `[data-gallery]`, `[data-gallery-track]` | Gallery (R7) |
 | Class runtime | `motion-line`, `motion-word`, `is-motion-inview`, `is-motion-ready`, `is-dragging`, `is-overlay-media-ready` | `detail.js`, `motion.js` ghi |
 | Hàm public | `window.TruongThinhDetail`: `mount(container, {settled, softNavigation})`, `unmount()`, `replaySection(section)` trả boolean, `revertSplitText()`, `rebuildSplitText()` | `motion.js` gọi; `ensureAdvertisingDependencies` thuộc Advertising |
 | Data | `data-cms="hero.kicker"` | Worker CMS dormant đọc |
@@ -267,16 +274,15 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
 | R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
-| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` |
+| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột) |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
 | R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |
-| R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (gallery Residential, CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |
+| R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |
 | R11 | `TT_E2E_FAILOPEN_ONLY` (Residential), `runNoScriptHeroCheck` trong `TT_E2E_M1_ONLY`, `cross-browser.smoke.spec.cjs`; `TT_E2E_REDUCED_ONLY` chưa đếm `[data-motion-*]` |
 
 ## Gate còn mở
 
 - Gate chung, áp dụng cả ba trang: Zalo placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
-- [Gallery](../../design-system/components/Gallery/README.md) ghi "một ảnh thì bỏ control", `detail.js` không xử lý; main thêm hoặc owner bỏ quy tắc.
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
 - Không chặn phát hành. Carousel Swiper trong `detail.js` (namespace `advertising-product-detail`) không trang nào dùng; owner giữ (24/09) để
   thiết kế lại carousel cho Residential, Commercial. Owner giao spec khi làm.
