@@ -10295,8 +10295,9 @@ async function runHomeMotionRegressionCheck() {
       assert(
         contract.media.length === 5 &&
           contract.media.every(
+            // Khung ảnh đang chờ tải nhận overflow: clip từ .media-gate (media-delivery R6), đã tải thì hidden; cả hai đều cắt mask.
             ({ overflow, height }) =>
-              overflow === "hidden" && Math.abs(height - 420) <= 1,
+              (overflow === "hidden" || overflow === "clip") && Math.abs(height - 420) <= 1,
           ),
         "Project media masks are missing or unequal",
       );
