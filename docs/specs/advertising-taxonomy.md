@@ -95,7 +95,8 @@ document, `replaceState`, card chuyển vị trí); URL thành path trang đích
 Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
 ([Filter](../../design-system/components/Filter/README.md)): hàng chip thay chỗ chữ "Cuộn xuống" từ 1025px, nằm
-ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip.
+ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà bấm "Sản phẩm
+quảng cáo" trên navbar hoặc menu thì về "Tất cả" ở đầu trang; từ photo thì vẫn về chỗ cũ trên masonry nguồn.
 
 ```gherkin
 Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng

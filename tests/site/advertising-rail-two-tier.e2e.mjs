@@ -60,7 +60,17 @@ try {
   await page.locator('[data-advertising-filter="all"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/");
   assert.deepEqual((await railState(page)).chips, [], "về Tất cả thì hàng chip ẩn");
-  assert.deepEqual(documents, [], "chip và Tất cả không tải document");
+
+  // Đang lọc và đã cuộn xuống: bấm "Sản phẩm quảng cáo" trên navbar thì về Tất cả và lên đầu trang.
+  await page.locator('[data-advertising-filter="office-signs"]').click();
+  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/");
+  await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
+  await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll() > 300);
+  await page.locator('[data-site-header] .desktop-nav a[href="/vi/advertising-products/"]').click();
+  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/"
+    && window.TruongThinhMotion.getLogicalScroll() < 1);
+  assert.deepEqual((await railState(page)).current, ["all"], "navbar đưa bộ lọc về Tất cả");
+  assert.deepEqual(documents, [], "chip, Tất cả và navbar không tải document");
   await page.close();
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
