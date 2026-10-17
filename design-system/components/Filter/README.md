@@ -22,6 +22,8 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
 - Tới 680px: rail cụm và hàng chip là hai hàng cuộn ngang tràn bề rộng màn,
   chừa 25px hai bên; chip đang chọn tự cuộn vào khung, mục nhận focus bàn phím
   tự cuộn vào trọn khung.
+- Bấm cụm hoặc chip: kicker đổi chữ và hàng chip vừa hiện chạy entrance có sẵn
+  ([Motion](../../motion.md#kicker-và-hàng-chip-khi-đổi-filter)).
 - Đổi filter: card bị loại ẩn ngay, card còn lại trượt về chỗ mới (xem
   [Motion](../../motion.md#vị-trí-card-masonry)). Đổi ngôn ngữ chỉ đổi text, URL,
   ARIA trên node có sẵn.

@@ -172,6 +172,19 @@ outline. Touch không cần hover để mở ảnh.
 
 ## Advertising
 
+### Kicker và hàng chip khi đổi filter
+
+Bấm cụm hoặc chip trên [rail](components/Filter/README.md) chạy lại hai entrance có sẵn của Advertising (không thêm
+nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opacity` và `transform`:
+
+- Kicker (h1, tên cụm hoặc sản phẩm) đổi chữ thì vào lại như entrance tải trang: `opacity 0, x -60px → 0`, `0.6s`
+  `--ease`, không delay.
+- Hàng chip vừa hiện (từ Tất cả sang cụm, hoặc từ cụm này sang cụm khác) vào như rail lúc tải trang: từng chip
+  `opacity 0, y 20px → 0`, `1s expo.out`, stagger `0.15s` (hàng dài thì ép tổng so le tối đa `0.6s`), trễ `0.3s` để kicker đi trước.
+- Đổi sản phẩm trong cùng cụm: chỉ kicker chạy lại, hàng chip đứng yên. Về Tất cả: chip ẩn ngay, không motion thoát.
+- Bấm liên tiếp: animation đang chạy bị hủy rồi chạy lại từ đầu. Tải trang, Back/Forward, đổi ngôn ngữ và
+  mở ảnh không chạy. Reduced motion: vào thẳng trạng thái cuối. Không đổi bố cục nên không có CLS.
+
 ### Vị trí card (masonry)
 
 - `masonry-layout` là engine duy nhất cho re-layout và chuyển vị trí; không

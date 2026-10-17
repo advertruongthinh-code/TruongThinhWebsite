@@ -93,7 +93,7 @@ Click chính không phím bổ trợ: không tải document, không request, kh�
 phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước khi runtime sẵn sàng (chỉ gặp khi không có veil
 [shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache), tức reduced motion) được giữ lại, phát lại
 đúng một lần khi mount xong; mount lỗi thì tải hẳn URL của filter cuối. Đổi ngôn ngữ chỉ đổi chữ, `href`, ARIA.
-Rail hẹp cuộn ngang; focus bàn phím vào nút thì rail cuộn để nút hiện trọn.
+Rail hẹp cuộn ngang; focus bàn phím vào nút thì rail cuộn để nút hiện trọn. Bấm rail: kicker đổi chữ và hàng chip vừa hiện chạy entrance có sẵn ([Motion](../../design-system/motion.md#kicker-và-hàng-chip-khi-đổi-filter)).
 Navbar hoặc tiêu đề menu Advertising: đang ở All không có `photo` thì cuộn về 0
 ([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)); ở một nhóm thì thêm history entry về All; ở detail thì về
 nhóm đã chọn trước khi mở ảnh ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
