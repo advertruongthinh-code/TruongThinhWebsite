@@ -3548,98 +3548,78 @@ html[lang="vi"]
   word-spacing: var(--word-spacing-body);
 }
 
+/* Như khối "The balance within the spaces" của Espacio: tiêu đề nét mảnh canh giữa, dải ảnh cùng chiều cao,
+   bề rộng theo tỷ lệ thật của ảnh, caption dưới ảnh (detail-pages R7). */
 .detail-gallery {
-  min-height: 47rem;
+  --gallery-image-height: min(50vw, 45rem);
   padding: 35px 0;
   overflow: hidden;
   background: var(--white);
 }
 
-.detail-gallery__head {
-  display: flex;
-  width: min(calc(100% - 2 * var(--gutter)), 1500px);
-  margin: 0 auto 2rem;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.detail-gallery__head h2 {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.detail-gallery__controls {
-  display: flex;
-  gap: 0.45rem;
-}
-
-.detail-gallery__controls button {
-  display: grid;
-  width: 2.7rem;
-  height: 2.7rem;
-  padding: 0;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
-  cursor: pointer;
-  transition:
-    background-color 0.25s ease,
-    color 0.25s ease;
-}
-
-.detail-gallery__controls button:hover {
-  background: var(--ink);
-  color: var(--white);
+.detail-gallery > h2 {
+  margin: 0 var(--gutter) clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(2.5rem, 4.45vw, 4rem);
+  font-weight: 300;
+  line-height: 1.1;
+  text-align: center;
+  /* Phone: "Không gian / tiêu biểu." thay vì cắt giữa cụm nghiêng. */
+  text-wrap: balance;
 }
 
 .detail-gallery__track {
   display: flex;
-  height: min(50vw, 45rem);
   padding: 0 var(--gutter);
   gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  scroll-snap-type: x proximity;
   cursor: grab;
 }
 
 .detail-gallery__track.is-dragging {
   cursor: grabbing;
-  scroll-behavior: auto;
   scroll-snap-type: none;
 }
 
 .detail-gallery__item {
-  position: relative;
-  width: min(32vw, 29rem);
   flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.detail-gallery__media {
+  position: relative;
   overflow: hidden;
-  scroll-snap-align: center;
   background: var(--media-loading-surface);
 }
 
-.detail-gallery__item img {
-  width: 100%;
-  height: 100%;
+/* Cao cố định, rộng theo width/height của thẻ img nên khung đúng tỷ lệ trước khi ảnh tải. */
+.detail-gallery__media img {
+  width: auto;
+  height: var(--gallery-image-height);
   -webkit-user-drag: none;
-  object-fit: cover;
   user-select: none;
 }
 
 .detail-gallery__item figcaption {
-  position: absolute;
-  right: 1rem;
-  bottom: 1rem;
-  left: 1rem;
-  color: white;
+  /* Caption không nới figure: bề rộng theo ảnh, chữ dài xuống dòng. */
+  contain: inline-size;
+  margin-top: 10px;
+  color: var(--ink);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-width: 750px) {
+  .detail-gallery {
+    --gallery-image-height: 75vw;
+  }
+
+  .detail-gallery__track {
+    gap: 10px;
+  }
 }
 
 .detail-heading {
@@ -4171,18 +4151,6 @@ html[lang="en"]
     grid-template-columns: 1fr;
   }
 
-  .detail-gallery {
-    min-height: 36rem;
-  }
-
-  .detail-gallery__track {
-    height: 28rem;
-  }
-
-  .detail-gallery__item {
-    width: min(56vw, 23rem);
-  }
-
   /* Năm bước vẫn một hàng: rail vuốt ngang. */
   .detail-process {
     grid-template-columns: none;
@@ -4314,23 +4282,7 @@ html[lang="en"]
   }
 
   .detail-gallery {
-    min-height: 23rem;
     padding: 20px 0 30px;
-  }
-
-  .detail-gallery__head {
-    margin-bottom: 1rem;
-  }
-
-  .detail-gallery__track {
-    height: 75vw;
-    padding-right: 15px;
-    padding-left: 15px;
-    gap: 10px;
-  }
-
-  .detail-gallery__item {
-    width: 47vw;
   }
 
   .detail-heading {
@@ -6583,8 +6535,6 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .about-hero__media img,
       .service-portal > img,
       .service-portal > picture > img,
-      .detail-gallery__item > img,
-      .detail-gallery__item > picture > img,
       .detail-cta > img,
       .detail-cta > picture > img,
       .legacy-closer > img,
@@ -6596,8 +6546,6 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .about-hero__media img,
       .service-portal > img,
       .service-portal > picture > img,
-      .detail-gallery__item > img,
-      .detail-gallery__item > picture > img,
       .detail-cta > img,
       .detail-cta > picture > img,
       .legacy-closer > img,

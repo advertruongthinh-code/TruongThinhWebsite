@@ -3364,6 +3364,8 @@ async function runEspacioTypographyChecks() {
                     .slice(0, 80),
                   size: Number.parseFloat(style.fontSize),
                   weight: Number.parseFloat(style.fontWeight),
+                  // Tiêu đề gallery nét mảnh 300 theo mẫu Espacio, owner duyệt (detail-pages R7).
+                  galleryTitle: Boolean(element.closest(".detail-gallery > h2")),
                 };
               });
             const readRole = (selector) => {
@@ -3386,7 +3388,7 @@ async function runEspacioTypographyChecks() {
               overflow:
                 document.documentElement.scrollWidth -
                 document.documentElement.clientWidth,
-              lightText: visibleText.filter((item) => item.weight < 500),
+              lightText: visibleText.filter((item) => item.weight < 500 && !item.galleryTitle),
               // Phụ đề portal co theo bề rộng card để giữ một dòng (page-home R5), không theo sàn 12.5px.
               tinyText: visibleText.filter((item) => item.size < 12.5 && item.selector !== "span.portal-subtitle"),
               roles: {
@@ -3395,7 +3397,7 @@ async function runEspacioTypographyChecks() {
                 portal: readRole(".portal-copy strong"),
                 editorial: readRole(".editorial-item p"),
                 detailLabel: readRole(
-                  ".detail-eyebrow, .detail-gallery__head h2, .detail-index-hero__kicker",
+                  ".detail-eyebrow, .detail-index-hero__kicker",
                 ),
               },
             };
@@ -8034,7 +8036,7 @@ async function runCommercialHeroTextCheck() {
 async function runGalleryCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
-    "commercial gallery next moves track",
+    "commercial gallery layout and mouse drag",
     { route: "/vi/commercial/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
@@ -8048,24 +8050,33 @@ async function runGalleryCheck() {
         null,
         { timeout: 3_000 },
       );
-      const before = await track.evaluate((element) => ({
-        left: element.scrollLeft,
-        clientWidth: element.clientWidth,
-        scrollWidth: element.scrollWidth,
-      }));
+      // R7: ảnh cùng chiều cao, rộng theo tỷ lệ thật, caption dưới ảnh, không nút prev/next.
+      const layout = await track.evaluate((element) =>
+        [...element.querySelectorAll(".detail-gallery__item")].map((item) => {
+          const img = item.querySelector("img");
+          const image = img.getBoundingClientRect();
+          const caption = item.querySelector("figcaption").getBoundingClientRect();
+          return {
+            height: image.height,
+            ratioDrift: Math.abs(
+              image.width / image.height - img.getAttribute("width") / img.getAttribute("height"),
+            ),
+            captionGap: caption.top - image.bottom,
+          };
+        }),
+      );
+      const heights = layout.map((item) => item.height);
       assert(
-        before.scrollWidth > before.clientWidth,
-        "Gallery track has no horizontal overflow to advance",
+        layout.length >= 2 &&
+          Math.max(...heights) - Math.min(...heights) <= 1 &&
+          Math.abs(heights[0] - 720) <= 1 &&
+          layout.every((item) => item.ratioDrift < 0.01 && Math.abs(item.captionGap - 10) <= 1),
+        `Gallery images are not equal height, true ratio and captioned below: ${JSON.stringify(layout)}`,
       );
-      await page.locator("[data-gallery-next]").click();
-      await page.waitForFunction(
-        (start) =>
-          document.querySelector("[data-gallery-track]")?.scrollLeft > start + 1,
-        before.left,
-        { timeout: 3_000 },
+      assert(
+        (await page.locator("[data-gallery-prev], [data-gallery-next]").count()) === 0,
+        "Gallery still renders prev/next buttons",
       );
-      const after = await track.evaluate((element) => element.scrollLeft);
-      assert(after > before.left + 1, `Gallery did not move: ${before.left}px → ${after}px`);
 
       await track.evaluate((element) => {
         element.scrollLeft = 0;
@@ -8087,6 +8098,7 @@ async function runGalleryCheck() {
           window.__ttGalleryDrag.nativeDrags += 1;
         });
       });
+      await track.scrollIntoViewIfNeeded();
       const imageBox = await page
         .locator("[data-gallery-track] img")
         .first()
@@ -9464,15 +9476,6 @@ async function runWhiteOverlayMediaFallbackCheck() {
       image: "img",
       text: ".portal-copy",
       overlay: ".portal-shade",
-      scroll: true,
-    },
-    {
-      name: "gallery caption",
-      route: "/vi/residential/?media-fallback=gallery",
-      asset: "**/home.webp",
-      surface: ".detail-gallery__item:first-child",
-      image: "img",
-      text: "figcaption",
       scroll: true,
     },
     {

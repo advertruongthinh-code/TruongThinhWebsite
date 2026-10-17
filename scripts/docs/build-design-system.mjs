@@ -4,7 +4,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { basename, dirname, join } from 'node:path';
 
 const OUT = 'design-system';
-const FONT = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap">';
+const FONT = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">';
 // motion-fallback là trạng thái cuối không animation của site (motion.js); preview render đúng trạng thái đó.
 const boot = (extra) => `<script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready"${extra ? `, "${extra}"` : ''});</script>`;
 // Wrapper có transform trở thành containing block của position: fixed, nên phần shell fixed nằm gọn trong frame.
@@ -27,7 +27,7 @@ const COMPONENTS = [
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
   { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
-  { name: 'Gallery', group: 'Page', height: 640, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
+  { name: 'Gallery', group: 'Page', height: 800, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
   // Markup Advertising dựng lúc runtime; capture-design-system.mjs chụp snapshot vào scripts/docs/captures/.
   // pad: khoảng trống giữ phía trên element focus trong frame; size: độ rộng image variant.
   ...[['Filter', 240, 40], ['MediaCard', 420, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
