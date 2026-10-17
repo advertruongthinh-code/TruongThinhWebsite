@@ -226,10 +226,15 @@ const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
   }),
 })));
 
-export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => Object.freeze({
-  ...record,
-  coverMediaId: record.id,
-  // ponytail: media tạm (placeholder-media.mjs) cho 1/3 card, thay bằng media thật khi owner có ảnh nhiều góc.
-  mediaItems: Object.freeze([Object.freeze({ id: record.id, kind: "image", ...record.media }),
-    ...(PLACEHOLDER_MEDIA_ITEMS[record.id] ?? []).map((item) => Object.freeze(item))]),
-})));
+// ponytail: media tạm (placeholder-media.mjs) cho 1/3 card, thay bằng media thật khi owner có ảnh nhiều góc.
+// Card có video tạm lấy video làm cover để xem lịch tự phát kiểu Pinterest (owner 2026-10-17).
+export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => {
+  const extra = PLACEHOLDER_MEDIA_ITEMS[record.id] ?? [];
+  const videos = extra.filter((item) => item.kind === "video");
+  return Object.freeze({
+    ...record,
+    coverMediaId: videos[0]?.id ?? record.id,
+    mediaItems: Object.freeze([...videos, { id: record.id, kind: "image", ...record.media },
+      ...extra.filter((item) => item.kind !== "video")].map((item) => Object.freeze(item))),
+  });
+}));

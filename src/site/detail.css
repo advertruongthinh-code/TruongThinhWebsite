@@ -1707,22 +1707,24 @@ body.is-advertising-browse .advertising-grid {
 }
 
 .advertising-card-media--carousel > img[hidden],
-.advertising-card-media--carousel > video[hidden],
-.advertising-card-media__playback[hidden] {
+.advertising-card-media--carousel > video[hidden] {
   display: none;
 }
 
+/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
 .advertising-card-media__duration {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 8px;
   z-index: 2;
-  padding: 4px 7px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 6px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
   font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
-  line-height: 1;
+  font-weight: 500;
+  line-height: 1rem;
   pointer-events: none;
 }
 
@@ -1820,16 +1822,8 @@ body.is-advertising-browse .advertising-grid {
   line-height: 1;
 }
 
-.advertising-card-media__playback {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-}
-
 .advertising-card-media__dot:focus-visible,
-.advertising-card-media__step:focus-visible,
-.advertising-card-media__playback:focus-visible {
+.advertising-card-media__step:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }

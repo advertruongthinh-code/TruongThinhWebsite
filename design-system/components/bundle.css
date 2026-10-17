@@ -1143,9 +1143,14 @@ em {
   }
 }
 
-/* Nút tròn phát/tạm dừng dùng chung: hero trang chủ và video trên card (owner 2026-10-17). */
-.motion-toggle,
-.advertising-card-media__playback {
+/* Cột phải hero, ngay trên floating CTA (đang hiện ở màn đầu, cao 47px) và thẳng mép phải với nút.
+   Hero cao hơn viewport (min-height, màn ngang thấp) thì cộng phần dư để nút vẫn ở màn đầu, trên CTA. */
+.motion-toggle {
+  --toggle-overflow: max(0px, 100% - var(--site-layout-viewport-height, 100svh));
+  position: absolute;
+  z-index: 3;
+  right: 35px;
+  bottom: calc(var(--toggle-overflow) + 35px + 47px + 16px);
   display: grid;
   width: 2.75rem;
   height: 2.75rem;
@@ -1159,16 +1164,6 @@ em {
   transition:
     background-color 0.25s ease,
     transform 0.25s ease;
-}
-
-/* Cột phải hero, ngay trên floating CTA (đang hiện ở màn đầu, cao 47px) và thẳng mép phải với nút.
-   Hero cao hơn viewport (min-height, màn ngang thấp) thì cộng phần dư để nút vẫn ở màn đầu, trên CTA. */
-.motion-toggle {
-  --toggle-overflow: max(0px, 100% - var(--site-layout-viewport-height, 100svh));
-  position: absolute;
-  z-index: 3;
-  right: 35px;
-  bottom: calc(var(--toggle-overflow) + 35px + 47px + 16px);
 }
 
 @media (max-width: 1200px) {
@@ -1186,8 +1181,7 @@ em {
   }
 }
 
-.motion-toggle:hover,
-.advertising-card-media__playback:hover {
+.motion-toggle:hover {
   transform: scale(1.06);
   background: rgba(20, 21, 20, 0.72);
 }
@@ -1197,13 +1191,10 @@ em {
   box-shadow: 0 0 0 2px var(--blue);
 }
 
-.motion-toggle svg,
-.advertising-card-media__playback svg {
+.motion-toggle svg {
   width: 1rem;
   height: 1rem;
   fill: currentColor;
-  /* Điểm chạm luôn rơi vào chính button (hit-test của card, R6). */
-  pointer-events: none;
 }
 
 .motion-toggle__play,
@@ -4924,22 +4915,24 @@ body.is-advertising-browse .advertising-grid {
 }
 
 .advertising-card-media--carousel > img[hidden],
-.advertising-card-media--carousel > video[hidden],
-.advertising-card-media__playback[hidden] {
+.advertising-card-media--carousel > video[hidden] {
   display: none;
 }
 
+/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
 .advertising-card-media__duration {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 8px;
   z-index: 2;
-  padding: 4px 7px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 6px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
   font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
-  line-height: 1;
+  font-weight: 500;
+  line-height: 1rem;
   pointer-events: none;
 }
 
@@ -5037,16 +5030,8 @@ body.is-advertising-browse .advertising-grid {
   line-height: 1;
 }
 
-.advertising-card-media__playback {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-}
-
 .advertising-card-media__dot:focus-visible,
-.advertising-card-media__step:focus-visible,
-.advertising-card-media__playback:focus-visible {
+.advertising-card-media__step:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }

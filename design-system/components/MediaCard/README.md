@@ -38,7 +38,7 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 | Số item | Dải dưới canvas | Điều khiển |
 | --- | --- | --- |
-| 1 | Không có | Không chỉ báo; video vẫn có duration và playback |
+| 1 | Không có | Không chỉ báo; video vẫn có duration |
 | 2 tới 6 | 44px | Một hàng chấm dùng lại chấm [Gallery](../Gallery/README.md): 8px, đen 20%, chấm đang xem `ink`; vùng bấm 20×44px |
 | Từ 7 | 44px | Nút trước, bộ đếm `7/11`, nút sau; nút tối thiểu 44×44px |
 
@@ -49,14 +49,13 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 ### Video
 
-- **Duration:** góc trên trái canvas, cách 12px; chữ trắng `0.75rem`
-  `tabular-nums` trên nền đen alpha 0.7, padding 4px 7px, dạng `m:ss` làm tròn
-  lên giây.
-- **Playback:** góc trên phải, cách 8px; dùng lại nút tròn phát/tạm dừng của
-  [Hero](../Hero/README.md) trang chủ (owner 2026-10-17): tròn 2.75rem, viền
-  trắng alpha 0.58, nền alpha 0.42, icon 1rem; hover phóng 1.06, nền alpha 0.72.
-  Tên nút `Phát` / `Tạm dừng` đọc qua `aria-label`.
-- Video luôn tắt tiếng, hiện poster; chỉ phát khi bấm playback.
+- **Duration:** theo card video Pinterest (owner 2026-10-17): góc trên trái
+  canvas, cách 8px; viên thuốc bo 8px, padding 4px 6px, nền trắng alpha 0.9,
+  chữ `ink` `0.75rem` đậm 500 `tabular-nums`; tổng thời lượng `m:ss` làm tròn
+  lên giây, không đếm ngược.
+- Không có nút phát hay icon loa. Mỗi lúc một video phát, luôn tắt tiếng:
+  cuộn dừng thì tự phát một card trong vùng giữa màn hình; chuột vào card video
+  thì phát card đó, rời ra thì dừng. Không hiệu ứng hover riêng.
 
 ### Tương tác
 
@@ -69,8 +68,8 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 ### Focus và nhãn
 
-Chấm, nút bước và playback có outline 2px `ink` offset 2px; link card outline
-2px `ink` offset 4px. Thứ tự Tab: link card, playback, chấm hoặc nút bước.
+Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
+2px `ink` offset 4px. Thứ tự Tab: link card, chấm hoặc nút bước.
 
 | Phần tử | VI | EN |
 | --- | --- | --- |
