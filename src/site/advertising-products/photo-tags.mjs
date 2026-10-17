@@ -483,7 +483,7 @@ const PHOTO_METADATA_BY_RECORD_ID = Object.freeze({
 const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "kiosk-posm-01": ["displays-booths/exhibition-booths", "displays-booths/display-shelves-cabinets"],
   "kiosk-posm-05": ["displays-booths/retail-kiosks", "displays-booths/display-shelves-cabinets", "signage/light-boxes"],
-  "kiosk-posm-07": ["displays-booths/sampling-booths-reception-counters", "displays-booths/display-shelves-cabinets", "printing-decals/packaging-cards-tickets"],
+  "kiosk-posm-07": ["displays-booths/sampling-booths-reception-counters", "displays-booths/display-shelves-cabinets"],
   "kiosk-posm-11": ["displays-booths/standees-backdrops-posm", "displays-booths/display-shelves-cabinets"],
   "kiosk-posm-12": ["displays-booths/standees-backdrops-posm", "displays-booths/display-shelves-cabinets"],
   "kiosk-posm-13": ["displays-booths/exhibition-booths", "displays-booths/display-shelves-cabinets"],

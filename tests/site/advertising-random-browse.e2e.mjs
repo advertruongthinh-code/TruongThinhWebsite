@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
+import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium, webkit } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8792";
@@ -40,7 +41,7 @@ try {
     await page.waitForTimeout(700);
     const sample = await read(page);
     assert.equal(sample.browse.seed, direct.browse.seed);
-    assert.ok(sample.ids.every(id => ADVERTISING_CARDS.find(card => card.id === id)?.category === category.slug));
+    assert.ok(sample.ids.every(id => matchesAdvertisingFilter(ADVERTISING_CARDS.find(card => card.id === id), category.slug)));
     assert.equal(new Set(sample.ids).size, sample.ids.length);
     assert.deepEqual(sample.filters, direct.filters, "filter controls keep order and position");
     results.push({ case: "filter", category: category.slug, seed: sample.browse.seed, rendered: sample.ids.length });
@@ -179,7 +180,7 @@ try {
     await page.goto(base + "/vi/advertising-products/?category=" + slug, { waitUntil: "networkidle" }); await ready(page);
     const sample = await read(page);
     assert.equal(sample.browse.category, "printing-decals", slug);
-    assert.ok(sample.ids.length && sample.ids.every(id => ADVERTISING_CARDS.find(card => card.id === id)?.category === "printing-decals"), slug);
+    assert.ok(sample.ids.length && sample.ids.every(id => matchesAdvertisingFilter(ADVERTISING_CARDS.find(card => card.id === id), "printing-decals")), slug);
     const landed = new URL(page.url());
     assert.equal(landed.pathname + landed.search, "/vi/advertising-products/in-an-decal/", slug);
     results.push({ case: "category-alias", slug, rendered: sample.ids.length });

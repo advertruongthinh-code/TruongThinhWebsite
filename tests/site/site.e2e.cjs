@@ -7227,7 +7227,9 @@ async function runAdvertisingMediaFocusedChecks() {
           sameNode: current === window.__ttAdvertisingOneShotNode,
           ready: image?.classList.contains("is-advertising-media-ready"),
           opacity: image ? Number.parseFloat(getComputedStyle(image).opacity) : -1,
-          runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
+          // Con trỏ còn nằm trên card gắn lại thì hover zoom chạy; đó không phải hiệu ứng vào của ảnh.
+          runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running"
+            && !animation.effect?.target?.matches(".media-hover-zoom:hover")).length ?? -1,
         };
       }, replayFixtureId);
       // loading-glass R3, masonry R8: card đã tải ảnh gắn lại thì hiện ảnh ngay, không chạy lại hiệu ứng vào.
