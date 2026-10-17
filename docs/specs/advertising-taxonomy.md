@@ -44,7 +44,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (12); Chữ nổi (10); Hộp đèn (tách từ cụm LED và bảng hiệu); Bảng vẫy (4) |
 | Standee, backdrop, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
 | In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
-| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (chưa có ảnh); Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9); Bảng hiệu LED (6, owner thêm 2026-10-18) |
+| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (chưa có ảnh); Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9); Bảng hiệu LED (9, owner thêm 2026-10-18) |
 | Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
 | Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
 
@@ -54,8 +54,8 @@ cao hơn (số liệu trong mô tả PR #312 và báo cáo Library); title có t
 - Vật liệu và cấu tạo (inox, mica, alu, hiflex, siêu mỏng, nắp hít) lặp ở nhiều sản phẩm nên là tag, không thành tầng.
 - Biển chỉ dẫn gắn tag nơi dùng (khu công nghiệp, nhà máy, văn phòng, tòa nhà) và loại (thoát hiểm, WC; không làm biển
   PCCC theo owner 2026-10-12); chữ của tag vào đoạn giới thiệu và alt. Tag đủ ngưỡng R5 và có lượt tìm thì nâng thành sản phẩm (R2).
-- Bảng hiệu LED (owner 2026-10-18) là biển viền LED dot hoặc LED dây, chữ LED ruồi hoặc mặt in: bảng vẫy LED, bảng
-  đứng, bảng treo cửa hàng nhỏ. Thuộc cụm LED vì nhãn cụm đã có "bảng LED" và ảnh hiện có đa số trong cụm đó; ảnh bảng
+- Bảng hiệu LED (owner 2026-10-18) là biển viền LED dot hoặc LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in:
+  bảng vẫy LED, bảng đứng, bảng treo cửa hàng nhỏ, biển neon làm bảng hiệu (tag `variant-led-neon`). Thuộc cụm LED vì nhãn cụm đã có "bảng LED" và ảnh hiện có đa số trong cụm đó; ảnh bảng
   vẫy LED gắn cả Bảng vẫy và Bảng hiệu LED. Bảng LED ma trận không viền LED chỉ gắn Bảng LED chạy chữ.
 - Không làm trang theo tỉnh trong spec này: "bảng hiệu bến tre" 10-100, "quảng cáo bến tre", "in ấn bến tre" 50,
   "bảng hiệu vĩnh long" không có dữ liệu. Đoạn giới thiệu nêu khu vực phục vụ; trang địa phương thuộc [SEO](seo.md).

@@ -192,9 +192,9 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
   {
     id: "led-displays/led-sign-boards", cluster: "led-displays", slugVi: "bang-hieu-led", slugEn: "led-sign-boards",
     labelVi: "Bảng hiệu LED", labelEn: "LED sign boards",
-    titleVi: "Bảng hiệu LED, bảng vẫy LED ruồi — Trường Thịnh", titleEn: "LED sign boards and LED projecting signs — Trường Thịnh",
-    introVi: "Bảng hiệu viền LED dot, LED dây, chữ LED ruồi hoặc mặt in: bảng vẫy LED, bảng đứng, bảng treo cho cửa hàng nhỏ. Phục vụ Vĩnh Long (gồm Bến Tre, Trà Vinh cũ), Cần Thơ, Đồng Tháp và các tỉnh miền Tây.",
-    introEn: "Sign boards with LED dot or LED strip borders and pixel LED or printed faces: LED projecting signs, standing signs and hanging signs for small shops. We serve Vĩnh Long (including former Bến Tre and Trà Vinh), Cần Thơ, Đồng Tháp and the wider Mekong Delta.",
+    titleVi: "Bảng hiệu LED, bảng vẫy LED ruồi, LED neon — Trường Thịnh", titleEn: "LED sign boards, LED projecting signs and LED neon signs — Trường Thịnh",
+    introVi: "Bảng hiệu viền LED dot, LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in: bảng vẫy LED, bảng đứng, bảng treo, bảng neon cho cửa hàng nhỏ. Phục vụ Vĩnh Long (gồm Bến Tre, Trà Vinh cũ), Cần Thơ, Đồng Tháp và các tỉnh miền Tây.",
+    introEn: "Sign boards with LED dot or LED strip borders and pixel LED, LED neon flex or printed faces: LED projecting signs, standing signs, hanging signs and neon signs for small shops. We serve Vĩnh Long (including former Bến Tre and Trà Vinh), Cần Thơ, Đồng Tháp and the wider Mekong Delta.",
   },
   {
     id: "office-signs/house-numbers-company-nameplates", cluster: "office-signs", slugVi: "bien-so-nha-bang-ten-cong-ty", slugEn: "house-numbers-company-nameplates",

@@ -81,13 +81,14 @@ export const ADVERTISING_TAG_REGISTRY = Object.freeze([
   { id: "product-print-decals-product-10", group: "variant", productId: "printing-decals/decals-banners-canvas", labelVi: "In bạt Hiflex", labelEn: "Hiflex banner printing" },
   { id: "product-print-decals-product-11", group: "variant", productId: "printing-decals/decals-banners-canvas", labelVi: "Decal dán kính, tường, xe và tem cắt bế", labelEn: "Window, wall, vehicle and die-cut decals" },
   { id: "product-print-decals-product-12", group: "variant", productId: "printing-decals/decals-banners-canvas", labelVi: "Tranh Canvas và tranh treo tường", labelEn: "Canvas and decorative wall prints" },
+  { id: "variant-led-neon", group: "variant", productId: "led-displays/led-sign-boards", labelVi: "Bảng hiệu LED neon", labelEn: "LED neon signs" },
   { id: "format-landscape", group: "framing", labelVi: "Khung ngang", labelEn: "Landscape framing" },
   { id: "format-square", group: "framing", labelVi: "Khung vuông", labelEn: "Square framing" },
   { id: "format-portrait", group: "framing", labelVi: "Khung dọc", labelEn: "Portrait framing" },
 ]);
 
 const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
-  "mobile-retail-27": ["group-mobile-retail","product-mobile-retail-product-02","format-landscape"],
+  "mobile-retail-27": ["group-mobile-retail","product-mobile-retail-product-02","variant-led-neon","format-landscape"],
   "kiosk-posm-41": ["group-kiosk-posm","product-kiosk-posm-product-08","format-square"],
   "kiosk-posm-42": ["group-kiosk-posm","product-kiosk-posm-product-08","format-square"],
   "kiosk-posm-43": ["group-kiosk-posm","product-kiosk-posm-product-08","format-square"],
@@ -108,7 +109,7 @@ const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
   "signage-raised-letters-30": ["group-signage-raised-letters","product-signage-raised-letters-product-06","format-landscape"],
   "signage-raised-letters-31": ["group-signage-raised-letters","product-signage-raised-letters-product-07","format-landscape"],
   "signage-raised-letters-32": ["group-signage-raised-letters","product-signage-raised-letters-product-07","format-landscape"],
-  "signage-raised-letters-33": ["group-signage-raised-letters","product-signage-raised-letters-product-07","format-portrait"],
+  "signage-raised-letters-33": ["group-signage-raised-letters","product-signage-raised-letters-product-07","variant-led-neon","format-portrait"],
   "signage-raised-letters-34": ["group-signage-raised-letters","product-signage-raised-letters-product-01","format-landscape"],
   "kiosk-posm-38": ["group-kiosk-posm","product-kiosk-posm-product-11","format-landscape"],
   "office-signs-wayfinding-32": ["group-office-signs-wayfinding","product-office-signs-wayfinding-product-01","format-portrait"],
@@ -118,7 +119,7 @@ const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
   "led-displays-lightboxes-22": ["group-led-displays-lightboxes","product-led-displays-lightboxes-product-10","format-landscape"],
   "led-displays-lightboxes-23": ["group-led-displays-lightboxes","product-led-displays-lightboxes-product-10","format-portrait"],
   "kiosk-posm-39": ["group-kiosk-posm","product-kiosk-posm-product-11","format-portrait"],
-  "kiosk-posm-40": ["group-kiosk-posm","product-kiosk-posm-product-11","format-portrait"],
+  "kiosk-posm-40": ["group-kiosk-posm","product-kiosk-posm-product-11","variant-led-neon","format-portrait"],
   "signage-raised-letters-35": ["group-signage-raised-letters","product-signage-raised-letters-product-10","format-square"],
   "signage-raised-letters-36": ["group-signage-raised-letters","product-signage-raised-letters-product-10","format-portrait"],
   "led-displays-lightboxes-24": ["group-led-displays-lightboxes","product-led-displays-lightboxes-product-10","format-portrait"],
@@ -126,7 +127,7 @@ const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
   "mobile-retail-23": ["group-mobile-retail","product-mobile-retail-product-05","format-landscape"],
   "mobile-retail-24": ["group-mobile-retail", "product-mobile-retail-product-02", "format-landscape"],
   "mobile-retail-25": ["group-mobile-retail", "product-mobile-retail-product-06", "format-portrait"],
-  "mobile-retail-26": ["group-mobile-retail", "product-mobile-retail-product-01", "format-portrait"],
+  "mobile-retail-26": ["group-mobile-retail", "product-mobile-retail-product-01", "variant-led-neon", "format-portrait"],
   "mobile-retail-21": ["group-mobile-retail", "product-mobile-retail-product-09", "format-landscape"],
   "print-decals-21": ["group-print-decals", "product-print-decals-product-11", "format-landscape"],
   "office-signs-wayfinding-31": ["group-office-signs-wayfinding","product-office-signs-wayfinding-product-11","format-landscape"],
@@ -503,7 +504,7 @@ const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "kiosk-posm-32": ["displays-booths/standees-backdrops-posm", "displays-booths/display-shelves-cabinets"],
   "kiosk-posm-38": ["displays-booths/standees-backdrops-posm", "led-displays/decorative-led"],
   "kiosk-posm-39": ["displays-booths/standees-backdrops-posm", "signage/raised-letters"],
-  "kiosk-posm-40": ["displays-booths/standees-backdrops-posm", "led-displays/decorative-led"],
+  "kiosk-posm-40": ["displays-booths/standees-backdrops-posm", "led-displays/led-sign-boards", "led-displays/decorative-led"],
   "kiosk-posm-41": ["displays-booths/sampling-booths-reception-counters", "displays-booths/standees-backdrops-posm"],
   "kiosk-posm-42": ["displays-booths/sampling-booths-reception-counters", "displays-booths/standees-backdrops-posm"],
   "kiosk-posm-43": ["displays-booths/sampling-booths-reception-counters", "displays-booths/standees-backdrops-posm"],
@@ -532,8 +533,8 @@ const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "mobile-retail-22": ["mobile-retail/mobile-counters", "mobile-retail/carts"],
   "mobile-retail-23": ["mobile-retail/mobile-counters", "mobile-retail/carts"],
   "mobile-retail-25": ["mobile-retail/mobile-counters", "displays-booths/retail-kiosks", "signage/raised-letters"],
-  "mobile-retail-26": ["mobile-retail/carts", "led-displays/decorative-led"],
-  "mobile-retail-27": ["mobile-retail/carts", "led-displays/decorative-led", "led-displays/led-sign-boards"],
+  "mobile-retail-26": ["mobile-retail/carts", "led-displays/led-sign-boards", "led-displays/decorative-led"],
+  "mobile-retail-27": ["mobile-retail/carts", "led-displays/led-sign-boards", "led-displays/decorative-led"],
   "office-signs-wayfinding-02": ["office-signs/wayfinding-building-directories"],
   "office-signs-wayfinding-07": ["office-signs/desk-nameplates", "office-signs/wayfinding-building-directories"],
   "office-signs-wayfinding-08": ["office-signs/room-signs", "office-signs/wayfinding-building-directories"],
@@ -565,14 +566,14 @@ const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "signage-raised-letters-23": ["signage/aluminium-signs-facades", "office-signs/wayfinding-building-directories"],
   "signage-raised-letters-24": ["signage/aluminium-signs-facades", "printing-decals/decals-banners-canvas"],
   "signage-raised-letters-28": ["signage/raised-letters", "signage/aluminium-signs-facades"],
-  "signage-raised-letters-33": ["signage/raised-letters", "led-displays/decorative-led"],
+  "signage-raised-letters-33": ["signage/raised-letters", "led-displays/led-sign-boards", "led-displays/decorative-led"],
   "signage-raised-letters-34": ["signage/aluminium-signs-facades", "signage/raised-letters", "led-displays/decorative-led"],
   "signage-raised-letters-35": ["signage/projecting-signs", "signage/light-boxes"],
   "signage-raised-letters-36": ["signage/projecting-signs", "signage/light-boxes"],
 });
 
 const productIdByLegacyKey = new Map(ADVERTISING_TAG_REGISTRY
-  .filter((tag) => tag.group === "variant")
+  .filter((tag) => tag.group === "variant" && tag.id.startsWith("product-"))
   .map((tag) => [tag.id.slice("product-".length), tag.productId]));
 
 export function attachPhotoMetadata(records) {
