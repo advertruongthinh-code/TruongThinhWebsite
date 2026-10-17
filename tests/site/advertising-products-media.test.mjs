@@ -375,6 +375,8 @@ const PLAN_RELABELS = {
   "mobile-retail-05": ["mobile-retail/mobile-counters", "displays-booths/sampling-booths-reception-counters"],
   "print-decals-21": ["printing-decals/decals-banners-canvas", "office-signs/room-signs"],
   "signage-raised-letters-14": ["signage/aluminium-signs-facades", "signage/light-boxes"],
+  // Biển neon nay là LED neon, sản phẩm chính Bảng hiệu LED (owner 2026-10-18).
+  "signage-raised-letters-33": ["led-displays/led-sign-boards"],
 };
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
