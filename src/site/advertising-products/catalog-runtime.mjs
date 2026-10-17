@@ -1353,7 +1353,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const isRailCurrent = (slug) => filter === slug || filter.startsWith(`${slug}/`);
   // Rail hai tầng (taxonomy R3): cụm đang chọn hiện hàng chip; mục sản phẩm đúng filter có aria-current.
   const chipGroups = [...container.querySelectorAll("[data-advertising-chips]")];
-  const syncRail = () => {
+  // Phần tử hiện sau khi bấm rail dùng lại nhịp entrance Advertising ([Motion](design-system/motion.md)); reduced motion vào thẳng trạng thái cuối.
+  const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
+    if (reducedMotionQuery.matches) return;
+    nodes.forEach((node, index) => {
+      node.getAnimations().forEach((animation) => animation.cancel());
+      node.animate([{ opacity: 0, transform }, { opacity: 1, transform: "none" }], {
+        duration, easing, delay: delay + index * stagger, fill: "backwards",
+      });
+    });
+  };
+  const syncRail = ({ animate = false } = {}) => {
     filters.querySelectorAll("[data-advertising-filter]").forEach((item) => {
       item.setAttribute("aria-current", String(isRailCurrent(item.dataset.advertisingFilter)));
     });
@@ -1361,7 +1371,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       item.setAttribute("aria-current", String(item.dataset.advertisingProduct === filter));
     });
     chipGroups.forEach((group) => {
+      const wasHidden = group.hidden;
       group.hidden = !isRailCurrent(group.dataset.advertisingChips);
+      // Chip hiện cùng nhịp filter rail lúc tải trang (y 20, 1s expo.out, stagger 0.15s), sau kicker 0.3s; đổi sản phẩm trong cụm không chạy lại.
+      if (animate && wasHidden && !group.hidden) {
+        enterFrom([...group.querySelectorAll(".rail-chip")], "translate3d(0, 20px, 0)", { duration: 1000, easing: "cubic-bezier(0.16, 1, 0.3, 1)", delay: 300, stagger: 150 });
+      }
       // Hàng chip cuộn ngang trên điện thoại: đưa chip đang chọn vào khung, chỉ trục ngang để không kéo trang.
       const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
       if (current) group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
@@ -2622,7 +2637,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
 
   // Title và kicker theo trang của filter (taxonomy R4); data-vi, data-en giữ cho lần đổi ngôn ngữ sau.
-  const syncPageHeading = () => {
+  const syncPageHeading = ({ animate = false } = {}) => {
     const page = pages.find((entry) => entry.filter === filter) || pages.find((entry) => entry.filter === "all");
     if (!page) return;
     const english = locale === "en";
@@ -2633,7 +2648,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!node) continue;
       node.dataset.vi = vi;
       node.dataset.en = en;
-      node.textContent = english ? en : vi;
+      const text = english ? en : vi;
+      const changed = node.textContent !== text;
+      node.textContent = text;
+      // Kicker đổi chữ vào lại như entrance Advertising: opacity 0 và x -60px, 0.6s --ease.
+      if (animate && changed && node.hasAttribute("data-motion-hero-kicker")) {
+        enterFrom([node], "translate3d(-60px, 0, 0)", { duration: 600, easing: "cubic-bezier(0, 0, 0.26, 1)" });
+      }
     }
   };
   const setActiveFilter = (nextFilter, { animate = false } = {}) => {
@@ -2646,8 +2667,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     resetSkeletonAssignments();
     skeletonRatioBandBySlot.clear();
     filter = nextFilter;
-    syncRail();
-    syncPageHeading();
+    syncRail({ animate });
+    syncPageHeading({ animate });
     measure({ animate, origins });
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;

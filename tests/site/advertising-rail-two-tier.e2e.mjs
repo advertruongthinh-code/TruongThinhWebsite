@@ -43,8 +43,17 @@ try {
   page.on("request", (request) => { if (request.resourceType() === "document") documents.push(request.url()); });
   await page.locator('[data-advertising-filter="signage"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
+  // Bấm cụm: kicker đổi chữ và hàng chip vừa hiện đều chạy entrance (opacity 0 trước khi vào).
+  const entrance = () => page.evaluate(() => ({
+    kicker: document.querySelector("[data-motion-hero-kicker]").getAnimations().filter((a) => !(a instanceof CSSTransition)).length,
+    chips: [...document.querySelectorAll(".rail-chips:not([hidden]) .rail-chip")].map((chip) => chip.getAnimations().filter((a) => !(a instanceof CSSTransition)).length),
+  }));
+  const clusterEntrance = await entrance();
+  assert.equal(clusterEntrance.kicker, 1, "kicker chạy lại entrance khi đổi chữ");
+  assert.ok(clusterEntrance.chips.length > 1 && clusterEntrance.chips.every((count) => count === 1), "mỗi chip của cụm vừa hiện có entrance");
   await page.locator(`.rail-chips:not([hidden]) [data-advertising-product="${product}"]`).click();
   await page.waitForFunction((target) => location.pathname === target, productPath);
+  assert.equal((await entrance()).chips.reduce((a, b) => a + b, 0) <= clusterEntrance.chips.length, true, "đổi sản phẩm trong cụm không chạy lại entrance chip");
   await page.waitForTimeout(800);
   const afterChip = await railState(page);
   assert.deepEqual(documents, [], "đổi filter không tải document");
@@ -80,6 +89,17 @@ try {
   assert.deepEqual((await railState(page)).current, ["all"], "navbar đưa bộ lọc về Tất cả");
   assert.deepEqual(documents, [], "chip, Tất cả và navbar không tải document");
   await page.close();
+
+  // Reduced motion: kicker và chip vào thẳng trạng thái cuối, không animation.
+  const calm = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  await calm.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await calm.waitForSelector("[data-advertising-card]");
+  await calm.locator('[data-advertising-filter="signage"]').click();
+  await calm.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
+  assert.equal(await calm.evaluate(() => [
+    ...document.querySelectorAll("[data-motion-hero-kicker], .rail-chips:not([hidden]) .rail-chip"),
+  ].flatMap((node) => node.getAnimations()).filter((animation) => !(animation instanceof CSSTransition)).length), 0, "reduced motion không có entrance");
+  await calm.close();
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await phone.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
