@@ -194,7 +194,11 @@ function selectCardMedia(record) {
     // Card thuộc cụm của sản phẩm chính (taxonomy R1); fixture test không có productIds thì giữ category.
     category: card.productIds ? clusterIdByProductId.get(card.productIds[0]) : card.category,
     // Sản phẩm của ảnh cũng là tag nhóm product, nên ?tag= và nút gợi ý chạy với sản phẩm mới (taxonomy R7).
-    ...(card.productIds ? { tagIds: [...card.productIds, ...card.tagIds] } : {}),
+    // clusterIds: cụm của từng sản phẩm, cùng thứ tự productIds, để lọc và xếp hạng theo cụm (taxonomy R1).
+    ...(card.productIds ? {
+      tagIds: [...card.productIds, ...card.tagIds],
+      clusterIds: card.productIds.map((id) => clusterIdByProductId.get(id)),
+    } : {}),
     media: selectedMedia,
     mediaItems,
     coverMediaId,

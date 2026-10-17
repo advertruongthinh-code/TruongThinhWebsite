@@ -66,7 +66,7 @@ And body có is-advertising-browse, floating CTA không hiện
 Dữ liệu tĩnh trong `catalog.mjs`, `media-manifest.mjs`, `photo-tags.mjs`, `taxonomy.mjs`; `media-contract.mjs` kiểm. Rail
 và filter chạy theo sáu cụm ([phân loại R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)): `ADVERTISING_CATEGORIES` có `slug` là id cụm, nhãn rail; sáu
 nhóm cũ (`kiosk-posm`...) chỉ còn trong manifest và `ADVERTISING_LEGACY_CATEGORIES` cho trang tương thích. Mỗi card có `id`,
-`category` (cụm của sản phẩm chính), `sourceOrder` (đếm lại trong cụm), `productKey`, `productIds` ([phân loại R2](advertising-taxonomy.md#r2-dữ-liệu-phân-loại-sửa-được)),
+`category` (cụm của sản phẩm chính), `clusterIds` (cụm của từng sản phẩm), `sourceOrder` (đếm lại trong cụm), `productKey`, `productIds` ([phân loại R2](advertising-taxonomy.md#r2-dữ-liệu-phân-loại-sửa-được)),
 tên và mô tả VI/EN, `tagIds`, `media` (`src`, `sourceId`, `width`, `height`, alt VI/EN, `source`, `sha256`, `provenance`),
 `mediaItems`, `coverMediaId`, `rank`. Pool bị từ chối khi: trùng `id`, `src` hoặc `sourceId`; thiếu chữ VI/EN, provenance
 hay kích thước dương; tag hoặc sản phẩm không có; dữ liệu phân loại sai (phân loại R2); cụm thiếu một trong bốn loại tỷ lệ
@@ -86,8 +86,8 @@ Then validator từ chối pool và nêu id trùng
 ### R3. Filter
 
 Rail `.project-filters` (`role="group"`) có bảy link `[data-advertising-filter]`: `all` ("Tất cả" / "All", về URL gốc)
-rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML, `href` là trang cụm theo slug locale); mục đang chọn có `aria-current="true"`. Cụm lấy card có sản phẩm chính
-thuộc cụm. `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All. Không có `?category=` thì filter theo path trang cụm, sản phẩm ([taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)); đổi filter ghi path trang của filter đó theo slug locale (đổi `document.title` và kicker), filter không có trang về URL gốc kèm `?category=`.
+rồi sáu cụm theo thứ tự `taxonomy.mjs` (build sinh vào HTML, `href` là trang cụm theo slug locale); mục đang chọn có `aria-current="true"`. Cụm lấy card có ít nhất một sản phẩm
+thuộc cụm, xếp theo hạng ([taxonomy R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)). `?category=` nhận id cụm, slug VI/EN, slug nhóm cũ (cùng kết quả) hoặc id sản phẩm (mọi card gắn sản phẩm đó); runtime ghi slug cụm theo locale; lạ thì về All. Không có `?category=` thì filter theo path trang cụm, sản phẩm ([taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)); đổi filter ghi path trang của filter đó theo slug locale (đổi `document.title` và kicker), filter không có trang về URL gốc kèm `?category=`.
 Click chính không phím bổ trợ: không tải document, không request, không cuộn bằng code; URL đổi bằng `replaceState`
 (không thêm history entry); card đổi vị trí theo R6; container, hero, thứ tự và vị trí bảy nút giữ nguyên. Click có
 phím bổ trợ hoặc chuột giữa đi theo trình duyệt. Click trước khi runtime sẵn sàng (chỉ gặp khi không có veil
@@ -108,7 +108,7 @@ And mỗi lần bấm, aria-current nằm trên đúng một nút
 ### R4. Thứ tự ngẫu nhiên theo lượt duyệt
 
 Mỗi lượt duyệt có một seed (`createAdvertisingSeed`). Pool của mỗi filter được xáo Fisher-Yates bằng seed với scope
-`grid:<filter>`, nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ. Khi pool có ít nhất 2 ảnh cao (h/w
+`grid:<filter>` rồi xếp ổn định theo hạng (`advertisingFilterRank`, taxonomy R1), nên về lại một filter trong cùng lượt cho lại đúng thứ tự cũ. Khi pool có ít nhất 2 ảnh cao (h/w
 `>= 1.15`) và 2 ảnh thấp (`<= 0.9`), solver organic có thể đổi thứ tự trình bày để 12 card đầu có cả hai loại, không
 quá 4 ảnh cùng loại liền nhau; không cải thiện được thì giữ thứ tự seed và ghi lý do. Seed mới khi F5, mở URL trực tiếp,
 vào trang bằng link hoặc route mềm mới. Seed giữ khi đổi filter, mở và đóng detail, Back/Forward (seed nằm trong history
@@ -164,7 +164,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 193 card, đang ở đầu trang
+Given masonry All 194 card, đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```

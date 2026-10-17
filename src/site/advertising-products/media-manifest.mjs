@@ -194,6 +194,7 @@ const MEDIA_ROWS = [
   ["kiosk-posm-41","kiosk-posm",40,"kiosk-posm-product-08","Quầy lễ tân sự kiện","Event reception counters","imagegen:2026-10-15:kiosk-posm-08-x1","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-41-imagegen-20261015.webp",1254,1254],
   ["kiosk-posm-42","kiosk-posm",41,"kiosk-posm-product-08","Quầy lễ tân sự kiện","Event reception counters","imagegen:2026-10-15:kiosk-posm-08-x3","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-42-imagegen-20261015.webp",1254,1254],
   ["mobile-retail-27","mobile-retail",26,"mobile-retail-product-02","Xe bán cafe","Mobile coffee carts","imagegen:2026-10-15:new-led-decor-c12","/assets/content/projects/advertising/mobile-retail/mobile-retail-27-imagegen-20261015.webp",1448,1086],
+  ["kiosk-posm-43","kiosk-posm",42,"kiosk-posm-product-08","Quầy lễ tân sự kiện","Event reception counters","imagegen:2026-10-17:kiosk-posm-08-x2","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-43-imagegen-20261017.webp",1254,1254],
 ];
 
 const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
