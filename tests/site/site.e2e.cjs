@@ -1743,7 +1743,7 @@ async function runPortalAlignmentChecks() {
           } else {
           assert(
             state.capabilityCards[1]?.title ===
-              (locale === "vi" ? "Xưởng CNC" : "Workshop & CNC"),
+              (locale === "vi" ? "Xưởng CNC" : "Workshop"),
             `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
           );
           assert(

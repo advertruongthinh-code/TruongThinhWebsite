@@ -1516,23 +1516,14 @@ em {
   transform: none;
 }
 
-/* Năng lực dùng token chung; copy dài hơn (Workshop & CNC, năm bước) nên trần cqw thấp hơn để giữ một dòng. */
+/* Năng lực cùng token chữ portal toàn site; copy giữ đủ ngắn để vừa một dòng (page-home R5). */
 #nang-luc .portal-copy .portal-title-mask {
-  font-size: min(var(--portal-title-size), 11cqw);
+  font-size: var(--portal-title-size);
   white-space: nowrap;
 }
 
-html[lang="en"] #nang-luc .portal-copy .portal-title-mask {
-  font-size: min(var(--portal-title-size), 8.4cqw);
-}
-
-html[lang="en"] #nang-luc .portal-subtitle {
-  font-size: min(var(--portal-subtitle-size), 3.1cqw);
-}
-
 #nang-luc .portal-subtitle {
-  /* 3.3cqw: phụ đề Quy trình năm bước vẫn một dòng, cách mép card ít nhất 8px cả khi font CI render rộng hơn (page-home R5). */
-  font-size: min(var(--portal-subtitle-size), 3.3cqw);
+  font-size: var(--portal-subtitle-size);
   white-space: nowrap;
 }
 
