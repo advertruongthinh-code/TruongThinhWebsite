@@ -74,6 +74,20 @@ try {
 
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
+  // Chip sản phẩm chưa có trang (taxonomy R5): lọc tại chỗ, URL là trang cụm kèm ?category=, kicker của cụm.
+  const menus = "printing-decals/menus";
+  const menuUrl = "/vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus";
+  const menuIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(menus)).map((card) => card.id));
+  await page.locator('[data-advertising-filter="printing-decals"]').click();
+  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/in-an-decal/");
+  await page.locator(`.rail-chips:not([hidden]) [data-advertising-product="${menus}"]`).click();
+  await page.waitForFunction((target) => location.pathname + location.search === target, menuUrl);
+  await page.waitForTimeout(800);
+  const menuShown = await page.evaluate(() => [...document.querySelectorAll(".advertising-grid [data-advertising-card]")].map((node) => node.dataset.advertisingCard));
+  assert.ok(menuIds.size >= 3 && menuIds.size < 9, "Menu có 3 tới 8 ảnh");
+  assert.deepEqual(menuShown.sort(), [...menuIds].sort(), "masonry chỉ còn card Menu");
+  assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
+  assert.equal(await page.locator("[data-motion-hero-kicker]").textContent(), "In ấn, decal & menu", "kicker giữ tên cụm");
   await page.locator('[data-advertising-filter="all"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/");
   assert.deepEqual((await railState(page)).chips, [], "về Tất cả thì hàng chip ẩn");
@@ -88,6 +102,16 @@ try {
     && window.TruongThinhMotion.getLogicalScroll() < 1);
   assert.deepEqual((await railState(page)).current, ["all"], "navbar đưa bộ lọc về Tất cả");
   assert.deepEqual(documents, [], "chip, Tất cả và navbar không tải document");
+  // Tải thẳng URL chip chưa có trang: filter đặt sẵn, URL giữ nguyên, canonical là trang cụm.
+  await page.goto(`${baseUrl}${menuUrl}`, { waitUntil: "networkidle" });
+  await page.waitForSelector("[data-advertising-card]");
+  assert.equal(await page.evaluate(() => location.pathname + location.search), menuUrl);
+  assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "/vi/advertising-products/in-an-decal/");
+  assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
+  // URL trang sản phẩm đã mất (tụt ngưỡng R5) trả 404 của cụm rồi chuyển về trang cụm.
+  const gone = await page.goto(`${baseUrl}/vi/advertising-products/in-an-decal/menu/?utm=a`);
+  assert.equal(gone.status(), 404);
+  await page.waitForURL(`${baseUrl}/vi/advertising-products/in-an-decal/?utm=a`);
   await page.close();
 
   // Reduced motion: kicker và chip vào thẳng trạng thái cuối, không animation.

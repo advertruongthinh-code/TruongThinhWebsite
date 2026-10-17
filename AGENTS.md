@@ -124,7 +124,7 @@ Ponytail chạy theo bốn mốc:
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
 | Codebase, skill, plugin, MCP, Graphify, Serena | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
-| Giao thread, subagent, chọn model/effort | [Model và effort routing](docs/operations/agent-rule-model-routing.md) |
+| Giao thread, chọn model/effort | [Model và effort routing](docs/operations/agent-rule-model-routing.md) |
 
 ## Scripts map
 

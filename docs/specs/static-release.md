@@ -22,7 +22,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-15
+updated: 2026-10-18
 ---
 
 # Phát hành tĩnh
@@ -54,13 +54,13 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 
 Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
 chạy `compileAdvertisingLayout` ở 320, 390, 768, 1024, 1440, 1920, 2560 px với
-filter `all` và sáu cụm. Filter có card mà layout báo `needs-media` hoặc
-thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
+filter `all`, sáu cụm và mọi sản phẩm có chip ([taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-chip-và-trang-mỏng)). Filter có card mà layout báo `needs-media` hoặc thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`. Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
 `vi/advertising-products/<slug VI>/` và `en/advertising-products/<slug EN>/`: title, meta, canonical, hreflang vi, en,
-x-default (path gốc, chưa có origin), mục rail đang chọn, link ngôn ngữ trỏ path trang ở từng locale, `<noscript>` có đoạn giới thiệu và link mọi trang.
+x-default (path gốc, chưa có origin), mục rail đang chọn, link ngôn ngữ trỏ path trang ở từng locale, `<noscript>` có đoạn giới thiệu và link mọi trang;
+mỗi thư mục cụm có `404.html` dạng trang R7 trỏ trang cụm, cho URL sản phẩm đã mất trang.
 
 ```gherkin
 Given một category có card nhưng layout ở 390 px thiếu vị trí
