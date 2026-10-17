@@ -200,11 +200,12 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 `.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Rule CTA chung (owner 2026-10-15) cho CTA này, khối
 "Giữ nghề" ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) và CTA Advertising: tiêu đề
-canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`); eyebrow (nếu có) ở trên, nút ở
+canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,
+[R3](advertising-cta-center-parallax.md#r3-tiêu-đề-luôn-lớn-hơn-nút)); eyebrow (nếu có) ở trên, nút ở
 dưới. Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm
 44px, gạch chân 3px chạy từ trái khi hover hoặc focus. Lớp bấm `::before` của nút phủ cả khối (cắt bởi `overflow: clip`),
-nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút. Dấu chấm cuối `h2` là `.text-hang-end` treo ra lề
-(rule chung `.text-hang-end` rộng 0 trong `style.css`) để phần chữ canh giữa cùng eyebrow và nút; `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
+nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút. Dấu chấm cuối `h2` là `.text-hang-end` nhưng không treo
+(`.detail-cta__copy .text-hang-end` rộng auto): cả dòng kể cả dấu nằm giữa khối (owner 2026-10-17); `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, gallery, portal, CTA nằm dưới chữ trắng: chưa giải mã xong

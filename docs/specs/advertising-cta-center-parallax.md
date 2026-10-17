@@ -67,8 +67,10 @@ And chân chữ dòng cuối cách đáy batch đúng D
 
 ### R3. Tiêu đề luôn lớn hơn nút
 
-Tiêu đề không nhỏ hơn `1.3rem` (20.8px), vẫn lớn hơn nhãn nút (`1rem`). Cỡ chữ gốc là cỡ CTA chung
-([trang con R10](detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)) giới hạn `14svh`; hai quy tắc màn thấp
+Tiêu đề không nhỏ hơn `1.3rem` (20.8px), vẫn lớn hơn nhãn nút (`1rem`). Cỡ chữ gốc riêng, không theo cỡ CTA chung
+([trang con R10](detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)): `min(clamp(2.5rem, 4.5vw, 5rem), 14svh)`,
+phone tới 750px `clamp(1.7rem, 8.8vw, 2rem)`, xuống dòng thường (không `balance`). Owner 2026-10-17: cỡ chung làm cụm CTA cao,
+Kính phủ hết batch và CTA mất vị trí đẹp ở cuối trang. Hai quy tắc màn thấp
 (`max-height: 640px`, rộng tới 750px hoặc từ 751px) có mức tối thiểu `1.3rem`. Tiêu đề
 không có transition để runtime đo đúng cỡ mới ngay.
 

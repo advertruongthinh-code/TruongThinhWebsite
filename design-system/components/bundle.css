@@ -3784,6 +3784,11 @@ html[lang="vi"]
   word-spacing: var(--word-spacing-display);
 }
 
+/* Dấu chấm cuối không treo: cả dòng kể cả dấu nằm giữa khối (owner 17/10). */
+.detail-cta__copy .text-hang-end {
+  width: auto;
+}
+
 .detail-cta__copy a {
   display: inline-flex;
   /* Vùng chạm 44px như .site-invitation__link; nhãn là .portal-subtitle như link Giữ nghề. */
@@ -6186,7 +6191,9 @@ body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
    dấu của dòng đầu trong overflow clip của CTA. */
 .detail-cta[data-advertising-grid-cta] h2 {
   padding-top: 0.15em;
-  font-size: min(var(--cta-title-size), 14svh);
+  /* Cỡ riêng, không theo --cta-title-size: chữ to hơn làm cụm CTA cao và Kính phủ hết batch (owner 17/10). */
+  font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
+  text-wrap: wrap;
   line-height: 1.2;
 }
 
@@ -6206,6 +6213,12 @@ body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
   display: flex;
   width: max-content;
   margin: var(--advertising-gap) auto 0;
+}
+
+@media (max-width: 750px) {
+  .detail-cta[data-advertising-grid-cta] h2 {
+    font-size: clamp(1.7rem, 8.8vw, 2rem);
+  }
 }
 
 @media (max-width: 750px) and (max-height: 640px) {
