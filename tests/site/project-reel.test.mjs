@@ -34,7 +34,7 @@ test("renders cards in order with escaped VI/EN text", async () => {
   const html = renderProjectReel(shuffled);
   assert.equal(html.match(/<figure class="project-card project-card--(?:high|mid|low)">/g).length, items.length);
   assert.ok(html.indexOf("workshop-wide-x2.webp") < html.indexOf("home-commercial-fnb-v2.webp"));
-  assert.match(html, /<figcaption data-en="Shophouse café">A &amp; &lt;b&gt;<\/figcaption>/);
+  assert.match(html, /<figcaption data-en="Café">A &amp; &lt;b&gt;<\/figcaption>/);
 });
 
 test("built home page has one card, image, alt pair and caption pair per data item", async () => {
