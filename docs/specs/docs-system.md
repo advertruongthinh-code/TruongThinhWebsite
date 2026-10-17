@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-12
+updated: 2026-10-17
 source:
   - scripts/docs/**
   - .github/pull_request_template.md
@@ -120,7 +120,7 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 | --- | --- |
 | ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
 | sync | PR đổi file thuộc `source` của spec mà không đổi spec đó, và mô tả PR không có dòng `Spec: không đổi - <lý do>` |
-| budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng |
+| budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
 ```gherkin
@@ -229,6 +229,12 @@ thay đổi mới nằm trong mô tả PR.
 - `docs/index.md` tối đa 80 dòng: bảng "việc cần làm" -> file.
 - `AGENTS.md` và `docs/operations/agent-rule-*.md` cập nhật path mới; living-docs
   gate trỏ tới `pnpm qa:docs` thay vì checklist chữ.
+- Ngân sách context: một task nạp `STATE` + `AGENTS.md` + một rule module + một spec,
+  không nạp cả thư mục. Rule module chia theo trigger, nội dung chỉ một loại task
+  (ví dụ rule ảnh AI tách khỏi rule QA chung). File `docs/reference/` chia theo họ
+  sản phẩm để brief chỉ nạp họ cần. Ngân sách byte trong `check-docs.mjs`:
+  `AGENTS.md` 15000, `agent-rule-ad-images.md` 16000, module `agent-rule-*` khác 8000,
+  mỗi file `docs/reference/` 24000; vượt thì tách, không nới số.
 
 ### R10. Notion chỉ giữ backlog
 
