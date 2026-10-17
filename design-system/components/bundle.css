@@ -3782,6 +3782,16 @@ html[lang="vi"]
   align-self: end;
 }
 
+/* Hộp tiêu đề đã ở tâm; dời cả cụm để nét chữ nhìn thấy (đỉnh chữ hoa tới chân chữ) ở tâm khối (owner 17/10).
+   Hệ số đo bằng Playwright: chữ chưa split nằm thấp 0.1em; route split nhấc dòng lên 0.1em sau reveal (detail.js). */
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy {
+  top: calc(var(--cta-title-size) * -0.1);
+}
+
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy:has(> h2 > .motion-line-mask) {
+  top: calc(var(--cta-title-size) * 0.03);
+}
+
 .detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy a {
   align-self: start;
   justify-self: center;
