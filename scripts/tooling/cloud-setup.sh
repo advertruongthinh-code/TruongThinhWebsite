@@ -2,6 +2,7 @@
 # Setup script cho môi trường cloud của Claude Code ("Default" tại claude.ai/code).
 # Cài global agent stack của owner cho mọi cloud session và mọi repo:
 # agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena.
+# Ponytail 5 bỏ ponytail-mcp; rule ultra nạp qua CLAUDE.md và skill.
 #
 # Rule của owner: chỉ skill, command, agent và MCP, không bao giờ dùng agent lifecycle hook.
 # Mỗi plugin nạp dưới dạng skills-directory plugin (~/.claude/skills/<name>/ cùng
@@ -26,24 +27,24 @@ fetch() { # <owner/repo> <sha>: checkout nông (shallow) của một commit đã
     git -C "$d" checkout -q FETCH_HEAD
 }
 
-fetch addyosmani/agent-skills a06bc63b3f8b829c14b0bbf53d99fefc39d58092 &
-fetch juliusbrussee/caveman aeb45e2f787c0757a8af383a291a280cb6aeb4c1 &
-fetch dietrichgebert/ponytail c982cd411abb53323c4baa1baa3c2f020b8d0b08 &
-fetch pbakaus/impeccable e103efe779e2dd01274dabae83531fef00bf2563 &
-fetch ayghri/i-have-adhd 839872f9d1cd634fed642b4589ce7226199cc15f &
-uv tool install -q --python 3.13 "graphifyy[all]==0.9.74" &
-uv tool install -q --python 3.13 "serena-agent==1.7.0" &
+fetch addyosmani/agent-skills aeac41d4d005999432bb7312f7ff06383a91d59d &
+fetch juliusbrussee/caveman a5705b01a5d877c34d44c4961f14816b21bfb72a &
+fetch dietrichgebert/ponytail 16352ac229eb08a9598dcae48fe9f2b342567d86 &
+fetch pbakaus/impeccable 8a0e198da34ebc5b936a9d5975fb7a3b1cf353b7 &
+fetch ayghri/i-have-adhd 1ecea1993b7fce257ffbd686c070948b5e07eda6 &
+uv tool install -q --python 3.13 "graphifyy[all]==0.9.92" &
+uv tool install -q --python 3.13 "serena-agent==2.0.0" &
 npm install -g --silent --no-audit --no-fund \
-  @caveman-ai/cli@2.0.1 impeccable@4.1.0 chrome-devtools-mcp@1.10.1 &
+  @caveman-ai/cli@4.0.1 impeccable@4.6.0 chrome-devtools-mcp@1.11.0 &
 wait
 
 # Binary đi kèm và runtime cache. Không bao giờ chạy `caveman enable`/`caveman claude`:
 # chúng đổi hướng ANTHROPIC_BASE_URL qua proxy local và làm hỏng cloud session.
 caveman telemetry off >/dev/null
 caveman setup --install </dev/null
-(cd "$T/src/ponytail/ponytail-mcp" && npm install --silent --no-audit --no-fund --omit=dev)
-# Ẩn npm CLI (engine 0.1.5) để launcher cache engine đã pin của skill.
+# Ẩn npm CLI để launcher cache engine đã pin của skill (engine 0.1.15).
 PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
+# Serena 2 mặc định giao diện REPL (2 tool); MCP truyền --agent-interface tools để giữ bộ tool cũ.
 "$BIN/serena" init </dev/null >/dev/null
 
 # Global rules: bản sao của block codex:global-stack trong scripts/tooling/bootstrap.ps1
@@ -74,7 +75,7 @@ EOF
 chmod +x /usr/local/bin/chromium
 
 # Gỡ hook tại chỗ: bỏ hooks/hooks.json mặc định và key `hooks` trong manifest.
-# Giữ nguyên hooks/ (ponytail-mcp import từ đó). Thư mục component là symlink bị
+# Giữ nguyên phần còn lại của hooks/. Thư mục component là symlink bị
 # từ chối với lỗi "path escapes plugin directory", nên link chính root của checkout.
 unhook() { # <checkout> <name>
   local m="$1/.claude-plugin/plugin.json"
@@ -106,9 +107,8 @@ EOF
 cat > "$P/.mcp.json" <<EOF
 {"mcpServers": {
   "serena": {"command": "$BIN/serena", "args": ["start-mcp-server", "--context", "claude-code",
-    "--project-from-cwd", "--enable-web-dashboard", "false", "--open-web-dashboard", "false"]},
+    "--project-from-cwd", "--agent-interface", "tools", "--enable-web-dashboard", "false", "--open-web-dashboard", "false"]},
   "graphify": {"command": "$BIN/graphify-mcp"},
-  "ponytail": {"command": "node", "args": ["$T/src/ponytail/ponytail-mcp/index.js"]},
   "chrome-devtools": {"command": "chrome-devtools-mcp", "args": ["--headless", "--isolated",
     "--executablePath", "/usr/local/bin/chromium", "--no-usage-statistics",
     "--no-performance-crux", "--redact-network-headers"]},
@@ -122,7 +122,7 @@ ln -sfnT "$P" "$CFG/skills/cloud-stack"
 for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
   "$CFG/skills/graphify/SKILL.md" "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} \
   "$HOME"/.caveman/bin/{caveman-mcp,caveman-browse,cavemem} \
-  "$T/src/ponytail/ponytail-mcp/node_modules" "$HOME/.impeccable/bin"; do
+  "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"
 done
 for c in caveman impeccable chrome-devtools-mcp; do

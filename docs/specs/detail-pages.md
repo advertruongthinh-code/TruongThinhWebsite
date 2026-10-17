@@ -63,7 +63,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
-| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office"); ba tiêu đề cùng `font-weight` 700 | ink |
+| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office") | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
 
@@ -166,7 +166,7 @@ Kéo, vuốt như gallery Espacio (owner 2026-10-17, đo 2026-10-18): gallery c�
 0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải
 trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen
 20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
-Ảnh `draggable=false`, chặn `dragstart`. Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
+Ảnh `draggable=false`, chặn `dragstart`; hàng chấm nằm trong track như Espacio và cả track nhận kéo (`touchEventsTarget: "container"`), nên kéo bắt đầu ở khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption (chữ vẫn chọn được). Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
 snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: năm chuỗi công trình theo thứ tự nhà
 ống, nhà giếng trời, căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
 ngoại thất; nhà phố ba tầng: bếp), theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4).

@@ -12,10 +12,10 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 ## Pin
 
-| Scope | Nội dung đã cài (2026-10-03) |
+| Scope | Nội dung đã cài (2026-10-17) |
 | --- | --- |
-| User global | Serena 1.7.0, Graphify 0.9.74, uv 0.12.22, Chrome DevTools MCP 1.10.1, Impeccable CLI 4.1.0/skill 4.5.0, jq 1.8.2, 56 direct skill và native persona |
-| Project | pnpm 12.8.1, Playwright 1.63.0, browser engine, static Node preview, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
+| User global | Serena 2.0.0, Graphify 0.9.92, uv 0.13.1, Chrome DevTools MCP 1.11.0, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 56 direct skill và native persona |
+| Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
 
 Năm plugin skill (agent-skills, caveman, ponytail, impeccable, i-have-adhd) cài
 từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill caveman
@@ -94,12 +94,12 @@ Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua 
 | Tool | Cài trên cloud |
 | --- | --- |
 | agent-skills | Plugin: 25 skill, 9 command, 4 agent, references |
-| caveman | Plugin: 22 skill (chỉ user gọi, `disable-model-invocation: true`), 3 agent, `/caveman-init`; CLI 2.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
-| ponytail | Plugin: 6 skill; MCP `ponytail` |
-| impeccable | Plugin: skill, 4 agent; engine 0.1.11 cache, CLI npm 4.1.0 |
+| caveman | Plugin: 22 skill (chỉ user gọi, `disable-model-invocation: true`), 3 agent, `/caveman-init`; CLI 4.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
+| ponytail | Plugin: 6 skill (bản 5 bỏ MCP `ponytail`) |
+| impeccable | Plugin: skill, 4 agent; engine 0.1.15 cache, CLI npm 4.6.0 |
 | i-have-adhd | Plugin: skill, tự gọi (script bỏ `disable-model-invocation`, giống override repo) |
-| graphify | `graphifyy[all]` 0.9.74, skill global, MCP `graphify` |
-| serena | `serena-agent` 1.7.0, MCP `--context claude-code --project-from-cwd` |
+| graphify | `graphifyy[all]` 0.9.92, skill global, MCP `graphify` |
+| serena | `serena-agent` 2.0.0, MCP `--context claude-code --project-from-cwd --agent-interface tools` (giữ bộ tool cũ thay REPL mặc định) |
 | Chrome DevTools | MCP headless, Chromium `/usr/local/bin/chromium` (`--no-sandbox` cho root) |
 
 Pin trong script khớp `tooling-versions.json`; đổi pin thì sửa cả hai rồi dán
@@ -175,9 +175,9 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 | Chrome DevTools | optional, approval prompt | DOM, accessibility, console, network, screenshot |
 
 Serena và Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
-Serena không bật language server Markdown: `.md`, `.mdx` nằm trong `ignored_extensions` của
-`scripts/tooling/serena-language-map.json` vì marksman ăn 1-3 GB RAM mỗi phiên (owner chọn 2026-10-14).
-Markdown đọc bằng tìm chữ và Graphify.
+Serena bật lại language server Markdown (marksman) theo owner 2026-10-17, thay quyết định tắt
+2026-10-14; marksman ăn 1-3 GB RAM mỗi phiên trên PC, RAM căng thì tắt lại qua
+`scripts/tooling/serena-language-map.json`.
 
 ## Chú thích thuật ngữ
 

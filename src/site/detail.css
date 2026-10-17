@@ -364,7 +364,8 @@ html[lang="vi"]
   gap: 20px;
 }
 
-/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ. */
+/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ.
+   Chấm nằm trong track như Espacio nên kéo từ khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption. */
 .detail-gallery__pagination {
   --swiper-pagination-color: var(--ink);
   --swiper-pagination-bottom: auto;
@@ -1388,7 +1389,6 @@ html[lang="en"]
   }
 
   .detail-page .service-portal {
-    display: grid;
     height: auto;
     min-height: max(calc(var(--site-layout-viewport-height) * 0.72), 34rem);
   }
@@ -1397,21 +1397,6 @@ html[lang="en"]
   .detail-page .service-portal > picture > img {
     position: absolute;
     inset: 0;
-  }
-
-  .detail-page .portal-copy {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    padding: 2rem 0.75rem;
-    justify-content: center;
-    transform: none;
-  }
-
-  .detail-page .portal-copy strong {
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
   }
 
   .about-hero .detail-title__strong {

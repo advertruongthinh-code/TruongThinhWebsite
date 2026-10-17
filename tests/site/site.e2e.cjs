@@ -1578,17 +1578,21 @@ async function runSmokeMatrix() {
 }
 
 async function runPortalAlignmentChecks() {
+  // Portal ba tầng dùng chung token chữ toàn site (page-home R5): trang chủ và loại hình trang con.
+  for (const [label, path] of [["root", ""], ["residential", "residential/"], ["commercial", "commercial/"]]) {
   for (const locale of ["vi", "en"]) {
     for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
+      if (path && ![320, 390, 961, 1440, 1920].includes(width)) continue;
       const viewport = { width, height: 900 };
+      const route = `/${locale}/${path}`;
       await runPageCase(
-        `root portal hierarchy and title anchor ${locale} ${width}x900`,
-        { route: `/${locale}/`, viewport },
+        `${label} portal hierarchy and title anchor ${locale} ${width}x900`,
+        { route, viewport },
         async (page) => {
           const diagnostics = monitorPage(page);
-          await gotoRoute(page, `/${locale}/`);
+          await gotoRoute(page, route);
           const state = await page.evaluate(() => ({
-            cards: [...document.querySelectorAll("#dich-vu .service-portal")].map(
+            cards: [...document.querySelectorAll(":is(#dich-vu, #loai-hinh) .service-portal")].map(
               (card) => {
                 const cardRect = card.getBoundingClientRect();
                 const upper = card.querySelector(".portal-title__quiet");
@@ -1695,13 +1699,16 @@ async function runPortalAlignmentChecks() {
                 return rect.left >= cardRect.left + 8 && rect.right <= cardRect.right - 8;
               })(),
             }));
-            return {
-              serviceTitles: read("#dich-vu .portal-title__strong"),
-              serviceKickers: read("#dich-vu .portal-title__quiet"),
-              serviceSubtitles: read("#dich-vu .portal-subtitle"),
-              capabilityTitles: read("#nang-luc .portal-title-mask"),
-              capabilitySubtitles: read("#nang-luc .portal-subtitle"),
+            const roles = {
+              serviceTitles: read(":is(#dich-vu, #loai-hinh) .portal-title__strong"),
+              serviceKickers: read(":is(#dich-vu, #loai-hinh) .portal-title__quiet"),
+              serviceSubtitles: read(":is(#dich-vu, #loai-hinh) .portal-subtitle"),
             };
+            if (document.querySelector("#nang-luc")) {
+              roles.capabilityTitles = read("#nang-luc .portal-title-mask");
+              roles.capabilitySubtitles = read("#nang-luc .portal-subtitle");
+            }
+            return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
             assert(
@@ -1727,9 +1734,16 @@ async function runPortalAlignmentChecks() {
             `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
+          if (path) {
+            // Trang con khớp token chữ portal trang chủ ở cùng bề rộng card.
+            assert(
+              state.cards.every((card) => card.titleWeight === "600" && card.upperWeight === "700" && card.lowerWeight === "700"),
+              `Detail portal weights drifted at ${route} ${width}px: ${JSON.stringify(state.cards)}`,
+            );
+          } else {
           assert(
             state.capabilityCards[1]?.title ===
-              (locale === "vi" ? "Xưởng CNC" : "Workshop & CNC"),
+              (locale === "vi" ? "Xưởng CNC" : "Workshop"),
             `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
           );
           assert(
@@ -1748,6 +1762,7 @@ async function runPortalAlignmentChecks() {
               state.advertisingImage.declaredHeight === 1448,
             `Advertising portal image contract drifted at ${locale} ${width}px: ${JSON.stringify(state.advertisingImage)}`,
           );
+          }
           assert(
             state.cards.every(
               (card) =>
@@ -1790,6 +1805,7 @@ async function runPortalAlignmentChecks() {
         },
       );
     }
+  }
   }
 }
 
@@ -8144,6 +8160,18 @@ async function runGalleryCheck() {
         `Gallery drag must follow the mouse then snap to the next image with its dot active: ${JSON.stringify(drag)}`,
       );
       assert(drag.nativeDrags === 0, `Gallery emitted ${drag.nativeDrags} dragstart events`);
+
+      // R7: kéo bắt đầu ở khe giữa caption và hàng chấm (ngoài track) không bôi đen caption (owner báo 2026-10-17).
+      const captionBox = await page.locator("[data-gallery-track] figcaption").nth(1).boundingBox();
+      assert(captionBox, "Gallery caption has no mouse target");
+      const captionY = captionBox.y + captionBox.height + 8;
+      await page.mouse.move(captionBox.x + captionBox.width * 0.6, captionY);
+      await page.mouse.down();
+      await page.mouse.move(captionBox.x - 160, captionY - 120, { steps: 12 });
+      await page.mouse.up();
+      const selected = await page.evaluate(() => window.getSelection().toString());
+      assert(selected === "", `Gallery drag selected text: ${JSON.stringify(selected)}`);
+      await page.waitForTimeout(700);
 
       // R7: chấm tròn 8px như Espacio, bấm chấm tới ảnh.
       const dots = await pagination.evaluateAll((bullets) => bullets.map((bullet) => {

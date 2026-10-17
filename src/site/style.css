@@ -76,6 +76,10 @@
   --tracking-display: 0.001px;
   /* Cỡ tiêu đề CTA dùng chung: Giữ nghề, CTA trang con, CTA Advertising (detail-pages R10). */
   --cta-title-size: clamp(3.2rem, 6vw, 7rem);
+  /* Chữ portal dùng chung toàn site (owner 2026-10-17): cqw tính theo card khi var() được dùng. */
+  --portal-title-size: min(4rem, 12cqw);
+  --portal-kicker-size: min(1.125rem, 4.2cqw);
+  --portal-subtitle-size: min(1rem, 3.8cqw);
   --word-spacing-body: 0.1em;
   --word-spacing-display: 0.1em;
   --word-spacing-montage: 0.1em;
@@ -1532,12 +1536,6 @@ em {
   font-weight: 700;
 }
 
-/* Kinh doanh: mọi dòng tiêu đề portal cùng weight với dòng strong (owner 2026-10-15) */
-[data-barba-namespace="commercial"] #loai-hinh .portal-copy strong,
-[data-barba-namespace="commercial"] #loai-hinh .portal-title__quiet {
-  font-weight: 700;
-}
-
 .portal-title-mask,
 .portal-title__quiet,
 .portal-title__strong {
@@ -1572,22 +1570,14 @@ em {
   transform: none;
 }
 
+/* Năng lực cùng token chữ portal toàn site; copy giữ đủ ngắn để vừa một dòng (page-home R5). */
 #nang-luc .portal-copy .portal-title-mask {
-  font-size: min(4rem, 11cqw);
+  font-size: var(--portal-title-size);
   white-space: nowrap;
 }
 
-html[lang="en"] #nang-luc .portal-copy .portal-title-mask {
-  font-size: min(4rem, 8.4cqw);
-}
-
-html[lang="en"] #nang-luc .portal-subtitle {
-  font-size: min(1rem, 3.1cqw);
-}
-
 #nang-luc .portal-subtitle {
-  /* 3.3cqw: phụ đề Quy trình năm bước vẫn một dòng, cách mép card ít nhất 8px cả khi font CI render rộng hơn (page-home R5). */
-  font-size: min(1rem, 3.3cqw);
+  font-size: var(--portal-subtitle-size);
   white-space: nowrap;
 }
 
@@ -1635,18 +1625,16 @@ html[lang="en"] #nang-luc .portal-subtitle {
   opacity: 1;
 }
 
-#dich-vu .portal-copy {
-  --portal-title-size: min(4rem, 12cqw);
+/* Portal ba tầng (trang chủ, loại hình trang con): kicker, tiêu đề luôn ở tâm card, tagline. */
+:is(#dich-vu, #loai-hinh) .portal-copy {
   --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
-  --portal-kicker-size: min(1.125rem, 4.2cqw);
-  --portal-subtitle-size: min(1rem, 3.8cqw);
   --portal-upper-gap: 0.85rem;
   --portal-lower-gap: 1.1rem;
   inset: 0;
   transform: none;
 }
 
-#dich-vu .portal-copy strong {
+:is(#dich-vu, #loai-hinh) .portal-copy strong {
   position: absolute;
   inset: 0;
   font-size: var(--portal-title-size);
@@ -1658,8 +1646,8 @@ html[lang="en"] #nang-luc .portal-subtitle {
   display: none;
 }
 
-#dich-vu .portal-title__quiet,
-#dich-vu .portal-title__strong {
+:is(#dich-vu, #loai-hinh) .portal-title__quiet,
+:is(#dich-vu, #loai-hinh) .portal-title__strong {
   position: absolute;
   right: 0.75rem;
   left: 0.75rem;
@@ -1667,7 +1655,7 @@ html[lang="en"] #nang-luc .portal-subtitle {
   white-space: nowrap;
 }
 
-#dich-vu .portal-title__quiet {
+:is(#dich-vu, #loai-hinh) .portal-title__quiet {
   bottom: calc(50% + var(--portal-title-half-line) + var(--portal-upper-gap));
   font-size: var(--portal-kicker-size);
   font-weight: 700;
@@ -1676,25 +1664,26 @@ html[lang="en"] #nang-luc .portal-subtitle {
   word-spacing: var(--word-spacing-body);
 }
 
-#dich-vu .portal-title__strong {
+:is(#dich-vu, #loai-hinh) .portal-title__strong {
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--portal-title-size);
   font-weight: 600;
 }
 
-#dich-vu .portal-copy small {
+:is(#dich-vu, #loai-hinh) .portal-copy small {
   position: absolute;
   top: calc(50% + var(--portal-title-half-line) + var(--portal-lower-gap));
-  right: 0.75rem;
-  left: 0.75rem;
+  /* 8px cố định: tagline dài (EN Commercial) vẫn một dòng khi chữ gốc 200% (page-home R5). */
+  right: 8px;
+  left: 8px;
   display: flex;
   justify-content: center;
   margin: 0;
   letter-spacing: 0;
 }
 
-#dich-vu .portal-subtitle,
+:is(#dich-vu, #loai-hinh) .portal-subtitle,
 .legacy-link .portal-subtitle {
   position: relative;
   width: fit-content;
@@ -2840,15 +2829,6 @@ html[lang="en"] #nang-luc .portal-subtitle {
 
   .portal-copy small {
     font-size: 1rem;
-  }
-
-  #dich-vu .portal-copy strong {
-    font-size: var(--portal-title-size);
-  }
-
-  #dich-vu .portal-copy {
-    --portal-title-size: min(4rem, 12cqw);
-    --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
   }
 
   /* Khoảng trên dưới chỉ còn section-gap như các section khác trên phone. */
