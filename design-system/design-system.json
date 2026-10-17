@@ -463,8 +463,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-17T01:20:00Z",
+    "at": "2026-10-17T06:00:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt main 26f23b9: #387 #389 (rail hai tầng Advertising T6, rule CTA chung theo Giữ nghề: cta-title-size, nhãn nút, hover)"
+    "note": "Đợt main c13e04a: #391 (CTA trang con không treo dấu chấm; CTA Advertising giữ cỡ tiêu đề riêng)"
   }
 }
