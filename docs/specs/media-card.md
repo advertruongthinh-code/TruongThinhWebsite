@@ -78,7 +78,8 @@ And vuốt trái trên ảnh đổi sang 4/11, click ngay sau vuốt không mở
 ### R4. Video trên card
 
 Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="metadata"`, có `poster`, nhãn bằng alt của item.
-Không tự phát. Nhãn thời lượng `m:ss` làm tròn lên. Nút "Phát" / "Play" thành "Tạm dừng" / "Pause" khi video chạy, chỉ
+Không tự phát. Nhãn thời lượng `m:ss` làm tròn lên. Nút tròn của hero trang chủ (icon phát/tạm dừng, owner 2026-10-17), tên
+"Phát" / "Play" thành "Tạm dừng" / "Pause" khi video chạy, chỉ
 điều khiển video của card đó. Đổi sang item khác, hoặc card rời cửa sổ ảo hóa, thì video tạm dừng. Masonry luôn tắt
 tiếng.
 

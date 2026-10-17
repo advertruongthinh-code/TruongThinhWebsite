@@ -850,6 +850,13 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
     const playback = el("button", "advertising-card-media__playback", "advertisingMediaPlayback");
     loading.hidden = duration.hidden = playback.hidden = true;
+    // Icon giống nút tròn hero trang chủ (`motion-toggle`); tên nút đổi theo trạng thái (R4).
+    const showPlayback = (playing) => {
+      playback.setAttribute("aria-label", playing ? (english ? "Pause" : "Tạm dừng") : (english ? "Play" : "Phát"));
+      playback.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true">${playing
+        ? '<rect x="3.5" y="3" width="3" height="10"/><rect x="9.5" y="3" width="3" height="10"/>'
+        : '<path d="M4.75 3.1 12.5 8l-7.75 4.9Z"/>'}</svg>`;
+    };
     media.append(loading, duration);
     figure.append(playback);
 
@@ -949,8 +956,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           layer.src = item.src;
           layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
           layer.addEventListener("loadeddata", updateLoading);
-          layer.addEventListener("pause", () => { playback.textContent = english ? "Play" : "Phát"; });
-          layer.addEventListener("play", () => { playback.textContent = english ? "Pause" : "Tạm dừng"; });
+          layer.addEventListener("pause", () => showPlayback(false));
+          layer.addEventListener("play", () => showPlayback(true));
         } else {
           layer.loading = "lazy";
           layer.decoding = "async";
@@ -1003,7 +1010,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (item.kind === "video") {
         const seconds = Math.ceil(item.durationSeconds);
         duration.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-        playback.textContent = english ? "Play" : "Phát";
+        showPlayback(false);
       }
       updateLoading();
     };

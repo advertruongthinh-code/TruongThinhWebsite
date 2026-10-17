@@ -52,8 +52,10 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 - **Duration:** góc trên trái canvas, cách 12px; chữ trắng `0.75rem`
   `tabular-nums` trên nền đen alpha 0.7, padding 4px 7px, dạng `m:ss` làm tròn
   lên giây.
-- **Playback:** góc trên phải, cách 8px, tối thiểu 44×38px, padding 5px 9px,
-  chữ `Phát` / `Tạm dừng` trắng trên nền đen alpha 0.7.
+- **Playback:** góc trên phải, cách 8px; dùng lại nút tròn phát/tạm dừng của
+  [Hero](../Hero/README.md) trang chủ (owner 2026-10-17): tròn 2.75rem, viền
+  trắng alpha 0.58, nền alpha 0.42, icon 1rem; hover phóng 1.06, nền alpha 0.72.
+  Tên nút `Phát` / `Tạm dừng` đọc qua `aria-label`.
 - Video luôn tắt tiếng, hiện poster; chỉ phát khi bấm playback.
 
 ### Tương tác

@@ -1143,14 +1143,9 @@ em {
   }
 }
 
-/* Cột phải hero, ngay trên floating CTA (đang hiện ở màn đầu, cao 47px) và thẳng mép phải với nút.
-   Hero cao hơn viewport (min-height, màn ngang thấp) thì cộng phần dư để nút vẫn ở màn đầu, trên CTA. */
-.motion-toggle {
-  --toggle-overflow: max(0px, 100% - var(--site-layout-viewport-height, 100svh));
-  position: absolute;
-  z-index: 3;
-  right: 35px;
-  bottom: calc(var(--toggle-overflow) + 35px + 47px + 16px);
+/* Nút tròn phát/tạm dừng dùng chung: hero trang chủ và video trên card (owner 2026-10-17). */
+.motion-toggle,
+.advertising-card-media__playback {
   display: grid;
   width: 2.75rem;
   height: 2.75rem;
@@ -1164,6 +1159,16 @@ em {
   transition:
     background-color 0.25s ease,
     transform 0.25s ease;
+}
+
+/* Cột phải hero, ngay trên floating CTA (đang hiện ở màn đầu, cao 47px) và thẳng mép phải với nút.
+   Hero cao hơn viewport (min-height, màn ngang thấp) thì cộng phần dư để nút vẫn ở màn đầu, trên CTA. */
+.motion-toggle {
+  --toggle-overflow: max(0px, 100% - var(--site-layout-viewport-height, 100svh));
+  position: absolute;
+  z-index: 3;
+  right: 35px;
+  bottom: calc(var(--toggle-overflow) + 35px + 47px + 16px);
 }
 
 @media (max-width: 1200px) {
@@ -1181,7 +1186,8 @@ em {
   }
 }
 
-.motion-toggle:hover {
+.motion-toggle:hover,
+.advertising-card-media__playback:hover {
   transform: scale(1.06);
   background: rgba(20, 21, 20, 0.72);
 }
@@ -1191,10 +1197,13 @@ em {
   box-shadow: 0 0 0 2px var(--blue);
 }
 
-.motion-toggle svg {
+.motion-toggle svg,
+.advertising-card-media__playback svg {
   width: 1rem;
   height: 1rem;
   fill: currentColor;
+  /* Điểm chạm luôn rơi vào chính button (hit-test của card, R6). */
+  pointer-events: none;
 }
 
 .motion-toggle__play,
@@ -5032,13 +5041,6 @@ body.is-advertising-browse .advertising-grid {
   top: 8px;
   right: 8px;
   z-index: 3;
-  min-width: 44px;
-  min-height: 38px;
-  padding: 5px 9px;
-  border: 0;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  cursor: pointer;
 }
 
 .advertising-card-media__dot:focus-visible,

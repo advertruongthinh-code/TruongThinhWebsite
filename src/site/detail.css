@@ -1707,7 +1707,8 @@ body.is-advertising-browse .advertising-grid {
 }
 
 .advertising-card-media--carousel > img[hidden],
-.advertising-card-media--carousel > video[hidden] {
+.advertising-card-media--carousel > video[hidden],
+.advertising-card-media__playback[hidden] {
   display: none;
 }
 
@@ -1824,13 +1825,6 @@ body.is-advertising-browse .advertising-grid {
   top: 8px;
   right: 8px;
   z-index: 3;
-  min-width: 44px;
-  min-height: 38px;
-  padding: 5px 9px;
-  border: 0;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  cursor: pointer;
 }
 
 .advertising-card-media__dot:focus-visible,
