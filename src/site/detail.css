@@ -359,7 +359,6 @@ html[lang="vi"]
   display: flex;
 }
 
-
 .detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
   width: max-content;
   gap: 20px;
