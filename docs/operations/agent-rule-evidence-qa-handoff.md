@@ -117,9 +117,12 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - thiết bị mặt trơn không logo; hút mùi rộng bằng bếp và đúng tâm bếp;
    - ảnh hero trang chủ: chữ hero canh giữa khung (`src/site/style.css`
      `.hero-content` top 50%), nên dải giữa khung để trơn, chủ thể ở phần ba dưới
-     để cắt dọc điện thoại vẫn thấy; decor nhẹ chỉ ở hai bên; sản phẩm quảng cáo
-     trong hero chỉ có icon và mảng màu, không chữ, vì chữ hero đè lên (owner chốt
-     2026-10-17);
+     để cắt dọc điện thoại vẫn thấy; decor nhẹ tông trầm, tương phản thấp được phép
+     cả phía sau chữ, nhưng vật sáng (hộp đèn, mặt đá sáng, đèn, mảng trắng) không
+     được nằm sau chữ; không gian phải có tỷ lệ công trình thật (thấy trần, chiều
+     cao tường và kích thước đồ hợp lý), không tạo khoảng tường tối cao vô tận chỉ
+     để có chỗ đặt chữ; sản phẩm quảng cáo trong hero chỉ có icon và mảng màu,
+     không chữ, vì chữ hero đè lên (owner chốt 2026-10-17);
    - prompt đúng của từng ảnh lưu `p-<id>.txt`;
    - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
      một dấu là chữ chủ thể sai.
