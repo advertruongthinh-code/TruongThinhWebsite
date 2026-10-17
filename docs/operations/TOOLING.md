@@ -175,9 +175,9 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 | Chrome DevTools | optional, approval prompt | DOM, accessibility, console, network, screenshot |
 
 Serena và Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
-Serena không bật language server Markdown: `.md`, `.mdx` nằm trong `ignored_extensions` của
-`scripts/tooling/serena-language-map.json` vì marksman ăn 1-3 GB RAM mỗi phiên (owner chọn 2026-10-14).
-Markdown đọc bằng tìm chữ và Graphify.
+Serena bật lại language server Markdown (marksman) theo owner 2026-10-17, thay quyết định tắt
+2026-10-14; marksman ăn 1-3 GB RAM mỗi phiên trên PC, RAM căng thì tắt lại qua
+`scripts/tooling/serena-language-map.json`.
 
 ## Chú thích thuật ngữ
 
