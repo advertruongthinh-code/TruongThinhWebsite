@@ -463,8 +463,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-17T06:00:00Z",
+    "at": "2026-10-17T06:50:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt main c13e04a: #391 (CTA trang con không treo dấu chấm; CTA Advertising giữ cỡ tiêu đề riêng)"
+    "note": "Đợt main: #393 #394 (CTA trang con: nét chữ tiêu đề đúng tâm khối theo chiều dọc)"
   }
 }
