@@ -5165,7 +5165,8 @@ async function runAdvertisingFilterCheck() {
         "Active filter did not expose aria-current=true",
       );
       const nextSlug = categories.find((category) => category !== filterSlug);
-      const nextId = (await advertisingWindowIds(page, nextSlug))[0];
+      // Card có sản phẩm phụ thuộc cả hai cụm (taxonomy R1) đã mount sẵn; seed ngẫu nhiên mỗi lượt nên chọn card chỉ có ở cụm kế.
+      const nextId = (await advertisingWindowIds(page, nextSlug)).find((id) => !expectedWindow.includes(id));
       const categoryOriginMounted = await page.locator("[data-project-grid]").evaluate((grid, id) =>
         Boolean(grid.querySelector(`[data-advertising-card="${id}"]`)), nextId,
       );
