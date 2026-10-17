@@ -4924,7 +4924,8 @@ body.is-advertising-browse .advertising-grid {
 }
 
 .advertising-card-media--carousel > img[hidden],
-.advertising-card-media--carousel > video[hidden] {
+.advertising-card-media--carousel > video[hidden],
+.advertising-card-media__playback[hidden] {
   display: none;
 }
 
