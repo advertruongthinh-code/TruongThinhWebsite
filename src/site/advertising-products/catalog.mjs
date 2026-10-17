@@ -251,13 +251,12 @@ const QUERY_PAGES = ADVERTISING_PRODUCTS.filter(({ id }) => !pageByFilter.has(id
   .map(({ id, cluster }) => ({ ...pageByFilter.get(cluster), filter: id, query: true }));
 // Chip sản phẩm của hàng chip (R3, R5): vi, en là phần URL sau /<locale>/advertising-products/.
 export const ADVERTISING_PRODUCT_CHIPS = deepFreeze(ADVERTISING_PRODUCTS
-  .map((product) => ({ ...product, count: productCount(product.id) }))
-  .filter(({ count }) => count >= ADVERTISING_CHIP_PRODUCT_THRESHOLD)
-  .map(({ id, cluster, labelVi, labelEn, count }) => {
+  .filter(({ id }) => productCount(id) >= ADVERTISING_CHIP_PRODUCT_THRESHOLD)
+  .map(({ id, cluster, labelVi, labelEn }) => {
     const page = pageByFilter.get(id);
     const target = page || pageByFilter.get(cluster);
     const query = page ? "" : `?category=${encodeURIComponent(id)}`;
-    return { filter: id, cluster, labelVi, labelEn, count, vi: `${target.vi}/${query}`, en: `${target.en}/${query}` };
+    return { filter: id, cluster, labelVi, labelEn, count: productCount(id), vi: `${target.vi}/${query}`, en: `${target.en}/${query}` };
   }));
 
 export function compileAdvertisingLayout(options = {}) {
