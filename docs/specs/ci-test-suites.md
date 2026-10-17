@@ -132,7 +132,8 @@ And check của PR ghi rõ bộ adv-grid đỏ
 
 ### R5. Check tổng giữ tên `static-release`
 
-Job `static-release` chạy sau mọi bộ (`if: always()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy.
+Job `static-release` chạy sau mọi bộ (`if: !cancelled()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy.
+Cả lượt CI bị hủy (push mới, PR rời nháp) thì check skipped, không đỏ; Automerge chỉ nhận `success`.
 Bộ không được chọn không tính là đỏ. Lượt PR nháp đặt tên check là `static-release-draft` để Automerge không
 merge bằng kết quả chỉ có bộ `fast`. Workflow `Automerge` và `Deploy demo` giữ nguyên vì vẫn đọc check
 `static-release` và kết luận của workflow CI.

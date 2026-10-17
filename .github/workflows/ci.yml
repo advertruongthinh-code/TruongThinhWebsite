@@ -82,11 +82,12 @@ jobs:
           retention-days: 7
 
   # Automerge và Deploy demo đọc check này; bộ không được chọn (skipped) không tính là đỏ. Lượt PR nháp đổi tên
-  # check để Automerge không merge bằng kết quả chỉ có bộ fast.
+  # check để Automerge không merge bằng kết quả chỉ có bộ fast. Cả lượt bị hủy (push mới, PR rời nháp) thì job skipped
+  # thay vì đỏ; Automerge chỉ nhận success nên skipped không merge được.
   static-release:
     name: ${{ github.event.pull_request.draft && 'static-release-draft' || 'static-release' }}
     needs: [select, suite]
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
