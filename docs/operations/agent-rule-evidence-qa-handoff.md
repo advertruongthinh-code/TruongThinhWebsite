@@ -61,10 +61,13 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
      nhận diện đậm, đơn giản, nhận ra từ xa; hạn chế ảnh sản phẩm đặt tại xưởng,
      ưu tiên nơi dùng thật (owner chốt 2026-10-14);
-   - chỉ tả sản phẩm Trường Thịnh làm: màn hình LED module (backdrop sân khấu có
-     khung trang trí, màn hội trường, phòng họp) có làm, thấy rõ lưới module để không
-     giống màn máy chiếu (owner chốt 2026-10-17, thay chốt 2026-10-14); không màn LED
-     lớn gắn tường ngoài nhà; hộp đèn sáng đều, trông mới, không loang lổ;
+   - chỉ tả sản phẩm Trường Thịnh làm: có làm màn hình LED ghép module cho sân khấu
+     và hội trường (backdrop sân khấu có khung trang trí, màn hội trường, phòng họp);
+     ảnh phải thấy rõ màn ghép module (đường ghép đều, cabinet, khung đỡ hoặc treo
+     chắc, mới, sạch) để không giống màn máy chiếu (owner chốt 2026-10-17, thay chốt
+     2026-10-14). Màn LED cho thuê sự kiện và màn LED ngoài trời gắn tường nhà: owner
+     chưa chốt, hỏi owner trước khi tạo (owner chốt 2026-10-17); hộp đèn sáng đều,
+     trông mới, không loang lổ;
    - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng, cảnh
      trong văn phòng hoặc mặt tiền tòa nhà (owner chốt 2026-10-14);
    - ảnh có thể thuộc nhiều phân loại (vừa bảng hiệu vừa LED decor): mọi sản phẩm
@@ -113,7 +116,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - thiết bị mặt trơn không logo; hút mùi rộng bằng bếp và đúng tâm bếp;
    - ảnh hero trang chủ: chữ hero canh giữa khung (`src/site/style.css`
      `.hero-content` top 50%), nên dải giữa khung để trơn, chủ thể ở phần ba dưới
-     để cắt dọc điện thoại vẫn thấy; decor nhẹ chỉ ở hai bên (owner chốt 2026-10-17);
+     để cắt dọc điện thoại vẫn thấy; decor nhẹ chỉ ở hai bên; sản phẩm quảng cáo
+     trong hero chỉ có icon và mảng màu, không chữ, vì chữ hero đè lên (owner chốt
+     2026-10-17);
    - prompt đúng của từng ảnh lưu `p-<id>.txt`;
    - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
      một dấu là chữ chủ thể sai.
@@ -162,7 +167,9 @@ kèm điểm từng bảng và lý do loại; owner có thể ra lệnh một đ
 brief đã sửa, hoặc giữ một ảnh trượt (báo cáo ghi rõ owner giữ dù chưa qua gate)
 (owner chốt 2026-10-17). Báo cáo cho owner gọi ảnh bằng số thẻ trong báo cáo
 (owner chốt 2026-10-17). Main kiểm lại, không tự nâng điểm. Ảnh sửa
-thì chấm lại đúng SHA-256 mới. Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
+thì chấm lại đúng SHA-256 mới; ngoại lệ: retouch chỉ xóa logo nhỏ hay vết lạ thì không
+cần chấm lại, còn ảnh hero trang chủ được duyệt thì phóng to (upscale) trước khi lên
+site và chấm lại đúng SHA-256 mới (owner chốt 2026-10-17). Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
 
