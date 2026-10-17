@@ -20,7 +20,7 @@ export const ADVERTISING_CLUSTERS = Object.freeze([
   },
   {
     id: "displays-booths", slugVi: "standee-ke-trung-bay", slugEn: "displays-booths", legacySlug: "kiosk-posm",
-    labelVi: "Standee, kệ trưng bày & gian hàng", labelEn: "Standees, displays & booths",
+    labelVi: "Standee, backdrop, kệ trưng bày & gian hàng", labelEn: "Standees, backdrops, displays & booths",
     railVi: "Trưng bày", railEn: "Displays",
     titleVi: "Standee, kệ trưng bày, gian hàng triển lãm — Trường Thịnh",
     titleEn: "Standees, display shelving and exhibition booths — Trường Thịnh",

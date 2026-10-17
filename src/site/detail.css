@@ -760,9 +760,13 @@ html[lang="en"]
 }
 
 @media (min-width: 1025px) {
-  /* Hàng chip nằm đúng chỗ chữ "Cuộn xuống". */
-  .detail-index-hero:has(.rail-chips:not([hidden])) .scroll-cue {
-    visibility: hidden;
+  /* Rail còn một hàng nên nâng lên một bậc; hàng chip nằm chỗ rail cũ, chữ "Cuộn xuống" vẫn hiện bên dưới (owner 2026-10-17). */
+  .detail-index-hero .project-filters {
+    bottom: calc(15vh + 3.25rem);
+  }
+
+  .detail-index-hero .rail-chips {
+    bottom: 15vh;
   }
 }
 

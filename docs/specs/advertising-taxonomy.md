@@ -40,7 +40,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 | Cụm, nhãn rail và h1 (slug VI / EN) | Sản phẩm (số ảnh) |
 | --- | --- |
 | Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (12); Chữ nổi (10); Hộp đèn (tách từ cụm LED và bảng hiệu); Bảng vẫy (4) |
-| Standee, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
+| Standee, backdrop, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
 | In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
 | LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (chưa có ảnh); Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9) |
 | Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
@@ -95,8 +95,9 @@ document, `replaceState`, card chuyển vị trí); URL thành path trang đích
 đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Sản phẩm dưới ngưỡng R5 không lên rail.
 Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
-([Filter](../../design-system/components/Filter/README.md)): hàng chip thay chỗ chữ "Cuộn xuống" từ 1025px, nằm
-ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà bấm "Sản phẩm
+([Filter](../../design-system/components/Filter/README.md)): từ 1025px rail một hàng nâng lên một bậc, hàng chip nằm
+chỗ rail cũ và chữ "Cuộn xuống" vẫn hiện bên dưới (owner 2026-10-17); hẹp hơn thì chip nằm ngay dưới rail; trang
+tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà bấm "Sản phẩm
 quảng cáo" trên navbar hoặc menu thì về "Tất cả" ở đầu trang; từ photo thì vẫn về chỗ cũ trên masonry nguồn.
 
 ```gherkin

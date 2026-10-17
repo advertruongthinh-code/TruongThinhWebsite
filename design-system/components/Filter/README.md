@@ -11,14 +11,14 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
   đang chọn (cả khi lọc một sản phẩm của nó) và ở sản phẩm đang lọc.
 - Cụm: chữ hoa 700, 1rem, màu `muted`; hover, focus và mục đang chọn đổi sang
   `ink` kèm gạch chân dày 3px, cách 4px. Căn giữa, rộng tối đa 62.5rem, cách
-  đáy hero 15vh; xuống dòng khi hẹp.
+  đáy hero 15vh cộng 3.25rem (một bậc trên hàng chip); xuống dòng khi hẹp.
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
   chân 2px dưới tên. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
 - Hover cụm không mở danh sách sản phẩm (owner bỏ 2026-10-17); tầng sản phẩm
   chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
-  số ảnh nhỏ. Từ 1025px hàng chip căn giữa, thay chỗ chữ "Cuộn xuống"; tới 1024px
-  nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
+  số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh, chữ "Cuộn xuống" vẫn
+  hiện bên dưới (owner 2026-10-17); tới 1024px nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
 - Tới 680px: rail cụm và hàng chip là hai hàng cuộn ngang tràn bề rộng màn,
   chừa 25px hai bên; chip đang chọn tự cuộn vào khung, mục nhận focus bàn phím
   tự cuộn vào trọn khung.
