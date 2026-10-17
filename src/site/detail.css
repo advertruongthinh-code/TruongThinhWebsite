@@ -507,7 +507,8 @@ html[lang="vi"]
   display: grid;
   min-height: 37.5rem;
   place-items: center;
-  overflow: hidden;
+  /* clip, không hidden: lớp bấm -100vmax của .legacy-link không tạo vùng cuộn ẩn. */
+  overflow: clip;
   background: var(--media-loading-surface);
   color: white;
   text-align: center;
@@ -547,7 +548,8 @@ html[lang="vi"]
 
 .detail-cta__copy h2 {
   margin: 0;
-  font-size: clamp(3.2rem, 6vw, 7rem);
+  font-size: var(--cta-title-size);
+  text-wrap: balance;
   font-weight: 600;
   letter-spacing: var(--tracking-display);
   line-height: 0.98;
@@ -556,15 +558,13 @@ html[lang="vi"]
 
 .detail-cta__copy a {
   display: inline-flex;
-  /* Vùng chạm 44px như .site-invitation__link; gạch chân vẫn là border-bottom. */
+  /* Vùng chạm 44px như .site-invitation__link; nhãn là .portal-subtitle như link Giữ nghề. */
   min-height: 44px;
   align-items: center;
-  padding-bottom: 0.25rem;
   margin-top: 2rem;
-  gap: 2rem;
-  border-bottom: 1px solid currentColor;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
+  line-height: 1.4;
   text-transform: uppercase;
 }
 
@@ -1100,10 +1100,6 @@ html[lang="en"]
 
   .detail-cta {
     min-height: 31rem;
-  }
-
-  .detail-cta__copy {
-    text-align: left;
   }
 
   .detail-page .detail-index-hero {
@@ -2936,7 +2932,9 @@ body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
   --footer-top-gap: 0px;
 }
 
-.detail-cta[data-advertising-grid-cta]::after {
+/* CTA nằm trên batch skeleton: không lớp tối, không bấm cả khối (chỉ nút). */
+.detail-cta[data-advertising-grid-cta]::after,
+.detail-cta[data-advertising-grid-cta] .legacy-link::before {
   content: none;
 }
 
@@ -2960,7 +2958,7 @@ body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
    dấu của dòng đầu trong overflow clip của CTA. */
 .detail-cta[data-advertising-grid-cta] h2 {
   padding-top: 0.15em;
-  font-size: min(clamp(2.5rem, 4.5vw, 5rem), 14svh);
+  font-size: min(var(--cta-title-size), 14svh);
   line-height: 1.2;
 }
 
@@ -2980,12 +2978,6 @@ body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
   display: flex;
   width: max-content;
   margin: var(--advertising-gap) auto 0;
-}
-
-@media (max-width: 750px) {
-  .detail-cta[data-advertising-grid-cta] h2 {
-    font-size: clamp(1.7rem, 8.8vw, 2rem);
-  }
 }
 
 @media (max-width: 750px) and (max-height: 640px) {

@@ -63,7 +63,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
-| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Văn phòng; ba tiêu đề cùng `font-weight` 700 | ink |
+| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office"); ba tiêu đề cùng `font-weight` 700 | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
 
@@ -198,7 +198,12 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
 
 `.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
-"Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Dấu chấm cuối `h2` là `.text-hang-end` treo ra lề
+"Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Rule CTA chung (owner 2026-10-15) cho CTA này, khối
+"Giữ nghề" ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) và CTA Advertising: tiêu đề
+canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`); eyebrow (nếu có) ở trên, nút ở
+dưới. Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm
+44px, gạch chân 3px chạy từ trái khi hover hoặc focus. Lớp bấm `::before` của nút phủ cả khối (cắt bởi `overflow: clip`),
+nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút. Dấu chấm cuối `h2` là `.text-hang-end` treo ra lề
 (rule chung `.text-hang-end` rộng 0 trong `style.css`) để phần chữ canh giữa cùng eyebrow và nút; `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)

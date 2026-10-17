@@ -1722,30 +1722,6 @@
       projectTrack.setAttribute("data-scroll-direction", "horizontal");
     }
 
-    // Espacio fillText: 4rem giảm dần từng 0.25rem cho đến khi copy box hết overflow, tối thiểu 1.5rem.
-    const legacyCopy = container.querySelector(".legacy-copy");
-    const legacyTitle = legacyCopy?.querySelector("h2");
-    if (legacyTitle) {
-      const fitLegacyTitle = () => {
-        legacyCopy.classList.remove("is-overflowing");
-        let fits = false;
-        for (let size = 4; size >= 1.5 && !fits; size -= 0.25) {
-          legacyTitle.style.fontSize = `${size}rem`;
-          const clipped = [legacyTitle, ...legacyTitle.querySelectorAll(".line-mask")]
-            .some((node) => node.scrollWidth > node.clientWidth);
-          fits = !clipped && legacyCopy.scrollHeight <= legacyCopy.clientHeight;
-        }
-        // Tới 1.5rem vẫn tràn (chữ 200%, màn thấp): trả vùng chữ về flow để khối cao theo chữ.
-        legacyCopy.classList.toggle("is-overflowing", !fits);
-      };
-      // Fit trong rAF, không trong callback: đổi cỡ ngay trong callback làm WebKit báo "ResizeObserver loop" khi chữ 200%.
-      const titleObserver = new ResizeObserver(() => requestAnimationFrame(fitLegacyTitle));
-      titleObserver.observe(legacyCopy);
-      titleObserver.observe(legacyTitle);
-      document.fonts?.ready.then(fitLegacyTitle);
-      state.abort.signal.addEventListener("abort", () => titleObserver.disconnect(), { once: true });
-    }
-
     watchWhiteOverlayMedia(state);
     pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
