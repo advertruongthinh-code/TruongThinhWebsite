@@ -64,6 +64,19 @@ for (const file of files) {
   if (lines > max) errors.push(`${file}: ${lines} lines, over the ${max} limit`);
 }
 
+// Ngân sách byte cho file agent nạp theo trigger (docs/specs/docs-system.md R9): dòng dài không lách được giới hạn dòng.
+const BYTE_BUDGET = [
+  [/^AGENTS\.md$/, 15000],
+  [/^docs\/operations\/agent-rule-ad-images\.md$/, 16000],
+  [/^docs\/operations\/agent-rule-/, 8000],
+  [/^docs\/reference\//, 24000],
+];
+for (const file of files) {
+  const max = BYTE_BUDGET.find(([re]) => re.test(file))?.[1];
+  const bytes = max && statSync(file).size;
+  if (bytes > max) errors.push(`${file}: ${bytes} bytes, over the ${max} limit`);
+}
+
 // Spec sở hữu file source qua glob `source:` trong frontmatter.
 const specs = files
   .filter((f) => f.startsWith('docs/specs/') && !f.endsWith('_template.md'))

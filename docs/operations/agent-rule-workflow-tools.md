@@ -16,6 +16,11 @@ File này chỉ giữ routing tool.
 - Không có lifecycle hook Impeccable: sau UI change chạy `impeccable detect` một lần.
 - Không thêm/sửa lifecycle hook, helper, Serena config ngoài approved tooling repair.
 
+## Ponytail audit và debt
+
+- `ponytail-audit` ultra quét cả repo, chỉ báo cáo, không tự sửa. Chạy trong thread code review của wrap-up session hoặc khi owner gọi; không chạy tự động.
+- `ponytail-debt` gom comment `ponytail: <ceiling>, <upgrade path>`, chạy cùng audit; nợ cần xử lý ghi vào card Notion, không tạo file ledger.
+
 ## Graphify và Serena
 
 - Graphify trước cho code và meaningful non-media content qua wrapper; chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).

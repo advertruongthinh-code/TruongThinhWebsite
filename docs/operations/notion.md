@@ -18,6 +18,10 @@
   card: tạo card trước khi làm; task từ `200 LOC` ghi estimate trong card.
   `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
   lockfile, formatting-only, Markdown.
+- Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
+  merge (`Done`, hoặc ghi việc còn mở). Card chỉ giữ tên, status, thứ tự, mục
+  tiêu một dòng, việc còn mở, link spec và PR; không chép state, evidence, log
+  hay checklist đã xong vào card.
 - Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
   bị gộp thì archive, không xóa vĩnh viễn. Trước mỗi lần ghi: `search`, `fetch`, rồi
   `create/update`; không đoán database, schema, parent.
