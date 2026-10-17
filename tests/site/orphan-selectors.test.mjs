@@ -8,8 +8,8 @@ import test from "node:test";
 const repo = path.resolve(import.meta.dirname, "../..");
 const ALLOWED = new Set([
   // Tạo lúc runtime bởi thư viện vendor (Locomotive Scroll, Swiper).
-  "c-scrollbar", "swiper-pagination", "swiper-pagination-bullet", "swiper-pagination-bullet-active",
-  // Swiper carousel không dùng, owner giữ cho redesign Residential/Commercial (docs/specs/detail-pages.md, Gate).
+  "c-scrollbar", "swiper-pagination", "swiper-pagination-bullet", "swiper-pagination-bullet-active", "swiper-initialized",
+  // Carousel Advertising detail không trang nào dùng (docs/specs/detail-pages.md, Gate).
   "advertising-detail__carousel", "advertising-detail__carousel-track", "advertising-detail__carousel-slide",
   "advertising-detail__carousel-pagination", "data-advertising-carousel", "data-advertising-carousel-viewport",
   "data-advertising-carousel-pagination",
