@@ -54,7 +54,15 @@ try {
   assert.ok(shown.length && shown.every((id) => productIds.has(id)), "masonry chỉ còn card của sản phẩm");
   assert.equal(await page.locator(".scroll-cue").evaluate((node) => getComputedStyle(node).visibility), "hidden", "chip thay chỗ chữ Cuộn xuống");
 
+  // Hover cụm khi hàng chip đang hiện: danh sách mở thì hàng chip ẩn, không trộn hai tầng.
+  const chipRow = page.locator('.rail-chips:not([hidden])');
   await page.mouse.move(10, 300);
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".rail-chips:not([hidden])")).visibility === "visible");
+  await page.hover('[data-advertising-filter="office-signs"]');
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".rail-chips:not([hidden])")).opacity === "0");
+  assert.equal(await chipRow.evaluate((node) => getComputedStyle(node).visibility), "hidden", "danh sách mở thì hàng chip ẩn");
+  await page.mouse.move(10, 300);
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".rail-chips:not([hidden])")).visibility === "visible");
   await page.locator('.rail-chips:not([hidden]) [data-advertising-product="signage/light-boxes"]').click();
   await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
   await page.locator('[data-advertising-filter="all"]').click();

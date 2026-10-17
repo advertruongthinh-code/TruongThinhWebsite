@@ -4062,6 +4062,17 @@ html[lang="en"]
     transform: none;
   }
 
+  /* Danh sách thả xuống đè lên hàng chip cùng vị trí; ẩn hàng chip khi danh sách mở để hai tầng không trộn nhau. */
+  .detail-index-hero .rail-chips {
+    transition: opacity 0.3s var(--ease), visibility 0.3s;
+  }
+
+  .detail-index-hero:has(.rail-cluster:is(:hover, :has(:focus-visible))) .rail-chips {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   .detail-index-hero .rail-panel__item {
     display: flex;
     align-items: baseline;
