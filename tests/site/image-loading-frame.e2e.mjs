@@ -48,7 +48,7 @@ const snapshot = page => page.evaluate(() => { const seen = new Map(); return [.
     const src = img.getAttribute("src");
     seen.set(src, (seen.get(src) || 0) + 1);
     return {
-      key: src + "#" + seen.get(src), raw: !img.hasAttribute("data-src"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
+      key: src + "#" + seen.get(src), raw: !img.closest("[data-hero-intro] .hero-slides"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
       loading: img.getAttribute("loading"), priority: img.getAttribute("fetchpriority"),
       ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, sweep: /^media-(sweep|breathe)$/.test(getComputedStyle(frame, "::before").animationName), settled: frame.classList.contains("is-media-settled"), imageOpacity: Number(getComputedStyle(img).opacity), opacity,
     };
@@ -101,7 +101,7 @@ try {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
         if (!item.ready) assert.ok(item.sweep && item.imageOpacity === 0, `${label}: ${item.src} shows the sweep and hides the image while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
-        // Ảnh có src set bằng script (slide hero dùng data-src) không có raw src để so sánh.
+        // Slide hero trang chủ nhận src bằng script (page-home R3) nên không có raw src để so sánh.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;

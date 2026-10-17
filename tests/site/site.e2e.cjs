@@ -9385,32 +9385,50 @@ async function runHeroCarouselLifecycleCheck() {
 }
 
 async function runHeroCrossFadeContinuityChecks() {
-  // page-home R3: slide 0 cố định, năm slide sau xáo theo Math.random. Stub dãy giảm dần nên thứ tự đảo ngược.
-  await runPageCase(
-    "home hero shuffles later slides per load",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
-    async (page) => {
-      const diagnostics = monitorPage(page);
-      await page.addInitScript(() => {
-        let calls = 0;
-        Math.random = () => 1 / (calls += 2);
-      });
-      await gotoRoute(page, "/vi/");
-      const state = await page.evaluate(() => {
-        const slides = [...document.querySelectorAll(".hero-slide")];
-        return {
-          order: slides.map((slide) => slide.dataset.slide).join(","),
-          active: slides.findIndex((slide) => slide.classList.contains("is-active")),
-          priority: slides[0].querySelector("img").getAttribute("fetchpriority"),
-        };
-      });
-      assert(
-        state.active === 0 && state.priority === "high" && state.order === "0,5,4,3,2,1",
-        `Home hero slide order contract drifted: ${JSON.stringify(state)}`,
-      );
-      assertDiagnostics(diagnostics);
-    },
-  );
+  // page-home R3: cả sáu slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide 3 làm ảnh đầu và preload;
+  // năm lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true },
+  ]) {
+    await runPageCase(
+      `home hero randomizes the first slide per load ${viewport.width}`,
+      { route: "/vi/", viewport: { width: viewport.width, height: viewport.height }, ...viewport },
+      async (page) => {
+        const diagnostics = monitorPage(page);
+        const firstImageRequests = [];
+        page.on("request", (request) => {
+          if (request.url().includes("/home-hero-walnut-bedroom")) firstImageRequests.push(request.url());
+        });
+        await page.addInitScript(() => {
+          const values = [0.5, 0.9, 0.8, 0.7, 0.6, 0.5];
+          Math.random = () => values.shift() ?? 0.5;
+        });
+        await gotoRoute(page, "/vi/");
+        await page.waitForFunction(() => document.querySelector(".hero-slide img").complete);
+        const state = await page.evaluate(() => {
+          const slides = [...document.querySelectorAll(".hero-slide")];
+          const image = slides[0].querySelector("img");
+          const preload = document.querySelector('link[rel="preload"][as="image"]');
+          return {
+            order: slides.map((slide) => slide.dataset.slide).join(","),
+            active: slides.flatMap((slide, index) => (slide.classList.contains("is-active") ? [index] : [])).join(","),
+            priority: image.getAttribute("fetchpriority"),
+            current: image.currentSrc.replace(location.origin, ""),
+            preload: preload?.imageSrcset,
+            unhydratedFirst: image.hasAttribute("data-src"),
+          };
+        });
+        assert(
+          state.order === "3,5,4,2,1,0" && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
+            && state.preload?.split(", ").some((candidate) => candidate.startsWith(`${state.current} `)),
+          `Home hero random first slide contract drifted: ${JSON.stringify(state)}`,
+        );
+        assert.equal(firstImageRequests.length, 1, `First hero image requested once: ${firstImageRequests.join(" ")}`);
+        assertDiagnostics(diagnostics);
+      },
+    );
+  }
 
   const cases = [
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
@@ -9619,6 +9637,8 @@ async function runWhiteOverlayMediaFallbackCheck() {
         });
         // Gate variant AVIF/WebP responsive nào browser chọn cho asset này.
         const assetName = testCase.asset.replace("**/", "").replace(/\.webp$/, "");
+        // Hero trang chủ chọn ảnh đầu bằng Math.random (page-home R3); ghim slide 0 để gate đúng asset.
+        if (testCase.surface === ".hero") await page.addInitScript(() => { Math.random = () => 0; });
         await page.route(new RegExp(`/${assetName}(?:-\\d+)?\\.(?:webp|avif)$`), async (route) => {
           markMediaSeen();
           await mediaGate;
@@ -10223,18 +10243,17 @@ async function runHomeMotionRegressionCheck() {
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
-      // Slide 0 cố định; năm slide sau xáo mỗi lần tải (page-home R3) nên so tập hợp.
-      const [firstHeroSource, ...laterHeroSources] = contract.hero.sources;
+      // Cả sáu slide xáo mỗi lần tải (page-home R3) nên so tập hợp.
       assert(
-        firstHeroSource === "/assets/content/projects/home-hero-tube-house-living.webp" &&
-          JSON.stringify(laterHeroSources.sort()) ===
-            JSON.stringify([
-              "/assets/content/projects/hero-kiosk.webp",
-              "/assets/content/projects/home-hero-kitchen-dining.webp",
-              "/assets/content/projects/home-hero-office-reception.webp",
-              "/assets/content/projects/home-hero-walnut-bedroom.webp",
-              "/assets/content/projects/mobile-retail.webp",
-            ]),
+        JSON.stringify([...contract.hero.sources].sort()) ===
+          JSON.stringify([
+            "/assets/content/projects/hero-kiosk.webp",
+            "/assets/content/projects/home-hero-kitchen-dining.webp",
+            "/assets/content/projects/home-hero-office-reception.webp",
+            "/assets/content/projects/home-hero-tube-house-living.webp",
+            "/assets/content/projects/home-hero-walnut-bedroom.webp",
+            "/assets/content/projects/mobile-retail.webp",
+          ]),
         `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
       );
       assert(
