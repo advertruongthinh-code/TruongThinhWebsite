@@ -1285,7 +1285,7 @@ async function steppedScroll(page, viewport) {
         new Promise((resolve) =>
           requestAnimationFrame(() => requestAnimationFrame(resolve)),
         );
-      // Quét track từng bề rộng một để mọi ảnh lazy (gallery Nhà ở 29 ảnh) đều vào vùng tải.
+      // Quét track từng bề rộng một để mọi ảnh lazy (gallery Nhà ở 36 ảnh) đều vào vùng tải.
       for (const track of tracks) {
         for (let left = 0; left < track.scrollWidth; left += track.clientWidth) {
           track.scrollTo({ left, behavior: "instant" });
