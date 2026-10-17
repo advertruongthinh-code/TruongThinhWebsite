@@ -14,9 +14,8 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
   đáy hero 15vh; xuống dòng khi hẹp.
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
   chân 2px dưới tên. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
-- PC từ 1025px có chuột: hover hoặc focus bàn phím vào cụm hiện danh sách sản
-  phẩm ngay dưới tên cụm (nền `paper`, bóng mờ, số ảnh bên phải), mờ dần và
-  trượt 6px trong 0.3s `--ease`, đè lên đầu masonry. Màn khác không có danh sách.
+- Hover cụm không mở danh sách sản phẩm (owner bỏ 2026-10-17); tầng sản phẩm
+  chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
   số ảnh nhỏ. Từ 1025px hàng chip căn giữa, thay chỗ chữ "Cuộn xuống"; tới 1024px
   nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
@@ -27,7 +26,7 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
   [Motion](../../motion.md#vị-trí-card-masonry)). Đổi ngôn ngữ chỉ đổi text, URL,
   ARIA trên node có sẵn.
 
-Preview chụp từ trang chạy thật, trạng thái `Tất cả` (danh sách sản phẩm ẩn tới khi hover).
+Preview chụp từ trang chạy thật, trạng thái `Tất cả` (chưa có hàng chip).
 
 ## Chú thích thuật ngữ
 

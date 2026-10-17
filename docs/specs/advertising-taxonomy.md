@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-pages.test.mjs
   - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-10-15
+updated: 2026-10-17
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -86,22 +86,21 @@ And không file code render nào đổi
 
 ### R3. Rail cụm và sản phẩm
 
-Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn). Hàng một: "Tất cả" rồi sáu cụm theo nhãn R1. Mỗi cụm có danh sách
-sản phẩm kèm số ảnh, dựng sẵn trong HTML tĩnh, ẩn bằng CSS, hiện khi hover hoặc focus vào cụm. Bấm cụm lọc cả cụm
-và hiện hàng chip sản phẩm của cụm bên dưới; bấm chip hoặc mục trong danh sách lọc riêng sản phẩm đó, chip đang
-chọn có `aria-current="true"`. Điện thoại: chạm cụm lọc cụm và hiện hàng chip cuộn ngang; không có danh sách
-hover. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
+Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn). Hàng một: "Tất cả" rồi sáu cụm theo nhãn R1. Hover cụm
+không mở danh sách sản phẩm (owner bỏ 2026-10-17). Bấm cụm lọc cả cụm và hiện hàng chip sản phẩm kèm số ảnh của cụm
+bên dưới, dựng sẵn trong HTML tĩnh; bấm chip lọc riêng sản phẩm đó, chip đang chọn có `aria-current="true"`. Điện
+thoại: hàng chip cuộn ngang. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
 document, `replaceState`, card chuyển vị trí); URL thành path trang đích, đổi luôn `document.title` và kicker (h1 của trang tĩnh) theo trang
 đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Sản phẩm dưới ngưỡng R5 không lên rail.
 Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
-([Filter](../../design-system/components/Filter/README.md)): danh sách chỉ có trên PC từ 1025px dùng chuột; hàng
-chip thay chỗ chữ "Cuộn xuống" từ 1025px, nằm ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip.
-Danh sách hover nằm trên hàng chip theo trục z, che phần chip bên dưới.
+([Filter](../../design-system/components/Filter/README.md)): hàng chip thay chỗ chữ "Cuộn xuống" từ 1025px, nằm
+ngay dưới rail khi hẹp hơn; trang tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà bấm "Sản phẩm
+quảng cáo" trên navbar hoặc menu thì về "Tất cả" ở đầu trang; từ photo thì vẫn về chỗ cũ trên masonry nguồn.
 
 ```gherkin
 Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng
-When hover cụm "Bảng hiệu, chữ nổi & hộp đèn" rồi bấm "Chữ nổi" trong danh sách
+When bấm cụm "Bảng hiệu, chữ nổi & hộp đèn" rồi bấm chip "Chữ nổi"
 Then URL thành /vi/advertising-products/bang-hieu-quang-cao/chu-noi/ bằng replaceState
 And chỉ card thuộc sản phẩm đó còn trong masonry, không có request document
 And HTML tĩnh của trang gốc đã chứa link tới mọi cụm và sản phẩm đủ ngưỡng
@@ -215,12 +214,12 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 | Data | `photo-tags.mjs` | tag `variant` mang `productId`; `productIds` mỗi media, sửa nhãn R8 |
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
 | Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4 |
-| DOM hook | `[data-advertising-filter]` | giữ cho cụm; thêm hook cho sản phẩm và danh sách hover, tên chốt trong plan |
+| DOM hook | `[data-advertising-filter]` | giữ cho cụm; `[data-advertising-product]` cho chip sản phẩm |
 | Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7) |
 
 ## UI
 
-Rail theo component filter trong [Design System](../../design-system/README.md); hàng chip và danh sách hover là thiết
+Rail theo component filter trong [Design System](../../design-system/README.md); hàng chip là thiết
 kế mới, qua Impeccable cho PC và điện thoại, owner duyệt, ghi ở `design-system/approved-designs.md` trước khi code.
 Không đổi typography hay layout ngoài rail.
 
