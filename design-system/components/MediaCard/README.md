@@ -38,23 +38,24 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 | Số item | Dải dưới canvas | Điều khiển |
 | --- | --- | --- |
-| 1 | Không có | Không chỉ báo; video vẫn có duration và playback |
-| 2 tới 6 | 44px | Một hàng chấm; vùng bấm 20×44px, chấm 6px viền 1px, chấm đang xem tô đặc |
+| 1 | Không có | Không chỉ báo; video vẫn có duration |
+| 2 tới 6 | 44px | Một hàng chấm dùng lại chấm [Gallery](../Gallery/README.md): 8px, đen 20%, chấm đang xem `ink`; vùng bấm 20×44px |
 | Từ 7 | 44px | Nút trước, bộ đếm `7/11`, nút sau; nút tối thiểu 44×44px |
 
-- Dải nằm đáy card, rộng bằng card, nền `paper`, chấm và chữ `ink`.
+- Dải nằm đáy card, rộng bằng card, nền `paper`, chữ `ink`.
 - Bộ đếm `0.8rem`, `tabular-nums`. Mũi tên 8px nét 2px; nút ở hai đầu bị
   disabled, opacity 0.5.
 - Chỉ chấm và nút nhận click; chỗ trống của dải mở detail như thân card.
 
 ### Video
 
-- **Duration:** góc trên trái canvas, cách 12px; chữ trắng `0.75rem`
-  `tabular-nums` trên nền đen alpha 0.7, padding 4px 7px, dạng `m:ss` làm tròn
-  lên giây.
-- **Playback:** góc trên phải, cách 8px, tối thiểu 44×38px, padding 5px 9px,
-  chữ `Phát` / `Tạm dừng` trắng trên nền đen alpha 0.7.
-- Video luôn tắt tiếng, hiện poster; chỉ phát khi bấm playback.
+- **Duration:** theo card video Pinterest (owner 2026-10-17): góc trên trái
+  canvas, cách 8px; viên thuốc bo 8px, padding 4px 6px, nền trắng alpha 0.9,
+  chữ `ink` `0.75rem` đậm 500 `tabular-nums`; tổng thời lượng `m:ss` làm tròn
+  lên giây, không đếm ngược.
+- Không có nút phát hay icon loa. Mỗi lúc một video phát, luôn tắt tiếng:
+  cuộn dừng thì tự phát một card trong vùng giữa màn hình; chuột vào card video
+  thì phát card đó, rời ra thì dừng. Không hiệu ứng hover riêng.
 
 ### Tương tác
 
@@ -67,8 +68,8 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 ### Focus và nhãn
 
-Chấm, nút bước và playback có outline 2px `ink` offset 2px; link card outline
-2px `ink` offset 4px. Thứ tự Tab: link card, playback, chấm hoặc nút bước.
+Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
+2px `ink` offset 4px. Thứ tự Tab: link card, chấm hoặc nút bước.
 
 | Phần tử | VI | EN |
 | --- | --- | --- |

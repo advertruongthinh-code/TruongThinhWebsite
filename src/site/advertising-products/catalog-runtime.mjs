@@ -848,15 +848,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
     const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
-    const playback = el("button", "advertising-card-media__playback", "advertisingMediaPlayback");
-    loading.hidden = duration.hidden = playback.hidden = true;
+    loading.hidden = duration.hidden = true;
     media.append(loading, duration);
-    figure.append(playback);
 
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
     const numericIndicator = items.length >= 7;
-    if (hasCarousel) playback.classList.add("advertising-card-media__playback--carousel");
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
         ? `Show media ${index + 1} of ${items.length}`
@@ -949,8 +946,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           layer.src = item.src;
           layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
           layer.addEventListener("loadeddata", updateLoading);
-          layer.addEventListener("pause", () => { playback.textContent = english ? "Play" : "Phát"; });
-          layer.addEventListener("play", () => { playback.textContent = english ? "Pause" : "Tạm dừng"; });
+          // Hết một vòng thì lịch phát chọn card khác (R4).
+          layer.addEventListener("ended", () => figure.dispatchEvent(new Event("advertising-video-ended", { bubbles: true })));
         } else {
           layer.loading = "lazy";
           layer.decoding = "async";
@@ -989,7 +986,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
             probe.src = item.posterSrc;
           }
           if (activeIndex !== index) return;
-          if (item.kind === "video") playback.hidden = true;
           updateLoading();
         });
         layers.set(item.id, layer);
@@ -999,15 +995,17 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dataset.advertisingActiveMediaId = item.id;
       updateIndicator(index);
       duration.hidden = item.kind !== "video";
-      playback.hidden = item.kind !== "video" || Boolean(layer.error);
       if (item.kind === "video") {
         const seconds = Math.ceil(item.durationSeconds);
         duration.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-        playback.textContent = english ? "Play" : "Phát";
       }
       updateLoading();
     };
     figure.advertisingPendingMediaId = () => loading.hidden ? null : items[activeIndex].id;
+    figure.advertisingActiveVideo = () => {
+      const layer = layers.get(items[activeIndex]?.id);
+      return layer instanceof HTMLVideoElement && !layer.error ? layer : null;
+    };
     figure.advertisingSetMediaId = (id) => {
       const index = items.findIndex((item) => item.id === id);
       if (index >= 0) setActive(index);
@@ -1021,12 +1019,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       previousButton.addEventListener("click", () => selectMedia(activeIndex - 1));
       nextButton.addEventListener("click", () => selectMedia(activeIndex + 1));
     }
-    playback.addEventListener("click", () => {
-      const video = layers.get(items[activeIndex].id);
-      if (!(video instanceof HTMLVideoElement)) return;
-      if (video.paused) void video.play().catch(() => {});
-      else video.pause();
-    });
     const swipe = (dx, dy) => {
       if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
       selectMedia(activeIndex + (dx < 0 ? 1 : -1));
@@ -1340,6 +1332,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       if (!entry.isIntersecting) return;
       visibleMediaCards.add(id);
+      scheduleVideoSoon();
       attachCardSkeleton(node);
     });
   }, { threshold: 0 });
@@ -3904,6 +3897,67 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
+  // Lịch phát video card kiểu Pinterest (media-card R4): mỗi lúc một video tắt tiếng. Cuộn dừng thì tự phát một card
+  // có tâm trong vùng trọng tâm (40% giữa phần nhìn thấy dưới navbar), hết vòng chọn ngẫu nhiên card chưa phát trong
+  // chu kỳ. Chuột vào card video thì phát card đó, rời card thì dừng tới lần cuộn kế.
+  let playingVideo = null;
+  let hoverHold = false;
+  let videoScheduleTimer = 0;
+  const playedVideos = new WeakSet();
+  const playOnly = (video) => {
+    if (playingVideo && playingVideo !== video) playingVideo.pause();
+    playingVideo = video;
+    if (video) void video.play().catch(() => {});
+  };
+  const scheduleVideo = (skipCurrent = false) => {
+    if (hoverHold) return;
+    if (reduced) return playOnly(null);
+    const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
+    const bandTop = navBottom + (innerHeight - navBottom) * 0.3;
+    const bandBottom = bandTop + (innerHeight - navBottom) * 0.4;
+    const inBand = [...document.querySelectorAll("figure.advertising-tile")].map((figure) => figure.advertisingActiveVideo?.())
+      .filter((video) => {
+        if (!video?.checkVisibility()) return false;
+        const rect = video.getBoundingClientRect();
+        const center = rect.top + rect.height / 2;
+        return center >= bandTop && center <= bandBottom;
+      });
+    if (!skipCurrent && playingVideo && !playingVideo.paused && inBand.includes(playingVideo)) return;
+    let pool = inBand.filter((video) => video !== playingVideo && !playedVideos.has(video));
+    if (!pool.length) {
+      inBand.forEach((video) => playedVideos.delete(video));
+      pool = inBand.length > 1 ? inBand.filter((video) => video !== playingVideo) : inBand;
+    }
+    const next = pool[Math.floor(Math.random() * pool.length)] ?? null;
+    if (next) playedVideos.add(next);
+    playOnly(next);
+  };
+  const scheduleVideoSoon = () => {
+    clearTimeout(videoScheduleTimer);
+    videoScheduleTimer = setTimeout(() => {
+      // Cuộn bằng chuột đưa card khác vào dưới con trỏ thì card dưới con trỏ thắng, như hover.
+      const hovered = matchMedia("(hover: hover)").matches
+        && document.querySelector("figure.advertising-tile:hover")?.advertisingActiveVideo?.();
+      hoverHold = Boolean(hovered);
+      if (hovered) playOnly(hovered);
+      else scheduleVideo();
+    }, 200);
+  };
+  addEventListener("scroll", scheduleVideoSoon, { passive: true, signal: controller.signal });
+  addEventListener("site:scroll", scheduleVideoSoon, { signal: controller.signal });
+  document.addEventListener("advertising-video-ended", () => scheduleVideo(true), { signal: controller.signal });
+  document.addEventListener("pointerover", (event) => {
+    const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
+    const video = figure?.advertisingActiveVideo?.();
+    if (!video || figure.contains(event.relatedTarget)) return;
+    hoverHold = true;
+    playOnly(video);
+  }, { signal: controller.signal });
+  document.addEventListener("pointerout", (event) => {
+    const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
+    if (!figure?.advertisingActiveVideo?.() || figure.contains(event.relatedTarget)) return;
+    playOnly(null);
+  }, { signal: controller.signal });
   reducedMotionQuery.addEventListener("change", ({ matches }) => {
     reduced = matches;
     syncCtaParallax();

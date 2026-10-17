@@ -605,7 +605,7 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
         videoReady: active?.readyState >= 2, videoMuted: active?.muted,
         videoWidth: active?.videoWidth, videoHeight: active?.videoHeight,
         poster: active?.poster, duration: node.querySelector("[data-advertising-media-duration]")?.textContent,
-        playbackVisible: Boolean(node.querySelector("[data-advertising-media-playback]")?.hidden === false),
+        noPlayback: !node.querySelector("[data-advertising-media-playback]"),
         mediaLoaded: node.dataset.advertisingMediaLoaded || null,
         indicatorCount: node.querySelectorAll("[data-advertising-media-indicator], [data-advertising-media-select]").length,
         withinFrame: Boolean(rect && rect.left >= frame.left - 1 && rect.top >= frame.top - 1
@@ -616,7 +616,7 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
       && state.legacyWidth === 0 && state.videoReady && state.videoMuted
       && state.videoWidth === 480 && state.videoHeight === 320
       && state.poster.endsWith("poster-3x2.webp") && state.duration === "0:03"
-      && state.playbackVisible && state.mediaLoaded === "true" && state.indicatorCount === 0
+      && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 0
       && state.withinFrame, `singleton video state: ${JSON.stringify(state)}`);
     await clickCardBody(card, "singleton-video");
     await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);

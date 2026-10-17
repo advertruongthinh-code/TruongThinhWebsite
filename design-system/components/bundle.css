@@ -4914,13 +4914,14 @@ body.is-advertising-browse .advertising-grid {
   touch-action: pan-y;
 }
 
+/* Mọi item cùng tỷ lệ với canvas (media-card R1) nên phủ đúng canvas; width auto trước đây
+   co ảnh về đúng giá trị sizes do lazysizes đo, ảnh hiện nhỏ hơn cột. */
 .advertising-card-media--carousel [data-advertising-media-item] {
   display: block;
   flex: none;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .advertising-card-media--carousel > img[hidden],
@@ -4928,17 +4929,20 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
+/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
 .advertising-card-media__duration {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 8px;
   z-index: 2;
-  padding: 4px 7px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 6px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
   font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
-  line-height: 1;
+  font-weight: 500;
+  line-height: 1rem;
   pointer-events: none;
 }
 
@@ -4971,16 +4975,19 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: auto;
 }
 
+/* Chấm dùng lại UI chấm của Gallery (bullet Swiper, owner 2026-10-17): 8px, chấm thường đen 20%, chấm đang xem `ink`. */
 .advertising-card-media__dot::before {
   content: "";
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentColor;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background: #000;
+  opacity: 0.2;
 }
 
 .advertising-card-media__dot[aria-current="true"]::before {
-  background: currentColor;
+  background: var(--ink);
+  opacity: 1;
 }
 
 .advertising-card-media__indicator--numeric {
@@ -5033,23 +5040,8 @@ body.is-advertising-browse .advertising-grid {
   line-height: 1;
 }
 
-.advertising-card-media__playback {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-  min-width: 44px;
-  min-height: 38px;
-  padding: 5px 9px;
-  border: 0;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  cursor: pointer;
-}
-
 .advertising-card-media__dot:focus-visible,
-.advertising-card-media__step:focus-visible,
-.advertising-card-media__playback:focus-visible {
+.advertising-card-media__step:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
