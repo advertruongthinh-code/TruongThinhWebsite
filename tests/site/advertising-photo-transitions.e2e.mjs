@@ -1575,8 +1575,11 @@ try {
     stage("detail-Back-with-pointer-retained");
     await openA(page);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
-    let aY = 0;
-    await chooseB(page, async () => { aY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()); });
+    // click() có thể cuộn thêm khi header che card related, nên ghi Y mà chính click thấy, như case grid dưới.
+    await chooseB(page, () => page.evaluate(() => addEventListener("click", () => {
+      window.__relatedClickY = window.TruongThinhMotion.getLogicalScroll();
+    }, { once: true, capture: true })));
+    const aY = await page.evaluate(() => window.__relatedClickY);
     await ready(page, B);
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     await armNoGridMorphProbe(page);
@@ -1725,11 +1728,16 @@ try {
     assert.equal(state.currentClones, 0, "rapid related/Back retained a clone");
     assert.deepEqual(state.locks, [], "rapid related/Back acquired a scroll lease");
     assert.deepEqual(state.currentLocks, ["", ""], "rapid related/Back retained scroll lock");
-    const beforeWheel = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    const { beforeWheel, room } = await page.evaluate(() => {
+      const y = window.TruongThinhMotion.getLogicalScroll();
+      return { beforeWheel: y, room: document.documentElement.scrollHeight - innerHeight - y };
+    });
     // Locomotive dịch một nấc mỗi wheel event, scale theo OS (Windows 108 px, Linux 43 px); ba nấc vượt 100 px.
-    for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160);
-    await page.waitForFunction((start) => window.TruongThinhMotion.getLogicalScroll() - start >= 100, beforeWheel);
-    return { state, beforeWheel, afterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
+    // Số card related theo seed nên trang có lúc chỉ còn dưới 100 px để cuộn xuống: khi đó cuộn lên.
+    const direction = room >= 100 ? 1 : -1;
+    for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160 * direction);
+    await page.waitForFunction(([start, dir]) => (window.TruongThinhMotion.getLogicalScroll() - start) * dir >= 100, [beforeWheel, direction]);
+    return { state, beforeWheel, direction, afterWheel: await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll()) };
   });
   await caseRun("delayed-image-resize-latest-wins", { width: 390, height: 844 }, async (page, stage) => {
     stage("open-A"); await openA(page);
