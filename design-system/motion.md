@@ -179,7 +179,7 @@ nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opa
 - Kicker (h1, tên cụm hoặc sản phẩm) đổi chữ thì vào lại như entrance tải trang: `opacity 0, x -60px → 0`, `0.6s`
   `--ease`, không delay.
 - Hàng chip vừa hiện (từ Tất cả sang cụm, hoặc từ cụm này sang cụm khác) vào như rail lúc tải trang: từng chip
-  `opacity 0, y 20px → 0`, `1s expo.out`, stagger `0.15s`, trễ `0.3s` để kicker đi trước.
+  `opacity 0, y 20px → 0`, `1s expo.out`, stagger `0.15s` (hàng dài thì ép tổng so le tối đa `0.6s`), trễ `0.3s` để kicker đi trước.
 - Đổi sản phẩm trong cùng cụm: chỉ kicker chạy lại, hàng chip đứng yên. Về Tất cả: chip ẩn ngay, không motion thoát.
 - Bấm liên tiếp: animation đang chạy bị hủy rồi chạy lại từ đầu. Tải trang, Back/Forward, đổi ngôn ngữ và
   mở ảnh không chạy. Reduced motion: vào thẳng trạng thái cuối. Không đổi bố cục nên không có CLS.

@@ -1374,8 +1374,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const wasHidden = group.hidden;
       group.hidden = !isRailCurrent(group.dataset.advertisingChips);
       // Chip hiện cùng nhịp filter rail lúc tải trang (y 20, 1s expo.out, stagger 0.15s), sau kicker 0.3s; đổi sản phẩm trong cụm không chạy lại.
+      // Hàng dài thì ép tổng độ trễ so le tối đa 0.6s để chip cuối không hiện muộn.
       if (animate && wasHidden && !group.hidden) {
-        enterFrom([...group.querySelectorAll(".rail-chip")], "translate3d(0, 20px, 0)", { duration: 1000, easing: "cubic-bezier(0.16, 1, 0.3, 1)", delay: 300, stagger: 150 });
+        const chips = [...group.querySelectorAll(".rail-chip")];
+        enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: "cubic-bezier(0.16, 1, 0.3, 1)", delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
       // Hàng chip cuộn ngang trên điện thoại: đưa chip đang chọn vào khung, chỉ trục ngang để không kéo trang.
       const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
