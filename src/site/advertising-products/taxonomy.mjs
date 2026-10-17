@@ -3,7 +3,9 @@
 // railVi, railEn: tên ngắn trên rail (owner chọn 2026-10-17); h1, kicker và title SEO vẫn dùng label,
 // title đầy đủ.
 // legacySlug là slug nhóm cũ, `?category=` cũ vẫn lọc đúng cụm (R4).
-// Sản phẩm dưới ngưỡng trang mỏng (R5) không lên rail và không có trang.
+// Ngưỡng R5 đếm số media gắn sản phẩm: từ ngưỡng chip có chip lọc tại chỗ trong hàng chip của cụm, từ ngưỡng
+// trang mỏng có thêm trang riêng. Dưới ngưỡng chip thì không chip, không trang.
+export const ADVERTISING_CHIP_PRODUCT_THRESHOLD = 3;
 export const ADVERTISING_THIN_PRODUCT_THRESHOLD = 9;
 
 export const ADVERTISING_CLUSTERS = Object.freeze([

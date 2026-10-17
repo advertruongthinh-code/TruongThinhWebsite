@@ -196,9 +196,10 @@ const resolveAdvertisingFilter = (value, categories, cards) =>
   ?? (cards.some((card) => card.productIds?.includes(value)) ? value : null);
 
 // Trang cụm, sản phẩm (taxonomy R4) đặt filter theo path; pages là artifact.pages (vi, en là path sau gốc).
+// Mục query (sản phẩm chưa có trang, R5) mượn path cụm nên không đặt filter theo path.
 const advertisingPathFilter = (pathname, pages) => {
   const [, locale, rest] = pathname.match(ADVERTISING_PATH_PATTERN) || [];
-  return rest ? pages.find((page) => `${page[locale]}/` === rest)?.filter ?? null : null;
+  return rest ? pages.find((page) => !page.query && `${page[locale]}/` === rest)?.filter ?? null : null;
 };
 
 export function parseAdvertisingBrowseLocation(input, { cards = [], categories = [], pages = [], tagRegistry = [] } = {}) {
@@ -221,14 +222,15 @@ export function parseAdvertisingBrowseLocation(input, { cards = [], categories =
 export function serializeAdvertisingBrowseLocation(input, browse = {}, categories = [], pages = []) {
   const url = input instanceof URL ? new URL(input.href) : new URL(input, "https://invalid.local");
   for (const key of ["category", "photo", "tag"]) url.searchParams.delete(key);
-  // Filter có trang (taxonomy R4) ghi thành path theo slug của locale; filter khác về gốc kèm ?category=.
+  // Filter có trang (taxonomy R4) ghi thành path theo slug của locale; sản phẩm chưa có trang (R5) ghi path cụm kèm
+  // ?category=; filter không có mục nào về gốc kèm ?category=.
   const locale = url.pathname.match(ADVERTISING_PATH_PATTERN)?.[1];
   const page = locale && pages.find((entry) => entry.filter === (browse.category || "all"));
   if (locale) url.pathname = `/${locale}/advertising-products/${page?.[locale] ? `${page[locale]}/` : ""}`;
   // Cụm ghi slug theo locale của URL; id sản phẩm ghi nguyên.
   const entry = categories.find((item) => item.slug === browse.category);
   const category = entry?.[url.pathname.startsWith("/en/") ? "slugEn" : "slugVi"] ?? browse.category;
-  if (category && category !== "all" && !page) url.searchParams.set("category", category);
+  if (category && category !== "all" && (!page || page.query)) url.searchParams.set("category", category);
   if (browse.photo) url.searchParams.set("photo", browse.photo);
   if (browse.tag) url.searchParams.set("tag", browse.tag);
   return url;

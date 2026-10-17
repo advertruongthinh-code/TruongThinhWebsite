@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-pages.test.mjs
   - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -27,7 +27,7 @@ và validator R2; filter cụm, sản phẩm đã chạy ([masonry R2, R3](adver
 
 ### R1. Ba tầng phân loại
 
-Cụm là tập đóng, hiện trên rail, thứ tự theo bảng dưới. Sản phẩm thuộc đúng một cụm, lọc được, có trang index. Tag là biến thể, vật
+Cụm là tập đóng, hiện trên rail, thứ tự theo bảng dưới. Sản phẩm thuộc đúng một cụm, lọc được, có chip và trang index theo ngưỡng R5. Tag là biến thể, vật
 liệu, kiểu dáng (Inox, Mica, đơn sắc, full color...), gắn trên từng media, không lên rail; từ chi tiết trong
 tag xuất hiện trong chữ trang sản phẩm và alt. Một media gắn được nhiều sản phẩm và nhiều tag. Thứ tự sản phẩm là
 thứ hạng: hạng 1 là sản phẩm chính, quyết định `category`, alt và related; các hạng sau xếp theo độ nổi bật trong
@@ -94,7 +94,8 @@ không mở danh sách sản phẩm (owner bỏ 2026-10-17). Bấm cụm lọc c
 bên dưới, dựng sẵn trong HTML tĩnh; bấm chip lọc riêng sản phẩm đó, chip đang chọn có `aria-current="true"`. Điện
 thoại: hàng chip cuộn ngang. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
 document, `replaceState`, card chuyển vị trí); URL thành path trang đích, đổi luôn `document.title` và kicker (h1 của trang tĩnh) theo trang
-đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Sản phẩm dưới ngưỡng R5 không lên rail.
+đích; đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Chip chỉ có cho sản phẩm đủ
+ngưỡng chip R5; chip của sản phẩm chưa có trang trỏ trang cụm kèm `?category=` (R5).
 Link sản phẩm mang `data-advertising-product` (không phải `data-advertising-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
 ([Filter](../../design-system/components/Filter/README.md)): từ 1025px rail một hàng nâng lên một bậc, hàng chip nằm
@@ -117,7 +118,7 @@ Build sinh trang tĩnh cho mỗi locale:
 - `/{locale}/advertising-products/<cụm>/`
 - `/{locale}/advertising-products/<cụm>/<sản phẩm>/`
 
-Trang `/vi/` dùng slug VI không dấu, trang `/en/` dùng slug EN (R1); đoạn path `advertising-products` giữ nguyên
+Trang chỉ sinh cho cụm và sản phẩm đủ ngưỡng trang R5. Trang `/vi/` dùng slug VI không dấu, trang `/en/` dùng slug EN (R1); đoạn path `advertising-products` giữ nguyên
 cho cả hai locale. Mỗi trang là trang masonry Advertising với filter đặt sẵn, có title, meta description, h1, đoạn giới thiệu riêng
 trong HTML tĩnh (h1 là dòng kicker mang tên cụm, sản phẩm; khẩu hiệu giữ hình nhưng là `p.hero-title`, owner 2026-10-15), canonical trỏ chính nó, hreflang VI/EN. Sáu URL tương thích `/advertising-products/<slug cũ>/`
 ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)) chuyển hướng tới trang cụm mới tương
@@ -136,16 +137,45 @@ And tải /vi/advertising-products/?category=print-decals thì URL thành /vi/ad
 [CẦN LÀM RÕ: trang không JavaScript hiện chỉ có link, chưa render card tĩnh; giữ như masonry R10 hay render tĩnh
 một phần card cho Google? Mặc định: giữ như R10, chữ và link trong HTML là đủ cho index (suy luận).]
 
-### R5. Trang mỏng
+### R5. Ngưỡng chip và trang mỏng
 
-Sản phẩm có từ 9 ảnh đã gắn và duyệt mới lên rail và có trang (owner 2026-10-15). Dưới ngưỡng: không lên rail, không sinh trang,
-ảnh vẫn hiện trong cụm. Cụm luôn có trang. Ngưỡng là một hằng số trong dữ liệu (R2). Cây tạm R1 vẫn giữ mọi sản phẩm
-từ 3 ảnh để gắn tag.
+Hai ngưỡng là hằng số trong `taxonomy.mjs` (R2), đếm số media có `productIds` chứa sản phẩm (owner 2026-10-17):
+
+- Từ 3 ảnh (`ADVERTISING_CHIP_PRODUCT_THRESHOLD`): sản phẩm có chip trong hàng chip của cụm (R3), lọc tại chỗ.
+- Từ 9 ảnh (`ADVERTISING_THIN_PRODUCT_THRESHOLD`): sản phẩm có thêm trang riêng R4, chip trỏ trang đó.
+
+Sản phẩm có chip mà chưa có trang không tạo URL index mới: chip trỏ trang cụm kèm `?category=<id sản phẩm>`, click
+chính ghi URL đó bằng `replaceState`; title, kicker, canonical giữ của trang cụm; không vào danh sách link noscript,
+không vào sitemap. Dưới 3 ảnh: không chip, không trang, ảnh vẫn hiện trong cụm. Cụm luôn có trang. Chip và trang
+tính lúc build từ số ảnh, không có danh sách sản phẩm viết tay; thêm ảnh hoặc sản phẩm thì chip, trang tự hiện.
+
+Sản phẩm tụt dưới 9 thì build không sinh trang nữa. URL cũ dưới trang cụm rơi vào `404.html` của thư mục cụm
+(cơ chế `not_found_handling = "404-page"` lấy 404 gần nhất, như `/en/404.html`): trang đó trả 404, canonical trang
+cụm và chuyển tới trang cụm theo cách trang tương thích ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)).
+Google bỏ URL đã mất, người dùng về trang cụm. Phase CMS thay bằng 301 phía Worker (Gate còn mở).
+
+Ràng buộc cho phase CMS (người dùng tự upload ảnh, gắn hoặc tạo tag):
+
+- Sản phẩm có chip cần: `id`, `cluster` trỏ cụm có thật, `labelVi`, `labelEn`, và đủ 3 media đã duyệt gắn `productIds`.
+- Sản phẩm có trang cần thêm: `slugVi` (không dấu), `slugEn` không trùng trong cụm, `titleVi`/`titleEn`, `introVi`/`introEn`
+  (dùng làm meta description và đoạn giới thiệu), và đủ 9 media đã duyệt. Thiếu chữ thì validator R2 từ chối như hiện nay.
+- Đếm theo media đã duyệt, đổi số ảnh thì sinh lại rail, trang, artifact; sitemap chỉ lấy trang R4 (`ADVERTISING_PAGES`).
 
 ```gherkin
+Given sản phẩm "Menu" có 4 ảnh và sản phẩm "In ấn văn phòng" có 11 ảnh
+When build
+Then hàng chip cụm "In ấn, decal & menu" có chip "Menu" trỏ /vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus
+And không có trang /vi/advertising-products/in-an-decal/menu/, noscript không link tới nó
+And chip "In ấn văn phòng" trỏ /vi/advertising-products/in-an-decal/in-an-van-phong/
+
+Given /vi/advertising-products/in-an-decal/, runtime sẵn sàng
+When bấm chip "Menu"
+Then URL thành /vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus bằng replaceState, chỉ card Menu còn
+And canonical vẫn là /vi/advertising-products/in-an-decal/
+
 Given sản phẩm X chỉ có 2 ảnh
 When build
-Then không có trang của X, rail không có X, hai ảnh vẫn trong trang cụm của X
+Then không có chip, không có trang của X, hai ảnh vẫn trong trang cụm của X
 ```
 
 ### R6. Embedding ảnh bằng EmbeddingGemma 2
@@ -214,12 +244,12 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Data | `taxonomy.mjs` | cụm, sản phẩm, slug, chữ VI/EN, ngưỡng R5; người hoặc CMS sửa |
+| Data | `taxonomy.mjs` | cụm, sản phẩm, slug, chữ VI/EN, ngưỡng chip và trang R5; người hoặc CMS sửa |
 | Data | `photo-tags.mjs` | tag `variant` mang `productId`; `productIds` mỗi media, sửa nhãn R8 |
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
-| Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4 |
+| Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4; `<cụm>/?category=<id>` cho sản phẩm chỉ có chip; `<cụm>/404.html` chuyển về trang cụm (R5) |
 | DOM hook | `[data-advertising-filter]` | giữ cho cụm; `[data-advertising-product]` cho chip sản phẩm |
-| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `clusterIds` (cụm của từng sản phẩm, cùng thứ tự), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7) |
+| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `clusterIds` (cụm của từng sản phẩm, cùng thứ tự), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7); `pages` có thêm mục `query: true` cho sản phẩm chưa có trang, path và chữ của trang cụm (R5) |
 
 ## UI
 
@@ -234,7 +264,7 @@ Không đổi typography hay layout ngoài rail.
 | R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo mọi sản phẩm, hạng trong filter và lọc sản phẩm) |
 | R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path, link sản phẩm tĩnh); `advertising-rail-two-tier.e2e.mjs` (gherkin ở 1440px, chip trên điện thoại) |
 | R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm) |
-| R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang, không lên rail) |
+| R5 | `advertising-pages.test.mjs` (chip từ 3 ảnh, trang từ 9 ảnh, chip không trang trỏ `?category=` trên trang cụm, 404 cụm); `advertising-rail-two-tier.e2e.mjs` (bấm chip không trang) |
 | R6 | chưa có test (đọc file vector, cảnh báo sha256 lệch) |
 | R7 | `advertising-pages.test.mjs` (Kỷ niệm chương đứng trước, nút gợi ý theo sản phẩm), `advertising-products-static.test.mjs` (thứ tự theo tầng); chưa có test điểm vector (T8) |
 | R8 | `advertising-products-media.test.mjs` (sửa nhãn); chưa có test cho ảnh bổ sung, provenance |
@@ -243,7 +273,7 @@ Không đổi typography hay layout ngoài rail.
 
 - Số Keyword Planner cả nước đủ 92 từ khóa chưa có (mới có 20 dòng), cần thì owner tải thêm một lần để soát lại
   title, meta description trong `taxonomy.mjs`.
-- 301 phía server cho `?category=` và slug cũ: làm khi có Worker CMS.
+- 301 phía server cho `?category=`, slug cũ và trang sản phẩm tụt ngưỡng R5: làm khi có Worker CMS.
 - Cách tính vector lúc upload ở phase CMS (trình duyệt hay PC): chốt ở phase CMS.
 - Map 84 URL site cũ sang trang mới: thuộc [SEO](seo.md); danh sách 84 URL đã thu lại ngày 2026-10-12 (Library
   `advertising-taxonomy/seo/goi-y-tim-kiem-va-site-cu.md`).
@@ -253,7 +283,8 @@ Không đổi typography hay layout ngoài rail.
 ## Chú thích thuật ngữ
 
 - **Cụm**: nhóm khái niệm đóng trên rail, ví dụ "LED decor, màn hình & bảng LED".
-- **Sản phẩm**: mục cụ thể trong cụm, lọc được, có trang riêng.
+- **Sản phẩm**: mục cụ thể trong cụm, lọc được; đủ ngưỡng R5 thì có chip, trang riêng.
+- **Chip**: link lọc một sản phẩm trong hàng dưới rail cụm.
 - **Tag**: nhãn biến thể hoặc vật liệu gắn trên media, không lên rail.
 - **Rail**: dải link lọc phía trên masonry (`.project-filters`).
 - **Embedding, vector**: dãy số đại diện nội dung ảnh hoặc chữ; hai thứ giống nhau thì vector gần nhau.

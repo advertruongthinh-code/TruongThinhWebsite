@@ -6,7 +6,7 @@ import {
 import { validateAdvertisingCardMedia, validateAdvertisingMediaPool } from "./media-contract.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "./media-manifest.mjs";
 import { ADVERTISING_TAG_REGISTRY } from "./photo-tags.mjs";
-import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "./taxonomy.mjs";
+import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS, ADVERTISING_THIN_PRODUCT_THRESHOLD } from "./taxonomy.mjs";
 
 export const ADVERTISING_DATASET_VERSION = "2026-09-24.1";
 
@@ -232,10 +232,11 @@ export const ADVERTISING_ROOT_PAGE = deepFreeze({
 // Trang tĩnh cụm và sản phẩm (taxonomy R4); sản phẩm dưới ngưỡng trang mỏng không có trang (R5).
 // vi, en là path sau /<locale>/advertising-products/; filter là id cụm hoặc id sản phẩm.
 const clusterById = new Map(ADVERTISING_CLUSTERS.map((cluster) => [cluster.id, cluster]));
+const productCount = (id) => ADVERTISING_CARDS.filter((card) => card.productIds?.includes(id)).length;
 export const ADVERTISING_PAGES = deepFreeze([
   ...ADVERTISING_CLUSTERS.map((cluster) => ({ ...cluster, filter: cluster.id, cluster: cluster.id, vi: cluster.slugVi, en: cluster.slugEn })),
   ...ADVERTISING_PRODUCTS
-    .filter(({ id }) => ADVERTISING_CARDS.filter((card) => card.productIds?.includes(id)).length >= ADVERTISING_THIN_PRODUCT_THRESHOLD)
+    .filter(({ id }) => productCount(id) >= ADVERTISING_THIN_PRODUCT_THRESHOLD)
     .map((product) => {
       const cluster = clusterById.get(product.cluster);
       return {
@@ -244,6 +245,20 @@ export const ADVERTISING_PAGES = deepFreeze([
       };
     }),
 ]);
+// Sản phẩm chưa có trang lọc trên trang cụm (R5): URL là path cụm kèm ?category=, title và kicker của cụm.
+const pageByFilter = new Map(ADVERTISING_PAGES.map((page) => [page.filter, page]));
+const QUERY_PAGES = ADVERTISING_PRODUCTS.filter(({ id }) => !pageByFilter.has(id))
+  .map(({ id, cluster }) => ({ ...pageByFilter.get(cluster), filter: id, query: true }));
+// Chip sản phẩm của hàng chip (R3, R5): vi, en là phần URL sau /<locale>/advertising-products/.
+export const ADVERTISING_PRODUCT_CHIPS = deepFreeze(ADVERTISING_PRODUCTS
+  .map((product) => ({ ...product, count: productCount(product.id) }))
+  .filter(({ count }) => count >= ADVERTISING_CHIP_PRODUCT_THRESHOLD)
+  .map(({ id, cluster, labelVi, labelEn, count }) => {
+    const page = pageByFilter.get(id);
+    const target = page || pageByFilter.get(cluster);
+    const query = page ? "" : `?category=${encodeURIComponent(id)}`;
+    return { filter: id, cluster, labelVi, labelEn, count, vi: `${target.vi}/${query}`, en: `${target.en}/${query}` };
+  }));
 
 export function compileAdvertisingLayout(options = {}) {
   return compileLayout({
@@ -296,8 +311,8 @@ export function buildAdvertisingArtifact(options = {}) {
     clusters: ADVERTISING_CLUSTERS,
     products: ADVERTISING_PRODUCTS,
     // Trang gốc (filter "all", path rỗng) cùng trang cụm, sản phẩm: runtime đổi path, title và kicker theo filter.
-    pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES]
-      .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn }) => ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn })),
+    pages: [ADVERTISING_ROOT_PAGE, ...ADVERTISING_PAGES, ...QUERY_PAGES]
+      .map(({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query }) => ({ filter, vi, en, labelVi, labelEn, titleVi, titleEn, query })),
     cards: attachRelated(compiledCards),
   });
 }

@@ -145,11 +145,13 @@ function handler(root) {
       if (request.method === "HEAD") response.end();
       else createReadStream(resolved.file, { start, end }).pipe(response);
     } catch {
-      // Giống demo (not_found_handling = "404-page"): trả trang 404 theo locale, thiếu file thì về text.
+      // Giống demo (not_found_handling = "404-page"): 404.html gần nhất theo path (en, cụm Advertising), thiếu file thì về text.
       let page;
-      try {
-        page = readFileSync(resolve(root, pathname.startsWith("/en/") ? "en/404.html" : "404.html"));
-      } catch {}
+      for (let directory = pathname.replace(/[^/]*$/, ""); !page && directory; directory = directory.replace(/[^/]*\/$/, "")) {
+        try {
+          page = readFileSync(resolve(root, `.${directory}404.html`));
+        } catch {}
+      }
       response.writeHead(404, { "Content-Type": page ? MIME.get(".html") : "text/plain; charset=UTF-8", "Cache-Control": "no-store" });
       response.end(page ?? "Not Found");
     }
