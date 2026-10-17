@@ -5,6 +5,7 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
+import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
@@ -58,9 +59,7 @@ for (const layoutViewportWidth of PUBLIC_GRID_WIDTHS) {
       datasetVersion: artifact.datasetVersion,
       settings: artifact.settings,
     });
-    const filterCards = filter === "all"
-      ? artifact.cards
-      : artifact.cards.filter((card) => card.category === filter);
+    const filterCards = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
     if (filterCards.length > 0 && (layout.diagnostics?.code === "needs-media" || layout.placements.length !== filterCards.length)) {
       throw new Error(`Advertising public grid preflight failed for ${filter} at ${layoutViewportWidth}px: ${layout.diagnostics?.code ?? "incomplete-geometry"}`);
     }

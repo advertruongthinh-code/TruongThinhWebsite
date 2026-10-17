@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
-import { columnsForWidth, computeAdvertisingPhotoGeometry, compileAdvertisingProductLayout } from "../../src/site/advertising-products/layout-core.mjs";
+import { columnsForWidth, computeAdvertisingPhotoGeometry, compileAdvertisingProductLayout, matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 
 const previousWindow = globalThis.window;
 globalThis.window = {};
@@ -138,7 +138,7 @@ test("public grid uses one column for all groups and ignores retired span contro
     assert.equal(baseline.columns, columnsForWidth(width), "parent retains viewport column count");
     assertOneColumn(baseline, `${filter} ${width}`);
     const filteredCards = ADVERTISING_CARDS
-      .filter((c) => filter === "all" || c.category === filter)
+      .filter((c) => matchesAdvertisingFilter(c, filter))
       .sort((a, b) => a.sourceOrder - b.sourceOrder || a.id.localeCompare(b.id));
     assert.equal(baseline.placements.length, filteredCards.length);
     assertSourceOrderShortestFrontier(baseline, filteredCards, `${filter} ${width}`);

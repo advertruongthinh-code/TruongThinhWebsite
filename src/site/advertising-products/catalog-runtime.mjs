@@ -11,6 +11,7 @@ import {
   compileAdvertisingProductLayout,
   fnv1a32,
   getVirtualWindow,
+  advertisingFilterRank,
   matchesAdvertisingFilter,
   normalizeAdvertisingProductSettings,
   validateAdvertisingCards,
@@ -1484,11 +1485,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
 
   const geometryRequest = (targetFilter) => {
     const categoryPool = cards.filter((card) => matchesAdvertisingFilter(card, targetFilter));
+    // Ngẫu nhiên trong từng hạng, hạng 1 (sản phẩm chính) đứng trước (taxonomy R1).
     const presentationOrder = shuffleWithSeed(
       categoryPool,
       browseHistory.current.seed,
       `grid:${targetFilter}`,
-    ).map(({ id }) => id);
+    ).sort((left, right) => advertisingFilterRank(left, targetFilter) - advertisingFilterRank(right, targetFilter)).map(({ id }) => id);
     const compileOptions = {
       layoutViewportWidth: document.documentElement.clientWidth,
       filter: targetFilter,
