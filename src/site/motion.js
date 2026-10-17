@@ -1370,6 +1370,12 @@
       window.requestAnimationFrame(() => intro.play());
       if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
       else window.requestAnimationFrame(() => headerIntro.play());
+      // Mỗi lần mount xáo thứ tự DOM các slide sau slide 0 (page-home R3). Slide 0 là ảnh tải ưu tiên
+      // trong HTML nên màn đầu không đổi; DOM đổi theo nên z-order khớp thứ tự chiếu.
+      selectAll(".hero-slide:not(:first-child)")
+        .map((slide) => [Math.random(), slide])
+        .sort(([a], [b]) => a - b)
+        .forEach(([, slide]) => slide.parentElement.append(slide));
       const slides = selectAll(".hero-slide");
       const carouselEnabled = slides.length > 1;
       let heroIntroPending = Boolean(

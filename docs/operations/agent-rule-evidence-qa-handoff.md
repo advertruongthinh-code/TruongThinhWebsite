@@ -40,6 +40,12 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 2. **Brief.** Agent viết brief từng ảnh rồi tạo, không qua agent phản biện brief
    (owner chốt 2026-10-14). Owner không duyệt brief, trừ sản phẩm chưa từng có
    ảnh trên site.
+   ChatGPT/Codex tự thiết kế: brief chỉ nêu các rule dưới đây và ý tưởng đại khái
+   (loại sản phẩm, ngành, bối cảnh, cảm giác), không tả chi tiết hình khối, chữ hay
+   bố cục. Model được tự sáng tạo trong khuôn khổ rule, đúng sản phẩm Trường Thịnh
+   làm và dựng được thật (owner chốt 2026-10-17). Bối cảnh nằm trong vùng địa lý đã
+   khảo sát ([SEO R2](../specs/seo.md)). Không tên thương hiệu, logo hay nhãn hàng
+   thật; tên tiệm, công ty trên biển là tên tự đặt, không trùng thương hiệu có thật.
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
