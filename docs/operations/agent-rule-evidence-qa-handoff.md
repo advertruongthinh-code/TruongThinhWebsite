@@ -80,9 +80,10 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
-   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên model
-   ghi `unknown` (owner chốt 2026-10-13). Codex lỗi hoặc hết lượt thì dùng model
-   ảnh trên RunningHub. Ngoài hai đường này không tự đổi model. Không bao giờ dùng
+   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên `record.json`
+   ghi model đọc từ C2PA của ảnh ("ChatGPT gpt-image"); phiên Codex chạy gpt-6-sol
+   (owner chốt 2026-10-17). Codex lỗi hoặc hết lượt thì dừng và báo; không dùng
+   RunningHub (owner chốt 2026-10-15). Không tự đổi model. Không bao giờ dùng
    model astra ở bất kỳ bước dựng ảnh nào (owner chốt 2026-10-14).
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
    - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí
@@ -96,12 +97,24 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      buộc phải quay về máy);
    - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
      bố cục, người, chữ, thương hiệu;
+   - không dùng từ headline, title, caption trong prompt vì model in chữ vào ảnh;
+     ảnh không chữ ghi rõ không có chữ ở bất kỳ đâu (owner chốt 2026-10-17);
+   - chuỗi ảnh cùng một nhà: khối HOUSE PLAN cố định giống hệt trong mọi prompt,
+     mỗi ảnh ghi vị trí máy, hướng nhìn và tường nào ở trái/phải khung; tạo ảnh
+     chính trước làm tham chiếu; ưu tiên góc cùng hướng ảnh chính; không phối
+     cảnh xung đột (owner chốt 2026-10-17);
+   - sửa ảnh owner đã chọn bằng chế độ image edit trên chính ảnh đó, liệt kê phần
+     giữ nguyên và phần sửa (owner chốt 2026-10-17);
+   - thiết bị mặt trơn không logo; hút mùi rộng bằng bếp và đúng tâm bếp;
+   - ảnh hero trang chủ: chữ hero canh giữa khung (`src/site/style.css`
+     `.hero-content` top 50%), nên dải giữa khung để trơn, chủ thể ở phần ba dưới
+     để cắt dọc điện thoại vẫn thấy; decor nhẹ chỉ ở hai bên (owner chốt 2026-10-17);
    - prompt đúng của từng ảnh lưu `p-<id>.txt`;
    - chữ trong ảnh kiểm từng ký tự có dấu ở bản phóng to (dễ sai: Ờ, Ừ, Ữ, Ỡ); sai
      một dấu là chữ chủ thể sai.
 4. **Hồ sơ.** Mỗi đợt một thư mục `source-assets/<đợt>/` trên PC: prompt
    `p-<id>.txt`, ảnh gốc, `record.json` (file, SHA-256, kích thước, provenance
-   kèm model tool trả về, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
+   kèm model đọc từ C2PA, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
    link tham khảo. Chỉ ảnh owner lấy mới vào PR.
@@ -138,7 +151,10 @@ Lỗi loại thẳng là loại.
 
 Mỗi yêu cầu tạo tối đa 3 lần: ảnh trượt thì sửa prompt theo lý do agent chấm
 nêu rồi tạo lại một ảnh. Ba lần đều không đạt thì dừng, trình owner cả ba ảnh
-kèm điểm từng bảng và lý do loại. Main kiểm lại, không tự nâng điểm. Ảnh sửa
+kèm điểm từng bảng và lý do loại; owner có thể ra lệnh một đợt mới 3 lần với
+brief đã sửa, hoặc giữ một ảnh trượt (báo cáo ghi rõ owner giữ dù chưa qua gate)
+(owner chốt 2026-10-17). Báo cáo cho owner gọi ảnh bằng số thẻ trong báo cáo
+(owner chốt 2026-10-17). Main kiểm lại, không tự nâng điểm. Ảnh sửa
 thì chấm lại đúng SHA-256 mới. Owner phát hiện lỗi thì acceptance cũ mất hiệu lực.
 
 ## Handoff
