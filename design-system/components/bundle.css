@@ -3919,7 +3919,8 @@ html[lang="en"]
   bottom: 15vh;
   left: 50%;
   display: flex;
-  width: min(100%, 53.125rem);
+  /* Đủ rộng để "Tất cả" và sáu tên cụm ngắn nằm một hàng trên PC. */
+  width: min(100%, 62.5rem);
   max-width: none;
   margin: 0;
   flex-wrap: wrap;
