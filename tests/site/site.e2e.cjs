@@ -4898,9 +4898,9 @@ async function advertisingWindowIds(page, filter) {
 function advertisingWindow(page, filter, width = null) {
   return page.evaluate(async ({ filter, width }) => {
     const { ADVERTISING_CATALOG_ARTIFACT: artifact } = await import("/advertising-products/catalog-artifact.mjs");
-    const { compileAdvertisingProductLayout, getVirtualWindow, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
+    const { advertisingFilterRank, compileAdvertisingProductLayout, getVirtualWindow, matchesAdvertisingFilter, normalizeAdvertisingProductSettings } = await import("/advertising-products/layout-core.mjs");
     const { shuffleWithSeed } = await import("/advertising-products/random-order.mjs");
-    const pool = filter === "all" ? artifact.cards : artifact.cards.filter((card) => card.category === filter);
+    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
     const geometry = compileAdvertisingProductLayout({
       cards: artifact.cards,
       categoryOrder: artifact.categories.map((category) => category.slug),
@@ -4908,7 +4908,8 @@ function advertisingWindow(page, filter, width = null) {
       filter,
       layoutViewportWidth: width ?? document.documentElement.clientWidth,
       settings: normalizeAdvertisingProductSettings(artifact.settings),
-      presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`).map(({ id }) => id),
+      presentationOrder: shuffleWithSeed(pool, window.TruongThinhAdvertising.getBrowseState().seed, `grid:${filter}`)
+        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
       organicOrder: true,
     });
     return getVirtualWindow(geometry, {
@@ -5113,7 +5114,8 @@ async function runAdvertisingFilterCheck() {
         `Filter cohort escaped old/new virtual-window union: ${JSON.stringify(cohortSnapshots)}`);
       assert(visible.length > 0, `${filterSlug} filter did not mount a top-page destination window`);
       assert(
-        visible.every((tile) => tile.category === filterSlug),
+        // Cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), nên so với cửa sổ filter thay vì category.
+        visible.every((tile) => expectedWindow.includes(tile.id)),
         `A non-${filterSlug} tile remained visible`,
       );
       assert(
@@ -6913,7 +6915,7 @@ async function runAdvertisingMediaFocusedChecks() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href
   );
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(
+  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(
     pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href
   );
   const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
@@ -6942,10 +6944,14 @@ async function runAdvertisingMediaFocusedChecks() {
       filter: category.slug,
       layoutViewportWidth: 1440,
     });
+    // Layout cụm gồm cả card có sản phẩm phụ trong cụm (taxonomy R1), xếp theo sourceOrder rồi id.
+    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, category.slug))
+      .sort((left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id));
     assert(
       cards.length === expectedCounts[category.slug] &&
         cards.every((card, index) => card.sourceOrder === index) &&
-        layout.placements.every((placement, index) => placement.card.id === cards[index].id),
+        layout.placements.length === pool.length &&
+        layout.placements.every((placement, index) => placement.card.id === pool[index].id),
       `${category.slug} count or FIFO source order drifted`,
     );
   }
@@ -6965,14 +6971,15 @@ async function runAdvertisingMediaFocusedChecks() {
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt xem (random browse): dựng lại cùng seed, cùng pool như runtime.
   const browseLayout = async (page, filter, layoutViewportWidth) => {
     const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = filter === "all" ? artifact.cards : artifact.cards.filter((card) => card.category === filter);
+    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
     return compileAdvertisingLayout({
       cards: artifact.cards,
       categoryOrder,
       datasetVersion: artifact.datasetVersion,
       filter,
       layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`).map(({ id }) => id),
+      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
+        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
       organicOrder: true,
     });
   };
@@ -7139,7 +7146,7 @@ async function runAdvertisingMediaFocusedChecks() {
           // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
             filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
-            filtered.tiles.every((tile) => tile.category === category.slug),
+            filtered.tiles.every((tile) => matchesAdvertisingFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
           `${category.slug} filter retained a wrong category or URL state`,
         );
       }
@@ -7220,7 +7227,9 @@ async function runAdvertisingMediaFocusedChecks() {
           sameNode: current === window.__ttAdvertisingOneShotNode,
           ready: image?.classList.contains("is-advertising-media-ready"),
           opacity: image ? Number.parseFloat(getComputedStyle(image).opacity) : -1,
-          runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
+          // Con trỏ còn nằm trên card gắn lại thì hover zoom chạy; đó không phải hiệu ứng vào của ảnh.
+          runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running"
+            && !animation.effect?.target?.matches(".media-hover-zoom:hover")).length ?? -1,
         };
       }, replayFixtureId);
       // loading-glass R3, masonry R8: card đã tải ảnh gắn lại thì hiện ảnh ngay, không chạy lại hiệu ứng vào.
@@ -7326,7 +7335,7 @@ async function runAdvertisingCompatibilityChecks() {
 // Bị thay bởi AD-BROWSE-R1 photo detail; CAROUSEL_ONLY alias hóa compatibility để tránh assertion composition đã retire.
 async function runAdvertisingThreeThousandCardProbe() {
   const { ADVERTISING_CATEGORIES, buildAdvertisingArtifact } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
-  const { compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
+  const { advertisingFilterRank, compileAdvertisingProductLayout: compileAdvertisingLayout, getVirtualWindow, matchesAdvertisingFilter } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "layout-core.mjs")).href);
   const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "random-order.mjs")).href);
   const { inspectAdvertisingGrid } = await import(pathToFileURL(path.resolve("tests/site/advertising-grid-oracle.mjs")).href);
   const svg = (width, height, fill) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="${fill}"/></svg>`)}`;
@@ -7379,7 +7388,7 @@ async function runAdvertisingThreeThousandCardProbe() {
   // Lưới xếp theo thứ tự ngẫu nhiên của lượt duyệt (R4): dựng lại cùng seed, cùng pool như runtime.
   const browseLayout = async (page, filter, layoutViewportWidth) => {
     const seed = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().seed);
-    const pool = filter === "all" ? artifact.cards : artifact.cards.filter((card) => card.category === filter);
+    const pool = artifact.cards.filter((card) => matchesAdvertisingFilter(card, filter));
     return compileAdvertisingLayout({
       cards: artifact.cards,
       categoryOrder: artifact.categories.map((category) => category.slug),
@@ -7387,7 +7396,8 @@ async function runAdvertisingThreeThousandCardProbe() {
       settings: artifact.settings,
       filter,
       layoutViewportWidth,
-      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`).map(({ id }) => id),
+      presentationOrder: shuffleWithSeed(pool, seed, `grid:${filter}`)
+        .sort((left, right) => advertisingFilterRank(left, filter) - advertisingFilterRank(right, filter)).map(({ id }) => id),
       organicOrder: true,
     });
   };

@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
+import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -2165,7 +2166,7 @@ try {
         "the picked group stays active on the filter rail");
       const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
         .map((node) => node.dataset.advertisingCard));
-      assert(cards.length && cards.every((id) => ADVERTISING_CARDS.find((card) => card.id === id)?.category === group), `masonry only shows ${group}`);
+      assert(cards.length && cards.every((id) => matchesAdvertisingFilter(ADVERTISING_CARDS.find((card) => card.id === id), group)), `masonry only shows ${group}`);
       return page.evaluate((id) => {
         const rect = document.querySelector(`[data-advertising-card="${id}"]`).getBoundingClientRect();
         return { top: rect.top, height: rect.height };

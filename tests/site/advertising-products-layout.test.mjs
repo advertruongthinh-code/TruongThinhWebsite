@@ -18,6 +18,7 @@ import {
   scoreAdvertisingOrganicRhythm,
   solveAdvertisingOrganicPresentationOrder,
   validateAdvertisingCards,
+  matchesAdvertisingFilter,
 } from "../../src/site/advertising-products/layout-core.mjs";
 import { ANTI_BRICK_EVENT_DEFINITION, inspectAdvertisingGrid, inspectAdvertisingRhythmEdges } from "./advertising-grid-oracle.mjs";
 import { ADVERTISING_MEDIA_CATEGORY_COUNTS } from "../../src/site/advertising-products/media-contract.mjs";
@@ -532,7 +533,7 @@ test("keeps a repairable anti-brick prefix and backtracks when a conflict become
 test("prunes irreversible LED rhythm conflicts before permuting unrelated tail cards", () => {
   for (const layoutViewportWidth of [735, 959, 961]) {
     const layout = compileAdvertisingProductLayout({ cards: ADVERTISING_CARDS, categoryOrder, filter: "led-displays", layoutViewportWidth });
-    assertGrid(layout, `LED rhythm pruning ${layoutViewportWidth}px`, ADVERTISING_CARDS.filter((card) => card.category === "led-displays").length);
+    assertGrid(layout, `LED rhythm pruning ${layoutViewportWidth}px`, ADVERTISING_CARDS.filter((card) => matchesAdvertisingFilter(card, "led-displays")).length);
     assert.ok(layout.diagnostics.operations < 1000, "a small LED group must not revisit tens of thousands of irreparable leaves");
   }
 });
@@ -542,7 +543,7 @@ test("solves the full public All and six-filter width matrix without swallowing 
     for (const filter of ["all", ...categoryOrder]) {
       const options = { layoutViewportWidth: width, cards: ADVERTISING_CARDS, categoryOrder, filter };
       const layout = compileAdvertisingProductLayout(options);
-      const expectedCount = filter === "all" ? ADVERTISING_CARDS.length : ADVERTISING_CARDS.filter((card) => card.category === filter).length;
+      const expectedCount = ADVERTISING_CARDS.filter((card) => matchesAdvertisingFilter(card, filter)).length;
       assertGrid(layout, `${filter} ${width}px`, expectedCount);
       assert.equal(compileAdvertisingProductLayout(options).coordinateHash, layout.coordinateHash, `${filter} ${width}px is deterministic`);
       assert.ok(layout.diagnostics.operations <= 300000, `${filter} ${width}px stays within operation budget`);

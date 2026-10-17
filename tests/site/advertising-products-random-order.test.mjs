@@ -5,6 +5,7 @@ import {
   columnsForWidth,
   compileAdvertisingProductLayout,
   scoreAdvertisingOrganicRhythm,
+  matchesAdvertisingFilter,
 } from "../../src/site/advertising-products/layout-core.mjs";
 import { shuffleWithSeed } from "../../src/site/advertising-products/random-order.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
@@ -156,7 +157,7 @@ test("solver follows supplied presentation order without rewriting canonical car
 
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
-    const eligible = filter === "all" ? ADVERTISING_CARDS : ADVERTISING_CARDS.filter((card) => card.category === filter);
+    const eligible = ADVERTISING_CARDS.filter((card) => matchesAdvertisingFilter(card, filter));
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
       const presentationOrder = shuffleWithSeed(eligible, "public-grid-seed", "filter:" + filter)
         .map(({ id }) => id);
@@ -226,7 +227,7 @@ test("organic solver scores the rendered order while keeping 20 seeded hard-safe
 test("organic solver keeps all six filter pools hard-safe across supported viewport widths", () => {
   const categoryOrder = ADVERTISING_CATEGORIES.map(({ slug }) => slug);
   for (const filter of ["all", ...categoryOrder]) {
-    const eligible = filter === "all" ? ADVERTISING_CARDS : ADVERTISING_CARDS.filter((card) => card.category === filter);
+    const eligible = ADVERTISING_CARDS.filter((card) => matchesAdvertisingFilter(card, filter));
     for (const layoutViewportWidth of [320, 390, 768, 1024, 1440, 1920, 2560]) {
       const presentationOrder = shuffleWithSeed(
         eligible, "organic-matrix-seed", `filter:${filter}`,

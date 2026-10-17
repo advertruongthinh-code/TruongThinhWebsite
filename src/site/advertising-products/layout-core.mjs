@@ -221,9 +221,13 @@ export function validateAdvertisingCards(cards, options = {}) {
   return cards;
 }
 
-// Filter là "all", id cụm (cụm của sản phẩm chính, taxonomy R1) hoặc id sản phẩm (mọi sản phẩm gắn trên media).
+// Filter là "all", id cụm (mọi cụm có sản phẩm gắn trên media, taxonomy R1) hoặc id sản phẩm.
 export const matchesAdvertisingFilter = (card, filter) =>
-  filter === "all" || card?.category === filter || Boolean(card?.productIds?.includes(filter));
+  filter === "all" || card?.category === filter || Boolean(card?.clusterIds?.includes(filter) || card?.productIds?.includes(filter));
+
+// Hạng của card trong filter: vị trí sản phẩm đầu tiên khớp filter (sản phẩm hoặc cụm), 0 là sản phẩm chính (taxonomy R1).
+export const advertisingFilterRank = (card, filter) =>
+  Math.max(0, card?.productIds?.indexOf(filter) ?? -1, card?.clusterIds?.indexOf(filter) ?? -1);
 
 const bySource = (left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 const byRank = (left, right) => left.rank - right.rank || left.id.localeCompare(right.id);

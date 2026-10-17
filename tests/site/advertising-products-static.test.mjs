@@ -189,9 +189,15 @@ assert.ok(sameCategory.slice(scoredIds.length).every((card) => card.category ===
 const samplingRelated = selectAdvertisingRelated({ cards: artifact.cards, categoryOrder, heroId: samplingHero.id, tag: "use-sampling" });
 assert.ok(samplingRelated.some((card) => card.id === samplingCrossGroup.id), "authored sampling tag must cross category groups");
 assert.ok(samplingRelated.every((card) => card.id !== samplingHero.id), "hero cannot appear in related results");
+// Láng giềng mang tag giữ thứ tự tầng điểm; card mang tag còn lại xếp theo cụm, sourceOrder, ID.
+const neighbourIds = new Set(sameCategory.map((card) => card.id));
+const taggedNeighbours = samplingRelated.filter((card) => neighbourIds.has(card.id));
+const taggedRest = samplingRelated.slice(taggedNeighbours.length);
+assert.deepEqual(taggedNeighbours.map((card) => card.id),
+  sameCategory.filter((card) => card.tagIds.includes("use-sampling")).map((card) => card.id), "tagged neighbours keep score-tier order");
 assert.deepEqual(
-  samplingRelated.map((card) => [categoryOrder.indexOf(card.category), card.sourceOrder, card.id]),
-  [...samplingRelated]
+  taggedRest.map((card) => [categoryOrder.indexOf(card.category), card.sourceOrder, card.id]),
+  [...taggedRest]
     .sort((left, right) => categoryOrder.indexOf(left.category) - categoryOrder.indexOf(right.category) || left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id))
     .map((card) => [categoryOrder.indexOf(card.category), card.sourceOrder, card.id]),
   "tagged related order is stable across category, source order, and ID",

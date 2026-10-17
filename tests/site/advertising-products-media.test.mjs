@@ -396,37 +396,36 @@ test("every old product tag becomes a variant that maps to its plan product", ()
   assert.ok(!ADVERTISING_TAG_REGISTRY.some((tag) => tag.group === "product"));
 });
 
-test("card products and per-product card counts follow the plan map and R8 relabels", () => {
+test("card products start with the plan map and R8 relabels, then ranked secondary products", () => {
   const expectedIds = (record) => PLAN_RELABELS[record.id] ?? [planProductByLegacyKey.get(record.productKey)];
   for (const card of ADVERTISING_CARDS) {
-    assert.deepEqual(card.productIds, expectedIds(card), card.id);
+    // Sản phẩm phụ (taxonomy R1) nối sau, không đổi sản phẩm chính và nhãn R8.
+    assert.deepEqual(card.productIds.slice(0, expectedIds(card).length), expectedIds(card), card.id);
+    assert.equal(new Set(card.productIds).size, card.productIds.length, card.id);
     const clusterOf = (productId) => ADVERTISING_PRODUCTS.find((product) => product.id === productId).cluster;
     assert.equal(card.category, clusterOf(card.productIds[0]), card.id);
-  }
-  // Số card mỗi sản phẩm tính từ dữ liệu, không viết cứng: ảnh mới chỉ mang productKey cũ vẫn khớp.
-  for (const { id } of ADVERTISING_PRODUCTS) {
-    assert.equal(
-      ADVERTISING_CARDS.filter((card) => card.productIds.includes(id)).length,
-      ADVERTISING_MEDIA_MANIFEST.filter((record) => expectedIds(record).includes(id)).length,
-      id,
-    );
+    assert.deepEqual(card.clusterIds, card.productIds.map(clusterOf), card.id);
   }
   const artifact = buildAdvertisingArtifact();
   assert.deepEqual(artifact.clusters, ADVERTISING_CLUSTERS);
   assert.deepEqual(artifact.products, ADVERTISING_PRODUCTS);
 });
 
-test("filter matches the primary product's cluster or any product, and ?category= accepts old and new slugs", async () => {
-  const { matchesAdvertisingFilter } = await import("../../src/site/advertising-products/layout-core.mjs");
+test("filter matches every product and cluster on the card by rank, and ?category= accepts old and new slugs", async () => {
+  const { advertisingFilterRank, matchesAdvertisingFilter } = await import("../../src/site/advertising-products/layout-core.mjs");
   const previousWindow = globalThis.window;
   globalThis.window = {};
   const { parseAdvertisingBrowseLocation, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
   globalThis.window = previousWindow;
-  // Gherkin R1: lọc sản phẩm phụ vẫn có card; lọc cụm theo sản phẩm chính.
+  // Gherkin R1: card hiện ở mọi sản phẩm và mọi cụm của nó; hạng 0 là sản phẩm chính.
   const decal = ADVERTISING_CARDS.find(({ id }) => id === "print-decals-21");
-  assert.ok(matchesAdvertisingFilter(decal, "office-signs/room-signs"));
-  assert.ok(matchesAdvertisingFilter(decal, "printing-decals"));
-  assert.ok(!matchesAdvertisingFilter(decal, "office-signs"));
+  assert.deepEqual(decal.productIds.slice(0, 2), ["printing-decals/decals-banners-canvas", "office-signs/room-signs"]);
+  for (const [filter, rank] of [["printing-decals", 0], ["printing-decals/decals-banners-canvas", 0], ["office-signs", 1], ["office-signs/room-signs", 1]]) {
+    assert.ok(matchesAdvertisingFilter(decal, filter), filter);
+    assert.equal(advertisingFilterRank(decal, filter), rank, filter);
+  }
+  assert.ok(!matchesAdvertisingFilter(decal, "mobile-retail"));
+  assert.equal(advertisingFilterRank(decal, "all"), 0);
   assert.deepEqual(Object.fromEntries(ADVERTISING_CLUSTERS.map(({ legacySlug, id }) => [legacySlug, id])), clusterByCategory);
   const artifact = buildAdvertisingArtifact();
   const schema = { cards: artifact.cards, categories: artifact.categories };

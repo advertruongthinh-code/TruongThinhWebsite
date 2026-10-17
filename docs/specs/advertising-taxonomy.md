@@ -29,8 +29,10 @@ và validator R2; filter cụm, sản phẩm đã chạy ([masonry R2, R3](adver
 
 Cụm là tập đóng, hiện trên rail, thứ tự theo bảng dưới. Sản phẩm thuộc đúng một cụm, lọc được, có trang index. Tag là biến thể, vật
 liệu, kiểu dáng (Inox, Mica, đơn sắc, full color...), gắn trên từng media, không lên rail; từ chi tiết trong
-tag xuất hiện trong chữ trang sản phẩm và alt. Một media gắn được nhiều sản phẩm (sản phẩm chính đứng đầu) và
-nhiều tag. Card thuộc mọi sản phẩm mà media của nó được gắn; lọc cụm lấy card có sản phẩm chính thuộc cụm. 74 sản phẩm cũ (`<slug>-product-NN`) thành tag,
+tag xuất hiện trong chữ trang sản phẩm và alt. Một media gắn được nhiều sản phẩm và nhiều tag. Thứ tự sản phẩm là
+thứ hạng: hạng 1 là sản phẩm chính, quyết định `category`, alt và related; các hạng sau xếp theo độ nổi bật trong
+ảnh (owner chốt 2026-10-17). Card thuộc mọi sản phẩm và mọi cụm có sản phẩm gắn trên media; trong một filter, card
+xếp theo hạng của sản phẩm đầu tiên khớp filter, cùng hạng thì ngẫu nhiên. Điểm R6 chỉ gợi ý thứ hạng. 74 sản phẩm cũ (`<slug>-product-NN`) thành tag,
 mỗi tag map về một sản phẩm mới.
 
 Cây chọn theo nghiên cứu SEO 2026-10-12 (Keyword Planner miền Tây và cả nước, SERP, gợi ý Google/Bing, 12 đối
@@ -217,7 +219,7 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 | Data | file vector media (R6) | sinh trên PC, build đọc; không vào bundle trình duyệt |
 | Route | `/{locale}/advertising-products/<cụm>/[<sản phẩm>/]` | trang tĩnh R4 |
 | DOM hook | `[data-advertising-filter]` | giữ cho cụm; `[data-advertising-product]` cho chip sản phẩm |
-| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7) |
+| Artifact | `catalog-artifact.mjs` | `clusters`, `products`, tag nhóm `product` sinh từ `products`; card có `productIds` (cũng nằm trong `tagIds`), `clusterIds` (cụm của từng sản phẩm, cùng thứ tự), `category` là cụm của sản phẩm chính, `related` là id láng giềng có điểm theo tầng giảm dần, không gồm tầng điểm 0 (R7) |
 
 ## UI
 
@@ -229,7 +231,7 @@ Không đổi typography hay layout ngoài rail.
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo sản phẩm chính và lọc sản phẩm) |
+| R1, R2 | `advertising-products-media.test.mjs` (validator, map sản phẩm cũ, ngưỡng R5, lọc cụm theo mọi sản phẩm, hạng trong filter và lọc sản phẩm) |
 | R3 | `advertising-random-browse.e2e.mjs` (rail sáu cụm, lọc cụm); `advertising-pages.test.mjs` (filter ghi path, link sản phẩm tĩnh); `advertising-rail-two-tier.e2e.mjs` (gherkin ở 1440px, chip trên điện thoại) |
 | R4 | `advertising-pages.test.mjs` (trang tĩnh, canonical, hreflang, noscript, filter theo path), `advertising-products-detail-routes.test.mjs` (URL cũ tới trang cụm), `advertising-random-browse.e2e.mjs` (`?category=` slug cũ, slug cụm) |
 | R5 | `advertising-pages.test.mjs` (sản phẩm dưới ngưỡng không có trang, không lên rail) |
