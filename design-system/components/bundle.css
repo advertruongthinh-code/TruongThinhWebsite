@@ -4904,13 +4904,14 @@ body.is-advertising-browse .advertising-grid {
   touch-action: pan-y;
 }
 
+/* Mọi item cùng tỷ lệ với canvas (media-card R1) nên phủ đúng canvas; width auto trước đây
+   co ảnh về đúng giá trị sizes do lazysizes đo, ảnh hiện nhỏ hơn cột. */
 .advertising-card-media--carousel [data-advertising-media-item] {
   display: block;
   flex: none;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .advertising-card-media--carousel > img[hidden],
