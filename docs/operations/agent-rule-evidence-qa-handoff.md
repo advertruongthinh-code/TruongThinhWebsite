@@ -61,9 +61,10 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
      nhận diện đậm, đơn giản, nhận ra từ xa; hạn chế ảnh sản phẩm đặt tại xưởng,
      ưu tiên nơi dùng thật (owner chốt 2026-10-14);
-   - chỉ tả sản phẩm Trường Thịnh làm: không màn LED cho thuê sự kiện, màn treo truss
-     sân khấu, màn LED lớn gắn tường nhà; màn LED trong nhà không được giống màn máy
-     chiếu; hộp đèn sáng đều, trông mới, không loang lổ (owner chốt 2026-10-14);
+   - chỉ tả sản phẩm Trường Thịnh làm: màn hình LED module (backdrop sân khấu có
+     khung trang trí, màn hội trường, phòng họp) có làm, thấy rõ lưới module để không
+     giống màn máy chiếu (owner chốt 2026-10-17, thay chốt 2026-10-14); không màn LED
+     lớn gắn tường ngoài nhà; hộp đèn sáng đều, trông mới, không loang lổ;
    - bối cảnh tài chính, ngân hàng chỉ dùng cho nhóm sản phẩm văn phòng, cảnh
      trong văn phòng hoặc mặt tiền tòa nhà (owner chốt 2026-10-14);
    - ảnh có thể thuộc nhiều phân loại (vừa bảng hiệu vừa LED decor): mọi sản phẩm
@@ -78,6 +79,10 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - hạn chế chữ xưng hô (cô, chú, dì, bà) trên biển; chỉ dùng khi không gian mộc
      mạc, bình dân, thân thuộc với người địa phương và đúng món đang bán; không
      dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
+   - ảnh như chụp bằng máy ảnh thật: ánh sáng tự nhiên, nhiễu cảm biến, độ sâu
+     trường ảnh; không bề mặt mịn bóng kiểu dựng 3D (owner chốt 2026-10-13);
+   - nội thất đúng công năng: lối đi, chân cầu thang thông thoáng; sofa quay vào
+     phòng, không chắn lối; không tủ cao sát bếp (owner chốt 2026-10-17).
 3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
    khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
    (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên `record.json`
@@ -117,7 +122,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    kèm model đọc từ C2PA, thiếu thì `unknown`), `ref/` gồm ảnh tham khảo và
    `sources.json`.
 5. **Owner duyệt cuối** trên trang so sánh ảnh cũ cạnh ảnh mới, kèm điểm và
-   link tham khảo. Chỉ ảnh owner lấy mới vào PR.
+   link tham khảo. Chỉ ảnh owner lấy mới vào PR. Lựa chọn cho việc chạy trên PC
+   phải là chữ owner gõ trong thread làm việc; bấm card không tới được PC.
 
 ### Chấm điểm
 
@@ -142,7 +148,8 @@ không lấy trung bình.
 chép; chép chữ, logo hoặc thiết kế của ảnh tham khảo; chữ chủ thể sai; kết cấu
 bất khả thi hoặc xưởng không làm được; sai nhóm; sản phẩm lớn bị cắt; crop
 hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại coi
-như ảnh mới.
+như ảnh mới; ảnh trong chuỗi không định vị được trên mặt bằng hoặc mâu thuẫn ảnh
+khác của chuỗi; chủ thể hoặc chi tiết sáng nằm trong vùng chữ của slot.
 
 Một agent chấm, độc lập với agent tạo ảnh (owner chốt 2026-10-13, thay cho ba
 agent). Agent mở ảnh, chấm đủ hai bảng, ghi điểm từng mục và lỗi; soi cả kết
