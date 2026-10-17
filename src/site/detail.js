@@ -771,44 +771,54 @@
       track.addEventListener("dragstart", (event) => event.preventDefault(), {
         signal: abort.signal,
       });
+      // Region focus được: mũi tên chuyển ảnh khi Swiper chạy; trước đó track cuộn native bằng phím.
+      track.addEventListener(
+        "keydown",
+        (event) => {
+          const step = { ArrowLeft: "slidePrev", ArrowRight: "slideNext" }[event.key];
+          if (!step || !track.swiper) return;
+          event.preventDefault();
+          track.swiper[step]();
+        },
+        { signal: abort.signal },
+      );
 
-      let startX = 0;
-      let startScroll = 0;
-      let dragging = false;
-      track.addEventListener(
-        "pointerdown",
-        (event) => {
-          if (event.pointerType === "touch" || event.button !== 0) return;
-          dragging = true;
-          startX = event.clientX;
-          startScroll = track.scrollLeft;
-          track.classList.add("is-dragging");
-          track.setPointerCapture(event.pointerId);
+      // Kéo, vuốt, chấm phân trang như gallery Espacio: Swiper cùng tham số họ dùng (detail-pages R7).
+      // Tải Swiper khi gallery cách viewport một màn hình để không tranh mạng với hero.
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer.disconnect();
+          ensureAdvertisingCarouselModules()
+            .then(({ Mousewheel, Pagination, Swiper }) => {
+              if (abort.signal.aborted) return;
+              state.carousels.add(new Swiper(track, {
+                modules: [Mousewheel, Pagination],
+                wrapperClass: "detail-gallery__slides",
+                slideClass: "detail-gallery__item",
+                speed: reduceMotion ? 0 : 500,
+                slidesPerView: "auto",
+                breakpoints: {
+                  120: { spaceBetween: 10, pagination: { dynamicBullets: true } },
+                  600: { spaceBetween: 20 },
+                },
+                grabCursor: true,
+                edgeSwipeDetection: true,
+                watchOverflow: true,
+                mousewheel: { forceToAxis: true },
+                pagination: {
+                  el: gallery.querySelector("[data-gallery-pagination]"),
+                  clickable: true,
+                },
+              }));
+            })
+            // Swiper tải lỗi: giữ track cuộn native.
+            .catch(() => {});
         },
-        { signal: abort.signal },
+        { rootMargin: "100% 0px" },
       );
-      track.addEventListener(
-        "pointermove",
-        (event) => {
-          if (dragging) {
-            track.scrollLeft = startScroll - (event.clientX - startX);
-          }
-        },
-        { signal: abort.signal },
-      );
-      const stopDragging = (event) => {
-        dragging = false;
-        track.classList.remove("is-dragging");
-        if (track.hasPointerCapture?.(event.pointerId)) {
-          track.releasePointerCapture(event.pointerId);
-        }
-      };
-      track.addEventListener("pointerup", stopDragging, {
-        signal: abort.signal,
-      });
-      track.addEventListener("pointercancel", stopDragging, {
-        signal: abort.signal,
-      });
+      observer.observe(gallery);
+      observers.push(observer);
     });
 
     return state.catalogReady;

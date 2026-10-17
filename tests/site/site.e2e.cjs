@@ -803,8 +803,9 @@ function assertPersistentNavigationContracts() {
   assert(
     /querySelectorAll\("img"\)[\s\S]*draggable\s*=\s*false/.test(detailSource) &&
       /dragstart[\s\S]*preventDefault/.test(detailSource) &&
-      /event\.button\s*!==\s*0/.test(detailSource),
-    "Gallery still allows native image drag or non-primary pointer capture",
+      // Swiper bỏ qua nút chuột phụ (detail-pages R7).
+      /new Swiper\(track,/.test(detailSource),
+    "Gallery still allows native image drag or is not driven by Swiper",
   );
   assert(
     /const heroLabels = selectAll\("\[data-hero-label\]"\)/.test(motionSource) &&
@@ -1287,6 +1288,16 @@ async function steppedScroll(page, viewport) {
         );
       // Quét track từng bề rộng một để mọi ảnh lazy (gallery Nhà ở 36 ảnh) đều vào vùng tải.
       for (const track of tracks) {
+        // Gallery tải Swiper khi gần viewport (detail-pages R7): chờ rồi trượt qua từng ảnh.
+        for (let wait = 0; !track.swiper && wait < 120; wait += 1) await paint();
+        if (track.swiper) {
+          for (let index = 0; index < track.swiper.slides.length; index += 1) {
+            track.swiper.slideTo(index, 0);
+            await paint();
+          }
+          track.dataset.qaLazySwept = "true";
+          continue;
+        }
         for (let left = 0; left < track.scrollWidth; left += track.clientWidth) {
           track.scrollTo({ left, behavior: "instant" });
           await paint();
@@ -1299,7 +1310,8 @@ async function steppedScroll(page, viewport) {
   }
   await page.evaluate(() => {
     document.querySelectorAll("[data-gallery-track]").forEach((track) => {
-      track.scrollTo({ left: track.scrollWidth, behavior: "instant" });
+      if (track.swiper) track.swiper.slideTo(track.swiper.slides.length - 1, 0);
+      else track.scrollTo({ left: track.scrollWidth, behavior: "instant" });
     });
   });
 }
@@ -8053,13 +8065,12 @@ async function runGalleryCheck() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/commercial/");
       const track = page.locator("[data-gallery-track]");
+      await track.scrollIntoViewIfNeeded();
+      // R7: Swiper tải khi gallery gần viewport.
       await page.waitForFunction(
-        () => {
-          const element = document.querySelector("[data-gallery-track]");
-          return element && element.scrollWidth > element.clientWidth;
-        },
+        () => document.querySelector("[data-gallery-track]")?.swiper?.initialized,
         null,
-        { timeout: 3_000 },
+        { timeout: 8_000 },
       );
       // R7: ảnh cùng chiều cao, rộng theo tỷ lệ thật, caption dưới ảnh, không nút prev/next.
       const layout = await track.evaluate((element) =>
@@ -8090,26 +8101,14 @@ async function runGalleryCheck() {
       );
 
       await track.evaluate((element) => {
-        element.scrollLeft = 0;
-        window.__ttGalleryDrag = {
-          pointerCancels: 0,
-          nativeDrags: 0,
-          maxLeft: 0,
-        };
-        element.addEventListener("scroll", () => {
-          window.__ttGalleryDrag.maxLeft = Math.max(
-            window.__ttGalleryDrag.maxLeft,
-            element.scrollLeft,
-          );
-        });
-        element.addEventListener("pointercancel", () => {
-          window.__ttGalleryDrag.pointerCancels += 1;
+        window.__ttGalleryDrag = { nativeDrags: 0, minTranslate: 0 };
+        element.swiper.on("setTranslate", (swiper, translate) => {
+          window.__ttGalleryDrag.minTranslate = Math.min(window.__ttGalleryDrag.minTranslate, translate);
         });
         element.addEventListener("dragstart", () => {
           window.__ttGalleryDrag.nativeDrags += 1;
         });
       });
-      await track.scrollIntoViewIfNeeded();
       const imageBox = await page
         .locator("[data-gallery-track] img")
         .first()
@@ -8118,18 +8117,50 @@ async function runGalleryCheck() {
       const startX = imageBox.x + imageBox.width * 0.72;
       // Giữa phần visible của ảnh; scroll-padding dưới sticky header có thể để tâm của nó dưới fold.
       const y = (Math.max(imageBox.y, 0) + Math.min(imageBox.y + imageBox.height, viewport.height)) / 2;
+      // R7: hover ảnh như Espacio, không zoom, con trỏ grab.
       await page.mouse.move(startX, y);
+      await page.waitForTimeout(650);
+      const hover = await page.locator("[data-gallery-track] img").first().evaluate((image) => ({
+        transform: getComputedStyle(image).transform,
+        cursor: getComputedStyle(image).cursor,
+      }));
+      assert(
+        hover.transform === "none" && hover.cursor === "grab",
+        `Gallery hover must not zoom and must show grab: ${JSON.stringify(hover)}`,
+      );
       await page.mouse.down();
       await page.mouse.move(startX - 220, y, { steps: 12 });
       await page.mouse.up();
-      const drag = await page.evaluate(() => window.__ttGalleryDrag);
+      await page.waitForTimeout(700);
+      const pagination = page.locator("[data-gallery-pagination] .swiper-pagination-bullet");
+      const drag = await page.evaluate(() => ({
+        ...window.__ttGalleryDrag,
+        activeIndex: document.querySelector("[data-gallery-track]").swiper.activeIndex,
+        activeBullet: [...document.querySelectorAll("[data-gallery-pagination] .swiper-pagination-bullet")]
+          .findIndex((bullet) => bullet.classList.contains("swiper-pagination-bullet-active")),
+      }));
       assert(
-        drag.maxLeft >= 150,
-        `Gallery mouse drag moved only ${drag.maxLeft.toFixed(0)}px`,
+        drag.minTranslate <= -150 && drag.activeIndex === 1 && drag.activeBullet === 1,
+        `Gallery drag must follow the mouse then snap to the next image with its dot active: ${JSON.stringify(drag)}`,
       );
+      assert(drag.nativeDrags === 0, `Gallery emitted ${drag.nativeDrags} dragstart events`);
+
+      // R7: chấm tròn 8px như Espacio, bấm chấm tới ảnh.
+      const dots = await pagination.evaluateAll((bullets) => bullets.map((bullet) => {
+        const style = getComputedStyle(bullet);
+        return [bullet.getBoundingClientRect().width, style.borderRadius, style.opacity];
+      }));
       assert(
-        drag.nativeDrags === 0 && drag.pointerCancels === 0,
-        `Gallery emitted ${drag.nativeDrags} dragstart / ${drag.pointerCancels} pointercancel events`,
+        dots.length === (await page.locator(".detail-gallery__item").count())
+          && dots.every(([size, radius]) => size === 8 && radius === "50%")
+          && dots.filter(([, , opacity]) => opacity === "1").length === 1,
+        `Gallery dots drifted from Espacio: ${JSON.stringify(dots)}`,
+      );
+      await pagination.nth(2).click();
+      await page.waitForFunction(
+        () => document.querySelector("[data-gallery-track]").swiper.activeIndex === 2,
+        null,
+        { timeout: 2_000 },
       );
       assertDiagnostics(diagnostics);
     },
@@ -10439,9 +10470,10 @@ async function runSharedMediaHoverPortalChecks() {
       async (page) => {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, route);
-        const triggers = page.locator(".detail-gallery__item, .detail-duo figure, .detail-cta");
+        // Gallery không zoom (detail-pages R7, runGalleryCheck).
+        const triggers = page.locator(".detail-duo figure, .detail-cta");
         const count = await triggers.count();
-        assert(count >= 3, `Expected gallery, duo and CTA hover targets on ${route}`);
+        assert(count >= 2, `Expected duo and CTA hover targets on ${route}`);
         for (let index = 0; index < count; index += 1) {
           const trigger = triggers.nth(index);
           assert(await trigger.evaluate((element) => element.classList.contains("media-hover-zoom-trigger")),
