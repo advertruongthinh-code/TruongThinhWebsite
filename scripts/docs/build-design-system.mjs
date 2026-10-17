@@ -110,6 +110,8 @@ for (const c of COMPONENTS) {
   if (!c.start.test(html)) throw new Error(`${c.start} not found in ${c.file}`);
   let markup = c.markup ?? extract(html, c.start) + (c.also ? '\n' + extract(html, c.also) : '');
   if (c.open) markup = markup.replace(/^<dialog class="([^"]*)"/, '<dialog open class="$1 is-active"');
+  // Preview không chạy script trang: bỏ script inline; slide hero active trong HTML nhận src để hiện ảnh (page-home R3).
+  markup = markup.replace(/\s*<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/(class="hero-slide is-active"[^>]*>\s*<img\s+)data-src=/, '$1src=');
   markup = localizeImages(markup);
   if (c.frames) markup = c.frames.map((f) => frame(markup, f)).join('\n');
   outputs.set(`${OUT}/components/${c.name}/preview.html`,
