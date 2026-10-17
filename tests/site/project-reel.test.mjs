@@ -4,14 +4,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { renderProjectReel } from "../../scripts/site/project-reel.mjs";
+import { renderProjectReel, validateProjectReel } from "../../scripts/site/project-reel.mjs";
 
 const siteRoot = fileURLToPath(new URL("../../src/site/", import.meta.url));
 const items = JSON.parse(await readFile(new URL("../../src/site/content/project-reel.json", import.meta.url), "utf8"));
 const invalid = (mutate) => {
   const copy = structuredClone(items);
   mutate(copy);
-  return renderProjectReel(copy, siteRoot);
+  return validateProjectReel(copy, siteRoot);
 };
 
 test("rejects missing fields, missing images, wrong size, duplicate id and count outside 3-6", async () => {
@@ -30,10 +30,11 @@ test("rejects missing fields, missing images, wrong size, duplicate id and count
 test("renders cards in order with escaped VI/EN text", async () => {
   const shuffled = structuredClone(items).reverse();
   shuffled[0].captionVi = "A & <b>";
-  const html = await renderProjectReel(shuffled, siteRoot);
+  await validateProjectReel(items, siteRoot);
+  const html = renderProjectReel(shuffled);
   assert.equal(html.match(/<figure class="project-card project-card--(?:high|mid|low)">/g).length, items.length);
   assert.ok(html.indexOf("workshop-wide-x2.webp") < html.indexOf("home-commercial-fnb-v2.webp"));
-  assert.match(html, /<figcaption data-en="Commercial \/ Shophouse café">A &amp; &lt;b&gt;<\/figcaption>/);
+  assert.match(html, /<figcaption data-en="Shophouse café">A &amp; &lt;b&gt;<\/figcaption>/);
 });
 
 test("built home page has one card, image, alt pair and caption pair per data item", async () => {

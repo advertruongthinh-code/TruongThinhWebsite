@@ -8,7 +8,7 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGE
 import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
-import { renderProjectReel } from "./project-reel.mjs";
+import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -68,7 +68,9 @@ for (const layoutViewportWidth of PUBLIC_GRID_WIDTHS) {
 }
 
 // Rail công trình trang chủ: validate dữ liệu và placeholder trước khi xóa output cũ (page-home R8).
-const projectReelCards = await renderProjectReel(JSON.parse(await readFile(path.join(sourceRoot, "content", "project-reel.json"), "utf8")), sourceRoot);
+const projectReel = JSON.parse(await readFile(path.join(sourceRoot, "content", "project-reel.json"), "utf8"));
+await validateProjectReel(projectReel, sourceRoot);
+const projectReelCards = renderProjectReel(projectReel);
 const homeTemplate = await readFile(path.join(sourceRoot, "index.html"), "utf8");
 if (!homeTemplate.includes("<!-- project-reel-cards -->")) throw new Error("index.html lost <!-- project-reel-cards -->");
 

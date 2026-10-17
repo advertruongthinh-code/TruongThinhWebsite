@@ -100,8 +100,8 @@ addEventListener("load", () => requestAnimationFrame(() => {
   return frame(`<div data-ds-frame>\n${body.trim()}\n</div>`, { height: c.height });
 }
 
-// Card rail công trình sinh lúc build từ content/project-reel.json (page-home R8); preview chèn như build.
-const projectReelCards = await renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')), 'src/site');
+// Card rail công trình sinh lúc build từ content/project-reel.json (page-home R8); preview chèn như build, build đã validate.
+const projectReelCards = renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')));
 
 for (const c of COMPONENTS) {
   const html = readFileSync(c.file, 'utf8').replace('<!-- project-reel-cards -->', () => projectReelCards);
