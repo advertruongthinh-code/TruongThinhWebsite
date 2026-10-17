@@ -57,6 +57,8 @@ cao hơn (số liệu trong mô tả PR #312 và báo cáo Library); title có t
 - Bảng hiệu LED (owner 2026-10-18) là biển viền LED dot hoặc LED dây, chữ LED ruồi, LED neon (neon flex) hoặc mặt in:
   bảng vẫy LED, bảng đứng, bảng treo cửa hàng nhỏ, biển neon làm bảng hiệu (tag `variant-led-neon`). Thuộc cụm LED vì nhãn cụm đã có "bảng LED" và ảnh hiện có đa số trong cụm đó; ảnh bảng
   vẫy LED gắn cả Bảng vẫy và Bảng hiệu LED. Bảng LED ma trận không viền LED chỉ gắn Bảng LED chạy chữ.
+- Biển neon (owner 2026-10-18): nay làm bằng LED neon (neon flex), không còn neon ống thủy tinh, nên thuộc cụm LED với sản
+  phẩm chính Bảng hiệu LED (vd `signage-raised-letters-33`). Tag `variant-led-neon` đủ ngưỡng R5 thì nâng thành sản phẩm LED neon.
 - Không làm trang theo tỉnh trong spec này: "bảng hiệu bến tre" 10-100, "quảng cáo bến tre", "in ấn bến tre" 50,
   "bảng hiệu vĩnh long" không có dữ liệu. Đoạn giới thiệu nêu khu vực phục vụ; trang địa phương thuộc [SEO](seo.md).
 

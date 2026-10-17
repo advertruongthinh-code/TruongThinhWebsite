@@ -566,7 +566,7 @@ const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "signage-raised-letters-23": ["signage/aluminium-signs-facades", "office-signs/wayfinding-building-directories"],
   "signage-raised-letters-24": ["signage/aluminium-signs-facades", "printing-decals/decals-banners-canvas"],
   "signage-raised-letters-28": ["signage/raised-letters", "signage/aluminium-signs-facades"],
-  "signage-raised-letters-33": ["signage/raised-letters", "led-displays/led-sign-boards", "led-displays/decorative-led"],
+  "signage-raised-letters-33": ["led-displays/led-sign-boards", "led-displays/decorative-led", "signage/raised-letters"],
   "signage-raised-letters-34": ["signage/aluminium-signs-facades", "signage/raised-letters", "led-displays/decorative-led"],
   "signage-raised-letters-35": ["signage/projecting-signs", "signage/light-boxes"],
   "signage-raised-letters-36": ["signage/projecting-signs", "signage/light-boxes"],
