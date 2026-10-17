@@ -3592,7 +3592,8 @@ html[lang="vi"]
   gap: 20px;
 }
 
-/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ. */
+/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ.
+   Chấm nằm trong track như Espacio nên kéo từ khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption. */
 .detail-gallery__pagination {
   --swiper-pagination-color: var(--ink);
   --swiper-pagination-bottom: auto;

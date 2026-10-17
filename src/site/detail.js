@@ -803,6 +803,8 @@
                   600: { spaceBetween: 20 },
                 },
                 grabCursor: true,
+                // Cả track (khe dưới caption, hàng chấm) nhận kéo, không chỉ wrapper ảnh: kéo từ đó không bôi đen caption.
+                touchEventsTarget: "container",
                 edgeSwipeDetection: true,
                 watchOverflow: true,
                 mousewheel: { forceToAxis: true },

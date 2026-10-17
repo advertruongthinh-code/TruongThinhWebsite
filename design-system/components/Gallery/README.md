@@ -12,7 +12,7 @@ balance within the spaces" của Espacio interior-design. Markup
 - Swiper 14 cùng tham số gallery Espacio: `slidesPerView: "auto"`, speed
   500ms, khe 20px (dưới 600px 10px), grab cursor, thả tay hút về ảnh, wheel
   ngang; track thụt `gutter`, ảnh tràn ra mép.
-- Dưới track hàng chấm canh giữa, cách caption 18px: chấm 8px cách 8px, chấm
+- Trong track, dưới caption 18px, hàng chấm canh giữa (cả track nhận kéo nên kéo từ đây không bôi đen caption): chấm 8px cách 8px, chấm
   thường đen 20%, chấm active `ink`, bấm để tới ảnh; dưới 600px chấm động.
 - Mọi ảnh cao `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo tỷ lệ thật
   của ảnh (`height` cố định, `width: auto`, giữ `width`/`height` trên `img`),
