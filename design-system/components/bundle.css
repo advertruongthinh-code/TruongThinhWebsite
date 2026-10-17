@@ -3587,6 +3587,12 @@ html[lang="vi"]
   display: flex;
 }
 
+/* Kéo bắt đầu ngoài track (khe dưới caption, hàng chấm) không bôi đen caption, như Espacio. */
+.detail-gallery__track,
+.detail-gallery__pagination {
+  user-select: none;
+}
+
 .detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
   width: max-content;
   gap: 20px;

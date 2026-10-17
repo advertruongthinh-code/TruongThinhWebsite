@@ -8145,6 +8145,18 @@ async function runGalleryCheck() {
       );
       assert(drag.nativeDrags === 0, `Gallery emitted ${drag.nativeDrags} dragstart events`);
 
+      // R7: kéo bắt đầu ở khe giữa caption và hàng chấm (ngoài track) không bôi đen caption (owner báo 2026-10-17).
+      const captionBox = await page.locator("[data-gallery-track] figcaption").nth(1).boundingBox();
+      assert(captionBox, "Gallery caption has no mouse target");
+      const captionY = captionBox.y + captionBox.height + 8;
+      await page.mouse.move(captionBox.x + captionBox.width * 0.6, captionY);
+      await page.mouse.down();
+      await page.mouse.move(captionBox.x - 160, captionY - 120, { steps: 12 });
+      await page.mouse.up();
+      const selected = await page.evaluate(() => window.getSelection().toString());
+      assert(selected === "", `Gallery drag selected text: ${JSON.stringify(selected)}`);
+      await page.waitForTimeout(700);
+
       // R7: chấm tròn 8px như Espacio, bấm chấm tới ảnh.
       const dots = await pagination.evaluateAll((bullets) => bullets.map((bullet) => {
         const style = getComputedStyle(bullet);
