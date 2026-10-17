@@ -9385,7 +9385,8 @@ async function runHeroCrossFadeContinuityChecks() {
               }
               samples.push(current);
               times.push(now);
-              if (now - startedAt < 6_200) requestAnimationFrame(sample);
+              // Mỗi slide 5s, timeScale 4: 1,25s một slide, cộng 1,2s dư để thấy lần quay vòng.
+              if (now - startedAt < slides.length * 1_250 + 1_200) requestAnimationFrame(sample);
               else resolve();
             };
             requestAnimationFrame(sample);
@@ -9454,7 +9455,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/residential-space-x3.webp",
+      asset: "**/home-hero-tube-house-living.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9463,7 +9464,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/residential-space-x3.webp",
+      asset: "**/home-hero-tube-house-living.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -10138,8 +10139,10 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.hero.sources) ===
           JSON.stringify([
-            "/assets/content/projects/residential-space-x3.webp",
-            "/assets/content/projects/hero-v2.webp",
+            "/assets/content/projects/home-hero-tube-house-living.webp",
+            "/assets/content/projects/home-hero-office-reception.webp",
+            "/assets/content/projects/home-hero-kitchen-dining.webp",
+            "/assets/content/projects/home-hero-walnut-bedroom.webp",
             "/assets/content/projects/hero-kiosk.webp",
             "/assets/content/projects/mobile-retail.webp",
           ]),

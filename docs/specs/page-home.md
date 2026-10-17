@@ -15,7 +15,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-15
+updated: 2026-10-17
 ---
 
 # Trang chủ
@@ -38,7 +38,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 | # | Section | Nội dung (VI, EN ở `data-en`) | Link | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Bốn ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid. / Made different.", dấu chấm EN là `.text-hang-end`: inline-block rộng 0 treo ra lề để chữ đúng tâm, `data-en` ở span chữ), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
+| 1 | `.hero#top` | Sáu ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid. / Made different.", dấu chấm EN là `.text-hang-end`: inline-block rộng 0 treo ra lề để chữ đúng tâm, `data-en` ở span chữ), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Khảo sát · Tư vấn · Sản xuất · Lắp đặt", thứ tự theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
@@ -72,10 +72,10 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 
 ### R3. Hero: slideshow và nút dừng
 
-Bốn ảnh nền trang trí (`aria-hidden`, `alt=""`): ảnh 0 `residential-space` tải ngay, `fetchpriority="high"`;
-ba ảnh sau giữ ở `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có
-`requestIdleCallback` thì sau 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; ở giây 5 crossfade 1,6s sang
-slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+Sáu ảnh nền trang trí (`aria-hidden`, `alt=""`), owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
+phòng ngủ óc chó (`home-hero-*`, 1920×1280), rồi `hero-kiosk`, `mobile-retail` tới khi có hero Advertising mới. Ảnh 0 tải ngay,
+`fetchpriority="high"`; năm ảnh sau ở `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có
+`requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -86,7 +86,7 @@ trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
-When chờ slideshow đi hết bốn slide
+When chờ slideshow đi hết sáu slide
 Then mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
 When bấm nút dừng chuyển động
 Then nút có aria-pressed="true", slide và marquee đứng yên
@@ -231,7 +231,7 @@ Then tiêu đề ba portal năng lực trượt lên lại bằng chữ EN, sect
 Reduced motion: chỉ slide đầu (slide khác `display: none`), không zoom, word fade, reveal (chữ, ảnh ở
 trạng thái cuối), nút dừng `hidden`, scroll cue tĩnh, marquee và hover zoom tắt. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): slide active và mọi target
-reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; ba slide sau không tải.
+reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; năm slide sau không tải.
 
 ```gherkin
 Given trình duyệt bật reduced motion
