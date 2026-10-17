@@ -463,8 +463,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-15T20:05:00Z",
+    "at": "2026-10-17T01:20:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt main c6db667: #368 #382 #386 (bước 5 Hậu mãi, taxonomy Advertising T5, quy trình năm bước một hàng) và ảnh kiosk-active-v2"
+    "note": "Đợt main 26f23b9: #387 #389 (rail hai tầng Advertising T6, rule CTA chung theo Giữ nghề: cta-title-size, nhãn nút, hover)"
   }
 }
