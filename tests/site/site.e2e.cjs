@@ -9637,6 +9637,8 @@ async function runWhiteOverlayMediaFallbackCheck() {
         });
         // Gate variant AVIF/WebP responsive nào browser chọn cho asset này.
         const assetName = testCase.asset.replace("**/", "").replace(/\.webp$/, "");
+        // Hero trang chủ chọn ảnh đầu bằng Math.random (page-home R3); ghim slide 0 để gate đúng asset.
+        if (testCase.surface === ".hero") await page.addInitScript(() => { Math.random = () => 0; });
         await page.route(new RegExp(`/${assetName}(?:-\\d+)?\\.(?:webp|avif)$`), async (route) => {
           markMediaSeen();
           await mediaGate;
@@ -10241,18 +10243,17 @@ async function runHomeMotionRegressionCheck() {
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
-      // Slide 0 cố định; năm slide sau xáo mỗi lần tải (page-home R3) nên so tập hợp.
-      const [firstHeroSource, ...laterHeroSources] = contract.hero.sources;
+      // Cả sáu slide xáo mỗi lần tải (page-home R3) nên so tập hợp.
       assert(
-        firstHeroSource === "/assets/content/projects/home-hero-tube-house-living.webp" &&
-          JSON.stringify(laterHeroSources.sort()) ===
-            JSON.stringify([
-              "/assets/content/projects/hero-kiosk.webp",
-              "/assets/content/projects/home-hero-kitchen-dining.webp",
-              "/assets/content/projects/home-hero-office-reception.webp",
-              "/assets/content/projects/home-hero-walnut-bedroom.webp",
-              "/assets/content/projects/mobile-retail.webp",
-            ]),
+        JSON.stringify([...contract.hero.sources].sort()) ===
+          JSON.stringify([
+            "/assets/content/projects/hero-kiosk.webp",
+            "/assets/content/projects/home-hero-kitchen-dining.webp",
+            "/assets/content/projects/home-hero-office-reception.webp",
+            "/assets/content/projects/home-hero-tube-house-living.webp",
+            "/assets/content/projects/home-hero-walnut-bedroom.webp",
+            "/assets/content/projects/mobile-retail.webp",
+          ]),
         `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
       );
       assert(
