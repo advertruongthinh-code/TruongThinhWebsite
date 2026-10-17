@@ -356,6 +356,7 @@ const PLAN_MAP = {
   "led-displays/decorative-led": {},
   "led-displays/led-screens": { "led-displays-lightboxes": [4, 5, 6, 7, 8, 9] },
   "led-displays/scrolling-led-signs": { "led-displays-lightboxes": [1, 2, 3] },
+  "led-displays/led-sign-boards": {},
   "office-signs/house-numbers-company-nameplates": { "office-signs-wayfinding": [1, 2] },
   "office-signs/wayfinding-building-directories": { "office-signs-wayfinding": [3, 4, 10, 11, 12] },
   "office-signs/room-signs": { "office-signs-wayfinding": [8, 9] },
@@ -378,7 +379,7 @@ const PLAN_RELABELS = {
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
 
-test("taxonomy has six clusters and 23 products in plan order with a thin-page threshold of 9", () => {
+test("taxonomy has six clusters and 24 products in plan order with a thin-page threshold of 9", () => {
   assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
   assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
   assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");
