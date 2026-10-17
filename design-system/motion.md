@@ -30,7 +30,7 @@ hoặc module đang chạy, không viết bản giống. Thông số chi tiết 
 | Motion | Thông số | Bề mặt UI |
 | --- | --- | --- |
 | Gạch chân chạy | Cao 3px, cách chữ 4px; `scaleX(0 → 1)` `0.3s cubic-bezier(.4, 0, 0, 1)`, nghỉ neo phải, hover, focus bàn phím hoặc đang chọn neo trái (`style.css`) | [Header](components/Header/README.md) nav, [Footer](components/Footer/README.md) link, [Full menu](components/FullMenu/README.md) (mục, tiêu đề nhóm, ngôn ngữ), phụ đề portal trang chủ, link legacy, nhãn [Suggestion](components/Suggestion/README.md). Biến thể 2px sát chữ: caption [Project reel](components/ProjectReel/README.md) |
-| Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | [Media card](components/MediaCard/README.md) masonry và related, [Project reel](components/ProjectReel/README.md), portal trang chủ, [Gallery](components/Gallery/README.md), duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
+| Zoom ảnh hover | `scale(1 → 1.15)` `600ms ease-out` khi chuột thật hover hoặc focus bàn phím (`media-hover-zoom`) | [Media card](components/MediaCard/README.md) masonry và related, [Project reel](components/ProjectReel/README.md), portal trang chủ, duo About, [Banner CTA](components/BannerCta/README.md) trang con. Biến thể `1.1`: closer legacy |
 | Slideshow hero | Ảnh zoom `scale 1.06 → 1` `6.6s sine.inOut`; mỗi ảnh giữ 5s tính theo thời gian slide thật sự chạy (dừng khi khuất), rồi chuyển mờ `1.6s power2.inOut`, ảnh mới zoom từ frame đầu crossfade | [Hero](components/Hero/README.md) trang chủ (`motion.js`). [Suggestion](components/Suggestion/README.md) dùng nhịp giữ, không zoom, chuyển bằng đẩy ngang (`suggestion-slideshow.mjs`) |
 | Zoom vào hero | Lớp ảnh `scale 1.2 → 1.005` `2.5s ease` mỗi lần mount, rồi đứng yên ở `1.005`; Residential, Commercial: ảnh hiện cắt cứng khi decode xong, không fade; đo từ frame hero Espacio interior-design và kitchens (hai trang cùng nhịp) | [Hero](components/Hero/README.md) Residential, Commercial, About (`data-motion-hero-media`) |
 | Vệt sáng chờ ảnh | Dải sáng nghiêng lướt `1.6s` linear tới khi ảnh giải mã | [Vệt sáng](components/LoadSweep/README.md): ảnh nội dung ngoài masonry, [Suggestion](components/Suggestion/README.md) |
@@ -161,7 +161,8 @@ Trang chủ:
 | --- | --- |
 | Ảnh card, project tile | `scale(1 → 1.15)`, `600ms ease-out` (`--media-hover-*`); khung giữ nguyên, ảnh bị clip |
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
-| Ảnh gallery, duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
+| Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
+| Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
 | Nút Suggestion | [Gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
@@ -170,6 +171,19 @@ Focus bàn phím có cùng phản hồi và outline riêng; reduced motion tắt
 outline. Touch không cần hover để mở ảnh.
 
 ## Advertising
+
+### Kicker và hàng chip khi đổi filter
+
+Bấm cụm hoặc chip trên [rail](components/Filter/README.md) chạy lại hai entrance có sẵn của Advertising (không thêm
+nhịp mới), bằng Web Animations API trong `catalog-runtime.mjs`, chỉ `opacity` và `transform`:
+
+- Kicker (h1, tên cụm hoặc sản phẩm) đổi chữ thì vào lại như entrance tải trang: `opacity 0, x -60px → 0`, `0.6s`
+  `--ease`, không delay.
+- Hàng chip vừa hiện (từ Tất cả sang cụm, hoặc từ cụm này sang cụm khác) vào như rail lúc tải trang: từng chip
+  `opacity 0, y 20px → 0`, `1s expo.out`, stagger `0.15s` (hàng dài thì ép tổng so le tối đa `0.6s`), trễ `0.3s` để kicker đi trước.
+- Đổi sản phẩm trong cùng cụm: chỉ kicker chạy lại, hàng chip đứng yên. Về Tất cả: chip ẩn ngay, không motion thoát.
+- Bấm liên tiếp: animation đang chạy bị hủy rồi chạy lại từ đầu. Tải trang, Back/Forward, đổi ngôn ngữ và
+  mở ảnh không chạy. Reduced motion: vào thẳng trạng thái cuối. Không đổi bố cục nên không có CLS.
 
 ### Vị trí card (masonry)
 

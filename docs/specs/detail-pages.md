@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 
 # Trang Residential, Commercial và About
@@ -38,7 +38,7 @@ preload hai font, CSS Locomotive chỉ từ 981px, `style.css`, `detail.css`, sc
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)); không canonical, alternate, Open Graph,
 JSON-LD. `body.detail-page` (About thêm `about-page`) có `data-detail-hero-profile` `words-09` (Residential, About) hoặc
 `zoom-09` (Commercial); namespace Barba là tên trang. Script `defer`: GSAP, SplitText, Locomotive, Barba, `detail.js`,
-`motion.js`; không Swiper. Build ghi `/vi/`, `/en/` từ cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)).
+`motion.js`; Swiper chỉ tải động cho gallery (R7). Build ghi `/vi/`, `/en/` từ cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)).
 Vào hoặc rời About đi route mềm như các trang khác ([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)).
 
 ```gherkin
@@ -156,23 +156,26 @@ Then tiêu đề gallery trượt lên lại bằng chữ EN, section khác khô
 `section.detail-gallery[data-gallery]` theo khối "The balance within the spaces" của Espacio interior-design (owner
 duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 300, chữ thường kiểu câu, phần cuối trong `<i>` (`data-en`
 ở `span` và `i`, R4), cỡ `clamp(2.5rem, 4.45vw, 4rem)` (64px ở 1440px), vẫn tách dòng (R6). Dưới là track
-`[data-gallery-track]`: `region` focus được (phím mũi tên cuộn), `aria-label` trung tính, không ghi số ảnh; không nút
-prev/next. Track bắt buộc: thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`),
-rộng theo `width`, `height` của ảnh nên không crop và khung đúng tỷ lệ trước khi tải; khe 20px (tới 750px 10px), lề
-trái `--gutter`, tràn ra phải; snap `start` kiểu proximity. `figure.detail-gallery__item` gồm khung
-`.detail-gallery__media` (vệt sáng chờ ảnh, hover zoom) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu
-`ink`, không nới bề rộng figure. Chuột kéo track (pointer không phải touch, nút chính, `is-dragging` lúc kéo, tắt
-snap); ảnh `draggable=false`, chặn `dragstart`; touch cuộn native; ẩn thanh cuộn ngang
-([shell R9](site-shell.md#r9-scrollbar)). Residential là một dải năm chuỗi công trình theo thứ tự nhà ống, nhà giếng trời, căn hộ
-hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay: ngoại thất; nhà phố
-ba tầng: bếp), rồi theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là
-thêm `figure` (R4).
+`[data-gallery-track]`: `region` focus được, `aria-label` trung tính, không ghi số ảnh; không nút prev/next. Track bắt buộc:
+thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo `width`, `height` của ảnh
+nên không crop và khung đúng tỷ lệ trước khi tải. `figure.detail-gallery__item` (trong `.detail-gallery__slides`) gồm khung
+`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu `ink`, không nới figure.
+Kéo, vuốt như gallery Espacio (owner 2026-10-17, đo 2026-10-18): gallery cách viewport một màn hình thì `detail.js` tải Swiper
+14.2.0 (loader chung carousel Advertising) với tham số Espacio: `slidesPerView: "auto"`, `speed` 500 (reduced motion 0),
+`spaceBetween` 20 (dưới 600px 10), `grabCursor`, `edgeSwipeDetection`, `watchOverflow`, `mousewheel.forceToAxis`, resistance
+0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải
+trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen
+20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
+Ảnh `draggable=false`, chặn `dragstart`. Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
+snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: năm chuỗi công trình theo thứ tự nhà
+ống, nhà giếng trời, căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
+ngoại thất; nhà phố ba tầng: bếp), theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4).
 
 ```gherkin
 Given /vi/commercial/ ở 1440px với chuột
 When đo gallery rồi kéo track sang trái 220px
 Then mọi ảnh cao 720px đúng tỷ lệ, caption cách ảnh 10px, không có nút prev/next
-And track dịch ít nhất 150px, không có dragstart hay pointercancel
+And thả tay hút về ảnh kế, chấm thứ hai active, không dragstart; bấm chấm thứ ba tới ảnh ba; hover không zoom
 ```
 
 ### R8. Dải quy trình, duo, portal loại hình
@@ -217,7 +220,7 @@ theo `--cta-title-size` (owner 2026-10-17). Nút là nhãn `.legacy-link` + `.po
 nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút. Dấu chấm cuối `h2` là `.text-hang-end` nhưng không treo
 (`.detail-cta__copy .text-hang-end` rộng auto): cả dòng kể cả dấu nằm giữa khối (owner 2026-10-17); `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
 giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
-reduced motion). Hover ảnh gallery, duo, CTA dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
+reduced motion). Hover ảnh duo, CTA (gallery: R7) dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì `motion.js` thêm
 `is-overlay-media-ready`, riêng ảnh hero chỉ chờ `is-media-settled` ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ
@@ -275,7 +278,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
 | R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
-| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột) |
+| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom) |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
 | R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |
 | R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |
@@ -285,8 +288,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 
 - Gate chung, áp dụng cả ba trang: Zalo placeholder, SEO head ([trang chủ](page-home.md#gate-còn-mở)); LCP Residential ([phát hành](static-release.md#gate-còn-mở)).
 - About thiếu fact: năm thành lập, câu chuyện khởi đầu, điều khoản bảo hành và hậu mãi. Owner cung cấp.
-- Không chặn phát hành. Carousel Swiper trong `detail.js` (namespace `advertising-product-detail`) không trang nào dùng; owner giữ (24/09) để
-  thiết kế lại carousel cho Residential, Commercial. Owner giao spec khi làm.
+- Không chặn phát hành. Carousel `advertising-product-detail` trong `detail.js` không trang nào dùng; gallery R7 dùng chung loader Swiper.
 
 ## Chú thích thuật ngữ
 

@@ -3567,20 +3567,41 @@ html[lang="vi"]
   text-wrap: balance;
 }
 
+/* Chưa có Swiper (không JS, tải lỗi): track cuộn native. */
 .detail-gallery__track {
-  display: flex;
   padding: 0 var(--gutter);
-  gap: 20px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-padding-inline: var(--gutter);
   scroll-snap-type: x proximity;
-  cursor: grab;
 }
 
-.detail-gallery__track.is-dragging {
-  cursor: grabbing;
-  scroll-snap-type: none;
+/* Swiper chạy: track thụt theo gutter như container Espacio, ảnh tràn ra mép, section cắt. */
+.detail-gallery__track.swiper-initialized {
+  margin: 0 var(--gutter);
+  padding: 0;
+  overflow: visible;
+}
+
+.detail-gallery__slides {
+  display: flex;
+}
+
+.detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
+  width: max-content;
+  gap: 20px;
+}
+
+/* Chấm Swiper như Espacio: 8px, cách nhau 8px, chấm thường đen 20%, chấm active đậm; giữ chỗ trước khi Swiper vẽ. */
+.detail-gallery__pagination {
+  --swiper-pagination-color: var(--ink);
+  --swiper-pagination-bottom: auto;
+  position: relative;
+  min-height: 8px;
+  margin-top: 18px;
+  font-size: 0;
+  line-height: 0;
+  text-align: center;
 }
 
 .detail-gallery__item {
@@ -3617,7 +3638,7 @@ html[lang="vi"]
     --gallery-image-height: 75vw;
   }
 
-  .detail-gallery__track {
+  .detail-gallery__track:not(.swiper-initialized) .detail-gallery__slides {
     gap: 10px;
   }
 }
