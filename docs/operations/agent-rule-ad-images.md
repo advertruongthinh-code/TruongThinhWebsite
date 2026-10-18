@@ -11,7 +11,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 
 - tên trên sản phẩm (biển, backdrop, bao bì, menu, bảng tên, cúp) không dùng danh
   từ riêng hay tên thương hiệu; dùng danh từ chung nói rõ tiệm làm gì ("Sửa xe",
-  "Nước giải khát") kèm dòng phụ;
+  "Nước giải khát") kèm dòng phụ; owner chỉ định tên, slogan hay chữ thì dùng đúng
+  nguyên văn; địa chỉ, đơn vị hành chính ghi bằng số (Khu phố 3, Ấp 2), không tên;
 - từ xưng hô Nam Bộ (cô Ba, chú Tư, bà Năm) chỉ dùng ở bối cảnh bình dân, thân
   thuộc, gần gũi, hoặc niche sản phẩm cao cấp phong cách hoài cổ; không dùng ở văn
   phòng, hội nghị, showroom, tiệc cưới, nhà hàng;
@@ -27,7 +28,9 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
   bán kính dây uốn được (không góc gắt, không nét mảnh kiểu neon thủy tinh), gài
   vào rãnh phay CNC trên mica nền hoặc máng nhôm, dây nguồn đi gọn. Dạng phổ biến
   trong decor: mica in UV hình màu, cắt CNC theo viền hình, LED neon chỉ nhấn nét
-  chính. Áp cho mọi ảnh bảng hiệu LED;
+  chính. Áp cho mọi ảnh bảng hiệu LED; bảng có hình chi tiết (người, tô món, ly
+  nước) làm dạng in UV, neon chỉ viền và nhấn nét;
+- bảng tên, biển chức danh tối giản, không hoa văn rườm rà;
 - hero Kinh doanh và nhà ở có nhiều nội thất, decor gia công CNC được; cabin,
   phòng nghỉ đặt ở vùng riêng tư, khuất lối đi chính; backdrop tiệc cưới là decor
   dựng, không in ấn.
@@ -118,7 +121,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      chính trước làm tham chiếu; ưu tiên góc cùng hướng ảnh chính; không phối
      cảnh xung đột (owner chốt 2026-10-17);
    - sửa ảnh owner đã chọn bằng chế độ image edit trên chính ảnh đó, liệt kê phần
-     giữ nguyên và phần sửa (owner chốt 2026-10-17);
+     giữ nguyên và phần sửa (owner chốt 2026-10-17); ảnh đã sửa hai lần mà còn
+     lỗi thì tạo mới từ đầu, vì sửa chồng làm ảnh xuống cấp (owner chốt 2026-10-18);
    - thiết bị mặt trơn không logo; hút mùi rộng bằng bếp và đúng tâm bếp;
    - ảnh hero trang chủ: chữ hero canh giữa khung (`src/site/style.css`
      `.hero-content` top 50%), nên dải giữa khung để trơn, chủ thể ở phần ba dưới
