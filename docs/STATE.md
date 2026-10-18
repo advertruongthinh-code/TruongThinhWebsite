@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-15
+- Updated: 2026-10-18
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)).
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -21,12 +21,11 @@
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 - Chờ owner quyết: giữ hay xóa `scripts/site/sanitize-client-logos.ps1`; gộp nhãn trùng giữa
   `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
-- Nợ cần phiên PC và phone Android (máy đo chuẩn, nối adb debug, [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
-  - Phone Android: pinch, xoay hai ngón R11 bằng tay
-    ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
-  - `mobile-layout-parity`, `scrollbar-parity`, `site-media-card-playback`, `advertising-photo-transitions`,
-    `advertising-primary-p14`: chạy ở phiên PC.
-  - FPS skeleton (`advertising-continuation` R4), Firefox WebGL (`skeleton-lifecycle`, `mobile-viewport-stability`): cần GPU thật.
+- Nợ phone và GPU: đã đo bù 2026-10-18 trên Galaxy A04s SM-A047F (máy đo chuẩn, nối adb debug,
+  [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Còn lại:
+  - Owner: pinch, xoay hai ngón R11 bằng tay ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
+  - Thread sở hữu: grid tới detail p95 168ms trên phone (gate 100ms); 3 FAIL WebKit của `advertising-photo-transitions`;
+    `mobile-viewport-stability` chưa theo viewer R8; `advertising-continuation` assert arc band; 479 fault `mobile-layout-parity`.
 - Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
 - PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)); giữ PR lại bằng draft hoặc nhãn `hold`.
 
