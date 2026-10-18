@@ -215,9 +215,9 @@ try {
     await context.close();
   }
 
-  // R6: ảnh tĩnh lỗi tải thì khung settle ngay, ảnh hiện để thấy alt, khung giữ kích thước như lúc tải bình thường.
+  // R8: ảnh tĩnh lỗi tải thì khung settle ngay, vẽ dấu báo lỗi, ảnh ẩn, khung giữ kích thước như lúc tải bình thường.
   {
-    // Ảnh nền hero, CTA, portal có cổng riêng (motion.js watchWhiteOverlayMedia): lỗi thì ẩn cùng lớp phủ, không thuộc ca này.
+    // Ảnh nền hero, CTA, portal có ca riêng bên dưới (nền tối, chữ trắng).
     const overlay = ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
     const measure = async block => {
       const { context, page } = await open({ delay: 0 });
@@ -230,7 +230,7 @@ try {
         .map(img => {
           const frame = img.parentElement.tagName === "PICTURE" ? img.parentElement.parentElement : img.parentElement;
           const box = img.getBoundingClientRect();
-          return { key: img.getAttribute("src") + "@" + Math.round(box.top + scrollY), w: box.width, h: box.height, broken: img.complete && img.naturalWidth === 0, settled: frame.classList.contains("is-media-settled"), opacity: Number(getComputedStyle(img).opacity), hasAlt: img.hasAttribute("alt") };
+          return { key: img.getAttribute("src") + "@" + Math.round(box.top + scrollY), w: box.width, h: box.height, broken: img.complete && img.naturalWidth === 0, settled: frame.classList.contains("is-media-settled"), errored: frame.classList.contains("is-media-error"), visibility: getComputedStyle(img).visibility, line: getComputedStyle(frame, "::before").content, surface: getComputedStyle(frame, "::before").backgroundColor, hasAlt: img.hasAttribute("alt") };
         }), overlay);
       await context.close();
       return images;
@@ -239,10 +239,26 @@ try {
     const failed = await measure(true);
     assert.ok(failed.length > 0, "about: có ảnh tĩnh để thử lỗi tải");
     assert.deepEqual(failed.filter(item => !item.broken), [], "about: mọi ảnh bị chặn đều ở trạng thái lỗi");
-    assert.deepEqual(failed.filter(item => !item.settled || item.opacity === 0), [], "about: ảnh lỗi settle ngay và hiện để thấy alt");
+    assert.deepEqual(failed.filter(item => !item.settled || !item.errored || item.visibility !== "hidden"), [], "about: ảnh lỗi settle ngay, khung có is-media-error, ảnh ẩn");
+    assert.deepEqual(failed.filter(item => item.line !== '"Không tải được"' || item.surface !== "rgb(228, 228, 226)"), [], "about: khung ảnh lỗi vẽ một dòng chữ trên nền xám phẳng");
     assert.deepEqual(failed.filter(item => !item.hasAlt), [], "about: ảnh lỗi vẫn có thuộc tính alt");
     assert.deepEqual(failed.filter(item => { const ref = normal.get(item.key); return ref && (Math.abs(ref.w - item.w) > 1 || Math.abs(ref.h - item.h) > 1); }).map(item => item.key), [], "about: khung ảnh lỗi giữ kích thước như khi ảnh tải được");
-    results.push({ case: "r6-image-error", images: failed.length });
+    results.push({ case: "r8-image-error", images: failed.length });
+  }
+
+  // R8: hero, CTA, portal lỗi tải vẽ dấu báo lỗi trên nền tối (chữ trắng vẫn đọc được), EN đổi dòng chữ.
+  for (const [route, line] of [["/vi/", '"Không tải được"'], ["/en/residential/", '"Couldn\'t load"']]) {
+    const { context, page } = await open({ delay: 0 });
+    await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
+    await page.goto(base + route, { waitUntil: "load" });
+    await scrollThrough(page);
+    await page.waitForTimeout(500);
+    const frames = await page.evaluate(() => [...document.querySelectorAll(".hero-slide.is-active, .about-hero__media, .service-portal, .detail-cta, .legacy-closer")]
+      .map(frame => ({ name: frame.className.split(" ")[0], errored: frame.classList.contains("is-media-error"), line: getComputedStyle(frame, "::before").content, surface: getComputedStyle(frame, "::before").backgroundColor })));
+    assert.ok(frames.length > 0, `${route}: có khung overlay để thử lỗi tải`);
+    assert.deepEqual(frames.filter(item => !item.errored || item.line !== line || item.surface !== "rgb(43, 44, 43)"), [], `${route}: khung overlay vẽ dấu báo lỗi trên nền tối`);
+    results.push({ case: "r8-overlay-error", route, frames: frames.length });
+    await context.close();
   }
 
   // P8: Barba navigation và Back giữ cùng frame contract.

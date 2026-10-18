@@ -16,7 +16,7 @@ updated: 2026-10-18
 ## Mục đích
 
 Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể AVIF, WebP; HTML tĩnh
-và runtime Advertising chọn biến thể; khung ảnh tĩnh có vệt sáng tới khi ảnh giải mã xong; một script đo tốc độ trên demo.
+và runtime Advertising chọn biến thể; khung ảnh tĩnh có vệt sáng tới khi ảnh giải mã xong, ảnh lỗi có dấu báo lỗi; một script đo tốc độ trên demo.
 Bọc `<picture>` lúc build, font, thư viện, cache header thuộc [phát hành tĩnh](static-release.md); skeleton chờ ảnh
 Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều ảnh và video ở [media-card](media-card.md).
 
@@ -168,8 +168,8 @@ Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, ho�
 `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (ảnh hero Residential, Commercial hiện cắt cứng, không fade, như
 hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
 `document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
-`.is-media-settled` ngay, ảnh hiện để thấy alt, khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
-nên chưa có vệt. Ảnh nền hero, CTA, portal đi cổng riêng ([motion.js](../../src/site/motion.js) `watchWhiteOverlayMedia`): lỗi thì ẩn cùng lớp phủ, không hiện alt. Ca lỗi tải ảnh tĩnh có test `r6-image-error` (`image-loading-frame.e2e.mjs`).
+`.is-media-settled` ngay và vẽ dấu báo lỗi ([R8](#r8-dấu-báo-lỗi-tải-media)), khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
+nên chưa có vệt. Ảnh nền hero, CTA, portal đi cổng riêng ([motion.js](../../src/site/motion.js) `watchWhiteOverlayMedia`): lỗi thì vẫn ẩn lớp phủ như trước, cộng dấu báo lỗi của R8.
 
 Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (đã có ở mọi trang), đăng ký trước khi trình
 duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script đó thêm class lên `<html>`; CSS chỉ ẩn ảnh khi có
@@ -221,6 +221,16 @@ Then summary.json có median LCP, ảnh đầu, ảnh sau cuộn, CLS, byte ản
 And so với baseline cùng cohort, không mục nào vượt ngân sách
 ```
 
+### R8. Dấu báo lỗi tải media
+
+Media tải lỗi có dấu báo lỗi (owner 2026-10-18): khung giữ tỷ lệ, nền xám phẳng `#e4e4e2` không dải màu, biểu tượng ảnh vỡ
+mảnh 24px ở giữa, một dòng 12px "Không tải được" / "Couldn't load" (theo `lang`), không nút thử lại. Script đầu `<head>` của
+R6 gọi `settle(image, true)` khi `error` tới hoặc ảnh Barba chèn vào đã lỗi sẵn: khung nhận `.is-media-settled` và
+`.is-media-error`; `load` tới sau đó thì gỡ. CSS vẽ dấu bằng `::before` của khung (`z-index: -1` trong `isolation: isolate`),
+ảnh lỗi `visibility: hidden`. Hero, CTA, portal mang chữ trắng nên dùng nền tối `media-loading-surface`, dấu `#b8b8b6`, lớp
+phủ vẫn ẩn; dấu có thể chồng chữ vì nằm giữa khung. Loại trừ `[data-project-grid]`, `[data-advertising-photo-view]` (luồng lỗi riêng,
+[media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) và `.client-logo-marquee`; thread Advertising dùng lại cùng class và biến.
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -231,7 +241,7 @@ And so với baseline cùng cohort, không mục nào vượt ngân sách
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
 | Attribute | `sizes` dạng px trên ảnh lazy và slide hero | Script đầu trang ghi theo phần hiển thị sau crop (R2) |
-| Class | `.is-media-settled` | Script inline `<head>` ghi; vệt (R6) và nút suggestion đọc |
+| Class | `.is-media-settled`, `.is-media-error` | Script inline `<head>` ghi; vệt (R6), nút suggestion, dấu báo lỗi (R8) đọc |
 | Data | `nonPublicSourceAssets` (`non-public-source-assets.mjs`) | Path bỏ qua khi sinh biến thể (R1) |
 | Command | `node tests/site/image-delivery-measure.mjs --base --runs --warm --only --detail --out` | Đo (R7); output `.tmp/image-delivery/` |
 
@@ -258,7 +268,7 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
-| R6 | `image-loading-frame.e2e.mjs` (khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, chụp Slow 4G); phone Android qua CDP |
+| R6, R8 | `image-loading-frame.e2e.mjs` (dấu báo lỗi ảnh nội dung và hero, CTA, portal VI, EN; khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, Slow 4G); phone Android qua CDP |
 | R7 | Chính script, chạy tay trên demo |
 
 ## Gate còn mở
