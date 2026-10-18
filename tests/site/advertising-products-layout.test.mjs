@@ -276,7 +276,7 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
   for (const category of ADVERTISING_LEGACY_CATEGORIES) {
     const categoryCards = ADVERTISING_MEDIA_MANIFEST.filter((record) => record.category === category.slug);
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
-    assert.equal(category.products.length, ["kiosk-posm", "print-decals", "office-signs-wayfinding"].includes(category.slug) ? 13 : 12, `${category.slug} keeps authored taxonomy products`);
+    assert.equal(category.products.length, { "kiosk-posm": 13, "print-decals": 13, "office-signs-wayfinding": 13, "led-displays-lightboxes": 14 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, category.products.length, `${category.slug} covers all taxonomy products`);
     for (const card of categoryCards) {

@@ -356,7 +356,7 @@ const PLAN_MAP = {
   "led-displays/decorative-led": {},
   "led-displays/led-screens": { "led-displays-lightboxes": [4, 5, 6, 7, 8, 9] },
   "led-displays/scrolling-led-signs": { "led-displays-lightboxes": [1, 2, 3] },
-  "led-displays/led-sign-boards": {},
+  "led-displays/led-sign-boards": { "led-displays-lightboxes": [13, 14] },
   "office-signs/house-numbers-company-nameplates": { "office-signs-wayfinding": [1, 2] },
   "office-signs/wayfinding-building-directories": { "office-signs-wayfinding": [3, 4, 10, 11, 12] },
   "office-signs/room-signs": { "office-signs-wayfinding": [8, 9] },
@@ -377,11 +377,6 @@ const PLAN_RELABELS = {
   "signage-raised-letters-14": ["signage/aluminium-signs-facades", "signage/light-boxes"],
   // Biển neon nay là LED neon, sản phẩm chính Bảng hiệu LED (owner 2026-10-18).
   "signage-raised-letters-33": ["led-displays/led-sign-boards"],
-  // Chữ LED điểm và bảng vẫy, bảng đứng viền LED: sản phẩm chính Bảng hiệu LED (taxonomy R1, owner 2026-10-18).
-  "led-displays-lightboxes-27": ["led-displays/led-sign-boards"],
-  "led-displays-lightboxes-28": ["led-displays/led-sign-boards"],
-  "led-displays-lightboxes-29": ["led-displays/led-sign-boards"],
-  "led-displays-lightboxes-30": ["led-displays/led-sign-boards"],
 };
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
@@ -395,8 +390,8 @@ test("taxonomy has six clusters and 24 products in plan order with a thin-page t
 
 test("every old product tag becomes a variant that maps to its plan product", () => {
   const variants = ADVERTISING_TAG_REGISTRY.filter((tag) => tag.id.startsWith("product-"));
-  assert.equal(variants.length, 75);
-  assert.equal(planProductByLegacyKey.size, 75);
+  assert.equal(variants.length, 77);
+  assert.equal(planProductByLegacyKey.size, 77);
   for (const tag of variants) {
     assert.equal(tag.group, "variant", tag.id);
     assert.equal(tag.productId, planProductByLegacyKey.get(tag.id.slice("product-".length)), tag.id);
