@@ -105,13 +105,23 @@ Item active chưa sẵn sàng thì card có status ẩn "Đang tải media" / "L
 ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)). Ảnh phụ tải lazy theo biến thể
 ([tải ảnh R3](media-delivery.md#r3-runtime-advertising-chọn-biến-thể)). Ảnh lỗi: card về ảnh vừa sẵn sàng gần nhất, rồi
 ảnh cover, rồi ảnh đầu chưa lỗi. Video lỗi: thử poster; poster tải được thì hiện poster, lịch phát bỏ qua card đó, dải vẫn dùng được;
-poster cũng lỗi thì về ảnh như trên. Lỗi cũ không đè lựa chọn mới hơn. Mọi asset đều lỗi thì runtime dừng, không gọi
-lại vô hạn, không có UI lỗi riêng.
+poster cũng lỗi thì về ảnh như trên. Lỗi cũ không đè lựa chọn mới hơn, không gọi lại vô hạn.
+
+Không còn media nào hiện được (mọi ảnh lỗi; card chỉ có video mà video và poster cùng lỗi): skeleton gỡ, hiện dấu báo
+lỗi dùng chung cho mọi media trên site (owner 2026-10-18): khung giữ đúng tỷ lệ, nền xám nhạt tĩnh, không gradient;
+giữa khung icon ảnh hỏng nét mảnh 24px màu xám và dòng chữ nhỏ "Không tải được" / "Couldn't load"; không nút thử lại
+(tải lại trang là thử lại). Card ẩn mũi tên, chấm, bộ đếm, vẫn bấm vào detail, lịch phát bỏ qua; status ẩn đọc
+"Không tải được media" / "Couldn't load media". Primary detail: media đang chọn không hiện được (ảnh lỗi, video và
+poster cùng lỗi) thì khung hiện cùng dấu đó, nền blur tắt; thumbnail và mũi tên vẫn đổi được sang media khác.
 
 ```gherkin
 Given card ba media, item 2 là ảnh trả 404
 When chọn item 2
 Then card về item 1 đã tải, chấm 1 có aria-current, không vòng lặp tải lại
+
+Given card chỉ có một video, video và poster đều trả 404
+When card vào màn hình
+Then skeleton gỡ, khung hiện icon ảnh hỏng và chữ "Không tải được", không còn gradient chạy
 ```
 
 ### R6. Media trong primary
@@ -227,7 +237,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
 - Chấm 8px theo UI chấm Gallery (owner 2026-10-17), test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
   của Gallery để giữ vùng bấm 20×44px.
-- Mọi asset của card đều lỗi: chưa có UI kết thúc riêng. Owner chọn UI; Thread code.
+- Dấu báo lỗi (R5) mới áp cho card và primary Advertising; media khác trên site (ảnh trong trang, hero, CTA, portal)
+  dùng lại đúng dấu này ở thread riêng (điều phối mở theo owner 2026-10-18).
 - Clip fixture của `m01b`, `m02a`, `r6` là AV1 + Opus trong MP4 vì Chromium của Playwright (CI, cloud) không giải mã
   H.264/AAC; WebKit chỉ phát AV1 trên phần cứng mới nên chạy tay WebKit có thể đỏ ca video. Nhánh H.264 của video
   thật chưa có test trên trình duyệt có H.264; `site-media-card-playback.e2e.mjs` chưa có kết quả trong tree. Máy PC.

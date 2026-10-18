@@ -148,13 +148,14 @@ And khi B hiện xong, khung không còn aria-busy, skeleton hay Kính
 ### R7. Ảnh lỗi
 
 Ảnh card lỗi: runtime hủy lượt chờ, gỡ skeleton, không chạy Kính; ảnh lỗi không hiện (`.advertising-tile img` giữ opacity
-0). Card nhiều media đổi sang media khác theo media-card R5 trước khi tới bước này. Primary: `decode()` bị từ chối vì lỗi
-thì gỡ skeleton, lớp tạm, Kính, bỏ `aria-busy` và `data-advertising-photo-loading` ngay.
+0), khung hiện dấu báo lỗi theo [media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media). Card nhiều media đổi sang media
+khác theo media-card R5 trước khi tới bước này. Primary: `decode()` bị từ chối vì lỗi thì gỡ skeleton, lớp tạm, Kính,
+bỏ `aria-busy` và `data-advertising-photo-loading` ngay, rồi hiện cùng dấu báo lỗi.
 
 ```gherkin
 Given một card đang hiện skeleton
 When request ảnh của card lỗi
-Then skeleton bị gỡ, không có Kính, card giữ nguyên kích thước
+Then skeleton bị gỡ, không có Kính, card giữ nguyên kích thước và hiện dấu báo lỗi
 ```
 
 ### R8. Giảm chuyển động
