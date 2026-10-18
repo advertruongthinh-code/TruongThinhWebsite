@@ -11,7 +11,7 @@
 
 ## Phạm vi
 
-- Ship site tĩnh VI/EN nhanh, an toàn. `src/site/` canonical; `.site-output/` generated. CMS, private admin, D1, R2, dynamic publishing: phase sau; không chặn public release.
+- Ship site tĩnh VI/EN nhanh, an toàn. `src/site/` canonical; `.site-output/` generated. CMS, private admin, D1, R2, dynamic publishing: phase 2. Phát hành chính thức lên `truongthinhads.vn` chỉ khi xong CMS (admin và nhân viên CRUD được nội dung; owner 2026-10-18); trước đó bản tĩnh chỉ chạy trên demo và luôn là fallback, rollback.
 - Solo dev: diff nhỏ, reversible; ưu tiên dependency có sẵn, native platform, handoff có evidence.
 - Static page không cần D1, R2, Access, CMS secret, admin state. Không mở rộng CMS/admin ngoài CMS phase; không speculative abstraction.
 - Không deploy, connect domain, publish owner data nếu user chưa explicit approval. Demo tự deploy khi CI xanh

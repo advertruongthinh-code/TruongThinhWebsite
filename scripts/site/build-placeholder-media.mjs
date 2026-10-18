@@ -69,7 +69,8 @@ chosen.forEach((card, index) => {
     ffmpeg(["-i", sourceFile(base.media.src), "-vf", cropFilter(crop, imageSize), "-quality", "72", file]);
     items.push({
       id, kind: "image", src: `${outputUrl}/${id}.webp`, sourceId: `placeholder:${id}`, ...imageSize,
-      altVi: base.media.altVi, altEn: base.media.altEn, source: `${outputUrl}/${id}.webp`, sha256: sha256(file),
+      // Alt riêng từng media (media-seo R3): thêm số ảnh vào alt gốc.
+      altVi: `${base.media.altVi} (ảnh ${items.length + 2})`, altEn: `${base.media.altEn} (photo ${items.length + 2})`, source: `${outputUrl}/${id}.webp`, sha256: sha256(file),
       provenance: `Placeholder; re-encoded from ${base.media.src}; replace with real product media.`,
     });
   }

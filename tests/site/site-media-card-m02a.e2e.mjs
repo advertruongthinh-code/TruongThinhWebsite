@@ -91,7 +91,7 @@ async function openCardBody(page, card, expectedId = cardId) {
   });
   assert(point, "grid card body has a visible pointer target");
   await link.click({ position: point, timeout: 5_000 });
-  await page.waitForURL((url) => url.searchParams.get("photo") === expectedId);
+  await page.waitForURL((url) => (url.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === expectedId);
   await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
 }
 

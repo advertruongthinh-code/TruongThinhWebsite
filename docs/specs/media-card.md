@@ -112,7 +112,7 @@ Then card về item 1 đã tải, chấm 1 có aria-current, không vòng lặp 
 
 ### R6. Media trong primary
 
-Mở từ card, primary bắt đầu ở media đang xem của card; vào thẳng hoặc reload `?photo=<id>` bắt đầu ở cover; Back,
+Mở từ card, primary bắt đầu ở media đang xem của card; vào thẳng hoặc reload trang card `p/<id>` bắt đầu ở cover; Back,
 Forward khôi phục media của entry; đổi ngôn ngữ giữ media đang xem. URL không có tham số media. Card có hơn một item,
 hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Product media" cạnh mô tả: mỗi nút tên "Xem ảnh|video
 i trên N: <alt>", thumbnail 60px bo 16px, đang xem `aria-current` có viền đôi, video có biểu tượng phát. Khung media

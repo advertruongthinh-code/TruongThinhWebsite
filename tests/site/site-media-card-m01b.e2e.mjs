@@ -272,7 +272,7 @@ async function run(viewport, touch, locale) {
       return { id: node.dataset.advertisingActiveMediaId || null,
         rect: { width: rect.width, height: rect.height },
         url: location.href,
-        photo: new URL(location.href).searchParams.get("photo") };
+        photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) };
     });
     assert.equal(before.photo, null, "carousel starts in grid");
     assert.equal(await card.locator("[data-advertising-media-indicator]").count(), 1, "multi-media indicator exists");
@@ -331,7 +331,7 @@ async function run(viewport, touch, locale) {
         video: video ? { muted: video.muted, poster: video.poster, src: video.currentSrc || video.src } : null,
         duration: node.querySelector("[data-advertising-media-duration]")?.textContent?.trim() || null,
         url: location.href,
-        photo: new URL(location.href).searchParams.get("photo") };
+        photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) };
     });
     assert.equal(after.photo, null, "media change does not open detail");
     assert.equal(after.url, before.url, "media change does not alter route");
@@ -376,7 +376,7 @@ async function run(viewport, touch, locale) {
     assert.deepEqual(errors, [], "no runtime page errors");
     if (touch) await page.waitForTimeout(450);
     await clickCardBody(card, `run-${locale}`);
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
     return { before, after, dimensions };
   } finally { await context.close(); await browser.close(); }
 }
@@ -428,7 +428,7 @@ test("M01b swipe suppresses its click but permits a fresh pointer tap", async ()
     }, { x: point.x1, y: point.y });
     assert(freshTap.elapsedMs < 400 && freshTap.bubbled === 1 && freshTap.activeId === fixtureId,
       `new pointer gesture within suppression window must activate detail: ${JSON.stringify(freshTap)}`);
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
     assert.equal(await page.evaluate(() => history.length), beforeHistory + 1,
       "fresh pointer tap opens detail exactly once");
   } finally { await browser.close(); }
@@ -455,7 +455,7 @@ test("M01b keyboard click after swipe is not suppressed", async () => {
     });
     assert(keyboard.bubbled === 1 && keyboard.activeId === videoId,
       `keyboard activation must bypass swipe suppression: ${JSON.stringify(keyboard)}`);
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await browser.close(); }
 });
 
@@ -481,7 +481,7 @@ test("M01b a newer swipe keeps its click guard past an older timeout", async () 
       node.dispatchEvent(event);
       return { prevented: event.defaultPrevented, bubbled: window.__m01bBubbledClicks,
         activeId: node.parentElement.dataset.advertisingActiveMediaId,
-        photo: new URL(location.href).searchParams.get("photo") };
+        photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) };
     });
     assert(compatibility.prevented && compatibility.bubbled === 0
       && compatibility.activeId === fixtureId && compatibility.photo === null,
@@ -524,7 +524,7 @@ test("M01b touch swipe click stays blocked and a new touch tap opens detail", as
     assert.equal(await swipeTouch(point.x2, point.x1, 62), fixtureId);
     // Tap mới trong guard 400ms cũ vẫn phải mở detail của media đang active.
     await touchPath(point.x1, point.x1, 63);
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await context.close(); await browser.close(); }
 });
 
@@ -619,7 +619,7 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
       && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 0
       && state.withinFrame, `singleton video state: ${JSON.stringify(state)}`);
     await clickCardBody(card, "singleton-video");
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await browser.close(); }
 });
 
@@ -673,7 +673,7 @@ test("M01b explicit singleton nonlegacy image renders without a carousel", async
       return { prevented: click.defaultPrevented, activeId: node.parentElement.dataset.advertisingActiveMediaId };
     }, points);
     assert.equal(compatibilityClick.activeId, imageId);
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await browser.close(); }
 });
 
@@ -739,7 +739,7 @@ test("M01b failed video cover loads its unready image fallback", async () => {
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), fixtureId,
       "failed video control retains valid fallback");
     await clickCardBody(card, "failed-video-cover");
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
     assert.deepEqual(errors, [], "video-cover failure has no uncaught page errors");
   } finally { await browser.close(); }
 });
@@ -828,7 +828,7 @@ test("M01b failed next image restores the last valid card image", async () => {
     await card.locator(`[data-advertising-media-select="${videoId}"]`).click();
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), videoId, "other media control remains usable");
     await clickCardBody(card, "failed-image");
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await browser.close(); }
 });
 
@@ -906,7 +906,7 @@ test("M01b failed video and poster restore the ready image cover", async () => {
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), fixtureId,
       "failed video control keeps usable fallback");
     await clickCardBody(card, "failed-video-poster");
-    await page.waitForURL((next) => next.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
     assert.deepEqual(errors, [], "double 404 has no uncaught page errors");
   } finally { await browser.close(); }
 });
@@ -1068,7 +1068,7 @@ async function runNumericIndicator(locale, viewport, mobile) {
     assert.equal(await count.textContent(), "11/11");
     assert(await next.isDisabled());
     assert(!(await previous.isDisabled()));
-    assert.equal(new URL(page.url()).searchParams.get("photo"), null, "media controls never open detail");
+    assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), null, "media controls never open detail");
     const final = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
       return { width: rect.width, height: rect.height,
@@ -1080,7 +1080,7 @@ async function runNumericIndicator(locale, viewport, mobile) {
     if (outputDir) await writeFile(path.join(outputDir, `numeric-indicator-${locale}-${mobile ? "mobile" : "desktop"}.json`),
       JSON.stringify({ initial, targets, final }, null, 2));
     await clickCardBody(card, `numeric-${locale}-${mobile ? "mobile" : "desktop"}`);
-    await page.waitForURL((url) => url.searchParams.get("photo") === fixtureId);
+    await page.waitForURL((url) => (url.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await context.close(); await browser.close(); }
 }
 
@@ -1149,7 +1149,7 @@ test("M01b hover arrows step card media by position and the card media never zoo
       await card.locator('[data-advertising-media-hover-step="1"]').click();
       assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[2].id);
       assert.equal(await arrows(), "1 -", "last media shows only the previous arrow");
-      assert.equal(new URL(page.url()).searchParams.get("photo"), null, "arrows never open detail");
+      assert.doesNotMatch(new URL(page.url()).pathname, /\/p\/[^/]+\/$/, "arrows never open detail");
       await context.close();
     }
   } finally { await browser.close(); }

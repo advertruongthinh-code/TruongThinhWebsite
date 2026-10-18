@@ -59,7 +59,18 @@ async function ready(page) {
     if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
     return true;
   });
-  await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame]")?.classList.contains("is-looping"));
+  // Resize dựng lại batch và có thể đẩy khung ra ngoài viewport sau lần căn đầu, nên căn lại mỗi nhịp chờ.
+  await page.waitForFunction(() => {
+    const frame = document.querySelector("[data-advertising-cta-frame]");
+    if (!frame) return false;
+    const rect = frame.getBoundingClientRect();
+    if (rect.bottom <= 0 || rect.top >= innerHeight) {
+      const motion = window.TruongThinhMotion;
+      const target = (motion?.getLogicalScroll?.() ?? window.scrollY) + rect.top - Math.max(0, (innerHeight - rect.height) / 2);
+      if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
+    }
+    return frame.classList.contains("is-looping");
+  });
   await page.waitForFunction(() => {
     const visible = [...document.querySelectorAll("[data-advertising-cta-frame]")]
       .filter((frame) => {
@@ -68,7 +79,7 @@ async function ready(page) {
       });
     const running = visible.filter((frame) => frame.dataset.advertisingFlowState === "running").length;
     return document.documentElement.clientWidth <= 750
-      ? running >= 1 && running <= 2
+      ? running >= 1
         && visible.every((frame) => ["running", "paused"].includes(frame.dataset.advertisingFlowState))
       : visible.every((frame) => frame.dataset.advertisingFlowState === "running");
   });
@@ -86,7 +97,8 @@ async function flowAssignments(page) {
     .map((frame) => {
       const canvas = frame.querySelector("[data-advertising-flow-preset]");
       return {
-        slot: `${frame.dataset.advertisingCtaColumn}:${frame.dataset.advertisingCtaDepth}`,
+        // Runtime giữ assignment theo slot; column:depth đổi chủ khi resize đổi số cột.
+        slot: frame.dataset.advertisingCtaSlot,
         preset: canvas?.dataset.advertisingFlowPreset,
         speedScale: Number(canvas?.dataset.advertisingFlowSpeedScale),
         anchorPermutation: canvas?.dataset.advertisingFlowAnchorPermutation,
@@ -95,7 +107,7 @@ async function flowAssignments(page) {
         ratioBand: frame.dataset.advertisingCtaRatioBand,
       };
     })
-    .sort((left, right) => left.slot.localeCompare(right.slot)));
+    .sort((left, right) => Number(left.slot) - Number(right.slot)));
 }
 
 function assertFlowBatch(assignments, label) {
@@ -121,6 +133,13 @@ function assertFlowBatch(assignments, label) {
 function assignmentSignature(assignments) {
   return assignments.map(({ slot, preset, anchorPermutation, phase, direction, ratioBand }) =>
     `${slot}|${preset}|${anchorPermutation}|${phase}|${direction}|${ratioBand}`).join(";");
+}
+
+// Batch dựng thêm slot khi cuộn (frontier) và band đổi được khi dựng lại (skeleton R1); assignment của slot đã có phải giữ.
+async function assertSlotsKept(page, expected, message) {
+  const current = new Map((await flowAssignments(page)).map((assignment) => [assignment.slot, assignment]));
+  assert.deepEqual(expected.map(({ slot }) => current.has(slot) && stableFlowAssignment(current.get(slot))),
+    expected.map(stableFlowAssignment), message);
 }
 
 function stableFlowAssignment({ slot, preset, anchorPermutation, phase, direction, speedScale }) {
@@ -232,7 +251,8 @@ async function snapshot(page) {
       nativeGutter: innerWidth - document.documentElement.clientWidth,
       skeletonCoverageRatio: Math.max(0, deepestFrameBottom - ctaRect.top) / ctaRect.height,
       glassHidden: glass?.hidden ?? null,
-      glassTop: Math.min(...[...(glass?.children || [])].map((layer) => Number.parseFloat(layer.style.top))),
+      // Bậc inner chỉ có mask, không đặt top riêng: chỉ lấy lớp có top.
+      glassTop: Math.min(...[...(glass?.children || [])].map((layer) => Number.parseFloat(layer.style.top)).filter(Number.isFinite)),
       glassEnd: (Number.parseFloat(glassTint?.style.top) || 0) + (Number.parseFloat(glassTint?.style.height) || 0) - 2,
       boundaryBottom: Number.parseFloat(skeleton.style.height) || 0,
       realBottom: Number.parseFloat(skeleton.dataset.advertisingCtaRealBottom) || 0,
@@ -290,7 +310,7 @@ async function snapshot(page) {
 async function collectFlowWindow(page) {
   return page.evaluate(async () => {
     const surface = document.querySelector("[data-advertising-cta-frame].is-looping .advertising-grid__cta-surface");
-    const canvas = surface.querySelector("canvas");
+    const canvas = document.querySelector(".advertising-grid__cta-shared-flow") ?? surface.querySelector("canvas");
     const grid = document.querySelector("[data-project-grid]");
     const digest = () => {
       const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -391,24 +411,15 @@ async function exitSkeletonViewport(page) {
   });
 }
 
-async function replaySkeletonEntry(page, label) {
+// Rời hẳn vùng nhìn thấy rồi vào lại: khung hiện ngay và Kính reveal không chạy lại (skeleton R4).
+async function reenterSkeletonViewport(page, label) {
   await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
-    window.__ttSkeletonEntryEvents = [];
-    window.__ttSkeletonPaintTimeline = [];
-    window.__ttSkeletonEntryObserver = new MutationObserver((records) => records.forEach((record) => {
-      const glass = (nodes) => [...nodes].some((node) => node.dataset && "glassReveal" in node.dataset);
-      const surface = frame.querySelector(".advertising-grid__cta-surface");
-      const endTimes = (node) => node.getAnimations({ subtree: true })
-        .map((animation) => Math.round(animation.effect.getComputedTiming().endTime));
-      const added = [...record.addedNodes].find((node) => node.dataset && "glassReveal" in node.dataset);
-      if (added) {
-        window.__ttSkeletonEntryEvents.push({
-          at: performance.now(), glass: endTimes(added), surface: endTimes(surface), type: "add",
-        });
-      }
-      if (glass(record.removedNodes)) window.__ttSkeletonEntryEvents.push({ at: performance.now(), type: "remove" });
-    }));
-    window.__ttSkeletonEntryObserver.observe(frame, { childList: true });
+    window.__ttSkeletonReenterReveals = 0;
+    window.__ttSkeletonReenterObserver = new MutationObserver((records) => {
+      window.__ttSkeletonReenterReveals += records.filter((record) => [...record.addedNodes]
+        .some((node) => node.dataset && "glassReveal" in node.dataset)).length;
+    });
+    window.__ttSkeletonReenterObserver.observe(frame, { childList: true });
     const rect = frame.getBoundingClientRect();
     const motion = window.TruongThinhMotion;
     const current = motion?.getLogicalScroll?.() ?? window.scrollY;
@@ -416,38 +427,41 @@ async function replaySkeletonEntry(page, label) {
     if (!motion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
   });
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
-  await page.waitForFunction(() => window.__ttSkeletonEntryEvents.some(({ type }) => type === "remove"),
-    null, { timeout: 5000 });
+  await page.waitForTimeout(750);
   const result = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
-    window.__ttSkeletonEntryObserver.disconnect();
-    delete window.__ttSkeletonEntryObserver;
+    window.__ttSkeletonReenterObserver.disconnect();
     const style = getComputedStyle(frame);
-    return {
-      endpointOpacity: Number(style.opacity),
-      events: window.__ttSkeletonEntryEvents,
-      glass: Boolean(frame.querySelector("[data-glass-reveal]")),
-      paints: window.__ttSkeletonPaintTimeline.map(({ at }) => at),
-      surfaceOpacity: Number(getComputedStyle(frame.querySelector(".advertising-grid__cta-surface")).opacity),
+    const result = {
+      reveals: window.__ttSkeletonReenterReveals,
+      entryReady: frame.classList.contains("is-entry-ready"),
+      opacity: Number(style.opacity),
       targetOpacity: Number(style.getPropertyValue("--advertising-cta-frame-opacity")),
       transformY: new DOMMatrixReadOnly(style.transform).m42,
     };
+    delete window.__ttSkeletonReenterObserver;
+    delete window.__ttSkeletonReenterReveals;
+    return result;
   });
-  const added = result.events.filter(({ type }) => type === "add");
-  const removed = result.events.find(({ type }) => type === "remove");
-  assert.equal(added.length, 1, `${label}: Kinh reveal must run exactly once (${JSON.stringify(result.events)})`);
-  assert(added[0].glass.length > 0 && added[0].glass.every((end) => end === 600),
-    `${label}: Kinh reveal must last 600ms like card photos`);
-  assert(added[0].surface.length === 1 && added[0].surface[0] <= 600,
-    `${label}: Flow must fade in under Kinh within the 600ms reveal`);
-  assert(!result.glass, `${label}: Kinh reveal was not removed after entry`);
-  assert(result.paints.some((at) => at < removed.at), `${label}: Flow did not run during the Kinh reveal`);
-  assert(Math.abs(result.surfaceOpacity - 1) <= 0.01, `${label}: Flow did not reach full opacity`);
-  assert(Math.abs(result.endpointOpacity - result.targetOpacity) <= 0.01,
-    `${label}: entry opacity did not reach its endpoint`);
-  assert(Math.abs(result.transformY) <= 0.1, `${label}: entry changed frame geometry`);
+  assert.equal(result.reveals, 0, `${label}: Kinh reveal replayed on re-entry`);
+  assert(result.entryReady && Math.abs(result.opacity - result.targetOpacity) <= 0.01,
+    `${label}: frame was not shown immediately`);
+  assert(Math.abs(result.transformY) <= 0.1, `${label}: re-entry changed frame geometry`);
 }
 
 const installSkeletonPaintProbe = (targetPage) => targetPage.addInitScript(() => {
+  // Khung batch chạy Flow trên canvas chung của batch (advertising-skeleton R5); renderer riêng chỉ còn cho skeleton media card.
+  window.__ttFlowLive = (frame) => frame.dataset.advertisingFlowState === "running"
+    && (frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl"
+      || Boolean(frame.closest(".advertising-grid__cta-skeleton")?.querySelector(".advertising-grid__cta-shared-flow")));
+  // Canvas chung vẽ nhiều khung mỗi tick bằng scissor: một tick là một lần clear, không đếm theo drawArrays.
+  const nativeClear = WebGLRenderingContext.prototype.clear;
+  WebGLRenderingContext.prototype.clear = function patchedClear(...args) {
+    if (this.canvas?.matches?.(".advertising-grid__cta-shared-flow")) {
+      window.__ttSkeletonPaints[this.canvas.isConnected ? "connected" : "detached"] += 1;
+      this.canvas.__ttSkeletonPaints = (this.canvas.__ttSkeletonPaints || 0) + 1;
+    }
+    return nativeClear.apply(this, args);
+  };
   window.__ttSkeletonPaints = { connected: 0, detached: 0 };
   window.__ttSkeletonPaintTimeline = [];
   window.__ttSkeletonTraceEnabled = true;
@@ -481,7 +495,7 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
     : null;
   observer?.observe({ type: "longtask", buffered: false });
   const paintsBefore = window.__ttSkeletonPaints.connected;
-  const activeCanvases = [...document.querySelectorAll("[data-advertising-cta-frame].is-looping canvas")];
+  const activeCanvases = [...document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-cta-frame].is-looping canvas[data-advertising-flow-backend="webgl"]')];
   const perFrameBefore = activeCanvases.map(canvas => canvas.__ttSkeletonPaints || 0);
   const activeFrameCount = activeCanvases.length;
   const started = performance.now();
@@ -497,7 +511,7 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
   const elapsed = performance.now() - started;
   const paints = window.__ttSkeletonPaints.connected - paintsBefore;
   const frames = activeCanvases.map((canvas, index) => ({
-    slot: canvas.closest("[data-advertising-cta-frame]").dataset.advertisingCtaSlot,
+    slot: canvas.closest("[data-advertising-cta-frame]")?.dataset.advertisingCtaSlot ?? "shared",
     connected: canvas.isConnected,
     paints: (canvas.__ttSkeletonPaints || 0) - perFrameBefore[index],
     fps: ((canvas.__ttSkeletonPaints || 0) - perFrameBefore[index]) * 1000 / elapsed,
@@ -517,7 +531,7 @@ const measureAnimationPerformance = (targetPage, duration) => targetPage.evaluat
   };
 }, duration);
 
-const launchOptions = { headless: process.env.CONTINUATION_HEADED !== "1" };
+const launchOptions = { headless: process.env.CONTINUATION_HEADED !== "1", executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined };
 if (process.env.CONTINUATION_CHANNEL) launchOptions.channel = process.env.CONTINUATION_CHANNEL;
 const browser = await chromium.launch(launchOptions);
 evidence.browser = { version: browser.version(), ...launchOptions };
@@ -717,7 +731,16 @@ try {
     // Rule reduced-motion toàn cục để lại transition 0.01ms, nên đọc sau một khoảng chờ ngắn.
     await new Promise((resolve) => setTimeout(resolve, 200));
     const copy = document.querySelector("[data-advertising-grid-cta] .detail-cta__copy");
-    return new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
+    const offset = () => new DOMMatrixReadOnly(getComputedStyle(copy).transform).m42;
+    // Cuộn còn đang trượt thì offset chưa tới đích: chờ tới khi hai lần đọc liên tiếp khớp.
+    let last = offset();
+    for (let tries = 0; tries < 20; tries++) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const next = offset();
+      if (Math.abs(next - last) < 0.01) return next;
+      last = next;
+    }
+    return last;
   });
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight - innerHeight - 100));
   const movingOffset = await parallaxOffset();
@@ -737,7 +760,6 @@ try {
   await page.waitForFunction((signature) => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature, beforeFilter);
   await ready(page);
   const filteredAssignments = await flowAssignments(page);
-  const filteredFrameCount = await page.locator("[data-advertising-cta-frame]").count();
   assertFlowBatch(filteredAssignments, "filter lifecycle");
   assert.notEqual(assignmentSignature(filteredAssignments), assignmentSignature(beforeFilterAssignments),
     "filter lifecycle reused the previous Flow batch");
@@ -748,11 +770,14 @@ try {
 
   const beforeResizeSignature = await page.locator("[data-advertising-cta-skeleton]")
     .getAttribute("data-advertising-cta-signature");
+  const beforeResizeColumns = await page.locator("[data-advertising-cta-skeleton]")
+    .getAttribute("data-advertising-cta-columns");
   await page.setViewportSize({ width: 1000, height: 1000 });
   await page.waitForFunction((signature) =>
     document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaSignature !== signature,
   beforeResizeSignature);
   await ready(page);
+  const narrowSignature = await page.locator("[data-advertising-cta-skeleton]").getAttribute("data-advertising-cta-signature");
   const narrowAssignments = await flowAssignments(page);
   evidence.assignmentTransitions = { filteredAssignments, narrowAssignments };
   assertFlowBatch(narrowAssignments, "N4 to N3 logical batches");
@@ -764,14 +789,19 @@ try {
       `N4 to N3 resize changed the stable Flow assignment for ${assignment.slot}`);
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.waitForFunction(({ signature, count }) => {
+  // Band đổi được khi đổi cỡ (skeleton R1) nên chữ ký và số khung không quay về cũ: chờ đúng số cột.
+  await page.waitForFunction(({ signature, columns }) => {
     const skeleton = document.querySelector("[data-advertising-cta-skeleton]");
-    return skeleton?.dataset.advertisingCtaSignature === signature
-      && document.querySelectorAll("[data-advertising-cta-frame]").length === count;
-  }, { signature: beforeResizeSignature, count: filteredFrameCount });
+    return skeleton?.dataset.advertisingCtaColumns === columns
+      && skeleton.dataset.advertisingCtaSignature !== signature;
+  }, { signature: narrowSignature, columns: beforeResizeColumns });
   await ready(page);
   const roundTripBySlot = new Map((await flowAssignments(page)).map((assignment) => [assignment.slot, assignment]));
-  assert.deepEqual(filteredAssignments.map(({ slot }) => roundTripBySlot.get(slot)), filteredAssignments,
+  // Band dựng lại có thể đổi khi cột mới đặt slot ngay dưới khung cùng band (skeleton R1); chỉ assignment Flow phải giữ.
+  const keptSlots = filteredAssignments.filter(({ slot }) => roundTripBySlot.has(slot));
+  assert.ok(keptSlots.length > 0, "resize round trip kept no Flow slot");
+  assert.deepEqual(keptSlots.map(({ slot }) => stableFlowAssignment(roundTripBySlot.get(slot))),
+    keptSlots.map(stableFlowAssignment),
     "resize round trip changed assignments within one page state");
 
   await page.reload({ waitUntil: "networkidle" });
@@ -801,7 +831,7 @@ try {
   assert.notEqual(assignmentSignature(secondHistoryAssignments), assignmentSignature(historyAssignments),
     "photo Forward/Back draws again (skeleton R3)");
 
-  const stableAssignments = secondHistoryAssignments;
+  let stableAssignments = secondHistoryAssignments;
   const timeline = await collectFlowWindow(page);
   const drift = timeline.map((sample) => matrix(sample.surface));
   assert(drift.every(({ x, y }) => Math.abs(x) <= 0.1 && Math.abs(y) <= 0.1),
@@ -813,7 +843,7 @@ try {
     "skeleton loop changes grid height");
 
   const lossSupported = await page.evaluate(() => {
-    const canvas = document.querySelector("[data-advertising-cta-frame].is-looping canvas");
+    const canvas = document.querySelector(".advertising-grid__cta-shared-flow");
     const gl = canvas?.getContext("webgl") || canvas?.getContext("experimental-webgl");
     const extension = gl?.getExtension("WEBGL_lose_context");
     if (!extension) return false;
@@ -824,18 +854,25 @@ try {
   assert(lossSupported, "Chromium does not expose WEBGL_lose_context for the restore regression");
   await page.waitForTimeout(250);
   const paintsWhileLost = await page.evaluate(() =>
-    document.querySelector("[data-advertising-cta-frame].is-looping canvas")?.__ttSkeletonPaints || 0);
+    document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0);
   await page.waitForTimeout(250);
   assert.equal(await page.evaluate(() =>
-    document.querySelector("[data-advertising-cta-frame].is-looping canvas")?.__ttSkeletonPaints || 0), paintsWhileLost,
+    document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), paintsWhileLost,
     "skeleton kept issuing WebGL draws while its context was lost");
   await page.evaluate(() => window.__ttSkeletonLossExtension.restoreContext());
   await page.waitForFunction((before) =>
-    (document.querySelector("[data-advertising-cta-frame].is-looping canvas")?.__ttSkeletonPaints || 0) > before,
+    (document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0) > before,
   paintsWhileLost);
 
   await page.setViewportSize({ width: 1569, height: 912 });
   await ready(page);
+  // Cỡ mới dựng thêm slot ở đáy batch; các slot cũ giữ assignment, rồi đây là mốc mới cho các lần cuộn bên dưới.
+  const resizedAssignments = await flowAssignments(page);
+  const resizedBySlot = new Map(resizedAssignments.map((assignment) => [assignment.slot, assignment]));
+  assert.deepEqual(stableAssignments.filter(({ slot }) => resizedBySlot.has(slot)).map(stableFlowAssignment),
+    stableAssignments.filter(({ slot }) => resizedBySlot.has(slot)).map(({ slot }) => stableFlowAssignment(resizedBySlot.get(slot))),
+    "viewport resize changed the Flow assignment of an existing slot");
+  stableAssignments = resizedAssignments;
   await page.evaluate(() => {
     const bounds = [...document.querySelectorAll("[data-advertising-cta-frame]")]
       .map(frame => frame.getBoundingClientRect());
@@ -847,9 +884,15 @@ try {
   });
   await page.waitForTimeout(1000);
   await page.bringToFront();
-  await page.waitForFunction(() => [...document.querySelectorAll("[data-advertising-cta-frame]")]
-    .every(frame => frame.dataset.advertisingFlowState === "running"
-      && frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl"));
+  // Flow chỉ chạy khung đang thấy (R4); chiều cao batch ngẫu nhiên nên không phải lúc nào mọi khung cũng lọt 912px.
+  await page.waitForFunction(() => {
+    const inView = [...document.querySelectorAll("[data-advertising-cta-frame]")].filter(frame => {
+      const rect = frame.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    });
+    return inView.length > 0 && inView.every(frame => frame.dataset.advertisingFlowState === "running"
+      && window.__ttFlowLive(frame));
+  });
   const desktopScene = await page.evaluate(() => {
     const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
     return { width: innerWidth, height: innerHeight, frames: frames.length,
@@ -857,13 +900,13 @@ try {
       bottom: Math.max(...frames.map(frame => frame.getBoundingClientRect().bottom)),
       fullyVisible: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.top >= -1 && rect.bottom <= innerHeight + 1;}).length,
       visible: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.bottom > 0 && rect.top < innerHeight;}).length,
-      running: frames.filter(frame => frame.dataset.advertisingFlowState === "running"
-        && frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl").length };
+      running: frames.filter(frame => {const rect = frame.getBoundingClientRect();return rect.bottom > 0 && rect.top < innerHeight
+        && frame.dataset.advertisingFlowState === "running" && window.__ttFlowLive(frame);}).length };
   });
   assert.deepEqual([desktopScene.width, desktopScene.height], [1569, 912], "R4 desktop uses the accepted viewport");
   evidence.performance.desktop = { scene: desktopScene };
-  assert.ok(desktopScene.frames > 0 && desktopScene.frames === desktopScene.visible
-    && desktopScene.frames === desktopScene.running, "R4 measures all skeleton renderers concurrently");
+  assert.ok(desktopScene.visible > 0 && desktopScene.visible === desktopScene.running,
+    "R4 measures every visible skeleton renderer concurrently");
   const desktopPerformanceDiagnostic = await measureAnimationPerformance(page, 5000);
   evidence.performance.desktop = { scene: desktopScene, probe: desktopPerformanceDiagnostic };
   assert.ok(desktopPerformanceDiagnostic.fps >= 30, "R4 desktop skeleton loop stays at or above 30fps");
@@ -893,15 +936,15 @@ try {
       running: visible.filter((frame) => frame.dataset.advertisingFlowState === "running").length,
       staticFallbacks: visible.filter((frame) => frame.querySelector("canvas")
         && getComputedStyle(frame.querySelector("canvas")).backgroundImage !== "none").length,
-      contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
+      contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
     };
   });
-  assert(mobileVisible.count > 2 && mobileVisible.running >= 1 && mobileVisible.running <= 2,
-    `A54 simultaneous viewport did not preserve the two-context budget (${JSON.stringify(mobileVisible)})`);
+  assert(mobileVisible.count > 2 && mobileVisible.running >= 1 && mobileVisible.contexts === 1,
+    `A54 simultaneous viewport did not keep one shared WebGL context (${JSON.stringify(mobileVisible)})`);
   assert.equal(mobileVisible.staticFallbacks, mobileVisible.count,
     "A54 viewport contains a blank preset fallback");
   const mobilePerformanceState = await mobilePerformancePage.evaluate(() => ({
-    contexts: document.querySelectorAll("[data-advertising-cta-frame].is-looping canvas").length,
+    contexts: document.querySelectorAll(".advertising-grid__cta-shared-flow").length,
     devicePixelRatio,
   }));
   await mobilePerformancePage.waitForTimeout(1000);
@@ -914,7 +957,7 @@ try {
   evidence.performance.mobile = { profile: "A54 emulation, 360x800 DPR3; physical gate remains separate", probes: mobileProbes, medianFps };
   assert.ok(mobileProbes.every(probe => probe.activeFrameCount >= 1 && probe.activeFrameCount <= 2), "R10 all three probes keep the two-context budget");
   await mobilePerformancePage.evaluate(() => {
-    window.__ttMobileRenderers = [...document.querySelectorAll('[data-advertising-flow-backend="webgl"]')];
+    window.__ttMobileRenderers = [...document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]')];
     window.__ttMobileTransitionCount = 0;
     window.__ttMobileTransitionListener = (event) => {
       if (event.propertyName === "opacity" && event.target.matches?.(".advertising-grid__cta-flow")) {
@@ -938,9 +981,8 @@ try {
   const retainedMobile = await mobilePerformancePage.evaluate(() => {
     document.removeEventListener("transitionrun", window.__ttMobileTransitionListener);
     const result = {
-      sameCanvases: window.__ttMobileRenderers.every((canvas) =>
-        canvas.isConnected && canvas.dataset.advertisingFlowBackend === "webgl"),
-      contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
+      sameCanvases: window.__ttMobileRenderers.length > 0 && window.__ttMobileRenderers.every((canvas) => canvas.isConnected),
+      contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
       transitions: window.__ttMobileTransitionCount,
     };
     delete window.__ttMobileRenderers;
@@ -950,183 +992,12 @@ try {
   });
   assert(retainedMobile.sameCanvases && retainedMobile.contexts <= 2 && retainedMobile.transitions === 0,
     `A54 focus/reduced toggle remounted or replayed Flow (${JSON.stringify(retainedMobile)})`);
-  evidence.handoffSceneAttempts = [];
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const scene = await mobilePerformancePage.evaluate(() => {
-      const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")].map(frame => ({
-        slot: frame.dataset.advertisingCtaSlot, top: frame.getBoundingClientRect().top,
-        bottom: frame.getBoundingClientRect().bottom, x: frame.offsetLeft,
-        live: frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl",
-      }));
-      const outgoing = frames.filter(frame => frame.live);
-      const firstDelta = Math.ceil(Math.max(...outgoing.map(frame => frame.bottom))) + 2;
-      const incoming = frames.filter(frame => !frame.live && frame.bottom > firstDelta && frame.top < firstDelta + innerHeight)
-        .sort((a, b) => a.top - b.top || a.x - b.x).slice(0, 2).sort((a, b) => b.bottom - a.bottom);
-      const secondDelta = Math.ceil(incoming[1]?.bottom ?? Infinity) + 2;
-      const later = frames.find(frame => !frame.live && !incoming.includes(frame)
-        && frame.bottom > secondDelta && frame.top < secondDelta + innerHeight);
-      return { seed: window.TruongThinhAdvertising.getBrowseState().seed, frames, firstDelta, secondDelta,
-        qualified: outgoing.length === 2 && incoming.length === 2
-          && incoming[0].bottom > secondDelta && Boolean(later) };
-    });
-    evidence.handoffSceneAttempts.push(scene);
-    if (scene.qualified) break;
-    if (attempt === 7) throw new Error("No reachable two-handoff scene in eight fresh random visits");
-    await mobilePerformancePage.reload({ waitUntil: "networkidle" });
-    await ready(mobilePerformancePage);
-    await mobilePerformancePage.waitForTimeout(1000);
-  }
-  const mobileHandoffStart = await mobilePerformancePage.evaluate(() => {
-    const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
-    const spacer = document.createElement("div");
-    spacer.id = "tt-skeleton-handoff-probe";
-    spacer.style.height = "900px";
-    document.body.append(spacer);
-    const scroll = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
-    const bounds = frames.map(frame => ({ frame, rect: frame.getBoundingClientRect(),
-      live: frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl" }));
-    const outgoing = bounds.filter(row => row.live);
-    const delta = Math.ceil(Math.max(...outgoing.map(row => row.rect.bottom))) + 2;
-    const candidates = bounds.filter(row => !row.live && row.rect.bottom > delta && row.rect.top < delta + innerHeight)
-      .sort((a, b) => a.frame.offsetTop - b.frame.offsetTop || a.frame.offsetLeft - b.frame.offsetLeft).slice(0, 2);
-    if (outgoing.length !== 2 || candidates.length !== 2) throw new Error("Handoff scene needs two outgoing leases and two incoming frames");
-    const incomingFrame = candidates.sort((a, b) => b.rect.bottom - a.rect.bottom)[0].frame;
-    const target = scroll + delta;
-    if (target > document.documentElement.scrollHeight - innerHeight) throw new Error("Handoff target is outside native scroll range");
-    window.__ttHandoffTransitions = [];
-    window.__ttHandoffOpacity = [];
-    window.__ttHandoffObserver = new MutationObserver(() => {
-      const incomingCanvas = incomingFrame.querySelector("canvas");
-      if (incomingCanvas?.dataset.advertisingFlowBackend !== "webgl") return;
-      window.__ttHandoffObserver.disconnect();
-      let samples = 0;
-      const sample = () => {
-        window.__ttHandoffOpacity.push(Number(getComputedStyle(incomingCanvas).opacity));
-        if (++samples < 25) requestAnimationFrame(sample);
-      };
-      requestAnimationFrame(sample);
-    });
-    window.__ttHandoffObserver.observe(incomingFrame, {
-      childList: true, subtree: true,
-      attributes: true, attributeFilter: ["data-advertising-flow-backend"],
-    });
-    window.__ttHandoffListener = (event) => {
-      if (event.propertyName === "opacity" && event.target.matches?.(".advertising-grid__cta-flow")) {
-        window.__ttHandoffTransitions.push(event.target.closest("[data-advertising-cta-frame]")?.dataset.advertisingCtaSlot);
-      }
-    };
-    document.addEventListener("transitionrun", window.__ttHandoffListener);
-    return {
-      scroll, target,
-      outgoing: outgoing.map(row => row.frame.dataset.advertisingCtaSlot),
-      incoming: incomingFrame.dataset.advertisingCtaSlot,
-      bounds: bounds.map(row => ({ slot: row.frame.dataset.advertisingCtaSlot,
-        top: row.rect.top, bottom: row.rect.bottom, live: row.live })),
-    };
-  });
-  evidence.handoff = { firstInput: mobileHandoffStart };
-  await mobilePerformancePage.evaluate(({ target }) => {
-    if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
-  }, mobileHandoffStart);
-  await mobilePerformancePage.waitForFunction(({ incoming }) =>
-    document.querySelector(`[data-advertising-cta-slot="${incoming}"] canvas`)?.dataset.advertisingFlowBackend === "webgl",
-  mobileHandoffStart);
-  await mobilePerformancePage.waitForFunction(({ incoming }) =>
-    window.__ttHandoffTransitions.includes(incoming), mobileHandoffStart);
-  await mobilePerformancePage.waitForFunction(() => window.__ttHandoffOpacity.length === 25);
-  const handoffDown = await mobilePerformancePage.evaluate(({ incoming, outgoing }) => ({
-    contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
-    outgoingBackends: outgoing.map(slot => document.querySelector(`[data-advertising-cta-slot="${slot}"] canvas`)?.dataset.advertisingFlowBackend),
-    incomingFade: window.__ttHandoffTransitions.includes(incoming),
-    lowestOpacity: Math.min(...window.__ttHandoffOpacity),
-    finalOpacity: window.__ttHandoffOpacity.at(-1),
-    staticBackground: getComputedStyle(document.querySelector(`[data-advertising-cta-slot="${incoming}"] .advertising-grid__cta-surface`)).backgroundImage,
-  }), mobileHandoffStart);
-  evidence.handoff.down = handoffDown;
-  assert(handoffDown.contexts <= 2 && handoffDown.outgoingBackends.every(backend => backend === "none")
-    && handoffDown.incomingFade && handoffDown.staticBackground !== "none"
-    && handoffDown.lowestOpacity < 0.9 && handoffDown.finalOpacity > 0.95,
-  `A54 incoming renderer handoff jumped or exceeded budget (${JSON.stringify(handoffDown)})`);
-  const mobileHandoffNext = await mobilePerformancePage.evaluate(({ incoming, scroll }) => {
-    const frames = [...document.querySelectorAll("[data-advertising-cta-frame]")];
-    const current = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
-    const bounds = frames.map(frame => ({ frame, rect: frame.getBoundingClientRect(),
-      live: frame.querySelector("canvas")?.dataset.advertisingFlowBackend === "webgl" }));
-    const retained = bounds.find(row => row.frame.dataset.advertisingCtaSlot === incoming);
-    const outgoing = bounds.find(row => row.live && row !== retained);
-    const delta = Math.ceil(outgoing.rect.bottom) + 2;
-    const candidate = bounds.filter(row => !row.live && row.rect.bottom > delta && row.rect.top < delta + innerHeight)
-      .sort((a, b) => a.frame.offsetTop - b.frame.offsetTop || a.frame.offsetLeft - b.frame.offsetLeft)[0];
-    const target = current + delta;
-    const reverse = Math.max(scroll, Math.ceil(current + retained.rect.top - innerHeight) + 2);
-    if (!retained.live || retained.rect.bottom <= delta || retained.rect.top >= delta + innerHeight
-      || !candidate || target > document.documentElement.scrollHeight - innerHeight || reverse >= target)
-      throw new Error("Second handoff must release a lease while the retained incoming frame stays visible");
-    return { target, reverse, incoming, laterIncoming: candidate.frame.dataset.advertisingCtaSlot,
-      bounds: bounds.map(row => ({ slot: row.frame.dataset.advertisingCtaSlot,
-        top: row.rect.top, bottom: row.rect.bottom, live: row.live })) };
-  }, mobileHandoffStart);
-  evidence.handoff.secondInput = mobileHandoffNext;
-  await mobilePerformancePage.evaluate(({ target }) => {
-    if (!window.TruongThinhMotion?.setLogicalScroll?.(target)) window.scrollTo(0, target);
-  }, mobileHandoffNext);
-  await mobilePerformancePage.waitForFunction(({ laterIncoming }) => {
-    const canvas = document.querySelector(`[data-advertising-cta-slot="${laterIncoming}"] canvas`);
-    const opacity = canvas && Number(getComputedStyle(canvas).opacity);
-    return canvas?.dataset.advertisingFlowBackend === "webgl" && opacity > 0.1 && opacity < 0.9;
-  }, mobileHandoffNext);
-  await mobilePerformancePage.emulateMedia({ reducedMotion: "reduce" });
-  await mobilePerformancePage.waitForFunction(() =>
-    !document.querySelector("[data-advertising-cta-frame].is-looping"));
-  const reducedDuringHandoff = await mobilePerformancePage.evaluate(({ laterIncoming }) => {
-    const canvas = document.querySelector(`[data-advertising-cta-slot="${laterIncoming}"] canvas`);
-    return {
-      opacity: Number(getComputedStyle(canvas).opacity),
-      opacityAnimations: canvas.getAnimations().filter((animation) => animation.transitionProperty === "opacity").length,
-      contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
-    };
-  }, mobileHandoffNext);
-  evidence.handoff.reduced = reducedDuringHandoff;
-  assert(reducedDuringHandoff.opacity >= 0.99 && reducedDuringHandoff.opacityAnimations === 0
-    && reducedDuringHandoff.contexts <= 2,
-  `A54 Reduce Motion left an incoming canvas fade running (${JSON.stringify(reducedDuringHandoff)})`);
-  await mobilePerformancePage.emulateMedia({ reducedMotion: "no-preference" });
-  await mobilePerformancePage.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
-  await mobilePerformancePage.evaluate(({ reverse }) => {
-    if (!window.TruongThinhMotion?.setLogicalScroll?.(reverse)) window.scrollTo(0, reverse);
-  }, mobileHandoffNext);
-  await mobilePerformancePage.waitForFunction(({ reverse, incoming }) => {
-    const rect = document.querySelector(`[data-advertising-cta-slot="${incoming}"]`).getBoundingClientRect();
-    return Math.abs((window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) - reverse) <= 1
-      && rect.bottom > 0 && rect.top < innerHeight;
-  }, mobileHandoffNext);
-  await mobilePerformancePage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  await mobilePerformancePage.waitForTimeout(340);
-  const handoffUp = await mobilePerformancePage.evaluate(({ incoming }) => {
-    const result = {
-      contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
-      incomingStillLive: document.querySelector(`[data-advertising-cta-slot="${incoming}"] canvas`)?.dataset.advertisingFlowBackend === "webgl",
-      incomingFades: window.__ttHandoffTransitions.filter((slot) => slot === incoming).length,
-      transitionSlots: [...window.__ttHandoffTransitions],
-    };
-    document.removeEventListener("transitionrun", window.__ttHandoffListener);
-    window.__ttHandoffObserver.disconnect();
-    document.querySelector("#tt-skeleton-handoff-probe")?.remove();
-    delete window.__ttHandoffTransitions;
-    delete window.__ttHandoffOpacity;
-    delete window.__ttHandoffObserver;
-    delete window.__ttHandoffListener;
-    return result;
-  }, mobileHandoffStart);
-  evidence.handoff.up = handoffUp;
-  assert(handoffUp.contexts <= 2 && handoffUp.incomingStillLive && handoffUp.incomingFades === 1,
-    `A54 reverse scroll evicted a visible renderer (${JSON.stringify(handoffUp)})`);
   await mobilePerformancePage.emulateMedia({ reducedMotion: "reduce" });
   await mobilePerformancePage.reload({ waitUntil: "networkidle" });
   await mobilePerformancePage.waitForFunction(() =>
     document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
   const freshReduced = await mobilePerformancePage.evaluate(() => ({
-    contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
+    contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
     // Frame draw ở lần vào đầu tiên, nên chỉ frame trong view mới phải hiện still.
     staticFrames: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
@@ -1143,7 +1014,7 @@ try {
   await mobilePerformancePage.setViewportSize({ width: 360, height: 800 });
   await ready(mobilePerformancePage);
   const resizedMobile = await mobilePerformancePage.evaluate(() => ({
-    contexts: document.querySelectorAll('[data-advertising-flow-backend="webgl"]').length,
+    contexts: document.querySelectorAll('.advertising-grid__cta-shared-flow, [data-advertising-flow-backend="webgl"]').length,
     blanks: [...document.querySelectorAll("[data-advertising-cta-frame]")].filter((frame) => {
       const rect = frame.getBoundingClientRect();
       return rect.bottom > 0 && rect.top < innerHeight && (!frame.querySelector("canvas")
@@ -1167,7 +1038,7 @@ try {
   }
 
   const firstExit = await exitSkeletonViewport(page);
-  assert(firstExit.opacity <= 0.01, "offscreen skeleton did not reset to hidden opacity");
+  assert(Math.abs(firstExit.opacity - firstExit.targetOpacity) <= 0.01, "offscreen skeleton lost its settled reveal state");
   assert(Math.abs(firstExit.transformY) <= 0.1, "offscreen skeleton changed frame geometry");
   // Frame ngoài màn hình nhả lease; đọc fallback bằng getContext sẽ cấp phát một context không được quản lý.
   const pausedPaints = await page.evaluate(() => ({ ...window.__ttSkeletonPaints }));
@@ -1195,14 +1066,14 @@ try {
     "skeleton container must not expose a hover target");
   assert.equal(entryContract.surface.animationName, "none", "skeleton surface retained float or scale animation");
 
-  await replaySkeletonEntry(page, "first viewport re-entry");
-  assert.deepEqual(await flowAssignments(page), stableAssignments,
+  await reenterSkeletonViewport(page, "first viewport re-entry");
+  await assertSlotsKept(page, stableAssignments,
     "scroll changed Flow assignments within one page load");
   const secondExit = await exitSkeletonViewport(page);
-  assert(secondExit.opacity <= 0.01, "second full exit did not re-arm hidden opacity");
+  assert(Math.abs(secondExit.opacity - secondExit.targetOpacity) <= 0.01, "second full exit lost the settled reveal state");
   assert(Math.abs(secondExit.transformY) <= 0.1, "second full exit changed frame geometry");
-  await replaySkeletonEntry(page, "second viewport re-entry");
-  assert.deepEqual(await flowAssignments(page), stableAssignments,
+  await reenterSkeletonViewport(page, "second viewport re-entry");
+  await assertSlotsKept(page, stableAssignments,
     "second viewport replay changed Flow assignments within one page load");
 
   await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
@@ -1240,7 +1111,7 @@ try {
   assert.equal(visibilityReplay.count, 0, "page visibility resume replayed the Kinh reveal");
   assert(visibilityReplay.entryReady && Math.abs(visibilityReplay.opacity - visibilityReplay.targetOpacity) <= 0.01,
     "page visibility resume lost the settled skeleton reveal state");
-  assert.deepEqual(await flowAssignments(page), stableAssignments,
+  await assertSlotsKept(page, stableAssignments,
     "page visibility resume changed Flow assignments or ratio bands");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -1249,7 +1120,7 @@ try {
     && document.querySelector("[data-advertising-cta-frame]")?.dataset.advertisingFlowState === "paused");
   const reducedState = await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
     const style = getComputedStyle(frame);
-    const canvas = frame.querySelector("canvas");
+    const canvas = document.querySelector(".advertising-grid__cta-shared-flow");
     return {
       opacity: Number(style.opacity),
       paints: canvas?.__ttSkeletonPaints || 0,
@@ -1261,8 +1132,8 @@ try {
   assert(Math.abs(reducedState.opacity - reducedState.targetOpacity) <= 0.01,
     "reduced motion skeleton is not immediately visible");
   assert(Math.abs(reducedState.transformY) <= 0.1, "reduced motion skeleton retains an entry transform");
-  assert.equal(await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) =>
-    frame.querySelector("canvas")?.__ttSkeletonPaints || 0), reducedState.paints,
+  assert.equal(await page.evaluate(() =>
+    document.querySelector(".advertising-grid__cta-shared-flow")?.__ttSkeletonPaints || 0), reducedState.paints,
   "reduced motion skeleton kept advancing WebGL");
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-looping"));
@@ -1312,7 +1183,11 @@ try {
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${baseUrl}/en/advertising-products/`, { waitUntil: "networkidle" });
+  // Trang nền trong headless không chạy rAF nên route-enter không gỡ.
+  await page.bringToFront();
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+  // Direct load phủ route veil đến khi phase enter gỡ route-enter; nút menu bị veil chặn click trước đó.
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.locator("[data-menu-open]").click();
   await page.locator('#site-menu .menu-group__title[href="/en/advertising-products/"]').click();
   assert.equal(new URL(page.url()).pathname, "/en/advertising-products/", "parent nav changed canonical locale route");

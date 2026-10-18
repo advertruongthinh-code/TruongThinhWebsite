@@ -11,7 +11,7 @@ tests:
   - tests/worker/worker-static-contract.cjs
   - tests/worker/advertising-detail-route.test.mjs
 notion: https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178
-updated: 2026-10-05
+updated: 2026-10-18
 ---
 
 # CMS Worker, admin và D1
@@ -19,8 +19,8 @@ updated: 2026-10-05
 ## Mục đích
 
 Phase CMS để owner tự đăng nội dung VI/EN (chữ, ảnh, video) qua layout đã duyệt; website tĩnh luôn là fallback và
-đường rollback. Spec mô tả code dormant đang có: Worker route, SEO, API, admin, schema D1, upload R2. Không phần nào
-chạy trong bản phát hành public; build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant).
+đường rollback. Spec mô tả code dormant đang có: Worker route, SEO, API, admin, schema D1, upload R2. Chưa phần nào
+chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). Build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant).
 Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở".
 
 ## Hành vi
@@ -232,7 +232,7 @@ không page builder đa dụng, không multi-tenant, không thay source tĩnh.
 
 ### Điều kiện mở CMS phase
 
-Owner đóng, theo thứ tự: (1) bản tĩnh live ổn định, owner xác nhận đường rollback; (2) owner chốt vai trò biên tập,
+Owner đóng, theo thứ tự: (1) bản tĩnh ổn định trên demo, owner xác nhận đường rollback; (2) owner chốt vai trò biên tập,
 quy trình review và publish, domain production; (3) kiểm lại tài liệu chính thức về provider, D1, R2, Access, region,
 retention, backup, giới hạn, chi phí; (4) có decision được duyệt cho provider và storage, schema, ranh giới bảo mật;
 (5) owner mở implementation slice rõ ràng; Wrangler chỉ activate trong slice đó: pin lại, phục hồi CI và deploy, Worker
@@ -276,6 +276,9 @@ fallback tĩnh; gate mẫu parity, browser, accessibility, diễn tập rollback
   ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Code: masonry đọc `catalog.mjs`, không đọc D1; D1 không
   có tag; category sản phẩm seed (`signage-3d`, `office-wayfinding`, `led-lighting`, `print-marketing`,
   `brand-showroom`) khác category Advertising tĩnh. Owner duyệt capability map và spec CRUD trước code.
+- SEO media ([media-seo](media-seo.md), owner 2026-10-18): nhân viên chỉ nhập tên, mô tả card và alt VI/EN từng media
+  (bắt buộc, không trùng trong card, CMS điền sẵn gợi ý được); hệ thống tự sinh trang card, canonical, og:image, JSON-LD,
+  image sitemap (Worker `/sitemap.xml` trỏ `sitemap-advertising.xml`) và tên file upload theo tên sản phẩm.
 - [Slot project trong menu](../decisions/optional-cms-project-slots.md) chỉ áp dụng khi dựng lại `data-menu-projects`;
   `src/site/` chưa có slot nên menu feed R4 chưa có consumer.
 - Seed và test lệch source: cover category seed trỏ `/assets/site/...` không có trong `src/site/`; phần public

@@ -93,11 +93,11 @@ async function runDevice() {
       motion.setLogicalScroll(motion.getLogicalScroll() + node.getBoundingClientRect().top - header - 20);
       await frame();
       const rect = node.querySelector("a").getBoundingClientRect();
-      const start = new URL(location.href).searchParams.get("photo");
+      const start = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
       const rec = window.__ttRelated = { start, frames: [], taps: [] };
       document.addEventListener("pointerdown", (event) => rec.taps.push({ type: event.pointerType, trusted: event.isTrusted }), true);
       const sample = () => {
-        const photo = new URL(location.href).searchParams.get("photo");
+        const photo = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
         if (photo !== start) rec.frames.push({ photo, y: motion.getLogicalScroll(), nativeY: scrollY });
         if (rec.frames.length < 60) requestAnimationFrame(sample);
       };

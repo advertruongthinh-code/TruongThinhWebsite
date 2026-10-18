@@ -35,9 +35,9 @@ try {
       await page.waitForTimeout(700);
       assert.equal(await mediaScale(), 1, "Keyboard focus keeps media still");
       assert.notEqual(await card.locator("a").evaluate(e => getComputedStyle(e).outlineStyle), "none");
-      const expectedPhoto = await card.locator("a").evaluate(e => new URL(e.href).searchParams.get("photo"));
+      const expectedPhoto = await card.locator("a").evaluate(e => (new URL(e.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null));
       await page.keyboard.press("Enter");
-      await page.waitForFunction(id => new URL(location.href).searchParams.get("photo") === id, expectedPhoto);
+      await page.waitForFunction(id => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, expectedPhoto);
       // Primary dựng ở task sau cú bấm (advertising-detail R7), nên chờ photo view thay vì đọc ngay.
       await page.waitForFunction(id => document.querySelector(".advertising-photo-view")?.dataset.advertisingPhotoId === id, expectedPhoto);
       console.log(`${locale} ${detail ? "detail" : "parent"} hover/focus/Enter passed`);
@@ -61,9 +61,9 @@ try {
     }, selector);
     assert.equal(await page.evaluate(() => matchMedia("(hover: hover) and (pointer: fine)").matches), false);
     assert.equal(await card.locator("img").evaluate(e => new DOMMatrixReadOnly(getComputedStyle(e).transform).a), 1);
-    const expectedPhoto = await card.locator("a").evaluate(e => new URL(e.href).searchParams.get("photo"));
+    const expectedPhoto = await card.locator("a").evaluate(e => (new URL(e.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null));
     await card.locator("a").tap();
-    await page.waitForFunction(id => new URL(location.href).searchParams.get("photo") === id, expectedPhoto);
+    await page.waitForFunction(id => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, expectedPhoto);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     console.log(`mobile ${detail ? "detail" : "parent"} touch opens with no hover dependency`);
     await page.close();

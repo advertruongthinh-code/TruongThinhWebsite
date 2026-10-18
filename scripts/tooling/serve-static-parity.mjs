@@ -2,7 +2,7 @@ import { createReadStream, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 
 export const ROUTES = new Map([
   ["/vi/", "index.html"],
@@ -16,6 +16,8 @@ export const ROUTES = new Map([
   ...["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"].flatMap((slug) => [[`/vi/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`], [`/en/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`]]),
   // Trang cụm, sản phẩm Advertising (taxonomy R4): build ghi sẵn file theo slug từng locale.
   ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/${page[locale]}/`, `${locale}/advertising-products/${page[locale]}/index.html`])),
+  // Trang card (media-seo R1).
+  ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${card.id}/`, `${locale}/advertising-products/p/${card.id}/index.html`])),
   ["/vi/about/", "about/index.html"],
   ["/en/about/", "about/index.html"],
 ]);

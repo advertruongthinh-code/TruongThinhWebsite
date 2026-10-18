@@ -17,7 +17,7 @@ try {
     await page.goto(url, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-advertising-photo-view]:not([hidden]) [data-advertising-suggestion-tag][aria-pressed="true"]');
     const before = await page.evaluate(() => ({
-      photo: new URL(location.href).searchParams.get("photo"),
+      photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null),
       tag: new URL(location.href).searchParams.get("tag"),
       inInfo: document.querySelector("[data-advertising-photo-info] [data-advertising-photo-suggestion]") !== null,
       inRelated: document.querySelector("[data-advertising-photo-related-grid] [data-advertising-photo-suggestion]") !== null,
@@ -40,7 +40,7 @@ try {
     await page.locator(`[data-advertising-suggestion-tag="${alternateTag}"][aria-pressed="true"]`).press("Enter");
     await page.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     await page.waitForFunction(() => document.activeElement === document.querySelector("[data-advertising-photo-info]"));
-    const after = await page.evaluate(() => ({ photo: new URL(location.href).searchParams.get("photo"), activeCount: document.querySelectorAll('[data-advertising-suggestion-tag][aria-pressed="true"]').length }));
+    const after = await page.evaluate(() => ({ photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), activeCount: document.querySelectorAll('[data-advertising-suggestion-tag][aria-pressed="true"]').length }));
     assert.equal(after.photo, before.photo, `${locale}: toggle-off keeps the current photo`);
     assert.equal(after.activeCount, 0, `${locale}: toggle-off clears the active semantic state`);
     const zoomed = await page.evaluate(async () => {
@@ -81,7 +81,7 @@ await firstCard.click();
 await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, openedId);
 const opened = await browseState();
 assert.deepEqual({ photo: opened.photo, tag: opened.tag, pressed: opened.pressed }, { photo: openedId, tag: null, pressed: [] }, "native photo open records its browse state");
-assert.equal(new URL(opened.url).searchParams.get("photo"), openedId, "native photo open writes the photo URL");
+assert.equal((new URL(opened.url).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), openedId, "native photo open writes the photo URL");
 const related = historyPage.locator("[data-advertising-related-card] > a").first();
 const relatedPhoto = await related.evaluate((node) => node.closest("[data-advertising-related-card]").dataset.advertisingRelatedCard);
 await related.click();
@@ -98,19 +98,19 @@ await historyPage.goBack({ waitUntil: "networkidle" });
 await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, openedId);
 const back = await browseState();
 assert.deepEqual({ photo: back.photo, tag: back.tag, pressed: back.pressed }, { photo: openedId, tag: null, pressed: [] }, "Back restores the opened photo state after replacement");
-assert.equal(new URL(back.url).searchParams.get("photo"), openedId, "Back restores the opened photo URL");
+assert.equal((new URL(back.url).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), openedId, "Back restores the opened photo URL");
 await historyPage.goForward({ waitUntil: "networkidle" });
 await historyPage.waitForFunction((photo) => window.TruongThinhAdvertising.getBrowseState().photo === photo, relatedPhoto);
 const forward = await browseState();
 assert.deepEqual({ photo: forward.photo, tag: forward.tag, pressed: forward.pressed }, { photo: relatedPhoto, tag: null, pressed: [] }, "Forward restores the related photo after tag replacement");
-assert.equal(new URL(forward.url).searchParams.get("photo"), relatedPhoto, "Forward restores the related photo URL");
+assert.equal((new URL(forward.url).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), relatedPhoto, "Forward restores the related photo URL");
 await historyPage.close();
 
   const mobile = await browser.newPage({ viewport: { width: 820, height: 1180 } });
   await mobile.goto(`${baseUrl}/en/advertising-products/?photo=mobile-retail-04&tag=use-sampling`, { waitUntil: "networkidle" });
   await mobile.waitForTimeout(1000);
   const mobileState = await mobile.evaluate(() => ({
-    photo: new URL(location.href).searchParams.get("photo"),
+    photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null),
     tag: new URL(location.href).searchParams.get("tag"),
     gridSuggestions: document.querySelectorAll("[data-advertising-photo-related-grid] [data-advertising-photo-suggestion]").length,
     related: document.querySelectorAll("[data-advertising-related-card]").length,

@@ -121,7 +121,7 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
     return photo;
   }, { message: "a fully visible card", timeout: 10_000 }).toBeTruthy();
   await page.locator(`[data-advertising-card="${photo}"] > a`).click();
-  await expect(page).toHaveURL(new RegExp(`[?&]photo=${photo}`));
+  await expect(page).toHaveURL(new RegExp(`/advertising-products/p/${photo}/`));
   expect(await page.evaluate(() => history.length)).toBe(length + 1);
   await page.goBack();
   await expect(page).toHaveURL(/\/vi\/advertising-products\/(\?(?!.*photo=).*)?$/);

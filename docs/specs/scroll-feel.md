@@ -23,7 +23,7 @@ parallax ở nơi hợp lý. Kèm khối "Giữ nghề" trang chủ theo banner 
 ### R1. Một chuẩn cuộn cho mọi trang
 
 Trang chủ, Residential, Commercial, About, Advertising, Advertising lọc theo nhóm (`?category=<nhóm>`, đích của 6 route
-cũ `/advertising-products/<nhóm>/`) và detail ảnh (`?photo=<id>`) dùng đúng một cấu hình cuộn: Locomotive từ 981px, scroll native dưới 981px, khi giảm chuyển
+cũ `/advertising-products/<nhóm>/`) và detail ảnh (trang card `p/<id>`) dùng đúng một cấu hình cuộn: Locomotive từ 981px, scroll native dưới 981px, khi giảm chuyển
 động hoặc khi menu mở ([motion](../../design-system/motion.md#smooth-scroll-và-parallax)). Không trang nào có cấu hình
 riêng (`lerp`, `multiplier`, breakpoint). Cùng một lượt lăn chuột cho cùng quãng đường và cùng đường trượt trên mọi trang.
 Trong lúc trượt không có frame nào nhảy vượt hai frame kề bên; chỉ khi chiều cao trang đổi mới gọi Locomotive tính lại.
@@ -191,7 +191,7 @@ làm tròn theo pixel màn hình, nên không răng cưa ở tỉ lệ 100%, 125
 - **Speed `-2`**: độ lệch bằng khoảng cách tâm viewport tới tâm phần tử nhân `0.2`, tức trôi chậm hơn 20%.
 - **Frame rớt**: frame trình duyệt không vẽ kịp trong nhịp màn hình, mắt thấy là khựng.
 - **Task trên 50ms**: việc chặn luồng chính đủ lâu để cuộn và nhập liệu bị trễ.
-- **Route con**: Advertising lọc nhóm `?category=<nhóm>` và detail ảnh `?photo=<id>`.
+- **Route con**: Advertising lọc nhóm `?category=<nhóm>` và detail ảnh tại trang card `p/<id>`.
 - **Frame nhảy**: frame trượt xa hơn 1,3 lần cả hai frame kề bên, mắt thấy là giật tốc độ.
 - **Lộ mép**: khoảng trống hiện ra ở mép section khi lớp ảnh trôi lệch khỏi khung.
 - **Autoscroll**: nhấn chuột giữa rồi đưa chuột ra xa điểm nhấn để trang tự cuộn, tốc độ theo khoảng cách.
