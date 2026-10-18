@@ -9746,7 +9746,7 @@ async function runHomeHeroTypesettingChecks() {
   ];
   const locales = [
     { locale: "vi", lines: ["Làm chắc", "Làm khác"] },
-    { locale: "en", lines: ["Built solid.", "Made different."] },
+    { locale: "en", lines: ["Built solid", "Made different"] },
   ];
 
   for (const { locale, lines: expectedLines } of locales) {

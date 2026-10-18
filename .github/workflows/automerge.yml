@@ -50,6 +50,12 @@ jobs:
                 continue;
               }
               core.info(`PR #${number}: đã merge.`);
+              // Merge bằng GITHUB_TOKEN không kích hoạt xóa branch tự động của repo (kiểm 18/10), nên xóa tay.
+              if (pr.head.repo.full_name === `${owner}/${repo}` && pr.head.ref !== pr.base.ref
+                  && pr.head.ref !== context.payload.repository.default_branch) {
+                await github.rest.git.deleteRef({ owner, repo, ref: `heads/${pr.head.ref}` })
+                  .catch((error) => core.warning(`PR #${number}: không xóa được branch: ${error.message}`));
+              }
               // Merge bằng GITHUB_TOKEN không kích hoạt CI push; dispatch tay để Deploy demo chạy tiếp.
               await github.rest.actions.createWorkflowDispatch({
                 owner, repo, workflow_id: 'ci.yml', ref: pr.base.ref,
