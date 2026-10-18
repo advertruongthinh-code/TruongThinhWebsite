@@ -893,7 +893,7 @@
 
   .detail-index-hero .hero-content {
     top: calc(50% + 0.7rem);
-    width: calc(90% - 30px);
+    width: calc(100% - 32px);
     min-height: 11.55rem;
     padding: 0;
   }
@@ -3055,14 +3055,44 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-align: right;
 }
 
+.hero > .hero-content {
+  --hero-line-size: min(7rem, calc(100cqi / 12.5), calc(100cqi / var(--hero-line-em)));
+}
+
 .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask) {
   white-space: nowrap;
-  font-size: min(7rem, calc(100cqi / 12.5), calc(100cqi / var(--hero-line-em)));
+  font-size: var(--hero-line-size);
+}
+
+/* Kicker cách title như nhau ở mọi hero (hero-typography R2), theo khoảng của Residential và Commercial. */
+.hero > .hero-content > .hero-kicker {
+  margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem);
+}
+
+/* Hai dòng lồng nhau một phần (hero-typography R2): khi khung rộng hơn cặp dòng thì dồn cặp vào giữa, kicker theo
+   dòng 1. --hero-pair-indent dùng cqi của hero-content, cùng bề rộng với title. */
+@media (min-width: 751px) {
+  .hero > .hero-content:has(> [data-hero-fit]) {
+    container-type: inline-size;
+    --hero-pair-indent: max(0px, calc((100cqi - var(--hero-pair-em) * var(--hero-line-size)) / 2));
+  }
+
+  .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask):first-child {
+    padding-left: var(--hero-pair-indent);
+  }
+
+  .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask) + * {
+    padding-right: var(--hero-pair-indent);
+  }
+
+  .hero > .hero-content:has(> [data-hero-fit]) > .hero-kicker {
+    padding-left: calc(0.5rem + var(--hero-pair-indent));
+  }
 }
 
 @media (max-width: 750px) {
   .hero > .hero-content {
-    width: calc(90% - 30px);
+    width: calc(100% - 32px);
   }
 
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask),

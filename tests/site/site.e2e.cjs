@@ -7879,9 +7879,9 @@ async function runResidentialHeroTextCheck() {
 
           if (viewport.width > 680) {
             assert(
-              Math.abs(hero.textRects[0].left - hero.contentRect.left) <= 2 &&
-                Math.abs(hero.textRects[1].right - hero.contentRect.right) <= 2 &&
-                Math.abs(hero.kickerTextRect.left - hero.contentRect.left - 8) <= 2 &&
+              // Cặp dòng ngắn dồn đều vào giữa, kicker theo dòng 1 (hero-typography R2).
+              Math.abs((hero.textRects[0].left - hero.contentRect.left) - (hero.contentRect.right - hero.textRects[1].right)) <= 2 &&
+                Math.abs(hero.kickerTextRect.left - hero.textRects[0].left - 8) <= 2 &&
                 hero.sourceFontSizes.every((size) => size <= 112.1),
               `${locale} ${viewport.width}x${viewport.height}: residential desktop title lost its left/right composition`,
             );
@@ -8050,9 +8050,9 @@ async function runCommercialHeroTextCheck() {
 
           if (viewport.width > 680) {
             assert(
-                Math.abs(hero.textRects[0].left - hero.contentRect.left) <= 2 &&
-                Math.abs(hero.textRects[1].right - hero.contentRect.right) <= 2 &&
-                Math.abs(hero.kickerTextRect.left - hero.contentRect.left - 8) <= 2 &&
+                // Cặp dòng ngắn dồn đều vào giữa, kicker theo dòng 1 (hero-typography R2).
+              Math.abs((hero.textRects[0].left - hero.contentRect.left) - (hero.contentRect.right - hero.textRects[1].right)) <= 2 &&
+                Math.abs(hero.kickerTextRect.left - hero.textRects[0].left - 8) <= 2 &&
                 hero.sourceFontSizes.every((size) => size <= 92.1),
               `${locale} ${viewport.width}x${viewport.height}: commercial desktop title lost its left/right composition`,
             );

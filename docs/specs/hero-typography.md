@@ -53,15 +53,20 @@ Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
 Áp cho title chính của mọi hero: Trang chủ, Residential, Commercial, About, Advertising, trang cụm và trang sản
 phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ kicker).
 
-- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(90% - 30px)`. Title nằm giữa hero theo hai chiều.
+- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(100% - 32px)` để chữ phone to hơn (owner audit
+  2026-10-18). Title nằm giữa hero theo hai chiều.
 - Mỗi dòng là một khối. Trên 750px dòng 1 canh trái, dòng 2 canh phải; từ 750px trở xuống hai dòng canh giữa.
   Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.
+- Trên 750px hai dòng lồng nhau một phần như trang chủ EN: cặp dòng rộng bằng tổng hai dòng trừ 30% dòng ngắn; khung
+  rộng hơn cặp thì hai dòng dồn đều vào giữa, kicker theo mép trái dòng 1 (lệch vào 0,5rem).
+- Kicker cách title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)`.
 - Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
   12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
 - Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn
-  `data-hero-fit`. Dòng không xuống dòng và chỉ co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước
-  khi motion đọc vị trí.
-- Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng, cùng hình học như khi có JS.
+  `data-hero-fit`, cùng `--hero-pair-em` cho title hai dòng, ghi lên `hero-content`. Dòng không xuống dòng và chỉ
+  co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước khi motion đọc vị trí.
+- Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng; hai dòng nằm sát hai mép khung vì
+  không có số đo cặp dòng.
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
   owner duyệt (mục UI).
