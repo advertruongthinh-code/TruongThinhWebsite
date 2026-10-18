@@ -163,7 +163,7 @@
     "adv-browse": {
       "specs": ["advertising-masonry"],
       "tests": [
-        "RANDOM_BROWSE_ENGINES=chromium node tests/site/advertising-random-browse.e2e.mjs",
+        "RANDOM_BROWSE_ENGINES=chromium,webkit node tests/site/advertising-random-browse.e2e.mjs",
         "node tests/site/advertising-hero-once.e2e.mjs",
         "TT_E2E_ADVERTISING_HERO_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_ADVERTISING_HERO_MOTION_ONLY=1 node tests/site/site.e2e.cjs",
