@@ -355,4 +355,8 @@ assert.ok(scrollbarDesktopColumns <= 3, "related columns respect the responsive 
 assert.ok(scrollbarDesktopLayout.primary.span <= scrollbarDesktopColumns, "primary is recomputed for the accepted column count");
 assertNoOverlap(scrollbarDesktopLayout, "scrollbar desktop related layout");
 
+// Placeholder nền của detail không tải khi detail ẩn; runtime gán nguồn thật rồi mới đổi sang eager.
+assert.match(index, /<img data-advertising-photo-background[^>]*loading="lazy"/, "photo background placeholder is lazy in markup");
+assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loading = "eager";/, "photo background goes eager after the real source is set");
+
 console.log(`[advertising-products-static] ${ADVERTISING_LAYOUT_ALGORITHM_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);

@@ -3240,7 +3240,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     updateAudioLabel();
     if (photoBackground) {
+      // Markup để lazy để placeholder không tải khi detail ẩn; gán nguồn thật rồi mới eager, như ảnh chính.
       photoBackground.src = video ? item.posterSrc : source;
+      photoBackground.loading = "eager";
       photoBackground.dataset.advertisingPhotoId = record.id;
     }
     if (changed) {
