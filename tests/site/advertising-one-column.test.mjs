@@ -392,11 +392,7 @@ test("R10 fills column four for every nonempty authored hero and tag pool at N4"
     assert.equal(result.primary.span, 3, `${hero.id} ${tag}: R10 primary spans three columns`);
     assertRelated(result, `${hero.id} ${tag}: R10 authored N4`);
     const firstRelatedId = result.cards[0].id;
-    // ponytail: pool Bảng vẫy LED của led-29 (ảnh 2026-10-18) để solver đặt ảnh thứ hai vào cột 4; cột 4 vẫn lấp ở top.
-    // Sửa solver ở task layout riêng rồi bỏ ngoại lệ này.
-    const columnFourId = `${hero.id} ${tag}` === "led-displays-lightboxes-29 product-led-displays-lightboxes-product-14"
-      ? result.cards[1].id : firstRelatedId;
-    const firstRelatedPlacement = result.photoPlacements.find(({ card }) => card.id === columnFourId);
+    const firstRelatedPlacement = result.photoPlacements.find(({ card }) => card.id === firstRelatedId);
     assert.equal(firstRelatedPlacement?.left, 3, `${hero.id} ${tag}: R10 fills column four`);
     assert.equal(firstRelatedPlacement?.y, 0, `${hero.id} ${tag}: R10 aligns column four with the primary top`);
     const repeated = compileAdvertisingRelatedLayout({
