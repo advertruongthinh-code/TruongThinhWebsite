@@ -2,7 +2,7 @@
 title: Mục tiêu dự án và hai phase
 type: project
 status: living
-updated: 2026-10-03
+updated: 2026-10-18
 related_docs:
   - STATE.md
   - ../PRODUCT.md
@@ -42,12 +42,15 @@ public.
 | 1. Static | **Đang ở phase này** | Website tĩnh VI/EN: `src/site/` build ra `.site-output/`, không cần D1, R2, Access hay CMS secret | [Static release](specs/static-release.md), [STATE](STATE.md) |
 | 2. CMS | Chưa mở | Worker, D1, R2, admin private, publish bài song ngữ có ảnh và video qua layout đã duyệt | [Spec CMS](specs/cms.md) |
 
+Phát hành chính thức trên `truongthinhads.vn` chỉ sau phase 2, khi admin và nhân viên CRUD được nội dung
+(owner 2026-10-18); bản tĩnh vẫn là fallback và rollback.
+
 Việc còn mở của phase 1 (owner kiểm nhận giao diện, fact chưa xác minh) được [STATE](STATE.md) theo dõi; không lặp lại ở đây.
 
 ## Điều kiện chuyển sang phase 2
 
 Giữ nguyên năm điều kiện trong [spec CMS](specs/cms.md#điều-kiện-mở-cms-phase).
-Tóm tắt: static live ổn định với rollback path đã xác nhận, owner chốt role và
+Tóm tắt: bản tĩnh ổn định trên demo với rollback path đã xác nhận, owner chốt role và
 workflow biên tập, kiểm lại tài liệu chính thức của provider, có accepted
 decision, và owner mở explicit implementation slice. Không suy quyền activate
 CMS, Wrangler hoặc đổi domain từ tài liệu này.
