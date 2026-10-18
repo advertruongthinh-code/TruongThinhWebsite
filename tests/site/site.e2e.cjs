@@ -430,10 +430,10 @@ function assertPersistentNavigationContracts() {
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
       commercialHeroContent?.includes("SHOP · F&amp;B · SHOWROOM · VĂN PHÒNG") &&
       commercialHeroContent?.includes('data-en="SHOP · F&amp;B · SHOWROOM · OFFICE"') &&
-      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế để bán tốt.") &&
-      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thi công để vận hành bền.") &&
-      commercialHeroContent?.includes('data-en="Designed to sell"') &&
-      commercialHeroContent?.includes('data-en="Built to perform"') &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế tối ưu") &&
+      commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Vận hành bền bỉ") &&
+      commercialHeroContent?.includes('data-en="Designed to perform"') &&
+      commercialHeroContent?.includes('data-en="Built to last"') &&
       !commercialHeroContent?.includes("detail-hero-motto"),
     "Commercial hero must use the approved Espacio-style two-line VI/EN copy without a separate motto",
   );
@@ -8017,13 +8017,13 @@ async function runCommercialHeroTextCheck() {
             locale === "vi"
               ? {
                   kicker: "SHOP · F&B · SHOWROOM · VĂN PHÒNG",
-                  title: "Thiết kế để bán tốt. Thi công để vận hành bền.",
-                  lines: ["Thiết kế để bán tốt.", "Thi công để vận hành bền."],
+                  title: "Thiết kế tối ưu Vận hành bền bỉ",
+                  lines: ["Thiết kế tối ưu", "Vận hành bền bỉ"],
                 }
               : {
                   kicker: "SHOP · F&B · SHOWROOM · OFFICE",
-                  title: "Designed to sell. Built to perform.",
-                  lines: ["Designed to sell.", "Built to perform."],
+                  title: "Designed to perform Built to last",
+                  lines: ["Designed to perform", "Built to last"],
                 };
           assert(
             hero.kicker === expected.kicker &&
@@ -9758,7 +9758,8 @@ async function runHomeHeroTypesettingChecks() {
             const heading = document.querySelector(".hero h1");
             const lines = [...heading.querySelectorAll(".hero-line-mask")];
             const rects = lines.map((line) => line.getBoundingClientRect());
-            const fontSize = Number.parseFloat(getComputedStyle(heading).fontSize);
+            // hero-typography R2: cỡ chữ nằm ở từng dòng, dòng 2 kéo lên 0,2em.
+            const fontSize = Number.parseFloat(getComputedStyle(lines[1]).fontSize);
             return {
               lines: lines.map((line) => line.textContent.replace(/\s+/g, " ").trim()),
               gap: rects[1]?.top - rects[0]?.bottom,
@@ -9774,8 +9775,8 @@ async function runHomeHeroTypesettingChecks() {
             `Home hero ${locale} copy drifted at ${viewport.width}px: ${JSON.stringify(state.lines)}`,
           );
           assert(
-            gapRatio >= 0.045 && gapRatio <= 0.055,
-            `Home hero line gap is not the intended subtle 0.05em at ${viewport.width}px: ${JSON.stringify({ gap: state.gap, fontSize: state.fontSize, gapRatio })}`,
+            gapRatio >= -0.205 && gapRatio <= -0.195,
+            `Home hero line gap is not the intended -0.2em at ${viewport.width}px: ${JSON.stringify({ gap: state.gap, fontSize: state.fontSize, gapRatio })}`,
           );
           assert(
             state.horizontalOverflow <= 1,

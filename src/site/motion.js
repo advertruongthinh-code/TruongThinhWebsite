@@ -195,6 +195,36 @@
     );
   };
 
+  // Chữ hero (hero-typography R2): đo dòng dài nhất theo em; CSS chỉ co chữ khi bề rộng khung chia số này nhỏ hơn
+  // cỡ chung, nên resize không cần đo lại. Đo lại khi đổi ngôn ngữ hoặc font tải xong.
+  const fitHeroLines = () => {
+    document
+      .querySelectorAll(".hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker), .legacy-copy h2")
+      .forEach((title) => {
+        title.setAttribute("data-hero-fit", "");
+        // Wrapper hero có thể đang scale (zoom lúc vào trang); đổi rect về px layout.
+        const scale = title.getBoundingClientRect().width / (title.offsetWidth || 1) || 1;
+        // Một cỡ chữ cho cả title: dòng dài nhất vừa khung, hai dòng giữ cùng nhịp.
+        let widest = 0;
+        title.querySelectorAll(":scope > :is(.hero-line-mask, .detail-hero-line-mask, .line-mask)").forEach((line) => {
+          let left = Infinity;
+          let right = -Infinity;
+          const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+          for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+            if (!text.textContent.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(text);
+            const rect = range.getBoundingClientRect();
+            left = Math.min(left, rect.left);
+            right = Math.max(right, rect.right);
+          }
+          const size = Number.parseFloat(getComputedStyle(line).fontSize);
+          if (right > left && size) widest = Math.max(widest, (right - left) / scale / size);
+        });
+        if (widest) title.style.setProperty("--hero-line-em", widest.toFixed(3));
+      });
+  };
+
   const measureTextMasks = () => {
     if (!maskContext) return;
     document.querySelectorAll(textMaskSelector).forEach((mask) => {
@@ -307,6 +337,7 @@
   };
   const scheduleTextMaskMeasurement = () =>
     window.requestAnimationFrame(() => {
+      fitHeroLines();
       measureTextMasks();
       // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
       if (fitHeritageGaps()) requestLayoutUpdate();
@@ -1733,6 +1764,8 @@
     pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
+    // Cỡ chữ hero chốt trước khi SplitText tách từ và motion đọc vị trí.
+    fitHeroLines();
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
     // Motion trang là task riêng, không cộng vào task render của catalog.
     if (softNavigation) await nextTask();

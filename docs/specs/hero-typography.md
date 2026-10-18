@@ -1,9 +1,10 @@
 ---
 title: Chữ hero kiểu espacio, xuống dòng chốt và khoảng cách dòng đều
-status: planned
+status: live
 source: []
-tests: []
-notion: none
+tests:
+  - tests/site/hero-typography.e2e.mjs
+notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
 updated: 2026-10-18
 ---
 
@@ -16,50 +17,53 @@ nào bị cắt hay đè lên dòng khác, từ 320px tới màn hình PC lớn.
 Các đoạn văn cùng loại có khoảng cách dòng bằng nhau. Spec không đổi motion
 ([first-load-parity](first-load-parity.md)), font và màu.
 
-## Hiện trạng đã đo (Chromium cloud, localhost, bản `main` 393ace7)
+## Hiện trạng
 
-- Trong một đoạn `p`, các dòng cách đều nhau, chỉ lệch 1px do làm tròn. Đo ở Residential, Commercial, About và
-  footer, bề rộng 1440 và 390.
-- Lệch thật ở khối chữ lớn có mask của motion. Ví dụ `.heritage-row` ở trang chủ ("Giữ nghề, ...") có các khoảng
-  1, 26 và 8 px giữa các dòng ở 1440. Suy luận (chưa xác minh): lệch này do `.line-mask` có padding chừa dấu,
-  cộng với transform `-0.1em` của motion.
-- Thread sửa test báo lỗi ở hero trang chủ: câu "Làm chắc / Làm khác" vỡ thành 4 dòng ở bề rộng 364 đến 387px
-  (A04s rộng 384px). Nguyên nhân: mức sàn của `clamp(4.6rem, 19vw, 6.5rem)` (`style.css`, khoảng dòng 2789) lớn hơn
-  bề rộng còn chỗ; rule cho bề rộng từ 360px trở xuống không phủ dải này. Bản EN của hero này luôn 4 dòng trên phone.
-- Cloud không vào được espacio. Repo chỉ còn số đo cũ: title hero 2 dòng, mỗi dòng có cỡ chữ riêng theo bề rộng màn
-  hình; project hero 112px/1,4; breakpoint 1200, 960, 750, 578. Số liệu CSS còn thiếu phải đo lại qua phiên PC
-  (R2).
+- Trước khi sửa (Chromium cloud, `main` 393ace7): hero trang chủ "Làm chắc / Làm khác" vỡ 4 dòng ở 364 đến 387px vì
+  mức sàn `clamp(4.6rem, 19vw, 6.5rem)`; bản EN 4 dòng trên phone. CTA "Giữ nghề" 3 dòng trên phone. Mask
+  `clip-path` cắt nét chữ ngang ở CTA.
+- Đã làm (PR chữ hero): mọi title ở R1 đúng hai dòng, không cắt nét, không đè dòng, không cuộn ngang ở 12 bề rộng
+  của R3, VI và EN, phone giả lập touch và PC. Cách làm ở R2.
+- Trong một đoạn văn, các dòng cách đều (lệch tối đa 1px do làm tròn) ở 390 và 1440. Giữa các loại đoạn văn có ba
+  mức line-height: 1,4 (phần lớn), 1,45 (timeline About), 1,5 (đoạn chữ nhỏ không class).
+  `[CẦN LÀM RÕ: owner thấy lệch ở đoạn nào, trên PC hay phone]`.
+- Cloud không vào được espacio. Số đo dùng là số cũ trong repo: title hero 2 dòng, 112px, line-height 1,4. Đo lại
+  qua phiên PC là gate còn mở.
 
 ## Hành vi
 
 ### R1. Xuống dòng theo chốt của owner (2026-10-18)
 
-Mỗi câu dưới đây nằm đúng hai dòng ở mọi bề rộng, ở mọi chỗ câu đó xuất hiện: hero, portal trang chủ, About.
+Mỗi title dưới đây nằm đúng hai dòng ở mọi bề rộng. Subtitle nhỏ của portal trang chủ (cùng nội dung, một dòng)
+giữ bố cục riêng.
 
 | Chỗ | VI dòng 1 | VI dòng 2 |
 | --- | --- | --- |
 | Hero trang chủ | Làm chắc | Làm khác |
-| Trang chủ, khối nghề | Giữ nghề, | Không ngừng làm mới |
-| Residential, portal Nhà ở | Nơi tái tạo | năng lượng sống |
-| Commercial, portal Kinh doanh | Thiết kế tối ưu | Vận hành bền bỉ |
-| Advertising, portal Quảng cáo | Để thương hiệu | luôn trong tầm mắt |
+| CTA "Giữ nghề" trang chủ | Giữ nghề, | Không ngừng làm mới |
+| Hero Residential | Nơi tái tạo | năng lượng sống |
+| Hero Commercial | Thiết kế tối ưu | Vận hành bền bỉ |
+| Hero Advertising | Để thương hiệu | luôn trong tầm mắt |
 
 Bản EN tách hai dòng ở cùng vị trí ý nghĩa. Câu Commercial mới thay "Thiết kế để bán tốt. Thi công để vận hành bền."
 Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
 
 ### R2. Bày chữ hero kiểu espacio
 
-Trước khi code, đo lại hero của mọi trang espacio có hero qua phiên PC: cỡ chữ theo bề rộng, line-height,
-letter-spacing, canh ngang, canh dọc, vị trí kicker và dòng phụ. Đo ở 390, 768, 1440 và 1920, rồi ghi bảng số vào
-mô tả PR. Sau đó áp vào mọi hero của site: Trang chủ, Residential, Commercial, About, Advertising, và trang cụm cùng
-trang sản phẩm Advertising.
+Áp cho title chính của mọi hero: Trang chủ, Residential, Commercial, About, Advertising, trang cụm và trang sản
+phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ kicker).
 
-- Title chính nằm giữa vùng hero theo cả chiều ngang và chiều dọc. Trên phone được canh trái nhưng vẫn ở giữa theo
-  chiều dọc.
-- Mỗi dòng của title là một khối riêng. Cỡ chữ co theo bề rộng để mỗi dòng không tự gãy thêm.
-- Khoảng cách giữa hai dòng title, so giữa các hero cùng bề rộng, lệch nhau không quá 15%.
-- Kicker và dòng phụ cách title theo cùng một tỷ lệ ở mọi hero. Token `portal-kicker`, `portal-title`,
-  `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi owner duyệt (mục UI).
+- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(90% - 30px)`. Title nằm giữa hero theo hai chiều.
+- Mỗi dòng là một khối. Trên 750px dòng 1 canh trái, dòng 2 canh phải; từ 750px trở xuống hai dòng canh giữa.
+  Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.
+- Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 11)`. Số 11 em vừa câu dài nhất hiện có ("Designed to
+  perform"), nên khoảng cách hai dòng giữa các hero cùng bề rộng lệch nhau dưới 15%.
+- Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em vào `--hero-line-em` và gắn `data-hero-fit`. Dòng
+  không xuống dòng và chỉ co thêm khi câu dài hơn 11 em. Chạy trước SplitText và trước khi motion đọc vị trí.
+- Không JS hoặc `motion-fallback`: cùng cỡ chung, dòng xuống dòng tự nhiên, không tràn ngang.
+- CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
+- Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
+  owner duyệt (mục UI).
 
 ### R3. Không cắt dấu, không đè dòng
 
@@ -102,15 +106,15 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R3 | E2E mới: đo số dòng và khung glyph bằng Range rects ở các bề rộng của R3 |
-| R2 | Bảng số đo espacio qua phiên PC, ghi trong mô tả PR |
-| R4 | E2E mới: đo baseline của mọi đoạn văn ở 390 và 1440 |
+| R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN |
+| R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
+| R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
 
 ## Gate còn mở
 
-- Plan cần owner duyệt trước khi code.
 - Owner audit trên PC và phone trước khi cập nhật Design System.
-- Đo espacio (R2) cần phiên PC.
+- Đo lại espacio (R2) qua phiên PC, so với cỡ chung 11 em.
+- R4 chờ owner chỉ đoạn văn thấy lệch.
 
 ## Chú thích thuật ngữ
 

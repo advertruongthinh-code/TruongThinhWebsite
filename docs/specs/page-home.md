@@ -39,12 +39,12 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 | # | Section | Nội dung (VI, EN ở `data-en`) | Link | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Sáu ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid. / Made different.", dấu chấm EN là `.text-hang-end`: inline-block rộng 0 treo ra lề để chữ đúng tâm, `data-en` ở span chữ), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
+| 1 | `.hero#top` | Sáu ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid. / Made different.", dấu chấm EN là `.text-hang-end`: inline-block rộng 0 treo ra lề để chữ đúng tâm, `data-en` ở span chữ; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
 | 5 | `#du-an` | Sáu `figure` công trình so le sinh từ dữ liệu, caption nêu đúng hạng mục trong ảnh (R8) | Không | ink |
-| 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề. / Không ngừng làm mới." tự co cỡ, rộng bằng khung, dấu chấm cuối dòng là `.text-hang-end`, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
+| 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề, / Không ngừng làm mới" cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner-2026-10-18)), dấu phẩy cuối dòng 1 là `.text-hang-end`, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
 | sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
 

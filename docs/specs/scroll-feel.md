@@ -75,7 +75,7 @@ And không lúc nào lộ mép ảnh
 | --- | --- | --- | --- |
 | Hero trang chủ, Residential, Commercial | Ảnh | `-2` | Giữ, là chuẩn |
 | Hero About (`.about-hero__media`) | Ảnh | Không | Thêm `-2` |
-| "Giữ nghề. Không ngừng làm mới." trang chủ (`.legacy-closer`) | Ảnh, ngoài hero | Không | Không |
+| "Giữ nghề, Không ngừng làm mới" trang chủ (`.legacy-closer`) | Ảnh, ngoài hero | Không | Không |
 | CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh, ngoài hero | Không | Không |
 | Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh ngoài hero, không có chữ đè | `-0.12`, `-0.1`, `-0.12` | Bỏ |
 | Hero Advertising (mọi nhóm) | Đơn màu | Không | Không |
@@ -89,7 +89,7 @@ Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ t
 
 ### R5. Khối "Giữ nghề" theo banner CTA của Espacio
 
-Khối "Giữ nghề. Không ngừng làm mới." trên trang chủ (`.legacy-closer`) dựng giống khối "80 years shaping tradition
+Khối "Giữ nghề, Không ngừng làm mới" trên trang chủ (`.legacy-closer`) dựng giống khối "80 years shaping tradition
 into design" của Espacio (`layout-banner-cta`, đo trên PC thật 2026-10-06, Chrome desktop và giả lập điện thoại cho
 cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và token sẵn có của Design System:
 
