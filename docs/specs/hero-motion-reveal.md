@@ -33,7 +33,7 @@ Trước mọi thay đổi code, đo LCP và phần tử LCP của `/vi/resident
 mỗi bên ít nhất 10 lượt, có và không throttle CPU, trên phone Android nối adb và Chromium cloud. Kết quả (median, p90,
 tên phần tử) ghi vào mô tả PR. Kết quả đo quyết định chọn phương án ở R2; không đoán.
 
-### R2. Hai phương án (owner chọn một)
+### R2. Hai phương án (owner chọn A, 2026-10-18)
 
 | Phương án | Nội dung | Đổi gì người dùng thấy | Rủi ro |
 | --- | --- | --- | --- |
@@ -65,8 +65,8 @@ layout, `will-change`) làm ở spec khác.
 
 ## Gate còn mở
 
-- Owner chọn phương án A hoặc B sau khi có số đo R1 (hoặc chọn A ngay).
-- Đo trên phone Android nối adb cần phiên PC.
+- Owner chọn phương án A (2026-10-18, "theo đề xuất"); B bị loại. Cần plan được duyệt trước khi code.
+- Đo R1 trên phone Android nối adb cần phiên PC.
 
 ## Chú thích thuật ngữ
 
