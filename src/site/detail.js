@@ -248,7 +248,7 @@
 
   const mount = (
     container = document.querySelector('[data-barba="container"]'),
-    { settled = false, softNavigation = false } = {},
+    { settled = false, softNavigation = false, introStart = Promise.resolve() } = {},
   ) => {
     if (!container || activePage?.container === container) return activePage?.catalogReady;
     unmount();
@@ -375,7 +375,15 @@
           if (advertisingHeroSettled) item.style.transition = "none";
           item.classList.add("is-motion-inview");
         };
-        const startedAt = performance.now();
+        // Intro hero đếm delay từ lúc veil bắt đầu mở (first-load-parity R2): mở trực tiếp còn chờ catalog, font
+        // lâu hơn chuyển mềm, đếm từ mount thì chữ chạy dưới veil.
+        let startedAt = performance.now();
+        const afterIntroStart = (callback) => introStart.then(() => {
+          if (activePage === state) callback();
+        });
+        introStart.then(() => {
+          startedAt = performance.now();
+        });
         let rebuildFrame;
         let rebuildTimer;
         let resolveRebuild;
@@ -576,14 +584,14 @@
               if (startHeroText && heroWordGroup) advertisingHeroTextStarted = true;
               if (startHeroText && heroWordGroup) {
                 const titleDelay = heroProfile === "words-06" ? 0.6 : 0.9;
-                gsap.to(heroWordGroup.querySelectorAll(".motion-word"), {
+                afterIntroStart(() => gsap.to(heroWordGroup.querySelectorAll(".motion-word"), {
                   opacity: 1,
                   duration: 1,
                   delay: getRemainingDelay(titleDelay),
                   ease: "expo.out",
                   stagger: 0.2,
                   onComplete: () => completedTextGroups.add(heroWordGroup),
-                });
+                }));
               }
               window.dispatchEvent(new CustomEvent("site:layout"));
               resolveRebuild?.();
@@ -699,13 +707,15 @@
             clearProps: "opacity,visibility,transform",
           });
           const kickerDelay = heroProfile === "words-06" ? 0.9 : 1.2;
-          heroKicker.style.setProperty(
-            "--motion-delay",
-            `${getRemainingDelay(kickerDelay)}s`,
-          );
-          scheduleHeroFrame(() =>
-            heroKicker.classList.add("is-motion-inview"),
-          );
+          afterIntroStart(() => {
+            heroKicker.style.setProperty(
+              "--motion-delay",
+              `${getRemainingDelay(kickerDelay)}s`,
+            );
+            scheduleHeroFrame(() =>
+              heroKicker.classList.add("is-motion-inview"),
+            );
+          });
         }
         if (heroWrapperZoom && heroSettled) {
           settleHeroItem(heroWrapperZoom);
@@ -720,16 +730,16 @@
           };
           heroWrapperZoom.addEventListener("transitionend", stopZoom);
           window.addEventListener("resize", stopZoom, { signal: state.abort.signal });
-          scheduleHeroFrame(() =>
+          afterIntroStart(() => scheduleHeroFrame(() =>
             heroWrapperZoom.classList.add("is-motion-inview"),
-          );
+          ));
         }
         if (heroMediaZoom && heroSettled) {
           settleHeroItem(heroMediaZoom);
         } else if (heroMediaZoom) {
-          scheduleHeroFrame(() =>
+          afterIntroStart(() => scheduleHeroFrame(() =>
             heroMediaZoom.classList.add("is-motion-inview"),
-          );
+          ));
         }
         if (heroProfile === "zoom-09") {
           const heroImages = selectAll(".detail-hero .hero-slide img");
@@ -749,20 +759,17 @@
             clearProps: "transform,opacity,visibility",
           });
         } else if (filters.length) {
-          gsap.fromTo(
-            filters,
-            { y: 20, opacity: 0, visibility: "hidden" },
-            {
-              y: 0,
-              opacity: 1,
-              visibility: "visible",
-              delay: 1.3,
-              duration: 1,
-              stagger: 0.15,
-              ease: "expo.out",
-              clearProps: "transform,opacity,visibility",
-            },
-          );
+          gsap.set(filters, { y: 20, opacity: 0, visibility: "hidden" });
+          afterIntroStart(() => state.gsapContext.add(() => gsap.to(filters, {
+            y: 0,
+            opacity: 1,
+            visibility: "visible",
+            delay: 1.3,
+            duration: 1,
+            stagger: 0.15,
+            ease: "expo.out",
+            clearProps: "transform,opacity,visibility",
+          })));
         }
       }, container);
     }
