@@ -23,7 +23,8 @@
   `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
 - Nợ phone và GPU: đã đo bù 2026-10-18 trên Galaxy A04s SM-A047F (máy đo chuẩn, nối adb debug,
   [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Còn lại:
-  - Owner: pinch, xoay hai ngón R11 bằng tay ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
+  - Owner báo 18/10 trên phone: motion không mượt (nhất là logo); gradient đứng yên khi vuốt nhanh masonry; A04s
+    (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
   - Thread sở hữu: grid tới detail p95 168ms trên phone (gate 100ms); 3 FAIL WebKit của `advertising-photo-transitions`;
     `mobile-viewport-stability` chưa theo viewer R8; `advertising-continuation` assert arc band; 479 fault `mobile-layout-parity`.
 - Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
