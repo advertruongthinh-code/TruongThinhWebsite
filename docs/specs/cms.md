@@ -21,7 +21,7 @@ updated: 2026-10-18
 Phase CMS để owner tự đăng nội dung VI/EN (chữ, ảnh, video) qua layout đã duyệt; website tĩnh luôn là fallback và
 đường rollback. Spec mô tả code dormant đang có: Worker route, SEO, API, admin, schema D1, upload R2. Chưa phần nào
 chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). Build và demo thuộc [phát hành tĩnh](static-release.md#r12-ranh-giới-với-cms-dormant).
-Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở".
+Mở phase theo [điều kiện](#điều-kiện-mở-cms-phase) trong "Gate còn mở". AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
 
 ## Hành vi
 
