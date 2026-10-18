@@ -284,8 +284,6 @@ phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham k
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
   trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
   `/vi/`, trả 404 hay giữ?]
-- [Quyết định demo](../decisions/cloudflare-workers-static-demo.md) ghi Wrangler pin trong `tooling-versions.json`;
-  code pin `wrangler@4.124.0` trong script `demo:wrangler`. Owner chọn sửa ADR hay chuyển pin.
 
 ## Chú thích thuật ngữ
 
