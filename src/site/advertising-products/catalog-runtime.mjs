@@ -898,7 +898,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const button = el("button", `advertising-photo-view__media-step advertising-photo-view__media-step--${step < 0 ? "prev" : "next"}`,
         "", { "aria-label": step < 0 ? english ? "Previous media" : "Media trước" : english ? "Next media" : "Media tiếp" });
       button.dataset.advertisingMediaHoverStep = String(step);
-      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${step < 0 ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}" /></svg>`;
+      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${step < 0 ? "M16 1 5 12l11 11" : "M8 1l11 11L8 23"}" /></svg>`;
       return button;
     }) : [];
     if (hasCarousel) figure.append(indicator, ...hoverSteps);

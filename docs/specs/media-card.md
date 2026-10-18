@@ -67,7 +67,7 @@ media" và "Media tiếp" / "Next media" 44×44px, bộ đếm `i/N` (`role="sta
 item đầu, nút sau ở item cuối. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
 bị chặn. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
-ở hai mép, chevron trắng 16px không nền, ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
+ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
 
 ```gherkin
@@ -118,7 +118,7 @@ hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Prod
 i trên N: <alt>", thumbnail 60px bo 16px, đang xem `aria-current` có viền đôi, video có biểu tượng phát. Khung media
 theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung giữ tỷ lệ cover nên đổi media không đổi kích thước
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
-tên trắng 36px hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
+tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
 khung đổi media: media cũ trượt ra, media mới trượt vào 350ms (reduced motion đổi ngay); chấm 8px ở đáy theo vị trí.
 Video vào khung phát lại từ đầu, giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
 Video primary tự phát tắt tiếng, lặp, `playsinline`, player theo trang pin

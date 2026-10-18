@@ -2172,8 +2172,9 @@ body.is-advertising-browse .site-footer {
   height: 100%;
 }
 
-/* Dải media nhiều item theo pin Pinterest (đo 2026-10-18): mũi tên vuông trắng 36px bo 10px cách mép 16px, hiện khi
-   hover; chấm 8px cách nhau 8px ở đáy, đang xem trắng, còn lại trắng 0.5. */
+/* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên vuông trắng 36px bo 12px cách mép 16px, chevron
+   nét mảnh 16px, hiện khi hover, hover nền #f6f6f3, nhấn thu 0.9; chấm 8px cách nhau 8px ở đáy, đang xem trắng, còn lại
+   trắng 0.5. */
 .advertising-photo-view__media-step {
   position: absolute;
   z-index: 4;
@@ -2184,13 +2185,21 @@ body.is-advertising-browse .site-footer {
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
   color: var(--ink);
   cursor: pointer;
   opacity: 0;
   transform: translateY(-50%);
   transition: opacity 100ms ease-out;
+}
+
+.advertising-photo-view__media-step:hover {
+  background: #f6f6f3;
+}
+
+.advertising-photo-view__media-step:active {
+  transform: translateY(-50%) scale(0.9);
 }
 
 .advertising-photo-view__media-step--prev {
@@ -2202,12 +2211,10 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-view__media-step svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
   stroke-width: 2;
 }
 
@@ -2215,8 +2222,9 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Card nhiều media trên masonry theo grid Pinterest (đo 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
-   (trên dải chấm 44px), chỉ có chevron trắng 16px, không nền; bóng nhẹ để chevron vẫn đọc được trên ảnh sáng. */
+/* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
+   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền; bóng nhẹ để chevron
+   vẫn đọc được trên ảnh sáng vì card không có lớp tối khi hover như Pinterest. */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
   width: 32px;
@@ -2238,7 +2246,6 @@ body.is-advertising-browse .site-footer {
 .advertising-tile > .advertising-photo-view__media-step svg {
   width: 16px;
   height: 16px;
-  stroke-width: 2.5;
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 
