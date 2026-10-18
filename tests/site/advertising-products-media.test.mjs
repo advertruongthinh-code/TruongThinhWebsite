@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 195);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 200);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -301,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 195);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 200);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
@@ -377,6 +377,11 @@ const PLAN_RELABELS = {
   "signage-raised-letters-14": ["signage/aluminium-signs-facades", "signage/light-boxes"],
   // Biển neon nay là LED neon, sản phẩm chính Bảng hiệu LED (owner 2026-10-18).
   "signage-raised-letters-33": ["led-displays/led-sign-boards"],
+  // Chữ LED điểm và bảng vẫy, bảng đứng viền LED: sản phẩm chính Bảng hiệu LED (taxonomy R1, owner 2026-10-18).
+  "led-displays-lightboxes-27": ["led-displays/led-sign-boards"],
+  "led-displays-lightboxes-28": ["led-displays/led-sign-boards"],
+  "led-displays-lightboxes-29": ["led-displays/led-sign-boards"],
+  "led-displays-lightboxes-30": ["led-displays/led-sign-boards"],
 };
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
