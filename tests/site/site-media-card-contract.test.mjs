@@ -85,6 +85,13 @@ test("media contract rejects missing cover and duplicate media IDs", () => {
   assert.throws(() => buildAdvertisingArtifact({ cards: [{ ...good, mediaItems: [imageItem(record), { ...videoItem(record), id: record.id }] }] }), /duplicate media id/i);
 });
 
+test("media contract rejects two media of one card sharing an alt (media-seo R3)", () => {
+  const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
+  const twin = { ...videoItem(record), altVi: record.media.altVi };
+  assert.throws(() => buildAdvertisingArtifact({ cards: [{ ...record, mediaItems: [imageItem(record), twin] }] }),
+    new RegExp(`${record.id} and ${twin.id} share alt`));
+});
+
 test("video items require poster, duration, audio flag, and provenance", () => {
   const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === "kiosk-posm-04");
   for (const [field, value] of Object.entries({

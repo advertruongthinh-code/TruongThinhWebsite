@@ -4,7 +4,7 @@ status: planned
 source: []
 tests: []
 notion: https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b
-updated: 2026-10-10
+updated: 2026-10-18
 ---
 
 # SEO cho người, Google và AI
@@ -56,7 +56,9 @@ Then bot đã xác minh vẫn đọc được trang, bot lạ bị giới hạn
 ### R4. Thay site cũ trên truongthinhads.vn
 
 Site mới thay hẳn site cũ (Sapo, sitemap 84 URL) trên cùng domain. Mỗi URL cũ redirect 301 sang URL mới tương
-ứng. Chuyển domain là việc owner duyệt riêng lúc phát hành.
+ứng. Chuyển domain là việc owner duyệt riêng lúc phát hành. Ngày đổi DNS: gửi sitemap mới trong Search Console
+(cùng domain nên không dùng công cụ Chuyển địa chỉ), kiểm vài URL cũ trả 301; vài tuần sau theo dõi báo cáo lập
+chỉ mục và lỗi 404.
 
 ```gherkin
 Given một URL trong sitemap site cũ
@@ -66,8 +68,9 @@ Then nhận 301 tới trang mới tương ứng
 
 ### R5. Nền đo
 
-Phase tĩnh chỉ làm nền: xác minh domain với Google Search Console và chỗ đếm lượt bấm Zalo OA. Bộ đo
-(dashboard trong site admin) thuộc [CMS](cms.md).
+Phase tĩnh chỉ làm nền: xác minh domain với Google Search Console và chỗ đếm lượt bấm Zalo OA. Xác minh bằng bản ghi
+TXT ở DNS làm trước phát hành, không đụng site cũ; trước khi đổi DNS, xuất dữ liệu trang và từ khóa của site cũ để
+giữ đủ trang đang mang khách về. Bộ đo (dashboard trong site admin) thuộc [CMS](cms.md).
 
 ```gherkin
 Given site đã chạy trên truongthinhads.vn

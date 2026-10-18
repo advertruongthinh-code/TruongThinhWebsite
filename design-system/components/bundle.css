@@ -3511,6 +3511,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-gallery__item {
   flex: 0 0 auto;
   scroll-snap-align: start;
+  /* Giảm chuyển động đặt transition 0.01ms cho mọi phần tử: Swiper xóa margin rồi đo ngay, đọc margin cũ nên slide lệch dần. */
+  transition: none !important;
 }
 
 .detail-gallery__media {

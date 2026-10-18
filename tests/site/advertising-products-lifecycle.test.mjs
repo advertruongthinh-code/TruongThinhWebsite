@@ -186,8 +186,18 @@ assert.deepEqual(
 );
 assert.equal(
   serializeAdvertisingBrowseLocation("https://example.test/en/advertising-products/?qa=1", parsedBrowse).href,
-  "https://example.test/en/advertising-products/?qa=1&category=kiosk-posm&photo=photo-a&tag=shared",
-  "browse serialization preserves unrelated query parameters and locale",
+  "https://example.test/en/advertising-products/p/photo-a/?qa=1&tag=shared",
+  "detail serializes to its card page path, keeping unrelated query parameters and locale",
+);
+assert.deepEqual(
+  parseAdvertisingBrowseLocation("https://example.test/en/advertising-products/p/photo-a/?tag=shared", browseFixture),
+  { category: "kiosk-posm", photo: "photo-a", tag: "shared" },
+  "a card page path opens its detail",
+);
+assert.deepEqual(
+  parseAdvertisingBrowseLocation("https://example.test/vi/advertising-products/p/missing/", browseFixture),
+  { category: "all", photo: null, tag: null },
+  "an unknown card path fails open to the catalog",
 );
 assert.equal(
   isAdvertisingQueryOnlyNavigation(
@@ -268,7 +278,7 @@ const lateAdapterController = createAdvertisingBrowseHistoryController({
   getHref: () => lateBarbaHref,
 });
 lateAdapterController.openPhoto("photo-a");
-assert.equal(new URL(lateBarbaHref).searchParams.get("photo"), "photo-a",
+assert.equal(new URL(lateBarbaHref).pathname, "/vi/advertising-products/p/photo-a/",
   "native history works while Barba exposes its API before initialization");
 assert.equal(lateBarbaAdds, 0);
 assert.ok(lateNativeWrites > 0);
@@ -276,7 +286,7 @@ lateBarbaCurrent = { data: {}, url: lateBarbaHref };
 lateAdapterController.openPhoto("photo-b");
 assert.equal(lateBarbaStores, 1, "the adapter switches to initialized Barba for the outgoing entry");
 assert.equal(lateBarbaAdds, 1, "the adapter switches to initialized Barba for the next entry");
-assert.equal(new URL(lateBarbaHref).searchParams.get("photo"), "photo-b");
+assert.equal(new URL(lateBarbaHref).pathname, "/vi/advertising-products/p/photo-b/");
 
 let fixtureHref = "https://example.test/vi/advertising-products/?category=kiosk-posm";
 let fixtureIndex = 7;
@@ -520,7 +530,7 @@ const englishController = createAdvertisingBrowseHistoryController({
 englishController.openPhoto("photo-a");
 englishController.captureDetail({ anchorId: "photo-b", anchorOffset: 100, scrollY: 40, viewportWidth: 390 });
 englishController.openPhoto("photo-b");
-assert.equal(new URL(englishHref).pathname, "/en/advertising-products/", "A/B history preserves the EN root path");
+assert.equal(new URL(englishHref).pathname, "/en/advertising-products/p/photo-b/", "A/B history writes the EN card path");
 assert.equal(englishAdds, 2, "EN A/B creates the same two photo entries as VI");
 
 assert.match(motionSource, /addEventListener\("popstate",[\s\S]*window\.barba\.init\(/, "query popstate listener is registered before Barba init");

@@ -11,7 +11,7 @@ gãy link và lịch sử.
 | grid | Bố cục cột/hàng đều, ví dụ project grid 4/3/2/1, menu group, CSS grid. | masonry cho bố cục cột đều |
 | card | Một phần tử trong masonry hoặc grid. | tile, item khi nói về phần tử hiển thị |
 | media-card | Card có identity, một hoặc nhiều media và đích detail, theo [spec media-card](specs/media-card.md). | card đa media khác tên |
-| detail | View một card Advertising qua query `?photo=`, gồm primary và related. | photo view, trang ảnh |
+| detail | View một card Advertising tại trang card `p/<id>` (trước đây query `?photo=`), gồm primary và related. | photo view, trang ảnh |
 | primary | Vùng media chính và thông tin trong detail. | Không có tên thay thế đang dùng |
 | related | Masonry card liên quan dưới primary. | ảnh liên quan, masonry ảnh liên quan khi nói về thành phần |
 | suggestion | Khối nút gợi ý trong primary info; nút chưa bật chạy slideshow ảnh mang tag, nút đang bật đứng yên. Chữ "Gợi ý" chỉ là copy giao diện. | gợi ý khi nói về thành phần |

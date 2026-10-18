@@ -1,8 +1,9 @@
 # Website Trường Thịnh
 
 Website tĩnh VI/EN theo hướng static-first cho Trường Thịnh Interior và
-Advertising. Root của repository là site canonical. Mục tiêu trước mắt là một
-public website đáng tin cậy; CMS, private admin, D1 và R2 để ở phase sau.
+Advertising. Root của repository là site canonical. Mục tiêu trước mắt là bản tĩnh
+đáng tin cậy trên demo; phát hành chính thức trên `truongthinhads.vn` chờ xong CMS,
+private admin, D1 và R2 (phase 2).
 
 GitHub repository: [advertruongthinh-code/TruongThinhWebsite](https://github.com/advertruongthinh-code/TruongThinhWebsite)
 

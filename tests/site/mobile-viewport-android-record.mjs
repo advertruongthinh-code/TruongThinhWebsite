@@ -184,16 +184,15 @@ const swipe = async direction => {
   await pause(850); actions.push({ kind: "native-touch", direction, utc: new Date().toISOString() });
   return sample(`after-${direction}`);
 };
-const routes = option("--routes", "vi/,vi/residential/,vi/commercial/,vi/about/,vi/advertising-products/,vi/advertising-products/kiosk-posm/,vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37").split(",");
+const routes = option("--routes", "vi/,vi/residential/,vi/commercial/,vi/about/,vi/advertising-products/,vi/advertising-products/standee-ke-trung-bay/,vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37").split(",");
 const navigate = async (route, reload = false) => {
   const origin = await evaluate("performance.timeOrigin");
   const result = await call(reload ? "Page.reload" : "Page.navigate", reload ? { ignoreCache: true } : { url: `${base}/${route}` });
   assert.ok(!result.errorText, result.errorText);
-  const alias = route.match(/^(vi|en)\/advertising-products\/(kiosk-posm|mobile-retail|signage-raised-letters|office-signs-wayfinding|led-displays-lightboxes|print-decals)\/$/);
-  const destination = alias ? `${base}/${alias[1]}/advertising-products/?category=${alias[2]}` : `${base}/${route}`;
+  const destination = `${base}/${route}`;
   for (let attempt = 0; attempt < 75; attempt++) {
     const frame = (await call("Page.getFrameTree")).frameTree.frame;
-    if ((alias || !result.loaderId || frame.loaderId === result.loaderId)
+    if ((!result.loaderId || frame.loaderId === result.loaderId)
       && await evaluate(`performance.timeOrigin!==${origin} && location.href===${JSON.stringify(destination)} && document.readyState==='complete' && document.fonts.status==='loaded' && document.documentElement.classList.contains('motion-ready') && !document.documentElement.classList.contains('route-enter')`).catch(() => false)) return;
     await pause(200);
   }
@@ -246,7 +245,7 @@ try {
         actions.push({kind:'inactive-photo-filters',route,filters:filterState.filters});
       }
       const filters=filterState.photo?[]:filterState.filters.map(e=>e.id);
-      if(filters.length)assert.deepEqual([...filters].sort(),['all','kiosk-posm','mobile-retail','signage-raised-letters','office-signs-wayfinding','led-displays-lightboxes','print-decals'].sort(),'All and six known category filters on Android');
+      if(filters.length)assert.deepEqual([...filters].sort(),['all','signage','displays-booths','printing-decals','led-displays','office-signs','mobile-retail'].sort(),'All and six known category filters on Android');
       for(const filter of filters) {
         await evaluate(`(() => {const e=document.querySelector('[data-advertising-filter="${filter}"]');e.focus();e.scrollIntoView({behavior:'instant',block:'center',inline:'center'});})()`);
         await recordLayout(`${route}-reached-filter-${filter}`,filter);
@@ -261,7 +260,7 @@ try {
       await recordLayout(`${route}-${toolbar}-${entry}-after`);
       actions.push({ kind: "navigation-toolbar-state", route, toolbar, entry, initialHeight: initial.visual.height, before: before.visual, after: after.visual });
     }
-    if (process.argv.includes("--native-pinch") && /advertising-products\/kiosk-posm\/$/.test(route)) {
+    if (process.argv.includes("--native-pinch") && /advertising-products\/standee-ke-trung-bay\/$/.test(route)) {
       await evaluate("(() => {const frame=document.querySelector('[data-advertising-cta-frame]');window.TruongThinhMotion.setLogicalScroll(frame.getBoundingClientRect().top+scrollY-100)})()");
       await pause(1500);
       const before = await sample(`${route}-native-pinch-before`);
