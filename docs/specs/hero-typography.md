@@ -61,8 +61,8 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   rộng hơn cặp thì hai dòng dồn đều vào giữa, kicker theo mép trái dòng 1 (lệch vào 0,5rem).
 - Từ 750px trở xuống chỉ title nằm ở tâm hero theo chiều dọc (lệch tối đa 3px), dù có hay không có hàng chip.
   Phone không hiện kicker (ẩn kiểu `.sr-only`, h1 vẫn còn cho trình đọc màn hình). Mỗi title co vừa khung theo dòng
-  dài nhất của nó (`100cqi / --hero-line-em`, tối đa 7rem), nên cỡ khác nhau giữa các trang: 384px từ 29px
-  (Commercial EN) tới 66px (trang chủ VI). Hero dạng grid (Trang chủ, About, Advertising) dùng hàng trên và hàng
+  dài nhất của nó (`100cqi / --hero-line-em`, tối đa 7rem), nên cỡ khác nhau giữa các trang: 384px từ 26px
+  (Commercial EN) tới 60px (trang chủ VI). Hero dạng grid (Trang chủ, About, Advertising) dùng hàng trên và hàng
   dưới cùng `1fr`; thiếu chỗ thì hàng giãn, không đè. Hero About không có kicker ở mọi bề rộng (owner audit
   2026-10-18).
 - Rail và chip Advertising trên phone neo như PC: khối `.hero-browse` neo theo đáy hero, chừa sẵn một hàng chip, nên
