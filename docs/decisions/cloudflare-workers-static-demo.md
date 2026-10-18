@@ -27,7 +27,7 @@ hướng CMS trong [goal](../goal.md). Owner đồng ý chuyển ngày 2026-10-0
    `wrangler.static.toml`: không `main`, không binding, `directory` là
    `.site-output`, tên Worker `truong-thinh-demo`, URL `workers.dev`.
 2. `pnpm deploy:demo` build `.site-output/` rồi deploy. `pnpm demo:wrangler`
-   gọi Wrangler bản pin trong `tooling-versions.json` qua `pnpm dlx`, chỉ dùng
+   gọi Wrangler bản pin trong script `package.json` (`wrangler@4.124.0`) qua `pnpm dlx`, chỉ dùng
    cho login, dry-run và rollback của demo. Wrangler không vào dependency hay
    lockfile.
 3. Owner chốt 2026-10-07: workflow `Deploy demo` tự chạy `pnpm deploy:demo`

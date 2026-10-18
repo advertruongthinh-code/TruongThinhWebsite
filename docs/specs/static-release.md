@@ -165,7 +165,7 @@ And request http://127.0.0.1:8787/ trả 404
 
 ### R9. Cache header
 
-`src/site/_headers` vào output; Workers static assets đọc, không phục vụ file này.
+`src/site/_headers` vào output; Workers static assets đọc, không phục vụ file này. Mọi path (`/*`) thêm `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy: frame-ancestors 'self'` (chặn đoán MIME, lộ URL đầy đủ sang site khác, nhúng iframe origin khác; chưa đặt CSP script vì site dùng script inline).
 
 | Path | `Cache-Control` | Lý do |
 | --- | --- | --- |
@@ -185,7 +185,7 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 Workflow `CI` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`) chạy các bộ test theo phần website
 song song rồi gom thành check `static-release`; cách chọn bộ, danh sách bộ và lệnh `pnpm qa:suite` thuộc
 [bộ test CI](ci-test-suites.md).
-CI, Docs, Automerge và Deploy demo chạy trên runner `ubuntu-latest` của GitHub; repo public nên không tốn phút Actions và không phụ thuộc PC owner. Mỗi job runner trắng: CI cài Chromium cùng system deps bằng `playwright install --with-deps`, cache pnpm qua `setup-node`. Workflow không dùng `pull_request_target`, Automerge bỏ qua `workflow_run` từ fork, Deploy demo chỉ chạy từ `main`, nên PR từ fork không chạm secret Cloudflare; Settings > Actions > General đặt "Require approval for all external contributors". `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge. PR draft chỉ chạy bộ `fast` và check tên `static-release-draft` ([bộ test CI R4](ci-test-suites.md#r4-chạy-song-song-và-độc-lập)). Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để job `deploy-demo` của `ci.yml` (gọi `deploy-demo.yml` bằng `workflow_call`, không dùng `workflow_run` vì lượt CI dispatch bằng `GITHUB_TOKEN` không kích hoạt nó) chạy tiếp.
+CI, Docs, Automerge và Deploy demo chạy trên runner `ubuntu-latest` của GitHub; repo public nên không tốn phút Actions và không phụ thuộc PC owner. Mỗi job runner trắng: CI cài Chromium cùng system deps bằng `playwright install --with-deps`, cache pnpm qua `setup-node`. Mọi action ghim theo commit SHA (comment ghi tag), dependabot đề xuất cập nhật. Workflow không dùng `pull_request_target`, Automerge bỏ qua `workflow_run` từ fork, Deploy demo chỉ chạy từ `main`, nên PR từ fork không chạm secret Cloudflare; Settings > Actions > General đặt "Require approval for all external contributors". `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge. PR draft chỉ chạy bộ `fast` và check tên `static-release-draft` ([bộ test CI R4](ci-test-suites.md#r4-chạy-song-song-và-độc-lập)). Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để job `deploy-demo` của `ci.yml` (gọi `deploy-demo.yml` bằng `workflow_call`, không dùng `workflow_run` vì lượt CI dispatch bằng `GITHUB_TOKEN` không kích hoạt nó) chạy tiếp.
 ```gherkin
 Given pull request đổi src/site/
 When workflow CI chạy
@@ -284,8 +284,6 @@ phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham k
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
   trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
   `/vi/`, trả 404 hay giữ?]
-- [Quyết định demo](../decisions/cloudflare-workers-static-demo.md) ghi Wrangler pin trong `tooling-versions.json`;
-  code pin `wrangler@4.124.0` trong script `demo:wrangler`. Owner chọn sửa ADR hay chuyển pin.
 
 ## Chú thích thuật ngữ
 

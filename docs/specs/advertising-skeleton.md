@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-10
+updated: 2026-10-18
 ---
 
 # Skeleton cuối masonry Advertising
@@ -202,13 +202,14 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 ## Gate còn mở
 
-- R8 trên A05s cũ: trace trong PR #153 không có task trên `50ms` ở trang ảnh, trang Advertising ngang main. Trang ảnh
-  còn khoảng 9% frame trên `33ms` (main khoảng 1%) khi Kính hiện ảnh related; owner xem trên demo. Máy PC.
+- R8 trên SM-A047F (18/10, 3 lượt vuốt xuống related): frame trên `33ms` 0 đến 0,5% (A05s cũ khoảng 9%), SurfaceFlinger
+  p5 90,9fps, 0 long task trên `50ms`: PASS. Owner xem trên demo.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
 - `advertising-continuation.e2e.mjs` FAIL: test còn giả định ngân sách 2 WebGL context trên điện thoại và đo paint theo
   từng canvas, trong khi từ #252 mọi khung vẽ trên một canvas chung (R5). #252 đã sửa phần đếm context; phần đo paint
-  cần chuyển sang canvas chung. Cloud chỉ có WebGL phần mềm (khoảng 14fps) nên R8 desktop cần Chrome có GPU. Main và
-  máy PC.
+  cần chuyển sang canvas chung. Đo R4 trên canvas chung (18/10, Chrome 155 thật, RTX 3090, 1569×912, 3×5s mỗi locale):
+  khoảng 85fps, 0 long task, PASS gate `>= 30fps`; test gốc còn FAIL assert "arc Kính band rises above the real photos"
+  (vi 360, NaN). Main sửa test.
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
