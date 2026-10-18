@@ -125,6 +125,8 @@ const LEGACY_CATEGORY_TAXONOMY = [
       ["Hộp đèn LED siêu mỏng", "Slim LED light boxes"],
       ["Tranh điện nắp hít", "Magnetic-front illuminated frames"],
       ["Tranh điện nắp bật", "Snap-frame illuminated displays"],
+      ["Chữ LED điểm", "Point-LED lettering"],
+      ["Bảng vẫy LED", "LED projecting signs"],
     ],
   }),
   category({
