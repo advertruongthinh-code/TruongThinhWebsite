@@ -53,7 +53,7 @@ Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
 Áp cho title chính của mọi hero: Trang chủ, Residential, Commercial, About, Advertising, trang cụm và trang sản
 phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ kicker).
 
-- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(100% - 32px)` để chữ phone to hơn (owner audit
+- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(100% - 64px)` (lề 32px mỗi bên để title không sát viền) (owner audit
   2026-10-18). Title nằm giữa hero theo hai chiều.
 - Mỗi dòng là một khối. Trên 750px dòng 1 canh trái, dòng 2 canh phải; từ 750px trở xuống hai dòng canh giữa.
   Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.

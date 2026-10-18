@@ -4128,7 +4128,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
   .detail-index-hero .hero-content {
     top: calc(50% + 0.7rem);
-    width: calc(100% - 32px);
+    width: calc(100% - 64px);
     min-height: 11.55rem;
     padding: 0;
   }
@@ -6334,7 +6334,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
      phone còn nhỏ). Không JS thì --hero-line-em trống, về cỡ chung. */
   .hero > .hero-content {
     --hero-line-size: min(7rem, calc(100cqi / var(--hero-line-em, 12.5)));
-    width: calc(100% - 32px);
+    width: calc(100% - 64px);
   }
 
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask),
