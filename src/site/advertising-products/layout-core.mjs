@@ -74,15 +74,16 @@ export function scoreAdvertisingOrganicRhythm(items, limit = ORGANIC_RHYTHM_WIND
   };
 }
 
-export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrderIds) {
+// pinFirst: related ở detail giữ ảnh đầu tiên đứng đầu để nó rơi vào cột 4 cạnh primary (detail R7).
+export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrderIds, { pinFirst = false } = {}) {
   if (!Array.isArray(cards) || !Array.isArray(presentationOrderIds)) return null;
   const cardById = new Map(cards.map((card) => [card.id, card]));
   if (presentationOrderIds.length !== cardById.size
     || new Set(presentationOrderIds).size !== cardById.size
     || presentationOrderIds.some((id) => !cardById.has(id))) return null;
   const requested = presentationOrderIds.map((id) => cardById.get(id));
-  const pinnedSuggestion = requested[0]?.kind === "suggestion" ? requested[0] : null;
-  const movable = pinnedSuggestion ? requested.slice(1) : requested;
+  const pinnedFirst = pinFirst || requested[0]?.kind === "suggestion" ? requested[0] : null;
+  const movable = pinnedFirst ? requested.slice(1) : requested;
   const baseline = scoreAdvertisingOrganicRhythm(requested);
   if (!baseline.targetApplicable || requested.length < 3) {
     return {
@@ -96,8 +97,8 @@ export function solveAdvertisingOrganicPresentationOrder(cards, presentationOrde
     low: movable.filter((card) => mediaRatioBand(card) === "low"),
     medium: movable.filter((card) => mediaRatioBand(card) === "medium"),
   };
-  const ordered = pinnedSuggestion ? [pinnedSuggestion] : [];
-  const usedIds = new Set(pinnedSuggestion ? [pinnedSuggestion.id] : []);
+  const ordered = pinnedFirst ? [pinnedFirst] : [];
+  const usedIds = new Set(pinnedFirst ? [pinnedFirst.id] : []);
   const firstPriorityBand = movable.find((card) => ["high", "low"].includes(mediaRatioBand(card)));
   let nextHighLow = firstPriorityBand ? mediaRatioBand(firstPriorityBand) : "high";
   for (let index = ordered.length; index < Math.min(ORGANIC_RHYTHM_WINDOW, requested.length); index += 1) {
@@ -746,7 +747,7 @@ export function compileAdvertisingProductLayout(options = {}) {
   }
 
   const eligibleCards = options.filter ? cards.filter((card) => matchesAdvertisingFilter(card, options.filter)) : cards;
-  const solution = solveAdvertisingOrganicPresentationOrder(eligibleCards, requestedOrder);
+  const solution = solveAdvertisingOrganicPresentationOrder(eligibleCards, requestedOrder, { pinFirst: options.continuousDetail === true });
   const hardSafe = compileAdvertisingLayout(compileOptions);
   const hardSafeRhythm = scoreAdvertisingOrganicRhythm(hardSafe.placements);
   const hardSafeSpread = Math.max(0, ...hardSafe.columnBottoms) - Math.min(...hardSafe.columnBottoms);

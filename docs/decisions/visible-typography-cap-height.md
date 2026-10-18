@@ -38,7 +38,7 @@ ngoại lệ vì title/subtitle có contract SVG và tỷ lệ riêng.
    không quá `1px` tại `390px` và `1440px`.
 6. Hero Home VI dùng `Làm chắc` / `Làm khác` không dấu chấm. Khoảng cách riêng
    giữa hai dòng là `0.05em`; không đổi `line-height` dùng chung và không áp dụng
-   sang detail hero. Bản EN giữ `Built solid.` / `Made different.`.
+   sang detail hero. Bản EN từ 2026-10-18 cũng không dấu chấm (`Built solid` / `Made different`), theo dấu câu của VI.
 7. Statement footer dùng chung trên năm route giữ nguyên font size/weight và tăng
    riêng extra line-height từ `10px` lên `14px`, tức tăng khoảng cách hai dòng
    đúng `4px` ở mọi breakpoint.
