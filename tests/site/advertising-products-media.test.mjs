@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 200);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 252);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -249,7 +249,7 @@ test("canonical records retain identity, pixels, order, titles, tags, and verifi
 test("accepted trade-fair kiosk sources retain exact provenance and existing taxonomy", () => {
   const expected = [
     ["kiosk-posm-25", "kiosk-posm-product-01", "67c25939a98a3659b7f5d8b47c3f8687828a9b551de15e7630c0f659373cda93"],
-    ["kiosk-posm-26", "kiosk-posm-product-10", "56a80014d7cc4ab71bdcb8ff7c3baf1a9cfa0d30fe56db3cc0a36c2ff549bfed"],
+    ["kiosk-posm-26", "kiosk-posm-product-10", "aa959c5254b2ed5b574aa08e238913bade0b59131b552a2ea4d177d20f90f060"],
     ["kiosk-posm-27", "kiosk-posm-product-01", "5c0a654a71025f6b1870b657429c5e4e5010ac4f929cf709849da3ce62be7f21"],
     ["kiosk-posm-28", "kiosk-posm-product-06", "6f6b2bda8a0a1b9d1feaf67be3e874f4125b792275088a738713db1f19c216cf"],
     ["kiosk-posm-29", "kiosk-posm-product-01", "30fad3bc843b5c6d2b880ec84ff699310a6a4f3d440d1b1d4171c3b218d92d11"],
@@ -301,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 200);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 252);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
@@ -345,6 +345,7 @@ const PLAN_MAP = {
   "signage/light-boxes": { "signage-raised-letters": [4, 5], "led-displays-lightboxes": [10, 11, 12] },
   "signage/projecting-signs": { "signage-raised-letters": [10, 11, 12] },
   "displays-booths/standees-backdrops-posm": { "kiosk-posm": [11, 12, 13] },
+  "displays-booths/backdrops": { "kiosk-posm": [14] },
   "displays-booths/display-shelves-cabinets": { "kiosk-posm": [2, 3, 4, 9, 10] },
   "displays-booths/exhibition-booths": { "kiosk-posm": [1] },
   "displays-booths/retail-kiosks": { "kiosk-posm": [5, 6] },
@@ -353,7 +354,7 @@ const PLAN_MAP = {
   "printing-decals/office-printing": { "print-decals": [1, 2, 3, 4, 5, 6] },
   "printing-decals/menus": { "print-decals": [7, 8, 9] },
   "printing-decals/packaging-cards-tickets": { "print-decals": [13] },
-  "led-displays/decorative-led": {},
+  "led-displays/decorative-led": { "led-displays-lightboxes": [15] },
   "led-displays/led-screens": { "led-displays-lightboxes": [4, 5, 6, 7, 8, 9] },
   "led-displays/scrolling-led-signs": { "led-displays-lightboxes": [1, 2, 3] },
   "led-displays/led-sign-boards": { "led-displays-lightboxes": [13, 14] },
@@ -381,7 +382,7 @@ const PLAN_RELABELS = {
 const planProductByLegacyKey = new Map(Object.entries(PLAN_MAP).flatMap(([productId, byCategory]) => Object.entries(byCategory)
   .flatMap(([category, numbers]) => numbers.map((number) => [category + "-product-" + String(number).padStart(2, "0"), productId]))));
 
-test("taxonomy has six clusters and 24 products in plan order with a thin-page threshold of 9", () => {
+test("taxonomy has six clusters and 25 products in plan order with a thin-page threshold of 9", () => {
   assert.deepEqual(ADVERTISING_CLUSTERS.map(({ id }) => id), ["signage", "displays-booths", "printing-decals", "led-displays", "office-signs", "mobile-retail"]);
   assert.deepEqual(ADVERTISING_PRODUCTS.map(({ id }) => id), Object.keys(PLAN_MAP));
   assert.ok(ADVERTISING_PRODUCTS.every(({ id, cluster, slugEn }) => id === cluster + "/" + slugEn), "internal id is the EN slug path");
@@ -390,8 +391,8 @@ test("taxonomy has six clusters and 24 products in plan order with a thin-page t
 
 test("every old product tag becomes a variant that maps to its plan product", () => {
   const variants = ADVERTISING_TAG_REGISTRY.filter((tag) => tag.id.startsWith("product-"));
-  assert.equal(variants.length, 77);
-  assert.equal(planProductByLegacyKey.size, 77);
+  assert.equal(variants.length, 79);
+  assert.equal(planProductByLegacyKey.size, 79);
   for (const tag of variants) {
     assert.equal(tag.group, "variant", tag.id);
     assert.equal(tag.productId, planProductByLegacyKey.get(tag.id.slice("product-".length)), tag.id);

@@ -1,9 +1,10 @@
 ---
 title: Mở trực tiếp giống chuyển trang, phần nhẹ hiện trước
-status: planned
+status: live
 source: []
-tests: []
-notion: none
+tests:
+  - tests/site/first-load-parity.e2e.mjs
+notion: https://app.notion.com/p/3fd332849a0e81eda926d2c089fa4d5a
 updated: 2026-10-18
 ---
 
@@ -50,17 +51,21 @@ Số đo (median, p90) ghi trong mô tả PR.
 Mọi phần tử chữ trong hero chạy motion theo đúng thứ tự, timing và easing của lúc chuyển mềm. Phần tử chữ gồm kicker,
 title, dòng phụ và chữ trong hero của trang cụm và trang sản phẩm. Riêng Advertising tính thêm rail và chip.
 
-Khi có JavaScript, chữ ở trạng thái đầu của motion ngay từ lần vẽ đầu, nên không nháy chữ đủ rồi mới ẩn. Motion bắt
-đầu sau khi veil tan, cùng độ trễ tính từ lúc veil tan như khi chuyển mềm. Không đổi `duration`, `stagger`, `delay`
-hay easing ([trang con R5](detail-pages.md), [trang chủ](page-home.md)).
+Khi có JavaScript, chữ ở trạng thái đầu của motion ngay từ lần vẽ đầu, nên không nháy chữ đủ rồi mới ẩn. Delay intro
+hero (title, kicker, zoom, rail và chip) đếm từ lúc veil bắt đầu mở, ở cả hai đường. Trước đây delay đếm từ lúc mount,
+nên khi mở trực tiếp mà catalog hay font về chậm thì chữ chạy dưới veil. Không đổi `duration`, `stagger`, `delay` hay
+easing ([trang con R5](detail-pages.md), [trang chủ](page-home.md)).
+
+Mốc chuẩn là lúc veil bắt đầu mở, không phải lúc veil tan hết. Lý do: chuyển mềm vào Advertising (`words-06`, delay
+0,6 s) vốn cho từ đầu fade khi veil còn mở dở, và chuẩn là giống chuyển mềm (đo 2026-10-18, Chromium cloud).
 
 ```gherkin
 Given một trang có hero, PC 1440 hoặc phone Android, mở bằng link hoặc F5 trên demo
 When ghi hình 60 fps từ lúc điều hướng tới lúc chữ hero xong
 Then không có frame nào chữ hero hiện đủ trước khi motion bắt đầu
-And từ đầu tiên của title bắt đầu fade sau khi veil đã tan hết
-And độ lệch giữa lúc veil tan và lúc từ đầu bắt đầu fade khác bản chuyển mềm không quá 100 ms
-And tổng thời gian chạy motion chữ bằng bản chuyển mềm, lệch không quá 50 ms
+And từ đầu tiên của title bắt đầu fade sau khi veil bắt đầu mở
+And độ trễ từ lúc veil bắt đầu mở tới lúc từ đầu bắt đầu fade khác bản chuyển mềm không quá 100 ms
+And khoảng stagger từ từ đầu tới từ cuối khác bản chuyển mềm không quá 100 ms
 
 Given trang Advertising mở bằng link hoặc F5
 When rail và chip vào khung nhìn đầu
@@ -106,12 +111,14 @@ title hero khỏi lô chuẩn bị chữ) làm chung code với R2, nên plan g�
 | R | Test hoặc command |
 | --- | --- |
 | R1, R3 | Script đo qua CDP trên demo, chạy từ phiên PC (plan chốt tên file) |
-| R2 | E2E mới: ghi opacity và transform của chữ hero theo frame, so sánh mở trực tiếp với chuyển mềm |
+| R2 | `node tests/site/first-load-parity.e2e.mjs`: ghi opacity chữ hero theo frame, so mở trực tiếp với chuyển mềm ở 1440 và 390 |
 
 ## Gate còn mở
 
-- Plan cần owner duyệt trước khi code.
-- R1 và R3 chạy trên demo, cần phiên PC và phone nối adb.
+- R1 và R3 chạy trên demo, cần phiên PC và phone nối adb. R2 mới đo trên Chromium cloud, localhost.
+- Ngưỡng 100 ms của R2 rộng hơn 50 ms dự kiến: Chromium headless trên cloud có frame dài 80 đến 120 ms đúng lúc từ
+  đầu bắt đầu fade ở cả hai đường. Đo lại trên demo bằng PC và phone.
+- Phương án A của [Reveal hero và LCP](hero-motion-reveal.md) chưa làm, chờ số đo LCP R1 của spec đó.
 
 ## Chú thích thuật ngữ
 
