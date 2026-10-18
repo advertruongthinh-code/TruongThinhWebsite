@@ -78,6 +78,19 @@
         document.addEventListener("DOMContentLoaded",fail,{once:true,...s});
       })();
     </script>
+    <script>
+      // detail-pages R5: chọn hero Kinh doanh ngẫu nhiên ngay trong head rồi preload, như hero trang chủ (page-home R3).
+      (() => {
+        const slides = ["commercial-hero-cafe", "commercial-hero-homestay", "commercial-hero-coconut-beauty-booth", "commercial-hero-coconut-craft-booth", "commercial-hero-shared-workspace", "commercial-hero-bakery", "commercial-hero-flower-shop", "commercial-hero-sports-shop", "commercial-hero-womens-fashion", "commercial-hero-fashion-timber", "commercial-hero-fashion-grey"];
+        const first = Math.floor(Math.random() * slides.length);
+        const path = `/assets/content/projects/${slides[first]}`;
+        document.documentElement.dataset.heroFirst = first;
+        document.head.append(Object.assign(document.createElement("link"), {
+          rel: "preload", as: "image", type: "image/avif", href: `${path}.avif`,
+          imageSrcset: `${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif 1920w`, imageSizes: "100vw",
+        }));
+      })();
+    </script>
     <title data-en="Commercial spaces — Trường Thịnh">
       Không gian Kinh doanh — Trường Thịnh
     </title>
@@ -242,18 +255,152 @@
           aria-labelledby="page-title"
         >
           <div class="hero-slides" aria-hidden="true">
-            <figure class="hero-slide is-active" data-slide="0">
+            <figure class="hero-slide" data-slide="0">
               <img
-                src="/assets/content/projects/commercial-space.webp"
-                width="1536"
-                height="1024"
-                alt="Không gian thương mại với hệ trưng bày và quầy phục vụ"
-                data-en-alt="Commercial space with display system and service counter"
-                fetchpriority="high"
+                data-src="/assets/content/projects/commercial-hero-cafe.webp"
+                width="1920"
+                height="1280"
+                alt="Quán cà phê với quầy bar ốp gỗ sáng đèn, bàn ghế gỗ và cửa mở ra hàng cây"
+                data-en-alt="Café with a lit timber-clad bar, timber tables and an opening onto the trees"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="1">
+              <img
+                data-src="/assets/content/projects/commercial-hero-homestay.webp"
+                width="1920"
+                height="1280"
+                alt="Homestay ven sông với bàn ăn gỗ dài và hiên mở nhìn ra kênh lúc hoàng hôn"
+                data-en-alt="Riverside homestay with a long timber dining table and an open veranda over the canal at sunset"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="2">
+              <img
+                data-src="/assets/content/projects/commercial-hero-coconut-beauty-booth.webp"
+                width="1920"
+                height="1280"
+                alt="Gian hàng mỹ phẩm từ dừa ở hội chợ với kệ đèn và tranh dừa"
+                data-en-alt="Coconut beauty booth at a trade fair with lit shelving and coconut graphics"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="3">
+              <img
+                data-src="/assets/content/projects/commercial-hero-coconut-craft-booth.webp"
+                width="1920"
+                height="1280"
+                alt="Gian hàng đồ thủ công từ dừa ở hội chợ với tranh cây dừa và bục trưng bày gỗ"
+                data-en-alt="Coconut craft booth at a trade fair with palm-tree artwork and timber display plinths"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="4">
+              <img
+                data-src="/assets/content/projects/commercial-hero-shared-workspace.webp"
+                width="1920"
+                height="1280"
+                alt="Văn phòng chia sẻ với quầy lễ tân gỗ cong, bàn làm việc chung và phòng kính"
+                data-en-alt="Shared workspace with a curved timber reception, shared desks and glass rooms"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="5">
+              <img
+                data-src="/assets/content/projects/commercial-hero-bakery.webp"
+                width="1920"
+                height="1280"
+                alt="Tiệm bánh với tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh"
+                data-en-alt="Bakery with a cake display case, timber bread shelves and a green arched wall"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="6">
+              <img
+                data-src="/assets/content/projects/commercial-hero-flower-shop.webp"
+                width="1920"
+                height="1280"
+                alt="Shop hoa tươi với bục hoa gỗ tròn, kệ hoa và quầy gói hoa"
+                data-en-alt="Flower shop with round timber flower stands, shelving and a wrapping counter"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="7">
+              <img
+                data-src="/assets/content/projects/commercial-hero-sports-shop.webp"
+                width="1920"
+                height="1280"
+                alt="Shop thể thao với tường giày đèn hắt, bàn trưng bày gỗ và kệ bóng"
+                data-en-alt="Sports shop with a lit shoe wall, timber display tables and a ball rack"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="8">
+              <img
+                data-src="/assets/content/projects/commercial-hero-womens-fashion.webp"
+                width="1920"
+                height="1280"
+                alt="Shop thời trang nữ với giá treo đồ, bàn trưng bày tròn và thảm cói"
+                data-en-alt="Women’s fashion shop with clothing rails, a round display table and a rush rug"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="9">
+              <img
+                data-src="/assets/content/projects/commercial-hero-fashion-timber.webp"
+                width="1920"
+                height="1280"
+                alt="Shop thời trang với tủ treo gỗ đèn hắt, bàn trưng bày ốp lam gỗ và tường đá tối"
+                data-en-alt="Fashion shop with lit timber wardrobes, a fluted timber display table and a dark stone wall"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="10">
+              <img
+                data-src="/assets/content/projects/commercial-hero-fashion-grey.webp"
+                width="1920"
+                height="1280"
+                alt="Shop thời trang tông xám với giá treo, bàn trưng bày đá và tường đá tối"
+                data-en-alt="Grey-toned fashion shop with clothing rails, a stone display table and a dark stone wall"
+                loading="eager"
                 data-motion-hero-media
               />
             </figure>
           </div>
+          <script type="module">
+            // detail-pages R5: giữ một hero trong pool, ảnh head đã preload; bỏ các slide còn lại. Route mềm không có
+            // preload: motion.js chạy lại bản sao classic (có currentScript), chọn tại chỗ.
+            (() => {
+              const slides = document.currentScript?.previousElementSibling ?? document.querySelector(".hero-slides");
+              const first = document.documentElement.dataset.heroFirst ?? Math.floor(Math.random() * slides.children.length);
+              delete document.documentElement.dataset.heroFirst;
+              const slide = slides.children[first];
+              slides.replaceChildren(slide);
+              slide.classList.add("is-active");
+              // Bản sao không bị ResizeObserver đầu trang theo dõi, sizes giữ 100vw như preload (page-home R3).
+              let image = slide.querySelector("img");
+              image.replaceWith((image = image.cloneNode()));
+              image.setAttribute("fetchpriority", "high");
+              [image.previousElementSibling, image].forEach((node) => {
+                if (!node?.dataset.srcset) return;
+                node.sizes = "100vw";
+                node.srcset = node.dataset.srcset;
+                node.removeAttribute("data-srcset");
+              });
+              image.src = image.dataset.src;
+              image.removeAttribute("data-src");
+            })();
+          </script>
           <div class="hero-shade" aria-hidden="true"></div>
 
           <div class="hero-content">
@@ -452,6 +599,132 @@
                   />
                 </div>
                 <figcaption data-en="Finished detail">Chi tiết hoàn thiện</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/gallery-bakery.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Tiệm bánh ngọt với tủ kính bánh kem, kệ bánh mì gỗ sáng đèn và bàn ngồi cạnh cửa"
+                    data-en-alt="Bakery with a cake display case, lit timber bread shelves and tables by the window"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Bakery">Tiệm bánh ngọt</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/gallery-flower-shop.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Shop hoa tươi với bục trưng hoa tròn, quầy ốp xanh lá và tủ mát kính ở cuối"
+                    data-en-alt="Flower shop with round flower stands, a green-clad counter and a glass cooler at the back"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Flower shop">Shop hoa tươi</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-overview.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Văn phòng chia sẻ nhìn từ quầy lễ tân gỗ, dãy bàn làm việc chung và quầy bar cạnh cửa kính"
+                    data-en-alt="Shared office seen from the timber reception desk, with shared desks and a bar counter by the glazing"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Overview">Văn phòng chia sẻ · Toàn cảnh</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-open-desks.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo"
+                    data-en-alt="Open desk area with green felt dividers, desk lamps and a logo wall"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Open desks">Văn phòng chia sẻ · Bàn làm việc chung</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-phone-booth.webp"
+                    width="1122"
+                    height="1402"
+                    alt="Phòng làm việc một người với bàn gỗ, kệ cây xanh và cửa kính khung gỗ"
+                    data-en-alt="Single-person work booth with a timber desk, plant shelf and timber-framed glass door"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Focus booth">Văn phòng chia sẻ · Phòng một người</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-team-room.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Phòng nhóm bốn người vách kính, bàn gỗ và màn hình treo tường"
+                    data-en-alt="Four-person glass-walled team room with a timber table and wall screen"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Team room">Văn phòng chia sẻ · Phòng nhóm</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-meeting-room.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Phòng họp vách kính nhìn ra phố, bàn dài gỗ và màn hình"
+                    data-en-alt="Glass-walled meeting room overlooking the street, with a long timber table and screen"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Meeting room">Văn phòng chia sẻ · Phòng họp</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-pantry.webp"
+                    width="1536"
+                    height="1024"
+                    alt="Pantry với quầy bar ốp gỗ sọc, kệ đèn hắt và ghế cao xanh rêu"
+                    data-en-alt="Pantry with a fluted timber bar, lit shelving and moss-green high stools"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Pantry">Văn phòng chia sẻ · Pantry</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/shared-office-rest-pod.webp"
+                    width="1122"
+                    height="1402"
+                    alt="Phòng nghỉ nhỏ với giường đơn, rèm xanh và vách gỗ sọc"
+                    data-en-alt="Small rest room with a single bed, green curtain and fluted timber walls"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Shared office · Rest room">Văn phòng chia sẻ · Phòng nghỉ</figcaption>
               </figure>
             </div>
             <div class="detail-gallery__pagination" data-gallery-pagination aria-hidden="true"></div>

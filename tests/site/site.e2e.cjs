@@ -10231,7 +10231,7 @@ async function runHomeMotionRegressionCheck() {
         JSON.stringify(contract.portalSources) ===
           JSON.stringify([
             "/assets/content/projects/home-residential-kitchen-v2.webp",
-            "/assets/content/projects/home-commercial-fnb-v2.webp",
+            "/assets/content/projects/home-commercial-cafe.webp",
             "/assets/content/projects/home-advertising-products-blue-grid.webp",
           ]),
         `Home service portal sources changed: ${contract.portalSources.join(", ")}`,
@@ -10252,12 +10252,12 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify([...contract.hero.sources].sort()) ===
           JSON.stringify([
-            "/assets/content/projects/hero-kiosk.webp",
             "/assets/content/projects/home-hero-kitchen-dining.webp",
+            "/assets/content/projects/home-hero-lobby-wall-art.webp",
             "/assets/content/projects/home-hero-office-reception.webp",
+            "/assets/content/projects/home-hero-shopfront-signage.webp",
             "/assets/content/projects/home-hero-tube-house-living.webp",
             "/assets/content/projects/home-hero-walnut-bedroom.webp",
-            "/assets/content/projects/mobile-retail.webp",
           ]),
         `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
       );
