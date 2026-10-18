@@ -2,7 +2,7 @@
 
 - Updated: 2026-10-18
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
-  Worker chưa activate ([CMS](specs/cms.md)).
+  Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
   workflow `Deploy demo` tự deploy [demo](https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/) khi CI xanh
   trên `main` ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)); owner kiểm nhận giao diện trên đó.

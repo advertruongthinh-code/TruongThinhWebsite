@@ -19,7 +19,7 @@ related_decisions:
 Website hiện đi theo static-first. `src/site/` là source public canonical;
 `scripts/site/prepare-static-assets.mjs` tạo `.site-output/`; Node static server
 phục vụ local preview. Worker, D1, R2 và admin là scaffold dormant/dev cho CMS
-phase, không phải dependency của public static release.
+phase, không phải dependency của demo tĩnh; phát hành chính thức chờ xong CMS phase.
 
 ## Các lớp runtime
 
