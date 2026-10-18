@@ -215,6 +215,36 @@ try {
     await context.close();
   }
 
+  // R6: ảnh tĩnh lỗi tải thì khung settle ngay, ảnh hiện để thấy alt, khung giữ kích thước như lúc tải bình thường.
+  {
+    // Ảnh nền hero, CTA, portal có cổng riêng (motion.js watchWhiteOverlayMedia): lỗi thì ẩn cùng lớp phủ, không thuộc ca này.
+    const overlay = ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
+    const measure = async block => {
+      const { context, page } = await open({ delay: 0 });
+      if (block) await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
+      await page.goto(base + "/vi/about/", { waitUntil: "load" });
+      await scrollThrough(page);
+      await page.waitForTimeout(500);
+      const images = await page.evaluate(overlay => [...document.querySelectorAll("img")]
+        .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-advertising-photo-view]") && img.getClientRects().length && !img.matches(overlay))
+        .map(img => {
+          const frame = img.parentElement.tagName === "PICTURE" ? img.parentElement.parentElement : img.parentElement;
+          const box = img.getBoundingClientRect();
+          return { key: img.getAttribute("src") + "@" + Math.round(box.top + scrollY), w: box.width, h: box.height, broken: img.complete && img.naturalWidth === 0, settled: frame.classList.contains("is-media-settled"), opacity: Number(getComputedStyle(img).opacity), hasAlt: img.hasAttribute("alt") };
+        }), overlay);
+      await context.close();
+      return images;
+    };
+    const normal = new Map((await measure(false)).map(item => [item.key, item]));
+    const failed = await measure(true);
+    assert.ok(failed.length > 0, "about: có ảnh tĩnh để thử lỗi tải");
+    assert.deepEqual(failed.filter(item => !item.broken), [], "about: mọi ảnh bị chặn đều ở trạng thái lỗi");
+    assert.deepEqual(failed.filter(item => !item.settled || item.opacity === 0), [], "about: ảnh lỗi settle ngay và hiện để thấy alt");
+    assert.deepEqual(failed.filter(item => !item.hasAlt), [], "about: ảnh lỗi vẫn có thuộc tính alt");
+    assert.deepEqual(failed.filter(item => { const ref = normal.get(item.key); return ref && (Math.abs(ref.w - item.w) > 1 || Math.abs(ref.h - item.h) > 1); }).map(item => item.key), [], "about: khung ảnh lỗi giữ kích thước như khi ảnh tải được");
+    results.push({ case: "r6-image-error", images: failed.length });
+  }
+
   // P8: Barba navigation và Back giữ cùng frame contract.
   {
     const { context, page } = await open();
