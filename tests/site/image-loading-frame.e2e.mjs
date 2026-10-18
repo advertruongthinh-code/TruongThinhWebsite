@@ -163,8 +163,11 @@ try {
     const { data, info } = await sharp(await page.locator("#sweep-probe").screenshot()).raw().toBuffer({ resolveWithObject: true });
     const row = Array.from({ length: info.width }, (_, x) => data[(300 * info.width + x) * info.channels]);
     const peak = Math.max(...row), center = row.indexOf(peak);
+    // Dither gradient khác nhau giữa headless shell, Chrome và Edge (nhiễu 1-2 mức sáng, 0.0417 slope mỗi mức ở bước 24px);
+    // trung bình trượt 48px bỏ nhiễu đó mà vẫn giữ điểm gãy thật (đoạn dốc 0.3 mức/px vẫn ra 0.15).
+    const smooth = row.map((_, x) => { const part = row.slice(Math.max(0, x - 24), x + 24); return part.reduce((a, b) => a + b, 0) / part.length; });
     const slopes = [];
-    for (let x = 24; x < row.length; x += 24) slopes.push((row[x] - row[x - 24]) / 24);
+    for (let x = 24; x < smooth.length; x += 24) slopes.push((smooth[x] - smooth[x - 24]) / 24);
     const maxStep = Math.max(...row.slice(1).map((value, x) => Math.abs(value - row[x])));
     const maxSlopeJump = Math.max(...slopes.slice(1).map((slope, i) => Math.abs(slope - slopes[i])));
     // Chromium dither gradient nên pixel kề có thể lệch ngược 1 mức; xét chiều tăng giảm với dung sai đó.
