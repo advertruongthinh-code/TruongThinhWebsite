@@ -169,7 +169,7 @@ Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, ho�
 hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
 `document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
 `.is-media-settled` ngay, ảnh hiện để thấy alt, khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
-nên chưa có vệt.
+nên chưa có vệt. Ảnh nền hero, CTA, portal đi cổng riêng ([motion.js](../../src/site/motion.js) `watchWhiteOverlayMedia`): lỗi thì ẩn cùng lớp phủ, không hiện alt. Ca lỗi tải ảnh tĩnh có test `r6-image-error` (`image-loading-frame.e2e.mjs`).
 
 Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (đã có ở mọi trang), đăng ký trước khi trình
 duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script đó thêm class lên `<html>`; CSS chỉ ẩn ảnh khi có
@@ -268,7 +268,6 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Cache hit: ảnh từ cache vẫn qua `decode()` rồi fade `0.45s`, nên có thể lóe nền tối một nhịp khi chuyển trang Barba
   (suy luận, cùng gate ở [trang chủ](page-home.md#gate-còn-mở)). Main đo; owner xem trên demo.
 - Số lần Paint khi trang đứng yên (audit 04/10: 509 với vòng SMIL, 311 khi bỏ) đo lại sau khi đổi sang vệt. Main.
-- Ảnh tĩnh lỗi tải chưa có ca test (khung giữ tỷ lệ, alt). Main.
 - Lần đo demo sau tự host font chỉ có 390px VI, 3 lượt mỗi route (residential 7), không lượt warm; owner cho rút gọn
   04/10. Advertising chưa có baseline nên mục ảnh đầu Advertising nhanh hơn 10% chưa so được. Script chưa thu long task
   như phương pháp đo đã duyệt.

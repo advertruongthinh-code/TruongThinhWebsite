@@ -637,7 +637,11 @@
         mediaItems.forEach((item) => {
           const markReady = () => item.classList.add("is-motion-ready");
           if (item.complete) markReady();
-          else item.addEventListener("load", markReady, { once: true, signal: abort.signal });
+          else {
+            // Ảnh lỗi cũng phải hiện để thấy alt, nên error đánh dấu sẵn sàng như load.
+            item.addEventListener("load", markReady, { once: true, signal: abort.signal });
+            item.addEventListener("error", markReady, { once: true, signal: abort.signal });
+          }
         });
 
         const isInside = (section, element) =>
