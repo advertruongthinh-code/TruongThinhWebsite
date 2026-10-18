@@ -155,6 +155,12 @@
   let routeInFlight = false;
   let routeDestinationReady = false;
   let routeMountReady = false;
+  // Mount dưới veil chờ lúc veil bắt đầu mở để đếm delay intro hero (first-load-parity R2).
+  let resolveRouteReveal;
+  const startRouteReveal = () => {
+    resolveRouteReveal?.();
+    resolveRouteReveal = undefined;
+  };
   let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
@@ -1406,9 +1412,9 @@
           0.9,
         );
       }
-      // Bắt đầu ở frame kế tiếp để long task của mount không làm mất phần mở đầu của intro.
+      // Chạy khi veil bắt đầu mở, sau long task của mount, nên không mất phần mở đầu của intro (first-load-parity R2).
       intro.pause();
-      window.requestAnimationFrame(() => intro.play());
+      state.introStart.then(() => intro.play());
       if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
       else window.requestAnimationFrame(() => headerIntro.play());
       // Thứ tự slide do script sau .hero-slides xáo (page-home R3); slides[0] là ảnh chiếu đầu.
@@ -1776,7 +1782,12 @@
     setPageScroll(state, state.smoothScrollY, { instant: true });
     // Cỡ chữ hero chốt trước khi SplitText tách từ và motion đọc vị trí.
     fitHeroLines();
-    await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
+    startRouteReveal();
+    const introStart = routeInFlight || document.documentElement.classList.contains("route-enter")
+      ? new Promise((resolve) => { resolveRouteReveal = resolve; })
+      : Promise.resolve();
+    state.introStart = introStart;
+    await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation, introStart });
     // Motion trang là task riêng, không cộng vào task render của catalog.
     if (softNavigation) await nextTask();
     if (
@@ -2023,6 +2034,7 @@
   };
 
   const clearRouteEntry = () => {
+    startRouteReveal();
     routeTimeline?.kill();
     routeTimeline = undefined;
     routeInFlight = false;
@@ -2096,6 +2108,7 @@
     header.classList.add("is-route-pinned");
     document.body.classList.add("is-transitioning");
     setRouteVeil(1);
+    startRouteReveal();
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
       // Mark tween màu theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);
