@@ -117,7 +117,8 @@ gọi `loseContext` trên context đã mất. Mỗi renderer dựng trong một 
 đó (R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
 làm trễ nhịp trượt. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn gây task trên 50ms thì
 hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh. Điện thoại (pointer coarse, có touch hoặc `clientWidth <= 750`) hoãn
-như vậy, cả khung batch lẫn khung chờ ảnh (A05s cũ, 10/10): "cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt
+như vậy cho khung batch (A05s cũ, 10/10); khung chờ ảnh trong card dựng ngay cả lúc đang vuốt, với profile phone ở R8
+(owner 18/10). "Cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt
 không có `scrollend` thì `120ms` sau scroll event cuối. Scroll không kèm `scrollend` (layout, mở detail nhảy về đầu
 trang) coi là đã dừng sau `500ms` không có scroll event.
 
@@ -159,7 +160,9 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [phone Android trên 60fps](../decisions/phone-frame-budget.md)
 (trên 60fps), mọi khung trong viewport đều chạy (owner 10/10). Batch đạt gate nhờ một canvas chung nửa độ phân
-giải (R5); không hạ preset, noise hay số khung chạy để đạt gate.
+giải (R5). Khung chờ ảnh trong card trên điện thoại chạy cả lúc vuốt nên dùng renderer `120x80` và vẽ mỗi `30ms`
+(khoảng 30fps), giữ preset, màu, anchor, chiều chảy và tốc độ (owner 18/10); ngoài hai điểm đó không hạ preset,
+noise hay số khung chạy để đạt gate.
 Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
