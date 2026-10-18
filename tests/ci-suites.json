@@ -144,7 +144,8 @@
       "specs": ["detail-pages", "site-shell"],
       "tests": [
         "TT_E2E_M1_ONLY=1 node tests/site/site.e2e.cjs",
-        "TT_E2E_FAILOPEN_ONLY=1 node tests/site/site.e2e.cjs"
+        "TT_E2E_FAILOPEN_ONLY=1 node tests/site/site.e2e.cjs",
+        "node tests/site/first-load-parity.e2e.mjs"
       ]
     },
     "adv-grid": {
