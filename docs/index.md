@@ -9,16 +9,16 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Công việc | Nguồn bắt đầu |
 | --- | --- |
 | Mục tiêu và phase | [Goal](goal.md): static (đang ở), CMS (chưa mở) |
-| Runtime, ownership, deploy | [Architecture](architecture.md), [phát hành tĩnh](specs/static-release.md) |
+| Tech stack, runtime, ownership, deploy | [Architecture](architecture.md#tech-stack), [phát hành tĩnh](specs/static-release.md) |
 | Sửa một phần website | [Capability map](specs/docs-system.md#r2-capability-map-và-spec-sống): mỗi phần một spec sống |
-| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md), [logo đổi màu khi chuyển trang](specs/logo-route-crossfade.md) |
+| Shell và các trang | [Shell](specs/site-shell.md), [trang chủ](specs/page-home.md), [Residential, Commercial, About](specs/detail-pages.md), [cảm giác cuộn](specs/scroll-feel.md), [header đi theo ngón tay trên điện thoại](specs/phone-header-scroll.md), [logo đổi màu khi chuyển trang](specs/logo-route-crossfade.md), [reveal hero và LCP](specs/hero-motion-reveal.md) (planned) |
 | Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md), [detail](specs/advertising-detail.md), [viewer zoom](specs/advertising-viewer-touch-zoom.md), [CTA cuối trang](specs/advertising-cta-center-parallax.md), [phân loại](specs/advertising-taxonomy.md) (planned) |
 | Ảnh, media, Kính | [Tải ảnh](specs/media-delivery.md), [card nhiều media](specs/media-card.md), [skeleton chờ ảnh](specs/loading-glass-and-page-entry.md), [Kính](specs/glass-surface.md) |
 | SEO, Google, bot AI | [SEO](specs/seo.md), planned, tạm dừng tới khi đủ feature website |
 | Worker, admin, D1 | [CMS](specs/cms.md), dormant tới khi owner mở CMS phase |
 | Thiết kế và reuse UI | [Design System](../design-system/README.md), [authority map](#authority-map) |
 | Reference hành vi | [Nguồn tham khảo](../design-system/README.md#nguồn-tham-khảo), [Pinterest photo view](reference/pinterest-photo-view.md); không tự thành target |
-| Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) |
+| Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) (mỗi họ một file, chỉ nạp họ cần) |
 | Gate NOT PASS còn mở | Mục "Gate còn mở" của spec sở hữu |
 | Quyết định | [Decisions](decisions/index.md) |
 | Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [bộ test CI](specs/ci-test-suites.md), [Android thật](operations/android-real-device-debugging.md) |
@@ -36,7 +36,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Giọng văn, copy hero, mạch route, crop ảnh | [Content và media](../design-system/content.md) |
 | Node lá VI/EN, motion hook, file ảnh, loading, alt | [Ba trang con](specs/detail-pages.md#r4-nội-dung-vien-và-hook), [chuẩn file ảnh](specs/media-delivery.md#r5-chuẩn-file-ảnh) |
 | Hướng ảnh sáu nhóm Advertising | [Ảnh Advertising](../design-system/advertising-images.md) |
-| Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-evidence-qa-handoff.md#chấm-ảnh-advertising) |
+| Chấm ảnh Audit/Critique | [QA ảnh Advertising](operations/agent-rule-ad-images.md#chấm-điểm) |
 | Route, lifecycle, reuse contract | [Shell](specs/site-shell.md), [ba trang con](specs/detail-pages.md#r6-reveal-parallax-đổi-ngôn-ngữ-và-vòng-đời) |
 | Masonry, catalog, renderer Advertising | [Masonry](specs/advertising-masonry.md), [skeleton](specs/advertising-skeleton.md) |
 | Implementation đang chạy | `src/site/`, `scripts/`, `tests/` |

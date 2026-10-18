@@ -8,7 +8,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-12
+updated: 2026-10-18
 ---
 
 # Tải ảnh nội dung
@@ -59,8 +59,8 @@ runtime ghi lại `sizes` theo phần hiển thị sau crop: bề rộng hiển 
 `<source>` cùng `<picture>`. Việc ghi do một `ResizeObserver` trong script đầu trang làm, gắn qua `MutationObserver`
 cho ảnh lazy và slide hero hoãn (`data-srcset`), kể cả ảnh Barba chèn sau. `ResizeObserver` báo sau layout nhưng trước
 khi lazy load bắt đầu tải, nên `sizes` đã đúng trước request đầu tiên; ghi từ `motion.js` thì muộn, vì lúc đó ảnh trong
-vùng lazy đã đang tải (`currentSrc` vẫn rỗng) và trình duyệt hủy request để tải lại. Ảnh eager có `src` (hero đầu) để
-nguyên, vì preload scanner đã tải. Khung đổi cỡ (resize, xoay máy) thì observer chạy lại: chỉ ghi khi file đang hiện
+vùng lazy đã đang tải (`currentSrc` vẫn rỗng) và trình duyệt hủy request để tải lại. Ảnh eager có `src` (hero đầu) và ảnh đầu hero trang
+chủ (đã preload, R4) để nguyên. Khung đổi cỡ (resize, xoay máy) thì observer chạy lại: chỉ ghi khi file đang hiện
 nhỏ hơn nhu cầu mới, nên trình duyệt chỉ nâng lên bản lớn hơn, không đổi sang bản nhỏ; ảnh đang hiện bản gốc thì thôi.
 Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536 hoặc 1920)
 dùng bản gốc; sinh thêm cỡ lớn hơn nằm ngoài phần này.
@@ -108,7 +108,9 @@ And card masonry dùng data-srcset AVIF 480w, 960w và bản gốc
 trang chủ ở `data-src`. Ảnh nội dung khác `loading="lazy"`; logo khách hàng `eager`, không vệt
 ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). Không preload ảnh: `<link rel="preload">` chỉ dành
 cho hai file font ([phát hành tĩnh R4](static-release.md#r4-font-và-thư-viện-tự-host)), vì preload cạnh `<picture>`
-làm tải ảnh hai lần. Mọi `<img>` nội dung có `width`, `height` (trừ nền primary Advertising) nên khung giữ chỗ trước khi
+làm tải ảnh hai lần. Ngoại lệ duy nhất: ảnh đầu hero trang chủ chọn ngẫu nhiên nên không có `src` trong HTML; script
+head preload nó với `imagesrcset` và `imagesizes="100vw"` đúng như `<picture>`, script hero gán đúng các giá trị đó
+([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). Mọi `<img>` nội dung có `width`, `height` (trừ nền primary Advertising) nên khung giữ chỗ trước khi
 tải. Advertising chỉ tải ảnh card trong cửa sổ ảo hóa; primary eager, ưu tiên cao.
 
 ```gherkin
@@ -167,7 +169,7 @@ Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, ho�
 hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
 `document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:
 `.is-media-settled` ngay, ảnh hiện để thấy alt, khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
-nên chưa có vệt.
+nên chưa có vệt. Ảnh nền hero, CTA, portal đi cổng riêng ([motion.js](../../src/site/motion.js) `watchWhiteOverlayMedia`): lỗi thì ẩn cùng lớp phủ, không hiện alt. Ca lỗi tải ảnh tĩnh có test `r6-image-error` (`image-loading-frame.e2e.mjs`).
 
 Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (đã có ở mọi trang), đăng ký trước khi trình
 duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script đó thêm class lên `<html>`; CSS chỉ ẩn ảnh khi có
@@ -256,7 +258,7 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
-| R6 | `image-loading-frame.e2e.mjs` (khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, chụp Slow 4G); A05s qua CDP |
+| R6 | `image-loading-frame.e2e.mjs` (khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, chụp Slow 4G); phone Android qua CDP |
 | R7 | Chính script, chạy tay trên demo |
 
 ## Gate còn mở
@@ -266,11 +268,6 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Cache hit: ảnh từ cache vẫn qua `decode()` rồi fade `0.45s`, nên có thể lóe nền tối một nhịp khi chuyển trang Barba
   (suy luận, cùng gate ở [trang chủ](page-home.md#gate-còn-mở)). Main đo; owner xem trên demo.
 - Số lần Paint khi trang đứng yên (audit 04/10: 509 với vòng SMIL, 311 khi bỏ) đo lại sau khi đổi sang vệt. Main.
-- Ảnh tĩnh lỗi tải chưa có ca test (khung giữ tỷ lệ, alt). Main.
-- Probe AVIF bất đồng bộ: deep link `?photo=` có thể tải primary WebP rồi viewer tải lại AVIF (suy luận). Main kiểm
-  network; Thread code sửa nếu đúng.
-- `[data-advertising-photo-background]` trong `advertising-products/index.html` không có `loading`, luôn tải
-  `advertising-print-decals-cover.webp` dù detail ẩn, rồi runtime thay bằng AVIF. Thread code.
 - Lần đo demo sau tự host font chỉ có 390px VI, 3 lượt mỗi route (residential 7), không lượt warm; owner cho rút gọn
   04/10. Advertising chưa có baseline nên mục ảnh đầu Advertising nhanh hơn 10% chưa so được. Script chưa thu long task
   như phương pháp đo đã duyệt.

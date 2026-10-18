@@ -48,7 +48,7 @@ const snapshot = page => page.evaluate(() => { const seen = new Map(); return [.
     const src = img.getAttribute("src");
     seen.set(src, (seen.get(src) || 0) + 1);
     return {
-      key: src + "#" + seen.get(src), raw: !img.hasAttribute("data-src"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
+      key: src + "#" + seen.get(src), raw: !img.closest("[data-hero-intro] .hero-slides"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
       loading: img.getAttribute("loading"), priority: img.getAttribute("fetchpriority"),
       ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, sweep: /^media-(sweep|breathe)$/.test(getComputedStyle(frame, "::before").animationName), settled: frame.classList.contains("is-media-settled"), imageOpacity: Number(getComputedStyle(img).opacity), opacity,
     };
@@ -101,7 +101,7 @@ try {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
         if (!item.ready) assert.ok(item.sweep && item.imageOpacity === 0, `${label}: ${item.src} shows the sweep and hides the image while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
-        // Ảnh có src set bằng script (slide hero dùng data-src) không có raw src để so sánh.
+        // Slide hero trang chủ nhận src bằng script (page-home R3) nên không có raw src để so sánh.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;
@@ -163,8 +163,11 @@ try {
     const { data, info } = await sharp(await page.locator("#sweep-probe").screenshot()).raw().toBuffer({ resolveWithObject: true });
     const row = Array.from({ length: info.width }, (_, x) => data[(300 * info.width + x) * info.channels]);
     const peak = Math.max(...row), center = row.indexOf(peak);
+    // Dither gradient khác nhau giữa headless shell, Chrome và Edge (nhiễu 1-2 mức sáng, 0.0417 slope mỗi mức ở bước 24px);
+    // trung bình trượt 48px bỏ nhiễu đó mà vẫn giữ điểm gãy thật (đoạn dốc 0.3 mức/px vẫn ra 0.15).
+    const smooth = row.map((_, x) => { const part = row.slice(Math.max(0, x - 24), x + 24); return part.reduce((a, b) => a + b, 0) / part.length; });
     const slopes = [];
-    for (let x = 24; x < row.length; x += 24) slopes.push((row[x] - row[x - 24]) / 24);
+    for (let x = 24; x < smooth.length; x += 24) slopes.push((smooth[x] - smooth[x - 24]) / 24);
     const maxStep = Math.max(...row.slice(1).map((value, x) => Math.abs(value - row[x])));
     const maxSlopeJump = Math.max(...slopes.slice(1).map((slope, i) => Math.abs(slope - slopes[i])));
     // Chromium dither gradient nên pixel kề có thể lệch ngược 1 mức; xét chiều tăng giảm với dung sai đó.
@@ -210,6 +213,36 @@ try {
     for (const item of images.filter(item => item.columnVisible)) assert.ok(item.ready && item.opacity > 0, `${route} no-script: ${item.src} is visible`);
     results.push({ case: "p8-no-script", route, images: images.length });
     await context.close();
+  }
+
+  // R6: ảnh tĩnh lỗi tải thì khung settle ngay, ảnh hiện để thấy alt, khung giữ kích thước như lúc tải bình thường.
+  {
+    // Ảnh nền hero, CTA, portal có cổng riêng (motion.js watchWhiteOverlayMedia): lỗi thì ẩn cùng lớp phủ, không thuộc ca này.
+    const overlay = ".hero-slide img, .about-hero__media img, :is(.service-portal, .detail-cta, .legacy-closer) > img, :is(.service-portal, .detail-cta, .legacy-closer) > picture > img";
+    const measure = async block => {
+      const { context, page } = await open({ delay: 0 });
+      if (block) await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
+      await page.goto(base + "/vi/about/", { waitUntil: "load" });
+      await scrollThrough(page);
+      await page.waitForTimeout(500);
+      const images = await page.evaluate(overlay => [...document.querySelectorAll("img")]
+        .filter(img => img.getAttribute("src")?.startsWith("/assets/content/") && !img.closest(".client-logo-marquee, .client-logo-image, [data-project-grid], [data-advertising-photo-view]") && img.getClientRects().length && !img.matches(overlay))
+        .map(img => {
+          const frame = img.parentElement.tagName === "PICTURE" ? img.parentElement.parentElement : img.parentElement;
+          const box = img.getBoundingClientRect();
+          return { key: img.getAttribute("src") + "@" + Math.round(box.top + scrollY), w: box.width, h: box.height, broken: img.complete && img.naturalWidth === 0, settled: frame.classList.contains("is-media-settled"), opacity: Number(getComputedStyle(img).opacity), hasAlt: img.hasAttribute("alt") };
+        }), overlay);
+      await context.close();
+      return images;
+    };
+    const normal = new Map((await measure(false)).map(item => [item.key, item]));
+    const failed = await measure(true);
+    assert.ok(failed.length > 0, "about: có ảnh tĩnh để thử lỗi tải");
+    assert.deepEqual(failed.filter(item => !item.broken), [], "about: mọi ảnh bị chặn đều ở trạng thái lỗi");
+    assert.deepEqual(failed.filter(item => !item.settled || item.opacity === 0), [], "about: ảnh lỗi settle ngay và hiện để thấy alt");
+    assert.deepEqual(failed.filter(item => !item.hasAlt), [], "about: ảnh lỗi vẫn có thuộc tính alt");
+    assert.deepEqual(failed.filter(item => { const ref = normal.get(item.key); return ref && (Math.abs(ref.w - item.w) > 1 || Math.abs(ref.h - item.h) > 1); }).map(item => item.key), [], "about: khung ảnh lỗi giữ kích thước như khi ảnh tải được");
+    results.push({ case: "r6-image-error", images: failed.length });
   }
 
   // P8: Barba navigation và Back giữ cùng frame contract.

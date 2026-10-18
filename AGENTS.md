@@ -5,6 +5,7 @@
 1. Mọi role dùng `ponytail` ultra. Skill của agent-skills, ponytail, impeccable, graphify, `i-have-adhd` do AI tự gọi; skill caveman (22 skill từ juliusbrussee/caveman) chỉ chạy khi user chỉ định (`disable-model-invocation: true` do `cloud-setup.sh`/`local-setup.ps1` gắn). Tuyệt đối không dùng emoji trong response, source, test, log, tài liệu, commit, issue, card hoặc nội dung Notion; dùng chữ thuần thay thế.
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
+   Cần kiến thức ngoài module (tech stack, runtime, spec, decision): mở [docs index](docs/index.md), chọn đúng file `docs/*.md` rồi đọc; tech stack ở [Architecture](docs/architecture.md#tech-stack).
 4. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
 5. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
 
@@ -31,19 +32,10 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 
 ## Notion trong workflow
 
-Notion là một phần của workflow vận hành: board Tasks là backlog chung của
-owner, điều phối và mọi worker (thread, subagent). Git `main` giữ contract và
-trạng thái repo; card chỉ trỏ tới đó.
-
-- Điều phối (coordinator hoặc main agent) giao việc kèm card tương ứng. Việc
-  owner giao chưa có card thì worker nhận việc tạo card trước khi làm.
-- Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
-  merge (`Done`, hoặc ghi việc còn mở).
-- Card chỉ giữ tên, status, thứ tự, mục tiêu một dòng, việc còn mở, link spec
-  và PR. Không chép state, evidence, log hay checklist đã xong vào card.
-- Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
-  bị gộp thì archive. Không xóa vĩnh viễn card.
-- Schema, quy trình và link board: [Notion và Git](docs/operations/notion.md#rule).
+Board Tasks là backlog chung của owner, điều phối và mọi worker; Git `main` giữ contract và
+trạng thái repo, card chỉ trỏ tới đó. Việc owner giao chưa có card thì worker nhận việc tạo card
+trước khi làm. Worker cập nhật card ở ba mốc: nhận việc, mở PR, merge. Không xóa vĩnh viễn card.
+Quy tắc đầy đủ (nội dung card, gộp/đổi tên, schema, link board): [Notion và Git](docs/operations/notion.md#rule).
 
 ## Routing theo path
 
@@ -63,7 +55,7 @@ File/project source `untracked` cần review riêng trước khi stage. Không m
 xóa, stage hoặc commit hàng loạt generated output, research archive, tooling
 cache hay untracked worktree.
 
-Ponytail chạy theo bốn mốc:
+Ponytail chạy theo ba mốc:
 
 1. `ponytail` ultra luôn bật cho mọi việc code.
 2. Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit` review
@@ -71,11 +63,9 @@ Ponytail chạy theo bốn mốc:
    agent tự chạy `ponytail-review` trên diff. Review, host agent hoặc hook lỗi thì fail
    closed; không dùng `--no-verify` để bỏ qua gate.
    Phạm vi chỉ là over-engineering; correctness và security thuộc five-axis review.
-3. `ponytail-audit` ultra quét cả repo, chỉ báo cáo, không tự sửa. Chạy trong thread code
-   review của wrap-up session hoặc khi owner gọi; không chạy tự động.
-4. Shortcut có chủ đích (giới hạn đã biết) đánh dấu bằng comment `ponytail: <ceiling>, <upgrade path>`.
-   `ponytail-debt` gom các comment đó, chạy cùng audit; nợ cần xử lý ghi vào card Notion,
-   không tạo file ledger.
+3. Shortcut có chủ đích (giới hạn đã biết) đánh dấu bằng comment `ponytail: <ceiling>, <upgrade path>`.
+   `ponytail-audit` và `ponytail-debt` chỉ chạy khi owner gọi hoặc trong thread code review của
+   wrap-up session ([quy tắc](docs/operations/agent-rule-workflow-tools.md#ponytail-audit-và-debt)).
 
 ## Branch, PR và merge
 
@@ -124,6 +114,7 @@ Ponytail chạy theo bốn mốc:
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
 | Codebase, skill, plugin, MCP, Graphify, Serena | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
+| Tạo hoặc chấm media AI (ảnh, video, âm thanh) | [Tạo và chấm ảnh](docs/operations/agent-rule-ad-images.md) |
 | Giao thread, chọn model/effort | [Model và effort routing](docs/operations/agent-rule-model-routing.md) |
 
 ## Scripts map

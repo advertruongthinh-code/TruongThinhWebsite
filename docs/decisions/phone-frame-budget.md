@@ -1,5 +1,5 @@
 ---
-title: Trên 60fps trên A05s
+title: Trên 60fps trên phone Android
 status: accepted
 date: 2026-10-11
 scope: mọi trang public và hiệu ứng
@@ -13,21 +13,22 @@ related_specs:
 related_reports: []
 ---
 
-# Trên 60fps trên A05s
+# Trên 60fps trên phone Android
 
 ## Context
 
-Owner thêm yêu cầu phi chức năng ngày 2026-10-10: "phải đạt trên 60 fps trên A05s". A05s (SM-A057F) là máy Android
-đo chuẩn ([phát hành tĩnh](../specs/static-release.md#gate-còn-mở)); màn tối đa 90Hz theo
+Owner thêm yêu cầu phi chức năng ngày 2026-10-10: "phải đạt trên 60 fps trên A05s". Lúc đó máy đo chuẩn là Galaxy A05s (SM-A057F, Android);
+ngày 2026-10-18 owner đổi sang một phone Android khác nối adb debug, gate áp cho phone Android đang dùng đo
+(số đo cũ trong repo ghi là "A05s cũ"; [phát hành tĩnh](../specs/static-release.md#gate-còn-mở)). Màn A05s tối đa 90Hz theo
 [GSMArena](https://www.gsmarena.com/samsung_galaxy_a05s-review-2646p3.php). Các spec trước chỉ đặt sàn `30fps`.
 Ngày 2026-10-11 owner hạ gate: "trên a05s >= 60 fps là pass", chọn fps trung bình và bỏ điều kiện long task. Bản p5
-cũ: [a05s-frame-budget.md tại 9bc719b](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/9bc719b/docs/decisions/a05s-frame-budget.md).
+cũ: [phone-frame-budget.md tại 9bc719b](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/9bc719b/docs/decisions/a05s-frame-budget.md).
 
 ## Decision
 
-Trên A05s, Chrome thật, màn chạy 90Hz: mọi trang public và mọi hiệu ứng (cuộn, mở và đóng chi tiết, viewer, menu,
+Trên phone Android, Chrome thật, màn chạy 90Hz: mọi trang public và mọi hiệu ứng (cuộn, mở và đóng chi tiết, viewer, menu,
 skeleton, Kính) có fps trung bình của frame hiển thị (SurfaceFlinger, layer Chrome) từ `60fps` trở lên; mục tiêu
-`90fps` (`11.1ms`). Fps trung bình là số frame chia tổng khoảng present-to-present trong lượt đo, bỏ các khoảng lặng
+tần số quét của màn (A05s: `90fps`, `11.1ms`). Fps trung bình là số frame chia tổng khoảng present-to-present trong lượt đo, bỏ các khoảng lặng
 từ `100ms` (trang đứng yên, không phải giật). Long task không còn là điều kiện pass; p5 và long task vẫn ghi để tìm
 chỗ giật. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
 và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).

@@ -11,7 +11,7 @@ const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all
   read("src/site/detail.css"),
   read("src/site/style.css"),
   read("scripts/site/prepare-static-assets.mjs"),
-  Promise.all(["src/site/motion.js", "src/site/detail.js"].map(read)).then((sources) => sources.join("\n")),
+  Promise.all(["src/site/motion.js", "src/site/detail.js", "src/site/index.html"].map(read)).then((sources) => sources.join("\n")),
 ]);
 const artifact = buildAdvertisingArtifact();
 const advertisingGridStart = css.indexOf(".advertising-grid {");
@@ -35,8 +35,9 @@ const builtIndex = await read(".site-output/advertising-products/index.html");
 assert.equal((builtIndex.match(/data-advertising-filter=/g) || []).length, 7, "all filters remain available without JavaScript");
 assert.deepEqual([...builtIndex.matchAll(/data-advertising-filter="([^"]+)"/g)].map(([, slug]) => slug),
   ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)], "All and the six clusters keep taxonomy order");
-// Ngoại lệ duy nhất: xáo slide hero trang chủ (page-home R3), không phải grid.
-assert.doesNotMatch(sharedScripts.replace('selectAll(".hero-slide:not(:first-child)")\n        .map((slide) => [Math.random(), slide])', ""),
+// Ngoại lệ duy nhất: chọn và xáo slide hero trang chủ (page-home R3), không phải grid.
+assert.doesNotMatch(sharedScripts.replace("const first = Math.floor(Math.random() * slides.length);", "")
+  .replace("[slide.dataset.slide === first ? -1 : Math.random(), slide]", ""),
   /Math\.random|random-order|shuffle/, "grid routes outside Advertising are never randomized");
 assert.equal((index.match(/<noscript>/g) || []).length, 1, "no-JS fallback remains available");
 assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\s*display: contents;/,
@@ -353,5 +354,9 @@ const scrollbarDesktopLayout = compileAdvertisingRelatedLayout({
 assert.ok(scrollbarDesktopColumns <= 3, "related columns respect the responsive width and bounded fallback");
 assert.ok(scrollbarDesktopLayout.primary.span <= scrollbarDesktopColumns, "primary is recomputed for the accepted column count");
 assertNoOverlap(scrollbarDesktopLayout, "scrollbar desktop related layout");
+
+// Placeholder nền của detail không tải khi detail ẩn; runtime gán nguồn thật rồi mới đổi sang eager.
+assert.match(index, /<img data-advertising-photo-background[^>]*loading="lazy"/, "photo background placeholder is lazy in markup");
+assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loading = "eager";/, "photo background goes eager after the real source is set");
 
 console.log(`[advertising-products-static] ${ADVERTISING_LAYOUT_ALGORITHM_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);

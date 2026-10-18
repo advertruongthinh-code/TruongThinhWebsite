@@ -176,7 +176,7 @@ nhiều card cùng chạy R2. Không hạ độ phân giải, frame rate hay ch�
 code báo owner kèm số đo trước khi đổi cách làm.
 
 ```gherkin
-Given Galaxy A05s, masonry đầy card đang chờ ảnh
+Given phone Android, masonry đầy card đang chờ ảnh
 When vuốt nhanh từ đầu masonry tới footer
 Then trace Chrome đạt gate điện thoại của skeleton R8
 ```
@@ -219,11 +219,11 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |
 | R7 | chưa có test |
 | R8 | chưa có test |
-| R9 | chưa có test; trace Chrome qua CDP trên A05s ([debug Android](../operations/android-real-device-debugging.md)) |
+| R9 | chưa có test; trace Chrome qua CDP trên A05s cũ ([debug Android](../operations/android-real-device-debugging.md)) |
 
 ## Gate còn mở
 
-- R9 chưa có trace A05s khi vuốt nhanh masonry đầy card đang chờ ảnh, nhiều Kính cùng chạy. Owner và máy PC.
+- R9 chưa có trace A05s cũ khi vuốt nhanh masonry đầy card đang chờ ảnh, nhiều Kính cùng chạy. Owner và máy PC.
 - `image-loading-frame.e2e.mjs` mới chạy Chromium: WebKit chưa chạy; Safari trên iPhone thật chưa kiểm skeleton và Kính
   (WebKit trên cloud không vẽ `backdrop-filter`, [Kính R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)). Main (WebKit),
   owner và máy PC (iPhone).

@@ -2,6 +2,8 @@
 
 # Claude Code
 
+Bản đồ tài liệu: [docs index](docs/index.md); tech stack: [Architecture](docs/architecture.md#tech-stack). Agent tự đọc file `docs/*.md` khi cần.
+
 Dùng command nội bộ repository; dependency pin nằm trong `tooling-versions.json`. Không tạo
 workflow riêng cho Claude khi `AGENTS.md` đã định nghĩa shared contract.
 

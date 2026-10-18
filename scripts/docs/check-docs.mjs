@@ -64,6 +64,19 @@ for (const file of files) {
   if (lines > max) errors.push(`${file}: ${lines} lines, over the ${max} limit`);
 }
 
+// Ngân sách byte cho file agent nạp theo trigger (docs/specs/docs-system.md R9): dòng dài không lách được giới hạn dòng.
+const BYTE_BUDGET = [
+  [/^AGENTS\.md$/, 15000],
+  [/^docs\/operations\/agent-rule-ad-images\.md$/, 16000],
+  [/^docs\/operations\/agent-rule-/, 8000],
+  [/^docs\/reference\//, 24000],
+];
+for (const file of files) {
+  const max = BYTE_BUDGET.find(([re]) => re.test(file))?.[1];
+  const bytes = max && statSync(file).size;
+  if (bytes > max) errors.push(`${file}: ${bytes} bytes, over the ${max} limit`);
+}
+
 // Spec sở hữu file source qua glob `source:` trong frontmatter.
 const specs = files
   .filter((f) => f.startsWith('docs/specs/') && !f.endsWith('_template.md'))
@@ -119,8 +132,8 @@ for (const script of ['build-design-system.mjs', 'build-design-md.mjs']) {
   }
 }
 
-// Markup Advertising đã capture (R5.3): mọi class trong preview vẫn còn trong source site (CSS, runtime, HTML), nếu không thì capture lại.
-const siteText = git('ls-files', 'src/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
+// Markup Advertising đã capture (R5.3): mọi class trong preview vẫn còn trong source site (CSS, runtime, HTML, generator scripts/site), nếu không thì capture lại.
+const siteText = git('ls-files', 'src/site', 'scripts/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
 for (const preview of git('ls-files', 'design-system/components/*/preview.html').split('\n').filter(Boolean)) {
   const classes = new Set([...readFileSync(preview, 'utf8').matchAll(/\sclass="([^"]*)"/g)].flatMap(([, list]) => list.split(/\s+/)).filter(Boolean));
   const gone = [...classes].filter((name) => !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));

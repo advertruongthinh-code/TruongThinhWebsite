@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 194);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 200);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -301,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 194);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 200);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
@@ -356,7 +356,7 @@ const PLAN_MAP = {
   "led-displays/decorative-led": {},
   "led-displays/led-screens": { "led-displays-lightboxes": [4, 5, 6, 7, 8, 9] },
   "led-displays/scrolling-led-signs": { "led-displays-lightboxes": [1, 2, 3] },
-  "led-displays/led-sign-boards": {},
+  "led-displays/led-sign-boards": { "led-displays-lightboxes": [13, 14] },
   "office-signs/house-numbers-company-nameplates": { "office-signs-wayfinding": [1, 2] },
   "office-signs/wayfinding-building-directories": { "office-signs-wayfinding": [3, 4, 10, 11, 12] },
   "office-signs/room-signs": { "office-signs-wayfinding": [8, 9] },
@@ -390,8 +390,8 @@ test("taxonomy has six clusters and 24 products in plan order with a thin-page t
 
 test("every old product tag becomes a variant that maps to its plan product", () => {
   const variants = ADVERTISING_TAG_REGISTRY.filter((tag) => tag.id.startsWith("product-"));
-  assert.equal(variants.length, 75);
-  assert.equal(planProductByLegacyKey.size, 75);
+  assert.equal(variants.length, 77);
+  assert.equal(planProductByLegacyKey.size, 77);
   for (const tag of variants) {
     assert.equal(tag.group, "variant", tag.id);
     assert.equal(tag.productId, planProductByLegacyKey.get(tag.id.slice("product-".length)), tag.id);

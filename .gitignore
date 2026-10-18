@@ -20,6 +20,11 @@ graphify-out/
 .claude/settings.local.json
 CLAUDE.local.md
 
+# Secret local, chưa dùng nhưng CMS phase sẽ cần.
+.env*
+.dev.vars*
+!.env.example
+
 # Local parity artifacts and raw runtime evidence.
 /.tmp/
 /tmp-layout-motion-*/

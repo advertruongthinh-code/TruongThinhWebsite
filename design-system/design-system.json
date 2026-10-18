@@ -38,6 +38,8 @@
         "gieng3-phong-ngu.webp",
         "gieng3-phong-tam.webp",
         "gieng3-phong-tho.webp",
+        "home-commercial-fnb-v2.webp",
+        "home-hero-tube-house-living.webp",
         "home.webp",
         "homestay-bep.webp",
         "homestay-chi-tiet.webp",
@@ -74,6 +76,7 @@
         "office-signs-wayfinding-09-meeting-room-signs-480.webp",
         "office-signs-wayfinding-10-floor-wayfinding-signs-480.webp",
         "office-signs-wayfinding-29-owner-20260924-480.webp",
+        "ong-bep.webp",
         "ong-chi-tiet.webp",
         "ong-hero.webp",
         "ong-loi-vao.webp",
@@ -108,8 +111,6 @@
         "workshop-wide-x2.webp",
         "workshop-wide-x7.webp",
         "workshop-wide.webp",
-        "home-hero-tube-house-living.webp",
-        "ong-bep.webp",
         "xam-bep.webp",
         "xam-cau-thang.webp",
         "xam-phong-khach.webp",
@@ -711,6 +712,12 @@
           "blob": "a2028f956e3abb88ec4385e1d395cc00",
           "size": 45704,
           "type": "image/webp"
+        },
+        "home-commercial-fnb-v2.webp": {
+          "name": "home-commercial-fnb-v2.webp",
+          "blob": "9403142e1933c4d20beb6c350614b4cb",
+          "size": 217980,
+          "type": "image/webp"
         }
       }
     }
@@ -722,8 +729,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-17T19:40:17.000Z",
-    "via": "Claude Code (cloud)",
-    "note": "Republish sau #416 (motion), #422 (chip từ 3 ảnh), #417 (Bảng hiệu LED), #426 (chữ portal)"
+    "at": "2026-10-17T23:05:46Z",
+    "via": "Claude Code (desktop)",
+    "note": "Đợt main ccee663: #438 (hero trang chủ ngẫu nhiên cả ảnh đầu), #433 (khối Nhịp công trình theo dữ liệu, thêm ảnh quán cà phê)"
   }
 }

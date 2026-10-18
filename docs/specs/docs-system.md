@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-12
+updated: 2026-10-18
 source:
   - scripts/docs/**
   - .github/pull_request_template.md
@@ -120,7 +120,7 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 | --- | --- |
 | ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
 | sync | PR đổi file thuộc `source` của spec mà không đổi spec đó, và mô tả PR không có dòng `Spec: không đổi - <lý do>` |
-| budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng |
+| budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
 ```gherkin
@@ -154,12 +154,12 @@ nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như
    tải, thanh tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
    CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`,
    bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
-   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website, bundle
+   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card rail công trình chèn từ dữ liệu như build), bundle
    và ảnh `assets/Photos/`; `qa:docs` chạy chế độ `--check`, file sinh lệch
    source thì fail. Phần Advertising do JavaScript dựng được
    `scripts/docs/capture-design-system.mjs` chụp từ trang chạy thật vào
    `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
-   trong `src/site/`. Catalog public chưa có card nhiều media nên capture
+   trong `src/site/` hay generator `scripts/site/`. Catalog public chưa có card nhiều media nên capture
    MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
    như test e2e; video chỉ giữ poster.
 4. Motion là section `motion.md` (format không có nhóm token motion).
@@ -229,6 +229,12 @@ thay đổi mới nằm trong mô tả PR.
 - `docs/index.md` tối đa 80 dòng: bảng "việc cần làm" -> file.
 - `AGENTS.md` và `docs/operations/agent-rule-*.md` cập nhật path mới; living-docs
   gate trỏ tới `pnpm qa:docs` thay vì checklist chữ.
+- Ngân sách context: một task nạp `STATE` + `AGENTS.md` + một rule module + một spec,
+  không nạp cả thư mục. Rule module chia theo trigger, nội dung chỉ một loại task
+  (ví dụ rule ảnh AI tách khỏi rule QA chung). File `docs/reference/` chia theo họ
+  sản phẩm để brief chỉ nạp họ cần. Ngân sách byte trong `check-docs.mjs`:
+  `AGENTS.md` 15000, `agent-rule-ad-images.md` 16000, module `agent-rule-*` khác 8000,
+  mỗi file `docs/reference/` 24000; vượt thì tách, không nới số.
 
 ### R10. Notion chỉ giữ backlog
 

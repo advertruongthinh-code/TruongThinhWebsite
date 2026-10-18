@@ -771,7 +771,7 @@
     }
     lastScrollY = nextScroll;
     // Scroll tức thì về đầu trang (mở detail Advertising) đo header ở frame kế, trước paint, để style và layout
-    // của trang mới chỉ chạy một lần thay vì bị ép thêm trong task chạm card (decision a05s-frame-budget).
+    // của trang mới chỉ chạy một lần thay vì bị ép thêm trong task chạm card (decision phone-frame-budget).
     if (instant && !nextScroll && !state.smoothScroll) {
       cancelAnimationFrame(state.headerSyncFrame);
       state.headerSyncFrame = requestAnimationFrame(() => {
@@ -1370,12 +1370,7 @@
       window.requestAnimationFrame(() => intro.play());
       if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
       else window.requestAnimationFrame(() => headerIntro.play());
-      // Mỗi lần mount xáo thứ tự DOM các slide sau slide 0 (page-home R3). Slide 0 là ảnh tải ưu tiên
-      // trong HTML nên màn đầu không đổi; DOM đổi theo nên z-order khớp thứ tự chiếu.
-      selectAll(".hero-slide:not(:first-child)")
-        .map((slide) => [Math.random(), slide])
-        .sort(([a], [b]) => a - b)
-        .forEach(([, slide]) => slide.parentElement.append(slide));
+      // Thứ tự slide do script sau .hero-slides xáo (page-home R3); slides[0] là ảnh chiếu đầu.
       const slides = selectAll(".hero-slide");
       const carouselEnabled = slides.length > 1;
       let heroIntroPending = Boolean(
@@ -1717,6 +1712,12 @@
     lastDirection = "";
 
     const heroMedia = container.querySelector(".hero-slides, .about-hero__media");
+    // Barba dựng container bằng DOMParser nên script xáo slide hero (page-home R3) không chạy; chạy bản sao
+    // classic, đồng bộ trước khi mount đọc slide.
+    const heroShuffle = softNavigation && heroMedia?.nextElementSibling;
+    if (heroShuffle?.tagName === "SCRIPT") {
+      heroShuffle.replaceWith(Object.assign(document.createElement("script"), { textContent: heroShuffle.textContent }));
+    }
     const projectTrack = container.querySelector(".project-track");
     if (heroMedia) {
       heroMedia.setAttribute("data-scroll", "");
@@ -2922,7 +2923,7 @@
               },
               async beforeEnter(data) {
                 // Mỗi bước nặng (unmount, đồng bộ document, mount) là một task riêng để không long task > 50ms
-                // trên A05s (decision a05s-frame-budget).
+                // trên phone Android (decision phone-frame-budget).
                 await nextTask();
                 if (!syncDocumentState(data.next.html)) {
                   const fallbackUrl = new URL(

@@ -77,6 +77,22 @@
     <title data-en="Trường Thịnh — 20+ Years of Craft">
       Trường Thịnh — Hơn 20 năm vững tay nghề
     </title>
+    <script>
+      // page-home R3: chọn slide hero đầu ngay trong head, trước CSS, rồi preload để ảnh tải song song với CSS như
+      // một src có sẵn; script xáo sau .hero-slides chỉ chạy khi parse xong. URL khớp <picture> build sinh (media-delivery R2).
+      (() => {
+        const slides = [["home-hero-tube-house-living", 1920], ["home-hero-office-reception", 1920], ["home-hero-kitchen-dining", 1920],
+          ["home-hero-walnut-bedroom", 1920], ["hero-kiosk", 1536], ["mobile-retail", 1536]];
+        const first = Math.floor(Math.random() * slides.length);
+        const [name, width] = slides[first];
+        const path = `/assets/content/projects/${name}`;
+        document.documentElement.dataset.heroFirst = first;
+        document.head.append(Object.assign(document.createElement("link"), {
+          rel: "preload", as: "image", type: "image/avif", href: `${path}.avif`,
+          imageSrcset: `${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif ${width}w`, imageSizes: "100vw",
+        }));
+      })();
+    </script>
     <link
       rel="stylesheet"
       href="/assets/vendor/locomotive-scroll-4.1.4.min.css"
@@ -319,11 +335,11 @@
           <div class="hero-slides" aria-hidden="true">
             <figure class="hero-slide is-active" data-slide="0">
               <img
-                src="/assets/content/projects/home-hero-tube-house-living.webp"
+                data-src="/assets/content/projects/home-hero-tube-house-living.webp"
                 width="1920"
                 height="1280"
                 alt=""
-                fetchpriority="high"
+                loading="eager"
               />
             </figure>
             <figure class="hero-slide" data-slide="1">
@@ -372,6 +388,37 @@
               />
             </figure>
           </div>
+          <script type="module">
+            // page-home R3: xáo cả sáu slide mỗi lần tải, slide head đã preload đứng đầu. DOM đổi theo nên z-order,
+            // :first-child (reduced motion) và slide đầu của motion.js khớp ảnh chiếu đầu; chỉ ảnh đầu nhận src ở đây.
+            // Module nên không chặn parser (chữ hero vẽ cùng lần đầu như trước), vẫn chạy trước motion.js (defer).
+            // Route mềm không có preload: motion.js chạy lại bản sao classic (có currentScript), slide đầu chọn tại chỗ.
+            (() => {
+              const slides = document.currentScript?.previousElementSibling ?? document.querySelector(".hero-slides");
+              const first = document.documentElement.dataset.heroFirst;
+              delete document.documentElement.dataset.heroFirst;
+              [...slides.children].map((slide) => [slide.dataset.slide === first ? -1 : Math.random(), slide])
+                .sort(([a], [b]) => a - b)
+                .forEach(([, slide], index) => {
+                  slides.append(slide);
+                  slide.classList.toggle("is-active", !index);
+                });
+              let image = slides.querySelector("img");
+              // ResizeObserver đầu trang theo dõi ảnh này (lúc parse còn data-srcset) và ghi sizes theo crop, có thể trước
+              // cả script này; lệch preload sizes="100vw" là tải hai lần. Bản sao không bị theo dõi, sizes trả về 100vw
+              // như ảnh src có sẵn (media-delivery R2).
+              image.replaceWith((image = image.cloneNode()));
+              image.setAttribute("fetchpriority", "high");
+              [image.previousElementSibling, image].forEach((node) => {
+                if (!node?.dataset.srcset) return;
+                node.sizes = "100vw";
+                node.srcset = node.dataset.srcset;
+                node.removeAttribute("data-srcset");
+              });
+              image.src = image.dataset.src;
+              image.removeAttribute("data-src");
+            })();
+          </script>
           <div class="hero-shade" aria-hidden="true"></div>
 
           <div class="hero-content">
@@ -788,79 +835,7 @@
             aria-label="Nhịp công trình — cuộn ngang để xem thêm"
             data-en-aria-label="Project reel — scroll horizontally for more"
           >
-            <figure class="project-card project-card--high">
-              <span class="project-card__media">
-                <img
-                  src="/assets/content/projects/workshop-wide-x2.webp"
-                  width="1122"
-                  height="1402"
-                  alt="Bàn máy CNC với các chi tiết tủ đã cắt nesting"
-                  data-en-alt="CNC router bed with nested cabinet parts"
-                  loading="lazy"
-                />
-              </span>
-              <figcaption data-en="Workshop / CNC">Xưởng / CNC</figcaption>
-            </figure>
-            <figure class="project-card project-card--low">
-              <span class="project-card__media">
-                <img
-                  src="/assets/content/projects/workshop-wide-x7.webp"
-                  width="1086"
-                  height="1448"
-                  alt="Thử đèn bộ chữ nổi trên bàn xưởng"
-                  data-en-alt="Test-lighting a set of channel letters on the workshop bench"
-                  loading="lazy"
-                />
-              </span>
-              <figcaption data-en="Signage / Detail"
-                >Bảng hiệu / Chi tiết</figcaption
-              >
-            </figure>
-            <figure class="project-card project-card--high">
-              <span class="project-card__media">
-                <img
-                  src="/assets/content/projects/storefront-v2.webp"
-                  width="1536"
-                  height="1024"
-                  alt="Mặt tiền cửa hàng Việt Nam với hệ bảng hiệu vào giờ xanh"
-                  data-en-alt="Vietnamese storefront and signage at blue hour"
-                  loading="lazy"
-                />
-              </span>
-              <figcaption data-en="Business / Storefront"
-                >Kinh doanh / Mặt tiền</figcaption
-              >
-            </figure>
-            <figure class="project-card project-card--mid">
-              <span class="project-card__media">
-                <img
-                  src="/assets/content/projects/completed-detail-x1.webp"
-                  width="1448"
-                  height="1086"
-                  alt="Góc quầy lễ tân hoàn thiện giữa đá, gỗ và kim loại"
-                  data-en-alt="Finished reception counter corner in stone, timber and metal"
-                  loading="lazy"
-                />
-              </span>
-              <figcaption data-en="Home / Finishing"
-                >Nhà ở / Hoàn thiện</figcaption
-              >
-            </figure>
-            <figure class="project-card project-card--high">
-              <span class="project-card__media">
-                <img
-                  src="/assets/content/projects/kiosk-active-v2.webp"
-                  width="1024"
-                  height="1536"
-                  alt="Xe quầy cà phê bên bờ sông với bảng hiệu lưới thép"
-                  data-en-alt="Riverside coffee bar cart with a steel-mesh signboard"
-                  loading="lazy"
-                />
-              </span>
-              <figcaption data-en="Advertising / Kiosk"
-                >Quảng cáo / Kiosk</figcaption
-              >
-            </figure>
+            <!-- project-reel-cards -->
           </div>
         </section>
 

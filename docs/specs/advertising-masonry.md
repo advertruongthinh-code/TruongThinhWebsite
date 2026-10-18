@@ -164,7 +164,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 194 card, đang ở đầu trang
+Given masonry All 200 card, đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```
@@ -246,7 +246,7 @@ Then card ở tọa độ mới ngay khung hình kế tiếp, không có transit
 | DOM hook | `data-advertising-layout-status`, `-layout-error`, `-layout-diagnostic` trên masonry; `data-advertising-fallback="failed"` trên container | Kết quả compile (R6); lỗi mount (R10) |
 | Data | `ADVERTISING_CATEGORIES`, `ADVERTISING_CARDS`, `ADVERTISING_DATASET_VERSION` (`catalog.mjs`) | Catalog (R2) |
 | Data | `.site-output/advertising-products/catalog-artifact.mjs` (`ADVERTISING_CATALOG_ARTIFACT`) | Build sinh, runtime import; test có thể đặt `window.__TT_ADVERTISING_ARTIFACT__` |
-| Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs`, lỗi thì compile đồng bộ ([A05s](../decisions/a05s-frame-budget.md)); seed và xáo (R4) |
+| Hàm public | `compileAdvertisingProductLayout`, `columnsForWidth`, `advertisingSpacing`, `getVirtualWindow` (`layout-core.mjs`); `createAdvertisingSeed`, `shuffleWithSeed` (`random-order.mjs`) | Hình học thuần, không đọc DOM (R5–R7); compile lần đầu khi mount và solver related khi mở detail chạy trong Worker `layout-worker.mjs`, lỗi thì compile đồng bộ ([phone Android](../decisions/phone-frame-budget.md)); seed và xáo (R4) |
 | Hàm public | `mountAdvertisingCatalog(container, {signal, scroll, softNavigation})` | `detail.js` gọi; trả cleanup |
 | Hàm public | `window.TruongThinhAdvertising`: `mount`, `unmount`, `getAdapter`, `navigateQuery`, `handlePopState`, `canHandlePopState`, `getBrowseState`, `getCurrentHref`, `navigatePhoto`, `replaceTag`, `captureDetail` | `motion.js` gọi cho navbar, popstate (R3) |
 | Storage | history state `advertisingBrowse`; `sessionStorage` `tt-advertising-visit-seed-handoff-v1` | Seed, filter, vị trí theo entry; handoff ngôn ngữ (R4) |
@@ -280,8 +280,8 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 ## Gate còn mở
 
 - Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter; VI/EN, desktop và điện thoại. Owner.
-- `advertising-random-browse.e2e.mjs` phần Chromium PASS 15 case (05/10), phần WebKit chưa từng chạy xong (cloud thiếu thư viện hệ thống cho WebKit); Safari trên iPhone thật chưa kiểm masonry. Main
-  (WebKit trên cloud), owner và máy PC (iPhone).
+- `advertising-random-browse.e2e.mjs`: Chromium PASS 18 case; WebKit cloud fail ca `resting-route-back` (khoảng 1/6 lượt, Chromium 6/6 ổn): Back từ `/vi/` treo, `body` kẹt `is-transitioning`, hai container Barba cùng tồn tại; chưa rõ lỗi Safari hay harness.
+  Sửa trước khi vào [CI](ci-test-suites.md#gate-còn-mở). Safari iPhone chưa kiểm.
 - `advertising-hero-once.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ca click trước runtime giữ import
   `catalog-runtime.mjs` khi không reduced motion nên veil R7 chặn click tới hết 30s. Main sửa ca test theo R3.
 - Thư viện ảnh: ảnh cần sửa, thay, chưa xác minh nguồn theo [audit](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/advertising-images-audit-2026-09-09.md); V6

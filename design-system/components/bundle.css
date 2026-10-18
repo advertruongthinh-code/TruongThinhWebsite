@@ -1017,6 +1017,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-align: center;
 }
 
+/* Không JavaScript thì script xáo không gán src cho slide nào; hero trang chủ hiện ảnh cố định (page-home R12). */
+@media (scripting: none) {
+  .hero[data-hero-intro] .hero-slides {
+    background: center / cover url("/assets/content/projects/home-hero-tube-house-living.webp");
+  }
+}
+
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
   html:not(.motion-fallback) .hero[data-hero-intro] .hero-slide {
     visibility: hidden;
@@ -1849,9 +1856,10 @@ em {
 .project-track {
   display: grid;
   max-width: 1730px;
-  height: 650px;
+  min-height: 650px;
   margin: 0 auto;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
   gap: clamp(1.5rem, 3.4vw, 4.1rem);
 }
 
@@ -1894,8 +1902,7 @@ em {
 }
 
 .project-card figcaption {
-  position: relative;
-  top: 5px;
+  margin-top: 5px;
   padding-top: 0.75rem;
   font-size: 0.8rem;
   font-weight: 700;
@@ -1922,14 +1929,12 @@ em {
   border: 1px solid currentColor;
 }
 
-.project-card:nth-child(2) figcaption::before,
-.project-card:nth-child(5) figcaption::before {
+.project-card:nth-child(3n + 2) figcaption::before {
   border-color: var(--orange-accent);
   background: var(--orange-accent);
 }
 
-.project-card:nth-child(1) figcaption::before,
-.project-card:nth-child(4) figcaption::before {
+.project-card:nth-child(3n + 1) figcaption::before {
   border-color: var(--blue);
   background: var(--blue);
 }
@@ -1973,7 +1978,7 @@ em {
   background: rgba(0, 0, 0, 0.2);
 }
 
-/* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision a05s-frame-budget). */
+/* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision phone-frame-budget). */
 .legacy-closer + section {
   margin-top: 90px;
 }
@@ -2636,6 +2641,7 @@ em {
   .project-track {
     display: flex;
     height: 34rem;
+    min-height: 0;
     padding: 0 25px 1rem;
     gap: 1.25rem;
     overflow-x: auto;
@@ -3995,8 +4001,11 @@ html[lang="en"]
     bottom: calc(15vh + 3.25rem);
   }
 
+  /* Neo dọc: khung chỉ cao đúng một hàng (14px x 1.4), các hàng chip thêm tràn xuống dưới nên hàng đầu luôn đứng một chỗ (owner 2026-10-17). */
   .detail-index-hero .rail-chips {
     bottom: 15vh;
+    height: 1.225rem;
+    align-content: flex-start;
   }
 }
 
@@ -4816,7 +4825,7 @@ body.is-advertising-browse .advertising-grid {
   width: calc(100% - (2 * var(--advertising-outer)));
 }
 
-/* Lúc mở detail, grid giữ style và layout đã tính thay vì display: none, nên Back không phải dựng lại cả grid trong task popstate (decision a05s-frame-budget). */
+/* Lúc mở detail, grid giữ style và layout đã tính thay vì display: none, nên Back không phải dựng lại cả grid trong task popstate (decision phone-frame-budget). */
 .detail-page .project-index[hidden] {
   display: block;
   position: absolute;
@@ -5065,7 +5074,7 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Canvas Flow chung của batch (advertising-skeleton R5): runtime đặt height và translateY. Lớp compositor riêng
-   để dời band lúc fling không cập nhật property tree cả trang (PrePaint 53ms trên A05s, vòng 22). */
+   để dời band lúc fling không cập nhật property tree cả trang (PrePaint 53ms trên A05s cũ, vòng 22). */
 .advertising-grid__cta-shared-flow {
   position: absolute;
   top: 0;
@@ -6203,7 +6212,7 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog::backdrop {
-  /* Phone không blur (rớt gate A05s), bù bằng lớp tối 90% (advertising-detail R9). */
+  /* Phone không blur (rớt gate phone Android), bù bằng lớp tối 90% (advertising-detail R9). */
   background: rgba(32, 33, 32, 0.9);
   /* Fade swipe-to-close đặt biến trên dialog (advertising-viewer-touch-zoom R9). */
   opacity: var(--advertising-viewer-backdrop-opacity, 1);
@@ -6377,7 +6386,7 @@ body.is-advertising-browse .detail-cta[data-advertising-grid-cta] {
 }
 
 /* Batch lấp khoảng trống trên footer. Đặt biến trên footer, không trên body: biến kế thừa đổi trên body làm
-   mở detail và Back restyle cả trang (decision a05s-frame-budget). */
+   mở detail và Back restyle cả trang (decision phone-frame-budget). */
 body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
   --footer-top-gap: 0px;
 }
