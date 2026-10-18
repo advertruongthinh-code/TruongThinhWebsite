@@ -1,4 +1,4 @@
-// hero-typography R1, R2 (phone: title ở tâm hero, rail neo cố định), R3, R4: title hai dòng, không cắt dấu, không cuộn ngang, khoảng cách dòng đều.
+// hero-typography R1, R2 (phone: title ở tâm hero, không kicker, rail neo cố định), R3, R4: title hai dòng, không cắt dấu, không cuộn ngang, khoảng cách dòng đều.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -180,15 +180,13 @@ try {
                 const rail = document.querySelector(".hero .project-filters")?.getBoundingClientRect();
                 return {
                   offset: (box.top + box.bottom - heroBox.top - heroBox.bottom) / 2,
-                  kickerOverlap: kicker ? kicker.bottom - box.top : null,
-                  kickerCenter: kicker ? (kicker.left + kicker.right - box.left - box.right) / 2 : null,
+                  kickerWidth: kicker ? kicker.width : null,
                   railTop: rail ? rail.top - heroBox.top : null,
                   railGap: rail ? rail.top - box.bottom : null,
                 };
               }, spec.selector);
               if (Math.abs(hero.offset) > 3) failures.push(`${where}: title off hero center ${hero.offset.toFixed(1)}px`);
-              if (hero.kickerOverlap > 0) failures.push(`${where}: kicker overlaps title ${hero.kickerOverlap.toFixed(1)}px`);
-              if (Math.abs(hero.kickerCenter) > 1) failures.push(`${where}: kicker off center ${hero.kickerCenter.toFixed(1)}px`);
+              if (hero.kickerWidth > 1) failures.push(`${where}: kicker visible on phone`);
               if (hero.railGap !== null && hero.railGap < 16) failures.push(`${where}: rail too close to title ${hero.railGap.toFixed(1)}px`);
               if (hero.railTop !== null) railTops.set(`${locale}@${width}`, [...(railTops.get(`${locale}@${width}`) || []), hero.railTop]);
             }

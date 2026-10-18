@@ -3095,7 +3095,10 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 }
 
 @media (max-width: 750px) {
+  /* Phone: mỗi title co vừa khung theo dòng dài nhất của nó, không chung cỡ 12.5 em (owner audit 2026-10-18: chữ
+     phone còn nhỏ). Không JS thì --hero-line-em trống, về cỡ chung. */
   .hero > .hero-content {
+    --hero-line-size: min(7rem, calc(100cqi / var(--hero-line-em, 12.5)));
     width: calc(100% - 32px);
   }
 
@@ -3103,16 +3106,17 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
     text-align: center;
   }
-  /* Phone: chỉ title nằm ở tâm hero (owner audit 2026-10-18). Kicker neo trên title nên không tính vào hộp canh giữa;
-     mọi kicker cùng cỡ và canh giữa. */
+  /* Phone: chỉ title nằm ở tâm hero và không hiện kicker (owner audit 2026-10-18). Kicker ẩn kiểu .sr-only để h1 tên
+     cụm, sản phẩm Advertising vẫn còn cho trình đọc màn hình và SEO. */
   .hero > .hero-content > .hero-kicker {
     position: absolute;
-    right: 0;
-    bottom: 100%;
-    left: 0;
-    padding-left: 0;
-    font-size: 1rem;
-    text-align: center;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 
   .residential-hero > .hero-content,
