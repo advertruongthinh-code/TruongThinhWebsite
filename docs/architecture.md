@@ -2,7 +2,7 @@
 title: Kiến trúc runtime Trường Thịnh
 type: architecture
 status: living
-updated: 2026-10-06
+updated: 2026-10-18
 related_specs:
   - specs/detail-pages.md
   - specs/page-home.md
@@ -43,6 +43,23 @@ flowchart LR
 | Worker | Dormant | `src/worker/index.js` giữ route, SEO, API và CMS boundary; Wrangler chưa thuộc static gate |
 | Admin | Dev/dormant | `src/admin/` là shell private cho CMS, không copy vào public output |
 | CMS data | Planned | D1/R2/Access/provider chỉ chọn và verify khi owner mở CMS phase |
+
+## Tech stack
+
+Nguồn: `package.json`, `pnpm-workspace.yaml`, `wrangler*.toml`, `.github/workflows/`,
+`playwright.config.cjs`. Version pin nằm ở các file đó; đổi stack thì sửa bảng này cùng PR.
+
+| Phần | Công nghệ | Ghi chú |
+| --- | --- | --- |
+| Frontend | HTML, CSS, JavaScript thuần (ES module) | Không framework, không bundler, không TypeScript |
+| Thư viện runtime | GSAP và SplitText, Locomotive Scroll, Barba, Masonry, Swiper, lazysizes | `prepare:site` chép từ `node_modules` vào `assets/vendor/` |
+| Font | Plus Jakarta Sans (`@fontsource-variable`) | Self-host, không gọi CDN |
+| Build | Node.js 22+, pnpm qua Corepack, script `scripts/site/prepare-static-assets.mjs` | `sharp` xử lý ảnh; output `.site-output/` |
+| Hosting demo | Cloudflare Workers static assets (`wrangler.static.toml`) | Không Worker script, không binding |
+| CMS (dormant) | Cloudflare Worker, D1, R2, Access (`wrangler.toml`, `src/worker/`, `src/db/migrations/`) | Chưa activate, xem [CMS](specs/cms.md) |
+| Test | Playwright 1.64 (Chromium, Firefox, WebKit), `node --test`, contract script `.cjs` | [Bộ test CI](specs/ci-test-suites.md), [tests](../tests/README.md) |
+| CI/CD | GitHub Actions trên `ubuntu-latest`: `ci.yml`, `docs.yml`, `automerge.yml`, `deploy-demo.yml` | [Gate CI](specs/static-release.md#r10-gate-ci) |
+| Tooling agent | Graphify, Serena, ponytail, agent-skills | Pin trong `tooling-versions.json`, xem [TOOLING](operations/TOOLING.md) |
 
 ## Route canonical
 
