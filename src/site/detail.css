@@ -3103,4 +3103,85 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
     text-align: center;
   }
+  /* Phone: chỉ title nằm ở tâm hero (owner audit 2026-10-18). Kicker neo trên title nên không tính vào hộp canh giữa;
+     mọi kicker cùng cỡ và canh giữa. */
+  .hero > .hero-content > .hero-kicker {
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    left: 0;
+    padding-left: 0;
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  .residential-hero > .hero-content,
+  .commercial-hero > .hero-content {
+    top: 50%;
+  }
+
+  /* Hero dạng grid: hàng trên và hàng dưới cùng 1fr nên title ở tâm khi đủ chỗ; thiếu chỗ thì hàng giãn theo nội
+     dung, không đè. Hàng trên chừa header và kicker. */
+  .hero[data-hero-intro],
+  .about-hero,
+  .detail-page .detail-index-hero {
+    --hero-cue-gap: 24px;
+    padding-block: 0;
+    grid-template-rows: minmax(calc(var(--header-row-height) + 25px + 4rem), 1fr) auto minmax(min-content, 1fr);
+    row-gap: 0;
+  }
+
+  .detail-page .detail-index-hero {
+    --hero-cue-gap: 60px;
+  }
+
+  :is(.hero[data-hero-intro], .about-hero, .detail-index-hero) > .hero-content {
+    grid-row: 2;
+  }
+
+  :is(.hero[data-hero-intro], .about-hero, .detail-index-hero) > .scroll-cue {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    margin-bottom: var(--hero-cue-gap);
+  }
+
+  /* Rail và chip neo như PC: rail đứng một chỗ dù có hàng chip hay không, hàng chip đầu nằm chỗ cố định, hàng thêm
+     tràn xuống dưới. Khối neo theo đáy, chừa chỗ cho cue (padding 0.5rem, chữ 0.8rem x 1.4). */
+  .detail-index-hero > .hero-browse {
+    --hero-chip-row: 1.225rem;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: calc(var(--hero-cue-gap) + 2.12rem + 1rem);
+  }
+
+  .detail-index-hero > .hero-browse:not(:has(> .rail-chips:not([hidden]))) {
+    padding-bottom: calc(1rem + var(--hero-chip-row));
+  }
+
+  .detail-index-hero > .hero-browse > .rail-chips {
+    height: var(--hero-chip-row);
+    align-content: flex-start;
+  }
+}
+
+/* Từ 751px khối rail và chip không tạo hộp: rail và chip vẫn là con trực tiếp của grid hoặc neo absolute như cũ. */
+@media (min-width: 751px) {
+  .hero-browse {
+    display: contents;
+  }
+}
+
+@media (max-width: 680px) {
+  /* Hàng chip phone một dòng cuộn ngang, cao gồm padding 0.25rem + 0.5rem và chữ 0.8125rem x 1.4. */
+  .detail-index-hero > .hero-browse {
+    --hero-chip-row: calc(0.75rem + 0.8125rem * 1.4);
+  }
 }

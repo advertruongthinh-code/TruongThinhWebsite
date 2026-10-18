@@ -59,6 +59,13 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.
 - Trên 750px hai dòng lồng nhau một phần như trang chủ EN: cặp dòng rộng bằng tổng hai dòng trừ 30% dòng ngắn; khung
   rộng hơn cặp thì hai dòng dồn đều vào giữa, kicker theo mép trái dòng 1 (lệch vào 0,5rem).
+- Từ 750px trở xuống chỉ title nằm ở tâm hero theo chiều dọc (lệch tối đa 3px), dù có hay không có hàng chip.
+  Kicker neo ngay trên title (`position: absolute`), cùng cỡ 1rem và canh giữa ở mọi hero. Hero dạng grid (Trang
+  chủ, About, Advertising) dùng hàng trên và hàng dưới cùng `1fr`; thiếu chỗ thì hàng giãn, không đè. Hero About
+  không có kicker (owner audit 2026-10-18).
+- Rail và chip Advertising trên phone neo như PC: khối `.hero-browse` neo theo đáy hero, chừa sẵn một hàng chip, nên
+  rail đứng một chỗ dù trang có hàng chip hay không; hàng chip thêm tràn xuống dưới. Từ 751px khối này là
+  `display: contents`, bố cục cũ giữ nguyên.
 - Kicker cách nét chữ title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`
   (khoảng trống trên nét hoa của dòng 1 so với "Ể", đo bằng canvas), nên title không dấu không bị cách xa hơn.
 - Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
