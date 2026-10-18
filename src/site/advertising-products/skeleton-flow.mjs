@@ -549,7 +549,9 @@ export function createSkeletonFlowRenderer(canvas, {
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
   }
 
-  let gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES) || canvas.getContext("experimental-webgl");
+  // OffscreenCanvas trong worker không nhận "experimental-webgl": WebKit ném TypeError thay vì trả null.
+  let gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES)
+    || (globalThis.OffscreenCanvas && canvas instanceof OffscreenCanvas ? null : canvas.getContext("experimental-webgl"));
   let program = null;
   let buffer = null;
   let texture = null;
