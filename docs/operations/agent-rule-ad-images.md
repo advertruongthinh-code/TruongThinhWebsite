@@ -27,9 +27,11 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
   brief. Khung chỉnh chu, hiện đại, gọn: thép hộp hoặc ống thẳng hàng, sơn cùng
   tông bảng, bản mã bắt bulông vào tường hoặc trần, mối nối sạch, tỷ lệ cân với
   bảng; không dây buộc, thanh chống chắp vá, gỉ sét hay kiểu tạm bợ.
-- **LED neon** là dây neon silicone thi công được: nét liền, cong theo bán kính
-  dây uốn được (không góc gắt, không nét mảnh kiểu neon thủy tinh), gắn trên tấm mica
-  nền hoặc máng nhôm, dây nguồn đi gọn; áp cho mọi ảnh bảng hiệu LED.
+- **LED neon** là dây neon silicone bản 6 đến 10 mm thi công được: nét liền, cong
+  theo bán kính dây uốn được (không góc gắt, không nét mảnh kiểu neon thủy tinh),
+  gài vào rãnh phay CNC trên mica nền hoặc máng nhôm, dây nguồn đi gọn. Dạng phổ
+  biến trong decor: mica in UV hình màu, cắt CNC theo viền hình, LED neon chỉ
+  nhấn nét chính. Áp cho mọi ảnh bảng hiệu LED.
 - **Nội thất, decor**: hero Kinh doanh và nhà ở có nhiều nội thất, decor gia công
   CNC được; cabin, phòng nghỉ đặt ở vùng riêng tư, khuất lối đi chính; backdrop
   tiệc cưới là decor dựng, không in ấn.
