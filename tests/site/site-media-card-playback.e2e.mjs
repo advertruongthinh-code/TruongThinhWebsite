@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://127.0.0.1:8792";
@@ -319,7 +320,10 @@ try {
       photoIdentity: detail.primaryId === photoId && forward.primaryId === photoId
         && forward.photo === photoId && back.photo === null,
       localeCategorySeedTag: [grid, detail, back, forward].every((item) =>
-        new URL(item.url).pathname === "/vi/advertising-products/"
+        // Lưới ở trang cụm (taxonomy slugVi), detail ở /p/<id>/ (advertising-detail R1).
+        new URL(item.url).pathname === (item.photo
+          ? `/vi/advertising-products/p/${photoId}/`
+          : `/vi/advertising-products/${ADVERTISING_CLUSTERS.find((cluster) => cluster.id === "signage").slugVi}/`)
         && item.category === "signage" && item.seed === grid.seed && item.tag === grid.tag),
       oneHistoryEntry: detail.length === grid.length + 1 && back.length === detail.length && forward.length === detail.length,
     };
