@@ -25,6 +25,9 @@
   // Trang gốc Advertising và trang cụm, sản phẩm (taxonomy R4) cùng một trang masonry.
   const isAdvertisingPath = (pathname) =>
     /^\/(?:vi|en)\/advertising-products(?:\/(?:[^/]+\/){0,2})?$/.test(pathname);
+  // Detail: trang card (media-seo R1) hoặc ?photo= cũ.
+  const isAdvertisingPhotoUrl = (url) =>
+    url.searchParams.has("photo") || /^\/(?:vi|en)\/advertising-products\/p\//.test(url.pathname);
   const localeScrollStateKey = (url) =>
     `tt-locale-scroll:${url.pathname}${url.search}`;
   const textMaskSelector =
@@ -2468,7 +2471,7 @@
         )
         && normalizePathname(destination.pathname) === normalizePathname(window.location.pathname)
         && (!persistentAdvertisingLink || destination.search === window.location.search)
-        && !new URL(window.location.href).searchParams.has("photo");
+        && !isAdvertisingPhotoUrl(new URL(window.location.href));
       if (currentParentLink) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -2494,7 +2497,7 @@
         && window.TruongThinhAdvertising?.getAdapter?.()
       ) {
         // Từ photo, navbar về đúng chỗ trên masonry nguồn; từ masonry đang lọc thì về Tất cả ở đầu trang.
-        const fromGrid = !new URL(window.location.href).searchParams.has("photo");
+        const fromGrid = !isAdvertisingPhotoUrl(new URL(window.location.href));
         const navigateToAdvertisingParent = (instant = false) => {
           if (window.TruongThinhAdvertising?.navigateQuery?.(
             destination.href,

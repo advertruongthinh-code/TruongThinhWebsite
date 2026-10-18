@@ -24,7 +24,7 @@ updated: 2026-10-18
 
 ## Mục đích
 
-Query `?photo=<id>` trên `/vi/advertising-products/` và `/en/advertising-products/` mở detail tại chỗ: primary (ảnh, nhóm,
+Trang card `/<locale>/advertising-products/p/<id>/` ([SEO media R1](media-seo.md)) mở detail tại chỗ: primary (ảnh, nhóm,
 mô tả, CTA), suggestion, related và viewer phóng to. Spec này sở hữu detail và history giữa masonry với detail. Masonry,
 card, seed ở [masonry](advertising-masonry.md); skeleton chờ ảnh ở [loading glass](loading-glass-and-page-entry.md); Kính ở
 [Kính](glass-surface.md); zoom chạm ở [viewer chạm](advertising-viewer-touch-zoom.md); header, menu, veil ở [shell](site-shell.md).
@@ -33,8 +33,8 @@ card, seed ở [masonry](advertising-masonry.md); skeleton chờ ảnh ở [load
 
 ### R1. URL và vào detail
 
-URL detail là route Advertising với `photo=<id>` (id ổn định của card), tùy chọn `tag=<tag-id>`; `category` luôn là nhóm
-của ảnh (`parseAdvertisingBrowseLocation`). `photo` lạ thì về masonry; `tag` không có trong registry thì bỏ, giữ photo;
+URL detail là path `p/<id>` (id ổn định của card), tùy chọn `?tag=<tag-id>`; nhóm luôn là nhóm của ảnh
+(`parseAdvertisingBrowseLocation`). `?photo=<id>` cũ vẫn mở và đổi sang path; id lạ thì về masonry; `tag` lạ thì bỏ;
 khi mount, runtime ghi URL chuẩn bằng `replaceState`. Bấm card masonry ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card))
 hoặc card related gọi `openPhoto`: lưu entry hiện tại (masonry: nhóm, card, scroll) rồi push entry detail mới ở Y=0;
 primary mở media đang active trên card. Bấm lại ảnh đang xem không làm gì. Tải thẳng hoặc F5 URL detail mở media cover.
@@ -44,7 +44,7 @@ navbar ẩn trừ khi hover, focus. Không clone ảnh, veil hay khóa cuộn ([
 ```gherkin
 Given masonry /vi/advertising-products/ đang ở Y0
 When bấm card kiosk-posm-07
-Then URL là ?category=kiosk-posm&photo=kiosk-posm-07, history thêm đúng một entry, detail ở Y=0
+Then URL là /vi/advertising-products/p/kiosk-posm-07/, history thêm đúng một entry, detail ở Y=0
 And không có clone ảnh giữa card và primary
 ```
 
@@ -143,7 +143,7 @@ solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-t
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`. Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia sáu task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, phân trang mô tả, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
+mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia sáu task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, phân trang mô tả, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related
@@ -197,7 +197,7 @@ Given masonry nhóm Kiosk & POSM mở A, A mở related B cùng nhóm
 When bấm Advertising trên navbar
 Then URL là ?category=kiosk-posm, rail sáng nhóm đó, history thêm một entry, card B ở giữa viewport mang "Vừa xem"
 
-Given ?category=kiosk-posm&photo=kiosk-posm-07 vào thẳng ở 390×844, scrollY 0
+Given /vi/advertising-products/p/kiosk-posm-07/ vào thẳng ở 390×844, scrollY 0
 When cuộn xuống 400px rồi cuộn ngược về 0, sau đó đóng detail về masonry ở scrollY 0
 Then header luôn is-collapsed, nền trắng, cao 71px khi ở detail; về masonry thì bỏ is-collapsed
 ```
@@ -206,12 +206,12 @@ Then header luôn is-collapsed, nền trắng, cao 71px khi ở detail; về mas
 
 Đổi ngôn ngữ trên detail đi tại chỗ ([shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ)): sự kiện `languagechange` dựng lại
 detail cùng photo, tag, entry, media đang xem; đổi nhãn nhóm, mô tả (về trang 1), nhãn suggestion, aria, alt viewer. Link
-ngôn ngữ luôn mang `photo` và `tag` hiện tại (`syncLocaleLinks`); seed theo [masonry R4](advertising-masonry.md#r4-thứ-tự-ngẫu-nhiên-theo-lượt-duyệt).
+ngôn ngữ luôn trỏ trang card và `tag` hiện tại (`syncLocaleLinks`); seed theo [masonry R4](advertising-masonry.md#r4-thứ-tự-ngẫu-nhiên-theo-lượt-duyệt).
 
 ```gherkin
 Given detail VI kiosk-posm-07 với tag use-sampling
 When chuyển sang EN
-Then URL là /en/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07&tag=use-sampling
+Then URL là /en/advertising-products/p/kiosk-posm-07/?tag=use-sampling
 And cùng ảnh primary và nút đang bật, chữ tiếng Anh, history.length không đổi
 ```
 

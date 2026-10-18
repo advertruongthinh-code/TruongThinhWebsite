@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, buildAdvertisingArtifact, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import { matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
 import "./sync-brand-lockup.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
@@ -198,6 +198,83 @@ for (const page of ADVERTISING_PAGES) {
   }
 }
 
+// Trang card (media-seo R1, R2, R4, R6): template trang gốc mang tên, mô tả, mọi media của card trong HTML (bot AI không
+// chạy JS), JSON-LD và URL tuyệt đối theo domain thật để Google Hình ảnh, bot AI dẫn về đúng card. Script ngay sau khối
+// tĩnh ẩn nó khi có JS vì runtime dựng detail cùng nội dung theo path.
+const PUBLIC_ORIGIN = "https://truongthinhads.vn";
+const cardHref = (locale, card) => `/${locale}/advertising-products/p/${card.id}/`;
+const cardUrl = (locale, card) => `${PUBLIC_ORIGIN}${cardHref(locale, card)}`;
+const coverOf = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];
+const mediaImage = (item) => (item.kind === "video" ? item.posterSrc : item.src);
+const mediaSize = (item) => (item.kind === "video" ? [item.posterWidth, item.posterHeight] : [item.width, item.height]);
+const renderCardStatic = (card) => {
+  const pages = [...new Set([...card.clusterIds, ...card.productIds])]
+    .map((id) => ADVERTISING_PAGES.find(({ filter }) => filter === id)).filter(Boolean);
+  return [
+    '<article class="advertising-card-static" data-advertising-card-static>',
+    `<h1 data-en="${escapeHtml(card.titleEn)}">${escapeHtml(card.titleVi)}</h1>`,
+    `<p data-en="${escapeHtml(card.descriptionEn)}">${escapeHtml(card.descriptionVi)}</p>`,
+    ...card.mediaItems.map((item) => {
+      const [width, height] = mediaSize(item);
+      return `<figure><img src="${mediaImage(item)}" width="${width}" height="${height}" loading="lazy" decoding="async" alt="${escapeHtml(item.altVi)}" data-en-alt="${escapeHtml(item.altEn)}" /></figure>`;
+    }),
+    `<p>${pages.map((page) => `<a href="${pageHref("vi", page)}" data-en-href="${pageHref("en", page)}" data-en="${escapeHtml(page.labelEn)}">${escapeHtml(page.labelVi)}</a>`).join(" ")}</p>`,
+    "</article>",
+    "<script>document.currentScript.previousElementSibling.hidden = true;</script>",
+  ].join("");
+};
+// Ảnh nào cũng là ImageObject (video lấy poster); creator và creditText đủ cho Image metadata của Google.
+// ponytail: chưa có VideoObject vì media video chưa có ngày đăng thật (uploadDate bắt buộc); thêm field vào media contract khi có video thật.
+const cardJsonLd = (card) => {
+  const url = cardUrl("vi", card);
+  const owner = { "@type": "Organization", name: "Trường Thịnh", url: `${PUBLIC_ORIGIN}/` };
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "WebPage", "@id": url, url, primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
+      ...card.mediaItems.map((item) => ({
+        "@type": "ImageObject", "@id": `${PUBLIC_ORIGIN}${mediaImage(item)}`, contentUrl: `${PUBLIC_ORIGIN}${mediaImage(item)}`,
+        creator: owner, creditText: "Trường Thịnh",
+      })),
+    ],
+  }).replace(/</g, "\\u003c");
+};
+const renderCardPage = (card) => advertisingTemplate
+    .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
+      `<title data-en="${escapeHtml(card.titleEn)} — Trường Thịnh">${escapeHtml(card.titleVi)} — Trường Thịnh</title>`,
+      `<link rel="canonical" href="${cardUrl("vi", card)}" data-en-href="${cardUrl("en", card)}" />`,
+      `<link rel="alternate" hreflang="vi" href="${cardUrl("vi", card)}" />`,
+      `<link rel="alternate" hreflang="en" href="${cardUrl("en", card)}" />`,
+      `<link rel="alternate" hreflang="x-default" href="${cardUrl("vi", card)}" />`,
+      `<meta property="og:image" content="${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}" />`,
+      `<script type="application/ld+json">${cardJsonLd(card)}</script>`,
+    ].join("\n    "))
+    .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
+      (_match, before, middle) => `${before}${escapeHtml(card.descriptionVi)}${middle}${escapeHtml(card.descriptionEn)}"`)
+    // Khẩu hiệu thành p.hero-title giữ hình; h1 là tên card trong khối tĩnh.
+    .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
+    .replace('<main id="noi-dung">', () => `<main id="noi-dung">${renderCardStatic(card)}`)
+    .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${cardHref("vi", card)}" data-language-option="vi"`)
+    .replace('href="/en/advertising-products/" data-language-option="en"', `href="${cardHref("en", card)}" data-language-option="en"`);
+for (const card of ADVERTISING_CARDS) {
+  const html = renderCardPage(card);
+  for (const locale of ["vi", "en"]) {
+    const destination = path.join(outputRoot, locale, "advertising-products", "p", card.id, "index.html");
+    await mkdir(path.dirname(destination), { recursive: true });
+    await writeFile(destination, html, "utf8");
+  }
+}
+// Image sitemap (media-seo R5): mỗi trang card một url, mỗi media một image:loc (video dùng poster).
+const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>
+  `<url><loc>${cardUrl(locale, card)}</loc>${card.mediaItems.map((item) => `<image:image><image:loc>${PUBLIC_ORIGIN}${mediaImage(item)}</image:loc></image:image>`).join("")}</url>`));
+await writeFile(path.join(outputRoot, "sitemap-advertising.xml"), [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
+  ...sitemapUrls,
+  "</urlset>",
+  "",
+].join("\n"), "utf8");
+
 const decodeHtmlText = (value) =>
   value
     .replace(/<[^>]*>/g, "")
@@ -343,4 +420,4 @@ for (const cluster of ADVERTISING_PAGES.filter(({ filter, cluster }) => filter =
   }
 }
 
-console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_LEGACY_CATEGORIES.length} advertising compatibility pages, ${ADVERTISING_PAGES.length * 2} cluster and product pages, and embedded bilingual runtime text`);
+console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_LEGACY_CATEGORIES.length} advertising compatibility pages, ${ADVERTISING_PAGES.length * 2} cluster and product pages, ${ADVERTISING_CARDS.length * 2} card pages, and embedded bilingual runtime text`);

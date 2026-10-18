@@ -51,14 +51,14 @@ function wideVideoCoverFixture() {
   assert.deepEqual(readWebpSize(new URL(`../../src/site${legacy.media.src}`, import.meta.url)), [1254, 1254]);
   assert.deepEqual(readWebpSize(new URL("./fixtures/site-media-card-poster.webp", import.meta.url)), [640, 360]);
   const image = {
-    ...legacy.mediaItems[0], id: `${legacy.id}-wide-image`,
+    ...legacy.mediaItems[0], id: `${legacy.id}-wide-image`, altVi: "fixture ảnh", altEn: "fixture image",
     src: "/__site_media_card_fixture__/poster.webp", width: 640, height: 360,
     sourceId: "m01d:test-only:poster", source: "M00b sealed synthetic fixture",
     sha256: "5e55b48ce48a2de66737178f32d9c19b1c175dabb4d312a7d05ef7d0e9b853ba",
     provenance: "Synthetic test-only fixture, not public media.",
   };
   const video = {
-    ...image, id: `${legacy.id}-wide-video`, kind: "video",
+    ...image, id: `${legacy.id}-wide-video`, kind: "video", altVi: "fixture video", altEn: "fixture video",
     src: "/__site_media_card_fixture__/clip-audio.mp4", sourceId: "m01d:test-only:clip",
     sha256: "853e4939e6a4627cc7777665283b2affab189132243974a4777f5a955338e827",
     posterSrc: image.src, posterWidth: 640, posterHeight: 360,
@@ -74,6 +74,7 @@ function wideMediaCount(count) {
   const image = card.mediaItems[1];
   const mediaItems = [card.mediaItems[0], ...Array.from({ length: count - 1 }, (_, index) => ({
     ...image, id: `${image.id}-${index + 1}`, src: `${image.src}?r6-r3=${index + 1}`,
+    altVi: `${image.altVi} ${index + 1}`, altEn: `${image.altEn} ${index + 1}`,
     sourceId: `${image.sourceId}:r6-r3:${index + 1}`,
   }))];
   const result = { ...card, mediaItems };
