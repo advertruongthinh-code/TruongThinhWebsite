@@ -241,6 +241,17 @@
           const pair = widths[0] + widths[1] - 0.3 * Math.min(...widths);
           host.style.setProperty("--hero-pair-em", (pair * 1.01).toFixed(3));
         }
+        // Kicker cách đỉnh nét chữ thật của dòng 1 như nhau ở mọi hero, kể cả chữ có dấu chồng (Ể): dòng 1 thấp hơn
+        // "Ể" bao nhiêu em thì kicker kéo xuống bấy nhiêu (detail.css).
+        const firstLine = title.firstElementChild;
+        if (host !== title && maskContext && firstLine) {
+          const style = getComputedStyle(firstLine.querySelector("*") || firstLine);
+          const size = Number.parseFloat(style.fontSize);
+          maskContext.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          const ink = maskContext.measureText(firstLine.textContent.trim().toLocaleUpperCase("vi")).actualBoundingBoxAscent;
+          const drop = (maskContext.measureText("Ể").actualBoundingBoxAscent - ink) / size;
+          if (size) host.style.setProperty("--hero-ink-drop", Math.max(0, drop).toFixed(3));
+        }
       });
   };
 

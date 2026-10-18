@@ -3064,16 +3064,20 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   font-size: var(--hero-line-size);
 }
 
-/* Kicker cách title như nhau ở mọi hero (hero-typography R2), theo khoảng của Residential và Commercial. */
+/* Kicker cách đỉnh nét chữ title như nhau ở mọi hero (hero-typography R2): khoảng chung tính cho dấu chồng cao nhất,
+   dòng 1 không có dấu đó thì trừ --hero-ink-drop (motion.js đo). */
 .hero > .hero-content > .hero-kicker {
-  margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem);
+  margin-bottom: calc(clamp(1.5rem, 3.8vh, 2.2rem) - var(--hero-ink-drop, 0) * var(--hero-line-size, 0px));
 }
 
 /* Hai dòng lồng nhau một phần (hero-typography R2): khi khung rộng hơn cặp dòng thì dồn cặp vào giữa, kicker theo
    dòng 1. --hero-pair-indent dùng cqi của hero-content, cùng bề rộng với title. */
+.hero > .hero-content:has(> [data-hero-fit]) {
+  container-type: inline-size;
+}
+
 @media (min-width: 751px) {
   .hero > .hero-content:has(> [data-hero-fit]) {
-    container-type: inline-size;
     --hero-pair-indent: max(0px, calc((100cqi - var(--hero-pair-em) * var(--hero-line-size)) / 2));
   }
 

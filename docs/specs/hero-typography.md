@@ -59,7 +59,8 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.
 - Trên 750px hai dòng lồng nhau một phần như trang chủ EN: cặp dòng rộng bằng tổng hai dòng trừ 30% dòng ngắn; khung
   rộng hơn cặp thì hai dòng dồn đều vào giữa, kicker theo mép trái dòng 1 (lệch vào 0,5rem).
-- Kicker cách title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)`.
+- Kicker cách nét chữ title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`
+  (khoảng trống trên nét hoa của dòng 1 so với "Ể", đo bằng canvas), nên title không dấu không bị cách xa hơn.
 - Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
   12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
 - Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn
