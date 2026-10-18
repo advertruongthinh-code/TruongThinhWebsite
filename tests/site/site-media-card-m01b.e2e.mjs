@@ -631,6 +631,31 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
   } finally { await browser.close(); }
 });
 
+// R5: card chỉ có video, video và poster cùng lỗi thì skeleton không chạy mãi mà hiện dấu báo lỗi; detail cũng vậy.
+test("M01b video-only card with failed video and poster shows the load-error indicator in card and detail", async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  try {
+    const video = fixtureArtifact(true).cards.find((card) => card.id === fixtureId).mediaItems
+      .find((media) => media.id === videoId);
+    const card = await setupSingleton(page, { ...video, src: "/__missing_media__/clip.mp4",
+      posterSrc: "/__missing_media__/poster.webp" });
+    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] .advertising-card-media`)
+      ?.classList.contains("is-media-error"), fixtureId, { timeout: 5_000 });
+    await page.waitForTimeout(300);
+    const state = await card.evaluate((node) => ({
+      skeleton: Boolean(node.querySelector("[data-advertising-loading-skeleton]")),
+      status: node.querySelector("[data-advertising-media-loading]").getAttribute("aria-label"),
+    }));
+    assert.deepEqual(state, { skeleton: false, status: "Couldn't load media" });
+    await clickCardBody(card, "failed-video");
+    await page.waitForFunction(() => document.querySelector(".advertising-photo-view__hero-frame")
+      ?.classList.contains("is-media-error"), null, { timeout: 5_000 });
+    assert.equal(await page.evaluate(() => document.querySelector("[data-advertising-photo-view]")
+      .dataset.advertisingPhotoGlass), "false", "detail turns the blur backdrop off");
+  } finally { await browser.close(); }
+});
+
 test("M01b explicit singleton nonlegacy image renders without a carousel", async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -780,11 +805,15 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     const state = await card.evaluate((node) => ({
       activeId: node.dataset.advertisingActiveMediaId,
       imageSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-      spinnerHidden: node.querySelector("[data-advertising-media-loading]").hidden,
+      status: node.querySelector("[data-advertising-media-loading]").getAttribute("aria-label"),
+      error: node.querySelector(".advertising-card-media").classList.contains("is-media-error"),
+      skeleton: Boolean(node.querySelector("[data-advertising-loading-skeleton]")),
+      controlsHidden: node.querySelector("[data-advertising-media-indicator]").hidden,
       mediaLoaded: node.dataset.advertisingMediaLoaded || null,
     }));
-    assert(state.activeId === fixtureId && state.imageSelected === "true" && state.spinnerHidden
-      && state.mediaLoaded !== "true",
+    // R5: hết media hiện được thì dấu báo lỗi thay skeleton, điều khiển ẩn, status đọc lỗi.
+    assert(state.activeId === fixtureId && state.imageSelected === "true" && state.status === "Couldn't load media" && state.error && !state.skeleton
+      && state.controlsHidden && state.mediaLoaded !== "true",
     `all-failed terminal state must stop without recursion: ${JSON.stringify(state)}`);
     assert.deepEqual(errors, [], "all-failed terminal state has no uncaught page errors");
   } finally { await browser.close(); }

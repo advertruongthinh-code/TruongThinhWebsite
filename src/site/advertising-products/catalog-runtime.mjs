@@ -925,7 +925,15 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const ready = Boolean(layer && isReady(layer));
       const failedImage = layer instanceof HTMLImageElement && failedImages.has(items[activeIndex].id);
       const loadedVideoPoster = layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "loaded";
-      loading.hidden = ready || failedImage || loadedVideoPoster;
+      // Item active lỗi mà setActive không còn fallback: dấu báo lỗi dùng chung, ẩn điều khiển (media-card R5).
+      const failed = !ready && (failedImage
+        || (layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "failed"));
+      media.classList.toggle("is-media-error", failed);
+      indicator.hidden = failed;
+      if (failed) hoverSteps.forEach((button) => { button.hidden = true; });
+      loading.setAttribute("aria-label", failed ? english ? "Couldn't load media" : "Không tải được media"
+        : english ? "Loading media" : "Đang tải media");
+      loading.hidden = ready || loadedVideoPoster;
       onPendingChange(figure);
       if (ready) {
         layer.classList.add("is-advertising-media-ready");
@@ -1032,7 +1040,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (item.kind === "video") duration.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
       updateLoading();
     };
-    figure.advertisingPendingMediaId = () => loading.hidden ? null : items[activeIndex].id;
+    figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
+      ? null : items[activeIndex].id;
     figure.advertisingActiveVideo = () => {
       const layer = layers.get(items[activeIndex]?.id);
       return layer instanceof HTMLVideoElement && !layer.error ? layer : null;
@@ -1110,6 +1119,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       ? null : record.coverMediaId;
     image.addEventListener("error", () => {
       failed = true;
+      media.classList.add("is-media-error");
       onPendingChange(figure);
     });
     listenForMediaLoad(figure, image, onMediaLoaded);
@@ -3328,6 +3338,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const slideIn = sliding ? slidePrimary(Math.sign(slide)) : null;
     activePrimaryMediaId = item.id;
     activePrimaryItem = item;
+    heroFrame.classList.remove("is-media-error");
     photoView.dataset.advertisingActiveMediaId = item.id;
     photoVideo.pause();
     // Đổi media trong cùng card giữ lựa chọn tiếng của người xem như Pinterest; mở card mới thì về tắt tiếng.
@@ -3533,6 +3544,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   photoVideo?.addEventListener("play", () => {
     cancelAnimationFrame(videoTimeFrame);
     tickVideoTime();
+  }, { signal: controller.signal });
+  // Media primary không hiện được (ảnh lỗi; video lỗi và poster cũng lỗi): dấu báo lỗi dùng chung, tắt nền blur
+  // (media-card R5); renderPrimaryMedia bỏ dấu khi đổi media.
+  const showPrimaryError = (item) => {
+    if (activePrimaryItem !== item) return;
+    heroFrame.classList.add("is-media-error");
+    photoView.dataset.advertisingPhotoGlass = "false";
+  };
+  photoImage?.addEventListener("error", () => {
+    if (!photoImage.hidden) showPrimaryError(activePrimaryItem);
+  }, { signal: controller.signal });
+  photoVideo?.addEventListener("error", () => {
+    const item = activePrimaryItem;
+    if (photoVideo.hidden || !item?.posterSrc) return;
+    const probe = new Image();
+    probe.addEventListener("error", () => showPrimaryError(item), { once: true });
+    probe.src = item.posterSrc;
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
     () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
