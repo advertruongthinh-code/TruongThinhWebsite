@@ -82,7 +82,7 @@
       // một src có sẵn; script xáo sau .hero-slides chỉ chạy khi parse xong. URL khớp <picture> build sinh (media-delivery R2).
       (() => {
         const slides = [["home-hero-tube-house-living", 1920], ["home-hero-office-reception", 1920], ["home-hero-kitchen-dining", 1920],
-          ["home-hero-walnut-bedroom", 1920], ["hero-kiosk", 1536], ["mobile-retail", 1536]];
+          ["home-hero-walnut-bedroom", 1920], ["home-hero-shopfront-signage", 1920], ["home-hero-lobby-wall-art", 1920]];
         const first = Math.floor(Math.random() * slides.length);
         const [name, width] = slides[first];
         const path = `/assets/content/projects/${name}`;
@@ -371,18 +371,18 @@
             </figure>
             <figure class="hero-slide" data-slide="4">
               <img
-                data-src="/assets/content/projects/hero-kiosk.webp"
-                width="1536"
-                height="1024"
+                data-src="/assets/content/projects/home-hero-shopfront-signage.webp"
+                width="1920"
+                height="1280"
                 alt=""
                 loading="eager"
               />
             </figure>
             <figure class="hero-slide" data-slide="5">
               <img
-                data-src="/assets/content/projects/mobile-retail.webp"
-                width="1536"
-                height="1024"
+                data-src="/assets/content/projects/home-hero-lobby-wall-art.webp"
+                width="1920"
+                height="1280"
                 alt=""
                 loading="eager"
               />
@@ -528,11 +528,11 @@
             >
               <img
                 class="media-hover-zoom"
-                src="/assets/content/projects/home-commercial-fnb-v2.webp"
-                width="1086"
-                height="1448"
-                alt="Quán cà phê nhà phố Việt Nam mở ra vỉa hè"
-                data-en-alt="Vietnamese shophouse café opening onto the pavement"
+                src="/assets/content/projects/home-commercial-cafe.webp"
+                width="1024"
+                height="1536"
+                alt="Quán cà phê nhà phố với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau"
+                data-en-alt="Shophouse café with timber tables, armchairs and a lit bar counter at the back"
                 loading="lazy"
               />
               <span class="portal-shade" aria-hidden="true"></span>
