@@ -347,12 +347,16 @@
     return changed;
   };
   let textMaskFrame;
+  let heroFitPending = false;
   // Gộp các lần gọi cùng frame (font loadingdone, layout update, đổi trang) thành một lượt đo.
-  const scheduleTextMaskMeasurement = () => {
+  // Layout update không đo lại chữ hero (xem fitHeroLines): đo ép style cả trang, long task khi mở detail trên phone.
+  const scheduleTextMaskMeasurement = (fitHero = true) => {
+    heroFitPending ||= Boolean(fitHero);
     if (textMaskFrame) return;
     textMaskFrame = window.requestAnimationFrame(() => {
       textMaskFrame = undefined;
-      fitHeroLines();
+      if (heroFitPending) fitHeroLines();
+      heroFitPending = false;
       measureTextMasks();
       // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
       if (fitHeritageGaps()) requestLayoutUpdate();
@@ -792,7 +796,7 @@
       pageState?.smoothScroll?.update();
       updateToneRanges();
       updateHeader();
-      scheduleTextMaskMeasurement();
+      scheduleTextMaskMeasurement(false);
     });
   };
 

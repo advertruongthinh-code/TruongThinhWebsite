@@ -60,7 +60,8 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
 - Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn
   `data-hero-fit`. Dòng không xuống dòng và chỉ co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước
-  khi motion đọc vị trí.
+  khi motion đọc vị trí;
+  đo lại khi đổi ngôn ngữ hoặc font tải xong, không đo lại ở mỗi lần layout (đo ép style cả trang).
 - Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng, cùng hình học như khi có JS.
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
