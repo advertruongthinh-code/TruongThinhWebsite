@@ -277,10 +277,10 @@ E2E cần preview và `BASE_URL`. `TT_E2E_*_ONLY=1` chạy một phần của `p
   visual landscape chồng lớp. Owner và máy PC.
 - Menu thiếu touch thật Samsung, iPhone và owner visual; navbar P1.3 chờ owner spot-check; logo R5
   ([Brand](../../design-system/brand.md#logo)) chờ owner nghiệm thu visual.
-- V01 AC2, V03 AC2: A05s đạt bàn phím phần cứng 05/10 (control viewer, menu, toolbar mở và thu,
+- V01 AC2, V03 AC2: phone Android đạt bàn phím phần cứng 05/10 (control viewer, menu, toolbar mở và thu,
   dọc và ngang); không có ô nhập nên bàn phím ảo không áp dụng. Còn iPhone, safe area. V04
-  AC2 đạt trên A05s; V-A owner chấp nhận sai lệch snapshot (2026-10-06).
-- Layout L00–L07 xong 05/10 trên `6c2e321`: 660 ca và mọi scope ba engine cùng commit, A05s dọc
+  AC2 đạt trên phone Android; V-A owner chấp nhận sai lệch snapshot (2026-10-06).
+- Layout L00–L07 xong 05/10 trên `6c2e321`: 660 ca và mọi scope ba engine cùng commit, phone Android dọc
   và ngang, 0 lỗi; manifest ở PR của L07. Main sau đó có thêm #96–#108, chưa chạy lại toàn bộ.
   Còn iPhone, owner visual.
 - Main: chưa kiểm trình duyệt không hỗ trợ `svh`, iPhone Safari thật cho toàn shell, test paint và

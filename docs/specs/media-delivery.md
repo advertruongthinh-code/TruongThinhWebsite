@@ -258,7 +258,7 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
-| R6 | `image-loading-frame.e2e.mjs` (khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, chụp Slow 4G); A05s qua CDP |
+| R6 | `image-loading-frame.e2e.mjs` (khung, vệt, ảnh ẩn tới decode, fade, no-script, Barba và Back, reduced motion, chụp Slow 4G); phone Android qua CDP |
 | R7 | Chính script, chạy tay trên demo |
 
 ## Gate còn mở

@@ -1,7 +1,7 @@
 // Kính: một component glass dùng chung cho mọi glass surface (docs/specs/glass-surface.md).
 // Các bước blur (increment trong detail.css), rồi tint trắng và grain. Surface mờ dần từng bước (spec R6)
 // có năm bước (level 7.14, 16.07, 32.14, 57.14, 100px: trần 100px, owner 06/10); band của arc có ba
-// (4.5, 12, 28px; owner, 05/10, cho A05s).
+// (4.5, 12, 28px; owner, 05/10, cho phone Android).
 const STEPS = 5;
 const ARC_STEPS = 3;
 // Arc của owner (06/10): apex ở -15% cụm CTA (trên mép tiêu đề, owner 10/10, để chữ nằm trong core), bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
@@ -14,8 +14,8 @@ const CEILING = 100;
 const INNER_MAX = 5;
 // Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 5 lớp (core 28px, 1 inner lên 100px, 3 band); phone 2 lớp
 // (core 28px như PC và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
-// thứ hai (30% frame chậm, vòng 29) đều trượt gate trên A05s. Phone nhận biết như skeleton (catalog-runtime).
-// Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s vuốt 7-9% frame chậm (vòng 34).
+// thứ hai (30% frame chậm, vòng 29) đều trượt gate trên phone Android. Phone nhận biết như skeleton (catalog-runtime).
+// Phone giữ apex 0.35: apex cao hơn làm vùng Kính rộng hơn, A05s cũ vuốt 7-9% frame chậm (vòng 34).
 const PHONE_LAYERS = Object.freeze({ band: 1, inner: 0, centre: 0.35 });
 const DESKTOP_LAYERS = Object.freeze({ band: ARC_STEPS, inner: 1, centre: ARC.centre });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0

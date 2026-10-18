@@ -276,7 +276,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 
 ## Gate còn mở
 
-Owner chốt 2026-10-06: A05s là máy Android đo chuẩn, bỏ gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
+Owner chốt 2026-10-06: một phone Android thật là máy đo chuẩn (lúc đó Galaxy A05s; từ 2026-10-18 là phone Android nối adb debug, không còn A05s), bỏ gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
 phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham khảo. Mục iPhone trong spec khác thuộc nhóm này.
 
 - LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText, GSAP trong `src/site/detail.js` đẩy LCP

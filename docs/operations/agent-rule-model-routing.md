@@ -32,7 +32,7 @@ Không dùng mức ngoài Pareto. Giới hạn: Index là điểm tổng quát, 
 | --- | --- | --- |
 | interview-me, spec, plan | opus medium | opus high khi chạm 3+ file nóng (catalog-runtime, motion.js, skeleton-flow, design-system) |
 | Motion/UI trong `src/site` | sonnet high | opus medium khi chạm 3+ file nóng hoặc sau một lần owner chê |
-| Perf/fps gate A05s | opus high | opus xhigh chỉ sau một vòng đo vẫn chưa đạt |
+| Perf/fps gate phone Android | opus high | opus xhigh chỉ sau một vòng đo vẫn chưa đạt |
 | Sửa e2e có test đỏ rõ | sonnet high | opus medium nếu sửa xong vẫn đỏ |
 | Docs, STATE, Notion, memory | haiku xhigh | sonnet high khi context dài hoặc owner chê |
 | Relay, kiểm tra CI/PR, đổi status card, search chỉ đọc | haiku medium | haiku không sửa code sẽ merge |

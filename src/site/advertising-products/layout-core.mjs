@@ -1,6 +1,6 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
-// (khoảng 20% task click khi mở detail; decision a05s-frame-budget).
+// (khoảng 20% task click khi mở detail; decision phone-frame-budget).
 export const ADVERTISING_LAYOUT_ALGORITHM_VERSION = "advertising-grid-v14";
 const ADVERTISING_IDEAL_SLOT_WIDTH = 220;
 const ADVERTISING_MIN_COLUMNS = 2;
@@ -153,7 +153,7 @@ export function normalizeAdvertisingSettings(settings) {
 export function fnv1a32(value) {
   let hash = 0x811c9dc5;
   const bytes = new TextEncoder().encode(value);
-  // Vòng lặp theo chỉ số: dạng iterator tốn ~25ms mỗi mount trên A05s cho artifact hash.
+  // Vòng lặp theo chỉ số: dạng iterator tốn ~25ms mỗi mount trên A05s cũ cho artifact hash.
   for (let index = 0; index < bytes.length; index += 1) {
     hash ^= bytes[index];
     hash = Math.imul(hash, 0x01000193) >>> 0;

@@ -2032,7 +2032,7 @@ em {
   background: rgba(0, 0, 0, 0.2);
 }
 
-/* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision a05s-frame-budget). */
+/* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision phone-frame-budget). */
 .legacy-closer + section {
   margin-top: 90px;
 }

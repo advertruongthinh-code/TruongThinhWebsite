@@ -357,7 +357,7 @@ function compileShader(gl, type, source) {
 }
 
 // Shader giống nhau cho mọi preset (uniform đặt riêng mỗi lease), nên mỗi context chỉ compile một lần: compile chặn
-// main thread khoảng 60ms trên A05s. Context mất rồi khôi phục thì isProgram trả false và compile lại.
+// main thread khoảng 60ms trên A05s cũ. Context mất rồi khôi phục thì isProgram trả false và compile lại.
 const programByContext = new WeakMap();
 function contextProgram(gl) {
   const cached = programByContext.get(gl);
@@ -416,8 +416,8 @@ function createProgram(gl) {
   return program;
 }
 
-// Một noise chung cho mọi renderer: grain chỉ hiện 3-4%, còn tạo lại 256x256 mỗi lần mount tốn hơn 10ms trên A05s
-// (decision a05s-frame-budget).
+// Một noise chung cho mọi renderer: grain chỉ hiện 3-4%, còn tạo lại 256x256 mỗi lần mount tốn hơn 10ms trên A05s cũ
+// (decision phone-frame-budget).
 let sharedNoise;
 function createNoise() {
   if (sharedNoise) return sharedNoise;
@@ -710,7 +710,7 @@ export function createSkeletonFlowRenderer(canvas, {
   };
 }
 
-// Một context WebGL vẽ mọi khung batch: 7-8 context riêng làm GPU A05s quá tải (vòng 18), canvas chung nửa
+// Một context WebGL vẽ mọi khung batch: 7-8 context riêng làm GPU A05s cũ quá tải (vòng 18), canvas chung nửa
 // độ phân giải đạt gate (vòng 20, advertising-skeleton R5). Canvas cao 2 viewport, chỉ dời khi viewport ra khỏi nó.
 // Một layer cho cả document: runtime gắn canvas vào batch hiện tại, controller remount dùng lại context.
 export function createSharedSkeletonFlowLayer() {

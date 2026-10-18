@@ -21,8 +21,8 @@
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
 - Chờ owner quyết: giữ hay xóa `scripts/site/sanitize-client-logos.ps1`; gộp nhãn trùng giữa
   `photo-tags.mjs` và `catalog.mjs`; bỏ trường không dùng khỏi `catalog-artifact.mjs` (sinh từ `prepare-static-assets.mjs`).
-- Nợ cần phiên PC và A05s (máy đo chuẩn, [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
-  - A05s: pinch, xoay hai ngón R11 bằng tay
+- Nợ cần phiên PC và phone Android (máy đo chuẩn, nối adb debug, [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)):
+  - Phone Android: pinch, xoay hai ngón R11 bằng tay
     ([viewer chạm](specs/advertising-viewer-touch-zoom.md#gate-còn-mở)).
   - `mobile-layout-parity`, `scrollbar-parity`, `site-media-card-playback`, `advertising-photo-transitions`,
     `advertising-primary-p14`: chạy ở phiên PC.

@@ -12,7 +12,7 @@ related_specs:
 Owner xác nhận thiết bị là Android, browser Chrome, máy host Windows chạy
 Codex. Trang chạy trên điện thoại thật; viewport desktop emulation không thay
 gate này. Ngày27/09/2026 đã đọc DOM và chụp ảnh trang Advertising local qua
-Chrome DevTools MCP trên Galaxy A05s thật. Đây là PASS kết nối/debug; chưa là
+Chrome DevTools MCP trên Galaxy A05s thật (máy cũ; từ 2026-10-18 owner dùng phone Android khác, cùng quy trình adb/CDP). Đây là PASS kết nối/debug; chưa là
 nghiệm thu giao diện. Owner yêu cầu local trước, sau phát hành mới debug demo Cloudflare.
 
 ## Cài đặt điện thoại
@@ -101,7 +101,7 @@ gọi kết quả local là kết quả bản public. Không thêm desktop viewp
 
 ## Probe kết nối đã kiểm — 2026-09-27
 
-- Galaxy A05s, model `SM-A057F`, Android15/API35; Chrome153.0.8010.52,
+- Máy cũ Galaxy A05s, model `SM-A057F`, Android15/API35; Chrome153.0.8010.52,
   package `com.android.chrome`, CDP1.3; MCP1.9.0. ADB trạng thái `device` sau
   owner cho phép USB debugging; không dùng browser desktop thay thế.
 - Read-only `evaluate_script` trả đúng route Advertising VI, title, shell DOM,
@@ -181,7 +181,7 @@ Verification scrollbar (gộp vào [shell website](../specs/site-shell.md#r9-scr
 preview8792 của managed checkout `codex/mobile-ui-contract`; source/build/served
 hash được đối chiếu riêng. Chỉ thêm `reverse --no-rebind tcp:8792 tcp:8792`.
 Mapping8790 và forward9223 giữ cho phiên debug đang dùng; recovery QA vẫn paused.
-Galaxy A05s đã kiểm native scrollbar VI/EN và owner xoay ngang thật, không override
+Máy cũ Galaxy A05s đã kiểm native scrollbar VI/EN và owner xoay ngang thật, không override
 viewport/DPR/scale. Native mode đạt; visual landscape và iPhone acceptance còn mở.
 
 Chỉ gỡ reverse8792 của correction khi preview không còn cần. Không gỡ8790/9223

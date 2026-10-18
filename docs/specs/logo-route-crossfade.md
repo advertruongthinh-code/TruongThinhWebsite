@@ -100,7 +100,7 @@ And mark, chữ, mục menu và hamburger không có opacity riêng
 
 ## Hiệu năng
 
-Tween màu chỉ ghi `fill` của bốn path, không đọc layout mỗi frame, không thêm lớp DOM. Giữ [gate A05s](../decisions/a05s-frame-budget.md)
+Tween màu chỉ ghi `fill` của bốn path, không đọc layout mỗi frame, không thêm lớp DOM. Giữ [gate phone Android](../decisions/phone-frame-budget.md)
 (fps trung bình từ 60) trong lúc chuyển trang.
 
 ## UI
@@ -117,7 +117,7 @@ trong `src/site/motion.js`.
 | R1–R5 | `tests/site/logo-route-crossfade.e2e.mjs`: 1440px và 412×915, ghi mọi animation trên path của mark trong lúc chuyển `/vi/` sang Residential, Advertising, Advertising sang `/vi/`, đổi ngôn ngữ; đếm tween màu (fill inline trên path), không clip-path; mỗi tween dưới 0.5s, sang đậm bắt đầu lúc bấm, sang màu trang đích bắt đầu khi veil phủ kín và trước khi mở xong |
 | R7 | `tests/site/logo-route-crossfade.e2e.mjs`: opacity cụm logo giữ `1` mọi frame; mark, chữ, nav, hamburger giữ `1`; reduced motion |
 | R6 | `TT_E2E_BRAND_COLOR_ONLY` (mọc khi cuộn), `TT_E2E_REDUCED_ONLY` |
-| Hiệu năng | A05s thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (số đo trong PR đóng gate #307; kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
+| Hiệu năng | phone Android thật: SurfaceFlinger `--timestats`, 4 kịch bản R1 tới R4, 3 lượt mỗi kịch bản (số đo trong PR đóng gate #307; kiểu b thay lớp crossfade bằng tween fill trên bốn path, nhẹ hơn, không đo lại) |
 
 ## Gate còn mở
 

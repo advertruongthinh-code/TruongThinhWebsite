@@ -9,7 +9,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   const width = 1440, height = 900;
   const page = await browser.newPage({ viewport: { width, height } });
-  // Decode chậm như A05s để card kịp rời viewport trước khi decode xong.
+  // Decode chậm như phone Android để card kịp rời viewport trước khi decode xong.
   await page.addInitScript(() => {
     const decode = HTMLImageElement.prototype.decode;
     HTMLImageElement.prototype.decode = function () {
