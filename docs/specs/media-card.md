@@ -66,8 +66,8 @@ xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media
 media" và "Media tiếp" / "Next media" 44×44px, bộ đếm `i/N` (`role="status"`, `aria-live="polite"`); nút trước vô hiệu ở
 item đầu, nút sau ở item cuối. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
-bị chặn. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" giữa canvas (cùng mũi tên dải media primary R6),
-ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
+bị chặn. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
+ở hai mép, chevron trắng 16px không nền, ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
 
 ```gherkin

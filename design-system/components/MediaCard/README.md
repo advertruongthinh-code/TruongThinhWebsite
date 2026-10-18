@@ -63,10 +63,11 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 - Vuốt ngang từ 40px đổi media, dừng ở hai đầu, không quay vòng; cuộn dọc
   vẫn native.
 - Chấm, nút trước và sau chỉ đổi media, không mở detail.
-- Hover card nhiều media hiện mũi tên `<` `>` như pin Pinterest, dùng lại mũi
-  tên dải media của [Primary](../Primary/README.md#thumbnail-media): vuông
-  trắng 36px bo 10px, cách mép 16px, giữa canvas; ẩn ở media đầu, cuối; cảm
-  ứng không có mũi tên, đổi bằng vuốt.
+- Hover card nhiều media hiện mũi tên `<` `>` như grid Pinterest (đo
+  2026-10-18): vùng bấm 32px cao hết canvas ở hai mép, chevron trắng 16px
+  không nền, bóng nhẹ; ẩn ở media đầu, cuối; cảm ứng không có mũi tên, đổi
+  bằng vuốt. Cùng nút với mũi tên dải media của
+  [Primary](../Primary/README.md#thumbnail-media), chỉ khác hình dạng.
 - Đổi media tức thì, không trượt; ảnh tải lần đầu fade `0.6s ease-out`.
 
 ### Focus và nhãn

@@ -5428,9 +5428,31 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Card nhiều media trên masonry dùng cùng mũi tên, đặt giữa canvas (trên dải chấm 44px). */
+/* Card nhiều media trên masonry theo grid Pinterest (đo 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
+   (trên dải chấm 44px), chỉ có chevron trắng 16px, không nền; bóng nhẹ để chevron vẫn đọc được trên ảnh sáng. */
 .advertising-tile > .advertising-photo-view__media-step {
-  top: calc(50% - 22px);
+  top: 0;
+  width: 32px;
+  height: calc(100% - 44px);
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  transform: none;
+}
+
+.advertising-tile > .advertising-photo-view__media-step--prev {
+  left: 0;
+}
+
+.advertising-tile > .advertising-photo-view__media-step--next {
+  right: 0;
+}
+
+.advertising-tile > .advertising-photo-view__media-step svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 
 @media (hover: hover) {
