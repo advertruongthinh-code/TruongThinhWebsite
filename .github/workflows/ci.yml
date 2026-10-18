@@ -65,7 +65,8 @@ jobs:
       # Script e2e tự đặt browser path về .tooling/browsers khi env trống; trỏ mọi bước về cache của playwright install.
       # Runner GitHub-hosted trắng mỗi job nên cài Chromium cùng system deps.
       - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
-      - run: pnpm exec playwright install --with-deps chromium
+      # Bộ adv-browse chạy thêm WebKit (random-browse); các bộ khác chỉ Chromium.
+      - run: pnpm exec playwright install --with-deps chromium ${{ matrix.suite == 'adv-browse' && 'webkit' || '' }}
 
       # Script tự build, mở preview ở port trống riêng và dọn server.
       - run: pnpm qa:suite ${{ matrix.suite }}

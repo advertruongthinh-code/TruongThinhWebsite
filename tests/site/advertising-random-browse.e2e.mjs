@@ -16,6 +16,16 @@ const ready = async page => {
   // Direct-load veil phủ trang và header cho đến khi trang mount xong.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
 };
+// WebKit headless trên Linux vẽ bằng phần mềm: các bậc backdrop-filter của Kính làm rAF dừng giữa lúc veil mở sau Back
+// (đo 14/40 lượt kẹt, tắt backdrop-filter 0/16; tắt riêng filter, blend, will-change vẫn kẹt). Ca này kiểm route,
+// seed và scroll, không kiểm Kính nên tắt backdrop-filter ở WebKit; Safari thật kiểm bằng iPhone (glass-surface R7).
+const stripBackdropFilter = (page, engine) => engine === webkit ? page.addInitScript(() => {
+  document.addEventListener("DOMContentLoaded", () => {
+    const style = document.createElement("style");
+    style.textContent = "*,*::before,*::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}";
+    document.documentElement.append(style);
+  });
+}) : Promise.resolve();
 const read = page => page.evaluate(() => ({
   browse: window.TruongThinhAdvertising.getBrowseState(),
   ids: [...document.querySelectorAll("[data-advertising-card]")].map(node => node.dataset.advertisingCard),
@@ -121,12 +131,13 @@ try {
   assert.equal(await nativePage.evaluate(() => sessionStorage.getItem("tt-advertising-visit-seed-handoff-v1")), null);
   results.push({ case: "native-locale", injection: "abort motion.js in both documents", blockedMotion, nativeRequests, seed: seedBeforeFallback });
   await nativePage.close();
-  // CI chỉ cài Chromium nên chạy RANDOM_BROWSE_ENGINES=chromium; chạy tay mặc định thêm WebKit.
+  // Bộ CI adv-browse cài Chromium và WebKit; đặt RANDOM_BROWSE_ENGINES để chạy một engine.
   for (const engine of (process.env.RANDOM_BROWSE_ENGINES || "chromium,webkit").split(",").map((name) => ({ chromium, webkit })[name])) {
     const earlyBrowser = engine === chromium ? browser : await engine.launch({ headless: true });
     try {
       for (let attempt = 0; attempt < 3; attempt++) {
         const restingPage = await earlyBrowser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+        await stripBackdropFilter(restingPage, engine);
         restingPage.on("console", msg => {if(msg.type() === "error") errors.push(msg.text());});
         restingPage.on("pageerror", error => errors.push(error.message));
         try {
@@ -156,6 +167,7 @@ try {
         } finally {await restingPage.close();}
       }
       const earlyPage = await earlyBrowser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+      await stripBackdropFilter(earlyPage, engine);
       earlyPage.on("console", msg => { if (msg.type() === "error") errors.push(msg.text()); });
       earlyPage.on("pageerror", error => errors.push(error.message));
       await earlyPage.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" }); await ready(earlyPage);

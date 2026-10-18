@@ -280,8 +280,8 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 ## Gate còn mở
 
 - Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter; VI/EN, desktop và điện thoại. Owner.
-- `advertising-random-browse.e2e.mjs`: Chromium PASS 18 case; WebKit cloud fail ca `resting-route-back` (khoảng 1/6 lượt, Chromium 6/6 ổn): Back từ `/vi/` treo, `body` kẹt `is-transitioning`, hai container Barba cùng tồn tại; chưa rõ lỗi Safari hay harness.
-  Sửa trước khi vào [CI](ci-test-suites.md#gate-còn-mở). Safari iPhone chưa kiểm.
+- `advertising-random-browse.e2e.mjs`: Chromium và WebKit cloud PASS (22 case, 3/3 lượt). WebKit headless Linux vẽ `backdrop-filter` của Kính bằng phần mềm nên rAF dừng
+  sau Back (kẹt 14/40; tắt `backdrop-filter` 0/16); ca test tắt nó ở WebKit, CI `adv-browse` chạy WebKit. Safari iPhone thật chưa kiểm ([glass R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)).
 - `advertising-hero-once.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ca click trước runtime giữ import
   `catalog-runtime.mjs` khi không reduced motion nên veil R7 chặn click tới hết 30s. Main sửa ca test theo R3.
 - Thư viện ảnh: ảnh cần sửa, thay, chưa xác minh nguồn theo [audit](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/advertising-images-audit-2026-09-09.md); V6
