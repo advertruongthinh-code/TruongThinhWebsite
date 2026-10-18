@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const engines = await import("playwright");
+const { ADVERTISING_CLUSTERS } = await import("../../src/site/advertising-products/taxonomy.mjs");
 const argument = (name, fallback) => process.argv[process.argv.indexOf(name) + 1] || fallback;
 const phase = process.argv.includes("--phase") ? argument("--phase", "final") : "final";
 const scope = process.argv.includes("--scope") ? argument("--scope", "all") : "all";
@@ -14,8 +15,7 @@ await fs.mkdir(output, { recursive: true });
 const results = [];
 const assets = {};
 const runnerSha256 = createHash("sha256").update(await fs.readFile(new URL(import.meta.url))).digest("hex");
-const slugs = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
-const routes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "advertising-products/", "about/", ...slugs.map(slug => `advertising-products/${slug}/`)].map(route => `/${locale}/${route}`));
+const routes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "advertising-products/", "about/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
 for (const file of ["motion.js", "style.css", "detail.css", "advertising-products/catalog-runtime.mjs", "advertising-products/photo-viewer.mjs"]) {
   const source = await fs.readFile(`src/site/${file}`);
   const response = await fetch(`${base}/${file}`);
@@ -79,7 +79,7 @@ function stable(before, after, label) {
 }
 
 for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit").split(",")) {
-  const browser = await engines[engine].launch({ headless: true });
+  const browser = await engines[engine].launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, reducedMotion: "no-preference" });
   await context.addInitScript(installVisibleFixture);
   const page = await context.newPage();
@@ -118,7 +118,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     }
     if (["all", "advertising"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await ready(page, true);
       const before = await snapshot(page);
       await page.evaluate(() => window.__changeVisibleViewport(650));
@@ -136,7 +136,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     assert.deepEqual(issues, [], "console/page/network/HTTP issues");
     if (["all", "viewer"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await ready(page, true);
       const motion = await page.evaluate(async () => {
         document.querySelector("[data-advertising-photo-expand]").click();
@@ -162,7 +162,8 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
             return { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
           }) };
       });
-      await page.locator("[data-advertising-photo-zoom-in]").click();
+      // Màn cảm ứng ẩn nút khỏi mắt (viewer R8) nhưng còn trong cây trợ năng: gọi như TalkBack, không click chuột.
+      await page.locator("[data-advertising-photo-zoom-in]").evaluate(button => button.click());
       await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
       const beforeZoom = await geometry();
       await page.evaluate(() => window.__changeVisibleViewport(500));
@@ -190,7 +191,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     }
     if (["all", "visibility"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/`, { waitUntil: "networkidle" });
       await ready(page);
       await page.evaluate(() => {
         const frame = document.querySelector("[data-advertising-cta-frame]");
@@ -221,7 +222,7 @@ for (const engine of (process.env.VIEWPORT_ENGINES || "chromium,firefox,webkit")
     if (["all", "fallback"].includes(scope)) {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.route("**/motion.js", route => route.fulfill({ status: 200, contentType: "application/javascript", body: "/* Deliberate unavailable shell script boundary. */" }));
-      await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.complete && document.querySelector("[data-advertising-photo-related-grid]")?.style.height);
       await page.evaluate(() => document.fonts.ready);
       const before = await snapshot(page);

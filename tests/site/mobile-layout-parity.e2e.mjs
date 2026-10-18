@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= "E:/TruongThinh-Website/.tooling/browsers";
 const engines = await import("playwright");
@@ -34,8 +35,7 @@ for (const file of servedFiles) {
 }
 const sourceHTML={};
 for(const file of ['index.html','about/index.html','residential/index.html','commercial/index.html','advertising-products/index.html'])sourceHTML[file]=hash(await fs.readFile(`src/site/${file}`));
-const slugs = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
-const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "about/", "advertising-products/", ...slugs.map(s => `advertising-products/${s}/`)].map(route => `/${locale}/${route}`));
+const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "about/", "advertising-products/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
 const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];
 const results = [];
@@ -56,6 +56,8 @@ function measure(options = {}) {
       paint.push({node,opacity:Number(s.opacity),minimum:languageDim?0.449:0.999,visibility:s.visibility});
       const x=["hidden","clip","auto","scroll"].includes(s.overflowX),y=["hidden","clip","auto","scroll"].includes(s.overflowY);
       if(x||y)ports.push({node,box:b,x,y,rail:a.matches(".editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel")&&s.overflowX==="auto"});
+      // Swiper đã chạy: track overflow visible, slide dịch bằng transform nên không có port cuộn; slide ngoài khung là carousel đúng thiết kế.
+      else if(a.matches('.detail-gallery__track.swiper-initialized'))ports.push({node,box:b,x:false,y:false,rail:true});
       if(s.clipPath!=="none") {
         const tokens=s.clipPath.match(/^inset\(([^)]+)\)$/)?.[1].trim().split(/\s+/);
         if(tokens&&tokens.length<=4&&tokens.every(t=>/^-?[\d.]+(px|%)$/.test(t)||t==="0")) {
@@ -76,13 +78,18 @@ function measure(options = {}) {
     while(walker.nextNode()) {
       if(!walker.currentNode.textContent.trim())continue;
       if(walker.currentNode.parentElement.closest('.sr-only'))continue;
+      // Nhãn ẩn khỏi mắt bằng clip rect(0) 1px (nhãn Hotline, Văn phòng của footer điện thoại) còn trong cây trợ năng; số bên cạnh vẫn được đo.
+      const hiddenLabel=(()=>{for(let a=walker.currentNode.parentElement;a&&a!==document.body;a=a.parentElement){const r=a.getBoundingClientRect();if(getComputedStyle(a).clip==='rect(0px, 0px, 0px, 0px)'&&r.width<=1&&r.height<=1)return true;}return false;})();
+      if(hiddenLabel)continue;
       const label=walker.currentNode.parentElement.closest('.advertising-photo-view__image-action > span');
       if(label&&!label.parentElement.matches(':focus-visible')&&!(matchMedia('(hover: hover)').matches&&label.parentElement.matches(':hover'))) {
         exclusions.push({text:walker.currentNode.textContent.trim(),reason:'accepted collapsed image action label; icon checked separately'});continue;
       }
       const range=document.createRange();range.selectNodeContents(walker.currentNode);
       const clips=chain(walker.currentNode.parentElement);
-      const ranges=[...range.getClientRects()].filter(r=>r.width>0&&r.height>0&&(!options.viewportOnly||r.bottom>0&&r.top<innerHeight));
+      // Mục rail ngoài khung nhìn ngang chưa tới lượt hiện (opacity 0, lệch dọc tới khi vuốt); lượt 'reached rail item' đo lại khi mục đã vào khung.
+      const inRailView=r=>!options.viewportOnly||!clips.ports.some(p=>p.rail)||r.right>0&&r.left<innerWidth;
+      const ranges=[...range.getClientRects()].filter(r=>r.width>0&&r.height>0&&(!options.viewportOnly||r.bottom>0&&r.top<innerHeight)&&inRailView(r));
       if(ranges.length)paint.push(...clips.paint);
       for(const r of ranges)bounds.push({left:r.left,right:r.right,top:r.top+logical,bottom:r.bottom+logical,ports:clips.ports,unknown:clips.unknown,control:walker.currentNode.parentElement.closest('[data-advertising-filter]')?.dataset.advertisingFilter});
     }
@@ -146,7 +153,7 @@ async function ready(page, options = {}) {
   throw new Error(`layout/text did not settle: ${JSON.stringify({y:before.y,texts:before.texts.map(t=>({node:t.selector,box:t.box}))})}`);
 }
 const bodySelector="main h1,main h2,main h3,main p,main a,main button,main figcaption,.portal-copy,.heritage-row,.site-footer p,.site-footer a";
-const canonicalRoutes=allRoutes.filter(r=>!slugs.some(s=>r.endsWith(`/${s}/`)));
+const canonicalRoutes=allRoutes.filter(r=>!ADVERTISING_CLUSTERS.some(c=>r.endsWith(`/${c.slugVi}/`)||r.endsWith(`/${c.slugEn}/`)));
 const versions={};
 async function recordState(page, engine, label, options = {}) {
   const measured=await ready(page,options),faults=faultsFor(measured);
@@ -163,7 +170,7 @@ async function checkBody(page,engine,label,options={}) {
     singlePageIndicator:e.matches('[data-advertising-photo-description-indicator]')&&e.hidden&&Number(e.closest('[data-advertising-photo-info]')?.querySelector('[data-advertising-photo-description-pager]')?.dataset.pageCount)===1,
     silentMediaAudio:e.matches('[data-advertising-photo-audio-toggle]')&&e.hidden,
     scrollCueState:e.matches('.scroll-cue.is-hidden')?'accepted cue hidden after scrollY200':null})));
-  const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.inactivePhoto&&!e.inactiveGrid&&!e.singlePageIndicator&&!e.silentMediaAudio);
+  const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.explicitHidden&&!e.inactivePhoto&&!e.inactiveGrid&&!e.singlePageIndicator&&!e.silentMediaAudio);
   await saveRecord({kind:'inventory',engine,label,inventory,faults:missing.map(e=>`active copy has zero width: ${e.node} ${e.text.slice(0,60)}`)});
   const positions=await page.locator(bodySelector).evaluateAll(nodes=> {
     const y=window.TruongThinhMotion?.getLogicalScroll?.()??scrollY;
@@ -180,6 +187,8 @@ async function checkBody(page,engine,label,options={}) {
     const node=page.locator(bodySelector).nth(index);
     const rail=await node.evaluate(e=>e.getBoundingClientRect().width>0&&Boolean(e.closest('.editorial-strip,.detail-process,.project-track,.detail-gallery__track,.project-filters,.advertising-detail__carousel')));
     if(!rail)continue;
+    // Swiper chạy: slide dịch bằng transform nên đưa slide vào khung trước; focus hay scrollIntoView sau đó không còn kéo section overflow hidden.
+    await node.evaluate(e=>{const track=e.closest('.detail-gallery__track');if(track?.swiper)track.swiper.slideTo([...track.swiper.slides].indexOf(e.closest('.detail-gallery__item')),0);});
     await node.evaluate(e=>(e.closest('a,button,[tabindex]')||e).focus());
     if(options.noScript)await node.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center',inline:'center'}));
     else await node.scrollIntoViewIfNeeded();
@@ -541,7 +550,7 @@ async function checkFilterRail(page) {
   return failures;
 }
 for (const engine of (process.env.LAYOUT_ENGINES || "chromium,firefox,webkit").split(",")) {
-  const browser=await engines[engine].launch({headless:true});
+  const browser=await engines[engine].launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined});
   versions[engine]=browser.version();
   const context=await browser.newContext({hasTouch:true});const page=await context.newPage();const issues=[];
   page.on("pageerror",e=>issues.push(e.message));page.on("console",m=>{if(m.type()==="error")issues.push(m.text());});

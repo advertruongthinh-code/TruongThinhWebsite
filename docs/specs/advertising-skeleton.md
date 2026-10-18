@@ -205,11 +205,9 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - R8 trên SM-A047F (18/10, 3 lượt vuốt xuống related): frame trên `33ms` 0 đến 0,5% (A05s cũ khoảng 9%), SurfaceFlinger
   p5 90,9fps, 0 long task trên `50ms`: PASS. Owner xem trên demo.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
-- `advertising-continuation.e2e.mjs` FAIL: test còn giả định ngân sách 2 WebGL context trên điện thoại và đo paint theo
-  từng canvas, trong khi từ #252 mọi khung vẽ trên một canvas chung (R5). #252 đã sửa phần đếm context; phần đo paint
-  cần chuyển sang canvas chung. Đo R4 trên canvas chung (18/10, Chrome 155 thật, RTX 3090, 1569×912, 3×5s mỗi locale):
-  khoảng 85fps, 0 long task, PASS gate `>= 30fps`; test gốc còn FAIL assert "arc Kính band rises above the real photos"
-  (vi 360, NaN). Main sửa test.
+- `advertising-continuation.e2e.mjs` chỉ PASS gate fps R4 trên Chrome có GPU: cloud (WebGL phần mềm, Chromium headless) đo
+  khoảng 9fps và có long task vượt `50ms`, nên hai assert đó FAIL ngoài PC. Các assert còn lại PASS ở cloud (18/10).
+  Chưa có test cho Kính reveal `0.6s` ở lần vào đầu tiên (test cũ chỉ bắt lúc vào lại, nay là không reveal theo R4).
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
