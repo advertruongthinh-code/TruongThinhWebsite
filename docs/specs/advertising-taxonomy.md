@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-pages.test.mjs
   - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -32,21 +32,21 @@ liệu, kiểu dáng (Inox, Mica, đơn sắc, full color...), gắn trên từn
 tag xuất hiện trong chữ trang sản phẩm và alt. Một media gắn được nhiều sản phẩm và nhiều tag. Thứ tự sản phẩm là
 thứ hạng: hạng 1 là sản phẩm chính, quyết định `category`, alt và related; các hạng sau xếp theo độ nổi bật trong
 ảnh (owner chốt 2026-10-17). Card thuộc mọi sản phẩm và mọi cụm có sản phẩm gắn trên media; trong một filter, card
-xếp theo hạng của sản phẩm đầu tiên khớp filter, cùng hạng thì ngẫu nhiên. Điểm R6 chỉ gợi ý thứ hạng. 74 sản phẩm cũ (`<slug>-product-NN`) thành tag,
+xếp theo hạng của sản phẩm đầu tiên khớp filter, cùng hạng thì ngẫu nhiên. Điểm R6 chỉ gợi ý thứ hạng. 79 sản phẩm cũ (`<slug>-product-NN`) thành tag,
 mỗi tag map về một sản phẩm mới.
 
 Cây chọn theo nghiên cứu SEO 2026-10-12 (Keyword Planner miền Tây và cả nước, SERP, gợi ý Google/Bing, 12 đối
-thủ; báo cáo ở `advertising-taxonomy/seo/` trong Library project). Số ảnh tính cả R8; sản phẩm tách mới đếm lại
+thủ; báo cáo ở `advertising-taxonomy/seo/` trong Library project). Số ảnh đếm ngày 2026-10-18, gồm cả ảnh gắn sản phẩm phụ và R8; sản phẩm tách mới đếm lại
 trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 
 | Cụm, nhãn rail và h1 (slug VI / EN) | Sản phẩm (số ảnh) |
 | --- | --- |
-| Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (12); Chữ nổi (10); Hộp đèn (tách từ cụm LED và bảng hiệu); Bảng vẫy (4) |
-| Standee, backdrop, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (10); Kệ, tủ trưng bày (11); Gian hàng triển lãm (6); Kiosk bán hàng (6); Booth sampling & quầy lễ tân (4) |
-| In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (6); In ấn văn phòng (10); Menu (4); Bao bì, thẻ & vé (4) |
-| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (chưa có ảnh); Màn hình LED (9, trừ ảnh hộp đèn); Bảng LED chạy chữ (9); Bảng hiệu LED (9, owner thêm 2026-10-18) |
-| Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (8); Biển chỉ dẫn & sơ đồ tòa nhà, Biển phòng ban (tách từ 20 ảnh "Biển phòng ban & chỉ dẫn"); Bảng chức danh để bàn (3); Kỷ niệm chương (8) |
-| Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (10); Quầy bán hàng di động (11) |
+| Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (14); Chữ nổi (29); Hộp đèn (28); Bảng vẫy (18) |
+| Standee, backdrop, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (17); Backdrop (9, tách 2026-10-18); Kệ, tủ trưng bày (33); Gian hàng triển lãm (10); Kiosk bán hàng (9); Booth sampling & quầy lễ tân (15) |
+| In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (13); In ấn văn phòng (11); Menu (10); Bao bì, thẻ & vé (9) |
+| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (29); Màn hình LED (13); Bảng LED chạy chữ (9); Bảng hiệu LED (31) |
+| Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (9); Biển chỉ dẫn & sơ đồ tòa nhà (24); Biển phòng ban (10); Bảng chức danh để bàn (10); Kỷ niệm chương (9) |
+| Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (16); Quầy bán hàng di động (14) |
 
 Tên cụm liệt kê vài sản phẩm chính để khách đọc là biết cụm có gì (owner 2026-10-12), mở đầu bằng cụm từ có lượt tìm
 cao hơn (số liệu trong mô tả PR #312 và báo cáo Library); title có thể khác tên cụm. Quy tắc kèm theo:
