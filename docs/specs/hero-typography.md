@@ -56,11 +56,12 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
 - Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(90% - 30px)`. Title nằm giữa hero theo hai chiều.
 - Mỗi dòng là một khối. Trên 750px dòng 1 canh trái, dòng 2 canh phải; từ 750px trở xuống hai dòng canh giữa.
   Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.
-- Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 11)`. Số 11 em vừa câu dài nhất hiện có ("Designed to
-  perform"), nên khoảng cách hai dòng giữa các hero cùng bề rộng lệch nhau dưới 15%.
-- Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em vào `--hero-line-em` và gắn `data-hero-fit`. Dòng
-  không xuống dòng và chỉ co thêm khi câu dài hơn 11 em. Chạy trước SplitText và trước khi motion đọc vị trí.
-- Không JS hoặc `motion-fallback`: cùng cỡ chung, dòng xuống dòng tự nhiên, không tràn ngang.
+- Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
+  12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
+- Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn
+  `data-hero-fit`. Dòng không xuống dòng và chỉ co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước
+  khi motion đọc vị trí.
+- Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng, cùng hình học như khi có JS.
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
   owner duyệt (mục UI).
@@ -113,7 +114,7 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 ## Gate còn mở
 
 - Owner audit trên PC và phone trước khi cập nhật Design System.
-- Đo lại espacio (R2) qua phiên PC, so với cỡ chung 11 em.
+- Đo lại espacio (R2) qua phiên PC, so với cỡ chung 12,5 em.
 - R4 chờ owner chỉ đoạn văn thấy lệch.
 
 ## Chú thích thuật ngữ

@@ -6218,9 +6218,9 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 }
 
 /* Chữ hero theo espacio (hero-typography R2): mỗi dòng một khối, mọi hero chung một cỡ để nhịp dòng giống nhau.
-   Cỡ chung là bề rộng khung chia 11 em (vừa câu dài nhất hiện có), trần 7rem như số đo espacio. motion.js đo dòng
-   dài nhất theo em vào --hero-line-em và gắn data-hero-fit: dòng nowrap, chỉ co thêm khi câu dài hơn 11 em. Thiếu
-   JS thì dòng xuống dòng tự nhiên ở cỡ chung. */
+   Cỡ chung là bề rộng khung chia 12.5 em (câu dài nhất hiện có khoảng 12 em), trần 7rem như số đo espacio, nên
+   không JS hay motion lỗi vẫn hai dòng và cùng hình học. motion.js đo dòng dài nhất theo em vào --hero-line-em và
+   gắn data-hero-fit: dòng nowrap, chỉ co thêm khi câu dài hơn 12.5 em. */
 .hero > .hero-content {
   width: min(80%, 62.5rem);
 }
@@ -6238,7 +6238,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   display: block;
   padding: 0;
   clip-path: none;
-  font-size: min(7rem, calc(100cqi / 11));
+  font-size: min(7rem, calc(100cqi / 12.5));
   text-align: left;
 }
 
@@ -6249,7 +6249,7 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask) {
   white-space: nowrap;
-  font-size: min(7rem, calc(100cqi / 11), calc(100cqi / var(--hero-line-em)));
+  font-size: min(7rem, calc(100cqi / 12.5), calc(100cqi / var(--hero-line-em)));
 }
 
 @media (max-width: 750px) {
