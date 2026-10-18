@@ -28,7 +28,7 @@ Owner chốt intent 2026-10-10 qua interview-me.
 chạy theo chế độ mới.
 
 ```gherkin
-Given A05s dọc (khoảng 412px CSS, touch)
+Given phone Android dọc (khoảng 412px CSS, touch)
 When xoay sang ngang
 Then header vẫn đi theo quãng cuộn như R2; ở 1440px chuột thì header theo Shell R3
 ```
@@ -94,7 +94,7 @@ Then header và logo giữ nguyên chiều cao (412×915: header 71px, logo 50px
 ## Hiệu năng
 
 Chỉ ghi `transform` một lần mỗi frame. `H` đọc `offsetHeight` một lần khi header đổi thu gọn, resize
-hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate A05s](../decisions/a05s-frame-budget.md)
+hoặc hết transition padding, không đọc layout ở frame cuộn thường. Giữ [gate phone Android](../decisions/phone-frame-budget.md)
 (fps trung bình từ 60) khi cuộn trang dài.
 
 ## Kiểm tra
@@ -102,11 +102,11 @@ hoặc hết transition padding, không đọc layout ở frame cuộn thường
 | R | Test hoặc command |
 | --- | --- |
 | R1–R4, R6 | `tests/site/phone-header-scroll.e2e.mjs`: touch 412×915 và 915×412 đo vị trí header sau từng lần cuộn, dừng, menu, cỡ header và logo trước sau 100px; 1440px chuột theo Shell R3, header vẫn thu nhỏ |
-| Hiệu năng | Đo A05s thật qua adb, xin điều phối trước khi dùng máy |
+| Hiệu năng | Đo phone Android thật qua adb, xin điều phối trước khi dùng máy |
 
 ## Gate còn mở
 
-- Owner vuốt thử trên A05s sau khi code, so cảm giác với X. Owner.
+- Owner vuốt thử trên phone Android sau khi code, so cảm giác với X. Owner.
 
 ## Chú thích thuật ngữ
 

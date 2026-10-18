@@ -59,7 +59,7 @@ Bậc trong (81-88% frame chậm, vòng 26)
 hay bậc band thứ hai (30% frame chậm, p5 `45fps`, vòng 29) đều rơi gate. Lúc cuộn và lúc dừng máy dùng cùng số lớp, không thay bằng ảnh nhòe dựng sẵn (owner
 10/10). Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
 về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm ngày 05/10 để
-vuốt trên A05s đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
+vuốt trên phone Android đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
 hay đường ranh giới. Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai
 lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tăng
 `sqrt(L² - L_trước²)`.
@@ -70,7 +70,7 @@ subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer 
 
 | Giá trị | Chốt 06/10 (owner) |
 | --- | --- |
-| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi; owner 10/10); phone giữ `+0.35` (đỉnh cao hơn làm A05s vuốt 7-9% frame chậm, vòng 34) |
+| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi; owner 10/10); phone giữ `+0.35` (đỉnh cao hơn làm A05s cũ vuốt 7-9% frame chậm, vòng 34) |
 | Bán kính | `3.5` × bề rộng viewport |
 | Dải giảm nhòe, đo từ cung ra ngoài | `1.75` × chiều cao cụm CTA |
 | Vùng trắng tuyệt đối | `0.35` × bề rộng card |
@@ -122,7 +122,7 @@ khi trang cuộn bằng chuyển động, Chromium bỏ nhòe của các bậc n
 có hòa trộn, nên mép card skeleton lộ nét trong cung (owner thấy trên demo, 06/10).
 
 ```gherkin
-Given A05s mở cuối masonry
+Given phone Android mở cuối masonry
 When chụp màn hình dải chuyển sang trắng
 Then không thấy sọc màu
 And vùng trắng tuyệt đối không có hạt nhiễu
@@ -158,12 +158,12 @@ Then chỉ opacity của các bậc đổi theo thời gian, backdrop-filter kh�
 ### R7. Hiệu năng và trình duyệt
 
 Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
-trên A05s, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
-gate [A05s trên 60fps](../decisions/a05s-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
+trên phone Android, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
+gate [phone Android trên 60fps](../decisions/phone-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi gate, owner chọn ba
 bậc cho dạng cung). Số lớp theo loại máy (R2); trần
-`100px` của ảnh nền primary chưa đo trên A05s. Kính hiện/tan trên primary detail: năm bậc `backdrop-filter`
-phủ cả hero rơi gate pha mở (A05s p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
+`100px` của ảnh nền primary chưa đo trên phone Android. Kính hiện/tan trên primary detail: năm bậc `backdrop-filter`
+phủ cả hero rơi gate pha mở (A05s cũ p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
 là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
 trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
 crossfade của ảnh (`glass-surface__step--baked`). Điện thoại chạy đúng như PC (owner 11/10,
@@ -206,7 +206,7 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | --- | --- |
 | R1–R5 | `node tests/site/glass-surface.test.mjs` (CSS, hình học); `node tests/site/glass-surface.e2e.mjs` (Chromium, `BASE_URL`) |
 | R6 | `glass-surface.test.mjs` (mức kính theo thời gian); `image-loading-frame.e2e.mjs` (P9: năm bậc, chỉ opacity đổi, gỡ sau khi xong; primary phone khớp PC) |
-| R7 | đo qua CDP trên A05s thật (05/10); script đo chưa vào repo |
+| R7 | đo qua CDP trên phone Android thật (05/10); script đo chưa vào repo |
 | R8 | `glass-surface.e2e.mjs`, ca giảm chuyển động |
 
 ## Gate còn mở

@@ -191,7 +191,7 @@ Status `observed` chỉ là capture hoàn tất, không tự là geometry PASS.
 `--native-pinch` thêm page pinch native2× tại compatibility kiosk-posm VI/EN,
 ghi actual scale/offset và visible renderer; không là custom pinch viewer mới.
 Text-size runner đổi root font16→32px; không thay accessibility setting thật.
-Orientation/model/version thực được lưu; không gọi A05s là A54 hoặc WebKit
+Orientation/model/version thực được lưu; không gọi phone Android là A54 hoặc WebKit
 là iPhone. Không đổi device settings, viewport flags hoặc CSS để tạo PASS.
 
 ## Layout mobile toàn website

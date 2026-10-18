@@ -465,7 +465,7 @@
           });
           state.splitInstances.set(group, split);
           // Thay autoSplit của SplitText: nó split lại cả khi group bị ẩn (width 0), như CTA của grid lúc mở detail
-          // Advertising, tốn hơn 50ms trên A05s rồi lại split khi Back (decision a05s-frame-budget).
+          // Advertising, tốn hơn 50ms trên A05s cũ rồi lại split khi Back (decision phone-frame-budget).
           let width = group.offsetWidth;
           let timer;
           const observer = new ResizeObserver(() => {
@@ -558,8 +558,8 @@
           return new Promise((resolve) => {
             resolveRebuild = resolve;
             const groups = [...lineGroups, ...wordGroups];
-            // Split mỗi group ép một lần layout; chia thành nhiều task khoảng 8ms để không long task > 50ms trên A05s
-            // khi vào trang (decision a05s-frame-budget). rebuildFrame giữ giá trị tới khi xong để cancel được.
+            // Split mỗi group ép một lần layout; chia thành nhiều task khoảng 8ms để không long task > 50ms trên phone Android
+            // khi vào trang (decision phone-frame-budget). rebuildFrame giữ giá trị tới khi xong để cancel được.
             const prepareBatch = (index) => {
               const deadline = performance.now() + 8;
               do prepareTextGroup(groups[index++]);

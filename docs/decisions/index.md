@@ -9,7 +9,7 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 
 | Ngày | Status | Decision |
 | --- | --- | --- |
-| 2026-10-10 | accepted | [Trên 60fps trên A05s](a05s-frame-budget.md) |
+| 2026-10-10 | accepted | [Trên 60fps trên phone Android](phone-frame-budget.md) |
 | 2026-07-30 | accepted | [Xanh/cam là accent](accent-color-roles.md) |
 | 2026-07-31 | accepted | [Defense in depth cho admin](admin-defense-in-depth.md) |
 | 2026-09-01 | accepted | [Agent Skills dùng chung cho mọi host agent](agent-skills-workflow.md) |

@@ -771,7 +771,7 @@
     }
     lastScrollY = nextScroll;
     // Scroll tức thì về đầu trang (mở detail Advertising) đo header ở frame kế, trước paint, để style và layout
-    // của trang mới chỉ chạy một lần thay vì bị ép thêm trong task chạm card (decision a05s-frame-budget).
+    // của trang mới chỉ chạy một lần thay vì bị ép thêm trong task chạm card (decision phone-frame-budget).
     if (instant && !nextScroll && !state.smoothScroll) {
       cancelAnimationFrame(state.headerSyncFrame);
       state.headerSyncFrame = requestAnimationFrame(() => {
@@ -2923,7 +2923,7 @@
               },
               async beforeEnter(data) {
                 // Mỗi bước nặng (unmount, đồng bộ document, mount) là một task riêng để không long task > 50ms
-                // trên A05s (decision a05s-frame-budget).
+                // trên phone Android (decision phone-frame-budget).
                 await nextTask();
                 if (!syncDocumentState(data.next.html)) {
                   const fallbackUrl = new URL(

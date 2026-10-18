@@ -66,7 +66,7 @@ dùng nhịp đủ `1.4s`:
 
 - Primary detail dùng bậc nhòe dựng sẵn (`glass-surface__step--baked`, owner 10/10): ảnh mới blur sẵn vào canvas `1/8` rồi phóng
   8 lần, cùng blur cộng dồn và màu của năm bậc, trên nền màu skeleton, hiện theo crossfade của ảnh. Năm bậc
-  `backdrop-filter` phủ cả hero rơi gate A05s. Điện thoại chạy đúng như PC (owner 11/10).
+  `backdrop-filter` phủ cả hero rơi gate phone Android. Điện thoại chạy đúng như PC (owner 11/10).
 - Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.

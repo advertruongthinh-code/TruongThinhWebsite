@@ -1,6 +1,6 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
-// (khoảng 20% task click khi mở detail; decision a05s-frame-budget).
+// (khoảng 20% task click khi mở detail; decision phone-frame-budget).
 import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
@@ -1139,7 +1139,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const arcGlass = gridSectionStyleTarget?.appendChild(Object.assign(createGlassSurface("arc"), { hidden: true }));
   const photoView = container.querySelector("[data-advertising-photo-view]");
   // Lần đầu hiện detail, Blink parse lazy các khai báo CSS khớp photo view ngay trong task chạm card. Đọc computed
-  // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision a05s-frame-budget).
+  // style lúc rảnh để parse trước; style lần đầu giảm khoảng 3 lần (decision phone-frame-budget).
   if (photoView?.hidden) globalThis.requestIdleCallback?.(() => {
     if (photoView.hidden) for (const node of [photoView, ...photoView.querySelectorAll("*")]) getComputedStyle(node).color;
   });
@@ -1234,7 +1234,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     || document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height
     || innerHeight;
   // Cùng công thức với getViewportMetrics().visible nhưng không đọc probe. Đọc visualViewport vẫn ép style recalc,
-  // nên giữ số đo tới khi viewport đổi (decision a05s-frame-budget).
+  // nên giữ số đo tới khi viewport đổi (decision phone-frame-budget).
   let visibleViewport = null;
   const getVisibleViewport = () => visibleViewport ??= {
     width: window.visualViewport?.width ?? innerWidth,
@@ -1534,7 +1534,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (geometries.size >= GEOMETRY_CACHE_LIMIT) geometries.delete(geometries.keys().next().value);
     geometries.set(key, layout);
   };
-  // Compile lần đầu chạy trong Worker để không thành long task khi chuyển trang trên A05s (decision a05s-frame-budget);
+  // Compile lần đầu chạy trong Worker để không thành long task khi chuyển trang trên phone Android (decision phone-frame-budget);
   // Worker lỗi thì geometryFor compile đồng bộ như cũ.
   const prewarmGeometry = async (targetFilter) => {
     const { key, compileOptions } = geometryRequest(targetFilter);
@@ -1645,7 +1645,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
   };
   // Vị trí đã tính sẵn; Masonry chỉ cần cho chuyển động. Layout tức thì bỏ qua nó để không đo lại mọi card
-  // (getSize) trong frame cuộn và task Back (decision a05s-frame-budget). Ghi left/top như Masonry: grid không padding.
+  // (getSize) trong frame cuộn và task Back (decision phone-frame-budget). Ghi left/top như Masonry: grid không padding.
   const placeRendered = () => {
     for (const [id, node] of rendered) {
       const position = positions.get(id);
@@ -1926,7 +1926,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
     }
     // Frame card và CTA nằm trong container khác nhau, nên xếp theo vị trí viewport. Dùng lại rect đã đọc
-    // trước khi append canvas: đọc lại ép thêm một layout (A05s, decision a05s-frame-budget).
+    // trước khi append canvas: đọc lại ép thêm một layout (phone Android, decision phone-frame-budget).
     const prioritized = [...visibleSkeletonFrames]
       .filter((frame) => skeletonAssignmentByFrame.has(frame))
       .map((frame) => ({ frame, rect: rects?.get(frame) ?? frame.getBoundingClientRect() }))
@@ -1945,13 +1945,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonMountWanted = keep;
     if ([...keep].some((frame) => !skeletonFlowByFrame.has(frame))) scheduleSkeletonMount();
   };
-  // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên A05s (R8): mọi renderer
+  // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên phone Android (R8): mọi renderer
   // mount trong task riêng sau frame, context mới một task trước nó; ảnh tĩnh hiện trong lúc đó.
   // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
   // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Điện thoại
-  // còn chờ swipe dừng: trace A05s cho thấy dựng renderer giữa fling gây task trên 50ms (R5 "cuộn mượt thắng").
+  // còn chờ swipe dừng: trace A05s cũ cho thấy dựng renderer giữa fling gây task trên 50ms (R5 "cuộn mượt thắng").
   const skeletonMountWait = () => Math.max(motionUntil - performance.now(), skeletonPhone() ? phoneScrollWait() : 0);
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
@@ -2015,7 +2015,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonEntryFrames.set(frame, pending);
   };
   // rAF của scheduleSkeletonSync chung task với frame cuộn và layout masonry; ảnh tĩnh render CPU ở task sau, nếu
-  // không task frame vượt 50ms trên A05s lúc vuốt nhanh (R8, decision a05s-frame-budget).
+  // không task frame vượt 50ms trên phone Android lúc vuốt nhanh (R8, decision phone-frame-budget).
   let skeletonSyncInFrame = false;
   let skeletonAssignBudget = SKELETON_ASSIGN_BUDGET_MS;
   const syncSkeletonMotion = () => {
@@ -2030,7 +2030,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       else visibleSkeletonFrames.delete(frame);
     }
     // Mỗi ảnh tĩnh là một lần render CPU; mở detail có thể cần hơn chục cái cùng lúc. Vượt ngân sách
-    // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision a05s-frame-budget).
+    // thì phần còn lại sang task sau, frame chưa có assignment chưa vào entry (decision phone-frame-budget).
     const assignUntil = performance.now() + skeletonAssignBudget;
     let assigned = 0;
     for (const frame of visibleSkeletonFrames) {
@@ -2090,7 +2090,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const scheduleSkeletonAssign = () => {
     if (skeletonAssignTimer || controller.signal.aborted) return;
     // Chạy trong idle sau frame: layout đã sạch nên đọc rect không ép style, và ngân sách vừa phần rảnh của frame
-    // thay vì một task 17ms chen giữa hai frame lúc vuốt nhanh trên A05s (decision a05s-frame-budget). Luôn gán ít
+    // thay vì một task 17ms chen giữa hai frame lúc vuốt nhanh trên A05s cũ (decision phone-frame-budget). Luôn gán ít
     // nhất một khung mỗi lượt để không treo khi idle hết hạn.
     const run = (deadline) => {
       skeletonAssignTimer = 0;
@@ -2105,7 +2105,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ? new IntersectionObserver(syncSkeletonMotion) : null;
   document.addEventListener("visibilitychange", syncSkeletonMotion, { signal: controller.signal });
   // Class body đổi ngay trong task chạm card (is-advertising-photo); đồng bộ ở frame kế để đọc rect không ép thêm
-  // một lần style và layout trong task đó (decision a05s-frame-budget).
+  // một lần style và layout trong task đó (decision phone-frame-budget).
   const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
@@ -2175,13 +2175,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
   const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
-  // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
+  // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s cũ (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
   // nhòe sẵn: vẽ một lần vào canvas 1/8 kích thước với blur cộng dồn bằng blur chồng của bậc gốc, rồi phóng 8 lần
   // (detail.css). CSS filter trên ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
   const BAKED_SCALE = 8;
   // Ảnh nguồn cho bậc nhòe: rộng hơn hero rộng nhất chia 8 một chút.
   const BAKED_SOURCE_WIDTH = 192;
-  // Thu nhỏ từ img trên main thread tốn 50-160ms trên A05s (drawImage hay createImageBitmap(img)); từ Blob thì Chrome
+  // Thu nhỏ từ img trên main thread tốn 50-160ms trên A05s cũ (drawImage hay createImageBitmap(img)); từ Blob thì Chrome
   // decode và thu nhỏ ngoài main thread, ảnh lấy lại từ HTTP cache. Lỗi thì bậc chỉ còn nền màu skeleton.
   const bakedBitmap = (source) => fetch(source).then((response) => response.blob())
     .then((blob) => createImageBitmap(blob, { resizeWidth: BAKED_SOURCE_WIDTH, resizeQuality: "high" }))
@@ -2973,7 +2973,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     restoreRelatedDomOrder();
     // Không motion thì vị trí đã ghi ở trên; bỏ Masonry như placeRendered, vì layout() đo lại mọi card (getSize)
-    // trong lúc cuộn related, long task trên A05s (decision a05s-frame-budget).
+    // trong lúc cuộn related, long task trên phone Android (decision phone-frame-budget).
     if (!motion) {
       relatedGrid.style.height = `${relatedPixelHeight}px`;
       return;
@@ -3381,13 +3381,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return true;
   };
   // Hiện photo view rồi layout và khôi phục scroll; tách khỏi renderPhoto để mở từ grid dựng DOM ở task chạm card
-  // và hiện ở task sau (decision a05s-frame-budget).
+  // và hiện ở task sau (decision phone-frame-budget).
   const revealPhotoView = (browse, generation) => {
     document.body.classList.add("is-advertising-photo");
     document.body.dataset.advertisingPhotoActive = "true";
     if (gridSection) gridSection.hidden = true;
     // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
-    // và không bị ép style lần hai (decision a05s-frame-budget).
+    // và không bị ép style lần hai (decision phone-frame-budget).
     const layoutWidth = document.documentElement.clientWidth;
     photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
     photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
@@ -3411,11 +3411,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       window.dispatchEvent(new CustomEvent("site:layout"));
     });
   };
-  // Mỗi pha là một task riêng để không pha nào chặn input quá 50ms trên A05s (docs/specs/advertising-detail.md R7):
+  // Mỗi pha là một task riêng để không pha nào chặn input quá 50ms trên phone Android (docs/specs/advertising-detail.md R7):
   // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
   // Scroll được khôi phục cần toàn bộ chiều cao trong một lượt.
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
-  // Solver đầy đủ của related là long task trên A05s (decision a05s-frame-budget): chạy layoutRelated với compile
+  // Solver đầy đủ của related là long task trên phone Android (decision phone-frame-budget): chạy layoutRelated với compile
   // giả, mỗi lần compile còn thiếu thì tính trên Worker rồi chạy lại; số đo DOM vẫn ở main thread. Trả false khi bị
   // thay; Worker lỗi thì compile đồng bộ.
   const layoutRelatedInWorker = async (browse, generation) => {
@@ -3453,7 +3453,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
     // Mở từ grid: dựng DOM detail đang ẩn, task sau mới hiện và layout.
     const fromGrid = deferRelated && photoView?.hidden;
-    // Bấm card grid: task của cú bấm chỉ ghi history; dựng primary ở task sau để task input dưới 50ms trên A05s.
+    // Bấm card grid: task của cú bấm chỉ ghi history; dựng primary ở task sau để task input dưới 50ms trên phone Android.
     if (fromGrid && reason === "photo") {
       const pending = ++detailRenderGeneration;
       await nextTask();
@@ -3469,7 +3469,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
       await nextTask();
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
-      // Phân trang ép một layout mỗi probe, nên nó có task riêng: gộp với warm thành task 55ms trên A05s.
+      // Phân trang ép một layout mỗi probe, nên nó có task riêng: gộp với warm thành task 55ms trên A05s cũ.
       if (phase === "pages") {
         paginateDescription();
         continue;
@@ -3658,7 +3658,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       renderWindow();
       renderRelatedWindow();
-      // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s.
+      // Khung vào ra layout viewport đã do skeletonObserver báo; chạy mỗi frame cuộn tốn khoảng 10ms trên A05s cũ.
       // Chỉ khi pinch-zoom, vùng thấy (visual viewport) mới lệch khỏi vùng IntersectionObserver đo.
       if ((window.visualViewport?.scale ?? 1) > 1) syncSkeletonMotion();
     });
@@ -3946,7 +3946,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       relatedMeasuredGeometry = null;
     }
     // Heading hoặc link làm dịch mép copy (style trễ, đổi font) làm số đo CTA không còn hợp lệ. Grid ẩn khi mở
-    // detail rồi hiện lại cùng cỡ thì giữ số đo, để task Back không fit lại heading (decision a05s-frame-budget).
+    // detail rồi hiện lại cùng cỡ thì giữ số đo, để task Back không fit lại heading (decision phone-frame-budget).
     const copyEntry = entries.find((entry) => entry.target === gridCtaCopy);
     const copySize = copyEntry && `${copyEntry.contentRect.width}x${copyEntry.contentRect.height}`;
     if (copyEntry?.contentRect.width && copySize !== observedCopySize) {
@@ -4029,7 +4029,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (browseHistory.current.photo) {
     // Grid ở trạng thái ẩn dưới photo; ensurePhoto đo nó khi quay lại.
     retainedPhotoIds.add(browseHistory.current.photo);
-    // Mỗi bước dưới đây là một task riêng để không bước nào chặn input quá 50ms trên A05s (R7, showPhoto).
+    // Mỗi bước dưới đây là một task riêng để không bước nào chặn input quá 50ms trên phone Android (R7, showPhoto).
     await nextTask();
     if (controller.signal.aborted) return cleanup;
     // Trả trước chi phí style và layout của chế độ photo trước việc primary; ẩn để không frame chưa có kích thước nào được vẽ.

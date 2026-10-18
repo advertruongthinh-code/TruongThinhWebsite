@@ -169,7 +169,7 @@ async function armNoGridMorphProbe(page) {
     probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; probe.stopped = true; };
     const sample = () => {
       const photo = new URL(location.href).searchParams.get("photo");
-      // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision a05s-frame-budget):
+      // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision phone-frame-budget):
       // frame đầu của entry vẫn vẽ view cũ ở scroll cũ, chỉ frame đã vẽ view của entry mới tính.
       const shown = Boolean(photo) === !document.querySelector("[data-advertising-photo-view]")?.hidden;
       probe.frames.push({ photo, shown,
@@ -1105,7 +1105,7 @@ try {
     return evidence;
   });
 
-  // L06: trên A05s ở chế độ ngang, swipe phải ngay sau zoom-in bắt đầu trên backdrop
+  // L06: trên phone Android ở chế độ ngang, swipe phải ngay sau zoom-in bắt đầu trên backdrop
   // (ảnh còn ở kích thước fit giữa animation) và đóng viewer ngay khi pointerdown.
   await caseRun("viewer-backdrop-swipe-stays-open", { width: 838, height: 331 }, async (page, stage) => {
     const cdp = await page.context().newCDPSession(page);

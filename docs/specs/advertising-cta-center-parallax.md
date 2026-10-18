@@ -165,7 +165,7 @@ cỡ, và khi font tải xong.
 
 Batch và cỡ tiêu đề theo chiều cao layout viewport (`svh` từ 980px trở xuống), nên thanh địa chỉ ẩn, hiện không dựng lại
 skeleton. Vị trí chân chữ đặt bằng CSS theo `50dvh`, nên đúng sau khi thanh địa chỉ đứng yên; mọi `resize` vẫn tính
-lại parallax R6 theo `innerHeight` mới, nếu không cụm chữ giữ độ lệch cũ (A05s 11/10: cao hơn đường giữa 5.5px). Sau lần đo đầu, runtime gắn
+lại parallax R6 theo `innerHeight` mới, nếu không cụm chữ giữ độ lệch cũ (A05s cũ 11/10: cao hơn đường giữa 5.5px). Sau lần đo đầu, runtime gắn
 `data-advertising-cta-settled` ở khung hình kế; từ đó khoảng dưới cụm chữ đổi bằng transition `margin-bottom` thay vì nhảy,
 trừ khi giảm chuyển động.
 

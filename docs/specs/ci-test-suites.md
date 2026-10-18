@@ -172,7 +172,7 @@ Then test sửa theo hành vi trên demo và spec site-shell sửa cùng PR
 ### R8. Test ngoài CI
 
 `manual` giữ test cần phần cứng thật hoặc ma trận quá lớn, chạy tay trên PC: đo FPS và WebGL
-(`advertising-continuation`), A05s (`mobile-viewport-android-record`), ma trận nhiều engine
+(`advertising-continuation`), phone Android (`mobile-viewport-android-record`), ma trận nhiều engine
 (`mobile-layout-parity`, `mobile-viewport-stability`, `scrollbar-parity`), công cụ đo (`image-delivery-measure`,
 `scroll-trace`, `related-scroll-device`, `advertising-solver-report`). Mode `site.e2e.cjs` chỉ gọi lại các hàm
 mà mode trong bộ đã gọi (`HEADER`, `LOCALE`, `M2`...) cũng nằm ở `manual`, ghi rõ trùng mode nào, để một kiểm tra

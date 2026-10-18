@@ -9,7 +9,7 @@ export function suggestionDeck(key, cards) {
   return decks.get(key);
 }
 
-// Slide dưới viewer hoặc menu đang mở chỉ bắt backdrop blur tính lại mỗi frame (decision a05s-frame-budget).
+// Slide dưới viewer hoặc menu đang mở chỉ bắt backdrop blur tính lại mỗi frame (decision phone-frame-budget).
 const covered = () => document.querySelector("dialog[open]") !== null;
 
 // Nhịp lấy theo hero trang chủ (motion.js): mỗi ảnh giữ 5s, đếm bằng một animation không keyframe trên ảnh (owner bỏ
