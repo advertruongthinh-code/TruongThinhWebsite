@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-transitions.e2e.mjs
   - tests/site/advertising-reveal-offscreen.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-10-11
+updated: 2026-10-18
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -223,7 +223,9 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 
 ## Gate còn mở
 
-- R9 chưa có trace A05s cũ khi vuốt nhanh masonry đầy card đang chờ ảnh, nhiều Kính cùng chạy. Owner và máy PC.
+- R9 trên SM-A047F (18/10, mạng giả 400ms/64KB/s, vuốt nhanh tới footer, 3 lượt): SurfaceFlinger trung bình 71 đến 73fps,
+  p5 45,5, frame trên `33ms` 0 đến 0,5%; main thread rAF khoảng 30fps, long task trên `50ms` 2 đến 7 (dài nhất 61ms).
+  Viewport chỉ có tối đa 1 Kính nên ca nhiều Kính cùng chạy chưa phủ. Máy PC.
 - `image-loading-frame.e2e.mjs` mới chạy Chromium: WebKit chưa chạy; Safari trên iPhone thật chưa kiểm skeleton và Kính
   (WebKit trên cloud không vẽ `backdrop-filter`, [Kính R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)). Main (WebKit),
   owner và máy PC (iPhone).

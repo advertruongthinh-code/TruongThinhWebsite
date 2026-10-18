@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-14
+updated: 2026-10-18
 ---
 
 # Detail Advertising
@@ -277,17 +277,18 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Landscape VI `Y=2` trên emulator FAIL; phone Android thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay H01–H02 trên phone Android chưa chạy;
-  L06 (viewer không đóng khi vuốt từ nền) chưa replay phone Android ngang, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
+- Landscape VI `Y=2` trên emulator FAIL; phone Android thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay 18/10 trên SM-A047F: L06 ngang 2/2 PASS, ca mobile
+  PASS hết; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL (chưa kết luận, cần đối chiếu Chromium PC), cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related,
   Back, navbar. Owner.
-- Hiệu năng: p95 click tới frame đầu `<= 100ms`, không task đồng bộ quá 50ms (Chrome 1329×912, 20 lượt mỗi luồng) chưa đo
-  trên runtime hiện tại; chưa có trace detail trên A05s cũ. Main và máy PC.
-- `advertising-photo-transitions.e2e.mjs` trên WebKit (máy PC) còn 3 FAIL, chưa đối chiếu với các ca FAIL Chromium ở trên.
-  Main chạy lại WebKit.
+- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10, 20 lượt: grid tới detail p95 `168ms` FAIL, long task 17/20
+  lượt (dài nhất `112ms`); related tới detail p95 `32ms` nhưng 20/20 lượt có long task 57 đến 128ms; vào lại detail 0 long
+  task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
+- `advertising-photo-transitions.e2e.mjs` 18/10 trên PC: Chromium 31/32 (L06 flaky); WebKit 28/32, FAIL
+  `related-selected-card-shuffle-cleanup`, `grid-cta-skeleton-flow`, `square-controls-hover-and-return`. Main xử lý.
 - `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
-  Firefox, WebKit chưa có lượt PASS ghi nhận. Main chạy tay trên PC.
+  Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
 
 ## Chú thích thuật ngữ
 
