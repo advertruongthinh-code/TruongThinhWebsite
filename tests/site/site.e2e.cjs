@@ -19,6 +19,9 @@ const CANONICAL_ROUTES = [
   // Trang cụm, sản phẩm (taxonomy R4) mà rail hai tầng trang gốc link tới.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_PAGES
     .map((page) => `/vi/advertising-products/${page.vi}/`),
+  // Trang card (media-seo R1) mà link card trên masonry trỏ tới.
+  ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_CARDS
+    .map((card) => `/vi/advertising-products/p/${card.id}/`),
 ];
 const DIRECT_SERVICE_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/advertising-products/"];
 const VIEWPORTS = [
