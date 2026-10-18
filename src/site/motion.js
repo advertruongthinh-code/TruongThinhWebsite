@@ -224,7 +224,8 @@
           const size = Number.parseFloat(getComputedStyle(line).fontSize);
           if (right > left && size) widest = Math.max(widest, (right - left) / scale / size);
         });
-        if (widest) title.style.setProperty("--hero-line-em", widest.toFixed(3));
+        // Chừa 1%: hinting làm bề rộng chữ không co đúng tỷ lệ cỡ chữ, dòng vừa sát khung có thể tràn 1-2px.
+        if (widest) title.style.setProperty("--hero-line-em", (widest * 1.01).toFixed(3));
       });
   };
 
