@@ -1,8 +1,11 @@
 ---
 title: SEO cho media của card
-status: planned
+status: live
 source: []
-tests: []
+tests:
+  - tests/site/media-seo.test.mjs
+  - tests/site/site-media-card-contract.test.mjs
+  - tests/site/advertising-products-lifecycle.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
 updated: 2026-10-18
 ---
@@ -64,15 +67,15 @@ Then validator từ chối card và nêu id hai media trùng alt
 ### R4. Dữ liệu cấu trúc và ảnh đại diện
 
 Trang R1 có JSON-LD trong HTML ban đầu: `WebPage` với `primaryImageOfPage` là media cover; mỗi ảnh một `ImageObject`
-(`contentUrl`, `creator` Organization Trường Thịnh, `creditText`, `copyrightNotice`); mỗi video một `VideoObject`
-(`name`, `description`, `thumbnailUrl` là poster, `uploadDate`, `duration`, `contentUrl`). `og:image` là media cover.
-Không dùng `Product`: Google chỉ nhận Product snippet khi có `offers`, `review` hoặc `aggregateRating`, mà card chưa
-có giá hay đánh giá (Gate còn mở).
+(`contentUrl`, `creator` Organization Trường Thịnh, `creditText`; video lấy poster); mỗi video thêm một `VideoObject`
+khi media có ngày đăng thật (`uploadDate` bắt buộc; contract chưa có field nên chưa sinh). `og:image` là media cover.
+Ảnh minh họa AI chưa gắn nhãn IPTC Digital Source Type, đợi ảnh thật (owner 2026-10-18). Không dùng `Product`: Google
+chỉ nhận Product snippet khi có `offers`, `review` hoặc `aggregateRating`, mà card chưa có giá hay đánh giá.
 
 ```gherkin
 Given trang R1 của một card có ảnh và video
 When chạy Rich Results Test của Google
-Then mục Image metadata và Video hợp lệ, không có lỗi nghiêm trọng
+Then mục Image metadata hợp lệ, không có lỗi nghiêm trọng
 ```
 
 ### R5. Image sitemap
@@ -116,16 +119,16 @@ Không đổi giao diện: trang R1 hiện detail đã có ([detail](advertising
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 đến R6 | chưa có test; plan sẽ thêm unit test cho build, contract alt, sitemap và e2e cho route |
+| R1, R6 | `media-seo.test.mjs` (head trang card); `advertising-products-lifecycle.test.mjs` (parse, serialize path) |
+| R1 runtime | e2e detail đọc URL path: `advertising-card-interactions`, `advertising-photo-transitions`, `shared-header-locale` |
+| R2, R4 | `media-seo.test.mjs` (HTML thô, JSON-LD); Rich Results Test trên demo sau khi deploy |
+| R3 | `site-media-card-contract.test.mjs` (alt trùng) |
+| R5 | `media-seo.test.mjs` (sitemap) |
 
 ## Gate còn mở
 
-- Owner duyệt spec, rồi plan (hai human gate).
-- Slug: spec chọn `<card-id>` tiếng Anh, ổn định khi CMS sửa tên. Phương án khác: slug tiếng Việt từ tên card kèm số
-  (77 tên cho 200 card nên phải có số). Owner chọn.
 - Product snippet cần giá hoặc đánh giá thật; owner quyết có công bố giá tham khảo hay không.
-- Ảnh hiện tại là ảnh minh họa AI. Google đọc IPTC Digital Source Type (`trainedAlgorithmicMedia`) để ghi nhãn ảnh AI;
-  owner quyết có gắn nhãn này không, hoặc đợi ảnh thật.
+- `VideoObject` chờ field ngày đăng thật trong media contract khi có video thật.
 - Video chỉ có thể lên kết quả video khi là nội dung chính của trang (suy luận từ yêu cầu lập chỉ mục video của
   Google); card nhiều ảnh, một video có thể không đạt.
 - Demo workers.dev chưa có `noindex`; quyết thuộc [phát hành tĩnh](static-release.md).

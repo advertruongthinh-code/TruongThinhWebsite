@@ -43,6 +43,8 @@ export function validateAdvertisingCardMedia(record) {
     throw new Error(`${record.id} coverMediaId must name one media item`);
   }
   const ids = new Set();
+  // Alt riêng từng media cho SEO (media-seo R3): khóa theo ngôn ngữ, giữ id media đầu tiên để báo lỗi.
+  const altOwners = new Map();
   let cardWidth = 0n;
   let cardHeight = 0n;
   for (const item of mediaItems) {
@@ -59,6 +61,10 @@ export function validateAdvertisingCardMedia(record) {
       throw new Error(`${record.id} media ${item.id} ratio must match the card`);
     }
     if (!isNonEmptyString(item.altVi) || !isNonEmptyString(item.altEn)) throw new Error(`${record.id} media ${item.id} requires altVi and altEn`);
+    for (const alt of [`vi:${item.altVi}`, `en:${item.altEn}`]) {
+      if (altOwners.has(alt)) throw new Error(`${record.id} media ${altOwners.get(alt)} and ${item.id} share alt "${alt.slice(3)}"`);
+      altOwners.set(alt, item.id);
+    }
     if (!isNonEmptyString(item.source) || !isSha256(item.sha256) || !isNonEmptyString(item.provenance)) {
       throw new Error(`${record.id} media ${item.id} requires source, sha256, and provenance`);
     }

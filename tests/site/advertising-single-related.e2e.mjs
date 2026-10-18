@@ -28,7 +28,7 @@ try {
           const r = e.getBoundingClientRect();
           return [e.dataset.advertisingSuggestionTag, r.x, r.y, r.width, r.height];
         }),
-        photo: new URL(location.href).searchParams.get("photo"),
+        photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null),
       };
     });
     const initial = await snapshot();

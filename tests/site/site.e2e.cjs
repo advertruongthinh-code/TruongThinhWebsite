@@ -7332,7 +7332,7 @@ async function runAdvertisingCompatibilityChecks() {
           const url = new URL(page.url());
           assert(
             url.origin === BASE_ORIGIN && canonicalPathname(url) === clusterPath(slug, locale) &&
-              !url.searchParams.has("category") && !url.searchParams.has("photo") && !url.searchParams.has("tag"),
+              !url.searchParams.has("category") && !/\/p\/[^/]+\/$/.test(url.pathname) && !url.searchParams.has("tag"),
             `${locale}/${slug} did not cleanly replace to its cluster page: ${url}`,
           );
           const photoState = await page.locator("[data-advertising-photo-view]").evaluate((view) => ({ hidden: view.hidden, active: view.dataset.advertisingPhotoId || null }));
@@ -13131,7 +13131,7 @@ async function runP13NavbarChecks() {
       const before = await readNavigationState(page);
       const link = await findRouteLink(page, "[data-site-header]", route);
       await link.click();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       await page.waitForFunction(
         () => !document.body.classList.contains("is-advertising-photo"),
       );
@@ -13169,7 +13169,7 @@ async function runP13NavbarChecks() {
       );
       await link.click();
       await page.waitForFunction(
-        () => !new URL(location.href).searchParams.has("photo"),
+        () => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname),
         null,
         { timeout: 8_000 },
       );
@@ -13231,7 +13231,7 @@ async function runP13NavbarChecks() {
   // Detail ảnh luôn ở dạng thu gọn ở mọi scrollY (advertising-detail R10); ẩn, hiện theo chiều cuộn như Residential.
   const exercisePhysicalHeader = async (page, route, touch, alwaysCollapsed = false) => {
     await gotoRoute(page, route);
-    if (new URL(route, "https://invalid.local").searchParams.has("photo")) {
+    if (/\/p\/[^/]+\/$/.test(new URL(route, "https://invalid.local").pathname)) {
       await page.waitForFunction(
         () => document.body.classList.contains("is-advertising-photo"),
       );

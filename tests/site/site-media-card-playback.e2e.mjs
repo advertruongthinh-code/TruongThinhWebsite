@@ -81,7 +81,7 @@ async function advertisingReady(page, route = "advertising-products/") {
 async function settledHistory(page, expectedPhoto) {
   await page.waitForFunction((photo) => {
     const browse = window.TruongThinhAdvertising?.getBrowseState?.();
-    const actualPhoto = new URL(location.href).searchParams.get("photo");
+    const actualPhoto = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
     const y = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
     const entryY = photo ? browse?.detail?.scrollY : browse?.grid?.scrollY;
     return actualPhoto === photo && (browse?.photo || null) === photo
@@ -235,7 +235,7 @@ try {
       return hit?.dataset.advertisingCard || null;
     }, { x: startX, y });
     const cardId = await card.getAttribute("href");
-    assert(target && cardId?.includes(`photo=${target}`), "swipe fixture start point missed selected card");
+    assert(target && cardId?.includes(`/p/${target}/`), "swipe fixture start point missed selected card");
     const client = await context.newCDPSession(page);
     await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: startX, y, id: 1 }] });
     await page.waitForTimeout(30);

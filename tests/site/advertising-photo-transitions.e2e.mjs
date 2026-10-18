@@ -168,7 +168,7 @@ async function armNoGridMorphProbe(page) {
     };
     probe.restore = () => { probe.observer.disconnect(); motion.lockLogicalScroll = lock; probe.stopped = true; };
     const sample = () => {
-      const photo = new URL(location.href).searchParams.get("photo");
+      const photo = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
       // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision phone-frame-budget):
       // frame đầu của entry vẫn vẽ view cũ ở scroll cũ, chỉ frame đã vẽ view của entry mới tính.
       const shown = Boolean(photo) === !document.querySelector("[data-advertising-photo-view]")?.hidden;
@@ -388,7 +388,7 @@ async function measureTransition(page, flow) {
   await armInputTimingProbe(page, selector);
   await page.locator(selector).click();
   const timing = await readInputTimingProbe(page);
-  await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+  await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
     && document.querySelector("[data-advertising-photo-view]")?.hidden);
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
   return timing;
@@ -666,7 +666,7 @@ try {
       stage(`${locale}-grid-back`);
       await armNoGridMorphProbe(page);
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       evidence.push({ locale, direction: "Back", ...await noGridMorphEvidence(page, null, gridY) });
 
       stage(`${locale}-grid-forward`);
@@ -691,7 +691,7 @@ try {
       await page.locator(`[data-advertising-card="${A}"] > a`).click();
       await ready(page, A);
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && !document.querySelector("[data-advertising-photo-morph]"));
       await page.evaluate(frame);
       const first = await readMarkers();
@@ -716,7 +716,7 @@ try {
       await page.locator(`[data-advertising-card="${B}"] > a`).click();
       await ready(page, B);
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && !document.querySelector("[data-advertising-photo-morph]"));
       await page.evaluate(frame);
       const second = await readMarkers();
@@ -725,7 +725,7 @@ try {
       await page.goForward();
       await ready(page, B);
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && !document.querySelector("[data-advertising-photo-morph]"));
       assert.deepEqual((await readMarkers()).map(({ id }) => id), [B], `${locale}: same-tab history keeps latest marker`);
       await page.reload({ waitUntil: "domcontentloaded" });
@@ -749,7 +749,7 @@ try {
       const preClickY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       const initialLength = await page.evaluate(() => history.length);
       await tile.locator(":scope > a").click({ position: { x: 20, y: 20 } });
-      await page.waitForFunction((id) => new URL(location.href).searchParams.get("photo") === id, mediaCardId);
+      await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
       const y0 = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
       await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: card creates exactly one history entry`);
@@ -766,7 +766,7 @@ try {
 
       stage(`${locale}-Back-grid-video`);
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       await page.waitForTimeout(650);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
@@ -775,7 +775,7 @@ try {
 
       stage(`${locale}-Forward-detail-image`);
       await page.goForward();
-      await page.waitForFunction((id) => new URL(location.href).searchParams.get("photo") === id, mediaCardId);
+      await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
       await page.waitForTimeout(650);
       const forwardY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(forwardY - y1) <= 1, `${locale}: Forward restored detail Y ${forwardY}, expected ${y1}`);
@@ -903,8 +903,8 @@ try {
         await page.evaluate((value) => { window.__ttM02bRelatedEvidence = value; }, evidence);
         assert.deepEqual(markerFailures, [], `related marker failures: ${JSON.stringify(markerFailures)}`);
         assert.equal(await page.evaluate(() => history.length), initialLength + 2, `${locale}: related history must not add entries`);
-        // Cụm nằm trong path trang cụm (taxonomy R4), query chỉ còn photo.
-        assert.deepEqual([...new URL(page.url()).searchParams.keys()].sort(), ["photo"], `${locale}: no marker/media URL parameter`);
+        // Detail nằm trong path trang card (media-seo R1), query không còn tham số nào.
+        assert.deepEqual([...new URL(page.url()).searchParams.keys()], [], `${locale}: no marker/media URL parameter`);
 
         stage(`${profile.name}-${locale}-related-virtualization-remount`);
         const away = await page.evaluate(({ id, originY }) => {
@@ -929,7 +929,7 @@ try {
         await ready(page, mediaCardId);
         await armNoGridMorphProbe(page);
         await page.goBack();
-        await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+        await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
         await noGridMorphEvidence(page, null, gridY);
         await checkMarker(locale, mediaCardId, "main", "Back-main-grid");
         stage(`${profile.name}-${locale}-reload-clears-marker`);
@@ -1347,7 +1347,7 @@ try {
     const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     const transition = await noGridMorphEvidence(page, B, detailY);
     assert(relatedY > 0, "related click must start from a scrolled detail");
-    assert.equal(new URL(page.url()).searchParams.get("photo"), B);
+    assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B);
     assert.equal(new URL(page.url()).searchParams.get("tag"), "use-sampling");
     const scrollStart = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     // Locomotive dịch một nấc mỗi wheel event, scale theo OS (Windows 108 px, Linux 43 px); ba nấc vượt 100 px.
@@ -1476,7 +1476,7 @@ try {
     await ready(page, A);
     await armNoGridMorphProbe(page);
     await page.goBack();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+    await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
     const grid = await noGridMorphEvidence(page, null, a.gridY);
     assert.equal(await page.evaluate(() => history.length), b.length, "Back/Forward must not add history entries");
@@ -1526,7 +1526,7 @@ try {
 
       stage(locale + "-grid-Y0");
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo")
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && !document.querySelector("[data-advertising-photo-morph]"));
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       await page.waitForFunction(() => Math.abs(window.TruongThinhMotion.getLogicalScroll()) <= 1);
@@ -1554,7 +1554,7 @@ try {
       stage(locale + "-Back-grid-Y0");
       await armNoGridMorphProbe(page);
       await page.goBack();
-      await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       const back = await noGridMorphEvidence(page, null, grid.y);
       const backState = await page.evaluate(() => ({
         seed: window.TruongThinhAdvertising.getBrowseState().seed,
@@ -1590,7 +1590,7 @@ try {
     await page.goBack();
     await ready(page, A);
     const back = await noGridMorphEvidence(page, A, aY);
-    assert.equal(new URL(page.url()).searchParams.get("photo"), A, "retained pointer Back reached wrong detail");
+    assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), A, "retained pointer Back reached wrong detail");
     return { aY, back };
   });
   await caseRun("history-grid-pointer-retained-morph", { width: 1440, height: 900 }, async (page, stage) => {
@@ -1610,7 +1610,7 @@ try {
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-morph]"));
     await armNoGridMorphProbe(page);
     await page.goBack();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+    await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, photoId);
     const back = await noGridMorphEvidence(page, null, gridY);
     return { photoId, gridY, back };
@@ -1640,7 +1640,7 @@ try {
     const clientWidthBefore = await page.evaluate(() => document.documentElement.clientWidth);
     await armNoGridMorphProbe(page);
     await page.goBack();
-    await page.waitForFunction(() => !new URL(location.href).searchParams.has("photo"));
+    await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
     const back = await noGridMorphEvidence(page, null, gridY);
     const clientWidthAfter = await page.evaluate(() => document.documentElement.clientWidth);
     assert.equal(clientWidthAfter, clientWidthBefore, "Back must not acquire a grid morph scrollbar lease");
@@ -1653,7 +1653,7 @@ try {
     await ready(page, A);
     const detailY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     const resized = await noGridMorphEvidence(page, A, detailY);
-    assert.equal(new URL(page.url()).searchParams.get("photo"), A, "resize changed detail identity");
+    assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), A, "resize changed detail identity");
     return { gridY, clientWidthBefore, clientWidthAfter, back, resized };
   });
   await caseRun("morph-backdrop-lifecycle", { width: 1440, height: 900 }, async (page, stage) => {
@@ -1766,7 +1766,7 @@ try {
 
   await caseRun("active-photo-locale-switch", { width: 390, height: 844 }, async (page, stage) => {
     stage("open-A-tag-B"); await openA(page); await chooseB(page); await ready(page, B);
-    const before = await page.evaluate(() => ({ photo: new URL(location.href).searchParams.get("photo"), tag: new URL(location.href).searchParams.get("tag"), category: new URL(location.href).searchParams.get("category"), slot: document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingSuggestionSlot }));
+    const before = await page.evaluate(() => ({ photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), tag: new URL(location.href).searchParams.get("tag"), category: new URL(location.href).searchParams.get("category"), slot: document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingSuggestionSlot }));
     const switchLocale = async (language) => {
       await page.locator("[data-menu-open]").click();
       await page.waitForFunction(() => document.querySelector("#site-menu")?.open && document.querySelector("#site-menu")?.classList.contains("is-active"));
@@ -1777,7 +1777,7 @@ try {
       await ready(page, B);
       return page.evaluate(() => ({
         language: document.documentElement.lang,
-        photo: new URL(location.href).searchParams.get("photo"),
+        photo: (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null),
         tag: new URL(location.href).searchParams.get("tag"),
         category: new URL(location.href).searchParams.get("category"),
         slot: document.querySelector("[data-advertising-photo-related-grid]")?.dataset.advertisingSuggestionSlot,
@@ -2118,13 +2118,13 @@ try {
       "reset glyph must keep the shared 24px viewer-control size");
     await page.locator("[data-advertising-photo-close]").click();
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
-    assert.equal(new URL(page.url()).searchParams.get("photo"), B, "viewer close left photo detail");
+    assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B, "viewer close left photo detail");
     await assertNoBack();
 
     stage("browser-back-forward-chain");
     await page.goBack(); await ready(page, A); await assertNoBack();
     await page.goBack();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+    await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
     await assertNoBack();
     await page.goForward(); await ready(page, A);
@@ -2132,7 +2132,7 @@ try {
 
     stage("navbar-return-current-photo");
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+    await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, B);
     await assertNoBack();
 
@@ -2140,7 +2140,7 @@ try {
     await page.goto(href(`/vi/advertising-products/?photo=${B}`), { waitUntil: "domcontentloaded" });
     await ready(page, B);
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+    await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, B);
     assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
     await assertNoBack();
@@ -2171,7 +2171,7 @@ try {
     };
     const navbarReturn = async (focusId) => {
       await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
-      await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+      await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, focusId);
       assert.equal(new URL(page.url()).pathname, `/vi/advertising-products/${groupSlug}/`, "navbar keeps the picked group in the URL");
       assert.equal(await page.locator('[data-advertising-filter][aria-current="true"]').getAttribute("data-advertising-filter"), group,
@@ -2213,7 +2213,7 @@ try {
     await page.goto(href(`/vi/advertising-products/?category=${group}&photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(page, A);
     await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
-    await page.waitForFunction((id) => !new URL(location.href).searchParams.has("photo")
+    await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-advertising-card]")?.dataset.advertisingCard === id, A);
     assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
     return { group, origin, C };

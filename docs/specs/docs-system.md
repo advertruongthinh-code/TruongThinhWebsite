@@ -73,7 +73,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random |
 | adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs` |
-| adv-detail | `advertising-detail.md` | `?photo=`: primary, related, suggestion, viewer |
+| adv-detail | `advertising-detail.md` | trang card `p/<id>`: primary, related, suggestion, viewer |
 | adv-taxonomy | `advertising-taxonomy.md` | cụm, sản phẩm, tag, trang index, embedding ảnh (planned) |
 | media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
