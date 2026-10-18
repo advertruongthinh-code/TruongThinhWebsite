@@ -26,6 +26,21 @@ Nguồn: [Artificial Analysis](https://artificialanalysis.ai/models), Intelligen
 
 Không dùng mức ngoài Pareto. Giới hạn: Index là điểm tổng quát, không đo vision hay agent code trong repo này. Giá haiku tăng 5 lần khi prompt trên 100k token và AA chưa tính bậc này, nên haiku chỉ rẻ khi context ngắn. Mức hao usage limit được giả định tỷ lệ với chi phí token.
 
+## Đối chiếu LiveBench
+
+Nguồn: [LiveBench](https://livebench.ai/#/) lấy 2026-10-18. Bản 2.0 (dữ liệu 2026-09-02) chỉ chạy effort cao nhất; bản [v1](https://livebench.ai/v1/) (2026-06-25) có xhigh và max. Không có medium hoặc high, nên LiveBench không đổi bảng Pareto ở trên. Overall tính lại từ CSV theo công thức của site.
+
+| Model, effort | Overall | Agentic | Coding | USD/task thành công | Bản |
+| --- | --- | --- | --- | --- | --- |
+| opus max | 86.5 | 85.0 | 96.3 | 4.216 | 2.0 |
+| sonnet max | 82.5 | 78.8 | 94.7 | 3.805 | 2.0 |
+| haiku max | 74.5 | 56.6 | 84.5 | 0.211 | 2.0 |
+| opus xhigh | 82.1 | 65.4 | 89.3 | 0.243 | v1 |
+| sonnet xhigh | 78.2 | 39.3 | 88.9 | 0.141 | v1 |
+| haiku xhigh | 72.9 | 51.4 | 76.4 | 0.019 | v1 |
+
+Agentic là Long-Horizon ở 2.0 và Agentic Coding ở v1. Rút ra: max không đáng tiền (v1: sonnet và haiku xhigh còn điểm cao hơn max); haiku yếu ở việc agentic dài (56.6 so với 78.8 của sonnet), nên haiku chỉ cho việc ngắn, việc nhiều bước nhiều tool lên sonnet high.
+
 ## Bảng mặc định
 
 | Việc | Model, effort | Ghi chú |
