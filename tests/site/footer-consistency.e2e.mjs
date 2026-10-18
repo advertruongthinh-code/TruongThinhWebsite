@@ -44,7 +44,7 @@ try {
         await page.waitForSelector(".footer-contact");
         // Route detail redirect về route Advertising canonical; chờ runtime state của nó.
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
-          || document.body.classList.contains(location.search.includes("photo=") ? "is-advertising-photo" : "is-advertising-browse"));
+          || document.body.classList.contains(/\/p\/[^/]+\/$/.test(location.pathname) ? "is-advertising-photo" : "is-advertising-browse"));
         await page.evaluate(() => document.fonts.ready);
         // Reduced motion vẫn cho mọi property transition 0.01ms, nên để thay đổi class settle.
         await page.waitForTimeout(100);
@@ -62,7 +62,7 @@ try {
             topGap: previous ? rect.top - previous.bottom : null,
             marginTop: Number.parseFloat(getComputedStyle(footer).marginTop) || 0,
             // Trang gốc, trang cụm và trang sản phẩm (taxonomy R4) đều là masonry browse.
-            advertisingBrowse: url.pathname.includes("/advertising-products/") && !url.searchParams.has("photo"),
+            advertisingBrowse: url.pathname.includes("/advertising-products/") && !/\/p\/[^/]+\/$/.test(url.pathname),
             bodyClass: document.body.className,
             children: [...footer.querySelector(".footer-contact").children].map(e => e.className),
             invitation: footer.querySelectorAll(".footer-intro, .site-invitation__link").length,

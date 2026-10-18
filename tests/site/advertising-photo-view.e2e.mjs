@@ -1299,7 +1299,7 @@ async function runResizeSweep(browser) {
       stage = `sweep:resize:${width}x900`;
       await settleGeometry(page, stage, settlements);
       assertLayout(await layoutEvidence(page), `${label} ${width}px`, { shape: record.shape, viewportWidth: width });
-      assert(page.url().includes(`photo=${encodeURIComponent(record.card.id)}`), `${label} ${width}px: selected photo changed during resize`);
+      assert(page.url().includes(`/p/${encodeURIComponent(record.card.id)}/`), `${label} ${width}px: selected photo changed during resize`);
     }
     assert.deepEqual(diagnostics, [], `${label}: local runtime diagnostics ${JSON.stringify(diagnostics)}`);
     results.push({ label, status: "passed", durationMs: Date.now() - started, browser: browserName, locale, shape: record.shape, widths, stage, settlements, diagnostics });
@@ -1340,7 +1340,7 @@ async function runScrollbarRegression(browser) {
           observations.push({ width, scrollbarWidth: evidence.scrollbarWidth, relatedOverlapCount: evidence.relatedOverlapCount, relatedOutsideCount: evidence.relatedOutsideCount, horizontalOverflow: evidence.horizontalOverflow });
           assertLayout(evidence, `${label} ${width}px`, { shape: record.shape, viewportWidth: width });
           assert.equal(evidence.relatedOutsideCount, 0, `${label} ${width}px: related card exceeds its container`);
-          assert(page.url().includes(`photo=${encodeURIComponent(record.card.id)}`), `${label} ${width}px: selected photo changed during resize`);
+          assert(page.url().includes(`/p/${encodeURIComponent(record.card.id)}/`), `${label} ${width}px: selected photo changed during resize`);
         }
         assert.deepEqual(diagnostics, [], `${label}: local runtime diagnostics ${JSON.stringify(diagnostics)}`);
         results.push({ label, status: "passed", durationMs: Date.now() - started, browser: browserName, locale, shape: record.shape, widths, stage, settlements, diagnostics, observations });
@@ -1470,7 +1470,7 @@ async function runOneColumnRegression(browser) {
           await page.locator("[data-menu-open]").click();
           await page.locator(`.menu-group__title[href="/${locale}/advertising-products/"]`).click();
         }
-        await page.waitForFunction(() => !location.search.includes("photo=") && document.querySelector("[data-advertising-photo-view]")?.hidden === true);
+        await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(location.pathname) && document.querySelector("[data-advertising-photo-view]")?.hidden === true);
         await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-advertising-card]").length > 0);
         await ensureParentMediaHydrated(page, label, settlements);
         await settleGeometry(page, "one-column:parent", settlements);

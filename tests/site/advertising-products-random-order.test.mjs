@@ -373,7 +373,7 @@ test("history restores the seed on Back, accepts one exact full-navigation local
     states: [{ data: { advertisingBrowse: visitState.advertisingBrowse } }],
   }).seed, "visit-a", "history parser reads Barba's wrapped state after a document reconstruction");
 
-  const destinationHref = "https://example.test/en/advertising-products/" + serializedUrl.search;
+  const destinationHref = `https://example.test${serializedUrl.pathname.replace(/^\/vi\//, "/en/")}${serializedUrl.search}`;
   advertisingRuntime.writeAdvertisingVisitSeedHandoff(sessionStorage, destinationHref, "visit-a", { now });
   href = destinationHref;
   state = null;
@@ -383,7 +383,7 @@ test("history restores the seed on Back, accepts one exact full-navigation local
   assert.equal(sessionStorage.getItem(advertisingRuntime.ADVERTISING_VISIT_SEED_HANDOFF_KEY), null,
     "the locale handoff is removed immediately after its destination consumes it");
 
-  href = "https://example.test/vi/advertising-products/" + serializedUrl.search;
+  href = serializedUrl.href;
   state = {
     from: "barba",
     index: 0,

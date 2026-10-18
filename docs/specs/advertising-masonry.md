@@ -34,7 +34,7 @@ updated: 2026-10-18
 
 Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
 sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự,
-hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail `?photo=` ở
+hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail (trang card `p/<id>`) ở
 [detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md).
 
 ## Hành vi
@@ -171,7 +171,7 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 ### R8. Card và ảnh trong card
 
-Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới `?category=<id cụm>&photo=<id>`; không tên,
+Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,

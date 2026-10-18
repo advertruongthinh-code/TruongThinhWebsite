@@ -26,7 +26,7 @@
   - Owner báo 18/10 trên phone: motion không mượt (nhất là logo); gradient đứng yên khi vuốt nhanh masonry; A04s
     (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
   - Thread sở hữu: long task khi mở detail trên phone (gate 50ms); 3 FAIL WebKit của `advertising-photo-transitions`;
-    `mobile-viewport-stability` chưa theo viewer R8; `advertising-continuation` assert arc band; 479 fault `mobile-layout-parity`.
+    fault thật còn lại của `mobile-layout-parity` (gallery Swiper lệch khi giảm chuyển động, hero chữ nhảy dòng).
 - Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
 - PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)); giữ PR lại bằng draft hoặc nhãn `hold`.
 

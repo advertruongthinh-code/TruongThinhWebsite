@@ -21,7 +21,7 @@ try {
       assert(rect, "visible grid card is available");
       await page.mouse.click(rect.x + rect.width / 2, Math.min(rect.bottom - 10, rect.top + 100));
       await page.waitForTimeout(1000);
-      assert(new URL(page.url()).searchParams.has("photo"), "card opens detail");
+      assert(/\/p\/[^/]+\/$/.test(new URL(page.url()).pathname), "card opens detail");
       const clip = await page.locator('.advertising-photo-view__suggestion-link[aria-pressed="false"]').first()
         .evaluate(el => ({ clip: getComputedStyle(el).backgroundClip, border: getComputedStyle(el).borderTopColor }));
       assert.equal(clip.clip, "padding-box");

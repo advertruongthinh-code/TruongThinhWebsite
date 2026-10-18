@@ -91,8 +91,8 @@
     data-barba="wrapper"
   >
     <script>
-      // Vào thẳng detail theo photo: ẩn grid trước layout đầu tiên; catalog-runtime giữ hoặc bỏ class.
-      if (new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-advertising-photo");
+      // Vào thẳng detail (trang card hoặc ?photo= cũ): ẩn grid trước layout đầu tiên; catalog-runtime giữ hoặc bỏ class.
+      if (/\/advertising-products\/p\/[^/]+\/$/.test(location.pathname) || new URLSearchParams(location.search).has("photo")) document.body.classList.add("is-advertising-photo");
     </script>
     <div class="route-veil" aria-hidden="true">
       <i></i><i></i><i></i><i></i>

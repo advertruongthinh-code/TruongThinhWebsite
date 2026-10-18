@@ -51,6 +51,13 @@ export const ADVERTISING_VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-han
 const ADVERTISING_VISIT_SEED_HANDOFF_TTL_MS = 30_000;
 // Trang gốc và trang cụm, sản phẩm (taxonomy R4): /<locale>/advertising-products/[<cụm>/[<sản phẩm>/]].
 const ADVERTISING_PATH_PATTERN = /^\/(vi|en)\/advertising-products(?:\/((?:[^/]+\/){0,2}))?$/;
+// Trang card (media-seo R1): detail có URL /<locale>/advertising-products/p/<card-id>/; ?photo= cũ vẫn đọc được.
+const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:vi|en)\/advertising-products\/p\/([^/]+)\/$/;
+const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
+const advertisingPhotoId = (url) => {
+  const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
+  return id ? decodeURIComponent(id) : url.searchParams.get("photo");
+};
 const skeletonNativeContexts = [];
 let skeletonDocumentParked = false;
 let skeletonDocumentEventsBound = false;
@@ -206,7 +213,7 @@ export function parseAdvertisingBrowseLocation(input, { cards = [], categories =
   const url = input instanceof URL ? input : new URL(input, "https://invalid.local");
   const cardById = new Map(cards.map((card) => [card.id, card]));
   const tagIds = new Set(tagRegistry.map((entry) => entry.id));
-  const requestedPhoto = url.searchParams.get("photo");
+  const requestedPhoto = advertisingPhotoId(url);
   const photoRecord = cardById.get(requestedPhoto);
   const requestedCategory = url.searchParams.get("category");
   const category = photoRecord?.category || resolveAdvertisingFilter(requestedCategory, categories, cards)
@@ -225,6 +232,12 @@ export function serializeAdvertisingBrowseLocation(input, browse = {}, categorie
   // Filter có trang (taxonomy R4) ghi thành path theo slug của locale; sản phẩm chưa có trang (R5) ghi path cụm kèm
   // ?category=; filter không có mục nào về gốc kèm ?category=.
   const locale = url.pathname.match(ADVERTISING_PATH_PATTERN)?.[1];
+  // Detail ghi path trang card, không kèm category (media-seo R1).
+  if (locale && browse.photo) {
+    url.pathname = advertisingCardPath(locale, browse.photo);
+    if (browse.tag) url.searchParams.set("tag", browse.tag);
+    return url;
+  }
   const page = locale && pages.find((entry) => entry.filter === (browse.category || "all"));
   if (locale) url.pathname = `/${locale}/advertising-products/${page?.[locale] ? `${page[locale]}/` : ""}`;
   // Cụm ghi slug theo locale của URL; id sản phẩm ghi nguyên.
@@ -811,7 +824,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   figure.dataset.advertisingCategory = record.category;
   const link = document.createElement("a");
   link.className = "advertising-card-interactive media-hover-zoom-trigger";
-  link.href = `/${locale}/advertising-products/?category=${encodeURIComponent(record.category)}&photo=${encodeURIComponent(record.id)}`;
+  link.href = advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
   media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
   const image = createPhotoMedia(record, locale);
@@ -1494,7 +1507,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const link = node.querySelector("a");
         const image = node.querySelector(".advertising-tile__foreground");
         const caption = node.querySelector("figcaption");
-        if (link) link.href = `/${locale}/advertising-products/?category=${encodeURIComponent(record.category)}&photo=${encodeURIComponent(record.id)}`;
+        if (link) link.href = advertisingCardPath(locale, record.id);
         if (image) image.alt = english ? record.media.altEn : record.media.altVi;
         if (caption) caption.textContent = english ? record.titleEn : record.titleVi;
         syncJustViewedMarker(node, locale, lastClosedPhotoId === id
@@ -4090,9 +4103,8 @@ window.TruongThinhAdvertising = {
   navigateQuery: (href, { reason = "navbar" } = {}) => {
     if (!activeInstance) return false;
     const next = new URL(href, window.location.href);
-    if (next.searchParams.get("photo")) {
-      return Boolean(activeInstance.browseHistory.openPhoto(next.searchParams.get("photo")));
-    }
+    const photo = advertisingPhotoId(next);
+    if (photo) return Boolean(activeInstance.browseHistory.openPhoto(photo));
     if (reason === "navbar") {
       activeInstance.browseHistory.returnToGrid({ reason });
       return true;
