@@ -1,4 +1,9 @@
 # Cloudflare Workers static assets headers (not served). Spec: docs/specs/static-release.md R9.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: frame-ancestors 'self'
+
 /assets/vendor/*
   Cache-Control: public, max-age=31536000, immutable
 
