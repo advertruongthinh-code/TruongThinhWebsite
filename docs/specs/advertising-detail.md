@@ -282,9 +282,9 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related,
   Back, navbar. Owner.
-- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10, 20 lượt: grid tới detail p95 `168ms` FAIL, long task 17/20
-  lượt (dài nhất `112ms`); related tới detail p95 `32ms` nhưng 20/20 lượt có long task 57 đến 128ms; vào lại detail 0 long
-  task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
+- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10, 2 vòng x 20 lượt chạm qua CDP (click Playwright làm GC rơi vào
+  task mở): grid tới detail phản hồi đầu p95 `36` đến `44ms`, hiện p95 `104` đến `141ms`; related p95 `80` đến `95ms`; long task mọi
+  lượt FAIL (dài nhất `161ms`, style và Layout đầu của detail). Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
 - `advertising-photo-transitions.e2e.mjs` 18/10 trên PC: Chromium 31/32 (L06 flaky); WebKit 28/32, FAIL
   `related-selected-card-shuffle-cleanup`, `grid-cta-skeleton-flow`, `square-controls-hover-and-return`. Main xử lý.
 - `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
