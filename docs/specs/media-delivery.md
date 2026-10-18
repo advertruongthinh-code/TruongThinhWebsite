@@ -269,10 +269,6 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   (suy luận, cùng gate ở [trang chủ](page-home.md#gate-còn-mở)). Main đo; owner xem trên demo.
 - Số lần Paint khi trang đứng yên (audit 04/10: 509 với vòng SMIL, 311 khi bỏ) đo lại sau khi đổi sang vệt. Main.
 - Ảnh tĩnh lỗi tải chưa có ca test (khung giữ tỷ lệ, alt). Main.
-- Probe AVIF bất đồng bộ: deep link `?photo=` có thể tải primary WebP rồi viewer tải lại AVIF (suy luận). Main kiểm
-  network; Thread code sửa nếu đúng.
-- `[data-advertising-photo-background]` trong `advertising-products/index.html` không có `loading`, luôn tải
-  `advertising-print-decals-cover.webp` dù detail ẩn, rồi runtime thay bằng AVIF. Thread code.
 - Lần đo demo sau tự host font chỉ có 390px VI, 3 lượt mỗi route (residential 7), không lượt warm; owner cho rút gọn
   04/10. Advertising chưa có baseline nên mục ảnh đầu Advertising nhanh hơn 10% chưa so được. Script chưa thu long task
   như phương pháp đo đã duyệt.
