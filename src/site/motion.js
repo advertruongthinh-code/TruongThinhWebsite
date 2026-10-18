@@ -198,6 +198,37 @@
     );
   };
 
+  // Chữ hero (hero-typography R2): đo dòng dài nhất theo em; CSS chỉ co chữ khi bề rộng khung chia số này nhỏ hơn
+  // cỡ chung, nên resize không cần đo lại. Đo lại khi đổi ngôn ngữ hoặc font tải xong.
+  const fitHeroLines = () => {
+    document
+      .querySelectorAll(".hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker), .legacy-copy h2")
+      .forEach((title) => {
+        title.setAttribute("data-hero-fit", "");
+        // Wrapper hero có thể đang scale (zoom lúc vào trang); đổi rect về px layout.
+        const scale = title.getBoundingClientRect().width / (title.offsetWidth || 1) || 1;
+        // Một cỡ chữ cho cả title: dòng dài nhất vừa khung, hai dòng giữ cùng nhịp.
+        let widest = 0;
+        title.querySelectorAll(":scope > :is(.hero-line-mask, .detail-hero-line-mask, .line-mask)").forEach((line) => {
+          let left = Infinity;
+          let right = -Infinity;
+          const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+          for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+            if (!text.textContent.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(text);
+            const rect = range.getBoundingClientRect();
+            left = Math.min(left, rect.left);
+            right = Math.max(right, rect.right);
+          }
+          const size = Number.parseFloat(getComputedStyle(line).fontSize);
+          if (right > left && size) widest = Math.max(widest, (right - left) / scale / size);
+        });
+        // Chừa 1%: hinting làm bề rộng chữ không co đúng tỷ lệ cỡ chữ, dòng vừa sát khung có thể tràn 1-2px.
+        if (widest) title.style.setProperty("--hero-line-em", (widest * 1.01).toFixed(3));
+      });
+  };
+
   const measureTextMasks = () => {
     if (!maskContext) return;
     // Đọc hết rồi mới ghi: ghi biến mask xen giữa các lần getComputedStyle ép style recalc mỗi mask (phone).
@@ -315,6 +346,7 @@
     if (textMaskFrame) return;
     textMaskFrame = window.requestAnimationFrame(() => {
       textMaskFrame = undefined;
+      fitHeroLines();
       measureTextMasks();
       // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
       if (fitHeritageGaps()) requestLayoutUpdate();
@@ -1742,6 +1774,8 @@
     pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
+    // Cỡ chữ hero chốt trước khi SplitText tách từ và motion đọc vị trí.
+    fitHeroLines();
     await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
     // Motion trang là task riêng, không cộng vào task render của catalog.
     if (softNavigation) await nextTask();

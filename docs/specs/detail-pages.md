@@ -55,7 +55,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế để bán tốt. / Thi công để vận hành bền." (dấu chấm `.text-hang-end` chỉ treo khi canh giữa ở phone) | inverse |
+| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |

@@ -1103,12 +1103,6 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   word-spacing: var(--word-spacing-display);
 }
 
-.hero h1:where(:not(.hero-kicker)),
-.hero p:where(.hero-title) {
-  font-size: clamp(5rem, 9vw, 10rem);
-  line-height: 0.86;
-}
-
 .legacy-copy h2 {
   font-size: var(--cta-title-size);
   line-height: 0.98;
@@ -1124,18 +1118,14 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
   );
 }
 
 .hero-line-mask > span,
 .line-mask > span {
   display: block;
-}
-
-.hero h1 > .hero-line-mask + .hero-line-mask {
-  margin-top: 0.05em;
 }
 
 .hero-word {
@@ -1150,11 +1140,6 @@ em {
 }
 
 @media (max-width: 980px) {
-  .hero[data-hero-intro] .hero-word {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-  }
-
   .hero[data-hero-intro],
   .about-hero {
     height: auto;
@@ -1550,8 +1535,8 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
   );
 }
 
@@ -2081,6 +2066,13 @@ em {
 .legacy-copy h2 {
   /* Rộng bằng khung thay vì co theo chữ: dấu chấm treo (.text-hang-end) cần chỗ bên phải dòng dài nhất. */
   align-self: stretch;
+  container-type: inline-size;
+}
+
+/* Hai dòng chốt (hero-typography R1): giữ cỡ token, chỉ co khi dòng dài nhất không vừa khung. */
+.legacy-copy h2[data-hero-fit] > .line-mask {
+  white-space: nowrap;
+  font-size: min(1em, calc(100cqi / var(--hero-line-em)));
 }
 
 .legacy-copy h2 em {
@@ -2786,12 +2778,6 @@ em {
     text-align: left;
   }
 
-  .hero h1:where(:not(.hero-kicker)),
-  .hero p:where(.hero-title) {
-    font-size: clamp(4.6rem, 19vw, 6.5rem);
-    line-height: 0.86;
-  }
-
   .editorial-strip {
     display: grid;
     width: 100%;
@@ -3108,14 +3094,6 @@ em {
   .menu-group::after {
     display: none !important;
   }
-}
-
-@media (max-width: 360px) {
-  .hero h1:where(:not(.hero-kicker)),
-  .hero p:where(.hero-title) {
-    font-size: 4.1rem;
-  }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
