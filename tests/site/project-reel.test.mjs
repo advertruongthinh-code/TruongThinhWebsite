@@ -19,7 +19,7 @@ test("rejects missing fields, missing images, wrong size, duplicate id and count
   await assert.rejects(invalid((copy) => { copy[1].altVi = " "; }), /project-reel\[1\]: missing altVi/);
   await assert.rejects(invalid((copy) => { copy[2].src = "/assets/content/projects/khong-co.webp"; }), /image not found/);
   await assert.rejects(invalid((copy) => { copy[2].src = "/assets/content/../index.webp"; }), /src must be/);
-  await assert.rejects(invalid((copy) => { copy[0].width = 1000; }), /width\/height must be 1024x1536/);
+  await assert.rejects(invalid((copy) => { copy[0].width = 1000; }), /width\/height must be 1024x1365/);
   await assert.rejects(invalid((copy) => { copy[3].id = copy[0].id; }), /duplicate id shophouse-cafe/);
   await assert.rejects(invalid((copy) => { copy[3].order = copy[0].order; }), /duplicate order 1/);
   await assert.rejects(invalid((copy) => { copy[0].variant = "tall"; }), /variant must be high, mid, low/);
