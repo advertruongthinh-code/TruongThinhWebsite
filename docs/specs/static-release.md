@@ -165,7 +165,7 @@ And request http://127.0.0.1:8787/ trả 404
 
 ### R9. Cache header
 
-`src/site/_headers` vào output; Workers static assets đọc, không phục vụ file này.
+`src/site/_headers` vào output; Workers static assets đọc, không phục vụ file này. Mọi path (`/*`) thêm `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Content-Security-Policy: frame-ancestors 'self'` (chặn đoán MIME, lộ URL đầy đủ sang site khác, nhúng iframe origin khác; chưa đặt CSP script vì site dùng script inline).
 
 | Path | `Cache-Control` | Lý do |
 | --- | --- | --- |
