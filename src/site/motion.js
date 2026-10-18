@@ -231,11 +231,12 @@
 
   const measureTextMasks = () => {
     if (!maskContext) return;
-    document.querySelectorAll(textMaskSelector).forEach((mask) => {
+    // Đọc hết rồi mới ghi: ghi biến mask xen giữa các lần getComputedStyle ép style recalc mỗi mask (phone).
+    const overflows = [...document.querySelectorAll(textMaskSelector)].map((mask) => {
       const line = mask.firstElementChild || mask;
       const style = getComputedStyle(line);
       const fontSize = Number.parseFloat(style.fontSize);
-      if (!fontSize) return;
+      if (!fontSize) return undefined;
       maskContext.font =
         style.font ||
         `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
@@ -252,14 +253,14 @@
         fontSize * 0.2,
         metrics.actualBoundingBoxDescent + 4,
       );
-      const topValue = `${Math.ceil(topOverflow)}px`;
-      const bottomValue = `${Math.ceil(bottomOverflow)}px`;
-      mask.style.setProperty(
-        "--mask-ink-overflow",
-        `${Math.max(Math.ceil(topOverflow), Math.ceil(bottomOverflow))}px`,
-      );
-      mask.style.setProperty("--mask-ink-overflow-top", topValue);
-      mask.style.setProperty("--mask-ink-overflow-bottom", bottomValue);
+      return [mask, Math.ceil(topOverflow), Math.ceil(bottomOverflow)];
+    });
+    overflows.forEach((entry) => {
+      if (!entry) return;
+      const [mask, top, bottom] = entry;
+      mask.style.setProperty("--mask-ink-overflow", `${Math.max(top, bottom)}px`);
+      mask.style.setProperty("--mask-ink-overflow-top", `${top}px`);
+      mask.style.setProperty("--mask-ink-overflow-bottom", `${bottom}px`);
     });
   };
   // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
@@ -339,13 +340,18 @@
     });
     return changed;
   };
-  const scheduleTextMaskMeasurement = () =>
-    window.requestAnimationFrame(() => {
+  let textMaskFrame;
+  // Gộp các lần gọi cùng frame (font loadingdone, layout update, đổi trang) thành một lượt đo.
+  const scheduleTextMaskMeasurement = () => {
+    if (textMaskFrame) return;
+    textMaskFrame = window.requestAnimationFrame(() => {
+      textMaskFrame = undefined;
       fitHeroLines();
       measureTextMasks();
       // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
       if (fitHeritageGaps()) requestLayoutUpdate();
     });
+  };
 
   const translateTree = (root, language) => {
     const textNodes = [

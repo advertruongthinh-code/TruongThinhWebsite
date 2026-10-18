@@ -22,10 +22,9 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   let stopped = false;
   const clock = (image, delay = 0) => image.animate([], { duration: 5000, fill: "forwards", delay });
   // Cả cụm chung một trạng thái hiện/khuất: dừng từng nút theo viewport làm nút dưới màn hình lệch sóng (điện thoại).
-  const offscreen = () => {
-    const rect = root.getBoundingClientRect();
-    return rect.bottom <= 0 || rect.top >= innerHeight;
-  };
+  // IntersectionObserver báo sau layout của frame; đo rect lúc mount và mỗi scroll ép layout giữa task mở detail.
+  // Chưa có entry đầu thì coi là khuất: đồng hồ dừng tới frame kế.
+  let offscreenState = true;
   const push = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
   const clear = () => {
     pending.forEach(({ image, animation, pushOut, previousClock }) => {
@@ -40,7 +39,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   };
   const tick = async (button) => {
     if (stopped || isReduced() || document.hidden || root.hidden || button.getAttribute("aria-pressed") === "true"
-      || offscreen() || pending.has(button)
+      || offscreenState || pending.has(button)
       || document.body.classList.contains("motion-paused") || covered()) return;
     const tag = button.dataset.advertisingSuggestionTag;
     const deck = suggestionDeck(tag, cards.filter(card => card.tagIds?.includes(tag)));
@@ -94,7 +93,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   }, 200);
   const onVisibility = () => {
     if (isReduced() || preference.matches) { clear(); return; }
-    const hidden = offscreen();
+    const hidden = offscreenState;
     const sync = (animation, button) => {
       if (document.hidden || document.body.classList.contains("motion-paused") || covered()
         || button.getAttribute("aria-pressed") === "true" || hidden) animation?.pause();
@@ -104,8 +103,11 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     clocks.forEach(sync);
   };
   document.addEventListener("visibilitychange", onVisibility, { signal });
-  addEventListener("scroll", onVisibility, { passive: true, signal });
-  addEventListener("site:scroll", onVisibility, { signal });
+  const viewport = new IntersectionObserver((entries) => {
+    offscreenState = !entries[entries.length - 1].isIntersecting;
+    onVisibility();
+  });
+  viewport.observe(root);
   const observer = new MutationObserver(onVisibility);
   observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   observer.observe(root, { attributes: true, attributeFilter: ["aria-pressed"], subtree: true });
@@ -125,9 +127,8 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     clearInterval(timer);
     clear();
     observer.disconnect();
+    viewport.disconnect();
     preference.removeEventListener("change", onVisibility);
     document.removeEventListener("visibilitychange", onVisibility);
-    removeEventListener("scroll", onVisibility);
-    removeEventListener("site:scroll", onVisibility);
   };
 }
