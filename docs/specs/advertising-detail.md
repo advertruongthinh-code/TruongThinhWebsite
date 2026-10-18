@@ -91,8 +91,9 @@ And bấm chấm cuối hiện trang cuối
 `renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
 `1.4s`; ảnh có sẵn crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
-tiếng, dùng player kiểu Pinterest có nút tiếng và thanh âm lượng ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Card nhiều media có hàng thumbnail
-([media-card](media-card.md#r6-media-trong-primary)).
+tiếng, dùng player kiểu Pinterest có nút tiếng, thanh âm lượng dọc và toàn màn hình ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video.
+Hình học primary và related tính theo cover của card, không theo media đang xem: card nhiều media đổi media qua dải
+trượt ([media-card R6](media-card.md#r6-media-trong-primary)) mà related không chạy layout hay motion.
 
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache

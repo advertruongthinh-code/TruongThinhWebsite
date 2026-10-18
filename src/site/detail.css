@@ -2142,14 +2142,107 @@ body.is-advertising-browse .site-footer {
   pointer-events: none;
 }
 
+/* Video nằm cùng hộp contain với ảnh trong khung cover, nền trong suốt để zoom blur (poster) hiện ở vùng dư. */
 .advertising-photo-view__hero [data-advertising-photo-video] {
   position: absolute;
   z-index: 2;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  width: var(--advertising-photo-image-width);
+  height: var(--advertising-photo-image-height);
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+}
+
+/* Toàn màn hình chỉ cho video: nền đen, không zoom blur, video phủ màn hình dạng contain. */
+.advertising-photo-view__hero-frame:fullscreen {
+  background: #000;
+}
+
+.advertising-photo-view__hero-frame:fullscreen > :is([data-advertising-photo-background], .glass-surface) {
+  display: none;
+}
+
+.advertising-photo-view__hero-frame:fullscreen [data-advertising-photo-video] {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  background: var(--media-loading-surface);
+}
+
+/* Dải media nhiều item theo pin Pinterest (đo 2026-10-18): mũi tên vuông trắng 36px bo 10px cách mép 16px, hiện khi
+   hover; chấm 8px cách nhau 8px ở đáy, đang xem trắng, còn lại trắng 0.5. */
+.advertising-photo-view__media-step {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 100ms ease-out;
+}
+
+.advertising-photo-view__media-step--prev {
+  left: 16px;
+}
+
+.advertising-photo-view__media-step--next {
+  right: 16px;
+}
+
+.advertising-photo-view__media-step svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (hover: hover) {
+  .advertising-photo-view__hero-frame:hover > .advertising-photo-view__media-step {
+    opacity: 1;
+  }
+}
+
+.advertising-photo-view__media-step:focus-visible {
+  opacity: 1;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.advertising-photo-view__media-dots {
+  position: absolute;
+  z-index: 4;
+  bottom: 14px;
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.advertising-photo-view__media-dots > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.advertising-photo-view__media-dots > span[data-active] {
+  background: #fff;
+}
+
+.advertising-photo-view__hero-frame:has(> .advertising-photo-view__media-dots:not([hidden])) .advertising-video-player__bar {
+  padding-bottom: 40px;
 }
 
 .advertising-photo-view__hero [hidden] {
@@ -2279,10 +2372,17 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-video-player__volume {
-  display: flex;
+  position: relative;
   margin-left: auto;
-  align-items: center;
-  gap: 18px;
+}
+
+.advertising-video-player__fullscreen {
+  margin-left: 10px;
+}
+
+.advertising-video-player[data-advertising-video-fullscreen="true"] .advertising-video-player__icon-enter,
+.advertising-video-player:not([data-advertising-video-fullscreen="true"]) .advertising-video-player__icon-exit {
+  display: none;
 }
 
 .advertising-video-player__range {
@@ -2325,25 +2425,57 @@ body.is-advertising-browse .site-footer {
   background: rgba(251, 251, 249, 0.5);
 }
 
-/* Thanh âm lượng thu về 0 và mở ra khi chuột hoặc focus vào cụm tiếng; cảm ứng không hover nên luôn mở. */
-.advertising-video-player__volume-range {
-  width: 0;
+/* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus vào cụm tiếng, tách khỏi thanh
+   tua ngang để không thao tác nhầm. Viên nền đen 0.4 nằm sát nút nên di chuột lên không mất hover. */
+.advertising-video-player__volume-pop {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  display: grid;
+  width: 32px;
+  height: 104px;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 12px 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
   opacity: 0;
-  transition: width 150ms ease-out, opacity 150ms ease-out;
+  visibility: hidden;
+  transform: translateX(-50%);
+  transition: opacity 150ms ease-out, visibility 150ms;
 }
 
-.advertising-video-player__volume:is(:hover, :focus-within) .advertising-video-player__volume-range {
-  width: 80px;
+.advertising-video-player__volume:is(:hover, :focus-within) .advertising-video-player__volume-pop {
   opacity: 1;
+  visibility: visible;
+}
+
+.advertising-video-player__volume-range {
+  width: 16px;
+  height: 100%;
+  writing-mode: vertical-lr;
+  direction: rtl;
+}
+
+.advertising-video-player__volume-range::-webkit-slider-runnable-track {
+  width: 4px;
+  height: 100%;
+  margin: 0 auto;
+  background: linear-gradient(to top, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__volume-range::-moz-range-track {
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to top, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__volume-range::-webkit-slider-thumb {
+  margin: 0 0 0 -4px;
 }
 
 @media (hover: none) {
   .advertising-video-player__bar {
-    opacity: 1;
-  }
-
-  .advertising-video-player__volume-range {
-    width: 80px;
     opacity: 1;
   }
 }
@@ -2524,21 +2656,27 @@ body.is-advertising-browse .site-footer {
   width: 100%;
 }
 
+/* Thumbnail theo pin Pinterest (đo 2026-10-18): 60px bo 16px, đang xem có viền 1px tối và viền trong 1px trắng. */
 .advertising-photo-view__media-thumbs button {
   position: relative;
-  flex: 0 0 52px;
-  width: 52px;
-  height: 52px;
-  padding: 2px;
-  border: 1px solid var(--line);
-  border-radius: 0;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
   background: var(--media-loading-surface);
   cursor: pointer;
 }
 
-.advertising-photo-view__media-thumbs button[aria-current="true"] {
-  border: 2px solid var(--ink);
-  padding: 1px;
+.advertising-photo-view__media-thumbs button[aria-current="true"]::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(51, 51, 46);
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px #fff;
+  content: "";
 }
 
 .advertising-photo-view__media-thumbs button:focus-visible {
@@ -2559,8 +2697,7 @@ body.is-advertising-browse .site-footer {
   width: 20px;
   height: 20px;
   fill: #fff;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
   transform: translate(-50%, -50%);
 }
 

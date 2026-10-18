@@ -15,7 +15,7 @@ const poster = path.join(root, "tests/site/fixtures/site-media-card-poster-3x2.w
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true } = {}) {
+function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   assert.equal(artifact.cards.length, 194, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
@@ -25,7 +25,7 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     sourceId: "m00b:test-only:clip-audio-3x2", source: "M00b sealed synthetic fixture",
     sha256: "363907eb9b7c8da2af83cd672087ce0e2d1942e4f7a30350b06ec2583aba4ef4",
     provenance: "Synthetic test-only fixture, not public project media.",
-    width: 480, height: 320, posterSrc: `${fixturePrefix}poster-3x2.webp`,
+    width: wideVideo ? 640 : 480, height: wideVideo ? 360 : 320, posterSrc: `${fixturePrefix}poster-3x2.webp`,
     posterWidth: 480, posterHeight: 320, durationSeconds: 3, hasAudio,
     altVi: "Video kiểm thử tổng hợp", altEn: "Synthetic test video",
   });
@@ -45,8 +45,8 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
 }
 
 async function openFixture(page, locale, { videoCover = false, direct = false, photoOnly = false,
-  singleton = false, relatedMedia = false, hasAudio = true } = {}) {
-  const { artifact, card, related } = fixtureArtifact(videoCover, { singleton, relatedMedia, hasAudio });
+  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false } = {}) {
+  const { artifact, card, related } = fixtureArtifact(videoCover, { singleton, relatedMedia, hasAudio, wideVideo });
   await page.route(`**${fixturePrefix}*`, async (route) => {
     if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
     // Trả 206 theo Range để Chrome coi clip là seekable, thanh tua mới đổi được currentTime.
@@ -314,7 +314,9 @@ const playerState = (page) => page.evaluate(() => {
     playLabel: player.querySelector("[data-advertising-photo-play]").getAttribute("aria-label"),
     time: player.querySelector(".advertising-video-player__time").textContent.replace(/\s+/g, " ").trim(),
     progress: Number(player.querySelector("[data-advertising-photo-progress]").value),
-    volumeWidth: player.querySelector("[data-advertising-photo-volume]").getBoundingClientRect().width,
+    volumeOpen: getComputedStyle(player.querySelector(".advertising-video-player__volume-pop")).visibility === "visible",
+    volumeBox: (({ width, height }) => [Math.round(width), Math.round(height)])(
+      player.querySelector("[data-advertising-photo-volume]").getBoundingClientRect()),
     volumeValue: Number(player.querySelector("[data-advertising-photo-volume]").value) };
 });
 
@@ -357,17 +359,18 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
   });
 });
 
-test("M02a primary video volume slider opens from the sound button and keeps the last volume", async () => {
+test("M02a primary vertical volume slider opens above the sound button and keeps the last volume", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     const frame = await page.locator(".advertising-photo-view__hero-frame").boundingBox();
     await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
-    assert.equal((await playerState(page)).volumeWidth, 0, "slider folded until the sound group is hovered");
+    assert.equal((await playerState(page)).volumeOpen, false, "slider hidden until the sound group is hovered");
     await page.locator("[data-advertising-photo-audio-toggle]").hover();
     await page.waitForTimeout(300);
     let state = await playerState(page);
-    assert.equal(state.volumeWidth, 80, "hovering the sound button opens the slider");
+    assert.equal(state.volumeOpen, true, "hovering the sound button opens the slider");
+    assert(state.volumeBox[1] > state.volumeBox[0] * 3, `slider stands vertical: ${state.volumeBox}`);
     assert.equal(state.volumeValue, 0, "muted video shows the slider at zero");
     const volume = page.locator("[data-advertising-photo-volume]");
     await volume.fill("0.4");
@@ -384,14 +387,79 @@ test("M02a primary video volume slider opens from the sound button and keeps the
   });
 });
 
-test("M02a touch primary video keeps the bar and volume slider visible", async () => {
+test("M02a touch primary video keeps the bar visible", async () => {
   await withPage("vi", async (page) => {
     await openFixture(page, "vi", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
     const state = await playerState(page);
-    assert.deepEqual([state.bar, state.volumeWidth, state.playLabel], [1, 80, "Tạm dừng"]);
+    assert.deepEqual([state.bar, state.playLabel], [1, "Tạm dừng"]);
     await page.locator("[data-advertising-photo-play-surface]").tap();
     assert.equal((await playerState(page)).paused, true, "tapping the video pauses it");
+  });
+});
+
+// Dải media theo pin Pinterest: khung giữ tỷ lệ cover nên đổi media không đổi kích thước primary, related đứng yên;
+// mũi tên và chấm theo vị trí, media khác tỷ lệ có nền zoom blur, video có toàn màn hình nền đen.
+const stripState = (page) => page.evaluate(() => {
+  const view = document.querySelector("[data-advertising-photo-view]");
+  const frame = view.querySelector(".advertising-photo-view__hero-frame").getBoundingClientRect();
+  return { active: view.dataset.advertisingActiveMediaId, glass: view.dataset.advertisingPhotoGlass,
+    frame: [frame.width, frame.height].map(Math.round).join("x"),
+    related: [...view.querySelectorAll("[data-advertising-photo-related-grid] > *")].slice(0, 6)
+      .map((node) => (({ x, y }) => `${Math.round(x)},${Math.round(y)}`)(node.getBoundingClientRect())).join(" "),
+    steps: [...view.querySelectorAll("[data-advertising-photo-media-step]")].map((node) => node.hidden ? 0 : 1).join(""),
+    dots: [...view.querySelectorAll("[data-advertising-photo-media-dots] > span")].map((dot) => dot.hasAttribute("data-active") ? 1 : 0).join("") };
+});
+
+test("M02a media strip switches by arrow and key without resizing primary or moving related", async () => {
+  await withPage("en", async (page) => {
+    const card = await openFixture(page, "en", { videoCover: true, direct: true, wideVideo: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    await page.waitForTimeout(800);
+    const before = await stripState(page);
+    assert.equal(before.active, videoId);
+    assert.deepEqual([before.steps, before.dots], ["10", "01"], "the video, last in the strip, shows only the previous arrow");
+    assert.equal(before.glass, "true", "video with another ratio than the cover sits on the zoom blur backdrop");
+    await page.locator(".advertising-photo-view__hero-frame").hover();
+    await page.locator('[data-advertising-photo-media-step="-1"]').click();
+    await page.waitForTimeout(100);
+    const during = await stripState(page);
+    assert.equal(during.related, before.related, "related cards stay put while the media slides");
+    await page.waitForTimeout(500);
+    const after = await stripState(page);
+    assert.equal(after.active, card.mediaItems[0].id);
+    assert.deepEqual([after.frame, after.related], [before.frame, before.related], "primary keeps the cover frame");
+    assert.deepEqual([after.steps, after.dots], ["01", "10"]);
+    await page.locator('[data-advertising-photo-media-step="1"]').focus();
+    await page.keyboard.press("ArrowLeft");
+    assert.equal((await stripState(page)).active, card.mediaItems[0].id, "left arrow key stops at the first media");
+    await page.keyboard.press("ArrowRight");
+    await page.waitForFunction((id) => document.querySelector("[data-advertising-photo-view]").dataset.advertisingActiveMediaId === id,
+      videoId);
+    assert.equal(await page.locator("[data-advertising-photo-video]").evaluate((node) => !node.paused || node.readyState < 2), true,
+      "returning to the video plays it again");
+  });
+});
+
+test("M02a primary video full screen uses a black frame without the blur backdrop", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true, wideVideo: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    await page.locator(".advertising-photo-view__hero-frame").hover();
+    const button = page.locator("[data-advertising-photo-fullscreen]");
+    assert.equal(await button.getAttribute("aria-label"), "Full screen");
+    await button.click();
+    await page.waitForFunction(() => document.fullscreenElement?.classList.contains("advertising-photo-view__hero-frame"));
+    const state = await page.evaluate(() => {
+      const frame = document.fullscreenElement;
+      return { background: getComputedStyle(frame).backgroundColor,
+        blur: getComputedStyle(frame.querySelector("[data-advertising-photo-background]")).display,
+        label: frame.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") };
+    });
+    assert.deepEqual(state, { background: "rgb(0, 0, 0)", blur: "none", label: "Exit full screen" });
+    await button.click();
+    await page.waitForFunction(() => !document.fullscreenElement);
+    assert.equal(await button.getAttribute("aria-label"), "Full screen");
   });
 });
 

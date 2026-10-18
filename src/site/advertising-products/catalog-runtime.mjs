@@ -1149,6 +1149,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoProgress = photoPlayer?.querySelector("[data-advertising-photo-progress]");
   const photoTimeCurrent = photoPlayer?.querySelector("[data-advertising-photo-time-current]");
   const photoTimeTotal = photoPlayer?.querySelector("[data-advertising-photo-time-total]");
+  const photoFullscreen = photoPlayer?.querySelector("[data-advertising-photo-fullscreen]");
+  const photoMediaSteps = [...(photoView?.querySelectorAll("[data-advertising-photo-media-step]") ?? [])];
+  const photoMediaDots = photoView?.querySelector("[data-advertising-photo-media-dots]");
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
   // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
@@ -1267,6 +1270,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let relatedLayout;
   let activePhotoId = null;
   let activePrimaryMediaId = null;
+  let activePrimaryItem = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
   let relatedCompile = compileAdvertisingProductLayout;
@@ -3006,7 +3010,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const viewportWidth = document.documentElement.clientWidth;
     const viewportHeight = getLayoutViewportHeight();
     const typographyKey = relatedTypographyKey();
-    const nextLayoutKey = `${browse.seed}:${browse.photo}:${activePrimaryMediaId}:${browse.tag || "all"}:${locale}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
+    const nextLayoutKey = `${browse.seed}:${browse.photo}:${browse.tag || "all"}:${locale}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
     if (nextLayoutKey === relatedLayoutKey) {
       renderRelatedWindow();
       return;
@@ -3112,7 +3116,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       safeBottom: parseFloat(viewStyle.getPropertyValue("--advertising-safe-bottom")) || 0,
       settings, suggestionCard, tag: browse.tag,
       seed: browse.seed,
-      primaryMedia: cards.find((card) => card.id === browse.photo)?.mediaItems?.find((item) => item.id === activePrimaryMediaId),
+      // Khung primary theo tỷ lệ cover cho mọi media của card (như dải media pin Pinterest): đổi media không đổi
+      // kích thước primary nên related đứng yên; media khác tỷ lệ nằm giữa nền zoom blur.
+      primaryMedia: (({ mediaItems = [], coverMediaId } = {}) => mediaItems.find((item) => item.id === coverMediaId))(
+        cards.find((card) => card.id === browse.photo)),
       measureDescriptionHeight: measureInfo,
       measureDescriptionMinimumHeight: measureInfo,
       minimumImageZoneHeight: imageControlMinimum,
@@ -3122,14 +3129,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const primary = relatedLayout.primary;
     photoView.dataset.advertisingPhotoLayout = primary.mode;
     photoView.dataset.advertisingPrimarySpan = String(primary.span);
-    photoView.dataset.advertisingPhotoGlass = String(primary.hasContainOverflow);
     for (const [key, value] of Object.entries({
       top: primary.top, gap: primary.gap, "primary-width": primary.width, "primary-height": primary.height,
-      "image-width": primary.imageWidth, "image-height": primary.imageHeight,
       "image-zone-width": primary.imageZoneWidth, "image-zone-height": primary.imageZoneHeight,
       "description-width": primary.descriptionWidth, "description-height": primary.descriptionHeight,
       "internal-gap": primary.internalGap,
     })) photoView.style.setProperty(`--advertising-photo-${key}`, `${value}px`);
+    if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     relatedMeasuredGeometry = { viewportWidth, viewportHeight, typographyKey };
     relatedGrid.dataset.advertisingRelatedColumns = String(relatedLayout.layout.columns);
     const height = Math.max(primary.height, relatedLayout.layout.totalPixelHeight);
@@ -3206,19 +3212,65 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoBackground.after(background);
     return [image, background];
   };
-  const renderPrimaryMedia = (record, item, inPlace = true) => {
+  // Media nằm contain trong khung cover; còn vùng dư thì hiện nền zoom blur (Kính), kể cả video.
+  const fitPrimaryMedia = (item) => {
+    if (!relatedLayout) return;
+    const { imageZoneWidth: zoneWidth, imageZoneHeight: zoneHeight } = relatedLayout.primary;
+    const ratio = item.width / item.height;
+    const width = Math.min(zoneWidth, ratio * zoneHeight);
+    const height = width / ratio;
+    photoView.style.setProperty("--advertising-photo-image-width", `${width}px`);
+    photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
+    photoView.dataset.advertisingPhotoGlass = String(Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5);
+  };
+  // Đổi media trượt ngang như dải media pin Pinterest: lớp media cũ trượt ra, media mới trượt vào theo chiều đi tới.
+  const slidePrimary = (direction) => {
+    const visible = photoVideo.hidden ? photoImage : photoVideo;
+    const rect = visible.getBoundingClientRect();
+    const width = heroFrame.getBoundingClientRect().width;
+    let outgoing = null;
+    if (visible === photoImage && photoImage.currentSrc) {
+      outgoing = document.createElement("img");
+      outgoing.src = photoImage.currentSrc;
+      outgoing.alt = "";
+    } else if (visible === photoVideo && photoVideo.readyState >= 2) {
+      outgoing = document.createElement("canvas");
+      outgoing.width = photoVideo.videoWidth;
+      outgoing.height = photoVideo.videoHeight;
+      outgoing.getContext("2d").drawImage(photoVideo, 0, 0);
+    }
+    const timing = { duration: 350, easing: "cubic-bezier(0.4, 0, 0.2, 1)" };
+    if (outgoing) {
+      outgoing.className = "advertising-photo-view__outgoing";
+      outgoing.style.width = `${rect.width}px`;
+      outgoing.style.height = `${rect.height}px`;
+      photoVideo.after(outgoing);
+      outgoing.animate({ translate: ["0 0", `${-direction * width}px 0`] }, timing).finished
+        .finally(() => outgoing.remove());
+    }
+    return () => (photoVideo.hidden ? photoImage : photoVideo)
+      .animate({ translate: [`${direction * width}px 0`, "0 0"] }, timing);
+  };
+  const renderPrimaryMedia = (record, item, inPlace = true, slide = 0) => {
     const english = locale === "en";
     const video = item.kind === "video";
     const source = video ? null : responsiveSource(item.src);
-    const changed = !video && photoImage.getAttribute("src") !== source;
-    if (changed || video) settlePrimaryReveal();
+    const sliding = Boolean(slide) && !reduced && !photoView.hidden;
+    const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
+    if (changed || video || sliding) settlePrimaryReveal();
     const outgoing = changed && inPlace && !reduced && !photoImage.hidden
       && photoImage.complete && photoImage.naturalWidth > 0 ? snapshotPrimary() : [];
+    const slideIn = sliding ? slidePrimary(Math.sign(slide)) : null;
     activePrimaryMediaId = item.id;
+    activePrimaryItem = item;
     photoView.dataset.advertisingActiveMediaId = item.id;
     photoVideo.pause();
-    photoVideo.muted = true;
-    photoVideo.defaultMuted = true;
+    // Đổi media trong cùng card giữ lựa chọn tiếng của người xem như Pinterest; mở card mới thì về tắt tiếng.
+    if (!slide) {
+      photoVideo.muted = true;
+      photoVideo.defaultMuted = true;
+    }
+    if (!video && document.fullscreenElement === heroFrame) void document.exitFullscreen().catch(() => {});
     photoVideo.hidden = !video;
     photoImage.hidden = video;
     photoExpand.hidden = video;
@@ -3231,6 +3283,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.poster = item.posterSrc;
       photoVideo.setAttribute("aria-label", english ? item.altEn : item.altVi);
       if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
+      else if (slide) photoVideo.currentTime = 0;
       void photoVideo.play().catch(() => {});
     } else {
       photoVideo.removeAttribute("src");
@@ -3242,6 +3295,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.fetchPriority = "high";
       photoImage.src = source;
     }
+    fitPrimaryMedia(item);
+    slideIn?.();
     syncVideoPlayer();
     syncVideoTime();
     if (photoBackground) {
@@ -3282,11 +3337,33 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
       button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
     });
+    const items = record.mediaItems || [];
+    const index = items.indexOf(item);
+    photoMediaSteps.forEach((button) => {
+      const target = index + Number(button.dataset.advertisingPhotoMediaStep);
+      button.hidden = index < 0 || target < 0 || target >= items.length;
+    });
+    [...(photoMediaDots?.children ?? [])].forEach((dot, dotIndex) => dot.toggleAttribute("data-active", dotIndex === index));
+  };
+  // Mọi đường đổi media (thumbnail, mũi tên, vuốt, phím) đi qua đây; primary giữ khung nên related không xếp lại.
+  const showPrimaryMedia = (item) => {
+    const record = cards.find((card) => card.id === activePhotoId);
+    if (!record || !item || activePrimaryMediaId === item.id) return;
+    const items = record.mediaItems || [];
+    renderPrimaryMedia(record, item, true, items.indexOf(item) - items.findIndex((entry) => entry.id === activePrimaryMediaId));
+    browseHistory.captureDetail({ ...browseHistory.current.detail, mediaId: item.id, scrollY: getLogicalScroll() });
+    browseHistory.persistCurrent();
+  };
+  const stepPrimaryMedia = (step) => {
+    const items = cards.find((card) => card.id === activePhotoId)?.mediaItems || [];
+    showPrimaryMedia(items[items.findIndex((entry) => entry.id === activePrimaryMediaId) + step]);
   };
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
       || item.kind !== "image" || item.src !== record.media.src);
+    photoMediaDots.hidden = items.length < 2;
+    photoMediaDots.replaceChildren(...items.map(() => document.createElement("span")));
     if (!authored) {
       photoMediaThumbs?.remove();
       photoMediaThumbs = null;
@@ -3322,14 +3399,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (item.kind === "video") {
         button.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>');
       }
-      button.addEventListener("click", () => {
-        if (activePrimaryMediaId === item.id) return;
-        renderPrimaryMedia(record, item);
-        browseHistory.captureDetail({ ...browseHistory.current.detail, mediaId: item.id, scrollY: getLogicalScroll() });
-        browseHistory.persistCurrent();
-        relatedLayoutKey = "";
-        layoutRelated(browseHistory.current);
-      });
+      button.addEventListener("click", () => showPrimaryMedia(item));
       photoMediaThumbs.append(button);
     });
   };
@@ -3396,6 +3466,37 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   photoVideo?.addEventListener("play", () => {
     cancelAnimationFrame(videoTimeFrame);
     tickVideoTime();
+  }, { signal: controller.signal });
+  photoMediaSteps.forEach((button) => button.addEventListener("click",
+    () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
+  // Vuốt ngang trên cảm ứng và phím mũi tên khi focus trong khung đổi media; thanh tua, âm lượng giữ phím của chúng.
+  let swipeStart = null;
+  heroFrame?.addEventListener("pointerdown", (event) => {
+    swipeStart = event.pointerType === "touch" ? { x: event.clientX, y: event.clientY } : null;
+  }, { signal: controller.signal });
+  heroFrame?.addEventListener("pointerup", (event) => {
+    if (!swipeStart) return;
+    const dx = event.clientX - swipeStart.x;
+    const dy = event.clientY - swipeStart.y;
+    swipeStart = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) stepPrimaryMedia(dx < 0 ? 1 : -1);
+  }, { signal: controller.signal });
+  heroFrame?.addEventListener("keydown", (event) => {
+    if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || event.target.matches("input")) return;
+    event.preventDefault();
+    stepPrimaryMedia(event.key === "ArrowRight" ? 1 : -1);
+  }, { signal: controller.signal });
+  // Toàn màn hình cho video: khung primary lên nền đen, không nền blur; iPhone không có fullscreen phần tử thì dùng player gốc.
+  photoFullscreen?.addEventListener("click", () => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    else if (heroFrame.requestFullscreen) void heroFrame.requestFullscreen().catch(() => {});
+    else photoVideo.webkitEnterFullscreen?.();
+  }, { signal: controller.signal });
+  document.addEventListener("fullscreenchange", () => {
+    const active = document.fullscreenElement === heroFrame;
+    photoPlayer.dataset.advertisingVideoFullscreen = String(active);
+    photoFullscreen.setAttribute("aria-label", active ? locale === "en" ? "Exit full screen" : "Thoát toàn màn hình"
+      : locale === "en" ? "Full screen" : "Toàn màn hình");
   }, { signal: controller.signal });
   const renderPhoto = (browse, reason, phase = "", reveal = true) => {
     const record = cards.find((card) => card.id === browse.photo);
