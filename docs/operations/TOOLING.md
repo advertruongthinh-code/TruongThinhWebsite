@@ -195,7 +195,20 @@ Công cụ đầu lỗi, hết lượt hoặc hết quota thì sang công cụ k
 - Mọi thiết kế media (ảnh, video, nhạc, graphic) do ChatGPT làm. Agent khác chỉ nêu rule và
   chỉ dẫn tổng thể, không tả chi tiết bố cục hay hình khối ([Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh)).
 - Không ghi API key (kie.ai, runninghub.ai và dịch vụ khác) vào file trong repo, log, prompt hay
-  Library. Chỗ lưu key thống nhất chờ owner chốt.
+  Library. Chỗ lưu key theo [API key](#api-key).
+
+## API key
+
+Quy ước owner chốt 2026-10-18:
+
+- Repo secret GitHub (Settings, Secrets and variables, Actions) là nơi lưu gốc mọi API key,
+  mỗi key một tên viết hoa: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `KIE_API_KEY`,
+  `RUNNINGHUB_API_KEY`.
+- Repo secret chỉ workflow GitHub Actions đọc được. Máy chạy script ngoài Actions giữ bản sao
+  cùng tên: PC là biến môi trường user (owner tự thêm qua "Edit environment variables for your
+  account"), cloud là secret của cloud environment. Đổi key thì sửa repo secret trước, rồi bản sao.
+- Script đọc key từ biến môi trường cùng tên. Agent không in, ghi log, commit hay chép giá trị
+  key, không nhờ owner dán key vào chat; owner tự nhập key ở mọi nơi.
 
 ## Chú thích thuật ngữ
 
@@ -210,3 +223,4 @@ Công cụ đầu lỗi, hết lượt hoặc hết quota thì sang công cụ k
 - **Setup script**: Bash script của cloud environment, chạy trước khi Claude Code khởi động.
 - **Skills-directory plugin**: thư mục plugin trong `~/.claude/skills/`, tự nạp mọi session.
 - **Always-on**: mode tự bật đầu session qua hook, không cần gõ lệnh.
+- **Repo secret**: biến bí mật lưu trong GitHub repository, chỉ workflow GitHub Actions đọc được.
