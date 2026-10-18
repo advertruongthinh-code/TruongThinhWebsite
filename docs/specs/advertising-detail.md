@@ -284,8 +284,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   Back, navbar. Owner.
 - Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10 sau khi tách task hiện detail, 2 vòng x 15 lượt chạm qua CDP
   (main cùng lúc trong ngoặc): phản hồi đầu p50 `29` đến `30ms`; hiện p50 `173` đến `175ms` (`158`); lượt có long task 11 và
-  14/15 (15/15), dài nhất p50 `53` đến `65ms` (`71`); mỗi vòng một lượt `231` đến `248ms` ở 730 đến 810ms sau chạm (mount related,
-  lazysizes, skeleton). Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
+  14/15 (15/15), dài nhất p50 `53` đến `65ms` (`71`); mỗi vòng một lượt `231` đến `248ms` ở 730 đến 810ms sau chạm (mount related, lazysizes, skeleton). Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
 - `advertising-photo-transitions.e2e.mjs` 18/10 trên PC: Chromium 31/32 (L06 flaky); WebKit 28/32, FAIL
   `related-selected-card-shuffle-cleanup`, `grid-cta-skeleton-flow`, `square-controls-hover-and-return`. Main xử lý.
 - `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
