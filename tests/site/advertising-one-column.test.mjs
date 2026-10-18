@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, compileAdvertisingLayout } from "../../src/site/advertising-products/catalog.mjs";
 import { inspectAdvertisingGrid } from "./advertising-grid-oracle.mjs";
-import { columnsForWidth, computeAdvertisingPhotoGeometry, compileAdvertisingProductLayout, matchesAdvertisingFilter } from "../../src/site/advertising-products/layout-core.mjs";
+import { columnsForWidth, computeAdvertisingPhotoGeometry, compileAdvertisingProductLayout, matchesAdvertisingFilter, solveAdvertisingOrganicPresentationOrder } from "../../src/site/advertising-products/layout-core.mjs";
 
 const previousWindow = globalThis.window;
 globalThis.window = {};
@@ -298,7 +298,7 @@ test("R11 fills column four and keeps sparse photos on the shared shortest front
     headerHeight: 102.515625,
   };
   const sparseTwo = compileAdvertisingRelatedLayout({ ...options, tag: "product-kiosk-posm-product-02" });
-  const sparseOne = compileAdvertisingRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-05" });
+  const sparseOne = compileAdvertisingRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-10" });
   const full = compileAdvertisingRelatedLayout(options);
   assert.equal(sparseTwo.cards.length, 2);
   const [firstSparsePhoto, secondSparsePhoto] = sparseTwo.photoPlacements;
@@ -365,6 +365,13 @@ test("R11 keeps the use-sampling pool in one continuous coordinate space", () =>
   const changedPinnedGeometry = compileAdvertisingRelatedLayout({ ...options, cards: changedPinnedMedia });
   assert.notEqual(changedPinnedGeometry.layout.coordinateHash, result.layout.coordinateHash,
     "R10 coordinate hash includes the pinned card geometry");
+});
+
+test("R10 pins the first related photo when it is a medium ratio", () => {
+  const cards = [[1, 1], [2, 3], [3, 2], [2, 3], [3, 2]].map(([width, height], index) => ({ id: `c${index}`, media: { width, height } }));
+  const ids = cards.map(({ id }) => id);
+  assert.notEqual(solveAdvertisingOrganicPresentationOrder(cards, ids).cards[0].id, "c0", "grid order may move a medium photo");
+  assert.equal(solveAdvertisingOrganicPresentationOrder(cards, ids, { pinFirst: true }).cards[0].id, "c0", "related keeps the first photo in column four");
 });
 
 test("R10 fills column four for every nonempty authored hero and tag pool at N4", () => {

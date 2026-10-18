@@ -1103,12 +1103,6 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   word-spacing: var(--word-spacing-display);
 }
 
-.hero h1:where(:not(.hero-kicker)),
-.hero p:where(.hero-title) {
-  font-size: clamp(5rem, 9vw, 10rem);
-  line-height: 0.86;
-}
-
 .legacy-copy h2 {
   font-size: var(--cta-title-size);
   line-height: 0.98;
@@ -1124,18 +1118,14 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
   );
 }
 
 .hero-line-mask > span,
 .line-mask > span {
   display: block;
-}
-
-.hero h1 > .hero-line-mask + .hero-line-mask {
-  margin-top: 0.05em;
 }
 
 .hero-word {
@@ -1150,11 +1140,6 @@ em {
 }
 
 @media (max-width: 980px) {
-  .hero[data-hero-intro] .hero-word {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-  }
-
   .hero[data-hero-intro],
   .about-hero {
     height: auto;
@@ -1550,8 +1535,8 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
   );
 }
 
@@ -2081,6 +2066,13 @@ em {
 .legacy-copy h2 {
   /* Rộng bằng khung thay vì co theo chữ: dấu chấm treo (.text-hang-end) cần chỗ bên phải dòng dài nhất. */
   align-self: stretch;
+  container-type: inline-size;
+}
+
+/* Hai dòng chốt (hero-typography R1): giữ cỡ token, chỉ co khi dòng dài nhất không vừa khung. */
+.legacy-copy h2[data-hero-fit] > .line-mask {
+  white-space: nowrap;
+  font-size: min(1em, calc(100cqi / var(--hero-line-em)));
 }
 
 .legacy-copy h2 em {
@@ -2240,6 +2232,49 @@ em {
     /* !important để thắng reset animation toàn cục của reduced motion bên dưới. */
     animation: media-breathe 2s ease-in-out infinite !important;
   }
+}
+
+/* Ảnh lỗi tải (media-delivery R8): script head thêm .is-media-error lên khung. Khung giữ tỷ lệ, nền xám phẳng, biểu tượng 24px và một dòng
+   chữ nằm dưới nội dung khung (z-index -1 trong isolation) nên chữ hero, portal, CTA vẫn ở trên. Advertising có luồng lỗi riêng nên bị loại: muốn dùng lại cùng dấu thì bỏ khung của nó khỏi :not() ở mọi selector bên dưới. */
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) {
+  --media-error-surface: #e4e4e2;
+  --media-error-ink: #5c5c5a;
+  --media-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c5a' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V11'/%3E%3Cpath d='m4 16 4.5-4.5 3 3'/%3E%3Cpath d='m14 14 1.5-1.5 4.5 4.5'/%3E%3Cpath d='M16 4l-2 3 3 2-2 3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.25'/%3E%3C/svg%3E");
+  isolation: isolate;
+}
+
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) > img,
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) > picture > img {
+  visibility: hidden;
+}
+
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *)::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 32px 8px 0;
+  background: var(--media-error-icon) no-repeat 50% calc(50% - 11px) / 24px, var(--media-error-surface);
+  color: var(--media-error-ink);
+  content: "Không tải được";
+  font: 500 0.75rem/1.4 "Plus Jakarta Sans", Arial, sans-serif;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: none;
+  pointer-events: none;
+}
+
+.media-gate:lang(en) .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *)::before {
+  content: "Couldn't load";
+}
+
+/* Hero, CTA, portal mang chữ trắng nên giữ nền tối như trước khi có dấu báo lỗi để chữ vẫn đọc được. */
+.media-gate :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer).is-media-error {
+  --media-error-surface: var(--media-loading-surface);
+  --media-error-ink: #b8b8b6;
+  --media-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8b8b6' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V11'/%3E%3Cpath d='m4 16 4.5-4.5 3 3'/%3E%3Cpath d='m14 14 1.5-1.5 4.5 4.5'/%3E%3Cpath d='M16 4l-2 3 3 2-2 3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.25'/%3E%3C/svg%3E");
 }
 
 @keyframes marquee {
@@ -2786,12 +2821,6 @@ em {
     text-align: left;
   }
 
-  .hero h1:where(:not(.hero-kicker)),
-  .hero p:where(.hero-title) {
-    font-size: clamp(4.6rem, 19vw, 6.5rem);
-    line-height: 0.86;
-  }
-
   .editorial-strip {
     display: grid;
     width: 100%;
@@ -3108,14 +3137,6 @@ em {
   .menu-group::after {
     display: none !important;
   }
-}
-
-@media (max-width: 360px) {
-  .hero h1:where(:not(.hero-kicker)),
-  .hero p:where(.hero-title) {
-    font-size: 4.1rem;
-  }
-
 }
 
 @media (prefers-reduced-motion: reduce) {

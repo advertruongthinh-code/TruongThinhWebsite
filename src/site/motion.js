@@ -155,6 +155,12 @@
   let routeInFlight = false;
   let routeDestinationReady = false;
   let routeMountReady = false;
+  // Mount dưới veil chờ lúc veil bắt đầu mở để đếm delay intro hero (first-load-parity R2).
+  let resolveRouteReveal;
+  const startRouteReveal = () => {
+    resolveRouteReveal?.();
+    resolveRouteReveal = undefined;
+  };
   let advertisingCatalogLoad;
   let lastHeaderWhiteSurface;
   let routeMarkHeld = false;
@@ -198,13 +204,45 @@
     );
   };
 
+  // Chữ hero (hero-typography R2): đo dòng dài nhất theo em; CSS chỉ co chữ khi bề rộng khung chia số này nhỏ hơn
+  // cỡ chung, nên resize không cần đo lại. Đo lại khi đổi ngôn ngữ hoặc font tải xong.
+  const fitHeroLines = () => {
+    document
+      .querySelectorAll(".hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker), .legacy-copy h2")
+      .forEach((title) => {
+        title.setAttribute("data-hero-fit", "");
+        // Wrapper hero có thể đang scale (zoom lúc vào trang); đổi rect về px layout.
+        const scale = title.getBoundingClientRect().width / (title.offsetWidth || 1) || 1;
+        // Một cỡ chữ cho cả title: dòng dài nhất vừa khung, hai dòng giữ cùng nhịp.
+        let widest = 0;
+        title.querySelectorAll(":scope > :is(.hero-line-mask, .detail-hero-line-mask, .line-mask)").forEach((line) => {
+          let left = Infinity;
+          let right = -Infinity;
+          const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+          for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+            if (!text.textContent.trim()) continue;
+            const range = document.createRange();
+            range.selectNodeContents(text);
+            const rect = range.getBoundingClientRect();
+            left = Math.min(left, rect.left);
+            right = Math.max(right, rect.right);
+          }
+          const size = Number.parseFloat(getComputedStyle(line).fontSize);
+          if (right > left && size) widest = Math.max(widest, (right - left) / scale / size);
+        });
+        // Chừa 1%: hinting làm bề rộng chữ không co đúng tỷ lệ cỡ chữ, dòng vừa sát khung có thể tràn 1-2px.
+        if (widest) title.style.setProperty("--hero-line-em", (widest * 1.01).toFixed(3));
+      });
+  };
+
   const measureTextMasks = () => {
     if (!maskContext) return;
-    document.querySelectorAll(textMaskSelector).forEach((mask) => {
+    // Đọc hết rồi mới ghi: ghi biến mask xen giữa các lần getComputedStyle ép style recalc mỗi mask (phone).
+    const overflows = [...document.querySelectorAll(textMaskSelector)].map((mask) => {
       const line = mask.firstElementChild || mask;
       const style = getComputedStyle(line);
       const fontSize = Number.parseFloat(style.fontSize);
-      if (!fontSize) return;
+      if (!fontSize) return undefined;
       maskContext.font =
         style.font ||
         `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
@@ -221,14 +259,14 @@
         fontSize * 0.2,
         metrics.actualBoundingBoxDescent + 4,
       );
-      const topValue = `${Math.ceil(topOverflow)}px`;
-      const bottomValue = `${Math.ceil(bottomOverflow)}px`;
-      mask.style.setProperty(
-        "--mask-ink-overflow",
-        `${Math.max(Math.ceil(topOverflow), Math.ceil(bottomOverflow))}px`,
-      );
-      mask.style.setProperty("--mask-ink-overflow-top", topValue);
-      mask.style.setProperty("--mask-ink-overflow-bottom", bottomValue);
+      return [mask, Math.ceil(topOverflow), Math.ceil(bottomOverflow)];
+    });
+    overflows.forEach((entry) => {
+      if (!entry) return;
+      const [mask, top, bottom] = entry;
+      mask.style.setProperty("--mask-ink-overflow", `${Math.max(top, bottom)}px`);
+      mask.style.setProperty("--mask-ink-overflow-top", `${top}px`);
+      mask.style.setProperty("--mask-ink-overflow-bottom", `${bottom}px`);
     });
   };
   // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
@@ -308,12 +346,18 @@
     });
     return changed;
   };
-  const scheduleTextMaskMeasurement = () =>
-    window.requestAnimationFrame(() => {
+  let textMaskFrame;
+  // Gộp các lần gọi cùng frame (font loadingdone, layout update, đổi trang) thành một lượt đo.
+  const scheduleTextMaskMeasurement = () => {
+    if (textMaskFrame) return;
+    textMaskFrame = window.requestAnimationFrame(() => {
+      textMaskFrame = undefined;
+      fitHeroLines();
       measureTextMasks();
       // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
       if (fitHeritageGaps()) requestLayoutUpdate();
     });
+  };
 
   const translateTree = (root, language) => {
     const textNodes = [
@@ -1368,9 +1412,9 @@
           0.9,
         );
       }
-      // Bắt đầu ở frame kế tiếp để long task của mount không làm mất phần mở đầu của intro.
+      // Chạy khi veil bắt đầu mở, sau long task của mount, nên không mất phần mở đầu của intro (first-load-parity R2).
       intro.pause();
-      window.requestAnimationFrame(() => intro.play());
+      state.introStart.then(() => intro.play());
       if (document.documentElement.classList.contains("route-enter")) state.headerIntro = headerIntro;
       else window.requestAnimationFrame(() => headerIntro.play());
       // Thứ tự slide do script sau .hero-slides xáo (page-home R3); slides[0] là ảnh chiếu đầu.
@@ -1736,7 +1780,14 @@
     pauseOffscreenMediaSweeps(state);
     initSmoothScroll(state, state.smoothScrollY);
     setPageScroll(state, state.smoothScrollY, { instant: true });
-    await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation });
+    // Cỡ chữ hero chốt trước khi SplitText tách từ và motion đọc vị trí.
+    fitHeroLines();
+    startRouteReveal();
+    const introStart = routeInFlight || document.documentElement.classList.contains("route-enter")
+      ? new Promise((resolve) => { resolveRouteReveal = resolve; })
+      : Promise.resolve();
+    state.introStart = introStart;
+    await window.TruongThinhDetail?.mount(container, { settled: settledStartup, softNavigation, introStart });
     // Motion trang là task riêng, không cộng vào task render của catalog.
     if (softNavigation) await nextTask();
     if (
@@ -1983,6 +2034,7 @@
   };
 
   const clearRouteEntry = () => {
+    startRouteReveal();
     routeTimeline?.kill();
     routeTimeline = undefined;
     routeInFlight = false;
@@ -2056,6 +2108,7 @@
     header.classList.add("is-route-pinned");
     document.body.classList.add("is-transitioning");
     setRouteVeil(1);
+    startRouteReveal();
     pageState?.headerIntro?.play();
     if (routeMarkHeld) {
       // Mark tween màu theo trang đích cùng tween màu chữ lúc veil bắt đầu mở (logo-route-crossfade R2, R3);

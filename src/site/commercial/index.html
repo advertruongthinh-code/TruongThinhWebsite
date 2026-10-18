@@ -10,7 +10,7 @@
     <meta
       name="description"
       content="Trường Thịnh thiết kế, sản xuất và thi công nội thất kinh doanh cho shop, showroom, F&amp;B, cafe và văn phòng."
-      data-en-content="Trường Thịnh designs, manufactures, and builds commercial interiors for retail, showrooms, F&amp;B, cafés, and offices."
+      data-en-content="Trường Thịnh designs, manufactures, and builds commercial interiors for retail, showrooms, F&amp;B, cafés and offices."
     />
     <meta name="theme-color" content="#ffffff" />
     <script>
@@ -25,14 +25,17 @@
       // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
       document.documentElement.classList.add("media-gate");
       (() => {
-        const settle = (image) => {
+        // failed: ảnh lỗi tải thì khung nhận thêm .is-media-error để CSS vẽ dấu báo lỗi (media-delivery R8).
+        const settle = (image, failed = false) => {
           const parent = image.parentElement;
+          const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
           parent?.classList.add("is-media-settled");
-          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+          frame?.classList.add("is-media-settled");
+          frame?.classList.toggle("is-media-error", failed);
         };
         const isImage = (target) => target.tagName === "IMG";
         document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
-        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
         // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
         // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
         const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {
@@ -50,6 +53,7 @@
           && [node, ...node.querySelectorAll("img")].forEach((image) => {
             if (image.matches(fitted)) fit.observe(image);
             if (isImage(image) && image.complete && image.naturalWidth) image.decode().catch(() => {}).then(() => settle(image));
+            else if (isImage(image) && image.complete && image.currentSrc) settle(image, true);
           }))))
           .observe(document, { childList: true, subtree: true });
       })();
@@ -266,13 +270,13 @@
                 <span
                   class="detail-title__quiet"
                   data-motion-word-source
-                ><span data-en="Designed to sell">Thiết kế để bán tốt</span><span class="text-hang-end">.</span></span>
+                ><span data-en="Designed to perform">Thiết kế tối ưu</span></span>
               </span>
               <span class="detail-hero-line-mask">
                 <span
                   class="detail-title__strong"
                   data-motion-word-source
-                ><span data-en="Built to perform">Thi công để vận hành bền</span><span class="text-hang-end">.</span></span>
+                ><span data-en="Built to last">Vận hành bền bỉ</span></span>
               </span>
             </h1>
           </div>
@@ -307,7 +311,7 @@
           </h2>
           <p class="detail-intro__copy">
             <span
-              data-en="From retail and food service to offices, we align brand, customer flow, daily operations, and durability from the first drawing."
+              data-en="From retail and food service to offices, we align brand, customer flow, daily operations and durability from the first drawing."
               >Từ shop, quán ăn đến văn phòng, chúng tôi cân bằng nhận diện, luồng
               khách, vận hành và độ bền ngay từ bản vẽ đầu tiên.</span
             >
@@ -498,27 +502,27 @@
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 514 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-1" /></svg>
             <span class="editorial-media"><img src="/assets/content/projects/process-commercial-survey-v2.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Khảo sát công trình kinh doanh bằng thiết bị đo laser" data-en-alt="Surveying a commercial site with a laser measuring device" /></span>
-            <div><h3 data-en="Survey">Khảo sát</h3><p data-en="Measure the site, study customer flow, and identify operational bottlenecks.">Đo hiện trạng, đọc luồng khách và nhận diện điểm nghẽn vận hành.</p></div>
+            <div><h3 data-en="Survey">Khảo sát</h3><p data-en="Measure the site, study customer flow and identify operational bottlenecks.">Đo hiện trạng, đọc luồng khách và nhận diện điểm nghẽn vận hành.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 489 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-2" /></svg>
             <span class="editorial-media"><img src="/assets/content/projects/kiosk-posm-materials-v2.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Dải mẫu vật liệu kiosk trên bản vẽ mặt đứng" data-en-alt="Kiosk material samples laid on an elevation drawing" /></span>
-            <div><h3 data-en="Consultation">Tư vấn</h3><p data-en="Align function, materials, and budget before developing the design.">Chốt công năng, vật liệu và ngân sách trước khi triển khai sâu.</p></div>
+            <div><h3 data-en="Consultation">Tư vấn</h3><p data-en="Align function, materials and budget before developing the design.">Chốt công năng, vật liệu và ngân sách trước khi triển khai sâu.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 505 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-3" /></svg>
             <span class="editorial-media"><img src="/assets/content/projects/fabrication-hands.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Gia công chi tiết quảng cáo tại xưởng" data-en-alt="Fabricating advertising components in the workshop" /></span>
-            <div><h3 data-en="Production">Sản xuất</h3><p data-en="CNC, edge banding, and workshop finishing with controlled tolerances.">CNC, dán cạnh và hoàn thiện tại xưởng theo sai số được kiểm soát.</p></div>
+            <div><h3 data-en="Production">Sản xuất</h3><p data-en="CNC, edge banding and workshop finishing with controlled tolerances.">CNC, dán cạnh và hoàn thiện tại xưởng theo sai số được kiểm soát.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 540 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-4" /></svg>
             <span class="editorial-media"><img src="/assets/content/projects/process-commercial-handover-v2.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bàn giao tủ trưng bày tại cửa hàng trà" data-en-alt="Handing over the display cabinets of a tea shop" /></span>
-            <div><h3 data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-en="Install precisely and hand over cleanly so the business can open sooner.">Lắp đúng nhịp, căn chuẩn và bàn giao gọn để sớm vận hành.</p></div>
+            <div><h3 data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-en="Install precisely, align accurately and hand over cleanly so the business can open sooner.">Lắp đúng nhịp, căn chuẩn và bàn giao gọn để sớm vận hành.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 498 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-5" /></svg>
             <span class="editorial-media"><img src="/assets/content/shared/after-sales.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bảo trì nội thất kinh doanh sau bàn giao" data-en-alt="Maintaining a commercial interior after handover" /></span>
-            <div><h3 data-en="After-sales">Hậu mãi</h3><p data-en="Maintain, adjust, and support after handover so the space keeps running smoothly.">Bảo trì, căn chỉnh và hỗ trợ sau bàn giao để mặt bằng vận hành ổn định.</p></div>
+            <div><h3 data-en="After-sales">Hậu mãi</h3><p data-en="Maintain, adjust and support after handover so the space keeps running smoothly.">Bảo trì, căn chỉnh và hỗ trợ sau bàn giao để mặt bằng vận hành ổn định.</p></div>
           </article>
         </section>
 
@@ -537,7 +541,7 @@
               width="1536"
               height="1024"
               alt="Mẫu gỗ tấm, nẹp cạnh, kim loại và ánh sáng được chọn cho công trình kinh doanh"
-              data-en-alt="Sheet materials, edge bands, metal, and lighting selected for a commercial project"
+              data-en-alt="Sheet materials, edge bands, metal and lighting selected for a commercial project"
               loading="lazy"
               data-motion-media
             />

@@ -179,6 +179,55 @@ Serena bật lại language server Markdown (marksman) theo owner 2026-10-17, th
 2026-10-14; marksman ăn 1-3 GB RAM mỗi phiên trên PC, RAM căng thì tắt lại qua
 `scripts/tooling/serena-language-map.json`.
 
+## Stack AI và media
+
+Owner chốt 2026-10-18, dùng cho việc tạo media hiện tại và AI agent của [CMS](../specs/cms.md).
+Công cụ đầu lỗi, hết lượt hoặc hết quota thì sang công cụ kế tiếp theo đúng thứ tự; không bỏ bước.
+
+| Việc | Thứ tự |
+| --- | --- |
+| Tạo ảnh | ChatGPT web, ChatGPT Codex hoặc CLI, runninghub.ai, kie.ai |
+| Tạo video bằng model AI | kie.ai, runninghub.ai |
+| Tạo nhạc | YuE2 trên runninghub.ai |
+| AI agent biên tập video | [hyperframe.dev](http://hyperframe.dev/) |
+| AI agent | Claude chính chủ, ChatGPT chính chủ, Claude trên kie.ai, ChatGPT trên kie.ai |
+
+- Mọi thiết kế media (ảnh, video, nhạc, graphic) do ChatGPT làm. Agent khác chỉ nêu rule và
+  chỉ dẫn tổng thể, không tả chi tiết bố cục hay hình khối ([Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh)).
+- Không ghi API key (kie.ai, runninghub.ai và dịch vụ khác) vào file trong repo, log, prompt hay
+  Library. Chỗ lưu key theo [API key](#api-key).
+
+### gpt-image-2.5 trên kie.ai
+
+Rút từ trang model kie.ai và các bài so sánh của bên thứ ba, lấy 2026-10-18; chưa có benchmark có
+kiểm soát trên kie.ai, nên chỉ là mặc định ban đầu, sửa khi owner chấm ảnh thật.
+
+- Flare và Sunburst nhận cùng request, cùng giá trên kie.ai; đổi model chỉ là đổi tên
+  (`gpt-image-2-5-sunburst-text-to-image`, `-image-to-image`; Flare tương tự). Ảnh tham khảo truyền
+  qua `input_urls`.
+- Mặc định Sunburst cho ảnh lên site: có thử nghiệm cho thấy Sunburst viết đúng chữ nhỏ hoặc dày
+  mà Flare làm sai, và ít vân da giả hơn; site có chữ tiếng Việt có dấu trên biển, nhãn, menu.
+- Flare (nhanh hơn khoảng 15 đến 40%) chỉ dùng cho ảnh không chữ cần thử bố cục nhanh, hoặc khi
+  Sunburst lỗi hay quá chậm. Hai model sửa ảnh nhiều lượt lệch gần như nhau.
+- Phân giải: 1K 6 credit, 2K 10 credit, 4K 16 credit; tối đa 3840x2160, cạnh chia hết cho 16, tỷ lệ
+  từ 1:3 tới 3:1; tỷ lệ 27:16, 16:27, 9:8, 8:9 chỉ có ở 1K. kie.ai không có mức quality riêng.
+- Chọn mức theo slot ([tải ảnh](../specs/media-delivery.md)): 2K mặc định, vì ảnh nguồn của site rộng
+  1536 đến 1920 px; 4K cho hero trang chủ (điện thoại cần 2520 px; suy luận: có thể bỏ bước upscale,
+  owner chấm thử trước khi đổi rule upscale); 1K chỉ để thử prompt, không đưa lên site.
+
+## API key
+
+Quy ước owner chốt 2026-10-18:
+
+- Repo secret GitHub (Settings, Secrets and variables, Actions) là nơi lưu gốc mọi API key,
+  mỗi key một tên viết hoa: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `KIE_API_KEY`,
+  `RUNNINGHUB_API_KEY`.
+- Repo secret chỉ workflow GitHub Actions đọc được. Máy chạy script ngoài Actions giữ bản sao
+  cùng tên: PC là biến môi trường user (owner tự thêm qua "Edit environment variables for your
+  account"), cloud là secret của cloud environment. Đổi key thì sửa repo secret trước, rồi bản sao.
+- Script đọc key từ biến môi trường cùng tên. Agent không in, ghi log, commit hay chép giá trị
+  key, không nhờ owner dán key vào chat; owner tự nhập key ở mọi nơi.
+
 ## Chú thích thuật ngữ
 
 - **User-global**: cài một lần ở user scope để dùng cho nhiều repository.
@@ -192,3 +241,4 @@ Serena bật lại language server Markdown (marksman) theo owner 2026-10-17, th
 - **Setup script**: Bash script của cloud environment, chạy trước khi Claude Code khởi động.
 - **Skills-directory plugin**: thư mục plugin trong `~/.claude/skills/`, tự nạp mọi session.
 - **Always-on**: mode tự bật đầu session qua hook, không cần gõ lệnh.
+- **Repo secret**: biến bí mật lưu trong GitHub repository, chỉ workflow GitHub Actions đọc được.

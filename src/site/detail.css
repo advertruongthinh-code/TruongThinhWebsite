@@ -16,11 +16,6 @@
   width: min(82rem, calc(100% - 2 * var(--gutter)));
 }
 
-.detail-hero h1:where(:not(.hero-kicker)),
-.detail-hero p:where(.hero-title) {
-  font-size: clamp(4.8rem, 8.2vw, 9.4rem);
-  line-height: 0.9;
-}
 
 .residential-hero .hero-content {
   width: min(80%, 62.5rem);
@@ -35,35 +30,10 @@
   line-height: 1.4;
 }
 
-.residential-hero h1 {
-  width: 100%;
-  font-size: clamp(3.05rem, 7.15vw, 7rem);
-  font-weight: 600;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
 
-.residential-hero .detail-title__quiet,
-.residential-hero .detail-title__strong {
-  font-weight: 600;
-  white-space: nowrap;
-}
 
-.residential-hero .detail-hero-line-mask:first-of-type {
-  text-align: left;
-}
 
-.residential-hero .detail-hero-line-mask:last-of-type {
-  margin-top: -0.35em;
-  text-align: right;
-}
 
-html[lang="vi"]
-  .residential-hero
-  .detail-hero-line-mask:last-of-type
-  [data-motion-word-source] {
-  font-size: clamp(3.05rem, 6.75vw, 6.1rem);
-}
 
 .commercial-hero .hero-content {
   top: 51%;
@@ -79,45 +49,14 @@ html[lang="vi"]
   line-height: 1.4;
 }
 
-.commercial-hero h1 {
-  width: 100%;
-  font-size: clamp(2.5rem, 7.4vw, 5.75rem);
-  font-weight: 600;
-  line-height: 1.4;
-  text-transform: uppercase;
-}
 
-.commercial-hero .detail-title__quiet,
-.commercial-hero .detail-title__strong {
-  font-weight: 600;
-  white-space: nowrap;
-}
 
-.commercial-hero .detail-hero-line-mask:first-of-type {
-  text-align: left;
-}
 
-.commercial-hero .detail-hero-line-mask:last-of-type {
-  margin-top: -0.35em;
-  text-align: right;
-}
 
-.commercial-hero
-  .detail-hero-line-mask:last-of-type
-  [data-motion-word-source] {
-  font-size: clamp(1.1rem, 5.25vw, 4.15rem);
-}
 
 .detail-title__quiet,
 .detail-title__strong {
   display: block;
-}
-
-/* PC canh trái/phải: dấu chấm giữ trong khung, chỉ treo khi canh giữa trên phone. */
-@media (min-width: 681px) {
-  .commercial-hero .text-hang-end {
-    width: auto;
-  }
 }
 
 .detail-title__quiet {
@@ -636,60 +575,6 @@ html[lang="vi"]
   text-transform: uppercase;
 }
 
-.detail-index-hero h1:where(:not(.hero-kicker)),
-.detail-index-hero p:where(.hero-title) {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  font-size: clamp(3.05rem, 7.2vw, 7rem);
-  font-weight: 600;
-  letter-spacing: var(--tracking-display);
-  line-height: 1.4;
-  text-transform: uppercase;
-  word-spacing: var(--word-spacing-display);
-}
-
-.detail-index-hero .detail-title__quiet,
-.detail-index-hero .detail-title__strong {
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.detail-index-hero .detail-hero-line-mask {
-  padding: 0;
-}
-
-.detail-index-hero .detail-hero-line-mask:first-of-type {
-  text-align: left;
-}
-
-.detail-index-hero .detail-hero-line-mask:last-of-type {
-  position: relative;
-  top: -0.35em;
-  text-align: right;
-}
-
-.detail-index-hero
-  .detail-hero-line-mask:last-of-type
-  [data-motion-word-source] {
-  font-size: clamp(2.75rem, 6.3vw, 5.45rem);
-}
-
-/* Dòng nowrap rộng hơn frame giữ mép phải của nó trên frame. */
-@media (min-width: 1025px) {
-  .detail-index-hero .detail-hero-line-mask:last-of-type {
-    display: flex;
-    justify-content: flex-end;
-  }
-}
-
-html[lang="en"]
-  .detail-index-hero
-  .detail-hero-line-mask:last-of-type
-  [data-motion-word-source] {
-  font-size: inherit;
-}
-
 .detail-index-hero .project-filters {
   position: absolute;
   bottom: 15vh;
@@ -927,11 +812,6 @@ html[lang="en"]
     top: 47%;
   }
 
-  .detail-hero h1:where(:not(.hero-kicker)),
-  .detail-hero p:where(.hero-title) {
-    font-size: clamp(3.8rem, 17vw, 5.6rem);
-  }
-
   .residential-hero .hero-content {
     top: 51%;
     width: calc(100% - 2.5rem);
@@ -944,36 +824,6 @@ html[lang="en"]
     text-align: center;
   }
 
-  .residential-hero h1 {
-    font-size: 3.05rem;
-  }
-
-  .residential-hero .detail-hero-line-mask:first-of-type,
-  .residential-hero .detail-hero-line-mask:last-of-type {
-    text-align: center;
-  }
-
-  .residential-hero .detail-hero-line-mask:first-of-type
-    [data-motion-word-source] {
-    font-size: clamp(2.5rem, 12vw, 4.5rem);
-  }
-
-  .residential-hero .detail-hero-line-mask:last-of-type {
-    margin-top: -0.2em;
-  }
-
-  .residential-hero .detail-hero-line-mask:last-of-type
-    [data-motion-word-source] {
-    font-size: clamp(1.9rem, 9.1vw, 3.5rem);
-  }
-
-  html[lang="vi"]
-    .residential-hero
-    .detail-hero-line-mask:last-of-type
-    [data-motion-word-source] {
-    font-size: clamp(1.6rem, 8.2vw, 3.5rem);
-  }
-
   .commercial-hero .hero-content {
     width: calc(100% - 2.5rem);
   }
@@ -983,32 +833,6 @@ html[lang="en"]
     margin-bottom: 1.5rem;
     font-size: 0.875rem;
     text-align: center;
-  }
-
-  .commercial-hero h1 {
-    font-size: clamp(1.5rem, 7.5vw, 3.2rem);
-  }
-
-  .commercial-hero .detail-hero-line-mask:first-of-type,
-  .commercial-hero .detail-hero-line-mask:last-of-type {
-    text-align: center;
-  }
-
-  .commercial-hero .detail-hero-line-mask:last-of-type {
-    margin-top: -0.2em;
-  }
-
-  .commercial-hero
-    .detail-hero-line-mask:last-of-type
-    [data-motion-word-source] {
-    font-size: clamp(1.05rem, 5.5vw, 2.35rem);
-  }
-
-  html[lang="en"]
-    .commercial-hero
-    .detail-hero-line-mask:last-of-type
-    [data-motion-word-source] {
-    font-size: clamp(1.35rem, 7vw, 2.75rem);
   }
 
   .detail-intro {
@@ -1087,35 +911,6 @@ html[lang="en"]
     transform: translateX(-50%);
   }
 
-  .detail-index-hero h1:where(:not(.hero-kicker)),
-  .detail-index-hero p:where(.hero-title) {
-    margin-top: 0;
-    font-size: clamp(1.75rem, 9.1vw, 2.25rem);
-  }
-
-  html[lang="en"] .detail-index-hero h1:where(:not(.hero-kicker)),
-  html[lang="en"] .detail-index-hero p:where(.hero-title) {
-    font-size: clamp(1.65rem, 8.4vw, 2.1rem);
-  }
-
-  .detail-index-hero .detail-hero-line-mask:first-of-type,
-  .detail-index-hero .detail-hero-line-mask:last-of-type {
-    text-align: center;
-  }
-
-  .detail-index-hero
-    .detail-hero-line-mask:last-of-type
-    [data-motion-word-source] {
-    font-size: clamp(1.35rem, 6.9vw, 1.7rem);
-  }
-
-  html[lang="en"]
-    .detail-index-hero
-    .detail-hero-line-mask:last-of-type
-    [data-motion-word-source] {
-    font-size: inherit;
-  }
-
   .detail-index-hero .project-filters {
     width: 100vw;
     max-width: none;
@@ -1186,17 +981,6 @@ html[lang="en"]
 .about-hero .hero-content {
   top: 49%;
   text-align: left;
-}
-
-.about-hero h1 {
-  max-width: 12ch;
-  font-size: clamp(5.4rem, 9vw, 10.2rem);
-  line-height: 0.87;
-}
-
-.about-hero .detail-title__strong {
-  margin-left: 0.78em;
-  font-style: italic;
 }
 
 .about-opening {
@@ -1378,8 +1162,6 @@ html[lang="en"]
     top: auto;
   }
 
-  .about-hero .detail-title__quiet,
-  .about-hero .detail-title__strong,
   .about-commitment h3,
   .about-timeline__marker,
   .about-timeline__copy {
@@ -1402,10 +1184,6 @@ html[lang="en"]
   .detail-page .service-portal > picture > img {
     position: absolute;
     inset: 0;
-  }
-
-  .about-hero .detail-title__strong {
-    max-width: calc(100% - 0.78em);
   }
 
   .detail-page .detail-line,
@@ -1455,17 +1233,6 @@ html[lang="en"]
 
   .about-hero .hero-content {
     top: 46%;
-  }
-
-  .about-hero h1 {
-    max-width: 8ch;
-    font-size: clamp(4.4rem, 20vw, 5.7rem);
-    line-height: 1.15;
-  }
-
-  .about-hero .detail-title__strong {
-    margin-left: 0;
-    max-width: 100%;
   }
 
   .about-opening {
@@ -3265,32 +3032,12 @@ body.is-advertising-browse:not(.is-advertising-photo) .site-footer {
   }
 }
 
-[data-barba-namespace="advertising-products"] .detail-index-hero .detail-hero-line-mask {
-  padding-block: 0.12em;
-}
-
 body.is-advertising-browse .floating-cta {
   display: none;
 }
 
 /* Hàng intrinsic giữ title, filter và cue tách biệt trên viewport touch thấp. */
 @media (max-width: 980px) {
-  .residential-hero .detail-title__quiet,
-  .residential-hero .detail-title__strong,
-  .commercial-hero .detail-title__quiet,
-  .commercial-hero .detail-title__strong {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .residential-hero .motion-word,
-  .commercial-hero .motion-word {
-    max-width: 100%;
-    /* SplitText đặt inline nowrap; từ dài vẫn phải tôn trọng text resizing. */
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-  }
-
   .detail-heading h2,
   .detail-gallery__item figcaption,
   .process-step h3,
@@ -3328,12 +3075,6 @@ body.is-advertising-browse .floating-cta {
 
   html.motion-fallback .detail-index-hero [data-motion-hero-wrapper-zoom] {
     transform: scale(1) !important;
-  }
-
-  .detail-index-hero .detail-title__quiet,
-  .detail-index-hero .detail-title__strong {
-    white-space: normal;
-    overflow-wrap: anywhere;
   }
 
   .detail-index-hero .motion-word {
@@ -3602,5 +3343,51 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
       .legacy-closer > picture > img
     ):not(.is-overlay-media-ready, :is(.hero-slide, .about-hero__media) picture.is-media-settled > img) {
     opacity: 0;
+  }
+}
+
+/* Chữ hero theo espacio (hero-typography R2): mỗi dòng một khối, mọi hero chung một cỡ để nhịp dòng giống nhau.
+   Cỡ chung là bề rộng khung chia 12.5 em (câu dài nhất hiện có khoảng 12 em), trần 7rem như số đo espacio, nên
+   không JS hay motion lỗi vẫn hai dòng và cùng hình học. motion.js đo dòng dài nhất theo em vào --hero-line-em và
+   gắn data-hero-fit: dòng nowrap, chỉ co thêm khi câu dài hơn 12.5 em. */
+.hero > .hero-content {
+  width: min(80%, 62.5rem);
+}
+
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) {
+  container-type: inline-size;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) {
+  display: block;
+  padding: 0;
+  clip-path: none;
+  font-size: min(7rem, calc(100cqi / 12.5));
+  text-align: left;
+}
+
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
+  margin-top: -0.2em;
+  text-align: right;
+}
+
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask) {
+  white-space: nowrap;
+  font-size: min(7rem, calc(100cqi / 12.5), calc(100cqi / var(--hero-line-em)));
+}
+
+@media (max-width: 750px) {
+  .hero > .hero-content {
+    width: calc(90% - 30px);
+  }
+
+  .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask),
+  .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
+    text-align: center;
   }
 }

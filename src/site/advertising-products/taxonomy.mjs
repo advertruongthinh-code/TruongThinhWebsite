@@ -115,6 +115,13 @@ export const ADVERTISING_PRODUCTS = Object.freeze([
     introEn: "Steel-frame, X-frame and T-base standees, backdrops, display walls and campaign POSM sets for retail and events.",
   },
   {
+    id: "displays-booths/backdrops", cluster: "displays-booths", slugVi: "backdrop", slugEn: "backdrops",
+    labelVi: "Backdrop", labelEn: "Backdrops",
+    titleVi: "Backdrop sự kiện, hội nghị, khai trương — Trường Thịnh", titleEn: "Event, conference and opening backdrops — Trường Thịnh",
+    introVi: "Backdrop sân khấu, check-in, hội nghị, hội chợ, khai trương, nhà hàng và tiệc cưới: khung gỗ, vách ốp, chữ nổi và LED trang trí, gia công tại xưởng và lắp dựng tại chỗ.",
+    introEn: "Stage, check-in, conference, trade-fair, opening, restaurant and wedding backdrops: timber frames, clad panels, dimensional lettering and decorative LED, made in the workshop and installed on site.",
+  },
+  {
     id: "displays-booths/display-shelves-cabinets", cluster: "displays-booths", slugVi: "ke-tu-trung-bay", slugEn: "display-shelves-cabinets",
     labelVi: "Kệ, tủ trưng bày", labelEn: "Display shelves & cabinets",
     titleVi: "Kệ trưng bày sản phẩm, tủ trưng bày — Trường Thịnh", titleEn: "Product display shelving and cabinets — Trường Thịnh",

@@ -22,17 +22,25 @@ function observeAdvertisingQueryTraffic(page) {
   return traffic;
 }
 
-async function waitForHeroSettled(page, { veilCleared = true } = {}) {
-  await page.waitForFunction((veilCleared) => {
+async function waitForHeroSettled(page) {
+  await page.waitForFunction(() => {
     const hero = document.querySelector(".detail-index-hero");
     const title = hero?.querySelector("[data-motion-hero-title]");
     const words = title ? [...title.querySelectorAll(".motion-word")] : [];
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
-    if (veilCleared && document.documentElement.classList.contains("route-enter")) return false;
+    if (document.documentElement.classList.contains("route-enter")) return false;
     if (!window.TruongThinhDetail?.mount || !window.gsap || words.length === 0) return false;
     const visible = words.every((word) => Number.parseFloat(getComputedStyle(word).opacity) >= 0.99);
     return visible && !window.gsap.isTweening(words);
-  }, veilCleared);
+  });
+}
+
+// Catalog bị giữ thì veil chưa mở, chữ hero chỉ mới tách từ (first-load-parity R2).
+async function waitForHeroPrepared(page) {
+  await page.waitForFunction(() => (
+    window.TruongThinhDetail?.mount && window.gsap
+    && document.querySelectorAll(".detail-index-hero [data-motion-hero-title] .motion-word").length > 0
+  ));
 }
 
 async function installHeroOnceProbe(page) {
@@ -186,7 +194,8 @@ async function runDelayedAdapterCase(browser) {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
     // Catalog bị giữ làm direct-load veil luôn bật, nên scroll bị khóa và chỉ
     // kích hoạt kiểu bàn phím mới tới được filter trước khi adapter sẵn sàng.
-    await waitForHeroSettled(page, { veilCleared: false });
+    // Chữ hero chờ veil mở (first-load-parity R2), nên lúc này chỉ mới tách từ.
+    await waitForHeroPrepared(page);
     assert.equal(interceptedCatalogRequests, 1, "fixture did not hold the first catalog-runtime import");
     assert.equal(await page.evaluate(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.())), false,
       "fixture released the Advertising adapter before the pre-ready click");
@@ -205,6 +214,7 @@ async function runDelayedAdapterCase(browser) {
     releaseCatalog();
     await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
     await page.waitForFunction(() => document.querySelector('[data-advertising-filter="printing-decals"]')?.getAttribute("aria-current") === "true");
+    await waitForHeroSettled(page);
 
     return {
       interceptedCatalogRequests,
@@ -359,7 +369,7 @@ async function runPendingAdapterFailureCase(browser) {
   });
   try {
     await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
-    await waitForHeroSettled(page, { veilCleared: false });
+    await waitForHeroPrepared(page);
     await page.locator('[data-advertising-filter="displays-booths"]').dispatchEvent("click");
     const trafficBeforeReject = [...queryTraffic];
     const fallbackRequest = page.waitForRequest((request) => {
@@ -399,10 +409,10 @@ try {
     "pre-adapter filter click replaced the Advertising hero");
   assert.equal(delayed.probe.mountCalls, 0,
     "pre-adapter filter click remounted Advertising detail motion");
-  assert.equal(delayed.probe.heroTweenCalls, 0,
+  // Lần chạy duy nhất là lúc veil mở sau khi catalog về; click trước adapter không chạy lại.
+  assert.deepEqual(delayed.probe.heroWordStaggers, [0.2],
     "pre-adapter filter click replayed Advertising hero motion");
   assert.deepEqual(delayed.probe.heroClassDrops, [], "pre-adapter filter click restarted hero CSS motion");
-  assert.equal(delayed.probe.wordOpacityDrops, 0, "pre-adapter filter click faded hero words again");
   assert.equal(delayed.probe.activeFilter, "printing-decals",
     "latest queued pre-adapter filter intent was not activated after catalog ready");
   // Rail trỏ tới trang cụm (taxonomy R4), nên fallback anchor mở thẳng trang đó.

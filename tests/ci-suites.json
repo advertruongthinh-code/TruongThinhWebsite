@@ -119,6 +119,7 @@
       "specs": ["page-home"],
       "tests": [
         "node tests/site/client-logo-marquee.e2e.cjs",
+        "node tests/site/hero-typography.e2e.mjs",
         "TT_E2E_HERO_INTRO_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_HERO_CONTINUITY_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_PORTAL_ONLY=1 node tests/site/site.e2e.cjs",
@@ -143,7 +144,8 @@
       "specs": ["detail-pages", "site-shell"],
       "tests": [
         "TT_E2E_M1_ONLY=1 node tests/site/site.e2e.cjs",
-        "TT_E2E_FAILOPEN_ONLY=1 node tests/site/site.e2e.cjs"
+        "TT_E2E_FAILOPEN_ONLY=1 node tests/site/site.e2e.cjs",
+        "node tests/site/first-load-parity.e2e.mjs"
       ]
     },
     "adv-grid": {

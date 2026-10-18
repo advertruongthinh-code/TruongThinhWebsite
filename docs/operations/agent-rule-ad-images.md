@@ -45,7 +45,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 2. **Brief.** Agent viết brief từng ảnh rồi tạo, không qua agent phản biện brief
    (owner chốt 2026-10-14). Owner không duyệt brief, trừ sản phẩm chưa từng có
    ảnh trên site.
-   ChatGPT/Codex tự thiết kế: brief chỉ nêu các rule dưới đây và ý tưởng đại khái
+   ChatGPT tự thiết kế mọi media, agent khác chỉ nêu rule (owner chốt 2026-10-18): brief chỉ nêu các rule dưới đây và ý tưởng đại khái
    (loại sản phẩm, ngành, bối cảnh, cảm giác), không tả chi tiết hình khối, chữ hay
    bố cục. Model được tự sáng tạo trong khuôn khổ rule, đúng sản phẩm Trường Thịnh
    làm và dựng được thật (owner chốt 2026-10-17). Bối cảnh nằm trong vùng địa lý đã
@@ -95,12 +95,12 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      trường ảnh; không bề mặt mịn bóng kiểu dựng 3D (owner chốt 2026-10-13);
    - nội thất đúng công năng: lối đi, chân cầu thang thông thoáng; sofa quay vào
      phòng, không chắn lối; không tủ cao sát bếp (owner chốt 2026-10-17).
-3. **Tạo.** Công cụ ảnh mặc định của Codex CLI trên PC (`codex exec -i <ảnh tham
-   khảo>`), mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
-   (owner chốt 2026-10-13). Codex không có cách chọn model ảnh nên `record.json`
-   ghi model đọc từ C2PA của ảnh ("ChatGPT gpt-image"); phiên Codex chạy gpt-6-sol
-   (owner chốt 2026-10-17). Codex lỗi hoặc hết lượt thì dừng và báo; không dùng
-   RunningHub (owner chốt 2026-10-15). Không tự đổi model. Không bao giờ dùng
+3. **Tạo.** Công cụ theo thứ tự fallback trong [Stack AI và media](TOOLING.md#stack-ai-và-media)
+   (ChatGPT web trước; owner chốt 2026-10-18, thay chốt "chỉ Codex, không RunningHub"
+   2026-10-15). Mỗi yêu cầu hoặc brief chỉ 1 ảnh; owner yêu cầu thì mới tạo thêm
+   (owner chốt 2026-10-13). `record.json` ghi công cụ và model đọc từ C2PA của ảnh
+   ("ChatGPT gpt-image"); phiên Codex chạy gpt-6-sol (owner chốt 2026-10-17). Không
+   tự đổi model trong một công cụ. Không bao giờ dùng
    model astra ở bất kỳ bước dựng ảnh nào (owner chốt 2026-10-14).
    Prompt viết theo những gì model làm theo được (rút từ lượt thử F1 2026-10-13):
    - ràng buộc chính của chủ thể đặt ở đầu prompt, viết dạng khẳng định có vị trí

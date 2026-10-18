@@ -40,6 +40,7 @@ const LEGACY_CATEGORY_TAXONOMY = [
       ["Vách trưng bày thương hiệu", "Branded display walls"],
       ["Bộ POSM theo chiến dịch", "Campaign POSM sets"],
       ["Standee và khung quảng cáo", "Standees and advertising frames"],
+      ["Backdrop sự kiện", "Event backdrops"],
     ],
   }),
   category({
@@ -68,7 +69,7 @@ const LEGACY_CATEGORY_TAXONOMY = [
     titleVi: "Bảng hiệu & chữ nổi",
     titleEn: "Signage & raised letters",
     statementVi: "Nhận diện đúng vật liệu, đúng tỷ lệ và bền ngoài trời.",
-    statementEn: "Identity made at the right scale, in the right material, built to last outdoors.",
+    statementEn: "Identity made in the right material, at the right scale and built to last outdoors.",
     products: [
       ["Mặt dựng Aluminium", "Aluminium composite facades"],
       ["Pano tấm lớn ngoài trời", "Large outdoor advertising panels"],
@@ -127,6 +128,7 @@ const LEGACY_CATEGORY_TAXONOMY = [
       ["Tranh điện nắp bật", "Snap-frame illuminated displays"],
       ["Chữ LED điểm", "Point-LED lettering"],
       ["Bảng vẫy LED", "LED projecting signs"],
+      ["LED trang trí", "Decorative LED"],
     ],
   }),
   category({
