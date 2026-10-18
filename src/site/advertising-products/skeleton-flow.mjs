@@ -332,8 +332,8 @@ export function createSkeletonFlowFrameLayout({
   return Object.freeze(result);
 }
 
-export function advanceSkeletonFlowPhase(phase, deltaSeconds, speed, direction = 1) {
-  const delta = Math.min(MAX_DELTA_SECONDS, Math.max(0, Number(deltaSeconds) || 0));
+export function advanceSkeletonFlowPhase(phase, deltaSeconds, speed, direction = 1, maxDelta = MAX_DELTA_SECONDS) {
+  const delta = Math.min(maxDelta, Math.max(0, Number(deltaSeconds) || 0));
   const signedDirection = direction < 0 ? -1 : 1;
   return phase + signedDirection * (rangedNumber(speed, 0, 100, "Flow speed") / 100) * 1.2 * delta;
 }
@@ -549,7 +549,9 @@ export function createSkeletonFlowRenderer(canvas, {
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
   }
 
-  let gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES) || canvas.getContext("experimental-webgl");
+  // OffscreenCanvas trong worker không nhận "experimental-webgl": WebKit ném TypeError thay vì trả null.
+  let gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES)
+    || (globalThis.OffscreenCanvas && canvas instanceof OffscreenCanvas ? null : canvas.getContext("experimental-webgl"));
   let program = null;
   let buffer = null;
   let texture = null;
@@ -706,6 +708,70 @@ export function createSkeletonFlowRenderer(canvas, {
     },
     get running() {
       return isRunning;
+    },
+  };
+}
+
+// Một worker cho cả document; null khi trình duyệt không chạy được thì caller về renderer main thread.
+let flowWorker;
+let flowWorkerId = 0;
+const flowWorkerBackends = new Map();
+export const skeletonFlowWorkerSupported = () => flowWorker !== null && typeof Worker === "function"
+  && typeof OffscreenCanvas === "function" && "transferControlToOffscreen" in HTMLCanvasElement.prototype;
+
+// Renderer chạy trong worker, cùng API với createSkeletonFlowRenderer. Pha trên main thread tính theo thời gian chạy
+// để lưu khi release; chỉ lệch với worker khi một frame worker dài hơn 50ms.
+export function createSkeletonFlowWorkerRenderer(canvas, options) {
+  if (!skeletonFlowWorkerSupported()) return null;
+  if (!flowWorker) {
+    try {
+      flowWorker = new Worker(new URL("./skeleton-flow-worker.mjs", import.meta.url), { type: "module" });
+    } catch {
+      flowWorker = null;
+      return null;
+    }
+    flowWorker.onmessage = ({ data }) => flowWorkerBackends.get(data.id)?.(data.backend);
+  }
+  const id = ++flowWorkerId;
+  const offscreen = canvas.transferControlToOffscreen();
+  flowWorker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
+  // Caller duy nhất (catalog-runtime) luôn truyền đủ preset, pha, chiều và tốc độ.
+  const { preset, speedScale, direction } = options;
+  let phase = options.initialPhase;
+  let startedAt = null;
+  let destroyed = false;
+  flowWorkerBackends.set(id, (value) => { canvas.dataset.advertisingFlowBackend = value; });
+  const send = (type) => !destroyed && flowWorker.postMessage({ id, type });
+  const settlePhase = () => {
+    if (startedAt === null) return;
+    const now = performance.now();
+    phase = advanceSkeletonFlowPhase(phase, (now - startedAt) / 1000, preset.field.speed * speedScale, direction, Infinity);
+    startedAt = now;
+  };
+  const stop = () => {
+    settlePhase();
+    startedAt = null;
+    send("stop");
+  };
+  return {
+    draw: () => send("draw"),
+    start() {
+      if (destroyed || startedAt !== null) return;
+      startedAt = performance.now();
+      send("start");
+    },
+    stop,
+    destroy() {
+      if (destroyed) return;
+      stop();
+      send("destroy");
+      destroyed = true;
+      flowWorkerBackends.delete(id);
+    },
+    backend: "webgl",
+    get phase() {
+      settlePhase();
+      return phase;
     },
   };
 }
