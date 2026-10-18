@@ -491,7 +491,8 @@ function assertPersistentNavigationContracts() {
   );
 
   assert(
-    /const headerIntro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*!softNavigation[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
+    // Intro WAAPI (compositor) và timeline GSAP dự phòng cùng một timeline đã duyệt: power4.out, 0/0.3/1.5s.
+    /\(1 - \(1 - index \/ 40\) \*\* 5\)[\s\S]*\[headerLogo, \[\{ transform: "scale\(0\)" \}, \{ transform: "none" \}\], 0, 1500\][\s\S]*"#header-menu-items > ul > li"[\s\S]*\{ transform: "translateY\(-150px\)" \}, \{ transform: "none" \}\], 300 \+ index \* 100, 1500\][\s\S]*\[toggle, \[\{ transform: "scaleX\(0\)" \}, \{ transform: "none" \}\], 1500, 1000\][\s\S]*const playsHeaderIntro = !settledStartup && !softNavigation;[\s\S]*: gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
       motionSource,
     ) && brandCss && !/transition:\s*transform\b/.test(brandCss),
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",

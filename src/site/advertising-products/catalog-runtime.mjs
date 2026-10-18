@@ -2178,9 +2178,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const crossfadeLayers = (from, to, total) => {
     const scale = total / MEDIA_REVEAL_MS;
     const timing = { delay: 300 * scale, duration: 600 * scale, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "both" };
+    // Đọc hết opacity trước lần ghi đầu, nên cả crossfade chỉ tốn một lần style recalc.
+    const opacities = from.map((node) => getComputedStyle(node).opacity);
     return [
-      ...from.map((node) => {
-        const opacity = getComputedStyle(node).opacity;
+      ...from.map((node, index) => {
+        const opacity = opacities[index];
         node.style.transition = "none";
         node.style.opacity = opacity;
         return node.animate([{ opacity }, { opacity: 0 }], timing);
@@ -2192,7 +2194,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const revealGlass = (host) => {
     const glass = createGlassSurface("even", 5);
     glass.dataset.glassReveal = "";
-    host.append(glass);
+    host?.append(glass);
     return glass;
   };
   // Kính reveal bất kỳ còn trong DOM khi cung đang thấy làm Chrome bỏ blur các bậc của cung (skeleton R4):
@@ -2221,8 +2223,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const BAKED_FILTERS = [[7.14, 1.112, 1.0079], [16.07, 1.2365, 1.0159], [32.15, 1.375, 1.0239],
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
+  // Kính dựng ngoài DOM; nơi gọi gắn nó vào host khi animation bắt đầu.
   const bakedRevealGlass = (host, bitmap) => {
-    const glass = revealGlass(host);
+    const glass = revealGlass();
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
     // Canvas phủ cả frame: left/top không bị scale(8) phóng, nên vị trí photo vẽ vào trong canvas thay vì đặt bằng left.
@@ -3095,8 +3098,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       },
     } : null;
     let needsDescriptionIndicator = false;
-    const measureInfo = (width, mode, basePrimary = null) => {
-      if (!photoInfo) return 0;
+    // Solver hỏi chiều cao tự nhiên rồi chiều cao tối thiểu ở cùng bề rộng: đo một lần cho cả hai, mỗi lần đo
+    // ép một lượt style và layout của info (decision phone-frame-budget).
+    const infoMeasures = new Map();
+    const measureInfoOnce = (width, mode) => {
       photoView.dataset.advertisingPhotoLayout = mode;
       const previousWidth = photoInfo.style.width;
       const previousHeight = photoInfo.style.height;
@@ -3108,7 +3113,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         photoDescription.textContent = descriptionSource;
         photoDescriptionIndicator.hidden = true;
         const naturalHeight = Math.ceil(photoInfo.getBoundingClientRect().height);
-        if (!basePrimary) return naturalHeight;
         const controls = [...photoInfo.children].filter(node => node !== photoDescriptionPager
           && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => {
@@ -3117,15 +3121,27 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         }, 0);
         const lineHeight = parseFloat(getComputedStyle(photoDescription).lineHeight);
         const gap = parseFloat(getComputedStyle(photoInfo).rowGap) || 0;
-        const floor = Math.ceil(controlsHeight + lineHeight + controls.length * gap) + 1;
-        needsDescriptionIndicator = naturalHeight > Math.max(basePrimary.descriptionHeight, floor);
-        return floor + (needsDescriptionIndicator ? Math.ceil(parseFloat(getComputedStyle(photoDescriptionIndicator).lineHeight)) + gap : 0);
+        return {
+          naturalHeight,
+          floor: Math.ceil(controlsHeight + lineHeight + controls.length * gap) + 1,
+          indicatorHeight: Math.ceil(parseFloat(getComputedStyle(photoDescriptionIndicator).lineHeight)) + gap,
+        };
       } finally {
         photoInfo.style.width = previousWidth;
         photoInfo.style.height = previousHeight;
         photoDescription.textContent = previousText;
         photoDescriptionIndicator.hidden = previousIndicatorHidden;
       }
+    };
+    const measureInfo = (width, mode, basePrimary = null) => {
+      if (!photoInfo) return 0;
+      const key = `${width}:${mode}`;
+      if (!infoMeasures.has(key)) infoMeasures.set(key, measureInfoOnce(width, mode));
+      else photoView.dataset.advertisingPhotoLayout = mode;
+      const { naturalHeight, floor, indicatorHeight } = infoMeasures.get(key);
+      if (!basePrimary) return naturalHeight;
+      needsDescriptionIndicator = naturalHeight > Math.max(basePrimary.descriptionHeight, floor);
+      return floor + (needsDescriptionIndicator ? indicatorHeight : 0);
     };
     const expandStyle = photoExpand ? getComputedStyle(photoExpand) : null;
     const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
@@ -3199,7 +3215,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const playPrimaryReveal = (reveal, from, to, total, bitmap) => {
     if (primaryReveal !== reveal) return bitmap?.close();
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
-    if (photoView.hidden) {
+    if (photoView.hidden || photoView.style.visibility === "hidden") {
       requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
       return;
     }
@@ -3209,13 +3225,20 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    reveal.glass = bakedRevealGlass(heroFrame, bitmap);
+    // Dựng Kính nhòe sẵn và tạo animation là hai task: gộp lại thành long task trên phone Android
+    // (decision phone-frame-budget). Kính vào DOM cùng task với animation, nên bắt đầu từ level 0.
+    const glass = bakedRevealGlass(heroFrame, bitmap);
     bitmap?.close();
-    // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-    const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
-    reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
-    Promise.all(reveal.animations.map(({ finished }) => finished))
-      .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+    setTimeout(() => {
+      if (primaryReveal !== reveal) return;
+      reveal.glass = glass;
+      heroFrame.append(glass);
+      // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
+      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
+      reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
+      Promise.all(reveal.animations.map(({ finished }) => finished))
+        .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
+    });
   };
   // Photo đang hiển thị ở lại làm layer tạm phía trên layer mới; không node nào bay vào từ card.
   const snapshotPrimary = () => {
@@ -3415,16 +3438,29 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Hiện photo view rồi layout và khôi phục scroll; tách khỏi renderPhoto để mở từ grid dựng DOM ở task chạm card
   // và hiện ở task sau (decision phone-frame-budget).
+  // Dựng style và layout đầu của detail trong task riêng, photo view vô hình dưới grid còn hiện: task hiện sau đó
+  // chỉ còn đổi chế độ trang và layoutRelated (decision phone-frame-budget). Giống pha đầu của vào thẳng detail.
+  const prelayoutPhotoView = () => {
+    // Ghi trước các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
+    // và không bị ép style lần hai.
+    const layoutWidth = document.documentElement.clientWidth;
+    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
+    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
+    // Fixed để trang không đổi chiều cao (cuộn mượt và observer layout không chạy lại). Bề rộng CSS tính theo
+    // viewport như trong flow, nên layout các con dùng lại được khi về vị trí thật.
+    Object.assign(photoView.style, { visibility: "hidden", position: "fixed", top: "0" });
+    photoView.hidden = false;
+    photoView.getBoundingClientRect();
+  };
+  const clearPhotoViewPrelayout = () => {
+    for (const property of ["visibility", "position", "top"]) photoView.style.removeProperty(property);
+  };
   const revealPhotoView = (browse, generation) => {
     document.body.classList.add("is-advertising-photo");
     document.body.dataset.advertisingPhotoActive = "true";
     if (gridSection) gridSection.hidden = true;
-    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
-    // và không bị ép style lần hai (decision phone-frame-budget).
-    const layoutWidth = document.documentElement.clientWidth;
-    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
-    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
-    photoView.hidden = false;
+    if (photoView.hidden) prelayoutPhotoView();
+    clearPhotoViewPrelayout();
     layoutRelated(browse);
     relatedRendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     let restoredScroll = browse.detail.scrollY;
@@ -3497,6 +3533,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (fromGrid) {
       await nextTask();
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
+      prelayoutPhotoView();
+      await nextTask();
+      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       revealPhotoView(browse, generation);
     }
     for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
@@ -3536,6 +3575,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoView) delete photoView.dataset.advertisingPhotoGlass;
     if (photoImage) delete photoImage.dataset.advertisingPhotoId;
     photoView && (photoView.hidden = true);
+    if (photoView) clearPhotoViewPrelayout();
     if (gridSection) gridSection.hidden = false;
     document.body.classList.remove("is-advertising-photo");
     delete document.body.dataset.advertisingPhotoActive;
