@@ -5,6 +5,32 @@
 [Content và media](../../design-system/content.md); bối cảnh hợp ngành của
 khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/advertising-client-products.md).
 
+## Media chung
+
+Áp dụng cho mọi media tạo bằng AI: ảnh, video, âm thanh (owner chốt 2026-10-18).
+
+- **Tên thương hiệu** tự đặt bằng danh từ chung nói rõ tiệm làm gì (nước giải
+  khát, sửa xe); không danh từ riêng (tên người, địa danh), không trùng thương
+  hiệu thật.
+- **Từ xưng hô** (cô ba, chú tư, bà năm) chỉ dùng ở bối cảnh bình dân, thân
+  thuộc, gần gũi và đúng món đang bán; ngoài đó chỉ cho niche sản phẩm chất lượng
+  cao phong cách hoài cổ. Không dùng ở nhà hàng sang, resort, khách sạn, siêu
+  thị, văn phòng. Trong một bộ xem cùng lúc (masonry, trang sản phẩm, chuỗi ảnh)
+  mỗi từ xưng hô xuất hiện tối đa một lần và chỉ ở số ít card; không hợp bối cảnh
+  thì bỏ, để tên chỉ nói việc tiệm làm.
+- **Chữ và lời** (biển, menu, bao bì, phụ đề, lời đọc) là từ tiếng Việt có thật,
+  đúng chính tả và dấu; tên món, sản phẩm là thứ người địa phương nhận ra ngay
+  (kẹo dừa, kẹo chuối; không tên mơ hồ như "bánh quê"). Kiểm từng chữ ở bản phóng
+  to; video kiểm mọi khung có chữ; âm thanh nghe lại toàn bộ lời.
+- **Khung treo bảng vẫy và bảng treo** (thanh sắt từ tường ra bảng, thanh hoặc
+  ty từ trần xuống bảng): tìm tham khảo thi công thật tại địa phương trước khi
+  brief. Khung chỉnh chu, hiện đại, gọn: thép hộp hoặc ống thẳng hàng, sơn cùng
+  tông bảng, bản mã bắt bulông vào tường hoặc trần, mối nối sạch, tỷ lệ cân với
+  bảng; không dây buộc, thanh chống chắp vá, gỉ sét hay kiểu tạm bợ.
+- **Nội thất, decor**: hero Kinh doanh và nhà ở có nhiều nội thất, decor gia công
+  CNC được; cabin, phòng nghỉ đặt ở vùng riêng tư, khuất lối đi chính; backdrop
+  tiệc cưới là decor dựng, không in ấn.
+
 ## Tạo ảnh
 
 1. **Tham khảo trước.** Mỗi brief có 2 đến 4 ảnh thực tế ở Việt Nam, tìm trên
@@ -19,7 +45,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    bố cục. Model được tự sáng tạo trong khuôn khổ rule, đúng sản phẩm Trường Thịnh
    làm và dựng được thật (owner chốt 2026-10-17). Bối cảnh nằm trong vùng địa lý đã
    khảo sát ([SEO R2](../specs/seo.md)). Không tên thương hiệu, logo hay nhãn hàng
-   thật; tên tiệm, công ty trên biển là tên tự đặt, không trùng thương hiệu có thật.
+   thật; tên, chữ, xưng hô và khung treo theo [Media chung](#media-chung).
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
@@ -60,9 +86,6 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      nhiễu ảnh, không từ vết bẩn (owner chốt 2026-10-14). Quán xưa cũ có gu là
      niche được giữ: không gian làm nền, sản phẩm nổi bật và hợp chất liệu với
      không gian (hộp đèn khung gỗ trong quán cổ).
-   - hạn chế chữ xưng hô (cô, chú, dì, bà) trên biển; chỉ dùng khi không gian mộc
-     mạc, bình dân, thân thuộc với người địa phương và đúng món đang bán; không
-     dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
    - ảnh như chụp bằng máy ảnh thật: ánh sáng tự nhiên, nhiễu cảm biến, độ sâu
      trường ảnh; không bề mặt mịn bóng kiểu dựng 3D (owner chốt 2026-10-13);
    - nội thất đúng công năng: lối đi, chân cầu thang thông thoáng; sofa quay vào
