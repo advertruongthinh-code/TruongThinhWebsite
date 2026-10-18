@@ -194,8 +194,9 @@ Công cụ đầu lỗi, hết lượt hoặc hết quota thì sang công cụ k
 
 - Mọi thiết kế media (ảnh, video, nhạc, graphic) do ChatGPT làm. Agent khác chỉ nêu rule và
   chỉ dẫn tổng thể, không tả chi tiết bố cục hay hình khối ([Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh)).
-- API key của kie.ai, runninghub.ai nằm trong biến môi trường trên máy chạy; không ghi vào repo,
-  log, prompt hay Library.
+- Mọi API key (kie.ai, runninghub.ai và dịch vụ khác) lưu một chỗ: GitHub repo secrets (owner chốt
+  2026-10-18). Không ghi key vào file trong repo, log, prompt hay Library. Cách lượt chạy local hoặc PC
+  đọc key do doc sở hữu luồng tạo media ghi khi chốt.
 
 ## Chú thích thuật ngữ
 
