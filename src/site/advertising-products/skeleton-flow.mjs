@@ -735,14 +735,10 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   flowWorker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
   // Caller duy nhất (catalog-runtime) luôn truyền đủ preset, pha, chiều và tốc độ.
   const { preset, speedScale, direction } = options;
-  let backend = "webgl";
   let phase = options.initialPhase;
   let startedAt = null;
   let destroyed = false;
-  flowWorkerBackends.set(id, (value) => {
-    backend = value;
-    canvas.dataset.advertisingFlowBackend = value;
-  });
+  flowWorkerBackends.set(id, (value) => { canvas.dataset.advertisingFlowBackend = value; });
   const send = (type) => !destroyed && flowWorker.postMessage({ id, type });
   const settlePhase = () => {
     if (startedAt === null) return;
@@ -770,9 +766,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
       destroyed = true;
       flowWorkerBackends.delete(id);
     },
-    get backend() {
-      return backend;
-    },
+    backend: "webgl",
     get phase() {
       settlePhase();
       return phase;

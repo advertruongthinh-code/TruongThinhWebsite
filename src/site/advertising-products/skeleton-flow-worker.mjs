@@ -10,12 +10,7 @@ onmessage = ({ data: { id, type, canvas, options } }) => {
     if (renderer?.backend !== "webgl") postMessage({ id, backend: "fallback" });
     return;
   }
-  const renderer = renderers.get(id);
-  if (type === "draw") renderer?.draw(performance.now());
-  else if (type === "start") renderer?.start();
-  else if (type === "stop") renderer?.stop();
-  else if (type === "destroy") {
-    renderer?.destroy();
-    renderers.delete(id);
-  }
+  // draw, start, stop, destroy gọi thẳng method cùng tên của renderer.
+  renderers.get(id)?.[type]?.(performance.now());
+  if (type === "destroy") renderers.delete(id);
 };
