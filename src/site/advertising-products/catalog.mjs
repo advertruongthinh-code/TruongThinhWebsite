@@ -40,6 +40,7 @@ const LEGACY_CATEGORY_TAXONOMY = [
       ["Vách trưng bày thương hiệu", "Branded display walls"],
       ["Bộ POSM theo chiến dịch", "Campaign POSM sets"],
       ["Standee và khung quảng cáo", "Standees and advertising frames"],
+      ["Backdrop sự kiện", "Event backdrops"],
     ],
   }),
   category({
@@ -127,6 +128,7 @@ const LEGACY_CATEGORY_TAXONOMY = [
       ["Tranh điện nắp bật", "Snap-frame illuminated displays"],
       ["Chữ LED điểm", "Point-LED lettering"],
       ["Bảng vẫy LED", "LED projecting signs"],
+      ["LED trang trí", "Decorative LED"],
     ],
   }),
   category({
