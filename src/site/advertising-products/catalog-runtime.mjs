@@ -167,6 +167,11 @@ export function consumeAdvertisingVisitSeedHandoff(storage, {
   }
 }
 
+// Thời lượng video dạng m:ss; card và player detail dùng chung để hai nơi hiện cùng tổng thời lượng.
+const formatVideoTime = (seconds, round = Math.floor) => {
+  const whole = Math.max(0, round(Number(seconds) || 0));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+};
 const finiteScroll = (value) => Math.max(0, Number.isFinite(Number(value)) ? Number(value) : 0);
 const optionalFinite = (value) => value === null || value === undefined || value === ""
   ? null
@@ -995,10 +1000,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       figure.dataset.advertisingActiveMediaId = item.id;
       updateIndicator(index);
       duration.hidden = item.kind !== "video";
-      if (item.kind === "video") {
-        const seconds = Math.ceil(item.durationSeconds);
-        duration.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-      }
+      if (item.kind === "video") duration.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
       updateLoading();
     };
     figure.advertisingPendingMediaId = () => loading.hidden ? null : items[activeIndex].id;
@@ -1140,6 +1142,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoImage = photoView?.querySelector("[data-advertising-photo-image]");
   const photoVideo = photoView?.querySelector("[data-advertising-photo-video]");
   const photoAudioToggle = photoView?.querySelector("[data-advertising-photo-audio-toggle]");
+  const photoPlayer = photoView?.querySelector("[data-advertising-photo-player]");
+  const photoPlayButton = photoPlayer?.querySelector("[data-advertising-photo-play]");
+  const photoVolumeGroup = photoPlayer?.querySelector("[data-advertising-photo-volume-group]");
+  const photoVolume = photoPlayer?.querySelector("[data-advertising-photo-volume]");
+  const photoProgress = photoPlayer?.querySelector("[data-advertising-photo-progress]");
+  const photoTimeCurrent = photoPlayer?.querySelector("[data-advertising-photo-time-current]");
+  const photoTimeTotal = photoPlayer?.querySelector("[data-advertising-photo-time-total]");
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
   // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
@@ -3213,8 +3222,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoVideo.hidden = !video;
     photoImage.hidden = video;
     photoExpand.hidden = video;
-    photoAudioToggle.hidden = !video || item.hasAudio === false;
+    photoPlayer.hidden = !video;
+    photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
     if (video) {
+      photoTimeTotal.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
       photoVideo.width = item.width;
       photoVideo.height = item.height;
       photoVideo.poster = item.posterSrc;
@@ -3231,7 +3242,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.fetchPriority = "high";
       photoImage.src = source;
     }
-    updateAudioLabel();
+    syncVideoPlayer();
+    syncVideoTime();
     if (photoBackground) {
       photoBackground.src = video ? item.posterSrc : source;
       photoBackground.dataset.advertisingPhotoId = record.id;
@@ -3321,6 +3333,51 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoMediaThumbs.append(button);
     });
   };
+  // Player video primary theo trang pin Pinterest (media-card R6): bấm video phát/dừng, thanh dưới hiện khi hover,
+  // focus hoặc đang dừng; thanh tua, thời gian, nút tiếng và thanh âm lượng (owner 2026-10-18).
+  const setRangeFill = (range) => range.style.setProperty("--range-fill",
+    `${(Number(range.value) / (Number(range.max) || 1)) * 100}%`);
+  const syncVideoPlayer = () => {
+    const english = locale === "en";
+    const silent = photoVideo.muted || photoVideo.volume === 0;
+    photoPlayer.dataset.advertisingVideoPaused = String(photoVideo.paused);
+    photoPlayer.dataset.advertisingVideoMuted = String(silent);
+    photoPlayButton.setAttribute("aria-label", photoVideo.paused ? english ? "Play" : "Phát"
+      : english ? "Pause" : "Tạm dừng");
+    photoAudioToggle.setAttribute("aria-label", silent ? english ? "Unmute" : "Bật tiếng"
+      : english ? "Mute" : "Tắt tiếng");
+    photoVolume.value = silent ? 0 : photoVideo.volume;
+    setRangeFill(photoVolume);
+  };
+  const syncVideoTime = () => {
+    photoProgress.max = photoVideo.duration > 0 ? photoVideo.duration : 1;
+    photoProgress.value = photoVideo.currentTime;
+    setRangeFill(photoProgress);
+    photoTimeCurrent.textContent = formatVideoTime(photoVideo.currentTime);
+  };
+  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame.
+  let videoTimeFrame = 0;
+  const tickVideoTime = () => {
+    syncVideoTime();
+    videoTimeFrame = photoVideo.paused ? 0 : requestAnimationFrame(tickVideoTime);
+  };
+  const toggleVideoPlayback = () => {
+    if (photoVideo.paused) void photoVideo.play().catch(() => {});
+    else photoVideo.pause();
+  };
+  photoPlayer?.querySelector("[data-advertising-photo-play-surface]")
+    .addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
+  photoPlayButton?.addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
+  photoProgress?.addEventListener("input", () => {
+    photoVideo.currentTime = Number(photoProgress.value);
+    syncVideoTime();
+  }, { signal: controller.signal });
+  // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
+  photoVolume?.addEventListener("input", () => {
+    const volume = Number(photoVolume.value);
+    if (volume > 0) photoVideo.volume = volume;
+    photoVideo.muted = volume === 0;
+  }, { signal: controller.signal });
   photoAudioToggle?.addEventListener("click", () => {
     if (!photoVideo || photoVideo.hidden || photoAudioToggle.hidden) return;
     if (photoVideo.muted || photoVideo.volume === 0) {
@@ -3328,15 +3385,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.muted = false;
       if (photoVideo.paused) void photoVideo.play().catch(() => {});
     } else photoVideo.muted = true;
-    updateAudioLabel();
+    syncVideoPlayer();
   }, { signal: controller.signal });
-  const updateAudioLabel = () => {
-    const label = photoVideo.muted || photoVideo.volume === 0 ? locale === "en" ? "Unmute" : "Bật tiếng"
-      : locale === "en" ? "Mute" : "Tắt tiếng";
-    photoAudioToggle.textContent = label;
-    photoAudioToggle.setAttribute("aria-label", label);
-  };
-  photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
+  for (const type of ["play", "pause", "volumechange"]) {
+    photoVideo?.addEventListener(type, syncVideoPlayer, { signal: controller.signal });
+  }
+  for (const type of ["loadedmetadata", "seeked", "emptied"]) {
+    photoVideo?.addEventListener(type, syncVideoTime, { signal: controller.signal });
+  }
+  photoVideo?.addEventListener("play", () => {
+    cancelAnimationFrame(videoTimeFrame);
+    tickVideoTime();
+  }, { signal: controller.signal });
   const renderPhoto = (browse, reason, phase = "", reveal = true) => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;

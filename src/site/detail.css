@@ -2156,27 +2156,201 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-.advertising-photo-view__audio-toggle {
+/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng; dải
+   gradient đáy 128px chứa hàng nút 24px và thanh tua track 4px, lề 24px. Thanh âm lượng thêm theo owner. */
+.advertising-video-player {
   position: absolute;
   z-index: 3;
-  top: 16px;
-  right: 16px;
-  min-width: 48px;
-  min-height: 48px;
-  padding: 8px 12px;
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  background: #fff;
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
+  inset: 0;
+  color: #fff;
+}
+
+.advertising-video-player__surface {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 
-.advertising-photo-view__audio-toggle:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
+.advertising-video-player svg {
+  display: block;
+  fill: currentColor;
+}
+
+.advertising-video-player__surface svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0;
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.1));
+}
+
+.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__surface svg {
+  opacity: 1;
+}
+
+.advertising-video-player__bar {
+  position: absolute;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  display: flex;
+  height: 128px;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 15px;
+  padding: 0 24px 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease-out;
+}
+
+.advertising-video-player__bar > * {
+  pointer-events: auto;
+}
+
+/* Chuột rời video thì ẩn; đang dừng hoặc đang focus bàn phím thì luôn hiện (cảm ứng: khối hover none bên dưới). */
+@media (hover: hover) {
+  .advertising-photo-view__hero-frame:hover .advertising-video-player__bar {
+    opacity: 1;
+  }
+}
+
+
+.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__bar,
+.advertising-video-player:focus-within .advertising-video-player__bar {
+  opacity: 1;
+}
+
+.advertising-video-player__row {
+  display: flex;
+  height: 24px;
+  align-items: center;
+}
+
+.advertising-video-player__button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  margin: 0 -10px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.advertising-video-player__button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.advertising-video-player__stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__icon-pause,
+.advertising-video-player[data-advertising-video-paused="false"] .advertising-video-player__icon-play,
+.advertising-video-player[data-advertising-video-muted="true"] .advertising-video-player__icon-sound,
+.advertising-video-player[data-advertising-video-muted="false"] .advertising-video-player__icon-muted {
+  display: none;
+}
+
+.advertising-video-player__time {
+  margin: 0 0 0 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5rem;
+  white-space: nowrap;
+}
+
+.advertising-video-player__total {
+  opacity: 0.6;
+}
+
+.advertising-video-player__volume {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.advertising-video-player__range {
+  --range-fill: 0%;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.advertising-video-player__range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__range::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(251, 251, 249, 0.5);
+  appearance: none;
+}
+
+.advertising-video-player__range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(251, 251, 249, 0.5);
+}
+
+/* Thanh âm lượng thu về 0 và mở ra khi chuột hoặc focus vào cụm tiếng; cảm ứng không hover nên luôn mở. */
+.advertising-video-player__volume-range {
+  width: 0;
+  opacity: 0;
+  transition: width 150ms ease-out, opacity 150ms ease-out;
+}
+
+.advertising-video-player__volume:is(:hover, :focus-within) .advertising-video-player__volume-range {
+  width: 80px;
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .advertising-video-player__bar {
+    opacity: 1;
+  }
+
+  .advertising-video-player__volume-range {
+    width: 80px;
+    opacity: 1;
+  }
+}
+
+.advertising-video-player :is(button, input):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 .advertising-photo-view__hero [data-advertising-photo-background],

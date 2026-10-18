@@ -41,8 +41,15 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
 - Nhãn từng nút: `Xem ảnh 2 trên 3: <alt>` hoặc `Xem video 1 trên 3: <alt>`;
   EN `Show image 2 of 3: <alt>`.
 - Bấm thumbnail đổi media primary; primary mở ở media đang xem trên card.
-- Video ở primary tự phát, tắt tiếng; nút tiếng (`Bật tiếng` / `Unmute`) ẩn
-  khi item ghi không có tiếng, nút `Xem lớn hơn` ẩn khi item là video.
+- Video ở primary tự phát, tắt tiếng, lặp, player theo trang pin Pinterest:
+  bấm video phát/dừng; đang dừng hiện biểu tượng phát 48px trắng giữa video.
+  Dải gradient đáy 128px (đen 0.4 lên trong suốt, lề 24px) gồm nút phát/dừng
+  16px, thời gian `0:02 / 0:03` (16px đậm trắng, tổng mờ 0.6), nút tiếng và
+  thanh âm lượng 80px bên phải, thanh tua dưới cùng (track 4px trắng 0.24,
+  phần đã chạy và núm 12px trắng 0.5). Dải hiện khi chuột trên video, khi
+  focus hoặc khi dừng; cảm ứng luôn hiện. Thanh âm lượng mở khi trỏ vào nút
+  tiếng. Nút tiếng và thanh âm lượng ẩn khi item ghi không có tiếng, nút
+  `Xem lớn hơn` ẩn khi item là video.
 
 Rule đầy đủ: [detail](../../../docs/specs/advertising-detail.md).
 

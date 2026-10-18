@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -47,9 +47,15 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
 async function openFixture(page, locale, { videoCover = false, direct = false, photoOnly = false,
   singleton = false, relatedMedia = false, hasAudio = true } = {}) {
   const { artifact, card, related } = fixtureArtifact(videoCover, { singleton, relatedMedia, hasAudio });
-  await page.route(`**${fixturePrefix}*`, (route) => {
-    const video = route.request().url().endsWith(".mp4");
-    return route.fulfill({ path: video ? clip : poster, contentType: video ? "video/mp4" : "image/webp" });
+  await page.route(`**${fixturePrefix}*`, async (route) => {
+    if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
+    // Trả 206 theo Range để Chrome coi clip là seekable, thanh tua mới đổi được currentTime.
+    const body = await readFile(clip);
+    const [start, end = body.length - 1] = (/bytes=(\d+)-(\d*)/.exec(route.request().headers().range || "") || [])
+      .slice(1).filter(Boolean).map(Number);
+    if (start === undefined) return route.fulfill({ body, contentType: "video/mp4", headers: { "accept-ranges": "bytes" } });
+    return route.fulfill({ status: 206, body: body.subarray(start, end + 1), contentType: "video/mp4",
+      headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${body.length}` } });
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   const query = direct ? photoOnly ? `?photo=${card.id}` : `?category=${card.category}&photo=${card.id}` : `?category=${card.category}`;
@@ -293,6 +299,99 @@ test("M02a native video volume and custom audio button stay synchronized", async
     await video.evaluate((node) => { node.muted = false; node.volume = 0.4; });
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-audio-toggle]")
       ?.getAttribute("aria-label") === "Mute");
+  });
+});
+
+// Player primary theo trang pin Pinterest: không controls gốc, video lặp, bấm video phát/dừng, thanh dưới hiện khi
+// hover hoặc đang dừng, thanh tua, thời gian, thanh âm lượng mở khi trỏ vào cụm tiếng.
+const playerState = (page) => page.evaluate(() => {
+  const player = document.querySelector("[data-advertising-photo-player]");
+  const video = document.querySelector("[data-advertising-photo-video]");
+  const opacity = (selector) => Number(getComputedStyle(player.querySelector(selector)).opacity);
+  return { hidden: player.hidden, controls: video.controls, loop: video.loop, paused: video.paused,
+    muted: video.muted, volume: video.volume, currentTime: video.currentTime,
+    bar: opacity(".advertising-video-player__bar"), center: opacity("[data-advertising-photo-play-surface] svg"),
+    playLabel: player.querySelector("[data-advertising-photo-play]").getAttribute("aria-label"),
+    time: player.querySelector(".advertising-video-player__time").textContent.replace(/\s+/g, " ").trim(),
+    progress: Number(player.querySelector("[data-advertising-photo-progress]").value),
+    volumeWidth: player.querySelector("[data-advertising-photo-volume]").getBoundingClientRect().width,
+    volumeValue: Number(player.querySelector("[data-advertising-photo-volume]").value) };
+});
+
+test("M02a primary video player: surface toggles playback, bar shows on hover or pause, seek and time", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    // Màn chuyển route phủ trang lúc vào; chờ nó hết để hover chạm tới player.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    const frame = page.locator(".advertising-photo-view__hero-frame");
+    const box = await frame.boundingBox();
+    await page.mouse.move(box.x + box.width + 40, box.y + 10);
+    await page.waitForTimeout(300);
+    let state = await playerState(page);
+    assert.equal(state.controls, false, "no native controls");
+    assert.equal(state.loop, true, "video loops like the Pinterest closeup");
+    assert.equal(state.bar, 0, "bar hidden while playing without hover");
+    assert.equal(state.center, 0, "center play icon hidden while playing");
+    assert.equal(state.playLabel, "Pause");
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3);
+    await page.waitForTimeout(300);
+    assert.equal((await playerState(page)).bar, 1, "hover shows the bar");
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3);
+    await page.mouse.move(box.x + box.width + 40, box.y + 10);
+    await page.waitForTimeout(300);
+    state = await playerState(page);
+    assert.equal(state.paused, true, "clicking the video pauses it");
+    assert.deepEqual([state.bar, state.center, state.playLabel], [1, 1, "Play"], "paused keeps bar and center icon");
+    assert.match(state.time, /^0:0\d \/ 0:03$/, `time shows current / total: ${state.time}`);
+    const progress = page.locator("[data-advertising-photo-progress]");
+    const track = await progress.boundingBox();
+    await page.mouse.click(track.x + track.width * 0.5, track.y + track.height / 2);
+    state = await playerState(page);
+    assert(Math.abs(state.currentTime - 1.5) < 0.3, `clicking the middle of the bar seeks: ${state.currentTime}`);
+    await progress.press("ArrowLeft");
+    assert((await playerState(page)).currentTime < state.currentTime, "arrow key seeks backwards");
+    await page.locator("[data-advertising-photo-play]").click();
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
+    assert.equal((await playerState(page)).playLabel, "Pause");
+  });
+});
+
+test("M02a primary video volume slider opens from the sound button and keeps the last volume", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    const frame = await page.locator(".advertising-photo-view__hero-frame").boundingBox();
+    await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
+    assert.equal((await playerState(page)).volumeWidth, 0, "slider folded until the sound group is hovered");
+    await page.locator("[data-advertising-photo-audio-toggle]").hover();
+    await page.waitForTimeout(300);
+    let state = await playerState(page);
+    assert.equal(state.volumeWidth, 80, "hovering the sound button opens the slider");
+    assert.equal(state.volumeValue, 0, "muted video shows the slider at zero");
+    const volume = page.locator("[data-advertising-photo-volume]");
+    await volume.fill("0.4");
+    state = await playerState(page);
+    assert.deepEqual([state.muted, state.volume], [false, 0.4], "slider sets volume and unmutes");
+    await volume.fill("0");
+    state = await playerState(page);
+    assert.deepEqual([state.muted, state.volumeValue], [true, 0], "slider at zero mutes");
+    await page.locator("[data-advertising-photo-audio-toggle]").click();
+    state = await playerState(page);
+    assert.deepEqual([state.muted, state.volume, state.volumeValue], [false, 0.4, 0.4],
+      "sound button restores the last volume");
+    assert.equal(await page.locator("[data-advertising-photo-audio-toggle]").getAttribute("aria-label"), "Mute");
+  });
+});
+
+test("M02a touch primary video keeps the bar and volume slider visible", async () => {
+  await withPage("vi", async (page) => {
+    await openFixture(page, "vi", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
+    const state = await playerState(page);
+    assert.deepEqual([state.bar, state.volumeWidth, state.playLabel], [1, 80, "Tạm dừng"]);
+    await page.locator("[data-advertising-photo-play-surface]").tap();
+    assert.equal((await playerState(page)).paused, true, "tapping the video pauses it");
   });
 });
 

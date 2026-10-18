@@ -115,8 +115,13 @@ Mở từ card, primary bắt đầu ở media đang xem của card; vào thẳn
 Forward khôi phục media của entry; đổi ngôn ngữ giữ media đang xem. URL không có tham số media. Card có hơn một item,
 hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Product media" cạnh mô tả: mỗi nút tên "Xem ảnh|video
 i trên N: <alt>", thumbnail đang xem `aria-current`, video có biểu tượng phát. Bấm thumbnail đổi primary tại chỗ, ghi
-media vào entry hiện tại, không thêm entry. Video primary tự phát tắt tiếng, `controls` gốc, `playsinline`; nút "Bật
-tiếng" / "Unmute" và "Tắt tiếng" / "Mute" ẩn khi `hasAudio` false, bật tiếng mà volume 0 thì đặt 1. "Xem lớn hơn" ẩn
+media vào entry hiện tại, không thêm entry. Video primary tự phát tắt tiếng, lặp, `playsinline`, player theo trang pin
+Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
+dải gradient đáy 128px (đen 0.4 lên trong suốt, lề 24px) có nút phát/dừng, thời gian "hiện tại / tổng" (16px đậm, tổng
+mờ 0.6), nút tiếng và thanh tua (track 4px, núm 12px, bấm, kéo, phím mũi tên). Dải hiện khi chuột trên video, khi focus
+bên trong hoặc khi đang dừng; màn hình cảm ứng luôn hiện. Thanh âm lượng (thêm theo owner) mở 80px cạnh nút tiếng khi
+trỏ hoặc focus vào cụm tiếng, cảm ứng luôn mở; kéo về 0 là tắt tiếng nhưng giữ mức cũ. Nút "Bật tiếng" / "Unmute" và
+"Tắt tiếng" / "Mute" cùng thanh âm lượng ẩn khi `hasAudio` false, bật tiếng mà volume 0 thì đặt 1. "Xem lớn hơn" ẩn
 với video. Đóng detail tạm dừng video; rời route thì dừng và gỡ nguồn. Hình học và đổi ảnh primary theo
 [detail R4](advertising-detail.md#r4-media-primary-và-nền); Back, Forward theo
 [detail R8](advertising-detail.md#r8-back-forward-và-vị-trí-cuộn).
@@ -126,6 +131,13 @@ Given card grid EN đang ở item video có tiếng
 When bấm thân card
 Then primary phát video đó tắt tiếng, thumbnail video có aria-current, nút "Unmute" hiện
 And tải lại URL thì primary bắt đầu ở cover
+```
+
+```gherkin
+Given primary đang phát video có tiếng trên desktop
+When trỏ vào nút tiếng rồi kéo thanh âm lượng tới 0.4
+Then video bật tiếng ở volume 0.4
+And kéo về 0 thì tắt tiếng, bấm nút tiếng thì về lại 0.4
 ```
 
 ## Giao diện và dữ liệu
@@ -139,7 +151,7 @@ And tải lại URL thì primary bắt đầu ở cover
 | Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`catalog-runtime.mjs`) | R3–R6 |
 | Attribute | `data-advertising-active-media-id` trên card và `[data-advertising-photo-view]` | Media đang xem; click card đọc để mở detail |
 | Attribute | `data-advertising-media-select`, `-prev`, `-next`, `-count`, `-duration`, `-loading`, `-item` | Hook test và control card |
-| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video` | Thumbnail, nút tiếng, video primary |
+| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total` | Thumbnail, nút tiếng, video primary, player |
 | History | `grid.mediaId`, `detail.mediaId` trong state history | Khôi phục media theo entry (R6) |
 
 ## UI
@@ -158,7 +170,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt, chặn click, chấm, bộ đếm); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (một video trong vùng, hết vòng đổi card, hover, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, unmount) |
+| R6 | `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, thanh âm lượng, cảm ứng, unmount) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
@@ -178,6 +190,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   thêm filler. Solver chưa phân tán ứng viên; Main đo fallback solver trên viewport thật trước khi sửa layout.
 - Lịch phát (R4) đã code trên branch xem trước. Owner 2026-10-17 bỏ nút phát trên touch theo Pinterest; card video
   trên touch chỉ tự phát trong vùng. Item video active (không chỉ cover) được vào lượt.
+- Player primary (R6) đã code trên branch xem trước, chờ owner duyệt. Pinterest không có thanh âm lượng; thanh âm lượng
+  thêm theo owner 2026-10-18. Trên cảm ứng dải nút luôn hiện là mặc định Thread chọn, chưa đo Pinterest mobile. Owner.
 - Vùng tải trước đã duyệt: rộng hơn viewport, chuẩn bị poster, metadata trước, không cố tải cả file; đề xuất preload
   metadata cho video kế trong vùng đệm. Code chỉ tạo video khi item thành active, `preload="metadata"`. Ngân sách byte,
   lề preload, buffer chưa khóa, cần clip thật và trace thiết bị. Owner gửi clip; Main trace.
