@@ -7,34 +7,31 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 
 ## Media chung
 
-Áp dụng cho mọi media tạo bằng AI: ảnh, video, âm thanh (owner chốt 2026-10-18).
+Áp dụng cho ảnh, video và âm thanh (lời thoại, jingle) (owner chốt 2026-10-18):
 
-- **Tên thương hiệu** tự đặt bằng danh từ chung nói rõ tiệm làm gì (nước giải
-  khát, sửa xe); không danh từ riêng (tên người, địa danh), không trùng thương
-  hiệu thật.
-- **Từ xưng hô** (cô ba, chú tư, bà năm) chỉ dùng ở bối cảnh bình dân, thân
-  thuộc, gần gũi và đúng món đang bán; ngoài đó chỉ cho niche sản phẩm chất lượng
-  cao phong cách hoài cổ. Không dùng ở nhà hàng sang, resort, khách sạn, siêu
-  thị, văn phòng. Trong một bộ xem cùng lúc (masonry, trang sản phẩm, chuỗi ảnh)
-  mỗi từ xưng hô xuất hiện tối đa một lần và chỉ ở số ít card; không hợp bối cảnh
-  thì bỏ, để tên chỉ nói việc tiệm làm.
-- **Chữ và lời** (biển, menu, bao bì, phụ đề, lời đọc) là từ tiếng Việt có thật,
-  đúng chính tả và dấu; tên món, sản phẩm là thứ người địa phương nhận ra ngay
-  (kẹo dừa, kẹo chuối; không tên mơ hồ như "bánh quê"). Kiểm từng chữ ở bản phóng
-  to; video kiểm mọi khung có chữ; âm thanh nghe lại toàn bộ lời.
-- **Khung treo bảng vẫy và bảng treo** (thanh sắt từ tường ra bảng, thanh hoặc
-  ty từ trần xuống bảng): tìm tham khảo thi công thật tại địa phương trước khi
-  brief. Khung chỉnh chu, hiện đại, gọn: thép hộp hoặc ống thẳng hàng, sơn cùng
-  tông bảng, bản mã bắt bulông vào tường hoặc trần, mối nối sạch, tỷ lệ cân với
-  bảng; không dây buộc, thanh chống chắp vá, gỉ sét hay kiểu tạm bợ.
-- **LED neon** là dây neon silicone bản 6 đến 10 mm thi công được: nét liền, cong
-  theo bán kính dây uốn được (không góc gắt, không nét mảnh kiểu neon thủy tinh),
-  gài vào rãnh phay CNC trên mica nền hoặc máng nhôm, dây nguồn đi gọn. Dạng phổ
-  biến trong decor: mica in UV hình màu, cắt CNC theo viền hình, LED neon chỉ
-  nhấn nét chính. Áp cho mọi ảnh bảng hiệu LED.
-- **Nội thất, decor**: hero Kinh doanh và nhà ở có nhiều nội thất, decor gia công
-  CNC được; cabin, phòng nghỉ đặt ở vùng riêng tư, khuất lối đi chính; backdrop
-  tiệc cưới là decor dựng, không in ấn.
+- tên trên sản phẩm (biển, backdrop, bao bì, menu, bảng tên, cúp) không dùng danh
+  từ riêng hay tên thương hiệu; dùng danh từ chung nói rõ tiệm làm gì ("Sửa xe",
+  "Nước giải khát") kèm dòng phụ;
+- từ xưng hô Nam Bộ (cô Ba, chú Tư, bà Năm) chỉ dùng ở bối cảnh bình dân, thân
+  thuộc, gần gũi, hoặc niche sản phẩm cao cấp phong cách hoài cổ; không dùng ở văn
+  phòng, hội nghị, showroom, tiệc cưới, nhà hàng;
+- trong một bộ media (masonry, trang sản phẩm, chuỗi video) mỗi từ xưng hô xuất
+  hiện tối đa một lần;
+- chữ tiếng Việt phải là từ có thật, đúng từng chữ; tên món là món phổ biến ở địa
+  phương (kẹo dừa, kẹo chuối), không chữ lỗi hay chữ vô nghĩa; kiểm ở bản phóng to,
+  video kiểm mọi khung có chữ, âm thanh nghe lại toàn bộ lời;
+- tay đỡ, thanh sắt bắt từ tường ra bảng vẫy hoặc từ trần xuống bảng treo: xem ảnh
+  thực tế ở địa phương trước, làm chỉnh chu, hiện đại, gọn (thép hộp thẳng hàng,
+  sơn cùng tông bảng, bản mã bắt bulông, tỷ lệ cân với bảng); không tạm bợ, cẩu thả;
+- LED neon là dây neon silicone bản 6 đến 10 mm thi công được: nét liền, cong theo
+  bán kính dây uốn được (không góc gắt, không nét mảnh kiểu neon thủy tinh), gài
+  vào rãnh phay CNC trên mica nền hoặc máng nhôm, dây nguồn đi gọn. Dạng phổ biến
+  trong decor: mica in UV hình màu, cắt CNC theo viền hình, LED neon chỉ nhấn nét
+  chính. Áp cho mọi ảnh bảng hiệu LED;
+- hero Kinh doanh và nhà ở có nhiều nội thất, decor gia công CNC được; cabin,
+  phòng nghỉ đặt ở vùng riêng tư, khuất lối đi chính; backdrop tiệc cưới là decor
+  dựng, không in ấn.
+
 
 ## Tạo ảnh
 
