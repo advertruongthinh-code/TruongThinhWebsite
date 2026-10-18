@@ -449,7 +449,9 @@ test("M02a primary video full screen uses a black frame without the blur backdro
     const button = page.locator("[data-advertising-photo-fullscreen]");
     assert.equal(await button.getAttribute("aria-label"), "Full screen");
     await button.click();
-    await page.waitForFunction(() => document.fullscreenElement?.classList.contains("advertising-photo-view__hero-frame"));
+    // fullscreenElement đổi trước event fullscreenchange; chờ cả nhãn nút để đọc trạng thái sau event.
+    await page.waitForFunction(() => document.fullscreenElement?.classList.contains("advertising-photo-view__hero-frame")
+      && document.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") === "Exit full screen");
     const state = await page.evaluate(() => {
       const frame = document.fullscreenElement;
       return { background: getComputedStyle(frame).backgroundColor,
@@ -458,8 +460,8 @@ test("M02a primary video full screen uses a black frame without the blur backdro
     });
     assert.deepEqual(state, { background: "rgb(0, 0, 0)", blur: "none", label: "Exit full screen" });
     await button.click();
-    await page.waitForFunction(() => !document.fullscreenElement);
-    assert.equal(await button.getAttribute("aria-label"), "Full screen");
+    await page.waitForFunction(() => !document.fullscreenElement
+      && document.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") === "Full screen");
   });
 });
 
@@ -467,6 +469,9 @@ test("M02a video without authored audio hides the custom audio button", async ()
   await withPage("vi", async (page) => {
     const card = await openFixture(page, "vi", { videoCover: true, direct: true, hasAudio: false });
     await assertPrimary(page, card, videoId, "vi");
+    const gap = await page.locator(".advertising-video-player__row").evaluate((row) =>
+      row.getBoundingClientRect().right - row.querySelector("[data-advertising-photo-fullscreen]").getBoundingClientRect().right);
+    assert(gap < 1, `full screen button stays at the right end without the sound group: ${gap}`);
   });
 });
 
