@@ -1687,6 +1687,19 @@ body.is-advertising-browse .advertising-grid {
     var(--media-hover-transform);
 }
 
+/* Đổi media trên card: media cũ chồng tuyệt đối dưới media mới trong lúc đẩy ngang (catalog-runtime selectMedia). */
+.advertising-card-media__image--outgoing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.advertising-card-media__image--incoming {
+  position: relative;
+  z-index: 1;
+}
+
 /* Media đang tải mang frame skeleton cuối masonry (docs/specs/loading-glass-and-page-entry.md R1). */
 .advertising-card-media > .advertising-grid__cta-frame {
   z-index: 1;
@@ -1776,58 +1789,14 @@ body.is-advertising-browse .advertising-grid {
   opacity: 1;
 }
 
-.advertising-card-media__indicator--numeric {
-  padding-inline: 4px;
-  white-space: nowrap;
-}
-
-.advertising-card-media__step {
-  display: grid;
-  flex: 0 0 44px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-}
-
-.advertising-card-media__step::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
-}
-
-.advertising-card-media__step--previous::before {
-  transform: rotate(-135deg);
-}
-
-.advertising-card-media__step--next::before {
-  transform: rotate(45deg);
-}
-
-.advertising-card-media__step:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
 .advertising-card-media__count {
-  flex: 1;
-  min-width: 0;
   text-align: center;
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
-.advertising-card-media__dot:focus-visible,
-.advertising-card-media__step:focus-visible {
+.advertising-card-media__dot:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }

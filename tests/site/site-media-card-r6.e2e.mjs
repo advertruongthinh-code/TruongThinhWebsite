@@ -122,14 +122,14 @@ async function geometry(card) {
     const peers = [...document.querySelectorAll(node.dataset.advertisingRelatedCard
       ? "[data-advertising-related-card]" : "[data-advertising-card]")]
       .filter((item) => item !== node && !item.hidden).map(rect);
-    const controls = [...node.querySelectorAll("[data-advertising-media-select], [data-advertising-media-prev], [data-advertising-media-next]")]
+    const controls = [...node.querySelectorAll("[data-advertising-media-select]")]
       .map((button) => {
         const box = rect(button);
         const x = box.left + box.width / 2;
         const y = box.top + box.height / 2;
         const hit = document.elementFromPoint(x, y);
         const blocker = hit?.closest("[data-advertising-related-card]");
-        return { id: button.dataset.advertisingMediaSelect ?? (button.dataset.advertisingMediaPrev === "" ? "prev" : "next"),
+        return { id: button.dataset.advertisingMediaSelect,
           box, hitSelf: hit === button, hitTag: hit?.tagName ?? null,
           hitStack: hit === button ? null : document.elementsFromPoint(x, y).slice(0, 5)
             .map((item) => ({ tag: item.tagName, className: String(item.className || ""),
@@ -159,7 +159,7 @@ async function geometry(card) {
         height: parseFloat(dotStyle.height) + 2 * parseFloat(dotStyle.borderTopWidth) } : null,
       customMediaHeight: getComputedStyle(node).getPropertyValue("--advertising-media-height"),
       playback: playbackRect,
-      controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select], [data-advertising-media-prev], [data-advertising-media-next]")]
+      controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select]")]
         .map((button) => edgeHitSelf(button)),
       duration: duration && !duration.hidden ? rect(duration) : null,
       loading: loading && !loading.hidden ? rect(loading) : null,
@@ -195,13 +195,10 @@ async function runCard(locale, count, surface, width) {
       && Math.abs(initial.indicator.bottom - initial.card.bottom) <= 1
       && Math.abs(initial.indicator.height - 44) <= 1,
     `${label} indicator must occupy the dedicated footer: ${JSON.stringify(initial)}`);
-    assert.equal(initial.controls.length, count >= 6 ? 2 : count);
+    // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
+    assert.equal(initial.controls.length, count >= 6 ? 0 : count);
     if (count >= 6) {
-      assert(initial.controls.every((control) => control.box.width >= 44 && control.box.height >= 44),
-        `${label} numeric targets must be 44x44: ${JSON.stringify(initial.controls)}`);
       assert(inside(initial.count, initial.indicator), `${label} numeric count must fit the footer`);
-      assert(await card.locator("[data-advertising-media-prev]").isDisabled());
-      assert(!(await card.locator("[data-advertising-media-next]").isDisabled()));
     } else {
       assert(initial.controls.every((control) => Math.abs(control.box.width - 20) <= 0.5
         && Math.abs(control.box.height - 44) <= 0.5),
@@ -234,19 +231,17 @@ async function runCard(locale, count, surface, width) {
       await page.screenshot({ path: path.join(outputDir, `r6-${label}.png`) });
     }
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-video`);
-    const control = count >= 6 ? card.locator("[data-advertising-media-next]")
-      : card.locator(`[data-advertising-media-select="${cardId}-r6-image-${count}"]`);
-    const controlBox = initial.controls.find((item) => item.id === (count >= 6 ? "next" : `${cardId}-r6-image-${count}`)).box;
+    if (count >= 6) return;
+    const control = card.locator(`[data-advertising-media-select="${cardId}-r6-image-${count}"]`);
+    const controlBox = initial.controls.find((item) => item.id === `${cardId}-r6-image-${count}`).box;
     let clickError = null;
     try { await page.mouse.click(controlBox.right - 3, controlBox.top + controlBox.height / 2); }
     catch (error) { clickError = error.message.split("\n").slice(0, 8).join(" "); }
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}-pointer.json`),
       JSON.stringify({ initial, clickError }, null, 2));
     assert.equal(clickError, null, `${label} real pointer click must reach its control: ${clickError}`);
-    const expectedId = `${cardId}-r6-image-${count >= 6 ? 2 : count}`;
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), expectedId);
-    if (count < 6) assert.equal(await control.getAttribute("aria-current"), "true");
-    else assert.equal(await card.locator("[data-advertising-media-count]").textContent(), `2/${count}`);
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-image-${count}`);
+    assert.equal(await control.getAttribute("aria-current"), "true");
     assert.equal(page.url(), url, "media selection does not open detail or change URL");
     const after = await geometry(card);
     stableRect(initial.media, after.media, `${label} canvas`);

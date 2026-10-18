@@ -62,12 +62,14 @@ And chuyển sang video chậm tải thì khung card, canvas, dải lệch tối
 ### R3. Đổi media trên card
 
 2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
-xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item (owner 2026-10-18): nút "Media trước" / "Previous
-media" và "Media tiếp" / "Next media" 44×44px, bộ đếm `i/N` (`role="status"`, `aria-live="polite"`); nút trước vô hiệu ở
-item đầu, nút sau ở item cuối. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
+xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item (owner 2026-10-18): dải chỉ có bộ đếm `i/N`
+giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải; đổi bằng mũi tên hover hoặc
+vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
 bị chặn. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
-ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
+ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Đổi media bằng mũi tên, chấm hoặc vuốt thì
+đẩy ngang như nút "Có thể bạn thích" ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), owner
+2026-10-18): media mới vào từ phía đi tới, media cũ lùi 35% và mờ 0.4, 0.9s; reduced motion đổi ngay. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
 
 ```gherkin
@@ -81,18 +83,20 @@ And vuốt trái trên ảnh đổi sang 4/11, click ngay sau vuốt không mở
 
 Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="metadata"`, có `poster`, nhãn bằng alt của item.
 Card video theo Pinterest (owner 2026-10-17): không nút phát, không icon loa; nhãn tổng thời lượng `m:ss` làm tròn lên,
-không đếm ngược. Mỗi lúc chỉ một video phát, luôn tắt tiếng. Cuộn dừng 200ms thì giữ video đang phát nếu tâm còn trong
-vùng trọng tâm (dải 40% giữa phần nhìn thấy dưới navbar), không thì chọn ngẫu nhiên card có item video đang active trong
-vùng, chưa phát trong chu kỳ; hết một vòng thì chọn card khác, hết card thì sang chu kỳ mới. Chuột vào card video thì
-phát card đó, dừng card khác, tiếp tục ở thời điểm cũ; rời card thì dừng mọi video tới hover hoặc cuộn kế. Cuộn dừng
-khi con trỏ nằm trên card video thì card đó thắng. Touch không có hover: chạm card mở detail như ảnh. Reduced motion
-không tự phát, hover vẫn phát. Đổi item hoặc card rời cửa sổ ảo hóa thì video tạm dừng.
+không đếm ngược. Luôn tắt tiếng, tối đa 2 video cùng phát (owner 2026-10-18): 2 card có item video đang active, tâm nằm
+trong vùng trọng tâm (dải 40% giữa phần nhìn thấy dưới navbar), gần giữa vùng nhất; tính lại mỗi frame khi đang cuộn,
+không chờ cuộn dừng. Card ra khỏi suất thì dừng, quay lại thì phát tiếp từ chỗ dừng. Mỗi card chạy playlist video của nó
+theo thứ tự `mediaItems` (thứ tự do CMS định): hết video thì đẩy sang video kế như R3, chấm hoặc bộ đếm theo, hết vòng về
+video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát. Chuột vào card video
+thì card đó phát và chiếm một suất thay card xa giữa vùng hơn; rời card thì lịch về 2 card gần nhất. Touch không có
+hover, tự phát như desktop; chạm card mở detail như ảnh. Reduced motion không tự phát, hover vẫn phát. Đổi item hoặc
+card rời cửa sổ ảo hóa thì video tạm dừng.
 
 ```gherkin
-Given hai card video 0:07 trong vùng trọng tâm, chưa phát
-When cuộn dừng
-Then đúng một video phát tắt tiếng, không card nào có nút phát
-And rê chuột vào card còn lại thì card đó phát, card trước dừng
+Given ba card video 0:07 trong vùng trọng tâm
+When cuộn
+Then đúng 2 video gần giữa vùng nhất phát tắt tiếng, không card nào có nút phát
+And card có video 1, ảnh, video 2 phát xong video 1 thì đẩy sang video 2, xong video 2 thì về video 1
 ```
 
 ### R5. Chờ tải và lỗi media
@@ -119,7 +123,8 @@ i trên N: <alt>", thumbnail 60px bo 16px, đang xem `aria-current` có viền �
 theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung giữ tỷ lệ cover nên đổi media không đổi kích thước
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
 tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
-khung đổi media: media cũ trượt ra, media mới trượt vào 350ms (reduced motion đổi ngay); chấm 8px ở đáy theo vị trí.
+khung đổi media: đẩy ngang như card (R3, 0.9s), nền zoom blur cũ crossfade sang nền
+media mới cùng nhịp (owner 2026-10-18; reduced motion đổi ngay); chấm 8px ở đáy theo vị trí.
 Video vào khung phát lại từ đầu, giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
 Video primary tự phát tắt tiếng, lặp, `playsinline`, player theo trang pin
 Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
@@ -183,7 +188,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `advertising-products-layout.test.mjs` (dải 44px); `site-media-card-r6.e2e.mjs` (rect ổn định, singleton không dải) |
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt, chặn click, chấm, bộ đếm, mũi tên hover); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
-| R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (một video trong vùng, hết vòng đổi card, hover, reduced motion) |
+| R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (2 card gần giữa vùng, tính lại khi cuộn, playlist lặp, hover chiếm suất, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, nền blur video, toàn màn hình) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
@@ -203,8 +208,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   mép dưới navbar thực, đặt giữa phần đó, tính lại khi navbar đổi; tâm card quyết định thuộc vùng; không có card cover
   video trong vùng thì không autoplay. Solver ưu tiên mềm phân tán ứng viên, không đổi thứ tự, seed, hình học, không
   thêm filler. Solver chưa phân tán ứng viên; Main đo fallback solver trên viewport thật trước khi sửa layout.
-- Lịch phát (R4) đã code trên branch xem trước. Owner 2026-10-17 bỏ nút phát trên touch theo Pinterest; card video
-  trên touch chỉ tự phát trong vùng. Item video active (không chỉ cover) được vào lượt.
+- Lịch phát (R4) đã code trên branch xem trước: tối đa 2 video, tính lại khi cuộn, playlist lặp (owner 2026-10-18).
+  Owner 2026-10-17 bỏ nút phát trên touch theo Pinterest. Item video active (không chỉ cover) được vào lượt.
 - Player và dải media primary (R6) đã code trên branch xem trước, chờ owner duyệt. Pinterest không có thanh âm lượng,
   toàn màn hình hay nền blur; ba thứ thêm theo owner 2026-10-18. Trên cảm ứng dải nút luôn hiện, thanh âm lượng chỉ mở
   khi focus cụm tiếng: mặc định Thread chọn, chưa đo Pinterest mobile. Owner.

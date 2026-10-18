@@ -17,7 +17,7 @@ import {
   validateAdvertisingCards,
 } from "./layout-core.mjs";
 import { createAdvertisingPhotoViewer } from "./photo-viewer.mjs";
-import { mountSuggestionSlides, suggestionDeck } from "./suggestion-slideshow.mjs";
+import { mountSuggestionSlides, pushSlide, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
@@ -871,7 +871,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
 
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
-    // 2-5 media dùng chấm; từ 6 media dùng bộ đếm i/N trong dải (owner 2026-10-18).
+    // 2-5 media dùng chấm; từ 6 media bộ đếm i/N thay đúng chỗ hàng chấm (owner 2026-10-18), đổi media bằng mũi tên hover hoặc vuốt.
     const numericIndicator = items.length >= 6;
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
@@ -881,18 +881,11 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       indicator.append(button);
       return button;
     }) : [];
-    let previousButton;
-    let nextButton;
     let countStatus;
     if (numericIndicator) {
-      indicator.classList.add("advertising-card-media__indicator--numeric");
-      previousButton = el("button", "advertising-card-media__step advertising-card-media__step--previous",
-        "advertisingMediaPrev", { "aria-label": english ? "Previous media" : "Media trước" });
       countStatus = el("span", "advertising-card-media__count", "advertisingMediaCount",
         { role: "status", "aria-live": "polite", "aria-atomic": "true" });
-      nextButton = el("button", "advertising-card-media__step advertising-card-media__step--next",
-        "advertisingMediaNext", { "aria-label": english ? "Next media" : "Media tiếp" });
-      indicator.append(previousButton, countStatus, nextButton);
+      indicator.append(countStatus);
     }
     // Mũi tên hover dùng lại mũi tên dải media của primary (pin Pinterest), ẩn ở media đầu, cuối.
     const hoverSteps = hasCarousel ? [-1, 1].map((step) => {
@@ -915,8 +908,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       countStatus.setAttribute("aria-label", english
         ? `Media ${index + 1} of ${items.length}`
         : `Media ${index + 1} trên ${items.length}`);
-      previousButton.disabled = index === 0;
-      nextButton.disabled = index === items.length - 1;
     };
 
     const isReady = (layer) => layer instanceof HTMLVideoElement
@@ -977,8 +968,20 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           layer.src = item.src;
           layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
           layer.addEventListener("loadeddata", updateLoading);
-          // Hết một vòng thì lịch phát chọn card khác (R4).
-          layer.addEventListener("ended", () => figure.dispatchEvent(new Event("advertising-video-ended", { bubbles: true })));
+          // Hết video thì card đẩy sang video kế trong playlist theo thứ tự dữ liệu, hết vòng quay lại video đầu; ảnh
+          // không vào playlist, card một video lặp lại chính nó (R4, owner 2026-10-18).
+          layer.addEventListener("ended", () => {
+            if (activeIndex !== index) return;
+            const videos = items.flatMap((entry, position) => entry.kind === "video" ? [position] : []);
+            const next = videos[(videos.indexOf(index) + 1) % videos.length];
+            if (next === index) {
+              layer.currentTime = 0;
+              void layer.play().catch(() => {});
+              return;
+            }
+            selectMedia(next);
+            figure.dispatchEvent(new Event("advertising-video-ended", { bubbles: true }));
+          });
         } else {
           layer.loading = "lazy";
           layer.decoding = "async";
@@ -1038,17 +1041,36 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const index = items.findIndex((item) => item.id === id);
       if (index >= 0) setActive(index);
     };
+    // Người xem đổi media (mũi tên, chấm, vuốt): đẩy ngang như nút suggestion; media cũ nằm chồng dưới tới khi đẩy xong.
+    let push = null;
     const selectMedia = (index) => {
+      push?.finish();
+      const from = activeIndex;
+      const outgoing = layers.get(items[from]?.id);
       setActive(index);
+      const incoming = layers.get(items[activeIndex]?.id);
+      if (outgoing && incoming && outgoing !== incoming && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        outgoing.hidden = false;
+        outgoing.classList.add("advertising-card-media__image--outgoing");
+        incoming.classList.add("advertising-card-media__image--incoming");
+        const { animation, pushOut } = pushSlide(incoming, outgoing, activeIndex > from ? 1 : -1);
+        const finish = () => {
+          if (push?.finish !== finish) return;
+          push = null;
+          animation.cancel();
+          pushOut.cancel();
+          outgoing.classList.remove("advertising-card-media__image--outgoing");
+          incoming.classList.remove("advertising-card-media__image--incoming");
+          outgoing.hidden = layers.get(items[activeIndex].id) !== outgoing;
+        };
+        push = { finish };
+        animation.addEventListener("finish", finish, { once: true });
+      }
       onMediaChange(figure.dataset.advertisingActiveMediaId);
     };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
     hoverSteps.forEach((button) => button.addEventListener("click",
       () => selectMedia(activeIndex + Number(button.dataset.advertisingMediaHoverStep))));
-    if (numericIndicator) {
-      previousButton.addEventListener("click", () => selectMedia(activeIndex - 1));
-      nextButton.addEventListener("click", () => selectMedia(activeIndex + 1));
-    }
     const swipe = (dx, dy) => {
       if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
       selectMedia(activeIndex + (dx < 0 ? 1 : -1));
@@ -3251,7 +3273,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
     photoView.dataset.advertisingPhotoGlass = String(Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5);
   };
-  // Đổi media trượt ngang như dải media pin Pinterest: lớp media cũ trượt ra, media mới trượt vào theo chiều đi tới.
+  // Đổi media đẩy ngang như nút suggestion (owner 2026-10-18): media mới đẩy vào theo chiều đi tới, media cũ lùi 35% và
+  // mờ 0.4; nền zoom blur cũ crossfade sang nền của media mới cùng nhịp.
   const slidePrimary = (direction) => {
     const visible = photoVideo.hidden ? photoImage : photoVideo;
     const rect = visible.getBoundingClientRect();
@@ -3267,17 +3290,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       outgoing.height = photoVideo.videoHeight;
       outgoing.getContext("2d").drawImage(photoVideo, 0, 0);
     }
-    const timing = { duration: 350, easing: "cubic-bezier(0.4, 0, 0.2, 1)" };
     if (outgoing) {
       outgoing.className = "advertising-photo-view__outgoing";
       outgoing.style.width = `${rect.width}px`;
       outgoing.style.height = `${rect.height}px`;
+      // Media mới phủ lên media cũ đang lùi.
+      outgoing.style.zIndex = "1";
       photoVideo.after(outgoing);
-      outgoing.animate({ translate: ["0 0", `${-direction * width}px 0`] }, timing).finished
+      outgoing.animate({ translate: ["0 0", `${-direction * width * 0.35}px 0`], opacity: [1, 0.4] }, PUSH_TIMING).finished
         .finally(() => outgoing.remove());
     }
+    if (photoView.dataset.advertisingPhotoGlass === "true" && photoBackground?.currentSrc) {
+      const background = document.createElement("img");
+      background.className = "advertising-photo-view__outgoing-background";
+      background.alt = "";
+      background.src = photoBackground.currentSrc;
+      photoBackground.after(background);
+      background.animate({ opacity: [1, 0] }, PUSH_TIMING).finished.finally(() => background.remove());
+    }
     return () => (photoVideo.hidden ? photoImage : photoVideo)
-      .animate({ translate: [`${direction * width}px 0`, "0 0"] }, timing);
+      .animate({ translate: [`${direction * width}px 0`, "0 0"] }, { ...PUSH_TIMING, fill: "none" });
   };
   const renderPrimaryMedia = (record, item, inPlace = true, slide = 0) => {
     const english = locale === "en";
@@ -4088,67 +4120,52 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
-  // Lịch phát video card kiểu Pinterest (media-card R4): mỗi lúc một video tắt tiếng. Cuộn dừng thì tự phát một card
-  // có tâm trong vùng trọng tâm (40% giữa phần nhìn thấy dưới navbar), hết vòng chọn ngẫu nhiên card chưa phát trong
-  // chu kỳ. Chuột vào card video thì phát card đó, rời card thì dừng tới lần cuộn kế.
-  let playingVideo = null;
-  let hoverHold = false;
-  let videoScheduleTimer = 0;
-  const playedVideos = new WeakSet();
-  const playOnly = (video) => {
-    if (playingVideo && playingVideo !== video) playingVideo.pause();
-    playingVideo = video;
-    if (video) void video.play().catch(() => {});
-  };
-  const scheduleVideo = (skipCurrent = false) => {
-    if (hoverHold) return;
-    if (reduced) return playOnly(null);
+  // Lịch phát video card kiểu Pinterest (media-card R4, owner 2026-10-18): tối đa 2 card cùng phát tắt tiếng, là 2 card
+  // video có tâm trong vùng trọng tâm (40% giữa phần nhìn thấy dưới navbar) gần giữa vùng nhất, tính lại ngay khi đang
+  // cuộn. Card dưới con trỏ chiếm một suất. Mỗi card tự chạy playlist video của nó (createPhotoCard, sự kiện ended).
+  const MAX_PLAYING_VIDEOS = 2;
+  let playingVideos = [];
+  let videoScheduleFrame = 0;
+  const scheduleVideo = () => {
+    const hovered = matchMedia("(hover: hover)").matches
+      ? document.querySelector("figure.advertising-tile:hover")?.advertisingActiveVideo?.() ?? null : null;
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
     const bandTop = navBottom + (innerHeight - navBottom) * 0.3;
     const bandBottom = bandTop + (innerHeight - navBottom) * 0.4;
-    const inBand = [...document.querySelectorAll("figure.advertising-tile")].map((figure) => figure.advertisingActiveVideo?.())
-      .filter((video) => {
-        if (!video?.checkVisibility()) return false;
+    const bandCenter = (bandTop + bandBottom) / 2;
+    const inBand = reduced ? [] : [...document.querySelectorAll("figure.advertising-tile")]
+      .map((figure) => figure.advertisingActiveVideo?.())
+      .filter((video) => video && video !== hovered && video.checkVisibility())
+      .map((video) => {
         const rect = video.getBoundingClientRect();
-        const center = rect.top + rect.height / 2;
-        return center >= bandTop && center <= bandBottom;
-      });
-    if (!skipCurrent && playingVideo && !playingVideo.paused && inBand.includes(playingVideo)) return;
-    let pool = inBand.filter((video) => video !== playingVideo && !playedVideos.has(video));
-    if (!pool.length) {
-      inBand.forEach((video) => playedVideos.delete(video));
-      pool = inBand.length > 1 ? inBand.filter((video) => video !== playingVideo) : inBand;
-    }
-    const next = pool[Math.floor(Math.random() * pool.length)] ?? null;
-    if (next) playedVideos.add(next);
-    playOnly(next);
+        return { video, center: rect.top + rect.height / 2 };
+      })
+      .filter(({ center }) => center >= bandTop && center <= bandBottom)
+      .sort((a, b) => Math.abs(a.center - bandCenter) - Math.abs(b.center - bandCenter))
+      .map(({ video }) => video);
+    const next = [...(hovered ? [hovered] : []), ...inBand].slice(0, MAX_PLAYING_VIDEOS);
+    playingVideos.forEach((video) => { if (!next.includes(video)) video.pause(); });
+    // Video quay lại suất thì phát tiếp từ chỗ đã dừng.
+    next.forEach((video) => { if (video.paused) void video.play().catch(() => {}); });
+    playingVideos = next;
   };
   const scheduleVideoSoon = () => {
-    clearTimeout(videoScheduleTimer);
-    videoScheduleTimer = setTimeout(() => {
-      // Cuộn bằng chuột đưa card khác vào dưới con trỏ thì card dưới con trỏ thắng, như hover.
-      const hovered = matchMedia("(hover: hover)").matches
-        && document.querySelector("figure.advertising-tile:hover")?.advertisingActiveVideo?.();
-      hoverHold = Boolean(hovered);
-      if (hovered) playOnly(hovered);
-      else scheduleVideo();
-    }, 200);
+    if (videoScheduleFrame) return;
+    videoScheduleFrame = requestAnimationFrame(() => {
+      videoScheduleFrame = 0;
+      scheduleVideo();
+    });
   };
   addEventListener("scroll", scheduleVideoSoon, { passive: true, signal: controller.signal });
   addEventListener("site:scroll", scheduleVideoSoon, { signal: controller.signal });
-  document.addEventListener("advertising-video-ended", () => scheduleVideo(true), { signal: controller.signal });
-  document.addEventListener("pointerover", (event) => {
-    const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
-    const video = figure?.advertisingActiveVideo?.();
-    if (!video || figure.contains(event.relatedTarget)) return;
-    hoverHold = true;
-    playOnly(video);
-  }, { signal: controller.signal });
-  document.addEventListener("pointerout", (event) => {
-    const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
-    if (!figure?.advertisingActiveVideo?.() || figure.contains(event.relatedTarget)) return;
-    playOnly(null);
-  }, { signal: controller.signal });
+  document.addEventListener("advertising-video-ended", scheduleVideoSoon, { signal: controller.signal });
+  for (const type of ["pointerover", "pointerout"]) {
+    document.addEventListener(type, (event) => {
+      const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
+      if (!figure?.advertisingActiveVideo?.() || figure.contains(event.relatedTarget)) return;
+      scheduleVideoSoon();
+    }, { signal: controller.signal });
+  }
   reducedMotionQuery.addEventListener("change", ({ matches }) => {
     reduced = matches;
     syncCtaParallax();

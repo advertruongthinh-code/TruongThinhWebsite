@@ -171,8 +171,8 @@ async function setupMany(page, locale) {
   await card.locator("img").first().waitFor({ state: "visible" });
   await card.evaluate(async (node) => {
     const cta = document.querySelector("[data-advertising-grid-cta]");
-    const controls = [...node.querySelectorAll("[data-advertising-media-prev], [data-advertising-media-next]")];
-    if (!cta || controls.length !== 2) throw new Error("many-media CTA or numeric controls are missing");
+    const controls = [...node.querySelectorAll("[data-advertising-media-count]")];
+    if (!cta || controls.length !== 1) throw new Error("many-media CTA or numeric counter is missing");
     let previous = null;
     let stable = 0;
     for (let frame = 0; frame < 100; frame++) {
@@ -189,6 +189,13 @@ async function setupMany(page, locale) {
     throw new Error(`many-media card, CTA, or controls did not settle inside the visible viewport: ${JSON.stringify({ previous, viewportHeight: innerHeight })}`);
   });
   return card;
+}
+
+// Đổi media đẩy ngang 0.9s (media-card R3): chờ mọi animation hữu hạn trong card xong rồi mới đo trạng thái tĩnh.
+function settlePush(card) {
+  return card.evaluate((node) => Promise.all(node.getAnimations({ subtree: true })
+    .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+    .map((animation) => animation.finished.catch(() => {}))));
 }
 
 async function visibleSwipePoints(card) {
@@ -339,6 +346,7 @@ async function run(viewport, touch, locale) {
       "media change preserves card geometry");
     assert(after.video?.muted && after.video.poster.endsWith("poster-3x2.webp") && after.video.src.endsWith("clip-audio-3x2.mp4"),
       "video keeps poster, source and grid mute");
+    await settlePush(card);
     const dimensions = await card.evaluate(async (node) => {
       const cover = node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`);
       const video = node.querySelector("video");
@@ -846,6 +854,7 @@ test("M01b failed video keeps its loaded poster and usable carousel", async () =
     await Promise.all([videoResponse, posterResponse]);
     await page.waitForFunction((id) => Boolean(document.querySelector(`[data-advertising-card="${id}"] video`)?.error), fixtureId);
     await card.scrollIntoViewIfNeeded();
+    await settlePush(card);
     if (outputDir) await card.screenshot({ path: path.join(outputDir, "video-404-poster.png") });
     const state = await card.evaluate((node) => {
       const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
@@ -934,6 +943,7 @@ test("M01b stale poster failure does not override a newer image selection", asyn
     releasePoster();
     await probeResponse;
     await page.waitForTimeout(100);
+    await settlePush(card);
     const state = await card.evaluate((node) => ({
       activeId: node.dataset.advertisingActiveMediaId,
       coverSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
@@ -1016,58 +1026,54 @@ async function runNumericIndicator(locale, viewport, mobile) {
   const page = await context.newPage();
   try {
     const card = await setupMany(page, locale);
-    const previous = card.locator("[data-advertising-media-prev]");
-    const next = card.locator("[data-advertising-media-next]");
     const count = card.locator("[data-advertising-media-count]");
     const initial = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
+      const strip = node.querySelector("[data-advertising-media-indicator]").getBoundingClientRect();
+      const counter = node.querySelector("[data-advertising-media-count]").getBoundingClientRect();
       return { width: rect.width, height: rect.height,
         layers: node.querySelectorAll("[data-advertising-media-item]").length,
         activeId: node.dataset.advertisingActiveMediaId,
-        dots: node.querySelectorAll("[data-advertising-media-select]").length };
+        dots: node.querySelectorAll("[data-advertising-media-select]").length,
+        stripButtons: node.querySelectorAll("[data-advertising-media-indicator] button").length,
+        centerOffset: Math.abs((strip.left + strip.right) / 2 - (counter.left + counter.right) / 2) };
     });
     assert.equal(initial.layers, 1, "eleven items are not instantiated eagerly");
     assert.equal(initial.dots, 0, "six or more items use no dot controls");
+    // Owner 2026-10-18: từ 6 media dải chỉ còn bộ đếm ở chỗ hàng chấm, đổi media bằng mũi tên hover hoặc vuốt.
+    assert.equal(initial.stripButtons, 0, "the strip carries only the counter");
+    assert(initial.centerOffset <= 1, `counter sits centred where the dots would be: ${JSON.stringify(initial)}`);
     assert.equal(initial.activeId, fixtureId);
     assert.equal(await count.textContent(), "1/11");
     assert.equal(await count.getAttribute("role"), "status");
     assert.equal(await count.getAttribute("aria-live"), "polite");
     assert.equal(await count.getAttribute("aria-label"), locale === "en" ? "Media 1 of 11" : "Media 1 trên 11");
-    assert.equal(await previous.getAttribute("aria-label"), locale === "en" ? "Previous media" : "Media trước");
-    assert.equal(await next.getAttribute("aria-label"), locale === "en" ? "Next media" : "Media tiếp");
-    assert(await previous.isDisabled());
-    assert(!(await next.isDisabled()));
-    const targets = await card.evaluate((node) => ["prev", "next"].map((direction) => {
-      const button = node.querySelector(`[data-advertising-media-${direction}]`);
-      const rect = button.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
-      const target = document.elementFromPoint(x, y);
-      const cta = document.querySelector("[data-advertising-grid-cta]");
-      const ctaRect = cta?.getBoundingClientRect();
-      return { direction, width: rect.width, height: rect.height, hit: target === button,
-        visible: rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth,
-        rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
-        scrollY, viewportHeight: innerHeight, hitTag: target?.tagName, hitClass: String(target?.className || ""),
-        ctaRect: ctaRect && { left: ctaRect.left, top: ctaRect.top, right: ctaRect.right, bottom: ctaRect.bottom },
-        hitStack: target === button ? null : document.elementsFromPoint(x, y).slice(0, 5)
-          .map((item) => ({ tag: item.tagName, className: String(item.className || ""),
-            inCta: Boolean(item.closest("[data-advertising-grid-cta]")) })) };
-    }));
-    assert(targets.every((target) => target.width >= 44 && target.height >= 44 && target.hit && target.visible),
-      `numeric controls need visible 44px hit targets: ${JSON.stringify(targets)}`);
-    for (let index = 2; index <= 6; index++) await next.click();
+    let pointerId = 40;
+    const link = card.locator(":scope > a");
+    const step = async (direction) => {
+      if (mobile) {
+        const points = await visibleSwipePoints(card);
+        await (direction > 0 ? pointerSwipe(link, points.x1, points.x2, points.y, pointerId++)
+          : pointerSwipe(link, points.x2, points.x1, points.y, pointerId++));
+        await page.waitForTimeout(450);
+      } else {
+        await card.locator(".advertising-card-media").hover();
+        await card.locator(`[data-advertising-media-hover-step="${direction}"]`).click();
+      }
+    };
+    for (let index = 2; index <= 6; index++) await step(1);
     assert.equal(await count.textContent(), "6/11");
-    await next.focus();
-    await page.keyboard.press("Enter");
+    if (!mobile) {
+      await card.locator('[data-advertising-media-hover-step="1"]').focus();
+      await page.keyboard.press("Enter");
+    } else await step(1);
     assert.equal(await count.textContent(), "7/11");
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${fixtureId}-image-7`);
-    await previous.click();
+    await step(-1);
     assert.equal(await count.textContent(), "6/11");
-    for (let index = 7; index <= 11; index++) await next.click();
+    for (let index = 7; index <= 11; index++) await step(1);
     assert.equal(await count.textContent(), "11/11");
-    assert(await next.isDisabled());
-    assert(!(await previous.isDisabled()));
+    if (!mobile) assert(await card.locator('[data-advertising-media-hover-step="1"]').isHidden(), "next arrow hides at the last media");
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), null, "media controls never open detail");
     const final = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
@@ -1078,7 +1084,8 @@ async function runNumericIndicator(locale, viewport, mobile) {
     assert(Math.abs(final.width - initial.width) <= 1 && Math.abs(final.height - initial.height) <= 1,
       `media selection keeps card geometry: ${JSON.stringify({ initial, final })}`);
     if (outputDir) await writeFile(path.join(outputDir, `numeric-indicator-${locale}-${mobile ? "mobile" : "desktop"}.json`),
-      JSON.stringify({ initial, targets, final }, null, 2));
+      JSON.stringify({ initial, final }, null, 2));
+    await page.waitForTimeout(950);
     await clickCardBody(card, `numeric-${locale}-${mobile ? "mobile" : "desktop"}`);
     await page.waitForURL((url) => (url.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await context.close(); await browser.close(); }
