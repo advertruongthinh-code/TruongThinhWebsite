@@ -179,6 +179,24 @@ Serena bật lại language server Markdown (marksman) theo owner 2026-10-17, th
 2026-10-14; marksman ăn 1-3 GB RAM mỗi phiên trên PC, RAM căng thì tắt lại qua
 `scripts/tooling/serena-language-map.json`.
 
+## Stack AI và media
+
+Owner chốt 2026-10-18, dùng cho việc tạo media hiện tại và AI agent của [CMS](../specs/cms.md).
+Công cụ đầu lỗi, hết lượt hoặc hết quota thì sang công cụ kế tiếp theo đúng thứ tự; không bỏ bước.
+
+| Việc | Thứ tự |
+| --- | --- |
+| Tạo ảnh | ChatGPT web, ChatGPT Codex hoặc CLI, runninghub.ai, kie.ai |
+| Tạo video bằng model AI | kie.ai, runninghub.ai |
+| Tạo nhạc | YuE2 trên runninghub.ai |
+| AI agent biên tập video | [hyperframe.dev](http://hyperframe.dev/) |
+| AI agent | Claude chính chủ, ChatGPT chính chủ, Claude trên kie.ai, ChatGPT trên kie.ai |
+
+- Mọi thiết kế media (ảnh, video, nhạc, graphic) do ChatGPT làm. Agent khác chỉ nêu rule và
+  chỉ dẫn tổng thể, không tả chi tiết bố cục hay hình khối ([Tạo ảnh](agent-rule-ad-images.md#tạo-ảnh)).
+- Không ghi API key (kie.ai, runninghub.ai và dịch vụ khác) vào file trong repo, log, prompt hay
+  Library. Chỗ lưu key theo [API key](#api-key).
+
 ## API key
 
 Quy ước owner chốt 2026-10-18:
