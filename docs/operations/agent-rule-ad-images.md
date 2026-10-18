@@ -5,7 +5,7 @@
 [Content và media](../../design-system/content.md); bối cảnh hợp ngành của
 khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/advertising-client-products.md).
 
-## Chữ và tên trong media
+## Media chung
 
 Áp dụng cho ảnh, video và âm thanh (lời thoại, jingle) (owner chốt 2026-10-18):
 
@@ -15,11 +15,23 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
 - từ xưng hô Nam Bộ (cô Ba, chú Tư, bà Năm) chỉ dùng ở bối cảnh bình dân, thân
   thuộc, gần gũi, hoặc niche sản phẩm cao cấp phong cách hoài cổ; không dùng ở văn
   phòng, hội nghị, showroom, tiệc cưới, nhà hàng;
-- trong một bộ media (masonry, chuỗi video) không lặp một từ xưng hô nhiều lần;
+- trong một bộ media (masonry, trang sản phẩm, chuỗi video) mỗi từ xưng hô xuất
+  hiện tối đa một lần;
 - chữ tiếng Việt phải là từ có thật, đúng từng chữ; tên món là món phổ biến ở địa
-  phương (kẹo dừa, kẹo chuối), không chữ lỗi hay chữ vô nghĩa;
+  phương (kẹo dừa, kẹo chuối), không chữ lỗi hay chữ vô nghĩa; kiểm ở bản phóng to,
+  video kiểm mọi khung có chữ, âm thanh nghe lại toàn bộ lời;
 - tay đỡ, thanh sắt bắt từ tường ra bảng vẫy hoặc từ trần xuống bảng treo: xem ảnh
-  thực tế ở địa phương trước, làm chỉnh chu, hiện đại, gọn; không tạm bợ, cẩu thả.
+  thực tế ở địa phương trước, làm chỉnh chu, hiện đại, gọn (thép hộp thẳng hàng,
+  sơn cùng tông bảng, bản mã bắt bulông, tỷ lệ cân với bảng); không tạm bợ, cẩu thả;
+- LED neon là dây neon silicone bản 6 đến 10 mm thi công được: nét liền, cong theo
+  bán kính dây uốn được (không góc gắt, không nét mảnh kiểu neon thủy tinh), gài
+  vào rãnh phay CNC trên mica nền hoặc máng nhôm, dây nguồn đi gọn. Dạng phổ biến
+  trong decor: mica in UV hình màu, cắt CNC theo viền hình, LED neon chỉ nhấn nét
+  chính. Áp cho mọi ảnh bảng hiệu LED;
+- hero Kinh doanh và nhà ở có nhiều nội thất, decor gia công CNC được; cabin,
+  phòng nghỉ đặt ở vùng riêng tư, khuất lối đi chính; backdrop tiệc cưới là decor
+  dựng, không in ấn.
+
 
 ## Tạo ảnh
 
@@ -35,7 +47,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    bố cục. Model được tự sáng tạo trong khuôn khổ rule, đúng sản phẩm Trường Thịnh
    làm và dựng được thật (owner chốt 2026-10-17). Bối cảnh nằm trong vùng địa lý đã
    khảo sát ([SEO R2](../specs/seo.md)). Không tên thương hiệu, logo hay nhãn hàng
-   thật; tên trên biển theo [Chữ và tên trong media](#chữ-và-tên-trong-media).
+   thật; tên, chữ, xưng hô và khung treo theo [Media chung](#media-chung).
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
