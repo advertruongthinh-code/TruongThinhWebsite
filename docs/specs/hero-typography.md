@@ -45,7 +45,7 @@ Mỗi câu dưới đây nằm đúng hai dòng ở mọi bề rộng, ở mọi
 | Advertising, portal Quảng cáo | Để thương hiệu | luôn trong tầm mắt |
 
 Bản EN tách hai dòng ở cùng vị trí ý nghĩa. Câu Commercial mới thay "Thiết kế để bán tốt. Thi công để vận hành bền."
-`[CẦN LÀM RÕ: bản EN cho "Thiết kế tối ưu / Vận hành bền bỉ"; em đề xuất "Designed to perform / Built to last"]`.
+Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
 
 ### R2. Bày chữ hero kiểu espacio
 
@@ -58,8 +58,8 @@ trang sản phẩm Advertising.
   chiều dọc.
 - Mỗi dòng của title là một khối riêng. Cỡ chữ co theo bề rộng để mỗi dòng không tự gãy thêm.
 - Khoảng cách giữa hai dòng title, so giữa các hero cùng bề rộng, lệch nhau không quá 15%.
-- Kicker và dòng phụ cách title theo cùng một tỷ lệ ở mọi hero. Giữ token `portal-kicker`, `portal-title`,
-  `portal-tagline` của [Design System](../../design-system/) và thêm hoặc sửa token tại đó.
+- Kicker và dòng phụ cách title theo cùng một tỷ lệ ở mọi hero. Token `portal-kicker`, `portal-title`,
+  `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi owner duyệt (mục UI).
 
 ### R3. Không cắt dấu, không đè dòng
 
@@ -94,7 +94,8 @@ Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1
 
 ## UI
 
-Token chữ hero và portal trong [Design System](../../design-system/). PR đổi `design-system/` thì republish theo
+Token chữ hero và portal trong [Design System](../../design-system/). Chỉ đổi `design-system/` sau khi owner tự audit
+kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republish theo
 [docs-system R7](docs-system.md#r7-publish-design-system-lên-claudeai).
 
 ## Kiểm tra
@@ -108,7 +109,7 @@ Token chữ hero và portal trong [Design System](../../design-system/). PR đ�
 ## Gate còn mở
 
 - Plan cần owner duyệt trước khi code.
-- Bản EN của câu Commercial (R1).
+- Owner audit trên PC và phone trước khi cập nhật Design System.
 - Đo espacio (R2) cần phiên PC.
 
 ## Chú thích thuật ngữ
