@@ -4920,7 +4920,6 @@ body.is-advertising-browse .advertising-grid {
   flex: none;
   width: 100%;
   height: 100%;
-  object-fit: contain;
 }
 
 .advertising-card-media--carousel > img[hidden],
@@ -5631,7 +5630,12 @@ body.is-advertising-browse .site-footer {
   margin-left: auto;
 }
 
+/* Nút toàn màn hình luôn neo phải; video không tiếng thì cụm tiếng ẩn nên nút tự đẩy sang phải. */
 .advertising-video-player__fullscreen {
+  margin-left: auto;
+}
+
+.advertising-video-player__volume:not([hidden]) + .advertising-video-player__fullscreen {
   margin-left: 10px;
 }
 

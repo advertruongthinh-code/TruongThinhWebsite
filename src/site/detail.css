@@ -1706,7 +1706,6 @@ body.is-advertising-browse .advertising-grid {
   flex: none;
   width: 100%;
   height: 100%;
-  object-fit: contain;
 }
 
 .advertising-card-media--carousel > img[hidden],
