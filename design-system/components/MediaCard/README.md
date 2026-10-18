@@ -13,8 +13,8 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 - Vào viewport khi ảnh chưa tải thì khung media mang ngay
   [skeleton](../Skeleton/README.md) cuối masonry, ảnh về thì hiện qua Kính
   `0.6s`; ảnh đã có sẵn hiện ngay, không motion ([Motion](../../motion.md#ảnh-trong-card)).
-- Card một ảnh: hover hoặc focus thì ảnh `scale(1.15)` trong `600ms`, khung
-  giữ nguyên.
+- Card masonry và related không zoom ảnh khi hover hay focus (owner
+  2026-10-18); focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
@@ -63,8 +63,11 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 - Vuốt ngang từ 40px đổi media, dừng ở hai đầu, không quay vòng; cuộn dọc
   vẫn native.
 - Chấm, nút trước và sau chỉ đổi media, không mở detail.
-- Đổi media tức thì, không trượt; ảnh tải lần đầu fade `0.6s ease-out`. Card
-  carousel không zoom khi hover.
+- Hover card nhiều media hiện mũi tên `<` `>` như pin Pinterest, dùng lại mũi
+  tên dải media của [Primary](../Primary/README.md#thumbnail-media): vuông
+  trắng 36px bo 10px, cách mép 16px, giữa canvas; ẩn ở media đầu, cuối; cảm
+  ứng không có mũi tên, đổi bằng vuốt.
+- Đổi media tức thì, không trượt; ảnh tải lần đầu fade `0.6s ease-out`.
 
 ### Focus và nhãn
 

@@ -759,7 +759,7 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   const image = document.createElement("img");
   image.className = suggestion
     ? "advertising-card-media__image media-hover-zoom"
-    : "advertising-tile__foreground advertising-card-media__image media-hover-zoom lazyload";
+    : "advertising-tile__foreground advertising-card-media__image lazyload";
   image.loading = "lazy";
   image.decoding = "async";
   image.width = record.media.width;
@@ -808,7 +808,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   figure.dataset[related ? "advertisingRelatedCard" : "advertisingCard"] = record.id;
   figure.dataset.advertisingCategory = record.category;
   const link = document.createElement("a");
-  link.className = "advertising-card-interactive media-hover-zoom-trigger";
+  // Card masonry và related không zoom media khi hover (owner 2026-10-18).
+  link.className = "advertising-card-interactive";
   link.href = `/${locale}/advertising-products/?category=${encodeURIComponent(record.category)}&photo=${encodeURIComponent(record.id)}`;
   const media = document.createElement("div");
   media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
@@ -842,7 +843,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       return node;
     };
     media.classList.add("advertising-card-media--carousel");
-    image.classList.remove("media-hover-zoom");
     image.hidden = !useLegacyCover;
     if (useLegacyCover) {
       image.dataset.advertisingMediaItem = items[coverIndex].id;
@@ -880,10 +880,22 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         "advertisingMediaNext", { "aria-label": english ? "Next media" : "Media tiếp" });
       indicator.append(previousButton, countStatus, nextButton);
     }
-    if (hasCarousel) figure.append(indicator);
+    // Mũi tên hover dùng lại mũi tên dải media của primary (pin Pinterest), ẩn ở media đầu, cuối.
+    const hoverSteps = hasCarousel ? [-1, 1].map((step) => {
+      const button = el("button", `advertising-photo-view__media-step advertising-photo-view__media-step--${step < 0 ? "prev" : "next"}`,
+        "", { "aria-label": step < 0 ? english ? "Previous media" : "Media trước" : english ? "Next media" : "Media tiếp" });
+      button.dataset.advertisingMediaHoverStep = String(step);
+      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${step < 0 ? "M15 5l-7 7 7 7" : "M9 5l7 7-7 7"}" /></svg>`;
+      return button;
+    }) : [];
+    if (hasCarousel) figure.append(indicator, ...hoverSteps);
 
     const updateIndicator = (index) => {
       buttons.forEach((button, buttonIndex) => button.setAttribute("aria-current", String(buttonIndex === index)));
+      hoverSteps.forEach((button) => {
+        const target = index + Number(button.dataset.advertisingMediaHoverStep);
+        button.hidden = target < 0 || target >= items.length;
+      });
       if (!numericIndicator) return;
       countStatus.textContent = `${index + 1}/${items.length}`;
       countStatus.setAttribute("aria-label", english
@@ -1017,6 +1029,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       onMediaChange(figure.dataset.advertisingActiveMediaId);
     };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
+    hoverSteps.forEach((button) => button.addEventListener("click",
+      () => selectMedia(activeIndex + Number(button.dataset.advertisingMediaHoverStep))));
     if (numericIndicator) {
       previousButton.addEventListener("click", () => selectMedia(activeIndex - 1));
       nextButton.addEventListener("click", () => selectMedia(activeIndex + 1));

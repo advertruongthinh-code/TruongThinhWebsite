@@ -2210,9 +2210,25 @@ body.is-advertising-browse .site-footer {
   stroke-width: 2;
 }
 
+.advertising-photo-view__media-step[hidden] {
+  display: none;
+}
+
+/* Card nhiều media trên masonry dùng cùng mũi tên, đặt giữa canvas (trên dải chấm 44px). */
+.advertising-tile > .advertising-photo-view__media-step {
+  top: calc(50% - 22px);
+}
+
 @media (hover: hover) {
-  .advertising-photo-view__hero-frame:hover > .advertising-photo-view__media-step {
+  :is(.advertising-photo-view__hero-frame, .advertising-tile):hover > .advertising-photo-view__media-step {
     opacity: 1;
+  }
+}
+
+/* Cảm ứng không hover: đổi media bằng vuốt, mũi tên vô hình không được chặn chạm vào media. */
+@media (hover: none) {
+  .advertising-photo-view__media-step {
+    display: none;
   }
 }
 

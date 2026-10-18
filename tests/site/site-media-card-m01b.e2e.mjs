@@ -1111,6 +1111,50 @@ test("M01b six media still use dot controls", async () => {
   } finally { await browser.close(); }
 });
 
+// Owner 2026-10-18: hover card nhiều media hiện mũi tên theo vị trí như pin Pinterest, card không zoom media;
+// cảm ứng không có mũi tên.
+test("M01b hover arrows step card media by position and the card media never zooms", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    for (const touch of [false, true]) {
+      const context = await browser.newContext(touch
+        ? { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
+        : { viewport: { width: 1440, height: 900 } });
+      const page = await context.newPage();
+      const artifact = manyImageArtifact();
+      const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
+      items.length = 3;
+      await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
+      await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+      await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+      const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+      await card.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(450);
+      const arrows = () => card.evaluate((node) => [...node.querySelectorAll("[data-advertising-media-hover-step]")]
+        .map((button) => getComputedStyle(button).display === "none" ? "-" : getComputedStyle(button).opacity).join(" "));
+      if (touch) {
+        assert.equal(await arrows(), "- -", "touch cards have no arrows");
+        await context.close();
+        continue;
+      }
+      assert.equal(await arrows(), "- 0", "arrows stay hidden until hover; first media has no previous arrow");
+      await card.locator(".advertising-card-media").hover();
+      await page.waitForTimeout(700);
+      assert.equal(await arrows(), "- 1", "hover shows only the next arrow on the first media");
+      assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").first()
+        .evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a), 1, "hover keeps card media still");
+      await card.locator('[data-advertising-media-hover-step="1"]').click();
+      await card.locator('[data-advertising-media-hover-step="1"]').click();
+      assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[2].id);
+      assert.equal(await arrows(), "1 -", "last media shows only the previous arrow");
+      assert.equal(new URL(page.url()).searchParams.get("photo"), null, "arrows never open detail");
+      await context.close();
+    }
+  } finally { await browser.close(); }
+});
+
 async function runWideCover(locale, related = false, mode = "normal") {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: locale === "vi" ? { width: 390, height: 844 } : { width: 1440, height: 900 } });
