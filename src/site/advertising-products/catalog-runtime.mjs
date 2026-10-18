@@ -74,6 +74,8 @@ const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
+// 30ms thay 33ms: rAF 60Hz lệch vài phần ms vẫn vẽ đúng mỗi 2 frame.
+const PHONE_CARD_FLOW = { width: 120, height: 80, frameInterval: 30 };
 // Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
 let sharedSkeletonFlow;
 const disposeSkeletonContext = (record) => {
@@ -1902,6 +1904,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       initialPhase: skeletonPhase(frame),
       direction,
       speedScale,
+      // Khung card trên điện thoại chạy cả lúc vuốt: một phần tư số pixel, vẽ mỗi 2 frame để giữ 60fps (R8, owner 18/10).
+      ...(skeletonPhone() ? PHONE_CARD_FLOW : {}),
     });
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
     skeletonFlowByFrame.set(frame, renderer);
@@ -1972,18 +1976,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
-  // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Điện thoại
-  // còn chờ swipe dừng: trace A05s cũ cho thấy dựng renderer giữa fling gây task trên 50ms (R5 "cuộn mượt thắng").
-  const skeletonMountWait = () => Math.max(motionUntil - performance.now(), skeletonPhone() ? phoneScrollWait() : 0);
+  // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Khung batch
+  // trên điện thoại còn chờ swipe dừng (R5 "cuộn mượt thắng"); khung card mount ngay lúc vuốt (owner 18/10).
+  const skeletonMountWait = (frame) => Math.max(motionUntil - performance.now(),
+    skeletonPhone() && frame.dataset.advertisingCtaFrame ? phoneScrollWait() : 0);
+  const pendingSkeletonMounts = () => [...skeletonMountWanted].filter((node) => node.isConnected && !skeletonFlowByFrame.has(node));
   const scheduleSkeletonMount = () => {
     if (skeletonMountTimer || controller.signal.aborted) return;
+    const wait = Math.min(...pendingSkeletonMounts().map(skeletonMountWait));
     skeletonMountTimer = setTimeout(() => {
       skeletonMountTimer = 0;
-      if (skeletonMountWait() > 0) {
+      const pending = pendingSkeletonMounts();
+      const frame = pending.find((node) => skeletonMountWait(node) <= 0);
+      // Chỉ còn khung batch đang chờ cuộn dừng: hẹn lại theo thời gian chờ nhỏ nhất.
+      if (!frame && pending.length) {
         scheduleSkeletonMount();
         return;
       }
-      const frame = [...skeletonMountWanted].find((node) => node.isConnected && !skeletonFlowByFrame.has(node));
       if (!frame || skeletonDocumentParked || controller.signal.aborted) return;
       if (sharedFlowFor(frame)) {
         mountSkeletonRenderer(frame);
@@ -2003,7 +2012,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       mountSkeletonRenderer(frame);
       // Vượt ngân sách hoặc mất context thì không mount gì; lần đổi visibility kế tiếp thử lại.
       if (skeletonFlowByFrame.has(frame)) syncSkeletonMotion();
-    }, Math.max(0, skeletonMountWait()));
+    }, Number.isFinite(wait) ? Math.max(0, wait) : 0);
   };
   controller.signal.addEventListener("abort", () => clearTimeout(skeletonMountTimer), { once: true });
   const startSkeletonEntry = (frame) => {
