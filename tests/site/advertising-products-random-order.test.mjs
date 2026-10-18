@@ -467,9 +467,9 @@ for (const scenario of [
 
 test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next photo in for 900ms without zoom, and pauses hidden/reduced/active/covered", async t => {
   const { mountSuggestionSlides } = await import("../../src/site/advertising-products/suggestion-slideshow.mjs");
-  const names = ["document", "innerHeight", "MutationObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
+  const names = ["document", "innerHeight", "MutationObserver", "IntersectionObserver", "matchMedia", "addEventListener", "removeEventListener", "setInterval", "clearInterval"];
   const saved = names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
-  let now = 0, nextTick = 0, cadence = 0, tick, reduced = false, active = false, covered = false, offscreen = false;
+  let now = 0, nextTick = 0, cadence = 0, tick, reduced = false, active = false, covered = false, intersect;
   const animations = [], created = [], inserted = [];
   const document = new EventTarget(), events = new EventTarget(), preference = new EventTarget();
   document.hidden = false;
@@ -479,17 +479,20 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   preference.matches = false;
   const button = {
     dataset: { advertisingSuggestionTag: "cadence-test" }, isConnected: true,
-    getBoundingClientRect: () => offscreen ? { top: 900, bottom: 980 } : { top: 20, bottom: 100 },
     getAttribute: () => active ? "true" : "false",
     querySelector: () => current,
     insertBefore: next => inserted.push(next),
   };
-  // Một nút nên vị trí của cụm trùng nút; slideshow dừng theo cả cụm, không theo nút lẻ.
-  const root = { hidden: false, querySelectorAll: () => [button], getBoundingClientRect: () => button.getBoundingClientRect() };
+  // Slideshow dừng theo cả cụm (một IntersectionObserver trên root), không theo nút lẻ.
+  const root = { hidden: false, querySelectorAll: () => [button] };
   let current;
   const globals = {
     document, innerHeight: 800,
     MutationObserver: class { observe() {} disconnect() {} },
+    IntersectionObserver: class {
+      constructor(callback) { intersect = isIntersecting => callback([{ isIntersecting }]); }
+      observe() {} disconnect() {}
+    },
     matchMedia: () => preference,
     addEventListener: events.addEventListener.bind(events),
     removeEventListener: events.removeEventListener.bind(events),
@@ -525,6 +528,7 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   current = createImage(cards[0]);
   created.length = 0;
   const cleanup = mountSuggestionSlides(root, { cards, createImage, isReduced: () => reduced, signal: new AbortController().signal });
+  intersect(true);
   t.after(() => {
     cleanup();
     for (const [name, descriptor] of saved) {
@@ -553,9 +557,9 @@ test("suggestion holds each photo 5000ms on its own zoom clock, pushes the next 
   current = inserted[0];
   fadeIn.dispatchEvent(new Event("finish"));
   await advance(2000);
-  offscreen = true; events.dispatchEvent(new Event("scroll"));
+  intersect(false);
   await advance(8000);
-  offscreen = false; events.dispatchEvent(new Event("scroll"));
+  intersect(true);
   await advance(2999);
   assert.equal(created.length, 1, "offscreen time does not count toward the five-second hold");
   await advance(1);
