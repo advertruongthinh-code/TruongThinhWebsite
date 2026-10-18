@@ -1037,9 +1037,12 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const layer = layers.get(items[activeIndex]?.id);
       return layer instanceof HTMLVideoElement && !layer.error ? layer : null;
     };
-    figure.advertisingSetMediaId = (id) => {
+    figure.advertisingSetMediaId = (id, videoTime = 0) => {
       const index = items.findIndex((item) => item.id === id);
-      if (index >= 0) setActive(index);
+      if (index < 0) return;
+      setActive(index);
+      const layer = layers.get(id);
+      if (videoTime && layer instanceof HTMLVideoElement) layer.currentTime = videoTime;
     };
     // Người xem đổi media (mũi tên, chấm, vuốt): đẩy ngang như nút suggestion; media cũ nằm chồng dưới tới khi đẩy xong.
     let push = null;
@@ -1320,6 +1323,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let relatedLayout;
   let activePhotoId = null;
   let activePrimaryMediaId = null;
+  // Mở detail từ card đang phát video: detail phát tiếp từ đúng giây đó (owner 2026-10-18); renderPhoto dùng một lần.
+  let videoHandoff = null;
   let activePrimaryItem = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
@@ -3586,6 +3591,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       || record.mediaItems?.find((item) => item.id === record.coverMediaId)
       || record.media;
     renderPrimaryMedia(record, selected, Boolean(previousPhotoId));
+    if (videoHandoff?.mediaId === selected.id && selected.kind === "video") photoVideo.currentTime = videoHandoff.time;
+    videoHandoff = null;
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
     descriptionSource = english ? record.descriptionEn : record.descriptionVi;
     descriptionPageIndex = 0;
@@ -3704,6 +3711,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
+    // Về masonry từ detail của chính card đó: card đứng ở media vừa xem, video ở đúng giây (owner 2026-10-18).
+    const viewedMediaId = previousPhotoId && previousPhotoId === browse.grid.focusId ? activePrimaryMediaId : null;
+    const viewedTime = viewedMediaId && photoVideo && !photoVideo.hidden ? photoVideo.currentTime : 0;
     const generation = ++detailRenderGeneration;
     photoViewer.close({ restoreFocus: false });
     settlePrimaryReveal();
@@ -3726,9 +3736,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (browse.category !== filter) setActiveFilter(browse.category);
     if (!geometry) measure();
     const node = focusId ? ensurePhoto(focusId) : null;
-    if (node && browse.grid.mediaId) {
-      gridMediaById.set(focusId, browse.grid.mediaId);
-      node.advertisingSetMediaId?.(browse.grid.mediaId);
+    const gridMediaId = viewedMediaId || browse.grid.mediaId;
+    if (node && gridMediaId) {
+      gridMediaById.set(focusId, gridMediaId);
+      node.advertisingSetMediaId?.(gridMediaId, viewedTime);
     }
     let restoredScrollY;
     if (reason === "navbar" && node && browse.grid.anchorOffset === null) {
@@ -3958,6 +3969,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
   };
 
+  const handOffVideo = (node) => {
+    const video = node.advertisingActiveVideo?.();
+    videoHandoff = video ? { mediaId: node.dataset.advertisingActiveMediaId, time: video.currentTime } : null;
+  };
   grid.addEventListener("click", (event) => {
     const link = event.target.closest("[data-advertising-card] > a");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -3976,6 +3991,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     // Scroll ngay trước tap chưa kịp vào entryScroll (scroll event đến frame sau); Back phải về đúng Y lúc tap.
     entryScroll.delete(entryIndex());
+    handOffVideo(card);
     browseHistory.openPhoto(card.dataset.advertisingCard, activeId || null);
   }, { signal: controller.signal });
   grid.addEventListener("keydown", (event) => {
@@ -4032,6 +4048,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Back trả về Y của lần tap, nên scroll còn đang lắng đến lúc push không ghi đè nó.
     if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
     const fromPhoto = browseHistory.current.photo;
+    handOffVideo(node);
     clearTimeout(relatedOpenTimer);
     relatedOpenTimer = setTimeout(() => {
       relatedOpenTimer = 0;

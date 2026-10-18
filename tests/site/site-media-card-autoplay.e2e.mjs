@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -42,9 +43,15 @@ function fixtureArtifact(playlist = false) {
 async function open({ width = 1440, height = 900, touch = false, reducedMotion = "no-preference", playlist = false } = {}) {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width, height }, isMobile: touch, hasTouch: touch, reducedMotion });
-  await page.route(`**${fixturePrefix}*`, (route) => {
-    const isVideo = route.request().url().endsWith(".mp4");
-    return route.fulfill({ path: isVideo ? clip : poster, contentType: isVideo ? "video/mp4" : "image/webp" });
+  await page.route(`**${fixturePrefix}*`, async (route) => {
+    if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
+    // Trả 206 theo Range để Chrome coi clip là seekable, giây video mới chuyển được giữa card và detail.
+    const body = await readFile(clip);
+    const [start, end = body.length - 1] = (/bytes=(\d+)-(\d*)/.exec(route.request().headers().range || "") || [])
+      .slice(1).filter(Boolean).map(Number);
+    if (start === undefined) return route.fulfill({ body, contentType: "video/mp4", headers: { "accept-ranges": "bytes" } });
+    return route.fulfill({ status: 206, body: body.subarray(start, end + 1), contentType: "video/mp4",
+      headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${body.length}` } });
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(playlist));
   await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
@@ -188,5 +195,65 @@ test("R4 reduced motion: no autoplay on scroll, hover still plays", async () => 
     await page.mouse.move(target.x, target.y);
     await page.waitForTimeout(600);
     assert.deepEqual((await videoState(page)).playing.map((video) => video.id), [target.id]);
+  } finally { await browser.close(); }
+});
+
+// Card và detail giữ đúng media và giây video khi đi qua lại (owner 2026-10-18): card sang detail, Back về masonry,
+// đổi ngôn ngữ trong detail.
+test("R4 desktop: the viewed media and video time carry from card to detail, back to masonry, and across locale", async () => {
+  const { browser, page } = await open({ playlist: true });
+  const detail = () => page.evaluate(() => {
+    const view = document.querySelector("[data-advertising-photo-view]");
+    const video = view.querySelector("[data-advertising-photo-video]");
+    return { mediaId: view.dataset.advertisingActiveMediaId, time: video.currentTime };
+  });
+  const card = (id) => page.evaluate((cardId) => {
+    const node = document.querySelector(`[data-advertising-card="${cardId}"]`);
+    return { mediaId: node.dataset.advertisingActiveMediaId, time: node.advertisingActiveVideo?.()?.currentTime ?? null };
+  }, id);
+  const seekCard = (id, time) => page.evaluate(({ cardId, seconds }) => {
+    document.querySelector(`[data-advertising-card="${cardId}"]`).advertisingActiveVideo().currentTime = seconds;
+  }, { cardId: id, seconds: time });
+  const seekDetail = (time) => page.evaluate(async (seconds) => {
+    const video = document.querySelector("[data-advertising-photo-video]");
+    video.pause();
+    video.currentTime = seconds;
+    await new Promise((resolve) => video.addEventListener("seeked", resolve, { once: true }));
+  }, time);
+  const openCard = async (id) => {
+    await page.locator(`[data-advertising-card="${id}"] > a`).click();
+    await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 1);
+  };
+  try {
+    await scrollAndSettle(page, false);
+    const { id } = (await playingSettled(page)).playing[0];
+    await seekCard(id, 1.2);
+    await openCard(id);
+    let state = await detail();
+    assert.equal(state.mediaId, `${id}-autoplay-video`, "detail opens on the card's media");
+    assert(state.time >= 1.2 && state.time < 3, `detail video continues from the card time: ${state.time}`);
+
+    for (let step = 0; step < 2; step += 1) {
+      await page.locator('[data-advertising-photo-media-step="1"]').click();
+      await page.waitForTimeout(950);
+    }
+    assert.equal((await detail()).mediaId, `${id}-autoplay-video-2`);
+    await seekDetail(2);
+    await page.goBack();
+    await page.waitForFunction(() => !document.body.classList.contains("is-advertising-photo"));
+    state = await card(id);
+    assert.equal(state.mediaId, `${id}-autoplay-video-2`, "Back leaves the card on the media viewed in detail");
+    assert(state.time >= 1.9, `the card video resumes from the detail time: ${state.time}`);
+
+    await seekCard(id, 1.5);
+    await openCard(id);
+    await seekDetail(1.5);
+    await page.locator("[data-menu-open]").click();
+    await page.locator('[data-language-option="en"]').first().click();
+    await page.waitForFunction(() => document.documentElement.lang === "en");
+    state = await detail();
+    assert.equal(state.mediaId, `${id}-autoplay-video-2`, "locale change keeps the media");
+    assert(state.time >= 1.45 && state.time < 3, `locale change keeps the video time: ${state.time}`);
   } finally { await browser.close(); }
 });

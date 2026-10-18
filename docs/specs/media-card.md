@@ -116,8 +116,10 @@ Then card về item 1 đã tải, chấm 1 có aria-current, không vòng lặp 
 
 ### R6. Media trong primary
 
-Mở từ card, primary bắt đầu ở media đang xem của card; vào thẳng hoặc reload trang card `p/<id>` bắt đầu ở cover; Back,
-Forward khôi phục media của entry; đổi ngôn ngữ giữ media đang xem. URL không có tham số media. Card có hơn một item,
+Mở từ card (masonry hoặc related), primary bắt đầu ở media đang xem của card, video phát tiếp từ đúng giây card đang
+phát; vào thẳng hoặc reload trang card `p/<id>` bắt đầu ở cover; Back, Forward khôi phục media của entry, Back về masonry
+từ detail của chính card đó thì card đứng ở media vừa xem trong detail, video ở đúng giây; đổi ngôn ngữ giữ media và
+giây đang xem (owner 2026-10-18). URL không có tham số media. Card có hơn một item,
 hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Product media" cạnh mô tả: mỗi nút tên "Xem ảnh|video
 i trên N: <alt>", thumbnail 60px bo 16px, đang xem `aria-current` có viền đôi, video có biểu tượng phát. Khung media
 theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung giữ tỷ lệ cover nên đổi media không đổi kích thước
@@ -126,7 +128,7 @@ tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo
 khung đổi media: đẩy ngang như card (R3, 0.9s), nền zoom blur cũ crossfade sang nền
 media mới cùng nhịp (owner 2026-10-18; reduced motion đổi ngay); chấm 8px ở đáy theo vị trí.
 Video vào khung phát lại từ đầu, giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
-Video primary tự phát tắt tiếng, lặp, `playsinline`, player theo trang pin
+Video primary tự phát tắt tiếng, lặp riêng nó (không chạy playlist như card, owner 2026-10-18), `playsinline`, player theo trang pin
 Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
 dải gradient đáy 128px (đen 0.4 lên trong suốt, lề 24px) có nút phát/dừng, thời gian "hiện tại / tổng" (16px đậm, tổng
 mờ 0.6), nút tiếng và thanh tua (track 4px, núm 12px, bấm, kéo, phím mũi tên). Dải hiện khi chuột trên video, khi focus
@@ -190,7 +192,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt, chặn click, chấm, bộ đếm, mũi tên hover); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (2 card gần giữa vùng, tính lại khi cuộn, playlist lặp, hover chiếm suất, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, nền blur video, toàn màn hình) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, nền blur video, toàn màn hình) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
@@ -221,8 +223,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Định dạng video: không lưu GIF public; owner chọn 03/10 AV1/WebM kèm MP4 H.264, poster WebP
   ([quyết định](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/8138757/tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)). Code gán một `src` cho
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.
-- Thời điểm phát video qua Back, Forward, đổi ngôn ngữ và khi chuyển masonry sang detail chưa chốt; không tự bật lại âm
-  thanh hay hứa giữ thời điểm. Owner.
+- Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry, đổi ngôn ngữ), không ghi vào history state:
+  Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
 - Chấm 8px theo UI chấm Gallery (owner 2026-10-17), test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
   của Gallery để giữ vùng bấm 20×44px.
 - Mọi asset của card đều lỗi: chưa có UI kết thúc riêng. Owner chọn UI; Thread code.
