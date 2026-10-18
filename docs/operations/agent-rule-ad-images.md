@@ -5,6 +5,22 @@
 [Content và media](../../design-system/content.md); bối cảnh hợp ngành của
 khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/advertising-client-products.md).
 
+## Chữ và tên trong media
+
+Áp dụng cho ảnh, video và âm thanh (lời thoại, jingle) (owner chốt 2026-10-18):
+
+- tên trên sản phẩm (biển, backdrop, bao bì, menu, bảng tên, cúp) không dùng danh
+  từ riêng hay tên thương hiệu; dùng danh từ chung nói rõ tiệm làm gì ("Sửa xe",
+  "Nước giải khát") kèm dòng phụ;
+- từ xưng hô Nam Bộ (cô Ba, chú Tư, bà Năm) chỉ dùng ở bối cảnh bình dân, thân
+  thuộc, gần gũi, hoặc niche sản phẩm cao cấp phong cách hoài cổ; không dùng ở văn
+  phòng, hội nghị, showroom, tiệc cưới, nhà hàng;
+- trong một bộ media (masonry, chuỗi video) không lặp một từ xưng hô nhiều lần;
+- chữ tiếng Việt phải là từ có thật, đúng từng chữ; tên món là món phổ biến ở địa
+  phương (kẹo dừa, kẹo chuối), không chữ lỗi hay chữ vô nghĩa;
+- tay đỡ, thanh sắt bắt từ tường ra bảng vẫy hoặc từ trần xuống bảng treo: xem ảnh
+  thực tế ở địa phương trước, làm chỉnh chu, hiện đại, gọn; không tạm bợ, cẩu thả.
+
 ## Tạo ảnh
 
 1. **Tham khảo trước.** Mỗi brief có 2 đến 4 ảnh thực tế ở Việt Nam, tìm trên
@@ -19,7 +35,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    bố cục. Model được tự sáng tạo trong khuôn khổ rule, đúng sản phẩm Trường Thịnh
    làm và dựng được thật (owner chốt 2026-10-17). Bối cảnh nằm trong vùng địa lý đã
    khảo sát ([SEO R2](../specs/seo.md)). Không tên thương hiệu, logo hay nhãn hàng
-   thật; tên tiệm, công ty trên biển là tên tự đặt, không trùng thương hiệu có thật.
+   thật; tên trên biển theo [Chữ và tên trong media](#chữ-và-tên-trong-media).
    Brief nào cũng phải:
    - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
      máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
@@ -60,9 +76,6 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      nhiễu ảnh, không từ vết bẩn (owner chốt 2026-10-14). Quán xưa cũ có gu là
      niche được giữ: không gian làm nền, sản phẩm nổi bật và hợp chất liệu với
      không gian (hộp đèn khung gỗ trong quán cổ).
-   - hạn chế chữ xưng hô (cô, chú, dì, bà) trên biển; chỉ dùng khi không gian mộc
-     mạc, bình dân, thân thuộc với người địa phương và đúng món đang bán; không
-     dùng ở nhà hàng sang, resort, khách sạn, siêu thị (owner chốt 2026-10-14).
    - ảnh như chụp bằng máy ảnh thật: ánh sáng tự nhiên, nhiễu cảm biến, độ sâu
      trường ảnh; không bề mặt mịn bóng kiểu dựng 3D (owner chốt 2026-10-13);
    - nội thất đúng công năng: lối đi, chân cầu thang thông thoáng; sofa quay vào
