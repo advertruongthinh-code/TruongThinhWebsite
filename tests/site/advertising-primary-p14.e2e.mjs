@@ -1112,7 +1112,8 @@ await runPageCase(browser, {
 await runPageCase(browser, {
   label: "sparse-related-vi-kiosk-posm-01-1569x912", locale: "vi", id: "kiosk-posm-01",
   viewport: { width: 1569, height: 912 }, tag: "product-kiosk-posm-product-01",
-  sparseTag: true, normalCopyFit: true,
+  // Tag có 7 ảnh (thêm kiosk-posm-53) nên related đúng 6 card cùng tag.
+  sparseTag: true, normalCopyFit: true, expectedRelatedCount: 6,
 });
 await runPageCase(browser, {
   label: "touch-vi-kiosk-posm-07-390x844", locale: "vi", id: "kiosk-posm-07",

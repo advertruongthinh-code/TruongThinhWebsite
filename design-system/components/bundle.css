@@ -2180,6 +2180,49 @@ em {
   }
 }
 
+/* Ảnh lỗi tải (media-delivery R8): script head thêm .is-media-error lên khung. Khung giữ tỷ lệ, nền xám phẳng, biểu tượng 24px và một dòng
+   chữ nằm dưới nội dung khung (z-index -1 trong isolation) nên chữ hero, portal, CTA vẫn ở trên. Advertising có luồng lỗi riêng nên bị loại: muốn dùng lại cùng dấu thì bỏ khung của nó khỏi :not() ở mọi selector bên dưới. */
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) {
+  --media-error-surface: #e4e4e2;
+  --media-error-ink: #5c5c5a;
+  --media-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c5a' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V11'/%3E%3Cpath d='m4 16 4.5-4.5 3 3'/%3E%3Cpath d='m14 14 1.5-1.5 4.5 4.5'/%3E%3Cpath d='M16 4l-2 3 3 2-2 3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.25'/%3E%3C/svg%3E");
+  isolation: isolate;
+}
+
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) > img,
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) > picture > img {
+  visibility: hidden;
+}
+
+.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *)::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 32px 8px 0;
+  background: var(--media-error-icon) no-repeat 50% calc(50% - 11px) / 24px, var(--media-error-surface);
+  color: var(--media-error-ink);
+  content: "Không tải được";
+  font: 500 0.75rem/1.4 "Plus Jakarta Sans", Arial, sans-serif;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: none;
+  pointer-events: none;
+}
+
+.media-gate:lang(en) .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *)::before {
+  content: "Couldn't load";
+}
+
+/* Hero, CTA, portal mang chữ trắng nên giữ nền tối như trước khi có dấu báo lỗi để chữ vẫn đọc được. */
+.media-gate :is(.hero-slide, .about-hero__media, .service-portal, .detail-cta, .legacy-closer).is-media-error {
+  --media-error-surface: var(--media-loading-surface);
+  --media-error-ink: #b8b8b6;
+  --media-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8b8b6' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V11'/%3E%3Cpath d='m4 16 4.5-4.5 3 3'/%3E%3Cpath d='m14 14 1.5-1.5 4.5 4.5'/%3E%3Cpath d='M16 4l-2 3 3 2-2 3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.25'/%3E%3C/svg%3E");
+}
+
 @keyframes marquee {
   to {
     transform: translateX(-100%);

@@ -108,7 +108,7 @@ And các khối cùng loại có cùng line-height tính theo cỡ chữ
 
 ### R5. Ngoài phạm vi
 
-Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1.
+Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1. Ngoại lệ: dấu câu EN theo VI (owner 2026-10-18, [rule](../operations/agent-rule-product-ui.md)); hero trang chủ EN không dấu chấm, hero About EN là "Proven craft. / Earned trust.".
 
 ## UI
 

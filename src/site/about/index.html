@@ -6,7 +6,7 @@
     <meta
       name="description"
       content="Câu chuyện Trường Thịnh: hơn 20 năm vững nghề, một cách làm bắt đầu từ khảo sát đúng và cam kết làm chắc để đi đường dài."
-      data-en-content="The Trường Thịnh story: more than 20 years at the craft, a process that begins with a proper site survey, and a commitment to build for the long run."
+      data-en-content="The Trường Thịnh story: more than 20 years at the craft, a process that begins with a proper site survey and a commitment to build for the long run."
     />
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/svg+xml" href="/assets/brand/favicon-black.svg" media="(prefers-color-scheme: light)" />
@@ -25,14 +25,17 @@
       // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
       document.documentElement.classList.add("media-gate");
       (() => {
-        const settle = (image) => {
+        // failed: ảnh lỗi tải thì khung nhận thêm .is-media-error để CSS vẽ dấu báo lỗi (media-delivery R8).
+        const settle = (image, failed = false) => {
           const parent = image.parentElement;
+          const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
           parent?.classList.add("is-media-settled");
-          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+          frame?.classList.add("is-media-settled");
+          frame?.classList.toggle("is-media-error", failed);
         };
         const isImage = (target) => target.tagName === "IMG";
         document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
-        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
         // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
         // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
         const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {
@@ -50,6 +53,7 @@
           && [node, ...node.querySelectorAll("img")].forEach((image) => {
             if (image.matches(fitted)) fit.observe(image);
             if (isImage(image) && image.complete && image.naturalWidth) image.decode().catch(() => {}).then(() => settle(image));
+            else if (isImage(image) && image.complete && image.currentSrc) settle(image, true);
           }))))
           .observe(document, { childList: true, subtree: true });
       })();
@@ -256,7 +260,7 @@
                 <span
                   class="detail-title__quiet"
                   data-motion-word-source
-                  data-en="Craft, proven."
+                  data-en="Proven craft."
                 >
                   Vững nghề.
                 </span>
@@ -265,7 +269,7 @@
                 <span
                   class="detail-title__strong"
                   data-motion-word-source
-                  data-en="Trust, earned."
+                  data-en="Earned trust."
                 >
                   Vững niềm tin.
                 </span>
@@ -375,7 +379,7 @@
                 Câu chuyện bắt đầu từ việc làm nghề nghiêm túc:
               </strong>
               <span
-                data-en="measure accurately, understand the material, and finish each detail with patience."
+                data-en="measure accurately, understand the material and finish each detail with patience."
               >
                 đo cho đúng, hiểu vật liệu và hoàn thiện từng chi tiết bằng sự
                 kiên nhẫn.
@@ -473,13 +477,13 @@
           class="detail-process section-gap"
           data-header-tone="ink"
           aria-label="Khảo sát, tư vấn, sản xuất, lắp đặt và hậu mãi"
-          data-en-aria-label="Survey, consultation, production, installation, and after-sales"
+          data-en-aria-label="Survey, consultation, production, installation and after-sales"
         >
           <article class="process-step" data-motion-up>
             <span>01</span>
             <h3 data-en="Survey">Khảo sát</h3>
             <p
-              data-en="Measure the existing site, listen to the need, and record the constraints to solve."
+              data-en="Measure the existing site, listen to the need and record the constraints to solve."
             >
               Đo hiện trạng, lắng nghe nhu cầu và ghi nhận những ràng buộc cần
               giải quyết.
@@ -489,7 +493,7 @@
             <span>02</span>
             <h3 data-en="Consultation">Tư vấn</h3>
             <p
-              data-en="Align function, materials, finish level, and the scope of work."
+              data-en="Align function, materials, finish level and the scope of work."
             >
               Cùng thống nhất công năng, vật liệu, mức hoàn thiện và phạm vi
               công việc.
@@ -509,7 +513,7 @@
             <span>04</span>
             <h3 data-en="Installation">Lắp đặt</h3>
             <p
-              data-en="Align on site, inspect the finish, and review the work before handover."
+              data-en="Align on site, inspect the finish and review the work before handover."
             >
               Căn chỉnh tại hiện trường, kiểm tra hoàn thiện và cùng rà soát
               trước bàn giao.
@@ -519,7 +523,7 @@
             <span>05</span>
             <h3 data-en="After-sales">Hậu mãi</h3>
             <p
-              data-en="Maintain, adjust, and support after handover so the work lasts in daily use."
+              data-en="Maintain, adjust and support after handover so the work lasts in daily use."
             >
               Bảo trì, căn chỉnh và hỗ trợ sau bàn giao để công trình bền trong
               sử dụng hằng ngày.
@@ -541,7 +545,7 @@
           </p>
           <p>
             <span
-              data-en="Five steps are not five separate hand-offs. The measurements, decisions, and constraints recorded at the start must follow the project to the installation team and on into after-sales."
+              data-en="Five steps are not five separate hand-offs. The measurements, decisions and constraints recorded at the start must follow the project to the installation team and on into after-sales."
             >
               Năm bước không phải năm lần bàn giao rời rạc. Số đo, quyết định
               và ràng buộc ghi nhận từ đầu cần đi cùng công trình đến tận đội
@@ -629,7 +633,7 @@
           </p>
           <p>
             <span
-              data-en="A commitment is not a grand statement. It is spotting a problem early, discussing it clearly, and seeing the agreed work through to completion."
+              data-en="A commitment is not a grand statement. It is spotting a problem early, discussing it clearly and seeing the agreed work through to completion."
             >
               Cam kết không nằm ở một câu nói lớn. Nó nằm ở việc nhìn ra vấn đề
               sớm, trao đổi rõ và hoàn thiện đến cùng phần việc đã thống nhất.
@@ -666,7 +670,7 @@
             <span>01</span>
             <h3 data-en="Understand before building">Hiểu trước khi làm</h3>
             <p
-              data-en="Clarify the site, the need, and the constraints before choosing a solution."
+              data-en="Clarify the site, the need and the constraints before choosing a solution."
             >
               Làm rõ mặt bằng, nhu cầu và ràng buộc trước khi chọn giải pháp.
             </p>
@@ -679,7 +683,7 @@
             <span>02</span>
             <h3 data-en="Be clear at every step">Rõ ở từng bước</h3>
             <p
-              data-en="Keep decisions visible so design, production, and installation stay aligned."
+              data-en="Keep decisions visible so design, production and installation stay aligned."
             >
               Giữ quyết định rõ ràng để thiết kế, sản xuất và lắp đặt cùng một
               hướng.

@@ -10,7 +10,7 @@
     <meta
       name="description"
       content="Trường Thịnh thiết kế, sản xuất và thi công nội thất nhà ở, nội thất kinh doanh và công trình quảng cáo."
-      data-en-content="Trường Thịnh designs, manufactures, and builds residential interiors, commercial interiors, and advertising structures."
+      data-en-content="Trường Thịnh designs, manufactures, and builds residential interiors, commercial interiors and advertising structures."
     />
     <meta name="theme-color" content="#ffffff" />
     <script>
@@ -25,14 +25,17 @@
       // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
       document.documentElement.classList.add("media-gate");
       (() => {
-        const settle = (image) => {
+        // failed: ảnh lỗi tải thì khung nhận thêm .is-media-error để CSS vẽ dấu báo lỗi (media-delivery R8).
+        const settle = (image, failed = false) => {
           const parent = image.parentElement;
+          const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
           parent?.classList.add("is-media-settled");
-          if (parent?.tagName === "PICTURE") parent.parentElement?.classList.add("is-media-settled");
+          frame?.classList.add("is-media-settled");
+          frame?.classList.toggle("is-media-error", failed);
         };
         const isImage = (target) => target.tagName === "IMG";
         document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
-        document.addEventListener("error", ({ target }) => isImage(target) && settle(target), true);
+        document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
         // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
         // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
         const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {
@@ -50,6 +53,7 @@
           && [node, ...node.querySelectorAll("img")].forEach((image) => {
             if (image.matches(fitted)) fit.observe(image);
             if (isImage(image) && image.complete && image.naturalWidth) image.decode().catch(() => {}).then(() => settle(image));
+            else if (isImage(image) && image.complete && image.currentSrc) settle(image, true);
           }))))
           .observe(document, { childList: true, subtree: true });
       })();
@@ -426,7 +430,7 @@
               <span class="hero-line-mask">
                 <span
                   ><span class="hero-word" data-en="Built">Làm</span>
-                  <span class="hero-word"><span data-en="solid">chắc</span><span class="text-hang-end" data-en="." data-vi=""></span></span></span
+                  <span class="hero-word"><span data-en="solid">chắc</span></span></span
                 >
               </span>
               <span class="hero-line-mask">
@@ -434,9 +438,7 @@
                   ><em
                     ><span class="hero-word" data-en="Made">Làm</span>
                     <span class="hero-word"
-                      ><span data-en="different">khác</span
-                      ><span class="text-hang-end" data-en="." data-vi=""></span
-                    ></span></em
+                      ><span data-en="different">khác</span></span></em
                   ></span
                 >
               </span>
