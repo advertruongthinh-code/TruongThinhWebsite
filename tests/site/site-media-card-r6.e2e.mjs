@@ -195,8 +195,8 @@ async function runCard(locale, count, surface, width) {
       && Math.abs(initial.indicator.bottom - initial.card.bottom) <= 1
       && Math.abs(initial.indicator.height - 44) <= 1,
     `${label} indicator must occupy the dedicated footer: ${JSON.stringify(initial)}`);
-    assert.equal(initial.controls.length, count >= 7 ? 2 : count);
-    if (count >= 7) {
+    assert.equal(initial.controls.length, count >= 6 ? 2 : count);
+    if (count >= 6) {
       assert(initial.controls.every((control) => control.box.width >= 44 && control.box.height >= 44),
         `${label} numeric targets must be 44x44: ${JSON.stringify(initial.controls)}`);
       assert(inside(initial.count, initial.indicator), `${label} numeric count must fit the footer`);
@@ -234,18 +234,18 @@ async function runCard(locale, count, surface, width) {
       await page.screenshot({ path: path.join(outputDir, `r6-${label}.png`) });
     }
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-video`);
-    const control = count >= 7 ? card.locator("[data-advertising-media-next]")
+    const control = count >= 6 ? card.locator("[data-advertising-media-next]")
       : card.locator(`[data-advertising-media-select="${cardId}-r6-image-${count}"]`);
-    const controlBox = initial.controls.find((item) => item.id === (count >= 7 ? "next" : `${cardId}-r6-image-${count}`)).box;
+    const controlBox = initial.controls.find((item) => item.id === (count >= 6 ? "next" : `${cardId}-r6-image-${count}`)).box;
     let clickError = null;
     try { await page.mouse.click(controlBox.right - 3, controlBox.top + controlBox.height / 2); }
     catch (error) { clickError = error.message.split("\n").slice(0, 8).join(" "); }
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}-pointer.json`),
       JSON.stringify({ initial, clickError }, null, 2));
     assert.equal(clickError, null, `${label} real pointer click must reach its control: ${clickError}`);
-    const expectedId = `${cardId}-r6-image-${count >= 7 ? 2 : count}`;
+    const expectedId = `${cardId}-r6-image-${count >= 6 ? 2 : count}`;
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), expectedId);
-    if (count < 7) assert.equal(await control.getAttribute("aria-current"), "true");
+    if (count < 6) assert.equal(await control.getAttribute("aria-current"), "true");
     else assert.equal(await card.locator("[data-advertising-media-count]").textContent(), `2/${count}`);
     assert.equal(page.url(), url, "media selection does not open detail or change URL");
     const after = await geometry(card);

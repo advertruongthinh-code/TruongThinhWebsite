@@ -871,7 +871,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
 
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
-    const numericIndicator = items.length >= 7;
+    // 2-5 media dùng chấm; từ 6 media dùng bộ đếm i/N trong dải (owner 2026-10-18).
+    const numericIndicator = items.length >= 6;
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
         ? `Show media ${index + 1} of ${items.length}`

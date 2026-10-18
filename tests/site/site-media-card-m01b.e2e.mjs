@@ -1027,7 +1027,7 @@ async function runNumericIndicator(locale, viewport, mobile) {
         dots: node.querySelectorAll("[data-advertising-media-select]").length };
     });
     assert.equal(initial.layers, 1, "eleven items are not instantiated eagerly");
-    assert.equal(initial.dots, 0, "seven or more items use no dot controls");
+    assert.equal(initial.dots, 0, "six or more items use no dot controls");
     assert.equal(initial.activeId, fixtureId);
     assert.equal(await count.textContent(), "1/11");
     assert.equal(await count.getAttribute("role"), "status");
@@ -1092,12 +1092,12 @@ test("M01b eleven media use numeric navigation on VI mobile", async () => {
   await runNumericIndicator("vi", { width: 390, height: 844 }, true);
 });
 
-test("M01b six media still use dot controls", async () => {
+test("M01b five media still use dot controls", async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
     const artifact = manyImageArtifact();
-    artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 6;
+    artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 5;
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
@@ -1106,7 +1106,7 @@ test("M01b six media still use dot controls", async () => {
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
-    assert.equal(await card.locator("[data-advertising-media-select]").count(), 6);
+    assert.equal(await card.locator("[data-advertising-media-select]").count(), 5);
     assert.equal(await card.locator("[data-advertising-media-count]").count(), 0);
   } finally { await browser.close(); }
 });

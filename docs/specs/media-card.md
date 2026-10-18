@@ -61,8 +61,8 @@ And chuyển sang video chậm tải thì khung card, canvas, dải lệch tối
 
 ### R3. Đổi media trên card
 
-2–6 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
-xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 7 item: nút "Media trước" / "Previous
+2–5 item: một hàng chấm trong dải (UI chấm của [Gallery](../../design-system/components/Gallery/README.md)), mỗi chấm là nút 20×44px tên "Xem media i trên N" / "Show media i of N", chấm đang
+xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item (owner 2026-10-18): nút "Media trước" / "Previous
 media" và "Media tiếp" / "Next media" 44×44px, bộ đếm `i/N` (`role="status"`, `aria-live="polite"`); nút trước vô hiệu ở
 item đầu, nút sau ở item cuối. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
@@ -193,7 +193,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
 - Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm; chờ ảnh nhiều góc thật, `placeholder-media.mjs`
-  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước, `main` để rỗng.
+  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước (có card 6–9 media trộn 2–3 video), `main` để rỗng.
   Chưa có clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About

@@ -50,17 +50,20 @@ mkdirSync(outputDir, { recursive: true });
 
 const result = {};
 chosen.forEach((card, index) => {
-  // 5 card đầu từ 7 item để có bộ đếm; còn lại 3 tới 5 item để có hàng chấm. Mỗi card thứ ba có một video.
-  const total = index < 5 ? 7 + (index % 3) : 3 + (index % 3);
   // Tỷ lệ tối giản quá lớn thì video phải gần full size; bỏ video cho card đó để giữ file nhẹ.
   const videoSize = outputSize(card.media, true);
-  const withVideo = index % 3 === 0 && Math.max(videoSize.width, videoSize.height) <= 1280;
+  const videoFits = Math.max(videoSize.width, videoSize.height) <= 1280;
+  // 5 card đầu 7 tới 9 ảnh; card 5 tới 9 làm được video thành 6 tới 9 item với 2 hoặc 3 video trộn ảnh (owner 2026-10-18:
+  // một card có nhiều video, nhiều ảnh; từ 6 media có bộ đếm); còn lại 3 tới 5 item, mỗi card thứ ba có một video.
+  const rich = index >= 5 && index < 10 && videoFits;
+  const total = index < 5 ? 7 + (index % 3) : rich ? 6 + (index % 4) : 3 + (index % 3);
+  const videoCount = rich ? 2 + (index % 2) : index % 3 === 0 && videoFits ? 1 : 0;
   const peers = ADVERTISING_MEDIA_MANIFEST.filter((other) => other.id !== card.id && other.productKey === card.productKey);
   const ratioPeers = peers.filter((other) => sameRatio(other.media, card.media));
   const imageSize = outputSize(card.media);
   const items = [];
 
-  for (let n = 0; items.length < total - 1 - (withVideo ? 1 : 0); n += 1) {
+  for (let n = 0; items.length < total - 1 - videoCount; n += 1) {
     // Ưu tiên ảnh khác cùng sản phẩm, cùng tỷ lệ; hết thì nhân bản cover với vùng crop khác.
     const base = ratioPeers[n] ?? card;
     const crop = base === card ? CROPS[(n % (CROPS.length - 1)) + 1] : CROPS[0];
@@ -75,10 +78,13 @@ chosen.forEach((card, index) => {
     });
   }
 
-  if (withVideo) {
-    const frames = [card, ...peers].slice(0, 4);
-    const shots = frames.length > 1 ? frames.map((frame) => [frame, CROPS[0]]) : CROPS.slice(0, 3).map((crop) => [card, crop]);
-    const id = `${card.id}-v1`;
+  for (let v = 0; v < videoCount; v += 1) {
+    // Video thứ v xoay vòng ảnh nguồn và vùng crop để các video trong một card khác nhau.
+    const pool = [card, ...peers];
+    const frames = [...pool.slice(v % pool.length), ...pool.slice(0, v % pool.length)].slice(0, 4);
+    const shots = frames.length > 1 ? frames.map((frame) => [frame, CROPS[v % CROPS.length]])
+      : [0, 1, 2].map((i) => [card, CROPS[(i + v) % CROPS.length]]);
+    const id = `${card.id}-v${v + 1}`;
     const file = path.join(outputDir, `${id}.mp4`);
     const poster = path.join(outputDir, `${id}-poster.webp`);
     const segmentFrames = Math.round(SEGMENT_SECONDS * FPS);
@@ -95,9 +101,9 @@ chosen.forEach((card, index) => {
       "-map", `[${last}]`, "-an", "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-movflags", "+faststart", file]);
     ffmpeg(["-i", file, "-frames:v", "1", "-quality", "72", poster]);
     const durationSeconds = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
-    items.splice(0, 0, {
+    items.splice(v * 2, 0, {
       id, kind: "video", src: `${outputUrl}/${id}.mp4`, sourceId: `placeholder:${id}`, ...videoSize,
-      altVi: `Video minh họa: ${card.titleVi}`, altEn: `Illustrative video: ${card.titleEn}`,
+      altVi: `Video minh họa${v ? ` ${v + 1}` : ""}: ${card.titleVi}`, altEn: `Illustrative video${v ? ` ${v + 1}` : ""}: ${card.titleEn}`,
       source: `${outputUrl}/${id}.mp4`, sha256: sha256(file),
       provenance: `Placeholder slideshow built with ffmpeg from ${frames.map((frame) => frame.id).join(", ")}; replace with real product video.`,
       posterSrc: `${outputUrl}/${id}-poster.webp`, posterWidth: videoSize.width, posterHeight: videoSize.height,
