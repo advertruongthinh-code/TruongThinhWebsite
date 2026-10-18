@@ -657,7 +657,7 @@ function assertPersistentNavigationContracts() {
       /link\.matches\([\s\S]*?\)\s*&&\s*isExactCurrentUrl\(destination\)[\s\S]*?event\.preventDefault\(\)[\s\S]*?event\.stopImmediatePropagation\(\)/.test(
         motionSource,
       ) &&
-      /const currentParentLink =[\s\S]*?residential\|commercial\|advertising-products[\s\S]*?has\("photo"\)[\s\S]*?setPageScroll\(pageState, 0, \{ instant: true \}\);[\s\S]*?closeMenu\(false\)/.test(
+      /const currentParentLink =[\s\S]*?residential\|commercial\|advertising-products[\s\S]*?isAdvertisingPhotoUrl\([\s\S]*?setPageScroll\(pageState, 0, \{ instant: true \}\);[\s\S]*?closeMenu\(false\)/.test(
         motionSource,
       ) &&
       !/\.menu-nav a\[aria-current="page"\]\s*\{[\s\S]*?pointer-events:\s*none;/.test(styleSource) &&
@@ -7702,7 +7702,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".advertising-tile__foreground");
         return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/?category=displays-booths&photo=kiosk-posm-01", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
+      assert(localizedCard.filter === "All" && localizedCard.captionCount === 0 && localizedCard.alt === "Exhibition booths made by Trường Thịnh" && localizedCard.href === "/en/advertising-products/p/kiosk-posm-01/", `English catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedCard)}`);
 
       await switchLanguage("vi");
       await virtualizeKiosk();
@@ -7712,7 +7712,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".advertising-tile__foreground");
         return { filter: document.querySelector('[data-advertising-filter="all"]')?.textContent?.trim(), captionCount: card?.querySelectorAll("figcaption").length, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/?category=displays-booths&photo=kiosk-posm-01", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.captionCount === 0 && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or title-removal contract did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
       await page.locator(".advertising-tile a").first().focus();
       await page.evaluate(() => document.querySelector('[data-advertising-filter="mobile-retail"]')?.click());
@@ -13351,7 +13351,7 @@ async function runP13NavbarChecks() {
         const residential = await exercisePhysicalHeader(page, "/vi/residential/", input.touch);
         const advertising = await exercisePhysicalHeader(
           page,
-          "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07",
+          "/vi/advertising-products/p/kiosk-posm-07/",
           input.touch,
           true,
         );
