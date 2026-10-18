@@ -242,6 +242,7 @@
       "specs": ["media-card", "glass-surface"],
       "tests": [
         "node tests/site/glass-surface.e2e.mjs",
+        "node tests/site/site-media-card-autoplay.e2e.mjs",
         "node tests/site/site-media-card-m01b.e2e.mjs",
         "node tests/site/site-media-card-m02a.e2e.mjs",
         "node tests/site/site-media-card-r6.e2e.mjs"

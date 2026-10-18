@@ -8,6 +8,7 @@ tests:
   - tests/site/site-media-card-m01b.e2e.mjs
   - tests/site/site-media-card-r6.e2e.mjs
   - tests/site/site-media-card-m02a.e2e.mjs
+  - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
 updated: 2026-10-15
@@ -155,7 +156,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `advertising-products-layout.test.mjs` (dải 44px); `site-media-card-r6.e2e.mjs` (rect ổn định, singleton không dải) |
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt, chặn click, chấm, bộ đếm); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
-| R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); lịch phát và hover chưa có test tự động, kiểm tay bằng Playwright |
+| R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (một video trong vùng, hết vòng đổi card, hover, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
 | R6 | `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, unmount) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
@@ -176,7 +177,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   video trong vùng thì không autoplay. Solver ưu tiên mềm phân tán ứng viên, không đổi thứ tự, seed, hình học, không
   thêm filler. Solver chưa phân tán ứng viên; Main đo fallback solver trên viewport thật trước khi sửa layout.
 - Lịch phát (R4) đã code trên branch xem trước. Owner 2026-10-17 bỏ nút phát trên touch theo Pinterest; card video
-  trên touch chỉ tự phát trong vùng. Item video active (không chỉ cover) được vào lượt. Chưa có test tự động.
+  trên touch chỉ tự phát trong vùng. Item video active (không chỉ cover) được vào lượt.
 - Vùng tải trước đã duyệt: rộng hơn viewport, chuẩn bị poster, metadata trước, không cố tải cả file; đề xuất preload
   metadata cho video kế trong vùng đệm. Code chỉ tạo video khi item thành active, `preload="metadata"`. Ngân sách byte,
   lề preload, buffer chưa khóa, cần clip thật và trace thiết bị. Owner gửi clip; Main trace.
