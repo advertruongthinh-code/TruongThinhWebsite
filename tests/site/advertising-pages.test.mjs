@@ -13,7 +13,6 @@ const artifact = buildAdvertisingArtifact();
 
 test("taxonomy R4, R5: một trang mỗi cụm và mỗi sản phẩm đủ ngưỡng, cả hai locale", () => {
   assert.equal(ADVERTISING_PAGES.filter(({ filter }) => !filter.includes("/")).length, 6);
-  assert.equal(ADVERTISING_PAGES.some(({ filter }) => filter === "printing-decals/menus"), false, "sản phẩm dưới 9 ảnh không có trang");
   for (const page of ADVERTISING_PAGES) {
     for (const locale of ["vi", "en"]) {
       assert.ok(existsSync(new URL(`../../.site-output/${locale}/advertising-products/${page[locale]}/index.html`, import.meta.url)), `${locale} ${page.filter}`);
@@ -55,7 +54,6 @@ test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có tra
   const chips = [...html.matchAll(/<a class="rail-chip" href="([^"]+)" data-en-href="([^"]+)" data-advertising-product="([^"]+)"/g)]
     .map(([, vi, en, id]) => ({ vi, en, id }));
   assert.deepEqual(chips.map(({ id }) => id).sort(), artifact.products.filter(({ id }) => count(id) >= 3).map(({ id }) => id).sort(), "một chip mỗi sản phẩm từ 3 ảnh");
-  assert.ok(chips.some(({ id }) => count(id) < 9), "có chip của sản phẩm 3 tới 8 ảnh");
   for (const { vi, en, id } of chips) {
     const page = ADVERTISING_PAGES.find(({ filter }) => filter === id);
     assert.equal(Boolean(page), count(id) >= 9, `${id}: trang khi và chỉ khi đủ 9 ảnh`);
@@ -66,8 +64,10 @@ test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có tra
   }
   const clusterPage = await read("vi/advertising-products/in-an-decal/index.html");
   assert.match(clusterPage, /<link rel="canonical" href="\/vi\/advertising-products\/in-an-decal\/"/);
-  assert.doesNotMatch(clusterPage.match(/<noscript>([\s\S]*?)<\/noscript>/)[1], /href="\/vi\/advertising-products\/in-an-decal\/menu\//, "noscript không link sản phẩm chưa có trang");
-  assert.equal(existsSync(new URL("../../.site-output/vi/advertising-products/in-an-decal/menu/index.html", import.meta.url)), false);
+  // noscript chỉ link trang đã sinh: sản phẩm chưa đủ ngưỡng không có link chết
+  for (const [, href] of clusterPage.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].matchAll(/href="(\/vi\/advertising-products\/[^"]*)"/g)) {
+    assert.ok(existsSync(new URL(`../../.site-output${href}index.html`, import.meta.url)), `noscript ${href}`);
+  }
   assert.equal((html.match(/data-advertising-chips="[^"]+" hidden/g) || []).length, ADVERTISING_CATEGORIES.length, "trang gốc ẩn mọi hàng chip");
   const page = await read("vi/advertising-products/bang-hieu-quang-cao/chu-noi/index.html");
   assert.match(page, /data-advertising-chips="signage">/);
@@ -75,14 +75,17 @@ test("taxonomy R3, R5: chip từ 3 ảnh, trang từ 9 ảnh; chip chưa có tra
 });
 
 test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang ghi path, không trang ghi ?category=", () => {
-  const schema = { cards: artifact.cards, categories: artifact.categories, pages: artifact.pages };
+  // Từ 2026-10-18 mọi sản phẩm đủ 9 ảnh; giả lập menus là sản phẩm chưa có trang như catalog.mjs dựng
+  const cluster = artifact.pages.find(({ filter }) => filter === "printing-decals");
+  const pages = [...artifact.pages.filter(({ filter }) => filter !== "printing-decals/menus"), { ...cluster, filter: "printing-decals/menus", query: true }];
+  const schema = { cards: artifact.cards, categories: artifact.categories, pages };
   const parse = (href) => parseAdvertisingBrowseLocation(`https://local.test${href}`, schema).category;
   assert.equal(parse("/vi/advertising-products/in-an-decal/"), "printing-decals");
   assert.equal(parse("/en/advertising-products/printing-decals/office-printing/"), "printing-decals/office-printing");
   assert.equal(parse("/vi/advertising-products/in-an-decal/?category=signage"), "signage");
   assert.equal(parse("/vi/advertising-products/khong-co/"), "all");
   const serialize = (href, category) => {
-    const url = serializeAdvertisingBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, artifact.pages);
+    const url = serializeAdvertisingBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, pages);
     return `${url.pathname}${url.search}`;
   };
   assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals"), "/vi/advertising-products/in-an-decal/");
@@ -91,9 +94,6 @@ test("taxonomy R4: filter lấy từ path, ?category= thắng; filter có trang 
   assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals/menus"), "/vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus");
   assert.equal(serialize("/en/advertising-products/?utm=a", "printing-decals/menus"), "/en/advertising-products/printing-decals/?utm=a&category=printing-decals%2Fmenus");
   assert.equal(parse("/vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus"), "printing-decals/menus");
-  const cluster = artifact.pages.find(({ filter }) => filter === "printing-decals");
-  const menus = artifact.pages.find(({ filter }) => filter === "printing-decals/menus");
-  assert.deepEqual([menus.query, menus.vi, menus.titleVi, menus.labelEn], [true, cluster.vi, cluster.titleVi, cluster.labelEn], "path, title, kicker của trang cụm");
   assert.equal(serialize("/en/advertising-products/signage/", "all"), "/en/advertising-products/");
 });
 
