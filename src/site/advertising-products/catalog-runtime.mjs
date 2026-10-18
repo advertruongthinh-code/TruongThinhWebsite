@@ -939,7 +939,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         || (layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "failed"));
       media.classList.toggle("is-media-error", failed);
       indicator.hidden = failed;
-      if (failed) hoverSteps.forEach((button) => { button.hidden = true; });
+      if (failed) [...hoverSteps, duration].forEach((node) => { node.hidden = true; });
       loading.setAttribute("aria-label", failed ? english ? "Couldn't load media" : "Không tải được media"
         : english ? "Loading media" : "Đang tải media");
       loading.hidden = ready || loadedVideoPoster;
@@ -957,6 +957,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     image.addEventListener("load", updateLoading);
     image.addEventListener("lazyloaded", updateLoading);
+    // Script head gắn .is-media-error theo từng img lỗi, kể cả layer không còn active; card tự quyết theo item active.
+    media.addEventListener("error", updateLoading, true);
     const setActive = (nextIndex) => {
       const index = Math.max(0, Math.min(items.length - 1, nextIndex));
       if (failedImages.has(items[index].id) || posterStatus.get(items[index].id) === "failed") {
@@ -1128,7 +1130,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       ? null : record.coverMediaId;
     image.addEventListener("error", () => {
       failed = true;
-      media.classList.add("is-media-error");
       onPendingChange(figure);
     });
     listenForMediaLoad(figure, image, onMediaLoaded);
@@ -1344,6 +1345,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let activePrimaryMediaId = null;
   // Mở detail từ card đang phát video: detail phát tiếp từ đúng giây đó (owner 2026-10-18); renderPhoto dùng một lần.
   let videoHandoff = null;
+  let primaryFailed = false;
   let activePrimaryItem = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
@@ -3304,7 +3306,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const height = width / ratio;
     photoView.style.setProperty("--advertising-photo-image-width", `${width}px`);
     photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
-    photoView.dataset.advertisingPhotoGlass = String(Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5);
+    photoView.dataset.advertisingPhotoGlass = String(!primaryFailed
+      && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
   // Đổi media đẩy ngang như nút suggestion (owner 2026-10-18): media mới đẩy vào theo chiều đi tới, media cũ lùi 35% và
   // mờ 0.4; nền zoom blur cũ crossfade sang nền của media mới cùng nhịp.
@@ -3356,6 +3359,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const slideIn = sliding ? slidePrimary(Math.sign(slide)) : null;
     activePrimaryMediaId = item.id;
     activePrimaryItem = item;
+    primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
     photoView.dataset.advertisingActiveMediaId = item.id;
     photoVideo.pause();
@@ -3565,19 +3569,25 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { signal: controller.signal });
   // Media primary không hiện được (ảnh lỗi; video lỗi và poster cũng lỗi): dấu báo lỗi dùng chung, tắt nền blur
   // (media-card R5); renderPrimaryMedia bỏ dấu khi đổi media.
-  const showPrimaryError = (item) => {
-    if (activePrimaryItem !== item) return;
-    heroFrame.classList.add("is-media-error");
+  // Script head gắn .is-media-error theo từng img lỗi trong khung, kể cả nền blur; khung primary tự quyết theo media đang chọn.
+  const syncPrimaryError = () => {
+    heroFrame.classList.toggle("is-media-error", primaryFailed);
+    if (!primaryFailed) return;
     photoView.dataset.advertisingPhotoGlass = "false";
+    photoPlayer.hidden = photoExpand.hidden = true;
   };
-  photoImage?.addEventListener("error", () => {
-    if (!photoImage.hidden) showPrimaryError(activePrimaryItem);
-  }, { signal: controller.signal });
+  heroFrame?.addEventListener("error", ({ target }) => {
+    if (target === photoImage && !photoImage.hidden) primaryFailed = true;
+    syncPrimaryError();
+  }, { capture: true, signal: controller.signal });
   photoVideo?.addEventListener("error", () => {
     const item = activePrimaryItem;
     if (photoVideo.hidden || !item?.posterSrc) return;
     const probe = new Image();
-    probe.addEventListener("error", () => showPrimaryError(item), { once: true });
+    probe.addEventListener("error", () => {
+      primaryFailed = activePrimaryItem === item;
+      syncPrimaryError();
+    }, { once: true });
     probe.src = item.posterSrc;
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
