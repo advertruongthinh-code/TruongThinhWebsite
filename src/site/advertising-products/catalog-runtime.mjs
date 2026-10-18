@@ -3484,6 +3484,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // primary không có related, warm-up solver trên vài card, solver đầy đủ, rồi mount card.
   // Scroll được khôi phục cần toàn bộ chiều cao trong một lượt.
   const nextTask = () => new Promise((resolve) => setTimeout(resolve));
+  // Task ngay sau frame: style và layout còn bẩn của pha trước đã tính trong frame, không bị ép lại trong task mount.
+  const afterNextFrame = () => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
   // Solver đầy đủ của related là long task trên phone Android (decision phone-frame-budget): chạy layoutRelated với compile
   // giả, mỗi lần compile còn thiếu thì tính trên Worker rồi chạy lại; số đo DOM vẫn ở main thread. Trả false khi bị
   // thay; Worker lỗi thì compile đồng bộ.
@@ -3539,7 +3541,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       revealPhotoView(browse, generation);
     }
     for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
-      await nextTask();
+      // Mount related đọc vị trí grid: chờ frame để không gộp style của pha related vào task mount (task 50-59ms trên A04s).
+      await (phase ? nextTask() : afterNextFrame());
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       // Phân trang ép một layout mỗi probe, nên nó có task riêng: gộp với warm thành task 55ms trên A05s cũ.
       if (phase === "pages") {
