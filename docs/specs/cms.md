@@ -276,6 +276,9 @@ fallback tĩnh; gate mẫu parity, browser, accessibility, diễn tập rollback
   ([masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Code: masonry đọc `catalog.mjs`, không đọc D1; D1 không
   có tag; category sản phẩm seed (`signage-3d`, `office-wayfinding`, `led-lighting`, `print-marketing`,
   `brand-showroom`) khác category Advertising tĩnh. Owner duyệt capability map và spec CRUD trước code.
+- SEO media ([media-seo](media-seo.md), owner 2026-10-18): nhân viên chỉ nhập tên, mô tả card và alt VI/EN từng media
+  (bắt buộc, không trùng trong card, CMS điền sẵn gợi ý được); hệ thống tự sinh trang card, canonical, og:image, JSON-LD,
+  image sitemap (Worker `/sitemap.xml` trỏ `sitemap-advertising.xml`) và tên file upload theo tên sản phẩm.
 - [Slot project trong menu](../decisions/optional-cms-project-slots.md) chỉ áp dụng khi dựng lại `data-menu-projects`;
   `src/site/` chưa có slot nên menu feed R4 chưa có consumer.
 - Seed và test lệch source: cover category seed trỏ `/assets/site/...` không có trong `src/site/`; phần public
