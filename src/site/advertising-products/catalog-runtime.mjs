@@ -22,7 +22,9 @@ import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
   createSkeletonFlowRenderer,
+  createSkeletonFlowWorkerRenderer,
   createSharedSkeletonFlowLayer,
+  skeletonFlowWorkerSupported,
   drawSkeletonFlowAssignment,
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
@@ -66,7 +68,7 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 // Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; primary đã cache thu thời lượng về 0.6s.
+// Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
@@ -74,8 +76,8 @@ const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
-// 30ms thay 33ms: rAF 60Hz lệch vài phần ms vẫn vẽ đúng mỗi 2 frame.
-const PHONE_CARD_FLOW = { width: 120, height: 80, frameInterval: 30 };
+// Khung card trên điện thoại chạy cả lúc vuốt: một phần tư số pixel để GPU giữ gate fps (R8, owner 18/10).
+const PHONE_CARD_FLOW = { width: 120, height: 80 };
 // Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
 let sharedSkeletonFlow;
 const disposeSkeletonContext = (record) => {
@@ -1899,14 +1901,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.style.transition = "none";
     canvas.style.opacity = "0";
     canvas.getBoundingClientRect();
-    const renderer = createSkeletonFlowRenderer(canvas, {
+    const options = {
       preset,
       initialPhase: skeletonPhase(frame),
       direction,
       speedScale,
-      // Khung card trên điện thoại chạy cả lúc vuốt: một phần tư số pixel, vẽ mỗi 2 frame để giữ 60fps (R8, owner 18/10).
       ...(skeletonPhone() ? PHONE_CARD_FLOW : {}),
-    });
+    };
+    // Vuốt nhanh làm rAF main thread còn khoảng 12fps trên A04s: vẽ trong worker thì Flow chạy đều (R8, owner 19/10).
+    const renderer = (!lease && createSkeletonFlowWorkerRenderer(canvas, options)) || createSkeletonFlowRenderer(canvas, options);
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
     skeletonFlowByFrame.set(frame, renderer);
     if (renderer?.context) {
@@ -2000,7 +2003,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         return;
       }
       const leased = skeletonNativeContexts.some((record) => !record.renderer && !record.gl.isContextLost());
-      if (!leased && skeletonNativeContexts.length < SKELETON_CONTEXT_BUDGET) {
+      // Worker tự tạo context ngoài main thread, không cần tạo trước.
+      if (!leased && !skeletonFlowWorkerSupported() && skeletonNativeContexts.length < SKELETON_CONTEXT_BUDGET) {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl", SKELETON_FLOW_CONTEXT_ATTRIBUTES);
         if (gl) {
@@ -3298,7 +3302,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.decode().then(() => bitmap).then((baked) => {
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS, baked);
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
         else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
         else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
       }, () => {

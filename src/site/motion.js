@@ -214,7 +214,7 @@
         // Wrapper hero có thể đang scale (zoom lúc vào trang); đổi rect về px layout.
         const scale = title.getBoundingClientRect().width / (title.offsetWidth || 1) || 1;
         // Một cỡ chữ cho cả title: dòng dài nhất vừa khung, hai dòng giữ cùng nhịp.
-        let widest = 0;
+        const widths = [];
         title.querySelectorAll(":scope > :is(.hero-line-mask, .detail-hero-line-mask, .line-mask)").forEach((line) => {
           let left = Infinity;
           let right = -Infinity;
@@ -228,10 +228,30 @@
             right = Math.max(right, rect.right);
           }
           const size = Number.parseFloat(getComputedStyle(line).fontSize);
-          if (right > left && size) widest = Math.max(widest, (right - left) / scale / size);
+          if (right > left && size) widths.push((right - left) / scale / size);
         });
+        if (!widths.length) return;
         // Chừa 1%: hinting làm bề rộng chữ không co đúng tỷ lệ cỡ chữ, dòng vừa sát khung có thể tràn 1-2px.
-        if (widest) title.style.setProperty("--hero-line-em", (widest * 1.01).toFixed(3));
+        // Hero ghi lên hero-content để kicker cùng đọc được (detail.css); CTA legacy ghi lên chính h2.
+        const host = title.closest(".hero-content") || title;
+        host.style.setProperty("--hero-line-em", (Math.max(...widths) * 1.01).toFixed(3));
+        // Hai dòng lồng nhau một phần như hero trang chủ EN (hero-typography R2): cặp dòng rộng tổng hai dòng trừ 30%
+        // dòng ngắn; CSS dồn hai dòng vào giữa khi khung rộng hơn cặp.
+        if (widths.length === 2) {
+          const pair = widths[0] + widths[1] - 0.3 * Math.min(...widths);
+          host.style.setProperty("--hero-pair-em", (pair * 1.01).toFixed(3));
+        }
+        // Kicker cách đỉnh nét chữ thật của dòng 1 như nhau ở mọi hero, kể cả chữ có dấu chồng (Ể): dòng 1 thấp hơn
+        // "Ể" bao nhiêu em thì kicker kéo xuống bấy nhiêu (detail.css).
+        const firstLine = title.firstElementChild;
+        if (host !== title && maskContext && firstLine) {
+          const style = getComputedStyle(firstLine.querySelector("*") || firstLine);
+          const size = Number.parseFloat(style.fontSize);
+          maskContext.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          const ink = maskContext.measureText(firstLine.textContent.trim().toLocaleUpperCase("vi")).actualBoundingBoxAscent;
+          const drop = (maskContext.measureText("Ể").actualBoundingBoxAscent - ink) / size;
+          if (size) host.style.setProperty("--hero-ink-drop", Math.max(0, drop).toFixed(3));
+        }
       });
   };
 

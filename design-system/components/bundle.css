@@ -959,6 +959,9 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   grid-template-columns: 100%;
   grid-template-rows: 100%;
   overflow: hidden;
+  /* Hero cao cố định nhưng chữ đổi cỡ sau khi mount (fitHeroLines, SplitText); WebKit lấy node trong hero làm
+     scroll anchor nên Back về trang đã cuộn bị lệch 23px. Loại hero khỏi việc chọn anchor. */
+  overflow-anchor: none;
   background: var(--media-loading-surface);
   color: white;
 }
@@ -4128,7 +4131,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
   .detail-index-hero .hero-content {
     top: calc(50% + 0.7rem);
-    width: calc(90% - 30px);
+    width: calc(100% - 64px);
     min-height: 11.55rem;
     padding: 0;
   }
@@ -6290,18 +6293,137 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
   text-align: right;
 }
 
+.hero > .hero-content {
+  --hero-line-size: min(7rem, calc(100cqi / 12.5), calc(100cqi / var(--hero-line-em)));
+}
+
 .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask) {
   white-space: nowrap;
-  font-size: min(7rem, calc(100cqi / 12.5), calc(100cqi / var(--hero-line-em)));
+  font-size: var(--hero-line-size);
+}
+
+/* Kicker cách đỉnh nét chữ title như nhau ở mọi hero (hero-typography R2): khoảng chung tính cho dấu chồng cao nhất,
+   dòng 1 không có dấu đó thì trừ --hero-ink-drop (motion.js đo). */
+.hero > .hero-content > .hero-kicker {
+  margin-bottom: calc(clamp(1.5rem, 3.8vh, 2.2rem) - var(--hero-ink-drop, 0) * var(--hero-line-size, 0px));
+}
+
+/* Hai dòng lồng nhau một phần (hero-typography R2): khi khung rộng hơn cặp dòng thì dồn cặp vào giữa, kicker theo
+   dòng 1. --hero-pair-indent dùng cqi của hero-content, cùng bề rộng với title. */
+.hero > .hero-content:has(> [data-hero-fit]) {
+  container-type: inline-size;
+}
+
+@media (min-width: 751px) {
+  .hero > .hero-content:has(> [data-hero-fit]) {
+    --hero-pair-indent: max(0px, calc((100cqi - var(--hero-pair-em) * var(--hero-line-size)) / 2));
+  }
+
+  .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask):first-child {
+    padding-left: var(--hero-pair-indent);
+  }
+
+  .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker)[data-hero-fit] > :is(.hero-line-mask, .detail-hero-line-mask) + * {
+    padding-right: var(--hero-pair-indent);
+  }
+
+  .hero > .hero-content:has(> [data-hero-fit]) > .hero-kicker {
+    padding-left: calc(0.5rem + var(--hero-pair-indent));
+  }
 }
 
 @media (max-width: 750px) {
+  /* Phone: mỗi title co vừa khung theo dòng dài nhất của nó, không chung cỡ 12.5 em (owner audit 2026-10-18: chữ
+     phone còn nhỏ). Không JS thì --hero-line-em trống, về cỡ chung. */
   .hero > .hero-content {
-    width: calc(90% - 30px);
+    --hero-line-size: min(7rem, calc(100cqi / var(--hero-line-em, 12.5)));
+    width: calc(100% - 64px);
   }
 
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask),
   .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) > :is(.hero-line-mask, .detail-hero-line-mask) + * {
     text-align: center;
+  }
+  /* Phone: chỉ title nằm ở tâm hero và không hiện kicker (owner audit 2026-10-18). Kicker ẩn kiểu .sr-only để h1 tên
+     cụm, sản phẩm Advertising vẫn còn cho trình đọc màn hình và SEO. */
+  .hero > .hero-content > .hero-kicker {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .residential-hero > .hero-content,
+  .commercial-hero > .hero-content {
+    top: 50%;
+  }
+
+  /* Hero dạng grid: hàng trên và hàng dưới cùng 1fr nên title ở tâm khi đủ chỗ; thiếu chỗ thì hàng giãn theo nội
+     dung, không đè. Hàng trên chừa header và kicker. */
+  .hero[data-hero-intro],
+  .about-hero,
+  .detail-page .detail-index-hero {
+    --hero-cue-gap: 24px;
+    padding-block: 0;
+    grid-template-rows: minmax(calc(var(--header-row-height) + 25px + 4rem), 1fr) auto minmax(min-content, 1fr);
+    row-gap: 0;
+  }
+
+  .detail-page .detail-index-hero {
+    --hero-cue-gap: 60px;
+  }
+
+  :is(.hero[data-hero-intro], .about-hero, .detail-index-hero) > .hero-content {
+    grid-row: 2;
+  }
+
+  :is(.hero[data-hero-intro], .about-hero, .detail-index-hero) > .scroll-cue {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    margin-bottom: var(--hero-cue-gap);
+  }
+
+  /* Rail và chip neo như PC: rail đứng một chỗ dù có hàng chip hay không, hàng chip đầu nằm chỗ cố định, hàng thêm
+     tràn xuống dưới. Khối neo theo đáy, chừa chỗ cho cue (padding 0.5rem, chữ 0.8rem x 1.4). */
+  .detail-index-hero > .hero-browse {
+    --hero-chip-row: 1.225rem;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: calc(var(--hero-cue-gap) + 2.12rem + 1rem);
+  }
+
+  .detail-index-hero > .hero-browse:not(:has(> .rail-chips:not([hidden]))) {
+    padding-bottom: calc(1rem + var(--hero-chip-row));
+  }
+
+  .detail-index-hero > .hero-browse > .rail-chips {
+    height: var(--hero-chip-row);
+    align-content: flex-start;
+  }
+}
+
+/* Từ 751px khối rail và chip không tạo hộp: rail và chip vẫn là con trực tiếp của grid hoặc neo absolute như cũ. */
+@media (min-width: 751px) {
+  .hero-browse {
+    display: contents;
+  }
+}
+
+@media (max-width: 680px) {
+  /* Hàng chip phone một dòng cuộn ngang, cao gồm padding 0.25rem + 0.5rem và chữ 0.8125rem x 1.4. */
+  .detail-index-hero > .hero-browse {
+    --hero-chip-row: calc(0.75rem + 0.8125rem * 1.4);
   }
 }

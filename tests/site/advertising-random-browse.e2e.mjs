@@ -162,7 +162,7 @@ try {
           const restored = await restingPage.evaluate(() => ({y:scrollY,timeOrigin:performance.timeOrigin}));
           assert.equal(restored.timeOrigin,restingOrigin,"resting Back exercises the Barba soft remount");
           assert.equal((await read(restingPage)).browse.seed,restingSeed);
-          assert.ok(Math.abs(restored.y-scroll)<=2,"resting Back stays within the two-pixel precision contract");
+          assert.ok(Math.abs(restored.y-scroll)<=2,`${engine.name()} resting Back stays within the two-pixel precision contract (${scroll} -> ${restored.y})`);
           results.push({case:"resting-route-back",engine:engine.name(),attempt,scroll,restored:restored.y,seed:restingSeed});
         } finally {await restingPage.close();}
       }

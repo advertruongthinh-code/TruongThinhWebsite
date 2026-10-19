@@ -48,7 +48,7 @@ const snapshot = page => page.evaluate(() => { const seen = new Map(); return [.
     const src = img.getAttribute("src");
     seen.set(src, (seen.get(src) || 0) + 1);
     return {
-      key: src + "#" + seen.get(src), raw: !img.closest("[data-hero-intro] .hero-slides"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
+      key: src + "#" + seen.get(src), raw: !img.closest(".hero-slides:has(+ script)"), src, w: img.offsetWidth, h: img.offsetHeight, alt: img.getAttribute("alt"),
       loading: img.getAttribute("loading"), priority: img.getAttribute("fetchpriority"),
       ready: img.complete && img.naturalWidth > 0, columnVisible: img.getBoundingClientRect().right > 0 && img.getBoundingClientRect().left < innerWidth, sweep: /^media-(sweep|breathe)$/.test(getComputedStyle(frame, "::before").animationName), settled: frame.classList.contains("is-media-settled"), imageOpacity: Number(getComputedStyle(img).opacity), opacity,
     };
@@ -101,7 +101,7 @@ try {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
         if (!item.ready) assert.ok(item.sweep && item.imageOpacity === 0, `${label}: ${item.src} shows the sweep and hides the image while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
-        // Slide hero trang chủ nhận src bằng script (page-home R3) nên không có raw src để so sánh.
+        // Slide hero trang chủ, Kinh doanh nhận src bằng script sau .hero-slides (page-home R3, detail-pages R5) nên không có raw src để so sánh.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;
@@ -422,9 +422,9 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc.
-    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
-      `${viewport.width}px: the primary reveals through five Kính steps animating opacity only ${JSON.stringify(primaryGlass)}`);
+    // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc, cùng nhịp 0.6s như card.
+    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 5 && animated.join() === "opacity" && end <= 601),
+      `${viewport.width}px: the primary reveals through five Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
     // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).
     await page.goBack();
     await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id
