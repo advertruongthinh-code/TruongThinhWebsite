@@ -3231,7 +3231,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const playPrimaryReveal = (reveal, from, to, total, bitmap) => {
     if (primaryReveal !== reveal) return bitmap?.close();
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
-    if (photoView.hidden || photoView.style.visibility === "hidden") {
+    if (photoView.hidden) {
       requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
       return;
     }
@@ -3454,30 +3454,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Hiện photo view rồi layout và khôi phục scroll; tách khỏi renderPhoto để mở từ grid dựng DOM ở task chạm card
   // và hiện ở task sau (decision phone-frame-budget).
-  // Dựng style và layout đầu của detail trong task riêng, photo view vô hình dưới grid còn hiện: task hiện sau đó
-  // chỉ còn đổi chế độ trang và layoutRelated (decision phone-frame-budget). Giống pha đầu của vào thẳng detail.
-  const prelayoutPhotoView = () => {
-    // Ghi trước các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
-    // và không bị ép style lần hai.
-    const layoutWidth = document.documentElement.clientWidth;
-    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
-    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
-    // Fixed để trang không đổi chiều cao (cuộn mượt và observer layout không chạy lại). Bề rộng CSS tính theo
-    // viewport như trong flow, nên layout các con dùng lại được khi về vị trí thật.
-    Object.assign(photoView.style, { visibility: "hidden", position: "fixed", top: "0" });
-    photoView.hidden = false;
-    photoView.getBoundingClientRect();
-  };
-  const clearPhotoViewPrelayout = () => {
-    for (const property of ["visibility", "position", "top"]) photoView.style.removeProperty(property);
-  };
   const revealPhotoView = (browse, generation) => {
     // Ẩn grid trước khi đổi class body: style của class mới không phải tính lại cho cả grid (CPU 4x: 8ms thay vì 15ms).
     if (gridSection) gridSection.hidden = true;
     document.body.classList.add("is-advertising-photo");
     document.body.dataset.advertisingPhotoActive = "true";
-    if (photoView.hidden) prelayoutPhotoView();
-    clearPhotoViewPrelayout();
+    // Ghi trước khi hiện các giá trị layoutRelated sẽ ghi, để lần layout đầu của detail đã gồm chúng
+    // và không bị ép style lần hai (decision phone-frame-budget).
+    const layoutWidth = document.documentElement.clientWidth;
+    photoView.style.setProperty("--gutter", `${advertisingSpacing(layoutWidth).outer}px`);
+    photoView.dataset.advertisingPhotoLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
+    photoView.hidden = false;
     layoutRelated(browse);
     relatedRendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     let restoredScroll = browse.detail.scrollY;
@@ -3552,9 +3539,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (fromGrid) {
       await nextTask();
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
-      prelayoutPhotoView();
-      await nextTask();
-      if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       revealPhotoView(browse, generation);
     }
     for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
@@ -3595,7 +3579,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoView) delete photoView.dataset.advertisingPhotoGlass;
     if (photoImage) delete photoImage.dataset.advertisingPhotoId;
     photoView && (photoView.hidden = true);
-    if (photoView) clearPhotoViewPrelayout();
     if (gridSection) gridSection.hidden = false;
     document.body.classList.remove("is-advertising-photo");
     delete document.body.dataset.advertisingPhotoActive;

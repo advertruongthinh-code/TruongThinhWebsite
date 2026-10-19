@@ -171,9 +171,7 @@ async function armNoGridMorphProbe(page) {
       const photo = (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null);
       // Mở từ grid dựng detail ẩn ở task chạm card rồi mới hiện (decision phone-frame-budget):
       // frame đầu của entry vẫn vẽ view cũ ở scroll cũ, chỉ frame đã vẽ view của entry mới tính.
-      // Pha dựng layout trước giữ view vô hình (visibility hidden) trên grid: frame đó vẫn là grid.
-      const view = document.querySelector("[data-advertising-photo-view]");
-      const shown = Boolean(photo) === Boolean(view && !view.hidden && view.style.visibility !== "hidden");
+      const shown = Boolean(photo) === !document.querySelector("[data-advertising-photo-view]")?.hidden;
       probe.frames.push({ photo, shown,
         y: motion.getLogicalScroll?.() ?? scrollY, nativeY: scrollY,
         cloneCount: document.querySelectorAll("[data-advertising-photo-morph]").length });
