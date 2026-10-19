@@ -17,7 +17,7 @@ const { chromium } = await import("playwright");
 
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
-  assert.equal(artifact.cards.length, 254, "fixture retains all legacy cards");
+  assert.equal(artifact.cards.length, 255, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
   assert(card && card.mediaItems.length === 1 && card.media.width * 2 === card.media.height * 3);
   card.mediaItems.push({

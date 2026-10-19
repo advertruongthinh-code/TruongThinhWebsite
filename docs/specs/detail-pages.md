@@ -167,9 +167,9 @@ Kéo, vuốt như gallery Espacio (owner 2026-10-17, đo 2026-10-18): gallery c�
 trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen
 20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
 Ảnh `draggable=false`, chặn `dragstart`; hàng chấm nằm trong track như Espacio và cả track nhận kéo (`touchEventsTarget: "container"`), nên kéo bắt đầu ở khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption (chữ vẫn chọn được). Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
-snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: năm chuỗi công trình theo thứ tự nhà
-ống, nhà giếng trời, căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
-ngoại thất; nhà phố ba tầng: bếp), theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4). Commercial: sáu ảnh lẻ, tiệm bánh ngọt, shop hoa tươi, rồi chuỗi "Văn phòng chia sẻ" (owner duyệt 2026-10-18) mở bằng toàn cảnh, qua bàn làm việc chung, phòng một người, phòng nhóm, phòng họp, pantry, phòng nghỉ.
+snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: sáu chuỗi công trình theo thứ tự nhà
+ống, nhà giếng trời 2 tầng, nhà giếng trời 1 tầng (owner 2026-10-19), căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
+ngoại thất; nhà phố ba tầng: bếp), theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>" (owner duyệt 2026-10-17); thêm chuỗi là thêm `figure` (R4). Mỗi trang không dùng một ảnh hai lần, kể cả ảnh khác file nhưng cùng khung hình (owner 2026-10-19). Commercial: sáu ảnh lẻ, tiệm bánh ngọt, shop hoa tươi, cửa hàng kính mắt, tiệm may áo dài (owner duyệt 2026-10-19), rồi chuỗi "Văn phòng chia sẻ" (owner duyệt 2026-10-18) mở bằng toàn cảnh, qua bàn làm việc chung, phòng một người, phòng nhóm, phòng họp, pantry, phòng nghỉ.
 
 ```gherkin
 Given /vi/commercial/ ở 1440px với chuột

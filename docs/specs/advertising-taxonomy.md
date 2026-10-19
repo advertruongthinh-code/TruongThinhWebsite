@@ -41,7 +41,7 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 
 | Cụm, nhãn rail và h1 (slug VI / EN) | Sản phẩm (số ảnh) |
 | --- | --- |
-| Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (14); Chữ nổi (31); Hộp đèn (28); Bảng vẫy (20) |
+| Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (14); Chữ nổi (31); Hộp đèn (29); Bảng vẫy (21) |
 | Standee, backdrop, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (17); Backdrop (9, tách 2026-10-18); Kệ, tủ trưng bày (33); Gian hàng triển lãm (10); Kiosk bán hàng (9); Booth sampling & quầy lễ tân (15) |
 | In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (13); In ấn văn phòng (11); Menu (10); Bao bì, thẻ & vé (9) |
 | LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (29); Màn hình LED (13); Bảng LED chạy chữ (9); Bảng hiệu LED (32) |
