@@ -3,12 +3,13 @@ title: Skeleton cuối masonry Advertising
 status: live
 source:
   - src/site/advertising-products/skeleton-flow.mjs
+  - src/site/advertising-products/skeleton-flow-worker.mjs
 tests:
   - tests/site/advertising-skeleton-flow.test.mjs
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Skeleton cuối masonry Advertising
@@ -107,14 +108,19 @@ dưới Kính, CTA. Dưới canvas mỗi khung vẫn hiện frame tĩnh là mộ
 nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống và lúc chuyển sang chạy không nhảy. Mất context:
 xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
 
-Skeleton chờ ảnh trong media card và primary vẫn dùng renderer riêng mỗi khung, ngân sách 12 context tính cả context
-đang dùng và đang rảnh. Khung đang thấy giữ context đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi
-left). Khung không có context hiện frame tĩnh của preset. Nhả context trước khi cấp mới nên xoay máy không vượt ngân
-sách. Context giữ theo document và dùng lại: trả lease thì xóa buffer, texture, listener, RAF đúng một lần, giữ canvas,
-context và program đã compile (compile mất khoảng 60ms trên A05s cũ); lease mới bắt đầu ở pha đã lưu. Mất context: hiện
-frame tĩnh, khôi phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi nhiều lần vẫn an toàn và không
-gọi `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame, context mới tạo ở task trước
-đó (R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
+Skeleton chờ ảnh trong media card và primary vẫn dùng renderer riêng mỗi khung, tối đa 12 renderer. Khung đang thấy
+giữ renderer đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi left). Khung chưa có renderer hiện frame
+tĩnh của preset. Nhả renderer trước khi cấp mới nên xoay máy không vượt ngân sách. Renderer vẽ trong một module worker
+chung của document qua `OffscreenCanvas` (owner 19/10): rAF của worker không chờ main thread, nên khi vuốt nhanh main
+thread bận masonry (rAF còn khoảng 12fps trên A04s) Flow vẫn chạy theo tần số màn hình. Worker tự tạo context, compile
+program và noise; nhả renderer thì worker trả context (`loseContext`), main thay canvas đã transfer bằng canvas tĩnh
+mới ở pha đã lưu. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
+worker lỗi thì về renderer main thread: ngân sách 12 context tính cả context đang dùng và đang rảnh, context giữ theo
+document và dùng lại (trả lease thì xóa buffer, texture, listener, RAF đúng một lần, giữ canvas, context và program đã
+compile; compile mất khoảng 60ms trên A05s cũ), lease mới bắt đầu ở pha đã lưu, context mới tạo ở task trước task dựng
+renderer. Mất context: hiện frame tĩnh, khôi phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi
+nhiều lần vẫn an toàn và không gọi `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame
+(R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
 làm trễ nhịp trượt. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn gây task trên 50ms thì
 hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh. Điện thoại (pointer coarse, có touch hoặc `clientWidth <= 750`) hoãn
 như vậy cho khung batch (A05s cũ, 10/10); khung chờ ảnh trong card dựng ngay cả lúc đang vuốt, với profile phone ở R8
@@ -160,10 +166,11 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [phone Android trên 60fps](../decisions/phone-frame-budget.md)
 (trên 60fps), mọi khung trong viewport đều chạy (owner 10/10). Batch đạt gate nhờ một canvas chung nửa độ phân
-giải (R5). Khung chờ ảnh trong card trên điện thoại chạy cả lúc vuốt nên dùng renderer `120x80` và vẽ mỗi `30ms`
-(khoảng 30fps), giữ preset, màu, anchor, chiều chảy và tốc độ (owner 18/10); ngoài hai điểm đó không hạ preset,
-noise hay số khung chạy để đạt gate.
-Mọi renderer dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
+giải (R5). Khung chờ ảnh trong card trên điện thoại chạy cả lúc vuốt nên dùng renderer `120x80`, vẽ mọi frame của
+worker, giữ preset, màu, anchor, chiều chảy và tốc độ (owner 18/10, 19/10); ngoài điểm đó không hạ preset, noise hay số
+khung chạy để đạt gate. Gate mượt khung card khi vuốt nhanh trên A04s: khoảng giữa hai lần vẽ của mỗi renderer p95
+dưới `33ms` (đo 19/10: p50 `11-12ms`, p95 `18-24ms`, fps SurfaceFlinger `69-71`).
+Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
 rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt).
@@ -210,6 +217,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
 - `advertising-continuation.e2e.mjs` chỉ PASS gate fps R4 trên Chrome có GPU: cloud (WebGL phần mềm, Chromium headless) đo
   khoảng 9fps và có long task vượt `50ms`, nên hai assert đó FAIL ngoài PC. Các assert còn lại PASS ở cloud (18/10).
+  Chromium headless gần như không chạy rAF của worker, nên đo nhịp vẽ khung card phải dùng trình duyệt có màn hình (19/10).
   Chưa có test cho Kính reveal `0.6s` ở lần vào đầu tiên (test cũ chỉ bắt lúc vào lại, nay là không reveal theo R4).
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
@@ -222,3 +230,5 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - **Trạng thái trang**: một lần masonry ổn định sau tải trang, đổi filter, mở hoặc đóng detail, Back/Forward.
 - **Lease**: quyền dùng tạm một WebGL context; context thuộc document, không thuộc khung.
 - **Flow**: hiệu ứng gradient chảy vẽ bằng WebGL.
+- **Worker**: thread chạy JavaScript tách khỏi main thread của trang.
+- **OffscreenCanvas**: canvas mà worker vẽ trực tiếp sau khi trang chuyển quyền điều khiển (`transferControlToOffscreen`).
