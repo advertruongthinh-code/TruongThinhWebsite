@@ -464,13 +464,13 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Bộ POSM theo chiến dịch",
    "altEn": "Illustrative video: Campaign POSM sets",
    "source": "/assets/placeholder-media/kiosk-posm-24-v1.mp4",
-   "sha256": "3b77e694a0b0db5093881e1d0aa4fb9a63f26ca3252a96b3ff674c91794fe4ac",
+   "sha256": "da4a5f6e3010aaa16f632f4399febfcaa045e35f9da17cd197e28d7c77337744",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-24, kiosk-posm-12, kiosk-posm-32; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-24-v1-poster.webp",
    "posterWidth": 960,
    "posterHeight": 480,
    "durationSeconds": 6.5,
-   "hasAudio": false
+   "hasAudio": true
   },
   {
    "id": "kiosk-posm-24-p2",
@@ -559,13 +559,13 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Tủ trưng bày theo yêu cầu",
    "altEn": "Illustrative video: Custom display cabinets",
    "source": "/assets/placeholder-media/kiosk-posm-15-v1.mp4",
-   "sha256": "dc5115fe8429cb2daae49fb3414d6989056986f4483cc8bde127fde2ae9adbee",
+   "sha256": "5ed5d3ded6e4c16115ba44ee7f96773bd96e75a57237a53442cf4c6d18287d7c",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-15, kiosk-posm-03; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-15-v1-poster.webp",
    "posterWidth": 960,
    "posterHeight": 960,
    "durationSeconds": 4.5,
-   "hasAudio": false
+   "hasAudio": true
   },
   {
    "id": "kiosk-posm-15-p2",
@@ -703,13 +703,13 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Gian hàng triển lãm",
    "altEn": "Illustrative video: Exhibition booths",
    "source": "/assets/placeholder-media/kiosk-posm-13-v1.mp4",
-   "sha256": "6860a2a019c53b7c024c40929bbadc4b35d4f092ff1030e5b5d5e0f9fe101d84",
+   "sha256": "913f6b3c67d723d32bfe9507552756d46705ffb3e9f9b4d728504d7ec206139f",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-13, kiosk-posm-01, kiosk-posm-25, kiosk-posm-27; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-13-v1-poster.webp",
    "posterWidth": 960,
    "posterHeight": 640,
    "durationSeconds": 8.5,
-   "hasAudio": false
+   "hasAudio": true
   },
   {
    "id": "kiosk-posm-13-p2",
@@ -780,13 +780,13 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Vách trưng bày thương hiệu",
    "altEn": "Illustrative video: Branded display walls",
    "source": "/assets/placeholder-media/kiosk-posm-23-v1.mp4",
-   "sha256": "efbca7c9dc66a9d8c11d792c908802df2a9e7a15e35f81fccba32a0f6a7448e5",
+   "sha256": "f3aaf6b1b7a0066421642f78d82ee5a9bb6ed09de029aa3314405592b1a6ab14",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-23, kiosk-posm-11, kiosk-posm-38, kiosk-posm-39; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-23-v1-poster.webp",
    "posterWidth": 960,
    "posterHeight": 720,
    "durationSeconds": 8.5,
-   "hasAudio": false
+   "hasAudio": true
   },
   {
    "id": "kiosk-posm-23-p2",

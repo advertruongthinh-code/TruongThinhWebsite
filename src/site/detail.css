@@ -1447,6 +1447,30 @@ body.is-advertising-browse .advertising-grid {
   font-weight: 700;
   text-align: center;
   pointer-events: none;
+  transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+}
+
+/* Hover theo Pinterest (media-card R3, owner 2026-10-19): chuột thật phủ lớp đen 20% lên canvas, "Vừa xem" mờ đi cùng
+   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. */
+.advertising-card-media::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: "";
+  background: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .advertising-tile:hover .advertising-card-media::after {
+    opacity: 1;
+  }
+
+  .advertising-tile:hover .advertising-card-media__just-viewed {
+    opacity: 0;
+  }
 }
 
 .advertising-card-media__image {
@@ -1454,17 +1478,16 @@ body.is-advertising-browse .advertising-grid {
     var(--media-hover-transform);
 }
 
-/* Đổi media trên card: media cũ chồng tuyệt đối dưới media mới trong lúc đẩy ngang (catalog-runtime selectMedia). */
-.advertising-card-media__image--outgoing {
+/* Dải liền khi đổi media (media-card R3): lane không chạy fade lúc tải; lane cạnh nằm tuyệt đối, runtime dời bằng translate. */
+.advertising-card-media__image--lane {
+  transition: none;
+}
+
+.advertising-card-media__image--beside {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-.advertising-card-media__image--incoming {
-  position: relative;
-  z-index: 1;
 }
 
 /* Media đang tải mang frame skeleton cuối masonry (docs/specs/loading-glass-and-page-entry.md R1). */
@@ -1959,8 +1982,8 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
-   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền; bóng nhẹ để chevron
-   vẫn đọc được trên ảnh sáng vì card không có lớp tối khi hover như Pinterest. */
+   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
+   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng. */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
   width: 32px;
@@ -2007,23 +2030,66 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-view__media-dots {
   position: absolute;
   z-index: 4;
-  bottom: 14px;
+  bottom: 6px;
   left: 50%;
   display: flex;
-  gap: 8px;
   transform: translateX(-50%);
   pointer-events: none;
 }
 
-.advertising-photo-view__media-dots > span {
+/* Chấm là nút 24px (owner 2026-10-19), chấm nhìn thấy 8px giữa nút. */
+.advertising-photo-view__media-dots > button {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  place-items: center;
+  pointer-events: auto;
+}
+
+.advertising-photo-view__media-dots > button::before {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  content: "";
   background: rgba(255, 255, 255, 0.5);
 }
 
-.advertising-photo-view__media-dots > span[data-active] {
+.advertising-photo-view__media-dots > button[data-active]::before {
   background: #fff;
+}
+
+.advertising-photo-view__media-dots > button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+/* Dải media khi đổi media (media-card R6): hộp cắt đúng BBox contain; media thật ẩn tới khi dải dừng. */
+.advertising-photo-view__strip {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: var(--advertising-photo-image-width);
+  height: var(--advertising-photo-image-height);
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.advertising-photo-view__strip-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.advertising-photo-view__hero-frame[data-advertising-photo-sliding] :is([data-advertising-photo-image], [data-advertising-photo-video]) {
+  visibility: hidden;
 }
 
 .advertising-photo-view__hero-frame:has(> .advertising-photo-view__media-dots:not([hidden])) .advertising-video-player__bar {
@@ -3188,8 +3254,9 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 /* Màn cảm ứng mở, zoom và đóng viewer bằng gesture; button còn lại cho screen reader và hiện
    lại khi có keyboard focus (advertising-viewer-touch-zoom R7, R8). */
 @media (hover: none) and (pointer: coarse) {
+  /* Như manipulation nhưng không pan-x: vuốt ngang kéo dải media theo ngón tay (media-card R6). */
   .advertising-photo-view__hero-frame {
-    touch-action: manipulation;
+    touch-action: pan-y pinch-zoom;
   }
 
   .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible),

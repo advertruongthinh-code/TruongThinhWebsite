@@ -97,8 +97,12 @@ chosen.forEach((card, index) => {
       segments.push(`[${last}][s${i + 1}]xfade=transition=fade:duration=${FADE_SECONDS}:offset=${offset.toFixed(2)}[x${i + 1}]`);
       last = `x${i + 1}`;
     });
-    ffmpeg([...shots.flatMap(([frame]) => ["-i", sourceFile(frame.media.src)]), "-filter_complex", segments.join(";"),
-      "-map", `[${last}]`, "-an", "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-movflags", "+faststart", file]);
+    // Video đầu của card nhiều video mang một nốt trầm nhỏ để demo hiện nút tiếng và thanh âm lượng (media-card Gate).
+    const hasAudio = rich && v === 0;
+    const audio = hasAudio ? ["-f", "lavfi", "-i", "sine=frequency=220:sample_rate=48000,volume=0.15"] : [];
+    ffmpeg([...shots.flatMap(([frame]) => ["-i", sourceFile(frame.media.src)]), ...audio, "-filter_complex", segments.join(";"),
+      "-map", `[${last}]`, ...(hasAudio ? ["-map", `${shots.length}:a`, "-c:a", "aac", "-b:a", "48k", "-shortest"] : ["-an"]),
+      "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-movflags", "+faststart", file]);
     ffmpeg(["-i", file, "-frames:v", "1", "-quality", "72", poster]);
     const durationSeconds = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
     items.splice(v * 2, 0, {
@@ -107,7 +111,7 @@ chosen.forEach((card, index) => {
       source: `${outputUrl}/${id}.mp4`, sha256: sha256(file),
       provenance: `Placeholder slideshow built with ffmpeg from ${frames.map((frame) => frame.id).join(", ")}; replace with real product video.`,
       posterSrc: `${outputUrl}/${id}-poster.webp`, posterWidth: videoSize.width, posterHeight: videoSize.height,
-      durationSeconds: Math.round(durationSeconds * 100) / 100, hasAudio: false,
+      durationSeconds: Math.round(durationSeconds * 100) / 100, hasAudio,
     });
   }
   result[card.id] = items;

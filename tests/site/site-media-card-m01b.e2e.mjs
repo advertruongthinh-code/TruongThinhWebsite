@@ -1191,6 +1191,133 @@ test("M01b hover arrows step card media by position and the card media never zoo
   } finally { await browser.close(); }
 });
 
+// Card ba media cùng tỷ lệ (bản sao cover) cho lớp tối hover, dải liền và vuốt kéo (media-card R3, owner 2026-10-19).
+async function setupThree(context) {
+  const page = await context.newPage();
+  const artifact = manyImageArtifact();
+  const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
+  items.length = 3;
+  await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
+  await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+  await card.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(450);
+  await card.locator("img").first().waitFor({ state: "visible" });
+  return { page, card, items };
+}
+
+// Ghi từng frame: vị trí (so với canvas), opacity, trạng thái giải mã của mọi layer đang hiện.
+const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, action }) => {
+  const media = node.querySelector(".advertising-card-media");
+  const frames = [];
+  let stop = false;
+  const tick = () => {
+    const box = media.getBoundingClientRect();
+    frames.push([...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")].map((layer) => {
+      const rect = layer.getBoundingClientRect();
+      return { left: rect.left - box.left, right: rect.right - box.left, width: box.width,
+        opacity: getComputedStyle(layer).opacity, ready: layer.complete && layer.naturalWidth > 0 };
+    }));
+    if (!stop) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  if (action) node.querySelector(action).click();
+  await new Promise((resolve) => setTimeout(resolve, ms));
+  stop = true;
+  return frames;
+}, { ms, action });
+
+test("M01b hover darkens the canvas, fades just viewed, and media change slides as one strip", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const { page, card, items } = await setupThree(context);
+    // Nhãn "Vừa xem" do masonry gắn khi đóng detail; test gắn đúng node runtime tạo để đo phần hover.
+    await card.locator(".advertising-card-media").evaluate((media) => {
+      const marker = Object.assign(document.createElement("span"), { className: "advertising-card-media__just-viewed",
+        textContent: "Just viewed" });
+      marker.dataset.advertisingJustViewed = "";
+      media.append(marker);
+    });
+    const hoverState = () => card.locator(".advertising-card-media").evaluate((media) => ({
+      scrim: getComputedStyle(media, "::after").opacity,
+      scrimColor: getComputedStyle(media, "::after").backgroundColor,
+      marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
+    }));
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "1" });
+    await card.locator(".advertising-card-media").hover();
+    await page.waitForTimeout(150);
+    const fading = await hoverState();
+    assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
+      `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
+    await page.waitForTimeout(700);
+    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "0" });
+
+    const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
+    const sliding = frames.filter((layers) => layers.length === 2);
+    assert(sliding.length >= 20, `strip slides over many frames: ${sliding.length}`);
+    for (const layers of frames) {
+      assert(layers.length > 0 && layers.every((layer) => layer.opacity === "1" && layer.ready),
+        `every frame shows decoded media at full opacity: ${JSON.stringify(layers)}`);
+      const [first, second] = [...layers].sort((a, b) => a.left - b.left);
+      const right = (second ?? first).right;
+      assert(first.left <= 0.5 && right >= first.width - 0.5, `media cover the canvas: ${JSON.stringify(layers)}`);
+      if (second) assert(Math.abs(first.right - second.left) <= 1, `media stay joined: ${JSON.stringify(layers)}`);
+    }
+    assert(sliding.some(([a, b]) => Math.min(Math.abs(a.left), Math.abs(b.left)) > 20),
+      "incoming media enters from the canvas edge, not in place");
+
+    await page.mouse.move(5, 5);
+    await page.waitForTimeout(800);
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "1" });
+    await context.close();
+  } finally { await browser.close(); }
+});
+
+test("M01b touch drag moves the strip with the finger, snaps back below half, and commits past half", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const { page, card, items } = await setupThree(context);
+    const point = await visibleSwipePoints(card);
+    assert(point.visible && point.hitsLink, `touch gesture must start on visible card: ${JSON.stringify(point)}`);
+    const width = await card.locator(".advertising-card-media").evaluate((node) => node.clientWidth);
+    const client = await context.newCDPSession(page);
+    const touch = (type, x) => client.send("Input.dispatchTouchEvent",
+      { type, touchPoints: type === "touchEnd" ? [] : [{ x, y: point.y, id: 7 }] });
+    const start = point.x1 + width * 0.15;
+    const drag = async (distance) => {
+      await touch("touchStart", start);
+      for (let step = 1; step <= 6; step++) await touch("touchMove", start - distance * step / 6);
+      return card.locator(".advertising-card-media").evaluate((media) => {
+        const box = media.getBoundingClientRect();
+        return [...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")]
+          .map((layer) => Math.round(layer.getBoundingClientRect().left - box.left)).sort((a, b) => a - b);
+      });
+    };
+    const short = await drag(width * 0.3);
+    assert.deepEqual(short.map((left) => Math.abs(left - Math.round(-width * 0.3)) <= 2 || Math.abs(left - Math.round(width * 0.7)) <= 2),
+      [true, true], `current and next media follow the finger: ${JSON.stringify({ short, width })}`);
+    await page.waitForTimeout(300);
+    await touch("touchEnd");
+    await settlePush(card);
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[0].id, "short slow drag snaps back");
+    assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").count(), 1);
+
+    await drag(width * 0.6);
+    await page.waitForTimeout(300);
+    await touch("touchEnd");
+    await settlePush(card);
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id, "drag past half commits");
+    assert.doesNotMatch(new URL(page.url()).pathname, /\/p\/[^/]+\/$/, "drag never opens detail");
+    await context.close();
+  } finally { await browser.close(); }
+});
+
 async function runWideCover(locale, related = false, mode = "normal") {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: locale === "vi" ? { width: 390, height: 844 } : { width: 1440, height: 900 } });

@@ -17,9 +17,9 @@ const covered = () => document.querySelector("dialog[open]") !== null;
 // từ phải, đẩy ảnh cũ sang trái 0.9s power3.inOut; nút sau lệch nút trước 0.4s thành sóng. Bộ một ảnh đẩy sang
 // chính nó để vòng vẫn lặp.
 // Đẩy ngang của nút suggestion (design-system/motion.md): media mới vào từ phía direction, media cũ lùi 35% và mờ 0.4.
-// Card nhiều media và khung media detail dùng lại đúng nhịp này khi đổi media (owner 2026-10-18).
+// Dải media của card và primary dùng lại nhịp PUSH_TIMING, không lùi, không mờ (media-card R3, owner 2026-10-19).
 export const PUSH_TIMING = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
-export function pushSlide(incoming, outgoing, direction = 1) {
+function pushSlide(incoming, outgoing, direction = 1) {
   return {
     animation: incoming.animate([{ transform: `translateX(${100 * direction}%)` }, { transform: "translateX(0)" }], PUSH_TIMING),
     pushOut: outgoing?.animate([

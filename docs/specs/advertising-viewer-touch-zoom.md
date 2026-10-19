@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -149,8 +149,8 @@ primary (di không quá `10 CSS px`) mở viewer bằng morph như
 [detail R9](advertising-detail.md#r9-viewer). Chạm đúp cũng mở: lần chạm thứ hai
 rơi vào viewer và bị nuốt như R4, ảnh giữ Fit. Primary đang là video thì chạm
 không mở viewer. Khung
-primary mang `touch-action: manipulation` để trình duyệt không zoom trang khi
-chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
+primary mang `touch-action: pan-y pinch-zoom` (như `manipulation` nhưng không `pan-x`, để vuốt ngang kéo dải media,
+[media-card R6](media-card.md#r6-media-trong-primary)) nên trình duyệt không zoom trang khi chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
 
 ```gherkin
 Given detail của một ảnh trên điện thoại dọc
@@ -247,7 +247,7 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 | DOM hook | `[data-advertising-photo-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
 | DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out`, `-zoom-reset` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
 | DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
-| DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: manipulation` |
+| DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
 | CSS | `--advertising-viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
 | Hàm public | `TruongThinhAdvertising.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
 | DOM hook | `[data-advertising-photo-zoom-status]` | `round(s × 100)%` khi thao tác kết thúc |
