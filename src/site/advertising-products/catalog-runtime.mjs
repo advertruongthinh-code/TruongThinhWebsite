@@ -2396,7 +2396,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const BAKED_FILTERS = [[7.14, 1.112, 1.0079], [16.07, 1.2365, 1.0159], [32.15, 1.375, 1.0239],
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
-  const bakedRevealGlass = (host, bitmap) => {
+  const bakedRevealGlass = (host, bitmap, overSkeleton) => {
     const glass = revealGlass(host);
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
@@ -2407,6 +2407,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const canvas = Object.assign(document.createElement("canvas"), { width, height });
       Object.assign(canvas.style, { left: "0", top: "0", width: `${width}px`, height: `${height}px` });
       step.classList.add("glass-surface__step--baked");
+      // Trên skeleton: bỏ nền màu skeleton để gradient chạy vẫn thấy qua Kính như card (owner 19/10), không thành mảng xám phẳng.
+      if (overSkeleton) step.style.background = "none";
       step.append(canvas);
       return canvas;
     });
@@ -3386,7 +3388,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       settlePrimaryReveal();
       return;
     }
-    reveal.glass = bakedRevealGlass(heroFrame, bitmap);
+    reveal.glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame));
     bitmap?.close();
     // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
     const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
