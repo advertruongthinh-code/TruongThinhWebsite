@@ -55,8 +55,7 @@ của website. Hạt nhiễu sinh lúc chạy nên preview không có.
 
 Ảnh hiện thì kính phủ đều năm bậc hiện trên lớp dưới
 ([skeleton](../Skeleton/README.md) hoặc khung trống), crossfade lớp dưới sang
-ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Primary chờ ảnh
-dùng nhịp đủ `1.4s`:
+ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Nhịp gốc `1.4s`:
 
 | Bước | Thời điểm | Đường cong |
 | --- | --- | --- |
@@ -71,8 +70,8 @@ dùng nhịp đủ `1.4s`:
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
 - Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
-  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Ảnh card hiện từ
-  skeleton và primary đổi sang ảnh có sẵn dùng nhịp này. Ảnh card đã có sẵn
+  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Ảnh card và primary hiện từ
+  skeleton, primary đổi sang ảnh có sẵn đều dùng nhịp này (owner 19/10). Ảnh card đã có sẵn
   (cache, vào lại viewport) hiện ngay, không kính.
 - Giảm chuyển động: không kính.
 - Hiện xong thì gỡ kính khỏi DOM; card hay primary rời đi giữa chừng cũng gỡ.
