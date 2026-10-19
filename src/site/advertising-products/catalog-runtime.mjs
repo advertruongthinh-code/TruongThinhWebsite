@@ -3425,8 +3425,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
-  // mới đã giải mã. Video trong dải vẫn phát: video đang xem phát tiếp dưới dải (lane vẽ lại mỗi frame), video đích phát
-  // trong lane riêng, tiếng mỗi video theo phần của nó còn trong khung.
+  // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
   const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
@@ -3456,13 +3455,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const drawLiveBackground = () => {
     liveFrame = 0;
     const strip = primaryStrip;
-    const lanes = strip ? strip.lanes.map(({ nodes: [node], live, video }) => {
-      const x = parseFloat(getComputedStyle(node).translate) || 0;
-      if (live && drawable(live)) node.getContext("2d").drawImage(live, 0, 0, node.width, node.height);
-      // Tiếng theo phần video còn trong khung: ra hết khung thì im, vào hết thì đúng âm lượng người xem chọn.
-      if (video) video.volume = strip.volume * Math.max(0, 1 - Math.abs(x) / strip.width);
-      return { node, x };
-    }) : [{ node: photoVideo, x: 0 }];
+    const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
+      : [{ node: photoVideo, x: 0 }];
     // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
     liveBackground.hidden = photoView.dataset.advertisingPhotoGlass !== "true" || (!strip && photoVideo.hidden);
     if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
@@ -3494,20 +3488,44 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const startLiveBackground = () => {
     if (!liveFrame) liveFrame = requestAnimationFrame(drawLiveBackground);
   };
-  // Dải dừng hoặc bị thay: đưa photoVideo về media đích (strip.apply), dừng video của lane, trả âm lượng.
+  // Tiếng fade cùng nhịp dải (PUSH_TIMING) khi video chuyển giữa phát và dừng (owner 2026-10-19); ngoài lúc fade,
+  // photoVideo.volume luôn là mức người xem chọn.
+  let volumeFrame = 0;
+  let viewerVolume = 1;
+  const stopVolumeFade = () => {
+    if (!volumeFrame) return;
+    cancelAnimationFrame(volumeFrame);
+    volumeFrame = 0;
+    photoVideo.volume = viewerVolume;
+  };
+  const fadeVolume = (direction, done) => {
+    const fading = Boolean(volumeFrame);
+    if (!fading) viewerVolume = photoVideo.volume;
+    cancelAnimationFrame(volumeFrame);
+    const from = fading ? photoVideo.volume : direction > 0 ? 0 : viewerVolume;
+    const to = direction > 0 ? viewerVolume : 0;
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, Math.max(0, (now - start) / PUSH_TIMING.duration));
+      photoVideo.volume = from + (to - from) * (t < 0.5 ? 4 * t ** 3 : 1 - (2 - 2 * t) ** 3 / 2);
+      if (t < 1) return void (volumeFrame = requestAnimationFrame(step));
+      done?.();
+      volumeFrame = 0;
+      photoVideo.volume = viewerVolume;
+    };
+    step(start);
+  };
+  // Dải dừng hoặc bị thay: đưa photoVideo về media đích (strip.apply); vuốt bật về thì video phát lại, tiếng fade vào.
   const closePrimaryStrip = () => {
     const strip = primaryStrip;
     primaryStrip = null;
     if (strip) {
-      strip.apply?.();
+      if (strip.apply) strip.apply();
+      else if (strip.playing) {
+        void photoVideo.play().catch(() => {});
+        fadeVolume(1);
+      }
       strip.animations.forEach((animation) => animation.cancel());
-      strip.lanes.forEach(({ video }) => {
-        if (!video || video === photoVideo) return;
-        video.pause();
-        video.removeAttribute("src");
-        video.load();
-      });
-      photoVideo.volume = strip.volume;
       strip.nodes.forEach((node) => node.remove());
     }
     delete heroFrame.dataset.advertisingPhotoSliding;
@@ -3520,19 +3538,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const clip = document.createElement("div");
     clip.className = "advertising-photo-view__strip";
     const lanes = entries.map(({ item, slot }) => {
-      const live = !slot && !photoVideo.hidden && photoVideo.readyState >= 2 ? photoVideo : null;
-      const media = !slot ? currentPrimaryNode() : item.kind === "video"
-        ? Object.assign(document.createElement("video"), { muted: photoVideo.muted, playsInline: true, loop: true,
-          preload: "auto", poster: item.posterSrc, src: item.src, volume: 0 })
-        : Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) });
+      const media = slot ? Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) })
+        : currentPrimaryNode();
       media.classList.add("advertising-photo-view__strip-media");
       clip.append(media);
-      if (media instanceof HTMLVideoElement) void media.play().catch(() => {});
-      return { slot, nodes: [media], live, video: live ?? (media instanceof HTMLVideoElement ? media : null) };
+      return { slot, nodes: [media] };
     });
     photoVideo.after(clip);
     heroFrame.dataset.advertisingPhotoSliding = "";
-    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, volume: photoVideo.volume, apply: null };
+    const playing = !photoVideo.hidden && !photoVideo.paused;
+    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null };
+    // Hình video đứng trong dải; tiếng chạy nốt và nhỏ dần cùng nhịp dải rồi video mới dừng.
+    if (playing) fadeVolume(-1, () => photoVideo.pause());
     placeStrip(lanes, width, offset);
     cancelAnimationFrame(liveFrame);
     drawLiveBackground();
@@ -3571,8 +3588,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoExpand.hidden = video;
     photoPlayer.hidden = !video;
     photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
-    // Trong lúc trượt photoVideo giữ video đang xem để nó phát tiếp dưới dải; dải dừng thì mới chuyển sang media đích.
+    // Trong lúc trượt photoVideo giữ video đang xem (tiếng đang fade ra); dải dừng thì mới chuyển sang media đích.
     const applyVideo = () => {
+      stopVolumeFade();
       photoVideo.pause();
       photoVideo.hidden = !video;
       if (!video) {
@@ -3587,6 +3605,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
       else if (slide) photoVideo.currentTime = 0;
       void photoVideo.play().catch(() => {});
+      if (strip) fadeVolume(1);
     };
     if (strip) strip.apply = applyVideo;
     else applyVideo();
@@ -3602,17 +3621,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     fitPrimaryMedia(item);
     if (strip) {
       const from = motion?.offset ?? 0;
-      const target = strip.lanes.find(({ slot }) => slot === Math.sign(slide))?.video;
       void Promise.all(strip.lanes.flatMap(({ nodes }) => nodes).map(whenMediaReady))
         .then(() => primaryStrip === strip && runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width,
           motion?.timing ?? PUSH_TIMING))
         .then(() => {
           if (primaryStrip !== strip) return;
           strip.apply();
-          strip.apply = null;
+          Object.assign(strip, { apply: null, playing: false });
           if (!video) return whenMediaReady(photoImage);
-          // Video đích đã phát trong lane từ lúc vào khung (R6): photoVideo bắt đầu từ giây đó, có frame thì bỏ lane.
-          if (target) photoVideo.currentTime = target.currentTime;
+          // Video vào khung phát lại từ đầu (R6); dải gỡ khi video có frame.
           return photoVideo.readyState >= 2 || new Promise((resolve) => {
             photoVideo.addEventListener("loadeddata", resolve, { once: true });
             photoVideo.addEventListener("error", resolve, { once: true });
@@ -3750,14 +3767,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     `${(Number(range.value) / (Number(range.max) || 1)) * 100}%`);
   const syncVideoPlayer = () => {
     const english = locale === "en";
-    const silent = photoVideo.muted || photoVideo.volume === 0;
+    // Thanh âm lượng giữ mức người xem chọn trong lúc tiếng fade.
+    const volume = volumeFrame ? viewerVolume : photoVideo.volume;
+    const silent = photoVideo.muted || volume === 0;
     photoPlayer.dataset.advertisingVideoPaused = String(photoVideo.paused);
     photoPlayer.dataset.advertisingVideoMuted = String(silent);
     photoPlayButton.setAttribute("aria-label", photoVideo.paused ? english ? "Play" : "Phát"
       : english ? "Pause" : "Tạm dừng");
     photoAudioToggle.setAttribute("aria-label", silent ? english ? "Unmute" : "Bật tiếng"
       : english ? "Mute" : "Tắt tiếng");
-    photoVolume.value = silent ? 0 : photoVideo.volume;
+    photoVolume.value = silent ? 0 : volume;
     setRangeFill(photoVolume);
   };
   const syncVideoTime = () => {

@@ -480,7 +480,7 @@ test("M02a primary dots jump straight to a media and the blur backdrop mirrors t
   });
 });
 
-test("M02a video keeps playing in the strip, its sound fades with the slide, and the blur backdrop follows the video", async () => {
+test("M02a video stands still in the strip, its sound fades between play and pause, and the blur backdrop follows the video", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 2);
@@ -504,34 +504,41 @@ test("M02a video keeps playing in the strip, its sound fades with the slide, and
       const frames = [];
       let stop = false;
       const tick = () => {
-        const lane = document.querySelector(".advertising-photo-view__strip > video");
-        if (document.querySelector(".advertising-photo-view__strip")) {
-          frames.push({ outgoing: video.volume, outgoingPaused: video.paused, incoming: lane?.volume ?? null,
-            playing: video.hasAttribute("src") });
-        }
+        const strip = document.querySelector(".advertising-photo-view__strip");
+        frames.push({ strip: Boolean(strip), laneVideos: strip?.querySelectorAll("video").length ?? 0,
+          moving: Boolean(strip?.getAnimations({ subtree: true }).some(({ playState }) => playState === "running")),
+          volume: video.volume, paused: video.paused, src: video.getAttribute("src"), time: video.currentTime, at: performance.now() });
         if (!stop) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
       document.querySelector(`[data-advertising-photo-media-step="${step}"]`).click();
-      await new Promise((resolve) => setTimeout(resolve, 1800));
+      await new Promise((resolve) => setTimeout(resolve, 2400));
       stop = true;
-      return { frames, time: video.currentTime, paused: video.paused, volume: video.volume, src: video.getAttribute("src") };
+      return frames;
     }, step);
     const out = await slide(-1);
-    // Dải dừng thì photoVideo chuyển sang ảnh rồi dải mới gỡ khi ảnh đã giải mã; chỉ xét các frame video còn phát.
-    const fading = out.frames.filter(({ playing }) => playing);
-    assert(fading.length >= 20, `video to image slides over many frames: ${fading.length}`);
-    assert(fading.every(({ outgoingPaused }) => !outgoingPaused), "the outgoing video keeps playing under the strip");
-    assert(fading.at(0).outgoing > 0.9 && fading.at(-1).outgoing < 0.05, "its sound fades out with the slide");
-    assert(fading.every((frame, index) => !index || frame.outgoing <= fading[index - 1].outgoing + 1e-6),
-      "the fade never goes back up");
-    assert.equal(out.src, null, "the video stops once the image is in the frame");
-    assert.equal(out.volume, 1, "the viewer volume comes back");
+    const sliding = out.filter(({ strip }) => strip);
+    assert(sliding.length >= 20, `video to image slides over many frames: ${sliding.length}`);
+    assert(sliding.every(({ laneVideos }) => laneVideos === 0), "no video plays inside the strip");
+    // Tiếng chạy nốt và nhỏ dần trong lúc hình đứng trên dải, về 0 thì video dừng.
+    const fading = sliding.filter(({ paused }) => !paused);
+    const span = fading.at(-1).at - fading[0].at;
+    assert(span > 600 && fading[0].volume > 0.9, `the sound fades over the slide rhythm from the viewer volume: ${span}`);
+    assert(fading.every((frame, index) => !index || frame.volume <= fading[index - 1].volume + 1e-6), "the fade only goes down");
+    assert(fading.at(-1).volume < 0.1, `the sound fades out before the video pauses: ${fading.at(-1).volume}`);
+    assert.equal(out.at(-1).src, null, "the video stops once the image is in the frame");
+    assert.equal(out.at(-1).volume, 1, "the viewer volume comes back");
     const back = await slide(1);
-    assert(back.frames.length >= 20, `image to video slides over many frames: ${back.frames.length}`);
-    assert(back.frames.at(0).incoming < 0.1 && back.frames.at(-1).incoming > 0.95, "the incoming video sound fades in");
-    assert.equal(back.paused, false, "the video keeps playing after the strip");
-    assert(back.time > 0.4, `the video continues from where its lane got to: ${back.time}`);
+    const inStrip = back.filter(({ strip }) => strip);
+    assert(inStrip.length >= 20, `image to video slides over many frames: ${inStrip.length}`);
+    assert(inStrip.every(({ laneVideos }) => laneVideos === 0), "no video plays inside the strip");
+    const end = back.indexOf(inStrip.at(-1));
+    assert(back.filter(({ moving }) => moving).every(({ paused }) => paused), "the video waits for the strip to stop");
+    const after = back.slice(end + 1);
+    assert(after.length >= 20 && after.every(({ paused }) => !paused), "the video plays once it is in the frame");
+    assert(after[0].time < 0.5, `the video starts from the beginning: ${after[0].time}`);
+    assert(after[0].volume < 0.2 && after.at(-1).volume === 1, "its sound fades in to the viewer volume");
+    assert(after.every((frame, index) => !index || frame.volume >= after[index - 1].volume - 1e-6), "the fade only goes up");
   });
 });
 
