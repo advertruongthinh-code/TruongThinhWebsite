@@ -4,9 +4,7 @@
   "policy": "User-global agent stack and project-local browser QA are pinned; update checks notify only.",
   "scope": {
     "global": [
-      "serena",
       "graphify",
-      "chrome-devtools-mcp",
       "impeccable",
       "agent-skills",
       "i-have-adhd",
@@ -18,8 +16,7 @@
       "playwright",
       "browser-engines",
       "graphify-git-hooks",
-      "graphify-watcher",
-      "serena-language-policy"
+      "graphify-watcher"
     ]
   },
   "skills": {
@@ -31,15 +28,13 @@
     "global-total": 56
   },
   "python": {
-    "serena-agent": "2.0.0",
     "graphifyy": "0.9.92",
     "uv": "0.13.1",
     "graphify_extras": "all"
   },
   "node": {
     "global": {
-      "impeccable": "4.6.0",
-      "chrome-devtools-mcp": "1.11.0"
+      "impeccable": "4.6.0"
     },
     "project": {
       "playwright": "1.64.1",
@@ -54,25 +49,21 @@
     }
   },
   "repositories": {
-    "oraios/serena": "4c4268f9c0adf8743a75e6dda2ef1fa635f34cc3",
     "Graphify-Labs/graphify": "86c57be8204673c2a1b9849a3292a7dd3ab373d8",
     "ayghri/i-have-adhd": "1ecea1993b7fce257ffbd686c070948b5e07eda6",
     "addyosmani/agent-skills": "aeac41d4d005999432bb7312f7ff06383a91d59d",
     "juliusbrussee/caveman": "a5705b01a5d877c34d44c4961f14816b21bfb72a",
     "pbakaus/impeccable": "8a0e198da34ebc5b936a9d5975fb7a3b1cf353b7",
     "microsoft/playwright": "cfe490d941f992655948eee8fd4fd94e1c4234bf",
-    "ChromeDevTools/chrome-devtools-mcp": "a878bcad39584337e055778353246820deafa7c0",
     "dietrichgebert/ponytail": "16352ac229eb08a9598dcae48fe9f2b342567d86"
   },
   "repository_urls": {
-    "oraios/serena": "https://github.com/oraios/serena.git",
     "Graphify-Labs/graphify": "https://github.com/Graphify-Labs/graphify.git",
     "ayghri/i-have-adhd": "https://github.com/ayghri/i-have-adhd.git",
     "addyosmani/agent-skills": "https://github.com/addyosmani/agent-skills.git",
     "juliusbrussee/caveman": "https://github.com/juliusbrussee/caveman.git",
     "pbakaus/impeccable": "https://github.com/pbakaus/impeccable.git",
     "microsoft/playwright": "https://github.com/microsoft/playwright.git",
-    "ChromeDevTools/chrome-devtools-mcp": "https://github.com/ChromeDevTools/chrome-devtools-mcp.git",
     "dietrichgebert/ponytail": "https://github.com/dietrichgebert/ponytail.git"
   }
 }
