@@ -193,7 +193,7 @@ trang ở [Hero](design-system/components/Hero/README.md#theo-width).
 
 | Vai trò | 320 | 390 | 768 | 1024 | 1440 | Weight |
 | --- | --- | --- | --- | --- | --- | --- |
-| Kicker hero | 14/19.6 hoặc 16/22.4 | 14/19.6 hoặc 16/22.4 | 16/22.4 | 16/22.4 | 16/22.4 | 700 hoa; About 500 |
+| Kicker hero | ẩn | ẩn | 16/22.4 | 16/22.4 | 16/22.4 | 700 hoa; About không có |
 | Eyebrow section | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 12.8/17.92 | 700 hoa |
 | Đoạn mở đầu detail | 23.2/32.48 | 23.2/32.48 | 24.8/34.72 | 24.8/34.72 | 31.68/44.35 | 500 |
 | Tiêu đề editorial About | 52/52 | 52/52 | 48/48 | 59.39/59.39 | 83.52/83.52 | 600 |
@@ -204,7 +204,7 @@ trang ở [Hero](design-system/components/Hero/README.md#theo-width).
 | Tiêu đề nhóm full menu | 28.8/40.32 | 28.8/40.32 | 28.8/40.32 | 28.8/40.32 | 28.8/40.32 | 600 hoa |
 | Mục full menu | 13.6/22.4 | 13.6/22.4 | 13.6/22.4 | 13.6/22.4 | 13.6/22.4 | 700 hoa |
 
-Kicker hero 14/19.6 ở Residential và Commercial tới 390px.
+Kicker hero ẩn từ 750px trở xuống (owner 2026-10-18).
 
 **Quy tắc đọc trước.** Display tạo nhịp, body truyền thông tin, label định vị
 control. Không dùng weight hay tracking display cho đoạn đọc dài. Chữ không
