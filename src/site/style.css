@@ -1013,6 +1013,9 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   grid-template-columns: 100%;
   grid-template-rows: 100%;
   overflow: hidden;
+  /* Hero cao cố định nhưng chữ đổi cỡ sau khi mount (fitHeroLines, SplitText); WebKit lấy node trong hero làm
+     scroll anchor nên Back về trang đã cuộn bị lệch 23px. Loại hero khỏi việc chọn anchor. */
+  overflow-anchor: none;
   background: var(--media-loading-surface);
   color: white;
 }

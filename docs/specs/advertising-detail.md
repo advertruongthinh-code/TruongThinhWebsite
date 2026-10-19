@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Detail Advertising
@@ -89,7 +89,7 @@ And bấm chấm cuối hiện trang cuối
 ### R4. Media primary và nền
 
 `renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
-`1.4s`; ảnh có sẵn crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
+`0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, player kiểu Pinterest ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Hình học
 primary và related theo cover của card, không theo media đang xem: đổi media qua dải trượt không làm related xếp lại.

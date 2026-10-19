@@ -260,7 +260,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 - Primary đổi ảnh tại chỗ, cả lần mở đầu từ masonry lẫn khi bấm related. Ảnh
   chưa giải mã xong sau `100ms` thì khung primary mang skeleton như card rồi
-  crossfade dưới kính cùng nhịp `1.4s`. Ảnh có sẵn: ảnh đang xem và nền blur
+  crossfade dưới kính cùng nhịp `0.6s` như card (owner 19/10). Ảnh có sẵn: ảnh đang xem và nền blur
   cũ mờ đi trên ảnh mới, crossfade `0.13s` đến `0.39s` trong nhịp `0.6s`, kính
   hiện `0` đến `0.26s` rồi tan tới `0.6s`; mở lần đầu thì ảnh mới hiện từ khung
   trống cùng nhịp. Reduced motion: không kính.
