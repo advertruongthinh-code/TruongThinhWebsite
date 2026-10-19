@@ -16,45 +16,34 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 
 ## Theo trang
 
-| Trang | Nền | Tiêu đề | Bố cục |
+| Trang | Nền | Tiêu đề | Kicker |
 | --- | --- | --- | --- |
-| Trang chủ | Slideshow ảnh full viewport | `clamp(5rem, 9vw, 10rem)`, line-height 0.86, chữ trắng | Căn giữa |
-| Residential, Commercial | Ảnh, `hero-shade` | Chữ hoa 600, line-height 1.4; Residential `clamp(3.05rem, 7.15vw, 7rem)`, Commercial `clamp(2.5rem, 7.4vw, 5.75rem)` (VI vừa khung `80%` từ 680px); dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em` |
-| About | Ảnh đội ngũ, shade thêm lớp ngang | `clamp(5.4rem, 9vw, 10.2rem)`, line-height 0.87 (1.15 tới 680px để chân chữ g không chạm dấu dòng dưới), chữ thường; dòng 1 weight 500, dòng 2 700 nghiêng thụt `0.78em`; kicker 500 | Căn trái |
-| Advertising | `paper`, chữ `ink` | Chữ hoa 600, `clamp(3.05rem, 7.2vw, 7rem)`, line-height 1.4; dòng 2 nhỏ hơn | Dòng 1 trái, dòng 2 phải và chồng lên `-0.35em`, cao `100svh - 50px` |
+| Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, dòng 2 nghiêng | Có |
+| Residential, Commercial | Ảnh, `hero-shade` | Chữ hoa 600, line-height 1.4 | Có |
+| About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 nghiêng | Không (owner 2026-10-18) |
+| Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa 600, line-height 1.4 | Có |
 
-Hero ảnh cao `100svh` (tối thiểu 42–46rem tùy trang); tới 980px chuyển sang
-luồng chữ tự nhiên để chữ tăng 200% không đè header, nhưng vẫn cao tối thiểu
-`100svh` để phủ kín màn hình phone (owner 2026-10-11). Ảnh đầu tải ngay với
+Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
 `fetchpriority="high"`; trang chủ chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
 ([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
 
 ## Theo width
 
-Font-size/line-height dòng 1 | dòng 2 (px) và chiều cao hero, đo trên website
-ngày 2026-10-04 với viewport cao 844 (320, 390) hoặc 900.
+Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typography.md#r2-bày-chữ-hero-kiểu-espacio).
 
-| Trang | 320 | 390 | 768 | 1024 | 1440 |
-| --- | --- | --- | --- | --- | --- |
-| Trang chủ | 65.6/56.42 | 74.1/63.73 | 80/68.8 | 92.16/79.26 | 129.6/111.46 |
-| Residential | 40/56 \| 26.24/36.74 | 46.8/65.52 \| 31.98/44.77 | 54.91/76.88 \| 51.84/72.58 | 73.22/102.5 \| 69.12/96.77 | 102.96/144.14 \| 97.2/136.08 |
-| Commercial | 24/33.6 \| 17.6/24.64 | 29.25/40.95 \| 21.45/30.03 | 57.6/80.64 \| 40.7/56.99 | 76.8/107.52 \| 54.27/75.98 | 92/128.8 \| 66.4/92.96 |
-| About | 70.4/80.96 | 78/89.7 | 86.4/75.17 | 92.16/80.18 | 129.6/112.75 |
-| Advertising | 29.12/40.77 \| 22.08/30.91 | 35.49/49.69 \| 26.91/37.67 | 55.3/77.41 \| 48.38/67.74 | 73.73/103.22 \| 64.51/90.32 | 103.68/145.15 \| 87.2/122.08 |
-
-| Trang | Cao hero 320–390 | 768 | 1024–1440 |
-| --- | ---: | ---: | ---: |
-| Trang chủ | 844 | 900 | 900 |
-| Residential, Commercial | 844 | 900 | 900 |
-| About | 844 | 900 | 900 |
-| Advertising | 794 | 850 | 850 |
-
-- Trang chủ và About dùng một cỡ cho hai dòng; dòng 2 nghiêng.
-- Khung chữ ở 1440: x 220, rộng 1000 (Residential, Commercial, Advertising);
-  trang chủ x 35; About x 64.
-- Kicker 16/22.4 (14/19.6 ở Residential, Commercial tới 390px).
-- Advertising tới 680px căn giữa hai dòng; từ 1025px dòng 2 rộng hơn khung
-  vẫn giữ mép phải đúng mép khung.
+- **Trên 750px:** khung chữ `min(80%, 62.5rem)`, mọi hero chung một cỡ
+  `min(7rem, bề rộng khung / 12,5)`. Dòng 1 canh trái, dòng 2 canh phải, kéo lên
+  `0,2em` và lồng nhau khoảng 30% dòng ngắn; kicker theo mép trái dòng 1.
+- **Từ 750px trở xuống (phone):** khung chữ `calc(100% - 64px)` (lề 32px mỗi
+  bên). Mỗi title co vừa khung theo dòng dài nhất của nó (`100cqi /
+  --hero-line-em`, tối đa 7rem): ở 384px từ 26px (Commercial EN) tới 60px
+  (trang chủ VI). Hai dòng canh giữa, title nằm đúng tâm hero (lệch tối đa
+  3px) dù có hay không có hàng chip. Không hiện kicker.
+- **Rail Advertising trên phone:** `.hero-browse` neo theo đáy hero, chừa sẵn
+  một hàng chip, nên rail đứng một chỗ như trên PC.
+- **Kicker:** 16/22.4, 700 hoa; cách nét chữ title như nhau ở mọi hero,
+  `clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`.
+- **Không JS:** về cỡ chung 12,5em, hai dòng sát hai mép khung.
 - Scroll cue chữ hoa 12.8/17.92, cách đáy hero 45px (`> 1200`), 30px
   (`<= 1200`), 60px (`<= 750`); không nhận click khi đã ẩn.
 

@@ -53,16 +53,31 @@ Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
 Áp cho title chính của mọi hero: Trang chủ, Residential, Commercial, About, Advertising, trang cụm và trang sản
 phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ kicker).
 
-- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(90% - 30px)`. Title nằm giữa hero theo hai chiều.
+- Khung chữ rộng `min(80%, 62.5rem)`, từ 750px trở xuống `calc(100% - 64px)` (lề 32px mỗi bên để title không sát viền) (owner audit
+  2026-10-18). Title nằm giữa hero theo hai chiều.
 - Mỗi dòng là một khối. Trên 750px dòng 1 canh trái, dòng 2 canh phải; từ 750px trở xuống hai dòng canh giữa.
   Dòng 2 kéo lên `0,2em`, line-height 1,4, chữ in hoa.
-- Mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
+- Trên 750px hai dòng lồng nhau một phần như trang chủ EN: cặp dòng rộng bằng tổng hai dòng trừ 30% dòng ngắn; khung
+  rộng hơn cặp thì hai dòng dồn đều vào giữa, kicker theo mép trái dòng 1 (lệch vào 0,5rem).
+- Từ 750px trở xuống chỉ title nằm ở tâm hero theo chiều dọc (lệch tối đa 3px), dù có hay không có hàng chip.
+  Phone không hiện kicker (ẩn kiểu `.sr-only`, h1 vẫn còn cho trình đọc màn hình). Mỗi title co vừa khung theo dòng
+  dài nhất của nó (`100cqi / --hero-line-em`, tối đa 7rem), nên cỡ khác nhau giữa các trang: 384px từ 26px
+  (Commercial EN) tới 60px (trang chủ VI). Hero dạng grid (Trang chủ, About, Advertising) dùng hàng trên và hàng
+  dưới cùng `1fr`; thiếu chỗ thì hàng giãn, không đè. Hero About không có kicker ở mọi bề rộng (owner audit
+  2026-10-18).
+- Rail và chip Advertising trên phone neo như PC: khối `.hero-browse` neo theo đáy hero, chừa sẵn một hàng chip, nên
+  rail đứng một chỗ dù trang có hàng chip hay không; hàng chip thêm tràn xuống dưới. Từ 751px khối này là
+  `display: contents`, bố cục cũ giữ nguyên.
+- Kicker cách nét chữ title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`
+  (khoảng trống trên nét hoa của dòng 1 so với "Ể", đo bằng canvas), nên title không dấu không bị cách xa hơn.
+- Trên 750px mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
   12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
 - Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn
-  `data-hero-fit`. Dòng không xuống dòng và chỉ co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước
-  khi motion đọc vị trí;
-  đo lại khi đổi ngôn ngữ hoặc font tải xong, không đo lại ở mỗi lần layout (đo ép style cả trang).
-- Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng, cùng hình học như khi có JS.
+  `data-hero-fit`, cùng `--hero-pair-em` cho title hai dòng, ghi lên `hero-content`. Dòng không xuống dòng và chỉ
+  co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước khi motion đọc vị trí; đo lại khi đổi ngôn ngữ
+  hoặc font tải xong, không đo lại ở mỗi lần layout (đo ép style cả trang).
+- Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng; hai dòng nằm sát hai mép khung vì
+  không có số đo cặp dòng.
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
   owner duyệt (mục UI).

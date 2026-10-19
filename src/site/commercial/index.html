@@ -81,7 +81,7 @@
     <script>
       // detail-pages R5: chọn hero Kinh doanh ngẫu nhiên ngay trong head rồi preload, như hero trang chủ (page-home R3).
       (() => {
-        const slides = ["commercial-hero-cafe", "commercial-hero-homestay", "commercial-hero-coconut-beauty-booth", "commercial-hero-coconut-craft-booth", "commercial-hero-shared-workspace", "commercial-hero-bakery", "commercial-hero-flower-shop", "commercial-hero-sports-shop", "commercial-hero-womens-fashion", "commercial-hero-fashion-timber", "commercial-hero-fashion-grey"];
+        const slides = ["commercial-hero-cafe", "commercial-hero-homestay", "commercial-hero-coconut-beauty-booth", "commercial-hero-coconut-craft-booth", "commercial-hero-shared-workspace", "commercial-hero-bakery", "commercial-hero-flower-shop", "commercial-hero-sports-shop", "commercial-hero-womens-fashion", "commercial-hero-fashion-timber", "commercial-hero-fashion-grey", "commercial-hero-reception-backdrop"];
         const first = Math.floor(Math.random() * slides.length);
         const path = `/assets/content/projects/${slides[first]}`;
         document.documentElement.dataset.heroFirst = first;
@@ -372,6 +372,17 @@
                 height="1280"
                 alt="Shop thời trang tông xám với giá treo, bàn trưng bày đá và tường đá tối"
                 data-en-alt="Grey-toned fashion shop with clothing rails, a stone display table and a dark stone wall"
+                loading="eager"
+                data-motion-hero-media
+              />
+            </figure>
+            <figure class="hero-slide" data-slide="11">
+              <img
+                data-src="/assets/content/projects/commercial-hero-reception-backdrop.webp"
+                width="1920"
+                height="1280"
+                alt="Sảnh lễ tân với vách lam gỗ óc chó, logo hình lá đồng sáng đèn và quầy đá, khu ghế chờ có cây xanh"
+                data-en-alt="Reception lobby with a fluted walnut wall, a lit brass leaf logo, a stone desk and a planted waiting lounge"
                 loading="eager"
                 data-motion-hero-media
               />

@@ -7831,10 +7831,12 @@ async function runResidentialHeroTextCheck() {
               contentCenter,
               textCenters: textRects.map((value) => value.left + value.width / 2),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
+              // Phone không hiện kicker (hero-typography R2): kicker chỉ còn hộp 1px cho trình đọc màn hình.
+              kickerHidden: kicker.getBoundingClientRect().width <= 1,
               verticalOrder:
-                kickerTextRect.bottom < textRects[0].top &&
+                (window.innerWidth <= 750 || kickerTextRect.bottom < textRects[0].top) &&
                 textRects[0].top < textRects[1].top,
-              inViewport: [kickerTextRect, ...textRects].every(
+              inViewport: [...(window.innerWidth <= 750 ? [] : [kickerTextRect]), ...textRects].every(
                 (value) =>
                   value.top >= -1 &&
                   value.bottom <= window.innerHeight + 1 &&
@@ -7880,9 +7882,9 @@ async function runResidentialHeroTextCheck() {
 
           if (viewport.width > 680) {
             assert(
-              Math.abs(hero.textRects[0].left - hero.contentRect.left) <= 2 &&
-                Math.abs(hero.textRects[1].right - hero.contentRect.right) <= 2 &&
-                Math.abs(hero.kickerTextRect.left - hero.contentRect.left - 8) <= 2 &&
+              // Cặp dòng ngắn dồn đều vào giữa, kicker theo dòng 1 (hero-typography R2).
+              Math.abs((hero.textRects[0].left - hero.contentRect.left) - (hero.contentRect.right - hero.textRects[1].right)) <= 2 &&
+                Math.abs(hero.kickerTextRect.left - hero.textRects[0].left - 8) <= 2 &&
                 hero.sourceFontSizes.every((size) => size <= 112.1),
               `${locale} ${viewport.width}x${viewport.height}: residential desktop title lost its left/right composition`,
             );
@@ -7890,9 +7892,9 @@ async function runResidentialHeroTextCheck() {
             assert(
               hero.textCenters.every(
                 (center) => Math.abs(center - hero.contentCenter) <= 2,
-              ) && Math.abs(
+              ) && (viewport.width > 750 ? Math.abs(
                 hero.kickerTextRect.left + hero.kickerTextRect.width / 2 - hero.contentCenter,
-              ) <= 2,
+              ) <= 2 : hero.kickerHidden),
               `${locale} ${viewport.width}x${viewport.height}: residential mobile title is not centered`,
             );
           }
@@ -8002,10 +8004,12 @@ async function runCommercialHeroTextCheck() {
                 return value.left + value.width / 2;
               }),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
+              // Phone không hiện kicker (hero-typography R2): kicker chỉ còn hộp 1px cho trình đọc màn hình.
+              kickerHidden: kicker.getBoundingClientRect().width <= 1,
               verticalOrder:
-                kickerTextRect.bottom < textRects[0].top &&
+                (window.innerWidth <= 750 || kickerTextRect.bottom < textRects[0].top) &&
                 textRects[0].top < textRects[1].top,
-              inViewport: [kickerTextRect, ...textRects].every(
+              inViewport: [...(window.innerWidth <= 750 ? [] : [kickerTextRect]), ...textRects].every(
                 (value) =>
                   value.top >= -1 &&
                   value.bottom <= window.innerHeight + 1 &&
@@ -8051,9 +8055,9 @@ async function runCommercialHeroTextCheck() {
 
           if (viewport.width > 680) {
             assert(
-                Math.abs(hero.textRects[0].left - hero.contentRect.left) <= 2 &&
-                Math.abs(hero.textRects[1].right - hero.contentRect.right) <= 2 &&
-                Math.abs(hero.kickerTextRect.left - hero.contentRect.left - 8) <= 2 &&
+                // Cặp dòng ngắn dồn đều vào giữa, kicker theo dòng 1 (hero-typography R2).
+              Math.abs((hero.textRects[0].left - hero.contentRect.left) - (hero.contentRect.right - hero.textRects[1].right)) <= 2 &&
+                Math.abs(hero.kickerTextRect.left - hero.textRects[0].left - 8) <= 2 &&
                 hero.sourceFontSizes.every((size) => size <= 92.1),
               `${locale} ${viewport.width}x${viewport.height}: commercial desktop title lost its left/right composition`,
             );
@@ -8062,11 +8066,13 @@ async function runCommercialHeroTextCheck() {
               hero.letterCenters.every(
                 (center) => Math.abs(center - hero.contentCenter) <= 2,
               ) &&
-                Math.abs(
-                  hero.kickerTextRect.left +
-                    hero.kickerTextRect.width / 2 -
-                    hero.contentCenter,
-                ) <= 2,
+                (viewport.width > 750
+                  ? Math.abs(
+                    hero.kickerTextRect.left +
+                      hero.kickerTextRect.width / 2 -
+                      hero.contentCenter,
+                  ) <= 2
+                  : hero.kickerHidden),
               `${locale} ${viewport.width}x${viewport.height}: commercial mobile title is not centered`,
             );
           }
@@ -8517,7 +8523,7 @@ async function readProjectFinalGeometry(page) {
   });
 }
 
-function assertProjectGeometryMatch(normal, fallback, label) {
+function assertProjectGeometryMatch(normal, fallback, label, skip = []) {
   const compareRect = (expected, actual, target) => {
     for (const key of ["top", "left", "width", "height"]) {
       assert(
@@ -8527,7 +8533,7 @@ function assertProjectGeometryMatch(normal, fallback, label) {
     }
   };
   for (const [name, expected] of Object.entries(normal.rects)) {
-    compareRect(expected, fallback.rects[name], name);
+    if (!skip.includes(name)) compareRect(expected, fallback.rects[name], name);
   }
   assert(
     normal.filterRects.length === fallback.filterRects.length &&
@@ -8537,7 +8543,7 @@ function assertProjectGeometryMatch(normal, fallback, label) {
   normal.filterRects.forEach((rect, index) =>
     compareRect(rect, fallback.filterRects[index], `filter-${index}`),
   );
-  normal.lineRects.forEach((rect, index) =>
+  if (!skip.includes("content")) normal.lineRects.forEach((rect, index) =>
     compareRect(rect, fallback.lineRects[index], `line-${index}`),
   );
 }
@@ -8594,8 +8600,13 @@ async function homeFinalGeometry(page) {
   });
 }
 
-function assertHomeGeometryMatch(normal, fallback, label) {
+// Phone: cỡ title hero co theo từng câu nhờ motion.js đo (hero-typography R2); không có motion.js thì về cỡ chung, nên
+// bỏ qua hộp title khi so geometry ở bề rộng phone.
+const phoneTitleRects = (width) => (width <= 750 ? ["content", "heading"] : []);
+
+function assertHomeGeometryMatch(normal, fallback, label, skip = []) {
   for (const [name, expected] of Object.entries(normal.rects)) {
+    if (skip.includes(name)) continue;
     for (const key of ["top", "left", "width", "height"]) {
       const drift = Math.abs(expected[key] - fallback.rects[name][key]);
       assert(drift <= 1, `${label} ${name}.${key} drifted ${drift.toFixed(2)}px`);
@@ -8716,7 +8727,7 @@ async function runMotionAbortFailOpenChecks() {
           () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
         );
         const fallback = await homeFinalGeometry(page);
-        assertHomeGeometryMatch(normal, fallback, `${viewport.width}x${viewport.height}`);
+        assertHomeGeometryMatch(normal, fallback, `${viewport.width}x${viewport.height}`, phoneTitleRects(viewport.width));
         assert(
           fallback.fallbackActive &&
             fallback.headerVisible &&
@@ -8782,6 +8793,7 @@ async function runMotionAbortFailOpenChecks() {
           normal,
           fallback,
           `${viewport.width}x${viewport.height}`,
+          phoneTitleRects(viewport.width),
         );
         assert(
           captureErrorMs < 2_000 &&

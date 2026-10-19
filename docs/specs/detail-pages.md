@@ -79,7 +79,7 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 
 | # | Khối | Nội dung (VI) | Tone |
 | --- | --- | --- | --- |
-| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), kicker "CÂU CHUYỆN TRƯỜNG THỊNH", `h1` "Vững nghề. / Vững niềm tin." | inverse |
+| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker (owner 2026-10-18), `h1` "Vững nghề. / Vững niềm tin." | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
 | 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề."; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng."; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
@@ -114,7 +114,7 @@ Then mỗi trang một h1, không có bước nhảy cấp heading, không phầ
 ### R5. Hero và vào trang
 
 Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), có kicker, `h1` hai dòng, scroll cue. Residential,
-Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; Commercial chọn ngẫu nhiên mỗi lần tải một trong 11 hero owner duyệt 2026-10-18 (9 hero kinh doanh F24, hai shop thời trang F19; 1920×1280 từ PNG SeedVR2.5) như hero trang chủ ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)): script head chọn và preload, script module sau `.hero-slides` giữ slide đó, bỏ các slide còn lại, gán `src`, `srcset`, `fetchpriority="high"`; route mềm runtime chạy lại script đó; chữ hoa, đậm 600,
+Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; Commercial chọn ngẫu nhiên mỗi lần tải một trong 12 hero owner duyệt 2026-10-18 (9 hero kinh doanh F24, hai shop thời trang F19, sảnh lễ tân F25; 1920×1280 từ PNG SeedVR2.5) như hero trang chủ ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)): script head chọn và preload, script module sau `.hero-slides` giữ slide đó, bỏ các slide còn lại, gán `src`, `srcset`, `fetchpriority="high"`; route mềm runtime chạy lại script đó; chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ, cao tối thiểu `100svh`. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
 tính từ lúc mount: ảnh hero (`data-motion-hero-media`) `scale 1.2 → 1.005` trong 2,5s `ease` rồi đứng yên, như hero
