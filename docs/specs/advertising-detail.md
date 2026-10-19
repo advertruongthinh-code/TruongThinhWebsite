@@ -282,9 +282,9 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related,
   Back, navbar. Owner.
-- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10 sau khi tách task hiện detail và #482, 2 vòng x 15 lượt chạm
-  qua CDP (main cùng lúc trong ngoặc): phản hồi đầu p50 `29ms` (`31` đến `45`); hiện p50 `171` đến `172ms` (`151` đến `161`); lượt có
-  long task 14/15 (15/15), dài nhất p50 `65` đến `67ms` (`75` đến `77`), p95 `119` đến `141ms` (`147` đến `181`); task còn lại ở 350 đến 950ms sau chạm (mount related, lazysizes, skeleton). Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
+- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 19/10, 2 vòng x 15 lượt chạm qua CDP (main trong ngoặc): hiện p50 `121` đến `146ms` (`121` đến `150`); lượt có long task 9 và 14/15 (15/15), dài nhất p50 `51` đến `60ms` (`66` đến `83`), p95 `103` đến `119ms` (`77` đến `187`); Kính primary `47` đến `65ms` (`93` đến `184`).
+  Còn: task hiện detail `57` đến `73ms` (style, Layout đầu), mount related, Masonry, LazySizes `50` đến `75ms`, task không event main thread `73` đến `157ms` (cả main). Fps mở detail `43` đến `47` (cả main), cuộn masonry `88` đến `89`.
+  Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Main và máy PC.
 - `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium.
   Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
 - `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
