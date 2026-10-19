@@ -175,7 +175,7 @@ Card là `figure.advertising-tile[data-advertising-card]` chứa một link tớ
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
-vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh (owner 2026-10-18),
+vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh (owner 2026-10-18); hover chuột phủ lớp tối và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
 focus có viền; card nhiều media có mũi tên khi hover ([media-card R3](media-card.md#r3-đổi-media-trên-card)). Click chính mở detail tại chỗ (history push,
 [detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
 

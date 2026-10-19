@@ -66,10 +66,18 @@ xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media
 giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải; đổi bằng mũi tên hover hoặc
 vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
-bị chặn. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
-ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên. Card không zoom media khi hover. Đổi media bằng mũi tên, chấm hoặc vuốt thì
-đẩy ngang như nút "Có thể bạn thích" ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), owner
-2026-10-18): media mới vào từ phía đi tới, media cũ lùi 35% và mờ 0.4, 0.9s; reduced motion đổi ngay. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
+bị chặn. Từ 2026-10-19 (owner) vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi quá 10px (ngang nếu `|dx| > |dy|`),
+dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật
+về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọi lần kéo ngang đều chặn click như trên. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
+ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
+ở bất kỳ đâu (owner 2026-10-19), chỉ vuốt. Card không zoom media khi hover. Hover theo Pinterest (owner 2026-10-19), chỉ
+chuột thật, mọi card masonry và related kể cả card một media: lớp đen 20% phủ canvas hiện dần, rời chuột thì mờ dần, nhịp
+hover của site; card đang mang "Vừa xem" thì nhãn đó mờ dần đi cùng nhịp lúc hover và hiện lại khi rời chuột. Video
+vẫn chạy dưới lớp tối; mũi tên, chấm, nhãn thời lượng nằm trên lớp tối. Đổi media bằng mũi tên, chấm hoặc vuốt là dải
+liền trượt ngang (owner 2026-10-19): media mới vào từ mép canvas phía đi tới, media cũ ra hết mép bên kia, hai media dính
+nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, easing như nút "Có thể bạn thích"
+([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), 0.9s power3.inOut); không frame nào lộ nền
+giữa hai media hay chớp. Bấm "<" thì ngược chiều; chấm, bộ đếm đổi ngay lúc bắt đầu trượt; reduced motion đổi ngay. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
 
 ```gherkin
@@ -77,6 +85,18 @@ Given card 11 media ở /en/advertising-products/, viewport 1440px
 When bấm "Next media" hai lần
 Then bộ đếm là "3/11", URL không đổi, detail không mở
 And vuốt trái trên ảnh đổi sang 4/11, click ngay sau vuốt không mở detail
+```
+
+```gherkin
+Given card 3 media đang ở item 1, chuột thật
+When hover card rồi bấm "Media tiếp"
+Then lớp tối 20% hiện dần, item 2 vào từ mép phải canvas, item 1 ra hết mép trái, opacity cả hai luôn là 1
+And ở mọi frame hai media phủ kín canvas, không lộ nền
+And rời chuột thì lớp tối mờ dần; card mang "Vừa xem" thì nhãn mờ đi khi hover, hiện lại khi rời chuột
+
+Given card 3 media trên cảm ứng
+When kéo ngang 30% canvas rồi nhấc tay chậm
+Then dải theo ngón tay rồi bật về item cũ; kéo quá nửa canvas thì trượt nốt sang item kế
 ```
 
 ### R4. Video trên card
@@ -135,8 +155,11 @@ i trên N: <alt>", thumbnail 60px bo 16px, đang xem `aria-current` có viền �
 theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung giữ tỷ lệ cover nên đổi media không đổi kích thước
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
 tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
-khung đổi media: đẩy ngang như card (R3, 0.9s), nền zoom blur cũ crossfade sang nền
-media mới cùng nhịp (owner 2026-10-18; reduced motion đổi ngay); chấm 8px ở đáy theo vị trí.
+khung đổi media: dải liền như card (R3), cắt ở BBox media (khung contain chung của mọi item, không tính vùng dư); vuốt kéo
+dải theo ngón tay như R3. Nền zoom blur cũng là dải liền trượt cùng nhịp, mỗi điểm vùng dư luôn là blur của đúng media
+nằm cạnh nó; không crossfade (owner 2026-10-19; reduced motion đổi ngay). Chấm 8px ở đáy theo vị trí, mỗi chấm là nút
+"Xem media i trên N" / "Show media i of N" (vùng bấm từ 24px, đang xem có `aria-current="true"`): bấm thì trượt thẳng
+tới media đó, chiều theo vị trí chấm, không đi qua media ở giữa (owner 2026-10-19).
 Video vào khung phát lại từ đầu, giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
 Video primary tự phát tắt tiếng, lặp riêng nó (không chạy playlist như card, owner 2026-10-18), `playsinline`, player theo trang pin
 Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
@@ -170,6 +193,8 @@ Given primary card nhiều media đang ở video cuối dải
 When bấm mũi tên trước
 Then ảnh trượt vào khung cũ, chấm đầu active, related không đổi vị trí
 And phím phải đưa video về khung và phát lại
+And bấm chấm thứ ba khi đang ở chấm đầu thì media 3 trượt vào từ phải, media 2 không xuất hiện
+And trong lúc trượt nền blur trượt cùng dải, không có lớp nền nào đổi opacity
 ```
 
 ## Giao diện và dữ liệu
@@ -199,10 +224,10 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | --- | --- |
 | R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `advertising-products-layout.test.mjs` (dải 44px); `site-media-card-r6.e2e.mjs` (rect ổn định, singleton không dải) |
-| R3 | `site-media-card-m01b.e2e.mjs` (vuốt, chặn click, chấm, bộ đếm, mũi tên hover); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
+| R3 | `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (2 card gần giữa vùng, tính lại khi cuộn, playlist lặp, hover chiếm suất, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, nền blur video, toàn màn hình) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, chấm bấm được, nền blur trượt cùng dải, nền blur video, toàn màn hình) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
@@ -210,7 +235,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
 - Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm; chờ ảnh nhiều góc thật, `placeholder-media.mjs`
-  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước (có card 6–9 media trộn 2–3 video), `main` để rỗng.
+  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước (có card 6–9 media trộn 2–3 video, vài video có tiếng để xem nút âm lượng), `main` để rỗng.
   Chưa có clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
@@ -235,6 +260,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.
 - Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry, đổi ngôn ngữ), không ghi vào history state:
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
+- Lớp tối 20% khi hover là ước lượng theo Pinterest, chưa đo; owner chỉnh trên demo. Ngưỡng vuốt (10px chốt hướng,
+  nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
 - Chấm 8px theo UI chấm Gallery (owner 2026-10-17), test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
   của Gallery để giữ vùng bấm 20×44px.
 - Dấu báo lỗi (R5) mới áp cho card và primary Advertising; media khác trên site (ảnh trong trang, hero, CTA, portal)
