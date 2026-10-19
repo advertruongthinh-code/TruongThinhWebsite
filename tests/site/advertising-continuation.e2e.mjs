@@ -411,6 +411,51 @@ async function exitSkeletonViewport(page) {
   });
 }
 
+// Lần vào viewport đầu tiên (skeleton R4): frame hiện bằng Kính reveal 0.6s rồi gỡ khi Kính cung chưa giao viewport;
+// Kính cung đang giao viewport thì frame chỉ crossfade, không có Kính reveal. Phần vào lại nằm ở reenterSkeletonViewport.
+async function firstEntryReveals(browser, scrollTarget) {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 400 } });
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    const log = window.__ttFirstEntry = { added: [], lifetimes: [] };
+    const born = new Map();
+    new MutationObserver((records) => {
+      for (const record of records) {
+        if (!record.target.matches?.("[data-advertising-cta-frame]")) continue;
+        for (const node of record.addedNodes) {
+          if (!node.dataset || !("glassReveal" in node.dataset)) continue;
+          const tint = document.querySelector(".glass-surface[data-glass-shape=arc] .glass-surface__tint")?.getBoundingClientRect();
+          born.set(node, performance.now());
+          log.added.push({ arcInView: Boolean(tint) && tint.bottom > 0 && tint.top < innerHeight });
+        }
+        for (const node of record.removedNodes) if (born.has(node)) log.lifetimes.push(performance.now() - born.get(node));
+      }
+    }).observe(document, { childList: true, subtree: true });
+  });
+  try {
+    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    // Trang nền trong headless không chạy rAF nên entry không bắt đầu.
+    await page.bringToFront();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaReady === "true");
+    await page.evaluate((target) => {
+      const motion = window.TruongThinhMotion;
+      const frameTop = document.querySelector("[data-advertising-cta-frame]").getBoundingClientRect().top;
+      // Frame đầu chỉ ló 40px ở đáy viewport: Kính cung nằm dưới frame nên chắc chắn ngoài viewport (chiều cao batch ngẫu nhiên).
+      const top = target === "first-frame" ? (motion?.getLogicalScroll?.() ?? scrollY) + frameTop - (innerHeight - 40) : document.documentElement.scrollHeight;
+      if (!motion?.setLogicalScroll?.(top)) window.scrollTo(0, top);
+    }, scrollTarget);
+    await page.waitForFunction(() => document.querySelector("[data-advertising-cta-frame].is-entry-ready"));
+    // Reveal 0.6s cộng thời gian settle; chờ hết rồi mới đọc vòng đời.
+    await page.waitForTimeout(1_200);
+    return await page.evaluate(() => ({
+      ...window.__ttFirstEntry,
+      leftover: document.querySelectorAll("[data-advertising-cta-frame] [data-glass-reveal]").length,
+    }));
+  } finally {
+    await context.close();
+  }
+}
+
 // Rời hẳn vùng nhìn thấy rồi vào lại: khung hiện ngay và Kính reveal không chạy lại (skeleton R4).
 async function reenterSkeletonViewport(page, label) {
   await page.locator("[data-advertising-cta-frame]").first().evaluate((frame) => {
@@ -1193,6 +1238,16 @@ try {
   assert.equal(new URL(page.url()).pathname, "/en/advertising-products/", "parent nav changed canonical locale route");
   assert.equal(new URL(page.url()).search, "", "parent nav added query state");
   assert.equal(await page.locator('[data-advertising-filter="all"]').getAttribute("aria-current"), "true", "parent nav changed All filter");
+  // Lần vào đầu tiên: reveal chạy khi Kính cung ngoài viewport, không chạy khi cung đang giao viewport.
+  const revealedEntry = await firstEntryReveals(browser, "first-frame");
+  assert(revealedEntry.added.length >= 1, "first entry: frame did not play the Kinh reveal");
+  assert(revealedEntry.added.every(({ arcInView }) => !arcInView), "first entry: Kinh reveal played while the arc Kinh was in view");
+  assert.equal(revealedEntry.lifetimes.length, revealedEntry.added.length, "first entry: Kinh reveal was not removed after playing");
+  assert(revealedEntry.lifetimes.every((ms) => ms >= 500 && ms <= 1_500),
+    `first entry: Kinh reveal should last about 0.6s (${revealedEntry.lifetimes.map(Math.round)}ms)`);
+  assert.equal(revealedEntry.leftover, 0, "first entry: Kinh reveal stayed in the frame");
+  const arcEntry = await firstEntryReveals(browser, "page-end");
+  assert.equal(arcEntry.added.length, 0, "first entry under the arc Kinh must only crossfade");
   assert.deepEqual(errors, [], "continuation emitted browser errors");
   evidence.errors = errors;
   evidence.pass = true;

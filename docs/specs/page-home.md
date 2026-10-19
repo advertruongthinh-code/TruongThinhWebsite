@@ -14,6 +14,7 @@ tests:
   - tests/site/client-logo-marquee.e2e.cjs
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
+  - tests/site/hero-typography.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-10-19
@@ -271,7 +272,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |
-| R7 | `mobile-layout-parity.e2e.mjs` (chữ không cắt); khoảng thở ảnh chưa có test |
+| R7 | `mobile-layout-parity.e2e.mjs` (chữ không cắt); `hero-typography.e2e.mjs` (clip-path không cắt nét bốn chữ nối `.heritage-text--minor`, 390 tới 1440px, VI và EN); khoảng thở ảnh chưa có test |
 | R8 | `project-reel.test.mjs` (validate, số card, caption, ảnh VI/EN), `TT_E2E_WHEEL_ONLY` (rail), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
 | R9 | `pnpm qa:client-assets`, `client-logo-marquee.e2e.cjs` |
 | R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (hero, hero reduced, portal, closer), `image-loading-frame.e2e.mjs` |
