@@ -1120,8 +1120,19 @@ function setPlacementStyle(node, placement) {
   node.style.height = `${placement.pixelHeight}px`;
 }
 
+// Ảnh LazySizes rộng bằng card: ghi sizes từ solver để lúc unveil không đọc offsetWidth từng ảnh (forced layout).
+// Ảnh đã tải chỉ nâng sizes, không hạ.
+function sizeLazyImage(node, placement) {
+  const image = node.querySelector("img[data-sizes]");
+  if (!image) return;
+  const width = Math.ceil(placement.pixelWidth);
+  image.dataset.sizes = `${width}px`;
+  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= width)) image.sizes = `${width}px`;
+}
+
 function sizeNode(node, placement, setSize) {
   node.style.width = `${placement.pixelWidth}px`;
+  sizeLazyImage(node, placement);
   node.style.height = `${placement.pixelHeight}px`;
   node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
   node.style.setProperty("--advertising-caption-height", `${placement.captionPixelHeight}px`);
@@ -2890,6 +2901,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     } else if (relatedSized.get(node) === relatedLayout) return node;
     relatedSized.set(node, relatedLayout);
     node.style.width = `${placement.pixelWidth}px`;
+    sizeLazyImage(node, placement);
     node.style.height = `${placement.pixelHeight}px`;
     node.style.setProperty("--advertising-media-height", `${placement.mediaPixelHeight}px`);
     node.dataset.advertisingPlacementIndex = String(placement.index);
@@ -3460,9 +3472,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     for (const property of ["visibility", "position", "top"]) photoView.style.removeProperty(property);
   };
   const revealPhotoView = (browse, generation) => {
+    // Ẩn grid trước khi đổi class body: style của class mới không phải tính lại cho cả grid (CPU 4x: 8ms thay vì 15ms).
+    if (gridSection) gridSection.hidden = true;
     document.body.classList.add("is-advertising-photo");
     document.body.dataset.advertisingPhotoActive = "true";
-    if (gridSection) gridSection.hidden = true;
     if (photoView.hidden) prelayoutPhotoView();
     clearPhotoViewPrelayout();
     layoutRelated(browse);
