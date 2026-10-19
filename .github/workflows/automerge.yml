@@ -42,13 +42,25 @@ jobs:
                 core.info(`PR #${number}: chưa đủ check xanh (${required.join(', ')}).`);
                 continue;
               }
-              try {
-                await github.rest.pulls.merge({ owner, repo, pull_number: number, sha, merge_method: 'merge' });
-              } catch (error) {
-                // Conflict hoặc PR đã được run song song merge: để thread xử lý.
-                core.warning(`PR #${number}: không merge được: ${error.message}`);
-                continue;
+              // Ruleset trả 405 "Required status check ... is expected" khi check vừa xanh (re-run) chưa
+              // kịp ghi nhận: thử lại với backoff 10s, 20s, 40s (tổng 70s, dưới timeout 5 phút của job).
+              let merged = false;
+              for (let attempt = 0; attempt < 4 && !merged; attempt++) {
+                try {
+                  await github.rest.pulls.merge({ owner, repo, pull_number: number, sha, merge_method: 'merge' });
+                  merged = true;
+                } catch (error) {
+                  if (error.status === 405 && /status check/i.test(error.message) && attempt < 3) {
+                    core.info(`PR #${number}: ruleset chưa ghi nhận check, thử lại lần ${attempt + 1}/3.`);
+                    await new Promise((resolve) => setTimeout(resolve, 10000 * 2 ** attempt));
+                    continue;
+                  }
+                  // Conflict hoặc PR đã được run song song merge: để thread xử lý.
+                  core.warning(`PR #${number}: không merge được: ${error.message}`);
+                  break;
+                }
               }
+              if (!merged) continue;
               core.info(`PR #${number}: đã merge.`);
               // Merge bằng GITHUB_TOKEN không kích hoạt xóa branch tự động của repo (kiểm 18/10), nên xóa tay.
               if (pr.head.repo.full_name === `${owner}/${repo}` && pr.head.ref !== pr.base.ref
