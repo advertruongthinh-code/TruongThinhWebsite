@@ -41,10 +41,10 @@ trong plan, dưới ngưỡng R5 thì gộp về sản phẩm cũ.
 
 | Cụm, nhãn rail và h1 (slug VI / EN) | Sản phẩm (số ảnh) |
 | --- | --- |
-| Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (14); Chữ nổi (31); Hộp đèn (28); Bảng vẫy (19) |
+| Bảng hiệu, chữ nổi & hộp đèn (`bang-hieu-quang-cao` / `signage`) | Bảng hiệu alu & mặt dựng (14); Chữ nổi (31); Hộp đèn (28); Bảng vẫy (20) |
 | Standee, backdrop, kệ trưng bày & gian hàng (`standee-ke-trung-bay` / `displays-booths`) | Standee, backdrop & POSM (17); Backdrop (9, tách 2026-10-18); Kệ, tủ trưng bày (33); Gian hàng triển lãm (10); Kiosk bán hàng (9); Booth sampling & quầy lễ tân (15) |
 | In ấn, decal & menu (`in-an-decal` / `printing-decals`) | Decal, in bạt & tranh canvas (13); In ấn văn phòng (11); Menu (10); Bao bì, thẻ & vé (9) |
-| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (29); Màn hình LED (13); Bảng LED chạy chữ (9); Bảng hiệu LED (31) |
+| LED decor, màn hình & bảng LED (`man-hinh-bang-led` / `led-displays`) | LED decor (29); Màn hình LED (13); Bảng LED chạy chữ (9); Bảng hiệu LED (32) |
 | Biển văn phòng, bảng tên & kỷ niệm chương (`bien-van-phong` / `office-signs`) | Biển số nhà & bảng tên công ty (9); Biển chỉ dẫn & sơ đồ tòa nhà (24); Biển phòng ban (10); Bảng chức danh để bàn (10); Kỷ niệm chương (9) |
 | Xe & quầy bán hàng lưu động (`xe-ban-hang-luu-dong` / `mobile-retail`) | Xe bán hàng lưu động (16); Quầy bán hàng di động (14) |
 

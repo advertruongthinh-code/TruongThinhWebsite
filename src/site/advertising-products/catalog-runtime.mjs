@@ -68,7 +68,7 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 // Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; primary đã cache thu thời lượng về 0.6s.
+// Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
@@ -2239,7 +2239,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
   // Kính dựng ngoài DOM; nơi gọi gắn nó vào host khi animation bắt đầu.
-  const bakedRevealGlass = (host, bitmap) => {
+  const bakedRevealGlass = (host, bitmap, overSkeleton) => {
     const glass = revealGlass();
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
@@ -2250,6 +2250,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const canvas = Object.assign(document.createElement("canvas"), { width, height });
       Object.assign(canvas.style, { left: "0", top: "0", width: `${width}px`, height: `${height}px` });
       step.classList.add("glass-surface__step--baked");
+      // Trên skeleton: bỏ nền màu skeleton để gradient chạy vẫn thấy qua Kính như card (owner 19/10), không thành mảng xám phẳng.
+      if (overSkeleton) step.style.background = "none";
       step.append(canvas);
       return canvas;
     });
@@ -3243,7 +3245,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Dựng Kính nhòe sẵn và tạo animation là hai task: gộp lại thành long task trên phone Android
     // (decision phone-frame-budget). Kính vào DOM cùng task với animation, nên bắt đầu từ level 0.
-    const glass = bakedRevealGlass(heroFrame, bitmap);
+    const glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame));
     bitmap?.close();
     setTimeout(() => {
       if (primaryReveal !== reveal) return;
@@ -3337,7 +3339,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.decode().then(() => bitmap).then((baked) => {
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, MEDIA_REVEAL_MS, baked);
+        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
         else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
         else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
       }, () => {

@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Detail Advertising
@@ -89,7 +89,7 @@ And bấm chấm cuối hiện trang cuối
 ### R4. Media primary và nền
 
 `renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
-`1.4s`; ảnh có sẵn crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
+`0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, có nút `Bật tiếng` / `Unmute`; nút `Xem lớn hơn` ẩn với video. Card nhiều media có hàng thumbnail
 ([media-card](media-card.md#r6-media-trong-primary)).
@@ -285,8 +285,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10 sau khi tách task hiện detail và #482, 2 vòng x 15 lượt chạm
   qua CDP (main cùng lúc trong ngoặc): phản hồi đầu p50 `29ms` (`31` đến `45`); hiện p50 `171` đến `172ms` (`151` đến `161`); lượt có
   long task 14/15 (15/15), dài nhất p50 `65` đến `67ms` (`75` đến `77`), p95 `119` đến `141ms` (`147` đến `181`); task còn lại ở 350 đến 950ms sau chạm (mount related, lazysizes, skeleton). Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
-- `advertising-photo-transitions.e2e.mjs` 18/10 trên PC: Chromium 31/32 (L06 flaky); WebKit 28/32, FAIL
-  `related-selected-card-shuffle-cleanup`, `grid-cta-skeleton-flow`, `square-controls-hover-and-return`. Main xử lý.
+- `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium.
+  Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
 - `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
   Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
 
