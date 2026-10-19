@@ -14,7 +14,6 @@ tests:
   - tests/site/client-logo-marquee.e2e.cjs
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
-  - tests/site/hero-typography.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-10-19
