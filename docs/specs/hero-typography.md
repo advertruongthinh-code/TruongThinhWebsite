@@ -77,6 +77,8 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước khi motion đọc vị trí.
 - Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng; hai dòng nằm sát hai mép khung vì
   không có số đo cặp dòng.
+- Hero có `overflow-anchor: none`: chữ đổi cỡ sau khi mount nên node trong hero không được làm scroll anchor; nếu không,
+  Back về trang đã cuộn lệch 23px trên WebKit (2026-10-19).
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
   owner duyệt (mục UI).
