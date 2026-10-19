@@ -10230,7 +10230,7 @@ async function runHomeMotionRegressionCheck() {
         JSON.stringify(contract.portalSources) ===
           JSON.stringify([
             "/assets/content/projects/home-residential-kitchen-v2.webp",
-            "/assets/content/projects/home-commercial-cafe.webp",
+            "/assets/content/projects/home-commercial-cnc-cafe.webp",
             "/assets/content/projects/home-advertising-products-blue-grid.webp",
           ]),
         `Home service portal sources changed: ${contract.portalSources.join(", ")}`,
