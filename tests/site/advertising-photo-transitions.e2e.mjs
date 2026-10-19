@@ -38,7 +38,8 @@ const provenance = {
   },
 };
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
-const { chromium } = await import("playwright");
+// PHOTO_TRANSITIONS_ENGINE=webkit|firefox chạy cả bộ trên engine khác; CI giữ Chromium.
+const engine = (await import("playwright"))[process.env.PHOTO_TRANSITIONS_ENGINE || "chromium"];
 const results = [];
 const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
@@ -446,6 +447,14 @@ async function runP13Baseline(browserInstance) {
 async function installRelatedMediaProbe(page) {
   await page.addInitScript(() => {
     const probe = { records: [] };
+    // Fade WAAPI 0 sang 1 được ghi lúc gọi animate(): runner bận có thể không lấy được frame nào giữa fade 0.6s.
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (keyframes, options) {
+      const opacities = Array.isArray(keyframes) ? keyframes.map((frame) => frame.opacity).filter((value) => value !== undefined) : [];
+      if (this.closest?.("[data-advertising-related-card]") && opacities.length > 1
+        && Number(opacities[0]) <= 0.05 && Number(opacities.at(-1)) >= 0.99) (this.__ttOpacityFades ||= []).push(options?.duration ?? options);
+      return animate.call(this, keyframes, options);
+    };
     const sampling = new WeakSet();
     const capture = (image) => {
       const card = image.closest("[data-advertising-related-card]");
@@ -467,6 +476,7 @@ async function installRelatedMediaProbe(page) {
           fading: image.getAnimations().some((animation) => animation.playState === "running"
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
+        record.fades = image.__ttOpacityFades || [];
         if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
         else sampling.delete(image);
       };
@@ -487,7 +497,8 @@ function assertMediaFade(record, label) {
   const middle = record.frames.find(({ opacity }) => opacity > 0.05 && opacity < 0.95);
   const last = record.frames.at(-1);
   const travelled = (middle?.opacity > first.opacity && middle.opacity < 1)
-    || record.frames.some(({ opacity, fading }) => fading && opacity <= 0.05);
+    || record.frames.some(({ opacity, fading }) => fading && opacity <= 0.05)
+    || record.fades?.length > 0;
   assert(first.opacity <= 0.05 && travelled && last.opacity >= 0.99,
     `${label}: opacity did not travel 0 to 1 ${JSON.stringify({ first, middle, last })}`);
   assert(first.duration.split(",").includes("0.6s") && first.easing.split(",").includes("ease-out"),
@@ -612,6 +623,11 @@ async function readBackdropMorphState(page) {
   });
 }
 
+// Probe lấy mẫu 460ms kể từ lúc card được gắn. Đợi mẫu kết thúc thay vì mốc cố định sau navigation:
+// máy chậm gắn card muộn hơn mốc đó nên chưa có mẫu nào để so.
+const stuffingSettled = (page) => page.waitForFunction(() => window.__ttP13Stuffing.records
+  .some((record) => (record.frames.at(-1)?.elapsed ?? 0) >= 460));
+
 function assertStuffingRecord(records, label, expectedHead) {
   const moved = records.find((record) => {
     const first = record.frames[0];
@@ -633,7 +649,7 @@ function assertStuffingRecord(records, label, expectedHead) {
   return { id: moved.id, first, middle, last };
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await engine.launch({ headless: true });
 try {
   if (p13BaselineOnly) await runP13Baseline(browser);
   await caseRun("m02b-grid-detail-no-clone-no-jump", { width: 1440, height: 900 }, async (page, stage) => {
@@ -1011,6 +1027,19 @@ try {
         await page.evaluate(frame);
         if (await page.evaluate((before) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - before) < 1, moved)) direction = -direction;
       }
+      // Related còn xếp chỗ sau khi primary sẵn sàng (card đi từ đầu cột, solver đầy đủ ở task sau); WebKit
+      // headless chậm nên test có thể đo giữa chừng. Chờ card đứng yên 5 frame liền rồi mới tính đích cuộn.
+      await link.evaluate((node) => new Promise((resolve) => {
+        let last = NaN;
+        let still = 0;
+        const tick = () => {
+          const top = node.getBoundingClientRect().top + window.TruongThinhMotion.getLogicalScroll();
+          still = Math.abs(top - last) < 0.5 && !node.parentElement.getAnimations({ subtree: true }).length ? still + 1 : 0;
+          last = top;
+          if (still >= 5 || !node.isConnected) resolve(); else requestAnimationFrame(tick);
+        };
+        tick();
+      }));
       // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
       await link.evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
         window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
@@ -1019,6 +1048,11 @@ try {
         const image = document.querySelector(`[data-advertising-related-card="${photoId}"] img`);
         return image?.complete && image.naturalWidth > 0;
       }, id);
+      // Runtime chỉ dời focus khi nó đang ở related (spec R7). Safari/WebKit không focus link khi click chuột,
+      // nên ghi lại lúc click (capture, trước handler runtime) focus có nằm trong related không.
+      await page.evaluate(() => addEventListener("click", () => {
+        window.__ttFocusInRelatedAtClick = Boolean(document.activeElement?.closest("[data-advertising-related-card]"));
+      }, { capture: true, once: true }));
       // Kích hoạt native giữ focus trên card được click, khác với element.click().
       if (scenario.input === "keyboard") {
         await link.focus();
@@ -1030,10 +1064,13 @@ try {
         clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
         staleCards: document.querySelectorAll(`[data-advertising-related-card="${photoId}"]`).length,
         focusInDetail: document.activeElement === document.querySelector("[data-advertising-photo-info]"),
+        focusInRelatedAtClick: window.__ttFocusInRelatedAtClick,
+        focusOnBody: document.activeElement === document.body,
       }), id);
       assert.equal(state.staleCards, 0, `${id}: selected photo remains in shuffled related grid`);
       assert.equal(state.clones, 0, "completed transition must remove its clone");
-      assert.equal(state.focusInDetail, true, "activation must hand focus to the new detail");
+      if (state.focusInRelatedAtClick) assert.equal(state.focusInDetail, true, "activation must hand focus to the new detail");
+      else assert.equal(state.focusOnBody, true, "activation without related focus must not move focus");
       evidence.push({ ...scenario, ...state });
     }
     return evidence;
@@ -1149,7 +1186,7 @@ try {
     stage("parent-prepaint");
     await installStuffingProbe(page, "[data-advertising-card]", "[data-project-grid]");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(520);
+    await stuffingSettled(page);
     const parentRecords = await page.evaluate(() => window.__ttP13Stuffing.records);
     const parentStuffing = assertStuffingRecord(parentRecords, "parent stuffing", () => 0);
 
@@ -1195,7 +1232,7 @@ try {
     await installRelatedMediaProbe(relatedPage);
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
-    await relatedPage.waitForTimeout(750);
+    await stuffingSettled(relatedPage);
     const relatedState = await relatedPage.evaluate(() => ({
       records: window.__ttP13Stuffing.records,
       primary: document.querySelector("[data-advertising-photo-primary]").getBoundingClientRect().toJSON(),
@@ -1222,7 +1259,7 @@ try {
     // Framing tag vẫn được hỗ trợ làm deep link sau khi các chip của detail bị gỡ.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
-    await relatedPage.waitForTimeout(420);
+    await stuffingSettled(relatedPage);
     const tagState = await relatedPage.evaluate(() => ({
       records: window.__ttP13Stuffing.records,
       primary: document.querySelector("[data-advertising-photo-primary]").getBoundingClientRect().toJSON(),
@@ -1968,9 +2005,13 @@ try {
       const before = lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42);
       const y = cta.getBoundingClientRect().top + window.TruongThinhMotion.getLogicalScroll() - 160;
       window.TruongThinhMotion.setLogicalScroll(y);
-      await new Promise((resolve) => setTimeout(resolve, 90));
-      const tween = window.gsap.globalTimeline.getChildren(true, true, false)
+      // Đợi tween tick frame đầu thay vì mốc 90ms cố định: WebKit headless vẽ phần mềm chỉ ~8fps
+      // trên trang này (cả khi tắt backdrop-filter), frame đầu có thể tới sau 90ms.
+      const findTween = () => window.gsap.globalTimeline.getChildren(true, true, false)
         .find((item) => item.targets().some((node) => title.contains(node)));
+      const started = performance.now();
+      while (!(findTween()?.time() > 0) && performance.now() - started < 1000) await new Promise(requestAnimationFrame);
+      const tween = findTween();
       return { before, middle: lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42),
         count: lines.length, duration: tween?.duration(), ease: tween?.vars.ease, stagger: tween?.vars.stagger };
     });
@@ -2070,7 +2111,8 @@ try {
       focusVisible: node.matches(":focus-visible"),
       tabIndex: node.tabIndex,
     })), { active: true, focusVisible: true, tabIndex: 0 });
-    await page.waitForTimeout(300);
+    await page.evaluate(frame);
+    await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
     assert.equal(await expandControl.evaluate((node) => getComputedStyle(node.querySelector("span")).opacity), "1");
     await page.emulateMedia({ reducedMotion: "reduce" });
     const reducedMotion = await expandControl.evaluate((node) => ({

@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-18
+updated: 2026-10-19
 ---
 
 # Detail Advertising
@@ -89,7 +89,7 @@ And bấm chấm cuối hiện trang cuối
 ### R4. Media primary và nền
 
 `renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
-`1.4s`; ảnh có sẵn crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
+`0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, có nút `Bật tiếng` / `Unmute`; nút `Xem lớn hơn` ẩn với video. Card nhiều media có hàng thumbnail
 ([media-card](media-card.md#r6-media-trong-primary)).
@@ -143,7 +143,7 @@ solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-t
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`. Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia sáu task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, phân trang mô tả, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
+mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia sáu task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, phân trang mô tả, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; Kính reveal của primary dựng và chạy animation ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related
@@ -282,11 +282,11 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related,
   Back, navbar. Owner.
-- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 18/10, 2 vòng x 20 lượt chạm qua CDP (click Playwright làm GC rơi vào
-  task mở): grid tới detail phản hồi đầu p95 `36` đến `44ms`, hiện p95 `104` đến `141ms`; related p95 `80` đến `95ms`; long task mọi
-  lượt FAIL (dài nhất `161ms`, style và Layout đầu của detail). Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Desktop Chrome 1329×912 chưa đo. Main và máy PC.
-- `advertising-photo-transitions.e2e.mjs` 18/10 trên PC: Chromium 31/32 (L06 flaky); WebKit 28/32, FAIL
-  `related-selected-card-shuffle-cleanup`, `grid-cta-skeleton-flow`, `square-controls-hover-and-return`. Main xử lý.
+- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 19/10, 2 vòng x 15 lượt chạm qua CDP (main trong ngoặc): hiện p50 `121` đến `146ms` (`121` đến `150`); lượt có long task 9 và 14/15 (15/15), dài nhất p50 `51` đến `60ms` (`66` đến `83`), p95 `103` đến `119ms` (`77` đến `187`); Kính primary `47` đến `65ms` (`93` đến `184`).
+  Còn: task hiện detail `57` đến `73ms` (style, Layout đầu), mount related, Masonry, LazySizes `50` đến `75ms`, task không event main thread `73` đến `157ms` (cả main). Fps mở detail `43` đến `47` (cả main), cuộn masonry `88` đến `89`.
+  Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Main và máy PC.
+- `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium.
+  Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
 - `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
   Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
 

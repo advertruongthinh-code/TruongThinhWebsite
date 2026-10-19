@@ -159,7 +159,7 @@ duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 300, chữ th�
 `[data-gallery-track]`: `region` focus được, `aria-label` trung tính, không ghi số ảnh; không nút prev/next. Track bắt buộc:
 thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo `width`, `height` của ảnh
 nên không crop và khung đúng tỷ lệ trước khi tải. `figure.detail-gallery__item` (trong `.detail-gallery__slides`) gồm khung
-`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu `ink`, không nới figure.
+`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu `ink`, không nới figure và rộng tối đa bằng track nhìn thấy (`100vw` trừ hai `--gutter`), nên ảnh ngang rộng hơn track vẫn xuống dòng chữ ở cỡ chữ 200%.
 Kéo, vuốt như gallery Espacio (owner 2026-10-17, đo 2026-10-18): gallery cách viewport một màn hình thì `detail.js` tải Swiper
 14.2.0 (loader chung carousel Advertising) với tham số Espacio: `slidesPerView: "auto"`, `speed` 500 (reduced motion 0),
 `spaceBetween` 20 (dưới 600px 10; `.detail-gallery__item` đặt `transition: none` để giảm chuyển động không làm Swiper đo margin cũ), `grabCursor`, `edgeSwipeDetection`, `watchOverflow`, `mousewheel.forceToAxis`, resistance
@@ -278,7 +278,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
 | R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
-| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom); `mobile-layout-parity.e2e.mjs` ca `reduced` (mục rail 10 và 18 vào đúng khung) |
+| R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom); `mobile-layout-parity.e2e.mjs` ca `reduced` (mục rail 10 và 18 vào đúng khung), ca `text200` và `fallback` (caption không vượt track) |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
 | R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |
 | R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |

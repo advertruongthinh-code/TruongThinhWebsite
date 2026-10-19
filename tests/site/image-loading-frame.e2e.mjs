@@ -298,6 +298,8 @@ try {
           host: node.closest("[data-advertising-card], [data-advertising-related-card]") ? "card" : "primary",
           card: node.closest("[data-advertising-card]")?.dataset.advertisingCard,
           steps: node.querySelectorAll(".glass-surface__step").length,
+          skeleton: Boolean(node.parentElement.querySelector("[data-advertising-loading-skeleton]")),
+          flat: [...node.querySelectorAll(".glass-surface__step")].some((step) => getComputedStyle(step).backgroundColor !== "rgba(0, 0, 0, 0)"),
           end: Math.max(...[...node.children].flatMap((layer) => layer.getAnimations()
             .map((animation) => animation.effect.getComputedTiming().endTime))),
           animated: [...new Set([...node.children].flatMap((layer) => layer.getAnimations()
@@ -422,9 +424,12 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc.
-    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated }) => steps === 5 && animated.join() === "opacity"),
-      `${viewport.width}px: the primary reveals through five Kính steps animating opacity only ${JSON.stringify(primaryGlass)}`);
+    // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc, cùng nhịp 0.6s như card.
+    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 5 && animated.join() === "opacity" && end <= 601),
+      `${viewport.width}px: the primary reveals through five Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
+    // Như card: skeleton vẫn thấy qua Kính, bậc nhòe sẵn không phủ nền xám phẳng lên skeleton.
+    assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
+      `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
     // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).
     await page.goBack();
     await page.waitForFunction(id => window.TruongThinhAdvertising.getBrowseState().photo === id

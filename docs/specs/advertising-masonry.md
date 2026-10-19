@@ -164,7 +164,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 253 card, đang ở đầu trang
+Given masonry All 254 card, đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```
@@ -173,7 +173,7 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 
 Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
-[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes="auto"`). Card vào vùng nhìn
+[tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes` ghi bằng bề rộng card từ solver, không `auto` để khỏi đo từng ảnh). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
 vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
 không dịch ([hover dùng chung](page-home.md#r6-hover-ảnh-dùng-chung)). Click chính mở detail tại chỗ (history push,

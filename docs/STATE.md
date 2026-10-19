@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-18
+- Updated: 2026-10-19
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -25,8 +25,8 @@
   [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Còn lại:
   - Owner báo 18/10 trên phone: motion không mượt (nhất là logo); gradient đứng yên khi vuốt nhanh masonry; A04s
     (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
-  - Thread sở hữu: long task khi mở detail trên phone (gate 50ms); 3 FAIL WebKit của `advertising-photo-transitions`;
-    fault thật còn lại của `mobile-layout-parity` (gallery Swiper lệch khi giảm chuyển động, hero chữ nhảy dòng).
+  - Thread sở hữu: long task khi mở detail trên phone (gate 50ms, [số đo](specs/advertising-detail.md#gate-còn-mở)); 2 ca Chromium flaky của `advertising-photo-transitions`;
+    fault thật còn lại của `mobile-layout-parity` ở trang chủ (chữ 200%, `motion.js` vắng: khối closer "Giữ nghề" rộng hơn `line-mask` 1,3px).
 - Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
 - PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)); giữ PR lại bằng draft hoặc nhãn `hold`.
 

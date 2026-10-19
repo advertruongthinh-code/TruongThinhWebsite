@@ -55,8 +55,7 @@ của website. Hạt nhiễu sinh lúc chạy nên preview không có.
 
 Ảnh hiện thì kính phủ đều năm bậc hiện trên lớp dưới
 ([skeleton](../Skeleton/README.md) hoặc khung trống), crossfade lớp dưới sang
-ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Primary chờ ảnh
-dùng nhịp đủ `1.4s`:
+ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Nhịp gốc `1.4s`:
 
 | Bước | Thời điểm | Đường cong |
 | --- | --- | --- |
@@ -65,14 +64,14 @@ dùng nhịp đủ `1.4s`:
 | Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (`power4.inOut`) |
 
 - Primary detail dùng bậc nhòe dựng sẵn (`glass-surface__step--baked`, owner 10/10): ảnh mới blur sẵn vào canvas `1/8` rồi phóng
-  8 lần, cùng blur cộng dồn và màu của năm bậc, trên nền màu skeleton, hiện theo crossfade của ảnh. Năm bậc
+  8 lần, cùng blur cộng dồn và màu của năm bậc, hiện theo crossfade của ảnh. Phủ trên skeleton thì bậc không có nền, gradient skeleton vẫn thấy qua Kính như card (owner 19/10); còn lại bậc có nền màu skeleton. Năm bậc
   `backdrop-filter` phủ cả hero rơi gate phone Android. Điện thoại chạy đúng như PC (owner 11/10).
 - Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
 - Nhịp `0.6s`: cùng đường cong, thời gian nhân `3/7` (kính hiện 0 đến 0.26s,
-  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Ảnh card hiện từ
-  skeleton và primary đổi sang ảnh có sẵn dùng nhịp này. Ảnh card đã có sẵn
+  ảnh hiện 0.13 đến 0.39s, kính tan 0.26 đến 0.6s). Ảnh card và primary hiện từ
+  skeleton, primary đổi sang ảnh có sẵn đều dùng nhịp này (owner 19/10). Ảnh card đã có sẵn
   (cache, vào lại viewport) hiện ngay, không kính.
 - Giảm chuyển động: không kính.
 - Hiện xong thì gỡ kính khỏi DOM; card hay primary rời đi giữa chừng cũng gỡ.

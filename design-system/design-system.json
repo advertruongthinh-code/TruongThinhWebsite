@@ -38,6 +38,7 @@
         "gieng3-phong-ngu.webp",
         "gieng3-phong-tam.webp",
         "gieng3-phong-tho.webp",
+        "home-commercial-cafe.webp",
         "home-commercial-fnb-v2.webp",
         "home-hero-tube-house-living.webp",
         "home.webp",
@@ -718,6 +719,12 @@
           "blob": "9403142e1933c4d20beb6c350614b4cb",
           "size": 217980,
           "type": "image/webp"
+        },
+        "home-commercial-cafe.webp": {
+          "name": "home-commercial-cafe.webp",
+          "blob": "25fe2c8ebfadc78b5e9b3083e556ed4d",
+          "size": 133134,
+          "type": "image/webp"
         }
       }
     }
@@ -729,8 +736,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-17T23:05:46Z",
-    "via": "Claude Code (desktop)",
-    "note": "Đợt main ccee663: #438 (hero trang chủ ngẫu nhiên cả ảnh đầu), #433 (khối Nhịp công trình theo dữ liệu, thêm ảnh quán cà phê)"
+    "at": "2026-10-19T02:20:00.000Z",
+    "via": "Claude Code (cloud)",
+    "note": "Chữ hero sau góp ý (#476, #489, #490): Hero README, bảng typography, bundle.css; ảnh home-commercial-cafe"
   }
 }

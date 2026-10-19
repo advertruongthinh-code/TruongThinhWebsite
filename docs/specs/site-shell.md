@@ -135,7 +135,8 @@ mount không xong thì gỡ ngay; mount lỗi thì trang khác Advertising tải
 `window.__ttMotionBoot`: `motion.js` gọi `claim()`, `release()` sau hai khung; script lỗi hoặc chưa
 claim tại `DOMContentLoaded` thì `fail()`: thêm `motion-fallback`, bỏ `route-enter`, mount nội dung
 settled, nối menu mở, đóng, Escape tối thiểu; CSS fallback ẩn veil, hiện header, nội dung, reveal.
-Veil che cả header từ khung đầu; mount xong veil mờ như chuyển trang (`playRouteEnter`), rồi intro header chạy một lần,
+Veil che cả header từ khung đầu; mount xong veil mờ như chuyển trang (`playRouteEnter`), rồi intro header chạy một lần
+(WAAPI trên compositor, `linear()` lấy mẫu `power4.out`, để long task lúc mount không làm logo khựng),
 kết thúc đúng trạng thái theo vị trí cuộn (quá 100px là `is-collapsed`, R2), cùng entrance. Route mềm giữ header trên veil.
 Mạng chậm giữ veil tới khi mount xong, không mốc thời gian từ `<head>`. Trang từ bfcache: đóng menu, gỡ veil.
 

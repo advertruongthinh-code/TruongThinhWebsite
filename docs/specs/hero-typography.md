@@ -74,9 +74,12 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
 - Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn
   `data-hero-fit`, cùng `--hero-pair-em` cho title hai dòng, ghi lên `hero-content`. Dòng không xuống dòng và chỉ
-  co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước khi motion đọc vị trí.
+  co thêm khi câu dài hơn 12,5 em. Chạy trước SplitText và trước khi motion đọc vị trí; đo lại khi đổi ngôn ngữ
+  hoặc font tải xong, không đo lại ở mỗi lần layout (đo ép style cả trang).
 - Không JS hoặc `motion-fallback`: cùng cỡ chung nên câu hiện có vẫn hai dòng; hai dòng nằm sát hai mép khung vì
   không có số đo cặp dòng.
+- Hero có `overflow-anchor: none`: chữ đổi cỡ sau khi mount nên node trong hero không được làm scroll anchor; nếu không,
+  Back về trang đã cuộn lệch 23px trên WebKit (2026-10-19).
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
   owner duyệt (mục UI).
@@ -122,7 +125,7 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN |
+| R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN; thêm ảnh có và không clip-path của chữ nối heritage ([page-home R7](page-home.md#r7-heritage-montage)) |
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
 
