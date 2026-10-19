@@ -79,7 +79,7 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 
 | # | Khối | Nội dung (VI) | Tone |
 | --- | --- | --- | --- |
-| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), kicker "CÂU CHUYỆN TRƯỜNG THỊNH", `h1` "Vững nghề. / Vững niềm tin." | inverse |
+| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker (owner 2026-10-18), `h1` "Vững nghề. / Vững niềm tin." | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
 | 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề."; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng."; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
