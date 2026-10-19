@@ -17,7 +17,7 @@ updated: 2026-10-19
 ## Mục đích
 
 Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
-và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 252 card hiện chỉ có một ảnh
+và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 253 card hiện chỉ có một ảnh
 mỗi card. Phát tự động, vùng trọng tâm và các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
 file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
 
@@ -47,7 +47,7 @@ Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `layout-core.mjs`),
 thêm dải điều khiển cao 44px dưới canvas (`mediaControlStripHeight`), tính ngay trong lần xếp đầu ở masonry và related;
 dải không phủ ảnh. Card một item không có dải, không chỉ báo; item đó là video hoặc ảnh khác `record.media` thì card hiện
 đúng item đó. Nhãn thời lượng video ở góc trên trái canvas, nút phát ở góc trên phải. Đổi media, tải chậm hay lỗi không
-đổi khung card, canvas hay dải (lệch tối đa 1px). Card 252 ảnh hiện tại giữ hình học và thứ tự của
+đổi khung card, canvas hay dải (lệch tối đa 1px). Card 253 ảnh hiện tại giữ hình học và thứ tự của
 [masonry R5](advertising-masonry.md#r5-hình-học-masonry).
 
 ```gherkin
