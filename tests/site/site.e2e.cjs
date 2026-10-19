@@ -491,7 +491,8 @@ function assertPersistentNavigationContracts() {
   );
 
   assert(
-    /const headerIntro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*!softNavigation[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
+    // Intro WAAPI (compositor) và timeline GSAP dự phòng cùng một timeline đã duyệt: power4.out, 0/0.3/1.5s.
+    /\(1 - \(1 - index \/ 40\) \*\* 5\)[\s\S]*\[headerLogo, \[\{ transform: "scale\(0\)" \}, \{ transform: "none" \}\], 0, 1500\][\s\S]*"#header-menu-items > ul > li"[\s\S]*\{ transform: "translateY\(-150px\)" \}, \{ transform: "none" \}\], 300 \+ index \* 100, 1500\][\s\S]*\[toggle, \[\{ transform: "scaleX\(0\)" \}, \{ transform: "none" \}\], 1500, 1000\][\s\S]*const playsHeaderIntro = !settledStartup && !softNavigation;[\s\S]*: gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
       motionSource,
     ) && brandCss && !/transition:\s*transform\b/.test(brandCss),
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",
@@ -2107,46 +2108,27 @@ async function runHeaderParityChecks() {
     "header direct intro and soft-navigation persistence",
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     async (page) => {
+      // Intro header chạy bằng WAAPI (motion.js createHeaderIntro): ghi lại mọi lời gọi animate() trên logo, mục nav và
+      // nút menu để kiểm trạng thái đầu, delay và thời lượng như timeline GSAP cũ (motion.md).
       await page.addInitScript(() => {
-        window.__ttHeaderIntroWrites = [];
-        const startedAt = performance.now();
-        document.addEventListener("readystatechange", () => {
-          if (document.readyState !== "interactive") return;
-          const targets = [
-            ["logo", document.querySelector("#header-logo")],
-            ...[
-              ...document.querySelectorAll("#header-menu-items > ul > li"),
-            ].map((element, index) => [`nav-${index}`, element]),
-            ["toggle", document.querySelector("#header-toggle-svg")],
-          ];
-          targets.forEach(([target, element]) => {
-            const style = element.style;
-            Object.defineProperty(style, "transform", {
-              configurable: true,
-              get() {
-                return CSSStyleDeclaration.prototype.getPropertyValue.call(
-                  style,
-                  "transform",
-                );
-              },
-              set(value) {
-                window.__ttHeaderIntroWrites.push({
-                  target,
-                  time: performance.now() - startedAt,
-                  // Giờ tick GSAP: timeline neo play vào tick trước nên long task giữa hai tick làm giờ thật lệch
-                  // còn giờ tick thì không.
-                  tick: (window.gsap?.ticker.time ?? Number.NaN) * 1_000,
-                  value,
-                });
-                CSSStyleDeclaration.prototype.setProperty.call(
-                  style,
-                  "transform",
-                  value,
-                );
-              },
+        window.__ttHeaderIntroAnimations = [];
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (keyframes, options) {
+          const index = [...(document.querySelectorAll("#header-menu-items > ul > li") || [])].indexOf(this);
+          const target = this.id === "header-logo" ? "logo"
+            : this.id === "header-toggle-svg" ? "toggle"
+              : index >= 0 ? `nav-${index}` : null;
+          if (target) {
+            window.__ttHeaderIntroAnimations.push({
+              target,
+              from: keyframes?.[0]?.transform,
+              delay: options?.delay ?? 0,
+              duration: options?.duration,
+              easing: options?.easing,
             });
-          });
-        });
+          }
+          return animate.call(this, keyframes, options);
+        };
       });
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/");
@@ -2164,45 +2146,26 @@ async function runHeaderParityChecks() {
             getComputedStyle(document.querySelector("#header-toggle-svg")).transform,
           ).a,
         },
-        writes: window.__ttHeaderIntroWrites || [],
+        animations: window.__ttHeaderIntroAnimations || [],
       }));
-      const setup = intro.writes.find(
-        (write) => write.target === "logo" && /^scale\(0(?:, 0)?\)/.test(write.value),
-      );
-      const navSetup = intro.writes.filter(
-        (write) => /^nav-\d$/.test(write.target) && /-150(?:\.0+)?px/.test(write.value),
-      );
-      const toggleSetup = intro.writes.find(
-        (write) => write.target === "toggle" && /^scale\(0(?:, 1)?\)/.test(write.value),
-      );
+      const byTarget = (target) => intro.animations.find((entry) => entry.target === target);
+      const logo = byTarget("logo");
+      const nav = [0, 1, 2].map((index) => byTarget(`nav-${index}`));
+      const toggle = byTarget("toggle");
       assert(
-        setup && new Set(navSetup.map((write) => write.target)).size === 3 && toggleSetup,
-        "Direct header intro never exposed its audited start state",
+        logo?.from === "scale(0)" && nav.every((entry) => entry?.from === "translateY(-150px)") && toggle?.from === "scaleX(0)",
+        `Direct header intro never exposed its audited start state: ${JSON.stringify(intro.animations)}`,
       );
-      const afterSetup = intro.writes.filter((write) => write.time >= setup.time);
-      const logoStart = afterSetup.find(
-        (write) => write.target === "logo" && !/^scale\(0(?:, 0)?\)/.test(write.value),
-      )?.tick - setup.tick;
-      const navStart = afterSetup.find(
-        (write) =>
-          write.target === "nav-0" && !/-150(?:\.0+)?px/.test(write.value),
-      )?.tick - setup.tick;
-      const toggleStart = afterSetup.find(
-        (write) => write.target === "toggle" && !/^scale\(0(?:, 1)?\)/.test(write.value),
-      )?.tick - setup.tick;
-      // Intro: nav tại 0.3s, hamburger tại 1.5s (motion.md). Lần ghi đầu của mỗi phần lệch theo frame (long task lúc
-      // mount, GSAP lấy giờ tick trước làm mốc play), đo được tới khoảng 150ms trên runner bận, nên khoảng nav tới
-      // hamburger (1.2s) cho dung sai 200ms, logo tới nav cho lỏng.
+      // Intro: logo 1.5s, nav tại 0.3s cách nhau 0.1s, hamburger tại 1.5s trong 1s, cùng đường cong power4.out (motion.md).
       assert(
-        logoStart <= 160 &&
-          navStart - logoStart >= 150 &&
-          navStart - logoStart <= 380 &&
-          toggleStart - navStart >= 1_000 &&
-          toggleStart - navStart <= 1_400 &&
+        logo.delay === 0 && logo.duration === 1_500 &&
+          nav.every((entry, index) => entry.delay === 300 + index * 100 && entry.duration === 1_500) &&
+          toggle.delay === 1_500 && toggle.duration === 1_000 &&
+          [logo, ...nav, toggle].every((entry) => /^linear\(/.test(entry.easing)) &&
           intro.final.logo >= 0.999 &&
           intro.final.nav.every((value) => Math.abs(value) <= 0.1) &&
           intro.final.toggle >= 0.999,
-        `Direct header intro timing drifted: ${JSON.stringify({ logoStart, navStart, toggleStart })}`,
+        `Direct header intro timing drifted: ${JSON.stringify(intro)}`,
       );
 
       const header = await page.locator("[data-site-header]").elementHandle();
