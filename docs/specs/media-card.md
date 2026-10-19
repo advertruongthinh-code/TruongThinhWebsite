@@ -156,11 +156,13 @@ theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung gi
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
 tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
 khung đổi media: dải liền như card (R3), cắt ở BBox media (khung contain chung của mọi item, không tính vùng dư); vuốt kéo
-dải theo ngón tay như R3. Nền zoom blur cũng là dải liền trượt cùng nhịp, mỗi điểm vùng dư luôn là blur của đúng media
-nằm cạnh nó; không crossfade (owner 2026-10-19; reduced motion đổi ngay). Chấm 8px ở đáy theo vị trí, mỗi chấm là nút
+dải theo ngón tay như R3. Nền zoom blur phản ánh realtime vùng media: khi video phát hoặc dải trượt, nền vẽ lại mỗi
+frame từ chính những gì đang trong BBox; không crossfade (owner 2026-10-19; reduced motion đổi ngay). Chấm 8px ở đáy theo vị trí, mỗi chấm là nút
 "Xem media i trên N" / "Show media i of N" (vùng bấm từ 24px, đang xem có `aria-current="true"`): bấm thì trượt thẳng
 tới media đó, chiều theo vị trí chấm, không đi qua media ở giữa (owner 2026-10-19).
-Video vào khung phát lại từ đầu, giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
+Video trong dải vẫn phát: video đang xem phát tiếp khi trượt ra, video đích phát từ đầu lúc bắt đầu trượt vào rồi nối
+tiếp trong khung. Tiếng mỗi video theo phần của nó còn trong khung, nên nhỏ dần, to dần cùng nhịp dải và theo ngón tay
+khi vuốt (owner 2026-10-19); giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
 Video primary tự phát tắt tiếng, lặp riêng nó (không chạy playlist như card, owner 2026-10-18), `playsinline`, player theo trang pin
 Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
 dải gradient đáy 128px (đen 0.4 lên trong suốt, lề 24px) có nút phát/dừng, thời gian "hiện tại / tổng" (16px đậm, tổng
@@ -194,7 +196,15 @@ When bấm mũi tên trước
 Then ảnh trượt vào khung cũ, chấm đầu active, related không đổi vị trí
 And phím phải đưa video về khung và phát lại
 And bấm chấm thứ ba khi đang ở chấm đầu thì media 3 trượt vào từ phải, media 2 không xuất hiện
-And trong lúc trượt nền blur trượt cùng dải, không có lớp nền nào đổi opacity
+And trong lúc trượt nền blur vẽ lại theo dải từng frame, không có lớp nền nào đổi opacity
+```
+
+```gherkin
+Given primary đang phát video có tiếng ở volume 1, media kế là ảnh
+When bấm mũi tên sau
+Then video vẫn phát trong lúc trượt ra, tiếng giảm dần về 0 đúng lúc ra hết khung
+And bấm mũi tên trước thì video đích phát từ đầu, tiếng tăng dần tới 1 khi vào hết khung rồi phát tiếp
+And trong lúc video phát, nền blur đổi theo frame video
 ```
 
 ## Giao diện và dữ liệu
@@ -227,7 +237,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (2 card gần giữa vùng, tính lại khi cuộn, playlist lặp, hover chiếm suất, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, chấm bấm được, nền blur trượt cùng dải, nền blur video, toàn màn hình) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, chấm bấm được, nền blur realtime theo dải và video, video phát và tiếng fade theo dải, toàn màn hình) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
@@ -250,6 +260,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Player và dải media primary (R6) đã code trên branch xem trước, chờ owner duyệt. Pinterest không có thanh âm lượng,
   toàn màn hình hay nền blur; ba thứ thêm theo owner 2026-10-18. Trên cảm ứng dải nút luôn hiện, thanh âm lượng chỉ mở
   khi focus cụm tiếng: mặc định Thread chọn, chưa đo Pinterest mobile. Owner.
+- Tiếng fade theo dải (R6) dùng `volume`; theo tài liệu Safari của Apple, iOS không cho JavaScript đổi `volume`, nên trên
+  iPhone tiếng có thể giữ nguyên trong lúc trượt. Chưa kiểm thiết bị iOS. Owner.
 - Phân loại: tag nằm trên card ([taxonomy R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)), media chỉ có `kind`; chưa có
   tag hay vai trò (góc chụp, chi tiết) theo từng media. Owner quyết khi có ảnh nhiều góc thật.
 - Vùng tải trước đã duyệt: rộng hơn viewport, chuẩn bị poster, metadata trước, không cố tải cả file; đề xuất preload

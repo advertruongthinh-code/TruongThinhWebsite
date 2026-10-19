@@ -2342,7 +2342,8 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-view__hero [data-advertising-photo-background],
-.advertising-photo-view__outgoing-background {
+.advertising-photo-view__outgoing-background,
+.advertising-photo-view__live-background {
   position: absolute;
   z-index: 0;
   inset: 0;
@@ -2354,7 +2355,7 @@ body.is-advertising-browse .site-footer {
   user-select: none;
 }
 
-[data-advertising-photo-glass="false"] .advertising-photo-view__hero [data-advertising-photo-background] {
+[data-advertising-photo-glass="false"] .advertising-photo-view__hero :is([data-advertising-photo-background], .advertising-photo-view__live-background) {
   display: none;
 }
 

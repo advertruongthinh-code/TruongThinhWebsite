@@ -413,7 +413,7 @@ const stripState = (page) => page.evaluate(() => {
 
 // Card dọc bốn ảnh cùng tỷ lệ: media hẹp hơn khung nên có nền zoom blur; chấm bấm trượt thẳng tới media đó, nền blur
 // trượt cùng dải (media-card R6, owner 2026-10-19).
-test("M02a primary dots jump straight to a media and the blur backdrop slides with the strip", async () => {
+test("M02a primary dots jump straight to a media and the blur backdrop mirrors the strip live", async () => {
   await withPage("en", async (page) => {
     const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
     const card = artifact.cards.find((item) => item.media.height > item.media.width * 1.3);
@@ -444,8 +444,13 @@ test("M02a primary dots jump straight to a media and the blur backdrop slides wi
         frames.push(strip && {
           media: [...strip.children].map((node) => ({ src: node.getAttribute("src"), translate: getComputedStyle(node).translate,
             opacity: getComputedStyle(node).opacity })),
-          backs: [...hero.querySelectorAll(".advertising-photo-view__outgoing-background")].map((node) => ({
-            translate: getComputedStyle(node).translate, opacity: getComputedStyle(node).opacity, mask: node.style.maskImage })),
+          live: (() => {
+            const canvas = hero.querySelector(".advertising-photo-view__live-background");
+            const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+            let hash = 0;
+            for (let i = 0; i < data.length; i += 13) hash = (hash * 31 + data[i]) % 1e9;
+            return { hidden: canvas.hidden, hash };
+          })(),
           real: getComputedStyle(hero.querySelector("[data-advertising-photo-image]")).visibility,
         });
         if (!stop) requestAnimationFrame(tick);
@@ -463,17 +468,70 @@ test("M02a primary dots jump straight to a media and the blur backdrop slides wi
       assert(frame.media.every(({ src }) => !src?.includes("m02a-strip=2")), "the media in between never shows");
       assert(frame.media.some(({ src }) => src?.includes("m02a-strip=3")), "the chosen media slides in");
       assert.equal(frame.real, "hidden", "the real media waits under the strip");
-      assert.equal(frame.backs.length, 2, "each lane has its own blur backdrop");
-      assert([...frame.media, ...frame.backs].every(({ opacity }) => opacity === "1"), "nothing fades");
-      assert.deepEqual(frame.backs.map(({ translate }) => translate), frame.media.map(({ translate }) => translate),
-        "blur backdrop moves with its media");
-      assert(frame.backs.every(({ mask }) => mask.includes("linear-gradient")), "backdrops meet at a soft seam");
+      assert(frame.media.every(({ opacity }) => opacity === "1"), "nothing fades");
+      assert.equal(frame.live.hidden, false, "the live blur backdrop covers the frame while the strip moves");
     }
     assert(new Set(sliding.map((frame) => frame.media[0].translate)).size > 10, "the strip moves");
+    assert(new Set(sliding.map((frame) => frame.live.hash)).size > 10, "the blur backdrop is redrawn as the strip moves");
     assert.equal(frames.at(-1), null, "strip is removed once the chosen media is shown");
     assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-active-media-id"),
       card.mediaItems[2].id);
     assert.equal(await dots.nth(2).getAttribute("aria-current"), "true");
+  });
+});
+
+test("M02a video keeps playing in the strip, its sound fades with the slide, and the blur backdrop follows the video", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 2);
+    assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-photo-glass"), "true");
+    const backdrop = () => page.evaluate(() => {
+      const canvas = document.querySelector(".advertising-photo-view__live-background");
+      const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+      let hash = 0;
+      for (let i = 0; i < data.length; i += 13) hash = (hash * 31 + data[i]) % 1e9;
+      return { hidden: canvas.hidden, hash };
+    });
+    const first = await backdrop();
+    await page.waitForTimeout(400);
+    const later = await backdrop();
+    assert.equal(first.hidden, false, "a playing video draws the blur backdrop live");
+    assert.notEqual(later.hash, first.hash, "the blur backdrop changes with the video frames");
+    const slide = (step) => page.evaluate(async (step) => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      video.muted = false;
+      video.volume = 1;
+      const frames = [];
+      let stop = false;
+      const tick = () => {
+        const lane = document.querySelector(".advertising-photo-view__strip > video");
+        if (document.querySelector(".advertising-photo-view__strip")) {
+          frames.push({ outgoing: video.volume, outgoingPaused: video.paused, incoming: lane?.volume ?? null,
+            playing: video.hasAttribute("src") });
+        }
+        if (!stop) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      document.querySelector(`[data-advertising-photo-media-step="${step}"]`).click();
+      await new Promise((resolve) => setTimeout(resolve, 1800));
+      stop = true;
+      return { frames, time: video.currentTime, paused: video.paused, volume: video.volume, src: video.getAttribute("src") };
+    }, step);
+    const out = await slide(-1);
+    // Dải dừng thì photoVideo chuyển sang ảnh rồi dải mới gỡ khi ảnh đã giải mã; chỉ xét các frame video còn phát.
+    const fading = out.frames.filter(({ playing }) => playing);
+    assert(fading.length >= 20, `video to image slides over many frames: ${fading.length}`);
+    assert(fading.every(({ outgoingPaused }) => !outgoingPaused), "the outgoing video keeps playing under the strip");
+    assert(fading.at(0).outgoing > 0.9 && fading.at(-1).outgoing < 0.05, "its sound fades out with the slide");
+    assert(fading.every((frame, index) => !index || frame.outgoing <= fading[index - 1].outgoing + 1e-6),
+      "the fade never goes back up");
+    assert.equal(out.src, null, "the video stops once the image is in the frame");
+    assert.equal(out.volume, 1, "the viewer volume comes back");
+    const back = await slide(1);
+    assert(back.frames.length >= 20, `image to video slides over many frames: ${back.frames.length}`);
+    assert(back.frames.at(0).incoming < 0.1 && back.frames.at(-1).incoming > 0.95, "the incoming video sound fades in");
+    assert.equal(back.paused, false, "the video keeps playing after the strip");
+    assert(back.time > 0.4, `the video continues from where its lane got to: ${back.time}`);
   });
 });
 

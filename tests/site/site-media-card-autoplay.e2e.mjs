@@ -236,7 +236,8 @@ test("R4 desktop: the viewed media and video time carry from card to detail, bac
 
     for (let step = 0; step < 2; step += 1) {
       await page.locator('[data-advertising-photo-media-step="1"]').click();
-      await page.waitForTimeout(950);
+      // Dải gỡ khi media đích đã vào hẳn khung và photoVideo đã nhận video đích (media-card R6).
+      await page.waitForFunction(() => !document.querySelector(".advertising-photo-view__strip"));
     }
     assert.equal((await detail()).mediaId, `${id}-autoplay-video-2`);
     await seekDetail(2);

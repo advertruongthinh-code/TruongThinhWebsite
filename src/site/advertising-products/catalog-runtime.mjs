@@ -3424,8 +3424,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoView.dataset.advertisingPhotoGlass = String(!primaryFailed
       && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
-  // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain, nền zoom blur là dải cùng nhịp, lane
-  // nền mờ dần 32px ở đường nối với lane cạnh; media thật ẩn tới khi dải dừng và media mới đã giải mã.
+  // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
+  // mới đã giải mã. Video trong dải vẫn phát: video đang xem phát tiếp dưới dải (lane vẽ lại mỗi frame), video đích phát
+  // trong lane riêng, tiếng mỗi video theo phần của nó còn trong khung.
   let primaryStrip = null;
   const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
@@ -3441,41 +3442,100 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.getContext("2d").drawImage(source, 0, 0);
     return canvas;
   };
-  const closePrimaryStrip = () => {
-    primaryStrip?.animations.forEach((animation) => animation.cancel());
-    primaryStrip?.nodes.forEach((node) => node.remove());
-    primaryStrip = null;
-    delete heroFrame.dataset.advertisingPhotoSliding;
+  const drawable = (node) => node instanceof HTMLVideoElement ? node.readyState >= 2
+    : !(node instanceof HTMLImageElement) || (node.complete && node.naturalWidth > 0);
+  // Nền kính sống (owner 2026-10-19): khi video phát hoặc dải trượt, nền blur vẽ lại mỗi frame từ chính những gì trong
+  // vùng media: phủ cover hộp media vào canvas 1/8 khung, blur bằng bậc cuối như bakedRevealGlass rồi phóng 8 lần.
+  // Còn lại ảnh nền tĩnh [data-advertising-photo-background] giữ việc này.
+  const liveBackground = document.createElement("canvas");
+  liveBackground.className = "advertising-photo-view__live-background";
+  liveBackground.hidden = true;
+  photoBackground?.after(liveBackground);
+  const liveScratch = document.createElement("canvas");
+  let liveFrame = 0;
+  const drawLiveBackground = () => {
+    liveFrame = 0;
+    const strip = primaryStrip;
+    const lanes = strip ? strip.lanes.map(({ nodes: [node], live, video }) => {
+      const x = parseFloat(getComputedStyle(node).translate) || 0;
+      if (live && drawable(live)) node.getContext("2d").drawImage(live, 0, 0, node.width, node.height);
+      // Tiếng theo phần video còn trong khung: ra hết khung thì im, vào hết thì đúng âm lượng người xem chọn.
+      if (video) video.volume = strip.volume * Math.max(0, 1 - Math.abs(x) / strip.width);
+      return { node, x };
+    }) : [{ node: photoVideo, x: 0 }];
+    // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
+    liveBackground.hidden = photoView.dataset.advertisingPhotoGlass !== "true" || (!strip && photoVideo.hidden);
+    if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
+      const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
+      const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
+      // Vẽ tràn mép thêm hai lần bán kính blur để mép khung không mờ về trong suốt.
+      const bleed = 100 / BAKED_SCALE * 2;
+      if (liveBackground.width !== width || liveBackground.height !== height) {
+        Object.assign(liveBackground, { width, height });
+        Object.assign(liveScratch, { width: width + 2 * bleed, height: height + 2 * bleed });
+      }
+      const mediaWidth = strip?.width ?? primaryWidth();
+      const mediaHeight = parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-height")) || heroFrame.clientHeight;
+      const scale = Math.max(liveScratch.width / mediaWidth, liveScratch.height / mediaHeight);
+      const left = (liveScratch.width - mediaWidth * scale) / 2;
+      const top = (liveScratch.height - mediaHeight * scale) / 2;
+      const scratch = liveScratch.getContext("2d");
+      scratch.clearRect(0, 0, liveScratch.width, liveScratch.height);
+      lanes.forEach(({ node, x }) => {
+        if (drawable(node)) scratch.drawImage(node, left + x * scale, top, mediaWidth * scale, mediaHeight * scale);
+      });
+      const context = liveBackground.getContext("2d");
+      context.clearRect(0, 0, width, height);
+      context.filter = BAKED_FILTERS.at(-1);
+      context.drawImage(liveScratch, -bleed, -bleed);
+    }
+    if (strip || !photoVideo.paused) liveFrame = requestAnimationFrame(drawLiveBackground);
   };
-  // entries: [{ item, slot, node }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.
+  const startLiveBackground = () => {
+    if (!liveFrame) liveFrame = requestAnimationFrame(drawLiveBackground);
+  };
+  // Dải dừng hoặc bị thay: đưa photoVideo về media đích (strip.apply), dừng video của lane, trả âm lượng.
+  const closePrimaryStrip = () => {
+    const strip = primaryStrip;
+    primaryStrip = null;
+    if (strip) {
+      strip.apply?.();
+      strip.animations.forEach((animation) => animation.cancel());
+      strip.lanes.forEach(({ video }) => {
+        if (!video || video === photoVideo) return;
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+      });
+      photoVideo.volume = strip.volume;
+      strip.nodes.forEach((node) => node.remove());
+    }
+    delete heroFrame.dataset.advertisingPhotoSliding;
+    startLiveBackground();
+  };
+  // entries: [{ item, slot }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.
   const openPrimaryStrip = (entries, offset = 0) => {
     closePrimaryStrip();
     const width = primaryWidth();
-    const frameWidth = heroFrame.clientWidth;
-    const slots = entries.map(({ slot }) => slot);
     const clip = document.createElement("div");
     clip.className = "advertising-photo-view__strip";
-    const backs = [];
-    const lanes = entries.map(({ item, slot, node }) => {
-      const media = node ?? Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) });
+    const lanes = entries.map(({ item, slot }) => {
+      const live = !slot && !photoVideo.hidden && photoVideo.readyState >= 2 ? photoVideo : null;
+      const media = !slot ? currentPrimaryNode() : item.kind === "video"
+        ? Object.assign(document.createElement("video"), { muted: photoVideo.muted, playsInline: true, loop: true,
+          preload: "auto", poster: item.posterSrc, src: item.src, volume: 0 })
+        : Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) });
       media.classList.add("advertising-photo-view__strip-media");
       clip.append(media);
-      if (photoView.dataset.advertisingPhotoGlass !== "true") return { slot, nodes: [media] };
-      const back = Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) });
-      back.className = "advertising-photo-view__outgoing-background";
-      // Mask tính trong hộp của nền trước scale(1.12) quanh tâm: mép media x trên khung ứng với W/2 + (x - W/2)/1.12.
-      const local = (x) => frameWidth / 2 + (x - frameWidth / 2) / 1.12;
-      const left = slots.includes(slot - 1) ? local((frameWidth - width) / 2) : -1e5;
-      const right = slots.includes(slot + 1) ? local((frameWidth + width) / 2) : 1e5;
-      back.style.maskImage = `linear-gradient(90deg, transparent ${left - 16}px, #000 ${left + 16}px, #000 ${right - 16}px, transparent ${right + 16}px)`;
-      backs.push(back);
-      return { slot, nodes: [media, back] };
+      if (media instanceof HTMLVideoElement) void media.play().catch(() => {});
+      return { slot, nodes: [media], live, video: live ?? (media instanceof HTMLVideoElement ? media : null) };
     });
-    photoBackground?.after(...backs);
     photoVideo.after(clip);
     heroFrame.dataset.advertisingPhotoSliding = "";
-    primaryStrip = { lanes, width, animations: [], nodes: [clip, ...backs], dragging: false };
+    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, volume: photoVideo.volume, apply: null };
     placeStrip(lanes, width, offset);
+    cancelAnimationFrame(liveFrame);
+    drawLiveBackground();
     return primaryStrip;
   };
   const runPrimaryStrip = (strip, from, to, timing) => {
@@ -3493,7 +3553,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const outgoing = changed && inPlace && !reduced && !photoImage.hidden
       && photoImage.complete && photoImage.naturalWidth > 0 ? snapshotPrimary() : [];
     const strip = sliding ? motion?.strip ?? openPrimaryStrip([
-      { item: activePrimaryItem, slot: 0, node: currentPrimaryNode() }, { item, slot: Math.sign(slide) },
+      { item: activePrimaryItem, slot: 0 }, { item, slot: Math.sign(slide) },
     ]) : null;
     if (!sliding) closePrimaryStrip();
     activePrimaryMediaId = item.id;
@@ -3501,20 +3561,25 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
     photoView.dataset.advertisingActiveMediaId = item.id;
-    photoVideo.pause();
     // Đổi media trong cùng card giữ lựa chọn tiếng của người xem như Pinterest; mở card mới thì về tắt tiếng.
     if (!slide) {
       photoVideo.muted = true;
       photoVideo.defaultMuted = true;
     }
     if (!video && document.fullscreenElement === heroFrame) void document.exitFullscreen().catch(() => {});
-    photoVideo.hidden = !video;
     photoImage.hidden = video;
     photoExpand.hidden = video;
     photoPlayer.hidden = !video;
     photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
-    if (video) {
-      photoTimeTotal.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
+    // Trong lúc trượt photoVideo giữ video đang xem để nó phát tiếp dưới dải; dải dừng thì mới chuyển sang media đích.
+    const applyVideo = () => {
+      photoVideo.pause();
+      photoVideo.hidden = !video;
+      if (!video) {
+        photoVideo.removeAttribute("src");
+        photoVideo.load();
+        return;
+      }
       photoVideo.width = item.width;
       photoVideo.height = item.height;
       photoVideo.poster = item.posterSrc;
@@ -3522,9 +3587,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
       else if (slide) photoVideo.currentTime = 0;
       void photoVideo.play().catch(() => {});
-    } else {
-      photoVideo.removeAttribute("src");
-      photoVideo.load();
+    };
+    if (strip) strip.apply = applyVideo;
+    else applyVideo();
+    if (video) photoTimeTotal.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
+    else {
       photoImage.width = item.width;
       photoImage.height = item.height;
       photoImage.alt = english ? item.altEn : item.altVi;
@@ -3535,16 +3602,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     fitPrimaryMedia(item);
     if (strip) {
       const from = motion?.offset ?? 0;
+      const target = strip.lanes.find(({ slot }) => slot === Math.sign(slide))?.video;
       void Promise.all(strip.lanes.flatMap(({ nodes }) => nodes).map(whenMediaReady))
         .then(() => primaryStrip === strip && runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width,
           motion?.timing ?? PUSH_TIMING))
-        .then(() => primaryStrip === strip && whenMediaReady(video ? photoVideo : photoImage))
         .then(() => {
           if (primaryStrip !== strip) return;
-          closePrimaryStrip();
-          // Video vào khung phát lại từ đầu (R6), kể cả khi đã chạy ẩn trong lúc trượt.
-          if (video) photoVideo.currentTime = 0;
-        }, () => {});
+          strip.apply();
+          strip.apply = null;
+          if (!video) return whenMediaReady(photoImage);
+          // Video đích đã phát trong lane từ lúc vào khung (R6): photoVideo bắt đầu từ giây đó, có frame thì bỏ lane.
+          if (target) photoVideo.currentTime = target.currentTime;
+          return photoVideo.readyState >= 2 || new Promise((resolve) => {
+            photoVideo.addEventListener("loadeddata", resolve, { once: true });
+            photoVideo.addEventListener("error", resolve, { once: true });
+          });
+        })
+        .then(() => { if (primaryStrip === strip) closePrimaryStrip(); }, () => {});
     }
     // Ảnh của hai media cạnh vào cache để kéo tay không gặp lane trống.
     const neighbors = record.mediaItems || [];
@@ -3730,6 +3804,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   for (const type of ["loadedmetadata", "seeked", "emptied"]) {
     photoVideo?.addEventListener(type, syncVideoTime, { signal: controller.signal });
   }
+  for (const type of ["play", "seeked", "loadeddata", "emptied"]) {
+    photoVideo?.addEventListener(type, startLiveBackground, { signal: controller.signal });
+  }
   photoVideo?.addEventListener("play", () => {
     cancelAnimationFrame(videoTimeFrame);
     tickVideoTime();
@@ -3778,7 +3855,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const items = primaryItems();
       const index = primaryIndex();
       openPrimaryStrip([-1, 0, 1].filter((slot) => items[index + slot]).map((slot) => ({
-        item: items[index + slot], slot, node: slot ? undefined : currentPrimaryNode(),
+        item: items[index + slot], slot,
       })), offset).dragging = true;
     },
     release: (step, offset) => {
@@ -3967,6 +4044,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
     activePrimaryMediaId = null;
+    closePrimaryStrip();
     photoVideo?.pause();
     clearRelatedCards();
     syncLocaleLinks(browse);
@@ -4517,6 +4595,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     clearTimeout(revealHoldTimer);
     stopSuggestionSlides?.();
     if (photoVideo) {
+      closePrimaryStrip();
       photoVideo.pause();
       photoVideo.removeAttribute("src");
       photoVideo.load();
