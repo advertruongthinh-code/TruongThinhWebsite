@@ -1,4 +1,4 @@
-// hero-typography R1, R3, R4: title hai dòng, không cắt dấu, không cuộn ngang, khoảng cách dòng đều.
+// hero-typography R1, R2 (phone: title ở tâm hero, không kicker, rail neo cố định), R3, R4: title hai dòng, không cắt dấu, không cuộn ngang, khoảng cách dòng đều.
 import assert from "node:assert/strict";
 import path from "node:path";
 import process from "node:process";
@@ -137,6 +137,8 @@ const baselineGaps = (page) => page.evaluate(() => {
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
+// Đỉnh rail Advertising theo locale và bề rộng: trang có hàng chip và trang không có phải bằng nhau.
+const railTops = new Map();
 try {
   for (const locale of ["vi", "en"]) {
     for (const route of [...new Set(titles.map((t) => t.route))]) for (const phone of [true, false]) {
@@ -169,6 +171,25 @@ try {
             if (info.overflowX > 1) failures.push(`${where}: horizontal overflow ${info.overflowX}px`);
             const ink = await clippedInk(page, spec, info.box, info.fontSize);
             if (ink) failures.push(`${where}: ink ${ink}`);
+            if (phone && !spec.selector.startsWith(".legacy")) {
+              const hero = await page.evaluate((selector) => {
+                const title = document.querySelector(selector);
+                const box = title.getBoundingClientRect();
+                const heroBox = title.closest(".hero").getBoundingClientRect();
+                const kicker = title.parentElement.querySelector(".hero-kicker")?.getBoundingClientRect();
+                const rail = document.querySelector(".hero .project-filters")?.getBoundingClientRect();
+                return {
+                  offset: (box.top + box.bottom - heroBox.top - heroBox.bottom) / 2,
+                  kickerWidth: kicker ? kicker.width : null,
+                  railTop: rail ? rail.top - heroBox.top : null,
+                  railGap: rail ? rail.top - box.bottom : null,
+                };
+              }, spec.selector);
+              if (Math.abs(hero.offset) > 3) failures.push(`${where}: title off hero center ${hero.offset.toFixed(1)}px`);
+              if (hero.kickerWidth > 1) failures.push(`${where}: kicker visible on phone`);
+              if (hero.railGap !== null && hero.railGap < 16) failures.push(`${where}: rail too close to title ${hero.railGap.toFixed(1)}px`);
+              if (hero.railTop !== null) railTops.set(`${locale}@${width}`, [...(railTops.get(`${locale}@${width}`) || []), hero.railTop]);
+            }
           }
           if (width === 390 || width === 1440) {
             for (const block of await baselineGaps(page)) failures.push(`${locale} /${path} @${width}: uneven ${block}`);
@@ -178,6 +199,9 @@ try {
         await context.close();
       }
     }
+  }
+  for (const [key, tops] of railTops) {
+    if (Math.max(...tops) - Math.min(...tops) > 1) failures.push(`advertising rail top differs with and without chips ${key}: ${tops.map(Math.round)}`);
   }
 } finally {
   await browser.close();
