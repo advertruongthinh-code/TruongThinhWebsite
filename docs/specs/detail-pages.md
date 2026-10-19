@@ -70,7 +70,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 ```gherkin
 Given output đã build
 When mở /vi/residential/ và /vi/commercial/
-Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có ba mươi sáu và sáu figure
+Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
 ```
 
 ### R3. About: section và nội dung
