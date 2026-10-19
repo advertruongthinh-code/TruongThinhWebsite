@@ -141,7 +141,7 @@ try {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
-    const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate :not(picture):has(> img[src^=\"/assets/content/\"], > picture > img[src^=\"/assets/content/\"]):not(.is-media-settled)")]
+    const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate .media-frame:not(.is-media-settled)")]
       .map(frame => { const style = getComputedStyle(frame, "::before"); return `${style.animationName} ${style.animationDuration} ${style.animationIterationCount}`; }));
     // Reset reduced motion toàn cục không được cắt nhịp thở 2s còn 0.01ms.
     assert.ok(frames.length && frames.every(value => value === "media-breathe 2s infinite"), `about reduced motion: frames breathe instead of sweeping ${JSON.stringify(frames)}`);
@@ -155,7 +155,7 @@ try {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 }, delay: 3000 });
     await page.goto(base + "/vi/about/", { waitUntil: "domcontentloaded" });
     await page.evaluate(() => {
-      const frame = document.querySelector(".media-gate :not(picture):has(> img[src^=\"/assets/content/\"], > picture > img[src^=\"/assets/content/\"]):not(.is-media-settled)");
+      const frame = document.querySelector(".media-gate .media-frame:not(.is-media-settled)");
       const sweep = getComputedStyle(frame, "::before").backgroundImage;
       document.body.insertAdjacentHTML("beforeend", `<style>#sweep-probe{position:fixed;inset:0 auto auto 0;z-index:2147483647;width:1440px;height:600px;overflow:clip;background:#2b2c2b}#sweep-probe::before{position:absolute;inset:0 auto 0 0;width:400%;content:"";background-image:${sweep};transform:translateX(-37.5%)}</style><div id="sweep-probe"></div>`);
     });

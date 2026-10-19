@@ -1113,7 +1113,7 @@
       else target.classList.toggle("is-media-offscreen", !isIntersecting);
     }));
     state.container
-      .querySelectorAll(':has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, .is-media-settled)')
+      .querySelectorAll('.media-frame:not(.is-media-settled)')
       .forEach((frame) => observer.observe(frame));
     state.abort.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
   };
