@@ -3581,8 +3581,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 .detail-gallery__item figcaption {
-  /* Caption không nới figure: bề rộng theo ảnh, chữ dài xuống dòng. */
+  /* Caption không nới figure: bề rộng theo ảnh, chữ dài xuống dòng; ảnh rộng hơn track thì caption chỉ rộng bằng track. */
   contain: inline-size;
+  max-width: calc(100vw - 2 * var(--gutter));
   margin-top: 10px;
   color: var(--ink);
   font-size: 0.8rem;

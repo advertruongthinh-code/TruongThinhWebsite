@@ -135,6 +135,39 @@ const baselineGaps = (page) => page.evaluate(() => {
   return uneven;
 });
 
+
+// Chữ nối nửa cỡ của motto (.heritage-text--minor, page-home R7) không bị clip-path của mask cắt nét: ảnh chụp
+// vùng chữ khi có và không có clip-path phải giống nhau; thiếu chữ nối hoặc ảnh chụp không ổn định thì báo lỗi.
+const heritageMinorClip = async (page) => {
+  const words = page.locator(".heritage-text--minor");
+  const count = await words.count();
+  if (count !== 4) return `expected 4 minor words, found ${count}`;
+  const issues = [];
+  for (let index = 0; index < count; index += 1) {
+    const word = words.nth(index);
+    await word.scrollIntoViewIfNeeded();
+    // Cỡ chữ lớn của hàng quyết định độ nhô của dấu; chụp rộng theo cỡ đó.
+    const pad = await word.evaluate((node) => Number.parseFloat(getComputedStyle(node.closest(".heritage-row")).fontSize) * 0.6);
+    const box = await word.boundingBox();
+    const viewport = page.viewportSize();
+    const x = Math.max(0, box.x - pad);
+    const y = Math.max(0, box.y - pad);
+    const clip = { x, y, width: Math.min(viewport.width - x, box.width + pad * 2), height: Math.min(viewport.height - y, box.height + pad * 2) };
+    const shot = () => page.screenshot({ clip, animations: "disabled" });
+    const differs = async (first, second) => {
+      const [a, b] = await Promise.all([first, second].map((png) => sharp(png).raw().toBuffer()));
+      return a.some((value, at) => Math.abs(value - b[at]) > 24);
+    };
+    const before = await shot();
+    if (await differs(before, await shot())) { issues.push(`#${index} unstable`); continue; }
+    const unclip = await page.addStyleTag({ content: ".heritage-text, .heritage-text * { overflow: visible !important; clip-path: none !important; }" });
+    const after = await shot();
+    await unclip.evaluate((tag) => tag.remove());
+    if (await differs(before, after)) issues.push(`#${index} "${await word.innerText()}" clipped`);
+  }
+  return issues.join("; ");
+};
+
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const failures = [];
 // Đỉnh rail Advertising theo locale và bề rộng: trang có hàng chip và trang không có phải bằng nhau.
@@ -198,6 +231,25 @@ try {
       } finally {
         await context.close();
       }
+    }
+  }
+  // Chữ nối chỉ nhỏ từ 681px; dưới đó cùng cỡ, vẫn kiểm để mask không cắt ở phone.
+  for (const locale of ["vi", "en"]) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    const page = await context.newPage();
+    try {
+      for (const width of [390, 681, 768, 959, 1199, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(`${origin}/${locale}/`, { waitUntil: "load" });
+        await page.evaluate(() => document.fonts.ready);
+        // Chỉ giữ chữ: ảnh heritage ẩn để ảnh chụp không phụ thuộc ảnh.
+        await page.addStyleTag({ content: ".heritage-image { visibility: hidden !important; }" });
+        await page.waitForTimeout(500);
+        const issue = await heritageMinorClip(page);
+        if (issue) failures.push(`${locale} / heritage minor @${width}: ${issue}`);
+      }
+    } finally {
+      await context.close();
     }
   }
   for (const [key, tops] of railTops) {
