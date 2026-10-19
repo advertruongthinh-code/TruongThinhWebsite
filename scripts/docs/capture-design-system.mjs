@@ -12,7 +12,7 @@ const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=s
 const CLIP = '/__design_system__/clip.mp4';
 // Các card trong viewport đầu của grid có seed, để media của chúng tải xong; hiện 1 item, 3 item, 11 item và một video cover
 // cộng một ảnh (docs/specs/media-card.md).
-const MEDIA_CARDS = ['signage-raised-letters-24', 'led-displays-lightboxes-02', 'kiosk-posm-12', 'print-decals-08'];
+const MEDIA_CARDS = ['signage-raised-letters-10', 'kiosk-posm-26', 'signage-raised-letters-33', 'signage-raised-letters-17'];
 
 // Catalog live chỉ có card một ảnh, nên MediaCard lặp ảnh của chính mỗi card làm item phụ, như fixture e2e.
 function mediaCardArtifact() {
