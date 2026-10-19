@@ -613,6 +613,11 @@ async function readBackdropMorphState(page) {
   });
 }
 
+// Probe lấy mẫu 460ms kể từ lúc card được gắn. Đợi mẫu kết thúc thay vì mốc cố định sau navigation:
+// máy chậm gắn card muộn hơn mốc đó nên chưa có mẫu nào để so.
+const stuffingSettled = (page) => page.waitForFunction(() => window.__ttP13Stuffing.records
+  .some((record) => (record.frames.at(-1)?.elapsed ?? 0) >= 460));
+
 function assertStuffingRecord(records, label, expectedHead) {
   const moved = records.find((record) => {
     const first = record.frames[0];
@@ -1171,7 +1176,7 @@ try {
     stage("parent-prepaint");
     await installStuffingProbe(page, "[data-advertising-card]", "[data-project-grid]");
     await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(520);
+    await stuffingSettled(page);
     const parentRecords = await page.evaluate(() => window.__ttP13Stuffing.records);
     const parentStuffing = assertStuffingRecord(parentRecords, "parent stuffing", () => 0);
 
@@ -1217,7 +1222,7 @@ try {
     await installRelatedMediaProbe(relatedPage);
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
-    await relatedPage.waitForTimeout(750);
+    await stuffingSettled(relatedPage);
     const relatedState = await relatedPage.evaluate(() => ({
       records: window.__ttP13Stuffing.records,
       primary: document.querySelector("[data-advertising-photo-primary]").getBoundingClientRect().toJSON(),
@@ -1244,7 +1249,7 @@ try {
     // Framing tag vẫn được hỗ trợ làm deep link sau khi các chip của detail bị gỡ.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
-    await relatedPage.waitForTimeout(420);
+    await stuffingSettled(relatedPage);
     const tagState = await relatedPage.evaluate(() => ({
       records: window.__ttP13Stuffing.records,
       primary: document.querySelector("[data-advertising-photo-primary]").getBoundingClientRect().toJSON(),
