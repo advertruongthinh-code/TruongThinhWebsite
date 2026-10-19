@@ -1,8 +1,6 @@
 # Generated, vendor, cache, and runtime state.
 .git/**
 .tooling/**
-.serena/cache/**
-.serena/logs/**
 node_modules/**
 .wrangler/**
 .site-output/**
@@ -19,7 +17,6 @@ __pycache__/**
 # Local-only configuration.
 .claude/settings.local.json
 .impeccable/config.local.json
-.serena/project.local.yml
 CLAUDE.local.md
 
 # Binary media. Textual project content, PDF, and Office files remain indexed.

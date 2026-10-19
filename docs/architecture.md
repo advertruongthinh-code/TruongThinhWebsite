@@ -59,7 +59,7 @@ Nguồn: `package.json`, `pnpm-workspace.yaml`, `wrangler*.toml`, `.github/workf
 | CMS (dormant) | Cloudflare Worker, D1, R2, Access (`wrangler.toml`, `src/worker/`, `src/db/migrations/`) | Chưa activate, xem [CMS](specs/cms.md) |
 | Test | Playwright 1.64 (Chromium, Firefox, WebKit), `node --test`, contract script `.cjs` | [Bộ test CI](specs/ci-test-suites.md), [tests](../tests/README.md) |
 | CI/CD | GitHub Actions trên `ubuntu-latest`: `ci.yml`, `docs.yml`, `automerge.yml`, `deploy-demo.yml` | [Gate CI](specs/static-release.md#r10-gate-ci) |
-| Tooling agent | Graphify, Serena, ponytail, agent-skills | Pin trong `tooling-versions.json`, xem [TOOLING](operations/TOOLING.md) |
+| Tooling agent | Graphify, ponytail, agent-skills | Pin trong `tooling-versions.json`, xem [TOOLING](operations/TOOLING.md) |
 
 ## Route canonical
 

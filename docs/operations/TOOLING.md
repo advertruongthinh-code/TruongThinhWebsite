@@ -14,8 +14,8 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 
 | Scope | Nội dung đã cài (2026-10-17) |
 | --- | --- |
-| User global | Serena 2.0.0, Graphify 0.9.92, uv 0.13.1, Chrome DevTools MCP 1.11.0, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 56 direct skill và native persona |
-| Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.serena/project.yml`, `.graphifyignore`, Git hook, watcher và policy |
+| User global | Graphify 0.9.92, uv 0.13.1, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 56 direct skill và native persona |
+| Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.graphifyignore`, Git hook, watcher và policy |
 
 Năm plugin skill (agent-skills, caveman, ponytail, impeccable, i-have-adhd) cài
 từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill caveman
@@ -36,14 +36,12 @@ pin qua `pnpm dlx` theo [decision demo](../decisions/cloudflare-workers-static-d
 ~/.codex/AGENTS.md         rule global ADHD, Ponytail ultra, Caveman chỉ khi user gọi
 ~/.claude/CLAUDE.md        import @~/.codex/AGENTS.md
 ~/.claude/agents/*.md      bốn persona review, chép từ ~/.codex/agents/*.toml
-~/.claude.json             MCP user scope Claude: serena, graphify qua mcp.ps1
+~/.claude.json             MCP user scope Claude: graphify qua mcp.ps1
 ```
 
 Bootstrap gọi `local-setup.ps1` cho skill Claude. Persona Claude
-là bản chép tay; đổi persona Codex thì chép lại. Serena dùng
-`--project-from-cwd` với context của host: cloud `claude-code`
-(`cloud-setup.sh`); `global-mcp.ps1` (chép thành `mcp.ps1`) trên PC mặc định `codex`. Chrome DevTools MCP chưa
-đăng ký cho Claude Code vì app có browser riêng.
+là bản chép tay; đổi persona Codex thì chép lại. `global-mcp.ps1` (chép thành `mcp.ps1`)
+chạy Graphify MCP trên PC.
 
 ## Machine mới hoặc repair
 
@@ -55,7 +53,7 @@ pnpm tooling:bootstrap
 
 Bootstrap backup managed config, verify repository commit và package version,
 install global stack, project browser dependency, Graphify Git hook, Ponytail
-review gate, infer Serena language rồi chạy doctor. `-SkipBrowsers` chỉ khi
+review gate rồi chạy doctor. `-SkipBrowsers` chỉ khi
 browser engine đã verify. Backup ở `~/.codex/tooling/backups/`; receipt ở
 `.tooling/state/`.
 
@@ -99,8 +97,6 @@ Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua 
 | impeccable | Plugin: skill, 4 agent; engine 0.1.15 cache, CLI npm 4.6.0 |
 | i-have-adhd | Plugin: skill, tự gọi (script bỏ `disable-model-invocation`, giống override repo) |
 | graphify | `graphifyy[all]` 0.9.92, skill global, MCP `graphify` |
-| serena | `serena-agent` 2.0.0, MCP `--context claude-code --project-from-cwd --agent-interface tools` (giữ bộ tool cũ thay REPL mặc định) |
-| Chrome DevTools | MCP headless, Chromium `/usr/local/bin/chromium` (`--no-sandbox` cho root) |
 
 Pin trong script khớp `tooling-versions.json`; đổi pin thì sửa cả hai rồi dán
 lại script, cache tự build lại.
@@ -108,7 +104,7 @@ lại script, cache tự build lại.
 Không cài, có lý do:
 
 - Mọi lifecycle hook upstream (mode của caveman, ponytail, i-have-adhd; hook
-  Impeccable; `serena-hooks`; graphify `hook-guard`; agent-skills `sdd-cache`,
+  Impeccable; graphify `hook-guard`; agent-skills `sdd-cache`,
   `simplify-ignore`, `session-start`): rule global cấm.
 - `caveman enable`/`caveman claude`: đổi `ANTHROPIC_BASE_URL` sang proxy
   local, làm hỏng session cloud.
@@ -154,7 +150,7 @@ release, sửa `tooling-versions.json`, chạy bootstrap, commit pin cùng evide
 Dependabot (`.github/dependabot.yml`) chỉ mở PR cập nhật GitHub Actions hằng tuần; npm giữ pin tay.
 Sau khi đổi global config hoặc persona, start session mới để host nhận MCP.
 
-Watcher (Graphify, Serena language) là monitoring tùy chọn; xem
+Watcher Graphify là monitoring tùy chọn; xem
 [graphify](graphify.md) và [scripts map](agent-rule-scripts.md).
 
 ## Impeccable
@@ -170,14 +166,11 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 
 | MCP | Policy | Mục đích |
 | --- | --- | --- |
-| Serena | required | LSP symbol, reference, diagnostic, refactor |
 | Graphify | required | Architecture, relationship, project-content graph |
-| Chrome DevTools | optional, approval prompt | DOM, accessibility, console, network, screenshot |
 
-Serena và Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
-Serena bật lại language server Markdown (marksman) theo owner 2026-10-17, thay quyết định tắt
-2026-10-14; marksman ăn 1-3 GB RAM mỗi phiên trên PC, RAM căng thì tắt lại qua
-`scripts/tooling/serena-language-map.json`.
+Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
+Chrome DevTools MCP đã gỡ (owner 2026-10-19) để giảm token MCP; symbol dùng `rg`,
+QA browser dùng Playwright và CDP script.
 
 ## Stack AI và media
 

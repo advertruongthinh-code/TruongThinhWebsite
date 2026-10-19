@@ -21,8 +21,7 @@
       "label": "Tooling: Watch",
       "dependsOrder": "parallel",
       "dependsOn": [
-        "Graphify: Watch",
-        "Serena: Sync Languages (Watch)"
+        "Graphify: Watch"
       ],
       "problemMatcher": []
     },
@@ -31,16 +30,6 @@
       "type": "process",
       "command": "pwsh",
       "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\tooling\\watch-graphify.ps1"],
-      "options": { "cwd": "${workspaceFolder}" },
-      "isBackground": true,
-      "problemMatcher": [],
-      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
-    },
-    {
-      "label": "Serena: Sync Languages (Watch)",
-      "type": "process",
-      "command": "pwsh",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\tooling\\sync-serena-languages.ps1", "-Watch"],
       "options": { "cwd": "${workspaceFolder}" },
       "isBackground": true,
       "problemMatcher": [],

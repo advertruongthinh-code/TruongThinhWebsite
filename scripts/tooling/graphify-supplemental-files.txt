@@ -1,5 +1,4 @@
 # Graphify 0.9.37 nhận diện các file JSON này là code, nhưng AST extractor của nó tạo
 # zero node cho chúng. Semantic cache entry giữ nội dung project của chúng để vẫn query được.
 .vscode/tasks.json
-scripts/tooling/serena-language-map.json
 tooling-versions.json

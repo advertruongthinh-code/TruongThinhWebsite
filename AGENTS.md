@@ -61,7 +61,8 @@ Ponytail chạy theo ba mốc:
 2. Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit` review
    riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Cloud không có Git hook:
    agent tự chạy `ponytail-review` trên diff. Review, host agent hoặc hook lỗi thì fail
-   closed; không dùng `--no-verify` để bỏ qua gate.
+   closed; không dùng `--no-verify` để bỏ qua gate. Ngoại lệ tạm tới khi hạn mức tuần reset
+   (2026-10-24 08:00 Asia/Bangkok): [ponytail-review local](docs/operations/agent-rule-workflow-tools.md#automation).
    Phạm vi chỉ là over-engineering; correctness và security thuộc five-axis review.
 3. Shortcut có chủ đích (giới hạn đã biết) đánh dấu bằng comment `ponytail: <ceiling>, <upgrade path>`.
    `ponytail-audit` và `ponytail-debt` chỉ chạy khi owner gọi hoặc trong thread code review của
@@ -112,14 +113,14 @@ Ponytail chạy theo ba mốc:
 | --- | --- |
 | Copy, media, layout, UI | [Product và UI](docs/operations/agent-rule-product-ui.md) |
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
-| Codebase, skill, plugin, MCP, Graphify, Serena | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
+| Codebase, skill, plugin, MCP, Graphify | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
 | Tạo hoặc chấm media AI (ảnh, video, âm thanh) | [Tạo và chấm ảnh](docs/operations/agent-rule-ad-images.md) |
 | Giao thread, chọn model/effort | [Model và effort routing](docs/operations/agent-rule-model-routing.md) |
 
 ## Scripts map
 
-Automation sở hữu Graphify structural refresh và Serena startup sync. Không chạy lại
+Automation sở hữu Graphify structural refresh. Không chạy lại
 mechanics sau edit; chỉ dùng fallback trong [scripts map](docs/operations/agent-rule-scripts.md)
 khi tool báo lỗi hoặc blocked.
 

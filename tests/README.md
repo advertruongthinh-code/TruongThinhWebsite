@@ -148,7 +148,7 @@ version trong lockfile và `.tooling/browsers`. Smoke artifact ghi vào
 ## Release evidence
 
 Playwright là regression layer lặp lại được. UI change và website release còn
-cần Playwright live interaction và Chrome DevTools MCP cùng route theo
+cần Playwright live interaction và inspect cùng route theo
 [evidence rule](../docs/operations/agent-rule-evidence-qa-handoff.md). Computer
 Use chỉ dùng khi trigger AGENTS.md rule 5 khớp (cần Windows UI theo human path
 mà tool chuyên biệt không đủ). Ghi route, viewport, kết quả, console/network,
