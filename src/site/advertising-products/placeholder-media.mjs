@@ -1718,8 +1718,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Chữ nổi Inox sáng chân (ảnh 5)",
    "altEn": "Halo-lit stainless-steel letters (photo 5)",
    "source": "/assets/placeholder-media/signage-raised-letters-06-p5.webp",
-   "sha256": "8adeaf87a9e425ba35405137dbed6e26973f9fe8143fec511aeb5abb0f95f920",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-06-v2.webp; replace with real product media."
+   "sha256": "3f6ee9cffa87432a4da053be54832f842917d5f174ced02e4c06ebbd6e6cf6c4",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-37-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-26": [
@@ -2949,52 +2949,52 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-13-p2.webp",
    "sourceId": "placeholder:signage-raised-letters-13-p2",
-   "width": 960,
-   "height": 640,
+   "width": 1536,
+   "height": 1019,
    "altVi": "Mặt dựng Aluminium (ảnh 2)",
    "altEn": "Aluminium composite facades (photo 2)",
    "source": "/assets/placeholder-media/signage-raised-letters-13-p2.webp",
-   "sha256": "9ae30689f95b4cb9943a9932b1179f02576f7bd617e3c3aadb5e18172f3d1a3c",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-aluminium-composite-facades-v2.webp; replace with real product media."
+   "sha256": "649ec460c4503aa59fd2411d6ee66ef9cca84f4af0db70b8c033fec471fb34bb",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-imagegen-20261018.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-13-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-13-p3.webp",
    "sourceId": "placeholder:signage-raised-letters-13-p3",
-   "width": 960,
-   "height": 640,
+   "width": 1536,
+   "height": 1019,
    "altVi": "Mặt dựng Aluminium (ảnh 3)",
    "altEn": "Aluminium composite facades (photo 3)",
    "source": "/assets/placeholder-media/signage-raised-letters-13-p3.webp",
-   "sha256": "30b1cbae98a22c5a2c27e527ee709b23c056086d2aed9f0f23eb415bcbaa0361",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-aluminium-composite-facades-v2.webp; replace with real product media."
+   "sha256": "85ee73eaa2ce23b6d95e7f268eabd312adc8ed53d6b82bbcf9d96d7c1f4b7859",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-imagegen-20261018.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-13-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-13-p4.webp",
    "sourceId": "placeholder:signage-raised-letters-13-p4",
-   "width": 960,
-   "height": 640,
+   "width": 1536,
+   "height": 1019,
    "altVi": "Mặt dựng Aluminium (ảnh 4)",
    "altEn": "Aluminium composite facades (photo 4)",
    "source": "/assets/placeholder-media/signage-raised-letters-13-p4.webp",
-   "sha256": "32929fd21756b90f129ccb43d1841d0e2f044968d3acee8cbf49a2438084cd6c",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-aluminium-composite-facades-v2.webp; replace with real product media."
+   "sha256": "416a2837ba54e6fdf6117de0516f8d0d911db43f3a2ed2b6769961ca3eec8c6d",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-imagegen-20261018.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-13-p5",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-13-p5.webp",
    "sourceId": "placeholder:signage-raised-letters-13-p5",
-   "width": 960,
-   "height": 640,
+   "width": 1536,
+   "height": 1019,
    "altVi": "Mặt dựng Aluminium (ảnh 5)",
    "altEn": "Aluminium composite facades (photo 5)",
    "source": "/assets/placeholder-media/signage-raised-letters-13-p5.webp",
-   "sha256": "5ecbdff163ca799146f4bee6b4198fc6c19ff110484e20aa2cf60fd8e186e9a1",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-aluminium-composite-facades-v2.webp; replace with real product media."
+   "sha256": "36a8893b302ad766a15157e6031f8051b33299ae0051964b783f8f9068e169c4",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-30": [
@@ -4019,6 +4019,34 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-22-p5.webp",
    "sha256": "fc19c59859fcc5c8f83317469d9764317305c7087b12534da194595fb54ae285",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-22-imagegen-20261014.webp; replace with real product media."
+  }
+ ],
+ "mobile-retail-25": [
+  {
+   "id": "mobile-retail-25-p2",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-25-p2.webp",
+   "sourceId": "placeholder:mobile-retail-25-p2",
+   "width": 1087,
+   "height": 1447,
+   "altVi": "Quầy pop-up di động (ảnh 2)",
+   "altEn": "Mobile pop-up counters (photo 2)",
+   "source": "/assets/placeholder-media/mobile-retail-25-p2.webp",
+   "sha256": "67d4678744a66cc36a71203c24aa3eb4fb750f4ea253a8abe240af0869f231d4",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-25-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-25-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-25-p3.webp",
+   "sourceId": "placeholder:mobile-retail-25-p3",
+   "width": 1087,
+   "height": 1447,
+   "altVi": "Quầy pop-up di động (ảnh 3)",
+   "altEn": "Mobile pop-up counters (photo 3)",
+   "source": "/assets/placeholder-media/mobile-retail-25-p3.webp",
+   "sha256": "7c3abfca4577dda0a6097e3623d0678f064ffe8c6b95d6898e4f0cc1aa59cd15",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-25-imagegen-20261018.webp; replace with real product media."
   }
  ]
 };
