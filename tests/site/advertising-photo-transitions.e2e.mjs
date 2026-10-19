@@ -38,7 +38,8 @@ const provenance = {
   },
 };
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
-const { chromium } = await import("playwright");
+// PHOTO_TRANSITIONS_ENGINE=webkit|firefox chạy cả bộ trên engine khác; CI giữ Chromium.
+const engine = (await import("playwright"))[process.env.PHOTO_TRANSITIONS_ENGINE || "chromium"];
 const results = [];
 const A = "kiosk-posm-07";
 const B = "mobile-retail-04";
@@ -638,7 +639,7 @@ function assertStuffingRecord(records, label, expectedHead) {
   return { id: moved.id, first, middle, last };
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await engine.launch({ headless: true });
 try {
   if (p13BaselineOnly) await runP13Baseline(browser);
   await caseRun("m02b-grid-detail-no-clone-no-jump", { width: 1440, height: 900 }, async (page, stage) => {
@@ -1016,6 +1017,19 @@ try {
         await page.evaluate(frame);
         if (await page.evaluate((before) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - before) < 1, moved)) direction = -direction;
       }
+      // Related còn xếp chỗ sau khi primary sẵn sàng (card đi từ đầu cột, solver đầy đủ ở task sau); WebKit
+      // headless chậm nên test có thể đo giữa chừng. Chờ card đứng yên 5 frame liền rồi mới tính đích cuộn.
+      await link.evaluate((node) => new Promise((resolve) => {
+        let last = NaN;
+        let still = 0;
+        const tick = () => {
+          const top = node.getBoundingClientRect().top + window.TruongThinhMotion.getLogicalScroll();
+          still = Math.abs(top - last) < 0.5 && !node.parentElement.getAnimations({ subtree: true }).length ? still + 1 : 0;
+          last = top;
+          if (still >= 5 || !node.isConnected) resolve(); else requestAnimationFrame(tick);
+        };
+        tick();
+      }));
       // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
       await link.evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
         window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
@@ -1024,6 +1038,11 @@ try {
         const image = document.querySelector(`[data-advertising-related-card="${photoId}"] img`);
         return image?.complete && image.naturalWidth > 0;
       }, id);
+      // Runtime chỉ dời focus khi nó đang ở related (spec R7). Safari/WebKit không focus link khi click chuột,
+      // nên ghi lại lúc click (capture, trước handler runtime) focus có nằm trong related không.
+      await page.evaluate(() => addEventListener("click", () => {
+        window.__ttFocusInRelatedAtClick = Boolean(document.activeElement?.closest("[data-advertising-related-card]"));
+      }, { capture: true, once: true }));
       // Kích hoạt native giữ focus trên card được click, khác với element.click().
       if (scenario.input === "keyboard") {
         await link.focus();
@@ -1035,10 +1054,13 @@ try {
         clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
         staleCards: document.querySelectorAll(`[data-advertising-related-card="${photoId}"]`).length,
         focusInDetail: document.activeElement === document.querySelector("[data-advertising-photo-info]"),
+        focusInRelatedAtClick: window.__ttFocusInRelatedAtClick,
+        focusOnBody: document.activeElement === document.body,
       }), id);
       assert.equal(state.staleCards, 0, `${id}: selected photo remains in shuffled related grid`);
       assert.equal(state.clones, 0, "completed transition must remove its clone");
-      assert.equal(state.focusInDetail, true, "activation must hand focus to the new detail");
+      if (state.focusInRelatedAtClick) assert.equal(state.focusInDetail, true, "activation must hand focus to the new detail");
+      else assert.equal(state.focusOnBody, true, "activation without related focus must not move focus");
       evidence.push({ ...scenario, ...state });
     }
     return evidence;
@@ -1973,9 +1995,13 @@ try {
       const before = lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42);
       const y = cta.getBoundingClientRect().top + window.TruongThinhMotion.getLogicalScroll() - 160;
       window.TruongThinhMotion.setLogicalScroll(y);
-      await new Promise((resolve) => setTimeout(resolve, 90));
-      const tween = window.gsap.globalTimeline.getChildren(true, true, false)
+      // Đợi tween tick frame đầu thay vì mốc 90ms cố định: WebKit headless vẽ phần mềm chỉ ~8fps
+      // trên trang này (cả khi tắt backdrop-filter), frame đầu có thể tới sau 90ms.
+      const findTween = () => window.gsap.globalTimeline.getChildren(true, true, false)
         .find((item) => item.targets().some((node) => title.contains(node)));
+      const started = performance.now();
+      while (!(findTween()?.time() > 0) && performance.now() - started < 1000) await new Promise(requestAnimationFrame);
+      const tween = findTween();
       return { before, middle: lines.map((line) => new DOMMatrixReadOnly(getComputedStyle(line).transform).m42),
         count: lines.length, duration: tween?.duration(), ease: tween?.vars.ease, stagger: tween?.vars.stagger };
     });
@@ -2075,7 +2101,8 @@ try {
       focusVisible: node.matches(":focus-visible"),
       tabIndex: node.tabIndex,
     })), { active: true, focusVisible: true, tabIndex: 0 });
-    await page.waitForTimeout(300);
+    await page.evaluate(frame);
+    await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
     assert.equal(await expandControl.evaluate((node) => getComputedStyle(node.querySelector("span")).opacity), "1");
     await page.emulateMedia({ reducedMotion: "reduce" });
     const reducedMotion = await expandControl.evaluate((node) => ({

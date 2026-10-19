@@ -64,7 +64,7 @@ của website. Hạt nhiễu sinh lúc chạy nên preview không có.
 | Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (`power4.inOut`) |
 
 - Primary detail dùng bậc nhòe dựng sẵn (`glass-surface__step--baked`, owner 10/10): ảnh mới blur sẵn vào canvas `1/8` rồi phóng
-  8 lần, cùng blur cộng dồn và màu của năm bậc, trên nền màu skeleton, hiện theo crossfade của ảnh. Năm bậc
+  8 lần, cùng blur cộng dồn và màu của năm bậc, hiện theo crossfade của ảnh. Phủ trên skeleton thì bậc không có nền, gradient skeleton vẫn thấy qua Kính như card (owner 19/10); còn lại bậc có nền màu skeleton. Năm bậc
   `backdrop-filter` phủ cả hero rơi gate phone Android. Điện thoại chạy đúng như PC (owner 11/10).
 - Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không

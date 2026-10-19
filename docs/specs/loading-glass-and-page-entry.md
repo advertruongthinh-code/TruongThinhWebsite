@@ -96,6 +96,7 @@ thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không kh
   ẩn ảnh cũ). Ba bước như R2, trong `0.6s` (`CACHED_PRIMARY_REVEAL_MS`).
 - Quá `100ms`: gỡ lớp tạm, ẩn ảnh cũ, gắn skeleton của R1 (cùng hook và cách bốc assignment) phủ khung, trên ảnh và dưới
   nút ảnh; giải mã xong thì chạy ba bước như R2 nhưng theo nhịp `0.6s` như card (`CACHED_PRIMARY_REVEAL_MS`, owner 19/10), ảnh và nền vùng dư cùng hiện.
+  Bậc nhòe sẵn trên skeleton không có nền màu skeleton, nên gradient skeleton vẫn thấy qua Kính như card (owner 19/10).
 
 Xong thì gỡ lớp tạm, Kính, skeleton và bỏ `aria-busy`. Media video ở primary không có skeleton hay Kính. Morph sang
 viewer theo [detail R9](advertising-detail.md#r9-viewer).
