@@ -715,13 +715,10 @@ export function createSkeletonFlowRenderer(canvas, {
 // Một worker cho cả document; null khi trình duyệt không chạy được thì caller về renderer main thread.
 let flowWorker;
 let flowWorkerId = 0;
-const flowWorkerBackends = new Map();
+const flowWorkerReplies = new Map();
 export const skeletonFlowWorkerSupported = () => flowWorker !== null && typeof Worker === "function"
   && typeof OffscreenCanvas === "function" && "transferControlToOffscreen" in HTMLCanvasElement.prototype;
-
-// Renderer chạy trong worker, cùng API với createSkeletonFlowRenderer. Pha trên main thread tính theo thời gian chạy
-// để lưu khi release; chỉ lệch với worker khi một frame worker dài hơn 50ms.
-export function createSkeletonFlowWorkerRenderer(canvas, options) {
+const ensureFlowWorker = () => {
   if (!skeletonFlowWorkerSupported()) return null;
   if (!flowWorker) {
     try {
@@ -730,8 +727,30 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
       flowWorker = null;
       return null;
     }
-    flowWorker.onmessage = ({ data }) => flowWorkerBackends.get(data.id)?.(data.backend);
+    flowWorker.onmessage = ({ data }) => flowWorkerReplies.get(data.id)?.(data);
   }
+  return flowWorker;
+};
+
+// Ảnh tĩnh render trong worker: mở detail cần hơn chục ảnh, mỗi ảnh vài ms CPU trên main thread (R8).
+// Null khi không có worker; caller gọi skeletonFlowStill đồng bộ.
+export function requestSkeletonFlowStill(preset, phase) {
+  const worker = ensureFlowWorker();
+  if (!worker) return null;
+  const id = ++flowWorkerId;
+  return new Promise((resolve) => {
+    flowWorkerReplies.set(id, ({ still }) => {
+      flowWorkerReplies.delete(id);
+      resolve(still);
+    });
+    worker.postMessage({ id, type: "still", options: { preset, phase } });
+  });
+}
+
+// Renderer chạy trong worker, cùng API với createSkeletonFlowRenderer. Pha trên main thread tính theo thời gian chạy
+// để lưu khi release; chỉ lệch với worker khi một frame worker dài hơn 50ms.
+export function createSkeletonFlowWorkerRenderer(canvas, options) {
+  if (!ensureFlowWorker()) return null;
   const id = ++flowWorkerId;
   const offscreen = canvas.transferControlToOffscreen();
   flowWorker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
@@ -740,7 +759,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   let phase = options.initialPhase;
   let startedAt = null;
   let destroyed = false;
-  flowWorkerBackends.set(id, (value) => { canvas.dataset.advertisingFlowBackend = value; });
+  flowWorkerReplies.set(id, ({ backend }) => { canvas.dataset.advertisingFlowBackend = backend; });
   const send = (type) => !destroyed && flowWorker.postMessage({ id, type });
   const settlePhase = () => {
     if (startedAt === null) return;
@@ -766,7 +785,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
       stop();
       send("destroy");
       destroyed = true;
-      flowWorkerBackends.delete(id);
+      flowWorkerReplies.delete(id);
     },
     backend: "webgl",
     get phase() {

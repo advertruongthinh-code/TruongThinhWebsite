@@ -170,8 +170,9 @@ giải (R5). Khung chờ ảnh trong card trên điện thoại chạy cả lúc
 worker, giữ preset, màu, anchor, chiều chảy và tốc độ (owner 18/10, 19/10); ngoài điểm đó không hạ preset, noise hay số
 khung chạy để đạt gate. Gate mượt khung card khi vuốt nhanh trên A04s: khoảng giữa hai lần vẽ của mỗi renderer p95
 dưới `33ms` (đo 19/10: p50 `11-12ms`, p95 `18-24ms`, fps SurfaceFlinger `69-71`).
-Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
-assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
+Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU trong worker của R5 (main chỉ gán CSS;
+trước khi worker trả về, khung hiện màu nền của preset); không có worker thì render trên main tối đa `8ms` mỗi task,
+khung còn lại nhận assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
 rảnh còn lại (tối đa `8ms`, luôn ít nhất một khung mỗi lượt).
 

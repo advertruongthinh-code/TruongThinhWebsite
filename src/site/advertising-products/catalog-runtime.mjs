@@ -28,6 +28,7 @@ import {
   drawSkeletonFlowAssignment,
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
+  requestSkeletonFlowStill,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 
@@ -1805,11 +1806,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const { preset, anchorPermutation, direction, speedScale } = assignment;
     const phase = skeletonPhase(frame);
     // Remount dùng lại ảnh tĩnh đã vẽ lúc release; chỉ khi sang pha khác mới tốn một lần render CPU.
-    const cached = skeletonStillByKey.get(skeletonKey(frame));
-    const still = cached?.assignment === assignment && cached.phase === phase
-      ? cached.still
-      : skeletonFlowStill(preset, phase);
-    skeletonStillByKey.set(skeletonKey(frame), { assignment, phase, still });
+    const key = skeletonKey(frame);
+    let entry = skeletonStillByKey.get(key);
+    if (entry?.assignment !== assignment || entry.phase !== phase) {
+      const pending = requestSkeletonFlowStill(preset, phase);
+      entry = { assignment, phase, still: pending ? "" : skeletonFlowStill(preset, phase) };
+      skeletonStillByKey.set(key, entry);
+      // Worker trả ảnh sau vài ms; trong lúc đó khung hiện màu nền của preset.
+      pending?.then((still) => {
+        if (skeletonStillByKey.get(key) !== entry) return;
+        entry.still = still;
+        skeletonFrames().forEach((node) => {
+          if (skeletonKey(node) === key && skeletonAssignmentByFrame.get(node) === assignment) applySkeletonStill(node, still);
+        });
+      });
+    }
     canvas.className = "advertising-grid__cta-flow";
     canvas.dataset.advertisingFlowPreset = preset.id;
     canvas.dataset.advertisingFlowAnchorPermutation = anchorPermutation.join(",");
@@ -1818,7 +1829,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     canvas.dataset.advertisingFlowSpeedScale = speedScale.toFixed(3);
     canvas.dataset.advertisingFlowBackend = "none";
     canvas.style.backgroundColor = preset.colors[3];
-    canvas.style.backgroundImage = still;
     canvas.style.backgroundSize = "100% 100%";
     canvas.style.filter = preset.finish.soften ? `blur(${preset.finish.soften}px)` : "none";
     canvas.style.transform = `scale(${1 + preset.finish.soften / 200})`;
@@ -1826,10 +1836,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Canvas tràn ra ngoài surface 8% mỗi bên; surface hiện cùng ảnh tĩnh dưới canvas đang mờ dần.
     const surface = frame.querySelector(".advertising-grid__cta-surface");
     surface.style.backgroundColor = preset.colors[3];
-    surface.style.backgroundImage = still;
     surface.style.backgroundSize = "116% 116%";
     surface.style.backgroundPosition = "center";
+    applySkeletonStill(frame, entry.still, canvas);
     return canvas;
+  };
+  const applySkeletonStill = (frame, still, canvas = frame.querySelector("canvas")) => {
+    if (!still) return;
+    if (canvas) canvas.style.backgroundImage = still;
+    frame.querySelector(".advertising-grid__cta-surface").style.backgroundImage = still;
   };
   const createSkeletonFrame = () => {
     const frame = document.createElement("span");
