@@ -447,6 +447,14 @@ async function runP13Baseline(browserInstance) {
 async function installRelatedMediaProbe(page) {
   await page.addInitScript(() => {
     const probe = { records: [] };
+    // Fade WAAPI 0 sang 1 được ghi lúc gọi animate(): runner bận có thể không lấy được frame nào giữa fade 0.6s.
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (keyframes, options) {
+      const opacities = Array.isArray(keyframes) ? keyframes.map((frame) => frame.opacity).filter((value) => value !== undefined) : [];
+      if (this.closest?.("[data-advertising-related-card]") && opacities.length > 1
+        && Number(opacities[0]) <= 0.05 && Number(opacities.at(-1)) >= 0.99) (this.__ttOpacityFades ||= []).push(options?.duration ?? options);
+      return animate.call(this, keyframes, options);
+    };
     const sampling = new WeakSet();
     const capture = (image) => {
       const card = image.closest("[data-advertising-related-card]");
@@ -468,6 +476,7 @@ async function installRelatedMediaProbe(page) {
           fading: image.getAnimations().some((animation) => animation.playState === "running"
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
+        record.fades = image.__ttOpacityFades || [];
         if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
         else sampling.delete(image);
       };
@@ -488,7 +497,8 @@ function assertMediaFade(record, label) {
   const middle = record.frames.find(({ opacity }) => opacity > 0.05 && opacity < 0.95);
   const last = record.frames.at(-1);
   const travelled = (middle?.opacity > first.opacity && middle.opacity < 1)
-    || record.frames.some(({ opacity, fading }) => fading && opacity <= 0.05);
+    || record.frames.some(({ opacity, fading }) => fading && opacity <= 0.05)
+    || record.fades?.length > 0;
   assert(first.opacity <= 0.05 && travelled && last.opacity >= 0.99,
     `${label}: opacity did not travel 0 to 1 ${JSON.stringify({ first, middle, last })}`);
   assert(first.duration.split(",").includes("0.6s") && first.easing.split(",").includes("ease-out"),
