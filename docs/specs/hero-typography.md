@@ -124,7 +124,7 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN |
+| R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN; thêm ảnh có và không clip-path của chữ nối heritage ([page-home R7](page-home.md#r7-heritage-montage)) |
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
 
