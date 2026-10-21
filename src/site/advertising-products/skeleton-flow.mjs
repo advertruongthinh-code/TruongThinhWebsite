@@ -728,6 +728,12 @@ const ensureFlowWorker = () => {
       return null;
     }
     flowWorker.onmessage = ({ data }) => flowWorkerReplies.get(data.id)?.(data);
+    flowWorker.onerror = flowWorker.onmessageerror = () => {
+      flowWorker?.terminate?.();
+      flowWorker = null;
+      for (const reply of [...flowWorkerReplies.values()]) reply({ failed: true });
+      flowWorkerReplies.clear();
+    };
   }
   return flowWorker;
 };
@@ -739,11 +745,12 @@ export function requestSkeletonFlowStill(preset, phase) {
   if (!worker) return null;
   const id = ++flowWorkerId;
   return new Promise((resolve) => {
-    flowWorkerReplies.set(id, ({ still }) => {
+    flowWorkerReplies.set(id, ({ still, failed }) => {
       flowWorkerReplies.delete(id);
-      resolve(still);
+      resolve(failed || typeof still !== "string" ? skeletonFlowStill(preset, phase) : still);
     });
-    worker.postMessage({ id, type: "still", options: { preset, phase } });
+    try { worker.postMessage({ id, type: "still", options: { preset, phase } }); }
+    catch { worker.onerror(); }
   });
 }
 
@@ -760,7 +767,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   let startedAt = null;
   let destroyed = false;
   flowWorkerReplies.set(id, ({ backend }) => { canvas.dataset.advertisingFlowBackend = backend; });
-  const send = (type) => !destroyed && flowWorker.postMessage({ id, type });
+  const send = (type) => !destroyed && flowWorker?.postMessage({ id, type });
   const settlePhase = () => {
     if (startedAt === null) return;
     const now = performance.now();

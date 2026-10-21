@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-19
+updated: 2026-10-21
 ---
 
 # Skeleton cuối masonry Advertising
@@ -134,6 +134,8 @@ When cuộn qua batch, đổi filter và xoay máy nhiều lần
 Then batch chỉ dùng một context, tổng không lúc nào quá 12, không lỗi "too many active WebGL contexts" hay lose context hai lần
 ```
 
+Still đang chờ khi worker lỗi hoặc postMessage ném lỗi được render đồng bộ; renderer cũ cleanup an toàn.
+
 ### R6. CTA, Kính và footer trên batch
 
 CTA `section.detail-cta[data-advertising-grid-cta]` đặt tại `--advertising-cta-top` (đáy masonry cộng một khoảng
@@ -212,6 +214,8 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R8 | `advertising-continuation.e2e.mjs` (desktop 1569×912, cần Chrome có GPU); điện thoại chưa có test, đo bằng trace Chrome qua CDP ([debug Android](../operations/android-real-device-debugging.md)) |
 
 ## Gate còn mở
+
+- Worker không báo lỗi nhưng không trả lời: still chưa có timeout; pending request có thể treo.
 
 - R8 trên SM-A047F (18/10, 3 lượt vuốt xuống related): frame trên `33ms` 0 đến 0,5% (A05s cũ khoảng 9%), SurfaceFlinger
   p5 90,9fps, 0 long task trên `50ms`: PASS. Owner xem trên demo.
