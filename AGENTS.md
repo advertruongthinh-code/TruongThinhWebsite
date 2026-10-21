@@ -116,7 +116,8 @@ Ponytail chạy theo ba mốc:
 | Codebase, skill, plugin, MCP, Graphify | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
 | Tạo hoặc chấm media AI (ảnh, video, âm thanh) | [Tạo và chấm ảnh](docs/operations/agent-rule-ad-images.md) |
-| Giao thread, chọn model/effort | [Model và effort routing](docs/operations/agent-rule-model-routing.md) |
+| Giao thread, chọn model/effort Claude | [Claude routing](docs/operations/agent-rule-model-routing.md) |
+| Giao thread, chọn model/effort OpenAI, Codex | [OpenAI routing](docs/operations/agent-rule-openai-routing.md) |
 
 ## Scripts map
 
