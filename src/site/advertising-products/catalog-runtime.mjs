@@ -869,7 +869,7 @@ function trackStripSwipe(target, { accepts = () => true, start = () => {}, width
       if (horizontal) release(0, offset(dx));
       return;
     }
-    const elapsed = event.timeStamp - prevT;
+    const elapsed = horizontal === null ? 0 : event.timeStamp - prevT;
     const speed = elapsed > 0 ? Math.abs(event.clientX - prevX) / elapsed : Infinity;
     const step = dx < 0 ? 1 : -1;
     release(canStep(step) && (Math.abs(dx) > width() / 2 || speed >= 0.5) ? step : 0, offset(dx));

@@ -11,7 +11,7 @@ tests:
   - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-19
+updated: 2026-10-21
 ---
 
 # Card nhiều media
@@ -79,6 +79,8 @@ nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, ea
 ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), 0.9s power3.inOut); không frame nào lộ nền
 giữa hai media hay chớp. Bấm "<" thì ngược chiều; chấm, bộ đếm đổi ngay lúc bắt đầu trượt; reduced motion đổi ngay. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
 ([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
+
+Không có pointermove: dịch ngang từ 10px vẫn đổi media; tap và cuộn dọc không đổi.
 
 ```gherkin
 Given card 11 media ở /en/advertising-products/, viewport 1440px
