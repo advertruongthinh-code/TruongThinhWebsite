@@ -58,7 +58,8 @@ const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:vi|en)\/advertising-products\/p\/([
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 const advertisingPhotoId = (url) => {
   const id = url.pathname.match(ADVERTISING_CARD_PATH_PATTERN)?.[1];
-  return id ? decodeURIComponent(id) : url.searchParams.get("photo");
+  if (!id) return url.searchParams.get("photo");
+  try { return decodeURIComponent(id); } catch { return null; }
 };
 const skeletonNativeContexts = [];
 let skeletonDocumentParked = false;

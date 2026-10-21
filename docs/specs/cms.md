@@ -146,12 +146,12 @@ Then status 409 với lỗi "Category is in use." và category không bị xóa
 
 `POST /api/admin/media` (multipart): file tối đa 10 MB (`content-length` lớn hơn trả 413, file lớn hơn 400); `kind` là
 `logo`, khác đi là `image`. Chỉ nhận WebP đúng cấu trúc RIFF (một chunk VP8 hoặc VP8L; VP8X chỉ kèm ICCP, EXIF, XMP)
-khai `image/webp`, hoặc với `logo` là SVG UTF-8 khai `image/svg+xml`, tối đa 256 KB, qua `isSafeSvg()` (không script,
+khai `image/webp`, hoặc với `logo` là SVG UTF-8 khai `image/svg+xml`, tối đa 256 KB, qua `isSafeSvg()` (cho namespace SVG chuẩn, không script,
 `foreignObject`, `iframe`, `object`, `embed`, `image`, `use`, `a`, animation, `on*`, `style`, `href`, `url(`, URL
 `http`, `javascript:`, `data:`, `@import`, doctype, entity). Đạt thì ghi R2 `MEDIA` tại `media/<uuid>.webp|svg`, thêm dòng `media` `draft` với alt VI,
 EN (được trống), trả 201. `PUT /api/admin/media/<id>` đặt `status`, `approved_at`, `approved_by` theo `approved`, không
 kiểm id tồn tại. `GET`, `HEAD /media/<id>` chỉ phát media `published` đã duyệt, `Cache-Control: public, max-age=0,
-must-revalidate`, kèm ETag; còn lại 404, method khác 405. File tải lên chính là file public: không giữ gốc riêng,
+must-revalidate`, ETag; SVG thêm CSP `default-src 'none'; style-src 'unsafe-inline'; sandbox`, `nosniff`; còn lại 404/405. File tải lên chính là file public: không giữ gốc riêng,
 không sinh biến thể, không nhận AVIF, PNG, JPEG, video.
 
 ```gherkin
@@ -220,7 +220,7 @@ Admin dùng `admin.css` riêng, không thuộc Design System và không đưa to
 | R4 | phần public `tests/worker/worker-contract.cjs` (menu feed, catalog; cần Worker chạy) |
 | R5 | `pnpm qa:worker:security` (CI) |
 | R6 | chưa có test |
-| R7 | `pnpm qa:worker:security` (upload); phát `/media/` chưa có test |
+| R7 | `pnpm qa:worker:security` (upload, logo canonical, SVG GET/HEAD và CSP) |
 | R8 | chưa có test |
 | R9 | phần public `tests/worker/worker-contract.cjs` (category, 36 product; cần D1 thật) |
 

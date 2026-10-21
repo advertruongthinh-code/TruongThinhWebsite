@@ -41,7 +41,12 @@ for (const file of files) {
     if (fence) return;
     for (const [, raw] of line.replace(/`[^`]*`/g, '').matchAll(/\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
       if (/^(https?:|mailto:|tel:|data:)/.test(raw)) continue;
-      const [path, hash] = decodeURIComponent(raw).split('#');
+      let decoded;
+      try { decoded = decodeURIComponent(raw); } catch {
+        errors.push(`${file}:${i + 1}: malformed link ${raw}`);
+        continue;
+      }
+      const [path, hash] = decoded.split('#');
       const target = path ? join(dirname(file), path) : file;
       const where = `${file}:${i + 1}`;
       if (!existsSync(target)) {
