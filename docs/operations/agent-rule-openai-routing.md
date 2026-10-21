@@ -19,7 +19,13 @@ Nguồn chính thức, kiểm tra 2026-10-21:
 Giá Standard cho prompt không quá 272K input token, chưa cộng tool và phụ phí.
 Trên 272K, cả hai tăng 2 lần giá input/cache và 1.5 lần output cho toàn request.
 API price không quy đổi thành usage limit của gói Codex hoặc credit provider khác.
-Effort cao hơn không bảo đảm kết quả tốt hơn; chưa đo cost/task hay Pareto trong repo.
+Effort cao hơn không bảo đảm kết quả tốt hơn; chưa đo cost/task trong repo.
+
+Khảo sát [Artificial Analysis và LiveBench](../reference/openai-routing-benchmarks.md)
+là căn cứ cho bảng dưới: AA v4.3.2 so Index với cost/task theo effort; LiveBench 2.0
+release 20261014 so Category ở max. Pareto theo điểm AA hiển thị: Sol low, medium,
+high, xhigh, max và Astra max. Astra low tới xhigh không là mặc định vì Sol có mức
+điểm ít nhất bằng mà rẻ hơn trong bảng làm tròn; không coi đó là bằng chứng mọi task.
 
 Capability host mới quyết định route gọi được. Schema collaboration của phiên khảo sát
 quảng bá cả hai model với low, medium, high, xhigh, max, ultra; tài liệu model API chỉ
@@ -28,20 +34,21 @@ ultra hoặc tự ánh xạ ultra sang max. Re-check schema khi bắt đầu phi
 
 ## Bảng mặc định theo việc
 
-Đây là chính sách project, suy luận từ vai trò và giá chính thức; chưa phải benchmark
-trên repo. Ưu tiên tổng công sức tới kết quả được nghiệm thu, gồm retry và sửa lại.
+Đây là chính sách project suy luận từ hai benchmark; chưa phải benchmark trên repo.
+Chọn model theo Category LiveBench, effort theo AA; không suy điểm max sang effort thấp.
+Ưu tiên tổng công sức tới kết quả được nghiệm thu, gồm retry và sửa lại.
 Nếu một task thuộc nhiều dòng, dùng dòng có rủi ro cao nhất.
 
-| Việc | Model, effort mặc định | Khi nâng |
+| Việc | Model, effort mặc định | Căn cứ và khi nâng |
 | --- | --- | --- |
 | Relay, CI/PR status, search chỉ đọc, đổi status card | `gpt-6.1-sol`, low | medium khi phải đối chiếu nhiều nguồn |
 | Docs, STATE, Notion, memory; QA browser hoặc chạy runner có quy trình rõ | `gpt-6.1-sol`, medium | high khi có conflict evidence hoặc phải chẩn đoán |
-| interview-me, spec, plan cho scope nhỏ, rõ | `gpt-6.1-sol`, high | Astra high khi mơ hồ, nhiều module hoặc tradeoff kiến trúc |
+| interview-me, spec, plan cho scope nhỏ, rõ | `gpt-6.1-sol`, high | Reasoning gần bằng ở max; xhigh khi có tradeoff khó |
 | Motion/UI, design, bug có reproduction, sửa e2e có test đỏ rõ | `gpt-6.1-sol`, high | xhigh khi chẩn đoán qua nhiều file |
-| Research, phân tích log và số đo | `gpt-6.1-sol`, high | Astra high khi nguồn mâu thuẫn, nguyên nhân chưa rõ |
-| Perf/fps phone Android, debug nhiều module, kiến trúc hoặc plan phức tạp | `gpt-6-astra`, high | xhigh sau một vòng đo chưa giải quyết được nguyên nhân |
-| Security, migration khó rollback, wrap-up deep code-review | `gpt-6-astra`, xhigh | max khi có câu hỏi khó cụ thể còn mở sau xhigh |
-| Chấm ảnh | `gpt-6.1-sol`, high | Astra high nếu không thống nhất theo [gate ảnh](agent-rule-ad-images.md#chấm-điểm) |
+| Research, phân tích log và số đo | `gpt-6.1-sol`, high | Research/Data Analysis gần bằng ở max; xhigh khi nguồn mâu thuẫn |
+| Perf/fps Android, debug nhiều module, security, migration khó rollback, deep review | `gpt-6.1-sol`, xhigh | max khi còn câu hỏi khó; benchmark chưa đo trực tiếp các job này |
+| Long Agentic: nhiều bước phụ thuộc, yêu cầu thay đổi qua nhiều lượt | `gpt-6-astra`, max | LiveBench hơn Sol max 9.4 điểm; giá khoảng 5.92 lần, chỉ dùng khi đúng loại job |
+| Chấm ảnh | `gpt-6.1-sol`, high | Chưa có benchmark vision phù hợp; theo [gate ảnh](agent-rule-ad-images.md#chấm-điểm) |
 
 Không có benchmark vision theo effort trong khảo sát này. Chọn model không thay gate
 chấm ảnh, five-axis review hay test. Task kế tiếp quay về bảng mặc định.
@@ -49,14 +56,14 @@ chấm ảnh, five-axis review hay test. Task kế tiếp quay về bảng mặc
 ## Leo bậc và dừng
 
 - Cùng check đỏ hai lần sau sửa, hoặc owner chê: nâng một bậc phù hợp:
-  Sol low → medium → high → xhigh → Astra high → xhigh → max.
-  Đây là thứ tự thử của project, không phải xếp hạng Pareto đã đo.
-- Sol max và Astra low/medium vẫn được phép khi có evidence cùng loại task cho thấy
-  tổng chi phí tới nghiệm thu thấp hơn; ghi lý do, không tự nhận rẻ hơn theo tên effort.
+  Sol low → medium → high → xhigh → max → Astra max.
+  Đây là đường thử trên Pareto AA đã làm tròn, không bảo đảm task sau tốt hơn task trước.
+- Astra low/medium/high/xhigh chỉ dùng ngoại lệ khi evidence cùng loại task chứng minh
+  tổng công sức tới nghiệm thu tốt hơn route mặc định; ghi lý do và check xác nhận.
 - Không nâng vì thiếu credential, runner offline hay lỗi môi trường. Sau ba lần sửa
   thất bại, dừng và nêu giả định còn đáng ngờ theo rule project.
-- Chỉ dùng max cho vấn đề khó còn mở với check cụ thể để xác nhận; không đặt max
-  mặc định cho mọi task. Nếu route hết hạn mức hoặc không callable, báo blocker;
+- Chỉ dùng max cho Long Agentic hoặc vấn đề khó còn mở với check cụ thể để xác nhận;
+  không đặt max cho mọi task. Nếu route hết hạn mức hoặc không callable, báo blocker;
   không tự chuyển model ngoài allowlist hoặc đổi provider.
 
 ## Đặt route và kiểm chứng
