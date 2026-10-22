@@ -85,8 +85,8 @@
       // page-home R3: chọn slide hero đầu ngay trong head, trước CSS, rồi preload để ảnh tải song song với CSS như
       // một src có sẵn; script xáo sau .hero-slides chỉ chạy khi parse xong. URL khớp <picture> build sinh (media-delivery R2).
       (() => {
-        const slides = [["home-hero-tube-house-living", 1920], ["home-hero-office-reception-audit-a319-v2", 3072], ["home-hero-kitchen-dining", 1920],
-          ["home-hero-walnut-bedroom", 1920], ["home-hero-shopfront-signage", 1920], ["home-hero-lobby-wall-art", 1920]];
+        const slides = [["home-hero-tube-house-living", 1920], ["home-hero-office-reception-audit-a319-v3", 3072], ["home-hero-kitchen-dining", 1920],
+          ["home-hero-walnut-bedroom", 1920], ["home-hero-shopfront-signage-audit-a320-v3", 3072], ["home-hero-lobby-wall-art", 1920]];
         const first = Math.floor(Math.random() * slides.length);
         const [name, width] = slides[first];
         const path = `/assets/content/projects/${name}`;
@@ -348,7 +348,7 @@
             </figure>
             <figure class="hero-slide" data-slide="1">
               <img
-                data-src="/assets/content/projects/home-hero-office-reception-audit-a319-v2.webp"
+                data-src="/assets/content/projects/home-hero-office-reception-audit-a319-v3.webp"
                 width="3072"
                 height="2048"
                 alt=""
@@ -375,9 +375,9 @@
             </figure>
             <figure class="hero-slide" data-slide="4">
               <img
-                data-src="/assets/content/projects/home-hero-shopfront-signage.webp"
-                width="1920"
-                height="1280"
+                data-src="/assets/content/projects/home-hero-shopfront-signage-audit-a320-v3.webp"
+                width="3072"
+                height="2048"
                 alt=""
                 loading="eager"
               />
