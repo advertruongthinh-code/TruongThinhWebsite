@@ -5653,7 +5653,7 @@ async function runAdvertisingRapidFilterCheck() {
       rank: index,
       sourceOrder: Math.floor(index / categorySlugs.length),
       media: {
-        src: "/assets/content/projects/advertising-kiosk-posm-cover-v2-audit-a015-v2.webp",
+        src: "/assets/content/projects/advertising-kiosk-posm-cover-v2.webp",
         width: 1536,
         height: 1024,
         altVi: "Mẫu kiểm tra rapid-filter",
@@ -7523,7 +7523,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
       rank: index,
       sourceOrder: kiosk ? index : index - 3,
       media: {
-        src: "/assets/content/projects/advertising-kiosk-posm-cover-v2-audit-a015-v2.webp",
+        src: "/assets/content/projects/advertising-kiosk-posm-cover-v2.webp",
         width: 1536,
         height: 1024,
         altVi: primaryKiosk ? "Gian hàng triển lãm do Trường Thịnh thực hiện" : "Mẫu kiểm tra ảo hóa",
