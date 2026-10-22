@@ -18,7 +18,7 @@ const { chromium } = await import("playwright");
 function fixtureArtifact(count, videoCover) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === cardId);
-  assert(card && card.media.width === 1254 && card.media.height === 1254);
+  assert(card && card.media.width === 1263 && card.media.height === 1263);
   const image = {
     ...card.mediaItems[0], id: `${cardId}-r6-image-1`, kind: "image",
     src: `${fixturePrefix}poster.webp`, width: 640, height: 360,
@@ -274,8 +274,8 @@ for (const locale of ["vi", "en"]) {
   }
 }
 
-test("R6-R3 public legacy catalog keeps 254 image-only cards", () => {
-  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 254);
+test("R6-R3 public legacy catalog keeps 263 image-only cards", () => {
+  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 263);
   assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length === 1
     && card.mediaItems[0].kind === "image"));
 });
