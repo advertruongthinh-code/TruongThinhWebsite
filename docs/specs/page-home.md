@@ -73,8 +73,8 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 
 ### R3. Hero: slideshow và nút dừng
 
-Sáu ảnh nền trang trí (`aria-hidden`, `alt=""`), owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
-phòng ngủ óc chó, rồi hai hero Quảng cáo owner duyệt 2026-10-18: dãy mặt tiền bảng hiệu lúc chạng vạng, sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5). Thứ tự cả sáu slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. Năm ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+16 ảnh nền trang trí (`aria-hidden`, `alt=""`), gồm sáu ảnh ban đầu owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
+phòng ngủ óc chó, rồi hai hero Quảng cáo owner duyệt 2026-10-18: dãy mặt tiền bảng hiệu lúc chạng vạng, sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5). Bổ sung 10 ảnh A317 owner giữ 2026-10-23: bếp nhà phố, phòng khách căn hộ, hai góc phòng ngủ homestay, giặt phơi nhà phố, thiền căn hộ, đọc sách homestay, hai phòng chơi (trẻ em nhà phố và căn hộ), thư giãn homestay; giữ nguyên ảnh bếp căn hộ gốc. Ảnh bổ sung phóng lớn 2 lần từ PNG 1536×1024 thành 3072×2048 bằng Lanczos3; không crop hoặc tạo nội dung mới. Thứ tự cả 16 slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. 15 ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -85,8 +85,8 @@ trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
-When chờ slideshow đi hết sáu slide
-Then sáu slide, gồm ảnh đầu, theo thứ tự ngẫu nhiên mỗi lần tải; ảnh đầu là ảnh đã preload, chỉ tải một lần
+When chờ slideshow đi hết 16 slide
+Then 16 slide, gồm ảnh đầu, theo thứ tự ngẫu nhiên mỗi lần tải; ảnh đầu là ảnh đã preload, chỉ tải một lần
 And mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
 When bấm nút dừng chuyển động
 Then nút có aria-pressed="true", slide và marquee đứng yên

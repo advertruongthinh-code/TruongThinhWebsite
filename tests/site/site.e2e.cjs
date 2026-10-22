@@ -9363,8 +9363,8 @@ async function runHeroCarouselLifecycleCheck() {
 }
 
 async function runHeroCrossFadeContinuityChecks() {
-  // page-home R3: cả sáu slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide 3 làm ảnh đầu và preload;
-  // năm lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
+  // page-home R3: cả 16 slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide 3 làm ảnh đầu và preload;
+  // 15 lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
   for (const viewport of [
     { width: 1440, height: 900 },
     { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true },
@@ -9379,7 +9379,7 @@ async function runHeroCrossFadeContinuityChecks() {
           if (request.url().includes("/home-hero-walnut-bedroom")) firstImageRequests.push(request.url());
         });
         await page.addInitScript(() => {
-          const values = [0.5, 0.9, 0.8, 0.7, 0.6, 0.5];
+          const values = [0.2, ...Array.from({ length: 15 }, (_, index) => 0.99 - index * 0.05)];
           Math.random = () => values.shift() ?? 0.5;
         });
         await gotoRoute(page, "/vi/");
@@ -9398,7 +9398,7 @@ async function runHeroCrossFadeContinuityChecks() {
           };
         });
         assert(
-          state.order === "3,5,4,2,1,0" && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
+          state.order === "3,15,14,13,12,11,10,9,8,7,6,5,4,2,1,0" && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
             && state.preload?.split(", ").some((candidate) => candidate.startsWith(`${state.current} `)),
           `Home hero random first slide contract drifted: ${JSON.stringify(state)}`,
         );
@@ -10222,7 +10222,7 @@ async function runHomeMotionRegressionCheck() {
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
-      // Cả sáu slide xáo mỗi lần tải (page-home R3) nên so tập hợp.
+      // Cả 16 slide xáo mỗi lần tải (page-home R3) nên so tập hợp.
       assert(
         JSON.stringify([...contract.hero.sources].sort()) ===
           JSON.stringify([
@@ -10232,7 +10232,17 @@ async function runHomeMotionRegressionCheck() {
             "/assets/content/projects/home-hero-shopfront-signage-audit-a320-v3.webp",
             "/assets/content/projects/home-hero-tube-house-living.webp",
             "/assets/content/projects/home-hero-walnut-bedroom.webp",
-          ]),
+            "/assets/content/projects/home-hero-homestay-bedroom-window-audit-a317-v16.webp",
+            "/assets/content/projects/home-hero-tube-house-laundry-audit-a317-v15.webp",
+            "/assets/content/projects/home-hero-tube-house-kids-playroom-audit-a317-v12.webp",
+            "/assets/content/projects/home-hero-homestay-relaxation-audit-a317-v9.webp",
+            "/assets/content/projects/home-hero-homestay-reading-audit-a317-v6.webp",
+            "/assets/content/projects/home-hero-apartment-games-room-audit-a317-v8.webp",
+            "/assets/content/projects/home-hero-homestay-bedroom-audit-a317-v3.webp",
+            "/assets/content/projects/home-hero-apartment-meditation-audit-a317-v5.webp",
+            "/assets/content/projects/home-hero-apartment-living-audit-a317-v2.webp",
+            "/assets/content/projects/home-hero-tube-house-kitchen-audit-a317-v1-alt1.webp",
+          ].sort()),
         `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
       );
       assert(
