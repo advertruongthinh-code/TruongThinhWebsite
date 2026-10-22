@@ -217,7 +217,7 @@ test("rejects duplicate photo IDs, unknown tags, and missing authored metadata",
 
 test("canonical records retain identity, pixels, order, titles, tags, and verified media", () => {
   assert.equal(new Set(ADVERTISING_MEDIA_MANIFEST.map((record) => record.id)).size, ADVERTISING_MEDIA_MANIFEST.length);
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 254);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 263);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => (
     Number.isInteger(record.sourceOrder)
     && record.category
@@ -301,7 +301,7 @@ test("does not require or enforce a retired layoutSpan input", () => {
 
 test("drops legacy span and threshold inputs from the artifact without changing media identity", () => {
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 254);
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 263);
   assert.ok(ADVERTISING_MEDIA_MANIFEST.every((record) => !Object.hasOwn(record, "layoutSpan")));
 
   const base = buildAdvertisingArtifact();
