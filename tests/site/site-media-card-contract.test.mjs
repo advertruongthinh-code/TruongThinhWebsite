@@ -36,9 +36,9 @@ function videoItem(record) {
   };
 }
 
-test("canonical 254 image cards expose one stable cover item without changing legacy media", () => {
-  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 254);
-  assert.equal(ADVERTISING_CARDS.length, 254);
+test("canonical 263 image cards expose one stable cover item without changing legacy media", () => {
+  assert.equal(ADVERTISING_MEDIA_MANIFEST.length, 263);
+  assert.equal(ADVERTISING_CARDS.length, 263);
   for (const record of ADVERTISING_MEDIA_MANIFEST) {
     assert.equal(record.coverMediaId, record.id);
     assert.deepEqual(record.mediaItems, [imageItem(record)]);

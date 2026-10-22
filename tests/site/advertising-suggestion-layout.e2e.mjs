@@ -103,7 +103,9 @@ try {
   for (const locale of ["vi", "en"]) {
     await page.setViewportSize({ width: 1569, height: 912 });
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4);
+    // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
+    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
+      && document.querySelector("[data-advertising-related-card]:not([hidden])"));
     const split = await page.evaluate(readSuggestions);
     assert.equal(split.layout, "split", `${locale}: fixture must exercise split primary`);
     assert.equal(split.span, "3", `${locale}: desktop primary must span three columns`);
@@ -122,7 +124,9 @@ try {
     assert.deepEqual(stableIdentity(await page.evaluate(readSuggestions)), stableIdentity(split), `${locale}: split off changes slot geometry`);
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4);
+    // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
+    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
+      && document.querySelector("[data-advertising-related-card]:not([hidden])"));
     const secondDesktop = await page.evaluate(readSuggestions);
     assert.equal(secondDesktop.layout, "split", `${locale}: intrinsic ratio cannot change desktop mode`);
     assert.equal(secondDesktop.span, "3", `${locale}: second desktop primary must span three columns`);

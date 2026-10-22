@@ -10228,7 +10228,7 @@ async function runHomeMotionRegressionCheck() {
           JSON.stringify([
             "/assets/content/projects/home-hero-kitchen-dining.webp",
             "/assets/content/projects/home-hero-lobby-wall-art.webp",
-            "/assets/content/projects/home-hero-office-reception.webp",
+            "/assets/content/projects/home-hero-office-reception-audit-a319-v2.webp",
             "/assets/content/projects/home-hero-shopfront-signage.webp",
             "/assets/content/projects/home-hero-tube-house-living.webp",
             "/assets/content/projects/home-hero-walnut-bedroom.webp",
