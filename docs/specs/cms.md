@@ -11,7 +11,7 @@ tests:
   - tests/worker/worker-static-contract.cjs
   - tests/worker/advertising-detail-route.test.mjs
 notion: https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178
-updated: 2026-10-18
+updated: 2026-10-21
 ---
 
 # CMS Worker, admin và D1
