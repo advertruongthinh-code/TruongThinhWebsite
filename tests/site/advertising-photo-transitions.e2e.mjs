@@ -1070,6 +1070,10 @@ try {
       } else await link.click();
       await ready(page, id);
       await page.waitForTimeout(650);
+      // Bấm card related dựng lại related qua nhiều task (advertising-detail R1); runner bận có thể xong sau
+      // 650ms (đo được thêm 50 tới 460ms), nên chờ card cũ rời related rồi mới đếm. Quá 5s vẫn còn thì assert dưới đỏ.
+      await page.waitForFunction((photoId) => !document.querySelector(`[data-advertising-related-card="${photoId}"]`), id, { timeout: 5_000 })
+        .catch(() => {});
       const state = await page.evaluate((photoId) => ({
         clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
         staleCards: document.querySelectorAll(`[data-advertising-related-card="${photoId}"]`).length,
