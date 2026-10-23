@@ -11,6 +11,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
   không nút, không đoạn văn dài.
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
   `paper`. Header đổi tone theo nền qua `data-header-tone`.
+- Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Weight cân đối: tiêu đề 600, kicker 700 cỡ 1rem; riêng About ghép dòng 500
   với dòng 700 nghiêng. Tracking display `tracking-display`.
 
