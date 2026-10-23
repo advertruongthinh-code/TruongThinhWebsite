@@ -39,7 +39,8 @@ Git là nguồn chuẩn; không sửa trên trang. Sau mỗi PR đổi `design-s
 merge, agent chạy `node scripts/docs/stage-design-system.mjs` rồi publish thư
 mục `.tmp/design-system-publish` bằng công cụ Artifact (`root` là thư mục đó,
 `file_path` là `project/design-system.json`, `files` theo danh sách script in
-ra). Ảnh mới hoặc đã đổi phải upload trước và ghi id vào `design-system.json`.
+ra). Ảnh preview là file thường ở `preview-media/`, không upload; `components/bundle.js`
+rỗng nhưng bắt buộc, thiếu nó thì trang ép mọi preview thành tĩnh và không tải ảnh.
 
 ## Colors
 
@@ -168,8 +169,10 @@ Website là HTML tĩnh với CSS và runtime dùng chung, không có component A
 `Header` hay `Footer`. Mỗi mẫu có README và `preview.html` trong `components/`,
 không sửa tay preview:
 
-- `node scripts/docs/build-design-system.mjs` sinh preview, `bundle.css` và ảnh
-  từ HTML, CSS website và bản chụp trong `scripts/docs/captures/`.
+- `node scripts/docs/build-design-system.mjs` sinh preview, `bundle.css`,
+  `bundle.js` và ảnh `preview-media/` từ HTML, CSS website và bản chụp trong
+  `scripts/docs/captures/`. Design System không có tab Assets: ảnh nội dung
+  thuộc website (sau này là CMS).
 - `node scripts/docs/capture-design-system.mjs` (cần `pnpm dev`) chụp lại phần
   Advertising do JavaScript dựng lúc chạy.
 

@@ -154,8 +154,8 @@ nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như
    tải, thanh tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
    CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`,
    bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
-   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card rail công trình chèn từ dữ liệu như build), bundle
-   và ảnh `assets/Photos/`; `qa:docs` chạy chế độ `--check`, file sinh lệch
+   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card rail công trình chèn từ dữ liệu như build), `bundle.css`,
+   `bundle.js` rỗng và ảnh `preview-media/` (xóa ảnh thừa); `qa:docs` chạy chế độ `--check`, file sinh lệch
    source thì fail. Phần Advertising do JavaScript dựng được
    `scripts/docs/capture-design-system.mjs` chụp từ trang chạy thật vào
    `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
@@ -211,9 +211,10 @@ một artifact Design System duy nhất; URL ghi trong `design-system/README.md`
 Không sửa trực tiếp trên trang claude.ai; nếu có sửa, đưa ngược vào Git qua PR.
 CI không publish được (cần công cụ Artifact của Claude), nên đây là bước của
 agent trong cùng thread với PR. `scripts/docs/stage-design-system.mjs` dựng bảng
-file `project/` (ảnh preview trỏ upload `/_blob/<id>` ghi trong
-`design-system.json`, link ra ngoài `design-system/` trỏ GitHub); cover nằm ở
-`components/Cover/preview.html`.
+file `project/` (ảnh preview là file `preview-media/` chép nguyên byte, link ra ngoài
+`design-system/` trỏ GitHub); cover nằm ở `components/Cover/preview.html`.
+`components/bundle.js` rỗng nhưng bắt buộc: thiếu file này, trang ép preview thành
+tĩnh, không chạy script và không tải ảnh (verify 2026-10-23).
 
 ### R8. Lịch sử ra khỏi cây thư mục
 
