@@ -648,6 +648,44 @@
   text-decoration-skip-ink: none;
 }
 
+/* Máy có hover: gạch chân cụm và chip chạy vào từ trái, rút về phải, cùng timing với .desktop-nav a (taxonomy R3).
+   Điện thoại giữ text-decoration ở trên; reduced motion tắt transition bằng reset toàn cục của style.css. */
+@media (hover: hover) and (pointer: fine) {
+  .detail-index-hero .project-filter,
+  .detail-index-hero .rail-chip > span:first-child {
+    position: relative;
+  }
+
+  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"]),
+  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child {
+    text-decoration: none;
+  }
+
+  .detail-index-hero .project-filter::after,
+  .detail-index-hero .rail-chip > span:first-child::after {
+    position: absolute;
+    right: 0;
+    bottom: -4px;
+    left: 0;
+    height: 3px;
+    content: "";
+    transform: scaleX(0);
+    transform-origin: right center;
+    background: currentColor;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0, 1);
+  }
+
+  .detail-index-hero .rail-chip > span:first-child::after {
+    height: 2px;
+  }
+
+  .detail-index-hero .project-filter:is(:hover, :focus-visible, [aria-current="true"])::after,
+  .detail-index-hero .rail-chip:is(:hover, :focus-visible, [aria-current="true"]) > span:first-child::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
 /* Sàn chữ 12.5px của site (Espacio typography). */
 .detail-index-hero .rail-chip sup {
   font-size: 0.8125rem;

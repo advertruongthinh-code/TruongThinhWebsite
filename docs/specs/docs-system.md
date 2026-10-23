@@ -1,9 +1,9 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-18
+updated: 2026-10-23
 source:
-  - scripts/docs/**
+  - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
   - .github/workflows/docs.yml
 tests:
@@ -81,6 +81,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) |
 | ci-suites | `ci-test-suites.md` | bộ test CI theo phần website, chọn bộ theo file PR sửa (planned) |
+| design-system | `design-system.md` | `design-system/`, preview, `DESIGN.md`, publish claude.ai |
 
 Mỗi spec theo `docs/specs/_template.md` mới:
 
@@ -138,85 +139,10 @@ kể cả khi chỉ sửa mô tả PR; script đọc mô tả PR qua API lúc ch
 đọc bản mới. PR của Dependabot (chỉ nâng version action) bỏ qua sync. PR template có mục "Spec" để agent ghi spec đã cập
 nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như CI ([R10 static-release](static-release.md#r10-gate-ci)).
 
-### R5. Design System là nguồn chuẩn visual
+### R5-R7. Design System, Impeccable và publish
 
-1. `design-system/` có đúng cấu trúc thư mục `project/` của loại artifact
-   Design System trên claude.ai: `README.md`, `tokens.json`,
-   `components/<Tên>/README.md` và `preview.html`, `assets/`, các section
-   `*.md` khác (ví dụ `motion.md`, `content.md`), `design-system.json`.
-2. Giá trị token lấy đúng từ CSS đang chạy (`src/site/style.css`,
-   `detail.css`); không chế giá trị. Check design-drift so khối `:root` đầu
-   `style.css` với token cùng tên: thiếu token hoặc khác giá trị thì fail.
-   Biến motion không có family token, khai trong `tokens.json`
-   `meta.cssOnly` kèm lý do. Literal rải trong selector không thuộc check.
-3. Component bao phủ mọi pattern UI đang có: header, menu, footer, brand
-   lockup, CTA, hero, project grid card, media-card, masonry, skeleton, vòng
-   tải, thanh tải, primary, suggestion, viewer, carousel ngang, filter. Preview dùng chính
-   CSS website (`components/bundle.css` sinh từ `style.css`, `detail.css`,
-   bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
-   `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card rail công trình chèn từ dữ liệu như build), `bundle.css`,
-   `bundle.js` rỗng và ảnh `preview-media/` (xóa ảnh thừa); `qa:docs` chạy chế độ `--check`, file sinh lệch
-   source thì fail. Phần Advertising do JavaScript dựng được
-   `scripts/docs/capture-design-system.mjs` chụp từ trang chạy thật vào
-   `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
-   trong `src/site/` hay generator `scripts/site/`. Catalog public chưa có card nhiều media nên capture
-   MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
-   như test e2e; video chỉ giữ poster. Capture chụp ở viewport 1440px với px cố định, nên card mang
-   `width=1440` để claude.ai dựng ở khổ đó rồi thu nhỏ. Capture không tự chạy lại: sau khi catalog hoặc
-   copy Advertising đổi, chạy lại capture rồi build.
-4. Motion là section `motion.md` (format không có nhóm token motion).
-5. `README.md` dùng đúng các heading Impeccable đọc (Overview, Colors,
-   Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
-6. Design System chỉ mô tả Trường Thịnh: số đo là của website Trường Thịnh,
-   không có file hay bảng số đo của site tham khảo. Site tham khảo và các báo
-   cáo khảo sát cũ chỉ ghi ở section `Nguồn tham khảo` của `README.md` (owner
-   2026-10-04).
-7. Thiết kế owner đã duyệt nhưng website chưa chạy nằm ở section
-   `approved-designs.md` (Đã duyệt, chờ code): giá trị owner duyệt, link spec
-   planned và bản chạy thử (owner 2026-10-04). Component và `motion.md` chỉ
-   mô tả code đang chạy, có thêm một dòng trỏ tới mục chờ code. PR code chuyển
-   giá trị vào component và `motion.md` rồi xóa mục.
-
-```gherkin
-Given một biến mới hoặc giá trị đổi trong :root của style.css
-When CI chạy pnpm qa:docs
-Then check design-drift fail cho tới khi tokens.json có token cùng tên và giá trị
-```
-
-### R6. Impeccable tham chiếu Design System
-
-1. `scripts/docs/build-design-md.mjs` sinh `DESIGN.md` từ
-   `design-system/tokens.json` (frontmatter) và `design-system/README.md` (nội
-   dung, link đổi về gốc repo). Frontmatter phải đứng đầu file nên dòng ghi
-   GENERATED là comment YAML ngay sau `---`. Chế độ `--check` chạy trong
-   `qa:docs`.
-2. Cùng script sinh `.impeccable/design.json` (schemaVersion 2) chỉ với phần
-   frontmatter không chứa được: shadow. Specimen component và narrative bỏ vì
-   preview và README của `design-system/` đã giữ; `impeccable doctor` không báo
-   thiếu.
-3. Surface brief trong `.impeccable/surfaces/` chỉ giữ chiến lược riêng route,
-   link component thay vì chép mô tả. Brief của route không còn render (sáu URL
-   detail Advertising nay chỉ chuyển hướng) bị xóa.
-4. Impeccable vẫn là công cụ critique, audit, polish, `impeccable detect`.
-
-```gherkin
-Given owner sửa token trong design-system/tokens.json
-When chạy script sinh DESIGN.md
-Then frontmatter DESIGN.md đổi theo
-And impeccable context đọc được DESIGN.md mới không báo CONTEXT_STALE
-```
-
-### R7. Publish Design System lên claude.ai
-
-Sau khi PR đổi `design-system/` merge vào `main`, agent publish thư mục đó lên
-một artifact Design System duy nhất; URL ghi trong `design-system/README.md`.
-Không sửa trực tiếp trên trang claude.ai; nếu có sửa, đưa ngược vào Git qua PR.
-CI không publish được (cần công cụ Artifact của Claude), nên đây là bước của
-agent trong cùng thread với PR. `scripts/docs/stage-design-system.mjs` dựng bảng
-file `project/` (ảnh preview là file `preview-media/` chép nguyên byte, link ra ngoài
-`design-system/` trỏ GitHub); cover nằm ở `components/Cover/preview.html`.
-`components/bundle.js` rỗng nhưng bắt buộc: thiếu file này, trang ép preview thành
-tĩnh, không chạy script và không tải ảnh (verify 2026-10-23).
+Cấu trúc `design-system/`, preview component, `DESIGN.md` cho Impeccable và bước publish lên claude.ai thuộc
+[Design System và Impeccable](design-system.md).
 
 ### R8. Lịch sử ra khỏi cây thư mục
 
@@ -263,8 +189,7 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 | R1, R8 | `pnpm qa:docs` (links) và liệt kê thư mục |
 | R2, R4, R9 | `pnpm qa:docs` (ownership, sync, budget) |
 | R3 | Agent đối chiếu từng requirement với source và test khi review PR |
-| R5, R6 | `pnpm qa:docs` (design-drift, DESIGN.md `--check`); `impeccable context`, `impeccable doctor` |
-| R7 | Đọc lại artifact bằng công cụ Artifact sau publish |
+| R5-R7 | Xem [Design System và Impeccable](design-system.md#kiểm-tra) |
 | R10 | Owner xem board Notion |
 
 ## Quyết định owner khi duyệt

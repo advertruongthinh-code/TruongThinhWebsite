@@ -6061,6 +6061,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             });
             const activeFilter = element.querySelector('.project-filter[aria-current="true"]');
             const activeFilterStyles = getComputedStyle(activeFilter);
+            const activeFilterAfter = getComputedStyle(activeFilter, "::after");
             const header = document.querySelector("[data-site-header]");
             const styles = getComputedStyle(element);
             const heroRect = rect(element);
@@ -6110,7 +6111,10 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
                     )
                   : Math.abs(textRects[0].left - headingRect.left) <= 2 &&
                     Math.abs(textRects[1].right - headingRect.right) <= 2),
-              activeUnderlineVisible: activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
+              // Máy có hover: gạch chân là ::after chạy như nav (taxonomy R3); máy cảm ứng giữ text-decoration.
+              activeUnderlineVisible: matchMedia("(hover: hover) and (pointer: fine)").matches
+                ? activeFilterAfter.transform === "matrix(1, 0, 0, 1, 0, 0)" && activeFilterAfter.height === "3px"
+                : activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
               contentIsWithinHero: [contentRect, kickerRect, headingRect, filtersRect, scrollRect].every(
                 (rect) =>
                   rect.top >= heroRect.top - 1 &&

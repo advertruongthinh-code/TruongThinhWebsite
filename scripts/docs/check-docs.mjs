@@ -115,7 +115,7 @@ if (process.env.DOCS_BASE) {
   }
 }
 
-// Design drift (R5.2): mỗi custom property trong khối :root trên cùng của style.css có token cùng tên và cùng giá trị.
+// Design drift (design-system.md R1.2): mỗi custom property trong khối :root trên cùng của style.css có token cùng tên và cùng giá trị.
 const tokens = JSON.parse(readFileSync('design-system/tokens.json', 'utf8'));
 const tokenValues = new Map(Object.values(tokens).flatMap((family) => family?.tokens ?? [])
   .map((t) => [t.name, typeof t.value === 'string' ? t.value : Object.values(t.value)[0]]));
@@ -128,7 +128,7 @@ for (const [name, raw] of rootVars) {
   else if (tokenValues.get(name) !== value) errors.push(`design drift: --${name} is ${value} in CSS but the token says ${tokenValues.get(name)}`);
 }
 
-// File generated: preview, bundle.css và ảnh khớp source site (R5.3); DESIGN.md và sidecar khớp design-system/ (R6).
+// File generated: preview, bundle.css và ảnh khớp source site (design-system.md R3); DESIGN.md và sidecar khớp design-system/ (R4).
 for (const script of ['build-design-system.mjs', 'build-design-md.mjs']) {
   try {
     execFileSync(process.execPath, [`scripts/docs/${script}`, '--check'], { encoding: 'utf8', stdio: 'pipe' });
@@ -137,11 +137,12 @@ for (const script of ['build-design-system.mjs', 'build-design-md.mjs']) {
   }
 }
 
-// Markup Advertising đã capture (R5.3): mọi class trong preview vẫn còn trong source site (CSS, runtime, HTML, generator scripts/site), nếu không thì capture lại.
+// Markup Advertising đã capture (design-system.md R3): mọi class trong preview vẫn còn trong source site (CSS, runtime, HTML, generator scripts/site), nếu không thì capture lại.
 const siteText = git('ls-files', 'src/site', 'scripts/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
 for (const preview of git('ls-files', 'design-system/components/*/preview.html').split('\n').filter(Boolean)) {
   const classes = new Set([...readFileSync(preview, 'utf8').matchAll(/\sclass="([^"]*)"/g)].flatMap(([, list]) => list.split(/\s+/)).filter(Boolean));
-  const gone = [...classes].filter((name) => !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));
+  // Class swiper-* do vendor Swiper dựng lúc chạy (Gallery), không nằm trong source site.
+  const gone = [...classes].filter((name) => !name.startsWith('swiper-') && !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));
   if (gone.length) errors.push(`design-system: ${preview} uses classes no longer in src/site (${gone.join(', ')}); run node scripts/docs/capture-design-system.mjs then build-design-system.mjs`);
 }
 
