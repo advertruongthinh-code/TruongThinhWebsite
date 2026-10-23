@@ -1,4 +1,4 @@
-// Dựng design-system/components/bundle.css và preview component từ source site live (docs/specs/docs-system.md R5.3).
+// Dựng design-system/components/bundle.css và preview component từ source site live (docs/specs/design-system.md R3).
 // Cách dùng: node scripts/docs/build-design-system.mjs [--check]
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';

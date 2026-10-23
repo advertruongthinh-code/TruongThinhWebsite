@@ -1,4 +1,4 @@
-// Dựng DESIGN.md và sidecar .impeccable/design.json cho Impeccable từ design-system/ (docs/specs/docs-system.md R6).
+// Dựng DESIGN.md và sidecar .impeccable/design.json cho Impeccable từ design-system/ (docs/specs/design-system.md R4).
 // Cách dùng: node scripts/docs/build-design-md.mjs [--check]
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { posix } from 'node:path';

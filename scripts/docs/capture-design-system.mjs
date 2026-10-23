@@ -1,4 +1,4 @@
-// Chụp markup Advertising dựng lúc runtime vào scripts/docs/captures/ cho build-design-system.mjs (docs/specs/docs-system.md R5.3).
+// Chụp markup Advertising dựng lúc runtime vào scripts/docs/captures/ cho build-design-system.mjs (docs/specs/design-system.md R3).
 // Cách dùng: pnpm dev, rồi node scripts/docs/capture-design-system.mjs [baseUrl]; PLAYWRIGHT_EXECUTABLE_PATH ghi đè browser.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';

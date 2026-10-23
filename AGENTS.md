@@ -90,7 +90,7 @@ Ponytail chạy theo ba mốc:
   thì sửa doc sở hữu qua [docs index](docs/index.md); supersession theo
   [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
-  publish lại claude.ai, một lần mỗi đợt ([docs-system R7](docs/specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
+  publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
   PR code của một mục trong `design-system/approved-designs.md` chuyển giá trị
   vào component và `motion.md` rồi xóa mục. CI không kiểm được hai việc này.
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.

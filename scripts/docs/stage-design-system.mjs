@@ -1,4 +1,4 @@
-// Stage design-system/ thành file table Design System của claude.ai dưới .tmp/design-system-publish/project/ (docs/specs/docs-system.md R7).
+// Stage design-system/ thành file table Design System của claude.ai dưới .tmp/design-system-publish/project/ (docs/specs/design-system.md R5).
 // Ảnh preview publish thành file thường ở preview-media/; link rời design-system/ trỏ về GitHub.
 // Cách dùng: node scripts/docs/stage-design-system.mjs, rồi publish bằng Artifact tool như design-system/README.md hướng dẫn.
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
