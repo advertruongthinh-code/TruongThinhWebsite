@@ -28,7 +28,6 @@
     (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
   - Thread sở hữu: long task khi mở detail trên phone (gate 50ms, [số đo](specs/advertising-detail.md#gate-còn-mở)); ca Chromium flaky `m02b-grid-detail-no-clone-no-jump` của `advertising-photo-transitions` (P13 sửa ở PR #511);
     fault thật còn lại của `mobile-layout-parity` ở trang chủ (chữ 200%, `motion.js` vắng: khối closer "Giữ nghề" rộng hơn `line-mask` 1,3px).
-- Design System trên claude.ai dừng ở bản v98 (2026-10-19); các PR đổi `design-system/` sau đó chờ owner gõ `republish` ([R7](specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
 - Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest`; PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)), giữ lại bằng draft hoặc nhãn `hold`.
 
 ## Next action
