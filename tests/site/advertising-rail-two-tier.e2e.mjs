@@ -172,6 +172,12 @@ try {
     return chip.left >= 0 && chip.right <= innerWidth;
   });
   assert.ok(inView, "chip đang chọn nằm trong khung");
+  // Máy cảm ứng giữ text-decoration, không có gạch chân ::after chạy (taxonomy R3).
+  const phoneUnderline = await phone.evaluate(() => {
+    const cluster = document.querySelector('[data-advertising-filter="office-signs"]');
+    return { line: getComputedStyle(cluster).textDecorationLine, after: getComputedStyle(cluster, "::after").content };
+  });
+  assert.deepEqual(phoneUnderline, { line: "underline", after: "none" }, "điện thoại: cụm đang chọn gạch chân bằng text-decoration");
   await phone.close();
   console.log("advertising rail two-tier: ok");
 } finally {

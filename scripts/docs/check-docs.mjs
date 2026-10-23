@@ -138,13 +138,11 @@ for (const script of ['build-design-system.mjs', 'build-design-md.mjs']) {
 }
 
 // Markup Advertising đã capture (design-system.md R3): mọi class trong preview vẫn còn trong source site (CSS, runtime, HTML, generator scripts/site), nếu không thì capture lại.
-// Swiper (vendor site nạp lúc chạy) dựng class swiper-* cho Gallery.
-const SWIPER = ['node_modules/swiper/swiper.css', 'node_modules/swiper/modules/pagination.css', 'node_modules/swiper/shared/swiper-core.mjs'];
-const siteText = [...git('ls-files', 'src/site', 'scripts/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)), ...SWIPER]
-  .map((f) => readFileSync(f, 'utf8')).join('\n');
+const siteText = git('ls-files', 'src/site', 'scripts/site').split('\n').filter((f) => /\.(css|m?js|html)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
 for (const preview of git('ls-files', 'design-system/components/*/preview.html').split('\n').filter(Boolean)) {
   const classes = new Set([...readFileSync(preview, 'utf8').matchAll(/\sclass="([^"]*)"/g)].flatMap(([, list]) => list.split(/\s+/)).filter(Boolean));
-  const gone = [...classes].filter((name) => !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));
+  // Class swiper-* do vendor Swiper dựng lúc chạy (Gallery), không nằm trong source site.
+  const gone = [...classes].filter((name) => !name.startsWith('swiper-') && !new RegExp(`(^|[^\\w-])${name.replace(/[^\w-]/g, '\\$&')}($|[^\\w-])`).test(siteText));
   if (gone.length) errors.push(`design-system: ${preview} uses classes no longer in src/site (${gone.join(', ')}); run node scripts/docs/capture-design-system.mjs then build-design-system.mjs`);
 }
 

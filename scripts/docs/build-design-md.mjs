@@ -40,7 +40,9 @@ const slug = (heading) => heading.toLowerCase().replace(/[^\p{L}\p{N} -]/gu, '')
 // Do's and Don'ts toàn là quy tắc nên giữ nguyên (spec design-system R4.1).
 const HEADINGS = ['Overview', 'Colors', 'Typography', 'Layout', 'Elevation & Depth', 'Shapes', 'Components', "Do's and Don'ts"];
 const sections = HEADINGS.map((heading) => {
-  const text = readme.split(`\n## ${heading}\n`)[1].split(/\n## /)[0].trim();
+  const part = readme.split(`\n## ${heading}\n`)[1];
+  if (!part) throw new Error(`design-system/README.md missing ## ${heading}`);
+  const text = part.split(/\n## /)[0].trim();
   const blocks = text.split('\n\n');
   const kept = heading === "Do's and Don'ts" ? blocks : blocks.filter((block, i) => (i === 0 && !/^[|-]/.test(block)) || block.startsWith('**Quy tắc'));
   return `## ${heading}\n\n${rebase(kept.join('\n\n'))}\n\nChi tiết: [design-system/README.md](design-system/README.md#${slug(heading)}).`;
@@ -50,9 +52,11 @@ const body = [`# ${title}`, `Nguồn chuẩn là [design-system/](design-system/
 // Sidecar chỉ giữ thứ frontmatter không chứa được: shadow, biến motion của :root, breakpoint (Impeccable schemaVersion 2).
 const root = readFileSync('src/site/style.css', 'utf8').match(/:root\s*\{([^}]*)\}/)[1];
 const motion = Object.keys(tokens.meta.cssOnly).map((name) => ({
-  name, value: root.match(new RegExp(`--${name}:\\s*([^;]+);`))[1].trim(), purpose: 'Timing chi tiết: design-system/motion.md',
+  name, value: root.match(new RegExp(`(?<![\\w-])--${name}:\\s*([^;]+);`))[1].trim(), purpose: 'Timing chi tiết: design-system/motion.md',
 }));
-const breakpoints = readme.match(/\*\*Breakpoint hay dùng:\*\* ([^.]+?) px/)[1].split(', ').map((value) => ({ name: value, value: `${value.split('/')[0]}px` }));
+const breakpointLine = readme.match(/\*\*Breakpoint hay dùng:\*\* ([^.]+?) px/);
+if (!breakpointLine) throw new Error('design-system/README.md Layout missing "**Breakpoint hay dùng:** ... px"');
+const breakpoints = breakpointLine[1].split(', ').map((value) => ({ name: value, value: `${value.split('/')[0]}px` }));
 const sidecar = {
   schemaVersion: 2,
   title,
