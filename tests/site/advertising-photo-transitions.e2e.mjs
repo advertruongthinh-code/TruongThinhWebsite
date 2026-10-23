@@ -537,8 +537,14 @@ async function installStuffingProbe(page, selector, gridSelector) {
       probe.records.push(record);
       const started = performance.now();
       const sample = () => {
-        record.frames.push({ elapsed: performance.now() - started, ...read() });
-        if (performance.now() - started < 460 && node.isConnected) requestAnimationFrame(sample);
+        const elapsed = performance.now() - started;
+        record.frames.push({ elapsed, ...read() });
+        // Transition chỉ có start time ở frame vẽ đầu tiên sau khi tạo: main thread bận lúc mount related làm card
+        // trượt muộn hơn cửa sổ 460ms (issue #507), nên lấy mẫu tiếp tới khi transition transform xong.
+        const moving = node.getAnimations().some((animation) => animation.transitionProperty === "transform"
+          && animation.playState === "running");
+        if ((elapsed < 460 || (moving && elapsed < 3_000)) && node.isConnected) requestAnimationFrame(sample);
+        else record.done = true;
       };
       requestAnimationFrame(sample);
     };
@@ -627,10 +633,10 @@ async function readBackdropMorphState(page) {
   });
 }
 
-// Probe lấy mẫu 460ms kể từ lúc card được gắn. Đợi mẫu kết thúc thay vì mốc cố định sau navigation:
-// máy chậm gắn card muộn hơn mốc đó nên chưa có mẫu nào để so.
-const stuffingSettled = (page) => page.waitForFunction(() => window.__ttP13Stuffing.records
-  .some((record) => (record.frames.at(-1)?.elapsed ?? 0) >= 460));
+// Probe lấy mẫu ít nhất 460ms kể từ lúc card được gắn, tới khi card hết trượt. Đợi mẫu kết thúc thay vì mốc cố
+// định sau navigation: máy chậm gắn card muộn hơn mốc đó nên chưa có mẫu nào để so.
+const stuffingSettled = (page) => page.waitForFunction(() => window.__ttP13Stuffing.records.length
+  && window.__ttP13Stuffing.records.every((record) => record.done));
 
 function assertStuffingRecord(records, label, expectedHead) {
   const moved = records.find((record) => {
