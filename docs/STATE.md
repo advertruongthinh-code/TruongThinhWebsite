@@ -8,15 +8,15 @@
   trên `main` ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)); owner kiểm nhận giao diện trên đó.
 
 ## Việc đang làm
-- [Kiểm chứng bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): test hồi quy và PR; tail-packing chưa xác nhận.
-
+- [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt; PR ảnh đỏ ở P13 adv-viewer ([issue #507](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/507)).
+- [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): lỗi trên `main` đã merge; fix skeleton, swipe nằm trên nhánh thread `ap7oez`, `dxu1nj`; tail-packing chưa xác nhận.
 - PR đang mở xem [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls). Thay đổi đã merge tự lên demo,
   chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
 - Từ khóa SEO tạm dừng tới khi site đủ feature ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
 
 ## Blocker đã verify
-- Ngoại lệ owner đã duyệt: Design System chưa đồng bộ ảnh A321 mới; giữ asset hiện tại trong đợt này, chờ Claude audit/cập nhật khi có hạn mức.
+
 - Owner fact chưa xác nhận: năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Phát hành: LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)); các câu
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).
@@ -28,8 +28,8 @@
     (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
   - Thread sở hữu: long task khi mở detail trên phone (gate 50ms, [số đo](specs/advertising-detail.md#gate-còn-mở)); 2 ca Chromium flaky của `advertising-photo-transitions`;
     fault thật còn lại của `mobile-layout-parity` ở trang chủ (chữ 200%, `motion.js` vắng: khối closer "Giữ nghề" rộng hơn `line-mask` 1,3px).
-- Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
-- PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)); giữ PR lại bằng draft hoặc nhãn `hold`.
+- Design System trên claude.ai dừng ở bản v98 (2026-10-19); các PR đổi `design-system/` sau đó chờ owner gõ `republish` ([R7](specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
+- Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest`; PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)), giữ lại bằng draft hoặc nhãn `hold`.
 
 ## Next action
 

@@ -9538,7 +9538,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/home-hero-tube-house-living.webp",
+      asset: "**/home-hero-tube-house-living-audit-a321-v2.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9547,7 +9547,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/home-hero-tube-house-living.webp",
+      asset: "**/home-hero-tube-house-living-audit-a321-v2.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -10230,7 +10230,7 @@ async function runHomeMotionRegressionCheck() {
             "/assets/content/projects/home-hero-lobby-wall-art.webp",
             "/assets/content/projects/home-hero-office-reception-audit-a319-v3.webp",
             "/assets/content/projects/home-hero-shopfront-signage-audit-a320-v3.webp",
-            "/assets/content/projects/home-hero-tube-house-living.webp",
+            "/assets/content/projects/home-hero-tube-house-living-audit-a321-v2.webp",
             "/assets/content/projects/home-hero-walnut-bedroom.webp",
             "/assets/content/projects/home-hero-homestay-bedroom-window-audit-a317-v16.webp",
             "/assets/content/projects/home-hero-tube-house-laundry-audit-a317-v4.webp",
