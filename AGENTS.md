@@ -91,8 +91,7 @@ Ponytail chạy theo ba mốc:
   [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
   publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
-  PR code của một mục trong `design-system/approved-designs.md` chuyển giá trị
-  vào component và `motion.md` rồi xóa mục. CI không kiểm được hai việc này.
+  Thiết kế đã duyệt chưa code ghi trong spec sở hữu, không ghi vào `design-system/`. CI không kiểm được việc publish.
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
 - `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
 - PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.

@@ -257,7 +257,7 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 ## UI
 
 Rail theo component filter trong [Design System](../../design-system/README.md); hàng chip là thiết
-kế mới, qua Impeccable cho PC và điện thoại, owner duyệt, ghi ở `design-system/approved-designs.md` trước khi code.
+kế mới, qua Impeccable cho PC và điện thoại, owner duyệt, ghi trong spec này trước khi code.
 Không đổi typography hay layout ngoài rail.
 
 ## Kiểm tra

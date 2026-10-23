@@ -133,8 +133,6 @@ Tài liệu kèm theo:
   (hình dựng tỷ lệ, dạng màu, motion, state machine màu của mark).
 - [Content và media](design-system/content.md): giọng điệu, VI/EN, chuẩn file ảnh.
 - [Ảnh Advertising](design-system/advertising-images.md): hướng ảnh sáu nhóm Advertising.
-- [Đã duyệt, chờ code](design-system/approved-designs.md): thiết kế owner đã duyệt nhưng
-  website chưa chạy.
 
 `DESIGN.md` ở gốc repo được sinh từ README này và `tokens.json` cho
 Impeccable; sửa ở đây rồi chạy `node scripts/docs/build-design-md.mjs`.

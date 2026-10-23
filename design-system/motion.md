@@ -7,8 +7,7 @@ skeleton, viewer). Định dạng token không có family motion, nên mọi tim
 đây.
 
 Nguồn tham khảo của nhịp motion ghi ở [README](README.md#nguồn-tham-khảo).
-Motion owner đã duyệt nhưng chưa có code nằm ở
-[Đã duyệt, chờ code](approved-designs.md).
+Motion owner đã duyệt nhưng chưa có code nằm trong spec sở hữu phần đó.
 
 ## Nguyên tắc
 
