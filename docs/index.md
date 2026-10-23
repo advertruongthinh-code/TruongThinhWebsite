@@ -21,7 +21,7 @@ nằm trong mô tả PR; report cũ đọc bằng `git log -- <path>` và `git s
 | Brief ảnh khách hàng | [Hồ sơ 12 đối tác](reference/advertising-partners.md), [sản phẩm BEINCO, Betrimex, Dừa Cửu Long](reference/advertising-client-products.md), [tham khảo thị trường 13 họ sản phẩm](reference/advertising-market-references.md) (mỗi họ một file, chỉ nạp họ cần) |
 | Gate NOT PASS còn mở | Mục "Gate còn mở" của spec sở hữu |
 | Quyết định | [Decisions](decisions/index.md) |
-| Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [bộ test CI](specs/ci-test-suites.md), [Android thật](operations/android-real-device-debugging.md) |
+| Tool, agent, test | [AGENTS](../AGENTS.md), [TOOLING](operations/TOOLING.md), [tests](../tests/README.md), [bộ test CI](specs/ci-test-suites.md), [test không phụ thuộc nội dung](specs/content-independent-tests.md) (planned), [Android thật](operations/android-real-device-debugging.md) |
 | Tên gọi | [Tên gọi chuẩn](terminology.md) |
 | Giấy phép bên thứ ba | [Thông báo](third-party-notices.md) |
 | Nguồn ảnh, provenance | Máy owner, ngoài Git (`source-assets/` bị ignore) |
