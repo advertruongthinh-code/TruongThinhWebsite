@@ -86,7 +86,7 @@ And README dài tối đa 150 dòng
    runtime dựng nên lấy từ bản chụp trang thật.
 9. Kính giống khung ảnh chính trang chi tiết Advertising: ảnh đặt giữa khung, kính mờ phủ ảnh nền, có lớp hạt.
    Hạt do runtime vẽ ra blob URL nên preview phải có hạt thay thế nhìn tương đương, không để trống.
-10. Phần do JavaScript dựng (Advertising, dải chấm Gallery) được `scripts/docs/capture-design-system.mjs` chụp
+10. Phần do JavaScript dựng (Advertising, Kính, dải chấm Gallery) được `scripts/docs/capture-design-system.mjs` chụp
     từ trang chạy thật vào `scripts/docs/captures/`, viewport 1440px, seed cố định. Card chụp mang `width=1440`
     để claude.ai dựng ở khổ đó rồi thu nhỏ. `qa:docs` fail khi preview dùng class không còn trong `src/site/` hay
     `scripts/site/`. Capture không tự chạy; chạy lại khi bố cục hoặc copy đổi, rồi build. Catalog public chưa có
@@ -110,8 +110,9 @@ Then thấy ảnh giữa khung, kính mờ bao quanh và lớp hạt
 
 1. `scripts/docs/build-design-md.mjs` sinh `DESIGN.md` theo định dạng Impeccable: frontmatter YAML từ
    `design-system/tokens.json` (dòng GENERATED là comment YAML ngay sau `---`), rồi tám mục canonical. Mỗi mục
-   là đoạn quy tắc đầu của mục cùng tên trong `README.md` cộng một link tới mục đó; không chép bảng, danh sách
-   component hay section khác. Chế độ `--check` chạy trong `qa:docs`.
+   lấy đoạn mở đầu và các đoạn `**Quy tắc ...**` của mục cùng tên trong `README.md` cộng một link tới mục đó;
+   Do's and Don'ts giữ nguyên vì toàn là quy tắc. Không chép bảng hay danh sách khác. `--check` chạy trong
+   `qa:docs`.
 2. Cùng script sinh `.impeccable/design.json` (schemaVersion 2), chỉ phần frontmatter không chứa được:
    `extensions.shadows` (rỗng, site không dùng shadow), `extensions.motion` (biến motion trong `:root` của
    `style.css`, purpose trỏ `design-system/motion.md`), `extensions.breakpoints` (dòng breakpoint của mục Layout
@@ -124,7 +125,7 @@ Then thấy ảnh giữa khung, kính mờ bao quanh và lớp hạt
 Given owner sửa quy tắc hoặc token trong design-system/
 When chạy node scripts/docs/build-design-md.mjs
 Then DESIGN.md và .impeccable/design.json đổi theo
-And DESIGN.md không chứa đoạn nào của README ngoài đoạn quy tắc đầu mỗi mục
+And DESIGN.md chỉ chứa đoạn mở đầu, đoạn quy tắc và Do's and Don'ts của README
 And impeccable context đọc được không báo CONTEXT_STALE
 ```
 
@@ -175,12 +176,7 @@ And lastChange trên claude.ai khớp design-system/design-system.json sau PR gh
 
 ## Gate còn mở
 
-- R1.5: xóa `design-system/approved-designs.md` và năm chỗ nhắc tới nó (AGENTS.md, README, `motion.md`,
-  `docs-system.md`, `advertising-taxonomy.md`).
-- R2: README còn hướng dẫn publish, lệnh build, bảng số đo; 241 dòng.
-- R3.5, R3.6: link trong preview vẫn điều hướng; card Banner CTA và một card nền tối vỡ sau khi bấm.
-- R3.8: Gallery chưa có dải chấm. R3.9: Kính đang là mẫu phủ nửa ảnh, chưa có hạt.
-- R4.1, R4.2: `DESIGN.md` đang chép nguyên README (346 dòng); sidecar chưa có motion, breakpoint.
+- Owner kiểm mục Components và Overview trên claude.ai sau lần republish kế tiếp.
 
 ## Chú thích thuật ngữ
 
