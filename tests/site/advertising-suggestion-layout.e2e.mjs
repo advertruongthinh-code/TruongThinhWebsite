@@ -56,8 +56,21 @@ function readSuggestions() {
     links: [links.x, links.y, links.width, links.height].map(rounded),
     buttons,
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    // Input của geometry primary: lần lệch kế tiếp phải chỉ ra input nào đổi (issue #507).
+    inputs: {
+      scrollY,
+      innerHeight,
+      layoutHeight: document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height,
+      top: document.querySelector("[data-advertising-photo-view]")?.style.getPropertyValue("--advertising-photo-top"),
+      primaryHeight: document.querySelector("[data-advertising-photo-view]")?.style.getPropertyValue("--advertising-photo-primary-height"),
+    },
   };
 }
+
+const layoutInputs = (before, after) => JSON.stringify({
+  before: { info: before.info, ...before.inputs },
+  after: { info: after.info, ...after.inputs },
+});
 
 function stableIdentity(state) {
   return state.buttons.map(({ id, index, representative, rect }) => ({ id, index, representative, rect }));
@@ -118,10 +131,11 @@ try {
     await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, alternate);
     const toggled = await page.evaluate(readSuggestions);
-    assert.deepEqual(stableIdentity(toggled), stableIdentity(split), `${locale}: split toggle changes slot geometry`);
+    assert.deepEqual(stableIdentity(toggled), stableIdentity(split), `${locale}: split toggle changes slot geometry ${layoutInputs(split, toggled)}`);
     await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
-    assert.deepEqual(stableIdentity(await page.evaluate(readSuggestions)), stableIdentity(split), `${locale}: split off changes slot geometry`);
+    const off = await page.evaluate(readSuggestions);
+    assert.deepEqual(stableIdentity(off), stableIdentity(split), `${locale}: split off changes slot geometry ${layoutInputs(split, off)}`);
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
     // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.

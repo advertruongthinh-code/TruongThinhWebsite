@@ -477,7 +477,11 @@ async function installRelatedMediaProbe(page) {
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
         record.fades = image.__ttOpacityFades || [];
-        if (performance.now() - started < 3_000 && image.isConnected) requestAnimationFrame(sample);
+        // Card còn skeleton thì media chưa hiện: lấy mẫu tới khi fade xong, kể cả khi fixture giữ ảnh quá 3s.
+        if (card.querySelector("[data-advertising-loading-skeleton]")) record.pending = true;
+        const elapsed = performance.now() - started;
+        if ((elapsed < 3_000 || (record.pending && Number(style.opacity) < 0.99 && elapsed < 15_000))
+          && image.isConnected) requestAnimationFrame(sample);
         else sampling.delete(image);
       };
       requestAnimationFrame(sample);
@@ -1228,6 +1232,15 @@ try {
     stage("related-prepaint");
     const relatedContext = await browser.newContext({ viewport: { width: 1329, height: 912 }, locale: "vi-VN" });
     const relatedPage = await relatedContext.newPage();
+    // Ảnh related giải mã trước entry đầu của IntersectionObserver thì hiện ngay (loading-glass R3), không fade R2 mà
+    // bước này kiểm; runner bận đảo thứ tự hai sự kiện đó (issue #507). Giữ ảnh tới khi card mang skeleton.
+    const heldMedia = [];
+    let mediaReleased = false;
+    const mediaPattern = "**/assets/content/**";
+    await relatedPage.route(mediaPattern, (route) => {
+      if (mediaReleased || route.request().resourceType() !== "image" || route.request().url().includes(`/${A}-`)) return route.continue();
+      heldMedia.push(route);
+    });
     await installStuffingProbe(relatedPage, "[data-advertising-related-card]", "[data-advertising-photo-related-grid]");
     await installRelatedMediaProbe(relatedPage);
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
@@ -1245,8 +1258,14 @@ try {
     // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
     await relatedPage.locator(`[data-advertising-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
       window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
+    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] [data-advertising-loading-skeleton]`), initialMediaId);
+    mediaReleased = true;
+    await Promise.all(heldMedia.splice(0).map((route) => route.continue()));
+    await relatedPage.unroute(mediaPattern);
     await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img`)?.classList.contains("is-advertising-media-ready"), initialMediaId);
-    await relatedPage.waitForTimeout(650);
+    // Runner bận chưa xong fade sau một mốc cố định: chờ record đạt opacity cuối, hết hạn thì assert dưới báo record.
+    await relatedPage.waitForFunction((id) => window.__ttP13RelatedMedia.records.some((record) => record.id === id
+      && record.frames.at(-1)?.opacity >= 0.99), initialMediaId, { timeout: 5_000 }).catch(() => {});
     const initialMediaRecords = await relatedPage.evaluate(() => window.__ttP13RelatedMedia.records);
     const completedInitialMediaRecords = initialMediaRecords.filter((record) => (
       initialRelatedIds.has(record.id)

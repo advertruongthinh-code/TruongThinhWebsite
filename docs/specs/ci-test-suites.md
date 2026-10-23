@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-10-15
+updated: 2026-10-23
 ---
 
 # Bộ test CI chia theo phần website
@@ -110,8 +110,8 @@ runner rảnh (GitHub cấp tới khoảng 20 job cùng lúc cho gói Free).
 
 Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build
 `.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ
-không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview và
-`test-results/` của bộ đó.
+không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview,
+`test-results/` và `.tmp/` (report, screenshot của test e2e) của bộ đó.
 
 Push mới lên cùng PR hủy lượt CI đang chạy của PR đó; trên `main` lượt đang chạy không bị hủy để Deploy demo vẫn chạy khi merge dồn dập (lượt chờ mới nhất thay lượt chờ cũ hơn). PR nháp chỉ chạy bộ `fast` (khi R3 chọn ít nhất
 một bộ); đủ bộ chạy khi PR chuyển sang sẵn sàng (`ready_for_review`), để PR đang làm dở không chiếm runner (owner chọn
