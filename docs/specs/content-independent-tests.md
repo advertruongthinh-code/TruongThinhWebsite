@@ -84,8 +84,8 @@ Then golden trên fixture giữ nguyên và bất biến trên catalog thật xa
 
 E2E chọn card, tag, slide qua helper đọc dữ liệu đã build (ví dụ "tag ít ảnh nhất có ít nhất 2 ảnh", "card đầu của
 cụm"), không ghi id cụ thể. Kỳ vọng như số card liên quan tính từ cùng dữ liệu (số ảnh cùng tag trừ một, có trần).
-Ca cần đúng một nội dung để tái hiện lỗi cũ thì dùng fixture
-[CẦN LÀM RÕ: cho phép thêm chế độ build site với fixture không, vì sửa `scripts/site/` làm mọi bộ chạy].
+Ca cần đúng một nội dung để tái hiện lỗi cũ thì build site với fixture: build nhận đường dẫn fixture thay cho
+nội dung thật, chỉ dùng trong test, không vào bản deploy (owner đồng ý 2026-10-23).
 
 ### R5. Chặn tái phát
 
@@ -126,7 +126,6 @@ Không có; spec chỉ đổi test và tooling.
 ## Gate còn mở
 
 - Owner duyệt spec, rồi duyệt plan chia lát.
-- R4: owner chọn có cho phép build site với fixture không.
 - R2 mục 5: 17 ảnh hiện không có consumer trên trang public; owner chọn xóa hay đưa vào ngoại lệ trước khi bật luật.
 - Lỗi nhấp nháy P13 adv-viewer và `advertising-suggestion-layout`
   ([issue #507](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/507)) xử lý riêng, không thuộc spec này.
