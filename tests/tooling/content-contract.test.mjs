@@ -40,6 +40,24 @@ test("mỗi luật hỏng báo đúng file, ảnh và luật", async () => {
   }
 });
 
+test("hero: mảng slides khớp figure.hero-slide theo tên, độ rộng, thứ tự; data-slide liên tục", async () => {
+  const figure = (index, width = 40, active = "") => `<figure class="hero-slide${active}" data-slide="${index}">
+    <img data-src="${IMAGE}" width="${width}" height="30" alt="" /></figure>`;
+  const page = (slides, figures) => `<script>const slides = ${slides};</script><div class="hero-slides">${figures}</div>`;
+  const good = page('[["sample",40],["sample",40]]', figure(0, 40, " is-active") + figure(1));
+  assert.deepEqual(await checkSiteContent(await site(good)), []);
+  const cases = [
+    [page('[["sample",40]]', figure(0) + figure(1)), /mảng slides \[sample 40\] khác figure\.hero-slide \[sample 40, sample 40\]/],
+    [page('[["sample",40],["other",40]]', figure(0) + figure(1)), /khác figure\.hero-slide/],
+    [page('[["sample",40],["sample",40]]', figure(0) + figure(2)), /hero-slide thứ 1 có data-slide="2"/],
+  ];
+  for (const [html, expected] of cases) {
+    const errors = await checkSiteContent(await site(html));
+    assert.equal(errors.length, 1, `${expected}: ${errors.join(" | ")}`);
+    assert.match(errors[0], expected);
+  }
+});
+
 test("báo mọi lỗi, không dừng ở lỗi đầu", async () => {
   const html = VALID_IMG.replace(' data-en-alt="Living room"', "") + `<img src="/assets/content/projects/missing.webp" alt="" />`;
   assert.equal((await checkSiteContent(await site(html))).length, 2);

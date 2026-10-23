@@ -50,6 +50,23 @@ export async function checkSiteContent(siteRoot) {
         errors.push(`${at(file)}: ${src}: khai ${width}x${height}, pixel thật ${real.width}x${real.height}`);
       }
     }
+    // Hero slideshow (page-home R3, detail-pages R5): mảng `slides` của script head chọn ảnh đầu theo chỉ số,
+    // nên phải trùng tên, độ rộng và thứ tự với figure.hero-slide; data-slide liên tục từ 0.
+    const slidesArray = text.match(/const slides = (\[[\s\S]*?\]);/)?.[1];
+    if (slidesArray) {
+      const slides = [...slidesArray.matchAll(/\["([^"]+)",\s*(\d+)\]/g)].map(([, name, width]) => `${name} ${width}`);
+      const figures = [...text.matchAll(/<figure class="hero-slide(?:\s[^"]*)?" data-slide="(\d+)">\s*(<img\b[^>]*>)/g)];
+      figures.forEach(([, index], position) => {
+        if (Number(index) !== position) errors.push(`${at(file)}: hero-slide thứ ${position} có data-slide="${index}"`);
+      });
+      const markup = figures.map(([, , tag]) => {
+        const src = attribute(tag, "src") ?? attribute(tag, "data-src") ?? "";
+        return `${path.basename(src, ".webp")} ${attribute(tag, "width")}`;
+      });
+      if (slides.join("|") !== markup.join("|")) {
+        errors.push(`${at(file)}: mảng slides [${slides.join(", ")}] khác figure.hero-slide [${markup.join(", ")}]`);
+      }
+    }
   }
 
   const reelFile = path.join(siteRoot, "content/project-reel.json");
