@@ -301,7 +301,7 @@ test("R11 fills column four and keeps sparse photos on the shared shortest front
   const sparseTwo = compileAdvertisingRelatedLayout({ ...options,
     cards: ADVERTISING_CARDS.filter(({ id }) => ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-14"].includes(id)),
     tag: "product-kiosk-posm-product-02" });
-  const sparseOne = compileAdvertisingRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-10" });
+  const sparseOne = compileAdvertisingRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-03" });
   const full = compileAdvertisingRelatedLayout(options);
   assert.equal(sparseTwo.cards.length, 2);
   const [firstSparsePhoto, secondSparsePhoto] = sparseTwo.photoPlacements;
