@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-21
+- Updated: 2026-10-23
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -16,7 +16,7 @@
 - Từ khóa SEO tạm dừng tới khi site đủ feature ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
 
 ## Blocker đã verify
-
+- Ngoại lệ owner đã duyệt: Design System chưa đồng bộ ảnh A321 mới; giữ asset hiện tại trong đợt này, chờ Claude audit/cập nhật khi có hạn mức.
 - Owner fact chưa xác nhận: năm thành lập, bảo hành ([PRODUCT](../PRODUCT.md)).
 - Phát hành: LCP residential mobile hai mode ([gate](specs/static-release.md#gate-còn-mở)); các câu
   `[CẦN LÀM RÕ]` nằm ở mục "Gate còn mở" của spec sở hữu ([docs index](index.md)).

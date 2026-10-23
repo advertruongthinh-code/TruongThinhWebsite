@@ -156,7 +156,9 @@ nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như
    bỏ `@font-face` tự host vì preview trên claude.ai nạp font từ Google).
    `scripts/docs/build-design-system.mjs` sinh preview từ HTML website (card rail công trình chèn từ dữ liệu như build), bundle
    và ảnh `assets/Photos/`; `qa:docs` chạy chế độ `--check`, file sinh lệch
-   source thì fail. Phần Advertising do JavaScript dựng được
+   source thì fail. Ngoại lệ tạm thời phải được ghi trong
+   `design-system/sync-exceptions.json` kèm lý do owner duyệt; chỉ đúng path
+   được liệt kê mới được bỏ qua. Phần Advertising do JavaScript dựng được
    `scripts/docs/capture-design-system.mjs` chụp từ trang chạy thật vào
    `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
    trong `src/site/` hay generator `scripts/site/`. Catalog public chưa có card nhiều media nên capture

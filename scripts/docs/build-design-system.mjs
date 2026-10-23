@@ -5,6 +5,8 @@ import { basename, dirname, join } from 'node:path';
 import { renderProjectReel } from '../site/project-reel.mjs';
 
 const OUT = 'design-system';
+const syncExceptions = JSON.parse(readFileSync('design-system/sync-exceptions.json', 'utf8'));
+const syncExceptionPaths = new Set(syncExceptions.map((entry) => entry.path));
 const FONT = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">';
 // motion-fallback là trạng thái cuối không animation của site (motion.js); preview render đúng trạng thái đó.
 const boot = (extra) => `<script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready"${extra ? `, "${extra}"` : ''});</script>`;
@@ -135,7 +137,10 @@ for (const [path, text] of outputs) {
   writeFileSync(path, text);
 }
 for (const [path, source] of photos) {
-  if (check) { if (!existsSync(path) || !readFileSync(path).equals(readFileSync(source))) stale.push(path); continue; }
+  if (check) {
+    if (!syncExceptionPaths.has(path) && (!existsSync(path) || !readFileSync(path).equals(readFileSync(source)))) stale.push(path);
+    continue;
+  }
   mkdirSync(dirname(path), { recursive: true });
   copyFileSync(source, path);
 }
