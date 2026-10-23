@@ -156,8 +156,8 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
 
 test("M01d cards retain coordinate hash, order and no filler", () => {
   const order = ADVERTISING_CARDS.map((card) => card.id);
-  // Ảnh A025/A036/A037 owner duyệt có tỷ lệ mới; hash gồm kích thước media, thứ tự card giữ nguyên.
-  for (const [layoutViewportWidth, expectedHash] of [[390, "c3147b28"], [1440, "1b1dedbb"]]) {
+  // Ảnh A025/A036/A037/A127 owner duyệt có tỷ lệ mới; hash gồm kích thước media, thứ tự card giữ nguyên.
+  for (const [layoutViewportWidth, expectedHash] of [[390, "bccd07b4"], [1440, "1d7c6de8"]]) {
     const layout = compileAdvertisingProductLayout({
       cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
