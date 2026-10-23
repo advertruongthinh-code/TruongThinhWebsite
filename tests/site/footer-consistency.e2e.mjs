@@ -145,12 +145,12 @@ try {
     await page.close();
   }
   console.log(`Footer consistency: ${count} route/locale/viewport checks passed`);
-  // Màn đầu trang chủ: floating CTA hiện cùng nút dừng hero; hai nút không được chồng nhau.
-  // Nút dừng chỉ có khi không reduced motion.
+  // Màn đầu trang chủ, Nhà ở, Kinh doanh: floating CTA hiện cùng nút dừng hero; hai nút không được chồng nhau.
+  // Nút dừng chỉ có khi không reduced motion. Hai trang con dùng cùng CSS nên chỉ kiểm VI.
   for (const [width, height] of [[320, 568], [360, 800], [390, 844], [430, 932], [750, 912], [568, 320], [667, 375], [844, 390], [1024, 600], [1280, 632], [1440, 900]]) {
     const page = await browser.newPage({ viewport: { width, height } });
-    for (const locale of ["vi", "en"]) {
-      await page.goto(`${baseUrl}/${locale}/`, { waitUntil: "load" });
+    for (const path of ["vi/", "en/", "vi/residential/", "vi/commercial/"]) {
+      await page.goto(`${baseUrl}/${path}`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".floating-cta.show")
         && document.querySelector("[data-motion-toggle]:not([hidden])")?.getClientRects().length);
       // Chờ CTA trượt vào xong (transform 1s).
@@ -160,7 +160,7 @@ try {
         .map(r => [r.left, r.top, r.right, r.bottom]));
       const [c, t] = rects;
       assert.ok(!(c[0] < t[2] && t[0] < c[2] && c[1] < t[3] && t[1] < c[3]),
-        `floating CTA covers the hero motion toggle ${JSON.stringify({ width, height, locale, rects })}`);
+        `floating CTA covers the hero motion toggle ${JSON.stringify({ width, height, path, rects })}`);
     }
     await page.close();
   }
