@@ -67,6 +67,20 @@ function readSuggestions() {
   };
 }
 
+// Sau khi đổi tag, related dựng lại qua nhiều task; issue #507 có lần CI đọc lúc cả khối còn lệch 61px. Đọc lại mỗi
+// frame tới khi geometry đứng yên 5 frame liền rồi mới so; lệch thật vẫn đứng yên và assert vẫn đỏ.
+async function readSettled(page) {
+  await page.evaluate(`window.__ttReadSuggestions = ${readSuggestions}; window.__ttSettle = { last: "", still: 0 };`);
+  await page.waitForFunction(() => {
+    const state = JSON.stringify(window.__ttReadSuggestions());
+    const settle = window.__ttSettle;
+    settle.still = state === settle.last ? settle.still + 1 : 0;
+    settle.last = state;
+    return settle.still >= 5;
+  }, null, { polling: "raf", timeout: 5_000 });
+  return page.evaluate(readSuggestions);
+}
+
 const layoutInputs = (before, after) => JSON.stringify({
   before: { info: before.info, ...before.inputs },
   after: { info: after.info, ...after.inputs },
@@ -130,11 +144,11 @@ try {
     const alternate = split.buttons.find(({ pressed }) => pressed !== "true").id;
     await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, alternate);
-    const toggled = await page.evaluate(readSuggestions);
+    const toggled = await readSettled(page);
     assert.deepEqual(stableIdentity(toggled), stableIdentity(split), `${locale}: split toggle changes slot geometry ${layoutInputs(split, toggled)}`);
     await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
-    const off = await page.evaluate(readSuggestions);
+    const off = await readSettled(page);
     assert.deepEqual(stableIdentity(off), stableIdentity(split), `${locale}: split off changes slot geometry ${layoutInputs(split, off)}`);
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
