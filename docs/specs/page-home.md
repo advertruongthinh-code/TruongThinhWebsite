@@ -74,7 +74,7 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 ### R3. Hero: slideshow và nút dừng
 
 16 ảnh nền trang trí (`aria-hidden`, `alt=""`), gồm sáu ảnh ban đầu owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
-phòng ngủ óc chó, rồi hai hero Quảng cáo owner duyệt 2026-10-18: dãy mặt tiền bảng hiệu lúc chạng vạng, sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5). Bổ sung 10 ảnh A317 owner giữ 2026-10-23: bếp nhà phố, phòng khách căn hộ, hai góc phòng ngủ homestay, giặt phơi nhà phố, thiền căn hộ, đọc sách homestay, hai phòng chơi (trẻ em nhà phố và căn hộ), thư giãn homestay; giữ nguyên ảnh bếp căn hộ gốc. Ảnh bổ sung phóng lớn 2 lần từ PNG 1536×1024 thành 3072×2048 bằng Lanczos3; không crop hoặc tạo nội dung mới. Thứ tự cả 16 slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. 15 ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+phòng ngủ óc chó, rồi hai hero Quảng cáo owner duyệt 2026-10-18: dãy mặt tiền bảng hiệu lúc chạng vạng, sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5). Bổ sung 10 ảnh A317 owner giữ 2026-10-23: bếp nhà phố, phòng khách căn hộ, hai góc phòng ngủ homestay, giặt phơi nhà phố (A317-v4), thiền căn hộ, đọc sách homestay, hai phòng chơi (trẻ em nhà phố và căn hộ), thư giãn homestay; giữ nguyên ảnh bếp căn hộ gốc. Ảnh bổ sung phóng lớn 2 lần từ PNG 1536×1024 thành 3072×2048 bằng Lanczos3; không crop hoặc tạo nội dung mới. Thứ tự cả 16 slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. 15 ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -144,7 +144,7 @@ Then ảnh không còn transform hay transition
 
 ### R7. Heritage montage
 
-Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa. Từ 681px chữ
+Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa. Ảnh sáng tạo dùng A380-v4: người thiết kế phác thảo tủ trưng bày mỹ phẩm lấy cảm hứng từ lá cọ cạnh bảng vật liệu. Từ 681px chữ
 nối (và, là, trong, từng; EN and, are, to, every) còn nửa cỡ (`.heritage-text--minor`) và cách ảnh bằng
 margin ảnh như từ khóa; tới 680px mọi chữ cùng cỡ. Từ 981px hàng trái và phải lệch ra mép gutter. Khi vào
 viewport, chữ trong mask trượt lên, từ thứ hai của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Hàng dài hơn
@@ -231,7 +231,7 @@ Reduced motion: chỉ slide đầu (slide khác `display: none`), không zoom, w
 trạng thái cuối), nút dừng `hidden`, scroll cue tĩnh, marquee và hover zoom tắt. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): slide active và mọi target
 reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; không slide nào nhận `src`,
-`.hero-slides` hiện nền cố định `home-hero-tube-house-living.webp` qua `@media (scripting: none)`.
+`.hero-slides` hiện nền cố định `home-hero-tube-house-living-audit-a321-v2.webp` qua `@media (scripting: none)`.
 
 ```gherkin
 Given trình duyệt bật reduced motion
