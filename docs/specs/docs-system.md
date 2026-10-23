@@ -161,7 +161,9 @@ nhật hoặc lý do không đổi. `docs.yml` chạy trên `ubuntu-latest` như
    `scripts/docs/captures/`; `qa:docs` fail khi preview dùng class không còn
    trong `src/site/` hay generator `scripts/site/`. Catalog public chưa có card nhiều media nên capture
    MediaCard thay catalog bằng dữ liệu giả qua `window.__TT_ADVERTISING_ARTIFACT__`
-   như test e2e; video chỉ giữ poster.
+   như test e2e; video chỉ giữ poster. Capture chụp ở viewport 1440px với px cố định, nên card mang
+   `width=1440` để claude.ai dựng ở khổ đó rồi thu nhỏ. Capture không tự chạy lại: sau khi catalog hoặc
+   copy Advertising đổi, chạy lại capture rồi build.
 4. Motion là section `motion.md` (format không có nhóm token motion).
 5. `README.md` dùng đúng các heading Impeccable đọc (Overview, Colors,
    Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts).
