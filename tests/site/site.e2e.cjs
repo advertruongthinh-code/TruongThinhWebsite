@@ -7827,9 +7827,10 @@ async function runResidentialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              hero.slideCount === 1 &&
-              hero.mediaCount === 1 &&
-              hero.motionToggleCount === 0 &&
+              // Slideshow như trang chủ (detail-pages R5): số slide theo nội dung, không zoom vào trang riêng.
+              hero.slideCount > 1 &&
+              hero.mediaCount === 0 &&
+              hero.motionToggleCount === 1 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: residential hero copy or reading order drifted`,
           );
@@ -8000,9 +8001,10 @@ async function runCommercialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              hero.slideCount === 1 &&
-              hero.mediaCount === 1 &&
-              hero.motionToggleCount === 0 &&
+              // Slideshow như trang chủ (detail-pages R5): số slide theo nội dung, không zoom vào trang riêng.
+              hero.slideCount > 1 &&
+              hero.mediaCount === 0 &&
+              hero.motionToggleCount === 1 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: commercial hero copy or reading order drifted`,
           );
@@ -8263,16 +8265,6 @@ async function runDetailHeroEntryChecks() {
       route: "/vi/about/",
       selector: "[data-motion-hero-media]",
       label: "about hero media",
-    },
-    {
-      route: "/vi/residential/",
-      selector: "[data-motion-hero-media]",
-      label: "residential hero media",
-    },
-    {
-      route: "/vi/commercial/",
-      selector: "[data-motion-hero-media]",
-      label: "commercial hero media",
     },
   ]) {
     await runPageCase(
@@ -9303,7 +9295,7 @@ async function runHeroCarouselLifecycleCheck() {
   const viewport = { width: 1440, height: 900 };
   for (const route of ["/vi/residential/", "/vi/commercial/"]) {
     await runPageCase(
-      `service hero is a single finite entrance ${route}`,
+      `service hero runs the home slideshow ${route}`,
       { route, viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
@@ -9315,28 +9307,14 @@ async function runHeroCarouselLifecycleCheck() {
           motionToggleCount: hero.querySelectorAll("[data-motion-toggle]").length,
           scrollCueCount: hero.querySelectorAll("[data-scroll-cue]").length,
         }));
+        // detail-pages R5: cùng slideshow và nút dừng như trang chủ, không còn zoom vào trang 1.2 riêng.
         assert(
-          state.slideCount === 1 &&
-            state.mediaCount === 1 &&
+          state.slideCount > 1 &&
+            state.mediaCount === 0 &&
             state.labelCount === 0 &&
-            state.motionToggleCount === 0 &&
+            state.motionToggleCount === 1 &&
             state.scrollCueCount === 1,
-          `Service hero still exposes slideshow UI: ${JSON.stringify(state)}`,
-        );
-        // Zoom vào trang chạy một lần rồi đứng ở scale 1.005, không lặp như slideshow trang chủ.
-        await page.waitForTimeout(2_800);
-        const scales = [];
-        for (let sample = 0; sample < 3; sample += 1) {
-          scales.push(
-            await page
-              .locator(".hero-slide img")
-              .evaluate((media) => new DOMMatrixReadOnly(getComputedStyle(media).transform).a),
-          );
-          await page.waitForTimeout(400);
-        }
-        assert(
-          scales.every((value) => Math.abs(value - 1.005) < 0.001),
-          `Service hero image did not settle at 1.005: ${JSON.stringify(scales)}`,
+          `Service hero lost the home slideshow UI: ${JSON.stringify(state)}`,
         );
         assertDiagnostics(diagnostics);
       },
@@ -9363,26 +9341,26 @@ async function runHeroCarouselLifecycleCheck() {
 }
 
 async function runHeroCrossFadeContinuityChecks() {
-  // page-home R3: cả 16 slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide 3 làm ảnh đầu và preload;
-  // 15 lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
-  for (const viewport of [
-    { width: 1440, height: 900 },
-    { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true },
+  // page-home R3, detail-pages R5: mọi slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide floor(0,2n) làm
+  // ảnh đầu và preload; các lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
+  for (const [route, viewport] of [
+    ["/vi/", { width: 1440, height: 900 }],
+    ["/vi/", { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true }],
+    ["/vi/residential/", { width: 1440, height: 900 }],
+    ["/vi/commercial/", { width: 1440, height: 900 }],
   ]) {
     await runPageCase(
-      `home hero randomizes the first slide per load ${viewport.width}`,
-      { route: "/vi/", viewport: { width: viewport.width, height: viewport.height }, ...viewport },
+      `hero randomizes the first slide per load ${routeSlug(route)} ${viewport.width}`,
+      { route, viewport: { width: viewport.width, height: viewport.height }, ...viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
-        const firstImageRequests = [];
-        page.on("request", (request) => {
-          if (request.url().includes("/home-hero-walnut-bedroom")) firstImageRequests.push(request.url());
-        });
+        const requests = [];
+        page.on("request", (request) => requests.push(new URL(request.url()).pathname));
         await page.addInitScript(() => {
-          const values = [0.2, ...Array.from({ length: 15 }, (_, index) => 0.99 - index * 0.05)];
+          const values = [0.2, ...Array.from({ length: 63 }, (_, index) => 0.99 - index * 0.01)];
           Math.random = () => values.shift() ?? 0.5;
         });
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, route);
         await page.waitForFunction(() => document.querySelector(".hero-slide img").complete);
         const state = await page.evaluate(() => {
           const slides = [...document.querySelectorAll(".hero-slide")];
@@ -9392,16 +9370,21 @@ async function runHeroCrossFadeContinuityChecks() {
             order: slides.map((slide) => slide.dataset.slide).join(","),
             active: slides.flatMap((slide, index) => (slide.classList.contains("is-active") ? [index] : [])).join(","),
             priority: image.getAttribute("fetchpriority"),
+            name: image.getAttribute("src").split("/").pop().replace(/\.webp$/, ""),
             current: image.currentSrc.replace(location.origin, ""),
             preload: preload?.imageSrcset,
             unhydratedFirst: image.hasAttribute("data-src"),
           };
         });
+        const count = state.order.split(",").length;
+        const first = Math.floor(0.2 * count);
+        const expected = [first, ...Array.from({ length: count }, (_, index) => count - 1 - index).filter((index) => index !== first)];
         assert(
-          state.order === "3,15,14,13,12,11,10,9,8,7,6,5,4,2,1,0" && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
+          state.order === expected.join(",") && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
             && state.preload?.split(", ").some((candidate) => candidate.startsWith(`${state.current} `)),
-          `Home hero random first slide contract drifted: ${JSON.stringify(state)}`,
+          `Hero random first slide contract drifted: ${JSON.stringify(state)}`,
         );
+        const firstImageRequests = requests.filter((path) => new RegExp(`/${state.name}(?:-\\d+)?\\.(?:avif|webp)$`).test(path));
         assert.equal(firstImageRequests.length, 1, `First hero image requested once: ${firstImageRequests.join(" ")}`);
         assertDiagnostics(diagnostics);
       },
@@ -9411,6 +9394,8 @@ async function runHeroCrossFadeContinuityChecks() {
   const cases = [
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/vi/residential/", viewport: { width: 1440, height: 900 } },
+    { route: "/vi/commercial/", viewport: { width: 1440, height: 900 } },
   ];
 
   for (const testCase of cases) {
@@ -9538,7 +9523,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/home-hero-tube-house-living-audit-a321-v2.webp",
+      asset: "**/home-hero-office-reception-audit-a319-v3.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9547,7 +9532,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/home-hero-tube-house-living-audit-a321-v2.webp",
+      asset: "**/home-hero-office-reception-audit-a319-v3.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -10222,28 +10207,13 @@ async function runHomeMotionRegressionCheck() {
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
-      // Cả 16 slide xáo mỗi lần tải (page-home R3) nên so tập hợp.
+      // Danh sách ảnh hero do qa:content đối chiếu với mảng slides (content-independent-tests R2); ở đây chỉ kiểm bất biến:
+      // mọi slide đã nhận src ảnh nội dung, không trùng.
       assert(
-        JSON.stringify([...contract.hero.sources].sort()) ===
-          JSON.stringify([
-            "/assets/content/projects/home-hero-kitchen-dining.webp",
-            "/assets/content/projects/home-hero-lobby-wall-art.webp",
-            "/assets/content/projects/home-hero-office-reception-audit-a319-v3.webp",
-            "/assets/content/projects/home-hero-shopfront-signage-audit-a320-v3.webp",
-            "/assets/content/projects/home-hero-tube-house-living-audit-a321-v2.webp",
-            "/assets/content/projects/home-hero-walnut-bedroom.webp",
-            "/assets/content/projects/home-hero-homestay-bedroom-window-audit-a317-v16.webp",
-            "/assets/content/projects/home-hero-tube-house-laundry-audit-a317-v4.webp",
-            "/assets/content/projects/home-hero-tube-house-kids-playroom-audit-a317-v12.webp",
-            "/assets/content/projects/home-hero-homestay-relaxation-audit-a317-v9.webp",
-            "/assets/content/projects/home-hero-homestay-reading-audit-a317-v6.webp",
-            "/assets/content/projects/home-hero-apartment-games-room-audit-a317-v8.webp",
-            "/assets/content/projects/home-hero-homestay-bedroom-audit-a317-v3.webp",
-            "/assets/content/projects/home-hero-apartment-meditation-audit-a317-v5.webp",
-            "/assets/content/projects/home-hero-apartment-living-audit-a317-v2.webp",
-            "/assets/content/projects/home-hero-tube-house-kitchen-audit-a317-v1-alt1.webp",
-          ].sort()),
-        `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
+        contract.hero.sources.length > 1 &&
+          new Set(contract.hero.sources).size === contract.hero.sources.length &&
+          contract.hero.sources.every((source) => /^\/assets\/content\/projects\/[^/]+\.webp$/.test(source)),
+        `Home hero sources drifted: ${contract.hero.sources.join(", ")}`,
       );
       assert(
         contract.heritage.maxWidth === "1300px" &&

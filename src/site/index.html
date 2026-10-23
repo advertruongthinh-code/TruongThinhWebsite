@@ -85,18 +85,17 @@
       // page-home R3: chọn slide hero đầu ngay trong head, trước CSS, rồi preload để ảnh tải song song với CSS như
       // một src có sẵn; script xáo sau .hero-slides chỉ chạy khi parse xong. URL khớp <picture> build sinh (media-delivery R2).
       (() => {
-        const slides = [["home-hero-tube-house-living-audit-a321-v2", 1920], ["home-hero-office-reception-audit-a319-v3", 3072], ["home-hero-kitchen-dining", 1920],
-          ["home-hero-walnut-bedroom", 1920], ["home-hero-shopfront-signage-audit-a320-v3", 3072], ["home-hero-lobby-wall-art", 1920],
+        const slides = [
+          ["home-hero-office-reception-audit-a319-v3", 3072],
+          ["home-hero-shopfront-signage-audit-a320-v3", 3072],
+          ["home-hero-lobby-wall-art", 1920],
           ["home-hero-homestay-bedroom-window-audit-a317-v16", 3072],
           ["home-hero-tube-house-laundry-audit-a317-v4", 3072],
           ["home-hero-tube-house-kids-playroom-audit-a317-v12", 3072],
           ["home-hero-homestay-relaxation-audit-a317-v9", 3072],
           ["home-hero-homestay-reading-audit-a317-v6", 3072],
           ["home-hero-apartment-games-room-audit-a317-v8", 3072],
-          ["home-hero-homestay-bedroom-audit-a317-v3", 3072],
-          ["home-hero-apartment-meditation-audit-a317-v5", 3072],
-          ["home-hero-apartment-living-audit-a317-v2", 3072],
-          ["home-hero-tube-house-kitchen-audit-a317-v1-alt1", 3072]];
+          ["home-hero-apartment-meditation-audit-a317-v5", 3072]];
         const first = Math.floor(Math.random() * slides.length);
         const [name, width] = slides[first];
         const path = `/assets/content/projects/${name}`;
@@ -349,15 +348,6 @@
           <div class="hero-slides" aria-hidden="true">
             <figure class="hero-slide is-active" data-slide="0">
               <img
-                data-src="/assets/content/projects/home-hero-tube-house-living-audit-a321-v2.webp"
-                width="1920"
-                height="1280"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="1">
-              <img
                 data-src="/assets/content/projects/home-hero-office-reception-audit-a319-v3.webp"
                 width="3072"
                 height="2048"
@@ -365,25 +355,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="2">
-              <img
-                data-src="/assets/content/projects/home-hero-kitchen-dining.webp"
-                width="1920"
-                height="1280"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="3">
-              <img
-                data-src="/assets/content/projects/home-hero-walnut-bedroom.webp"
-                width="1920"
-                height="1280"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="4">
+            <figure class="hero-slide" data-slide="1">
               <img
                 data-src="/assets/content/projects/home-hero-shopfront-signage-audit-a320-v3.webp"
                 width="3072"
@@ -392,7 +364,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="5">
+            <figure class="hero-slide" data-slide="2">
               <img
                 data-src="/assets/content/projects/home-hero-lobby-wall-art.webp"
                 width="1920"
@@ -401,7 +373,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="6">
+            <figure class="hero-slide" data-slide="3">
               <img
                 data-src="/assets/content/projects/home-hero-homestay-bedroom-window-audit-a317-v16.webp"
                 width="3072"
@@ -410,7 +382,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="7">
+            <figure class="hero-slide" data-slide="4">
               <img
                 data-src="/assets/content/projects/home-hero-tube-house-laundry-audit-a317-v4.webp"
                 width="3072"
@@ -419,7 +391,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="8">
+            <figure class="hero-slide" data-slide="5">
               <img
                 data-src="/assets/content/projects/home-hero-tube-house-kids-playroom-audit-a317-v12.webp"
                 width="3072"
@@ -428,7 +400,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="9">
+            <figure class="hero-slide" data-slide="6">
               <img
                 data-src="/assets/content/projects/home-hero-homestay-relaxation-audit-a317-v9.webp"
                 width="3072"
@@ -437,7 +409,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="10">
+            <figure class="hero-slide" data-slide="7">
               <img
                 data-src="/assets/content/projects/home-hero-homestay-reading-audit-a317-v6.webp"
                 width="3072"
@@ -446,7 +418,7 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="11">
+            <figure class="hero-slide" data-slide="8">
               <img
                 data-src="/assets/content/projects/home-hero-apartment-games-room-audit-a317-v8.webp"
                 width="3072"
@@ -455,36 +427,9 @@
                 loading="eager"
               />
             </figure>
-            <figure class="hero-slide" data-slide="12">
-              <img
-                data-src="/assets/content/projects/home-hero-homestay-bedroom-audit-a317-v3.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="13">
+            <figure class="hero-slide" data-slide="9">
               <img
                 data-src="/assets/content/projects/home-hero-apartment-meditation-audit-a317-v5.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="14">
-              <img
-                data-src="/assets/content/projects/home-hero-apartment-living-audit-a317-v2.webp"
-                width="3072"
-                height="2048"
-                alt=""
-                loading="eager"
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="15">
-              <img
-                data-src="/assets/content/projects/home-hero-tube-house-kitchen-audit-a317-v1-alt1.webp"
                 width="3072"
                 height="2048"
                 alt=""

@@ -19,12 +19,12 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | Trang | Nền | Tiêu đề | Kicker |
 | --- | --- | --- | --- |
 | Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, dòng 2 nghiêng | Có |
-| Residential, Commercial | Ảnh, `hero-shade` | Chữ hoa 600, line-height 1.4 | Có |
+| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa 600, line-height 1.4 | Có |
 | About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 nghiêng | Không (owner 2026-10-18) |
 | Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa 600, line-height 1.4 | Có |
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
-`fetchpriority="high"`; trang chủ chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
+`fetchpriority="high"`; trang chủ, Residential, Commercial chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
 ([trang chủ R3](../../../docs/specs/page-home.md#r3-hero-slideshow-và-nút-dừng)).
 
 ## Theo width
@@ -51,9 +51,9 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
 
 - Tiêu đề: word fade `data-motion-words`, `1s expo.out`, stagger `0.2s`.
 - Kicker: trượt vào từ `x -60px`, `0.6s cubic-bezier(0, 0, .26, 1)`.
-- Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh Residential, Commercial,
-  About `scale 1.2 → 1.005`, `2.5s ease`.
-- Trang chủ: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`; thứ tự toàn bộ slide, gồm ảnh
+- Khối chữ Advertising: `scale 1.2 → 1` trong `2.5s`; ảnh About `scale 1.2 → 1.005`,
+  `2.5s ease`.
+- Trang chủ, Residential, Commercial: slideshow zoom `scale 1.06 → 1` trong `6.6s sine.inOut`; thứ tự toàn bộ slide, gồm ảnh
   đầu, ngẫu nhiên mỗi lần tải.
 - Reduced motion hiện ngay trạng thái cuối. Chi tiết ở
   [Motion](../../motion.md#text).
