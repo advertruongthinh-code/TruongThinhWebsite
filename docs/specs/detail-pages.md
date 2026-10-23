@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-19
+updated: 2026-10-23
 ---
 
 # Trang Residential, Commercial và About
@@ -59,7 +59,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 36 `figure`, năm chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 15 `figure`: tám ảnh lẻ, chuỗi "Văn phòng chia sẻ" (R7) | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 36 `figure`, năm chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
@@ -114,7 +114,7 @@ Then mỗi trang một h1, không có bước nhảy cấp heading, không phầ
 ### R5. Hero và vào trang
 
 Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), có kicker, `h1` hai dòng, scroll cue. Residential,
-Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; Commercial chọn ngẫu nhiên mỗi lần tải một trong 12 hero owner duyệt 2026-10-18 (9 hero kinh doanh F24, hai shop thời trang F19, sảnh lễ tân F25; 1920×1280 từ PNG SeedVR2.5) như hero trang chủ ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)): script head chọn và preload, script module sau `.hero-slides` giữ slide đó, bỏ các slide còn lại, gán `src`, `srcset`, `fetchpriority="high"`; route mềm runtime chạy lại script đó; chữ hoa, đậm 600,
+Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; Commercial chọn ngẫu nhiên mỗi lần tải một trong 8 hero owner duyệt (5 hero kinh doanh F24, hai shop thời trang F19, sảnh lễ tân F25; owner 2026-10-23 chuyển shop thể thao, tiệm bánh vòm xanh xuống gallery và hai gian hàng dừa sang [Gian hàng triển lãm](advertising-masonry.md)) như hero trang chủ ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)): script head chọn và preload, script module sau `.hero-slides` giữ slide đó, bỏ các slide còn lại, gán `src`, `srcset`, `fetchpriority="high"`; route mềm runtime chạy lại script đó; chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ, cao tối thiểu `100svh`. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
 tính từ lúc mount: ảnh hero (`data-motion-hero-media`) `scale 1.2 → 1.005` trong 2,5s `ease` rồi đứng yên, như hero
