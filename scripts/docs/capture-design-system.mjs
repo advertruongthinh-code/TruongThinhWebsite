@@ -38,6 +38,8 @@ const CAPTURES = [
   { name: 'Primary', route: PHOTO, select: '.advertising-photo-view__primary' },
   { name: 'Suggestion', route: PHOTO, select: '.advertising-photo-view__suggestion' },
   { name: 'Viewer', route: PHOTO, select: '.advertising-photo-dialog', setup: (page) => page.click('.advertising-photo-view__expand') },
+  // Kính ở khung ảnh chính trang chi tiết; hạt runtime là blob URL nên build gán hạt thay thế (spec design-system R3.9).
+  { name: 'Glass', route: PHOTO, select: '.advertising-photo-view__hero-frame' },
   // Dải chấm gallery do detail.js dựng khi khối vào khung.
   { name: 'Gallery', route: '/vi/residential/', select: '.detail-gallery',
     setup: (page) => page.locator('.detail-gallery').scrollIntoViewIfNeeded() },
