@@ -34,7 +34,8 @@ hướng CMS trong [goal](../goal.md). Owner đồng ý chuyển ngày 2026-10-0
    khi CI xanh trên `main`. Token nằm trong GitHub secret `CLOUDFLARE_API_TOKEN`
    và `CLOUDFLARE_ACCOUNT_ID`, không nằm trong repository hay chat.
 4. Merge vào `main` là đồng ý deploy. Agent không deploy tay, chỉ chạy
-   `--dry-run`; owner vẫn deploy tay được bằng `wrangler login`.
+   `--dry-run`; owner vẫn deploy tay được bằng `wrangler login`, qua task VS Code
+   `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch, pull rồi `pnpm deploy:demo`).
 5. CMS vẫn khóa: `wrangler.toml`, `src/worker/` và Worker contract test giữ
    dormant. Không dùng `wrangler.toml` cho demo.
 
