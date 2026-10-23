@@ -46,7 +46,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
-| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
+| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, kiểm nội dung (`qa:content`, [test không phụ thuộc nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung)), worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
 | `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
 | `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |

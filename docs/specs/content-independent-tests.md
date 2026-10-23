@@ -45,12 +45,13 @@ Then không test nào đỏ và PR không sửa file nào trong tests/
 ### R2. Bộ kiểm nội dung
 
 `scripts/ci/content-contract.mjs` là entrypoint duy nhất kiểm nội dung thật, chạy trong bộ `fast` và bằng
-`pnpm qa:content`. Nó gọi lại validator đang có (`validateAdvertisingCards`, `validateAdvertisingMediaPool`,
-`validateProjectReel`) rồi kiểm thêm:
+`pnpm qa:content`. Advertising và rail trang chủ dùng lại validator đang có (`media-contract.mjs` chạy khi import
+catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs --check` cùng bộ `fast` kiểm theo
+[chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh). Script kiểm thêm trên HTML và CSS của `src/site/`:
 
-1. Mọi ảnh được tham chiếu tồn tại, đủ biến thể theo [chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh);
-   `width`, `height` khai báo bằng pixel thật.
-2. Ảnh nội dung có alt VI và `data-en-alt` không rỗng; ảnh trang trí `alt=""`.
+1. Mọi ảnh `/assets/content/` được tham chiếu tồn tại; `<img>` WebP khai `width`, `height` bằng pixel thật.
+2. `<img>` nội dung có `alt`; ảnh chụp có alt VI thì có `data-en-alt` không rỗng; ảnh trang trí `alt=""`; logo SVG
+   là tên riêng nên không cần bản EN.
 3. Tag, sản phẩm, cụm của card trỏ đúng [phân loại](advertising-taxonomy.md).
 4. Hero slideshow: mảng `slides` trong head khớp thứ tự và số `figure.hero-slide`, `data-slide` liên tục từ 0.
 5. Mọi file trong `src/site/assets/content/` có ít nhất một consumer (trang, data, Design System preview) và mọi
