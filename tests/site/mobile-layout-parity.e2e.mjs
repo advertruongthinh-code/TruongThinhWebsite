@@ -144,7 +144,8 @@ async function ready(page, options = {}) {
       return document.getAnimations().some(a=>a.playState==='running'&&a.effect?.getTiming().iterations!==Infinity&&inView(a.effect?.target))
         || Boolean(window.gsap?.globalTimeline.getChildren(true,true,false).some(t=> {
           for(let parent=t;parent;parent=parent.parent)if(parent.repeat?.()===-1||parent.paused?.()||parent.timeScale?.()===0)return false;
-          return t.targets().some(inView)&&(t.isActive()||t.parent&&t.totalProgress()<1&&t.parent.time()<t.endTime());
+          // Dòng reveal đang chờ (delay 0.3s) nằm ở y=2em dưới mép khung nhìn; tính cả mask chứa nó để chưa coi là đã yên.
+          return t.targets().some(e=>inView(e)||inView(e.parentElement))&&(t.isActive()||t.parent&&t.totalProgress()<1&&t.parent.time()<t.endTime());
         }));
     },options);
     if (!active&&JSON.stringify(after)===JSON.stringify(before)&&(visible||i>=20)) return after;

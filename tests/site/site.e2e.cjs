@@ -435,8 +435,8 @@ function assertPersistentNavigationContracts() {
       commercialHeroContent?.includes('data-en="SHOP · F&amp;B · SHOWROOM · OFFICE"') &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế tối ưu") &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Vận hành bền bỉ") &&
-      commercialHeroContent?.includes('data-en="Designed to perform"') &&
-      commercialHeroContent?.includes('data-en="Built to last"') &&
+      commercialHeroContent?.includes('<span data-en="Designed to">Thiết kế</span> <em data-en="perform">tối ưu</em>') &&
+      commercialHeroContent?.includes('<span data-en="Built to">Vận hành</span> <em data-en="last">bền bỉ</em>') &&
       !commercialHeroContent?.includes("detail-hero-motto"),
     "Commercial hero must use the approved Espacio-style two-line VI/EN copy without a separate motto",
   );
@@ -7966,9 +7966,11 @@ async function runCommercialHeroTextCheck() {
               ),
               contentCenter,
               // Phone treo dấu chấm (.text-hang-end): tâm tính theo phần chữ, không gồm dấu.
+              // Dòng có chữ nhấn (em) gồm nhiều [data-en]: tâm lấy từ mép trái phần đầu tới mép phải phần cuối.
               letterCenters: sources.map((source) => {
-                const value = textRect(source.querySelector("[data-en]") ?? source);
-                return value.left + value.width / 2;
+                const parts = [...source.querySelectorAll("[data-en]")];
+                const values = (parts.length ? parts : [source]).map(textRect);
+                return (values[0].left + values.at(-1).right) / 2;
               }),
               uppercase: getComputedStyle(heading).textTransform === "uppercase",
               // Phone không hiện kicker (hero-typography R2): kicker chỉ còn hộp 1px cho trình đọc màn hình.

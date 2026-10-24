@@ -78,6 +78,16 @@
   font-weight: 700;
 }
 
+/* Hero Commercial: chữ thường nhẹ 500 như title hero các trang khác, chữ nhấn (em) đậm 700 (owner 2026-10-24). */
+.commercial-hero h1 :is(.detail-title__quiet, .detail-title__strong) {
+  font-weight: 500;
+}
+
+.commercial-hero h1 em {
+  font-style: normal;
+  font-weight: 700;
+}
+
 .detail-intro,
 .detail-media,
 .detail-heading,

@@ -47,6 +47,7 @@ giữ bố cục riêng.
 
 Bản EN tách hai dòng ở cùng vị trí ý nghĩa. Câu Commercial mới thay "Thiết kế để bán tốt. Thi công để vận hành bền."
 Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
+Commercial nhấn "tối ưu", "bền bỉ" (EN "perform", "last") bằng `em` đậm 700, không nghiêng; chữ còn lại nhẹ 500 như phần nhẹ title hero các trang khác (owner 2026-10-24).
 
 ### R2. Bày chữ hero kiểu espacio
 
