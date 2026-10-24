@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-23T22:55:09.895Z",
+    "at": "2026-10-24T07:20:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Preview không điều hướng, Gallery có dải chấm, Kính giống trang chi tiết, README gọn, bỏ trang chờ code, hover filter (#523)"
+    "note": "Khối chốt Giữ nghề có trần cỡ chữ khi không có motion.js (#497)"
   }
 }
