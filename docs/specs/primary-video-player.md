@@ -147,6 +147,7 @@ And card có cover dọc thì khung vẫn cao hết phần viewport, zoom blur h
 | --- | --- | --- |
 | DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total` | Giữ hook hiện có (R1, R2, R5) |
 | CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
+| CSS token | `--text-shadow-d`, `--text-shadow-reach` trong `:root` | Bóng hai lớp R4; thread bóng chữ hero định nghĩa, ở đây chỉ dùng lại |
 | Script | `scripts/site/build-placeholder-media.mjs` | `-g 12` (R3) |
 | Hàm | `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Vùng ảnh `split` cao `min(W/r, H)` (R6) |
 
