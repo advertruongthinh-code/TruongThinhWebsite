@@ -21,8 +21,9 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
   assert.equal(artifact.cards.length, 270, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
   assert(card && card.media.width * 2 === card.media.height * 3);
-  // Chỉ giữ ảnh cover, để fixture không phụ thuộc số media catalog đang có (media tạm thêm ảnh vào card).
-  card.mediaItems = card.mediaItems.slice(0, 1);
+  // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
+  card.mediaItems = [{ id: cardId, kind: "image", ...card.media }];
+  card.coverMediaId = cardId;
   card.mediaItems.push({
     id: videoId, kind: "video", src: `${fixturePrefix}clip-audio-3x2.mp4`,
     sourceId: "m00b:test-only:clip-audio-3x2", source: "M00b sealed synthetic fixture",
@@ -362,8 +363,9 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     await progress.press("ArrowLeft");
     assert((await playerState(page)).currentTime < state.currentTime, "arrow key seeks backwards");
     await page.locator("[data-advertising-photo-play]").click();
-    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
-    assert.equal((await playerState(page)).playLabel, "Pause");
+    // `paused` đổi ngay khi gọi play(), nhãn chỉ đổi ở sự kiện `play` sau đó: chờ nhãn, không đọc một lần.
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused
+      && document.querySelector("[data-advertising-photo-play]").getAttribute("aria-label") === "Pause");
   });
 });
 
