@@ -5,7 +5,7 @@ source: []
 tests:
   - tests/site/hero-typography.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
-updated: 2026-10-18
+updated: 2026-10-24
 ---
 
 # Chữ hero kiểu espacio, xuống dòng chốt và khoảng cách dòng đều
@@ -47,7 +47,7 @@ giữ bố cục riêng.
 
 Bản EN tách hai dòng ở cùng vị trí ý nghĩa. Câu Commercial mới thay "Thiết kế để bán tốt. Thi công để vận hành bền."
 Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
-Commercial nhấn "tối ưu", "bền bỉ" (EN "perform", "last") bằng `em` đậm 700, không nghiêng; chữ còn lại nhẹ 500 như phần nhẹ title hero các trang khác (owner 2026-10-24).
+Commercial nhấn "tối ưu", "bền bỉ" (EN "perform", "last") bằng `em` đậm 700 nghiêng; chữ còn lại nhẹ 500 như phần nhẹ title hero các trang khác. Residential dòng 2 "năng lượng sống" đậm 700 nghiêng. Trang chủ hai dòng đậm 700, dòng 2 "Làm khác" nghiêng (owner 2026-10-24).
 
 ### R2. Bày chữ hero kiểu espacio
 
@@ -71,6 +71,8 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   `display: contents`, bố cục cũ giữ nguyên.
 - Kicker cách nét chữ title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`
   (khoảng trống trên nét hoa của dòng 1 so với "Ể", đo bằng canvas), nên title không dấu không bị cách xa hơn.
+- Trên 750px trang chủ có khung chữ rộng hơn, `min(90%, 75rem)`, nên title lớn hơn các trang khác một bậc (x1,2): 96px ở
+  1440px, 55px ở 768px (owner 2026-10-24). Phone giữ khung chung.
 - Trên 750px mọi hero chung một cỡ: `min(7rem, bề rộng khung / 12,5)`. Câu dài nhất hiện có ("Designed to perform") khoảng
   12 em, nên mọi hero cùng cỡ và khoảng cách hai dòng như nhau ở cùng bề rộng.
 - Có JS: `motion.js` (`fitHeroLines`) đo dòng dài nhất theo em (cộng 1% cho hinting) vào `--hero-line-em` và gắn

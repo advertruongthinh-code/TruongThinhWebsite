@@ -150,10 +150,10 @@ Then khung ảnh đúng tỷ lệ trước khi tải, build bọc <picture> có 
 Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sáng](../../design-system/components/LoadSweep/README.md),
 [motion](../../design-system/motion.md#ảnh-trong-card)).
 
-Khung là phần tử có con trực tiếp `img[src^="/assets/content/"]`, hoặc `picture > img` như vậy; không áp trong
-`[data-project-grid]`, `[data-advertising-photo-view]` (Advertising dùng skeleton,
-[loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)), `.client-logo-marquee`. Khung chưa
-`.is-media-settled`:
+Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh
+vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
+`[data-advertising-photo-view]` ([loading glass R5](loading-glass-and-page-entry.md#r5-skeleton-thay-vòng-xoay)),
+`.client-logo-marquee`. Khung chưa `.is-media-settled`:
 
 - Nền `media-loading-surface` `#2b2c2b`, kể cả khung vốn nền sáng; ảnh trong khung `opacity: 0`.
 - Một dải sáng đối xứng, trắng `16%` ở tâm, rộng khoảng hai phần năm khung như bản owner duyệt 2026-10-07; độ sáng
@@ -241,7 +241,7 @@ tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-ca
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |
 | Attribute | `sizes` dạng px trên ảnh lazy và slide hero | Script đầu trang ghi theo phần hiển thị sau crop (R2) |
-| Class | `.is-media-settled`, `.is-media-error` | Script inline `<head>` ghi; vệt (R6), nút suggestion, dấu báo lỗi (R8) đọc |
+| Class | `.media-frame`, `.is-media-settled`, `.is-media-error` | Script inline `<head>` ghi; vệt (R6), nút suggestion, dấu báo lỗi (R8) đọc |
 | Data | `nonPublicSourceAssets` (`non-public-source-assets.mjs`) | Path bỏ qua khi sinh biến thể (R1) |
 | Command | `node tests/site/image-delivery-measure.mjs --base --runs --warm --only --detail --out` | Đo (R7); output `.tmp/image-delivery/` |
 
