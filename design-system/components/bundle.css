@@ -1062,6 +1062,12 @@ em {
   font-weight: 600;
 }
 
+/* Trang chủ: hai dòng đậm 700, dòng 2 "Làm khác" thêm nghiêng (owner 2026-10-24). */
+.hero[data-hero-intro] h1 > .hero-line-mask:first-child,
+.hero[data-hero-intro] h1 em {
+  font-weight: 700;
+}
+
 .hero-line-mask,
 .line-mask {
   display: block;
@@ -3321,14 +3327,19 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   font-weight: 700;
 }
 
-/* Hero Commercial: chữ thường nhẹ 500 như title hero các trang khác, chữ nhấn (em) đậm 700 (owner 2026-10-24). */
+/* Hero Commercial: chữ thường nhẹ 500 như title hero các trang khác, chữ nhấn (em) đậm 700 nghiêng (owner 2026-10-24). */
 .commercial-hero h1 :is(.detail-title__quiet, .detail-title__strong) {
   font-weight: 500;
 }
 
 .commercial-hero h1 em {
-  font-style: normal;
+  font-style: italic;
   font-weight: 700;
+}
+
+/* Hero Residential: dòng nhấn "năng lượng sống" đậm 700 và nghiêng (owner 2026-10-24). */
+.residential-hero h1 .detail-title__strong {
+  font-style: italic;
 }
 
 .detail-intro,
@@ -6334,6 +6345,14 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
    gắn data-hero-fit: dòng nowrap, chỉ co thêm khi câu dài hơn 12.5 em. */
 .hero > .hero-content {
   width: min(80%, 62.5rem);
+}
+
+/* Trang chủ: khung chữ rộng hơn nên title lớn hơn các trang khác một bậc (x1,2) trên tablet và PC (owner
+   2026-10-24). Phone giữ khung chung bên dưới. */
+@media (min-width: 751px) {
+  .hero[data-hero-intro] > .hero-content {
+    width: min(90%, 75rem);
+  }
 }
 
 .hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) {

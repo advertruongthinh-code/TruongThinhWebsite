@@ -14,15 +14,16 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).
 - Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,
-  đậm 700, chữ đứng, như Advertising (owner 2026-10-24); trang chủ không có cặp, giữ 600.
+  đậm 700, như Advertising; chữ nhấn của trang chủ, Residential, Commercial đậm 700 và nghiêng
+  (owner 2026-10-24).
   Tracking display `tracking-display`.
 
 ## Theo trang
 
 | Trang | Nền | Tiêu đề | Kicker |
 | --- | --- | --- | --- |
-| Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, dòng 2 nghiêng | Có |
-| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700, line-height 1.4; Commercial đậm ở `em` | Có |
+| Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, cả hai đậm 700, dòng 2 nghiêng; lớn hơn các trang khác một bậc | Có |
+| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700 nghiêng, line-height 1.4; Residential nhấn dòng 2, Commercial nhấn `em` | Có |
 | About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
 | Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa nhẹ 500, đậm 700, line-height 1.4 | Có |
 
@@ -34,7 +35,7 @@ Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải nga
 
 Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typography.md#r2-bày-chữ-hero-kiểu-espacio).
 
-- **Trên 750px:** khung chữ `min(80%, 62.5rem)`, mọi hero chung một cỡ
+- **Trên 750px:** khung chữ `min(80%, 62.5rem)` (trang chủ `min(90%, 75rem)`, lớn hơn một bậc), mọi hero chung một cỡ
   `min(7rem, bề rộng khung / 12,5)`. Dòng 1 canh trái, dòng 2 canh phải, kéo lên
   `0,2em` và lồng nhau khoảng 30% dòng ngắn; kicker theo mép trái dòng 1.
 - **Từ 750px trở xuống (phone):** khung chữ `calc(100% - 64px)` (lề 32px mỗi
