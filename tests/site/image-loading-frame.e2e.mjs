@@ -343,8 +343,8 @@ try {
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-advertising-loading-skeleton]"), null, { timeout: 5000 })
       .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the skeleton`));
     const cardGlass = await revealGlass("card");
-    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated, end }) => steps === 5 && animated.join() === "opacity" && end <= 601),
-      `${viewport.width}px: loading cards reveal through five Kính steps in 0.6 s, opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
+    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
+      `${viewport.width}px: loading cards reveal through three Kính steps in 0.6 s, opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
       `${viewport.width}px: the reveal Kính leaves the cards`);
     // Card đã tải xong rời viewport hiện lại ngay: không Kính, không skeleton (R3).
@@ -425,8 +425,8 @@ try {
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
     // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc, cùng nhịp 0.6s như card.
-    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 5 && animated.join() === "opacity" && end <= 601),
-      `${viewport.width}px: the primary reveals through five Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
+    assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
+      `${viewport.width}px: the primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
     // Như card: skeleton vẫn thấy qua Kính, bậc nhòe sẵn không phủ nền xám phẳng lên skeleton.
     assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);

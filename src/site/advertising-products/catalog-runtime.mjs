@@ -2378,7 +2378,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Kính phủ lên media chỉ cho reveal (R2, R4): cuối cùng trong media box, trên photo và skeleton.
   const revealGlass = (host) => {
-    const glass = createGlassSurface("even", 5);
+    const glass = createGlassSurface("even", 3);
     glass.dataset.glassReveal = "";
     host?.append(glass);
     return glass;
@@ -2394,7 +2394,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
   const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
-  // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s cũ (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
+  // Năm bậc backdrop-filter trên cả hero từng làm rơi frame A05s cũ (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
   // nhòe sẵn: vẽ một lần vào canvas 1/8 kích thước với blur cộng dồn bằng blur chồng của bậc gốc, rồi phóng 8 lần
   // (detail.css). CSS filter trên ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
   const BAKED_SCALE = 8;
@@ -2406,8 +2406,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     .then((blob) => createImageBitmap(blob, { resizeWidth: BAKED_SOURCE_WIDTH, resizeQuality: "high" }))
     .catch(() => null);
   // Blur bằng căn tổng bình phương các bậc gốc tới bậc đó; saturate và brightness cộng dồn như bậc gốc.
-  const BAKED_FILTERS = [[7.14, 1.112, 1.0079], [16.07, 1.2365, 1.0159], [32.15, 1.375, 1.0239],
-    [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
+  const BAKED_FILTERS = [[16.07, 1.1935, 1.0132], [57.14, 1.4244, 1.0265], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
   // Kính dựng ngoài DOM; nơi gọi gắn nó vào host khi animation bắt đầu.
   // `before`: ảnh đang hiện nhòe sẵn cùng kiểu, nằm dưới ảnh mới trong mỗi bậc, để Kính làm nhòe ảnh cũ thay vì phủ nền xám.

@@ -1,8 +1,7 @@
 // Kính: một component glass dùng chung cho mọi glass surface (docs/specs/glass-surface.md).
 // Các bước blur (increment trong detail.css), rồi tint trắng và grain. Surface mờ dần từng bước (spec R6)
-// có năm bước (level 7.14, 16.07, 32.14, 57.14, 100px: trần 100px, owner 06/10); band của arc có ba
-// (4.5, 12, 28px; owner, 05/10, cho phone Android).
-const STEPS = 5;
+// có ba bước (level 16.07, 57.14, 100px: trần 100px, owner 06/10; ba bước owner chọn 2026-10-24); band của arc
+// có ba (4.5, 12, 28px; owner, 05/10, cho phone Android).
 const ARC_STEPS = 3;
 // Arc của owner (06/10): apex ở -15% cụm CTA (trên mép tiêu đề, owner 10/10, để chữ nằm trong core), bán kính 3.5 viewport width, band 1.75 chiều cao cụm,
 // trắng tinh từ 0.35 card width bên trong các góc batch, tint trắng 0.55 trên arc (owner 10/10, trước 0.35).
@@ -74,8 +73,8 @@ function makeGrain() {
   });
 }
 
-// Surface tĩnh đều trông giống nhau qua một step đầy đủ hay năm step xếp chồng, với khoảng nửa chi phí;
-// surface mờ vào/ra từng step (spec R6) cần cả năm.
+// Surface tĩnh đều trông giống nhau qua một step đầy đủ hay ba step xếp chồng, với chi phí thấp hơn;
+// surface mờ vào/ra từng step (spec R6) cần cả ba.
 export function createGlassSurface(shape, steps = shape === "arc" ? ARC_STEPS : 1) {
   if (grain === undefined) makeGrain();
   const glass = document.createElement("div");
@@ -131,13 +130,15 @@ const REVEAL_LEVELS = REVEAL_OFFSETS.map(glassRevealLevel);
 // level, nên glass bắt đầu và kết thúc không blur, không tint. Keyframe lấy mẫu giữ nó trên compositor.
 export function playGlassReveal(glass, duration) {
   const layers = [...glass.children];
+  // Step đứng đầu glass phủ đều, nên index của step chạy từ 0 tới số step của chính glass.
+  const steps = layers.filter((layer) => layer.classList.contains("glass-surface__step")).length;
   // Đọc mọi base opacity trước animate đầu tiên, nên một reveal chỉ tốn một lần style recalc.
   const bases = layers.map((layer) => Number(getComputedStyle(layer).opacity));
   return layers.map((layer, index) => {
     const step = layer.classList.contains("glass-surface__step");
     return layer.animate(REVEAL_OFFSETS.map((offset, sample) => {
       const level = REVEAL_LEVELS[sample];
-      return { offset, opacity: bases[index] * (step ? Math.min(1, Math.max(0, STEPS * level - index)) : level) };
+      return { offset, opacity: bases[index] * (step ? Math.min(1, Math.max(0, steps * level - index)) : level) };
     }), { duration, fill: "both" });
   });
 }

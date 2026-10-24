@@ -133,7 +133,7 @@ And vùng trắng tuyệt đối không có hạt nhiễu
 
 Kính tăng độ bão hòa của nội dung phía sau lên `1.7`, độ sáng
 `1.04`, tint trắng alpha `0.12`. `saturate()` và `brightness()` nhân dồn qua
-các bậc, nên mỗi bậc nhận căn bậc năm của giá trị tổng và độ rực tăng cùng độ
+các bậc, nên mỗi bậc của dạng phủ đều (ba bậc) nhận căn bậc ba của giá trị tổng và độ rực tăng cùng độ
 nhòe. Dạng cung chỉ blur, bão hòa và độ sáng bằng `1` (owner 10/10, trước
 `1.55`, `1.05`): lõi chồng các bậc viền trong dải chuyển tại cung nên màu tăng
 hai lần thành gờ đậm dọc cung; tint của nó theo R3.
@@ -142,7 +142,7 @@ hai lần thành gờ đậm dọc cung; tint của nó theo R3.
 
 Ảnh card mỗi lần hiện và primary đang mở của
 [Skeleton chờ ảnh](loading-glass-and-page-entry.md) (R2 đến R4) hiện rồi tan kính
-dạng phủ đều đủ năm bậc. Các bậc nhòe hiện lần lượt từ nhẹ tới mạnh và tan theo
+dạng phủ đều đủ ba bậc, mức `16`, `57`, `100px` (owner chọn 2026-10-24, thay năm bậc). Các bậc nhòe hiện lần lượt từ nhẹ tới mạnh và tan theo
 chiều ngược lại, chỉ bằng `opacity`; tint và hạt nhiễu theo cùng mức, nên kính
 bắt đầu và kết thúc không nhòe, không tint. Không animate bán kính blur mỗi
 frame, theo nguyên tắc của [Motion](../../design-system/motion.md#nguyên-tắc).
@@ -168,12 +168,12 @@ phủ cả hero rơi gate pha mở (A05s cũ p5 `30-45fps`, 22-39% frame chậm)
 là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
 trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
 crossfade của ảnh (`glass-surface__step--baked`). Canvas không nhòe lớp dưới như `backdrop-filter`, nên trong lúc
-crossfade chỉ hai bậc nặng hiện dần (đã phủ kín khi ảnh bắt đầu hiện); ảnh, nền và ba bậc nhẹ hiện khi crossfade
+crossfade chỉ hai bậc nặng hiện dần (đã phủ kín khi ảnh bắt đầu hiện); ảnh, nền và bậc nhẹ hiện khi crossfade
 xong, dưới hai bậc nặng đã đặc. Có lớp tạm thì mỗi bậc thêm canvas ảnh cũ nhòe sẵn nằm dưới, thay nền màu skeleton.
 Vùng dư trong mọi bậc nhòe đủ như nền `100px`, chỉ photo nhòe theo bậc. Crossfade
-cả năm bậc cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe, và lúc tan bậc nhẹ lộ vùng zoom gần nét (owner 2026-10-24). Điện thoại chạy đúng như PC (owner 11/10,
+mọi bậc cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe, và lúc tan bậc nhẹ lộ vùng zoom gần nét (owner 2026-10-24). Điện thoại chạy đúng như PC (owner 11/10,
 [R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)); dưới gate thì dừng, báo owner kèm số đo.
-Kính hiện/tan trên card giữ năm bậc. Có tiền tố
+Kính hiện/tan trên card ba bậc như primary; ba bậc `backdrop-filter` chưa đo trên phone Android. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
@@ -195,8 +195,8 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
-| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi một bậc `glass-surface__step--inner` tăng nhòe vào trong (phone ẩn bậc này bằng `hidden`), rồi ba bậc chỉ phủ dải; lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần (owner thấy ở mép màn hình, 05/10); dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như năm bậc chồng, nhẹ hơn); kính phủ đều quanh primary không có bậc, chỉ tint và hạt nhiễu, còn ảnh nền primary tự mang `filter: blur(100px) saturate(1.7) brightness(1.04)` vì Chrome chụp backdrop theo từng raster tile khi chụp thumbnail lúc rê chuột lên tab, kẹp blur ở mép tile và để lại đường nối tới lần repaint đầy đủ (owner thấy 06/10); bề mặt hiện/tan (R6) năm bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
-| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): năm bậc `7.14`, `14.4`, `27.84`, `47.25`, `82.07px` (mức `7.14`, `16.07`, `32.14`, `57.14`, `100px`), dạng cung `4.5`, `11.12`, `25.3px`, bậc trong cung do runtime đặt inline; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.112`, `1.0079`, dạng cung cả bốn bằng `1`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, riêng lõi dạng cung `28px` để các bậc trong cung tăng tiếp tới trần (R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
+| DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi một bậc `glass-surface__step--inner` tăng nhòe vào trong (phone ẩn bậc này bằng `hidden`), rồi ba bậc chỉ phủ dải; lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần (owner thấy ở mép màn hình, 05/10); dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như ba bậc chồng, nhẹ hơn); kính phủ đều quanh primary không có bậc, chỉ tint và hạt nhiễu, còn ảnh nền primary tự mang `filter: blur(100px) saturate(1.7) brightness(1.04)` vì Chrome chụp backdrop theo từng raster tile khi chụp thumbnail lúc rê chuột lên tab, kẹp blur ở mép tile và để lại đường nối tới lần repaint đầy đủ (owner thấy 06/10); bề mặt hiện/tan (R6) ba bậc, có `data-glass-reveal`. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1`, riêng kính hiện/tan trên primary `2` để phủ ảnh và skeleton, dưới nút ảnh |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): ba bậc `16.07`, `54.84`, `82.07px` (mức `16.07`, `57.14`, `100px`), dạng cung `4.5`, `11.12`, `25.3px`, bậc trong cung do runtime đặt inline; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.1935`, `1.0132`, dạng cung cả bốn bằng `1`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, riêng lõi dạng cung `28px` để các bậc trong cung tăng tiếp tới trần (R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Hai ảnh hạt nhiễu 160×160 cùng nhiễu, xám cho overlay và trắng theo alpha cho dạng cung (`--glass-grain-white`), sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
 | Runtime | `glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `layoutArcGlass()` đặt hộp và mask của lõi, bậc trong cung, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); số lớp theo loại máy (R2): PC 1 bậc trong cung và 3 bậc band, phone lõi và 1 bậc band; `glassRevealLevel(t)` mức kính theo thời gian, `playGlassReveal(glass, duration)` animate opacity từng lớp (R6) |
 | Runtime | `catalog-runtime.mjs` | Gắn kính cung vào `.project-index`, đo cụm CTA và batch mỗi lần dựng skeleton; gắn kính phủ đều sau nền primary, CSS bật theo `data-advertising-photo-glass`; gắn kính hiện/tan cuối khung media card hoặc khung primary trong lúc ảnh hiện |
@@ -210,7 +210,7 @@ tan (R6) không chạy, theo R8 của [Skeleton chờ ảnh](loading-glass-and-p
 | R | Test hoặc command |
 | --- | --- |
 | R1–R5 | `node tests/site/glass-surface.test.mjs` (CSS, hình học); `node tests/site/glass-surface.e2e.mjs` (Chromium, `BASE_URL`) |
-| R6 | `glass-surface.test.mjs` (mức kính theo thời gian); `image-loading-frame.e2e.mjs` (P9: năm bậc, chỉ opacity đổi, gỡ sau khi xong; primary phone khớp PC) |
+| R6 | `glass-surface.test.mjs` (mức kính theo thời gian); `image-loading-frame.e2e.mjs` (P9: ba bậc, chỉ opacity đổi, gỡ sau khi xong; primary phone khớp PC) |
 | R7 | đo qua CDP trên phone Android thật (05/10); script đo chưa vào repo |
 | R8 | `glass-surface.e2e.mjs`, ca giảm chuyển động |
 

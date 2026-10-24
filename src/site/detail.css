@@ -1697,9 +1697,9 @@ body.is-advertising-browse .advertising-grid {
 }
 
 /* Kính (docs/specs/glass-surface.md): một component cho mọi glass surface. Backdrop
-   blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 7.14, 16.07, 32.14, 57.14 và trần
+   blur chồng cộng dồn, nên step n thêm sqrt(L(n)^2 - L(n-1)^2) hướng tới các level 16.07, 57.14 và trần
    100px (ba band step của arc: 4.5, 12 và 28px; inner step của nó do glass-surface.mjs đặt); saturate() và brightness() nhân nhau, nên mỗi step
-   mang căn bậc năm của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
+   mang căn bậc ba của 1.7 và 1.04. Arc đặt cả bốn bằng 1, chỉ còn blur (owner 10/10): core
    chồng band step trong dải fade tại cung, nên màu tăng hai lần thành gờ đậm dọc cung.
    Step đếm từ tint và grain, nên core của arc đứng trước chúng không làm dịch gì.
    Chỉ các step sở hữu backdrop-filter. Bản thân box giữ trơn: opacity, mask hay filter trên nó
@@ -1707,8 +1707,8 @@ body.is-advertising-browse .advertising-grid {
 .glass-surface {
   --glass-saturate: 1.7;
   --glass-brightness: 1.04;
-  --glass-step-saturate: 1.112;
-  --glass-step-brightness: 1.0079;
+  --glass-step-saturate: 1.1935;
+  --glass-step-brightness: 1.0132;
   --glass-full-blur: 100px;
   position: absolute;
   inset: 0;
@@ -1732,10 +1732,8 @@ body.is-advertising-browse .advertising-grid {
   backdrop-filter: blur(var(--glass-step-blur)) saturate(var(--glass-step-saturate)) brightness(var(--glass-step-brightness));
 }
 
-.glass-surface__step:nth-last-child(7) { --glass-step-blur: 7.14px; }
-.glass-surface__step:nth-last-child(6) { --glass-step-blur: 14.4px; }
-.glass-surface__step:nth-last-child(5) { --glass-step-blur: 27.84px; }
-.glass-surface__step:nth-last-child(4) { --glass-step-blur: 47.25px; }
+.glass-surface__step:nth-last-child(5) { --glass-step-blur: 16.07px; }
+.glass-surface__step:nth-last-child(4) { --glass-step-blur: 54.84px; }
 .glass-surface__step:nth-last-child(3) { --glass-step-blur: 82.07px; }
 
 .glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(5) { --glass-step-blur: 4.5px; }
