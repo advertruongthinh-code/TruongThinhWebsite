@@ -342,7 +342,9 @@ async function evidence(page) {
       } : null,
       flow: flowSelectors.map((selector) => ({
         selector,
-        index: [...(info?.children || [])].indexOf(info?.querySelector(`:scope > ${selector}`)),
+        // Card nhiều media chèn dãy thumbnail trước mô tả (media-card R6, kiểm ở m02a); thứ tự ở đây bỏ qua dãy đó.
+        index: [...(info?.children || [])].filter((node) => !node.matches("[data-advertising-photo-media-thumbs]"))
+          .indexOf(info?.querySelector(`:scope > ${selector}`)),
       })),
       ctaCount: document.querySelectorAll("[data-advertising-photo-cta]").length,
       cta: cta ? {
