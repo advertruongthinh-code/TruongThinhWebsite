@@ -15,7 +15,8 @@ const poster = path.join(root, "tests/site/fixtures/site-media-card-poster-3x2.w
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false } = {}) {
+function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
+  crowded = false } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   assert.equal(artifact.cards.length, 269, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
@@ -32,6 +33,11 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     altVi: "Video kiểm thử tổng hợp", altEn: "Synthetic test video",
   });
   if (videoCover) card.coverMediaId = videoId;
+  // Nhiều media hơn một dòng thumbnail và mô tả dài hơn vùng mô tả, để dãy và mô tả phải cuộn.
+  if (crowded) {
+    card.mediaItems.push(...Array.from({ length: 6 }, (_, index) => ({ ...card.mediaItems[0], id: `${cardId}-extra-${index}` })));
+    card.descriptionVi = card.descriptionEn = Array(8).fill(card.descriptionEn).join(" ");
+  }
   if (singleton) {
     card.mediaItems = [card.mediaItems[1]];
     card.coverMediaId = videoId;
@@ -47,8 +53,8 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
 }
 
 async function openFixture(page, locale, { videoCover = false, direct = false, photoOnly = false,
-  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false } = {}) {
-  const { artifact, card, related } = fixtureArtifact(videoCover, { singleton, relatedMedia, hasAudio, wideVideo });
+  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false, crowded = false } = {}) {
+  const { artifact, card, related } = fixtureArtifact(videoCover, { singleton, relatedMedia, hasAudio, wideVideo, crowded });
   await page.route(`**${fixturePrefix}*`, async (route) => {
     if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
     // Trả 206 theo Range để Chrome coi clip là seekable, thanh tua mới đổi được currentTime.
@@ -805,6 +811,74 @@ test("M02a primary video full screen uses a black frame without the blur backdro
     await page.evaluate(() => document.exitFullscreen());
     await page.waitForFunction(() => !document.fullscreenElement
       && document.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") === "Full screen");
+  });
+});
+
+// Dãy thumbnail một dòng, mô tả cuộn (owner 2026-10-24): còn nội dung thì mép mờ về trắng; thanh cuộn mô tả chỉ hiện khi
+// hover, kéo được, chữ căn đều; cảm ứng không có thanh.
+const scrollHints = (page) => page.evaluate(() => {
+  const strip = document.querySelector("[data-advertising-photo-media-thumbs]");
+  const scroll = document.querySelector("[data-advertising-photo-description-scroll]");
+  const bar = document.querySelector("[data-advertising-photo-description-bar]");
+  const active = strip.querySelector('[aria-current="true"]').getBoundingClientRect();
+  const box = strip.getBoundingClientRect();
+  return {
+    rows: new Set([...strip.children].map((node) => node.offsetTop)).size,
+    wholeThumbs: (strip.clientWidth + 8) % 68 === 0,
+    strip: [strip.hasAttribute("data-fade-start"), strip.hasAttribute("data-fade-end")],
+    activeClear: active.left >= box.left + (strip.hasAttribute("data-fade-start") ? 60 : 0) - 1
+      && active.right <= box.right - (strip.hasAttribute("data-fade-end") ? 60 : 0) + 1,
+    overflow: scroll.scrollHeight > scroll.clientHeight + 1,
+    description: [scroll.hasAttribute("data-fade-start"), scroll.hasAttribute("data-fade-end")],
+    scrollTop: scroll.scrollTop,
+    bar: { hidden: bar.hidden, display: getComputedStyle(bar).display, opacity: getComputedStyle(bar).opacity },
+    align: getComputedStyle(document.querySelector("[data-advertising-photo-description]")).textAlign,
+  };
+});
+
+test("M02a crowded primary keeps one thumbnail row and scrolls the description behind a hover scrollbar", async () => {
+  await withPage("en", async (page) => {
+    const card = await openFixture(page, "en", { direct: true, crowded: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    await page.mouse.move(5, 5);
+    await page.waitForTimeout(300);
+    let state = await scrollHints(page);
+    assert.deepEqual([state.rows, state.wholeThumbs, state.strip], [1, true, [false, true]],
+      `one row of whole thumbnails, the last one fading: ${JSON.stringify(state)}`);
+    assert.deepEqual([state.overflow, state.description, state.align], [true, [false, true], "justify"],
+      `long description scrolls, its last line fades, text justified: ${JSON.stringify(state)}`);
+    assert.deepEqual([state.bar.hidden, state.bar.opacity], [false, "0"], "scrollbar waits for hover");
+    const description = await page.locator("[data-advertising-photo-description-scroll]").boundingBox();
+    await page.mouse.move(description.x + description.width / 2, description.y + description.height / 2);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-advertising-photo-description-bar]")).opacity === "1");
+    const bar = await page.locator("[data-advertising-photo-description-bar]").boundingBox();
+    await page.mouse.move(bar.x + bar.width / 2, bar.y + 8);
+    await page.mouse.down();
+    await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height, { steps: 6 });
+    await page.mouse.up();
+    state = await scrollHints(page);
+    assert(state.scrollTop > 0, "dragging the scrollbar scrolls the description");
+    assert.deepEqual(state.description, [true, false], "at the end only the first line fades");
+    await page.mouse.move(5, 5);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-advertising-photo-description-bar]")).opacity === "0");
+    await page.locator(".advertising-photo-view__hero-frame").hover();
+    for (let step = 1; step < card.mediaItems.length; step += 1) {
+      await page.locator('[data-advertising-photo-media-step="1"]').click();
+      await page.waitForTimeout(150);
+    }
+    await page.waitForFunction((id) => document.querySelector("[data-advertising-photo-view]").dataset.advertisingActiveMediaId === id,
+      card.mediaItems.at(-1).id);
+    await page.waitForTimeout(600);
+    state = await scrollHints(page);
+    assert.deepEqual([state.strip, state.activeClear], [[true, false], true], "the strip follows the active thumbnail to its end");
+  });
+  await withPage("vi", async (page) => {
+    await openFixture(page, "vi", { direct: true, crowded: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    await page.waitForTimeout(300);
+    const state = await scrollHints(page);
+    assert.deepEqual([state.rows, state.description, state.bar.display], [1, [false, true], "none"],
+      "touch keeps the row and the fade but has no scrollbar");
   });
 });
 

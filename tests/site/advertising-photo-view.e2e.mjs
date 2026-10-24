@@ -119,8 +119,8 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
-    // Chromium hủy các fetch ảnh lazy bị thay thế (đổi srcset/variant, unmount); không phải lỗi tải.
-    if (request.resourceType() === "image" && request.failure()?.errorText === "net::ERR_ABORTED") return;
+    // Chromium hủy các fetch ảnh lazy hoặc video bị thay thế (đổi srcset/variant/src, unmount); không phải lỗi tải.
+    if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (isLocalUrl(request.url())) issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
   });
   page.on("response", (response) => {
@@ -365,13 +365,15 @@ async function layoutEvidence(page) {
       canvasRect: serializeRect(canvas),
       viewRect: serializeRect(photoView),
       infoRect: serializeRect(info),
-      // Sàn info như measureInfo của runtime: các dòng ngoài pager cộng một dòng mô tả.
+      // Sàn info như measureInfo của runtime: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
       infoFloor: info ? (() => {
-        const controls = [...info.children].filter((node) => !node.matches("[data-advertising-photo-description-pager]") && !node.hidden);
+        const controls = [...info.children].filter((node) => !node.matches("[data-advertising-photo-description-box]") && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => sum + node.offsetHeight
           + (Number.parseFloat(getComputedStyle(node).marginTop) || 0) + (Number.parseFloat(getComputedStyle(node).marginBottom) || 0), 0);
-        const lineHeight = Number.parseFloat(getComputedStyle(info.querySelector("[data-advertising-photo-description]")).lineHeight) || 0;
-        return Math.ceil(controlsHeight + lineHeight + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
+        const description = info.querySelector("[data-advertising-photo-description]");
+        const lineHeight = Number.parseFloat(getComputedStyle(description).lineHeight) || 0;
+        return Math.ceil(controlsHeight + Math.min(3 * lineHeight, description.offsetHeight)
+          + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
       })() : 0,
       heroRect: serializeRect(hero),
       frameRect: serializeRect(frame),
@@ -395,9 +397,10 @@ async function layoutEvidence(page) {
         scrollHeight: info.scrollHeight,
         scrollTop: info.scrollTop,
         overflowY: infoStyle.overflowY,
+        // Số dòng mô tả đang thấy: chiều cao vùng cuộn chia line-height (chữ dài hơn thì cuộn bên trong).
         descriptionLines: (() => {
-          const description = info.querySelector("[data-advertising-photo-description]");
-          return description ? description.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(description).lineHeight) : null;
+          const scroller = info.querySelector("[data-advertising-photo-description-scroll]");
+          return scroller ? scroller.clientHeight / Number.parseFloat(getComputedStyle(scroller).lineHeight) : null;
         })(),
         tabIndex: info.tabIndex,
         role: info.getAttribute("role"),
@@ -449,11 +452,11 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
   if (evidence.infoFloor <= expected.heightCap) assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap despite fitting floors`);
-  // Detail spec R2: vượt cap 28% chỉ khi một dòng description cùng group và CTA không vừa.
+  // Detail spec R2: vượt cap 28% chỉ khi ba dòng description cùng group và CTA không vừa.
   if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
-    assert(evidence.info?.descriptionLines < 1.5, `${label}: info exceeds 28% of the viewport with more than one description line`);
+    assert(evidence.info?.descriptionLines < 3.5, `${label}: info exceeds 28% of the viewport with more than three description lines`);
   }
-  // Detail spec R3: description phân trang theo từ thay vì tự cuộn.
+  // Detail spec R3: info không tự cuộn; chữ dài cuộn trong vùng mô tả.
   assert(!["auto", "scroll"].includes(evidence.info?.overflowY), `${label}: description has its own scrollbar`);
   assert.equal(evidence.info?.tabIndex, 0, `${label}: description region is not keyboard focusable`);
   assert.equal(evidence.info?.role, "region", `${label}: description region role is absent`);

@@ -156,7 +156,7 @@ const recordLayout = async (label, selectedFilter = null) => {
 const sample = async label => {
   const data = await evaluate(`(() => {
     const ids=window.__ttViewportRecordingIds ||= new WeakMap();
-    const subjects=[...document.querySelectorAll('.hero,.advertising-photo-view__primary,[data-advertising-photo-image],[data-advertising-photo-description-page],[data-advertising-photo-related-grid],[data-advertising-cta-skeleton],[data-advertising-grid-cta],.site-footer,[data-advertising-cta-frame]')];
+    const subjects=[...document.querySelectorAll('.hero,.advertising-photo-view__primary,[data-advertising-photo-image],[data-advertising-photo-description-scroll],[data-advertising-photo-related-grid],[data-advertising-cta-skeleton],[data-advertising-grid-cta],.site-footer,[data-advertising-cta-frame]')];
     return {utc:new Date().toISOString(),url:location.href,hidden:document.hidden,fonts:document.fonts.status,
       width:document.documentElement.clientWidth,height:innerHeight,y:scrollY,documentHeight:document.documentElement.scrollHeight,
       visual:{width:visualViewport.width,height:visualViewport.height,top:visualViewport.offsetTop,left:visualViewport.offsetLeft,scale:visualViewport.scale},

@@ -81,8 +81,8 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
-    // Ảnh bị hủy khi card gỡ khỏi DOM hoặc đổi srcset là hành vi bình thường của trình duyệt.
-    if (request.resourceType() === "image" && request.failure()?.errorText === "net::ERR_ABORTED") return;
+    // Ảnh, video bị hủy khi card gỡ khỏi DOM hoặc đổi srcset/src là hành vi bình thường của trình duyệt.
+    if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (new URL(request.url()).origin === baseOrigin || ["font", "stylesheet", "script"].includes(request.resourceType())) {
       issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
     }
@@ -167,8 +167,8 @@ async function evidence(page) {
     const background = document.querySelector("[data-advertising-photo-background]");
     const info = document.querySelector("[data-advertising-photo-info]");
     const description = document.querySelector("[data-advertising-photo-description]");
-    const descriptionPager = document.querySelector("[data-advertising-photo-description-pager]");
-    const descriptionIndicator = document.querySelector("[data-advertising-photo-description-indicator]");
+    const descriptionBox = document.querySelector("[data-advertising-photo-description-box]");
+    const descriptionScroll = document.querySelector("[data-advertising-photo-description-scroll]");
     const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
     const suggestion = document.querySelector("[data-advertising-suggestion-card]");
     const cta = document.querySelector("[data-advertising-photo-cta]");
@@ -224,22 +224,23 @@ async function evidence(page) {
         };
       });
     const flowSelectors = [
-      "[data-advertising-photo-category]", "[data-advertising-photo-description-pager]",
-      "[data-advertising-photo-description-indicator]", "[data-advertising-photo-cta]",
+      "[data-advertising-photo-category]", "[data-advertising-photo-description-box]", "[data-advertising-photo-cta]",
     ];
     const frameRect = frame?.getBoundingClientRect();
     const foregroundRect = foreground?.getBoundingClientRect();
     const visibleRelatedItems = [...(relatedGrid?.children || [])]
       .filter((node) => node.getBoundingClientRect().width > 0);
-    const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionPager
+    const visibleInfoControls = [...(info?.children || [])].filter((node) => node !== descriptionBox
       && !node.hidden && styles(node).display !== "none");
     const infoGap = Number.parseFloat(infoStyle?.rowGap) || 0;
     const descriptionLineHeight = Number.parseFloat(descriptionStyle?.lineHeight) || 0;
+    // Sàn mô tả như measureInfo: ba dòng, hoặc cả mô tả nếu ngắn hơn (detail R2).
+    const descriptionFloor = Math.min(3 * descriptionLineHeight, description?.offsetHeight || 0);
     const infoMinimumHeight = Math.ceil(visibleInfoControls.reduce((sum, node) => {
       const style = styles(node);
       return sum + node.getBoundingClientRect().height
         + (Number.parseFloat(style.marginTop) || 0) + (Number.parseFloat(style.marginBottom) || 0);
-    }, descriptionLineHeight + visibleInfoControls.length * infoGap)) + 1;
+    }, descriptionFloor + visibleInfoControls.length * infoGap)) + 1;
     const imageEdgePadding = Number.parseFloat(expandStyle?.getPropertyValue("--image-action-edge-padding")) || 0;
     const imageMinimumHeight = Math.ceil(Math.max(expand?.getBoundingClientRect().height || 0,
       2 * (Number.parseFloat(expandStyle?.lineHeight) || 0) + imageEdgePadding)
@@ -283,10 +284,9 @@ async function evidence(page) {
       view: box(view), primary: box(primary), hero: box(hero), frame: box(frame), info: box(info),
       contentRects: {
         category: box(document.querySelector("[data-advertising-photo-category]")),
-        pager: box(descriptionPager), description: box(description),
-        indicator: descriptionIndicator?.hidden ? null : box(descriptionIndicator),
+        descriptionBox: box(descriptionBox), description: box(description),
       },
-      minimum: { infoHeight: infoMinimumHeight, imageHeight: imageMinimumHeight, descriptionLineHeight },
+      minimum: { infoHeight: infoMinimumHeight, imageHeight: imageMinimumHeight, descriptionFloor },
       frameOverflow: styles(frame)?.overflow,
       glass: glass ? {
         display: getComputedStyle(glass).display,
@@ -327,13 +327,10 @@ async function evidence(page) {
         description: description?.textContent?.trim() || "",
         tagCount: document.querySelectorAll("[data-advertising-photo-tags], [data-advertising-photo-tag]").length,
       },
-      pager: descriptionPager ? {
-        index: Number(descriptionPager.dataset.pageIndex), count: Number(descriptionPager.dataset.pageCount),
-        touchAction: styles(descriptionPager).touchAction,
-      } : null,
-      indicator: descriptionIndicator ? {
-        label: descriptionIndicator.getAttribute("aria-label"), text: descriptionIndicator.textContent.trim(),
-        dots: descriptionIndicator.querySelectorAll("[data-advertising-photo-description-dot]").length,
+      descriptionScroll: descriptionScroll ? {
+        clientHeight: descriptionScroll.clientHeight, scrollHeight: descriptionScroll.scrollHeight,
+        overflowY: styles(descriptionScroll).overflowY, label: descriptionScroll.getAttribute("aria-label"),
+        textAlign: descriptionStyle?.textAlign,
       } : null,
       suggestion: suggestion ? {
         first: visibleRelatedItems[0] === suggestion,
@@ -404,8 +401,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(contained(actual.info, actual.primary), `${label}: info leaves primary bounds`);
   assert(actual.hero.height >= actual.minimum.imageHeight - 1, `${label}: image zone is below its control floor`);
   assert(actual.info.height >= actual.minimum.infoHeight - 1, `${label}: info is below its readable floor`);
-  assert(actual.contentRects.pager.height >= actual.minimum.descriptionLineHeight - 1,
-    `${label}: description lacks one complete line`);
+  assert(actual.contentRects.descriptionBox.height >= actual.minimum.descriptionFloor - 1,
+    `${label}: description lacks its readable lines`);
   for (const [name, rect] of Object.entries(actual.contentRects)) {
     if (name !== "description" && rect) assert(contained(rect, actual.info), `${label}: ${name} is clipped outside info`);
   }
@@ -462,7 +459,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
     `${label}: background does not cover hero frame`);
   }
 
-  assert.deepEqual(actual.flow.map(({ index }) => index), [0, 1, 2, 3], `${label}: info flow is not category-pager-indicator-CTA`);
+  assert.deepEqual(actual.flow.map(({ index }) => index), [0, 1, 2], `${label}: info flow is not category-description-CTA`);
   assert.equal(actual.suggestion?.inInfo, !fullSpan, `${label}: suggestion owner does not match primary span`);
   assert.equal(actual.suggestion?.inRelated, fullSpan, `${label}: suggestion related-grid ownership is wrong`);
   assert.equal(actual.suggestion?.first, fullSpan, `${label}: suggestion order does not match layout`);
@@ -475,9 +472,10 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(actual.infoState?.ariaLabel?.trim(), `${label}: photo information has no accessible region label`);
   closeTo(actual.typography.body, actual.viewport.rootFontSize, `${label}: body size follows root scale`, 0.1);
   const canonicalDescription = locale === "vi" ? card.descriptionVi : card.descriptionEn;
-  assert(actual.copy.description && canonicalDescription.startsWith(actual.copy.description), `${label}: visible description page is not canonical copy`);
-  assert(actual.pager?.count >= 1 && actual.pager.index >= 0 && actual.pager.index < actual.pager.count, `${label}: description pager state is invalid`);
-  assert(actual.indicator?.label && (actual.indicator.text || actual.indicator.dots), `${label}: description indicator is not accessible`);
+  assert.equal(actual.copy.description, canonicalDescription.trim(), `${label}: description is not the whole canonical copy`);
+  assert.equal(actual.descriptionScroll?.overflowY, "auto", `${label}: description is not its own scroller`);
+  assert(actual.descriptionScroll.label, `${label}: description scroller has no accessible label`);
+  assert.equal(actual.descriptionScroll.textAlign, "justify", `${label}: description is not justified`);
   if (normalCopyFit) {
     assert(actual.infoState.scrollHeight <= actual.infoState.clientHeight + 2,
       `${label}: normal copy scrolls ${actual.infoState.scrollHeight - actual.infoState.clientHeight}px`);
@@ -633,6 +631,19 @@ async function screenshot(page, label) {
   return file;
 }
 
+// Focus vùng mô tả rồi End: trình duyệt cuộn vùng đang focus tới cuối; info không được cuộn theo.
+async function scrollDescriptionToEnd(page) {
+  await page.locator("[data-advertising-photo-description-scroll]").focus();
+  await page.keyboard.press("End");
+  await page.waitForTimeout(300);
+  return page.evaluate(() => {
+    const scroll = document.querySelector("[data-advertising-photo-description-scroll]");
+    return { reached: scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 1,
+      fadeEnd: scroll.hasAttribute("data-fade-end"),
+      infoScrollTop: document.querySelector("[data-advertising-photo-info]")?.scrollTop || 0 };
+  });
+}
+
 async function wheelToHit(page, locator, label) {
   const viewport = page.viewportSize();
   await page.mouse.move(10, Math.max(120, viewport.height / 2));
@@ -686,7 +697,7 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
       primary: position("[data-advertising-photo-primary]"),
       hero: position("[data-advertising-photo-hero]"),
       info: position("[data-advertising-photo-info]"),
-      indicator: position("[data-advertising-photo-description-indicator]"),
+      description: position("[data-advertising-photo-description-box]"),
       cta: position("[data-advertising-photo-cta]"),
       related: (() => {
         const rect = [...document.querySelectorAll("[data-advertising-related-card]")]
@@ -705,16 +716,9 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
 
-  const indicator = await wheelToHit(page, page.locator("[data-advertising-photo-description-indicator]"), `${test.label}: indicator`);
-  await page.locator("[data-advertising-photo-description-pager]").focus();
-  for (let index = 1; index < initial.pager.count; index += 1) await page.keyboard.press("ArrowRight");
-  const finalPage = await page.locator("[data-advertising-photo-description-pager]").evaluate((node) => ({
-    index: Number(node.dataset.pageIndex), count: Number(node.dataset.pageCount),
-    text: node.querySelector("[data-advertising-photo-description]")?.textContent.trim() || "",
-  }));
-  assert.equal(finalPage.index, finalPage.count - 1, `${test.label}: final description page is unreachable`);
-  const canonical = cards.get(test.id)[test.locale === "vi" ? "descriptionVi" : "descriptionEn"];
-  assert(finalPage.text && canonical.endsWith(finalPage.text), `${test.label}: final description text is incomplete`);
+  const description = await wheelToHit(page, page.locator("[data-advertising-photo-description-box]"), `${test.label}: description`);
+  const finalPage = await scrollDescriptionToEnd(page);
+  assert(finalPage.reached, `${test.label}: end of the description is unreachable`);
 
   const cta = await wheelToHit(page, page.locator("[data-advertising-photo-cta]"), `${test.label}: CTA`);
   await activateWithoutViewer(page, context, "pointer", externalRequests, test.label);
@@ -722,7 +726,7 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
   const after = await geometry();
   closeTo(after.primary.width, before.primary.width, `${test.label}: primary width changed during scroll`, 1);
   closeTo(after.primary.height, before.primary.height, `${test.label}: primary height changed during scroll`, 1);
-  for (const name of ["primary", "hero", "info", "indicator", "cta", "related"]) {
+  for (const name of ["primary", "hero", "info", "description", "cta", "related"]) {
     for (const edge of ["top", "bottom", "left", "right"]) {
       const relativeBefore = before[name][edge] - before.primary[edge];
       const relativeAfter = after[name][edge] - after.primary[edge];
@@ -730,7 +734,7 @@ async function assertNonfitReachability(page, context, externalRequests, test, i
     }
   }
   assert.equal(after.pageHeight, before.pageHeight, `${test.label}: page height changed during scroll`);
-  return { indicator, finalPage, cta, related, before, after };
+  return { description, finalPage, cta, related, before, after };
 }
 
 async function runPageCase(browser, test) {
@@ -779,8 +783,8 @@ async function runPageCase(browser, test) {
       assert.equal(observed.viewport.width, beforeText.viewport.width, `${test.label}: text resize changed viewport width`);
       assert.equal(observed.viewport.height, beforeText.viewport.height, `${test.label}: text resize changed viewport height`);
       if (test.verifyTextAllocation !== false) {
-        assert(observed.pager.count >= beforeText.pager.count,
-          `${test.label}: scaled text reduced description pages (${beforeText.pager.count} to ${observed.pager.count})`);
+        assert(observed.descriptionScroll.scrollHeight >= beforeText.descriptionScroll.scrollHeight,
+          `${test.label}: scaled text shrank the description (${beforeText.descriptionScroll.scrollHeight} to ${observed.descriptionScroll.scrollHeight})`);
         assert(observed.infoState.scrollHeight <= observed.infoState.clientHeight + 2,
           `${test.label}: scaled description introduced an inner scroller`);
       }
@@ -812,19 +816,9 @@ async function runPageCase(browser, test) {
     }
     if (test.textScale) {
       stage = "text-reaches-end";
-      const pager = page.locator("[data-advertising-photo-description-pager]");
-      await pager.focus();
-      for (let index = 1; index < observed.pager.count; index += 1) await page.keyboard.press("ArrowRight");
-      const end = await page.evaluate(() => {
-        const pagerNode = document.querySelector("[data-advertising-photo-description-pager]");
-        const info = document.querySelector("[data-advertising-photo-info]");
-        return {
-          index: Number(pagerNode?.dataset.pageIndex), count: Number(pagerNode?.dataset.pageCount),
-          infoScrollTop: info?.scrollTop || 0,
-        };
-      });
-      assert.equal(end.index, end.count - 1, `${test.label}: final description page is unreachable`);
-      assert.equal(end.infoScrollTop, 0, `${test.label}: description pager scrolled its container`);
+      const end = await scrollDescriptionToEnd(page);
+      assert(end.reached, `${test.label}: end of the description is unreachable`);
+      assert.equal(end.infoScrollTop, 0, `${test.label}: description scrolled the info container`);
       observed.textEnd = end;
     }
     if (test.reducedMotion) {
@@ -912,8 +906,9 @@ async function runP7PinterestContract(browser, locale) {
       const frame = document.querySelector(".advertising-photo-view__hero-frame");
       const image = document.querySelector("[data-advertising-photo-image]");
       const info = document.querySelector("[data-advertising-photo-info]");
-      const pager = document.querySelector("[data-advertising-photo-description-pager]");
-      const indicator = document.querySelector("[data-advertising-photo-description-indicator]");
+      const descriptionBox = document.querySelector("[data-advertising-photo-description-box]");
+      const descriptionScroll = document.querySelector("[data-advertising-photo-description-scroll]");
+      const description = document.querySelector("[data-advertising-photo-description]");
       const relatedGrid = document.querySelector("[data-advertising-photo-related-grid]");
       const suggestion = document.querySelector("[data-advertising-suggestion-card]");
       const frameRect = frame?.getBoundingClientRect();
@@ -927,16 +922,14 @@ async function runP7PinterestContract(browser, locale) {
         layout: view?.dataset.advertisingPhotoLayout,
         primary: rect("[data-advertising-photo-primary]"), hero: rect("[data-advertising-photo-hero]"),
         info: rect("[data-advertising-photo-info]"), gap: Number.parseFloat(getComputedStyle(primary).gap) || 0,
-        // Sàn info như assertCore: các dòng ngoài pager cộng một dòng mô tả.
-        infoMinimum: [...info.children].filter((node) => node !== pager && !node.hidden && getComputedStyle(node).display !== "none")
+        // Sàn info như assertCore: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
+        infoMinimum: [...info.children].filter((node) => node !== descriptionBox && !node.hidden && getComputedStyle(node).display !== "none")
           .reduce((sum, node) => sum + node.getBoundingClientRect().height + (Number.parseFloat(getComputedStyle(info).rowGap) || 0),
-            Number.parseFloat(getComputedStyle(pager.querySelector("[data-advertising-photo-description]") || pager).lineHeight) || 0),
+            Math.min(3 * (Number.parseFloat(getComputedStyle(description).lineHeight) || 0), description.offsetHeight)),
         infoOverflowY: getComputedStyle(info).overflowY, infoOverscroll: getComputedStyle(info).overscrollBehaviorY,
         infoScrollTop: info?.scrollTop || 0, infoScrollHeight: info?.scrollHeight || 0, infoClientHeight: info?.clientHeight || 0,
-        pager: pager ? { index: Number(pager.dataset.pageIndex), count: Number(pager.dataset.pageCount),
-          touchAction: getComputedStyle(pager).touchAction } : null,
-        indicator: indicator ? { label: indicator.getAttribute("aria-label"), text: indicator.textContent.trim(),
-          dots: indicator.querySelectorAll("[data-advertising-photo-description-dot]").length } : null,
+        descriptionScroll: { scrollTop: descriptionScroll.scrollTop, scrollHeight: descriptionScroll.scrollHeight,
+          clientHeight: descriptionScroll.clientHeight, fadeEnd: descriptionScroll.hasAttribute("data-fade-end") },
         containOverflow: Boolean(frameRect && imageRect && (imageRect.width < frameRect.width - 1 || imageRect.height < frameRect.height - 1)),
         glassActive: Boolean(glass && getComputedStyle(glass).display !== "none"),
         suggestion: suggestion ? { first: items[0] === suggestion,
@@ -962,9 +955,9 @@ async function runP7PinterestContract(browser, locale) {
     closeTo(initial.hero.height + initial.gap + initial.info.height, initial.primary.height, `${label}: primary vertical allocation`, 2);
     assert(!["auto", "scroll"].includes(initial.infoOverflowY), `${label}: description retains inner scroll`);
     assert.notEqual(initial.infoOverscroll, "contain", `${label}: description traps document scroll`);
-    assert(initial.pager?.count >= 2 && initial.pager.index === 0, `${label}: overflow copy was not paginated`);
-    assert.equal(initial.pager.touchAction, "pan-y", `${label}: pager blocks vertical touch scroll`);
-    assert(initial.indicator?.label && (initial.indicator.text || initial.indicator.dots), `${label}: page indicator is not accessible`);
+    assert(initial.descriptionScroll.scrollHeight > initial.descriptionScroll.clientHeight + 1, `${label}: overflow copy does not scroll`);
+    assert.deepEqual([initial.descriptionScroll.scrollTop, initial.descriptionScroll.fadeEnd], [0, true],
+      `${label}: overflow copy starts at the top with its last line fading`);
     assert.equal(initial.glassActive, initial.containOverflow, `${label}: zoom-glass does not follow contain overflow`);
     assert.equal(initial.suggestion?.inInfo, initial.layout === "split", `${label}: suggestion owner does not match primary span`);
     assert.equal(initial.suggestion?.inRelated, initial.layout === "pinterest", `${label}: suggestion related-grid ownership is wrong`);
@@ -977,44 +970,18 @@ async function runP7PinterestContract(browser, locale) {
     assert.equal(initial.hasBack, false, `${label}: dedicated Back control returned`);
     assert.equal(initial.viewerTouchAction, "none", `${label}: fullscreen viewer lost exclusive pan/zoom gestures`);
 
-    const pager = page.locator("[data-advertising-photo-description-pager]");
-    const pageIndex = () => pager.evaluate((node) => Number(node.dataset.pageIndex));
-    const resetPager = async () => {
-      await pager.focus();
-      for (let index = 0; index < initial.pager.count; index += 1) await page.keyboard.press("ArrowLeft");
-      await page.waitForFunction(() => document.querySelector("[data-advertising-photo-description-pager]")?.dataset.pageIndex === "0");
-    };
-    const expectAdvance = async (action, actionLabel) => {
-      await resetPager();
-      await action();
-      await page.waitForFunction(() => Number(document.querySelector("[data-advertising-photo-description-pager]")?.dataset.pageIndex) > 0);
-      assert((await pageIndex()) > 0, `${label}: ${actionLabel} did not advance pager`);
-    };
-
-    stage = "pager-input";
-    await expectAdvance(async () => page.keyboard.press("ArrowRight"), "ArrowRight");
-    await expectAdvance(async () => {
-      const box = await pager.boundingBox();
-      await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, { steps: 5 });
-      await page.mouse.up();
-    }, "mouse drag");
-    await expectAdvance(async () => {
-      await pager.hover();
-      await page.mouse.wheel(180, 0);
-    }, "trackpad delta-x");
-    await expectAdvance(async () => pager.dispatchEvent("pointerdown", { pointerId: 7, pointerType: "touch", clientX: 300, clientY: 100, bubbles: true })
-      .then(() => pager.dispatchEvent("pointermove", { pointerId: 7, pointerType: "touch", clientX: 80, clientY: 104, bubbles: true }))
-      .then(() => pager.dispatchEvent("pointerup", { pointerId: 7, pointerType: "touch", clientX: 80, clientY: 104, bubbles: true })), "touch swipe");
-    await resetPager();
-    await pager.dispatchEvent("pointerdown", { pointerId: 8, pointerType: "touch", clientX: 300, clientY: 100, bubbles: true });
-    await pager.dispatchEvent("pointermove", { pointerId: 8, pointerType: "touch", clientX: 80, clientY: 104, bubbles: true });
-    await pager.dispatchEvent("pointercancel", { pointerId: 8, pointerType: "touch", clientX: 80, clientY: 104, bubbles: true });
-    assert.equal(await pageIndex(), 0, `${label}: pointercancel changed the description page`);
+    stage = "description-scroll";
+    const descriptionTop = () => page.evaluate(() => document.querySelector("[data-advertising-photo-description-scroll]").scrollTop);
+    await page.locator("[data-advertising-photo-description-scroll]").hover();
+    await page.mouse.wheel(0, 40);
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-description-scroll]").scrollTop > 0);
+    assert((await descriptionTop()) > 0, `${label}: wheel over the description does not scroll it`);
+    const end = await scrollDescriptionToEnd(page);
+    assert.deepEqual([end.reached, end.fadeEnd, end.infoScrollTop], [true, false, 0], `${label}: End does not reach the last line`);
 
     stage = "vertical-scroll";
-    for (const selector of ["[data-advertising-photo-hero]", "[data-advertising-photo-info]", "[data-advertising-suggestion-card]"]) {
+    // Ngoài vùng mô tả (nhóm, ảnh, suggestion) wheel dọc luôn cuộn trang.
+    for (const selector of ["[data-advertising-photo-hero]", "[data-advertising-photo-category]", "[data-advertising-suggestion-card]"]) {
       await page.evaluate(() => scrollTo(0, 0));
       await page.locator(selector).hover();
       const beforeScroll = await page.evaluate(() => scrollY);

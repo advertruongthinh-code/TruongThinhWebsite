@@ -2568,14 +2568,34 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-view__info [data-advertising-photo-description] {
   max-width: 100%;
   margin: 0;
-  font-size: 1rem;
+  text-align: justify;
 }
 
+/* Dãy thumbnail một dòng vừa số thumbnail nguyên (60px, gap 8px), thừa thì cuộn ngang (owner 2026-10-24). */
 .advertising-photo-view__media-thumbs {
+  --scroll-fade-direction: to right;
+  --scroll-fade-size: 60px;
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  width: 100%;
+  width: calc(round(down, 100% + 8px, 68px) - 8px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+/* Còn nội dung phía sau thì phần tử cuối trong khung mờ về trắng, đã cuộn thì phần tử đầu mờ; dùng cho dãy thumbnail và
+   mô tả (owner 2026-10-24), runtime gắn data-fade-start, data-fade-end theo vị trí cuộn. */
+:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll):is([data-fade-start], [data-fade-end]) {
+  mask-image: linear-gradient(var(--scroll-fade-direction), var(--scroll-fade-from, #000), #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)), var(--scroll-fade-to, #000));
+}
+
+:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll)[data-fade-start] {
+  --scroll-fade-from: transparent;
+}
+
+:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll)[data-fade-end] {
+  --scroll-fade-to: transparent;
 }
 
 /* Thumbnail theo pin Pinterest (đo 2026-10-18): 60px, góc vuông (owner 2026-10-24), đang xem có viền 1px tối và viền trong
@@ -2622,63 +2642,73 @@ body.is-advertising-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-[data-advertising-photo-description-pager] {
+/* Mô tả cuộn dọc thay cho phân trang (owner 2026-10-24), chữ căn đều, mép mờ như dãy thumbnail. Thanh cuộn theo player
+   (rãnh 4px, viên 4px dài theo lượng chữ) chỉ hiện khi hover hoặc focus bàn phím, fade 150ms, kéo được; màn hình cảm ứng
+   không có thanh, vuốt để cuộn. */
+.advertising-photo-view__description {
+  position: relative;
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
-  overflow: clip;
-  touch-action: pan-y;
 }
 
-.advertising-photo-view__description-page {
-  width: 100%;
+.advertising-photo-view__description-scroll {
+  --scroll-fade-direction: to bottom;
+  --scroll-fade-size: 1lh;
   height: 100%;
-  overflow: clip;
+  overflow-y: auto;
+  font-size: 1rem;
+  scrollbar-width: none;
 }
 
-/* min-height giữ dòng 24px cả lúc chưa có dot, để paginateDescription đo pager đúng chiều cao cuối (detail R3). */
-.advertising-photo-view__description-indicator {
-  display: flex;
-  min-height: 24px;
-  margin: 0;
-  font-size: 0.75rem;
-  line-height: 24px;
-  font-variant-numeric: tabular-nums;
+.advertising-photo-view__description-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  opacity: 0;
+  touch-action: none;
+  transition: opacity 150ms ease-out;
 }
 
-/* Vùng bấm 24px mỗi dot; margin âm căn dot đầu với mép text. */
-.advertising-photo-view__description-indicator button {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  place-items: center;
-  cursor: pointer;
-}
-
-.advertising-photo-view__description-indicator button:first-child {
-  margin-inline-start: -8px;
-}
-
-.advertising-photo-view__description-indicator button::before {
-  width: 8px;
-  height: 8px;
-  box-sizing: border-box;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
+.advertising-photo-view__description-bar::before,
+.advertising-photo-view__description-bar::after {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 4px;
+  border-radius: 999px;
   content: "";
 }
 
-.advertising-photo-view__description-indicator button[aria-current="true"]::before {
-  background: var(--ink);
+.advertising-photo-view__description-bar::before {
+  bottom: 0;
+  background: rgba(32, 33, 32, 0.16);
 }
 
-.advertising-photo-view__description-indicator button:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
+.advertising-photo-view__description-bar::after {
+  height: var(--thumb-height);
+  background: rgba(32, 33, 32, 0.6);
+  transform: translateY(var(--thumb-top));
+}
+
+.advertising-photo-view__description:is(:hover, :has(:focus-visible)) > .advertising-photo-view__description-bar,
+.advertising-photo-view__description-bar[data-dragging] {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .advertising-photo-view__description:has(> .advertising-photo-view__description-bar:not([hidden]))
+    > .advertising-photo-view__description-scroll {
+    padding-right: 16px;
+  }
+}
+
+@media (hover: none) {
+  .advertising-photo-view__description-bar {
+    display: none;
+  }
 }
 
 .advertising-photo-view__cta {

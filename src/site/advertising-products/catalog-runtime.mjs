@@ -1356,9 +1356,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   photoBackground?.after(photoGlass);
   const photoCategory = photoView?.querySelector("[data-advertising-photo-category]");
   const photoDescription = photoView?.querySelector("[data-advertising-photo-description]");
-  const photoDescriptionPager = photoView?.querySelector("[data-advertising-photo-description-pager]");
-  const photoDescriptionPage = photoView?.querySelector("[data-advertising-photo-description-page]");
-  const photoDescriptionIndicator = photoView?.querySelector("[data-advertising-photo-description-indicator]");
+  const photoDescriptionBox = photoView?.querySelector("[data-advertising-photo-description-box]");
+  const photoDescriptionScroll = photoView?.querySelector("[data-advertising-photo-description-scroll]");
+  const photoDescriptionBar = photoView?.querySelector("[data-advertising-photo-description-bar]");
   const photoInfo = photoView?.querySelector("[data-advertising-photo-info]");
   const relatedGrid = photoView?.querySelector("[data-advertising-photo-related-grid]");
   const suggestionNode = photoView?.querySelector("[data-advertising-photo-suggestion]");
@@ -1481,10 +1481,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let suggestionSlots = [];
   let suggestionSlotHeroId = "";
   let stopSuggestionSlides;
-  let descriptionSource = "";
-  let descriptionPages = [""];
-  let descriptionPageIndex = 0;
-  let descriptionPointer = null;
+  let descriptionThumbHeight = 0;
   const photoViewer = createAdvertisingPhotoViewer({
     getVisibleViewport,
     closeButton: photoClose,
@@ -2864,81 +2861,38 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     return rendered.get(id) || null;
   };
   const categoryById = new Map(categories.map((category) => [category.slug, category]));
-  const showDescriptionPage = (index = descriptionPageIndex) => {
-    const last = Math.max(0, descriptionPages.length - 1);
-    descriptionPageIndex = Math.min(last, Math.max(0, index));
-    if (photoDescription) photoDescription.textContent = descriptionPages[descriptionPageIndex] || "";
-    if (photoDescriptionPager) {
-      photoDescriptionPager.dataset.pageIndex = String(descriptionPageIndex);
-      photoDescriptionPager.dataset.pageCount = String(descriptionPages.length);
-    }
-    if (photoDescriptionIndicator) {
-      const current = descriptionPageIndex + 1;
-      const total = descriptionPages.length;
-      const pageLabel = (page) => locale === "en" ? `Description page ${page} of ${total}` : `Trang mô tả ${page} trên ${total}`;
-      photoDescriptionIndicator.hidden = total <= 1;
-      photoDescriptionIndicator.setAttribute("aria-label", pageLabel(current));
-      // Tối đa năm trang hiện một dot mỗi trang; nhiều hơn thì dùng "n / N".
-      if (total > 5) photoDescriptionIndicator.textContent = `${current} / ${total}`;
-      else {
-        if (photoDescriptionIndicator.children.length !== total) {
-          photoDescriptionIndicator.replaceChildren(...descriptionPages.map((_, index) => {
-            const dot = document.createElement("button");
-            dot.type = "button";
-            dot.dataset.advertisingPhotoDescriptionDot = String(index);
-            return dot;
-          }));
-        }
-        [...photoDescriptionIndicator.children].forEach((dot, index) => {
-          dot.setAttribute("aria-label", pageLabel(index + 1));
-          dot.setAttribute("aria-current", String(index === descriptionPageIndex));
-        });
-      }
-    }
+  // Dãy thumbnail và mô tả mờ ở mép còn nội dung, thanh cuộn mô tả theo vị trí cuộn (owner 2026-10-24).
+  const syncScrollFade = (node, before, after) => {
+    node.toggleAttribute("data-fade-start", before > 1);
+    node.toggleAttribute("data-fade-end", after > 1);
   };
-  const paginateDescription = () => {
-    if (!photoDescription || !photoDescriptionPager || !photoDescriptionPage) return;
-    const words = descriptionSource.trim().split(/\s+/).filter(Boolean);
-    const available = Math.floor(photoDescriptionPager.clientHeight);
-    if (!words.length || available <= 0) {
-      descriptionPages = [descriptionSource];
-      showDescriptionPage(0);
-      return;
+  const syncScrollHints = () => {
+    if (photoMediaThumbs) {
+      const { scrollLeft, scrollWidth, clientWidth } = photoMediaThumbs;
+      syncScrollFade(photoMediaThumbs, scrollLeft, scrollWidth - clientWidth - scrollLeft);
     }
-    const pages = [];
-    let start = 0;
-    // Hầu hết mô tả vừa một trang: một layout thay vì tìm kiếm.
-    photoDescription.textContent = words.join(" ");
-    if (photoDescription.scrollHeight <= available + 1) {
-      pages.push(photoDescription.textContent);
-      start = words.length;
-    }
-    while (start < words.length) {
-      // Binary search trang dài nhất vừa khít: mỗi lần probe ép một layout.
-      let best = start + 1;
-      let low = start + 2;
-      let high = words.length;
-      while (low <= high) {
-        const end = (low + high) >> 1;
-        photoDescription.textContent = words.slice(start, end).join(" ");
-        if (photoDescription.scrollHeight > available + 1) high = end - 1;
-        else {
-          best = end;
-          low = end + 1;
-        }
-      }
-      pages.push(words.slice(start, best).join(" "));
-      start = best;
-    }
-    descriptionPages = pages.length ? pages : [descriptionSource];
-    showDescriptionPage(Math.min(descriptionPageIndex, descriptionPages.length - 1));
+    if (!photoDescriptionScroll) return;
+    const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
+    const room = scrollHeight - clientHeight;
+    syncScrollFade(photoDescriptionScroll, scrollTop, room - scrollTop);
+    photoDescriptionBar.hidden = room <= 1;
+    descriptionThumbHeight = Math.max(24, clientHeight * clientHeight / scrollHeight);
+    photoDescriptionBar.style.setProperty("--thumb-height", `${descriptionThumbHeight}px`);
+    photoDescriptionBar.style.setProperty("--thumb-top", `${room > 1 ? scrollTop / room * (clientHeight - descriptionThumbHeight) : 0}px`);
   };
-  const turnDescriptionPage = (direction) => {
-    if (descriptionPages.length <= 1) return false;
-    const next = Math.min(descriptionPages.length - 1, Math.max(0, descriptionPageIndex + direction));
-    if (next === descriptionPageIndex) return false;
-    showDescriptionPage(next);
-    return true;
+  // Khung hay nội dung đổi cỡ (layout, font, đổi card, đổi ngôn ngữ) thì đo lại sau layout, không ép layout riêng.
+  const scrollHintObserver = new ResizeObserver(syncScrollHints);
+  if (photoDescriptionScroll) [photoDescriptionScroll, photoDescription].forEach((node) => scrollHintObserver.observe(node));
+  // Thumbnail đang xem nằm ngoài khung hoặc trong vùng mờ thì cuộn dãy cho nó vào giữa.
+  const keepActiveThumbInView = () => {
+    const button = photoMediaThumbs?.querySelector('[aria-current="true"]');
+    if (!button) return;
+    syncScrollHints();
+    const strip = photoMediaThumbs.getBoundingClientRect();
+    const box = button.getBoundingClientRect();
+    const fade = (name) => photoMediaThumbs.hasAttribute(name) ? 60 : 0;
+    if (box.left >= strip.left + fade("data-fade-start") - 1 && box.right <= strip.right - fade("data-fade-end") + 1) return;
+    photoMediaThumbs.scrollBy({ left: box.left + box.width / 2 - strip.left - strip.width / 2, behavior: reduced ? "auto" : "smooth" });
   };
   const renderSuggestionLinks = (browse, english) => {
     if (!suggestionNode) return;
@@ -3239,7 +3193,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         height: Math.max(1, suggestionHeight),
       },
     } : null;
-    let needsDescriptionIndicator = false;
     // Solver hỏi chiều cao tự nhiên rồi chiều cao tối thiểu ở cùng bề rộng: đo một lần cho cả hai, mỗi lần đo
     // ép một lượt style và layout của info (decision phone-frame-budget).
     const infoMeasures = new Map();
@@ -3247,18 +3200,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoView.dataset.advertisingPhotoLayout = mode;
       const previousWidth = photoInfo.style.width;
       const previousHeight = photoInfo.style.height;
-      const previousText = photoDescription.textContent;
-      const previousIndicatorHidden = photoDescriptionIndicator.hidden;
       try {
         photoInfo.style.width = `${width}px`;
         photoInfo.style.height = "auto";
-        photoDescription.textContent = descriptionSource;
-        photoDescriptionIndicator.hidden = true;
         // Đổi ngôn ngữ chạy transition scale(0.9) trên main: rect co theo scale nên chia lại bằng bề rộng đã đặt,
         // nếu không info thấp hơn 10% và mô tả bị cắt.
         const infoRect = photoInfo.getBoundingClientRect();
         const naturalHeight = Math.ceil(infoRect.width ? infoRect.height * width / infoRect.width : infoRect.height);
-        const controls = [...photoInfo.children].filter(node => node !== photoDescriptionPager
+        const controls = [...photoInfo.children].filter(node => node !== photoDescriptionBox
           && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => {
           const style = getComputedStyle(node);
@@ -3268,14 +3217,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         const gap = parseFloat(getComputedStyle(photoInfo).rowGap) || 0;
         return {
           naturalHeight,
-          floor: Math.ceil(controlsHeight + lineHeight + controls.length * gap) + 1,
-          indicatorHeight: Math.ceil(parseFloat(getComputedStyle(photoDescriptionIndicator).lineHeight)) + gap,
+          // Mô tả dài giữ tối thiểu ba dòng để vùng cuộn còn đọc được (owner 2026-10-24).
+          floor: Math.ceil(controlsHeight + Math.min(3 * lineHeight, photoDescription.offsetHeight)
+            + controls.length * gap) + 1,
         };
       } finally {
         photoInfo.style.width = previousWidth;
         photoInfo.style.height = previousHeight;
-        photoDescription.textContent = previousText;
-        photoDescriptionIndicator.hidden = previousIndicatorHidden;
       }
     };
     const measureInfo = (width, mode, basePrimary = null) => {
@@ -3283,10 +3231,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const key = `${width}:${mode}`;
       if (!infoMeasures.has(key)) infoMeasures.set(key, measureInfoOnce(width, mode));
       else photoView.dataset.advertisingPhotoLayout = mode;
-      const { naturalHeight, floor, indicatorHeight } = infoMeasures.get(key);
-      if (!basePrimary) return naturalHeight;
-      needsDescriptionIndicator = naturalHeight > Math.max(basePrimary.descriptionHeight, floor);
-      return floor + (needsDescriptionIndicator ? indicatorHeight : 0);
+      const { naturalHeight, floor } = infoMeasures.get(key);
+      return basePrimary ? floor : naturalHeight;
     };
     const expandStyle = photoExpand ? getComputedStyle(photoExpand) : null;
     const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
@@ -3328,7 +3274,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     relatedGrid.style.setProperty("--advertising-photo-related-height", `${height}px`);
     photoCanvas.style.setProperty("--advertising-photo-canvas-height", `${height}px`);
     relatedPixelHeight = height;
-    photoDescriptionIndicator.hidden = !needsDescriptionIndicator;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Đã đo nhưng chưa đặt: giữ nó ngoài mọi frame vẽ trước task mount.
       if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
@@ -3340,7 +3285,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
       return;
     }
-    paginateDescription();
     renderRelatedWindow({ animate: true, origins });
   };
   // Primary đổi bên trong frame của chính nó (loading-glass-and-page-entry R4, R5): photo đang tải
@@ -3632,6 +3576,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
       button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
     });
+    // Đọc rect trong frame kế: layout của frame đó vẫn phải chạy, nên không thêm lượt layout.
+    requestAnimationFrame(keepActiveThumbInView);
     const items = record.mediaItems || [];
     const index = items.indexOf(item);
     photoMediaSteps.forEach((button) => {
@@ -3657,6 +3603,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
       || item.kind !== "image" || item.src !== record.media.src);
     if (!authored) {
+      if (photoMediaThumbs) scrollHintObserver.unobserve(photoMediaThumbs);
       photoMediaThumbs?.remove();
       photoMediaThumbs = null;
       return;
@@ -3667,10 +3614,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoMediaThumbs.className = "advertising-photo-view__media-thumbs";
       photoMediaThumbs.dataset.advertisingPhotoMediaThumbs = "";
       photoMediaThumbs.setAttribute("role", "group");
-      photoDescriptionPager.before(photoMediaThumbs);
+      photoMediaThumbs.addEventListener("scroll", syncScrollHints, { passive: true });
+      scrollHintObserver.observe(photoMediaThumbs);
+      photoDescriptionBox.before(photoMediaThumbs);
     }
     photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
     photoMediaThumbs.replaceChildren();
+    photoMediaThumbs.scrollLeft = 0;
     items.forEach((item, index) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -3899,9 +3849,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (videoHandoff?.mediaId === selected.id && selected.kind === "video") photoVideo.currentTime = videoHandoff.time;
     videoHandoff = null;
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
-    descriptionSource = english ? record.descriptionEn : record.descriptionVi;
-    descriptionPageIndex = 0;
-    if (photoDescription) photoDescription.textContent = descriptionSource;
+    if (photoDescription) photoDescription.textContent = english ? record.descriptionEn : record.descriptionVi;
+    if (photoDescriptionScroll) photoDescriptionScroll.scrollTop = 0;
     const category = categoryById.get(record.category);
     if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;
     renderSuggestionLinks(browse, english);
@@ -3997,15 +3946,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       revealPhotoView(browse, generation);
     }
-    for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
+    for (const phase of deferRelated ? ["warm", "related", ""] : []) {
       // Mount related đọc vị trí grid: chờ frame để không gộp style của pha related vào task mount (task 50-59ms trên A04s).
       await (phase ? nextTask() : afterNextFrame());
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
-      // Phân trang ép một layout mỗi probe, nên nó có task riêng: gộp với warm thành task 55ms trên A05s cũ.
-      if (phase === "pages") {
-        paginateDescription();
-        continue;
-      }
       directEntryPhase = phase;
       if (phase === "related") {
         if (!await layoutRelatedInWorker(browseHistory.current, generation)) return;
@@ -4382,50 +4326,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     ensureRelatedPhoto(nextId)?.querySelector("a")?.focus({ preventScroll: true });
     restoreRelatedDomOrder();
   }, { signal: controller.signal });
-  photoDescriptionIndicator?.addEventListener("click", (event) => {
-    const dot = event.target.closest("[data-advertising-photo-description-dot]");
-    if (dot) showDescriptionPage(Number(dot.dataset.advertisingPhotoDescriptionDot));
-  }, { signal: controller.signal });
-  photoDescriptionPager?.addEventListener("keydown", (event) => {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    if (turnDescriptionPage(event.key === "ArrowRight" ? 1 : -1)) event.preventDefault();
-  }, { signal: controller.signal });
-  photoDescriptionPager?.addEventListener("wheel", (event) => {
-    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 18) return;
-    if (turnDescriptionPage(event.deltaX > 0 ? 1 : -1)) event.preventDefault();
-  }, { passive: false, signal: controller.signal });
-  photoDescriptionPager?.addEventListener("pointerdown", (event) => {
+  photoDescriptionScroll?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
+  // Kéo viên thanh cuộn: dịch con trỏ theo tỷ lệ phần chữ ẩn trên quãng viên chạy được.
+  photoDescriptionBar?.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
-    descriptionPointer = { id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false };
+    event.preventDefault();
+    const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
+    const ratio = (scrollHeight - clientHeight) / Math.max(1, clientHeight - descriptionThumbHeight);
+    const move = ({ clientY }) => { photoDescriptionScroll.scrollTop = scrollTop + (clientY - event.clientY) * ratio; };
+    const end = () => {
+      delete photoDescriptionBar.dataset.dragging;
+      photoDescriptionBar.removeEventListener("pointermove", move);
+    };
+    photoDescriptionBar.setPointerCapture(event.pointerId);
+    photoDescriptionBar.dataset.dragging = "";
+    photoDescriptionBar.addEventListener("pointermove", move);
+    photoDescriptionBar.addEventListener("lostpointercapture", end, { once: true });
   }, { signal: controller.signal });
-  photoDescriptionPager?.addEventListener("pointermove", (event) => {
-    if (!descriptionPointer || descriptionPointer.id !== event.pointerId) return;
-    const deltaX = event.clientX - descriptionPointer.x;
-    const deltaY = event.clientY - descriptionPointer.y;
-    if (!descriptionPointer.horizontal && Math.abs(deltaX) > 8 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      descriptionPointer.horizontal = true;
-      try {
-        photoDescriptionPager.setPointerCapture?.(event.pointerId);
-      } catch {
-        // Chuỗi pointer tổng hợp và pointer bị cancel không sở hữu capture.
-      }
-    }
-    if (descriptionPointer.horizontal) event.preventDefault();
-  }, { signal: controller.signal });
-  const clearDescriptionPointer = (event, { turnPage = false } = {}) => {
-    if (!descriptionPointer || descriptionPointer.id !== event.pointerId) return;
-    const deltaX = event.clientX - descriptionPointer.x;
-    const horizontal = descriptionPointer.horizontal;
-    descriptionPointer = null;
-    try {
-      if (photoDescriptionPager.hasPointerCapture?.(event.pointerId)) photoDescriptionPager.releasePointerCapture(event.pointerId);
-    } catch {
-      // Pointer bị cancel hoặc tổng hợp có thể đã release capture.
-    }
-    if (turnPage && horizontal && Math.abs(deltaX) >= 36) turnDescriptionPage(deltaX < 0 ? 1 : -1);
-  };
-  photoDescriptionPager?.addEventListener("pointerup", (event) => clearDescriptionPointer(event, { turnPage: true }), { signal: controller.signal });
-  photoDescriptionPager?.addEventListener("pointercancel", clearDescriptionPointer, { signal: controller.signal });
   suggestionNode?.addEventListener("click", (event) => {
     const link = event.target.closest("[data-advertising-suggestion-tag]");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -4591,6 +4508,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     skeletonObserver?.disconnect();
     visibleSkeletonFrames.clear();
     resizeObserver.disconnect();
+    scrollHintObserver.disconnect();
     mediaObserver.disconnect();
     masonry?.destroy();
     if (scrollFrame) cancelAnimationFrame(scrollFrame);

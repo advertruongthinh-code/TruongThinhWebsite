@@ -73,8 +73,8 @@ assert.match(runtime, /gridPixelHeight[\s\S]*?createMasonry\(grid, positions, \(
 assert.doesNotMatch(index, /data-advertising-photo-back(?:\s|=|>)/, "photo state does not expose a dedicated Back control");
 assert.doesNotMatch(runtime, /\bphotoBack\b/, "photo runtime does not retain dedicated Back behavior");
 assert.doesNotMatch(css, /\.advertising-photo-view__back(?:\s|:|\{|,)/, "photo CSS does not retain the removed Back control");
-assert.match(index, /data-advertising-photo-description-pager[\s\S]*data-advertising-photo-description-page[\s\S]*data-advertising-photo-description-indicator/,
-  "R15 exposes a description pager and accessible page indicator");
+assert.match(index, /data-advertising-photo-description-box[\s\S]*data-advertising-photo-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-advertising-photo-description-bar aria-hidden="true"/,
+  "detail R3 exposes a labelled description scroller and a decorative scrollbar");
 const photoInfoMarkup = index.slice(index.indexOf("data-advertising-photo-info"), index.indexOf("data-advertising-photo-related aria-label"));
 const relatedGridMarkup = index.slice(index.indexOf("data-advertising-photo-related-grid"), index.indexOf("data-advertising-photo-dialog"));
 assert.doesNotMatch(photoInfoMarkup, /data-advertising-photo-suggestion/, "R15 primary info no longer owns the suggestion block");
@@ -84,13 +84,13 @@ assert.match(css, /\.advertising-photo-view__primary\s*\{[^}]*height:\s*var\(--a
 assert.doesNotMatch(css, /\[data-advertising-photo-layout="pinterest"\][\s\S]*?\.advertising-photo-view__primary\s*\{[^}]*block-size:\s*100dvh;/,
   "full-span primary is not forced to fill the viewport");
 assert.match(css, /advertising-photo-view__info\s*\{[^}]*overflow:\s*(?:clip|hidden);[^}]*overscroll-behavior:\s*auto;/s,
-  "description pagination replaces the inner scroller and never traps vertical scroll");
-assert.match(css, /data-advertising-photo-description-pager[^}]*touch-action:\s*pan-y;/s,
-  "inline description pager reserves vertical touch gestures for the document");
+  "info itself never scrolls or traps vertical scroll; only the description scrolls");
+assert.match(css, /\.advertising-photo-view__description-scroll\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;/s,
+  "description scrolls behind its own scrollbar instead of the native one");
 assert.match(runtime, /primary\.span\s*===\s*(?:primary\.columns|layout\.columns|relatedLayout\.layout\.columns|columns)[\s\S]*?["']pinterest["']/,
   "Pinterest mode derives from primary span equalling total columns");
-for (const token of ["ArrowLeft", "ArrowRight", "deltaX", "pointermove"]) {
-  assert.match(runtime, new RegExp(token), `description pager runtime is missing ${token}`);
+for (const token of ["data-fade-start", "data-fade-end", "setPointerCapture", "lostpointercapture"]) {
+  assert.match(runtime, new RegExp(token), `description scroll hints runtime is missing ${token}`);
 }
 assert.match(runtime, /kind:\s*["']suggestion["']/, "suggestion is identified as a synthetic grid card");
 assert.match(runtime, /rank:\s*0/, "synthetic suggestion owns rank zero");
