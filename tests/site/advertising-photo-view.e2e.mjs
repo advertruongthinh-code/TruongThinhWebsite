@@ -722,7 +722,8 @@ async function assertDialogFit(page, label, touch = false) {
       assert(control.rect.width <= 1 && control.rect.height <= 1, `${label}: control is visible on touch`);
       continue;
     }
-    assert(control.rect.width >= 44 && control.rect.height >= 44, `${label}: control is smaller than 44px`);
+    // Nút viewer vuông 36px (primary-video-player R7, owner 2026-10-24).
+    assert(Math.abs(control.rect.width - 36) <= 1 && Math.abs(control.rect.height - 36) <= 1, `${label}: control is not 36px`);
     assert(control.rect.left >= -1 && control.rect.top >= -1 && control.rect.right <= evidence.innerWidth + 1 && control.rect.bottom <= evidence.innerHeight + 1, `${label}: control is outside browser viewport`);
   }
   assert(evidence.output && evidence.output.width <= 1 && evidence.output.height <= 1 && evidence.outputPosition === "absolute", `${label}: zoom output is not screen-reader-only (${JSON.stringify({ output: evidence.output, outputPosition: evidence.outputPosition })})`);

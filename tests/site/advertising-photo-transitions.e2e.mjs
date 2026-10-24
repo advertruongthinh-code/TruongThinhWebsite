@@ -1122,7 +1122,7 @@ try {
       await page.waitForTimeout(180);
       const normal = await read(control);
       assert.equal(normal.radius, "0px", "keep square design");
-      assert(normal.width >= 44, "keep usable hit target");
+      assert.equal(normal.width, 36, "36px white square (primary-video-player R7)");
       await control.hover();
       await page.waitForTimeout(180);
       const hovered = await read(control);
@@ -2117,21 +2117,20 @@ try {
       expandRect: node.getBoundingClientRect().toJSON(),
     }));
     assert.equal(compact.expandBorderRadius, "0px");
-    assert(Math.abs(compact.expandRect.width - 48) <= 0.1 && Math.abs(compact.expandRect.height - 48) <= 0.1);
+    assert(Math.abs(compact.expandRect.width - 36) <= 0.1 && Math.abs(compact.expandRect.height - 36) <= 0.1);
     stage("hover-labels");
     // Software compositing trong CI paint chậm, nên chờ transition hover kết thúc thay vì chờ cố định.
     await expandControl.hover();
     await page.evaluate(frame);
     await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
     const expandHover = await expandControl.evaluate((node) => ({
-      labelOpacity: getComputedStyle(node.querySelector("span")).opacity,
+      label: node.querySelector("span"),
       rect: node.getBoundingClientRect().toJSON(),
-      transitionDuration: getComputedStyle(node).transitionDuration,
     }));
-    assert(expandHover.rect.width > compact.expandRect.width + 80, "expand label did not reveal to left");
+    // Nút mở lớn chỉ icon, hover không bung chữ (primary-video-player R7).
+    assert.equal(expandHover.label, null, "expand has no text label");
+    assert(Math.abs(expandHover.rect.width - compact.expandRect.width) <= 0.1, "hover widened the expand control");
     assert(Math.abs(expandHover.rect.right - compact.expandRect.right) <= 0.1, "expand control moved its right anchor");
-    assert.equal(expandHover.labelOpacity, "1");
-    assert(expandHover.transitionDuration.includes("0.25s"));
 
     stage("keyboard-and-reduced-motion");
     await page.mouse.move(1200, 300); await page.evaluate(() => document.activeElement?.blur());
@@ -2143,13 +2142,11 @@ try {
     })), { active: true, focusVisible: true, tabIndex: 0 });
     await page.evaluate(frame);
     await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
-    assert.equal(await expandControl.evaluate((node) => getComputedStyle(node.querySelector("span")).opacity), "1");
+    assert(Math.abs(await expandControl.evaluate((node) => node.getBoundingClientRect().width) - 36) <= 0.1,
+      "keyboard focus widened the expand control");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    const reducedMotion = await expandControl.evaluate((node) => ({
-      labelOpacity: getComputedStyle(node.querySelector("span")).opacity,
-      transitionDuration: getComputedStyle(node).transitionDuration,
-    }));
-    assert.equal(reducedMotion.labelOpacity, "1"); assert.equal(reducedMotion.transitionDuration, "0s");
+    const reducedMotion = await expandControl.evaluate((node) => ({ transitionDuration: getComputedStyle(node).transitionDuration }));
+    assert.equal(reducedMotion.transitionDuration, "0s");
     await page.emulateMedia({ reducedMotion: "no-preference" });
 
     stage("viewer-controls"); await expandControl.click();
@@ -2165,8 +2162,8 @@ try {
       stroke: getComputedStyle(node.querySelector("svg")).strokeWidth,
     })));
     for (const control of viewerControls.filter((control) => !control.hidden)) {
-      assert(Math.abs(control.rect.width - 48) <= 0.1 && Math.abs(control.rect.height - 48) <= 0.1);
-      assert.equal(control.radius, "0px"); assert.equal(control.stroke, "1.5px");
+      assert(Math.abs(control.rect.width - 36) <= 0.1 && Math.abs(control.rect.height - 36) <= 0.1);
+      assert.equal(control.radius, "0px"); assert.equal(control.stroke, "2px");
     }
     const zoomOut = page.locator("[data-advertising-photo-zoom-out]");
     const disabledBackground = await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor);
@@ -2186,8 +2183,8 @@ try {
     }));
     assert.deepEqual(resetGlyph.paths, ["M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"],
       "reset icon must use the matching low-detail diagonal-arrow glyph");
-    assert(Math.abs(resetGlyph.rect.width - 24) <= 0.1 && Math.abs(resetGlyph.rect.height - 24) <= 0.1,
-      "reset glyph must keep the shared 24px viewer-control size");
+    assert(Math.abs(resetGlyph.rect.width - 16) <= 0.1 && Math.abs(resetGlyph.rect.height - 16) <= 0.1,
+      "reset glyph must keep the shared 16px viewer-control size (primary-video-player R7)");
     await page.locator("[data-advertising-photo-close]").click();
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B, "viewer close left photo detail");

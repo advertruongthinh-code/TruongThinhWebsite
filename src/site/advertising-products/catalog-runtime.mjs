@@ -1363,7 +1363,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoProgress = photoPlayer?.querySelector("[data-advertising-photo-progress]");
   const photoTimeCurrent = photoPlayer?.querySelector("[data-advertising-photo-time-current]");
   const photoTimeTotal = photoPlayer?.querySelector("[data-advertising-photo-time-total]");
-  const photoFullscreen = photoPlayer?.querySelector("[data-advertising-photo-fullscreen]");
   const photoMediaSteps = [...(photoView?.querySelectorAll("[data-advertising-photo-media-step]") ?? [])];
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
@@ -3252,8 +3251,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       return basePrimary ? floor : naturalHeight;
     };
     const expandStyle = photoExpand ? getComputedStyle(photoExpand) : null;
-    const imageControlMinimum = expandStyle ? Math.ceil(Math.max(photoExpand.offsetHeight,
-      2 * parseFloat(expandStyle.lineHeight) + parseFloat(expandStyle.getPropertyValue("--image-action-edge-padding")))
+    const imageControlMinimum = expandStyle ? Math.ceil(photoExpand.offsetHeight
       + 2 * (parseFloat(expandStyle.bottom) || 0)) : 0;
     relatedLayout = compileAdvertisingRelatedLayout({
       cards: directEntryPhase === "primary" ? cards.filter((card) => card.id === browse.photo)
@@ -3344,16 +3342,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Media nằm contain trong khung cover; còn vùng dư thì hiện nền zoom blur (Kính), kể cả video.
   const fitPrimaryMedia = (item) => {
     if (!relatedLayout) return;
-    // Toàn màn hình: hộp contain theo màn hình nên ảnh, video và dải media cùng phóng theo; nền đen thay nền blur.
-    const full = document.fullscreenElement === heroFrame;
-    const zoneWidth = full ? heroFrame.clientWidth : relatedLayout.primary.imageZoneWidth;
-    const zoneHeight = full ? heroFrame.clientHeight : relatedLayout.primary.imageZoneHeight;
+    const { imageZoneWidth: zoneWidth, imageZoneHeight: zoneHeight } = relatedLayout.primary;
     const ratio = item.width / item.height;
     const width = Math.min(zoneWidth, ratio * zoneHeight);
     const height = width / ratio;
     photoView.style.setProperty("--advertising-photo-image-width", `${width}px`);
     photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
-    photoView.dataset.advertisingPhotoGlass = String(!full && !primaryFailed
+    photoView.dataset.advertisingPhotoGlass = String(!primaryFailed
       && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
@@ -3517,7 +3512,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.defaultMuted = true;
     }
     photoImage.hidden = video;
-    photoExpand.hidden = video;
+    photoExpand.hidden = false;
+    photoExpand.toggleAttribute("data-advertising-photo-expand-video", video);
     photoPlayer.hidden = !video;
     photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
     // Trong lúc trượt photoVideo giữ video đang xem (tiếng đang fade ra); dải dừng thì mới chuyển sang media đích.
@@ -3831,20 +3827,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || event.target.matches("input")) return;
     event.preventDefault();
     stepPrimaryMedia(event.key === "ArrowRight" ? 1 : -1);
-  }, { signal: controller.signal });
-  // Toàn màn hình: khung primary lên nền đen, không nền blur, đổi sang ảnh vẫn giữ; iPhone không có fullscreen phần tử thì
-  // dùng player gốc.
-  photoFullscreen?.addEventListener("click", () => {
-    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
-    else if (heroFrame.requestFullscreen) void heroFrame.requestFullscreen().catch(() => {});
-    else photoVideo.webkitEnterFullscreen?.();
-  }, { signal: controller.signal });
-  document.addEventListener("fullscreenchange", () => {
-    const active = document.fullscreenElement === heroFrame;
-    photoPlayer.dataset.advertisingVideoFullscreen = String(active);
-    if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
-    photoFullscreen.setAttribute("aria-label", active ? locale === "en" ? "Exit full screen" : "Thoát toàn màn hình"
-      : locale === "en" ? "Full screen" : "Toàn màn hình");
   }, { signal: controller.signal });
   const renderPhoto = (browse, reason, phase = "", reveal = true) => {
     const record = cards.find((card) => card.id === browse.photo);

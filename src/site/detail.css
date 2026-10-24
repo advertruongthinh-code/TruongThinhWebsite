@@ -1959,25 +1959,9 @@ body.is-advertising-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-/* Toàn màn hình (mở từ video): nền đen, media contain theo màn hình và không nền blur (fitPrimaryMedia đặt glass false);
-   đổi sang ảnh vẫn giữ, mũi tên luôn hiện kể cả màn hình cảm ứng (owner 2026-10-24); "Xem lớn hơn" ẩn vì ảnh đã phủ
-   màn hình. */
-.advertising-photo-view__hero-frame:fullscreen {
-  background: #000;
-}
-
-.advertising-photo-view__hero-frame:fullscreen > .advertising-photo-view__image-action {
-  display: none;
-}
-
-.advertising-photo-view__hero-frame:fullscreen > .advertising-photo-view__media-step:not([hidden]) {
-  display: grid;
-  opacity: 1;
-}
-
-/* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên vuông trắng 36px bo 12px cách mép 16px, chevron
-   nét mảnh 16px, hiện khi hover, hover nền #f6f6f3, nhấn thu 0.9; chấm 8px cách nhau 8px ở đáy, đang xem trắng, còn lại
-   trắng 0.5. */
+/* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên trắng 36px góc vuông (owner 2026-10-24) cách mép
+   16px, chevron nét mảnh 16px, hiện khi hover, hover nền #f6f6f3, nhấn thu 0.9; chấm 8px cách nhau 8px ở đáy, đang xem
+   trắng, còn lại trắng 0.5. */
 .advertising-photo-view__media-step {
   position: absolute;
   z-index: 4;
@@ -1988,7 +1972,7 @@ body.is-advertising-browse .site-footer {
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 12px;
+  border-radius: 0;
   background: #fff;
   color: var(--ink);
   cursor: pointer;
@@ -2151,11 +2135,12 @@ body.is-advertising-browse .site-footer {
   height: 128px;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 15px;
-  padding: 0 24px 20px;
+  gap: 0;
+  /* PC (R7): đáy thanh tua thẳng đáy nút mở lớn (cách khung 16px), mép phải dừng trước nút đó 8px: 16 + 36 + 8. */
+  padding: 0 60px 16px 16px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 100ms ease-out;
+  transition: opacity 200ms ease-out;
 }
 
 .advertising-video-player__bar > * {
@@ -2177,7 +2162,7 @@ body.is-advertising-browse .site-footer {
 
 .advertising-video-player__row {
   display: flex;
-  height: 24px;
+  height: 36px;
   align-items: center;
 }
 
@@ -2233,20 +2218,6 @@ body.is-advertising-browse .site-footer {
   margin-left: auto;
 }
 
-/* Nút toàn màn hình luôn neo phải; video không tiếng thì cụm tiếng ẩn nên nút tự đẩy sang phải. */
-.advertising-video-player__fullscreen {
-  margin-left: auto;
-}
-
-.advertising-video-player__volume:not([hidden]) + .advertising-video-player__fullscreen {
-  margin-left: 10px;
-}
-
-.advertising-video-player[data-advertising-video-fullscreen="true"] .advertising-video-player__icon-enter,
-.advertising-video-player:not([data-advertising-video-fullscreen="true"]) .advertising-video-player__icon-exit {
-  display: none;
-}
-
 .advertising-video-player__range {
   --range-fill: 0%;
   width: 100%;
@@ -2255,6 +2226,10 @@ body.is-advertising-browse .site-footer {
   background: transparent;
   cursor: pointer;
   appearance: none;
+}
+
+.advertising-video-player__progress {
+  height: 36px;
 }
 
 .advertising-video-player__range::-webkit-slider-runnable-track {
@@ -2339,7 +2314,7 @@ body.is-advertising-browse .site-footer {
 }
 
 /* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, bỏ nút phát trên thanh (chạm video để phát/dừng), một
-   hàng 40px [giờ][thanh tua][tiếng][toàn màn hình]; nút tiếng chỉ bật/tắt, không cột âm lượng. Toàn màn hình cùng bố cục. */
+   hàng 40px [giờ][thanh tua][tiếng]; nút tiếng chỉ bật/tắt, không cột âm lượng. */
 @media (hover: none) {
   .advertising-video-player__bar {
     height: auto;
@@ -2377,12 +2352,6 @@ body.is-advertising-browse .site-footer {
 
   .advertising-video-player__volume {
     order: 3;
-    margin-left: 0;
-  }
-
-  .advertising-video-player__fullscreen,
-  .advertising-video-player__volume:not([hidden]) + .advertising-video-player__fullscreen {
-    order: 4;
     margin-left: 0;
   }
 
@@ -2435,109 +2404,52 @@ body.is-advertising-browse .site-footer {
 
 
 
+/* Nút vuông trắng chỉ icon (primary-video-player R7): tên qua aria-label, không bung chữ khi hover. */
 .advertising-photo-view__image-action {
-  --image-action-edge-padding: 14px;
   position: absolute;
   z-index: 3;
   bottom: 16px;
-  box-sizing: border-box;
-  display: inline-flex;
-  width: 48px;
-  max-width: calc(100% - 96px);
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
-  align-items: center;
-  overflow: hidden;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
   padding: 0;
-  border: 1px solid var(--ink);
+  border: 0;
   border-radius: 0;
   background: #fff;
   color: var(--ink);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
   cursor: pointer;
-  transition: width 250ms ease-in, background-color 150ms ease-out;
+  transition: background-color 150ms ease-out;
 }
 
 .advertising-photo-view__expand {
   right: 16px;
-  --image-action-open-width: max(156px, calc(10.5rem - 12px));
-}
-
-.advertising-photo-view__image-action span {
-  position: absolute;
-  inset: 0 calc(var(--image-action-edge-padding) + 36px) 0
-    calc(var(--image-action-edge-padding) + 3px);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0;
-  overflow: hidden;
-  opacity: 0;
-  text-align: left;
-  white-space: normal;
-  transition: opacity 250ms cubic-bezier(0, 1, 0, 1);
 }
 
 .advertising-photo-view__image-action svg {
-  position: absolute;
-  right: var(--image-action-edge-padding);
-  top: var(--image-action-edge-padding);
-  box-sizing: border-box;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 20px;
-  padding: 0;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: square;
   stroke-linejoin: miter;
-  stroke-width: 1.5;
+  stroke-width: 2;
 }
 
 @media (hover: hover) {
   .advertising-photo-view__image-action:hover {
-    width: var(--image-action-open-width);
-    height: max(48px, calc(2.4em + 14px));
     background: var(--media-control-hover);
-  }
-
-  .advertising-photo-view__image-action:hover span {
-    opacity: 1;
-    transition-timing-function: cubic-bezier(1, 0, 1, 0);
   }
 }
 
 .advertising-photo-view__image-action:focus-visible {
-  width: var(--image-action-open-width);
-  height: max(48px, calc(2.4em + 14px));
   outline: 2px solid var(--ink);
   outline-offset: 3px;
   box-shadow: 0 0 0 3px #fff;
 }
 
-.advertising-photo-view__image-action:focus-visible span {
-  opacity: 1;
-  transition-timing-function: cubic-bezier(1, 0, 1, 0);
-}
-
 .advertising-photo-view__image-action:active {
   background: var(--media-control-active);
-}
-
-.advertising-photo-view__hero-frame:has(.advertising-photo-view__image-action:focus-visible)
-  .advertising-photo-view__image-action:not(:focus-visible) {
-  width: 48px;
-}
-
-.advertising-photo-view__hero-frame:has(.advertising-photo-view__image-action:focus-visible)
-  .advertising-photo-view__image-action:not(:focus-visible) span {
-  opacity: 0;
 }
 
 .advertising-photo-view__info {
@@ -3014,10 +2926,10 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-dialog__close,
 .advertising-photo-dialog__controls button {
   display: inline-grid;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: 1px solid currentColor;
+  border: 0;
   border-radius: 0;
   place-items: center;
   color: var(--ink);
@@ -3054,20 +2966,19 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-dialog__controls button:disabled {
   color: #91918c;
   background: #f3f3f1;
-  border-color: #c5c5bf;
   cursor: default;
   transition: none;
 }
 
 .advertising-photo-dialog__close svg,
 .advertising-photo-dialog__controls button svg {
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: square;
   stroke-linejoin: miter;
-  stroke-width: 1.5;
+  stroke-width: 2;
 }
 
 .advertising-photo-dialog__close {
@@ -3374,7 +3285,6 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 @media (prefers-reduced-motion: reduce) {
   .advertising-photo-view__image-action,
-  .advertising-photo-view__image-action span,
   .advertising-photo-dialog__close,
   .advertising-photo-dialog__controls button {
     transition: none !important;

@@ -199,7 +199,6 @@ async function evidence(page) {
       .filter((face) => face.family.replaceAll(/["']/g, "") === "Plus Jakarta Sans")
       .map((face) => ({ status: face.status, weight: face.weight, style: face.style }));
     const ctaLabel = cta?.querySelector("span:not([aria-hidden='true'])");
-    const expandLabel = expand?.querySelector("span:not([aria-hidden='true'])");
     const iconFor = (control) => control?.querySelector("svg, [data-advertising-photo-control-icon], [aria-hidden='true']");
     const iconMetrics = (control) => {
       const icon = iconFor(control);
@@ -241,10 +240,7 @@ async function evidence(page) {
       return sum + node.getBoundingClientRect().height
         + (Number.parseFloat(style.marginTop) || 0) + (Number.parseFloat(style.marginBottom) || 0);
     }, descriptionFloor + visibleInfoControls.length * infoGap)) + 1;
-    const imageEdgePadding = Number.parseFloat(expandStyle?.getPropertyValue("--image-action-edge-padding")) || 0;
-    const imageMinimumHeight = Math.ceil(Math.max(expand?.getBoundingClientRect().height || 0,
-      2 * (Number.parseFloat(expandStyle?.lineHeight) || 0) + imageEdgePadding)
-      + 2 * (Number.parseFloat(expandStyle?.bottom) || 0));
+    const imageMinimumHeight = Math.ceil((expand?.offsetHeight || 0) + 2 * (Number.parseFloat(expandStyle?.bottom) || 0));
     return {
       url: location.href,
       viewport: {
@@ -354,9 +350,8 @@ async function evidence(page) {
         transitionDuration: ctaStyle.transitionDuration, inInfo: info?.contains(cta) || false,
       } : null,
       expand: expand ? {
-        tag: expand.tagName, rect: box(expand), label: expand.textContent.trim(),
-        labelRect: box(expandLabel), labelOpacity: Number.parseFloat(styles(expandLabel)?.opacity),
-        icon: iconMetrics(expand), transitionDuration: expandStyle.transitionDuration,
+        tag: expand.tagName, rect: box(expand), label: expand.getAttribute("aria-label"),
+        hasText: Boolean(expand.querySelector("span")), icon: iconMetrics(expand), transitionDuration: expandStyle.transitionDuration,
       } : null,
       dialogOpen: Boolean(dialog?.open || (dialog && !dialog.hidden && dialog.getAttribute("aria-hidden") !== "true")),
       related,
@@ -500,7 +495,8 @@ function assertControls(actual, locale, touch = false) {
   assert.equal(actual.cta.target, "_blank", `${label}: CTA target changed`);
   assert(actual.cta.rel.split(/\s+/).includes("noreferrer"), `${label}: CTA rel lacks noreferrer`);
   assert(actual.cta.label.includes(locale === "vi" ? "Trao đổi ý tưởng" : "Discuss an idea"), `${label}: CTA label changed`);
-  assert(actual.expand.label.includes(locale === "vi" ? "Xem lớn hơn" : "View larger"), `${label}: expand label changed`);
+  assert.equal(actual.expand.label, locale === "vi" ? "Xem lớn hơn" : "View larger", `${label}: expand aria-label changed`);
+  assert.equal(actual.expand.hasText, false, `${label}: expand shows only its icon (R7)`);
   assert.equal(actual.cta.inInfo, true, `${label}: CTA is not inside the information column`);
   assert(contained(actual.cta.rect, actual.info), `${label}: CTA leaves the information column`);
   assert(actual.cta.rect.height >= 48, `${label}: CTA misses its minimum target height`);
@@ -512,15 +508,15 @@ function assertControls(actual, locale, touch = false) {
     assert(actual.expand.rect.width <= 1 && actual.expand.rect.height <= 1, `${label}: expand is visible on touch`);
     return;
   }
-  closeTo(actual.expand.rect.width, 48, `${label}: expand normal width`, 1);
-  closeTo(actual.expand.rect.height, 48, `${label}: expand normal height`, 1);
+  closeTo(actual.expand.rect.width, 36, `${label}: expand normal width`, 1);
+  closeTo(actual.expand.rect.height, 36, `${label}: expand normal height`, 1);
   assert(contained(actual.expand.rect, actual.frame), `${label}: expand leaves hero frame`);
   closeTo((actual.expand.icon.rect.left + actual.expand.icon.rect.right) / 2, (actual.expand.rect.left + actual.expand.rect.right) / 2,
     `${label}: expand icon horizontal center`, 2);
   closeTo((actual.expand.icon.rect.top + actual.expand.icon.rect.bottom) / 2, (actual.expand.rect.top + actual.expand.rect.bottom) / 2,
     `${label}: expand icon vertical center`, 2);
-  closeTo(actual.expand.icon.contentWidth, 20, `${label}: expand glyph width`, 1);
-  closeTo(actual.expand.icon.contentHeight, 20, `${label}: expand glyph height`, 1);
+  closeTo(actual.expand.icon.contentWidth, 16, `${label}: expand glyph width`, 1);
+  closeTo(actual.expand.icon.contentHeight, 16, `${label}: expand glyph height`, 1);
   assert(actual.frame.right - actual.expand.rect.right >= 6 && actual.frame.right - actual.expand.rect.right <= 18,
     `${label}: expand is not anchored right`);
   assert(!overlaps(actual.cta.rect, actual.expand.rect), `${label}: CTA and expand collide across columns`);
@@ -552,22 +548,12 @@ async function assertExpandedControl(page, selector, otherSelector, mode, label)
   const state = await page.evaluate(({ selector, otherSelector }) => {
     const node = document.querySelector(selector);
     const other = document.querySelector(otherSelector);
-    const labelNode = node?.querySelector("span:not([aria-hidden='true'])");
-    const labelRange = labelNode ? document.createRange() : null;
-    if (labelNode && labelRange) labelRange.selectNodeContents(labelNode);
-    const iconPath = node?.querySelector("svg path");
-    return {
-      control: node?.getBoundingClientRect().toJSON(), other: other?.getBoundingClientRect().toJSON(),
-      label: labelRange?.getBoundingClientRect().toJSON(), opacity: Number.parseFloat(getComputedStyle(labelNode).opacity),
-      icon: iconPath?.getBoundingClientRect().toJSON(),
-    };
+    return { control: node?.getBoundingClientRect().toJSON(), other: other?.getBoundingClientRect().toJSON() };
   }, { selector, otherSelector });
-  assert(state.control.width > 48, `${label}: ${mode} label did not expand`);
-  assert(state.label.width > 0 && state.opacity >= 0.9,
-    `${label}: ${mode} label is not visible (width ${state.label.width}, opacity ${state.opacity})`);
-  closeTo(state.label.left - state.control.left, state.control.right - state.icon.right,
-    `${label}: ${mode} horizontal edge spacing`, 1);
-  assert(!overlaps(state.control, state.other), `${label}: ${mode} label covers the other control`);
+  // Nút mở lớn chỉ icon, không bung chữ khi hover hay focus (primary-video-player R7).
+  closeTo(state.control.width, 36, `${label}: ${mode} must not widen the control`, 1);
+  closeTo(state.control.height, 36, `${label}: ${mode} must not grow the control`, 1);
+  assert(!overlaps(state.control, state.other), `${label}: ${mode} control covers the other control`);
   return state;
 }
 

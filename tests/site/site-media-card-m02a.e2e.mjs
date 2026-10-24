@@ -172,11 +172,11 @@ async function assertPrimary(page, card, expectedId, locale) {
     if (expected.hasAudio !== false) {
       assert.match(state.audioLabel, locale === "en" ? /unmute|sound|audio/i : /bật.*tiếng|âm thanh/i);
     }
-    assert.equal(state.expandHidden, true, "video has no image-only expand action");
   } else {
     assert.equal(active.alt, locale === "en" ? expected.altEn : expected.altVi);
-    assert.equal(state.expandHidden, false, "image keeps expand action");
   }
+  // Nút mở lớn hiện cả với video (primary-video-player R8).
+  assert.equal(state.expandHidden, false, "image and video keep the expand action");
   return state;
 }
 
@@ -207,7 +207,7 @@ test("M02a related active image keeps its authored media ID in primary", async (
   });
 });
 
-test("M02a authored singleton video keeps its ID and hides image viewer action", async () => {
+test("M02a authored singleton video keeps its ID and shows the expand action", async () => {
   await withPage("vi", async (page) => {
     const card = await openFixture(page, "vi", { direct: true, singleton: true });
     assert.equal(card.mediaItems.length, 1);
@@ -343,6 +343,9 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     assert.equal(state.controls, false, "no native controls");
     assert.equal(state.loop, true, "video loops like the Pinterest closeup");
     assert.equal(state.bar, 0, "bar hidden while playing without hover");
+    // Nút mở lớn nằm ngoài player nên vẫn hiện khi cụm player mờ đi (R9).
+    assert.deepEqual(await page.locator("[data-advertising-photo-expand]").evaluate((node) =>
+      [node.hidden, getComputedStyle(node).opacity]), [false, "1"], "expand stays visible while the bar hides");
     assert.equal(state.center, 0, "center play icon hidden while playing");
     assert.equal(state.playLabel, "Pause");
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3);
@@ -537,7 +540,7 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
   });
 });
 
-// Màn hình cảm ứng (primary-video-player R1): một hàng 40px giờ, thanh tua, tiếng, toàn màn hình; không nút phát trên thanh,
+// Màn hình cảm ứng (primary-video-player R1): một hàng 40px giờ, thanh tua, tiếng; không nút phát trên thanh,
 // nút tiếng chỉ bật/tắt, không mở cột âm lượng.
 test("M02a touch primary video uses one 40px row without the bar play button or volume column", async () => {
   await withPage("vi", async (page) => {
@@ -551,7 +554,7 @@ test("M02a touch primary video uses one 40px row without the bar play button or 
       return { playButton: getComputedStyle(player.querySelector("[data-advertising-photo-play]")).display,
         volumePop: getComputedStyle(player.querySelector(".advertising-video-player__volume-pop")).display,
         gradient: getComputedStyle(player.querySelector(".advertising-video-player__bar")).backgroundImage,
-        items: ["[data-advertising-photo-progress]", "[data-advertising-photo-audio-toggle]", "[data-advertising-photo-fullscreen]"].map(box),
+        items: ["[data-advertising-photo-progress]", "[data-advertising-photo-audio-toggle]"].map(box),
         time: box(".advertising-video-player__time") };
     });
     let state = await playerState(page);
@@ -560,7 +563,7 @@ test("M02a touch primary video uses one 40px row without the bar play button or 
     assert.deepEqual([layout.playButton, layout.volumePop, layout.gradient], ["none", "none", "none"],
       "no bar play button, no volume column, no gradient band");
     assert(layout.items.every(([centre, height]) => height === 40 && Math.abs(centre - layout.time[0]) <= 1),
-      `time, seek bar, sound and full screen share one 40px row: ${JSON.stringify(layout)}`);
+      `time, seek bar and sound share one 40px row: ${JSON.stringify(layout)}`);
     await page.locator("[data-advertising-photo-play-surface]").tap();
     await page.waitForTimeout(150);
     state = await playerState(page);
@@ -611,7 +614,7 @@ test("M02a touch seek drag moves the video, not the media strip", async () => {
 });
 
 // Dải media theo pin Pinterest: khung giữ tỷ lệ cover nên đổi media không đổi kích thước primary, related đứng yên;
-// mũi tên và thumbnail đang xem theo vị trí, media khác tỷ lệ có nền zoom blur, video có toàn màn hình nền đen.
+// mũi tên và thumbnail đang xem theo vị trí, media khác tỷ lệ có nền zoom blur.
 // Khung primary cao theo media (primary-video-player R6): video vừa khít khung ở 1440×900. Viewport thấp chặn khung theo
 // chiều cao, nên video 3:2 hay 16:9 còn vùng dư hai bên cho nền blur.
 const cappedViewport = { width: 1440, height: 560 };
@@ -866,44 +869,46 @@ test("M02a media strip switches by arrow and key without resizing primary or mov
   });
 });
 
-test("M02a primary video full screen uses a black frame without the blur backdrop and keeps media arrows", async () => {
+// Nút vuông trắng (primary-video-player R7): mũi tên, nút mở lớn, nút viewer cùng ô 36px; thanh tua PC thẳng đáy nút mở
+// lớn và dừng trước nút đó 8px.
+test("M02a primary arrows, expand and viewer buttons are 36px white squares and the seek bar ends beside expand", async () => {
   await withPage("en", async (page) => {
-    await openFixture(page, "en", { videoCover: true, direct: true, wideVideo: true });
+    const card = await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.locator(".advertising-photo-view__hero-frame").hover();
-    const button = page.locator("[data-advertising-photo-fullscreen]");
-    assert.equal(await button.getAttribute("aria-label"), "Full screen");
-    await button.click();
-    // fullscreenElement đổi trước event fullscreenchange; chờ cả nhãn nút để đọc trạng thái sau event.
-    await page.waitForFunction(() => document.fullscreenElement?.classList.contains("advertising-photo-view__hero-frame")
-      && document.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") === "Exit full screen");
-    const state = await page.evaluate(() => {
-      const frame = document.fullscreenElement;
-      return { background: getComputedStyle(frame).backgroundColor,
-        blur: getComputedStyle(frame.querySelector("[data-advertising-photo-background]")).display,
-        label: frame.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") };
+    await page.waitForTimeout(300);
+    const square = (selector) => page.locator(selector).evaluate((node) => {
+      const style = getComputedStyle(node);
+      const box = node.getBoundingClientRect();
+      return [Math.round(box.width), Math.round(box.height), style.borderRadius, style.borderTopWidth, style.backgroundColor];
     });
-    assert.deepEqual(state, { background: "rgb(0, 0, 0)", blur: "none", label: "Exit full screen" });
-    // Mũi tên đổi media ngay trong toàn màn hình (owner 2026-10-24); sang ảnh vẫn giữ, ảnh contain theo màn hình.
-    const previous = page.locator('[data-advertising-photo-media-step="-1"]');
-    // Mũi tên fade vào 100ms nên chờ tới khi hiện hẳn.
-    await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-advertising-photo-media-step="-1"]')).opacity === "1");
-    await previous.click();
-    await page.waitForFunction(() => {
-      const image = document.querySelector("[data-advertising-photo-image]");
-      return !image.hidden && image.complete && !document.querySelector("[data-advertising-photo-sliding]");
+    const white = [36, 36, "0px", "0px", "rgb(255, 255, 255)"];
+    assert.deepEqual(await square('[data-advertising-photo-media-step="-1"]'), white, "media arrow");
+    assert.deepEqual(await square("[data-advertising-photo-expand]"), white, "expand button on the video");
+    const edges = await page.evaluate(() => {
+      const progress = document.querySelector("[data-advertising-photo-progress]").getBoundingClientRect();
+      const expand = document.querySelector("[data-advertising-photo-expand]").getBoundingClientRect();
+      return { bottom: progress.bottom - expand.bottom, gap: expand.left - progress.right };
     });
-    const image = await page.evaluate(() => {
-      const box = document.querySelector("[data-advertising-photo-image]").getBoundingClientRect();
-      return { full: document.fullscreenElement?.classList.contains("advertising-photo-view__hero-frame"),
-        fits: Math.abs(box.width - innerWidth) < 1 || Math.abs(box.height - innerHeight) < 1,
-        expand: getComputedStyle(document.querySelector("[data-advertising-photo-expand]")).display };
-    });
-    assert.deepEqual(image, { full: true, fits: true, expand: "none" }, "the image keeps full screen and fills it");
-    // Ảnh không có player nên thoát bằng Esc; headless không nhận Esc của trình duyệt nên gọi thẳng exitFullscreen.
-    await page.evaluate(() => document.exitFullscreen());
-    await page.waitForFunction(() => !document.fullscreenElement
-      && document.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") === "Full screen");
+    assert(Math.abs(edges.bottom) <= 1 && Math.abs(edges.gap - 8) <= 1,
+      `seek bar bottom aligns with expand and ends 8px before it: ${JSON.stringify(edges)}`);
+    await page.locator("[data-advertising-photo-expand]").hover();
+    await page.waitForTimeout(300);
+    assert.deepEqual((await square("[data-advertising-photo-expand]")).slice(0, 2), [36, 36], "hover does not widen expand");
+    assert.equal(await page.locator("[data-advertising-photo-expand]").evaluate((node) => node.querySelector("span")), null,
+      "expand has no text label");
+    await choosePrimaryThumb(page, card.mediaItems[0].id);
+    await assertPrimary(page, card, card.mediaItems[0].id, "en");
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "visible" });
+    await page.mouse.move(5, 5);
+    await page.waitForTimeout(300);
+    for (const selector of ["[data-advertising-photo-close]", "[data-advertising-photo-zoom-reset]",
+      "[data-advertising-photo-zoom-in]", "[data-advertising-photo-zoom-out]"]) {
+      const [width, height, radius, border, background] = await square(selector);
+      assert.deepEqual([width, height, radius, border], [36, 36, "0px", "0px"], `${selector} is a 36px square without border`);
+      if (!await page.locator(selector).isDisabled()) assert.equal(background, "rgb(255, 255, 255)", `${selector} is white`);
+    }
   });
 });
 
@@ -991,9 +996,6 @@ test("M02a video without authored audio hides the custom audio button", async ()
   await withPage("vi", async (page) => {
     const card = await openFixture(page, "vi", { videoCover: true, direct: true, hasAudio: false });
     await assertPrimary(page, card, videoId, "vi");
-    const gap = await page.locator(".advertising-video-player__row").evaluate((row) =>
-      row.getBoundingClientRect().right - row.querySelector("[data-advertising-photo-fullscreen]").getBoundingClientRect().right);
-    assert(gap < 1, `full screen button stays at the right end without the sound group: ${gap}`);
   });
 });
 
