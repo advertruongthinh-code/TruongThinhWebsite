@@ -268,8 +268,10 @@
         `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
       const metrics = maskContext.measureText(line.textContent.trim());
       const capMetrics = maskContext.measureText("H");
+      // Sàn 0.24em: đủ cho phần hộp nội dung chữ vượt line box (khoảng 0.14em) cộng độ nâng 0.1em của
+      // .heritage-line / .line-mask > span, nên mask không cắt hộp chữ ở màn ngang thấp.
       const topOverflow = Math.max(
-        fontSize * 0.22,
+        fontSize * 0.24,
         metrics.actualBoundingBoxAscent -
           capMetrics.actualBoundingBoxAscent +
           fontSize * 0.1 +
