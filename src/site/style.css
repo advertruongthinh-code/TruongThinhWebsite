@@ -1059,6 +1059,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   will-change: transform;
 }
 
+/* Màn dọc (điện thoại) cắt hai bên ảnh hero; slide nào có chủ thể lệch thì đặt --hero-portrait-x để giữ chủ thể trong khung. */
+@media (max-aspect-ratio: 1/1) {
+  .hero-slide img {
+    object-position: var(--hero-portrait-x, 50%) 50%;
+  }
+}
+
 .hero-shade {
   z-index: 1;
   background:
