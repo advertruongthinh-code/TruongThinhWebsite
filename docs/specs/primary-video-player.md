@@ -12,12 +12,12 @@ updated: 2026-10-24
 
 ## Mục đích
 
-PC giữ nguyên player video primary đang chạy trên demo ([media-card R6](media-card.md#r6-media-trong-primary)); hướng
-Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế với
-demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, thêm bóng chữ cho nút trong "Có thể bạn thích", và cho
-khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong
+PC giữ nguyên bố cục player video primary đang chạy trên demo ([media-card R6](media-card.md#r6-media-trong-primary));
+hướng Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế
+với demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, thêm bóng đen cho chữ nút trong "Có thể bạn thích" và
+UI player, và cho khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong
 media-card R6 trỏ tới đây và [advertising-detail R2](advertising-detail.md#r2-hình-học-primary) sửa theo R6 ở đây. Bản thiết kế:
-[canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 19, ảnh chụp từ trang thật).
+[canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 33, ảnh chụp từ trang thật).
 
 ## Hành vi
 
@@ -26,8 +26,8 @@ media-card R6 trỏ tới đây và [advertising-detail R2](advertising-detail.m
 Áp dụng khi thiết bị không có hover (`hover: none`): điện thoại và tablet. Mặc định Thread chọn theo cách nhập thay vì
 độ rộng, vì cột âm lượng của PC mở bằng hover nên không dùng được trên màn hình cảm ứng ở mọi độ rộng.
 
-- Nút phát/tạm dừng trên thanh bỏ đi. Nút phát `48px` giữa video giữ như demo: trắng, `drop-shadow(0 0 8px)` đen
-  `0.1`, chỉ hiện khi dừng; chạm vào video thì phát hoặc dừng.
+- Nút phát/tạm dừng trên thanh bỏ đi. Nút phát `48px` giữa video giữ như demo: trắng, bóng theo R4, chỉ hiện khi dừng;
+  chạm vào video thì phát hoặc dừng.
 - Giờ, thanh tua, nút tiếng, nút toàn màn hình nằm một hàng cao `40px`. Giờ `14px` 700, số đều, tổng thời lượng
   opacity `0.6`. Thanh tua chiếm phần còn lại, cách giờ `12px` và cách nút tiếng `8px`; đường `4px` bo tròn, núm
   `12px` như demo, vùng chạm cao `40px`. Hai nút vuông `40px`, icon `18px`.
@@ -86,19 +86,32 @@ When ffprobe liệt kê keyframe
 Then khoảng cách giữa hai keyframe liền nhau không quá 0,5 giây
 ```
 
-### R4. Bóng chữ nút gợi ý (ngoại lệ Design System)
+### R4. Bóng đen cho chữ nút gợi ý và UI player (ngoại lệ Design System)
 
-Chữ trắng trên nút trong "Có thể bạn thích" thêm bóng cùng kiểu bóng icon phát của player: bóng đen, không lệch. Owner
-chọn đen `0.4` và nhòe rộng hơn `8px` (2026-10-24); mặc định Thread chọn `0 0 12px` đen `0.4`, vì nhòe rộng hơn thì
-bóng nhạt dần sát chữ. Owner đổi độ nhòe trên canvas thì sửa giá trị này. Lớp tối của nút giữ nguyên; nút đang chọn
-(chữ `ink` trên nền giấy) không có bóng. Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi
-owner "ok" trong thread.
+Một bóng chung `0 0 12px` đen `0.4`, không lệch. Owner chọn đen `0.4` và nhòe rộng hơn `8px` (2026-10-24); `12px` là
+mặc định Thread chọn, vì nhòe rộng hơn thì bóng nhạt dần sát chữ.
+
+- Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow`. Lớp tối của nút giữ nguyên; nút đang chọn (chữ `ink`
+  trên nền giấy) không có bóng.
+- Player PC và cảm ứng: icon trên thanh, nút phát giữa video (thay `0 0 8px` đen `0.1` của demo), thanh tua dùng
+  `drop-shadow`; giờ dùng `text-shadow`. Dải gradient đáy giữ nguyên: bóng này trên icon và chữ mảnh chỉ đậm thêm khoảng
+  `16/255`, còn bỏ dải thì chữ trắng trên nền sáng tụt từ khoảng `3,6:1` xuống `2,8:1` (đo trên ảnh chụp canvas bản 33).
+  Mặc định Thread chọn "giữ dải, thêm bóng" (phương án B trên canvas) trong lúc chờ owner chọn.
+
+Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi owner "ok" trong thread.
 
 ```gherkin
 Given detail có mục "Có thể bạn thích"
 When đọc style chữ của nút chưa chọn và nút đang chọn
 Then nút chưa chọn có text-shadow "0 0 12px" đen 0.4, nút đang chọn không có
 And lớp tối ::after của nút chưa chọn vẫn còn
+```
+
+```gherkin
+Given primary đang phát video trên PC hoặc cảm ứng
+When đọc style icon trên thanh, nút phát giữa video, thanh tua và giờ
+Then icon, nút phát, thanh tua có drop-shadow "0 0 12px" đen 0.4, giờ có text-shadow cùng giá trị
+And dải gradient đáy vẫn còn
 ```
 
 ### R5. Núm đặc
@@ -155,7 +168,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (không hover) đo một hàng, gradient 72px, không nút phát trên thanh, nút giữa chỉ khi dừng, không mở cột âm lượng; desktop giữ ca hiện có |
 | R2 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
 | R3 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
-| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn |
+| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn; bóng icon, nút phát, thanh tua, giờ của player, dải gradient còn |
 | R5 | `site-media-card-m02a.e2e.mjs`: màu `::-webkit-slider-thumb` của thanh tua và thanh âm lượng có alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: đổi hai ca "split cao bằng cap" sang `min(W/r, H)`, thêm ca ngang và dọc; `advertising-primary-p14.e2e.mjs` đo khung 1440×900 |
 | R1 trên máy thật | A05s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
@@ -163,7 +176,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 ## Gate còn mở
 
 - Spec chờ owner duyệt, rồi plan. Owner (R6 đã chọn hướng "cao theo media" 2026-10-24).
-- Độ nhòe bóng chữ R4 mặc định `12px`, owner xác nhận trên canvas. Owner.
+- R4: độ nhòe mặc định `12px` và phương án bóng player (mặc định B), owner chọn trên canvas. Owner.
 - R3 tăng byte clip; số đo trong PR, owner xem. Owner.
 - Kiểm R1 trên máy thật chờ lượt phone. Thread.
 
