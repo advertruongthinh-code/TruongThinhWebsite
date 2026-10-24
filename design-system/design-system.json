@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-24T12:36:00Z",
+    "at": "2026-10-24T13:45:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Title hero: cặp nhẹ 500, đậm 700, in hoa (#532); trang chủ đậm và lớn hơn một bậc, chữ nhấn nghiêng (#535)"
+    "note": "Vệt sáng chờ ảnh dùng class .media-frame thay selector :has() toàn trang (#525)"
   }
 }
