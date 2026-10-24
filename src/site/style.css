@@ -2184,19 +2184,19 @@ em {
 }
 
 /* Khung ảnh nội dung chờ bằng vệt sáng tới khi script head thêm .is-media-settled sau load và decode; không JavaScript thì không có .media-gate nên ảnh hiện như thường. */
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) {
+.media-gate .media-frame:not(.is-media-settled) {
   overflow: clip;
   background-color: var(--media-loading-surface);
 }
 
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) > img,
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled) > picture > img {
+.media-gate .media-frame:not(.is-media-settled) > img,
+.media-gate .media-frame:not(.is-media-settled) > picture > img {
   opacity: 0;
 }
 
 /* Dải rộng 400% khung trượt -75% tới 0 nên vệt vào từ ngoài mép trái và ra hẳn mép phải; chỉ animate transform.
    Dải trắng tâm 16% rộng như bản gốc, 17 điểm màu theo raised cosine nên mép mờ dần, không gãy (docs/specs/media-delivery.md R6). */
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled)::before {
+.media-gate .media-frame:not(.is-media-settled)::before {
   position: absolute;
   inset: 0 auto 0 0;
   width: 400%;
@@ -2206,12 +2206,12 @@ em {
   pointer-events: none;
 }
 
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled).is-media-offscreen::before {
+.media-gate .media-frame:not(.is-media-settled).is-media-offscreen::before {
   animation-play-state: paused;
 }
 
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *).is-media-settled > img,
-.media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *).is-media-settled > picture > img {
+.media-gate .media-frame.is-media-settled > img,
+.media-gate .media-frame.is-media-settled > picture > img {
   animation: media-fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -2239,7 +2239,7 @@ em {
 
 @media (prefers-reduced-motion: reduce) {
   /* Không lướt; cả lớp sáng tối nhẹ chu kỳ 2s. */
-  .media-gate :has(> img[src^="/assets/content/"], > picture > img[src^="/assets/content/"]):not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee), :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *, .is-media-settled)::before {
+  .media-gate .media-frame:not(.is-media-settled)::before {
     inset: 0;
     width: auto;
     background: rgb(255 255 255 / 8%);

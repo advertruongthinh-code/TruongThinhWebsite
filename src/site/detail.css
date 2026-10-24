@@ -7,7 +7,7 @@
 }
 
 /* Ảnh hero Residential, Commercial hiện cắt cứng khi giải mã xong như hero Espacio, bỏ fade của khung chờ ảnh.
-   Selector khung chờ ảnh của media-gate có specificity rất cao nên cần !important. */
+   Selector khung chờ ảnh của media-gate cùng specificity với selector này nên giữ !important. */
 .media-gate .detail-hero .hero-slide img {
   animation: none !important;
 }
