@@ -17,7 +17,7 @@ updated: 2026-10-19
 ## Mục đích
 
 Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
-và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 255 card hiện chỉ có một ảnh
+và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 254 card hiện chỉ có một ảnh
 mỗi card. Phát tự động, vùng trọng tâm và các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
 file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
 

@@ -16,7 +16,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-19
+updated: 2026-10-23
 ---
 
 # Trang chủ
@@ -73,8 +73,8 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 
 ### R3. Hero: slideshow và nút dừng
 
-Sáu ảnh nền trang trí (`aria-hidden`, `alt=""`), owner duyệt 2026-10-17: phòng khách nhà ống, sảnh lễ tân, bếp và phòng ăn,
-phòng ngủ óc chó, rồi hai hero Quảng cáo owner duyệt 2026-10-18: dãy mặt tiền bảng hiệu lúc chạng vạng, sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5). Thứ tự cả sáu slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. Năm ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+10 ảnh nền trang trí (`aria-hidden`, `alt=""`): sảnh lễ tân (owner duyệt 2026-10-17), hai hero Quảng cáo owner duyệt 2026-10-18: dãy mặt tiền bảng hiệu lúc chạng vạng, sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5),
+và 7 ảnh A317 owner giữ 2026-10-23: góc cửa sổ phòng ngủ homestay, giặt phơi nhà phố (A317-v4), thiền căn hộ, đọc sách homestay, hai phòng chơi (trẻ em nhà phố và căn hộ), thư giãn homestay. Ảnh A317 phóng lớn 2 lần từ PNG 1536×1024 thành 3072×2048 bằng Lanczos3; không crop hoặc tạo nội dung mới. Owner 2026-10-23 chuyển sáu ảnh nhà ở (bếp và phòng ăn, phòng ngủ óc chó, phòng ngủ homestay, phòng khách căn hộ, bếp nhà phố, phòng khách nhà ống) sang [hero Nhà ở](detail-pages.md#r5-hero-và-vào-trang); Nhà ở, Kinh doanh dùng cùng slideshow này. Thứ tự cả 10 slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. 9 ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -85,8 +85,8 @@ trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 
 ```gherkin
 Given /vi/ ở 1440px, không reduced motion
-When chờ slideshow đi hết sáu slide
-Then sáu slide, gồm ảnh đầu, theo thứ tự ngẫu nhiên mỗi lần tải; ảnh đầu là ảnh đã preload, chỉ tải một lần
+When chờ slideshow đi hết 10 slide
+Then 10 slide, gồm ảnh đầu, theo thứ tự ngẫu nhiên mỗi lần tải; ảnh đầu là ảnh đã preload, chỉ tải một lần
 And mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
 When bấm nút dừng chuyển động
 Then nút có aria-pressed="true", slide và marquee đứng yên
@@ -144,7 +144,7 @@ Then ảnh không còn transform hay transition
 
 ### R7. Heritage montage
 
-Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa. Từ 681px chữ
+Bốn hàng chữ hoa cỡ display; mỗi hàng gồm từ, ảnh nhỏ, từ; hàng căn giữa, trái, phải, giữa. Ảnh sáng tạo dùng A380-v4: người thiết kế phác thảo tủ trưng bày mỹ phẩm lấy cảm hứng từ lá cọ cạnh bảng vật liệu. Từ 681px chữ
 nối (và, là, trong, từng; EN and, are, to, every) còn nửa cỡ (`.heritage-text--minor`) và cách ảnh bằng
 margin ảnh như từ khóa; tới 680px mọi chữ cùng cỡ. Từ 981px hàng trái và phải lệch ra mép gutter. Khi vào
 viewport, chữ trong mask trượt lên, từ thứ hai của hàng trễ 0,3s; ảnh phóng nhẹ và hiện sau. Hàng dài hơn
@@ -169,7 +169,7 @@ And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nh
 
 ### R8. Rail công trình
 
-Card đầu dùng ảnh quán cà phê nhà phố `home-commercial-cafe` (owner duyệt 2026-10-18); portal Kinh doanh (R1) dùng ảnh riêng `home-commercial-cnc-cafe` (owner duyệt 2026-10-19) nên hai chỗ không trùng ảnh; card 3 dùng ảnh quán cà phê mặt phố `home-commercial-fnb-v2` (owner yêu cầu 2026-10-19, thay xe cà phê lưu động vì rail tối đa 6 card). Nguồn duy nhất là `src/site/content/project-reel.json` (chỉ build, test đọc): `renderProjectReel` (`scripts/site/project-reel.mjs`) validate, rồi build và preview Design System thay `<!-- project-reel-cards -->` trong `.project-track` bằng `figure.project-card` theo `order`; dữ liệu sai thì build dừng trước khi xóa output cũ. Ràng buộc, cũng là contract cho CMS phase ([CMS](cms.md)): 3 tới 6 card (dưới 3 mất nhịp so le, trên 6 card ở lưới 981px hẹp dưới 130px); `id` kebab-case, `order` nguyên dương, cả hai duy nhất, `id` giữ nguyên khi sửa nội dung; `variant` là `high`, `mid` hoặc `low` (`mid`, `low` cùng độ lệch), xen kẽ cao, thấp theo `order` vì tới 980px card chẵn luôn đẩy xuống; `src` là WebP `/assets/content/...` có trong `src/site/`, đã sinh biến thể ([tải ảnh R5](media-delivery.md#r5-chuẩn-file-ảnh)), `width`, `height` bằng pixel thật; `altVi`, `altEn`, `captionVi`, `captionEn` không rỗng, caption vài từ nêu đúng hạng mục trong ảnh, không dấu "/", không nêu tên thương hiệu trong ảnh. Card ảnh cao so le, caption có ô vuông màu lặp ba (xanh, cam, viền). Track là `region` focus được (`tabindex="0"`, nhãn "Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh. Từ 981px: lưới mỗi card một cột, cao tối thiểu 650px, caption dài thì lưới cao thêm, không bị cắt; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
+Card đầu dùng ảnh quán cà phê nhà phố `home-commercial-cafe` (owner duyệt 2026-10-18); portal Kinh doanh (R1) dùng ảnh riêng `home-commercial-cnc-cafe` (owner duyệt 2026-10-19) nên hai chỗ không trùng ảnh. Nguồn duy nhất là `src/site/content/project-reel.json` (chỉ build, test đọc): `renderProjectReel` (`scripts/site/project-reel.mjs`) validate, rồi build và preview Design System thay `<!-- project-reel-cards -->` trong `.project-track` bằng `figure.project-card` theo `order`; dữ liệu sai thì build dừng trước khi xóa output cũ. Ràng buộc, cũng là contract cho CMS phase ([CMS](cms.md)): 3 tới 6 card (dưới 3 mất nhịp so le, trên 6 card ở lưới 981px hẹp dưới 130px); `id` kebab-case, `order` nguyên dương, cả hai duy nhất, `id` giữ nguyên khi sửa nội dung; `variant` là `high`, `mid` hoặc `low` (`mid`, `low` cùng độ lệch), xen kẽ cao, thấp theo `order` vì tới 980px card chẵn luôn đẩy xuống; `src` là WebP `/assets/content/...` có trong `src/site/`, đã sinh biến thể ([tải ảnh R5](media-delivery.md#r5-chuẩn-file-ảnh)), `width`, `height` bằng pixel thật; `altVi`, `altEn`, `captionVi`, `captionEn` không rỗng, caption vài từ nêu đúng hạng mục trong ảnh, không dấu "/", không nêu tên thương hiệu trong ảnh. Card ảnh cao so le, caption có ô vuông màu lặp ba (xanh, cam, viền). Track là `region` focus được (`tabindex="0"`, nhãn "Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh. Từ 981px: lưới mỗi card một cột, cao tối thiểu 650px, caption dài thì lưới cao thêm, không bị cắt; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
 
 ```gherkin
 Given /vi/ ở 390px
@@ -231,7 +231,7 @@ Reduced motion: chỉ slide đầu (slide khác `display: none`), không zoom, w
 trạng thái cuối), nút dừng `hidden`, scroll cue tĩnh, marquee và hover zoom tắt. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): slide active và mọi target
 reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; không slide nào nhận `src`,
-`.hero-slides` hiện nền cố định `home-hero-tube-house-living.webp` qua `@media (scripting: none)`.
+`.hero-slides` hiện nền cố định `home-hero-lobby-wall-art.webp` qua `@media (scripting: none)`.
 
 ```gherkin
 Given trình duyệt bật reduced motion
@@ -267,7 +267,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | --- | --- |
 | R1 | `TT_E2E_PORTAL_ONLY` (số portal, ảnh portal Advertising); smoke `pnpm qa:site`; thứ tự section và một `h1` chưa có test riêng |
 | R2 | `static-locales.test.mjs`; `TT_E2E_HERO_INTRO_ONLY` (chữ hero VI, EN) |
-| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (ảnh đầu khác slide 0, thứ tự xáo, preload khớp ảnh đầu với `Math.random` stub), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
+| R3 | `TT_E2E_HERO_CONTINUITY_ONLY` (ảnh đầu khác slide 0, thứ tự xáo, preload khớp ảnh đầu với `Math.random` stub), `hero-slideshow.test.mjs` (Nhà ở, Kinh doanh cùng script), `TT_E2E_WHEEL_ONLY` (parallax hero); `footer-consistency.e2e.mjs` (nút dừng không chồng floating CTA, 320×568 tới 1440×900); bấm nút dừng chưa có test |
 | R4 | `TT_E2E_HERO_INTRO_ONLY`, `TT_E2E_SCROLL_CUE_ONLY` (12/13, xem Gate) |
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |

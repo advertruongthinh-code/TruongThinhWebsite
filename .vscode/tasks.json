@@ -18,11 +18,23 @@
       "detail": "Chạy localhost; dùng Tasks: Terminate Task hoặc nút dừng của terminal để dừng."
     },
     {
+      "label": "Demo: Deploy Cloudflare (main)",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile", "-Command",
+        "$ErrorActionPreference = 'Stop'; if ((git rev-parse --abbrev-ref HEAD) -ne 'main') { throw 'Chuyển sang nhánh main trước khi deploy.' }; if (git status --porcelain --untracked-files=no) { throw 'Còn thay đổi chưa commit; commit hoặc stash trước.' }; git pull --ff-only origin main; if ($LASTEXITCODE) { exit $LASTEXITCODE }; pnpm install --frozen-lockfile; if ($LASTEXITCODE) { exit $LASTEXITCODE }; pnpm deploy:demo; exit $LASTEXITCODE"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "detail": "Owner deploy tay demo từ main mới nhất khi CI deploy kẹt; cần đăng nhập Cloudflare một lần bằng: pnpm demo:wrangler login."
+    },
+    {
       "label": "Tooling: Watch",
       "dependsOrder": "parallel",
       "dependsOn": [
-        "Graphify: Watch",
-        "Serena: Sync Languages (Watch)"
+        "Graphify: Watch"
       ],
       "problemMatcher": []
     },
@@ -31,16 +43,6 @@
       "type": "process",
       "command": "pwsh",
       "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\tooling\\watch-graphify.ps1"],
-      "options": { "cwd": "${workspaceFolder}" },
-      "isBackground": true,
-      "problemMatcher": [],
-      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
-    },
-    {
-      "label": "Serena: Sync Languages (Watch)",
-      "type": "process",
-      "command": "pwsh",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\tooling\\sync-serena-languages.ps1", "-Watch"],
       "options": { "cwd": "${workspaceFolder}" },
       "isBackground": true,
       "problemMatcher": [],

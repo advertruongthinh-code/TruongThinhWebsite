@@ -11,6 +11,7 @@
     "demo:wrangler": "pnpm dlx --allow-build=esbuild --allow-build=workerd wrangler@4.124.0",
     "qa:static": "node tests/site/site-static-contract.cjs",
     "qa:docs": "node scripts/docs/check-docs.mjs",
+    "qa:content": "node scripts/ci/content-contract.mjs",
     "qa:suite": "node scripts/ci/suites.mjs",
     "qa:related-scroll": "node tests/site/related-scroll-device.mjs",
     "qa:scroll-feel": "node tests/site/scroll-feel.e2e.mjs",

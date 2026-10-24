@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-19
+- Updated: 2026-10-23
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -8,7 +8,8 @@
   trên `main` ([cách phát hành](specs/static-release.md#r11-phát-hành-demo-cloudflare)); owner kiểm nhận giao diện trên đó.
 
 ## Việc đang làm
-
+- [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt; PR ảnh đỏ ở P13 adv-viewer ([issue #507](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/507)).
+- [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): lỗi trên `main` đã merge; fix skeleton, swipe nằm trên nhánh thread `ap7oez`, `dxu1nj`; tail-packing chưa xác nhận.
 - PR đang mở xem [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls). Thay đổi đã merge tự lên demo,
   chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
 - Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
@@ -25,10 +26,9 @@
   [card](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067)). Còn lại:
   - Owner báo 18/10 trên phone: motion không mượt (nhất là logo); gradient đứng yên khi vuốt nhanh masonry; A04s
     (viewport 384px) chữ nhảy dòng, A05s cũ (411px) ổn. Điều phối đã giao thread sửa.
-  - Thread sở hữu: long task khi mở detail trên phone (gate 50ms); 2 ca Chromium flaky của `advertising-photo-transitions`;
+  - Thread sở hữu: long task khi mở detail trên phone (gate 50ms, [số đo](specs/advertising-detail.md#gate-còn-mở)); ca Chromium flaky `m02b-grid-detail-no-clone-no-jump` của `advertising-photo-transitions` (P13 sửa ở PR #511);
     fault thật còn lại của `mobile-layout-parity` ở trang chủ (chữ 200%, `motion.js` vắng: khối closer "Giữ nghề" rộng hơn `line-mask` 1,3px).
-- Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest` ([R10](specs/static-release.md#r10-gate-ci)).
-- PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)); giữ PR lại bằng draft hoặc nhãn `hold`.
+- Repo public (2026-10-15); CI, Docs, Deploy demo chạy trên `ubuntu-latest`; PR tự merge khi CI và Docs xanh (workflow `Automerge`, [R10](specs/static-release.md#r10-gate-ci)), giữ lại bằng draft hoặc nhãn `hold`.
 
 ## Next action
 

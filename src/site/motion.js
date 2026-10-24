@@ -367,12 +367,16 @@
     return changed;
   };
   let textMaskFrame;
+  let heroFitPending = false;
   // Gộp các lần gọi cùng frame (font loadingdone, layout update, đổi trang) thành một lượt đo.
-  const scheduleTextMaskMeasurement = () => {
+  // Layout update không đo lại chữ hero (xem fitHeroLines): đo ép style cả trang, long task khi mở detail trên phone.
+  const scheduleTextMaskMeasurement = (fitHero = true) => {
+    heroFitPending ||= Boolean(fitHero);
     if (textMaskFrame) return;
     textMaskFrame = window.requestAnimationFrame(() => {
       textMaskFrame = undefined;
-      fitHeroLines();
+      if (heroFitPending) fitHeroLines();
+      heroFitPending = false;
       measureTextMasks();
       // Khoảng dòng motto đổi thì chiều cao trang đổi: cập nhật smooth scroll và tone header.
       if (fitHeritageGaps()) requestLayoutUpdate();
@@ -524,6 +528,10 @@
     if (!sizeChanged || afterRect.width <= 0 || afterRect.height <= 0) return;
 
     gsap.killTweensOf(headerLogo, "transform");
+    // Intro WAAPI của logo che transform inline của FLIP; beforeRect đã gồm scale của intro.
+    headerLogo.getAnimations()
+      .filter((animation) => animation.effect?.getKeyframes().some((frame) => "transform" in frame))
+      .forEach((animation) => animation.cancel());
     gsap.fromTo(
       headerLogo,
       {
@@ -612,7 +620,7 @@
     const nextCtaShown = scrollY <= window.innerHeight && scrollY + window.innerHeight <= footerTop;
     if (nextCtaShown !== pageState?.floatingCtaShown) {
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
-      floatingCta.classList.toggle("show", nextCtaShown);
+      floatingCta?.classList.toggle("show", nextCtaShown);
     }
     if (pageState?.scrollCue instanceof HTMLElement) {
       const cueHidden = scrollY > 200;
@@ -808,7 +816,7 @@
       pageState?.smoothScroll?.update();
       updateToneRanges();
       updateHeader();
-      scheduleTextMaskMeasurement();
+      scheduleTextMaskMeasurement(false);
     });
   };
 
@@ -1110,6 +1118,40 @@
     state.abort.signal.addEventListener("abort", () => observer.disconnect(), { once: true });
   };
 
+  // Intro header (logo, mục menu, nút menu) chạy bằng WAAPI trên compositor: long task của mount và đo chữ ngay sau
+  // khi tải không làm logo khựng (decision phone-frame-budget). power4.out của GSAP lấy mẫu vào linear(), cùng
+  // thời lượng, delay và stagger như timeline GSAP cũ; trình duyệt chưa có linear() vẫn chạy timeline GSAP.
+  const compositorEase = window.CSS?.supports?.("animation-timing-function", "linear(0, 1)")
+    ? `linear(${Array.from({ length: 41 }, (_, index) => (1 - (1 - index / 40) ** 5).toFixed(4)).join(", ")})`
+    : "";
+  // Cùng API timeline mà mount và route dùng: play, paused, progress(1) để nhảy tới cuối, kill.
+  const createHeaderIntro = () => {
+    const toggle = header.querySelector("#header-toggle-svg");
+    if (toggle) toggle.style.transformOrigin = "center";
+    const steps = [
+      [headerLogo, [{ transform: "scale(0)" }, { transform: "none" }], 0, 1500],
+      ...[...header.querySelectorAll("#header-menu-items > ul > li")]
+        .map((item, index) => [item, [{ transform: "translateY(-150px)" }, { transform: "none" }], 300 + index * 100, 1500]),
+      [toggle, [{ transform: "scaleX(0)" }, { transform: "none" }], 1500, 1000],
+    ].filter(([node]) => node);
+    // fill backwards giữ giá trị đầu trong lúc chờ như from() của GSAP; xong thì trả về style gốc.
+    const animations = steps.map(([node, keyframes, delay, duration]) => {
+      const animation = node.animate(keyframes, { delay, duration, easing: compositorEase, fill: "backwards" });
+      animation.pause();
+      return animation;
+    });
+    let paused = true;
+    return {
+      paused: () => paused,
+      play: () => {
+        paused = false;
+        animations.forEach((animation) => animation.play());
+      },
+      progress: () => animations.forEach((animation) => animation.finish()),
+      kill: () => animations.forEach((animation) => animation.cancel()),
+    };
+  };
+
   const mountPageMotion = (state, softNavigation, settledStartup = false) => {
     const clientLogoTrack = state.container.querySelector(
       ".client-logo-marquee__track",
@@ -1399,13 +1441,18 @@
 
       const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
       timelines.add(intro);
-      const headerIntro = gsap.timeline({ defaults: { ease: "power4.out" }, paused: true });
-      timelines.add(headerIntro);
+      const playsHeaderIntro = !settledStartup && !softNavigation;
       // Direct load chạy intro header một lần khi veil bắt đầu lộ; soft navigation bỏ qua.
-      if (!settledStartup && !softNavigation) {
+      if (playsHeaderIntro) {
         // FLIP collapse từ scroll lúc mount sẽ thành giá trị cuối của intro và để logo bị scale.
         gsap.killTweensOf(headerLogo, "x,y,scaleX,scaleY");
         gsap.set(headerLogo, { clearProps: "transform,transformOrigin" });
+      }
+      const headerIntro = playsHeaderIntro && compositorEase
+        ? createHeaderIntro()
+        : gsap.timeline({ defaults: { ease: "power4.out" }, paused: true });
+      timelines.add(headerIntro);
+      if (playsHeaderIntro && !compositorEase) {
         headerIntro
           .from(headerLogo, { scale: 0, duration: 1.5 })
           .from(

@@ -61,7 +61,8 @@ Ponytail chạy theo ba mốc:
 2. Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit` review
    riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Cloud không có Git hook:
    agent tự chạy `ponytail-review` trên diff. Review, host agent hoặc hook lỗi thì fail
-   closed; không dùng `--no-verify` để bỏ qua gate.
+   closed; không dùng `--no-verify` để bỏ qua gate. Ngoại lệ tạm tới khi hạn mức tuần reset
+   (2026-10-24 08:00 Asia/Bangkok): [ponytail-review local](docs/operations/agent-rule-workflow-tools.md#automation).
    Phạm vi chỉ là over-engineering; correctness và security thuộc five-axis review.
 3. Shortcut có chủ đích (giới hạn đã biết) đánh dấu bằng comment `ponytail: <ceiling>, <upgrade path>`.
    `ponytail-audit` và `ponytail-debt` chỉ chạy khi owner gọi hoặc trong thread code review của
@@ -89,9 +90,8 @@ Ponytail chạy theo ba mốc:
   thì sửa doc sở hữu qua [docs index](docs/index.md); supersession theo
   [docs index](docs/index.md#supersession). Main kiểm docs impact của worker trước nghiệm thu.
 - Design System: PR đổi `design-system/` thì sau khi merge, chính thread đó
-  publish lại claude.ai, một lần mỗi đợt ([docs-system R7](docs/specs/docs-system.md#r7-publish-design-system-lên-claudeai)).
-  PR code của một mục trong `design-system/approved-designs.md` chuyển giá trị
-  vào component và `motion.md` rồi xóa mục. CI không kiểm được hai việc này.
+  publish lại claude.ai, một lần mỗi đợt ([design-system R5](docs/specs/design-system.md#r5-publish-lên-claudeai)).
+  Thiết kế đã duyệt chưa code ghi trong spec sở hữu, không ghi vào `design-system/`. CI không kiểm được việc publish.
 - Evidence nằm trong mô tả PR; không tạo report có ngày, không copy contract sang nhiều file.
 - `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR), blocker đã verify, next action, ranh giới. Không lịch sử, changelog hay bản sao Notion.
 - PR đổi một field của STATE thì sửa field đó và `Updated` trong cùng PR; bỏ item đã xong, link spec thay vì copy evidence.
@@ -112,14 +112,15 @@ Ponytail chạy theo ba mốc:
 | --- | --- |
 | Copy, media, layout, UI | [Product và UI](docs/operations/agent-rule-product-ui.md) |
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
-| Codebase, skill, plugin, MCP, Graphify, Serena | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
+| Codebase, skill, plugin, MCP, Graphify | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
 | Tạo hoặc chấm media AI (ảnh, video, âm thanh) | [Tạo và chấm ảnh](docs/operations/agent-rule-ad-images.md) |
-| Giao thread, chọn model/effort | [Model và effort routing](docs/operations/agent-rule-model-routing.md) |
+| Giao thread, chọn model/effort Claude | [Claude routing](docs/operations/agent-rule-model-routing.md) |
+| Giao thread, chọn model/effort OpenAI, Codex | [OpenAI routing](docs/operations/agent-rule-openai-routing.md) |
 
 ## Scripts map
 
-Automation sở hữu Graphify structural refresh và Serena startup sync. Không chạy lại
+Automation sở hữu Graphify structural refresh. Không chạy lại
 mechanics sau edit; chỉ dùng fallback trong [scripts map](docs/operations/agent-rule-scripts.md)
 khi tool báo lỗi hoặc blocked.
 

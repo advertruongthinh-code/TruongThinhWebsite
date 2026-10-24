@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-19
+updated: 2026-10-23
 ---
 
 # Trang Residential, Commercial và About
@@ -59,7 +59,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 36 `figure`, năm chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 15 `figure`: tám ảnh lẻ, chuỗi "Văn phòng chia sẻ" (R7) | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 36 `figure`, năm chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
@@ -114,11 +114,11 @@ Then mỗi trang một h1, không có bước nhảy cấp heading, không phầ
 ### R5. Hero và vào trang
 
 Hero cao `100svh`, tối thiểu 44rem (About 46rem; tới 680px bớt 2rem), có kicker, `h1` hai dòng, scroll cue. Residential,
-Commercial: một `.hero-slide` (không slideshow, không nút dừng), `.hero-slides` parallax speed `-2`; Commercial chọn ngẫu nhiên mỗi lần tải một trong 12 hero owner duyệt 2026-10-18 (9 hero kinh doanh F24, hai shop thời trang F19, sảnh lễ tân F25; 1920×1280 từ PNG SeedVR2.5) như hero trang chủ ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)): script head chọn và preload, script module sau `.hero-slides` giữ slide đó, bỏ các slide còn lại, gán `src`, `srcset`, `fetchpriority="high"`; route mềm runtime chạy lại script đó; chữ hoa, đậm 600,
+Commercial: hero slideshow giống hệt [trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng) (owner 2026-10-23): cùng script head chọn, preload slide đầu, cùng script module xáo, cùng zoom `1.06 → 1`, crossfade, nút dừng `[data-motion-toggle]`; `.hero-slides` parallax speed `-2`; không JavaScript thì `.hero-slides` hiện nền ảnh slide 0 (R11). Residential 8 ảnh: bếp và bàn ăn gỗ, homestay ven sông (từ Kinh doanh), sáu ảnh nhà ở từ trang chủ (bếp và phòng ăn, phòng ngủ óc chó, phòng ngủ homestay A317-v3, phòng khách căn hộ A317-v2, bếp nhà phố A317-v1-alt1, phòng khách nhà ống A321-v2). Commercial 7 ảnh: 8 hero cũ trừ homestay (owner 2026-10-23 cũng chuyển shop thể thao, tiệm bánh vòm xanh xuống gallery và hai gian hàng dừa sang [Gian hàng triển lãm](advertising-masonry.md)); chữ hoa, đậm 600,
 khung `min(80%, 62.5rem)`, dòng 1 căn trái, dòng 2 căn phải lùi lên 0,35em; tới 980px dòng được xuống hàng để chữ 200%
 không tràn; tới 680px căn giữa. About tới 980px hero theo luồng chữ, cao tối thiểu `100svh`. Mỗi lần mount (tải trực tiếp hoặc route mềm), trễ
-tính từ lúc mount: ảnh hero (`data-motion-hero-media`) `scale 1.2 → 1.005` trong 2,5s `ease` rồi đứng yên, như hero
-Espacio interior-design (Residential) và kitchens (Commercial) đo từ frame; ảnh hero Residential, Commercial hiện cắt
+tính từ lúc mount: ảnh hero About (`data-motion-hero-media`) `scale 1.2 → 1.005` trong 2,5s `ease` rồi đứng yên;
+slide đầu Residential, Commercial zoom ngay khi mount (không `data-hero-intro` nên không fade vào); ảnh hero hai trang này hiện cắt
 cứng khi decode xong, không fade của khung chờ ảnh; kicker trượt từ trái 60px và hiện (0,6s) tại 1,2s;
 Residential, Commercial tách `h1` theo từ, hiện dần tại 0,9s; About không tách nên `h1` hiện ngay. `zoom-09` khác
 `words-09` chỉ ở chỗ xóa transform GSAP còn sót trên ảnh hero. Tải trực tiếp: entrance chạy song song lúc veil mở; hero
@@ -129,7 +129,7 @@ giữa intro) thì tiêu đề hero mọi trang, kể cả Advertising, về ch�
 ```gherkin
 Given /vi/residential/ ở 1440px, không reduced motion
 When tải trực tiếp trang
-Then ảnh hero đi từ scale 1.2 về gần 1 trong 2,5s, tiêu đề hiện theo từ, kicker hiện sau tiêu đề
+Then 8 slide theo thứ tự ngẫu nhiên, slide đầu zoom từ 1.06 và là ảnh đã preload, tiêu đề hiện theo từ, kicker sau tiêu đề
 ```
 
 ### R6. Reveal, parallax, đổi ngôn ngữ và vòng đời
@@ -276,7 +276,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R2 | `assertPersistentNavigationContracts`, `TT_E2E_RESIDENTIAL_HERO_ONLY`, `TT_E2E_COMMERCIAL_HERO_ONLY` (đỏ, xem Gate); thứ tự khối chưa có test |
 | R3 | `TT_E2E_DETAIL_HERO_ONLY` (một cue, không chapter; đỏ, xem Gate); thứ tự khối chưa có test |
 | R4 | `mobile-layout-parity.e2e.mjs --scope residential-commercial`, `home-about`; `TT_E2E_ESPACIO_TYPE_MOTION_ONLY`; node lá, heading chưa có test |
-| R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom vào trực tiếp, route mềm), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
+| R5 | `TT_E2E_DETAIL_HERO_ONLY` (zoom About, Advertising; Residential, Commercial có slideshow và nút dừng), `TT_E2E_HERO_CONTINUITY_ONLY` (xáo, preload, crossfade), `hero-slideshow.test.mjs` (script giống trang chủ), `footer-consistency.e2e.mjs` (nút dừng không chồng CTA), hai flag hero ở R2, `TT_E2E_WHEEL_ONLY` (`.hero-slides`), `cross-browser.smoke.spec.cjs` (tiêu đề Advertising qua 1024px) |
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
 | R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom); `mobile-layout-parity.e2e.mjs` ca `reduced` (mục rail 10 và 18 vào đúng khung), ca `text200` và `fallback` (caption không vượt track) |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |

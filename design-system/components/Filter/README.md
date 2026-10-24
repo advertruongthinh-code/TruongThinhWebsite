@@ -10,10 +10,11 @@ runtime `catalog-runtime.mjs` cập nhật trạng thái.
 - Mọi mục là link thật tới trang cụm, sản phẩm; `aria-current="true"` ở cụm
   đang chọn (cả khi lọc một sản phẩm của nó) và ở sản phẩm đang lọc.
 - Cụm: chữ hoa 700, 1rem, màu `muted`; hover, focus và mục đang chọn đổi sang
-  `ink` kèm gạch chân dày 3px, cách 4px. Căn giữa, rộng tối đa 62.5rem, cách
+  `ink` kèm gạch chân dày 3px, cách 4px. Máy có hover: gạch chân chạy như nav
+  header ([Motion](../../motion.md#motion-theo-bề-mặt-ui)); điện thoại hiện ngay. Căn giữa, rộng tối đa 62.5rem, cách
   đáy hero 15vh cộng 3.25rem (một bậc trên hàng chip); xuống dòng khi hẹp.
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
-  chân 2px dưới tên. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
+  chân 2px dưới tên, chạy như cụm trên máy có hover. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
 - Hover cụm không mở danh sách sản phẩm (owner bỏ 2026-10-17); tầng sản phẩm
   chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
