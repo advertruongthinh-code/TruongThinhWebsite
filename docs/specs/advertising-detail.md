@@ -70,7 +70,7 @@ And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao b
 ### R3. Info: nhóm, mô tả, CTA
 
 Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, dãy thumbnail ([media-card R6](media-card.md#r6-media-trong-primary)),
-mô tả và CTA; không có tiêu đề ảnh. Mô tả căn đều (`justify`) trong vùng cuộn riêng (`role="group"`, `tabindex=0`, nhãn
+mô tả và CTA; không có tiêu đề ảnh. Mô tả căn trái (bỏ `justify`, owner 2026-10-24) trong vùng cuộn riêng (`role="group"`, `tabindex=0`, nhãn
 "Mô tả ảnh" / "Photo description"), cao ít nhất ba dòng hoặc vừa chữ nếu ngắn hơn (R2); chữ dài cuộn bên trong bằng wheel,
 vuốt, phím mũi tên, `End`; khi còn chữ để cuộn, các input này không cuộn trang. Còn chữ phía trên hoặc dưới thì mép đó mờ về trắng cao một dòng (`data-fade-start`,
 `data-fade-end`, chung mask với dãy thumbnail). Thanh cuộn kiểu B (owner 2026-10-24) theo ngôn ngữ player: rãnh 4px

@@ -105,19 +105,16 @@ Then dải theo ngón tay rồi bật về item cũ; kéo quá nửa canvas thì
 
 Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="metadata"`, có `poster`, nhãn bằng alt của item.
 Card video theo Pinterest (owner 2026-10-17): không nút phát, không icon loa; nhãn tổng thời lượng `m:ss` làm tròn lên,
-không đếm ngược. Luôn tắt tiếng, tối đa 2 video cùng phát (owner 2026-10-18): 2 card có item video đang active, tâm nằm
-trong vùng trọng tâm (dải 40% giữa phần nhìn thấy dưới navbar), gần giữa vùng nhất; tính lại mỗi frame khi đang cuộn,
-không chờ cuộn dừng. Card ra khỏi suất thì dừng, quay lại thì phát tiếp từ chỗ dừng. Mỗi card chạy playlist video của nó
+không đếm ngược. Luôn tắt tiếng. Masonry (owner 2026-10-24, thay luật 2 suất cũ): mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Mỗi card chạy playlist video của nó
 theo thứ tự `mediaItems` (thứ tự do CMS định): hết video thì đẩy sang video kế như R3, chấm hoặc bộ đếm theo, hết vòng về
-video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát. Chuột vào card video
-thì card đó phát và chiếm một suất thay card xa giữa vùng hơn; rời card thì lịch về 2 card gần nhất. Touch không có
-hover, tự phát như desktop; chạm card mở detail như ảnh. Reduced motion không tự phát, hover vẫn phát. Đổi item hoặc
+video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát, không tự trượt. Related trong detail không tự phát: chuột vào card video thì phát, rời card thì dừng (owner 2026-10-24). Touch tự phát như desktop ở masonry; chạm card mở detail như ảnh. Reduced motion không tự phát; chuột vào card thì phát (mặc định Thread giữ để người dùng reduced motion vẫn xem được). Đổi item hoặc
 card rời cửa sổ ảo hóa thì video tạm dừng.
 
 ```gherkin
-Given ba card video 0:07 trong vùng trọng tâm
-When cuộn
-Then đúng 2 video gần giữa vùng nhất phát tắt tiếng, không card nào có nút phát
+Given ba card video cùng hiện quá 1/2 chiều cao trên masonry
+When cuộn tới khi một card chỉ còn hiện 40% chiều cao
+Then hai card kia vẫn phát tắt tiếng, card còn 40% dừng, không card nào có nút phát
+And rê chuột vào card đang đứng ở ảnh không làm card phát; trong detail, card related video chỉ phát khi chuột ở trên nó
 And card có video 1, ảnh, video 2 phát xong video 1 thì đẩy sang video 2, xong video 2 thì về video 1
 ```
 
@@ -156,7 +153,7 @@ hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Prod
 i trên N: <alt>", thumbnail 60px góc vuông (owner 2026-10-24), đang xem `aria-current` có viền đôi, video có biểu tượng phát; dãy một dòng chỉ hiện thumbnail nguyên, thừa thì cuộn ngang, thumbnail cuối trong khung mờ về trắng (đã cuộn thì thumbnail đầu cũng mờ), đổi media thì dãy tự cuộn đưa thumbnail đang xem ra giữa. Khung media
 theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung giữ tỷ lệ cover nên đổi media không đổi kích thước
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
-tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
+tên vuông trắng 36px góc vuông (owner 2026-10-24), chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
 khung đổi media: dải liền như card (R3), cắt ở BBox media (khung contain chung của mọi item, không tính vùng dư); vuốt kéo
 dải theo ngón tay như R3. Nền zoom blur phản ánh realtime vùng media: khi video phát hoặc dải trượt, nền vẽ lại mỗi
 frame từ chính những gì đang trong BBox; không crossfade (owner 2026-10-19; reduced motion đổi ngay). Nền không vignette:
@@ -164,19 +161,19 @@ mép khung đặc như giữa, không lộ nền xám (owner 2026-10-19). Khung 
 thumbnail thì trượt thẳng tới media đó, chiều theo vị trí thumbnail, không đi qua media ở giữa (owner 2026-10-19).
 Video không phát trong lúc dải chạy: trên dải là hình đứng của video. Tiếng chỉ fade khi video chuyển phát và dừng,
 cùng thời lượng và easing của nhịp dải: video đang phát thì tiếng nhỏ dần về 0 rồi dừng khi dải bắt đầu, video đích phát
-từ đầu khi dải dừng và tiếng to dần tới mức người xem; vuốt bỏ dở thì video phát lại và tiếng to dần (owner 2026-10-19).
+từ đầu khi dải dừng và tiếng to dần tới mức người xem; vuốt bỏ dở thì video phát lại và tiếng to dần (owner 2026-10-19); người xem chỉnh tiếng trong lúc fade thì người xem thắng ([player R11](primary-video-player.md#r11-tiếng-người-xem-thắng-fade)).
 Giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
 Video primary tự phát tắt tiếng, lặp riêng nó (không chạy playlist như card, owner 2026-10-18), `playsinline`, player theo trang pin
 Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
 thanh đáy 128px (lề 24px, không nền gradient) có nút phát/dừng, thời gian "hiện tại / tổng" (16px đậm, tổng
 mờ 0.6), nút tiếng và thanh tua (track 4px, núm 12px, bấm, kéo, phím mũi tên). Thanh hiện khi chuột trên video, khi focus
-bên trong hoặc khi đang dừng; màn hình cảm ứng luôn hiện. Bố cục cảm ứng, kéo tua, bóng hai lớp và núm đặc theo
+bên trong hoặc khi đang dừng; màn hình cảm ứng luôn hiện; nút mở lớn luôn hiện ([player R9](primary-video-player.md#r9-thanh-player-ẩn-khi-đang-phát)). Bố cục cảm ứng, kéo tua, bóng hai lớp và núm đặc theo
 [player video primary](primary-video-player.md). Thanh âm lượng (thêm theo owner) đứng dọc 104px phía trên
 nút tiếng để không nhầm với thanh tua, mở khi trỏ chuột hoặc focus bàn phím vào cụm tiếng, kéo chuột xong rời đi thì
-thu lại; kéo về 0 là tắt tiếng nhưng giữ mức cũ. Nút "Toàn màn hình" / "Full screen" (thêm theo owner) phóng khung ra
-nền đen, không nền blur, mũi tên luôn hiện, đổi sang ảnh vẫn giữ; bấm lại hoặc Esc thoát. Nút "Bật tiếng" / "Unmute" và
-"Tắt tiếng" / "Mute" cùng thanh âm lượng ẩn khi `hasAudio` false, bật tiếng mà volume 0 thì đặt 1. "Xem lớn hơn" ẩn
-với video. Đóng detail tạm dừng video; rời route thì dừng và gỡ nguồn. Hình học và đổi ảnh primary theo
+thu lại; kéo về 0 là tắt tiếng nhưng giữ mức cũ. Không có nút toàn màn hình (owner 2026-10-24): nút mở lớn mở cả video vào
+viewer nền blur ([player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Nút "Bật tiếng" / "Unmute" và
+"Tắt tiếng" / "Mute" cùng thanh âm lượng ẩn khi `hasAudio` false, bật tiếng mà volume 0 thì đặt 1. Nút mở lớn hiện
+cả với video. Đóng detail tạm dừng video; rời route thì dừng và gỡ nguồn. Hình học và đổi ảnh primary theo
 [detail R4](advertising-detail.md#r4-media-primary-và-nền); Back, Forward theo
 [detail R8](advertising-detail.md#r8-back-forward-và-vị-trí-cuộn).
 
@@ -222,7 +219,7 @@ And trong lúc video phát, nền blur đổi theo frame video
 | Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`catalog-runtime.mjs`) | R3–R6 |
 | Attribute | `data-advertising-active-media-id` trên card và `[data-advertising-photo-view]` | Media đang xem; click card đọc để mở detail |
 | Attribute | `data-advertising-media-select`, `-prev`, `-next`, `-count`, `-duration`, `-loading`, `-item` | Hook test và control card |
-| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total`, `data-advertising-photo-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
+| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total`, `data-advertising-photo-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
 | History | `grid.mediaId`, `detail.mediaId` trong state history | Khôi phục media theo entry (R6) |
 
 ## UI
@@ -241,7 +238,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (2 card gần giữa vùng, tính lại khi cuộn, playlist lặp, hover chiếm suất, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video, nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, toàn màn hình) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video, nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
@@ -255,14 +252,11 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
   timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn dải 44px thì kiểm riêng trước khi chọn fallback.
   Chưa có code ngoài Advertising. Owner xác nhận ranh giới; Thread code khi mở lại.
-- Vùng trọng tâm (owner chọn phương án A 28/09), đã code cho lịch phát (R4): dải vô hình rộng toàn viewport, cao 40% phần nhìn thấy dưới
-  mép dưới navbar thực, đặt giữa phần đó, tính lại khi navbar đổi; tâm card quyết định thuộc vùng; không có card cover
-  video trong vùng thì không autoplay. Solver ưu tiên mềm phân tán ứng viên, không đổi thứ tự, seed, hình học, không
-  thêm filler. Solver chưa phân tán ứng viên; Main đo fallback solver trên viewport thật trước khi sửa layout.
-- Lịch phát (R4) đã code trên branch xem trước: tối đa 2 video, tính lại khi cuộn, playlist lặp (owner 2026-10-18).
-  Owner 2026-10-17 bỏ nút phát trên touch theo Pinterest. Item video active (không chỉ cover) được vào lượt.
-- Player và dải media primary (R6) đã code trên branch xem trước, chờ owner duyệt. Pinterest không có thanh âm lượng,
-  toàn màn hình hay nền blur; ba thứ thêm theo owner 2026-10-18. Trên cảm ứng dải nút luôn hiện, thanh âm lượng chỉ mở
+- Lịch phát (R4) đổi 2026-10-24: bỏ vùng trọng tâm và luật tối đa 2 video; mọi card video hiện quá 1/2 chiều cao cùng phát.
+  Giải mã nhiều video một lúc có thể làm giật khi cuộn trên A04s: đo lại trên máy thật. Owner 2026-10-17 bỏ nút phát trên
+  touch theo Pinterest. Item video active (không chỉ cover) được vào lượt.
+- Player và dải media primary (R6) đã code trên branch xem trước, chờ owner duyệt. Pinterest không có thanh âm lượng
+  hay nền blur; hai thứ thêm theo owner 2026-10-18; toàn màn hình bỏ 2026-10-24. Trên cảm ứng dải nút luôn hiện, thanh âm lượng chỉ mở
   khi focus cụm tiếng: mặc định Thread chọn, chưa đo Pinterest mobile. Owner.
 - Tiếng fade lúc phát, dừng (R6) dùng `volume`; theo tài liệu Safari của Apple, iOS không cho JavaScript đổi `volume`, nên trên
   iPhone tiếng có thể bật, tắt ngay. Chưa kiểm thiết bị iOS. Owner.
@@ -294,6 +288,5 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - **Canvas**: vùng media giữ tỷ lệ cover, không gồm dải điều khiển.
 - **Dải điều khiển**: hàng 44px dưới canvas chứa chấm hoặc bộ đếm.
 - **Fixture synthetic**: dữ liệu và file giả chèn trong test, không phải media thật.
-- **Vùng trọng tâm**: dải vô hình chọn ứng viên autoplay, khác vùng tải trước.
 - **Số nguyên an toàn**: số nguyên JavaScript biểu diễn chính xác (`Number.isSafeInteger`).
 - **Scroll settle**: lúc cuộn đã dừng đủ lâu để tính lại ứng viên.
