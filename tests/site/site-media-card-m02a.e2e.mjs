@@ -493,14 +493,39 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
   });
 });
 
-test("M02a touch primary video keeps the bar visible", async () => {
+// Màn hình cảm ứng (primary-video-player R1): một hàng 40px giờ, thanh tua, tiếng, toàn màn hình; không nút phát trên thanh,
+// nút tiếng chỉ bật/tắt, không mở cột âm lượng.
+test("M02a touch primary video uses one 40px row without the bar play button or volume column", async () => {
   await withPage("vi", async (page) => {
     await openFixture(page, "vi", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
-    const state = await playerState(page);
-    assert.deepEqual([state.bar, state.playLabel], [1, "Tạm dừng"]);
+    assert.equal(await page.evaluate(() => matchMedia("(hover: none)").matches), true, "the phone context has no hover");
+    const row = () => page.evaluate(() => {
+      const player = document.querySelector("[data-advertising-photo-player]");
+      const box = (selector) => (({ top, height }) => [Math.round(top + height / 2), Math.round(height)])(
+        player.querySelector(selector).getBoundingClientRect());
+      return { playButton: getComputedStyle(player.querySelector("[data-advertising-photo-play]")).display,
+        volumePop: getComputedStyle(player.querySelector(".advertising-video-player__volume-pop")).display,
+        gradient: getComputedStyle(player.querySelector(".advertising-video-player__bar")).backgroundImage,
+        items: ["[data-advertising-photo-progress]", "[data-advertising-photo-audio-toggle]", "[data-advertising-photo-fullscreen]"].map(box),
+        time: box(".advertising-video-player__time") };
+    });
+    let state = await playerState(page);
+    assert.deepEqual([state.bar, state.center, state.playLabel], [1, 0, "Tạm dừng"], "playing: bar visible, no center icon");
+    const layout = await row();
+    assert.deepEqual([layout.playButton, layout.volumePop, layout.gradient], ["none", "none", "none"],
+      "no bar play button, no volume column, no gradient band");
+    assert(layout.items.every(([centre, height]) => height === 40 && Math.abs(centre - layout.time[0]) <= 1),
+      `time, seek bar, sound and full screen share one 40px row: ${JSON.stringify(layout)}`);
     await page.locator("[data-advertising-photo-play-surface]").tap();
-    assert.equal((await playerState(page)).paused, true, "tapping the video pauses it");
+    await page.waitForTimeout(150);
+    state = await playerState(page);
+    assert.deepEqual([state.paused, state.center], [true, 1], "tapping the video pauses it and shows the 48px play icon");
+    const muted = state.muted;
+    await page.locator("[data-advertising-photo-audio-toggle]").tap();
+    state = await playerState(page);
+    assert.equal(state.muted, !muted, "the sound button toggles sound");
+    assert.equal((await row()).volumePop, "none", "the sound button never opens a volume column");
   });
 });
 

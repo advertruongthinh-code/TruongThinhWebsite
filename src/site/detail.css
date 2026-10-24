@@ -2358,9 +2358,63 @@ body.is-advertising-browse .site-footer {
   margin: 0 0 0 -4px;
 }
 
+/* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, bỏ nút phát trên thanh (chạm video để phát/dừng), một
+   hàng 40px [giờ][thanh tua][tiếng][toàn màn hình]; nút tiếng chỉ bật/tắt, không cột âm lượng. Toàn màn hình cùng bố cục. */
 @media (hover: none) {
   .advertising-video-player__bar {
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding: 0 4px 4px 16px;
     opacity: 1;
+  }
+
+  .advertising-video-player__row {
+    display: contents;
+  }
+
+  .advertising-video-player__row > [data-advertising-photo-play],
+  .advertising-video-player__volume-pop {
+    display: none;
+  }
+
+  .advertising-video-player__time {
+    order: 1;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 40px;
+  }
+
+  .advertising-video-player__progress {
+    order: 2;
+    width: auto;
+    min-width: 0;
+    height: 40px;
+    flex: 1 1 auto;
+    margin: 0 8px 0 12px;
+  }
+
+  .advertising-video-player__volume {
+    order: 3;
+    margin-left: 0;
+  }
+
+  .advertising-video-player__fullscreen,
+  .advertising-video-player__volume:not([hidden]) + .advertising-video-player__fullscreen {
+    order: 4;
+    margin-left: 0;
+  }
+
+  .advertising-video-player__button {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .advertising-video-player__button svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
