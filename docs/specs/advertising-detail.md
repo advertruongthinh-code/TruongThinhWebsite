@@ -51,9 +51,9 @@ And không có clone ảnh giữa card và primary
 ### R2. Hình học primary
 
 `computeAdvertisingPhotoGeometry` (`layout-core.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
-không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột, info một cột,
-cao bằng phần viewport dưới header thu gọn (R10) trừ gap và safe area; primary chưa chiếm hết cột thì trừ thêm `50px` để hàng related dưới
-lộ 50px, chiếm hết cột (điện thoại ngang) thì related xếp dưới, không chừa 50px. `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
+không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
+([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
+thu gọn (R10) trừ gap, safe area và, khi primary chưa chiếm hết cột, `50px` để related lộ dưới; chiếm hết cột (điện thoại ngang) thì không chừa. `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
 hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa phần viewport dưới header, không chừa 50px. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-advertising-photo-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ một dòng mô tả
 cùng nhóm, CTA, indicator thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
@@ -62,7 +62,7 @@ thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.m
 ```gherkin
 Given viewport 1569×912 (4 cột), 820×912 (3 cột) và 891×360 (3 cột, điện thoại ngang)
 When mở cùng một ảnh ngang
-Then 1569px: layout split, primary span 3, ảnh hai cột, primary chừa 50px ở đáy viewport
+Then 1569px: layout split, primary span 3, ảnh hai cột, khung cao theo ảnh, chừa ít nhất 50px ở đáy viewport
 And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới header, info không quá 28% viewport
 And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao bằng vùng ảnh, related xếp dưới primary
 ```

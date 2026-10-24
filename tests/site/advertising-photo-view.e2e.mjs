@@ -76,9 +76,11 @@ function expectedPhotoGeometry(evidence) {
   const heightCap = mode === "split" ? available - gap - (span === columns ? 0 : 50) : available;
   // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
   const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, available - gap - 1);
-  // Split cao theo heightCap, trừ khi nhãn cụm dài làm sàn info cao hơn (runtime giữ sàn đó).
-  const descriptionHeight = mode === "split" ? Math.max(heightCap, evidence.infoFloor) : evidence.infoRect.height;
-  const imageZoneHeight = mode === "split" ? descriptionHeight
+  // Split: vùng ảnh cao theo media tới heightCap (primary-video-player R6); info cao bằng vùng ảnh, trừ khi nhãn cụm dài
+  // làm sàn info cao hơn (runtime giữ sàn đó).
+  const splitImageZoneHeight = Math.min(imageZoneWidth / ratio, heightCap);
+  const descriptionHeight = mode === "split" ? Math.max(splitImageZoneHeight, evidence.infoFloor) : evidence.infoRect.height;
+  const imageZoneHeight = mode === "split" ? splitImageZoneHeight
     : Math.min(width / ratio, available - descriptionHeight - gap);
   const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);

@@ -19,7 +19,9 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   assert.equal(artifact.cards.length, 269, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
-  assert(card && card.mediaItems.length === 1 && card.media.width * 2 === card.media.height * 3);
+  assert(card && card.media.width * 2 === card.media.height * 3);
+  // Chỉ giữ ảnh cover, để fixture không phụ thuộc số media catalog đang có (media tạm thêm ảnh vào card).
+  card.mediaItems = card.mediaItems.slice(0, 1);
   card.mediaItems.push({
     id: videoId, kind: "video", src: `${fixturePrefix}clip-audio-3x2.mp4`,
     sourceId: "m00b:test-only:clip-audio-3x2", source: "M00b sealed synthetic fixture",
@@ -400,6 +402,10 @@ test("M02a touch primary video keeps the bar visible", async () => {
 
 // Dải media theo pin Pinterest: khung giữ tỷ lệ cover nên đổi media không đổi kích thước primary, related đứng yên;
 // mũi tên và thumbnail đang xem theo vị trí, media khác tỷ lệ có nền zoom blur, video có toàn màn hình nền đen.
+// Khung primary cao theo media (primary-video-player R6): video vừa khít khung ở 1440×900. Viewport thấp chặn khung theo
+// chiều cao, nên video 3:2 hay 16:9 còn vùng dư hai bên cho nền blur.
+const cappedViewport = { width: 1440, height: 560 };
+
 const stripState = (page) => page.evaluate(() => {
   const view = document.querySelector("[data-advertising-photo-view]");
   const frame = view.querySelector(".advertising-photo-view__hero-frame").getBoundingClientRect();
@@ -481,6 +487,7 @@ test("M02a primary thumbnails jump straight to a media without dots and the blur
 
 test("M02a video stands still in the strip, its sound fades between play and pause, and the blur backdrop follows the video", async () => {
   await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 2);
     assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-photo-glass"), "true");
@@ -543,6 +550,7 @@ test("M02a video stands still in the strip, its sound fades between play and pau
 
 test("M02a blur backdrop has no vignette: its edges are as opaque as its centre", async () => {
   await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 2
       && !document.documentElement.classList.contains("route-enter"));
@@ -583,6 +591,7 @@ test("M02a blur backdrop has no vignette: its edges are as opaque as its centre"
 
 test("M02a media strip switches by arrow and key without resizing primary or moving related", async () => {
   await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
     const card = await openFixture(page, "en", { videoCover: true, direct: true, wideVideo: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForTimeout(800);
