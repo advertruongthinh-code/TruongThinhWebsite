@@ -269,6 +269,7 @@ const MEDIA_ROWS = [
   ["office-signs-wayfinding-54","office-signs-wayfinding",53,"office-signs-wayfinding-product-10","Biển chỉ dẫn tầng","Floor wayfinding signs","kie:2026-10-23:gpt-image-2-5-sunburst-image-to-image:f3b1028712d735ea795a04c5cecc7257","/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-54-shopping-mall-audit-a156-v3.webp",1536,1024],
   ["signage-raised-letters-41","signage-raised-letters",40,"signage-raised-letters-product-10","Bảng vẫy Mica hút nổi","Vacuum-formed acrylic projecting signs","imagegen:2026-10-19:signage-raised-letters-10-a-1","/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-41-imagegen-20261019.webp",1024,1536],
   ["signage-raised-letters-42","signage-raised-letters",41,"signage-raised-letters-product-10","Bảng vẫy Mica hút nổi","Vacuum-formed acrylic projecting signs","imagegen:2026-10-19:signage-detail-x3-1","/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-42-imagegen-20261019.webp",1536,1024],
+  ["kiosk-posm-64","kiosk-posm",63,"kiosk-posm-product-05","Kiosk bán hàng tại trung tâm thương mại","Shopping-centre retail kiosks","imagegen:2026-10-24:hero-kiosk-a-banh-mien-tay-4","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-64-imagegen-20261024.webp",1536,1024],
 ];
 
 const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([

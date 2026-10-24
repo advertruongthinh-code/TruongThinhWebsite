@@ -360,6 +360,7 @@ const PHOTO_TAG_IDS_BY_RECORD_ID = Object.freeze({
   "office-signs-wayfinding-54": ["group-office-signs-wayfinding","product-office-signs-wayfinding-product-10","format-landscape"],
   "signage-raised-letters-41": ["group-signage-raised-letters","product-signage-raised-letters-product-10","format-portrait"],
   "signage-raised-letters-42": ["group-signage-raised-letters","product-signage-raised-letters-product-10","format-landscape"],
+  "kiosk-posm-64": ["group-kiosk-posm","product-kiosk-posm-product-05","format-landscape"],
 });
 
 const PHOTO_METADATA_BY_RECORD_ID = Object.freeze({
@@ -631,6 +632,7 @@ const PHOTO_METADATA_BY_RECORD_ID = Object.freeze({
   "office-signs-wayfinding-54": {"descriptionVi":"Hệ biển chỉ dẫn song ngữ gắn trên cột trong trung tâm thương mại.","descriptionEn":"Bilingual wayfinding panels on a column in a shopping mall.","source":"/assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-54-shopping-mall-audit-a156-v3.webp","sha256":"fc61b2e05a02f3d04e6e95dab927222b5b851fb96dc619ff598f5258ea2b2492","provenance":"AI-generated illustration; KIE gpt-image-2-5-sunburst-image-to-image; task f3b1028712d735ea795a04c5cecc7257; owner approved A156-v3 in chat; original SHA256 970e37c745c174fa7da9947a94b70c93c2142464876dc433704d875154eb04af.","suggestionPosition":"50% 50%"},
   "signage-raised-letters-41": {"descriptionVi":"Bảng vẫy mica hút nổi hình elip hai mặt của phòng khám trên dãy nhà phố, chữ xanh đậm nổi trên nền trắng.","descriptionEn":"Double-sided elliptical vacuum-formed acrylic projecting sign of a clinic on a shophouse row, dark green raised letters on white.","source":"/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-41-imagegen-20261019.webp","sha256":"eb9abbc2f9dd26a72d5b40d12bd60e50c51051a95cf297cc84c7e500d820f876","provenance":"AI-generated illustration; source ID imagegen:2026-10-19:signage-raised-letters-10-a-1; original SHA256 f79cba3d871e8cacd85149151e59b156f237453bac7b9aca9f978c98cf7009ad."},
   "signage-raised-letters-42": {"descriptionVi":"Bảng vẫy hộp đèn tròn mặt mica sữa, logo hạt cà phê và chữ nổi, gắn tay thép trước quán cà phê lúc chạng vạng.","descriptionEn":"Round lightbox projecting sign with a milky acrylic face, a raised coffee-bean logo and letters, on a steel bracket outside a café at dusk.","source":"/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-42-imagegen-20261019.webp","sha256":"22ecace3096922b6130a4bacb227863c54fa6ed835f3b41aee3cf101337f5cf7","provenance":"AI-generated illustration; source ID imagegen:2026-10-19:signage-detail-x3-1; original SHA256 91650ee1e1bbcff4f7bd08047743c5c20183d207663b75048086b064600eb1ae."},
+  "kiosk-posm-64": {"descriptionVi":"Kiosk bánh ngọt khung thép xanh lá, quầy gỗ sáng có bảng tên đèn hắt, đặt ở sảnh trung tâm thương mại cạnh siêu thị; nhân viên mặc áo bà ba cách tân xếp hộp bánh.","descriptionEn":"Bakery kiosk with a green steel frame and a light oak counter with a backlit name panel, set in a shopping centre concourse beside a supermarket; a staff member in a modern áo bà ba arranges cake boxes.","source":"/assets/content/projects/advertising/kiosk-posm/kiosk-posm-64-imagegen-20261024.webp","sha256":"1560a10043095404aa544517bd4aabe3a125156f286d9d2587d6aed36c9786bf","provenance":"AI-generated illustration; source ID imagegen:2026-10-24:hero-kiosk-a-banh-mien-tay-4; original SHA256 f8742671bb2fa851752e521ddb412ae6f31f0177dd1986c5fb47aded9211f667."},
 });
 
 // Sản phẩm theo thứ hạng (spec advertising-taxonomy R1, R8): sản phẩm chính đứng đầu, sản phẩm phụ theo độ nổi bật
@@ -783,6 +785,7 @@ const PRODUCT_IDS_BY_RECORD_ID = Object.freeze({
   "led-displays-lightboxes-47": ["led-displays/led-sign-boards","signage/projecting-signs"],
   "signage-raised-letters-41": ["signage/projecting-signs","signage/light-boxes"],
   "signage-raised-letters-42": ["signage/projecting-signs","signage/light-boxes"],
+  "kiosk-posm-64": ["displays-booths/retail-kiosks","displays-booths/display-shelves-cabinets"],
 });
 
 const productIdByLegacyKey = new Map(ADVERTISING_TAG_REGISTRY
