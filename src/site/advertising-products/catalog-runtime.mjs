@@ -2979,8 +2979,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
     const gridTop = relatedGrid.getBoundingClientRect().top + getLogicalScroll();
     const visible = getVisibleViewport();
+    // Lượt có motion chỉ mount card trong viewport: mount cả overscan là long task 45-69ms trên A04s
+    // (decision phone-frame-budget); timer cuối motion gọi lại không animate và mount phần overscan.
     const windowed = getVirtualWindow(relatedLayout.layout, {
-      overscan: visible.height,
+      overscan: animate && !reduced ? 0 : visible.height,
       scrollTop: Math.max(0, getLogicalScroll() + visible.top - gridTop),
       viewportHeight: visible.height,
     });
