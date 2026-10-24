@@ -94,8 +94,11 @@ thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không kh
   `.advertising-photo-view__outgoing` (thêm `__outgoing-background` khi có nền vùng dư) phía trên ảnh mới; Kính phủ lên,
   lớp tạm mờ đi để lộ ảnh mới, Kính tan. Mở từ masonry thì ảnh mới hiện từ khung trống. Ở mọi đường,
   `data-advertising-photo-loading` ẩn ảnh mới tới khi Kính phủ: lớp tạm khác tỷ lệ hoặc chưa vẽ kịp thì ảnh mới không lộ
-  trước motion (owner 2026-10-24). Ba bước như R2, trong `0.6s` (`CACHED_PRIMARY_REVEAL_MS`).
-- Quá `100ms`: gỡ lớp tạm, ẩn ảnh cũ, gắn skeleton của R1 (cùng hook và cách bốc assignment) phủ khung, trên ảnh và dưới
+  trước motion (owner 2026-10-24). Lớp tạm decode đồng bộ để hiện ngay; mỗi bậc Kính có ảnh cũ nhòe sẵn nằm dưới ảnh
+  mới, nên Kính làm nhòe ảnh cũ rồi chuyển sang ảnh mới, không phủ nền xám (owner 2026-10-24). Ba bước như R2, trong
+  `0.6s` (`CACHED_PRIMARY_REVEAL_MS`).
+- Quá `100ms` mà ảnh chưa tải xong: ảnh đã tải chỉ chờ decode (Back, Forward dựng lại detail trong một long task) thì
+  giữ lớp tạm như ảnh có sẵn. Còn lại gỡ lớp tạm, ẩn ảnh cũ, gắn skeleton của R1 (cùng hook và cách bốc assignment) phủ khung, trên ảnh và dưới
   nút ảnh; giải mã xong thì chạy ba bước như R2 nhưng theo nhịp `0.6s` như card (`CACHED_PRIMARY_REVEAL_MS`, owner 19/10), ảnh và nền vùng dư cùng hiện.
   Bậc nhòe sẵn trên skeleton không có nền màu skeleton, nên gradient skeleton vẫn thấy qua Kính như card (owner 19/10).
 

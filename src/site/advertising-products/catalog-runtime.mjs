@@ -2410,7 +2410,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
   // Kính dựng ngoài DOM; nơi gọi gắn nó vào host khi animation bắt đầu.
-  const bakedRevealGlass = (host, bitmap, overSkeleton) => {
+  // `before`: ảnh đang hiện nhòe sẵn cùng kiểu, nằm dưới ảnh mới trong mỗi bậc, để Kính làm nhòe ảnh cũ thay vì phủ nền xám.
+  const bakedRevealGlass = (host, bitmap, overSkeleton, before) => {
     const glass = revealGlass();
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
@@ -2422,30 +2423,31 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       Object.assign(canvas.style, { left: "0", top: "0", width: `${width}px`, height: `${height}px` });
       step.classList.add("glass-surface__step--baked");
       // Trên skeleton: bỏ nền màu skeleton để gradient chạy vẫn thấy qua Kính như card (owner 19/10), không thành mảng xám phẳng.
-      if (overSkeleton) step.style.background = "none";
+      if (overSkeleton || before) step.style.background = "none";
+      if (before) step.append(canvas.cloneNode());
       step.append(canvas);
       return canvas;
     });
-    if (!bitmap) return glass;
-    const x = (photo.left - frame.left) / BAKED_SCALE;
-    const y = (photo.top - frame.top) / BAKED_SCALE;
     // Photo contain (hero có Kính) nằm trên nền blur cover của chính nó; vẽ nền cover tràn mép thêm bán kính blur lớn nhất
     // để mép frame không lộ nền màu skeleton.
     const cover = photoView.dataset.advertisingPhotoGlass === "true";
-    const scale = Math.max(width / bitmap.width, height / bitmap.height);
     const bleed = 100 / BAKED_SCALE * 2;
-    const coverWidth = bitmap.width * scale + bleed * 2;
-    const coverHeight = bitmap.height * scale + bleed * 2;
     // Canvas software (willReadFrequently) để mỗi bậc không tạo GPU context; blur trên ảnh 1/8 chỉ vài nghìn pixel.
-    canvases.forEach((canvas, index) => {
+    const paint = (canvas, index, source, rect) => {
       const context = canvas.getContext("2d", { willReadFrequently: true });
+      const scale = Math.max(width / source.width, height / source.height);
+      const coverWidth = source.width * scale + bleed * 2;
+      const coverHeight = source.height * scale + bleed * 2;
       // Nền vùng dư mọi bậc nhòe đủ như nền 100px (owner 2026-10-24): nhòe theo bậc thì lúc Kính tan, bậc nhẹ cuối lộ
       // ảnh zoom gần nét rồi nền blur mới hiện lại. Chỉ photo nhòe theo bậc.
       context.filter = BAKED_FILTERS.at(-1);
-      if (cover) context.drawImage(bitmap, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
+      if (cover) context.drawImage(source, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
       context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
-      context.drawImage(bitmap, x, y, photo.width / BAKED_SCALE, photo.height / BAKED_SCALE);
-    });
+      context.drawImage(source, (rect.left - frame.left) / BAKED_SCALE, (rect.top - frame.top) / BAKED_SCALE,
+        rect.width / BAKED_SCALE, rect.height / BAKED_SCALE);
+    };
+    if (before) canvases.forEach((canvas, index) => paint(canvas.previousSibling, index, before.bitmap, before.rect));
+    if (bitmap) canvases.forEach((canvas, index) => paint(canvas, index, bitmap, photo));
     return glass;
   };
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
@@ -3406,11 +3408,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
   };
-  const playPrimaryReveal = (reveal, from, to, total, bitmap) => {
-    if (primaryReveal !== reveal) return bitmap?.close();
+  const playPrimaryReveal = (reveal, from, to, total, bitmap, before = null) => {
+    if (primaryReveal !== reveal) {
+      before?.close();
+      return bitmap?.close();
+    }
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
     if (photoView.hidden) {
-      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
+      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap, before));
       return;
     }
     if (reduced) {
@@ -3419,8 +3424,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
     // Dựng Kính nhòe sẵn và tạo animation là hai task: gộp lại thành long task trên phone Android
     // (decision phone-frame-budget). Kính vào DOM cùng task với animation, nên bắt đầu từ level 0.
-    const glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame));
+    const glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame),
+      before && { bitmap: before, rect: from[0].getBoundingClientRect() });
     bitmap?.close();
+    before?.close();
     setTimeout(() => {
       if (primaryReveal !== reveal) return;
       // Bỏ trạng thái loading cùng task với animation: tách ra thì giữa hai task có frame ảnh mới hiện đủ
@@ -3432,7 +3439,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       // Ảnh nhòe sẵn thay backdrop-filter của card, nhưng canvas trong suốt thì lớp dưới lộ qua: crossfade cả năm bậc
       // cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe (owner 2026-10-24). Chỉ hai bậc nặng crossfade, đã phủ kín
       // từ lúc crossfade bắt đầu; bậc nhẹ, ảnh và nền hiện khi crossfade xong, dưới hai bậc nặng đã đặc.
-      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
+      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas:last-child")];
       const under = { delay: 900 * total / MEDIA_REVEAL_MS, duration: 0, fill: "both" };
       reveal.animations = [...crossfadeLayers(from, baked.slice(-2), total),
         ...[...to, ...baked.slice(0, -2)].map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], under)),
@@ -3447,6 +3454,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const image = document.createElement("img");
     image.className = "advertising-photo-view__outgoing";
     image.alt = "";
+    // decode sync: img mới chưa decode thì trong suốt vài frame trong lúc photo mới đã ẩn, lộ nền xám của khung.
+    image.decoding = "sync";
     image.src = photoImage.currentSrc;
     image.style.width = `${rect.width}px`;
     image.style.height = `${rect.height}px`;
@@ -3455,6 +3464,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const background = document.createElement("img");
     background.className = "advertising-photo-view__outgoing-background";
     background.alt = "";
+    background.decoding = "sync";
     background.src = photoBackground.currentSrc;
     photoBackground.after(background);
     return [image, background];
@@ -3707,7 +3717,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       // Chrome báo cả photo cache trong bộ nhớ là incomplete ngay sau khi đổi src, nên photo
       // decode trong khoảng này được tính là đã cache; chậm hơn thì hiện skeleton ngay (R4).
       reveal.timer = setTimeout(() => {
-        if (primaryReveal !== reveal) return;
+        // Photo đã tải xong chỉ còn chờ decode: Back, Forward dựng lại detail trong một long task nên timer chạy trước
+        // decode dù ảnh có sẵn; giữ photo cũ tới khi Kính phủ thay vì skeleton xám.
+        if (primaryReveal !== reveal || photoImage.complete) return;
         reveal.outgoing.forEach((node) => node.remove());
         reveal.outgoing = [];
         heroFrame.dataset.advertisingPhotoLoading = "true";
@@ -3716,13 +3728,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
       const bitmap = reduced ? null : bakedBitmap(source);
-      photoImage.decode().then(() => bitmap).then((baked) => {
-        if (primaryReveal !== reveal) return baked?.close();
+      // Ảnh đang hiện cũng nhòe sẵn làm lớp dưới của Kính: Kính làm nhòe ảnh cũ như backdrop của card, không phủ nền xám.
+      const previous = outgoing.length && !reduced ? bakedBitmap(outgoing[0].src) : null;
+      photoImage.decode().then(() => Promise.all([bitmap, previous])).then(([baked, before]) => {
+        if (primaryReveal !== reveal) {
+          before?.close();
+          return baked?.close();
+        }
         clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
-        else playPrimaryReveal(reveal, reveal.outgoing, incoming, CACHED_PRIMARY_REVEAL_MS, baked);
+        if (reveal.frame) {
+          before?.close();
+          playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
+        } else playPrimaryReveal(reveal, reveal.outgoing, incoming, CACHED_PRIMARY_REVEAL_MS, baked, before);
       }, () => {
         bitmap?.then((baked) => baked?.close());
+        previous?.then((before) => before?.close());
         if (primaryReveal === reveal) settlePrimaryReveal();
       });
     }

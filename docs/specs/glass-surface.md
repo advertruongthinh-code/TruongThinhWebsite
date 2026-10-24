@@ -169,7 +169,8 @@ là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằn
 trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
 crossfade của ảnh (`glass-surface__step--baked`). Canvas không nhòe lớp dưới như `backdrop-filter`, nên trong lúc
 crossfade chỉ hai bậc nặng hiện dần (đã phủ kín khi ảnh bắt đầu hiện); ảnh, nền và ba bậc nhẹ hiện khi crossfade
-xong, dưới hai bậc nặng đã đặc. Vùng dư trong mọi bậc nhòe đủ như nền `100px`, chỉ photo nhòe theo bậc. Crossfade
+xong, dưới hai bậc nặng đã đặc. Có lớp tạm thì mỗi bậc thêm canvas ảnh cũ nhòe sẵn nằm dưới, thay nền màu skeleton.
+Vùng dư trong mọi bậc nhòe đủ như nền `100px`, chỉ photo nhòe theo bậc. Crossfade
 cả năm bậc cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe, và lúc tan bậc nhẹ lộ vùng zoom gần nét (owner 2026-10-24). Điện thoại chạy đúng như PC (owner 11/10,
 [R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)); dưới gate thì dừng, báo owner kèm số đo.
 Kính hiện/tan trên card giữ năm bậc. Có tiền tố
