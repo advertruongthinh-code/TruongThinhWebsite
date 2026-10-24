@@ -1308,6 +1308,23 @@ function createMasonry(grid, positions, getHeight, { itemSelector = ".advertisin
   });
   masonry._getItemLayoutPosition = (item) => positions.get(getId(item.element)) || { x: 0, y: 0 };
   masonry._getContainerSize = () => ({ height: getHeight() });
+  // Outlayer đọc vị trí đầu bằng getComputedStyle rồi ghi transition cho từng card, nên mỗi card ép một lượt style
+  // (rAF Masonry 46-66ms trên A04s). Runtime đã ghi left/top inline bằng px; motion chỉ chạy trên transform nên
+  // inline trùng computed. Card chưa có vị trí inline vẫn đọc computed như cũ.
+  const itemize = masonry._itemize;
+  masonry._itemize = function (elements) {
+    const items = itemize.call(this, elements);
+    for (const item of items) {
+      const readComputed = item.getPosition;
+      item.getPosition = function () {
+        const { left, top } = this.element.style;
+        if (!left.endsWith("px") || !top.endsWith("px")) return readComputed.call(this);
+        this.position.x = parseFloat(left) - this.layout.size.paddingLeft;
+        this.position.y = parseFloat(top) - this.layout.size.paddingTop;
+      };
+    }
+    return items;
+  };
   return masonry;
 }
 
