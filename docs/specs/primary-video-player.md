@@ -100,11 +100,22 @@ Then nút chưa chọn có text-shadow "0 0 12px" đen 0.4, nút đang chọn kh
 And lớp tối ::after của nút chưa chọn vẫn còn
 ```
 
+### R5. Núm đặc
+
+Núm thanh tua và núm thanh âm lượng đổi từ trắng `0.5` sang trắng `#fbfbf9` đặc, cho PC và cảm ứng: núm trong suốt
+để lộ đường tua chạy xuyên qua, nhìn như UI chồng lớp (owner 2026-10-24). Đường tua giữ như demo.
+
+```gherkin
+Given primary đang phát video, thanh điều khiển đang hiện
+When đọc màu núm thanh tua và núm thanh âm lượng
+Then cả hai là màu đặc, alpha 1
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total` | Giữ hook hiện có (R1, R2) |
+| DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total` | Giữ hook hiện có (R1, R2, R5) |
 | CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
 | Script | `scripts/site/build-placeholder-media.mjs` | `-g 12` (R3) |
 
@@ -126,6 +137,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R2 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
 | R3 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn |
+| R5 | `site-media-card-m02a.e2e.mjs`: màu `::-webkit-slider-thumb` của thanh tua và thanh âm lượng có alpha 1 |
 | R1 trên máy thật | A05s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
 
 ## Gate còn mở
