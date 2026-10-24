@@ -9529,7 +9529,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/home-hero-office-reception-audit-a319-v3.webp",
+      asset: "**/home-hero-office-reception-20261024.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9538,7 +9538,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/home-hero-office-reception-audit-a319-v3.webp",
+      asset: "**/home-hero-office-reception-20261024.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
