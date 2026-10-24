@@ -2427,12 +2427,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       step.append(canvas);
       return canvas;
     });
-    // Vùng zoom blur luôn blur đủ (owner 2026-10-24): Kính chỉ phủ BBox media; phủ cả vùng dư thì lúc tan, bậc nhẹ cuối
-    // để lộ ảnh zoom gần nét trước khi nền blur 100px hiện lại.
-    if (photoView.dataset.advertisingPhotoGlass === "true") {
-      const media = (photoImage.hidden ? photoVideo : photoImage).getBoundingClientRect();
-      glass.style.clipPath = `inset(${media.top - frame.top}px ${frame.right - media.right}px ${frame.bottom - media.bottom}px ${media.left - frame.left}px)`;
-    }
     if (!bitmap) return glass;
     const x = (photo.left - frame.left) / BAKED_SCALE;
     const y = (photo.top - frame.top) / BAKED_SCALE;
@@ -2446,8 +2440,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Canvas software (willReadFrequently) để mỗi bậc không tạo GPU context; blur trên ảnh 1/8 chỉ vài nghìn pixel.
     canvases.forEach((canvas, index) => {
       const context = canvas.getContext("2d", { willReadFrequently: true });
-      context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
+      // Nền vùng dư mọi bậc nhòe đủ như nền 100px (owner 2026-10-24): nhòe theo bậc thì lúc Kính tan, bậc nhẹ cuối lộ
+      // ảnh zoom gần nét rồi nền blur mới hiện lại. Chỉ photo nhòe theo bậc.
+      context.filter = BAKED_FILTERS.at(-1);
       if (cover) context.drawImage(bitmap, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
+      context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
       context.drawImage(bitmap, x, y, photo.width / BAKED_SCALE, photo.height / BAKED_SCALE);
     });
     return glass;
@@ -3433,9 +3430,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       heroFrame.removeAttribute("aria-busy");
       reveal.glass = glass;
       heroFrame.append(glass);
-      // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
+      // Ảnh nhòe sẵn thay backdrop-filter của card, nhưng canvas trong suốt thì lớp dưới lộ qua: crossfade cả năm bậc
+      // cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe (owner 2026-10-24). Chỉ hai bậc nặng crossfade, đã phủ kín
+      // từ lúc crossfade bắt đầu; bậc nhẹ, ảnh và nền hiện khi crossfade xong, dưới hai bậc nặng đã đặc.
       const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
-      reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
+      const under = { delay: 900 * total / MEDIA_REVEAL_MS, duration: 0, fill: "both" };
+      reveal.animations = [...crossfadeLayers(from, baked.slice(-2), total),
+        ...[...to, ...baked.slice(0, -2)].map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], under)),
+        ...playGlassReveal(reveal.glass, total)];
       Promise.all(reveal.animations.map(({ finished }) => finished))
         .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
     });
@@ -3700,8 +3702,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const reveal = { frame: null, outgoing, animations: [], timer: 0 };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
-      // Không có photo trên màn hình thì ẩn photo cũ; nếu có, photo cũ giữ nguyên đến khi swap.
-      if (!outgoing.length) heroFrame.dataset.advertisingPhotoLoading = "true";
+      // Ẩn photo mới tới khi Kính phủ: lớp tạm khác tỷ lệ hoặc chưa vẽ kịp thì photo mới lộ ra trước motion
+      // (owner 2026-10-24). Lớp tạm nằm ngoài selector nên vẫn hiện.
+      heroFrame.dataset.advertisingPhotoLoading = "true";
       // Chrome báo cả photo cache trong bộ nhớ là incomplete ngay sau khi đổi src, nên photo
       // decode trong khoảng này được tính là đã cache; chậm hơn thì hiện skeleton ngay (R4).
       reveal.timer = setTimeout(() => {
@@ -3718,8 +3721,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         if (primaryReveal !== reveal) return baked?.close();
         clearTimeout(reveal.timer);
         if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
-        else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
-        else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
+        else playPrimaryReveal(reveal, reveal.outgoing, incoming, CACHED_PRIMARY_REVEAL_MS, baked);
       }, () => {
         bitmap?.then((baked) => baked?.close());
         if (primaryReveal === reveal) settlePrimaryReveal();

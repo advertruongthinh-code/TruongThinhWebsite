@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-transitions.e2e.mjs
   - tests/site/advertising-reveal-offscreen.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-10-19
+updated: 2026-10-24
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -92,8 +92,9 @@ thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không kh
 
 - Ảnh có sẵn, không skeleton. Detail đang hiện một ảnh đã tải xong thì ảnh đó ở lại thành lớp tạm
   `.advertising-photo-view__outgoing` (thêm `__outgoing-background` khi có nền vùng dư) phía trên ảnh mới; Kính phủ lên,
-  lớp tạm mờ đi để lộ ảnh mới, Kính tan. Mở từ masonry thì ảnh mới hiện từ khung trống (`data-advertising-photo-loading`
-  ẩn ảnh cũ). Ba bước như R2, trong `0.6s` (`CACHED_PRIMARY_REVEAL_MS`).
+  lớp tạm mờ đi để lộ ảnh mới, Kính tan. Mở từ masonry thì ảnh mới hiện từ khung trống. Ở mọi đường,
+  `data-advertising-photo-loading` ẩn ảnh mới tới khi Kính phủ: lớp tạm khác tỷ lệ hoặc chưa vẽ kịp thì ảnh mới không lộ
+  trước motion (owner 2026-10-24). Ba bước như R2, trong `0.6s` (`CACHED_PRIMARY_REVEAL_MS`).
 - Quá `100ms`: gỡ lớp tạm, ẩn ảnh cũ, gắn skeleton của R1 (cùng hook và cách bốc assignment) phủ khung, trên ảnh và dưới
   nút ảnh; giải mã xong thì chạy ba bước như R2 nhưng theo nhịp `0.6s` như card (`CACHED_PRIMARY_REVEAL_MS`, owner 19/10), ảnh và nền vùng dư cùng hiện.
   Bậc nhòe sẵn trên skeleton không có nền màu skeleton, nên gradient skeleton vẫn thấy qua Kính như card (owner 19/10).

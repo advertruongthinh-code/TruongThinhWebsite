@@ -166,22 +166,46 @@ try {
       const boxes = await page.evaluate(() => {
         const box = (node) => { const { x, y, width, height } = node.getBoundingClientRect(); return [x, y, width, height]; };
         const frame = document.querySelector(".advertising-photo-view__hero-frame");
-        const glass = frame.querySelector(".glass-surface__step--baked").parentElement;
-        const photo = frame.querySelector("[data-advertising-photo-image]").getBoundingClientRect();
-        const outer = frame.getBoundingClientRect();
-        return { frame: box(frame), canvases: [...frame.querySelectorAll(".glass-surface__step--baked > canvas")].map(box),
-          band: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass,
-          // inset() rút gọn như margin: 1 tới 4 giá trị.
-          clip: (([top, right = top, bottom = top, left = right]) => [top, right, bottom, left])(
-            (glass.style.clipPath.match(/[\d.-]+/g) || []).map(Number)),
-          media: [photo.top - outer.top, outer.right - photo.right, outer.bottom - photo.bottom, photo.left - outer.left] };
+        const canvases = [...frame.querySelectorAll(".glass-surface__step--baked > canvas")];
+        // Độ gắt hàng mép trên canvas (vùng dư, photo contain cách mép trên): tổng chênh màu giữa hai pixel kề nhau.
+        const edge = (canvas) => {
+          const data = canvas.getContext("2d").getImageData(0, 1, canvas.width, 1).data;
+          let total = 0;
+          for (let x = 4; x < data.length; x += 4) total += Math.abs(data[x] - data[x - 4]) + Math.abs(data[x + 1] - data[x - 3]);
+          return total / canvas.width;
+        };
+        return { frame: box(frame), canvases: canvases.map(box), lightEdge: edge(canvases[0]), heavyEdge: edge(canvases.at(-1)),
+          band: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass };
       });
       check(boxes.canvases.length && boxes.canvases.every((canvas) => canvas.every((value, index) =>
         index < 2 ? Math.abs(value - boxes.frame[index]) <= 1 : value >= boxes.frame[index] - 1)),
       `baked reveal glass does not cover the primary frame ${JSON.stringify(boxes)}`);
-      // Vùng zoom blur luôn blur đủ (owner 2026-10-24): Kính chỉ phủ BBox media, không để bậc nhẹ lộ ảnh zoom gần nét.
-      check(boxes.band === "true" && boxes.clip.every((value, index) => Math.abs(value - boxes.media[index]) <= 1),
-        `baked reveal glass covers the zoom blur band ${JSON.stringify(boxes)}`);
+      // Vùng zoom blur luôn blur đủ (owner 2026-10-24): vùng dư của bậc nhẹ nhòe như bậc nặng, nên lúc tan không lộ ảnh
+      // zoom gần nét (trước sửa bậc nhẹ gắt gấp 5 lần).
+      check(boxes.band === "true" && boxes.lightEdge <= boxes.heavyEdge * 1.5,
+        `baked reveal light step shows a sharper zoom blur band ${JSON.stringify(boxes)}`);
+      await page.waitForFunction(() => !document.querySelector(".glass-surface__step--baked"), null, { timeout: 20000 });
+      // Mỗi frame khi mở related: hai bậc nặng còn trong suốt thì ảnh và bậc nhẹ chưa hiện, vì canvas trong suốt để lộ lớp
+      // dưới, ảnh mới hiện gần nét trước rồi mới nhòe (owner 2026-10-24).
+      const reveal = await page.evaluate(() => new Promise((resolve) => {
+        const result = { frames: 0, leaks: [] };
+        const opacity = (node) => Number(getComputedStyle(node).opacity);
+        const started = performance.now();
+        const tick = () => {
+          const canvases = [...document.querySelectorAll(".glass-surface__step--baked > canvas")];
+          if (canvases.length) {
+            const heavy = Math.min(...canvases.slice(-2).map(opacity));
+            const under = [document.querySelector("[data-advertising-photo-image]"), ...canvases.slice(0, -2)].map(opacity);
+            result.frames += 1;
+            if (heavy < 0.999 && under.some((value) => value > 0)) result.leaks.push({ heavy, under });
+          } else if (result.frames) return resolve(result);
+          if (performance.now() - started < 8000) requestAnimationFrame(tick);
+          else resolve(result);
+        };
+        requestAnimationFrame(tick);
+        document.querySelector("[data-advertising-related-card] a").click();
+      }));
+      check(reveal.frames > 5 && !reveal.leaks.length, `new photo shows through a translucent veil ${JSON.stringify(reveal).slice(0, 400)}`);
     } finally {
       await page.close();
     }
