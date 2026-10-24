@@ -41,7 +41,6 @@ foreach ($item in @(
   @{ path = (Join-Path $env:USERPROFILE ".codex\config.toml"); relative = "user\config.toml" },
   @{ path = (Join-Path $env:USERPROFILE ".codex\AGENTS.md"); relative = "user\AGENTS.md" },
   @{ path = (Join-Path $projectRoot ".codex\config.toml"); relative = "project\.codex\config.toml" },
-  @{ path = (Join-Path $projectRoot ".serena\project.yml"); relative = "project\.serena\project.yml" },
   @{ path = (Join-Path $projectRoot "package.json"); relative = "project\package.json" },
   @{ path = (Join-Path $projectRoot "pnpm-lock.yaml"); relative = "project\pnpm-lock.yaml" }
 )) { Backup-Path $item.path $item.relative }
@@ -61,32 +60,6 @@ function Install-GlobalPython {
   & $python -m pip install --disable-pip-version-check --upgrade "uv==$($pins.python.uv)" "graphifyy[$($pins.python.graphify_extras)]==$($pins.python.graphifyy)"
   if ($LASTEXITCODE -ne 0) { throw "Global Graphify installation failed." }
 
-  & $python -m pip install --disable-pip-version-check --upgrade "serena-agent==$($pins.python.'serena-agent')"
-  if ($LASTEXITCODE -ne 0) {
-    $serenaLauncher = Join-Path $globalRoot "python\Scripts\serena.exe"
-    if (-not (Test-Path -LiteralPath $serenaLauncher -PathType Leaf)) {
-      throw "Global Serena installation failed and no locked launcher exists for safe repair."
-    }
-
-    # pip không thay được launcher console Windows đang chạy. Khôi phục payload
-    # của wheel mà không động vào launcher chung; MCP process mới sau đó dùng
-    # package đã nâng cấp trong khi process đang chạy tiếp tục với code đã nạp.
-    $serenaStage = Join-Path $stagingRoot "serena-locked-repair"
-    New-Item -ItemType Directory -Force -Path $serenaStage | Out-Null
-    & $python -m pip install --disable-pip-version-check --no-deps --target $serenaStage "serena-agent==$($pins.python.'serena-agent')"
-    if ($LASTEXITCODE -ne 0) { throw "Locked Serena staged repair failed." }
-
-    $sitePackages = Join-Path $globalRoot "python\Lib\site-packages"
-    foreach ($payload in Get-ChildItem -LiteralPath $serenaStage -Force) {
-      $target = Join-Path $sitePackages $payload.Name
-      if (Test-Path -LiteralPath $target) {
-        $payloadBackup = Join-Path $backupRoot "python\serena-payloads\$($payload.Name)"
-        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $payloadBackup) | Out-Null
-        Move-Item -LiteralPath $target -Destination $payloadBackup
-      }
-      Move-Item -LiteralPath $payload.FullName -Destination $target
-    }
-  }
   & $python -m pip check
   if ($LASTEXITCODE -ne 0) { throw "Global Python dependency check failed." }
   & (Join-Path $PSScriptRoot "patch-graphify-query.ps1") -Python $python
@@ -99,7 +72,6 @@ function Install-GlobalNode {
     private = $true
     packageManager = "pnpm@$($pins.node.project.pnpm)"
     dependencies = [ordered]@{
-      "chrome-devtools-mcp" = [string]$pins.node.global.'chrome-devtools-mcp'
       impeccable = [string]$pins.node.global.impeccable
     }
   }
@@ -207,21 +179,13 @@ function Configure-Codex {
   $codexHome = Join-Path $env:USERPROFILE ".codex"
   $configPath = Join-Path $codexHome "config.toml"
   $text = if (Test-Path -LiteralPath $configPath) { Get-Content -Raw -LiteralPath $configPath } else { "" }
-  foreach ($tree in @('hooks.state', 'marketplaces.ponytail', 'plugins."ponytail@ponytail"', 'mcp_servers.serena', 'mcp_servers.graphify', 'mcp_servers.chrome_devtools')) {
+  foreach ($tree in @('hooks.state', 'marketplaces.ponytail', 'plugins."ponytail@ponytail"', 'mcp_servers.graphify', 'mcp_servers.chrome_devtools')) {
     $text = Remove-TomlTree $text $tree
   }
   $text = Set-TomlKeys $text "features" ([ordered]@{ hooks = "false"; multi_agent = "true" })
   $text = Set-TomlKeys $text "agents" ([ordered]@{ max_concurrent_threads_per_session = "4" })
   $wrapper = (Join-Path $globalRoot "bin\mcp.ps1").Replace("\", "\\")
   $mcp = @"
-
-[mcp_servers.serena]
-command = "pwsh"
-args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$wrapper", "serena"]
-startup_timeout_sec = 90
-tool_timeout_sec = 180
-enabled = true
-required = true
 
 [mcp_servers.graphify]
 command = "pwsh"
@@ -230,15 +194,6 @@ startup_timeout_sec = 60
 tool_timeout_sec = 120
 enabled = true
 required = true
-
-[mcp_servers.chrome_devtools]
-command = "pwsh"
-args = ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "$wrapper", "chrome-devtools"]
-startup_timeout_sec = 90
-tool_timeout_sec = 180
-enabled = true
-required = false
-default_tools_approval_mode = "prompt"
 "@
   Write-Utf8Atomic $configPath ($text.TrimEnd() + $mcp + [Environment]::NewLine)
 
@@ -251,14 +206,13 @@ default_tools_approval_mode = "prompt"
 Apply these rules in the main agent and every coordinator, explorer, worker, reviewer, and subagent.
 
 1. Always load `ponytail` in ultra mode; it controls implementation minimalism. The `i-have-adhd` skill self-invokes to shape actionable structure. Caveman skills run only when the user invokes them; never self-invoke them. A closer project `AGENTS.md` may explicitly disable Caveman.
-2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use Serena for exact symbols, references, diagnostics, and refactors. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
-3. Serena is required per task/session with `--project-from-cwd` and the host context (`codex` or `claude-code`); synchronize language servers from actual project extensions instead of editing the language list manually.
-4. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
-5. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
-6. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
-7. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
-8. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
-9. Each time a skill is used, whether self-selected, user-invoked with `/`, or loaded mid-task, first write one chat line: `Skill: <name> (<self|user>): <reason>`.
+2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use `rg` for exact symbols and references. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
+3. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
+4. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
+5. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
+6. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
+7. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
+8. Each time a skill is used, whether self-selected, user-invoked with `/`, or loaded mid-task, first write one chat line: `Skill: <name> (<self|user>): <reason>`.
 <!-- codex:global-stack:end -->
 '@
   $pattern = '(?s)<!-- codex:global-stack:start -->.*?<!-- codex:global-stack:end -->'
@@ -296,7 +250,7 @@ Install-PnpmShim
 Install-GlobalNode
 Install-GlobalSkills
 Install-GlobalPersonas
-New-Item -ItemType Directory -Force -Path (Join-Path $globalRoot "bin"),(Join-Path $globalRoot "logs"),(Join-Path $globalRoot "state\serena") | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $globalRoot "bin"),(Join-Path $globalRoot "logs") | Out-Null
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot "global-mcp.ps1") -Destination (Join-Path $globalRoot "bin\mcp.ps1") -Force
 Configure-Codex
 $graphifyPythonMarker = Join-Path $projectRoot "graphify-out\.graphify_python"
@@ -315,7 +269,6 @@ if (-not $SkipBrowsers) {
 
 & (Join-Path $PSScriptRoot "graphify-git-hooks.ps1") -Action install
 & (Join-Path $PSScriptRoot "ponytail-git-hooks.ps1") -Action install
-& (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Apply
 Retire-ProjectPayloads
 & (Join-Path $PSScriptRoot "doctor.ps1")
 if ($LASTEXITCODE -ne 0) { throw "Tooling doctor failed; backup remains at $backupRoot" }

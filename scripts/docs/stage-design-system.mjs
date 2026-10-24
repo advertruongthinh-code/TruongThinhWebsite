@@ -1,15 +1,12 @@
-// Stage design-system/ thành file table Design System của claude.ai dưới .tmp/design-system-publish/project/ (docs/specs/docs-system.md R7).
-// Photo là artifact upload: preview trỏ tới /_blob/<id> từ design-system.json; link rời design-system/ trỏ về GitHub.
+// Stage design-system/ thành file table Design System của claude.ai dưới .tmp/design-system-publish/project/ (docs/specs/design-system.md R5).
+// Ảnh preview publish thành file thường ở preview-media/; link rời design-system/ trỏ về GitHub.
 // Cách dùng: node scripts/docs/stage-design-system.mjs, rồi publish bằng Artifact tool như design-system/README.md hướng dẫn.
-import { mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
 
 const SRC = 'design-system';
 const OUT = '.tmp/design-system-publish';
 const REPO = 'https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/main';
-const index = JSON.parse(readFileSync(`${SRC}/design-system.json`, 'utf8'));
-const photos = index.assetGroups.Photos?.files ?? {};
-const missing = [];
 
 const walk = (dir) => readdirSync(dir).flatMap((name) => {
   // posix.join để rel luôn dùng '/' trên Windows; fs của Node nhận được cả hai dấu.
@@ -21,28 +18,17 @@ rmSync(OUT, { recursive: true, force: true });
 const staged = [];
 for (const path of walk(SRC)) {
   const rel = posix.relative(SRC, path);
-  if (rel.startsWith('assets/Photos/') && rel.endsWith('.webp')) {
-    const record = photos[posix.basename(rel)];
-    // Photo mới hoặc vừa regenerate cần upload lại trước khi publish.
-    if (!record || record.size !== statSync(path).size) missing.push(path);
-    continue;
-  }
-  let text = readFileSync(path, 'utf8');
-  if (rel.endsWith('preview.html')) {
-    text = text.replace(/\.\.\/\.\.\/assets\/Photos\/([^"')\s]+)/g, (whole, name) => (photos[name] ? `/_blob/${photos[name].blob}` : (missing.push(name), whole)));
-  } else if (rel.endsWith('.md')) {
-    text = text.replace(/\]\((?!https?:|#)([^)#]+)(#[^)]*)?\)/g, (whole, link, hash = '') => {
-      const target = posix.normalize(posix.join(SRC, posix.dirname(rel), link));
-      return target.startsWith(`${SRC}/`) ? whole : `](${REPO}/${target}${hash})`;
-    });
-  }
   const out = join(OUT, 'project', rel);
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, text);
+  if (rel.endsWith('.md')) {
+    writeFileSync(out, readFileSync(path, 'utf8').replace(/\]\((?!https?:|#)([^)#]+)(#[^)]*)?\)/g, (whole, link, hash = '') => {
+      const target = posix.normalize(posix.join(SRC, posix.dirname(rel), link));
+      return target.startsWith(`${SRC}/`) ? whole : `](${REPO}/${target}${hash})`;
+    }));
+  } else {
+    // Chép nguyên byte: ảnh WebP hỏng nếu đọc qua utf8.
+    copyFileSync(path, out);
+  }
   if (rel !== 'design-system.json') staged.push(`project/${rel}`);
-}
-if (missing.length) {
-  console.error(`Images not uploaded or changed (upload them, then record the ids in ${SRC}/design-system.json): ${missing.join(', ')}`);
-  process.exit(1);
 }
 console.log(JSON.stringify({ root: OUT, file_path: 'project/design-system.json', files: Object.fromEntries(staged.map((p) => [p, p])) }, null, 2));

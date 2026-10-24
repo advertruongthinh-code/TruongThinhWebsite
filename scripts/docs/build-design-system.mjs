@@ -1,11 +1,13 @@
-// Dựng design-system/components/bundle.css và preview component từ source site live (docs/specs/docs-system.md R5.3).
+// Dựng design-system/components/bundle.css và preview component từ source site live (docs/specs/design-system.md R3).
 // Cách dùng: node scripts/docs/build-design-system.mjs [--check]
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { renderProjectReel } from '../site/project-reel.mjs';
 
 const OUT = 'design-system';
-const FONT = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">';
+// Link trong preview không điều hướng: claude.ai dừng preview live khi khung rời trang (spec design-system R3.5).
+const HEAD = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,500&display=swap">\n'
+  + '<script>addEventListener("click", (event) => { if (event.target.closest("a[href]")) event.preventDefault(); }, true);</script>';
 // motion-fallback là trạng thái cuối không animation của site (motion.js); preview render đúng trạng thái đó.
 const boot = (extra) => `<script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready"${extra ? `, "${extra}"` : ''});</script>`;
 // Wrapper có transform trở thành containing block của position: fixed, nên phần shell fixed nằm gọn trong frame.
@@ -28,18 +30,11 @@ const COMPONENTS = [
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
   { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
-  { name: 'Gallery', group: 'Page', height: 800, file: 'src/site/residential/index.html', start: /<section\s+class="detail-gallery/ },
-  // Markup Advertising dựng lúc runtime; capture-design-system.mjs chụp snapshot vào scripts/docs/captures/.
+  // Markup dựng lúc runtime (Advertising, dải chấm Gallery); capture-design-system.mjs chụp snapshot vào scripts/docs/captures/.
   // pad: khoảng trống giữ phía trên element focus trong frame; size: độ rộng image variant.
-  ...[['Filter', 240, 40], ['MediaCard', 420, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480], ['Primary', 760, 40],
-    ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
-    .map(([name, height, pad, size]) => ({ name, group: 'Advertising', height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
-  // Kính là markup runtime (glass-surface.mjs); photo host và vị trí nửa chiều rộng được ghi ở đây.
-  { name: 'Glass', group: 'Advertising', height: 300, file: 'src/site/advertising-products/glass-surface.mjs', start: /glass\.className = "glass-surface"/,
-    markup: '<div style="position: relative; width: 384px; height: 256px; margin: 20px 35px; overflow: hidden;">\n'
-      + '<img src="/assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-26-owner-20260924.webp" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;">\n'
-      + '<div style="position: absolute; inset: 0 0 0 50%;"><div class="glass-surface" data-glass-shape="even" aria-hidden="true">'
-      + '<i class="glass-surface__step glass-surface__step--full"></i><i class="glass-surface__tint"></i><i class="glass-surface__grain"></i></div></div>\n</div>' },
+  ...[['Gallery', 1100, 0, 960, 'Page'], ['Filter', 240, 40], ['MediaCard', 580, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480],
+    ['Primary', 760, 40], ['Glass', 760, 40], ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
+    .map(([name, height, pad, size, group = 'Advertising']) => ({ name, group, height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
   // Vệt chỉ hiện tới khi ảnh settle; preview không có script head nên khung và nút giữ trạng thái chờ.
   // src nháy đơn để localizeImages bỏ qua: khung vẫn khớp selector /assets/content/ mà ảnh không bao giờ hiện.
   { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /Khung ảnh nội dung chờ bằng vệt sáng/, htmlClass: 'media-gate',
@@ -69,8 +64,8 @@ function extract(html, start) {
 const outputs = new Map();
 const photos = new Map();
 
-// Ảnh site trỏ tới /assets/content/...; preview dùng biến thể WebP chép vào design-system/assets/Photos/:
-// mặc định 960px, 480px cho component cỡ card.
+// Ảnh site trỏ tới /assets/content/...; preview dùng biến thể WebP chép vào design-system/preview-media/:
+// mặc định 960px, 480px cho component cỡ card. Thư mục nằm ngoài assets/ nên không hiện ở tab Assets trên claude.ai.
 function localizeImages(markup, size = 960) {
   return markup
     .replace(/\s+data-src="[^"]*"/g, '')
@@ -79,8 +74,8 @@ function localizeImages(markup, size = 960) {
         .map((candidate) => `src/site/assets/content/${candidate}`).find(existsSync);
       if (!source) throw new Error(`image not found: ${whole}`);
       const name = basename(source).replace(/-960(?=\.)/, '');
-      photos.set(`${OUT}/assets/Photos/${name}`, source);
-      return `${attr}="../../assets/Photos/${name}"`;
+      photos.set(`${OUT}/preview-media/${name}`, source);
+      return `${attr}="../../preview-media/${name}"`;
     });
 }
 
@@ -107,28 +102,48 @@ for (const c of COMPONENTS) {
   const html = readFileSync(c.file, 'utf8').replace('<!-- project-reel-cards -->', () => projectReelCards);
   if (c.capture) {
     const markup = localizeImages(fromCapture(c, html), c.size);
+    // Capture giữ px cố định của viewport 1440 (capture-design-system.mjs); width=1440 để claude.ai dựng ở khổ đó rồi thu nhỏ, không cắt mép.
     outputs.set(`${OUT}/components/${c.name}/preview.html`,
-      `<!-- @dsCard group="${c.group}" height=${c.height} -->\n<!-- GENERATED by scripts/docs/build-design-system.mjs from ${c.file}; do not edit. -->\n${FONT}\n${c.bootScript}\n${markup}\n`);
+      `<!-- @dsCard group="${c.group}" height=${c.height} width=1440 -->\n<!-- GENERATED by scripts/docs/build-design-system.mjs from ${c.file}; do not edit. -->\n${HEAD}\n${c.bootScript}\n${markup}\n`);
     continue;
   }
   if (!c.start.test(html)) throw new Error(`${c.start} not found in ${c.file}`);
   let markup = c.markup ?? extract(html, c.start) + (c.also ? '\n' + extract(html, c.also) : '');
   if (c.open) markup = markup.replace(/^<dialog class="([^"]*)"/, '<dialog open class="$1 is-active"');
-  // Preview không chạy script trang: bỏ script inline; slide hero active trong HTML nhận src để hiện ảnh (page-home R3).
-  markup = markup.replace(/\s*<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/(class="hero-slide is-active"[^>]*>\s*<img\s+)data-src=/, '$1src=');
+  // Preview không chạy script trang: bỏ script inline; chỉ giữ slide hero active, slide đó nhận src để hiện ảnh (page-home R3).
+  markup = markup.replace(/\s*<script\b[^>]*>[\s\S]*?<\/script>/g, '').replace(/\s*<figure class="hero-slide" [^>]*>[\s\S]*?<\/figure>/g, '')
+    .replace(/(class="hero-slide is-active"[^>]*>\s*<img\s+)data-src=/, '$1src=');
   markup = localizeImages(markup);
   if (c.frames) markup = c.frames.map((f) => frame(markup, f)).join('\n');
   outputs.set(`${OUT}/components/${c.name}/preview.html`,
-    `<!-- @dsCard group="${c.group}" height=${c.height} -->\n<!-- GENERATED by scripts/docs/build-design-system.mjs from ${c.file}; do not edit. -->\n${FONT}\n${c.boot === false ? '' : boot(c.htmlClass) + '\n'}${c.endStyle ? `<style>${c.endStyle}</style>\n` : ''}${markup}\n`);
+    `<!-- @dsCard group="${c.group}" height=${c.height} -->\n<!-- GENERATED by scripts/docs/build-design-system.mjs from ${c.file}; do not edit. -->\n${HEAD}\n${c.boot === false ? '' : boot(c.htmlClass) + '\n'}${c.endStyle ? `<style>${c.endStyle}</style>\n` : ''}${markup}\n`);
 }
 
+// Hạt Kính trên site là noise canvas thành blob URL lúc chạy (glass-surface.mjs); preview dùng noise SVG tương đương:
+// xám đục cho overlay, trắng theo alpha cho arc.
+const noise = (matrix) => `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E`
+  + `%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='${matrix}'/%3E`
+  + `%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
+const GRAIN = `\n.glass-surface { --glass-grain: ${noise('0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 1')}; `
+  + `--glass-grain-white: ${noise('0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0')}; }\n`;
+// Site nạp CSS Swiper lúc chạy (cùng ba file prepare-static-assets.mjs ghép); preview Gallery cần nó cho dải chấm.
+const SWIPER_CSS = ['node_modules/swiper/swiper.css', 'node_modules/swiper/modules/pagination.css', 'node_modules/swiper/modules/a11y.css'];
 outputs.set(`${OUT}/components/bundle.css`,
-  '/* GENERATED by scripts/docs/build-design-system.mjs from src/site/style.css and src/site/detail.css; do not edit. */\n'
+  '/* GENERATED by scripts/docs/build-design-system.mjs from src/site/style.css, src/site/detail.css and Swiper CSS; do not edit. */\n'
   // @font-face URL self-hosted không resolve được trên claude.ai; preview tải font từ Google thay thế.
-  + readFileSync('src/site/style.css', 'utf8').replace(/^\/\* Plus Jakarta Sans variable tự host[^\n]*\n|^@font-face \{[^}]*\}\n+/gm, '') + '\n' + readFileSync('src/site/detail.css', 'utf8'));
+  + readFileSync('src/site/style.css', 'utf8').replace(/^\/\* Plus Jakarta Sans variable tự host[^\n]*\n|^@font-face \{[^}]*\}\n+/gm, '') + '\n' + readFileSync('src/site/detail.css', 'utf8')
+  + SWIPER_CSS.map((file) => '\n' + readFileSync(file, 'utf8')).join('') + GRAIN);
+
+// Thiếu bundle.js thì claude.ai ép mọi preview thành tĩnh: không chạy script, không tải ảnh. Site không có component JS nên bundle rỗng.
+outputs.set(`${OUT}/components/bundle.js`,
+  '/* @ds-bundle: {"format":4,"namespace":"TruongThinh","components":[]} */\n/* GENERATED by scripts/docs/build-design-system.mjs; do not edit. */\nwindow.TruongThinh = {};\n');
 
 const check = process.argv.includes('--check');
-const stale = [];
+const MEDIA = `${OUT}/preview-media`;
+// File thừa trong preview-media (ảnh không còn preview nào dùng) bị xóa khi build, báo stale khi --check.
+const extra = existsSync(MEDIA) ? readdirSync(MEDIA).map((n) => `${MEDIA}/${n}`).filter((p) => !photos.has(p)) : [];
+if (!check) rmSync(MEDIA, { recursive: true, force: true });
+const stale = check ? extra : [];
 for (const [path, text] of outputs) {
   if (check) { if (!existsSync(path) || readFileSync(path, 'utf8') !== text) stale.push(path); continue; }
   mkdirSync(dirname(path), { recursive: true });

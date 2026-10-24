@@ -39,6 +39,13 @@ try {
   await page.hover('[data-advertising-filter="signage"]');
   await page.waitForTimeout(400);
   assert.equal(await page.locator(".rail-panel").count(), 0, "hover cụm không có danh sách sản phẩm");
+  // Hover desktop: gạch chân ::after chạy vào như nav header (taxonomy R3); mục khác vẫn thu về 0.
+  const underline = (selector) => page.evaluate((s) => {
+    const after = getComputedStyle(document.querySelector(s), "::after");
+    return { transform: after.transform, height: after.height };
+  }, selector);
+  assert.deepEqual(await underline('[data-advertising-filter="signage"]'), { transform: "matrix(1, 0, 0, 1, 0, 0)", height: "3px" }, "hover cụm: gạch chân 3px đầy");
+  assert.equal((await underline('[data-advertising-filter="printing-decals"]')).transform, "matrix(0, 0, 0, 1, 0, 0)", "cụm không hover: gạch chân thu về 0");
   const documents = [];
   page.on("request", (request) => { if (request.resourceType() === "document") documents.push(request.url()); });
   await page.locator('[data-advertising-filter="signage"]').click();
@@ -51,7 +58,11 @@ try {
   const clusterEntrance = await entrance();
   assert.equal(clusterEntrance.kicker, 1, "kicker chạy lại entrance khi đổi chữ");
   assert.ok(clusterEntrance.chips.length > 1 && clusterEntrance.chips.every((count) => count === 1), "mỗi chip của cụm vừa hiện có entrance");
-  await page.locator(`.rail-chips:not([hidden]) [data-advertising-product="${product}"]`).click();
+  const chip = `.rail-chips:not([hidden]) [data-advertising-product="${product}"]`;
+  await page.hover(chip);
+  await page.waitForTimeout(400);
+  assert.deepEqual(await underline(`${chip} > span`), { transform: "matrix(1, 0, 0, 1, 0, 0)", height: "2px" }, "hover chip: gạch chân 2px đầy");
+  await page.locator(chip).click();
   await page.waitForFunction((target) => location.pathname === target, productPath);
   assert.equal((await entrance()).chips.reduce((a, b) => a + b, 0) <= clusterEntrance.chips.length, true, "đổi sản phẩm trong cụm không chạy lại entrance chip");
   await page.waitForTimeout(800);
@@ -161,6 +172,12 @@ try {
     return chip.left >= 0 && chip.right <= innerWidth;
   });
   assert.ok(inView, "chip đang chọn nằm trong khung");
+  // Máy cảm ứng giữ text-decoration, không có gạch chân ::after chạy (taxonomy R3).
+  const phoneUnderline = await phone.evaluate(() => {
+    const cluster = document.querySelector('[data-advertising-filter="office-signs"]');
+    return { line: getComputedStyle(cluster).textDecorationLine, after: getComputedStyle(cluster, "::after").content };
+  });
+  assert.deepEqual(phoneUnderline, { line: "underline", after: "none" }, "điện thoại: cụm đang chọn gạch chân bằng text-decoration");
   await phone.close();
   console.log("advertising rail two-tier: ok");
 } finally {

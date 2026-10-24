@@ -21,8 +21,7 @@ host, thêm cache, adapter và installer không cần thiết.
 
 1. Pin canonical ở [`tooling-versions.json`](../../tooling-versions.json).
    Skill đến từ plugin pin ở user scope theo
-   [decision plugin pin](claude-skills-from-pinned-plugins.md). Runtime (Serena, Graphify, Chrome DevTools
-   MCP, Impeccable CLI, jq) cài ở user scope.
+   [decision plugin pin](claude-skills-from-pinned-plugins.md). Runtime (Graphify, Impeccable CLI, jq) cài ở user scope.
 2. Không router riêng, không model pin chung, không host lifecycle hook. Quy trình
    chạy skill, human gate và vai trò main/worker/reviewer nằm ở
    [`AGENTS.md`](../../AGENTS.md#agent-skills-lifecycle).

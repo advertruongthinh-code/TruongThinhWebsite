@@ -1,4 +1,4 @@
-// Chụp markup Advertising dựng lúc runtime vào scripts/docs/captures/ cho build-design-system.mjs (docs/specs/docs-system.md R5.3).
+// Chụp markup Advertising dựng lúc runtime vào scripts/docs/captures/ cho build-design-system.mjs (docs/specs/design-system.md R3).
 // Cách dùng: pnpm dev, rồi node scripts/docs/capture-design-system.mjs [baseUrl]; PLAYWRIGHT_EXECUTABLE_PATH ghi đè browser.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -12,7 +12,7 @@ const PHOTO = '/vi/advertising-products/?category=signage-raised-letters&photo=s
 const CLIP = '/__design_system__/clip.mp4';
 // Các card trong viewport đầu của grid có seed, để media của chúng tải xong; hiện 1 item, 3 item, 11 item và một video cover
 // cộng một ảnh (docs/specs/media-card.md).
-const MEDIA_CARDS = ['signage-raised-letters-24', 'led-displays-lightboxes-02', 'kiosk-posm-12', 'print-decals-08'];
+const MEDIA_CARDS = ['office-signs-wayfinding-25', 'kiosk-posm-33', 'office-signs-wayfinding-54', 'print-decals-33'];
 
 // Catalog live chỉ có card một ảnh, nên MediaCard lặp ảnh của chính mỗi card làm item phụ, như fixture e2e.
 function mediaCardArtifact() {
@@ -38,6 +38,11 @@ const CAPTURES = [
   { name: 'Primary', route: PHOTO, select: '.advertising-photo-view__primary' },
   { name: 'Suggestion', route: PHOTO, select: '.advertising-photo-view__suggestion' },
   { name: 'Viewer', route: PHOTO, select: '.advertising-photo-dialog', setup: (page) => page.click('.advertising-photo-view__expand') },
+  // Kính ở khung ảnh chính trang chi tiết; hạt runtime là blob URL nên build gán hạt thay thế (spec design-system R3.9).
+  { name: 'Glass', route: PHOTO, select: '.advertising-photo-view__hero-frame' },
+  // Dải chấm gallery do detail.js dựng khi khối vào khung.
+  { name: 'Gallery', route: '/vi/residential/', select: '.detail-gallery',
+    setup: (page) => page.locator('.detail-gallery').scrollIntoViewIfNeeded() },
 ];
 
 // Chạy trong page: element cộng một bản sao nông của từng ancestor, để descendant selector vẫn khớp.

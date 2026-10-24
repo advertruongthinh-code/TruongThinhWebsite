@@ -56,12 +56,12 @@ function parseArgs(argv) {
 }
 
 function attribute(tag, name) {
-  return new RegExp(`\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="([^"]*)"`, "i").exec(tag)?.[1] ?? null;
+  return new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="([^"]*)"`, "i").exec(tag)?.[1] ?? null;
 }
 
 function setAttribute(tag, name, value) {
-  const pattern = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="[^"]*"`, "i");
-  if (pattern.test(tag)) return tag.replace(pattern, `${name}="${value}"`);
+  const pattern = new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="[^"]*"`, "i");
+  if (pattern.test(tag)) return tag.replace(pattern, () => `${name}="${value}"`);
   return tag.replace(/\s*\/?\s*>$/, (ending) => ` ${name}="${value}"${ending}`);
 }
 

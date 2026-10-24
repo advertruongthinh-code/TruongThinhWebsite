@@ -478,6 +478,8 @@ class LocaleLink {
     if (element.hasAttribute("data-language-option")) return;
     const href = element.getAttribute("href");
     if (!href || !href.startsWith("/") || href.startsWith("//")) return;
+    // Route hệ thống không có tiền tố locale (handleRequest phục vụ trực tiếp); gắn /vi, /en sẽ thành 404.
+    if (/^\/(?:media|admin|api)(?:[/?#]|$)|^\/(?:robots\.txt|sitemap\.xml)(?:[?#]|$)/.test(href)) return;
     const path = href.replace(/^\/(?:vi|en)(?=\/|$)/, "");
     element.setAttribute("href", `/${this.locale}${path || "/"}`);
   }
@@ -912,6 +914,11 @@ async function serveMedia(request, env, url) {
   const headers = new Headers();
   headers.set("content-type", media.content_type);
   headers.set("cache-control", "public, max-age=0, must-revalidate");
+  // Logo SVG từ CMS: mở trực tiếp /media/<id> không được chạy script trên origin của site.
+  if (media.content_type === "image/svg+xml") {
+    headers.set("content-security-policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    headers.set("x-content-type-options", "nosniff");
+  }
   if (object.httpEtag) headers.set("etag", object.httpEtag);
   return new Response(request.method === "HEAD" ? null : object.body, { headers });
 }
@@ -1108,7 +1115,9 @@ function isSafeSvg(bytes) {
   if (svg.length > 256 * 1024 || !/^\s*<svg\b[^>]*>/i.test(svg) || !/<\/svg>\s*$/i.test(svg)) {
     return false;
   }
-  return !/(<\/?(?:script|foreignObject|iframe|object|embed|image|animate|set|use|a)\b|\son\w+\s*=|\sstyle\s*=|javascript:|data:|https?:|\b(?:href|xlink:href)\s*=|url\s*\(|@import|<!doctype|<!entity|<\?)/i.test(svg);
+  // Namespace SVG chuẩn là định danh, không phải tài nguyên ngoài cần tải.
+  svg = svg.replace(/\sxmlns\s*=\s*(["'])http:\/\/www\.w3\.org\/2000\/svg\1/gi, " ");
+  return !/(<\/?(?:script|foreignObject|iframe|object|embed|image|animate|set|use|a)\b|[\s/\"']on\w+\s*=|\sstyle\s*=|javascript:|data:|https?:|\b(?:href|xlink:href)\s*=|url\s*\(|@import|<!doctype|<!entity|<\?)/i.test(svg);
 }
 
 async function readJson(request) {

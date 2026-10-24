@@ -27,7 +27,7 @@ permalink bản cũ ở `supersedes`, Git history giữ bản gốc
 | 2026-07-31 | accepted | [Worker CMS và locale URL là canonical](locale-prefixed-worker-routes.md) |
 | 2026-08-01 | accepted | [Full menu sở hữu locale và appointment control](menu-owns-locale-appointment.md) |
 | 2026-07-30 | accepted | [Motion nâng trải nghiệm, không giữ content làm con tin](motion-keeps-content-visible.md) |
-| 2026-08-09 | accepted | [Graphify và Serena dùng hook, watcher native và wrapper freshness](native-graphify-hooks-and-watcher.md) |
+| 2026-08-09 | accepted | [Graphify dùng hook, watcher native và wrapper freshness](native-graphify-hooks-and-watcher.md) |
 | 2026-08-01 | accepted | [CMS project slot là optional trên static menu baseline](optional-cms-project-slots.md) |
 | 2026-07-30 | accepted | [Owner fact không được suy đoán](owner-facts-require-confirmation.md) |
 | 2026-07-30 | accepted | [Process là invariant](process-order-invariant.md) |

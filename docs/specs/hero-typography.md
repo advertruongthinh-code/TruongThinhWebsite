@@ -119,7 +119,7 @@ Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1
 
 Token chữ hero và portal trong [Design System](../../design-system/). Chỉ đổi `design-system/` sau khi owner tự audit
 kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republish theo
-[docs-system R7](docs-system.md#r7-publish-design-system-lên-claudeai).
+[design-system R5](design-system.md#r5-publish-lên-claudeai).
 
 ## Kiểm tra
 

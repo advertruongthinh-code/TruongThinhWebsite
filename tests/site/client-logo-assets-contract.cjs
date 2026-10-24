@@ -84,8 +84,8 @@ const filesWithExtension = (directory, extension) =>
     .filter((entry) => entry.isFile() && path.extname(entry.name) === extension && !/-(?:480|960)\.[a-z]+$/.test(entry.name))
     .map((entry) => entry.name);
 
-assert.equal(filesWithExtension(projectDirectory, ".webp").length, 103, "Expected 103 project WebP assets");
-assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 17, "Expected 17 shared WebP assets");
+assert.equal(filesWithExtension(projectDirectory, ".webp").length, 124, "Expected 124 project WebP assets");
+assert.equal(filesWithExtension(sharedDirectory, ".webp").length, 21, "Expected 21 shared WebP assets");
 
 const legacyDirectory = path.join(site, "assets/site");
 const legacyFiles = fs.existsSync(legacyDirectory)

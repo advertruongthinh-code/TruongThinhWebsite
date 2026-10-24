@@ -620,7 +620,7 @@
     const nextCtaShown = scrollY <= window.innerHeight && scrollY + window.innerHeight <= footerTop;
     if (nextCtaShown !== pageState?.floatingCtaShown) {
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
-      floatingCta.classList.toggle("show", nextCtaShown);
+      floatingCta?.classList.toggle("show", nextCtaShown);
     }
     if (pageState?.scrollCue instanceof HTMLElement) {
       const cueHidden = scrollY > 200;

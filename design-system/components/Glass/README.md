@@ -48,8 +48,8 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
   hay đổ bóng. Nền tối của [viewer](../Viewer/README.md) phóng to là lớp làm
   tối, không phải component Kính.
 
-Preview dựng tay một khung ảnh có kính phủ đều ở nửa phải; class và style vẫn
-của website. Hạt nhiễu sinh lúc chạy nên preview không có.
+Preview chụp khung ảnh chính trang chi tiết Advertising từ trang chạy thật. Hạt
+nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
 
 ## Hiện và tan trên ảnh vừa tải
 

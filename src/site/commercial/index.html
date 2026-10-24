@@ -89,15 +89,23 @@
       })();
     </script>
     <script>
-      // detail-pages R5: chọn hero Kinh doanh ngẫu nhiên ngay trong head rồi preload, như hero trang chủ (page-home R3).
+      // detail-pages R5: chọn slide hero đầu ngay trong head rồi preload, như hero trang chủ (page-home R3).
       (() => {
-        const slides = ["commercial-hero-cafe", "commercial-hero-homestay", "commercial-hero-coconut-beauty-booth", "commercial-hero-coconut-craft-booth", "commercial-hero-shared-workspace", "commercial-hero-bakery", "commercial-hero-flower-shop", "commercial-hero-sports-shop", "commercial-hero-womens-fashion", "commercial-hero-fashion-timber", "commercial-hero-fashion-grey", "commercial-hero-reception-backdrop"];
+        const slides = [
+          ["commercial-hero-cafe", 1920],
+          ["commercial-hero-shared-workspace", 1920],
+          ["commercial-hero-flower-shop", 1920],
+          ["commercial-hero-womens-fashion", 1920],
+          ["commercial-hero-fashion-timber-audit-a289-v1", 1536],
+          ["commercial-hero-fashion-grey", 1920],
+          ["commercial-hero-reception-backdrop-audit-a292-v1", 1536]];
         const first = Math.floor(Math.random() * slides.length);
-        const path = `/assets/content/projects/${slides[first]}`;
+        const [name, width] = slides[first];
+        const path = `/assets/content/projects/${name}`;
         document.documentElement.dataset.heroFirst = first;
         document.head.append(Object.assign(document.createElement("link"), {
           rel: "preload", as: "image", type: "image/avif", href: `${path}.avif`,
-          imageSrcset: `${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif 1920w`, imageSizes: "100vw",
+          imageSrcset: `${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif ${width}w`, imageSizes: "100vw",
         }));
       })();
     </script>
@@ -265,7 +273,7 @@
           aria-labelledby="page-title"
         >
           <div class="hero-slides" aria-hidden="true">
-            <figure class="hero-slide" data-slide="0">
+            <figure class="hero-slide is-active" data-slide="0">
               <img
                 data-src="/assets/content/projects/commercial-hero-cafe.webp"
                 width="1920"
@@ -273,43 +281,9 @@
                 alt="Quán cà phê với quầy bar ốp gỗ sáng đèn, bàn ghế gỗ và cửa mở ra hàng cây"
                 data-en-alt="Café with a lit timber-clad bar, timber tables and an opening onto the trees"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
             <figure class="hero-slide" data-slide="1">
-              <img
-                data-src="/assets/content/projects/commercial-hero-homestay.webp"
-                width="1920"
-                height="1280"
-                alt="Homestay ven sông với bàn ăn gỗ dài và hiên mở nhìn ra kênh lúc hoàng hôn"
-                data-en-alt="Riverside homestay with a long timber dining table and an open veranda over the canal at sunset"
-                loading="eager"
-                data-motion-hero-media
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="2">
-              <img
-                data-src="/assets/content/projects/commercial-hero-coconut-beauty-booth.webp"
-                width="1920"
-                height="1280"
-                alt="Gian hàng mỹ phẩm từ dừa ở hội chợ với kệ đèn và tranh dừa"
-                data-en-alt="Coconut beauty booth at a trade fair with lit shelving and coconut graphics"
-                loading="eager"
-                data-motion-hero-media
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="3">
-              <img
-                data-src="/assets/content/projects/commercial-hero-coconut-craft-booth.webp"
-                width="1920"
-                height="1280"
-                alt="Gian hàng đồ thủ công từ dừa ở hội chợ với tranh cây dừa và bục trưng bày gỗ"
-                data-en-alt="Coconut craft booth at a trade fair with palm-tree artwork and timber display plinths"
-                loading="eager"
-                data-motion-hero-media
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="4">
               <img
                 data-src="/assets/content/projects/commercial-hero-shared-workspace.webp"
                 width="1920"
@@ -317,21 +291,9 @@
                 alt="Văn phòng chia sẻ với quầy lễ tân gỗ cong, bàn làm việc chung và phòng kính"
                 data-en-alt="Shared workspace with a curved timber reception, shared desks and glass rooms"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
-            <figure class="hero-slide" data-slide="5">
-              <img
-                data-src="/assets/content/projects/commercial-hero-bakery.webp"
-                width="1920"
-                height="1280"
-                alt="Tiệm bánh với tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh"
-                data-en-alt="Bakery with a cake display case, timber bread shelves and a green arched wall"
-                loading="eager"
-                data-motion-hero-media
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="6">
+            <figure class="hero-slide" data-slide="2">
               <img
                 data-src="/assets/content/projects/commercial-hero-flower-shop.webp"
                 width="1920"
@@ -339,21 +301,9 @@
                 alt="Shop hoa tươi với bục hoa gỗ tròn, kệ hoa và quầy gói hoa"
                 data-en-alt="Flower shop with round timber flower stands, shelving and a wrapping counter"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
-            <figure class="hero-slide" data-slide="7">
-              <img
-                data-src="/assets/content/projects/commercial-hero-sports-shop.webp"
-                width="1920"
-                height="1280"
-                alt="Shop thể thao với tường giày đèn hắt, bàn trưng bày gỗ và kệ bóng"
-                data-en-alt="Sports shop with a lit shoe wall, timber display tables and a ball rack"
-                loading="eager"
-                data-motion-hero-media
-              />
-            </figure>
-            <figure class="hero-slide" data-slide="8">
+            <figure class="hero-slide" data-slide="3">
               <img
                 data-src="/assets/content/projects/commercial-hero-womens-fashion.webp"
                 width="1920"
@@ -361,21 +311,19 @@
                 alt="Shop thời trang nữ với giá treo đồ, bàn trưng bày tròn và thảm cói"
                 data-en-alt="Women’s fashion shop with clothing rails, a round display table and a rush rug"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
-            <figure class="hero-slide" data-slide="9">
+            <figure class="hero-slide" data-slide="4">
               <img
-                data-src="/assets/content/projects/commercial-hero-fashion-timber.webp"
-                width="1920"
-                height="1280"
-                alt="Shop thời trang với tủ treo gỗ đèn hắt, bàn trưng bày ốp lam gỗ và tường đá tối"
-                data-en-alt="Fashion shop with lit timber wardrobes, a fluted timber display table and a dark stone wall"
+                data-src="/assets/content/projects/commercial-hero-fashion-timber-audit-a289-v1.webp"
+                width="1536"
+                height="1024"
+                alt="Shop thời trang tông tối với hệ kệ gỗ, bàn trưng bày bo tròn và quầy thu ngân có đèn hắt"
+                data-en-alt="Dark-toned fashion shop with timber shelving, rounded display tables and a backlit checkout counter"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
-            <figure class="hero-slide" data-slide="10">
+            <figure class="hero-slide" data-slide="5">
               <img
                 data-src="/assets/content/projects/commercial-hero-fashion-grey.webp"
                 width="1920"
@@ -383,33 +331,35 @@
                 alt="Shop thời trang tông xám với giá treo, bàn trưng bày đá và tường đá tối"
                 data-en-alt="Grey-toned fashion shop with clothing rails, a stone display table and a dark stone wall"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
-            <figure class="hero-slide" data-slide="11">
+            <figure class="hero-slide" data-slide="6">
               <img
-                data-src="/assets/content/projects/commercial-hero-reception-backdrop.webp"
-                width="1920"
-                height="1280"
-                alt="Sảnh lễ tân với vách lam gỗ óc chó, logo hình lá đồng sáng đèn và quầy đá, khu ghế chờ có cây xanh"
-                data-en-alt="Reception lobby with a fluted walnut wall, a lit brass leaf logo, a stone desk and a planted waiting lounge"
+                data-src="/assets/content/projects/commercial-hero-reception-backdrop-audit-a292-v1.webp"
+                width="1536"
+                height="1024"
+                alt="Sảnh lễ tân với backdrop đá sáng kết hợp mảng gỗ bo cong, quầy đá và gỗ, khu ghế chờ có cây xanh"
+                data-en-alt="Reception lobby with a light stone backdrop and curved timber panels, a stone and timber desk, and a planted waiting lounge"
                 loading="eager"
-                data-motion-hero-media
               />
             </figure>
           </div>
           <script type="module">
-            // detail-pages R5: giữ một hero trong pool, ảnh head đã preload; bỏ các slide còn lại. Route mềm không có
-            // preload: motion.js chạy lại bản sao classic (có currentScript), chọn tại chỗ.
+            // detail-pages R5: xáo slide như trang chủ (page-home R3), cùng một code.
             (() => {
               const slides = document.currentScript?.previousElementSibling ?? document.querySelector(".hero-slides");
-              const first = document.documentElement.dataset.heroFirst ?? Math.floor(Math.random() * slides.children.length);
+              const first = document.documentElement.dataset.heroFirst;
               delete document.documentElement.dataset.heroFirst;
-              const slide = slides.children[first];
-              slides.replaceChildren(slide);
-              slide.classList.add("is-active");
-              // Bản sao không bị ResizeObserver đầu trang theo dõi, sizes giữ 100vw như preload (page-home R3).
-              let image = slide.querySelector("img");
+              [...slides.children].map((slide) => [slide.dataset.slide === first ? -1 : Math.random(), slide])
+                .sort(([a], [b]) => a - b)
+                .forEach(([, slide], index) => {
+                  slides.append(slide);
+                  slide.classList.toggle("is-active", !index);
+                });
+              let image = slides.querySelector("img");
+              // ResizeObserver đầu trang theo dõi ảnh này (lúc parse còn data-srcset) và ghi sizes theo crop, có thể trước
+              // cả script này; lệch preload sizes="100vw" là tải hai lần. Bản sao không bị theo dõi, sizes trả về 100vw
+              // như ảnh src có sẵn (media-delivery R2).
               image.replaceWith((image = image.cloneNode()));
               image.setAttribute("fetchpriority", "high");
               [image.previousElementSibling, image].forEach((node) => {
@@ -448,6 +398,23 @@
               </span>
             </h1>
           </div>
+
+          <button
+            class="motion-toggle"
+            type="button"
+            data-motion-toggle
+            aria-pressed="false"
+            aria-label="Tạm dừng chuyển động"
+            data-en-aria-label="Pause motion"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <g class="motion-toggle__pause">
+                <rect x="3.5" y="3" width="3" height="10" />
+                <rect x="9.5" y="3" width="3" height="10" />
+              </g>
+              <path class="motion-toggle__play" d="M4.75 3.1 12.5 8l-7.75 4.9Z" />
+            </svg>
+          </button>
 
           <button
             class="scroll-cue"
@@ -554,7 +521,7 @@
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
                   <img
-                    src="/assets/content/projects/hero-v2.webp"
+                    src="/assets/content/projects/hero-v2-audit-a313-v1.webp"
                     width="1536"
                     height="1024"
                     alt="Quầy cafe và bán lẻ mở ra mặt phố với ánh nắng cuối ngày"
@@ -596,11 +563,11 @@
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
                   <img
-                    src="/assets/content/projects/storefront-v2.webp"
+                    src="/assets/content/projects/storefront-v2-audit-a358-v3.webp"
                     width="1536"
                     height="1024"
-                    alt="Mặt tiền cửa hàng sáng đèn trong phố Việt Nam lúc chạng vạng"
-                    data-en-alt="Illuminated storefront on a Vietnamese street at dusk"
+                    alt="Mặt tiền cửa hàng thời trang nữ với bảng hiệu sáng đèn lúc chạng vạng"
+                    data-en-alt="Womenswear storefront with illuminated signage at dusk"
                     loading="lazy"
                     data-motion-media
                   />
@@ -610,16 +577,30 @@
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
                   <img
-                    src="/assets/content/projects/completed-detail-x1.webp"
-                    width="1448"
-                    height="1086"
-                    alt="Góc quầy lễ tân hoàn thiện giữa đá, gỗ và kim loại"
-                    data-en-alt="Finished reception counter corner in stone, timber and metal"
+                    src="/assets/content/projects/commercial-hero-sports-shop.webp"
+                    width="1920"
+                    height="1280"
+                    alt="Shop thể thao với tường giày đèn hắt, bàn trưng bày gỗ và kệ bóng"
+                    data-en-alt="Sports shop with a lit shoe wall, timber display tables and a ball rack"
                     loading="lazy"
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Finished detail">Chi tiết hoàn thiện</figcaption>
+                <figcaption data-en="Sports shop">Shop thể thao</figcaption>
+              </figure>
+              <figure class="detail-gallery__item">
+                <div class="detail-gallery__media">
+                  <img
+                    src="/assets/content/projects/commercial-hero-bakery.webp"
+                    width="1920"
+                    height="1280"
+                    alt="Tiệm bánh với tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh"
+                    data-en-alt="Bakery with a cake display case, timber bread shelves and a green arched wall"
+                    loading="lazy"
+                    data-motion-media
+                  />
+                </div>
+                <figcaption data-en="Green-arch bakery">Tiệm bánh vòm xanh</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
@@ -649,20 +630,7 @@
                 </div>
                 <figcaption data-en="Flower shop">Shop hoa tươi</figcaption>
               </figure>
-              <figure class="detail-gallery__item">
-                <div class="detail-gallery__media">
-                  <img
-                    src="/assets/content/projects/shared-office-overview.webp"
-                    width="1536"
-                    height="1024"
-                    alt="Văn phòng chia sẻ nhìn từ quầy lễ tân gỗ, dãy bàn làm việc chung và quầy bar cạnh cửa kính"
-                    data-en-alt="Shared office seen from the timber reception desk, with shared desks and a bar counter by the glazing"
-                    loading="lazy"
-                    data-motion-media
-                  />
-                </div>
-                <figcaption data-en="Shared office · Overview">Văn phòng chia sẻ · Toàn cảnh</figcaption>
-              </figure>
+
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
                   <img
@@ -815,7 +783,7 @@
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 498 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-5" /></svg>
-            <span class="editorial-media"><img src="/assets/content/shared/after-sales.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Bảo trì nội thất kinh doanh sau bàn giao" data-en-alt="Maintaining a commercial interior after handover" /></span>
+            <span class="editorial-media"><img src="/assets/content/shared/after-sales-audit-a367-v3.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Người thợ căn chỉnh ray trượt ngăn kéo quầy gỗ trong quán cà phê" data-en-alt="A technician adjusting a drawer slide in a timber cafe counter" /></span>
             <div><h3 data-en="After-sales">Hậu mãi</h3><p data-en="Maintain, adjust and support after handover so the space keeps running smoothly.">Bảo trì, căn chỉnh và hỗ trợ sau bàn giao để mặt bằng vận hành ổn định.</p></div>
           </article>
         </section>
@@ -876,11 +844,11 @@
           <div class="service-portals">
             <article class="service-portal">
               <img
-                src="/assets/content/projects/gallery-shop-x2.webp"
+                src="/assets/content/projects/gallery-shop-x2-audit-a305-v1.webp"
                 width="1484"
                 height="1060"
-                alt="Cửa hàng thời trang rộng với đảo trưng bày và kệ xanh đậm"
-                data-en-alt="Spacious fashion store with display islands and deep-blue shelving"
+                alt="Cửa hàng Cocomark với đảo trưng bày và kệ xanh đậm"
+                data-en-alt="Cocomark retail store with display islands and deep-blue shelving"
                 loading="lazy"
                 data-motion-media
               />
@@ -909,7 +877,7 @@
 
             <article class="service-portal">
               <img
-                src="/assets/content/projects/hero-v2.webp"
+                src="/assets/content/projects/hero-v2-audit-a313-v1.webp"
                 width="1536"
                 height="1024"
                 alt="Không gian cafe bán lẻ với quầy dài và hệ trưng bày"

@@ -11,7 +11,7 @@ const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0
 // qua tối đa INNER_MAX inner step (PC dùng 1, phone 0) (owner 06/10, số lớp theo máy từ 10/10).
 const ARC_LEVEL = 28;
 const CEILING = 100;
-const INNER_MAX = 5;
+const INNER_MAX = 1;
 // Số lớp cố định theo loại máy, không đo fps (owner 10/10): PC 5 lớp (core 28px, 1 inner lên 100px, 3 band); phone 2 lớp
 // (core 28px như PC và band step trong cùng; owner 10/10). Inner step (81-88% frame chậm, vòng 26) hay band step
 // thứ hai (30% frame chậm, vòng 29) đều trượt gate trên phone Android. Phone nhận biết như skeleton (catalog-runtime).
