@@ -168,9 +168,10 @@ từ đầu khi dải dừng và tiếng to dần tới mức người xem; vu�
 Giữ lựa chọn tiếng của card. Đổi media ghi vào entry hiện tại, không thêm entry.
 Video primary tự phát tắt tiếng, lặp riêng nó (không chạy playlist như card, owner 2026-10-18), `playsinline`, player theo trang pin
 Pinterest (đo 2026-10-18), không `controls` gốc: bấm video phát/dừng, đang dừng hiện biểu tượng phát 48px giữa video;
-dải gradient đáy 128px (đen 0.4 lên trong suốt, lề 24px) có nút phát/dừng, thời gian "hiện tại / tổng" (16px đậm, tổng
-mờ 0.6), nút tiếng và thanh tua (track 4px, núm 12px, bấm, kéo, phím mũi tên). Dải hiện khi chuột trên video, khi focus
-bên trong hoặc khi đang dừng; màn hình cảm ứng luôn hiện. Thanh âm lượng (thêm theo owner) đứng dọc 104px phía trên
+thanh đáy 128px (lề 24px, không nền gradient) có nút phát/dừng, thời gian "hiện tại / tổng" (16px đậm, tổng
+mờ 0.6), nút tiếng và thanh tua (track 4px, núm 12px, bấm, kéo, phím mũi tên). Thanh hiện khi chuột trên video, khi focus
+bên trong hoặc khi đang dừng; màn hình cảm ứng luôn hiện. Bố cục cảm ứng, kéo tua, bóng hai lớp và núm đặc theo
+[player video primary](primary-video-player.md). Thanh âm lượng (thêm theo owner) đứng dọc 104px phía trên
 nút tiếng để không nhầm với thanh tua, mở khi trỏ hoặc focus vào cụm tiếng; kéo về 0 là tắt tiếng nhưng giữ mức cũ.
 Nút "Toàn màn hình" / "Full screen" (thêm theo owner) phóng khung video ra toàn màn hình nền đen, không nền blur;
 bấm lại hoặc Esc thoát, đổi sang ảnh thì tự thoát. Nút "Bật tiếng" / "Unmute" và

@@ -1,9 +1,11 @@
 ---
 title: Player video primary, khung media ngang và chữ nút gợi ý
-status: planned
+status: live
 source: []
 tests:
   - tests/site/site-media-card-m02a.e2e.mjs
+  - tests/site/primary-video-keyframes.test.mjs
+  - tests/site/advertising-photo-layout.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
 updated: 2026-10-24
 ---
@@ -15,8 +17,8 @@ updated: 2026-10-24
 PC giữ nguyên bố cục player video primary đang chạy trên demo ([media-card R6](media-card.md#r6-media-trong-primary));
 hướng Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế
 với demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, thêm bóng đen cho chữ nút trong "Có thể bạn thích" và
-UI player, và cho khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong
-media-card R6 trỏ tới đây và [advertising-detail R2](advertising-detail.md#r2-hình-học-primary) sửa theo R6 ở đây. Bản thiết kế:
+UI player, và cho khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Đoạn player trong
+media-card R6 trỏ tới đây; [advertising-detail R2](advertising-detail.md#r2-hình-học-primary) theo R6 ở đây. Bản thiết kế:
 [canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 34, ảnh chụp từ trang thật).
 
 ## Hành vi
@@ -76,14 +78,14 @@ And thả tay thì video tua tới 5,6 giây rồi phát tiếp
 
 ### R3. Mã hóa video cho tua mượt
 
-Video media primary có keyframe tối đa mỗi `0,5s`, để mỗi lệnh tua chỉ giải mã ít frame. Clip tạm hiện chỉ có một
+Video media primary có keyframe tối đa mỗi `0,5s`, để mỗi lệnh tua chỉ giải mã ít frame. Clip tạm trước đây chỉ có một
 keyframe đầu clip (đo `ffprobe` kiosk-posm-13-v1: 8,5s, H.264 24fps); `scripts/site/build-placeholder-media.mjs` thêm
-`-g 12`. Tăng byte đo trong PR. Clip thật sau này theo chuẩn này ([media-delivery](media-delivery.md)).
+`-g 12`. 37 clip tạm tăng từ 14,9MB lên 29,6MB (+98%, PR #434). Clip thật sau này theo chuẩn này ([media-delivery](media-delivery.md)).
 
 ```gherkin
-Given clip tạm sinh lại bằng build-placeholder-media
-When ffprobe liệt kê keyframe
-Then khoảng cách giữa hai keyframe liền nhau không quá 0,5 giây
+Given mọi file MP4 trong src/site/assets
+When đọc bảng keyframe của track video
+Then khoảng cách giữa hai keyframe liền nhau, và từ keyframe cuối tới cuối clip, không quá 0,5 giây
 ```
 
 ### R4. Bóng đen hai lớp cho nút gợi ý và UI player (ngoại lệ Design System)
@@ -165,18 +167,17 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (không hover) đo một hàng, không nền gradient, không nút phát trên thanh, nút giữa chỉ khi dừng, không mở cột âm lượng; desktop giữ ca hiện có |
-| R2 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
+| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (`isMobile`, `hasTouch`, khớp `hover: none`) đo một hàng 40px, không nền gradient, không nút phát trên thanh, nút giữa chỉ khi dừng, chạm nút tiếng không mở cột âm lượng; desktop giữ ca hiện có |
+| R2 | `site-media-card-m02a.e2e.mjs`: giả `video.buffered`, kéo trong đoạn đã tải (frame theo núm, video không phát, không hai lệnh tua chồng nhau, thả tay phát tiếp) và ra ngoài (giữ frame, không tua tới khi thả) |
 | R3 | `primary-video-keyframes.test.mjs`: đọc bảng `stss`, `stts` của mọi MP4 trong `src/site/assets`, khoảng cách keyframe (kể cả tới cuối clip) không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |
-| R5 | `site-media-card-m02a.e2e.mjs`: màu `::-webkit-slider-thumb` của thanh tua và thanh âm lượng có alpha 1 |
-| R6 | `advertising-photo-layout.test.mjs`: đổi hai ca "split cao bằng cap" sang `min(W/r, H)`, thêm ca ngang và dọc; `advertising-primary-p14.e2e.mjs` đo khung 1440×900 |
-| R1 trên máy thật | A05s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
+| R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
+| R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
+| R1 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
 
 ## Gate còn mở
 
-- Spec chờ owner duyệt, rồi plan. Owner (R6 đã chọn hướng "cao theo media" 2026-10-24).
-- R3 tăng byte clip; số đo trong PR, owner xem. Owner.
+- R3 tăng byte clip gần gấp đôi (số đo ở R3); owner xem. Owner.
 - Kiểm R1 trên máy thật chờ lượt phone. Thread.
 
 ## Chú thích thuật ngữ
