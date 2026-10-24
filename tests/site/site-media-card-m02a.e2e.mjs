@@ -428,6 +428,43 @@ test("M02a primary scrub past the buffered range holds the frame and seeks on re
   });
 });
 
+// Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, icon, nút phát, thanh tua có
+// drop-shadow hai lớp, giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
+test("M02a primary player and suggestion text carry the two-layer shadow and solid thumbs", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    const two = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
+    const drop = "drop-shadow(rgba(0, 0, 0, 0.5) 0px 0px 2px) drop-shadow(rgba(0, 0, 0, 0.4) 0px 0px 12px)";
+    const read = () => page.evaluate(() => {
+      const style = (selector, pseudo) => getComputedStyle(document.querySelector(selector), pseudo);
+      const label = (pressed) => [...document.querySelectorAll(".advertising-photo-view__suggestion-link")]
+        .filter((link) => (link.getAttribute("aria-pressed") === "true") === pressed)
+        .map((link) => [getComputedStyle(link.querySelector(".advertising-photo-view__suggestion-label")).textShadow,
+          getComputedStyle(link, "::after").backgroundColor]);
+      // getComputedStyle không đọc được ::-webkit-slider-thumb, nên đọc rule trong stylesheet.
+      const thumbs = [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules])
+        .filter((rule) => rule.selectorText?.includes("advertising-video-player__range::-webkit-slider-thumb") && rule.style.backgroundColor)
+        .map((rule) => rule.style.backgroundColor);
+      return { bar: style(".advertising-video-player__bar").backgroundImage, time: style(".advertising-video-player__time").textShadow,
+        filters: [".advertising-video-player__surface svg", ".advertising-video-player__button svg", ".advertising-video-player__progress"]
+          .map((selector) => style(selector).filter),
+        idle: label(false), pressed: label(true), thumbs };
+    });
+    let state = await read();
+    assert.equal(state.bar, "none", "the bar has no gradient band");
+    assert.equal(state.time, two, "time carries the two-layer text shadow");
+    assert.deepEqual(state.filters, [drop, drop, drop], "center play, bar icons and seek bar carry the two-layer drop shadow");
+    assert.deepEqual(state.thumbs, ["rgb(251, 251, 249)"], "seek and volume thumbs are solid");
+    assert(state.idle.length > 0, "the fixture shows suggestion buttons");
+    assert(state.idle.every(([shadow, layer]) => shadow === two && layer !== "rgba(0, 0, 0, 0)"),
+      `unselected suggestions keep their dark layer and gain the shadow: ${JSON.stringify(state.idle)}`);
+    await page.locator(".advertising-photo-view__suggestion-link").first().click();
+    await page.waitForFunction(() => document.querySelector(".advertising-photo-view__suggestion-link[aria-pressed='true']"));
+    state = await read();
+    assert(state.pressed.length > 0 && state.pressed.every(([shadow]) => shadow === "none"), "the selected suggestion has no shadow");
+  });
+});
+
 test("M02a primary vertical volume slider opens above the sound button and keeps the last volume", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });

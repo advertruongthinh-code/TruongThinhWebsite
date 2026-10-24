@@ -80,6 +80,9 @@
   --portal-title-size: min(4rem, 12cqw);
   --portal-kicker-size: min(1.125rem, 4.2cqw);
   --portal-subtitle-size: min(1rem, 3.8cqw);
+  /* Bóng chữ hai lớp D trên ảnh có chữ trắng (hero-typography R6); reach là bán kính quầng ngoài để nới mask. */
+  --text-shadow-d: 0 0 2px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.4);
+  --text-shadow-reach: 12px;
   --word-spacing-body: 0.1em;
   --word-spacing-display: 0.1em;
   --word-spacing-montage: 0.1em;

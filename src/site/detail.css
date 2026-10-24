@@ -2121,8 +2121,9 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng; dải
-   gradient đáy 128px chứa hàng nút 24px và thanh tua track 4px, lề 24px. Thanh âm lượng thêm theo owner. */
+/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng; thanh đáy
+   128px chứa hàng nút 24px và thanh tua track 4px, lề 24px. Thanh âm lượng thêm theo owner. Không dải gradient: icon,
+   thanh tua, giờ mang bóng hai lớp D (primary-video-player R4). */
 .advertising-video-player {
   position: absolute;
   z-index: 3;
@@ -2151,7 +2152,12 @@ body.is-advertising-browse .site-footer {
   width: 48px;
   height: 48px;
   opacity: 0;
-  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg và thanh tua. */
+.advertising-video-player :is(.advertising-video-player__surface svg, .advertising-video-player__button svg,
+  .advertising-video-player__progress) {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
 .advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__surface svg {
@@ -2168,7 +2174,6 @@ body.is-advertising-browse .site-footer {
   justify-content: flex-end;
   gap: 15px;
   padding: 0 24px 20px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
   opacity: 0;
   pointer-events: none;
   transition: opacity 100ms ease-out;
@@ -2237,6 +2242,7 @@ body.is-advertising-browse .site-footer {
   font-variant-numeric: tabular-nums;
   line-height: 1.5rem;
   white-space: nowrap;
+  text-shadow: var(--text-shadow-d);
 }
 
 .advertising-video-player__total {
@@ -2290,7 +2296,8 @@ body.is-advertising-browse .site-footer {
   margin-top: -4px;
   border: 0;
   border-radius: 50%;
-  background: rgba(251, 251, 249, 0.5);
+  /* Núm đặc (R5): núm trong suốt để lộ đường tua chạy xuyên qua. */
+  background: #fbfbf9;
   appearance: none;
 }
 
@@ -2299,7 +2306,7 @@ body.is-advertising-browse .site-footer {
   height: 12px;
   border: 0;
   border-radius: 50%;
-  background: rgba(251, 251, 249, 0.5);
+  background: #fbfbf9;
 }
 
 /* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus vào cụm tiếng, tách khỏi thanh
@@ -2842,10 +2849,13 @@ body.is-advertising-browse .site-footer {
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
+  /* Bóng hai lớp D trên lớp tối sẵn có (primary-video-player R4); nút đang chọn chữ ink trên nền giấy thì không. */
+  text-shadow: var(--text-shadow-d);
 }
 
 .advertising-photo-view__suggestion-link[aria-pressed="true"] .advertising-photo-view__suggestion-label {
   color: var(--ink);
+  text-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

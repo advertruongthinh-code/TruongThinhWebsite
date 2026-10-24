@@ -120,7 +120,7 @@ assert.match(css, /advertising-photo-view__suggestion-links \{[\s\S]*?grid-templ
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?border-color: var\(--ink\);[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the ink border and white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] img \{[\s\S]*?opacity: 0 !important;[\s\S]*?transform: none !important;/, "active suggestion hides and resets the full-frame photo");
-assert.match(css, /suggestion-link\[aria-pressed="true"\] \.advertising-photo-view__suggestion-label \{\s*color: var\(--ink\);\s*\}/, "active suggestion keeps a readable ink fallback without text clipping");
+assert.match(css, /suggestion-link\[aria-pressed="true"\] \.advertising-photo-view__suggestion-label \{\s*color: var\(--ink\);\s*text-shadow: none;\s*\}/, "active suggestion keeps a readable ink fallback without text clipping or the two-layer shadow");
 assert.doesNotMatch(css, /--advertising-suggestion-image|background-clip:\s*text/, "active suggestion uses plain ink text without an image mask");
 assert.doesNotMatch(css, /suggestion-link:hover:not\(\[aria-pressed="true"\]\)::after\s*\{[^}]*filter:/, "inactive suggestion hover does not change overlay darkness");
 assert.doesNotMatch(siteCss, /service-portal:hover \.portal-shade\s*\{[^}]*background:/, "portal hover does not change overlay darkness");
