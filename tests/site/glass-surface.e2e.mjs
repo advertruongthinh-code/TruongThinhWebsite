@@ -166,11 +166,22 @@ try {
       const boxes = await page.evaluate(() => {
         const box = (node) => { const { x, y, width, height } = node.getBoundingClientRect(); return [x, y, width, height]; };
         const frame = document.querySelector(".advertising-photo-view__hero-frame");
-        return { frame: box(frame), canvases: [...frame.querySelectorAll(".glass-surface__step--baked > canvas")].map(box) };
+        const glass = frame.querySelector(".glass-surface__step--baked").parentElement;
+        const photo = frame.querySelector("[data-advertising-photo-image]").getBoundingClientRect();
+        const outer = frame.getBoundingClientRect();
+        return { frame: box(frame), canvases: [...frame.querySelectorAll(".glass-surface__step--baked > canvas")].map(box),
+          band: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass,
+          // inset() rút gọn như margin: 1 tới 4 giá trị.
+          clip: (([top, right = top, bottom = top, left = right]) => [top, right, bottom, left])(
+            (glass.style.clipPath.match(/[\d.-]+/g) || []).map(Number)),
+          media: [photo.top - outer.top, outer.right - photo.right, outer.bottom - photo.bottom, photo.left - outer.left] };
       });
       check(boxes.canvases.length && boxes.canvases.every((canvas) => canvas.every((value, index) =>
         index < 2 ? Math.abs(value - boxes.frame[index]) <= 1 : value >= boxes.frame[index] - 1)),
       `baked reveal glass does not cover the primary frame ${JSON.stringify(boxes)}`);
+      // Vùng zoom blur luôn blur đủ (owner 2026-10-24): Kính chỉ phủ BBox media, không để bậc nhẹ lộ ảnh zoom gần nét.
+      check(boxes.band === "true" && boxes.clip.every((value, index) => Math.abs(value - boxes.media[index]) <= 1),
+        `baked reveal glass covers the zoom blur band ${JSON.stringify(boxes)}`);
     } finally {
       await page.close();
     }

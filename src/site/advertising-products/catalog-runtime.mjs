@@ -2427,6 +2427,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       step.append(canvas);
       return canvas;
     });
+    // Vùng zoom blur luôn blur đủ (owner 2026-10-24): Kính chỉ phủ BBox media; phủ cả vùng dư thì lúc tan, bậc nhẹ cuối
+    // để lộ ảnh zoom gần nét trước khi nền blur 100px hiện lại.
+    if (photoView.dataset.advertisingPhotoGlass === "true") {
+      const media = (photoImage.hidden ? photoVideo : photoImage).getBoundingClientRect();
+      glass.style.clipPath = `inset(${media.top - frame.top}px ${frame.right - media.right}px ${frame.bottom - media.bottom}px ${media.left - frame.left}px)`;
+    }
     if (!bitmap) return glass;
     const x = (photo.left - frame.left) / BAKED_SCALE;
     const y = (photo.top - frame.top) / BAKED_SCALE;

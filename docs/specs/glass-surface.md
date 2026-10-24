@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-audit.test.mjs
   - tests/site/glass-surface.e2e.mjs
 notion: none
-updated: 2026-10-21
+updated: 2026-10-24
 ---
 
 # Kính dùng chung cho mọi bề mặt glass
@@ -167,7 +167,9 @@ bậc cho dạng cung). Số lớp theo loại máy (R2); trần
 phủ cả hero rơi gate pha mở (A05s cũ p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
 là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
 trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
-crossfade của ảnh (`glass-surface__step--baked`). Điện thoại chạy đúng như PC (owner 11/10,
+crossfade của ảnh (`glass-surface__step--baked`). Primary có vùng zoom blur thì kính hiện/tan chỉ phủ BBox media
+(`clip-path`): vùng zoom blur luôn blur đủ, chỉ crossfade nền `100px`; phủ cả vùng này thì lúc tan bậc nhẹ cuối
+lộ ảnh zoom gần nét rồi nền blur mới hiện lại (owner 2026-10-24). Điện thoại chạy đúng như PC (owner 11/10,
 [R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)); dưới gate thì dừng, báo owner kèm số đo.
 Kính hiện/tan trên card giữ năm bậc. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
