@@ -81,6 +81,7 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
 - Hero có `overflow-anchor: none`: chữ đổi cỡ sau khi mount nên node trong hero không được làm scroll anchor; nếu không,
   Back về trang đã cuộn lệch 23px trên WebKit (2026-10-19).
 - CTA "Giữ nghề" giữ cỡ CTA chung; cùng cơ chế đo, mỗi dòng chỉ co khi không vừa khung.
+  Không JS: cỡ chữ tối đa `100cqi / 5` để từ dài nhất vừa khung khi chữ phóng to 200%; dòng được xuống hàng.
 - Token `portal-kicker`, `portal-title`, `portal-tagline` của [Design System](../../design-system/) chỉ sửa sau khi
   owner duyệt (mục UI).
 

@@ -2078,6 +2078,11 @@ em {
   font-size: min(1em, calc(100cqi / var(--hero-line-em)));
 }
 
+/* Không có motion.js (chữ phóng to, chưa đo): trần cỡ để từ dài nhất vừa khung, dòng được xuống hàng. */
+.legacy-copy h2:not([data-hero-fit]) > .line-mask {
+  font-size: min(1em, calc(100cqi / 5));
+}
+
 .legacy-copy h2 em {
   font-style: normal;
 }
