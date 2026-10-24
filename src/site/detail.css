@@ -2568,7 +2568,6 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-view__info [data-advertising-photo-description] {
   max-width: 100%;
   margin: 0;
-  text-align: justify;
 }
 
 /* Dãy thumbnail một dòng vừa số thumbnail nguyên (60px, gap 8px), thừa thì cuộn ngang (owner 2026-10-24). */

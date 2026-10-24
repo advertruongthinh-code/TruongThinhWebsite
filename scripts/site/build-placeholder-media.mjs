@@ -49,21 +49,29 @@ rmSync(outputDir, { recursive: true, force: true });
 mkdirSync(outputDir, { recursive: true });
 
 const result = {};
+// Vị trí video (đếm từ 0, vị trí 0 là ảnh cover) của card video rải rác, xen kẽ hai kiểu.
+const SCATTERED_SLOTS = [[2, 5], [1, 3, 6]];
+let singles = 0;
+let scattered = 0;
 chosen.forEach((card, index) => {
   // Tỷ lệ tối giản quá lớn thì video phải gần full size; bỏ video cho card đó để giữ file nhẹ.
   const videoSize = outputSize(card.media, true);
   const videoFits = Math.max(videoSize.width, videoSize.height) <= 1280;
   // 5 card đầu 7 tới 9 ảnh; card 5 tới 9 làm được video thành 6 tới 9 item với 2 hoặc 3 video trộn ảnh (owner 2026-10-18:
   // một card có nhiều video, nhiều ảnh; từ 6 media có bộ đếm); còn lại 3 tới 5 item, mỗi card thứ ba có một video.
-  const rich = index >= 5 && index < 10 && videoFits;
-  const total = index < 5 ? 7 + (index % 3) : rich ? 6 + (index % 4) : 3 + (index % 3);
-  const videoCount = rich ? 2 + (index % 2) : index % 3 === 0 && videoFits ? 1 : 0;
+  // Từ card 10, card làm được video: 4 card chỉ một video, 4 card 7 media có video rải rác (owner 2026-10-24).
+  const single = index >= 10 && videoFits && singles < 4 && ++singles > 0;
+  const slots = !single && index >= 10 && videoFits && scattered < 4 ? SCATTERED_SLOTS[scattered++ % 2] : null;
+  const rich = (index >= 5 && index < 10 && videoFits) || Boolean(slots);
+  const total = single ? 1 : slots ? 7 : index < 5 ? 7 + (index % 3) : rich ? 6 + (index % 4) : 3 + (index % 3);
+  const videoCount = single ? 1 : slots ? slots.length : rich ? 2 + (index % 2) : index % 3 === 0 && videoFits ? 1 : 0;
   const peers = ADVERTISING_MEDIA_MANIFEST.filter((other) => other.id !== card.id && other.productKey === card.productKey);
   const ratioPeers = peers.filter((other) => sameRatio(other.media, card.media));
   const imageSize = outputSize(card.media);
   const items = [];
+  const videos = [];
 
-  for (let n = 0; items.length < total - 1 - videoCount; n += 1) {
+  for (let n = 0; items.length < total - (single ? 0 : 1) - videoCount; n += 1) {
     // Ưu tiên ảnh khác cùng sản phẩm, cùng tỷ lệ; hết thì nhân bản cover với vùng crop khác.
     const base = ratioPeers[n] ?? card;
     const crop = base === card ? CROPS[(n % (CROPS.length - 1)) + 1] : CROPS[0];
@@ -106,7 +114,7 @@ chosen.forEach((card, index) => {
       "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-g", "12", "-movflags", "+faststart", file]);
     ffmpeg(["-i", file, "-frames:v", "1", "-quality", "72", poster]);
     const durationSeconds = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
-    items.splice(v * 2, 0, {
+    videos.push({
       id, kind: "video", src: `${outputUrl}/${id}.mp4`, sourceId: `placeholder:${id}`, ...videoSize,
       altVi: `Video minh họa${v ? ` ${v + 1}` : ""}: ${card.titleVi}`, altEn: `Illustrative video${v ? ` ${v + 1}` : ""}: ${card.titleEn}`,
       source: `${outputUrl}/${id}.mp4`, sha256: sha256(file),
@@ -115,7 +123,15 @@ chosen.forEach((card, index) => {
       durationSeconds: Math.round(durationSeconds * 100) / 100, hasAudio,
     });
   }
-  result[card.id] = items;
+  // Thứ tự đầy đủ, ảnh cover giữ chỗ bằng `kind: "cover"` (media-manifest.mjs thay bằng ảnh thật). Card theo luật cũ:
+  // video trước, rồi cover, rồi ảnh.
+  const cover = { id: card.id, kind: "cover" };
+  if (single) result[card.id] = videos;
+  else if (slots) {
+    const order = [cover, ...items];
+    slots.forEach((slot, v) => order.splice(slot, 0, videos[v]));
+    result[card.id] = order;
+  } else result[card.id] = [...videos, cover, ...items];
 });
 
 writeFileSync(moduleFile, [

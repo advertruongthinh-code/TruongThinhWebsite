@@ -477,7 +477,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert.equal(actual.copy.description, canonicalDescription.trim(), `${label}: description is not the whole canonical copy`);
   assert.equal(actual.descriptionScroll?.overflowY, "auto", `${label}: description is not its own scroller`);
   assert(actual.descriptionScroll.label, `${label}: description scroller has no accessible label`);
-  assert.equal(actual.descriptionScroll.textAlign, "justify", `${label}: description is not justified`);
+  assert(["start", "left"].includes(actual.descriptionScroll.textAlign), `${label}: description is not left aligned`);
   if (normalCopyFit) {
     assert(actual.infoState.scrollHeight <= actual.infoState.clientHeight + 2,
       `${label}: normal copy scrolls ${actual.infoState.scrollHeight - actual.infoState.clientHeight}px`);

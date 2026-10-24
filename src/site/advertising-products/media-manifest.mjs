@@ -302,14 +302,10 @@ const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
 })));
 
 // ponytail: media tạm (placeholder-media.mjs) cho 1/3 card, thay bằng media thật khi owner có ảnh nhiều góc.
-// Card có video tạm lấy video làm cover để xem lịch tự phát kiểu Pinterest (owner 2026-10-17).
+// Script sinh thứ tự đầy đủ, `kind: "cover"` giữ chỗ ảnh cover; media đầu là cover của card (owner 2026-10-17, 2026-10-24).
 export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => {
-  const extra = PLACEHOLDER_MEDIA_ITEMS[record.id] ?? [];
-  const videos = extra.filter((item) => item.kind === "video");
-  return Object.freeze({
-    ...record,
-    coverMediaId: videos[0]?.id ?? record.id,
-    mediaItems: Object.freeze([...videos, { id: record.id, kind: "image", ...record.media },
-      ...extra.filter((item) => item.kind !== "video")].map((item) => Object.freeze(item))),
-  });
+  const cover = { id: record.id, kind: "image", ...record.media };
+  const mediaItems = (PLACEHOLDER_MEDIA_ITEMS[record.id] ?? [cover])
+    .map((item) => Object.freeze(item.kind === "cover" ? cover : item));
+  return Object.freeze({ ...record, coverMediaId: mediaItems[0].id, mediaItems: Object.freeze(mediaItems) });
 }));

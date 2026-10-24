@@ -367,6 +367,24 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
   });
 });
 
+// Nạp lại nguồn lúc đang phát làm video dừng mà không bắn `pause` (chỉ `abort`, `emptied`); player vẫn phải hiện nút
+// phát giữa (primary-video-player R9, owner 2026-10-24 báo PC thiếu nút).
+test("M02a primary shows the center play icon when a source reload stops the video", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
+    assert.equal((await playerState(page)).center, 0, "no center icon while playing");
+    await page.evaluate(() => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      video.src = video.currentSrc;
+    });
+    await page.waitForTimeout(300);
+    const state = await playerState(page);
+    assert.deepEqual([state.paused, state.center, state.playLabel], [true, 1, "Play"],
+      `the stopped video shows the center play icon: ${JSON.stringify(state)}`);
+  });
+});
+
 // Kéo tua (primary-video-player R2): video dừng khi kéo, khung theo núm, mỗi lần một lệnh tua; ngoài đoạn đã tải thì
 // giữ frame, thả tay mới tua; thả tay thì phát tiếp nếu trước đó đang phát.
 async function dragProgress(page, from, to, { buffered = null, during } = {}) {
@@ -553,6 +571,43 @@ test("M02a touch primary video uses one 40px row without the bar play button or 
   });
 });
 
+// Ngón đặt trên thanh tua chỉ tua, không kéo dải media (primary-video-player R10, owner 2026-10-24).
+test("M02a touch seek drag moves the video, not the media strip", async () => {
+  await withPage("vi", async (page) => {
+    const card = await openFixture(page, "vi", { videoCover: true, direct: true });
+    // Màn chuyển route phủ trang lúc vào; chờ nó hết để ngón chạm tới thanh tua.
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && document.querySelector("[data-advertising-photo-video]").readyState >= 2);
+    const view = page.locator("[data-advertising-photo-view]");
+    assert.equal(await view.getAttribute("data-advertising-active-media-id"), videoId);
+    assert(card.mediaItems.length > 1, "the card has more than one media");
+    const track = await page.locator("[data-advertising-photo-progress]").boundingBox();
+    // Dừng video và về 0 để chỉ cú kéo làm giây đổi.
+    const before = await page.evaluate(() => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      video.pause();
+      video.currentTime = 0;
+      return video.currentTime;
+    });
+    const y = track.y + track.height / 2;
+    const cdp = await page.context().newCDPSession(page);
+    let x = track.x + 4;
+    let strip = false;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y, id: 1 }] });
+    for (let step = 0; step < 12; step += 1) {
+      x += 10;
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y, id: 1 }] });
+      strip ||= await page.evaluate(() => Boolean(document.querySelector(".advertising-photo-view__strip")));
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await page.waitForTimeout(600);
+    const after = await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").currentTime);
+    assert.equal(strip, false, "the media strip never opens while seeking");
+    assert.equal(await view.getAttribute("data-advertising-active-media-id"), videoId, "the media does not change");
+    assert(after - before > 1, `the drag seeks the video forward: ${before} -> ${after}`);
+  });
+});
+
 // Dải media theo pin Pinterest: khung giữ tỷ lệ cover nên đổi media không đổi kích thước primary, related đứng yên;
 // mũi tên và thumbnail đang xem theo vị trí, media khác tỷ lệ có nền zoom blur, video có toàn màn hình nền đen.
 // Khung primary cao theo media (primary-video-player R6): video vừa khít khung ở 1440×900. Viewport thấp chặn khung theo
@@ -701,6 +756,42 @@ test("M02a video stands still in the strip, its sound fades between play and pau
   });
 });
 
+// Người xem chỉnh tiếng giữa lúc fade thì thắng (primary-video-player R11): fade dừng, mức vừa chọn giữ nguyên.
+test("M02a a volume change during the sound fade wins and stays", async () => {
+  await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 2);
+    await page.evaluate(() => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      video.muted = false;
+      video.volume = 1;
+      document.querySelector('[data-advertising-photo-media-step="-1"]').click();
+    });
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").getAttribute("src") === null,
+      null, { timeout: 5_000 });
+    const result = await page.evaluate(async () => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      const range = document.querySelector("[data-advertising-photo-volume]");
+      document.querySelector('[data-advertising-photo-media-step="1"]').click();
+      const deadline = performance.now() + 5000;
+      while (performance.now() < deadline) {
+        await new Promise(requestAnimationFrame);
+        if (video.paused || video.volume <= 0.05 || video.volume >= 0.9) continue;
+        const fading = video.volume;
+        range.value = "0.3";
+        range.dispatchEvent(new Event("input", { bubbles: true }));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        return { fading, volume: video.volume, muted: video.muted, range: Number(range.value) };
+      }
+      return null;
+    });
+    assert(result, "the sound fades in after the strip stops");
+    assert(Math.abs(result.volume - 0.3) < 0.01 && !result.muted && result.range === 0.3,
+      `the chosen volume stays instead of fading on: ${JSON.stringify(result)}`);
+  });
+});
+
 test("M02a blur backdrop has no vignette: its edges are as opaque as its centre", async () => {
   await withPage("en", async (page) => {
     await page.setViewportSize(cappedViewport);
@@ -845,8 +936,8 @@ test("M02a crowded primary keeps one thumbnail row and scrolls the description b
     let state = await scrollHints(page);
     assert.deepEqual([state.rows, state.wholeThumbs, state.strip], [1, true, [false, true]],
       `one row of whole thumbnails, the last one fading: ${JSON.stringify(state)}`);
-    assert.deepEqual([state.overflow, state.description, state.align], [true, [false, true], "justify"],
-      `long description scrolls, its last line fades, text justified: ${JSON.stringify(state)}`);
+    assert.deepEqual([state.overflow, state.description, state.align], [true, [false, true], "start"],
+      `long description scrolls, its last line fades, text left aligned: ${JSON.stringify(state)}`);
     assert.deepEqual([state.bar.hidden, state.bar.opacity], [false, "0"], "scrollbar waits for hover");
     const description = await page.locator("[data-advertising-photo-description-scroll]").boundingBox();
     await page.mouse.move(description.x + description.width / 2, description.y + description.height / 2);

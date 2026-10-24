@@ -3421,9 +3421,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!liveFrame) liveFrame = requestAnimationFrame(drawLiveBackground);
   };
   // Tiếng fade cùng nhịp dải (PUSH_TIMING) khi video chuyển giữa phát và dừng (owner 2026-10-19); ngoài lúc fade,
-  // photoVideo.volume luôn là mức người xem chọn.
+  // photoVideo.volume luôn là mức người xem chọn. Người xem chỉnh tiếng giữa lúc fade thì thắng (R11): fade thôi ghi
+  // volume nhưng vẫn chạy hết nhịp để fade ra còn dừng video.
   let volumeFrame = 0;
   let viewerVolume = 1;
+  let volumeOverride = false;
   const stopVolumeFade = () => {
     if (!volumeFrame) return;
     cancelAnimationFrame(volumeFrame);
@@ -3437,13 +3439,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const from = fading ? photoVideo.volume : direction > 0 ? 0 : viewerVolume;
     const to = direction > 0 ? viewerVolume : 0;
     const start = performance.now();
+    volumeOverride = false;
     const step = (now) => {
       const t = Math.min(1, Math.max(0, (now - start) / PUSH_TIMING.duration));
-      photoVideo.volume = from + (to - from) * (t < 0.5 ? 4 * t ** 3 : 1 - (2 - 2 * t) ** 3 / 2);
+      if (!volumeOverride) photoVideo.volume = from + (to - from) * (t < 0.5 ? 4 * t ** 3 : 1 - (2 - 2 * t) ** 3 / 2);
       if (t < 1) return void (volumeFrame = requestAnimationFrame(step));
       done?.();
       volumeFrame = 0;
-      photoVideo.volume = viewerVolume;
+      if (!volumeOverride) photoVideo.volume = viewerVolume;
     };
     step(start);
   };
@@ -3533,7 +3536,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.setAttribute("aria-label", english ? item.altEn : item.altVi);
       if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
       else if (slide) photoVideo.currentTime = 0;
-      void photoVideo.play().catch(() => {});
+      void photoVideo.play().catch(syncVideoPlayer);
       if (strip) fadeVolume(1);
     };
     if (strip) strip.apply = applyVideo;
@@ -3737,19 +3740,25 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
   photoVolume?.addEventListener("input", () => {
     const volume = Number(photoVolume.value);
-    if (volume > 0) photoVideo.volume = volume;
+    if (volumeFrame) volumeOverride = true;
+    if (volume > 0) photoVideo.volume = viewerVolume = volume;
     photoVideo.muted = volume === 0;
   }, { signal: controller.signal });
   photoAudioToggle?.addEventListener("click", () => {
     if (!photoVideo || photoVideo.hidden || photoAudioToggle.hidden) return;
+    if (volumeFrame) {
+      volumeOverride = true;
+      photoVideo.volume = viewerVolume;
+    }
     if (photoVideo.muted || photoVideo.volume === 0) {
-      if (photoVideo.volume === 0) photoVideo.volume = 1;
+      if (photoVideo.volume === 0) photoVideo.volume = viewerVolume = 1;
       photoVideo.muted = false;
       if (photoVideo.paused) void photoVideo.play().catch(() => {});
     } else photoVideo.muted = true;
     syncVideoPlayer();
   }, { signal: controller.signal });
-  for (const type of ["play", "pause", "volumechange"]) {
+  // Nạp lại nguồn đặt `paused` mà không bắn `pause`, chỉ `emptied`; thiếu nó nút phát giữa kẹt ẩn (R9).
+  for (const type of ["play", "pause", "volumechange", "emptied"]) {
     photoVideo?.addEventListener(type, syncVideoPlayer, { signal: controller.signal });
   }
   for (const type of ["loadedmetadata", "seeked", "emptied"]) {
@@ -3788,9 +3797,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   photoMediaSteps.forEach((button) => button.addEventListener("click",
     () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
   // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
-  // âm lượng giữ phím của chúng.
+  // âm lượng giữ phím của chúng. Ngón đặt trên thanh tua, âm lượng chỉ tua, chỉnh tiếng (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
-    accepts: (event) => event.pointerType === "touch",
+    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range']"),
     width: primaryWidth,
     canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
     drag: (offset) => {
