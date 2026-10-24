@@ -26,6 +26,9 @@
   --portal-title-size: min(4rem, 12cqw);
   --portal-kicker-size: min(1.125rem, 4.2cqw);
   --portal-subtitle-size: min(1rem, 3.8cqw);
+  /* Bóng chữ hai lớp D trên ảnh có chữ trắng (hero-typography R6); reach là bán kính quầng ngoài để nới mask. */
+  --text-shadow-d: 0 0 2px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.4);
+  --text-shadow-reach: 12px;
   --word-spacing-body: 0.1em;
   --word-spacing-display: 0.1em;
   --word-spacing-montage: 0.1em;
@@ -1020,6 +1023,15 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-align: center;
 }
 
+/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero trang Sản phẩm quảng cáo
+   (chữ ink trên nền giấy) và CTA lưới của trang đó không áp. */
+.hero:not(.detail-index-hero),
+.portal-copy,
+.legacy-copy,
+.detail-cta:not([data-advertising-grid-cta]) {
+  text-shadow: var(--text-shadow-d);
+}
+
 /* Không JavaScript thì script xáo không gán src cho slide nào; hero trang chủ hiện ảnh cố định (page-home R12). */
 @media (scripting: none) {
   .hero[data-hero-intro] .hero-slides {
@@ -1073,8 +1085,8 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
   );
 }
 
@@ -1131,8 +1143,8 @@ em {
   /* Đổi cỡ font không được để ink allowance đã đo ở size cũ. */
   .hero[data-hero-intro] .hero-line-mask {
     clip-path: inset(
-      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) 0
-      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em)) 0
+      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
     );
   }
 
@@ -1490,8 +1502,8 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
   );
 }
 
@@ -3365,8 +3377,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
   );
 }
 
@@ -3383,8 +3395,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .motion-line-mask {
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
   );
 }
 
@@ -4503,8 +4515,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   .detail-page .detail-line,
   .detail-page .motion-line-mask {
     clip-path: inset(
-      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) 0
-      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em)) 0
+      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
     );
   }
 
