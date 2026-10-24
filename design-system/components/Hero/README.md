@@ -12,6 +12,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
   `paper`. Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
+- Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).
 - Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,
   đậm 700, chữ đứng, như Advertising (owner 2026-10-24); trang chủ không có cặp, giữ 600.
   Tracking display `tracking-display`.
