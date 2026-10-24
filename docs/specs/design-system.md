@@ -1,7 +1,7 @@
 ---
 title: Design System và Impeccable
 status: live
-updated: 2026-10-23
+updated: 2026-10-24
 source:
   - scripts/docs/build-design-system.mjs
   - scripts/docs/capture-design-system.mjs
@@ -176,7 +176,7 @@ And lastChange trên claude.ai khớp design-system/design-system.json sau PR gh
 
 ## Gate còn mở
 
-- Owner kiểm mục Components và Overview trên claude.ai sau lần republish kế tiếp.
+Không có.
 
 ## Chú thích thuật ngữ
 

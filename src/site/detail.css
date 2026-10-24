@@ -116,8 +116,8 @@
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
   );
 }
 
@@ -134,8 +134,8 @@
 .motion-line-mask {
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) 0
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) 0
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
   );
 }
 
@@ -1254,8 +1254,8 @@
   .detail-page .detail-line,
   .detail-page .motion-line-mask {
     clip-path: inset(
-      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) 0
-      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em)) 0
+      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
     );
   }
 
