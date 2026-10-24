@@ -4344,6 +4344,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     restoreRelatedDomOrder();
   }, { signal: controller.signal });
   photoDescriptionScroll?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
+  // Locomotive bắt wheel và phím ở container nên cuộn cả trang; chữ còn cuộn được thì giữ input trong mô tả.
+  photoDescriptionScroll?.addEventListener("wheel", (event) => {
+    const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
+    if (event.deltaY < 0 ? scrollTop > 0 : event.deltaY > 0 && scrollTop < scrollHeight - clientHeight - 1) event.stopPropagation();
+  }, { passive: true, signal: controller.signal });
+  photoDescriptionScroll?.addEventListener("keydown", (event) => {
+    if (photoDescriptionScroll.scrollHeight > photoDescriptionScroll.clientHeight + 1
+      && ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) event.stopPropagation();
+  }, { signal: controller.signal });
   // Kéo viên thanh cuộn: dịch con trỏ theo tỷ lệ phần chữ ẩn trên quãng viên chạy được.
   photoDescriptionBar?.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;

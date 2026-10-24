@@ -851,6 +851,18 @@ test("M02a crowded primary keeps one thumbnail row and scrolls the description b
     const description = await page.locator("[data-advertising-photo-description-scroll]").boundingBox();
     await page.mouse.move(description.x + description.width / 2, description.y + description.height / 2);
     await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-advertising-photo-description-bar]")).opacity === "1");
+    // Wheel và End trong mô tả còn chữ chỉ cuộn mô tả, Locomotive không cuộn trang theo.
+    const primaryTop = () => page.locator("[data-advertising-photo-primary]").evaluate((node) => node.getBoundingClientRect().top);
+    const topBefore = await primaryTop();
+    await page.mouse.wheel(0, 120);
+    await page.waitForTimeout(600);
+    await page.locator("[data-advertising-photo-description-scroll]").focus();
+    await page.keyboard.press("End");
+    await page.waitForTimeout(600);
+    state = await scrollHints(page);
+    assert(state.scrollTop > 0 && Math.abs(await primaryTop() - topBefore) <= 1,
+      `wheel and End scroll the description, not the page: ${JSON.stringify(state)}`);
+    await page.locator("[data-advertising-photo-description-scroll]").evaluate((node) => { node.scrollTop = 0; node.blur(); });
     const bar = await page.locator("[data-advertising-photo-description-bar]").boundingBox();
     await page.mouse.move(bar.x + bar.width / 2, bar.y + 8);
     await page.mouse.down();
