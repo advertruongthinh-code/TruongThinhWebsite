@@ -1116,6 +1116,12 @@ em {
   font-weight: 600;
 }
 
+/* Trang chủ: hai dòng đậm 700, dòng 2 "Làm khác" thêm nghiêng (owner 2026-10-24). */
+.hero[data-hero-intro] h1 > .hero-line-mask:first-child,
+.hero[data-hero-intro] h1 em {
+  font-weight: 700;
+}
+
 .hero-line-mask,
 .line-mask {
   display: block;
