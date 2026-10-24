@@ -13,10 +13,10 @@ UI change hoặc website release phải chạy local web, có đủ evidence:
 
 1. `pnpm qa:static`; `pnpm qa:worker:security` khi Worker source bị tác động.
 2. Playwright live server: navigation, click, scroll, locale, keyboard/focus, reduced motion, console, network, overflow, responsive state.
-3. Computer Use không tự động. Chỉ dùng test window cô lập khi task thật sự cần Windows UI theo human path và Playwright, in-app Browser hoặc DevTools không đủ; nêu lý do trước khi dùng.
-4. Chrome DevTools MCP cùng local route: DOM, computed style, accessibility tree, console, network, screenshot.
+3. Computer Use không tự động. Chỉ dùng test window cô lập khi task thật sự cần Windows UI theo human path và Playwright hoặc in-app Browser không đủ; nêu lý do trước khi dùng.
+4. Playwright inspect cùng local route: DOM, computed style, accessibility tree, console, network, screenshot.
 
-Playwright và DevTools là evidence layer riêng. Computer Use chỉ thành layer bắt buộc khi trigger trên khớp; thiếu layer đã kích hoạt thì QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
+Playwright là evidence layer chính (Chrome DevTools MCP đã gỡ). Computer Use chỉ thành layer bắt buộc khi trigger trên khớp; thiếu layer đã kích hoạt thì QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
 
 `qa:worker:static`, Wrangler và Cloudflare deployment không thuộc static phase.
 Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được

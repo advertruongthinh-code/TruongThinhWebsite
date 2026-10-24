@@ -56,8 +56,35 @@ function readSuggestions() {
     links: [links.x, links.y, links.width, links.height].map(rounded),
     buttons,
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    // Input của geometry primary: lần lệch kế tiếp phải chỉ ra input nào đổi (issue #507).
+    inputs: {
+      scrollY,
+      innerHeight,
+      layoutHeight: document.querySelector(".site-viewport-metrics")?.getBoundingClientRect().height,
+      top: document.querySelector("[data-advertising-photo-view]")?.style.getPropertyValue("--advertising-photo-top"),
+      primaryHeight: document.querySelector("[data-advertising-photo-view]")?.style.getPropertyValue("--advertising-photo-primary-height"),
+    },
   };
 }
+
+// Sau khi đổi tag, related dựng lại qua nhiều task; issue #507 có lần CI đọc lúc cả khối còn lệch 61px. Đọc lại mỗi
+// frame tới khi geometry đứng yên 5 frame liền rồi mới so; lệch thật vẫn đứng yên và assert vẫn đỏ.
+async function readSettled(page) {
+  await page.evaluate(`window.__ttReadSuggestions = ${readSuggestions}; window.__ttSettle = { last: "", still: 0 };`);
+  await page.waitForFunction(() => {
+    const state = JSON.stringify(window.__ttReadSuggestions());
+    const settle = window.__ttSettle;
+    settle.still = state === settle.last ? settle.still + 1 : 0;
+    settle.last = state;
+    return settle.still >= 5;
+  }, null, { polling: "raf", timeout: 5_000 });
+  return page.evaluate(readSuggestions);
+}
+
+const layoutInputs = (before, after) => JSON.stringify({
+  before: { info: before.info, ...before.inputs },
+  after: { info: after.info, ...after.inputs },
+});
 
 function stableIdentity(state) {
   return state.buttons.map(({ id, index, representative, rect }) => ({ id, index, representative, rect }));
@@ -103,7 +130,9 @@ try {
   for (const locale of ["vi", "en"]) {
     await page.setViewportSize({ width: 1569, height: 912 });
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4);
+    // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
+    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
+      && document.querySelector("[data-advertising-related-card]:not([hidden])"));
     const split = await page.evaluate(readSuggestions);
     assert.equal(split.layout, "split", `${locale}: fixture must exercise split primary`);
     assert.equal(split.span, "3", `${locale}: desktop primary must span three columns`);
@@ -115,14 +144,17 @@ try {
     const alternate = split.buttons.find(({ pressed }) => pressed !== "true").id;
     await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, alternate);
-    const toggled = await page.evaluate(readSuggestions);
-    assert.deepEqual(stableIdentity(toggled), stableIdentity(split), `${locale}: split toggle changes slot geometry`);
+    const toggled = await readSettled(page);
+    assert.deepEqual(stableIdentity(toggled), stableIdentity(split), `${locale}: split toggle changes slot geometry ${layoutInputs(split, toggled)}`);
     await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).click();
     await page.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
-    assert.deepEqual(stableIdentity(await page.evaluate(readSuggestions)), stableIdentity(split), `${locale}: split off changes slot geometry`);
+    const off = await readSettled(page);
+    assert.deepEqual(stableIdentity(off), stableIdentity(split), `${locale}: split off changes slot geometry ${layoutInputs(split, off)}`);
 
     await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4);
+    // Chờ pha Worker hoàn tất và mount related, không chụp geometry của pha warm.
+    await page.waitForFunction(() => document.querySelectorAll("[data-advertising-suggestion-tag]").length === 4
+      && document.querySelector("[data-advertising-related-card]:not([hidden])"));
     const secondDesktop = await page.evaluate(readSuggestions);
     assert.equal(secondDesktop.layout, "split", `${locale}: intrinsic ratio cannot change desktop mode`);
     assert.equal(secondDesktop.span, "3", `${locale}: second desktop primary must span three columns`);

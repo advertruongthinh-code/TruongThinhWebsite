@@ -228,7 +228,7 @@ export const matchesAdvertisingFilter = (card, filter) =>
 
 // Hạng của card trong filter: vị trí sản phẩm đầu tiên khớp filter (sản phẩm hoặc cụm), 0 là sản phẩm chính (taxonomy R1).
 export const advertisingFilterRank = (card, filter) =>
-  Math.max(0, card?.productIds?.indexOf(filter) ?? -1, card?.clusterIds?.indexOf(filter) ?? -1);
+  [card?.productIds?.indexOf(filter) ?? -1, card?.clusterIds?.indexOf(filter) ?? -1].find((index) => index >= 0) ?? 0;
 
 const bySource = (left, right) => left.sourceOrder - right.sourceOrder || left.id.localeCompare(right.id);
 const byRank = (left, right) => left.rank - right.rank || left.id.localeCompare(right.id);
@@ -834,7 +834,7 @@ function compileAdvertisingLayoutPhase(options = {}) {
     else if (!Array.isArray(suppliedInitialColumnBottoms) || suppliedInitialColumnBottoms.length !== columns || suppliedInitialColumnBottoms.some((bottom) => !Number.isFinite(bottom) || bottom < 0)) {
       throw new Error("Invalid initialColumnBottoms: expected one finite non-negative bottom per column");
     } else initialColumnBottoms = suppliedInitialColumnBottoms.slice();
-    if (filter !== "all" && !categoryOrder.includes(filter) && !cards.some((card) => card.productIds?.includes(filter))) throw new Error(`Unknown advertising filter: ${filter}`);
+    if (filter !== "all" && !categoryOrder.includes(filter) && !cards.some((card) => card.productIds?.includes(filter) || card.clusterIds?.includes(filter))) throw new Error(`Unknown advertising filter: ${filter}`);
     ({ outer, interCardGap } = advertisingSpacing(layoutViewportWidth));
   } catch (error) {
     throw layoutError("invalid-input", { filter, width: layoutViewportWidth, ids: Array.isArray(cards) ? cards.map((card) => card?.id).filter(Boolean) : [], violation: error.message });

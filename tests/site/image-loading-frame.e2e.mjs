@@ -101,7 +101,7 @@ try {
         assert.ok(item.w > 0 && item.h > 0, `${label}: ${item.src} reserves a box before load`);
         if (!item.ready) assert.ok(item.sweep && item.imageOpacity === 0, `${label}: ${item.src} shows the sweep and hides the image while loading`);
         assert.notEqual(item.alt, null, `${label}: ${item.src} has an alt attribute`);
-        // Slide hero trang chủ, Kinh doanh nhận src bằng script sau .hero-slides (page-home R3, detail-pages R5) nên không có raw src để so sánh.
+        // Slide hero trang chủ, Nhà ở, Kinh doanh nhận src bằng script sau .hero-slides (page-home R3, detail-pages R5) nên không có raw src để so sánh.
         if (item.raw) assert.ok(raw.has(attributes(item)), `${label}: ${item.src} keeps HTML alt, request priority and lazy loading ${attributes(item)}`);
         const done = after.get(item.key);
         if (!done) continue;

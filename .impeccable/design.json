@@ -2,6 +2,58 @@
   "schemaVersion": 2,
   "title": "Design System: Trường Thịnh",
   "extensions": {
-    "shadows": []
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0, 0, 0.26, 1)",
+        "purpose": "Timing chi tiết: design-system/motion.md"
+      },
+      {
+        "name": "media-hover-duration",
+        "value": "600ms",
+        "purpose": "Timing chi tiết: design-system/motion.md"
+      },
+      {
+        "name": "media-hover-easing",
+        "value": "ease-out",
+        "purpose": "Timing chi tiết: design-system/motion.md"
+      },
+      {
+        "name": "media-hover-transform",
+        "value": "transform var(--media-hover-duration) var(--media-hover-easing)",
+        "purpose": "Timing chi tiết: design-system/motion.md"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "1200",
+        "value": "1200px"
+      },
+      {
+        "name": "1024",
+        "value": "1024px"
+      },
+      {
+        "name": "980/981",
+        "value": "980px"
+      },
+      {
+        "name": "960/961",
+        "value": "960px"
+      },
+      {
+        "name": "750/751",
+        "value": "750px"
+      },
+      {
+        "name": "680",
+        "value": "680px"
+      },
+      {
+        "name": "578/579",
+        "value": "578px"
+      }
+    ]
   }
 }

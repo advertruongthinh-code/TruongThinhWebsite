@@ -14,18 +14,21 @@ File này chỉ giữ routing tool.
 - Tooling chuẩn: [TOOLING](TOOLING.md). Entrypoint/fallback: [scripts map](agent-rule-scripts.md). Không chạy lại hook, watcher, wrapper, launcher mechanics sau edit.
 - Git `pre-commit`/`pre-push` tự chạy `ponytail-review` read-only, fail closed; đây là repository Git hook, không phải agent lifecycle hook. Cloud không có PowerShell nên không có Git hook: agent tự chạy `ponytail-review` trên diff trước mỗi commit/push.
 - Không có lifecycle hook Impeccable: sau UI change chạy `impeccable detect` một lần.
-- Không thêm/sửa lifecycle hook, helper, Serena config ngoài approved tooling repair.
+- Không thêm/sửa lifecycle hook, helper ngoài approved tooling repair.
+
+- Ngoại lệ tạm (owner 2026-10-19, hết hiệu lực khi hạn mức tuần tài khoản Max reset 2026-10-24 08:00 Asia/Bangkok): hook báo hết hạn mức thì agent tự chạy `ponytail-review` trên diff trong phiên local, ghi kết quả vào mô tả PR, rồi commit/push bằng `--no-verify`. Sau mốc reset xóa dòng này.
+- App desktop của owner chạy qua provider KIE.ai và đặt `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` cho shell con; CLI trong hook kế thừa nên báo "Not logged in". Chạy `git commit`/`git push` với `env -u` các biến đó để hook dùng phiên claude.ai của CLI.
 
 ## Ponytail audit và debt
 
 - `ponytail-audit` ultra quét cả repo, chỉ báo cáo, không tự sửa. Chạy trong thread code review của wrap-up session hoặc khi owner gọi; không chạy tự động.
 - `ponytail-debt` gom comment `ponytail: <ceiling>, <upgrade path>`, chạy cùng audit; nợ cần xử lý ghi vào card Notion, không tạo file ledger.
 
-## Graphify và Serena
+## Graphify
 
 - Graphify trước cho code và meaningful non-media content qua wrapper; chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).
-- Sau Graphify dùng Serena cho symbol, reference, diagnostic, refactor; `rg` chỉ bổ sung.
-- Serena, Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session với `--project-from-cwd` và context host (`claude-code` cho Claude Code, `codex` cho Codex), không là Windows daemon. Cloud: MCP qua plugin `cloud-stack` ([TOOLING](TOOLING.md#claude-code-cloud-environment)).
+- Sau Graphify dùng `rg` cho symbol, reference.
+- Graphify là user-global MCP bắt buộc; launcher khởi động mỗi session không là Windows daemon. Cloud: MCP qua plugin `cloud-stack` ([TOOLING](TOOLING.md#claude-code-cloud-environment)).
 - Chỉ build/update Graphify semantic index khi user explicit request; không thì báo file pending.
 
 ## Chú thích thuật ngữ

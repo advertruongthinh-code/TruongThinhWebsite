@@ -6,7 +6,6 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 
 - Rule chọn trigger/boundary/fallback; entrypoint, hook, watcher, launcher chạy mechanics.
 - Graphify hook/watcher và wrapper tự refresh structural AST. Normal task chỉ query wrapper.
-- Serena launcher/watcher tự sync language. `-Apply` chỉ repair sau lỗi được report.
 - Impeccable provider hook active tự chạy detector; context báo `MANUAL_DETECTOR_REQUIRED` thì UI task chạy detector một lần sau khi xong.
 
 ## Site và QA
@@ -43,12 +42,11 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Graph hook | `pwsh -File scripts/tooling/graphify-git-hooks.ps1 -Action status` | Diagnose/approved repair; hook tự refresh khi active. |
 | Ponytail Git gate | `pwsh -File scripts/tooling/ponytail-git-hooks.ps1 -Action install` | `pre-commit`/`pre-push` gọi `claude -p /ponytail-review` mức ultra, chặn khi net cắt > 20 dòng hoặc lỗi; install chỉ approved repair, gỡ bằng xóa `.git/hooks/pre-*`. |
 | Graph watcher | `pwsh -File scripts/tooling/watch-graphify.ps1` | Opt-in monitoring, không là bước mỗi task. |
-| Serena language | `pwsh -File scripts/tooling/sync-serena-languages.ps1 -Check|-Apply|-Watch` | Launcher/watcher sở hữu normal sync; repair fallback, không edit config tay. |
 
 ## Managed/helper
 
 - MCP launcher: `global-mcp.ps1` (bootstrap chép thành `mcp.ps1`). Host agent launch MCP mỗi session; không chạy như Windows daemon.
-- Internal: `common.ps1`, `graphify-freshness.ps1`, `graphify-semantic-status.py`, `graphify_supplemental.py`, `serena_sync.py`, `mcp_probe.py`, patch. Chỉ tool-maintenance task được user approve mới gọi.
+- Internal: `common.ps1`, `graphify-freshness.ps1`, `graphify-semantic-status.py`, `graphify_supplemental.py`, `mcp_probe.py`, patch. Chỉ tool-maintenance task được user approve mới gọi.
 
 ## Chú thích thuật ngữ
 

@@ -22,14 +22,6 @@ function Get-ProjectPython {
   return $python
 }
 
-function Get-SerenaExe {
-  $exe = Join-Path (Get-GlobalToolingRoot) "python\Scripts\serena.exe"
-  if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
-    throw "Global Serena is missing: $exe. Run pnpm tooling:bootstrap."
-  }
-  return $exe
-}
-
 function Get-GraphifyExe {
   $exe = Join-Path (Get-GlobalToolingRoot) "python\Scripts\graphify.exe"
   if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
@@ -69,7 +61,7 @@ function Use-ProjectToolPath {
 
 function Initialize-ToolingState {
   $root = Get-ProjectRoot
-  foreach ($relative in @(".tooling\logs", ".tooling\state\serena", ".tooling\state\graphify")) {
+  foreach ($relative in @(".tooling\logs", ".tooling\state\graphify")) {
     New-Item -ItemType Directory -Force -Path (Join-Path $root $relative) | Out-Null
   }
 }

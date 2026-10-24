@@ -17,7 +17,7 @@ function base64url(value) {
 }
 
 async function importWorker() {
-  const source = fs.readFileSync("src/worker/index.js", "utf8");
+  const source = fs.readFileSync("src/worker/index.js", "utf8") + "\nexport { LocaleLink };";
   return import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 }
 
@@ -177,6 +177,41 @@ async function runSecurityContract() {
     const invalidSvg = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: unsafeSvg }), env);
     assert(invalidSvg.status === 400, `unsafe SVG fixture returned ${invalidSvg.status}`);
 
+    for (const svg of ["<svg/onload=alert(1)></svg>", '<svg><path/ONCLICK="alert(1)" /></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg"><path onload="alert(1)" /></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg"onload="alert(1)"></svg>',
+      '<svg xmlns="https://attacker.test/svg"></svg>']) {
+      const form = new FormData();
+      form.append("kind", "logo");
+      form.append("file", new Blob([svg], { type: "image/svg+xml" }), "event.svg");
+      const result = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: form }), env);
+      assert.equal(result.status, 400, "SVG event handlers must be rejected before storage");
+    }
+
+    const logo = '<svg viewBox="0 0 10 10"><path fill="#123456" d="M0 0h10v10H0z" /></svg>';
+    for (const method of ["GET", "HEAD"]) {
+      const media = await worker.default.fetch(new Request("https://site.example/media/logo", { method }), {
+        DB: { prepare: () => ({ bind: () => ({ first: async () => ({ object_key: "logo.svg", content_type: "image/svg+xml" }) }) }) },
+        MEDIA: { get: async () => ({ body: logo, httpEtag: '"logo"' }) },
+      });
+      assert.equal(media.status, 200);
+      assert.equal(media.headers.get("content-security-policy"), "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+      assert.equal(media.headers.get("x-content-type-options"), "nosniff");
+      assert.equal(await media.text(), method === "HEAD" ? "" : logo);
+    }
+
+    for (const locale of ["vi", "en"]) {
+      for (const href of ["/media/x", "/admin/", "/api/x", "/robots.txt", "/sitemap.xml?x=1", "/media#x", "//external.test/x", "/residential/"]) {
+        const attributes = new Map([["href", href]]);
+        new worker.LocaleLink(locale).element({
+          hasAttribute: (name) => attributes.has(name),
+          getAttribute: (name) => attributes.get(name),
+          setAttribute: (name, value) => attributes.set(name, value),
+        });
+        assert.equal(attributes.get("href"), href === "/residential/" ? `/${locale}${href}` : href);
+      }
+    }
+
     const uploaded = [];
     const validUploadEnv = {
       ...env,
@@ -194,6 +229,12 @@ async function runSecurityContract() {
     );
     const acceptedUpload = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: validWebp }), validUploadEnv);
     assert(acceptedUpload.status === 201 && uploaded.length === 1, `known-good WebP fixture returned ${acceptedUpload.status}`);
+
+    const validLogo = new FormData();
+    validLogo.append("kind", "logo");
+    validLogo.append("file", new Blob([fs.readFileSync("src/site/assets/brand/truong-thinh-lockup.svg")], { type: "image/svg+xml" }), "logo.svg");
+    const acceptedLogo = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers, body: validLogo }), validUploadEnv);
+    assert.equal(acceptedLogo.status, 201, "vector logos must remain uploadable");
 
     const csrf = await worker.default.fetch(new Request("https://site.example/api/admin/media", { method: "POST", headers: { ...headers, Origin: "https://attacker.example" }, body: invalidWebp }), env);
     assert(csrf.status === 403, `cross-origin admin write returned ${csrf.status}`);

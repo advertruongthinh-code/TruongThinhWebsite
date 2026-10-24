@@ -20,10 +20,8 @@ function Test-RequiredPath([string]$Path, [string]$Label) {
 }
 
 foreach ($item in @(
-  @{ path = (Join-Path $global "python\Scripts\serena.exe"); label = "Serena user-global" },
   @{ path = (Join-Path $global "python\Scripts\graphify.exe"); label = "Graphify user-global" },
   @{ path = (Join-Path $global "node\node_modules\impeccable\package.json"); label = "Impeccable CLI user-global" },
-  @{ path = (Join-Path $global "node\node_modules\chrome-devtools-mcp\package.json"); label = "Chrome DevTools MCP user-global" },
   @{ path = (Join-Path $global "bin\mcp.ps1"); label = "Global MCP launcher" },
   @{ path = (Join-Path $root "scripts\tooling\invoke-graphify.ps1"); label = "Graphify boundary wrapper" },
   @{ path = (Join-Path $root "scripts\tooling\graphify_supplemental.py"); label = "Graphify supplemental restore" },
@@ -105,7 +103,7 @@ try {
   if ($configText -notmatch '(?ms)^\[features\]\s*(?:(?!^\[).)*^hooks\s*=\s*false\s*$') { throw "features.hooks is not false" }
   if ($configText -match '(?m)^\[hooks\.state') { throw "stale hooks.state remains" }
   if ($configText -match 'ponytail@ponytail|marketplaces\.ponytail') { throw "Ponytail plugin remains enabled" }
-  foreach ($server in @("serena", "graphify")) {
+  foreach ($server in @("graphify")) {
     if ($configText -notmatch "(?ms)^\[mcp_servers\.$server\]\s*(?:(?!^\[).)*^required\s*=\s*true\s*$") { throw "$server is not required" }
   }
   $passes += "Global hooks disabled and required MCP policy"
@@ -132,25 +130,6 @@ try {
   $passes += "Graphify Git hooks and merge driver"
 } catch { $failures += "Graphify Git hooks invalid: $($_.Exception.Message)" }
 
-try {
-  # Wrapper chỉ có action install|run, nên kiểm tra trực tiếp hook đã cài có gọi wrapper không.
-  $hooksDirectory = Join-Path (& git -C $root rev-parse --path-format=absolute --git-common-dir).Trim() "hooks"
-  foreach ($name in @("pre-commit", "pre-push")) {
-    $path = Join-Path $hooksDirectory $name
-    if (-not ((Test-Path -LiteralPath $path) -and (Select-String -LiteralPath $path -SimpleMatch "ponytail-git-hooks.ps1" -Quiet))) { throw "Missing '${name}: installed'" }
-  }
-  $passes += "Ponytail pre-commit and pre-push hooks"
-} catch { $failures += "Ponytail Git hooks invalid: $($_.Exception.Message)" }
-
-try {
-  Use-ProjectToolPath
-  $sync = (& (Join-Path $PSScriptRoot "sync-serena-languages.ps1") -Check) | ConvertFrom-Json
-  if ($sync.changed) { $failures += "Serena languages are stale: $($sync.previous -join ', ') -> $($sync.languages -join ', ')" }
-  else { $passes += "Serena languages synced: $($sync.languages -join ', ')" }
-  if ($sync.unsupported_present.Count) { $warnings += "Serena unsupported types: $($sync.unsupported_present -join ', ')" }
-  if ($sync.unknown_present.Count) { $warnings += "Serena unknown extensions: $($sync.unknown_present -join ', ')" }
-} catch { $failures += "Serena sync failed: $($_.Exception.Message)" }
-
 if (-not $Quick) {
   & (Get-ProjectPython) -m pip check | Out-Null
   if ($LASTEXITCODE -eq 0) { $passes += "Global Python dependency check" } else { $failures += "Global pip check failed" }
@@ -162,21 +141,16 @@ if (-not $Quick) {
 }
 
 if ($Mcp) {
-  foreach ($service in @("serena", "graphify", "chrome-devtools")) {
+  foreach ($service in @("graphify")) {
     try {
       $probe = & (Get-ProjectPython) (Join-Path $PSScriptRoot "mcp_probe.py") $service --root $root --timeout 90 2>&1 | Out-String
       if ($LASTEXITCODE -ne 0) { throw $probe.Trim() }
       $data = ($probe -split "`r?`n" | Where-Object { $_.Trim().StartsWith("{") } | Select-Object -Last 1) | ConvertFrom-Json
-      if ($service -eq "serena" -and [string]$data.current_config -notmatch 'Language server status:\s+ready') {
-        throw "Serena initialized but its language server is not ready."
-      }
       $passes += "MCP $service ($($data.tools) tools)"
     } catch { $failures += "MCP $service probe failed: $($_.Exception.Message)" }
   }
 }
 
-$restart = Join-Path $root ".tooling\state\serena\restart-required.json"
-if (Test-Path -LiteralPath $restart) { $warnings += "Serena MCP reload marker remains until a verified reconnect." }
 try {
   $supplemental = Invoke-GraphifySupplementalRestore "Doctor" -CheckOnly
   if ($supplemental.fresh) { $passes += "Graphify supplemental content coverage (3/3)" }

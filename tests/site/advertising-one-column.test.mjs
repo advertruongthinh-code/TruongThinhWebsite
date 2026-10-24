@@ -297,8 +297,11 @@ test("R11 fills column four and keeps sparse photos on the shared shortest front
     viewportHeight: 912,
     headerHeight: 102.515625,
   };
-  const sparseTwo = compileAdvertisingRelatedLayout({ ...options, tag: "product-kiosk-posm-product-02" });
-  const sparseOne = compileAdvertisingRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-10" });
+  // Fixture giữ đúng hai ảnh related, độc lập với ảnh bổ sung vào catalog.
+  const sparseTwo = compileAdvertisingRelatedLayout({ ...options,
+    cards: ADVERTISING_CARDS.filter(({ id }) => ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-14"].includes(id)),
+    tag: "product-kiosk-posm-product-02" });
+  const sparseOne = compileAdvertisingRelatedLayout({ ...options, tag: "product-office-signs-wayfinding-product-03" });
   const full = compileAdvertisingRelatedLayout(options);
   assert.equal(sparseTwo.cards.length, 2);
   const [firstSparsePhoto, secondSparsePhoto] = sparseTwo.photoPlacements;
@@ -421,9 +424,9 @@ test("D9 keeps homogeneous related pools at fixed N with an aligned fallback", (
     const result = compileAdvertisingRelatedLayout(options);
     assert.equal(result.layout.columns, 3, `${tag}: D9 keeps fixed N`);
     assert.ok(result.cards.length > 0, `${tag}: real related photos remain`);
-    const expectedMode = tag === "format-square" ? "fallback" : "preferred";
-    assert.equal(result.layout.diagnostics.staggerMode, expectedMode, `${tag}: D9 selects the expected phase`);
-    assert.equal(result.layout.diagnostics.fallbackUsed, tag === "format-square", `${tag}: fallback state is incorrect`);
+    // Bộ sampling đã duyệt dùng ảnh ngang đồng tỷ lệ, nên cũng chọn aligned fallback.
+    assert.equal(result.layout.diagnostics.staggerMode, "fallback", `${tag}: D9 selects the expected phase`);
+    assert.equal(result.layout.diagnostics.fallbackUsed, true, `${tag}: fallback state is incorrect`);
     assert.ok(result.layout.diagnostics.operations <= 300000, `${tag}: phases exceeded the shared budget`);
     assertRelated(result, `${tag}: D9 fallback`);
     const repeated = compileAdvertisingRelatedLayout(options);
