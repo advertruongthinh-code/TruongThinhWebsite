@@ -28,7 +28,9 @@ nhiễu như Kính. Góc vuông, không viền, không bóng. Video phía sau ch
 2026-10-24). Chữ và icon màu `ink`; tổng thời lượng `ink` 0.8, weight 500.
 
 Từ trái qua: nút phát/tạm dừng, thời gian "hiện tại / tổng" (`14px`, 700, số đều), khoảng trống, nút tiếng, nút toàn
-màn hình. Nút vuông `48px`, icon `20px`; hover nền `ink` 0.08, nhấn 0.16, focus ring `2px` màu `orange`.
+màn hình. Nút vuông `48px`, icon `20px`; hover nền `ink` 0.08, nhấn 0.16, focus ring `2px` màu `orange`. Player hẹp
+hơn `480px` (điện thoại) dùng thanh gọn để che ít video hơn (owner 2026-10-24): cao `40px`, nút `40px`, icon `18px`,
+chữ thời gian `12px`; vùng chạm `40px` dưới mức `44px` khuyến nghị, tăng vùng chạm mà không tăng thanh nếu khó bấm.
 
 Không có nút phát giữa video, kể cả khi dừng (owner 2026-10-24). Bấm vào video vẫn phát/dừng.
 
@@ -38,6 +40,7 @@ When trỏ chuột vào video
 Then thanh Kính sáng hiện ở đáy BBox video, nền có backdrop-filter của component Kính
 And đọc pixel vùng thanh trên video nhiều chi tiết thì không còn cạnh sắc của video
 And tạm dừng thì giữa video không có biểu tượng phát nào
+And player rộng 350px thì thanh cao 40px, nút 40px
 ```
 
 ### R2. Hiện và ẩn thanh
@@ -57,7 +60,8 @@ And bấm Tab vào nút phát thì thanh hiện lại và không tự ẩn khi f
 ### R3. Thanh tua ba nấc
 
 Thanh tua là đường `3px` ở mép trên Kính, ba nấc: chưa tải `ink` 0.16, đã tải (`buffered`) `ink` 0.38, đã chạy `ink`.
-Rê, focus hoặc kéo thì đường dày `6px` và hiện núm vuông `12px` (nền `ink`, viền trắng `2px`); đang dừng thì núm luôn
+Rê, focus hoặc kéo thì đường dày `6px` và hiện núm tròn `12px`, `14px` trên thanh gọn (nền `ink`, viền trắng `2px`;
+núm tròn là ngoại lệ góc vuông của Design System, owner 2026-10-24); đang dừng thì núm luôn
 hiện. Vùng bấm cao `22px` quanh đường. Rê chuột trên thanh tua hiện nhãn thời gian ở vị trí chuột; kéo thì nhãn theo
 núm: nền `ink`, chữ trắng `13px` 700, dạng `m:ss.d`, có chân `1px` x `10px` chỉ xuống thanh, cách mép khung ít nhất
 `44px`. Phím mũi tên tua như hiện tại. Giảm chuyển động: đổi độ dày ngay.
@@ -179,7 +183,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R3, R6, R7 | `site-media-card-m02a.e2e.mjs`: thêm ca Kính thanh, không nút giữa, tự ẩn 2s, con trỏ, ba nấc, nhãn, cột 480px |
+| R1, R2, R3, R6, R7 | `site-media-card-m02a.e2e.mjs`: thêm ca Kính thanh, thanh gọn dưới 480px, không nút giữa, tự ẩn 2s, con trỏ, ba nấc, núm tròn, nhãn, cột 480px |
 | R4 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
 | R5 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
 | R8 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn |
