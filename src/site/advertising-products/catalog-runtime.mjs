@@ -1349,7 +1349,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoTimeTotal = photoPlayer?.querySelector("[data-advertising-photo-time-total]");
   const photoFullscreen = photoPlayer?.querySelector("[data-advertising-photo-fullscreen]");
   const photoMediaSteps = [...(photoView?.querySelectorAll("[data-advertising-photo-media-step]") ?? [])];
-  const photoMediaDots = photoView?.querySelector("[data-advertising-photo-media-dots]");
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
   // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
@@ -3737,10 +3736,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const target = index + Number(button.dataset.advertisingPhotoMediaStep);
       button.hidden = index < 0 || target < 0 || target >= items.length;
     });
-    [...(photoMediaDots?.children ?? [])].forEach((dot, dotIndex) => {
-      dot.toggleAttribute("data-active", dotIndex === index);
-      dot.setAttribute("aria-current", String(dotIndex === index));
-    });
   };
   // Mọi đường đổi media (thumbnail, mũi tên, vuốt, phím) đi qua đây; primary giữ khung nên related không xếp lại.
   const showPrimaryMedia = (item, motion = null) => {
@@ -3759,17 +3754,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
       || item.kind !== "image" || item.src !== record.media.src);
-    photoMediaDots.hidden = items.length < 2;
-    // Chấm là nút (owner 2026-10-19): bấm trượt thẳng tới media đó; vùng bấm 24px, chấm nhìn thấy 8px.
-    photoMediaDots.setAttribute("aria-label", locale === "en" ? "Product media" : "Media sản phẩm");
-    photoMediaDots.replaceChildren(...items.map((item, index) => {
-      const dot = document.createElement("button");
-      dot.type = "button";
-      dot.dataset.advertisingPhotoMediaDot = item.id;
-      dot.setAttribute("aria-label", locale === "en" ? `Show media ${index + 1} of ${items.length}`
-        : `Xem media ${index + 1} trên ${items.length}`);
-      return dot;
-    }));
     if (!authored) {
       photoMediaThumbs?.remove();
       photoMediaThumbs = null;
@@ -3903,10 +3887,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
     () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
-  photoMediaDots?.addEventListener("click", ({ target }) => {
-    const id = target.closest("[data-advertising-photo-media-dot]")?.dataset.advertisingPhotoMediaDot;
-    showPrimaryMedia(primaryItems().find((item) => item.id === id));
-  }, { signal: controller.signal });
   // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
   // âm lượng giữ phím của chúng.
   if (heroFrame) trackStripSwipe(heroFrame, {

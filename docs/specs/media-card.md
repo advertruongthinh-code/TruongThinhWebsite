@@ -11,7 +11,7 @@ tests:
   - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-21
+updated: 2026-10-24
 ---
 
 # Card nhiều media
@@ -153,16 +153,15 @@ phát; vào thẳng hoặc reload trang card `p/<id>` bắt đầu ở cover; Ba
 từ detail của chính card đó thì card đứng ở media vừa xem trong detail, video ở đúng giây; đổi ngôn ngữ giữ media và
 giây đang xem (owner 2026-10-18). URL không có tham số media. Card có hơn một item,
 hoặc item khác ảnh legacy, có nhóm thumbnail "Media sản phẩm" / "Product media" cạnh mô tả: mỗi nút tên "Xem ảnh|video
-i trên N: <alt>", thumbnail 60px bo 16px, đang xem `aria-current` có viền đôi, video có biểu tượng phát. Khung media
+i trên N: <alt>", thumbnail 60px góc vuông (owner 2026-10-24), đang xem `aria-current` có viền đôi, video có biểu tượng phát. Khung media
 theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung giữ tỷ lệ cover nên đổi media không đổi kích thước
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
 tên vuông trắng 36px bo 12px, chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
 khung đổi media: dải liền như card (R3), cắt ở BBox media (khung contain chung của mọi item, không tính vùng dư); vuốt kéo
 dải theo ngón tay như R3. Nền zoom blur phản ánh realtime vùng media: khi video phát hoặc dải trượt, nền vẽ lại mỗi
 frame từ chính những gì đang trong BBox; không crossfade (owner 2026-10-19; reduced motion đổi ngay). Nền không vignette:
-mép khung đặc như giữa, không lộ nền xám (owner 2026-10-19). Chấm 8px ở đáy theo vị trí, mỗi chấm là nút
-"Xem media i trên N" / "Show media i of N" (vùng bấm từ 24px, đang xem có `aria-current="true"`): bấm thì trượt thẳng
-tới media đó, chiều theo vị trí chấm, không đi qua media ở giữa (owner 2026-10-19).
+mép khung đặc như giữa, không lộ nền xám (owner 2026-10-19). Khung media không có hàng chấm (owner 2026-10-24); bấm
+thumbnail thì trượt thẳng tới media đó, chiều theo vị trí thumbnail, không đi qua media ở giữa (owner 2026-10-19).
 Video không phát trong lúc dải chạy: trên dải là hình đứng của video. Tiếng chỉ fade khi video chuyển phát và dừng,
 cùng thời lượng và easing của nhịp dải: video đang phát thì tiếng nhỏ dần về 0 rồi dừng khi dải bắt đầu, video đích phát
 từ đầu khi dải dừng và tiếng to dần tới mức người xem; vuốt bỏ dở thì video phát lại và tiếng to dần (owner 2026-10-19).
@@ -197,9 +196,9 @@ And kéo về 0 thì tắt tiếng, bấm nút tiếng thì về lại 0.4
 ```gherkin
 Given primary card nhiều media đang ở video cuối dải
 When bấm mũi tên trước
-Then ảnh trượt vào khung cũ, chấm đầu active, related không đổi vị trí
+Then ảnh trượt vào khung cũ, thumbnail đầu có aria-current, related không đổi vị trí
 And phím phải đưa video về khung và phát lại
-And bấm chấm thứ ba khi đang ở chấm đầu thì media 3 trượt vào từ phải, media 2 không xuất hiện
+And bấm thumbnail thứ ba khi đang ở media đầu thì media 3 trượt vào từ phải, media 2 không xuất hiện
 And trong lúc trượt nền blur vẽ lại theo dải từng frame, không có lớp nền nào đổi opacity
 ```
 
@@ -222,7 +221,7 @@ And trong lúc video phát, nền blur đổi theo frame video
 | Hàm | `createPhotoCard`, `renderPrimaryMedia`, `renderPrimaryThumbs` (`catalog-runtime.mjs`) | R3–R6 |
 | Attribute | `data-advertising-active-media-id` trên card và `[data-advertising-photo-view]` | Media đang xem; click card đọc để mở detail |
 | Attribute | `data-advertising-media-select`, `-prev`, `-next`, `-count`, `-duration`, `-loading`, `-item` | Hook test và control card |
-| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total`, `data-advertising-photo-media-step\|media-dots` | Thumbnail, nút tiếng, video primary, player, mũi tên, chấm |
+| Attribute | `data-advertising-photo-media-select`, `data-advertising-photo-audio-toggle`, `data-advertising-photo-video`, `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total`, `data-advertising-photo-media-step` | Thumbnail, nút tiếng, video primary, player, mũi tên |
 | History | `grid.mediaId`, `detail.mediaId` trong state history | Khôi phục media theo entry (R6) |
 
 ## UI
@@ -241,7 +240,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (2 card gần giữa vùng, tính lại khi cuộn, playlist lặp, hover chiếm suất, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, chấm bấm được, nền blur realtime theo dải và video, nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, toàn màn hình) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video, nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, toàn màn hình) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở

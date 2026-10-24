@@ -399,7 +399,7 @@ test("M02a touch primary video keeps the bar visible", async () => {
 });
 
 // Dải media theo pin Pinterest: khung giữ tỷ lệ cover nên đổi media không đổi kích thước primary, related đứng yên;
-// mũi tên và chấm theo vị trí, media khác tỷ lệ có nền zoom blur, video có toàn màn hình nền đen.
+// mũi tên và thumbnail đang xem theo vị trí, media khác tỷ lệ có nền zoom blur, video có toàn màn hình nền đen.
 const stripState = (page) => page.evaluate(() => {
   const view = document.querySelector("[data-advertising-photo-view]");
   const frame = view.querySelector(".advertising-photo-view__hero-frame").getBoundingClientRect();
@@ -408,12 +408,12 @@ const stripState = (page) => page.evaluate(() => {
     related: [...view.querySelectorAll("[data-advertising-photo-related-grid] > *")].slice(0, 6)
       .map((node) => (({ x, y }) => `${Math.round(x)},${Math.round(y)}`)(node.getBoundingClientRect())).join(" "),
     steps: [...view.querySelectorAll("[data-advertising-photo-media-step]")].map((node) => node.hidden ? 0 : 1).join(""),
-    dots: [...view.querySelectorAll("[data-advertising-photo-media-dots] > button")].map((dot) => dot.hasAttribute("data-active") ? 1 : 0).join("") };
+    thumbs: [...view.querySelectorAll("[data-advertising-photo-media-select]")].map((node) => node.getAttribute("aria-current") === "true" ? 1 : 0).join("") };
 });
 
-// Card dọc bốn ảnh cùng tỷ lệ: media hẹp hơn khung nên có nền zoom blur; chấm bấm trượt thẳng tới media đó, nền blur
-// trượt cùng dải (media-card R6, owner 2026-10-19).
-test("M02a primary dots jump straight to a media and the blur backdrop mirrors the strip live", async () => {
+// Card dọc bốn ảnh cùng tỷ lệ: media hẹp hơn khung nên có nền zoom blur; bấm thumbnail trượt thẳng tới media đó, nền
+// blur trượt cùng dải (media-card R6, owner 2026-10-19). Primary không có hàng chấm, thumbnail góc vuông (owner 2026-10-24).
+test("M02a primary thumbnails jump straight to a media without dots and the blur backdrop mirrors the strip live", async () => {
   await withPage("en", async (page) => {
     const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
     const card = artifact.cards.find((item) => item.media.height > item.media.width * 1.3);
@@ -427,12 +427,11 @@ test("M02a primary dots jump straight to a media and the blur backdrop mirrors t
     await page.locator("[data-advertising-photo-view]").waitFor({ state: "visible" });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForTimeout(1200);
-    const dots = page.locator("[data-advertising-photo-media-dots] > button");
-    assert.equal(await dots.count(), 4);
-    assert.deepEqual(await dots.evaluateAll((nodes) => nodes.map((node) => [node.getAttribute("aria-label"),
-      node.getAttribute("aria-current"), Math.round(node.getBoundingClientRect().width)])), [
-      ["Show media 1 of 4", "true", 24], ["Show media 2 of 4", "false", 24],
-      ["Show media 3 of 4", "false", 24], ["Show media 4 of 4", "false", 24]]);
+    assert.equal(await page.locator("[data-advertising-photo-media-dots], .advertising-photo-view__media-dots").count(), 0,
+      "primary has no dots");
+    const thumbs = page.locator("[data-advertising-photo-media-select]");
+    assert.deepEqual(await thumbs.evaluateAll((nodes) => nodes.map((node) => [node.getAttribute("aria-current"),
+      getComputedStyle(node).borderRadius])), [["true", "0px"], ["false", "0px"], ["false", "0px"], ["false", "0px"]]);
     assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-photo-glass"), "true",
       "portrait media sits on the zoom blur backdrop");
     const frames = await page.evaluate(async () => {
@@ -456,7 +455,7 @@ test("M02a primary dots jump straight to a media and the blur backdrop mirrors t
         if (!stop) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-      document.querySelectorAll("[data-advertising-photo-media-dots] > button")[2].click();
+      document.querySelectorAll("[data-advertising-photo-media-select]")[2].click();
       await new Promise((resolve) => setTimeout(resolve, 1500));
       stop = true;
       return frames;
@@ -476,7 +475,7 @@ test("M02a primary dots jump straight to a media and the blur backdrop mirrors t
     assert.equal(frames.at(-1), null, "strip is removed once the chosen media is shown");
     assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-active-media-id"),
       card.mediaItems[2].id);
-    assert.equal(await dots.nth(2).getAttribute("aria-current"), "true");
+    assert.equal(await thumbs.nth(2).getAttribute("aria-current"), "true");
   });
 });
 
@@ -589,7 +588,7 @@ test("M02a media strip switches by arrow and key without resizing primary or mov
     await page.waitForTimeout(800);
     const before = await stripState(page);
     assert.equal(before.active, videoId);
-    assert.deepEqual([before.steps, before.dots], ["10", "01"], "the video, last in the strip, shows only the previous arrow");
+    assert.deepEqual([before.steps, before.thumbs], ["10", "01"], "the video, last in the strip, shows only the previous arrow");
     assert.equal(before.glass, "true", "video with another ratio than the cover sits on the zoom blur backdrop");
     await page.locator(".advertising-photo-view__hero-frame").hover();
     await page.locator('[data-advertising-photo-media-step="-1"]').click();
@@ -600,7 +599,7 @@ test("M02a media strip switches by arrow and key without resizing primary or mov
     const after = await stripState(page);
     assert.equal(after.active, card.mediaItems[0].id);
     assert.deepEqual([after.frame, after.related], [before.frame, before.related], "primary keeps the cover frame");
-    assert.deepEqual([after.steps, after.dots], ["01", "10"]);
+    assert.deepEqual([after.steps, after.thumbs], ["01", "10"]);
     await page.locator('[data-advertising-photo-media-step="1"]').focus();
     await page.keyboard.press("ArrowLeft");
     assert.equal((await stripState(page)).active, card.mediaItems[0].id, "left arrow key stops at the first media");
