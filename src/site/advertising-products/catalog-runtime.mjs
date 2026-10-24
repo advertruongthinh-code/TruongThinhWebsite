@@ -3131,7 +3131,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         photoInfo.style.height = "auto";
         photoDescription.textContent = descriptionSource;
         photoDescriptionIndicator.hidden = true;
-        const naturalHeight = Math.ceil(photoInfo.getBoundingClientRect().height);
+        // Đổi ngôn ngữ chạy transition scale(0.9) trên main: rect co theo scale nên chia lại bằng bề rộng đã đặt,
+        // nếu không info thấp hơn 10% và mô tả bị cắt.
+        const infoRect = photoInfo.getBoundingClientRect();
+        const naturalHeight = Math.ceil(infoRect.width ? infoRect.height * width / infoRect.width : infoRect.height);
         const controls = [...photoInfo.children].filter(node => node !== photoDescriptionPager
           && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => {
