@@ -1249,8 +1249,15 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
     }));
     assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "1" });
     await card.locator(".advertising-card-media").hover();
-    await page.waitForTimeout(150);
-    const fading = await hoverState();
+    // Lấy frame đầu tiên lớp tối đã bắt đầu hiện thay vì mốc giờ cố định (máy tải cao làm transition bắt đầu trễ).
+    const fading = await card.locator(".advertising-card-media").evaluate((media) => new Promise((resolve) => {
+      const read = () => {
+        const scrim = getComputedStyle(media, "::after").opacity;
+        if (scrim === "0") return requestAnimationFrame(read);
+        resolve({ scrim, marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity });
+      };
+      read();
+    }));
     assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
       `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
     await page.waitForTimeout(700);

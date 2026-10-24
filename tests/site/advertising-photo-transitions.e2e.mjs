@@ -770,14 +770,15 @@ try {
       assert(Math.abs(y0 - y1) > 100, `${locale}: fixture needs distinct entry scroll positions`);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: media switch must not push history`);
 
-      stage(`${locale}-Back-grid-video`);
+      stage(`${locale}-Back-grid-detail-media`);
       await page.goBack();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       await page.waitForTimeout(650);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
       const gridMedia = await page.locator(`[data-advertising-card="${mediaCardId}"]`).getAttribute("data-advertising-active-media-id");
-      assert.equal(gridMedia, mediaVideoId, `${locale}: Back restores grid entry media`);
+      // Back về masonry từ detail của chính card: card đứng ở media vừa xem trong detail (media-card R6, owner 2026-10-18).
+      assert.equal(gridMedia, card.coverMediaId, `${locale}: Back shows the media last viewed in the detail`);
 
       stage(`${locale}-Forward-detail-image`);
       await page.goForward();
