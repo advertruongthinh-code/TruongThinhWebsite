@@ -1,4 +1,5 @@
 import { attachPhotoMetadata } from "./photo-tags.mjs";
+import { PLACEHOLDER_MEDIA_ITEMS } from "./placeholder-media.mjs";
 
 const MEDIA_ROWS = [
   ["kiosk-posm-01","kiosk-posm",0,"kiosk-posm-product-01","Gian hàng triển lãm","Exhibition booths","imagegen:2026-10-15:kiosk-posm-01-a","/assets/content/projects/advertising/kiosk-posm/kiosk-posm-01-exhibition-booths-v3.webp",1672,941],
@@ -300,8 +301,15 @@ const authoredMedia = attachPhotoMetadata(MEDIA_ROWS.map(([
   }),
 })));
 
-export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => Object.freeze({
-  ...record,
-  coverMediaId: record.id,
-  mediaItems: Object.freeze([Object.freeze({ id: record.id, kind: "image", ...record.media })]),
-})));
+// ponytail: media tạm (placeholder-media.mjs) cho 1/3 card, thay bằng media thật khi owner có ảnh nhiều góc.
+// Card có video tạm lấy video làm cover để xem lịch tự phát kiểu Pinterest (owner 2026-10-17).
+export const ADVERTISING_MEDIA_MANIFEST = Object.freeze(authoredMedia.map((record) => {
+  const extra = PLACEHOLDER_MEDIA_ITEMS[record.id] ?? [];
+  const videos = extra.filter((item) => item.kind === "video");
+  return Object.freeze({
+    ...record,
+    coverMediaId: videos[0]?.id ?? record.id,
+    mediaItems: Object.freeze([...videos, { id: record.id, kind: "image", ...record.media },
+      ...extra.filter((item) => item.kind !== "video")].map((item) => Object.freeze(item))),
+  });
+}));

@@ -91,8 +91,8 @@ And bấm chấm cuối hiện trang cuối
 `renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
 `0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
-tiếng, có nút `Bật tiếng` / `Unmute`; nút `Xem lớn hơn` ẩn với video. Card nhiều media có hàng thumbnail
-([media-card](media-card.md#r6-media-trong-primary)).
+tiếng, player kiểu Pinterest ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Hình học
+primary và related theo cover của card, không theo media đang xem: đổi media qua dải trượt không làm related xếp lại.
 
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache
@@ -231,7 +231,7 @@ Then không animation nào chạy; state, URL, scroll và focus giống khi có 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-advertising-photo-view]` với `data-advertising-photo-id`, `-photo-layout` (`split`/`pinterest`), `data-advertising-primary-span`, `-photo-glass`; body `is-advertising-photo`, `data-advertising-photo-active` | Runtime ghi (R1, R2); CSS, test đọc |
-| DOM hook | `[data-advertising-photo-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-pager\|description\|description-indicator\|cta]` | Markup `index.html`, runtime điền (R2–R4) |
+| DOM hook | `[data-advertising-photo-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-pager\|description\|description-indicator\|cta\|player]` | Markup `index.html`, runtime điền (R2–R4) |
 | DOM hook | `[data-advertising-photo-suggestion]`, `[data-advertising-suggestion-tag]` (`aria-pressed`), `[data-advertising-suggestion-image-layer]`; `[data-advertising-photo-related-grid]`, `[data-advertising-related-card]` | Suggestion, slideshow, related (R5–R7) |
 | DOM hook | `dialog#advertising-photo-dialog`, `data-advertising-viewer-state` (`opening`/`closing`) | Viewer (R9) |
 | CSS var | `--advertising-photo-top`, `-primary-width\|height`, `-image-width\|height`, `-image-zone-width\|height`, `-description-width\|height`, `-internal-gap` | `layoutRelated` ghi, `detail.css` đọc (R2) |

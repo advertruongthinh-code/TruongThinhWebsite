@@ -16,6 +16,18 @@ const covered = () => document.querySelector("dialog[open]") !== null;
 // zoom out 2026-10-10) nên pause khi khuất là nhịp dừng theo. Chuyển kiểu đẩy ngang (owner chọn D+B 2026-10-10): ảnh mới trượt vào
 // từ phải, đẩy ảnh cũ sang trái 0.9s power3.inOut; nút sau lệch nút trước 0.4s thành sóng. Bộ một ảnh đẩy sang
 // chính nó để vòng vẫn lặp.
+// Đẩy ngang của nút suggestion (design-system/motion.md): media mới vào từ phía direction, media cũ lùi 35% và mờ 0.4.
+// Dải media của card và primary dùng lại nhịp PUSH_TIMING, không lùi, không mờ (media-card R3, owner 2026-10-19).
+export const PUSH_TIMING = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
+function pushSlide(incoming, outgoing, direction = 1) {
+  return {
+    animation: incoming.animate([{ transform: `translateX(${100 * direction}%)` }, { transform: "translateX(0)" }], PUSH_TIMING),
+    pushOut: outgoing?.animate([
+      { transform: "translateX(0)", opacity: 1 }, { transform: `translateX(${-35 * direction}%)`, opacity: 0.4 },
+    ], PUSH_TIMING),
+  };
+}
+
 export function mountSuggestionSlides(root, { cards, createImage, isReduced, signal }) {
   const pending = new Map();
   const clocks = new Map();
@@ -25,7 +37,6 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
   // IntersectionObserver báo sau layout của frame; đo rect lúc mount và mỗi scroll ép layout giữa task mở detail.
   // Chưa có entry đầu thì coi là khuất: đồng hồ dừng tới frame kế.
   let offscreenState = true;
-  const push = { duration: 900, easing: "cubic-bezier(0.76, 0, 0.24, 1)", fill: "forwards" };
   const clear = () => {
     pending.forEach(({ image, animation, pushOut, previousClock }) => {
       animation?.cancel();
@@ -70,11 +81,9 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     const late = (previousClock?.currentTime ?? 0) - 5000 - (previousClock?.effect?.getTiming().delay || 0);
     if (late > 0 && late < 5000) nextClock.currentTime = late;
     clocks.set(button, nextClock);
-    const animation = next.animate([{ transform: "translateX(100%)" }, { transform: "translateX(0)" }], push);
+    const { animation, pushOut } = pushSlide(next, current);
     state.animation = animation;
-    state.pushOut = current?.animate([
-      { transform: "translateX(0)", opacity: 1 }, { transform: "translateX(-35%)", opacity: 0.4 },
-    ], push);
+    state.pushOut = pushOut;
     animation.addEventListener("finish", () => {
       previousClock?.cancel();
       current?.remove();

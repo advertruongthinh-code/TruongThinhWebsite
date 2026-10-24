@@ -13,8 +13,8 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
 - Vào viewport khi ảnh chưa tải thì khung media mang ngay
   [skeleton](../Skeleton/README.md) cuối masonry, ảnh về thì hiện qua Kính
   `0.6s`; ảnh đã có sẵn hiện ngay, không motion ([Motion](../../motion.md#ảnh-trong-card)).
-- Card một ảnh: hover hoặc focus thì ảnh `scale(1.15)` trong `600ms`, khung
-  giữ nguyên.
+- Card masonry và related không zoom ảnh khi hover hay focus (owner
+  2026-10-18); focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
@@ -38,23 +38,24 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 
 | Số item | Dải dưới canvas | Điều khiển |
 | --- | --- | --- |
-| 1 | Không có | Không chỉ báo; video vẫn có duration và playback |
-| 2 tới 6 | 44px | Một hàng chấm; vùng bấm 20×44px, chấm 6px viền 1px, chấm đang xem tô đặc |
+| 1 | Không có | Không chỉ báo; video vẫn có duration |
+| 2 tới 6 | 44px | Một hàng chấm dùng lại chấm [Gallery](../Gallery/README.md): 8px, đen 20%, chấm đang xem `ink`; vùng bấm 20×44px |
 | Từ 7 | 44px | Nút trước, bộ đếm `7/11`, nút sau; nút tối thiểu 44×44px |
 
-- Dải nằm đáy card, rộng bằng card, nền `paper`, chấm và chữ `ink`.
+- Dải nằm đáy card, rộng bằng card, nền `paper`, chữ `ink`.
 - Bộ đếm `0.8rem`, `tabular-nums`. Mũi tên 8px nét 2px; nút ở hai đầu bị
   disabled, opacity 0.5.
 - Chỉ chấm và nút nhận click; chỗ trống của dải mở detail như thân card.
 
 ### Video
 
-- **Duration:** góc trên trái canvas, cách 12px; chữ trắng `0.75rem`
-  `tabular-nums` trên nền đen alpha 0.7, padding 4px 7px, dạng `m:ss` làm tròn
-  lên giây.
-- **Playback:** góc trên phải, cách 8px, tối thiểu 44×38px, padding 5px 9px,
-  chữ `Phát` / `Tạm dừng` trắng trên nền đen alpha 0.7.
-- Video luôn tắt tiếng, hiện poster; chỉ phát khi bấm playback.
+- **Duration:** theo card video Pinterest (owner 2026-10-17): góc trên trái
+  canvas, cách 8px; viên thuốc bo 8px, padding 4px 6px, nền trắng alpha 0.9,
+  chữ `ink` `0.75rem` đậm 500 `tabular-nums`; tổng thời lượng `m:ss` làm tròn
+  lên giây, không đếm ngược.
+- Không có nút phát hay icon loa. Mỗi lúc một video phát, luôn tắt tiếng:
+  cuộn dừng thì tự phát một card trong vùng giữa màn hình; chuột vào card video
+  thì phát card đó, rời ra thì dừng. Không hiệu ứng hover riêng.
 
 ### Tương tác
 
@@ -62,13 +63,17 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 - Vuốt ngang từ 40px đổi media, dừng ở hai đầu, không quay vòng; cuộn dọc
   vẫn native.
 - Chấm, nút trước và sau chỉ đổi media, không mở detail.
-- Đổi media tức thì, không trượt; ảnh tải lần đầu fade `0.6s ease-out`. Card
-  carousel không zoom khi hover.
+- Hover card nhiều media hiện mũi tên `<` `>` như grid Pinterest (đo
+  2026-10-18): vùng bấm 32px cao hết canvas ở hai mép, chevron trắng 16px
+  không nền, bóng nhẹ; ẩn ở media đầu, cuối; cảm ứng không có mũi tên, đổi
+  bằng vuốt. Cùng nút với mũi tên dải media của
+  [Primary](../Primary/README.md#thumbnail-media), chỉ khác hình dạng.
+- Đổi media tức thì, không trượt; ảnh tải lần đầu fade `0.6s ease-out`.
 
 ### Focus và nhãn
 
-Chấm, nút bước và playback có outline 2px `ink` offset 2px; link card outline
-2px `ink` offset 4px. Thứ tự Tab: link card, playback, chấm hoặc nút bước.
+Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
+2px `ink` offset 4px. Thứ tự Tab: link card, chấm hoặc nút bước.
 
 | Phần tử | VI | EN |
 | --- | --- | --- |

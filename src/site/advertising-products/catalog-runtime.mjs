@@ -17,7 +17,7 @@ import {
   validateAdvertisingCards,
 } from "./layout-core.mjs";
 import { createAdvertisingPhotoViewer } from "./photo-viewer.mjs";
-import { mountSuggestionSlides, suggestionDeck } from "./suggestion-slideshow.mjs";
+import { mountSuggestionSlides, PUSH_TIMING, suggestionDeck } from "./suggestion-slideshow.mjs";
 import { createAdvertisingSeed, shuffleWithSeed } from "./random-order.mjs";
 import {
   createSkeletonFlowFrameLayout,
@@ -179,6 +179,11 @@ export function consumeAdvertisingVisitSeedHandoff(storage, {
   }
 }
 
+// Thời lượng video dạng m:ss; card và player detail dùng chung để hai nơi hiện cùng tổng thời lượng.
+const formatVideoTime = (seconds, round = Math.floor) => {
+  const whole = Math.max(0, round(Number(seconds) || 0));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+};
 const finiteScroll = (value) => Math.max(0, Number.isFinite(Number(value)) ? Number(value) : 0);
 const optionalFinite = (value) => value === null || value === undefined || value === ""
   ? null
@@ -779,7 +784,7 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   const image = document.createElement("img");
   image.className = suggestion
     ? "advertising-card-media__image media-hover-zoom"
-    : "advertising-tile__foreground advertising-card-media__image media-hover-zoom lazyload";
+    : "advertising-tile__foreground advertising-card-media__image lazyload";
   image.loading = "lazy";
   image.decoding = "async";
   image.width = record.media.width;
@@ -802,6 +807,79 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
     image.alt = locale === "en" ? record.media.altEn : record.media.altVi;
   }
   return image;
+}
+
+// Dải media liền (media-card R3, R6, owner 2026-10-19): mỗi lane là các node cùng một slot, xếp cạnh nhau cách `width`,
+// chỉ dịch translate, không đổi opacity. Thả tay sau khi kéo thì trượt nốt quãng còn lại, nhịp ngắn dần theo quãng.
+const releaseTiming = (distance, width) => ({ duration: Math.max(200, PUSH_TIMING.duration * Math.min(1, distance / width)),
+  easing: "cubic-bezier(0.33, 1, 0.68, 1)", fill: "forwards" });
+function placeStrip(lanes, width, offset) {
+  lanes.forEach(({ nodes, slot }) => nodes.forEach((node) => { node.style.translate = `${slot * width + offset}px 0`; }));
+}
+function moveStrip(lanes, width, from, to, timing) {
+  return lanes.flatMap(({ nodes, slot }) => nodes.map((node) => node.animate(
+    { translate: [`${slot * width + from}px 0`, `${slot * width + to}px 0`] }, timing)));
+}
+
+// Media hiện được: ảnh giải mã xong, video có frame hoặc poster đã giải mã; lỗi cũng kết thúc chờ để không treo dải.
+function whenMediaReady(node) {
+  if (node instanceof HTMLVideoElement) {
+    if (node.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return Promise.resolve();
+    const poster = new Image();
+    poster.src = node.poster;
+    return Promise.race([poster.decode().catch(() => new Promise(() => {})), new Promise((resolve) => {
+      node.addEventListener("loadeddata", resolve, { once: true });
+      node.addEventListener("error", resolve, { once: true });
+    })]);
+  }
+  if (!(node instanceof HTMLImageElement)) return Promise.resolve();
+  node.loading = "eager";
+  return node.decode().catch(() => {});
+}
+
+// Vuốt kéo dải theo ngón tay (media-card R3, owner 2026-10-19): hướng chốt khi đi quá 10px; nhấc tay khi đã kéo quá nửa
+// khung hoặc từ 0.5px/ms thì sang media kế, còn lại bật về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay. Không có
+// pointermove (pointer tổng hợp) thì vận tốc vô hạn: vuốt ngang từ 10px là đổi media.
+function trackStripSwipe(target, { accepts = () => true, start = () => {}, width, canStep, drag, release, signal }) {
+  let gesture = null;
+  const offset = (dx) => canStep(dx < 0 ? 1 : -1) ? dx : dx / 3;
+  target.addEventListener("pointerdown", (event) => {
+    if (!event.isPrimary || !accepts(event)) return;
+    const { pointerId: id, clientX: x, clientY: y, timeStamp: t } = event;
+    gesture = { id, x, y, horizontal: null, lastX: x, lastT: t, prevX: x, prevT: t };
+    start(event);
+  }, { signal });
+  target.addEventListener("pointermove", (event) => {
+    if (gesture?.id !== event.pointerId) return;
+    const dx = event.clientX - gesture.x;
+    const dy = event.clientY - gesture.y;
+    if (gesture.horizontal === null) {
+      if (Math.hypot(dx, dy) < 10) return;
+      gesture.horizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!gesture.horizontal) return;
+    Object.assign(gesture, { prevX: gesture.lastX, prevT: gesture.lastT, lastX: event.clientX, lastT: event.timeStamp });
+    drag(offset(dx));
+  }, { signal });
+  target.addEventListener("pointerup", (event) => {
+    if (gesture?.id !== event.pointerId) return;
+    const { x, y, horizontal, prevX, prevT } = gesture;
+    gesture = null;
+    const dx = event.clientX - x;
+    if (horizontal === false || Math.abs(dx) < 10 || Math.abs(dx) <= Math.abs(event.clientY - y)) {
+      if (horizontal) release(0, offset(dx));
+      return;
+    }
+    const elapsed = horizontal === null ? 0 : event.timeStamp - prevT;
+    const speed = elapsed > 0 ? Math.abs(event.clientX - prevX) / elapsed : Infinity;
+    const step = dx < 0 ? 1 : -1;
+    release(canStep(step) && (Math.abs(dx) > width() / 2 || speed >= 0.5) ? step : 0, offset(dx));
+  }, { signal });
+  target.addEventListener("pointercancel", (event) => {
+    if (gesture?.id !== event.pointerId) return;
+    if (gesture.horizontal) release(0, offset(gesture.lastX - gesture.x));
+    gesture = null;
+  }, { signal });
 }
 
 function syncJustViewedMarker(figure, locale, marked) {
@@ -828,7 +906,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   figure.dataset[related ? "advertisingRelatedCard" : "advertisingCard"] = record.id;
   figure.dataset.advertisingCategory = record.category;
   const link = document.createElement("a");
-  link.className = "advertising-card-interactive media-hover-zoom-trigger";
+  // Card masonry và related không zoom media khi hover (owner 2026-10-18).
+  link.className = "advertising-card-interactive";
   link.href = advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
   media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
@@ -851,7 +930,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     let lastReadyImageIndex = -1;
     const failedImages = new Set();
     const posterStatus = new Map();
-    let pointerStart = null;
     let suppressClickUntil = 0;
     const el = (tag, className, dataKey, attrs = {}) => {
       const node = document.createElement(tag);
@@ -862,7 +940,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       return node;
     };
     media.classList.add("advertising-card-media--carousel");
-    image.classList.remove("media-hover-zoom");
     image.hidden = !useLegacyCover;
     if (useLegacyCover) {
       image.dataset.advertisingMediaItem = items[coverIndex].id;
@@ -873,15 +950,13 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const loading = el("span", "advertising-card-media__loading sr-only", "advertisingMediaLoading",
       { role: "status", "aria-label": english ? "Loading media" : "Đang tải media" });
     const duration = el("span", "advertising-card-media__duration", "advertisingMediaDuration");
-    const playback = el("button", "advertising-card-media__playback", "advertisingMediaPlayback");
-    loading.hidden = duration.hidden = playback.hidden = true;
+    loading.hidden = duration.hidden = true;
     media.append(loading, duration);
-    figure.append(playback);
 
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
-    const numericIndicator = items.length >= 7;
-    if (hasCarousel) playback.classList.add("advertising-card-media__playback--carousel");
+    // 2-5 media dùng chấm; từ 6 media bộ đếm i/N thay đúng chỗ hàng chấm (owner 2026-10-18), đổi media bằng mũi tên hover hoặc vuốt.
+    const numericIndicator = items.length >= 6;
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
         ? `Show media ${index + 1} of ${items.length}`
@@ -890,30 +965,33 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       indicator.append(button);
       return button;
     }) : [];
-    let previousButton;
-    let nextButton;
     let countStatus;
     if (numericIndicator) {
-      indicator.classList.add("advertising-card-media__indicator--numeric");
-      previousButton = el("button", "advertising-card-media__step advertising-card-media__step--previous",
-        "advertisingMediaPrev", { "aria-label": english ? "Previous media" : "Media trước" });
       countStatus = el("span", "advertising-card-media__count", "advertisingMediaCount",
         { role: "status", "aria-live": "polite", "aria-atomic": "true" });
-      nextButton = el("button", "advertising-card-media__step advertising-card-media__step--next",
-        "advertisingMediaNext", { "aria-label": english ? "Next media" : "Media tiếp" });
-      indicator.append(previousButton, countStatus, nextButton);
+      indicator.append(countStatus);
     }
-    if (hasCarousel) figure.append(indicator);
+    // Mũi tên hover dùng lại mũi tên dải media của primary (pin Pinterest), ẩn ở media đầu, cuối.
+    const hoverSteps = hasCarousel ? [-1, 1].map((step) => {
+      const button = el("button", `advertising-photo-view__media-step advertising-photo-view__media-step--${step < 0 ? "prev" : "next"}`,
+        "", { "aria-label": step < 0 ? english ? "Previous media" : "Media trước" : english ? "Next media" : "Media tiếp" });
+      button.dataset.advertisingMediaHoverStep = String(step);
+      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${step < 0 ? "M16 1 5 12l11 11" : "M8 1l11 11L8 23"}" /></svg>`;
+      return button;
+    }) : [];
+    if (hasCarousel) figure.append(indicator, ...hoverSteps);
 
     const updateIndicator = (index) => {
       buttons.forEach((button, buttonIndex) => button.setAttribute("aria-current", String(buttonIndex === index)));
+      hoverSteps.forEach((button) => {
+        const target = index + Number(button.dataset.advertisingMediaHoverStep);
+        button.hidden = target < 0 || target >= items.length;
+      });
       if (!numericIndicator) return;
       countStatus.textContent = `${index + 1}/${items.length}`;
       countStatus.setAttribute("aria-label", english
         ? `Media ${index + 1} of ${items.length}`
         : `Media ${index + 1} trên ${items.length}`);
-      previousButton.disabled = index === 0;
-      nextButton.disabled = index === items.length - 1;
     };
 
     const isReady = (layer) => layer instanceof HTMLVideoElement
@@ -931,7 +1009,15 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       const ready = Boolean(layer && isReady(layer));
       const failedImage = layer instanceof HTMLImageElement && failedImages.has(items[activeIndex].id);
       const loadedVideoPoster = layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "loaded";
-      loading.hidden = ready || failedImage || loadedVideoPoster;
+      // Item active lỗi mà setActive không còn fallback: dấu báo lỗi dùng chung, ẩn điều khiển (media-card R5).
+      const failed = !ready && (failedImage
+        || (layer instanceof HTMLVideoElement && posterStatus.get(items[activeIndex].id) === "failed"));
+      media.classList.toggle("is-media-error", failed);
+      indicator.hidden = failed;
+      if (failed) [...hoverSteps, duration].forEach((node) => { node.hidden = true; });
+      loading.setAttribute("aria-label", failed ? english ? "Couldn't load media" : "Không tải được media"
+        : english ? "Loading media" : "Đang tải media");
+      loading.hidden = ready || loadedVideoPoster;
       onPendingChange(figure);
       if (ready) {
         layer.classList.add("is-advertising-media-ready");
@@ -946,6 +1032,86 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     image.addEventListener("load", updateLoading);
     image.addEventListener("lazyloaded", updateLoading);
+    // Script head gắn .is-media-error theo từng img lỗi, kể cả layer không còn active; card tự quyết theo item active.
+    media.addEventListener("error", updateLoading, true);
+    // Layer tạo theo nhu cầu: item active, hoặc hàng xóm của dải khi hover, vuốt (media-card R3).
+    const layerFor = (index) => {
+      const item = items[index];
+      let layer = layers.get(item.id);
+      if (layer) return layer;
+      layer = document.createElement(item.kind === "video" ? "video" : "img");
+      layer.className = "advertising-tile__foreground advertising-card-media__image";
+      layer.dataset.advertisingMediaItem = item.id;
+      layer.width = item.width;
+      layer.height = item.height;
+      if (item.kind === "video") {
+        layer.muted = true;
+        layer.defaultMuted = true;
+        layer.playsInline = true;
+        layer.preload = "metadata";
+        layer.poster = item.posterSrc;
+        layer.src = item.src;
+        layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
+        layer.addEventListener("loadeddata", updateLoading);
+        // Hết video thì card đẩy sang video kế trong playlist theo thứ tự dữ liệu, hết vòng quay lại video đầu; ảnh
+        // không vào playlist, card một video lặp lại chính nó (R4, owner 2026-10-18).
+        layer.addEventListener("ended", () => {
+          if (activeIndex !== index) return;
+          const videos = items.flatMap((entry, position) => entry.kind === "video" ? [position] : []);
+          const next = videos[(videos.indexOf(index) + 1) % videos.length];
+          if (next === index) {
+            layer.currentTime = 0;
+            void layer.play().catch(() => {});
+            return;
+          }
+          selectMedia(next);
+          figure.dispatchEvent(new Event("advertising-video-ended", { bubbles: true }));
+        });
+      } else {
+        layer.loading = "lazy";
+        layer.decoding = "async";
+        layer.alt = english ? item.altEn : item.altVi;
+        const srcset = responsiveSrcset(item.src, item.width);
+        if (srcset) {
+          layer.sizes = "auto, 50vw";
+          layer.srcset = srcset;
+        }
+        layer.src = item.src;
+        layer.addEventListener("load", updateLoading);
+      }
+      layer.addEventListener("error", () => {
+        if (item.kind === "image") {
+          failedImages.add(item.id);
+          const fallback = imageFallbackIndex();
+          if (activeIndex === index && fallback >= 0 && fallback !== index) {
+            setActive(fallback);
+            return;
+          }
+        }
+        if (item.kind === "video" && !posterStatus.has(item.id)) {
+          posterStatus.set(item.id, "loading");
+          const probe = new Image();
+          probe.addEventListener("load", () => {
+            posterStatus.set(item.id, "loaded");
+            if (activeIndex === index) updateLoading();
+          }, { once: true });
+          probe.addEventListener("error", () => {
+            posterStatus.set(item.id, "failed");
+            if (activeIndex !== index) return;
+            const fallback = imageFallbackIndex();
+            if (fallback >= 0 && fallback !== index) setActive(fallback);
+            else updateLoading();
+          }, { once: true });
+          probe.src = item.posterSrc;
+        }
+        if (activeIndex !== index) return;
+        updateLoading();
+      });
+      layers.set(item.id, layer);
+      layer.hidden = true;
+      media.prepend(layer);
+      return layer;
+    };
     const setActive = (nextIndex) => {
       const index = Math.max(0, Math.min(items.length - 1, nextIndex));
       if (failedImages.has(items[index].id) || posterStatus.get(items[index].id) === "failed") {
@@ -958,119 +1124,109 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       if (previous) previous.hidden = true;
       activeIndex = index;
       const item = items[index];
-      let layer = layers.get(item.id);
-      if (!layer) {
-        layer = document.createElement(item.kind === "video" ? "video" : "img");
-        layer.className = "advertising-tile__foreground advertising-card-media__image";
-        layer.dataset.advertisingMediaItem = item.id;
-        layer.width = item.width;
-        layer.height = item.height;
-        if (item.kind === "video") {
-          layer.muted = true;
-          layer.defaultMuted = true;
-          layer.playsInline = true;
-          layer.preload = "metadata";
-          layer.poster = item.posterSrc;
-          layer.src = item.src;
-          layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
-          layer.addEventListener("loadeddata", updateLoading);
-          layer.addEventListener("pause", () => { playback.textContent = english ? "Play" : "Phát"; });
-          layer.addEventListener("play", () => { playback.textContent = english ? "Pause" : "Tạm dừng"; });
-        } else {
-          layer.loading = "lazy";
-          layer.decoding = "async";
-          layer.alt = english ? item.altEn : item.altVi;
-          const srcset = responsiveSrcset(item.src, item.width);
-          if (srcset) {
-            layer.sizes = "auto, 50vw";
-            layer.srcset = srcset;
-          }
-          layer.src = item.src;
-          layer.addEventListener("load", updateLoading);
-        }
-        layer.addEventListener("error", () => {
-          if (item.kind === "image") {
-            failedImages.add(item.id);
-            const fallback = imageFallbackIndex();
-            if (activeIndex === index && fallback >= 0 && fallback !== index) {
-              setActive(fallback);
-              return;
-            }
-          }
-          if (item.kind === "video" && !posterStatus.has(item.id)) {
-            posterStatus.set(item.id, "loading");
-            const probe = new Image();
-            probe.addEventListener("load", () => {
-              posterStatus.set(item.id, "loaded");
-              if (activeIndex === index) updateLoading();
-            }, { once: true });
-            probe.addEventListener("error", () => {
-              posterStatus.set(item.id, "failed");
-              if (activeIndex !== index) return;
-              const fallback = imageFallbackIndex();
-              if (fallback >= 0 && fallback !== index) setActive(fallback);
-              else updateLoading();
-            }, { once: true });
-            probe.src = item.posterSrc;
-          }
-          if (activeIndex !== index) return;
-          if (item.kind === "video") playback.hidden = true;
-          updateLoading();
-        });
-        layers.set(item.id, layer);
-        media.prepend(layer);
-      }
+      const layer = layerFor(index);
       layer.hidden = false;
       figure.dataset.advertisingActiveMediaId = item.id;
       updateIndicator(index);
       duration.hidden = item.kind !== "video";
-      playback.hidden = item.kind !== "video" || Boolean(layer.error);
-      if (item.kind === "video") {
-        const seconds = Math.ceil(item.durationSeconds);
-        duration.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-        playback.textContent = english ? "Play" : "Phát";
-      }
+      if (item.kind === "video") duration.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
       updateLoading();
     };
-    figure.advertisingPendingMediaId = () => loading.hidden ? null : items[activeIndex].id;
-    figure.advertisingSetMediaId = (id) => {
-      const index = items.findIndex((item) => item.id === id);
-      if (index >= 0) setActive(index);
+    figure.advertisingPendingMediaId = () => loading.hidden || media.classList.contains("is-media-error")
+      ? null : items[activeIndex].id;
+    figure.advertisingActiveVideo = () => {
+      const layer = layers.get(items[activeIndex]?.id);
+      return layer instanceof HTMLVideoElement && !layer.error ? layer : null;
     };
-    const selectMedia = (index) => {
+    figure.advertisingSetMediaId = (id, videoTime = 0) => {
+      const index = items.findIndex((item) => item.id === id);
+      if (index < 0) return;
+      setActive(index);
+      const layer = layers.get(id);
+      if (videoTime && layer instanceof HTMLVideoElement) layer.currentTime = videoTime;
+    };
+    // Dải liền (owner 2026-10-19): media cũ và mới dính nhau, chỉ dịch vị trí, cắt ở canvas; media mới giải mã xong mới
+    // trượt để không lộ nền hay chạy fade lúc tải giữa chừng. Kéo tay đặt dải lệch `offset` trước khi thả.
+    let lanes = [];
+    let laneAnimations = [];
+    let slideToken = 0;
+    const canvasWidth = () => media.clientWidth;
+    const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const settleLanes = () => {
+      slideToken += 1;
+      laneAnimations.forEach((animation) => animation.cancel());
+      laneAnimations = [];
+      const active = layers.get(items[activeIndex]?.id);
+      lanes.forEach(({ nodes: [layer] }) => {
+        layer.classList.remove("advertising-card-media__image--lane", "advertising-card-media__image--beside");
+        layer.style.translate = "";
+        layer.hidden = layer !== active;
+      });
+      lanes = [];
+    };
+    const showLanes = (next, offset) => {
+      settleLanes();
+      lanes = next;
+      lanes.forEach(({ nodes: [layer], slot }) => {
+        if (isReady(layer)) layer.classList.add("is-advertising-media-ready");
+        layer.hidden = false;
+        layer.classList.add("advertising-card-media__image--lane");
+        layer.classList.toggle("advertising-card-media__image--beside", slot !== 0);
+      });
+      placeStrip(lanes, canvasWidth(), offset);
+    };
+    const runLanes = (from, to, timing) => {
+      const token = slideToken;
+      laneAnimations = moveStrip(lanes, canvasWidth(), from, to, timing);
+      laneAnimations.at(-1)?.finished.then(() => { if (token === slideToken) settleLanes(); }, () => {});
+    };
+    const preloadNeighbors = () => [activeIndex - 1, activeIndex + 1].forEach((index) => {
+      if (!items[index]) return;
+      const layer = layerFor(index);
+      void whenMediaReady(layer).then(() => { if (isReady(layer)) layer.classList.add("is-advertising-media-ready"); });
+    });
+    const selectMedia = (index, offset = 0, timing = PUSH_TIMING) => {
+      const from = activeIndex;
+      const outgoing = layers.get(items[from]?.id);
+      settleLanes();
       setActive(index);
       onMediaChange(figure.dataset.advertisingActiveMediaId);
+      const incoming = layers.get(items[activeIndex]?.id);
+      if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
+      const direction = activeIndex > from ? 1 : -1;
+      showLanes([{ nodes: [outgoing], slot: 0 }, { nodes: [incoming], slot: direction }], offset);
+      const token = slideToken;
+      void whenMediaReady(incoming).then(() => {
+        if (token !== slideToken) return;
+        if (isReady(incoming)) incoming.classList.add("is-advertising-media-ready");
+        runLanes(offset, -direction * canvasWidth(), timing);
+      });
     };
     buttons.forEach((button, index) => button.addEventListener("click", () => selectMedia(index)));
-    if (numericIndicator) {
-      previousButton.addEventListener("click", () => selectMedia(activeIndex - 1));
-      nextButton.addEventListener("click", () => selectMedia(activeIndex + 1));
-    }
-    playback.addEventListener("click", () => {
-      const video = layers.get(items[activeIndex].id);
-      if (!(video instanceof HTMLVideoElement)) return;
-      if (video.paused) void video.play().catch(() => {});
-      else video.pause();
-    });
-    const swipe = (dx, dy) => {
-      if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
-      selectMedia(activeIndex + (dx < 0 ? 1 : -1));
-      suppressClickUntil = performance.now() + 400;
-    };
+    hoverSteps.forEach((button) => button.addEventListener("click",
+      () => selectMedia(activeIndex + Number(button.dataset.advertisingMediaHoverStep))));
     if (hasCarousel) {
-      // Pointer events bao gồm cả touch; touch-action: pan-y để swipe ngang cho handler này.
-      link.addEventListener("pointerdown", (event) => {
-        suppressClickUntil = 0;
-        pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      figure.addEventListener("pointerenter", preloadNeighbors);
+      // Pointer events bao gồm cả touch; touch-action: pan-y để vuốt ngang cho handler này.
+      trackStripSwipe(link, {
+        start: () => {
+          suppressClickUntil = 0;
+          preloadNeighbors();
+        },
+        width: canvasWidth,
+        canStep: (step) => Boolean(items[activeIndex + step]),
+        drag: (offset) => {
+          if (reducedMotion()) return;
+          showLanes([-1, 0, 1].filter((slot) => items[activeIndex + slot])
+            .map((slot) => ({ nodes: [layerFor(activeIndex + slot)], slot })), offset);
+        },
+        release: (step, offset) => {
+          suppressClickUntil = performance.now() + 400;
+          const width = canvasWidth();
+          if (step) selectMedia(activeIndex + step, offset, releaseTiming(width - Math.abs(offset), width));
+          else if (lanes.length) runLanes(offset, 0, releaseTiming(Math.abs(offset), width));
+        },
       });
-      link.addEventListener("pointerup", (event) => {
-        if (!pointerStart || pointerStart.id !== event.pointerId) return;
-        const dx = event.clientX - pointerStart.x;
-        const dy = event.clientY - pointerStart.y;
-        pointerStart = null;
-        swipe(dx, dy);
-      });
-      link.addEventListener("pointercancel", () => { pointerStart = null; });
       link.addEventListener("click", (event) => {
         if (!event.detail || performance.now() >= suppressClickUntil) return;
         event.preventDefault();
@@ -1184,6 +1340,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoImage = photoView?.querySelector("[data-advertising-photo-image]");
   const photoVideo = photoView?.querySelector("[data-advertising-photo-video]");
   const photoAudioToggle = photoView?.querySelector("[data-advertising-photo-audio-toggle]");
+  const photoPlayer = photoView?.querySelector("[data-advertising-photo-player]");
+  const photoPlayButton = photoPlayer?.querySelector("[data-advertising-photo-play]");
+  const photoVolumeGroup = photoPlayer?.querySelector("[data-advertising-photo-volume-group]");
+  const photoVolume = photoPlayer?.querySelector("[data-advertising-photo-volume]");
+  const photoProgress = photoPlayer?.querySelector("[data-advertising-photo-progress]");
+  const photoTimeCurrent = photoPlayer?.querySelector("[data-advertising-photo-time-current]");
+  const photoTimeTotal = photoPlayer?.querySelector("[data-advertising-photo-time-total]");
+  const photoFullscreen = photoPlayer?.querySelector("[data-advertising-photo-fullscreen]");
+  const photoMediaSteps = [...(photoView?.querySelectorAll("[data-advertising-photo-media-step]") ?? [])];
   let photoMediaThumbs = null;
   const photoBackground = photoView?.querySelector("[data-advertising-photo-background]");
   // Kính đều phủ lên backdrop cover; CSS chỉ hiện nó khi photo contain để lại khoảng trống xung quanh.
@@ -1302,6 +1467,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let relatedLayout;
   let activePhotoId = null;
   let activePrimaryMediaId = null;
+  // Mở detail từ card đang phát video: detail phát tiếp từ đúng giây đó (owner 2026-10-18); renderPhoto dùng một lần.
+  let videoHandoff = null;
+  let primaryFailed = false;
+  let activePrimaryItem = null;
   let detailRenderGeneration = 0;
   let relatedLayoutKey = "";
   let relatedCompile = compileAdvertisingProductLayout;
@@ -1376,6 +1545,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       if (!entry.isIntersecting) return;
       visibleMediaCards.add(id);
+      scheduleVideoSoon();
       attachCardSkeleton(node);
     });
   }, { threshold: 0 });
@@ -2240,7 +2410,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
     .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
   // Kính dựng ngoài DOM; nơi gọi gắn nó vào host khi animation bắt đầu.
-  const bakedRevealGlass = (host, bitmap, overSkeleton) => {
+  // `before`: ảnh đang hiện nhòe sẵn cùng kiểu, nằm dưới ảnh mới trong mỗi bậc, để Kính làm nhòe ảnh cũ thay vì phủ nền xám.
+  const bakedRevealGlass = (host, bitmap, overSkeleton, before) => {
     const glass = revealGlass();
     const frame = host.getBoundingClientRect();
     const photo = photoImage.getBoundingClientRect();
@@ -2252,27 +2423,31 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       Object.assign(canvas.style, { left: "0", top: "0", width: `${width}px`, height: `${height}px` });
       step.classList.add("glass-surface__step--baked");
       // Trên skeleton: bỏ nền màu skeleton để gradient chạy vẫn thấy qua Kính như card (owner 19/10), không thành mảng xám phẳng.
-      if (overSkeleton) step.style.background = "none";
+      if (overSkeleton || before) step.style.background = "none";
+      if (before) step.append(canvas.cloneNode());
       step.append(canvas);
       return canvas;
     });
-    if (!bitmap) return glass;
-    const x = (photo.left - frame.left) / BAKED_SCALE;
-    const y = (photo.top - frame.top) / BAKED_SCALE;
     // Photo contain (hero có Kính) nằm trên nền blur cover của chính nó; vẽ nền cover tràn mép thêm bán kính blur lớn nhất
     // để mép frame không lộ nền màu skeleton.
     const cover = photoView.dataset.advertisingPhotoGlass === "true";
-    const scale = Math.max(width / bitmap.width, height / bitmap.height);
     const bleed = 100 / BAKED_SCALE * 2;
-    const coverWidth = bitmap.width * scale + bleed * 2;
-    const coverHeight = bitmap.height * scale + bleed * 2;
     // Canvas software (willReadFrequently) để mỗi bậc không tạo GPU context; blur trên ảnh 1/8 chỉ vài nghìn pixel.
-    canvases.forEach((canvas, index) => {
+    const paint = (canvas, index, source, rect) => {
       const context = canvas.getContext("2d", { willReadFrequently: true });
+      const scale = Math.max(width / source.width, height / source.height);
+      const coverWidth = source.width * scale + bleed * 2;
+      const coverHeight = source.height * scale + bleed * 2;
+      // Nền vùng dư mọi bậc nhòe đủ như nền 100px (owner 2026-10-24): nhòe theo bậc thì lúc Kính tan, bậc nhẹ cuối lộ
+      // ảnh zoom gần nét rồi nền blur mới hiện lại. Chỉ photo nhòe theo bậc.
+      context.filter = BAKED_FILTERS.at(-1);
+      if (cover) context.drawImage(source, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
       context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
-      if (cover) context.drawImage(bitmap, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
-      context.drawImage(bitmap, x, y, photo.width / BAKED_SCALE, photo.height / BAKED_SCALE);
-    });
+      context.drawImage(source, (rect.left - frame.left) / BAKED_SCALE, (rect.top - frame.top) / BAKED_SCALE,
+        rect.width / BAKED_SCALE, rect.height / BAKED_SCALE);
+    };
+    if (before) canvases.forEach((canvas, index) => paint(canvas.previousSibling, index, before.bitmap, before.rect));
+    if (bitmap) canvases.forEach((canvas, index) => paint(canvas, index, bitmap, photo));
     return glass;
   };
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
@@ -3057,7 +3232,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const viewportWidth = document.documentElement.clientWidth;
     const viewportHeight = getLayoutViewportHeight();
     const typographyKey = relatedTypographyKey();
-    const nextLayoutKey = `${browse.seed}:${browse.photo}:${activePrimaryMediaId}:${browse.tag || "all"}:${locale}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
+    const nextLayoutKey = `${browse.seed}:${browse.photo}:${browse.tag || "all"}:${locale}:${viewportWidth}:${viewportHeight}:${typographyKey}`;
     if (nextLayoutKey === relatedLayoutKey) {
       renderRelatedWindow();
       return;
@@ -3179,7 +3354,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       safeBottom: parseFloat(viewStyle.getPropertyValue("--advertising-safe-bottom")) || 0,
       settings, suggestionCard, tag: browse.tag,
       seed: browse.seed,
-      primaryMedia: cards.find((card) => card.id === browse.photo)?.mediaItems?.find((item) => item.id === activePrimaryMediaId),
+      // Khung primary theo tỷ lệ cover cho mọi media của card (như dải media pin Pinterest): đổi media không đổi
+      // kích thước primary nên related đứng yên; media khác tỷ lệ nằm giữa nền zoom blur.
+      primaryMedia: (({ mediaItems = [], coverMediaId } = {}) => mediaItems.find((item) => item.id === coverMediaId))(
+        cards.find((card) => card.id === browse.photo)),
       measureDescriptionHeight: measureInfo,
       measureDescriptionMinimumHeight: measureInfo,
       minimumImageZoneHeight: imageControlMinimum,
@@ -3189,14 +3367,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const primary = relatedLayout.primary;
     photoView.dataset.advertisingPhotoLayout = primary.mode;
     photoView.dataset.advertisingPrimarySpan = String(primary.span);
-    photoView.dataset.advertisingPhotoGlass = String(primary.hasContainOverflow);
     for (const [key, value] of Object.entries({
       top: primary.top, gap: primary.gap, "primary-width": primary.width, "primary-height": primary.height,
-      "image-width": primary.imageWidth, "image-height": primary.imageHeight,
       "image-zone-width": primary.imageZoneWidth, "image-zone-height": primary.imageZoneHeight,
       "description-width": primary.descriptionWidth, "description-height": primary.descriptionHeight,
       "internal-gap": primary.internalGap,
     })) photoView.style.setProperty(`--advertising-photo-${key}`, `${value}px`);
+    if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     relatedMeasuredGeometry = { viewportWidth, viewportHeight, typographyKey };
     relatedGrid.dataset.advertisingRelatedColumns = String(relatedLayout.layout.columns);
     const height = Math.max(primary.height, relatedLayout.layout.totalPixelHeight);
@@ -3234,30 +3411,42 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
   };
-  const playPrimaryReveal = (reveal, from, to, total, bitmap) => {
-    if (primaryReveal !== reveal) return bitmap?.close();
+  const playPrimaryReveal = (reveal, from, to, total, bitmap, before = null) => {
+    if (primaryReveal !== reveal) {
+      before?.close();
+      return bitmap?.close();
+    }
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
     if (photoView.hidden) {
-      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
+      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap, before));
       return;
     }
-    delete heroFrame.dataset.advertisingPhotoLoading;
-    heroFrame.removeAttribute("aria-busy");
     if (reduced) {
       settlePrimaryReveal();
       return;
     }
     // Dựng Kính nhòe sẵn và tạo animation là hai task: gộp lại thành long task trên phone Android
     // (decision phone-frame-budget). Kính vào DOM cùng task với animation, nên bắt đầu từ level 0.
-    const glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame));
+    const glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame),
+      before && { bitmap: before, rect: from[0].getBoundingClientRect() });
     bitmap?.close();
+    before?.close();
     setTimeout(() => {
       if (primaryReveal !== reveal) return;
+      // Bỏ trạng thái loading cùng task với animation: tách ra thì giữa hai task có frame ảnh mới hiện đủ
+      // rồi mới chạy reveal từ 0 (lỗi chớp khi Back, Forward).
+      delete heroFrame.dataset.advertisingPhotoLoading;
+      heroFrame.removeAttribute("aria-busy");
       reveal.glass = glass;
       heroFrame.append(glass);
-      // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
-      reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
+      // Ảnh nhòe sẵn thay backdrop-filter của card, nhưng canvas trong suốt thì lớp dưới lộ qua: crossfade cả năm bậc
+      // cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe (owner 2026-10-24). Chỉ hai bậc nặng crossfade, đã phủ kín
+      // từ lúc crossfade bắt đầu; bậc nhẹ, ảnh và nền hiện khi crossfade xong, dưới hai bậc nặng đã đặc.
+      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas:last-child")];
+      const under = { delay: 900 * total / MEDIA_REVEAL_MS, duration: 0, fill: "both" };
+      reveal.animations = [...crossfadeLayers(from, baked.slice(-2), total),
+        ...[...to, ...baked.slice(0, -2)].map((node) => node.animate([{ opacity: 0 }, { opacity: 1 }], under)),
+        ...playGlassReveal(reveal.glass, total)];
       Promise.all(reveal.animations.map(({ finished }) => finished))
         .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
     });
@@ -3268,6 +3457,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const image = document.createElement("img");
     image.className = "advertising-photo-view__outgoing";
     image.alt = "";
+    // decode sync: img mới chưa decode thì trong suốt vài frame trong lúc photo mới đã ẩn, lộ nền xám của khung.
+    image.decoding = "sync";
     image.src = photoImage.currentSrc;
     image.style.width = `${rect.width}px`;
     image.style.height = `${rect.height}px`;
@@ -3276,37 +3467,210 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const background = document.createElement("img");
     background.className = "advertising-photo-view__outgoing-background";
     background.alt = "";
+    background.decoding = "sync";
     background.src = photoBackground.currentSrc;
     photoBackground.after(background);
     return [image, background];
   };
-  const renderPrimaryMedia = (record, item, inPlace = true) => {
+  // Media nằm contain trong khung cover; còn vùng dư thì hiện nền zoom blur (Kính), kể cả video.
+  const fitPrimaryMedia = (item) => {
+    if (!relatedLayout) return;
+    const { imageZoneWidth: zoneWidth, imageZoneHeight: zoneHeight } = relatedLayout.primary;
+    const ratio = item.width / item.height;
+    const width = Math.min(zoneWidth, ratio * zoneHeight);
+    const height = width / ratio;
+    photoView.style.setProperty("--advertising-photo-image-width", `${width}px`);
+    photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
+    photoView.dataset.advertisingPhotoGlass = String(!primaryFailed
+      && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
+  };
+  // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
+  // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
+  let primaryStrip = null;
+  const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
+  const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
+    || heroFrame.clientWidth;
+  // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
+  const currentPrimaryNode = () => {
+    const source = photoVideo.hidden ? photoImage : photoVideo;
+    const ready = source === photoVideo ? photoVideo.readyState >= 2 : photoImage.complete && photoImage.naturalWidth > 0;
+    if (!ready) return Object.assign(document.createElement("img"), { src: photoVideo.hidden ? photoImage.src : photoVideo.poster });
+    const canvas = document.createElement("canvas");
+    canvas.width = source.videoWidth || source.naturalWidth;
+    canvas.height = source.videoHeight || source.naturalHeight;
+    canvas.getContext("2d").drawImage(source, 0, 0);
+    return canvas;
+  };
+  const drawable = (node) => node instanceof HTMLVideoElement ? node.readyState >= 2
+    : !(node instanceof HTMLImageElement) || (node.complete && node.naturalWidth > 0);
+  // Nền kính sống (owner 2026-10-19): khi video phát hoặc dải trượt, nền blur vẽ lại mỗi frame từ chính những gì trong
+  // vùng media: phủ cover hộp media vào canvas 1/8 khung, blur bằng bậc cuối như bakedRevealGlass rồi phóng 8 lần.
+  // Còn lại ảnh nền tĩnh [data-advertising-photo-background] giữ việc này.
+  const liveBackground = document.createElement("canvas");
+  liveBackground.className = "advertising-photo-view__live-background";
+  liveBackground.hidden = true;
+  photoBackground?.after(liveBackground);
+  const liveScratch = document.createElement("canvas");
+  let liveFrame = 0;
+  const drawLiveBackground = () => {
+    liveFrame = 0;
+    const strip = primaryStrip;
+    const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
+      : [{ node: photoVideo, x: 0 }];
+    // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
+    liveBackground.hidden = photoView.dataset.advertisingPhotoGlass !== "true" || (!strip && photoVideo.hidden);
+    if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
+      const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
+      const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
+      // Vẽ tràn mép thêm hai lần bán kính blur để mép khung không mờ về trong suốt.
+      const bleed = 100 / BAKED_SCALE * 2;
+      if (liveBackground.width !== width || liveBackground.height !== height) {
+        Object.assign(liveBackground, { width, height });
+        Object.assign(liveScratch, { width: width + 2 * bleed, height: height + 2 * bleed });
+      }
+      const mediaWidth = strip?.width ?? primaryWidth();
+      const mediaHeight = parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-height")) || heroFrame.clientHeight;
+      const scale = Math.max(liveScratch.width / mediaWidth, liveScratch.height / mediaHeight);
+      const left = (liveScratch.width - mediaWidth * scale) / 2;
+      const top = (liveScratch.height - mediaHeight * scale) / 2;
+      const scratch = liveScratch.getContext("2d");
+      scratch.clearRect(0, 0, liveScratch.width, liveScratch.height);
+      lanes.forEach(({ node, x }) => {
+        if (drawable(node)) scratch.drawImage(node, left + x * scale, top, mediaWidth * scale, mediaHeight * scale);
+      });
+      const context = liveBackground.getContext("2d");
+      context.clearRect(0, 0, width, height);
+      context.filter = BAKED_FILTERS.at(-1);
+      context.drawImage(liveScratch, -bleed, -bleed);
+    }
+    if (strip || !photoVideo.paused) liveFrame = requestAnimationFrame(drawLiveBackground);
+  };
+  const startLiveBackground = () => {
+    if (!liveFrame) liveFrame = requestAnimationFrame(drawLiveBackground);
+  };
+  // Tiếng fade cùng nhịp dải (PUSH_TIMING) khi video chuyển giữa phát và dừng (owner 2026-10-19); ngoài lúc fade,
+  // photoVideo.volume luôn là mức người xem chọn.
+  let volumeFrame = 0;
+  let viewerVolume = 1;
+  const stopVolumeFade = () => {
+    if (!volumeFrame) return;
+    cancelAnimationFrame(volumeFrame);
+    volumeFrame = 0;
+    photoVideo.volume = viewerVolume;
+  };
+  const fadeVolume = (direction, done) => {
+    const fading = Boolean(volumeFrame);
+    if (!fading) viewerVolume = photoVideo.volume;
+    cancelAnimationFrame(volumeFrame);
+    const from = fading ? photoVideo.volume : direction > 0 ? 0 : viewerVolume;
+    const to = direction > 0 ? viewerVolume : 0;
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, Math.max(0, (now - start) / PUSH_TIMING.duration));
+      photoVideo.volume = from + (to - from) * (t < 0.5 ? 4 * t ** 3 : 1 - (2 - 2 * t) ** 3 / 2);
+      if (t < 1) return void (volumeFrame = requestAnimationFrame(step));
+      done?.();
+      volumeFrame = 0;
+      photoVideo.volume = viewerVolume;
+    };
+    step(start);
+  };
+  // Dải dừng hoặc bị thay: đưa photoVideo về media đích (strip.apply); vuốt bật về thì video phát lại, tiếng fade vào.
+  const closePrimaryStrip = () => {
+    const strip = primaryStrip;
+    primaryStrip = null;
+    if (strip) {
+      if (strip.apply) strip.apply();
+      else if (strip.playing) {
+        void photoVideo.play().catch(() => {});
+        fadeVolume(1);
+      }
+      strip.animations.forEach((animation) => animation.cancel());
+      strip.nodes.forEach((node) => node.remove());
+    }
+    delete heroFrame.dataset.advertisingPhotoSliding;
+    startLiveBackground();
+  };
+  // entries: [{ item, slot }], slot 0 là media đang hiện; `offset` là độ lệch của slot 0 so với khung.
+  const openPrimaryStrip = (entries, offset = 0) => {
+    closePrimaryStrip();
+    const width = primaryWidth();
+    const clip = document.createElement("div");
+    clip.className = "advertising-photo-view__strip";
+    const lanes = entries.map(({ item, slot }) => {
+      const media = slot ? Object.assign(document.createElement("img"), { alt: "", src: primarySource(item) })
+        : currentPrimaryNode();
+      media.classList.add("advertising-photo-view__strip-media");
+      clip.append(media);
+      return { slot, nodes: [media] };
+    });
+    photoVideo.after(clip);
+    heroFrame.dataset.advertisingPhotoSliding = "";
+    const playing = !photoVideo.hidden && !photoVideo.paused;
+    primaryStrip = { lanes, width, animations: [], nodes: [clip], dragging: false, playing, apply: null };
+    // Hình video đứng trong dải; tiếng chạy nốt và nhỏ dần cùng nhịp dải rồi video mới dừng.
+    if (playing) fadeVolume(-1, () => photoVideo.pause());
+    placeStrip(lanes, width, offset);
+    cancelAnimationFrame(liveFrame);
+    drawLiveBackground();
+    return primaryStrip;
+  };
+  const runPrimaryStrip = (strip, from, to, timing) => {
+    strip.animations = moveStrip(strip.lanes, strip.width, from, to, timing);
+    return strip.animations.at(-1).finished;
+  };
+  // `motion` từ vuốt kéo: dải đã mở sẵn, độ lệch lúc thả và nhịp trượt nốt.
+  const renderPrimaryMedia = (record, item, inPlace = true, slide = 0, motion = null) => {
     const english = locale === "en";
     const video = item.kind === "video";
     const source = video ? null : responsiveSource(item.src);
-    const changed = !video && photoImage.getAttribute("src") !== source;
-    if (changed || video) settlePrimaryReveal();
+    const sliding = Boolean(slide) && !reduced && !photoView.hidden;
+    const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
+    if (changed || video || sliding) settlePrimaryReveal();
     const outgoing = changed && inPlace && !reduced && !photoImage.hidden
       && photoImage.complete && photoImage.naturalWidth > 0 ? snapshotPrimary() : [];
+    const strip = sliding ? motion?.strip ?? openPrimaryStrip([
+      { item: activePrimaryItem, slot: 0 }, { item, slot: Math.sign(slide) },
+    ]) : null;
+    if (!sliding) closePrimaryStrip();
     activePrimaryMediaId = item.id;
+    activePrimaryItem = item;
+    primaryFailed = false;
+    heroFrame.classList.remove("is-media-error");
     photoView.dataset.advertisingActiveMediaId = item.id;
-    photoVideo.pause();
-    photoVideo.muted = true;
-    photoVideo.defaultMuted = true;
-    photoVideo.hidden = !video;
+    // Đổi media trong cùng card giữ lựa chọn tiếng của người xem như Pinterest; mở card mới thì về tắt tiếng.
+    if (!slide) {
+      photoVideo.muted = true;
+      photoVideo.defaultMuted = true;
+    }
+    if (!video && document.fullscreenElement === heroFrame) void document.exitFullscreen().catch(() => {});
     photoImage.hidden = video;
     photoExpand.hidden = video;
-    photoAudioToggle.hidden = !video || item.hasAudio === false;
-    if (video) {
+    photoPlayer.hidden = !video;
+    photoAudioToggle.hidden = photoVolumeGroup.hidden = !video || item.hasAudio === false;
+    // Trong lúc trượt photoVideo giữ video đang xem (tiếng đang fade ra); dải dừng thì mới chuyển sang media đích.
+    const applyVideo = () => {
+      stopVolumeFade();
+      photoVideo.pause();
+      photoVideo.hidden = !video;
+      if (!video) {
+        photoVideo.removeAttribute("src");
+        photoVideo.load();
+        return;
+      }
       photoVideo.width = item.width;
       photoVideo.height = item.height;
       photoVideo.poster = item.posterSrc;
       photoVideo.setAttribute("aria-label", english ? item.altEn : item.altVi);
       if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
+      else if (slide) photoVideo.currentTime = 0;
       void photoVideo.play().catch(() => {});
-    } else {
-      photoVideo.removeAttribute("src");
-      photoVideo.load();
+      if (strip) fadeVolume(1);
+    };
+    if (strip) strip.apply = applyVideo;
+    else applyVideo();
+    if (video) photoTimeTotal.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
+    else {
       photoImage.width = item.width;
       photoImage.height = item.height;
       photoImage.alt = english ? item.altEn : item.altVi;
@@ -3314,7 +3678,31 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.fetchPriority = "high";
       photoImage.src = source;
     }
-    updateAudioLabel();
+    fitPrimaryMedia(item);
+    if (strip) {
+      const from = motion?.offset ?? 0;
+      void Promise.all(strip.lanes.flatMap(({ nodes }) => nodes).map(whenMediaReady))
+        .then(() => primaryStrip === strip && runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width,
+          motion?.timing ?? PUSH_TIMING))
+        .then(() => {
+          if (primaryStrip !== strip) return;
+          strip.apply();
+          Object.assign(strip, { apply: null, playing: false });
+          if (!video) return whenMediaReady(photoImage);
+          // Video vào khung phát lại từ đầu (R6); dải gỡ khi video có frame.
+          return photoVideo.readyState >= 2 || new Promise((resolve) => {
+            photoVideo.addEventListener("loadeddata", resolve, { once: true });
+            photoVideo.addEventListener("error", resolve, { once: true });
+          });
+        })
+        .then(() => { if (primaryStrip === strip) closePrimaryStrip(); }, () => {});
+    }
+    // Ảnh của hai media cạnh vào cache để kéo tay không gặp lane trống.
+    const neighbors = record.mediaItems || [];
+    const at = neighbors.indexOf(item);
+    [neighbors[at - 1], neighbors[at + 1]].forEach((entry) => { if (entry) new Image().src = primarySource(entry); });
+    syncVideoPlayer();
+    syncVideoTime();
     if (photoBackground) {
       // Markup để lazy để placeholder không tải khi detail ẩn; gán nguồn thật rồi mới eager, như ảnh chính.
       photoBackground.src = video ? item.posterSrc : source;
@@ -3326,12 +3714,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       const reveal = { frame: null, outgoing, animations: [], timer: 0 };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
-      // Không có photo trên màn hình thì ẩn photo cũ; nếu có, photo cũ giữ nguyên đến khi swap.
-      if (!outgoing.length) heroFrame.dataset.advertisingPhotoLoading = "true";
+      // Ẩn photo mới tới khi Kính phủ: lớp tạm khác tỷ lệ hoặc chưa vẽ kịp thì photo mới lộ ra trước motion
+      // (owner 2026-10-24). Lớp tạm nằm ngoài selector nên vẫn hiện.
+      heroFrame.dataset.advertisingPhotoLoading = "true";
       // Chrome báo cả photo cache trong bộ nhớ là incomplete ngay sau khi đổi src, nên photo
       // decode trong khoảng này được tính là đã cache; chậm hơn thì hiện skeleton ngay (R4).
       reveal.timer = setTimeout(() => {
-        if (primaryReveal !== reveal) return;
+        // Photo đã tải xong chỉ còn chờ decode: Back, Forward dựng lại detail trong một long task nên timer chạy trước
+        // decode dù ảnh có sẵn; giữ photo cũ tới khi Kính phủ thay vì skeleton xám.
+        if (primaryReveal !== reveal || photoImage.complete) return;
         reveal.outgoing.forEach((node) => node.remove());
         reveal.outgoing = [];
         heroFrame.dataset.advertisingPhotoLoading = "true";
@@ -3340,14 +3731,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
       // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
       const bitmap = reduced ? null : bakedBitmap(source);
-      photoImage.decode().then(() => bitmap).then((baked) => {
-        if (primaryReveal !== reveal) return baked?.close();
+      // Ảnh đang hiện cũng nhòe sẵn làm lớp dưới của Kính: Kính làm nhòe ảnh cũ như backdrop của card, không phủ nền xám.
+      const previous = outgoing.length && !reduced ? bakedBitmap(outgoing[0].src) : null;
+      photoImage.decode().then(() => Promise.all([bitmap, previous])).then(([baked, before]) => {
+        if (primaryReveal !== reveal) {
+          before?.close();
+          return baked?.close();
+        }
         clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
-        else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
-        else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
+        if (reveal.frame) {
+          before?.close();
+          playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
+        } else playPrimaryReveal(reveal, reveal.outgoing, incoming, CACHED_PRIMARY_REVEAL_MS, baked, before);
       }, () => {
         bitmap?.then((baked) => baked?.close());
+        previous?.then((before) => before?.close());
         if (primaryReveal === reveal) settlePrimaryReveal();
       });
     }
@@ -3355,7 +3753,26 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
       button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
     });
+    const items = record.mediaItems || [];
+    const index = items.indexOf(item);
+    photoMediaSteps.forEach((button) => {
+      const target = index + Number(button.dataset.advertisingPhotoMediaStep);
+      button.hidden = index < 0 || target < 0 || target >= items.length;
+    });
   };
+  // Mọi đường đổi media (thumbnail, mũi tên, vuốt, phím) đi qua đây; primary giữ khung nên related không xếp lại.
+  const showPrimaryMedia = (item, motion = null) => {
+    const record = cards.find((card) => card.id === activePhotoId);
+    if (!record || !item || activePrimaryMediaId === item.id) return;
+    const items = record.mediaItems || [];
+    renderPrimaryMedia(record, item, true, items.indexOf(item) - items.findIndex((entry) => entry.id === activePrimaryMediaId),
+      motion);
+    browseHistory.captureDetail({ ...browseHistory.current.detail, mediaId: item.id, scrollY: getLogicalScroll() });
+    browseHistory.persistCurrent();
+  };
+  const primaryItems = () => cards.find((card) => card.id === activePhotoId)?.mediaItems || [];
+  const primaryIndex = () => primaryItems().findIndex((entry) => entry.id === activePrimaryMediaId);
+  const stepPrimaryMedia = (step) => showPrimaryMedia(primaryItems()[primaryIndex() + step]);
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
@@ -3395,17 +3812,57 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (item.kind === "video") {
         button.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>');
       }
-      button.addEventListener("click", () => {
-        if (activePrimaryMediaId === item.id) return;
-        renderPrimaryMedia(record, item);
-        browseHistory.captureDetail({ ...browseHistory.current.detail, mediaId: item.id, scrollY: getLogicalScroll() });
-        browseHistory.persistCurrent();
-        relatedLayoutKey = "";
-        layoutRelated(browseHistory.current);
-      });
+      button.addEventListener("click", () => showPrimaryMedia(item));
       photoMediaThumbs.append(button);
     });
   };
+  // Player video primary theo trang pin Pinterest (media-card R6): bấm video phát/dừng, thanh dưới hiện khi hover,
+  // focus hoặc đang dừng; thanh tua, thời gian, nút tiếng và thanh âm lượng (owner 2026-10-18).
+  const setRangeFill = (range) => range.style.setProperty("--range-fill",
+    `${(Number(range.value) / (Number(range.max) || 1)) * 100}%`);
+  const syncVideoPlayer = () => {
+    const english = locale === "en";
+    // Thanh âm lượng giữ mức người xem chọn trong lúc tiếng fade.
+    const volume = volumeFrame ? viewerVolume : photoVideo.volume;
+    const silent = photoVideo.muted || volume === 0;
+    photoPlayer.dataset.advertisingVideoPaused = String(photoVideo.paused);
+    photoPlayer.dataset.advertisingVideoMuted = String(silent);
+    photoPlayButton.setAttribute("aria-label", photoVideo.paused ? english ? "Play" : "Phát"
+      : english ? "Pause" : "Tạm dừng");
+    photoAudioToggle.setAttribute("aria-label", silent ? english ? "Unmute" : "Bật tiếng"
+      : english ? "Mute" : "Tắt tiếng");
+    photoVolume.value = silent ? 0 : volume;
+    setRangeFill(photoVolume);
+  };
+  const syncVideoTime = () => {
+    photoProgress.max = photoVideo.duration > 0 ? photoVideo.duration : 1;
+    photoProgress.value = photoVideo.currentTime;
+    setRangeFill(photoProgress);
+    photoTimeCurrent.textContent = formatVideoTime(photoVideo.currentTime);
+  };
+  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame.
+  let videoTimeFrame = 0;
+  const tickVideoTime = () => {
+    syncVideoTime();
+    videoTimeFrame = photoVideo.paused ? 0 : requestAnimationFrame(tickVideoTime);
+  };
+  const toggleVideoPlayback = () => {
+    if (photoVideo.paused) void photoVideo.play().catch(() => {});
+    else photoVideo.pause();
+  };
+  photoPlayer?.querySelector("[data-advertising-photo-play-surface]")
+    .addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
+  photoPlayButton?.addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
+  photoProgress?.addEventListener("input", () => {
+    photoVideo.currentTime = Number(photoProgress.value);
+    syncVideoTime();
+  }, { signal: controller.signal });
+  // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
+  photoVolume?.addEventListener("input", () => {
+    const volume = Number(photoVolume.value);
+    if (volume > 0) photoVideo.volume = volume;
+    photoVideo.muted = volume === 0;
+  }, { signal: controller.signal });
   photoAudioToggle?.addEventListener("click", () => {
     if (!photoVideo || photoVideo.hidden || photoAudioToggle.hidden) return;
     if (photoVideo.muted || photoVideo.volume === 0) {
@@ -3413,15 +3870,94 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.muted = false;
       if (photoVideo.paused) void photoVideo.play().catch(() => {});
     } else photoVideo.muted = true;
-    updateAudioLabel();
+    syncVideoPlayer();
   }, { signal: controller.signal });
-  const updateAudioLabel = () => {
-    const label = photoVideo.muted || photoVideo.volume === 0 ? locale === "en" ? "Unmute" : "Bật tiếng"
-      : locale === "en" ? "Mute" : "Tắt tiếng";
-    photoAudioToggle.textContent = label;
-    photoAudioToggle.setAttribute("aria-label", label);
+  for (const type of ["play", "pause", "volumechange"]) {
+    photoVideo?.addEventListener(type, syncVideoPlayer, { signal: controller.signal });
+  }
+  for (const type of ["loadedmetadata", "seeked", "emptied"]) {
+    photoVideo?.addEventListener(type, syncVideoTime, { signal: controller.signal });
+  }
+  for (const type of ["play", "seeked", "loadeddata", "emptied"]) {
+    photoVideo?.addEventListener(type, startLiveBackground, { signal: controller.signal });
+  }
+  photoVideo?.addEventListener("play", () => {
+    cancelAnimationFrame(videoTimeFrame);
+    tickVideoTime();
+  }, { signal: controller.signal });
+  // Media primary không hiện được (ảnh lỗi; video lỗi và poster cũng lỗi): dấu báo lỗi dùng chung, tắt nền blur
+  // (media-card R5); renderPrimaryMedia bỏ dấu khi đổi media.
+  // Script head gắn .is-media-error theo từng img lỗi trong khung, kể cả nền blur; khung primary tự quyết theo media đang chọn.
+  const syncPrimaryError = () => {
+    heroFrame.classList.toggle("is-media-error", primaryFailed);
+    if (!primaryFailed) return;
+    photoView.dataset.advertisingPhotoGlass = "false";
+    photoPlayer.hidden = photoExpand.hidden = true;
   };
-  photoVideo?.addEventListener("volumechange", updateAudioLabel, { signal: controller.signal });
+  heroFrame?.addEventListener("error", ({ target }) => {
+    if (target === photoImage && !photoImage.hidden) primaryFailed = true;
+    syncPrimaryError();
+  }, { capture: true, signal: controller.signal });
+  photoVideo?.addEventListener("error", () => {
+    const item = activePrimaryItem;
+    if (photoVideo.hidden || !item?.posterSrc) return;
+    const probe = new Image();
+    probe.addEventListener("error", () => {
+      primaryFailed = activePrimaryItem === item;
+      syncPrimaryError();
+    }, { once: true });
+    probe.src = item.posterSrc;
+  }, { signal: controller.signal });
+  photoMediaSteps.forEach((button) => button.addEventListener("click",
+    () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
+  // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
+  // âm lượng giữ phím của chúng.
+  if (heroFrame) trackStripSwipe(heroFrame, {
+    accepts: (event) => event.pointerType === "touch",
+    width: primaryWidth,
+    canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
+    drag: (offset) => {
+      if (reduced) return;
+      // Dải còn đang trượt từ lần trước thì mở dải mới từ media đang hiện.
+      if (primaryStrip?.dragging && !primaryStrip.animations.length) {
+        return placeStrip(primaryStrip.lanes, primaryStrip.width, offset);
+      }
+      const items = primaryItems();
+      const index = primaryIndex();
+      openPrimaryStrip([-1, 0, 1].filter((slot) => items[index + slot]).map((slot) => ({
+        item: items[index + slot], slot,
+      })), offset).dragging = true;
+    },
+    release: (step, offset) => {
+      const strip = primaryStrip?.dragging ? primaryStrip : null;
+      const width = strip?.width ?? primaryWidth();
+      if (step) {
+        showPrimaryMedia(primaryItems()[primaryIndex() + step],
+          strip && { strip, offset, timing: releaseTiming(width - Math.abs(offset), width) });
+      } else if (strip) {
+        runPrimaryStrip(strip, offset, 0, releaseTiming(Math.abs(offset), width))
+          .then(() => { if (primaryStrip === strip) closePrimaryStrip(); }, () => {});
+      }
+    },
+    signal: controller.signal,
+  });
+  heroFrame?.addEventListener("keydown", (event) => {
+    if ((event.key !== "ArrowLeft" && event.key !== "ArrowRight") || event.target.matches("input")) return;
+    event.preventDefault();
+    stepPrimaryMedia(event.key === "ArrowRight" ? 1 : -1);
+  }, { signal: controller.signal });
+  // Toàn màn hình cho video: khung primary lên nền đen, không nền blur; iPhone không có fullscreen phần tử thì dùng player gốc.
+  photoFullscreen?.addEventListener("click", () => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    else if (heroFrame.requestFullscreen) void heroFrame.requestFullscreen().catch(() => {});
+    else photoVideo.webkitEnterFullscreen?.();
+  }, { signal: controller.signal });
+  document.addEventListener("fullscreenchange", () => {
+    const active = document.fullscreenElement === heroFrame;
+    photoPlayer.dataset.advertisingVideoFullscreen = String(active);
+    photoFullscreen.setAttribute("aria-label", active ? locale === "en" ? "Exit full screen" : "Thoát toàn màn hình"
+      : locale === "en" ? "Full screen" : "Toàn màn hình");
+  }, { signal: controller.signal });
   const renderPhoto = (browse, reason, phase = "", reveal = true) => {
     const record = cards.find((card) => card.id === browse.photo);
     if (!record || !photoView || !photoImage) return false;
@@ -3448,6 +3984,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       || record.mediaItems?.find((item) => item.id === record.coverMediaId)
       || record.media;
     renderPrimaryMedia(record, selected, Boolean(previousPhotoId));
+    if (videoHandoff?.mediaId === selected.id && selected.kind === "video") photoVideo.currentTime = videoHandoff.time;
+    videoHandoff = null;
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
     descriptionSource = english ? record.descriptionEn : record.descriptionVi;
     descriptionPageIndex = 0;
@@ -3570,6 +4108,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
+    // Về masonry từ detail của chính card đó: card đứng ở media vừa xem, video ở đúng giây (owner 2026-10-18).
+    const viewedMediaId = previousPhotoId && previousPhotoId === browse.grid.focusId ? activePrimaryMediaId : null;
+    const viewedTime = viewedMediaId && photoVideo && !photoVideo.hidden ? photoVideo.currentTime : 0;
     const generation = ++detailRenderGeneration;
     photoViewer.close({ restoreFocus: false });
     settlePrimaryReveal();
@@ -3577,6 +4118,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
     activePrimaryMediaId = null;
+    closePrimaryStrip();
     photoVideo?.pause();
     clearRelatedCards();
     syncLocaleLinks(browse);
@@ -3592,9 +4134,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (browse.category !== filter) setActiveFilter(browse.category);
     if (!geometry) measure();
     const node = focusId ? ensurePhoto(focusId) : null;
-    if (node && browse.grid.mediaId) {
-      gridMediaById.set(focusId, browse.grid.mediaId);
-      node.advertisingSetMediaId?.(browse.grid.mediaId);
+    const gridMediaId = viewedMediaId || browse.grid.mediaId;
+    if (node && gridMediaId) {
+      gridMediaById.set(focusId, gridMediaId);
+      node.advertisingSetMediaId?.(gridMediaId, viewedTime);
     }
     let restoredScrollY;
     if (reason === "navbar" && node && browse.grid.anchorOffset === null) {
@@ -3826,6 +4369,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
   };
 
+  const handOffVideo = (node) => {
+    const video = node.advertisingActiveVideo?.();
+    videoHandoff = video ? { mediaId: node.dataset.advertisingActiveMediaId, time: video.currentTime } : null;
+  };
   grid.addEventListener("click", (event) => {
     const link = event.target.closest("[data-advertising-card] > a");
     if (!link || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -3844,6 +4391,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     });
     // Scroll ngay trước tap chưa kịp vào entryScroll (scroll event đến frame sau); Back phải về đúng Y lúc tap.
     entryScroll.delete(entryIndex());
+    handOffVideo(card);
     browseHistory.openPhoto(card.dataset.advertisingCard, activeId || null);
   }, { signal: controller.signal });
   grid.addEventListener("keydown", (event) => {
@@ -3900,6 +4448,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Back trả về Y của lần tap, nên scroll còn đang lắng đến lúc push không ghi đè nó.
     if (entryIndex() !== undefined) entryScroll.set(entryIndex(), getLogicalScroll());
     const fromPhoto = browseHistory.current.photo;
+    handOffVideo(node);
     clearTimeout(relatedOpenTimer);
     relatedOpenTimer = setTimeout(() => {
       relatedOpenTimer = 0;
@@ -3988,6 +4537,52 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
+  // Lịch phát video card kiểu Pinterest (media-card R4, owner 2026-10-18): tối đa 2 card cùng phát tắt tiếng, là 2 card
+  // video có tâm trong vùng trọng tâm (40% giữa phần nhìn thấy dưới navbar) gần giữa vùng nhất, tính lại ngay khi đang
+  // cuộn. Card dưới con trỏ chiếm một suất. Mỗi card tự chạy playlist video của nó (createPhotoCard, sự kiện ended).
+  const MAX_PLAYING_VIDEOS = 2;
+  let playingVideos = [];
+  let videoScheduleFrame = 0;
+  const scheduleVideo = () => {
+    const hovered = matchMedia("(hover: hover)").matches
+      ? document.querySelector("figure.advertising-tile:hover")?.advertisingActiveVideo?.() ?? null : null;
+    const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
+    const bandTop = navBottom + (innerHeight - navBottom) * 0.3;
+    const bandBottom = bandTop + (innerHeight - navBottom) * 0.4;
+    const bandCenter = (bandTop + bandBottom) / 2;
+    const inBand = reduced ? [] : [...document.querySelectorAll("figure.advertising-tile")]
+      .map((figure) => figure.advertisingActiveVideo?.())
+      .filter((video) => video && video !== hovered && video.checkVisibility())
+      .map((video) => {
+        const rect = video.getBoundingClientRect();
+        return { video, center: rect.top + rect.height / 2 };
+      })
+      .filter(({ center }) => center >= bandTop && center <= bandBottom)
+      .sort((a, b) => Math.abs(a.center - bandCenter) - Math.abs(b.center - bandCenter))
+      .map(({ video }) => video);
+    const next = [...(hovered ? [hovered] : []), ...inBand].slice(0, MAX_PLAYING_VIDEOS);
+    playingVideos.forEach((video) => { if (!next.includes(video)) video.pause(); });
+    // Video quay lại suất thì phát tiếp từ chỗ đã dừng.
+    next.forEach((video) => { if (video.paused) void video.play().catch(() => {}); });
+    playingVideos = next;
+  };
+  const scheduleVideoSoon = () => {
+    if (videoScheduleFrame) return;
+    videoScheduleFrame = requestAnimationFrame(() => {
+      videoScheduleFrame = 0;
+      scheduleVideo();
+    });
+  };
+  addEventListener("scroll", scheduleVideoSoon, { passive: true, signal: controller.signal });
+  addEventListener("site:scroll", scheduleVideoSoon, { signal: controller.signal });
+  document.addEventListener("advertising-video-ended", scheduleVideoSoon, { signal: controller.signal });
+  for (const type of ["pointerover", "pointerout"]) {
+    document.addEventListener(type, (event) => {
+      const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");
+      if (!figure?.advertisingActiveVideo?.() || figure.contains(event.relatedTarget)) return;
+      scheduleVideoSoon();
+    }, { signal: controller.signal });
+  }
   reducedMotionQuery.addEventListener("change", ({ matches }) => {
     reduced = matches;
     syncCtaParallax();
@@ -4074,6 +4669,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     clearTimeout(revealHoldTimer);
     stopSuggestionSlides?.();
     if (photoVideo) {
+      closePrimaryStrip();
       photoVideo.pause();
       photoVideo.removeAttribute("src");
       photoVideo.load();

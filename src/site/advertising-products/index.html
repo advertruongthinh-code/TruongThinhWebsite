@@ -381,15 +381,99 @@
                     decoding="async"
                     alt=""
                   />
-                  <video data-advertising-photo-video playsinline muted preload="metadata" controls hidden></video>
+                  <video data-advertising-photo-video playsinline muted loop preload="metadata" hidden></video>
+                  <div class="advertising-video-player" data-advertising-photo-player hidden>
+                    <button
+                      class="advertising-video-player__surface"
+                      type="button"
+                      data-advertising-photo-play-surface
+                      aria-label="Tạm dừng hoặc phát video"
+                      data-en-aria-label="Pause or play video"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" /></svg>
+                    </button>
+                    <div class="advertising-video-player__bar">
+                      <div class="advertising-video-player__row">
+                        <button
+                          class="advertising-video-player__button"
+                          type="button"
+                          data-advertising-photo-play
+                          aria-label="Tạm dừng"
+                          data-en-aria-label="Pause"
+                        >
+                          <svg class="advertising-video-player__icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" /></svg>
+                          <svg class="advertising-video-player__icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zm9 0a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z" /></svg>
+                        </button>
+                        <span class="advertising-video-player__time"><span data-advertising-photo-time-current>0:00</span> <span class="advertising-video-player__total">/ <span data-advertising-photo-time-total>0:00</span></span></span>
+                        <div class="advertising-video-player__volume" data-advertising-photo-volume-group>
+                          <div class="advertising-video-player__volume-pop">
+                            <input
+                              class="advertising-video-player__range advertising-video-player__volume-range"
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.05"
+                              value="0"
+                              data-advertising-photo-volume
+                              aria-label="Âm lượng"
+                              data-en-aria-label="Volume"
+                            />
+                          </div>
+                          <button
+                            class="advertising-video-player__button"
+                            type="button"
+                            data-advertising-photo-audio-toggle
+                            aria-label="Bật tiếng"
+                            data-en-aria-label="Unmute"
+                          >
+                            <svg class="advertising-video-player__icon-sound" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h4l6-5v16l-6-5H3z" /><path class="advertising-video-player__stroke" d="M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13" /></svg>
+                            <svg class="advertising-video-player__icon-muted" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9h4l6-5v16l-6-5H3z" /><path class="advertising-video-player__stroke" d="M16 9l6 6M22 9l-6 6" /></svg>
+                          </button>
+                        </div>
+                        <button
+                          class="advertising-video-player__button advertising-video-player__fullscreen"
+                          type="button"
+                          data-advertising-photo-fullscreen
+                          aria-label="Toàn màn hình"
+                          data-en-aria-label="Full screen"
+                        >
+                          <svg class="advertising-video-player__icon-enter" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="advertising-video-player__stroke" d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6" /></svg>
+                          <svg class="advertising-video-player__icon-exit" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="advertising-video-player__stroke" d="M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6" /></svg>
+                        </button>
+                      </div>
+                      <input
+                        class="advertising-video-player__range advertising-video-player__progress"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="any"
+                        value="0"
+                        data-advertising-photo-progress
+                        aria-label="Tua video"
+                        data-en-aria-label="Seek video"
+                      />
+                    </div>
+                  </div>
                   <button
-                    class="advertising-photo-view__audio-toggle"
+                    class="advertising-photo-view__media-step advertising-photo-view__media-step--prev"
                     type="button"
-                    data-advertising-photo-audio-toggle
-                    aria-label="Bật tiếng"
-                    data-en-aria-label="Unmute"
+                    data-advertising-photo-media-step="-1"
+                    aria-label="Media trước"
+                    data-en-aria-label="Previous media"
                     hidden
-                  >Bật tiếng</button>
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 1 5 12l11 11" /></svg>
+                  </button>
+                  <button
+                    class="advertising-photo-view__media-step advertising-photo-view__media-step--next"
+                    type="button"
+                    data-advertising-photo-media-step="1"
+                    aria-label="Media sau"
+                    data-en-aria-label="Next media"
+                    hidden
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 1l11 11L8 23" /></svg>
+                  </button>
                   <button
                     class="advertising-photo-view__image-action advertising-photo-view__expand"
                     type="button"
