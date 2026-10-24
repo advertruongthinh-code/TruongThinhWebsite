@@ -1059,6 +1059,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   will-change: transform;
 }
 
+/* Màn dọc (điện thoại) cắt hai bên ảnh hero; slide nào có chủ thể lệch thì đặt --hero-portrait-x để giữ chủ thể trong khung. */
+@media (max-aspect-ratio: 1/1) {
+  .hero-slide img {
+    object-position: var(--hero-portrait-x, 50%) 50%;
+  }
+}
+
 .hero-shade {
   z-index: 1;
   background:
@@ -1075,6 +1082,15 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   width: min(88rem, calc(100% - 2 * var(--gutter)));
   transform: translate(-50%, -50%);
   text-align: center;
+}
+
+/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero trang Sản phẩm quảng cáo
+   (chữ ink trên nền giấy) và CTA lưới của trang đó không áp. */
+.hero:not(.detail-index-hero),
+.portal-copy,
+.legacy-copy,
+.detail-cta:not([data-advertising-grid-cta]) {
+  text-shadow: var(--text-shadow-d);
 }
 
 /* Không JavaScript thì script xáo không gán src cho slide nào; hero trang chủ hiện ảnh cố định (page-home R12). */
@@ -1130,8 +1146,8 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
   );
 }
 
@@ -1188,8 +1204,8 @@ em {
   /* Đổi cỡ font không được để ink allowance đã đo ở size cũ. */
   .hero[data-hero-intro] .hero-line-mask {
     clip-path: inset(
-      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em)) 0
-      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em)) 0
+      calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
     );
   }
 
@@ -1547,8 +1563,8 @@ em {
   display: block;
   overflow: visible;
   clip-path: inset(
-    calc(-1 * var(--mask-ink-overflow-top, 0.28em)) -0.15em
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em)) -0.15em
+    calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
   );
 }
 
