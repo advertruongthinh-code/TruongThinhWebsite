@@ -2,7 +2,7 @@
 // node scripts/ci/suites.mjs --select [--event <tên sự kiện>] [--base <ref>]  -> JSON id bộ cho matrix
 // node scripts/ci/suites.mjs <id>        -> build, mở preview port trống, chạy lệnh của bộ
 // node scripts/ci/suites.mjs --changed   -> chạy các bộ mà --select chọn so với origin/main
-import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { execFileSync, execSync, spawn, spawnSync } from "node:child_process";
 import { openSync, readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { matchesGlob } from "node:path";
@@ -46,7 +46,8 @@ const freePort = () => new Promise((resolve) => {
 });
 
 async function run(suiteIds) {
-  execFileSync("pnpm", ["prepare:site"], { stdio: "inherit" });
+  // Chuỗi lệnh chạy qua shell: Windows chỉ có pnpm.cmd, execFileSync("pnpm") báo ENOENT.
+  execSync("pnpm prepare:site", { stdio: "inherit" });
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
   // Log preview ghi ra file để CI đính kèm khi bộ đỏ.
