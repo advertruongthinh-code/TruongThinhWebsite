@@ -361,6 +361,73 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
   });
 });
 
+// Kéo tua (primary-video-player R2): video dừng khi kéo, khung theo núm, mỗi lần một lệnh tua; ngoài đoạn đã tải thì
+// giữ frame, thả tay mới tua; thả tay thì phát tiếp nếu trước đó đang phát.
+async function dragProgress(page, from, to, { buffered = null, during } = {}) {
+  await page.evaluate((end) => {
+    const video = document.querySelector("[data-advertising-photo-video]");
+    if (end !== null) Object.defineProperty(video, "buffered", { configurable: true, get: () => ({ length: 1, start: () => 0, end: () => end }) });
+    window.__seekAudit = { seeks: 0, overlaps: 0, inFlight: false };
+    video.addEventListener("seeking", () => {
+      const audit = window.__seekAudit;
+      audit.seeks += 1;
+      if (audit.inFlight) audit.overlaps += 1;
+      audit.inFlight = true;
+    });
+    video.addEventListener("seeked", () => { window.__seekAudit.inFlight = false; });
+  }, buffered);
+  const track = await page.locator("[data-advertising-photo-progress]").boundingBox();
+  const at = (fraction) => [track.x + track.width * fraction, track.y + track.height / 2];
+  await page.mouse.move(...at(from));
+  await page.mouse.down();
+  for (let step = 1; step <= 12; step += 1) {
+    await page.mouse.move(...at(from + (to - from) * step / 12));
+    await page.waitForTimeout(40);
+  }
+  await page.waitForTimeout(200);
+  await during(await playerState(page), await page.evaluate(() => window.__seekAudit));
+  await page.mouse.up();
+}
+
+test("M02a primary scrub shows frames under the thumb, pauses while dragging and resumes on release", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    const frame = await page.locator(".advertising-photo-view__hero-frame").boundingBox();
+    await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
+    await dragProgress(page, 0.2, 0.8, { during: (state, audit) => {
+      assert.equal(state.paused, true, "video pauses while the thumb is held");
+      assert.equal(state.playLabel, "Pause", "a playing video keeps its pause label while scrubbing");
+      assert(Math.abs(state.currentTime - state.progress) < 0.15, `frame follows the thumb: ${state.currentTime} vs ${state.progress}`);
+      assert(audit.seeks >= 3, `frames change during the drag: ${audit.seeks} seeks`);
+      assert.equal(audit.overlaps, 0, "a new seek waits for the previous seeked");
+    } });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
+    const state = await playerState(page);
+    assert(state.currentTime >= 2.2, `release resumes from the thumb: ${state.currentTime}`);
+  });
+});
+
+test("M02a primary scrub past the buffered range holds the frame and seeks on release", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    const frame = await page.locator(".advertising-photo-view__hero-frame").boundingBox();
+    await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
+    await dragProgress(page, 0.1, 0.8, { buffered: 1.2, during: (state) => {
+      assert(state.progress > 2.2, `thumb follows the hand: ${state.progress}`);
+      assert(state.currentTime <= 1.2 + 1e-6, `frame holds inside the buffered range: ${state.currentTime}`);
+      assert.match(state.time, /^0:02 \/ 0:03$/, `time shows the thumb: ${state.time}`);
+    } });
+    await page.waitForFunction(() => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      return !video.paused && video.currentTime > 2.2;
+    });
+  });
+});
+
 test("M02a primary vertical volume slider opens above the sound button and keeps the last volume", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });

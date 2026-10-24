@@ -3818,6 +3818,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Player video primary theo trang pin Pinterest (media-card R6): bấm video phát/dừng, thanh dưới hiện khi hover,
   // focus hoặc đang dừng; thanh tua, thời gian, nút tiếng và thanh âm lượng (owner 2026-10-18).
+  // Trạng thái kéo tua (R2, bên dưới); khai báo trước để syncVideoPlayer, syncVideoTime đọc được.
+  let scrub = null;
+  let pendingSeek = null;
   const setRangeFill = (range) => range.style.setProperty("--range-fill",
     `${(Number(range.value) / (Number(range.max) || 1)) * 100}%`);
   const syncVideoPlayer = () => {
@@ -3825,9 +3828,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Thanh âm lượng giữ mức người xem chọn trong lúc tiếng fade.
     const volume = volumeFrame ? viewerVolume : photoVideo.volume;
     const silent = photoVideo.muted || volume === 0;
-    photoPlayer.dataset.advertisingVideoPaused = String(photoVideo.paused);
+    // Video đang phát mà dừng để kéo tua thì giữ giao diện đang phát, không chớp nút phát.
+    const paused = photoVideo.paused && !scrub?.wasPlaying;
+    photoPlayer.dataset.advertisingVideoPaused = String(paused);
     photoPlayer.dataset.advertisingVideoMuted = String(silent);
-    photoPlayButton.setAttribute("aria-label", photoVideo.paused ? english ? "Play" : "Phát"
+    photoPlayButton.setAttribute("aria-label", paused ? english ? "Play" : "Phát"
       : english ? "Pause" : "Tạm dừng");
     photoAudioToggle.setAttribute("aria-label", silent ? english ? "Unmute" : "Bật tiếng"
       : english ? "Mute" : "Tắt tiếng");
@@ -3836,6 +3841,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const syncVideoTime = () => {
     photoProgress.max = photoVideo.duration > 0 ? photoVideo.duration : 1;
+    // Đang kéo tua: núm và giờ theo tay, không theo frame đang hiện.
+    if (scrub) return;
     photoProgress.value = photoVideo.currentTime;
     setRangeFill(photoProgress);
     photoTimeCurrent.textContent = formatVideoTime(photoVideo.currentTime);
@@ -3853,9 +3860,33 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   photoPlayer?.querySelector("[data-advertising-photo-play-surface]")
     .addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
   photoPlayButton?.addEventListener("click", toggleVideoPlayback, { signal: controller.signal });
+  // Kéo tua (primary-video-player R2): video dừng trong lúc kéo, mỗi lần chỉ một lệnh tua và lệnh mới chờ `seeked`;
+  // ngoài đoạn đã tải thì giữ frame, thả tay (change) mới tua rồi phát tiếp nếu trước đó đang phát. Bàn phím cùng đường.
+  const isBuffered = (time) => Array.from({ length: photoVideo.buffered.length }, (_, index) => index)
+    .some((index) => photoVideo.buffered.start(index) <= time && time <= photoVideo.buffered.end(index));
   photoProgress?.addEventListener("input", () => {
+    const time = Number(photoProgress.value);
+    if (!scrub) {
+      scrub = { wasPlaying: !photoVideo.paused };
+      photoVideo.pause();
+    }
+    setRangeFill(photoProgress);
+    photoTimeCurrent.textContent = formatVideoTime(time);
+    if (!isBuffered(time)) pendingSeek = null;
+    else if (photoVideo.seeking) pendingSeek = time;
+    else photoVideo.currentTime = time;
+  }, { signal: controller.signal });
+  photoProgress?.addEventListener("change", () => {
+    if (!scrub) return;
+    const { wasPlaying } = scrub;
+    scrub = pendingSeek = null;
     photoVideo.currentTime = Number(photoProgress.value);
-    syncVideoTime();
+    if (wasPlaying) void photoVideo.play().catch(() => {});
+  }, { signal: controller.signal });
+  photoVideo?.addEventListener("seeked", () => {
+    if (pendingSeek === null) return;
+    photoVideo.currentTime = pendingSeek;
+    pendingSeek = null;
   }, { signal: controller.signal });
   // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
   photoVolume?.addEventListener("input", () => {
