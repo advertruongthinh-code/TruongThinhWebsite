@@ -9525,11 +9525,15 @@ async function runHeroCrossFadeContinuityChecks() {
 
 async function runWhiteOverlayMediaFallbackCheck() {
   const viewport = { width: 1440, height: 900 };
+  // Slide 0 đọc từ index.html, không ghi cứng tên ảnh hero (content-independent-tests R1).
+  const heroAsset = `**/${path.basename(
+    fs.readFileSync(path.join(SITE_ROOT, "index.html"), "utf8").match(/data-slide="0"[\s\S]*?data-src="([^"]+)"/)[1],
+  )}`;
   const cases = [
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/home-hero-office-reception-20261024.webp",
+      asset: heroAsset,
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9538,7 +9542,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/home-hero-office-reception-20261024.webp",
+      asset: heroAsset,
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
