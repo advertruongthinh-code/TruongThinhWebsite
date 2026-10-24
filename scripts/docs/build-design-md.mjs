@@ -1,4 +1,4 @@
-// Dựng DESIGN.md và sidecar .impeccable/design.json cho Impeccable từ design-system/ (docs/specs/docs-system.md R6).
+// Dựng DESIGN.md và sidecar .impeccable/design.json cho Impeccable từ design-system/ (docs/specs/design-system.md R4).
 // Cách dùng: node scripts/docs/build-design-md.mjs [--check]
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { posix } from 'node:path';
@@ -34,14 +34,33 @@ const frontmatter = [
 ].join('\n');
 
 // Link trong README tính theo design-system/; DESIGN.md nằm ở gốc repo.
-const body = readme
-  .replace(/^# .*$/m, `# ${title}`)
-  .replace(/\]\((?!https?:|#)([^)#]*)(#[^)]*)?\)/g, (_, path, hash = '') => `](${posix.normalize(posix.join('design-system', path))}${hash})`);
+const rebase = (text) => text.replace(/\]\((?!https?:|#)([^)#]*)(#[^)]*)?\)/g, (_, path, hash = '') => `](${posix.normalize(posix.join('design-system', path))}${hash})`);
+const slug = (heading) => heading.toLowerCase().replace(/[^\p{L}\p{N} -]/gu, '').replace(/ /g, '-');
+// Tám mục Impeccable: đoạn mở đầu và các đoạn "**Quy tắc ...**" của mục cùng tên trong README, cộng link tới mục đó;
+// Do's and Don'ts toàn là quy tắc nên giữ nguyên (spec design-system R4.1).
+const HEADINGS = ['Overview', 'Colors', 'Typography', 'Layout', 'Elevation & Depth', 'Shapes', 'Components', "Do's and Don'ts"];
+const sections = HEADINGS.map((heading) => {
+  const part = readme.split(`\n## ${heading}\n`)[1];
+  if (!part) throw new Error(`design-system/README.md missing ## ${heading}`);
+  const text = part.split(/\n## /)[0].trim();
+  const blocks = text.split('\n\n');
+  const kept = heading === "Do's and Don'ts" ? blocks : blocks.filter((block, i) => (i === 0 && !/^[|-]/.test(block)) || block.startsWith('**Quy tắc'));
+  return `## ${heading}\n\n${rebase(kept.join('\n\n'))}\n\nChi tiết: [design-system/README.md](design-system/README.md#${slug(heading)}).`;
+});
+const body = [`# ${title}`, `Nguồn chuẩn là [design-system/](design-system/README.md); file này chỉ giữ token và quy tắc cốt lõi cho Impeccable.`, ...sections].join('\n\n') + '\n';
 
+// Sidecar chỉ giữ thứ frontmatter không chứa được: shadow, biến motion của :root, breakpoint (Impeccable schemaVersion 2).
+const root = readFileSync('src/site/style.css', 'utf8').match(/:root\s*\{([^}]*)\}/)[1];
+const motion = Object.keys(tokens.meta.cssOnly).map((name) => ({
+  name, value: root.match(new RegExp(`(?<![\\w-])--${name}:\\s*([^;]+);`))[1].trim(), purpose: 'Timing chi tiết: design-system/motion.md',
+}));
+const breakpointLine = readme.match(/\*\*Breakpoint hay dùng:\*\* ([^.]+?) px/);
+if (!breakpointLine) throw new Error('design-system/README.md Layout missing "**Breakpoint hay dùng:** ... px"');
+const breakpoints = breakpointLine[1].split(', ').map((value) => ({ name: value, value: `${value.split('/')[0]}px` }));
 const sidecar = {
   schemaVersion: 2,
   title,
-  extensions: { shadows: tokens.shadow.tokens.map((t) => ({ name: t.name, value: t.value, purpose: t.usage })) },
+  extensions: { shadows: tokens.shadow.tokens.map((t) => ({ name: t.name, value: t.value, purpose: t.usage })), motion, breakpoints },
 };
 
 const outputs = new Map([

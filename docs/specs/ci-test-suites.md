@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-10-15
+updated: 2026-10-23
 ---
 
 # Bộ test CI chia theo phần website
@@ -46,7 +46,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
-| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
+| `fast` | static-release, cms | `qa:static`, unit `*.test.mjs`, test `tests/tooling/`, biến thể ảnh, kiểm nội dung (`qa:content`, [test không phụ thuộc nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung)), worker security, `qa:client-assets`, preview self-test, smoke Chromium năm route; chạy với mọi PR có code |
 | `shell` | site-shell, phone-header-scroll | header, menu, đổi ngôn ngữ, header điện thoại |
 | `route` | site-shell, logo-route-crossfade, static-release | chuyển trang: veil, logo đổi màu, mark mọc màu, 404, reduced motion |
 | `header` | site-shell, phone-header-scroll | hình học header ở các cỡ màn hình, navbar, history, chế độ ngôn ngữ |
@@ -75,7 +75,7 @@ spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn th�
 Job `select` so file đổi của PR với merge base của `main`:
 
 1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
-2. File khớp `fastOnly` (`AGENTS.md`, `CLAUDE.md`, `design-system/**`, `tests/tooling/**`, cấu hình Serena, code CMS dormant, workflow
+2. File khớp `fastOnly` (`AGENTS.md`, `CLAUDE.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow
    khác CI): chỉ `fast`.
 3. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
    `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,
@@ -110,8 +110,8 @@ runner rảnh (GitHub cấp tới khoảng 20 job cùng lúc cho gói Free).
 
 Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build
 `.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ
-không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview và
-`test-results/` của bộ đó.
+không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview,
+`test-results/` và `.tmp/` (report, screenshot của test e2e) của bộ đó.
 
 Push mới lên cùng PR hủy lượt CI đang chạy của PR đó; trên `main` lượt đang chạy không bị hủy để Deploy demo vẫn chạy khi merge dồn dập (lượt chờ mới nhất thay lượt chờ cũ hơn). PR nháp chỉ chạy bộ `fast` (khi R3 chọn ít nhất
 một bộ); đủ bộ chạy khi PR chuyển sang sẵn sàng (`ready_for_review`), để PR đang làm dở không chiếm runner (owner chọn

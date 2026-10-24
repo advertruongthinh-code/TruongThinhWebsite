@@ -51,17 +51,12 @@ async def probe(root: Path, service: str, timeout: float) -> dict[str, object]:
                         "tools": len(tools.tools),
                         "tool_names": [tool.name for tool in tools.tools],
                     }
-                    if service == "serena":
-                        current = await session.call_tool("get_current_config", {})
-                        payload["current_config"] = "\n".join(
-                            block.text for block in current.content if hasattr(block, "text")
-                        )[:4000]
                     return payload
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("service", choices=("serena", "graphify", "chrome-devtools"))
+    parser.add_argument("service", choices=("graphify",))
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=90)
     args = parser.parse_args()

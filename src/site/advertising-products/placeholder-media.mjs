@@ -282,82 +282,87 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
  ],
  "signage-raised-letters-11": [
   {
+   "id": "signage-raised-letters-11-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/signage-raised-letters-11-v1.mp4",
+   "sourceId": "placeholder:signage-raised-letters-11-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Bảng vẫy LED hiệu ứng",
+   "altEn": "Illustrative video: Animated LED projecting signs",
+   "source": "/assets/placeholder-media/signage-raised-letters-11-v1.mp4",
+   "sha256": "53d0538e697b8d2dcd6799dc9b9d0ecbd8f2b79403387e0fba50cd5624e38f6a",
+   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-11; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/signage-raised-letters-11-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
+  {
    "id": "signage-raised-letters-11-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-11-p2.webp",
    "sourceId": "placeholder:signage-raised-letters-11-p2",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 640,
    "altVi": "Bảng vẫy LED hiệu ứng (ảnh 2)",
    "altEn": "Animated LED projecting signs (photo 2)",
    "source": "/assets/placeholder-media/signage-raised-letters-11-p2.webp",
-   "sha256": "48b2e9d36c8c8147d9ca5ba3b53a5858870e704d18a98af9ff7210b84c8df6b1",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.webp; replace with real product media."
+   "sha256": "1598a5ad6f8b0897f8641d51c4b8a59c21463874b9e5183360f94f0281c4ff15",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs-audit-a247-v3.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-11-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-11-p3.webp",
    "sourceId": "placeholder:signage-raised-letters-11-p3",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 640,
    "altVi": "Bảng vẫy LED hiệu ứng (ảnh 3)",
    "altEn": "Animated LED projecting signs (photo 3)",
    "source": "/assets/placeholder-media/signage-raised-letters-11-p3.webp",
-   "sha256": "2f66d5a4248e0100122da5520987ef63ae4a9aede9bc707c437f79c6c496ef08",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.webp; replace with real product media."
+   "sha256": "445590c9cc3d7ecea27dea00899ff261122f9ec21a4f0d88dd6afaa0c404d911",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs-audit-a247-v3.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-11-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-11-p4.webp",
    "sourceId": "placeholder:signage-raised-letters-11-p4",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 640,
    "altVi": "Bảng vẫy LED hiệu ứng (ảnh 4)",
    "altEn": "Animated LED projecting signs (photo 4)",
    "source": "/assets/placeholder-media/signage-raised-letters-11-p4.webp",
-   "sha256": "b9c75057b7883128ee37bbf925f2a20001e2768e4c844029435b1c103e2ff0aa",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.webp; replace with real product media."
+   "sha256": "8fd72889956eac800a77e7a7ebfb89ef1c4fd3757c59929193915f86f417a466",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs-audit-a247-v3.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-11-p5",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-11-p5.webp",
    "sourceId": "placeholder:signage-raised-letters-11-p5",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 640,
    "altVi": "Bảng vẫy LED hiệu ứng (ảnh 5)",
    "altEn": "Animated LED projecting signs (photo 5)",
    "source": "/assets/placeholder-media/signage-raised-letters-11-p5.webp",
-   "sha256": "0ad28d7e2aa312697a38f2f9abbe06ca4a22e5731ee24f969a3527dd1730aeab",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.webp; replace with real product media."
+   "sha256": "43d8f9b5fb326c711b402e51fd05efb433f9fddb2d37079b11b2324665c0a4cd",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs-audit-a247-v3.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-11-p6",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-11-p6.webp",
    "sourceId": "placeholder:signage-raised-letters-11-p6",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 640,
    "altVi": "Bảng vẫy LED hiệu ứng (ảnh 6)",
    "altEn": "Animated LED projecting signs (photo 6)",
    "source": "/assets/placeholder-media/signage-raised-letters-11-p6.webp",
-   "sha256": "a23db9fd18453d196d3669859af7d7564c256da26e7f4c33ea54587424c78614",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-11-p7",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-11-p7.webp",
-   "sourceId": "placeholder:signage-raised-letters-11-p7",
-   "width": 561,
-   "height": 701,
-   "altVi": "Bảng vẫy LED hiệu ứng (ảnh 7)",
-   "altEn": "Animated LED projecting signs (photo 7)",
-   "source": "/assets/placeholder-media/signage-raised-letters-11-p7.webp",
-   "sha256": "48b2e9d36c8c8147d9ca5ba3b53a5858870e704d18a98af9ff7210b84c8df6b1",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.webp; replace with real product media."
+   "sha256": "6c1f5535c41e3063dd586a2b141e58d919b1915fb4956014bfdfe58aacfaf2c1",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs-audit-a247-v3.webp; replace with real product media."
   }
  ],
  "kiosk-posm-22": [
@@ -366,91 +371,91 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p2.webp",
    "sourceId": "placeholder:kiosk-posm-22-p2",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 2)",
    "altEn": "Island displays (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p2.webp",
-   "sha256": "a79b58c0c189dfbaf735eb4be6b065fd541b4b0e46a7812499b3b249f114151a",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "f875b7d2892ecd1a2ccaa4ad9a073f38ed102c10dc10fa5c52a06c3863183b1b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-26-imagegen-20261018.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-22-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p3.webp",
    "sourceId": "placeholder:kiosk-posm-22-p3",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 3)",
    "altEn": "Island displays (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p3.webp",
-   "sha256": "2ff919d5900e870280e1992bd5e800a3ac07415491ba243d667102d9e495b0a7",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "b8f50c60482ebf7cc065ffbf7bf56f5482fed4c63113423693b8a618207b4d33",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays-audit-a041-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-22-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p4.webp",
    "sourceId": "placeholder:kiosk-posm-22-p4",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 4)",
    "altEn": "Island displays (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p4.webp",
-   "sha256": "e3a1d3643b9e85bc3846bb4f2585ffe49728c14fab6d90a759e1f7420c4db456",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "1294cf34f09ccb6f8858646a6358825aa34daafbd71816d843dd34e8f7c9e84b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays-audit-a041-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-22-p5",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p5.webp",
    "sourceId": "placeholder:kiosk-posm-22-p5",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 5)",
    "altEn": "Island displays (photo 5)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p5.webp",
-   "sha256": "3ad0165c4a0c94a2a7875321cb30c99273ffd4299c0ff69aebba60c19ecfa733",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "b1fc13c12d8ee61536cf5654d7e29e16823a25922bf855c850283762a9fd7143",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays-audit-a041-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-22-p6",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p6.webp",
    "sourceId": "placeholder:kiosk-posm-22-p6",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 6)",
    "altEn": "Island displays (photo 6)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p6.webp",
-   "sha256": "b34ea0528e089e7afe56d3d6b170dfafa544701286585c5655e6b709c4a6e439",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "894e0a4cef51f6c91fd858016eb3bbf436e904e7176089fd39228ca607175807",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays-audit-a041-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-22-p7",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p7.webp",
    "sourceId": "placeholder:kiosk-posm-22-p7",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 7)",
    "altEn": "Island displays (photo 7)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p7.webp",
-   "sha256": "a79b58c0c189dfbaf735eb4be6b065fd541b4b0e46a7812499b3b249f114151a",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "ae45041331fa90912d2cb8e2eab1ab4758983bd865756eb8483c99e613290ee5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays-audit-a041-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-22-p8",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-22-p8.webp",
    "sourceId": "placeholder:kiosk-posm-22-p8",
-   "width": 1672,
-   "height": 941,
+   "width": 960,
+   "height": 640,
    "altVi": "Đảo trưng bày (ảnh 8)",
    "altEn": "Island displays (photo 8)",
    "source": "/assets/placeholder-media/kiosk-posm-22-p8.webp",
-   "sha256": "2ff919d5900e870280e1992bd5e800a3ac07415491ba243d667102d9e495b0a7",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays.webp; replace with real product media."
+   "sha256": "b8f50c60482ebf7cc065ffbf7bf56f5482fed4c63113423693b8a618207b4d33",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-22-island-displays-audit-a041-v1.webp; replace with real product media."
   }
  ],
  "kiosk-posm-24": [
@@ -460,15 +465,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-24-v1.mp4",
    "sourceId": "placeholder:kiosk-posm-24-v1",
    "width": 960,
-   "height": 480,
+   "height": 640,
    "altVi": "Video minh họa: Bộ POSM theo chiến dịch",
    "altEn": "Illustrative video: Campaign POSM sets",
    "source": "/assets/placeholder-media/kiosk-posm-24-v1.mp4",
-   "sha256": "da4a5f6e3010aaa16f632f4399febfcaa045e35f9da17cd197e28d7c77337744",
+   "sha256": "e071ae2b46a0e54b8d49cde5dc7f53249af5c7dbb41c136dc270f30698ab70bf",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-24, kiosk-posm-12, kiosk-posm-32; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-24-v1-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 480,
+   "posterHeight": 640,
    "durationSeconds": 6.5,
    "hasAudio": true
   },
@@ -478,12 +483,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-24-p2.webp",
    "sourceId": "placeholder:kiosk-posm-24-p2",
    "width": 960,
-   "height": 480,
+   "height": 640,
    "altVi": "Bộ POSM theo chiến dịch (ảnh 2)",
    "altEn": "Campaign POSM sets (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-24-p2.webp",
-   "sha256": "5e256e69add04704b90ed5562d08710f039c4d7bfde458db56490fcb405a0782",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-24-campaign-posm-sets.webp; replace with real product media."
+   "sha256": "752d93e89571a0de907b9fa41e415bd00c1e26f782addbb4ae713da164770da2",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-12-campaign-posm-sets-audit-a031-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-24-v2",
@@ -491,15 +496,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-24-v2.mp4",
    "sourceId": "placeholder:kiosk-posm-24-v2",
    "width": 960,
-   "height": 480,
+   "height": 640,
    "altVi": "Video minh họa 2: Bộ POSM theo chiến dịch",
    "altEn": "Illustrative video 2: Campaign POSM sets",
    "source": "/assets/placeholder-media/kiosk-posm-24-v2.mp4",
-   "sha256": "b49ec58a260ef762334d608e412935cab271d78e496c8f31d366a7ec1b3b7979",
+   "sha256": "33792098a36de69e3a7a2ce442a5988f0c97d748d9b5b770326862d99e6a61dc",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-12, kiosk-posm-32, kiosk-posm-24; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-24-v2-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 480,
+   "posterHeight": 640,
    "durationSeconds": 6.5,
    "hasAudio": false
   },
@@ -509,12 +514,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-24-p3.webp",
    "sourceId": "placeholder:kiosk-posm-24-p3",
    "width": 960,
-   "height": 480,
+   "height": 640,
    "altVi": "Bộ POSM theo chiến dịch (ảnh 3)",
    "altEn": "Campaign POSM sets (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-24-p3.webp",
-   "sha256": "3f6b554a9a22290dee56449dd7b10ace68a948cfa898fa1cbf43e1f04a8078ff",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-24-campaign-posm-sets.webp; replace with real product media."
+   "sha256": "5fac3bb41a94aba5a850c3ab1f63fa4b149125081d2205f6a9b5d72dce9bcdcb",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-24-campaign-posm-sets-audit-a043-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-24-v3",
@@ -522,15 +527,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-24-v3.mp4",
    "sourceId": "placeholder:kiosk-posm-24-v3",
    "width": 960,
-   "height": 480,
+   "height": 640,
    "altVi": "Video minh họa 3: Bộ POSM theo chiến dịch",
    "altEn": "Illustrative video 3: Campaign POSM sets",
    "source": "/assets/placeholder-media/kiosk-posm-24-v3.mp4",
-   "sha256": "20e62552f3997b16375bcdfb747520e0c09f065b1107beb300808061899c44b0",
+   "sha256": "477652e3113dedcee7cd654cc4988a6f700891a6ac7d16a22db2e60a66a0536b",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-32, kiosk-posm-24, kiosk-posm-12; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-24-v3-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 480,
+   "posterHeight": 640,
    "durationSeconds": 6.5,
    "hasAudio": false
   },
@@ -540,12 +545,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-24-p4.webp",
    "sourceId": "placeholder:kiosk-posm-24-p4",
    "width": 960,
-   "height": 480,
+   "height": 640,
    "altVi": "Bộ POSM theo chiến dịch (ảnh 4)",
    "altEn": "Campaign POSM sets (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-24-p4.webp",
-   "sha256": "bdf9f94ff5d3607bb544809ade4bda4887dbb9da54fb9c9c0e7ad593495a98c4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-24-campaign-posm-sets.webp; replace with real product media."
+   "sha256": "fc0c6793f6e7d3c58fa59654009853ddd5b9855db6763f4daab325525c2fe48d",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-24-campaign-posm-sets-audit-a043-v1.webp; replace with real product media."
   }
  ],
  "kiosk-posm-15": [
@@ -555,15 +560,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-v1.mp4",
    "sourceId": "placeholder:kiosk-posm-15-v1",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Video minh họa: Tủ trưng bày theo yêu cầu",
    "altEn": "Illustrative video: Custom display cabinets",
    "source": "/assets/placeholder-media/kiosk-posm-15-v1.mp4",
-   "sha256": "5ed5d3ded6e4c16115ba44ee7f96773bd96e75a57237a53442cf4c6d18287d7c",
+   "sha256": "3eb2230fb7652d716ea888e12ad822ec2445510eb2295485528df9c7c21ccaff",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-15, kiosk-posm-03; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-15-v1-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 960,
+   "posterHeight": 640,
    "durationSeconds": 4.5,
    "hasAudio": true
   },
@@ -573,12 +578,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-p2.webp",
    "sourceId": "placeholder:kiosk-posm-15-p2",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Tủ trưng bày theo yêu cầu (ảnh 2)",
    "altEn": "Custom display cabinets (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-15-p2.webp",
-   "sha256": "00f0ff99aa2532e7bfcf8e3f5dcf8f5b4dfc3433beffa11397fa0ec338374c4d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2.webp; replace with real product media."
+   "sha256": "0f9b4968404fc7bf6fd0f471d8d1d26e31a38ceb693d5e67a5d807e7f54fc6af",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-03-custom-display-cabinets-audit-a022-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-15-v2",
@@ -586,15 +591,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-v2.mp4",
    "sourceId": "placeholder:kiosk-posm-15-v2",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Video minh họa 2: Tủ trưng bày theo yêu cầu",
    "altEn": "Illustrative video 2: Custom display cabinets",
    "source": "/assets/placeholder-media/kiosk-posm-15-v2.mp4",
-   "sha256": "060f0dbaed79a304817ae6963b3fa0ee23deaeedc291eb3ac028ea8077768f97",
+   "sha256": "29975645da6eb4a4c0eab914b18f92a511441d1d99e78566e4da95d19eb24647",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-03, kiosk-posm-15; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-15-v2-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 960,
+   "posterHeight": 640,
    "durationSeconds": 4.5,
    "hasAudio": false
   },
@@ -604,12 +609,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-p3.webp",
    "sourceId": "placeholder:kiosk-posm-15-p3",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Tủ trưng bày theo yêu cầu (ảnh 3)",
    "altEn": "Custom display cabinets (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-15-p3.webp",
-   "sha256": "76ad27bad2d2b6cd591bf8614f06ae057f95ad033a0361671977b629edc4c91e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2.webp; replace with real product media."
+   "sha256": "ccce51ed3baaf535d17a1dad0256ade186fd3a3a15a6ecec8ee989b9af05437d",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2-audit-a034-v2.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-15-p4",
@@ -617,12 +622,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-p4.webp",
    "sourceId": "placeholder:kiosk-posm-15-p4",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Tủ trưng bày theo yêu cầu (ảnh 4)",
    "altEn": "Custom display cabinets (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-15-p4.webp",
-   "sha256": "83e4fcebf127a014e940ae048b0c573dc82c316a593d7f1115af7d64779ad447",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2.webp; replace with real product media."
+   "sha256": "06360edbe7c60aee9e5367458f0270c038a6049afb3cfc59300c7dd5f04b36b5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2-audit-a034-v2.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-15-p5",
@@ -630,12 +635,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-p5.webp",
    "sourceId": "placeholder:kiosk-posm-15-p5",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Tủ trưng bày theo yêu cầu (ảnh 5)",
    "altEn": "Custom display cabinets (photo 5)",
    "source": "/assets/placeholder-media/kiosk-posm-15-p5.webp",
-   "sha256": "0766937ca3d412e9d445398bb837be12ed8840512390b3e0d546247765395aea",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2.webp; replace with real product media."
+   "sha256": "f33265914c60a8187ce1308ed475321cdc0481f5febf640be0315a9b3b67df24",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2-audit-a034-v2.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-15-p6",
@@ -643,12 +648,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-15-p6.webp",
    "sourceId": "placeholder:kiosk-posm-15-p6",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Tủ trưng bày theo yêu cầu (ảnh 6)",
    "altEn": "Custom display cabinets (photo 6)",
    "source": "/assets/placeholder-media/kiosk-posm-15-p6.webp",
-   "sha256": "ac785cc6e2201eef06c355533d83c0aa5b51525c418ea4e3fbbdddbd337cfb84",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2.webp; replace with real product media."
+   "sha256": "1c7475ef63a20ea966d3852ced8a1ba437baf4e8424f7de5ee4583cdb890c2ee",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-15-custom-display-cabinets-v2-audit-a034-v2.webp; replace with real product media."
   }
  ],
  "kiosk-posm-09": [
@@ -703,7 +708,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Gian hàng triển lãm",
    "altEn": "Illustrative video: Exhibition booths",
    "source": "/assets/placeholder-media/kiosk-posm-13-v1.mp4",
-   "sha256": "913f6b3c67d723d32bfe9507552756d46705ffb3e9f9b4d728504d7ec206139f",
+   "sha256": "4a60890aa85ac64b5bb16c50ec851d56af117d5d59a8ec4f0d17000a2121b9a0",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-13, kiosk-posm-01, kiosk-posm-25, kiosk-posm-27; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-13-v1-poster.webp",
    "posterWidth": 960,
@@ -776,15 +781,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-23-v1.mp4",
    "sourceId": "placeholder:kiosk-posm-23-v1",
    "width": 960,
-   "height": 720,
+   "height": 640,
    "altVi": "Video minh họa: Vách trưng bày thương hiệu",
    "altEn": "Illustrative video: Branded display walls",
    "source": "/assets/placeholder-media/kiosk-posm-23-v1.mp4",
-   "sha256": "f3aaf6b1b7a0066421642f78d82ee5a9bb6ed09de029aa3314405592b1a6ab14",
+   "sha256": "2c32c2bf6733fb368541d041dc9568db5f70cce2a71fe590f165d1063c903821",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-23, kiosk-posm-11, kiosk-posm-38, kiosk-posm-39; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-23-v1-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 720,
+   "posterHeight": 640,
    "durationSeconds": 8.5,
    "hasAudio": true
   },
@@ -794,12 +799,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-23-p2.webp",
    "sourceId": "placeholder:kiosk-posm-23-p2",
    "width": 960,
-   "height": 720,
+   "height": 640,
    "altVi": "Vách trưng bày thương hiệu (ảnh 2)",
    "altEn": "Branded display walls (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-23-p2.webp",
-   "sha256": "a3003a496a33aa9059b531f9a4cdc8573d479154da02770aa7ba52c40be4181d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-38-imagegen-20261014.webp; replace with real product media."
+   "sha256": "4a04d5e0d954a9b37a71de70a797548d6a8b5a1d0a6de690ba6498b7445d755f",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-11-branded-display-walls-audit-a030-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-23-v2",
@@ -807,15 +812,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-23-v2.mp4",
    "sourceId": "placeholder:kiosk-posm-23-v2",
    "width": 960,
-   "height": 720,
+   "height": 640,
    "altVi": "Video minh họa 2: Vách trưng bày thương hiệu",
    "altEn": "Illustrative video 2: Branded display walls",
    "source": "/assets/placeholder-media/kiosk-posm-23-v2.mp4",
-   "sha256": "4c1491c57da10b7aa6ecfb9589446d311eb1213dc825d0d5b123d8717db9d085",
+   "sha256": "76049236d627e158ec3be7e5e4a15a2fda448aa1c66f4c90a561f7a715413d15",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-11, kiosk-posm-38, kiosk-posm-39, kiosk-posm-40; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-23-v2-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 720,
+   "posterHeight": 640,
    "durationSeconds": 8.5,
    "hasAudio": false
   },
@@ -825,12 +830,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-23-p3.webp",
    "sourceId": "placeholder:kiosk-posm-23-p3",
    "width": 960,
-   "height": 720,
+   "height": 640,
    "altVi": "Vách trưng bày thương hiệu (ảnh 3)",
    "altEn": "Branded display walls (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-23-p3.webp",
-   "sha256": "79fa1230bcc8ab8e20b01ad1a4de9f62418df880b78d0768d9c5d7e118a209f5",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-23-branded-display-walls.webp; replace with real product media."
+   "sha256": "d4443d60b7bc90a6e40d61bd9f0f5e3c9813c5bc5d8f05219a2ad2bfb2790bde",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-38-imagegen-20261014-audit-a057-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-23-v3",
@@ -838,15 +843,15 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-23-v3.mp4",
    "sourceId": "placeholder:kiosk-posm-23-v3",
    "width": 960,
-   "height": 720,
+   "height": 640,
    "altVi": "Video minh họa 3: Vách trưng bày thương hiệu",
    "altEn": "Illustrative video 3: Branded display walls",
    "source": "/assets/placeholder-media/kiosk-posm-23-v3.mp4",
-   "sha256": "0cf0c20677fa4976800db9cf259537ce16631541b1d204a67b08a206594bd854",
+   "sha256": "d20577543ba5b9b1f46d21d89ac7d297f426318bfcaf0bc4345eec4058e48437",
    "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-38, kiosk-posm-39, kiosk-posm-40, kiosk-posm-23; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/kiosk-posm-23-v3-poster.webp",
    "posterWidth": 960,
-   "posterHeight": 720,
+   "posterHeight": 640,
    "durationSeconds": 8.5,
    "hasAudio": false
   },
@@ -856,12 +861,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/kiosk-posm-23-p4.webp",
    "sourceId": "placeholder:kiosk-posm-23-p4",
    "width": 960,
-   "height": 720,
+   "height": 640,
    "altVi": "Vách trưng bày thương hiệu (ảnh 4)",
    "altEn": "Branded display walls (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-23-p4.webp",
-   "sha256": "f867f4ef8a8a1d133630c18e91c1eb9b501dd24de57629d45876f76c6fd76d14",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-23-branded-display-walls.webp; replace with real product media."
+   "sha256": "ccb739086a232828e059c702d0d7914503efb9de8f11a845e78bd5f8d3c86f71",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-23-branded-display-walls-audit-a042-v1.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-41": [
@@ -875,8 +880,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng vẫy LED (ảnh 2)",
    "altEn": "LED projecting signs (photo 2)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-41-p2.webp",
-   "sha256": "7fa633f339bbf4dd9aaf411149d0ae31ada209f616a6978e6f5d6206ebe040ce",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-35-imagegen-20261018.webp; replace with real product media."
+   "sha256": "c72e6b462be6e48f5997242f019fe97d6f419a3f12c58109d796a2e9438271c1",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-35-owner-20261019.webp; replace with real product media."
   },
   {
    "id": "led-displays-lightboxes-41-p3",
@@ -911,52 +916,52 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-09-p2.webp",
    "sourceId": "placeholder:office-signs-wayfinding-09-p2",
-   "width": 941,
-   "height": 1672,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 2)",
    "altEn": "Meeting-room signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-09-p2.webp",
-   "sha256": "90aa0615e09aec046090761fe1b5fd6eaa3c0f92ec1f3bcafe4a141ec4fdc3ed",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs.webp; replace with real product media."
+   "sha256": "1a9b8da27366bfc052c7a0231bb3b8215f69e3f776ceb1f6758fd42c6aa6ca47",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-brushed-01-audit-a150-v1.webp; replace with real product media."
   },
   {
    "id": "office-signs-wayfinding-09-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-09-p3.webp",
    "sourceId": "placeholder:office-signs-wayfinding-09-p3",
-   "width": 941,
-   "height": 1672,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 3)",
    "altEn": "Meeting-room signs (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-09-p3.webp",
-   "sha256": "8d6fa8a8232474a55ceb8e019dc6dc051178cd30b0eb5dccae118eddb9ba88e2",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs.webp; replace with real product media."
+   "sha256": "cd8d7e80fc447dae45d655a1bf67217e98bc163de92db2f01b16508997e5e256",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-acrylic-02-audit-a149-v1.webp; replace with real product media."
   },
   {
    "id": "office-signs-wayfinding-09-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-09-p4.webp",
    "sourceId": "placeholder:office-signs-wayfinding-09-p4",
-   "width": 941,
-   "height": 1672,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 4)",
    "altEn": "Meeting-room signs (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-09-p4.webp",
-   "sha256": "eba3144633bd8238459af49f648d10cbc95e2e13e584e4b0d202dc2765b9b7f8",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs.webp; replace with real product media."
+   "sha256": "6c775f85af673c0085ff4eb665310d03112662ca1d1dce16fb0d221e91ae1f10",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-design-02-audit-a152-v1.webp; replace with real product media."
   },
   {
    "id": "office-signs-wayfinding-09-p5",
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-09-p5.webp",
    "sourceId": "placeholder:office-signs-wayfinding-09-p5",
-   "width": 941,
-   "height": 1672,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 5)",
    "altEn": "Meeting-room signs (photo 5)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-09-p5.webp",
-   "sha256": "55fb0f8e2fb0b63a0e760dae84ff5123c774b78b4eb585ec4cfd05bbfbf9b516",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs.webp; replace with real product media."
+   "sha256": "d5bfdffa13ab8236b3e296e8194137e3f18530c3dc2c1eab596bf6a4cadb09f2",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs-audit-a162-v1.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-36": [
@@ -970,7 +975,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Bảng vẫy Mica hút nổi",
    "altEn": "Illustrative video: Vacuum-formed acrylic projecting signs",
    "source": "/assets/placeholder-media/signage-raised-letters-36-v1.mp4",
-   "sha256": "342d1946bec3a9f1893bd7721c915a2659d9c2a3a40033a8624601959b4b8c0f",
+   "sha256": "07876aa532aa675f702ab6854a76bdf09718532680922a8709f796b3b98acafd",
    "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-36, signage-raised-letters-10, signage-raised-letters-22, signage-raised-letters-35; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/signage-raised-letters-36-v1-poster.webp",
    "posterWidth": 640,
@@ -988,8 +993,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng vẫy Mica hút nổi (ảnh 2)",
    "altEn": "Vacuum-formed acrylic projecting signs (photo 2)",
    "source": "/assets/placeholder-media/signage-raised-letters-36-p2.webp",
-   "sha256": "5f9a625e31f95d471e700bdfad4e644aae521cd94ada3e2eca8f4f97799eb7c8",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs.webp; replace with real product media."
+   "sha256": "8fdcd550c86ddfe33fd2b7d989e478db7c375e8697901b1d3bbf481aa762921c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-36-imagegen-20261014.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-42": [
@@ -1003,8 +1008,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng vẫy LED (ảnh 2)",
    "altEn": "LED projecting signs (photo 2)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-42-p2.webp",
-   "sha256": "5bb4511afa61182fe4972d9d3b8c7cd803cf4c9a41f5460a720db758e3ee5d06",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-38-imagegen-20261018.webp; replace with real product media."
+   "sha256": "6b654d51a03d821f1157cd5318a658c71001ffc2366bc8925fbf65b06092b6ca",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-38-owner-20261019.webp; replace with real product media."
   },
   {
    "id": "led-displays-lightboxes-42-p3",
@@ -1029,8 +1034,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng vẫy LED (ảnh 4)",
    "altEn": "LED projecting signs (photo 4)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-42-p4.webp",
-   "sha256": "87c1dc0bb03dc75b886a124b1a3ae4ae7edc85caaae4850a3212bdb664bf559d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-42-imagegen-20261018.webp; replace with real product media."
+   "sha256": "f6460503afd67cff29abd285ae5816dbf53b32d7bdf6e82f789de579dfbaf4f3",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-42-owner-20261019.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-05": [
@@ -1215,25 +1220,40 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-08-aluminium-and-foam-dimensional-letters-v2.webp; replace with real product media."
   }
  ],
- "signage-raised-letters-31": [
+ "kiosk-posm-63": [
   {
-   "id": "signage-raised-letters-31-v1",
+   "id": "kiosk-posm-63-v1",
    "kind": "video",
-   "src": "/assets/placeholder-media/signage-raised-letters-31-v1.mp4",
-   "sourceId": "placeholder:signage-raised-letters-31-v1",
+   "src": "/assets/placeholder-media/kiosk-posm-63-v1.mp4",
+   "sourceId": "placeholder:kiosk-posm-63-v1",
    "width": 960,
    "height": 640,
-   "altVi": "Video minh họa: Chữ nổi Mica",
-   "altEn": "Illustrative video: Acrylic dimensional letters",
-   "source": "/assets/placeholder-media/signage-raised-letters-31-v1.mp4",
-   "sha256": "0ec3479df0845fead3606e6e03628ea540ed7cb89edc0d5bff2d209330a52e97",
-   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-31, signage-raised-letters-07, signage-raised-letters-19, signage-raised-letters-25; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/signage-raised-letters-31-v1-poster.webp",
+   "altVi": "Video minh họa: Gian hàng triển lãm",
+   "altEn": "Illustrative video: Exhibition booths",
+   "source": "/assets/placeholder-media/kiosk-posm-63-v1.mp4",
+   "sha256": "193c38dd019314aaafd6bf983b407f67fe5d148bdd26bfa492af8caf3b226acc",
+   "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-63, kiosk-posm-01, kiosk-posm-13, kiosk-posm-25; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/kiosk-posm-63-v1-poster.webp",
    "posterWidth": 960,
    "posterHeight": 640,
    "durationSeconds": 8.5,
    "hasAudio": false
   },
+  {
+   "id": "kiosk-posm-63-p2",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-63-p2.webp",
+   "sourceId": "placeholder:kiosk-posm-63-p2",
+   "width": 960,
+   "height": 640,
+   "altVi": "Gian hàng triển lãm (ảnh 2)",
+   "altEn": "Exhibition booths (photo 2)",
+   "source": "/assets/placeholder-media/kiosk-posm-63-p2.webp",
+   "sha256": "ddf419bc10ce4cdbedbfcae9359c2d6b524397815764ef3c78279e4a44edfc4f",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-13-exhibition-booths-audit-a032-v3.webp; replace with real product media."
+  }
+ ],
+ "signage-raised-letters-31": [
   {
    "id": "signage-raised-letters-31-p2",
    "kind": "image",
@@ -1246,6 +1266,32 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/signage-raised-letters-31-p2.webp",
    "sha256": "8ad6b78fb6d0744d2c37cc8bf0c4df7b25f4dcba440a1b099c0082f1142c3163",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-28-imagegen-20261014.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-31-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-31-p3.webp",
+   "sourceId": "placeholder:signage-raised-letters-31-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Mica (ảnh 3)",
+   "altEn": "Acrylic dimensional letters (photo 3)",
+   "source": "/assets/placeholder-media/signage-raised-letters-31-p3.webp",
+   "sha256": "85a8bbc4f4ac98f71c0664b4a98f0dc4771c9c953b70185cd2ee790fccbc16b8",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-32-imagegen-20261014.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-31-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-31-p4.webp",
+   "sourceId": "placeholder:signage-raised-letters-31-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Mica (ảnh 4)",
+   "altEn": "Acrylic dimensional letters (photo 4)",
+   "source": "/assets/placeholder-media/signage-raised-letters-31-p4.webp",
+   "sha256": "a245babdfdd27d23a2ce0bbc9f6050b9afb74d21a9c2730ceb8063d459717150",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-31-imagegen-20261014.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-24": [
@@ -1287,9 +1333,40 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-24-p4.webp",
    "sha256": "d1ccac22475a6911a2f3d5545d70f96702165f7da779290d7fa72b7e37a04d26",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-24-imagegen-20261014.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-24-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-24-p5.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-24-p5",
+   "width": 561,
+   "height": 701,
+   "altVi": "Hộp đèn LED siêu mỏng (ảnh 5)",
+   "altEn": "Slim LED light boxes (photo 5)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-24-p5.webp",
+   "sha256": "2305049a10ad3950e3c601e35edf0c39b8bfc819732d8e5ce2e82e63d8268fed",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-24-imagegen-20261014.webp; replace with real product media."
   }
  ],
  "print-decals-18": [
+  {
+   "id": "print-decals-18-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/print-decals-18-v1.mp4",
+   "sourceId": "placeholder:print-decals-18-v1",
+   "width": 960,
+   "height": 720,
+   "altVi": "Video minh họa: Decal dán kính, tường, xe và tem cắt bế",
+   "altEn": "Illustrative video: Window, wall, vehicle and die-cut decals",
+   "source": "/assets/placeholder-media/print-decals-18-v1.mp4",
+   "sha256": "06a60fb7216bab8c805ce88efb58f3bfff50d75446c316fecfba958103518eff",
+   "provenance": "Placeholder slideshow built with ffmpeg from print-decals-18, print-decals-11, print-decals-20, print-decals-21; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/print-decals-18-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 720,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "print-decals-18-p2",
    "kind": "image",
@@ -1302,45 +1379,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/print-decals-18-p2.webp",
    "sha256": "fcce35cc84fc54bd70f83b5d1f73dce802d23d8819e64b3535fe71ed027414ea",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-20-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-18-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-18-p3.webp",
-   "sourceId": "placeholder:print-decals-18-p3",
-   "width": 960,
-   "height": 720,
-   "altVi": "Decal dán kính, tường, xe và tem cắt bế (ảnh 3)",
-   "altEn": "Window, wall, vehicle and die-cut decals (photo 3)",
-   "source": "/assets/placeholder-media/print-decals-18-p3.webp",
-   "sha256": "c635be7e4b988f23040d7fde66bb8d63c0fa3e6bf9c685e751d0f3aeb2cebe37",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-18-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-18-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-18-p4.webp",
-   "sourceId": "placeholder:print-decals-18-p4",
-   "width": 960,
-   "height": 720,
-   "altVi": "Decal dán kính, tường, xe và tem cắt bế (ảnh 4)",
-   "altEn": "Window, wall, vehicle and die-cut decals (photo 4)",
-   "source": "/assets/placeholder-media/print-decals-18-p4.webp",
-   "sha256": "0ec986db30395aa49037dd48e4c9b40a45f2b27971fc1beedabe359dfa38ce45",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-18-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-18-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-18-p5.webp",
-   "sourceId": "placeholder:print-decals-18-p5",
-   "width": 960,
-   "height": 720,
-   "altVi": "Decal dán kính, tường, xe và tem cắt bế (ảnh 5)",
-   "altEn": "Window, wall, vehicle and die-cut decals (photo 5)",
-   "source": "/assets/placeholder-media/print-decals-18-p5.webp",
-   "sha256": "c9787e8d5924b3c463f17e9ccb0b3aec501f74d0ef71aa9b03d0f0c4ecd282f4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-18-owner-20260924.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-36": [
@@ -1368,6 +1406,19 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Award plaques (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-36-p3.webp",
    "sha256": "4076727f91fb6a412c34789e3175daa570513220ecc7f14745e8af9ab9d542d4",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-36-owner-20261012.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-36-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-36-p4.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-36-p4",
+   "width": 941,
+   "height": 1672,
+   "altVi": "Kỷ niệm chương (ảnh 4)",
+   "altEn": "Award plaques (photo 4)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-36-p4.webp",
+   "sha256": "e9de18bb75444f5e3b2242d4e5626e7352875756467732148474630ff92bad95",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-36-owner-20261012.webp; replace with real product media."
   }
  ],
@@ -1410,9 +1461,40 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/signage-raised-letters-19-p4.webp",
    "sha256": "fcf77ee9eb77740ef71bbacf4d6800d98f12e66d07f424e59eaf6a16ff106ba9",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-19-acrylic-dimensional-letters-v2.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-19-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-19-p5.webp",
+   "sourceId": "placeholder:signage-raised-letters-19-p5",
+   "width": 640,
+   "height": 960,
+   "altVi": "Chữ nổi Mica (ảnh 5)",
+   "altEn": "Acrylic dimensional letters (photo 5)",
+   "source": "/assets/placeholder-media/signage-raised-letters-19-p5.webp",
+   "sha256": "ef8eb13edf5bb5a6ce51efe081dee4577d12a3f0896d910fec11c4449fb773f7",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-19-acrylic-dimensional-letters-v2.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-16": [
+  {
+   "id": "office-signs-wayfinding-16-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-16-v1.mp4",
+   "sourceId": "placeholder:office-signs-wayfinding-16-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Biển phòng họp",
+   "altEn": "Illustrative video: Meeting-room signs",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-16-v1.mp4",
+   "sha256": "f8466cd562b990de4e858f0c242c1ef241d0c9d39cca6d5791ce9bb56903af71",
+   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-16, office-signs-wayfinding-09, office-signs-wayfinding-14, office-signs-wayfinding-15; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-16-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "office-signs-wayfinding-16-p2",
    "kind": "image",
@@ -1423,83 +1505,124 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 2)",
    "altEn": "Meeting-room signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-16-p2.webp",
-   "sha256": "362225bc0aa4fa6f0eb06925d7cb91779afe0468494ba42530ad49c3a817dfb2",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-brushed-01.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-16-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-16-p3.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-16-p3",
-   "width": 960,
-   "height": 640,
-   "altVi": "Biển phòng họp (ảnh 3)",
-   "altEn": "Meeting-room signs (photo 3)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-16-p3.webp",
-   "sha256": "e93bd4bc6e91c8495e818d1f1c4b41a9feadc38183ddae27652d20ddae1510f7",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-acrylic-02.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-16-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-16-p4.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-16-p4",
-   "width": 960,
-   "height": 640,
-   "altVi": "Biển phòng họp (ảnh 4)",
-   "altEn": "Meeting-room signs (photo 4)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-16-p4.webp",
-   "sha256": "76cf6a11c638cb2720f098c9e17f0d0ba21ba14d7f4d1debc4e2ce13d4c486cb",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-timber-03.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-16-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-16-p5.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-16-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Biển phòng họp (ảnh 5)",
-   "altEn": "Meeting-room signs (photo 5)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-16-p5.webp",
-   "sha256": "cc14d748aaf37d6735d21a6eff9c57f5f5dcbd9b0437170ba740a7f170c08df8",
+   "sha256": "d8c3cbbb703c655b3d1c763c51290e17970c7833339bd052e05ea9864fe8173f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-timber-03.webp; replace with real product media."
   }
  ],
- "mobile-retail-08": [
+ "signage-raised-letters-38": [
   {
-   "id": "mobile-retail-08-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/mobile-retail-08-v1.mp4",
-   "sourceId": "placeholder:mobile-retail-08-v1",
+   "id": "signage-raised-letters-38-p2",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-38-p2.webp",
+   "sourceId": "placeholder:signage-raised-letters-38-p2",
    "width": 960,
-   "height": 960,
-   "altVi": "Video minh họa: Quầy bán hàng gấp gọn",
-   "altEn": "Illustrative video: Folding retail counters",
-   "source": "/assets/placeholder-media/mobile-retail-08-v1.mp4",
-   "sha256": "48e6e4604d389899a6f58a7e283692ddd267fb899a09cd51ccadc0c1e20e5118",
-   "provenance": "Placeholder slideshow built with ffmpeg from mobile-retail-08, mobile-retail-17; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/mobile-retail-08-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 960,
-   "durationSeconds": 4.5,
-   "hasAudio": false
+   "height": 640,
+   "altVi": "Chữ nổi Inox sáng chân (ảnh 2)",
+   "altEn": "Halo-lit stainless-steel letters (photo 2)",
+   "source": "/assets/placeholder-media/signage-raised-letters-38-p2.webp",
+   "sha256": "5e947e3e062a342daeefc1c689ea62b1758af91a55301008e51d34c7073053a2",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-06-v2.webp; replace with real product media."
   },
+  {
+   "id": "signage-raised-letters-38-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-38-p3.webp",
+   "sourceId": "placeholder:signage-raised-letters-38-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Inox sáng chân (ảnh 3)",
+   "altEn": "Halo-lit stainless-steel letters (photo 3)",
+   "source": "/assets/placeholder-media/signage-raised-letters-38-p3.webp",
+   "sha256": "4ec4b49bd3dca2caca0cdc62f76645909964d73f79d580de8cd86ef8281b13c9",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-18-halo-lit-stainless-steel-letters-audit-a254-v1.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-38-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-38-p4.webp",
+   "sourceId": "placeholder:signage-raised-letters-38-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Inox sáng chân (ảnh 4)",
+   "altEn": "Halo-lit stainless-steel letters (photo 4)",
+   "source": "/assets/placeholder-media/signage-raised-letters-38-p4.webp",
+   "sha256": "bfba9ce097c6f975c4cae5831ec588aebec92163baeae41366dc72c22d75fbb5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-27-imagegen-20261014.webp; replace with real product media."
+  }
+ ],
+ "mobile-retail-08": [
   {
    "id": "mobile-retail-08-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/mobile-retail-08-p2.webp",
    "sourceId": "placeholder:mobile-retail-08-p2",
    "width": 960,
-   "height": 960,
+   "height": 720,
    "altVi": "Quầy bán hàng gấp gọn (ảnh 2)",
    "altEn": "Folding retail counters (photo 2)",
    "source": "/assets/placeholder-media/mobile-retail-08-p2.webp",
-   "sha256": "98a4cf71f3440350454a9a33f1259e350bffea6a55c2f171d459906d3ab42bb2",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-08-folding-retail-counters-v2.webp; replace with real product media."
+   "sha256": "f1267f80fabd8c48bab35fe9c7ee19dfd16d488901b7c43c82a6cbe36aac25ec",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-08-folding-retail-counters-v2-audit-a129-v3.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-08-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-08-p3.webp",
+   "sourceId": "placeholder:mobile-retail-08-p3",
+   "width": 960,
+   "height": 720,
+   "altVi": "Quầy bán hàng gấp gọn (ảnh 3)",
+   "altEn": "Folding retail counters (photo 3)",
+   "source": "/assets/placeholder-media/mobile-retail-08-p3.webp",
+   "sha256": "b2637b59810d26c5ffa21df6f3a488160cc54c5e3f24744478865587827044b5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-08-folding-retail-counters-v2-audit-a129-v3.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-08-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-08-p4.webp",
+   "sourceId": "placeholder:mobile-retail-08-p4",
+   "width": 960,
+   "height": 720,
+   "altVi": "Quầy bán hàng gấp gọn (ảnh 4)",
+   "altEn": "Folding retail counters (photo 4)",
+   "source": "/assets/placeholder-media/mobile-retail-08-p4.webp",
+   "sha256": "85972b7b990df3e48ac887b141440158f74ad62ec93e1033fe9331c10dc7e166",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-08-folding-retail-counters-v2-audit-a129-v3.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-08-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-08-p5.webp",
+   "sourceId": "placeholder:mobile-retail-08-p5",
+   "width": 960,
+   "height": 720,
+   "altVi": "Quầy bán hàng gấp gọn (ảnh 5)",
+   "altEn": "Folding retail counters (photo 5)",
+   "source": "/assets/placeholder-media/mobile-retail-08-p5.webp",
+   "sha256": "82a6208ae7bf1b34306b5630d24de6b5eb49ffd75e7baf8f673cdafa701053a9",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-08-folding-retail-counters-v2-audit-a129-v3.webp; replace with real product media."
   }
  ],
  "print-decals-34": [
+  {
+   "id": "print-decals-34-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/print-decals-34-v1.mp4",
+   "sourceId": "placeholder:print-decals-34-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Menu bìa cứng, da và gỗ",
+   "altEn": "Illustrative video: Hard-cover, leather and timber menus",
+   "source": "/assets/placeholder-media/print-decals-34-v1.mp4",
+   "sha256": "8681e02101b0012921420139da5c29b29c85e7cea9460ba4944647db96c0dcee",
+   "provenance": "Placeholder slideshow built with ffmpeg from print-decals-34, print-decals-07, print-decals-31, print-decals-32; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/print-decals-34-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "print-decals-34-p2",
    "kind": "image",
@@ -1512,32 +1635,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/print-decals-34-p2.webp",
    "sha256": "99143223fe9fdfc3ac3a6548bebfbf60c3cb426e01fe568f72003eec4b117e56",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-32-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-34-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-34-p3.webp",
-   "sourceId": "placeholder:print-decals-34-p3",
-   "width": 960,
-   "height": 640,
-   "altVi": "Menu bìa cứng, da và gỗ (ảnh 3)",
-   "altEn": "Hard-cover, leather and timber menus (photo 3)",
-   "source": "/assets/placeholder-media/print-decals-34-p3.webp",
-   "sha256": "ad5431975ff620d69e6bd8f82c64f050d270d6e334b73218ea2eb4050a5c1650",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-35-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-34-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-34-p4.webp",
-   "sourceId": "placeholder:print-decals-34-p4",
-   "width": 960,
-   "height": 640,
-   "altVi": "Menu bìa cứng, da và gỗ (ảnh 4)",
-   "altEn": "Hard-cover, leather and timber menus (photo 4)",
-   "source": "/assets/placeholder-media/print-decals-34-p4.webp",
-   "sha256": "db43099f8117dafe8d7543a25f67bf0f059f47fd942291c0eefb8a1fcb3e2e17",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-34-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "print-decals-27": [
@@ -1579,55 +1676,81 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/print-decals-27-p4.webp",
    "sha256": "c521cd9d97217286c6f40241802725723e20e6aac49f9ea2bffa665c305b7fab",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-29-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-27-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-27-p5.webp",
-   "sourceId": "placeholder:print-decals-27-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Bao bì và ly in F&B (ảnh 5)",
-   "altEn": "Printed food and beverage packaging (photo 5)",
-   "source": "/assets/placeholder-media/print-decals-27-p5.webp",
-   "sha256": "d2ab234fe7c8b9122cae9d255f7a04e9578d6b2284611248a4ef4775d000788f",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-27-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "mobile-retail-07": [
-  {
-   "id": "mobile-retail-07-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/mobile-retail-07-v1.mp4",
-   "sourceId": "placeholder:mobile-retail-07-v1",
-   "width": 720,
-   "height": 960,
-   "altVi": "Video minh họa: Xe đẩy trưng bày sản phẩm",
-   "altEn": "Illustrative video: Mobile product display carts",
-   "source": "/assets/placeholder-media/mobile-retail-07-v1.mp4",
-   "sha256": "7720c6bf56bdeff1485ac996881ea6cf257d791f17209aff78e299e76cb90432",
-   "provenance": "Placeholder slideshow built with ffmpeg from mobile-retail-07; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/mobile-retail-07-v1-poster.webp",
-   "posterWidth": 720,
-   "posterHeight": 960,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "mobile-retail-07-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/mobile-retail-07-p2.webp",
    "sourceId": "placeholder:mobile-retail-07-p2",
-   "width": 720,
-   "height": 960,
+   "width": 1087,
+   "height": 1447,
    "altVi": "Xe đẩy trưng bày sản phẩm (ảnh 2)",
    "altEn": "Mobile product display carts (photo 2)",
    "source": "/assets/placeholder-media/mobile-retail-07-p2.webp",
-   "sha256": "779aeb82515e007a7fd3a1ccd8b5ddc1ad1e8999a85cf30e32d15322969602ca",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-07-imagegen-20261018.webp; replace with real product media."
+   "sha256": "44893fd05bc2d2e1cb8b020a8d7f567e60b6d649a421a7a6671f30b9af933509",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-07-imagegen-20261018-audit-a128-v1.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-07-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-07-p3.webp",
+   "sourceId": "placeholder:mobile-retail-07-p3",
+   "width": 1087,
+   "height": 1447,
+   "altVi": "Xe đẩy trưng bày sản phẩm (ảnh 3)",
+   "altEn": "Mobile product display carts (photo 3)",
+   "source": "/assets/placeholder-media/mobile-retail-07-p3.webp",
+   "sha256": "49da8fcb8f8dd2b535eb2d487079ba847d286a6fb10982347205b227b39f3118",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-07-imagegen-20261018-audit-a128-v1.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-07-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-07-p4.webp",
+   "sourceId": "placeholder:mobile-retail-07-p4",
+   "width": 1087,
+   "height": 1447,
+   "altVi": "Xe đẩy trưng bày sản phẩm (ảnh 4)",
+   "altEn": "Mobile product display carts (photo 4)",
+   "source": "/assets/placeholder-media/mobile-retail-07-p4.webp",
+   "sha256": "865eeffa36a8be498ad6a3171f765ec66fe94e4e3103a306ff816877d31869cf",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-07-imagegen-20261018-audit-a128-v1.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-07-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-07-p5.webp",
+   "sourceId": "placeholder:mobile-retail-07-p5",
+   "width": 1087,
+   "height": 1447,
+   "altVi": "Xe đẩy trưng bày sản phẩm (ảnh 5)",
+   "altEn": "Mobile product display carts (photo 5)",
+   "source": "/assets/placeholder-media/mobile-retail-07-p5.webp",
+   "sha256": "949c0b53788087fbc7071b355bebe905c1bae4c0a997d8d552195b2a2641118d",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-07-imagegen-20261018-audit-a128-v1.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-49": [
+  {
+   "id": "office-signs-wayfinding-49-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-49-v1.mp4",
+   "sourceId": "placeholder:office-signs-wayfinding-49-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Bảng chức danh Mica",
+   "altEn": "Illustrative video: Acrylic desk nameplates",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-49-v1.mp4",
+   "sha256": "3cd6ac40bf927618c867b434d19b508f98da07a926b8f0502240461107fb4fb2",
+   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-49, office-signs-wayfinding-06, office-signs-wayfinding-50; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-49-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
   {
    "id": "office-signs-wayfinding-49-p2",
    "kind": "image",
@@ -1640,32 +1763,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-49-p2.webp",
    "sha256": "de92c91e282b03154e57d37abd5378f6b566754e2a064017214309f5de97013f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-50-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-49-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-49-p3.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-49-p3",
-   "width": 960,
-   "height": 640,
-   "altVi": "Bảng chức danh Mica (ảnh 3)",
-   "altEn": "Acrylic desk nameplates (photo 3)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-49-p3.webp",
-   "sha256": "09047228cb1ca84ca1a42e2414836105acd6734c67ef061430b19e9c893013a0",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-49-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-49-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-49-p4.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-49-p4",
-   "width": 960,
-   "height": 640,
-   "altVi": "Bảng chức danh Mica (ảnh 4)",
-   "altEn": "Acrylic desk nameplates (photo 4)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-49-p4.webp",
-   "sha256": "69e5ed57a52955cad4b8868c131fd95cfe20767564ae26e04fcbcafafef1e047",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-49-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-06": [
@@ -1679,8 +1776,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Chữ nổi Inox sáng chân (ảnh 2)",
    "altEn": "Halo-lit stainless-steel letters (photo 2)",
    "source": "/assets/placeholder-media/signage-raised-letters-06-p2.webp",
-   "sha256": "bfba9ce097c6f975c4cae5831ec588aebec92163baeae41366dc72c22d75fbb5",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-27-imagegen-20261014.webp; replace with real product media."
+   "sha256": "4ec4b49bd3dca2caca0cdc62f76645909964d73f79d580de8cd86ef8281b13c9",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-18-halo-lit-stainless-steel-letters-audit-a254-v1.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-06-p3",
@@ -1692,8 +1789,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Chữ nổi Inox sáng chân (ảnh 3)",
    "altEn": "Halo-lit stainless-steel letters (photo 3)",
    "source": "/assets/placeholder-media/signage-raised-letters-06-p3.webp",
-   "sha256": "43984d94380a33d7ec8a0c04d59345e7df93abb5e68fb788eb723713cd66732b",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-29-imagegen-20261014.webp; replace with real product media."
+   "sha256": "bfba9ce097c6f975c4cae5831ec588aebec92163baeae41366dc72c22d75fbb5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-27-imagegen-20261014.webp; replace with real product media."
   },
   {
    "id": "signage-raised-letters-06-p4",
@@ -1705,42 +1802,11 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Chữ nổi Inox sáng chân (ảnh 4)",
    "altEn": "Halo-lit stainless-steel letters (photo 4)",
    "source": "/assets/placeholder-media/signage-raised-letters-06-p4.webp",
-   "sha256": "f13916917c4f9018397ad82d7236ee5dc07d117ab2de7fffd4dc68ce93e28b68",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-30-imagegen-20261014.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-06-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-06-p5.webp",
-   "sourceId": "placeholder:signage-raised-letters-06-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Chữ nổi Inox sáng chân (ảnh 5)",
-   "altEn": "Halo-lit stainless-steel letters (photo 5)",
-   "source": "/assets/placeholder-media/signage-raised-letters-06-p5.webp",
-   "sha256": "3f6ee9cffa87432a4da053be54832f842917d5f174ced02e4c06ebbd6e6cf6c4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-37-imagegen-20261018.webp; replace with real product media."
+   "sha256": "43984d94380a33d7ec8a0c04d59345e7df93abb5e68fb788eb723713cd66732b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-29-imagegen-20261014.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-26": [
-  {
-   "id": "office-signs-wayfinding-26-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-26-v1.mp4",
-   "sourceId": "placeholder:office-signs-wayfinding-26-v1",
-   "width": 960,
-   "height": 640,
-   "altVi": "Video minh họa: Sơ đồ tòa nhà",
-   "altEn": "Illustrative video: Building directories",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-26-v1.mp4",
-   "sha256": "1308d87c845d952cba152bd9750ded9c7d894f07d5175ae6e1c33ce37548b057",
-   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-26, office-signs-wayfinding-11, office-signs-wayfinding-27, office-signs-wayfinding-29; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-26-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 640,
-   "durationSeconds": 8.5,
-   "hasAudio": false
-  },
   {
    "id": "office-signs-wayfinding-26-p2",
    "kind": "image",
@@ -1753,9 +1819,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-26-p2.webp",
    "sha256": "0e9c3e3307bb0a53aa0b4bf15fe35914897708b86a187471c9cea9ebdae1e238",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-29-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-26-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-26-p3.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-26-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Sơ đồ tòa nhà (ảnh 3)",
+   "altEn": "Building directories (photo 3)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-26-p3.webp",
+   "sha256": "11af04126572947902ffc4f5801c5ae37ebab99de38d1dcfea7b0e468a153c1e",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-26-owner-20260924.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-26-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-26-p4.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-26-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Sơ đồ tòa nhà (ảnh 4)",
+   "altEn": "Building directories (photo 4)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-26-p4.webp",
+   "sha256": "192f56dc2928cf7bcb2273bfe05f7e36aff23ffd9658f8953a0840445758af4c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-26-owner-20260924.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-26-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-26-p5.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-26-p5",
+   "width": 960,
+   "height": 640,
+   "altVi": "Sơ đồ tòa nhà (ảnh 5)",
+   "altEn": "Building directories (photo 5)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-26-p5.webp",
+   "sha256": "105174a60820f921646de2c2de95bec8b267069f322e9bf5ebd6981af701e085",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-26-owner-20260924.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-15": [
+  {
+   "id": "signage-raised-letters-15-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/signage-raised-letters-15-v1.mp4",
+   "sourceId": "placeholder:signage-raised-letters-15-v1",
+   "width": 960,
+   "height": 960,
+   "altVi": "Video minh họa: Bảng quảng cáo tấm lớn ngoài trời",
+   "altEn": "Illustrative video: Large-format outdoor signs",
+   "source": "/assets/placeholder-media/signage-raised-letters-15-v1.mp4",
+   "sha256": "beb0f0b19a06428df07ec653d2e15453bbb84ab6f5ff8dd6530536205087d943",
+   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-15, signage-raised-letters-03, signage-raised-letters-24; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/signage-raised-letters-15-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 960,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
   {
    "id": "signage-raised-letters-15-p2",
    "kind": "image",
@@ -1767,32 +1890,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Large-format outdoor signs (photo 2)",
    "source": "/assets/placeholder-media/signage-raised-letters-15-p2.webp",
    "sha256": "b7a767fb5c38d17cc02682354e6fbb83b3653463e34fed63887d7627fb46941f",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-15-large-format-outdoor-signs-v2.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-15-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-15-p3.webp",
-   "sourceId": "placeholder:signage-raised-letters-15-p3",
-   "width": 960,
-   "height": 960,
-   "altVi": "Bảng quảng cáo tấm lớn ngoài trời (ảnh 3)",
-   "altEn": "Large-format outdoor signs (photo 3)",
-   "source": "/assets/placeholder-media/signage-raised-letters-15-p3.webp",
-   "sha256": "2c620a45cb17feae681a84602a53edb5da49dab2e82863ea751fa47d5c9f9f20",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-15-large-format-outdoor-signs-v2.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-15-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-15-p4.webp",
-   "sourceId": "placeholder:signage-raised-letters-15-p4",
-   "width": 960,
-   "height": 960,
-   "altVi": "Bảng quảng cáo tấm lớn ngoài trời (ảnh 4)",
-   "altEn": "Large-format outdoor signs (photo 4)",
-   "source": "/assets/placeholder-media/signage-raised-letters-15-p4.webp",
-   "sha256": "7226528cd099bc1053a54ed5af47b7def00469421b7085ecae480e909c4ff1ca",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-15-large-format-outdoor-signs-v2.webp; replace with real product media."
   }
  ],
@@ -1835,40 +1932,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/kiosk-posm-41-p4.webp",
    "sha256": "9d3362ea6ed87f7a0772c943890e29181ec121228edf262f0b0ee76465acef82",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-43-imagegen-20261017.webp; replace with real product media."
-  },
-  {
-   "id": "kiosk-posm-41-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/kiosk-posm-41-p5.webp",
-   "sourceId": "placeholder:kiosk-posm-41-p5",
-   "width": 960,
-   "height": 960,
-   "altVi": "Quầy lễ tân sự kiện (ảnh 5)",
-   "altEn": "Event reception counters (photo 5)",
-   "source": "/assets/placeholder-media/kiosk-posm-41-p5.webp",
-   "sha256": "3a79d9b1ab8360b92e632da4c289e3f3f029ac001e292fa526fabc9fff656d02",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-41-imagegen-20261015.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-43": [
-  {
-   "id": "office-signs-wayfinding-43-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-43-v1.mp4",
-   "sourceId": "placeholder:office-signs-wayfinding-43-v1",
-   "width": 960,
-   "height": 640,
-   "altVi": "Video minh họa: Biển số nhà Inox ăn mòn và dập nổi",
-   "altEn": "Illustrative video: Etched and embossed stainless-steel house numbers",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-43-v1.mp4",
-   "sha256": "0a98debe30e3e380526fb8c4dca1597b9529bd59f0503b9baffcb0cfafbaaa57",
-   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-43, office-signs-wayfinding-01, office-signs-wayfinding-13, office-signs-wayfinding-32; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-43-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 640,
-   "durationSeconds": 8.5,
-   "hasAudio": false
-  },
   {
    "id": "office-signs-wayfinding-43-p2",
    "kind": "image",
@@ -1881,9 +1947,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-43-p2.webp",
    "sha256": "73caa65bc0aed38f31daf158edc17e5c434ad805fdcc58e6a359c9608b42be9c",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-42-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-43-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-43-p3.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-43-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Biển số nhà Inox ăn mòn và dập nổi (ảnh 3)",
+   "altEn": "Etched and embossed stainless-steel house numbers (photo 3)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-43-p3.webp",
+   "sha256": "1b2fa948fb173d494552fbd4f4cd02dc51a911d9f821e1d5a78a3ad2e8b40498",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-43-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-43-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-43-p4.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-43-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Biển số nhà Inox ăn mòn và dập nổi (ảnh 4)",
+   "altEn": "Etched and embossed stainless-steel house numbers (photo 4)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-43-p4.webp",
+   "sha256": "769983a838caa5e1a7be857174543968fbc314cdaba1bc49502e5a92ea1ca46d",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-43-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-43-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-43-p5.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-43-p5",
+   "width": 960,
+   "height": 640,
+   "altVi": "Biển số nhà Inox ăn mòn và dập nổi (ảnh 5)",
+   "altEn": "Etched and embossed stainless-steel house numbers (photo 5)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-43-p5.webp",
+   "sha256": "b3c1918a3486b40ad5c45701e581eaa11bd9057e109c05cf5b1e1f27dce9c29a",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-43-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-08": [
+  {
+   "id": "led-displays-lightboxes-08-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-08-v1.mp4",
+   "sourceId": "placeholder:led-displays-lightboxes-08-v1",
+   "width": 960,
+   "height": 960,
+   "altVi": "Video minh họa: Màn hình LED showroom",
+   "altEn": "Illustrative video: Showroom LED screens",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-08-v1.mp4",
+   "sha256": "f7aadda69c1b706f0212758accb4d38c175b96c3c0165daf2a85c4fd6840025a",
+   "provenance": "Placeholder slideshow built with ffmpeg from led-displays-lightboxes-08; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/led-displays-lightboxes-08-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 960,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
   {
    "id": "led-displays-lightboxes-08-p2",
    "kind": "image",
@@ -1895,32 +2018,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Showroom LED screens (photo 2)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-08-p2.webp",
    "sha256": "b55f4438bccec99bab700e059f3a9ba5871944fcb7591bb0a58bb13874c96408",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-08-showroom-led-screens.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-08-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-08-p3.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-08-p3",
-   "width": 960,
-   "height": 960,
-   "altVi": "Màn hình LED showroom (ảnh 3)",
-   "altEn": "Showroom LED screens (photo 3)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-08-p3.webp",
-   "sha256": "449a7cffb9a542b06ad08131f409403547d6ee4f3dede0c9804eae650382ffbb",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-08-showroom-led-screens.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-08-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-08-p4.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-08-p4",
-   "width": 960,
-   "height": 960,
-   "altVi": "Màn hình LED showroom (ảnh 4)",
-   "altEn": "Showroom LED screens (photo 4)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-08-p4.webp",
-   "sha256": "a3fcc872757fce4695d443eff40893582169150eae0a1b372def5bee5576a3fc",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-08-showroom-led-screens.webp; replace with real product media."
   }
  ],
@@ -1963,40 +2060,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/kiosk-posm-08-p4.webp",
    "sha256": "9d3362ea6ed87f7a0772c943890e29181ec121228edf262f0b0ee76465acef82",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-43-imagegen-20261017.webp; replace with real product media."
-  },
-  {
-   "id": "kiosk-posm-08-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/kiosk-posm-08-p5.webp",
-   "sourceId": "placeholder:kiosk-posm-08-p5",
-   "width": 960,
-   "height": 960,
-   "altVi": "Quầy lễ tân sự kiện (ảnh 5)",
-   "altEn": "Event reception counters (photo 5)",
-   "source": "/assets/placeholder-media/kiosk-posm-08-p5.webp",
-   "sha256": "5c9ca81d5d8264a949481e8a781005705a7f61baca0695f12c70ec8e7d25e420",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-08-event-reception-counters.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-23": [
-  {
-   "id": "signage-raised-letters-23-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/signage-raised-letters-23-v1.mp4",
-   "sourceId": "placeholder:signage-raised-letters-23-v1",
-   "width": 960,
-   "height": 720,
-   "altVi": "Video minh họa: Pano tấm lớn ngoài trời",
-   "altEn": "Illustrative video: Large outdoor advertising panels",
-   "source": "/assets/placeholder-media/signage-raised-letters-23-v1.mp4",
-   "sha256": "691d17231de7d5c53459a2dcd6b71f1d963600a121747ca6c5f112c633bb3c38",
-   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-23, signage-raised-letters-02, signage-raised-letters-14; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/signage-raised-letters-23-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 720,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "signage-raised-letters-23-p2",
    "kind": "image",
@@ -2009,9 +2075,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/signage-raised-letters-23-p2.webp",
    "sha256": "d9d145592b5c39f9bdd3749f30ca72c8e3f686f5bae779cf7548caeb6023575f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-02-v3.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-23-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-23-p3.webp",
+   "sourceId": "placeholder:signage-raised-letters-23-p3",
+   "width": 960,
+   "height": 720,
+   "altVi": "Pano tấm lớn ngoài trời (ảnh 3)",
+   "altEn": "Large outdoor advertising panels (photo 3)",
+   "source": "/assets/placeholder-media/signage-raised-letters-23-p3.webp",
+   "sha256": "3326504ce66515b81dcb5cba2015bcb70f27d0c54735725f68cabb8987f80af1",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-23-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-23-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-23-p4.webp",
+   "sourceId": "placeholder:signage-raised-letters-23-p4",
+   "width": 960,
+   "height": 720,
+   "altVi": "Pano tấm lớn ngoài trời (ảnh 4)",
+   "altEn": "Large outdoor advertising panels (photo 4)",
+   "source": "/assets/placeholder-media/signage-raised-letters-23-p4.webp",
+   "sha256": "402f77eda52012a6262f9df0c393bb0dd218d46f91b4bf71432d9f20029bcf7c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-23-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-23-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-23-p5.webp",
+   "sourceId": "placeholder:signage-raised-letters-23-p5",
+   "width": 960,
+   "height": 720,
+   "altVi": "Pano tấm lớn ngoài trời (ảnh 5)",
+   "altEn": "Large outdoor advertising panels (photo 5)",
+   "source": "/assets/placeholder-media/signage-raised-letters-23-p5.webp",
+   "sha256": "e883e3cbe5a17a2294b35f2219aa3069f2ed1f46d8b6883a3e22141cc549227e",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-23-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-30": [
+  {
+   "id": "office-signs-wayfinding-30-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-30-v1.mp4",
+   "sourceId": "placeholder:office-signs-wayfinding-30-v1",
+   "width": 640,
+   "height": 960,
+   "altVi": "Video minh họa: Bảng tên đường",
+   "altEn": "Illustrative video: Street-name signs",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-30-v1.mp4",
+   "sha256": "41acba40a5a6176a15b5b4d3bf4b7c270bd00556ddbaa47fe1a8b7c09a40ec34",
+   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-30; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-30-v1-poster.webp",
+   "posterWidth": 640,
+   "posterHeight": 960,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
   {
    "id": "office-signs-wayfinding-30-p2",
    "kind": "image",
@@ -2024,32 +2147,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-30-p2.webp",
    "sha256": "f219da7d2e0d0b5f57feed5cb0970d62d6f04483bcfb9c6f184f1e2f6153d233",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-30-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-30-p3.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-30-p3",
-   "width": 640,
-   "height": 960,
-   "altVi": "Bảng tên đường (ảnh 3)",
-   "altEn": "Street-name signs (photo 3)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-30-p3.webp",
-   "sha256": "03a3ab93a020d925091ea5c79c620e4b70a85bcafa0fe90f16ec8a06aa86e58f",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-30-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-30-p4.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-30-p4",
-   "width": 640,
-   "height": 960,
-   "altVi": "Bảng tên đường (ảnh 4)",
-   "altEn": "Street-name signs (photo 4)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-30-p4.webp",
-   "sha256": "8cb91c26fc7e9cd4263dca407303fd7ac6843235ab6cd7c0c214ae31628e8b8d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
   }
  ],
  "print-decals-10": [
@@ -2058,73 +2155,42 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/print-decals-10-p2.webp",
    "sourceId": "placeholder:print-decals-10-p2",
-   "width": 640,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "In bạt Hiflex (ảnh 2)",
    "altEn": "Hiflex banner printing (photo 2)",
    "source": "/assets/placeholder-media/print-decals-10-p2.webp",
-   "sha256": "da1f406c5ba3ca9ab0ca8346e0c29c6dbb40793638929b34150a63d7c0d32ebe",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2.webp; replace with real product media."
+   "sha256": "a6015a60b52659cc47c54fb888bedd918bcfdf4c05083d15cf8cdc67bfff2597",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2-audit-a211-v1.webp; replace with real product media."
   },
   {
    "id": "print-decals-10-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/print-decals-10-p3.webp",
    "sourceId": "placeholder:print-decals-10-p3",
-   "width": 640,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "In bạt Hiflex (ảnh 3)",
    "altEn": "Hiflex banner printing (photo 3)",
    "source": "/assets/placeholder-media/print-decals-10-p3.webp",
-   "sha256": "7425d9f221e902bd64d45161bef2d80b482a3e8febfbc3149b8d46fc88abd70d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2.webp; replace with real product media."
+   "sha256": "bb9dc46cbb1fffc45859103177b9972a86496176b97c8b950f6cc57d6e9c61bb",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2-audit-a211-v1.webp; replace with real product media."
   },
   {
    "id": "print-decals-10-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/print-decals-10-p4.webp",
    "sourceId": "placeholder:print-decals-10-p4",
-   "width": 640,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "In bạt Hiflex (ảnh 4)",
    "altEn": "Hiflex banner printing (photo 4)",
    "source": "/assets/placeholder-media/print-decals-10-p4.webp",
-   "sha256": "3894b3a636b41e4cc5d70b895bafea52625edef75d063cbdab95e1f64100ff3b",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-10-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-10-p5.webp",
-   "sourceId": "placeholder:print-decals-10-p5",
-   "width": 640,
-   "height": 960,
-   "altVi": "In bạt Hiflex (ảnh 5)",
-   "altEn": "Hiflex banner printing (photo 5)",
-   "source": "/assets/placeholder-media/print-decals-10-p5.webp",
-   "sha256": "f61ac52286e84c72432b448360651049201d649dae375ba5d881962dafe5a25d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2.webp; replace with real product media."
+   "sha256": "511f057c85a554257c53995cb014d54f1fb1347d240980b30f4eb1092ccd67bf",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-10-hiflex-banner-printing-v2-audit-a211-v1.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-07": [
-  {
-   "id": "led-displays-lightboxes-07-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-07-v1.mp4",
-   "sourceId": "placeholder:led-displays-lightboxes-07-v1",
-   "width": 720,
-   "height": 960,
-   "altVi": "Video minh họa: Màn hình LED hội trường",
-   "altEn": "Illustrative video: Auditorium LED screens",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-07-v1.mp4",
-   "sha256": "fd906d4a2b5eda48542e905efb0ac6a989890e90e0e2afd733f6074f8a3786e4",
-   "provenance": "Placeholder slideshow built with ffmpeg from led-displays-lightboxes-07, led-displays-lightboxes-25, led-displays-lightboxes-26; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/led-displays-lightboxes-07-v1-poster.webp",
-   "posterWidth": 720,
-   "posterHeight": 960,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "led-displays-lightboxes-07-p2",
    "kind": "image",
@@ -2137,9 +2203,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-07-p2.webp",
    "sha256": "7924e3d8a49c69c2b2ca91fdf37c1caa69e2e8203cdf7c7de35bacbb2cd52210",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-07-auditorium-led-screens.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-07-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-07-p3.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-07-p3",
+   "width": 720,
+   "height": 960,
+   "altVi": "Màn hình LED hội trường (ảnh 3)",
+   "altEn": "Auditorium LED screens (photo 3)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-07-p3.webp",
+   "sha256": "821ee38193fa0b954392bc4e217ee53d7a4996b9b4727dee521acb97ad265c2c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-07-auditorium-led-screens.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-07-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-07-p4.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-07-p4",
+   "width": 720,
+   "height": 960,
+   "altVi": "Màn hình LED hội trường (ảnh 4)",
+   "altEn": "Auditorium LED screens (photo 4)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-07-p4.webp",
+   "sha256": "8708b099a933eb2c63a41268eb4cedece43e9d5ff175c873f0d80dc5eacfafa6",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-07-auditorium-led-screens.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-07-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-07-p5.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-07-p5",
+   "width": 720,
+   "height": 960,
+   "altVi": "Màn hình LED hội trường (ảnh 5)",
+   "altEn": "Auditorium LED screens (photo 5)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-07-p5.webp",
+   "sha256": "9beec216bc97193a53e0eaac6803b898d67bf04253204c84043022520627670b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-07-auditorium-led-screens.webp; replace with real product media."
   }
  ],
  "mobile-retail-21": [
+  {
+   "id": "mobile-retail-21-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/mobile-retail-21-v1.mp4",
+   "sourceId": "placeholder:mobile-retail-21-v1",
+   "width": 960,
+   "height": 720,
+   "altVi": "Video minh họa: Quầy bán hàng ngoài trời",
+   "altEn": "Illustrative video: Outdoor retail counters",
+   "source": "/assets/placeholder-media/mobile-retail-21-v1.mp4",
+   "sha256": "dd83278dd740ee9e3dc2b15a8c0576241b43ccfb3a347a5443ed007f1e19f180",
+   "provenance": "Placeholder slideshow built with ffmpeg from mobile-retail-21, mobile-retail-09; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/mobile-retail-21-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 720,
+   "durationSeconds": 4.5,
+   "hasAudio": false
+  },
   {
    "id": "mobile-retail-21-p2",
    "kind": "image",
@@ -2151,32 +2274,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Outdoor retail counters (photo 2)",
    "source": "/assets/placeholder-media/mobile-retail-21-p2.webp",
    "sha256": "91b676ac35c4dd766b27c7fe88c8efc0f4bd74b8e0f8b3de3ef2ffbf3000ffa4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-21-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "mobile-retail-21-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/mobile-retail-21-p3.webp",
-   "sourceId": "placeholder:mobile-retail-21-p3",
-   "width": 960,
-   "height": 720,
-   "altVi": "Quầy bán hàng ngoài trời (ảnh 3)",
-   "altEn": "Outdoor retail counters (photo 3)",
-   "source": "/assets/placeholder-media/mobile-retail-21-p3.webp",
-   "sha256": "d84cbe281b0e9c3249d95832df2242788e4c308d25353b42bbb22c4da182bc9b",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-21-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "mobile-retail-21-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/mobile-retail-21-p4.webp",
-   "sourceId": "placeholder:mobile-retail-21-p4",
-   "width": 960,
-   "height": 720,
-   "altVi": "Quầy bán hàng ngoài trời (ảnh 4)",
-   "altEn": "Outdoor retail counters (photo 4)",
-   "source": "/assets/placeholder-media/mobile-retail-21-p4.webp",
-   "sha256": "4c8becd61f6d499de9ac21e9e83f0180cba1ab90711cd528115d3e36338de117",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-21-owner-20260924.webp; replace with real product media."
   }
  ],
@@ -2219,40 +2316,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/kiosk-posm-43-p4.webp",
    "sha256": "aee5dc05c14e017e345a3e89fdda1989f39e44efe09c30ca16fc9640faa0f553",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-42-imagegen-20261015.webp; replace with real product media."
-  },
-  {
-   "id": "kiosk-posm-43-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/kiosk-posm-43-p5.webp",
-   "sourceId": "placeholder:kiosk-posm-43-p5",
-   "width": 960,
-   "height": 960,
-   "altVi": "Quầy lễ tân sự kiện (ảnh 5)",
-   "altEn": "Event reception counters (photo 5)",
-   "source": "/assets/placeholder-media/kiosk-posm-43-p5.webp",
-   "sha256": "83023c9bfb28e37c6112489a78fc2a26dbad5ecb84b4b014b8dec48edb0604b8",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-43-imagegen-20261017.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-25": [
-  {
-   "id": "led-displays-lightboxes-25-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-25-v1.mp4",
-   "sourceId": "placeholder:led-displays-lightboxes-25-v1",
-   "width": 960,
-   "height": 640,
-   "altVi": "Video minh họa: Màn hình LED hội trường",
-   "altEn": "Illustrative video: Auditorium LED screens",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-25-v1.mp4",
-   "sha256": "640b7968853f480a1fe5b82caf90914555bc15275d2d525eff9e27cc992dbc52",
-   "provenance": "Placeholder slideshow built with ffmpeg from led-displays-lightboxes-25, led-displays-lightboxes-07, led-displays-lightboxes-26; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/led-displays-lightboxes-25-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 640,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "led-displays-lightboxes-25-p2",
    "kind": "image",
@@ -2265,9 +2331,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-25-p2.webp",
    "sha256": "3f3bff6ecbcc45420dc075f84637f8e685d818a0750c937e576f328ed96a0f48",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-26-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-25-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-25-p3.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-25-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Màn hình LED hội trường (ảnh 3)",
+   "altEn": "Auditorium LED screens (photo 3)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-25-p3.webp",
+   "sha256": "b3235de8158d95a47867a69aa3805a27db0588d17423fa090582349420215857",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-25-imagegen-20261017.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-25-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-25-p4.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-25-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Màn hình LED hội trường (ảnh 4)",
+   "altEn": "Auditorium LED screens (photo 4)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-25-p4.webp",
+   "sha256": "7adedddd53f40901c022f608538edf9d31788d5a3589ad9070744086fc4d9380",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-25-imagegen-20261017.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-25-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-25-p5.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-25-p5",
+   "width": 960,
+   "height": 640,
+   "altVi": "Màn hình LED hội trường (ảnh 5)",
+   "altEn": "Auditorium LED screens (photo 5)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-25-p5.webp",
+   "sha256": "eef01b3821b6cdaef3e745bca57a1fa613977606f93bce7ef4930f91b4b2f604",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-25-imagegen-20261017.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-33": [
+  {
+   "id": "led-displays-lightboxes-33-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-33-v1.mp4",
+   "sourceId": "placeholder:led-displays-lightboxes-33-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: LED trang trí",
+   "altEn": "Illustrative video: Decorative LED",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-33-v1.mp4",
+   "sha256": "fa1fa2153178416412d2c7f812a2bcd6ff679f8c86aeff87c8237c066297146b",
+   "provenance": "Placeholder slideshow built with ffmpeg from led-displays-lightboxes-33, led-displays-lightboxes-31, led-displays-lightboxes-32, led-displays-lightboxes-43; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/led-displays-lightboxes-33-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "led-displays-lightboxes-33-p2",
    "kind": "image",
@@ -2280,32 +2403,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-33-p2.webp",
    "sha256": "173ea93ac205f340deaca6f4b4bb3a46379f0d0af454a41f459cfebbd19ffbee",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-31-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-33-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-33-p3.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-33-p3",
-   "width": 960,
-   "height": 640,
-   "altVi": "LED trang trí (ảnh 3)",
-   "altEn": "Decorative LED (photo 3)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-33-p3.webp",
-   "sha256": "a9834192c2e092b49bc676b65413fd76ebb6d3a82fe2c770ef6985b6e2bf9ef4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-32-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-33-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-33-p4.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-33-p4",
-   "width": 960,
-   "height": 640,
-   "altVi": "LED trang trí (ảnh 4)",
-   "altEn": "Decorative LED (photo 4)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-33-p4.webp",
-   "sha256": "f412c5fe3e50786e5048334aff574ae799731b2c61a51121e736a7fa353ab285",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-43-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-23": [
@@ -2347,40 +2444,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-23-p4.webp",
    "sha256": "31de5aa73171063811b18c612027b247716c4db85ccce5f2403f6a26be202afb",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/washroom-brass-01.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-23-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-23-p5.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-23-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Biển cảnh báo và biển WC (ảnh 5)",
-   "altEn": "Warning and washroom signs (photo 5)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-23-p5.webp",
-   "sha256": "566fea10fc7ef46789c5ec2f360f6a65a607645fc5daeb4de93e609d89efb69a",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/washroom-brass-01.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-45": [
-  {
-   "id": "led-displays-lightboxes-45-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-45-v1.mp4",
-   "sourceId": "placeholder:led-displays-lightboxes-45-v1",
-   "width": 960,
-   "height": 640,
-   "altVi": "Video minh họa: LED trang trí",
-   "altEn": "Illustrative video: Decorative LED",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-45-v1.mp4",
-   "sha256": "01655159491b96a8efbe3a970a390b72763ca486a0f4922cc1d005228f53e526",
-   "provenance": "Placeholder slideshow built with ffmpeg from led-displays-lightboxes-45, led-displays-lightboxes-31, led-displays-lightboxes-32, led-displays-lightboxes-33; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/led-displays-lightboxes-45-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 640,
-   "durationSeconds": 8.5,
-   "hasAudio": false
-  },
   {
    "id": "led-displays-lightboxes-45-p2",
    "kind": "image",
@@ -2393,47 +2459,78 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-45-p2.webp",
    "sha256": "173ea93ac205f340deaca6f4b4bb3a46379f0d0af454a41f459cfebbd19ffbee",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-31-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-45-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-45-p3.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-45-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "LED trang trí (ảnh 3)",
+   "altEn": "Decorative LED (photo 3)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-45-p3.webp",
+   "sha256": "a9834192c2e092b49bc676b65413fd76ebb6d3a82fe2c770ef6985b6e2bf9ef4",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-32-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-45-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-45-p4.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-45-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "LED trang trí (ảnh 4)",
+   "altEn": "Decorative LED (photo 4)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-45-p4.webp",
+   "sha256": "12bdc25a5aa689e6ddba9bc57528494d864117a35d4c3d1ef746786b0950898c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-33-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "led-displays-lightboxes-45-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-45-p5.webp",
+   "sourceId": "placeholder:led-displays-lightboxes-45-p5",
+   "width": 960,
+   "height": 640,
+   "altVi": "LED trang trí (ảnh 5)",
+   "altEn": "Decorative LED (photo 5)",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-45-p5.webp",
+   "sha256": "f412c5fe3e50786e5048334aff574ae799731b2c61a51121e736a7fa353ab285",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-43-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "mobile-retail-10": [
+  {
+   "id": "mobile-retail-10-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/mobile-retail-10-v1.mp4",
+   "sourceId": "placeholder:mobile-retail-10-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Quầy pha chế di động",
+   "altEn": "Illustrative video: Mobile beverage counters",
+   "source": "/assets/placeholder-media/mobile-retail-10-v1.mp4",
+   "sha256": "d91436e9c1fb438deec466809b674ff5294a00d213b83cc955b6003c8dd739d9",
+   "provenance": "Placeholder slideshow built with ffmpeg from mobile-retail-10, mobile-retail-19, mobile-retail-22; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/mobile-retail-10-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
   {
    "id": "mobile-retail-10-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/mobile-retail-10-p2.webp",
    "sourceId": "placeholder:mobile-retail-10-p2",
-   "width": 640,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "Quầy pha chế di động (ảnh 2)",
    "altEn": "Mobile beverage counters (photo 2)",
    "source": "/assets/placeholder-media/mobile-retail-10-p2.webp",
-   "sha256": "1423861ce02cedab74397a75098ae0d13982bfe3b8a6b764677e29c16471ed59",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-10-mobile-beverage-counters-v2.webp; replace with real product media."
-  },
-  {
-   "id": "mobile-retail-10-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/mobile-retail-10-p3.webp",
-   "sourceId": "placeholder:mobile-retail-10-p3",
-   "width": 640,
-   "height": 960,
-   "altVi": "Quầy pha chế di động (ảnh 3)",
-   "altEn": "Mobile beverage counters (photo 3)",
-   "source": "/assets/placeholder-media/mobile-retail-10-p3.webp",
-   "sha256": "acc0006fff87cde026d48072843231ecda5c571b36dc7d8b63ff17b191bf972e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-10-mobile-beverage-counters-v2.webp; replace with real product media."
-  },
-  {
-   "id": "mobile-retail-10-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/mobile-retail-10-p4.webp",
-   "sourceId": "placeholder:mobile-retail-10-p4",
-   "width": 640,
-   "height": 960,
-   "altVi": "Quầy pha chế di động (ảnh 4)",
-   "altEn": "Mobile beverage counters (photo 4)",
-   "source": "/assets/placeholder-media/mobile-retail-10-p4.webp",
-   "sha256": "08aa981fd326e92bb1734fc578fb326c75e2a184e88957e6c55fe6731fe80136",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-10-mobile-beverage-counters-v2.webp; replace with real product media."
+   "sha256": "7a077e130f2c8d7c4c1c2f5b7c64ee2f4b16158e0ed8eb5969bb52b8fd1da5ff",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-10-mobile-beverage-counters-v2-audit-a131-v2.webp; replace with real product media."
   }
  ],
  "print-decals-12": [
@@ -2475,55 +2572,81 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/print-decals-12-p4.webp",
    "sha256": "337f9d45d8611193712b265d003c2314dd58290cd5aa1ab38b93f18b7c2d3fc1",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-12-canvas-and-decorative-wall-prints.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-12-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-12-p5.webp",
-   "sourceId": "placeholder:print-decals-12-p5",
-   "width": 1196,
-   "height": 1315,
-   "altVi": "Tranh Canvas và tranh treo tường (ảnh 5)",
-   "altEn": "Canvas and decorative wall prints (photo 5)",
-   "source": "/assets/placeholder-media/print-decals-12-p5.webp",
-   "sha256": "70d2435934abeb89126cf1dc5291bc4dd0c2181840d84c16f0f2fbc7ab607a14",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-12-canvas-and-decorative-wall-prints.webp; replace with real product media."
   }
  ],
  "kiosk-posm-06": [
-  {
-   "id": "kiosk-posm-06-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/kiosk-posm-06-v1.mp4",
-   "sourceId": "placeholder:kiosk-posm-06-v1",
-   "width": 960,
-   "height": 960,
-   "altVi": "Video minh họa: Kiosk quảng bá thương hiệu",
-   "altEn": "Illustrative video: Brand activation kiosks",
-   "source": "/assets/placeholder-media/kiosk-posm-06-v1.mp4",
-   "sha256": "e8bf51be6bea980b90127a1bdcbc8f8867e57a00571333ebddaae593264f9074",
-   "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-06, kiosk-posm-18, kiosk-posm-28, kiosk-posm-31; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/kiosk-posm-06-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 960,
-   "durationSeconds": 8.5,
-   "hasAudio": false
-  },
   {
    "id": "kiosk-posm-06-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-06-p2.webp",
    "sourceId": "placeholder:kiosk-posm-06-p2",
    "width": 960,
-   "height": 960,
+   "height": 720,
    "altVi": "Kiosk quảng bá thương hiệu (ảnh 2)",
    "altEn": "Brand activation kiosks (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-06-p2.webp",
-   "sha256": "22983d2a6c1a92d62710f0731a981ead589910c0cc0c318ad99e4e271d1ca17d",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-06-brand-activation-kiosks.webp; replace with real product media."
+   "sha256": "b0dbb63c107c02df49be9332332021521cc3dead0b1dddd5701065d15c1f0cde",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-06-brand-activation-kiosks-audit-a025-v3.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-06-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-06-p3.webp",
+   "sourceId": "placeholder:kiosk-posm-06-p3",
+   "width": 960,
+   "height": 720,
+   "altVi": "Kiosk quảng bá thương hiệu (ảnh 3)",
+   "altEn": "Brand activation kiosks (photo 3)",
+   "source": "/assets/placeholder-media/kiosk-posm-06-p3.webp",
+   "sha256": "8e4f67259ccf9af362e35ae3eb333cd7b2a510e0772cea770b3e3fac82e9069b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-06-brand-activation-kiosks-audit-a025-v3.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-06-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-06-p4.webp",
+   "sourceId": "placeholder:kiosk-posm-06-p4",
+   "width": 960,
+   "height": 720,
+   "altVi": "Kiosk quảng bá thương hiệu (ảnh 4)",
+   "altEn": "Brand activation kiosks (photo 4)",
+   "source": "/assets/placeholder-media/kiosk-posm-06-p4.webp",
+   "sha256": "ff444e50bfe04b5ae0452469564bf7ba97e0f96aa003e97121be63e1d0392588",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-06-brand-activation-kiosks-audit-a025-v3.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-06-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-06-p5.webp",
+   "sourceId": "placeholder:kiosk-posm-06-p5",
+   "width": 960,
+   "height": 720,
+   "altVi": "Kiosk quảng bá thương hiệu (ảnh 5)",
+   "altEn": "Brand activation kiosks (photo 5)",
+   "source": "/assets/placeholder-media/kiosk-posm-06-p5.webp",
+   "sha256": "c3c85d0a96f54cb60d51550567857769d9a878c6b82924de9487c055abbf0eb2",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-06-brand-activation-kiosks-audit-a025-v3.webp; replace with real product media."
   }
  ],
  "print-decals-03": [
+  {
+   "id": "print-decals-03-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/print-decals-03-v1.mp4",
+   "sourceId": "placeholder:print-decals-03-v1",
+   "width": 960,
+   "height": 480,
+   "altVi": "Video minh họa: Brochure và tờ gấp",
+   "altEn": "Illustrative video: Brochures and folded leaflets",
+   "source": "/assets/placeholder-media/print-decals-03-v1.mp4",
+   "sha256": "ca4c94a411558c305d3b736a2e2cd8ba2fa8afe787fbc56e1bda32c516ea4f04",
+   "provenance": "Placeholder slideshow built with ffmpeg from print-decals-03, print-decals-15; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/print-decals-03-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 480,
+   "durationSeconds": 4.5,
+   "hasAudio": false
+  },
   {
    "id": "print-decals-03-p2",
    "kind": "image",
@@ -2535,32 +2658,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Brochures and folded leaflets (photo 2)",
    "source": "/assets/placeholder-media/print-decals-03-p2.webp",
    "sha256": "cf448e5f8670e1620ab5121d9d4317487c6c1c96b31afedcbb787f4fcd2d6992",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-03-brochures-and-folded-leaflets.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-03-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-03-p3.webp",
-   "sourceId": "placeholder:print-decals-03-p3",
-   "width": 960,
-   "height": 480,
-   "altVi": "Brochure và tờ gấp (ảnh 3)",
-   "altEn": "Brochures and folded leaflets (photo 3)",
-   "source": "/assets/placeholder-media/print-decals-03-p3.webp",
-   "sha256": "4ef020c6bdf93ab5d12ec282b52fab41d83ef7b7cb19229b1a8b4a3ac57178eb",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-03-brochures-and-folded-leaflets.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-03-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-03-p4.webp",
-   "sourceId": "placeholder:print-decals-03-p4",
-   "width": 960,
-   "height": 480,
-   "altVi": "Brochure và tờ gấp (ảnh 4)",
-   "altEn": "Brochures and folded leaflets (photo 4)",
-   "source": "/assets/placeholder-media/print-decals-03-p4.webp",
-   "sha256": "64990f6fddcbc110cd9164d8706414d32ac30520a9f95510821abef9d4cf35fb",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-03-brochures-and-folded-leaflets.webp; replace with real product media."
   }
  ],
@@ -2603,19 +2700,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-04-p4.webp",
    "sha256": "362f15f49fa328ee922a37aa5eaabc2c7dc2c6a89d90c5b3c320011a759e844e",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-04-indoor-matrix-led-systems-v2.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-04-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-04-p5.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-04-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "LED ma trận trong nhà (ảnh 5)",
-   "altEn": "Indoor matrix LED systems (photo 5)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-04-p5.webp",
-   "sha256": "c43b169eb7f3265f7f4434335a4052d5b7a1641eae6e699d00a05233f8c13219",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-04-indoor-matrix-led-systems-v2.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-05": [
@@ -2644,9 +2728,53 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p3.webp",
    "sha256": "385f705ca7762c152e2b54abe263c9edd66d67715162e56c88a7ea201ca17edd",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-05-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-05-p4.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-05-p4",
+   "width": 701,
+   "height": 561,
+   "altVi": "Bảng chức danh gỗ và đồng (ảnh 4)",
+   "altEn": "Timber and brass desk nameplates (photo 4)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-05-p4.webp",
+   "sha256": "8a28d7eb747d0c15240797429894c00432083c1485488f2714f28f7ab6e11e46",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-05-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-05-p5.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-05-p5",
+   "width": 701,
+   "height": 561,
+   "altVi": "Bảng chức danh gỗ và đồng (ảnh 5)",
+   "altEn": "Timber and brass desk nameplates (photo 5)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-05-p5.webp",
+   "sha256": "7e72299ef5a612fcbb119d4fa0e01ce50cf8497b55fe00aa75fed6683c626480",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-51": [
+  {
+   "id": "office-signs-wayfinding-51-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-51-v1.mp4",
+   "sourceId": "placeholder:office-signs-wayfinding-51-v1",
+   "width": 960,
+   "height": 960,
+   "altVi": "Video minh họa: Bảng chức danh gỗ và đồng",
+   "altEn": "Illustrative video: Timber and brass desk nameplates",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-51-v1.mp4",
+   "sha256": "28dbcad2b60e37eb2bbe234f9207a26d1a141c755cd2f5d3617f7dfe7fc6c3aa",
+   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-51, office-signs-wayfinding-05, office-signs-wayfinding-46, office-signs-wayfinding-47; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-51-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 960,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "office-signs-wayfinding-51-p2",
    "kind": "image",
@@ -2658,32 +2786,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Timber and brass desk nameplates (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-51-p2.webp",
    "sha256": "2cade96b1ed2203f78b89bb4bd465a7b1b29e4fd4099f02a06b47f58119ee8d7",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-51-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-51-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-51-p3.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-51-p3",
-   "width": 960,
-   "height": 960,
-   "altVi": "Bảng chức danh gỗ và đồng (ảnh 3)",
-   "altEn": "Timber and brass desk nameplates (photo 3)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-51-p3.webp",
-   "sha256": "f2aa8a8a825ae944dac91f8d889ad6d10389fe309e1e424e23d475fb6a56ddc5",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-51-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "office-signs-wayfinding-51-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-51-p4.webp",
-   "sourceId": "placeholder:office-signs-wayfinding-51-p4",
-   "width": 960,
-   "height": 960,
-   "altVi": "Bảng chức danh gỗ và đồng (ảnh 4)",
-   "altEn": "Timber and brass desk nameplates (photo 4)",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-51-p4.webp",
-   "sha256": "0ec958a20ae9fffb33817752994bf4729e8b3ce9577fc6bd6a53ba84b0d54eb0",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-51-imagegen-20261018.webp; replace with real product media."
   }
  ],
@@ -2711,8 +2813,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng vẫy LED (ảnh 3)",
    "altEn": "LED projecting signs (photo 3)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-38-p3.webp",
-   "sha256": "46d6a14e2dc5904d425f145d41857779638f71bb9ba13d62d8d040eab8c12fc0",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-42-imagegen-20261018.webp; replace with real product media."
+   "sha256": "273ccc568c202f236dae5760432e5d5d7c141e33a7b44e499c658e22867cca2c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-42-owner-20261019.webp; replace with real product media."
   },
   {
    "id": "led-displays-lightboxes-38-p4",
@@ -2724,42 +2826,11 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng vẫy LED (ảnh 4)",
    "altEn": "LED projecting signs (photo 4)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-38-p4.webp",
-   "sha256": "4c10ee0e05e421dec1cc1f2d544040adfe748e17174480787abb2913a03492e9",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-38-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-38-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-38-p5.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-38-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Bảng vẫy LED (ảnh 5)",
-   "altEn": "LED projecting signs (photo 5)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-38-p5.webp",
-   "sha256": "6f01a77cbf54345f6318ef8a317c872aa41446ceeb42b6304d718f9b4ef65a0b",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-38-imagegen-20261018.webp; replace with real product media."
+   "sha256": "f2f6c99eff9dcc51c5f2ed12a0e1cfd7ccf5a167c594086eca5675619b6a407a",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-38-owner-20261019.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-02": [
-  {
-   "id": "signage-raised-letters-02-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/signage-raised-letters-02-v1.mp4",
-   "sourceId": "placeholder:signage-raised-letters-02-v1",
-   "width": 960,
-   "height": 720,
-   "altVi": "Video minh họa: Pano tấm lớn ngoài trời",
-   "altEn": "Illustrative video: Large outdoor advertising panels",
-   "source": "/assets/placeholder-media/signage-raised-letters-02-v1.mp4",
-   "sha256": "3f8146a8d13a327f80ee040a3c563d0f0b066fbb9b0d519d5b903f55e30481fa",
-   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-02, signage-raised-letters-14, signage-raised-letters-23; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/signage-raised-letters-02-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 720,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "signage-raised-letters-02-p2",
    "kind": "image",
@@ -2772,9 +2843,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/signage-raised-letters-02-p2.webp",
    "sha256": "61ec5311474f1f3d84077f13a333458c75a1b20ae72b58db3f0395adad724d1f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-23-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-02-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-02-p3.webp",
+   "sourceId": "placeholder:signage-raised-letters-02-p3",
+   "width": 960,
+   "height": 720,
+   "altVi": "Pano tấm lớn ngoài trời (ảnh 3)",
+   "altEn": "Large outdoor advertising panels (photo 3)",
+   "source": "/assets/placeholder-media/signage-raised-letters-02-p3.webp",
+   "sha256": "efe52495d527d25e4f32771bb8182e519cde3c811dff13b315210a13a04ba7c7",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-02-v3.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-02-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-02-p4.webp",
+   "sourceId": "placeholder:signage-raised-letters-02-p4",
+   "width": 960,
+   "height": 720,
+   "altVi": "Pano tấm lớn ngoài trời (ảnh 4)",
+   "altEn": "Large outdoor advertising panels (photo 4)",
+   "source": "/assets/placeholder-media/signage-raised-letters-02-p4.webp",
+   "sha256": "1d5db8ee99edb048da63e93d74c82d09c9bf8dd37966308e2f928398be8f1706",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-02-v3.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-02-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-02-p5.webp",
+   "sourceId": "placeholder:signage-raised-letters-02-p5",
+   "width": 960,
+   "height": 720,
+   "altVi": "Pano tấm lớn ngoài trời (ảnh 5)",
+   "altEn": "Large outdoor advertising panels (photo 5)",
+   "source": "/assets/placeholder-media/signage-raised-letters-02-p5.webp",
+   "sha256": "7beed91147eba118872104d81d60d4bd87fc015113491ad535b03af2929a14e0",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-02-v3.webp; replace with real product media."
   }
  ],
  "print-decals-04": [
+  {
+   "id": "print-decals-04-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/print-decals-04-v1.mp4",
+   "sourceId": "placeholder:print-decals-04-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Catalogue",
+   "altEn": "Illustrative video: Catalogues",
+   "source": "/assets/placeholder-media/print-decals-04-v1.mp4",
+   "sha256": "a1716b19759b2676c06bcec82b0d92f250294459e15729993e93009d110f6688",
+   "provenance": "Placeholder slideshow built with ffmpeg from print-decals-04, print-decals-16; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/print-decals-04-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 4.5,
+   "hasAudio": false
+  },
   {
    "id": "print-decals-04-p2",
    "kind": "image",
@@ -2786,32 +2914,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Catalogues (photo 2)",
    "source": "/assets/placeholder-media/print-decals-04-p2.webp",
    "sha256": "7660f9165204dd7575ff89abcb2acc21ed4584df389948f2c8b05575296b7c80",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-04-catalogues.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-04-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-04-p3.webp",
-   "sourceId": "placeholder:print-decals-04-p3",
-   "width": 960,
-   "height": 640,
-   "altVi": "Catalogue (ảnh 3)",
-   "altEn": "Catalogues (photo 3)",
-   "source": "/assets/placeholder-media/print-decals-04-p3.webp",
-   "sha256": "42ae14de15c1839027f209a1f933a591452f85ab8a0b0e37a94a1322472049b4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-04-catalogues.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-04-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-04-p4.webp",
-   "sourceId": "placeholder:print-decals-04-p4",
-   "width": 960,
-   "height": 640,
-   "altVi": "Catalogue (ảnh 4)",
-   "altEn": "Catalogues (photo 4)",
-   "source": "/assets/placeholder-media/print-decals-04-p4.webp",
-   "sha256": "92c495e3be7448c7a18517075db31efc496ffc544f39a619d2ad92d31d7c66d8",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-04-catalogues.webp; replace with real product media."
   }
  ],
@@ -2854,40 +2956,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-44-p4.webp",
    "sha256": "12bdc25a5aa689e6ddba9bc57528494d864117a35d4c3d1ef746786b0950898c",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-33-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-44-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-44-p5.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-44-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "LED trang trí (ảnh 5)",
-   "altEn": "Decorative LED (photo 5)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-44-p5.webp",
-   "sha256": "f412c5fe3e50786e5048334aff574ae799731b2c61a51121e736a7fa353ab285",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-43-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "print-decals-06": [
-  {
-   "id": "print-decals-06-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/print-decals-06-v1.mp4",
-   "sourceId": "placeholder:print-decals-06-v1",
-   "width": 960,
-   "height": 960,
-   "altVi": "Video minh họa: Giấy chứng nhận và phong bì",
-   "altEn": "Illustrative video: Certificates and envelopes",
-   "source": "/assets/placeholder-media/print-decals-06-v1.mp4",
-   "sha256": "20c2af5603236e36557b7dd9c62f43997991ad5b9216c5c52949eaaae483e919",
-   "provenance": "Placeholder slideshow built with ffmpeg from print-decals-06; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/print-decals-06-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 960,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "print-decals-06-p2",
    "kind": "image",
@@ -2900,47 +2971,78 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/print-decals-06-p2.webp",
    "sha256": "d23d4c412c1a5e4c4640bbcfec03c6b42b126a40fd28d26beff7562c7b92f436",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-06-certificates-and-envelopes.webp; replace with real product media."
+  },
+  {
+   "id": "print-decals-06-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/print-decals-06-p3.webp",
+   "sourceId": "placeholder:print-decals-06-p3",
+   "width": 960,
+   "height": 960,
+   "altVi": "Giấy chứng nhận và phong bì (ảnh 3)",
+   "altEn": "Certificates and envelopes (photo 3)",
+   "source": "/assets/placeholder-media/print-decals-06-p3.webp",
+   "sha256": "753f933c81f19e169eb53d93fb9f3e9fc347221afe9f2b6ddea1f5f667869556",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-06-certificates-and-envelopes.webp; replace with real product media."
+  },
+  {
+   "id": "print-decals-06-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/print-decals-06-p4.webp",
+   "sourceId": "placeholder:print-decals-06-p4",
+   "width": 960,
+   "height": 960,
+   "altVi": "Giấy chứng nhận và phong bì (ảnh 4)",
+   "altEn": "Certificates and envelopes (photo 4)",
+   "source": "/assets/placeholder-media/print-decals-06-p4.webp",
+   "sha256": "fe8bf94d26f0b3788ec70651819a6a9f872c7f859b87a7a68dd9854fd9c302dd",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-06-certificates-and-envelopes.webp; replace with real product media."
+  },
+  {
+   "id": "print-decals-06-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/print-decals-06-p5.webp",
+   "sourceId": "placeholder:print-decals-06-p5",
+   "width": 960,
+   "height": 960,
+   "altVi": "Giấy chứng nhận và phong bì (ảnh 5)",
+   "altEn": "Certificates and envelopes (photo 5)",
+   "source": "/assets/placeholder-media/print-decals-06-p5.webp",
+   "sha256": "4728f6bc863546606084b4d624914ff0ac2eeac1a1071fc8de21435ac1734784",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-06-certificates-and-envelopes.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-10": [
+  {
+   "id": "signage-raised-letters-10-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/signage-raised-letters-10-v1.mp4",
+   "sourceId": "placeholder:signage-raised-letters-10-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Bảng vẫy Mica hút nổi",
+   "altEn": "Illustrative video: Vacuum-formed acrylic projecting signs",
+   "source": "/assets/placeholder-media/signage-raised-letters-10-v1.mp4",
+   "sha256": "ee43947e666c6527987557fd8c49ad23a7994ef273745ef2ab72061d393db6d8",
+   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-10, signage-raised-letters-22, signage-raised-letters-35, signage-raised-letters-36; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/signage-raised-letters-10-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "signage-raised-letters-10-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/signage-raised-letters-10-p2.webp",
    "sourceId": "placeholder:signage-raised-letters-10-p2",
-   "width": 640,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "Bảng vẫy Mica hút nổi (ảnh 2)",
    "altEn": "Vacuum-formed acrylic projecting signs (photo 2)",
    "source": "/assets/placeholder-media/signage-raised-letters-10-p2.webp",
-   "sha256": "d986a31647733b3d8eb4d4fda2bc445f98b6a06f8db1258153afe113915ee8f6",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-36-imagegen-20261014.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-10-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-10-p3.webp",
-   "sourceId": "placeholder:signage-raised-letters-10-p3",
-   "width": 640,
-   "height": 960,
-   "altVi": "Bảng vẫy Mica hút nổi (ảnh 3)",
-   "altEn": "Vacuum-formed acrylic projecting signs (photo 3)",
-   "source": "/assets/placeholder-media/signage-raised-letters-10-p3.webp",
-   "sha256": "d743daadcb0a19e379cebf7074e9341e764bce4f28a2059e7406b1e3020af27e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-10-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-10-p4.webp",
-   "sourceId": "placeholder:signage-raised-letters-10-p4",
-   "width": 640,
-   "height": 960,
-   "altVi": "Bảng vẫy Mica hút nổi (ảnh 4)",
-   "altEn": "Vacuum-formed acrylic projecting signs (photo 4)",
-   "source": "/assets/placeholder-media/signage-raised-letters-10-p4.webp",
-   "sha256": "2dd979815c53bd9fcc49e389d10afca90a784913178cace878beeeeef21869ad",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-10-vacuum-formed-acrylic-projecting-signs.webp; replace with real product media."
+   "sha256": "5ff143b1fd59b360dec658b239d40cd6d9a080383920044c992b4e922851267b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-imagegen-20261014-audit-a271-v1.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-13": [
@@ -2982,40 +3084,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/signage-raised-letters-13-p4.webp",
    "sha256": "416a2837ba54e6fdf6117de0516f8d0d911db43f3a2ed2b6769961ca3eec8c6d",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "signage-raised-letters-13-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/signage-raised-letters-13-p5.webp",
-   "sourceId": "placeholder:signage-raised-letters-13-p5",
-   "width": 1536,
-   "height": 1019,
-   "altVi": "Mặt dựng Aluminium (ảnh 5)",
-   "altEn": "Aluminium composite facades (photo 5)",
-   "source": "/assets/placeholder-media/signage-raised-letters-13-p5.webp",
-   "sha256": "36a8893b302ad766a15157e6031f8051b33299ae0051964b783f8f9068e169c4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-13-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "signage-raised-letters-30": [
-  {
-   "id": "signage-raised-letters-30-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/signage-raised-letters-30-v1.mp4",
-   "sourceId": "placeholder:signage-raised-letters-30-v1",
-   "width": 960,
-   "height": 640,
-   "altVi": "Video minh họa: Chữ nổi Inox sáng chân",
-   "altEn": "Illustrative video: Halo-lit stainless-steel letters",
-   "source": "/assets/placeholder-media/signage-raised-letters-30-v1.mp4",
-   "sha256": "ca5ddba62a148f0d89770a8eb38980e84667e057219ca3946912ae163e6d35c1",
-   "provenance": "Placeholder slideshow built with ffmpeg from signage-raised-letters-30, signage-raised-letters-06, signage-raised-letters-18, signage-raised-letters-27; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/signage-raised-letters-30-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 640,
-   "durationSeconds": 8.5,
-   "hasAudio": false
-  },
   {
    "id": "signage-raised-letters-30-p2",
    "kind": "image",
@@ -3028,9 +3099,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/signage-raised-letters-30-p2.webp",
    "sha256": "5e947e3e062a342daeefc1c689ea62b1758af91a55301008e51d34c7073053a2",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-06-v2.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-30-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-30-p3.webp",
+   "sourceId": "placeholder:signage-raised-letters-30-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Inox sáng chân (ảnh 3)",
+   "altEn": "Halo-lit stainless-steel letters (photo 3)",
+   "source": "/assets/placeholder-media/signage-raised-letters-30-p3.webp",
+   "sha256": "4ec4b49bd3dca2caca0cdc62f76645909964d73f79d580de8cd86ef8281b13c9",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-18-halo-lit-stainless-steel-letters-audit-a254-v1.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-30-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-30-p4.webp",
+   "sourceId": "placeholder:signage-raised-letters-30-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Inox sáng chân (ảnh 4)",
+   "altEn": "Halo-lit stainless-steel letters (photo 4)",
+   "source": "/assets/placeholder-media/signage-raised-letters-30-p4.webp",
+   "sha256": "bfba9ce097c6f975c4cae5831ec588aebec92163baeae41366dc72c22d75fbb5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-27-imagegen-20261014.webp; replace with real product media."
+  },
+  {
+   "id": "signage-raised-letters-30-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/signage-raised-letters-30-p5.webp",
+   "sourceId": "placeholder:signage-raised-letters-30-p5",
+   "width": 960,
+   "height": 640,
+   "altVi": "Chữ nổi Inox sáng chân (ảnh 5)",
+   "altEn": "Halo-lit stainless-steel letters (photo 5)",
+   "source": "/assets/placeholder-media/signage-raised-letters-30-p5.webp",
+   "sha256": "43984d94380a33d7ec8a0c04d59345e7df93abb5e68fb788eb723713cd66732b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-29-imagegen-20261014.webp; replace with real product media."
   }
  ],
  "kiosk-posm-35": [
+  {
+   "id": "kiosk-posm-35-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/kiosk-posm-35-v1.mp4",
+   "sourceId": "placeholder:kiosk-posm-35-v1",
+   "width": 640,
+   "height": 960,
+   "altVi": "Video minh họa: Standee và khung quảng cáo",
+   "altEn": "Illustrative video: Standees and advertising frames",
+   "source": "/assets/placeholder-media/kiosk-posm-35-v1.mp4",
+   "sha256": "a98772d165db6250929a10e044a2942354b7d73fb311b5d2052560fd65e42b12",
+   "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-35, kiosk-posm-33, kiosk-posm-34, kiosk-posm-36; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/kiosk-posm-35-v1-poster.webp",
+   "posterWidth": 640,
+   "posterHeight": 960,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "kiosk-posm-35-p2",
    "kind": "image",
@@ -3043,32 +3171,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/kiosk-posm-35-p2.webp",
    "sha256": "a7e8f669a11fa71b441e298282b2e64f358754eafa7d5e693902f110a4ca1cff",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-33-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "kiosk-posm-35-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/kiosk-posm-35-p3.webp",
-   "sourceId": "placeholder:kiosk-posm-35-p3",
-   "width": 640,
-   "height": 960,
-   "altVi": "Standee và khung quảng cáo (ảnh 3)",
-   "altEn": "Standees and advertising frames (photo 3)",
-   "source": "/assets/placeholder-media/kiosk-posm-35-p3.webp",
-   "sha256": "e1f95513e1b795ff0a6054a35c9e513ce619b246bc57083752f334928fd7642e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-34-owner-20260924.webp; replace with real product media."
-  },
-  {
-   "id": "kiosk-posm-35-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/kiosk-posm-35-p4.webp",
-   "sourceId": "placeholder:kiosk-posm-35-p4",
-   "width": 640,
-   "height": 960,
-   "altVi": "Standee và khung quảng cáo (ảnh 4)",
-   "altEn": "Standees and advertising frames (photo 4)",
-   "source": "/assets/placeholder-media/kiosk-posm-35-p4.webp",
-   "sha256": "95ca28d20c3c824908c70ba0a6bf79f783be519817d9ea33bfde7c0b76adfc23",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-37-owner-20260924.webp; replace with real product media."
   }
  ],
  "print-decals-02": [
@@ -3110,40 +3212,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/print-decals-02-p4.webp",
    "sha256": "cf48cfd6cab7fa4c75fc1e6a657eafcf6de5fe6defb4541e3147144ddc3fce4d",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-02-flyers.webp; replace with real product media."
-  },
-  {
-   "id": "print-decals-02-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/print-decals-02-p5.webp",
-   "sourceId": "placeholder:print-decals-02-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Tờ rơi (ảnh 5)",
-   "altEn": "Flyers (photo 5)",
-   "source": "/assets/placeholder-media/print-decals-02-p5.webp",
-   "sha256": "0a99ee616b2d090e014413d77e0b94dd882be2aec1285b47c3142fd45d60edd5",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/print-decals/print-decals-02-flyers.webp; replace with real product media."
   }
  ],
  "kiosk-posm-54": [
-  {
-   "id": "kiosk-posm-54-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/kiosk-posm-54-v1.mp4",
-   "sourceId": "placeholder:kiosk-posm-54-v1",
-   "width": 960,
-   "height": 640,
-   "altVi": "Video minh họa: Kiosk bán hàng tại trung tâm thương mại",
-   "altEn": "Illustrative video: Shopping-centre retail kiosks",
-   "source": "/assets/placeholder-media/kiosk-posm-54-v1.mp4",
-   "sha256": "ffd8f851896ca16bfd1715ee73f98cc8735569a7f1f38c2c5c379d3ae0c1fe08",
-   "provenance": "Placeholder slideshow built with ffmpeg from kiosk-posm-54, kiosk-posm-05, kiosk-posm-17; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/kiosk-posm-54-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 640,
-   "durationSeconds": 6.5,
-   "hasAudio": false
-  },
   {
    "id": "kiosk-posm-54-p2",
    "kind": "image",
@@ -3156,9 +3227,66 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/kiosk-posm-54-p2.webp",
    "sha256": "07f607f608ec4fa5b7478ea767a152b1dbfd6145d3ae2a41c67e49077a4092f4",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-54-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-54-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-54-p3.webp",
+   "sourceId": "placeholder:kiosk-posm-54-p3",
+   "width": 960,
+   "height": 640,
+   "altVi": "Kiosk bán hàng tại trung tâm thương mại (ảnh 3)",
+   "altEn": "Shopping-centre retail kiosks (photo 3)",
+   "source": "/assets/placeholder-media/kiosk-posm-54-p3.webp",
+   "sha256": "1db7ce4d3e428bc4b4a027f73a26ae82cf28346969461bc4429eab2533fd6b45",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-54-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-54-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-54-p4.webp",
+   "sourceId": "placeholder:kiosk-posm-54-p4",
+   "width": 960,
+   "height": 640,
+   "altVi": "Kiosk bán hàng tại trung tâm thương mại (ảnh 4)",
+   "altEn": "Shopping-centre retail kiosks (photo 4)",
+   "source": "/assets/placeholder-media/kiosk-posm-54-p4.webp",
+   "sha256": "f33680421190171bcb1a80cba22897effeda84e61136caa8a7250de3a644103a",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-54-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-54-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-54-p5.webp",
+   "sourceId": "placeholder:kiosk-posm-54-p5",
+   "width": 960,
+   "height": 640,
+   "altVi": "Kiosk bán hàng tại trung tâm thương mại (ảnh 5)",
+   "altEn": "Shopping-centre retail kiosks (photo 5)",
+   "source": "/assets/placeholder-media/kiosk-posm-54-p5.webp",
+   "sha256": "7674d8084cbfae0e2284178fd053f7ea899c43788e4f3fde60758e5cf9297069",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-54-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "mobile-retail-24": [
+  {
+   "id": "mobile-retail-24-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/mobile-retail-24-v1.mp4",
+   "sourceId": "placeholder:mobile-retail-24-v1",
+   "width": 960,
+   "height": 720,
+   "altVi": "Video minh họa: Xe bán cafe",
+   "altEn": "Illustrative video: Mobile coffee carts",
+   "source": "/assets/placeholder-media/mobile-retail-24-v1.mp4",
+   "sha256": "f4e2c7cd80367893977155c96433b432b7dd1dbd6e846050992c97227fe90393",
+   "provenance": "Placeholder slideshow built with ffmpeg from mobile-retail-24, mobile-retail-02, mobile-retail-14, mobile-retail-27; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/mobile-retail-24-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 720,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "mobile-retail-24-p2",
    "kind": "image",
@@ -3171,32 +3299,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/mobile-retail-24-p2.webp",
    "sha256": "332e7c5462f66266738b253dd63f2e600100ef80bfb732688332293c91d10a32",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-02-mobile-coffee-carts-v2.webp; replace with real product media."
-  },
-  {
-   "id": "mobile-retail-24-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/mobile-retail-24-p3.webp",
-   "sourceId": "placeholder:mobile-retail-24-p3",
-   "width": 960,
-   "height": 720,
-   "altVi": "Xe bán cafe (ảnh 3)",
-   "altEn": "Mobile coffee carts (photo 3)",
-   "source": "/assets/placeholder-media/mobile-retail-24-p3.webp",
-   "sha256": "c8425dbd640a397d703db42fc13de62038b04f5a8debdd127fdbbc503f2476d9",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-14-imagegen-20261018.webp; replace with real product media."
-  },
-  {
-   "id": "mobile-retail-24-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/mobile-retail-24-p4.webp",
-   "sourceId": "placeholder:mobile-retail-24-p4",
-   "width": 960,
-   "height": 720,
-   "altVi": "Xe bán cafe (ảnh 4)",
-   "altEn": "Mobile coffee carts (photo 4)",
-   "source": "/assets/placeholder-media/mobile-retail-24-p4.webp",
-   "sha256": "b3656705fe785074e70462876fcd91145ebec307b3d0875a85aa707d905c6d2e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-27-imagegen-20261018.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-14": [
@@ -3238,40 +3340,9 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/led-displays-lightboxes-14-p4.webp",
    "sha256": "9ab8df853a34830bdc7be38b03e4f8babefd218ef3b99416f9cddde18b36945f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-14-three-colour-matrix-led-signs-v2.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-14-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-14-p5.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-14-p5",
-   "width": 701,
-   "height": 561,
-   "altVi": "Bảng LED ma trận ba màu (ảnh 5)",
-   "altEn": "Three-colour matrix LED signs (photo 5)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-14-p5.webp",
-   "sha256": "c6ec47efb1bdc4ff6cefe1a8670b501f9a98b8b2552d283ec9d9195eb05954c3",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-14-three-colour-matrix-led-signs-v2.webp; replace with real product media."
   }
  ],
  "office-signs-wayfinding-31": [
-  {
-   "id": "office-signs-wayfinding-31-v1",
-   "kind": "video",
-   "src": "/assets/placeholder-media/office-signs-wayfinding-31-v1.mp4",
-   "sourceId": "placeholder:office-signs-wayfinding-31-v1",
-   "width": 960,
-   "height": 800,
-   "altVi": "Video minh họa: Sơ đồ tòa nhà",
-   "altEn": "Illustrative video: Building directories",
-   "source": "/assets/placeholder-media/office-signs-wayfinding-31-v1.mp4",
-   "sha256": "47642946d4f3c6a20e151fb137c7b26cca9b7cd320c9ddd169fb75ddd223a0da",
-   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-31, office-signs-wayfinding-11, office-signs-wayfinding-26, office-signs-wayfinding-27; replace with real product video.",
-   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-31-v1-poster.webp",
-   "posterWidth": 960,
-   "posterHeight": 800,
-   "durationSeconds": 8.5,
-   "hasAudio": false
-  },
   {
    "id": "office-signs-wayfinding-31-p2",
    "kind": "image",
@@ -3284,6 +3355,78 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "source": "/assets/placeholder-media/office-signs-wayfinding-31-p2.webp",
    "sha256": "18e91a593906c799cba150ea3d9d8f1acf16dfd8bf80c098038928cb69299c77",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-31-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-31-p3.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-31-p3",
+   "width": 960,
+   "height": 800,
+   "altVi": "Sơ đồ tòa nhà (ảnh 3)",
+   "altEn": "Building directories (photo 3)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-31-p3.webp",
+   "sha256": "8f8ee86f67087b464c082a212063e6b5e23adfb0fccb8420742ecba2219f2a9e",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-31-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-31-p4.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-31-p4",
+   "width": 960,
+   "height": 800,
+   "altVi": "Sơ đồ tòa nhà (ảnh 4)",
+   "altEn": "Building directories (photo 4)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-31-p4.webp",
+   "sha256": "5976eb35dc7f88fc1a6b8ac3a5a1160015f5b47d24319ca1386c00b6432ddbde",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
+  },
+  {
+   "id": "office-signs-wayfinding-31-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-31-p5.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-31-p5",
+   "width": 960,
+   "height": 800,
+   "altVi": "Sơ đồ tòa nhà (ảnh 5)",
+   "altEn": "Building directories (photo 5)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-31-p5.webp",
+   "sha256": "a6dc962e78454348454f5fb9048765efa97663ad5a6b2fcdf2a3d4ea25a959b3",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
+  }
+ ],
+ "office-signs-wayfinding-54": [
+  {
+   "id": "office-signs-wayfinding-54-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-54-v1.mp4",
+   "sourceId": "placeholder:office-signs-wayfinding-54-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Biển chỉ dẫn tầng",
+   "altEn": "Illustrative video: Floor wayfinding signs",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-54-v1.mp4",
+   "sha256": "5b3ebbb74111d6e5af658c2d36ed4a5a85763355f176e6444f86e7acfae13ef8",
+   "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-54, office-signs-wayfinding-03, office-signs-wayfinding-10; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-54-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 6.5,
+   "hasAudio": false
+  },
+  {
+   "id": "office-signs-wayfinding-54-p2",
+   "kind": "image",
+   "src": "/assets/placeholder-media/office-signs-wayfinding-54-p2.webp",
+   "sourceId": "placeholder:office-signs-wayfinding-54-p2",
+   "width": 960,
+   "height": 640,
+   "altVi": "Biển chỉ dẫn tầng (ảnh 2)",
+   "altEn": "Floor wayfinding signs (photo 2)",
+   "source": "/assets/placeholder-media/office-signs-wayfinding-54-p2.webp",
+   "sha256": "ebdd3e5240bd5fbfdd265d7df92f6c973419819469b78ac90f8129bd02727cac",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-03-street-name-signs-audit-a156-v5.webp; replace with real product media."
   }
  ],
  "kiosk-posm-32": [
@@ -3425,8 +3568,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Kiosk bán hàng tại trung tâm thương mại (ảnh 2)",
    "altEn": "Shopping-centre retail kiosks (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-05-p2.webp",
-   "sha256": "5a09cb23438e65a9451eeaa0a082f7f66d96aaa049c973a5e176dd6ce290c4ef",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-05-shopping-centre-retail-kiosks-v2.webp; replace with real product media."
+   "sha256": "2f276aa09297d298a743b30a419a1b19385c3980709ea2552dbf523ac35eba9c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-05-shopping-centre-retail-kiosks-v2-audit-a024-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-05-p3",
@@ -3438,8 +3581,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Kiosk bán hàng tại trung tâm thương mại (ảnh 3)",
    "altEn": "Shopping-centre retail kiosks (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-05-p3.webp",
-   "sha256": "d56c6abfc6baad5bee783baeb163b0089cce86ee12561c975d696f23027825c4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-05-shopping-centre-retail-kiosks-v2.webp; replace with real product media."
+   "sha256": "c1811ec0aff6f72fc6e59da0f898e19ab7cdc4ef6c70dc5a45e5a4b19efafded",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-05-shopping-centre-retail-kiosks-v2-audit-a024-v1.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-05-p4",
@@ -3451,8 +3594,8 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Kiosk bán hàng tại trung tâm thương mại (ảnh 4)",
    "altEn": "Shopping-centre retail kiosks (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-05-p4.webp",
-   "sha256": "2f085fa87f0912a613d1cb99f88b51b86a03738a7a919bd677e8c7d0272c27fb",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-05-shopping-centre-retail-kiosks-v2.webp; replace with real product media."
+   "sha256": "fa819b663e8d5acf2ad06dd881555c92bbdc013c47147e4eafbe982759299e4b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-05-shopping-centre-retail-kiosks-v2-audit-a024-v1.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-20": [
@@ -3549,12 +3692,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/led-displays-lightboxes-06-p2.webp",
    "sourceId": "placeholder:led-displays-lightboxes-06-p2",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Màn hình LED sự kiện (ảnh 2)",
    "altEn": "Event LED screens (photo 2)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-06-p2.webp",
-   "sha256": "50903284eb7997b1fa3a93b78dec50bf0fdb9c01db5cb36e5d628d54f1c72976",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-06-event-led-screens.webp; replace with real product media."
+   "sha256": "26bb7a88d21dc8fcd6d807fec40485ac492697d425c73ef1bb169aa5650c84c5",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-06-event-led-screens-audit-a080-v1.webp; replace with real product media."
   },
   {
    "id": "led-displays-lightboxes-06-p3",
@@ -3562,12 +3705,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/led-displays-lightboxes-06-p3.webp",
    "sourceId": "placeholder:led-displays-lightboxes-06-p3",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Màn hình LED sự kiện (ảnh 3)",
    "altEn": "Event LED screens (photo 3)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-06-p3.webp",
-   "sha256": "f290ca0e7242a275eaec78713cce4d010e1cba802367b6ea4f8b6c65d2373c57",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-06-event-led-screens.webp; replace with real product media."
+   "sha256": "7c51074b595539d99cec310c3ba340f06fc678a00b310707cb151d8e6914f394",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-06-event-led-screens-audit-a080-v1.webp; replace with real product media."
   },
   {
    "id": "led-displays-lightboxes-06-p4",
@@ -3575,12 +3718,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "src": "/assets/placeholder-media/led-displays-lightboxes-06-p4.webp",
    "sourceId": "placeholder:led-displays-lightboxes-06-p4",
    "width": 960,
-   "height": 960,
+   "height": 640,
    "altVi": "Màn hình LED sự kiện (ảnh 4)",
    "altEn": "Event LED screens (photo 4)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-06-p4.webp",
-   "sha256": "acddc5a8bd82b47c3a56747df6df85a62f2940c533bde2c9f73ec8f599e57ab9",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-06-event-led-screens.webp; replace with real product media."
+   "sha256": "800ba04cf735ba3239c52542bc615867a6437c7fc5f046d5bdc7bcb19cd95408",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-06-event-led-screens-audit-a080-v1.webp; replace with real product media."
   }
  ],
  "kiosk-posm-16": [
@@ -3589,52 +3732,52 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-16-p2.webp",
    "sourceId": "placeholder:kiosk-posm-16-p2",
-   "width": 720,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "Kệ trang trí theo yêu cầu (ảnh 2)",
    "altEn": "Custom display shelving (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-16-p2.webp",
-   "sha256": "9b83fbda0f2f6216fb095d1d42928072675023cedd9fa7f443f2bf5375373dc4",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving.webp; replace with real product media."
+   "sha256": "e27fb2c23a4caab97c0243ef300f67ac8962bc22c402e3aa5a5f4d6717f640aa",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-04-custom-display-shelving-audit-a023-v3.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-16-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-16-p3.webp",
    "sourceId": "placeholder:kiosk-posm-16-p3",
-   "width": 720,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "Kệ trang trí theo yêu cầu (ảnh 3)",
    "altEn": "Custom display shelving (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-16-p3.webp",
-   "sha256": "9adf249e473963447fc96ec73ab44a3a84775c29cb33b534ab20a57ed9c259c5",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving.webp; replace with real product media."
+   "sha256": "166215a8ca1c70617a33af199304fa16b9ec2af21c4457282a74dd5ab0853257",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving-audit-a035-v4.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-16-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-16-p4.webp",
    "sourceId": "placeholder:kiosk-posm-16-p4",
-   "width": 720,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "Kệ trang trí theo yêu cầu (ảnh 4)",
    "altEn": "Custom display shelving (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-16-p4.webp",
-   "sha256": "133d808e28efb16a4cd9ead0b030126a85584c4da40192ff5402f1e4e2bc23f1",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving.webp; replace with real product media."
+   "sha256": "390ee813993cf9ffe595d1071ec55e8f8698352f0dcc858345fddc6967557c7b",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving-audit-a035-v4.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-16-p5",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-16-p5.webp",
    "sourceId": "placeholder:kiosk-posm-16-p5",
-   "width": 720,
-   "height": 960,
+   "width": 960,
+   "height": 640,
    "altVi": "Kệ trang trí theo yêu cầu (ảnh 5)",
    "altEn": "Custom display shelving (photo 5)",
    "source": "/assets/placeholder-media/kiosk-posm-16-p5.webp",
-   "sha256": "295d61e11c296fb2f7d23a199869321eec62269a80fa3e5e0e7d335a3d97201e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving.webp; replace with real product media."
+   "sha256": "4bf9d28f72a9bbf2e5344f0f52fd91caa85f8917be66103ee160ed05422eecec",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-16-custom-display-shelving-audit-a035-v4.webp; replace with real product media."
   }
  ],
  "print-decals-35": [
@@ -3717,52 +3860,52 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-14-p2.webp",
    "sourceId": "placeholder:office-signs-wayfinding-14-p2",
-   "width": 960,
-   "height": 640,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 2)",
    "altEn": "Meeting-room signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p2.webp",
-   "sha256": "e93bd4bc6e91c8495e818d1f1c4b41a9feadc38183ddae27652d20ddae1510f7",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-acrylic-02.webp; replace with real product media."
+   "sha256": "c5d59017e16c840526598b205bedd7b18e02dc8019d704afdbb662fb264cc9a3",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs-audit-a162-v1.webp; replace with real product media."
   },
   {
    "id": "office-signs-wayfinding-14-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-14-p3.webp",
    "sourceId": "placeholder:office-signs-wayfinding-14-p3",
-   "width": 960,
-   "height": 640,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 3)",
    "altEn": "Meeting-room signs (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p3.webp",
-   "sha256": "7e5e820b20160149456cf9cf29110015dc7f78c37adbddb7406fba8636a339cb",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-timber-03.webp; replace with real product media."
+   "sha256": "cd8d7e80fc447dae45d655a1bf67217e98bc163de92db2f01b16508997e5e256",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-acrylic-02-audit-a149-v1.webp; replace with real product media."
   },
   {
    "id": "office-signs-wayfinding-14-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-14-p4.webp",
    "sourceId": "placeholder:office-signs-wayfinding-14-p4",
-   "width": 960,
-   "height": 640,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 4)",
    "altEn": "Meeting-room signs (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p4.webp",
-   "sha256": "2959c797ddb0b0eda3199ec4c170e8ae4ce123976d3f62d3e03def5152439c60",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-brushed-01.webp; replace with real product media."
+   "sha256": "6c775f85af673c0085ff4eb665310d03112662ca1d1dce16fb0d221e91ae1f10",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-design-02-audit-a152-v1.webp; replace with real product media."
   },
   {
    "id": "office-signs-wayfinding-14-p5",
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-14-p5.webp",
    "sourceId": "placeholder:office-signs-wayfinding-14-p5",
-   "width": 960,
-   "height": 640,
+   "width": 640,
+   "height": 960,
    "altVi": "Biển phòng họp (ảnh 5)",
    "altEn": "Meeting-room signs (photo 5)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p5.webp",
-   "sha256": "5fc054cdeb207aad19c12bd3f2ef0a42067a70377007168dead3d9dcc6b95b9e",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-brushed-01.webp; replace with real product media."
+   "sha256": "35630bf0e44a194efc7b410d2eeed5ebb945db7f8b92f250382e66ecce5fedec",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-brushed-01-audit-a150-v1.webp; replace with real product media."
   }
  ],
  "kiosk-posm-47": [
@@ -3926,48 +4069,120 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-44-imagegen-20261018.webp; replace with real product media."
   }
  ],
+ "kiosk-posm-57": [
+  {
+   "id": "kiosk-posm-57-p2",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-57-p2.webp",
+   "sourceId": "placeholder:kiosk-posm-57-p2",
+   "width": 640,
+   "height": 960,
+   "altVi": "Standee và khung quảng cáo (ảnh 2)",
+   "altEn": "Standees and advertising frames (photo 2)",
+   "source": "/assets/placeholder-media/kiosk-posm-57-p2.webp",
+   "sha256": "a7e8f669a11fa71b441e298282b2e64f358754eafa7d5e693902f110a4ca1cff",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-33-owner-20260924.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-57-p3",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-57-p3.webp",
+   "sourceId": "placeholder:kiosk-posm-57-p3",
+   "width": 640,
+   "height": 960,
+   "altVi": "Standee và khung quảng cáo (ảnh 3)",
+   "altEn": "Standees and advertising frames (photo 3)",
+   "source": "/assets/placeholder-media/kiosk-posm-57-p3.webp",
+   "sha256": "e1f95513e1b795ff0a6054a35c9e513ce619b246bc57083752f334928fd7642e",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-34-owner-20260924.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-57-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-57-p4.webp",
+   "sourceId": "placeholder:kiosk-posm-57-p4",
+   "width": 640,
+   "height": 960,
+   "altVi": "Standee và khung quảng cáo (ảnh 4)",
+   "altEn": "Standees and advertising frames (photo 4)",
+   "source": "/assets/placeholder-media/kiosk-posm-57-p4.webp",
+   "sha256": "9aca28de5b4e00ed9d990ad931cd75a009ab154a5b392efcea126758f2053891",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-35-owner-20260924.webp; replace with real product media."
+  }
+ ],
  "kiosk-posm-20": [
   {
    "id": "kiosk-posm-20-p2",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-20-p2.webp",
    "sourceId": "placeholder:kiosk-posm-20-p2",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 720,
    "altVi": "Quầy lễ tân sự kiện (ảnh 2)",
    "altEn": "Event reception counters (photo 2)",
    "source": "/assets/placeholder-media/kiosk-posm-20-p2.webp",
-   "sha256": "0eaa62b695c9cbf779cd988adab5c239c0bee69709a441538925fc3bf6ca5753",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters.webp; replace with real product media."
+   "sha256": "2d4b7b5c541a73c45b3a9f744eedc50248c894532c17bd1a6df63613cb84ffda",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters-audit-a039-v2.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-20-p3",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-20-p3.webp",
    "sourceId": "placeholder:kiosk-posm-20-p3",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 720,
    "altVi": "Quầy lễ tân sự kiện (ảnh 3)",
    "altEn": "Event reception counters (photo 3)",
    "source": "/assets/placeholder-media/kiosk-posm-20-p3.webp",
-   "sha256": "6b046ce4f03873de44de9c75cd1127d682deeeada419ecf95579c4dfbc9b6306",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters.webp; replace with real product media."
+   "sha256": "17f9f14e3190dad441f10f65b2bd1c9a28fc82c56e74cefb0dcb2d7ff96f2e1c",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters-audit-a039-v2.webp; replace with real product media."
   },
   {
    "id": "kiosk-posm-20-p4",
    "kind": "image",
    "src": "/assets/placeholder-media/kiosk-posm-20-p4.webp",
    "sourceId": "placeholder:kiosk-posm-20-p4",
-   "width": 561,
-   "height": 701,
+   "width": 960,
+   "height": 720,
    "altVi": "Quầy lễ tân sự kiện (ảnh 4)",
    "altEn": "Event reception counters (photo 4)",
    "source": "/assets/placeholder-media/kiosk-posm-20-p4.webp",
-   "sha256": "7766c40045fa0f12645dfa127142014b8cb22751507cd04727e7e15839743e20",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters.webp; replace with real product media."
+   "sha256": "648f34ef4529a35589ddaed7eec1bb36659001d838e708ba9e8844b5bd8eaa95",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters-audit-a039-v2.webp; replace with real product media."
+  },
+  {
+   "id": "kiosk-posm-20-p5",
+   "kind": "image",
+   "src": "/assets/placeholder-media/kiosk-posm-20-p5.webp",
+   "sourceId": "placeholder:kiosk-posm-20-p5",
+   "width": 960,
+   "height": 720,
+   "altVi": "Quầy lễ tân sự kiện (ảnh 5)",
+   "altEn": "Event reception counters (photo 5)",
+   "source": "/assets/placeholder-media/kiosk-posm-20-p5.webp",
+   "sha256": "536da3fab592433497ea96665a0050f3bc66071dda8491f7014be4f82befbc1a",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters-audit-a039-v2.webp; replace with real product media."
   }
  ],
  "led-displays-lightboxes-22": [
+  {
+   "id": "led-displays-lightboxes-22-v1",
+   "kind": "video",
+   "src": "/assets/placeholder-media/led-displays-lightboxes-22-v1.mp4",
+   "sourceId": "placeholder:led-displays-lightboxes-22-v1",
+   "width": 960,
+   "height": 640,
+   "altVi": "Video minh họa: Hộp đèn LED siêu mỏng",
+   "altEn": "Illustrative video: Slim LED light boxes",
+   "source": "/assets/placeholder-media/led-displays-lightboxes-22-v1.mp4",
+   "sha256": "a1b7908942967c530684420b6fbcce2fe633e6bdcea59936c6b97ad995a6415a",
+   "provenance": "Placeholder slideshow built with ffmpeg from led-displays-lightboxes-22, led-displays-lightboxes-10, led-displays-lightboxes-19, led-displays-lightboxes-20; replace with real product video.",
+   "posterSrc": "/assets/placeholder-media/led-displays-lightboxes-22-v1-poster.webp",
+   "posterWidth": 960,
+   "posterHeight": 640,
+   "durationSeconds": 8.5,
+   "hasAudio": false
+  },
   {
    "id": "led-displays-lightboxes-22-p2",
    "kind": "image",
@@ -3979,45 +4194,6 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Slim LED light boxes (photo 2)",
    "source": "/assets/placeholder-media/led-displays-lightboxes-22-p2.webp",
    "sha256": "cb9dd71f8f4f447ffe3808dc8934304cade2de97e5973330f539150ce3d0b394",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-22-imagegen-20261014.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-22-p3",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-22-p3.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-22-p3",
-   "width": 960,
-   "height": 640,
-   "altVi": "Hộp đèn LED siêu mỏng (ảnh 3)",
-   "altEn": "Slim LED light boxes (photo 3)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-22-p3.webp",
-   "sha256": "fb452777b313c40f3100a99086dfaa4d4b0ed6ae888df73c61d4d52758a4aa19",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-22-imagegen-20261014.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-22-p4",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-22-p4.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-22-p4",
-   "width": 960,
-   "height": 640,
-   "altVi": "Hộp đèn LED siêu mỏng (ảnh 4)",
-   "altEn": "Slim LED light boxes (photo 4)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-22-p4.webp",
-   "sha256": "59e6612a352b009b4d6b9885a795854c3af935e2b87ea89d3522b17bac0e344a",
-   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-22-imagegen-20261014.webp; replace with real product media."
-  },
-  {
-   "id": "led-displays-lightboxes-22-p5",
-   "kind": "image",
-   "src": "/assets/placeholder-media/led-displays-lightboxes-22-p5.webp",
-   "sourceId": "placeholder:led-displays-lightboxes-22-p5",
-   "width": 960,
-   "height": 640,
-   "altVi": "Hộp đèn LED siêu mỏng (ảnh 5)",
-   "altEn": "Slim LED light boxes (photo 5)",
-   "source": "/assets/placeholder-media/led-displays-lightboxes-22-p5.webp",
-   "sha256": "fc19c59859fcc5c8f83317469d9764317305c7087b12534da194595fb54ae285",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-22-imagegen-20261014.webp; replace with real product media."
   }
  ],
@@ -4046,6 +4222,19 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altEn": "Mobile pop-up counters (photo 3)",
    "source": "/assets/placeholder-media/mobile-retail-25-p3.webp",
    "sha256": "7c3abfca4577dda0a6097e3623d0678f064ffe8c6b95d6898e4f0cc1aa59cd15",
+   "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-25-imagegen-20261018.webp; replace with real product media."
+  },
+  {
+   "id": "mobile-retail-25-p4",
+   "kind": "image",
+   "src": "/assets/placeholder-media/mobile-retail-25-p4.webp",
+   "sourceId": "placeholder:mobile-retail-25-p4",
+   "width": 1087,
+   "height": 1447,
+   "altVi": "Quầy pop-up di động (ảnh 4)",
+   "altEn": "Mobile pop-up counters (photo 4)",
+   "source": "/assets/placeholder-media/mobile-retail-25-p4.webp",
+   "sha256": "709a8a5fa6ffa07d69a9080785003a6f4d532b4c8993c0e7d6d49de5ef605c48",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/mobile-retail/mobile-retail-25-imagegen-20261018.webp; replace with real product media."
   }
  ]

@@ -91,8 +91,8 @@ And không file code render nào đổi
 
 ### R3. Rail cụm và sản phẩm
 
-Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn). Hàng một: "Tất cả" rồi sáu cụm, mỗi cụm ghi tên ngắn
-`railVi`/`railEn` (owner chọn 2026-10-17, ví dụ "Biển văn phòng"); h1, kicker và title giữ nhãn đầy đủ R1. Hover cụm
+Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn); hover desktop: gạch chân chạy vào từ trái như nav header
+([Filter](../../design-system/components/Filter/README.md)). Hàng một: "Tất cả" rồi sáu cụm, mỗi cụm ghi tên ngắn `railVi`/`railEn` (owner chọn 2026-10-17, ví dụ "Biển văn phòng"); h1, kicker và title giữ nhãn đầy đủ R1. Hover cụm
 không mở danh sách sản phẩm (owner bỏ 2026-10-17). Bấm cụm lọc cả cụm và hiện hàng chip sản phẩm kèm số ảnh của cụm
 bên dưới, dựng sẵn trong HTML tĩnh; bấm chip lọc riêng sản phẩm đó, chip đang chọn có `aria-current="true"`. Điện
 thoại: hàng chip cuộn ngang. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
@@ -257,7 +257,7 @@ Then masonry có đúng tám card, mỗi card có provenance imagegen và sha256
 ## UI
 
 Rail theo component filter trong [Design System](../../design-system/README.md); hàng chip là thiết
-kế mới, qua Impeccable cho PC và điện thoại, owner duyệt, ghi ở `design-system/approved-designs.md` trước khi code.
+kế mới, qua Impeccable cho PC và điện thoại, owner duyệt, ghi trong spec này trước khi code.
 Không đổi typography hay layout ngoài rail.
 
 ## Kiểm tra

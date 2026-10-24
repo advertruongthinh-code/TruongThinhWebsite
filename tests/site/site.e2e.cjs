@@ -491,7 +491,8 @@ function assertPersistentNavigationContracts() {
   );
 
   assert(
-    /const headerIntro = gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*!softNavigation[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
+    // Intro WAAPI (compositor) và timeline GSAP dự phòng cùng một timeline đã duyệt: power4.out, 0/0.3/1.5s.
+    /\(1 - \(1 - index \/ 40\) \*\* 5\)[\s\S]*\[headerLogo, \[\{ transform: "scale\(0\)" \}, \{ transform: "none" \}\], 0, 1500\][\s\S]*"#header-menu-items > ul > li"[\s\S]*\{ transform: "translateY\(-150px\)" \}, \{ transform: "none" \}\], 300 \+ index \* 100, 1500\][\s\S]*\[toggle, \[\{ transform: "scaleX\(0\)" \}, \{ transform: "none" \}\], 1500, 1000\][\s\S]*const playsHeaderIntro = !settledStartup && !softNavigation;[\s\S]*: gsap\.timeline\(\{ defaults: \{ ease: "power4\.out" \}, paused: true \}\);[\s\S]*\.from\(headerLogo, \{ scale: 0, duration: 1\.5 \}\)[\s\S]*header\.querySelectorAll\("#header-menu-items > ul > li"\)[\s\S]*\{ y: -150, duration: 1\.5, stagger: 0\.1 \},\s*0\.3[\s\S]*header\.querySelector\("#header-toggle-svg"\)[\s\S]*\{ scaleX: 0, transformOrigin: "center", duration: 1 \},\s*1\.5/.test(
       motionSource,
     ) && brandCss && !/transition:\s*transform\b/.test(brandCss),
     "The direct-only header intro does not match the audited 0/0.3/1.5s timeline or is masked by a CSS transform transition",
@@ -2107,46 +2108,27 @@ async function runHeaderParityChecks() {
     "header direct intro and soft-navigation persistence",
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     async (page) => {
+      // Intro header chạy bằng WAAPI (motion.js createHeaderIntro): ghi lại mọi lời gọi animate() trên logo, mục nav và
+      // nút menu để kiểm trạng thái đầu, delay và thời lượng như timeline GSAP cũ (motion.md).
       await page.addInitScript(() => {
-        window.__ttHeaderIntroWrites = [];
-        const startedAt = performance.now();
-        document.addEventListener("readystatechange", () => {
-          if (document.readyState !== "interactive") return;
-          const targets = [
-            ["logo", document.querySelector("#header-logo")],
-            ...[
-              ...document.querySelectorAll("#header-menu-items > ul > li"),
-            ].map((element, index) => [`nav-${index}`, element]),
-            ["toggle", document.querySelector("#header-toggle-svg")],
-          ];
-          targets.forEach(([target, element]) => {
-            const style = element.style;
-            Object.defineProperty(style, "transform", {
-              configurable: true,
-              get() {
-                return CSSStyleDeclaration.prototype.getPropertyValue.call(
-                  style,
-                  "transform",
-                );
-              },
-              set(value) {
-                window.__ttHeaderIntroWrites.push({
-                  target,
-                  time: performance.now() - startedAt,
-                  // Giờ tick GSAP: timeline neo play vào tick trước nên long task giữa hai tick làm giờ thật lệch
-                  // còn giờ tick thì không.
-                  tick: (window.gsap?.ticker.time ?? Number.NaN) * 1_000,
-                  value,
-                });
-                CSSStyleDeclaration.prototype.setProperty.call(
-                  style,
-                  "transform",
-                  value,
-                );
-              },
+        window.__ttHeaderIntroAnimations = [];
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (keyframes, options) {
+          const index = [...(document.querySelectorAll("#header-menu-items > ul > li") || [])].indexOf(this);
+          const target = this.id === "header-logo" ? "logo"
+            : this.id === "header-toggle-svg" ? "toggle"
+              : index >= 0 ? `nav-${index}` : null;
+          if (target) {
+            window.__ttHeaderIntroAnimations.push({
+              target,
+              from: keyframes?.[0]?.transform,
+              delay: options?.delay ?? 0,
+              duration: options?.duration,
+              easing: options?.easing,
             });
-          });
-        });
+          }
+          return animate.call(this, keyframes, options);
+        };
       });
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/");
@@ -2164,45 +2146,26 @@ async function runHeaderParityChecks() {
             getComputedStyle(document.querySelector("#header-toggle-svg")).transform,
           ).a,
         },
-        writes: window.__ttHeaderIntroWrites || [],
+        animations: window.__ttHeaderIntroAnimations || [],
       }));
-      const setup = intro.writes.find(
-        (write) => write.target === "logo" && /^scale\(0(?:, 0)?\)/.test(write.value),
-      );
-      const navSetup = intro.writes.filter(
-        (write) => /^nav-\d$/.test(write.target) && /-150(?:\.0+)?px/.test(write.value),
-      );
-      const toggleSetup = intro.writes.find(
-        (write) => write.target === "toggle" && /^scale\(0(?:, 1)?\)/.test(write.value),
-      );
+      const byTarget = (target) => intro.animations.find((entry) => entry.target === target);
+      const logo = byTarget("logo");
+      const nav = [0, 1, 2].map((index) => byTarget(`nav-${index}`));
+      const toggle = byTarget("toggle");
       assert(
-        setup && new Set(navSetup.map((write) => write.target)).size === 3 && toggleSetup,
-        "Direct header intro never exposed its audited start state",
+        logo?.from === "scale(0)" && nav.every((entry) => entry?.from === "translateY(-150px)") && toggle?.from === "scaleX(0)",
+        `Direct header intro never exposed its audited start state: ${JSON.stringify(intro.animations)}`,
       );
-      const afterSetup = intro.writes.filter((write) => write.time >= setup.time);
-      const logoStart = afterSetup.find(
-        (write) => write.target === "logo" && !/^scale\(0(?:, 0)?\)/.test(write.value),
-      )?.tick - setup.tick;
-      const navStart = afterSetup.find(
-        (write) =>
-          write.target === "nav-0" && !/-150(?:\.0+)?px/.test(write.value),
-      )?.tick - setup.tick;
-      const toggleStart = afterSetup.find(
-        (write) => write.target === "toggle" && !/^scale\(0(?:, 1)?\)/.test(write.value),
-      )?.tick - setup.tick;
-      // Intro: nav tại 0.3s, hamburger tại 1.5s (motion.md). Lần ghi đầu của mỗi phần lệch theo frame (long task lúc
-      // mount, GSAP lấy giờ tick trước làm mốc play), đo được tới khoảng 150ms trên runner bận, nên khoảng nav tới
-      // hamburger (1.2s) cho dung sai 200ms, logo tới nav cho lỏng.
+      // Intro: logo 1.5s, nav tại 0.3s cách nhau 0.1s, hamburger tại 1.5s trong 1s, cùng đường cong power4.out (motion.md).
       assert(
-        logoStart <= 160 &&
-          navStart - logoStart >= 150 &&
-          navStart - logoStart <= 380 &&
-          toggleStart - navStart >= 1_000 &&
-          toggleStart - navStart <= 1_400 &&
+        logo.delay === 0 && logo.duration === 1_500 &&
+          nav.every((entry, index) => entry.delay === 300 + index * 100 && entry.duration === 1_500) &&
+          toggle.delay === 1_500 && toggle.duration === 1_000 &&
+          [logo, ...nav, toggle].every((entry) => /^linear\(/.test(entry.easing)) &&
           intro.final.logo >= 0.999 &&
           intro.final.nav.every((value) => Math.abs(value) <= 0.1) &&
           intro.final.toggle >= 0.999,
-        `Direct header intro timing drifted: ${JSON.stringify({ logoStart, navStart, toggleStart })}`,
+        `Direct header intro timing drifted: ${JSON.stringify(intro)}`,
       );
 
       const header = await page.locator("[data-site-header]").elementHandle();
@@ -6098,6 +6061,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             });
             const activeFilter = element.querySelector('.project-filter[aria-current="true"]');
             const activeFilterStyles = getComputedStyle(activeFilter);
+            const activeFilterAfter = getComputedStyle(activeFilter, "::after");
             const header = document.querySelector("[data-site-header]");
             const styles = getComputedStyle(element);
             const heroRect = rect(element);
@@ -6147,7 +6111,10 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
                     )
                   : Math.abs(textRects[0].left - headingRect.left) <= 2 &&
                     Math.abs(textRects[1].right - headingRect.right) <= 2),
-              activeUnderlineVisible: activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
+              // Máy có hover: gạch chân là ::after chạy như nav (taxonomy R3); máy cảm ứng giữ text-decoration.
+              activeUnderlineVisible: matchMedia("(hover: hover) and (pointer: fine)").matches
+                ? activeFilterAfter.transform === "matrix(1, 0, 0, 1, 0, 0)" && activeFilterAfter.height === "3px"
+                : activeFilterStyles.textDecorationLine.includes("underline") && activeFilterStyles.textDecorationThickness === "3px" && activeFilterStyles.textUnderlineOffset === "4px",
               contentIsWithinHero: [contentRect, kickerRect, headingRect, filtersRect, scrollRect].every(
                 (rect) =>
                   rect.top >= heroRect.top - 1 &&
@@ -7864,9 +7831,10 @@ async function runResidentialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              hero.slideCount === 1 &&
-              hero.mediaCount === 1 &&
-              hero.motionToggleCount === 0 &&
+              // Slideshow như trang chủ (detail-pages R5): số slide theo nội dung, không zoom vào trang riêng.
+              hero.slideCount > 1 &&
+              hero.mediaCount === 0 &&
+              hero.motionToggleCount === 1 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: residential hero copy or reading order drifted`,
           );
@@ -8037,9 +8005,10 @@ async function runCommercialHeroTextCheck() {
               hero.title === expected.title &&
               JSON.stringify(hero.lines) === JSON.stringify(expected.lines) &&
               !hero.hasMotto &&
-              hero.slideCount === 1 &&
-              hero.mediaCount === 1 &&
-              hero.motionToggleCount === 0 &&
+              // Slideshow như trang chủ (detail-pages R5): số slide theo nội dung, không zoom vào trang riêng.
+              hero.slideCount > 1 &&
+              hero.mediaCount === 0 &&
+              hero.motionToggleCount === 1 &&
               hero.scrollCueCount === 1,
             `${locale} ${viewport.width}x${viewport.height}: commercial hero copy or reading order drifted`,
           );
@@ -8300,16 +8269,6 @@ async function runDetailHeroEntryChecks() {
       route: "/vi/about/",
       selector: "[data-motion-hero-media]",
       label: "about hero media",
-    },
-    {
-      route: "/vi/residential/",
-      selector: "[data-motion-hero-media]",
-      label: "residential hero media",
-    },
-    {
-      route: "/vi/commercial/",
-      selector: "[data-motion-hero-media]",
-      label: "commercial hero media",
     },
   ]) {
     await runPageCase(
@@ -9340,7 +9299,7 @@ async function runHeroCarouselLifecycleCheck() {
   const viewport = { width: 1440, height: 900 };
   for (const route of ["/vi/residential/", "/vi/commercial/"]) {
     await runPageCase(
-      `service hero is a single finite entrance ${route}`,
+      `service hero runs the home slideshow ${route}`,
       { route, viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
@@ -9352,28 +9311,14 @@ async function runHeroCarouselLifecycleCheck() {
           motionToggleCount: hero.querySelectorAll("[data-motion-toggle]").length,
           scrollCueCount: hero.querySelectorAll("[data-scroll-cue]").length,
         }));
+        // detail-pages R5: cùng slideshow và nút dừng như trang chủ, không còn zoom vào trang 1.2 riêng.
         assert(
-          state.slideCount === 1 &&
-            state.mediaCount === 1 &&
+          state.slideCount > 1 &&
+            state.mediaCount === 0 &&
             state.labelCount === 0 &&
-            state.motionToggleCount === 0 &&
+            state.motionToggleCount === 1 &&
             state.scrollCueCount === 1,
-          `Service hero still exposes slideshow UI: ${JSON.stringify(state)}`,
-        );
-        // Zoom vào trang chạy một lần rồi đứng ở scale 1.005, không lặp như slideshow trang chủ.
-        await page.waitForTimeout(2_800);
-        const scales = [];
-        for (let sample = 0; sample < 3; sample += 1) {
-          scales.push(
-            await page
-              .locator(".hero-slide img")
-              .evaluate((media) => new DOMMatrixReadOnly(getComputedStyle(media).transform).a),
-          );
-          await page.waitForTimeout(400);
-        }
-        assert(
-          scales.every((value) => Math.abs(value - 1.005) < 0.001),
-          `Service hero image did not settle at 1.005: ${JSON.stringify(scales)}`,
+          `Service hero lost the home slideshow UI: ${JSON.stringify(state)}`,
         );
         assertDiagnostics(diagnostics);
       },
@@ -9400,26 +9345,26 @@ async function runHeroCarouselLifecycleCheck() {
 }
 
 async function runHeroCrossFadeContinuityChecks() {
-  // page-home R3: cả sáu slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide 3 làm ảnh đầu và preload;
-  // năm lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
-  for (const viewport of [
-    { width: 1440, height: 900 },
-    { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true },
+  // page-home R3, detail-pages R5: mọi slide xáo theo Math.random. Lần gọi đầu (script head) chọn slide floor(0,2n) làm
+  // ảnh đầu và preload; các lần sau là khóa giảm dần nên các slide còn lại đảo ngược. Điện thoại DPR 1.75 kiểm sizes không lệch preload.
+  for (const [route, viewport] of [
+    ["/vi/", { width: 1440, height: 900 }],
+    ["/vi/", { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true }],
+    ["/vi/residential/", { width: 1440, height: 900 }],
+    ["/vi/commercial/", { width: 1440, height: 900 }],
   ]) {
     await runPageCase(
-      `home hero randomizes the first slide per load ${viewport.width}`,
-      { route: "/vi/", viewport: { width: viewport.width, height: viewport.height }, ...viewport },
+      `hero randomizes the first slide per load ${routeSlug(route)} ${viewport.width}`,
+      { route, viewport: { width: viewport.width, height: viewport.height }, ...viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
-        const firstImageRequests = [];
-        page.on("request", (request) => {
-          if (request.url().includes("/home-hero-walnut-bedroom")) firstImageRequests.push(request.url());
-        });
+        const requests = [];
+        page.on("request", (request) => requests.push(new URL(request.url()).pathname));
         await page.addInitScript(() => {
-          const values = [0.5, 0.9, 0.8, 0.7, 0.6, 0.5];
+          const values = [0.2, ...Array.from({ length: 63 }, (_, index) => 0.99 - index * 0.01)];
           Math.random = () => values.shift() ?? 0.5;
         });
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, route);
         await page.waitForFunction(() => document.querySelector(".hero-slide img").complete);
         const state = await page.evaluate(() => {
           const slides = [...document.querySelectorAll(".hero-slide")];
@@ -9429,16 +9374,21 @@ async function runHeroCrossFadeContinuityChecks() {
             order: slides.map((slide) => slide.dataset.slide).join(","),
             active: slides.flatMap((slide, index) => (slide.classList.contains("is-active") ? [index] : [])).join(","),
             priority: image.getAttribute("fetchpriority"),
+            name: image.getAttribute("src").split("/").pop().replace(/\.webp$/, ""),
             current: image.currentSrc.replace(location.origin, ""),
             preload: preload?.imageSrcset,
             unhydratedFirst: image.hasAttribute("data-src"),
           };
         });
+        const count = state.order.split(",").length;
+        const first = Math.floor(0.2 * count);
+        const expected = [first, ...Array.from({ length: count }, (_, index) => count - 1 - index).filter((index) => index !== first)];
         assert(
-          state.order === "3,5,4,2,1,0" && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
+          state.order === expected.join(",") && state.active === "0" && state.priority === "high" && !state.unhydratedFirst
             && state.preload?.split(", ").some((candidate) => candidate.startsWith(`${state.current} `)),
-          `Home hero random first slide contract drifted: ${JSON.stringify(state)}`,
+          `Hero random first slide contract drifted: ${JSON.stringify(state)}`,
         );
+        const firstImageRequests = requests.filter((path) => new RegExp(`/${state.name}(?:-\\d+)?\\.(?:avif|webp)$`).test(path));
         assert.equal(firstImageRequests.length, 1, `First hero image requested once: ${firstImageRequests.join(" ")}`);
         assertDiagnostics(diagnostics);
       },
@@ -9448,6 +9398,8 @@ async function runHeroCrossFadeContinuityChecks() {
   const cases = [
     { route: "/vi/", viewport: { width: 1440, height: 900 } },
     { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/vi/residential/", viewport: { width: 1440, height: 900 } },
+    { route: "/vi/commercial/", viewport: { width: 1440, height: 900 } },
   ];
 
   for (const testCase of cases) {
@@ -9575,7 +9527,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero",
       route: "/vi/?media-fallback=hero",
-      asset: "**/home-hero-tube-house-living.webp",
+      asset: "**/home-hero-office-reception-audit-a319-v3.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -9584,7 +9536,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "home hero reduced motion",
       route: "/vi/?media-fallback=hero-reduced",
-      asset: "**/home-hero-tube-house-living.webp",
+      asset: "**/home-hero-office-reception-audit-a319-v3.webp",
       surface: ".hero",
       image: ".hero-slide.is-active img",
       text: ".hero-content",
@@ -10259,18 +10211,13 @@ async function runHomeMotionRegressionCheck() {
       );
       assert(!contract.hero.hasIndex, "Home hero still has the retired slide index");
       assert(!contract.hero.hasKicker, "Home hero still has the retired kicker");
-      // Cả sáu slide xáo mỗi lần tải (page-home R3) nên so tập hợp.
+      // Danh sách ảnh hero do qa:content đối chiếu với mảng slides (content-independent-tests R2); ở đây chỉ kiểm bất biến:
+      // mọi slide đã nhận src ảnh nội dung, không trùng.
       assert(
-        JSON.stringify([...contract.hero.sources].sort()) ===
-          JSON.stringify([
-            "/assets/content/projects/home-hero-kitchen-dining.webp",
-            "/assets/content/projects/home-hero-lobby-wall-art.webp",
-            "/assets/content/projects/home-hero-office-reception.webp",
-            "/assets/content/projects/home-hero-shopfront-signage.webp",
-            "/assets/content/projects/home-hero-tube-house-living.webp",
-            "/assets/content/projects/home-hero-walnut-bedroom.webp",
-          ]),
-        `Home hero sources changed: ${contract.hero.sources.join(", ")}`,
+        contract.hero.sources.length > 1 &&
+          new Set(contract.hero.sources).size === contract.hero.sources.length &&
+          contract.hero.sources.every((source) => /^\/assets\/content\/projects\/[^/]+\.webp$/.test(source)),
+        `Home hero sources drifted: ${contract.hero.sources.join(", ")}`,
       );
       assert(
         contract.heritage.maxWidth === "1300px" &&
@@ -10283,7 +10230,7 @@ async function runHomeMotionRegressionCheck() {
         JSON.stringify(contract.heritage.sources) ===
           JSON.stringify([
             "/assets/content/shared/legacy-hands-384.webp",
-            "/assets/content/shared/montage-creativity-designer-wave-wall.webp",
+            "/assets/content/shared/montage-creativity-palm-display-sketch-audit-a380-v4.webp",
             "/assets/content/shared/montage-commitment-option-3-knot.webp",
             "/assets/content/shared/montage-residential-product-detail.webp",
           ]),

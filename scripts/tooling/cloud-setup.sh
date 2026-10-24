@@ -1,7 +1,7 @@
 #!/bin/bash
 # Setup script cho môi trường cloud của Claude Code ("Default" tại claude.ai/code).
 # Cài global agent stack của owner cho mọi cloud session và mọi repo:
-# agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena.
+# agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify.
 # Ponytail 5 bỏ ponytail-mcp; rule ultra nạp qua CLAUDE.md và skill.
 #
 # Rule của owner: chỉ skill, command, agent và MCP, không bao giờ dùng agent lifecycle hook.
@@ -33,9 +33,8 @@ fetch dietrichgebert/ponytail 16352ac229eb08a9598dcae48fe9f2b342567d86 &
 fetch pbakaus/impeccable 8a0e198da34ebc5b936a9d5975fb7a3b1cf353b7 &
 fetch ayghri/i-have-adhd 1ecea1993b7fce257ffbd686c070948b5e07eda6 &
 uv tool install -q --python 3.13 "graphifyy[all]==0.9.92" &
-uv tool install -q --python 3.13 "serena-agent==2.0.0" &
 npm install -g --silent --no-audit --no-fund \
-  @caveman-ai/cli@4.0.1 impeccable@4.6.0 chrome-devtools-mcp@1.11.0 &
+  @caveman-ai/cli@4.0.1 impeccable@4.6.0 &
 wait
 
 # Binary đi kèm và runtime cache. Không bao giờ chạy `caveman enable`/`caveman claude`:
@@ -44,8 +43,6 @@ caveman telemetry off >/dev/null
 caveman setup --install </dev/null
 # Ẩn npm CLI để launcher cache engine đã pin của skill (engine 0.1.15).
 PATH=/usr/bin:/bin "$T/src/impeccable/plugin/skills/impeccable/scripts/impeccable" engine-probe
-# Serena 2 mặc định giao diện REPL (2 tool); MCP truyền --agent-interface tools để giữ bộ tool cũ.
-"$BIN/serena" init </dev/null >/dev/null
 
 # Global rules: bản sao của block codex:global-stack trong scripts/tooling/bootstrap.ps1
 # (Claude local import qua ~/.claude/CLAUDE.md). tests/tooling/global-rules-sync.test.mjs
@@ -56,18 +53,17 @@ cat > "$CFG/CLAUDE.md" <<'EOF'
 Apply these rules in the main agent and every coordinator, explorer, worker, reviewer, and subagent.
 
 1. Always load `ponytail` in ultra mode; it controls implementation minimalism. The `i-have-adhd` skill self-invokes to shape actionable structure. Caveman skills run only when the user invokes them; never self-invoke them. A closer project `AGENTS.md` may explicitly disable Caveman.
-2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use Serena for exact symbols, references, diagnostics, and refactors. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
-3. Serena is required per task/session with `--project-from-cwd` and the host context (`codex` or `claude-code`); synchronize language servers from actual project extensions instead of editing the language list manually.
-4. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
-5. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
-6. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
-7. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
-8. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
-9. Each time a skill is used, whether self-selected, user-invoked with `/`, or loaded mid-task, first write one chat line: `Skill: <name> (<self|user>): <reason>`.
+2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use `rg` for exact symbols and references. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
+3. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
+4. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
+5. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
+6. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
+7. Verify information, knowledge, and decisions against local evidence and primary official sources. Mark every inference explicitly, re-check unstable facts, and never present an unsupported guess as fact.
+8. Each time a skill is used, whether self-selected, user-invoked with `/`, or loaded mid-task, first write one chat line: `Skill: <name> (<self|user>): <reason>`.
 EOF
 "$BIN/graphify" install </dev/null  # skill cùng block đăng ký được nối vào CLAUDE.md
 
-# Một Chromium cho impeccable, caveman-browse và chrome-devtools; root cần --no-sandbox.
+# Một Chromium cho impeccable và caveman-browse; root cần --no-sandbox.
 cat > /usr/local/bin/chromium <<'EOF'
 #!/bin/sh
 exec /opt/pw-browsers/chromium --no-sandbox "$@"
@@ -106,12 +102,7 @@ cat > "$P/.claude-plugin/plugin.json" <<'EOF'
 EOF
 cat > "$P/.mcp.json" <<EOF
 {"mcpServers": {
-  "serena": {"command": "$BIN/serena", "args": ["start-mcp-server", "--context", "claude-code",
-    "--project-from-cwd", "--agent-interface", "tools", "--enable-web-dashboard", "false", "--open-web-dashboard", "false"]},
   "graphify": {"command": "$BIN/graphify-mcp"},
-  "chrome-devtools": {"command": "chrome-devtools-mcp", "args": ["--headless", "--isolated",
-    "--executablePath", "/usr/local/bin/chromium", "--no-usage-statistics",
-    "--no-performance-crux", "--redact-network-headers"]},
   "caveman": {"command": "$HOME/.caveman/bin/caveman-mcp"},
   "caveman-browse": {"command": "$HOME/.caveman/bin/caveman-browse"},
   "cavemem": {"command": "$HOME/.caveman/bin/cavemem"}
@@ -120,12 +111,12 @@ EOF
 ln -sfnT "$P" "$CFG/skills/cloud-stack"
 
 for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
-  "$CFG/skills/graphify/SKILL.md" "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} \
+  "$CFG/skills/graphify/SKILL.md" "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp} \
   "$HOME"/.caveman/bin/{caveman-mcp,caveman-browse,cavemem} \
   "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"
 done
-for c in caveman impeccable chrome-devtools-mcp; do
+for c in caveman impeccable; do
   command -v "$c" >/dev/null && echo "OK   $c" || echo "FAIL $c"
 done
 grep -l '"hooks"' "$CFG"/skills/*/.claude-plugin/plugin.json && echo "FAIL hooks in a manifest"

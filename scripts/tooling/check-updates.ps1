@@ -28,12 +28,10 @@ function Read-RemoteVersion([string]$Name, [scriptblock]$Fetch, [string]$Current
   } catch { $script:errors += "$Name`: $($_.Exception.Message)" }
 }
 
-Read-RemoteVersion "serena-agent" { (Invoke-RestMethod "https://pypi.org/pypi/serena-agent/json").info.version } $pins.python.'serena-agent' "stable-package"
 Read-RemoteVersion "graphifyy" { (Invoke-RestMethod "https://pypi.org/pypi/graphifyy/json").info.version } $pins.python.graphifyy "stable-package"
 Read-RemoteVersion "uv" { (Invoke-RestMethod "https://pypi.org/pypi/uv/json").info.version } $pins.python.uv "stable-package"
 Read-RemoteVersion "playwright" { (Invoke-RestMethod "https://registry.npmjs.org/playwright/latest").version } $pins.node.project.playwright "stable-package"
 Read-RemoteVersion "impeccable" { (Invoke-RestMethod "https://registry.npmjs.org/impeccable/latest").version } $pins.node.global.impeccable "stable-package"
-Read-RemoteVersion "chrome-devtools-mcp" { (Invoke-RestMethod "https://registry.npmjs.org/chrome-devtools-mcp/latest").version } $pins.node.global.'chrome-devtools-mcp' "stable-package"
 Read-RemoteVersion "pnpm" { (Invoke-RestMethod "https://registry.npmjs.org/pnpm/latest").version } $pins.node.project.pnpm "stable-package"
 Read-RemoteVersion "jq" {
   $refs = & git ls-remote --quiet --tags --refs "https://github.com/jqlang/jq.git" "refs/tags/jq-*" 2>&1
