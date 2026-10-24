@@ -1,5 +1,5 @@
 ---
-title: Player video primary trên điện thoại và chữ nút gợi ý
+title: Player video primary, khung media ngang và chữ nút gợi ý
 status: planned
 source: []
 tests:
@@ -8,14 +8,15 @@ notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
 updated: 2026-10-24
 ---
 
-# Player video primary trên điện thoại và chữ nút gợi ý
+# Player video primary, khung media ngang và chữ nút gợi ý
 
 ## Mục đích
 
 PC giữ nguyên player video primary đang chạy trên demo ([media-card R6](media-card.md#r6-media-trong-primary)); hướng
 Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế với
-demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, và thêm bóng chữ cho nút trong "Có thể bạn thích".
-Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong media-card R6 trỏ tới đây. Bản thiết kế:
+demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, thêm bóng chữ cho nút trong "Có thể bạn thích", và cho
+khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong
+media-card R6 trỏ tới đây và [advertising-detail R2](advertising-detail.md#r2-hình-học-primary) sửa theo R6 ở đây. Bản thiết kế:
 [canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 19, ảnh chụp từ trang thật).
 
 ## Hành vi
@@ -111,6 +112,23 @@ When đọc màu núm thanh tua và núm thanh âm lượng
 Then cả hai là màu đặc, alpha 1
 ```
 
+### R6. Khung primary cao theo media ngang
+
+Layout `split` (PC, màn hình ngang) đổi chiều cao vùng ảnh từ cố định bằng phần viewport `H` (advertising-detail R2) sang
+`min(W/r, H)`, với `W` là bề rộng vùng ảnh và `r` tỷ lệ cover (mọi media trong card cùng tỷ lệ). Media ngang vì thế không
+có vùng dư trên, dưới, không có zoom blur ở đó (owner 2026-10-24); media dọc vẫn cao `H`, vùng dư hai bên là zoom blur như cũ.
+Primary thấp lại và hàng related dồn lên ngay dưới, như pin Pinterest. Info cao bằng vùng ảnh; info cần cao hơn (đủ một dòng
+mô tả, CTA, indicator như R2) thì primary cao theo info, khung ảnh nằm trên cùng cột ảnh, phần dưới để nền trang. Layout
+`pinterest` giữ nguyên (đã cao theo ảnh).
+
+```gherkin
+Given viewport 1440×900 (4 cột, split) và card có cover video 960×640
+When mở detail card đó
+Then khung media rộng 668px, cao 445px, không có zoom blur trên và dưới video
+And hàng related bắt đầu ngay dưới primary
+And card có cover dọc thì khung vẫn cao hết phần viewport, zoom blur hai bên
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -118,8 +136,9 @@ Then cả hai là màu đặc, alpha 1
 | DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total` | Giữ hook hiện có (R1, R2, R5) |
 | CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
 | Script | `scripts/site/build-placeholder-media.mjs` | `-g 12` (R3) |
+| Hàm | `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Vùng ảnh `split` cao `min(W/r, H)` (R6) |
 
-Code nằm trong `catalog-runtime.mjs`, `detail.css`; markup `index.html` giữ nguyên. Spec sở hữu các file đó không đổi.
+Code nằm trong `catalog-runtime.mjs`, `detail.css`, `layout-core.mjs`; markup `index.html` giữ nguyên. Spec sở hữu các file đó không đổi.
 
 ## UI
 
@@ -138,11 +157,12 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R3 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn |
 | R5 | `site-media-card-m02a.e2e.mjs`: màu `::-webkit-slider-thumb` của thanh tua và thanh âm lượng có alpha 1 |
+| R6 | `advertising-photo-layout.test.mjs`: đổi hai ca "split cao bằng cap" sang `min(W/r, H)`, thêm ca ngang và dọc; `advertising-primary-p14.e2e.mjs` đo khung 1440×900 |
 | R1 trên máy thật | A05s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
 
 ## Gate còn mở
 
-- Spec chờ owner duyệt, rồi plan. Owner.
+- Spec chờ owner duyệt, rồi plan. Owner (R6 đã chọn hướng "cao theo media" 2026-10-24).
 - Độ nhòe bóng chữ R4 mặc định `12px`, owner xác nhận trên canvas. Owner.
 - R3 tăng byte clip; số đo trong PR, owner xem. Owner.
 - Kiểm R1 trên máy thật chờ lượt phone. Thread.
