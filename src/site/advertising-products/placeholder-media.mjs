@@ -960,7 +960,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Biển phòng họp",
    "altEn": "Illustrative video: Meeting-room signs",
    "source": "/assets/placeholder-media/office-signs-wayfinding-09-v1.mp4",
-   "sha256": "a8d947fce5a71bcea3af2a20b66e5a3c8d19d949769053d3867bbfdc2147210d",
+   "sha256": "4d25105f0b75ea08ce3b361ae48800709d265a7c1784cb0d134f7da9802fb316",
    "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-09, office-signs-wayfinding-14, office-signs-wayfinding-15, office-signs-wayfinding-16; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-09-v1-poster.webp",
    "posterWidth": 640,
@@ -1130,7 +1130,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Biển số nhà Inox ăn mòn và dập nổi",
    "altEn": "Illustrative video: Etched and embossed stainless-steel house numbers",
    "source": "/assets/placeholder-media/office-signs-wayfinding-44-v1.mp4",
-   "sha256": "f0baeef7f92beafe302f38c11fbf8344963e316b3127641aae5127aeded6eb48",
+   "sha256": "63b0c2991d2c8a6c1566a5cca4d5a57f9f55aa2ea82257e3725edac7e6d57795",
    "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-44, office-signs-wayfinding-01, office-signs-wayfinding-13, office-signs-wayfinding-32; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-44-v1-poster.webp",
    "posterWidth": 960,
@@ -1161,7 +1161,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa 2: Biển số nhà Inox ăn mòn và dập nổi",
    "altEn": "Illustrative video 2: Etched and embossed stainless-steel house numbers",
    "source": "/assets/placeholder-media/office-signs-wayfinding-44-v2.mp4",
-   "sha256": "c0f78e85d10f34158edf5082340a496efa6afe0504ec654832d8a79ba915cf04",
+   "sha256": "44a2a1389736bc78463164ce9b3f2f5cd500bc9336329c012e663889b738f9e1",
    "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-01, office-signs-wayfinding-13, office-signs-wayfinding-32, office-signs-wayfinding-42; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-44-v2-poster.webp",
    "posterWidth": 960,
@@ -1205,7 +1205,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa 3: Biển số nhà Inox ăn mòn và dập nổi",
    "altEn": "Illustrative video 3: Etched and embossed stainless-steel house numbers",
    "source": "/assets/placeholder-media/office-signs-wayfinding-44-v3.mp4",
-   "sha256": "51987602dff39026bbdc845cb19e4e7701b8e1d3e129b4af8d7f6e8701859db2",
+   "sha256": "deb00213400e2258d522604621d261372208479ff1eb8a96ca34d0a27a96a829",
    "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-13, office-signs-wayfinding-32, office-signs-wayfinding-42, office-signs-wayfinding-43; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-44-v3-poster.webp",
    "posterWidth": 960,
@@ -1697,7 +1697,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 2)",
    "altEn": "Meeting-room signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-16-p2.webp",
-   "sha256": "d8c3cbbb703c655b3d1c763c51290e17970c7833339bd052e05ea9864fe8173f",
+   "sha256": "33cb6742c949ac9100d715044b18da8843e165ffe884e78a263467c751adb632",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-timber-03.webp; replace with real product media."
   },
   {
@@ -1710,7 +1710,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 3)",
    "altEn": "Meeting-room signs (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-16-p3.webp",
-   "sha256": "f443307198c5e4a8e46f64387a88948de7d2cf9be8a5728a2b8ccf9e4f18a71e",
+   "sha256": "c866f5b2efd3e3165701dd5f605487d597a4f2bea10c46f23a7a53e8c96950e3",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-timber-03.webp; replace with real product media."
   },
   {
@@ -1723,7 +1723,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 4)",
    "altEn": "Meeting-room signs (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-16-p4.webp",
-   "sha256": "76cf6a11c638cb2720f098c9e17f0d0ba21ba14d7f4d1debc4e2ce13d4c486cb",
+   "sha256": "d48fc71d7cfa7e83e19aa9fb5effadf143ed7684c5d5230441264ec18836b46b",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-timber-03.webp; replace with real product media."
   }
  ],
@@ -2117,7 +2117,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Sơ đồ tòa nhà (ảnh 2)",
    "altEn": "Building directories (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-26-p2.webp",
-   "sha256": "0e9c3e3307bb0a53aa0b4bf15fe35914897708b86a187471c9cea9ebdae1e238",
+   "sha256": "69ced4022452417d724790fb256fbf19df062515bbe7889806ffd8a749566942",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-29-imagegen-20261018.webp; replace with real product media."
   },
   {
@@ -2130,7 +2130,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Sơ đồ tòa nhà (ảnh 3)",
    "altEn": "Building directories (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-26-p3.webp",
-   "sha256": "11af04126572947902ffc4f5801c5ae37ebab99de38d1dcfea7b0e468a153c1e",
+   "sha256": "03445e356a7cb792aa1eafc93a9bb325796df7930084630c5ce6de5a56620d4f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-26-owner-20260924.webp; replace with real product media."
   },
   {
@@ -2143,7 +2143,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Sơ đồ tòa nhà (ảnh 4)",
    "altEn": "Building directories (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-26-p4.webp",
-   "sha256": "192f56dc2928cf7bcb2273bfe05f7e36aff23ffd9658f8953a0840445758af4c",
+   "sha256": "6b6c33b43e863de5894c10b5bbc1d1f7dd377993c16468209caf168d5efedf07",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-26-owner-20260924.webp; replace with real product media."
   }
  ],
@@ -2442,7 +2442,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng tên đường (ảnh 2)",
    "altEn": "Street-name signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-30-p2.webp",
-   "sha256": "f219da7d2e0d0b5f57feed5cb0970d62d6f04483bcfb9c6f184f1e2f6153d233",
+   "sha256": "d07cd9d487e73fc22965343fa8e7469c9f3bada18c181c105df2978d30044792",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
   },
   {
@@ -2455,7 +2455,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng tên đường (ảnh 3)",
    "altEn": "Street-name signs (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-30-p3.webp",
-   "sha256": "03a3ab93a020d925091ea5c79c620e4b70a85bcafa0fe90f16ec8a06aa86e58f",
+   "sha256": "4a587602b65152b33c8f292acafbd4c2cb5f65a498fcf821ae11af98d755a75f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
   },
   {
@@ -2468,7 +2468,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng tên đường (ảnh 4)",
    "altEn": "Street-name signs (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-30-p4.webp",
-   "sha256": "8cb91c26fc7e9cd4263dca407303fd7ac6843235ab6cd7c0c214ae31628e8b8d",
+   "sha256": "5c6d7840618dd576d03976fa60ebdf093560fb9f9d5b3622e289de3c48e055ec",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
   },
   {
@@ -2481,7 +2481,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Bảng tên đường (ảnh 5)",
    "altEn": "Street-name signs (photo 5)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-30-p5.webp",
-   "sha256": "f1eb033f5d86d5b8ca1f1563077c3827af64cf06599a5291ec3875bdf3997cdc",
+   "sha256": "4df2c3ccbfbad1ec64b9ebb293a07703a8cbe85a455833ce20aaeb8179c3aa67",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-30-owner-20260924.webp; replace with real product media."
   }
  ],
@@ -2776,7 +2776,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Biển cảnh báo và biển WC",
    "altEn": "Illustrative video: Warning and washroom signs",
    "source": "/assets/placeholder-media/office-signs-wayfinding-23-v1.mp4",
-   "sha256": "d5233f059902253c99828458f5a21e07fcc5af77b0ca60a1a2c1329558976ffc",
+   "sha256": "186f071fe1c2c95677fae761bb50080bd69168e9beea6e72294de2518d8510e2",
    "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-23, office-signs-wayfinding-02, office-signs-wayfinding-12, office-signs-wayfinding-24; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-23-v1-poster.webp",
    "posterWidth": 960,
@@ -2798,7 +2798,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển cảnh báo và biển WC (ảnh 2)",
    "altEn": "Warning and washroom signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-23-p2.webp",
-   "sha256": "35c4e3109afb20bbfeddd471f6ec7a6a90a4bd8ed15b423bf827574e9d60a46b",
+   "sha256": "0f65780bbe8f5171abe1dc6b12e6e24c4f4dbec7a019838f534dbbe09d82e64a",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-02-sign-samples-catalogue.webp; replace with real product media."
   }
  ],
@@ -3087,12 +3087,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-05-p2.webp",
    "sourceId": "placeholder:office-signs-wayfinding-05-p2",
-   "width": 701,
-   "height": 561,
+   "width": 768,
+   "height": 614,
    "altVi": "Bảng chức danh gỗ và đồng (ảnh 2)",
    "altEn": "Timber and brass desk nameplates (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p2.webp",
-   "sha256": "6cd20489598185b9f78d4ca177f5c1e92eb0f4a120db952828a3e63cd979bf21",
+   "sha256": "21eae547069294db87077177ce584e2bf838a45214f2187720bad13be9adebb8",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   },
   {
@@ -3100,12 +3100,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-05-p3.webp",
    "sourceId": "placeholder:office-signs-wayfinding-05-p3",
-   "width": 701,
-   "height": 561,
+   "width": 768,
+   "height": 614,
    "altVi": "Bảng chức danh gỗ và đồng (ảnh 3)",
    "altEn": "Timber and brass desk nameplates (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p3.webp",
-   "sha256": "385f705ca7762c152e2b54abe263c9edd66d67715162e56c88a7ea201ca17edd",
+   "sha256": "c313345dcb3f9e850a7e7d601323c0e4e6411ab6e40c8737ea5e067a049a186f",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   },
   {
@@ -3113,12 +3113,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-05-p4.webp",
    "sourceId": "placeholder:office-signs-wayfinding-05-p4",
-   "width": 701,
-   "height": 561,
+   "width": 768,
+   "height": 614,
    "altVi": "Bảng chức danh gỗ và đồng (ảnh 4)",
    "altEn": "Timber and brass desk nameplates (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p4.webp",
-   "sha256": "8a28d7eb747d0c15240797429894c00432083c1485488f2714f28f7ab6e11e46",
+   "sha256": "f960aec64b0caace0cda0191a7a3a4f429b14736110ef682fce88bd99dfd32c4",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   }
  ],
@@ -3782,7 +3782,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Sơ đồ tòa nhà (ảnh 2)",
    "altEn": "Building directories (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-31-p2.webp",
-   "sha256": "18e91a593906c799cba150ea3d9d8f1acf16dfd8bf80c098038928cb69299c77",
+   "sha256": "3efa3daa378833945f21c1f9103feb990c392e63de3e7f59704ac28799b35f1d",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
   },
   {
@@ -3795,7 +3795,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Sơ đồ tòa nhà (ảnh 3)",
    "altEn": "Building directories (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-31-p3.webp",
-   "sha256": "8f8ee86f67087b464c082a212063e6b5e23adfb0fccb8420742ecba2219f2a9e",
+   "sha256": "d0844d4ec81182fb222dd65dfa1fb0e2a33273aa4524508ae27211d75095af51",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
   },
   {
@@ -3808,7 +3808,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Sơ đồ tòa nhà (ảnh 4)",
    "altEn": "Building directories (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-31-p4.webp",
-   "sha256": "5976eb35dc7f88fc1a6b8ac3a5a1160015f5b47d24319ca1386c00b6432ddbde",
+   "sha256": "448baccba3c1b7aa3d1fa5c556830bec3bcb0b6a651d497b16f2ff6c9abde0f2",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-31-owner-20260924-v2.webp; replace with real product media."
   }
  ],
@@ -3827,7 +3827,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển chỉ dẫn tầng (ảnh 2)",
    "altEn": "Floor wayfinding signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-54-p2.webp",
-   "sha256": "ebdd3e5240bd5fbfdd265d7df92f6c973419819469b78ac90f8129bd02727cac",
+   "sha256": "a38ac762340bc6a6ae4a63b319c60a764894d18621b2d0fa807330cbc38d6fbf",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-03-street-name-signs-audit-a156-v5.webp; replace with real product media."
   },
   {
@@ -4291,7 +4291,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Video minh họa: Kỷ niệm chương",
    "altEn": "Illustrative video: Award plaques",
    "source": "/assets/placeholder-media/office-signs-wayfinding-53-v1.mp4",
-   "sha256": "526c794e8cc7c5917ff2f4057695521a58c496e8f1b4830ccae397222f7615d6",
+   "sha256": "b8c993f2fb1e817efb07c5ad561d35a4824b7f0f301fd29f26a4c875d28303d5",
    "provenance": "Placeholder slideshow built with ffmpeg from office-signs-wayfinding-53, office-signs-wayfinding-33, office-signs-wayfinding-34, office-signs-wayfinding-35; replace with real product video.",
    "posterSrc": "/assets/placeholder-media/office-signs-wayfinding-53-v1-poster.webp",
    "posterWidth": 960,
@@ -4313,7 +4313,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Kỷ niệm chương (ảnh 2)",
    "altEn": "Award plaques (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-53-p2.webp",
-   "sha256": "783cb014cce5aa9566a1bec39c9f818b1b68dddcf785fe0264f8095e1c259596",
+   "sha256": "61dcf9c169f99a32d20cd47086130f29d6cfa460c20807c509c0d12c849a40cf",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-35-owner-20261012.webp; replace with real product media."
   }
  ],
@@ -4332,7 +4332,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 2)",
    "altEn": "Meeting-room signs (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p2.webp",
-   "sha256": "c5d59017e16c840526598b205bedd7b18e02dc8019d704afdbb662fb264cc9a3",
+   "sha256": "c10d47d89cf086cae893e4cea2fec7f7f2435dfa1d8d753947c1382fca20bc02",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-09-meeting-room-signs-audit-a162-v1.webp; replace with real product media."
   },
   {
@@ -4345,7 +4345,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 3)",
    "altEn": "Meeting-room signs (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p3.webp",
-   "sha256": "cd8d7e80fc447dae45d655a1bf67217e98bc163de92db2f01b16508997e5e256",
+   "sha256": "0bf0a289e41ef68a90ec7c9ed23d2776cf4fa93cab8b205bd6f6f0e29e4cc186",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/meeting-acrylic-02-audit-a149-v1.webp; replace with real product media."
   },
   {
@@ -4358,7 +4358,7 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "altVi": "Biển phòng họp (ảnh 4)",
    "altEn": "Meeting-room signs (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-14-p4.webp",
-   "sha256": "6c775f85af673c0085ff4eb665310d03112662ca1d1dce16fb0d221e91ae1f10",
+   "sha256": "dbe1d1323bd125e0234db36e8db15af25f3cec9c71607fd963f03806781e5fdf",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-design-02-audit-a152-v1.webp; replace with real product media."
   }
  ],
