@@ -1,5 +1,5 @@
 ---
-title: Player video primary Kính sáng và chữ nút gợi ý
+title: Player video primary trên điện thoại và chữ nút gợi ý
 status: planned
 source: []
 tests:
@@ -8,78 +8,56 @@ notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
 updated: 2026-10-24
 ---
 
-# Player video primary Kính sáng và chữ nút gợi ý
+# Player video primary trên điện thoại và chữ nút gợi ý
 
 ## Mục đích
 
-Làm lại player video ở primary của detail Advertising theo Design System: thanh điều khiển là Kính sáng, kéo thanh tua
-thì khung video đổi theo tay như After Effects. Kèm bóng chữ cho nút trong "Có thể bạn thích". Card trên masonry giữ
-nguyên. Khi spec chuyển `live`, đoạn player trong [media-card R6](media-card.md#r6-media-trong-primary) thay bằng link
-tới đây; dải media, tiếng fade, Back, Forward vẫn theo R6. Bản thiết kế đã duyệt tông:
-[canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản Kính sáng, owner 2026-10-24).
+PC giữ nguyên player video primary đang chạy trên demo ([media-card R6](media-card.md#r6-media-trong-primary)); hướng
+Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục player riêng cho màn hình cảm ứng, cùng ngôn ngữ thiết kế với
+demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, và thêm bóng chữ cho nút trong "Có thể bạn thích".
+Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong media-card R6 trỏ tới đây. Bản thiết kế:
+[canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 19, ảnh chụp từ trang thật).
 
 ## Hành vi
 
-### R1. Thanh Kính sáng
+### R1. Player trên màn hình cảm ứng
 
-Thanh cao `56px` nằm sát đáy BBox video (khung contain, không tính vùng dư zoom blur), rộng hết BBox. Nền là component
-Kính, dạng mới "Thanh": một bậc, blur `40px`, saturate và brightness như Kính, tint trắng `0.55` như dạng cung, hạt
-nhiễu như Kính. Góc vuông, không viền, không bóng. Video phía sau chỉ còn màu, không nhìn xuyên thấy hình (owner
-2026-10-24). Chữ và icon màu `ink`; tổng thời lượng `ink` 0.8, weight 500.
+Áp dụng khi thiết bị không có hover (`hover: none`): điện thoại và tablet. Mặc định Thread chọn theo cách nhập thay vì
+độ rộng, vì cột âm lượng của PC mở bằng hover nên không dùng được trên màn hình cảm ứng ở mọi độ rộng.
 
-Từ trái qua: nút phát/tạm dừng, thời gian "hiện tại / tổng" (`14px`, 700, số đều), khoảng trống, nút tiếng, nút toàn
-màn hình. Nút vuông `48px`, icon `20px`; hover nền `ink` 0.08, nhấn 0.16, focus ring `2px` màu `orange`. Player hẹp
-hơn `480px` (điện thoại) dùng thanh gọn để che ít video hơn (owner 2026-10-24): cao `40px`, nút `40px`, icon `18px`,
-chữ thời gian `12px`; vùng chạm `40px` dưới mức `44px` khuyến nghị, tăng vùng chạm mà không tăng thanh nếu khó bấm.
-
-Không có nút phát giữa video, kể cả khi dừng (owner 2026-10-24). Bấm vào video vẫn phát/dừng.
-
-```gherkin
-Given primary đang phát video trên desktop 1440px
-When trỏ chuột vào video
-Then thanh Kính sáng hiện ở đáy BBox video, nền có backdrop-filter của component Kính
-And đọc pixel vùng thanh trên video nhiều chi tiết thì không còn cạnh sắc của video
-And tạm dừng thì giữa video không có biểu tượng phát nào
-And player rộng 350px thì thanh cao 40px, nút 40px
-```
-
-### R2. Hiện và ẩn thanh
-
-Thanh luôn hiện khi video dừng, khi focus nằm trong player, khi đang kéo tua hoặc cột âm lượng đang mở. Khi phát: rê
-chuột trên video thì hiện, chuột đứng yên `2s` hoặc rời khung thì ẩn; lúc thanh ẩn và video phát thì ẩn con trỏ. Hiện:
-`200ms` ease-out, trượt lên `24px` và opacity tăng. Ẩn: `280ms` ease-in, ngược lại. Màn hình cảm ứng: thanh luôn hiện
-(giữ mặc định đã có ở media-card R6). Giảm chuyển động: hiện và ẩn bằng opacity, không trượt.
+- Nút phát/tạm dừng trên thanh bỏ đi. Nút phát `48px` giữa video giữ như demo: trắng, `drop-shadow(0 0 8px)` đen
+  `0.1`, chỉ hiện khi dừng; chạm vào video thì phát hoặc dừng.
+- Giờ, thanh tua, nút tiếng, nút toàn màn hình nằm một hàng cao `40px`. Giờ `14px` 700, số đều, tổng thời lượng
+  opacity `0.6`. Thanh tua chiếm phần còn lại, cách giờ `12px` và cách nút tiếng `8px`; đường `4px` bo tròn, núm
+  `12px` như demo, vùng chạm cao `40px`. Hai nút vuông `40px`, icon `18px`.
+- Dải gradient đáy thấp từ `128px` xuống `72px` (đen `0.4` lên trong suốt), lề trái `16px`, phải `4px`, đáy `4px`.
+  Thanh luôn hiện như demo.
+- Nút tiếng chỉ bật hoặc tắt tiếng, không có cột âm lượng: máy cảm ứng chỉnh bằng phím cứng (mặc định Thread chọn).
+  `hasAudio` false thì ẩn nút tiếng như media-card R6.
+- Toàn màn hình dùng cùng bố cục này.
 
 ```gherkin
-Given primary đang phát video, thanh đang hiện
-When chuột đứng yên 2 giây trên video
-Then thanh trượt xuống 24px và mờ hẳn, con trỏ ẩn
-And bấm Tab vào nút phát thì thanh hiện lại và không tự ẩn khi focus còn trong player
+Given điện thoại 390px không hover mở primary video
+When video đang phát
+Then trên thanh không có nút phát/tạm dừng, giữa video không có biểu tượng phát
+And giờ, thanh tua, nút tiếng, nút toàn màn hình cùng một hàng cao 40px
+And dải gradient đáy cao 72px
+And chạm vào video thì video dừng và nút phát 48px hiện giữa video
+And chạm nút tiếng chỉ đổi bật/tắt tiếng, không mở cột âm lượng
 ```
-
-### R3. Thanh tua ba nấc
-
-Thanh tua là đường `3px` ở mép trên Kính, ba nấc: chưa tải `ink` 0.16, đã tải (`buffered`) `ink` 0.38, đã chạy `ink`.
-Rê, focus hoặc kéo thì đường dày `6px` và hiện núm tròn `12px`, `14px` trên thanh gọn (nền `ink`, viền trắng `2px`;
-núm tròn là ngoại lệ góc vuông của Design System, owner 2026-10-24); đang dừng thì núm luôn
-hiện. Vùng bấm cao `22px` quanh đường. Rê chuột trên thanh tua hiện nhãn thời gian ở vị trí chuột; kéo thì nhãn theo
-núm: nền `ink`, chữ trắng `13px` 700, dạng `m:ss.d`, có chân `1px` x `10px` chỉ xuống thanh, cách mép khung ít nhất
-`44px`. Phím mũi tên tua như hiện tại. Giảm chuyển động: đổi độ dày ngay.
 
 ```gherkin
-Given video 8,5 giây đã tải 40%, đang phát ở 2 giây
-When rê chuột tới 75% thanh tua
-Then thanh tua dày 6px, nấc đã tải dài 40%, nấc đã chạy theo thời gian phát
-And nhãn "0:06.3" hiện phía trên vị trí chuột
+Given desktop 1440px có hover mở primary video
+When rê chuột vào video
+Then player giống demo: hàng nút trên, thanh tua dưới, dải gradient 128px, cột âm lượng mở khi rê nút tiếng
 ```
 
-### R4. Kéo tua: khung đổi theo tay
+### R2. Kéo tua: khung đổi theo tay
 
-Kéo trong đoạn đã tải: video tạm dừng, khung hiện đúng frame tại núm mỗi lần núm đổi, mỗi frame tối đa một lệnh tua
-(lệnh mới chờ `seeked` của lệnh trước); thả tay thì phát tiếp nếu trước đó đang phát. Kéo qua đoạn chưa tải: núm vẫn
-theo tay, khung giữ frame cuối đã hiện, không gửi lệnh tua, nhãn thêm " · Đang tải" / " · Loading". Thả tay ở đoạn chưa
-tải thì tua tới đó; nhãn giữ " · Đang tải" tới khi có `seeked`, rồi phát tiếp nếu trước đó đang phát. Đang phát mà hết
-đoạn đã tải (`waiting`) thì nhãn hiện ở núm với " · Đang tải".
+Áp dụng cho PC và cảm ứng. Kéo trong đoạn đã tải (`buffered`): video tạm dừng, khung hiện đúng frame tại núm mỗi lần
+núm đổi, mỗi frame tối đa một lệnh tua (lệnh mới chờ `seeked` của lệnh trước); thả tay thì phát tiếp nếu trước đó đang
+phát. Kéo qua đoạn chưa tải: núm vẫn theo tay, khung giữ frame cuối đã hiện, không gửi lệnh tua; thả tay thì tua tới
+đó, có `seeked` rồi phát tiếp nếu trước đó đang phát. Giao diện thanh tua giữ như demo, không thêm nhãn.
 
 ```gherkin
 Given video đã tải hết, đang phát
@@ -91,11 +69,11 @@ And thả tay thì video phát tiếp từ 6 giây
 ```gherkin
 Given video đã tải tới 3,9 giây
 When kéo núm tới 5,6 giây rồi giữ
-Then khung giữ frame gần 3,9 giây, nhãn "0:05.6 · Đang tải"
-And thả tay thì nhãn còn tới khi video tua xong, rồi video phát từ 5,6 giây
+Then khung giữ frame gần 3,9 giây, không có lệnh tua mới
+And thả tay thì video tua tới 5,6 giây rồi phát tiếp
 ```
 
-### R5. Mã hóa video cho tua mượt
+### R3. Mã hóa video cho tua mượt
 
 Video media primary có keyframe tối đa mỗi `0,5s`, để mỗi lệnh tua chỉ giải mã ít frame. Clip tạm hiện chỉ có một
 keyframe đầu clip (đo `ffprobe` kiosk-posm-13-v1: 8,5s, H.264 24fps); `scripts/site/build-placeholder-media.mjs` thêm
@@ -107,76 +85,35 @@ When ffprobe liệt kê keyframe
 Then khoảng cách giữa hai keyframe liền nhau không quá 0,5 giây
 ```
 
-### R6. Âm lượng
+### R4. Bóng chữ nút gợi ý (ngoại lệ Design System)
 
-Âm lượng là một khối Kính dạng "Thanh" liền, rộng bằng nút tiếng, cao `208px`, phủ cả nút tiếng lẫn cột trượt
-(owner 2026-10-24): rê hoặc focus nút tiếng thì khối mở từ dưới lên (`220ms`), rời khối thì đóng sau `160ms`. Khối nằm
-trên mọi UI khác của player (`z-index` trên thanh tua), nút tiếng ở trên cùng, nên rê từ nút lên cột không chạm thanh tua.
-Cột: đường dọc `3px`, nấc đầy `ink`, núm như thanh tua.
-Player hẹp hơn `480px` không có cột, chỉ có nút tiếng: máy nhỏ chỉnh bằng nút cứng (mặc định Thread chọn). Kéo về 0 là
-tắt tiếng nhưng giữ mức cũ; `hasAudio` false thì ẩn nút và cột (giữ như media-card R6).
-
-```gherkin
-Given primary rộng 680px đang phát video có tiếng
-When rê từ nút tiếng lên cột âm lượng và kéo tới 0,6
-Then khối không đóng giữa đường, thanh tua không hiện nhãn hay núm, video bật tiếng ở volume 0,6
-And player rộng 350px thì rê vào nút tiếng không mở cột
-```
-
-### R7. Toàn màn hình
-
-Giữ hành vi media-card R6 (nền đen, không zoom blur, Esc thoát). Thanh và cột âm lượng trong toàn màn hình vẫn là Kính
-sáng, cùng quy tắc hiện, ẩn.
-
-```gherkin
-Given primary đang phát video
-When bấm "Toàn màn hình"
-Then khung video phủ màn hình nền đen, thanh Kính sáng ở đáy
-And chuột đứng yên 2 giây thì thanh ẩn
-```
-
-### R8. Bóng chữ nút gợi ý (ngoại lệ Design System)
-
-Chữ trắng trên nút trong "Có thể bạn thích" thêm bóng mềm để nổi hơn hình (owner); lớp tối của nút giữ nguyên. Nút
-đang chọn (chữ `ink` trên nền giấy) không có bóng. Giá trị mặc định: `0 1px 8px` `ink` 0.6, chỉnh khi owner xem. Design
-System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi owner "ok" trong thread.
-Player không dùng text-shadow: chữ nằm trên Kính tint đặc.
+Chữ trắng trên nút trong "Có thể bạn thích" thêm bóng cùng kiểu bóng icon phát của player (owner 2026-10-24): bóng
+đen, không lệch, nhòe `8px`. Mức đậm chờ owner chọn trên canvas; mặc định Thread đề xuất `0 0 8px` đen `0.4`, vì đen
+`0.1` như icon phát gần như không thấy trên ảnh sáng. Lớp tối của nút giữ nguyên; nút đang chọn (chữ `ink` trên nền
+giấy) không có bóng. Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi
+owner "ok" trong thread.
 
 ```gherkin
 Given detail có mục "Có thể bạn thích"
 When đọc style chữ của nút chưa chọn và nút đang chọn
-Then nút chưa chọn có text-shadow, nút đang chọn không có
+Then nút chưa chọn có text-shadow mức owner chọn, nút đang chọn không có
 And lớp tối ::after của nút chưa chọn vẫn còn
-```
-
-### R9. Hiệu năng
-
-Kính "Thanh" là `backdrop-filter` thật trên video đang phát. Đo trên máy thật (A05s) với thanh hiện trên video phát:
-đạt gate fps của [glass R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt) thì giữ; rơi gate thì báo owner trước khi
-đổi thiết kế. Bảng dạng của [glass R1](glass-surface.md#r1-một-component-hai-dạng) thêm dạng "Thanh" trong cùng PR.
-
-```gherkin
-Given A05s mở primary video, thanh luôn hiện vì là cảm ứng
-When video phát 10 giây
-Then fps đo đạt gate glass R7
 ```
 
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total` | Giữ hook hiện có (R1–R7) |
-| DOM hook | `data-advertising-photo-scrub-label` | Nhãn thời gian trên thanh tua (R3, R4) |
-| CSS var | `--buffered` trên thanh tua | Nấc đã tải (R3) |
-| Hàm | `createGlassSurface("bar")` (`glass-surface.mjs`) | Kính dạng "Thanh" (R1, R6) |
-| Script | `scripts/site/build-placeholder-media.mjs` | `-g 12` (R5) |
+| DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|fullscreen\|time-current\|time-total` | Giữ hook hiện có (R1, R2) |
+| CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
+| Script | `scripts/site/build-placeholder-media.mjs` | `-g 12` (R3) |
 
-Code nằm trong `catalog-runtime.mjs`, `detail.css`, `index.html`, `glass-surface.mjs`; spec sở hữu các file đó không đổi.
+Code nằm trong `catalog-runtime.mjs`, `detail.css`; markup `index.html` giữ nguyên. Spec sở hữu các file đó không đổi.
 
 ## UI
 
-[Glass](../../design-system/components/Glass/README.md), [Primary](../../design-system/components/Primary/README.md),
-canvas player ở mục đích. Thêm dạng "Thanh" và ngoại lệ bóng chữ vào `design-system/` chỉ khi owner "ok".
+[Primary](../../design-system/components/Primary/README.md), canvas player ở mục đích. Thêm bố cục cảm ứng và ngoại lệ
+bóng chữ vào `design-system/` chỉ khi owner "ok".
 
 ## Kiểm tra
 
@@ -185,24 +122,24 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R3, R6, R7 | `site-media-card-m02a.e2e.mjs`: thêm ca Kính thanh, thanh gọn dưới 480px, không nút giữa, tự ẩn 2s, con trỏ, ba nấc, núm tròn, nhãn, cột 480px |
-| R4 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
-| R5 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
-| R8 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn |
-| R9 | Máy thật A05s qua adb, theo [Android thật](../operations/android-real-device-debugging.md) |
+| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (không hover) đo một hàng, gradient 72px, không nút phát trên thanh, nút giữa chỉ khi dừng, không mở cột âm lượng; desktop giữ ca hiện có |
+| R2 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
+| R3 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
+| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn |
+| R1 trên máy thật | A05s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
 
 ## Gate còn mở
 
 - Spec chờ owner duyệt, rồi plan. Owner.
-- R5 tăng byte clip; số đo trong PR, owner xem. Owner.
-- R9 chưa đo; thread chờ lượt phone. Thread.
-- Giá trị bóng chữ R8 là mặc định, owner chỉnh khi xem demo. Owner.
+- Mức bóng chữ R4 chờ owner chọn trên canvas. Owner.
+- R3 tăng byte clip; số đo trong PR, owner xem. Owner.
+- Kiểm R1 trên máy thật chờ lượt phone. Thread.
 
 ## Chú thích thuật ngữ
 
-- **Kính sáng**: Kính tint trắng, chữ `ink`; khác Kính tối tint `ink`, chữ trắng (đã loại).
 - **BBox video**: khung contain của video trong primary, không tính vùng dư zoom blur.
 - **Buffered**: đoạn video trình duyệt đã tải về, tua tới đó hiện frame ngay.
 - **Keyframe**: frame giải mã độc lập; tua tới frame khác phải giải mã từ keyframe gần nhất phía trước.
 - **Seek coalescing**: gộp lệnh tua, chỉ gửi lệnh mới khi lệnh trước xong (`seeked`).
+- **Hover none**: thiết bị không có con trỏ rê được, như điện thoại, tablet; CSS nhận biết bằng `@media (hover: none)`.
 - **Ngoại lệ Design System**: chỗ cố ý khác quy tắc chung, có ghi lý do và chỗ áp dụng.
