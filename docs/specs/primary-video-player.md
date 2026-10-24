@@ -109,15 +109,17 @@ Then khoảng cách giữa hai keyframe liền nhau không quá 0,5 giây
 
 ### R6. Âm lượng
 
-Cột âm lượng `48px` x `152px` dùng Kính dạng "Thanh", đặt ngay trên nút tiếng: đường dọc `3px`, nấc đầy `ink`, núm như
-thanh tua. Mở khi rê hoặc focus cụm tiếng; rời cụm thì đóng sau `160ms` để rê từ nút lên cột không bị tắt giữa đường.
+Âm lượng là một khối Kính dạng "Thanh" liền, rộng bằng nút tiếng, cao `208px`, phủ cả nút tiếng lẫn cột trượt
+(owner 2026-10-24): rê hoặc focus nút tiếng thì khối mở từ dưới lên (`220ms`), rời khối thì đóng sau `160ms`. Khối nằm
+trên mọi UI khác của player (`z-index` trên thanh tua), nút tiếng ở trên cùng, nên rê từ nút lên cột không chạm thanh tua.
+Cột: đường dọc `3px`, nấc đầy `ink`, núm như thanh tua.
 Player hẹp hơn `480px` không có cột, chỉ có nút tiếng: máy nhỏ chỉnh bằng nút cứng (mặc định Thread chọn). Kéo về 0 là
 tắt tiếng nhưng giữ mức cũ; `hasAudio` false thì ẩn nút và cột (giữ như media-card R6).
 
 ```gherkin
 Given primary rộng 680px đang phát video có tiếng
 When rê từ nút tiếng lên cột âm lượng và kéo tới 0,6
-Then cột không đóng giữa đường, video bật tiếng ở volume 0,6
+Then khối không đóng giữa đường, thanh tua không hiện nhãn hay núm, video bật tiếng ở volume 0,6
 And player rộng 350px thì rê vào nút tiếng không mở cột
 ```
 
