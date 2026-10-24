@@ -3411,8 +3411,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
       return;
     }
-    delete heroFrame.dataset.advertisingPhotoLoading;
-    heroFrame.removeAttribute("aria-busy");
     if (reduced) {
       settlePrimaryReveal();
       return;
@@ -3423,6 +3421,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     bitmap?.close();
     setTimeout(() => {
       if (primaryReveal !== reveal) return;
+      // Bỏ trạng thái loading cùng task với animation: tách ra thì giữa hai task có frame ảnh mới hiện đủ
+      // rồi mới chạy reveal từ 0 (lỗi chớp khi Back, Forward).
+      delete heroFrame.dataset.advertisingPhotoLoading;
+      heroFrame.removeAttribute("aria-busy");
       reveal.glass = glass;
       heroFrame.append(glass);
       // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
