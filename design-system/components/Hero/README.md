@@ -12,17 +12,18 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
   `paper`. Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
-- Weight cân đối: tiêu đề 600, kicker 700 cỡ 1rem; riêng About ghép dòng 500
-  với dòng 700 nghiêng. Tracking display `tracking-display`.
+- Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,
+  đậm 700, chữ đứng, như Advertising (owner 2026-10-24); trang chủ không có cặp, giữ 600.
+  Tracking display `tracking-display`.
 
 ## Theo trang
 
 | Trang | Nền | Tiêu đề | Kicker |
 | --- | --- | --- | --- |
 | Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, dòng 2 nghiêng | Có |
-| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa 600, line-height 1.4 | Có |
-| About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 nghiêng | Không (owner 2026-10-18) |
-| Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa 600, line-height 1.4 | Có |
+| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700, line-height 1.4; Commercial đậm ở `em` | Có |
+| About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
+| Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa nhẹ 500, đậm 700, line-height 1.4 | Có |
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
 `fetchpriority="high"`; trang chủ, Residential, Commercial chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
