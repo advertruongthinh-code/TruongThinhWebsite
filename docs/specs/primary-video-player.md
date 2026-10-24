@@ -87,16 +87,16 @@ Then khoảng cách giữa hai keyframe liền nhau không quá 0,5 giây
 
 ### R4. Bóng chữ nút gợi ý (ngoại lệ Design System)
 
-Chữ trắng trên nút trong "Có thể bạn thích" thêm bóng cùng kiểu bóng icon phát của player (owner 2026-10-24): bóng
-đen, không lệch, nhòe `8px`. Mức đậm chờ owner chọn trên canvas; mặc định Thread đề xuất `0 0 8px` đen `0.4`, vì đen
-`0.1` như icon phát gần như không thấy trên ảnh sáng. Lớp tối của nút giữ nguyên; nút đang chọn (chữ `ink` trên nền
-giấy) không có bóng. Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi
+Chữ trắng trên nút trong "Có thể bạn thích" thêm bóng cùng kiểu bóng icon phát của player: bóng đen, không lệch. Owner
+chọn đen `0.4` và nhòe rộng hơn `8px` (2026-10-24); mặc định Thread chọn `0 0 12px` đen `0.4`, vì nhòe rộng hơn thì
+bóng nhạt dần sát chữ. Owner đổi độ nhòe trên canvas thì sửa giá trị này. Lớp tối của nút giữ nguyên; nút đang chọn
+(chữ `ink` trên nền giấy) không có bóng. Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi
 owner "ok" trong thread.
 
 ```gherkin
 Given detail có mục "Có thể bạn thích"
 When đọc style chữ của nút chưa chọn và nút đang chọn
-Then nút chưa chọn có text-shadow mức owner chọn, nút đang chọn không có
+Then nút chưa chọn có text-shadow "0 0 12px" đen 0.4, nút đang chọn không có
 And lớp tối ::after của nút chưa chọn vẫn còn
 ```
 
@@ -131,7 +131,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 ## Gate còn mở
 
 - Spec chờ owner duyệt, rồi plan. Owner.
-- Mức bóng chữ R4 chờ owner chọn trên canvas. Owner.
+- Độ nhòe bóng chữ R4 mặc định `12px`, owner xác nhận trên canvas. Owner.
 - R3 tăng byte clip; số đo trong PR, owner xem. Owner.
 - Kiểm R1 trên máy thật chờ lượt phone. Thread.
 
