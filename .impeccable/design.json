@@ -2,7 +2,18 @@
   "schemaVersion": 2,
   "title": "Design System: Trường Thịnh",
   "extensions": {
-    "shadows": [],
+    "shadows": [
+      {
+        "name": "text-shadow-d",
+        "value": "0 0 2px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.4)",
+        "purpose": "Bóng chữ hai lớp cho chữ trắng trên ảnh: hero, portal, CTA có ảnh, Giữ nghề, player và nút Có thể bạn thích. Không dùng cho chữ ink trên giấy (hero và CTA Sản phẩm quảng cáo)."
+      },
+      {
+        "name": "text-shadow-reach",
+        "value": "12px",
+        "purpose": "Bán kính quầng ngoài của text-shadow-d; mask chữ nới clip-path bằng giá trị này để quầng không bị cắt."
+      }
+    ],
     "motion": [
       {
         "name": "ease",

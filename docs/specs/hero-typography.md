@@ -4,6 +4,7 @@ status: live
 source: []
 tests:
   - tests/site/hero-typography.e2e.mjs
+  - tests/site/hero-text-shadow.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
 updated: 2026-10-24
 ---
@@ -117,7 +118,36 @@ And các khối cùng loại có cùng line-height tính theo cỡ chữ
 
 ### R5. Ngoài phạm vi
 
-Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1. Ngoại lệ: dấu câu EN theo VI (owner 2026-10-18, [rule](../operations/agent-rule-product-ui.md)); hero trang chủ EN không dấu chấm, hero About EN là "Proven craft. / Earned trust.".
+Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1 (bóng chữ ở R6 không tính là đổi màu). Ngoại lệ: dấu câu EN theo VI (owner 2026-10-18, [rule](../operations/agent-rule-product-ui.md)); hero trang chủ EN không dấu chấm, hero About EN là "Proven craft. / Earned trust.".
+
+### R6. Bóng chữ hai lớp trên ảnh (ngoại lệ Design System)
+
+Owner chọn phương án B trên canvas bản 34 (2026-10-24): giữ lớp tối hiện có (`.hero-shade`, `.portal-shade`,
+`.detail-cta::after`), thêm `text-shadow` hai lớp D, cùng bóng với player và nút "Có thể bạn thích" của
+primary-video-player R4 (PR #434, chưa merge):
+`0 0 2px` đen `0.5` dưới `0 0 12px` đen `0.4`. Một biến CSS `--text-shadow-d` trong `:root` giữ giá trị, `--text-shadow-reach`
+(12px) là bán kính quầng ngoài.
+
+- Áp cho chữ trắng trên ảnh: hero trang chủ, Nhà ở, Kinh doanh, Về chúng tôi (kicker, title, scroll cue), `.portal-copy`
+  (kicker, title, tagline), `.legacy-copy` ("Giữ nghề") và `.detail-cta` có ảnh.
+- Không áp: hero và CTA lưới của trang Sản phẩm quảng cáo (chữ `ink` trên giấy), header khi tông `ink`.
+- Mask chữ (`.hero-line-mask`, `.line-mask`, `.portal-title-mask`, `.detail-line`, `.motion-line-mask`) nới `clip-path`
+  thêm `--text-shadow-reach` mỗi cạnh để quầng không bị cắt.
+- Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích. Ghi vào `design-system/` chỉ khi owner "ok" trong
+  thread làm việc này (gate Design System).
+
+```gherkin
+Given trang chủ, Nhà ở, Kinh doanh, Về chúng tôi ở 1440
+When đọc text-shadow của title hero, chữ portal, "Giữ nghề" và CTA có ảnh
+Then là "0 0 2px" đen 0.5 và "0 0 12px" đen 0.4
+And clip-path của mask dòng nới ra ngoài hộp ít nhất 12px mỗi cạnh
+```
+
+```gherkin
+Given trang Sản phẩm quảng cáo
+When đọc text-shadow của title hero và title CTA lưới
+Then cả hai là none
+```
 
 ## UI
 
@@ -132,6 +162,7 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 | R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN; thêm ảnh có và không clip-path của chữ nối heritage ([page-home R7](page-home.md#r7-heritage-montage)) |
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
+| R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở hero, portal, "Giữ nghề", CTA có ảnh; none ở hero và CTA Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
 
 ## Gate còn mở
 
