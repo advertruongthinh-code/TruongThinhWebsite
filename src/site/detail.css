@@ -2366,6 +2366,11 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-view__hero [data-advertising-photo-background],
 .advertising-photo-view__outgoing-background {
   filter: blur(100px) saturate(1.7) brightness(1.04);
+  /* Blur lấy mẫu trong suốt ngoài mép ảnh nên mép khung lộ nền xám thành vignette; tràn mép 2 lần bán kính blur như
+     canvas nền realtime để mép đặc như giữa (owner 2026-10-19). */
+  inset: -200px;
+  width: calc(100% + 400px);
+  height: calc(100% + 400px);
 }
 
 

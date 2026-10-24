@@ -754,7 +754,7 @@ try {
         { id: mediaCardId, mediaId: mediaVideoId });
       const preClickY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       const initialLength = await page.evaluate(() => history.length);
-      await tile.locator(":scope > a").click({ position: { x: 20, y: 20 } });
+      await tile.locator(":scope > a").click({ position: { x: 60, y: 20 } }); // tránh vùng mũi tên hover 32px ở mép canvas (media-card R3)
       await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
       const y0 = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
       await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);

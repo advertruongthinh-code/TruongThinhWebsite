@@ -542,6 +542,46 @@ test("M02a video stands still in the strip, its sound fades between play and pau
   });
 });
 
+test("M02a blur backdrop has no vignette: its edges are as opaque as its centre", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").readyState >= 2
+      && !document.documentElement.classList.contains("route-enter"));
+    // Ẩn media và Kính rồi chụp nền blur trên hai màu nền khung: chỗ nào nền blur trong suốt thì hai ảnh khác nhau.
+    await page.addStyleTag({ content: `.advertising-photo-view__hero-frame { background: var(--test-frame) !important; }
+      .advertising-photo-view__hero-frame > :not([data-advertising-photo-background], .advertising-photo-view__live-background) { visibility: hidden !important; }` });
+    const frame = page.locator(".advertising-photo-view__hero-frame");
+    const pixels = async (color) => {
+      await frame.evaluate((node, color) => node.style.setProperty("--test-frame", color), color);
+      const shot = await frame.screenshot();
+      return page.evaluate(async (base64) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const context = new OffscreenCanvas(image.width, image.height).getContext("2d");
+        context.drawImage(image, 0, 0);
+        const { width: w, height: h } = image;
+        return [[1, 1], [w - 2, 1], [1, h - 2], [w - 2, h - 2], [1, h >> 1], [w >> 1, 1]]
+          .map(([x, y]) => context.getImageData(x, y, 1, 1).data[1]);
+      }, shot.toString("base64"));
+    };
+    const seeThrough = async () => {
+      const [black, green] = [await pixels("#000"), await pixels("#0f0")];
+      return Math.max(...green.map((value, index) => value - black[index]));
+    };
+    // Dừng video để nền realtime đứng yên giữa hai lần chụp.
+    await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").pause());
+    await page.waitForTimeout(200);
+    assert(await seeThrough() < 8, "the live video backdrop reaches the frame edge");
+    await page.locator('[data-advertising-photo-media-step="-1"]').evaluate((button) => button.click());
+    await page.waitForFunction(() => !document.querySelector(".advertising-photo-view__strip")
+      && document.querySelector("[data-advertising-photo-video]").hidden);
+    await page.waitForTimeout(400);
+    const still = await seeThrough();
+    assert(still < 8, `the still image backdrop reaches the frame edge: ${still}`);
+  });
+});
+
 test("M02a media strip switches by arrow and key without resizing primary or moving related", async () => {
   await withPage("en", async (page) => {
     const card = await openFixture(page, "en", { videoCover: true, direct: true, wideVideo: true });
