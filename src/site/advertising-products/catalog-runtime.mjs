@@ -3383,13 +3383,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Media nằm contain trong khung cover; còn vùng dư thì hiện nền zoom blur (Kính), kể cả video.
   const fitPrimaryMedia = (item) => {
     if (!relatedLayout) return;
-    const { imageZoneWidth: zoneWidth, imageZoneHeight: zoneHeight } = relatedLayout.primary;
+    // Toàn màn hình: hộp contain theo màn hình nên ảnh, video và dải media cùng phóng theo; nền đen thay nền blur.
+    const full = document.fullscreenElement === heroFrame;
+    const zoneWidth = full ? heroFrame.clientWidth : relatedLayout.primary.imageZoneWidth;
+    const zoneHeight = full ? heroFrame.clientHeight : relatedLayout.primary.imageZoneHeight;
     const ratio = item.width / item.height;
     const width = Math.min(zoneWidth, ratio * zoneHeight);
     const height = width / ratio;
     photoView.style.setProperty("--advertising-photo-image-width", `${width}px`);
     photoView.style.setProperty("--advertising-photo-image-height", `${height}px`);
-    photoView.dataset.advertisingPhotoGlass = String(!primaryFailed
+    photoView.dataset.advertisingPhotoGlass = String(!full && !primaryFailed
       && (Math.abs(width - zoneWidth) > 0.5 || Math.abs(height - zoneHeight) > 0.5));
   };
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
@@ -3549,7 +3552,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.muted = true;
       photoVideo.defaultMuted = true;
     }
-    if (!video && document.fullscreenElement === heroFrame) void document.exitFullscreen().catch(() => {});
     photoImage.hidden = video;
     photoExpand.hidden = video;
     photoPlayer.hidden = !video;
@@ -3854,7 +3856,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     event.preventDefault();
     stepPrimaryMedia(event.key === "ArrowRight" ? 1 : -1);
   }, { signal: controller.signal });
-  // Toàn màn hình cho video: khung primary lên nền đen, không nền blur; iPhone không có fullscreen phần tử thì dùng player gốc.
+  // Toàn màn hình: khung primary lên nền đen, không nền blur, đổi sang ảnh vẫn giữ; iPhone không có fullscreen phần tử thì
+  // dùng player gốc.
   photoFullscreen?.addEventListener("click", () => {
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
     else if (heroFrame.requestFullscreen) void heroFrame.requestFullscreen().catch(() => {});
@@ -3863,6 +3866,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   document.addEventListener("fullscreenchange", () => {
     const active = document.fullscreenElement === heroFrame;
     photoPlayer.dataset.advertisingVideoFullscreen = String(active);
+    if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     photoFullscreen.setAttribute("aria-label", active ? locale === "en" ? "Exit full screen" : "Thoát toàn màn hình"
       : locale === "en" ? "Full screen" : "Toàn màn hình");
   }, { signal: controller.signal });

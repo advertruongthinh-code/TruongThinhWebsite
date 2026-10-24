@@ -172,9 +172,9 @@ thanh đáy 128px (lề 24px, không nền gradient) có nút phát/dừng, th�
 mờ 0.6), nút tiếng và thanh tua (track 4px, núm 12px, bấm, kéo, phím mũi tên). Thanh hiện khi chuột trên video, khi focus
 bên trong hoặc khi đang dừng; màn hình cảm ứng luôn hiện. Bố cục cảm ứng, kéo tua, bóng hai lớp và núm đặc theo
 [player video primary](primary-video-player.md). Thanh âm lượng (thêm theo owner) đứng dọc 104px phía trên
-nút tiếng để không nhầm với thanh tua, mở khi trỏ hoặc focus vào cụm tiếng; kéo về 0 là tắt tiếng nhưng giữ mức cũ.
-Nút "Toàn màn hình" / "Full screen" (thêm theo owner) phóng khung video ra toàn màn hình nền đen, không nền blur;
-bấm lại hoặc Esc thoát, đổi sang ảnh thì tự thoát. Nút "Bật tiếng" / "Unmute" và
+nút tiếng để không nhầm với thanh tua, mở khi trỏ chuột hoặc focus bàn phím vào cụm tiếng, kéo chuột xong rời đi thì
+thu lại; kéo về 0 là tắt tiếng nhưng giữ mức cũ. Nút "Toàn màn hình" / "Full screen" (thêm theo owner) phóng khung ra
+nền đen, không nền blur, mũi tên luôn hiện, đổi sang ảnh vẫn giữ; bấm lại hoặc Esc thoát. Nút "Bật tiếng" / "Unmute" và
 "Tắt tiếng" / "Mute" cùng thanh âm lượng ẩn khi `hasAudio` false, bật tiếng mà volume 0 thì đặt 1. "Xem lớn hơn" ẩn
 với video. Đóng detail tạm dừng video; rời route thì dừng và gỡ nguồn. Hình học và đổi ảnh primary theo
 [detail R4](advertising-detail.md#r4-media-primary-và-nền); Back, Forward theo

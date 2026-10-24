@@ -490,6 +490,24 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
     assert.deepEqual([state.muted, state.volume, state.volumeValue], [false, 0.4, 0.4],
       "sound button restores the last volume");
     assert.equal(await page.locator("[data-advertising-photo-audio-toggle]").getAttribute("aria-label"), "Mute");
+    // Kéo thanh bằng chuột rồi rời cụm tiếng: cột thu lại (trước đây focus của thanh giữ cột mở mãi); bàn phím vẫn mở được.
+    await page.locator("[data-advertising-photo-audio-toggle]").hover();
+    const slider = await volume.boundingBox();
+    await page.mouse.move(slider.x + slider.width / 2, slider.y + slider.height * 0.8);
+    await page.mouse.down();
+    await page.mouse.move(slider.x + slider.width / 2, slider.y + slider.height * 0.3, { steps: 6 });
+    await page.mouse.up();
+    await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
+    await page.waitForTimeout(300);
+    assert.equal((await playerState(page)).volumeOpen, false, "leaving after a mouse drag collapses the slider");
+    await page.locator("[data-advertising-photo-play]").focus();
+    await page.keyboard.press("Tab");
+    // Thanh trượt nằm trước nút tiếng và chỉ focus được khi cột đã mở (transition 150ms).
+    await page.waitForTimeout(300);
+    await page.keyboard.press("Shift+Tab");
+    await page.waitForTimeout(300);
+    assert.equal(await volume.evaluate((node) => node === document.activeElement), true, "Tab, Shift+Tab reaches the slider");
+    assert.equal((await playerState(page)).volumeOpen, true, "keyboard focus keeps the slider open");
   });
 });
 
@@ -749,7 +767,7 @@ test("M02a media strip switches by arrow and key without resizing primary or mov
   });
 });
 
-test("M02a primary video full screen uses a black frame without the blur backdrop", async () => {
+test("M02a primary video full screen uses a black frame without the blur backdrop and keeps media arrows", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true, wideVideo: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
@@ -767,7 +785,24 @@ test("M02a primary video full screen uses a black frame without the blur backdro
         label: frame.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") };
     });
     assert.deepEqual(state, { background: "rgb(0, 0, 0)", blur: "none", label: "Exit full screen" });
-    await button.click();
+    // Mũi tên đổi media ngay trong toàn màn hình (owner 2026-10-24); sang ảnh vẫn giữ, ảnh contain theo màn hình.
+    const previous = page.locator('[data-advertising-photo-media-step="-1"]');
+    // Mũi tên fade vào 100ms nên chờ tới khi hiện hẳn.
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-advertising-photo-media-step="-1"]')).opacity === "1");
+    await previous.click();
+    await page.waitForFunction(() => {
+      const image = document.querySelector("[data-advertising-photo-image]");
+      return !image.hidden && image.complete && !document.querySelector("[data-advertising-photo-sliding]");
+    });
+    const image = await page.evaluate(() => {
+      const box = document.querySelector("[data-advertising-photo-image]").getBoundingClientRect();
+      return { full: document.fullscreenElement?.classList.contains("advertising-photo-view__hero-frame"),
+        fits: Math.abs(box.width - innerWidth) < 1 || Math.abs(box.height - innerHeight) < 1,
+        expand: getComputedStyle(document.querySelector("[data-advertising-photo-expand]")).display };
+    });
+    assert.deepEqual(image, { full: true, fits: true, expand: "none" }, "the image keeps full screen and fills it");
+    // Ảnh không có player nên thoát bằng Esc; headless không nhận Esc của trình duyệt nên gọi thẳng exitFullscreen.
+    await page.evaluate(() => document.exitFullscreen());
     await page.waitForFunction(() => !document.fullscreenElement
       && document.querySelector("[data-advertising-photo-fullscreen]").getAttribute("aria-label") === "Full screen");
   });

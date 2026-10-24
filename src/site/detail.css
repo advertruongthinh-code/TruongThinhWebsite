@@ -1959,18 +1959,20 @@ body.is-advertising-browse .site-footer {
   transform: translate(-50%, -50%);
 }
 
-/* Toàn màn hình chỉ cho video: nền đen, không zoom blur, video phủ màn hình dạng contain. */
+/* Toàn màn hình (mở từ video): nền đen, media contain theo màn hình và không nền blur (fitPrimaryMedia đặt glass false);
+   đổi sang ảnh vẫn giữ, mũi tên luôn hiện kể cả màn hình cảm ứng (owner 2026-10-24); "Xem lớn hơn" ẩn vì ảnh đã phủ
+   màn hình. */
 .advertising-photo-view__hero-frame:fullscreen {
   background: #000;
 }
 
-.advertising-photo-view__hero-frame:fullscreen > :is([data-advertising-photo-background], .glass-surface) {
+.advertising-photo-view__hero-frame:fullscreen > .advertising-photo-view__image-action {
   display: none;
 }
 
-.advertising-photo-view__hero-frame:fullscreen [data-advertising-photo-video] {
-  width: 100%;
-  height: 100%;
+.advertising-photo-view__hero-frame:fullscreen > .advertising-photo-view__media-step:not([hidden]) {
+  display: grid;
+  opacity: 1;
 }
 
 /* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên vuông trắng 36px bo 12px cách mép 16px, chevron
@@ -2286,8 +2288,9 @@ body.is-advertising-browse .site-footer {
   background: #fbfbf9;
 }
 
-/* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus vào cụm tiếng, tách khỏi thanh
-   tua ngang để không thao tác nhầm. Viên nền đen 0.4 nằm sát nút nên di chuột lên không mất hover. */
+/* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi
+   thanh tua ngang để không thao tác nhầm. Viên nền đen 0.4 nằm sát nút nên di chuột lên không mất hover. Chỉ focus-visible
+   giữ cột mở: focus do chuột không giữ, nên kéo bằng chuột xong rời đi thì cột thu lại (owner 2026-10-24). */
 .advertising-video-player__volume-pop {
   position: absolute;
   bottom: 100%;
@@ -2306,7 +2309,7 @@ body.is-advertising-browse .site-footer {
   transition: opacity 150ms ease-out, visibility 150ms;
 }
 
-.advertising-video-player__volume:is(:hover, :focus-within) .advertising-video-player__volume-pop {
+.advertising-video-player__volume:is(:hover, :has(:focus-visible)) .advertising-video-player__volume-pop {
   opacity: 1;
   visibility: visible;
 }
