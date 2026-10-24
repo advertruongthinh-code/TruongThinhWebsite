@@ -17,7 +17,7 @@ hướng Kính sáng đã bỏ (owner 2026-10-24). Spec này thêm bố cục pl
 với demo nhưng che ít video hơn, cho khung đổi theo tay khi kéo tua, thêm bóng đen cho chữ nút trong "Có thể bạn thích" và
 UI player, và cho khung primary trên PC cao theo media ngang. Card trên masonry giữ nguyên. Khi spec chuyển `live`, đoạn player trong
 media-card R6 trỏ tới đây và [advertising-detail R2](advertising-detail.md#r2-hình-học-primary) sửa theo R6 ở đây. Bản thiết kế:
-[canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 33, ảnh chụp từ trang thật).
+[canvas player](https://claude.ai/code/artifact/d1473cc3-4987-43d4-83d0-d9cb7eb12b89) (bản 34, ảnh chụp từ trang thật).
 
 ## Hành vi
 
@@ -31,8 +31,7 @@ media-card R6 trỏ tới đây và [advertising-detail R2](advertising-detail.m
 - Giờ, thanh tua, nút tiếng, nút toàn màn hình nằm một hàng cao `40px`. Giờ `14px` 700, số đều, tổng thời lượng
   opacity `0.6`. Thanh tua chiếm phần còn lại, cách giờ `12px` và cách nút tiếng `8px`; đường `4px` bo tròn, núm
   `12px` như demo, vùng chạm cao `40px`. Hai nút vuông `40px`, icon `18px`.
-- Dải gradient đáy thấp từ `128px` xuống `72px` (đen `0.4` lên trong suốt), lề trái `16px`, phải `4px`, đáy `4px`.
-  Thanh luôn hiện như demo.
+- Thanh không có dải gradient đáy (R4); lề trái `16px`, phải `4px`, đáy `4px`. Thanh luôn hiện như demo.
 - Nút tiếng chỉ bật hoặc tắt tiếng, không có cột âm lượng: máy cảm ứng chỉnh bằng phím cứng (mặc định Thread chọn).
   `hasAudio` false thì ẩn nút tiếng như media-card R6.
 - Toàn màn hình dùng cùng bố cục này.
@@ -42,7 +41,7 @@ Given điện thoại 390px không hover mở primary video
 When video đang phát
 Then trên thanh không có nút phát/tạm dừng, giữa video không có biểu tượng phát
 And giờ, thanh tua, nút tiếng, nút toàn màn hình cùng một hàng cao 40px
-And dải gradient đáy cao 72px
+And thanh không có dải gradient đáy
 And chạm vào video thì video dừng và nút phát 48px hiện giữa video
 And chạm nút tiếng chỉ đổi bật/tắt tiếng, không mở cột âm lượng
 ```
@@ -50,7 +49,8 @@ And chạm nút tiếng chỉ đổi bật/tắt tiếng, không mở cột âm 
 ```gherkin
 Given desktop 1440px có hover mở primary video
 When rê chuột vào video
-Then player giống demo: hàng nút trên, thanh tua dưới, dải gradient 128px, cột âm lượng mở khi rê nút tiếng
+Then bố cục giống demo: hàng nút trên, thanh tua dưới, cột âm lượng mở khi rê nút tiếng
+And thanh không có dải gradient đáy (R4)
 ```
 
 ### R2. Kéo tua: khung đổi theo tay
@@ -86,32 +86,31 @@ When ffprobe liệt kê keyframe
 Then khoảng cách giữa hai keyframe liền nhau không quá 0,5 giây
 ```
 
-### R4. Bóng đen cho chữ nút gợi ý và UI player (ngoại lệ Design System)
+### R4. Bóng đen hai lớp cho nút gợi ý và UI player (ngoại lệ Design System)
 
-Một bóng chung `0 0 12px` đen `0.4`, không lệch. Owner chọn đen `0.4` và nhòe rộng hơn `8px` (2026-10-24); `12px` là
-mặc định Thread chọn, vì nhòe rộng hơn thì bóng nhạt dần sát chữ.
+Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũi tên trên card masonry) dưới quầng `0 0 12px` đen
+`0.4`. Owner chọn phương án D trên canvas bản 33 cho player và cho nút gợi ý (2026-10-24).
 
-- Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow`. Lớp tối của nút giữ nguyên; nút đang chọn (chữ `ink`
-  trên nền giấy) không có bóng.
+- Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow` hai lớp. Lớp tối của nút giữ nguyên (mặc định Thread chọn,
+  owner chỉ đổi bóng); nút đang chọn (chữ `ink` trên nền giấy) không có bóng.
 - Player PC và cảm ứng: icon trên thanh, nút phát giữa video (thay `0 0 8px` đen `0.1` của demo), thanh tua dùng
-  `drop-shadow`; giờ dùng `text-shadow`. Dải gradient đáy giữ nguyên: bóng này trên icon và chữ mảnh chỉ đậm thêm khoảng
-  `16/255`, còn bỏ dải thì chữ trắng trên nền sáng tụt từ khoảng `3,6:1` xuống `2,8:1` (đo trên ảnh chụp canvas bản 33).
-  Mặc định Thread chọn "giữ dải, thêm bóng" (phương án B trên canvas) trong lúc chờ owner chọn.
+  `drop-shadow` hai lớp; giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
+  sáng còn tương phản khoảng `2,8:1` thay vì `3,6:1` khi có dải (đo trên ảnh chụp canvas bản 33); owner đã xem số này.
 
 Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi owner "ok" trong thread.
 
 ```gherkin
 Given detail có mục "Có thể bạn thích"
 When đọc style chữ của nút chưa chọn và nút đang chọn
-Then nút chưa chọn có text-shadow "0 0 12px" đen 0.4, nút đang chọn không có
+Then nút chưa chọn có text-shadow "0 0 2px" đen 0.5 và "0 0 12px" đen 0.4, nút đang chọn không có
 And lớp tối ::after của nút chưa chọn vẫn còn
 ```
 
 ```gherkin
 Given primary đang phát video trên PC hoặc cảm ứng
 When đọc style icon trên thanh, nút phát giữa video, thanh tua và giờ
-Then icon, nút phát, thanh tua có drop-shadow "0 0 12px" đen 0.4, giờ có text-shadow cùng giá trị
-And dải gradient đáy vẫn còn
+Then icon, nút phát, thanh tua có drop-shadow "0 0 2px" đen 0.5 rồi "0 0 12px" đen 0.4, giờ có text-shadow cùng hai lớp
+And thanh điều khiển không có nền gradient
 ```
 
 ### R5. Núm đặc
@@ -165,10 +164,10 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (không hover) đo một hàng, gradient 72px, không nút phát trên thanh, nút giữa chỉ khi dừng, không mở cột âm lượng; desktop giữ ca hiện có |
+| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (không hover) đo một hàng, không nền gradient, không nút phát trên thanh, nút giữa chỉ khi dừng, không mở cột âm lượng; desktop giữ ca hiện có |
 | R2 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
 | R3 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
-| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow nút chưa chọn, không có ở nút đang chọn; bóng icon, nút phát, thanh tua, giờ của player, dải gradient còn |
+| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |
 | R5 | `site-media-card-m02a.e2e.mjs`: màu `::-webkit-slider-thumb` của thanh tua và thanh âm lượng có alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: đổi hai ca "split cao bằng cap" sang `min(W/r, H)`, thêm ca ngang và dọc; `advertising-primary-p14.e2e.mjs` đo khung 1440×900 |
 | R1 trên máy thật | A05s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
@@ -176,7 +175,6 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 ## Gate còn mở
 
 - Spec chờ owner duyệt, rồi plan. Owner (R6 đã chọn hướng "cao theo media" 2026-10-24).
-- R4: độ nhòe mặc định `12px` và phương án bóng player (mặc định B), owner chọn trên canvas. Owner.
 - R3 tăng byte clip; số đo trong PR, owner xem. Owner.
 - Kiểm R1 trên máy thật chờ lượt phone. Thread.
 
