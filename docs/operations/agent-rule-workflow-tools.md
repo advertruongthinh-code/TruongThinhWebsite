@@ -15,8 +15,6 @@ File này chỉ giữ routing tool.
 - Git `pre-commit`/`pre-push` tự chạy `ponytail-review` read-only, fail closed; đây là repository Git hook, không phải agent lifecycle hook. Cloud không có PowerShell nên không có Git hook: agent tự chạy `ponytail-review` trên diff trước mỗi commit/push.
 - Không có lifecycle hook Impeccable: sau UI change chạy `impeccable detect` một lần.
 - Không thêm/sửa lifecycle hook, helper ngoài approved tooling repair.
-
-- Ngoại lệ tạm (owner 2026-10-19, hết hiệu lực khi hạn mức tuần tài khoản Max reset 2026-10-24 08:00 Asia/Bangkok): hook báo hết hạn mức thì agent tự chạy `ponytail-review` trên diff trong phiên local, ghi kết quả vào mô tả PR, rồi commit/push bằng `--no-verify`. Sau mốc reset xóa dòng này.
 - App desktop của owner chạy qua provider KIE.ai và đặt `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` cho shell con; CLI trong hook kế thừa nên báo "Not logged in". Chạy `git commit`/`git push` với `env -u` các biến đó để hook dùng phiên claude.ai của CLI.
 
 ## Ponytail audit và debt
