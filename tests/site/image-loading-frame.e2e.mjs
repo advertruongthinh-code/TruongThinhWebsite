@@ -424,10 +424,10 @@ try {
     assert.deepEqual({ busy: swapped.busy, skeleton: swapped.skeleton, glass: swapped.glass }, { busy: null, skeleton: false, glass: false },
       `${viewport.width}px: earlier photo leaves no stale skeleton or Kính`);
     const primaryGlass = await revealGlass("primary");
-    // loading-glass-and-page-entry R4: phone và PC cùng Kính năm bậc, cùng nhịp 0.6s như card.
+    // loading-glass-and-page-entry R4: phone và PC cùng Kính ba bậc, cùng nhịp 0.6s như card.
     assert.ok(primaryGlass.length && primaryGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
       `${viewport.width}px: the primary reveals through three Kính steps in 0.6 s, opacity only ${JSON.stringify(primaryGlass)}`);
-    // Như card: skeleton vẫn thấy qua Kính, bậc nhòe sẵn không phủ nền xám phẳng lên skeleton.
+    // Như card: skeleton vẫn thấy qua Kính, bậc Kính không có nền xám phẳng phủ lên skeleton.
     assert.ok(primaryGlass.some(({ skeleton }) => skeleton) && primaryGlass.every(({ skeleton, flat }) => !skeleton || !flat),
       `${viewport.width}px: the primary Kính over a skeleton keeps the skeleton visible ${JSON.stringify(primaryGlass)}`);
     // Back về ảnh đầu cũng đổi ảnh tại chỗ qua Kính (R4).

@@ -11,7 +11,7 @@ const runtime = await read("advertising-products/catalog-runtime.mjs");
 // R1: chỉ các glass step và nền viewer trên máy có chuột sở hữu backdrop-filter (phone không blur, decision phone-frame-budget).
 const owners = [...css.matchAll(/([^{}]+)\{[^{}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
 assert.deepEqual([...new Set(owners)].sort(),
-  [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--baked", ".glass-surface__step--full"],
+  [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--full"],
   "R1: no surface writes its own backdrop-filter");
 // Surface một step blur qua tích của các step (các check tone bên dưới).
 assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var\(--glass-full-blur\)\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
@@ -22,7 +22,7 @@ assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-ful
 assert.match(runtime, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
 // Primary photo tự mang blur của step đầy: backdrop-filter ở đó in tile seam vào thumbnail tab của Chrome.
-assert.match(css, /\.advertising-photo-view__outgoing-background \{\s*filter: blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/,
+assert.match(css, /\[data-advertising-photo-background\] \{\s*filter: blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/,
   "R1: the primary photo blurs like one full step");
 
 // R2, R5: các step xếp chồng hợp theo quadrature đến level của chúng; saturate và brightness nhân.

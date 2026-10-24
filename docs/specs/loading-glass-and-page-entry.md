@@ -56,7 +56,7 @@ Kính cung CTA đang giao viewport thì bỏ bước 1 và 3, chỉ crossfade; c
 ([skeleton R4](advertising-skeleton.md)).
 
 Kính hiện, tan theo [Kính R6](glass-surface.md#r6-hiện-và-tan-bằng-opacity-từng-bậc); thời điểm và đường cong ở
-[UI](#ui), cùng nhịp `0.6s` với primary khi ảnh có sẵn (R4). Trên điện thoại (cùng điều kiện `skeletonPhone` của
+[UI](#ui), cùng nhịp `0.6s` với primary (R4). Trên điện thoại (cùng điều kiện `skeletonPhone` của
 [skeleton R1](advertising-skeleton.md)), card đến lượt hiện khi đang vuốt thì giữ skeleton tới khi trang ngừng cuộn
 `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`) rồi mới chạy R2. Xong thì runtime hủy animation, gỡ Kính và skeleton khỏi DOM,
 trả WebGL context về pool. Media chỉ đổi opacity, không đổi `transform`, nên hover zoom
@@ -86,33 +86,26 @@ Then ảnh hiện ngay ở frame đầu card giao viewport, không có skeleton,
 ### R4. Mở ảnh tại chỗ
 
 `renderPrimaryMedia` đổi ảnh ở chính khung `.advertising-photo-view__hero-frame`, khi mở từ masonry chính, related,
-thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không khóa cuộn. Khi `src` đổi, khung có
-`aria-busy="true"` và runtime chờ `decode()`. Chrome báo cả ảnh trong cache là chưa `complete` ngay sau khi đổi `src`, nên
-ảnh giải mã xong trong `100ms` tính là ảnh có sẵn:
+thumbnail hay Back, Forward; không ảnh bay từ card, không clone, không khóa cuộn. Primary chạy đúng motion của card tải
+chậm (R1, R2), dù ảnh có sẵn hay chưa, để người xem không phân biệt được hai trường hợp (owner 2026-10-24):
 
-- Ảnh có sẵn, không skeleton. Detail đang hiện một ảnh đã tải xong thì ảnh đó ở lại thành lớp tạm
-  `.advertising-photo-view__outgoing` (thêm `__outgoing-background` khi có nền vùng dư) phía trên ảnh mới; Kính phủ lên,
-  lớp tạm mờ đi để lộ ảnh mới, Kính tan. Mở từ masonry thì ảnh mới hiện từ khung trống. Ở mọi đường,
-  `data-advertising-photo-loading` ẩn ảnh mới tới khi Kính phủ: lớp tạm khác tỷ lệ hoặc chưa vẽ kịp thì ảnh mới không lộ
-  trước motion (owner 2026-10-24). Lớp tạm decode đồng bộ để hiện ngay; mỗi bậc Kính có ảnh cũ nhòe sẵn nằm dưới ảnh
-  mới, nên Kính làm nhòe ảnh cũ rồi chuyển sang ảnh mới, không phủ nền xám (owner 2026-10-24). Ba bước như R2, trong
-  `0.6s` (`CACHED_PRIMARY_REVEAL_MS`).
-- Quá `100ms` mà ảnh chưa tải xong: ảnh đã tải chỉ chờ decode (Back, Forward dựng lại detail trong một long task) thì
-  giữ lớp tạm như ảnh có sẵn. Còn lại gỡ lớp tạm, ẩn ảnh cũ, gắn skeleton của R1 (cùng hook và cách bốc assignment) phủ khung, trên ảnh và dưới
-  nút ảnh; giải mã xong thì chạy ba bước như R2 nhưng theo nhịp `0.6s` như card (`CACHED_PRIMARY_REVEAL_MS`, owner 19/10), ảnh và nền vùng dư cùng hiện.
-  Bậc nhòe sẵn trên skeleton không có nền màu skeleton, nên gradient skeleton vẫn thấy qua Kính như card (owner 19/10).
+1. Khi `src` đổi, ảnh và nền vùng dư cũ ẩn ngay (`data-advertising-photo-loading`), skeleton của R1 (cùng hook và cách
+   bốc assignment) phủ khung, trên ảnh và dưới nút ảnh; khung có `aria-busy="true"`; runtime chờ `decode()`.
+2. Giải mã xong thì chạy ba bước của R2 với chung code card (`revealGlass`, `crossfadeLayers`, `playGlassReveal`,
+   `CARD_REVEAL_MS`): Kính ba bậc hiện trên skeleton; dưới Kính skeleton mờ đi, ảnh và nền vùng dư hiện lên; Kính tan.
+   Ảnh có sẵn chỉ làm skeleton đứng ngắn hơn, có khi không tới một frame.
 
-Xong thì gỡ lớp tạm, Kính, skeleton và bỏ `aria-busy`. Media video ở primary không có skeleton hay Kính. Morph sang
-viewer theo [detail R9](advertising-detail.md#r9-viewer).
+Không có lớp tạm giữ ảnh cũ và không có Kính vẽ sẵn. Xong thì gỡ Kính, skeleton và bỏ `aria-busy`. Media video ở primary
+không có skeleton hay Kính. Morph sang viewer theo [detail R9](advertising-detail.md#r9-viewer).
 
-Điện thoại (cảm ứng, mọi chiều xoay) chạy đúng R4 như PC: cùng Kính nhòe dựng sẵn, cùng crossfade ảnh và nền vùng dư,
-cùng nhịp, ở mọi đường mở (owner 11/10). Không có nhánh motion riêng cho phone.
+Điện thoại (cảm ứng, mọi chiều xoay) chạy đúng R4 như PC, ở mọi đường mở (owner 11/10). Không có nhánh motion riêng cho
+phone.
 
 ```gherkin
 Given primary đang xem ảnh A, ảnh B đã có trong cache
 When bấm card related B
-Then Kính phủ lên A, A mờ đi để lộ B dưới Kính, rồi Kính tan, cả ba bước xong trong 0.6s
-And không có skeleton, không ảnh bay hay clone từ card
+Then A và nền của A ẩn ngay, skeleton phủ khung, Kính hiện trên skeleton, B hiện dưới Kính, rồi Kính tan
+And chuỗi và nhịp từng lớp giống hệt khi B tải chậm và giống card tải chậm, không ảnh bay hay clone từ card
 
 Given điện thoại và PC mở cùng detail, ảnh primary tải chậm
 When ảnh giải mã xong, rồi bấm related, rồi Back
@@ -140,13 +133,13 @@ Then khung primary có aria-busy="true" và skeleton, không có vệt sáng nà
   Card ra khỏi viewport khi đang chờ `decode()` của R2: decode xong thì media hiện ngay ở opacity cuối, không Kính
   (`tests/site/advertising-reveal-offscreen.e2e.mjs`).
 - Card bị gỡ khỏi masonry hoặc related (ảo hóa, đổi filter, đổi tag, đóng detail): gỡ skeleton và Kính.
-- Primary đổi sang ảnh khác trước khi R4 xong: lượt cũ dừng, gỡ skeleton, lớp tạm, Kính cũ, rồi lượt mới bắt đầu
+- Primary đổi sang ảnh khác trước khi R4 xong: lượt cũ dừng, gỡ skeleton, Kính cũ, rồi lượt mới bắt đầu
   (`settlePrimaryReveal`). Về masonry (`restoreGridEntry`) hoặc runtime unmount: gỡ hết.
 
 ```gherkin
 Given primary đang chờ ảnh A, khung có skeleton
 When bấm card related B trước khi A giải mã xong
-Then skeleton, lớp tạm và Kính của A bị gỡ, primary chỉ chạy R4 cho B
+Then skeleton và Kính của A bị gỡ, primary chỉ chạy R4 cho B
 And khi B hiện xong, khung không còn aria-busy, skeleton hay Kính
 ```
 
@@ -154,7 +147,7 @@ And khi B hiện xong, khung không còn aria-busy, skeleton hay Kính
 
 Ảnh card lỗi: runtime hủy lượt chờ, gỡ skeleton, không chạy Kính; ảnh lỗi không hiện (`.advertising-tile img` giữ opacity
 0), khung hiện dấu báo lỗi theo [media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media). Card nhiều media đổi sang media
-khác theo media-card R5 trước khi tới bước này. Primary: `decode()` bị từ chối vì lỗi thì gỡ skeleton, lớp tạm, Kính,
+khác theo media-card R5 trước khi tới bước này. Primary: `decode()` bị từ chối vì lỗi thì gỡ skeleton, Kính,
 bỏ `aria-busy` và `data-advertising-photo-loading` ngay, rồi hiện cùng dấu báo lỗi.
 
 ```gherkin
@@ -167,7 +160,7 @@ Then skeleton bị gỡ, không có Kính, card giữ nguyên kích thước và
 
 `prefers-reduced-motion: reduce`: skeleton vẫn gắn theo R1, R4 nhưng đứng yên ở frame tĩnh
 ([skeleton R7](advertising-skeleton.md#r7-reduced-motion-và-fallback)); ảnh thay skeleton ngay khi sẵn sàng (card: tải
-xong; primary: giải mã xong), không Kính, không crossfade, không lớp tạm.
+xong; primary: giải mã xong), không Kính, không crossfade.
 
 ```gherkin
 Given trình duyệt bật giảm chuyển động, ảnh tải chậm
@@ -193,9 +186,8 @@ Then trace Chrome đạt gate điện thoại của skeleton R8
 | --- | --- | --- |
 | DOM hook | `.advertising-grid__cta-frame[data-advertising-loading-skeleton="<media id>"]` trong `.advertising-card-media` hoặc `.advertising-photo-view__hero-frame`; canvas `data-advertising-flow-batch="loading"` | Skeleton chờ ảnh (R1, R4); gỡ sau R2 hoặc khi rời đi, lỗi (R6, R7) |
 | DOM hook | `.glass-surface[data-glass-shape="even"][data-glass-reveal]` | Kính ba bậc, chỉ có trong R2, R4; không có ở R3 |
-| DOM hook | `.advertising-photo-view__outgoing`, `__outgoing-background` | Ảnh primary cũ và nền vùng dư cũ, chỉ có trong R4 khi ảnh có sẵn |
-| DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh cũ khi không có lớp tạm; primary đang chờ (R4, R5) |
-| Runtime | `attachCardSkeleton`, `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS`, `CACHED_PRIMARY_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
+| DOM hook | `data-advertising-photo-loading`, `aria-busy` trên `.advertising-photo-view__hero-frame` | Ẩn ảnh và nền vùng dư cũ ngay khi đổi `src`; primary đang chờ (R4, R5) |
+| Runtime | `attachCardSkeleton`, `revealCard`, `hideCardMedia`, `dropCardSkeleton`, `attachLoadingSkeleton`, `detachLoadingSkeleton`, `crossfadeLayers`, `revealGlass`, `renderPrimaryMedia`, `playPrimaryReveal`, `settlePrimaryReveal`; hằng `CARD_REVEAL_MS`, `PHONE_REVEAL_SCROLL_IDLE_MS`, `MEDIA_REVEAL_MS` (`catalog-runtime.mjs`, nội bộ) | R1–R8 |
 | Hàm public | `createGlassSurface`, `playGlassReveal`, `glassRevealLevel` (`glass-surface.mjs`); `createSkeletonFlowRenderer`, `staticBackground` (`skeleton-flow.mjs`) | Kính và renderer dùng lại nguyên |
 | Card | `figure.advertisingPendingMediaId()` | Media id đang chờ hoặc `null`; runtime hỏi trước khi gắn skeleton |
 
@@ -220,7 +212,7 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang skeleton card đầu giữ một node, hiện dần một lần); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính ba bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (ba bậc, mức Kính theo thời gian) |
 | R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính), `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` (card ảo hóa gắn lại) |
-| R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính ba bậc chỉ opacity, phone khớp PC); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle`; đường ảnh có sẵn `0.6s` chưa có test riêng |
+| R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính ba bậc chỉ opacity, phone khớp PC); `glass-surface.e2e.mjs` (ghi từng frame khi related tải chậm và Back có sẵn: skeleton trước Kính, ảnh không đậm hơn Kính lúc Kính tăng; nhịp từng lớp giống nhau giữa lần mở, related, Back và card tải chậm); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle` |
 | R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vệt sáng trong masonry, detail chưa có test |
 | R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |
 | R7 | chưa có test |

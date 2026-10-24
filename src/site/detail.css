@@ -1916,28 +1916,12 @@ body.is-advertising-browse .site-footer {
   display: block;
 }
 
-.glass-surface__step--baked {
-  /* Bậc nhòe sẵn của Kính reveal trên primary (catalog-runtime.mjs bakedRevealGlass): canvas 1/8 đã blur sẵn, phóng
-     8 lần. Nền bậc thay phần skeleton đã nhòe trong backdrop gốc; ảnh nhòe hiện dần trên nó theo crossfade. */
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  overflow: hidden;
-  background: var(--media-loading-surface);
-}
-
-.glass-surface__step--baked > canvas {
-  position: absolute;
-  transform: scale(8);
-  transform-origin: 0 0;
-}
-
 /* Kính reveal phủ photo và skeleton nhưng ở dưới image action. */
 .advertising-photo-view__hero-frame > .glass-surface[data-glass-reveal] > i {
   z-index: 2;
 }
 
-.advertising-photo-view__hero [data-advertising-photo-image],
-.advertising-photo-view__outgoing {
+.advertising-photo-view__hero [data-advertising-photo-image] {
   position: absolute;
   z-index: 2;
   top: 50%;
@@ -1961,11 +1945,6 @@ body.is-advertising-browse .site-footer {
 
 .advertising-photo-view__hero-frame[data-advertising-photo-loading] > :is([data-advertising-photo-image], [data-advertising-photo-background]) {
   opacity: 0;
-}
-
-/* Photo đi ra giữ inline size cũ và mờ dần lên photo mới mà không nhận click. */
-.advertising-photo-view__outgoing {
-  pointer-events: none;
 }
 
 /* Video nằm cùng hộp contain với ảnh trong khung cover, nền trong suốt để zoom blur (poster) hiện ở vùng dư. */
@@ -2422,7 +2401,6 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-view__hero [data-advertising-photo-background],
-.advertising-photo-view__outgoing-background,
 .advertising-photo-view__live-background {
   position: absolute;
   z-index: 0;
@@ -2442,8 +2420,7 @@ body.is-advertising-browse .site-footer {
 /* Kính của primary blur photo tĩnh này bằng filter, không phải backdrop-filter: Chrome snapshot một backdrop theo từng raster
    tile khi re-raster trang (thumbnail hover tab), clamp blur ở mép tile và giữ đường nối đến khi
    repaint đầy đủ. Cùng số với .glass-surface__step--full; Kính phía trên chỉ giữ tint và grain. */
-.advertising-photo-view__hero [data-advertising-photo-background],
-.advertising-photo-view__outgoing-background {
+.advertising-photo-view__hero [data-advertising-photo-background] {
   filter: blur(100px) saturate(1.7) brightness(1.04);
   /* Blur lấy mẫu trong suốt ngoài mép ảnh nên mép khung lộ nền xám thành vignette; tràn mép 2 lần bán kính blur như
      canvas nền realtime để mép đặc như giữa (owner 2026-10-19). */

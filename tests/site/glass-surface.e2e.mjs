@@ -153,59 +153,93 @@ try {
       await page.close();
     }
   }
-  // Bậc nhòe dựng sẵn của reveal phủ đủ frame, kể cả photo contain: left/top không nhân scale(8) từng chỉ phủ một phần.
+  // Primary đổi ảnh chạy đúng motion card tải chậm (loading-glass-and-page-entry R4): ảnh cũ ẩn ngay dưới skeleton, Kính
+  // ba bậc tăng, ảnh hiện dưới Kính, Kính tan. Ảnh tải chậm (related) và ảnh có sẵn (Back) cùng chuỗi, cùng nhịp với card.
   {
-    const page = await browser.newPage({ viewport: { width: 1920, height: 900 } });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
+      let slow = false;
       await page.route("**/*.avif", async (route) => {
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (slow) await new Promise((resolve) => setTimeout(resolve, 800));
         await route.continue();
       });
-      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
-      await page.waitForSelector(".glass-surface__step--baked > canvas", { state: "attached", timeout: 20000 });
-      const boxes = await page.evaluate(() => {
-        const box = (node) => { const { x, y, width, height } = node.getBoundingClientRect(); return [x, y, width, height]; };
-        const frame = document.querySelector(".advertising-photo-view__hero-frame");
-        const canvases = [...frame.querySelectorAll(".glass-surface__step--baked > canvas")];
-        // Độ gắt hàng mép trên canvas (vùng dư, photo contain cách mép trên): tổng chênh màu giữa hai pixel kề nhau.
-        const edge = (canvas) => {
-          const data = canvas.getContext("2d").getImageData(0, 1, canvas.width, 1).data;
-          let total = 0;
-          for (let x = 4; x < data.length; x += 4) total += Math.abs(data[x] - data[x - 4]) + Math.abs(data[x + 1] - data[x - 3]);
-          return total / canvas.width;
-        };
-        return { frame: box(frame), canvases: canvases.map(box), lightEdge: edge(canvases[0]), heavyEdge: edge(canvases.at(-1)),
-          band: document.querySelector("[data-advertising-photo-view]").dataset.advertisingPhotoGlass };
+      // Nhịp mỗi Kính reveal lúc gắn: delay, duration, easing của từng lớp Kính, ảnh và skeleton dưới nó.
+      await page.addInitScript(() => {
+        window.__ttRevealTimings = [];
+        new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((glass) => {
+          if (!glass.matches?.(".glass-surface[data-glass-reveal]")) return;
+          const host = glass.parentElement;
+          const nodes = [...glass.children, host.querySelector("[data-advertising-photo-image]") ?? host.querySelector("img"),
+            host.querySelector("[data-advertising-loading-skeleton]")];
+          window.__ttRevealTimings.push({
+            host: glass.closest("[data-advertising-card], [data-advertising-related-card]") ? "card" : "primary",
+            timing: nodes.map((node) => node?.getAnimations().map((animation) => {
+              const { delay, duration, easing } = animation.effect.getComputedTiming();
+              return [delay, duration, easing];
+            })),
+          });
+        }))).observe(document, { childList: true, subtree: true });
       });
-      check(boxes.canvases.length && boxes.canvases.every((canvas) => canvas.every((value, index) =>
-        index < 2 ? Math.abs(value - boxes.frame[index]) <= 1 : value >= boxes.frame[index] - 1)),
-      `baked reveal glass does not cover the primary frame ${JSON.stringify(boxes)}`);
-      // Vùng zoom blur luôn blur đủ (owner 2026-10-24): vùng dư của bậc nhẹ nhòe như bậc nặng, nên lúc tan không lộ ảnh
-      // zoom gần nét (trước sửa bậc nhẹ gắt gấp 5 lần).
-      check(boxes.band === "true" && boxes.lightEdge <= boxes.heavyEdge * 1.5,
-        `baked reveal light step shows a sharper zoom blur band ${JSON.stringify(boxes)}`);
-      await page.waitForFunction(() => !document.querySelector(".glass-surface__step--baked"), null, { timeout: 20000 });
-      // Mỗi frame khi mở related: hai bậc nặng còn trong suốt thì ảnh và bậc nhẹ chưa hiện, vì canvas trong suốt để lộ lớp
-      // dưới, ảnh mới hiện gần nét trước rồi mới nhòe (owner 2026-10-24).
-      const reveal = await page.evaluate(() => new Promise((resolve) => {
-        const result = { frames: 0, leaks: [] };
-        const opacity = (node) => Number(getComputedStyle(node).opacity);
+      const settled = () => page.waitForFunction(() => {
+        const photo = document.querySelector("[data-advertising-photo-image]");
+        return photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
+          && !photo.parentElement.querySelector(".glass-surface[data-glass-reveal]");
+      }, null, { timeout: 20000 });
+      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
+      await settled();
+      await page.waitForFunction(() => document.querySelector("[data-advertising-related-card] a"));
+      // Ghi mỗi frame của khung primary từ lúc đổi ảnh tới khi Kính gỡ.
+      const record = (action) => page.evaluate((action) => new Promise((resolve) => {
+        const frame = document.querySelector(".advertising-photo-view__hero-frame");
+        const photo = frame.querySelector("[data-advertising-photo-image]");
+        const opacity = (node) => (node ? Number(getComputedStyle(node).opacity) : 0);
+        const frames = [];
         const started = performance.now();
         const tick = () => {
-          const canvases = [...document.querySelectorAll(".glass-surface__step--baked > canvas")];
-          if (canvases.length) {
-            const heavy = Math.min(...canvases.slice(-2).map(opacity));
-            const under = [document.querySelector("[data-advertising-photo-image]"), ...canvases.slice(0, -2)].map(opacity);
-            result.frames += 1;
-            if (heavy < 0.999 && under.some((value) => value > 0)) result.leaks.push({ heavy, under });
-          } else if (result.frames) return resolve(result);
-          if (performance.now() - started < 8000) requestAnimationFrame(tick);
-          else resolve(result);
+          const glass = frame.querySelector(".glass-surface[data-glass-reveal]");
+          frames.push({ skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")), glass: Boolean(glass),
+            level: opacity(glass?.querySelector(".glass-surface__tint")), photo: opacity(photo) });
+          if ((frames.some((entry) => entry.glass) && !glass) || performance.now() - started > 8000) resolve(frames);
+          else requestAnimationFrame(tick);
         };
+        // Card related có cover ảnh: video không có Kính reveal (loading-glass R4).
+        if (action === "related") [...document.querySelectorAll("[data-advertising-related-card]")]
+          .find((card) => card.querySelector("a") && !card.querySelector("video") && card.getBoundingClientRect().height).querySelector("a").click();
+        else history.back();
         requestAnimationFrame(tick);
-        document.querySelector("[data-advertising-related-card] a").click();
-      }));
-      check(reveal.frames > 5 && !reveal.leaks.length, `new photo shows through a translucent veil ${JSON.stringify(reveal).slice(0, 400)}`);
+      }), action);
+      const sequence = (frames) => {
+        const skeleton = frames.findIndex((entry) => entry.skeleton);
+        const glass = frames.findIndex((entry) => entry.glass);
+        const peak = frames.reduce((best, entry, index) => (entry.level > frames[best].level ? index : best), glass);
+        return {
+          waiting: frames.slice(skeleton, glass).length,
+          // Skeleton gắn trước hoặc cùng frame Kính; ảnh mới chưa lộ trước Kính, Kính bắt đầu từ không nhòe.
+          order: skeleton >= 0 && glass >= skeleton && frames.slice(skeleton, glass + 1).every((entry) => entry.photo === 0)
+            && frames[glass].level < 0.2,
+          // Pha Kính tăng: ảnh không bao giờ đậm hơn Kính đang phủ.
+          underGlass: frames.slice(glass, peak + 1).every((entry) => entry.photo <= entry.level + 0.02),
+          settled: frames.at(-1).photo === 1 && !frames.at(-1).skeleton,
+        };
+      };
+      slow = true;
+      const loading = sequence(await record("related"));
+      await settled();
+      slow = false;
+      const cached = sequence(await record("back"));
+      check(loading.waiting >= 5 && loading.order && loading.underGlass && loading.settled,
+        `slow primary does not run skeleton, Kính, photo, settle ${JSON.stringify(loading)}`);
+      check(cached.order && cached.underGlass && cached.settled, `cached primary differs from the slow sequence ${JSON.stringify(cached)}`);
+      const timings = await page.evaluate(() => window.__ttRevealTimings);
+      const primary = timings.filter(({ host }) => host === "primary").map(({ timing }) => JSON.stringify(timing));
+      // Lần mở trang, related (tải chậm) và Back (có sẵn) cùng một nhịp.
+      check(primary.length >= 3 && new Set(primary).size === 1, `cached and slow primary reveals use different timing ${primary.join(" | ")}`);
+      // Card tải chậm trên masonry: cùng nhịp từng lớp với primary, nên hai chuỗi lệch nhau 0 frame.
+      slow = true;
+      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm`);
+      await page.waitForFunction(() => window.__ttRevealTimings.some(({ host }) => host === "card"), null, { timeout: 20000 });
+      const card = await page.evaluate(() => JSON.stringify(window.__ttRevealTimings.find(({ host }) => host === "card").timing));
+      check(card === primary[0], `primary reveal timing differs from the card ${card} | ${primary[0]}`);
     } finally {
       await page.close();
     }

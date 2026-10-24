@@ -163,17 +163,12 @@ trên phone Android, cả khi cuộn tới kính dạng cung và khi nhiều car
 gate [phone Android trên 60fps](../decisions/phone-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (05/10: năm bậc rơi gate, owner chọn ba
 bậc cho dạng cung). Số lớp theo loại máy (R2); trần
-`100px` của ảnh nền primary chưa đo trên phone Android. Kính hiện/tan trên primary detail: năm bậc `backdrop-filter`
-phủ cả hero rơi gate pha mở (A05s cũ p5 `30-45fps`, 22-39% frame chậm), nên owner chọn nhòe dựng sẵn (10/10): mỗi bậc
-là ảnh mới vẽ một lần vào canvas `1/8` với blur cộng dồn bằng bậc gốc rồi phóng 8 lần (CSS `filter` trên ảnh phóng to vẫn rơi frame); canvas phủ cả hero, photo contain vẽ
-trên nền cover nhòe của chính nó để không lộ khoảng tối, hiện theo
-crossfade của ảnh (`glass-surface__step--baked`). Canvas không nhòe lớp dưới như `backdrop-filter`, nên trong lúc
-crossfade chỉ hai bậc nặng hiện dần (đã phủ kín khi ảnh bắt đầu hiện); ảnh, nền và bậc nhẹ hiện khi crossfade
-xong, dưới hai bậc nặng đã đặc. Có lớp tạm thì mỗi bậc thêm canvas ảnh cũ nhòe sẵn nằm dưới, thay nền màu skeleton.
-Vùng dư trong mọi bậc nhòe đủ như nền `100px`, chỉ photo nhòe theo bậc. Crossfade
-mọi bậc cùng ảnh làm ảnh mới hiện gần nét trước rồi mới nhòe, và lúc tan bậc nhẹ lộ vùng zoom gần nét (owner 2026-10-24). Điện thoại chạy đúng như PC (owner 11/10,
-[R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)); dưới gate thì dừng, báo owner kèm số đo.
-Kính hiện/tan trên card ba bậc như primary; ba bậc `backdrop-filter` chưa đo trên phone Android. Có tiền tố
+`100px` của ảnh nền primary chưa đo trên phone Android. Kính hiện/tan trên primary detail: ngày 10/10 năm bậc
+`backdrop-filter` phủ cả hero rơi gate pha mở (A05s cũ p5 `30-45fps`, 22-39% frame chậm), nên primary từng dùng Kính
+nhòe dựng sẵn trên canvas. Owner bỏ đường đó (2026-10-24): primary dùng chung Kính ba bậc `backdrop-filter` của card
+([R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)), điện thoại chạy đúng như PC (owner 11/10).
+Ba bậc phủ cả hero chưa đo trên phone Android; dưới gate thì dừng, báo owner kèm số đo, không tự quay về Kính dựng sẵn.
+Kính hiện/tan trên card cùng ba bậc. Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.
