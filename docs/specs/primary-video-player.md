@@ -167,7 +167,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | --- | --- |
 | R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (không hover) đo một hàng, không nền gradient, không nút phát trên thanh, nút giữa chỉ khi dừng, không mở cột âm lượng; desktop giữ ca hiện có |
 | R2 | `site-media-card-m02a.e2e.mjs`: giả lập mạng chậm qua CDP, kéo trong và ngoài đoạn đã tải, đếm lệnh tua mỗi frame |
-| R3 | Unit trên clip tạm: `ffprobe` keyframe không quá 0,5s |
+| R3 | `primary-video-keyframes.test.mjs`: đọc bảng `stss`, `stts` của mọi MP4 trong `src/site/assets`, khoảng cách keyframe (kể cả tới cuối clip) không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |
 | R5 | `site-media-card-m02a.e2e.mjs`: màu `::-webkit-slider-thumb` của thanh tua và thanh âm lượng có alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: đổi hai ca "split cao bằng cap" sang `min(W/r, H)`, thêm ca ngang và dọc; `advertising-primary-p14.e2e.mjs` đo khung 1440×900 |
