@@ -14,7 +14,7 @@ updated: 2026-10-25
 Ảnh nội dung chọn file nhẹ khi mạng chậm, và khi mạng nhanh lại thì ảnh đã tải ở bậc nhẹ được thay bằng bản nét, liền
 mạch với người xem (owner 2026-10-25). Spec này thêm một lớp lên [tải ảnh](media-delivery.md): bậc ảnh, ước lượng mạng,
 nâng bậc. Biến thể, `srcset`, vệt sáng và dấu báo lỗi vẫn thuộc media-delivery; video thích ứng là spec riêng
-(`video-delivery.md`, nhánh của thread masonry). Mạng nhanh hoặc chưa đo được thì hành vi giữ nguyên như hiện tại.
+(`video-delivery.md`, nhánh của thread masonry). Mạng nhanh hoặc chưa đo được thì tải như hiện tại, chỉ thêm cỡ 240 cho khung đủ nhỏ.
 
 ## Hành vi
 
@@ -27,7 +27,8 @@ nâng bậc. Biến thể, `srcset`, vệt sáng và dấu báo lỗi vẫn thu�
 - Bậc thường: nhu cầu pixel là bề rộng hiển thị sau crop nhân DPR, như media-delivery R2, R3.
 - Bậc nhẹ: nhu cầu pixel bằng một nửa bậc thường; trình duyệt vẫn chọn file nhỏ nhất đủ nhu cầu đó. Card masonry trên
   A04s (khoảng 190 px CSS, DPR 1,875) từ 480 xuống 240; primary trên phone từ 960 xuống 480.
-- Ảnh đã ở cỡ nhỏ nhất thì hai bậc như nhau.
+- Ảnh đã ở cỡ nhỏ nhất thì hai bậc như nhau. Bậc thường chọn file 240 khi file đó đã đủ nhu cầu pixel (khung nhỏ ở DPR 1),
+  nên không mờ hơn hiện tại.
 
 ```gherkin
 Given src/site/assets/content/shared/a.webp rộng 1536px, chưa có biến thể 240
@@ -86,7 +87,7 @@ And mở detail thì primary tải file -960 hoặc -480 thay cho bản gốc
 
 Given trạng thái normal
 When mở cùng trang
-Then mọi request ảnh giống hệt bản hiện tại trên main, không ảnh nào mang data-image-tier
+Then request ảnh giống main, trừ ảnh mà file 240 đã đủ nhu cầu pixel, không ảnh nào mang data-image-tier
 ```
 
 ### R4. Nâng bậc liền mạch khi mạng nhanh lại
@@ -135,7 +136,7 @@ Kịch bản giống video thích ứng: viewport A04s (384x724, DPR 1,875), cu�
 1,6 Mbps, RTT 150 ms, tắt cache; thêm gallery `/vi/residential/`. Mỗi bản 9 lượt xen kẽ, so với `main`.
 
 - Mạng chậm: byte ảnh giảm ít nhất 40%; median thời điểm 8 card đầu sẵn sàng nhanh hơn ít nhất 25%.
-- Mạng nhanh (không giới hạn) và PC: danh sách request ảnh giống `main`; main thread bận không tăng ngoài nhiễu.
+- Mạng nhanh (không giới hạn) và PC: danh sách request ảnh giống `main` (trừ ảnh file 240 đã đủ nét); main thread bận không tăng ngoài nhiễu.
 - Đổi mạng giữa lượt (chậm sang không giới hạn): đạt các ý của R4, quay màn hình từng frame quanh điểm đổi.
 - Đường Safari, Firefox: chạy lại kịch bản trên Chromium sau khi xóa `navigator.connection` bằng init script; số đo phải
   tự sang `slow` và tự về `normal` chỉ bằng Resource Timing.
@@ -148,7 +149,7 @@ And median 8 card đầu sẵn sàng nhanh hơn ít nhất 25%
 
 Given mạng không giới hạn
 When đo cùng kịch bản
-Then danh sách URL ảnh của bản thích ứng giống main
+Then danh sách URL ảnh của bản thích ứng giống main, trừ ảnh mà file 240 đã đủ nhu cầu pixel
 ```
 
 ## Giao diện và dữ liệu
