@@ -28,7 +28,8 @@ nâng bậc. Biến thể, `srcset`, vệt sáng và dấu báo lỗi vẫn thu�
 `projects/` ngẫu nhiên: AVIF 240 trung bình 4,8 KB, AVIF 480 là 15,1 KB.
 
 - Bậc thường: nhu cầu pixel là bề rộng hiển thị sau crop nhân DPR, như media-delivery R2, R3.
-- Bậc nhẹ: nhu cầu pixel bằng một nửa bậc thường; trình duyệt vẫn chọn file nhỏ nhất đủ nhu cầu đó. Card masonry trên
+- Bậc nhẹ: nhu cầu pixel bằng một nửa bậc thường, tối đa cỡ 960 (ảnh cover lớn như slide hero, portal, CTA không rơi về
+  bản gốc; owner chốt 2026-10-25); trình duyệt vẫn chọn file nhỏ nhất đủ nhu cầu đó. Card masonry trên
   A04s (khoảng 190 px CSS, DPR 1,875) từ 480 xuống 240; primary trên phone từ 960 xuống 480.
 - Ảnh đã ở cỡ nhỏ nhất thì hai bậc như nhau. Bậc thường chọn file 240 khi file đó đã đủ nhu cầu pixel (khung nhỏ ở DPR 1),
   nên không mờ hơn hiện tại.
@@ -142,7 +143,8 @@ Then card giữ file -240, khung không có is-media-error
 Kịch bản giống video thích ứng: viewport A04s (384x724, DPR 1,875), cuộn masonry 16 nấc 400 px, mỗi nấc chờ 1,5 s; mạng
 1,6 Mbps, RTT 150 ms, tắt cache; thêm gallery `/vi/residential/`. Mỗi bản 9 lượt xen kẽ, so với `main`.
 
-- Mạng chậm: byte ảnh giảm ít nhất 40%; median thời điểm 8 card đầu sẵn sàng nhanh hơn ít nhất 25%.
+- Mạng chậm: byte ảnh giảm ít nhất 40%; median thời điểm 8 card đầu sẵn sàng nhanh hơn ít nhất 25%. Ngưỡng thời gian
+  chưa đạt (đo -5%, chủ yếu do tải JS và HTML); owner chốt 2026-10-25 tách sang việc riêng về JS, không chặn spec này.
 - Mạng nhanh (không giới hạn) và PC: danh sách request ảnh giống `main` (trừ ảnh file 240 đã đủ nét); main thread bận không tăng ngoài nhiễu.
 - Đổi mạng giữa lượt (chậm sang không giới hạn): đạt các ý của R4, quay màn hình từng frame quanh điểm đổi.
 - Đường Safari, Firefox: chạy lại kịch bản trên Chromium sau khi xóa `navigator.connection` bằng init script; số đo phải
@@ -152,7 +154,7 @@ Kịch bản giống video thích ứng: viewport A04s (384x724, DPR 1,875), cu�
 Given bản thích ứng và main trên cùng máy, cùng kịch bản mạng chậm
 When đo 9 lượt mỗi bản
 Then byte ảnh của bản thích ứng ít hơn ít nhất 40%
-And median 8 card đầu sẵn sàng nhanh hơn ít nhất 25%
+And median 8 card đầu sẵn sàng nhanh hơn ít nhất 25% (việc riêng về JS, xem trên)
 
 Given mạng không giới hạn
 When đo cùng kịch bản
