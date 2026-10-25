@@ -9,6 +9,8 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const { default: sharp } = await import("sharp");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
+// Pha Kính tăng của reveal 0.6s: 0 tới 0.26s (loading-glass-and-page-entry R2).
+const GLASS_RISE_MS = 260;
 // GPU compositing (SwiftShader) như Chrome thật; software compositing blur backdrop của từng layer riêng.
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
   args: ["--enable-gpu-rasterization", "--ignore-gpu-blocklist", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
@@ -153,24 +155,96 @@ try {
       await page.close();
     }
   }
-  // Bậc nhòe dựng sẵn của reveal phủ đủ frame, kể cả photo contain: left/top không nhân scale(8) từng chỉ phủ một phần.
+  // Primary đổi ảnh chạy đúng motion card tải chậm (loading-glass-and-page-entry R4): ảnh cũ ẩn ngay dưới skeleton, Kính
+  // ba bậc tăng, ảnh hiện dưới Kính, Kính tan. Ảnh tải chậm (related) và ảnh có sẵn (Back) cùng chuỗi, cùng nhịp với card.
   {
-    const page = await browser.newPage({ viewport: { width: 1920, height: 900 } });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
+      let slow = false;
       await page.route("**/*.avif", async (route) => {
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (slow) await new Promise((resolve) => setTimeout(resolve, 800));
         await route.continue();
       });
-      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
-      await page.waitForSelector(".glass-surface__step--baked > canvas", { state: "attached", timeout: 20000 });
-      const boxes = await page.evaluate(() => {
-        const box = (node) => { const { x, y, width, height } = node.getBoundingClientRect(); return [x, y, width, height]; };
-        const frame = document.querySelector(".advertising-photo-view__hero-frame");
-        return { frame: box(frame), canvases: [...frame.querySelectorAll(".glass-surface__step--baked > canvas")].map(box) };
+      // Nhịp mỗi Kính reveal lúc gắn: delay, duration, easing của từng lớp Kính, ảnh và skeleton dưới nó.
+      await page.addInitScript(() => {
+        window.__ttRevealTimings = [];
+        new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((glass) => {
+          if (!glass.matches?.(".glass-surface[data-glass-reveal]")) return;
+          const host = glass.parentElement;
+          const nodes = [...glass.children, host.querySelector("[data-advertising-photo-image]") ?? host.querySelector("img"),
+            host.querySelector("[data-advertising-loading-skeleton]")];
+          window.__ttRevealTimings.push({
+            host: glass.closest("[data-advertising-card], [data-advertising-related-card]") ? "card" : "primary",
+            timing: nodes.map((node) => node?.getAnimations().map((animation) => {
+              const { delay, duration, easing } = animation.effect.getComputedTiming();
+              return [delay, duration, easing];
+            })),
+          });
+        }))).observe(document, { childList: true, subtree: true });
       });
-      check(boxes.canvases.length && boxes.canvases.every((canvas) => canvas.every((value, index) =>
-        index < 2 ? Math.abs(value - boxes.frame[index]) <= 1 : value >= boxes.frame[index] - 1)),
-      `baked reveal glass does not cover the primary frame ${JSON.stringify(boxes)}`);
+      const settled = () => page.waitForFunction(() => {
+        const photo = document.querySelector("[data-advertising-photo-image]");
+        return photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
+          && !photo.parentElement.querySelector(".glass-surface[data-glass-reveal]");
+      }, null, { timeout: 20000 });
+      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
+      await settled();
+      await page.waitForFunction(() => document.querySelector("[data-advertising-related-card] a"));
+      // Ghi mỗi frame của khung primary từ lúc đổi ảnh tới khi Kính gỡ.
+      const record = (action) => page.evaluate((action) => new Promise((resolve) => {
+        const frame = document.querySelector(".advertising-photo-view__hero-frame");
+        const photo = frame.querySelector("[data-advertising-photo-image]");
+        const opacity = (node) => (node ? Number(getComputedStyle(node).opacity) : 0);
+        const frames = [];
+        const started = performance.now();
+        const tick = () => {
+          const glass = frame.querySelector(".glass-surface[data-glass-reveal]");
+          const tint = glass?.querySelector(".glass-surface__tint");
+          frames.push({ skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")), glass: Boolean(glass),
+            level: opacity(tint), photo: opacity(photo), at: performance.now(), time: tint?.getAnimations()[0]?.currentTime ?? 0 });
+          if ((frames.some((entry) => entry.glass) && !glass) || performance.now() - started > 8000) resolve(frames);
+          else requestAnimationFrame(tick);
+        };
+        // Card related có cover ảnh: video không có Kính reveal (loading-glass R4).
+        if (action === "related") [...document.querySelectorAll("[data-advertising-related-card]")]
+          .find((card) => card.querySelector("a") && !card.querySelector("video") && card.getBoundingClientRect().height).querySelector("a").click();
+        else history.back();
+        requestAnimationFrame(tick);
+      }), action);
+      const sequence = (frames) => {
+        const skeleton = frames.findIndex((entry) => entry.skeleton);
+        const glass = frames.findIndex((entry) => entry.glass);
+        return {
+          // Thời gian skeleton đứng trước Kính (ms): đếm frame thì rAF thưa làm hụt.
+          waiting: skeleton >= 0 && glass >= 0 ? frames[glass].at - frames[skeleton].at : 0,
+          // Skeleton gắn trước hoặc cùng frame Kính; ảnh mới chưa lộ trước Kính, Kính bắt đầu từ không nhòe.
+          order: skeleton >= 0 && glass >= skeleton && frames.slice(skeleton, glass + 1).every((entry) => entry.photo === 0)
+            && frames[glass].level < 0.2,
+          // Pha Kính tăng (0 tới 0.26s của animation): ảnh không bao giờ đậm hơn Kính đang phủ. Lọc theo currentTime của
+          // animation chứ không theo frame được lấy mẫu: rAF thưa thì mẫu "đỉnh" rơi vào pha Kính đã tan.
+          underGlass: frames.filter((entry) => entry.glass && entry.time <= GLASS_RISE_MS)
+            .every((entry) => entry.photo <= entry.level + 0.02),
+          settled: frames.at(-1).photo === 1 && !frames.at(-1).skeleton,
+        };
+      };
+      slow = true;
+      const loading = sequence(await record("related"));
+      await settled();
+      slow = false;
+      const cached = sequence(await record("back"));
+      check(loading.waiting >= 300 && loading.order && loading.underGlass && loading.settled,
+        `slow primary does not run skeleton, Kính, photo, settle ${JSON.stringify(loading)}`);
+      check(cached.order && cached.underGlass && cached.settled, `cached primary differs from the slow sequence ${JSON.stringify(cached)}`);
+      const timings = await page.evaluate(() => window.__ttRevealTimings);
+      const primary = timings.filter(({ host }) => host === "primary").map(({ timing }) => JSON.stringify(timing));
+      // Lần mở trang, related (tải chậm) và Back (có sẵn) cùng một nhịp.
+      check(primary.length >= 3 && new Set(primary).size === 1, `cached and slow primary reveals use different timing ${primary.join(" | ")}`);
+      // Card tải chậm trên masonry: cùng nhịp từng lớp với primary, nên hai chuỗi lệch nhau 0 frame.
+      slow = true;
+      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm`);
+      await page.waitForFunction(() => window.__ttRevealTimings.some(({ host }) => host === "card"), null, { timeout: 20000 });
+      const card = await page.evaluate(() => JSON.stringify(window.__ttRevealTimings.find(({ host }) => host === "card").timing));
+      check(card === primary[0], `primary reveal timing differs from the card ${card} | ${primary[0]}`);
     } finally {
       await page.close();
     }
