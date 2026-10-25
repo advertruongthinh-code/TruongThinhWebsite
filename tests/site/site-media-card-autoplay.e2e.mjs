@@ -123,13 +123,24 @@ async function playingSettled(page) {
   return videoState(page);
 }
 
+// Lịch khởi động mỗi frame một video (R4), nên nhiều card cùng hiện cần vài frame mới phát đủ: chờ tới khi không còn
+// video quá 1/2 đang chờ, quá 5s thì trả trạng thái lúc đó cho assert.
+async function allStarted(page) {
+  await playingSettled(page);
+  for (const until = Date.now() + 5000; Date.now() < until; await page.waitForTimeout(100)) {
+    const state = await videoState(page);
+    if (state.paused.every((video) => video.visibleRatio <= 0.5)) return state;
+  }
+  return videoState(page);
+}
+
 for (const touch of [false, true]) {
   const label = touch ? "touch 390" : "desktop 1440";
   test(`R4 ${label}: every card more than half visible plays muted, no playback button, recomputed while scrolling`, async () => {
     const { browser, page } = await open(touch ? { width: 390, height: 844, touch } : {});
     try {
       await scrollAndSettle(page, touch);
-      const state = await playingSettled(page);
+      const state = await allStarted(page);
       assert.equal(state.playbackButtons, 0, "card video has no playback button");
       assertHalfVisiblePlaying(state, `${label} settled`);
       // Đang cuộn (chưa dừng) thì lịch phát đã đổi theo vị trí mới.
@@ -137,7 +148,7 @@ for (const touch of [false, true]) {
       await page.waitForTimeout(150);
       assertHalfVisiblePlaying(await videoState(page), `${label} while scrolling`, 0.1);
       await settle(page);
-      assertHalfVisiblePlaying(await videoState(page), `${label} after scroll`);
+      assertHalfVisiblePlaying(await allStarted(page), `${label} after scroll`);
     } finally { await browser.close(); }
   });
 }

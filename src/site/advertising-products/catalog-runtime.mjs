@@ -1047,7 +1047,9 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.muted = true;
         layer.defaultMuted = true;
         layer.playsInline = true;
-        layer.preload = "metadata";
+        // Khởi động trước (owner 2026-10-25): card vào DOM khi còn cách màn hình một viewport, tải và giải mã sẵn để lúc
+        // vào màn chỉ còn play; đo PC: video khởi động giữa lúc cuộn làm một Commit 82ms.
+        layer.preload = "auto";
         layer.poster = item.posterSrc;
         layer.src = item.src;
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
@@ -4415,8 +4417,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2 ? [video] : [];
     });
     playingVideos.forEach((video) => { if (!next.includes(video)) video.pause(); });
-    // Video quay lại lịch thì phát tiếp từ chỗ đã dừng.
-    next.forEach((video) => { if (video.paused) void video.play().catch(() => {}); });
+    // Video quay lại lịch thì phát tiếp từ chỗ đã dừng. Mỗi frame chỉ khởi động một video, còn lại hẹn frame sau
+    // (owner 2026-10-25: ba video bắt đầu cùng frame thành một Commit 82ms trên PC).
+    const waiting = next.filter((video) => video.paused);
+    void waiting[0]?.play().catch(() => {});
+    if (waiting.length > 1) scheduleVideoSoon();
     playingVideos = next;
   };
   const scheduleVideoSoon = () => {
