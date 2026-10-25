@@ -1,4 +1,5 @@
 import { shuffleWithSeed } from "./random-order.mjs";
+import { tierSizes } from "./responsive-image.mjs";
 const decks = new Map();
 
 // Giữ tập mẫu của mỗi nhóm ổn định trong vòng đời document này.
@@ -49,7 +50,7 @@ export function mountSuggestionSlides(root, { cards, createImage, isReduced, sig
     const card = deck[(index + 1) % deck.length];
     const next = createImage(card);
     // Eager bỏ "auto" khỏi sizes; ghim width của button trước khi request bắt đầu.
-    if (next.srcset) next.sizes = `${Math.ceil(button.getBoundingClientRect().width)}px`;
+    if (next.srcset) next.sizes = tierSizes(next, Math.ceil(button.getBoundingClientRect().width));
     next.loading = "eager";
     next.dataset.advertisingSuggestionImageLayer = "next";
     next.dataset.advertisingSuggestionPhoto = card.id;
