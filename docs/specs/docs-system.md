@@ -77,6 +77,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | adv-taxonomy | `advertising-taxonomy.md` | cụm, sản phẩm, tag, trang index, embedding ảnh (planned) |
 | media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
+| video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video (planned) |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
 | cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) |
