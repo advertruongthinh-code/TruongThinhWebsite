@@ -144,7 +144,8 @@ Kịch bản giống video thích ứng: viewport A04s (384x724, DPR 1,875), cu�
 1,6 Mbps, RTT 150 ms, tắt cache; thêm gallery `/vi/residential/`. Mỗi bản 9 lượt xen kẽ, so với `main`.
 
 - Mạng chậm: byte ảnh giảm ít nhất 40%; median thời điểm 8 card đầu sẵn sàng nhanh hơn ít nhất 25%. Ngưỡng thời gian
-  chưa đạt (đo -5%, chủ yếu do tải JS và HTML); owner chốt 2026-10-25 tách sang việc riêng về JS, không chặn spec này.
+  chưa đạt (có nén brotli: -15% tới -18%, phần lớn thời gian là tải font, CSS, JS; server local không nén cho số
+  lệch); owner chốt 2026-10-25 tách sang việc riêng về JS, không chặn spec này.
 - Mạng nhanh (không giới hạn) và PC: danh sách request ảnh giống `main` (trừ ảnh file 240 đã đủ nét); main thread bận không tăng ngoài nhiễu.
 - Đổi mạng giữa lượt (chậm sang không giới hạn): đạt các ý của R4, quay màn hình từng frame quanh điểm đổi.
 - Đường Safari, Firefox: chạy lại kịch bản trên Chromium sau khi xóa `navigator.connection` bằng init script; số đo phải
