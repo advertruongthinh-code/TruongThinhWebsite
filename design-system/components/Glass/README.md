@@ -9,13 +9,13 @@ Không bề mặt nào khác tự viết `backdrop-filter`.
 | --- | --- |
 | Cung (`data-glass-shape="arc"`) | Kính cuối masonry, nền cho cụm CTA trên batch [skeleton](../Skeleton/README.md) |
 | Phủ đều (`data-glass-shape="even"`) | Vùng dư quanh ảnh [primary](../Primary/README.md) khi ảnh contain còn chỗ trống |
-| Phủ đều, năm bậc (`data-glass-reveal`) | Ảnh [card](../MediaCard/README.md) và [primary](../Primary/README.md) vừa tải, chỉ trong lúc ảnh hiện |
+| Phủ đều, ba bậc (`data-glass-reveal`) | Ảnh [card](../MediaCard/README.md) và [primary](../Primary/README.md) vừa tải, chỉ trong lúc ảnh hiện |
 
 ## Hành vi
 
 - **Nhòe tăng dần thật:** trần nhòe `100px` cho mọi bề mặt (owner, 06/10). Kính
-  hiện và tan có năm bậc `7.14`, `16.07`, `32.14`, `57.14`, `100px`; blur xếp chồng
-  cộng dồn nên mỗi lớp chỉ thêm phần tăng `7.14`, `14.4`, `27.84`, `47.25`, `82.07px`. Dạng cung có ba bậc `4.5`, `12`, `28px` (phần tăng
+  hiện và tan có ba bậc `16.07`, `57.14`, `100px` (owner chọn 24/10, thay năm bậc); blur xếp chồng
+  cộng dồn nên mỗi lớp chỉ thêm phần tăng `16.07`, `54.84`, `82.07px`. Dạng cung có ba bậc `4.5`, `12`, `28px` (phần tăng
   `4.5`, `11.12`, `25.3px`) để vuốt trên điện thoại tầm trung đủ mượt. Mỗi bậc
   chồng mép lên bậc kế, không thấy bậc hay bóng ma hai lớp.
   Kính nền primary (phủ đều, đứng yên) không có bậc nhòe, chỉ tint và hạt
@@ -53,7 +53,7 @@ nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
 
 ## Hiện và tan trên ảnh vừa tải
 
-Ảnh hiện thì kính phủ đều năm bậc hiện trên lớp dưới
+Ảnh hiện thì kính phủ đều ba bậc hiện trên lớp dưới
 ([skeleton](../Skeleton/README.md) hoặc khung trống), crossfade lớp dưới sang
 ảnh diễn ra dưới kính, rồi kính tan. Ba bước chồng lên nhau. Nhịp gốc `1.4s`:
 
@@ -63,9 +63,7 @@ nhiễu sinh lúc chạy nên preview dùng hạt SVG tương đương.
 | Skeleton mờ, ảnh hiện | 0.3 đến 0.9s | `cubic-bezier(0.65, 0, 0.35, 1)` |
 | Kính tan, ảnh rõ nét | 0.6 đến 1.4s | `cubic-bezier(0.86, 0, 0.07, 1)` (`power4.inOut`) |
 
-- Primary detail dùng bậc nhòe dựng sẵn (`glass-surface__step--baked`, owner 10/10): ảnh mới blur sẵn vào canvas `1/8` rồi phóng
-  8 lần, cùng blur cộng dồn và màu của năm bậc, hiện theo crossfade của ảnh. Phủ trên skeleton thì bậc không có nền, gradient skeleton vẫn thấy qua Kính như card (owner 19/10); còn lại bậc có nền màu skeleton. Năm bậc
-  `backdrop-filter` phủ cả hero rơi gate phone Android. Điện thoại chạy đúng như PC (owner 11/10).
+- Primary detail chạy đúng reveal của card tải chậm (cùng `0.6s`): kính ba bậc hiện trên skeleton, dưới kính skeleton mờ đi còn ảnh và nền vùng dư hiện lên, rồi kính tan. Điện thoại chạy đúng như PC (owner 11/10).
 - Các bậc hiện lần lượt từ nhẹ tới mạnh, tan theo chiều ngược lại, chỉ bằng
   opacity; tint và hạt nhiễu theo cùng mức, nên kính bắt đầu và kết thúc không
   nhòe, không tint. Kính là lớp cuối của khung media, dưới các nút ảnh.
