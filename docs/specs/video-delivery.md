@@ -4,9 +4,11 @@ status: planned
 source:
   - scripts/site/build-video-ladder.mjs
   - src/site/assets/**/*.m3u8
+  - src/site/advertising-products/video-source.mjs
 tests:
   - tests/site/video-ladder.test.mjs
   - tests/site/primary-video-keyframes.test.mjs
+  - tests/site/video-delivery.e2e.mjs
 notion: https://app.notion.com/p/404332849a0e81aa9718f91db2d05e51
 updated: 2026-10-25
 ---
@@ -98,43 +100,46 @@ Then card phát file 480.mp4, primary phát file 960.mp4 và không có request 
 
 ### R4. Mạng nhanh lên thì thay phần bậc thấp đã tải
 
-Áp dụng khi video phát bằng hls.js (R3). Khi bậc hls.js tự chọn cho segment kế cao hơn bậc của phần đã tải phía trước
-vị trí phát:
+Áp dụng khi video phát bằng hls.js (R3). Owner chọn cách thay phía trước (2026-10-25) sau khi đo trên cloud: clip ngắn
+tải hết sau khoảng 5 s rồi hls.js ngừng tải nên tự nó không thấy mạng nhanh lên, còn `hls.nextLevel = -1` xóa luôn giây
+0 tới 1 phía sau nên vòng lặp kế khựng 373 rồi 783 ms ở 1,5 Mbps (số đo trong mô tả PR #434).
 
-- Phía trước: runtime gọi `hls.nextLevel = -1` (vẫn để hls.js tự chọn bậc). hls.js xóa phần phía trước kể từ điểm mà
-  segment bậc cao kịp tải về trước khi phát tới, rồi tải lại phần đó ở bậc cao
-  ([hls.js API](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#hlsnextlevel)); segment đang phát giữ
-  nguyên nên không đứng hình. Segment 2 s nên bậc cao hiện sau khoảng một segment cộng thời gian tải.
-- Phía sau: video lặp (`loop`) nên khi bắt đầu phát segment bậc cao đầu tiên, hls.js tự xóa phần bậc thấp từ giây 0 tới
-  trước segment đó ([`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush),
-  mặc định bật); vòng sau tải và phát bậc cao từ giây 0.
-- Tua (owner chọn 2026-10-25): tua về đoạn bậc thấp còn trong buffer thì phát ngay bằng phần có sẵn, rồi luật phía trước
-  ở trên thay phần sau nó nên nét lên sau khoảng một segment; tua về đoạn đã bị xóa thì hls.js tải ở bậc hiện tại như mọi
-  lần tua tới đoạn chưa tải.
+- Số đo chung: mỗi lần một video tải xong segment, số đo băng thông của nó (`hls.bandwidthEstimate`) gán cho mọi video
+  khác đang có số đo thấp hơn, rồi runtime chạy luật phía trước cho mọi video.
+- Phía trước: video đang phát có phần đã tải ở bậc thấp hơn bậc hls.js tự chọn theo số đo (`hls.nextAutoLevel`, card vẫn
+  chặn ở 480) thì runtime xóa phần đó kể từ keyframe (mỗi 0,5 s, R1) đầu tiên mà bậc mới kịp tải về trước khi phát tới:
+  vị trí phát cộng 0,5 s cộng 1,5 lần thời gian tải ước tính, băng thông chia đều cho các video cùng thay. Xóa bằng sự
+  kiện `BUFFER_FLUSHING` của hls.js, rồi hls.js tự tải lại phần đó ở bậc mới; phần đang phát trước keyframe đó giữ nguyên
+  nên không đứng hình. Video đang dừng không thay.
+- Vòng lặp và tua: tắt [`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush);
+  mỗi lần video tua, kể cả lặp về giây 0, runtime chạy lại luật phía trước. Tua về đoạn bậc thấp còn trong buffer thì
+  phát ngay bằng phần có sẵn rồi phần từ keyframe kịp tải nét lên (owner chọn 2026-10-25); lặp về 0 thì phần đầu clip
+  nét từ vòng sau.
 - Xuống bậc không xóa gì: phần bậc cao đã tải phát hết rồi mới tới bậc thấp.
 
 Việc thay phải liền mạch (owner 2026-10-25): người xem chỉ thấy hình nét lên, không nhận ra có tải lại.
 
-- Không đứng hình: không sự kiện `waiting`, `currentTime` chỉ tăng (trừ lúc lặp về 0), runtime không tự tua.
+- Không đứng hình: không sự kiện `waiting` dài hơn 10 ms (hls.js bắn `waiting` 4 tới 9 ms mỗi lần lặp về 0, kể cả khi
+  không đổi bậc), `currentTime` chỉ tăng (trừ lúc lặp về 0), runtime không tự tua.
 - Không lóe: không frame đen, không hiện lại poster, skeleton hay `.is-media-error`; Kính và nền blur vẽ liền.
 - Khung đứng yên: mọi bậc cùng tỷ lệ, khung giữ `object-fit` như hiện tại nên layout không dịch khi `videoWidth` đổi.
 - Tiếng liền ở detail: luồng AAC mã hóa một lần rồi chép nguyên vào mọi bậc, nên điểm nối không có khoảng lặng hay tiếng
   click.
-- Hình chỉ đổi ở keyframe đầu segment; frame rơi quanh điểm đổi không nhiều hơn lúc phát không đổi bậc.
+- Hình chỉ đổi ở keyframe; frame rơi quanh điểm đổi không nhiều hơn lúc phát không đổi bậc.
 
 Đổi lại tốn mạng cho phần tải lại, tối đa bằng phần đã tải phía trước (clip 6 tới 15 s có thể đã tải hết). Chỉ xảy ra
 khi mạng vừa nhanh lên nên chấp nhận.
 
 ```gherkin
-Given card đang phát bậc 240 của clip 10 s, đã tải tới giây 6, đang xem giây 4
-When mạng nhanh lên và hls.js chọn bậc 480 cho segment kế
-Then phần sau điểm đổi bị xóa và tải lại ở bậc 480, video không có sự kiện waiting
-And vòng lặp sau phát bậc 480 từ giây 0
+Given card đang phát bậc 240 của clip 10 s đã tải hết, đang xem giây 4
+When mạng nhanh lên và một video khác trên trang tải xong segment
+Then phần bậc 240 từ keyframe kịp tải bị xóa và tải lại ở bậc 480, video không có waiting dài hơn 10 ms
+And từ vòng lặp sau phần đầu clip cũng ở bậc 480
 
-Given mạng đã nhanh, primary đã tải lại phía trước ở bậc 960 nhưng chưa phát tới segment bậc 960 đầu tiên
+Given mạng đã nhanh, primary đã thay phần phía trước ở bậc 960
 When người xem tua về giây 2 còn bậc 480 trong buffer
 Then video phát ngay từ giây 2 ở bậc 480, không waiting
-And trong khoảng một segment sau đó video lên bậc 960
+And phần từ keyframe kịp tải lên bậc 960, không waiting
 
 Given primary đang phát bậc 960 đã tải phía trước
 When mạng chậm đi và hls.js chọn bậc 480
@@ -164,7 +169,7 @@ bằng bản AV1 cùng tỷ lệ dung lượng: 1/46 video không kịp chạy, 
 đứng hình mỗi video không quá 0,6 và số video không kịp chạy không nhiều hơn. Mạng nhanh và PC không kém đi: video chạy
 trong 50 ms sau khi hiện quá 1/2; frame trên 33 ms và main thread bận trên PC không tăng so với 98f3963 (gồm cả việc của
 hls.js). Thay phần bậc thấp (R4): mạng đổi từ 4G chậm sang không giới hạn giữa lượt, video đang hiện lên bậc cao trong 4 s
-(`videoWidth` đổi), không có `waiting`, `currentTime` liên tục, `droppedVideoFrames` không tăng hơn lượt không đổi bậc;
+(`videoWidth` đổi), không có `waiting` dài hơn 10 ms, `currentTime` liên tục, `droppedVideoFrames` không tăng hơn lượt không đổi bậc;
 quay màn hình từng frame quanh điểm đổi không có frame đen, poster hay skeleton; ở detail có tiếng, tiếng thu từ
 `captureStream()` không có khoảng lặng ở điểm đổi. Số nghiệm thu đo trên Chrome thật (PC, A04s); Chromium cloud không
 có H.264 nên đo bằng thang AV1 cùng tỷ lệ dung lượng.
@@ -177,7 +182,7 @@ And số video không kịp chạy của bản HLS không nhiều hơn bản 480
 
 Given card đang phát bậc 240 trên 4G chậm
 When mạng đổi sang không giới hạn
-Then trong 4 s video đang hiện có videoWidth của bậc 480 và không có sự kiện waiting
+Then trong 4 s video đang hiện có videoWidth của bậc 480 và không có sự kiện waiting dài hơn 10 ms
 And không frame nào quanh điểm đổi là frame đen, poster hay skeleton
 ```
 
@@ -202,20 +207,17 @@ Không đổi giao diện; card video và player giữ component hiện có
 | --- | --- |
 | R1, R2 | `tests/site/video-ladder.test.mjs`: thứ tự bậc, segment 2 s, byte range khớp file, `BANDWIDTH` từ byte thật |
 | R1 | `tests/site/primary-video-keyframes.test.mjs` đọc cả fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
-| R3 | chưa có test: e2e cả hai nhánh trên Chromium cloud bằng thang AV1 |
-| R4 | chưa có test: e2e giả lập mạng chậm rồi nhanh, kiểm `videoWidth` đổi, không `waiting`, vòng lặp sau ở bậc cao |
-| R5 | chưa có test: e2e item thiếu `hlsSrc` phát `cardSrc`, `src`, không nạp hls.js |
+| R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc` |
+| R4 | `tests/site/video-delivery.e2e.mjs`: server giới hạn 60 kbps rồi bỏ giới hạn, một video khác tải segment; frame sau giây 2 lên 480 trong 4 s, frame cách nhau dưới 250 ms, `waiting` dưới 100 ms (cloud đo 2 tới 6 ms; ngưỡng 10 ms đo ở R6). Tắt luật thay thì ca này đỏ |
+| R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp hls.js hay playlist |
 | R6 | chưa có test: đưa script đo mạng vào `tests/site/` |
 
 ## Gate còn mở
 
-- 6 tới 14 card cùng phát là 6 tới 14 instance hls.js, mỗi instance tự đo mạng và có worker riêng. Chưa đo bộ nhớ, main
-  thread và cách các instance tranh băng thông trên PC, A04s; R6 đo. Quá tải thì cân nhắc tắt worker (fMP4 không cần
-  chuyển mã) hoặc dùng chung số đo băng thông.
-- Thời điểm gọi `hls.nextLevel = -1` (R4) và hành vi thật của `nextLevelSwitch` với segment 2 s chưa đo; bước thử đầu
-  của plan đo trên PC, A04s với mạng giả lập lúc chậm lúc nhanh.
-- Sau khi hls.js xóa phần bậc thấp phía sau, vòng lặp kế phải tải lại giây 0; chưa đo có khựng ở chỗ nối vòng không. Khựng
-  thì tắt `loopBackBufferFlush` để giữ phần thấp và cho luật phía trước thay dần từ giây 0.
+- 6 tới 14 card cùng phát là 6 tới 14 instance hls.js, mỗi instance có worker riêng. Chưa đo bộ nhớ, main thread và cách
+  các instance tranh băng thông khi cùng thay (R4) trên PC, A04s; R6 đo. Quá tải thì cân nhắc tắt worker (fMP4 không cần
+  chuyển mã) hoặc thay lần lượt từng video.
+- Luật thay phía trước (R4) mới đo trên Chromium cloud với thang AV1; PC và A04s đo lại trong R6.
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone (2026-10-25). Cũng chưa kiểm
   Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
 - CMS phase 2: upload video phải sinh cùng thang chất lượng. Chọn [Cloudflare Stream](https://developers.cloudflare.com/stream/pricing)

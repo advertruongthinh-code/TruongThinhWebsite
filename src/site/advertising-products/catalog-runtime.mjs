@@ -30,6 +30,7 @@ import {
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
+import { releaseVideoSource, setVideoSource } from "./video-source.mjs";
 
 let activeInstance;
 
@@ -1051,8 +1052,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         // vào màn chỉ còn play; đo PC: video khởi động giữa lúc cuộn làm một Commit 82ms.
         layer.preload = "auto";
         layer.poster = item.posterSrc;
-        // Card hiện tối đa ~440px CSS nên dùng bản cardSrc 480px khi có (media-card R4); detail, viewer giữ src.
-        layer.src = item.cardSrc || item.src;
+        // Card hiện tối đa ~440px CSS nên chặn ở bậc 480 (video-delivery R2) hoặc file cardSrc khi không có Media Source.
+        setVideoSource(layer, item, { file: item.cardSrc || item.src, capWidth: 480 });
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
         layer.addEventListener("loadeddata", updateLoading);
         // Hết video thì card đẩy sang video kế trong playlist theo thứ tự dữ liệu, hết vòng quay lại video đầu; ảnh
@@ -1570,7 +1571,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const observeMediaCard = (node) => mediaObserver.observe(node);
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
-    node.querySelectorAll("video").forEach((video) => video.pause());
+    node.querySelectorAll("video").forEach(releaseVideoSource);
     mediaObserver.unobserve(node);
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
@@ -3537,16 +3538,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoVideo.pause();
       photoVideo.hidden = !video;
       if (!video) {
-        photoVideo.removeAttribute("src");
-        photoVideo.load();
+        releaseVideoSource(photoVideo);
         return;
       }
       photoVideo.width = item.width;
       photoVideo.height = item.height;
       photoVideo.poster = item.posterSrc;
       photoVideo.setAttribute("aria-label", english ? item.altEn : item.altVi);
-      if (photoVideo.getAttribute("src") !== item.src) photoVideo.src = item.src;
-      else if (slide) photoVideo.currentTime = 0;
+      if (!setVideoSource(photoVideo, item, { file: item.src }) && slide) photoVideo.currentTime = 0;
       void photoVideo.play().catch(syncVideoPlayer);
       if (strip) fadeVolume(1);
     };
@@ -4556,9 +4555,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoVideo) {
       closePrimaryStrip();
       photoVideo.pause();
-      photoVideo.removeAttribute("src");
-      photoVideo.load();
+      releaseVideoSource(photoVideo);
     }
+    rendered.forEach((node) => node.querySelectorAll("video").forEach(releaseVideoSource));
     photoViewer.cleanup();
     clearRelatedCards();
     skeletonObserver?.disconnect();
