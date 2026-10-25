@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-23
+updated: 2026-10-25
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -53,7 +53,6 @@ docs/architecture.md              runtime, build, ranh giới CMS
 docs/specs/<capability>.md        spec sống, một file một capability
 docs/decisions/<slug>.md          ADR còn hiệu lực
 docs/operations/*.md              runbook: tooling, release, thiết bị, Notion
-tasks/plan.md, tasks/todo.md      thay đổi đang làm, tạo khi cần, xóa khi xong
 ```
 
 ```gherkin
@@ -76,6 +75,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | adv-detail | `advertising-detail.md` | trang card `p/<id>`: primary, related, suggestion, viewer |
 | adv-taxonomy | `advertising-taxonomy.md` | cụm, sản phẩm, tag, trang index, embedding ảnh (planned) |
 | media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
+| media-adaptive | `image-adaptive-delivery.md` | bậc ảnh theo mạng, nâng bậc khi mạng nhanh lại (planned) |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
 | video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video (planned) |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
@@ -168,9 +168,9 @@ thay đổi mới nằm trong mô tả PR.
 
 ### R10. Notion chỉ giữ backlog
 
-Card Notion gồm tên, status, thứ tự ưu tiên, link spec và link PR. Không spec
-nháp, evidence hay checklist trong Notion. Checklist từng bước nằm trong
-`tasks/`. Board Tasks là backlog của điều phối và mọi worker; quyền tạo, cập
+Card Notion gồm tên, status, thứ tự ưu tiên, link spec, link PR và sổ việc:
+plan và việc owner giao dạng ô tick ([sổ việc](../operations/notion.md#sổ-việc-trên-card),
+owner 2026-10-25). Không spec nháp hay evidence trong Notion. Board Tasks là backlog của điều phối và mọi worker; quyền tạo, cập
 nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 
 ## Ranh giới
@@ -180,8 +180,7 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 - Hỏi trước: xóa ADR còn hiệu lực, đổi `PRODUCT.md`, đổi hành vi website để
   khớp spec.
 - Không: xóa vĩnh viễn card Notion (gộp thì archive); sửa source website trong
-  đợt đại tu docs; chạy semantic Graphify khi chưa được yêu cầu; sửa `tasks/plan.md`, `tasks/todo.md` khi thread khác đang
-  giữ.
+  đợt đại tu docs; chạy semantic Graphify khi chưa được yêu cầu; sửa sổ việc trên card mà thread khác đang giữ.
 
 ## Kiểm tra
 

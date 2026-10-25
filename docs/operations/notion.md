@@ -19,14 +19,29 @@
   `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
   lockfile, formatting-only, Markdown.
 - Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
-  merge (`Done`, hoặc ghi việc còn mở). Card chỉ giữ tên, status, thứ tự, mục
-  tiêu một dòng, việc còn mở, link spec và PR; không chép state, evidence, log
-  hay checklist đã xong vào card.
+  merge (`Done`, hoặc ghi việc còn mở). Card giữ tên, status, thứ tự, mục
+  tiêu một dòng, link spec và PR, và sổ việc (dưới); không chép spec, state,
+  evidence hay log vào card.
 - Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
   bị gộp thì archive, không xóa vĩnh viễn. Trước mỗi lần ghi: `search`, `fetch`, rồi
   `create/update`; không đoán database, schema, parent.
 - Link Notion cần kiểm quyền truy cập lẫn content drift. `object_not_found`
   không đủ kết luận đã xóa; timestamp payload cũ không là current verification.
+
+## Sổ việc trên card
+
+Plan và việc owner giao nằm trong thân card dưới dạng to-do (ô tick), một dòng
+một việc, nêu đủ nội dung để làm mà không cần đọc lại chat. Spec vẫn chỉ ở Git.
+
+1. Ghi ngay: owner giao việc, giao thêm giữa chừng, hoặc phỏng vấn chốt quyết
+   định thì thêm dòng trước khi làm. Plan đã duyệt chép thành các dòng task.
+2. Không làm rơi: tick khi xong; dòng chưa tick chỉ bỏ khi owner nói bỏ (gạch
+   dòng, ghi lý do). Checklist tiến độ của thread khi đổi bảng mới phải liệt kê
+   mọi dòng chưa tick.
+3. Báo khi chuyển việc: trước khi làm việc mới, reply nêu dòng đang dở và thứ
+   tự sẽ làm.
+4. Đối chiếu trước khi chốt: trước khi báo xong, mở PR, merge, resolve thread,
+   fetch card và nêu tên từng dòng chưa tick.
 
 ## Quy trình work item
 
