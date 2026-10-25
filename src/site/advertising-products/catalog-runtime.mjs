@@ -4399,32 +4399,23 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
-  // Lịch phát video card kiểu Pinterest (media-card R4, owner 2026-10-18): tối đa 2 card cùng phát tắt tiếng, là 2 card
-  // video có tâm trong vùng trọng tâm (40% giữa phần nhìn thấy dưới navbar) gần giữa vùng nhất, tính lại ngay khi đang
-  // cuộn. Card dưới con trỏ chiếm một suất. Mỗi card tự chạy playlist video của nó (createPhotoCard, sự kiện ended).
-  const MAX_PLAYING_VIDEOS = 2;
+  // Lịch phát video card (media-card R4, owner 2026-10-24): masonry phát mọi card đang đứng ở video và hiện quá 1/2
+  // chiều cao dưới navbar; related trong detail và reduced motion chỉ phát card dưới chuột. Mỗi card tự chạy playlist
+  // video của nó (createPhotoCard, sự kiện ended).
   let playingVideos = [];
   let videoScheduleFrame = 0;
   const scheduleVideo = () => {
-    const hovered = matchMedia("(hover: hover)").matches
-      ? document.querySelector("figure.advertising-tile:hover")?.advertisingActiveVideo?.() ?? null : null;
+    const hovered = matchMedia("(hover: hover)").matches ? document.querySelector("figure.advertising-tile:hover") : null;
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
-    const bandTop = navBottom + (innerHeight - navBottom) * 0.3;
-    const bandBottom = bandTop + (innerHeight - navBottom) * 0.4;
-    const bandCenter = (bandTop + bandBottom) / 2;
-    const inBand = reduced ? [] : [...document.querySelectorAll("figure.advertising-tile")]
-      .map((figure) => figure.advertisingActiveVideo?.())
-      .filter((video) => video && video !== hovered && video.checkVisibility())
-      .map((video) => {
-        const rect = video.getBoundingClientRect();
-        return { video, center: rect.top + rect.height / 2 };
-      })
-      .filter(({ center }) => center >= bandTop && center <= bandBottom)
-      .sort((a, b) => Math.abs(a.center - bandCenter) - Math.abs(b.center - bandCenter))
-      .map(({ video }) => video);
-    const next = [...(hovered ? [hovered] : []), ...inBand].slice(0, MAX_PLAYING_VIDEOS);
+    const next = [...document.querySelectorAll("figure.advertising-tile")].flatMap((figure) => {
+      const video = figure.advertisingActiveVideo?.();
+      if (!video?.checkVisibility()) return [];
+      if (reduced || figure.closest("[data-advertising-photo-view]")) return figure === hovered ? [video] : [];
+      const { top, bottom, height } = video.getBoundingClientRect();
+      return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2 ? [video] : [];
+    });
     playingVideos.forEach((video) => { if (!next.includes(video)) video.pause(); });
-    // Video quay lại suất thì phát tiếp từ chỗ đã dừng.
+    // Video quay lại lịch thì phát tiếp từ chỗ đã dừng.
     next.forEach((video) => { if (video.paused) void video.play().catch(() => {}); });
     playingVideos = next;
   };

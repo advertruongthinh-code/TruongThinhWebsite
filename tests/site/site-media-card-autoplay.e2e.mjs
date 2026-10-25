@@ -5,9 +5,9 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
-// Lịch phát video card kiểu Pinterest (media-card R4, owner 2026-10-18): tối đa 2 video tắt tiếng cùng phát, là 2 card
-// gần giữa vùng trọng tâm, tính lại ngay khi đang cuộn; hover chiếm một suất; mỗi card chạy playlist video của nó rồi lặp;
-// reduced motion không tự phát.
+// Lịch phát video card (media-card R4, owner 2026-10-24): masonry phát tắt tiếng mọi card video hiện quá 1/2 chiều cao
+// dưới navbar, tính lại ngay khi đang cuộn; hover không làm card masonry phát; related trong detail và reduced motion chỉ
+// phát card dưới chuột; mỗi card chạy playlist video của nó rồi lặp.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
 const fixturePrefix = "/__site_media_card_autoplay__/";
@@ -16,7 +16,7 @@ const clip = path.join(root, "tests/site/fixtures/site-media-card-clip-audio.mp4
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-// Mọi card thành card video để vùng trọng tâm luôn có ứng viên, không phụ thuộc seed của grid. playlist: video, ảnh,
+// Mọi card thành card video để lịch phát luôn có ứng viên, không phụ thuộc seed của grid. playlist: video, ảnh,
 // video thứ hai, để kiểm card bỏ qua ảnh khi chạy playlist.
 function fixtureArtifact(playlist = false) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
@@ -65,27 +65,25 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
   return { browser, page };
 }
 
-const videoState = (page) => page.evaluate(() => {
+// visibleRatio: phần video hiện dưới navbar chia chiều cao video.
+const videoState = (page, selector = "[data-advertising-card]") => page.evaluate((cardSelector) => {
   const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
-  const bandTop = navBottom + (innerHeight - navBottom) * 0.3;
-  const bandBottom = bandTop + (innerHeight - navBottom) * 0.4;
-  const bandCenter = (bandTop + bandBottom) / 2;
-  const videos = [...document.querySelectorAll("[data-advertising-card] video")].filter((video) => video.checkVisibility());
+  const videos = [...document.querySelectorAll(`${cardSelector} video`)].filter((video) => video.checkVisibility());
   const describe = (video) => {
     const rect = video.getBoundingClientRect();
-    const center = rect.top + rect.height / 2;
-    const card = video.closest("[data-advertising-card]");
-    return { id: card.dataset.advertisingCard, mediaId: card.dataset.advertisingActiveMediaId, muted: video.muted,
-      inBand: center >= bandTop && center <= bandBottom, distance: Math.abs(center - bandCenter),
-      x: rect.left + rect.width / 2, y: Math.min(Math.max(center, rect.top + 20), innerHeight - 20),
-      visible: rect.top >= 80 && rect.bottom <= innerHeight };
+    const top = Math.max(rect.top, navBottom);
+    const bottom = Math.min(rect.bottom, innerHeight);
+    const card = video.closest(cardSelector);
+    return { id: card.dataset.advertisingCard ?? card.dataset.advertisingRelatedCard,
+      mediaId: card.dataset.advertisingActiveMediaId, muted: video.muted, visibleRatio: (bottom - top) / rect.height,
+      x: rect.left + rect.width / 2, y: (top + bottom) / 2 };
   };
   return {
     playing: videos.filter((video) => !video.paused).map(describe),
     paused: videos.filter((video) => video.paused).map(describe),
     playbackButtons: document.querySelectorAll("[data-advertising-media-playback]").length,
   };
-});
+}, selector);
 
 async function scroll(page, touch, distance = 4000) {
   if (touch) await page.evaluate((dy) => scrollBy(0, dy), distance);
@@ -96,20 +94,26 @@ async function scroll(page, touch, distance = 4000) {
   }
 }
 
-async function scrollAndSettle(page, touch, distance = 4000) {
-  await scroll(page, touch, distance);
-  // Smooth scroll desktop còn trôi thêm một lúc.
-  await page.waitForTimeout(1500);
+async function settle(page) {
+  // Smooth scroll desktop còn trôi thêm một lúc; chờ Locomotive gỡ class đang cuộn rồi thêm vài frame cho lịch phát.
+  await page.waitForTimeout(300);
+  await page.waitForFunction(() => !document.documentElement.classList.contains("has-scroll-scrolling"), null, { timeout: 10000 });
+  await page.waitForTimeout(300);
 }
 
-// Suất phát là 2 card video trong vùng gần giữa vùng nhất.
-function assertNearestPlaying(state, label) {
-  const inBand = [...state.playing, ...state.paused].filter((video) => video.inBand)
-    .sort((a, b) => a.distance - b.distance);
-  assert(state.playing.length >= 1 && state.playing.length <= 2, `${label}: one or two videos play: ${JSON.stringify(state.playing)}`);
-  assert(state.playing.every((video) => video.muted && video.inBand), `${label}: playing videos are muted and in band: ${JSON.stringify(state.playing)}`);
-  assert.deepEqual(state.playing.map((video) => video.id).sort(), inBand.slice(0, 2).map((video) => video.id).sort(),
-    `${label}: the two cards nearest the band centre play`);
+async function scrollAndSettle(page, touch, distance = 4000) {
+  await scroll(page, touch, distance);
+  await settle(page);
+}
+
+// Mọi video hiện quá 1/2 chiều cao dưới navbar phát tắt tiếng, còn lại dừng. margin cho lúc đang cuộn: lịch tính trong
+// frame trước lúc đo nên video sát ngưỡng có thể lệch một frame.
+function assertHalfVisiblePlaying(state, label, margin = 0) {
+  assert(state.playing.length >= 3, `${label}: every half-visible card plays, not two slots: ${JSON.stringify(state.playing)}`);
+  assert(state.playing.every((video) => video.muted && video.visibleRatio > 0.5 - margin),
+    `${label}: playing videos are muted and more than half visible: ${JSON.stringify(state.playing)}`);
+  assert(state.paused.every((video) => video.visibleRatio <= 0.5 + margin),
+    `${label}: videos more than half visible are not paused: ${JSON.stringify(state.paused.filter((video) => video.visibleRatio > 0.5))}`);
 }
 
 async function playingSettled(page) {
@@ -121,20 +125,19 @@ async function playingSettled(page) {
 
 for (const touch of [false, true]) {
   const label = touch ? "touch 390" : "desktop 1440";
-  test(`R4 ${label}: the two cards nearest the focus band play muted, no playback button, recomputed while scrolling`, async () => {
+  test(`R4 ${label}: every card more than half visible plays muted, no playback button, recomputed while scrolling`, async () => {
     const { browser, page } = await open(touch ? { width: 390, height: 844, touch } : {});
     try {
       await scrollAndSettle(page, touch);
       const state = await playingSettled(page);
       assert.equal(state.playbackButtons, 0, "card video has no playback button");
-      assertNearestPlaying(state, `${label} settled`);
-      // Đang cuộn (chưa dừng) thì lịch phát đã đổi theo vùng mới.
+      assertHalfVisiblePlaying(state, `${label} settled`);
+      // Đang cuộn (chưa dừng) thì lịch phát đã đổi theo vị trí mới.
       await scroll(page, touch, 900);
       await page.waitForTimeout(150);
-      const moving = await videoState(page);
-      assert(moving.playing.every((video) => video.inBand), `${label}: videos outside the band pause while scrolling: ${JSON.stringify(moving.playing)}`);
-      await page.waitForTimeout(1500);
-      assertNearestPlaying(await videoState(page), `${label} after scroll`);
+      assertHalfVisiblePlaying(await videoState(page), `${label} while scrolling`, 0.1);
+      await settle(page);
+      assertHalfVisiblePlaying(await videoState(page), `${label} after scroll`);
     } finally { await browser.close(); }
   });
 }
@@ -157,31 +160,56 @@ test("R4 desktop: a card plays its video playlist in order, skips images and loo
   try {
     await scrollAndSettle(page, false);
     const first = await playingSettled(page);
-    const card = first.playing[0];
-    assert.equal(card.mediaId, `${card.id}-autoplay-video`);
+    // Card vào lịch từ lúc đang cuộn nên có thể đã sang video 2; chọn card đang ở video 1.
+    const card = first.playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
+    assert(card, `a playing card is on its first video: ${JSON.stringify(first.playing)}`);
+    // Mọi card hiện quá 1/2 cùng phát nên Chromium headless giải mã chậm, clip 3s có lúc chạy tới 6s.
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`)
-      ?.dataset.advertisingActiveMediaId === `${id}-autoplay-video-2`, card.id, { timeout: 6000 });
+      ?.dataset.advertisingActiveMediaId === `${id}-autoplay-video-2`, card.id, { timeout: 15000 });
     await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"]`)
-      ?.dataset.advertisingActiveMediaId === `${id}-autoplay-video`, card.id, { timeout: 6000 });
+      ?.dataset.advertisingActiveMediaId === `${id}-autoplay-video`, card.id, { timeout: 15000 });
     assert((await videoState(page)).playing.some((video) => video.id === card.id), "the card keeps playing after the loop");
   } finally { await browser.close(); }
 });
 
-test("R4 desktop: hover takes one of the two slots; leaving returns to the nearest cards", async () => {
+test("R4 desktop: hovering a masonry card at half visible or less does not play it", async () => {
   const { browser, page } = await open();
   try {
     await scrollAndSettle(page, false);
-    const before = await playingSettled(page);
-    const target = before.paused.find((video) => video.visible);
-    assert(target, `a visible paused video card exists: ${JSON.stringify(before)}`);
+    let target;
+    // Tìm một card video hiện một phần (từ 1/2 trở xuống) để rê chuột vào phần đang hiện.
+    for (let step = 0; step < 10 && !target; step += 1) {
+      target = (await playingSettled(page)).paused.find((video) => video.visibleRatio > 0.15 && video.visibleRatio <= 0.45);
+      if (!target) await scrollAndSettle(page, false, 250);
+    }
+    assert(target, "a partly visible paused video card exists");
     await page.mouse.move(target.x, target.y);
     await page.waitForTimeout(600);
     const hovered = await videoState(page);
-    assert(hovered.playing.some((video) => video.id === target.id) && hovered.playing.length <= 2,
-      `the hovered card plays within two slots: ${JSON.stringify(hovered.playing)}`);
+    assert(hovered.paused.some((video) => video.id === target.id), `the hovered card stays paused: ${JSON.stringify(target)}`);
+  } finally { await browser.close(); }
+});
+
+test("R4 desktop: related cards in detail play only under the pointer", async () => {
+  const { browser, page } = await open();
+  const related = "[data-advertising-related-card]";
+  try {
+    await page.locator("[data-advertising-card] > a").first().click();
+    await page.waitForFunction(() => document.body.classList.contains("is-advertising-photo"));
+    await page.mouse.move(8, 450);
+    await page.locator(related).first().waitFor();
+    await page.locator(related).first().scrollIntoViewIfNeeded();
+    await scrollAndSettle(page, false, 500);
+    const state = await videoState(page, related);
+    assert(state.paused.some((video) => video.visibleRatio > 0.5), `half-visible related videos exist: ${JSON.stringify(state)}`);
+    assert.equal(state.playing.length, 0, `no related card autoplays: ${JSON.stringify(state.playing)}`);
+    const target = state.paused.find((video) => video.visibleRatio > 0.5);
+    await page.mouse.move(target.x, target.y);
+    await page.waitForTimeout(600);
+    assert.deepEqual((await videoState(page, related)).playing.map((video) => video.id), [target.id], "the hovered related card plays");
     await page.mouse.move(8, 450);
     await page.waitForTimeout(600);
-    assertNearestPlaying(await videoState(page), "after leaving");
+    assert.equal((await videoState(page, related)).playing.length, 0, "leaving the related card pauses it");
   } finally { await browser.close(); }
 });
 
@@ -191,7 +219,7 @@ test("R4 reduced motion: no autoplay on scroll, hover still plays", async () => 
     await scrollAndSettle(page, false);
     const state = await videoState(page);
     assert.equal(state.playing.length, 0, "reduced motion does not autoplay");
-    const target = state.paused.find((video) => video.visible);
+    const target = state.paused.find((video) => video.visibleRatio === 1);
     await page.mouse.move(target.x, target.y);
     await page.waitForTimeout(600);
     assert.deepEqual((await videoState(page)).playing.map((video) => video.id), [target.id]);
@@ -227,7 +255,7 @@ test("R4 desktop: the viewed media and video time carry from card to detail, bac
   };
   try {
     await scrollAndSettle(page, false);
-    const { id } = (await playingSettled(page)).playing[0];
+    const { id } = (await playingSettled(page)).playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
     await seekCard(id, 1.2);
     await openCard(id);
     let state = await detail();
