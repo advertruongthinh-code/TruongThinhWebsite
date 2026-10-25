@@ -22,8 +22,8 @@ còn kiến thức đã chấp nhận phải review được bằng diff và đi
   `docs/decisions/`, `docs/STATE.md`, `PRODUCT.md`, `design-system/`. Evidence
   của mỗi thay đổi nằm trong mô tả PR.
 - Board Tasks trên Notion là backlog chung của owner, điều phối và mọi worker.
-  Card chỉ giữ tên, status, thứ tự, mục tiêu một dòng, việc còn mở, link spec
-  và PR; không spec nháp, evidence hay checklist.
+  Card giữ tên, status, thứ tự, mục tiêu một dòng, link spec và PR, và sổ việc:
+  plan cùng mọi việc owner giao dạng ô tick; không spec nháp hay evidence.
 - Worker cập nhật card ở ba mốc: nhận việc, mở PR, merge. Cập nhật Git trước
   rồi mới tới card; chỉ Done khi PR đã merge hoặc evidence trong repository đã
   kiểm.
@@ -44,6 +44,10 @@ Bản 2026-08-09 để Notion giữ draft, discovery, knowledge note và yêu c�
 Spec có status Approved kèm field `Git spec` trước khi lên plan.
 [Hệ thống tài liệu](documentation-system.md) thu Notion về backlog card; bản gốc
 còn trong Git history.
+
+2026-10-25 (owner): plan chuyển từ `tasks/` và Library lên thân card thành sổ
+việc, sau khi một thread làm rơi việc owner giao thêm giữa chừng. Codex cũng
+đọc được Notion, còn Library chỉ Claude project thấy.
 
 ## Chú thích thuật ngữ
 

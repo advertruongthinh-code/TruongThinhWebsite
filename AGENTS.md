@@ -35,6 +35,9 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 Board Tasks là backlog chung của owner, điều phối và mọi worker; Git `main` giữ contract và
 trạng thái repo, card chỉ trỏ tới đó. Việc owner giao chưa có card thì worker nhận việc tạo card
 trước khi làm. Worker cập nhật card ở ba mốc: nhận việc, mở PR, merge. Không xóa vĩnh viễn card.
+Plan và mọi việc owner giao (kể cả giao thêm giữa chừng, quyết định chốt khi phỏng vấn) là ô tick
+trong thân card; không bỏ dòng chưa tick khi chưa có owner nói bỏ, đối chiếu card trước khi chuyển hay chốt việc
+([sổ việc](docs/operations/notion.md#sổ-việc-trên-card)).
 Quy tắc đầy đủ (nội dung card, gộp/đổi tên, schema, link board): [Notion và Git](docs/operations/notion.md#rule).
 
 ## Routing theo path
