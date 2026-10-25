@@ -76,7 +76,7 @@ assert.doesNotMatch(css, /\.advertising-photo-view__back(?:\s|:|\{|,)/, "photo C
 assert.match(index, /data-advertising-photo-description-box[\s\S]*data-advertising-photo-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-advertising-photo-description-bar aria-hidden="true"/,
   "detail R3 exposes a labelled description scroller and a decorative scrollbar");
 const photoInfoMarkup = index.slice(index.indexOf("data-advertising-photo-info"), index.indexOf("data-advertising-photo-related aria-label"));
-const relatedGridMarkup = index.slice(index.indexOf("data-advertising-photo-related-grid"), index.indexOf("data-advertising-photo-dialog"));
+const relatedGridMarkup = index.slice(index.indexOf("data-advertising-photo-related-grid"), index.indexOf("class=\"advertising-photo-dialog\""));
 assert.doesNotMatch(photoInfoMarkup, /data-advertising-photo-suggestion/, "R15 primary info no longer owns the suggestion block");
 assert.match(relatedGridMarkup, /data-advertising-photo-suggestion/, "R15 keeps the synthetic suggestion inside the related grid");
 assert.match(css, /\.advertising-photo-view__primary\s*\{[^}]*height:\s*var\(--advertising-photo-primary-height\);/,
@@ -358,5 +358,8 @@ assertNoOverlap(scrollbarDesktopLayout, "scrollbar desktop related layout");
 // Placeholder nền của detail không tải khi detail ẩn; runtime gán nguồn thật rồi mới đổi sang eager.
 assert.match(index, /<img data-advertising-photo-background[^>]*loading="lazy"/, "photo background placeholder is lazy in markup");
 assert.match(runtime, /photoBackground\.src = [^\n]*\n\s*photoBackground\.loading = "eager";/, "photo background goes eager after the real source is set");
+
+// Viewer "Xem lớn hơn" không có vệt sáng và fade-in 0,45s: markFrame của script head phải bỏ qua dialog (loading-glass R5).
+assert.match(index, /!frame\.closest\("[^"]*\[data-advertising-photo-dialog\][^"]*"\)/, "head markFrame excludes the photo viewer dialog from the loading shimmer");
 
 console.log(`[advertising-products-static] ${ADVERTISING_LAYOUT_ALGORITHM_VERSION} boundary, CTA continuation, related adapter, spacing, typography, and natural media contract passed`);
