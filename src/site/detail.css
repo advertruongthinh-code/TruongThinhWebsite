@@ -2149,7 +2149,8 @@ body.is-advertising-browse .site-footer {
 
 /* Chuột rời video thì ẩn; đang dừng hoặc đang focus bàn phím thì luôn hiện (cảm ứng: khối hover none bên dưới). */
 @media (hover: hover) {
-  .advertising-photo-view__hero-frame:hover .advertising-video-player__bar {
+  .advertising-photo-view__hero-frame:hover .advertising-video-player__bar,
+  .advertising-photo-dialog__video:hover .advertising-video-player__bar {
     opacity: 1;
   }
 }
@@ -2323,6 +2324,11 @@ body.is-advertising-browse .site-footer {
     gap: 0;
     padding: 0 4px 4px 16px;
     opacity: 1;
+  }
+
+  /* Nút mở lớn hiện với video ở primary (R8): hàng dừng trước nút đó như PC. */
+  .advertising-photo-view__hero-frame .advertising-video-player__bar {
+    padding-right: 60px;
   }
 
   .advertising-video-player__row {
@@ -2910,7 +2916,12 @@ body.is-advertising-browse .site-footer {
   touch-action: none;
 }
 
-.advertising-photo-dialog__viewport img {
+/* Ảnh, host video và lớp trượt chồng cùng một ô. */
+.advertising-photo-dialog__viewport > * {
+  grid-area: 1 / 1;
+}
+
+.advertising-photo-dialog__viewport :is(img, video, canvas) {
   display: block;
   width: auto;
   height: auto;
@@ -2924,6 +2935,7 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close,
+.advertising-photo-dialog__step,
 .advertising-photo-dialog__controls button {
   display: inline-grid;
   width: 36px;
@@ -2940,18 +2952,21 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close,
+.advertising-photo-dialog__step,
 .advertising-photo-dialog__controls button {
   background: #fff;
 }
 
 @media (hover: hover) {
   .advertising-photo-dialog__close:not(:disabled):hover,
+  .advertising-photo-dialog__step:hover,
   .advertising-photo-dialog__controls button:not(:disabled):hover {
     background: var(--media-control-hover);
   }
 }
 
 .advertising-photo-dialog__close:focus-visible,
+.advertising-photo-dialog__step:focus-visible,
 .advertising-photo-dialog__controls button:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
@@ -2959,6 +2974,7 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close:not(:disabled):active,
+.advertising-photo-dialog__step:active,
 .advertising-photo-dialog__controls button:not(:disabled):active {
   background: var(--media-control-active);
 }
@@ -2971,6 +2987,7 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close svg,
+.advertising-photo-dialog__step svg,
 .advertising-photo-dialog__controls button svg {
   width: 16px;
   height: 16px;
@@ -2986,6 +3003,61 @@ body.is-advertising-browse .site-footer {
   top: calc(var(--advertising-viewer-visible-top, 0px) + max(1rem, env(safe-area-inset-top)));
   left: calc(var(--advertising-viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
   z-index: 2;
+}
+
+/* Mũi tên đổi media trong viewer (primary-video-player R8), cùng kiểu nút vuông trắng R7. */
+.advertising-photo-dialog__step {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  translate: 0 -50%;
+}
+
+.advertising-photo-dialog__step--prev {
+  left: calc(var(--advertising-viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
+}
+
+.advertising-photo-dialog__step--next {
+  right: calc(var(--advertising-viewer-visible-right, 0px) + max(1rem, env(safe-area-inset-right)));
+}
+
+/* Host video trong viewer: nền ngoài video không nhận chuột để bấm vẫn đóng viewer; player phủ đúng khung Fit. */
+.advertising-photo-dialog__video {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  pointer-events: none;
+}
+
+.advertising-photo-dialog__video > * {
+  pointer-events: auto;
+}
+
+/* Viewer PC không có nút mở lớn: thanh tua chạy tới lề phải như lề trái. */
+@media (hover: hover) {
+  .advertising-photo-dialog__video .advertising-video-player__bar {
+    padding-right: 16px;
+  }
+}
+
+.advertising-photo-dialog__video > .advertising-video-player {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: var(--advertising-viewer-fit-width);
+  height: var(--advertising-viewer-fit-height);
+  translate: -50% -50%;
+}
+
+/* Đã phóng to thì kéo video để pan; nút trên thanh player vẫn nhận chuột. */
+.advertising-photo-dialog[data-advertising-viewer-zoomed] :is(.advertising-video-player, .advertising-video-player__surface) {
+  pointer-events: none;
+}
+
+.advertising-photo-dialog__ghost {
+  pointer-events: none;
 }
 
 .advertising-photo-dialog__controls {
@@ -3267,8 +3339,9 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
     touch-action: pan-y pinch-zoom;
   }
 
-  .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible),
+  .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible, [data-advertising-photo-expand-video]),
   .advertising-photo-dialog__close:not(:focus-visible),
+  .advertising-photo-dialog__step:not(:focus-visible),
   .advertising-photo-dialog__controls button:not(:focus-visible) {
     position: absolute;
     width: 1px;

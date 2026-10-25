@@ -7,7 +7,7 @@ tests:
   - tests/site/primary-video-keyframes.test.mjs
   - tests/site/advertising-photo-layout.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-24
+updated: 2026-10-25
 ---
 
 # Player video primary, khung media ngang và chữ nút gợi ý
@@ -33,7 +33,8 @@ media-card R6 trỏ tới đây; [advertising-detail R2](advertising-detail.md#r
 - Giờ, thanh tua, nút tiếng nằm một hàng cao `40px` (nút toàn màn hình bỏ 2026-10-24, R8). Giờ `14px` 700, số đều, tổng thời lượng
   opacity `0.6`. Thanh tua chiếm phần còn lại, cách giờ `12px` và cách nút tiếng `8px`; đường `4px` bo tròn, núm
   `12px` như demo, vùng chạm cao `40px`. Nút tiếng vuông `40px`, icon `18px`.
-- Thanh không có dải gradient đáy (R4); lề trái `16px`, phải `4px`, đáy `4px`. Thanh luôn hiện như demo.
+- Thanh không có dải gradient đáy (R4); lề trái `16px`, phải `4px`, đáy `4px`; ở primary lề phải `60px` để nút
+  tiếng không nằm dưới nút mở lớn (R8). Thanh luôn hiện như demo.
 - Nút tiếng chỉ bật hoặc tắt tiếng, không có cột âm lượng: máy cảm ứng chỉnh bằng phím cứng (mặc định Thread chọn).
   `hasAudio` false thì ẩn nút tiếng như media-card R6.
 - Player trong viewer (R8) dùng cùng bố cục này.
@@ -168,6 +169,11 @@ và đúng trạng thái phát, dừng, tiếng; có thanh player (PC theo R7 v�
 (ảnh hoặc video, dải liền như primary), nút và cử chỉ phóng to, thu nhỏ dùng được cho video như ảnh
 ([viewer R5](advertising-viewer-touch-zoom.md#r5-nút-con-lăn-phím-và-trạng-thái-dùng-chung-một-tỷ-lệ)). Đóng viewer
 thì primary đứng ở media vừa xem, video ở đúng giây. Player không còn nút toàn màn hình; Fullscreen API không dùng nữa.
+
+PC: bấm video ở Fit thì phát hoặc dừng; đã phóng to thì kéo video để pan, nút trên thanh vẫn bấm được. Cảm ứng: chạm
+video trong viewer phát hoặc dừng như R1, phóng to bằng pinch, đã phóng to thì kéo để pan và chạm trả về Fit; vuốt
+đóng không bắt đầu trên video, đóng bằng chạm nền hoặc nút back. Mũi tên viewer ẩn trên cảm ứng như các nút viewer
+khác. Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn.
 
 ```gherkin
 Given primary đang phát video ở giây 3 trên desktop

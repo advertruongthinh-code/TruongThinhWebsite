@@ -1388,6 +1388,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoZoomOut = photoView?.querySelector("[data-advertising-photo-zoom-out]");
   const photoZoomReset = photoView?.querySelector("[data-advertising-photo-zoom-reset]");
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
+  const photoViewerSteps = [...(photoDialog?.querySelectorAll("[data-advertising-photo-viewer-step]") ?? [])];
 
   // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó, các lần sau mở Worker mới.
   let idleWorker = warmWorker || startLayoutWorker();
@@ -1512,6 +1513,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     zoomInButton: photoZoomIn,
     zoomOutButton: photoZoomOut,
     zoomStatus: photoZoomStatus,
+    video: photoVideo,
+    player: photoPlayer,
+    videoHost: photoDialog?.querySelector("[data-advertising-photo-video-host]"),
   });
   // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
   const loadedMediaKeys = new Set();
@@ -3494,7 +3498,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const english = locale === "en";
     const video = item.kind === "video";
     const source = video ? null : responsiveSource(item.src);
-    const sliding = Boolean(slide) && !reduced && !photoView.hidden;
+    // Viewer đang mở thì primary đổi thẳng: dải chèn cạnh photoVideo, mà video có thể đang nằm trong viewer.
+    const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
     if (changed || video || sliding) settlePrimaryReveal();
     const strip = sliding ? motion?.strip ?? openPrimaryStrip([
@@ -3588,7 +3593,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoImage.decode().then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
         () => primaryReveal === reveal && settlePrimaryReveal());
     }
-    photoViewer.setRecord(video ? null : { ...record, media: item });
+    photoViewer.setRecord({ ...record, media: item });
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
       button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
     });
@@ -3598,6 +3603,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const index = items.indexOf(item);
     photoMediaSteps.forEach((button) => {
       const target = index + Number(button.dataset.advertisingPhotoMediaStep);
+      button.hidden = index < 0 || target < 0 || target >= items.length;
+    });
+    photoViewerSteps.forEach((button) => {
+      const target = index + Number(button.dataset.advertisingPhotoViewerStep);
       button.hidden = index < 0 || target < 0 || target >= items.length;
     });
   };
@@ -3792,6 +3801,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
     () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
+  // Mũi tên trong viewer (primary-video-player R8): viewer trượt sang media kế, primary đổi theo.
+  photoViewerSteps.forEach((button) => button.addEventListener("click", () => {
+    const step = Number(button.dataset.advertisingPhotoViewerStep);
+    const item = primaryItems()[primaryIndex() + step];
+    const record = cards.find((card) => card.id === activePhotoId);
+    if (item && record) photoViewer.slideTo({ ...record, media: item }, step, () => showPrimaryMedia(item));
+  }, { signal: controller.signal }));
   // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
   // âm lượng giữ phím của chúng. Ngón đặt trên thanh tua, âm lượng chỉ tua, chỉnh tiếng (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {

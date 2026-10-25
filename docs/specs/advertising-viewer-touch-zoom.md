@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-19
+updated: 2026-10-25
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -148,7 +148,8 @@ này nút `Xem lớn hơn` ẩn khỏi mắt. Một lần chạm bằng touch l�
 primary (di không quá `10 CSS px`) mở viewer bằng morph như
 [detail R9](advertising-detail.md#r9-viewer). Chạm đúp cũng mở: lần chạm thứ hai
 rơi vào viewer và bị nuốt như R4, ảnh giữ Fit. Primary đang là video thì chạm
-không mở viewer. Khung
+phát hoặc dừng, không mở viewer; nút mở lớn hiện và mở video vào viewer
+([primary-video-player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Khung
 primary mang `touch-action: pan-y pinch-zoom` (như `manipulation` nhưng không `pan-x`, để vuốt ngang kéo dải media,
 [media-card R6](media-card.md#r6-media-trong-primary)) nên trình duyệt không zoom trang khi chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
 

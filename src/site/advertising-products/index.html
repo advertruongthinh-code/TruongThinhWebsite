@@ -549,6 +549,26 @@
                 <path d="M5 5l14 14M19 5L5 19" />
               </svg>
             </button>
+            <button
+              class="advertising-photo-dialog__step advertising-photo-dialog__step--prev"
+              type="button"
+              data-advertising-photo-viewer-step="-1"
+              aria-label="Media trước"
+              data-en-aria-label="Previous media"
+              hidden
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 1 5 12l11 11" /></svg>
+            </button>
+            <button
+              class="advertising-photo-dialog__step advertising-photo-dialog__step--next"
+              type="button"
+              data-advertising-photo-viewer-step="1"
+              aria-label="Media sau"
+              data-en-aria-label="Next media"
+              hidden
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 1l11 11L8 23" /></svg>
+            </button>
             <div class="advertising-photo-dialog__viewport" data-advertising-photo-viewport>
               <img
                 data-advertising-photo-expanded-image
@@ -559,6 +579,7 @@
                 decoding="async"
                 alt=""
               />
+              <div class="advertising-photo-dialog__video" data-advertising-photo-video-host hidden></div>
             </div>
             <div
               class="advertising-photo-dialog__controls"

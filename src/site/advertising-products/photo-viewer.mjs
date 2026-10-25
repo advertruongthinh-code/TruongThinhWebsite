@@ -1,4 +1,5 @@
 import { responsiveSource } from "./responsive-image.mjs";
+import { PUSH_TIMING } from "./suggestion-slideshow.mjs";
 
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
 // Tap thứ hai của double tap: chạm xuống trong 300ms và 40px từ tap trước (advertising-viewer-touch-zoom R4).
@@ -29,15 +30,25 @@ export function createAdvertisingPhotoViewer({
   scroll,
   getVisibleViewport,
   signal,
+  video,
+  player,
+  videoHost,
 } = {}) {
   if (!dialog || !expandButton || !expandedImage || !viewport || !closeButton || !zoomInButton || !zoomOutButton || !zoomStatus) {
-    return { cleanup() {}, close() {}, popState: () => false, setRecord() {} };
+    return { cleanup() {}, close() {}, popState: () => false, setRecord() {}, slideTo() {} };
   }
   const controller = new AbortController();
   const heroFrame = heroImage?.parentElement;
   const parent = dialog.parentNode;
   const nextSibling = dialog.nextSibling;
   let record = null;
+  // Phần tử đang hiện trong viewer: ảnh, hoặc chính video primary mượn vào (primary-video-player R8).
+  let media = expandedImage;
+  // Khung video ở primary lúc mở; cuộn trang khóa nên khung này còn đúng khi đóng, resize thì bỏ (đóng không bay).
+  let sourceRect = null;
+  let home = null;
+  let homeParent = null;
+  let slide = null;
   let scale = 1;
   // Góc xoay ảnh theo độ; tự do khi đang pinch, ngoài ra luôn là bội 90 (R11).
   let angle = 0;
@@ -113,8 +124,10 @@ export function createAdvertisingPhotoViewer({
     const [boxWidth, boxHeight] = sideways() ? [availableHeight, availableWidth] : [availableWidth, availableHeight];
     fitWidth = Math.min(record.media.width, boxWidth, boxHeight * ratio);
     fitHeight = fitWidth / ratio;
-    expandedImage.style.width = `${fitWidth}px`;
-    expandedImage.style.height = `${fitHeight}px`;
+    media.style.width = `${fitWidth}px`;
+    media.style.height = `${fitHeight}px`;
+    videoHost?.style.setProperty("--advertising-viewer-fit-width", `${fitWidth}px`);
+    videoHost?.style.setProperty("--advertising-viewer-fit-height", `${fitHeight}px`);
     const [visualWidth, visualHeight] = visualSize();
     cover = Math.max(viewport.clientWidth / visualWidth, viewport.clientHeight / visualHeight);
     scale = previousWidth ? scale * previousWidth / fitWidth : stop >= 0 ? stops()[stop] : clamp(scale, 1, 2 * cover);
@@ -136,7 +149,8 @@ export function createAdvertisingPhotoViewer({
       resetButton.hidden = false;
       resetButton.disabled = atFit() && !angle;
     }
-    expandedImage.style.cursor = atFit() ? "default" : drag ? "grabbing" : "grab";
+    media.style.cursor = atFit() ? "default" : drag ? "grabbing" : "grab";
+    dialog.toggleAttribute("data-advertising-viewer-zoomed", !atFit());
     const active = document.activeElement;
     if (dialog.open && [resetButton, zoomInButton, zoomOutButton].includes(active)
       && (active.disabled || active.hidden)) {
@@ -147,45 +161,44 @@ export function createAdvertisingPhotoViewer({
     const limits = panLimits();
     panX = clamp(panX, -limits.x, limits.x);
     panY = clamp(panY, -limits.y, limits.y);
-    expandedImage.style.transform = `translate3d(${panX}px, ${panY}px, 0) rotate(${angle}deg) scale(${scale})`;
+    media.style.transform = `translate3d(${panX}px, ${panY}px, 0) rotate(${angle}deg) scale(${scale})`;
     updateControls();
-    return expandedImage.style.transform;
+    return media.style.transform;
   };
   const runMotion = (from, to, duration, easing, state, finish) => {
     cancelMotion();
     const generation = motionGeneration;
-    expandedImage.style.transform = to;
+    media.style.transform = to;
     dialog.dataset.advertisingViewerState = state;
     const settle = () => {
       if (generation !== motionGeneration) return;
       imageAnimation?.cancel();
       imageAnimation = null;
-      expandedImage.style.transform = to;
+      media.style.transform = to;
       if (finish) finish();
       else if (dialog.open) dialog.dataset.advertisingViewerState = "open";
     };
-    if (reducedMotion.matches || typeof expandedImage.animate !== "function") {
+    if (reducedMotion.matches || typeof media.animate !== "function") {
       settle();
       return;
     }
     try {
-      imageAnimation = expandedImage.animate([{ transform: from }, { transform: to }], { duration, easing });
+      imageAnimation = media.animate([{ transform: from }, { transform: to }], { duration, easing });
       imageAnimation.finished.then(settle, () => {});
     } catch {
       settle();
     }
   };
   const sourceTransform = () => {
-    if (!heroImage?.isConnected) return null;
-    const source = heroImage.getBoundingClientRect();
+    const source = media === video ? sourceRect : heroImage?.isConnected && heroImage.getBoundingClientRect();
+    if (!source?.width || !source.height) return null;
     const bounds = viewport.getBoundingClientRect();
-    if (!source.width || !source.height) return null;
     const x = source.x + source.width / 2 - (bounds.x + bounds.width / 2);
     const y = source.y + source.height / 2 - (bounds.y + bounds.height / 2);
     return `translate3d(${x}px, ${y}px, 0) scale(${source.width / fitWidth})`;
   };
   const displayed = () => {
-    const transform = getComputedStyle(expandedImage).transform;
+    const transform = getComputedStyle(media).transform;
     return new DOMMatrix(transform === "none" ? undefined : transform);
   };
   // Đổi góc và đo lại khung; trả frame đang hiện quy về kích thước phần tử mới để animation không nhảy.
@@ -220,7 +233,7 @@ export function createAdvertisingPhotoViewer({
   const adoptDisplayed = () => {
     if (!imageAnimation) return;
     if (dialog.dataset.advertisingViewerState === "zooming") {
-      const matrix = new DOMMatrixReadOnly(getComputedStyle(expandedImage).transform);
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(media).transform);
       scale = Math.hypot(matrix.a, matrix.b);
       angle = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
       panX = matrix.m41;
@@ -298,7 +311,7 @@ export function createAdvertisingPhotoViewer({
     }
     swipe.velocity = (event.clientY - swipe.lastY) / Math.max(1, event.timeStamp - swipe.lastTime);
     Object.assign(swipe, { dy, lastY: event.clientY, lastTime: event.timeStamp });
-    expandedImage.style.transform = `translate3d(0, ${dy}px, 0) rotate(${angle}deg) scale(1)`;
+    media.style.transform = `translate3d(0, ${dy}px, 0) rotate(${angle}deg) scale(1)`;
     setBackdropOpacity(1 - Math.min(1, Math.abs(dy) / (0.5 * viewport.clientHeight)));
   };
   const endSwipe = (release) => {
@@ -311,12 +324,14 @@ export function createAdvertisingPhotoViewer({
       return;
     }
     setBackdropOpacity(1);
-    const from = expandedImage.style.transform;
+    const from = media.style.transform;
     runMotion(from, renderTransform(), 200, "ease-in-out", "zooming");
   };
   const finishClose = (restoreFocus) => {
     cancelMotion();
+    endSlide();
     dialog.close();
+    if (media === video) detachVideo();
     delete dialog.dataset.advertisingViewerState;
     delete dialog.dataset.advertisingViewerSwipe;
     setBackdropOpacity(1);
@@ -355,17 +370,39 @@ export function createAdvertisingPhotoViewer({
       finishClose(restoreFocus);
       return;
     }
-    const from = getComputedStyle(expandedImage).transform;
+    const from = getComputedStyle(media).transform;
     runMotion(from, target, 250, "cubic-bezier(0.55, 0, 0, 1)", "closing", () => finishClose(restoreFocus));
   };
-  const open = () => {
-    if (!record || dialog.open) return;
-    lockedScroll = scroll?.lockLogicalScroll?.() ?? scroll?.getLogicalScroll?.() ?? window.scrollY;
+  // Mượn chính video và player của primary, chuyển liền trong một task nên video không dừng; detach trả về đúng chỗ.
+  const attachVideo = () => {
+    homeParent = video.parentNode;
+    home = player.nextSibling;
+    videoHost.append(video, player);
+    videoHost.hidden = false;
+    expandedImage.hidden = true;
+    media = video;
+  };
+  const detachVideo = () => {
+    homeParent.insertBefore(video, home);
+    homeParent.insertBefore(player, home);
+    for (const name of ["width", "height", "transform", "cursor"]) video.style.removeProperty(name);
+    videoHost.hidden = true;
+    expandedImage.hidden = false;
+    media = expandedImage;
+  };
+  const showImage = () => {
     expandedImage.src = responsiveSource(record.media.src);
     expandedImage.alt = document.documentElement.lang === "en" ? record.media.altEn : record.media.altVi;
     expandedImage.width = record.media.width;
     expandedImage.height = record.media.height;
     expandedImage.fetchPriority = "high";
+  };
+  const open = () => {
+    if (!record || dialog.open) return;
+    sourceRect = record.media.kind === "video" ? video.getBoundingClientRect() : null;
+    lockedScroll = scroll?.lockLogicalScroll?.() ?? scroll?.getLogicalScroll?.() ?? window.scrollY;
+    if (sourceRect) attachVideo();
+    else showImage();
     scale = 1;
     angle = 0;
     panX = panY = 0;
@@ -378,13 +415,68 @@ export function createAdvertisingPhotoViewer({
     runMotion(sourceTransform() || target, target, 300, "cubic-bezier(0.55, 0, 0, 1)", "opening");
     closeButton.focus({ preventScroll: true });
   };
-  const visibleControls = () => [closeButton, resetButton, zoomInButton, zoomOutButton]
-    .filter((control) => control && !control.disabled && !control.hidden && control.getClientRects().length > 0);
+  // Mọi nút, input đang hiện theo thứ tự DOM, để Tab tới được mũi tên và player của video.
+  const visibleControls = () => [...dialog.querySelectorAll("button, input")]
+    .filter((control) => !control.disabled && !control.hidden && control.getClientRects().length > 0
+      && getComputedStyle(control).visibility !== "hidden");
+  const endSlide = () => {
+    if (!slide) return;
+    slide.ghost.remove();
+    slide.animations.forEach((animation) => animation.cancel());
+    slide = null;
+  };
+  // Mũi tên viewer đổi media của card (R8): lớp trượt mang media cũ ra, media mới trượt vào như dải primary.
+  // `apply` đổi primary sang media mới; video phải về primary trước khi primary đổi nguồn.
+  const slideTo = (nextRecord, step, apply) => {
+    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing") return;
+    endSlide();
+    cancelMotion();
+    dialog.dataset.advertisingViewerState = "open";
+    // Video: canvas vẽ frame đang hiện, chưa có frame thì poster; ảnh: bản sao của ảnh.
+    const ghost = media === expandedImage ? expandedImage.cloneNode()
+      : video.readyState < 2 ? Object.assign(document.createElement("img"), { src: video.poster, alt: "" })
+        : Object.assign(document.createElement("canvas"), { width: video.videoWidth, height: video.videoHeight });
+    ghost.getContext?.("2d").drawImage(video, 0, 0);
+    ghost.removeAttribute("data-advertising-photo-expanded-image");
+    ghost.className = "advertising-photo-dialog__ghost";
+    ghost.setAttribute("aria-hidden", "true");
+    for (const name of ["width", "height", "transform"]) ghost.style[name] = media.style[name];
+    viewport.append(ghost);
+    if (media === video) detachVideo();
+    apply();
+    record = nextRecord;
+    if (record.media.kind === "video") attachVideo();
+    else showImage();
+    sourceRect = null;
+    scale = 1;
+    angle = 0;
+    panX = panY = 0;
+    measureFit();
+    renderTransform();
+    const current = slide = { ghost, animations: [] };
+    const target = media;
+    const ready = target === video
+      ? video.readyState >= 2 || new Promise((resolve) => {
+        video.addEventListener("loadeddata", resolve, { once: true });
+        video.addEventListener("error", resolve, { once: true });
+      })
+      : expandedImage.decode().catch(() => {});
+    void Promise.resolve(ready).then(() => {
+      if (slide !== current) return;
+      if (reducedMotion.matches) return endSlide();
+      const width = viewport.clientWidth;
+      current.animations = [
+        ghost.animate([{ translate: "0 0" }, { translate: `${-step * width}px 0` }], PUSH_TIMING),
+        target.animate([{ translate: `${step * width}px 0` }, { translate: "0 0" }], PUSH_TIMING),
+      ];
+      return current.animations[1].finished.then(() => { if (slide === current) endSlide(); }, () => {});
+    });
+  };
 
   expandButton.addEventListener("click", open, { signal: controller.signal });
-  // Màn cảm ứng mở viewer bằng một tap trên primary photo (R7).
+  // Màn cảm ứng mở viewer bằng một tap trên primary photo (R7); chạm video thì phát hoặc dừng, mở bằng nút mở lớn.
   heroFrame?.addEventListener("pointerdown", (event) => {
-    heroTap = event.pointerType === "touch" && event.isPrimary ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+    heroTap = event.pointerType === "touch" && event.isPrimary && record?.media.kind !== "video" ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
   }, { signal: controller.signal });
   heroFrame?.addEventListener("pointermove", (event) => {
     if (heroTap?.id === event.pointerId && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) > TOUCH_SLOP) heroTap = null;
@@ -452,11 +544,11 @@ export function createAdvertisingPhotoViewer({
         backdropPress = false;
         return;
       }
-      tap = event.target === expandedImage ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+      tap = event.target === media ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
     }
     backdropPress = event.target === dialog || event.target === viewport;
     if (backdropPress) return;
-    if (event.target !== expandedImage || closing) return;
+    if (event.target !== media || closing) return;
     if (atFit()) {
       if (event.pointerType !== "touch") return;
       adoptDisplayed();
@@ -552,6 +644,7 @@ export function createAdvertisingPhotoViewer({
       if (!dialog.open) return;
       updateVisibleControls();
       if (fitGeometryKey === geometryKey()) return;
+      sourceRect = null;
       if (dialog.dataset.advertisingViewerState === "closing") {
         finishClose(true);
         return;
@@ -593,6 +686,7 @@ export function createAdvertisingPhotoViewer({
     cleanup,
     close,
     popState,
+    slideTo,
     setRecord(nextRecord) {
       if (record?.id !== nextRecord?.id) close({ restoreFocus: false });
       record = nextRecord || null;

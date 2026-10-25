@@ -912,6 +912,110 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
   });
 });
 
+// Mở lớn video trong viewer (primary-video-player R8): chính video primary vào viewer, phát tiếp đúng giây trên nền
+// blur, phóng to như ảnh, đóng thì về khung primary vẫn phát.
+const videoClock = (page) => page.evaluate(() => {
+  const video = document.querySelector("[data-advertising-photo-video]");
+  return { time: video.currentTime, at: performance.now(), paused: video.paused,
+    inHost: Boolean(video.closest("[data-advertising-photo-video-host]")),
+    inPrimary: Boolean(video.closest(".advertising-photo-view__hero-frame")),
+    scale: new DOMMatrix(getComputedStyle(video).transform === "none" ? undefined : getComputedStyle(video).transform).a };
+});
+// Giây video theo đồng hồ trang: chênh với giây dự kiến (giây trước + thời gian trôi × tốc độ phát).
+const clockDrift = (before, after, rate) => Math.abs(after.time - before.time - (after.at - before.at) / 1000 * rate);
+
+test("M02a expand opens the playing primary video in the blurred viewer, zooms it and returns it on close", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    // Tốc độ 0.5 để clip 3s không lặp về 0 giữa ca; giây chỉ đi tới.
+    await page.evaluate(() => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      video.playbackRate = 0.5;
+      video.currentTime = 1.5;
+    });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").seeking);
+    const expand = page.locator("[data-advertising-photo-expand]");
+    assert.equal(await expand.getAttribute("data-advertising-photo-expand-video"), "", "expand is the video expand");
+    const before = await videoClock(page);
+    await expand.click();
+    const viewer = page.locator("[data-advertising-photo-dialog]");
+    await viewer.waitFor({ state: "visible" });
+    const opened = await videoClock(page);
+    assert.equal(opened.inHost, true, "the primary video moves into the viewer host");
+    assert.equal(opened.paused, false, "the video keeps playing");
+    assert(clockDrift(before, opened, 0.5) < 0.3, `the video keeps its second: ${before.time} -> ${opened.time}`);
+    assert.match(await viewer.evaluate((node) => getComputedStyle(node, "::backdrop").backdropFilter), /blur/,
+      "the backdrop is blurred, not solid black");
+    assert.equal(await page.locator("[data-advertising-photo-video-host] [data-advertising-photo-player]").count(), 1,
+      "the player bar comes with the video");
+    await page.locator("[data-advertising-photo-zoom-in]").click();
+    await page.waitForTimeout(400);
+    const zoomed = await videoClock(page);
+    assert(zoomed.scale > 1, `zoom in scales the video: ${zoomed.scale}`);
+    const beforeClose = await videoClock(page);
+    await page.locator("[data-advertising-photo-close]").click();
+    await viewer.waitFor({ state: "hidden" });
+    await page.waitForTimeout(200);
+    const closed = await videoClock(page);
+    assert.deepEqual([closed.inPrimary, closed.inHost, closed.paused], [true, false, false],
+      "closing puts the playing video back in primary");
+    assert(closed.time >= beforeClose.time && clockDrift(beforeClose, closed, 0.5) < 0.3,
+      `the second does not go back: ${beforeClose.time} -> ${closed.time}`);
+  });
+});
+
+test("M02a touch primary video shows the expand button and a tap on the video pauses without opening the viewer", async () => {
+  await withPage("vi", async (page) => {
+    await openFixture(page, "vi", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    const box = await page.locator("[data-advertising-photo-expand]").boundingBox();
+    assert(box && box.width >= 36 && box.height >= 36, `expand is visible on a touch video: ${JSON.stringify(box)}`);
+    await page.locator("[data-advertising-photo-play-surface]").tap();
+    await page.waitForTimeout(400);
+    assert.equal(await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").paused), true,
+      "tapping the video pauses it");
+    assert.equal(await page.locator("[data-advertising-photo-dialog]").evaluate((node) => node.open), false,
+      "tapping the video does not open the viewer");
+  });
+});
+
+// Mũi tên trong viewer (R8): đổi media của card bằng dải trượt; video về primary, đóng thì primary đứng ở media vừa xem.
+test("M02a viewer arrows slide from the video to the image and closing keeps primary on that image", async () => {
+  await withPage("en", async (page) => {
+    const card = await openFixture(page, "en", { videoCover: true, direct: true });
+    const image = card.mediaItems[0];
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && document.querySelector("[data-advertising-photo-video]").readyState >= 2);
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "visible" });
+    const steps = () => page.$$eval("[data-advertising-photo-viewer-step]", (nodes) =>
+      nodes.map((node) => `${node.dataset.advertisingPhotoViewerStep}:${node.hidden ? 0 : 1}`).join(" "));
+    assert.equal(await steps(), "-1:1 1:0", "at the last media only the previous arrow shows");
+    const ghost = await page.evaluate(() => {
+      document.querySelector('[data-advertising-photo-viewer-step="-1"]').click();
+      return Boolean(document.querySelector("[data-advertising-photo-dialog] .advertising-photo-dialog__ghost"));
+    });
+    assert.equal(ghost, true, "a sliding layer carries the old media out");
+    await page.waitForFunction(() => !document.querySelector(".advertising-photo-dialog__ghost"), null, { timeout: 5_000 });
+    const state = await page.evaluate(() => {
+      const expanded = document.querySelector("[data-advertising-photo-expanded-image]");
+      const video = document.querySelector("[data-advertising-photo-video]");
+      return { src: expanded.currentSrc || expanded.src, hidden: expanded.hidden,
+        videoInPrimary: Boolean(video.closest(".advertising-photo-view__hero-frame")) };
+    });
+    assert.equal(mediaPath(state.src), image.src, "the viewer shows the image");
+    assert.deepEqual([state.hidden, state.videoInPrimary], [false, true], "the image shows and the video is back in primary");
+    assert.equal(await steps(), "-1:0 1:1", "at the first media only the next arrow shows");
+    await page.locator("[data-advertising-photo-close]").click();
+    await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "hidden" });
+    assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-active-media-id"),
+      image.id, "primary stays on the media seen in the viewer");
+  });
+});
+
 // Dãy thumbnail một dòng, mô tả cuộn (owner 2026-10-24): còn nội dung thì mép mờ về trắng; thanh cuộn mô tả chỉ hiện khi
 // hover, kéo được, chữ căn đều; cảm ứng không có thanh.
 const scrollHints = (page) => page.evaluate(() => {
