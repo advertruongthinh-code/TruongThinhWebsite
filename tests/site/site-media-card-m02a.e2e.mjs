@@ -116,8 +116,8 @@ async function primaryState(page) {
 function mediaPath(value) {
   if (!value) return "";
   const pathname = new URL(value, base).pathname;
-  return /^\/assets\/content\/.+\.avif$|-(?:480|960)\.(?:avif|webp)$/.test(pathname)
-    ? pathname.replace(/(?:-(?:480|960))?\.(?:avif|webp)$/, ".webp")
+  return /^\/assets\/content\/.+\.avif$|-(?:240|480|960)\.(?:avif|webp)$/.test(pathname)
+    ? pathname.replace(/(?:-(?:240|480|960))?\.(?:avif|webp)$/, ".webp")
     : pathname;
 }
 
@@ -131,7 +131,7 @@ async function assertPrimary(page, card, expectedId, locale) {
       && [...document.querySelectorAll(`[data-advertising-photo-hero] ${kind === "video" ? "video" : "img"}`)].some((node) => {
         const style = getComputedStyle(node);
         const box = node.getBoundingClientRect();
-        const path = new URL(node.currentSrc || node.src, location.href).pathname.replace(/(?:-(?:480|960))?\.(?:avif|webp)$/, ".webp");
+        const path = new URL(node.currentSrc || node.src, location.href).pathname.replace(/(?:-(?:240|480|960))?\.(?:avif|webp)$/, ".webp");
         return path === src && !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
           && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
       });

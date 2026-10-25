@@ -69,7 +69,7 @@ const photos = new Map();
 function localizeImages(markup, size = 960) {
   return markup
     .replace(/\s+data-src="[^"]*"/g, '')
-    .replace(/(src|poster)="\/assets\/content\/([^"]+?)(?:-(?:480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, attr, path, ext) => {
+    .replace(/(src|poster)="\/assets\/content\/([^"]+?)(?:-(?:240|480|960))?\.(webp|avif|jpe?g|png)"/g, (whole, attr, path, ext) => {
       const source = [`${path}-${size}.webp`, `${path}.webp`, `${path}.${ext}`]
         .map((candidate) => `src/site/assets/content/${candidate}`).find(existsSync);
       if (!source) throw new Error(`image not found: ${whole}`);

@@ -112,7 +112,7 @@
         document.documentElement.dataset.heroFirst = first;
         document.head.append(Object.assign(document.createElement("link"), {
           rel: "preload", as: "image", type: "image/avif", href: `${path}.avif`,
-          imageSrcset: `${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif ${width}w`, imageSizes: "100vw",
+          imageSrcset: `${path}-240.avif 240w, ${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif ${width}w`, imageSizes: "100vw",
         }));
       })();
     </script>
