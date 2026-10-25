@@ -3,7 +3,7 @@ title: Ảnh thích ứng mạng
 status: planned
 source: []
 tests: []
-notion: none
+notion: https://app.notion.com/p/404332849a0e818586ade1e1d8532ce9
 updated: 2026-10-25
 ---
 
