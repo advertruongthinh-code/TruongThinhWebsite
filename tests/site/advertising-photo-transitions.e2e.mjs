@@ -117,7 +117,10 @@ async function chooseB(page, beforeClick) {
 async function m02bFixture(page, locale, direct = false, seed = null) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === mediaCardId);
-  assert(card && card.mediaItems.length === 1, "M02b fixture needs the authored image cover");
+  assert(card, "M02b fixture needs the authored card");
+  // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
+  card.mediaItems = [{ id: mediaCardId, kind: "image", ...card.media }];
+  card.coverMediaId = mediaCardId;
   card.mediaItems.push({
     id: mediaVideoId, kind: "video", src: "/__site_media_card_fixture__/clip-audio-3x2.mp4",
     sourceId: "m00b:test-only:clip-audio-3x2", source: "M00b sealed synthetic fixture",
@@ -1552,7 +1555,11 @@ try {
   await caseRun("history-entry-scroll-offscreen-morph", { width: 1543, height: 884 }, async (page, stage) => {
     const evidence = [];
     const networkFailures = [];
-    page.on("requestfailed", (request) => networkFailures.push({ url: request.url(), error: request.failure()?.errorText }));
+    page.on("requestfailed", (request) => {
+      // Chromium hủy các fetch ảnh lazy hoặc video bị thay thế (đổi srcset/variant/src, unmount); không phải lỗi tải.
+      if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
+      networkFailures.push({ url: request.url(), error: request.failure()?.errorText });
+    });
     page.on("response", (response) => {
       if (response.status() >= 400) networkFailures.push({ url: response.url(), status: response.status() });
     });
