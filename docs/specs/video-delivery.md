@@ -104,9 +104,9 @@ vị trí phát:
 - Phía sau: video lặp (`loop`) nên khi bắt đầu phát segment bậc cao đầu tiên, hls.js tự xóa phần bậc thấp từ giây 0 tới
   trước segment đó ([`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush),
   mặc định bật); vòng sau tải và phát bậc cao từ giây 0.
-- Tua: tua về đoạn bậc thấp còn trong buffer thì phát ngay bằng phần có sẵn, rồi luật phía trước ở trên thay phần sau nó
-  nên nét lên sau khoảng một segment; tua về đoạn đã bị xóa thì hls.js tải ở bậc hiện tại như mọi lần tua tới đoạn chưa
-  tải.
+- Tua (owner chọn 2026-10-25): tua về đoạn bậc thấp còn trong buffer thì phát ngay bằng phần có sẵn, rồi luật phía trước
+  ở trên thay phần sau nó nên nét lên sau khoảng một segment; tua về đoạn đã bị xóa thì hls.js tải ở bậc hiện tại như mọi
+  lần tua tới đoạn chưa tải.
 - Xuống bậc không xóa gì: phần bậc cao đã tải phát hết rồi mới tới bậc thấp.
 
 Việc thay phải liền mạch (owner 2026-10-25): người xem chỉ thấy hình nét lên, không nhận ra có tải lại.
