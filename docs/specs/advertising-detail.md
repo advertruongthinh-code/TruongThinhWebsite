@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-24
+updated: 2026-10-25
 ---
 
 # Detail Advertising
@@ -174,7 +174,7 @@ Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay 
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
 `cubic-bezier(0.55, 0, 0, 1)`; nền viewer máy có chuột (`hover: hover`, `pointer: fine`) là lớp tối `0.85` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
 điện thoại không blur ([gate phone Android](../decisions/phone-frame-budget.md)), lớp tối `0.9`, màu `rgba(32, 33, 32)` (owner 2026-10-10), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
-trên trái; reset, `+`, `−` góc dưới phải, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
+trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
 cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về

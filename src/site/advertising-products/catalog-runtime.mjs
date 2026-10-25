@@ -1389,9 +1389,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const photoClose = photoView?.querySelector("[data-advertising-photo-close]");
   const photoZoomIn = photoView?.querySelector("[data-advertising-photo-zoom-in]");
   const photoZoomOut = photoView?.querySelector("[data-advertising-photo-zoom-out]");
-  const photoZoomReset = photoView?.querySelector("[data-advertising-photo-zoom-reset]");
   const photoZoomStatus = photoView?.querySelector("[data-advertising-photo-zoom-status]");
-  const photoViewerSteps = [...(photoDialog?.querySelectorAll("[data-advertising-photo-viewer-step]") ?? [])];
+  const photoViewerThumbs = photoDialog?.querySelector("[data-advertising-photo-viewer-thumbs]");
 
   // Khởi động Worker song song với lúc tải artifact; lần compile đầu (grid hoặc related) dùng nó, các lần sau mở Worker mới.
   let idleWorker = warmWorker || startLayoutWorker();
@@ -1509,7 +1508,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     expandButton: photoExpand,
     expandedImage: photoExpandedImage,
     heroImage: photoImage,
-    resetButton: photoZoomReset,
     scroll,
     signal: controller.signal,
     viewport: photoViewport,
@@ -2890,9 +2888,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     node.toggleAttribute("data-fade-end", after > 1);
   };
   const syncScrollHints = () => {
-    if (photoMediaThumbs) {
-      const { scrollLeft, scrollWidth, clientWidth } = photoMediaThumbs;
-      syncScrollFade(photoMediaThumbs, scrollLeft, scrollWidth - clientWidth - scrollLeft);
+    for (const strip of [photoMediaThumbs, photoViewerThumbs]) {
+      if (!strip) continue;
+      const { scrollLeft, scrollWidth, clientWidth } = strip;
+      syncScrollFade(strip, scrollLeft, scrollWidth - clientWidth - scrollLeft);
     }
     if (!photoDescriptionScroll) return;
     const { scrollTop, scrollHeight, clientHeight } = photoDescriptionScroll;
@@ -2906,16 +2905,20 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Khung hay nội dung đổi cỡ (layout, font, đổi card, đổi ngôn ngữ) thì đo lại sau layout, không ép layout riêng.
   const scrollHintObserver = new ResizeObserver(syncScrollHints);
   if (photoDescriptionScroll) [photoDescriptionScroll, photoDescription].forEach((node) => scrollHintObserver.observe(node));
-  // Thumbnail đang xem nằm ngoài khung hoặc trong vùng mờ thì cuộn dãy cho nó vào giữa.
+  if (photoViewerThumbs) scrollHintObserver.observe(photoViewerThumbs);
+  photoViewerThumbs?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
+  // Thumbnail đang xem nằm ngoài khung hoặc trong vùng mờ thì cuộn dãy cho nó vào giữa; dãy đang ẩn (viewer đóng) bỏ qua.
   const keepActiveThumbInView = () => {
-    const button = photoMediaThumbs?.querySelector('[aria-current="true"]');
-    if (!button) return;
     syncScrollHints();
-    const strip = photoMediaThumbs.getBoundingClientRect();
-    const box = button.getBoundingClientRect();
-    const fade = (name) => photoMediaThumbs.hasAttribute(name) ? 60 : 0;
-    if (box.left >= strip.left + fade("data-fade-start") - 1 && box.right <= strip.right - fade("data-fade-end") + 1) return;
-    photoMediaThumbs.scrollBy({ left: box.left + box.width / 2 - strip.left - strip.width / 2, behavior: reduced ? "auto" : "smooth" });
+    for (const node of [photoMediaThumbs, photoViewerThumbs]) {
+      const button = node?.querySelector('[aria-current="true"]');
+      if (!button || !node.clientWidth) continue;
+      const strip = node.getBoundingClientRect();
+      const box = button.getBoundingClientRect();
+      const fade = (name) => node.hasAttribute(name) ? 60 : 0;
+      if (box.left >= strip.left + fade("data-fade-start") - 1 && box.right <= strip.right - fade("data-fade-end") + 1) continue;
+      node.scrollBy({ left: box.left + box.width / 2 - strip.left - strip.width / 2, behavior: reduced ? "auto" : "smooth" });
+    }
   };
   const renderSuggestionLinks = (browse, english) => {
     if (!suggestionNode) return;
@@ -3509,6 +3512,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       { item: activePrimaryItem, slot: 0 }, { item, slot: Math.sign(slide) },
     ]) : null;
     if (!sliding) closePrimaryStrip();
+    // Video sang video trong cùng card: giờ, tổng, thanh tua đứng ở video cũ tới khi video mới chạy (owner 2026-10-25).
+    videoTimeHold = Boolean(slide) && video && activePrimaryItem?.kind === "video";
     activePrimaryMediaId = item.id;
     activePrimaryItem = item;
     primaryFailed = false;
@@ -3545,8 +3550,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     };
     if (strip) strip.apply = applyVideo;
     else applyVideo();
-    if (video) photoTimeTotal.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
-    else {
+    if (video) {
+      if (!videoTimeHold) photoTimeTotal.textContent = formatVideoTime(item.durationSeconds, Math.ceil);
+    } else {
       photoImage.width = item.width;
       photoImage.height = item.height;
       photoImage.alt = english ? item.altEn : item.altVi;
@@ -3600,16 +3606,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
       button.setAttribute("aria-current", String(button.dataset.advertisingPhotoMediaSelect === item.id));
     });
+    photoViewerThumbs?.querySelectorAll("[data-advertising-photo-viewer-select]").forEach((button) => {
+      button.setAttribute("aria-current", String(button.dataset.advertisingPhotoViewerSelect === item.id));
+    });
     // Đọc rect trong frame kế: layout của frame đó vẫn phải chạy, nên không thêm lượt layout.
     requestAnimationFrame(keepActiveThumbInView);
     const items = record.mediaItems || [];
     const index = items.indexOf(item);
     photoMediaSteps.forEach((button) => {
       const target = index + Number(button.dataset.advertisingPhotoMediaStep);
-      button.hidden = index < 0 || target < 0 || target >= items.length;
-    });
-    photoViewerSteps.forEach((button) => {
-      const target = index + Number(button.dataset.advertisingPhotoViewerStep);
       button.hidden = index < 0 || target < 0 || target >= items.length;
     });
   };
@@ -3630,6 +3635,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
       || item.kind !== "image" || item.src !== record.media.src);
+    if (photoViewerThumbs) {
+      photoViewerThumbs.hidden = !authored;
+      photoViewerThumbs.replaceChildren();
+      photoViewerThumbs.scrollLeft = 0;
+    }
     if (!authored) {
       if (photoMediaThumbs) scrollHintObserver.unobserve(photoMediaThumbs);
       photoMediaThumbs?.remove();
@@ -3671,6 +3681,16 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       button.addEventListener("click", () => showPrimaryMedia(item));
       photoMediaThumbs.append(button);
+      if (!photoViewerThumbs) return;
+      // Dãy viewer thay hai mũi tên (primary-video-player R8): viewer trượt sang media đó, primary đổi theo.
+      const copy = button.cloneNode(true);
+      delete copy.dataset.advertisingPhotoMediaSelect;
+      copy.dataset.advertisingPhotoViewerSelect = item.id;
+      copy.addEventListener("click", () => {
+        const step = Math.sign(index - primaryIndex());
+        if (step) photoViewer.slideTo({ ...record, media: item }, step, () => showPrimaryMedia(item));
+      });
+      photoViewerThumbs.append(copy);
     });
   };
   // Player video primary theo trang pin Pinterest (media-card R6): bấm video phát/dừng, thanh dưới hiện khi hover,
@@ -3678,6 +3698,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Trạng thái kéo tua (R2, bên dưới); khai báo trước để syncVideoPlayer, syncVideoTime đọc được.
   let scrub = null;
   let pendingSeek = null;
+  let videoTimeHold = false;
   const setRangeFill = (range) => range.style.setProperty("--range-fill",
     `${(Number(range.value) / (Number(range.max) || 1)) * 100}%`);
   const syncVideoPlayer = () => {
@@ -3697,6 +3718,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     setRangeFill(photoVolume);
   };
   const syncVideoTime = () => {
+    if (videoTimeHold) return;
     photoProgress.max = photoVideo.duration > 0 ? photoVideo.duration : 1;
     // Đang kéo tua: núm và giờ theo tay, không theo frame đang hiện.
     if (scrub) return;
@@ -3779,6 +3801,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     cancelAnimationFrame(videoTimeFrame);
     tickVideoTime();
   }, { signal: controller.signal });
+  // Video đang phát không bắn lại `playing`; chỉ video mới (đổi nguồn rồi phát) mới nhả giờ đang giữ.
+  photoVideo?.addEventListener("playing", () => {
+    if (!videoTimeHold) return;
+    videoTimeHold = false;
+    photoTimeTotal.textContent = formatVideoTime(activePrimaryItem.durationSeconds, Math.ceil);
+    syncVideoTime();
+  }, { signal: controller.signal });
   // Media primary không hiện được (ảnh lỗi; video lỗi và poster cũng lỗi): dấu báo lỗi dùng chung, tắt nền blur
   // (media-card R5); renderPrimaryMedia bỏ dấu khi đổi media.
   // Script head gắn .is-media-error theo từng img lỗi trong khung, kể cả nền blur; khung primary tự quyết theo media đang chọn.
@@ -3804,13 +3833,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }, { signal: controller.signal });
   photoMediaSteps.forEach((button) => button.addEventListener("click",
     () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
-  // Mũi tên trong viewer (primary-video-player R8): viewer trượt sang media kế, primary đổi theo.
-  photoViewerSteps.forEach((button) => button.addEventListener("click", () => {
-    const step = Number(button.dataset.advertisingPhotoViewerStep);
-    const item = primaryItems()[primaryIndex() + step];
-    const record = cards.find((card) => card.id === activePhotoId);
-    if (item && record) photoViewer.slideTo({ ...record, media: item }, step, () => showPrimaryMedia(item));
-  }, { signal: controller.signal }));
+  // Viewer vừa mở: dãy thumbnail viewer cuộn tới media đang xem (listener của viewer chạy trước, dialog đã mở).
+  photoExpand?.addEventListener("click", () => requestAnimationFrame(keepActiveThumbInView), { signal: controller.signal });
   // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
   // âm lượng giữ phím của chúng. Ngón đặt trên thanh tua, âm lượng chỉ tua, chỉnh tiếng (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {

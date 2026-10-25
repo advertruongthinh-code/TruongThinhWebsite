@@ -16,7 +16,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
-  crowded = false } = {}) {
+  crowded = false, twoVideos = false } = {}) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   assert.equal(artifact.cards.length, 270, "fixture retains all legacy cards");
   const card = artifact.cards.find((item) => item.id === cardId);
@@ -34,6 +34,11 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     altVi: "Video kiểm thử tổng hợp", altEn: "Synthetic test video",
   });
   if (videoCover) card.coverMediaId = videoId;
+  // Video thứ hai khác nguồn và khác tổng thời lượng, để đổi giữa hai video thấy được giờ của video nào đang hiện.
+  if (twoVideos) {
+    card.mediaItems.push({ ...card.mediaItems[1], id: `${videoId}-2`, src: `${fixturePrefix}clip-audio-3x2-b.mp4`,
+      durationSeconds: 4 });
+  }
   // Nhiều media hơn một dòng thumbnail và mô tả dài hơn vùng mô tả, để dãy và mô tả phải cuộn.
   if (crowded) {
     card.mediaItems.push(...Array.from({ length: 6 }, (_, index) => ({ ...card.mediaItems[0], id: `${cardId}-extra-${index}` })));
@@ -54,8 +59,9 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
 }
 
 async function openFixture(page, locale, { videoCover = false, direct = false, photoOnly = false,
-  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false, crowded = false } = {}) {
-  const { artifact, card, related } = fixtureArtifact(videoCover, { singleton, relatedMedia, hasAudio, wideVideo, crowded });
+  singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false, crowded = false, twoVideos = false } = {}) {
+  const { artifact, card, related } = fixtureArtifact(videoCover,
+    { singleton, relatedMedia, hasAudio, wideVideo, crowded, twoVideos });
   await page.route(`**${fixturePrefix}*`, async (route) => {
     if (!route.request().url().endsWith(".mp4")) return route.fulfill({ path: poster, contentType: "image/webp" });
     // Trả 206 theo Range để Chrome coi clip là seekable, thanh tua mới đổi được currentTime.
@@ -326,7 +332,9 @@ const playerState = (page) => page.evaluate(() => {
   const opacity = (selector) => Number(getComputedStyle(player.querySelector(selector)).opacity);
   return { hidden: player.hidden, controls: video.controls, loop: video.loop, paused: video.paused,
     muted: video.muted, volume: video.volume, currentTime: video.currentTime,
-    bar: opacity(".advertising-video-player__bar"), center: opacity("[data-advertising-photo-play-surface] svg"),
+    bar: opacity(".advertising-video-player__bar"),
+    // Không có nút phát giữa video, kể cả khi dừng (primary-video-player R1, R9; owner 2026-10-25).
+    centerIcons: player.querySelectorAll("[data-advertising-photo-play-surface] svg").length,
     playLabel: player.querySelector("[data-advertising-photo-play]").getAttribute("aria-label"),
     time: player.querySelector(".advertising-video-player__time").textContent.replace(/\s+/g, " ").trim(),
     progress: Number(player.querySelector("[data-advertising-photo-progress]").value),
@@ -353,7 +361,7 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     // Nút mở lớn nằm ngoài player nên vẫn hiện khi cụm player mờ đi (R9).
     assert.deepEqual(await page.locator("[data-advertising-photo-expand]").evaluate((node) =>
       [node.hidden, getComputedStyle(node).opacity]), [false, "1"], "expand stays visible while the bar hides");
-    assert.equal(state.center, 0, "center play icon hidden while playing");
+    assert.equal(state.centerIcons, 0, "no center play icon");
     assert.equal(state.playLabel, "Pause");
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3);
     await page.waitForTimeout(300);
@@ -363,7 +371,8 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     await page.waitForTimeout(300);
     state = await playerState(page);
     assert.equal(state.paused, true, "clicking the video pauses it");
-    assert.deepEqual([state.bar, state.center, state.playLabel], [1, 1, "Play"], "paused keeps bar and center icon");
+    assert.deepEqual([state.bar, state.centerIcons, state.playLabel], [1, 0, "Play"],
+      "paused keeps the bar and shows no center icon");
     assert.match(state.time, /^0:0\d \/ 0:03$/, `time shows current / total: ${state.time}`);
     const progress = page.locator("[data-advertising-photo-progress]");
     const track = await progress.boundingBox();
@@ -383,21 +392,24 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
   });
 });
 
-// Nạp lại nguồn lúc đang phát làm video dừng mà không bắn `pause` (chỉ `abort`, `emptied`); player vẫn phải hiện nút
-// phát giữa (primary-video-player R9, owner 2026-10-24 báo PC thiếu nút).
-test("M02a primary shows the center play icon when a source reload stops the video", async () => {
+// Nạp lại nguồn lúc đang phát làm video dừng mà không bắn `pause` (chỉ `abort`, `emptied`); player vẫn phải đổi sang
+// trạng thái dừng: thanh hiện, nút phát trên thanh (primary-video-player R9).
+test("M02a primary shows the paused bar when a source reload stops the video", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
-    assert.equal((await playerState(page)).center, 0, "no center icon while playing");
+    await page.mouse.move(1, 1);
+    await page.waitForTimeout(300);
+    assert.equal((await playerState(page)).bar, 0, "bar hidden while playing without hover");
     await page.evaluate(() => {
       const video = document.querySelector("[data-advertising-photo-video]");
       video.src = video.currentSrc;
     });
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector(".advertising-video-player__bar")).opacity === "1",
+      null, { timeout: 2_000 }).catch(() => {});
     const state = await playerState(page);
-    assert.deepEqual([state.paused, state.center, state.playLabel], [true, 1, "Play"],
-      `the stopped video shows the center play icon: ${JSON.stringify(state)}`);
+    assert.deepEqual([state.paused, state.bar, state.playLabel], [true, 1, "Play"],
+      `the stopped video shows the bar with the play button: ${JSON.stringify(state)}`);
   });
 });
 
@@ -486,14 +498,14 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
         .filter((rule) => rule.selectorText?.includes("advertising-video-player__range::-webkit-slider-thumb") && rule.style.backgroundColor)
         .map((rule) => rule.style.backgroundColor);
       return { bar: style(".advertising-video-player__bar").backgroundImage, time: style(".advertising-video-player__time").textShadow,
-        filters: [".advertising-video-player__surface svg", ".advertising-video-player__button svg", ".advertising-video-player__progress"]
+        filters: [".advertising-video-player__button svg", ".advertising-video-player__progress"]
           .map((selector) => style(selector).filter),
         idle: label(false), pressed: label(true), thumbs };
     });
     let state = await read();
     assert.equal(state.bar, "none", "the bar has no gradient band");
     assert.equal(state.time, two, "time carries the two-layer text shadow");
-    assert.deepEqual(state.filters, [drop, drop, drop], "center play, bar icons and seek bar carry the two-layer drop shadow");
+    assert.deepEqual(state.filters, [drop, drop], "bar icons and seek bar carry the two-layer drop shadow");
     assert.deepEqual(state.thumbs, ["rgb(251, 251, 249)"], "seek and volume thumbs are solid");
     assert(state.idle.length > 0, "the fixture shows suggestion buttons");
     assert(state.idle.every(([shadow, layer]) => shadow === two && layer !== "rgba(0, 0, 0, 0)"),
@@ -540,7 +552,9 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
     await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
     await page.waitForTimeout(300);
     assert.equal((await playerState(page)).volumeOpen, false, "leaving after a mouse drag collapses the slider");
+    // Thứ tự Tab theo hàng: phát, thanh tua, nút tiếng (owner 2026-10-25).
     await page.locator("[data-advertising-photo-play]").focus();
+    await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     // Thanh trượt nằm trước nút tiếng và chỉ focus được khi cột đã mở (transition 150ms).
     await page.waitForTimeout(300);
@@ -553,7 +567,7 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
 
 // Màn hình cảm ứng (primary-video-player R1): một hàng 40px giờ, thanh tua, tiếng; không nút phát trên thanh,
 // nút tiếng chỉ bật/tắt, không mở cột âm lượng.
-test("M02a touch primary video uses one 40px row without the bar play button or volume column", async () => {
+test("M02a touch primary video uses one 40px row with the play button, no center icon and no volume column", async () => {
   await withPage("vi", async (page) => {
     await openFixture(page, "vi", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
@@ -562,23 +576,28 @@ test("M02a touch primary video uses one 40px row without the bar play button or 
       const player = document.querySelector("[data-advertising-photo-player]");
       const box = (selector) => (({ top, height }) => [Math.round(top + height / 2), Math.round(height)])(
         player.querySelector(selector).getBoundingClientRect());
-      return { playButton: getComputedStyle(player.querySelector("[data-advertising-photo-play]")).display,
-        volumePop: getComputedStyle(player.querySelector(".advertising-video-player__volume-pop")).display,
+      const left = (selector) => player.querySelector(selector).getBoundingClientRect().left;
+      return { volumePop: getComputedStyle(player.querySelector(".advertising-video-player__volume-pop")).display,
         gradient: getComputedStyle(player.querySelector(".advertising-video-player__bar")).backgroundImage,
-        items: ["[data-advertising-photo-progress]", "[data-advertising-photo-audio-toggle]"].map(box),
-        time: box(".advertising-video-player__time") };
+        items: ["[data-advertising-photo-play]", "[data-advertising-photo-progress]", "[data-advertising-photo-audio-toggle]"]
+          .map(box),
+        time: box(".advertising-video-player__time"),
+        order: ["[data-advertising-photo-play]", ".advertising-video-player__time", "[data-advertising-photo-progress]",
+          "[data-advertising-photo-audio-toggle]"].map(left) };
     });
     let state = await playerState(page);
-    assert.deepEqual([state.bar, state.center, state.playLabel], [1, 0, "Tạm dừng"], "playing: bar visible, no center icon");
+    assert.deepEqual([state.bar, state.centerIcons, state.playLabel], [1, 0, "Tạm dừng"], "playing: bar visible, no center icon");
     const layout = await row();
-    assert.deepEqual([layout.playButton, layout.volumePop, layout.gradient], ["none", "none", "none"],
-      "no bar play button, no volume column, no gradient band");
+    assert.deepEqual([layout.volumePop, layout.gradient], ["none", "none"], "no volume column, no gradient band");
     assert(layout.items.every(([centre, height]) => height === 40 && Math.abs(centre - layout.time[0]) <= 1),
-      `time, seek bar and sound share one 40px row: ${JSON.stringify(layout)}`);
+      `play, time, seek bar and sound share one 40px row: ${JSON.stringify(layout)}`);
+    assert(layout.order.every((value, index) => index === 0 || value > layout.order[index - 1]),
+      `the row reads play, time, seek bar, sound: ${JSON.stringify(layout.order)}`);
     await page.locator("[data-advertising-photo-play-surface]").tap();
     await page.waitForTimeout(150);
     state = await playerState(page);
-    assert.deepEqual([state.paused, state.center], [true, 1], "tapping the video pauses it and shows the 48px play icon");
+    assert.deepEqual([state.paused, state.centerIcons, state.playLabel], [true, 0, "Phát"],
+      "tapping the video pauses it, the bar button turns to play, no center icon");
     const muted = state.muted;
     await page.locator("[data-advertising-photo-audio-toggle]").tap();
     state = await playerState(page);
@@ -882,7 +901,7 @@ test("M02a media strip switches by arrow and key without resizing primary or mov
 
 // Nút vuông trắng (primary-video-player R7): mũi tên, nút mở lớn, nút viewer cùng ô 36px; thanh tua PC thẳng đáy nút mở
 // lớn và dừng trước nút đó 8px.
-test("M02a primary arrows, expand and viewer buttons are 36px white squares and the seek bar ends beside expand", async () => {
+test("M02a primary arrows, expand and viewer buttons are 36px white squares and the player is one row beside expand", async () => {
   await withPage("en", async (page) => {
     const card = await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
@@ -896,13 +915,23 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
     const white = [36, 36, "0px", "0px", "rgb(255, 255, 255)"];
     assert.deepEqual(await square('[data-advertising-photo-media-step="-1"]'), white, "media arrow");
     assert.deepEqual(await square("[data-advertising-photo-expand]"), white, "expand button on the video");
+    // Việc 2 (owner 2026-10-25): phát, giờ, thanh tua, tiếng cùng một hàng; hàng thẳng đáy nút mở lớn, tiếng dừng trước nó 8px.
     const edges = await page.evaluate(() => {
-      const progress = document.querySelector("[data-advertising-photo-progress]").getBoundingClientRect();
-      const expand = document.querySelector("[data-advertising-photo-expand]").getBoundingClientRect();
-      return { bottom: progress.bottom - expand.bottom, gap: expand.left - progress.right };
+      const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+      const parts = ["[data-advertising-photo-play]", ".advertising-video-player__time", "[data-advertising-photo-progress]",
+        "[data-advertising-photo-audio-toggle]"].map(rect);
+      const expand = rect("[data-advertising-photo-expand]");
+      const centre = expand.top + expand.height / 2;
+      const icon = [...document.querySelectorAll("[data-advertising-photo-audio-toggle] svg")]
+        .find((node) => getComputedStyle(node).display !== "none").getBoundingClientRect();
+      return { centres: parts.map((box) => box.top + box.height / 2 - centre), lefts: parts.map((box) => box.left),
+        gap: expand.left - icon.right };
     });
-    assert(Math.abs(edges.bottom) <= 1 && Math.abs(edges.gap - 8) <= 1,
-      `seek bar bottom aligns with expand and ends 8px before it: ${JSON.stringify(edges)}`);
+    assert(edges.centres.every((offset) => Math.abs(offset) <= 1),
+      `play, time, seek bar and sound sit on one row centred with expand: ${JSON.stringify(edges)}`);
+    assert(edges.lefts.every((value, index) => index === 0 || value > edges.lefts[index - 1]),
+      `the row reads play, time, seek bar, sound: ${JSON.stringify(edges.lefts)}`);
+    assert(Math.abs(edges.gap - 8) <= 1, `the sound icon ends 8px before expand: ${JSON.stringify(edges)}`);
     await page.locator("[data-advertising-photo-expand]").hover();
     await page.waitForTimeout(300);
     assert.deepEqual((await square("[data-advertising-photo-expand]")).slice(0, 2), [36, 36], "hover does not widen expand");
@@ -914,8 +943,9 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
     await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "visible" });
     await page.mouse.move(5, 5);
     await page.waitForTimeout(300);
-    for (const selector of ["[data-advertising-photo-close]", "[data-advertising-photo-zoom-reset]",
-      "[data-advertising-photo-zoom-in]", "[data-advertising-photo-zoom-out]"]) {
+    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button");
+    for (const selector of ["[data-advertising-photo-close]", "[data-advertising-photo-zoom-in]",
+      "[data-advertising-photo-zoom-out]"]) {
       const [width, height, radius, border, background] = await square(selector);
       assert.deepEqual([width, height, radius, border], [36, 36, "0px", "0px"], `${selector} is a 36px square without border`);
       if (!await page.locator(selector).isDisabled()) assert.equal(background, "rgb(255, 255, 255)", `${selector} is white`);
@@ -924,7 +954,7 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
 });
 
 // Mở lớn video trong viewer (primary-video-player R8): chính video primary vào viewer, phát tiếp đúng giây trên nền
-// blur, phóng to như ảnh, đóng thì về khung primary vẫn phát.
+// blur, không phóng to được (owner 2026-10-25), đóng thì về khung primary vẫn phát.
 const videoClock = (page) => page.evaluate(() => {
   const video = document.querySelector("[data-advertising-photo-video]");
   return { time: video.currentTime, at: performance.now(), paused: video.paused,
@@ -935,7 +965,7 @@ const videoClock = (page) => page.evaluate(() => {
 // Giây video theo đồng hồ trang: chênh với giây dự kiến (giây trước + thời gian trôi × tốc độ phát).
 const clockDrift = (before, after, rate) => Math.abs(after.time - before.time - (after.at - before.at) / 1000 * rate);
 
-test("M02a expand opens the playing primary video in the blurred viewer, zooms it and returns it on close", async () => {
+test("M02a expand opens the playing primary video in the blurred viewer without zoom and returns it on close", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
@@ -963,10 +993,14 @@ test("M02a expand opens the playing primary video in the blurred viewer, zooms i
       "the player bar comes with the video");
     await page.waitForTimeout(500);
     assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer video has no wait sweep behind it");
-    await page.locator("[data-advertising-photo-zoom-in]").click();
+    assert.deepEqual(await page.evaluate(() => ["zoom-in", "zoom-out"].map((hook) =>
+      document.querySelector(`[data-advertising-photo-${hook}]`).getBoundingClientRect().width)), [0, 0],
+    "a video in the viewer shows no zoom buttons");
+    const host = await page.locator("[data-advertising-photo-video-host] video").boundingBox();
+    await page.mouse.move(host.x + host.width / 2, host.y + host.height / 2);
+    await page.mouse.wheel(0, -200);
     await page.waitForTimeout(400);
-    const zoomed = await videoClock(page);
-    assert(zoomed.scale > 1, `zoom in scales the video: ${zoomed.scale}`);
+    assert.equal((await videoClock(page)).scale, 1, "the wheel does not zoom a video");
     const beforeClose = await videoClock(page);
     await page.locator("[data-advertising-photo-close]").click();
     await viewer.waitFor({ state: "hidden" });
@@ -992,11 +1026,19 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
       "tapping the video pauses it");
     assert.equal(await page.locator("[data-advertising-photo-dialog]").evaluate((node) => node.open), false,
       "tapping the video does not open the viewer");
+    // Màn cảm ứng ẩn nút viewer và dãy thumbnail viewer khỏi mắt, vẫn còn cho screen reader (viewer R8).
+    await page.locator("[data-advertising-photo-expand]").tap();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]").dataset.advertisingViewerState
+      === "open");
+    assert.deepEqual(await page.locator("[data-advertising-photo-viewer-thumbs]").evaluate((node) =>
+      [node.getBoundingClientRect().width <= 1, node.querySelectorAll("button").length > 1]), [true, true],
+      "the viewer strip is hidden from sight on touch screens but its buttons stay for screen readers");
   });
 });
 
-// Mũi tên trong viewer (R8): đổi media của card bằng dải trượt; video về primary, đóng thì primary đứng ở media vừa xem.
-test("M02a viewer arrows slide from the video to the image and closing keeps primary on that image", async () => {
+// Dãy thumbnail dưới viewer thay hai mũi tên (R8, owner 2026-10-25): đổi media của card bằng dải trượt; video về primary,
+// đóng thì primary đứng ở media vừa xem.
+test("M02a viewer thumbnails slide from the video to the image and closing keeps primary on that image", async () => {
   await withPage("en", async (page) => {
     const card = await openFixture(page, "en", { videoCover: true, direct: true });
     const image = card.mediaItems[0];
@@ -1004,13 +1046,19 @@ test("M02a viewer arrows slide from the video to the image and closing keeps pri
       && document.querySelector("[data-advertising-photo-video]").readyState >= 2);
     await page.locator("[data-advertising-photo-expand]").click();
     await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "visible" });
-    const steps = () => page.$$eval("[data-advertising-photo-viewer-step]", (nodes) =>
-      nodes.map((node) => `${node.dataset.advertisingPhotoViewerStep}:${node.hidden ? 0 : 1}`).join(" "));
-    assert.equal(await steps(), "-1:1 1:0", "at the last media only the previous arrow shows");
-    const ghost = await page.evaluate(() => {
-      document.querySelector('[data-advertising-photo-viewer-step="-1"]').click();
+    assert.equal(await page.locator("[data-advertising-photo-viewer-step]").count(), 0, "the viewer has no arrows");
+    const current = () => page.$$eval("[data-advertising-photo-viewer-select]",
+      (nodes) => nodes.map((node) => `${node.dataset.advertisingPhotoViewerSelect}:${node.getAttribute("aria-current")}`));
+    assert.deepEqual(await current(), card.mediaItems.map(({ id }) => `${id}:${id === videoId}`),
+      "the viewer strip lists every media of the card and marks the video");
+    const strip = await page.locator("[data-advertising-photo-viewer-thumbs]").boundingBox();
+    const viewport = page.viewportSize();
+    assert(strip && strip.y + strip.height <= viewport.height && strip.y > viewport.height / 2,
+      `the strip sits at the bottom of the viewer: ${JSON.stringify(strip)}`);
+    const ghost = await page.evaluate((id) => {
+      document.querySelector(`[data-advertising-photo-viewer-select="${id}"]`).click();
       return Boolean(document.querySelector("[data-advertising-photo-dialog] .advertising-photo-dialog__ghost"));
-    });
+    }, image.id);
     assert.equal(ghost, true, "a sliding layer carries the old media out");
     await page.waitForFunction(() => !document.querySelector(".advertising-photo-dialog__ghost"), null, { timeout: 5_000 });
     const state = await page.evaluate(() => {
@@ -1021,11 +1069,59 @@ test("M02a viewer arrows slide from the video to the image and closing keeps pri
     });
     assert.equal(mediaPath(state.src), image.src, "the viewer shows the image");
     assert.deepEqual([state.hidden, state.videoInPrimary], [false, true], "the image shows and the video is back in primary");
-    assert.equal(await steps(), "-1:0 1:1", "at the first media only the next arrow shows");
+    assert.deepEqual(await current(), card.mediaItems.map(({ id }) => `${id}:${id === image.id}`),
+      "the strip marks the image now on screen");
     await page.locator("[data-advertising-photo-close]").click();
     await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "hidden" });
     assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-active-media-id"),
       image.id, "primary stays on the media seen in the viewer");
+  });
+});
+
+// Đổi từ video sang video (việc 3, owner 2026-10-25): suốt lúc dải trượt, giờ, tổng và thanh tua đứng ở video cũ; video mới
+// bắt đầu chạy (`playing`) thì mới đổi sang giờ, tổng của video mới. Áp dụng cho dải primary và viewer.
+const sampleVideoSwitch = (page, selector) => page.evaluate(async (selector) => {
+  const video = document.querySelector("[data-advertising-photo-video]");
+  const player = document.querySelector("[data-advertising-photo-player]");
+  const read = () => ({ time: player.querySelector(".advertising-video-player__time").textContent.replace(/\s+/g, " ").trim(),
+    progress: Number(player.querySelector("[data-advertising-photo-progress]").value) });
+  const before = read();
+  let started = false;
+  // Video cũ đang phát không bắn lại `playing`; chỉ video mới sau khi đổi nguồn mới bắn.
+  video.addEventListener("playing", () => { started = true; }, { once: true });
+  document.querySelector(selector).click();
+  const held = [];
+  const deadline = performance.now() + 5_000;
+  while (!started && performance.now() < deadline) {
+    held.push(read());
+    await new Promise(requestAnimationFrame);
+  }
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return { before, held, started, after: read() };
+}, selector);
+
+test("M02a switching between two videos holds the old time until the new video plays, in primary and viewer", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true, twoVideos: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    await page.waitForTimeout(500);
+    const primary = await sampleVideoSwitch(page, '[data-advertising-photo-media-step="1"]');
+    assert(primary.started && primary.held.length > 2, `the new video plays after the strip: ${JSON.stringify(primary)}`);
+    assert.match(primary.before.time, /\/ 0:03$/, "the first video shows its own total");
+    assert(primary.held.every((sample) => sample.time === primary.before.time && sample.progress === primary.before.progress),
+      `the time and seek bar stand still on the old video during the strip: ${JSON.stringify(primary)}`);
+    assert.match(primary.after.time, /\/ 0:04$/, `the new video shows its total once it plays: ${primary.after.time}`);
+
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]").dataset.advertisingViewerState
+      === "open");
+    const viewer = await sampleVideoSwitch(page,
+      `[data-advertising-photo-viewer-select="${videoId}"]`);
+    assert(viewer.started && viewer.held.length > 0, `the viewer video plays after the switch: ${JSON.stringify(viewer)}`);
+    assert(viewer.held.every((sample) => sample.time === viewer.before.time && sample.progress === viewer.before.progress),
+      `the viewer keeps the old time until the new video plays: ${JSON.stringify(viewer)}`);
+    assert.match(viewer.after.time, /\/ 0:03$/, `the viewer shows the new total once it plays: ${viewer.after.time}`);
   });
 });
 

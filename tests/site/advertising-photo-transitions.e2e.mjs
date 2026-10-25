@@ -1097,7 +1097,7 @@ try {
     await page.goto(href("/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-01"));
     await ready(page, "signage-raised-letters-01");
     await page.locator("[data-advertising-photo-expand]").click();
-    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out", "zoom-reset"].map((name) => [name, page.locator(`[data-advertising-photo-${name}]`)]));
+    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out"].map((name) => [name, page.locator(`[data-advertising-photo-${name}]`)]));
     // Để transition background 150 ms hoàn tất; runner đang tải nặng có thể trễ hơn một lần chờ cố định.
     const read = (control) => control.evaluate(async (node) => {
       await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {})));
@@ -1149,8 +1149,8 @@ try {
     await activate(controls["zoom-in"], "zoom-to-cover");
     await activate(controls["zoom-in"], "zoom-to-limit");
     await checkDisabled(controls["zoom-in"], controls["zoom-out"]);
-    assert(await controls["zoom-reset"].isVisible(), "reset must appear at maximum zoom");
-    await activate(controls["zoom-reset"], "reset");
+    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
+    await activate(controls["zoom-out"], "zoom-out");
     await page.keyboard.press("Tab");
     const focused = await page.locator(":focus").evaluate((node) => ({ outline: getComputedStyle(node).outlineStyle, width: parseFloat(getComputedStyle(node).outlineWidth) }));
     assert(focused.outline !== "none" && focused.width >= 2, "keyboard focus needs a clear ring");
@@ -1192,7 +1192,7 @@ try {
       await touch({ x, y: 265 }, { x, y: 83 });
       assert(await dialogOpen(), "swipe from the backdrop closed the viewer");
       stage(`${locale}-backdrop-tap-closes`);
-      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-reset]").click());
+      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-out]").click());
       await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
       await page.touchscreen.tap(20, 300);
       await page.waitForFunction(() => !document.querySelector("#advertising-photo-dialog").open);
@@ -2160,7 +2160,7 @@ try {
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
     await assertNoBack();
     const viewerControls = await page.evaluate(() => [...document.querySelectorAll(
-      "[data-advertising-photo-close], [data-advertising-photo-zoom-reset], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]",
+      "[data-advertising-photo-close], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]",
     )].map((node) => ({
       disabled: node.disabled,
       hidden: node.hidden,
@@ -2181,17 +2181,7 @@ try {
     const zoomBackground = await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor);
     await zoomIn.hover(); await page.waitForTimeout(300);
     assert.notEqual(await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor), zoomBackground);
-    await zoomIn.click(); await zoomIn.click();
-    const reset = page.locator("[data-advertising-photo-zoom-reset]");
-    await reset.waitFor({ state: "visible" });
-    const resetGlyph = await reset.locator("svg").evaluate((node) => ({
-      paths: [...node.querySelectorAll("path")].map((path) => path.getAttribute("d")),
-      rect: node.getBoundingClientRect().toJSON(),
-    }));
-    assert.deepEqual(resetGlyph.paths, ["M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"],
-      "reset icon must use the matching low-detail diagonal-arrow glyph");
-    assert(Math.abs(resetGlyph.rect.width - 16) <= 0.1 && Math.abs(resetGlyph.rect.height - 16) <= 0.1,
-      "reset glyph must keep the shared 16px viewer-control size (primary-video-player R7)");
+    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
     await page.locator("[data-advertising-photo-close]").click();
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B, "viewer close left photo detail");

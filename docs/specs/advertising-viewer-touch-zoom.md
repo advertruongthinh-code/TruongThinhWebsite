@@ -108,9 +108,9 @@ Then viewer đóng
 
 Thay ba mức cố định bằng `s` liên tục; ba nấc chỉ còn là điểm dừng cho nút và
 con lăn. `+` (và con lăn lên) tới nấc nhỏ nhất lớn hơn `s`; `−` (và con lăn
-xuống) tới nấc lớn nhất nhỏ hơn `s`; Reset và middle-click về Fit. `+` disabled
-khi `s` bằng Max; `−` và Reset disabled khi `s` bằng Fit. Phím mũi tên pan khi
-`s > 1`. Reset còn đưa góc xoay về `0°` (R11). Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
+xuống) tới nấc lớn nhất nhỏ hơn `s`; middle-click về Fit. Không có nút Reset (bỏ 2026-10-25, owner: về Fit bằng `−`,
+middle-click hoặc chạm). `+` disabled khi `s` bằng Max; `−` disabled khi `s` bằng Fit. Phím mũi tên pan khi
+`s > 1`. Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
 khi thao tác kết thúc, không cập nhật từng frame lúc pinch. Anchor của con lăn
 và chuyển động `200ms ease-in-out` giữ như R9.
 
@@ -119,7 +119,7 @@ Given pinch dừng ở s nằm giữa Fit và Cover
 When bấm +
 Then ảnh tới Cover
 When bấm −
-Then ảnh về Fit, − và Reset disabled
+Then ảnh về Fit, − disabled
 ```
 
 ### R6. Resize, motion đang chạy và reduced motion
@@ -163,7 +163,7 @@ Then viewer mở ở Fit, không zoom
 
 ### R8. Màn cảm ứng: nút viewer ẩn khỏi mắt
 
-Trên màn cảm ứng nút đóng, reset, `+`, `−` của viewer ẩn khỏi mắt (kiểu
+Trên màn cảm ứng nút đóng, `+`, `−` và dãy thumbnail của viewer ẩn khỏi mắt (kiểu
 `sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
 zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm (R4); về Fit bằng
 chạm. Desktop giữ nguyên nút. Vì không còn nút hiện trên ảnh, Fit trên màn cảm ứng không chừa lề: ảnh chạm cạnh
@@ -246,7 +246,7 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 | --- | --- | --- |
 | DOM hook | `[data-advertising-photo-viewport]` | Nhận pointer cho pinch, xoay, kéo, chạm; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
 | DOM hook | `[data-advertising-photo-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
-| DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out`, `-zoom-reset` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
+| DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
 | DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
 | DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
 | CSS | `--advertising-viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |

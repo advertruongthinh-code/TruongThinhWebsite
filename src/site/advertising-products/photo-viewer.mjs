@@ -23,7 +23,6 @@ export function createAdvertisingPhotoViewer({
   heroImage,
   viewport,
   closeButton,
-  resetButton,
   zoomInButton,
   zoomOutButton,
   zoomStatus,
@@ -145,14 +144,11 @@ export function createAdvertisingPhotoViewer({
     if (!pinch && zoomStatus.textContent !== status) zoomStatus.value = zoomStatus.textContent = status;
     zoomOutButton.disabled = atFit();
     zoomInButton.disabled = atMax();
-    if (resetButton) {
-      resetButton.hidden = false;
-      resetButton.disabled = atFit() && !angle;
-    }
+    // Video trong viewer không phóng to được (primary-video-player R8, owner 2026-10-25).
+    zoomInButton.hidden = zoomOutButton.hidden = media === video;
     media.style.cursor = atFit() ? "default" : drag ? "grabbing" : "grab";
-    dialog.toggleAttribute("data-advertising-viewer-zoomed", !atFit());
     const active = document.activeElement;
-    if (dialog.open && [resetButton, zoomInButton, zoomOutButton].includes(active)
+    if (dialog.open && [zoomInButton, zoomOutButton].includes(active)
       && (active.disabled || active.hidden)) {
       (zoomInButton.disabled ? zoomOutButton : zoomInButton).focus({ preventScroll: true });
     }
@@ -225,7 +221,8 @@ export function createAdvertisingPhotoViewer({
     runMotion(matrix.toString(), renderTransform(), 200, "ease-in-out", "zooming");
   };
   const setScale = (target, anchor) => {
-    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || target === undefined) return;
+    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || target === undefined
+      || media === video) return;
     const nextScale = clamp(target, 1, 2 * cover);
     if (nextScale !== scale) moveTo(nextScale, anchor);
   };
@@ -415,7 +412,7 @@ export function createAdvertisingPhotoViewer({
     runMotion(sourceTransform() || target, target, 300, "cubic-bezier(0.55, 0, 0, 1)", "opening");
     closeButton.focus({ preventScroll: true });
   };
-  // Mọi nút, input đang hiện theo thứ tự DOM, để Tab tới được mũi tên và player của video.
+  // Mọi nút, input đang hiện theo thứ tự DOM, để Tab tới được dãy thumbnail và player của video.
   const visibleControls = () => [...dialog.querySelectorAll("button, input")]
     .filter((control) => !control.disabled && !control.hidden && control.getClientRects().length > 0
       && getComputedStyle(control).visibility !== "hidden");
@@ -425,7 +422,7 @@ export function createAdvertisingPhotoViewer({
     slide.animations.forEach((animation) => animation.cancel());
     slide = null;
   };
-  // Mũi tên viewer đổi media của card (R8): lớp trượt mang media cũ ra, media mới trượt vào như dải primary.
+  // Dãy thumbnail viewer đổi media của card (R8): lớp trượt mang media cũ ra, media mới trượt vào như dải primary.
   // `apply` đổi primary sang media mới; video phải về primary trước khi primary đổi nguồn.
   const slideTo = (nextRecord, step, apply) => {
     if (!dialog.open || dialog.dataset.advertisingViewerState === "closing") return;
@@ -491,11 +488,6 @@ export function createAdvertisingPhotoViewer({
   closeButton.addEventListener("click", () => close(), { signal: controller.signal });
   zoomInButton.addEventListener("click", () => setScale(nextStop(1)), { signal: controller.signal });
   zoomOutButton.addEventListener("click", () => setScale(nextStop(-1)), { signal: controller.signal });
-  // Reset về Fit và góc 0 (R5, R11).
-  resetButton?.addEventListener("click", () => {
-    if (!dialog.open || dialog.dataset.advertisingViewerState === "closing") return;
-    moveTo(1, undefined, turnTo(0));
-  }, { signal: controller.signal });
   viewport.addEventListener("wheel", (event) => {
     if (!dialog.open || dialog.dataset.advertisingViewerState === "closing" || event.deltaY === 0) return;
     event.preventDefault();
@@ -521,7 +513,8 @@ export function createAdvertisingPhotoViewer({
     const closing = dialog.dataset.advertisingViewerState === "closing";
     // Ngón thứ ba bị bỏ qua: nó không kéo cũng không kết thúc pinch.
     if (event.pointerType === "touch" && touches.size === 2) return;
-    if (event.pointerType === "touch" && !closing && viewport.contains(event.target)) {
+    // Video không pinch, không chạm zoom: chạm video chỉ phát hoặc dừng qua player (R8).
+    if (event.pointerType === "touch" && !closing && media !== video && viewport.contains(event.target)) {
       touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
       if (touches.size === 2) {
         // Hai ngón không bao giờ đóng viewer và kết thúc mọi drag, swipe hay tap một ngón.

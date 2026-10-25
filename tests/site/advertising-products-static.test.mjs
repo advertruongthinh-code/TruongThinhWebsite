@@ -96,7 +96,8 @@ assert.match(runtime, /kind:\s*["']suggestion["']/, "suggestion is identified as
 assert.match(runtime, /rank:\s*0/, "synthetic suggestion owns rank zero");
 assert.match(runtime, /sourceOrder:\s*0/, "synthetic suggestion owns sourceOrder zero");
 assert.match(index, /data-advertising-photo-expand[\s\S]*?<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/, "photo expand uses the simple two-arrow icon");
-assert.match(index, /data-advertising-photo-zoom-reset[\s\S]*?<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/, "photo reset uses the matching two-arrow icon");
+assert.doesNotMatch(index, /data-advertising-photo-zoom-reset|data-advertising-photo-viewer-step/,
+  "the viewer has no reset button and no arrows; a thumbnail strip changes media (owner 2026-10-25)");
 assert.match(css, /\[data-advertising-photo-background\][^{]*\{[^}]*filter:\s*blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/, "primary background owns its static blur so tab thumbnails do not split the glass");
 assert.doesNotMatch(runtime, /photoBackground\.style\.filter|filter:\s*"blur\(/, "photo overflow motion leaves blur ownership to the shared glass surface");
   assert.match(css, /\.advertising-photo-view__image-action\s*\{[^}]*?width:\s*36px;[^}]*?height:\s*36px;/, "photo expand is a 36px square (primary-video-player R7)");

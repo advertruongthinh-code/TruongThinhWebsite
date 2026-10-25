@@ -2084,9 +2084,9 @@ body.is-advertising-browse .site-footer {
   display: none;
 }
 
-/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng; thanh đáy
-   128px chứa hàng nút 24px và thanh tua track 4px, lề 24px. Thanh âm lượng thêm theo owner. Không dải gradient: icon,
-   thanh tua, giờ mang bóng hai lớp D (primary-video-player R4). */
+/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng, không nút phát
+   giữa video. Mọi nút một hàng [phát][giờ][thanh tua][tiếng] (owner 2026-10-25). Thanh âm lượng thêm theo owner. Không
+   dải gradient: icon, thanh tua, giờ mang bóng hai lớp D (primary-video-player R4). */
 .advertising-video-player {
   position: absolute;
   z-index: 3;
@@ -2111,20 +2111,9 @@ body.is-advertising-browse .site-footer {
   fill: currentColor;
 }
 
-.advertising-video-player__surface svg {
-  width: 48px;
-  height: 48px;
-  opacity: 0;
-}
-
 /* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg và thanh tua. */
-.advertising-video-player :is(.advertising-video-player__surface svg, .advertising-video-player__button svg,
-  .advertising-video-player__progress) {
+.advertising-video-player :is(.advertising-video-player__button svg, .advertising-video-player__progress) {
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
-}
-
-.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__surface svg {
-  opacity: 1;
 }
 
 .advertising-video-player__bar {
@@ -2132,11 +2121,8 @@ body.is-advertising-browse .site-footer {
   inset: auto 0 0;
   box-sizing: border-box;
   display: flex;
-  height: 128px;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0;
-  /* PC (R7): đáy thanh tua thẳng đáy nút mở lớn (cách khung 16px), mép phải dừng trước nút đó 8px: 16 + 36 + 8. */
+  align-items: center;
+  /* PC (R7): hàng 36px thẳng đáy nút mở lớn (cách khung 16px), icon tiếng dừng trước nút đó 8px: 16 + 36 + 8. */
   padding: 0 60px 16px 16px;
   opacity: 0;
   pointer-events: none;
@@ -2159,12 +2145,6 @@ body.is-advertising-browse .site-footer {
 .advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__bar,
 .advertising-video-player:has(:focus-visible) .advertising-video-player__bar {
   opacity: 1;
-}
-
-.advertising-video-player__row {
-  display: flex;
-  height: 36px;
-  align-items: center;
 }
 
 .advertising-video-player__button {
@@ -2216,7 +2196,6 @@ body.is-advertising-browse .site-footer {
 
 .advertising-video-player__volume {
   position: relative;
-  margin-left: auto;
 }
 
 .advertising-video-player__range {
@@ -2230,7 +2209,11 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-video-player__progress {
+  width: auto;
+  min-width: 0;
   height: 36px;
+  flex: 1 1 auto;
+  margin: 0 8px 0 12px;
 }
 
 .advertising-video-player__range::-webkit-slider-runnable-track {
@@ -2314,15 +2297,11 @@ body.is-advertising-browse .site-footer {
   margin: 0 0 0 -4px;
 }
 
-/* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, bỏ nút phát trên thanh (chạm video để phát/dừng), một
-   hàng 40px [giờ][thanh tua][tiếng]; nút tiếng chỉ bật/tắt, không cột âm lượng. */
+/* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, cùng hàng như PC nhưng nút 40px; nút tiếng chỉ bật/tắt,
+   không cột âm lượng. */
 @media (hover: none) {
   .advertising-video-player__bar {
-    height: auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    padding: 0 4px 4px 16px;
+    padding: 0 4px 4px;
     opacity: 1;
   }
 
@@ -2331,34 +2310,18 @@ body.is-advertising-browse .site-footer {
     padding-right: 60px;
   }
 
-  .advertising-video-player__row {
-    display: contents;
-  }
-
-  .advertising-video-player__row > [data-advertising-photo-play],
   .advertising-video-player__volume-pop {
     display: none;
   }
 
   .advertising-video-player__time {
-    order: 1;
-    margin: 0;
+    margin-left: 4px;
     font-size: 0.875rem;
     line-height: 40px;
   }
 
   .advertising-video-player__progress {
-    order: 2;
-    width: auto;
-    min-width: 0;
     height: 40px;
-    flex: 1 1 auto;
-    margin: 0 8px 0 12px;
-  }
-
-  .advertising-video-player__volume {
-    order: 3;
-    margin-left: 0;
   }
 
   .advertising-video-player__button {
@@ -2935,7 +2898,6 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close,
-.advertising-photo-dialog__step,
 .advertising-photo-dialog__controls button {
   display: inline-grid;
   width: 36px;
@@ -2952,21 +2914,18 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close,
-.advertising-photo-dialog__step,
 .advertising-photo-dialog__controls button {
   background: #fff;
 }
 
 @media (hover: hover) {
   .advertising-photo-dialog__close:not(:disabled):hover,
-  .advertising-photo-dialog__step:hover,
   .advertising-photo-dialog__controls button:not(:disabled):hover {
     background: var(--media-control-hover);
   }
 }
 
 .advertising-photo-dialog__close:focus-visible,
-.advertising-photo-dialog__step:focus-visible,
 .advertising-photo-dialog__controls button:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 3px;
@@ -2974,7 +2933,6 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close:not(:disabled):active,
-.advertising-photo-dialog__step:active,
 .advertising-photo-dialog__controls button:not(:disabled):active {
   background: var(--media-control-active);
 }
@@ -2987,7 +2945,6 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog__close svg,
-.advertising-photo-dialog__step svg,
 .advertising-photo-dialog__controls button svg {
   width: 16px;
   height: 16px;
@@ -3005,20 +2962,20 @@ body.is-advertising-browse .site-footer {
   z-index: 2;
 }
 
-/* Mũi tên đổi media trong viewer (primary-video-player R8), cùng kiểu nút vuông trắng R7. */
-.advertising-photo-dialog__step {
+/* Dãy thumbnail dưới viewer thay hai mũi tên (primary-video-player R8, owner 2026-10-25): cùng dãy với primary, nằm giữa
+   đáy trong lề 80px của Fit, rộng theo số thumbnail và chừa chỗ cho cột nút zoom bên phải. */
+.advertising-photo-dialog__thumbs {
   position: absolute;
-  top: 50%;
+  bottom: calc(var(--advertising-viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
+  left: 50%;
   z-index: 2;
-  translate: 0 -50%;
+  width: max-content;
+  max-width: calc(round(down, 100% - 2 * (2rem + 36px) + 8px, 68px) - 8px);
+  translate: -50% 0;
 }
 
-.advertising-photo-dialog__step--prev {
-  left: calc(var(--advertising-viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
-}
-
-.advertising-photo-dialog__step--next {
-  right: calc(var(--advertising-viewer-visible-right, 0px) + max(1rem, env(safe-area-inset-right)));
+.advertising-photo-dialog__thumbs button:focus-visible {
+  outline-color: #fff;
 }
 
 /* Host video trong viewer: nền ngoài video không nhận chuột để bấm vẫn đóng viewer; player phủ đúng khung Fit. */
@@ -3049,11 +3006,6 @@ body.is-advertising-browse .site-footer {
   width: var(--advertising-viewer-fit-width);
   height: var(--advertising-viewer-fit-height);
   translate: -50% -50%;
-}
-
-/* Đã phóng to thì kéo video để pan; nút trên thanh player vẫn nhận chuột. */
-.advertising-photo-dialog[data-advertising-viewer-zoomed] :is(.advertising-video-player, .advertising-video-player__surface) {
-  pointer-events: none;
 }
 
 .advertising-photo-dialog__ghost {
@@ -3341,8 +3293,8 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
   .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible, [data-advertising-photo-expand-video]),
   .advertising-photo-dialog__close:not(:focus-visible),
-  .advertising-photo-dialog__step:not(:focus-visible),
-  .advertising-photo-dialog__controls button:not(:focus-visible) {
+  .advertising-photo-dialog__controls button:not(:focus-visible),
+  .advertising-photo-dialog__thumbs:not(:focus-within) {
     position: absolute;
     width: 1px;
     height: 1px;
