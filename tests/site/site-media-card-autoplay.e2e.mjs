@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 // Lịch phát video card (media-card R4, owner 2026-10-24): masonry phát tắt tiếng mọi card video hiện quá 1/2 chiều cao
-// dưới navbar, tính lại ngay khi đang cuộn; hover không làm card masonry phát; related trong detail và reduced motion chỉ
-// phát card dưới chuột; mỗi card chạy playlist video của nó rồi lặp.
+// dưới navbar, tính lại ngay khi đang cuộn; hover không làm card phát; related trong detail tự phát như masonry (owner
+// 2026-10-25); reduced motion chỉ phát card dưới chuột; mỗi card chạy playlist video của nó rồi lặp.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
 const fixturePrefix = "/__site_media_card_autoplay__/";
@@ -116,22 +116,22 @@ function assertHalfVisiblePlaying(state, label, margin = 0) {
     `${label}: videos more than half visible are not paused: ${JSON.stringify(state.paused.filter((video) => video.visibleRatio > 0.5))}`);
 }
 
-async function playingSettled(page) {
-  await page.waitForFunction(() => [...document.querySelectorAll("[data-advertising-card] video")]
-    .some((video) => !video.paused), null, { timeout: 5000 });
+async function playingSettled(page, selector = "[data-advertising-card]") {
+  await page.waitForFunction((cardSelector) => [...document.querySelectorAll(`${cardSelector} video`)]
+    .some((video) => !video.paused), selector, { timeout: 5000 });
   await page.waitForTimeout(300);
-  return videoState(page);
+  return videoState(page, selector);
 }
 
 // Lịch khởi động mỗi frame một video (R4), nên nhiều card cùng hiện cần vài frame mới phát đủ: chờ tới khi không còn
 // video quá 1/2 đang chờ, quá 5s thì trả trạng thái lúc đó cho assert.
-async function allStarted(page) {
-  await playingSettled(page);
+async function allStarted(page, selector) {
+  await playingSettled(page, selector);
   for (const until = Date.now() + 5000; Date.now() < until; await page.waitForTimeout(100)) {
-    const state = await videoState(page);
+    const state = await videoState(page, selector);
     if (state.paused.every((video) => video.visibleRatio <= 0.5)) return state;
   }
-  return videoState(page);
+  return videoState(page, selector);
 }
 
 for (const touch of [false, true]) {
@@ -201,7 +201,7 @@ test("R4 desktop: hovering a masonry card at half visible or less does not play 
   } finally { await browser.close(); }
 });
 
-test("R4 desktop: related cards in detail play only under the pointer", async () => {
+test("R4 desktop: related cards in detail autoplay like masonry and the pointer does not change it", async () => {
   const { browser, page } = await open();
   const related = "[data-advertising-related-card]";
   try {
@@ -211,16 +211,16 @@ test("R4 desktop: related cards in detail play only under the pointer", async ()
     await page.locator(related).first().waitFor();
     await page.locator(related).first().scrollIntoViewIfNeeded();
     await scrollAndSettle(page, false, 500);
-    const state = await videoState(page, related);
-    assert(state.paused.some((video) => video.visibleRatio > 0.5), `half-visible related videos exist: ${JSON.stringify(state)}`);
-    assert.equal(state.playing.length, 0, `no related card autoplays: ${JSON.stringify(state.playing)}`);
-    const target = state.paused.find((video) => video.visibleRatio > 0.5);
+    const state = await allStarted(page, related);
+    assert(state.playing.length && state.playing.every((video) => video.muted && video.visibleRatio > 0.5),
+      `half-visible related videos play muted: ${JSON.stringify(state.playing)}`);
+    assert(state.paused.every((video) => video.visibleRatio <= 0.5),
+      `no half-visible related video waits for the pointer: ${JSON.stringify(state.paused)}`);
+    const target = state.playing[0];
     await page.mouse.move(target.x, target.y);
-    await page.waitForTimeout(600);
-    assert.deepEqual((await videoState(page, related)).playing.map((video) => video.id), [target.id], "the hovered related card plays");
     await page.mouse.move(8, 450);
     await page.waitForTimeout(600);
-    assert.equal((await videoState(page, related)).playing.length, 0, "leaving the related card pauses it");
+    assert((await videoState(page, related)).playing.some((video) => video.id === target.id), "leaving the related card keeps it playing");
   } finally { await browser.close(); }
 });
 

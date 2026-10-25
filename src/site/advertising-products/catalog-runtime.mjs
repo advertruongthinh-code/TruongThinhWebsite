@@ -4401,9 +4401,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });
   addEventListener("scroll", renderRelatedWindow, { passive: true, signal: controller.signal });
-  // Lịch phát video card (media-card R4, owner 2026-10-24): masonry phát mọi card đang đứng ở video và hiện quá 1/2
-  // chiều cao dưới navbar; related trong detail và reduced motion chỉ phát card dưới chuột. Mỗi card tự chạy playlist
-  // video của nó (createPhotoCard, sự kiện ended).
+  // Lịch phát video card (media-card R4, owner 2026-10-24): masonry và related trong detail (owner 2026-10-25) phát mọi
+  // card đang đứng ở video và hiện quá 1/2 chiều cao dưới navbar; reduced motion chỉ phát card dưới chuột. Mỗi card tự
+  // chạy playlist video của nó (createPhotoCard, sự kiện ended).
   let playingVideos = [];
   let videoScheduleFrame = 0;
   const scheduleVideo = () => {
@@ -4412,7 +4412,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const next = [...document.querySelectorAll("figure.advertising-tile")].flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();
       if (!video?.checkVisibility()) return [];
-      if (reduced || figure.closest("[data-advertising-photo-view]")) return figure === hovered ? [video] : [];
+      if (reduced) return figure === hovered ? [video] : [];
       const { top, bottom, height } = video.getBoundingClientRect();
       return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2 ? [video] : [];
     });
