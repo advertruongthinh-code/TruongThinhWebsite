@@ -111,7 +111,8 @@ chosen.forEach((card, index) => {
     const audio = hasAudio ? ["-f", "lavfi", "-i", "sine=frequency=220:sample_rate=48000,volume=0.15"] : [];
     ffmpeg([...shots.flatMap(([frame]) => ["-i", sourceFile(frame.media.src)]), ...audio, "-filter_complex", segments.join(";"),
       "-map", `[${last}]`, ...(hasAudio ? ["-map", `${shots.length}:a`, "-c:a", "aac", "-b:a", "48k", "-shortest"] : ["-an"]),
-      "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-g", "12", "-movflags", "+faststart", file]);
+      // yuv420p: xfade xuất 4:4:4, mà chip giải mã của GPU chỉ nhận H.264 4:2:0 (đo PC 2026-10-25: video tạm giải mã bằng CPU).
+      "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-g", "12", "-pix_fmt", "yuv420p", "-movflags", "+faststart", file]);
     ffmpeg(["-i", file, "-frames:v", "1", "-quality", "72", poster]);
     const durationSeconds = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
     videos.push({
