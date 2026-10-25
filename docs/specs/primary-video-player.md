@@ -186,7 +186,8 @@ And đóng viewer thì primary đứng ở media đang xem trong viewer
 ### R9. Thanh player ẩn khi đang phát
 
 PC: video đang phát và chuột không ở trên khung thì cả cụm nút player (thanh tua, giờ, nút phát, tiếng) mờ đi, nút mở lớn
-vẫn hiện; chuột vào khung, focus bên trong hoặc video dừng thì cụm hiện lại. Video dừng thì có nút phát `48px` giữa video
+vẫn hiện; chuột vào khung, focus bàn phím bên trong hoặc video dừng thì cụm hiện lại. Focus còn lại sau khi bấm chuột vào video,
+nút hay thanh tua không giữ cụm hiện (owner 2026-10-25 báo cụm không ẩn). Video dừng thì có nút phát `48px` giữa video
 trên PC như cảm ứng (R1); hiện nay PC thiếu nút này là lỗi. Cảm ứng giữ R1 (thanh luôn hiện).
 
 ```gherkin

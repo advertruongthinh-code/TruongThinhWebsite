@@ -228,8 +228,15 @@ test("M02a selected image opens image viewer bound to that image", async () => {
     }));
     assert.equal(mediaPath(image.src), card.mediaItems[0].src);
     assert.equal(image.alt, card.mediaItems[0].altEn);
+    assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer image has no wait sweep or fade-in");
   });
 });
+
+// Viewer thuộc Advertising nên không có vệt sáng hay fade-in của khung chờ ảnh nội dung (loading-glass R5).
+const viewerMediaGate = (page) => page.evaluate(() => ({
+  frame: document.querySelector(".advertising-photo-dialog__viewport").classList.contains("media-frame"),
+  animations: document.getAnimations().map(({ animationName }) => animationName).filter((name) => /^media-/.test(name)),
+}));
 
 async function choosePrimaryThumb(page, id) {
   const historyBefore = await page.evaluate(() => history.length);
@@ -369,6 +376,10 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     // `paused` đổi ngay khi gọi play(), nhãn chỉ đổi ở sự kiện `play` sau đó: chờ nhãn, không đọc một lần.
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused
       && document.querySelector("[data-advertising-photo-play]").getAttribute("aria-label") === "Pause");
+    // Bấm chuột để focus lại trên nút nhưng không phải focus bàn phím: chuột rời khung thì cụm vẫn ẩn (R9).
+    await page.mouse.move(box.x + box.width + 40, box.y + 10);
+    await page.waitForTimeout(300);
+    assert.equal((await playerState(page)).bar, 0, "a mouse click leaves no keyboard focus, so the bar hides again");
   });
 });
 
@@ -950,6 +961,8 @@ test("M02a expand opens the playing primary video in the blurred viewer, zooms i
       "the backdrop is blurred, not solid black");
     assert.equal(await page.locator("[data-advertising-photo-video-host] [data-advertising-photo-player]").count(), 1,
       "the player bar comes with the video");
+    await page.waitForTimeout(500);
+    assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer video has no wait sweep behind it");
     await page.locator("[data-advertising-photo-zoom-in]").click();
     await page.waitForTimeout(400);
     const zoomed = await videoClock(page);

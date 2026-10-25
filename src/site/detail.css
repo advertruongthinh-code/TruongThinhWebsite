@@ -2157,7 +2157,7 @@ body.is-advertising-browse .site-footer {
 
 
 .advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__bar,
-.advertising-video-player:focus-within .advertising-video-player__bar {
+.advertising-video-player:has(:focus-visible) .advertising-video-player__bar {
   opacity: 1;
 }
 
