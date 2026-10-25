@@ -3,6 +3,7 @@ title: Video thích ứng mạng (adaptive bitrate)
 status: planned
 source:
   - scripts/site/build-video-ladder.mjs
+  - src/site/assets/**/*.m3u8
 tests:
   - tests/site/video-ladder.test.mjs
   - tests/site/primary-video-keyframes.test.mjs
