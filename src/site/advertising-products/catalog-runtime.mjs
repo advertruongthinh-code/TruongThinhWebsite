@@ -1051,7 +1051,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         // vào màn chỉ còn play; đo PC: video khởi động giữa lúc cuộn làm một Commit 82ms.
         layer.preload = "auto";
         layer.poster = item.posterSrc;
-        // Card hiện tối đa ~440px CSS nên dùng bản cardSrc 480px không tiếng khi có (media-card R4); detail, viewer giữ src.
+        // Card hiện tối đa ~440px CSS nên dùng bản cardSrc 480px khi có (media-card R4); detail, viewer giữ src.
         layer.src = item.cardSrc || item.src;
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
         layer.addEventListener("loadeddata", updateLoading);

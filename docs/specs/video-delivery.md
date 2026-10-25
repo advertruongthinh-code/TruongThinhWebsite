@@ -1,8 +1,11 @@
 ---
 title: Video thích ứng mạng (adaptive bitrate)
 status: planned
-source: []
-tests: []
+source:
+  - scripts/site/build-video-ladder.mjs
+tests:
+  - tests/site/video-ladder.test.mjs
+  - tests/site/primary-video-keyframes.test.mjs
 notion: https://app.notion.com/p/404332849a0e81aa9718f91db2d05e51
 updated: 2026-10-25
 ---
@@ -196,8 +199,8 @@ Không đổi giao diện; card video và player giữ component hiện có
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2 | chưa có test: unit đọc thư mục mẫu, kiểm bậc, keyframe, thứ tự bậc, `BANDWIDTH` |
-| R1 | `tests/site/primary-video-keyframes.test.mjs` phải đọc được fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
+| R1, R2 | `tests/site/video-ladder.test.mjs`: thứ tự bậc, segment 2 s, byte range khớp file, `BANDWIDTH` từ byte thật |
+| R1 | `tests/site/primary-video-keyframes.test.mjs` đọc cả fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
 | R3 | chưa có test: e2e cả hai nhánh trên Chromium cloud bằng thang AV1 |
 | R4 | chưa có test: e2e giả lập mạng chậm rồi nhanh, kiểm `videoWidth` đổi, không `waiting`, vòng lặp sau ở bậc cao |
 | R5 | chưa có test: e2e item thiếu `hlsSrc` phát `cardSrc`, `src`, không nạp hls.js |
@@ -212,8 +215,8 @@ Không đổi giao diện; card video và player giữ component hiện có
   của plan đo trên PC, A04s với mạng giả lập lúc chậm lúc nhanh.
 - Sau khi hls.js xóa phần bậc thấp phía sau, vòng lặp kế phải tải lại giây 0; chưa đo có khựng ở chỗ nối vòng không. Khựng
   thì tắt `loopBackBufferFlush` để giữ phần thấp và cho luật phía trước thay dần từ giây 0.
-- iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm.
-- [CẦN LÀM RÕ: owner có iPhone để đo Safari không.]
+- iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone (2026-10-25). Cũng chưa kiểm
+  Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
 - CMS phase 2: upload video phải sinh cùng thang chất lượng. Chọn [Cloudflare Stream](https://developers.cloudflare.com/stream/pricing)
   (mã hóa miễn phí, 5 USD mỗi 1.000 phút lưu mỗi tháng, 1 USD mỗi 1.000 phút phát) hay chạy script trên máy owner; ghi
   vào [CMS](cms.md) khi CMS mở lại.

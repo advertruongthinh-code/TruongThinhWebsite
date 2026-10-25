@@ -104,7 +104,8 @@ Then dải theo ngón tay rồi bật về item cũ; kéo quá nửa canvas thì
 ### R4. Video trên card
 
 Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto"`, có `poster`, nhãn bằng alt của item. Layer dùng
-`cardSrc` khi có: bản rộng 480px, H.264 4:2:0, không tiếng, vì card hiện tối đa khoảng 440px CSS; detail và viewer dùng `src`
+`cardSrc` khi có: file bậc 480 của thang chất lượng ([video-delivery R1](video-delivery.md#r1-thang-chất-lượng-cho-mỗi-video)),
+H.264 4:2:0, layer luôn tắt tiếng, vì card hiện tối đa khoảng 440px CSS; detail và viewer dùng `src`
 (owner 2026-10-25, đo PC rồi mới giữ). Card vào DOM
 khi còn cách màn hình một viewport (ảo hóa), nên video tải và giải mã sẵn trước khi tới lượt phát (owner 2026-10-25: đo PC, video
 khởi động giữa lúc cuộn làm một Commit 82ms).
