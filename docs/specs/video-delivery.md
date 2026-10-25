@@ -101,9 +101,12 @@ vị trí phát:
   segment bậc cao kịp tải về trước khi phát tới, rồi tải lại phần đó ở bậc cao
   ([hls.js API](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#hlsnextlevel)); segment đang phát giữ
   nguyên nên không đứng hình. Segment 2 s nên bậc cao hiện sau khoảng một segment cộng thời gian tải.
-- Phía sau: video lặp (`loop`) nên hls.js tự xóa phần bậc thấp đã xem khi lên bậc
-  ([`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush), mặc định
-  bật); vòng sau tải và phát bậc cao từ giây 0.
+- Phía sau: video lặp (`loop`) nên khi bắt đầu phát segment bậc cao đầu tiên, hls.js tự xóa phần bậc thấp từ giây 0 tới
+  trước segment đó ([`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush),
+  mặc định bật); vòng sau tải và phát bậc cao từ giây 0.
+- Tua: tua về đoạn bậc thấp còn trong buffer thì phát ngay bằng phần có sẵn, rồi luật phía trước ở trên thay phần sau nó
+  nên nét lên sau khoảng một segment; tua về đoạn đã bị xóa thì hls.js tải ở bậc hiện tại như mọi lần tua tới đoạn chưa
+  tải.
 - Xuống bậc không xóa gì: phần bậc cao đã tải phát hết rồi mới tới bậc thấp.
 
 Việc thay phải liền mạch (owner 2026-10-25): người xem chỉ thấy hình nét lên, không nhận ra có tải lại.
@@ -123,6 +126,11 @@ Given card đang phát bậc 240 của clip 10 s, đã tải tới giây 6, đan
 When mạng nhanh lên và hls.js chọn bậc 480 cho segment kế
 Then phần sau điểm đổi bị xóa và tải lại ở bậc 480, video không có sự kiện waiting
 And vòng lặp sau phát bậc 480 từ giây 0
+
+Given mạng đã nhanh, primary đã tải lại phía trước ở bậc 960 nhưng chưa phát tới segment bậc 960 đầu tiên
+When người xem tua về giây 2 còn bậc 480 trong buffer
+Then video phát ngay từ giây 2 ở bậc 480, không waiting
+And trong khoảng một segment sau đó video lên bậc 960
 
 Given primary đang phát bậc 960 đã tải phía trước
 When mạng chậm đi và hls.js chọn bậc 480
@@ -202,6 +210,8 @@ Không đổi giao diện; card video và player giữ component hiện có
   chuyển mã) hoặc dùng chung số đo băng thông.
 - Thời điểm gọi `hls.nextLevel = -1` (R4) và hành vi thật của `nextLevelSwitch` với segment 2 s chưa đo; bước thử đầu
   của plan đo trên PC, A04s với mạng giả lập lúc chậm lúc nhanh.
+- Sau khi hls.js xóa phần bậc thấp phía sau, vòng lặp kế phải tải lại giây 0; chưa đo có khựng ở chỗ nối vòng không. Khựng
+  thì tắt `loopBackBufferFlush` để giữ phần thấp và cho luật phía trước thay dần từ giây 0.
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm.
 - [CẦN LÀM RÕ: owner có iPhone để đo Safari không.]
 - CMS phase 2: upload video phải sinh cùng thang chất lượng. Chọn [Cloudflare Stream](https://developers.cloudflare.com/stream/pricing)
