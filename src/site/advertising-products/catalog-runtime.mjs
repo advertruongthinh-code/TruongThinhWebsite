@@ -1287,11 +1287,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
-  // Detail (mô tả, related) tải sau lúc trang đã load để không tranh băng thông với 8 card đầu; showPhoto chờ nếu chưa xong.
+  // Detail (mô tả, related) tải 4 s sau lúc load để không tranh băng thông với 8 card đầu; showPhoto chờ nếu chưa xong.
   let detailLoaded = false;
   let detailReady;
   const ensureDetail = () => detailReady ||= attachCardDetail(cards).catch(() => {}).then(() => { detailLoaded = true; });
-  const prefetchDetail = () => (window.requestIdleCallback || setTimeout)(() => { if (!controller.signal.aborted) ensureDetail(); });
+  const prefetchDetail = () => setTimeout(() => { if (!controller.signal.aborted) ensureDetail(); }, 4000);
   if (document.readyState === "complete") prefetchDetail();
   else window.addEventListener("load", prefetchDetail, { once: true, signal: controller.signal });
   // Giữ sẵn số đo CSS khi script shell không khởi động được.
