@@ -368,7 +368,7 @@ const embedVietnameseText = (html, filePath) => {
 // Ảnh deferred data-src nhận data-srcset, motion.js chép khi hydrate. Ảnh không có variant
 // trên disk, ảnh đã khai báo srcset và ảnh Advertising do runtime quản lý (runtime
 // đổi src của chúng, mà <source> sẽ ghi đè) giữ nguyên.
-const RESPONSIVE_WIDTHS = [480, 960];
+const RESPONSIVE_WIDTHS = [240, 480, 960];
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
     const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];

@@ -9,7 +9,7 @@ import sharp from "sharp";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
-const VARIANT_WIDTHS = [480, 960];
+const VARIANT_WIDTHS = [240, 480, 960];
 const arg = (name) => { const index = process.argv.indexOf(`--${name}`); return index > 0 ? process.argv[index + 1] : null; };
 const force = process.argv.includes("--force");
 const check = process.argv.includes("--check");
@@ -28,7 +28,7 @@ const variantPaths = (file) => {
     ...VARIANT_WIDTHS.flatMap((width) => ["avif", "webp"].map((format) => ({ file: `${stem}-${width}.${format}`, width, format })))];
 };
 
-const isVariant = (file) => /-(?:480|960)\.webp$/.test(file);
+const isVariant = (file) => /-(?:240|480|960)\.webp$/.test(file);
 const files = (await walk(path.join(sourceRoot, "assets/content")))
   .filter((file) => file.endsWith(".webp") && !isVariant(file) && !skip.has(path.relative(sourceRoot, file).replaceAll("\\", "/")));
 
