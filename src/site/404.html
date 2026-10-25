@@ -59,8 +59,8 @@
           const { width, height } = image.getBoundingClientRect();
           const ratio = image.getAttribute("width") / image.getAttribute("height");
           const needed = Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width);
-          // Mạng chậm: bậc nhẹ cần nửa số pixel (image-adaptive R1, R3); image-tier.js nâng lại khi mạng nhanh.
-          // slow: nửa nhu cầu, tối đa cỡ 960 để ảnh cover lớn (hero, portal, CTA) không rơi về bản gốc.
+          // Mạng chậm: bậc nhẹ cần nửa số pixel, tối đa cỡ 960 để ảnh cover lớn (hero, portal, CTA) không rơi về bản gốc
+          // (image-adaptive R1, R3); image-tier.js nâng lại khi mạng nhanh.
           const target = root.dataset.networkTier === "slow" ? Math.min(Math.ceil(needed / 2), Math.floor(960 / devicePixelRatio)) : needed;
           const loaded = image.currentSrc.replace(/\.\w+$/, "");
           if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= target * devicePixelRatio))) return;
