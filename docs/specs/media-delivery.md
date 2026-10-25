@@ -8,7 +8,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-18
+updated: 2026-10-25
 ---
 
 # Tải ảnh nội dung
@@ -24,8 +24,8 @@ Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều �
 
 ### R1. Biến thể ảnh nội dung
 
-`build-image-variants.mjs` (sharp) đi qua mọi WebP dưới `src/site/assets/content/`, bỏ file `-480.webp`, `-960.webp`
-và path trong `nonPublicSourceAssets`. Cạnh mỗi `<tên>.webp` nó ghi `<tên>.avif` cùng cỡ và `<tên>-480`, `<tên>-960` ở
+`build-image-variants.mjs` (sharp) đi qua mọi WebP dưới `src/site/assets/content/`, bỏ file `-240.webp`, `-480.webp`, `-960.webp`
+và path trong `nonPublicSourceAssets`. Cạnh mỗi `<tên>.webp` nó ghi `<tên>.avif` cùng cỡ và `<tên>-240`, `<tên>-480`, `<tên>-960` ở
 cả `.avif`, `.webp`; cỡ không nhỏ hơn bề rộng gốc thì bỏ. AVIF quality 55, WebP 78, effort 6. File đã có thì giữ;
 `--force` ghi lại. `--originals map.json` sinh từ PNG gốc khi cùng tỷ lệ với WebP (lệch dưới 0,005), không thì từ
 WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (owner,
@@ -35,15 +35,15 @@ WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (ow
 ```gherkin
 Given src/site/assets/content/shared/a.webp rộng 1536px và b.webp rộng 800px, chưa có biến thể
 When chạy node scripts/site/build-image-variants.mjs
-Then cạnh a.webp có a.avif, a-480.avif, a-480.webp, a-960.avif, a-960.webp
-And cạnh b.webp chỉ có b.avif, b-480.avif, b-480.webp
+Then cạnh a.webp có a.avif, a-240.avif, a-240.webp, a-480.avif, a-480.webp, a-960.avif, a-960.webp
+And cạnh b.webp chỉ có b.avif, b-240.avif, b-240.webp, b-480.avif, b-480.webp
 And chạy lại với --check thì exit 0
 ```
 
 ### R2. HTML tĩnh chọn biến thể
 
 Build bọc `<img>` nội dung trong `<picture>` ([phát hành tĩnh R6](static-release.md#r6-ảnh-nội-dung-bọc-)). Khi có
-`width` và cỡ 480, 960 đủ hai định dạng: `<source type="image/avif">` và `<img>` (WebP) cùng mang `srcset` gồm các cỡ
+`width` và cỡ 240, 480, 960 đủ hai định dạng: `<source type="image/avif">` và `<img>` (WebP) cùng mang `srcset` gồm các cỡ
 đó cộng bản gốc theo `width`; `sizes` giữ giá trị tác giả, không có thì ảnh `loading="lazy"` nhận `auto, 100vw` (trình
 duyệt dùng bề rộng đã layout), ảnh khác `100vw`. Thiếu `width` hoặc không có cỡ nhỏ hơn thì `<source>` chỉ có
 `<tên>.avif`. `src` WebP gốc giữ làm fallback và làm hook cho vệt sáng (R6). Slide hero trang chủ ở `data-src` nhận
@@ -75,14 +75,14 @@ And không ảnh nào bị request hai lần cùng URL
 ```gherkin
 Given <img src="/assets/content/projects/storefront.webp" width="1536" loading="lazy"> trong HTML nguồn
 When build xong
-Then source AVIF có srcset storefront-480.avif 480w, storefront-960.avif 960w, storefront.avif 1536w, sizes "auto, 100vw"
+Then source AVIF có srcset storefront-240.avif 240w, storefront-480.avif 480w, storefront-960.avif 960w, storefront.avif 1536w, sizes "auto, 100vw"
 And trình duyệt hỗ trợ AVIF tải đúng một file cho ảnh đó, không tải WebP
 ```
 
 ### R3. Runtime Advertising chọn biến thể
 
 `responsive-image.mjs` probe AVIF một lần khi module nạp (ảnh AVIF 1×1 dạng data URI); ảnh tạo trước khi probe xong
-giữ WebP. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/` có `width`, trả các cỡ 480, 960 nhỏ hơn
+giữ WebP. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/` có `width`, trả các cỡ 240, 480, 960 nhỏ hơn
 `width` cộng bản gốc, theo định dạng đã probe; `responsiveSource(src)` đổi đuôi sang `.avif` khi probe đạt. Module không
 kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
 
@@ -99,7 +99,7 @@ kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `d
 Given trình duyệt hỗ trợ AVIF và probe đã xong
 When mở detail kiosk-posm-07 rồi bấm "Xem lớn hơn"
 Then ảnh primary và ảnh viewer cùng một URL .avif cỡ gốc
-And card masonry dùng data-srcset AVIF 480w, 960w và bản gốc
+And card masonry dùng data-srcset AVIF 240w, 480w, 960w và bản gốc
 ```
 
 ### R4. Thứ tự ưu tiên tải
@@ -236,7 +236,7 @@ tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-ca
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | Command | `node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]` | Sinh, kiểm biến thể (R1) |
-| File | `<tên>.avif`, `<tên>-480.avif\|webp`, `<tên>-960.avif\|webp` cạnh `<tên>.webp` | R1 ghi; build, runtime đọc theo tên |
+| File | `<tên>.avif`, `<tên>-240.avif\|webp`, `<tên>-480.avif\|webp`, `<tên>-960.avif\|webp` cạnh `<tên>.webp` | R1 ghi; build, runtime đọc theo tên |
 | Hàm public | `responsiveSource(src)`, `responsiveSrcset(src, width)` (`responsive-image.mjs`) | `catalog-runtime.mjs`, `photo-viewer.mjs` import (R3) |
 | Hàm build | `responsivePictures(html)` (`prepare-static-assets.mjs`) | Bọc `<picture>`, thêm `srcset`, `sizes` (R2) |
 | Attribute | `data-srcset` trên `<source>`, `<img>` slide hero | Build ghi, `motion.js` chép khi hydrate (R2) |

@@ -212,7 +212,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 - Ảnh chưa giải mã khi card vào viewport: khung media mang ngay
   [skeleton](components/Skeleton/README.md) cuối masonry (Flow chạy cả khi
   đang cuộn). Ảnh về thì hiện dưới
-  [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) năm bậc nhịp
+  [Kính](components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) ba bậc nhịp
   `0.6s`, chỉ opacity: kính hiện `0` đến `0.26s`
   `cubic-bezier(0, 0, 0.26, 1)`; skeleton mờ đi, ảnh hiện lên `0.13s` đến
   `0.39s` `cubic-bezier(0.65, 0, 0.35, 1)`; kính tan `0.26s` đến `0.6s`

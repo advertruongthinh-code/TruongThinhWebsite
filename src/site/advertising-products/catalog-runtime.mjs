@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
+import { responsiveSrcset, tierAutoSizes, tierSizes, tierSource } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   ADVERTISING_SEARCH_OPERATION_BUDGET,
@@ -791,7 +791,7 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   const srcset = responsiveSrcset(record.media.src, record.media.width);
   if (suggestion) {
     if (srcset) {
-      image.sizes = "auto, 50vw";
+      image.sizes = tierAutoSizes(image, "auto, 50vw");
       image.srcset = srcset;
     }
     image.src = record.media.src;
@@ -1075,7 +1075,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.alt = english ? item.altEn : item.altVi;
         const srcset = responsiveSrcset(item.src, item.width);
         if (srcset) {
-          layer.sizes = "auto, 50vw";
+          layer.sizes = tierAutoSizes(layer, "auto, 50vw");
           layer.srcset = srcset;
         }
         layer.src = item.src;
@@ -1284,9 +1284,10 @@ function setPlacementStyle(node, placement) {
 function sizeLazyImage(node, placement) {
   const image = node.querySelector("img[data-sizes]");
   if (!image) return;
-  const width = Math.ceil(placement.pixelWidth);
-  image.dataset.sizes = `${width}px`;
-  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= width)) image.sizes = `${width}px`;
+  // Mạng chậm thì ảnh chưa tải lấy nửa bề rộng (image-adaptive R3).
+  const sizes = tierSizes(image, Math.ceil(placement.pixelWidth));
+  image.dataset.sizes = sizes;
+  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= Number.parseFloat(sizes))) image.sizes = sizes;
 }
 
 function sizeNode(node, placement, setSize) {
@@ -3364,7 +3365,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
   // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
-  const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
+  // Lane dải và ảnh tải trước chọn bậc theo mạng như primary (image-adaptive R3); ảnh mới chưa có src nên chỉ mạng quyết.
+  const primarySource = (item) => item.kind === "video" ? item.posterSrc : tierSource(new Image(), item.src, item.width);
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
@@ -3503,7 +3505,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const renderPrimaryMedia = (record, item, slide = 0, motion = null) => {
     const english = locale === "en";
     const video = item.kind === "video";
-    const source = video ? null : responsiveSource(item.src);
+    const source = video ? null : tierSource(photoImage, item.src, item.width);
     // Viewer đang mở thì primary đổi thẳng: dải chèn cạnh photoVideo, mà video có thể đang nằm trong viewer.
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
@@ -3670,7 +3672,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       image.loading = "lazy";
       const thumbSrcset = item.kind === "video" ? "" : responsiveSrcset(item.src, item.width);
       if (thumbSrcset) {
-        image.sizes = "auto, 25vw";
+        image.sizes = tierAutoSizes(image, "auto, 25vw");
         image.srcset = thumbSrcset;
       }
       image.src = item.kind === "video" ? item.posterSrc : item.src;

@@ -78,10 +78,10 @@ for (const [groupIndex, group] of groupMatches.entries()) {
 assert.doesNotMatch(html, /client-logo-placeholder/, "Logo placeholders must be removed");
 assert.ok(fs.existsSync(logoDirectory), "Missing public client logo directory");
 
-// Biến thể responsive -480/-960 là build output của bản gốc, không phải asset riêng.
+// Biến thể responsive -240/-480/-960 là build output của bản gốc, không phải asset riêng.
 const filesWithExtension = (directory, extension) =>
   fs.readdirSync(directory, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && path.extname(entry.name) === extension && !/-(?:480|960)\.[a-z]+$/.test(entry.name))
+    .filter((entry) => entry.isFile() && path.extname(entry.name) === extension && !/-(?:240|480|960)\.[a-z]+$/.test(entry.name))
     .map((entry) => entry.name);
 
 assert.equal(filesWithExtension(projectDirectory, ".webp").length, 134, "Expected 134 project WebP assets");
