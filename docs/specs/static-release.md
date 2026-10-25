@@ -22,7 +22,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-18
+updated: 2026-10-25
 ---
 
 # Phát hành tĩnh
@@ -89,7 +89,8 @@ Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Maso
 4.2.2, lazysizes 5.3.2, GSAP, SplitText 3.15.0, Locomotive Scroll 4.1.4, Barba
 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file) và Plus Jakarta Sans 5.3.0
 (latin, latin-ext, vietnamese, normal và italic, kèm LICENSE). `@font-face` đầu
-`style.css` dùng `font-display: swap`; năm HTML trang preload hai file normal
+`style.css` dùng `font-display: swap`; vietnamese khai báo sau latin-ext để chữ Việt (vùng `unicode-range` chồng nhau)
+không kéo thêm file latin-ext (22 KB brotli); năm HTML trang preload hai file normal
 latin, vietnamese. HTML không trỏ Google Fonts, jsDelivr.
 
 ```gherkin
@@ -119,15 +120,15 @@ And thẻ html có lang="en" và data-route-locale="en"
 ### R6. Ảnh nội dung bọc `<picture>`
 
 `<img>` có `src` hoặc `data-src` là WebP dưới `/assets/content/` được bọc
-`<picture>` với source AVIF khi có `.avif` cùng tên. Có biến thể 480, 960 nhỏ
+`<picture>` với source AVIF khi có `.avif` cùng tên. Có biến thể 240, 480, 960 nhỏ
 hơn `width` thì thêm `srcset` (hoặc `data-srcset`) và `sizes`. Ảnh đã có
 `srcset`, có attribute `data-advertising-*` hoặc thiếu AVIF giữ nguyên. Pipeline
 biến thể thuộc [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
 
 ```gherkin
-Given <img src="/assets/content/a.webp" width="1600"> có a.avif, a-480.*, a-960.* cạnh nó
+Given <img src="/assets/content/a.webp" width="1600"> có a.avif, a-240.*, a-480.*, a-960.* cạnh nó
 When build
-Then ảnh nằm trong <picture> có source AVIF với srcset 480w, 960w, 1600w
+Then ảnh nằm trong <picture> có source AVIF với srcset 240w, 480w, 960w, 1600w
 And <img data-advertising-photo-background> giữ nguyên, không bọc
 ```
 

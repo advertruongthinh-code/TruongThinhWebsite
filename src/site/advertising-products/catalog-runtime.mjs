@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
+import { responsiveSrcset, tierAutoSizes, tierSizes, tierSource } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   ADVERTISING_SEARCH_OPERATION_BUDGET,
@@ -71,7 +71,6 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 const SKELETON_CONTEXT_BUDGET = 12;
 // Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
-const CACHED_PRIMARY_REVEAL_MS = 600;
 const CARD_REVEAL_MS = 600;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
@@ -787,7 +786,7 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   const srcset = responsiveSrcset(record.media.src, record.media.width);
   if (suggestion) {
     if (srcset) {
-      image.sizes = "auto, 50vw";
+      image.sizes = tierAutoSizes(image, "auto, 50vw");
       image.srcset = srcset;
     }
     image.src = record.media.src;
@@ -982,7 +981,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           layer.alt = english ? item.altEn : item.altVi;
           const srcset = responsiveSrcset(item.src, item.width);
           if (srcset) {
-            layer.sizes = "auto, 50vw";
+            layer.sizes = tierAutoSizes(layer, "auto, 50vw");
             layer.srcset = srcset;
           }
           layer.src = item.src;
@@ -1126,9 +1125,10 @@ function setPlacementStyle(node, placement) {
 function sizeLazyImage(node, placement) {
   const image = node.querySelector("img[data-sizes]");
   if (!image) return;
-  const width = Math.ceil(placement.pixelWidth);
-  image.dataset.sizes = `${width}px`;
-  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= width)) image.sizes = `${width}px`;
+  // Mạng chậm thì ảnh chưa tải lấy nửa bề rộng (image-adaptive R3).
+  const sizes = tierSizes(image, Math.ceil(placement.pixelWidth));
+  image.dataset.sizes = sizes;
+  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= Number.parseFloat(sizes))) image.sizes = sizes;
 }
 
 function sizeNode(node, placement, setSize) {
@@ -2225,7 +2225,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Kính phủ lên media chỉ cho reveal (R2, R4): cuối cùng trong media box, trên photo và skeleton.
   const revealGlass = (host) => {
-    const glass = createGlassSurface("even", 5);
+    const glass = createGlassSurface("even", 3);
     glass.dataset.glassReveal = "";
     host?.append(glass);
     return glass;
@@ -2241,57 +2241,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
   const cardRevealGlass = (host) => (arcInView ? null : revealGlass(host));
-  // Năm bậc backdrop-filter trên cả hero làm rơi frame A05s cũ (p5 30-45fps). Mỗi bậc của primary thay bằng ảnh mới
-  // nhòe sẵn: vẽ một lần vào canvas 1/8 kích thước với blur cộng dồn bằng blur chồng của bậc gốc, rồi phóng 8 lần
-  // (detail.css). CSS filter trên ảnh phóng to bị GPU tính lại ở kích thước màn hình mỗi frame, còn canvas thì không.
-  const BAKED_SCALE = 8;
-  // Ảnh nguồn cho bậc nhòe: rộng hơn hero rộng nhất chia 8 một chút.
-  const BAKED_SOURCE_WIDTH = 192;
-  // Thu nhỏ từ img trên main thread tốn 50-160ms trên A05s cũ (drawImage hay createImageBitmap(img)); từ Blob thì Chrome
-  // decode và thu nhỏ ngoài main thread, ảnh lấy lại từ HTTP cache. Lỗi thì bậc chỉ còn nền màu skeleton.
-  const bakedBitmap = (source) => fetch(source).then((response) => response.blob())
-    .then((blob) => createImageBitmap(blob, { resizeWidth: BAKED_SOURCE_WIDTH, resizeQuality: "high" }))
-    .catch(() => null);
-  // Blur bằng căn tổng bình phương các bậc gốc tới bậc đó; saturate và brightness cộng dồn như bậc gốc.
-  const BAKED_FILTERS = [[7.14, 1.112, 1.0079], [16.07, 1.2365, 1.0159], [32.15, 1.375, 1.0239],
-    [57.15, 1.529, 1.032], [100, 1.7, 1.04]]
-    .map(([blur, saturate, brightness]) => `blur(${blur / BAKED_SCALE}px) saturate(${saturate}) brightness(${brightness})`);
-  // Kính dựng ngoài DOM; nơi gọi gắn nó vào host khi animation bắt đầu.
-  const bakedRevealGlass = (host, bitmap, overSkeleton) => {
-    const glass = revealGlass();
-    const frame = host.getBoundingClientRect();
-    const photo = photoImage.getBoundingClientRect();
-    // Canvas phủ cả frame: left/top không bị scale(8) phóng, nên vị trí photo vẽ vào trong canvas thay vì đặt bằng left.
-    const width = Math.max(1, Math.ceil(frame.width / BAKED_SCALE));
-    const height = Math.max(1, Math.ceil(frame.height / BAKED_SCALE));
-    const canvases = [...glass.querySelectorAll(".glass-surface__step")].map((step) => {
-      const canvas = Object.assign(document.createElement("canvas"), { width, height });
-      Object.assign(canvas.style, { left: "0", top: "0", width: `${width}px`, height: `${height}px` });
-      step.classList.add("glass-surface__step--baked");
-      // Trên skeleton: bỏ nền màu skeleton để gradient chạy vẫn thấy qua Kính như card (owner 19/10), không thành mảng xám phẳng.
-      if (overSkeleton) step.style.background = "none";
-      step.append(canvas);
-      return canvas;
-    });
-    if (!bitmap) return glass;
-    const x = (photo.left - frame.left) / BAKED_SCALE;
-    const y = (photo.top - frame.top) / BAKED_SCALE;
-    // Photo contain (hero có Kính) nằm trên nền blur cover của chính nó; vẽ nền cover tràn mép thêm bán kính blur lớn nhất
-    // để mép frame không lộ nền màu skeleton.
-    const cover = photoView.dataset.advertisingPhotoGlass === "true";
-    const scale = Math.max(width / bitmap.width, height / bitmap.height);
-    const bleed = 100 / BAKED_SCALE * 2;
-    const coverWidth = bitmap.width * scale + bleed * 2;
-    const coverHeight = bitmap.height * scale + bleed * 2;
-    // Canvas software (willReadFrequently) để mỗi bậc không tạo GPU context; blur trên ảnh 1/8 chỉ vài nghìn pixel.
-    canvases.forEach((canvas, index) => {
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      context.filter = BAKED_FILTERS[Math.min(index, BAKED_FILTERS.length - 1)];
-      if (cover) context.drawImage(bitmap, (width - coverWidth) / 2, (height - coverHeight) / 2, coverWidth, coverHeight);
-      context.drawImage(bitmap, x, y, photo.width / BAKED_SCALE, photo.height / BAKED_SCALE);
-    });
-    return glass;
-  };
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
@@ -3241,70 +3190,43 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let primaryReveal = null;
   const settlePrimaryReveal = () => {
     if (!primaryReveal) return;
-    const { frame, outgoing, animations, timer, glass } = primaryReveal;
+    const { frame, animations, glass } = primaryReveal;
     primaryReveal = null;
-    clearTimeout(timer);
     animations.forEach((animation) => animation.cancel());
-    outgoing.forEach((node) => node.remove());
     glass?.remove();
     if (frame) detachLoadingSkeleton(frame);
     delete heroFrame.dataset.advertisingPhotoLoading;
     heroFrame.removeAttribute("aria-busy");
   };
-  const playPrimaryReveal = (reveal, from, to, total, bitmap) => {
-    if (primaryReveal !== reveal) return bitmap?.close();
+  // Primary chạy đúng reveal của card tải chậm (loading-glass-and-page-entry R4): Kính ba bậc hiện trên skeleton, dưới
+  // Kính skeleton mờ đi còn ảnh và nền vùng dư hiện lên, rồi Kính tan, cùng CARD_REVEAL_MS.
+  const playPrimaryReveal = (reveal, incoming) => {
+    if (primaryReveal !== reveal) return;
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
     if (photoView.hidden) {
-      requestAnimationFrame(() => playPrimaryReveal(reveal, from, to, total, bitmap));
+      requestAnimationFrame(() => playPrimaryReveal(reveal, incoming));
       return;
     }
-    delete heroFrame.dataset.advertisingPhotoLoading;
-    heroFrame.removeAttribute("aria-busy");
     if (reduced) {
       settlePrimaryReveal();
       return;
     }
-    // Dựng Kính nhòe sẵn và tạo animation là hai task: gộp lại thành long task trên phone Android
-    // (decision phone-frame-budget). Kính vào DOM cùng task với animation, nên bắt đầu từ level 0.
-    const glass = bakedRevealGlass(heroFrame, bitmap, Boolean(reveal.frame));
-    bitmap?.close();
-    setTimeout(() => {
-      if (primaryReveal !== reveal) return;
-      reveal.glass = glass;
-      heroFrame.append(glass);
-      // Ảnh nhòe sẵn hiện theo crossfade của ảnh mới, như bậc gốc nhòe dần phần ảnh mới trong backdrop.
-      const baked = [...reveal.glass.querySelectorAll(".glass-surface__step--baked > canvas")];
-      reveal.animations = [...crossfadeLayers(from, [...to, ...baked], total), ...playGlassReveal(reveal.glass, total)];
-      Promise.all(reveal.animations.map(({ finished }) => finished))
-        .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
-    });
+    // Bỏ trạng thái loading cùng task với animation: tách ra thì giữa hai task có frame ảnh mới hiện đủ
+    // rồi mới chạy reveal từ 0 (lỗi chớp khi Back, Forward).
+    delete heroFrame.dataset.advertisingPhotoLoading;
+    heroFrame.removeAttribute("aria-busy");
+    reveal.glass = revealGlass(heroFrame);
+    reveal.animations = [...crossfadeLayers([reveal.frame], incoming, CARD_REVEAL_MS),
+      ...playGlassReveal(reveal.glass, CARD_REVEAL_MS)];
+    Promise.all(reveal.animations.map(({ finished }) => finished))
+      .then(() => primaryReveal === reveal && settlePrimaryReveal(), () => {});
   };
-  // Photo đang hiển thị ở lại làm layer tạm phía trên layer mới; không node nào bay vào từ card.
-  const snapshotPrimary = () => {
-    const rect = photoImage.getBoundingClientRect();
-    const image = document.createElement("img");
-    image.className = "advertising-photo-view__outgoing";
-    image.alt = "";
-    image.src = photoImage.currentSrc;
-    image.style.width = `${rect.width}px`;
-    image.style.height = `${rect.height}px`;
-    photoVideo.after(image);
-    if (photoView.dataset.advertisingPhotoGlass !== "true" || !photoBackground?.currentSrc) return [image];
-    const background = document.createElement("img");
-    background.className = "advertising-photo-view__outgoing-background";
-    background.alt = "";
-    background.src = photoBackground.currentSrc;
-    photoBackground.after(background);
-    return [image, background];
-  };
-  const renderPrimaryMedia = (record, item, inPlace = true) => {
+  const renderPrimaryMedia = (record, item) => {
     const english = locale === "en";
     const video = item.kind === "video";
-    const source = video ? null : responsiveSource(item.src);
+    const source = video ? null : tierSource(photoImage, item.src, item.width);
     const changed = !video && photoImage.getAttribute("src") !== source;
     if (changed || video) settlePrimaryReveal();
-    const outgoing = changed && inPlace && !reduced && !photoImage.hidden
-      && photoImage.complete && photoImage.naturalWidth > 0 ? snapshotPrimary() : [];
     activePrimaryMediaId = item.id;
     photoView.dataset.advertisingActiveMediaId = item.id;
     photoVideo.pause();
@@ -3339,34 +3261,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       photoBackground.dataset.advertisingPhotoId = record.id;
     }
     if (changed) {
-      const incoming = [photoImage, photoBackground].filter(Boolean);
-      const reveal = { frame: null, outgoing, animations: [], timer: 0 };
+      // Ảnh có sẵn hay chưa đều chạy motion card tải chậm (loading-glass-and-page-entry R4): ảnh và nền cũ ẩn ngay,
+      // skeleton phủ khung tới khi ảnh mới decode xong; ảnh có sẵn chỉ làm skeleton đứng ngắn hơn.
+      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling), animations: [], glass: null };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
-      // Không có photo trên màn hình thì ẩn photo cũ; nếu có, photo cũ giữ nguyên đến khi swap.
-      if (!outgoing.length) heroFrame.dataset.advertisingPhotoLoading = "true";
-      // Chrome báo cả photo cache trong bộ nhớ là incomplete ngay sau khi đổi src, nên photo
-      // decode trong khoảng này được tính là đã cache; chậm hơn thì hiện skeleton ngay (R4).
-      reveal.timer = setTimeout(() => {
-        if (primaryReveal !== reveal) return;
-        reveal.outgoing.forEach((node) => node.remove());
-        reveal.outgoing = [];
-        heroFrame.dataset.advertisingPhotoLoading = "true";
-        reveal.frame = attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling);
-      }, 100);
+      heroFrame.dataset.advertisingPhotoLoading = "true";
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
-      // Bậc nhòe sẵn cần bản nhỏ của ảnh mới; tạo song song với decode để reveal không phải chờ thêm.
-      const bitmap = reduced ? null : bakedBitmap(source);
-      photoImage.decode().then(() => bitmap).then((baked) => {
-        if (primaryReveal !== reveal) return baked?.close();
-        clearTimeout(reveal.timer);
-        if (reveal.frame) playPrimaryReveal(reveal, [reveal.frame], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
-        else if (reveal.outgoing.length) playPrimaryReveal(reveal, reveal.outgoing, [], CACHED_PRIMARY_REVEAL_MS, baked);
-        else playPrimaryReveal(reveal, [], incoming, CACHED_PRIMARY_REVEAL_MS, baked);
-      }, () => {
-        bitmap?.then((baked) => baked?.close());
-        if (primaryReveal === reveal) settlePrimaryReveal();
-      });
+      photoImage.decode().then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
+        () => primaryReveal === reveal && settlePrimaryReveal());
     }
     photoViewer.setRecord(video ? null : { ...record, media: item });
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
@@ -3403,7 +3306,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       image.loading = "lazy";
       const thumbSrcset = item.kind === "video" ? "" : responsiveSrcset(item.src, item.width);
       if (thumbSrcset) {
-        image.sizes = "auto, 25vw";
+        image.sizes = tierAutoSizes(image, "auto, 25vw");
         image.srcset = thumbSrcset;
       }
       image.src = item.kind === "video" ? item.posterSrc : item.src;
@@ -3464,7 +3367,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     const selected = record.mediaItems?.find((item) => item.id === initialId)
       || record.mediaItems?.find((item) => item.id === record.coverMediaId)
       || record.media;
-    renderPrimaryMedia(record, selected, Boolean(previousPhotoId));
+    renderPrimaryMedia(record, selected);
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
     descriptionSource = english ? record.descriptionEn : record.descriptionVi;
     descriptionPageIndex = 0;
