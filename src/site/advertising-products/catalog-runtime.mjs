@@ -4010,7 +4010,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         layoutRelated(browseHistory.current);
       } else {
         renderRelatedWindow({ animate: true, origins });
-        window.dispatchEvent(new CustomEvent("site:layout"));
+        // Báo layout sau motion 400ms của related: gộp vào frame Masonry và LazySizes của task mount thì các lượt đo
+        // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
+        setTimeout(() => window.dispatchEvent(new CustomEvent("site:layout")), 400);
       }
     }
   };
