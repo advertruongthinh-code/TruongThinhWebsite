@@ -34,13 +34,13 @@
           frame?.classList.toggle("is-media-error", failed);
         };
         const isImage = (target) => target.tagName === "IMG";
-        // Khung chờ là cha của ảnh nội dung (hoặc của picture), trừ grid và photo view của Advertising và dải logo khách:
+        // Khung chờ là cha của ảnh nội dung (hoặc của picture), trừ grid, photo view, viewer "Xem lớn hơn" của Advertising và dải logo khách:
         // gắn class khi ảnh vào DOM thay cho selector :has() toàn trang, vốn làm mỗi lần tính style chậm thêm khoảng 1/4.
         const markFrame = (image) => {
           if (!image.getAttribute("src")?.startsWith("/assets/content/")) return;
           const parent = image.parentElement;
           const frame = parent?.tagName === "PICTURE" ? parent.parentElement : parent;
-          if (frame && !frame.closest("[data-project-grid], [data-advertising-photo-view], .client-logo-marquee")) frame.classList.add("media-frame");
+          if (frame && !frame.closest("[data-project-grid], [data-advertising-photo-view], [data-advertising-photo-dialog], .client-logo-marquee")) frame.classList.add("media-frame");
         };
         document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
         document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
