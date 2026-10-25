@@ -9,7 +9,8 @@ import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-pro
 // Video thích ứng (video-delivery R3, R4, R5): card phát master.m3u8 bằng hls.js chặn ở bậc 480, detail tiếp đúng giây ở
 // bậc đầu playlist, viewer giữ instance; không có Media Source hoặc thiếu hlsSrc thì phát file cố định; mạng nhanh lên thì
 // phần bậc thấp phía trước được thay mà không khựng. Chromium của Playwright không có H.264 nên thang là bản AV1 nhỏ
-// (bậc 640, 240, 480 của clip 6 s, chỉ hình) trong fixtures/video-ladder.
+// (bậc 640, 240, 480 của clip 6 s, chỉ hình) trong fixtures/video-ladder, sinh bằng ffmpeg libsvtav1 từ
+// site-media-card-clip-audio.mp4 lặp hai lần, `-g 12`, HLS fMP4 segment 2 s một file mỗi bậc.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
 const ladder = path.join(root, "tests/site/fixtures/video-ladder");
