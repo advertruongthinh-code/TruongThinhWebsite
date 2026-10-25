@@ -3087,12 +3087,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-05-p2.webp",
    "sourceId": "placeholder:office-signs-wayfinding-05-p2",
-   "width": 768,
-   "height": 614,
+   "width": 701,
+   "height": 561,
    "altVi": "Bảng chức danh gỗ và đồng (ảnh 2)",
    "altEn": "Timber and brass desk nameplates (photo 2)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p2.webp",
-   "sha256": "21eae547069294db87077177ce584e2bf838a45214f2187720bad13be9adebb8",
+   "sha256": "3caa8d74806f81d9b1042ad192f67144e27b8c73703387e2456e64ada43df463",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   },
   {
@@ -3100,12 +3100,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-05-p3.webp",
    "sourceId": "placeholder:office-signs-wayfinding-05-p3",
-   "width": 768,
-   "height": 614,
+   "width": 701,
+   "height": 561,
    "altVi": "Bảng chức danh gỗ và đồng (ảnh 3)",
    "altEn": "Timber and brass desk nameplates (photo 3)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p3.webp",
-   "sha256": "c313345dcb3f9e850a7e7d601323c0e4e6411ab6e40c8737ea5e067a049a186f",
+   "sha256": "8df3cac5c212a899fc8eef54c790c23d28345f881e18c76996acbf401c35f484",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   },
   {
@@ -3113,12 +3113,12 @@ export const PLACEHOLDER_MEDIA_ITEMS = {
    "kind": "image",
    "src": "/assets/placeholder-media/office-signs-wayfinding-05-p4.webp",
    "sourceId": "placeholder:office-signs-wayfinding-05-p4",
-   "width": 768,
-   "height": 614,
+   "width": 701,
+   "height": 561,
    "altVi": "Bảng chức danh gỗ và đồng (ảnh 4)",
    "altEn": "Timber and brass desk nameplates (photo 4)",
    "source": "/assets/placeholder-media/office-signs-wayfinding-05-p4.webp",
-   "sha256": "f960aec64b0caace0cda0191a7a3a4f429b14736110ef682fce88bd99dfd32c4",
+   "sha256": "0ff8ad940c8296339f00bca9b3d9bdf328997bdff39a096eeca2a21802a8dcdf",
    "provenance": "Placeholder; re-encoded from /assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-05-timber-and-brass-desk-nameplates-v2.webp; replace with real product media."
   }
  ],
