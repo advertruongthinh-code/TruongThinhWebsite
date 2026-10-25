@@ -732,10 +732,10 @@ const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT
 // Mô tả và related của card nằm riêng trong catalog-detail.mjs (artifact chỉ giữ phần grid cần). Artifact đã đủ trường
 // (test chèn artifact đầy đủ) thì bỏ qua; ngược lại gắn trường còn thiếu vào card theo id.
 let detailPromise;
+const loadCardDetail = () => detailPromise ||= import("./catalog-detail.mjs").then(({ default: detail }) => detail);
 const attachCardDetail = (cards) => {
   if (cards.every((card) => card.descriptionVi !== undefined)) return Promise.resolve();
-  detailPromise ||= import("./catalog-detail.mjs").then(({ default: detail }) => detail);
-  return detailPromise.then((detail) => {
+  return loadCardDetail().then((detail) => {
     for (const card of cards) if (card.descriptionVi === undefined && detail[card.id]) Object.assign(card, detail[card.id]);
   });
 };
