@@ -114,9 +114,12 @@ chosen.forEach((card, index) => {
       // yuv420p: xfade xuất 4:4:4, mà chip giải mã của GPU chỉ nhận H.264 4:2:0 (đo PC 2026-10-25: video tạm giải mã bằng CPU).
       "-c:v", "libx264", "-crf", "32", "-preset", "slow", "-g", "12", "-pix_fmt", "yuv420p", "-movflags", "+faststart", file]);
     ffmpeg(["-i", file, "-frames:v", "1", "-quality", "72", poster]);
+    // Bản card 480px không tiếng (media-card R4): giải mã 1/4 số điểm ảnh so với bản 960px.
+    ffmpeg(["-i", file, "-vf", "scale=480:-2", "-c:v", "libx264", "-crf", "28", "-preset", "slow", "-g", "12", "-pix_fmt", "yuv420p", "-an",
+      "-movflags", "+faststart", path.join(outputDir, `${id}-card.mp4`)]);
     const durationSeconds = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim());
     videos.push({
-      id, kind: "video", src: `${outputUrl}/${id}.mp4`, sourceId: `placeholder:${id}`, ...videoSize,
+      id, kind: "video", src: `${outputUrl}/${id}.mp4`, cardSrc: `${outputUrl}/${id}-card.mp4`, sourceId: `placeholder:${id}`, ...videoSize,
       altVi: `Video minh họa${v ? ` ${v + 1}` : ""}: ${card.titleVi}`, altEn: `Illustrative video${v ? ` ${v + 1}` : ""}: ${card.titleEn}`,
       source: `${outputUrl}/${id}.mp4`, sha256: sha256(file),
       provenance: `Placeholder slideshow built with ffmpeg from ${frames.map((frame) => frame.id).join(", ")}; replace with real product video.`,

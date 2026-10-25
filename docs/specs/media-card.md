@@ -32,7 +32,7 @@ Card có `mediaItems` (thứ tự hiển thị) và `coverMediaId`; thiếu `cov
 sách rỗng, cover không có trong danh sách, trùng `id`, `kind` khác `image`/`video`, thiếu `src` hoặc `sourceId`, thiếu
 `altVi`/`altEn` hoặc `source`, `sha256`, `provenance`. `width`, `height` là số nguyên dương an toàn và mọi item cùng một
 tỷ lệ chính xác (so bằng BigInt, không sai số). Video cần thêm `posterSrc`, `posterWidth`/`posterHeight` cùng tỷ lệ,
-`durationSeconds` và `hasAudio` boolean. Ảnh legacy `record.media` được hiện làm cover (cùng `src`) thì cũng phải cùng
+`durationSeconds` và `hasAudio` boolean; `cardSrc` (tùy chọn) là đường dẫn bản cho card. Ảnh legacy `record.media` được hiện làm cover (cùng `src`) thì cũng phải cùng
 tỷ lệ; không hiện thì giữ được tỷ lệ khác. Validator chỉ kiểm metadata, không kiểm byte file; khi chuẩn bị asset, đối
 chiếu kích thước thật bằng `ffprobe` (video) và giải mã ảnh (poster). `media-manifest.mjs` hiện cho mỗi card đúng một
 item ảnh, `id` bằng id card.
@@ -103,7 +103,9 @@ Then dải theo ngón tay rồi bật về item cũ; kéo quá nửa canvas thì
 
 ### R4. Video trên card
 
-Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto"`, có `poster`, nhãn bằng alt của item. Card vào DOM
+Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto"`, có `poster`, nhãn bằng alt của item. Layer dùng
+`cardSrc` khi có: bản rộng 480px, H.264 4:2:0, không tiếng, vì card hiện tối đa khoảng 440px CSS; detail và viewer dùng `src`
+(owner 2026-10-25, đo PC rồi mới giữ). Card vào DOM
 khi còn cách màn hình một viewport (ảo hóa), nên video tải và giải mã sẵn trước khi tới lượt phát (owner 2026-10-25: đo PC, video
 khởi động giữa lúc cuộn làm một Commit 82ms).
 Card video theo Pinterest (owner 2026-10-17): không nút phát, không icon loa; nhãn tổng thời lượng `m:ss` làm tròn lên,
@@ -214,7 +216,7 @@ And trong lúc video phát, nền blur đổi theo frame video
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Data | `mediaItems[]`: `id`, `kind`, `src`, `sourceId`, `width`, `height`, `altVi`, `altEn`, `source`, `sha256`, `provenance`; video thêm `posterSrc`, `posterWidth`, `posterHeight`, `durationSeconds`, `hasAudio` | R1 |
+| Data | `mediaItems[]`: `id`, `kind`, `src`, `sourceId`, `width`, `height`, `altVi`, `altEn`, `source`, `sha256`, `provenance`; video thêm `posterSrc`, `posterWidth`, `posterHeight`, `durationSeconds`, `hasAudio`, tùy chọn `cardSrc` | R1, R4 |
 | Data | `coverMediaId` | Cover và tỷ lệ canvas (R1, R2) |
 | Hàm | `validateAdvertisingCardMedia`, `validateAdvertisingMediaPool` (`media-contract.mjs`) | Chặn dữ liệu sai khi catalog nạp |
 | Hàm | `mediaControlStripHeight`, `layoutMedia` (`layout-core.mjs`) | Dải 44px, tỷ lệ cover |

@@ -27,6 +27,7 @@ function fixtureArtifact(playlist = false) {
     };
     const video = (suffix) => ({
       ...shared, id: `${card.id}-autoplay-${suffix}`, kind: "video", src: `${fixturePrefix}clip.mp4`,
+      cardSrc: `${fixturePrefix}card.mp4`,
       sourceId: "autoplay:test-only:clip", altVi: `${shared.altVi} ${suffix}`, altEn: `${shared.altEn} ${suffix}`,
       sha256: "853e4939e6a4627cc7777665283b2affab189132243974a4777f5a955338e827",
       posterSrc: `${fixturePrefix}poster.webp`, posterWidth: 640, posterHeight: 360,
@@ -267,8 +268,13 @@ test("R4 desktop: the viewed media and video time carry from card to detail, bac
   try {
     await scrollAndSettle(page, false);
     const { id } = (await playingSettled(page)).playing.find((video) => video.mediaId === `${video.id}-autoplay-video`);
+    const cardSource = await page.evaluate((cardId) =>
+      document.querySelector(`[data-advertising-card="${cardId}"]`).advertisingActiveVideo().currentSrc, id);
+    assert(cardSource.endsWith("/card.mp4"), `card plays cardSrc: ${cardSource}`);
     await seekCard(id, 1.2);
     await openCard(id);
+    const detailSource = await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").currentSrc);
+    assert(detailSource.endsWith("/clip.mp4"), `detail plays src: ${detailSource}`);
     let state = await detail();
     assert.equal(state.mediaId, `${id}-autoplay-video`, "detail opens on the card's media");
     assert(state.time >= 1.2 && state.time < 3, `detail video continues from the card time: ${state.time}`);
