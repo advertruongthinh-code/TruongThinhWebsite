@@ -15,9 +15,12 @@ const loadHls = () => library ??= new Promise((resolve) => {
   document.head.append(script);
 });
 
+// `nextAutoLevel` chạy lại thuật toán ABR mỗi lần đọc nên chỉ đọc một lần, và chỉ khi còn phần dưới bậc trần.
 const behind = (video) => {
+  if (video.paused) return false;
   const { hls, fragments } = players.get(video);
-  return !video.paused && [...fragments.values()].some(({ level }) => level < hls.nextAutoLevel);
+  const lowest = Math.min(...[...fragments.values()].map(({ level }) => level));
+  return lowest < hls.maxAutoLevel && lowest < hls.nextAutoLevel;
 };
 
 // R4 phía trước: xóa phần bậc thấp kể từ keyframe (mỗi 0,5 s) mà bậc mới kịp tải trước khi phát tới, băng thông chia
@@ -26,14 +29,18 @@ const replaceAhead = (video, share = 1) => {
   const { hls, fragments } = players.get(video);
   const level = hls.nextAutoLevel;
   const bps = hls.bandwidthEstimate / share;
+  let flushed = false;
   for (const [sn, fragment] of fragments) {
     if (fragment.level >= level) continue;
     const fetch = (fragment.end - fragment.start) * hls.levels[level].bitrate / bps;
     const from = Math.max(fragment.start, Math.ceil((video.currentTime + 0.5 + 1.5 * fetch) * 2) / 2);
     if (from >= fragment.end) continue;
     fragments.delete(sn);
+    flushed = true;
     hls.trigger(self.Hls.Events.BUFFER_FLUSHING, { startOffset: from, endOffset: fragment.end, type: null });
   }
+  // Clip đã tải hết thì hls.js đang dừng tải: bật lại sau khi xóa xong để không đọc nhầm buffer cũ còn tới cuối clip.
+  if (flushed && !hls.loadingEnabled) hls.once(self.Hls.Events.BUFFER_FLUSHED, () => hls.startLoad(video.currentTime, true));
 };
 
 export function releaseVideoSource(video) {
@@ -86,6 +93,9 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
       const due = [...players.keys()].filter(behind);
       due.forEach((entry) => replaceAhead(entry, due.length));
     });
+    // Tải hết clip thì dừng vòng lặp 100 ms của hls.js: mỗi card trong cửa sổ render giữ một instance chạy không dù
+    // đã tải xong (đo cloud 2026-10-25, 52 card: 200 ms script mỗi lượt cuộn 20 s); luật thay phía trước bật lại.
+    hls.on(Hls.Events.BUFFERED_TO_END, () => hls.stopLoad());
     // Lỗi không phục hồi được thì về file bậc cố định; file đó lỗi nữa thì card, primary xử lý lỗi video như cũ.
     hls.on(Hls.Events.ERROR, (_, { fatal }) => {
       if (!fatal) return;

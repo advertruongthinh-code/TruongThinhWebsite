@@ -111,6 +111,8 @@ tải hết sau khoảng 5 s rồi hls.js ngừng tải nên tự nó không th�
   vị trí phát cộng 0,5 s cộng 1,5 lần thời gian tải ước tính, băng thông chia đều cho các video cùng thay. Xóa bằng sự
   kiện `BUFFER_FLUSHING` của hls.js, rồi hls.js tự tải lại phần đó ở bậc mới; phần đang phát trước keyframe đó giữ nguyên
   nên không đứng hình. Video đang dừng không thay.
+- Tải hết clip thì runtime dừng tải (`hls.stopLoad()`) để hls.js không chạy vòng lặp 100 ms cho video đã đủ dữ liệu;
+  luật phía trước xóa xong (`BUFFER_FLUSHED`) thì bật lại (`hls.startLoad`).
 - Vòng lặp và tua: tắt [`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush);
   mỗi lần video tua, kể cả lặp về giây 0, runtime chạy lại luật phía trước. Tua về đoạn bậc thấp còn trong buffer thì
   phát ngay bằng phần có sẵn rồi phần từ keyframe kịp tải nét lên (owner chọn 2026-10-25); lặp về 0 thì phần đầu clip
@@ -214,9 +216,11 @@ Không đổi giao diện; card video và player giữ component hiện có
 
 ## Gate còn mở
 
-- 6 tới 14 card cùng phát là 6 tới 14 instance hls.js, mỗi instance có worker riêng. Chưa đo bộ nhớ, main thread và cách
-  các instance tranh băng thông khi cùng thay (R4) trên PC, A04s; R6 đo. Quá tải thì cân nhắc tắt worker (fMP4 không cần
-  chuyển mã) hoặc thay lần lượt từng video.
+- Main thread khi cuộn masonry (đo 2026-10-25, bản fbfb596): PC bận 32% so với 24-27% khi chặn hls.js hoặc ở 89f9b00,
+  A04s 20-21% so với 19% và thêm 8 tới 10 frame quá 33 ms mỗi lượt; các instance dùng chung một worker, JS khoảng 10 MB.
+  Đã sửa: dừng tải khi tải hết clip (R4), đọc `nextAutoLevel` một lần mỗi video; cloud 52 card, script hls.js mỗi lượt
+  cuộn 20 s giảm từ 1.000 xuống 610 ms. Tắt worker đo không đổi nên bỏ. Phần còn lại là việc theo segment (XHR, append);
+  R6 đo lại trên PC, A04s, còn tăng thì cân nhắc thay lần lượt từng video.
 - Luật thay phía trước (R4) mới đo trên Chromium cloud với thang AV1; PC và A04s đo lại trong R6.
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone (2026-10-25). Cũng chưa kiểm
   Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
