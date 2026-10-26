@@ -635,8 +635,10 @@ test("M02a touch seek drag moves the video, not the media strip", async () => {
     let x = track.x + 4;
     let strip = false;
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y, id: 1 }] });
+    // Kéo 60% thanh, quá slop 10px của dải. Kéo tới cuối thanh thì video loop đã dừng vẫn tự tua về 0 khi seek xong
+    // (Chrome), nên giây đọc lại là 0 (CI đỏ 0 -> 0, thanh 115px mà kéo 120px).
     for (let step = 0; step < 12; step += 1) {
-      x += 10;
+      x += track.width * 0.6 / 12;
       await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y, id: 1 }] });
       strip ||= await page.evaluate(() => Boolean(document.querySelector(".advertising-photo-view__strip")));
     }
