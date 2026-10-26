@@ -1,6 +1,6 @@
 # Trạng thái hiện tại
 
-- Updated: 2026-10-23
+- Updated: 2026-10-26
 - Phase: website tĩnh VI/EN. Source `src/site/`, build `.site-output/`; CMS, admin, D1, R2 và
   Worker chưa activate ([CMS](specs/cms.md)). Phát hành chính thức trên `truongthinhads.vn` chờ xong CMS.
 - Demo: Cloudflare Workers static assets ([quyết định](decisions/cloudflare-workers-static-demo.md)),
@@ -12,7 +12,7 @@
 - [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): lỗi trên `main` đã merge; fix skeleton, swipe nằm trên nhánh thread `ap7oez`, `dxu1nj`; tail-packing chưa xác nhận.
 - PR đang mở xem [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls). Thay đổi đã merge tự lên demo,
   chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
-- Card nhiều media M03 tới M09 tạm dừng tới khi owner có ảnh và video thật ([spec](specs/media-card.md)).
+- Card nhiều media: runtime, player, viewer, video thích ứng vào `main` qua [PR #434](https://github.com/advertruongthinh-code/TruongThinhWebsite/pull/434), mỗi card vẫn một ảnh; gộp ảnh thành card nhiều media làm đợt khác khi toàn bộ media đã chuẩn, owner audit tay nhóm AI đề xuất ([card](https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc), [spec](specs/media-card.md)).
 - Từ khóa SEO tạm dừng tới khi site đủ feature ([card](https://app.notion.com/p/3f5332849a0e812d88d1d97ea66cb79b)).
 
 ## Blocker đã verify

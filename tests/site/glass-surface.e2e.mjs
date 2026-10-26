@@ -182,9 +182,10 @@ try {
           });
         }))).observe(document, { childList: true, subtree: true });
       });
+      // advertisingPhotoId: ảnh của card đã dựng, không phải ảnh mặc định của index.html tải dưới view còn ẩn.
       const settled = () => page.waitForFunction(() => {
         const photo = document.querySelector("[data-advertising-photo-image]");
-        return photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
+        return photo.dataset.advertisingPhotoId && photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
           && !photo.parentElement.querySelector(".glass-surface[data-glass-reveal]");
       }, null, { timeout: 20000 });
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);

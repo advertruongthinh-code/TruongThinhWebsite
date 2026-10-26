@@ -320,8 +320,10 @@ export function computeAdvertisingPhotoGeometry(options = {}) {
     const imageColumns = Math.max(1, span - 1);
     imageZoneWidth = imageColumns * cardWidth + (imageColumns - 1) * interCardGap;
     descriptionWidth = cardWidth;
-    height = Math.max(heightCap, minimumDescriptionHeight, minimumImageZoneHeight);
-    imageZoneHeight = height;
+    // Vùng ảnh cao theo media tới trần viewport (primary-video-player R6): media ngang không có vùng dư trên dưới.
+    // Info cần cao hơn thì primary cao theo info, vùng ảnh nằm trên cùng cột.
+    imageZoneHeight = Math.max(minimumImageZoneHeight, Math.min(imageZoneWidth / ratio, heightCap));
+    height = Math.max(imageZoneHeight, minimumDescriptionHeight);
     descriptionHeight = height;
   } else {
     const availableHeight = viewportHeight - top - safeBottom;

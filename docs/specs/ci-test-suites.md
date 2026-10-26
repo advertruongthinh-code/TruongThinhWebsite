@@ -65,7 +65,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages, image-adaptive-delivery | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal, ảnh thích ứng mạng |
-| `media-card` | media-card, glass-surface | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung |
+| `media-card` | media-card, glass-surface, video-delivery | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung, video thích ứng mạng |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo
 spec; bộ ngắn gộp chung job với bộ khác theo [R11](#r11-đóng-gói-job-và-timeout), không gộp bộ.

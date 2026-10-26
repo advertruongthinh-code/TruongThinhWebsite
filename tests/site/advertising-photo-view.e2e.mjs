@@ -76,9 +76,11 @@ function expectedPhotoGeometry(evidence) {
   const heightCap = mode === "split" ? available - gap - (span === columns ? 0 : 50) : available;
   // Chiều cao info của pinterest theo copy đã đo; R2 giới hạn ở 28% viewport.
   const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, available - gap - 1);
-  // Split cao theo heightCap, trừ khi nhãn cụm dài làm sàn info cao hơn (runtime giữ sàn đó).
-  const descriptionHeight = mode === "split" ? Math.max(heightCap, evidence.infoFloor) : evidence.infoRect.height;
-  const imageZoneHeight = mode === "split" ? descriptionHeight
+  // Split: vùng ảnh cao theo media tới heightCap (primary-video-player R6); info cao bằng vùng ảnh, trừ khi nhãn cụm dài
+  // làm sàn info cao hơn (runtime giữ sàn đó).
+  const splitImageZoneHeight = Math.min(imageZoneWidth / ratio, heightCap);
+  const descriptionHeight = mode === "split" ? Math.max(splitImageZoneHeight, evidence.infoFloor) : evidence.infoRect.height;
+  const imageZoneHeight = mode === "split" ? splitImageZoneHeight
     : Math.min(width / ratio, available - descriptionHeight - gap);
   const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);
@@ -117,8 +119,8 @@ function attachDiagnostics(page) {
     }
   });
   page.on("requestfailed", (request) => {
-    // Chromium hủy các fetch ảnh lazy bị thay thế (đổi srcset/variant, unmount); không phải lỗi tải.
-    if (request.resourceType() === "image" && request.failure()?.errorText === "net::ERR_ABORTED") return;
+    // Chromium hủy các fetch ảnh lazy hoặc video bị thay thế (đổi srcset/variant/src, unmount); không phải lỗi tải.
+    if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
     if (isLocalUrl(request.url())) issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
   });
   page.on("response", (response) => {
@@ -363,13 +365,15 @@ async function layoutEvidence(page) {
       canvasRect: serializeRect(canvas),
       viewRect: serializeRect(photoView),
       infoRect: serializeRect(info),
-      // Sàn info như measureInfo của runtime: các dòng ngoài pager cộng một dòng mô tả.
+      // Sàn info như measureInfo của runtime: các dòng ngoài mô tả cộng ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn).
       infoFloor: info ? (() => {
-        const controls = [...info.children].filter((node) => !node.matches("[data-advertising-photo-description-pager]") && !node.hidden);
+        const controls = [...info.children].filter((node) => !node.matches("[data-advertising-photo-description-box]") && !node.hidden);
         const controlsHeight = controls.reduce((sum, node) => sum + node.offsetHeight
           + (Number.parseFloat(getComputedStyle(node).marginTop) || 0) + (Number.parseFloat(getComputedStyle(node).marginBottom) || 0), 0);
-        const lineHeight = Number.parseFloat(getComputedStyle(info.querySelector("[data-advertising-photo-description]")).lineHeight) || 0;
-        return Math.ceil(controlsHeight + lineHeight + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
+        const description = info.querySelector("[data-advertising-photo-description]");
+        const lineHeight = Number.parseFloat(getComputedStyle(description).lineHeight) || 0;
+        return Math.ceil(controlsHeight + Math.min(3 * lineHeight, description.offsetHeight)
+          + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
       })() : 0,
       heroRect: serializeRect(hero),
       frameRect: serializeRect(frame),
@@ -393,9 +397,10 @@ async function layoutEvidence(page) {
         scrollHeight: info.scrollHeight,
         scrollTop: info.scrollTop,
         overflowY: infoStyle.overflowY,
+        // Số dòng mô tả đang thấy: chiều cao vùng cuộn chia line-height (chữ dài hơn thì cuộn bên trong).
         descriptionLines: (() => {
-          const description = info.querySelector("[data-advertising-photo-description]");
-          return description ? description.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(description).lineHeight) : null;
+          const scroller = info.querySelector("[data-advertising-photo-description-scroll]");
+          return scroller ? scroller.clientHeight / Number.parseFloat(getComputedStyle(scroller).lineHeight) : null;
         })(),
         tabIndex: info.tabIndex,
         role: info.getAttribute("role"),
@@ -447,11 +452,11 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
   if (evidence.infoFloor <= expected.heightCap) assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap despite fitting floors`);
-  // Detail spec R2: vượt cap 28% chỉ khi một dòng description cùng group và CTA không vừa.
+  // Detail spec R2: vượt cap 28% chỉ khi ba dòng description cùng group và CTA không vừa.
   if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
-    assert(evidence.info?.descriptionLines < 1.5, `${label}: info exceeds 28% of the viewport with more than one description line`);
+    assert(evidence.info?.descriptionLines < 3.5, `${label}: info exceeds 28% of the viewport with more than three description lines`);
   }
-  // Detail spec R3: description phân trang theo từ thay vì tự cuộn.
+  // Detail spec R3: info không tự cuộn; chữ dài cuộn trong vùng mô tả.
   assert(!["auto", "scroll"].includes(evidence.info?.overflowY), `${label}: description has its own scrollbar`);
   assert.equal(evidence.info?.tabIndex, 0, `${label}: description region is not keyboard focusable`);
   assert.equal(evidence.info?.role, "region", `${label}: description region role is absent`);
@@ -683,8 +688,9 @@ async function assertDialogFit(page, label, touch = false) {
     const imageNode = document.querySelector("[data-advertising-photo-expanded-image]");
     const image = imageNode?.getBoundingClientRect();
     const dialog = document.querySelector("[data-advertising-photo-dialog]");
-    const controls = [...document.querySelectorAll("[data-advertising-photo-close], [data-advertising-photo-zoom-reset], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]")]
-      .map((node) => ({ reset: node.matches("[data-advertising-photo-zoom-reset]"), disabled: node.disabled, hidden: node.hidden, focusVisible: node.matches(":focus-visible"), rect: node.getBoundingClientRect().toJSON() }));
+    const controls = [...document.querySelectorAll("[data-advertising-photo-close], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]")]
+      .map((node) => ({ disabled: node.disabled, hidden: node.hidden, focusVisible: node.matches(":focus-visible"), rect: node.getBoundingClientRect().toJSON() }));
+    const resetCount = document.querySelectorAll("[data-advertising-photo-zoom-reset]").length;
     const ratio = image ? image.width / image.height : null;
     const naturalRatio = imageNode ? imageNode.naturalWidth / imageNode.naturalHeight : null;
     const dialogStyle = dialog ? getComputedStyle(dialog) : null;
@@ -696,7 +702,7 @@ async function assertDialogFit(page, label, touch = false) {
     } : null;
     const output = document.querySelector("[data-advertising-photo-zoom-status]");
     const outputRect = output?.getBoundingClientRect();
-    return { viewport, image, controls, ratio, naturalRatio, naturalWidth: imageNode?.naturalWidth, open: dialog?.open === true, innerWidth, innerHeight, padding, output: outputRect?.toJSON(), outputPosition: output ? getComputedStyle(output).position : null };
+    return { viewport, image, controls, resetCount, ratio, naturalRatio, naturalWidth: imageNode?.naturalWidth, open: dialog?.open === true, innerWidth, innerHeight, padding, output: outputRect?.toJSON(), outputPosition: output ? getComputedStyle(output).position : null };
   });
   assert(evidence.open && evidence.viewport && evidence.image, `${label}: dialog is not ready`);
   assert(evidence.image.left >= evidence.viewport.left - 1 && evidence.image.right <= evidence.viewport.right + 1 && evidence.image.top >= evidence.viewport.top - 1 && evidence.image.bottom <= evidence.viewport.bottom + 1, `${label}: fitted image is outside a viewport edge`);
@@ -708,8 +714,7 @@ async function assertDialogFit(page, label, touch = false) {
     assert(evidence.viewport.width >= evidence.innerWidth - 32, `${label}: mobile dialog viewport is too narrow (${evidence.viewport.width}px of ${evidence.innerWidth}px)`);
     assert(Math.abs(evidence.image.width - maximumFittedWidth) <= 2, `${label}: landscape fit ignores available geometry (${evidence.image.width}px of ${maximumFittedWidth}px)`);
   }
-  const resetControl = evidence.controls.find((control) => control.reset);
-  assert(resetControl && !resetControl.hidden && resetControl.disabled, `${label}: reset control must remain visible and disabled at Fit`);
+  assert.equal(evidence.resetCount, 0, `${label}: the viewer has no reset button (owner 2026-10-25)`);
   for (const control of evidence.controls) {
     if (control.hidden) continue;
     // Viewer touch R8: nút ẩn khỏi mắt trên màn cảm ứng, trừ nút đang có focus bàn phím.
@@ -717,7 +722,8 @@ async function assertDialogFit(page, label, touch = false) {
       assert(control.rect.width <= 1 && control.rect.height <= 1, `${label}: control is visible on touch`);
       continue;
     }
-    assert(control.rect.width >= 44 && control.rect.height >= 44, `${label}: control is smaller than 44px`);
+    // Nút viewer vuông 36px (primary-video-player R7, owner 2026-10-24).
+    assert(Math.abs(control.rect.width - 36) <= 1 && Math.abs(control.rect.height - 36) <= 1, `${label}: control is not 36px`);
     assert(control.rect.left >= -1 && control.rect.top >= -1 && control.rect.right <= evidence.innerWidth + 1 && control.rect.bottom <= evidence.innerHeight + 1, `${label}: control is outside browser viewport`);
   }
   assert(evidence.output && evidence.output.width <= 1 && evidence.output.height <= 1 && evidence.outputPosition === "absolute", `${label}: zoom output is not screen-reader-only (${JSON.stringify({ output: evidence.output, outputPosition: evidence.outputPosition })})`);
@@ -765,8 +771,6 @@ async function zoomState(page) {
       cover,
       plusDisabled: document.querySelector("[data-advertising-photo-zoom-in]").disabled,
       minusDisabled: document.querySelector("[data-advertising-photo-zoom-out]").disabled,
-      resetHidden: document.querySelector("[data-advertising-photo-zoom-reset]").hidden,
-      resetDisabled: document.querySelector("[data-advertising-photo-zoom-reset]").disabled,
       status: document.querySelector("[data-advertising-photo-zoom-status]")?.textContent,
     };
   });
@@ -839,7 +843,7 @@ async function middleClickReset(page, point, label) {
   await page.mouse.up({ button: "middle" });
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
   const state = await zoomState(page);
-  assert(Math.abs(state.scale - 1) < 0.02 && state.minusDisabled && !state.plusDisabled && !state.resetHidden && state.resetDisabled,
+  assert(Math.abs(state.scale - 1) < 0.02 && state.minusDisabled && !state.plusDisabled,
     `${label}: middle-click did not reset Fit controls`);
   assert.equal(state.status, "100%", `${label}: middle-click did not sync zoom status`);
   const after = await page.evaluate(() => ({
@@ -887,23 +891,21 @@ async function exerciseDialog(page, options) {
   const close = page.locator("[data-advertising-photo-close]");
   const zoomIn = page.locator("[data-advertising-photo-zoom-in]");
   const zoomOut = page.locator("[data-advertising-photo-zoom-out]");
-  const zoomReset = page.locator("[data-advertising-photo-zoom-reset]");
   const viewport = page.locator("[data-advertising-photo-viewport]");
   const expanded = page.locator("[data-advertising-photo-expanded-image]");
   await assertVisible(close, "close button");
-  await assertVisible(zoomReset, "zoom-reset button");
   await assertVisible(zoomIn, "zoom-in button");
   await assertVisible(zoomOut, "zoom-out button");
   let level = await zoomState(page);
-  assert(level.minusDisabled && !level.plusDisabled && !level.resetHidden && level.resetDisabled, `${options.label}: fit controls are incorrect`);
+  assert(level.minusDisabled && !level.plusDisabled, `${options.label}: fit controls are incorrect`);
   options.setStage?.("zoom-cover");
   await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled && !level.resetHidden && !level.resetDisabled, `${options.label}: first plus is not cover`);
+  assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled, `${options.label}: first plus is not cover`);
   options.setStage?.("zoom-max-pan");
   await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled && !level.resetHidden && !level.resetDisabled, `${options.label}: second plus is not two-times cover max`);
+  assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled, `${options.label}: second plus is not two-times cover max`);
   const beforePan = await transformEvidence(page);
   const viewportBox = await viewport.boundingBox();
   assert(viewportBox, "dialog viewport has no bounding box");
@@ -923,25 +925,25 @@ async function exerciseDialog(page, options) {
   assert(Math.abs(afterPan.translateX) <= afterPan.limitX + 1 && Math.abs(afterPan.translateY) <= afterPan.limitY + 1, `${options.label}: pan escaped clamp bounds`);
   await assertViewerLock(page, scrollBeforeLock, baseline, `${options.label} after zoom/pan`, options.settlements);
   assert.equal(page.url(), beforeUrl, `${options.label}: zoom/pan changed URL`);
-  options.setStage?.("reset");
-  await press(zoomReset, options.touch);
-  await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
+  options.setStage?.("zoom-out-to-fit");
+  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
+  await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.resetHidden && level.resetDisabled, `${options.label}: reset did not return to fit`);
+  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled, `${options.label}: two minus did not return max to fit`);
   options.setStage?.("zoom-out-sequence");
   await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   await clickZoom(page, "[data-advertising-photo-zoom-in]", { reducedMotion, label: options.label, touch: options.touch });
   await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.resetHidden && !level.resetDisabled, `${options.label}: minus did not return max to cover`);
+  assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled, `${options.label}: minus did not return max to cover`);
   await clickZoom(page, "[data-advertising-photo-zoom-out]", { reducedMotion, label: options.label, touch: options.touch });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.resetHidden && level.resetDisabled,
+  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled,
     `${options.label}: second minus did not return cover to fit`);
   options.setStage?.("wheel-anchor");
   let anchor = await wheelZoomAroundAnchor(page, { deltaY: -120, label: options.label });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled && !level.resetHidden && !level.resetDisabled,
+  assert(Math.abs(level.scale - level.cover) < 0.02 && !level.minusDisabled && !level.plusDisabled,
     `${options.label}: wheel up did not reach Cover with synced controls`);
   assert.equal(level.status, `${Math.round(level.scale * 100)}%`, `${options.label}: wheel zoom status is stale`);
   if (reducedMotion) {
@@ -949,7 +951,7 @@ async function exerciseDialog(page, options) {
   }
   await wheelZoomAroundAnchor(page, { deltaY: 120, label: options.label });
   level = await zoomState(page);
-  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.plusDisabled && !level.resetHidden && level.resetDisabled,
+  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.plusDisabled,
     `${options.label}: wheel down did not return to Fit with synced controls`);
   anchor = await wheelZoomAroundAnchor(page, { deltaY: -120, label: options.label });
   options.setStage?.("middle-reset");
@@ -962,7 +964,7 @@ async function exerciseDialog(page, options) {
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
   level = await zoomState(page);
-  assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled && !level.resetHidden && !level.resetDisabled,
+  assert(Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled,
     `${options.label}: keyboard activation did not reach two-times Cover`);
   await zoomOut.focus();
   await page.keyboard.press("Enter");
@@ -971,7 +973,7 @@ async function exerciseDialog(page, options) {
   await page.keyboard.press("Enter");
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
   level = await zoomState(page);
-  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled && !level.resetHidden && level.resetDisabled,
+  assert(Math.abs(level.scale - 1) < 0.02 && level.minusDisabled,
     `${options.label}: keyboard activation did not return to Fit`);
   options.setStage?.("rapid-wheel");
   await page.mouse.move(anchor.clientX, anchor.clientY);
@@ -981,7 +983,7 @@ async function exerciseDialog(page, options) {
   await page.mouse.wheel(0, -120);
   await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.dataset.advertisingViewerState === "open");
   level = await zoomState(page);
-  assert(Number.isFinite(level.scale) && Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled && !level.resetHidden && !level.resetDisabled,
+  assert(Number.isFinite(level.scale) && Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled,
     `${options.label}: rapid wheel input did not settle at the shared max state`);
   if (options.resize) {
     options.setStage?.("resize-while-zoomed");
@@ -998,7 +1000,7 @@ async function exerciseDialog(page, options) {
         && matrix && Math.abs(matrix.a - cover * 2) < 0.03;
     }, resizedViewport.width);
     level = await zoomState(page);
-    assert(Number.isFinite(level.scale) && Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled && !level.resetHidden && !level.resetDisabled,
+    assert(Number.isFinite(level.scale) && Math.abs(level.scale - level.cover * 2) < 0.03 && level.plusDisabled,
       `${options.label}: resize lost the shared max zoom state ${JSON.stringify(level)}`);
     await page.setViewportSize(originalViewport);
     await page.waitForFunction((expectedWidth) => {

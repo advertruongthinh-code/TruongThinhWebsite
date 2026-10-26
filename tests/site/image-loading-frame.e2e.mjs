@@ -404,14 +404,15 @@ try {
       return { photo: window.TruongThinhAdvertising.getBrowseState().photo, busy: frame.getAttribute("aria-busy"), skeleton: Boolean(frame.querySelector("[data-advertising-loading-skeleton]")),
         glass: Boolean(frame.querySelector(".glass-surface[data-glass-reveal]")), src: document.querySelector("[data-advertising-photo-image]").currentSrc };
     });
-    await page.locator("[data-advertising-card] a").first().click();
+    // Kính reveal là của ảnh; card mở bằng video (media tạm nhiều media) không có skeleton ảnh nên chọn card mở bằng ảnh.
+    await page.locator("[data-advertising-card]:not(:has(video)) a").first().click();
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-image]")?.parentElement.getAttribute("aria-busy") === "true"
       && document.querySelector("[data-advertising-photo-image]").parentElement.querySelector("[data-advertising-loading-skeleton]"));
     const first = await viewer();
     assert.ok(first.photo && first.skeleton, `${viewport.width}px: viewer shows the skeleton while primary loads`);
     await page.waitForFunction(() => document.querySelector("[data-advertising-related-card] > a"));
     const relatedId = await page.evaluate(() => {
-      const card = [...document.querySelectorAll("[data-advertising-related-card]")].find(node => node.querySelector("a") && node.getBoundingClientRect().height);
+      const card = [...document.querySelectorAll("[data-advertising-related-card]")].find(node => node.querySelector("a") && !node.querySelector("video") && node.getBoundingClientRect().height);
       card.querySelector("a").click();
       return card.dataset.advertisingRelatedCard;
     });
