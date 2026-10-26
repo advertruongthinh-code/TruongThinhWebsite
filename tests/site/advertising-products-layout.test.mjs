@@ -48,7 +48,7 @@ function fixture(ratios, category = "fixture") {
 function wideVideoCoverFixture() {
   const legacy = ADVERTISING_CARDS.find((card) => card.id === "signage-raised-letters-08");
   assert(legacy);
-  assert.deepEqual(readWebpSize(new URL(`../../src/site${legacy.media.src}`, import.meta.url)), [1254, 1254]);
+  assert.deepEqual(readWebpSize(new URL(`../../src/site${legacy.media.src}`, import.meta.url)), [3072, 3072]);
   assert.deepEqual(readWebpSize(new URL("./fixtures/site-media-card-poster.webp", import.meta.url)), [640, 360]);
   const image = {
     ...legacy.mediaItems[0], id: `${legacy.id}-wide-image`, altVi: "fixture ảnh", altEn: "fixture image",
@@ -156,8 +156,8 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
 
 test("M01d cards retain coordinate hash, order and no filler", () => {
   const order = ADVERTISING_CARDS.map((card) => card.id);
-  // Owner chuyển hai gian hàng dừa sang Gian hàng triển lãm (2026-10-23); 28 ảnh upscale (2026-10-26) và 11 ảnh gen lại (#872 đổi sang khung ngang) đổi kích thước pixel, hash cập nhật, thứ tự card giữ nguyên.
-  for (const [layoutViewportWidth, expectedHash] of [[390, "a3a2de61"], [1440, "0d4b0638"]]) {
+  // Owner chuyển hai gian hàng dừa sang Gian hàng triển lãm (2026-10-23); ảnh upscale owner duyệt 2026-10-26 (28 ảnh, 11 ảnh gen lại, 150 ảnh đợt 1-4; #872 đổi sang khung ngang) đổi kích thước pixel, hash cập nhật, thứ tự card giữ nguyên.
+  for (const [layoutViewportWidth, expectedHash] of [[390, "ba757040"], [1440, "5f5544cf"]]) {
     const layout = compileAdvertisingProductLayout({
       cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,

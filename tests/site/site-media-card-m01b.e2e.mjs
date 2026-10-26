@@ -57,7 +57,7 @@ function fixtureArtifact(videoCover = false) {
 function wideFixtureArtifact() {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === wideFixtureId);
-  assert(card && card.media.width === 1254 && card.media.height === 1254);
+  assert(card && card.media.width === 3072 && card.media.height === 3072);
   const image = {
     ...card.mediaItems[0], id: `${wideFixtureId}-wide-image`, kind: "image",
     src: `${fixturePrefix}poster.webp`, width: 640, height: 360,

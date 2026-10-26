@@ -18,7 +18,7 @@ const { chromium } = await import("playwright");
 function fixtureArtifact(count, videoCover) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === cardId);
-  assert(card && card.media.width === 1254 && card.media.height === 1254);
+  assert(card && card.media.width === 3072 && card.media.height === 3072);
   const image = {
     ...card.mediaItems[0], id: `${cardId}-r6-image-1`, kind: "image",
     src: `${fixturePrefix}poster.webp`, width: 640, height: 360,
