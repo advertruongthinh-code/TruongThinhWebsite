@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { responsiveSrcset, tierAutoSizes, tierSizes, tierSource } from "./responsive-image.mjs";
+import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   ADVERTISING_SEARCH_OPERATION_BUDGET,
@@ -77,6 +77,9 @@ const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
+// Skeleton card (advertising-skeleton R4): card vào viewport trong khoảng này sau scroll event thì khung và canvas Flow
+// hiện ngay không fade, để vuốt nhanh vẫn thấy gradient chạy.
+const SKELETON_SCROLL_ENTRY_MS = 250;
 // Khung card trên điện thoại chạy cả lúc vuốt: một phần tư số pixel để GPU giữ gate fps (R8, owner 18/10).
 const PHONE_CARD_FLOW = { width: 120, height: 80 };
 // Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
@@ -807,7 +810,7 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
   const srcset = responsiveSrcset(record.media.src, record.media.width);
   if (suggestion) {
     if (srcset) {
-      image.sizes = tierAutoSizes(image, "auto, 50vw");
+      image.sizes = "auto, 50vw";
       image.srcset = srcset;
     }
     image.src = record.media.src;
@@ -1121,7 +1124,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.alt = english ? item.altEn : item.altVi;
         const srcset = responsiveSrcset(item.src, item.width);
         if (srcset) {
-          layer.sizes = tierAutoSizes(layer, "auto, 50vw");
+          layer.sizes = "auto, 50vw";
           layer.srcset = srcset;
         }
         layer.src = item.src;
@@ -1332,10 +1335,9 @@ function setPlacementStyle(node, placement) {
 function sizeLazyImage(node, placement) {
   const image = node.querySelector("img[data-sizes]");
   if (!image) return;
-  // Mạng chậm thì ảnh chưa tải lấy nửa bề rộng (image-adaptive R3).
-  const sizes = tierSizes(image, Math.ceil(placement.pixelWidth));
-  image.dataset.sizes = sizes;
-  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= Number.parseFloat(sizes))) image.sizes = sizes;
+  const width = Math.ceil(placement.pixelWidth);
+  image.dataset.sizes = `${width}px`;
+  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= width)) image.sizes = `${width}px`;
 }
 
 function sizeNode(node, placement, setSize) {
@@ -1678,6 +1680,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let motionUntil = 0;
   let lastScrollAt = 0;
   let scrollActive = false;
+  // Cả scroll native lẫn site:scroll của Locomotive (PC cuộn trượt, window.scrollY đứng yên); chỉ tính khi vị trí đổi,
+  // vì lúc tải trang cũng có scroll event ở y không đổi.
+  let lastScrollEventAt = -Infinity;
+  const trackScroll = (readY) => {
+    let last = 0;
+    return (event) => {
+      const y = readY(event);
+      if (Math.abs(y - last) > 1) lastScrollEventAt = performance.now();
+      last = y;
+    };
+  };
+  const enteringWhileScrolling = () => performance.now() - lastScrollEventAt < SKELETON_SCROLL_ENTRY_MS;
   // Fling bận làm khoảng cách giữa hai scroll event vượt 120ms, nên đo thời gian một mình thấy "đã dừng" giữa fling;
   // có scrollend thì chờ nó, rồi vẫn giữ 120ms như cũ. Scroll do layout hoặc code (mở detail nhảy về y=0)
   // không bắn scrollend, nên quá PHONE_SCROLL_SETTLE_MS không có scroll event thì coi là đã dừng.
@@ -2176,6 +2190,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!canvas.isConnected) frame.querySelector(".advertising-grid__cta-surface")?.append(canvas);
     // Vẽ một lần khi canvas được lease nằm trong frame; không có paint nào chen giữa, nên vẫn thấy frame đầu.
     renderer?.draw(performance.now());
+    // Vuốt nhanh thì card chỉ ở trong viewport khoảng 270ms, fade 300ms thì Flow không kịp hiện (R4); ảnh tĩnh dưới canvas
+    // cùng pha nên hiện ngay không nhảy.
+    if (enteringWhileScrolling()) {
+      canvas.style.opacity = "1";
+      return;
+    }
     requestAnimationFrame(() => {
       if (!canvas.isConnected || skeletonFlowByFrame.get(frame) !== renderer
         || document.hidden || skeletonMotionPreference.matches) return;
@@ -2289,6 +2309,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         skeletonEntryFrames.delete(frame);
         return;
       }
+      // Card vào viewport lúc đang cuộn hiện ngay: fade 0.6s dài hơn thời gian vuốt nhanh để lại card trong viewport (R4).
+      if (!frame.dataset.advertisingCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
@@ -3444,8 +3466,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
   // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
-  // Lane dải và ảnh tải trước chọn bậc theo mạng như primary (image-adaptive R3); ảnh mới chưa có src nên chỉ mạng quyết.
-  const primarySource = (item) => item.kind === "video" ? item.posterSrc : tierSource(new Image(), item.src, item.width);
+  // Lane dải và ảnh tải trước dùng cùng file như primary.
+  const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
@@ -3584,7 +3606,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const renderPrimaryMedia = (record, item, slide = 0, motion = null) => {
     const english = locale === "en";
     const video = item.kind === "video";
-    const source = video ? null : tierSource(photoImage, item.src, item.width);
+    const source = video ? null : responsiveSource(item.src);
     // Viewer đang mở thì primary đổi thẳng: dải chèn cạnh photoVideo, mà video có thể đang nằm trong viewer.
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
@@ -3751,7 +3773,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       image.loading = "lazy";
       const thumbSrcset = item.kind === "video" ? "" : responsiveSrcset(item.src, item.width);
       if (thumbSrcset) {
-        image.sizes = tierAutoSizes(image, "auto, 25vw");
+        image.sizes = "auto, 25vw";
         image.srcset = thumbSrcset;
       }
       image.src = item.kind === "video" ? item.posterSrc : item.src;
@@ -4537,6 +4559,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
+  addEventListener("site:scroll", trackScroll(({ detail }) => detail.y), { passive: true, signal: controller.signal });
+  addEventListener("scroll", trackScroll(() => scrollY), { passive: true, signal: controller.signal });
   addEventListener("scroll", () => { lastScrollAt = performance.now(); scrollActive = "onscrollend" in window; }, { passive: true, signal: controller.signal });
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });

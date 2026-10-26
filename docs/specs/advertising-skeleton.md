@@ -7,9 +7,10 @@ source:
 tests:
   - tests/site/advertising-skeleton-flow.test.mjs
   - tests/site/advertising-skeleton-lifecycle.e2e.mjs
+  - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-19
+updated: 2026-10-26
 ---
 
 # Skeleton cuối masonry Advertising
@@ -86,7 +87,18 @@ các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 
+Skeleton chờ ảnh của card vào viewport trong `250ms` sau một scroll event làm đổi vị trí cuộn (PC: `site:scroll` của
+Locomotive; điện thoại: `scroll`) hiện ngay: khung không fade `0.6s`, canvas Flow không fade `300ms` (ảnh tĩnh dưới canvas
+là một khung hình cùng pha nên không nhảy). Vuốt nhanh (khoảng 7.500 px/s) để card trong viewport khoảng `270ms`, ngắn hơn
+hai fade cộng lại, nên trước đó người xem chỉ thấy ảnh tĩnh `48×32` mờ dần hiện, không thấy Flow (owner thấy trên PC,
+2026-10-26; đo Chromium cloud: Flow thấy rõ 7% thời gian card chờ ảnh, sau sửa 66%). Card vào lúc trang đứng yên (tải
+trang, đổi filter) giữ hai fade. Scroll event ở vị trí không đổi (lúc tải trang) không tính.
+
 ```gherkin
+Given PC, ảnh card tải chậm
+When vuốt nhanh làm card mới vào viewport
+Then khung skeleton của card hiện ngay ở opacity cuối và canvas Flow đã dựng hiện ngay, không transition opacity
+
 Given khung đã hiện xong và Flow đang chạy
 When cuộn khung ra hẳn vùng nhìn thấy rồi vào lại
 Then khung hiện ngay, không trống, reveal Kính không chạy lại
@@ -204,7 +216,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
-| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
+| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |

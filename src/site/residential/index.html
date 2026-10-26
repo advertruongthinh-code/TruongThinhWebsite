@@ -25,14 +25,6 @@
       // Khung ảnh giữ vệt sáng tới khi ảnh load và decode xong; nghe từ head nên không sót event của ảnh nào.
       document.documentElement.classList.add("media-gate");
       (() => {
-        // Trạng thái mạng của ảnh thích ứng (image-adaptive R2): lấy từ lượt tải trước, hoặc downlink trên Chromium;
-        // image-tier.js đo tiếp bằng Resource Timing. Save-Data luôn slow.
-        const root = document.documentElement;
-        const connection = navigator.connection;
-        let stored = null;
-        try { stored = sessionStorage.getItem("tt-network-tier"); } catch {}
-        const hinted = connection?.downlink > 0 && connection.downlink < 2;
-        root.dataset.networkTier = connection?.saveData || (stored || (hinted ? "slow" : "normal")) === "slow" ? "slow" : "normal";
         // failed: ảnh lỗi tải thì khung nhận thêm .is-media-error để CSS vẽ dấu báo lỗi (media-delivery R8).
         const settle = (image, failed = false) => {
           const parent = image.parentElement;
@@ -58,14 +50,9 @@
           const { width, height } = image.getBoundingClientRect();
           const ratio = image.getAttribute("width") / image.getAttribute("height");
           const needed = Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width);
-          // Mạng chậm: bậc nhẹ cần nửa số pixel, tối đa cỡ 960 để ảnh cover lớn (hero, portal, CTA) không rơi về bản gốc
-          // (image-adaptive R1, R3); image-tier.js nâng lại khi mạng nhanh.
-          const target = root.dataset.networkTier === "slow" ? Math.min(Math.ceil(needed / 2), Math.floor(960 / devicePixelRatio)) : needed;
           const loaded = image.currentSrc.replace(/\.\w+$/, "");
-          if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= target * devicePixelRatio))) return;
-          if (target < needed) Object.assign(image.dataset, { imageTier: "low", imageTierSizes: `${needed}px` });
-          else delete image.dataset.imageTier;
-          [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${target}px`));
+          if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= needed * devicePixelRatio))) return;
+          [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${needed}px`));
         }));
         const fitted = 'picture > img[loading="lazy"], picture > img[data-srcset]';
         // Container Barba dựng ngoài document nên ảnh có thể load xong trước khi gắn vào, event load không tới document;
@@ -1493,6 +1480,5 @@
     <script defer src="/assets/vendor/barba-2.10.3.umd.js"></script>
     <script defer src="/detail.js"></script>
     <script defer src="/motion.js"></script>
-    <script defer src="/image-tier.js"></script>
   </body>
 </html>
