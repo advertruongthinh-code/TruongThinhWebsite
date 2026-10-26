@@ -65,8 +65,7 @@ And chuyển sang video chậm tải thì khung card, canvas, dải lệch tối
 xem có `aria-current="true"`; nhóm có nhãn "Media của thẻ" / "Card media". Từ 6 item (owner 2026-10-18): dải chỉ có bộ đếm `i/N`
 giữa dải, đúng chỗ hàng chấm (`role="status"`, `aria-live="polite"`), không nút trong dải. Chấm hoặc bộ đếm nằm trong một pill
 giữa dải cùng dáng nhãn thời lượng (cao 24px, bo 8px), màu than `rgba(32,33,32,0.9)` như bộ đếm "2/8" của Pinterest; chấm
-đảo màu (thường trắng 40%, đang xem trắng), bộ đếm chữ trắng 12px 500 (owner 2026-10-26). Đổi media bằng mũi tên hover hoặc
-vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
+đảo màu (thường trắng 40%, đang xem trắng), bộ đếm chữ trắng 12px 500 (owner 2026-10-26). Đổi media bằng mũi tên hover hoặc vuốt. Vuốt ngang trên card (`|dx|` từ 40px và lớn hơn `|dy|`, pointer event, `touch-action:
 pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, chạm trong 400ms để không mở detail; click bàn phím không
 bị chặn. Từ 2026-10-19 (owner) vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi quá 10px (ngang nếu `|dx| > |dy|`),
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật

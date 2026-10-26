@@ -114,9 +114,10 @@ assert.match(index, /data-advertising-photo-info[^>]*aria-label="Thông tin ản
 assert.match(photoInfoMarkup, /data-advertising-photo-description[\s\S]*?data-advertising-photo-cta/, "CTA remains in primary information after the description pager");
 assert.doesNotMatch(index + runtime, /data-advertising-photo-tag-reset|advertisingSuggestionSlot|measureSuggestionHeight/, "standalone reset and legacy suggestion slot are absent");
 assert.match(runtime, /suggestionPlacement/, "R15 exposes the synthetic suggestion placement in the related grid");
-assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.4\);/, "portal and suggestion share the measured Pinterest inactive overlay token");
+assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.4\);/, "portal keeps the measured Pinterest inactive overlay token");
 assert.match(siteCss, /\.portal-shade \{[\s\S]*?background: var\(--media-label-overlay\);/, "homepage portal uses the shared inactive overlay");
-assert.match(css, /\.advertising-photo-view__suggestion-link::after \{[\s\S]*?background: var\(--media-label-overlay\);/, "inactive suggestion uses the same overlay");
+// Owner 2026-10-26: nút gợi ý chọn mức tối nhất 0,6 của Pinterest, luôn hiện, không dùng chung token 0,4 của portal.
+assert.match(css, /\.advertising-photo-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.6\);[^}]*opacity: 1;/, "inactive suggestion always shows the darkest overlay");
 assert.match(css, /advertising-photo-view__suggestion-links \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/, "suggestions use one full-width row per button");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?border-color: var\(--ink\);[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the ink border and white surface");
