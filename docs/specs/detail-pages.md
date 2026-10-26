@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-23
+updated: 2026-10-26
 ---
 
 # Trang Residential, Commercial và About
@@ -208,7 +208,7 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
 
-`.detail-cta#tu-van`: ảnh phủ khung có lớp tối 40%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
+`.detail-cta#tu-van`: ảnh phủ khung có lớp tối 50% (owner 2026-10-26), eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Rule CTA chung (owner 2026-10-15) cho CTA này, khối
 "Giữ nghề" ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) và CTA Advertising: tiêu đề
 canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,

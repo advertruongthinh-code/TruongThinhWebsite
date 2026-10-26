@@ -4,11 +4,6 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium } = await import("playwright");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
 
-function hasSharedMediaTiming({ duration, easing }) {
-  return duration.split(",").every((value) => value.trim() === "0.6s")
-    && easing.split(",").every((value) => value.trim() === "ease-out");
-}
-
 const browser = await chromium.launch({ headless: true });
 try {
   for (const locale of ["vi", "en"]) {
@@ -30,41 +25,22 @@ try {
       const rect = await card.boundingBox();
       await card.hover();
       await page.waitForTimeout(700);
-      const mediaMotion = () => image.evaluate((image) => {
-        const style = getComputedStyle(image);
-        return {
-          scale: new DOMMatrixReadOnly(style.transform).a,
-          duration: style.transitionDuration,
-          easing: style.transitionTimingFunction,
-        };
-      });
-      const hoverMotion = await mediaMotion();
-      assert.ok(Math.abs(hoverMotion.scale - 1.15) < 0.01, `${locale} ${detail ? "detail" : "parent"} hover zoom`);
-      assert(hasSharedMediaTiming(hoverMotion), `${locale} ${detail ? "detail" : "parent"} hover uses 600ms ease-out`);
+      // Owner 2026-10-18: card masonry và related không zoom media khi hover hay focus; focus chỉ có viền.
+      const mediaScale = () => image.evaluate((image) => new DOMMatrixReadOnly(getComputedStyle(image).transform).a);
+      assert.equal(await mediaScale(), 1, `${locale} ${detail ? "detail" : "parent"} hover keeps media still`);
       assert.deepEqual(await card.boundingBox(), rect, "Hover must not shift the card frame");
       await page.mouse.move(0, 0);
-      await page.waitForTimeout(700);
-      // Frame CI chậm có thể làm ease-out 600ms thiếu vài frame; chờ cho nó hoàn tất.
-      await image.evaluate(image => Promise.all(image.getAnimations().map(animation => animation.finished)));
-      assert.equal((await mediaMotion()).scale, 1);
       await page.keyboard.press("Tab");
       await card.locator("a").focus();
       await page.waitForTimeout(700);
-      const focusMotion = await mediaMotion();
-      assert.ok(Math.abs(focusMotion.scale - 1.15) < 0.01, "Keyboard focus matches hover feedback");
-      assert(hasSharedMediaTiming(focusMotion), "Keyboard focus keeps 600ms ease-out shared media timing");
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      const reducedMotion = await mediaMotion();
-      assert.equal(reducedMotion.scale, 1, "Reduced motion removes zoom while preserving focus");
-      assert.equal(reducedMotion.duration, "0s", "Reduced motion leaves no media transition");
+      assert.equal(await mediaScale(), 1, "Keyboard focus keeps media still");
       assert.notEqual(await card.locator("a").evaluate(e => getComputedStyle(e).outlineStyle), "none");
-      await page.emulateMedia({ reducedMotion: "no-preference" });
       const expectedPhoto = await card.locator("a").evaluate(e => (new URL(e.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null));
       await page.keyboard.press("Enter");
       await page.waitForFunction(id => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, expectedPhoto);
       // Primary dựng ở task sau cú bấm (advertising-detail R7), nên chờ photo view thay vì đọc ngay.
       await page.waitForFunction(id => document.querySelector(".advertising-photo-view")?.dataset.advertisingPhotoId === id, expectedPhoto);
-      console.log(`${locale} ${detail ? "detail" : "parent"} hover/focus/reduced/Enter passed`);
+      console.log(`${locale} ${detail ? "detail" : "parent"} hover/focus/Enter passed`);
     }
     await page.close();
   }

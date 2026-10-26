@@ -16,9 +16,9 @@ chuỗi ảnh nền.
   [slideshow hero](../../motion.md#suggestion-và-detail), ảnh không zoom, rồi ảnh mới đẩy ngang
   ảnh cũ trong `0.9s`; nút sau trễ nút trước `0.4s` thành sóng. Nút đang bật
   và reduced motion giữ ảnh tĩnh.
-- Hover chuột hoặc focus bàn phím: nhãn chạy
-  [gạch chân](../../motion.md#motion-theo-bề-mặt-ui) như nav và portal; ảnh
-  không zoom. Nút đang bật không gạch chân.
+- Lớp tối `0.5` luôn hiện, giữa hai mức `0.4` và `0.6` của Pinterest; hover chuột hoặc focus bàn
+  phím không đổi độ tối, nhãn chạy [gạch chân](../../motion.md#motion-theo-bề-mặt-ui) như nav
+  và portal; ảnh không zoom. Nút đang bật không có lớp tối, không gạch chân.
 - Ảnh nền chưa giải mã xong thì nút chưa bật hiện [Vệt sáng](../LoadSweep/README.md)
   phủ cả nút, nhãn vẫn đọc được.
 
