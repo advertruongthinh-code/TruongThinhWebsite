@@ -329,6 +329,8 @@
       targets.forEach((target) => observer.observe(target));
     };
 
+    // Vị trí ẩn của dòng trong mask do motion.js tính; thiếu thì giữ 2em.
+    const hiddenY = (index, line) => window.TruongThinhMotion?.maskHiddenY?.(index, line) ?? "2em";
     const SplitText = window.SplitText;
     if (gsap && !reduceMotion) {
       state.gsapContext = gsap.context(() => {
@@ -539,7 +541,7 @@
           gsap.set(
             parts,
             group.hasAttribute("data-motion-lines")
-              ? { y: isRevealed ? "-0.1em" : "2em" }
+              ? { y: isRevealed ? "-0.1em" : hiddenY }
               : { opacity: isRevealed ? 1 : 0 },
           );
           gsap.set(group, { opacity: 1 });
@@ -680,7 +682,7 @@
             gsap.set(
               parts,
               group.hasAttribute("data-motion-lines")
-                ? { y: "2em" }
+                ? { y: hiddenY }
                 : { opacity: 0 },
             );
           });
