@@ -6012,20 +6012,16 @@ body.is-advertising-browse .site-footer {
   outline-offset: 2px;
 }
 
-/* Nút gợi ý cũng mang class advertising-card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
+/* Lớp tối 0,6 luôn hiện, hover không đổi (owner 2026-10-26 chọn mức tối nhất của Pinterest). Nút gợi ý cũng mang class
+   advertising-card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
 .advertising-photo-view__suggestion-link::after {
   position: absolute;
   z-index: 1;
   inset: 0;
-  background: var(--media-label-overlay);
+  background: rgb(0 0 0 / 0.6);
   opacity: 1;
-  transition: opacity 250ms ease-out, background-color 250ms ease-out;
+  transition: opacity 250ms ease-out;
   content: "";
-}
-
-/* Hover chuột hoặc focus bàn phím tối lên 0,6 như Pinterest (owner 2026-10-26), cùng lúc gạch chân nhãn. */
-.advertising-photo-view__suggestion-link:not([aria-pressed="true"]):is(:hover, :focus-visible)::after {
-  background-color: rgb(0 0 0 / 0.6);
 }
 
 .advertising-photo-view__suggestion-link[aria-pressed="true"]::after {

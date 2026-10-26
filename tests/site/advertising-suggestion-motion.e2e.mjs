@@ -107,7 +107,7 @@ try {
     return after.opacity === "1" ? after.backgroundColor : `opacity ${after.opacity}`;
   });
   const inactiveNormal = await inactiveOverlay();
-  assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.4)", "inactive suggestion matches the portal and Pinterest overlay");
+  assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.6)", "inactive suggestion always shows the darkest Pinterest overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
     "image-backed inactive suggestion has no visible black border");
   const activeStyle = await activeLink.evaluate((link) => {
@@ -168,14 +168,14 @@ try {
     "active suggestion keyboard focus keeps media transform inert");
   await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).hover();
   await page.waitForTimeout(650);
-  assert.equal(await inactiveOverlay(), "rgba(0, 0, 0, 0.6)", "inactive suggestion hover darkens the overlay to 0.6 like Pinterest");
+  assert.equal(await inactiveOverlay(), inactiveNormal, "inactive suggestion hover keeps the same overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
     "image-backed inactive suggestion hover has no visible black border");
   const hoverStyle = await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).evaluate((link) => ({
     filter: getComputedStyle(link, "::after").filter,
     media: getComputedStyle(link.querySelector(".advertising-card-media__image")).transform,
   }));
-  assert.equal(hoverStyle.filter, "none", "hover darkens through the overlay color, not a filter");
+  assert.equal(hoverStyle.filter, "none", "hover does not darken through a filter");
   assert.doesNotMatch(hoverStyle.media, /matrix\(1\.15, 0, 0, 1\.15/, "suggestion hover no longer zooms the photo");
   // Gạch chân dùng chung rule với portal và nav: 3px, cách chữ 4px, scaleX 0.3s.
   const underline = (tag) => page.locator(`[data-advertising-suggestion-tag="${tag}"] .advertising-photo-view__suggestion-label > span`)
@@ -205,7 +205,7 @@ try {
   await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).focus();
   await page.waitForTimeout(650);
   assert.equal((await underline(alternate)).transform, "matrix(1, 0, 0, 1, 0, 0)", "suggestion keyboard focus draws the underline");
-  assert.equal(await inactiveOverlay(), "rgba(0, 0, 0, 0.6)", "suggestion keyboard focus darkens the overlay like hover");
+  assert.equal(await inactiveOverlay(), inactiveNormal, "suggestion keyboard focus keeps the same overlay");
   assert.match(detailCss, /suggestion-link:focus-visible \{[\s\S]*?outline: 2px solid var\(--ink\);/, "focus has a dedicated ring");
   assert.doesNotMatch(detailCss, /aria-pressed="true"[^}]*background-clip:\s*text/s,
     "active suggestion text is not image-masked");
