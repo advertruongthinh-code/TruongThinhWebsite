@@ -10,6 +10,7 @@ related_specs:
   - ../specs/advertising-skeleton.md
   - ../specs/glass-surface.md
   - ../specs/loading-glass-and-page-entry.md
+  - ../specs/primary-video-player.md
 related_reports: []
 ---
 
@@ -30,7 +31,9 @@ Trên phone Android, Chrome thật, màn chạy 90Hz: mọi trang public và m�
 skeleton, Kính) có fps trung bình của frame hiển thị (SurfaceFlinger, layer Chrome) từ `60fps` trở lên; mục tiêu
 tần số quét của màn (A05s: `90fps`, `11.1ms`). Fps trung bình là số frame chia tổng khoảng present-to-present trong lượt đo, bỏ các khoảng lặng
 từ `100ms` (trang đứng yên, không phải giật). Long task không còn là điều kiện pass; p5 và long task vẫn ghi để tìm
-chỗ giật. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
+chỗ giật. Màn chỉ có video đang phát, không cử chỉ (owner 2026-10-26): đạt khi video hiện đủ mọi frame của clip, không
+có frame rơi (`requestVideoFrameCallback`, `getVideoPlaybackQuality`), không chấm fps SurfaceFlinger vì màn chỉ đổi hình
+theo nhịp clip (24 frame/s); cử chỉ và hiệu ứng trên màn đó vẫn chấm `60fps`. Gate này thay sàn `30fps` điện thoại trong [skeleton R8](../specs/advertising-skeleton.md#r8-hiệu-năng)
 và [Kính R7](../specs/glass-surface.md#r7-hiệu-năng-và-trình-duyệt).
 
 ## Alternative đã cân nhắc
