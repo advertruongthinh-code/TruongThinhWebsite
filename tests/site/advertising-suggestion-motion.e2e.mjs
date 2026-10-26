@@ -101,7 +101,11 @@ try {
   assert(alternate, "fixture has an alternate suggestion");
   const activeLink = page.locator(`[data-advertising-suggestion-tag="${activeTag}"]`);
   const inactiveLink = page.locator(`[data-advertising-suggestion-tag="${alternate}"]`);
-  const inactiveOverlay = () => inactiveLink.evaluate((link) => getComputedStyle(link, "::after").backgroundColor);
+  // Lớp tối chỉ tính khi thật sự hiện: opacity khác 1 thì trả về opacity để assert màu fail.
+  const inactiveOverlay = () => inactiveLink.evaluate((link) => {
+    const after = getComputedStyle(link, "::after");
+    return after.opacity === "1" ? after.backgroundColor : `opacity ${after.opacity}`;
+  });
   const inactiveNormal = await inactiveOverlay();
   assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.4)", "inactive suggestion matches the portal and Pinterest overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",

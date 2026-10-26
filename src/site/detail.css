@@ -2744,11 +2744,13 @@ body.is-advertising-browse .site-footer {
   outline-offset: 2px;
 }
 
+/* Nút gợi ý cũng mang class advertising-card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
 .advertising-photo-view__suggestion-link::after {
   position: absolute;
   z-index: 1;
   inset: 0;
   background: var(--media-label-overlay);
+  opacity: 1;
   transition: opacity 250ms ease-out, background-color 250ms ease-out;
   content: "";
 }
