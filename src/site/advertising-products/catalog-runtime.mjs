@@ -4725,6 +4725,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     renderSuggestionLinks(browseHistory.current, locale === "en");
     getLayoutViewportHeight();
     await nextTask();
+    // Lộ view khi đã có mô tả card để showPhoto dựng primary cùng task: không frame nào vẽ ảnh mặc định của index.html.
+    await ensureDetail();
     photoView?.style.removeProperty("visibility");
     if (controller.signal.aborted) return cleanup;
     await showPhoto(browseHistory.current, "direct");
