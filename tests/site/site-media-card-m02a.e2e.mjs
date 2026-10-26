@@ -394,7 +394,9 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     state = await playerState(page);
     assert(Math.abs(state.currentTime - 1.5) < 0.3, `clicking the middle of the bar seeks: ${state.currentTime}`);
     await progress.press("ArrowLeft");
-    assert((await playerState(page)).currentTime < state.currentTime, "arrow key seeks backwards");
+    // Lệnh bàn phím chờ `seeked` của lệnh bấm thanh nếu lệnh đó còn chạy (R2).
+    await page.waitForFunction((before) => document.querySelector("[data-advertising-photo-video]").currentTime < before,
+      state.currentTime);
     await page.locator("[data-advertising-photo-play]").click();
     // `paused` đổi ngay khi gọi play(), nhãn chỉ đổi ở sự kiện `play` sau đó: chờ nhãn, không đọc một lần.
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused
@@ -494,7 +496,8 @@ test("M02a primary scrub past the buffered range holds the frame and seeks on re
   });
 });
 
-// Thả tay khi lệnh tua lúc kéo còn chạy: lệnh thả chờ `seeked` rồi mới tua, không chồng lệnh (R2; A04s 2026-10-26).
+// Thả tay khi lệnh tua lúc kéo còn chạy: lệnh thả chờ `seeked` rồi mới tua, không chồng lệnh; thả đúng chỗ lệnh kéo
+// cuối đang tua thì không tua lần hai (R2; A04s 2026-10-26).
 test("M02a primary release during an in-flight scrub seek waits for seeked", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -502,33 +505,35 @@ test("M02a primary release during an in-flight scrub seek waits for seeked", asy
       const video = document.querySelector("[data-advertising-photo-video]");
       return !video.paused && video.buffered.length && video.buffered.end(0) >= video.duration - 0.05;
     });
-    const result = await page.evaluate(() => new Promise((resolve) => {
-      const video = document.querySelector("[data-advertising-photo-video]");
-      const progress = document.querySelector("[data-advertising-photo-progress]");
-      const audit = { seeks: 0, overlaps: 0, inFlight: false };
-      video.addEventListener("seeking", () => {
-        audit.seeks += 1;
-        if (audit.inFlight) audit.overlaps += 1;
-        audit.inFlight = true;
-      });
-      video.addEventListener("seeked", () => { audit.inFlight = false; });
-      const target = video.duration * 0.7;
-      progress.value = String(video.duration * 0.3);
-      progress.dispatchEvent(new Event("input"));
-      const seeking = video.seeking;
-      progress.value = String(target);
-      progress.dispatchEvent(new Event("change"));
-      // currentTime đổi ngay khi gửi lệnh, trước event `seeking`: chờ hết lệnh tua (seeking false) rồi mới đọc.
-      const done = () => audit.seeks > 0 && !audit.inFlight && !video.seeking && !video.paused
-        && video.currentTime >= target - 0.05;
-      const poll = () => done() ? resolve({ ...audit, seeking, time: video.currentTime, target }) : requestAnimationFrame(poll);
-      setTimeout(() => resolve({ ...audit, seeking, time: video.currentTime, target, timeout: true }), 3000);
-      poll();
-    }));
-    assert.equal(result.seeking, true, `the scrub seek is still in flight at release: ${JSON.stringify(result)}`);
-    assert.equal(result.overlaps, 0, `the release seek waits for seeked: ${JSON.stringify(result)}`);
-    assert.equal(result.seeks, 2, `scrub seek then release seek: ${JSON.stringify(result)}`);
-    assert(!result.timeout, `playback resumes from the release point: ${JSON.stringify(result)}`);
+    for (const [releaseAt, seeks] of [[0.7, 2], [0.3, 1]]) {
+      const result = await page.evaluate((releaseAt) => new Promise((resolve) => {
+        const video = document.querySelector("[data-advertising-photo-video]");
+        const progress = document.querySelector("[data-advertising-photo-progress]");
+        const audit = { seeks: 0, overlaps: 0, inFlight: false };
+        video.addEventListener("seeking", () => {
+          audit.seeks += 1;
+          if (audit.inFlight) audit.overlaps += 1;
+          audit.inFlight = true;
+        });
+        video.addEventListener("seeked", () => { audit.inFlight = false; });
+        const target = video.duration * releaseAt;
+        progress.value = String(video.duration * 0.3);
+        progress.dispatchEvent(new Event("input"));
+        const seeking = video.seeking;
+        progress.value = String(target);
+        progress.dispatchEvent(new Event("change"));
+        // currentTime đổi ngay khi gửi lệnh, trước event `seeking`: chờ hết lệnh tua (seeking false) rồi mới đọc.
+        const done = () => audit.seeks > 0 && !audit.inFlight && !video.seeking && !video.paused
+          && video.currentTime >= target - 0.05;
+        const poll = () => done() ? resolve({ ...audit, seeking, time: video.currentTime, target }) : requestAnimationFrame(poll);
+        setTimeout(() => resolve({ ...audit, seeking, time: video.currentTime, target, timeout: true }), 3000);
+        poll();
+      }), releaseAt);
+      assert.equal(result.seeking, true, `the scrub seek is still in flight at release: ${JSON.stringify(result)}`);
+      assert.equal(result.overlaps, 0, `the release seek waits for seeked: ${JSON.stringify(result)}`);
+      assert.equal(result.seeks, seeks, `scrub seek, then a release seek only to a new point: ${JSON.stringify(result)}`);
+      assert(!result.timeout, `playback resumes from the release point: ${JSON.stringify(result)}`);
+    }
   });
 });
 

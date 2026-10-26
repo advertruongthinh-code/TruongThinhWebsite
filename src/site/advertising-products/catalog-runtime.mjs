@@ -3843,9 +3843,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     .some((index) => photoVideo.buffered.start(index) <= time && time <= photoVideo.buffered.end(index));
   // Mọi lệnh tua đi qua đây, kể cả lúc thả (A04s 2026-10-26: 2 tới 3 lệnh chồng mỗi lượt kéo, lệnh thả chồng lệnh kéo).
   // `seeking` tắt trước khi event `seeked` chạy (suy luận, chưa đo): lệnh gửi trong khe đó bỏ lệnh đang chờ, và `seeked`
-  // tới muộn không gửi chồng.
+  // tới muộn không gửi chồng. Lệnh trùng chỗ đang tua (bấm một điểm trên thanh, phím mũi tên: input rồi change cùng
+  // giá trị) thì không tua lần hai.
   const seekTo = (time) => {
-    if (photoVideo.seeking) pendingSeek = time;
+    if (time === photoVideo.currentTime) pendingSeek = null;
+    else if (photoVideo.seeking) pendingSeek = time;
     else {
       pendingSeek = null;
       photoVideo.currentTime = time;
