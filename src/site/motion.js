@@ -291,6 +291,18 @@
       mask.style.setProperty("--mask-ink-overflow-bottom", `${bottom}px`);
     });
   };
+  // Vị trí ẩn của dòng chữ trong mask: tụt hẳn dưới mép clip-path (đáy mask, mực dưới, vùng bóng cố định
+  // --text-shadow-reach). Chỉ tụt 2em thì chữ nhỏ (kicker portal) lộ phần đỉnh chữ qua vùng bóng 12px.
+  // Cận 0.6em + 8px phủ mực đo sau bằng measureTextMasks; chữ lớn vẫn lấy 2em như cũ.
+  const maskHiddenY = (_, line) => {
+    const size = Number.parseFloat(getComputedStyle(line).fontSize) || 16;
+    const mask = line.parentElement;
+    if (!mask?.matches(textMaskSelector)) return 2 * size;
+    const reach = Number.parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue("--text-shadow-reach"),
+    ) || 0;
+    return Math.max(2 * size, mask.offsetHeight + 0.6 * size + 8 + reach);
+  };
   // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
   // max(0.1em, 6px); thiếu thì chỉ giãn đúng cặp dòng đó. Mực từng ký tự đo bằng canvas, vị trí chữ
   // lấy ở trạng thái cuối animation (.heritage-line nâng 0.1em khi motion bật).
@@ -881,6 +893,7 @@
     };
   };
   window.TruongThinhMotion = {
+    maskHiddenY,
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
     lockLogicalScroll() {
@@ -1321,13 +1334,13 @@
       } else {
         if (revealItems.length) gsap.set(revealItems, { opacity: 0, y: 60 });
         revealGroups.forEach((group) =>
-          gsap.set(group.querySelectorAll(".line-mask > span"), { y: "2em" }),
+          gsap.set(group.querySelectorAll(".line-mask > span"), { y: maskHiddenY }),
         );
-        if (heritageLines.length) gsap.set(heritageLines, { y: "2em" });
+        if (heritageLines.length) gsap.set(heritageLines, { y: maskHiddenY });
         portalTitles.forEach(({ card, lines }) =>
           gsap.set(
             lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
-            { y: "2em" },
+            { y: maskHiddenY },
           ),
         );
       }
@@ -1368,7 +1381,7 @@
           if (line) {
             gsap.fromTo(
               line,
-              { y: "2em" },
+              { y: maskHiddenY },
               {
                 y: "-0.1em",
                 duration: 1.9,
@@ -1655,16 +1668,16 @@
           gsap.set(sectionReveals, { opacity: 0, y: 60 });
         }
         sectionGroups.forEach((group) =>
-          gsap.set(group.querySelectorAll(".line-mask > span"), { y: "2em" }),
+          gsap.set(group.querySelectorAll(".line-mask > span"), { y: maskHiddenY }),
         );
         sectionLegacyLabels.forEach((label) => label.classList.remove("is-inview"));
         if (sectionHeritageLines.length) {
-          gsap.set(sectionHeritageLines, { y: "2em" });
+          gsap.set(sectionHeritageLines, { y: maskHiddenY });
         }
         sectionPortalTitles.forEach(({ card, lines }) =>
           gsap.set(
             lines.length ? lines : card.querySelectorAll(".portal-copy strong"),
-            { y: "2em" },
+            { y: maskHiddenY },
           ),
         );
         if (sectionHeroWords.length) gsap.set(sectionHeroWords, { opacity: 0 });
