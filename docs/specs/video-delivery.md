@@ -222,15 +222,10 @@ Không đổi giao diện; card video và player giữ component hiện có
 | R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc`; không có `hlsSrc` hoặc Media Source thì không tải hls.js |
 | R4 | `tests/site/video-delivery.e2e.mjs`: server giới hạn 60 kbps rồi bỏ giới hạn, một video khác tải segment; frame sau giây 2 lên 480 trong 4 s, frame cách nhau dưới 250 ms, `waiting` dưới 100 ms (cloud đo 2 tới 6 ms; ngưỡng 10 ms đo ở R6). Tắt luật thay thì ca này đỏ |
 | R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp playlist; không có Media Source thì không nạp hls.js |
-| R6 | `tests/site/video-delivery-measure.mjs --base <98f3963> --candidate <nhánh> --h2`, chạy tay: 4G chậm 9 lượt mỗi bản (đứng hình, video không kịp chạy), mạng nhanh (thời gian chạy), lượt đổi bậc (lên bậc, `waiting`, frame tối, `droppedVideoFrames`); A04s thêm `DEVICE_CDP`. Main thread PC: `pnpm qa:scroll-trace`. Tiếng ở detail kiểm tay |
+| R6 | `tests/site/video-delivery-measure.mjs --base <98f3963> --candidate <nhánh> --h2`, chạy tay: 4G chậm 9 lượt mỗi bản (đứng hình, video không kịp chạy), mạng nhanh (thời gian chạy), lượt đổi bậc (lên bậc, `waiting`, frame tối, `droppedVideoFrames`); A04s thêm `DEVICE_CDP`. Main thread PC: `pnpm qa:scroll-trace`; A04s cuộn masonry (2026-10-26, 3 lượt mỗi bản, trace CDP): hls.js bận hơn khoảng 2 điểm so với chặn hls.js, 81,8 so với 71,6 fps, 24 so với 49 frame quá 33 ms. Tiếng ở detail kiểm tay |
 
 ## Gate còn mở
 
-- Main thread khi cuộn masonry (đo 2026-10-25, bản fbfb596): PC bận 32% so với 24-27% khi chặn hls.js hoặc ở 89f9b00,
-  A04s 20-21% so với 19% và thêm 8 tới 10 frame quá 33 ms mỗi lượt; các instance dùng chung một worker, JS khoảng 10 MB.
-  Đã sửa: dừng tải khi tải hết clip (R4), đọc `nextAutoLevel` một lần mỗi video; cloud 52 card, script hls.js mỗi lượt
-  cuộn 20 s giảm từ 1.000 xuống 610 ms; PC đo lại 33% so với 32% khi chặn hls.js. Tắt worker đo không đổi nên bỏ. A04s
-  đo lại khi có phone (sau 2026-10-27).
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone (2026-10-25). Cũng chưa kiểm
   Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
 - CMS phase 2: upload video phải sinh cùng thang chất lượng. Chọn [Cloudflare Stream](https://developers.cloudflare.com/stream/pricing)

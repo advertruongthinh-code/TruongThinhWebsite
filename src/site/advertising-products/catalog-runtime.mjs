@@ -3473,9 +3473,24 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   liveBackground.hidden = true;
   photoBackground?.after(liveBackground);
   const liveScratch = document.createElement("canvas");
-  let liveFrame = 0;
+  // Hủy lượt vẽ đang chờ (rAF hoặc requestVideoFrameCallback); null khi không có lượt nào.
+  let cancelLive = null;
+  // Dải trượt đổi mỗi frame nên vẽ theo rAF; video thì chỉ vẽ khi có frame mới: màn A04s 90Hz mà clip 24-30 frame/s,
+  // vẽ theo rAF lặp lại cùng một frame 3 lần (đo A04s 2026-10-26: primary video 42,5 fps).
+  const queueLive = (videoFrame) => {
+    if (videoFrame && photoVideo.requestVideoFrameCallback) {
+      const id = photoVideo.requestVideoFrameCallback(drawLiveBackground);
+      cancelLive = () => photoVideo.cancelVideoFrameCallback(id);
+    } else {
+      const id = requestAnimationFrame(drawLiveBackground);
+      cancelLive = () => cancelAnimationFrame(id);
+    }
+  };
   const drawLiveBackground = () => {
-    liveFrame = 0;
+    cancelLive = null;
+    // Viewer mở thì nền dưới backdrop đứng yên (advertising-detail R9): vẽ tiếp bắt blur 50px của backdrop tính lại mỗi
+    // frame, viewer video trên A04s còn 28 fps (đo 2026-10-26). Đóng viewer thì `close` vẽ lại.
+    if (photoDialog?.open) return;
     const strip = primaryStrip;
     const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
       : [{ node: photoVideo, x: 0 }];
@@ -3505,10 +3520,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       context.filter = BAKED_FILTERS.at(-1);
       context.drawImage(liveScratch, -bleed, -bleed);
     }
-    if (strip || !photoVideo.paused) liveFrame = requestAnimationFrame(drawLiveBackground);
+    if (strip || !photoVideo.paused) queueLive(!strip);
   };
+  // Vẽ ngay frame tới (đổi nguồn, tua, đóng dải hay viewer), sau đó lượt vẽ tự chọn nhịp.
   const startLiveBackground = () => {
-    if (!liveFrame) liveFrame = requestAnimationFrame(drawLiveBackground);
+    cancelLive?.();
+    queueLive(false);
   };
   // Tiếng fade cùng nhịp dải (PUSH_TIMING) khi video chuyển giữa phát và dừng (owner 2026-10-19); ngoài lúc fade,
   // photoVideo.volume luôn là mức người xem chọn. Người xem chỉnh tiếng giữa lúc fade thì thắng (R11): fade thôi ghi
@@ -3576,7 +3593,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Hình video đứng trong dải; tiếng chạy nốt và nhỏ dần cùng nhịp dải rồi video mới dừng.
     if (playing) fadeVolume(-1, () => photoVideo.pause());
     placeStrip(lanes, width, offset);
-    cancelAnimationFrame(liveFrame);
+    cancelLive?.();
     drawLiveBackground();
     return primaryStrip;
   };
@@ -3828,6 +3845,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // ngoài đoạn đã tải thì giữ frame, thả tay (change) mới tua rồi phát tiếp nếu trước đó đang phát. Bàn phím cùng đường.
   const isBuffered = (time) => Array.from({ length: photoVideo.buffered.length }, (_, index) => index)
     .some((index) => photoVideo.buffered.start(index) <= time && time <= photoVideo.buffered.end(index));
+  // Mọi lệnh tua đi qua đây, kể cả lúc thả (A04s 2026-10-26: 2 tới 3 lệnh chồng mỗi lượt kéo, lệnh thả chồng lệnh kéo).
+  // `seeking` tắt trước khi event `seeked` chạy (suy luận, chưa đo): lệnh gửi trong khe đó bỏ lệnh đang chờ, và `seeked`
+  // tới muộn không gửi chồng. Lệnh trùng chỗ đang tua (bấm một điểm trên thanh, phím mũi tên: input rồi change cùng
+  // giá trị) thì không tua lần hai.
+  const seekTo = (time) => {
+    if (time === photoVideo.currentTime) pendingSeek = null;
+    else if (photoVideo.seeking) pendingSeek = time;
+    else {
+      pendingSeek = null;
+      photoVideo.currentTime = time;
+    }
+  };
   photoProgress?.addEventListener("input", () => {
     const time = Number(photoProgress.value);
     if (!scrub) {
@@ -3837,20 +3866,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     setRangeFill(photoProgress);
     photoTimeCurrent.textContent = formatVideoTime(time);
     if (!isBuffered(time)) pendingSeek = null;
-    else if (photoVideo.seeking) pendingSeek = time;
-    else photoVideo.currentTime = time;
+    else seekTo(time);
   }, { signal: controller.signal });
   photoProgress?.addEventListener("change", () => {
     if (!scrub) return;
     const { wasPlaying } = scrub;
-    scrub = pendingSeek = null;
-    photoVideo.currentTime = Number(photoProgress.value);
+    scrub = null;
+    seekTo(Number(photoProgress.value));
     if (wasPlaying) void photoVideo.play().catch(() => {});
   }, { signal: controller.signal });
   photoVideo?.addEventListener("seeked", () => {
-    if (pendingSeek === null) return;
-    photoVideo.currentTime = pendingSeek;
-    pendingSeek = null;
+    if (pendingSeek !== null) seekTo(pendingSeek);
   }, { signal: controller.signal });
   // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
   photoVolume?.addEventListener("input", () => {
@@ -3882,6 +3908,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   for (const type of ["play", "seeked", "loadeddata", "emptied"]) {
     photoVideo?.addEventListener(type, startLiveBackground, { signal: controller.signal });
   }
+  photoDialog?.addEventListener("close", startLiveBackground, { signal: controller.signal });
   photoVideo?.addEventListener("play", () => {
     cancelAnimationFrame(videoTimeFrame);
     tickVideoTime();
