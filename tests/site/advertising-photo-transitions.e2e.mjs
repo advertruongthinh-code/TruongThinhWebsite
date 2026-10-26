@@ -75,13 +75,19 @@ const snapshot = () => ({
   clones: [...document.querySelectorAll("[data-advertising-photo-morph]")].map((node) => ({ id: node.dataset.advertisingPhotoId, src: node.currentSrc, rect: node.getBoundingClientRect().toJSON() })),
   locked: [document.body.style.overflow, document.documentElement.style.overflow],
 });
+// waitForFunction không chờ giá trị của Promise mà predicate trả về (Promise luôn truthy nên điều kiện xong ngay lần đầu);
+// vòng chờ theo frame vì vậy chạy trong trang bằng evaluate.
 // Smooth scroll giảm tốc dần về đích; chỉ đọc logical position khi nó đã dừng hẳn.
 async function restingScroll(page) {
-  await page.waitForFunction(() => new Promise((resolve) => {
-    const start = window.TruongThinhMotion.getLogicalScroll();
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve(Math.abs(window.TruongThinhMotion.getLogicalScroll() - start) < 0.5)));
+  return page.evaluate(() => new Promise((resolve) => {
+    const read = () => window.TruongThinhMotion.getLogicalScroll();
+    const check = (previous) => requestAnimationFrame(() => requestAnimationFrame(() => {
+      const current = read();
+      if (Math.abs(current - previous) < 0.5) resolve(current);
+      else check(current);
+    }));
+    check(read());
   }));
-  return page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
 }
 async function settle(page, predicate, argument) {
   await page.waitForFunction(predicate, argument, { timeout: 8_000 });
@@ -92,6 +98,35 @@ async function settle(page, predicate, argument) {
 async function ready(page, id) {
   await settle(page, (expected) => document.querySelector("[data-advertising-photo-view]")?.dataset.advertisingPhotoId === expected && document.querySelector("[data-advertising-photo-image]")?.complete, id);
 }
+// Thay các khoảng chờ cố định: detail đang mở đã dựng xong related (dựng qua nhiều task, advertising-detail R7; runtime
+// đặt data-advertising-detail-ready) và primary reveal đã chạy xong (aria-busy gỡ cùng task bắt đầu reveal), không còn animation hữu hạn hay tween GSAP chưa xong,
+// và trạng thái đó giữ nguyên qua hai frame liên tiếp. Chỉ chứng minh "không còn gì chạy"; ca nào cần motion đã bắt đầu
+// thì phải chờ tín hiệu bắt đầu của nó trước.
+async function quiet(page) {
+  const settled = await page.evaluate(() => new Promise((resolve) => {
+    const deadline = performance.now() + 15_000;
+    const busy = () => {
+      const view = document.querySelector("[data-advertising-photo-view]");
+      if (view && !view.hidden && (view.dataset.advertisingDetailReady !== "true"
+        || view.querySelector(".advertising-photo-view__hero-frame[aria-busy]"))) return true;
+      // media-hover-zoom là zoom 5s chạy nền liên tục trên card đang trong view, không phải chuyển cảnh.
+      if (document.getAnimations().some((animation) => (animation.playState === "running" || animation.playState === "pending")
+        && animation.effect?.getComputedTiming().iterations !== Infinity
+        && !animation.effect?.target?.classList.contains("media-hover-zoom"))) return true;
+      return Boolean(window.gsap?.globalTimeline.getChildren(false, true, false)
+        .some((tween) => !tween.paused() && tween.repeat() !== -1 && tween.totalProgress() < 1));
+    };
+    const check = () => {
+      if (performance.now() > deadline) return resolve(false);
+      if (busy()) return requestAnimationFrame(check);
+      requestAnimationFrame(() => requestAnimationFrame(() => (busy() ? check() : resolve(true))));
+    };
+    check();
+  }));
+  assert(settled, "page did not settle within 15s");
+}
+// Hover transition (150ms) chạy xong rồi mới đọc màu: chờ animation của chính nút, không chờ số ms cố định.
+const settleHover = (control) => control.evaluate((node) => Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {}))));
 async function openA(page) {
   await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
@@ -188,7 +223,9 @@ async function armNoGridMorphProbe(page) {
 }
 
 async function noGridMorphEvidence(page, expectedPhoto, expectedY) {
-  await page.waitForTimeout(600);
+  // Frame của entry đích chỉ tính khi view đã đổi sang entry đó; chờ probe ghi được ít nhất một frame như vậy.
+  await page.waitForFunction((photo) => window.__ttM02bProbe.frames.some((entry) => entry.photo === photo && entry.shown), expectedPhoto);
+  await quiet(page);
   const evidence = await page.evaluate(() => {
     const probe = window.__ttM02bProbe;
     probe.restore();
@@ -330,9 +367,12 @@ async function armInputTimingProbe(page, selector) {
 async function readInputTimingProbe(page) {
   await page.waitForFunction(() => window.__ttP13InputTiming?.firstFeedbackAt !== null
     && window.__ttP13InputTiming?.handlerTaskEndAt !== null, null, { timeout: 2_000 });
-  await page.waitForTimeout(60);
   return page.evaluate(() => {
     const probe = window.__ttP13InputTiming;
+    // PerformanceObserver giao entry bất đồng bộ; takeRecords lấy ngay phần chưa giao.
+    for (const entry of probe.observer?.takeRecords() ?? []) {
+      if (probe.inputAt !== null && entry.startTime >= probe.inputAt - 1) probe.longTasks.push({ startTime: entry.startTime, duration: entry.duration });
+    }
     probe.observer?.disconnect();
     return {
       inputToFirstFeedbackMs: probe.firstFeedbackAt - probe.inputAt,
@@ -787,6 +827,8 @@ try {
       await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", card.coverMediaId);
       // Y của grid đến từ layout random, nên chọn Y của detail tránh nó.
       const target = Math.abs(y0 - 480) > 150 ? 480 : 0;
+      // Detail mở mới dựng related qua nhiều task; trước đó trang chỉ cao bằng primary và setLogicalScroll bị kẹp về đáy.
+      await quiet(page);
       await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), target);
       await page.waitForFunction((y) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, target);
       const y1 = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
@@ -795,8 +837,11 @@ try {
 
       stage(`${locale}-Back-grid-detail-media`);
       await page.goBack();
-      await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
-      await page.waitForTimeout(650);
+      await page.waitForFunction((y) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
+        && document.querySelector("[data-advertising-photo-view]").hidden && Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, y0)
+        .catch(() => {}); // lệch Y thì assert dưới báo giá trị thật
+      await quiet(page);
+      await restingScroll(page);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
       const gridMedia = await page.locator(`[data-advertising-card="${mediaCardId}"]`).getAttribute("data-advertising-active-media-id");
@@ -806,7 +851,9 @@ try {
       stage(`${locale}-Forward-detail-image`);
       await page.goForward();
       await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
-      await page.waitForTimeout(650);
+      await page.waitForFunction((y) => Math.abs(window.TruongThinhMotion.getLogicalScroll() - y) <= 1, y1).catch(() => {});
+      await quiet(page);
+      await restingScroll(page);
       const forwardY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(forwardY - y1) <= 1, `${locale}: Forward restored detail Y ${forwardY}, expected ${y1}`);
       const activeThumb = await page.locator('[data-advertising-photo-media-select][aria-current="true"]').getAttribute("data-advertising-photo-media-select");
@@ -848,11 +895,18 @@ try {
       };
       const positionCard = async (selector) => {
         // Đo card lúc đứng yên: related card vẫn chạy placement 0.4s sau khi photo mở.
-        await page.waitForFunction((target) => new Promise((resolve) => {
-          const top = document.querySelector(target)?.getBoundingClientRect().top;
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve(top !== undefined
-            && top === document.querySelector(target).getBoundingClientRect().top
-            && !document.querySelector(target).getAnimations().length)));
+        await page.evaluate((target) => new Promise((resolve, reject) => {
+          const deadline = performance.now() + 15_000;
+          const check = () => {
+            const top = document.querySelector(target)?.getBoundingClientRect().top;
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              const node = document.querySelector(target);
+              if (node && top === node.getBoundingClientRect().top && !node.getAnimations().length) resolve();
+              else if (performance.now() > deadline) reject(new Error(`${target} did not come to rest`));
+              else check();
+            }));
+          };
+          check();
         }), selector);
         await page.evaluate((target) => {
           const rect = document.querySelector(target).getBoundingClientRect();
@@ -1073,11 +1127,11 @@ try {
         await link.press("Enter");
       } else await link.click();
       await ready(page, id);
-      await page.waitForTimeout(650);
-      // Bấm card related dựng lại related qua nhiều task (advertising-detail R1); runner bận có thể xong sau
-      // 650ms (đo được thêm 50 tới 460ms), nên chờ card cũ rời related rồi mới đếm. Quá 5s vẫn còn thì assert dưới đỏ.
+      // Bấm card related dựng lại related qua nhiều task (advertising-detail R1): chờ card cũ rời related rồi mới đếm,
+      // và đợi related mới dựng xong. Quá 5s vẫn còn thì assert dưới đỏ.
       await page.waitForFunction((photoId) => !document.querySelector(`[data-advertising-related-card="${photoId}"]`), id, { timeout: 5_000 })
         .catch(() => {});
+      await quiet(page);
       const state = await page.evaluate((photoId) => ({
         clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
         staleCards: document.querySelectorAll(`[data-advertising-related-card="${photoId}"]`).length,
@@ -1110,24 +1164,24 @@ try {
     const evidence = [];
     const checkDisabled = async (control, enabled) => {
       await page.mouse.move(500, 350);
-      await page.waitForTimeout(180);
+      await page.evaluate(frame);
       const normal = await read(control);
       assert(normal.disabled, "zoom limit must use native disabled state");
       assert(shade(normal.color) - shade((await read(enabled)).color) >= 60, "disabled icon must be visibly lighter");
       await control.hover();
-      await page.waitForTimeout(180);
+      await page.evaluate(frame);
       assert.deepEqual(await read(control), normal, "disabled control must not respond to hover");
       evidence.push({ disabled: normal });
     };
     const activate = async (control, label) => {
       stage(label);
       await page.mouse.move(500, 350);
-      await page.waitForTimeout(180);
+      await page.evaluate(frame);
       const normal = await read(control);
       assert.equal(normal.radius, "0px", "keep square design");
       assert.equal(normal.width, 36, "36px white square (primary-video-player R7)");
       await control.hover();
-      await page.waitForTimeout(180);
+      await page.evaluate(frame);
       const hovered = await read(control);
       assert(shade(normal.background) - shade(hovered.background) >= 20, `${label}: hover needs clear tonal change ${JSON.stringify({ normal, hovered })}`);
       const bounds = await control.boundingBox();
@@ -1136,13 +1190,13 @@ try {
       await page.mouse.down();
       let pressed = await read(control);
       for (let attempt = 0; attempt < 6 && shade(hovered.background) - shade(pressed.background) < 12; attempt += 1) {
-        await page.waitForTimeout(100);
+        await page.evaluate(frame);
         pressed = await read(control);
       }
       assert(shade(hovered.background) - shade(pressed.background) >= 12,
         `${label}: press needs distinct feedback ${JSON.stringify({ hovered, pressed })}`);
       await page.mouse.up();
-      await page.waitForTimeout(250);
+      await page.evaluate(frame);
       evidence.push({ label, normal, hovered, pressed });
     };
     await checkDisabled(controls["zoom-out"], controls["zoom-in"]);
@@ -1170,10 +1224,15 @@ try {
       for (let step = 1; step <= 9; step++) {
         await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{
           x: from.x + (to.x - from.x) * step / 9, y: from.y + (to.y - from.y) * step / 9, id: 1 }] });
-        await page.waitForTimeout(22);
+        await page.evaluate(frame);
       }
       await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-      await page.waitForTimeout(400);
+      // Viewer đóng ngay khi pointerdown (state closing); không thì zoom xong về open. Chờ một trong hai rồi mới đọc.
+      await page.waitForFunction(() => {
+        const dialog = document.querySelector("#advertising-photo-dialog");
+        return !dialog.open || dialog.dataset.advertisingViewerState === "open";
+      });
+      await page.evaluate(frame);
     };
     const evidence = [];
     for (const locale of ["vi", "en"]) {
@@ -1364,9 +1423,17 @@ try {
     });
     assert(retainedStarts.length > 0 && retainedDeltas.every(({ left, top }) => Math.abs(left) <= 1 && Math.abs(top) <= 1),
       `filter layout did not retain the current visual positions at input ${JSON.stringify(retainedDeltas)}`);
+    await page.evaluate(() => { window.__ttResized = new Promise((resolve) => addEventListener("resize", resolve, { once: true })); });
     await page.setViewportSize({ width: 844, height: 390 });
     await page.locator('[data-advertising-filter="all"]').click();
-    await page.waitForTimeout(450);
+    await page.waitForFunction(() => document.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter === "all");
+    // Runtime relayout ở rAF sau resize, transition 400ms của card bắt đầu ở frame kế: chờ resize tới rồi qua ba frame
+    // trước khi tin rằng không còn motion nào sắp bắt đầu.
+    await page.evaluate(async () => {
+      await window.__ttResized;
+      for (let index = 0; index < 3; index += 1) await new Promise(requestAnimationFrame);
+    });
+    await quiet(page);
     const interrupted = await page.evaluate(() => ({
       activeFilter: document.querySelector('[data-advertising-filter][aria-current="true"]')?.dataset.advertisingFilter,
       clones: document.querySelectorAll("[data-advertising-photo-morph]").length,
@@ -1733,7 +1800,7 @@ try {
   await caseRun("morph-backdrop-lifecycle", { width: 1440, height: 900 }, async (page, stage) => {
     await installBackdropMorphProbe(page);
     const read = async (label) => {
-      await page.waitForTimeout(650);
+      await quiet(page);
       // Crossfade tại chỗ (loading-glass-and-page-entry R4) có thể fade backdrop; nó phải kết thúc và chỉ đổi opacity.
       await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-background]")?.getAnimations()
         .some(({ playState }) => playState === "pending" || playState === "running"), null, { timeout: 5000 });
@@ -1789,7 +1856,7 @@ try {
     await ready(page, B);
     await page.goBack();
     await ready(page, A);
-    await page.waitForTimeout(650);
+    await quiet(page);
     const state = await page.evaluate(() => {
       const probe = window.__ttM02bProbe;
       probe.restore();
@@ -2056,7 +2123,7 @@ try {
     assert.equal(titleMotion.ease, "power4.out");
     assert.equal(titleMotion.stagger, 0.1);
     assert(Math.abs(titleMotion.duration - (1.9 + 0.1 * (titleMotion.count - 1))) < 0.01, "CTA line timing differs from shared motion");
-    await page.waitForTimeout(2100);
+    await quiet(page);
     await page.screenshot({ path: path.join(output, "cta-overlay-desktop.png") });
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
     await page.evaluate(() => {
@@ -2074,7 +2141,7 @@ try {
     assert.notEqual(filtered.signature, initial.signature, "filter did not recompute CTA skeleton");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForFunction((columns) => Number(document.querySelector("[data-advertising-cta-skeleton]")?.dataset.advertisingCtaColumns) !== columns, filtered.columns);
-    await page.waitForTimeout(450);
+    await page.waitForFunction(() => document.querySelector("[data-advertising-grid-cta]").getAnimations().length === 0);
     const resized = await readCta();
     assertCta(resized, "resized");
 
@@ -2174,12 +2241,12 @@ try {
     }
     const zoomOut = page.locator("[data-advertising-photo-zoom-out]");
     const disabledBackground = await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor);
-    await zoomOut.hover(); await page.waitForTimeout(300);
+    await zoomOut.hover(); await page.evaluate(frame); await settleHover(zoomOut);
     assert.equal(await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor), disabledBackground,
       "disabled zoom-out received active hover treatment");
     const zoomIn = page.locator("[data-advertising-photo-zoom-in]");
     const zoomBackground = await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor);
-    await zoomIn.hover(); await page.waitForTimeout(300);
+    await zoomIn.hover(); await page.evaluate(frame); await settleHover(zoomIn);
     assert.notEqual(await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor), zoomBackground);
     assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
     await page.locator("[data-advertising-photo-close]").click();

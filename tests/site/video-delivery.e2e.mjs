@@ -105,6 +105,7 @@ test("R3: card plays the ladder capped at 480, detail continues at the top rung,
   const { browser, page } = await open();
   try {
     const card = await playingCard(page);
+    const sampledAt = Date.now();
     assert.equal(card.source, hlsSrc, "card loads master.m3u8 through hls.js");
     assert.equal(card.width, 480, "card is capped at the 480 rung");
     await page.locator(`[data-advertising-card="${card.id}"] > a`).click();
@@ -114,7 +115,10 @@ test("R3: card plays the ladder capped at 480, detail continues at the top rung,
     }, null, { timeout: 15000, polling: 50 }).then((handle) => handle.jsonValue());
     assert.equal(detail.source, hlsSrc, "primary loads master.m3u8 through hls.js");
     assert.equal(detail.width, 640, "primary starts at the first rung of the playlist");
-    assert(detail.time >= card.time - 0.2 && detail.time < card.time + 2, `primary continues from the card time: ${card.time} -> ${detail.time}`);
+    // Cận trên theo thời gian thật đã trôi từ lúc lấy mẫu card (máy tải cao làm chuyển route lâu hơn một mốc cố định).
+    const elapsed = (Date.now() - sampledAt) / 1000;
+    assert(detail.time >= card.time - 0.2 && detail.time < card.time + elapsed + 0.5,
+      `primary continues from the card time: ${card.time} -> ${detail.time} after ${elapsed}s`);
     const src = await page.locator("[data-advertising-photo-video]").evaluate((video) => video.src);
     await page.locator("[data-advertising-photo-expand]").click();
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").closest("dialog[open]"));

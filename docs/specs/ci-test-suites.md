@@ -177,7 +177,7 @@ Then chạy fast, detail-pages, footer và media giống CI
 Khoảng 30 script e2e đang chạy tay được đưa vào bộ, mỗi lần một bộ. Script phải xanh trên runner CI trước khi vào
 manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
 sửa theo demo trong cùng PR. Chỗ demo trông như lỗi (vỡ layout, lỗi console) thì gom lại hỏi owner một lần, không tự
-quyết. Không skip, tắt hay quarantine test để lấy xanh (chạy lại có kiểm soát theo [R9](#r9-chạy-lại-lệnh-đỏ-một-lần) không phải skip). Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
+quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
 
 ```gherkin
 Given script shared-header-single-line đỏ vì test đòi hành vi demo đã đổi
@@ -195,22 +195,10 @@ mà mode trong bộ đã gọi (`HEADER`, `LOCALE`, `M2`...) cũng nằm ở `ma
 không chạy hai lần. Phần độ phủ phụ thuộc
 [phân loại Advertising](advertising-taxonomy.md) chưa làm ở đây.
 
-### R9. Chạy lại lệnh đỏ một lần
+### R9. Không tự chạy lại lệnh đỏ
 
-Owner chọn 2026-10-26. `suites.mjs` chạy lại đúng lệnh đó một lần (cùng preview server, cùng `BASE_URL`) khi một lệnh của
-bộ khác `fast` thoát khác 0. Xanh lần hai: lệnh tính xanh, in `::warning::flaky <bộ>: <lệnh>` và ghi vào danh sách flaky
-của job summary. Đỏ lần hai: đỏ, giữ log cả hai lần. Không chạy lại ở cấp job hay bộ. `fast` không chạy lại vì xác định
-(deterministic): đỏ là đỏ. Danh sách flaky là sổ đếm, không phải skip hay quarantine: lỗi thật đỏ cả hai lần; lỗi chập chờn của
-sản phẩm cũng xanh lần hai nên dấu vết chỉ nằm ở sổ, vì vậy thread sở hữu bộ dùng sổ để sửa gốc (ngoài PR hạ tầng).
-
-```gherkin
-Given lệnh e2e của bộ adv-viewer đỏ lần đầu do timing
-When suites.mjs chạy lại đúng lệnh đó và lần hai xanh
-Then bộ adv-viewer xanh, job summary ghi lệnh đó là flaky
-
-Given lệnh đỏ cả hai lần
-Then bộ đỏ và log giữ cả hai lần
-```
+CI không tự chạy lại lệnh hay job đỏ. Owner bỏ quy tắc chạy lại một lần ngày 2026-10-26 vì sau R4 nó chỉ còn tác dụng
+cho lượt đêm. Lượt đêm đỏ là đỏ; người xem lượt đêm có thể re-run tay một lần trước khi giao sửa.
 
 ### R10. Đo thời gian từng lệnh
 
@@ -227,7 +215,7 @@ chạy lại một lần khi quá hạn, vì apt treo ở bước này đã làm
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | Data | `tests/ci-suites.json` | Bộ, spec, lệnh test, `shared`, `manual`; agent sửa khi thêm test |
-| Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ (lệnh đỏ chạy lại một lần, R9; ghi thời gian, R10), dọn server; exit khác 0 khi có lệnh đỏ |
+| Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ (ghi thời gian, R10), dọn server; exit khác 0 khi có lệnh đỏ |
 | Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
 | Check | `static-release` | Check tổng mà Automerge đọc |
 
@@ -236,7 +224,6 @@ chạy lại một lần khi quá hạn, vì apt treo ở bước này đã làm
 | R | Test hoặc command |
 | --- | --- |
 | R1, R3 | `tests/tooling/ci-suites.test.mjs`: mọi e2e thuộc đúng một bộ, bảng chọn bộ theo file mẫu |
-| R9 | `tests/tooling/ci-suites.test.mjs`: lệnh giả đỏ một lần rồi xanh cho cờ flaky, đỏ hai lần cho bộ đỏ, `fast` không chạy lại |
 | R10 | Job summary và artifact `suite-timing` của một run CI thật |
 | R11 | `timeout-minutes` trong `ci.yml` |
 | R4, R5 | Run CI thật trên một PR docs-only, một PR có code (chỉ `fast`), một lượt `workflow_dispatch` với `full: true` |
@@ -264,5 +251,4 @@ chạy lại một lần khi quá hạn, vì apt treo ở bước này đã làm
 - **Runner**: máy chạy job GitHub Actions; ở đây là `ubuntu-latest` do GitHub cấp.
 - **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm.
 - **Flaky**: test lúc xanh lúc đỏ dù code không đổi.
-- **Deterministic**: cùng đầu vào luôn cho cùng kết quả.
 - **Job summary**: trang tóm tắt của một job GitHub Actions, ghi từ `$GITHUB_STEP_SUMMARY`.

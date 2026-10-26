@@ -52,11 +52,13 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    khảo sát ([SEO R2](../specs/seo.md)). Không tên thương hiệu, logo hay nhãn hàng
    thật; tên, chữ, xưng hô và khung treo theo [Media chung](#media-chung).
    Brief nào cũng phải:
-   - nêu cách giấu mặt của từng người bằng hình học khả thi với tư thế và góc
-     máy (quay lưng, đi ra xa, đầu khuất sau vật cao, vành nón khi cúi, ngoài
-     khung); không kính hay mặt bóng hướng về máy; người buộc phải hướng về máy
-     (người bán quay về phía khách) thì mặt không trực diện, chìm trong bóng che
-     hoặc ngược sáng (owner chốt 2026-10-14);
+   - nêu cách che mặt của từng người bằng hình học khả thi với tư thế và góc
+     máy (quay lưng, đi ra xa, nghiêng hoặc cúi, đầu khuất sau vật cao, vành nón,
+     phụ kiện hoặc vật thể che, ngoài khung); mặt có thể thấy một phần nhưng
+     không thấy rõ trọn vẹn; hiệu ứng ảnh nghệ thuật (ngược sáng, bóng che) được
+     dùng để mặt không nhìn rõ; không kính hay mặt bóng hướng về máy; người buộc
+     phải hướng về máy (người bán quay về phía khách) thì mặt không trực diện,
+     chìm trong bóng che hoặc ngược sáng (owner chốt 2026-10-14, nới 2026-10-26);
    - xe bán hàng, quầy di động chụp từ hướng khách hàng, thấy trọn mặt trước xe;
      người bán đứng trong quầy, quay về phía khách (owner chốt 2026-10-14);
    - ngành kinh doanh khớp bối cảnh thật (không quầy khách sạn trong hội chợ);
@@ -66,7 +68,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      phụ (slogan, motto), không ghi một từ trơn; thiết kế bắt mắt, đọc rõ từ xa
      theo tinh thần "để thương hiệu luôn trong tầm mắt" (không in câu này); chữ
      đủ lớn để đọc đúng dấu; biển một mặt quay về máy; chữ LED ma trận không đặt
-     ở cỡ nhỏ (owner chốt 2026-10-14);
+     ở cỡ nhỏ (owner chốt 2026-10-14); chữ lớn, nét dày, ưu tiên hình;
+     chữ AI lỗi thì đổi font hoặc góc nhìn (2026-10-26);
    - không dùng xe đẩy inox kiểu cũ có tủ kính ba mặt (như xe hủ tiếu), owner
      loại 2026-10-14;
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:
@@ -110,7 +113,7 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
    - bối cảnh tỉnh lẻ miền Tây ghi rõ nhà thấp tầng, không tòa tháp, không resort;
    - chữ chủ thể gồm tên và một dòng phụ, prompt đánh vần từng dấu; biển nền
      không có chữ đọc được;
-   - tư thế người không mâu thuẫn với cách giấu mặt (nhân viên trao ly thì khách
+   - tư thế người không mâu thuẫn với cách che mặt (nhân viên trao ly thì khách
      buộc phải quay về máy);
    - ảnh tham khảo chỉ để học hình dạng, vật liệu, cấu tạo, tỷ lệ thật; không học
      bố cục, người, chữ, thương hiệu;
@@ -162,12 +165,16 @@ không lấy trung bình.
 | Hợp ngôn ngữ thị giác ([Design System](../../design-system/README.md)), tinh tế nhưng trung thực cấu tạo | 2 |
 | Bổ sung khác biệt hữu ích cho bộ ảnh | 2 |
 
-**Loại thẳng dù đủ điểm**: mặt nhận diện được; thương hiệu hoặc watermark sao
+**Loại thẳng dù đủ điểm**: thấy rõ trọn mặt (mặt thấy một phần, bị che bởi tư
+thế, góc khuất, phụ kiện, vật thể, ngược sáng hay bóng che thì không loại); thương hiệu hoặc watermark sao
 chép; chép chữ, logo hoặc thiết kế của ảnh tham khảo; chữ chủ thể sai; kết cấu
 bất khả thi hoặc xưởng không làm được; sai nhóm; sản phẩm lớn bị cắt; crop
 hoặc kéo méo để ép tỷ lệ; khai sai provenance; bản crop hoặc export lại coi
 như ảnh mới; ảnh trong chuỗi không định vị được trên mặt bằng hoặc mâu thuẫn ảnh
 khác của chuỗi; chủ thể hoặc chi tiết sáng nằm trong vùng chữ của slot.
+
+Ngoại lệ (owner chốt 2026-10-18): với đợt ảnh tạo bằng ChatGPT web, owner tự audit
+ảnh, không dùng agent chấm.
 
 Một agent chấm, độc lập với agent tạo ảnh (owner chốt 2026-10-13, thay cho ba
 agent). Agent mở ảnh, chấm đủ hai bảng, ghi điểm từng mục và lỗi; soi cả kết
