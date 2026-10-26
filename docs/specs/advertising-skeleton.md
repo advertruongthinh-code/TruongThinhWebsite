@@ -121,16 +121,19 @@ nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống v
 xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
 
 Skeleton chờ ảnh trong media card và primary: trình duyệt không có worker dùng renderer riêng mỗi khung, tối đa 12 renderer;
-trình duyệt có worker dùng chung một context (đoạn dưới), tối đa 24 khung chạy trên PC và 12 khung trên điện thoại. Khung đang thấy
+PC dùng chung một context trong worker (đoạn dưới), tối đa 24 khung chạy; điện thoại dùng context riêng mỗi khung, xếp 4 khung mỗi
+worker (tối đa 12 khung, 3 worker). Khung đang thấy
 giữ renderer đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi left). Khung chưa có renderer hiện frame
 tĩnh của preset. Nhả renderer trước khi cấp mới nên xoay máy không vượt ngân sách. Renderer vẽ trong một module worker
 chung của document qua `OffscreenCanvas` (owner 19/10): rAF của worker không chờ main thread, nên khi vuốt nhanh main
 thread bận masonry (rAF còn khoảng 12fps trên A04s) Flow vẫn chạy theo tần số màn hình. Worker tự tạo context, compile
 program và noise; nhả renderer thì worker trả context (`loseContext`), main thay canvas đã transfer bằng canvas tĩnh
 mới ở pha đã lưu. Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo 26/10 trên RTX 3090, Chrome 155:
-tạo context thứ 5 thì context cũ nhất bị thu hồi mà main thread không được báo), nên (đo cả trên PC và A04s) worker
-có đúng một context WebGL cho mỗi cỡ canvas (PC `240x160`, khung card điện thoại `120x80`): mỗi khung vẽ một lượt vào context đó rồi chuyển hình sang canvas của khung bằng
-`bitmaprenderer` (`data-advertising-flow-context="shared"`). Mất context của worker thì dựng lại và chạy tiếp. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
+tạo context thứ 5 thì context cũ nhất bị thu hồi mà main thread không được báo), nên trên PC worker có đúng một
+context WebGL: mỗi khung vẽ một lượt vào context đó rồi chuyển hình sang canvas của khung bằng `bitmaprenderer`
+(`data-advertising-flow-context="shared"`), mất context của worker thì dựng lại và chạy tiếp. Điện thoại (A04s, cùng giới hạn 4)
+giữ context riêng mỗi khung nhưng xếp tối đa 4 khung mỗi worker, nên 12 khung chạy trên 3 worker; context chung trên A04s
+làm fps SurfaceFlinger tụt dưới 60 và khoảng giữa hai lần vẽ p95 vượt `33ms` (đo 26/10) nên không dùng. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
 worker lỗi thì về renderer main thread: ngân sách 12 context tính cả context đang dùng và đang rảnh, context giữ theo
 document và dùng lại (trả lease thì xóa buffer, texture, listener, RAF đúng một lần, giữ canvas, context và program đã
 compile; compile mất khoảng 60ms trên A05s cũ), lease mới bắt đầu ở pha đã lưu, context mới tạo ở task trước task dựng
@@ -221,7 +224,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
 | R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
-| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400 và điện thoại: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
+| R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |
 | R8 | `advertising-continuation.e2e.mjs` (desktop 1569×912, cần Chrome có GPU); điện thoại chưa có test, đo bằng trace Chrome qua CDP ([debug Android](../operations/android-real-device-debugging.md)) |
@@ -237,9 +240,9 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
-- Điện thoại (R5): đo 26/10 trên A04s, Chrome 156, vuốt nhanh masonry với ảnh bị giữ, trước khi đưa khung điện thoại qua
-  context chung: 12 khung báo `running` nhưng chỉ 4 khung chuyển động thật (worker tạo 78 context, mất 74, còn 4 sống).
-  Bản dùng context chung cho điện thoại chưa đo trên A04s: cần số khung chuyển động thật và gate fps R8. Owner và máy phone.
+- Điện thoại (R5): đo 26/10 trên A04s, Chrome 156, vuốt nhanh masonry với ảnh bị giữ, bản main trước khi sửa: 12 khung
+  báo `running` nhưng chỉ 4 chuyển động thật (worker tạo 78 context, mất 74, còn 4 sống); bản context chung chạy đủ khung
+  nhưng trượt gate fps R8. Bản 4 khung mỗi worker chưa đo trên A04s: cần số khung chuyển động thật và gate R8. Owner và máy phone.
 
 ## Chú thích thuật ngữ
 

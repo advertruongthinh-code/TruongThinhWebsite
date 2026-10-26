@@ -125,10 +125,6 @@ try {
     const states = await page.evaluate(() => [...document.querySelectorAll("[data-advertising-flow-state]")]
       .map((node) => node.dataset.advertisingFlowState));
     assert.ok(states.includes("running"), `phone: Flow runs while the detail images load ${JSON.stringify(states)}`);
-    // Chrome chỉ giữ 4 context WebGL mỗi worker nên khung điện thoại cũng vẽ chung một context (R5).
-    const contexts = await page.evaluate(() => [...document.querySelectorAll("canvas[data-advertising-flow-context]")]
-      .map((node) => node.dataset.advertisingFlowContext));
-    assert.ok(contexts.length && contexts.every((value) => value === "shared"), `phone: worker Flow uses the shared context ${JSON.stringify(contexts)}`);
     await page.waitForFunction(() => {
       const loaded = [...document.querySelectorAll("[data-advertising-related-card]")]
         .filter((card) => card.querySelector("img")?.naturalWidth > 0);
