@@ -85,14 +85,14 @@ Card đang dừng (chưa vào màn hoặc đã cuộn qua) tải xong một segm
 thì tải tiếp từ vị trí phát. Ở 4G chậm card ngoài màn tải hết clip giành băng thông nên segment đầu của card vừa hiện
 mất 3,8 s (đo cloud 2026-10-25). Primary và viewer không áp luật này.
 
-hls.js bản `1.7.3` (Apache-2.0), dùng bản light (bỏ phụ đề, track tiếng riêng, DRM, quảng cáo chèn): 119 KB gzip,
-386 KB chưa nén (đo từ gói npm). Ghim đúng version trong `package.json` như các vendor khác, `prepare-static-assets.mjs`
-chép `dist/hls.light.min.js` sang `assets/vendor/`; runtime catalog nạp cùng lúc tải artifact, không chặn render: đợi tới
-card video đầu thì ở 4G chậm card đầu đã hiện mà thư viện chưa về (đo 2026-10-25: 2/64 video không kịp chạy, tải sớm
-0/61). Không có Media Source thì không tải. Không dùng tag
-`latest` hay canary: gói từng có hai bản canary 1.7.0 chứa mã độc
-([OSV MAL-2026-3019](https://osv.dev/vulnerability/MAL-2026-3019)), bản 1.7.3 phát hành 2026-09-11. Giây video truyền
-giữa card và detail như media-card R4, R6; poster, lỗi video và lịch phát không đổi.
+hls.js bản `1.7.3` (Apache-2.0), dùng bản light (bỏ phụ đề, track tiếng riêng, DRM, quảng cáo chèn): 119 KB gzip, 386 KB
+chưa nén (đo từ gói npm). Ghim đúng version trong `package.json` như các vendor khác, `prepare-static-assets.mjs` chép
+`dist/hls.light.min.js` sang `assets/vendor/`; runtime catalog nạp cùng lúc tải artifact, không chặn render: đợi tới
+card video đầu thì ở 4G chậm card đầu đã hiện mà thư viện chưa về (đo cloud qua HTTP/2 2026-10-25, 26: tải khi cần 2/64
+video không kịp chạy, tải sớm 2/127, tải sớm cùng luật card đang dừng 0/127). Không có Media Source thì không tải. Không
+dùng tag `latest` hay canary: gói từng có hai bản canary 1.7.0 chứa mã độc ([OSV
+MAL-2026-3019](https://osv.dev/vulnerability/MAL-2026-3019)), bản 1.7.3 phát hành 2026-09-11. Giây video truyền giữa
+card và detail như media-card R4, R6; poster, lỗi video và lịch phát không đổi.
 
 ```gherkin
 Given trình duyệt có Media Source
@@ -176,15 +176,15 @@ Then card vẫn phát cardSrc, primary vẫn phát src như hiện tại và tra
 Kịch bản: viewport A04s (384x724, DPR 1,875), cuộn masonry 16 nấc 400 px, mỗi nấc chờ 1,5 s; mạng 4G chậm 1,6 Mbps, RTT
 150 ms (mức Lighthouse dùng cho mobile), tắt cache; mỗi bản 9 lượt xen kẽ; server local đặt sau proxy HTTP/2 nén brotli
 như Cloudflare (server tĩnh local HTTP/1.1 không nén làm card đầu hiện sau 11,6 s thay vì 2,8 s). So với bản 480 cố định
-(98f3963; đo cloud 2026-10-25 bằng bản AV1 cùng tỷ lệ dung lượng: 0/59 video không kịp chạy, 1,2 lần đứng hình mỗi
-video), bản HLS phải có số lần đứng hình mỗi video không quá 0,6 và số video không kịp chạy không nhiều hơn. Mạng nhanh
-và PC không kém đi: video chạy trong 50 ms sau khi hiện quá 1/2; frame trên 33 ms và main thread bận trên PC không tăng
-so với 98f3963 (gồm cả việc của hls.js). Thay phần bậc thấp (R4): mạng 300 kbps (bậc 480 nhẹ nhất 277 kbps nên card ở
-bậc 240) tới khi một card ở nửa dưới màn hình phát bậc 240, rồi bỏ giới hạn và cuộn để card khác tải segment; video đó
-lên bậc cao trong 4 s (`videoWidth` đổi), không có `waiting` dài hơn 10 ms, `currentTime` liên tục, `droppedVideoFrames`
-không tăng hơn lượt không đổi bậc; quay màn hình từng frame quanh điểm đổi không có frame đen, poster hay skeleton; ở
-detail có tiếng, tiếng thu từ `captureStream()` không có khoảng lặng ở điểm đổi. Số nghiệm thu đo trên Chrome thật (PC,
-A04s); Chromium cloud không có H.264 nên đo bằng thang AV1 cùng tỷ lệ dung lượng.
+(98f3963; đo cloud 2026-10-25, 26 bằng bản AV1 cùng tỷ lệ dung lượng: 0 video không kịp chạy, 0,54 tới 1,2 lần đứng hình
+mỗi video tùy đợt), bản HLS phải có số lần đứng hình mỗi video không quá 0,6 và số video không kịp chạy không nhiều hơn.
+Mạng nhanh và PC không kém đi: video chạy trong 50 ms sau khi hiện quá 1/2; frame trên 33 ms và main thread bận trên PC
+không tăng so với 98f3963 (gồm cả việc của hls.js). Thay phần bậc thấp (R4): mạng 300 kbps (bậc 480 nhẹ nhất 277 kbps
+nên card ở bậc 240) tới khi một card ở nửa dưới màn hình phát bậc 240, rồi bỏ giới hạn và cuộn để card khác tải segment;
+video đó lên bậc cao trong 4 s (`videoWidth` đổi), không có `waiting` dài hơn 10 ms, `currentTime` liên tục,
+`droppedVideoFrames` không tăng hơn lượt không đổi bậc; quay màn hình từng frame quanh điểm đổi không có frame đen,
+poster hay skeleton; ở detail có tiếng, tiếng thu từ `captureStream()` không có khoảng lặng ở điểm đổi. Số nghiệm thu đo
+trên Chrome thật (PC, A04s); Chromium cloud không có H.264 nên đo bằng thang AV1 cùng tỷ lệ dung lượng.
 
 ```gherkin
 Given bản HLS và bản 480 cố định trên cùng máy, cùng kịch bản 4G chậm

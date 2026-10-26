@@ -4,6 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
+import { ADVERTISING_CATALOG_DETAIL } from "../../.site-output/advertising-products/catalog-detail.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const base = process.env.BASE_URL || "http://localhost:8792";
@@ -42,7 +43,8 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
   // Nhiều media hơn một dòng thumbnail và mô tả dài hơn vùng mô tả, để dãy và mô tả phải cuộn.
   if (crowded) {
     card.mediaItems.push(...Array.from({ length: 6 }, (_, index) => ({ ...card.mediaItems[0], id: `${cardId}-extra-${index}` })));
-    card.descriptionVi = card.descriptionEn = Array(8).fill(card.descriptionEn).join(" ");
+    // Artifact chỉ giữ phần grid (static-release R1), mô tả nằm ở catalog-detail.
+    card.descriptionVi = card.descriptionEn = Array(8).fill(ADVERTISING_CATALOG_DETAIL[cardId].descriptionEn).join(" ");
   }
   if (singleton) {
     card.mediaItems = [card.mediaItems[1]];
