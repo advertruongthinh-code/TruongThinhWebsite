@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-19
+updated: 2026-10-26
 ---
 
 # Detail Advertising
@@ -51,39 +51,39 @@ And không có clone ảnh giữa card và primary
 ### R2. Hình học primary
 
 `computeAdvertisingPhotoGeometry` (`layout-core.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
-không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột, info một cột,
-cao bằng phần viewport dưới header thu gọn (R10) trừ gap và safe area; primary chưa chiếm hết cột thì trừ thêm `50px` để hàng related dưới
-lộ 50px, chiếm hết cột (điện thoại ngang) thì related xếp dưới, không chừa 50px. `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
+không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
+([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
+thu gọn (R10) trừ gap, safe area và, khi primary chưa chiếm hết cột, `50px` để related lộ dưới; chiếm hết cột (điện thoại ngang) thì không chừa. `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap; vùng ảnh rộng
 hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa phần viewport dưới header, không chừa 50px. Ảnh `contain` trong vùng;
-dư quá `0.5px` thì `data-advertising-photo-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ một dòng mô tả
-cùng nhóm, CTA, indicator thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
+dư quá `0.5px` thì `data-advertising-photo-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả
+(hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
 ```gherkin
 Given viewport 1569×912 (4 cột), 820×912 (3 cột) và 891×360 (3 cột, điện thoại ngang)
 When mở cùng một ảnh ngang
-Then 1569px: layout split, primary span 3, ảnh hai cột, primary chừa 50px ở đáy viewport
+Then 1569px: layout split, primary span 3, ảnh hai cột, khung cao theo ảnh, chừa ít nhất 50px ở đáy viewport
 And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới header, info không quá 28% viewport
 And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao bằng vùng ảnh, related xếp dưới primary
 ```
 
 ### R3. Info: nhóm, mô tả, CTA
 
-Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, mô tả căn trái và CTA; không có tiêu đề ảnh. Mô tả không có thanh cuộn
-riêng: `paginateDescription` chia theo từ cho vừa pager, mỗi trang trọn dòng; indicator (aria-label "Trang mô tả n trên N" /
-"Description page n of N") chỉ hiện khi nhiều trang. Từ 2 đến 5 trang, indicator là hàng chấm: mỗi trang một nút 24px chứa
-chấm tròn 8px viền `ink`, trang đang xem tô `ink` và `aria-current="true"`; bấm chấm nhảy tới trang đó. Từ 6 trang, indicator
-là chữ `n / N`. Lật trang bằng `ArrowLeft`/`ArrowRight`, wheel ngang (`|dx| > |dy|`,
-`|dx| >= 18`) hoặc kéo ngang: quá 8px theo chiều ngang thì giữ pointer, thả khi lệch từ 36px. Input dọc luôn cuộn trang.
-Resize, font tải xong tính lại trang và giữ trang đang đọc nếu còn. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab
-mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
+Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, dãy thumbnail ([media-card R6](media-card.md#r6-media-trong-primary)),
+mô tả và CTA; không có tiêu đề ảnh. Mô tả căn trái (bỏ `justify`, owner 2026-10-24) trong vùng cuộn riêng (`role="group"`, `tabindex=0`, nhãn
+"Mô tả ảnh" / "Photo description"), cao ít nhất ba dòng hoặc vừa chữ nếu ngắn hơn (R2); chữ dài cuộn bên trong bằng wheel,
+vuốt, phím mũi tên, `End`; khi còn chữ để cuộn, các input này không cuộn trang. Còn chữ phía trên hoặc dưới thì mép đó mờ về trắng cao một dòng (`data-fade-start`,
+`data-fade-end`, chung mask với dãy thumbnail). Thanh cuộn kiểu B (owner 2026-10-24) theo ngôn ngữ player: rãnh 4px
+`rgba(32,33,32,0.16)`, viên 4px `rgba(32,33,32,0.6)` dài theo tỷ lệ chữ đang thấy; chỉ hiện (fade 150ms) khi trỏ chuột vào
+hoặc focus bàn phím trong mô tả và khi đang kéo; kéo viên bằng pointer capture. Cảm ứng (`hover: none`) không có thanh.
+Đổi media hoặc card thì mô tả về đầu. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
 khoảng trên footer của site ([CTA giữa viewport R2](advertising-cta-center-parallax.md#r2-batch-skeleton-dưới-cta-co-giãn)).
 
 ```gherkin
-Given detail có mô tả dài hơn pager, từ 2 đến 5 trang
-When nhấn ArrowRight trong pager rồi wheel dọc trên mô tả
-Then chấm thứ hai có aria-current="true"; wheel dọc cuộn trang, không đổi trang mô tả
-And bấm chấm cuối hiện trang cuối
+Given detail có mô tả dài hơn ba dòng trên desktop
+When trỏ chuột vào mô tả rồi nhấn End trong vùng mô tả
+Then thanh cuộn hiện, mép dưới hết mờ, mép trên mờ; info và trang không cuộn
+And trên cảm ứng không có thanh, vuốt dọc trong mô tả cuộn chữ
 ```
 
 ### R4. Media primary và nền
@@ -91,8 +91,8 @@ And bấm chấm cuối hiện trang cuối
 `renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
 `0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
-tiếng, có nút `Bật tiếng` / `Unmute`; nút `Xem lớn hơn` ẩn với video. Card nhiều media có hàng thumbnail
-([media-card](media-card.md#r6-media-trong-primary)).
+tiếng, player kiểu Pinterest ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Hình học
+primary và related theo cover của card, không theo media đang xem: đổi media qua dải trượt không làm related xếp lại.
 
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache
@@ -120,8 +120,8 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`; owner chọn 10/10), ảnh không zoom (owner bỏ 10/10)
-(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
-rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
+(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.5` luôn hiện, giữa hai mức `0.4` và `0.6` của Pinterest (owner 2026-10-26); hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
+rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không có lớp tối, không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
 chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
@@ -143,7 +143,7 @@ solver của [masonry](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-t
 card cạnh primary ở cột 4, hết nửa ngân sách thì xếp dưới primary. Card mount theo cửa sổ ảo (thêm một chiều cao viewport mỗi
 phía), giữ card neo và card đang focus; Tab mount card kế. Lần xếp đầu, card đi từ đầu cột tới chỗ; đổi tag, resize chạy
 chuyển vị trí `0.4s`. Card related của ảnh vừa rời mang "Vừa xem" / "Just viewed". Bấm card related lưu neo rồi mở detail
-mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia sáu task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, phân trang mô tả, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; Kính reveal của primary dựng và chạy animation ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
+mới (R1, R8). Vào thẳng detail: script đầu `<body>` thêm `body.is-advertising-photo` khi URL là trang card hoặc có `?photo=`, nên Layout đầu trang bỏ qua hero và masonry; id không có trong catalog thì runtime bỏ class trước khi đo masonry. Sau đó chia năm task để không task nào quá `50ms` trên A05s cũ: style chế độ ảnh cùng suggestion, primary với related rỗng, solver chạy thử trên vài card cho code nóng, solver related đầy đủ, gắn card related có chuyển động; suggestion nằm trong related chỉ hiện khi solver đặt chỗ. Mở ảnh khác trong trang (bấm card grid hoặc related) đi cùng năm task sau, task đầu chỉ dựng primary (`showPhoto`). Bấm card grid: task của cú bấm chỉ ghi history, primary dựng ở task kế rồi hiện ở task sau nữa (ẩn grid trước khi đổi class body cho style rẻ hơn); đo info một lần cho cả chiều cao tự nhiên và tối thiểu; Kính reveal của primary dựng và chạy animation ở hai task. Bấm card related: task của cú bấm chỉ lưu neo và chuyển focus khỏi related, entry history mới cùng primary ở task kế. Có `detail.scrollY` hoặc neo cần khôi phục thì primary và related một lượt như cũ.
 
 ```gherkin
 Given detail ở 1569×912 có ít nhất một ảnh related
@@ -172,9 +172,9 @@ And không frame nào vẽ ở Y của entry khác
 
 Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
-`cubic-bezier(0.55, 0, 0, 1)`; nền viewer máy có chuột (`hover: hover`, `pointer: fine`) là lớp tối `0.85` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
-điện thoại không blur ([gate phone Android](../decisions/phone-frame-budget.md)), lớp tối `0.9`, màu `rgba(32, 33, 32)` (owner 2026-10-10), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
-trên trái; reset, `+`, `−` góc dưới phải, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
+`cubic-bezier(0.55, 0, 0, 1)`; nền viewer mọi máy là lớp tối `0.85` màu `rgba(32, 33, 32)` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
+điện thoại cũng blur (owner 2026-10-26, trước đó không blur theo [gate phone Android](../decisions/phone-frame-budget.md); đo lại gate khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
+trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
 cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về
@@ -205,7 +205,7 @@ Then header luôn is-collapsed, nền trắng, cao 71px khi ở detail; về mas
 ### R11. VI/EN
 
 Đổi ngôn ngữ trên detail đi tại chỗ ([shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ)): sự kiện `languagechange` dựng lại
-detail cùng photo, tag, entry, media đang xem; đổi nhãn nhóm, mô tả (về trang 1), nhãn suggestion, aria, alt viewer. Link
+detail cùng photo, tag, entry, media đang xem; đổi nhãn nhóm, mô tả (cuộn về đầu), nhãn suggestion, aria, alt viewer. Link
 ngôn ngữ luôn trỏ trang card và `tag` hiện tại (`syncLocaleLinks`); seed theo [masonry R4](advertising-masonry.md#r4-thứ-tự-ngẫu-nhiên-theo-lượt-duyệt).
 
 ```gherkin
@@ -231,7 +231,7 @@ Then không animation nào chạy; state, URL, scroll và focus giống khi có 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-advertising-photo-view]` với `data-advertising-photo-id`, `-photo-layout` (`split`/`pinterest`), `data-advertising-primary-span`, `-photo-glass`; body `is-advertising-photo`, `data-advertising-photo-active` | Runtime ghi (R1, R2); CSS, test đọc |
-| DOM hook | `[data-advertising-photo-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-pager\|description\|description-indicator\|cta]` | Markup `index.html`, runtime điền (R2–R4) |
+| DOM hook | `[data-advertising-photo-primary\|image\|video\|background\|audio-toggle\|expand\|info\|category\|description-box\|description-scroll\|description\|description-bar\|cta\|player]` | Markup `index.html`, runtime điền (R2–R4) |
 | DOM hook | `[data-advertising-photo-suggestion]`, `[data-advertising-suggestion-tag]` (`aria-pressed`), `[data-advertising-suggestion-image-layer]`; `[data-advertising-photo-related-grid]`, `[data-advertising-related-card]` | Suggestion, slideshow, related (R5–R7) |
 | DOM hook | `dialog#advertising-photo-dialog`, `data-advertising-viewer-state` (`opening`/`closing`) | Viewer (R9) |
 | CSS var | `--advertising-photo-top`, `-primary-width\|height`, `-image-width\|height`, `-image-zone-width\|height`, `-description-width\|height`, `-internal-gap` | `layoutRelated` ghi, `detail.css` đọc (R2) |
@@ -262,7 +262,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | --- | --- |
 | R1 | `advertising-products-lifecycle.test.mjs` (parse, URL chuẩn); `CASE=m02b-grid-detail-no-clone-no-jump`, `m02b-direct-reload-cover` |
 | R2 | `advertising-photo-layout.test.mjs` (span, split, 28%, cao thêm); `advertising-full-span-p72.e2e.mjs`; `advertising-primary-p14.e2e.mjs`; `PHOTO_VIEW_P13_GEOMETRY_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` |
-| R3 | `advertising-suggestion-info.e2e.mjs` (pager khi chữ 200%); `advertising-primary-p14.e2e.mjs` (CTA, chữ vừa) |
+| R3 | `advertising-suggestion-info.e2e.mjs` (vùng cuộn khi chữ 200%); `advertising-primary-p14.e2e.mjs` (CTA, chữ vừa, cuộn tới cuối); `site-media-card-m02a.e2e.mjs` (thanh hover, mép mờ, cảm ứng không thanh) |
 | R4 | `CASE=delayed-image-resize-latest-wins`; test của [loading glass](loading-glass-and-page-entry.md#kiểm-tra) |
 | R5 | `advertising-suggestion-layout.e2e.mjs` (bốn chỗ); `advertising-suggestion-conditional.e2e.mjs` (split, pinterest, resize); `advertising-suggestion-info.e2e.mjs`; `CASE=related-suggestions-replace-state` |
 | R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-suggestion-wave.e2e.mjs` (412×780, nút dưới mép màn hình); `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
@@ -294,7 +294,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 
 - **Split, pinterest**: hai layout primary; split chia ảnh và info theo cột, pinterest xếp info dưới ảnh.
 - **Info**: cột hoặc dải chữ của primary gồm nhóm, mô tả, CTA, có thể có suggestion.
-- **Pager**: vùng mô tả chia trang thay cho thanh cuộn riêng.
+- **Vùng cuộn mô tả**: khung cuộn dọc riêng của mô tả, mép mờ và thanh cuộn chỉ hiện khi hover.
 - **Entry**: một mục trong history của trình duyệt, giữ state và vị trí cuộn riêng.
 - **Neo**: card dùng để đặt lại vị trí cuộn khi bề rộng viewport đổi.
 - **Cửa sổ ảo**: chỉ mount card related gần vùng nhìn thấy.

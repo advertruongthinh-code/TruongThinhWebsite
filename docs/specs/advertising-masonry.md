@@ -25,7 +25,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-19
+updated: 2026-10-26
 ---
 
 # Masonry Advertising
@@ -175,9 +175,9 @@ Card là `figure.advertising-tile[data-advertising-card]` chứa một link tớ
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes` ghi bằng bề rộng card từ solver, không `auto` để khỏi đo từng ảnh). Card vào vùng nhìn
 thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
-vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím cùng phản hồi zoom ảnh, khung
-không dịch ([hover dùng chung](page-home.md#r6-hover-ảnh-dùng-chung)). Click chính mở detail tại chỗ (history push,
-[detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
+vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh (owner 2026-10-18); hover chuột phủ lớp tối và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
+focus có viền; card nhiều media có mũi tên khi hover ([media-card R3](media-card.md#r3-đổi-media-trên-card)). Click chính mở detail tại chỗ (history push,
+[detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem (lớp đen `0.7` phủ canvas, owner 2026-10-26).
 
 ```gherkin
 Given card đã hiện ảnh
@@ -229,7 +229,7 @@ Then bằng đáy CTA, batch bắt đầu một khoảng giữa dưới card th�
 
 ### R12. Reduced motion
 
-`prefers-reduced-motion: reduce`: card đặt thẳng vào tọa độ mới, ảnh hiện ngay, không zoom hover (focus vẫn có viền),
+`prefers-reduced-motion: reduce`: card đặt thẳng vào tọa độ mới, ảnh hiện ngay,
 skeleton chờ ảnh đứng yên, hero hiện trạng thái cuối. Bật giữa chừng thì áp dụng ở lần cập nhật kế tiếp.
 
 ```gherkin

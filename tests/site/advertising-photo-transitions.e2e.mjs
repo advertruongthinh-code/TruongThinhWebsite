@@ -117,7 +117,10 @@ async function chooseB(page, beforeClick) {
 async function m02bFixture(page, locale, direct = false, seed = null) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === mediaCardId);
-  assert(card && card.mediaItems.length === 1, "M02b fixture needs the authored image cover");
+  assert(card, "M02b fixture needs the authored card");
+  // Chỉ giữ ảnh legacy làm cover, để fixture không phụ thuộc media tạm (có thể thêm ảnh, video, đặt video làm cover).
+  card.mediaItems = [{ id: mediaCardId, kind: "image", ...card.media }];
+  card.coverMediaId = mediaCardId;
   card.mediaItems.push({
     id: mediaVideoId, kind: "video", src: "/__site_media_card_fixture__/clip-audio-3x2.mp4",
     sourceId: "m00b:test-only:clip-audio-3x2", source: "M00b sealed synthetic fixture",
@@ -774,7 +777,7 @@ try {
         { id: mediaCardId, mediaId: mediaVideoId });
       const preClickY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       const initialLength = await page.evaluate(() => history.length);
-      await tile.locator(":scope > a").click({ position: { x: 20, y: 20 } });
+      await tile.locator(":scope > a").click({ position: { x: 60, y: 20 } }); // tránh vùng mũi tên hover 32px ở mép canvas (media-card R3)
       await page.waitForFunction((id) => (new URL(location.href).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === id, mediaCardId);
       const y0 = await page.evaluate(() => window.TruongThinhAdvertising.getBrowseState().grid.scrollY);
       await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-media-select="${id}"]`)?.getAttribute("aria-current") === "true", mediaVideoId);
@@ -790,14 +793,15 @@ try {
       assert(Math.abs(y0 - y1) > 100, `${locale}: fixture needs distinct entry scroll positions`);
       assert.equal(await page.evaluate(() => history.length), initialLength + 1, `${locale}: media switch must not push history`);
 
-      stage(`${locale}-Back-grid-video`);
+      stage(`${locale}-Back-grid-detail-media`);
       await page.goBack();
       await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname));
       await page.waitForTimeout(650);
       const backY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
       assert(Math.abs(backY - y0) <= 1, `${locale}: Back restored grid Y ${backY}, expected ${y0} (pre-click ${preClickY})`);
       const gridMedia = await page.locator(`[data-advertising-card="${mediaCardId}"]`).getAttribute("data-advertising-active-media-id");
-      assert.equal(gridMedia, mediaVideoId, `${locale}: Back restores grid entry media`);
+      // Back về masonry từ detail của chính card: card đứng ở media vừa xem trong detail (media-card R6, owner 2026-10-18).
+      assert.equal(gridMedia, card.coverMediaId, `${locale}: Back shows the media last viewed in the detail`);
 
       stage(`${locale}-Forward-detail-image`);
       await page.goForward();
@@ -1093,7 +1097,7 @@ try {
     await page.goto(href("/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-01"));
     await ready(page, "signage-raised-letters-01");
     await page.locator("[data-advertising-photo-expand]").click();
-    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out", "zoom-reset"].map((name) => [name, page.locator(`[data-advertising-photo-${name}]`)]));
+    const controls = Object.fromEntries(["close", "zoom-in", "zoom-out"].map((name) => [name, page.locator(`[data-advertising-photo-${name}]`)]));
     // Để transition background 150 ms hoàn tất; runner đang tải nặng có thể trễ hơn một lần chờ cố định.
     const read = (control) => control.evaluate(async (node) => {
       await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {})));
@@ -1121,7 +1125,7 @@ try {
       await page.waitForTimeout(180);
       const normal = await read(control);
       assert.equal(normal.radius, "0px", "keep square design");
-      assert(normal.width >= 44, "keep usable hit target");
+      assert.equal(normal.width, 36, "36px white square (primary-video-player R7)");
       await control.hover();
       await page.waitForTimeout(180);
       const hovered = await read(control);
@@ -1145,8 +1149,8 @@ try {
     await activate(controls["zoom-in"], "zoom-to-cover");
     await activate(controls["zoom-in"], "zoom-to-limit");
     await checkDisabled(controls["zoom-in"], controls["zoom-out"]);
-    assert(await controls["zoom-reset"].isVisible(), "reset must appear at maximum zoom");
-    await activate(controls["zoom-reset"], "reset");
+    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
+    await activate(controls["zoom-out"], "zoom-out");
     await page.keyboard.press("Tab");
     const focused = await page.locator(":focus").evaluate((node) => ({ outline: getComputedStyle(node).outlineStyle, width: parseFloat(getComputedStyle(node).outlineWidth) }));
     assert(focused.outline !== "none" && focused.width >= 2, "keyboard focus needs a clear ring");
@@ -1188,7 +1192,7 @@ try {
       await touch({ x, y: 265 }, { x, y: 83 });
       assert(await dialogOpen(), "swipe from the backdrop closed the viewer");
       stage(`${locale}-backdrop-tap-closes`);
-      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-reset]").click());
+      await page.evaluate(() => document.querySelector("[data-advertising-photo-zoom-out]").click());
       await page.waitForFunction(() => document.querySelector("#advertising-photo-dialog").dataset.advertisingViewerState === "open");
       await page.touchscreen.tap(20, 300);
       await page.waitForFunction(() => !document.querySelector("#advertising-photo-dialog").open);
@@ -1551,7 +1555,11 @@ try {
   await caseRun("history-entry-scroll-offscreen-morph", { width: 1543, height: 884 }, async (page, stage) => {
     const evidence = [];
     const networkFailures = [];
-    page.on("requestfailed", (request) => networkFailures.push({ url: request.url(), error: request.failure()?.errorText }));
+    page.on("requestfailed", (request) => {
+      // Chromium hủy các fetch ảnh lazy hoặc video bị thay thế (đổi srcset/variant/src, unmount); không phải lỗi tải.
+      if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
+      networkFailures.push({ url: request.url(), error: request.failure()?.errorText });
+    });
     page.on("response", (response) => {
       if (response.status() >= 400) networkFailures.push({ url: response.url(), status: response.status() });
     });
@@ -2116,21 +2124,20 @@ try {
       expandRect: node.getBoundingClientRect().toJSON(),
     }));
     assert.equal(compact.expandBorderRadius, "0px");
-    assert(Math.abs(compact.expandRect.width - 48) <= 0.1 && Math.abs(compact.expandRect.height - 48) <= 0.1);
+    assert(Math.abs(compact.expandRect.width - 36) <= 0.1 && Math.abs(compact.expandRect.height - 36) <= 0.1);
     stage("hover-labels");
     // Software compositing trong CI paint chậm, nên chờ transition hover kết thúc thay vì chờ cố định.
     await expandControl.hover();
     await page.evaluate(frame);
     await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
     const expandHover = await expandControl.evaluate((node) => ({
-      labelOpacity: getComputedStyle(node.querySelector("span")).opacity,
+      label: node.querySelector("span"),
       rect: node.getBoundingClientRect().toJSON(),
-      transitionDuration: getComputedStyle(node).transitionDuration,
     }));
-    assert(expandHover.rect.width > compact.expandRect.width + 80, "expand label did not reveal to left");
+    // Nút mở lớn chỉ icon, hover không bung chữ (primary-video-player R7).
+    assert.equal(expandHover.label, null, "expand has no text label");
+    assert(Math.abs(expandHover.rect.width - compact.expandRect.width) <= 0.1, "hover widened the expand control");
     assert(Math.abs(expandHover.rect.right - compact.expandRect.right) <= 0.1, "expand control moved its right anchor");
-    assert.equal(expandHover.labelOpacity, "1");
-    assert(expandHover.transitionDuration.includes("0.25s"));
 
     stage("keyboard-and-reduced-motion");
     await page.mouse.move(1200, 300); await page.evaluate(() => document.activeElement?.blur());
@@ -2142,20 +2149,18 @@ try {
     })), { active: true, focusVisible: true, tabIndex: 0 });
     await page.evaluate(frame);
     await expandControl.evaluate((node) => Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished)));
-    assert.equal(await expandControl.evaluate((node) => getComputedStyle(node.querySelector("span")).opacity), "1");
+    assert(Math.abs(await expandControl.evaluate((node) => node.getBoundingClientRect().width) - 36) <= 0.1,
+      "keyboard focus widened the expand control");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    const reducedMotion = await expandControl.evaluate((node) => ({
-      labelOpacity: getComputedStyle(node.querySelector("span")).opacity,
-      transitionDuration: getComputedStyle(node).transitionDuration,
-    }));
-    assert.equal(reducedMotion.labelOpacity, "1"); assert.equal(reducedMotion.transitionDuration, "0s");
+    const reducedMotion = await expandControl.evaluate((node) => ({ transitionDuration: getComputedStyle(node).transitionDuration }));
+    assert.equal(reducedMotion.transitionDuration, "0s");
     await page.emulateMedia({ reducedMotion: "no-preference" });
 
     stage("viewer-controls"); await expandControl.click();
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]")?.open);
     await assertNoBack();
     const viewerControls = await page.evaluate(() => [...document.querySelectorAll(
-      "[data-advertising-photo-close], [data-advertising-photo-zoom-reset], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]",
+      "[data-advertising-photo-close], [data-advertising-photo-zoom-in], [data-advertising-photo-zoom-out]",
     )].map((node) => ({
       disabled: node.disabled,
       hidden: node.hidden,
@@ -2164,8 +2169,8 @@ try {
       stroke: getComputedStyle(node.querySelector("svg")).strokeWidth,
     })));
     for (const control of viewerControls.filter((control) => !control.hidden)) {
-      assert(Math.abs(control.rect.width - 48) <= 0.1 && Math.abs(control.rect.height - 48) <= 0.1);
-      assert.equal(control.radius, "0px"); assert.equal(control.stroke, "1.5px");
+      assert(Math.abs(control.rect.width - 36) <= 0.1 && Math.abs(control.rect.height - 36) <= 0.1);
+      assert.equal(control.radius, "0px"); assert.equal(control.stroke, "2px");
     }
     const zoomOut = page.locator("[data-advertising-photo-zoom-out]");
     const disabledBackground = await zoomOut.evaluate((node) => getComputedStyle(node).backgroundColor);
@@ -2176,17 +2181,7 @@ try {
     const zoomBackground = await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor);
     await zoomIn.hover(); await page.waitForTimeout(300);
     assert.notEqual(await zoomIn.evaluate((node) => getComputedStyle(node).backgroundColor), zoomBackground);
-    await zoomIn.click(); await zoomIn.click();
-    const reset = page.locator("[data-advertising-photo-zoom-reset]");
-    await reset.waitFor({ state: "visible" });
-    const resetGlyph = await reset.locator("svg").evaluate((node) => ({
-      paths: [...node.querySelectorAll("path")].map((path) => path.getAttribute("d")),
-      rect: node.getBoundingClientRect().toJSON(),
-    }));
-    assert.deepEqual(resetGlyph.paths, ["M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"],
-      "reset icon must use the matching low-detail diagonal-arrow glyph");
-    assert(Math.abs(resetGlyph.rect.width - 24) <= 0.1 && Math.abs(resetGlyph.rect.height - 24) <= 0.1,
-      "reset glyph must keep the shared 24px viewer-control size");
+    assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button (owner 2026-10-25)");
     await page.locator("[data-advertising-photo-close]").click();
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]")?.open);
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B, "viewer close left photo detail");
