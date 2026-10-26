@@ -7,7 +7,7 @@ tests:
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/advertising-products-lifecycle.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-26
+updated: 2026-10-19
 ---
 
 # SEO cho media của card
@@ -23,7 +23,7 @@ pin. Phạm vi chỉ card Advertising; SEO toàn site, từ khóa, khu vực, bo
 
 ### R1. Mỗi card có trang riêng
 
-Build sinh trang tĩnh `/<locale>/advertising-products/p/<card-id>/` cho mọi card, VI và EN (195 card thành 390 trang).
+Build sinh trang tĩnh `/<locale>/advertising-products/p/<card-id>/` cho mọi card, VI và EN (254 card thành 508 trang).
 Trang có `title` là tên card, `meta description` là mô tả card, `canonical` tuyệt đối, `hreflang` vi, en, x-default.
 Detail đổi URL sang path này: bấm card masonry hoặc related ghi path bằng `pushState` thay cho `?photo=<id>`; URL cũ
 `?photo=<id>` vào thẳng thì runtime `replaceState` sang path. Mở thẳng path thì runtime mở detail của card như vào
@@ -85,9 +85,9 @@ Build sinh `sitemap-advertising.xml`: mỗi trang R1 (VI và EN) một `<url>`, 
 Sitemap chính của Worker CMS trỏ tới file này ([CMS R2](cms.md#r2-redirect-route-locale-robots-và-sitemap)).
 
 ```gherkin
-Given catalog 195 card, 270 media
+Given catalog 254 card, 254 media
 When chạy pnpm prepare:site
-Then sitemap-advertising.xml có 390 url và mỗi url có số image:loc bằng số media của card
+Then sitemap-advertising.xml có 508 url và mỗi url có số image:loc bằng số media của card
 ```
 
 ### R6. URL tuyệt đối theo truongthinhads.vn
@@ -133,8 +133,8 @@ Không đổi giao diện: trang R1 hiện detail đã có ([detail](advertising
   Google); card nhiều ảnh, một video có thể không đạt.
 - Demo workers.dev chưa có `noindex`; quyết thuộc [phát hành tĩnh](static-release.md).
 - Ảnh site cũ có nằm trên CDN Sapo không: chưa kiểm được (domain không phân giải từ môi trường cloud).
-- Ảnh gộp từ nhiều card cũ ([media-card R1](media-card.md#r1-dữ-liệu-media-của-card)) cùng tên nên alt tạm thêm số thứ tự
-  ảnh để qua R3; alt mô tả riêng từng ảnh viết sau. Owner.
+- Placeholder đang lặp alt của card nên sẽ trượt validator R3: plan sinh alt tạm phân biệt (thêm số thứ tự ảnh),
+  alt thật viết khi có ảnh thật.
 
 ## Chú thích thuật ngữ
 

@@ -2,7 +2,6 @@
 title: Card nhiều media
 status: live
 source:
-  - src/site/advertising-products/media-manifest.mjs
   - src/site/advertising-products/placeholder-media.mjs
 tests:
   - tests/site/site-media-card-contract.test.mjs
@@ -20,9 +19,9 @@ updated: 2026-10-26
 ## Mục đích
 
 Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
-và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising; catalog gộp 270 ảnh thành 195 card, 40 card có
-2 đến 9 ảnh, chưa có video thật (R1). Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
-file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này chỉ sở hữu dữ liệu gộp ảnh `media-manifest.mjs`.
+và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 254 card hiện chỉ có một ảnh
+mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
+file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này chỉ sở hữu dữ liệu media tạm `placeholder-media.mjs`.
 
 ## Hành vi
 
@@ -35,18 +34,13 @@ sách rỗng, cover không có trong danh sách, trùng `id`, `kind` khác `imag
 tỷ lệ chính xác (so bằng BigInt, không sai số). Video cần thêm `posterSrc`, `posterWidth`/`posterHeight` cùng tỷ lệ,
 `durationSeconds` và `hasAudio` boolean; `cardSrc` (tùy chọn) là đường dẫn bản cho card. Ảnh legacy `record.media` được hiện làm cover (cùng `src`) thì cũng phải cùng
 tỷ lệ; không hiện thì giữ được tỷ lệ khác. Validator chỉ kiểm metadata, không kiểm byte file; khi chuẩn bị asset, đối
-chiếu kích thước thật bằng `ffprobe` (video) và giải mã ảnh (poster). `media-manifest.mjs` gộp ảnh liên quan thành một card (owner 2026-10-26):
-cùng `productKey` (cùng tên), cùng `productIds`, `tagIds` và cùng tỷ lệ chính xác; ảnh khác tỷ lệ ở card riêng; chưa có video thật. Card lấy id, tên, mô tả của ảnh đầu theo thứ tự manifest;
-`mediaItems` theo thứ tự đó, ảnh đầu là cover, item giữ id card gốc của ảnh; ảnh thứ N từ 2 thêm "(ảnh N)", "(photo N)" vào alt ([media-seo R3](media-seo.md#r3-alt-và-tên-file-của-từng-media)).
+chiếu kích thước thật bằng `ffprobe` (video) và giải mã ảnh (poster). `media-manifest.mjs` hiện cho mỗi card đúng một
+item ảnh, `id` bằng id card.
 
 ```gherkin
 Given card có hai item: ảnh 1536×1024 và video 1920×1080
 When catalog.mjs nạp
 Then validateAdvertisingCardMedia ném lỗi "ratio must match the card", không crop, không làm tròn
-
-Given ba ảnh "Chữ nổi Inox sáng chân" cùng productIds, tagIds: hai ảnh 1536×1024 và một ảnh 1254×1254
-When media-manifest.mjs gộp
-Then có một card hai ảnh 3:2, cover là ảnh đầu, ảnh sau có alt "Chữ nổi Inox sáng chân (ảnh 2)"; ảnh vuông ở card riêng
 ```
 
 ### R2. Canvas và dải điều khiển
@@ -55,7 +49,7 @@ Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `layout-core.mjs`),
 thêm dải điều khiển cao 44px dưới canvas (`mediaControlStripHeight`), tính ngay trong lần xếp đầu ở masonry và related;
 dải không phủ ảnh. Card một item không có dải, không chỉ báo; item đó là video hoặc ảnh khác `record.media` thì card hiện
 đúng item đó. Nhãn thời lượng video ở góc trên trái canvas. Đổi media, tải chậm hay lỗi không
-đổi khung card, canvas hay dải (lệch tối đa 1px). Card một ảnh giữ hình học và thứ tự của
+đổi khung card, canvas hay dải (lệch tối đa 1px). Card 254 ảnh hiện tại giữ hình học và thứ tự của
 [masonry R5](advertising-masonry.md#r5-hình-học-masonry).
 
 ```gherkin
@@ -85,7 +79,9 @@ liền trượt ngang (owner 2026-10-19): media mới vào từ mép canvas phí
 nhau, không fade, không lùi, cắt gọn ở BBox canvas; thời lượng, easing như nút "Có thể bạn thích"
 ([motion Suggestion](../../design-system/motion.md#suggestion-và-detail), 0.9s power3.inOut); không frame nào lộ nền
 giữa hai media hay chớp. Bấm "<" thì ngược chiều; chấm, bộ đếm đổi ngay lúc bắt đầu trượt; reduced motion đổi ngay. Nút và vuốt chỉ đổi media; bấm thân card mở detail ở media đang xem
-([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn. Không có pointermove: dịch ngang từ 10px vẫn đổi media; tap và cuộn dọc không đổi.
+([detail R1](advertising-detail.md#r1-url-và-vào-detail)). Card rời cửa sổ ảo hóa rồi quay lại vẫn ở media đã chọn.
+
+Không có pointermove: dịch ngang từ 10px vẫn đổi media; tap và cuộn dọc không đổi.
 
 ```gherkin
 Given card 11 media ở /en/advertising-products/, viewport 1440px
@@ -119,7 +115,8 @@ khởi động giữa lúc cuộn làm một Commit 82ms). Lướt quá 3000px/s
 Card video theo Pinterest (owner 2026-10-17): không nút phát, không icon loa; nhãn tổng thời lượng `m:ss` làm tròn lên,
 không đếm ngược. Luôn tắt tiếng. Masonry (owner 2026-10-24, thay luật 2 suất cũ): mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; mỗi frame khởi động tối đa một video, video chờ lượt khởi động ở frame sau (owner 2026-10-25); còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Mỗi card chạy playlist video của nó
 theo thứ tự `mediaItems` (thứ tự do CMS định): hết video thì đẩy sang video kế như R3, chấm hoặc bộ đếm theo, hết vòng về
-video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát, không tự trượt. Related trong detail tự phát như masonry, chuột vào hay rời card không đổi lịch phát (owner 2026-10-25, thay luật chỉ phát dưới chuột ngày 2026-10-24). Touch tự phát như desktop ở masonry và related; chạm card mở detail như ảnh. Reduced motion không tự phát; chuột vào card thì phát (mặc định Thread giữ để người dùng reduced motion vẫn xem được). Đổi item hoặc card rời cửa sổ ảo hóa thì video tạm dừng.
+video đầu; ảnh không vào playlist; card một video lặp chính nó. Card đang đứng ở ảnh không tự phát, không tự trượt. Related trong detail tự phát như masonry, chuột vào hay rời card không đổi lịch phát (owner 2026-10-25, thay luật chỉ phát dưới chuột ngày 2026-10-24). Touch tự phát như desktop ở masonry và related; chạm card mở detail như ảnh. Reduced motion không tự phát; chuột vào card thì phát (mặc định Thread giữ để người dùng reduced motion vẫn xem được). Đổi item hoặc
+card rời cửa sổ ảo hóa thì video tạm dừng.
 
 ```gherkin
 Given ba card video cùng hiện quá 1/2 chiều cao trên masonry
@@ -244,7 +241,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `site-media-card-contract.test.mjs` (11 ca, luật gộp ảnh); `advertising-products-layout.test.mjs` |
+| R1 | `site-media-card-contract.test.mjs` (11 ca); `advertising-products-layout.test.mjs` |
 | R2 | `advertising-products-layout.test.mjs` (dải 44px); `site-media-card-r6.e2e.mjs` (rect ổn định, singleton không dải) |
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
@@ -256,7 +253,9 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm; owner 2026-10-26: gộp ảnh đang có (R1), bỏ media tạm và video tạm; ảnh, video nhiều góc thật thêm vào nhóm khi có. Chưa có clip thật, chất lượng hay ngân sách byte. Gộp xong, mô tả riêng của các ảnh sau ảnh đầu không còn hiện; alt mô tả riêng từng ảnh ([media-seo R3](media-seo.md#r3-alt-và-tên-file-của-từng-media)) viết sau. Owner.
+- Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm; chờ ảnh nhiều góc thật, `placeholder-media.mjs`
+  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước (có card 6–9 media trộn 2–3 video, vài video có tiếng để xem nút âm lượng), `main` để rỗng.
+  Chưa có clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
   timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn dải 44px thì kiểm riêng trước khi chọn fallback.
@@ -279,7 +278,8 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.
 - Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry, đổi ngôn ngữ), không ghi vào history state:
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
-- Ngưỡng vuốt (10px chốt hướng, nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
+- Ngưỡng vuốt (10px chốt hướng,
+  nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
 - Chấm 8px theo UI chấm Gallery (owner 2026-10-17), test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
   của Gallery để giữ vùng bấm 20×44px.
 - Dấu báo lỗi (R5) mới áp cho card và primary Advertising; media khác trên site (ảnh trong trang, hero, CTA, portal)
