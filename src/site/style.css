@@ -1066,12 +1066,15 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
+/* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): mép trên 0,7 nhạt hết trong 100px, đúng quãng cuộn
+   mà navbar còn trong suốt trước khi lên nền trắng (motion.js thu header khi scrollY > 100); mép dưới 0,5; không lớp mép trái;
+   phủ đều 0,2. */
 .hero-shade {
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.46), transparent 32%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.52), transparent 42%),
-    rgba(0, 0, 0, 0.14);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 100px),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.5), transparent 42%),
+    rgba(0, 0, 0, 0.2);
 }
 
 .hero-content {

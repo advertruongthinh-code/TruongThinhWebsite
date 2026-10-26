@@ -123,7 +123,7 @@ Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1
 ### R6. Bóng chữ hai lớp trên ảnh (ngoại lệ Design System)
 
 Owner chọn phương án B trên canvas bản 34 (2026-10-24): giữ lớp tối hiện có (`.hero-shade`, `.portal-shade`,
-`.detail-cta::after`; owner 2026-10-26 chỉnh portal và CTA `0.5`, hero About mép trên `0.7` nhạt hết trong 100px, mép dưới `0.5`, bỏ lớp mép trái), thêm `text-shadow` hai lớp D, cùng bóng với player và nút "Có thể bạn thích" của
+`.detail-cta::after`; owner 2026-10-26 chỉnh portal và CTA `0.5`, mọi hero ảnh mép trên `0.7` nhạt hết trong 100px, mép dưới `0.5`, phủ đều `0.2`, bỏ lớp mép trái), thêm `text-shadow` hai lớp D, cùng bóng với player và nút "Có thể bạn thích" của
 primary-video-player R4 (PR #434, chưa merge):
 `0 0 2px` đen `0.5` dưới `0 0 12px` đen `0.4`. Một biến CSS `--text-shadow-d` trong `:root` giữ giá trị, `--text-shadow-reach`
 (12px) là bán kính quầng ngoài.
