@@ -36,8 +36,7 @@ media-card R6 trỏ tới đây; [advertising-detail R2](advertising-detail.md#r
   tiếng không nằm dưới nút mở lớn (R8). Thanh luôn hiện như demo.
 - Nút tiếng chỉ bật hoặc tắt tiếng, không có cột âm lượng: máy cảm ứng chỉnh bằng phím cứng (mặc định Thread chọn).
   `hasAudio` false thì ẩn nút tiếng như media-card R6.
-- Player trong viewer (R8) dùng cùng bố cục này, nhưng thanh ẩn khi video phát và hiện khi dừng (chạm video để dừng):
-  mỗi lần thanh tua nhích bắt blur nền viewer tính lại, A04s rơi 6-27 frame mỗi 8 s, ẩn thanh 0 (2026-10-26; chờ owner chọn).
+- Player trong viewer (R8) dùng cùng bố cục này.
 
 ```gherkin
 Given điện thoại 390px không hover mở primary video
@@ -190,7 +189,7 @@ And chuột đứng yên 3s thì dãy thumbnail ẩn, rê chuột thì hiện; m
 PC: video đang phát và chuột không ở trên khung thì cả cụm nút player (thanh tua, giờ, nút phát, tiếng) mờ đi, nút mở lớn
 vẫn hiện; chuột vào khung, focus bàn phím bên trong hoặc video dừng thì cụm hiện lại. Focus còn lại sau khi bấm chuột vào video,
 nút hay thanh tua không giữ cụm hiện (owner 2026-10-25 báo cụm không ẩn). Không có nút phát giữa video (R1). Cảm ứng giữ
-R1 (thanh luôn hiện ở primary, ẩn khi phát trong viewer).
+R1 (thanh luôn hiện).
 
 ```gherkin
 Given primary đang phát video trên desktop
@@ -258,7 +257,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 
 | R | Test hoặc command |
 | --- | --- |
-| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (`isMobile`, `hasTouch`, khớp `hover: none`) đo một hàng 40px theo thứ tự nút phát, giờ, thanh tua, tiếng; không nền gradient, không nút giữa kể cả khi dừng, chạm nút tiếng không mở cột âm lượng; viewer cảm ứng ẩn thanh khi phát, chạm video dừng thì hiện; desktop không có nút giữa |
+| R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (`isMobile`, `hasTouch`, khớp `hover: none`) đo một hàng 40px theo thứ tự nút phát, giờ, thanh tua, tiếng; không nền gradient, không nút giữa kể cả khi dừng, chạm nút tiếng không mở cột âm lượng; desktop không có nút giữa |
 | R2 | `site-media-card-m02a.e2e.mjs`: giả `video.buffered`, kéo trong đoạn đã tải (frame theo núm, video không phát, không hai lệnh tua chồng nhau, thả tay phát tiếp) và ra ngoài (giữ frame, không tua tới khi thả); thả tay khi lệnh tua lúc kéo còn chạy thì lệnh thả chờ `seeked`, thả đúng chỗ đang tua thì không tua lần hai |
 | R3 | `primary-video-keyframes.test.mjs`: đọc bảng `stss`, `stts` của mọi MP4 trong `src/site/assets`, khoảng cách keyframe (kể cả tới cuối clip) không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |

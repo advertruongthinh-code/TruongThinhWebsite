@@ -3010,14 +3010,6 @@ body.is-advertising-browse .site-footer {
   }
 }
 
-/* Viewer cảm ứng: thanh player ẩn khi video phát, chạm video cho dừng thì hiện (primary-video-player R1). Mỗi lần thanh
-   tua nhích là một frame phải tính lại blur 50px của nền viewer: A04s 2026-10-26 rơi 6-27 frame mỗi 8 s, ẩn thanh 0. */
-@media (hover: none) {
-  .advertising-photo-dialog__video .advertising-video-player:not([data-advertising-video-paused="true"]) .advertising-video-player__bar {
-    display: none;
-  }
-}
-
 .advertising-photo-dialog__video > .advertising-video-player {
   inset: auto;
   top: 50%;

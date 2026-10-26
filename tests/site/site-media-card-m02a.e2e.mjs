@@ -1143,17 +1143,6 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
     assert.deepEqual(await page.locator("[data-advertising-photo-viewer-thumbs]").evaluate((node) =>
       [node.getBoundingClientRect().width <= 1, node.querySelectorAll("button").length > 1]), [true, true],
       "the viewer strip is hidden from sight on touch screens but its buttons stay for screen readers");
-    // Viewer cảm ứng ẩn thanh player khi video phát, chạm video cho dừng thì hiện (R1; A04s: thanh nhích bắt blur nền
-    // viewer tính lại mỗi frame).
-    const bar = page.locator(".advertising-photo-dialog__video .advertising-video-player__bar");
-    assert.equal(await bar.evaluate((node) => getComputedStyle(node).display), "flex", "paused viewer shows the bar");
-    await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").play());
-    await page.waitForFunction(() => getComputedStyle(document.querySelector(
-      ".advertising-photo-dialog__video .advertising-video-player__bar")).display === "none");
-    await page.locator(".advertising-photo-dialog__video [data-advertising-photo-play-surface]").tap();
-    // Thanh đổi theo event `pause` đến sau `paused`: chờ thanh hiện.
-    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").paused && getComputedStyle(
-      document.querySelector(".advertising-photo-dialog__video .advertising-video-player__bar")).display === "flex");
   });
 });
 
