@@ -3010,9 +3010,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       suggestionNode.style.top = `${origin.y}px`;
       suggestionNode.style.transform = "none";
     }
-    // Suggestion ngoài related grid (layout split) vẫn hiện trong lúc stage.
     for (const node of [...relatedRendered.values(), suggestionNode]) {
-      if (stage && motion && (node !== suggestionNode || keepSuggestion)) node?.style.setProperty("visibility", "hidden");
+      if (stage && motion) node?.style.setProperty("visibility", "hidden");
       else node?.style.removeProperty("visibility");
     }
     restoreRelatedDomOrder();
