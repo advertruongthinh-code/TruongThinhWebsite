@@ -7,7 +7,7 @@ tests:
   - tests/site/image-adaptive.e2e.mjs
   - tests/site/image-adaptive-measure.mjs
 notion: https://app.notion.com/p/404332849a0e818586ade1e1d8532ce9
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Ảnh thích ứng mạng
@@ -78,7 +78,7 @@ Bậc áp lúc ảnh chưa gửi request: trạng thái `slow` thì dùng bậc 
 | --- | --- |
 | Ảnh lazy và slide hero hoãn (`sizes` ghi từ `<head>`) | ghi `sizes` bằng nửa giá trị bậc thường |
 | Ảnh đã có `sizes` px nhưng chưa gửi request lúc mới sang `slow` | `image-tier.js` chia đôi `sizes` (hoặc `data-sizes`) |
-| Card masonry, related (LazySizes `data-sizes`) | nửa bề rộng card từ solver |
+| Card masonry (LazySizes `data-sizes`), related (native `sizes`) | nửa bề rộng card từ solver |
 | Nút suggestion eager | nửa bề rộng nút |
 | Nút suggestion, item card nhiều media, thumbnail primary (`auto, Nvw`) | bỏ `auto`, dùng nửa giá trị vw; khi nâng đo bề rộng thật |
 | Ảnh primary (không `srcset`) | file `-960`, hoặc `-480` khi bản gốc không quá 960; nền blur vùng dư giữ file nhẹ |

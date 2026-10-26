@@ -793,13 +793,15 @@ export function compileAdvertisingGeometry({ grid, options, compile = compileAdv
   }
 }
 
-function createPhotoMedia(record, locale, { suggestion = false } = {}) {
+function createPhotoMedia(record, locale, { suggestion = false, native = false } = {}) {
   // Giữ vòng đời preload/class LazySizes đã cam kết cho các card ảo hóa.
   // Native loading riêng có ngưỡng viewport khác (design-system/motion.md).
+  // Related dùng native lazy (owner 2026-10-26): rAF checkElems của LazySizes chiếm 13-24ms trong frame mount related
+  // trên A04s (decision phone-frame-budget).
   const image = document.createElement("img");
   image.className = suggestion
     ? "advertising-card-media__image media-hover-zoom"
-    : "advertising-tile__foreground advertising-card-media__image lazyload";
+    : `advertising-tile__foreground advertising-card-media__image${native ? "" : " lazyload"}`;
   image.loading = "lazy";
   image.decoding = "async";
   image.width = record.media.width;
@@ -813,6 +815,15 @@ function createPhotoMedia(record, locale, { suggestion = false } = {}) {
     image.src = record.media.src;
     image.alt = "";
     if (record.media.suggestionPosition) image.style.objectPosition = record.media.suggestionPosition;
+  } else if (native) {
+    // data-sizes để sizeLazyImage ghi sizes từ solver; sizes "auto" thì parseFloat ra NaN nên lần ghi đầu luôn chạy.
+    if (srcset) {
+      image.dataset.sizes = "auto";
+      image.sizes = "auto";
+      image.srcset = srcset;
+    }
+    image.src = record.media.src;
+    image.alt = locale === "en" ? record.media.altEn : record.media.altVi;
   } else {
     if (srcset) {
       image.dataset.sizes = "auto";
@@ -955,7 +966,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
   link.href = advertisingCardPath(locale, record.id);
   const media = document.createElement("div");
   media.className = "project-tile__media advertising-tile__media--natural advertising-card-media";
-  const image = createPhotoMedia(record, locale);
+  const image = createPhotoMedia(record, locale, { native: related });
   media.append(image);
   link.append(media);
   figure.append(link);
