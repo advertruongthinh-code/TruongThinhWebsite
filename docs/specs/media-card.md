@@ -1,8 +1,7 @@
 ---
 title: Card nhiều media
 status: live
-source:
-  - src/site/advertising-products/placeholder-media.mjs
+source: []
 tests:
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/site-media-card-m01b.e2e.mjs
@@ -19,9 +18,9 @@ updated: 2026-10-26
 ## Mục đích
 
 Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
-và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 254 card hiện chỉ có một ảnh
+và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 270 card hiện chỉ có một ảnh
 mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
-file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này chỉ sở hữu dữ liệu media tạm `placeholder-media.mjs`.
+file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
 
 ## Hành vi
 
@@ -49,7 +48,7 @@ Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `layout-core.mjs`),
 thêm dải điều khiển cao 44px dưới canvas (`mediaControlStripHeight`), tính ngay trong lần xếp đầu ở masonry và related;
 dải không phủ ảnh. Card một item không có dải, không chỉ báo; item đó là video hoặc ảnh khác `record.media` thì card hiện
 đúng item đó. Nhãn thời lượng video ở góc trên trái canvas. Đổi media, tải chậm hay lỗi không
-đổi khung card, canvas hay dải (lệch tối đa 1px). Card 254 ảnh hiện tại giữ hình học và thứ tự của
+đổi khung card, canvas hay dải (lệch tối đa 1px). Card 270 ảnh hiện tại giữ hình học và thứ tự của
 [masonry R5](advertising-masonry.md#r5-hình-học-masonry).
 
 ```gherkin
@@ -253,9 +252,10 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm; chờ ảnh nhiều góc thật, `placeholder-media.mjs`
-  (sinh bởi `scripts/site/build-placeholder-media.mjs`) cho 1/3 card media tạm chỉ trên branch xem trước (có card 6–9 media trộn 2–3 video, vài video có tiếng để xem nút âm lượng), `main` để rỗng.
-  Chưa có clip thật, chất lượng hay ngân sách byte. Owner.
+- Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm. Owner 2026-10-26 chọn merge code trước: media tạm
+  (1/3 card, có video) chỉ dùng để duyệt trên PR #434, đã bỏ trước merge. Việc kế: AI đề xuất nhóm ảnh, owner audit tay
+  từng nhóm, không luật gộp tự động; nhóm được duyệt vào PR sau (chưa có video). Chưa có clip thật, chất lượng hay
+  ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
   timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn dải 44px thì kiểm riêng trước khi chọn fallback.

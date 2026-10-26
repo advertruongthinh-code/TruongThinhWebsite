@@ -133,8 +133,8 @@ test("R3, R5: without Media Source or without hlsSrc the card plays the fixed fi
       const card = await playingCard(page);
       assert(card.currentSrc.endsWith("/card.mp4"), `${JSON.stringify(options)}: card plays cardSrc: ${card.currentSrc}`);
       assert(!requests.some((url) => /\.m3u8/.test(url)), `${JSON.stringify(options)}: no playlist request`);
-      // hls.js tải sẵn cùng artifact (R3) nên chỉ trình duyệt không có Media Source là không tải.
-      if (options.mediaSource === false) assert(!requests.some((url) => /hls\.light/.test(url)), "without Media Source hls.js never loads");
+      // hls.js chỉ tải khi artifact có hlsSrc và trình duyệt có Media Source (R3); catalog chưa có video không tải.
+      assert(!requests.some((url) => /hls\.light/.test(url)), `${JSON.stringify(options)}: hls.js never loads`);
     } finally {
       await browser.close();
     }

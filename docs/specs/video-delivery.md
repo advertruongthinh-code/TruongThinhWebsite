@@ -87,7 +87,7 @@ mất 3,8 s (đo cloud 2026-10-25). Primary và viewer không áp luật này.
 
 hls.js bản `1.7.3` (Apache-2.0), dùng bản light (bỏ phụ đề, track tiếng riêng, DRM, quảng cáo chèn): 119 KB gzip, 386 KB
 chưa nén (đo từ gói npm). Ghim đúng version trong `package.json` như các vendor khác, `prepare-static-assets.mjs` chép
-`dist/hls.light.min.js` sang `assets/vendor/`; runtime catalog nạp cùng lúc tải artifact, không chặn render: đợi tới
+`dist/hls.light.min.js` sang `assets/vendor/`; runtime catalog nạp khi artifact có `hlsSrc`, không chặn render: đợi tới
 card video đầu thì ở 4G chậm card đầu đã hiện mà thư viện chưa về (đo cloud qua HTTP/2 2026-10-25, 26: tải khi cần 2/64
 video không kịp chạy, tải sớm 2/127, tải sớm cùng luật card đang dừng 0/127). Không có Media Source thì không tải. Không
 dùng tag `latest` hay canary: gói từng có hai bản canary 1.7.0 chứa mã độc ([OSV
@@ -163,7 +163,7 @@ gốc nhỏ hơn 960), `cardSrc` trỏ file bậc 480; `source`, `sha256` là fi
 `cardSrc` như hiện tại. Mỗi video có một thư mục `<id>/` chứa `master.m3u8`, `<bậc>.m3u8`, `<bậc>.mp4`.
 
 `scripts/site/build-video-ladder.mjs <video gốc> <thư mục ra>` sinh thư mục trên từ một video gốc và không sửa dữ liệu
-card; dữ liệu card sửa tay. Video tạm sinh từ file 960 hiện có, không chạy `build-placeholder-media.mjs`.
+card; dữ liệu card sửa tay. `main` chưa có video thật ([media-card](media-card.md#gate-còn-mở)); video tạm chỉ dùng duyệt trên PR #434.
 
 ```gherkin
 Given item video không có hlsSrc
@@ -217,9 +217,9 @@ Không đổi giao diện; card video và player giữ component hiện có
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2 | `tests/site/video-ladder.test.mjs`: thứ tự bậc, segment 2 s, byte range khớp file, `BANDWIDTH` từ byte thật |
+| R1, R2 | `tests/site/video-ladder.test.mjs`: thứ tự bậc, segment 2 s, byte range khớp file, `BANDWIDTH` từ byte thật; thang trong assets là H.264, thang fixture AV1 luôn được đọc |
 | R1 | `tests/site/primary-video-keyframes.test.mjs` đọc cả fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
-| R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc` |
+| R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc`; không có `hlsSrc` hoặc Media Source thì không tải hls.js |
 | R4 | `tests/site/video-delivery.e2e.mjs`: server giới hạn 60 kbps rồi bỏ giới hạn, một video khác tải segment; frame sau giây 2 lên 480 trong 4 s, frame cách nhau dưới 250 ms, `waiting` dưới 100 ms (cloud đo 2 tới 6 ms; ngưỡng 10 ms đo ở R6). Tắt luật thay thì ca này đỏ |
 | R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp playlist; không có Media Source thì không nạp hls.js |
 | R6 | `tests/site/video-delivery-measure.mjs --base <98f3963> --candidate <nhánh> --h2`, chạy tay: 4G chậm 9 lượt mỗi bản (đứng hình, video không kịp chạy), mạng nhanh (thời gian chạy), lượt đổi bậc (lên bậc, `waiting`, frame tối, `droppedVideoFrames`); A04s thêm `DEVICE_CDP`. Main thread PC: `pnpm qa:scroll-trace`. Tiếng ở detail kiểm tay |
@@ -239,7 +239,7 @@ Không đổi giao diện; card video và player giữ component hiện có
   (mã hóa miễn phí, 5 USD mỗi 1.000 phút lưu mỗi tháng, 1 USD mỗi 1.000 phút phát) hay chạy script trên máy owner; ghi
   vào [CMS](cms.md) khi CMS mở lại.
 - Giới hạn [Cloudflare static assets](https://developers.cloudflare.com/workers/platform/limits): 25 MiB mỗi file,
-  20.000 file (Free). Thang 240, 480, 960 thêm 5 file mỗi video (42 video tạm thêm 210 file; site hiện khoảng 4.000
+  20.000 file (Free). Thang 240, 480, 960 thêm 5 file mỗi video (site hiện khoảng 5.200
   file).
 
 ## Chú thích thuật ngữ

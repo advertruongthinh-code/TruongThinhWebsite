@@ -748,12 +748,13 @@ const attachCardDetail = (cards) => {
 
 let warmWorker;
 // Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ. hls.js
-// cũng tải lúc này (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã hiện (đo cloud
-// 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
+// tải ngay khi artifact có video (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã
+// hiện (đo cloud 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
 export const preloadAdvertisingCatalog = () => {
   warmWorker ||= startLayoutWorker();
-  loadArtifact().catch(() => {});
-  void loadHls();
+  loadArtifact().then(({ cards }) => {
+    if (cards.some((card) => card.mediaItems?.some((item) => item.hlsSrc))) void loadHls();
+  }).catch(() => {});
 };
 
 const currentLocale = () => document.documentElement.lang === "en" ? "en" : "vi";
@@ -1113,7 +1114,6 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
             return;
           }
           selectMedia(next);
-          figure.dispatchEvent(new Event("advertising-video-ended", { bubbles: true }));
         });
       } else {
         layer.loading = "lazy";
@@ -1239,6 +1239,8 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       settleLanes();
       setActive(index);
       onMediaChange(figure.dataset.advertisingActiveMediaId);
+      // Lịch phát video tính lại: chấm, mũi tên, vuốt đổi media khi chuột vẫn trong card (media-card R4).
+      figure.dispatchEvent(new Event("advertising-media-change", { bubbles: true }));
       const incoming = layers.get(items[activeIndex]?.id);
       if (!outgoing || !incoming || outgoing === incoming || reducedMotion()) return;
       const direction = activeIndex > from ? 1 : -1;
@@ -3640,7 +3642,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     fitPrimaryMedia(item);
     if (strip) {
       const from = motion?.offset ?? 0;
-      void Promise.all(strip.lanes.flatMap(({ nodes }) => nodes).map(whenMediaReady))
+      // Chỉ chờ media đang hiện và media đích; lane phía kia không vào khung.
+      void Promise.all(strip.lanes.filter(({ slot }) => slot === 0 || slot === Math.sign(slide))
+        .flatMap(({ nodes }) => nodes).map(whenMediaReady))
         .then(() => primaryStrip === strip && runPrimaryStrip(strip, from, -Math.sign(slide) * strip.width,
           motion?.timing ?? PUSH_TIMING))
         .then(() => {
@@ -3912,6 +3916,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     () => stepPrimaryMedia(Number(button.dataset.advertisingPhotoMediaStep)), { signal: controller.signal }));
   // Viewer vừa mở: dãy thumbnail viewer cuộn tới media đang xem (listener của viewer chạy trước, dialog đã mở).
   photoExpand?.addEventListener("click", () => requestAnimationFrame(keepActiveThumbInView), { signal: controller.signal });
+  // Capture ở photoView chạy trước listener mở viewer trên nút: dải đang trượt dừng ở media đích rồi viewer mới lấy media.
+  photoView?.addEventListener("click", (event) => {
+    if (primaryStrip && event.target.closest?.("[data-advertising-photo-expand]")) closePrimaryStrip();
+  }, { capture: true, signal: controller.signal });
   // Vuốt trên cảm ứng kéo dải theo ngón tay (R6 như card R3); phím mũi tên khi focus trong khung đổi media, thanh tua,
   // âm lượng giữ phím của chúng. Ngón đặt trên thanh tua, âm lượng chỉ tua, chỉnh tiếng (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
@@ -3932,6 +3940,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     },
     release: (step, offset) => {
       const strip = primaryStrip?.dragging ? primaryStrip : null;
+      // Vuốt kế tiếp lúc dải còn chờ media mở dải mới từ media đang hiện, không kéo lại dải cũ.
+      if (strip) strip.dragging = false;
       const width = strip?.width ?? primaryWidth();
       if (step) {
         showPrimaryMedia(primaryItems()[primaryIndex() + step],
@@ -4532,11 +4542,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let playingVideos = [];
   let videoScheduleFrame = 0;
   const scheduleVideo = () => {
+    // Catalog chưa có video (main 2026-10-26): khỏi đo layout mỗi frame cuộn.
+    if (!playingVideos.length && !document.querySelector("figure.advertising-tile video")) return;
     const hovered = matchMedia("(hover: hover)").matches ? document.querySelector("figure.advertising-tile:hover") : null;
     const navBottom = Math.max(0, document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0);
     const next = [...document.querySelectorAll("figure.advertising-tile")].flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();
-      if (!video?.checkVisibility()) return [];
+      // getClientRects thay checkVisibility (Safari dưới 17.4 không có): rỗng khi video hoặc tổ tiên display none.
+      if (!video?.getClientRects().length) return [];
       if (reduced) return figure === hovered ? [video] : [];
       const { top, bottom, height } = video.getBoundingClientRect();
       return Math.min(bottom, innerHeight) - Math.max(top, navBottom) > height / 2 ? [video] : [];
@@ -4558,7 +4571,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   addEventListener("scroll", scheduleVideoSoon, { passive: true, signal: controller.signal });
   addEventListener("site:scroll", scheduleVideoSoon, { signal: controller.signal });
-  document.addEventListener("advertising-video-ended", scheduleVideoSoon, { signal: controller.signal });
+  document.addEventListener("advertising-media-change", scheduleVideoSoon, { signal: controller.signal });
   for (const type of ["pointerover", "pointerout"]) {
     document.addEventListener(type, (event) => {
       const figure = event.pointerType === "mouse" && event.target.closest?.("figure.advertising-tile");

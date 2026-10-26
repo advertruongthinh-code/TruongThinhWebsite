@@ -60,7 +60,9 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
   const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
   if (surface === "related") {
     await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
-    for (let attempt = 0; attempt < 32 && await page.locator(selector).count() === 0; attempt += 1) {
+    // Cuộn mượt của site chỉ đi khoảng 60px mỗi lần và thứ tự related xáo theo lượt xem: card có lúc nằm ở vị trí 36,
+    // cần 32 lần (đo 2026-10-26), nên ngân sách 32 lần đỏ chập chờn. 120 lần phủ hết trang (khoảng 5.400px).
+    for (let attempt = 0; attempt < 120 && await page.locator(selector).count() === 0; attempt += 1) {
       await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
       await page.waitForTimeout(80);
     }

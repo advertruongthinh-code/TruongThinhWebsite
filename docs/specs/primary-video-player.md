@@ -78,8 +78,8 @@ And thả tay thì video tua tới 5,6 giây rồi phát tiếp
 ### R3. Mã hóa video cho tua mượt
 
 Video media primary có keyframe tối đa mỗi `0,5s`, để mỗi lệnh tua chỉ giải mã ít frame. Clip tạm trước đây chỉ có một
-keyframe đầu clip (đo `ffprobe` kiosk-posm-13-v1: 8,5s, H.264 24fps); `scripts/site/build-placeholder-media.mjs` thêm
-`-g 12`. 37 clip tạm tăng từ 14,9MB lên 29,6MB (+98%, PR #434). Clip thật sau này theo chuẩn này ([media-delivery](media-delivery.md)).
+keyframe đầu clip (đo `ffprobe` kiosk-posm-13-v1: 8,5s, H.264 24fps); thêm keyframe mỗi `0,5s` làm 37 clip tạm tăng từ 14,9MB
+lên 29,6MB (+98%, PR #434). Clip thật sinh bằng `scripts/site/build-video-ladder.mjs` (ép keyframe mỗi `0,5s`, [video-delivery R5](video-delivery.md#r5-dữ-liệu-và-script)).
 
 ```gherkin
 Given mọi file MP4 trong src/site/assets
@@ -240,7 +240,7 @@ And khi video mới phát thì tổng là 0:04, giờ chạy theo video mới
 | DOM hook | `data-advertising-photo-player\|play-surface\|play\|progress\|volume\|volume-group\|time-current\|time-total` | Giữ hook hiện có (R1, R2, R5); bỏ `fullscreen` (R8) |
 | CSS | `@media (hover: none)` trong `detail.css` | Bố cục cảm ứng (R1) |
 | CSS token | `--text-shadow-d`, `--text-shadow-reach` trong `:root` | Bóng hai lớp R4; thread bóng chữ hero định nghĩa, ở đây chỉ dùng lại |
-| Script | `scripts/site/build-placeholder-media.mjs` | `-g 12` (R3) |
+| Script | `scripts/site/build-video-ladder.mjs` | Keyframe mỗi `0,5s` (R3) |
 | Hàm | `computeAdvertisingPhotoGeometry` (`layout-core.mjs`) | Vùng ảnh `split` cao `min(W/r, H)` (R6) |
 
 Code nằm trong `catalog-runtime.mjs`, `photo-viewer.mjs`, `detail.css`, `layout-core.mjs`, `index.html` (bỏ nút toàn màn hình, nút mở lớn chỉ icon).
