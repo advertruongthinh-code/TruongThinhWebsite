@@ -1493,13 +1493,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
-  // Detail (mô tả, related) tải 4 s sau lúc load để không tranh băng thông với 8 card đầu; showPhoto chờ nếu chưa xong.
+  // Detail (mô tả, related) tải ngay khi ảnh 8 card đầu xong (tối đa 6 s) để không tranh băng thông với chúng; showPhoto chờ nếu chưa xong.
   let detailLoaded = false;
   let detailReady;
   const ensureDetail = () => detailReady ||= attachCardDetail(cards).catch(() => {}).then(() => { detailLoaded = true; });
-  const prefetchDetail = () => setTimeout(() => { if (!controller.signal.aborted) ensureDetail(); }, 4000);
-  if (document.readyState === "complete") prefetchDetail();
-  else window.addEventListener("load", prefetchDetail, { once: true, signal: controller.signal });
+  const prefetchDetail = (tries = 0) => {
+    if (controller.signal.aborted) return;
+    const images = [...document.querySelectorAll("[data-advertising-card] img")].slice(0, 8);
+    if (tries >= 24 || (images.length === 8 && images.every((image) => image.complete))) ensureDetail();
+    else setTimeout(prefetchDetail, 250, tries + 1);
+  };
+  prefetchDetail();
   // Giữ sẵn số đo CSS khi script shell không khởi động được.
   if (!document.querySelector(".site-viewport-metrics")) {
     const probe = document.createElement("div");
