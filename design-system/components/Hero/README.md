@@ -11,7 +11,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
   không nút, không đoạn văn dài.
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
   `paper`. `hero-shade` chung mọi hero ảnh: phủ đều `0.2`; độ tối tổng mép trên `0.7` nhạt
-  dần, mịn tới đúng `0.2` trong 200px, mép dưới `0.5`; không lớp ngang; chữ hero không bóng
+  dần, mịn tới đúng `0.2` trong 36% chiều cao hero, mép dưới `0.5`; không lớp ngang; chữ hero không bóng
   (owner 2026-10-26). Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).

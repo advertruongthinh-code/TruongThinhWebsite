@@ -1013,14 +1013,14 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 }
 
 /* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): phủ đều 0,2; độ tối tổng ở mép trên 0,7, nhạt dần
-   trong 200px tới đúng 0,2 của lớp phủ đều, ở mép dưới 0,5; không lớp mép trái. Lớp mép chồng lên lớp phủ đều nên alpha
+   trong 36% chiều cao hero tới đúng 0,2 của lớp phủ đều, ở mép dưới 0,5; không lớp mép trái. Lớp mép chồng lên lớp phủ đều nên alpha
    lớp mép = (tổng - 0,2) / 0,8: 0,625 và 0,375. Mép trên dài và mịn: stop theo đường cosine, đầu và cuối dốc 0, không mép gắt. */
 .hero-shade {
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.625), rgba(0, 0, 0, 0.601) 25px, rgba(0, 0, 0, 0.533) 50px,
-      rgba(0, 0, 0, 0.432) 75px, rgba(0, 0, 0, 0.312) 100px, rgba(0, 0, 0, 0.193) 125px, rgba(0, 0, 0, 0.092) 150px,
-      rgba(0, 0, 0, 0.024) 175px, transparent 200px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.625), rgba(0, 0, 0, 0.601) 4.5%, rgba(0, 0, 0, 0.533) 9%,
+      rgba(0, 0, 0, 0.432) 13.5%, rgba(0, 0, 0, 0.312) 18%, rgba(0, 0, 0, 0.193) 22.5%, rgba(0, 0, 0, 0.092) 27%,
+      rgba(0, 0, 0, 0.024) 31.5%, transparent 36%),
     linear-gradient(0deg, rgba(0, 0, 0, 0.375), transparent 42%),
     rgba(0, 0, 0, 0.2);
 }
