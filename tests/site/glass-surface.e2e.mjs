@@ -182,10 +182,14 @@ try {
           });
         }))).observe(document, { childList: true, subtree: true });
       });
+      // Primary yên đủ 1s liền: vào thẳng ?photo= thì ảnh render sẵn đã tải xong trước khi runtime gắn skeleton và
+      // Kính, một lần kiểm đơn lẻ lọt vào khe đó rồi bấm khi Kính lần đầu còn chạy.
       const settled = () => page.waitForFunction(() => {
         const photo = document.querySelector("[data-advertising-photo-image]");
-        return photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
+        const idle = photo.complete && photo.naturalWidth && !photo.parentElement.hasAttribute("aria-busy")
           && !photo.parentElement.querySelector(".glass-surface[data-glass-reveal]");
+        window.__ttIdleSince = idle ? window.__ttIdleSince ?? performance.now() : undefined;
+        return idle && performance.now() - window.__ttIdleSince >= 1000;
       }, null, { timeout: 20000 });
       await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
       await settled();
