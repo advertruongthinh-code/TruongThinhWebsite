@@ -4,8 +4,10 @@
 // một card ở nửa dưới màn hình phát dưới bậc 480, rồi bỏ giới hạn và cuộn để card khác tải segment (R4).
 // Chạy: node tests/site/video-delivery-measure.mjs --base <url 98f3963> --candidate <url nhánh> [--runs 9] --h2
 // `--h2` đặt proxy HTTP/2 nén brotli trước mỗi server như Cloudflare: server tĩnh local không nén nên ở 4G chậm artifact
-// 1,1 MB làm card đầu hiện sau 11,6 s thay vì 2,8 s và hls.js 386 KB thay vì 112 KB (đo cloud 2026-10-25). Cần openssl.
-// Máy thật: DEVICE_CDP=http://127.0.0.1:9222 (sau adb forward) chạy trên Chrome của điện thoại, giữ viewport máy.
+// 1,1 MB làm card đầu hiện sau 11,6 s thay vì 2,8 s và hls.js 386 KB thay vì 112 KB (đo cloud 2026-10-25). Cần openssl
+// (Windows: thêm C:\Program Files\Git\usr\bin vào PATH).
+// Máy thật: DEVICE_CDP=http://127.0.0.1:9222 (sau adb forward) chạy trên Chrome của điện thoại, giữ viewport máy; proxy
+// nghe cổng 8443, 8444 và script tự adb reverse hai cổng đó, gỡ bằng `adb reverse --remove-all` sau khi đo.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs/promises";
 import http from "node:http";
@@ -23,7 +25,7 @@ const route = "/vi/advertising-products/";
 const SLOW = { offline: false, latency: 150, downloadThroughput: 1_600_000 / 8, uploadThroughput: 750_000 / 8 };
 const WEAK = { ...SLOW, downloadThroughput: 300_000 / 8 };
 const FAST = { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 };
-const proxy = (upstream) => new Promise((resolve) => {
+const proxy = (upstream, port = 0) => new Promise((resolve) => {
   const { hostname, port } = new URL(upstream);
   const server = http2.createSecureServer({ ...tls, allowHTTP1: true }, (request, response) => {
     const headers = Object.fromEntries(Object.entries(request.headers).filter(([key]) => !key.startsWith(":") && key !== "accept-encoding"));
@@ -43,7 +45,7 @@ const proxy = (upstream) => new Promise((resolve) => {
     });
     request.pipe(forward);
   });
-  server.unref().listen(0, "127.0.0.1", () => resolve(`https://127.0.0.1:${server.address().port}`));
+  server.unref().listen(port, "127.0.0.1", () => resolve(`https://127.0.0.1:${server.address().port}`));
 });
 let tls;
 if (process.argv.includes("--h2")) {
@@ -51,7 +53,12 @@ if (process.argv.includes("--h2")) {
   const cert = path.join(os.tmpdir(), "video-delivery-cert.pem");
   execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-subj", "/CN=localhost", "-days", "1", "-keyout", key, "-out", cert], { stdio: "ignore" });
   tls = { key: await fs.readFile(key), cert: await fs.readFile(cert) };
-  for (const version of Object.keys(bases)) bases[version] = await proxy(bases[version]);
+  // Máy thật: cổng cố định để adb reverse đưa điện thoại về proxy trên PC.
+  let port = process.env.DEVICE_CDP ? 8443 : 0;
+  for (const version of Object.keys(bases)) {
+    bases[version] = await proxy(bases[version], port);
+    if (port) execFileSync("adb", ["reverse", `tcp:${port}`, `tcp:${port}`]), port += 1;
+  }
 }
 const device = process.env.DEVICE_CDP;
 const browser = device ? await chromium.connectOverCDP(device)
@@ -96,6 +103,8 @@ const open = async (base, network) => {
   await context.addInitScript(watchVideos);
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
+  // Chrome của điện thoại không có ignoreHTTPSErrors của context: bỏ lỗi cert tự ký của proxy qua CDP.
+  if (device) await cdp.send("Security.setIgnoreCertificateErrors", { ignore: true });
   await cdp.send("Network.enable");
   await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
   await cdp.send("Network.emulateNetworkConditions", network);
@@ -249,4 +258,6 @@ await fs.mkdir(folder, { recursive: true });
 await fs.writeFile(path.join(folder, "runs.json"), JSON.stringify(results, null, 2));
 await fs.writeFile(path.join(folder, "summary.json"), JSON.stringify(summary, null, 2));
 console.log(JSON.stringify(summary, null, 2));
+// browser.close() qua CDP treo trên máy thật (A04s 2026-10-26): kết quả đã ghi nên thoát thẳng.
+if (device) process.exit(0);
 await browser.close();
