@@ -137,6 +137,10 @@ primary-video-player R4 (PR #434, chưa merge):
 - Vì mask nới thêm 12px, dòng chưa reveal tụt xuống `maskHiddenY` (motion.js): tối thiểu 2em, và không thấp hơn
   đáy mask cộng `0.6em + 8px + --text-shadow-reach`. Chỉ tụt 2em thì chữ nhỏ (kicker portal, kicker hero trang con)
   lộ đỉnh chữ và dấu qua vùng nới trước khi motion chạy. Chữ lớn vẫn tụt 2em, nên motion không đổi.
+- Lúc dòng đang ẩn hoặc đang trồi lên, dòng không có bóng và mép dưới mask không nới vùng bóng (class
+  `is-text-masked` đặt `text-shadow: none`, `--mask-shadow-bottom: 0px`); chữ chỉ hiện từ đáy mực của chính nó.
+  Tween reveal xong mới gỡ class: mask mở 12px dưới, bóng hiện dần 0.6s (owner 2026-10-26: bóng chỉ fade sau khi
+  motion xong). Nới cả lúc trồi thì chữ nhỏ hiện lơ lửng nửa trên dưới chỗ đứng.
 - Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích. Ghi vào `design-system/` chỉ khi owner "ok" trong
   thread làm việc này (gate Design System).
 
@@ -151,6 +155,9 @@ And clip-path của mask dòng nới ra ngoài hộp ít nhất 12px mỗi cạn
 Given Trang chủ, Nhà ở, Kinh doanh, Về chúng tôi, Sản phẩm quảng cáo ở 1440 và 390, VI và EN, chưa cuộn
 When đo đỉnh hộp chữ của mọi dòng đang tụt dưới mask so với mép clip-path
 Then đỉnh chữ nằm dưới mép clip-path, không dòng nào lộ ra trước khi reveal
+And mép dưới mask của dòng đang ẩn không nới vùng bóng
+When cuộn hết trang và các tween reveal chạy xong
+Then không mask nào còn cắt vùng bóng dưới
 ```
 
 ```gherkin
@@ -173,7 +180,7 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
 | R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở portal, "Giữ nghề", CTA có ảnh; none ở mọi hero và CTA lưới Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
-| R6 (dòng ẩn) | `tests/site/text-mask-hidden.e2e.mjs`: mọi dòng chưa reveal nằm dưới mép clip-path; 5 trang, 1440 và 390, VI và EN |
+| R6 (dòng ẩn) | `tests/site/text-mask-hidden.e2e.mjs`: mọi dòng chưa reveal nằm dưới mép clip-path, mép dưới không nới lúc ẩn, reveal xong mở lại; 5 trang, 1440 và 390, VI và EN |
 
 ## Gate còn mở
 

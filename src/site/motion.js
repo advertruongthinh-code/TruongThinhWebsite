@@ -298,11 +298,23 @@
     const size = Number.parseFloat(getComputedStyle(line).fontSize) || 16;
     const mask = line.parentElement;
     if (!mask?.matches(textMaskSelector)) return 2 * size;
+    mask.classList.add("is-text-masked");
     const reach = Number.parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue("--text-shadow-reach"),
     ) || 0;
     return Math.max(2 * size, mask.offsetHeight + 0.6 * size + 8 + reach);
   };
+  // Chữ đã về chỗ: mở lại vùng bóng dưới mask, bóng hiện dần 0.6s (owner 2026-10-26).
+  const openTextMask = (line) => {
+    const mask = line.parentElement;
+    if (!mask?.classList.contains("is-text-masked")) return;
+    mask.classList.remove("is-text-masked");
+    mask.animate([{ textShadow: "none" }, {}], { duration: 600, easing: "ease-out" });
+  };
+  // onComplete của tween reveal.
+  function openTextMasks() {
+    this.targets().forEach(openTextMask);
+  }
   // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
   // max(0.1em, 6px); thiếu thì chỉ giãn đúng cặp dòng đó. Mực từng ký tự đo bằng canvas, vị trí chữ
   // lấy ở trạng thái cuối animation (.heritage-line nâng 0.1em khi motion bật).
@@ -894,6 +906,7 @@
   };
   window.TruongThinhMotion = {
     maskHiddenY,
+    openTextMask,
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
     lockLogicalScroll() {
@@ -1360,6 +1373,7 @@
             gsap.to(target.querySelectorAll(".line-mask > span"), {
               y: "-0.1em",
               duration: 1.9,
+              onComplete: openTextMasks,
               ease: "power4.out",
               stagger: 0.1,
             });
@@ -1385,6 +1399,7 @@
               {
                 y: "-0.1em",
                 duration: 1.9,
+                onComplete: openTextMasks,
                 delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
                 ease: "power4.out",
               },
@@ -1423,6 +1438,7 @@
               {
                 y: "-0.1em",
                 duration: 1.9,
+                onComplete: openTextMasks,
                 delay: (portal.index % 3) * 0.3,
                 ease: "power4.out",
               },
@@ -1700,6 +1716,7 @@
             gsap.to(group.querySelectorAll(".line-mask > span"), {
               y: "-0.1em",
               duration: 1.9,
+              onComplete: openTextMasks,
               ease: "power4.out",
               stagger: 0.1,
             }),
@@ -1709,6 +1726,7 @@
             gsap.to(line, {
               y: "-0.1em",
               duration: 1.9,
+              onComplete: openTextMasks,
               delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
               ease: "power4.out",
             }),
@@ -1719,6 +1737,7 @@
               {
                 y: "-0.1em",
                 duration: 1.9,
+                onComplete: openTextMasks,
                 delay: (index % 3) * 0.3,
                 ease: "power4.out",
               },
