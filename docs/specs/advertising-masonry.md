@@ -9,7 +9,6 @@ source:
   - src/site/advertising-products/layout-worker.mjs
   - src/site/advertising-products/random-order.mjs
   - src/site/advertising-products/media-contract.mjs
-  - src/site/advertising-products/media-manifest.mjs
   - src/site/advertising-products/photo-tags.mjs
 tests:
   - tests/site/advertising-products-layout.test.mjs
@@ -164,7 +163,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 254 card, đang ở đầu trang
+Given masonry All 195 card, đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```
