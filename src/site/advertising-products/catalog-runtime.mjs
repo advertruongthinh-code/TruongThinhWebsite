@@ -3504,23 +3504,31 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   liveBackground.hidden = true;
   photoBackground?.after(liveBackground);
   const liveScratch = document.createElement("canvas");
-  // Hủy lượt vẽ đang chờ (rAF hoặc requestVideoFrameCallback); null khi không có lượt nào.
+  // Gọi callback ở frame video kế tiếp (trình duyệt thiếu requestVideoFrameCallback thì ở rAF kế tiếp); trả hàm hủy.
+  // Thứ đổi theo video chỉ vẽ lại khi video có frame mới: mỗi lần vẽ lại là một frame màn hình, mà clip 24 frame/s
+  // trên màn A04s 90Hz (đo 2026-10-26: thanh tua theo rAF đẩy primary lên 44 frame/s, ẩn thanh còn 23).
+  const nextVideoFrame = (callback) => {
+    if (!photoVideo.requestVideoFrameCallback) {
+      const id = requestAnimationFrame(callback);
+      return () => cancelAnimationFrame(id);
+    }
+    const id = photoVideo.requestVideoFrameCallback(callback);
+    return () => photoVideo.cancelVideoFrameCallback(id);
+  };
+  // Hủy lượt vẽ đang chờ; null khi không có lượt nào.
   let cancelLive = null;
-  // Dải trượt đổi mỗi frame nên vẽ theo rAF; video thì chỉ vẽ khi có frame mới: màn A04s 90Hz mà clip 24-30 frame/s,
-  // vẽ theo rAF lặp lại cùng một frame 3 lần (đo A04s 2026-10-26: primary video 42,5 fps).
+  // Dải trượt đổi mỗi frame nên vẽ theo rAF; video thì theo frame video.
   const queueLive = (videoFrame) => {
-    if (videoFrame && photoVideo.requestVideoFrameCallback) {
-      const id = photoVideo.requestVideoFrameCallback(drawLiveBackground);
-      cancelLive = () => photoVideo.cancelVideoFrameCallback(id);
-    } else {
+    if (videoFrame) cancelLive = nextVideoFrame(drawLiveBackground);
+    else {
       const id = requestAnimationFrame(drawLiveBackground);
       cancelLive = () => cancelAnimationFrame(id);
     }
   };
   const drawLiveBackground = () => {
     cancelLive = null;
-    // Viewer mở thì nền dưới backdrop đứng yên (advertising-detail R9): vẽ tiếp bắt blur 50px của backdrop tính lại mỗi
-    // frame, viewer video trên A04s còn 28 fps (đo 2026-10-26). Đóng viewer thì `close` vẽ lại.
+    // Viewer mở thì nền dưới backdrop đứng yên (advertising-detail R9): mỗi lần vẽ lại bắt blur 50px của backdrop tính
+    // lại (A04s 2026-10-26: blur này làm viewer video rơi khoảng 27 frame mỗi 8 s). Đóng viewer thì `close` vẽ lại.
     if (photoDialog?.open) return;
     const strip = primaryStrip;
     const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
@@ -3859,11 +3867,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     setRangeFill(photoProgress);
     photoTimeCurrent.textContent = formatVideoTime(photoVideo.currentTime);
   };
-  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame.
-  let videoTimeFrame = 0;
+  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame video.
+  let cancelVideoTime = null;
   const tickVideoTime = () => {
     syncVideoTime();
-    videoTimeFrame = photoVideo.paused ? 0 : requestAnimationFrame(tickVideoTime);
+    cancelVideoTime = photoVideo.paused ? null : nextVideoFrame(tickVideoTime);
   };
   const toggleVideoPlayback = () => {
     if (photoVideo.paused) void photoVideo.play().catch(() => {});
@@ -3941,7 +3949,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   }
   photoDialog?.addEventListener("close", startLiveBackground, { signal: controller.signal });
   photoVideo?.addEventListener("play", () => {
-    cancelAnimationFrame(videoTimeFrame);
+    cancelVideoTime?.();
     tickVideoTime();
   }, { signal: controller.signal });
   // Video đang phát không bắn lại `playing`; chỉ video mới (đổi nguồn rồi phát) mới nhả giờ đang giữ.

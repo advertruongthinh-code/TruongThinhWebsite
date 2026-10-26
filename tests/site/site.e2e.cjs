@@ -7052,6 +7052,22 @@ async function runAdvertisingMediaFocusedChecks() {
       `${label} virtual window, geometry, or source-text safety failed: ${JSON.stringify({ checks, state, expected: expected.map((placement) => placement.card.id) })}`);
   };
 
+  // Cuộn, resize và filter dựng lại cửa sổ qua rAF rồi chạy transition 0.4s; máy tải thì lệch hơn vài trăm ms.
+  // Đợi lưới khớp layout mong đợi, hết hạn thì ném đúng lỗi lệch cuối cùng.
+  const settledGridState = async (page, layout, label, timeout = 5_000) => {
+    const deadline = Date.now() + timeout;
+    for (;;) {
+      const state = await readGridState(page);
+      try {
+        assertGridState(state, layout, label);
+        return state;
+      } catch (error) {
+        if (Date.now() > deadline) throw error;
+        await page.waitForTimeout(50);
+      }
+    }
+  };
+
   await runPageCase(
     `advertising ${expectedCardCount}-media lazy virtual window`,
     { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
@@ -7118,8 +7134,7 @@ async function runAdvertisingMediaFocusedChecks() {
           { timeout: 6_000 },
         );
         await page.waitForTimeout(500);
-        const localized = await readGridState(page);
-        assertGridState(localized, pageLayout, `${language} locale round-trip`);
+        const localized = await settledGridState(page, pageLayout, `${language} locale round-trip`);
         assert(
           JSON.stringify(localized.tiles.map((tile) => tile.id)) === JSON.stringify(initialTileIds) &&
             (await page.evaluate(() => performance.timeOrigin)) === timeOrigin,
@@ -7142,8 +7157,7 @@ async function runAdvertisingMediaFocusedChecks() {
           { timeout: 3_000 },
         );
         const filteredLayout = await browseLayout(page, category.slug, 1440);
-        const filtered = await readGridState(page);
-        assertGridState(filtered, filteredLayout, `${category.slug} filter`);
+        const filtered = await settledGridState(page, filteredLayout, `${category.slug} filter`);
         assert(
           // Cụm có trang riêng nên URL là path trang cụm, không còn ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
@@ -7164,7 +7178,7 @@ async function runAdvertisingMediaFocusedChecks() {
       await page.setViewportSize({ width: 1200, height: 900 });
       await page.waitForTimeout(500);
       const resizedLayout = await browseLayout(page, "all", 1200);
-      assertGridState(await readGridState(page), resizedLayout, "1200px resize");
+      await settledGridState(page, resizedLayout, "1200px resize");
 
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.waitForTimeout(500);
@@ -7184,8 +7198,7 @@ async function runAdvertisingMediaFocusedChecks() {
         const requestedBefore = new Set(mediaRequestPaths);
         await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop + localY);
         await page.waitForTimeout(180);
-        const state = await readGridState(page);
-        assertGridState(state, pageLayout, `stepped scroll ${localY}px`);
+        const state = await settledGridState(page, pageLayout, `stepped scroll ${localY}px`);
         const mounted = new Set(state.tiles.map((tile) => tile.source));
         const requestedNow = [...mediaRequestPaths].filter((pathname) => !requestedBefore.has(pathname));
         assert(
@@ -7210,6 +7223,8 @@ async function runAdvertisingMediaFocusedChecks() {
         `Stepped lazy sweep did not load exactly the ${expectedCardCount} approved media paths with HTTP 200: ${JSON.stringify({ requested: [...requested], expected: [...expectedMediaPaths], badResponses })}`,
       );
 
+      // Con trỏ còn nằm ở nút filter vừa bấm: card gắn lại dưới nó chạy lớp tối hover 600ms (R3), không phải hiệu ứng vào.
+      await page.mouse.move(0, 0);
       await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), gridTop);
       await page.waitForFunction(
         (id) => {

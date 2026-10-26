@@ -477,6 +477,28 @@ test("M02a primary scrub shows frames under the thumb, pauses while dragging and
   });
 });
 
+// Video đang dừng vẫn kéo núm xem trước được, thả tay thì đứng ở frame dưới núm (owner 2026-10-26: phone và PC).
+test("M02a paused primary scrub shows frames under the thumb and stays paused on release", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    await page.locator(".advertising-photo-view__hero-frame [data-advertising-photo-play-surface]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").paused);
+    await dragProgress(page, 0.2, 0.8, { during: (state, audit) => {
+      assert.equal(state.playLabel, "Play", "a paused video keeps its play label while scrubbing");
+      assert(Math.abs(state.currentTime - state.progress) < 0.15, `frame follows the thumb: ${state.currentTime} vs ${state.progress}`);
+      assert(audit.seeks >= 3, `frames change during the drag: ${audit.seeks} seeks`);
+      assert.equal(audit.overlaps, 0, "a new seek waits for the previous seeked");
+    } });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").seeking);
+    const state = await playerState(page);
+    assert.equal(state.paused, true, "release keeps the video paused");
+    assert(Math.abs(state.currentTime - state.progress) < 0.15 && state.currentTime >= 2.2,
+      `release stays on the thumb frame: ${state.currentTime} vs ${state.progress}`);
+  });
+});
+
 test("M02a primary scrub past the buffered range holds the frame and seeks on release", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -695,7 +717,9 @@ test("M02a touch seek drag moves the video, not the media strip", async () => {
     }
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await page.waitForTimeout(600);
-    const after = await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").currentTime);
+    const [after, paused] = await page.evaluate(() => (({ currentTime, paused }) => [currentTime, paused])(
+      document.querySelector("[data-advertising-photo-video]")));
+    assert.equal(paused, true, "a paused video stays paused after the drag");
     assert.equal(strip, false, "the media strip never opens while seeking");
     assert.equal(await view.getAttribute("data-advertising-active-media-id"), videoId, "the media does not change");
     assert(after - before > 1, `the drag seeks the video forward: ${before} -> ${after}`);
@@ -850,9 +874,9 @@ test("M02a video stands still in the strip, its sound fades between play and pau
   });
 });
 
-// Nền kính sống vẽ theo frame video chứ không theo mỗi lần màn làm tươi, và đứng yên dưới viewer (đo A04s 2026-10-26:
-// primary video 42,5 fps, viewer video 28 fps).
-test("M02a live blur backdrop redraws once per video frame and stands still under the viewer", async () => {
+// Nền kính sống và thanh tua vẽ theo frame video chứ không theo mỗi lần màn làm tươi; nền đứng yên dưới viewer (A04s
+// 2026-10-26: thanh tua theo rAF đẩy primary video lên 44 frame/s cho clip 24 frame/s).
+test("M02a live blur backdrop and seek bar redraw once per video frame, the backdrop stands still under the viewer", async () => {
   await withPage("en", async (page) => {
     await page.setViewportSize(cappedViewport);
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -862,12 +886,18 @@ test("M02a live blur backdrop redraws once per video frame and stands still unde
     const count = () => page.evaluate(() => new Promise((resolve) => {
       const video = document.querySelector("[data-advertising-photo-video]");
       const live = document.querySelector(".advertising-photo-view__live-background");
+      const progress = document.querySelector("[data-advertising-photo-progress]");
       const { drawImage } = CanvasRenderingContext2D.prototype;
-      const tally = { draws: 0, frames: 0 };
+      const { setProperty } = CSSStyleDeclaration.prototype;
+      const tally = { draws: 0, bar: 0, frames: 0 };
       let stop = false;
       CanvasRenderingContext2D.prototype.drawImage = function (...args) {
         if (this.canvas === live) tally.draws += 1;
         return drawImage.apply(this, args);
+      };
+      CSSStyleDeclaration.prototype.setProperty = function (...args) {
+        if (this === progress.style && args[0] === "--range-fill") tally.bar += 1;
+        return setProperty.apply(this, args);
       };
       const onFrame = () => {
         tally.frames += 1;
@@ -877,11 +907,13 @@ test("M02a live blur backdrop redraws once per video frame and stands still unde
       setTimeout(() => {
         stop = true;
         CanvasRenderingContext2D.prototype.drawImage = drawImage;
+        CSSStyleDeclaration.prototype.setProperty = setProperty;
         resolve(tally);
       }, 1000);
     }));
     const playing = await count();
     assert(playing.draws > 0 && playing.draws <= playing.frames + 1, `one draw per video frame: ${JSON.stringify(playing)}`);
+    assert(playing.bar > 0 && playing.bar <= playing.frames + 1, `one seek bar update per video frame: ${JSON.stringify(playing)}`);
     await page.locator("[data-advertising-photo-expand]").click();
     await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").closest("dialog[open]"));
     const viewer = await count();
