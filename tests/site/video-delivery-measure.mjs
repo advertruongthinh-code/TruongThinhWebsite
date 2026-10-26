@@ -61,6 +61,7 @@ const browser = device ? await chromium.connectOverCDP(device)
 // 1/2 dưới navbar, lúc phát đầu tiên, các lần `waiting` sau khi đã phát kèm thời lượng.
 function watchVideos() {
   const log = window.__videos = [];
+  const nodes = window.__videoNodes = [];
   const entries = new WeakMap();
   const tick = () => {
     if (window.__firstCard === undefined && document.querySelector("[data-advertising-card]")) window.__firstCard = performance.now();
@@ -68,8 +69,9 @@ function watchVideos() {
     for (const video of document.querySelectorAll("[data-advertising-card] video")) {
       let entry = entries.get(video);
       if (!entry) {
-        entries.set(video, entry = { visible: null, playing: null, stalls: [] });
+        entries.set(video, entry = { created: performance.now(), visible: null, playing: null, stalls: [] });
         log.push(entry);
+        nodes.push(video);
         video.addEventListener("playing", () => {
           entry.playing ??= performance.now();
           const last = entry.stalls.at(-1);
@@ -111,7 +113,20 @@ const playback = async (base, network) => {
   const { page, close } = await open(base, network);
   await page.waitForTimeout(3000);
   await scroll(page);
-  const { videos, firstCard } = await page.evaluate(() => ({ videos: window.__videos, firstCard: window.__firstCard }));
+  const { videos, firstCard, late } = await page.evaluate(() => ({
+    videos: window.__videos, firstCard: window.__firstCard,
+    // Video đã hiện mà chưa phát: trạng thái lúc hết lượt, readyState thấp là do tải, cao mà vẫn dừng là do lịch phát.
+    late: window.__videos.flatMap((entry, index) => {
+      if (entry.visible === null || entry.playing !== null) return [];
+      const node = window.__videoNodes[index];
+      return [{
+        id: node.dataset.advertisingMediaItem, createdMs: Math.round(entry.created), visibleMs: Math.round(entry.visible),
+        endMs: Math.round(performance.now()), readyState: node.readyState, networkState: node.networkState, paused: node.paused,
+        shown: node.checkVisibility(), hls: node.currentSrc.startsWith("blob:"),
+        buffered: Array.from({ length: node.buffered.length }, (_, range) => [node.buffered.start(range), node.buffered.end(range)].map((time) => +time.toFixed(1))),
+      }];
+    }),
+  }));
   const seen = videos.filter((entry) => entry.visible !== null);
   await close();
   const started = seen.filter((entry) => entry.playing !== null);
@@ -121,6 +136,7 @@ const playback = async (base, network) => {
     firstCardMs: Math.round(firstCard), seen: seen.length, neverStarted: seen.length - started.length,
     stalls: stalls.length, stallsOver10: stalls.filter(({ start, end }) => end === undefined || end - start > 10).length,
     latencyP50: latency[Math.floor((latency.length - 1) / 2)] ?? null, latencyMax: latency.at(-1) ?? null,
+    ...(late.length ? { late } : {}),
   };
 };
 
@@ -203,9 +219,10 @@ for (const version of ["base", "candidate"]) {
   results.push({ scenario: "fast", version, ...result });
   console.log(`fast ${version}: ${JSON.stringify(result)}`);
 }
-// Tối đa 3 lượt tới khi có lượt tính được.
+// Tối đa 3 lượt tới khi có lượt tính được: có video khác tải, video còn phát và đang dưới bậc 480 lúc đổi mạng (thang H.264
+// có thể đã tự lên 480 trong 6 s chờ).
 let switched;
-for (let attempt = 0; attempt < 3 && !(switched?.triggered && !switched.paused); attempt += 1) {
+for (let attempt = 0; attempt < 3 && !(switched?.triggered && !switched.paused && switched.lowWidth < 480); attempt += 1) {
   switched = await switching(bases.candidate);
   results.push({ scenario: "switch", version: "candidate", attempt, ...switched });
   console.log(`switch candidate #${attempt}: ${JSON.stringify(switched)}`);
