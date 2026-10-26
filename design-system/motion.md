@@ -162,7 +162,7 @@ Trang chủ:
 | Portal trang chủ | Ảnh `scale(1 → 1.15)` như card; lớp `media-label-overlay` giữ nguyên độ tối |
 | Ảnh duo, CTA trang con | Như card, cùng primitive `media-hover-zoom` |
 | Ảnh [Gallery](components/Gallery/README.md) | Không zoom, chỉ con trỏ grab như Espacio |
-| Nút Suggestion | [Gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không gạch chân |
+| Nút Suggestion | Lớp tối `0.4` lên `0.6` `250ms ease-out` như Pinterest, [gạch chân chạy](#motion-theo-bề-mặt-ui) dưới nhãn; ảnh không zoom (slideshow giữ transform); nút đang bật không tối thêm, không gạch chân |
 | Floating CTA | Nền đen sang trắng, chữ trắng sang `ink`, `0.3s ease-out` |
 | Control viewer Advertising | Nền đổi `150ms`; nhãn mở trong `250ms`, không scale glyph, không reflow ảnh |
 
@@ -253,7 +253,7 @@ Masonry chính và masonry related chỉ có hai kiểu motion cho card: vị tr
 
 - Suggestion chưa bật chạy nhịp giữ 5s của [slideshow hero](#motion-theo-bề-mặt-ui), không zoom (owner bỏ 10/10), chuyển ảnh
   bằng đẩy ngang: ảnh mới `translateX(100% → 0)`, ảnh cũ `0 → -35%` và opacity `1 → 0.4`, `0.9s cubic-bezier(0.76, 0, 0.24, 1)`
-  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Hover hoặc focus bàn phím: gạch chân chạy dưới nhãn. Nút đang bật và reduced
+  (power3.inOut) (`suggestion-slideshow.mjs`). Đồng hồ giữ ảnh chạy ngay khi hiện, nút thứ i trễ `0.4s × i` thành sóng từ trên xuống, cả cụm dừng và chạy chung nên nút dưới mép màn hình điện thoại không lệch sóng; mọi nút đều chạy (bộ một ảnh đẩy sang chính nó). Hover hoặc focus bàn phím: lớp tối lên `0.6`, gạch chân chạy dưới nhãn. Nút đang bật và reduced
   motion giữ ảnh tĩnh; dừng khi tab ẩn, cả cụm ngoài viewport hoặc `dialog` mở.
 - Mở và đóng detail không có ảnh bay giữa card và primary. Đóng detail đánh
   dấu card vừa xem bằng lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.

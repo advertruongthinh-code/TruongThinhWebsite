@@ -164,14 +164,14 @@ try {
     "active suggestion keyboard focus keeps media transform inert");
   await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).hover();
   await page.waitForTimeout(650);
-  assert.equal(await inactiveOverlay(), inactiveNormal, "inactive suggestion hover keeps overlay darkness");
+  assert.equal(await inactiveOverlay(), "rgba(0, 0, 0, 0.6)", "inactive suggestion hover darkens the overlay to 0.6 like Pinterest");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
     "image-backed inactive suggestion hover has no visible black border");
   const hoverStyle = await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).evaluate((link) => ({
     filter: getComputedStyle(link, "::after").filter,
     media: getComputedStyle(link.querySelector(".advertising-card-media__image")).transform,
   }));
-  assert.equal(hoverStyle.filter, "none", "hover keeps the same inactive overlay darkness");
+  assert.equal(hoverStyle.filter, "none", "hover darkens through the overlay color, not a filter");
   assert.doesNotMatch(hoverStyle.media, /matrix\(1\.15, 0, 0, 1\.15/, "suggestion hover no longer zooms the photo");
   // Gạch chân dùng chung rule với portal và nav: 3px, cách chữ 4px, scaleX 0.3s.
   const underline = (tag) => page.locator(`[data-advertising-suggestion-tag="${tag}"] .advertising-photo-view__suggestion-label > span`)
@@ -192,7 +192,8 @@ try {
     const style = getComputedStyle(link.querySelector(".advertising-card-media__image"));
     return { transform: style.transform, duration: style.transitionDuration, easing: style.transitionTimingFunction, property: style.transitionProperty };
   });
-  assert.match(relatedMedia.transform, /matrix\(1\.15, 0, 0, 1\.15/, "related card keeps the shared media zoom");
+  // Card bỏ zoom, hover phủ lớp tối 20% như Pinterest (media-card R3, owner 2026-10-19).
+  assert.doesNotMatch(relatedMedia.transform, /matrix\(1\.15, 0, 0, 1\.15/, "related card no longer zooms its media");
   assert(hasSharedMediaTiming(relatedMedia), "related card media keeps the 600ms ease-out transform contract");
   await page.mouse.move(0, 0);
   await page.waitForTimeout(650);
@@ -200,6 +201,7 @@ try {
   await page.locator(`[data-advertising-suggestion-tag="${alternate}"]`).focus();
   await page.waitForTimeout(650);
   assert.equal((await underline(alternate)).transform, "matrix(1, 0, 0, 1, 0, 0)", "suggestion keyboard focus draws the underline");
+  assert.equal(await inactiveOverlay(), "rgba(0, 0, 0, 0.6)", "suggestion keyboard focus darkens the overlay like hover");
   assert.match(detailCss, /suggestion-link:focus-visible \{[\s\S]*?outline: 2px solid var\(--ink\);/, "focus has a dedicated ring");
   assert.doesNotMatch(detailCss, /aria-pressed="true"[^}]*background-clip:\s*text/s,
     "active suggestion text is not image-masked");

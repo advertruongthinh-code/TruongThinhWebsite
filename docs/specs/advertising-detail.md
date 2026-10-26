@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Detail Advertising
@@ -120,8 +120,8 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`; owner chọn 10/10), ảnh không zoom (owner bỏ 10/10)
-(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Hover chuột hoặc focus bàn phím: nhãn chạy gạch chân dùng chung
-rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
+(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Hover chuột hoặc focus bàn phím: lớp tối `0.4` lên `0.6` trong `250ms` như Pinterest (owner 2026-10-26), nhãn chạy gạch chân dùng chung
+rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không tối thêm, không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
 chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
 [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) phủ cả nút, nhãn vẫn đọc được. Đổi ảnh primary thì dọn slideshow cũ.
