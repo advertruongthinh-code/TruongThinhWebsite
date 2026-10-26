@@ -304,9 +304,16 @@
     ) || 0;
     return Math.max(2 * size, mask.offsetHeight + 0.6 * size + 8 + reach);
   };
-  // onComplete của tween reveal: chữ đã về chỗ thì mở lại vùng bóng dưới mask.
+  // Chữ đã về chỗ: mở lại vùng bóng dưới mask, bóng hiện dần 0.6s (owner 2026-10-26).
+  const openTextMask = (line) => {
+    const mask = line.parentElement;
+    if (!mask?.classList.contains("is-text-masked")) return;
+    mask.classList.remove("is-text-masked");
+    mask.animate([{ textShadow: "none" }, {}], { duration: 600, easing: "ease-out" });
+  };
+  // onComplete của tween reveal.
   function openTextMasks() {
-    this.targets().forEach((line) => line.parentElement?.classList.remove("is-text-masked"));
+    this.targets().forEach(openTextMask);
   }
   // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
   // max(0.1em, 6px); thiếu thì chỉ giãn đúng cặp dòng đó. Mực từng ký tự đo bằng canvas, vị trí chữ
@@ -899,6 +906,7 @@
   };
   window.TruongThinhMotion = {
     maskHiddenY,
+    openTextMask,
     getLogicalScroll: getPageScroll,
     getViewportMetrics,
     lockLogicalScroll() {

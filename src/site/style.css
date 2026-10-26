@@ -1163,10 +1163,6 @@ em {
   text-shadow: none;
 }
 
-:is(.hero-line-mask, .line-mask, .heritage-text, .portal-title-mask, .portal-title__quiet, .portal-title__strong, .detail-line, .motion-line-mask) {
-  transition: text-shadow 0.6s ease-out;
-}
-
 .hero-word {
   display: inline-block;
 }
