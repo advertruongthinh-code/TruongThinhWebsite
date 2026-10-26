@@ -298,11 +298,16 @@
     const size = Number.parseFloat(getComputedStyle(line).fontSize) || 16;
     const mask = line.parentElement;
     if (!mask?.matches(textMaskSelector)) return 2 * size;
+    mask.classList.add("is-text-masked");
     const reach = Number.parseFloat(
       getComputedStyle(document.documentElement).getPropertyValue("--text-shadow-reach"),
     ) || 0;
     return Math.max(2 * size, mask.offsetHeight + 0.6 * size + 8 + reach);
   };
+  // onComplete của tween reveal: chữ đã về chỗ thì mở lại vùng bóng dưới mask.
+  function openTextMasks() {
+    this.targets().forEach((line) => line.parentElement?.classList.remove("is-text-masked"));
+  }
   // Motto (page-home R7): mực dấu của ký tự nằm trong cột của ảnh dòng kề phải cách ảnh ít nhất
   // max(0.1em, 6px); thiếu thì chỉ giãn đúng cặp dòng đó. Mực từng ký tự đo bằng canvas, vị trí chữ
   // lấy ở trạng thái cuối animation (.heritage-line nâng 0.1em khi motion bật).
@@ -1360,6 +1365,7 @@
             gsap.to(target.querySelectorAll(".line-mask > span"), {
               y: "-0.1em",
               duration: 1.9,
+              onComplete: openTextMasks,
               ease: "power4.out",
               stagger: 0.1,
             });
@@ -1385,6 +1391,7 @@
               {
                 y: "-0.1em",
                 duration: 1.9,
+                onComplete: openTextMasks,
                 delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
                 ease: "power4.out",
               },
@@ -1423,6 +1430,7 @@
               {
                 y: "-0.1em",
                 duration: 1.9,
+                onComplete: openTextMasks,
                 delay: (portal.index % 3) * 0.3,
                 ease: "power4.out",
               },
@@ -1700,6 +1708,7 @@
             gsap.to(group.querySelectorAll(".line-mask > span"), {
               y: "-0.1em",
               duration: 1.9,
+              onComplete: openTextMasks,
               ease: "power4.out",
               stagger: 0.1,
             }),
@@ -1709,6 +1718,7 @@
             gsap.to(line, {
               y: "-0.1em",
               duration: 1.9,
+              onComplete: openTextMasks,
               delay: line.classList.contains("heritage-line--delay") ? 0.3 : 0,
               ease: "power4.out",
             }),
@@ -1719,6 +1729,7 @@
               {
                 y: "-0.1em",
                 duration: 1.9,
+                onComplete: openTextMasks,
                 delay: (index % 3) * 0.3,
                 ease: "power4.out",
               },

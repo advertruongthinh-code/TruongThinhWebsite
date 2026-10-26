@@ -1147,13 +1147,19 @@ em {
   overflow: visible;
   clip-path: inset(
     calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--mask-shadow-bottom, var(--text-shadow-reach))) calc(-0.15em - var(--text-shadow-reach))
   );
 }
 
 .hero-line-mask > span,
 .line-mask > span {
   display: block;
+}
+
+/* Dòng chữ đang ẩn hoặc đang trồi lên: mép dưới mask không nới vùng bóng, chữ chỉ hiện từ đáy mực như trước
+   khi có bóng (hero-typography R6). motion.js gỡ class khi reveal xong. */
+.is-text-masked {
+  --mask-shadow-bottom: 0px;
 }
 
 .hero-word {
@@ -1205,7 +1211,7 @@ em {
   .hero[data-hero-intro] .hero-line-mask {
     clip-path: inset(
       calc(-1 * max(var(--mask-ink-overflow-top, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
-      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em) - var(--text-shadow-reach)) calc(-1 * var(--text-shadow-reach))
+      calc(-1 * max(var(--mask-ink-overflow-bottom, 0px), 0.28em) - var(--mask-shadow-bottom, var(--text-shadow-reach))) calc(-1 * var(--text-shadow-reach))
     );
   }
 
@@ -1564,7 +1570,7 @@ em {
   overflow: visible;
   clip-path: inset(
     calc(-1 * var(--mask-ink-overflow-top, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
-      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--text-shadow-reach)) calc(-0.15em - var(--text-shadow-reach))
+      calc(-1 * var(--mask-ink-overflow-bottom, 0.28em) - var(--mask-shadow-bottom, var(--text-shadow-reach))) calc(-0.15em - var(--text-shadow-reach))
   );
 }
 
