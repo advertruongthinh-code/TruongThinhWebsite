@@ -4306,11 +4306,12 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   will-change: transform;
 }
 
+/* Owner 2026-10-26: mép trên 0,7 nhạt hết trong 100px, đúng quãng cuộn mà navbar còn trong suốt trước khi lên nền trắng
+   (motion.js thu header khi scrollY > 100) và xấp xỉ chiều cao navbar PC; mép dưới 0,5; không lớp mép trái; phủ đều 0,12. */
 .about-hero .hero-shade {
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.52), transparent 36%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.54), transparent 68%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.48), transparent 38%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 100px),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.5), transparent 38%),
     rgba(0, 0, 0, 0.12);
 }
 
