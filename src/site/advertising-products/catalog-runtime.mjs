@@ -3529,7 +3529,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoView) delete photoView.dataset.advertisingPhotoGlass;
     if (photoImage) delete photoImage.dataset.advertisingPhotoId;
     photoView && (photoView.hidden = true);
-    if (gridSection) gridSection.hidden = false;
+    if (gridSection) {
+      gridSection.hidden = false;
+      // Ép layout ngay: bỏ content-visibility: hidden của grid rồi thêm card trong cùng task, Chromium có lúc để
+      // card không có box (vào thẳng ?photo= rồi bấm navbar), nên rect đo ra 0, không cuộn và focus tới card.
+      void gridSection.offsetHeight;
+    }
     document.body.classList.remove("is-advertising-photo");
     delete document.body.dataset.advertisingPhotoActive;
     const focusId = browse.grid.focusId;
