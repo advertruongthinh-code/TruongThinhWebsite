@@ -2259,20 +2259,27 @@ body.is-advertising-browse .site-footer {
   background: #fbfbf9;
 }
 
+/* Bóng thanh tua (R4) vẽ bằng box-shadow ở đường tua và núm, không filter (lý do ở icon bên trên). Số chỉnh để nhìn như
+   drop-shadow D cũ (so ảnh 2026-10-26, owner muốn giữ visual): drop-shadow loang gấp đôi box-shadow cùng số, nhạt theo độ
+   trong của đường tua và lộ qua phần trong đó; lớp đen dưới gradient trắng thay phần bóng lộ ấy. */
 .advertising-video-player__progress::-webkit-slider-runnable-track {
-  box-shadow: var(--text-shadow-d);
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
+    linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.12), 0 0 24px rgba(0, 0, 0, 0.22);
 }
 
 .advertising-video-player__progress::-moz-range-track {
-  box-shadow: var(--text-shadow-d);
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
+    linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.12), 0 0 24px rgba(0, 0, 0, 0.22);
 }
 
 .advertising-video-player__progress::-webkit-slider-thumb {
-  box-shadow: var(--text-shadow-d);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
 .advertising-video-player__progress::-moz-range-thumb {
-  box-shadow: var(--text-shadow-d);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
 /* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi

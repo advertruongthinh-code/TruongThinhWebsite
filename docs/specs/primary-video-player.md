@@ -100,7 +100,10 @@ Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũ
   lớp riêng (`will-change: transform`) để bóng chỉ vẽ một lần, không vẽ lại khi thanh tua hay giờ đổi; mũi tên card và icon
   phát trên thumbnail video cũng vậy (owner 2026-10-26 chọn "Giữ bóng, tách lớp"; A04s: hết rơi frame, số đo ở mục Kiểm tra); thanh tua dùng
   `box-shadow` hai lớp ở đường tua và núm, không filter (owner 2026-10-26 chọn "Bóng vẽ rẻ hơn": `drop-shadow` tính lại
-  mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0); giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
+  mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0). Số chỉnh để nhìn như `drop-shadow` cũ (owner
+  hỏi giữ visual, so ảnh 2026-10-26): đường tua `0 0 4px` đen `0.12`, `0 0 24px` đen `0.22`, dưới gradient trắng thêm
+  lớp đen `0.19` phần đã phát, `0.08` phần chưa phát (bóng cũ lộ qua đường tua trong mờ); núm `0 0 4px` đen `0.5`,
+  `0 0 28px` đen `0.45`. Giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
   sáng còn tương phản khoảng `2,8:1` thay vì `3,6:1` khi có dải (đo trên ảnh chụp canvas bản 33); owner đã xem số này.
 
 Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi owner "ok" trong thread.
@@ -116,7 +119,7 @@ And lớp tối ::after của nút chưa chọn vẫn còn
 Given primary đang phát video trên PC hoặc cảm ứng
 When đọc style icon trên thanh, thanh tua và giờ
 Then icon có drop-shadow "0 0 2px" đen 0.5 rồi "0 0 12px" đen 0.4 trên lớp riêng
-And thanh tua có box-shadow, giờ có text-shadow cùng hai lớp
+And thanh tua có box-shadow hai lớp chỉnh theo bóng cũ, giờ có text-shadow hai lớp
 And thanh điều khiển không có nền gradient
 ```
 

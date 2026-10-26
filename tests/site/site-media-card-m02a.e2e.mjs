@@ -580,7 +580,8 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
     await openFixture(page, "en", { videoCover: true, direct: true });
     const two = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
     const drop = "drop-shadow(rgba(0, 0, 0, 0.5) 0px 0px 2px) drop-shadow(rgba(0, 0, 0, 0.4) 0px 0px 12px)";
-    // Thanh tua vẽ bóng bằng box-shadow ở đường tua và núm, không filter (A04s 2026-10-26); Chromium bỏ rule -moz.
+    // Thanh tua vẽ bóng bằng box-shadow ở đường tua và núm, không filter (A04s 2026-10-26), số chỉnh cho nhìn như
+    // drop-shadow cũ; Chromium bỏ rule -moz.
     const seekShadows = ["-webkit-slider-runnable-track", "-webkit-slider-thumb"]
       .map((pseudo) => `.advertising-video-player__progress::${pseudo}`);
     const read = () => page.evaluate(() => {
@@ -612,8 +613,9 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
     assert.deepEqual(state.filters, [drop, "none"], "bar icons carry the two-layer drop shadow, the seek bar no filter");
     assert.deepEqual(state.layers, ["transform", "transform", "transform"],
       "player buttons, the thumb play icon and the card arrows are their own layers");
-    assert.deepEqual(seekShadows.map((selector) => state.seek[selector]), seekShadows.map(() => "var(--text-shadow-d)"),
-      "seek track and thumb carry the two-layer box shadow");
+    assert.deepEqual(seekShadows.map((selector) => state.seek[selector]),
+      ["rgba(0, 0, 0, 0.12) 0px 0px 4px, rgba(0, 0, 0, 0.22) 0px 0px 24px", "rgba(0, 0, 0, 0.5) 0px 0px 4px, rgba(0, 0, 0, 0.45) 0px 0px 28px"],
+      "seek track and thumb carry the two-layer box shadow tuned to the old drop shadow");
     assert.deepEqual(state.thumbs, ["rgb(251, 251, 249)"], "seek and volume thumbs are solid");
     assert(state.idle.length > 0, "the fixture shows suggestion buttons");
     assert(state.idle.every(([shadow, layer]) => shadow === two && layer !== "rgba(0, 0, 0, 0)"),
