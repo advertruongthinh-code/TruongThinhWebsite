@@ -1012,14 +1012,16 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
-/* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): mép trên 0,7 nhạt hết trong 100px, đúng quãng cuộn
-   mà navbar còn trong suốt trước khi lên nền trắng (motion.js thu header khi scrollY > 100); mép dưới 0,5; không lớp mép trái;
-   phủ đều 0,2. */
+/* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): phủ đều 0,2; độ tối tổng ở mép trên 0,7, nhạt dần
+   trong 200px tới đúng 0,2 của lớp phủ đều, ở mép dưới 0,5; không lớp mép trái. Lớp mép chồng lên lớp phủ đều nên alpha
+   lớp mép = (tổng - 0,2) / 0,8: 0,625 và 0,375. Mép trên dài và mịn: stop theo đường cosine, đầu và cuối dốc 0, không mép gắt. */
 .hero-shade {
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 100px),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.5), transparent 42%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.625), rgba(0, 0, 0, 0.601) 25px, rgba(0, 0, 0, 0.533) 50px,
+      rgba(0, 0, 0, 0.432) 75px, rgba(0, 0, 0, 0.312) 100px, rgba(0, 0, 0, 0.193) 125px, rgba(0, 0, 0, 0.092) 150px,
+      rgba(0, 0, 0, 0.024) 175px, transparent 200px),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.375), transparent 42%),
     rgba(0, 0, 0, 0.2);
 }
 
@@ -1033,9 +1035,8 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-align: center;
 }
 
-/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero trang Sản phẩm quảng cáo
-   (chữ ink trên nền giấy) và CTA lưới của trang đó không áp. */
-.hero:not(.detail-index-hero),
+/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero không bóng (owner 2026-10-26); CTA lưới
+   trang Sản phẩm quảng cáo (chữ ink trên nền giấy) không áp. */
 .portal-copy,
 .legacy-copy,
 .detail-cta:not([data-advertising-grid-cta]) {

@@ -123,14 +123,14 @@ Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1
 ### R6. Bóng chữ hai lớp trên ảnh (ngoại lệ Design System)
 
 Owner chọn phương án B trên canvas bản 34 (2026-10-24): giữ lớp tối hiện có (`.hero-shade`, `.portal-shade`,
-`.detail-cta::after`; owner 2026-10-26 chỉnh portal và CTA `0.5`, mọi hero ảnh mép trên `0.7` nhạt hết trong 100px, mép dưới `0.5`, phủ đều `0.2`, bỏ lớp mép trái), thêm `text-shadow` hai lớp D, cùng bóng với player và nút "Có thể bạn thích" của
+`.detail-cta::after`; owner 2026-10-26 chỉnh portal và CTA `0.5`, mọi hero ảnh phủ đều `0.2`, độ tối tổng mép trên `0.7` nhạt dần, mịn tới đúng `0.2` trong 200px, mép dưới `0.5`, bỏ lớp mép trái), thêm `text-shadow` hai lớp D, cùng bóng với player và nút "Có thể bạn thích" của
 primary-video-player R4 (PR #434, chưa merge):
 `0 0 2px` đen `0.5` dưới `0 0 12px` đen `0.4`. Một biến CSS `--text-shadow-d` trong `:root` giữ giá trị, `--text-shadow-reach`
 (12px) là bán kính quầng ngoài.
 
-- Áp cho chữ trắng trên ảnh: hero trang chủ, Nhà ở, Kinh doanh, Về chúng tôi (kicker, title, scroll cue), `.portal-copy`
-  (kicker, title, tagline), `.legacy-copy` ("Giữ nghề") và `.detail-cta` có ảnh.
-- Không áp: hero và CTA lưới của trang Sản phẩm quảng cáo (chữ `ink` trên giấy), header khi tông `ink`.
+- Áp cho chữ trắng trên ảnh: `.portal-copy` (kicker, title, tagline), `.legacy-copy` ("Giữ nghề") và `.detail-cta` có ảnh.
+- Không áp: chữ mọi hero (owner 2026-10-26 bỏ bóng ở hero), CTA lưới của trang Sản phẩm quảng cáo (chữ `ink` trên giấy),
+  header khi tông `ink`.
 - Mask chữ (`.hero-line-mask`, `.line-mask`, `.portal-title-mask`, `.detail-line`, `.motion-line-mask`) nới `clip-path`
   thêm `--text-shadow-reach` mỗi cạnh để quầng không bị cắt.
 - Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích. Ghi vào `design-system/` chỉ khi owner "ok" trong
@@ -138,15 +138,15 @@ primary-video-player R4 (PR #434, chưa merge):
 
 ```gherkin
 Given trang chủ, Nhà ở, Kinh doanh, Về chúng tôi ở 1440
-When đọc text-shadow của title hero, chữ portal, "Giữ nghề" và CTA có ảnh
+When đọc text-shadow của chữ portal, "Giữ nghề" và CTA có ảnh
 Then là "0 0 2px" đen 0.5 và "0 0 12px" đen 0.4
 And clip-path của mask dòng nới ra ngoài hộp ít nhất 12px mỗi cạnh
 ```
 
 ```gherkin
-Given trang Sản phẩm quảng cáo
-When đọc text-shadow của title hero và title CTA lưới
-Then cả hai là none
+Given trang chủ, Nhà ở, Kinh doanh, Về chúng tôi, Sản phẩm quảng cáo
+When đọc text-shadow của title hero, và title CTA lưới trang Sản phẩm quảng cáo
+Then đều là none
 ```
 
 ## UI
@@ -162,7 +162,7 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 | R1, R3 | `tests/site/hero-typography.e2e.mjs`: số dòng từ Range rects, nét bị cắt (ảnh có và không clip), hai dòng chồng pixel, cuộn ngang; 12 bề rộng, VI và EN; thêm ảnh có và không clip-path của chữ nối heritage ([page-home R7](page-home.md#r7-heritage-montage)) |
 | R2 | Cùng test (cỡ và vị trí qua số dòng, tràn); bảng số đo espacio qua phiên PC còn mở |
 | R4 | Cùng test: baseline mọi đoạn văn ở 390 và 1440 |
-| R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở hero, portal, "Giữ nghề", CTA có ảnh; none ở hero và CTA Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
+| R6 | `tests/site/hero-text-shadow.e2e.mjs`: text-shadow hai lớp ở portal, "Giữ nghề", CTA có ảnh; none ở mọi hero và CTA lưới Sản phẩm quảng cáo; clip-path mask nới 12px; ảnh trước/sau trên PC và phone trong mô tả PR |
 
 ## Gate còn mở
 

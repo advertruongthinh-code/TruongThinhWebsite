@@ -10,8 +10,9 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 - Chữ là nhân vật chính: một kicker nhỏ phía trên, tiêu đề hai dòng rất lớn,
   không nút, không đoạn văn dài.
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
-  `paper`. `hero-shade` chung mọi hero ảnh: mép trên `0.7` nhạt hết trong 100px dưới
-  navbar, mép dưới `0.5`, phủ đều `0.2`, không lớp ngang (owner 2026-10-26). Header đổi tone theo nền qua `data-header-tone`.
+  `paper`. `hero-shade` chung mọi hero ảnh: phủ đều `0.2`; độ tối tổng mép trên `0.7` nhạt
+  dần, mịn tới đúng `0.2` trong 200px, mép dưới `0.5`; không lớp ngang; chữ hero không bóng
+  (owner 2026-10-26). Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).
 - Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,
