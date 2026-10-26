@@ -111,7 +111,7 @@ Layer video tạo khi item thành active: `muted`, `playsInline`, `preload="auto
 H.264 4:2:0, layer luôn tắt tiếng; detail và viewer dùng `hlsSrc` từ bậc đầu hoặc `src`
 (owner 2026-10-25, đo PC rồi mới giữ). Card vào DOM
 khi còn cách màn hình một viewport (ảo hóa), nên video tải và giải mã sẵn trước khi tới lượt phát (owner 2026-10-25: đo PC, video
-khởi động giữa lúc cuộn làm một Commit 82ms).
+khởi động giữa lúc cuộn làm một Commit 82ms). Lướt quá 3000px/s (kéo thanh cuộn, chuột giữa) thì card video chỉ có poster, gắn nguồn khi cuộn chậm lại, mỗi frame một card (owner 2026-10-26 báo giật khi lướt nhanh).
 Card video theo Pinterest (owner 2026-10-17): không nút phát, không icon loa; nhãn tổng thời lượng `m:ss` làm tròn lên,
 không đếm ngược. Luôn tắt tiếng. Masonry (owner 2026-10-24, thay luật 2 suất cũ): mọi card có item video đang active và hiện quá 1/2 chiều cao trong phần nhìn thấy dưới navbar đều phát cùng lúc; tính lại mỗi frame khi đang cuộn, không chờ cuộn dừng; mỗi frame khởi động tối đa một video, video chờ lượt khởi động ở frame sau (owner 2026-10-25); còn từ 1/2 trở xuống thì dừng, quay lại thì phát tiếp từ chỗ dừng. Chuột vào card không làm card phát. Mỗi card chạy playlist video của nó
 theo thứ tự `mediaItems` (thứ tự do CMS định): hết video thì đẩy sang video kế như R3, chấm hoặc bộ đếm theo, hết vòng về

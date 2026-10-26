@@ -913,6 +913,35 @@ function syncJustViewedMarker(figure, locale, marked) {
   marker.textContent = locale === "en" ? "Just viewed" : "Vừa xem";
 }
 
+// Lướt nhanh (kéo thanh cuộn, autoscroll chuột giữa) thì card video chỉ có poster: quá 3000px/s card đi hết quãng
+// overscan một viewport trước khi kịp tải đoạn đầu, gắn player HLS lúc đó chỉ tốn công. Cuộn chậm lại thì gắn, mỗi frame
+// một card.
+const FAST_SCROLL_PX_PER_S = 3000;
+let fastScroll = false;
+let videoSourceFrame = 0;
+const deferredVideoSources = new Map();
+const flushVideoSources = () => {
+  videoSourceFrame = 0;
+  const [[video, attach] = []] = deferredVideoSources;
+  if (fastScroll || !video) return;
+  deferredVideoSources.delete(video);
+  if (video.isConnected) {
+    // Lịch phát có thể đã gọi play() lúc chưa có nguồn; gắn nguồn chạy lại thuật toán load và hủy lệnh đó, nên phát lại.
+    const resume = !video.paused;
+    attach();
+    if (resume && video.paused) void video.play().catch(() => {});
+  }
+  videoSourceFrame = requestAnimationFrame(flushVideoSources);
+};
+const setFastScroll = (value) => {
+  fastScroll = value;
+  if (!value && !videoSourceFrame) videoSourceFrame = requestAnimationFrame(flushVideoSources);
+};
+const setCardVideoSource = (video, attach) => {
+  if (fastScroll) deferredVideoSources.set(video, attach);
+  else attach();
+};
+
 function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId = null, onMediaChange = () => {},
   onPendingChange = () => {}) {
   const figure = document.createElement("figure");
@@ -1069,7 +1098,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.preload = "auto";
         layer.poster = item.posterSrc;
         // Card hiện tối đa ~440px CSS nên chặn ở bậc 480 (video-delivery R2) hoặc file cardSrc khi không có Media Source.
-        setVideoSource(layer, item, { file: item.cardSrc || item.src, capWidth: 480 });
+        setCardVideoSource(layer, () => setVideoSource(layer, item, { file: item.cardSrc || item.src, capWidth: 480 }));
         layer.setAttribute("aria-label", english ? item.altEn : item.altVi);
         layer.addEventListener("loadeddata", updateLoading);
         // Hết video thì card đẩy sang video kế trong playlist theo thứ tự dữ liệu, hết vòng quay lại video đầu; ảnh
@@ -4240,9 +4269,25 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (!controller.signal.aborted && ADVERTISING_PATH_PATTERN.test(location.pathname)) captureScroll();
     }, 300);
   };
+  // Tốc độ cuộn giữa hai lần scroll liên tiếp; 150ms không cuộn thì coi như đã dừng.
+  let scrollSample;
+  let scrollIdleTimer = 0;
+  const sampleScrollSpeed = (y) => {
+    const time = performance.now();
+    if (scrollSample) {
+      setFastScroll(Math.abs(y - scrollSample.y) / Math.max(1, time - scrollSample.time) * 1000 > FAST_SCROLL_PX_PER_S);
+    }
+    scrollSample = { y, time };
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => {
+      scrollSample = undefined;
+      setFastScroll(false);
+    }, 150);
+  };
   const updateVisualScroll = (event) => {
     const y = Number(event.detail?.y);
     if (!Number.isFinite(y)) return;
+    sampleScrollSpeed(y);
     currentVisualY = Math.max(0, y);
     usesVisualScroll = true;
     syncCtaParallax();
@@ -4252,6 +4297,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   const updateNativeScroll = () => {
     if (usesVisualScroll && window.scrollY === 0) return;
+    sampleScrollSpeed(window.scrollY);
     currentVisualY = window.scrollY;
     usesVisualScroll = false;
     scheduleScroll();

@@ -79,7 +79,7 @@ And BANDWIDTH của mỗi bậc bằng bitrate segment lớn nhất tính từ b
 Managed Media Source) thì mỗi `<video>` có một instance hls.js nạp `hlsSrc` (layer card chặn bậc như R2); hủy instance
 khi video đổi nguồn hoặc rời DOM. Còn lại (iPhone cũ hơn, trình duyệt cũ) phát file bậc cố định: card dùng `cardSrc`
 (file bậc 480), primary và viewer dùng `src` (file bậc 960). File fMP4 của bậc phát thẳng được như mp4 thường nên không
-lưu thêm bản riêng.
+lưu thêm bản riêng. hls.js lỗi không phục hồi được thì video về file bậc cố định đó, đang phát thì phát tiếp.
 
 Card đang dừng (chưa vào màn hoặc đã cuộn qua) tải xong một segment thì runtime dừng tải và giữ phần đã có; card phát
 thì tải tiếp từ vị trí phát. Ở 4G chậm card ngoài màn tải hết clip giành băng thông nên segment đầu của card vừa hiện

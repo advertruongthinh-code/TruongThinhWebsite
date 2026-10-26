@@ -113,9 +113,12 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
     // Lỗi không phục hồi được thì về file bậc cố định; file đó lỗi nữa thì card, primary xử lý lỗi video như cũ.
     hls.on(Hls.Events.ERROR, (_, { fatal }) => {
       if (!fatal) return;
+      // Đang phát (hoặc chờ phát) thì phát tiếp bằng file: gỡ player chạy lại thuật toán load nên video dừng.
+      const resume = !video.paused;
       releaseVideoSource(video);
       video.dataset.videoSource = key;
       video.src = file;
+      if (resume) void video.play().catch(() => {});
     });
     // Tua và lặp về giây 0 chạy lại luật phía trước (R4).
     video.addEventListener("seeked", () => { if (behind(video)) replaceAhead(video); }, { signal: abort.signal });
