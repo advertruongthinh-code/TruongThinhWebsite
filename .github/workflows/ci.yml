@@ -75,10 +75,19 @@ jobs:
       # Runner GitHub-hosted trắng mỗi job nên cài Chromium cùng system deps.
       - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
       # Bộ adv-browse chạy thêm WebKit (random-browse); các bộ khác chỉ Chromium.
-      # apt có lúc treo ở bước này (PR 567): quá 5 phút thì cài lại một lần.
-      - run: |
-          cmd="pnpm exec playwright install --with-deps chromium ${{ matrix.suite == 'adv-browse' && 'webkit' || '' }}"
-          timeout 300 $cmd || timeout 300 $cmd
+      # Runner ubuntu-latest đã có hầu hết thư viện hệ thống nên chỉ tải trình duyệt (CDN, vài giây);
+      # apt chỉ chạy khi trình duyệt không mở được. Đừng dùng --with-deps: apt-get update từ mirror Azure
+      # từng treo 11 phút (PR 581), và timeout chạy bằng user thường không kill được apt chạy bằng sudo.
+      - name: Install browsers
+        env:
+          BROWSERS: ${{ matrix.suite == 'adv-browse' && 'chromium webkit' || 'chromium' }}
+        run: |
+          pnpm exec playwright install $BROWSERS
+          probe() { for b in $BROWSERS; do node -e "require('playwright').$b.launch().then(x => x.close())" || return 1; done; }
+          probe || {
+            sudo env "PATH=$PATH" timeout -k 10 240 node_modules/.bin/playwright install-deps $BROWSERS
+            probe
+          }
 
       # Script tự build, mở preview ở port trống riêng và dọn server.
       - run: pnpm qa:suite ${{ matrix.suite }}
