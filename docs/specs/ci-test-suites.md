@@ -64,7 +64,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-viewer` | advertising-detail, advertising-viewer-touch-zoom | chuyển ảnh: morph, history Back/Forward, khóa cuộn, đổi ngôn ngữ khi đang mở ảnh |
 | `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
-| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages, image-adaptive-delivery | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal, ảnh thích ứng mạng |
+| `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, Kính reveal |
 | `media-card` | media-card, glass-surface, video-delivery | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung, video thích ứng mạng |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo
@@ -207,8 +207,11 @@ giữ 14 ngày). Số đo này dùng để xếp hạng test chậm và flaky; k
 
 ### R11. Timeout
 
-Job suite có `timeout-minutes: 12`; bước cài trình duyệt (`playwright install --with-deps`) có timeout riêng 5 phút và
-chạy lại một lần khi quá hạn, vì apt treo ở bước này đã làm một job `media-card` mất 20 phút mà chưa chạy test nào (PR 567, 2026-10-26).
+Job suite có `timeout-minutes: 12`. Bước cài trình duyệt chỉ chạy `playwright install` (tải từ CDN, không apt); runner
+`ubuntu-latest` đã có hầu hết thư viện hệ thống. Chỉ khi trình duyệt không mở được mới chạy `playwright install-deps` bằng
+`sudo timeout -k 10 240`, để timeout (root) kill được apt. Không dùng `--with-deps`: `apt-get update` từ mirror Azure treo
+11 phút làm job `fast` bị hủy hai lần ở PR 581 (2026-10-26), và `timeout` chạy bằng user thường không kill được apt chạy bằng sudo.
+Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà chưa chạy test nào (PR 567).
 
 ## Giao diện và dữ liệu
 

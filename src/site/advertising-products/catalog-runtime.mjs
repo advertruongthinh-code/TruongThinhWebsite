@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { responsiveSrcset, tierAutoSizes, tierSizes, tierSource } from "./responsive-image.mjs";
+import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   ADVERTISING_SEARCH_OPERATION_BUDGET,
@@ -70,6 +70,11 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 // Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
 const SKELETON_CONTEXT_BUDGET = 12;
+// Advertising-skeleton R5: Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome 155 và
+// A04s, Chrome 156: tạo context thứ 5 thì context cũ nhất bị thu hồi). PC: mọi khung vẽ chung một context trong worker rồi
+// chuyển hình sang canvas của khung, tối đa 24 khung. Điện thoại: context riêng mỗi khung, xếp 4 khung mỗi worker (12 khung);
+// context chung trên A04s làm tụt fps dưới gate R8 (đo 26/10).
+const SKELETON_SHARED_BUDGET = 24;
 // Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
 const CARD_REVEAL_MS = 600;
@@ -77,6 +82,9 @@ const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
+// Skeleton card (advertising-skeleton R4): card vào viewport trong khoảng này sau scroll event thì khung và canvas Flow
+// hiện ngay không fade, để vuốt nhanh vẫn thấy gradient chạy.
+const SKELETON_SCROLL_ENTRY_MS = 250;
 // Khung card trên điện thoại chạy cả lúc vuốt: một phần tư số pixel để GPU giữ gate fps (R8, owner 18/10).
 const PHONE_CARD_FLOW = { width: 120, height: 80 };
 // Layer Flow chung của batch theo document; null khi không có WebGL thì batch về renderer riêng.
@@ -809,7 +817,7 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
   const srcset = responsiveSrcset(record.media.src, record.media.width);
   if (suggestion) {
     if (srcset) {
-      image.sizes = tierAutoSizes(image, "auto, 50vw");
+      image.sizes = "auto, 50vw";
       image.srcset = srcset;
     }
     image.src = record.media.src;
@@ -1132,7 +1140,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
         layer.alt = english ? item.altEn : item.altVi;
         const srcset = responsiveSrcset(item.src, item.width);
         if (srcset) {
-          layer.sizes = tierAutoSizes(layer, "auto, 50vw");
+          layer.sizes = "auto, 50vw";
           layer.srcset = srcset;
         }
         layer.src = item.src;
@@ -1343,10 +1351,9 @@ function setPlacementStyle(node, placement) {
 function sizeLazyImage(node, placement) {
   const image = node.querySelector("img[data-sizes]");
   if (!image) return;
-  // Mạng chậm thì ảnh chưa tải lấy nửa bề rộng (image-adaptive R3).
-  const sizes = tierSizes(image, Math.ceil(placement.pixelWidth));
-  image.dataset.sizes = sizes;
-  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= Number.parseFloat(sizes))) image.sizes = sizes;
+  const width = Math.ceil(placement.pixelWidth);
+  image.dataset.sizes = `${width}px`;
+  if (image.hasAttribute("sizes") && !(Number.parseFloat(image.sizes) >= width)) image.sizes = `${width}px`;
 }
 
 function sizeNode(node, placement, setSize) {
@@ -1502,13 +1509,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
-  // Detail (mô tả, related) tải 4 s sau lúc load để không tranh băng thông với 8 card đầu; showPhoto chờ nếu chưa xong.
+  // Detail (mô tả, related) tải ngay khi ảnh 8 card đầu xong (tối đa 6 s) để không tranh băng thông với chúng; showPhoto chờ nếu chưa xong.
   let detailLoaded = false;
   let detailReady;
   const ensureDetail = () => detailReady ||= attachCardDetail(cards).catch(() => {}).then(() => { detailLoaded = true; });
-  const prefetchDetail = () => setTimeout(() => { if (!controller.signal.aborted) ensureDetail(); }, 4000);
-  if (document.readyState === "complete") prefetchDetail();
-  else window.addEventListener("load", prefetchDetail, { once: true, signal: controller.signal });
+  const prefetchDetail = (tries = 0) => {
+    if (controller.signal.aborted) return;
+    const images = [...document.querySelectorAll("[data-advertising-card] img")].slice(0, 8);
+    if (tries >= 24 || (images.length === 8 && images.every((image) => image.complete))) ensureDetail();
+    else setTimeout(prefetchDetail, 250, tries + 1);
+  };
+  prefetchDetail();
   // Giữ sẵn số đo CSS khi script shell không khởi động được.
   if (!document.querySelector(".site-viewport-metrics")) {
     const probe = document.createElement("div");
@@ -1584,6 +1595,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     video: photoVideo,
     player: photoPlayer,
     videoHost: photoDialog?.querySelector("[data-advertising-photo-video-host]"),
+    onOpen: () => {
+      photoView.dataset.advertisingPhotoExpanded = "";
+      drawLiveBackground();
+    },
   });
   // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
   const loadedMediaKeys = new Set();
@@ -1689,6 +1704,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   let motionUntil = 0;
   let lastScrollAt = 0;
   let scrollActive = false;
+  // Cả scroll native lẫn site:scroll của Locomotive (PC cuộn trượt, window.scrollY đứng yên); chỉ tính khi vị trí đổi,
+  // vì lúc tải trang cũng có scroll event ở y không đổi.
+  let lastScrollEventAt = -Infinity;
+  const trackScroll = (readY) => {
+    let last = 0;
+    return (event) => {
+      const y = readY(event);
+      if (Math.abs(y - last) > 1) lastScrollEventAt = performance.now();
+      last = y;
+    };
+  };
+  const enteringWhileScrolling = () => performance.now() - lastScrollEventAt < SKELETON_SCROLL_ENTRY_MS;
   // Fling bận làm khoảng cách giữa hai scroll event vượt 120ms, nên đo thời gian một mình thấy "đã dừng" giữa fling;
   // có scrollend thì chờ nó, rồi vẫn giữ 120ms như cũ. Scroll do layout hoặc code (mở detail nhảy về y=0)
   // không bắn scrollend, nên quá PHONE_SCROLL_SETTLE_MS không có scroll event thì coi là đã dừng.
@@ -2017,6 +2044,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const visibleSkeletonFrames = new Set();
   const skeletonFlowByFrame = new Map();
   const skeletonLeaseByFrame = new Map();
+  const sharedFlowAllowed = () => skeletonFlowWorkerSupported() && !skeletonPhone();
   const skeletonAssignmentByFrame = new Map();
   const skeletonFrameBySlot = new Map();
   const skeletonPhaseBySlot = new Map();
@@ -2175,9 +2203,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ...(skeletonPhone() ? PHONE_CARD_FLOW : {}),
     };
     // Vuốt nhanh làm rAF main thread còn khoảng 12fps trên A04s: vẽ trong worker thì Flow chạy đều (R8, owner 19/10).
-    const renderer = (!lease && createSkeletonFlowWorkerRenderer(canvas, options)) || createSkeletonFlowRenderer(canvas, options);
+    const shared = !lease && sharedFlowAllowed();
+    const workerRenderer = !lease && createSkeletonFlowWorkerRenderer(canvas, shared ? { ...options, shared: true } : options);
+    if (shared && !workerRenderer) return;
+    const renderer = workerRenderer || createSkeletonFlowRenderer(canvas, options);
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
     skeletonFlowByFrame.set(frame, renderer);
+    canvas.dataset.advertisingFlowContext = shared ? "shared" : "own";
     if (renderer?.context) {
       const record = lease || rememberSkeletonContext(canvas, renderer.context, renderer);
       record.renderer = renderer;
@@ -2187,6 +2219,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!canvas.isConnected) frame.querySelector(".advertising-grid__cta-surface")?.append(canvas);
     // Vẽ một lần khi canvas được lease nằm trong frame; không có paint nào chen giữa, nên vẫn thấy frame đầu.
     renderer?.draw(performance.now());
+    // Vuốt nhanh thì card chỉ ở trong viewport khoảng 270ms, fade 300ms thì Flow không kịp hiện (R4); ảnh tĩnh dưới canvas
+    // cùng pha nên hiện ngay không nhảy.
+    if (enteringWhileScrolling()) {
+      canvas.style.opacity = "1";
+      return;
+    }
     requestAnimationFrame(() => {
       if (!canvas.isConnected || skeletonFlowByFrame.get(frame) !== renderer
         || document.hidden || skeletonMotionPreference.matches) return;
@@ -2214,7 +2252,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
   const syncSkeletonRenderers = (rects) => {
-    const budget = SKELETON_CONTEXT_BUDGET;
+    const budget = sharedFlowAllowed() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
@@ -2300,6 +2338,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         skeletonEntryFrames.delete(frame);
         return;
       }
+      // Card vào viewport lúc đang cuộn hiện ngay: fade 0.6s dài hơn thời gian vuốt nhanh để lại card trong viewport (R4).
+      if (!frame.dataset.advertisingCtaFrame && enteringWhileScrolling()) frame.style.transition = "none";
       frame.classList.add("is-entry-ready");
       revealedSkeletonSlots.add(skeletonKey(frame));
       // Frame batch vào như ảnh card: Flow hiện dưới Kính trên frame trống trong 0.6s (skeleton R4).
@@ -3455,8 +3495,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
   // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
-  // Lane dải và ảnh tải trước chọn bậc theo mạng như primary (image-adaptive R3); ảnh mới chưa có src nên chỉ mạng quyết.
-  const primarySource = (item) => item.kind === "video" ? item.posterSrc : tierSource(new Image(), item.src, item.width);
+  // Lane dải và ảnh tải trước dùng cùng file như primary.
+  const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
@@ -3480,14 +3520,42 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   liveBackground.hidden = true;
   photoBackground?.after(liveBackground);
   const liveScratch = document.createElement("canvas");
-  let liveFrame = 0;
+  // Gọi callback ở frame video kế tiếp (trình duyệt thiếu requestVideoFrameCallback thì ở rAF kế tiếp); trả hàm hủy.
+  // Thứ đổi theo video chỉ vẽ lại khi video có frame mới: mỗi lần vẽ lại là một frame màn hình, mà clip 24 frame/s
+  // trên màn A04s 90Hz (đo 2026-10-26: thanh tua theo rAF đẩy primary lên 44 frame/s, ẩn thanh còn 23).
+  const nextVideoFrame = (callback) => {
+    if (!photoVideo.requestVideoFrameCallback) {
+      const id = requestAnimationFrame(callback);
+      return () => cancelAnimationFrame(id);
+    }
+    const id = photoVideo.requestVideoFrameCallback(callback);
+    return () => photoVideo.cancelVideoFrameCallback(id);
+  };
+  // Hủy lượt vẽ đang chờ; null khi không có lượt nào.
+  let cancelLive = null;
+  // Dải trượt đổi mỗi frame nên vẽ theo rAF; video thì theo frame video.
+  const queueLive = (videoFrame) => {
+    if (videoFrame) cancelLive = nextVideoFrame(drawLiveBackground);
+    else {
+      const id = requestAnimationFrame(drawLiveBackground);
+      cancelLive = () => cancelAnimationFrame(id);
+    }
+  };
+  // Media đã có frame đứng yên dưới viewer; null khi viewer đóng.
+  let liveStill = null;
   const drawLiveBackground = () => {
-    liveFrame = 0;
-    const strip = primaryStrip;
+    cancelLive = null;
+    // Viewer mở thì khung primary chỉ còn zoom blur đứng yên phủ kín, video là frame lúc mở (advertising-detail R9, owner
+    // 2026-10-26): vẽ một lần cho mỗi media, kể cả khi media vừa khít khung (glass false). Mỗi lần vẽ lại bắt blur 50px của
+    // backdrop tính lại. Đóng viewer thì `close` vẽ lại theo nhịp thường.
+    const still = Boolean(photoDialog?.open);
+    if (!still) liveStill = null;
+    else if (liveStill === activePrimaryMediaId) return;
+    const strip = still ? null : primaryStrip;
     const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
       : [{ node: photoVideo, x: 0 }];
     // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
-    liveBackground.hidden = photoView.dataset.advertisingPhotoGlass !== "true" || (!strip && photoVideo.hidden);
+    liveBackground.hidden = (!still && photoView.dataset.advertisingPhotoGlass !== "true") || (!strip && photoVideo.hidden);
     if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
       const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
       const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
@@ -3511,11 +3579,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       context.clearRect(0, 0, width, height);
       context.filter = BAKED_FILTERS.at(-1);
       context.drawImage(liveScratch, -bleed, -bleed);
+      if (still) liveStill = activePrimaryMediaId;
     }
-    if (strip || !photoVideo.paused) liveFrame = requestAnimationFrame(drawLiveBackground);
+    if (!still && (strip || !photoVideo.paused)) queueLive(!strip);
   };
+  // Vẽ ngay frame tới (đổi nguồn, tua, đóng dải hay viewer), sau đó lượt vẽ tự chọn nhịp.
   const startLiveBackground = () => {
-    if (!liveFrame) liveFrame = requestAnimationFrame(drawLiveBackground);
+    cancelLive?.();
+    queueLive(false);
   };
   // Tiếng fade cùng nhịp dải (PUSH_TIMING) khi video chuyển giữa phát và dừng (owner 2026-10-19); ngoài lúc fade,
   // photoVideo.volume luôn là mức người xem chọn. Người xem chỉnh tiếng giữa lúc fade thì thắng (R11): fade thôi ghi
@@ -3583,7 +3654,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     // Hình video đứng trong dải; tiếng chạy nốt và nhỏ dần cùng nhịp dải rồi video mới dừng.
     if (playing) fadeVolume(-1, () => photoVideo.pause());
     placeStrip(lanes, width, offset);
-    cancelAnimationFrame(liveFrame);
+    cancelLive?.();
     drawLiveBackground();
     return primaryStrip;
   };
@@ -3595,7 +3666,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const renderPrimaryMedia = (record, item, slide = 0, motion = null) => {
     const english = locale === "en";
     const video = item.kind === "video";
-    const source = video ? null : tierSource(photoImage, item.src, item.width);
+    const source = video ? null : responsiveSource(item.src);
     // Viewer đang mở thì primary đổi thẳng: dải chèn cạnh photoVideo, mà video có thể đang nằm trong viewer.
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
@@ -3762,7 +3833,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       image.loading = "lazy";
       const thumbSrcset = item.kind === "video" ? "" : responsiveSrcset(item.src, item.width);
       if (thumbSrcset) {
-        image.sizes = tierAutoSizes(image, "auto, 25vw");
+        image.sizes = "auto, 25vw";
         image.srcset = thumbSrcset;
       }
       image.src = item.kind === "video" ? item.posterSrc : item.src;
@@ -3818,11 +3889,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     setRangeFill(photoProgress);
     photoTimeCurrent.textContent = formatVideoTime(photoVideo.currentTime);
   };
-  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame.
-  let videoTimeFrame = 0;
+  // timeupdate chỉ ~4 lần/giây nên thanh tua nhảy bậc; khi phát thì vẽ theo từng frame video.
+  let cancelVideoTime = null;
   const tickVideoTime = () => {
     syncVideoTime();
-    videoTimeFrame = photoVideo.paused ? 0 : requestAnimationFrame(tickVideoTime);
+    cancelVideoTime = photoVideo.paused ? null : nextVideoFrame(tickVideoTime);
   };
   const toggleVideoPlayback = () => {
     if (photoVideo.paused) void photoVideo.play().catch(() => {});
@@ -3835,6 +3906,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // ngoài đoạn đã tải thì giữ frame, thả tay (change) mới tua rồi phát tiếp nếu trước đó đang phát. Bàn phím cùng đường.
   const isBuffered = (time) => Array.from({ length: photoVideo.buffered.length }, (_, index) => index)
     .some((index) => photoVideo.buffered.start(index) <= time && time <= photoVideo.buffered.end(index));
+  // Mọi lệnh tua đi qua đây, kể cả lúc thả (A04s 2026-10-26: 2 tới 3 lệnh chồng mỗi lượt kéo, lệnh thả chồng lệnh kéo).
+  // `seeking` tắt trước khi event `seeked` chạy (suy luận, chưa đo): lệnh gửi trong khe đó bỏ lệnh đang chờ, và `seeked`
+  // tới muộn không gửi chồng. Lệnh trùng chỗ đang tua (bấm một điểm trên thanh, phím mũi tên: input rồi change cùng
+  // giá trị) thì không tua lần hai.
+  const seekTo = (time) => {
+    if (time === photoVideo.currentTime) pendingSeek = null;
+    else if (photoVideo.seeking) pendingSeek = time;
+    else {
+      pendingSeek = null;
+      photoVideo.currentTime = time;
+    }
+  };
   photoProgress?.addEventListener("input", () => {
     const time = Number(photoProgress.value);
     if (!scrub) {
@@ -3844,20 +3927,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     setRangeFill(photoProgress);
     photoTimeCurrent.textContent = formatVideoTime(time);
     if (!isBuffered(time)) pendingSeek = null;
-    else if (photoVideo.seeking) pendingSeek = time;
-    else photoVideo.currentTime = time;
+    else seekTo(time);
   }, { signal: controller.signal });
   photoProgress?.addEventListener("change", () => {
     if (!scrub) return;
     const { wasPlaying } = scrub;
-    scrub = pendingSeek = null;
-    photoVideo.currentTime = Number(photoProgress.value);
+    scrub = null;
+    seekTo(Number(photoProgress.value));
     if (wasPlaying) void photoVideo.play().catch(() => {});
   }, { signal: controller.signal });
   photoVideo?.addEventListener("seeked", () => {
-    if (pendingSeek === null) return;
-    photoVideo.currentTime = pendingSeek;
-    pendingSeek = null;
+    if (pendingSeek !== null) seekTo(pendingSeek);
   }, { signal: controller.signal });
   // Kéo về 0 là tắt tiếng nhưng giữ volume cũ, để nút tiếng bật lại đúng mức trước đó.
   photoVolume?.addEventListener("input", () => {
@@ -3889,8 +3969,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   for (const type of ["play", "seeked", "loadeddata", "emptied"]) {
     photoVideo?.addEventListener(type, startLiveBackground, { signal: controller.signal });
   }
+  photoDialog?.addEventListener("close", () => {
+    delete photoView.dataset.advertisingPhotoExpanded;
+    startLiveBackground();
+  }, { signal: controller.signal });
   photoVideo?.addEventListener("play", () => {
-    cancelAnimationFrame(videoTimeFrame);
+    cancelVideoTime?.();
     tickVideoTime();
   }, { signal: controller.signal });
   // Video đang phát không bắn lại `playing`; chỉ video mới (đổi nguồn rồi phát) mới nhả giờ đang giữ.
@@ -4081,6 +4165,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       await ensureDetail();
       if (controller.signal.aborted) return;
     }
+    // Tín hiệu cho test: "true" khi mọi pha dựng related của lượt mở này đã xong, kể cả site:layout sau motion related
+    // (ngắt giữa chừng thì lượt sau tự đặt lại).
+    if (photoView) photoView.dataset.advertisingDetailReady = "false";
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
@@ -4113,9 +4200,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderRelatedWindow({ animate: true, origins });
         // Báo layout sau motion 400ms của related: gộp vào frame Masonry và LazySizes của task mount thì các lượt đo
         // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
-        setTimeout(() => window.dispatchEvent(new CustomEvent("site:layout")), 400);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("site:layout"));
+          if (generation === detailRenderGeneration && photoView) photoView.dataset.advertisingDetailReady = "true";
+        }, 400);
       }
     }
+    if (!deferRelated && photoView) photoView.dataset.advertisingDetailReady = "true";
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
@@ -4136,6 +4227,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoView) delete photoView.dataset.advertisingPhotoId;
     if (photoView) delete photoView.dataset.advertisingPhotoLayout;
     if (photoView) delete photoView.dataset.advertisingPhotoGlass;
+    if (photoView) delete photoView.dataset.advertisingDetailReady;
     if (photoImage) delete photoImage.dataset.advertisingPhotoId;
     photoView && (photoView.hidden = true);
     if (gridSection) {
@@ -4548,6 +4640,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
+  addEventListener("site:scroll", trackScroll(({ detail }) => detail.y), { passive: true, signal: controller.signal });
+  addEventListener("scroll", trackScroll(() => scrollY), { passive: true, signal: controller.signal });
   addEventListener("scroll", () => { lastScrollAt = performance.now(); scrollActive = "onscrollend" in window; }, { passive: true, signal: controller.signal });
   addEventListener("scrollend", () => { scrollActive = false; }, { signal: controller.signal });
   addEventListener("scroll", updateNativeScroll, { passive: true, signal: controller.signal });

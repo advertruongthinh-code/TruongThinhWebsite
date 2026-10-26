@@ -2018,9 +2018,10 @@ body.is-advertising-browse .site-footer {
 
 /* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
    (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
-   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng. */
+   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng; nút là lớp riêng để bóng chỉ vẽ một lần (primary-video-player R4). */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
+  will-change: transform;
   width: 32px;
   height: calc(100% - 44px);
   border-radius: 0;
@@ -2118,8 +2119,11 @@ body.is-advertising-browse .site-footer {
   fill: currentColor;
 }
 
-/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg và thanh tua. */
-.advertising-video-player :is(.advertising-video-player__button svg, .advertising-video-player__progress) {
+/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg; thanh tua dùng box-shadow ở đường tua và
+   núm (bên dưới). drop-shadow là filter, mỗi lần thanh tua nhích Chrome tính lại cả lớp bóng mờ: A04s 2026-10-26 viewer
+   video rơi 8 frame mỗi 8 s, bỏ bóng thanh và icon thì 0. Nút icon là lớp riêng (will-change) để bóng icon chỉ vẽ một lần,
+   không vẽ lại theo thanh tua hay giờ (owner 2026-10-26 chọn "Giữ bóng, tách lớp"). */
+.advertising-video-player__button svg {
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
@@ -2166,6 +2170,7 @@ body.is-advertising-browse .site-footer {
   background: transparent;
   color: inherit;
   cursor: pointer;
+  will-change: transform;
 }
 
 .advertising-video-player__button svg {
@@ -2252,6 +2257,29 @@ body.is-advertising-browse .site-footer {
   border: 0;
   border-radius: 50%;
   background: #fbfbf9;
+}
+
+/* Bóng thanh tua (R4) vẽ bằng box-shadow ở đường tua và núm, không filter (lý do ở icon bên trên). Số chỉnh để nhìn như
+   drop-shadow D cũ (so ảnh 2026-10-26, owner muốn giữ visual): drop-shadow loang gấp đôi box-shadow cùng số, nhạt theo độ
+   trong của đường tua và lộ qua phần trong đó; lớp đen dưới gradient trắng thay phần bóng lộ ấy. */
+.advertising-video-player__progress::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
+    linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.12), 0 0 24px rgba(0, 0, 0, 0.22);
+}
+
+.advertising-video-player__progress::-moz-range-track {
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill)),
+    linear-gradient(to right, rgba(0, 0, 0, 0.19) var(--range-fill), rgba(0, 0, 0, 0.08) var(--range-fill));
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.12), 0 0 24px rgba(0, 0, 0, 0.22);
+}
+
+.advertising-video-player__progress::-webkit-slider-thumb {
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
+}
+
+.advertising-video-player__progress::-moz-range-thumb {
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5), 0 0 28px rgba(0, 0, 0, 0.45);
 }
 
 /* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi
@@ -2363,6 +2391,16 @@ body.is-advertising-browse .site-footer {
 
 [data-advertising-photo-glass="false"] .advertising-photo-view__hero :is([data-advertising-photo-background], .advertising-photo-view__live-background) {
   display: none;
+}
+
+/* Viewer mở (advertising-detail R9, owner 2026-10-26): khung primary dưới nền viewer chỉ còn zoom blur phủ kín, kể cả media
+   vừa khít khung, không còn media sắc nét; video đã sang viewer, canvas nền sống giữ frame lúc mở. */
+[data-advertising-photo-expanded] .advertising-photo-view__hero-frame > [data-advertising-photo-image] {
+  visibility: hidden;
+}
+
+[data-advertising-photo-expanded] .advertising-photo-view__hero-frame > :is([data-advertising-photo-background], .advertising-photo-view__live-background:not([hidden]), .glass-surface) {
+  display: block;
 }
 
 /* Kính của primary blur photo tĩnh này bằng filter, không phải backdrop-filter: Chrome snapshot một backdrop theo từng raster
@@ -2517,6 +2555,11 @@ body.is-advertising-browse .site-footer {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Thumbnail video là lớp riêng để bóng icon phát chỉ vẽ một lần (primary-video-player R4). */
+.advertising-photo-view__media-thumbs button:has(> svg) {
+  will-change: transform;
 }
 
 .advertising-photo-view__media-thumbs svg {

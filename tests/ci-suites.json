@@ -238,8 +238,8 @@
       "tests": ["PHOTO_VIEW_SHARD=6/6 PHOTO_VIEW_ENGINES=chromium node tests/site/advertising-photo-view.e2e.mjs"]
     },
     "media": {
-      "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages", "image-adaptive-delivery"],
-      "tests": ["node tests/site/image-loading-frame.e2e.mjs", "node tests/site/image-adaptive.e2e.mjs"]
+      "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages"],
+      "tests": ["node tests/site/image-loading-frame.e2e.mjs"]
     },
     "media-card": {
       "specs": ["media-card", "glass-surface", "video-delivery"],

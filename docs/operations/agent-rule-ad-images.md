@@ -68,7 +68,8 @@ khách hàng Trường Thịnh theo [nghiên cứu khách hàng](../reference/ad
      phụ (slogan, motto), không ghi một từ trơn; thiết kế bắt mắt, đọc rõ từ xa
      theo tinh thần "để thương hiệu luôn trong tầm mắt" (không in câu này); chữ
      đủ lớn để đọc đúng dấu; biển một mặt quay về máy; chữ LED ma trận không đặt
-     ở cỡ nhỏ (owner chốt 2026-10-14);
+     ở cỡ nhỏ (owner chốt 2026-10-14); chữ lớn, nét dày, ưu tiên hình;
+     chữ AI lỗi thì đổi font hoặc góc nhìn (2026-10-26);
    - không dùng xe đẩy inox kiểu cũ có tủ kính ba mặt (như xe hủ tiếu), owner
      loại 2026-10-14;
    - graphic trên sản phẩm (decal, mặt in, mặt hộp đèn) cũng theo tinh thần trên:

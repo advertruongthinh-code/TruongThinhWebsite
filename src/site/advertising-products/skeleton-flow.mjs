@@ -712,36 +712,50 @@ export function createSkeletonFlowRenderer(canvas, {
   };
 }
 
-// Một worker cho cả document; null khi trình duyệt không chạy được thì caller về renderer main thread.
-let flowWorker;
+// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (đo trên PC và A04s), nên renderer có context riêng xếp vào nhiều
+// worker, mỗi worker tối đa 4 context; hub chung (cuối file) luôn ở worker đầu và không tính vào 4. `flowWorkersFailed`
+// đặt khi không tạo được worker thì caller về renderer main thread.
+const FLOW_WORKER_CONTEXTS = 4;
+const flowWorkers = [];
+let flowWorkersFailed = false;
 let flowWorkerId = 0;
 const flowWorkerBackends = new Map();
-export const skeletonFlowWorkerSupported = () => flowWorker !== null && typeof Worker === "function"
+function flowWorkerSlot(shared) {
+  let slot = shared ? flowWorkers[0] : flowWorkers.find(({ live }) => live < FLOW_WORKER_CONTEXTS);
+  if (!slot) {
+    try {
+      const worker = new Worker(new URL("./skeleton-flow-worker.mjs", import.meta.url), { type: "module" });
+      worker.onmessage = ({ data }) => flowWorkerBackends.get(data.id)?.(data.backend);
+      slot = { worker, live: 0 };
+      flowWorkers.push(slot);
+    } catch {
+      flowWorkersFailed = true;
+      return null;
+    }
+  }
+  if (!shared) slot.live++;
+  return slot;
+}
+export const skeletonFlowWorkerSupported = () => !flowWorkersFailed && typeof Worker === "function"
   && typeof OffscreenCanvas === "function" && "transferControlToOffscreen" in HTMLCanvasElement.prototype;
 
 // Renderer chạy trong worker, cùng API với createSkeletonFlowRenderer. Pha trên main thread tính theo thời gian chạy
 // để lưu khi release; chỉ lệch với worker khi một frame worker dài hơn 50ms.
 export function createSkeletonFlowWorkerRenderer(canvas, options) {
   if (!skeletonFlowWorkerSupported()) return null;
-  if (!flowWorker) {
-    try {
-      flowWorker = new Worker(new URL("./skeleton-flow-worker.mjs", import.meta.url), { type: "module" });
-    } catch {
-      flowWorker = null;
-      return null;
-    }
-    flowWorker.onmessage = ({ data }) => flowWorkerBackends.get(data.id)?.(data.backend);
-  }
+  const slot = flowWorkerSlot(options.shared);
+  if (!slot) return null;
+  const { worker } = slot;
   const id = ++flowWorkerId;
   const offscreen = canvas.transferControlToOffscreen();
-  flowWorker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
+  worker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
   // Caller duy nhất (catalog-runtime) luôn truyền đủ preset, pha, chiều và tốc độ.
   const { preset, speedScale, direction } = options;
   let phase = options.initialPhase;
   let startedAt = null;
   let destroyed = false;
   flowWorkerBackends.set(id, (value) => { canvas.dataset.advertisingFlowBackend = value; });
-  const send = (type) => !destroyed && flowWorker.postMessage({ id, type });
+  const send = (type) => !destroyed && worker.postMessage({ id, type });
   const settlePhase = () => {
     if (startedAt === null) return;
     const now = performance.now();
@@ -766,6 +780,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
       stop();
       send("destroy");
       destroyed = true;
+      if (!options.shared) slot.live--;
       flowWorkerBackends.delete(id);
     },
     backend: "webgl",
@@ -773,6 +788,105 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
       settlePhase();
       return phase;
     },
+  };
+}
+
+// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (advertising-skeleton R5): worker giữ một context chung, mỗi frame
+// vẽ lần lượt từng khung đang chạy rồi chép bitmap sang canvas bitmaprenderer của khung, nên số khung chạy không bị chặn.
+let flowHub;
+function sharedFlowHub() {
+  if (flowHub !== undefined) return flowHub;
+  const surface = new OffscreenCanvas(FLOW_WIDTH, FLOW_HEIGHT);
+  const attributes = SKELETON_FLOW_CONTEXT_ATTRIBUTES;
+  let gl = surface.getContext("webgl", attributes);
+  let locations = null;
+  // Dựng program, buffer, noise; gọi lại sau webglcontextrestored.
+  const setup = () => {
+    const program = gl && contextProgram(gl);
+    if (!program) return false;
+    gl.useProgram(program);
+    bindQuadAndNoise(gl, program, gl.createBuffer(), gl.createTexture());
+    const uniform = (name) => gl.getUniformLocation(program, name);
+    locations = {
+      time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
+      noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+    };
+    return true;
+  };
+  if (!setup()) return (flowHub = null);
+  const entries = new Set();
+  let frameId = 0;
+  let lastTimestamp = -1;
+  let lost = false;
+  // Sự kiện mất context đến sau một task, trong lúc đó transferToImageBitmap đã ném lỗi.
+  const paint = (entry) => {
+    if (lost || gl.isContextLost()) return;
+    const { field, finish } = entry.preset;
+    gl.uniform1f(locations.time, entry.phase);
+    gl.uniform1f(locations.scale, field.scale);
+    gl.uniform1f(locations.distortion, field.distortion);
+    gl.uniform1f(locations.swirl, field.swirl);
+    gl.uniform1f(locations.noise, 0.5 * finish.noise / 100);
+    gl.uniform2fv(locations.anchors, entry.anchors);
+    gl.uniform3fv(locations.colors, entry.colors);
+    gl.uniform4fv(locations.balances, entry.balances);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    entry.target.transferFromImageBitmap(surface.transferToImageBitmap());
+  };
+  const tick = (timestamp) => {
+    frameId = 0;
+    if (lost) return;
+    const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+    for (const entry of entries) {
+      entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
+      paint(entry);
+    }
+    if (entries.size) frameId = requestAnimationFrame(tick);
+    else lastTimestamp = -1;
+  };
+  const resume = () => {
+    if (!frameId && !lost && entries.size) frameId = requestAnimationFrame(tick);
+  };
+  // Context chung là context duy nhất của worker nên không bị bỏ vì giới hạn 4; mất do GPU reset thì khung giữ hình cuối,
+  // khôi phục thì dựng lại và chạy tiếp.
+  surface.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    programByContext.delete(gl);
+    lost = true;
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+    lastTimestamp = -1;
+  });
+  surface.addEventListener("webglcontextrestored", () => {
+    gl = surface.getContext("webgl", attributes);
+    lost = !setup();
+    resume();
+  });
+  return (flowHub = { entries, paint, resume });
+}
+
+// Cùng API với createSkeletonFlowRenderer; chỉ chạy trong worker.
+export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1 }) {
+  const hub = sharedFlowHub();
+  const target = hub && canvas.getContext("bitmaprenderer");
+  if (!target) return null;
+  const entry = {
+    target, preset, speedScale, direction: direction < 0 ? -1 : 1, phase: Number(initialPhase) || FLOW_CLOCK_START,
+    ...presetUniforms(preset),
+  };
+  const stop = () => hub.entries.delete(entry);
+  return {
+    backend: "webgl",
+    draw: () => hub.paint(entry),
+    start() {
+      hub.entries.add(entry);
+      hub.resume();
+    },
+    stop,
+    destroy: stop,
+    get phase() { return entry.phase; },
+    get running() { return hub.entries.has(entry); },
   };
 }
 

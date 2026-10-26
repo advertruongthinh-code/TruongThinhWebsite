@@ -177,8 +177,8 @@ logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung 
 trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
-cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về
-masonry thì đóng viewer. Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
+cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
+còn media sắc nét; video là frame lúc mở, đứng yên (owner 2026-10-26). Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
 
 ```gherkin
 Given detail đã cuộn tới Y1
@@ -268,7 +268,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 | R6 | `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs`; `advertising-suggestion-wave.e2e.mjs` (412×780, nút dưới mép màn hình); `advertising-products-random-order.test.mjs` (`mountSuggestionSlides`) |
 | R7 | `advertising-products-random-order.test.mjs`, `advertising-products-static.test.mjs` (pool, seed); `advertising-one-column.test.mjs`; `advertising-single-related.e2e.mjs`; `CASE=related-selected-card-shuffle-cleanup`, `p13-position-stuffing-and-remount`, `related-tap-defers-related`; `pnpm qa:related-scroll` (giả lập và Android qua adb) |
 | R8 | `advertising-products-lifecycle.test.mjs` (history controller); `CASE=m02b-entry-media-and-scroll-back-forward`, `m02b-related-history-just-viewed-and-scroll`, `history-entry-scroll-offscreen-morph`, `history-grid-scrollbar-resize`, `rapid-related-and-back-mid-morph` |
-| R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle` |
+| R9 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs` (gồm `viewer:resize-focus`); `CASE=viewer-control-affordances`, `viewer-backdrop-swipe-stays-open`, `viewer-morph-lock-handoff`, `morph-backdrop-lifecycle`; `site-media-card-m02a.e2e.mjs`: khung primary dưới viewer ảnh và video chỉ còn zoom blur, đóng thì media hiện lại |
 | R10 | `advertising-products-lifecycle.test.mjs` (`returnToGrid`, `escapeDirectPhoto`); `CASE=navbar-keeps-picked-group node tests/site/advertising-photo-transitions.e2e.mjs`; `advertising-return-p74.e2e.mjs`; `advertising-photo-header.e2e.mjs` (header thu gọn, 390px và 1440px); `TT_E2E_P13_NAVBAR_ONLY=1 node tests/site/site.e2e.cjs` |
 | R11 | `CASE=active-photo-locale-switch` |
 | R12 | `advertising-primary-p14.e2e.mjs` (reduced motion); `advertising-slideshow-p75.e2e.mjs`; `advertising-suggestion-motion.e2e.mjs` |
