@@ -77,6 +77,14 @@ function wideFixtureArtifact() {
   return artifact;
 }
 
+// Chờ hết CSS transition đang chạy (hover, fade) thay vì ngủ cố định: hai frame cho style recalculation khởi động
+// transition, rồi chờ không còn transition nào chạy (kể cả pha delay).
+const settleTransitions = async (page) => {
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.waitForFunction(() => !document.getAnimations()
+    .some((animation) => animation instanceof CSSTransition && animation.playState === "running"), null, { timeout: 5_000 });
+};
+
 async function wideFrame(card) {
   return card.evaluate((node) => {
     const rect = node.querySelector(".advertising-card-media").getBoundingClientRect();
@@ -1185,7 +1193,7 @@ test("M01b hover arrows step card media by position and the card media never zoo
       }
       assert.equal(await arrows(), "- 0", "arrows stay hidden until hover; first media has no previous arrow");
       await card.locator(".advertising-card-media").hover();
-      await page.waitForTimeout(700);
+      await settleTransitions(page);
       assert.equal(await arrows(), "- 1", "hover shows only the next arrow on the first media");
       assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").first()
         .evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a), 1, "hover keeps card media still");
@@ -1268,7 +1276,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
     }));
     assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
       `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
-    await page.waitForTimeout(700);
+    await settleTransitions(page);
     assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "0" });
 
     const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
@@ -1287,7 +1295,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
       "incoming media enters from the canvas edge, not in place");
 
     await page.mouse.move(5, 5);
-    await page.waitForTimeout(800);
+    await settleTransitions(page);
     assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
     await context.close();
   } finally { await browser.close(); }
