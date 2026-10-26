@@ -218,7 +218,8 @@ xanh, giữ 14 ngày). Số đo này là đầu vào để đóng gói job (R11)
 Manifest có mục `jobs`: mỗi job liệt kê id các bộ chạy nối tiếp trong một runner. R3 vẫn chọn theo bộ; job chạy khi có
 bộ trong nó được chọn và chỉ chạy các bộ được chọn. Một bộ đỏ không dừng bộ khác trong job. Tên job là các id bộ. Lượt đủ
 bộ dùng không quá 18 job (dưới giới hạn khoảng 20 của gói Free) và mỗi job dự kiến xong trong 6 phút; cách chia chốt theo số
-đo R10. Job suite có `timeout-minutes: 12`.
+đo R10. Job suite có `timeout-minutes: 12`; bước cài trình duyệt (`playwright install --with-deps`) có timeout riêng 5 phút và
+chạy lại một lần khi quá hạn, vì apt treo ở bước này đã làm một job `media-card` mất 20 phút mà chưa chạy test nào (PR 567, 2026-10-26).
 
 ```gherkin
 Given manifest có mục jobs
