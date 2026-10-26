@@ -176,7 +176,7 @@ assert.ok(mobileSuggestions.every(({ card, tag }) => card.category === samplingC
   || tag.group === "use"), "cross-category representatives require a hero-authored or shared-use tag");
 assert.match(runtime, /advertising-photo-view__suggestion-links[\s\S]*advertising-photo-view__suggestion-link[\s\S]*advertising-photo-view__suggestion-label/, "suggestion tile renders the approved link and label hooks");
 assert.match(runtime, /function createPhotoMedia[\s\S]*advertising-card-media__image/, "grid and suggestion media share one media helper");
-assert.match(runtime, /link\.className = "advertising-card-interactive";[\s\S]*advertising-card-media[\s\S]*createPhotoMedia\(record, locale\)/, "grid and related cards keep media still on hover (owner 2026-10-18)");
+assert.match(runtime, /link\.className = "advertising-card-interactive";[\s\S]*advertising-card-media[\s\S]*createPhotoMedia\(record, locale[,)]/, "grid and related cards keep media still on hover (owner 2026-10-18)");
 assert.match(runtime, /advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media[\s\S]*createPhotoMedia\(card, locale, \{ suggestion: true \}\)/, "suggestion buttons reuse the shared media interaction");
 assert.doesNotMatch(runtime, /startSuggestionMotion|advertising-suggestion-image|scale\(1\.06\)/, "suggestions do not run a second hover or slideshow motion provider");
 assert.match(runtime, /"internal-gap": primary\.internalGap/, "detail runtime passes the span-three internal gap to CSS");
