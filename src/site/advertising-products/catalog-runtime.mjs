@@ -2940,9 +2940,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     relatedMotionTimer = 0;
     cancelMasonryTransitions(relatedMasonry || null);
   };
-  // stage: dựng card motion ở vị trí gốc nhưng ẩn bằng visibility, để style và layout của card mới tính trong frame
-  // trước lượt motion; lượt animate kế tiếp chỉ đổi visibility (decision phone-frame-budget).
-  const renderRelatedWindow = ({ animate = false, origins, stage = false } = {}) => {
+  const renderRelatedWindow = ({ animate = false, origins } = {}) => {
     if (!relatedLayout || !relatedGrid || photoView?.hidden) return;
     // Vào thẳng thì related card mount trong task riêng; scroll hoặc resize trước đó không được mount chúng khi chưa animate.
     if (!animate && (relatedMotionFrame || relatedMotionTimer || directEntryPhase)) return;
@@ -3010,12 +3008,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       suggestionNode.style.top = `${origin.y}px`;
       suggestionNode.style.transform = "none";
     }
-    for (const node of [...relatedRendered.values(), suggestionNode]) {
-      if (stage && motion) node?.style.setProperty("visibility", "hidden");
-      else node?.style.removeProperty("visibility");
-    }
     restoreRelatedDomOrder();
-    if (stage && motion) return;
     // Không motion thì vị trí đã ghi ở trên; bỏ Masonry như placeRendered, vì layout() đo lại mọi card (getSize)
     // trong lúc cuộn related, long task trên phone Android (decision phone-frame-budget).
     if (!motion) {
@@ -3496,18 +3489,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       revealPhotoView(browse, generation);
     }
-    for (const phase of deferRelated ? ["warm", "pages", "related", "stage", ""] : []) {
+    for (const phase of deferRelated ? ["warm", "pages", "related", ""] : []) {
       // Mount related đọc vị trí grid: chờ frame để không gộp style của pha related vào task mount (task 50-59ms trên A04s).
-      // Lượt motion cũng chờ frame: style của card dựng ở stage đã tính xong, frame motion không còn 28-40ms style.
-      await (phase && phase !== "stage" ? nextTask() : afterNextFrame());
+      await (phase ? nextTask() : afterNextFrame());
       if (generation !== detailRenderGeneration || controller.signal.aborted || !activePhotoId) return;
       // Phân trang ép một layout mỗi probe, nên nó có task riêng: gộp với warm thành task 55ms trên A05s cũ.
       if (phase === "pages") {
         paginateDescription();
-        continue;
-      }
-      if (phase === "stage") {
-        renderRelatedWindow({ animate: true, origins, stage: true });
         continue;
       }
       directEntryPhase = phase;
