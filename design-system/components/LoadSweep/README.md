@@ -17,9 +17,6 @@ Advertising dùng [Skeleton](../Skeleton/README.md), không dùng vệt.
   linear. Chỉ animate `transform`; khung ra ngoài viewport thì vệt dừng.
 - Ảnh load và `decode()` xong: khung có `.is-media-settled`, vệt gỡ, ảnh
   `opacity` `0` sang `1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`.
-- Mạng nhanh lại, ảnh bậc nhẹ được nâng lên bản nét: khung giữ `.is-media-settled`,
-  không hiện lại vệt hay [Skeleton](../Skeleton/README.md); ảnh đổi tại chỗ sau khi bản nét
-  giải mã xong ([ảnh thích ứng R4](../../../docs/specs/image-adaptive-delivery.md#r4-nâng-bậc-liền-mạch-khi-mạng-nhanh-lại)).
 - Nút suggestion đang bật nền trắng, không có vệt; nhãn luôn nằm trên vệt.
 - Reduced motion: không lướt; cả lớp sáng tối nhẹ chu kỳ `2s`.
 - Không JavaScript: không có class `media-gate` trên root, ảnh hiện như thường.

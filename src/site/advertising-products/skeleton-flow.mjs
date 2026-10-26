@@ -776,6 +776,105 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   };
 }
 
+// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (advertising-skeleton R5): worker giữ một context chung, mỗi frame
+// vẽ lần lượt từng khung đang chạy rồi chép bitmap sang canvas bitmaprenderer của khung, nên số khung chạy không bị chặn.
+let flowHub;
+function sharedFlowHub() {
+  if (flowHub !== undefined) return flowHub;
+  const surface = new OffscreenCanvas(FLOW_WIDTH, FLOW_HEIGHT);
+  const attributes = SKELETON_FLOW_CONTEXT_ATTRIBUTES;
+  let gl = surface.getContext("webgl", attributes);
+  let locations = null;
+  // Dựng program, buffer, noise; gọi lại sau webglcontextrestored.
+  const setup = () => {
+    const program = gl && contextProgram(gl);
+    if (!program) return false;
+    gl.useProgram(program);
+    bindQuadAndNoise(gl, program, gl.createBuffer(), gl.createTexture());
+    const uniform = (name) => gl.getUniformLocation(program, name);
+    locations = {
+      time: uniform("uTime"), scale: uniform("uScale"), distortion: uniform("uDistortion"), swirl: uniform("uSwirl"),
+      noise: uniform("uNoiseOpacity"), anchors: uniform("uAnchors[0]"), colors: uniform("uColors[0]"), balances: uniform("uBalances"),
+    };
+    return true;
+  };
+  if (!setup()) return (flowHub = null);
+  const entries = new Set();
+  let frameId = 0;
+  let lastTimestamp = -1;
+  let lost = false;
+  // Sự kiện mất context đến sau một task, trong lúc đó transferToImageBitmap đã ném lỗi.
+  const paint = (entry) => {
+    if (lost || gl.isContextLost()) return;
+    const { field, finish } = entry.preset;
+    gl.uniform1f(locations.time, entry.phase);
+    gl.uniform1f(locations.scale, field.scale);
+    gl.uniform1f(locations.distortion, field.distortion);
+    gl.uniform1f(locations.swirl, field.swirl);
+    gl.uniform1f(locations.noise, 0.5 * finish.noise / 100);
+    gl.uniform2fv(locations.anchors, entry.anchors);
+    gl.uniform3fv(locations.colors, entry.colors);
+    gl.uniform4fv(locations.balances, entry.balances);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    entry.target.transferFromImageBitmap(surface.transferToImageBitmap());
+  };
+  const tick = (timestamp) => {
+    frameId = 0;
+    if (lost) return;
+    const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+    for (const entry of entries) {
+      entry.phase = advanceSkeletonFlowPhase(entry.phase, delta, entry.preset.field.speed * entry.speedScale, entry.direction);
+      paint(entry);
+    }
+    if (entries.size) frameId = requestAnimationFrame(tick);
+    else lastTimestamp = -1;
+  };
+  const resume = () => {
+    if (!frameId && !lost && entries.size) frameId = requestAnimationFrame(tick);
+  };
+  // Context chung là context duy nhất của worker nên không bị bỏ vì giới hạn 4; mất do GPU reset thì khung giữ hình cuối,
+  // khôi phục thì dựng lại và chạy tiếp.
+  surface.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    programByContext.delete(gl);
+    lost = true;
+    cancelAnimationFrame(frameId);
+    frameId = 0;
+    lastTimestamp = -1;
+  });
+  surface.addEventListener("webglcontextrestored", () => {
+    gl = surface.getContext("webgl", attributes);
+    lost = !setup();
+    resume();
+  });
+  return (flowHub = { entries, paint, resume });
+}
+
+// Cùng API với createSkeletonFlowRenderer; chỉ chạy trong worker.
+export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1 }) {
+  const hub = sharedFlowHub();
+  const target = hub && canvas.getContext("bitmaprenderer");
+  if (!target) return null;
+  const entry = {
+    target, preset, speedScale, direction: direction < 0 ? -1 : 1, phase: Number(initialPhase) || FLOW_CLOCK_START,
+    ...presetUniforms(preset),
+  };
+  const stop = () => hub.entries.delete(entry);
+  return {
+    backend: "webgl",
+    draw: () => hub.paint(entry),
+    start() {
+      hub.entries.add(entry);
+      hub.resume();
+    },
+    stop,
+    destroy: stop,
+    get phase() { return entry.phase; },
+    get running() { return hub.entries.has(entry); },
+  };
+}
+
 // Một context WebGL vẽ mọi khung batch: 7-8 context riêng làm GPU A05s cũ quá tải (vòng 18), canvas chung nửa
 // độ phân giải đạt gate (vòng 20, advertising-skeleton R5). Canvas cao 2 viewport, chỉ dời khi viewport ra khỏi nó.
 // Một layer cho cả document: runtime gắn canvas vào batch hiện tại, controller remount dùng lại context.
