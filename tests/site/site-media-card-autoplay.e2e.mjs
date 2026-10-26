@@ -144,10 +144,11 @@ for (const touch of [false, true]) {
       const state = await allStarted(page);
       assert.equal(state.playbackButtons, 0, "card video has no playback button");
       assertHalfVisiblePlaying(state, `${label} settled`);
-      // Đang cuộn (chưa dừng) thì lịch phát đã đổi theo vị trí mới.
+      // Đang cuộn (chưa dừng) thì lịch phát đã đổi theo vị trí mới. Touch nhảy 900px một lần nên nhiều card cùng hiện,
+      // lịch khởi động mỗi frame một video (R4): chờ như allStarted thay vì mốc 150ms (đỏ 2/2 lượt chạy cả bộ 2026-10-26).
       await scroll(page, touch, 900);
-      await page.waitForTimeout(150);
-      assertHalfVisiblePlaying(await videoState(page), `${label} while scrolling`, 0.1);
+      const moving = touch ? await allStarted(page) : (await page.waitForTimeout(150), await videoState(page));
+      assertHalfVisiblePlaying(moving, `${label} while scrolling`, 0.1);
       await settle(page);
       assertHalfVisiblePlaying(await allStarted(page), `${label} after scroll`);
     } finally { await browser.close(); }
