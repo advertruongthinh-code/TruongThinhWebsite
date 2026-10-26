@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Bộ test CI chia theo phần website
@@ -17,8 +17,8 @@ updated: 2026-10-25
 
 CI chia thành nhiều bộ test nhỏ, mỗi bộ ứng với một phần website trong
 [capability map](docs-system.md#r2-capability-map-và-spec-sống). PR chỉ chạy bộ của phần nó sửa, các bộ chạy
-song song trên runner `ubuntu-latest` của GitHub. Merge có code vào `main` và PR sửa file dùng chung chạy đủ mọi bộ trước khi
-demo tự deploy. Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
+song song trên runner `ubuntu-latest` của GitHub. Merge có code vào `main` và PR sửa file dùng chung chạy đủ mọi bộ; demo tự
+deploy khi bộ `fast` xanh, không chờ các bộ còn lại ([R5](#r5-check-tổng-giữ-tên-static-release)). Spec này sở hữu cách chọn và chạy bộ; hành vi từng phần vẫn do spec của phần đó giữ.
 Runner, Automerge và Deploy demo nằm ở [phát hành tĩnh R10](static-release.md#r10-gate-ci).
 
 ## Hành vi
@@ -68,7 +68,7 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `media-card` | media-card, glass-surface | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung |
 
 Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo
-spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
+spec; bộ ngắn gộp chung job với bộ khác theo [R11](#r11-đóng-gói-job-và-timeout), không gộp bộ.
 
 ### R3. Chọn bộ theo file PR sửa
 
@@ -108,7 +108,7 @@ Then không bộ nào được chọn
 Mục tiêu (owner duyệt 2026-10-13): PR sửa một phần xong dưới 5 phút; chạy đủ mọi bộ xong dưới 12 phút khi đủ
 runner rảnh (GitHub cấp tới khoảng 20 job cùng lúc cho gói Free).
 
-Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build
+Mỗi job trong matrix (một bộ, hoặc vài bộ ngắn gộp theo [R11](#r11-đóng-gói-job-và-timeout)), `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build
 `.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ
 không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview,
 `test-results/` và `.tmp/` (report, screenshot của test e2e) của bộ đó.
@@ -135,14 +135,26 @@ And check của PR ghi rõ bộ adv-grid đỏ
 Job `static-release` chạy sau mọi bộ (`if: !cancelled()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy.
 Cả lượt CI bị hủy (push mới, PR rời nháp) thì check skipped, không đỏ; Automerge chỉ nhận `success`.
 Bộ không được chọn không tính là đỏ. Lượt PR nháp đặt tên check là `static-release-draft` để Automerge không
-merge bằng kết quả chỉ có bộ `fast`. Workflow `Automerge` và `Deploy demo` giữ nguyên vì vẫn đọc check
-`static-release` và kết luận của workflow CI.
+merge bằng kết quả chỉ có bộ `fast`. Workflow `Automerge` giữ nguyên vì vẫn đọc check `static-release`.
+
+Deploy demo trên `main` chỉ chờ bộ `fast` xanh (hoặc R3 không chọn bộ nào), không chờ `static-release` (owner chọn
+2026-10-26: một bộ browser chập chờn sau merge không được chặn demo; PR đã chạy đủ bộ trước khi merge). Các bộ còn
+lại trên `main` vẫn chạy đủ; bộ đỏ làm `static-release` của commit đó đỏ và hiện trong job summary (id bộ, lệnh đỏ),
+không thêm kênh báo. Thread sở hữu bộ đó sửa; lượt đỏ này không chặn deploy các commit sau.
 
 ```gherkin
 Given PR chỉ đổi tài liệu
 When CI xong
 Then static-release xanh dù không bộ browser nào chạy
 And Automerge merge được khi qa-docs cũng xanh
+
+Given push vào main, bộ fast xanh, bộ adv-viewer đỏ
+When CI chạy
+Then Deploy demo vẫn chạy với commit đó
+And static-release của commit đó đỏ và job summary nêu adv-viewer
+
+Given push vào main và bộ fast đỏ
+Then Deploy demo không chạy
 ```
 
 ### R6. Chạy local cùng lệnh với CI
@@ -161,7 +173,7 @@ Then chạy fast, detail-pages, footer và media giống CI
 Khoảng 30 script e2e đang chạy tay được đưa vào bộ, mỗi lần một bộ. Script phải xanh trên runner CI trước khi vào
 manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
 sửa theo demo trong cùng PR. Chỗ demo trông như lỗi (vỡ layout, lỗi console) thì gom lại hỏi owner một lần, không tự
-quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
+quyết. Không skip, tắt hay quarantine test để lấy xanh (chạy lại có kiểm soát theo [R9](#r9-chạy-lại-lệnh-đỏ-một-lần) không phải skip). Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
 
 ```gherkin
 Given script shared-header-single-line đỏ vì test đòi hành vi demo đã đổi
@@ -179,12 +191,48 @@ mà mode trong bộ đã gọi (`HEADER`, `LOCALE`, `M2`...) cũng nằm ở `ma
 không chạy hai lần. Phần độ phủ phụ thuộc
 [phân loại Advertising](advertising-taxonomy.md) chưa làm ở đây.
 
+### R9. Chạy lại lệnh đỏ một lần
+
+Owner chọn 2026-10-26. `suites.mjs` chạy lại đúng lệnh đó một lần (cùng preview server, cùng `BASE_URL`) khi một lệnh của
+bộ khác `fast` thoát khác 0. Xanh lần hai: lệnh tính xanh, in `::warning::flaky <bộ>: <lệnh>` và ghi vào danh sách flaky
+của job summary. Đỏ lần hai: đỏ, giữ log cả hai lần. Không chạy lại ở cấp job hay bộ. `fast` không chạy lại vì xác định
+(deterministic): đỏ là đỏ. Danh sách flaky là sổ đếm, không phải skip hay quarantine: lỗi thật đỏ cả hai lần; lỗi chập chờn của
+sản phẩm cũng xanh lần hai nên dấu vết chỉ nằm ở sổ, vì vậy thread sở hữu bộ dùng sổ để sửa gốc (ngoài PR hạ tầng).
+
+```gherkin
+Given lệnh e2e của bộ adv-viewer đỏ lần đầu do timing
+When suites.mjs chạy lại đúng lệnh đó và lần hai xanh
+Then bộ adv-viewer xanh, job summary ghi lệnh đó là flaky
+
+Given lệnh đỏ cả hai lần
+Then bộ đỏ và log giữ cả hai lần
+```
+
+### R10. Đo thời gian từng lệnh
+
+Job suite ghi vào job summary bảng lệnh, số giây, số lần chạy, cờ flaky, và upload `suite-timing-<job>.json` (cả khi
+xanh, giữ 14 ngày). Số đo này là đầu vào để đóng gói job (R11) và xếp hạng test flaky; không dựng dashboard riêng.
+
+### R11. Đóng gói job và timeout
+
+Manifest có mục `jobs`: mỗi job liệt kê id các bộ chạy nối tiếp trong một runner. R3 vẫn chọn theo bộ; job chạy khi có
+bộ trong nó được chọn và chỉ chạy các bộ được chọn. Một bộ đỏ không dừng bộ khác trong job. Tên job là các id bộ. Lượt đủ
+bộ dùng không quá 18 job (dưới giới hạn khoảng 20 của gói Free) và mỗi job dự kiến xong trong 6 phút; cách chia chốt theo số
+đo R10. Job suite có `timeout-minutes: 12`.
+
+```gherkin
+Given manifest có mục jobs
+When chạy node --test tests/tooling/ci-suites.test.mjs
+Then test fail nếu một bộ không nằm trong đúng một job
+And test fail nếu số job của lượt đủ bộ quá 18
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Data | `tests/ci-suites.json` | Bộ, spec, lệnh test, `shared`, `manual`; agent sửa khi thêm test |
-| Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ, dọn server; exit khác 0 khi có lệnh đỏ |
+| Data | `tests/ci-suites.json` | Bộ, spec, lệnh test, `jobs`, `shared`, `manual`; agent sửa khi thêm test |
+| Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ (lệnh đỏ chạy lại một lần, R9; ghi thời gian, R10), dọn server; exit khác 0 khi có lệnh đỏ |
 | Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
 | Check | `static-release` | Check tổng mà Automerge đọc |
 
@@ -193,6 +241,9 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 | R | Test hoặc command |
 | --- | --- |
 | R1, R3 | `tests/tooling/ci-suites.test.mjs`: mọi e2e thuộc đúng một bộ, bảng chọn bộ theo file mẫu |
+| R9 | `tests/tooling/ci-suites.test.mjs`: lệnh giả đỏ một lần rồi xanh cho cờ flaky, đỏ hai lần cho bộ đỏ, `fast` không chạy lại |
+| R10 | Job summary và artifact `suite-timing` của một run CI thật |
+| R11 | `tests/tooling/ci-suites.test.mjs` (mỗi bộ đúng một job, tối đa 18 job); wall time đủ bộ ghi vào mô tả PR |
 | R4, R5 | Run CI thật trên một PR docs-only, một PR một phần, một PR đổi `style.css`, một PR nháp rồi chuyển sẵn sàng |
 | R6 | `pnpm qa:suite --changed` cho cùng danh sách bộ với job `select` |
 | R7 | Mỗi bộ xanh trên runner CI tại PR đưa nó vào |
@@ -202,7 +253,7 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 
 - File dùng chung: 25 trong 60 PR gần nhất trên `main` sửa `motion.js` hoặc `style.css` (đếm từ `git log`), nên
   gần một nửa PR code vẫn chạy đủ mọi bộ. Tách hai file này theo phần là việc riêng, không thuộc spec này.
-- Repo public từ 2026-10-15 nên CI chạy trên runner GitHub-hosted; số job cùng lúc là giới hạn gói Free, chưa đo lại mục tiêu 12 phút trên runner mới.
+- Repo public từ 2026-10-15 nên CI chạy trên runner GitHub-hosted; số job cùng lúc là giới hạn gói Free. Đo 2026-10-26 với 25 job: wall time đủ bộ median 10,8 phút, p90 16,8; khoảng 30% là hàng đợi runner. R11 nhắm xóa hàng đợi này; đo lại sau khi đóng gói.
 - WebKit desktop là sàn theo [phát hành tĩnh](static-release.md#gate-còn-mở). CI chỉ chạy WebKit ở bộ `adv-browse`
   (`advertising-random-browse.e2e.mjs`, job đó cài thêm WebKit); các bộ khác chạy Chromium (`LIFECYCLE_ENGINES`);
   Firefox và phần WebKit còn lại chạy tay.
@@ -216,3 +267,6 @@ không chạy hai lần. Phần độ phủ phụ thuộc
 - **Check tổng**: job gom kết quả mọi bộ thành một check duy nhất.
 - **Runner**: máy chạy job GitHub Actions; ở đây là `ubuntu-latest` do GitHub cấp.
 - **Quarantine**: tạm cách ly test đỏ khỏi CI; spec này cấm.
+- **Flaky**: test lúc xanh lúc đỏ dù code không đổi.
+- **Deterministic**: cùng đầu vào luôn cho cùng kết quả.
+- **Job summary**: trang tóm tắt của một job GitHub Actions, ghi từ `$GITHUB_STEP_SUMMARY`.
