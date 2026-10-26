@@ -240,9 +240,12 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
-- Điện thoại (R5): đo 26/10 trên A04s, Chrome 156, vuốt nhanh masonry với ảnh bị giữ, bản main trước khi sửa: 12 khung
-  báo `running` nhưng chỉ 4 chuyển động thật (worker tạo 78 context, mất 74, còn 4 sống); bản context chung chạy đủ khung
-  nhưng trượt gate fps R8. Bản 4 khung mỗi worker chưa đo trên A04s: cần số khung chuyển động thật và gate R8. Owner và máy phone.
+- Điện thoại (R5): đo 26/10 trên A04s, Chrome 156, vuốt nhanh masonry với ảnh bị giữ. Bản main: 10-13 khung `running` nhưng
+  chỉ 4 chuyển động thật (thu hồi 52-91 context). Bản 4 khung mỗi worker (3 worker): mọi khung `running` đều chuyển
+  động (9-12 trên 9-12), 0 context bị thu hồi, 0 frame đen; vuốt tay kiểu `adb swipe` qua gate R8 6 trên 6 vòng (fps 82-86,
+  draw p95 dưới 28ms), vuốt tự động 4000 px/s trượt cả main (fps 50-60) lẫn bản mới (fps 50-57, draw p95 19-37ms) nên
+  chưa phải hồi quy; vuốt tay thật là phép đo gate. Context chung (một hub) chạy đủ khung nhưng fps 22-65 nên bỏ.
+  Owner xem trên demo.
 
 ## Chú thích thuật ngữ
 
