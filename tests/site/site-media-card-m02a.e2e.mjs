@@ -1084,6 +1084,35 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
   });
 });
 
+// Dãy thumbnail viewer tự ẩn khi chuột đứng yên 3s, rê chuột thì hiện; mũi tên trái phải đổi media như bấm thumbnail
+// (owner 2026-10-26).
+test("M02a viewer strip hides while the mouse rests and arrow keys step the media", async () => {
+  await withPage("en", async (page) => {
+    const card = await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && document.querySelector("[data-advertising-photo-video]").readyState >= 2);
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-dialog]").dataset.advertisingViewerState
+      === "open");
+    const opacity = () => page.locator("[data-advertising-photo-viewer-thumbs]")
+      .evaluate((node) => Number(getComputedStyle(node).opacity));
+    assert.equal(await opacity(), 1, "the strip shows when the viewer opens");
+    await page.waitForTimeout(3600);
+    assert.equal(await opacity(), 0, "the strip hides once the mouse rests for 3s");
+    await page.mouse.move(200, 200);
+    await page.mouse.move(220, 220);
+    await page.waitForTimeout(400);
+    assert.equal(await opacity(), 1, "moving the mouse shows the strip again");
+    const index = card.mediaItems.findIndex(({ id }) => id === videoId);
+    const [key, target] = index > 0 ? ["ArrowLeft", card.mediaItems[index - 1]] : ["ArrowRight", card.mediaItems[index + 1]];
+    await page.keyboard.press(key);
+    await page.waitForFunction((id) => document.querySelector(`[data-advertising-photo-viewer-select="${id}"]`)
+      .getAttribute("aria-current") === "true", target.id, { timeout: 5_000 });
+    assert.equal(await page.locator("[data-advertising-photo-view]").getAttribute("data-advertising-active-media-id"),
+      target.id, "the arrow key steps primary and viewer to the next media");
+  });
+});
+
 // Đổi từ video sang video (việc 3, owner 2026-10-25): suốt lúc dải trượt, giờ, tổng và thanh tua đứng ở video cũ; video mới
 // bắt đầu chạy (`playing`) thì mới đổi sang giờ, tổng của video mới. Áp dụng cho dải primary và viewer.
 const sampleVideoSwitch = (page, selector) => page.evaluate(async (selector) => {

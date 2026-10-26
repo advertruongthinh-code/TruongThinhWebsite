@@ -2961,6 +2961,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   if (photoDescriptionScroll) [photoDescriptionScroll, photoDescription].forEach((node) => scrollHintObserver.observe(node));
   if (photoViewerThumbs) scrollHintObserver.observe(photoViewerThumbs);
   photoViewerThumbs?.addEventListener("scroll", syncScrollHints, { passive: true, signal: controller.signal });
+  // Dãy thumbnail viewer tự ẩn khi chuột đứng yên 3s; rê chuột hoặc bấm phím thì hiện lại. Chuột trên dãy hoặc focus
+  // bàn phím trong dãy giữ dãy hiện (owner 2026-10-26).
+  let viewerThumbsTimer = 0;
+  const wakeViewerThumbs = () => {
+    photoViewerThumbs?.removeAttribute("data-advertising-viewer-idle");
+    clearTimeout(viewerThumbsTimer);
+    viewerThumbsTimer = setTimeout(() => {
+      if (!photoViewerThumbs?.matches(":hover, :has(:focus-visible)")) {
+        photoViewerThumbs?.setAttribute("data-advertising-viewer-idle", "");
+      }
+    }, 3000);
+  };
+  photoExpand?.addEventListener("click", wakeViewerThumbs, { signal: controller.signal });
+  photoDialog?.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "mouse") wakeViewerThumbs();
+  }, { signal: controller.signal });
+  // Mũi tên trái phải đổi media như bấm thumbnail; ảnh đang phóng to thì viewer dùng mũi tên để kéo ảnh (preventDefault).
+  photoDialog?.addEventListener("keydown", (event) => {
+    wakeViewerThumbs();
+    if (event.defaultPrevented || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+      || event.target.matches("input")) return;
+    event.preventDefault();
+    photoViewerThumbs?.children[primaryIndex() + (event.key === "ArrowRight" ? 1 : -1)]?.click();
+  }, { signal: controller.signal });
   // Thumbnail đang xem nằm ngoài khung hoặc trong vùng mờ thì cuộn dãy cho nó vào giữa; dãy đang ẩn (viewer đóng) bỏ qua.
   const keepActiveThumbInView = () => {
     syncScrollHints();

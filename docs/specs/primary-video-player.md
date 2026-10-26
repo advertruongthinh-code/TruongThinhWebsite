@@ -170,7 +170,10 @@ thì primary đứng ở media vừa xem, video ở đúng giây. Player không 
 
 PC: bấm video thì phát hoặc dừng. Cảm ứng: chạm video trong viewer phát hoặc dừng như R1; vuốt đóng không bắt đầu
 trên video, đóng bằng chạm nền hoặc nút back. Dãy thumbnail viewer ẩn trên cảm ứng như các nút viewer khác (mặc
-định Thread chọn). Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn.
+định Thread chọn). Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn. PC (owner 2026-10-26): dãy
+thumbnail tự ẩn (trượt xuống `1rem`, mờ `0.3s`) khi chuột đứng yên 3s, rê chuột hoặc bấm phím thì hiện lại; chuột trên dãy
+hoặc focus bàn phím trong dãy giữ dãy hiện. Mũi tên trái, phải đổi media như bấm thumbnail; ảnh đang phóng to thì mũi tên
+kéo ảnh như viewer R5.
 
 ```gherkin
 Given primary đang phát video ở giây 3 trên desktop
@@ -178,6 +181,7 @@ When bấm nút mở lớn
 Then viewer mở với nền blur, không nền đen, video phát tiếp từ khoảng giây 3, có thanh player
 And không có nút phóng to, thu nhỏ, con lăn không đổi cỡ video; bấm thumbnail ảnh thì ảnh trượt vào
 And đóng viewer thì primary đứng ở media đang xem trong viewer
+And chuột đứng yên 3s thì dãy thumbnail ẩn, rê chuột thì hiện; mũi tên trái, phải đổi media
 ```
 
 ### R9. Thanh player ẩn khi đang phát
@@ -259,7 +263,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
-| R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
+| R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng, tự ẩn khi chuột đứng yên, phím mũi tên); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
 | R1 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay |
 
 ## Gate còn mở
