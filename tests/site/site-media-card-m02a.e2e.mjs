@@ -477,6 +477,28 @@ test("M02a primary scrub shows frames under the thumb, pauses while dragging and
   });
 });
 
+// Video đang dừng vẫn kéo núm xem trước được, thả tay thì đứng ở frame dưới núm (owner 2026-10-26: phone và PC).
+test("M02a paused primary scrub shows frames under the thumb and stays paused on release", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter")
+      && !document.querySelector("[data-advertising-photo-video]").paused);
+    await page.locator(".advertising-photo-view__hero-frame [data-advertising-photo-play-surface]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").paused);
+    await dragProgress(page, 0.2, 0.8, { during: (state, audit) => {
+      assert.equal(state.playLabel, "Play", "a paused video keeps its play label while scrubbing");
+      assert(Math.abs(state.currentTime - state.progress) < 0.15, `frame follows the thumb: ${state.currentTime} vs ${state.progress}`);
+      assert(audit.seeks >= 3, `frames change during the drag: ${audit.seeks} seeks`);
+      assert.equal(audit.overlaps, 0, "a new seek waits for the previous seeked");
+    } });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").seeking);
+    const state = await playerState(page);
+    assert.equal(state.paused, true, "release keeps the video paused");
+    assert(Math.abs(state.currentTime - state.progress) < 0.15 && state.currentTime >= 2.2,
+      `release stays on the thumb frame: ${state.currentTime} vs ${state.progress}`);
+  });
+});
+
 test("M02a primary scrub past the buffered range holds the frame and seeks on release", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
@@ -695,7 +717,9 @@ test("M02a touch seek drag moves the video, not the media strip", async () => {
     }
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await page.waitForTimeout(600);
-    const after = await page.evaluate(() => document.querySelector("[data-advertising-photo-video]").currentTime);
+    const [after, paused] = await page.evaluate(() => (({ currentTime, paused }) => [currentTime, paused])(
+      document.querySelector("[data-advertising-photo-video]")));
+    assert.equal(paused, true, "a paused video stays paused after the drag");
     assert.equal(strip, false, "the media strip never opens while seeking");
     assert.equal(await view.getAttribute("data-advertising-active-media-id"), videoId, "the media does not change");
     assert(after - before > 1, `the drag seeks the video forward: ${before} -> ${after}`);

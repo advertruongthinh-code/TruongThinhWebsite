@@ -58,7 +58,8 @@ And thanh không có dải gradient đáy (R4)
 
 Áp dụng cho PC và cảm ứng. Kéo trong đoạn đã tải (`buffered`): video tạm dừng, khung hiện đúng frame tại núm mỗi lần
 núm đổi, mỗi frame tối đa một lệnh tua (lệnh mới chờ `seeked` của lệnh trước, kể cả lệnh lúc thả tay; lệnh trùng chỗ đang tua thì bỏ); thả tay thì phát
-tiếp nếu trước đó đang phát. Kéo qua đoạn chưa tải: núm vẫn theo tay, khung giữ frame cuối đã hiện, không gửi lệnh tua; thả tay thì tua tới
+tiếp nếu trước đó đang phát, video đang dừng thì đứng ở frame dưới núm (owner 2026-10-26: video dừng vẫn kéo núm xem
+trước được). Kéo qua đoạn chưa tải: núm vẫn theo tay, khung giữ frame cuối đã hiện, không gửi lệnh tua; thả tay thì tua tới
 đó, có `seeked` rồi phát tiếp nếu trước đó đang phát. Giao diện thanh tua giữ như demo, không thêm nhãn.
 
 ```gherkin
@@ -258,7 +259,7 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (`isMobile`, `hasTouch`, khớp `hover: none`) đo một hàng 40px theo thứ tự nút phát, giờ, thanh tua, tiếng; không nền gradient, không nút giữa kể cả khi dừng, chạm nút tiếng không mở cột âm lượng; desktop không có nút giữa |
-| R2 | `site-media-card-m02a.e2e.mjs`: giả `video.buffered`, kéo trong đoạn đã tải (frame theo núm, video không phát, không hai lệnh tua chồng nhau, thả tay phát tiếp) và ra ngoài (giữ frame, không tua tới khi thả); thả tay khi lệnh tua lúc kéo còn chạy thì lệnh thả chờ `seeked`, thả đúng chỗ đang tua thì không tua lần hai |
+| R2 | `site-media-card-m02a.e2e.mjs`: giả `video.buffered`, kéo trong đoạn đã tải (frame theo núm, video không phát, không hai lệnh tua chồng nhau, thả tay phát tiếp; video đang dừng thì thả tay vẫn dừng, PC và cảm ứng) và ra ngoài (giữ frame, không tua tới khi thả); thả tay khi lệnh tua lúc kéo còn chạy thì lệnh thả chờ `seeked`, thả đúng chỗ đang tua thì không tua lần hai |
 | R3 | `primary-video-keyframes.test.mjs`: đọc bảng `stss`, `stts` của mọi MP4 trong `src/site/assets`, khoảng cách keyframe (kể cả tới cuối clip) không quá 0,5s |
 | R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
@@ -269,11 +270,11 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 ## Gate còn mở
 
 - R3 tăng byte clip gần gấp đôi (số đo ở R3); owner xem. Owner.
-- Fps video trên A04s ([gate 60fps](../decisions/phone-frame-budget.md); đo 2026-10-26, clip 24 frame/s, 3 lượt mỗi ca, CSS chèn qua CDP):
-  primary video 44 fps SurfaceFlinger, video hiện đủ 23,7/24 frame mỗi giây, 0 frame rơi; ẩn thanh player còn 23 fps.
-  Viewer video 28 fps, video hiện 19,9/24, rơi khoảng 27 frame mỗi 8 s; tắt blur nền viewer còn rơi 4. Sửa: thanh tua
-  và giờ vẽ theo frame video thay vì rAF. Đo lại trên A04s; còn rơi frame thì owner chọn giữ hay bỏ blur khi viewer phát
-  video. Owner chọn cách chấm gate cho màn chỉ có video (frame rơi hay 60 fps). Thread.
+- Video trên A04s ([gate](../decisions/phone-frame-budget.md): màn chỉ có video đang phát đạt khi không rơi frame,
+  owner 2026-10-26; đo cùng ngày, clip 24 frame/s, 3 lượt mỗi ca, CSS chèn qua CDP): primary video đạt, 0 frame rơi,
+  hiện đủ 23,7/24 frame mỗi giây. Viewer video chưa đạt, rơi 6 tới 27 frame mỗi 8 s; tắt blur nền viewer còn rơi 4, ẩn
+  thanh player 0. Thanh player luôn hiện trên phone, cả khi phát (owner 2026-10-26), nên sửa bằng cách khác: đo thanh
+  tua vẽ thưa hơn, bỏ bóng thanh tua, bỏ blur nền khi phát; cách nào đổi giao diện thì owner chọn. Thread.
 
 ## Chú thích thuật ngữ
 
