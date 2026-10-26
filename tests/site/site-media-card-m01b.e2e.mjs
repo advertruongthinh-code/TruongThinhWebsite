@@ -1247,7 +1247,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
       scrimColor: getComputedStyle(media, "::after").backgroundColor,
       marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
     }));
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
     await card.locator(".advertising-card-media").hover();
     // Lấy frame đầu tiên lớp tối đã bắt đầu hiện thay vì mốc giờ cố định (máy tải cao làm transition bắt đầu trễ).
     const fading = await card.locator(".advertising-card-media").evaluate((media) => new Promise((resolve) => {
@@ -1261,7 +1261,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
     assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
       `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
     await page.waitForTimeout(700);
-    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "0" });
+    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "0" });
 
     const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
@@ -1280,7 +1280,7 @@ test("M01b hover darkens the canvas, fades just viewed, and media change slides 
 
     await page.mouse.move(5, 5);
     await page.waitForTimeout(800);
-    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.2)", marker: "1" });
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
     await context.close();
   } finally { await browser.close(); }
 });

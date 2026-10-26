@@ -67,7 +67,7 @@ try {
     await portal.scrollIntoViewIfNeeded();
     const overlay = () => portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
     const normal = await overlay();
-    assert.equal(normal, "rgba(0, 0, 0, 0.4)", `${locale}: portal matches the measured Pinterest overlay`);
+    assert.equal(normal, "rgba(0, 0, 0, 0.5)", `${locale}: portal keeps the owner 0.5 overlay`);
     await portal.hover();
     assert.equal(await overlay(), normal, `${locale}: portal hover keeps overlay darkness`);
     await portal.focus();
@@ -107,7 +107,7 @@ try {
     return after.opacity === "1" ? after.backgroundColor : `opacity ${after.opacity}`;
   });
   const inactiveNormal = await inactiveOverlay();
-  assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.6)", "inactive suggestion always shows the darkest Pinterest overlay");
+  assert.equal(inactiveNormal, "rgba(0, 0, 0, 0.5)", "inactive suggestion always shows the 0.5 overlay");
   assert.equal(await inactiveLink.evaluate((link) => getComputedStyle(link).borderColor), "rgba(0, 0, 0, 0)",
     "image-backed inactive suggestion has no visible black border");
   const activeStyle = await activeLink.evaluate((link) => {

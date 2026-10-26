@@ -120,7 +120,7 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
 (`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`; owner chọn 10/10), ảnh không zoom (owner bỏ 10/10)
-(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.6` luôn hiện, mức tối nhất của Pinterest (owner 2026-10-26); hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
+(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.5` luôn hiện, giữa hai mức `0.4` và `0.6` của Pinterest (owner 2026-10-26); hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
 rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không có lớp tối, không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
 chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
@@ -172,8 +172,8 @@ And không frame nào vẽ ở Y của entry khác
 
 Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
-`cubic-bezier(0.55, 0, 0, 1)`; nền viewer máy có chuột (`hover: hover`, `pointer: fine`) là lớp tối `0.85` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
-điện thoại không blur ([gate phone Android](../decisions/phone-frame-budget.md)), lớp tối `0.9`, màu `rgba(32, 33, 32)` (owner 2026-10-10), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
+`cubic-bezier(0.55, 0, 0, 1)`; nền viewer mọi máy là lớp tối `0.85` màu `rgba(32, 33, 32)` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
+điện thoại cũng blur (owner 2026-10-26, trước đó không blur theo [gate phone Android](../decisions/phone-frame-budget.md); đo lại gate khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
 trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa

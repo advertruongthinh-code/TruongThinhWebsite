@@ -93,8 +93,8 @@ Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũ
 `0.4`. Owner chọn phương án D trên canvas bản 33 cho player và cho nút gợi ý (2026-10-24).
 
 - Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow` hai lớp; nút đang chọn (chữ `ink` trên nền giấy) không có bóng.
-  Lớp tối của nút đen `0.6` phẳng, luôn hiện: nút "Ý tưởng bạn có thể thích" của Pinterest đo được `0.4`, hover `0.6`, owner
-  chọn mức tối nhất và bỏ đổi khi hover (2026-10-26; trước đó 2026-10-24: chữ vẫn khó đọc).
+  Lớp tối của nút đen `0.5` phẳng, luôn hiện: nút "Ý tưởng bạn có thể thích" của Pinterest đo được `0.4`, hover `0.6`, owner
+  chốt `0.5` và bỏ đổi khi hover (2026-10-26; trước đó 2026-10-24: chữ vẫn khó đọc).
 - Player PC và cảm ứng: icon trên thanh, thanh tua dùng `drop-shadow` hai lớp (thay `0 0 8px` đen `0.1` của demo); giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
   sáng còn tương phản khoảng `2,8:1` thay vì `3,6:1` khi có dải (đo trên ảnh chụp canvas bản 33); owner đã xem số này.
 

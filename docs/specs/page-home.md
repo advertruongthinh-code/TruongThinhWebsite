@@ -16,7 +16,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-23
+updated: 2026-10-26
 ---
 
 # Trang chủ
@@ -131,7 +131,7 @@ Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hov
 `.media-hover-zoom`, CSS ở `style.css`). Card masonry và related Advertising không dùng (owner 2026-10-18,
 [masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
-card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`) giữ nguyên độ
+card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.5`, owner 2026-10-26) giữ nguyên độ
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.
 
 ```gherkin

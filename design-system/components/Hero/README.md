@@ -24,7 +24,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | --- | --- | --- | --- |
 | Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, cả hai đậm 700, dòng 2 nghiêng; lớn hơn các trang khác một bậc | Có |
 | Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700 nghiêng, line-height 1.4; Residential nhấn dòng 2, Commercial nhấn `em` | Có |
-| About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
+| About | Ảnh đội ngũ, shade mép trên `0.7` nhạt hết trong 100px dưới navbar, mép dưới `0.5`, phủ đều `0.12`, không lớp ngang (owner 2026-10-26) | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
 | Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa nhẹ 500, đậm 700, line-height 1.4 | Có |
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với

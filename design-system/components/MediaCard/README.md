@@ -14,7 +14,7 @@ Một ô sản phẩm trong masonry Advertising (masonry chính và related). Ru
   [skeleton](../Skeleton/README.md) cuối masonry, ảnh về thì hiện qua Kính
   `0.6s`; ảnh đã có sẵn hiện ngay, không motion ([Motion](../../motion.md#ảnh-trong-card)).
 - Card masonry và related không zoom ảnh khi hover hay focus (owner
-  2026-10-18); focus chỉ có viền.
+  2026-10-18); chuột thật hover phủ lớp đen 30% lên canvas (owner 2026-10-26); focus chỉ có viền.
 - Card vừa xem có lớp phủ tối và nhãn `Vừa xem` / `Just viewed`.
 
 Metadata ảnh ở [card nhiều media](../../../docs/specs/media-card.md#r1-dữ-liệu-media-của-card).
@@ -39,13 +39,14 @@ Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết k�
 | Số item | Dải dưới canvas | Điều khiển |
 | --- | --- | --- |
 | 1 | Không có | Không chỉ báo; video vẫn có duration |
-| 2 tới 6 | 44px | Một hàng chấm dùng lại chấm [Gallery](../Gallery/README.md): 8px, đen 20%, chấm đang xem `ink`; vùng bấm 20×44px |
-| Từ 7 | 44px | Nút trước, bộ đếm `7/11`, nút sau; nút tối thiểu 44×44px |
+| 2 tới 5 | 44px | Một hàng chấm 8px trong pill: chấm trắng 40%, chấm đang xem trắng; vùng bấm 20×44px |
+| Từ 6 | 44px | Bộ đếm `7/11` trong pill, không nút trong dải; đổi media bằng mũi tên hover hoặc vuốt |
 
-- Dải nằm đáy card, rộng bằng card, nền `paper`, chữ `ink`.
-- Bộ đếm `0.8rem`, `tabular-nums`. Mũi tên 8px nét 2px; nút ở hai đầu bị
-  disabled, opacity 0.5.
-- Chỉ chấm và nút nhận click; chỗ trống của dải mở detail như thân card.
+- Dải nằm đáy card, rộng bằng card, nền `paper`.
+- Chấm hoặc bộ đếm nằm trong một pill giữa dải, cùng dáng nhãn thời lượng: cao
+  24px, bo 8px, nền than `rgba(32, 33, 32, 0.9)` như bộ đếm "2/8" của Pinterest
+  (owner 2026-10-26). Bộ đếm chữ trắng `0.75rem` đậm 500 `tabular-nums`.
+- Chỉ chấm nhận click; chỗ trống của dải mở detail như thân card.
 
 ### Video
 
@@ -97,7 +98,7 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 - **Chờ tải:** item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
-- **Vừa xem:** lớp đen alpha 0.72 và nhãn trắng `0.8rem` 700 ở giữa, chỉ phủ
+- **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa, chỉ phủ
   canvas, không phủ dải.
 - **Reduced motion:** skeleton đứng yên; ảnh hiện ngay, không transition,
   không zoom.

@@ -72,7 +72,7 @@ dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vậ
 về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọi lần kéo ngang đều chặn click như trên. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
 ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
 ở bất kỳ đâu (owner 2026-10-19), chỉ vuốt. Card không zoom media khi hover. Hover theo Pinterest (owner 2026-10-19), chỉ
-chuột thật, mọi card masonry và related kể cả card một media: lớp đen 20% phủ canvas hiện dần, rời chuột thì mờ dần, nhịp
+chuột thật, mọi card masonry và related kể cả card một media: lớp đen 30% (owner 2026-10-26) phủ canvas hiện dần, rời chuột thì mờ dần, nhịp
 hover của site; card đang mang "Vừa xem" thì nhãn đó mờ dần đi cùng nhịp lúc hover và hiện lại khi rời chuột. Video
 vẫn chạy dưới lớp tối; mũi tên, chấm, nhãn thời lượng nằm trên lớp tối. Đổi media bằng mũi tên, chấm hoặc vuốt là dải
 liền trượt ngang (owner 2026-10-19): media mới vào từ mép canvas phía đi tới, media cũ ra hết mép bên kia, hai media dính
@@ -93,7 +93,7 @@ And vuốt trái trên ảnh đổi sang 4/11, click ngay sau vuốt không mở
 ```gherkin
 Given card 3 media đang ở item 1, chuột thật
 When hover card rồi bấm "Media tiếp"
-Then lớp tối 20% hiện dần, item 2 vào từ mép phải canvas, item 1 ra hết mép trái, opacity cả hai luôn là 1
+Then lớp tối 30% hiện dần, item 2 vào từ mép phải canvas, item 1 ra hết mép trái, opacity cả hai luôn là 1
 And ở mọi frame hai media phủ kín canvas, không lộ nền
 And rời chuột thì lớp tối mờ dần; card mang "Vừa xem" thì nhãn mờ đi khi hover, hiện lại khi rời chuột
 
@@ -278,7 +278,7 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.
 - Giây video chỉ chuyển trong phiên (card sang detail, Back về masonry, đổi ngôn ngữ), không ghi vào history state:
   Forward về detail và reload bắt đầu lại từ đầu video. Không tự bật lại âm thanh.
-- Lớp tối 20% khi hover là ước lượng theo Pinterest, chưa đo; owner chỉnh trên demo. Ngưỡng vuốt (10px chốt hướng,
+- Ngưỡng vuốt (10px chốt hướng,
   nửa canvas, 0.5px/ms, 1/3 ở hai đầu) là mặc định Thread chọn. Owner.
 - Chấm 8px theo UI chấm Gallery (owner 2026-10-17), test `site-media-card-r6.e2e.mjs:211` đo 8px; khe nhìn thấy 12px thay vì 8px
   của Gallery để giữ vùng bấm 20×44px.

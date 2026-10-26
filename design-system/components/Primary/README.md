@@ -51,7 +51,7 @@ không có hàng này. Catalog hiện chưa có card nào như vậy, nên previ
   nút toàn màn hình bên phải, thanh tua dưới cùng (track 4px trắng 0.24,
   phần đã chạy và núm 12px trắng 0.5). Dải hiện khi chuột trên video, khi
   focus hoặc khi dừng; cảm ứng luôn hiện. Thanh âm lượng đứng dọc trong viên
-  32×104px nền đen 0.4 phía trên nút tiếng, mở khi trỏ hoặc focus vào cụm
+  32×104px nền đen 0.5 phía trên nút tiếng, mở khi trỏ hoặc focus vào cụm
   tiếng. Video vừa khung, vùng dư là nền blur như ảnh; toàn màn hình nền đen,
   không blur. Nút tiếng và thanh âm lượng ẩn khi item ghi không có tiếng, nút
   `Xem lớn hơn` ẩn khi item là video.

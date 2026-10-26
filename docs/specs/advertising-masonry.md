@@ -25,7 +25,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-19
+updated: 2026-10-26
 ---
 
 # Masonry Advertising
@@ -177,7 +177,7 @@ không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-s
 thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
 vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh (owner 2026-10-18); hover chuột phủ lớp tối và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
 focus có viền; card nhiều media có mũi tên khi hover ([media-card R3](media-card.md#r3-đổi-media-trên-card)). Click chính mở detail tại chỗ (history push,
-[detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem.
+[detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem (lớp đen `0.7` phủ canvas, owner 2026-10-26).
 
 ```gherkin
 Given card đã hiện ảnh

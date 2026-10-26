@@ -63,7 +63,7 @@
   --orange: #a34119;
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
-  --media-label-overlay: rgba(0, 0, 0, 0.4);
+  --media-label-overlay: rgba(0, 0, 0, 0.5);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -1232,7 +1232,8 @@ em {
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 50%;
-  background: rgba(20, 21, 20, 0.42);
+  /* Owner 2026-10-26: nền 0,4, hover 0,7 (trước 0,42 và 0,72). */
+  background: rgba(20, 21, 20, 0.4);
   color: white;
   cursor: pointer;
   transition:
@@ -1257,7 +1258,7 @@ em {
 
 .motion-toggle:hover {
   transform: scale(1.06);
-  background: rgba(20, 21, 20, 0.72);
+  background: rgba(20, 21, 20, 0.7);
 }
 
 .motion-toggle:focus-visible {
@@ -2042,7 +2043,8 @@ em {
 }
 
 .legacy-shade {
-  background: rgba(0, 0, 0, 0.2);
+  /* Owner 2026-10-26: 0,5 (trước 0,2). */
+  background: rgba(0, 0, 0, 0.5);
 }
 
 /* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision phone-frame-budget). */
