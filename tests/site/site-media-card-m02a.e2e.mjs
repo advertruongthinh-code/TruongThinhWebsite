@@ -276,6 +276,14 @@ async function withPage(locale, execute) {
   } finally { await context.close(); await browser.close(); }
 }
 
+// Chờ hết CSS transition đang chạy (hover, fade) thay vì ngủ cố định: hai frame cho style recalculation khởi động
+// transition, rồi chờ không còn transition nào chạy (kể cả pha delay).
+const settleTransitions = async (page) => {
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.waitForFunction(() => !document.getAnimations()
+    .some((animation) => animation instanceof CSSTransition && animation.playState === "running"), null, { timeout: 5_000 });
+};
+
 async function capturePrimary(page, name) {
   if (!process.env.SITE_MEDIA_OUTPUT_DIR) return;
   await mkdir(process.env.SITE_MEDIA_OUTPUT_DIR, { recursive: true });
@@ -359,7 +367,7 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     const frame = page.locator(".advertising-photo-view__hero-frame");
     const box = await frame.boundingBox();
     await page.mouse.move(box.x + box.width + 40, box.y + 10);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     let state = await playerState(page);
     assert.equal(state.controls, false, "no native controls");
     assert.equal(state.loop, true, "video loops like the Pinterest closeup");
@@ -370,11 +378,11 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
     assert.equal(state.centerIcons, 0, "no center play icon");
     assert.equal(state.playLabel, "Pause");
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.equal((await playerState(page)).bar, 1, "hover shows the bar");
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 3);
     await page.mouse.move(box.x + box.width + 40, box.y + 10);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     state = await playerState(page);
     assert.equal(state.paused, true, "clicking the video pauses it");
     assert.deepEqual([state.bar, state.centerIcons, state.playLabel], [1, 0, "Play"],
@@ -393,7 +401,7 @@ test("M02a primary video player: surface toggles playback, bar shows on hover or
       && document.querySelector("[data-advertising-photo-play]").getAttribute("aria-label") === "Pause");
     // Bấm chuột để focus lại trên nút nhưng không phải focus bàn phím: chuột rời khung thì cụm vẫn ẩn (R9).
     await page.mouse.move(box.x + box.width + 40, box.y + 10);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.equal((await playerState(page)).bar, 0, "a mouse click leaves no keyboard focus, so the bar hides again");
   });
 });
@@ -405,7 +413,7 @@ test("M02a primary shows the paused bar when a source reload stops the video", a
     await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
     await page.mouse.move(1, 1);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.equal((await playerState(page)).bar, 0, "bar hidden while playing without hover");
     await page.evaluate(() => {
       const video = document.querySelector("[data-advertising-photo-video]");
@@ -531,7 +539,7 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
     await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
     assert.equal((await playerState(page)).volumeOpen, false, "slider hidden until the sound group is hovered");
     await page.locator("[data-advertising-photo-audio-toggle]").hover();
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     let state = await playerState(page);
     assert.equal(state.volumeOpen, true, "hovering the sound button opens the slider");
     assert(state.volumeBox[1] > state.volumeBox[0] * 3, `slider stands vertical: ${state.volumeBox}`);
@@ -556,16 +564,16 @@ test("M02a primary vertical volume slider opens above the sound button and keeps
     await page.mouse.move(slider.x + slider.width / 2, slider.y + slider.height * 0.3, { steps: 6 });
     await page.mouse.up();
     await page.mouse.move(frame.x + frame.width / 2, frame.y + frame.height / 3);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.equal((await playerState(page)).volumeOpen, false, "leaving after a mouse drag collapses the slider");
     // Thứ tự Tab theo hàng: phát, thanh tua, nút tiếng (owner 2026-10-25).
     await page.locator("[data-advertising-photo-play]").focus();
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     // Thanh trượt nằm trước nút tiếng và chỉ focus được khi cột đã mở (transition 150ms).
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     await page.keyboard.press("Shift+Tab");
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.equal(await volume.evaluate((node) => node === document.activeElement), true, "Tab, Shift+Tab reaches the slider");
     assert.equal((await playerState(page)).volumeOpen, true, "keyboard focus keeps the slider open");
   });
@@ -914,7 +922,7 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
     const card = await openFixture(page, "en", { videoCover: true, direct: true });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.locator(".advertising-photo-view__hero-frame").hover();
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     const square = (selector) => page.locator(selector).evaluate((node) => {
       const style = getComputedStyle(node);
       const box = node.getBoundingClientRect();
@@ -941,7 +949,7 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
       `the row reads play, time, seek bar, sound: ${JSON.stringify(edges.lefts)}`);
     assert(Math.abs(edges.gap - 8) <= 1, `the sound icon ends 8px before expand: ${JSON.stringify(edges)}`);
     await page.locator("[data-advertising-photo-expand]").hover();
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.deepEqual((await square("[data-advertising-photo-expand]")).slice(0, 2), [36, 36], "hover does not widen expand");
     assert.equal(await page.locator("[data-advertising-photo-expand]").evaluate((node) => node.querySelector("span")), null,
       "expand has no text label");
@@ -950,7 +958,7 @@ test("M02a primary arrows, expand and viewer buttons are 36px white squares and 
     await page.locator("[data-advertising-photo-expand]").click();
     await page.locator("[data-advertising-photo-dialog]").waitFor({ state: "visible" });
     await page.mouse.move(5, 5);
-    await page.waitForTimeout(300);
+    await settleTransitions(page);
     assert.equal(await page.locator("[data-advertising-photo-zoom-reset]").count(), 0, "the viewer has no reset button");
     for (const selector of ["[data-advertising-photo-close]", "[data-advertising-photo-zoom-in]",
       "[data-advertising-photo-zoom-out]"]) {
@@ -1099,11 +1107,16 @@ test("M02a viewer strip hides while the mouse rests and arrow keys step the medi
     const opacity = () => page.locator("[data-advertising-photo-viewer-thumbs]")
       .evaluate((node) => Number(getComputedStyle(node).opacity));
     assert.equal(await opacity(), 1, "the strip shows when the viewer opens");
-    await page.waitForTimeout(3600);
+    // Tín hiệu trạng thái `data-advertising-viewer-idle` do hẹn giờ 3s của runtime đặt; chờ nó rồi chờ fade xong.
+    const idle = (expected) => page.waitForFunction((expected) => document.querySelector("[data-advertising-photo-viewer-thumbs]")
+      .hasAttribute("data-advertising-viewer-idle") === expected, expected, { timeout: 10_000 });
+    await idle(true);
+    await settleTransitions(page);
     assert.equal(await opacity(), 0, "the strip hides once the mouse rests for 3s");
     await page.mouse.move(200, 200);
     await page.mouse.move(220, 220);
-    await page.waitForTimeout(400);
+    await idle(false);
+    await settleTransitions(page);
     assert.equal(await opacity(), 1, "moving the mouse shows the strip again");
     const index = card.mediaItems.findIndex(({ id }) => id === videoId);
     const [key, target] = index > 0 ? ["ArrowLeft", card.mediaItems[index - 1]] : ["ArrowRight", card.mediaItems[index + 1]];
