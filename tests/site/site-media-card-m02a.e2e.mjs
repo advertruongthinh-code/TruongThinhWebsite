@@ -494,6 +494,44 @@ test("M02a primary scrub past the buffered range holds the frame and seeks on re
   });
 });
 
+// Thả tay khi lệnh tua lúc kéo còn chạy: lệnh thả chờ `seeked` rồi mới tua, không chồng lệnh (R2; A04s 2026-10-26).
+test("M02a primary release during an in-flight scrub seek waits for seeked", async () => {
+  await withPage("en", async (page) => {
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      return !video.paused && video.buffered.length && video.buffered.end(0) >= video.duration - 0.05;
+    });
+    const result = await page.evaluate(() => new Promise((resolve) => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      const progress = document.querySelector("[data-advertising-photo-progress]");
+      const audit = { seeks: 0, overlaps: 0, inFlight: false };
+      video.addEventListener("seeking", () => {
+        audit.seeks += 1;
+        if (audit.inFlight) audit.overlaps += 1;
+        audit.inFlight = true;
+      });
+      video.addEventListener("seeked", () => { audit.inFlight = false; });
+      const target = video.duration * 0.7;
+      progress.value = String(video.duration * 0.3);
+      progress.dispatchEvent(new Event("input"));
+      const seeking = video.seeking;
+      progress.value = String(target);
+      progress.dispatchEvent(new Event("change"));
+      // currentTime đổi ngay khi gửi lệnh, trước event `seeking`: chờ hết lệnh tua (seeking false) rồi mới đọc.
+      const done = () => audit.seeks > 0 && !audit.inFlight && !video.seeking && !video.paused
+        && video.currentTime >= target - 0.05;
+      const poll = () => done() ? resolve({ ...audit, seeking, time: video.currentTime, target }) : requestAnimationFrame(poll);
+      setTimeout(() => resolve({ ...audit, seeking, time: video.currentTime, target, timeout: true }), 3000);
+      poll();
+    }));
+    assert.equal(result.seeking, true, `the scrub seek is still in flight at release: ${JSON.stringify(result)}`);
+    assert.equal(result.overlaps, 0, `the release seek waits for seeked: ${JSON.stringify(result)}`);
+    assert.equal(result.seeks, 2, `scrub seek then release seek: ${JSON.stringify(result)}`);
+    assert(!result.timeout, `playback resumes from the release point: ${JSON.stringify(result)}`);
+  });
+});
+
 // Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, icon, nút phát, thanh tua có
 // drop-shadow hai lớp, giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
 test("M02a primary player and suggestion text carry the two-layer shadow and solid thumbs", async () => {
@@ -804,6 +842,49 @@ test("M02a video stands still in the strip, its sound fades between play and pau
     assert(after[0].time < 0.5, `the video starts from the beginning: ${after[0].time}`);
     assert(after[0].volume < 0.2 && after.at(-1).volume === 1, "its sound fades in to the viewer volume");
     assert(after.every((frame, index) => !index || frame.volume >= after[index - 1].volume - 1e-6), "the fade only goes up");
+  });
+});
+
+// Nền kính sống vẽ theo frame video chứ không theo mỗi lần màn làm tươi, và đứng yên dưới viewer (đo A04s 2026-10-26:
+// primary video 42,5 fps, viewer video 28 fps).
+test("M02a live blur backdrop redraws once per video frame and stands still under the viewer", async () => {
+  await withPage("en", async (page) => {
+    await page.setViewportSize(cappedViewport);
+    await openFixture(page, "en", { videoCover: true, direct: true });
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-video]").paused);
+    // Đếm lượt vẽ lên canvas nền và frame video trong 1 s (headless làm tươi 30 lần/s, clip 24 fps: vẽ theo rAF thì số
+    // lượt vẽ vượt số frame).
+    const count = () => page.evaluate(() => new Promise((resolve) => {
+      const video = document.querySelector("[data-advertising-photo-video]");
+      const live = document.querySelector(".advertising-photo-view__live-background");
+      const { drawImage } = CanvasRenderingContext2D.prototype;
+      const tally = { draws: 0, frames: 0 };
+      let stop = false;
+      CanvasRenderingContext2D.prototype.drawImage = function (...args) {
+        if (this.canvas === live) tally.draws += 1;
+        return drawImage.apply(this, args);
+      };
+      const onFrame = () => {
+        tally.frames += 1;
+        if (!stop) video.requestVideoFrameCallback(onFrame);
+      };
+      video.requestVideoFrameCallback(onFrame);
+      setTimeout(() => {
+        stop = true;
+        CanvasRenderingContext2D.prototype.drawImage = drawImage;
+        resolve(tally);
+      }, 1000);
+    }));
+    const playing = await count();
+    assert(playing.draws > 0 && playing.draws <= playing.frames + 1, `one draw per video frame: ${JSON.stringify(playing)}`);
+    await page.locator("[data-advertising-photo-expand]").click();
+    await page.waitForFunction(() => document.querySelector("[data-advertising-photo-video]").closest("dialog[open]"));
+    const viewer = await count();
+    assert(viewer.frames > 0, `the video keeps playing in the viewer: ${JSON.stringify(viewer)}`);
+    assert.equal(viewer.draws, 0, `the backdrop under the viewer stands still: ${JSON.stringify(viewer)}`);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("[data-advertising-photo-dialog]").open);
+    assert((await count()).draws > 0, "closing the viewer resumes the live backdrop");
   });
 });
 

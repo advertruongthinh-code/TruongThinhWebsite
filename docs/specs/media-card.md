@@ -162,8 +162,8 @@ theo dải trượt của pin Pinterest nhiều media (đo 2026-10-18): khung gi
 primary và related đứng yên; mỗi media vừa khung (contain), vùng dư là nền zoom blur, kể cả video. Bấm thumbnail, mũi
 tên vuông trắng 36px góc vuông (owner 2026-10-24), chevron nét mảnh 16px, cách mép 16px (đo lại 2026-10-18) hiện khi trỏ vào khung (ẩn ở đầu, cuối), vuốt ngang trên cảm ứng hoặc phím trái, phải khi focus trong
 khung đổi media: dải liền như card (R3), cắt ở BBox media (khung contain chung của mọi item, không tính vùng dư); vuốt kéo
-dải theo ngón tay như R3. Nền zoom blur phản ánh realtime vùng media: khi video phát hoặc dải trượt, nền vẽ lại mỗi
-frame từ chính những gì đang trong BBox; không crossfade (owner 2026-10-19; reduced motion đổi ngay). Nền không vignette:
+dải theo ngón tay như R3. Nền zoom blur phản ánh realtime vùng media: dải trượt thì nền vẽ lại mỗi frame màn hình, video
+phát thì mỗi frame video (`requestVideoFrameCallback`), từ chính những gì đang trong BBox; viewer mở thì nền đứng yên dưới backdrop (A04s 2026-10-26); không crossfade (owner 2026-10-19; reduced motion đổi ngay). Nền không vignette:
 mép khung đặc như giữa, không lộ nền xám (owner 2026-10-19). Khung media không có hàng chấm (owner 2026-10-24); bấm
 thumbnail thì trượt thẳng tới media đó, chiều theo vị trí thumbnail, không đi qua media ở giữa (owner 2026-10-19).
 Video không phát trong lúc dải chạy: trên dải là hình đứng của video. Tiếng chỉ fade khi video chuyển phát và dừng,
@@ -245,7 +245,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 | R3 | `site-media-card-m01b.e2e.mjs` (vuốt theo ngón tay, bật về, chặn click, chấm, bộ đếm, mũi tên hover, lớp tối, "Vừa xem" khi hover, dải liền không fade không lộ nền); `site-media-card-r6.e2e.mjs` (pointer thật ở mép nút) |
 | R4 | `site-media-card-m01b.e2e.mjs` (cover video tắt tiếng có poster, không nút phát); `site-media-card-autoplay.e2e.mjs` (mọi card hiện quá 1/2 phát, tính lại khi cuộn, khởi động lần lượt nên chờ đủ video, playlist lặp, related tự phát như masonry, reduced motion) |
 | R5 | `site-media-card-m01b.e2e.mjs` (chuỗi fallback, lỗi cũ, mọi asset lỗi) |
-| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video, nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
+| R6 | `site-media-card-autoplay.e2e.mjs` (media và giây video qua card, detail, Back, đổi ngôn ngữ); `site-media-card-m02a.e2e.mjs` (cover khi vào thẳng, media active, thumbnail, tiếng, player: phát/dừng, dải hiện khi hover hoặc dừng, tua, thời gian, âm lượng dọc, cảm ứng, unmount, dải media giữ khung và related, mũi tên, phím, thumbnail trượt thẳng, không chấm, nền blur realtime theo dải và video (mỗi frame video một lượt vẽ, đứng yên dưới viewer), nền không vignette, video đứng yên trong dải và tiếng fade lúc phát, dừng, người xem thắng fade, mở lớn video trong viewer) |
 | Họ card | `site-media-card-playback.e2e.mjs`: baseline theo họ card (cần `SITE_MEDIA_OUTPUT_DIR`, `SITE_MEDIA_EXPECTED_HEAD`) |
 
 ## Gate còn mở
