@@ -98,7 +98,7 @@ Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũ
   chốt `0.5` và bỏ đổi khi hover (2026-10-26; trước đó 2026-10-24: chữ vẫn khó đọc).
 - Player PC và cảm ứng: icon trên thanh dùng `drop-shadow` hai lớp (thay `0 0 8px` đen `0.1` của demo), mỗi nút icon là
   lớp riêng (`will-change: transform`) để bóng chỉ vẽ một lần, không vẽ lại khi thanh tua hay giờ đổi; mũi tên card và icon
-  phát trên thumbnail video cũng vậy (owner 2026-10-26 chọn "Giữ bóng, tách lớp", đo A04s xác nhận); thanh tua dùng
+  phát trên thumbnail video cũng vậy (owner 2026-10-26 chọn "Giữ bóng, tách lớp"; A04s: hết rơi frame, số đo ở mục Kiểm tra); thanh tua dùng
   `box-shadow` hai lớp ở đường tua và núm, không filter (owner 2026-10-26 chọn "Bóng vẽ rẻ hơn": `drop-shadow` tính lại
   mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0); giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
   sáng còn tương phản khoảng `2,8:1` thay vì `3,6:1` khi có dải (đo trên ảnh chụp canvas bản 33); owner đã xem số này.
@@ -270,17 +270,11 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
 | R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng, tự ẩn khi chuột đứng yên, phím mũi tên); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
-| R1, R2 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1 đạt 2026-10-26 trên SM-A047F, Chrome dọc, 2 lượt; R2 đạt 2026-10-26 sau PR #583 (2 lượt, 16 lệnh tua, 0 chồng, thả tay phát tiếp đúng chỗ) |
+| R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1 đạt 2026-10-26 trên SM-A047F, Chrome dọc, 2 lượt; R2 đạt 2026-10-26 sau PR #583 (2 lượt, 16 lệnh tua, 0 chồng, thả tay phát tiếp đúng chỗ), video đang dừng đạt ở PR #596 (primary và viewer, mỗi chỗ 2 lượt, 0 chồng, thả tay vẫn dừng). [Gate](../decisions/phone-frame-budget.md) video đang phát không rơi frame: primary đạt (0 rơi, 23,7/24 frame mỗi giây); viewer, thanh luôn hiện, đạt ở PR #596 (4 vòng xen kẽ: 0 rơi mỗi 8 s, 23,8/24, SurfaceFlinger 47 fps; cùng lượt, bóng cũ không tách lớp rơi 7,3, tắt mọi bóng 0) |
 
 ## Gate còn mở
 
 - R3 tăng byte clip gần gấp đôi (số đo ở R3); owner xem. Owner.
-- Video trên A04s ([gate](../decisions/phone-frame-budget.md): màn chỉ có video đang phát đạt khi không rơi frame,
-  owner 2026-10-26): primary video đạt, 0 frame rơi, hiện đủ 23,7/24 frame mỗi giây. Viewer video, thanh luôn hiện
-  (owner 2026-10-26; sau #583, #587, 4 vòng xen kẽ, CSS chèn qua CDP): rơi 8 frame mỗi 8 s; tắt blur nền 2; bỏ
-  `drop-shadow` thanh tua và icon 0, hiện đủ 23,6/24; thanh tua vẽ mỗi frame video thứ 3 còn 3,5. Sửa: bóng thanh tua
-  vẽ bằng `box-shadow`, nút icon là lớp riêng (R4), khung primary dưới viewer đứng yên ([advertising-detail R9](advertising-detail.md#r9-viewer)).
-  Đo lại bản sửa trên A04s. Thread.
 
 ## Chú thích thuật ngữ
 
