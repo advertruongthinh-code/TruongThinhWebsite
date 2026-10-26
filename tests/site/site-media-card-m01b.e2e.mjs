@@ -1308,7 +1308,9 @@ test("M01b touch drag moves the strip with the finger, snaps back below half, an
     const drag = async (distance) => {
       await touch("touchStart", start);
       for (let step = 1; step <= 6; step++) await touch("touchMove", start - distance * step / 6);
-      return card.locator(".advertising-card-media").evaluate((media) => {
+      // Chrome gom touchmove theo frame: chờ hai frame để lần move cuối tới handler rồi mới đo (CI đỏ, dải ở move thứ năm).
+      return card.locator(".advertising-card-media").evaluate(async (media) => {
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const box = media.getBoundingClientRect();
         return [...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")]
           .map((layer) => Math.round(layer.getBoundingClientRect().left - box.left)).sort((a, b) => a - b);
