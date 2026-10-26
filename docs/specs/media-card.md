@@ -253,9 +253,9 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. Fixture card nhiề
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
 - Không chặn phát hành. Owner 2026-10-17: card là một loại sản phẩm. Owner 2026-10-26 chọn merge code trước: media tạm
-  (1/3 card, có video) chỉ dùng để duyệt trên PR #434, đã bỏ trước merge. Việc kế: AI đề xuất nhóm ảnh, owner audit tay
-  từng nhóm, không luật gộp tự động; nhóm được duyệt vào PR sau (chưa có video). Chưa có clip thật, chất lượng hay
-  ngân sách byte. Owner.
+  (1/3 card, có video) chỉ dùng để duyệt trên PR #434, đã bỏ trước merge. Gộp ảnh thành card nhiều media làm đợt khác,
+  khi toàn bộ media đã chuẩn (owner 11:36): AI đề xuất nhóm, owner audit tay từng nhóm, không luật gộp tự động. Chưa có
+  clip thật, chất lượng hay ngân sách byte. Owner.
 - Phạm vi owner duyệt 28/09 là mọi họ media-card VI/EN: Home project reel (rail mobile), item gallery Residential,
   Commercial, và portal, process, duo nào có identity sản phẩm hoặc công trình và đích detail. Đề xuất giữ nguyên About
   timeline, commitments, logo marquee, heritage montage. Họ hẹp hơn dải 44px thì kiểm riêng trước khi chọn fallback.
