@@ -22,7 +22,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Phát hành tĩnh
@@ -88,8 +88,9 @@ And .site-output/advertising-products/catalog-artifact.mjs tồn tại
 
 Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry 4.2.2, lazysizes 5.3.2, GSAP, SplitText
 3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file), hls.js 1.7.3 (bản light,
-chỉ nạp khi có video mang `hlsSrc`, [video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0
-(latin, latin-ext, vietnamese, normal và italic, kèm LICENSE). `@font-face` đầu `style.css` dùng `font-display: swap`;
+trang Advertising nạp cùng lúc tải artifact khi trình duyệt có Media Source,
+[video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,
+normal và italic, kèm LICENSE). `@font-face` đầu `style.css` dùng `font-display: swap`;
 vietnamese khai báo sau latin-ext để chữ Việt (vùng `unicode-range` chồng nhau) không kéo thêm file latin-ext (22 KB
 brotli); năm HTML trang preload hai file normal latin, vietnamese. HTML không trỏ Google Fonts, jsDelivr.
 

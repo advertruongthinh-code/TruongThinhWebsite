@@ -1,6 +1,6 @@
 ---
 title: Video thích ứng mạng (adaptive bitrate)
-status: planned
+status: live
 source:
   - scripts/site/build-video-ladder.mjs
   - src/site/assets/**/*.m3u8
@@ -231,7 +231,8 @@ Không đổi giao diện; card video và player giữ component hiện có
   Đã sửa: dừng tải khi tải hết clip (R4), đọc `nextAutoLevel` một lần mỗi video; cloud 52 card, script hls.js mỗi lượt
   cuộn 20 s giảm từ 1.000 xuống 610 ms; PC đo lại 33% so với 32% khi chặn hls.js. Tắt worker đo không đổi nên bỏ. A04s
   đo lại khi có phone (sau 2026-10-27).
-- Luật thay phía trước (R4) mới đo trên Chromium cloud với thang AV1; PC và A04s đo lại trong R6.
+- R6 trên A04s đo khi có phone (sau 2026-10-27). PC (2026-10-26, 3 đợt): đứng hình và đổi bậc đạt, video không kịp
+  chạy 2/196 so với 1/179 của bản 480 cố định, chờ owner chấp nhận.
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone (2026-10-25). Cũng chưa kiểm
   Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
 - CMS phase 2: upload video phải sinh cùng thang chất lượng. Chọn [Cloudflare Stream](https://developers.cloudflare.com/stream/pricing)

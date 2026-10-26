@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: accepted
-updated: 2026-10-25
+updated: 2026-10-26
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -77,7 +77,7 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
 | media-adaptive | `image-adaptive-delivery.md` | bậc ảnh theo mạng, nâng bậc khi mạng nhanh lại (planned) |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
-| video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video (planned) |
+| video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
 | cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) |
