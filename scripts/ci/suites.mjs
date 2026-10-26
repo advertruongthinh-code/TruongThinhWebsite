@@ -3,7 +3,7 @@
 // node scripts/ci/suites.mjs <id>        -> build, mở preview port trống, chạy lệnh của bộ
 // node scripts/ci/suites.mjs --changed   -> chạy các bộ mà --select chọn so với origin/main
 import { execFileSync, execSync, spawn, spawnSync } from "node:child_process";
-import { openSync, readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { matchesGlob } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,6 +45,13 @@ const freePort = () => new Promise((resolve) => {
   });
 });
 
+// Bảng thời gian từng lệnh cho job summary (spec R10).
+export const timingTable = (timings) => [
+  "| Suite | Seconds | Result | Command |",
+  "| --- | --- | --- | --- |",
+  ...timings.map((t) => `| ${t.suite} | ${t.seconds} | ${t.status === 0 ? "PASS" : "FAIL"} | \`${t.cmd}\` |`),
+].join("\n");
+
 async function run(suiteIds) {
   // Chuỗi lệnh chạy qua shell: Windows chỉ có pnpm.cmd, execFileSync("pnpm") báo ENOENT.
   execSync("pnpm prepare:site", { stdio: "inherit" });
@@ -52,6 +59,7 @@ async function run(suiteIds) {
   const baseUrl = `http://127.0.0.1:${port}`;
   // Log preview ghi ra file để CI đính kèm khi bộ đỏ.
   const log = openSync("static-server.log", "w");
+  const timings = [];
   const server = spawn("node", ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { stdio: ["ignore", log, log] });
   try {
     for (let i = 0; !(await fetch(`${baseUrl}/vi/`).then((r) => r.ok, () => false)); i++) {
@@ -64,13 +72,19 @@ async function run(suiteIds) {
         console.log(`\n[${id}] ${cmd}`);
         const t0 = Date.now();
         const { status } = spawnSync(cmd, { shell: true, stdio: "inherit", env: { ...process.env, BASE_URL: baseUrl } });
-        console.log(`[${id}] ${status === 0 ? "PASS" : "FAIL"} ${((Date.now() - t0) / 1000).toFixed(0)}s ${cmd}`);
+        const seconds = Math.round((Date.now() - t0) / 1000);
+        timings.push({ suite: id, cmd, seconds, status });
+        console.log(`[${id}] ${status === 0 ? "PASS" : "FAIL"} ${seconds}s ${cmd}`);
         if (status !== 0) failed.push(`${id}: ${cmd}`);
       }
     }
     if (failed.length) throw new Error(`failed:\n${failed.join("\n")}`);
   } finally {
     server.kill();
+    // CI upload file này làm artifact, GitHub đọc job summary từ GITHUB_STEP_SUMMARY.
+    mkdirSync(".tmp", { recursive: true });
+    writeFileSync(".tmp/suite-timing.json", JSON.stringify(timings, null, 2));
+    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${timingTable(timings)}\n`);
   }
 }
 

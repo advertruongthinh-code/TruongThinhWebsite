@@ -71,6 +71,17 @@ jobs:
       # Script tự build, mở preview ở port trống riêng và dọn server.
       - run: pnpm qa:suite ${{ matrix.suite }}
 
+      # Số đo từng lệnh (spec R10) để đóng gói job và xếp hạng test flaky; upload cả khi xanh.
+      - name: Upload timing
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: suite-timing-${{ matrix.suite }}
+          path: .tmp/suite-timing.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
