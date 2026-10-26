@@ -970,20 +970,22 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     const indicator = el("div", "advertising-card-media__indicator", "advertisingMediaIndicator",
       { role: "group", "aria-label": english ? "Card media" : "Media của thẻ" });
     // 2-5 media dùng chấm; từ 6 media bộ đếm i/N thay đúng chỗ hàng chấm (owner 2026-10-18), đổi media bằng mũi tên hover hoặc vuốt.
+    // Chấm hoặc bộ đếm nằm trong một pill giữa dải (owner 2026-10-26).
     const numericIndicator = items.length >= 6;
+    const pill = indicator.appendChild(el("span", "advertising-card-media__pill"));
     const buttons = hasCarousel && !numericIndicator ? items.map((item, index) => {
       const button = el("button", "advertising-card-media__dot", "", { "aria-label": english
         ? `Show media ${index + 1} of ${items.length}`
         : `Xem media ${index + 1} trên ${items.length}` });
       button.dataset.advertisingMediaSelect = item.id;
-      indicator.append(button);
+      pill.append(button);
       return button;
     }) : [];
     let countStatus;
     if (numericIndicator) {
       countStatus = el("span", "advertising-card-media__count", "advertisingMediaCount",
         { role: "status", "aria-live": "polite", "aria-atomic": "true" });
-      indicator.append(countStatus);
+      pill.append(countStatus);
     }
     // Mũi tên hover dùng lại mũi tên dải media của primary (pin Pinterest), ẩn ở media đầu, cuối.
     const hoverSteps = hasCarousel ? [-1, 1].map((step) => {

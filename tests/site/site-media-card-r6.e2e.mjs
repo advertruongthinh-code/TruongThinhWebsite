@@ -154,6 +154,8 @@ async function geometry(card) {
     };
     const dot = node.querySelector(".advertising-card-media__dot");
     const dotStyle = dot && getComputedStyle(dot, "::before");
+    const pill = node.querySelector(".advertising-card-media__pill");
+    const pillStyle = pill && getComputedStyle(pill);
     return { card: rect(node), media: mediaRect, indicator: indicator ? rect(indicator) : null, peers, controls,
       dotVisualSize: dotStyle ? { width: parseFloat(dotStyle.width) + 2 * parseFloat(dotStyle.borderLeftWidth),
         height: parseFloat(dotStyle.height) + 2 * parseFloat(dotStyle.borderTopWidth) } : null,
@@ -163,7 +165,8 @@ async function geometry(card) {
         .map((button) => edgeHitSelf(button)),
       duration: duration && !duration.hidden ? rect(duration) : null,
       loading: loading && !loading.hidden ? rect(loading) : null,
-      count: count ? rect(count) : null };
+      count: count ? rect(count) : null,
+      pill: pill ? { ...rect(pill), background: pillStyle.backgroundColor, radius: pillStyle.borderRadius } : null };
   });
 }
 
@@ -197,8 +200,12 @@ async function runCard(locale, count, surface, width) {
     `${label} indicator must occupy the dedicated footer: ${JSON.stringify(initial)}`);
     // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
     assert.equal(initial.controls.length, count >= 6 ? 0 : count);
+    // Owner 2026-10-26: chấm hoặc bộ đếm nằm trong pill than 0.9, bo 8px như nhãn thời lượng, giữa dải.
+    assert(initial.pill?.background === "rgba(32, 33, 32, 0.9)" && initial.pill.radius === "8px"
+      && inside(initial.pill, initial.indicator), `${label} indicator sits in a pill: ${JSON.stringify(initial.pill)}`);
     if (count >= 6) {
       assert(inside(initial.count, initial.indicator), `${label} numeric count must fit the footer`);
+      assert(inside(initial.count, initial.pill), `${label} numeric count sits inside the pill`);
     } else {
       assert(initial.controls.every((control) => Math.abs(control.box.width - 20) <= 0.5
         && Math.abs(control.box.height - 44) <= 0.5),

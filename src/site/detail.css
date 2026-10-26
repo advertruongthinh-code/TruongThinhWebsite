@@ -1616,6 +1616,18 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
+/* Chấm hoặc bộ đếm nằm trong pill cùng dáng nhãn thời lượng, màu than 0.9 chữ trắng như bộ đếm "2/8" của Pinterest
+   (owner 2026-10-26). Pill cao 24px, vùng bấm 20×44px của chấm vẫn tràn ra dải. */
+.advertising-card-media__pill {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 2px;
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(32, 33, 32, 0.9);
+}
+
 .advertising-card-media__dot {
   display: grid;
   flex: 0 0 20px;
@@ -1629,26 +1641,27 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: auto;
 }
 
-/* Chấm dùng lại UI chấm của Gallery (bullet Swiper, owner 2026-10-17): 8px, chấm thường đen 20%, chấm đang xem `ink`. */
+/* Chấm 8px theo UI chấm của Gallery (bullet Swiper, owner 2026-10-17), đảo màu trên pill: chấm thường trắng 40%, chấm đang xem trắng. */
 .advertising-card-media__dot::before {
   content: "";
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #000;
-  opacity: 0.2;
+  background: #fff;
+  opacity: 0.4;
 }
 
 .advertising-card-media__dot[aria-current="true"]::before {
-  background: var(--ink);
   opacity: 1;
 }
 
+/* Chữ như nhãn thời lượng: 12px, 500, số đều. */
 .advertising-card-media__count {
-  text-align: center;
-  font-size: 0.8rem;
+  padding: 0 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1rem;
 }
 
 .advertising-card-media__dot:focus-visible {
