@@ -51,11 +51,15 @@ function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia =
     card.coverMediaId = videoId;
   }
   const related = artifact.cards.filter((item) => item.category === card.category && item.id !== card.id);
+  // Related chỉ giữ ảnh legacy cộng một ảnh thay thế, để card luôn có chấm: media tạm có card 5 item, thêm một là
+  // 6 item thành bộ đếm, không còn chấm để chọn.
   if (relatedMedia) {
-    related.forEach((item) => item.mediaItems.push({
-      ...item.mediaItems[0], id: `${item.id}-alternate`,
-      altVi: "Ảnh kiểm thử related đang chọn", altEn: "Selected related test image",
-    }));
+    related.forEach((item) => {
+      const cover = { id: item.id, kind: "image", ...item.media };
+      item.mediaItems = [cover, { ...cover, id: `${item.id}-alternate`,
+        altVi: "Ảnh kiểm thử related đang chọn", altEn: "Selected related test image" }];
+      item.coverMediaId = item.id;
+    });
   }
   return { artifact, card, related };
 }
