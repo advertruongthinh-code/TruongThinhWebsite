@@ -7090,7 +7090,8 @@ async function runAdvertisingMediaFocusedChecks() {
       const naturalHoverScale = await hoverTile.locator(".advertising-tile__foreground").evaluate((image) =>
         new DOMMatrixReadOnly(getComputedStyle(image).transform).a,
       );
-      assert(naturalHoverScale >= 1.14, `Natural advertising hover scale is ${naturalHoverScale}`);
+      // media-card R3: card không zoom media khi hover, chỉ phủ lớp tối (kiểm ở site-media-card-m01b).
+      assert(naturalHoverScale === 1, `Natural advertising hover scale is ${naturalHoverScale}`);
       const initialTileIds = initial.tiles.map((tile) => tile.id);
       const timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const initialRequests = new Set(mediaRequestPaths);

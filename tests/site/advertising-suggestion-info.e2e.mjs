@@ -49,16 +49,16 @@ try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const info = document.querySelector("[data-advertising-photo-info]");
       const description = document.querySelector("[data-advertising-photo-description]");
-      const pager = info.querySelector("[data-advertising-photo-description-pager]");
       return {
         bodyFontSize: Number.parseFloat(getComputedStyle(description).fontSize),
         overflowY: getComputedStyle(info).overflowY,
-        pagerCount: Number(pager?.dataset.pageCount),
+        descriptionScroll: getComputedStyle(info.querySelector("[data-advertising-photo-description-scroll]")).overflowY,
+        text: description.textContent.trim(),
       };
     });
     assert.ok(zoomed.bodyFontSize > before.bodyFontSize, `${locale}: 200% text increases the computed body size`);
-    assert.notEqual(zoomed.overflowY, "auto", `${locale}: enlarged info must keep the pager instead of an inner scrollbar`);
-    assert.ok(zoomed.pagerCount >= 1, `${locale}: enlarged description pager lost its content`);
+    assert.notEqual(zoomed.overflowY, "auto", `${locale}: enlarged info must not scroll as a whole`);
+    assert.deepEqual([zoomed.descriptionScroll, Boolean(zoomed.text)], ["auto", true], `${locale}: enlarged description lost its scroller or text`);
     await page.close();
 }
 const historyPage = await browser.newPage({ viewport: { width: 820, height: 1180 } });

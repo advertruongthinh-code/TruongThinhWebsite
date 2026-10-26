@@ -114,19 +114,19 @@ function layoutObservation(selectedFilter = null, viewerStage = null) {
     if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)faults.push('title/filter overlap');
   }
   const dialog=document.querySelector('#advertising-photo-dialog');
-  const viewerButtons=[...document.querySelectorAll('#advertising-photo-dialog button')];
-  if(viewerStage&&(!dialog?.open||dialog.dataset.advertisingViewerState!=='open'||viewerButtons.length!==4))faults.push('viewer must be open with four controls');
+  const viewerButtons=[...document.querySelectorAll('#advertising-photo-dialog button:not([data-advertising-photo-viewer-select])')];
+  if(viewerStage&&(!dialog?.open||dialog.dataset.advertisingViewerState!=='open'||viewerButtons.length!==3))faults.push('viewer must be open with three controls');
   const controls=(dialog?.open?viewerButtons:[]).map(e=> {
     const r=box(e), hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
     const name=e.getAttribute('aria-label')||e.textContent.trim();
-    const id=['close','zoom-reset','zoom-in','zoom-out'].find(id=>e.hasAttribute(`data-advertising-photo-${id}`));
-    const expectedDisabled=viewerStage==='fit'&&['zoom-reset','zoom-out'].includes(id);
+    const id=['close','zoom-in','zoom-out'].find(id=>e.hasAttribute(`data-advertising-photo-${id}`));
+    const expectedDisabled=viewerStage==='fit'&&id==='zoom-out';
     const inside=r.left>=viewport.offsetLeft-1&&r.right<=viewport.offsetLeft+viewport.width+1&&r.top>=viewport.offsetTop-1&&r.bottom<=viewport.offsetTop+viewport.height+1;
     const svg=e.querySelector('svg'),paint=[];for(let a=svg||e;a&&a!==document.body;a=a.parentElement){const s=getComputedStyle(a);paint.push({node:a.className.baseVal??a.className,opacity:Number(s.opacity),visibility:s.visibility});}
     if(!id||!name||!inside||!svg||e.hidden||e.disabled!==expectedDisabled||paint.some(p=>p.opacity<.999||p.visibility!=='visible')||!e.disabled&&!(hit===e||e.contains(hit)))faults.push(`viewer control inaccessible ${name}`);
-    return {id,name,box:r,inside,disabled:e.disabled,expectedDisabled,disabledReason:expectedDisabled?'accepted zoom out/reset at fit':null,paint,hit:hit===e||e.contains(hit)};
+    return {id,name,box:r,inside,disabled:e.disabled,expectedDisabled,disabledReason:expectedDisabled?'accepted zoom out at fit':null,paint,hit:hit===e||e.contains(hit)};
   });
-  if(dialog?.open&&new Set(controls.map(c=>c.id)).size!==4)faults.push('four distinct viewer controls required');
+  if(dialog?.open&&new Set(controls.map(c=>c.id)).size!==3)faults.push('three distinct viewer controls required');
   const inView=e=>e instanceof Element&&subjects.some(s=>e.contains(s)||s.contains(e)&&e.textContent.trim())&&box(e).bottom>viewport.offsetTop&&box(e).top<viewport.offsetTop+viewport.height;
   const busy=document.getAnimations().some(a=>a.playState==='running'&&a.effect?.getTiming().iterations!==Infinity&&inView(a.effect?.target))||Boolean(window.gsap?.globalTimeline.getChildren(true,true,false).some(t=> {
     for(let p=t;p;p=p.parent)if(p.repeat?.()===-1||p.paused?.()||p.timeScale?.()===0)return false;
@@ -156,7 +156,7 @@ const recordLayout = async (label, selectedFilter = null) => {
 const sample = async label => {
   const data = await evaluate(`(() => {
     const ids=window.__ttViewportRecordingIds ||= new WeakMap();
-    const subjects=[...document.querySelectorAll('.hero,.advertising-photo-view__primary,[data-advertising-photo-image],[data-advertising-photo-description-page],[data-advertising-photo-related-grid],[data-advertising-cta-skeleton],[data-advertising-grid-cta],.site-footer,[data-advertising-cta-frame]')];
+    const subjects=[...document.querySelectorAll('.hero,.advertising-photo-view__primary,[data-advertising-photo-image],[data-advertising-photo-description-scroll],[data-advertising-photo-related-grid],[data-advertising-cta-skeleton],[data-advertising-grid-cta],.site-footer,[data-advertising-cta-frame]')];
     return {utc:new Date().toISOString(),url:location.href,hidden:document.hidden,fonts:document.fonts.status,
       width:document.documentElement.clientWidth,height:innerHeight,y:scrollY,documentHeight:document.documentElement.scrollHeight,
       visual:{width:visualViewport.width,height:visualViewport.height,top:visualViewport.offsetTop,left:visualViewport.offsetLeft,scale:visualViewport.scale},
