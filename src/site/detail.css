@@ -2018,13 +2018,14 @@ body.is-advertising-browse .site-footer {
 
 /* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
    (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
-   quầng mờ tròn sau chevron để vẫn đọc được trên ảnh sáng. */
+   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng; nút là lớp riêng để bóng chỉ vẽ một lần (primary-video-player R4). */
 .advertising-tile > .advertising-photo-view__media-step {
   top: 0;
+  will-change: transform;
   width: 32px;
   height: calc(100% - 44px);
   border-radius: 0;
-  background: radial-gradient(circle 12px, rgba(0, 0, 0, 0.2), transparent);
+  background: transparent;
   color: #fff;
   transform: none;
 }
@@ -2040,6 +2041,7 @@ body.is-advertising-browse .site-footer {
 .advertising-tile > .advertising-photo-view__media-step svg {
   width: 16px;
   height: 16px;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 
 @media (hover: hover) {
@@ -2117,6 +2119,14 @@ body.is-advertising-browse .site-footer {
   fill: currentColor;
 }
 
+/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg; thanh tua dùng box-shadow ở đường tua và
+   núm (bên dưới). drop-shadow là filter, mỗi lần thanh tua nhích Chrome tính lại cả lớp bóng mờ: A04s 2026-10-26 viewer
+   video rơi 8 frame mỗi 8 s, bỏ bóng thanh và icon thì 0. Nút icon là lớp riêng (will-change) để bóng icon chỉ vẽ một lần,
+   không vẽ lại theo thanh tua hay giờ (owner 2026-10-26 chọn "Giữ bóng, tách lớp"). */
+.advertising-video-player__button svg {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
+}
+
 .advertising-video-player__bar {
   position: absolute;
   inset: auto 0 0;
@@ -2157,12 +2167,10 @@ body.is-advertising-browse .site-footer {
   place-items: center;
   padding: 0;
   border: 0;
-  /* Quầng mờ tròn thay drop-shadow trên icon (R4, owner 2026-10-26 "đổi cho mọi chỗ dùng bóng cũ"): drop-shadow là filter,
-     mỗi lần thanh tua nhích Chrome tính lại cả lớp bóng mờ, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng thì 0;
-     gradient vẽ thẳng, không lớp phụ. */
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.2), transparent);
+  background: transparent;
   color: inherit;
   cursor: pointer;
+  will-change: transform;
 }
 
 .advertising-video-player__button svg {
@@ -2251,7 +2259,6 @@ body.is-advertising-browse .site-footer {
   background: #fbfbf9;
 }
 
-/* Bóng hai lớp D của thanh tua (R4) vẽ bằng box-shadow ở đường tua và núm, không filter (lý do ở nút player). */
 .advertising-video-player__progress::-webkit-slider-runnable-track {
   box-shadow: var(--text-shadow-d);
 }
@@ -2543,15 +2550,18 @@ body.is-advertising-browse .site-footer {
   object-fit: cover;
 }
 
+/* Thumbnail video là lớp riêng để bóng icon phát chỉ vẽ một lần (primary-video-player R4). */
+.advertising-photo-view__media-thumbs button:has(> svg) {
+  will-change: transform;
+}
+
 .advertising-photo-view__media-thumbs svg {
   position: absolute;
   inset: 50% auto auto 50%;
   width: 20px;
   height: 20px;
-  box-sizing: content-box;
-  padding: 8px;
-  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.2), transparent);
   fill: #fff;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
   transform: translate(-50%, -50%);
 }
 

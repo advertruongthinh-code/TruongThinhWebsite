@@ -69,7 +69,7 @@ pan-y`) đổi một item, dừng ở hai đầu, rồi chặn click chuột, ch
 bị chặn. Từ 2026-10-19 (owner) vuốt kéo dải theo ngón tay: hướng chốt khi ngón đi quá 10px (ngang nếu `|dx| > |dy|`),
 dải dịch đúng `dx`; nhấc tay khi đã kéo quá nửa canvas hoặc vận tốc từ 0.5px/ms thì trượt nốt sang item kế, còn lại bật
 về; ở hai đầu dải chỉ đi 1/3 quãng ngón tay rồi bật về. Mọi lần kéo ngang đều chặn click như trên. Chuột thật hover card thì hiện mũi tên "Media trước" / "Media tiếp" như grid Pinterest: vùng bấm 32px cao hết canvas
-ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) trên quầng tròn mờ ([player R4](primary-video-player.md#r4-bóng-đen-hai-lớp-cho-nút-gợi-ý-và-ui-player-ngoại-lệ-design-system)), ẩn ở hai đầu; cảm ứng không có mũi tên
+ở hai mép, chevron trắng nét mảnh cao gần hết ô 16px (đo lại 2026-10-18) không nền, ẩn ở hai đầu; cảm ứng không có mũi tên
 ở bất kỳ đâu (owner 2026-10-19), chỉ vuốt. Card không zoom media khi hover. Hover theo Pinterest (owner 2026-10-19), chỉ
 chuột thật, mọi card masonry và related kể cả card một media: lớp đen 30% (owner 2026-10-26) phủ canvas hiện dần, rời chuột thì mờ dần, nhịp
 hover của site; card đang mang "Vừa xem" thì nhãn đó mờ dần đi cùng nhịp lúc hover và hiện lại khi rời chuột. Video

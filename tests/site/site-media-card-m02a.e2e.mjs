@@ -573,12 +573,13 @@ test("M02a primary release during an in-flight scrub seek waits for seeked", asy
   });
 });
 
-// Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, thanh tua có box-shadow hai lớp,
-// icon nằm trên quầng gradient, không còn drop-shadow nào; giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
+// Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, icon, nút phát có drop-shadow
+// hai lớp trên lớp riêng, thanh tua có box-shadow hai lớp, giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
 test("M02a primary player and suggestion text carry the two-layer shadow and solid thumbs", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     const two = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
+    const drop = "drop-shadow(rgba(0, 0, 0, 0.5) 0px 0px 2px) drop-shadow(rgba(0, 0, 0, 0.4) 0px 0px 12px)";
     // Thanh tua vẽ bóng bằng box-shadow ở đường tua và núm, không filter (A04s 2026-10-26); Chromium bỏ rule -moz.
     const seekShadows = ["-webkit-slider-runnable-track", "-webkit-slider-thumb"]
       .map((pseudo) => `.advertising-video-player__progress::${pseudo}`);
@@ -595,20 +596,22 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
         .map((rule) => rule.style.backgroundColor);
       const seek = Object.fromEntries(rules.filter((rule) => rule.style?.boxShadow)
         .map((rule) => [rule.selectorText, rule.style.boxShadow]));
-      // Owner 2026-10-26 "đổi cho mọi chỗ dùng bóng cũ": icon player, mũi tên card, icon phát trên thumb đều dùng quầng gradient.
+      // Nút mang icon có drop-shadow là lớp riêng để bóng chỉ vẽ một lần (owner 2026-10-26 "Giữ bóng, tách lớp").
       const tileStep = rules.find((rule) => rule.selectorText === ".advertising-tile > .advertising-photo-view__media-step");
-      const halos = [style(".advertising-video-player__button").backgroundImage,
-        style(".advertising-photo-view__media-thumbs svg").backgroundImage, tileStep?.style.backgroundImage]
-        .map((image) => Boolean(image?.startsWith("radial-gradient")));
+      const layers = [style(".advertising-video-player__button").willChange,
+        getComputedStyle(document.querySelector(".advertising-photo-view__media-thumbs svg").parentElement).willChange,
+        tileStep?.style.willChange];
       return { bar: style(".advertising-video-player__bar").backgroundImage, time: style(".advertising-video-player__time").textShadow,
-        drops: rules.filter((rule) => rule.style?.filter?.includes("drop-shadow")).map((rule) => rule.selectorText), halos,
+        filters: [".advertising-video-player__button svg", ".advertising-video-player__progress"]
+          .map((selector) => style(selector).filter), layers,
         idle: label(false), pressed: label(true), thumbs, seek };
     });
     let state = await read();
     assert.equal(state.bar, "none", "the bar has no gradient band");
     assert.equal(state.time, two, "time carries the two-layer text shadow");
-    assert.deepEqual(state.drops, [], "no drop-shadow filter is left on the site");
-    assert.deepEqual(state.halos, [true, true, true], "player buttons, the thumb play icon and the card arrows sit on a gradient halo");
+    assert.deepEqual(state.filters, [drop, "none"], "bar icons carry the two-layer drop shadow, the seek bar no filter");
+    assert.deepEqual(state.layers, ["transform", "transform", "transform"],
+      "player buttons, the thumb play icon and the card arrows are their own layers");
     assert.deepEqual(seekShadows.map((selector) => state.seek[selector]), seekShadows.map(() => "var(--text-shadow-d)"),
       "seek track and thumb carry the two-layer box shadow");
     assert.deepEqual(state.thumbs, ["rgb(251, 251, 249)"], "seek and volume thumbs are solid");
