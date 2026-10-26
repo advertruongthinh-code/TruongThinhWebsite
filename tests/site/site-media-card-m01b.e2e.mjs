@@ -19,10 +19,19 @@ const outputDir = process.env.SITE_MEDIA_OUTPUT_DIR;
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-function fixtureArtifact(videoCover = false) {
+// Card fixture bỏ media tạm (media tạm đặt video làm cover card 06), chỉ giữ ảnh legacy làm cover như artifact canonical.
+function legacyFixtureArtifact() {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === fixtureId);
   assert(card, "fixture source card exists");
+  card.mediaItems = card.mediaItems.filter((item) => item.id === fixtureId);
+  card.coverMediaId = fixtureId;
+  return artifact;
+}
+
+function fixtureArtifact(videoCover = false) {
+  const artifact = legacyFixtureArtifact();
+  const card = artifact.cards.find((item) => item.id === fixtureId);
   card.mediaItems.push({
     id: videoId,
     kind: "video",
@@ -107,9 +116,8 @@ function assertStableWideFrame(before, after, label) {
 }
 
 function manyImageArtifact() {
-  const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
+  const artifact = legacyFixtureArtifact();
   const card = artifact.cards.find((item) => item.id === fixtureId);
-  assert(card, "many-media fixture source card exists");
   const cover = card.mediaItems[0];
   card.mediaItems = Array.from({ length: 11 }, (_, index) => index === 0 ? cover : {
     ...cover,
@@ -171,8 +179,8 @@ async function setupMany(page, locale) {
   await card.locator("img").first().waitFor({ state: "visible" });
   await card.evaluate(async (node) => {
     const cta = document.querySelector("[data-advertising-grid-cta]");
-    const controls = [...node.querySelectorAll("[data-advertising-media-prev], [data-advertising-media-next]")];
-    if (!cta || controls.length !== 2) throw new Error("many-media CTA or numeric controls are missing");
+    const controls = [...node.querySelectorAll("[data-advertising-media-count]")];
+    if (!cta || controls.length !== 1) throw new Error("many-media CTA or numeric counter is missing");
     let previous = null;
     let stable = 0;
     for (let frame = 0; frame < 100; frame++) {
@@ -189,6 +197,13 @@ async function setupMany(page, locale) {
     throw new Error(`many-media card, CTA, or controls did not settle inside the visible viewport: ${JSON.stringify({ previous, viewportHeight: innerHeight })}`);
   });
   return card;
+}
+
+// Đổi media đẩy ngang 0.9s (media-card R3): chờ mọi animation hữu hạn trong card xong rồi mới đo trạng thái tĩnh.
+function settlePush(card) {
+  return card.evaluate((node) => Promise.all(node.getAnimations({ subtree: true })
+    .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+    .map((animation) => animation.finished.catch(() => {}))));
 }
 
 async function visibleSwipePoints(card) {
@@ -339,6 +354,7 @@ async function run(viewport, touch, locale) {
       "media change preserves card geometry");
     assert(after.video?.muted && after.video.poster.endsWith("poster-3x2.webp") && after.video.src.endsWith("clip-audio-3x2.mp4"),
       "video keeps poster, source and grid mute");
+    await settlePush(card);
     const dimensions = await card.evaluate(async (node) => {
       const cover = node.querySelector(`[data-advertising-media-item="${node.dataset.advertisingCard}"]`);
       const video = node.querySelector("video");
@@ -605,7 +621,7 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
         videoReady: active?.readyState >= 2, videoMuted: active?.muted,
         videoWidth: active?.videoWidth, videoHeight: active?.videoHeight,
         poster: active?.poster, duration: node.querySelector("[data-advertising-media-duration]")?.textContent,
-        playbackVisible: Boolean(node.querySelector("[data-advertising-media-playback]")?.hidden === false),
+        noPlayback: !node.querySelector("[data-advertising-media-playback]"),
         mediaLoaded: node.dataset.advertisingMediaLoaded || null,
         indicatorCount: node.querySelectorAll("[data-advertising-media-indicator], [data-advertising-media-select]").length,
         withinFrame: Boolean(rect && rect.left >= frame.left - 1 && rect.top >= frame.top - 1
@@ -616,10 +632,35 @@ test("M01b explicit singleton video cover renders without a carousel", async () 
       && state.legacyWidth === 0 && state.videoReady && state.videoMuted
       && state.videoWidth === 480 && state.videoHeight === 320
       && state.poster.endsWith("poster-3x2.webp") && state.duration === "0:03"
-      && state.playbackVisible && state.mediaLoaded === "true" && state.indicatorCount === 0
+      && state.noPlayback && state.mediaLoaded === "true" && state.indicatorCount === 0
       && state.withinFrame, `singleton video state: ${JSON.stringify(state)}`);
     await clickCardBody(card, "singleton-video");
     await page.waitForURL((next) => (next.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
+  } finally { await browser.close(); }
+});
+
+// R5: card chỉ có video, video và poster cùng lỗi thì skeleton không chạy mãi mà hiện dấu báo lỗi; detail cũng vậy.
+test("M01b video-only card with failed video and poster shows the load-error indicator in card and detail", async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  try {
+    const video = fixtureArtifact(true).cards.find((card) => card.id === fixtureId).mediaItems
+      .find((media) => media.id === videoId);
+    const card = await setupSingleton(page, { ...video, src: "/__missing_media__/clip.mp4",
+      posterSrc: "/__missing_media__/poster.webp" });
+    await page.waitForFunction((id) => document.querySelector(`[data-advertising-card="${id}"] .advertising-card-media`)
+      ?.classList.contains("is-media-error"), fixtureId, { timeout: 5_000 });
+    await page.waitForTimeout(300);
+    const state = await card.evaluate((node) => ({
+      skeleton: Boolean(node.querySelector("[data-advertising-loading-skeleton]")),
+      status: node.querySelector("[data-advertising-media-loading]").getAttribute("aria-label"),
+    }));
+    assert.deepEqual(state, { skeleton: false, status: "Couldn't load media" });
+    await clickCardBody(card, "failed-video");
+    await page.waitForFunction(() => document.querySelector(".advertising-photo-view__hero-frame")
+      ?.classList.contains("is-media-error"), null, { timeout: 5_000 });
+    assert.equal(await page.evaluate(() => document.querySelector("[data-advertising-photo-view]")
+      .dataset.advertisingPhotoGlass), "false", "detail turns the blur backdrop off");
   } finally { await browser.close(); }
 });
 
@@ -772,11 +813,15 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     const state = await card.evaluate((node) => ({
       activeId: node.dataset.advertisingActiveMediaId,
       imageSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
-      spinnerHidden: node.querySelector("[data-advertising-media-loading]").hidden,
+      status: node.querySelector("[data-advertising-media-loading]").getAttribute("aria-label"),
+      error: node.querySelector(".advertising-card-media").classList.contains("is-media-error"),
+      skeleton: Boolean(node.querySelector("[data-advertising-loading-skeleton]")),
+      controlsHidden: node.querySelector("[data-advertising-media-indicator]").hidden,
       mediaLoaded: node.dataset.advertisingMediaLoaded || null,
     }));
-    assert(state.activeId === fixtureId && state.imageSelected === "true" && state.spinnerHidden
-      && state.mediaLoaded !== "true",
+    // R5: hết media hiện được thì dấu báo lỗi thay skeleton, điều khiển ẩn, status đọc lỗi.
+    assert(state.activeId === fixtureId && state.imageSelected === "true" && state.status === "Couldn't load media" && state.error && !state.skeleton
+      && state.controlsHidden && state.mediaLoaded !== "true",
     `all-failed terminal state must stop without recursion: ${JSON.stringify(state)}`);
     assert.deepEqual(errors, [], "all-failed terminal state has no uncaught page errors");
   } finally { await browser.close(); }
@@ -846,6 +891,7 @@ test("M01b failed video keeps its loaded poster and usable carousel", async () =
     await Promise.all([videoResponse, posterResponse]);
     await page.waitForFunction((id) => Boolean(document.querySelector(`[data-advertising-card="${id}"] video`)?.error), fixtureId);
     await card.scrollIntoViewIfNeeded();
+    await settlePush(card);
     if (outputDir) await card.screenshot({ path: path.join(outputDir, "video-404-poster.png") });
     const state = await card.evaluate((node) => {
       const frame = node.querySelector(".advertising-card-media").getBoundingClientRect();
@@ -934,6 +980,7 @@ test("M01b stale poster failure does not override a newer image selection", asyn
     releasePoster();
     await probeResponse;
     await page.waitForTimeout(100);
+    await settlePush(card);
     const state = await card.evaluate((node) => ({
       activeId: node.dataset.advertisingActiveMediaId,
       coverSelected: node.querySelector(`[data-advertising-media-select="${node.dataset.advertisingCard}"]`)?.getAttribute("aria-current"),
@@ -1016,58 +1063,54 @@ async function runNumericIndicator(locale, viewport, mobile) {
   const page = await context.newPage();
   try {
     const card = await setupMany(page, locale);
-    const previous = card.locator("[data-advertising-media-prev]");
-    const next = card.locator("[data-advertising-media-next]");
     const count = card.locator("[data-advertising-media-count]");
     const initial = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
+      const strip = node.querySelector("[data-advertising-media-indicator]").getBoundingClientRect();
+      const counter = node.querySelector("[data-advertising-media-count]").getBoundingClientRect();
       return { width: rect.width, height: rect.height,
         layers: node.querySelectorAll("[data-advertising-media-item]").length,
         activeId: node.dataset.advertisingActiveMediaId,
-        dots: node.querySelectorAll("[data-advertising-media-select]").length };
+        dots: node.querySelectorAll("[data-advertising-media-select]").length,
+        stripButtons: node.querySelectorAll("[data-advertising-media-indicator] button").length,
+        centerOffset: Math.abs((strip.left + strip.right) / 2 - (counter.left + counter.right) / 2) };
     });
     assert.equal(initial.layers, 1, "eleven items are not instantiated eagerly");
-    assert.equal(initial.dots, 0, "seven or more items use no dot controls");
+    assert.equal(initial.dots, 0, "six or more items use no dot controls");
+    // Owner 2026-10-18: từ 6 media dải chỉ còn bộ đếm ở chỗ hàng chấm, đổi media bằng mũi tên hover hoặc vuốt.
+    assert.equal(initial.stripButtons, 0, "the strip carries only the counter");
+    assert(initial.centerOffset <= 1, `counter sits centred where the dots would be: ${JSON.stringify(initial)}`);
     assert.equal(initial.activeId, fixtureId);
     assert.equal(await count.textContent(), "1/11");
     assert.equal(await count.getAttribute("role"), "status");
     assert.equal(await count.getAttribute("aria-live"), "polite");
     assert.equal(await count.getAttribute("aria-label"), locale === "en" ? "Media 1 of 11" : "Media 1 trên 11");
-    assert.equal(await previous.getAttribute("aria-label"), locale === "en" ? "Previous media" : "Media trước");
-    assert.equal(await next.getAttribute("aria-label"), locale === "en" ? "Next media" : "Media tiếp");
-    assert(await previous.isDisabled());
-    assert(!(await next.isDisabled()));
-    const targets = await card.evaluate((node) => ["prev", "next"].map((direction) => {
-      const button = node.querySelector(`[data-advertising-media-${direction}]`);
-      const rect = button.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
-      const target = document.elementFromPoint(x, y);
-      const cta = document.querySelector("[data-advertising-grid-cta]");
-      const ctaRect = cta?.getBoundingClientRect();
-      return { direction, width: rect.width, height: rect.height, hit: target === button,
-        visible: rect.top >= 0 && rect.bottom <= innerHeight && rect.left >= 0 && rect.right <= innerWidth,
-        rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
-        scrollY, viewportHeight: innerHeight, hitTag: target?.tagName, hitClass: String(target?.className || ""),
-        ctaRect: ctaRect && { left: ctaRect.left, top: ctaRect.top, right: ctaRect.right, bottom: ctaRect.bottom },
-        hitStack: target === button ? null : document.elementsFromPoint(x, y).slice(0, 5)
-          .map((item) => ({ tag: item.tagName, className: String(item.className || ""),
-            inCta: Boolean(item.closest("[data-advertising-grid-cta]")) })) };
-    }));
-    assert(targets.every((target) => target.width >= 44 && target.height >= 44 && target.hit && target.visible),
-      `numeric controls need visible 44px hit targets: ${JSON.stringify(targets)}`);
-    for (let index = 2; index <= 6; index++) await next.click();
+    let pointerId = 40;
+    const link = card.locator(":scope > a");
+    const step = async (direction) => {
+      if (mobile) {
+        const points = await visibleSwipePoints(card);
+        await (direction > 0 ? pointerSwipe(link, points.x1, points.x2, points.y, pointerId++)
+          : pointerSwipe(link, points.x2, points.x1, points.y, pointerId++));
+        await page.waitForTimeout(450);
+      } else {
+        await card.locator(".advertising-card-media").hover();
+        await card.locator(`[data-advertising-media-hover-step="${direction}"]`).click();
+      }
+    };
+    for (let index = 2; index <= 6; index++) await step(1);
     assert.equal(await count.textContent(), "6/11");
-    await next.focus();
-    await page.keyboard.press("Enter");
+    if (!mobile) {
+      await card.locator('[data-advertising-media-hover-step="1"]').focus();
+      await page.keyboard.press("Enter");
+    } else await step(1);
     assert.equal(await count.textContent(), "7/11");
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${fixtureId}-image-7`);
-    await previous.click();
+    await step(-1);
     assert.equal(await count.textContent(), "6/11");
-    for (let index = 7; index <= 11; index++) await next.click();
+    for (let index = 7; index <= 11; index++) await step(1);
     assert.equal(await count.textContent(), "11/11");
-    assert(await next.isDisabled());
-    assert(!(await previous.isDisabled()));
+    if (!mobile) assert(await card.locator('[data-advertising-media-hover-step="1"]').isHidden(), "next arrow hides at the last media");
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), null, "media controls never open detail");
     const final = await card.evaluate((node) => {
       const rect = node.getBoundingClientRect();
@@ -1078,7 +1121,8 @@ async function runNumericIndicator(locale, viewport, mobile) {
     assert(Math.abs(final.width - initial.width) <= 1 && Math.abs(final.height - initial.height) <= 1,
       `media selection keeps card geometry: ${JSON.stringify({ initial, final })}`);
     if (outputDir) await writeFile(path.join(outputDir, `numeric-indicator-${locale}-${mobile ? "mobile" : "desktop"}.json`),
-      JSON.stringify({ initial, targets, final }, null, 2));
+      JSON.stringify({ initial, final }, null, 2));
+    await page.waitForTimeout(950);
     await clickCardBody(card, `numeric-${locale}-${mobile ? "mobile" : "desktop"}`);
     await page.waitForURL((url) => (url.pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null) === fixtureId);
   } finally { await context.close(); await browser.close(); }
@@ -1092,12 +1136,12 @@ test("M01b eleven media use numeric navigation on VI mobile", async () => {
   await runNumericIndicator("vi", { width: 390, height: 844 }, true);
 });
 
-test("M01b six media still use dot controls", async () => {
+test("M01b five media still use dot controls", async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
     const artifact = manyImageArtifact();
-    artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 6;
+    artifact.cards.find((card) => card.id === fixtureId).mediaItems.length = 5;
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
     // Direct-load veil chặn pointer input cho đến khi trang mount xong.
@@ -1106,8 +1150,188 @@ test("M01b six media still use dot controls", async () => {
     await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
     const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
     await card.scrollIntoViewIfNeeded();
-    assert.equal(await card.locator("[data-advertising-media-select]").count(), 6);
+    assert.equal(await card.locator("[data-advertising-media-select]").count(), 5);
     assert.equal(await card.locator("[data-advertising-media-count]").count(), 0);
+  } finally { await browser.close(); }
+});
+
+// Owner 2026-10-18: hover card nhiều media hiện mũi tên theo vị trí như pin Pinterest, card không zoom media;
+// cảm ứng không có mũi tên.
+test("M01b hover arrows step card media by position and the card media never zooms", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    for (const touch of [false, true]) {
+      const context = await browser.newContext(touch
+        ? { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
+        : { viewport: { width: 1440, height: 900 } });
+      const page = await context.newPage();
+      const artifact = manyImageArtifact();
+      const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
+      items.length = 3;
+      await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
+      await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+      await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+      await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+      await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+      const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+      await card.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(450);
+      const arrows = () => card.evaluate((node) => [...node.querySelectorAll("[data-advertising-media-hover-step]")]
+        .map((button) => getComputedStyle(button).display === "none" ? "-" : getComputedStyle(button).opacity).join(" "));
+      if (touch) {
+        assert.equal(await arrows(), "- -", "touch cards have no arrows");
+        await context.close();
+        continue;
+      }
+      assert.equal(await arrows(), "- 0", "arrows stay hidden until hover; first media has no previous arrow");
+      await card.locator(".advertising-card-media").hover();
+      await page.waitForTimeout(700);
+      assert.equal(await arrows(), "- 1", "hover shows only the next arrow on the first media");
+      assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").first()
+        .evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).a), 1, "hover keeps card media still");
+      await card.locator('[data-advertising-media-hover-step="1"]').click();
+      await card.locator('[data-advertising-media-hover-step="1"]').click();
+      assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[2].id);
+      assert.equal(await arrows(), "1 -", "last media shows only the previous arrow");
+      assert.doesNotMatch(new URL(page.url()).pathname, /\/p\/[^/]+\/$/, "arrows never open detail");
+      await context.close();
+    }
+  } finally { await browser.close(); }
+});
+
+// Card ba media cùng tỷ lệ (bản sao cover) cho lớp tối hover, dải liền và vuốt kéo (media-card R3, owner 2026-10-19).
+async function setupThree(context) {
+  const page = await context.newPage();
+  const artifact = manyImageArtifact();
+  const items = artifact.cards.find((card) => card.id === fixtureId).mediaItems;
+  items.length = 3;
+  await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
+  await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+  await page.waitForFunction(() => Boolean(window.TruongThinhAdvertising?.getAdapter?.()));
+  await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), fixtureId);
+  const card = page.locator(`[data-advertising-card="${fixtureId}"]`);
+  await card.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(450);
+  await card.locator("img").first().waitFor({ state: "visible" });
+  return { page, card, items };
+}
+
+// Ghi từng frame: vị trí (so với canvas), opacity, trạng thái giải mã của mọi layer đang hiện.
+const recordLayers = (card, ms, action) => card.evaluate(async (node, { ms, action }) => {
+  const media = node.querySelector(".advertising-card-media");
+  const frames = [];
+  let stop = false;
+  const tick = () => {
+    const box = media.getBoundingClientRect();
+    frames.push([...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")].map((layer) => {
+      const rect = layer.getBoundingClientRect();
+      return { left: rect.left - box.left, right: rect.right - box.left, width: box.width,
+        opacity: getComputedStyle(layer).opacity, ready: layer.complete && layer.naturalWidth > 0 };
+    }));
+    if (!stop) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  if (action) node.querySelector(action).click();
+  await new Promise((resolve) => setTimeout(resolve, ms));
+  stop = true;
+  return frames;
+}, { ms, action });
+
+test("M01b hover darkens the canvas, fades just viewed, and media change slides as one strip", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const { page, card, items } = await setupThree(context);
+    // Nhãn "Vừa xem" do masonry gắn khi đóng detail; test gắn đúng node runtime tạo để đo phần hover.
+    await card.locator(".advertising-card-media").evaluate((media) => {
+      const marker = Object.assign(document.createElement("span"), { className: "advertising-card-media__just-viewed",
+        textContent: "Just viewed" });
+      marker.dataset.advertisingJustViewed = "";
+      media.append(marker);
+    });
+    const hoverState = () => card.locator(".advertising-card-media").evaluate((media) => ({
+      scrim: getComputedStyle(media, "::after").opacity,
+      scrimColor: getComputedStyle(media, "::after").backgroundColor,
+      marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity,
+    }));
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
+    await card.locator(".advertising-card-media").hover();
+    // Lấy frame đầu tiên lớp tối đã bắt đầu hiện thay vì mốc giờ cố định (máy tải cao làm transition bắt đầu trễ).
+    const fading = await card.locator(".advertising-card-media").evaluate((media) => new Promise((resolve) => {
+      const read = () => {
+        const scrim = getComputedStyle(media, "::after").opacity;
+        if (scrim === "0") return requestAnimationFrame(read);
+        resolve({ scrim, marker: getComputedStyle(media.querySelector("[data-advertising-just-viewed]")).opacity });
+      };
+      read();
+    }));
+    assert(Number(fading.scrim) > 0 && Number(fading.scrim) < 1 && Number(fading.marker) < 1 && Number(fading.marker) > 0,
+      `scrim and just viewed fade together: ${JSON.stringify(fading)}`);
+    await page.waitForTimeout(700);
+    assert.deepEqual(await hoverState(), { scrim: "1", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "0" });
+
+    const frames = await recordLayers(card, 1200, '[data-advertising-media-hover-step="1"]');
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id);
+    const sliding = frames.filter((layers) => layers.length === 2);
+    assert(sliding.length >= 20, `strip slides over many frames: ${sliding.length}`);
+    for (const layers of frames) {
+      assert(layers.length > 0 && layers.every((layer) => layer.opacity === "1" && layer.ready),
+        `every frame shows decoded media at full opacity: ${JSON.stringify(layers)}`);
+      const [first, second] = [...layers].sort((a, b) => a.left - b.left);
+      const right = (second ?? first).right;
+      assert(first.left <= 0.5 && right >= first.width - 0.5, `media cover the canvas: ${JSON.stringify(layers)}`);
+      if (second) assert(Math.abs(first.right - second.left) <= 1, `media stay joined: ${JSON.stringify(layers)}`);
+    }
+    assert(sliding.some(([a, b]) => Math.min(Math.abs(a.left), Math.abs(b.left)) > 20),
+      "incoming media enters from the canvas edge, not in place");
+
+    await page.mouse.move(5, 5);
+    await page.waitForTimeout(800);
+    assert.deepEqual(await hoverState(), { scrim: "0", scrimColor: "rgba(0, 0, 0, 0.3)", marker: "1" });
+    await context.close();
+  } finally { await browser.close(); }
+});
+
+test("M01b touch drag moves the strip with the finger, snaps back below half, and commits past half", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const { page, card, items } = await setupThree(context);
+    const point = await visibleSwipePoints(card);
+    assert(point.visible && point.hitsLink, `touch gesture must start on visible card: ${JSON.stringify(point)}`);
+    const width = await card.locator(".advertising-card-media").evaluate((node) => node.clientWidth);
+    const client = await context.newCDPSession(page);
+    const touch = (type, x) => client.send("Input.dispatchTouchEvent",
+      { type, touchPoints: type === "touchEnd" ? [] : [{ x, y: point.y, id: 7 }] });
+    const start = point.x1 + width * 0.15;
+    const drag = async (distance) => {
+      await touch("touchStart", start);
+      for (let step = 1; step <= 6; step++) await touch("touchMove", start - distance * step / 6);
+      // Chrome gom touchmove theo frame: chờ hai frame để lần move cuối tới handler rồi mới đo (CI đỏ, dải ở move thứ năm).
+      return card.locator(".advertising-card-media").evaluate(async (media) => {
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const box = media.getBoundingClientRect();
+        return [...media.querySelectorAll("[data-advertising-media-item]:not([hidden])")]
+          .map((layer) => Math.round(layer.getBoundingClientRect().left - box.left)).sort((a, b) => a - b);
+      });
+    };
+    const short = await drag(width * 0.3);
+    assert.deepEqual(short.map((left) => Math.abs(left - Math.round(-width * 0.3)) <= 2 || Math.abs(left - Math.round(width * 0.7)) <= 2),
+      [true, true], `current and next media follow the finger: ${JSON.stringify({ short, width })}`);
+    await page.waitForTimeout(300);
+    await touch("touchEnd");
+    await settlePush(card);
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[0].id, "short slow drag snaps back");
+    assert.equal(await card.locator("[data-advertising-media-item]:not([hidden])").count(), 1);
+
+    await drag(width * 0.6);
+    await page.waitForTimeout(300);
+    await touch("touchEnd");
+    await settlePush(card);
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), items[1].id, "drag past half commits");
+    assert.doesNotMatch(new URL(page.url()).pathname, /\/p\/[^/]+\/$/, "drag never opens detail");
+    await context.close();
   } finally { await browser.close(); }
 });
 
@@ -1136,7 +1360,8 @@ async function runWideCover(locale, related = false, mode = "normal") {
     if (!related) await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
       await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
-      for (let i = 0; i < 32 && await page.locator(selector).count() === 0; i += 1) {
+      // Cùng ngân sách site-media-card-r6: cuộn mượt khoảng 60px mỗi lần, related xáo theo lượt xem (đỏ 1/3 ca 2026-10-26).
+      for (let i = 0; i < 120 && await page.locator(selector).count() === 0; i += 1) {
         await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
         await page.waitForTimeout(80);
       }

@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-18
+updated: 2026-10-25
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -108,9 +108,9 @@ Then viewer đóng
 
 Thay ba mức cố định bằng `s` liên tục; ba nấc chỉ còn là điểm dừng cho nút và
 con lăn. `+` (và con lăn lên) tới nấc nhỏ nhất lớn hơn `s`; `−` (và con lăn
-xuống) tới nấc lớn nhất nhỏ hơn `s`; Reset và middle-click về Fit. `+` disabled
-khi `s` bằng Max; `−` và Reset disabled khi `s` bằng Fit. Phím mũi tên pan khi
-`s > 1`. Reset còn đưa góc xoay về `0°` (R11). Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
+xuống) tới nấc lớn nhất nhỏ hơn `s`; middle-click về Fit. Không có nút Reset (bỏ 2026-10-25, owner: về Fit bằng `−`,
+middle-click hoặc chạm). `+` disabled khi `s` bằng Max; `−` disabled khi `s` bằng Fit. Phím mũi tên pan khi
+`s > 1`. Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
 khi thao tác kết thúc, không cập nhật từng frame lúc pinch. Anchor của con lăn
 và chuyển động `200ms ease-in-out` giữ như R9.
 
@@ -119,7 +119,7 @@ Given pinch dừng ở s nằm giữa Fit và Cover
 When bấm +
 Then ảnh tới Cover
 When bấm −
-Then ảnh về Fit, − và Reset disabled
+Then ảnh về Fit, − disabled
 ```
 
 ### R6. Resize, motion đang chạy và reduced motion
@@ -148,9 +148,10 @@ này nút `Xem lớn hơn` ẩn khỏi mắt. Một lần chạm bằng touch l�
 primary (di không quá `10 CSS px`) mở viewer bằng morph như
 [detail R9](advertising-detail.md#r9-viewer). Chạm đúp cũng mở: lần chạm thứ hai
 rơi vào viewer và bị nuốt như R4, ảnh giữ Fit. Primary đang là video thì chạm
-không mở viewer. Khung
-primary mang `touch-action: manipulation` để trình duyệt không zoom trang khi
-chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
+phát hoặc dừng, không mở viewer; nút mở lớn hiện và mở video vào viewer
+([primary-video-player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)). Khung
+primary mang `touch-action: pan-y pinch-zoom` (như `manipulation` nhưng không `pan-x`, để vuốt ngang kéo dải media,
+[media-card R6](media-card.md#r6-media-trong-primary)) nên trình duyệt không zoom trang khi chạm đúp. Desktop giữ nút, double-click chuột lên primary không mở viewer.
 
 ```gherkin
 Given detail của một ảnh trên điện thoại dọc
@@ -162,7 +163,7 @@ Then viewer mở ở Fit, không zoom
 
 ### R8. Màn cảm ứng: nút viewer ẩn khỏi mắt
 
-Trên màn cảm ứng nút đóng, reset, `+`, `−` của viewer ẩn khỏi mắt (kiểu
+Trên màn cảm ứng nút đóng, `+`, `−` và dãy thumbnail của viewer ẩn khỏi mắt (kiểu
 `sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
 zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm (R4); về Fit bằng
 chạm. Desktop giữ nguyên nút. Vì không còn nút hiện trên ảnh, Fit trên màn cảm ứng không chừa lề: ảnh chạm cạnh
@@ -245,9 +246,9 @@ Then morph đóng đưa ảnh về khung primary ở 0°
 | --- | --- | --- |
 | DOM hook | `[data-advertising-photo-viewport]` | Nhận pointer cho pinch, xoay, kéo, chạm; giữ `touch-action: none` (`detail.css`) để trình duyệt không cuộn hay zoom trang trong viewer |
 | DOM hook | `[data-advertising-photo-expanded-image]` | Ảnh đổi `transform: translate3d(panX, panY, 0) rotate(θ) scale(s)` |
-| DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out`, `-zoom-reset` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
+| DOM hook | `[data-advertising-photo-zoom-in]`, `-zoom-out` | Nút theo nấc R5, disabled theo `s`; ẩn khỏi mắt trên màn cảm ứng (R8) |
 | DOM hook | `[data-advertising-photo-expand]`, `[data-advertising-photo-close]` | Ẩn khỏi mắt trên màn cảm ứng (R7, R8) |
-| DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: manipulation` |
+| DOM hook | `.advertising-photo-view__hero-frame` | Nhận chạm mở viewer (R7), `touch-action: pan-y pinch-zoom` |
 | CSS | `--advertising-viewer-backdrop-opacity` trên dialog | Opacity nền khi vuốt đóng (R9) |
 | Hàm public | `TruongThinhAdvertising.handleViewerPopState()` | `motion.js` gọi đầu tiên khi `popstate`; `true` thì viewer đã xử lý Back (R10) |
 | DOM hook | `[data-advertising-photo-zoom-status]` | `round(s × 100)%` khi thao tác kết thúc |

@@ -26,6 +26,7 @@ const vendorAssets = [
   ["node_modules/locomotive-scroll/dist/locomotive-scroll.min.js", "assets/vendor/locomotive-scroll-4.1.4.min.js"],
   ["node_modules/locomotive-scroll/dist/locomotive-scroll.min.css", "assets/vendor/locomotive-scroll-4.1.4.min.css"],
   ["node_modules/@barba/core/dist/barba.umd.js", "assets/vendor/barba-2.10.3.umd.js"],
+  ["node_modules/hls.js/dist/hls.light.min.js", "assets/vendor/hls.light-1.7.3.min.js"],
   ["node_modules/@fontsource-variable/plus-jakarta-sans/LICENSE", "assets/vendor/plus-jakarta-sans-5.3.0/LICENSE"],
   ...["latin", "latin-ext", "vietnamese"].flatMap((subset) => ["normal", "italic"].map((style) => {
     const file = `plus-jakarta-sans-${subset}-wght-${style}.woff2`;

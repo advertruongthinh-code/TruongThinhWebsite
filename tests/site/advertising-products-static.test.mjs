@@ -73,8 +73,8 @@ assert.match(runtime, /gridPixelHeight[\s\S]*?createMasonry\(grid, positions, \(
 assert.doesNotMatch(index, /data-advertising-photo-back(?:\s|=|>)/, "photo state does not expose a dedicated Back control");
 assert.doesNotMatch(runtime, /\bphotoBack\b/, "photo runtime does not retain dedicated Back behavior");
 assert.doesNotMatch(css, /\.advertising-photo-view__back(?:\s|:|\{|,)/, "photo CSS does not retain the removed Back control");
-assert.match(index, /data-advertising-photo-description-pager[\s\S]*data-advertising-photo-description-page[\s\S]*data-advertising-photo-description-indicator/,
-  "R15 exposes a description pager and accessible page indicator");
+assert.match(index, /data-advertising-photo-description-box[\s\S]*data-advertising-photo-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-advertising-photo-description-bar aria-hidden="true"/,
+  "detail R3 exposes a labelled description scroller and a decorative scrollbar");
 const photoInfoMarkup = index.slice(index.indexOf("data-advertising-photo-info"), index.indexOf("data-advertising-photo-related aria-label"));
 const relatedGridMarkup = index.slice(index.indexOf("data-advertising-photo-related-grid"), index.indexOf("class=\"advertising-photo-dialog\""));
 assert.doesNotMatch(photoInfoMarkup, /data-advertising-photo-suggestion/, "R15 primary info no longer owns the suggestion block");
@@ -84,23 +84,24 @@ assert.match(css, /\.advertising-photo-view__primary\s*\{[^}]*height:\s*var\(--a
 assert.doesNotMatch(css, /\[data-advertising-photo-layout="pinterest"\][\s\S]*?\.advertising-photo-view__primary\s*\{[^}]*block-size:\s*100dvh;/,
   "full-span primary is not forced to fill the viewport");
 assert.match(css, /advertising-photo-view__info\s*\{[^}]*overflow:\s*(?:clip|hidden);[^}]*overscroll-behavior:\s*auto;/s,
-  "description pagination replaces the inner scroller and never traps vertical scroll");
-assert.match(css, /data-advertising-photo-description-pager[^}]*touch-action:\s*pan-y;/s,
-  "inline description pager reserves vertical touch gestures for the document");
+  "info itself never scrolls or traps vertical scroll; only the description scrolls");
+assert.match(css, /\.advertising-photo-view__description-scroll\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;/s,
+  "description scrolls behind its own scrollbar instead of the native one");
 assert.match(runtime, /primary\.span\s*===\s*(?:primary\.columns|layout\.columns|relatedLayout\.layout\.columns|columns)[\s\S]*?["']pinterest["']/,
   "Pinterest mode derives from primary span equalling total columns");
-for (const token of ["ArrowLeft", "ArrowRight", "deltaX", "pointermove"]) {
-  assert.match(runtime, new RegExp(token), `description pager runtime is missing ${token}`);
+for (const token of ["data-fade-start", "data-fade-end", "setPointerCapture", "lostpointercapture"]) {
+  assert.match(runtime, new RegExp(token), `description scroll hints runtime is missing ${token}`);
 }
 assert.match(runtime, /kind:\s*["']suggestion["']/, "suggestion is identified as a synthetic grid card");
 assert.match(runtime, /rank:\s*0/, "synthetic suggestion owns rank zero");
 assert.match(runtime, /sourceOrder:\s*0/, "synthetic suggestion owns sourceOrder zero");
 assert.match(index, /data-advertising-photo-expand[\s\S]*?<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/, "photo expand uses the simple two-arrow icon");
-assert.match(index, /data-advertising-photo-zoom-reset[\s\S]*?<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/, "photo reset uses the matching two-arrow icon");
+assert.doesNotMatch(index, /data-advertising-photo-zoom-reset|data-advertising-photo-viewer-step/,
+  "the viewer has no reset button and no arrows; a thumbnail strip changes media (owner 2026-10-25)");
 assert.match(css, /\[data-advertising-photo-background\][^{]*\{[^}]*filter:\s*blur\(100px\) saturate\(1\.7\) brightness\(1\.04\);/, "primary background owns its static blur so tab thumbnails do not split the glass");
 assert.doesNotMatch(runtime, /photoBackground\.style\.filter|filter:\s*"blur\(/, "photo overflow motion leaves blur ownership to the shared glass surface");
-  assert.match(css, /\.advertising-photo-view__image-action\s*\{[\s\S]*?--image-action-edge-padding:\s*14px;/, "photo image action defines balanced horizontal edge padding");
-  assert.match(css, /\.advertising-photo-view__image-action span\s*\{[\s\S]*?calc\(var\(--image-action-edge-padding\) \+ 3px\)/, "expanded photo action balances real text ink against the icon path");
+  assert.match(css, /\.advertising-photo-view__image-action\s*\{[^}]*?width:\s*36px;[^}]*?height:\s*36px;/, "photo expand is a 36px square (primary-video-player R7)");
+  assert.doesNotMatch(index, /data-advertising-photo-expand[^>]*>\s*<span/, "photo expand has no text label, only its icon");
 assert.match(css, /\.advertising-grid__cta-skeleton[\s\S]*?position:\s*absolute;[\s\S]*?pointer-events:\s*none;/, "CTA skeleton is a non-interactive spatial layer in the grid");
 assert.match(css, /\.advertising-grid__cta-frame[\s\S]*?opacity:\s*var\(--advertising-cta-frame-opacity\);/, "each continuation frame owns its progressive spatial fade");
 assert.match(css, /\.advertising-grid__cta-surface \{[\s\S]*?border:\s*0;/, "skeleton surfaces have no visible frame border");
@@ -113,14 +114,15 @@ assert.match(index, /data-advertising-photo-info[^>]*aria-label="Thông tin ản
 assert.match(photoInfoMarkup, /data-advertising-photo-description[\s\S]*?data-advertising-photo-cta/, "CTA remains in primary information after the description pager");
 assert.doesNotMatch(index + runtime, /data-advertising-photo-tag-reset|advertisingSuggestionSlot|measureSuggestionHeight/, "standalone reset and legacy suggestion slot are absent");
 assert.match(runtime, /suggestionPlacement/, "R15 exposes the synthetic suggestion placement in the related grid");
-assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.4\);/, "portal and suggestion share the measured Pinterest inactive overlay token");
+assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.5\);/, "portal keeps the owner 0.5 overlay token");
 assert.match(siteCss, /\.portal-shade \{[\s\S]*?background: var\(--media-label-overlay\);/, "homepage portal uses the shared inactive overlay");
-assert.match(css, /\.advertising-photo-view__suggestion-link::after \{[\s\S]*?background: var\(--media-label-overlay\);/, "inactive suggestion uses the same overlay");
+// Owner 2026-10-26: nút gợi ý dùng lớp tối 0,5 luôn hiện, không dùng token portal.
+assert.match(css, /\.advertising-photo-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.5\);[^}]*opacity: 1;/, "inactive suggestion always shows the 0.5 overlay");
 assert.match(css, /advertising-photo-view__suggestion-links \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/, "suggestions use one full-width row per button");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] \{[\s\S]*?border-color: var\(--ink\);[\s\S]*?background: var\(--white\);/, "only the active suggestion exposes the ink border and white surface");
 assert.match(css, /suggestion-link\[aria-pressed="true"\] img \{[\s\S]*?opacity: 0 !important;[\s\S]*?transform: none !important;/, "active suggestion hides and resets the full-frame photo");
-assert.match(css, /suggestion-link\[aria-pressed="true"\] \.advertising-photo-view__suggestion-label \{\s*color: var\(--ink\);\s*\}/, "active suggestion keeps a readable ink fallback without text clipping");
+assert.match(css, /suggestion-link\[aria-pressed="true"\] \.advertising-photo-view__suggestion-label \{\s*color: var\(--ink\);\s*text-shadow: none;\s*\}/, "active suggestion keeps a readable ink fallback without text clipping or the two-layer shadow");
 assert.doesNotMatch(css, /--advertising-suggestion-image|background-clip:\s*text/, "active suggestion uses plain ink text without an image mask");
 assert.doesNotMatch(css, /suggestion-link:hover:not\(\[aria-pressed="true"\]\)::after\s*\{[^}]*filter:/, "inactive suggestion hover does not change overlay darkness");
 assert.doesNotMatch(siteCss, /service-portal:hover \.portal-shade\s*\{[^}]*background:/, "portal hover does not change overlay darkness");
@@ -174,7 +176,7 @@ assert.ok(mobileSuggestions.every(({ card, tag }) => card.category === samplingC
   || tag.group === "use"), "cross-category representatives require a hero-authored or shared-use tag");
 assert.match(runtime, /advertising-photo-view__suggestion-links[\s\S]*advertising-photo-view__suggestion-link[\s\S]*advertising-photo-view__suggestion-label/, "suggestion tile renders the approved link and label hooks");
 assert.match(runtime, /function createPhotoMedia[\s\S]*advertising-card-media__image/, "grid and suggestion media share one media helper");
-assert.match(runtime, /link\.className = "advertising-card-interactive media-hover-zoom-trigger"[\s\S]*advertising-card-media[\s\S]*createPhotoMedia\(record, locale\)/, "grid cards opt into the shared media interaction");
+assert.match(runtime, /link\.className = "advertising-card-interactive";[\s\S]*advertising-card-media[\s\S]*createPhotoMedia\(record, locale\)/, "grid and related cards keep media still on hover (owner 2026-10-18)");
 assert.match(runtime, /advertising-photo-view__suggestion-link advertising-card-interactive advertising-card-media[\s\S]*createPhotoMedia\(card, locale, \{ suggestion: true \}\)/, "suggestion buttons reuse the shared media interaction");
 assert.doesNotMatch(runtime, /startSuggestionMotion|advertising-suggestion-image|scale\(1\.06\)/, "suggestions do not run a second hover or slideshow motion provider");
 assert.match(runtime, /"internal-gap": primary\.internalGap/, "detail runtime passes the span-three internal gap to CSS");

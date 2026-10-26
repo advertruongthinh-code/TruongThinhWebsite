@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
-import { manifest, select } from "../../scripts/ci/suites.mjs";
+import { manifest, select, timingTable } from "../../scripts/ci/suites.mjs";
 
 const all = Object.keys(manifest.suites).filter((id) => manifest.suites[id].tests.length);
 const commands = Object.values(manifest.suites).flatMap((suite) => suite.tests);
@@ -38,4 +38,9 @@ test("chọn bộ theo file PR sửa", () => {
   // Main: merge chỉ có tài liệu không chạy bộ nào; có code thì chạy đủ.
   assert.deepEqual(select(["docs/STATE.md"], "push"), []);
   assert.deepEqual(select(["docs/STATE.md", "AGENTS.md"], "workflow_dispatch"), all);
+});
+
+test("bảng thời gian job summary có một dòng mỗi lệnh", () => {
+  const table = timingTable([{ suite: "home", cmd: "node a.mjs", seconds: 12, status: 0 }, { suite: "home", cmd: "node b.mjs", seconds: 3, status: 1 }]);
+  assert.deepEqual(table.split("\n").slice(2), ["| home | 12 | PASS | `node a.mjs` |", "| home | 3 | FAIL | `node b.mjs` |"]);
 });

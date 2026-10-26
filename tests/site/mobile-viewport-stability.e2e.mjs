@@ -54,7 +54,7 @@ async function ready(page, photo = false) {
 
 async function snapshot(page) {
   return page.evaluate(() => {
-    const selectors = [".hero", ".advertising-photo-view__primary", "[data-advertising-photo-image]", "[data-advertising-photo-info]", "[data-advertising-photo-description-page]", "[data-advertising-photo-related-grid]", "[data-advertising-cta-skeleton]", "[data-advertising-grid-cta]", ".site-footer"];
+    const selectors = [".hero", ".advertising-photo-view__primary", "[data-advertising-photo-image]", "[data-advertising-photo-info]", "[data-advertising-photo-description-scroll]", "[data-advertising-photo-related-grid]", "[data-advertising-cta-skeleton]", "[data-advertising-grid-cta]", ".site-footer"];
     const scroll = window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY;
     const rects = Object.fromEntries(selectors.map(selector => {
       const element = document.querySelector(selector);
