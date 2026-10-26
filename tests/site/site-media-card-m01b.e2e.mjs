@@ -1358,7 +1358,8 @@ async function runWideCover(locale, related = false, mode = "normal") {
     if (!related) await page.evaluate((id) => window.TruongThinhAdvertising.getAdapter().ensurePhoto(id), wideFixtureId);
     else {
       await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
-      for (let i = 0; i < 32 && await page.locator(selector).count() === 0; i += 1) {
+      // Cùng ngân sách site-media-card-r6: cuộn mượt khoảng 60px mỗi lần, related xáo theo lượt xem (đỏ 1/3 ca 2026-10-26).
+      for (let i = 0; i < 120 && await page.locator(selector).count() === 0; i += 1) {
         await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
         await page.waitForTimeout(80);
       }
