@@ -70,9 +70,10 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 // Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// PC (advertising-skeleton R5): Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome
-// 155: tạo context thứ 5 thì context cũ nhất bị thu hồi), nên mọi khung trong worker vẽ chung một context rồi chuyển hình
-// sang canvas của khung; số khung chạy cùng lúc không còn bị giới hạn bởi context.
+// Advertising-skeleton R5: Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome 155 và
+// A04s, Chrome 156: tạo context thứ 5 thì context cũ nhất bị thu hồi). PC: mọi khung vẽ chung một context trong worker rồi
+// chuyển hình sang canvas của khung, tối đa 24 khung. Điện thoại: context riêng mỗi khung, xếp 4 khung mỗi worker (12 khung);
+// context chung trên A04s làm tụt fps dưới gate R8 (đo 26/10).
 const SKELETON_SHARED_BUDGET = 24;
 // Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;

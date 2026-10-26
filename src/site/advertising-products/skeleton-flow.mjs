@@ -712,36 +712,50 @@ export function createSkeletonFlowRenderer(canvas, {
   };
 }
 
-// Một worker cho cả document; null khi trình duyệt không chạy được thì caller về renderer main thread.
-let flowWorker;
+// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (đo trên PC và A04s), nên renderer có context riêng xếp vào nhiều
+// worker, mỗi worker tối đa 4 context; hub chung (cuối file) luôn ở worker đầu và không tính vào 4. `flowWorkersFailed`
+// đặt khi không tạo được worker thì caller về renderer main thread.
+const FLOW_WORKER_CONTEXTS = 4;
+const flowWorkers = [];
+let flowWorkersFailed = false;
 let flowWorkerId = 0;
 const flowWorkerBackends = new Map();
-export const skeletonFlowWorkerSupported = () => flowWorker !== null && typeof Worker === "function"
+function flowWorkerSlot(shared) {
+  let slot = shared ? flowWorkers[0] : flowWorkers.find(({ live }) => live < FLOW_WORKER_CONTEXTS);
+  if (!slot) {
+    try {
+      const worker = new Worker(new URL("./skeleton-flow-worker.mjs", import.meta.url), { type: "module" });
+      worker.onmessage = ({ data }) => flowWorkerBackends.get(data.id)?.(data.backend);
+      slot = { worker, live: 0 };
+      flowWorkers.push(slot);
+    } catch {
+      flowWorkersFailed = true;
+      return null;
+    }
+  }
+  if (!shared) slot.live++;
+  return slot;
+}
+export const skeletonFlowWorkerSupported = () => !flowWorkersFailed && typeof Worker === "function"
   && typeof OffscreenCanvas === "function" && "transferControlToOffscreen" in HTMLCanvasElement.prototype;
 
 // Renderer chạy trong worker, cùng API với createSkeletonFlowRenderer. Pha trên main thread tính theo thời gian chạy
 // để lưu khi release; chỉ lệch với worker khi một frame worker dài hơn 50ms.
 export function createSkeletonFlowWorkerRenderer(canvas, options) {
   if (!skeletonFlowWorkerSupported()) return null;
-  if (!flowWorker) {
-    try {
-      flowWorker = new Worker(new URL("./skeleton-flow-worker.mjs", import.meta.url), { type: "module" });
-    } catch {
-      flowWorker = null;
-      return null;
-    }
-    flowWorker.onmessage = ({ data }) => flowWorkerBackends.get(data.id)?.(data.backend);
-  }
+  const slot = flowWorkerSlot(options.shared);
+  if (!slot) return null;
+  const { worker } = slot;
   const id = ++flowWorkerId;
   const offscreen = canvas.transferControlToOffscreen();
-  flowWorker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
+  worker.postMessage({ id, type: "create", canvas: offscreen, options }, [offscreen]);
   // Caller duy nhất (catalog-runtime) luôn truyền đủ preset, pha, chiều và tốc độ.
   const { preset, speedScale, direction } = options;
   let phase = options.initialPhase;
   let startedAt = null;
   let destroyed = false;
   flowWorkerBackends.set(id, (value) => { canvas.dataset.advertisingFlowBackend = value; });
-  const send = (type) => !destroyed && flowWorker.postMessage({ id, type });
+  const send = (type) => !destroyed && worker.postMessage({ id, type });
   const settlePhase = () => {
     if (startedAt === null) return;
     const now = performance.now();
@@ -766,6 +780,7 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
       stop();
       send("destroy");
       destroyed = true;
+      if (!options.shared) slot.live--;
       flowWorkerBackends.delete(id);
     },
     backend: "webgl",
