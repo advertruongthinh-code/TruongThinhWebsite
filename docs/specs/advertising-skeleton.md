@@ -237,9 +237,10 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
-- Điện thoại (R5): worker vẫn tạo một context riêng cho mỗi khung, mà Chrome chỉ giữ 4 context mỗi worker trên PC; Chrome
-  Android chưa đo, có thể cũng chỉ 4 khung chờ ảnh chạy Flow thật. Cần đo trên A04s rồi quyết định dùng context chung
-  cho điện thoại. Owner và máy phone.
+- Điện thoại (R5): đo 26/10 trên A04s, Chrome 156, vuốt nhanh masonry với ảnh bị giữ: 12 khung báo `running` nhưng chỉ 4
+  khung chuyển động thật, 8 khung đứng im ở ảnh tĩnh (worker tạo 78 context, mất 74, còn 4 sống). Điện thoại vẫn dùng
+  context riêng mỗi khung nên chịu đúng giới hạn 4 context mỗi worker. Chưa sửa: cần đưa khung điện thoại (renderer
+  `120x80`) qua context chung và đo gate fps R8 trên A04s. Owner và máy phone.
 
 ## Chú thích thuật ngữ
 
