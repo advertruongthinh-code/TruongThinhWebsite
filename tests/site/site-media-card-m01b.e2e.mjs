@@ -19,10 +19,19 @@ const outputDir = process.env.SITE_MEDIA_OUTPUT_DIR;
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
-function fixtureArtifact(videoCover = false) {
+// Card fixture bỏ media tạm (media tạm đặt video làm cover card 06), chỉ giữ ảnh legacy làm cover như artifact canonical.
+function legacyFixtureArtifact() {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   const card = artifact.cards.find((item) => item.id === fixtureId);
   assert(card, "fixture source card exists");
+  card.mediaItems = card.mediaItems.filter((item) => item.id === fixtureId);
+  card.coverMediaId = fixtureId;
+  return artifact;
+}
+
+function fixtureArtifact(videoCover = false) {
+  const artifact = legacyFixtureArtifact();
+  const card = artifact.cards.find((item) => item.id === fixtureId);
   card.mediaItems.push({
     id: videoId,
     kind: "video",
@@ -107,9 +116,8 @@ function assertStableWideFrame(before, after, label) {
 }
 
 function manyImageArtifact() {
-  const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
+  const artifact = legacyFixtureArtifact();
   const card = artifact.cards.find((item) => item.id === fixtureId);
-  assert(card, "many-media fixture source card exists");
   const cover = card.mediaItems[0];
   card.mediaItems = Array.from({ length: 11 }, (_, index) => index === 0 ? cover : {
     ...cover,
