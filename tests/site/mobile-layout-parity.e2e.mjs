@@ -168,10 +168,9 @@ async function checkBody(page,engine,label,options={}) {
   const inventory=await page.locator(bodySelector).evaluateAll(nodes=>nodes.map(e=>({text:e.textContent.trim(),node:e.id||e.className,width:e.getBoundingClientRect().width,srOnly:Boolean(e.closest('.sr-only')),explicitHidden:Boolean(e.closest('[hidden]')),
     inactivePhoto:Boolean(e.closest('.advertising-photo-view')&&!document.body.classList.contains('is-advertising-photo')),
     inactiveGrid:Boolean(e.closest('.detail-index-hero,.project-index,.detail-cta[data-advertising-grid-cta],.detail-process')&&document.body.classList.contains('is-advertising-photo')),
-    singlePageIndicator:e.matches('[data-advertising-photo-description-indicator]')&&e.hidden&&Number(e.closest('[data-advertising-photo-info]')?.querySelector('[data-advertising-photo-description-pager]')?.dataset.pageCount)===1,
     silentMediaAudio:e.matches('[data-advertising-photo-audio-toggle]')&&e.hidden,
     scrollCueState:e.matches('.scroll-cue.is-hidden')?'accepted cue hidden after scrollY200':null})));
-  const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.explicitHidden&&!e.inactivePhoto&&!e.inactiveGrid&&!e.singlePageIndicator&&!e.silentMediaAudio);
+  const missing=inventory.filter(e=>e.text&&!e.width&&!e.srOnly&&!e.explicitHidden&&!e.inactivePhoto&&!e.inactiveGrid&&!e.silentMediaAudio);
   await saveRecord({kind:'inventory',engine,label,inventory,faults:missing.map(e=>`active copy has zero width: ${e.node} ${e.text.slice(0,60)}`)});
   const positions=await page.locator(bodySelector).evaluateAll(nodes=> {
     const y=window.TruongThinhMotion?.getLogicalScroll?.()??scrollY;
@@ -243,24 +242,17 @@ async function checkControls(page,engine,label,selector,expected=selector.includ
     await recordState(page,engine,`${label}: glyph ${index}`,{selector,index,viewportOnly:true});
   }
 }
-async function checkDescriptionPages(page,engine,label) {
-  const pager=page.locator('[data-advertising-photo-description-pager]'),count=Number(await pager.getAttribute('data-page-count'));
-  assert.ok(count>=1&&count<500,'finite nonempty description pages');
-  await pager.focus();await pager.scrollIntoViewIfNeeded();
-  await page.keyboard.press('ArrowLeft');
-  while(Number(await pager.getAttribute('data-page-index'))>0)await page.keyboard.press('ArrowLeft');
-  const pages=[];
-  for(let index=0;index<count;index++) {
-    assert.equal(Number(await pager.getAttribute('data-page-index')),index,'description page keyboard reachability');
-    pages.push(await page.locator('[data-advertising-photo-description]').textContent());
-    await recordState(page,engine,`${label}: description ${index+1}/${count}`,{selector:'[data-advertising-photo-description],[data-advertising-photo-description-indicator]',viewportOnly:true});
-    if(index<count-1)await page.keyboard.press('ArrowRight');
-  }
-  const state=await page.evaluate(()=>({photo:window.TruongThinhAdvertising.getBrowseState().photo,locale:document.documentElement.lang,indicatorHidden:document.querySelector('[data-advertising-photo-description-indicator]').hidden}));
+async function checkDescriptionScroll(page,engine,label) {
+  const scroller=page.locator('[data-advertising-photo-description-scroll]');
+  await scroller.focus();await scroller.scrollIntoViewIfNeeded();
+  await page.keyboard.press('Home');
+  await recordState(page,engine,`${label}: description top`,{selector:'[data-advertising-photo-description]',viewportOnly:true});
+  await page.keyboard.press('End');await page.waitForTimeout(300);
+  await recordState(page,engine,`${label}: description end`,{selector:'[data-advertising-photo-description]',viewportOnly:true});
+  const state=await page.evaluate(()=>{const s=document.querySelector('[data-advertising-photo-description-scroll]');return {photo:window.TruongThinhAdvertising.getBrowseState().photo,locale:document.documentElement.lang,text:document.querySelector('[data-advertising-photo-description]').textContent,reached:s.scrollTop+s.clientHeight>=s.scrollHeight-1};});
   const card=ADVERTISING_CARDS.find(card=>card.id===state.photo),expected=state.locale==='en'?card.descriptionEn:card.descriptionVi;
-  assert.equal(pages.join(' ').replace(/\s+/g,' ').trim(),expected.replace(/\s+/g,' ').trim(),'all description words preserved across pages');
-  assert.equal(state.indicatorHidden,count===1,'indicator appears only for multiple pages');
-  await saveRecord({kind:'description-pages',engine,label,count,pages,source:expected,faults:pages.some(p=>!p.trim())?['empty description page']:[]});
+  assert.equal(state.text.replace(/\s+/g,' ').trim(),expected.replace(/\s+/g,' ').trim(),'whole description is in the scroller');
+  await saveRecord({kind:'description-scroll',engine,label,source:expected,faults:state.reached?[]:['description end unreachable by keyboard']});
 }
 async function checkCtaReflow(page,engine,label) {
   const heading=page.locator('[data-advertising-grid-cta] h2'),before=await page.evaluate(()=>({width:innerWidth,height:innerHeight,footer:document.querySelector('.site-footer').offsetHeight}));
@@ -443,12 +435,12 @@ async function runStates(browser,engine) {
       await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising?.getBrowseState().photo));
       await recordState(page,engine,`${locale}: photo`,{selector:bodySelector,viewportOnly:true});
       await checkBody(page,engine,`${locale}: active first photo body`);
-      await checkDescriptionPages(page,engine,`${locale}: first photo`);
+      await checkDescriptionScroll(page,engine,`${locale}: first photo`);
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await ready(page);
       await page.locator('[data-advertising-suggestion-tag]').first().click();await page.waitForFunction(()=>Boolean(window.TruongThinhAdvertising.getBrowseState().tag));
       await recordState(page,engine,`${locale}: tag`,{selector:bodySelector,viewportOnly:true});
       await checkBody(page,engine,`${locale}: active tag body`);
-      await checkDescriptionPages(page,engine,`${locale}: tag photo`);
+      await checkDescriptionScroll(page,engine,`${locale}: tag photo`);
       await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));await ready(page);
       const tagged=await page.evaluate(()=>window.TruongThinhAdvertising.getBrowseState());
       const tagPool=ADVERTISING_CARDS.filter(card=>card.id!==tagged.photo&&card.tagIds?.includes(tagged.tag));
@@ -466,7 +458,7 @@ async function runStates(browser,engine) {
       await recordState(page,engine,`${locale}: related photo`,{selector:bodySelector,viewportOnly:true});
       const detailURL=page.url();
       await checkBody(page,engine,`${locale}: active related photo body`);
-      await checkDescriptionPages(page,engine,`${locale}: related photo`);
+      await checkDescriptionScroll(page,engine,`${locale}: related photo`);
       await page.locator('[data-advertising-photo-expand]').focus();
       await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');
       await checkControls(page,engine,`${locale}: expand focused label`,'[data-advertising-photo-expand]',1);

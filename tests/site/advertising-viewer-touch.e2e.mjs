@@ -41,7 +41,6 @@ const readState = () => {
     status: document.querySelector("[data-advertising-photo-zoom-status]").textContent,
     plusDisabled: document.querySelector("[data-advertising-photo-zoom-in]").disabled,
     minusDisabled: document.querySelector("[data-advertising-photo-zoom-out]").disabled,
-    resetDisabled: document.querySelector("[data-advertising-photo-zoom-reset]").disabled,
     scroll: window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY,
     pageZoom: visualViewport.scale,
     animations: image.getAnimations().length,
@@ -103,12 +102,12 @@ async function openViewer(page, touch, { double = false } = {}) {
 // R8: trên màn cảm ứng nút nằm ngoài tầm nhìn nhưng assistive tech vẫn click được.
 const press = (page, hook) => page.evaluate((selector) => document.querySelector(selector).click(), `[${hook}]`);
 
-// Reset bị disable ở Fit, nên chỉ click khi có gì để reset.
+// Viewer không còn nút reset (owner 2026-10-25): bấm - tới khi về Fit, nút - disable ở Fit.
 async function resetZoom(page) {
-  await page.evaluate(() => {
-    const reset = document.querySelector("[data-advertising-photo-zoom-reset]");
-    if (!reset.disabled) reset.click();
-  });
+  while (await page.evaluate(() => {
+    const zoomOut = document.querySelector("[data-advertising-photo-zoom-out]");
+    return !zoomOut.disabled && (zoomOut.click(), true);
+  })) await settled(page);
   await settled(page);
 }
 
@@ -196,7 +195,7 @@ async function runPhone({ locale, width, height }) {
   const start = await state();
   const label = `${locale} ${start.vw}x${start.vh}`;
   // R7, R8: không có nút hiển thị trên primary hay trong viewer, và trang không zoom khi double tap.
-  const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out", "zoom-reset"]
+  const visibleButtons = await page.evaluate(() => ["expand", "close", "zoom-in", "zoom-out"]
     .filter((hook) => document.querySelector(`[data-advertising-photo-${hook}]`).getBoundingClientRect().width > 1));
   check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
   // R4, R7: tap thứ hai của double tap mở viewer bị nuốt, ảnh vẫn ở Fit.
@@ -239,7 +238,7 @@ async function runPhone({ locale, width, height }) {
   await press(page, "data-advertising-photo-zoom-out");
   await settled(page);
   const fitAgain = await state();
-  check(near(fitAgain.scale, 1) && fitAgain.minusDisabled && fitAgain.resetDisabled, `${label} R5: - did not return to Fit`);
+  check(near(fitAgain.scale, 1) && fitAgain.minusDisabled, `${label} R5: - did not return to Fit`);
 
   // R2: pinch xa quá Max giữ tối đa 15% vượt, rồi bật lại về Max.
   await resetZoom(page);
@@ -413,7 +412,7 @@ async function runMotion() {
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
       const after = await page.evaluate(readState);
       check(near(after.scale, after.cover) && after.animations === 0 && after.status === `${Math.round(after.scale * 100)}%`
-        && !after.minusDisabled && !after.resetDisabled && !after.plusDisabled,
+        && !after.minusDisabled && !after.plusDisabled,
         `${label}: tap animated or missed Cover ${JSON.stringify(after)}`);
       await page.waitForTimeout(350);
       await touch.tapAt({ x: Math.round(fit.cx), y: Math.round(fit.cy) });

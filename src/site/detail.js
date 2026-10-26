@@ -457,6 +457,7 @@
                 paused: !completed && !lineState.started,
                 overwrite: true,
                 onComplete: () => {
+                  self.lines.forEach((line) => window.TruongThinhMotion?.openTextMask?.(line));
                   lineState.completed = true;
                   lineState.totalTime = tween?.totalTime() ?? 1.9;
                   completedTextGroups.add(group);

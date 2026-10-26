@@ -67,7 +67,23 @@ test("splits a three-column desktop primary into a two-column hero and one-colum
   closeTo(geometry.imageZoneWidth, 612);
   closeTo(geometry.descriptionWidth, 288.5);
   closeTo(geometry.internalGap, 35);
-  closeTo(geometry.height, geometry.heightCap);
+  closeTo(geometry.imageZoneHeight, 612, 1e-9);
+  closeTo(geometry.height, 612);
+});
+
+test("split primary takes the media height up to the viewport cap (primary-video-player R6)", () => {
+  const viewport = { layoutViewportWidth: 1440, viewportHeight: 900, columns: 4, headerHeight: 102.515625 };
+  const landscape = computeAdvertisingPhotoGeometry({ ...viewport, imageWidth: 960, imageHeight: 640 });
+  assert.equal(landscape.mode, "split");
+  closeTo(landscape.imageZoneWidth, 668, 1);
+  closeTo(landscape.imageZoneHeight, landscape.imageZoneWidth / 1.5);
+  closeTo(landscape.height, landscape.imageZoneHeight);
+  closeTo(landscape.descriptionHeight, landscape.height);
+  assert.equal(landscape.hasContainOverflow, false, "landscape media has no zoom blur band above or below");
+  const portrait = computeAdvertisingPhotoGeometry({ ...viewport, imageWidth: 640, imageHeight: 960 });
+  closeTo(portrait.imageZoneHeight, portrait.heightCap);
+  closeTo(portrait.height, portrait.heightCap);
+  assert.equal(portrait.hasContainOverflow, true, "portrait media keeps zoom blur at both sides");
 });
 
 test("full-span landscape primary ends after its width-fitted image and natural description", () => {
@@ -174,7 +190,7 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     );
     assert.equal(geometry.mode, geometry.span === geometry.columns && sample.width <= sample.height ? "pinterest" : "split");
     if (geometry.mode === "split") {
-      closeTo(geometry.height, geometry.heightCap);
+      closeTo(geometry.height, Math.min(geometry.imageZoneWidth / 3, geometry.heightCap));
       assert.ok(geometry.top + geometry.height + geometry.gap + peek + 7 <= sample.height);
     } else {
       assert.ok(geometry.top + geometry.height + 7 <= sample.height);
@@ -198,11 +214,11 @@ test("uses one responsive token for detail outer edges and the navbar-to-primary
   }
 });
 
-test("fills split primary to its cap and keeps a wide full-span image at natural height", () => {
+test("fits split primary to its media and keeps a wide full-span image at natural height", () => {
   const split = computeAdvertisingPhotoGeometry(base);
   const pinterest = computeAdvertisingPhotoGeometry({ ...base, layoutViewportWidth: 390, columns: 1, imageWidth: 4000 });
 
-  closeTo(split.height, split.heightCap);
+  closeTo(split.height, split.imageZoneWidth);
   assert.equal(pinterest.mode, "pinterest");
   assert(pinterest.height < base.viewportHeight);
   closeTo(pinterest.imageWidth / pinterest.imageHeight, 4);
@@ -211,7 +227,7 @@ test("fills split primary to its cap and keeps a wide full-span image at natural
   assert.equal(pinterest.hasContainOverflow, false);
 });
 
-test("keeps split primary at its viewport cap when measured text changes", () => {
+test("keeps split primary at its media height when measured text changes", () => {
   const first = computeAdvertisingPhotoGeometry(base);
   const measured = computeAdvertisingPhotoGeometry({ ...base, descriptionHeight: 500 });
 
@@ -295,7 +311,9 @@ test("preserves output fields and contains every catalog photo across measured v
       assert.equal(first.hasContainOverflow,
         first.imageWidth < first.imageZoneWidth - 0.5 || first.imageHeight < first.imageZoneHeight - 0.5);
       if (first.mode === "split") {
-        closeTo(first.height, first.heightCap);
+        closeTo(first.imageZoneHeight, Math.min(first.imageZoneWidth / ratio, first.heightCap));
+        closeTo(first.height, first.imageZoneHeight);
+        closeTo(first.descriptionHeight, first.height);
         assert.ok(first.top + first.height + first.gap + (fullSpan ? 0 : first.belowPeek) <= viewport.viewportHeight + 1e-9);
       } else {
         assert.ok(first.top + first.height <= viewport.viewportHeight);
@@ -330,6 +348,7 @@ test("L04R keeps existing geometry when readable floors fit and grows only insuf
   assert.equal(split.mode, "split");
   assert.equal(split.descriptionHeight, 420);
   assert.equal(split.height, 420);
+  assert.ok(split.imageZoneHeight < split.height, "the image zone keeps its media height; taller info runs below it");
   assert.ok(split.top + split.height > 390, "insufficient viewport becomes scrollable");
   for (const field of ["minimumDescriptionHeight", "minimumImageZoneHeight"]) {
     for (const value of [-1, NaN, Infinity]) assert.throws(() => computeAdvertisingPhotoGeometry({ ...base, [field]: value }), TypeError);

@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-25T18:40:38Z",
+    "at": "2026-10-26T14:04:25Z",
     "via": "Claude Code (cloud)",
-    "note": "Kính reveal ba bậc (#558); nâng ảnh lên bản nét không hiện lại vệt sáng, skeleton (#561)"
+    "note": "Sau merge #434 và #567: Card nhiều media (player video một hàng, MediaCard chấm và bộ đếm, lớp tối hover); bóng chữ chỉ hiện dần sau khi motion reveal xong, dòng đang ẩn không bóng"
   }
 }

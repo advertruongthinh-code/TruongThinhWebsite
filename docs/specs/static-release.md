@@ -22,7 +22,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Phát hành tĩnh
@@ -86,13 +86,13 @@ And .site-output/advertising-products/catalog-artifact.mjs tồn tại
 
 ### R4. Font và thư viện tự host
 
-Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry
-4.2.2, lazysizes 5.3.2, GSAP, SplitText 3.15.0, Locomotive Scroll 4.1.4, Barba
-2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file) và Plus Jakarta Sans 5.3.0
-(latin, latin-ext, vietnamese, normal và italic, kèm LICENSE). `@font-face` đầu
-`style.css` dùng `font-display: swap`; vietnamese khai báo sau latin-ext để chữ Việt (vùng `unicode-range` chồng nhau)
-không kéo thêm file latin-ext (22 KB brotli); năm HTML trang preload hai file normal
-latin, vietnamese. HTML không trỏ Google Fonts, jsDelivr.
+Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry 4.2.2, lazysizes 5.3.2, GSAP, SplitText
+3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file), hls.js 1.7.3 (bản light,
+trang Advertising nạp cùng lúc tải artifact khi trình duyệt có Media Source,
+[video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,
+normal và italic, kèm LICENSE). `@font-face` đầu `style.css` dùng `font-display: swap`;
+vietnamese khai báo sau latin-ext để chữ Việt (vùng `unicode-range` chồng nhau) không kéo thêm file latin-ext (22 KB
+brotli); năm HTML trang preload hai file normal latin, vietnamese. HTML không trỏ Google Fonts, jsDelivr.
 
 ```gherkin
 Given build từ src/site/
@@ -187,7 +187,7 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 Workflow `CI` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`) chạy các bộ test theo phần website
 song song rồi gom thành check `static-release`; cách chọn bộ, danh sách bộ và lệnh `pnpm qa:suite` thuộc
 [bộ test CI](ci-test-suites.md).
-CI, Docs, Automerge và Deploy demo chạy trên runner `ubuntu-latest` của GitHub; repo public nên không tốn phút Actions và không phụ thuộc PC owner. Mỗi job runner trắng: CI cài Chromium cùng system deps bằng `playwright install --with-deps`, cache pnpm qua `setup-node`. Mọi action ghim theo commit SHA (comment ghi tag), dependabot đề xuất cập nhật. Workflow không dùng `pull_request_target`, Automerge bỏ qua `workflow_run` từ fork, Deploy demo chỉ chạy từ `main`, nên PR từ fork không chạm secret Cloudflare; Settings > Actions > General đặt "Require approval for all external contributors". `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge; gặp 405 "Required status check ... is expected" (check vừa re-run xanh, ruleset chưa ghi nhận) thì thử lại backoff 10s, 20s, 40s; merge xong tự xóa branch của PR (merge bằng `GITHUB_TOKEN` không kích hoạt xóa tự động của repo). Ruleset của repo bắt buộc `static-release` và `qa-docs` xanh trước khi merge vào `main` theo tên check (admin bypass được khi khẩn cấp; đổi tên hoặc thêm check bắt buộc thì sửa ruleset cùng lúc, nếu không PR chờ mãi check cũ); không bật auto-merge gốc của GitHub trên PR, vì Automerge vẫn merge khi thread đã dừng. PR draft chỉ chạy bộ `fast` và check tên `static-release-draft` ([bộ test CI R4](ci-test-suites.md#r4-chạy-song-song-và-độc-lập)). Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để job `deploy-demo` của `ci.yml` (gọi `deploy-demo.yml` bằng `workflow_call`, không dùng `workflow_run` vì lượt CI dispatch bằng `GITHUB_TOKEN` không kích hoạt nó) chạy tiếp.
+CI, Docs, Automerge và Deploy demo chạy trên runner `ubuntu-latest` của GitHub; repo public nên không tốn phút Actions và không phụ thuộc PC owner. Mỗi job runner trắng: CI cài Chromium cùng system deps bằng `playwright install --with-deps`, cache pnpm qua `setup-node`. Mọi action ghim theo commit SHA (comment ghi tag), dependabot đề xuất cập nhật. Workflow không dùng `pull_request_target`, Automerge bỏ qua `workflow_run` từ fork, Deploy demo chỉ chạy từ `main`, nên PR từ fork không chạm secret Cloudflare; Settings > Actions > General đặt "Require approval for all external contributors". `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge; gặp 405 "Required status check ... is expected" (check vừa re-run xanh, ruleset chưa ghi nhận) thì thử lại backoff 10s, 20s, 40s; merge xong tự xóa branch của PR (merge bằng `GITHUB_TOKEN` không kích hoạt xóa tự động của repo). Ruleset của repo bắt buộc `static-release` và `qa-docs` xanh trước khi merge vào `main` theo tên check (admin bypass được khi khẩn cấp; đổi tên hoặc thêm check bắt buộc thì sửa ruleset cùng lúc, nếu không PR chờ mãi check cũ); không bật auto-merge gốc của GitHub trên PR, vì Automerge vẫn merge khi thread đã dừng. PR và push chỉ chạy bộ `fast`, đủ bộ chạy mỗi đêm; PR draft có check tên `static-release-draft` ([bộ test CI R4](ci-test-suites.md#r4-chạy-song-song-và-độc-lập)). Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để job `deploy-demo` của `ci.yml` (chờ bộ `fast`; gọi `deploy-demo.yml` bằng `workflow_call`, không dùng `workflow_run` vì lượt CI dispatch bằng `GITHUB_TOKEN` không kích hoạt nó) chạy tiếp.
 ```gherkin
 Given pull request đổi src/site/
 When workflow CI chạy
@@ -202,13 +202,13 @@ And không bước nào gọi Wrangler hoặc deploy
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
 `pnpm deploy:demo` build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
-chạy `pnpm deploy:demo` từ đúng commit khi CI xanh trên `main`, dùng secret `CLOUDFLARE_API_TOKEN`,
+chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
 `CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và
 Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
 Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>.
 
 ```gherkin
-Given một push vào main và job CI static-release xanh
+Given một push vào main và bộ fast của CI xanh
 When workflow Deploy demo chạy
 Then .site-output/ của đúng commit đó được build lại và upload lên Worker truong-thinh-demo
 And CI đỏ, PR hoặc push từ fork không deploy

@@ -60,7 +60,9 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
   const selector = `[data-advertising-${surface === "related" ? "related-card" : "card"}="${cardId}"]`;
   if (surface === "related") {
     await page.locator("[data-advertising-photo-related-grid]").scrollIntoViewIfNeeded();
-    for (let attempt = 0; attempt < 32 && await page.locator(selector).count() === 0; attempt += 1) {
+    // Cuộn mượt của site chỉ đi khoảng 60px mỗi lần và thứ tự related xáo theo lượt xem: card có lúc nằm ở vị trí 36,
+    // cần 32 lần (đo 2026-10-26), nên ngân sách 32 lần đỏ chập chờn. 120 lần phủ hết trang (khoảng 5.400px).
+    for (let attempt = 0; attempt < 120 && await page.locator(selector).count() === 0; attempt += 1) {
       await page.evaluate(() => scrollBy(0, innerHeight * 0.7));
       await page.waitForTimeout(80);
     }
@@ -122,14 +124,14 @@ async function geometry(card) {
     const peers = [...document.querySelectorAll(node.dataset.advertisingRelatedCard
       ? "[data-advertising-related-card]" : "[data-advertising-card]")]
       .filter((item) => item !== node && !item.hidden).map(rect);
-    const controls = [...node.querySelectorAll("[data-advertising-media-select], [data-advertising-media-prev], [data-advertising-media-next]")]
+    const controls = [...node.querySelectorAll("[data-advertising-media-select]")]
       .map((button) => {
         const box = rect(button);
         const x = box.left + box.width / 2;
         const y = box.top + box.height / 2;
         const hit = document.elementFromPoint(x, y);
         const blocker = hit?.closest("[data-advertising-related-card]");
-        return { id: button.dataset.advertisingMediaSelect ?? (button.dataset.advertisingMediaPrev === "" ? "prev" : "next"),
+        return { id: button.dataset.advertisingMediaSelect,
           box, hitSelf: hit === button, hitTag: hit?.tagName ?? null,
           hitStack: hit === button ? null : document.elementsFromPoint(x, y).slice(0, 5)
             .map((item) => ({ tag: item.tagName, className: String(item.className || ""),
@@ -154,18 +156,19 @@ async function geometry(card) {
     };
     const dot = node.querySelector(".advertising-card-media__dot");
     const dotStyle = dot && getComputedStyle(dot, "::before");
+    const pill = node.querySelector(".advertising-card-media__pill");
+    const pillStyle = pill && getComputedStyle(pill);
     return { card: rect(node), media: mediaRect, indicator: indicator ? rect(indicator) : null, peers, controls,
       dotVisualSize: dotStyle ? { width: parseFloat(dotStyle.width) + 2 * parseFloat(dotStyle.borderLeftWidth),
         height: parseFloat(dotStyle.height) + 2 * parseFloat(dotStyle.borderTopWidth) } : null,
       customMediaHeight: getComputedStyle(node).getPropertyValue("--advertising-media-height"),
-      playback: playbackRect, playbackHitSelf: playbackRect && document.elementFromPoint(
-        playbackRect.left + playbackRect.width / 2, playbackRect.top + playbackRect.height / 2) === playback,
-      playbackEdgeHitSelf: playbackRect && edgeHitSelf(playback),
-      controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select], [data-advertising-media-prev], [data-advertising-media-next]")]
+      playback: playbackRect,
+      controlEdgeHitSelf: [...node.querySelectorAll("[data-advertising-media-select]")]
         .map((button) => edgeHitSelf(button)),
       duration: duration && !duration.hidden ? rect(duration) : null,
       loading: loading && !loading.hidden ? rect(loading) : null,
-      count: count ? rect(count) : null };
+      count: count ? rect(count) : null,
+      pill: pill ? { ...rect(pill), background: pillStyle.backgroundColor, radius: pillStyle.borderRadius } : null };
   });
 }
 
@@ -197,13 +200,14 @@ async function runCard(locale, count, surface, width) {
       && Math.abs(initial.indicator.bottom - initial.card.bottom) <= 1
       && Math.abs(initial.indicator.height - 44) <= 1,
     `${label} indicator must occupy the dedicated footer: ${JSON.stringify(initial)}`);
-    assert.equal(initial.controls.length, count >= 7 ? 2 : count);
-    if (count >= 7) {
-      assert(initial.controls.every((control) => control.box.width >= 44 && control.box.height >= 44),
-        `${label} numeric targets must be 44x44: ${JSON.stringify(initial.controls)}`);
+    // Từ 6 media dải chỉ có bộ đếm (owner 2026-10-18); đổi media bằng vuốt, không có nút trong dải.
+    assert.equal(initial.controls.length, count >= 6 ? 0 : count);
+    // Owner 2026-10-26: chấm hoặc bộ đếm nằm trong pill than 0.9, bo 8px như nhãn thời lượng, giữa dải.
+    assert(initial.pill?.background === "rgba(32, 33, 32, 0.9)" && initial.pill.radius === "8px"
+      && inside(initial.pill, initial.indicator), `${label} indicator sits in a pill: ${JSON.stringify(initial.pill)}`);
+    if (count >= 6) {
       assert(inside(initial.count, initial.indicator), `${label} numeric count must fit the footer`);
-      assert(await card.locator("[data-advertising-media-prev]").isDisabled());
-      assert(!(await card.locator("[data-advertising-media-next]").isDisabled()));
+      assert(inside(initial.count, initial.pill), `${label} numeric count sits inside the pill`);
     } else {
       assert(initial.controls.every((control) => Math.abs(control.box.width - 20) <= 0.5
         && Math.abs(control.box.height - 44) <= 0.5),
@@ -224,11 +228,10 @@ async function runCard(locale, count, surface, width) {
         `${label} footer control overlaps another card: ${JSON.stringify(initial)}`);
     }
     assert(initial.controlEdgeHitSelf.every(Boolean), `${label} control edge must receive pointer: ${JSON.stringify(initial)}`);
-    assert(inside(initial.playback, initial.media) && initial.playbackHitSelf
-      && initial.playbackEdgeHitSelf && inside(initial.duration, initial.media),
-      `${label} video overlays remain inside media and playback receives pointer: ${JSON.stringify(initial)}`);
-    assert(overlap(initial.indicator, initial.playback) <= 0.5
-      && overlap(initial.indicator, initial.duration) <= 0.5,
+    // Card video kiểu Pinterest: không có nút phát, chỉ nhãn thời lượng trên canvas (R4).
+    assert(initial.playback === null && inside(initial.duration, initial.media),
+      `${label} video has no playback button and duration stays inside media: ${JSON.stringify(initial)}`);
+    assert(overlap(initial.indicator, initial.duration) <= 0.5,
     `${label} footer must not cover video overlays: ${JSON.stringify(initial)}`);
     assert(initial.peers.every((peer) => overlap(initial.indicator, peer) <= 0.5),
       `${label} footer must not overlap another card: ${JSON.stringify(initial)}`);
@@ -236,22 +239,18 @@ async function runCard(locale, count, surface, width) {
     if (outputDir && locale === "vi" && count === 6) {
       await page.screenshot({ path: path.join(outputDir, `r6-${label}.png`) });
     }
-    await card.locator("[data-advertising-media-playback]").click({ timeout: 1500 });
-    assert.equal(page.url(), url, "video playback control does not open detail");
     assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-video`);
-    const control = count >= 7 ? card.locator("[data-advertising-media-next]")
-      : card.locator(`[data-advertising-media-select="${cardId}-r6-image-${count}"]`);
-    const controlBox = initial.controls.find((item) => item.id === (count >= 7 ? "next" : `${cardId}-r6-image-${count}`)).box;
+    if (count >= 6) return;
+    const control = card.locator(`[data-advertising-media-select="${cardId}-r6-image-${count}"]`);
+    const controlBox = initial.controls.find((item) => item.id === `${cardId}-r6-image-${count}`).box;
     let clickError = null;
     try { await page.mouse.click(controlBox.right - 3, controlBox.top + controlBox.height / 2); }
     catch (error) { clickError = error.message.split("\n").slice(0, 8).join(" "); }
     if (outputDir) await writeFile(path.join(outputDir, `r6-${label}-pointer.json`),
       JSON.stringify({ initial, clickError }, null, 2));
     assert.equal(clickError, null, `${label} real pointer click must reach its control: ${clickError}`);
-    const expectedId = `${cardId}-r6-image-${count >= 7 ? 2 : count}`;
-    assert.equal(await card.getAttribute("data-advertising-active-media-id"), expectedId);
-    if (count < 7) assert.equal(await control.getAttribute("aria-current"), "true");
-    else assert.equal(await card.locator("[data-advertising-media-count]").textContent(), `2/${count}`);
+    assert.equal(await card.getAttribute("data-advertising-active-media-id"), `${cardId}-r6-image-${count}`);
+    assert.equal(await control.getAttribute("aria-current"), "true");
     assert.equal(page.url(), url, "media selection does not open detail or change URL");
     const after = await geometry(card);
     stableRect(initial.media, after.media, `${label} canvas`);
@@ -274,8 +273,8 @@ for (const locale of ["vi", "en"]) {
   }
 }
 
-test("R6-R3 public legacy catalog keeps 270 image-only cards", () => {
-  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 270);
+test("R6-R3 public legacy catalog keeps 279 image-only cards", () => {
+  assert.equal(ADVERTISING_CATALOG_ARTIFACT.cards.length, 279);
   assert(ADVERTISING_CATALOG_ARTIFACT.cards.every((card) => card.mediaItems?.length === 1
     && card.mediaItems[0].kind === "image"));
 });
@@ -293,9 +292,8 @@ async function runSingleton(locale, surface, width, videoCover) {
     assert.equal(state.controls.length, 0);
     assert.equal(await card.getAttribute("data-advertising-active-media-id"),
       `${cardId}-r6-${videoCover ? "video" : "image-1"}`);
-    if (videoCover) assert(inside(state.playback, state.media) && inside(state.duration, state.media),
-      `${label} video controls stay on the canvas`);
-    else assert.equal(state.playback, null);
+    if (videoCover) assert(inside(state.duration, state.media), `${label} video duration stays on the canvas`);
+    assert.equal(state.playback, null);
   } finally { await browser.close(); }
 }
 
