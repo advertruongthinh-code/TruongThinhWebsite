@@ -63,7 +63,7 @@
   --orange: #a34119;
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
-  --media-label-overlay: rgba(0, 0, 0, 0.4);
+  --media-label-overlay: rgba(0, 0, 0, 0.5);
   --media-control-hover: #ddd;
   --media-control-active: #c6c6c6;
   --gutter: 35px;
@@ -1066,12 +1066,17 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   }
 }
 
+/* Owner 2026-10-26, mọi hero (trang chủ, Residential, Commercial, Giới thiệu): phủ đều 0,2; độ tối tổng ở mép trên 0,7, nhạt dần
+   trong 36% chiều cao hero tới đúng 0,2 của lớp phủ đều, ở mép dưới 0,5; không lớp mép trái. Lớp mép chồng lên lớp phủ đều nên alpha
+   lớp mép = (tổng - 0,2) / 0,8: 0,625 và 0,375. Mép trên dài và mịn: stop theo đường cosine, đầu và cuối dốc 0, không mép gắt. */
 .hero-shade {
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.46), transparent 32%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.52), transparent 42%),
-    rgba(0, 0, 0, 0.14);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.625), rgba(0, 0, 0, 0.601) 4.5%, rgba(0, 0, 0, 0.533) 9%,
+      rgba(0, 0, 0, 0.432) 13.5%, rgba(0, 0, 0, 0.312) 18%, rgba(0, 0, 0, 0.193) 22.5%, rgba(0, 0, 0, 0.092) 27%,
+      rgba(0, 0, 0, 0.024) 31.5%, transparent 36%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.375), transparent 42%),
+    rgba(0, 0, 0, 0.2);
 }
 
 .hero-content {
@@ -1084,9 +1089,8 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   text-align: center;
 }
 
-/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero trang Sản phẩm quảng cáo
-   (chữ ink trên nền giấy) và CTA lưới của trang đó không áp. */
-.hero:not(.detail-index-hero),
+/* Chữ trắng trên ảnh: bóng hai lớp D cạnh lớp tối sẵn có (hero-typography R6). Hero không bóng (owner 2026-10-26); CTA lưới
+   trang Sản phẩm quảng cáo (chữ ink trên nền giấy) không áp. */
 .portal-copy,
 .legacy-copy,
 .detail-cta:not([data-advertising-grid-cta]) {
@@ -1232,7 +1236,8 @@ em {
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 50%;
-  background: rgba(20, 21, 20, 0.42);
+  /* Owner 2026-10-26: nền 0,4, hover 0,7 (trước 0,42 và 0,72). */
+  background: rgba(20, 21, 20, 0.4);
   color: white;
   cursor: pointer;
   transition:
@@ -1257,7 +1262,7 @@ em {
 
 .motion-toggle:hover {
   transform: scale(1.06);
-  background: rgba(20, 21, 20, 0.72);
+  background: rgba(20, 21, 20, 0.7);
 }
 
 .motion-toggle:focus-visible {
@@ -2042,7 +2047,8 @@ em {
 }
 
 .legacy-shade {
-  background: rgba(0, 0, 0, 0.2);
+  /* Owner 2026-10-26: 0,5 (trước 0,2). */
+  background: rgba(0, 0, 0, 0.5);
 }
 
 /* Không dùng `+ *`: rule kề với subject universal làm mỗi lần chèn card Advertising giữa grid restyle cả trang (decision phone-frame-budget). */
@@ -2268,20 +2274,20 @@ em {
 }
 
 /* Ảnh lỗi tải (media-delivery R8): script head thêm .is-media-error lên khung. Khung giữ tỷ lệ, nền xám phẳng, biểu tượng 24px và một dòng
-   chữ nằm dưới nội dung khung (z-index -1 trong isolation) nên chữ hero, portal, CTA vẫn ở trên. Advertising có luồng lỗi riêng nên bị loại: muốn dùng lại cùng dấu thì bỏ khung của nó khỏi :not() ở mọi selector bên dưới. */
-.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) {
+   chữ nằm dưới nội dung khung (z-index -1 trong isolation) nên chữ hero, portal, CTA vẫn ở trên. Card và primary Advertising dùng chung dấu này, runtime tự quyết trạng thái lỗi theo media đang chọn (media-card R5). */
+.media-gate .is-media-error:not(picture, .client-logo-marquee *) {
   --media-error-surface: #e4e4e2;
   --media-error-ink: #5c5c5a;
   --media-error-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c5a' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V11'/%3E%3Cpath d='m4 16 4.5-4.5 3 3'/%3E%3Cpath d='m14 14 1.5-1.5 4.5 4.5'/%3E%3Cpath d='M16 4l-2 3 3 2-2 3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.25'/%3E%3C/svg%3E");
   isolation: isolate;
 }
 
-.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) > img,
-.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *) > picture > img {
+.media-gate .is-media-error:not(picture, .client-logo-marquee *) > img,
+.media-gate .is-media-error:not(picture, .client-logo-marquee *) > picture > img {
   visibility: hidden;
 }
 
-.media-gate .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *)::before {
+.media-gate .is-media-error:not(picture, .client-logo-marquee *)::before {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -2299,7 +2305,7 @@ em {
   pointer-events: none;
 }
 
-.media-gate:lang(en) .is-media-error:not(picture, :is([data-project-grid], [data-advertising-photo-view], .client-logo-marquee) *)::before {
+.media-gate:lang(en) .is-media-error:not(picture, .client-logo-marquee *)::before {
   content: "Couldn't load";
 }
 

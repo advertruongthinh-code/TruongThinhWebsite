@@ -76,7 +76,7 @@ assert.match(runtime, /let cleaned = false;[\s\S]*if \(cleaned\) return;[\s\S]*s
 assert.match(viewerSource, /dialog\.showModal\(\)/, "expanded photo uses the native modal focus boundary");
 assert.match(viewerSource, /const stops = \(\) => \[1, cover, 2 \* cover\]/, "buttons and wheel stop at fit, cover, and 2x-cover");
 assert.match(viewerSource, /Math\.max\(viewport\.clientWidth \/ visualWidth, viewport\.clientHeight \/ visualHeight\)/, "cover uses the limiting viewport axis of the turned image instead of a fixed percentage");
-assert.match(viewerSource, /resetButton\?\.addEventListener\("click", \(\) => \{[\s\S]*?moveTo\(1, undefined, turnTo\(0\)\)/, "reset returns directly to fit at 0 degrees");
+assert.doesNotMatch(viewerSource, /resetButton/, "the viewer has no reset button; minus, middle click and tap return to fit (owner 2026-10-25)");
 assert.match(viewerSource, /viewport\.addEventListener\("wheel"[\s\S]*?setScale\(nextStop\(event\.deltaY < 0 \? 1 : -1\), event\)/, "wheel zoom reuses the shared scale stops and cursor anchor");
 assert.match(viewerSource, /event\.button === 1[\s\S]*?setScale\(1\)/, "middle click returns the shared zoom state to fit");
 assert.match(viewerSource, /pointerdown[\s\S]*setPointerCapture[\s\S]*pointermove[\s\S]*pointercancel/, "viewer supports bounded pointer and touch pan cleanup");
@@ -84,7 +84,7 @@ assert.match(viewerSource, /event\.key === "ArrowLeft"[\s\S]*renderTransform\(\)
 assert.match(viewerSource, /event\.key === "Tab"[\s\S]*visibleControls/, "viewer traps focus across enabled visible controls");
 assert.match(viewerSource, /event\.preventDefault\(\);[\s\S]*event\.stopPropagation\(\);[\s\S]*close\(\);/, "dialog Escape closes before photo history sees it");
 assert.match(motionSource, /lockLogicalScroll[\s\S]*unlockLogicalScroll/, "viewer scroll lock uses the logical-scroll owner");
-assert.match(runtime, /heroImage: photoImage[\s\S]*resetButton: photoZoomReset/, "viewer receives the rendered hero and reset control");
+assert.match(runtime, /heroImage: photoImage/, "viewer receives the rendered hero");
 assert.match(runtime, /advertisingPhotoLayout = primary\.mode/, "photo mode comes from viewport-aware golden geometry");
 assert.match(detailSource, /mountAdvertisingCatalog\(container,[\s\S]*?softNavigation,/, "detail forwards the Barba remount context");
 assert.match(motionSource, /softNavigation:\s*true/, "Barba marks destination remounts");

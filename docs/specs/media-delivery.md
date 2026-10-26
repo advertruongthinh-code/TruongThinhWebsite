@@ -228,8 +228,8 @@ mảnh 24px ở giữa, một dòng 12px "Không tải được" / "Couldn't loa
 R6 gọi `settle(image, true)` khi `error` tới hoặc ảnh Barba chèn vào đã lỗi sẵn: khung nhận `.is-media-settled` và
 `.is-media-error`; `load` tới sau đó thì gỡ. CSS vẽ dấu bằng `::before` của khung (`z-index: -1` trong `isolation: isolate`),
 ảnh lỗi `visibility: hidden`. Hero, CTA, portal mang chữ trắng nên dùng nền tối `media-loading-surface`, dấu `#b8b8b6`, lớp
-phủ vẫn ẩn; dấu có thể chồng chữ vì nằm giữa khung. Loại trừ `[data-project-grid]`, `[data-advertising-photo-view]` (luồng lỗi riêng,
-[media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) và `.client-logo-marquee`; thread Advertising dùng lại cùng class và biến.
+phủ vẫn ẩn; dấu có thể chồng chữ vì nằm giữa khung. Loại trừ `.client-logo-marquee`. Card, primary Advertising: runtime
+tự quyết `.is-media-error` theo media đang chọn ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)).
 
 ## Giao diện và dữ liệu
 
