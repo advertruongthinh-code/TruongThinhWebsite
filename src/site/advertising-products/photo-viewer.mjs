@@ -32,6 +32,7 @@ export function createAdvertisingPhotoViewer({
   video,
   player,
   videoHost,
+  onOpen,
 } = {}) {
   if (!dialog || !expandButton || !expandedImage || !viewport || !closeButton || !zoomInButton || !zoomOutButton || !zoomStatus) {
     return { cleanup() {}, close() {}, popState: () => false, setRecord() {}, slideTo() {} };
@@ -404,6 +405,7 @@ export function createAdvertisingPhotoViewer({
     angle = 0;
     panX = panY = 0;
     dialog.showModal();
+    onOpen?.();
     history.pushState(history.state, "");
     ownEntry = true;
     updateVisibleControls();

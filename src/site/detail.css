@@ -2118,8 +2118,10 @@ body.is-advertising-browse .site-footer {
   fill: currentColor;
 }
 
-/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg và thanh tua. */
-.advertising-video-player :is(.advertising-video-player__button svg, .advertising-video-player__progress) {
+/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg; thanh tua dùng box-shadow ở đường tua và
+   núm (bên dưới). drop-shadow là filter, mỗi lần thanh tua nhích Chrome tính lại cả lớp bóng mờ: A04s 2026-10-26 viewer
+   video rơi 8 frame mỗi 8 s, bỏ bóng thanh và icon thì 0. */
+.advertising-video-player__button svg {
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
 }
 
@@ -2254,6 +2256,22 @@ body.is-advertising-browse .site-footer {
   background: #fbfbf9;
 }
 
+.advertising-video-player__progress::-webkit-slider-runnable-track {
+  box-shadow: var(--text-shadow-d);
+}
+
+.advertising-video-player__progress::-moz-range-track {
+  box-shadow: var(--text-shadow-d);
+}
+
+.advertising-video-player__progress::-webkit-slider-thumb {
+  box-shadow: var(--text-shadow-d);
+}
+
+.advertising-video-player__progress::-moz-range-thumb {
+  box-shadow: var(--text-shadow-d);
+}
+
 /* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi
    thanh tua ngang để không thao tác nhầm. Viên nền đen 0.5 (owner 2026-10-26) nằm sát nút nên di chuột lên không mất hover. Chỉ focus-visible
    giữ cột mở: focus do chuột không giữ, nên kéo bằng chuột xong rời đi thì cột thu lại (owner 2026-10-24). */
@@ -2363,6 +2381,16 @@ body.is-advertising-browse .site-footer {
 
 [data-advertising-photo-glass="false"] .advertising-photo-view__hero :is([data-advertising-photo-background], .advertising-photo-view__live-background) {
   display: none;
+}
+
+/* Viewer mở (advertising-detail R9, owner 2026-10-26): khung primary dưới nền viewer chỉ còn zoom blur phủ kín, kể cả media
+   vừa khít khung, không còn media sắc nét; video đã sang viewer, canvas nền sống giữ frame lúc mở. */
+[data-advertising-photo-expanded] .advertising-photo-view__hero-frame > [data-advertising-photo-image] {
+  visibility: hidden;
+}
+
+[data-advertising-photo-expanded] .advertising-photo-view__hero-frame > :is([data-advertising-photo-background], .advertising-photo-view__live-background:not([hidden]), .glass-surface) {
+  display: block;
 }
 
 /* Kính của primary blur photo tĩnh này bằng filter, không phải backdrop-filter: Chrome snapshot một backdrop theo từng raster
