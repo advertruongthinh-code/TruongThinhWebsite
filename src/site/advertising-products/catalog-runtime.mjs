@@ -4070,6 +4070,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       await ensureDetail();
       if (controller.signal.aborted) return;
     }
+    // Tín hiệu cho test: "true" khi mọi pha dựng related của lượt mở này đã xong, kể cả site:layout sau motion related
+    // (ngắt giữa chừng thì lượt sau tự đặt lại).
+    if (photoView) photoView.dataset.advertisingDetailReady = "false";
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;
@@ -4102,9 +4105,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         renderRelatedWindow({ animate: true, origins });
         // Báo layout sau motion 400ms của related: gộp vào frame Masonry và LazySizes của task mount thì các lượt đo
         // của motion.js ép style còn bẩn, frame 50-120ms trên A04s (decision phone-frame-budget).
-        setTimeout(() => window.dispatchEvent(new CustomEvent("site:layout")), 400);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("site:layout"));
+          if (generation === detailRenderGeneration && photoView) photoView.dataset.advertisingDetailReady = "true";
+        }, 400);
       }
     }
+    if (!deferRelated && photoView) photoView.dataset.advertisingDetailReady = "true";
   };
   const restoreGridEntry = (browse, reason) => {
     const previousPhotoId = activePhotoId;
@@ -4125,6 +4132,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (photoView) delete photoView.dataset.advertisingPhotoId;
     if (photoView) delete photoView.dataset.advertisingPhotoLayout;
     if (photoView) delete photoView.dataset.advertisingPhotoGlass;
+    if (photoView) delete photoView.dataset.advertisingDetailReady;
     if (photoImage) delete photoImage.dataset.advertisingPhotoId;
     photoView && (photoView.hidden = true);
     if (gridSection) {
