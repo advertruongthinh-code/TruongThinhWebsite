@@ -44,6 +44,7 @@ assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\
   "no-JS fallback markup never renders as text while JavaScript loads the catalog");
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");
+assert.match(prepare, /runtimeSource\.matchAll\(\/from[\s\S]*rel="modulepreload"/, "Advertising pages preload every static runtime import (static-release R1)");
 assert.match(prepare, /compileAdvertisingLayout/, "prepare step uses the pure layout compiler for preflight");
 assert.match(prepare, /\[320, 390, 768, 1024, 1440, 1920, 2560\]/, "public preflight covers every required viewport width");
 assert.ok(prepare.indexOf("const artifact = buildAdvertisingArtifact();") < prepare.indexOf("await rm(outputRoot"), "artifact validation precedes destructive output cleanup");

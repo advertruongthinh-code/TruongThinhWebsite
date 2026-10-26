@@ -179,7 +179,16 @@ for (const category of ADVERTISING_LEGACY_CATEGORIES) {
 const productLink = (chip) =>
   `<a class="rail-chip" href="/vi/advertising-products/${chip.vi}" data-en-href="/en/advertising-products/${chip.en}" data-advertising-product="${chip.filter}"><span data-en="${escapeHtml(chip.labelEn)}">${escapeHtml(chip.labelVi)}</span><sup>${chip.count}</sup></a>`;
 const advertisingIndexPath = path.join(outputRoot, "advertising-products", "index.html");
+// Runtime chỉ biết module con sau khi tải xong, artifact chỉ tải sau detail.js: modulepreload gộp ba đợt mạng làm một
+// (static-release R1). Danh sách đọc từ import tĩnh của runtime nên thêm, bớt module không phải sửa HTML.
+const runtimeSource = await readFile(path.join(sourceRoot, "advertising-products", "catalog-runtime.mjs"), "utf8");
+const preloadModules = ["catalog-runtime.mjs", "catalog-artifact.mjs",
+  ...new Set([...runtimeSource.matchAll(/from "\.\/([\w-]+\.mjs)"/g)].map(([, name]) => name))];
+await Promise.all(preloadModules.map((name) => readFile(path.join(outputRoot, "advertising-products", name))));
+const modulePreloads = preloadModules.map((name) => `<link rel="modulepreload" href="/advertising-products/${name}">`).join("");
 const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).replace(
+  '<script defer src="/assets/vendor/', (anchor) => modulePreloads + anchor,
+).replace(
   "<!-- advertising-cluster-filters -->",
   ADVERTISING_CATEGORIES.map(({ slug, slugVi, slugEn, titleVi, titleEn }) =>
     `<a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-advertising-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
