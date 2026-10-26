@@ -60,6 +60,8 @@ const browser = device ? await chromium.connectOverCDP(device)
 // Lúc card đầu vào DOM (hls.js tải song song artifact nên có thể làm masonry hiện muộn hơn). Mỗi video card: lúc hiện quá
 // 1/2 dưới navbar, lúc phát đầu tiên, các lần `waiting` sau khi đã phát kèm thời lượng.
 function watchVideos() {
+  // Giữ đủ request của cả lượt cho phần chẩn đoán video chạy muộn (mặc định trình duyệt chỉ giữ 250).
+  performance.setResourceTimingBufferSize(5000);
   const log = window.__videos = [];
   const nodes = window.__videoNodes = [];
   const entries = new WeakMap();
@@ -115,15 +117,19 @@ const playback = async (base, network) => {
   await scroll(page);
   const { videos, firstCard, late } = await page.evaluate(() => ({
     videos: window.__videos, firstCard: window.__firstCard,
-    // Video đã hiện mà chưa phát: trạng thái lúc hết lượt, readyState thấp là do tải, cao mà vẫn dừng là do lịch phát.
+    // Video chạy sau khi hiện quá 300 ms hoặc không chạy: trạng thái lúc hết lượt (readyState thấp là do tải, cao mà vẫn
+    // dừng là do lịch phát) và các request media của nó [bắt đầu, xong, file] theo đồng hồ trang.
     late: window.__videos.flatMap((entry, index) => {
-      if (entry.visible === null || entry.playing !== null) return [];
+      if (entry.visible === null || (entry.playing !== null && entry.playing - entry.visible <= 300)) return [];
       const node = window.__videoNodes[index];
+      const id = node.dataset.advertisingMediaItem;
       return [{
-        id: node.dataset.advertisingMediaItem, createdMs: Math.round(entry.created), visibleMs: Math.round(entry.visible),
+        id, createdMs: Math.round(entry.created), visibleMs: Math.round(entry.visible), playingMs: entry.playing && Math.round(entry.playing),
         endMs: Math.round(performance.now()), readyState: node.readyState, networkState: node.networkState, paused: node.paused,
         shown: node.checkVisibility(), hls: node.currentSrc.startsWith("blob:"),
         buffered: Array.from({ length: node.buffered.length }, (_, range) => [node.buffered.start(range), node.buffered.end(range)].map((time) => +time.toFixed(1))),
+        requests: performance.getEntriesByType("resource").filter(({ name }) => name.includes(`/${id}/`) || name.includes(`/${id}-`))
+          .map(({ name, startTime, responseEnd }) => [Math.round(startTime), Math.round(responseEnd), name.split("/").pop()]),
       }];
     }),
   }));
