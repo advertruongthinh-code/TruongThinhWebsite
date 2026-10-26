@@ -55,6 +55,52 @@ try {
     await context.close();
   }
 
+  // Vuốt nhanh trên PC: card vào viewport lúc đang cuộn hiện khung và canvas Flow ngay, không fade 0.6s rồi 0.3s
+  // (advertising-skeleton R4); card chỉ ở trong viewport khoảng 270ms nên fade đó chỉ để lộ ảnh tĩnh.
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
+    await page.waitForTimeout(1500);
+    for (let step = 1; step <= 60; step += 1) {
+      await page.evaluate((y) => window.TruongThinhMotion.setLogicalScroll(y), step * 60);
+      await page.waitForTimeout(16);
+    }
+    const frames = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
+      .filter((frame) => frame.classList.contains("is-entry-ready"))
+      .map((frame) => {
+        const canvas = frame.querySelector('canvas[data-advertising-flow-backend="webgl"]');
+        return { transition: frame.style.transition, canvas: canvas && { opacity: canvas.style.opacity, transition: canvas.style.transition } };
+      }));
+    assert.ok(frames.length >= 3, `desktop fast scroll: card frames entered ${JSON.stringify(frames)}`);
+    assert.ok(frames.every(({ transition }) => transition === "none"), `desktop fast scroll: frames show at once ${JSON.stringify(frames)}`);
+    const canvases = frames.flatMap(({ canvas }) => (canvas ? [canvas] : []));
+    assert.ok(canvases.length, "desktop fast scroll: Flow mounted while scrolling");
+    assert.ok(canvases.every(({ opacity, transition }) => opacity === "1" && transition === "none"),
+      `desktop fast scroll: Flow canvas shows without fade ${JSON.stringify(canvases)}`);
+    await context.close();
+  }
+
+  // PC cao: nhiều hơn 12 card chờ ảnh trong viewport thì mọi card chạy Flow trên một context chung trong worker
+  // (advertising-skeleton R5); Chrome chỉ giữ 4 context mỗi worker nên context riêng cho từng card sẽ bị thu hồi.
+  {
+    const { context, page } = await open({ viewport: { width: 1920, height: 1400 } });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
+    for (let y = 400; y <= 2400; y += 400) {
+      await page.evaluate((value) => window.TruongThinhMotion.setLogicalScroll(value), y);
+      await page.waitForTimeout(600);
+    }
+    await page.waitForTimeout(1500);
+    const frames = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
+      .filter((frame) => { const { top, bottom } = frame.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
+      .map((frame) => ({ looping: frame.classList.contains("is-looping"), context: frame.querySelector("canvas")?.dataset.advertisingFlowContext })));
+    assert.ok(frames.length > 12, `desktop tall: more than 12 loading cards in view ${frames.length}`);
+    assert.ok(frames.every(({ looping }) => looping), `desktop tall: every loading card runs Flow ${JSON.stringify(frames)}`);
+    assert.ok(frames.every(({ context }) => context === "shared"), `desktop tall: worker Flow uses the shared context ${JSON.stringify(frames)}`);
+    await context.close();
+  }
+
   // Điện thoại: mở detail từ masonry đã cuộn nhảy về y=0 mà không có scrollend; Flow vẫn chạy, card related
   // tải xong vẫn reveal mà không cần người xem cuộn thêm.
   {

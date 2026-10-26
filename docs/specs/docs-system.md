@@ -75,7 +75,6 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 | adv-detail | `advertising-detail.md` | trang card `p/<id>`: primary, related, suggestion, viewer |
 | adv-taxonomy | `advertising-taxonomy.md` | cụm, sản phẩm, tag, trang index, embedding ảnh (planned) |
 | media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
-| media-adaptive | `image-adaptive-delivery.md` | bậc ảnh theo mạng, nâng bậc khi mạng nhanh lại (planned) |
 | media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
 | video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video |
 | release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
