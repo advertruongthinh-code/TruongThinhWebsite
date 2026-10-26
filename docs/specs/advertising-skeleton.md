@@ -233,6 +233,11 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 - Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
   ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
 
+- Trần 12 renderer (R5): màn hình PC cao có thể có hơn 12 khung chờ ảnh cùng lúc, khung thứ 13 trở đi chỉ hiện ảnh tĩnh
+  `skeletonFlowStill`. Đã thử một context WebGL dùng chung trong worker, vẽ ra từng khung bằng `bitmaprenderer`; cloud
+  (WebGL phần mềm) liên tục mất context nên không kiểm chứng được, bản vá lưu ở Library `anh-thich-ung/shared-flow-hub.patch`.
+  Cần đo trên PC có GPU thật rồi mới đưa vào. Owner và máy PC.
+
 ## Chú thích thuật ngữ
 
 - **Batch**: tập khung skeleton nối tiếp masonry tới footer trong một lần dựng.
