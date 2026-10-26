@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-26T09:32:17Z",
+    "at": "2026-10-26T14:04:25Z",
     "via": "Claude Code (cloud)",
-    "note": "Nhánh PR #434 (chưa merge): player video một hàng (Primary, Glass); MediaCard chấm và bộ đếm trong pill tối; lớp tối toàn site theo mức owner chỉnh; hero chung lớp tối 0,2, chữ hero không bóng; nút gợi ý"
+    "note": "Sau merge #434 và #567: Card nhiều media (player video một hàng, MediaCard chấm và bộ đếm, lớp tối hover); bóng chữ chỉ hiện dần sau khi motion reveal xong, dòng đang ẩn không bóng"
   }
 }
