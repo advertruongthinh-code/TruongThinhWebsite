@@ -1762,8 +1762,8 @@ async function runPortalAlignmentChecks() {
           assert(
             state.advertisingImage?.src ===
               "/assets/content/projects/home-advertising-products-blue-grid.webp" &&
-              state.advertisingImage.declaredWidth === 1086 &&
-              state.advertisingImage.declaredHeight === 1448,
+              state.advertisingImage.declaredWidth === 2304 &&
+              state.advertisingImage.declaredHeight === 3072,
             `Advertising portal image contract drifted at ${locale} ${width}px: ${JSON.stringify(state.advertisingImage)}`,
           );
           }
