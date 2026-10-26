@@ -125,14 +125,16 @@ test("R3: card plays the ladder capped at 480, detail continues at the top rung,
   }
 });
 
-test("R3, R5: without Media Source or without hlsSrc the card plays the fixed file and hls.js never loads", async () => {
+test("R3, R5: without Media Source or without hlsSrc the card plays the fixed file without a playlist", async () => {
   kbps = 0;
   for (const options of [{ mediaSource: false }, { hls: false }]) {
     const { browser, page, requests } = await open(options);
     try {
       const card = await playingCard(page);
       assert(card.currentSrc.endsWith("/card.mp4"), `${JSON.stringify(options)}: card plays cardSrc: ${card.currentSrc}`);
-      assert(!requests.some((url) => /hls\.light|\.m3u8/.test(url)), `${JSON.stringify(options)}: no hls.js or playlist request`);
+      assert(!requests.some((url) => /\.m3u8/.test(url)), `${JSON.stringify(options)}: no playlist request`);
+      // hls.js tải sẵn cùng artifact (R3) nên chỉ trình duyệt không có Media Source là không tải.
+      if (options.mediaSource === false) assert(!requests.some((url) => /hls\.light/.test(url)), "without Media Source hls.js never loads");
     } finally {
       await browser.close();
     }

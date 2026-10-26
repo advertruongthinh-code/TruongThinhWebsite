@@ -6,8 +6,8 @@ const players = new Map();
 let hlsLibrary;
 let library;
 
-// Chỉ nạp thư viện khi trang có video mang hlsSrc; không chặn render (R3).
-const loadHls = () => library ??= new Promise((resolve) => {
+// Nạp thư viện lần đầu khi cần, không chặn render (R3); catalog gọi sớm cùng lúc tải artifact.
+export const loadHls = () => library ??= new Promise((resolve) => {
   if (!self.MediaSource && !self.ManagedMediaSource) return resolve(hlsLibrary = null);
   const script = Object.assign(document.createElement("script"), { src: HLS_URL, async: true });
   script.onload = () => resolve(hlsLibrary = self.Hls?.isSupported() ? self.Hls : null);
@@ -76,11 +76,13 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
     const hls = new Hls({ autoStartLoad: false, loopBackBufferFlush: false });
     const abort = new AbortController();
     const fragments = new Map();
-    players.set(video, { hls, fragments, abort });
+    const player = { hls, fragments, abort, parked: false };
+    players.set(video, player);
+    const card = Number.isFinite(capWidth);
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
       const cap = hls.levels.findLastIndex(({ width }) => width <= capWidth);
-      if (Number.isFinite(capWidth)) hls.autoLevelCapping = cap;
-      hls.startLevel = Number.isFinite(capWidth) ? cap : hls.firstLevel;
+      if (card) hls.autoLevelCapping = cap;
+      hls.startLevel = card ? cap : hls.firstLevel;
       // Giây giao từ card sang detail hoặc ngược lại được gán trước khi playlist về (media-card R6).
       hls.startLoad(video.currentTime || -1);
     });
@@ -92,7 +94,19 @@ export function setVideoSource(video, item, { file, capWidth = Infinity }) {
       players.forEach((player) => { if (player.hls.bandwidthEstimate < estimate) player.hls.bandwidthEstimate = estimate; });
       const due = [...players.keys()].filter(behind);
       due.forEach((entry) => replaceAhead(entry, due.length));
+      // Card đang dừng (chưa vào màn hoặc đã cuộn qua) giữ phần đã tải rồi dừng, phát thì tải tiếp: ở 4G chậm card ngoài màn
+      // tải hết clip giành băng thông nên segment đầu của card vừa hiện mất 3,8 s (đo cloud 2026-10-25).
+      // Chỉ bật lại card do luật này dừng: bật cả khi luật thay phía trước đang chờ xóa xong thì tải trùng, video khựng.
+      if (card && video.paused) {
+        hls.stopLoad();
+        player.parked = true;
+      }
     });
+    video.addEventListener("playing", () => {
+      if (!player.parked) return;
+      player.parked = false;
+      hls.startLoad(video.currentTime, true);
+    }, { signal: abort.signal });
     // Tải hết clip thì dừng vòng lặp 100 ms của hls.js: mỗi card trong cửa sổ render giữ một instance chạy không dù
     // đã tải xong (đo cloud 2026-10-25, 52 card: 200 ms script mỗi lượt cuộn 20 s); luật thay phía trước bật lại.
     hls.on(Hls.Events.BUFFERED_TO_END, () => hls.stopLoad());

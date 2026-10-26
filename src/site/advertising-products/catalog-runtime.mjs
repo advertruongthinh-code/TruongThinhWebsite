@@ -30,7 +30,7 @@ import {
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
 import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
-import { releaseVideoSource, setVideoSource } from "./video-source.mjs";
+import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 
 let activeInstance;
 
@@ -736,10 +736,13 @@ const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT
   : import("./catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
 
 let warmWorker;
-// Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ.
+// Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ. hls.js
+// cũng tải lúc này (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã hiện (đo cloud
+// 2026-10-25 qua HTTP/2: 2/64 video không kịp chạy).
 export const preloadAdvertisingCatalog = () => {
   warmWorker ||= startLayoutWorker();
   loadArtifact().catch(() => {});
+  void loadHls();
 };
 
 const currentLocale = () => document.documentElement.lang === "en" ? "en" : "vi";

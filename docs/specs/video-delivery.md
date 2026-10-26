@@ -9,8 +9,9 @@ tests:
   - tests/site/video-ladder.test.mjs
   - tests/site/primary-video-keyframes.test.mjs
   - tests/site/video-delivery.e2e.mjs
+  - tests/site/video-delivery-measure.mjs
 notion: https://app.notion.com/p/404332849a0e81aa9718f91db2d05e51
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Video thích ứng mạng (adaptive bitrate)
@@ -80,9 +81,15 @@ khi video đổi nguồn hoặc rời DOM. Còn lại (iPhone cũ hơn, trình d
 (file bậc 480), primary và viewer dùng `src` (file bậc 960). File fMP4 của bậc phát thẳng được như mp4 thường nên không
 lưu thêm bản riêng.
 
+Card đang dừng (chưa vào màn hoặc đã cuộn qua) tải xong một segment thì runtime dừng tải và giữ phần đã có; card phát
+thì tải tiếp từ vị trí phát. Ở 4G chậm card ngoài màn tải hết clip giành băng thông nên segment đầu của card vừa hiện
+mất 3,8 s (đo cloud 2026-10-25). Primary và viewer không áp luật này.
+
 hls.js bản `1.7.3` (Apache-2.0), dùng bản light (bỏ phụ đề, track tiếng riêng, DRM, quảng cáo chèn): 119 KB gzip,
 386 KB chưa nén (đo từ gói npm). Ghim đúng version trong `package.json` như các vendor khác, `prepare-static-assets.mjs`
-chép `dist/hls.light.min.js` sang `assets/vendor/`; chỉ trang có item video nạp, không chặn render. Không dùng tag
+chép `dist/hls.light.min.js` sang `assets/vendor/`; runtime catalog nạp cùng lúc tải artifact, không chặn render: đợi tới
+card video đầu thì ở 4G chậm card đầu đã hiện mà thư viện chưa về (đo 2026-10-25: 2/64 video không kịp chạy, tải sớm
+0/61). Không có Media Source thì không tải. Không dùng tag
 `latest` hay canary: gói từng có hai bản canary 1.7.0 chứa mã độc
 ([OSV MAL-2026-3019](https://osv.dev/vulnerability/MAL-2026-3019)), bản 1.7.3 phát hành 2026-09-11. Giây video truyền
 giữa card và detail như media-card R4, R6; poster, lỗi video và lịch phát không đổi.
@@ -112,7 +119,8 @@ tải hết sau khoảng 5 s rồi hls.js ngừng tải nên tự nó không th�
   kiện `BUFFER_FLUSHING` của hls.js, rồi hls.js tự tải lại phần đó ở bậc mới; phần đang phát trước keyframe đó giữ nguyên
   nên không đứng hình. Video đang dừng không thay.
 - Tải hết clip thì runtime dừng tải (`hls.stopLoad()`) để hls.js không chạy vòng lặp 100 ms cho video đã đủ dữ liệu;
-  luật phía trước xóa xong (`BUFFER_FLUSHED`) thì bật lại (`hls.startLoad`).
+  luật phía trước xóa xong (`BUFFER_FLUSHED`) thì bật lại (`hls.startLoad`). Sự kiện `playing` chỉ bật lại card do luật
+  card đang dừng (R3) dừng: bật thêm lúc luật phía trước chờ xóa thì hls.js tải trùng và video khựng (e2e R4 đỏ 3/3).
 - Vòng lặp và tua: tắt [`loopBackBufferFlush`](https://github.com/video-dev/hls.js/blob/v1.7.3/docs/API.md#loopbackbufferflush);
   mỗi lần video tua, kể cả lặp về giây 0, runtime chạy lại luật phía trước. Tua về đoạn bậc thấp còn trong buffer thì
   phát ngay bằng phần có sẵn rồi phần từ keyframe kịp tải nét lên (owner chọn 2026-10-25); lặp về 0 thì phần đầu clip
@@ -160,21 +168,23 @@ card; dữ liệu card sửa tay. Video tạm sinh từ file 960 hiện có, kh�
 ```gherkin
 Given item video không có hlsSrc
 When trình duyệt có Media Source
-Then card vẫn phát cardSrc, primary vẫn phát src như hiện tại và trang không nạp hls.js
+Then card vẫn phát cardSrc, primary vẫn phát src như hiện tại và trang không nạp playlist
 ```
 
 ### R6. Nghiệm thu bằng số đo
 
 Kịch bản: viewport A04s (384x724, DPR 1,875), cuộn masonry 16 nấc 400 px, mỗi nấc chờ 1,5 s; mạng 4G chậm 1,6 Mbps, RTT
-150 ms (mức Lighthouse dùng cho mobile), tắt cache; mỗi bản 9 lượt xen kẽ. So với bản 480 cố định (98f3963; đo cloud
-bằng bản AV1 cùng tỷ lệ dung lượng: 1/46 video không kịp chạy, 1,15 lần đứng hình mỗi video), bản HLS phải có số lần
-đứng hình mỗi video không quá 0,6 và số video không kịp chạy không nhiều hơn. Mạng nhanh và PC không kém đi: video chạy
-trong 50 ms sau khi hiện quá 1/2; frame trên 33 ms và main thread bận trên PC không tăng so với 98f3963 (gồm cả việc của
-hls.js). Thay phần bậc thấp (R4): mạng đổi từ 4G chậm sang không giới hạn giữa lượt, video đang hiện lên bậc cao trong 4 s
-(`videoWidth` đổi), không có `waiting` dài hơn 10 ms, `currentTime` liên tục, `droppedVideoFrames` không tăng hơn lượt không đổi bậc;
-quay màn hình từng frame quanh điểm đổi không có frame đen, poster hay skeleton; ở detail có tiếng, tiếng thu từ
-`captureStream()` không có khoảng lặng ở điểm đổi. Số nghiệm thu đo trên Chrome thật (PC, A04s); Chromium cloud không
-có H.264 nên đo bằng thang AV1 cùng tỷ lệ dung lượng.
+150 ms (mức Lighthouse dùng cho mobile), tắt cache; mỗi bản 9 lượt xen kẽ; server local đặt sau proxy HTTP/2 nén brotli
+như Cloudflare (server tĩnh local HTTP/1.1 không nén làm card đầu hiện sau 11,6 s thay vì 2,8 s). So với bản 480 cố định
+(98f3963; đo cloud 2026-10-25 bằng bản AV1 cùng tỷ lệ dung lượng: 0/59 video không kịp chạy, 1,2 lần đứng hình mỗi
+video), bản HLS phải có số lần đứng hình mỗi video không quá 0,6 và số video không kịp chạy không nhiều hơn. Mạng nhanh
+và PC không kém đi: video chạy trong 50 ms sau khi hiện quá 1/2; frame trên 33 ms và main thread bận trên PC không tăng
+so với 98f3963 (gồm cả việc của hls.js). Thay phần bậc thấp (R4): mạng 300 kbps (bậc 480 nhẹ nhất 277 kbps nên card ở
+bậc 240) tới khi một card ở nửa dưới màn hình phát bậc 240, rồi bỏ giới hạn và cuộn để card khác tải segment; video đó
+lên bậc cao trong 4 s (`videoWidth` đổi), không có `waiting` dài hơn 10 ms, `currentTime` liên tục, `droppedVideoFrames`
+không tăng hơn lượt không đổi bậc; quay màn hình từng frame quanh điểm đổi không có frame đen, poster hay skeleton; ở
+detail có tiếng, tiếng thu từ `captureStream()` không có khoảng lặng ở điểm đổi. Số nghiệm thu đo trên Chrome thật (PC,
+A04s); Chromium cloud không có H.264 nên đo bằng thang AV1 cùng tỷ lệ dung lượng.
 
 ```gherkin
 Given bản HLS và bản 480 cố định trên cùng máy, cùng kịch bản 4G chậm
@@ -182,8 +192,8 @@ When đo 9 lượt mỗi bản
 Then bản HLS đứng hình trung bình không quá 0,6 lần mỗi video
 And số video không kịp chạy của bản HLS không nhiều hơn bản 480
 
-Given card đang phát bậc 240 trên 4G chậm
-When mạng đổi sang không giới hạn
+Given card đang phát bậc 240 ở 300 kbps
+When mạng đổi sang không giới hạn và một video khác tải xong segment
 Then trong 4 s video đang hiện có videoWidth của bậc 480 và không có sự kiện waiting dài hơn 10 ms
 And không frame nào quanh điểm đổi là frame đen, poster hay skeleton
 ```
@@ -211,16 +221,16 @@ Không đổi giao diện; card video và player giữ component hiện có
 | R1 | `tests/site/primary-video-keyframes.test.mjs` đọc cả fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
 | R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc` |
 | R4 | `tests/site/video-delivery.e2e.mjs`: server giới hạn 60 kbps rồi bỏ giới hạn, một video khác tải segment; frame sau giây 2 lên 480 trong 4 s, frame cách nhau dưới 250 ms, `waiting` dưới 100 ms (cloud đo 2 tới 6 ms; ngưỡng 10 ms đo ở R6). Tắt luật thay thì ca này đỏ |
-| R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp hls.js hay playlist |
-| R6 | chưa có test: đưa script đo mạng vào `tests/site/` |
+| R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp playlist; không có Media Source thì không nạp hls.js |
+| R6 | `tests/site/video-delivery-measure.mjs --base <98f3963> --candidate <nhánh> --h2`, chạy tay: 4G chậm 9 lượt mỗi bản (đứng hình, video không kịp chạy), mạng nhanh (thời gian chạy), lượt đổi bậc (lên bậc, `waiting`, frame tối, `droppedVideoFrames`); A04s thêm `DEVICE_CDP`. Main thread PC: `pnpm qa:scroll-trace`. Tiếng ở detail kiểm tay |
 
 ## Gate còn mở
 
 - Main thread khi cuộn masonry (đo 2026-10-25, bản fbfb596): PC bận 32% so với 24-27% khi chặn hls.js hoặc ở 89f9b00,
   A04s 20-21% so với 19% và thêm 8 tới 10 frame quá 33 ms mỗi lượt; các instance dùng chung một worker, JS khoảng 10 MB.
   Đã sửa: dừng tải khi tải hết clip (R4), đọc `nextAutoLevel` một lần mỗi video; cloud 52 card, script hls.js mỗi lượt
-  cuộn 20 s giảm từ 1.000 xuống 610 ms. Tắt worker đo không đổi nên bỏ. Phần còn lại là việc theo segment (XHR, append);
-  R6 đo lại trên PC, A04s, còn tăng thì cân nhắc thay lần lượt từng video.
+  cuộn 20 s giảm từ 1.000 xuống 610 ms; PC đo lại 33% so với 32% khi chặn hls.js. Tắt worker đo không đổi nên bỏ. A04s
+  đo lại khi có phone (sau 2026-10-27).
 - Luật thay phía trước (R4) mới đo trên Chromium cloud với thang AV1; PC và A04s đo lại trong R6.
 - iPhone từ iOS 17.1 chạy hls.js qua Managed Media Source, chưa kiểm; owner chưa có iPhone (2026-10-25). Cũng chưa kiểm
   Safari phát thẳng file fMP4 của bậc (nhánh không Media Source); Chromium đã đọc đúng thời lượng và tua được.
