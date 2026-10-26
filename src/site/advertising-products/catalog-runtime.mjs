@@ -735,6 +735,17 @@ const loadArtifact = () => artifactPromise ||= (window.__TT_ADVERTISING_ARTIFACT
   ? Promise.resolve(window.__TT_ADVERTISING_ARTIFACT__)
   : import("./catalog-artifact.mjs").then(({ ADVERTISING_CATALOG_ARTIFACT }) => ADVERTISING_CATALOG_ARTIFACT));
 
+// Mô tả và related của card nằm riêng trong catalog-detail.mjs (artifact chỉ giữ phần grid cần). Artifact đã đủ trường
+// (test chèn artifact đầy đủ) thì bỏ qua; ngược lại gắn trường còn thiếu vào card theo id.
+let detailPromise;
+const loadCardDetail = () => detailPromise ||= import("./catalog-detail.mjs").then(({ default: detail }) => detail);
+const attachCardDetail = (cards) => {
+  if (cards.every((card) => card.descriptionVi !== undefined)) return Promise.resolve();
+  return loadCardDetail().then((detail) => {
+    for (const card of cards) if (card.descriptionVi === undefined && detail[card.id]) Object.assign(card, detail[card.id]);
+  });
+};
+
 let warmWorker;
 // Gọi trước mount (route mềm gọi lúc bấm link): tải artifact và khởi động layout Worker song song với veil phủ. hls.js
 // cũng tải lúc này (video-delivery R3): đợi tới card video đầu thì ở 4G chậm thư viện về sau lúc card đã hiện (đo cloud
@@ -1438,7 +1449,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     console.error("[advertising-products] artifact validation failed", error);
     throw error;
   }
-  // Giữ nguyên tham chiếu artifact đã generate làm cache identity; không clone hay mutate.
+  // Giữ nguyên tham chiếu artifact đã generate làm cache identity; không clone, chỉ gắn thêm trường detail vào card.
   const artifactCacheIdentity = artifact;
   if (signal?.aborted) return () => {};
   if (typeof window.Masonry !== "function") {
@@ -1447,6 +1458,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     throw error;
   }
   const controller = new AbortController();
+  // Detail (mô tả, related) tải 4 s sau lúc load để không tranh băng thông với 8 card đầu; showPhoto chờ nếu chưa xong.
+  let detailLoaded = false;
+  let detailReady;
+  const ensureDetail = () => detailReady ||= attachCardDetail(cards).catch(() => {}).then(() => { detailLoaded = true; });
+  const prefetchDetail = () => setTimeout(() => { if (!controller.signal.aborted) ensureDetail(); }, 4000);
+  if (document.readyState === "complete") prefetchDetail();
+  else window.addEventListener("load", prefetchDetail, { once: true, signal: controller.signal });
   // Giữ sẵn số đo CSS khi script shell không khởi động được.
   if (!document.querySelector(".site-viewport-metrics")) {
     const probe = document.createElement("div");
@@ -3904,7 +3922,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (videoHandoff?.mediaId === selected.id && selected.kind === "video") photoVideo.currentTime = videoHandoff.time;
     videoHandoff = null;
     browseHistory.captureDetail({ ...browse.detail, mediaId: selected.id });
-    if (photoDescription) photoDescription.textContent = english ? record.descriptionEn : record.descriptionVi;
+    if (photoDescription) photoDescription.textContent = (english ? record.descriptionEn : record.descriptionVi) || "";
     if (photoDescriptionScroll) photoDescriptionScroll.scrollTop = 0;
     const category = categoryById.get(record.category);
     if (photoCategory) photoCategory.textContent = english ? category?.titleEn : category?.titleVi;
@@ -3983,6 +4001,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     }
   };
   const showPhoto = async (browse, reason) => {
+    if (!detailLoaded) {
+      await ensureDetail();
+      if (controller.signal.aborted) return;
+    }
     // Chỉ photo khác mới hoãn; đổi tag hoặc locale giữ related card trên màn hình.
     const deferRelated = browse.photo !== activePhotoId && !browse.detail.scrollY && !browse.detail.anchorId;
     const origins = deferRelated && relatedLayoutKey ? relatedVisualCoordinates() : undefined;

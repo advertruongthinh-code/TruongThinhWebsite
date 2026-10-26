@@ -56,7 +56,7 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
 chạy `compileAdvertisingLayout` ở 320, 390, 768, 1024, 1440, 1920, 2560 px với
 filter `all`, sáu cụm và mọi sản phẩm có chip ([taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-chip-và-trang-mỏng)). Filter có card mà layout báo `needs-media` hoặc thiếu vị trí thì build dừng. Artifact chỉ nằm ở output:
-`advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`. Build thay
+`advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`; mô tả và `related` của card tách sang `catalog-detail.mjs` và `source`, `sha256`, `provenance` của media bỏ khỏi output (bớt 46 KB brotli trên đường tới 8 card đầu). Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
 `vi/advertising-products/<slug VI>/` và `en/advertising-products/<slug EN>/`: title, meta, canonical, hreflang vi, en,
