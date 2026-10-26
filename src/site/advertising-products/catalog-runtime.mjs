@@ -1584,6 +1584,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     video: photoVideo,
     player: photoPlayer,
     videoHost: photoDialog?.querySelector("[data-advertising-photo-video-host]"),
+    onOpen: () => {
+      photoView.dataset.advertisingPhotoExpanded = "";
+      drawLiveBackground();
+    },
   });
   // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
   const loadedMediaKeys = new Set();
@@ -3526,16 +3530,21 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       cancelLive = () => cancelAnimationFrame(id);
     }
   };
+  // Media đã có frame đứng yên dưới viewer; null khi viewer đóng.
+  let liveStill = null;
   const drawLiveBackground = () => {
     cancelLive = null;
-    // Viewer mở thì nền dưới backdrop đứng yên (advertising-detail R9): mỗi lần vẽ lại bắt blur 50px của backdrop tính
-    // lại (A04s 2026-10-26: blur này làm viewer video rơi khoảng 27 frame mỗi 8 s). Đóng viewer thì `close` vẽ lại.
-    if (photoDialog?.open) return;
-    const strip = primaryStrip;
+    // Viewer mở thì khung primary chỉ còn zoom blur đứng yên phủ kín, video là frame lúc mở (advertising-detail R9, owner
+    // 2026-10-26): vẽ một lần cho mỗi media, kể cả khi media vừa khít khung (glass false). Mỗi lần vẽ lại bắt blur 50px của
+    // backdrop tính lại. Đóng viewer thì `close` vẽ lại theo nhịp thường.
+    const still = Boolean(photoDialog?.open);
+    if (!still) liveStill = null;
+    else if (liveStill === activePrimaryMediaId) return;
+    const strip = still ? null : primaryStrip;
     const lanes = strip ? strip.lanes.map(({ nodes: [node] }) => ({ node, x: parseFloat(getComputedStyle(node).translate) || 0 }))
       : [{ node: photoVideo, x: 0 }];
     // Video chưa có frame (mới đổi nguồn, tua, vòng lặp) thì giữ nền vừa vẽ thay vì chớp về ảnh nền tĩnh.
-    liveBackground.hidden = photoView.dataset.advertisingPhotoGlass !== "true" || (!strip && photoVideo.hidden);
+    liveBackground.hidden = (!still && photoView.dataset.advertisingPhotoGlass !== "true") || (!strip && photoVideo.hidden);
     if (!liveBackground.hidden && (strip || drawable(photoVideo))) {
       const width = Math.max(1, Math.ceil(heroFrame.clientWidth / BAKED_SCALE));
       const height = Math.max(1, Math.ceil(heroFrame.clientHeight / BAKED_SCALE));
@@ -3559,8 +3568,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       context.clearRect(0, 0, width, height);
       context.filter = BAKED_FILTERS.at(-1);
       context.drawImage(liveScratch, -bleed, -bleed);
+      if (still) liveStill = activePrimaryMediaId;
     }
-    if (strip || !photoVideo.paused) queueLive(!strip);
+    if (!still && (strip || !photoVideo.paused)) queueLive(!strip);
   };
   // Vẽ ngay frame tới (đổi nguồn, tua, đóng dải hay viewer), sau đó lượt vẽ tự chọn nhịp.
   const startLiveBackground = () => {
@@ -3948,7 +3958,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   for (const type of ["play", "seeked", "loadeddata", "emptied"]) {
     photoVideo?.addEventListener(type, startLiveBackground, { signal: controller.signal });
   }
-  photoDialog?.addEventListener("close", startLiveBackground, { signal: controller.signal });
+  photoDialog?.addEventListener("close", () => {
+    delete photoView.dataset.advertisingPhotoExpanded;
+    startLiveBackground();
+  }, { signal: controller.signal });
   photoVideo?.addEventListener("play", () => {
     cancelVideoTime?.();
     tickVideoTime();

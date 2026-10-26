@@ -96,7 +96,14 @@ Một bóng chung hai lớp, không lệch: vành `0 0 2px` đen `0.5` (như mũ
 - Chữ trắng trên nút trong "Có thể bạn thích": `text-shadow` hai lớp; nút đang chọn (chữ `ink` trên nền giấy) không có bóng.
   Lớp tối của nút đen `0.5` phẳng, luôn hiện: nút "Ý tưởng bạn có thể thích" của Pinterest đo được `0.4`, hover `0.6`, owner
   chốt `0.5` và bỏ đổi khi hover (2026-10-26; trước đó 2026-10-24: chữ vẫn khó đọc).
-- Player PC và cảm ứng: icon trên thanh, thanh tua dùng `drop-shadow` hai lớp (thay `0 0 8px` đen `0.1` của demo); giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
+- Player PC và cảm ứng: icon trên thanh dùng `drop-shadow` hai lớp (thay `0 0 8px` đen `0.1` của demo), mỗi nút icon là
+  lớp riêng (`will-change: transform`) để bóng chỉ vẽ một lần, không vẽ lại khi thanh tua hay giờ đổi; mũi tên card và icon
+  phát trên thumbnail video cũng vậy (owner 2026-10-26 chọn "Giữ bóng, tách lớp"; A04s: hết rơi frame, số đo ở mục Kiểm tra); thanh tua dùng
+  `box-shadow` hai lớp ở đường tua và núm, không filter (owner 2026-10-26 chọn "Bóng vẽ rẻ hơn": `drop-shadow` tính lại
+  mỗi lần thanh nhích, A04s viewer video rơi 8 frame mỗi 8 s, bỏ bóng 0). Số chỉnh để nhìn như `drop-shadow` cũ (owner
+  hỏi giữ visual, so ảnh 2026-10-26): đường tua `0 0 4px` đen `0.12`, `0 0 24px` đen `0.22`, dưới gradient trắng thêm
+  lớp đen `0.19` phần đã phát, `0.08` phần chưa phát (bóng cũ lộ qua đường tua trong mờ); núm `0 0 4px` đen `0.5`,
+  `0 0 28px` đen `0.45`. Giờ dùng `text-shadow` hai lớp. Bỏ dải gradient đáy, video lộ hết. Đổi lại chữ trắng trên nền
   sáng còn tương phản khoảng `2,8:1` thay vì `3,6:1` khi có dải (đo trên ảnh chụp canvas bản 33); owner đã xem số này.
 
 Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích, ghi vào `design-system/` khi owner "ok" trong thread.
@@ -111,7 +118,8 @@ And lớp tối ::after của nút chưa chọn vẫn còn
 ```gherkin
 Given primary đang phát video trên PC hoặc cảm ứng
 When đọc style icon trên thanh, thanh tua và giờ
-Then icon, thanh tua có drop-shadow "0 0 2px" đen 0.5 rồi "0 0 12px" đen 0.4, giờ có text-shadow cùng hai lớp
+Then icon có drop-shadow "0 0 2px" đen 0.5 rồi "0 0 12px" đen 0.4 trên lớp riêng
+And thanh tua có box-shadow hai lớp chỉnh theo bóng cũ, giờ có text-shadow hai lớp
 And thanh điều khiển không có nền gradient
 ```
 
@@ -261,20 +269,15 @@ Dev: `pnpm dev`; E2E: `BASE_URL=http://localhost:4173 node tests/site/site-media
 | R1 | `site-media-card-m02a.e2e.mjs`: context cảm ứng 390px (`isMobile`, `hasTouch`, khớp `hover: none`) đo một hàng 40px theo thứ tự nút phát, giờ, thanh tua, tiếng; không nền gradient, không nút giữa kể cả khi dừng, chạm nút tiếng không mở cột âm lượng; desktop không có nút giữa |
 | R2 | `site-media-card-m02a.e2e.mjs`: giả `video.buffered`, kéo trong đoạn đã tải (frame theo núm, video không phát, không hai lệnh tua chồng nhau, thả tay phát tiếp; video đang dừng thì thả tay vẫn dừng, PC và cảm ứng) và ra ngoài (giữ frame, không tua tới khi thả); thả tay khi lệnh tua lúc kéo còn chạy thì lệnh thả chờ `seeked`, thả đúng chỗ đang tua thì không tua lần hai |
 | R3 | `primary-video-keyframes.test.mjs`: đọc bảng `stss`, `stts` của mọi MP4 trong `src/site/assets`, khoảng cách keyframe (kể cả tới cuối clip) không quá 0,5s |
-| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát, thanh tua, giờ của player; thanh không nền gradient |
+| R4 | `site-media-card-m02a.e2e.mjs`: text-shadow hai lớp ở nút chưa chọn, không có ở nút đang chọn; bóng hai lớp ở icon, nút phát (`drop-shadow`), đường tua và núm (`box-shadow`, thanh tua không filter), giờ của player; nút icon, thumbnail video, mũi tên card có `will-change: transform`; thanh không nền gradient |
 | R5 | `site-media-card-m02a.e2e.mjs`: đọc rule CSS núm `::-webkit-slider-thumb`, `::-moz-range-thumb` (`getComputedStyle` không đọc được pseudo này), màu đặc alpha 1 |
 | R6 | `advertising-photo-layout.test.mjs`: ca ngang, dọc ở 1440×900 và ca catalog theo `min(W/r, H)`; `advertising-photo-view.e2e.mjs` so khung với mô hình độc lập theo R6 |
 | R7–R12 | `site-media-card-m02a.e2e.mjs`: cỡ, góc nút, hàng player thẳng nút mở lớn; video mở viewer nền blur, giữ giây, không phóng to, dãy thumbnail viewer (ẩn trên cảm ứng, tự ẩn khi chuột đứng yên, phím mũi tên); cụm player ẩn khi rời chuột; kéo tua cảm ứng không đổi media; chỉnh tiếng trong lúc fade; hai video giữ giờ cũ tới khi video mới phát |
-| R1, R2 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1 đạt 2026-10-26 trên SM-A047F, Chrome dọc, 2 lượt; R2 đạt 2026-10-26 sau PR #583 (2 lượt, 16 lệnh tua, 0 chồng, thả tay phát tiếp đúng chỗ) |
+| R1, R2, R4 trên máy thật | A04s qua adb theo [Android thật](../operations/android-real-device-debugging.md): bấm được nút, kéo tua bằng tay (`adb shell input swipe`), log `seeking`, `seeked` qua CDP. R1 đạt 2026-10-26 trên SM-A047F, Chrome dọc, 2 lượt; R2 đạt 2026-10-26 sau PR #583 (2 lượt, 16 lệnh tua, 0 chồng, thả tay phát tiếp đúng chỗ), video đang dừng đạt ở PR #596 (primary và viewer, mỗi chỗ 2 lượt, 0 chồng, thả tay vẫn dừng). [Gate](../decisions/phone-frame-budget.md) video đang phát không rơi frame: primary đạt (0 rơi, 23,7/24 frame mỗi giây); viewer, thanh luôn hiện, đạt ở PR #596 (4 vòng xen kẽ: 0 rơi mỗi 8 s, 23,8/24, SurfaceFlinger 47 fps; cùng lượt, bóng cũ không tách lớp rơi 7,3, tắt mọi bóng 0) |
 
 ## Gate còn mở
 
 - R3 tăng byte clip gần gấp đôi (số đo ở R3); owner xem. Owner.
-- Video trên A04s ([gate](../decisions/phone-frame-budget.md): màn chỉ có video đang phát đạt khi không rơi frame,
-  owner 2026-10-26; đo cùng ngày, clip 24 frame/s, 3 lượt mỗi ca, CSS chèn qua CDP): primary video đạt, 0 frame rơi,
-  hiện đủ 23,7/24 frame mỗi giây. Viewer video chưa đạt, rơi 6 tới 27 frame mỗi 8 s; tắt blur nền viewer còn rơi 4, ẩn
-  thanh player 0. Thanh player luôn hiện trên phone, cả khi phát (owner 2026-10-26), nên sửa bằng cách khác: đo thanh
-  tua vẽ thưa hơn, bỏ bóng thanh tua, bỏ blur nền khi phát; cách nào đổi giao diện thì owner chọn. Thread.
 
 ## Chú thích thuật ngữ
 

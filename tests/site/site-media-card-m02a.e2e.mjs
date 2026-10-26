@@ -241,7 +241,21 @@ test("M02a selected image opens image viewer bound to that image", async () => {
     assert.equal(mediaPath(image.src), card.mediaItems[0].src);
     assert.equal(image.alt, card.mediaItems[0].altEn);
     assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer image has no wait sweep or fade-in");
+    assert.deepEqual(await underViewer(page), { image: "hidden", background: true, live: false, glass: true },
+      "under the viewer the primary frame shows only its zoom blur");
+    await page.keyboard.press("Escape");
+    await viewer.waitFor({ state: "hidden" });
+    assert.equal((await underViewer(page)).image, "visible", "closing the viewer shows the primary image again");
   });
+});
+
+// Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín (advertising-detail R9, owner 2026-10-26).
+const underViewer = (page) => page.evaluate(() => {
+  const frame = document.querySelector(".advertising-photo-view__hero-frame");
+  const shown = (selector) => getComputedStyle(frame.querySelector(selector)).display !== "none";
+  return { image: getComputedStyle(frame.querySelector("[data-advertising-photo-image]")).visibility,
+    background: shown(":scope > [data-advertising-photo-background]"), live: shown(":scope > .advertising-photo-view__live-background"),
+    glass: shown(":scope > .glass-surface") };
 });
 
 // Viewer thuộc Advertising nên không có vệt sáng hay fade-in của khung chờ ảnh nội dung (loading-glass R5).
@@ -559,13 +573,17 @@ test("M02a primary release during an in-flight scrub seek waits for seeked", asy
   });
 });
 
-// Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, icon, nút phát, thanh tua có
-// drop-shadow hai lớp, giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
+// Bóng hai lớp D (primary-video-player R4) và núm đặc (R5): thanh không còn dải gradient, icon, nút phát có drop-shadow
+// hai lớp trên lớp riêng, thanh tua có box-shadow hai lớp, giờ và chữ nút gợi ý chưa chọn có text-shadow hai lớp.
 test("M02a primary player and suggestion text carry the two-layer shadow and solid thumbs", async () => {
   await withPage("en", async (page) => {
     await openFixture(page, "en", { videoCover: true, direct: true });
     const two = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
     const drop = "drop-shadow(rgba(0, 0, 0, 0.5) 0px 0px 2px) drop-shadow(rgba(0, 0, 0, 0.4) 0px 0px 12px)";
+    // Thanh tua vẽ bóng bằng box-shadow ở đường tua và núm, không filter (A04s 2026-10-26), số chỉnh cho nhìn như
+    // drop-shadow cũ; Chromium bỏ rule -moz.
+    const seekShadows = ["-webkit-slider-runnable-track", "-webkit-slider-thumb"]
+      .map((pseudo) => `.advertising-video-player__progress::${pseudo}`);
     const read = () => page.evaluate(() => {
       const style = (selector, pseudo) => getComputedStyle(document.querySelector(selector), pseudo);
       const label = (pressed) => [...document.querySelectorAll(".advertising-photo-view__suggestion-link")]
@@ -573,18 +591,31 @@ test("M02a primary player and suggestion text carry the two-layer shadow and sol
         .map((link) => [getComputedStyle(link.querySelector(".advertising-photo-view__suggestion-label")).textShadow,
           getComputedStyle(link, "::after").backgroundColor]);
       // getComputedStyle không đọc được ::-webkit-slider-thumb, nên đọc rule trong stylesheet.
-      const thumbs = [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules])
+      const rules = [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules]);
+      const thumbs = rules
         .filter((rule) => rule.selectorText?.includes("advertising-video-player__range::-webkit-slider-thumb") && rule.style.backgroundColor)
         .map((rule) => rule.style.backgroundColor);
+      const seek = Object.fromEntries(rules.filter((rule) => rule.style?.boxShadow)
+        .map((rule) => [rule.selectorText, rule.style.boxShadow]));
+      // Nút mang icon có drop-shadow là lớp riêng để bóng chỉ vẽ một lần (owner 2026-10-26 "Giữ bóng, tách lớp").
+      const tileStep = rules.find((rule) => rule.selectorText === ".advertising-tile > .advertising-photo-view__media-step");
+      const layers = [style(".advertising-video-player__button").willChange,
+        getComputedStyle(document.querySelector(".advertising-photo-view__media-thumbs svg").parentElement).willChange,
+        tileStep?.style.willChange];
       return { bar: style(".advertising-video-player__bar").backgroundImage, time: style(".advertising-video-player__time").textShadow,
         filters: [".advertising-video-player__button svg", ".advertising-video-player__progress"]
-          .map((selector) => style(selector).filter),
-        idle: label(false), pressed: label(true), thumbs };
+          .map((selector) => style(selector).filter), layers,
+        idle: label(false), pressed: label(true), thumbs, seek };
     });
     let state = await read();
     assert.equal(state.bar, "none", "the bar has no gradient band");
     assert.equal(state.time, two, "time carries the two-layer text shadow");
-    assert.deepEqual(state.filters, [drop, drop], "bar icons and seek bar carry the two-layer drop shadow");
+    assert.deepEqual(state.filters, [drop, "none"], "bar icons carry the two-layer drop shadow, the seek bar no filter");
+    assert.deepEqual(state.layers, ["transform", "transform", "transform"],
+      "player buttons, the thumb play icon and the card arrows are their own layers");
+    assert.deepEqual(seekShadows.map((selector) => state.seek[selector]),
+      ["rgba(0, 0, 0, 0.12) 0px 0px 4px, rgba(0, 0, 0, 0.22) 0px 0px 24px", "rgba(0, 0, 0, 0.5) 0px 0px 4px, rgba(0, 0, 0, 0.45) 0px 0px 28px"],
+      "seek track and thumb carry the two-layer box shadow tuned to the old drop shadow");
     assert.deepEqual(state.thumbs, ["rgb(251, 251, 249)"], "seek and volume thumbs are solid");
     assert(state.idle.length > 0, "the fixture shows suggestion buttons");
     assert(state.idle.every(([shadow, layer]) => shadow === two && layer !== "rgba(0, 0, 0, 0)"),
@@ -1125,6 +1156,8 @@ test("M02a expand opens the playing primary video in the blurred viewer without 
       "the backdrop is blurred, not solid black");
     assert.equal(await page.locator("[data-advertising-photo-video-host] [data-advertising-photo-player]").count(), 1,
       "the player bar comes with the video");
+    assert.deepEqual(await underViewer(page), { image: "hidden", background: true, live: true, glass: true },
+      "under the viewer the primary frame shows the still blur of the video frame");
     await page.waitForTimeout(500);
     assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer video has no wait sweep behind it");
     assert.deepEqual(await page.evaluate(() => ["zoom-in", "zoom-out"].map((hook) =>
