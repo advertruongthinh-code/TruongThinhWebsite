@@ -778,10 +778,12 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
 
 // Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (advertising-skeleton R5): worker giữ một context chung, mỗi frame
 // vẽ lần lượt từng khung đang chạy rồi chép bitmap sang canvas bitmaprenderer của khung, nên số khung chạy không bị chặn.
-let flowHub;
-function sharedFlowHub() {
-  if (flowHub !== undefined) return flowHub;
-  const surface = new OffscreenCanvas(FLOW_WIDTH, FLOW_HEIGHT);
+// Mỗi kích thước vẽ một context riêng (PC `240x160`, khung card điện thoại `120x80`): đổi cỡ surface mỗi lượt vẽ sẽ cấp lại bộ đệm.
+const flowHubs = new Map();
+function sharedFlowHub(width, height) {
+  const key = `${width}x${height}`;
+  if (flowHubs.has(key)) return flowHubs.get(key);
+  const surface = new OffscreenCanvas(width, height);
   const attributes = SKELETON_FLOW_CONTEXT_ATTRIBUTES;
   let gl = surface.getContext("webgl", attributes);
   let locations = null;
@@ -798,7 +800,10 @@ function sharedFlowHub() {
     };
     return true;
   };
-  if (!setup()) return (flowHub = null);
+  if (!setup()) {
+    flowHubs.set(key, null);
+    return null;
+  }
   const entries = new Set();
   let frameId = 0;
   let lastTimestamp = -1;
@@ -848,12 +853,16 @@ function sharedFlowHub() {
     lost = !setup();
     resume();
   });
-  return (flowHub = { entries, paint, resume });
+  const hub = { entries, paint, resume };
+  flowHubs.set(key, hub);
+  return hub;
 }
 
 // Cùng API với createSkeletonFlowRenderer; chỉ chạy trong worker.
-export function createSkeletonFlowSharedRenderer(canvas, { preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1 }) {
-  const hub = sharedFlowHub();
+export function createSkeletonFlowSharedRenderer(canvas, {
+  preset, initialPhase = FLOW_CLOCK_START, direction = 1, speedScale = 1, width = FLOW_WIDTH, height = FLOW_HEIGHT,
+}) {
+  const hub = sharedFlowHub(width, height);
   const target = hub && canvas.getContext("bitmaprenderer");
   if (!target) return null;
   const entry = {

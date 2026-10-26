@@ -70,9 +70,9 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 // Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// PC (advertising-skeleton R5): Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome
-// 155: tạo context thứ 5 thì context cũ nhất bị thu hồi), nên mọi khung trong worker vẽ chung một context rồi chuyển hình
-// sang canvas của khung; số khung chạy cùng lúc không còn bị giới hạn bởi context.
+// Advertising-skeleton R5: Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome 155 và
+// A04s, Chrome 156: tạo context thứ 5 thì context cũ nhất bị thu hồi), nên mọi khung trong worker vẽ chung một context rồi
+// chuyển hình sang canvas của khung. PC chạy tối đa 24 khung; điện thoại giữ ngân sách 12 khung để giữ gate fps (R8).
 const SKELETON_SHARED_BUDGET = 24;
 // Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
@@ -2028,7 +2028,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const visibleSkeletonFrames = new Set();
   const skeletonFlowByFrame = new Map();
   const skeletonLeaseByFrame = new Map();
-  const sharedFlowAllowed = () => skeletonFlowWorkerSupported() && !skeletonPhone();
+  const sharedFlowAllowed = () => skeletonFlowWorkerSupported();
   const skeletonAssignmentByFrame = new Map();
   const skeletonFrameBySlot = new Map();
   const skeletonPhaseBySlot = new Map();
@@ -2236,7 +2236,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
   const syncSkeletonRenderers = (rects) => {
-    const budget = sharedFlowAllowed() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
+    const budget = sharedFlowAllowed() && !skeletonPhone() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
     const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
