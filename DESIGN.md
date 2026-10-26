@@ -12,7 +12,7 @@ colors:
   orange: "#a34119"
   orange-accent: "#d85d2b"
   media-loading-surface: "#2b2c2b"
-  media-label-overlay: "rgba(0, 0, 0, 0.4)"
+  media-label-overlay: "rgba(0, 0, 0, 0.5)"
   media-control-hover: "#ddd"
   media-control-active: "#c6c6c6"
   control-disabled-surface: "#f3f3f1"
@@ -144,7 +144,7 @@ Chi tiết: [design-system/README.md](design-system/README.md#layout).
 ## Elevation & Depth
 
 Phẳng, phân lớp bằng tông: `paper`, `ink`, `line`, `media-loading-surface`. Không có box-shadow cho container.
-Text-shadow chỉ có một ngoại lệ: chữ trắng trên ảnh dùng `text-shadow-d` (hai lớp, vành `0 0 2px` đen `0.5` dưới
+Text-shadow chỉ có một ngoại lệ: chữ trắng trên ảnh ngoài hero (portal, "Giữ nghề", CTA) dùng `text-shadow-d` (hai lớp, vành `0 0 2px` đen `0.5` dưới
 quầng `0 0 12px` đen `0.4`) cạnh lớp tối sẵn có; chữ `ink` trên giấy không có bóng. Kính ([Glass](design-system/components/Glass/README.md)) là lớp mờ trên ảnh, không phải bóng. Focus ring
 là tín hiệu tương tác, không phải elevation.
 

@@ -500,7 +500,8 @@
 
 .detail-cta::after {
   content: "";
-  background: rgba(0, 0, 0, 0.4);
+  /* Owner 2026-10-26: 0,5 (trước 0,4). */
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .detail-cta__copy {
@@ -1035,14 +1036,6 @@
   will-change: transform;
 }
 
-.about-hero .hero-shade {
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.52), transparent 36%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.54), transparent 68%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.48), transparent 38%),
-    rgba(0, 0, 0, 0.12);
-}
-
 .about-hero .hero-content {
   top: 49%;
   text-align: left;
@@ -1506,17 +1499,54 @@ body.is-advertising-browse .advertising-grid {
   display: grid;
   place-items: center;
   padding: 0.5rem;
-  background: rgba(0, 0, 0, 0.72);
+  /* Owner 2026-10-26: lớp đen 0,7 (trước 0,72). */
+  background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
   pointer-events: none;
+  transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+}
+
+/* Hover theo Pinterest (media-card R3, owner 2026-10-19; 30% từ 2026-10-26): chuột thật phủ lớp đen 30% lên canvas, "Vừa xem" mờ đi cùng
+   nhịp; nhãn thời lượng (z-index 2) nằm trên lớp tối, video vẫn chạy bên dưới. */
+.advertising-card-media::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: "";
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity var(--media-hover-duration) var(--media-hover-easing);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .advertising-tile:hover .advertising-card-media::after {
+    opacity: 1;
+  }
+
+  .advertising-tile:hover .advertising-card-media__just-viewed {
+    opacity: 0;
+  }
 }
 
 .advertising-card-media__image {
   transition: opacity var(--media-hover-duration) var(--media-hover-easing),
     var(--media-hover-transform);
+}
+
+/* Dải liền khi đổi media (media-card R3): lane không chạy fade lúc tải; lane cạnh nằm tuyệt đối, runtime dời bằng translate. */
+.advertising-card-media__image--lane {
+  transition: none;
+}
+
+.advertising-card-media__image--beside {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Media đang tải mang frame skeleton cuối masonry (docs/specs/loading-glass-and-page-entry.md R1). */
@@ -1533,13 +1563,13 @@ body.is-advertising-browse .advertising-grid {
   touch-action: pan-y;
 }
 
+/* Mọi item cùng tỷ lệ với canvas (media-card R1) nên phủ đúng canvas; width auto trước đây
+   co ảnh về đúng giá trị sizes do lazysizes đo, ảnh hiện nhỏ hơn cột. */
 .advertising-card-media--carousel [data-advertising-media-item] {
   display: block;
   flex: none;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .advertising-card-media--carousel > img[hidden],
@@ -1547,17 +1577,20 @@ body.is-advertising-browse .advertising-grid {
   display: none;
 }
 
+/* Nhãn thời lượng theo card video Pinterest (owner 2026-10-17): viên thuốc trắng 0.9, chữ 12px, tổng thời lượng. */
 .advertising-card-media__duration {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 8px;
   z-index: 2;
-  padding: 4px 7px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
+  padding: 4px 6px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
   font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
-  line-height: 1;
+  font-weight: 500;
+  line-height: 1rem;
   pointer-events: none;
 }
 
@@ -1577,6 +1610,18 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: none;
 }
 
+/* Chấm hoặc bộ đếm nằm trong pill cùng dáng nhãn thời lượng, màu than 0.9 chữ trắng như bộ đếm "2/8" của Pinterest
+   (owner 2026-10-26). Pill cao 24px, vùng bấm 20×44px của chấm vẫn tràn ra dải. */
+.advertising-card-media__pill {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 2px;
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(32, 33, 32, 0.9);
+}
+
 .advertising-card-media__dot {
   display: grid;
   flex: 0 0 20px;
@@ -1590,85 +1635,30 @@ body.is-advertising-browse .advertising-grid {
   pointer-events: auto;
 }
 
+/* Chấm 8px theo UI chấm của Gallery (bullet Swiper, owner 2026-10-17), đảo màu trên pill: chấm thường trắng 40%, chấm đang xem trắng. */
 .advertising-card-media__dot::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-}
-
-.advertising-card-media__dot[aria-current="true"]::before {
-  background: currentColor;
-}
-
-.advertising-card-media__indicator--numeric {
-  padding-inline: 4px;
-  white-space: nowrap;
-}
-
-.advertising-card-media__step {
-  display: grid;
-  flex: 0 0 44px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-}
-
-.advertising-card-media__step::before {
   content: "";
   width: 8px;
   height: 8px;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.4;
 }
 
-.advertising-card-media__step--previous::before {
-  transform: rotate(-135deg);
+.advertising-card-media__dot[aria-current="true"]::before {
+  opacity: 1;
 }
 
-.advertising-card-media__step--next::before {
-  transform: rotate(45deg);
-}
-
-.advertising-card-media__step:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
+/* Chữ như nhãn thời lượng: 12px, 500, số đều. */
 .advertising-card-media__count {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-  font-size: 0.8rem;
+  padding: 0 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1rem;
 }
 
-.advertising-card-media__playback {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 3;
-  min-width: 44px;
-  min-height: 38px;
-  padding: 5px 9px;
-  border: 0;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  cursor: pointer;
-}
-
-.advertising-card-media__dot:focus-visible,
-.advertising-card-media__step:focus-visible,
-.advertising-card-media__playback:focus-visible {
+.advertising-card-media__dot:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
@@ -1964,44 +1954,402 @@ body.is-advertising-browse .site-footer {
   opacity: 0;
 }
 
+/* Video nằm cùng hộp contain với ảnh trong khung cover, nền trong suốt để zoom blur (poster) hiện ở vùng dư. */
 .advertising-photo-view__hero [data-advertising-photo-video] {
   position: absolute;
   z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: var(--advertising-photo-image-width);
+  height: var(--advertising-photo-image-height);
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+}
+
+/* Dải media nhiều item theo pin Pinterest (đo lại 2026-10-18): mũi tên trắng 36px góc vuông (owner 2026-10-24) cách mép
+   16px, chevron nét mảnh 16px, hiện khi hover, hover nền #f6f6f3, nhấn thu 0.9; chấm 8px cách nhau 8px ở đáy, đang xem
+   trắng, còn lại trắng 0.5. */
+.advertising-photo-view__media-step {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 100ms ease-out;
+}
+
+.advertising-photo-view__media-step:hover {
+  background: #f6f6f3;
+}
+
+.advertising-photo-view__media-step:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+.advertising-photo-view__media-step--prev {
+  left: 16px;
+}
+
+.advertising-photo-view__media-step--next {
+  right: 16px;
+}
+
+.advertising-photo-view__media-step svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.advertising-photo-view__media-step[hidden] {
+  display: none;
+}
+
+/* Card nhiều media trên masonry theo grid Pinterest (đo lại 2026-10-18): vùng bấm 32px cao hết canvas ở mép trái, phải
+   (trên dải chấm 44px), chevron trắng 16px nét mảnh cao gần hết ô (tâm cách mép 16px), không nền, nằm trên lớp tối hover;
+   bóng nhẹ để chevron vẫn đọc được trên ảnh sáng. */
+.advertising-tile > .advertising-photo-view__media-step {
+  top: 0;
+  width: 32px;
+  height: calc(100% - 44px);
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  transform: none;
+}
+
+.advertising-tile > .advertising-photo-view__media-step--prev {
+  left: 0;
+}
+
+.advertising-tile > .advertising-photo-view__media-step--next {
+  right: 0;
+}
+
+.advertising-tile > .advertising-photo-view__media-step svg {
+  width: 16px;
+  height: 16px;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+@media (hover: hover) {
+  :is(.advertising-photo-view__hero-frame, .advertising-tile):hover > .advertising-photo-view__media-step {
+    opacity: 1;
+  }
+}
+
+/* Cảm ứng không hover: đổi media bằng vuốt, mũi tên vô hình không được chặn chạm vào media. */
+@media (hover: none) {
+  .advertising-photo-view__media-step {
+    display: none;
+  }
+}
+
+.advertising-photo-view__media-step:focus-visible {
+  opacity: 1;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Dải media khi đổi media (media-card R6): hộp cắt đúng BBox contain; media thật ẩn tới khi dải dừng. */
+.advertising-photo-view__strip {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: var(--advertising-photo-image-width);
+  height: var(--advertising-photo-image-height);
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.advertising-photo-view__strip-media {
+  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: var(--media-loading-surface);
+}
+
+.advertising-photo-view__hero-frame[data-advertising-photo-sliding] :is([data-advertising-photo-image], [data-advertising-photo-video]) {
+  visibility: hidden;
 }
 
 .advertising-photo-view__hero [hidden] {
   display: none;
 }
 
-.advertising-photo-view__audio-toggle {
+/* Player video primary theo trang pin Pinterest (đo 2026-10-18): không controls gốc, bấm video phát/dừng, không nút phát
+   giữa video. Mọi nút một hàng [phát][giờ][thanh tua][tiếng] (owner 2026-10-25). Thanh âm lượng thêm theo owner. Không
+   dải gradient: icon, thanh tua, giờ mang bóng hai lớp D (primary-video-player R4). */
+.advertising-video-player {
   position: absolute;
   z-index: 3;
-  top: 16px;
-  right: 16px;
-  min-width: 48px;
-  min-height: 48px;
-  padding: 8px 12px;
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  background: #fff;
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 700;
+  inset: 0;
+  color: #fff;
+}
+
+.advertising-video-player__surface {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 
-.advertising-photo-view__audio-toggle:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
+.advertising-video-player svg {
+  display: block;
+  fill: currentColor;
 }
 
-.advertising-photo-view__hero [data-advertising-photo-background] {
+/* Bóng hai lớp D (R4): cùng giá trị --text-shadow-d, viết dạng drop-shadow cho svg và thanh tua. */
+.advertising-video-player :is(.advertising-video-player__button svg, .advertising-video-player__progress) {
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 12px rgba(0, 0, 0, 0.4));
+}
+
+.advertising-video-player__bar {
+  position: absolute;
+  inset: auto 0 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  /* PC (R7): hàng 36px thẳng đáy nút mở lớn (cách khung 16px), icon tiếng dừng trước nút đó 8px: 16 + 36 + 8. */
+  padding: 0 60px 16px 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+
+.advertising-video-player__bar > * {
+  pointer-events: auto;
+}
+
+/* Chuột rời video thì ẩn; đang dừng hoặc đang focus bàn phím thì luôn hiện (cảm ứng: khối hover none bên dưới). */
+@media (hover: hover) {
+  .advertising-photo-view__hero-frame:hover .advertising-video-player__bar,
+  .advertising-photo-dialog__video:hover .advertising-video-player__bar {
+    opacity: 1;
+  }
+}
+
+
+.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__bar,
+.advertising-video-player:has(:focus-visible) .advertising-video-player__bar {
+  opacity: 1;
+}
+
+.advertising-video-player__button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  margin: 0 -10px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.advertising-video-player__button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.advertising-video-player__stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.advertising-video-player[data-advertising-video-paused="true"] .advertising-video-player__icon-pause,
+.advertising-video-player[data-advertising-video-paused="false"] .advertising-video-player__icon-play,
+.advertising-video-player[data-advertising-video-muted="true"] .advertising-video-player__icon-sound,
+.advertising-video-player[data-advertising-video-muted="false"] .advertising-video-player__icon-muted {
+  display: none;
+}
+
+.advertising-video-player__time {
+  margin: 0 0 0 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5rem;
+  white-space: nowrap;
+  text-shadow: var(--text-shadow-d);
+}
+
+.advertising-video-player__total {
+  opacity: 0.6;
+}
+
+.advertising-video-player__volume {
+  position: relative;
+}
+
+.advertising-video-player__range {
+  --range-fill: 0%;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.advertising-video-player__progress {
+  width: auto;
+  min-width: 0;
+  height: 36px;
+  flex: 1 1 auto;
+  margin: 0 8px 0 12px;
+}
+
+.advertising-video-player__range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__range::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  /* Núm đặc (R5): núm trong suốt để lộ đường tua chạy xuyên qua. */
+  background: #fbfbf9;
+  appearance: none;
+}
+
+.advertising-video-player__range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: #fbfbf9;
+}
+
+/* Thanh âm lượng dọc (owner 2026-10-18) bật lên phía trên nút loa khi chuột hoặc focus bàn phím vào cụm tiếng, tách khỏi
+   thanh tua ngang để không thao tác nhầm. Viên nền đen 0.5 (owner 2026-10-26) nằm sát nút nên di chuột lên không mất hover. Chỉ focus-visible
+   giữ cột mở: focus do chuột không giữ, nên kéo bằng chuột xong rời đi thì cột thu lại (owner 2026-10-24). */
+.advertising-video-player__volume-pop {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  display: grid;
+  width: 32px;
+  height: 104px;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 12px 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%);
+  transition: opacity 150ms ease-out, visibility 150ms;
+}
+
+.advertising-video-player__volume:is(:hover, :has(:focus-visible)) .advertising-video-player__volume-pop {
+  opacity: 1;
+  visibility: visible;
+}
+
+.advertising-video-player__volume-range {
+  width: 16px;
+  height: 100%;
+  writing-mode: vertical-lr;
+  direction: rtl;
+}
+
+.advertising-video-player__volume-range::-webkit-slider-runnable-track {
+  width: 4px;
+  height: 100%;
+  margin: 0 auto;
+  background: linear-gradient(to top, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__volume-range::-moz-range-track {
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to top, rgba(251, 251, 249, 0.5) var(--range-fill), rgba(255, 255, 255, 0.24) var(--range-fill));
+}
+
+.advertising-video-player__volume-range::-webkit-slider-thumb {
+  margin: 0 0 0 -4px;
+}
+
+/* Màn hình cảm ứng (primary-video-player R1): thanh luôn hiện, cùng hàng như PC nhưng nút 40px; nút tiếng chỉ bật/tắt,
+   không cột âm lượng. */
+@media (hover: none) {
+  .advertising-video-player__bar {
+    padding: 0 4px 4px;
+    opacity: 1;
+  }
+
+  /* Nút mở lớn hiện với video ở primary (R8): hàng dừng trước nút đó như PC. */
+  .advertising-photo-view__hero-frame .advertising-video-player__bar {
+    padding-right: 60px;
+  }
+
+  .advertising-video-player__volume-pop {
+    display: none;
+  }
+
+  .advertising-video-player__time {
+    margin-left: 4px;
+    font-size: 0.875rem;
+    line-height: 40px;
+  }
+
+  .advertising-video-player__progress {
+    height: 40px;
+  }
+
+  .advertising-video-player__button {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .advertising-video-player__button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.advertising-video-player :is(button, input):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.advertising-photo-view__hero [data-advertising-photo-background],
+.advertising-photo-view__live-background {
   position: absolute;
   z-index: 0;
   inset: 0;
@@ -2013,7 +2361,7 @@ body.is-advertising-browse .site-footer {
   user-select: none;
 }
 
-[data-advertising-photo-glass="false"] .advertising-photo-view__hero [data-advertising-photo-background] {
+[data-advertising-photo-glass="false"] .advertising-photo-view__hero :is([data-advertising-photo-background], .advertising-photo-view__live-background) {
   display: none;
 }
 
@@ -2022,114 +2370,62 @@ body.is-advertising-browse .site-footer {
    repaint đầy đủ. Cùng số với .glass-surface__step--full; Kính phía trên chỉ giữ tint và grain. */
 .advertising-photo-view__hero [data-advertising-photo-background] {
   filter: blur(100px) saturate(1.7) brightness(1.04);
+  /* Blur lấy mẫu trong suốt ngoài mép ảnh nên mép khung lộ nền xám thành vignette; tràn mép 2 lần bán kính blur như
+     canvas nền realtime để mép đặc như giữa (owner 2026-10-19). */
+  inset: -200px;
+  width: calc(100% + 400px);
+  height: calc(100% + 400px);
 }
 
 
 
 
+/* Nút vuông trắng chỉ icon (primary-video-player R7): tên qua aria-label, không bung chữ khi hover. */
 .advertising-photo-view__image-action {
-  --image-action-edge-padding: 14px;
   position: absolute;
   z-index: 3;
   bottom: 16px;
-  box-sizing: border-box;
-  display: inline-flex;
-  width: 48px;
-  max-width: calc(100% - 96px);
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
-  align-items: center;
-  overflow: hidden;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
   padding: 0;
-  border: 1px solid var(--ink);
+  border: 0;
   border-radius: 0;
   background: #fff;
   color: var(--ink);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  text-transform: uppercase;
-  text-decoration: none;
-  white-space: nowrap;
   cursor: pointer;
-  transition: width 250ms ease-in, background-color 150ms ease-out;
+  transition: background-color 150ms ease-out;
 }
 
 .advertising-photo-view__expand {
   right: 16px;
-  --image-action-open-width: max(156px, calc(10.5rem - 12px));
-}
-
-.advertising-photo-view__image-action span {
-  position: absolute;
-  inset: 0 calc(var(--image-action-edge-padding) + 36px) 0
-    calc(var(--image-action-edge-padding) + 3px);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0;
-  overflow: hidden;
-  opacity: 0;
-  text-align: left;
-  white-space: normal;
-  transition: opacity 250ms cubic-bezier(0, 1, 0, 1);
 }
 
 .advertising-photo-view__image-action svg {
-  position: absolute;
-  right: var(--image-action-edge-padding);
-  top: var(--image-action-edge-padding);
-  box-sizing: border-box;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 20px;
-  padding: 0;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: square;
   stroke-linejoin: miter;
-  stroke-width: 1.5;
+  stroke-width: 2;
 }
 
 @media (hover: hover) {
   .advertising-photo-view__image-action:hover {
-    width: var(--image-action-open-width);
-    height: max(48px, calc(2.4em + 14px));
     background: var(--media-control-hover);
-  }
-
-  .advertising-photo-view__image-action:hover span {
-    opacity: 1;
-    transition-timing-function: cubic-bezier(1, 0, 1, 0);
   }
 }
 
 .advertising-photo-view__image-action:focus-visible {
-  width: var(--image-action-open-width);
-  height: max(48px, calc(2.4em + 14px));
   outline: 2px solid var(--ink);
   outline-offset: 3px;
   box-shadow: 0 0 0 3px #fff;
 }
 
-.advertising-photo-view__image-action:focus-visible span {
-  opacity: 1;
-  transition-timing-function: cubic-bezier(1, 0, 1, 0);
-}
-
 .advertising-photo-view__image-action:active {
   background: var(--media-control-active);
-}
-
-.advertising-photo-view__hero-frame:has(.advertising-photo-view__image-action:focus-visible)
-  .advertising-photo-view__image-action:not(:focus-visible) {
-  width: 48px;
-}
-
-.advertising-photo-view__hero-frame:has(.advertising-photo-view__image-action:focus-visible)
-  .advertising-photo-view__image-action:not(:focus-visible) span {
-  opacity: 0;
 }
 
 .advertising-photo-view__info {
@@ -2160,31 +2456,55 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-view__info [data-advertising-photo-description] {
   max-width: 100%;
   margin: 0;
-  font-size: 1rem;
 }
 
+/* Dãy thumbnail một dòng vừa số thumbnail nguyên (60px, gap 8px), thừa thì cuộn ngang (owner 2026-10-24). */
 .advertising-photo-view__media-thumbs {
+  --scroll-fade-direction: to right;
+  --scroll-fade-size: 60px;
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  width: 100%;
+  width: calc(round(down, 100% + 8px, 68px) - 8px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
 
+/* Còn nội dung phía sau thì phần tử cuối trong khung mờ về trắng, đã cuộn thì phần tử đầu mờ; dùng cho dãy thumbnail và
+   mô tả (owner 2026-10-24), runtime gắn data-fade-start, data-fade-end theo vị trí cuộn. */
+:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll):is([data-fade-start], [data-fade-end]) {
+  mask-image: linear-gradient(var(--scroll-fade-direction), var(--scroll-fade-from, #000), #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)), var(--scroll-fade-to, #000));
+}
+
+:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll)[data-fade-start] {
+  --scroll-fade-from: transparent;
+}
+
+:is(.advertising-photo-view__media-thumbs, .advertising-photo-view__description-scroll)[data-fade-end] {
+  --scroll-fade-to: transparent;
+}
+
+/* Thumbnail theo pin Pinterest (đo 2026-10-18): 60px, góc vuông (owner 2026-10-24), đang xem có viền 1px tối và viền trong
+   1px trắng. */
 .advertising-photo-view__media-thumbs button {
   position: relative;
-  flex: 0 0 52px;
-  width: 52px;
-  height: 52px;
-  padding: 2px;
-  border: 1px solid var(--line);
-  border-radius: 0;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
   background: var(--media-loading-surface);
   cursor: pointer;
 }
 
-.advertising-photo-view__media-thumbs button[aria-current="true"] {
-  border: 2px solid var(--ink);
-  padding: 1px;
+.advertising-photo-view__media-thumbs button[aria-current="true"]::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgb(51, 51, 46);
+  box-shadow: inset 0 0 0 1px #fff;
+  content: "";
 }
 
 .advertising-photo-view__media-thumbs button:focus-visible {
@@ -2205,68 +2525,77 @@ body.is-advertising-browse .site-footer {
   width: 20px;
   height: 20px;
   fill: #fff;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
   transform: translate(-50%, -50%);
 }
 
-[data-advertising-photo-description-pager] {
+/* Mô tả cuộn dọc thay cho phân trang (owner 2026-10-24), chữ căn đều, mép mờ như dãy thumbnail. Thanh cuộn theo player
+   (rãnh 4px, viên 4px dài theo lượng chữ) chỉ hiện khi hover hoặc focus bàn phím, fade 150ms, kéo được; màn hình cảm ứng
+   không có thanh, vuốt để cuộn. */
+.advertising-photo-view__description {
+  position: relative;
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
-  overflow: clip;
-  touch-action: pan-y;
 }
 
-.advertising-photo-view__description-page {
-  width: 100%;
+.advertising-photo-view__description-scroll {
+  --scroll-fade-direction: to bottom;
+  --scroll-fade-size: 1lh;
   height: 100%;
-  overflow: clip;
+  overflow-y: auto;
+  font-size: 1rem;
+  scrollbar-width: none;
 }
 
-/* min-height giữ dòng 24px cả lúc chưa có dot, để paginateDescription đo pager đúng chiều cao cuối (detail R3). */
-.advertising-photo-view__description-indicator {
-  display: flex;
-  min-height: 24px;
-  margin: 0;
-  font-size: 0.75rem;
-  line-height: 24px;
-  font-variant-numeric: tabular-nums;
+.advertising-photo-view__description-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  opacity: 0;
+  touch-action: none;
+  transition: opacity 150ms ease-out;
 }
 
-/* Vùng bấm 24px mỗi dot; margin âm căn dot đầu với mép text. */
-.advertising-photo-view__description-indicator button {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  place-items: center;
-  cursor: pointer;
-}
-
-.advertising-photo-view__description-indicator button:first-child {
-  margin-inline-start: -8px;
-}
-
-.advertising-photo-view__description-indicator button::before {
-  width: 8px;
-  height: 8px;
-  box-sizing: border-box;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
+.advertising-photo-view__description-bar::before,
+.advertising-photo-view__description-bar::after {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 4px;
+  border-radius: 999px;
   content: "";
 }
 
-.advertising-photo-view__description-indicator button[aria-current="true"]::before {
-  background: var(--ink);
+.advertising-photo-view__description-bar::before {
+  bottom: 0;
+  background: rgba(32, 33, 32, 0.16);
 }
 
-.advertising-photo-view__description-indicator button:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
+.advertising-photo-view__description-bar::after {
+  height: var(--thumb-height);
+  background: rgba(32, 33, 32, 0.6);
+  transform: translateY(var(--thumb-top));
+}
+
+.advertising-photo-view__description:is(:hover, :has(:focus-visible)) > .advertising-photo-view__description-bar,
+.advertising-photo-view__description-bar[data-dragging] {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .advertising-photo-view__description:has(> .advertising-photo-view__description-bar:not([hidden]))
+    > .advertising-photo-view__description-scroll {
+    padding-right: 16px;
+  }
+}
+
+@media (hover: none) {
+  .advertising-photo-view__description-bar {
+    display: none;
+  }
 }
 
 .advertising-photo-view__cta {
@@ -2422,11 +2751,14 @@ body.is-advertising-browse .site-footer {
   outline-offset: 2px;
 }
 
+/* Lớp tối 0,5 luôn hiện, hover không đổi (owner 2026-10-26, giữa hai mức 0,4 và 0,6 của Pinterest). Nút gợi ý cũng mang class
+   advertising-card-media, nên phải đặt lại opacity 1: lớp tối hover của card để ::after ở 0. */
 .advertising-photo-view__suggestion-link::after {
   position: absolute;
   z-index: 1;
   inset: 0;
-  background: var(--media-label-overlay);
+  background: rgb(0 0 0 / 0.5);
+  opacity: 1;
   transition: opacity 250ms ease-out;
   content: "";
 }
@@ -2469,10 +2801,13 @@ body.is-advertising-browse .site-footer {
   text-align: center;
   text-wrap: balance;
   overflow-wrap: anywhere;
+  /* Bóng hai lớp D trên lớp tối sẵn có (primary-video-player R4); nút đang chọn chữ ink trên nền giấy thì không. */
+  text-shadow: var(--text-shadow-d);
 }
 
 .advertising-photo-view__suggestion-link[aria-pressed="true"] .advertising-photo-view__suggestion-label {
   color: var(--ink);
+  text-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2504,18 +2839,11 @@ body.is-advertising-browse .site-footer {
 }
 
 .advertising-photo-dialog::backdrop {
-  /* Phone không blur (rớt gate phone Android), bù bằng lớp tối 90% (advertising-detail R9). */
-  background: rgba(32, 33, 32, 0.9);
+  /* Mọi máy cùng lớp tối 0,85 và Kính blur (advertising-detail R9; owner 2026-10-26 bỏ ngoại lệ phone không blur). */
+  background: rgba(32, 33, 32, 0.85);
+  backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
   /* Fade swipe-to-close đặt biến trên dialog (advertising-viewer-touch-zoom R9). */
   opacity: var(--advertising-viewer-backdrop-opacity, 1);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .advertising-photo-dialog::backdrop {
-    background: rgba(32, 33, 32, 0.85);
-    /* Kính blur với độ nâng màu của surface đều, giữ tối (advertising-detail R9). */
-    backdrop-filter: blur(50px) saturate(1.7) brightness(1.04);
-  }
 }
 
 .advertising-photo-dialog:not([data-advertising-viewer-swipe])::backdrop {
@@ -2554,7 +2882,12 @@ body.is-advertising-browse .site-footer {
   touch-action: none;
 }
 
-.advertising-photo-dialog__viewport img {
+/* Ảnh, host video và lớp trượt chồng cùng một ô. */
+.advertising-photo-dialog__viewport > * {
+  grid-area: 1 / 1;
+}
+
+.advertising-photo-dialog__viewport :is(img, video, canvas) {
   display: block;
   width: auto;
   height: auto;
@@ -2570,10 +2903,10 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-dialog__close,
 .advertising-photo-dialog__controls button {
   display: inline-grid;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: 1px solid currentColor;
+  border: 0;
   border-radius: 0;
   place-items: center;
   color: var(--ink);
@@ -2610,20 +2943,19 @@ body.is-advertising-browse .site-footer {
 .advertising-photo-dialog__controls button:disabled {
   color: #91918c;
   background: #f3f3f1;
-  border-color: #c5c5bf;
   cursor: default;
   transition: none;
 }
 
 .advertising-photo-dialog__close svg,
 .advertising-photo-dialog__controls button svg {
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: square;
   stroke-linejoin: miter;
-  stroke-width: 1.5;
+  stroke-width: 2;
 }
 
 .advertising-photo-dialog__close {
@@ -2631,6 +2963,64 @@ body.is-advertising-browse .site-footer {
   top: calc(var(--advertising-viewer-visible-top, 0px) + max(1rem, env(safe-area-inset-top)));
   left: calc(var(--advertising-viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
   z-index: 2;
+}
+
+/* Dãy thumbnail dưới viewer thay hai mũi tên (primary-video-player R8, owner 2026-10-25): cùng dãy với primary, nằm giữa
+   đáy trong lề 80px của Fit, rộng theo số thumbnail và chừa chỗ cho cột nút zoom bên phải. */
+.advertising-photo-dialog__thumbs {
+  position: absolute;
+  bottom: calc(var(--advertising-viewer-visible-bottom, 0px) + max(1rem, env(safe-area-inset-bottom)));
+  left: 50%;
+  z-index: 2;
+  width: max-content;
+  max-width: calc(round(down, 100% - 2 * (2rem + 36px) + 8px, 68px) - 8px);
+  translate: -50% 0;
+  transition: opacity 0.3s ease, translate 0.3s ease;
+}
+
+.advertising-photo-dialog__thumbs button:focus-visible {
+  outline-color: #fff;
+}
+
+/* Chuột đứng yên thì dãy thu xuống và mờ đi (owner 2026-10-26). */
+.advertising-photo-dialog__thumbs[data-advertising-viewer-idle] {
+  opacity: 0;
+  translate: -50% 1rem;
+  pointer-events: none;
+}
+
+/* Host video trong viewer: nền ngoài video không nhận chuột để bấm vẫn đóng viewer; player phủ đúng khung Fit. */
+.advertising-photo-dialog__video {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  pointer-events: none;
+}
+
+.advertising-photo-dialog__video > * {
+  pointer-events: auto;
+}
+
+/* Viewer PC không có nút mở lớn: thanh tua chạy tới lề phải như lề trái. */
+@media (hover: hover) {
+  .advertising-photo-dialog__video .advertising-video-player__bar {
+    padding-right: 16px;
+  }
+}
+
+.advertising-photo-dialog__video > .advertising-video-player {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: var(--advertising-viewer-fit-width);
+  height: var(--advertising-viewer-fit-height);
+  translate: -50% -50%;
+}
+
+.advertising-photo-dialog__ghost {
+  pointer-events: none;
 }
 
 .advertising-photo-dialog__controls {
@@ -2907,13 +3297,15 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 /* Màn cảm ứng mở, zoom và đóng viewer bằng gesture; button còn lại cho screen reader và hiện
    lại khi có keyboard focus (advertising-viewer-touch-zoom R7, R8). */
 @media (hover: none) and (pointer: coarse) {
+  /* Như manipulation nhưng không pan-x: vuốt ngang kéo dải media theo ngón tay (media-card R6). */
   .advertising-photo-view__hero-frame {
-    touch-action: manipulation;
+    touch-action: pan-y pinch-zoom;
   }
 
-  .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible),
+  .advertising-photo-view__image-action.advertising-photo-view__expand:not(:focus-visible, [data-advertising-photo-expand-video]),
   .advertising-photo-dialog__close:not(:focus-visible),
-  .advertising-photo-dialog__controls button:not(:focus-visible) {
+  .advertising-photo-dialog__controls button:not(:focus-visible),
+  .advertising-photo-dialog__thumbs:not(:focus-within) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -2929,9 +3321,9 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
 @media (prefers-reduced-motion: reduce) {
   .advertising-photo-view__image-action,
-  .advertising-photo-view__image-action span,
   .advertising-photo-dialog__close,
-  .advertising-photo-dialog__controls button {
+  .advertising-photo-dialog__controls button,
+  .advertising-photo-dialog__thumbs {
     transition: none !important;
   }
 

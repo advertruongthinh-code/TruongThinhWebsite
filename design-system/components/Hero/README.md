@@ -10,7 +10,9 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 - Chữ là nhân vật chính: một kicker nhỏ phía trên, tiêu đề hai dòng rất lớn,
   không nút, không đoạn văn dài.
 - Chữ trắng trên ảnh (có `hero-shade` tối để đọc được), chữ `ink` trên nền
-  `paper`. Header đổi tone theo nền qua `data-header-tone`.
+  `paper`. `hero-shade` chung mọi hero ảnh: phủ đều `0.2`; độ tối tổng mép trên `0.7` nhạt
+  dần, mịn tới đúng `0.2` trong 36% chiều cao hero, mép dưới `0.5`; không lớp ngang; chữ hero không bóng
+  (owner 2026-10-26). Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).
 - Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,
@@ -24,7 +26,7 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
 | --- | --- | --- | --- |
 | Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, cả hai đậm 700, dòng 2 nghiêng; lớn hơn các trang khác một bậc | Có |
 | Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700 nghiêng, line-height 1.4; Residential nhấn dòng 2, Commercial nhấn `em` | Có |
-| About | Ảnh đội ngũ, shade thêm lớp ngang | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
+| About | Ảnh đội ngũ, `hero-shade` | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
 | Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa nhẹ 500, đậm 700, line-height 1.4 | Có |
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với

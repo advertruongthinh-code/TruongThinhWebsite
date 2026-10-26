@@ -8,7 +8,7 @@ const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.ur
 const css = (await read("detail.css")) + (await read("style.css"));
 const runtime = await read("advertising-products/catalog-runtime.mjs");
 
-// R1: chỉ các glass step và nền viewer trên máy có chuột sở hữu backdrop-filter (phone không blur, decision phone-frame-budget).
+// R1: chỉ các glass step và nền viewer sở hữu backdrop-filter (nền viewer blur trên mọi máy từ owner 2026-10-26).
 const owners = [...css.matchAll(/([^{}]+)\{[^{}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());
 assert.deepEqual([...new Set(owners)].sort(),
   [".advertising-photo-dialog::backdrop", ".glass-surface__step", ".glass-surface__step--full"],
