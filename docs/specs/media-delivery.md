@@ -8,7 +8,7 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-25
+updated: 2026-10-26
 ---
 
 # Tải ảnh nội dung
@@ -88,7 +88,7 @@ kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `d
 
 | Nơi | Cách tải |
 | --- | --- |
-| Card masonry, related (`createPhotoMedia`) | LazySizes `data-src`, `data-srcset`, `data-sizes` bằng bề rộng card từ solver (chỉ nâng), trong cửa sổ ảo hóa ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)) |
+| Card masonry, related (`createPhotoMedia`) | `data-sizes` bằng bề rộng card từ solver (chỉ nâng), trong cửa sổ ảo hóa ([masonry R7](advertising-masonry.md#r7-ảo-hóa-và-bàn-phím)); masonry qua LazySizes `data-src`, `data-srcset`; related native lazy `src`, `srcset`, `sizes` vì rAF LazySizes chiếm 13-24ms frame mount trên phone (owner 2026-10-26) |
 | Nút suggestion | native lazy, `srcset`, `sizes="auto, 50vw"`; ảnh kế của slideshow eager, `sizes` ghim bằng bề rộng nút |
 | Item khác trên card nhiều media | native lazy, `sizes="auto, 50vw"` ([media-card R5](media-card.md#r5-chờ-tải-và-lỗi-media)) |
 | Thumbnail primary | lazy, `sizes="auto, 25vw"`; video dùng poster |

@@ -48,7 +48,7 @@ function fixture(ratios, category = "fixture") {
 function wideVideoCoverFixture() {
   const legacy = ADVERTISING_CARDS.find((card) => card.id === "signage-raised-letters-08");
   assert(legacy);
-  assert.deepEqual(readWebpSize(new URL(`../../src/site${legacy.media.src}`, import.meta.url)), [1254, 1254]);
+  assert.deepEqual(readWebpSize(new URL(`../../src/site${legacy.media.src}`, import.meta.url)), [3072, 3072]);
   assert.deepEqual(readWebpSize(new URL("./fixtures/site-media-card-poster.webp", import.meta.url)), [640, 360]);
   const image = {
     ...legacy.mediaItems[0], id: `${legacy.id}-wide-image`, altVi: "fixture ảnh", altEn: "fixture image",
