@@ -116,8 +116,9 @@
       return runtime;
     }),
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
-    // Vào thẳng URL photo thì detail (mô tả, related) cần ngay: tải cùng artifact, runtime dùng chung module.
-    location.pathname.includes("/p/") ? import("/advertising-products/catalog-detail.mjs").catch(() => {}) : null,
+    // Vào thẳng URL photo thì detail (dữ liệu và code photo view) cần ngay: tải cùng artifact, runtime dùng chung module.
+    ...(location.pathname.includes("/p/") ? ["catalog-detail.mjs", "catalog-detail-runtime.mjs", "photo-viewer.mjs"] : [])
+      .map((name) => import(`/advertising-products/${name}`).catch(() => {})),
   ]).then(([, runtime]) => runtime);
 
   const ensureAdvertisingCarouselStyle = () => {

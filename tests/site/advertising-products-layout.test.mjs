@@ -26,7 +26,7 @@ import { validateAdvertisingCardMedia } from "../../src/site/advertising-product
 
 const previousWindow = globalThis.window;
 globalThis.window = {};
-const { compileAdvertisingRelatedLayout } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+const { compileAdvertisingRelatedLayout } = await import("../../src/site/advertising-products/catalog-detail-runtime.mjs");
 if (previousWindow === undefined) delete globalThis.window;
 else globalThis.window = previousWindow;
 

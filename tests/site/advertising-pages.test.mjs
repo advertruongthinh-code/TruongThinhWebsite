@@ -7,7 +7,8 @@ import { ADVERTISING_CHIP_PRODUCT_THRESHOLD, ADVERTISING_THIN_PRODUCT_THRESHOLD 
 
 // Runtime đọc window lúc import; test chỉ dùng hàm thuần nên gán window rỗng.
 globalThis.window ??= {};
-const { parseAdvertisingBrowseLocation, selectAdvertisingRelated, selectAdvertisingSuggestions, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+const { parseAdvertisingBrowseLocation, serializeAdvertisingBrowseLocation } = await import("../../src/site/advertising-products/catalog-runtime.mjs");
+const { selectAdvertisingRelated, selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-detail-runtime.mjs");
 const read = (path) => readFile(new URL(`../../.site-output/${path}`, import.meta.url), "utf8");
 const artifact = buildAdvertisingArtifact();
 

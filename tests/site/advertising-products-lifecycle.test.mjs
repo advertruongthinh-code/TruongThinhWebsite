@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const runtime = await readFile(new URL("../../src/site/advertising-products/catalog-runtime.mjs", import.meta.url), "utf8");
+// Runtime gồm chunk detail tải lazy và lõi lưới (static-release R1); giữ thứ tự cũ: hàm detail đứng trước mount.
+const runtime = (await Promise.all(["catalog-detail-runtime.mjs", "catalog-runtime.mjs"]
+  .map((name) => readFile(new URL(`../../src/site/advertising-products/${name}`, import.meta.url), "utf8")))).join("\n");
 const detailSource = await readFile(new URL("../../src/site/detail.js", import.meta.url), "utf8");
 const motionSource = await readFile(new URL("../../src/site/motion.js", import.meta.url), "utf8");
 const viewerSource = await readFile(new URL("../../src/site/advertising-products/photo-viewer.mjs", import.meta.url), "utf8");

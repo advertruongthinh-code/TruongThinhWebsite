@@ -41,7 +41,7 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; rail công trình, [trang chủ R8](page-home.md#r8-rail-công-trình)), xóa `.site-output/`, chép
 `src/site/` rồi chèn card rail vào `index.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), minify JS app (esbuild: `motion.js`, `detail.js`, `advertising-products/*.mjs`; giữ dòng đầu `//# allFunctionsCalledOnLoad`;
--53 KB brotli, 8 card đầu nhanh hơn khoảng 0,3 s), `modulepreload` runtime, artifact và mọi module runtime import tĩnh vào trang Advertising (đọc từ câu `import`, không viết tay; gộp ba đợt mạng, 8 card đầu nhanh hơn khoảng 0,2 s), xử lý HTML (R5, R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
+-53 KB brotli, 8 card đầu nhanh hơn khoảng 0,3 s), `modulepreload` runtime, artifact và mọi module runtime import tĩnh vào trang Advertising (đọc từ câu `import`, không viết tay; gộp ba đợt mạng, 8 card đầu nhanh hơn khoảng 0,2 s; code chỉ photo view cần nằm ở `catalog-detail-runtime.mjs`, import động nên không preload, bớt 6 KB brotli), xử lý HTML (R5, R6), 22 route locale (R5). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
 chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của năm HTML trang và `404.html`; SVG gốc sai số `path`,
 `text` thì build dừng.
 

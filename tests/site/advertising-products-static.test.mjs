@@ -6,7 +6,9 @@ import { ADVERTISING_LAYOUT_ALGORITHM_VERSION, columnsForWidth, compileAdvertisi
 
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
-  read("src/site/advertising-products/catalog-runtime.mjs"),
+  // Runtime gồm chunk detail tải lazy và lõi lưới (static-release R1); giữ thứ tự cũ: hàm detail đứng trước mount.
+  Promise.all(["catalog-detail-runtime.mjs", "catalog-runtime.mjs"].map((name) => read(`src/site/advertising-products/${name}`)))
+    .then((sources) => sources.join("\n")),
   read("src/site/advertising-products/index.html"),
   read("src/site/detail.css"),
   read("src/site/style.css"),
@@ -25,7 +27,7 @@ let compileAdvertisingRelatedLayout;
 let selectAdvertisingRelated;
 let selectAdvertisingSuggestions;
 try {
-  ({ compileAdvertisingRelatedLayout, selectAdvertisingRelated, selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+  ({ compileAdvertisingRelatedLayout, selectAdvertisingRelated, selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-detail-runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
@@ -44,6 +46,8 @@ assert.match(css, /@media \(scripting: none\) \{\s*\.project-grid > noscript \{\
   "no-JS fallback markup never renders as text while JavaScript loads the catalog");
 assert.match(prepare, /buildAdvertisingArtifact\(\)/, "prepare step builds the output artifact");
 assert.match(prepare, /catalog-artifact\.mjs/, "artifact is output-only");
+assert.doesNotMatch(await read("src/site/advertising-products/catalog-runtime.mjs"), /from "\.\/(?:photo-viewer|catalog-detail-runtime)\.mjs"/,
+  "photo view code stays out of the preloaded runtime graph (static-release R1)");
 assert.match(prepare, /runtimeSource\.matchAll\(\/from[\s\S]*rel="modulepreload"/, "Advertising pages preload every static runtime import (static-release R1)");
 assert.match(prepare, /compileAdvertisingLayout/, "prepare step uses the pure layout compiler for preflight");
 assert.match(prepare, /\[320, 390, 768, 1024, 1440, 1920, 2560\]/, "public preflight covers every required viewport width");

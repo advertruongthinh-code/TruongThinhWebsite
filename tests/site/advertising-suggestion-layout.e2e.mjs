@@ -15,7 +15,7 @@ const previousWindow = globalThis.window;
 Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: {} });
 let selectAdvertisingSuggestions;
 try {
-  ({ selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-runtime.mjs"));
+  ({ selectAdvertisingSuggestions } = await import("../../src/site/advertising-products/catalog-detail-runtime.mjs"));
 } finally {
   Object.defineProperty(globalThis, "window", { configurable: true, writable: true, value: previousWindow });
 }
