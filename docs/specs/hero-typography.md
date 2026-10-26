@@ -137,9 +137,10 @@ primary-video-player R4 (PR #434, chưa merge):
 - Vì mask nới thêm 12px, dòng chưa reveal tụt xuống `maskHiddenY` (motion.js): tối thiểu 2em, và không thấp hơn
   đáy mask cộng `0.6em + 8px + --text-shadow-reach`. Chỉ tụt 2em thì chữ nhỏ (kicker portal, kicker hero trang con)
   lộ đỉnh chữ và dấu qua vùng nới trước khi motion chạy. Chữ lớn vẫn tụt 2em, nên motion không đổi.
-- Lúc dòng đang ẩn hoặc đang trồi lên, mép dưới mask không nới vùng bóng (class `is-text-masked` đặt
-  `--mask-shadow-bottom: 0px`); chữ chỉ hiện từ đáy mực của chính nó như trước khi có bóng. Tween reveal xong mới gỡ
-  class, mở lại 12px dưới cho quầng. Nới cả lúc trồi thì chữ nhỏ hiện lơ lửng nửa trên dưới chỗ đứng (owner 2026-10-26).
+- Lúc dòng đang ẩn hoặc đang trồi lên, dòng không có bóng và mép dưới mask không nới vùng bóng (class
+  `is-text-masked` đặt `text-shadow: none`, `--mask-shadow-bottom: 0px`); chữ chỉ hiện từ đáy mực của chính nó.
+  Tween reveal xong mới gỡ class: mask mở 12px dưới, bóng hiện dần 0.6s (owner 2026-10-26: bóng chỉ fade sau khi
+  motion xong). Nới cả lúc trồi thì chữ nhỏ hiện lơ lửng nửa trên dưới chỗ đứng.
 - Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích. Ghi vào `design-system/` chỉ khi owner "ok" trong
   thread làm việc này (gate Design System).
 

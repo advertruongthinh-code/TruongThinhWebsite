@@ -33,9 +33,11 @@ try {
             // Chỉ xét dòng đang ẩn dưới mask (y dương); dòng đã reveal hoặc chưa có transform bỏ qua.
             if (lineY < 1 || !line.textContent.trim()) return [];
             const label = `${mask.className} "${line.textContent.trim().slice(0, 24)}"`;
-            if (getComputedStyle(mask).getPropertyValue("--mask-shadow-bottom").trim() !== "0px") {
+            const maskStyle = getComputedStyle(mask);
+            if (maskStyle.getPropertyValue("--mask-shadow-bottom").trim() !== "0px") {
               return [`${label} đang ẩn nhưng mép dưới mask còn nới vùng bóng`];
             }
+            if (getComputedStyle(line).textShadow !== "none") return [`${label} đang ẩn nhưng còn bóng chữ`];
             const clip = getComputedStyle(mask).clipPath.match(/-?[\d.]+px/g)?.map(Number.parseFloat);
             if (!clip) return [];
             const [top, right, bottom] = clip;
