@@ -2,6 +2,7 @@
 // node scripts/ci/suites.mjs --select [--event <tên sự kiện>] [--base <ref>]  -> JSON id bộ cho matrix
 // node scripts/ci/suites.mjs <id>        -> build, mở preview port trống, chạy lệnh của bộ
 // node scripts/ci/suites.mjs --changed   -> chạy các bộ mà --select chọn so với origin/main
+// node scripts/ci/suites.mjs --all       -> JSON mọi bộ cho lượt đêm
 import { execFileSync, execSync, spawn, spawnSync } from "node:child_process";
 import { appendFileSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
@@ -92,7 +93,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
   const flag = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
   const changed = (base) => execFileSync("git", ["diff", "--name-only", `${base}...HEAD`], { encoding: "utf8" }).split("\n").filter(Boolean);
-  if (args[0] === "--select") {
+  if (args[0] === "--all") {
+    console.log(JSON.stringify(ids));
+  } else if (args[0] === "--select") {
     console.log(JSON.stringify(select(changed(flag("--base", "origin/main")), flag("--event", "pull_request"))));
   } else {
     const suiteIds = args[0] === "--changed" ? select(changed("origin/main")) : args;

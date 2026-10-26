@@ -7,7 +7,15 @@ on:
   push:
     branches: [main]
   # Automerge dispatch CI trên main sau khi merge, vì merge bằng GITHUB_TOKEN không kích hoạt push.
+  # Dispatch tay với full: true chạy đủ bộ như lượt đêm.
   workflow_dispatch:
+    inputs:
+      full:
+        type: boolean
+        default: false
+  # Đủ bộ chạy mỗi đêm 02:00 giờ Việt Nam; PR và push chỉ chạy fast (spec ci-test-suites R4).
+  schedule:
+    - cron: "0 19 * * *"
 
 permissions:
   contents: read
@@ -34,10 +42,11 @@ jobs:
           node-version: 22
       - id: select
         env:
-          DRAFT: ${{ github.event.pull_request.draft }}
+          FULL: ${{ github.event_name == 'schedule' || inputs.full == true }}
         run: |
           suites=$(node scripts/ci/suites.mjs --select --event "$GITHUB_EVENT_NAME" --base HEAD^1)
-          if [ "$DRAFT" = true ] && [ "$suites" != "[]" ]; then suites='["fast"]'; fi
+          if [ "$FULL" = true ]; then suites=$(node scripts/ci/suites.mjs --all)
+          elif [ "$suites" != "[]" ]; then suites='["fast"]'; fi
           echo "suites=$suites" >> "$GITHUB_OUTPUT"
 
   suite:
@@ -45,7 +54,7 @@ jobs:
     if: needs.select.outputs.suites != '[]'
     name: ${{ matrix.suite }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 12
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +75,10 @@ jobs:
       # Runner GitHub-hosted trắng mỗi job nên cài Chromium cùng system deps.
       - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
       # Bộ adv-browse chạy thêm WebKit (random-browse); các bộ khác chỉ Chromium.
-      - run: pnpm exec playwright install --with-deps chromium ${{ matrix.suite == 'adv-browse' && 'webkit' || '' }}
+      # apt có lúc treo ở bước này (PR 567): quá 5 phút thì cài lại một lần.
+      - run: |
+          cmd="pnpm exec playwright install --with-deps chromium ${{ matrix.suite == 'adv-browse' && 'webkit' || '' }}"
+          timeout 300 $cmd || timeout 300 $cmd
 
       # Script tự build, mở preview ở port trống riêng và dọn server.
       - run: pnpm qa:suite ${{ matrix.suite }}
@@ -111,9 +123,9 @@ jobs:
           [ "${{ needs.select.result }}" = success ] || exit 1
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
 
-  # Deploy demo chỉ chạy trên main (push hoặc dispatch của Automerge) khi static-release xanh.
+  # Deploy demo chỉ chạy trên main (push hoặc dispatch của Automerge) khi static-release, tức bộ fast, xanh; lượt đêm không deploy.
   deploy-demo:
     needs: static-release
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true
     uses: ./.github/workflows/deploy-demo.yml
     secrets: inherit
