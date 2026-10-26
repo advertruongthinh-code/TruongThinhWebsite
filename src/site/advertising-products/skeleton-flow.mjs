@@ -776,8 +776,8 @@ export function createSkeletonFlowWorkerRenderer(canvas, options) {
   };
 }
 
-// Khung vượt ngân sách context riêng (advertising-skeleton R5): worker giữ một context WebGL chung, mỗi frame vẽ lần lượt từng
-// khung đang chạy rồi chép bitmap sang canvas bitmaprenderer của khung, nên số khung chạy không bị chặn bởi 12 context.
+// Chrome chỉ giữ 4 context WebGL sống trong mỗi worker (advertising-skeleton R5): worker giữ một context chung, mỗi frame
+// vẽ lần lượt từng khung đang chạy rồi chép bitmap sang canvas bitmaprenderer của khung, nên số khung chạy không bị chặn.
 let flowHub;
 function sharedFlowHub() {
   if (flowHub !== undefined) return flowHub;
@@ -833,8 +833,8 @@ function sharedFlowHub() {
   const resume = () => {
     if (!frameId && !lost && entries.size) frameId = requestAnimationFrame(tick);
   };
-  // Trình duyệt giới hạn khoảng 16 context mỗi trang và bỏ context cũ nhất, tức context chung này: mất thì khung giữ hình
-  // cuối, khôi phục thì dựng lại và chạy tiếp.
+  // Context chung là context duy nhất của worker nên không bị bỏ vì giới hạn 4; mất do GPU reset thì khung giữ hình cuối,
+  // khôi phục thì dựng lại và chạy tiếp.
   surface.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
     programByContext.delete(gl);

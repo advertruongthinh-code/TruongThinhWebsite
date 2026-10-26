@@ -81,16 +81,10 @@ try {
     await context.close();
   }
 
-  // PC cao: nhiều hơn 12 card chờ ảnh trong viewport thì card thứ 13 trở đi chạy Flow trên context chung trong worker
-  // (advertising-skeleton R5), không dừng ở ảnh tĩnh 48x32.
+  // PC cao: nhiều hơn 12 card chờ ảnh trong viewport thì mọi card chạy Flow trên một context chung trong worker
+  // (advertising-skeleton R5); Chrome chỉ giữ 4 context mỗi worker nên context riêng cho từng card sẽ bị thu hồi.
   {
     const { context, page } = await open({ viewport: { width: 1920, height: 1400 } });
-    // Ẩn ảnh tĩnh dưới canvas: ảnh chụp chỉ còn nội dung canvas, trống thì đứng yên.
-    await page.addInitScript(() => document.addEventListener("DOMContentLoaded", () => {
-      const style = document.createElement("style");
-      style.textContent = ".advertising-grid__cta-surface, .advertising-grid__cta-flow { background-image: none !important; background-color: #00ff00 !important; }";
-      document.head.append(style);
-    }));
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
     for (let y = 400; y <= 2400; y += 400) {
@@ -103,11 +97,7 @@ try {
       .map((frame) => ({ looping: frame.classList.contains("is-looping"), context: frame.querySelector("canvas")?.dataset.advertisingFlowContext })));
     assert.ok(frames.length > 12, `desktop tall: more than 12 loading cards in view ${frames.length}`);
     assert.ok(frames.every(({ looping }) => looping), `desktop tall: every loading card runs Flow ${JSON.stringify(frames)}`);
-    const shared = page.locator('[data-project-grid] canvas[data-advertising-flow-context="shared"]').first();
-    assert.ok(await shared.count(), "desktop tall: cards beyond 12 own contexts use the shared context");
-    const first = await shared.screenshot();
-    await page.waitForTimeout(500);
-    assert.ok(!first.equals(await shared.screenshot()), "desktop tall: shared-context canvas paints moving Flow");
+    assert.ok(frames.every(({ context }) => context === "shared"), `desktop tall: worker Flow uses the shared context ${JSON.stringify(frames)}`);
     await context.close();
   }
 

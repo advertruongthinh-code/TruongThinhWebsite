@@ -70,9 +70,9 @@ const skeletonPhone = () => matchMedia("(pointer: coarse)").matches || navigator
 // Desktop rộng hiển thị 8-10 frame CTA cùng lúc; 12 giữ tất cả còn sống và vẫn dưới giới hạn 16 context của Chrome.
 // Điện thoại cũng chạy mọi khung trong viewport (owner 2026-10-10), không còn giới hạn 2.
 const SKELETON_CONTEXT_BUDGET = 12;
-// PC (advertising-skeleton R5): 8 khung chờ ảnh đầu có context riêng, khung còn lại (tối đa 24 khung chạy) chạy trên một
-// context chung trong worker; còn dư chỗ so với giới hạn khoảng 16 context mỗi trang, nên không bị trình duyệt thu hồi.
-const SKELETON_OWN_BUDGET = 8;
+// PC (advertising-skeleton R5): Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo trên RTX 3090, Chrome
+// 155: tạo context thứ 5 thì context cũ nhất bị thu hồi), nên mọi khung trong worker vẽ chung một context rồi chuyển hình
+// sang canvas của khung; số khung chạy cùng lúc không còn bị giới hạn bởi context.
 const SKELETON_SHARED_BUDGET = 24;
 // Reveal đã duyệt: glass trong 0-0.6s, crossfade 0.3-0.9s, glass ra 0.6-1.4s; card và primary thu thời lượng về 0.6s (owner 19/10).
 const MEDIA_REVEAL_MS = 1400;
@@ -2028,7 +2028,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const visibleSkeletonFrames = new Set();
   const skeletonFlowByFrame = new Map();
   const skeletonLeaseByFrame = new Map();
-  const skeletonOwnContextFrames = new Set();
   const sharedFlowAllowed = () => skeletonFlowWorkerSupported() && !skeletonPhone();
   const skeletonAssignmentByFrame = new Map();
   const skeletonFrameBySlot = new Map();
@@ -2188,14 +2187,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       ...(skeletonPhone() ? PHONE_CARD_FLOW : {}),
     };
     // Vuốt nhanh làm rAF main thread còn khoảng 12fps trên A04s: vẽ trong worker thì Flow chạy đều (R8, owner 19/10).
-    const shared = !lease && sharedFlowAllowed() && skeletonOwnContextFrames.size >= SKELETON_OWN_BUDGET;
+    const shared = !lease && sharedFlowAllowed();
     const workerRenderer = !lease && createSkeletonFlowWorkerRenderer(canvas, shared ? { ...options, shared: true } : options);
     if (shared && !workerRenderer) return;
     const renderer = workerRenderer || createSkeletonFlowRenderer(canvas, options);
     canvas.dataset.advertisingFlowBackend = renderer?.backend || "fallback";
     skeletonFlowByFrame.set(frame, renderer);
     canvas.dataset.advertisingFlowContext = shared ? "shared" : "own";
-    if (!shared) skeletonOwnContextFrames.add(frame);
     if (renderer?.context) {
       const record = lease || rememberSkeletonContext(canvas, renderer.context, renderer);
       record.renderer = renderer;
@@ -2233,7 +2231,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       skeletonLeaseByFrame.delete(frame);
     }
     skeletonFlowByFrame.delete(frame);
-    skeletonOwnContextFrames.delete(frame);
     const oldCanvas = frame.querySelector("canvas");
     if (oldCanvas && skeletonAssignmentByFrame.has(frame)) oldCanvas.replaceWith(createSkeletonCanvas(frame));
   };
