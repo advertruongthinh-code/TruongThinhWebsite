@@ -154,18 +154,49 @@ test("M01d related uses valid 16:9 cover and leaves primary legacy geometry alon
     `related frame must use 16:9 cover: ${placement.pixelWidth}x${placement.mediaPixelHeight}`);
 });
 
-test("M01d cards retain coordinate hash, order and no filler", () => {
-  const order = ADVERTISING_CARDS.map((card) => card.id);
-  // Owner chuyển hai gian hàng dừa sang Gian hàng triển lãm (2026-10-23); ảnh upscale owner duyệt 2026-10-26 (28 ảnh, 11 ảnh gen lại, 150 ảnh đợt 1-4, 4 ảnh owner tự sửa; #872 đổi sang khung ngang) đổi kích thước pixel, hash cập nhật, thứ tự card giữ nguyên.
-  for (const [layoutViewportWidth, expectedHash] of [[390, "5f2b97de"], [1440, "e884b66d"]]) {
+// Golden: catalog mẫu cố định, không phụ thuộc ảnh thật ([R3 test không phụ thuộc nội dung](../../docs/specs/content-independent-tests.md#r3-golden-chỉ-trên-fixture)).
+// Chỉ đổi hash khi thuật toán layout đổi có chủ đích; đổi ảnh/tỷ lệ ảnh thật không đụng tới test này.
+function goldenCatalogFixture() {
+  const ratios = [[4, 5], [1, 1], [3, 2], [16, 9], [2, 3], [9, 16], [5, 4], [3, 4]];
+  const categories = ["golden-a", "golden-b", "golden-c"];
+  return Array.from({ length: 90 }, (_, index) => {
+    const [width, height] = ratios[(index * 5 + Math.floor(index / 8)) % ratios.length];
+    const category = categories[index % categories.length];
+    return {
+      id: `${category}-${String(index).padStart(3, "0")}`, category, sourceOrder: index, rank: index,
+      layoutSpan: index % 11 === 0 ? 2 : 1,
+      media: { src: `/${category}-${index}.webp`, width: width * 200, height: height * 200 },
+    };
+  });
+}
+
+test("M01d fixture layout retains golden coordinate hash, order and no filler", () => {
+  const cards = goldenCatalogFixture();
+  const order = cards.map((card) => card.id);
+  for (const [layoutViewportWidth, expectedHash] of [[390, "6e535537"], [1440, "699646cd"]]) {
     const layout = compileAdvertisingProductLayout({
-      cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
+      cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
     });
     assert.equal(layout.coordinateHash, expectedHash);
     assert.deepEqual(layout.diagnostics.placementOrder, order);
+    assert.equal(layout.placements.length, cards.length);
+    assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
+  }
+});
+
+// Bất biến trên catalog thật: giữ thứ tự, đủ card, không filler, không chồng lấn; không ghim hash tọa độ.
+test("M01d real catalog keeps order, count, no filler and passes the geometry oracle", () => {
+  const order = ADVERTISING_CARDS.map((card) => card.id);
+  for (const layoutViewportWidth of [390, 1440]) {
+    const layout = compileAdvertisingProductLayout({
+      cards: ADVERTISING_CARDS, categoryOrder, datasetVersion: ADVERTISING_DATASET_VERSION,
+      columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
+    });
+    assert.deepEqual(layout.diagnostics.placementOrder, order);
     assert.equal(layout.placements.length, ADVERTISING_CARDS.length);
     assert.equal(layout.placements.some(({ card }) => card.kind === "suggestion"), false);
+    assertGrid(layout, `real catalog ${layoutViewportWidth}px`, ADVERTISING_CARDS.length);
   }
 });
 
