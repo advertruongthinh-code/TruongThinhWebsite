@@ -52,7 +52,11 @@ nấc 1. Khung lớn (hero, ảnh full-bleed, card full-span, primary) lên nấ
 thoại không phải giữ nhiều ảnh gốc 25 MB trong RAM.
 
 `build-image-variants.mjs` sinh thêm cỡ 1600 và 2048 ở AVIF. WebP vẫn dừng ở 960 cộng bản gốc làm fallback.
-[CẦN LÀM RÕ: chỉ AVIF cho 1600 và 2048 (repo thêm khoảng 90 MB, suy luận từ mẫu), hay cả WebP (khoảng gấp đôi)?] Owner.
+Owner muốn chuyển sang JPEG XL nếu chạy được trên web và điện thoại (A04s, A05s, iPhone 16), sau này dùng làm ảnh động
+(2026-10-27). Đo trên 8 ảnh 1600px: ở cùng SSIM với AVIF quality 55, JXL nặng hơn khoảng 50% (1309 KB so với 872 KB);
+SSIM có thể thiên về AVIF, chưa đo bằng thước khác. Chrome bật JXL mặc định từ bản 155 (nguồn thứ cấp), Safari có từ 17
+(theo nguồn thứ cấp là không có ảnh động và không có progressive). [CẦN LÀM RÕ: kết quả kiểm trên ba máy thật quyết định giữ
+AVIF hay thêm JXL.] Main, máy PC, owner.
 
 ```gherkin
 Given /vi/residential/ ở 390×844 DPR 3, Slow 4G, cache trống
@@ -92,6 +96,19 @@ Nấc 2 bắt đầu khi trang vào tầng 3 (R4). Việc nâng dùng lại lõi
 5. Nấc 3: mở viewer hiện ngay file đang có (nấc 1 hoặc 2, đã có trong cache), rồi nâng lên bản gốc theo bước 2. Phóng to
    trong viewer trước khi bản gốc về thì vẫn phóng được trên file đang có.
 
+Điều kiện bắt buộc khi dùng lại lõi `image-tier.js`, rút từ review 2026-10-27 (dòng theo commit `de9ec90`):
+
+- Lưu `src`, `srcset` của ảnh và `<source>` trước `await decode()`; sau đó ảnh đã đổi nguồn hoặc rời DOM thì bỏ, không ghi
+  (L102-113 ghi đè: primary đang đổi sang ảnh B sẽ bị trả về bản gốc của ảnh A).
+- Nhu cầu hiển thị dùng chung công thức crop của script `<head>` (`index.html` dòng 52), không dùng
+  `getBoundingClientRect().width` (L103: khung dọc 461×720 cần 1080px chỉ nhận 461px).
+- Không bao giờ hạ: bỏ qua khi file đang hiện đã đủ nhu cầu hoặc là bản gốc (cùng điều kiện `index.html` dòng 54).
+- Chỉ đưa vào hàng ảnh đã `complete` và có `naturalWidth`; ảnh chưa tải nghe `load` rồi mới vào (L97-98, L88).
+- Rời trang (Barba) hoặc card bị gỡ thì hủy bản tách rời đang tải để trả chỗ; card dựng lại do ảo hóa vào hàng ngay lúc
+  tạo (`createPhotoMedia`, `renderPrimaryMedia`).
+- `sizes` luôn là px đã tính, không để `auto` ở bản tách rời, để bản tách rời và ảnh thật chọn cùng URL.
+- Tính khoảng cách tới tâm một lần mỗi lượt chọn; bỏ `retries`, `force`, `probeWaiting`.
+
 Không có nhánh theo tốc độ mạng hay Save-Data (owner bỏ tải ảnh theo mạng ngày 26/10). Nâng nấc chạy theo thời gian ở mọi
 mạng: mạng thường cũng qua nấc 1 trước, mạng chậm vẫn nâng, chỉ chậm hơn. Đây là khác biệt chính với PR #559.
 
@@ -119,29 +136,28 @@ tầng 2, tầng 3 cho media.
 | Tầng | Gồm | Kết thúc khi |
 | --- | --- | --- |
 | 0. Khung | HTML, hai CSS, hai font preload, script `<head>` | Lần vẽ đầu, veil trắng phủ |
-| 1. Mở veil | JavaScript `defer`; Advertising thêm vendor, runtime, artifact và khung masonry; ảnh hero nấc 1 | Veil bắt đầu mở (luật dưới) |
+| 1. Mở veil | JavaScript `defer`, font; Advertising thêm vendor, runtime, artifact và khung masonry. Ảnh hero nấc 1 bắt đầu tải ở tầng này nhưng veil không chờ nó | Veil bắt đầu mở (luật dưới) |
 | 2. Nội dung đầu | Ảnh nấc 1 trong viewport, motion chữ hero, rail và chip, card trong cửa sổ ảo hóa đầu | Mọi ảnh trong viewport settled (load hoặc lỗi) và intro hero xong |
 | 3. Nền | Ảnh ngoài viewport (lazy), slide hero sau, video, module Swiper, `catalog-detail`, nấc 2 | Không có mốc kết thúc |
 
-Veil bắt đầu mở khi `mountPage` xong và thêm một trong hai điều kiện sau, cái nào tới trước:
+Mọi lần vào trang (mở trực tiếp và chuyển mềm) đều có veil như hiện nay (owner 2026-10-27). Veil bắt đầu mở khi đủ thứ cần
+thiết: `mountPage` xong (shell, chữ hero, khung có kích thước; Advertising gồm khung masonry) và `document.fonts.ready` đã
+xong. Veil không chờ ảnh nào, kể cả hero: ảnh chưa xong thì khung chạy vệt sáng hoặc skeleton sau khi veil mở (R2).
 
-- ảnh hero nấc 1 đã decode xong (hoặc lỗi) và `document.fonts.ready` đã xong; trang không có ảnh hero thì chỉ chờ font;
-- đã qua `600ms` kể từ lúc `mountPage` xong. Khi đó veil mở dù hero còn vệt sáng.
-
-Mốc `600ms` đếm từ lúc mount xong, không đếm từ `<head>`, nên giữ luật "mạng chậm giữ veil tới khi mount xong" của
-[shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache). Delay intro hero vẫn đếm từ lúc veil bắt đầu mở
+Không có mốc thời gian: mạng chậm thì veil giữ tới khi đủ hai điều kiện trên, đúng luật
+[shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache). Font lỗi vẫn làm `fonts.ready` xong nên không treo
+veil. Delay intro hero vẫn đếm từ lúc veil bắt đầu mở
 ([mở trực tiếp R2](first-load-parity.md#r2-motion-chữ-hero-khi-mở-trực-tiếp-giống-chuyển-mềm)). Reduced motion, fallback,
 bfcache giữ như shell R7.
-[CẦN LÀM RÕ: veil chờ ảnh hero và font với trần 600ms như trên, hay giữ như hiện nay (mở ngay khi mount xong)?] Owner.
 
 ```gherkin
-Given /vi/residential/ mở bằng link, ảnh hero nấc 1 về 300ms sau khi mount xong
+Given /vi/residential/ mở bằng link, ảnh hero bị trễ 3s, font về trước khi mount xong
 When ghi hình từ lúc điều hướng
-Then veil bắt đầu mở ngay khi hero decode xong và font đã sẵn, hero hiện đủ dưới veil đang mở, không thấy vệt sáng
+Then veil bắt đầu mở ngay khi mount xong, hero còn vệt sáng, chữ hero chạy motion như chuyển mềm
 
-Given ảnh hero bị trễ 3s
-When mount xong
-Then veil bắt đầu mở đúng 600ms sau mount, hero còn vệt sáng, chữ hero chạy motion như chuyển mềm
+Given font bị trễ 1s, mount xong ở 400ms
+When ghi hình từ lúc điều hướng
+Then veil bắt đầu mở khi font về, chữ hero không đổi font sau khi veil mở
 ```
 
 ### R5. Thứ tự ưu tiên tài nguyên
@@ -206,8 +222,8 @@ Then chỉ có một hàm nâng nấc, được import từ trang tĩnh và từ
 Đo trên demo theo [tải ảnh R7](media-delivery.md#r7-đo-tốc-độ-và-ngân-sách), so với bản `main` trước thay đổi, cùng
 cohort, 5 lượt, cả `390×844` DPR 3 và `1440×900`:
 
-- Ảnh đầu trong viewport sẵn sàng (nấc 1) ở route có khung lớn: nhanh hơn ít nhất 30% trên điện thoại (đề xuất, ước từ byte
-  325 KB xuống 58 KB).
+- Ảnh đầu trong viewport sẵn sàng (nấc 1) ở route có khung lớn: nhanh hơn ít nhất 30% trên điện thoại (agent đề xuất, owner
+  giao chốt 2026-10-27; byte giảm từ 325 KB xuống 58 KB nên 30% còn dư cho thời gian JS và mạng).
 - Veil tan theo gate [mở trực tiếp R3](first-load-parity.md#r3-phần-nhẹ-hiện-trước-phần-nặng-không-chặn) (dưới 1s).
 - Thời gian tới ảnh kế sau cuộn không chậm hơn quá 5%; byte ảnh trên điện thoại không tăng.
 - CLS tối đa 0,1; 0 request ảnh trùng URL; không frame nào thấy vệt sáng hiện lại sau nấc 1.
@@ -226,7 +242,7 @@ Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 | File | `<tên>-1600.avif`, `<tên>-2048.avif` cạnh `<tên>.webp` | Biến thể nấc 2 (R1), `build-image-variants.mjs` ghi, `--check` kiểm |
 | Module | Module nâng nấc dùng chung (tên chốt trong plan) | Hàng đợi và đổi nguồn của R3, R7 |
 | Promise | Điều kiện mở veil trong `mountPage` (`motion.js`) | R4, cả mở trực tiếp và route mềm |
-| Hằng | `600ms` trần chờ hero, tối đa 2 ảnh nâng, `120ms` cuộn yên | R3, R4 |
+| Hằng | Tối đa 2 ảnh nâng, `120ms` cuộn yên | R3 |
 
 Code nằm trong file của spec khác: `motion.js` ([shell](site-shell.md)), `prepare-static-assets.mjs`
 ([phát hành tĩnh](static-release.md)), `build-image-variants.mjs`, `responsive-image.mjs` ([tải ảnh](media-delivery.md)),
@@ -255,7 +271,9 @@ lại dòng "nâng nấc không hiện lại vệt sáng, skeleton" (đã có �
 
 ## Gate còn mở
 
-- Ba câu `[CẦN LÀM RÕ]` ở R1, R4 và ngưỡng 30% của R8 chờ owner chốt trước khi viết plan. Owner.
+- JPEG XL ở R1: kiểm trên A04s (máy PC), A05s và iPhone 16 (owner) trước khi viết plan.
+- WebKit chưa kiểm: `<picture>` tách rời có chọn `<source type="image/avif">` không, và bản tách rời có dùng chung request với
+  ảnh thật không (đếm `performance.getEntriesByName`). Main, Playwright WebKit.
 - Safari iPhone thật chưa kiểm AVIF nhiều cỡ và việc đổi nấc. Owner, máy PC.
 - RAM khi nâng nhiều ảnh nấc 2 trên A04s chưa đo. Main, máy PC.
 
