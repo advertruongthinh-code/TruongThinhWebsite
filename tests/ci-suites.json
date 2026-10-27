@@ -187,7 +187,8 @@
         "TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-skeleton-slow-network.e2e.mjs",
         "LIFECYCLE_ENGINES=chromium node tests/site/advertising-skeleton-lifecycle.e2e.mjs",
-        "node tests/site/advertising-reveal-offscreen.e2e.mjs"
+        "node tests/site/advertising-reveal-offscreen.e2e.mjs",
+        "node tests/site/advertising-remount-no-cache.e2e.mjs"
       ]
     },
     "adv-detail": {
