@@ -9,6 +9,9 @@ export const SKELETON_FLOW_CONTEXT_ATTRIBUTES = Object.freeze({
 });
 
 const FLOW_HEIGHT = 160;
+// Context chung của khung card trên PC vẽ 30 hình/giây (owner 2026-10-27): gradient trôi chậm nên mắt không phân biệt
+// với 60, còn GPU ghép ít hơn một nửa khi 15-18 card cùng chờ ảnh. Ngưỡng 30ms để màn 60Hz và 120Hz đều ra 30.
+const SHARED_FLOW_FRAME_MS = 30;
 const FLOW_CLOCK_START = 20.75;
 const MAX_DELTA_SECONDS = 0.05;
 const BANDS = [0.25, 0.5, 0.75];
@@ -836,6 +839,10 @@ function sharedFlowHub() {
   const tick = (timestamp) => {
     frameId = 0;
     if (lost) return;
+    if (lastTimestamp >= 0 && timestamp - lastTimestamp < SHARED_FLOW_FRAME_MS) {
+      frameId = requestAnimationFrame(tick);
+      return;
+    }
     const delta = lastTimestamp < 0 ? 0 : (timestamp - lastTimestamp) / 1000;
     lastTimestamp = timestamp;
     for (const entry of entries) {
