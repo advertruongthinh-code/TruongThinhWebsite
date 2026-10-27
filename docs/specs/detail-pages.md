@@ -63,7 +63,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
-| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office") | ink |
+| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc (owner 2026-10-27; [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
 

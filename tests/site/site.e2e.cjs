@@ -1602,33 +1602,40 @@ async function runPortalAlignmentChecks() {
                 const upper = card.querySelector(".portal-title__quiet");
                 const title = card.querySelector(".portal-title__strong");
                 const lower = card.querySelector(".portal-subtitle");
-                const upperRect = upper.getBoundingClientRect();
                 const titleRect = title.getBoundingClientRect();
                 const lowerRect = lower.getBoundingClientRect();
-                const upperStyle = getComputedStyle(upper);
                 const titleStyle = getComputedStyle(title);
                 const lowerStyle = getComputedStyle(lower);
+                // Portal không kicker (loại hình Commercial, owner 2026-10-27): bỏ các số đo kicker.
+                const upperRect = upper?.getBoundingClientRect();
+                const upperStyle = upper && getComputedStyle(upper);
+                const kicker = upper
+                  ? {
+                      upperFontSize: Number.parseFloat(upperStyle.fontSize),
+                      upperWeight: upperStyle.fontWeight,
+                      upperOverflow: upper.scrollWidth - upper.clientWidth,
+                      upperWhiteSpace: upperStyle.whiteSpace,
+                      upperWithin: upperRect.left >= cardRect.left + 8 && upperRect.right <= cardRect.right - 8,
+                      upperGap: titleRect.top - upperRect.bottom,
+                    }
+                  : {};
                 return {
+                  ...kicker,
+                  hasKicker: Boolean(upper),
                   cardCenter: cardRect.top + cardRect.height / 2,
                   relativeTitleCenter:
                     titleRect.top + titleRect.height / 2 - cardRect.top,
                   titleCenter: titleRect.top + titleRect.height / 2,
                   titleFontSize: Number.parseFloat(titleStyle.fontSize),
                   titleWeight: titleStyle.fontWeight,
-                  upperFontSize: Number.parseFloat(upperStyle.fontSize),
-                  upperWeight: upperStyle.fontWeight,
                   lowerFontSize: Number.parseFloat(lowerStyle.fontSize),
                   lowerWeight: lowerStyle.fontWeight,
-                  upperOverflow: upper.scrollWidth - upper.clientWidth,
                   titleOverflow: title.scrollWidth - title.clientWidth,
                   lowerOverflow: lower.scrollWidth - lower.clientWidth,
-                  upperWhiteSpace: upperStyle.whiteSpace,
                   titleWhiteSpace: titleStyle.whiteSpace,
                   lowerWhiteSpace: lowerStyle.whiteSpace,
-                  upperWithin: upperRect.left >= cardRect.left + 8 && upperRect.right <= cardRect.right - 8,
                   titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
                   lowerWithin: lowerRect.left >= cardRect.left + 8 && lowerRect.right <= cardRect.right - 8,
-                  upperGap: titleRect.top - upperRect.bottom,
                   lowerGap: lowerRect.top - titleRect.bottom,
                 };
               },
@@ -1715,6 +1722,7 @@ async function runPortalAlignmentChecks() {
             return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
+            if (role === "serviceKickers" && samples.length === 0) continue;
             assert(
               samples.length === 3 && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && whiteSpace === "nowrap" && within),
               `Portal ${role} clips or wraps at 200% text zoom for ${locale} ${width}px: ${JSON.stringify(samples)}`,
@@ -1726,9 +1734,10 @@ async function runPortalAlignmentChecks() {
             );
           }
           assert(
-            state.cards.every((card) => card.upperOverflow <= 0.5 && card.titleOverflow <= 0.5 && card.lowerOverflow <= 0.5
-              && card.upperWhiteSpace === "nowrap" && card.titleWhiteSpace === "nowrap" && card.lowerWhiteSpace === "nowrap"
-              && card.upperWithin && card.titleWithin && card.lowerWithin),
+            state.cards.every((card) => card.titleOverflow <= 0.5 && card.lowerOverflow <= 0.5
+              && card.titleWhiteSpace === "nowrap" && card.lowerWhiteSpace === "nowrap"
+              && card.titleWithin && card.lowerWithin
+              && (!card.hasKicker || (card.upperOverflow <= 0.5 && card.upperWhiteSpace === "nowrap" && card.upperWithin))),
             `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           assert(
@@ -1738,10 +1747,14 @@ async function runPortalAlignmentChecks() {
             `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
+          assert(
+            new Set(state.cards.map(({ hasKicker }) => hasKicker)).size === 1,
+            `Portal kicker must be all or none in a group at ${route}: ${JSON.stringify(state.cards)}`,
+          );
           if (path) {
             // Trang con khớp token chữ portal trang chủ ở cùng bề rộng card.
             assert(
-              state.cards.every((card) => card.titleWeight === "600" && card.upperWeight === "700" && card.lowerWeight === "700"),
+              state.cards.every((card) => card.titleWeight === "600" && (!card.hasKicker || card.upperWeight === "700") && card.lowerWeight === "700"),
               `Detail portal weights drifted at ${route} ${width}px: ${JSON.stringify(state.cards)}`,
             );
           } else {
@@ -1771,16 +1784,20 @@ async function runPortalAlignmentChecks() {
             state.cards.every(
               (card) =>
                 card.titleWeight === "600" &&
-                card.titleFontSize > card.upperFontSize &&
-                card.upperFontSize >= card.lowerFontSize &&
-                card.upperWeight === card.lowerWeight &&
-                Math.abs(card.upperGap - 13.6) <= 0.25 &&
-                card.lowerGap > card.upperGap + 2 &&
+                card.titleFontSize > card.lowerFontSize &&
+                (card.hasKicker
+                  ? card.titleFontSize > card.upperFontSize &&
+                    card.upperFontSize >= card.lowerFontSize &&
+                    card.upperWeight === card.lowerWeight &&
+                    Math.abs(card.upperGap - 13.6) <= 0.25 &&
+                    card.lowerGap > card.upperGap + 2
+                  : card.lowerGap > 15.6) &&
                 Math.abs(card.titleCenter - card.cardCenter) <= 1,
             ),
             `Portal hierarchy drifted at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           for (const role of ["titleFontSize", "upperFontSize", "lowerFontSize"]) {
+            if (role === "upperFontSize" && !state.cards[0].hasKicker) continue;
             const sizes = state.cards.map((card) => card[role]);
             assert(
               Math.max(...sizes) - Math.min(...sizes) <= 0.01,
