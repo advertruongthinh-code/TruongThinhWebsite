@@ -55,8 +55,10 @@ thoại không phải giữ nhiều ảnh gốc 25 MB trong RAM.
 Owner muốn chuyển sang JPEG XL nếu chạy được trên web và điện thoại (A04s, A05s, iPhone 16), sau này dùng làm ảnh động
 (2026-10-27). Đo trên 8 ảnh 1600px: ở cùng SSIM với AVIF quality 55, JXL nặng hơn khoảng 50% (1309 KB so với 872 KB);
 SSIM có thể thiên về AVIF, chưa đo bằng thước khác. Chrome bật JXL mặc định từ bản 155 (nguồn thứ cấp), Safari có từ 17
-(theo nguồn thứ cấp là không có ảnh động và không có progressive). [CẦN LÀM RÕ: kết quả kiểm trên ba máy thật quyết định giữ
-AVIF hay thêm JXL.] Main, máy PC, owner.
+(theo nguồn thứ cấp là không có ảnh động và không có progressive). A04s thật (Chrome 156, Android 14, máy PC 2026-10-27):
+JXL tĩnh chạy (`<img>`, `createImageBitmap`, `<picture>` chọn nguồn JXL); JXL động 8 khung chạy đúng trong `<img>`, đồng bộ với
+WebP và GIF động. Không dùng `ImageDecoder` với JXL động: tab crash trên cả điện thoại và Chrome PC. [CẦN LÀM RÕ: A05s và
+iPhone 16 chưa có kết quả; giữ AVIF hay thêm JXL chốt sau khi đủ ba máy.] Owner.
 
 ```gherkin
 Given /vi/residential/ ở 390×844 DPR 3, Slow 4G, cache trống
@@ -271,7 +273,7 @@ lại dòng "nâng nấc không hiện lại vệt sáng, skeleton" (đã có �
 
 ## Gate còn mở
 
-- JPEG XL ở R1: kiểm trên A04s (máy PC), A05s và iPhone 16 (owner) trước khi viết plan.
+- JPEG XL ở R1: A04s đạt; còn A05s và iPhone 16 (owner, [trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)).
 - WebKit chưa kiểm: `<picture>` tách rời có chọn `<source type="image/avif">` không, và bản tách rời có dùng chung request với
   ảnh thật không (đếm `performance.getEntriesByName`). Main, Playwright WebKit.
 - Safari iPhone thật chưa kiểm AVIF nhiều cỡ và việc đổi nấc. Owner, máy PC.
