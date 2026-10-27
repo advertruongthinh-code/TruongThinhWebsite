@@ -162,6 +162,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  playwright-core@1.64.1: 7d11370d01066ce09bdfe508129814be90afd4b39678716957953a53d3522b04
+
 importers:
 
   .:
@@ -892,11 +895,11 @@ snapshots:
 
   path-to-regexp@6.3.0: {}
 
-  playwright-core@1.64.1: {}
+  playwright-core@1.64.1(patch_hash=7d11370d01066ce09bdfe508129814be90afd4b39678716957953a53d3522b04): {}
 
   playwright@1.64.1:
     dependencies:
-      playwright-core: 1.64.1
+      playwright-core: 1.64.1(patch_hash=7d11370d01066ce09bdfe508129814be90afd4b39678716957953a53d3522b04)
 
   semver@7.8.5: {}
 
