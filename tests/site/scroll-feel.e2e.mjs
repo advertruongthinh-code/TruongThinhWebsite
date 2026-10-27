@@ -136,6 +136,7 @@ try {
               node.scrollWidth <= node.clientWidth + 0.3 * parseFloat(getComputedStyle(title).fontSize)),
           href: link?.getAttribute("href"),
           linkGap: label ? label.top - titleBox.bottom : null,
+          titleCenter: (titleBox.top + titleBox.bottom - box.top - box.bottom) / 2,
         };
       });
       const target = expected(width);
@@ -150,7 +151,9 @@ try {
       assert.ok(Math.abs(block.fontSize - ctaSize) <= 1, `${label}: title size ${block.fontSize} vs ${ctaSize}`);
       assert.ok(block.fits, `${label}: title fits the copy box`);
       assert.equal(block.href, `/${locale}/about/`, `${label}: link goes to About`);
-      assert.ok(block.linkGap >= 15 && block.linkGap <= 24, `${label}: link sits under the title (${block.linkGap}px)`);
+      // Bố cục CTA chung (detail-pages R10): nút cách hộp tiêu đề 2rem cộng nửa phần dư vùng chạm 44px, tiêu đề ở tâm khối.
+      assert.ok(block.linkGap >= 40 && block.linkGap <= 46, `${label}: link sits under the title (${block.linkGap}px)`);
+      assert.ok(Math.abs(block.titleCenter) <= 1, `${label}: title box centred in the block (${block.titleCenter}px)`);
       await view.close();
     }
   }
