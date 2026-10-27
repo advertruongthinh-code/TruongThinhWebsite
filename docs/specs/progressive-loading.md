@@ -49,7 +49,7 @@ Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poste
 - `build-image-variants.mjs` thêm bước JXL, ghim `cjxl` trong `tooling-versions.json`, `--check` kiểm đủ file như hiện nay.
 - Trình duyệt không đọc được JXL (Firefox, Chrome dưới 155) thấy dấu báo lỗi ([tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media)).
   Owner chấp nhận.
-- AVIF, WebP rời khỏi repo và site chỉ sau khi owner xác nhận đã sao lưu ở máy local.
+- AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); HTML và runtime không trỏ tới chúng nữa.
 
 Trung tâm vùng ưu tiên dùng giữa ảnh. Đặt tâm theo model Google Attention Center là việc sau, cần TensorFlow Lite.
 
@@ -238,7 +238,6 @@ gõ `republish`.
 - A04s thật chưa thử JXL progressive và Service Worker; Chromium cloud chỉ chạy được khi bật cờ. Main, máy PC.
 - A05s và iPhone 16 chưa có kết quả JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
-- Owner xác nhận đã sao lưu AVIF, WebP ở máy local trước khi gỡ khỏi repo. Owner.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.
 
 ## Chú thích thuật ngữ
