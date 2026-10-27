@@ -53,6 +53,55 @@ try {
     }
     await page.close();
   }
+  // Nút quay lại (R10): góc trên trái khung primary, lùi từng entry như Back; ảnh vào thẳng về masonry nhóm.
+  for (const [width, touch] of [[1440, false], [390, true]]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: touch, isMobile: touch });
+    const press = () => touch ? page.locator("[data-advertising-photo-back]").tap() : page.locator("[data-advertising-photo-back]").click();
+    await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));
+    await page.waitForTimeout(500);
+    const gridUrl = page.url();
+    const gridY = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    const card = page.locator("[data-advertising-card] > a").filter({ visible: true }).nth(1);
+    const cardId = await card.evaluate(el => el.parentElement.dataset.advertisingCard);
+    await card.click();
+    await page.waitForTimeout(1000);
+    const place = await page.evaluate(() => {
+      const frame = document.querySelector(".advertising-photo-view__hero-frame").getBoundingClientRect();
+      const back = document.querySelector("[data-advertising-photo-back]").getBoundingClientRect();
+      return { dx: back.left - frame.left, dy: back.top - frame.top, w: back.width, label: document.querySelector("[data-advertising-photo-back]").getAttribute("aria-label") };
+    });
+    const inset = width > 750 ? 16 : 8;
+    assert.deepEqual([Math.round(place.dx), Math.round(place.dy), place.w, place.label], [inset, inset, 36, "Quay lại"], JSON.stringify(place));
+    const aUrl = page.url();
+    const related = page.locator("[data-advertising-related-card] > a").first();
+    await related.scrollIntoViewIfNeeded();
+    await related.click();
+    await page.waitForTimeout(1000);
+    assert.notEqual(page.url(), aUrl, "related opens B");
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(400);
+    await press();
+    await page.waitForTimeout(900);
+    assert.equal(page.url(), aUrl, `${width}: first press returns to A`);
+    assert.equal(await page.locator("dialog#advertising-photo-dialog").evaluate(d => d.open), false, "press does not open viewer");
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.waitForTimeout(400);
+    await press();
+    await page.waitForTimeout(900);
+    assert.equal(page.url(), gridUrl, `${width}: second press returns to masonry`);
+    const y = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    assert(Math.abs(y - gridY) <= 1, `${width}: masonry scroll ${gridY} -> ${y}`);
+    assert.equal(await page.evaluate(() => document.activeElement?.parentElement?.dataset.advertisingCard), cardId, "focus on card A");
+    await page.goto(aUrl, { waitUntil: "networkidle" });
+    await page.waitForFunction(() => window.TruongThinhAdvertising?.getAdapter?.());
+    await press();
+    await page.waitForTimeout(900);
+    assert(!/\/p\/[^/]+\/$/.test(new URL(page.url()).pathname), `${width}: direct photo leaves detail`);
+    console.log(`PASS ${width}: back button place, step back, direct photo`);
+    await page.close();
+  }
   for (const width of [1567, 390]) {
     const page = await browser.newPage({ viewport: { width, height: 910 } });
     let previous;
