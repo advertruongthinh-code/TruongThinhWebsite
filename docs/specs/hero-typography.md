@@ -42,7 +42,7 @@ giữ bố cục riêng.
 | Chỗ | VI dòng 1 | VI dòng 2 |
 | --- | --- | --- |
 | Hero trang chủ | Làm chắc | Làm khác |
-| CTA "Giữ nghề" trang chủ | Giữ nghề, | Không ngừng làm mới |
+| CTA "Giữ nghề" trang chủ | Giữ nghề | Không ngừng làm mới |
 | Hero Residential | Nơi tái tạo | năng lượng sống |
 | Hero Commercial | Thiết kế tối ưu | Vận hành bền bỉ |
 | Hero Advertising | Để thương hiệu | luôn trong tầm mắt |

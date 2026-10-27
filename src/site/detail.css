@@ -515,8 +515,10 @@
   display: none;
 }
 
-/* Hai hàng 1fr bằng nhau quanh tiêu đề: eyebrow và nút treo hai bên, tiêu đề nằm đúng tâm khối (owner 17/10). */
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy {
+/* Hai hàng 1fr bằng nhau quanh tiêu đề: eyebrow và nút treo hai bên, tiêu đề nằm đúng tâm khối (owner 17/10).
+   Khối Giữ nghề trang chủ (.legacy-copy) dùng chung bố cục này (owner 2026-10-27). */
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy,
+.legacy-copy {
   display: grid;
   grid-template-rows: 1fr auto 1fr;
 }
@@ -535,7 +537,8 @@
   top: calc(var(--cta-title-size) * 0.03);
 }
 
-.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy a {
+.detail-cta:not([data-advertising-grid-cta]) .detail-cta__copy a,
+.legacy-copy > p {
   align-self: start;
   justify-self: center;
 }
@@ -562,7 +565,8 @@
   width: auto;
 }
 
-.detail-cta__copy a {
+.detail-cta__copy a,
+.legacy-copy .legacy-link {
   display: inline-flex;
   /* Vùng chạm 44px như .site-invitation__link; nhãn là .portal-subtitle như link Giữ nghề. */
   min-height: 44px;
