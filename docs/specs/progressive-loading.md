@@ -29,7 +29,9 @@ CSS, font, JavaScript, media có một thứ tự ưu tiên chung (owner 2026-10
   vendor, runtime, artifact và lần dựng catalog. Veil không chờ ảnh hero, không chờ `document.fonts.ready`.
 - Gzip: `style.css` 17 KB, `detail.css` 21 KB, `motion.js` 31 KB, `detail.js` 8 KB, `catalog-runtime.mjs` 65 KB.
 - Code nâng ảnh "tải bản tách rời, `decode()` rồi mới đổi, ưu tiên gần tâm viewport, tối đa 2 ảnh" đã có trong
-  `image-tier.js` (commit `de9ec90`, PR #559). Owner bỏ tải ảnh theo mạng ngày 26/10 nên code đó đã bị gỡ ở PR #585.
+  `image-tier.js` (commit `de9ec90`, PR #559), gỡ ở PR #585 ngày 26/10. Owner thấy ảnh không tốt lên dần (2026-10-27): mạng
+  thường thì tải thẳng bản đủ nét, không có bậc nhẹ; mạng chậm thì chỉ nâng khi đo được hai lần liên tiếp từ 4 Mbps, ngoài ra
+  nâng thử một ảnh mỗi 3s lúc trang đứng yên, nên mạng chậm suốt thì ảnh gần như giữ bậc nhẹ.
 - Ảnh 3072×2048 giải mã chiếm khoảng 25 MB RAM (3072 × 2048 × 4 byte, tính toán, chưa đo trên máy).
 
 ## Hành vi
@@ -90,7 +92,8 @@ Nấc 2 bắt đầu khi trang vào tầng 3 (R4). Việc nâng dùng lại lõi
 5. Nấc 3: mở viewer hiện ngay file đang có (nấc 1 hoặc 2, đã có trong cache), rồi nâng lên bản gốc theo bước 2. Phóng to
    trong viewer trước khi bản gốc về thì vẫn phóng được trên file đang có.
 
-Không có nhánh theo tốc độ mạng hay Save-Data (owner bỏ tải ảnh theo mạng ngày 26/10).
+Không có nhánh theo tốc độ mạng hay Save-Data (owner bỏ tải ảnh theo mạng ngày 26/10). Nâng nấc chạy theo thời gian ở mọi
+mạng: mạng thường cũng qua nấc 1 trước, mạng chậm vẫn nâng, chỉ chậm hơn. Đây là khác biệt chính với PR #559.
 
 ```gherkin
 Given /vi/ ở 1440×900 DPR 2, hero cần 2880px
@@ -98,6 +101,10 @@ When nấc 1 của mọi ảnh trong viewport đã settled và intro hero xong
 Then hero tải bản nấc 2 tách rời với fetchpriority low, decode xong mới thay
 And không lúc nào có quá 2 request nấc 2 cùng chạy
 And mỗi URL ảnh chỉ request một lần
+
+Given /vi/residential/ ở 390×844 DPR 3, mạng giữ Slow 4G suốt lượt xem
+When trang đứng yên tới khi hàng đợi nấc 2 trống
+Then mọi ảnh khung lớn trong viewport đã thay sang nấc 2, không ảnh nào kẹt ở nấc 1 vì mạng chậm
 
 Given detail Advertising đang mở, primary ở nấc 2
 When bấm "Xem lớn hơn"
