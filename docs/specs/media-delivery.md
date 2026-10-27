@@ -4,11 +4,12 @@ status: live
 source:
   - src/site/advertising-products/responsive-image.mjs
   - scripts/site/build-image-variants.mjs
+  - src/site/head-inline.js
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-26
+updated: 2026-10-27
 ---
 
 # Tải ảnh nội dung
@@ -28,9 +29,8 @@ Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều �
 và path trong `nonPublicSourceAssets`. Cạnh mỗi `<tên>.webp` nó ghi `<tên>.avif` cùng cỡ và `<tên>-240`, `<tên>-480`, `<tên>-960` ở
 cả `.avif`, `.webp`; cỡ không nhỏ hơn bề rộng gốc thì bỏ. AVIF quality 55, WebP 78, effort 6. File đã có thì giữ;
 `--force` ghi lại. `--originals map.json` sinh từ PNG gốc khi cùng tỷ lệ với WebP (lệch dưới 0,005), không thì từ
-WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (owner,
-[danh sách](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/media-originals-2026-10-03.md)). `--check` chỉ liệt kê biến thể thiếu và exit 1; CI chạy
-([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`.
+WebP; ảnh không còn gốc giữ WebP hiện tại làm cỡ lớn nhất (owner, [danh sách](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/media-originals-2026-10-03.md)). `--check` chỉ liệt kê biến thể thiếu và exit 1; CI chạy
+([phát hành tĩnh R10](static-release.md#r10-gate-ci)). Biến thể commit cùng ảnh trong `src/site/`. Bước JXL: [progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể).
 
 ```gherkin
 Given src/site/assets/content/shared/a.webp rộng 1536px và b.webp rộng 800px, chưa có biến thể
@@ -171,9 +171,9 @@ hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đ�
 `.is-media-settled` ngay và vẽ dấu báo lỗi ([R8](#r8-dấu-báo-lỗi-tải-media)), khung giữ tỷ lệ theo `width`, `height`. Ảnh `data-src` chưa có `src`
 nên chưa có vệt. Ảnh nền hero, CTA, portal đi cổng riêng ([motion.js](../../src/site/motion.js) `watchWhiteOverlayMedia`): lỗi thì vẫn ẩn lớp phủ như trước, cộng dấu báo lỗi của R8.
 
-Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (đã có ở mọi trang), đăng ký trước khi trình
-duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script đó thêm class lên `<html>`; CSS chỉ ẩn ảnh khi có
-class này, nên không JavaScript thì ảnh hiện như thường (không vệt chặn). `motion.js` không còn IIFE settle.
+Nghe `load`, `error` ở capture phase trong script inline đầu `<head>` (nguồn duy nhất `src/site/head-inline.js`, build thay `<!-- head-inline -->`
+của mọi trang), đăng ký trước khi trình duyệt parse ảnh nên không sót event, kể cả ảnh Barba chèn sau. Script thêm class lên `<html>`;
+CSS chỉ ẩn ảnh khi có class này, nên không JavaScript thì ảnh hiện như thường (không vệt chặn).
 
 Nút suggestion detail dùng cùng vệt thay thanh chạy đáy ([detail R6](advertising-detail.md#r6-slideshow-suggestion)).
 

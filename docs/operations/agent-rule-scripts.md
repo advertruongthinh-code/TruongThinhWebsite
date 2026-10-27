@@ -13,7 +13,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Need | Entrypoint | Boundary |
 | --- | --- | --- |
 | Copy static source | `pnpm prepare:site` | Generate `.site-output/`; không edit output. |
-| Image variants | `node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check]` | Ghi AVIF full + AVIF/WebP 480/960 cạnh WebP public trong `src/site/assets/content`; bỏ qua file đã có. `--originals` map đường dẫn WebP sang PNG gốc trên PC (chỉ dùng khi cùng tỉ lệ). Bỏ qua danh sách `scripts/site/non-public-source-assets.mjs`. |
+| Image variants | `node scripts/site/build-image-variants.mjs [--originals map.json] [--force] [--check] [--jobs N]` | Ghi AVIF full + AVIF/WebP 240/480/960 và JXL progressive kèm `jxl-thresholds.json` (cần `cjxl`, `djxl` từ `scripts/tooling/install-jxl.sh`) cạnh WebP public trong `src/site/assets/content`; bỏ qua file đã có. `--originals` map đường dẫn WebP sang PNG gốc trên PC (chỉ dùng khi cùng tỉ lệ). Bỏ qua danh sách `scripts/site/non-public-source-assets.mjs`. |
 | Local web | `pnpm dev` | Static Node server; không Worker, không deploy. |
 | Deploy demo | `pnpm deploy:demo` | Workers static assets; workflow `Deploy demo` tự chạy khi CI xanh trên `main`, agent chỉ `--dry-run`. [Decision](../decisions/cloudflare-workers-static-demo.md). |
 | Static contract | `pnpm qa:static` | Current static QA evidence. |

@@ -46,7 +46,9 @@ Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poste
 - Encode: `cjxl -p --group_order=1` (vùng giữa ảnh tới trước), effort 7. Mỗi file chọn `distance` sao cho dung lượng không
   vượt AVIF quality 55 cùng cỡ (owner chọn giữ dung lượng).
 - Nguồn: PNG gốc khi có (`--originals`), không thì WebP hiện tại; ảnh từ WebP chịu thêm một lần mất chất lượng.
-- `build-image-variants.mjs` thêm bước JXL, ghim `cjxl` trong `tooling-versions.json`, `--check` kiểm đủ file như hiện nay.
+- `build-image-variants.mjs` thêm bước JXL, ghim `cjxl`, `djxl` trong `tooling-versions.json` (env `CJXL`, `DJXL` hoặc PATH),
+  `--check` kiểm đủ file và ngưỡng (R2). `--jobs N` chạy N ảnh song song; ngưỡng ghi sau mỗi ảnh nên lần chạy dài bị ngắt
+  chạy lại tiếp được. Cỡ 1600, 2048 chưa có AVIF trong repo: AVIF quality 55 encode tạm trong bộ nhớ làm đích dung lượng.
 - Trình duyệt không đọc được JXL (Firefox, Chrome dưới 155) thấy dấu báo lỗi ([tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media)).
   Owner chấp nhận.
 - AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); HTML và runtime không trỏ tới chúng nữa.

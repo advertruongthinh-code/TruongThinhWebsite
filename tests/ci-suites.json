@@ -18,6 +18,7 @@
   ],
   "shared": [
     "src/site/motion.js",
+    "src/site/head-inline.js",
     "src/site/style.css",
     "src/site/assets/brand/**",
     "package.json",

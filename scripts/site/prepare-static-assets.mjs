@@ -426,6 +426,8 @@ const responsivePictures = (html) =>
     return `<picture><source type="image/avif" ${srcset}="${set("avif")}" sizes="${sizes}">${img}</picture>`;
   });
 
+// Script <head> chung của mọi trang, một nguồn (progressive-loading R7).
+const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;
 const localizeHtmlOutput = async (directory) => {
   const entries = await readdir(directory, { withFileTypes: true });
   await Promise.all(
@@ -434,7 +436,7 @@ const localizeHtmlOutput = async (directory) => {
       if (entry.isDirectory()) return localizeHtmlOutput(target);
       if (!entry.isFile() || path.extname(entry.name) !== ".html") return;
       const html = await readFile(target, "utf8");
-      await writeFile(target, responsivePictures(embedVietnameseText(html, target)), "utf8");
+      await writeFile(target, responsivePictures(embedVietnameseText(html, target)).replace("<!-- head-inline -->", () => headInline), "utf8");
     }),
   );
 };

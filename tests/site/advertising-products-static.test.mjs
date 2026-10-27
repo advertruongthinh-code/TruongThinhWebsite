@@ -7,7 +7,7 @@ import { ADVERTISING_LAYOUT_ALGORITHM_VERSION, columnsForWidth, compileAdvertisi
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
   read("src/site/advertising-products/catalog-runtime.mjs"),
-  read("src/site/advertising-products/index.html"),
+  Promise.all(["src/site/advertising-products/index.html", "src/site/head-inline.js"].map(read)).then((sources) => sources.join("\n")),
   read("src/site/detail.css"),
   read("src/site/style.css"),
   read("scripts/site/prepare-static-assets.mjs"),
