@@ -560,11 +560,6 @@
   word-spacing: var(--word-spacing-display);
 }
 
-/* Dấu chấm cuối không treo: cả dòng kể cả dấu nằm giữa khối (owner 17/10). */
-.detail-cta__copy .text-hang-end {
-  width: auto;
-}
-
 .detail-cta__copy a,
 .legacy-copy .legacy-link {
   display: inline-flex;
