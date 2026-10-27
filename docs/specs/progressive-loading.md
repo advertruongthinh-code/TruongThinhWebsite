@@ -33,7 +33,8 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
 - Chromium 153 bật cờ JXL, mạng 100 KB/s, ảnh 3072px 1,1 MB: thấy bản mờ lúc 4,2s, xong lúc 11,4s. Qua Service Worker đếm
   byte: báo đủ 60% lúc 6,6s, ảnh hiện và độ nét tăng liên tục tới 11,4s, server nhận một request.
 - A04s thật (Chrome 156, Android 14): JXL tĩnh, `<picture>` chọn JXL, JXL động 8 khung đều chạy. `ImageDecoder` với JXL động
-  làm crash tab trên điện thoại và Chrome PC. Progressive và Service Worker chưa thử trên máy thật.
+  làm crash tab trên điện thoại và Chrome PC. Progressive qua Service Worker đếm byte (100 KB/s, file 240 KB, ngưỡng 180 KB):
+  tin ngưỡng lúc 1,9s, `load` 2,7s, `decode()` xong 3,1 đến 3,6s; thấy bản mờ trước `load`, một request mỗi lần tải.
 
 ## Hành vi
 
@@ -237,7 +238,7 @@ gõ `republish`.
 
 ## Gate còn mở
 
-- A04s thật chưa thử JXL progressive và Service Worker; Chromium cloud chỉ chạy được khi bật cờ. Main, máy PC.
+- Chromium cloud chỉ chạy JXL khi bật cờ (e2e cần `--enable-features=JXLImageFormat`). Main.
 - A05s và iPhone 16 chưa có kết quả JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.
