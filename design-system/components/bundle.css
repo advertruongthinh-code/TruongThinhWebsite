@@ -3358,6 +3358,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 .detail-intro,
+.detail-lead,
+.detail-note,
 .detail-media,
 .detail-heading,
 .detail-process,
@@ -3539,14 +3541,25 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   object-fit: cover;
 }
 
-.detail-note {
-  width: min(calc(100% - 2 * var(--gutter)), 58rem);
-  margin-right: auto;
-  margin-left: auto;
-  font-size: clamp(1.45rem, 2vw, 2.1rem);
+/* Như khối mở trang "Interior design" và "Kitchens" của Espacio (owner 2026-10-27): tiêu đề nét mảnh canh trái,
+   đoạn thân cột phải thụt dòng đầu; đoạn dưới ảnh cùng kiểu, tiêu đề gallery canh giữa theo sau. */
+.detail-lead {
+  padding: clamp(2rem, 4vw, 4rem) 0;
+}
+
+.detail-lead__copy,
+.detail-note p {
+  max-width: 36rem;
+  margin: 0 0 0 auto;
+  font-size: clamp(1.125rem, 1.35vw, 1.375rem);
   letter-spacing: 0;
-  line-height: 1.4;
+  line-height: 1.55;
+  text-indent: 4.5em;
   word-spacing: var(--word-spacing-body);
+}
+
+.detail-lead__copy {
+  margin-top: clamp(4rem, 9vw, 9rem);
 }
 
 /* Như khối "The balance within the spaces" của Espacio: tiêu đề nét mảnh canh giữa, dải ảnh cùng chiều cao,
@@ -3558,11 +3571,16 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   background: var(--white);
 }
 
-.detail-gallery > h2 {
-  margin: 0 var(--gutter) clamp(2rem, 4vw, 3.5rem);
+.detail-gallery > h2,
+.detail-lead__title {
+  margin: 0;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
   font-weight: 300;
   line-height: 1.1;
+}
+
+.detail-gallery > h2 {
+  margin: 0 var(--gutter) clamp(2rem, 4vw, 3.5rem);
   text-align: center;
   /* Phone: "Không gian / tiêu biểu." thay vì cắt giữa cụm nghiêng. */
   text-wrap: balance;
@@ -4175,8 +4193,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     gap: 2rem;
   }
 
-  .detail-intro__copy,
-  .detail-note {
+  .detail-intro__copy {
     font-size: 1.45rem;
   }
 
