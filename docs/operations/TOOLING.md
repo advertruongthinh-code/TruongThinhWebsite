@@ -16,6 +16,7 @@ mọi workspace. Pin canonical: `tooling-versions.json`.
 | --- | --- |
 | User global | Graphify 0.9.92, uv 0.13.1, Impeccable CLI 4.6.0/skill 4.6.0, jq 1.8.2, 56 direct skill và native persona |
 | Project | pnpm 12.14.0, Playwright 1.64.1, browser engine, static Node preview, `.graphifyignore`, Git hook, watcher và policy |
+| Encode ảnh | `cjxl`, `djxl` libjxl 0.11.1 Linux x86_64 (`scripts/tooling/install-jxl.sh` cài vào `.tooling/libjxl/`, kiểm SHA-256 ghim; chỉ cần khi sinh JXL) |
 
 Năm plugin skill (agent-skills, caveman, ponytail, impeccable, i-have-adhd) cài
 từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill caveman

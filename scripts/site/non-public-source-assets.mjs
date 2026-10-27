@@ -6,6 +6,7 @@ export const nonPublicSourceAssets = [
   "advertising-products/photo-tags.mjs",
   "content/client-logos.json",
   "content/project-reel.json",
+  "head-inline.js",
   "assets/brand/truong-thinh-lockup.svg",
   "assets/content/projects/advertising-kiosk-posm-cover.jpg",
   "assets/content/projects/advertising-mobile-retail-cover.jpg",

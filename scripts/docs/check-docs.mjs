@@ -93,7 +93,7 @@ const specs = files
 const owners = (path) => specs.filter((s) => s.globs.some((g) => matchesGlob(path, g)));
 
 // Mọi file không phải media trong src/site/ thuộc về một spec.
-const MEDIA = /\.(avif|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
+const MEDIA = /\.(avif|jxl|webp|jpe?g|png|gif|svg|mp4|webm|woff2?|ico)$/i;
 const unowned = git('ls-files', 'src/site').split('\n').filter((f) => f && !MEDIA.test(f) && !owners(f).length);
 if (unowned.length) errors.push(`ownership: ${unowned.length} files in src/site/ not owned by any spec: ${unowned.join(', ')}`);
 

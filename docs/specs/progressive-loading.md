@@ -33,7 +33,8 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
 - Chromium 153 bật cờ JXL, mạng 100 KB/s, ảnh 3072px 1,1 MB: thấy bản mờ lúc 4,2s, xong lúc 11,4s. Qua Service Worker đếm
   byte: báo đủ 60% lúc 6,6s, ảnh hiện và độ nét tăng liên tục tới 11,4s, server nhận một request.
 - A04s thật (Chrome 156, Android 14): JXL tĩnh, `<picture>` chọn JXL, JXL động 8 khung đều chạy. `ImageDecoder` với JXL động
-  làm crash tab trên điện thoại và Chrome PC. Progressive và Service Worker chưa thử trên máy thật.
+  làm crash tab trên điện thoại và Chrome PC. Progressive qua Service Worker đếm byte (100 KB/s, file 240 KB, ngưỡng 180 KB):
+  tin ngưỡng lúc 1,9s, `load` 2,7s, `decode()` xong 3,1 đến 3,6s; thấy bản mờ trước `load`, một request mỗi lần tải.
 
 ## Hành vi
 
@@ -46,7 +47,9 @@ Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poste
 - Encode: `cjxl -p --group_order=1` (vùng giữa ảnh tới trước), effort 7. Mỗi file chọn `distance` sao cho dung lượng không
   vượt AVIF quality 55 cùng cỡ (owner chọn giữ dung lượng).
 - Nguồn: PNG gốc khi có (`--originals`), không thì WebP hiện tại; ảnh từ WebP chịu thêm một lần mất chất lượng.
-- `build-image-variants.mjs` thêm bước JXL, ghim `cjxl` trong `tooling-versions.json`, `--check` kiểm đủ file như hiện nay.
+- `build-image-variants.mjs` thêm bước JXL, ghim `cjxl`, `djxl` trong `tooling-versions.json` (env `CJXL`, `DJXL` hoặc PATH),
+  `--check` kiểm đủ file và ngưỡng (R2). `--jobs N` chạy N ảnh song song; ngưỡng ghi sau mỗi ảnh nên lần chạy dài bị ngắt
+  chạy lại tiếp được. Cỡ 1600, 2048 chưa có AVIF trong repo: AVIF quality 55 encode tạm trong bộ nhớ làm đích dung lượng.
 - Trình duyệt không đọc được JXL (Firefox, Chrome dưới 155) thấy dấu báo lỗi ([tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media)).
   Owner chấp nhận.
 - AVIF, WebP giữ trong repo làm nguồn encode và bản lưu (owner 2026-10-27); HTML và runtime không trỏ tới chúng nữa.
@@ -198,6 +201,30 @@ When chạy image-delivery-measure.mjs --runs 5 trên bản cũ và bản mới
 Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 ```
 
+### R9. Kính mờ thay skeleton Flow trên card chờ ảnh
+
+Card masonry chính và related đang chờ ảnh dùng Kính mờ thay skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh
+chưa đủ ngưỡng thì khung media nhận ngay Kính phủ đều ba bậc ở mức đủ (`createGlassSurface("even", 3)`, không fade vào, vì
+card có thể chỉ lướt qua). Dưới Kính, ảnh hiện ở opacity cuối trên nền `media-loading-surface`, trình duyệt vẽ dần các
+lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Đủ ngưỡng (R3) thì chạy bước "Kính tan" (theo tỉ lệ nhịp `0.6s` của card) trong
+[Hiện và tan trên ảnh vừa tải](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) rồi gỡ Kính.
+Không có tin ngưỡng thì tan khi `load` và `decode()` xong, như R3.
+
+- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không có Kính. Card ra khỏi viewport
+  khi Kính chưa tan thì gỡ Kính; vào lại khi đã đủ ngưỡng thì hiện thẳng.
+- Điện thoại giữ luật chờ trang ngừng cuộn `120ms` trước khi tan (`PHONE_REVEAL_SCROLL_IDLE_MS`).
+- Card không còn khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
+  ([skeleton](advertising-skeleton.md)). Gỡ bản giảm tải tạm của PR #618 (Flow 30 hình/giây, đứng khi giữ thanh cuộn).
+- Primary giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ), chỉ đổi lúc chạy Kính sang lúc đủ ngưỡng (R3).
+- Gate hiệu năng theo [Kính R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt) khi 15 đến 18 card cùng mang Kính, đo trên A04s.
+
+```gherkin
+Given masonry Advertising trên PC, tắt cache, mạng chậm
+When cuộn làm card mới vào viewport
+Then khung media của card có ngay Kính ba bậc, không có canvas Flow hay khung skeleton
+And dưới Kính ảnh được vẽ dần; khi đủ ngưỡng Kính tan rồi bị gỡ khỏi DOM
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -235,7 +262,7 @@ gõ `republish`.
 
 ## Gate còn mở
 
-- A04s thật chưa thử JXL progressive và Service Worker; Chromium cloud chỉ chạy được khi bật cờ. Main, máy PC.
+- Chromium cloud chỉ chạy JXL khi bật cờ (e2e cần `--enable-features=JXLImageFormat`). Main.
 - A05s và iPhone 16 chưa có kết quả JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.
