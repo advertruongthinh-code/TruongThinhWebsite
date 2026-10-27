@@ -67,21 +67,24 @@ const ssim = (a, b, width, height) => {
 
 const luma = async (file) => sharp(file).greyscale().raw().toBuffer({ resolveWithObject: true });
 
-// Encode JXL progressive không vượt targetBytes: dò distance theo log(size) ~ log(distance), giữ bản nhỏ hơn đích gần nhất.
+// Encode JXL progressive không vượt targetBytes: dò distance theo log(size) ~ log(distance) trong khoảng kẹp,
+// giữ bản nhỏ hơn đích gần nhất. Size không đơn điệu cục bộ nên khi đã kẹp được hai đầu thì chia đôi theo log.
 const encodeJxl = async (png, out, targetBytes, tmp) => {
-  let distance = 1.5, best = null, prev = null;
-  for (let attempt = 0; attempt < 6; attempt += 1) {
+  let distance = 1.5, best = null, tooBig = null, fits = null;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
     const trial = path.join(tmp, `trial-${attempt}.jxl`);
     await run(cjxl, [png, trial, "-p", "--group_order=1", "-e", "7", "-d", distance.toFixed(3), "--quiet"]);
     const size = (await stat(trial)).size;
-    if (size <= targetBytes && (!best || distance < best.distance)) best = { distance, trial, size };
-    if (size <= targetBytes && size >= targetBytes * 0.97) break;
-    // Hệ số mũ ước từ hai lần thử gần nhất; lần đầu coi size tỉ lệ nghịch distance.
-    const slope = prev && prev.size !== size ? Math.log(prev.size / size) / Math.log(prev.distance / distance) : -1;
-    prev = { distance, size };
-    distance = Math.min(25, Math.max(0.1, distance * (targetBytes * 0.985 / size) ** (1 / slope)));
+    if (size <= targetBytes) {
+      if (!best || size > best.size) best = { distance, trial, size };
+      if (size >= targetBytes * 0.97) break;
+      fits = Math.min(fits ?? Infinity, distance);
+    } else tooBig = Math.max(tooBig ?? 0, distance);
+    // Chưa kẹp: coi size tỉ lệ nghịch distance; đã kẹp: trung bình nhân hai đầu.
+    distance = tooBig && fits ? Math.sqrt(tooBig * fits)
+      : Math.min(25, Math.max(0.1, distance * size / (targetBytes * 0.985)));
   }
-  if (!best) throw new Error(`${out}: không đạt ${targetBytes} byte ở distance 25`);
+  if (!best) throw new Error(`${out}: không đạt ${targetBytes} byte sau 10 lần thử`);
   await writeFile(out, await readFile(best.trial));
   return best;
 };
