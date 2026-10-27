@@ -5,6 +5,7 @@ source:
   - src/site/advertising-products/responsive-image.mjs
   - scripts/site/build-image-variants.mjs
   - src/site/head-inline.js
+  - src/site/assets/content/jxl-thresholds.json
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-delivery-measure.mjs
@@ -147,8 +148,7 @@ Then khung ảnh đúng tỷ lệ trước khi tải, build bọc <picture> có 
 
 ### R6. Vệt sáng chờ ảnh tĩnh
 
-Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sáng](../../design-system/components/LoadSweep/README.md),
-[motion](../../design-system/motion.md#ảnh-trong-card)).
+Thay vòng xoay SVG cũ bằng vệt sáng owner duyệt 2026-10-07 ([Vệt sáng](../../design-system/components/LoadSweep/README.md), [motion](../../design-system/motion.md#ảnh-trong-card)).
 
 Khung là cha của `img[src^="/assets/content/"]` (hoặc của `picture` chứa nó); script `<head>` gắn `.media-frame` khi ảnh
 vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/4). Không áp trong `[data-project-grid]`,
