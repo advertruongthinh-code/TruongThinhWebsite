@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-27T01:56:00Z",
+    "at": "2026-10-27T07:46:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Sau merge #601: BannerCta (Giữ nghề) dùng chung grid 1fr auto 1fr và nút của CTA trang con, tiêu đề bỏ dấu phẩy"
+    "note": "Đợt #606, #607, #608: ảnh Design System gen lại đã upscale; chữ trang Kinh doanh theo motto, khối mở kiểu Espacio; portal loại hình Kinh doanh tiêu đề hai dòng, bỏ kicker"
   }
 }
