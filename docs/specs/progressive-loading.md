@@ -201,6 +201,30 @@ When chạy image-delivery-measure.mjs --runs 5 trên bản cũ và bản mới
 Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 ```
 
+### R9. Kính mờ thay skeleton Flow trên card chờ ảnh
+
+Card masonry chính và related đang chờ ảnh dùng Kính mờ thay skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh
+chưa đủ ngưỡng thì khung media nhận ngay Kính phủ đều ba bậc ở mức đủ (`createGlassSurface("even", 3)`, không fade vào, vì
+card có thể chỉ lướt qua). Dưới Kính, ảnh hiện ở opacity cuối trên nền `media-loading-surface`, trình duyệt vẽ dần các
+lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Đủ ngưỡng (R3) thì chạy bước "Kính tan" (theo tỉ lệ nhịp `0.6s` của card) trong
+[Hiện và tan trên ảnh vừa tải](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) rồi gỡ Kính.
+Không có tin ngưỡng thì tan khi `load` và `decode()` xong, như R3.
+
+- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không có Kính. Card ra khỏi viewport
+  khi Kính chưa tan thì gỡ Kính; vào lại khi đã đủ ngưỡng thì hiện thẳng.
+- Điện thoại giữ luật chờ trang ngừng cuộn `120ms` trước khi tan (`PHONE_REVEAL_SCROLL_IDLE_MS`).
+- Card không còn khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
+  ([skeleton](advertising-skeleton.md)). Gỡ bản giảm tải tạm của PR #618 (Flow 30 hình/giây, đứng khi giữ thanh cuộn).
+- Primary giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ), chỉ đổi lúc chạy Kính sang lúc đủ ngưỡng (R3).
+- Gate hiệu năng theo [Kính R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt) khi 15 đến 18 card cùng mang Kính, đo trên A04s.
+
+```gherkin
+Given masonry Advertising trên PC, tắt cache, mạng chậm
+When cuộn làm card mới vào viewport
+Then khung media của card có ngay Kính ba bậc, không có canvas Flow hay khung skeleton
+And dưới Kính ảnh được vẽ dần; khi đủ ngưỡng Kính tan rồi bị gỡ khỏi DOM
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
