@@ -102,11 +102,13 @@ cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và to
 | Tới 578px | 400px | 15px | 30px |
 
 - Ảnh phủ kín khối (`object-fit: cover`, giữa), lớp đen phủ opacity `0.2`. Không parallax (R3).
-- Vùng chữ rộng 85% khối, nằm trong flow, xếp cột căn giữa. Tiêu đề theo rule CTA chung
+- Vùng chữ rộng 85% khối, cao hết khối, dùng chung bố cục CTA trang con (grid `1fr auto 1fr`, owner 2026-10-27):
+  hộp tiêu đề ở tâm khối, link ở hàng dưới. Tiêu đề theo rule CTA chung
   ([trang con R10](detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)): chữ thường, căn giữa, weight 600,
   cỡ `--cta-title-size`, line-height `0.98`, không JS co chữ (owner 2026-10-15). Cao trong bảng là tối thiểu; chữ dài
   hơn (cửa sổ hẹp, chữ 200%) thì khối cao theo chữ.
-- Dưới tiêu đề 16px là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), tái dùng phụ đề portal trang chủ
+- Dưới tiêu đề là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), cách hộp tiêu đề bằng nút CTA trang con (2rem cộng
+  vùng chạm 44px, đo 42,8px ở 1440), tái dùng phụ đề portal trang chủ
   ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)): 16px, semibold, viết hoa, gạch chân 3px chạy từ trái
   khi hover hoặc focus. Cả khối bấm được, đích `/vi/about/` hoặc `/en/about/`.
 - Hover cả khối: ảnh phóng theo hover ảnh dùng chung ([trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)).
@@ -118,6 +120,7 @@ cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và to
 Given /vi/ ở bất kỳ bề rộng nào từ 320 tới 1920px, VI hoặc EN
 When cuộn tới khối "Giữ nghề"
 Then chiều cao (tối thiểu), gutter, khoảng dưới khối đúng bảng R5, tiêu đề cỡ CTA chung và không tràn vùng chữ
+And hộp tiêu đề ở tâm khối (lệch tối đa 1px), link cách hộp tiêu đề 40 tới 46px như CTA trang con
 And bấm khối hoặc nhấn Enter khi focus mở trang About cùng ngôn ngữ
 ```
 

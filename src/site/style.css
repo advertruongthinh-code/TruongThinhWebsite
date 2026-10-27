@@ -2072,24 +2072,18 @@ em {
   content: "";
 }
 
+/* Cao hết khối (không margin dọc auto) để grid 1fr auto 1fr dùng chung với CTA trang con đặt tiêu đề ở tâm (detail.css). */
 .legacy-copy {
   position: relative;
   z-index: 1;
-  display: flex;
   width: 85%;
-  margin: auto;
-  flex-flow: column;
-  align-items: center;
-  justify-content: center;
+  margin-inline: auto;
   text-align: center;
 }
 
 .legacy-copy > p {
-  margin: 1rem 0;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.4;
-  text-transform: uppercase;
+  grid-row: 3;
+  margin: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -2105,8 +2099,8 @@ em {
 }
 
 .legacy-copy h2 {
-  /* Rộng bằng khung thay vì co theo chữ: dấu chấm treo (.text-hang-end) cần chỗ bên phải dòng dài nhất. */
-  align-self: stretch;
+  /* Không có eyebrow: tiêu đề vẫn ở hàng giữa của grid CTA chung. */
+  grid-row: 2;
   container-type: inline-size;
 }
 
@@ -2123,17 +2117,6 @@ em {
 
 .legacy-copy h2 em {
   font-style: normal;
-}
-
-.legacy-copy > a {
-  display: inline-flex;
-  padding-bottom: 0.25rem;
-  margin-top: 2rem;
-  gap: 2rem;
-  border-bottom: 1px solid currentColor;
-  font-size: 0.77rem;
-  font-weight: 700;
-  text-transform: uppercase;
 }
 
 .capability-marquee {
