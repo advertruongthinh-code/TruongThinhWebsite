@@ -10,7 +10,7 @@ tests:
   - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/advertising-continuation.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-26
+updated: 2026-10-27
 ---
 
 # Skeleton cuối masonry Advertising
@@ -81,7 +81,11 @@ Then mọi khung đang thấy giữ node, assignment và không chạy lại hi�
 Khung giao vùng nhìn thấy (visual viewport) hiện bằng reveal Kính `0.6s` giống card ảnh
 ([Kính trên ảnh vừa tải](loading-glass-and-page-entry.md), owner 06/10): lớp dưới là khung trống, lớp hiện lên là
 Flow. Khi Kính cung đang giao viewport, khung chỉ crossfade, không Kính reveal; cung vừa vào viewport thì gỡ mọi Kính reveal
-đang chạy trong grid: bất kỳ Kính reveal nào còn trong DOM làm Chrome bỏ blur các bậc của cung (đo trên PC owner, 07/10). Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn hay giữ thanh cuộn. Reveal chỉ chạy lần đầu khung vào
+đang chạy trong grid: bất kỳ Kính reveal nào còn trong DOM làm Chrome bỏ blur các bậc của cung (đo trên PC owner, 07/10). Flow chạy ngay từ đầu lúc hiện, kể cả khi đang cuộn. Giữ thanh cuộn Locomotive (`has-scroll-dragging`
+trên `html`, owner 2026-10-27) thì khung vẫn vào entry và hiện, nhưng Flow mọi khung đứng ở hình cuối
+(`data-advertising-flow-state="paused"`) và không dựng renderer mới; thả tay `120ms` (`SCROLLBAR_FLOW_RESUME_MS`) thì chạy
+tiếp từ pha cũ. Kéo thanh cuộn lên xuống liên tục làm hàng chục card lướt qua mỗi giây, dựng rồi gỡ Flow cho từng card
+nặng máy mà không ai kịp thấy (đo cloud, 1440x900, ảnh treo: tải lúc kéo từ 2,7 xuống 1,35 nhân CPU). Reveal chỉ chạy lần đầu khung vào
 vùng nhìn thấy; rời hẳn rồi vào lại thì khung hiện ngay như card ảnh đã tải, vì reveal chạy lại dưới Kính cung trông như
 các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner thấy trên PC, 07/10). Flow chỉ chạy khi khung đang thấy, tab hiện, body không có `menu-open` hay
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
@@ -106,6 +110,11 @@ Then khung hiện ngay, không trống, reveal Kính không chạy lại
 Given khung đã hiện xong và Flow đang chạy
 When ẩn tab rồi hiện lại hai lần
 Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
+
+Given PC, ảnh card tải chậm, Flow đang chạy trên các card chờ ảnh
+When giữ thanh cuộn và kéo qua nhiều màn hình card
+Then card lướt qua vẫn hiện khung skeleton, Flow mọi khung đứng ở hình cuối và không renderer mới nào được dựng
+And thả tay thì Flow các khung đang thấy chạy tiếp
 ```
 
 ### R5. WebGL context
@@ -121,7 +130,7 @@ nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống v
 xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
 
 Skeleton chờ ảnh trong media card và primary: trình duyệt không có worker dùng renderer riêng mỗi khung, tối đa 12 renderer;
-PC dùng chung một context trong worker (đoạn dưới), tối đa 24 khung chạy; điện thoại dùng context riêng mỗi khung, xếp 4 khung mỗi
+PC dùng chung một context trong worker (đoạn dưới), tối đa 24 khung chạy, vẽ 30 hình/giây (R8); điện thoại dùng context riêng mỗi khung, xếp 4 khung mỗi
 worker (tối đa 12 khung, 3 worker). Khung đang thấy
 giữ renderer đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi left). Khung chưa có renderer hiện frame
 tĩnh của preset. Nhả renderer trước khi cấp mới nên xoay máy không vượt ngân sách. Renderer vẽ trong một module worker
@@ -139,7 +148,7 @@ document và dùng lại (trả lease thì xóa buffer, texture, listener, RAF �
 compile; compile mất khoảng 60ms trên A05s cũ), lease mới bắt đầu ở pha đã lưu, context mới tạo ở task trước task dựng
 renderer. Mất context: hiện frame tĩnh, khôi phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi
 nhiều lần vẫn an toàn và không gọi `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame
-(R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
+(R8) và không chờ cuộn dừng (trừ lúc giữ thanh cuộn, R4), nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
 làm trễ nhịp trượt. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn gây task trên 50ms thì
 hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh. Điện thoại (pointer coarse, có touch hoặc `clientWidth <= 750`) hoãn
 như vậy cho khung batch (A05s cũ, 10/10); khung chờ ảnh trong card dựng ngay cả lúc đang vuốt, với profile phone ở R8
@@ -189,6 +198,9 @@ giải (R5). Khung chờ ảnh trong card trên điện thoại chạy cả lúc
 worker, giữ preset, màu, anchor, chiều chảy và tốc độ (owner 18/10, 19/10); ngoài điểm đó không hạ preset, noise hay số
 khung chạy để đạt gate. Gate mượt khung card khi vuốt nhanh trên A04s: khoảng giữa hai lần vẽ của mỗi renderer p95
 dưới `33ms` (đo 19/10: p50 `11-12ms`, p95 `18-24ms`, fps SurfaceFlinger `69-71`).
+Context chung của khung card trên PC vẽ 30 hình/giây (`SHARED_FLOW_FRAME_MS` `30ms`, owner 2026-10-27): mạng chậm thì
+15-18 card đang thấy cùng chờ ảnh, mỗi Flow là một lớp GPU phải ghép mỗi hình; gradient trôi chậm nên 30 và 60 trông như
+nhau (đo cloud, 1000x420: mỗi Flow từ 0,39 xuống 0,20 nhân CPU). Batch và điện thoại giữ nhịp cũ.
 Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
@@ -223,7 +235,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 | R1 | `node --test tests/site/advertising-skeleton-flow.test.mjs` (frontier thấp nhất, band giữ qua dựng lại, đáy batch); `advertising-continuation.e2e.mjs` |
 | R2 | `advertising-skeleton-flow.test.mjs` (12 preset, soften 0, fallback tĩnh không RAF) |
 | R3 | `advertising-skeleton-flow.test.mjs` (bốc assignment, tránh preset kề, pha lệch, tốc độ trong 10%); `advertising-skeleton-lifecycle.e2e.mjs` (chỉ đổi chiều cao, slot chung, giữ assignment) |
-| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
+| R4 | `advertising-skeleton-lifecycle.e2e.mjs`; `advertising-skeleton-slow-network.e2e.mjs` (vuốt nhanh trên PC: khung và canvas hiện không fade; giữ thanh cuộn: khung hiện, Flow đứng, không dựng renderer, thả tay chạy tiếp); `advertising-continuation.e2e.mjs` (filter, reload, detail, Back/Forward; lần vào đầu tiên: Kính reveal `0.6s` rồi gỡ khi cung ngoài viewport, chỉ crossfade khi cung đang giao viewport) |
 | R5 | `advertising-skeleton-flow.test.mjs` (mất, khôi phục, destroy, lease; frame tĩnh theo preset và pha); `advertising-skeleton-lifecycle.e2e.mjs` (ngân sách điện thoại, ngang 838px); `advertising-skeleton-slow-network.e2e.mjs` (PC cao 1920x1400: card chờ ảnh đều chạy trên context chung; mở detail từ masonry đã cuộn: Flow chạy, card related tải xong hiện mà không cần cuộn) |
 | R6 | `advertising-continuation.e2e.mjs` (`footer-top-gap` 0, đáy batch); `glass-surface.e2e.mjs` |
 | R7 | `advertising-continuation.e2e.mjs` (Flow tĩnh khi giảm chuyển động) |

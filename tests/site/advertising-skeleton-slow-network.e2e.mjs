@@ -101,6 +101,36 @@ try {
     await context.close();
   }
 
+  // Giữ thanh cuộn (advertising-skeleton R4): khung card lướt qua vẫn hiện nhưng Flow đứng, không dựng renderer mới;
+  // thả tay thì Flow chạy tiếp.
+  {
+    const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
+    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
+    await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(1200));
+    await page.waitForTimeout(1500);
+    const inView = () => page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
+      .filter((frame) => { const { top, bottom } = frame.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
+      .map((frame) => ({ entered: frame.classList.contains("is-entry-ready"), state: frame.dataset.advertisingFlowState,
+        live: Boolean(frame.querySelector("canvas[data-advertising-flow-context]")) })));
+    await page.evaluate(() => document.documentElement.classList.add("has-scroll-dragging"));
+    for (let y = 1600; y <= 4000; y += 400) {
+      await page.evaluate((value) => window.TruongThinhMotion.setLogicalScroll(value), y);
+      await page.waitForTimeout(150);
+    }
+    await page.waitForTimeout(500);
+    const held = await inView();
+    assert.ok(held.length, "scrollbar drag: loading cards in view");
+    assert.ok(held.every(({ entered, state, live }) => entered && state === "paused" && !live),
+      `scrollbar drag: frames show without running or mounting Flow ${JSON.stringify(held)}`);
+    await page.evaluate(() => document.documentElement.classList.remove("has-scroll-dragging"));
+    await page.waitForFunction(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
+      .filter((frame) => { const { top, bottom } = frame.getBoundingClientRect(); return bottom > 0 && top < innerHeight; })
+      .every((frame) => frame.dataset.advertisingFlowState === "running"), null, { timeout: 3000 })
+      .catch(async () => assert.fail(`scrollbar release: Flow resumes ${JSON.stringify(await inView())}`));
+    await context.close();
+  }
+
   // Điện thoại: mở detail từ masonry đã cuộn nhảy về y=0 mà không có scrollend; Flow vẫn chạy, card related
   // tải xong vẫn reveal mà không cần người xem cuộn thêm.
   {
