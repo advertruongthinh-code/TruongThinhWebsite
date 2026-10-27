@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-27T07:46:00Z",
+    "at": "2026-10-27T09:47:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Đợt #606, #607, #608: ảnh Design System gen lại đã upscale; chữ trang Kinh doanh theo motto, khối mở kiểu Espacio; portal loại hình Kinh doanh tiêu đề hai dòng, bỏ kicker"
+    "note": "Đợt #609, #613: dấu chấm cuối tiêu đề CTA không treo (bỏ .text-hang-end); nút quay lại kiểu Pinterest góc trên trái khung Primary"
   }
 }
