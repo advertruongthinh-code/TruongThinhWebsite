@@ -57,14 +57,14 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
 | 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
-| 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
+| 2 | `.detail-lead#tong-quan` | `h2` "Không gian để *sống.*" nét mảnh canh trái, đoạn mở cột phải thụt dòng đầu (như Espacio "Interior design") | `h2` "Không gian để *kinh doanh.*", cùng bố cục (như Espacio "Kitchens") | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
-| 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure`, sáu chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
-| 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
+| 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một đoạn ngắn cùng kiểu đoạn mở | "Bằng chứng trong vận hành", một đoạn ngắn | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure`, sáu chuỗi công trình (R7) | "Không gian *đang vận hành.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
+| 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Tối ưu từ bản vẽ, / bền bỉ sau ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
-| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office") | ink |
+| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc (owner 2026-10-27; [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem.", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát." | inverse |
 | 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
 
