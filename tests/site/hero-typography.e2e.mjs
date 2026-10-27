@@ -14,7 +14,7 @@ const widths = (process.env.HERO_WIDTHS || "320,360,375,384,390,411,768,1024,128
 // Dòng VI theo chốt owner 2026-10-18; EN chỉ kiểm số dòng và dấu.
 const titles = [
   { route: "", selector: ".hero h1", mask: ".hero-line-mask", vi: ["làm chắc", "làm khác"] },
-  { route: "", selector: ".legacy-copy h2", mask: ".line-mask", vi: ["giữ nghề,", "không ngừng làm mới"] },
+  { route: "", selector: ".legacy-copy h2", mask: ".line-mask", vi: ["giữ nghề", "không ngừng làm mới"] },
   { route: "residential/", selector: ".detail-hero h1", mask: ".detail-hero-line-mask", vi: ["nơi tái tạo", "năng lượng sống"] },
   { route: "commercial/", selector: ".detail-hero h1", mask: ".detail-hero-line-mask", vi: ["thiết kế tối ưu", "vận hành bền bỉ"] },
   { route: "advertising-products/", selector: ".detail-hero h1", mask: ".detail-hero-line-mask", vi: ["để thương hiệu", "luôn trong tầm mắt"] },

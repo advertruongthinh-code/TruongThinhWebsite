@@ -215,7 +215,7 @@ canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3
 [R3](advertising-cta-center-parallax.md#r3-tiêu-đề-luôn-lớn-hơn-nút)); eyebrow (nếu có) ở trên, nút ở
 dưới. Ở `.detail-cta#tu-van` nét chữ nhìn thấy của tiêu đề (đỉnh chữ hoa tới chân chữ dòng cuối, không tính dấu) nằm đúng tâm
 khối theo chiều dọc, lệch tối đa 2px: copy là grid `1fr auto 1fr`, eyebrow và nút ở hai hàng 1fr bằng nhau, cả cụm dời
-theo `--cta-title-size` (owner 2026-10-17). Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm
+theo `--cta-title-size` (owner 2026-10-17). Khối "Giữ nghề" dùng chung grid và rule nút này (owner 2026-10-27). Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm
 44px, gạch chân 3px chạy từ trái khi hover hoặc focus. Lớp bấm `::before` của nút phủ cả khối (cắt bởi `overflow: clip`),
 nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút. Dấu chấm cuối `h2` là `.text-hang-end` nhưng không treo
 (`.detail-cta__copy .text-hang-end` rộng auto): cả dòng kể cả dấu nằm giữa khối (owner 2026-10-17); `data-en` nằm ở span chữ, không gồm dấu. `.capability-marquee`: hai `.marquee-line`
