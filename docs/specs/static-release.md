@@ -87,9 +87,9 @@ And .site-output/advertising-products/catalog-artifact.mjs tồn tại
 ### R4. Font và thư viện tự host
 
 Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry 4.2.2, lazysizes 5.3.2, GSAP, SplitText
-3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file), hls.js 1.7.3 (bản light,
-trang Advertising nạp cùng lúc tải artifact khi trình duyệt có Media Source,
-[video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,
+3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file, bỏ `:root`, `:host`, `@keyframes`
+preloader vì chèn lúc cuộn làm style recalc toàn document), hls.js 1.7.3 (bản light, trang Advertising nạp cùng lúc tải
+artifact khi trình duyệt có Media Source, [video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,
 normal và italic, kèm LICENSE). `@font-face` đầu `style.css` dùng `font-display: swap`;
 vietnamese khai báo sau latin-ext để chữ Việt (vùng `unicode-range` chồng nhau) không kéo thêm file latin-ext (22 KB
 brotli); năm HTML trang preload hai file normal latin, vietnamese. HTML không trỏ Google Fonts, jsDelivr.

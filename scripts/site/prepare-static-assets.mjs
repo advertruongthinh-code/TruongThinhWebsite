@@ -86,11 +86,15 @@ await Promise.all(vendorAssets.map(async ([source, destination]) => {
 }));
 const swiperStyleTarget = path.join(outputRoot, "assets/vendor/swiper-14.2.0/swiper.css");
 await mkdir(path.dirname(swiperStyleTarget), { recursive: true });
-await writeFile(
-  swiperStyleTarget,
-  (await Promise.all(swiperStyleSources.map((source) => readFile(path.join(projectRoot, source), "utf8")))).join("\n"),
-  { encoding: "utf8", flush: true },
-);
+// Sheet này chèn lúc cuộn tới carousel: `:root` (biến theme) và `@keyframes` (preloader) làm style
+// recalc toàn document 65-146ms trên phone giả lập. Site không dùng: màu chấm đặt trong detail.css,
+// không có preloader hay web component (`:host`).
+const swiperStyle = (await Promise.all(swiperStyleSources.map((source) => readFile(path.join(projectRoot, source), "utf8"))))
+  .join("\n")
+  .replace(/:(?:root|host)\s*\{[^}]*\}/g, "")
+  .replace(/@keyframes swiper-preloader-spin\s*\{(?:[^{}]*\{[^}]*\})*\s*\}/, "");
+if (/:root|:host|@keyframes/.test(swiperStyle)) throw new Error("swiper.css still has document-wide rules after strip.");
+await writeFile(swiperStyleTarget, swiperStyle, { encoding: "utf8", flush: true });
 await Promise.all(nonPublicSourceAssets.map((asset) => rm(path.join(outputRoot, asset), { force: true })));
 
 // Mô tả hai ngôn ngữ và related chỉ detail dùng: tách khỏi artifact để đường tới 8 card đầu nhẹ hơn (static-release R1).
