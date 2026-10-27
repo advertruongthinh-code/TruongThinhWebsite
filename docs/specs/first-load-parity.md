@@ -80,7 +80,7 @@ Giữ nguyên các trường hợp sau:
 
 ### R3. Phần nhẹ hiện trước, phần nặng không chặn
 
-Thứ tự ưu tiên và tầng tải khi mở trực tiếp ở [tải theo nấc R4, R5](progressive-loading.md#r4-tầng-tải-trang-và-lúc-veil-mở):
+Thứ tự ưu tiên và tầng tải khi mở trực tiếp ở [ảnh JXL progressive R4, R5](progressive-loading.md#r4-tầng-tải-trang-và-lúc-veil-mở):
 header, veil, chữ hero, rail, chip và khung có kích thước cố định đi trước ảnh; ảnh ngoài khung nhìn tải ở nền.
 
 Việc nặng không được giữ veil hay làm trễ motion chữ. Ảnh đổ vào khung đã có sẵn kích thước, nên bố cục không nhảy.
