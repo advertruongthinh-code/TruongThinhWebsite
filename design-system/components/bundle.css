@@ -5719,6 +5719,13 @@ body.is-advertising-browse .site-footer {
   right: 16px;
 }
 
+/* Nút quay lại kiểu Pinterest góc trên trái (detail R10), hiện cả màn cảm ứng. */
+.advertising-photo-view__back {
+  top: 16px;
+  bottom: auto;
+  left: 16px;
+}
+
 .advertising-photo-view__image-action svg {
   width: 16px;
   height: 16px;
@@ -6612,6 +6619,12 @@ body.is-advertising-photo .desktop-nav a[aria-current="page"]:is(:hover, :focus-
 
   .advertising-photo-view__expand {
     right: 8px;
+  }
+
+  .advertising-photo-view__back {
+    top: 8px;
+    bottom: auto;
+    left: 8px;
   }
 
 }

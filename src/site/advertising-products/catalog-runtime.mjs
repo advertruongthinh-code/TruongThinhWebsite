@@ -4633,11 +4633,18 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       (nextLink || photoInfo)?.focus({ preventScroll: true });
     });
   }, { signal: controller.signal });
+  // Escape và nút quay lại cùng một đường (R10): ảnh vào thẳng về masonry nhóm, còn lại lùi một entry.
+  const leavePhoto = () => {
+    if (!browseHistory.escapeDirectPhoto()) history.back();
+  };
+  photoView?.querySelector("[data-advertising-photo-back]")?.addEventListener("click", () => {
+    if (browseHistory.current.photo) leavePhoto();
+  }, { signal: controller.signal });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape" || event.defaultPrevented || photoDialog?.open
       || document.querySelector('#site-menu')?.open || !browseHistory.current.photo) return;
     event.preventDefault();
-    if (!browseHistory.escapeDirectPhoto()) history.back();
+    leavePhoto();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
   addEventListener("site:scroll", trackScroll(({ detail }) => detail.y), { passive: true, signal: controller.signal });

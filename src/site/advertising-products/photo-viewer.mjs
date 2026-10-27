@@ -475,7 +475,9 @@ export function createAdvertisingPhotoViewer({
   expandButton.addEventListener("click", open, { signal: controller.signal });
   // Màn cảm ứng mở viewer bằng một tap trên primary photo (R7); chạm video thì phát hoặc dừng, mở bằng nút mở lớn.
   heroFrame?.addEventListener("pointerdown", (event) => {
-    heroTap = event.pointerType === "touch" && event.isPrimary && record?.media.kind !== "video" ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+    // Chạm nút trong khung (quay lại, đổi media) không mở viewer.
+    heroTap = event.pointerType === "touch" && event.isPrimary && record?.media.kind !== "video"
+      && !event.target.closest("button") ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
   }, { signal: controller.signal });
   heroFrame?.addEventListener("pointermove", (event) => {
     if (heroTap?.id === event.pointerId && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) > TOUCH_SLOP) heroTap = null;

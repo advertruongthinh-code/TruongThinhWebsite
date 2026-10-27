@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-26
+updated: 2026-10-27
 ---
 
 # Detail Advertising
@@ -190,6 +190,7 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 ### R10. Navbar và Escape trên detail
 
 Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All (owner 2026-10-05). Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
+Nút quay lại `←` (owner 2026-10-27, như nút quay lại của Pinterest; `[data-advertising-photo-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
 Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px (đo 2026-10-10). Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
 
 ```gherkin
@@ -200,6 +201,12 @@ Then URL là ?category=kiosk-posm, rail sáng nhóm đó, history thêm một en
 Given /vi/advertising-products/p/kiosk-posm-07/ vào thẳng ở 390×844, scrollY 0
 When cuộn xuống 400px rồi cuộn ngược về 0, sau đó đóng detail về masonry ở scrollY 0
 Then header luôn is-collapsed, nền trắng, cao 71px khi ở detail; về masonry thì bỏ is-collapsed
+```
+
+```gherkin
+Given masonry ở Y0, mở A, cuộn tới Y1, mở B
+When bấm `←` hai lần
+Then về A ở Y1, rồi về masonry ở Y0 với focus card A, như Back
 ```
 
 ### R11. VI/EN
@@ -243,20 +250,16 @@ Then không animation nào chạy; state, URL, scroll và focus giống khi có 
 | Hàm public | `window.TruongThinhAdvertising.navigatePhoto`, `navigateQuery(href, {reason})`, `handlePopState`, `captureDetail`, `replaceTag` | `motion.js` gọi (R8, R10) |
 | Event | `site:layout` (phát sau khi dựng detail), `languagechange`, `site:scroll` | Shell, R11, R6 |
 
-Code detail nằm trong file của spec khác: `catalog-runtime.mjs`, `layout-core.mjs` ([masonry](advertising-masonry.md)), `photo-viewer.mjs`
-([viewer chạm](advertising-viewer-touch-zoom.md)), `detail.css` ([trang con](detail-pages.md)), `motion.js` ([shell](site-shell.md)); sửa hành vi
-detail ở đó thì cập nhật cả spec này.
+Code detail nằm trong file của spec khác: `catalog-runtime.mjs`, `layout-core.mjs` ([masonry](advertising-masonry.md)), `photo-viewer.mjs` ([viewer chạm](advertising-viewer-touch-zoom.md)), `detail.css` ([trang con](detail-pages.md)), `motion.js` ([shell](site-shell.md)); sửa hành vi detail ở đó thì cập nhật cả spec này.
 
 ## UI
 
-[Primary](../../design-system/components/Primary/README.md), [Suggestion](../../design-system/components/Suggestion/README.md),
-[Viewer](../../design-system/components/Viewer/README.md), [Vệt sáng](../../design-system/components/LoadSweep/README.md),
+[Primary](../../design-system/components/Primary/README.md), [Suggestion](../../design-system/components/Suggestion/README.md), [Viewer](../../design-system/components/Viewer/README.md), [Vệt sáng](../../design-system/components/LoadSweep/README.md),
 [Kính](../../design-system/components/Glass/README.md), [motion detail](../../design-system/motion.md#suggestion-và-detail).
 
 ## Kiểm tra
 
-Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạy một ca của `advertising-photo-transitions.e2e.mjs`
-(do [viewer chạm](advertising-viewer-touch-zoom.md) giữ).
+Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạy một ca của `advertising-photo-transitions.e2e.mjs` (do [viewer chạm](advertising-viewer-touch-zoom.md) giữ).
 
 | R | Test hoặc command |
 | --- | --- |
@@ -280,15 +283,12 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - Landscape VI `Y=2` trên emulator FAIL; phone Android thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay 18/10 trên SM-A047F: L06 ngang 2/2 PASS, ca mobile
   PASS hết; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL (chưa kết luận, cần đối chiếu Chromium PC), cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
-- Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related,
-  Back, navbar. Owner.
+- Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related, Back, navbar. Owner.
 - Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 19/10, 2 vòng x 15 lượt chạm qua CDP (main trong ngoặc): hiện p50 `121` đến `146ms` (`121` đến `150`); lượt có long task 9 và 14/15 (15/15), dài nhất p50 `51` đến `60ms` (`66` đến `83`), p95 `103` đến `119ms` (`77` đến `187`); Kính primary `47` đến `65ms` (`93` đến `184`).
   Còn: task hiện detail `57` đến `73ms` (style, Layout đầu), mount related, Masonry, LazySizes `50` đến `75ms`, task không event main thread `73` đến `157ms` (cả main). Fps mở detail `43` đến `47` (cả main), cuộn masonry `88` đến `89`.
   Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Main và máy PC.
-- `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium.
-  Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
-- `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14);
-  Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
+- `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium. Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
+- `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14); Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
 
 ## Chú thích thuật ngữ
 

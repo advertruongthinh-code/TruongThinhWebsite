@@ -71,9 +71,9 @@ assert.equal(existsSync(new URL("../../src/site/advertising-products/skeleton-fl
 assert.match(runtime, /const skeletonAssignmentByKey = new Map\(\)[\s\S]*?const skeletonRatioBandBySlot = new Map\(\)/, "each document load starts a fresh batch skeleton assignment scope");
 assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayout\.forEach\(\(\{ slot, band \}\) => skeletonRatioBandBySlot\.set\(slot, band\)\)/, "responsive solving preserves each existing skeleton slot's ratio band");
 assert.match(runtime, /gridPixelHeight[\s\S]*?createMasonry\(grid, positions, \(\) => gridPixelHeight\)/, "Masonry owns the complete photo and skeleton height");
-assert.doesNotMatch(index, /data-advertising-photo-back(?:\s|=|>)/, "photo state does not expose a dedicated Back control");
-assert.doesNotMatch(runtime, /\bphotoBack\b/, "photo runtime does not retain dedicated Back behavior");
-assert.doesNotMatch(css, /\.advertising-photo-view__back(?:\s|:|\{|,)/, "photo CSS does not retain the removed Back control");
+// Owner 2026-10-27 mở lại nút quay lại kiểu Pinterest (detail R10): cùng kiểu image-action, chung đường với Escape.
+assert.match(index, /class="advertising-photo-view__image-action advertising-photo-view__back"[^>]*data-advertising-photo-back/, "photo Back reuses the image-action control");
+assert.match(runtime, /data-advertising-photo-back[\s\S]*?leavePhoto\(\)[\s\S]*?key !== "Escape"[\s\S]*?leavePhoto\(\)/, "photo Back and Escape share one exit path");
 assert.match(index, /data-advertising-photo-description-box[\s\S]*data-advertising-photo-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-advertising-photo-description-bar aria-hidden="true"/,
   "detail R3 exposes a labelled description scroller and a decorative scrollbar");
 const photoInfoMarkup = index.slice(index.indexOf("data-advertising-photo-info"), index.indexOf("data-advertising-photo-related aria-label"));
