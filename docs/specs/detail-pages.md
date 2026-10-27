@@ -14,7 +14,7 @@ tests:
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/cross-browser.smoke.spec.cjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-26
+updated: 2026-10-27
 ---
 
 # Trang Residential, Commercial và About
@@ -58,9 +58,9 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOP · F&B · SHOWROOM · VĂN PHÒNG", "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
 | 2 | `.detail-intro#tong-quan` | `h2` "KHÔNG GIAN ĐỂ SỐNG", đoạn mở | "KHÔNG GIAN KINH DOANH", đoạn mở | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
-| 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một câu | "Bằng chứng trong vận hành", một câu | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure`, sáu chuỗi công trình (R7) | "Không gian *tiêu biểu.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
-| 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Từ mặt bằng / đến ngày mở cửa." | ink |
+| 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một đoạn ngắn | "Bằng chứng trong vận hành", một đoạn ngắn | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure`, sáu chuỗi công trình (R7) | "Không gian *đang vận hành.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
+| 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Tối ưu từ bản vẽ, / bền bỉ sau ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
 | 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Shop / Showroom, F&B / Cafe, Workspace / Văn phòng (EN "Workspace / Office") | ink |
