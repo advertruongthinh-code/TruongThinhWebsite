@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-26T21:46:32Z",
+    "at": "2026-10-27T01:56:00Z",
     "via": "Claude Code (cloud)",
-    "note": "Sau merge #585 và #596: LoadSweep bỏ dòng nâng bậc; player video giữ bóng icon trên lớp riêng, thanh tua box-shadow chỉnh theo bóng cũ, viewer mở thì khung primary chỉ còn zoom blur"
+    "note": "Sau merge #601: BannerCta (Giữ nghề) dùng chung grid 1fr auto 1fr và nút của CTA trang con, tiêu đề bỏ dấu phẩy"
   }
 }
