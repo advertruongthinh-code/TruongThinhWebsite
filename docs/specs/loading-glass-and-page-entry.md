@@ -7,8 +7,9 @@ tests:
   - tests/site/glass-surface.test.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
   - tests/site/advertising-reveal-offscreen.e2e.mjs
+  - tests/site/advertising-remount-no-cache.e2e.mjs
 notion: https://app.notion.com/p/3e9332849a0e814995c2fbb2e5393803
-updated: 2026-10-25
+updated: 2026-10-27
 ---
 
 # Skeleton chờ ảnh và Kính hiện ảnh
@@ -74,7 +75,9 @@ And sau 0.6s card không còn node skeleton hay Kính, WebGL context đã về p
 Card vào viewport khi media đã giải mã xong (cache, tải xong trước khi vào, hoặc vào lại sau khi ra hẳn viewport với
 `intersectionRatio = 0`, kể cả card ảo hóa gắn lại) thì media hiện ngay ở opacity cuối: không skeleton, không Kính, không
 crossfade, không chờ trang ngừng cuộn. Card ảo hóa gắn lại tạo `img` mới; ảnh lấy từ cache vẫn phải giải mã nên khung
-được trống lúc giải mã (đo 2026-10-14: một tới ba frame) rồi hiện thẳng opacity cuối. Áp cho masonry chính và masonry related;
+được trống lúc giải mã (đo 2026-10-14: một tới ba frame) rồi hiện thẳng opacity cuối. Ảnh không về trong `150ms`
+(`REMOUNT_CACHE_WAIT_MS`: cache tắt hoặc bị xóa nên phải tải lại) thì card mang skeleton như R1 và hiện qua R2, không để
+khung trắng tới khi tải xong (owner kéo thanh cuộn khi tắt cache, 2026-10-27). Áp cho masonry chính và masonry related;
 primary theo R4.
 
 ```gherkin
@@ -134,7 +137,9 @@ And mở viewer thì không có vệt sáng hay fade-in chờ ảnh trong viewer
   context; ảnh tải xong khi card còn ngoài viewport thì skeleton gỡ không qua Kính.
   Card ra khỏi viewport khi đang chờ `decode()` của R2: decode xong thì media hiện ngay ở opacity cuối, không Kính
   (`tests/site/advertising-reveal-offscreen.e2e.mjs`).
-- Card bị gỡ khỏi masonry hoặc related (ảo hóa, đổi filter, đổi tag, đóng detail): gỡ skeleton và Kính.
+- Card bị gỡ khỏi masonry hoặc related (ảo hóa, đổi filter, đổi tag, đóng detail): gỡ skeleton và Kính; `img` chưa tải
+  xong bỏ `src`, `srcset` để trình duyệt hủy request (`img` tách khỏi DOM vẫn tải tiếp, kéo thanh cuộn khi tắt cache dồn
+  hàng trăm request cũ trước ảnh đang thấy).
 - Primary đổi sang ảnh khác trước khi R4 xong: lượt cũ dừng, gỡ skeleton, Kính cũ, rồi lượt mới bắt đầu
   (`settlePrimaryReveal`). Về masonry (`restoreGridEntry`) hoặc runtime unmount: gỡ hết.
 
@@ -213,10 +218,10 @@ E2E cần `pnpm dev`, `BASE_URL`; `CASE=<tên>` chạy một ca của `advertisi
 | --- | --- |
 | R1 | `image-loading-frame.e2e.mjs` (P9: skeleton phủ khung media ngay khi vào viewport, lệch tối đa 1px; card, CTA, footer, filter giữ hình học khi ảnh tải); `advertising-skeleton-slow-network.e2e.mjs` (lúc tải trang skeleton card đầu giữ một node, hiện dần một lần); `advertising-skeleton-flow.test.mjs` (pha liên tục, cùng preset lệch ít nhất 1/4 vòng) |
 | R2 | `image-loading-frame.e2e.mjs` (P9: Kính ba bậc chỉ đổi opacity, xong trong `0.6s`, skeleton và Kính gỡ sau khi tải); `node tests/site/glass-surface.test.mjs` (ba bậc, mức Kính theo thời gian) |
-| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính), `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` (card ảo hóa gắn lại) |
+| R3 | `image-loading-frame.e2e.mjs` (P9: card đã tải ra hẳn rồi vào lại viewport hiện ngay, không skeleton, không Kính), `TT_E2E_ADVERTISING_MEDIA_ENTRANCE_ONLY` (card ảo hóa gắn lại); `advertising-remount-no-cache.e2e.mjs` (tắt cache, mạng chậm, cuộn nhảy: không card trắng quá `400ms`) |
 | R4 | `image-loading-frame.e2e.mjs` (P9: primary đang tải có skeleton, Kính ba bậc chỉ opacity, phone khớp PC); `glass-surface.e2e.mjs` (ghi từng frame khi related tải chậm và Back có sẵn: skeleton trước Kính, ảnh không đậm hơn Kính lúc Kính tăng; nhịp từng lớp giống nhau giữa lần mở, related, Back và card tải chậm); `CASE=m02b-grid-detail-no-clone-no-jump`, `morph-backdrop-lifecycle` |
 | R5 | `image-loading-frame.e2e.mjs` (P9: `aria-busy` theo ảnh primary hiện tại); vắng vệt sáng trong masonry, detail chưa có test; `advertising-products-static.test.mjs` (viewer không nhận `.media-frame`); `site-media-card-m02a.e2e.mjs` (`viewerMediaGate`: viewer ảnh và video không có vệt sáng, fade-in) |
-| R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins` |
+| R6 | `image-loading-frame.e2e.mjs` (P9: đổi ảnh nhanh không để lại skeleton, Kính, `aria-busy` cũ; về masonry gỡ skeleton primary); `CASE=delayed-image-resize-latest-wins`; `advertising-remount-no-cache.e2e.mjs` (card bị gỡ không còn `img` đang tải) |
 | R7 | chưa có test |
 | R8 | chưa có test |
 | R9 | chưa có test; trace Chrome qua CDP trên A05s cũ ([debug Android](../operations/android-real-device-debugging.md)) |

@@ -81,6 +81,9 @@ const CARD_REVEAL_MS = 600;
 const SKELETON_ASSIGN_BUDGET_MS = 8;
 // Điện thoại giữ reveal của card đến khi swipe dừng: một cú fling nhanh nếu không sẽ bắt đầu reveal Kính cho từng card lướt qua.
 const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
+// Card gắn lại có media đã tải chờ cache chừng này (R3 đo giải mã một tới ba frame); quá hạn mà ảnh chưa về (cache tắt
+// hoặc bị xóa) thì mang skeleton như card đang tải (R1), không để khung trắng.
+const REMOUNT_CACHE_WAIT_MS = 150;
 const PHONE_SCROLL_SETTLE_MS = 500;
 // Skeleton card (advertising-skeleton R4): card vào viewport trong khoảng này sau scroll event thì khung và canvas Flow
 // hiện ngay không fade, để vuốt nhanh vẫn thấy gradient chạy.
@@ -1614,13 +1617,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     media.style.removeProperty("transition");
   });
   const handleMediaLoaded = (node) => {
-    const id = mediaKey(node);
-    const seen = loadedMediaKeys.has(id);
-    loadedMediaKeys.add(id);
-    if (!cardSkeletons.has(node) || seen) {
-      dropCardSkeleton(node);
-      showMedia(node);
-    } else revealCard(node);
+    loadedMediaKeys.add(mediaKey(node));
+    if (cardSkeletons.has(node)) revealCard(node);
+    else showMedia(node);
   };
   // Reduced motion vẫn observe: skeleton loading chỉ hiện trên card đang trong view.
   const mediaObserver = new IntersectionObserver((entries) => {
@@ -1652,6 +1651,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const releaseMediaCard = (node) => {
     const id = mediaKey(node);
     node.querySelectorAll("video").forEach(releaseVideoSource);
+    // img tách khỏi DOM vẫn tải tiếp: kéo thanh cuộn khi không có cache dồn hàng trăm request của card đã gỡ trước ảnh
+    // đang thấy. Bỏ nguồn để trình duyệt hủy request.
+    node.querySelectorAll("img").forEach((image) => {
+      if (image.complete) return;
+      image.removeAttribute("srcset");
+      image.removeAttribute("src");
+    });
     mediaObserver.unobserve(node);
     visibleMediaCards.delete(id);
     dropCardSkeleton(node);
@@ -2526,10 +2532,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Media tải sau skeleton reveal dưới Kính trong 0.6s; media đã tải thì hiện ngay
   // (loading-glass-and-page-entry R1-R3).
   const cardSkeletons = new Map();
-  const attachCardSkeleton = (node) => {
+  const attachCardSkeleton = (node, waitCache = loadedMediaKeys.has(mediaKey(node))) => {
     const mediaId = node.advertisingPendingMediaId?.();
-    // Card gắn lại có media đã tải thì không skeleton (loading-glass R3).
-    if (cardSkeletons.has(node) || !mediaId || loadedMediaKeys.has(mediaKey(node))) return;
+    if (cardSkeletons.has(node) || !mediaId) return;
+    // Card gắn lại có media đã tải thì chờ cache, không skeleton (loading-glass R3).
+    if (waitCache) {
+      setTimeout(() => node.isConnected && visibleMediaCards.has(mediaKey(node)) && attachCardSkeleton(node, false),
+        REMOUNT_CACHE_WAIT_MS);
+      return;
+    }
     const frame = attachLoadingSkeleton(node.querySelector(".advertising-card-media"), mediaId);
     cardSkeletons.set(node, { frame, revealing: false, animations: [] });
   };
