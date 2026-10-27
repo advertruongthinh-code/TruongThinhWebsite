@@ -80,12 +80,8 @@ Giữ nguyên các trường hợp sau:
 
 ### R3. Phần nhẹ hiện trước, phần nặng không chặn
 
-Thứ tự ưu tiên khi mở trực tiếp:
-
-1. Header, veil, chữ hero, rail và chip, cùng khung có kích thước cố định của mọi ô ảnh và ô masonry.
-2. Ảnh hero.
-3. Ảnh trong khung nhìn đầu.
-4. Catalog, masonry và ảnh ngoài khung nhìn tải song song ở nền.
+Thứ tự ưu tiên và tầng tải khi mở trực tiếp ở [tải theo nấc R4, R5](progressive-loading.md#r4-tầng-tải-trang-và-lúc-veil-mở):
+header, veil, chữ hero, rail, chip và khung có kích thước cố định đi trước ảnh; ảnh ngoài khung nhìn tải ở nền.
 
 Việc nặng không được giữ veil hay làm trễ motion chữ. Ảnh đổ vào khung đã có sẵn kích thước, nên bố cục không nhảy.
 
