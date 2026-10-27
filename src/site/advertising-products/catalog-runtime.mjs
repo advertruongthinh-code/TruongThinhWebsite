@@ -84,8 +84,6 @@ const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 // Card gắn lại có media đã tải chờ cache chừng này (R3 đo giải mã một tới ba frame); quá hạn mà ảnh chưa về (cache tắt
 // hoặc bị xóa) thì mang skeleton như card đang tải (R1), không để khung trắng.
 const REMOUNT_CACHE_WAIT_MS = 150;
-// Thả thanh cuộn Locomotive chừng này thì Flow chạy tiếp; trang còn trượt nốt theo lerp ngay sau khi thả tay.
-const SCROLLBAR_FLOW_RESUME_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
 // Skeleton card (advertising-skeleton R4): card vào viewport trong khoảng này sau scroll event thì khung và canvas Flow
 // hiện ngay không fade, để vuốt nhanh vẫn thấy gradient chạy.
@@ -2081,7 +2079,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     pending.glass?.remove();
     skeletonEntryFrames.delete(frame);
   };
-  let scrollbarDragging = false;
   // Skeleton loading chạy trên related card và cả primary; batch CTA được xóa khi đang mở photo.
   const skeletonMotionAllowed = () => !skeletonDocumentParked && !document.hidden
     && !skeletonMotionPreference.matches
@@ -2262,8 +2259,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
   const syncSkeletonRenderers = (rects) => {
     const budget = sharedFlowAllowed() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
-    // Giữ thanh cuộn thì không dựng renderer cho card chỉ lướt qua.
-    const eligible = skeletonMotionAllowed() && !scrollbarDragging;
+    const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
@@ -2290,7 +2286,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên phone Android (R8): mọi renderer
   // mount trong task riêng sau frame, context mới một task trước nó; ảnh tĩnh hiện trong lúc đó.
-  // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang cuộn; giữ thanh cuộn thì không (R5).
+  // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
   // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Khung batch
@@ -2424,13 +2420,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       if (!skeletonAssignmentByFrame.has(frame)) return;
       if (skeletonCanLoop(frame)) {
-        // Flow chạy từ frame đầu tiên của entry Kính (R4); giữ thanh cuộn thì khung vẫn hiện, Flow đứng ở hình cuối.
+        // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
-        const running = Boolean(renderer) && !scrollbarDragging;
-        frame.classList.toggle("is-looping", running);
-        frame.dataset.advertisingFlowState = running ? "running" : "paused";
-        if (running) renderer.start();
-        else renderer?.stop();
+        frame.classList.toggle("is-looping", Boolean(renderer));
+        frame.dataset.advertisingFlowState = renderer ? "running" : "paused";
+        renderer?.start();
         return;
       }
       cancelSkeletonEntry(frame);
@@ -2461,31 +2455,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // một lần style và layout trong task đó (decision phone-frame-budget).
   const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-  // Locomotive gắn has-scroll-dragging lên html khi giữ thanh cuộn (owner 2026-10-27): kéo lên xuống liên tục làm
-  // hàng chục card lướt qua mỗi giây, dựng rồi gỡ Flow cho từng card nặng máy mà không ai kịp thấy.
-  let scrollbarResumeTimer = 0;
-  const scrollbarObserver = new MutationObserver(() => {
-    if (document.documentElement.classList.contains("has-scroll-dragging")) {
-      clearTimeout(scrollbarResumeTimer);
-      scrollbarResumeTimer = 0;
-      if (!scrollbarDragging) {
-        scrollbarDragging = true;
-        scheduleSkeletonSync();
-      }
-    } else if (scrollbarDragging && !scrollbarResumeTimer) {
-      scrollbarResumeTimer = setTimeout(() => {
-        scrollbarResumeTimer = 0;
-        scrollbarDragging = false;
-        scheduleSkeletonSync();
-      }, SCROLLBAR_FLOW_RESUME_MS);
-    }
-  });
-  scrollbarObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  controller.signal.addEventListener("abort", () => {
-    skeletonPauseObserver.disconnect();
-    scrollbarObserver.disconnect();
-    clearTimeout(scrollbarResumeTimer);
-  }, { once: true });
+  controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
   let skeletonSyncFrame = 0;
   const scheduleSkeletonSync = () => {
