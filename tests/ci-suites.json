@@ -138,7 +138,8 @@
         "TT_E2E_DETAIL_HERO_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_DELAYED_DETAIL_ONLY=1 node tests/site/site.e2e.cjs",
         "TT_E2E_BOOT_RACE_ONLY=1 node tests/site/site.e2e.cjs",
-        "TT_E2E_FULL_FAILURES_ONLY=1 node tests/site/site.e2e.cjs"
+        "TT_E2E_FULL_FAILURES_ONLY=1 node tests/site/site.e2e.cjs",
+        "node tests/site/cta-title-punctuation.e2e.mjs"
       ]
     },
     "entry": {

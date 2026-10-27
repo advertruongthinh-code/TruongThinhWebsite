@@ -1117,13 +1117,6 @@ em {
   display: inline-block;
 }
 
-/* Dấu chấm cuối title canh giữa treo ra lề phải: hộp rộng 0 nên phần chữ đúng tâm, line breaker và
-   max-content không tính dấu (owner 15/10). */
-.text-hang-end {
-  display: inline-block;
-  width: 0;
-}
-
 @media (max-width: 980px) {
   .hero[data-hero-intro],
   .about-hero {
@@ -3846,11 +3839,6 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   letter-spacing: var(--tracking-display);
   line-height: 0.98;
   word-spacing: var(--word-spacing-display);
-}
-
-/* Dấu chấm cuối không treo: cả dòng kể cả dấu nằm giữa khối (owner 17/10). */
-.detail-cta__copy .text-hang-end {
-  width: auto;
 }
 
 .detail-cta__copy a,
