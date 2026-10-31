@@ -119,8 +119,7 @@ Then reveal Kính không chạy lại, Flow tiếp tục từ pha lúc dừng
 ### R5. WebGL context
 
 Mọi khung của batch vẽ bằng một canvas WebGL chung (một context) nằm trong `.advertising-grid__cta-skeleton`:
-7-8 context riêng làm GPU A05s cũ quá tải (p5 45.5fps, GPU process bận 46%), một context ở nửa độ phân giải đạt gate
-(p5 90fps, 0.3-0.8% frame chậm đứng yên, 13.9%; vòng 20, owner chọn 10/10). Canvas cao gấp đôi viewport, cuộn cùng
+7-8 context riêng làm GPU phone quá tải, một context ở nửa độ phân giải đạt gate. Canvas cao gấp đôi viewport, cuộn cùng
 nội dung và chỉ dời khi viewport ra khỏi nó; độ phân giải bằng nửa CSS px trên mọi máy. Mỗi frame canvas xóa trong
 suốt rồi vẽ từng khung đang chạy bằng viewport và scissor tại vị trí của khung, với preset, pha và chiều riêng; khung
 chưa vào entry không vẽ, khung đang entry vẽ với alpha theo opacity của reveal Kính (R4). Canvas nằm trên khung và
@@ -128,30 +127,29 @@ dưới Kính, CTA. Dưới canvas mỗi khung vẫn hiện frame tĩnh là mộ
 nên khi canvas chưa vẽ, dừng hay mất context thì khung không trống và lúc chuyển sang chạy không nhảy. Mất context:
 xóa danh sách vẽ, hiện frame tĩnh; khôi phục thì dựng lại và chạy tiếp các khung đang chạy.
 
-Skeleton chờ ảnh trong media card và primary: trình duyệt không có worker dùng renderer riêng mỗi khung, tối đa 12 renderer;
+Skeleton chờ ảnh của primary ([R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)): trình duyệt không có worker dùng renderer riêng mỗi khung, tối đa 12 renderer;
 PC dùng chung một context trong worker (đoạn dưới), tối đa 24 khung chạy; điện thoại dùng context riêng mỗi khung, xếp 4 khung mỗi
 worker (tối đa 12 khung, 3 worker). Khung đang thấy
 giữ renderer đã có; còn chỗ thì cấp cho khung gần đầu viewport trước (top rồi left). Khung chưa có renderer hiện frame
 tĩnh của preset. Nhả renderer trước khi cấp mới nên xoay máy không vượt ngân sách. Renderer vẽ trong một module worker
-chung của document qua `OffscreenCanvas` (owner 19/10): rAF của worker không chờ main thread, nên khi vuốt nhanh main
+chung của document qua `OffscreenCanvas`: rAF của worker không chờ main thread, nên khi vuốt nhanh main
 thread bận masonry (rAF còn khoảng 12fps trên A04s) Flow vẫn chạy theo tần số màn hình. Worker tự tạo context, compile
 program và noise; nhả renderer thì worker trả context (`loseContext`), main thay canvas đã transfer bằng canvas tĩnh
-mới ở pha đã lưu. Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (đo 26/10 trên RTX 3090, Chrome 155:
-tạo context thứ 5 thì context cũ nhất bị thu hồi mà main thread không được báo), nên trên PC worker có đúng một
+mới ở pha đã lưu. Chrome chỉ giữ 4 context WebGL sống trong mỗi dedicated worker (tạo context thứ 5 thì context cũ nhất bị thu hồi mà
+main thread không được báo), nên trên PC worker có đúng một
 context WebGL: mỗi khung vẽ một lượt vào context đó rồi chuyển hình sang canvas của khung bằng `bitmaprenderer`
 (`data-advertising-flow-context="shared"`), mất context của worker thì dựng lại và chạy tiếp. Điện thoại (A04s, cùng giới hạn 4)
 giữ context riêng mỗi khung nhưng xếp tối đa 4 khung mỗi worker, nên 12 khung chạy trên 3 worker; context chung trên A04s
-làm fps SurfaceFlinger tụt dưới 60 và khoảng giữa hai lần vẽ p95 vượt `33ms` (đo 26/10) nên không dùng. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
+làm fps SurfaceFlinger tụt dưới 60 và khoảng giữa hai lần vẽ p95 vượt `33ms` nên không dùng. Pha trên main tính theo thời gian chạy. Trình duyệt không có `OffscreenCanvas`, `Worker` hay tạo
 worker lỗi thì về renderer main thread: ngân sách 12 context tính cả context đang dùng và đang rảnh, context giữ theo
 document và dùng lại (trả lease thì xóa buffer, texture, listener, RAF đúng một lần, giữ canvas, context và program đã
-compile; compile mất khoảng 60ms trên A05s cũ), lease mới bắt đầu ở pha đã lưu, context mới tạo ở task trước task dựng
+compile; compile mất khoảng 60ms trên phone), lease mới bắt đầu ở pha đã lưu, context mới tạo ở task trước task dựng
 renderer. Mất context: hiện frame tĩnh, khôi phục thì dựng lại và chạy tiếp nếu trước đó đang chạy. `destroy()` gọi
 nhiều lần vẫn an toàn và không gọi `loseContext` trên context đã mất. Mỗi renderer dựng trong một task riêng sau frame
 (R8) và không chờ cuộn dừng, nhưng chờ card masonry trượt `0.4s` xong (đổi filter, resize) để dựng renderer không
 làm trễ nhịp trượt. Cuộn mượt thắng: loại máy nào trace cho thấy dựng renderer giữa lúc cuộn gây task trên 50ms thì
 hoãn dựng tới khi cuộn dừng, vẫn hiện frame tĩnh. Điện thoại (pointer coarse, có touch hoặc `clientWidth <= 750`) hoãn
-như vậy cho khung batch (A05s cũ, 10/10); khung chờ ảnh trong card dựng ngay cả lúc đang vuốt, với profile phone ở R8
-(owner 18/10). "Cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt
+như vậy cho khung batch; khung chờ ảnh của primary dựng ngay cả lúc đang vuốt, với profile phone ở R8. "Cuộn dừng" là sau `scrollend` cộng `120ms`; trình duyệt
 không có `scrollend` thì `120ms` sau scroll event cuối. Scroll không kèm `scrollend` (layout, mở detail nhảy về đầu
 trang) coi là đã dừng sau `500ms` không có scroll event.
 
@@ -192,11 +190,9 @@ Then mọi khung hiện ngay ở opacity cuối, không khung nào có is-loopin
 
 Desktop 1569×912: khi mọi khung giao viewport và mọi renderer đang chạy, đo 5s sau warm-up, mỗi renderer đạt ít nhất
 30fps, vòng lặp không có long task trên 50ms. Điện thoại: gate [phone Android trên 60fps](../decisions/phone-frame-budget.md)
-(trên 60fps), mọi khung trong viewport đều chạy (owner 10/10). Batch đạt gate nhờ một canvas chung nửa độ phân
-giải (R5). Khung chờ ảnh trong card trên điện thoại chạy cả lúc vuốt nên dùng renderer `120x80`, vẽ mọi frame của
-worker, giữ preset, màu, anchor, chiều chảy và tốc độ (owner 18/10, 19/10); ngoài điểm đó không hạ preset, noise hay số
-khung chạy để đạt gate. Gate mượt khung card khi vuốt nhanh trên A04s: khoảng giữa hai lần vẽ của mỗi renderer p95
-dưới `33ms` (đo 19/10: p50 `11-12ms`, p95 `18-24ms`, fps SurfaceFlinger `69-71`).
+(trên 60fps), mọi khung trong viewport đều chạy. Batch đạt gate nhờ một canvas chung nửa độ phân giải (R5). Khung
+chờ ảnh của primary trên điện thoại dùng renderer `120x80` (`PHONE_CARD_FLOW`), vẽ mọi frame của worker, giữ preset, màu,
+anchor, chiều chảy và tốc độ; ngoài điểm đó không hạ preset, noise hay số khung chạy để đạt gate.
 Mọi renderer trong một thread dùng chung một noise texture. Ảnh tĩnh render CPU tối đa `8ms` mỗi task; khung còn lại nhận
 assignment ở task sau và chưa vào entry trước đó. Đồng bộ chạy trong rAF (chung task với frame cuộn và layout
 masonry) không render ảnh tĩnh nào mà chuyển hết sang task sau. Task sau chạy trong idle sau frame, ngân sách là phần
@@ -239,21 +235,11 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 ## Gate còn mở
 
-- R8 trên SM-A047F (18/10, 3 lượt vuốt xuống related): frame trên `33ms` 0 đến 0,5% (A05s cũ khoảng 9%), SurfaceFlinger
-  p5 90,9fps, 0 long task trên `50ms`: PASS. Owner xem trên demo.
+- R8 mới đo khi card related còn Flow; chưa đo lại với skeleton của primary trên phone. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
-- `advertising-continuation.e2e.mjs` chỉ PASS gate fps R4 trên Chrome có GPU: cloud (WebGL phần mềm, Chromium headless) đo
-  khoảng 9fps và có long task vượt `50ms`, nên hai assert đó FAIL ngoài PC. Các assert còn lại PASS ở cloud (18/10).
-  Chromium headless gần như không chạy rAF của worker, nên đo nhịp vẽ khung card phải dùng trình duyệt có màn hình (19/10).
-- Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận 95–99%
-  ([đo Feral](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/feral-flow-measurement-2026-09-21.md)). Owner.
-
-- Điện thoại (R5): đo 26/10 trên A04s, Chrome 156, vuốt nhanh masonry với ảnh bị giữ. Bản main: 10-13 khung `running` nhưng
-  chỉ 4 chuyển động thật (thu hồi 52-91 context). Bản 4 khung mỗi worker (3 worker): mọi khung `running` đều chuyển
-  động (9-12 trên 9-12), 0 context bị thu hồi, 0 frame đen; vuốt tay kiểu `adb swipe` qua gate R8 6 trên 6 vòng (fps 82-86,
-  draw p95 dưới 28ms), vuốt tự động 4000 px/s trượt cả main (fps 50-60) lẫn bản mới (fps 50-57, draw p95 19-37ms) nên
-  chưa phải hồi quy; vuốt tay thật là phép đo gate. Context chung (một hub) chạy đủ khung nhưng fps 22-65 nên bỏ.
-  Owner xem trên demo.
+- `advertising-continuation.e2e.mjs` chỉ PASS gate fps R4 trên Chrome có GPU; Chromium headless cloud (WebGL phần mềm) đo
+  khoảng 9fps và gần như không chạy rAF của worker, nên test này ở `manual`, chạy trên PC.
+- Owner chưa xem Flow và 12 preset trên demo. Feral Flow chỉ là tham khảo, không có gate cảm nhận. Owner.
 
 ## Chú thích thuật ngữ
 

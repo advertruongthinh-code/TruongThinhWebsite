@@ -17,7 +17,7 @@ tests:
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-27
+updated: 2026-10-31
 ---
 
 # Detail Advertising
@@ -88,8 +88,8 @@ And trên cảm ứng không có thanh, vuốt dọc trong mô tả cuộn chữ
 
 ### R4. Media primary và nền
 
-`renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
-`0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
+`renderPrimaryMedia` đổi ảnh tại chính khung primary: ảnh cũ ẩn ngay, skeleton phủ khung, giải mã xong thì ảnh hiện dưới
+Kính ba bậc rồi Kính tan trong `0.6s`; ảnh có sẵn hay chưa cùng một chuỗi ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, player kiểu Pinterest ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Hình học
 primary và related theo cover của card, không theo media đang xem: đổi media qua dải trượt không làm related xếp lại.
@@ -97,7 +97,7 @@ primary và related theo cover của card, không theo media đang xem: đổi m
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache
 When bấm card related B
-Then ảnh A crossfade sang B tại khung primary trong 0.6s, không skeleton
+Then A ẩn ngay, skeleton phủ khung primary, B hiện dưới Kính rồi Kính tan trong 0.6s
 ```
 
 ### R5. Suggestion
@@ -280,15 +280,14 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Landscape VI `Y=2` trên emulator FAIL; phone Android thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay 18/10 trên SM-A047F: L06 ngang 2/2 PASS, ca mobile
-  PASS hết; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL (chưa kết luận, cần đối chiếu Chromium PC), cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
+- Landscape VI `Y=2` trên emulator FAIL, phone thật `Y=0`, owner giữ FAIL kèm ghi chú; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL, chưa
+  kết luận, cần đối chiếu Chromium PC, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related, Back, navbar. Owner.
-- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 19/10, 2 vòng x 15 lượt chạm qua CDP (main trong ngoặc): hiện p50 `121` đến `146ms` (`121` đến `150`); lượt có long task 9 và 14/15 (15/15), dài nhất p50 `51` đến `60ms` (`66` đến `83`), p95 `103` đến `119ms` (`77` đến `187`); Kính primary `47` đến `65ms` (`93` đến `184`).
-  Còn: task hiện detail `57` đến `73ms` (style, Layout đầu), mount related, Masonry, LazySizes `50` đến `75ms`, task không event main thread `73` đến `157ms` (cả main). Fps mở detail `43` đến `47` (cả main), cuộn masonry `88` đến `89`.
-  Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Main và máy PC.
-- `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium. Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
-- `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14); Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
+- Hiệu năng mở detail trên SM-A047F chưa đạt: p95 trên `100ms` và còn long task trên `50ms` ở lượt mở đầu (task hiện
+  detail, mount related, Masonry, LazySizes); vào lại detail không còn long task. Máy PC.
+- `advertising-photo-transitions.e2e.mjs`: `m02b-grid-detail-no-clone-no-jump` và `p13-position-stuffing-and-remount`
+  flaky trên Chromium (chạy riêng PASS); L06 cần CDP nên chỉ Chromium. Main xử lý.
 
 ## Chú thích thuật ngữ
 
