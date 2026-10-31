@@ -291,7 +291,7 @@ export const MEDIA_COLORS = Object.freeze({
  "signage-raised-letters-06-v2": ["#384828","#ac9983","#746f68","#484b29","#2e3119"],
  "signage-raised-letters-06-v2-audit-a242-v1": ["#080808","#eddeb8","#9d6731","#583516","#1f1309"],
  "signage-raised-letters-06-v2-audit-a242-v5": ["#080808","#a8adb5","#ae763d","#613f21","#312210"],
- "signage-raised-letters-06-v2-audit-a242-v6": ["#180808","#e1b997","#a47142","#654222","#36200a"],
+ "signage-raised-letters-06-v2-audit-a242-v6": ["#180808","#cb782a","#834617","#512a0c","#261306"],
  "signage-raised-letters-07-acrylic-dimensional-letters": ["#483838","#edc7a4","#b78c68","#5c4c43","#28221e"],
  "signage-raised-letters-07-acrylic-dimensional-letters-v2": ["#181818","#d6d1cb","#918a81","#695d4a","#403627"],
  "signage-raised-letters-08-aluminium-and-foam-dimensional-letters-v2": ["#989898","#e0d6c9","#b2ada3","#8a8983","#444540"],
