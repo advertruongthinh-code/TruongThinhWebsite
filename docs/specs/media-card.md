@@ -10,7 +10,7 @@ tests:
   - tests/site/site-media-card-autoplay.e2e.mjs
   - tests/site/site-media-card-playback.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Card nhiều media
@@ -18,7 +18,7 @@ updated: 2026-10-26
 ## Mục đích
 
 Một card sản phẩm có thể mang nhiều ảnh và video: người xem đổi media ngay trên card, mở detail đúng media đang xem
-và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 270 card hiện chỉ có một ảnh
+và đổi tiếp ở primary. Runtime đã có trên masonry và related Advertising, nhưng catalog 285 card (tính từ catalog) hiện chỉ có một ảnh
 mỗi card. Các họ card ngoài Advertising đang tạm dừng (Gate còn mở). Code nằm trong
 file của [masonry](advertising-masonry.md) và [detail](advertising-detail.md) nên spec này không sở hữu file nào.
 
@@ -48,7 +48,7 @@ Canvas card lấy tỷ lệ của item cover (`layoutMedia`, `layout-core.mjs`),
 thêm dải điều khiển cao 44px dưới canvas (`mediaControlStripHeight`), tính ngay trong lần xếp đầu ở masonry và related;
 dải không phủ ảnh. Card một item không có dải, không chỉ báo; item đó là video hoặc ảnh khác `record.media` thì card hiện
 đúng item đó. Nhãn thời lượng video ở góc trên trái canvas. Đổi media, tải chậm hay lỗi không
-đổi khung card, canvas hay dải (lệch tối đa 1px). Card 270 ảnh hiện tại giữ hình học và thứ tự của
+đổi khung card, canvas hay dải (lệch tối đa 1px). Card một ảnh hiện tại giữ hình học và thứ tự của
 [masonry R5](advertising-masonry.md#r5-hình-học-masonry).
 
 ```gherkin
@@ -270,9 +270,9 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
   iPhone tiếng có thể bật, tắt ngay. Chưa kiểm thiết bị iOS. Owner.
 - Phân loại: tag nằm trên card ([taxonomy R1](advertising-taxonomy.md#r1-ba-tầng-phân-loại)), media chỉ có `kind`; chưa có
   tag hay vai trò (góc chụp, chi tiết) theo từng media. Owner quyết khi có ảnh nhiều góc thật.
-- Vùng tải trước đã duyệt: rộng hơn viewport, chuẩn bị poster, metadata trước, không cố tải cả file; đề xuất preload
-  metadata cho video kế trong vùng đệm. Code chỉ tạo video khi item thành active, `preload="metadata"`. Ngân sách byte,
-  lề preload, buffer chưa khóa, cần clip thật và trace thiết bị. Owner gửi clip; Main trace.
+- Vùng tải trước đã duyệt: rộng hơn viewport, chuẩn bị poster và metadata trước, không cố tải cả file. Code chỉ tạo video
+  khi item thành active với `preload="auto"` (R4). Ngân sách byte, lề preload, buffer chưa khóa, cần clip thật và trace
+  thiết bị.
 - Định dạng video: không lưu GIF public; owner chọn 03/10 AV1/WebM kèm MP4 H.264, poster WebP
   ([quyết định](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/8138757/tasks/plan.md#advertising-random-grid-và-tải-ảnh--plan-duyệt-2026-10-03)). Code gán một `src` cho
   mỗi video, chưa có nguồn theo codec. Thread code khi có clip.

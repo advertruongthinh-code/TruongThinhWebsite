@@ -1,7 +1,7 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
-status: accepted
-updated: 2026-10-26
+status: live
+updated: 2026-10-31
 source:
   - scripts/docs/check-docs.mjs
   - .github/pull_request_template.md
@@ -65,23 +65,30 @@ And mọi link Markdown nội bộ trỏ tới file và anchor tồn tại
 
 ### R2. Capability map và spec sống
 
-| ID | Spec | Source chính |
-| --- | --- | --- |
-| shell | `site-shell.md` | header, menu, footer, locale, chuyển trang, scrollbar; `style.css`, `motion.js` |
-| home | `page-home.md` | `src/site/index.html` |
-| detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` |
-| adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random |
-| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs` |
-| adv-detail | `advertising-detail.md` | trang card `p/<id>`: primary, related, suggestion, viewer |
-| adv-taxonomy | `advertising-taxonomy.md` | cụm, sản phẩm, tag, trang index, embedding ảnh (planned) |
-| media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, vệt sáng chờ ảnh, đo tốc độ |
-| media-card | `media-card.md` | card nhiều media (code trong file Advertising) |
-| video | `video-delivery.md` | thang chất lượng video HLS, chọn nguồn video |
-| release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, demo Cloudflare |
-| cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) |
-| seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) |
-| ci-suites | `ci-test-suites.md` | bộ test CI theo phần website, chọn bộ theo file PR sửa (planned) |
-| design-system | `design-system.md` | `design-system/`, preview, `DESIGN.md`, publish claude.ai |
+Spec sở hữu có `source:` khớp file và tham gia gate sync (R4). Spec con có `source: []`, tả một lát hành vi trong
+file của spec sở hữu; spec sở hữu link tới spec con trong bảng R hoặc Mục đích, và code hay test trích dẫn tên spec con.
+
+| ID | Spec sở hữu | Source chính | Spec con |
+| --- | --- | --- | --- |
+| shell | `site-shell.md` | header, menu, footer, locale, chuyển trang; `style.css`, `motion.js`, `assets/brand/` | `scroll-feel.md`, `phone-header-scroll.md`, `logo-route-crossfade.md`, `first-load-parity.md`, `hero-typography.md` |
+| home | `page-home.md` | `src/site/index.html`, logo khách, rail công trình | |
+| detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
+| adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |
+| adv-skeleton | `advertising-skeleton.md` | batch skeleton cuối masonry, `skeleton-flow.mjs`, `image-palette.mjs` | `advertising-cta-center-parallax.md` |
+| adv-detail | `advertising-detail.md` | `suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md` |
+| adv-viewer | `advertising-viewer-touch-zoom.md` | `photo-viewer.mjs` | |
+| adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
+| glass | `glass-surface.md` | `glass-surface.mjs` | |
+| media | `media-delivery.md` | biến thể ảnh, `responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
+| progressive | `progressive-loading.md` | `sw.js`, `media-colors.mjs` | |
+| video | `video-delivery.md` | `build-video-ladder.mjs`, `video-source.mjs` | |
+| release | `static-release.md` | `scripts/site/` (trừ biến thể ảnh), preview, `_headers`, `404.html`, demo Cloudflare | |
+| ci-suites | `ci-test-suites.md` | `ci.yml`, `tests/ci-suites.json`, `scripts/ci/` | |
+| content-tests | `content-independent-tests.md` | `content-contract.mjs` | |
+| design-system | `design-system.md` | `scripts/docs/build-*`, `capture-*`, `stage-*` | |
+| docs | `docs-system.md` | `check-docs.mjs`, PR template, `docs.yml` | |
+| cms | `cms.md` | `src/worker/`, `src/admin/`, `src/db/migrations/`, `wrangler.toml` (dormant) | |
+| seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) | |
 
 Mỗi spec theo `docs/specs/_template.md` mới:
 
@@ -98,7 +105,13 @@ Mỗi spec theo `docs/specs/_template.md` mới:
 7. `## Gate còn mở`: chỉ việc NOT PASS chưa đóng; xóa dòng khi đóng.
 8. `## Chú thích thuật ngữ`.
 
-Không có mục lịch sử, delta, correction hay evidence có ngày; Git log và PR giữ.
+Không có mục lịch sử, delta, correction hay evidence có ngày; Git log và PR giữ. Cụ thể:
+
+- Spec chỉ tả hành vi hiện tại: không bảng "Hiện tại / Sau", không ngày, không số PR, không log đo; kết quả đo ghi một
+  dòng "đạt trên <máy>" trong Kiểm tra.
+- Việc chưa làm nằm ở "Gate còn mở" của spec sở hữu, không có file spec riêng cho kế hoạch.
+- Một hành vi ghi ở một spec; chỗ khác link, không chép.
+- Số đếm nội dung (card, slide, figure) chỉ ghi khi là luật, lấy từ data lúc viết và ghi "tính từ catalog".
 
 ```gherkin
 Given một spec trong docs/specs/
@@ -190,16 +203,6 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 | R3 | Agent đối chiếu từng requirement với source và test khi review PR |
 | R5-R7 | Xem [Design System và Impeccable](design-system.md#kiểm-tra) |
 | R10 | Owner xem board Notion |
-
-## Quyết định owner khi duyệt
-
-Owner duyệt spec ngày 2026-10-04 với ba mặc định:
-
-- Corpus `docs/reference/espacio/`: phần còn dùng gộp vào `design-system/`
-  thành quy tắc của Trường Thịnh, nguồn chỉ ghi ở `Nguồn tham khảo` (owner
-  chỉnh 2026-10-04); phần còn lại xóa.
-- Mỗi spec tối đa 300 dòng; dài hơn thì tách capability.
-- ADR đã superseded bị xóa khỏi cây thư mục; Git history giữ.
 
 ## Chú thích thuật ngữ
 

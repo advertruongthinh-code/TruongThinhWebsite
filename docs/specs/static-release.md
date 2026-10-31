@@ -4,7 +4,6 @@ status: live
 source:
   - scripts/site/prepare-static-assets.mjs
   - scripts/site/non-public-source-assets.mjs
-  - scripts/site/sanitize-client-logos.ps1
   - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
@@ -22,7 +21,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Phát hành tĩnh
@@ -233,8 +232,8 @@ And .site-output/ không chứa file từ src/worker/, src/admin/ hoặc src/db/
 ### R13. Công cụ asset chạy tay
 
 `build-image-variants.mjs` sinh biến thể theo [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
-bỏ qua danh sách R3; `--check` liệt kê biến thể thiếu, exit 1. `sanitize-client-logos.ps1` (PowerShell, máy owner) lọc
-12 logo SVG từ `_temp/`, chỉ giữ hình học, ghi vào `assets/content/client-logos/`.
+bỏ qua danh sách R3; `--check` liệt kê biến thể thiếu, exit 1. Logo SVG khách hàng trong
+`assets/content/client-logos/` chỉ giữ hình học, làm sạch trên máy owner trước khi commit; script không nằm trong repo.
 
 ```gherkin
 Given thêm một WebP nội dung mới mà chưa sinh biến thể
