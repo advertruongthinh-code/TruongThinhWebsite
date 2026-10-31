@@ -2666,14 +2666,29 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const slideFrom = (node, before) => {
     if (!before || !node.isConnected) return;
     const after = node.getBoundingClientRect();
-    const dx = before.left - after.left;
-    const dy = before.top - after.top;
+    let dx = before.left - after.left;
+    let dy = before.top - after.top;
     // Khung batch co giãn từ cỡ cũ như card (morphSize); cụm CTA và Kính chỉ trượt.
     const scale = node.dataset.advertisingCtaFrame && after.width && after.height
       ? `${before.width / after.width} ${before.height / after.height}` : "1 1";
     if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5 && scale === "1 1") return;
-    node.animate([{ translate: `${dx}px ${dy}px`, scale, transformOrigin: "0 0" }, { translate: "0 0", scale: "1 1", transformOrigin: "0 0" }],
-      { duration: 400, easing: "ease" });
+    // Ở detail khung batch cũng đi vòng primary như card related (R10); tọa độ tính từ góc trên trái primary.
+    const box = ctaInDetail() && photoPrimary?.getBoundingClientRect();
+    let corner = null;
+    if (box?.width) {
+      const zone = { width: box.width, height: box.height };
+      const size = { width: Math.max(before.width, after.width), height: Math.max(before.height, after.height) };
+      let from = { x: before.left - box.left, y: before.top - box.top };
+      if (from.x > -size.width && from.x < zone.width && from.y > -size.height && from.y < zone.height) {
+        from = { ...from, y: zone.height + (relatedLayout?.primary.gap || 0) };
+      }
+      const to = { x: after.left - box.left, y: after.top - box.top };
+      const plan = planDetourPath({ from, to, size, zone });
+      corner = plan && { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset };
+      [dx, dy] = [from.x - to.x, from.y - to.y];
+    }
+    node.animate([{ translate: `${dx}px ${dy}px`, scale, transformOrigin: "0 0" }, ...(corner ? [corner] : []),
+      { translate: "0 0", scale: "1 1", transformOrigin: "0 0" }], { duration: 400, easing: "ease" });
   };
   const cancelCtaSlides = (nodes) => [...nodes].forEach((node) => node.getAnimations().forEach((animation) => {
     if (animation.effect?.getKeyframes?.()[0]?.translate) animation.cancel();

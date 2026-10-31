@@ -83,10 +83,29 @@ try {
     if (tag) {
       await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(0) || window.scrollTo(0, 0));
       await page.waitForTimeout(800);
+      // Lấy mẫu khung batch mỗi frame trong 700ms: không khung nào giao primary (R10).
+      const sampled = page.evaluate(() => new Promise((resolve) => {
+        const primary = document.querySelector("[data-advertising-photo-primary]");
+        const overlaps = [];
+        let sliding = 0;
+        const start = performance.now();
+        const tick = () => {
+          const p = primary.getBoundingClientRect();
+          sliding = Math.max(sliding, document.querySelector("[data-advertising-grid-cta]").getAnimations().length);
+          for (const frame of document.querySelectorAll("[data-advertising-cta-frame]")) {
+            const r = frame.getBoundingClientRect();
+            const x = Math.min(r.right, p.right) - Math.max(r.left, p.left);
+            const y = Math.min(r.bottom, p.bottom) - Math.max(r.top, p.top);
+            if (x > 0.5 && y > 0.5) overlaps.push({ slot: frame.dataset.advertisingCtaFrame, x, y });
+          }
+          if (performance.now() - start < 700) requestAnimationFrame(tick);
+          else resolve({ overlaps, sliding });
+        };
+        requestAnimationFrame(tick);
+      }));
       await page.locator(`[data-advertising-suggestion-tag="${tag}"]`).dispatchEvent("click");
-      const sliding = await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(
-        document.querySelector("[data-advertising-grid-cta]").getAnimations().length))));
-      await page.waitForTimeout(500);
+      const { overlaps, sliding } = await sampled;
+      assert.deepEqual(overlaps, [], `${label}: khung batch giao primary khi đổi tag`);
       const after = await measureEnd(page);
       assert.ok(Math.abs(after.batchBottom - after.footerTop) <= 1.5, `${label}: sau đổi tag đáy batch lệch footer`);
       console.log(`${label}: tag ${tag}, CTA animation lúc đổi: ${sliding}`);
