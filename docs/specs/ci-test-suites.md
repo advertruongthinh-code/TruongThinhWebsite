@@ -75,8 +75,8 @@ spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn th�
 `suites.mjs --select` so file đổi với merge base của `main`; `pnpm qa:suite --changed` (R6) dùng kết quả này. Trên CI,
 PR và push chỉ dùng nó để biết có code hay không (R4):
 
-1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`, `CLAUDE.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
-2. File khớp `fastOnly` (`AGENTS.md`, `CLAUDE.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow
+1. File chỉ là tài liệu (`docs/**`, `research/**`, `*.md` ở root trừ `AGENTS.md`): không bộ nào chạy, kể cả `fast`; Docs workflow kiểm phần này.
+2. File khớp `fastOnly` (`AGENTS.md`, `design-system/**`, `tests/tooling/**`, code CMS dormant, workflow
    khác CI): chỉ `fast`.
 3. File khớp `shared` (`src/site/motion.js`, `src/site/style.css`, `src/site/assets/brand/**`, `package.json`,
    `pnpm-lock.yaml`, `playwright.config.cjs`, `tooling-versions.json`, `scripts/site/**`,

@@ -2,7 +2,6 @@
   "ignore": ["docs/**", "research/**", "*.md"],
   "fastOnly": [
     "AGENTS.md",
-    "CLAUDE.md",
     "design-system/**",
     "scripts/docs/**",
     "tests/tooling/**",

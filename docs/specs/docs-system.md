@@ -41,7 +41,7 @@ của OpenSpec: spec mô tả sự thật hiện tại; thay đổi đang làm l
 Cây đích (mọi path khác dưới `docs/` bị xóa hoặc gộp):
 
 ```text
-AGENTS.md, CLAUDE.md, README.md   rule agent, lối vào
+AGENTS.md, README.md             rule agent, lối vào
 PRODUCT.md                        product truth (Impeccable đọc)
 DESIGN.md                         GENERATED từ design-system/ (Impeccable đọc)
 design-system/                    nguồn chuẩn visual, publish lên claude.ai

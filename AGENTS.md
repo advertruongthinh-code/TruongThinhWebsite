@@ -9,11 +9,10 @@
 4. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
 5. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
 
-## Phạm vi
+## Ranh giới
 
-- Ship site tĩnh VI/EN nhanh, an toàn. `src/site/` canonical; `.site-output/` generated. CMS, private admin, D1, R2, dynamic publishing: phase 2. Phát hành chính thức lên `truongthinhads.vn` chỉ khi xong CMS (admin và nhân viên CRUD được nội dung; owner 2026-10-18); trước đó bản tĩnh chỉ chạy trên demo và luôn là fallback, rollback.
-- Solo dev: diff nhỏ, reversible; ưu tiên dependency có sẵn, native platform, handoff có evidence.
-- Static page không cần D1, R2, Access, CMS secret, admin state. Không mở rộng CMS/admin ngoài CMS phase; không speculative abstraction.
+- Diff nhỏ, reversible; ưu tiên dependency có sẵn, native platform; handoff có evidence. Dùng command nội bộ repository, pin ở `tooling-versions.json`, không tạo workflow riêng cho từng host agent.
+- Static page không dùng D1, R2, Access, CMS secret, admin state. Không mở rộng CMS/admin ngoài CMS phase; không speculative abstraction.
 - Không deploy, connect domain, publish owner data nếu user chưa explicit approval. Demo tự deploy khi CI xanh
   trên `main` ([decision demo](docs/decisions/cloudflare-workers-static-demo.md)); agent không deploy tay. Republish
   Design System chỉ chạy khi owner tự gõ `republish` trong chính thread làm việc đó; relay của điều phối
@@ -42,33 +41,18 @@ Quy tắc đầy đủ (nội dung card, gộp/đổi tên, schema, link board):
 
 ## Routing theo path
 
-Cây ownership đầy đủ và nhãn lifecycle/Git nằm trong
-[`README.md`](README.md#cây-thư-mục-và-trạng-thái). Không suy ra file
-`untracked` là file thừa.
+Cây thư mục và lifecycle ở [`README.md`](README.md#cây-thư-mục-và-trạng-thái). Không suy ra file `untracked` là file thừa.
 
-- `src/site/`: LIVE source; edit tại đây, không edit `.site-output/`.
-- `src/worker/`: DORMANT đến CMS. `src/admin/`, `src/db/migrations/`: DEV CMS, ngoài static release gate.
-- `tests/`, `scripts/`: QA và entrypoint; kiểm tra consumer trước xóa. `docs/`: project knowledge.
-- `research/reference-site/`: research evidence, không phải source public.
-- `.site-output/`, `.tmp/`, `.tooling/`, `graphify-out/`, `.wrangler/`: generated/cache; không edit, không commit.
-
+- Sửa `src/site/`, không sửa `.site-output/`. `src/worker/`, `src/admin/`, `src/db/migrations/` thuộc CMS, ngoài static release gate.
+- Kiểm tra consumer trước khi xóa trong `tests/`, `scripts/`. `research/reference-site/` không phải source public.
+- `.site-output/`, `.tmp/`, `.tooling/`, `graphify-out/`, `.wrangler/` là generated/cache: không sửa, không commit.
 Skill chỉ có một nguồn: plugin pin ở user scope ([TOOLING](docs/operations/TOOLING.md#claude-code-skill)); repo không vendor skill.
 
 File/project source `untracked` cần review riêng trước khi stage. Không move,
 xóa, stage hoặc commit hàng loạt generated output, research archive, tooling
 cache hay untracked worktree.
 
-Ponytail chạy theo ba mốc:
-
-1. `ponytail` ultra luôn bật cho mọi việc code.
-2. Trước mọi commit hoặc push, bắt buộc chạy `ponytail-review`. Git `pre-commit` review
-   riêng staged diff; `pre-push` review riêng các commit sắp đẩy. Cloud không có Git hook:
-   agent tự chạy `ponytail-review` trên diff. Review, host agent hoặc hook lỗi thì fail
-   closed; không dùng `--no-verify` để bỏ qua gate.
-   Phạm vi chỉ là over-engineering; correctness và security thuộc five-axis review.
-3. Shortcut có chủ đích (giới hạn đã biết) đánh dấu bằng comment `ponytail: <ceiling>, <upgrade path>`.
-   `ponytail-audit` và `ponytail-debt` chỉ chạy khi owner gọi hoặc trong thread code review của
-   wrap-up session ([quy tắc](docs/operations/agent-rule-workflow-tools.md#ponytail-audit-và-debt)).
+Ponytail ultra luôn bật khi code. Trước mọi commit hoặc push chạy `ponytail-review`, lỗi thì fail closed, không dùng `--no-verify`. Shortcut có chủ đích ghi comment `ponytail: <ceiling>, <upgrade path>`. Chi tiết: [Workflow và tool](docs/operations/agent-rule-workflow-tools.md#automation).
 
 ## Branch, PR và merge
 
@@ -120,8 +104,19 @@ Ponytail chạy theo ba mốc:
 | Giao thread, chọn model/effort Claude | [Claude routing](docs/operations/agent-rule-model-routing.md) |
 | Giao thread, chọn model/effort OpenAI, Codex | [OpenAI routing](docs/operations/agent-rule-openai-routing.md) |
 
-## Scripts map
+## Tool
 
+| Việc | Tool |
+| --- | --- |
+| Kiến trúc, quan hệ, blast radius | Graphify trước |
+| Declaration, reference, diagnostics | Serena; literal dùng `rg` |
+| QA trình duyệt và evidence | Playwright, CDP script |
+| Debug runtime trình duyệt | Chrome DevTools MCP, chỉ chạy không cửa sổ; không thay QA gate |
+| UI Windows | Computer Use, theo mục Bắt đầu |
+
+Chi tiết ở [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) và [TOOLING](docs/operations/TOOLING.md).
+
+## Scripts map
 Automation sở hữu Graphify structural refresh. Không chạy lại
 mechanics sau edit; chỉ dùng fallback trong [scripts map](docs/operations/agent-rule-scripts.md)
 khi tool báo lỗi hoặc blocked.
@@ -147,11 +142,9 @@ khi tool báo lỗi hoặc blocked.
 - **Evidence**: bằng chứng verify được từ repository, test, tool.
 - **Stale**: đã cũ, không còn khớp evidence hiện tại.
 - **Lifecycle**: trạng thái sử dụng như live, dev, generated, research hoặc cache.
-- **Git index**: danh sách path Git đang quản lý; khác với lifecycle của file.
 - **Computer Use**: công cụ thao tác Windows UI theo luồng người dùng nhìn thấy.
 - **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.
 - **Human gate**: điểm dừng bắt buộc để owner duyệt artifact trước khi sang phase kế tiếp.
 - **Sibling review task**: task review ngang hàng do main agent tạo và hợp nhất.
 - **Five-axis review**: review diff theo năm trục correctness, readability, architecture, security, performance.
 - **Wrap-up session**: phiên dọn cuối đợt khi mọi thread xong việc (docs, Notion, merge, code review).
-- **Archive**: ẩn card khỏi board nhưng vẫn khôi phục được, khác với xóa vĩnh viễn.
