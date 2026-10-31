@@ -1,6 +1,6 @@
 ---
 title: Ảnh JPEG XL progressive và thứ tự tải
-status: planned
+status: live
 source:
   - src/site/sw.js
   - src/site/advertising-products/media-colors.mjs
@@ -38,8 +38,7 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
   đủ đạt ở khoảng 50 đến 70% số byte (3 ảnh).
 - Chromium 153 bật cờ JXL, mạng 100 KB/s, ảnh 3072px 1,1 MB: thấy bản mờ lúc 4,2s, xong lúc 11,4s.
 - A04s thật (Chrome 156, Android 14): JXL tĩnh, `<picture>` chọn JXL, JXL động 8 khung đều chạy. `ImageDecoder` với JXL động
-  làm crash tab trên điện thoại và Chrome PC. Progressive qua Service Worker đếm byte (100 KB/s, file 240 KB, ngưỡng 180 KB):
-  tin ngưỡng lúc 1,9s, `load` 2,7s, `decode()` xong 3,1 đến 3,6s; thấy bản mờ trước `load`, một request mỗi lần tải.
+  làm crash tab trên điện thoại và Chrome PC. Progressive qua Service Worker đếm byte (100 KB/s, file 240 KB, ngưỡng 180 KB): tin ngưỡng lúc 1,9s, `load` 2,7s, `decode()` xong 3,1 đến 3,6s; thấy bản mờ trước `load`, một request mỗi lần tải.
 
 ## Hành vi
 
@@ -190,7 +189,7 @@ Then chỉ có các hàm settle sẵn có, được gọi từ load và decode
 
 - Lúc ảnh đầu trong viewport hiện ở route có khung lớn không chậm hơn quá 5% so với AVIF trước đây (mục tiêu nhanh hơn
   30% dựa trên hiện từ ngưỡng, bỏ cùng R3 ngày 2026-10-31).
-- Lúc file ảnh về đủ không chậm hơn quá 5%; byte ảnh không tăng (cùng dung lượng với AVIF).
+- Lúc file ảnh về đủ không chậm hơn quá 5%; byte ảnh trước lúc nâng bản gốc (R10) không tăng (cùng dung lượng với AVIF).
 - Veil tan theo gate [mở trực tiếp R3](first-load-parity.md#r3-phần-nhẹ-hiện-trước-phần-nặng-không-chặn) (dưới 1s).
 - CLS tối đa 0,1; 0 request ảnh trùng URL; không frame nào thấy ảnh tải dở ngoài blur của card (R9).
 - LCP không tăng quá 5%.
@@ -282,7 +281,8 @@ sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này kh
 
 ## Gate còn mở
 
-- A05s và iPhone 16 chưa có kết quả JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
+- A05s và iPhone 16 chưa đo JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
+- R8 còn hụt, có sẵn từ trước JXL: CLS detail Advertising ([#649](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/649)), request ảnh trùng ở detail ([#655](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/655)), veil tan quá 1s ở Slow 4G. Main.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.
 
