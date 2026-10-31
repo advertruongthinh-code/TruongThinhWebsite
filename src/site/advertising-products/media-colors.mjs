@@ -269,7 +269,7 @@ export const MEDIA_COLORS = Object.freeze({
  "print-decals-15-brochures-and-folded-leaflets-v2": ["#d8b898","#ceb59d","#ad8e73","#7f654d","#362c1c"],
  "print-decals-16-catalogues": ["#080808","#c0b6ac","#9d7556","#514c49","#221d18"],
  "print-decals-17-owner-20260924": ["#984828","#d2b599","#998065","#97512c","#52442c"],
- "print-decals-18-owner-20260924": ["#d8d8e8","#d6d1cd","#aea496","#756658","#393329"],
+ "print-decals-18-owner-20260924": ["#e8e8d8","#d5cfc7","#aaa498","#7d7668","#373936"],
  "print-decals-19-owner-20260924": ["#e8d8c8","#dacfc7","#b7a797","#8d7d6c","#5f4f3c"],
  "print-decals-20-owner-20260924": ["#282828","#cbc4bb","#c98044","#8c8278","#363534"],
  "print-decals-21-owner-20260924": ["#889898","#b7c8d1","#8c9393","#5b625a","#232727"],
