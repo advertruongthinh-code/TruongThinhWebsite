@@ -987,7 +987,13 @@ test("M01b stale poster failure does not override a newer image selection", asyn
     const probeResponse = page.waitForResponse((response) => response.url().endsWith("poster-3x2.webp") && response.status() === 404);
     releasePoster();
     await probeResponse;
-    await page.waitForTimeout(100);
+    // Dải đẩy chỉ chạy sau khi ảnh bìa decode xong (whenMediaReady), có thể muộn hơn 100ms: chờ video ẩn tối đa 3s rồi
+    // mới đọc trạng thái; poster cũ ghi đè lựa chọn mới thì video vẫn hiện và assert dưới bắt được.
+    await card.evaluate((node) => new Promise((resolve) => {
+      const stop = Date.now() + 3_000;
+      const poll = () => (node.querySelector("video")?.hidden || Date.now() > stop ? resolve() : setTimeout(poll, 50));
+      setTimeout(poll, 100);
+    }));
     await settlePush(card);
     const state = await card.evaluate((node) => ({
       activeId: node.dataset.advertisingActiveMediaId,
