@@ -106,6 +106,13 @@ assert.deepEqual(r10ContractFailures, [],
 // R3: mỗi frame draw assignment riêng khi lần đầu vào view.
 const draw = (seed, neighbors = []) => drawSkeletonFlowAssignment({ neighbors, random: seededRandom(seed) });
 assert.deepEqual(draw(20260921), draw(20260921), "a seeded draw must be deterministic");
+// R3: Flow chờ ảnh primary nhận 4 màu của ảnh thay màu preset; field, pha, chiều vẫn bốc như thường.
+const imageColors = ["#f0e0d0", "#a08060", "#605040", "#201810"];
+const tinted = drawSkeletonFlowAssignment({ colors: imageColors, random: seededRandom(20260921) });
+assert.deepEqual(tinted.preset.colors, imageColors, "image colours replace the preset colours");
+assert.deepEqual({ ...tinted, preset: { ...tinted.preset, colors: null } },
+  { ...draw(20260921), preset: { ...draw(20260921).preset, colors: null } }, "only the colours change");
+assert(Object.isFrozen(tinted.preset.colors), "image colours are frozen like a preset");
 const stream = seededRandom(7);
 const draws = Array.from({ length: 400 }, () => drawSkeletonFlowAssignment({ random: stream }));
 assert.equal(new Set(draws.map(({ preset }) => preset.id)).size, 12, "draws must reach every preset");

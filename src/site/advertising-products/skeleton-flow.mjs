@@ -178,9 +178,11 @@ const turnDistance = (a, b) => {
 };
 const pick = (values, random) => values[Math.floor(normalizedRandom(random) * values.length)];
 
-// Vẽ một frame Flow khi nó lần đầu vào view; `neighbors` là assignment của các frame kề (cho phép pha live).
+// Vẽ một frame Flow khi nó lần đầu vào view; `neighbors` là assignment của các frame kề (cho phép pha live); `colors`
+// (4 màu của ảnh đang chờ) thay màu preset bốc được (R3).
 export function drawSkeletonFlowAssignment({
   neighbors = [],
+  colors = null,
   presets = SKELETON_FLOW_PRESETS,
   random = Math.random,
 } = {}) {
@@ -197,7 +199,7 @@ export function drawSkeletonFlowAssignment({
   }
   const anchorPermutation = pick(ANCHOR_PERMUTATIONS, random);
   return Object.freeze({
-    preset: freezePreset(source, anchorPermutation.map((anchorIndex) => source.anchors[anchorIndex])),
+    preset: freezePreset(colors?.length === 4 ? { ...source, colors } : source, anchorPermutation.map((anchorIndex) => source.anchors[anchorIndex])),
     anchorPermutation,
     phase,
     direction: normalizedRandom(random) < 0.5 ? -1 : 1,

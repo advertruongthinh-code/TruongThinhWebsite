@@ -11,6 +11,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import sharp from "sharp";
+import { palette } from "./image-palette.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
@@ -31,11 +32,12 @@ const cjxl = process.env.CJXL || pinned("cjxl");
 const djxl = process.env.DJXL || pinned("djxl");
 const thresholdsFile = path.join(sourceRoot, "assets/content/jxl-thresholds.json");
 const thresholds = JSON.parse(await readFile(thresholdsFile, "utf8").catch(() => "{}"));
-// Màu chủ đạo của ảnh Advertising: card tô màu này khi ảnh chưa nhận byte nào (progressive-loading R9, owner 2026-10-31).
+// Màu của ảnh Advertising: [màu chủ đạo card tô khi ảnh chưa nhận byte nào (progressive-loading R9), 4 màu Flow chờ ảnh
+// primary sáng tới tối (advertising-skeleton R3)].
 const colorsFile = path.join(sourceRoot, "advertising-products/media-colors.mjs");
 const colors = { ...(await import(pathToFileURL(colorsFile)).catch(() => ({}))).MEDIA_COLORS };
 const colorKey = (file) => file.includes(`${path.sep}advertising${path.sep}`) && path.basename(file, ".webp");
-const hex = ({ r, g, b }) => `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+const hex = ([r, g, b]) => `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 const relativeOf = (file) => path.relative(sourceRoot, file).replaceAll("\\", "/");
 
 const walk = async (dir) => (await Promise.all((await readdir(dir, { withFileTypes: true })).map((entry) => {
@@ -127,9 +129,13 @@ const buildFile = async (file) => {
   const relative = relativeOf(file);
   const { width, height } = await sharp(file).metadata();
   const key = colorKey(file);
-  if (key && !colors[key]) {
-    if (check) missing.push(`${relative} (màu chủ đạo)`);
-    else colors[key] = hex((await sharp(file).resize(64).stats()).dominant);
+  if (key && colors[key]?.length !== 5) {
+    if (check) missing.push(`${relative} (màu)`);
+    else {
+      const small = sharp(file).resize(64).removeAlpha();
+      const { r, g, b } = (await small.clone().stats()).dominant;
+      colors[key] = [[r, g, b], ...palette(await small.raw().toBuffer())].map(hex);
+    }
   }
   for (const variant of variantPaths(file)) {
     if (variant.width && variant.width >= width) continue;
@@ -165,7 +171,8 @@ const buildFile = async (file) => {
   // Ghi sau mỗi ảnh (nối tiếp giữa các job) để lần chạy dài bị ngắt vẫn chạy tiếp được.
   if (!check) saving = saving.then(() => Promise.all([
     writeFile(thresholdsFile, `${JSON.stringify(Object.fromEntries(Object.entries(thresholds).sort()), null, 1)}\n`),
-    writeFile(colorsFile, `// Sinh bởi scripts/site/build-image-variants.mjs, không sửa tay.\nexport const MEDIA_COLORS = Object.freeze(${JSON.stringify(Object.fromEntries(Object.entries(colors).sort()), null, 1)});\n`),
+    writeFile(colorsFile, `// Sinh bởi scripts/site/build-image-variants.mjs, không sửa tay.\nexport const MEDIA_COLORS = Object.freeze({\n${Object.entries(colors).sort()
+      .map(([key, value]) => ` ${JSON.stringify(key)}: ${JSON.stringify(value)},`).join("\n")}\n});\n`),
   ]));
   await saving;
 };
