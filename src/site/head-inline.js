@@ -30,15 +30,6 @@ document.documentElement.classList.add("media-gate");
   };
   document.addEventListener("load", ({ target }) => isImage(target) && target.decode().catch(() => {}).then(() => settle(target)), true);
   document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
-  // Service Worker báo ảnh JXL đủ ngưỡng (progressive-loading R3) thì settle sớm, trình duyệt vẽ nét dần tới hết file.
-  // Chỉ Chromium vẽ JXL dần nên chỉ Chromium đăng ký; trình duyệt khác settle khi load và decode như cũ.
-  if (navigator.userAgentData && navigator.serviceWorker) {
-    navigator.serviceWorker.addEventListener("message", ({ data }) => document.querySelectorAll("img").forEach((image) => {
-      if (image.currentSrc && new URL(image.currentSrc).pathname === data?.url) settle(image);
-    }));
-    navigator.serviceWorker.startMessages();
-    addEventListener("load", () => requestIdleCallback(() => navigator.serviceWorker.register("/sw.js").catch(() => {})), { once: true });
-  }
   // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
   // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
   const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {

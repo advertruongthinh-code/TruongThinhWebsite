@@ -1,4 +1,4 @@
-// Evidence P8/P9: frame reserved, vệt sáng (media-delivery R6) hoặc skeleton và reveal Kính, số request và geometry khi ảnh đang tải.
+// Evidence P8/P9: frame reserved, vệt sáng (media-delivery R6), ảnh card tự mờ hoặc skeleton và reveal Kính, số request và geometry khi ảnh đang tải.
 // Chạy: pnpm dev, rồi BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -288,9 +288,15 @@ try {
     // Delay dài hơn để entry layout settle khi ảnh card còn đang bay.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
-    // Reveal Kính (loading-glass-and-page-entry R2, R4; glass-surface R6): record each one as it mounts.
+    // Reveal Kính (loading-glass-and-page-entry R2, R4; glass-surface R6) và blur ảnh card (progressive-loading R9):
+    // ghi lại từng lần gắn.
     await page.evaluate(() => {
       window.__ttRevealGlass = [];
+      window.__ttCardBlur = [];
+      new MutationObserver((records) => records.forEach(({ target, oldValue }) => {
+        if (!target.style.filter.startsWith("blur(") || oldValue?.includes("blur(")) return;
+        window.__ttCardBlur.push(target.closest("[data-advertising-card]")?.dataset.advertisingCard);
+      })).observe(document.body, { attributes: true, attributeFilter: ["style"], attributeOldValue: true, subtree: true });
       new MutationObserver((records) => records.forEach(({ addedNodes }) => addedNodes.forEach((node) => {
         if (!node.matches?.(".glass-surface[data-glass-reveal]")) return;
         window.__ttRevealGlass.push({
@@ -318,16 +324,14 @@ try {
       filters: [...document.querySelectorAll("[data-advertising-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
-    // Card chờ ảnh mang Kính mờ thay skeleton Flow (progressive-loading R9).
-    await page.waitForFunction(() => document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]"));
+    // Ảnh card chờ tải hiện dưới blur của chính nó thay skeleton Flow (progressive-loading R9).
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] img[style*='blur('].lazyloading"));
     const loading = await page.evaluate(() => {
-      const frame = document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]");
-      const box = frame.getBoundingClientRect();
-      const media = frame.parentElement.getBoundingClientRect();
-      return { covers: [box.left - media.left, box.top - media.top, box.width - media.width, box.height - media.height].every(gap => Math.abs(gap) <= 1),
-        busy: Boolean(frame.parentElement.querySelector("img.lazyloading, img.lazyload")) };
+      const image = document.querySelector("[data-project-grid] img[style*='blur('].lazyloading");
+      const { filter, opacity } = getComputedStyle(image);
+      return { blur: filter.startsWith("blur("), opacity };
     });
-    assert.deepEqual(loading, { covers: true, busy: true }, `${viewport.width}px: loading card wears Kính as it enters view`);
+    assert.deepEqual(loading, { blur: true, opacity: "1" }, `${viewport.width}px: loading card blurs its own image as it enters view`);
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
       previous = duringLoad;
@@ -340,18 +344,16 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // Kính tan trong phần còn lại của nhịp 0.6 s sau khi ảnh cuối tải xong, rồi bị gỡ.
-    await page.waitForFunction(() => !document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]"), null, { timeout: 5000 })
-      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop Kính`));
-    const cardGlass = await revealGlass("card");
-    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated, skeleton }) => steps === 3 && !animated.length && !skeleton),
-      `${viewport.width}px: loading cards wear three Kính steps from the start, no fade in, no skeleton ${JSON.stringify(cardGlass.slice(0, 3))}`);
-    assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
-      `${viewport.width}px: the reveal Kính leaves the cards`);
-    // Card đã tải xong rời viewport hiện lại ngay: không Kính, không skeleton (R3).
+    // Blur tan trong 0.6 s sau khi ảnh cuối tải xong, rồi bị gỡ.
+    await page.waitForFunction(() => !document.querySelector("[data-project-grid] img[style*='blur(']"), null, { timeout: 5000 })
+      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the blur`));
+    assert.deepEqual(await revealGlass("card"), [], `${viewport.width}px: loading cards wear no Kính`);
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] img")]
+      .filter((image) => getComputedStyle(image).filter !== "none").length), 0, `${viewport.width}px: loaded card images end sharp`);
+    // Card đã tải xong rời viewport hiện lại ngay: không blur, không skeleton (R3).
     const loadedIds = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card]")]
       .filter((card) => card.querySelector("img")?.naturalWidth > 0).map((card) => card.dataset.advertisingCard));
-    const revealsBefore = cardGlass.length;
+    const blursBefore = await page.evaluate(() => window.__ttCardBlur.length);
     const scrollTo = (y) => page.evaluate((top) => window.TruongThinhMotion.setLogicalScroll(top), y);
     await scrollTo(4000);
     await page.waitForTimeout(600);
@@ -389,14 +391,14 @@ try {
     assert.ok(reentry.length, `${viewport.width}px: loaded cards are back in view`);
     assert.deepEqual(reentry.filter(({ skeleton, opacity }) => skeleton || opacity !== "1"), [],
       `${viewport.width}px: a re-entering loaded card shows without skeleton`);
-    const reentryGlass = (await revealGlass("card")).slice(revealsBefore).filter(({ card }) => loadedIds.includes(card));
-    assert.deepEqual(reentryGlass, [], `${viewport.width}px: a re-entering loaded card starts no Kính reveal`);
+    const reentryBlur = (await page.evaluate(() => window.__ttCardBlur)).slice(blursBefore).filter((card) => loadedIds.includes(card));
+    assert.deepEqual(reentryBlur, [], `${viewport.width}px: a re-entering loaded card starts no blur`);
     // Card vừa tải xong ngay lúc này vẫn reveal từ skeleton của nó; để chúng settle trước.
     await page.waitForTimeout(700);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-loading-skeleton]")]
       .filter((frame) => frame.parentElement.querySelector("img")?.naturalWidth > 0)
       .map((frame) => [frame.closest("[data-advertising-card]").dataset.advertisingCard, frame.parentElement.querySelector("img").className,
-        Boolean(frame.parentElement.querySelector("[data-glass-reveal]")), Math.round(frame.getBoundingClientRect().top)])), [],
+        Math.round(frame.getBoundingClientRect().top)])), [],
     `${viewport.width}px: a loaded card re-enters without a skeleton`);
 
     // Viewer: skeleton và aria-busy theo photo hiện tại, kể cả hero swap nhanh.

@@ -114,8 +114,6 @@ const cubicBezier = (x1, y1, x2, y2) => {
 };
 // Reveal đã duyệt (design-system/components/Glass/README.md): vào trong 0.6s của 1.4s, ra trong phần còn lại.
 const REVEAL_PEAK = 0.6 / 1.4;
-// Tỉ lệ thời gian lúc Kính đạt mức đủ; card chờ ảnh tua reveal tới đây để chỉ chạy nửa tan (progressive-loading R9).
-export const GLASS_REVEAL_PEAK = REVEAL_PEAK;
 const REVEAL_IN = cubicBezier(0, 0, 0.26, 1);
 const REVEAL_OUT = cubicBezier(0.86, 0, 0.07, 1);
 const REVEAL_SAMPLES = 28;

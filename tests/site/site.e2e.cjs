@@ -6734,14 +6734,14 @@ async function runAdvertisingMediaEntranceChecks() {
                       return { delay, duration, endTime, easing };
                     }),
                   shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
-                  glass: Boolean(tile.querySelector(".glass-surface[data-glass-reveal]")),
+                  blur: image.style.filter.startsWith("blur("),
                 });
-                if (image.classList.contains("is-advertising-media-ready") && image.naturalWidth && !trace.at(-1).glass
+                if (image.classList.contains("is-advertising-media-ready") && image.naturalWidth && !trace.at(-1).blur
                   && readyAt < 0) {
                   readyAt = performance.now();
                 }
               }
-              // Máy tải nặng làm frame thưa: lấy mẫu tới khi ảnh đạt opacity cuối và Kính đã gỡ, không theo mốc cố định.
+              // Máy tải nặng làm frame thưa: lấy mẫu tới khi ảnh đạt opacity cuối và blur đã gỡ, không theo mốc cố định.
               if (
                 (readyAt < 0 && performance.now() - startedAt < 6_000) ||
                 (readyAt >= 0 && trace.at(-1).imageOpacity < 0.999 && performance.now() - readyAt < 3_000)
@@ -6758,12 +6758,12 @@ async function runAdvertisingMediaEntranceChecks() {
         const final = trace.at(-1);
         // Nhịp 0.6s (design-system motion.md, ảnh trong card): ảnh hiện 0.13s đến 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
         const fade = fading?.opacityAnimations[0];
-        // progressive-loading R9: card kịp mang Kính thì ảnh ở opacity cuối dưới Kính, không fade riêng ảnh.
-        const underGlass = trace.some((sample) => sample.glass);
+        // progressive-loading R9: ảnh kịp mờ thì ở opacity cuối dưới blur, không fade riêng ảnh.
+        const underBlur = trace.some((sample) => sample.blur);
         assert(
-          targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.glass &&
+          targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.blur &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
-            (underGlass ? trace.filter((sample) => sample.glass).every((sample) => sample.imageOpacity >= 0.999)
+            (underBlur ? trace.filter((sample) => sample.blur).every((sample) => sample.imageOpacity >= 0.999)
               : fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
                 fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") &&
             trace.every((sample) => sample.shellOpacity >= 0.999),
@@ -6812,8 +6812,9 @@ async function runAdvertisingMediaEntranceChecks() {
                     ready: image.classList.contains("is-advertising-media-ready"),
                     intersectsViewport: rect.bottom > 0 && rect.top < innerHeight,
                     shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
-                    // Skeleton là canvas, Kính reveal có data-glass-reveal (loading-glass R1, R2).
-                    overlay: Boolean(tile.querySelector("canvas, [data-glass-reveal]")),
+                    // Skeleton là canvas, Kính reveal có data-glass-reveal, ảnh chờ tải mang blur (progressive-loading R9).
+                    overlay: Boolean(tile.querySelector("canvas, [data-glass-reveal]"))
+                      || image.style.filter.startsWith("blur("),
                     animations: tile.getAnimations({ subtree: true })
                       .filter((animation) => animation.playState === "running").length,
                   });

@@ -242,7 +242,7 @@
     },
     "media": {
       "specs": ["media-delivery", "loading-glass-and-page-entry", "glass-surface", "media-card", "page-home", "detail-pages", "progressive-loading"],
-      "tests": ["node tests/site/image-loading-frame.e2e.mjs", "node tests/site/jxl-threshold.e2e.mjs",
+      "tests": ["node tests/site/image-loading-frame.e2e.mjs", "node tests/site/image-reveal-complete.e2e.mjs",
         "node tests/site/image-format-fallback.e2e.mjs"]
     },
     "media-card": {

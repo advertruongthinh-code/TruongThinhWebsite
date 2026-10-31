@@ -168,7 +168,8 @@ bậc cho dạng cung). Số lớp theo loại máy (R2); trần
 nhòe dựng sẵn trên canvas. Owner bỏ đường đó (2026-10-24): primary dùng chung Kính ba bậc `backdrop-filter` của card
 ([R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)), điện thoại chạy đúng như PC (owner 11/10).
 Ba bậc phủ cả hero chưa đo trên phone Android; dưới gate thì dừng, báo owner kèm số đo, không tự quay về Kính dựng sẵn.
-Kính hiện/tan trên card cùng ba bậc. Có tiền tố
+Card chờ ảnh không dùng Kính từ 2026-10-31: A04s kéo trang chỉ 9 đến 11 FPS
+([tải theo nấc R9](progressive-loading.md#r9-ảnh-tự-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)). Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
 `backdrop-filter`, nên Safari kiểm trên iPhone thật. Không có khúc xạ, viền
 sáng hay đổ bóng.

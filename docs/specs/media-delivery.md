@@ -164,7 +164,7 @@ vào DOM, không dùng `:has()` toàn trang (làm style chậm thêm khoảng 1/
 - Khung ngoài viewport thì vệt dừng.
 - Reduced motion: không lướt; khung sáng tối nhẹ chu kỳ `2s`.
 
-Ảnh chỉ hiện sau `load` và `decode()`, hoặc khi Service Worker báo JXL đủ ngưỡng ([tải theo nấc R3](progressive-loading.md#r3-hiện-ảnh-khi-đủ-ngưỡng)): khung nhận `.is-media-settled`, vệt gỡ, ảnh `opacity` `0` sang `1` trong
+Ảnh chỉ hiện sau `load` và `decode()` ([tải theo nấc R3](progressive-loading.md#r3-ảnh-chỉ-hiện-khi-tải-xong)): khung nhận `.is-media-settled`, vệt gỡ, ảnh `opacity` `0` sang `1` trong
 `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)` (ảnh hero Residential, Commercial hiện cắt cứng, không fade, như
 hero Espacio; [trang con R5](detail-pages.md#r5-hero-và-vào-trang)). Ảnh đã load xong lúc container Barba gắn vào trang (event `load` không tới
 `document`) được settle ngay khi gắn. Không khung nào lộ ảnh tải dở (vỡ khối theo dòng hoặc mờ dần). Ảnh lỗi:

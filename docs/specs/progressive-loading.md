@@ -5,7 +5,7 @@ source:
   - src/site/sw.js
 tests:
   - tests/site/image-loading-frame.e2e.mjs
-  - tests/site/jxl-threshold.e2e.mjs
+  - tests/site/image-reveal-complete.e2e.mjs
   - tests/site/image-format-fallback.e2e.mjs
   - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/first-load-parity.e2e.mjs
@@ -18,8 +18,8 @@ updated: 2026-10-31
 
 ## Mục đích
 
-Mọi ảnh trên site dùng JPEG XL (JXL) progressive: vệt sáng che ảnh tới khi đủ ngưỡng chất lượng, rồi ảnh hiện và nét dần
-tới hết file (owner 2026-10-27, cách 2). Trang tải theo tầng, veil mở khi đủ thứ cần thiết, HTML, CSS, font, JavaScript,
+Mọi ảnh trên site dùng JPEG XL (JXL) progressive và chỉ hiện khi đã tải xong toàn bộ file, như trước khi có JXL (owner
+2026-10-31, thay cách hiện từ ngưỡng chất lượng ngày 2026-10-27). Trang tải theo tầng, veil mở khi đủ thứ cần thiết, HTML, CSS, font, JavaScript,
 media có một thứ tự ưu tiên chung. Spec này thay phần định dạng và lúc hiện ảnh của [tải ảnh](media-delivery.md) và
 [skeleton chờ ảnh](loading-glass-and-page-entry.md), thêm lớp trên [veil của shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache) và [mở trực tiếp](first-load-parity.md).
 
@@ -73,6 +73,7 @@ And chạy lại với --check thì exit 0
 Lúc build, mỗi file JXL có `thresholdBytes`: số byte đầu nhỏ nhất mà bản cắt dở giải mã ra SSIM từ 0,90 trở lên so với chính
 file đó giải mã đủ (độ chói, cửa sổ 8×8, như lần đo). Script dò bằng `djxl --allow_partial_files` và ghi
 `assets/content/jxl-thresholds.json` (`{ "<path>": bytes }`). Không đạt ngưỡng trước khi hết file thì ngưỡng là cỡ file.
+Từ 2026-10-31 site không dùng ngưỡng (R3); build vẫn ghi file để quay lại được mà không phải encode lại.
 
 ```gherkin
 Given <tên>-1600.jxl 108 KB
@@ -81,34 +82,28 @@ Then jxl-thresholds.json có path đó với số byte giữa 30% và 100% cỡ 
 And giải mã đúng số byte đó cho SSIM từ 0,90 trở lên so với bản đủ
 ```
 
-### R3. Hiện ảnh khi đủ ngưỡng
+### R3. Ảnh chỉ hiện khi tải xong
 
-`/sw.js` (scope `/`) chỉ nhận GET cùng origin tới `/assets/content/**/*.jxl`. Nó chuyển tiếp response theo luồng, không đổi
-byte hay header, đếm byte, và khi đạt `thresholdBytes` thì gửi `{ url }` cho đúng tab đã yêu cầu. Request khác không đi qua.
+Ảnh chỉ hiện khi đã tải xong toàn bộ file và `decode()` xong, ở mọi trang và mọi trình duyệt (owner 2026-10-31: "ảnh chỉ
+xuất hiện khi đủ chất lượng như lúc trước khi làm jxl"). Bản đầu (2026-10-27) cho hiện từ ngưỡng SSIM 0,90 (R2) nhờ Service
+Worker đếm byte; owner thấy chưa đủ chất lượng nên bỏ.
 
-- Trang tĩnh: script `<head>` của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) nhận tin thì settle khung ngay
-  (vệt gỡ, ảnh hiện), không chờ `decode()`. Sau đó trình duyệt tự vẽ nét dần tới hết file.
-- Advertising: card và primary chạy Kính của [skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md) lúc nhận tin thay vì lúc
-  `decode()` xong.
-- Viewer: mở trên ảnh primary đang có (cùng media, cỡ nhỏ hơn), tải bản gốc riêng; đủ ngưỡng (hoặc `load` xong) thì đổi
-  sang bản gốc, request đang chạy được dùng lại nên ảnh nét dần tiếp.
-- Không nhận được tin thì giữ cách cũ, settle khi `load` và `decode()` xong: lần mở đầu tiên trước khi Service Worker điều
-  khiển tab, trình duyệt không vẽ JXL dần (chỉ trình duyệt Chromium được tính là có vẽ dần), ảnh lấy từ cache.
+- Trang tĩnh: vệt sáng của [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh) che tới `load` và `decode()`.
+- Advertising: card giữ blur tới khi ảnh tải xong (R9), primary chạy Kính lúc `decode()` xong
+  ([skeleton chờ ảnh R2, R4](loading-glass-and-page-entry.md)).
+- Viewer: mở trên ảnh primary đang có (cùng media, cỡ nhỏ hơn, đã tải xong), tải bản gốc riêng, `load` xong mới đổi.
+- Site không đăng ký Service Worker. `/sw.js` chỉ còn tự gỡ bản đã cài ở máy khách từ trước (`_headers` `no-cache`).
 - Đã settle thì không có vệt, skeleton hay Kính lần nữa cho ảnh đó. Ảnh lỗi theo [tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media).
 
-Đây là ngoại lệ có chủ đích của luật "không khung nào lộ ảnh tải dở" ở [tải ảnh R6](media-delivery.md#r6-vệt-sáng-chờ-ảnh-tĩnh):
-được lộ từ ngưỡng trở lên, dưới ngưỡng vẫn che bằng vệt sáng (owner 2026-10-27).
-
 ```gherkin
-Given Chrome có JXL, Service Worker đang điều khiển tab, ảnh hero /vi/residential/ tải 100 KB/s
-When số byte đã về đạt thresholdBytes
-Then khung nhận is-media-settled, vệt gỡ, ảnh hiện; độ nét tiếp tục tăng tới khi file về đủ
-And trước mốc đó không frame nào thấy ảnh, chỉ thấy vệt
+Given ảnh hero /vi/residential/ tải chậm
+When file còn đang về
+Then khung chỉ thấy vệt sáng; khung nhận is-media-settled sau load và decode
 And server nhận đúng một request cho file đó
 
-Given Safari hoặc tab chưa có Service Worker
-When ảnh tải
-Then khung chỉ settle khi load và decode xong, như hiện nay
+Given viewer mở trên ảnh primary cỡ 1600, bản gốc đang tải
+When bản gốc chưa về đủ
+Then viewer vẫn hiện ảnh 1600, chỉ đổi sang bản gốc khi load xong
 ```
 
 ### R4. Tầng tải trang và lúc veil mở
@@ -120,7 +115,7 @@ Mở trực tiếp và chuyển trang mềm dùng cùng một bộ tầng. Trang
 | 0. Khung | HTML, hai CSS, hai font preload, script `<head>` | Lần vẽ đầu, veil trắng phủ |
 | 1. Mở veil | JavaScript `defer`, font; Advertising thêm vendor, runtime, artifact, khung masonry. Ảnh hero bắt đầu tải nhưng veil không chờ | Veil bắt đầu mở |
 | 2. Nội dung đầu | Ảnh trong viewport, motion chữ hero, rail và chip, card trong cửa sổ ảo hóa đầu | Mọi ảnh trong viewport settled và intro hero xong |
-| 3. Nền | Ảnh ngoài viewport (lazy), slide hero sau, video, Swiper, `catalog-detail`, đăng ký Service Worker | Không có mốc |
+| 3. Nền | Ảnh ngoài viewport (lazy), slide hero sau, video, Swiper, `catalog-detail` | Không có mốc |
 
 Mọi lần vào trang đều có veil (owner 2026-10-27). Veil bắt đầu mở khi `mountPage` xong (shell, chữ hero, khung có kích thước;
 Advertising gồm khung masonry) và `document.fonts.ready` xong; không chờ ảnh nào. Không có mốc thời gian, đúng
@@ -147,7 +142,7 @@ Then veil bắt đầu mở khi font về, chữ hero không đổi font sau khi
 | 4 | JavaScript `defer`; Advertising: vendor, runtime, artifact | `defer`, `modulepreload` như hiện nay |
 | 5 | Ảnh khác trong viewport | Lazy native hoặc LazySizes trong cửa sổ ảo hóa |
 | 6 | Ảnh ngoài viewport, slide hero sau, video, Swiper, `catalog-detail` | Lazy, `data-src`, import khi cần |
-| 7 | Đăng ký `/sw.js`, `jxl-thresholds.json`, bản gốc cho viewer | Sau `load` của trang, lúc rảnh; viewer chỉ khi mở |
+| 7 | Bản gốc cho viewer | Chỉ khi mở viewer |
 
 Không preload ảnh ngoài ngoại lệ hero trang chủ đã có. Không đẩy ảnh trong viewport lên trước JavaScript tầng 1: lần thử
 khởi động runtime sớm (card "Tăng tốc hiện 8 card đầu") làm 8 card đủ ảnh chậm hơn vì tranh băng thông với vendor JS.
@@ -156,7 +151,6 @@ khởi động runtime sớm (card "Tăng tốc hiện 8 card đầu") làm 8 ca
 Given /vi/advertising-products/ mở với cache trống, Slow 4G
 When đọc waterfall tới lúc 8 card đầu có ảnh
 Then font và CSS bắt đầu trước mọi ảnh, vendor JS và artifact bắt đầu trước ảnh card
-And /sw.js chỉ được tải sau sự kiện load của trang
 ```
 
 ### R6. Thứ tự trong một tầng
@@ -174,10 +168,9 @@ Then slide 2 chỉ tải khi tới lượt hydrate, không tải trước
 
 ### R7. Dùng lại code, không phân mảnh
 
-- Một Service Worker cho mọi trang; một file ngưỡng do build sinh. Không có module nâng nấc riêng (`image-tier.js` không
-  dùng lại vì mỗi ảnh chỉ tải một file).
+- Không có module nâng nấc riêng (`image-tier.js` không dùng lại vì mỗi ảnh chỉ tải một file).
 - Hiện ảnh đi qua đường settle sẵn có: `settle()` của script `<head>` cho trang tĩnh, `revealCard`, `playPrimaryReveal` cho
-  Advertising. Tin ngưỡng chỉ là thêm một nguồn gọi, không viết đường hiện ảnh thứ hai.
+  Advertising; không viết đường hiện ảnh thứ hai.
 - Một điều kiện mở veil trong `mountPage`, dùng cho mở trực tiếp và route mềm.
 - Chọn biến thể chỉ ở `responsivePictures` (build) và `responsive-image.mjs` (runtime); đổi đuôi sang `.jxl`, thang cỡ khai
   một lần mỗi nơi. Bước JXL nằm trong `build-image-variants.mjs`, không thêm script build mới.
@@ -186,7 +179,7 @@ Then slide 2 chỉ tải khi tới lượt hydrate, không tải trước
 ```gherkin
 Given code đã cài spec này
 When tìm nơi gỡ vệt sáng hoặc chạy Kính khi ảnh sẵn sàng
-Then chỉ có các hàm settle sẵn có, được gọi từ load, decode và tin ngưỡng
+Then chỉ có các hàm settle sẵn có, được gọi từ load và decode
 ```
 
 ### R8. Đo và ngân sách
@@ -194,11 +187,11 @@ Then chỉ có các hàm settle sẵn có, được gọi từ load, decode và 
 Đo trên demo theo [tải ảnh R7](media-delivery.md#r7-đo-tốc-độ-và-ngân-sách), so với bản `main` trước thay đổi, cùng cohort,
 5 lượt, `390×844` DPR 3 và `1440×900`, trên Chrome có JXL; thêm A04s thật qua máy PC:
 
-- Lúc ảnh đầu trong viewport hiện (đủ ngưỡng) ở route có khung lớn: nhanh hơn ít nhất 30% so với lúc AVIF hiện hiện nay
-  trên điện thoại (agent đề xuất, owner giao chốt 2026-10-27).
+- Lúc ảnh đầu trong viewport hiện ở route có khung lớn không chậm hơn quá 5% so với AVIF trước đây (mục tiêu nhanh hơn
+  30% dựa trên hiện từ ngưỡng, bỏ cùng R3 ngày 2026-10-31).
 - Lúc file ảnh về đủ không chậm hơn quá 5%; byte ảnh không tăng (cùng dung lượng với AVIF).
 - Veil tan theo gate [mở trực tiếp R3](first-load-parity.md#r3-phần-nhẹ-hiện-trước-phần-nặng-không-chặn) (dưới 1s).
-- CLS tối đa 0,1; 0 request ảnh trùng URL (kể cả qua Service Worker); không frame nào thấy ảnh dưới ngưỡng.
+- CLS tối đa 0,1; 0 request ảnh trùng URL; không frame nào thấy ảnh tải dở ngoài blur của card (R9).
 - LCP không tăng quá 5%.
 
 ```gherkin
@@ -207,28 +200,31 @@ When chạy image-delivery-measure.mjs --runs 5 trên bản cũ và bản mới
 Then summary.json đạt mọi ngân sách ở trên, kể cả lượt --warm
 ```
 
-### R9. Kính mờ thay skeleton Flow trên card chờ ảnh
+### R9. Ảnh tự mờ thay skeleton Flow trên card chờ ảnh
 
-Card masonry chính và related đang chờ ảnh dùng Kính mờ thay skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh
-chưa đủ ngưỡng thì khung media nhận ngay Kính phủ đều ba bậc ở mức đủ (`createGlassSurface("even", 3)`, không fade vào, vì
-card có thể chỉ lướt qua). Dưới Kính, ảnh hiện ở opacity cuối trên nền `media-loading-surface`, trình duyệt vẽ dần các
-lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Đủ ngưỡng (R3) thì chạy bước "Kính tan" (theo tỉ lệ nhịp `0.6s` của card) trong
-[Hiện và tan trên ảnh vừa tải](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải) rồi gỡ Kính.
-Không có tin ngưỡng thì tan khi `load` và `decode()` xong, như R3.
+Card masonry chính và related đang chờ ảnh không dùng skeleton Flow (owner 2026-10-27 16:06). Vào viewport khi ảnh chưa tải
+xong thì ảnh hiện ngay ở opacity cuối dưới `filter: blur(24px)` của chính nó (không animate vào, vì card có thể chỉ lướt
+qua); trình duyệt vẽ dần các lượt JXL nên người xem thấy màu và khối của ảnh qua lớp mờ. Ảnh tải xong và `decode()` xong
+(R3) thì blur tan về 0 trong `0.6s`, rồi gỡ. Chi tiết ở
+[skeleton chờ ảnh R1, R2](loading-glass-and-page-entry.md#r1-ảnh-card-đang-tải-tự-mờ).
 
-- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không có Kính. Card ra khỏi viewport
-  khi Kính chưa tan thì gỡ Kính; vào lại khi đã đủ ngưỡng thì hiện thẳng.
+Bản đầu dùng Kính ba bậc (`backdrop-filter`) phủ trên ảnh. Owner kéo thanh cuộn cực đoan khi tắt cache, mạng 3G thấy FPS
+không hơn Flow (2026-10-31 09:59). Trace Chromium 1920px cùng kịch bản: có Kính 14 đến 15 FPS, bỏ Kính 42, blur trên ảnh
+41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s) có Kính 8,6 đến 10,6 FPS, ảnh đã tải hết không Kính 60. Owner
+chọn blur trên ảnh.
+
+- Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi
+  blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
 - Điện thoại giữ luật chờ trang ngừng cuộn `120ms` trước khi tan (`PHONE_REVEAL_SCROLL_IDLE_MS`).
-- Card không còn khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
-  ([skeleton](advertising-skeleton.md)). Gỡ bản giảm tải tạm của PR #618 (Flow 30 hình/giây, đứng khi giữ thanh cuộn).
-- Primary giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ), chỉ đổi lúc chạy Kính sang lúc đủ ngưỡng (R3).
-- Gate hiệu năng theo [Kính R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt) khi 15 đến 18 card cùng mang Kính, đo trên A04s.
+- Card không còn Kính, khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
+  ([skeleton](advertising-skeleton.md)). Đã gỡ bản giảm tải tạm của PR #618.
+- Primary giữ [skeleton chờ ảnh R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ).
 
 ```gherkin
 Given masonry Advertising trên PC, tắt cache, mạng chậm
-When cuộn làm card mới vào viewport
-Then khung media của card có ngay Kính ba bậc, không có canvas Flow hay khung skeleton
-And dưới Kính ảnh được vẽ dần; khi đủ ngưỡng Kính tan rồi bị gỡ khỏi DOM
+When kéo thanh cuộn nhanh làm card mới vào viewport
+Then ảnh của card hiện mờ ngay, card không có Kính, canvas Flow hay khung skeleton
+And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị gỡ
 ```
 
 ## Giao diện và dữ liệu
@@ -236,9 +232,8 @@ And dưới Kính ảnh được vẽ dần; khi đủ ngưỡng Kính tan rồi
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | File | `<tên>.jxl`, `<tên>-240\|480\|960\|1600\|2048.jxl` | Biến thể (R1), `build-image-variants.mjs` ghi |
-| Data | `assets/content/jxl-thresholds.json` | `{ path: thresholdBytes }` (R2), build ghi, `/sw.js` đọc |
-| File | `/sw.js` | Đếm byte, báo ngưỡng (R3); `_headers` đặt `Cache-Control: no-cache` |
-| Message | `{ url }` từ Service Worker tới tab | Gọi settle (R3) |
+| Data | `assets/content/jxl-thresholds.json` | `{ path: thresholdBytes }` (R2), build ghi, site chưa đọc |
+| File | `/sw.js` | Chỉ tự gỡ Service Worker cũ (R3); `_headers` đặt `Cache-Control: no-cache` |
 | Tool | `cjxl`, `djxl` v0.11.1 ghim trong `tooling-versions.json` | Encode, tính ngưỡng |
 
 Code nằm trong file của spec khác: `motion.js` ([shell](site-shell.md)), `prepare-static-assets.mjs`, `_headers`
@@ -250,9 +245,8 @@ Khi cài, sửa các spec sở hữu trong cùng PR và chuyển spec này sang 
 
 Không đổi hình vệt sáng, skeleton, Kính: [Vệt sáng](../../design-system/components/LoadSweep/README.md),
 [Skeleton](../../design-system/components/Skeleton/README.md),
-[Kính hiện và tan](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải). Đổi lúc kết thúc (đủ ngưỡng
-thay vì giải mã xong) và việc ảnh nét dần sau khi hiện; README Vệt sáng và Kính ghi lại điều này khi cài, cần owner duyệt và
-gõ `republish`.
+[Kính hiện và tan](../../design-system/components/Glass/README.md#hiện-và-tan-trên-ảnh-vừa-tải). Card chờ ảnh đổi từ Kính
+sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này khi cài, cần owner duyệt và gõ `republish`.
 
 ## Kiểm tra
 
@@ -260,12 +254,12 @@ gõ `republish`.
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check`; so dung lượng JXL với AVIF cùng cỡ (chưa có test) |
 | R2 | Kiểm ngẫu nhiên ngưỡng bằng `djxl --allow_partial_files` (chưa có test) |
-| R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; Kính card tan khi ảnh còn tải; viewer đổi sang bản gốc lúc ngưỡng, một request) |
+| R3 | `image-reveal-complete.e2e.mjs` (proxy chậm, không đăng ký Service Worker, hero settle sau `load`, một request; blur card chỉ tan khi ảnh tải xong; viewer đổi sang bản gốc khi tải xong, một request) |
 | R4 | `first-load-parity.e2e.mjs`: font trễ 1s thì veil mở sau khi font về, ảnh hero trễ 3s thì veil không chờ |
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
-| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9 |
+| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card mờ, không card nào có Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
 
 ## Gate còn mở
 
@@ -277,8 +271,8 @@ gõ `republish`.
 
 - **JPEG XL (JXL)**: định dạng ảnh mới, hỗ trợ tải progressive và ảnh động.
 - **Progressive**: file xếp dữ liệu để trình duyệt vẽ được bản mờ trước rồi nét dần khi tải thêm.
-- **Ngưỡng chất lượng**: số byte đầu file đủ để bản vẽ dở đạt SSIM 0,90 so với bản đủ; dưới ngưỡng thì che bằng vệt sáng.
-- **Service Worker**: script chạy giữa trang và mạng, ở đây chỉ để đếm byte ảnh JXL.
+- **Ngưỡng chất lượng**: số byte đầu file đủ để bản vẽ dở đạt SSIM 0,90 so với bản đủ; build còn tính, site không dùng.
+- **Service Worker**: script chạy giữa trang và mạng; bản cũ đếm byte ảnh JXL, bản hiện nay chỉ tự gỡ.
 - **SSIM**: chỉ số giống nhau về cấu trúc giữa hai ảnh, 1 là giống hệt.
 - **Tầng tải**: nhóm tài nguyên của trang cùng mức ưu tiên; tầng sau không giành băng thông của tầng trước.
 - **Veil**: lớp trắng phủ trang lúc tải hoặc chuyển trang.
