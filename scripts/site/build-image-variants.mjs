@@ -129,14 +129,7 @@ const buildFile = async (file) => {
   const relative = relativeOf(file);
   const { width, height } = await sharp(file).metadata();
   const key = colorKey(file);
-  if (key && colors[key]?.length !== 5) {
-    if (check) missing.push(`${relative} (màu)`);
-    else {
-      const small = sharp(file).resize(64).removeAlpha();
-      const { r, g, b } = (await small.clone().stats()).dominant;
-      colors[key] = [[r, g, b], ...palette(await small.raw().toBuffer())].map(hex);
-    }
-  }
+  let rebuilt = 0;
   for (const variant of variantPaths(file)) {
     if (variant.width && variant.width >= width) continue;
     const jxlKey = variant.format === "jxl" ? relativeOf(variant.file) : null;
@@ -167,6 +160,16 @@ const buildFile = async (file) => {
         .toFile(variant.file);
     }
     built += 1;
+    rebuilt += 1;
+  }
+  // Ảnh mới, hoặc ảnh thay cùng tên (variant vừa dựng lại) thì tính lại màu, để màu không lệch ảnh.
+  if (key && (colors[key]?.length !== 5 || rebuilt)) {
+    if (check) missing.push(`${relative} (màu)`);
+    else {
+      const small = sharp(file).resize(64).removeAlpha();
+      const { r, g, b } = (await small.clone().stats()).dominant;
+      colors[key] = [[r, g, b], ...palette(await small.raw().toBuffer())].map(hex);
+    }
   }
   // Ghi sau mỗi ảnh (nối tiếp giữa các job) để lần chạy dài bị ngắt vẫn chạy tiếp được.
   if (!check) saving = saving.then(() => Promise.all([
