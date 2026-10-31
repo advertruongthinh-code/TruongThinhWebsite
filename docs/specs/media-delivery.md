@@ -18,7 +18,7 @@ updated: 2026-10-27
 
 ## Mục đích
 
-Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể AVIF, WebP; HTML tĩnh
+Ảnh dưới `/assets/content/` tới khách đúng cỡ và sớm trên mọi route VI/EN: script sinh biến thể WebP, AVIF, JXL; site dùng JXL, WebP dự phòng, AVIF chỉ lưu trong repo; HTML tĩnh
 và runtime Advertising chọn biến thể; khung ảnh tĩnh có vệt sáng tới khi ảnh giải mã xong, ảnh lỗi có dấu báo lỗi; một script đo tốc độ trên demo.
 Bọc `<picture>` lúc build, font, thư viện, cache header thuộc [phát hành tĩnh](static-release.md); skeleton chờ ảnh
 Advertising ở [loading glass](loading-glass-and-page-entry.md); card nhiều ảnh và video ở [media-card](media-card.md).
@@ -285,13 +285,13 @@ Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef33
 - [CẦN LÀM RÕ: chuẩn file ảnh đã duyệt ghi thư mục phẳng theo loại, không thư mục con theo dự án; Advertising nằm trong
   `projects/advertising/<nhóm>/`. Giữ thư mục con theo nhóm làm chuẩn?] Owner.
 - LCP residential mobile hai mode do SplitText ở hero: gate ở [phát hành tĩnh](static-release.md#gate-còn-mở).
-- Safari iPhone thật chưa kiểm `<picture>` AVIF, biến thể và vệt sáng; WebKit desktop không thay. Owner, máy PC.
+- Safari iPhone thật chưa kiểm `<picture>` JXL và WebP, biến thể và vệt sáng; WebKit desktop không thay. Owner, máy PC.
 
 ## Chú thích thuật ngữ
 
 - **Biến thể**: bản cùng nội dung của một ảnh ở định dạng hoặc bề rộng khác, sinh từ một nguồn.
-- **AVIF**: định dạng ảnh nén tốt hơn WebP ở cùng chất lượng; trình duyệt không hỗ trợ dùng WebP.
-- **Probe**: phép thử nhỏ lúc chạy để biết trình duyệt giải mã được AVIF hay không.
+- **AVIF**: định dạng ảnh nén tốt hơn WebP; nay chỉ là bản lưu và nguồn đo, site không trỏ tới.
+- **Probe**: phép thử nhỏ lúc chạy để biết trình duyệt giải mã được JXL hay không.
 - **`srcset`, `sizes`**: danh sách biến thể theo bề rộng và bề rộng hiển thị dự kiến để trình duyệt chọn file.
 - **SMIL**: cú pháp animation khai báo trong SVG; vẫn vẽ lại khi bị ảnh che.
 - **Cold, warm**: lượt tải không dùng và có dùng cache trình duyệt.
