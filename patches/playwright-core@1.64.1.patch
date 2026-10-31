@@ -1,5 +1,5 @@
 diff --git a/lib/coreBundle.js b/lib/coreBundle.js
-index 6893f1cf133efec2c5dccc35c77cc7a53870ccbc..8acfa7b1743f31d8e1dd2b0f996ce34565acd95b 100644
+index 6893f1cf133efec2c5dccc35c77cc7a53870ccbc..5f466d0142e88979a8113fc39ed15c42c817d47c 100644
 --- a/lib/coreBundle.js
 +++ b/lib/coreBundle.js
 @@ -36226,7 +36226,8 @@ var init_chromiumSwitches = __esm({
@@ -12,3 +12,26 @@ index 6893f1cf133efec2c5dccc35c77cc7a53870ccbc..8acfa7b1743f31d8e1dd2b0f996ce345
        "--allow-pre-commit-input",
        "--disable-hang-monitor",
        "--disable-ipc-flooding-protection",
+@@ -52885,6 +52886,10 @@ function validateBrowserContextOptions(options, browserOptions) {
+     options.acceptDownloads = "internal-browser-default";
+   if (!options.viewport && !options.noDefaultViewport)
+     options.viewport = { width: 1280, height: 720 };
++  // TruongThinhWebsite: /sw.js (progressive-loading R3) chặn page.route và CDP Fetch nên mặc định chặn Service Worker;
++  // test cần Service Worker tự truyền serviceWorkers: "allow".
++  if (options.serviceWorkers === void 0)
++    options.serviceWorkers = "block";
+   if (options.proxy)
+     options.proxy = normalizeProxySettings(options.proxy);
+   if (options.recordVideo?.fps !== void 0 && options.recordVideo.fps <= 0)
+@@ -53039,9 +53044,10 @@ var init_browserContext = __esm({
+         }
+         if (debugMode() === "console")
+           await this._exposeConsoleApi();
++        // TruongThinhWebsite: chặn im lặng, không console.warn, vì Service Worker giờ bị chặn mặc định và test coi warning là lỗi.
+         if (this._options.serviceWorkers === "block")
+           await this.addInitScript(nullProgress, `
+-if (self.ServiceWorkerContainer) ServiceWorkerContainer.prototype.register = async () => { console.warn('Service Worker registration blocked by Playwright'); };
++if (self.ServiceWorkerContainer) ServiceWorkerContainer.prototype.register = async () => {};
+ `);
+         if (this._options.permissions)
+           await this.grantPermissions(this._options.permissions);

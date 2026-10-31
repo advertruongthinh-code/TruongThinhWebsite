@@ -490,14 +490,6 @@ async function runP13Baseline(browserInstance) {
 async function installRelatedMediaProbe(page) {
   await page.addInitScript(() => {
     const probe = { records: [] };
-    // Fade WAAPI 0 sang 1 được ghi lúc gọi animate(): runner bận có thể không lấy được frame nào giữa fade 0.6s.
-    const animate = Element.prototype.animate;
-    Element.prototype.animate = function (keyframes, options) {
-      const opacities = Array.isArray(keyframes) ? keyframes.map((frame) => frame.opacity).filter((value) => value !== undefined) : [];
-      if (this.closest?.("[data-advertising-related-card]") && opacities.length > 1
-        && Number(opacities[0]) <= 0.05 && Number(opacities.at(-1)) >= 0.99) (this.__ttOpacityFades ||= []).push(options?.duration ?? options);
-      return animate.call(this, keyframes, options);
-    };
     const sampling = new WeakSet();
     const capture = (image) => {
       const card = image.closest("[data-advertising-related-card]");
@@ -519,7 +511,6 @@ async function installRelatedMediaProbe(page) {
           fading: image.getAnimations().some((animation) => animation.playState === "running"
             && (animation.transitionProperty === "opacity" || animation.effect?.getKeyframes().some((frame) => "opacity" in frame))),
         });
-        record.fades = image.__ttOpacityFades || [];
         // Card còn skeleton thì media chưa hiện: lấy mẫu tới khi fade xong, kể cả khi fixture giữ ảnh quá 3s.
         if (card.querySelector("[data-advertising-loading-skeleton]")) record.pending = true;
         const elapsed = performance.now() - started;
@@ -536,21 +527,6 @@ async function installRelatedMediaProbe(page) {
     }))).observe(document, { childList: true, subtree: true });
     window.__ttP13RelatedMedia = probe;
   });
-}
-
-function assertMediaFade(record, label) {
-  assert(record?.frames.length > 3, `${label}: media fade was not sampled`);
-  const first = record.frames[0];
-  const middle = record.frames.find(({ opacity }) => opacity > 0.05 && opacity < 0.95);
-  const last = record.frames.at(-1);
-  const travelled = (middle?.opacity > first.opacity && middle.opacity < 1)
-    || record.frames.some(({ opacity, fading }) => fading && opacity <= 0.05)
-    || record.fades?.length > 0;
-  assert(first.opacity <= 0.05 && travelled && last.opacity >= 0.99,
-    `${label}: opacity did not travel 0 to 1 ${JSON.stringify({ first, middle, last })}`);
-  assert(first.duration.split(",").includes("0.6s") && first.easing.split(",").includes("ease-out"),
-    `${label}: media timing differs from 0.6s ease-out ${JSON.stringify(first)}`);
-  return { id: record.id, first, middle, last };
 }
 
 async function installStuffingProbe(page, selector, gridSelector) {
@@ -1331,23 +1307,18 @@ try {
     // Smooth scroll bỏ qua scrollIntoView native; hãy chuyển logical scroll tới card.
     await relatedPage.locator(`[data-advertising-related-card="${initialMediaId}"]`).evaluate((node) => window.TruongThinhMotion.setLogicalScroll(Math.max(0,
       window.TruongThinhMotion.getLogicalScroll() + node.getBoundingClientRect().top - innerHeight / 3)));
-    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] [data-advertising-loading-skeleton]`), initialMediaId);
+    // Card related chờ ảnh mang Kính, ảnh ở opacity cuối dưới Kính (progressive-loading R9); ảnh về thì Kính tan và bị gỡ.
+    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] .glass-surface[data-glass-reveal]`), initialMediaId);
     mediaReleased = true;
     await Promise.all(heldMedia.splice(0).map((route) => route.continue()));
     await relatedPage.unroute(mediaPattern);
-    await relatedPage.waitForFunction((id) => document.querySelector(`[data-advertising-related-card="${id}"] img`)?.classList.contains("is-advertising-media-ready"), initialMediaId);
-    // Runner bận chưa xong fade sau một mốc cố định: chờ record đạt opacity cuối, hết hạn thì assert dưới báo record.
-    await relatedPage.waitForFunction((id) => window.__ttP13RelatedMedia.records.some((record) => record.id === id
-      && record.frames.at(-1)?.opacity >= 0.99), initialMediaId, { timeout: 5_000 }).catch(() => {});
-    const initialMediaRecords = await relatedPage.evaluate(() => window.__ttP13RelatedMedia.records);
-    const completedInitialMediaRecords = initialMediaRecords.filter((record) => (
-      initialRelatedIds.has(record.id)
-      && record.frames[0]?.opacity <= 0.05
-      && record.frames.at(-1)?.opacity >= 0.99
-    ));
-    const completedInitialMedia = completedInitialMediaRecords.find((record) => record.id === initialMediaId);
-    assert(completedInitialMedia, `related initial media never reached opacity 1 ${JSON.stringify(initialMediaRecords.map((record) => ({ id: record.id, first: record.frames[0], last: record.frames.at(-1) })))}`);
-    const initialMedia = assertMediaFade(completedInitialMedia, "related initial media");
+    await relatedPage.waitForFunction((id) => {
+      const card = document.querySelector(`[data-advertising-related-card="${id}"]`);
+      return card?.querySelector("img")?.naturalWidth && !card.querySelector(".glass-surface[data-glass-reveal]");
+    }, initialMediaId);
+    const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
+    assert(initialMedia?.frames.length && initialMedia.frames.every((frame) => !frame.fading) && initialMedia.frames.at(-1).opacity >= 0.99,
+      `related initial media fades instead of waiting under Kính ${JSON.stringify(initialMedia?.frames.slice(0, 5))}`);
     // Framing tag vẫn được hỗ trợ làm deep link sau khi các chip của detail bị gỡ.
     await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);

@@ -6734,12 +6734,14 @@ async function runAdvertisingMediaEntranceChecks() {
                       return { delay, duration, endTime, easing };
                     }),
                   shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
+                  glass: Boolean(tile.querySelector(".glass-surface[data-glass-reveal]")),
                 });
-                if (image.classList.contains("is-advertising-media-ready") && readyAt < 0) {
+                if (image.classList.contains("is-advertising-media-ready") && image.naturalWidth && !trace.at(-1).glass
+                  && readyAt < 0) {
                   readyAt = performance.now();
                 }
               }
-              // Máy tải nặng làm frame thưa: lấy mẫu tới khi ảnh đạt opacity cuối, không theo mốc 750ms cố định.
+              // Máy tải nặng làm frame thưa: lấy mẫu tới khi ảnh đạt opacity cuối và Kính đã gỡ, không theo mốc cố định.
               if (
                 (readyAt < 0 && performance.now() - startedAt < 6_000) ||
                 (readyAt >= 0 && trace.at(-1).imageOpacity < 0.999 && performance.now() - readyAt < 3_000)
@@ -6756,11 +6758,14 @@ async function runAdvertisingMediaEntranceChecks() {
         const final = trace.at(-1);
         // Nhịp 0.6s (design-system motion.md, ảnh trong card): ảnh hiện 0.13s đến 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
         const fade = fading?.opacityAnimations[0];
+        // progressive-loading R9: card kịp mang Kính thì ảnh ở opacity cuối dưới Kính, không fade riêng ảnh.
+        const underGlass = trace.some((sample) => sample.glass);
         assert(
-          targetImageDelayed && fading && final?.imageReady && final.imageOpacity >= 0.999 &&
+          targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.glass &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
-            fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
-            fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)" &&
+            (underGlass ? trace.filter((sample) => sample.glass).every((sample) => sample.imageOpacity >= 0.999)
+              : fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
+                fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") &&
             trace.every((sample) => sample.shellOpacity >= 0.999),
           `${locale} fresh deep card skipped the image-only fade of the 0.6s reveal: ${JSON.stringify(trace)}`,
         );

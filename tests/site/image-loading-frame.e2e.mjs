@@ -318,15 +318,16 @@ try {
       filters: [...document.querySelectorAll("[data-advertising-filter]")].map(node => [node.offsetLeft, node.offsetTop]),
     }));
     await page.waitForFunction(() => document.querySelector("[data-project-grid] img.lazyloading"));
-    await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-advertising-loading-skeleton].is-entry-ready"));
+    // Card chờ ảnh mang Kính mờ thay skeleton Flow (progressive-loading R9).
+    await page.waitForFunction(() => document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]"));
     const loading = await page.evaluate(() => {
-      const frame = document.querySelector("[data-project-grid] [data-advertising-loading-skeleton].is-entry-ready");
+      const frame = document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]");
       const box = frame.getBoundingClientRect();
       const media = frame.parentElement.getBoundingClientRect();
       return { covers: [box.left - media.left, box.top - media.top, box.width - media.width, box.height - media.height].every(gap => Math.abs(gap) <= 1),
         busy: Boolean(frame.parentElement.querySelector("img.lazyloading, img.lazyload")) };
     });
-    assert.deepEqual(loading, { covers: true, busy: true }, `${viewport.width}px: loading card wears the skeleton frame as it enters view`);
+    assert.deepEqual(loading, { covers: true, busy: true }, `${viewport.width}px: loading card wears Kính as it enters view`);
     let duringLoad = await geometry();
     for (let previous; JSON.stringify(previous) !== JSON.stringify(duringLoad); duringLoad = await geometry()) {
       previous = duringLoad;
@@ -339,12 +340,12 @@ try {
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
-    // Reveal kết thúc 0.6 s sau khi ảnh cuối tải xong, rồi node skeleton bị gỡ.
-    await page.waitForFunction(() => !document.querySelector("[data-project-grid] [data-advertising-loading-skeleton]"), null, { timeout: 5000 })
-      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop the skeleton`));
+    // Kính tan trong phần còn lại của nhịp 0.6 s sau khi ảnh cuối tải xong, rồi bị gỡ.
+    await page.waitForFunction(() => !document.querySelector("[data-project-grid] .glass-surface[data-glass-reveal]"), null, { timeout: 5000 })
+      .catch(() => assert.fail(`${viewport.width}px: loaded cards drop Kính`));
     const cardGlass = await revealGlass("card");
-    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated, end }) => steps === 3 && animated.join() === "opacity" && end <= 601),
-      `${viewport.width}px: loading cards reveal through three Kính steps in 0.6 s, opacity only ${JSON.stringify(cardGlass.slice(0, 3))}`);
+    assert.ok(cardGlass.length && cardGlass.every(({ steps, animated, skeleton }) => steps === 3 && !animated.length && !skeleton),
+      `${viewport.width}px: loading cards wear three Kính steps from the start, no fade in, no skeleton ${JSON.stringify(cardGlass.slice(0, 3))}`);
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-project-grid] .glass-surface[data-glass-reveal]").length), 0,
       `${viewport.width}px: the reveal Kính leaves the cards`);
     // Card đã tải xong rời viewport hiện lại ngay: không Kính, không skeleton (R3).

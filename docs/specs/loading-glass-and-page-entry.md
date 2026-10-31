@@ -25,49 +25,39 @@ WebGL context ở [skeleton](advertising-skeleton.md); cách Kính hiện, tan �
 
 ## Hành vi
 
-### R1. Skeleton card trên card đang tải
+### R1. Kính trên card đang tải
 
-Card của masonry chính và related (cả card nhiều media) vào viewport mà media đang hiện chưa giải mã xong thì ngay lúc đó,
-không chờ mốc thời gian, kể cả khi đang cuộn hay giữ thanh cuộn, khung media nhận đúng khung skeleton cuối masonry:
-`span.advertising-grid__cta-frame[data-advertising-loading-skeleton="<media id>"]` (`aria-hidden`) gắn cuối
-`.advertising-card-media`, phủ kín khung; card giữ kích thước cuối. Assignment bốc ngẫu nhiên lúc khung vào viewport
-([skeleton R3](advertising-skeleton.md#r3-assignment-ngẫu-nhiên-và-giữ-màu)) và lưu theo media id tới khi trang ổn định
-lại, nên card ra vào hay mount lại vẫn giữ màu. Khung hiện, chạy Flow và nhận WebGL context như khung batch
-([skeleton R4](advertising-skeleton.md#r4-vào-viewport-và-vòng-lặp), [R5](advertising-skeleton.md#r5-webgl-context)).
-Card mount sẵn ngoài viewport chưa có skeleton. Skeleton nằm trong khung media nên đi cùng card khi card đổi vị trí
-hay đổi thứ tự trong DOM, giữ node và nhịp hiện dần, không fade lại từ 0.
+Card của masonry chính và related (cả card nhiều media) vào viewport mà media đang hiện chưa đủ ngưỡng thì ngay lúc đó,
+không chờ mốc thời gian, kể cả khi đang cuộn hay giữ thanh cuộn, khung media nhận Kính phủ đều ba bậc ở mức đủ
+(`createGlassSurface("even", 3)`, `data-glass-reveal`), không fade vào; dưới Kính media hiện ở opacity cuối để trình duyệt
+vẽ dần ([tải theo nấc R9](progressive-loading.md#r9-kính-mờ-thay-skeleton-flow-trên-card-chờ-ảnh), owner 2026-10-27).
+Card không còn khung skeleton, Flow hay WebGL context; skeleton Flow chỉ còn ở batch cuối masonry
+([skeleton](advertising-skeleton.md)). Card mount sẵn ngoài viewport chưa có Kính. Kính cung CTA đang giao viewport thì
+card không nhận Kính, media ẩn tới khi giải mã xong rồi crossfade `0.6s`.
 
 ```gherkin
 Given masonry Advertising trên điện thoại, ảnh tải chậm
 When vuốt nhanh làm card mới vào viewport
-Then ngay khi vào viewport mỗi card chưa có ảnh mang khung skeleton phủ kín khung media, card không đổi kích thước
-And hai khung skeleton đang thấy không chảy cùng pha
+Then ngay khi vào viewport mỗi card chưa có ảnh mang Kính ba bậc, card không đổi kích thước
+And card không có canvas Flow hay khung skeleton
 ```
 
-### R2. Hiện ảnh qua Kính
+### R2. Kính tan khi ảnh đủ ngưỡng
 
-Media của card đang mang skeleton (R1) giải mã xong khi card còn giao viewport thì runtime chờ `img.decode()` (video không
-chờ), rồi chạy ba bước chồng nhau trong `0.6s`, dù ảnh về nhanh hay chậm (`revealCard`):
+Service Worker báo đủ ngưỡng ([tải theo nấc R3](progressive-loading.md#r3-hiện-ảnh-khi-đủ-ngưỡng)), hoặc không có tin thì
+`img.decode()` xong (video không chờ), khi card còn giao viewport thì runtime chạy nửa tan của reveal Kính `0.6s`
+(`revealCard`, tua tới `GLASS_REVEAL_PEAK`) rồi gỡ Kính. Card không có Kính (cung đang thấy, R1) chỉ crossfade media.
+Cung vào viewport giữa chừng thì Kính bị gỡ ngay ([skeleton R4](advertising-skeleton.md)).
 
-1. Kính phủ đều ba bậc (`createGlassSurface("even", 3)`, `data-glass-reveal`) gắn cuối khung media và hiện dần.
-2. Dưới Kính, skeleton mờ đi và media hiện lên (`crossfadeLayers`, chỉ opacity).
-3. Kính tan, media rõ nét.
-
-Kính cung CTA đang giao viewport thì bỏ bước 1 và 3, chỉ crossfade; cung vào viewport giữa chừng thì Kính bị gỡ ngay
-([skeleton R4](advertising-skeleton.md)).
-
-Kính hiện, tan theo [Kính R6](glass-surface.md#r6-hiện-và-tan-bằng-opacity-từng-bậc); thời điểm và đường cong ở
-[UI](#ui), cùng nhịp `0.6s` với primary (R4). Trên điện thoại (cùng điều kiện `skeletonPhone` của
-[skeleton R1](advertising-skeleton.md)), card đến lượt hiện khi đang vuốt thì giữ skeleton tới khi trang ngừng cuộn
-`120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`) rồi mới chạy R2. Xong thì runtime hủy animation, gỡ Kính và skeleton khỏi DOM,
-trả WebGL context về pool. Media chỉ đổi opacity, không đổi `transform`, nên hover zoom
-([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)) giữ nguyên sau đó.
+Kính tan theo [Kính R6](glass-surface.md#r6-hiện-và-tan-bằng-opacity-từng-bậc); thời điểm và đường cong ở
+[UI](#ui). Trên điện thoại (cùng điều kiện `skeletonPhone` của [skeleton R1](advertising-skeleton.md)), card đến lượt
+tan khi đang vuốt thì giữ Kính tới khi trang ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`). Media chỉ đổi opacity,
+không đổi `transform`, nên hover zoom ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)) giữ nguyên sau đó.
 
 ```gherkin
-Given một card đang hiện skeleton
-When ảnh của card giải mã xong
-Then Kính hiện dần trên skeleton, skeleton và ảnh crossfade dưới Kính, rồi Kính tan
-And sau 0.6s card không còn node skeleton hay Kính, WebGL context đã về pool
+Given một card đang mang Kính
+When ảnh của card đủ ngưỡng hoặc giải mã xong
+Then Kính tan trong phần còn lại của nhịp 0.6s rồi bị gỡ khỏi DOM, ảnh không fade lại
 ```
 
 ### R3. Ảnh có sẵn

@@ -173,7 +173,9 @@ Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
 Chrome DevTools MCP đã gỡ (owner 2026-10-19) để giảm token MCP; symbol dùng `rg`,
 QA browser dùng Playwright và CDP script.
 Chromium của Playwright 1.64.1 (bản 153) chỉ giải mã JPEG XL khi bật cờ `JXLImageFormat`; `patches/playwright-core@1.64.1.patch`
-(pnpm `patchedDependencies`) thêm cờ vào switch mặc định. Nâng Playwright thì bỏ patch nếu Chromium mới đã bật JXL sẵn.
+(pnpm `patchedDependencies`) thêm cờ vào switch mặc định. Nâng Playwright thì bỏ phần cờ nếu Chromium mới đã bật JXL sẵn.
+Patch cũng mặc định `serviceWorkers: "block"` vì `/sw.js` ([tải theo nấc R3](../specs/progressive-loading.md#r3-hiện-ảnh-khi-đủ-ngưỡng))
+chặn `page.route` và CDP Fetch; test cần Service Worker truyền `serviceWorkers: "allow"`. Phần này giữ khi nâng Playwright.
 
 ## Stack AI và media
 

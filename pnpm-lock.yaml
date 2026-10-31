@@ -163,7 +163,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  playwright-core@1.64.1: 7d11370d01066ce09bdfe508129814be90afd4b39678716957953a53d3522b04
+  playwright-core@1.64.1: 49341ffb6d26d50e08610e23589f8cce28d0ac618d7831bda21a6dcfca76229a
 
 importers:
 
@@ -895,11 +895,11 @@ snapshots:
 
   path-to-regexp@6.3.0: {}
 
-  playwright-core@1.64.1(patch_hash=7d11370d01066ce09bdfe508129814be90afd4b39678716957953a53d3522b04): {}
+  playwright-core@1.64.1(patch_hash=49341ffb6d26d50e08610e23589f8cce28d0ac618d7831bda21a6dcfca76229a): {}
 
   playwright@1.64.1:
     dependencies:
-      playwright-core: 1.64.1(patch_hash=7d11370d01066ce09bdfe508129814be90afd4b39678716957953a53d3522b04)
+      playwright-core: 1.64.1(patch_hash=49341ffb6d26d50e08610e23589f8cce28d0ac618d7831bda21a6dcfca76229a)
 
   semver@7.8.5: {}
 

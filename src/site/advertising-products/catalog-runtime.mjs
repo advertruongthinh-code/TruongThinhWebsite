@@ -29,7 +29,7 @@ import {
   SKELETON_FLOW_CONTEXT_ATTRIBUTES,
   skeletonFlowStill,
 } from "./skeleton-flow.mjs";
-import { arcGlassGeometry, createGlassSurface, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
+import { arcGlassGeometry, createGlassSurface, GLASS_REVEAL_PEAK, layoutArcGlass, playGlassReveal } from "./glass-surface.mjs";
 import { loadHls, releaseVideoSource, setVideoSource } from "./video-source.mjs";
 
 let activeInstance;
@@ -84,8 +84,6 @@ const PHONE_REVEAL_SCROLL_IDLE_MS = 120;
 // Card gắn lại có media đã tải chờ cache chừng này (R3 đo giải mã một tới ba frame); quá hạn mà ảnh chưa về (cache tắt
 // hoặc bị xóa) thì mang skeleton như card đang tải (R1), không để khung trắng.
 const REMOUNT_CACHE_WAIT_MS = 150;
-// Thả thanh cuộn Locomotive chừng này thì Flow chạy tiếp; trang còn trượt nốt theo lerp ngay sau khi thả tay.
-const SCROLLBAR_FLOW_RESUME_MS = 120;
 const PHONE_SCROLL_SETTLE_MS = 500;
 // Skeleton card (advertising-skeleton R4): card vào viewport trong khoảng này sau scroll event thì khung và canvas Flow
 // hiện ngay không fade, để vuốt nhanh vẫn thấy gradient chạy.
@@ -1608,6 +1606,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Media key đã tải một lần: card remount hoán chúng vào mà không cần Kính khi bản cache của nó đến.
   const loadedMediaKeys = new Set();
   const visibleMediaCards = new Set();
+  // Path ảnh JXL Service Worker đã báo đủ ngưỡng (progressive-loading R3).
+  const thresholdUrls = new Set();
+  const pathOf = (media) => (media.currentSrc ? new URL(media.currentSrc).pathname : "");
   const mediaKey = (node) => node.dataset.advertisingRelatedCard
     ? `related:${node.dataset.advertisingRelatedCard}` : `grid:${node.dataset.advertisingCard}`;
   const mediaLayers = (node) => [...node.querySelectorAll(".advertising-tile__foreground")];
@@ -2081,7 +2082,6 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     pending.glass?.remove();
     skeletonEntryFrames.delete(frame);
   };
-  let scrollbarDragging = false;
   // Skeleton loading chạy trên related card và cả primary; batch CTA được xóa khi đang mở photo.
   const skeletonMotionAllowed = () => !skeletonDocumentParked && !document.hidden
     && !skeletonMotionPreference.matches
@@ -2262,8 +2262,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // `rects` đọc trước khi assignSkeleton append canvas; đọc lại sau đó ép thêm một style recalc.
   const syncSkeletonRenderers = (rects) => {
     const budget = sharedFlowAllowed() ? SKELETON_SHARED_BUDGET : SKELETON_CONTEXT_BUDGET;
-    // Giữ thanh cuộn thì không dựng renderer cho card chỉ lướt qua.
-    const eligible = skeletonMotionAllowed() && !scrollbarDragging;
+    const eligible = skeletonMotionAllowed();
     const keep = new Set();
     for (const frame of skeletonFlowByFrame.keys()) {
       if (visibleSkeletonFrames.has(frame) && keep.size < budget) keep.add(frame);
@@ -2290,7 +2289,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   };
   // Một context mới, rồi shader và noise, mỗi thứ tốn hàng chục ms trên phone Android (R8): mọi renderer
   // mount trong task riêng sau frame, context mới một task trước nó; ảnh tĩnh hiện trong lúc đó.
-  // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang cuộn; giữ thanh cuộn thì không (R5).
+  // Máy không phải điện thoại mount không chờ scroll dừng, nên Flow chạy khi đang giữ scrollbar (R5).
   let skeletonMountWanted = new Set();
   let skeletonMountTimer = 0;
   // Compile shader và tạo context làm đứng frame của card slide 0.4s, nên mount chờ nó kết thúc. Khung batch
@@ -2424,13 +2423,11 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }
       if (!skeletonAssignmentByFrame.has(frame)) return;
       if (skeletonCanLoop(frame)) {
-        // Flow chạy từ frame đầu tiên của entry Kính (R4); giữ thanh cuộn thì khung vẫn hiện, Flow đứng ở hình cuối.
+        // Flow chạy từ frame đầu tiên của entry Kính (R4).
         if (!frame.classList.contains("is-entry-ready")) startSkeletonEntry(frame);
-        const running = Boolean(renderer) && !scrollbarDragging;
-        frame.classList.toggle("is-looping", running);
-        frame.dataset.advertisingFlowState = running ? "running" : "paused";
-        if (running) renderer.start();
-        else renderer?.stop();
+        frame.classList.toggle("is-looping", Boolean(renderer));
+        frame.dataset.advertisingFlowState = renderer ? "running" : "paused";
+        renderer?.start();
         return;
       }
       cancelSkeletonEntry(frame);
@@ -2461,31 +2458,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // một lần style và layout trong task đó (decision phone-frame-budget).
   const skeletonPauseObserver = new MutationObserver(() => scheduleSkeletonSync());
   skeletonPauseObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-  // Locomotive gắn has-scroll-dragging lên html khi giữ thanh cuộn (owner 2026-10-27): kéo lên xuống liên tục làm
-  // hàng chục card lướt qua mỗi giây, dựng rồi gỡ Flow cho từng card nặng máy mà không ai kịp thấy.
-  let scrollbarResumeTimer = 0;
-  const scrollbarObserver = new MutationObserver(() => {
-    if (document.documentElement.classList.contains("has-scroll-dragging")) {
-      clearTimeout(scrollbarResumeTimer);
-      scrollbarResumeTimer = 0;
-      if (!scrollbarDragging) {
-        scrollbarDragging = true;
-        scheduleSkeletonSync();
-      }
-    } else if (scrollbarDragging && !scrollbarResumeTimer) {
-      scrollbarResumeTimer = setTimeout(() => {
-        scrollbarResumeTimer = 0;
-        scrollbarDragging = false;
-        scheduleSkeletonSync();
-      }, SCROLLBAR_FLOW_RESUME_MS);
-    }
-  });
-  scrollbarObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  controller.signal.addEventListener("abort", () => {
-    skeletonPauseObserver.disconnect();
-    scrollbarObserver.disconnect();
-    clearTimeout(scrollbarResumeTimer);
-  }, { once: true });
+  controller.signal.addEventListener("abort", () => skeletonPauseObserver.disconnect(), { once: true });
   skeletonMotionPreference.addEventListener("change", syncSkeletonMotion, { signal: controller.signal });
   let skeletonSyncFrame = 0;
   const scheduleSkeletonSync = () => {
@@ -2549,7 +2522,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const arcTint = arcGlass?.querySelector(".glass-surface__tint");
   const arcObserver = arcTint && new IntersectionObserver(([entry]) => {
     arcInView = entry.isIntersecting;
-    if (arcInView) grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
+    if (!arcInView) return;
+    // Card còn chờ ảnh mất Kính thì ẩn ảnh lại, tới lúc tải xong crossfade như card không Kính (R1); không thì lộ ảnh tải dở.
+    cardSkeletons.forEach((pending, node) => {
+      if (pending.animations.length || !grid.contains(pending.glass)) return;
+      pending.glass = null;
+      mediaLayers(node).forEach((media) => {
+        media.style.setProperty("transition", "none", "important");
+        media.classList.remove("is-advertising-media-ready");
+      });
+    });
+    grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
   });
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
@@ -2571,8 +2554,15 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         REMOUNT_CACHE_WAIT_MS);
       return;
     }
-    const frame = attachLoadingSkeleton(node.querySelector(".advertising-card-media"), mediaId);
-    cardSkeletons.set(node, { frame, revealing: false, animations: [] });
+    // Kính mờ đủ mức thay skeleton Flow, ảnh hiện dưới Kính để trình duyệt vẽ dần (progressive-loading R9). Ảnh đã đủ
+    // ngưỡng thì hiện thẳng; cung đang thấy thì không có Kính (skeleton R4), ảnh ẩn tới khi sẵn sàng như cũ.
+    if (mediaLayers(node).some((media) => thresholdUrls.has(pathOf(media)))) {
+      showMedia(node);
+      return;
+    }
+    const glass = cardRevealGlass(node.querySelector(".advertising-card-media"));
+    if (glass) showMedia(node);
+    cardSkeletons.set(node, { glass, revealing: false, animations: [] });
   };
   const dropCardSkeleton = (node) => {
     const entry = cardSkeletons.get(node);
@@ -2581,9 +2571,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     entry.animations.forEach((animation) => animation.cancel());
     mediaLayers(node).forEach((media) => media.style.removeProperty("transition"));
     entry.glass?.remove();
-    if (entry.frame) detachLoadingSkeleton(entry.frame);
   };
-  const heldReveals = new Set();
+  const heldReveals = new Map();
   let revealHoldTimer = 0;
   const releaseHeldReveals = () => {
     const wait = phoneScrollWait();
@@ -2594,13 +2583,14 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     revealHoldTimer = 0;
     const nodes = [...heldReveals];
     heldReveals.clear();
-    if (!controller.signal.aborted) nodes.forEach((node) => node.isConnected && revealCard(node));
+    if (!controller.signal.aborted) nodes.forEach(([node, early]) => node.isConnected && revealCard(node, early));
   };
-  const revealCard = (node) => {
+  // early: tin ngưỡng từ Service Worker, ảnh còn đang vẽ dần nên không chờ decode() (progressive-loading R3).
+  const revealCard = (node, early = false) => {
     let entry = cardSkeletons.get(node);
     if (entry?.revealing) return;
     if (!reduced && skeletonPhone() && phoneScrollWait() > 0) {
-      heldReveals.add(node);
+      heldReveals.set(node, early || heldReveals.get(node));
       revealHoldTimer ||= setTimeout(releaseHeldReveals, PHONE_REVEAL_SCROLL_IDLE_MS);
       return;
     }
@@ -2613,12 +2603,12 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       return;
     }
     if (!entry) {
-      entry = { frame: null, revealing: false, animations: [] };
+      entry = { glass: null, revealing: false, animations: [] };
       cardSkeletons.set(node, entry);
     }
     entry.revealing = true;
-    // Chỉ swap photo đã decode để crossfade không bao giờ vẽ frame decode dở (R2).
-    const decoded = layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
+    // Không có Kính thì chỉ swap photo đã decode để crossfade không vẽ frame decode dở (R2).
+    const decoded = !early && layer instanceof HTMLImageElement ? layer.decode().catch(() => {}) : Promise.resolve();
     decoded.then(() => {
       // Card rời view lúc decode thì skeleton đã bị drop; vẫn phải hiện ảnh, không thì kẹt opacity 0.
       if (cardSkeletons.get(node) !== entry) {
@@ -2630,18 +2620,30 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         showMedia(node);
         return;
       }
-      const layers = mediaLayers(node);
-      layers.forEach((media) => {
-        media.style.setProperty("transition", "none", "important");
-        media.classList.add("is-advertising-media-ready");
-      });
-      entry.glass = cardRevealGlass(node.querySelector(".advertising-card-media"));
-      entry.animations = [...crossfadeLayers(entry.frame ? [entry.frame] : [], layers, CARD_REVEAL_MS),
-        ...(entry.glass ? playGlassReveal(entry.glass, CARD_REVEAL_MS) : [])];
+      if (entry.glass) {
+        // Kính đang ở mức đủ: chỉ chạy nửa tan của reveal (progressive-loading R9).
+        entry.animations = playGlassReveal(entry.glass, CARD_REVEAL_MS);
+        entry.animations.forEach((animation) => { animation.currentTime = CARD_REVEAL_MS * GLASS_REVEAL_PEAK; });
+      } else {
+        const layers = mediaLayers(node);
+        layers.forEach((media) => {
+          media.style.setProperty("transition", "none", "important");
+          media.classList.add("is-advertising-media-ready");
+        });
+        entry.animations = crossfadeLayers([], layers, CARD_REVEAL_MS);
+      }
       Promise.all(entry.animations.map(({ finished }) => finished))
         .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
     });
   };
+  navigator.serviceWorker?.addEventListener("message", ({ data }) => {
+    if (!data?.url) return;
+    thresholdUrls.add(data.url);
+    cardSkeletons.forEach((entry, node) => {
+      if (mediaLayers(node).some((media) => pathOf(media) === data.url)) revealCard(node, true);
+    });
+    if (photoImage && pathOf(photoImage) === data.url) primaryReveal?.play?.();
+  }, { signal: controller.signal });
   const syncCardSkeleton = (node) => {
     if (node.advertisingPendingMediaId?.()) {
       if (visibleMediaCards.has(mediaKey(node))) attachCardSkeleton(node);
@@ -3501,7 +3503,8 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Primary chạy đúng reveal của card tải chậm (loading-glass-and-page-entry R4): Kính ba bậc hiện trên skeleton, dưới
   // Kính skeleton mờ đi còn ảnh và nền vùng dư hiện lên, rồi Kính tan, cùng CARD_REVEAL_MS.
   const playPrimaryReveal = (reveal, incoming) => {
-    if (primaryReveal !== reveal) return;
+    // Tin ngưỡng và decode() cùng gọi được (progressive-loading R3): reveal đã chạy thì có glass.
+    if (primaryReveal !== reveal || reveal.glass) return;
     // Ảnh decode xong trước khi photo view hiện (mở từ grid): chờ để Kính đo được hero.
     if (photoView.hidden) {
       requestAnimationFrame(() => playPrimaryReveal(reveal, incoming));
@@ -3800,13 +3803,13 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     if (changed) {
       // Ảnh có sẵn hay chưa đều chạy motion card tải chậm (loading-glass-and-page-entry R4): ảnh và nền cũ ẩn ngay,
       // skeleton phủ khung tới khi ảnh mới decode xong; ảnh có sẵn chỉ làm skeleton đứng ngắn hơn.
-      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling), animations: [], glass: null };
+      const reveal = { frame: attachLoadingSkeleton(heroFrame, item.id, photoVideo.nextSibling), animations: [], glass: null,
+        play: () => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)) };
       primaryReveal = reveal;
       heroFrame.setAttribute("aria-busy", "true");
       heroFrame.dataset.advertisingPhotoLoading = "true";
       // decode() reject khi lỗi hoặc khi nguồn mới hơn thay thế nguồn này.
-      photoImage.decode().then(() => playPrimaryReveal(reveal, [photoImage, photoBackground].filter(Boolean)),
-        () => primaryReveal === reveal && settlePrimaryReveal());
+      photoImage.decode().then(reveal.play, () => primaryReveal === reveal && settlePrimaryReveal());
     }
     photoViewer.setRecord({ ...record, media: item });
     photoMediaThumbs?.querySelectorAll("[data-advertising-photo-media-select]").forEach((button) => {
