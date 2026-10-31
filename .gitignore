@@ -8,7 +8,6 @@ __pycache__/
 
 # Project-local browser payloads and generated tooling state.
 .tooling/
-.serena/
 test-results/
 playwright-report/
 .wrangler/
