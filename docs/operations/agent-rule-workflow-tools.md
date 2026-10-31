@@ -26,6 +26,7 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 ## Skill routing
 
 - Skill chỉ có một nguồn: plugin pin ở user scope ([TOOLING](TOOLING.md#claude-code-skill)); repo không vendor skill.
+- Skill là quy trình phải đi đủ bước, không phải tài liệu tham khảo. `/build auto` không thay hai human gate.
 - Rule/context: `context-engineering`. UI: `frontend-ui-engineering`, `impeccable`; browser thật: `browser-testing-with-devtools`.
 - Durable decision: `documentation-and-adrs`. Xóa consumed document: `deprecation-and-migration` trước. Trước handoff: `ponytail` bỏ complexity thừa.
 - Không cài router runtime riêng hoặc model pin chung; effective model/effort thiếu evidence ghi unknown.
@@ -33,36 +34,43 @@ Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
 ## Automation
 
 - Tooling chuẩn: [TOOLING](TOOLING.md). Entrypoint/fallback: [scripts map](agent-rule-scripts.md). Không chạy lại hook, watcher, wrapper, launcher mechanics sau edit.
-- Git `pre-commit`/`pre-push` tự chạy `ponytail-review` read-only, fail closed; đây là repository Git hook, không phải agent lifecycle hook. Cloud không có PowerShell nên không có Git hook: agent tự chạy `ponytail-review` trên diff trước mỗi commit/push.
-- `ponytail-review` chỉ xét over-engineering; correctness và security thuộc five-axis review.
-- Không có lifecycle hook Impeccable: sau UI change chạy `impeccable detect` một lần.
 - Không thêm/sửa lifecycle hook, helper ngoài approved tooling repair.
-- App desktop của owner chạy qua provider KIE.ai và đặt `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` cho shell con; CLI trong hook kế thừa nên báo "Not logged in". Chạy `git commit`/`git push` với `env -u` các biến đó để hook dùng phiên claude.ai của CLI.
 
 ## Ponytail
 
-- Ponytail ultra luôn bật khi code. Trước mọi commit hoặc push chạy `ponytail-review`, lỗi thì fail closed, không dùng `--no-verify`. Shortcut có chủ đích ghi comment `ponytail: <ceiling>, <upgrade path>`.
-- `ponytail-audit` ultra quét cả repo, chỉ báo cáo, không tự sửa. Chạy trong thread code review của wrap-up session hoặc khi owner gọi; không chạy tự động.
-- `ponytail-debt` gom comment `ponytail: <ceiling>, <upgrade path>`, chạy cùng audit; nợ cần xử lý ghi vào card Notion, không tạo file ledger.
+- Ultra luôn bật khi code. Trước mọi commit, push chạy `ponytail-review` (target `staged`, `branch` hoặc link PR); lỗi thì fail closed, không dùng `--no-verify`. PC có Git hook tự chạy, cloud thì agent tự chạy.
+- Review xét bug, bảo mật, tải, test và độ phức tạp, nhưng không thay five-axis review.
+- Shortcut có chủ đích ghi `shortcut: <vì sao>, <khi nào quay lại>`. `ponytail-debt` đọc cả comment `ponytail:` cũ; nợ cần xử lý ghi vào card Notion, không tạo file ledger.
+- `ponytail-audit` chỉ báo cáo, chạy trong code review của wrap-up session hoặc khi owner gọi.
+
+## Impeccable
+
+- Sau UI change chạy `impeccable detect` một lần. Tương phản và chữ nhỏ cần trang đã render: quét URL của `pnpm dev`, không chỉ file. Exit 2 là có lỗi; exit 1 là không quét được, phải báo.
+- `critique`, `audit` trước khi sửa giao diện có sẵn; `polish`, `harden` trước khi xong. Target hẹp, một khu vực mỗi lần.
 
 ## Graphify
 
 - Mọi truy vấn về code, tài liệu, quan hệ, blast radius dùng Graphify trước. Chỉ đi thẳng `rg` hoặc đọc file khi tìm literal, hoặc đã biết đúng file.
-- Đường mặc định là wrapper trong [scripts map](agent-rule-scripts.md): wrapper tự refresh AST và fail closed khi refresh lỗi. Chi tiết `-SkipAstRefresh`, corpus, semantic ở [graphify](graphify.md).
+- Đường chính là wrapper trong [scripts map](agent-rule-scripts.md): wrapper tự refresh AST và fail closed khi refresh lỗi. Chi tiết ở [graphify](graphify.md).
+- Exit 3 là tên mơ hồ: chọn tên cụ thể trong danh sách. Exit 4 là không có node: chuyển `rg`.
+- Cạnh `EXTRACTED` có trong source; cạnh `INFERRED` do Graphify suy ra, phải kiểm lại.
 - Chống stale với MCP `graphify`: gọi `graph_stats` trước. Chỉ tin khi báo `matches HEAD` và working tree sạch; còn lại query qua wrapper. Cloud clone mới chưa có `graph.json`, query đầu tiên phải qua wrapper.
 - Chống stale với `graphify-cloud`: so `graph_stats.freshness.commit` với `git rev-parse HEAD`; lệch hoặc có sửa chưa commit thì dùng local.
-- Graph chỉ định hướng. Kết luận về code hiện tại phải kiểm lại trên working tree bằng Serena hoặc đọc file.
-- Chỉ build/update Graphify semantic index khi user explicit request; không thì báo file pending.
+- Chỉ build/update semantic index khi user explicit request; không thì báo file pending.
 
 ## Serena
 
 - Mỗi repo có cấu hình riêng ở `.serena/project.yml`. Website bật TypeScript (gồm `.js`, `.mjs`, `.cjs`) và Bash.
-- Dùng sau Graphify. Đọc code: `get_symbols_overview`, rồi `find_symbol` với `include_body`; không đọc cả file để khám phá.
-- Quan hệ: `find_declaration`, `find_implementations`, `find_referencing_symbols`. Lỗi: `get_diagnostics_for_file`.
-- Sửa cả symbol: `replace_symbol_body`, `insert_after_symbol`, `insert_before_symbol`. Đổi tên, xóa: `rename_symbol`, `safe_delete_symbol`. Sửa vài dòng: `replace_content`. Cùng một sửa ở nhiều file: `replace_in_files`, chạy `dry_run` trước.
-- Markdown, HTML, CSS, PowerShell và path trong `ignored_paths` dùng tool thường. Literal dùng `rg`.
-- Số dòng Serena trả về tính từ 0. Các lệnh độc lập gọi song song trong một lượt.
-- Serena lỗi: chuyển `rg` và đọc file, ghi rõ fallback trong handoff.
+- Dùng sau Graphify. Đọc: `get_symbols_overview`, rồi `find_symbol` với `include_body`. Quan hệ: `find_declaration`, `find_referencing_symbols`. Lỗi: `get_diagnostics_for_file`.
+- Sửa cả symbol: `replace_symbol_body`, `insert_after_symbol`, `insert_before_symbol`. Đổi tên, xóa: `rename_symbol`, `safe_delete_symbol`. Sửa vài dòng: `replace_content`. Nhiều file: `replace_in_files`, chạy `dry_run` trước.
+- Markdown, HTML, CSS, PowerShell và `ignored_paths` dùng tool thường. Declaration trong dependency thường không resolve: đọc thẳng file.
+- Không chạy `onboarding`, không ghi Serena memory: fact repo thuộc Git, preference thuộc project memory.
+- Số dòng Serena tính từ 0. Serena lỗi: chuyển `rg` và đọc file, ghi rõ fallback trong handoff.
+
+## Chrome DevTools
+
+- Chỉ debug runtime, luôn `--headless`. QA gate vẫn là Playwright và CDP script.
+- Ưu tiên `take_snapshot`; `take_screenshot` chỉ khi cần nhìn, vì ảnh tốn token.
 
 ## Chú thích thuật ngữ
 

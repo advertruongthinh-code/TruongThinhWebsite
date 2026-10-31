@@ -125,6 +125,10 @@ Kiểm tra trong session mới: `/opt/agent-tools/setup.log` có dòng `OK`/`FAI
 
 `graphify-cloud` là connector claude.ai, không nằm trong script: OAuth trong container mất khi container bị thu hồi.
 
+## Git hook trên app desktop
+
+- App desktop của owner chạy qua provider KIE.ai và đặt `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` cho shell con; CLI trong hook kế thừa nên báo "Not logged in". Chạy `git commit`/`git push` với `env -u` các biến đó để hook dùng phiên claude.ai của CLI.
+
 ## Browser QA trên cloud
 
 Cloud environment cho phép `cdn.playwright.dev`,
