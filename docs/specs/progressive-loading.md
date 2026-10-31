@@ -6,6 +6,7 @@ source:
 tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/image-reveal-complete.e2e.mjs
+  - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-format-fallback.e2e.mjs
   - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/first-load-parity.e2e.mjs
@@ -34,8 +35,7 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
   với ảnh gốc 0,93 đến 0,95, AVIF 0,95 đến 0,97 (3 ảnh). SSIM có thể thiên về AVIF.
 - Bản cắt dở của JXL progressive (`djxl --allow_partial_files`): dưới 30 đến 50% số byte chưa ra hình; SSIM 0,9 so với bản
   đủ đạt ở khoảng 50 đến 70% số byte (3 ảnh).
-- Chromium 153 bật cờ JXL, mạng 100 KB/s, ảnh 3072px 1,1 MB: thấy bản mờ lúc 4,2s, xong lúc 11,4s. Qua Service Worker đếm
-  byte: báo đủ 60% lúc 6,6s, ảnh hiện và độ nét tăng liên tục tới 11,4s, server nhận một request.
+- Chromium 153 bật cờ JXL, mạng 100 KB/s, ảnh 3072px 1,1 MB: thấy bản mờ lúc 4,2s, xong lúc 11,4s.
 - A04s thật (Chrome 156, Android 14): JXL tĩnh, `<picture>` chọn JXL, JXL động 8 khung đều chạy. `ImageDecoder` với JXL động
   làm crash tab trên điện thoại và Chrome PC. Progressive qua Service Worker đếm byte (100 KB/s, file 240 KB, ngưỡng 180 KB):
   tin ngưỡng lúc 1,9s, `load` 2,7s, `decode()` xong 3,1 đến 3,6s; thấy bản mờ trước `load`, một request mỗi lần tải.
@@ -210,8 +210,7 @@ qua); trình duyệt vẽ dần các lượt JXL nên người xem thấy màu v
 
 Bản đầu dùng Kính ba bậc (`backdrop-filter`) phủ trên ảnh. Owner kéo thanh cuộn cực đoan khi tắt cache, mạng 3G thấy FPS
 không hơn Flow (2026-10-31 09:59). Trace Chromium 1920px cùng kịch bản: có Kính 14 đến 15 FPS, bỏ Kính 42, blur trên ảnh
-41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s) có Kính 8,6 đến 10,6 FPS, ảnh đã tải hết không Kính 60. Owner
-chọn blur trên ảnh.
+41; JXL hay WebP như nhau. A04s (Chrome 156, 400 kbit/s): có Kính 8,6 đến 10,6 FPS, blur trên ảnh 74 đến 82. Owner chọn blur trên ảnh.
 
 - Ảnh có sẵn ([skeleton chờ ảnh R3](loading-glass-and-page-entry.md#r3-ảnh-có-sẵn)) không mờ. Card ra khỏi viewport khi
   blur chưa tan thì gỡ blur; vào lại khi ảnh đã tải xong thì hiện thẳng.
@@ -225,6 +224,25 @@ Given masonry Advertising trên PC, tắt cache, mạng chậm
 When kéo thanh cuộn nhanh làm card mới vào viewport
 Then ảnh của card hiện mờ ngay, card không có Kính, canvas Flow hay khung skeleton
 And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị gỡ
+```
+
+### R10. Lên bản gốc sau khi hiện
+
+Ảnh đã hiện ở bản vừa khung (R3) và đang trong màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang và mọi vị trí
+(owner chọn 2026-10-31 10:45). Bản gốc tải riêng bằng `Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của
+`<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện.
+
+- Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
+  Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
+- Card còn blur (R9), đang chạy reveal hoặc ảnh đang ẩn (slide hero chưa tới lượt) thì để lượt sau; ảnh có `filter` từ
+  stylesheet (nền mờ primary) không lên.
+- Ảnh đã là bản gốc, đã ra khỏi màn hình hoặc bị gỡ thì bỏ. Code ở script `<head>` (`head-inline.js`), một chỗ cho mọi trang.
+
+```gherkin
+Given /vi/residential/ ở 1440px, hero đã hiện bản 1600
+When trang đứng yên
+Then hero đổi sang bản gốc sau khi bản gốc tải và decode xong, bản gốc chỉ được request một lần
+And lúc trang đang cuộn không ảnh nào đổi sang bản gốc
 ```
 
 ## Giao diện và dữ liệu
@@ -260,6 +278,7 @@ sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này kh
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
 | R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card mờ, không card nào có Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
+| R10 | `image-upgrade.e2e.mjs` (hero và card trong màn hình lên bản gốc, card ngoài màn hình giữ bản vừa khung, không đổi khi đang cuộn, một request) |
 
 ## Gate còn mở
 

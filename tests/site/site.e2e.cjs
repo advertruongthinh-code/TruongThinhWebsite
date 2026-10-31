@@ -9431,7 +9431,10 @@ async function runHeroCrossFadeContinuityChecks() {
           `Hero random first slide contract drifted: ${JSON.stringify(state)}`,
         );
         const firstImageRequests = requests.filter((path) => new RegExp(`/${state.name}(?:-(?:240|480|960|1600|2048))?\\.(?:avif|webp|jxl)$`).test(path));
-        assert.equal(firstImageRequests.length, 1, `First hero image requested once: ${firstImageRequests.join(" ")}`);
+        // Bản gốc tải thêm khi trang rảnh (progressive-loading R10) không phải tải trùng; bản vừa khung chỉ một request.
+        const fitted = firstImageRequests.filter((path) => /-(?:240|480|960|1600|2048)\.\w+$/.test(path));
+        assert(fitted.length <= 1 && firstImageRequests.length - fitted.length <= 1 && firstImageRequests.length,
+          `First hero image requested once: ${firstImageRequests.join(" ")}`);
         assertDiagnostics(diagnostics);
       },
     );
