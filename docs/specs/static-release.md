@@ -4,7 +4,6 @@ status: live
 source:
   - scripts/site/prepare-static-assets.mjs
   - scripts/site/non-public-source-assets.mjs
-  - scripts/site/sanitize-client-logos.ps1
   - scripts/site/sync-brand-lockup.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
@@ -22,7 +21,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Phát hành tĩnh
@@ -220,7 +219,7 @@ And CI đỏ, PR hoặc push từ fork không deploy
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS (owner 2026-10-18). Mở CMS theo
+`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Mở CMS theo
 [khóa Wrangler](../decisions/wrangler-deferred-until-cms.md), [spec CMS](cms.md).
 
 ```gherkin
@@ -233,8 +232,8 @@ And .site-output/ không chứa file từ src/worker/, src/admin/ hoặc src/db/
 ### R13. Công cụ asset chạy tay
 
 `build-image-variants.mjs` sinh biến thể theo [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
-bỏ qua danh sách R3; `--check` liệt kê biến thể thiếu, exit 1. `sanitize-client-logos.ps1` (PowerShell, máy owner) lọc
-12 logo SVG từ `_temp/`, chỉ giữ hình học, ghi vào `assets/content/client-logos/`.
+bỏ qua danh sách R3; `--check` liệt kê biến thể thiếu, exit 1. Logo SVG khách hàng trong
+`assets/content/client-logos/` chỉ giữ hình học, làm sạch trên máy owner trước khi commit; script không nằm trong repo.
 
 ```gherkin
 Given thêm một WebP nội dung mới mà chưa sinh biến thể
@@ -278,11 +277,12 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 
 ## Gate còn mở
 
-Owner chốt 2026-10-06: một phone Android thật là máy đo chuẩn (lúc đó Galaxy A05s; từ 2026-10-18 là phone Android nối adb debug, không còn A05s), bỏ gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
+Owner chốt: một phone Android thật nối adb là máy đo chuẩn, không có gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
 phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham khảo. Mục iPhone trong spec khác thuộc nhóm này.
 
 - LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText, GSAP trong `src/site/detail.js` đẩy LCP
-  tới cuối animation (4,2 đến 5,5 s, 3/7 lượt), nếu không khoảng 3,25 s. Sửa cần spec motion reveal riêng; owner quyết.
+  tới cuối animation (4,2 đến 5,5 s), nếu không khoảng 3,25 s. Owner chọn: tách title hero khỏi lô `prepareBatch` trong
+  `detail.js`, không cắt motion; đạt khi median LCP mobile không quá 3,25 s, p90 không quá 3,5 s, phần tử LCP là ảnh hero, fade lệch không quá 50 ms. Cần plan duyệt trước khi code.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
   trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
   `/vi/`, trả 404 hay giữ?]

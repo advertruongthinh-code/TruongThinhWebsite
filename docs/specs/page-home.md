@@ -5,6 +5,7 @@ source:
   - src/site/index.html
   - src/site/content/client-logos.json
   - src/site/content/project-reel.json
+  - scripts/site/project-reel.mjs
   - src/site/assets/content/client-logos/**
   - src/site/assets/content/projects/home-*
 tests:
@@ -15,8 +16,10 @@ tests:
   - tests/site/image-loading-frame.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
   - tests/site/footer-consistency.e2e.mjs
+  - tests/site/hero-slideshow.test.mjs
+  - tests/site/project-reel.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Trang chủ
@@ -39,12 +42,12 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 | # | Section | Nội dung (VI, EN ở `data-en`) | Link | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Sáu ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
+| 1 | `.hero#top` | Mười ảnh slideshow (tính từ HTML), `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
 | 5 | `#du-an` | Sáu `figure` công trình so le sinh từ dữ liệu, caption nêu đúng hạng mục trong ảnh (R8) | Không | ink |
-| 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy, owner 2026-10-27) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner-2026-10-18)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
+| 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
 | sau | `.site-invitation` | "Có mặt bằng? Mời chúng tôi đến xem." | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
 
@@ -73,8 +76,8 @@ And portal dịch vụ đầu trỏ /en/residential/, logo header trỏ /en/
 
 ### R3. Hero: slideshow và nút dừng
 
-10 ảnh nền trang trí (`aria-hidden`, `alt=""`): sảnh lễ tân tầng trệt và mặt tiền showroom có biểu tượng hình học, không chữ (owner duyệt 2026-10-24, 3072×2048 từ PNG SeedVR2.5; màn dọc dời khung qua biến `--hero-portrait-x` trên ảnh, slide showroom 14% để giữ biểu tượng), sảnh có tranh ốp tường (owner duyệt 2026-10-18) (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5),
-và 7 ảnh A317 owner giữ 2026-10-23: góc cửa sổ phòng ngủ homestay, giặt phơi nhà phố (A317-v4), thiền căn hộ, đọc sách homestay, hai phòng chơi (trẻ em nhà phố và căn hộ), thư giãn homestay. Ảnh A317 phóng lớn 2 lần từ PNG 1536×1024 thành 3072×2048 bằng Lanczos3; không crop hoặc tạo nội dung mới. Owner 2026-10-23 chuyển sáu ảnh nhà ở (bếp và phòng ăn, phòng ngủ óc chó, phòng ngủ homestay, phòng khách căn hộ, bếp nhà phố, phòng khách nhà ống) sang [hero Nhà ở](detail-pages.md#r5-hero-và-vào-trang); Nhà ở, Kinh doanh dùng cùng slideshow này. Thứ tự cả 10 slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang (owner 2026-10-17). Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. 9 ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade (owner 10/10), lặp vòng, ảnh vào không nhảy scale.
+10 ảnh nền trang trí (`aria-hidden`, `alt=""`): sảnh lễ tân tầng trệt và mặt tiền showroom có biểu tượng hình học, không chữ (3072×2048 từ PNG SeedVR2.5; màn dọc dời khung qua biến `--hero-portrait-x` trên ảnh, slide showroom 14% để giữ biểu tượng), sảnh có tranh ốp tường (`home-hero-*`, 1920×1280 từ PNG SeedVR2.5),
+và 7 ảnh A317: góc cửa sổ phòng ngủ homestay, giặt phơi nhà phố (A317-v4), thiền căn hộ, đọc sách homestay, hai phòng chơi (trẻ em nhà phố và căn hộ), thư giãn homestay. Ảnh A317 phóng lớn 2 lần từ PNG 1536×1024 thành 3072×2048 bằng Lanczos3; không crop hoặc tạo nội dung mới. Sáu ảnh nhà ở (bếp và phòng ăn, phòng ngủ óc chó, phòng ngủ homestay, phòng khách căn hộ, bếp nhà phố, phòng khách nhà ống) thuộc [hero Nhà ở](detail-pages.md#r5-hero-và-vào-trang); Nhà ở, Kinh doanh dùng cùng slideshow này. Thứ tự cả 10 slide, gồm ảnh đầu, ngẫu nhiên mỗi lần tải trang. Tải trực tiếp: script head, trước CSS, chọn ảnh đầu và preload (AVIF `imagesrcset`, `imagesizes="100vw"`; không `fetchpriority` để khỏi tranh băng thông với CSS); script module sau `.hero-slides` (không chặn parser, chạy khi parse xong, trước `motion.js`) xáo DOM, đưa slide đó lên đầu với `is-active`, gán `src`, `srcset`, `sizes="100vw"`, `fetchpriority="high"` khớp preload nên ảnh tải một lần. Route mềm: runtime chạy lại script đó. DOM đổi theo nên z-order, `:first-child` và slide đầu của runtime khớp ảnh đang hiện. 9 ảnh sau giữ `data-src`, runtime gán `src`, `srcset` khi trình duyệt rảnh, chậm nhất 1,8s (không có `requestIdleCallback` thì 250ms). Mỗi slide zoom `1.06` về `1` trong 6,6s; giây 5 crossfade 1,6s sang slide kế, cả hai ảnh vẫn đang zoom suốt crossfade, lặp vòng, ảnh vào không nhảy scale.
 Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc bấm
 `[data-motion-toggle]`: nút đổi `aria-pressed`, nhãn "Tạm dừng chuyển động" / "Tiếp tục chuyển động"
 (EN "Pause motion" / "Resume motion"), dừng cả marquee (R9). Có Locomotive: `.hero-slides` parallax speed
@@ -113,7 +116,7 @@ Then scroll cue có is-hidden và tabindex="-1"
 
 Portal dịch vụ có kicker, tiêu đề, phụ đề; portal năng lực có tiêu đề, phụ đề; tiêu đề nằm giữa card
 theo chiều dọc. Cỡ chữ theo bề rộng card (container query) nên ba portal cùng nhóm cùng cỡ cho từng vai
-trò. Toàn site chung token chữ portal (owner 2026-10-17): `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal năng lực cùng token, copy rút gọn để vừa (owner 2026-10-17). Ngoại lệ: portal loại hình Commercial không kicker, tiêu đề hai dòng, khối hai dòng nằm giữa card, tagline lùi theo (owner 2026-10-27). Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
+trò. Toàn site chung token chữ portal: `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal năng lực cùng token, copy rút gọn để vừa. Ngoại lệ: portal loại hình Commercial không kicker, tiêu đề hai dòng, khối hai dòng nằm giữa card, tagline lùi theo. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
 không ép bằng `scaleX` hay `textLength`. Layout ba cột cao 600px; tới 980px một cột cao `72svh`; tới
 680px cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
 hoặc focus portal dịch vụ gạch chân phụ đề.
@@ -128,10 +131,9 @@ And ba portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tr
 ### R6. Hover ảnh dùng chung
 
 Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hover-zoom-trigger`, ảnh
-`.media-hover-zoom`, CSS ở `style.css`). Card masonry và related Advertising không dùng (owner 2026-10-18,
-[masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)).
+`.media-hover-zoom`, CSS ở `style.css`). Card masonry và related Advertising không dùng ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
-card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.5`, owner 2026-10-26) giữ nguyên độ
+card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.5`) giữ nguyên độ
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.
 
 ```gherkin
@@ -169,7 +171,7 @@ And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nh
 
 ### R8. Rail công trình
 
-Card đầu dùng ảnh quán cà phê nhà phố `home-commercial-cafe` (owner duyệt 2026-10-18); portal Kinh doanh (R1) dùng ảnh riêng `home-commercial-cnc-cafe` (owner duyệt 2026-10-19) nên hai chỗ không trùng ảnh. Nguồn duy nhất là `src/site/content/project-reel.json` (chỉ build, test đọc): `renderProjectReel` (`scripts/site/project-reel.mjs`) validate, rồi build và preview Design System thay `<!-- project-reel-cards -->` trong `.project-track` bằng `figure.project-card` theo `order`; dữ liệu sai thì build dừng trước khi xóa output cũ. Ràng buộc, cũng là contract cho CMS phase ([CMS](cms.md)): 3 tới 6 card (dưới 3 mất nhịp so le, trên 6 card ở lưới 981px hẹp dưới 130px); `id` kebab-case, `order` nguyên dương, cả hai duy nhất, `id` giữ nguyên khi sửa nội dung; `variant` là `high`, `mid` hoặc `low` (`mid`, `low` cùng độ lệch), xen kẽ cao, thấp theo `order` vì tới 980px card chẵn luôn đẩy xuống; `src` là WebP `/assets/content/...` có trong `src/site/`, đã sinh biến thể ([tải ảnh R5](media-delivery.md#r5-chuẩn-file-ảnh)), `width`, `height` bằng pixel thật; `altVi`, `altEn`, `captionVi`, `captionEn` không rỗng, caption vài từ nêu đúng hạng mục trong ảnh, không dấu "/", không nêu tên thương hiệu trong ảnh. Card ảnh cao so le, caption có ô vuông màu lặp ba (xanh, cam, viền). Track là `region` focus được (`tabindex="0"`, nhãn "Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh. Từ 981px: lưới mỗi card một cột, cao tối thiểu 650px, caption dài thì lưới cao thêm, không bị cắt; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
+Card đầu dùng ảnh quán cà phê nhà phố `home-commercial-cafe`; portal Kinh doanh (R1) dùng ảnh riêng `home-commercial-cnc-cafe` nên hai chỗ không trùng ảnh. Nguồn duy nhất là `src/site/content/project-reel.json` (chỉ build, test đọc): `renderProjectReel` (`scripts/site/project-reel.mjs`) validate, rồi build và preview Design System thay `<!-- project-reel-cards -->` trong `.project-track` bằng `figure.project-card` theo `order`; dữ liệu sai thì build dừng trước khi xóa output cũ. Ràng buộc, cũng là contract cho CMS phase ([CMS](cms.md)): 3 tới 6 card (dưới 3 mất nhịp so le, trên 6 card ở lưới 981px hẹp dưới 130px); `id` kebab-case, `order` nguyên dương, cả hai duy nhất, `id` giữ nguyên khi sửa nội dung; `variant` là `high`, `mid` hoặc `low` (`mid`, `low` cùng độ lệch), xen kẽ cao, thấp theo `order` vì tới 980px card chẵn luôn đẩy xuống; `src` là WebP `/assets/content/...` có trong `src/site/`, đã sinh biến thể ([tải ảnh R5](media-delivery.md#r5-chuẩn-file-ảnh)), `width`, `height` bằng pixel thật; `altVi`, `altEn`, `captionVi`, `captionEn` không rỗng, caption vài từ nêu đúng hạng mục trong ảnh, không dấu "/", không nêu tên thương hiệu trong ảnh. Card ảnh cao so le, caption có ô vuông màu lặp ba (xanh, cam, viền). Track là `region` focus được (`tabindex="0"`, nhãn "Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh. Từ 981px: lưới mỗi card một cột, cao tối thiểu 650px, caption dài thì lưới cao thêm, không bị cắt; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
 
 ```gherkin
 Given /vi/ ở 390px
@@ -249,7 +251,6 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-overlay-media-ready`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
 | Data | `src/site/content/client-logos.json`, `content/project-reel.json` | 12 logo: id, tên, file, viewBox, thứ tự; card rail (R8); build và test đọc |
 | Hàm, event | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7), `state.replayMotion(section)` trong `motion.js`; event `site:section-replay` | Nội bộ, không export; test nghe event |
-| Script | `scripts/site/sanitize-client-logos.ps1` | Làm sạch SVG logo khách hàng trước khi đưa vào `assets/content/client-logos/` |
 
 ## UI
 
@@ -282,8 +283,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 
 - Owner chưa nghiệm thu trên máy mình hover, overlay, chữ portal, ảnh portal Advertising, hero,
   heritage; khoảng thở dọc của ảnh heritage ở mọi breakpoint (intent owner) chưa có test. Owner, main.
-- Cache hit: tải lại, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame;
-  chưa xác nhận vệt sáng có lóe. Main đo lại.
+- Cache hit: tải lại, ảnh lazy `home-residential-kitchen` ở mép màn hình chưa xong trong 2 frame; chưa xác nhận vệt sáng có lóe. Main đo lại.
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ Zalo `https://zalo.me/0949131050`, cùng số hotline ([PRODUCT](../../PRODUCT.md)).

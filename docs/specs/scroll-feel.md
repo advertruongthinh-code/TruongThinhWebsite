@@ -5,8 +5,9 @@ source: []
 tests:
   - tests/site/scroll-feel.e2e.mjs
   - tests/site/middle-autoscroll.e2e.mjs
+  - tests/site/scroll-trace.mjs
 notion: https://app.notion.com/p/3f0332849a0e8153bb2edbde0c76b6ed
-updated: 2026-10-11
+updated: 2026-10-31
 ---
 
 # Cảm giác cuộn chung theo trang chủ
@@ -36,10 +37,9 @@ Then quãng đường và thời gian trượt tới khi dừng bằng trang ch�
 
 ### R2. Advertising và route con mượt như trang chủ trên PC
 
-Hiện Advertising và route con tính layout gấp 3 đến 4 lần và chạy script gấp khoảng 2 lần trang chủ trong cùng lượt lăn
-chuột (đo local, chưa có GPU thật). Sau thay đổi, cuộn bằng chuột từ đầu tới cuối trang trên PC của owner không khựng.
-Đo bằng Chrome trace trên PC thật (GPU thật, cửa sổ thật), cùng một script lăn chuột cho trang chủ và từng trang đo.
-Nguyên nhân và cách sửa do plan xác định từ trace, không đoán trước.
+Cuộn bằng chuột từ đầu tới cuối trang Advertising và route con trên PC không khựng, cùng mức với trang chủ. Đo bằng
+Chrome trace trên PC thật (GPU thật, cửa sổ thật, `tests/site/scroll-trace.mjs`), cùng một script lăn chuột cho trang
+chủ và từng trang đo.
 
 Trang đo: Advertising (masonry tất cả), Advertising lọc một nhóm, một detail ảnh có related. Trang chủ đo cùng lượt làm mốc.
 
@@ -71,18 +71,17 @@ And không lúc nào lộ mép ảnh
 
 ### R4. Danh sách áp dụng
 
-| Section | Nền | Hiện tại | Sau thay đổi |
-| --- | --- | --- | --- |
-| Hero trang chủ, Residential, Commercial | Ảnh | `-2` | Giữ, là chuẩn |
-| Hero About (`.about-hero__media`) | Ảnh | Không | Thêm `-2` |
-| "Giữ nghề, Không ngừng làm mới" trang chủ (`.legacy-closer`) | Ảnh, ngoài hero | Không | Không |
-| CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh, ngoài hero | Không | Không |
-| Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh ngoài hero, không có chữ đè | `-0.12`, `-0.1`, `-0.12` | Bỏ |
-| Hero Advertising (mọi nhóm) | Đơn màu | Không | Không |
-| CTA cuối Advertising | Skeleton, Kính | Parallax riêng | Giữ, ngoại lệ owner duyệt |
-| CTA footer "Có mặt bằng?" | Đơn màu | Không | Không |
-| Rail dự án trang chủ (trượt ngang) | Không phải chữ trên nền | `4` ngang | Giữ, là chuẩn trang chủ |
-| Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card, ngoài hero | Không | Không |
+| Section | Nền | Parallax |
+| --- | --- | --- |
+| Hero trang chủ, Residential, Commercial, About (`.hero-slides`, `.about-hero__media`, runtime đặt `data-scroll-speed`) | Ảnh | `-2` |
+| "Giữ nghề, Không ngừng làm mới" trang chủ (`.legacy-closer`) | Ảnh, ngoài hero | Không |
+| CTA Residential, Commercial, About (`.detail-cta` có ảnh) | Ảnh, ngoài hero | Không |
+| Ba ảnh About (`legacy-hands`, `design-sketch`, `workshop-wide`) | Ảnh ngoài hero, không có chữ đè | Không |
+| Hero Advertising (mọi nhóm) | Đơn màu | Không |
+| CTA cuối Advertising | Skeleton, Kính | Parallax riêng, ngoại lệ owner duyệt |
+| CTA footer "Có mặt bằng?" | Đơn màu | Không |
+| Rail dự án trang chủ (trượt ngang) | Không phải chữ trên nền | `4` ngang |
+| Card portal, montage "Kinh nghiệm và sáng tạo" | Ảnh trong card, ngoài hero | Không |
 
 Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ từ 40px và phần tử ảnh, video, canvas hoặc
 `background-image` nằm dưới nó. Hero mới sau này theo R3, không cần sửa bảng trừ khi owner chỉnh quy tắc.
@@ -90,8 +89,7 @@ Danh sách lấy từ khảo sát DOM cả 11 trang ở 1440×900: mọi chữ t
 ### R5. Khối "Giữ nghề" theo banner CTA của Espacio
 
 Khối "Giữ nghề, Không ngừng làm mới" trên trang chủ (`.legacy-closer`) dựng giống khối "80 years shaping tradition
-into design" của Espacio (`layout-banner-cta`, đo trên PC thật 2026-10-06, Chrome desktop và giả lập điện thoại cho
-cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và token sẵn có của Design System:
+into design" của Espacio (`layout-banner-cta`), ở mọi cỡ cửa sổ và thiết bị, bằng component và token sẵn có của Design System:
 
 | Cửa sổ | Cao khối | Gutter hai bên | Khoảng dưới khối |
 | --- | --- | --- | --- |
@@ -102,10 +100,10 @@ cùng số), ở mọi cỡ cửa sổ và thiết bị, bằng component và to
 | Tới 578px | 400px | 15px | 30px |
 
 - Ảnh phủ kín khối (`object-fit: cover`, giữa), lớp đen phủ opacity `0.2`. Không parallax (R3).
-- Vùng chữ rộng 85% khối, cao hết khối, dùng chung bố cục CTA trang con (grid `1fr auto 1fr`, owner 2026-10-27):
+- Vùng chữ rộng 85% khối, cao hết khối, dùng chung bố cục CTA trang con (grid `1fr auto 1fr`):
   hộp tiêu đề ở tâm khối, link ở hàng dưới. Tiêu đề theo rule CTA chung
   ([trang con R10](detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng)): chữ thường, căn giữa, weight 600,
-  cỡ `--cta-title-size`, line-height `0.98`, không JS co chữ (owner 2026-10-15). Cao trong bảng là tối thiểu; chữ dài
+  cỡ `--cta-title-size`, line-height `0.98`, không JS co chữ. Cao trong bảng là tối thiểu; chữ dài
   hơn (cửa sổ hẹp, chữ 200%) thì khối cao theo chữ.
 - Dưới tiêu đề là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), cách hộp tiêu đề bằng nút CTA trang con (2rem cộng
   vùng chạm 44px, đo 42,8px ở 1440), tái dùng phụ đề portal trang chủ

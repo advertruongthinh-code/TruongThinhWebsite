@@ -8,7 +8,7 @@ source:
 tests:
   - tests/tooling/ci-suites.test.mjs
 notion: https://app.notion.com/p/3f8332849a0e81198d94caa0b8a03699
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Bộ test CI chia theo phần website
@@ -42,7 +42,7 @@ And test fail nếu một file thuộc hai bộ, trừ các shard `*_SHARD=k/n` 
 And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 ```
 
-### R2. Bộ dự kiến
+### R2. Các bộ
 
 | Bộ | Spec | Nội dung chính |
 | --- | --- | --- |
@@ -174,8 +174,7 @@ Then chạy fast, detail-pages, footer và media giống CI
 
 ### R7. Đưa test chạy tay vào bộ
 
-Khoảng 30 script e2e đang chạy tay được đưa vào bộ, mỗi lần một bộ. Script phải xanh trên runner CI trước khi vào
-manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
+Script e2e mới hoặc đang chạy tay vào bộ từng cái một; script phải xanh trên runner CI trước khi vào manifest. Script nát được sửa theo demo hiện tại: demo là chuẩn vì owner đã kiểm nhận trên đó; test và spec sở hữu
 sửa theo demo trong cùng PR. Chỗ demo trông như lỗi (vỡ layout, lỗi console) thì gom lại hỏi owner một lần, không tự
 quyết. Không skip, tắt hay quarantine test để lấy xanh. Script cứng cổng `8787` đổi sang đọc `BASE_URL`.
 

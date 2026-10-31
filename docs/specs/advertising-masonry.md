@@ -25,7 +25,7 @@ tests:
   - tests/site/advertising-route-footer-p75.e2e.mjs
   - tests/site/site.e2e.cjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Masonry Advertising
@@ -164,7 +164,7 @@ Tổng chiều cao, tọa độ và metadata giữ cho cả pool. Tab hoặc Shi
 tự rồi chuyển focus. Mount, gỡ card khi cuộn không làm Locomotive tính lại ([cảm giác cuộn R1](scroll-feel.md#r1-một-chuẩn-cuộn-cho-mọi-trang)). Đóng menu trả focus về card đang theo dõi. Vào thẳng detail thì masonry ẩn từ trước Layout đầu (`body.is-advertising-photo` do script đầu `<body>` gắn) và chưa tính tọa độ; về masonry mới tính.
 
 ```gherkin
-Given masonry All 254 card, đang ở đầu trang
+Given masonry All 285 card (tính từ catalog), đang ở đầu trang
 When nhấn Tab liên tục qua từng card
 Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa mount
 ```
@@ -174,15 +174,15 @@ Then focus đi theo aria-posinset tăng dần, không nhảy qua card chưa moun
 Card là `figure.advertising-tile[data-advertising-card]` chứa một link tới trang card `p/<id>/` ([media-seo](media-seo.md#r1-mỗi-card-có-trang-riêng)); không tên,
 không caption, alt theo ngôn ngữ. Ảnh dùng LazySizes (`data-src`, `data-srcset` từ biến thể của
 [tải ảnh](media-delivery.md#r3-runtime-advertising-chọn-biến-thể), `data-sizes` ghi bằng bề rộng card từ solver, không `auto` để khỏi đo từng ảnh). Card vào vùng nhìn
-thấy khi ảnh chưa giải mã thì mang skeleton chờ ảnh, ảnh về thì hiện dưới Kính nhịp `0.6s`; ảnh đã có (cache, tải trước,
-vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh (owner 2026-10-18); hover chuột phủ lớp tối và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
+thấy khi ảnh chưa giải mã thì ảnh hiện mờ trên nền màu chủ đạo, ảnh về thì nét lại trong `0.6s`; ảnh đã có (cache, tải trước,
+vào lại sau `intersectionRatio = 0`) thì hiện ngay, không motion ([loading glass R1–R3](loading-glass-and-page-entry.md)). Hover chuột và focus bàn phím không zoom ảnh; hover chuột phủ lớp tối và làm mờ "Vừa xem" ([media-card R3](media-card.md#r3-đổi-media-trên-card)),
 focus có viền; card nhiều media có mũi tên khi hover ([media-card R3](media-card.md#r3-đổi-media-trên-card)). Click chính mở detail tại chỗ (history push,
 [detail](advertising-detail.md#r1-url-và-vào-detail)); đóng detail đánh dấu "Vừa xem" / "Just viewed" trên card vừa xem (lớp đen `0.7` phủ canvas, owner 2026-10-26).
 
 ```gherkin
 Given card đã hiện ảnh
 When cuộn tới khi card ra hẳn khỏi viewport rồi cuộn lại
-Then ảnh hiện ngay, không skeleton, không Kính; khung card không đổi kích thước
+Then ảnh hiện ngay, không mờ, không Kính; khung card không đổi kích thước
 ```
 
 ### R9. Hero một lần
@@ -229,8 +229,8 @@ Then bằng đáy CTA, batch bắt đầu một khoảng giữa dưới card th�
 
 ### R12. Reduced motion
 
-`prefers-reduced-motion: reduce`: card đặt thẳng vào tọa độ mới, ảnh hiện ngay,
-skeleton chờ ảnh đứng yên, hero hiện trạng thái cuối. Bật giữa chừng thì áp dụng ở lần cập nhật kế tiếp.
+`prefers-reduced-motion: reduce`: card đặt thẳng vào tọa độ mới, ảnh chờ tải mờ rồi nét ngay khi
+tải xong, hero hiện trạng thái cuối. Bật giữa chừng thì áp dụng ở lần cập nhật kế tiếp.
 
 ```gherkin
 Given prefers-reduced-motion: reduce
@@ -280,13 +280,9 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 ## Gate còn mở
 
 - Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter; VI/EN, desktop và điện thoại. Owner.
-- `advertising-random-browse.e2e.mjs`: Chromium và WebKit cloud PASS (22 case, 3/3 lượt). WebKit headless Linux vẽ `backdrop-filter` của Kính bằng phần mềm nên rAF dừng
-  sau Back (kẹt 14/40; tắt `backdrop-filter` 0/16); ca test tắt nó ở WebKit, CI `adv-browse` chạy WebKit. Safari iPhone thật chưa kiểm ([glass R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)).
-- `advertising-hero-once.e2e.mjs` FAIL (Chromium cloud 05/10, chạy riêng): ca click trước runtime giữ import
-  `catalog-runtime.mjs` khi không reduced motion nên veil R7 chặn click tới hết 30s. Main sửa ca test theo R3.
-- Thư viện ảnh: ảnh cần sửa, thay, chưa xác minh nguồn theo [audit](https://github.com/advertruongthinh-code/TruongThinhWebsite/blob/a3428aaff2cf1ff2f8f5a4f6804404e23ccd349b/docs/verification/advertising-images-audit-2026-09-09.md); V6
-  sai tỷ lệ, COCO và decal lỗi chữ nhỏ; ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash; báo cáo HTML 10–20/09
-  (93 ảnh, 69 cụm, ngoài Git) chờ owner xem. Owner.
+- WebKit headless Linux vẽ `backdrop-filter` của Kính bằng phần mềm nên rAF dừng sau Back; `advertising-random-browse.e2e.mjs`
+  tắt nó ở WebKit, CI `adv-browse` chạy WebKit. Safari iPhone thật chưa kiểm ([glass R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)).
+- Thư viện ảnh: V6 sai tỷ lệ, COCO và decal lỗi chữ nhỏ; ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash ([QA ảnh](../operations/agent-rule-ad-images.md)). Owner.
 - Không chặn phát hành. Card nhiều media: runtime hỗ trợ nhưng catalog chưa có card nào; M03–M09 tạm dừng tới khi owner gửi ảnh và video gom
   theo từng sản phẩm ([media-card](media-card.md#gate-còn-mở)). Owner.
 

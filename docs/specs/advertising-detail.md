@@ -16,8 +16,9 @@ tests:
   - tests/site/advertising-slideshow-p75.e2e.mjs
   - tests/site/advertising-return-p74.e2e.mjs
   - tests/site/related-scroll-device.mjs
+  - tests/site/advertising-photo-header.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-27
+updated: 2026-10-31
 ---
 
 # Detail Advertising
@@ -70,10 +71,10 @@ And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao b
 ### R3. Info: nhóm, mô tả, CTA
 
 Info (`role="region"`, `tabindex=0`) có nhãn nhóm VI/EN, dãy thumbnail ([media-card R6](media-card.md#r6-media-trong-primary)),
-mô tả và CTA; không có tiêu đề ảnh. Mô tả căn trái (bỏ `justify`, owner 2026-10-24) trong vùng cuộn riêng (`role="group"`, `tabindex=0`, nhãn
+mô tả và CTA; không có tiêu đề ảnh. Mô tả căn trái trong vùng cuộn riêng (`role="group"`, `tabindex=0`, nhãn
 "Mô tả ảnh" / "Photo description"), cao ít nhất ba dòng hoặc vừa chữ nếu ngắn hơn (R2); chữ dài cuộn bên trong bằng wheel,
 vuốt, phím mũi tên, `End`; khi còn chữ để cuộn, các input này không cuộn trang. Còn chữ phía trên hoặc dưới thì mép đó mờ về trắng cao một dòng (`data-fade-start`,
-`data-fade-end`, chung mask với dãy thumbnail). Thanh cuộn kiểu B (owner 2026-10-24) theo ngôn ngữ player: rãnh 4px
+`data-fade-end`, chung mask với dãy thumbnail). Thanh cuộn kiểu B theo ngôn ngữ player: rãnh 4px
 `rgba(32,33,32,0.16)`, viên 4px `rgba(32,33,32,0.6)` dài theo tỷ lệ chữ đang thấy; chỉ hiện (fade 150ms) khi trỏ chuột vào
 hoặc focus bàn phím trong mô tả và khi đang kéo; kéo viên bằng pointer capture. Cảm ứng (`hover: none`) không có thanh.
 Đổi media hoặc card thì mô tả về đầu. CTA `Trao đổi ý tưởng` / `Discuss an idea` mở Zalo tab mới, nằm trong flow và cuộn theo trang; là CTA kinh doanh duy nhất của detail. Detail không có batch skeleton cuối và giữ
@@ -88,8 +89,8 @@ And trên cảm ứng không có thanh, vuốt dọc trong mô tả cuộn chữ
 
 ### R4. Media primary và nền
 
-`renderPrimaryMedia` đổi ảnh tại chính khung primary: chưa giải mã sau 100ms thì mang skeleton rồi hiện qua Kính trong
-`0.6s` như card; ảnh có sẵn cũng crossfade trong `0.6s` ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
+`renderPrimaryMedia` đổi ảnh tại chính khung primary: ảnh cũ ẩn ngay, skeleton phủ khung, giải mã xong thì ảnh hiện dưới
+Kính ba bậc rồi Kính tan trong `0.6s`; ảnh có sẵn hay chưa cùng một chuỗi ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)). Nền vùng dư
 là bản sao cover (video dùng poster), phóng `1.12`, ẩn khi không có vùng dư; Kính phủ đều đặt sau nền. Video tự phát, tắt
 tiếng, player kiểu Pinterest ([media-card R6](media-card.md#r6-media-trong-primary)); nút `Xem lớn hơn` ẩn với video. Hình học
 primary và related theo cover của card, không theo media đang xem: đổi media qua dải trượt không làm related xếp lại.
@@ -97,7 +98,7 @@ primary và related theo cover của card, không theo media đang xem: đổi m
 ```gherkin
 Given primary đang hiện ảnh A, ảnh B đã có trong cache
 When bấm card related B
-Then ảnh A crossfade sang B tại khung primary trong 0.6s, không skeleton
+Then A ẩn ngay, skeleton phủ khung primary, B hiện dưới Kính rồi Kính tan trong 0.6s
 ```
 
 ### R5. Suggestion
@@ -119,8 +120,8 @@ And sau resize khối suggestion là card đầu related, vẫn đúng một kh�
 ### R6. Slideshow suggestion
 
 `suggestion-slideshow.mjs`: mỗi tag có một bộ tối đa 9 ảnh mang tag, xáo ngẫu nhiên một lần mỗi document
-(`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`; owner chọn 10/10), ảnh không zoom (owner bỏ 10/10)
-(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.5` luôn hiện, giữa hai mức `0.4` và `0.6` của Pinterest (owner 2026-10-26); hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
+(`suggestionDeck`); ảnh đầu của nút là ảnh đầu bộ. Nhịp theo hero: mỗi ảnh giữ `5s` theo đồng hồ của nút (animation không keyframe; cả cụm khuất khỏi viewport thì mọi đồng hồ cùng dừng, nút lẻ khuất không dừng riêng để nút dưới màn hình điện thoại không lệch sóng), rồi nút chưa bật giải mã ảnh kế rồi đẩy ngang `0.9s` power3.inOut (ảnh mới trượt vào từ phải, ảnh cũ lùi `-35%` và tối về opacity `0.4`), ảnh không zoom (owner bỏ 10/10)
+(`mountSuggestionSlides`); đồng hồ đầu chạy ngay khi mount, nút thứ i trễ `0.4s × i` nên cả cụm chuyển thành sóng; đồng hồ mới trừ phần trễ của poll `200ms` và decode nên sóng không trôi qua các vòng. Lớp tối `0.5` luôn hiện, giữa hai mức `0.4` và `0.6` của Pinterest; hover chuột hoặc focus bàn phím không đổi độ tối, nhãn chạy gạch chân dùng chung
 rule với phụ đề portal (`style.css`), ảnh không zoom; nút đang bật không có lớp tối, không gạch chân. Bỏ lượt khi nút đang bật, tab ẩn, khối ẩn, cả cụm ngoài
 viewport, body `motion-paused`, `dialog` đang mở (viewer, menu; giữ blur nền viewer tĩnh), reduced motion hoặc lượt trước
 chưa xong; cụm ra viewport, ẩn tab hay mở `dialog` thì cú đẩy và zoom đang chạy dừng. Mọi bộ đều chạy; bộ một ảnh đẩy sang chính nó để vòng zoom lặp lại. Ảnh nền chưa giải mã xong thì nút chưa bật có vệt sáng của
@@ -173,12 +174,12 @@ And không frame nào vẽ ở Y của entry khác
 Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#advertising-photo-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createAdvertisingPhotoViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
 `cubic-bezier(0.55, 0, 0, 1)`; nền viewer mọi máy là lớp tối `0.85` màu `rgba(32, 33, 32)` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
-điện thoại cũng blur (owner 2026-10-26, trước đó không blur theo [gate phone Android](../decisions/phone-frame-budget.md); đo lại gate khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
+điện thoại cũng blur ([gate phone Android](../decisions/phone-frame-budget.md) đo lại khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào nút đóng. Nút đóng góc
 trên trái; `+`, `−` góc dưới phải (video không có, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), dãy thumbnail đáy giữa, status phần trăm; nút tới giới hạn thì disabled. Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng nút, Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
 cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
-còn media sắc nét; video là frame lúc mở, đứng yên (owner 2026-10-26). Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
+còn media sắc nét; video là frame lúc mở, đứng yên. Pinch, xoay, chạm, nấc zoom liên tục: [viewer chạm](advertising-viewer-touch-zoom.md).
 
 ```gherkin
 Given detail đã cuộn tới Y1
@@ -189,9 +190,9 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 
 ### R10. Navbar và Escape trên detail
 
-Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All (owner 2026-10-05). Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
-Nút quay lại `←` (owner 2026-10-27, như nút quay lại của Pinterest; `[data-advertising-photo-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
-Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px (đo 2026-10-10). Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
+Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All. Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
+Nút quay lại `←` (như nút quay lại của Pinterest; `[data-advertising-photo-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
+Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px. Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống-hiện-khi-cuộn-lên)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
 
 ```gherkin
 Given masonry nhóm Kiosk & POSM mở A, A mở related B cùng nhóm
@@ -280,15 +281,14 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Landscape VI `Y=2` trên emulator FAIL; phone Android thật `Y=0`, owner giữ FAIL kèm ghi chú. Replay 18/10 trên SM-A047F: L06 ngang 2/2 PASS, ca mobile
-  PASS hết; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL (chưa kết luận, cần đối chiếu Chromium PC), cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
+- Landscape VI `Y=2` trên emulator FAIL, phone thật `Y=0`, owner giữ FAIL kèm ghi chú; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL, chưa
+  kết luận, cần đối chiếu Chromium PC, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related, Back, navbar. Owner.
-- Hiệu năng (p95 `<= 100ms`, không task quá 50ms), SM-A047F 19/10, 2 vòng x 15 lượt chạm qua CDP (main trong ngoặc): hiện p50 `121` đến `146ms` (`121` đến `150`); lượt có long task 9 và 14/15 (15/15), dài nhất p50 `51` đến `60ms` (`66` đến `83`), p95 `103` đến `119ms` (`77` đến `187`); Kính primary `47` đến `65ms` (`93` đến `184`).
-  Còn: task hiện detail `57` đến `73ms` (style, Layout đầu), mount related, Masonry, LazySizes `50` đến `75ms`, task không event main thread `73` đến `157ms` (cả main). Fps mở detail `43` đến `47` (cả main), cuộn masonry `88` đến `89`.
-  Long task vẫn FAIL. Vào lại detail 0 long task; slideshow kiosk-posm-16 60 đến 62,5fps. Main và máy PC.
-- `advertising-photo-transitions.e2e.mjs` 19/10 trên PC (`PHOTO_TRANSITIONS_ENGINE=webkit`): WebKit 31/32, L06 cần CDP chỉ Chromium. Chromium 30/32: `m02b-grid-detail-no-clone-no-jump`, `p13-position-stuffing-and-remount` flaky (chạy riêng PASS). Main xử lý.
-- `advertising-photo-view.e2e.mjs` chạy đủ Chromium trong CI (sáu bộ `adv-view-*`, 122 ca xanh trên cloud 2026-10-14); Firefox 12/12 và WebKit 12/12 PASS trên PC 18/10 (bộ mặc định 390×844 và 1440×900).
+- Hiệu năng mở detail trên SM-A047F chưa đạt: p95 trên `100ms` và còn long task trên `50ms` ở lượt mở đầu (task hiện
+  detail, mount related, Masonry, LazySizes); vào lại detail không còn long task. Máy PC.
+- `advertising-photo-transitions.e2e.mjs`: `m02b-grid-detail-no-clone-no-jump` và `p13-position-stuffing-and-remount`
+  flaky trên Chromium (chạy riêng PASS); L06 cần CDP nên chỉ Chromium. Main xử lý.
 
 ## Chú thích thuật ngữ
 
