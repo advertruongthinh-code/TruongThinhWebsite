@@ -9,7 +9,7 @@
 
 ## Việc đang làm
 - [Audit ảnh toàn site](https://app.notion.com/p/400332849a0e8130b294c355522bbed4): owner duyệt từng đợt; PR ảnh đỏ ở P13 adv-viewer ([issue #507](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/507)).
-- [Ảnh JPEG XL progressive](https://app.notion.com/p/406332849a0e816ebc6af97487876c15): vệt sáng tới ngưỡng rồi nét dần, veil, ưu tiên tải; spec [progressive-loading](specs/progressive-loading.md) chờ owner duyệt.
+- [Ảnh JPEG XL progressive](https://app.notion.com/p/406332849a0e816ebc6af97487876c15): ảnh JXL chỉ hiện khi tải xong, card tự mờ, khung lớn lên bản gốc; spec [progressive-loading](specs/progressive-loading.md) đã live; còn A05s, iPhone và các gate R8 trong spec.
 - [Bug audit](https://app.notion.com/p/400332849a0e81aca29bdcc5057afb72): lỗi trên `main` đã merge; fix skeleton, swipe nằm trên nhánh thread `ap7oez`, `dxu1nj`; tail-packing chưa xác nhận.
 - PR đang mở xem [GitHub](https://github.com/advertruongthinh-code/TruongThinhWebsite/pulls). Thay đổi đã merge tự lên demo,
   chờ owner kiểm nhận ([card việc chờ owner](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f)).
