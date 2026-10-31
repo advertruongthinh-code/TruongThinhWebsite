@@ -8,7 +8,8 @@
   ([quản trị Git–Notion](../decisions/git-notion-governance.md)).
 - Dùng Notion connector của host agent: Claude Code dùng claude.ai Notion
   connector (đã kết nối); Codex dùng Notion plugin. Connector unavailable:
-  không giả lập update, ghi Git trước, báo blocker.
+  không giả lập update, ghi Git trước, báo blocker; dừng nhận việc từ board,
+  chỉ làm việc owner giao trực tiếp trong chat tới khi Notion đọc ghi lại được.
 - Có NOW/Kanban card: dùng card đó. Chưa có: đọc `docs/STATE.md` và accepted
   Git document liên quan.
 - Verify xong: update Git document/evidence trước, rồi card. Chỉ Done khi
@@ -19,7 +20,11 @@
   `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor,
   lockfile, formatting-only, Markdown.
 - Worker cập nhật card ở ba mốc: nhận việc (`In progress`), mở PR (link PR),
-  merge (`Done`, hoặc ghi việc còn mở). Card giữ tên, status, thứ tự, mục
+  merge (`Done`, hoặc ghi việc còn mở). Card `In progress` hoặc `Blocked` luôn
+  có `Agent` (thread hoặc agent đang giữ) và `Next action` (bước kế tiếp cụ
+  thể); sửa `Next action` mỗi khi bước đổi. Kẹt chờ owner, thiết bị, PR khác:
+  chuyển `Blocked`, `Next action` ghi đang chờ gì và ai gỡ; gỡ xong về
+  `In progress`. Card giữ tên, status, thứ tự, mục
   tiêu một dòng, link spec và PR, và sổ việc (dưới); không chép spec, state,
   evidence hay log vào card.
 - Tạo card, đổi status, gộp card trùng và đổi tên card không cần hỏi lại; card
@@ -57,10 +62,11 @@ của spec link tới card.
 ## Database Tasks
 
 Fetch schema trước mỗi mutation phụ thuộc schema. Schema đã thấy: `Name`
-(title), `Status` (`Not started`, `Up next`, `In progress`, `Done`), `Project`
-(relation), `Due date`, `Thứ tự Up next` (number). Không gửi status `Approved`
-hoặc `Blocked`. Field workflow còn thiếu (`Git spec`, `PR`, `Blocker`,
-`Priority`) ghi một dòng trong body; không tự phá schema dùng chung.
+(title), `Status` (`Not started`, `Up next`, `In progress`, `Blocked`, `Done`),
+`Agent` (text), `Next action` (text), `Project` (relation), `Due date`,
+`Thứ tự Up next` (number). Không gửi status `Approved`. Field workflow còn
+thiếu (`Git spec`, `PR`, `Priority`) ghi một dòng trong body; schema dùng chung
+chỉ thêm, không xóa hay đổi tên.
 
 `Thứ tự Up next` là thứ tự owner yêu cầu; board `By status` sort tăng dần theo
 field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status, ngày tạo
@@ -72,7 +78,7 @@ field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status,
 - [Project Truong Thinh Website](https://app.notion.com/p/3b7332849a0e81c6bd2be63fe44e67ac): project record, relation Docs/Tasks.
 - [Truong Thinh — Docs & Notion Hub](https://app.notion.com/p/3b7332849a0e81098aeeef782b88657f): hub vận hành; quy tắc category cũ không ghi đè [docs routing](../index.md).
 - [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): card In progress cho phần việc còn mở.
-- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị ghi dòng `Chờ` đầu body vì schema không có status chờ.
+- [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị để status `Blocked` (thay dòng `Chờ` đầu body trước đây).
 
 Link là mutable reference; page đổi thì verify record mới rồi cập nhật mục
 này.
@@ -82,6 +88,7 @@ này.
 - **Accepted knowledge**: tài liệu và evidence Git đã chấp nhận làm cơ sở quyết định.
 - **Connector**: tích hợp host agent dùng để đọc/ghi Notion.
 - **Work item**: card công việc có status, evidence và next action.
+- **Next action**: field ghi bước kế tiếp cụ thể của card đang làm hoặc đang kẹt.
 - **Thin slice**: lát cắt nhỏ chạy được và verify được từ đầu đến cuối.
 - **Frontmatter**: metadata ở đầu file Markdown.
 - **LOC**: số dòng source/test thay đổi để estimate độ lớn task.
