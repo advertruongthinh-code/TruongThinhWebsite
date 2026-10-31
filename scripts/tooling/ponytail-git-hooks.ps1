@@ -52,8 +52,12 @@ $result = (& claude -p $prompt --output-format text --no-session-persistence `
   --allowedTools "Read" "Grep" "Glob" "Skill" "Bash(git diff:*)" "Bash(git show:*)" "Bash(git log:*)" 2>&1 | Out-String).Trim()
 if ($LASTEXITCODE -ne 0) { throw "Claude ponytail-review failed with exit code $LASTEXITCODE.`n$result" }
 # Owner gate: chỉ chặn khi review có thể cắt hơn 20 dòng; output không parse được thì fail closed.
-$net = [regex]::Match($result, "net: -(\d+) lines possible\.?\s*$")
-if (-not $result.EndsWith("Lean already. Ship.") -and (-not $net.Success -or [int]$net.Groups[1].Value -gt 20)) {
+# Nhận mọi dạng kết luận ponytail-review in ra ("Looks good. Ship.", "Verdict: Ship.", "Lean already. Ship.",
+# kèm dòng "Checked:"/"Not checked:" phía sau); bỏ * và ` của Markdown trước khi so.
+$plain = $result -replace '[*`]', ''
+$net = [regex]::Match($plain, "(?im)^\s*(?:net|lean):\s*-(\d+) lines? possible")
+$ship = [regex]::IsMatch($plain, "(?im)^\s*(?:Looks good|Lean already|Verdict:)\s*\.?\s*Ship\.")
+if (($net.Success -and [int]$net.Groups[1].Value -gt 20) -or (-not $net.Success -and -not $ship)) {
   throw "Ponytail review blocks Git (net cut over 20 lines or unreadable result). Fix the findings, stage the result, and retry Git.`n$result"
 }
 Write-Output $result
