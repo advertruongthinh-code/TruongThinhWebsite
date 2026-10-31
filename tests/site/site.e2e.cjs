@@ -3027,7 +3027,7 @@ async function runEspacioRouteLogoTimingChecks() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/");
       // Ảnh tải theo biến thể srcset AVIF/WebP (media-delivery R3).
-      await page.route(/residential-detail-x1(?:-(?:240|480|960))?\.(?:avif|webp)$/, async (requestRoute) => {
+      await page.route(/residential-detail-x1(?:-\d+)?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
         await new Promise((resolve) => setTimeout(resolve, 1_800));
         delayedHeroReleased = true;
         await requestRoute.continue();
@@ -6647,7 +6647,7 @@ async function runAdvertisingMediaEntranceChecks() {
   };
   // Ảnh tải theo biến thể srcset (media-delivery R3): quy URL biến thể về path WebP gốc để so.
   const basePath = (url) => new URL(url, "http://localhost").pathname
-    .replace(/(?:-(?:240|480|960))?\.(?:avif|webp)$/, ".webp");
+    .replace(/(?:-\d+)?\.(?:avif|webp|jxl)$/, ".webp");
 
   for (const locale of ["vi", "en"]) {
     const route = `/${locale}/advertising-products/`;
@@ -7092,8 +7092,8 @@ async function runAdvertisingMediaFocusedChecks() {
       const diagnostics = monitorPage(page);
       const mediaRequestPaths = new Set();
       const mediaResponseStatuses = new Map();
-      // Trình duyệt tải variant responsive (name.avif, name-480.webp, name-960.avif...); quy về file gốc của card.
-      const mediaPath = (url) => new URL(url).pathname.replace(/(?:-(?:240|480|960))?\.(?:avif|webp)$/, ".webp");
+      // Trình duyệt tải variant responsive (name.jxl, name-480.webp, name-1600.jxl...); quy về file gốc của card.
+      const mediaPath = (url) => new URL(url).pathname.replace(/(?:-\d+)?\.(?:avif|webp|jxl)$/, ".webp");
       page.on("request", (request) => {
         const pathname = mediaPath(request.url());
         if (request.resourceType() === "image" && pathname.startsWith("/assets/content/projects/advertising/")) {
@@ -9423,7 +9423,7 @@ async function runHeroCrossFadeContinuityChecks() {
             && state.preload?.split(", ").some((candidate) => candidate.startsWith(`${state.current} `)),
           `Hero random first slide contract drifted: ${JSON.stringify(state)}`,
         );
-        const firstImageRequests = requests.filter((path) => new RegExp(`/${state.name}(?:-\\d+)?\\.(?:avif|webp)$`).test(path));
+        const firstImageRequests = requests.filter((path) => new RegExp(`/${state.name}(?:-\\d+)?\\.(?:avif|webp|jxl)$`).test(path));
         assert.equal(firstImageRequests.length, 1, `First hero image requested once: ${firstImageRequests.join(" ")}`);
         assertDiagnostics(diagnostics);
       },
@@ -9645,7 +9645,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
         const assetName = testCase.asset.replace("**/", "").replace(/\.webp$/, "");
         // Hero trang chủ chọn ảnh đầu bằng Math.random (page-home R3); ghim slide 0 để gate đúng asset.
         if (testCase.surface === ".hero") await page.addInitScript(() => { Math.random = () => 0; });
-        await page.route(new RegExp(`/${assetName}(?:-\\d+)?\\.(?:webp|avif)$`), async (route) => {
+        await page.route(new RegExp(`/${assetName}(?:-\\d+)?\\.(?:webp|avif|jxl)$`), async (route) => {
           markMediaSeen();
           await mediaGate;
           await route.continue();

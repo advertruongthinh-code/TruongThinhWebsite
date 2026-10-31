@@ -161,7 +161,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
       let slow = false;
-      await page.route("**/*.avif", async (route) => {
+      await page.route("**/*.jxl", async (route) => {
         if (slow) await new Promise((resolve) => setTimeout(resolve, 800));
         await route.continue();
       });

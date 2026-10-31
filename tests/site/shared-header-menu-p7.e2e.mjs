@@ -134,7 +134,7 @@ try {
         viewport: { width, height },
         reducedMotion: "reduce",
       });
-      await page.route(/\.(?:avif|gif|jpe?g|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
+      await page.route(/\.(?:avif|gif|jpe?g|jxl|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
 
       try {
         await page.goto(`${baseUrl}/${locale}/`, { waitUntil: "domcontentloaded" });
