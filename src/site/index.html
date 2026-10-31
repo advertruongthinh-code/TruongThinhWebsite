@@ -56,10 +56,15 @@
         const [name, width] = slides[first];
         const path = `/assets/content/projects/${name}`;
         document.documentElement.dataset.heroFirst = first;
-        document.head.append(Object.assign(document.createElement("link"), {
-          rel: "preload", as: "image", type: "image/avif", href: `${path}.avif`,
-          imageSrcset: `${path}-240.avif 240w, ${path}-480.avif 480w, ${path}-960.avif 960w, ${path}.avif ${width}w`, imageSizes: "100vw",
+        // Preload đúng ứng viên <picture> sẽ chọn: JXL nếu trình duyệt giải mã được ảnh 1x1, không thì WebP của img.
+        const preload = (format, widths) => document.head.append(Object.assign(document.createElement("link"), {
+          rel: "preload", as: "image", type: `image/${format}`, href: `${path}.${format}`, imageSizes: "100vw",
+          imageSrcset: [...widths.filter((size) => size < width).map((size) => `${path}-${size}.${format} ${size}w`), `${path}.${format} ${width}w`].join(", "),
         }));
+        const probe = new Image();
+        probe.addEventListener("load", () => preload("jxl", [240, 480, 960, 1600, 2048]));
+        probe.addEventListener("error", () => preload("webp", [240, 480, 960]));
+        probe.src = "data:image/jxl;base64,/woAEBAJCAQBACwASxiLFcJJQR6A/gA=";
       })();
     </script>
     <link

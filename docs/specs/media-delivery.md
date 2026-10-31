@@ -110,7 +110,7 @@ trang chủ ở `data-src`. Ảnh nội dung khác `loading="lazy"`; logo khách
 ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). Không preload ảnh: `<link rel="preload">` chỉ dành
 cho hai file font ([phát hành tĩnh R4](static-release.md#r4-font-và-thư-viện-tự-host)), vì preload cạnh `<picture>`
 làm tải ảnh hai lần. Ngoại lệ duy nhất: ảnh đầu hero trang chủ chọn ngẫu nhiên nên không có `src` trong HTML; script
-head preload nó với `imagesrcset` và `imagesizes="100vw"` đúng như `<picture>`, script hero gán đúng các giá trị đó
+head preload nó với `imagesrcset` và `imagesizes="100vw"` đúng ứng viên `<picture>` chọn (JXL khi ảnh thử 1x1 giải mã được, không thì WebP), script hero gán đúng các giá trị đó
 ([trang chủ R3](page-home.md#r3-hero-slideshow-và-nút-dừng)). Mọi `<img>` nội dung có `width`, `height` (trừ nền primary Advertising) nên khung giữ chỗ trước khi
 tải. Advertising chỉ tải ảnh card trong cửa sổ ảo hóa; primary eager, ưu tiên cao.
 
