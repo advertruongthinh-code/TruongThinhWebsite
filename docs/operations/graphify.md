@@ -1,6 +1,6 @@
 # Vận hành Graphify
 
-Graphify 0.9.92 ở user scope. Đây là runbook setup/repair, không phải checklist
+Graphify 0.9.97 ở user scope. Đây là runbook setup/repair, không phải checklist
 mỗi task. Normal task chỉ query wrapper; Git hook, watcher và wrapper sở hữu
 structural freshness. Agent lifecycle hook bị disabled.
 
@@ -14,8 +14,8 @@ structural freshness. Agent lifecycle hook bị disabled.
 
 Cloud/Linux không có PowerShell: `scripts/tooling/invoke-graphify.sh query "..."` hoặc MCP `graphify`.
 
-Wrapper block query khi structural refresh fail, report semantic lag riêng. Dùng
-`rg` sau Graphify cho exact symbol, reference.
+Wrapper block query khi structural refresh fail, report semantic lag riêng. Rule
+chống stale và thứ tự tool ở [Workflow và tool](agent-rule-workflow-tools.md#graphify).
 
 Khi **Graphify: Watch** đang chạy và đã xử lý save gần nhất, query graph hiện có
 mà không tranh refresh lock:
@@ -54,7 +54,9 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/graphify-git-hooks
 
 ## Theo dõi edit đang hoạt động
 
-Monitoring tùy chọn: trong VS Code chạy **Tasks: Run Task** → **Graphify: Watch**,
+Launcher MCP tự bật một watcher ẩn cho mỗi repo có `.graphifyignore` hoặc `graphify-out/`, ghi PID ở
+`graphify-out/.watch.pid`, chạy đến khi tắt máy và không tự dừng theo phiên. Dừng tay: kết thúc PID đó.
+Chạy watcher thủ công: trong VS Code chạy **Tasks: Run Task** → **Graphify: Watch**,
 hoặc dùng wrapper từ terminal:
 
 ```powershell
@@ -107,7 +109,7 @@ reproduce được zero-AST case.
 
 Nếu command vẫn fail, kiểm tra pinned upstream Graphify README và release tương
 ứng trước khi thêm workaround:
-<https://github.com/Graphify-Labs/graphify/tree/86c57be8204673c2a1b9849a3292a7dd3ab373d8>.
+<https://github.com/Graphify-Labs/graphify/tree/0a8cd4e1e342235fe53e881fb5d591bf0460071f>.
 
 ## Chú thích thuật ngữ
 

@@ -30,7 +30,8 @@ serve bằng static Node server của repository; current local preview không k
 Năm route VI/EN tĩnh (home, residential, commercial, advertising-products,
 about); route table ở [architecture](docs/architecture.md). Static page
 không cần D1, R2, Access hoặc CMS secret. Dynamic route, admin và publishing
-thuộc CMS phase.
+thuộc CMS phase. Phát hành chính thức chỉ khi xong CMS, tức admin và nhân viên CRUD được nội dung
+(owner 2026-10-18); bản tĩnh luôn là fallback và rollback.
 
 Public copy vẫn cần owner xác nhận Zalo, founding year và warranty; địa chỉ
 trụ sở đã có [decision xác nhận](docs/decisions/head-office-address-confirmed.md).
@@ -108,8 +109,7 @@ block hoặc destabilize static release. Xem
 
 ## Agent instruction
 
-- Shared rule: [`AGENTS.md`](AGENTS.md).
-- Claude Code import cùng rule qua [`CLAUDE.md`](CLAUDE.md).
+- Rule chung cho Claude Code và Codex: [`AGENTS.md`](AGENTS.md). Repo không có `CLAUDE.md`; Claude Code từ v2.1.277 tự đọc `AGENTS.md`.
 - Setup, MCP, watcher và recovery: [`docs/operations/TOOLING.md`](docs/operations/TOOLING.md).
 
 ## Chú thích thuật ngữ

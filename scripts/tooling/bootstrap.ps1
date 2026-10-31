@@ -179,7 +179,7 @@ function Configure-Codex {
   $codexHome = Join-Path $env:USERPROFILE ".codex"
   $configPath = Join-Path $codexHome "config.toml"
   $text = if (Test-Path -LiteralPath $configPath) { Get-Content -Raw -LiteralPath $configPath } else { "" }
-  foreach ($tree in @('hooks.state', 'marketplaces.ponytail', 'plugins."ponytail@ponytail"', 'mcp_servers.graphify', 'mcp_servers.chrome_devtools')) {
+  foreach ($tree in @('hooks.state', 'marketplaces.ponytail', 'plugins."ponytail@ponytail"', 'mcp_servers.graphify')) {
     $text = Remove-TomlTree $text $tree
   }
   $text = Set-TomlKeys $text "features" ([ordered]@{ hooks = "false"; multi_agent = "true" })

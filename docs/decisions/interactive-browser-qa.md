@@ -27,11 +27,11 @@ web server:
    mở CMS phase.
 2. Playwright chạy route, viewport, interaction, locale, reduced-motion,
    console, network và overflow check có thể lặp lại.
-3. Computer Use chỉ dùng khi trigger khớp `AGENTS.md` rule 5: task thật sự cần
+3. Computer Use chỉ dùng khi trigger khớp `AGENTS.md` mục Bắt đầu: task thật sự cần
    thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do
    trước khi dùng. Không bắt buộc cho mọi UI change.
 4. Playwright inspect DOM, computed style, accessibility tree, console,
-   network và screenshot của cùng route (Chrome DevTools MCP đã gỡ 2026-10-19).
+   network và screenshot của cùng route (Chrome DevTools MCP gỡ 2026-10-19, cài lại không cửa sổ 2026-10-31, không thay Playwright).
 
 Layer bắt buộc (1, 2, 4) unavailable hoặc interaction fail thì QA bị block. Screenshot, static
 review hoặc một automated assertion đơn lẻ không phải release pass. Browser
@@ -43,7 +43,7 @@ profile phải isolated; không inspect cookie, token hoặc private session.
 - Static contract tạo evidence contract trước runtime; Worker contract dormant
   không bị trình bày như current gate.
 - Chrome DevTools cung cấp runtime evidence bắt buộc; Computer Use là evidence
-  có điều kiện theo `AGENTS.md` rule 5.
+  có điều kiện theo `AGENTS.md` mục Bắt đầu.
 - Report phải nêu tool và exact observation cho mỗi result.
 
 ## Lịch sử

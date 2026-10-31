@@ -24,7 +24,7 @@ host, thêm cache, adapter và installer không cần thiết.
    [decision plugin pin](claude-skills-from-pinned-plugins.md). Runtime (Graphify, Impeccable CLI, jq) cài ở user scope.
 2. Không router riêng, không model pin chung, không host lifecycle hook. Quy trình
    chạy skill, human gate và vai trò main/worker/reviewer nằm ở
-   [`AGENTS.md`](../../AGENTS.md#agent-skills-lifecycle).
+   [`agent-rule-workflow-tools.md`](../operations/agent-rule-workflow-tools.md#skill-lifecycle).
 3. Bootstrap backup-first, pinned, idempotent; update chỉ notify-only. Đổi
    catalog thì mở session mới để host nạp lại.
 
