@@ -93,7 +93,7 @@ Caveman chỉ chạy khi user gọi; bật qua rule này như local, không qua 
 | Tool | Cài trên cloud |
 | --- | --- |
 | agent-skills | Plugin: 25 skill, 9 command, 4 agent, references |
-| caveman | Plugin: 22 skill (chỉ user gọi, `disable-model-invocation: true`), 3 agent, `/caveman-init`; CLI 4.0.1, MCP `caveman`, `caveman-browse`, `cavemem` |
+| caveman | Plugin: 22 skill (chỉ user gọi, `disable-model-invocation: true`), 3 agent, `/caveman-init`; không cài CLI và MCP |
 | ponytail | Plugin: 6 skill (bản 5 bỏ MCP `ponytail`) |
 | impeccable | Plugin: skill, 4 agent; engine 0.1.18 cache, CLI npm 4.8.0 |
 | i-have-adhd | Plugin: skill, tự gọi (script bỏ `disable-model-invocation`, giống override repo) |
@@ -110,6 +110,7 @@ Không cài, có lý do:
 - Mọi lifecycle hook upstream (mode của caveman, ponytail, i-have-adhd; hook
   Impeccable; graphify `hook-guard`; agent-skills `sdd-cache`,
   `simplify-ignore`, `session-start`): rule global cấm.
+- CLI `@caveman-ai/cli` và MCP `caveman`, `caveman-browse`, `cavemem`: owner chốt 2026-10-31 chỉ giữ skill, PC và cloud như nhau; `caveman-learn` vì vậy không chạy được phần `caveman mem`.
 - `caveman enable`/`caveman claude`: đổi `ANTHROPIC_BASE_URL` sang proxy
   local, làm hỏng session cloud.
 - Statusline caveman/ponytail: app cloud không hiển thị status line terminal.
