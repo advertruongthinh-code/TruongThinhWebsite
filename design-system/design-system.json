@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-10-27T09:47:00Z",
-    "via": "Claude Code (cloud)",
-    "note": "Đợt #609, #613: dấu chấm cuối tiêu đề CTA không treo (bỏ .text-hang-end); nút quay lại kiểu Pinterest góc trên trái khung Primary"
+    "at": "2026-10-31T21:50:00Z",
+    "via": "Claude Code (Remote Control)",
+    "note": "Đợt #648, #651, #652: thay ảnh xem trước preview-media theo ảnh site bản 3072, không đổi token, font, component hay quy tắc"
   }
 }
