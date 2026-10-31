@@ -65,3 +65,8 @@ test("segmentCrossesBox: chạm mép không tính, đi xuyên thì tính", () =>
   assert.equal(segmentCrossesBox({ x: -5, y: -5 }, { x: 15, y: 15 }, unit), true);
   assert.equal(segmentCrossesBox({ x: 11, y: 0 }, { x: 20, y: 20 }, unit), false);
 });
+
+test("điểm đầu trong vùng cấm hoặc from === to thì trả null, không ném lỗi", () => {
+  assert.equal(planDetourPath({ from: { x: 400, y: 200 }, to: belowMid, size, zone }), null);
+  assert.equal(planDetourPath({ from: besideTop, to: besideTop, size, zone }), null);
+});

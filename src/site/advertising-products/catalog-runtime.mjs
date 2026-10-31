@@ -3216,10 +3216,9 @@ export async function mountAdvertisingCatalog(container = document.querySelector
       }));
   };
   // Card đi vòng primary chạy Web Animations trên `translate`, tách khỏi `transform` của Masonry (R3).
-  const isDetourSlide = (animation) => Boolean(animation.effect?.getKeyframes?.()[0]?.translate);
-  const cancelRelatedDetours = () => {
+    const cancelRelatedDetours = () => {
     for (const node of [...relatedRendered.values(), suggestionNode]) {
-      node?.getAnimations().forEach((animation) => isDetourSlide(animation) && animation.cancel());
+      node?.getAnimations().forEach((animation) => animation.id === "related-detour" && animation.cancel());
     }
   };
   const cancelRelatedMotion = () => {
@@ -3342,7 +3341,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           { translate: `${from.x - to.x}px ${from.y - to.y}px` },
           { translate: `${plan.corner.x - to.x}px ${plan.corner.y - to.y}px`, offset: plan.cornerOffset },
           { translate: "0px 0px" },
-        ], { duration: 400, easing: "ease" });
+        ], { id: "related-detour", duration: 400, easing: "ease" });
       }
       relatedMotionTimer = setTimeout(() => {
         relatedMotionTimer = 0;

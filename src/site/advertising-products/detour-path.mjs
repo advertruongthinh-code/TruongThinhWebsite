@@ -26,6 +26,8 @@ export function planDetourPath({ from, to, size, zone }) {
   const box = { minX: -size.width, maxX: zone.width, minY: -size.height, maxY: zone.height };
   if (!segmentCrossesBox(from, to, box)) return null;
   // Bên cạnh primary: x >= pw; phía dưới: y >= ph. Chỉ một điểm mỗi loại thì đường thẳng mới có thể cắt.
+  // Giả định: tọa độ related không âm và runtime đã đưa điểm đầu ra khỏi Z, nên khi cắt Z luôn có một đầu bên
+  // cạnh và một đầu phía dưới. Thiếu một trong hai (điểm đầu trong Z) thì trả null, card đi thẳng.
   const beside = [from, to].find((point) => point.x >= zone.width);
   const below = [from, to].find((point) => point !== beside && point.y >= zone.height);
   if (!beside || !below) return null;

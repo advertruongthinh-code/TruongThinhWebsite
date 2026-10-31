@@ -1,8 +1,11 @@
 ---
 title: CTA cuối related và đường chuyển vị trí vòng quanh primary
 status: planned
-source: []
-tests: []
+source:
+  - src/site/advertising-products/detour-path.mjs
+tests:
+  - tests/site/advertising-detour-path.test.mjs
+  - tests/site/advertising-related-detour.e2e.mjs
 notion: https://app.notion.com/p/40a332849a0e81dc8ac7dfe53e35e7fb
 updated: 2026-10-31
 ---
