@@ -122,10 +122,14 @@ document.documentElement.classList.add("media-gate");
   document.addEventListener("error", ({ target }) => isImage(target) && settle(target, true), true);
   // sizes theo phần ảnh hiện ra sau crop cover (media-delivery R2). ResizeObserver chạy sau layout,
   // trước khi lazy load bắt đầu tải, và chạy lại khi khung đổi cỡ; chỉ nâng variant, không hạ.
+  // Trần là variant lớn nhất: bản gốc chỉ tải qua bước nâng R10 khi khung lớn đang thấy và trang rảnh. Không trần thì phone
+  // DPR 1,875 cần khoảng 2050px cho slide ngang phủ màn dọc nên 9 slide hoãn tải cả bản gốc (2,5 MB).
+  const MAX_VARIANT_PX = 2048;
   const fit = new ResizeObserver((entries) => entries.forEach(({ target: image }) => {
     const { width, height } = image.getBoundingClientRect();
     const ratio = image.getAttribute("width") / image.getAttribute("height");
-    const needed = Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width);
+    const needed = Math.min(Math.floor(MAX_VARIANT_PX / devicePixelRatio),
+      Math.ceil(getComputedStyle(image).objectFit === "cover" && ratio > 0 ? Math.max(width, height * ratio) : width));
     const loaded = image.currentSrc.replace(/\.\w+$/, "");
     if (!width || (loaded && (loaded === image.src.replace(/\.\w+$/, "") || loaded.match(/-(\d+)$/)?.[1] >= needed * devicePixelRatio))) return;
     [image, image.previousElementSibling].forEach((node) => node?.setAttribute("sizes", `${needed}px`));
