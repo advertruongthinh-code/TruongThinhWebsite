@@ -8,7 +8,7 @@ tests:
   - tests/site/advertising-photo-view.e2e.mjs
   - tests/site/advertising-photo-transitions.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-10-25
+updated: 2026-10-31
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -108,7 +108,7 @@ Then viewer đóng
 
 Thay ba mức cố định bằng `s` liên tục; ba nấc chỉ còn là điểm dừng cho nút và
 con lăn. `+` (và con lăn lên) tới nấc nhỏ nhất lớn hơn `s`; `−` (và con lăn
-xuống) tới nấc lớn nhất nhỏ hơn `s`; middle-click về Fit. Không có nút Reset (bỏ 2026-10-25, owner: về Fit bằng `−`,
+xuống) tới nấc lớn nhất nhỏ hơn `s`; middle-click về Fit. Không có nút Reset (về Fit bằng `−`,
 middle-click hoặc chạm). `+` disabled khi `s` bằng Max; `−` disabled khi `s` bằng Fit. Phím mũi tên pan khi
 `s > 1`. Trạng thái `zoomStatus` (`sr-only`, `aria-live`) ghi `round(s × 100)%`
 khi thao tác kết thúc, không cập nhật từng frame lúc pinch. Anchor của con lăn
@@ -167,7 +167,7 @@ Trên màn cảm ứng nút đóng, `+`, `−` và dãy thumbnail của viewer �
 `sr-only`) nhưng vẫn trong cây trợ năng, nên TalkBack và VoiceOver vẫn mở,
 zoom, đóng được; focus bàn phím (`:focus-visible`) thì nút hiện lại. Zoom chỉ còn bằng pinch (R1) và chạm (R4); về Fit bằng
 chạm. Desktop giữ nguyên nút. Vì không còn nút hiện trên ảnh, Fit trên màn cảm ứng không chừa lề: ảnh chạm cạnh
-màn hình theo chiều giới hạn, cả dọc lẫn ngang (owner 2026-10-10); desktop giữ lề `80px` trên dưới và `16px`/`64px` hai bên.
+màn hình theo chiều giới hạn, cả dọc lẫn ngang; desktop giữ lề `80px` trên dưới và `16px`/`64px` hai bên.
 
 ```gherkin
 Given điện thoại ngang 915×412 cảm ứng
@@ -271,7 +271,7 @@ Trên màn cảm ứng không còn nút hiện trên viewer và primary.
 | R1–R11 | `node tests/site/advertising-viewer-touch.e2e.mjs`: Chromium `isMobile`, `hasTouch`, touch qua CDP `Input.dispatchTouchEvent`, dọc VI và ngang EN, reduced motion, chạm một lần, vặn xoay và hít góc, ngưỡng xoay 20°, vùng chết pan 10px, chạm đúp, double-click desktop, vuốt đóng, back |
 | R5, R6 | `PHOTO_VIEW_CONTROLS_ONLY=1 node tests/site/advertising-photo-view.e2e.mjs`: nút, con lăn, middle-click, phím, resize trên Chromium, Firefox, WebKit |
 | R3 (nền) | `CASE=viewer-backdrop-swipe-stays-open node tests/site/advertising-photo-transitions.e2e.mjs` |
-| R1–R6 | phone Android thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm. Đạt 05/10/2026 trên SM-A057F, Chrome 154, dọc (2/2 lượt); R7 đến R10 đạt 06/10/2026, Chrome 154, dọc (2/2 lượt), kèm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` (2/2) và vuốt `adb shell input swipe` 30% chiều cao; ngang trên máy thật chỉ khi đặt máy ngang (chưa chạy); đo lại 18/10/2026 trên SM-A047F, Chrome 155: dọc 2/2, ngang qua CDP override 800×360 2/2; pinch và xoay hai ngón R11 owner thử tay trên phone 18/10: ổn |
+| R1–R6 | phone Android thật: `DEVICE_CDP=http://127.0.0.1:9222 node tests/site/advertising-viewer-touch.e2e.mjs` sau `adb forward tcp:9222 localabstract:chrome_devtools_remote` và `adb reverse tcp:8787 tcp:8787`; mỗi lượt một tab mới, theo hướng máy đang cầm; R7 đến R10 thêm nút back phần cứng `adb shell input keyevent KEYCODE_BACK` và vuốt `adb shell input swipe` 30% chiều cao; ngang qua CDP override 800×360 hoặc đặt máy ngang; pinch và xoay hai ngón R11 thử tay |
 
 ## Gate còn mở
 

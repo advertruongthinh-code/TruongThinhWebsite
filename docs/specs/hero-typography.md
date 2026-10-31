@@ -21,7 +21,7 @@ Các đoạn văn cùng loại có khoảng cách dòng bằng nhau. Spec không
 
 ## Hành vi
 
-### R1. Xuống dòng theo chốt của owner (2026-10-18)
+### R1. Xuống dòng theo chốt của owner
 
 Mỗi title dưới đây nằm đúng hai dòng ở mọi bề rộng. Subtitle nhỏ của portal trang chủ (cùng nội dung, một dòng)
 giữ bố cục riêng.
