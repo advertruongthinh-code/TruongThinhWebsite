@@ -35,11 +35,24 @@
 
 ## Sổ việc trên card
 
-Plan và việc owner giao nằm trong thân card dưới dạng to-do (ô tick), một dòng
-một việc, nêu đủ nội dung để làm mà không cần đọc lại chat. Spec vẫn chỉ ở Git.
+Card là một plan thật, không phải danh sách việc rời. Thân card theo thứ tự:
+
+- Đầu card: **Mục tiêu** (một dòng), **Spec/Nguồn** (link Git), **Mức plan**
+  (0, 1, 2; với 1 hoặc 2 ghi các câu hỏi trả lời yes hoặc lý do).
+- `## Plan`: mỗi bước là một ô tick, khớp một task con trong `Sub-items`; tick
+  khi task con `Done`. Sau đó dòng **Plan đã duyệt:** (ngày, hoặc "chưa").
+- `## Quyết định`: quyết định owner, chữ thường kèm ngày.
+- `## Ghi chú`: số đo, lịch sử, link phụ.
+
+Task con là card cùng database, `Parent item` trỏ về card cha, cùng `Project`;
+có `Status`, `Next action`, `Evidence` (PR) như card thường. Task con chờ owner
+hoặc thiết bị thì `Blocked` kèm `Next action`. Card cha điền `Plan level`,
+`Next action` của bước đang làm và `Evidence` là PR mới nhất. Spec vẫn chỉ ở
+Git.
 
 1. Ghi ngay: owner giao việc, giao thêm giữa chừng, hoặc phỏng vấn chốt quyết
-   định thì thêm dòng trước khi làm. Plan đã duyệt chép thành các dòng task.
+   định thì thêm bước (ô tick và task con) hoặc dòng Quyết định trước khi làm.
+   Plan đã duyệt chép thành các bước.
 2. Không làm rơi: tick khi xong; dòng chưa tick chỉ bỏ khi owner nói bỏ (gạch
    dòng, ghi lý do). Checklist tiến độ của thread khi đổi bảng mới phải liệt kê
    mọi dòng chưa tick.
@@ -65,7 +78,8 @@ Fetch schema trước mỗi mutation phụ thuộc schema. Schema đã thấy: `
 (title), `Status` (`Not started`, `Up next`, `In progress`, `Blocked`, `Done`),
 `Agent` (text), `Next action` (text), `Priority` (`P0`, `P1`, `P2`),
 `Evidence` (URL PR hoặc commit trên `main`, điền khi `Done`), `Project`
-(relation), `Due date`, `Thứ tự Up next` (number). Không gửi status
+(relation), `Plan level` (`0`, `1`, `2`), `Parent item` và `Sub-items`
+(relation tới chính database, cho task con), `Due date`, `Thứ tự Up next` (number). Không gửi status
 `Approved`. Card mới luôn gắn `Project` = Truong Thinh Website. Field còn
 thiếu (`Git spec`) ghi một dòng trong body; schema dùng chung chỉ thêm, không
 xóa hay đổi tên.
