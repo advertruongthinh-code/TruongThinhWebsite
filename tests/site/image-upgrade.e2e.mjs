@@ -67,25 +67,23 @@ try {
     await page.close();
   }
 
-  // Advertising: card trong màn hình đổi sang bản gốc sau khi blur tan; card ngoài màn hình giữ bản vừa khung.
+  // Advertising: card masonry là khung nhỏ nên giữ bản vừa khung; ảnh lớn của detail (khung lớn) lên bản gốc.
   {
-    const { page } = await open();
+    const { page, originals } = await open();
     await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-advertising-card] img").length > 8);
-    const cards = () => page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")]
-      .filter((image) => image.currentSrc).map((image) => {
-        const { top, bottom } = image.getBoundingClientRect();
-        return { visible: bottom > 0 && top < innerHeight, original: !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc) };
-      }));
-    await page.waitForFunction(() => {
-      const shown = [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")].filter((image) => {
-        const { top, bottom } = image.getBoundingClientRect();
-        return image.currentSrc && bottom > 0 && top < innerHeight;
-      });
-      return shown.length && shown.every((image) => !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc));
-    }, null, { timeout: 60_000 }).catch(async () => assert.fail(`visible cards stay on their variant ${JSON.stringify(await cards())}`));
-    const state = await cards();
-    assert.ok(state.some(({ visible, original }) => !visible && !original), `cards out of view keep their variant ${JSON.stringify(state)}`);
+    await page.waitForTimeout(5000);
+    const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-advertising-card] img")]
+      .filter((image) => image.currentSrc).map((image) => new URL(image.currentSrc).pathname));
+    assert.ok(cards.length && cards.every((pathname) => VARIANT.test(pathname)), `masonry cards stay on their variant ${JSON.stringify(cards)}`);
+    assert.deepEqual(originals.filter(({ pathname }) => cards.some((card) => card.replace(VARIANT, "") === pathname.replace(/\.\w+$/, ""))), [],
+      "no masonry card requests its original");
+    await page.goto(await page.evaluate(() => document.querySelector("[data-advertising-card] > a").href), { waitUntil: "load" });
+    const primary = "[data-advertising-photo-image]";
+    await page.waitForFunction((selector) => {
+      const image = document.querySelector(selector);
+      return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
+    }, primary, { timeout: 20_000 }).catch(async () => assert.fail(`detail primary stays on its variant ${await pathOf(page, primary)}`));
     await page.close();
   }
   console.log("PASS image upgrade");

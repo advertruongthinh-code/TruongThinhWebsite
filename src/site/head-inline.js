@@ -32,6 +32,9 @@ document.documentElement.classList.add("media-gate");
   // riêng, decode xong mới đổi; chỉ chạy khi trang ngừng cuộn và không ảnh nào trong màn hình còn đang tải, mỗi lượt một ảnh.
   const VARIANT = /-(?:240|480|960|1600|2048)(\.(?:jxl|webp))$/;
   const SCROLL_IDLE_MS = 250;
+  // Chỉ khung lớn lên bản gốc: rộng từ 640px hoặc rộng, cao từ 60% viewport (hero, ảnh lớn detail kể cả ảnh dọc); card
+  // masonry 4K làm A04s tụt 72 xuống 39-47 FPS mà trong ô nhỏ nhìn không khác (owner chọn 2026-10-31).
+  const LARGE_FRAME_PX = 640;
   const inView = new Set();
   let scrolledAt = 0;
   let upgrading = false;
@@ -55,22 +58,22 @@ document.documentElement.classList.add("media-gate");
     const wait = busyFor();
     if (wait) return scheduleUpgrade(wait);
     let image;
+    let pending = false;
     for (const node of inView) {
-      // Filter từ stylesheet là mờ cố định (nền primary): bỏ hẳn. Filter inline là blur card chờ ảnh, ảnh đang ẩn
-      // (slide hero chưa tới lượt, opacity 0): đợi lượt sau để không tải 4K cho ảnh người xem không thấy.
-      if (getComputedStyle(node).filter !== "none") {
-        if (!node.style.filter) {
-          upgradeObserver.unobserve(node);
-          inView.delete(node);
-        }
-      } else if (!node.getAnimations().length && (node.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true)) {
+      // Khung nhỏ chờ ResizeObserver báo khi lớn lên. Filter từ stylesheet là mờ cố định (nền primary): bỏ hẳn. Filter
+      // inline (blur chờ ảnh), animation, ảnh đang ẩn (slide hero chưa tới lượt): đợi lượt sau.
+      const { width, height } = node.getBoundingClientRect();
+      if (width < Math.min(LARGE_FRAME_PX, innerWidth * 0.6) && height < innerHeight * 0.6) continue;
+      if (getComputedStyle(node).filter !== "none" && !node.style.filter) forget(node);
+      else if (node.style.filter || node.getAnimations().length
+        || !(node.checkVisibility?.({ opacityProperty: true, visibilityProperty: true }) ?? true)) pending = true;
+      else {
         image = node;
         break;
       }
     }
-    if (!image) return scheduleUpgrade();
-    upgradeObserver.unobserve(image);
-    inView.delete(image);
+    if (!image) return pending && scheduleUpgrade();
+    forget(image);
     const original = image.currentSrc.replace(VARIANT, "$1");
     const loader = Object.assign(new Image(), { src: original });
     upgrading = true;
@@ -92,12 +95,24 @@ document.documentElement.classList.add("media-gate");
     loader.decode().then(swap, done);
   };
   const upgradeObserver = new IntersectionObserver((entries) => entries.forEach(({ target, isIntersecting }) => {
-    if (!target.isConnected) upgradeObserver.unobserve(target);
-    if (isIntersecting && VARIANT.test(target.currentSrc)) inView.add(target);
+    if (!target.isConnected) forget(target);
+    else if (isIntersecting && VARIANT.test(target.currentSrc)) inView.add(target);
     else inView.delete(target);
     scheduleUpgrade();
   }));
-  const watchUpgrade = (image) => VARIANT.test(image.currentSrc) && upgradeObserver.observe(image);
+  // Khung đổi cỡ (primary đặt cỡ sau khi ảnh load, xoay màn hình) thì xét lại.
+  const resized = new ResizeObserver(() => scheduleUpgrade());
+  const forget = (image) => {
+    upgradeObserver.unobserve(image);
+    resized.unobserve(image);
+    inView.delete(image);
+  };
+  // Card masonry giữ bản vừa khung dù card dọc cao quá 60% viewport (owner chọn 2026-10-31).
+  const watchUpgrade = (image) => {
+    if (!VARIANT.test(image.currentSrc) || image.closest("[data-advertising-card]")) return;
+    upgradeObserver.observe(image);
+    resized.observe(image);
+  };
   addEventListener("scroll", () => { scrolledAt = performance.now(); }, { capture: true, passive: true });
   document.addEventListener("load", ({ target }) => {
     if (!isImage(target)) return;
