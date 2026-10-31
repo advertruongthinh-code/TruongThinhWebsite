@@ -15,11 +15,11 @@
 /* Không JavaScript thì script xáo không gán src cho slide nào; hero hiện ảnh cố định như trang chủ (detail-pages R11). */
 @media (scripting: none) {
   .residential-hero .hero-slides {
-    background: center / cover url("/assets/content/projects/residential-hero-kitchen-dining.jxl");
+    background: center / cover url("/assets/content/projects/residential-hero-kitchen-dining.webp");
   }
 
   .commercial-hero .hero-slides {
-    background: center / cover url("/assets/content/projects/commercial-hero-cafe.jxl");
+    background: center / cover url("/assets/content/projects/commercial-hero-cafe.webp");
   }
 }
 
