@@ -78,12 +78,23 @@ try {
     assert.ok(cards.length && cards.every((pathname) => VARIANT.test(pathname)), `masonry cards stay on their variant ${JSON.stringify(cards)}`);
     assert.deepEqual(originals.filter(({ pathname }) => cards.some((card) => card.replace(VARIANT, "") === pathname.replace(/\.\w+$/, ""))), [],
       "no masonry card requests its original");
-    await page.goto(await page.evaluate(() => document.querySelector("[data-advertising-card] > a").href), { waitUntil: "load" });
+    // Mở detail bằng click (route mềm) để primary dùng lại cùng img khi mở media sau.
+    await page.locator("[data-advertising-card] > a").first().click();
     const primary = "[data-advertising-photo-image]";
     await page.waitForFunction((selector) => {
       const image = document.querySelector(selector);
       return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
     }, primary, { timeout: 20_000 }).catch(async () => assert.fail(`detail primary stays on its variant ${await pathOf(page, primary)}`));
+    // Primary dùng lại một img: mở media khác thì ảnh hiện phải là media đó, không phải bản gốc của media trước.
+    await page.goBack();
+    await page.locator("[data-advertising-card] > a").nth(1).click();
+    await page.waitForTimeout(2000);
+    const shown = await page.evaluate((selector) => {
+      const image = document.querySelector(selector);
+      const base = (url) => new URL(url, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.\w+$/, "");
+      return { current: base(image.currentSrc), src: base(image.src) };
+    }, primary);
+    assert.equal(shown.current, shown.src, "the primary shows the media it was given");
     await page.close();
   }
   // Phone trang chủ: 9 slide hoãn tải variant lớn nhất 2048, không tải bản gốc (media-delivery R2, owner 2026-10-31);

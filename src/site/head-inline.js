@@ -85,10 +85,14 @@ document.documentElement.classList.add("media-gate");
     const swap = () => {
       const wait = busyFor();
       if (wait) return setTimeout(swap, wait);
-      if (image.isConnected && VARIANT.test(image.currentSrc)) {
-        // Trong picture, đổi đúng source trình duyệt đang dùng (JXL); WebP nằm ở chính img.
+      // Ảnh vẫn đang hiện đúng media đó: primary Advertising dùng lại một img cho mọi media, đổi media giữa lúc tải bản gốc
+      // thì bỏ, không thì bản gốc của media cũ đè lên media mới.
+      if (image.isConnected && image.currentSrc.replace(VARIANT, "$1") === original) {
+        // Trong picture, đổi đúng source trình duyệt đang dùng (JXL); WebP nằm ở chính img. Img chỉ có src (primary
+        // Advertising) thì đổi src: runtime gán src cho media sau, srcset gán ở đây sẽ đè mãi.
         const source = original.endsWith(".jxl") && image.parentElement?.querySelector('source[type="image/jxl"]');
-        (source || image).srcset = original;
+        if (source) source.srcset = original;
+        else image[image.hasAttribute("srcset") ? "srcset" : "src"] = original;
       }
       done();
     };
