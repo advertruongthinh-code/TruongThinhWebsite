@@ -235,7 +235,7 @@ Then mỗi renderer từ 30fps trở lên, không long task trên 50ms
 
 ## Gate còn mở
 
-- R8 đạt trên SM-A047F khi vuốt xuống related; owner chưa xem trên demo.
+- R8 mới đo khi card related còn Flow; chưa đo lại với skeleton của primary trên phone. Máy PC.
 - Safari trên iPhone thật chưa kiểm batch (thanh địa chỉ, bfcache, context). Owner và máy PC.
 - `advertising-continuation.e2e.mjs` chỉ PASS gate fps R4 trên Chrome có GPU; Chromium headless cloud (WebGL phần mềm) đo
   khoảng 9fps và gần như không chạy rAF của worker, nên test này ở `manual`, chạy trên PC.

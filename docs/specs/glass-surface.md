@@ -56,9 +56,7 @@ tại cung nhòe `28px`, vào trong tăng tiếp tới trần `100px` ở vòng 
 đối (R3), qua một bậc trong cung trên PC, phone ẩn bậc này. Mức của bậc thứ n trong N
 là `28 + 72 × n / N px`. Số lớp cố định theo loại máy, không đo fps: PC 5 lớp (lõi, 1 bậc
 trong lên thẳng `100px`, 3 bậc band); phone (`pointer: coarse` hoặc có touch) 2 lớp: lõi `28px` như PC và bậc band trong cùng.
-Bậc trong (81-88% frame chậm, vòng 26)
-hay bậc band thứ hai (30% frame chậm, p5 `45fps`, vòng 29) đều rơi gate. Lúc cuộn và lúc dừng máy dùng cùng số lớp, không thay bằng ảnh nhòe dựng sẵn (owner
-10/10). Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
+Phone thêm bậc trong hay bậc band thứ hai đều rơi gate R7. Lúc cuộn và lúc dừng máy dùng cùng số lớp, không thay bằng ảnh nhòe dựng sẵn. Từ cung đi ra ngoài (xa tâm), độ nhòe giảm
 về 0 qua ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm để
 vuốt trên phone Android đạt gate R7); mỗi bậc chồng mép lên bậc kế để mắt không thấy bậc
 hay đường ranh giới. Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai
@@ -95,7 +93,7 @@ And ảnh thật không bị phủ
 ### R3. Màu trắng theo cùng cung
 
 Lớp phủ trắng của kính đi theo cùng các cung đồng tâm với độ nhòe: ở mép ngoài
-dải không có trắng, tới cung đạt tint `0.55` (trước `0.35`), vào trong tăng tới trắng tuyệt
+dải không có trắng, tới cung đạt tint `0.55`, vào trong tăng tới trắng tuyệt
 đối ở vòng tròn đi qua hai góc đáy batch. Hai đoạn chuyển dùng smoothstep để
 không gãy ở cung. Quy tắc đáy trắng tuyệt đối của
 [skeleton R6](advertising-skeleton.md#r6-cta-kính-và-footer-trên-batch)
@@ -134,8 +132,7 @@ And vùng trắng tuyệt đối không có hạt nhiễu
 Kính tăng độ bão hòa của nội dung phía sau lên `1.7`, độ sáng
 `1.04`, tint trắng alpha `0.12`. `saturate()` và `brightness()` nhân dồn qua
 các bậc, nên mỗi bậc của dạng phủ đều (ba bậc) nhận căn bậc ba của giá trị tổng và độ rực tăng cùng độ
-nhòe. Dạng cung chỉ blur, bão hòa và độ sáng bằng `1` (trước
-`1.55`, `1.05`): lõi chồng các bậc viền trong dải chuyển tại cung nên màu tăng
+nhòe. Dạng cung chỉ blur, bão hòa và độ sáng bằng `1`: lõi chồng các bậc viền trong dải chuyển tại cung nên màu tăng
 hai lần thành gờ đậm dọc cung; tint của nó theo R3.
 
 ### R6. Hiện và tan bằng opacity từng bậc
@@ -158,12 +155,12 @@ Then chỉ opacity của các bậc đổi theo thời gian, backdrop-filter kh�
 ### R7. Hiệu năng và trình duyệt
 
 Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
-trên phone Android, cả khi cuộn tới kính dạng cung và khi nhiều card cùng hiện kính:
+trên phone Android khi cuộn tới kính dạng cung:
 gate [phone Android trên 60fps](../decisions/phone-frame-budget.md) (trên `60fps`). Nếu số bậc làm rơi gate,
 báo owner kèm số đo trước khi đổi số bậc (năm bậc rơi gate, owner chọn ba bậc cho dạng cung). Số lớp theo loại máy (R2); trần
 `100px` của ảnh nền primary chưa đo trên phone Android. Kính hiện/tan trên primary detail: năm bậc
 `backdrop-filter` phủ cả hero rơi gate pha mở (A05s p5 `30-45fps`), nên primary từng dùng Kính
-nhòe dựng sẵn trên canvas. Owner bỏ đường đó: primary dùng chung Kính ba bậc `backdrop-filter` của card
+nhòe dựng sẵn trên canvas. Owner bỏ đường đó: primary dùng Kính ba bậc `backdrop-filter` hiện/tan (R6)
 ([R4 mở ảnh tại chỗ](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)), điện thoại chạy đúng như PC.
 Ba bậc phủ cả hero chưa đo trên phone Android; dưới gate thì dừng, báo owner kèm số đo, không tự quay về Kính dựng sẵn.
 Card chờ ảnh không dùng Kính: A04s kéo trang chỉ 9 đến 11 FPS

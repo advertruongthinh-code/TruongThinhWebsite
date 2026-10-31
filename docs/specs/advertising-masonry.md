@@ -280,6 +280,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`; `TT_E2E_ADVERTISING
 ## Gate còn mở
 
 - Owner xem masonry trên demo: thứ tự ngẫu nhiên, nhịp cao thấp, so le, filter; VI/EN, desktop và điện thoại. Owner.
+- Thư viện ảnh: V6 sai tỷ lệ, COCO và decal lỗi chữ nhỏ; ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash. Owner.
 - WebKit headless Linux vẽ `backdrop-filter` của Kính bằng phần mềm nên rAF dừng sau Back; `advertising-random-browse.e2e.mjs`
   tắt nó ở WebKit, CI `adv-browse` chạy WebKit. Safari iPhone thật chưa kiểm ([glass R7](glass-surface.md#r7-hiệu-năng-và-trình-duyệt)).
 - Thư viện ảnh: ảnh mới chỉ vào catalog khi owner duyệt đúng file và hash ([QA ảnh](../operations/agent-rule-ad-images.md)). Owner.

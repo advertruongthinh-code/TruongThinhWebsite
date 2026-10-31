@@ -280,7 +280,7 @@ Unit `node --test <file>`; E2E cần `pnpm dev`, `BASE_URL`. `CASE=<tên>` chạ
 
 Gate thiết bị theo card [kiểm thiết bị](https://app.notion.com/p/3ef332849a0e8100bbd1e62ad5229067).
 
-- Landscape VI `Y=2` trên emulator FAIL, phone thật `Y=0`; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL, chưa
+- Landscape VI `Y=2` trên emulator FAIL, phone thật `Y=0`, owner giữ FAIL kèm ghi chú; 17 ca ép viewport desktop 1010 đến 1569px lên phone FAIL, chưa
   kết luận, cần đối chiếu Chromium PC, cùng [shell](site-shell.md#gate-còn-mở). Máy PC.
 - Safari iPhone thật chưa kiểm detail, history, viewer (control trong safe area), slideshow; WebKit desktop không thay. Owner, máy PC.
 - Owner chưa xem detail VI và EN trên máy mình: primary ở 920→1165px và ảnh dọc 954×910, suggestion, slideshow, related, Back, navbar. Owner.
