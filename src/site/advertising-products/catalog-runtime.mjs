@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // Compile hint của V8: compile mọi hàm ở thread nền lúc tải, để lần chạm card đầu không compile lazy trên main thread
 // (khoảng 20% task click khi mở detail; decision phone-frame-budget).
-import { responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
+import { imageFormatReady, responsiveSource, responsiveSrcset } from "./responsive-image.mjs";
 import {
   ADVERTISING_LAYOUT_ALGORITHM_VERSION,
   ADVERTISING_SEARCH_OPERATION_BUDGET,
@@ -1470,7 +1470,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     idleWorker = undefined;
     return worker;
   };
-  const artifact = await loadArtifact();
+  const [artifact] = await Promise.all([loadArtifact(), imageFormatReady]);
   if (!artifact || typeof artifact !== "object") {
     const error = new Error("Advertising artifact must be an object");
     console.error("[advertising-products] artifact validation failed", error);

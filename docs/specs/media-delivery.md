@@ -82,9 +82,9 @@ And trình duyệt đọc được JXL tải đúng một file cho ảnh đó, k
 
 ### R3. Runtime Advertising chọn biến thể
 
-`responsive-image.mjs` chỉ trỏ JXL ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể)).
-`responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/` có `width`, trả các cỡ JXL 240, 480, 960, 1600, 2048 nhỏ
-hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ JXL nhỏ nhất không dưới `needed` pixel, không có
+`responsive-image.mjs` trỏ JXL, trình duyệt không giải mã được JXL thì WebP ([progressive-loading R1](progressive-loading.md#r1-định-dạng-và-biến-thể));
+`catalog-runtime.mjs` chờ `imageFormatReady` trước lần dựng đầu. `responsiveSrcset(src, width)` chỉ nhận WebP dưới `/assets/content/`
+có `width`, trả các cỡ 240, 480, 960 (JXL thêm 1600, 2048) nhỏ hơn `width` cộng bản gốc; `responsiveSource(src, width, needed)` trả cỡ nhỏ nhất không dưới `needed` pixel, không có
 `needed` thì bản gốc. Module không kiểm file tồn tại, dựa vào `--check` của R1. HTML Advertising mang `data-advertising-*` nên build không bọc (R2).
 
 | Nơi | Cách tải |
