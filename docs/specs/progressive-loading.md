@@ -282,7 +282,7 @@ sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này kh
 ## Gate còn mở
 
 - A05s và iPhone 16 chưa đo JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
-- R8 còn hụt, có sẵn từ trước JXL: CLS detail Advertising ([#649](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/649)), request ảnh trùng ở detail ([#655](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/655)), veil tan quá 1s ở Slow 4G. Main.
+- R8 còn hụt, có sẵn từ trước JXL: CLS detail Advertising ([#649](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/649)), request ảnh trùng ở detail ([#655](https://github.com/advertruongthinh-code/TruongThinhWebsite/issues/655)), veil tan quá 1s ở Slow 4G. Ảnh đầu ở Advertising sát ngưỡng 5% (lab +2 đến +5,7%, A04s +5,2%), các route khác nhanh hơn hoặc ngang. Main.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.
 

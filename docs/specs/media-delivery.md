@@ -11,7 +11,7 @@ tests:
   - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-27
+updated: 2026-10-31
 ---
 
 # Tải ảnh nội dung
