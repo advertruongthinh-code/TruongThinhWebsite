@@ -802,7 +802,7 @@ test("M01b all failed cover assets stop without fallback recursion", async () =>
     const artifact = fixtureArtifact(true);
     const imageSrc = artifact.cards.find((item) => item.id === fixtureId).media.src;
     await page.route(`**${fixturePrefix}*`, (route) => route.fulfill({ status: 404, body: "" }));
-    // Làm hỏng source và mọi variant responsive (name-480.avif v.v.) mà browser có thể chọn.
+    // Làm hỏng source và mọi variant responsive (name-480.jxl v.v.) mà browser có thể chọn.
     await page.route(`**${imageSrc.replace(/\.[^.]+$/, "")}*`, (route) => route.fulfill({ status: 404, body: "" }));
     await page.addInitScript((payload) => { window.__TT_ADVERTISING_ARTIFACT__ = payload; }, artifact);
     await page.goto(`${base}/en/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });

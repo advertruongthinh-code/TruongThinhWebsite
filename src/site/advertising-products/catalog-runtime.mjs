@@ -825,7 +825,7 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
       image.sizes = "auto, 50vw";
       image.srcset = srcset;
     }
-    image.src = record.media.src;
+    image.src = responsiveSource(record.media.src);
     image.alt = "";
     if (record.media.suggestionPosition) image.style.objectPosition = record.media.suggestionPosition;
   } else if (native) {
@@ -835,14 +835,14 @@ function createPhotoMedia(record, locale, { suggestion = false, native = false }
       image.sizes = "auto";
       image.srcset = srcset;
     }
-    image.src = record.media.src;
+    image.src = responsiveSource(record.media.src);
     image.alt = locale === "en" ? record.media.altEn : record.media.altVi;
   } else {
     if (srcset) {
       image.dataset.sizes = "auto";
       image.dataset.srcset = srcset;
     }
-    image.dataset.src = record.media.src;
+    image.dataset.src = responsiveSource(record.media.src);
     image.alt = locale === "en" ? record.media.altEn : record.media.altVi;
   }
   return image;
@@ -1148,7 +1148,7 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
           layer.sizes = "auto, 50vw";
           layer.srcset = srcset;
         }
-        layer.src = item.src;
+        layer.src = responsiveSource(item.src);
         layer.addEventListener("load", updateLoading);
       }
       layer.addEventListener("error", () => {
@@ -3536,8 +3536,10 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   // Dải media primary (media-card R6, owner 2026-10-19): media cắt ở BBox contain; media thật ẩn tới khi dải dừng và media
   // mới đã giải mã. Video không phát trong lúc dải chạy: lane là hình đứng của video.
   let primaryStrip = null;
-  // Lane dải và ảnh tải trước dùng cùng file như primary.
-  const primarySource = (item) => item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
+  // Lane dải và ảnh tải trước dùng cùng file như primary. Cỡ JXL theo bề rộng viewport (cố định trong phiên, nên file không
+  // đổi giữa các lần render): primary không rộng hơn viewport; viewer "Xem lớn hơn" vẫn lấy bản gốc.
+  const primarySource = (item) => item.kind === "video" ? item.posterSrc
+    : responsiveSource(item.src, item.width, Math.ceil(innerWidth * devicePixelRatio));
   const primaryWidth = () => parseFloat(photoView.style.getPropertyValue("--advertising-photo-image-width"))
     || heroFrame.clientWidth;
   // Lane media đang hiện vẽ đồng bộ vào canvas nên không chờ giải mã; video chưa có frame thì dùng poster.
@@ -3707,7 +3709,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const renderPrimaryMedia = (record, item, slide = 0, motion = null) => {
     const english = locale === "en";
     const video = item.kind === "video";
-    const source = video ? null : responsiveSource(item.src);
+    const source = video ? null : primarySource(item);
     // Viewer đang mở thì primary đổi thẳng: dải chèn cạnh photoVideo, mà video có thể đang nằm trong viewer.
     const sliding = Boolean(slide) && !reduced && !photoView.hidden && !photoDialog?.open;
     const changed = !video && !sliding && photoImage.getAttribute("src") !== source;
@@ -3877,7 +3879,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         image.sizes = "auto, 25vw";
         image.srcset = thumbSrcset;
       }
-      image.src = item.kind === "video" ? item.posterSrc : item.src;
+      image.src = item.kind === "video" ? item.posterSrc : responsiveSource(item.src);
       image.alt = "";
       button.append(image);
       if (item.kind === "video") {

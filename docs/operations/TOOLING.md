@@ -172,6 +172,8 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
 Chrome DevTools MCP đã gỡ (owner 2026-10-19) để giảm token MCP; symbol dùng `rg`,
 QA browser dùng Playwright và CDP script.
+Chromium của Playwright 1.64.1 (bản 153) chỉ giải mã JPEG XL khi bật cờ `JXLImageFormat`; `patches/playwright-core@1.64.1.patch`
+(pnpm `patchedDependencies`) thêm cờ vào switch mặc định. Nâng Playwright thì bỏ patch nếu Chromium mới đã bật JXL sẵn.
 
 ## Stack AI và media
 

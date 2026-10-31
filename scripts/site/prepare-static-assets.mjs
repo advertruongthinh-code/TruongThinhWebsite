@@ -405,25 +405,28 @@ const embedVietnameseText = (html, filePath) => {
   return output;
 };
 
-// Bọc thẻ <img> WebP content trong <picture> với AVIF và các biến thể width từ build-image-variants.mjs.
-// Ảnh deferred data-src nhận data-srcset, motion.js chép khi hydrate. Ảnh không có variant
-// trên disk, ảnh đã khai báo srcset và ảnh Advertising do runtime quản lý (runtime
-// đổi src của chúng, mà <source> sẽ ghi đè) giữ nguyên.
-const RESPONSIVE_WIDTHS = [240, 480, 960];
+// Bọc thẻ <img> WebP content trong <picture>: <source> JXL progressive (progressive-loading R1) cho trình duyệt đọc được JXL,
+// <img> giữ WebP vì Google Images chưa index JXL. Srcset lấy các cỡ từ build-image-variants.mjs. Ảnh deferred data-src
+// nhận data-srcset, motion.js chép khi hydrate. Ảnh không có JXL trên disk, ảnh đã khai báo srcset và ảnh Advertising
+// do runtime quản lý (runtime đổi src của chúng, mà <source> sẽ ghi đè) giữ nguyên.
+const WEBP_WIDTHS = [240, 480, 960];
+const JXL_WIDTHS = [240, 480, 960, 1600, 2048];
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
     const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];
-    if (!src || /\s(?:srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.avif`))) return tag;
+    if (!src || /\s(?:srcset|data-advertising-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.jxl`))) return tag;
     const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
-    const widths = RESPONSIVE_WIDTHS.filter((width) => width < intrinsic && ["webp", "avif"].every((format) => existsSync(path.join(outputRoot, `${src}-${width}.${format}`))));
-    const set = (format) => [...widths.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
-    if (!Number.isFinite(intrinsic) || !widths.length) return `<picture><source type="image/avif" ${srcset}="${src}.avif">${tag}</picture>`;
+    const set = (format, widths) => {
+      const fit = widths.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.${format}`)));
+      return [...fit.map((width) => `${src}-${width}.${format} ${width}w`), `${src}.${format} ${intrinsic}w`].join(", ");
+    };
+    if (!Number.isFinite(intrinsic)) return `<picture><source type="image/jxl" ${srcset}="${src}.jxl">${tag}</picture>`;
     // Ảnh lazy để browser dùng width đã layout ("auto"); 100vw là fallback cho browser cũ.
     const declared = tag.match(/\ssizes="([^"]+)"/)?.[1];
     const sizes = declared || (/\sloading="lazy"/.test(tag) ? "auto, 100vw" : "100vw");
-    const img = tag.replace(/^<img\b/, `<img ${srcset}="${set("webp")}"${declared ? "" : ` sizes="${sizes}"`}`);
-    return `<picture><source type="image/avif" ${srcset}="${set("avif")}" sizes="${sizes}">${img}</picture>`;
+    const img = tag.replace(/^<img\b/, `<img ${srcset}="${set("webp", WEBP_WIDTHS)}"${declared ? "" : ` sizes="${sizes}"`}`);
+    return `<picture><source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
 
 // Script <head> chung của mọi trang, một nguồn (progressive-loading R7).

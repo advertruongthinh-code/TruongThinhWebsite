@@ -37,7 +37,7 @@ try {
     const small = width <= 750 || height <= 640;
     let expectedHeight;
     const page = await browser.newPage({ viewport: { width, height }, reducedMotion: "reduce" });
-    await page.route(/\.(?:avif|gif|jpe?g|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
+    await page.route(/\.(?:avif|gif|jpe?g|jxl|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
     for (const locale of ["vi", "en"]) {
       for (const route of [...routes, "advertising-products/?category=kiosk-posm&photo=kiosk-posm-06", ...detailRoutes]) {
         await page.goto(`${baseUrl}/${locale}/${route}`, { waitUntil: "domcontentloaded" });

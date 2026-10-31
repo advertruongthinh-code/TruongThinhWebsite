@@ -121,15 +121,15 @@ And thẻ html có lang="en" và data-route-locale="en"
 ### R6. Ảnh nội dung bọc `<picture>`
 
 `<img>` có `src` hoặc `data-src` là WebP dưới `/assets/content/` được bọc
-`<picture>` với source AVIF khi có `.avif` cùng tên. Có biến thể 240, 480, 960 nhỏ
-hơn `width` thì thêm `srcset` (hoặc `data-srcset`) và `sizes`. Ảnh đã có
-`srcset`, có attribute `data-advertising-*` hoặc thiếu AVIF giữ nguyên. Pipeline
-biến thể thuộc [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
+`<picture>` với source JXL khi có `.jxl` cùng tên; `<img>` giữ WebP. Có `width` thì cả hai mang
+`srcset` (hoặc `data-srcset`) gồm các cỡ nhỏ hơn `width` cộng bản gốc, và `sizes`. Ảnh đã có `srcset`,
+có attribute `data-advertising-*` hoặc thiếu JXL giữ nguyên. Pipeline: [tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung).
 
 ```gherkin
-Given <img src="/assets/content/a.webp" width="1600"> có a.avif, a-240.*, a-480.*, a-960.* cạnh nó
+Given <img src="/assets/content/a.webp" width="1600"> có a.jxl, a-240.*, a-480.*, a-960.* cạnh nó
 When build
-Then ảnh nằm trong <picture> có source AVIF với srcset 240w, 480w, 960w, 1600w
+Then ảnh nằm trong <picture> có source JXL với srcset 240w, 480w, 960w, 1600w
+And <img> giữ src a.webp với srcset WebP 240w, 480w, 960w, 1600w
 And <img data-advertising-photo-background> giữ nguyên, không bọc
 ```
 

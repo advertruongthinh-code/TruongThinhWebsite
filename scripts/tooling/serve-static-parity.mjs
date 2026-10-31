@@ -29,6 +29,7 @@ const MIME = new Map([
   [".html", "text/html; charset=UTF-8"],
   [".ico", "image/x-icon"],
   [".jpeg", "image/jpeg"],
+  [".jxl", "image/jxl"],
   [".jpg", "image/jpeg"],
   [".js", "text/javascript; charset=UTF-8"],
   [".mjs", "text/javascript; charset=UTF-8"],
