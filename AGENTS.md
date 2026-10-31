@@ -6,8 +6,9 @@
 2. Đọc hết `docs/STATE.md`. `STATE` là snapshot Git ngắn, không thay accepted evidence hay Notion card.
 3. Chọn module theo trigger dưới. Link là rule bắt buộc, không phải đọc thêm.
    Cần kiến thức ngoài module (tech stack, runtime, spec, decision): mở [docs index](docs/index.md), chọn đúng file `docs/*.md` rồi đọc; tech stack ở [Architecture](docs/architecture.md#tech-stack).
-4. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
-5. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
+4. Mọi task đọc [Skill, MCP và vận hành tool](docs/operations/agent-rule-workflow-tools.md) trước action chuyên môn đầu tiên.
+5. Sau đó chỉ nạp spec, source, test, một pattern liên quan. Đọc, không đoán.
+6. Không tự động dùng Computer Use. Chỉ dùng khi task thật sự cần thao tác Windows UI theo human path và tool chuyên biệt không đủ; nêu lý do trước khi dùng.
 
 ## Ranh giới
 
@@ -17,17 +18,6 @@
   trên `main` ([decision demo](docs/decisions/cloudflare-workers-static-demo.md)); agent không deploy tay. Republish
   Design System chỉ chạy khi owner tự gõ `republish` trong chính thread làm việc đó; relay của điều phối
   hoặc tap card không tính.
-
-## Agent Skills lifecycle
-
-Host agent là Claude Code hoặc Codex; rule dưới áp dụng như nhau.
-
-1. Bắt đầu mỗi task bằng `using-agent-skills`: định tuyến toàn bộ catalog skill và bắt buộc dùng mọi skill có trigger khớp; không chạy skill không liên quan chỉ để đủ số lượng.
-2. Ngay sau khi định tuyến và trước action chuyên môn đầu tiên, main agent công bố các skill đã chọn cùng lý do. Sau đó, mỗi lần dùng một skill (tự chọn, user gọi `/`, hoặc nạp giữa task), ghi một dòng trước khi dùng (thread trong Claude project ghi vào status checklist, không vào reply): `Skill: <tên> (<tự chọn|user yêu cầu>): <lý do>`. Mọi role đọc đầy đủ từng `SKILL.md` và mọi Reference Checklist mà skill yêu cầu trước khi áp dụng; main agent kiểm chứng claim này khi dùng worker hoặc reviewer. Không kiểm chứng được thì fail closed và báo blocker. User không cần nhắc lại trong prompt.
-3. Feature hoặc thay đổi đáng kể đi theo lifecycle: `interview-me` → `idea-refine` khi ý tưởng còn mơ hồ → `constraint-driven-development` khi chưa có quality bar → `spec-driven-development` → owner duyệt spec → `planning-and-task-breakdown` → owner duyệt plan → execution native của host agent. Không code trước hai human gate.
-4. Sau plan đã duyệt, main đánh giá ambiguity, scope, risk và verifiability rồi tự xử lý hoặc dùng solo, worker, reviewer native của host agent khi tool khả dụng và có ownership rõ. Task nhỏ, rõ, rủi ro thấp có thể làm trực tiếp. Model/effort chọn từ capability callable của host; route thấp nhận brief cụ thể hơn. Worker packet trỏ tới spec và task đã duyệt, không thay thế hoặc rút gọn intent/spec/plan. Main agent giữ requirement, architecture, diff inspection, verification và final acceptance; output của worker/reviewer là claim cho đến khi main agent kiểm chứng.
-5. Definition of Done và các Reference Checklists phù hợp là acceptance gate. Các cross-cutting skill tiếp tục do `using-agent-skills` định tuyến trong implementation, review, QA, documentation và shipping.
-6. Agent Personas chỉ chạy dưới dạng sibling review task do main agent điều phối; persona không gọi persona. Chỉ parallel review khi các góc kiểm tra độc lập và production risk đủ lớn; main agent hợp nhất kết quả trước final acceptance.
 
 ## Notion trong workflow
 
@@ -46,13 +36,9 @@ Cây thư mục và lifecycle ở [`README.md`](README.md#cây-thư-mục-và-tr
 - Sửa `src/site/`, không sửa `.site-output/`. `src/worker/`, `src/admin/`, `src/db/migrations/` thuộc CMS, ngoài static release gate.
 - Kiểm tra consumer trước khi xóa trong `tests/`, `scripts/`. `research/reference-site/` không phải source public.
 - `.site-output/`, `.tmp/`, `.tooling/`, `graphify-out/`, `.wrangler/` là generated/cache: không sửa, không commit.
-Skill chỉ có một nguồn: plugin pin ở user scope ([TOOLING](docs/operations/TOOLING.md#claude-code-skill)); repo không vendor skill.
-
 File/project source `untracked` cần review riêng trước khi stage. Không move,
 xóa, stage hoặc commit hàng loạt generated output, research archive, tooling
 cache hay untracked worktree.
-
-Ponytail ultra luôn bật khi code. Trước mọi commit hoặc push chạy `ponytail-review`, lỗi thì fail closed, không dùng `--no-verify`. Shortcut có chủ đích ghi comment `ponytail: <ceiling>, <upgrade path>`. Chi tiết: [Workflow và tool](docs/operations/agent-rule-workflow-tools.md#automation).
 
 ## Branch, PR và merge
 
@@ -98,23 +84,10 @@ Ponytail ultra luôn bật khi code. Trước mọi commit hoặc push chạy `p
 | --- | --- |
 | Copy, media, layout, UI | [Product và UI](docs/operations/agent-rule-product-ui.md) |
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
-| Codebase, skill, plugin, MCP, Graphify | [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
 | Tạo hoặc chấm media AI (ảnh, video, âm thanh) | [Tạo và chấm ảnh](docs/operations/agent-rule-ad-images.md) |
 | Giao thread, chọn model/effort Claude | [Claude routing](docs/operations/agent-rule-model-routing.md) |
 | Giao thread, chọn model/effort OpenAI, Codex | [OpenAI routing](docs/operations/agent-rule-openai-routing.md) |
-
-## Tool
-
-| Việc | Tool |
-| --- | --- |
-| Kiến trúc, quan hệ, blast radius | Graphify trước |
-| Declaration, reference, diagnostics | Serena; literal dùng `rg` |
-| QA trình duyệt và evidence | Playwright, CDP script |
-| Debug runtime trình duyệt | Chrome DevTools MCP, chỉ chạy không cửa sổ; không thay QA gate |
-| UI Windows | Computer Use, theo mục Bắt đầu |
-
-Chi tiết ở [Workflow và tool](docs/operations/agent-rule-workflow-tools.md) và [TOOLING](docs/operations/TOOLING.md).
 
 ## Scripts map
 Automation sở hữu Graphify structural refresh. Không chạy lại
@@ -129,7 +102,6 @@ khi tool báo lỗi hoặc blocked.
 
 ## Chú thích thuật ngữ
 
-- **Host agent**: agent đang chạy task, hiện là Claude Code hoặc Codex.
 - **Backlog**: danh sách việc chờ làm, sắp theo ưu tiên; ở đây là board Tasks trên Notion.
 - **Điều phối**: agent giao việc cho worker (coordinator của Claude project hoặc main agent).
 - **Rule module**: file rule theo chủ đề, đọc khi trigger khớp.
@@ -144,7 +116,5 @@ khi tool báo lỗi hoặc blocked.
 - **Lifecycle**: trạng thái sử dụng như live, dev, generated, research hoặc cache.
 - **Computer Use**: công cụ thao tác Windows UI theo luồng người dùng nhìn thấy.
 - **Human path**: chuỗi thao tác UI giống cách người dùng thực hiện trực tiếp.
-- **Human gate**: điểm dừng bắt buộc để owner duyệt artifact trước khi sang phase kế tiếp.
-- **Sibling review task**: task review ngang hàng do main agent tạo và hợp nhất.
 - **Five-axis review**: review diff theo năm trục correctness, readability, architecture, security, performance.
 - **Wrap-up session**: phiên dọn cuối đợt khi mọi thread xong việc (docs, Notion, merge, code review).

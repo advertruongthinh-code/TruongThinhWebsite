@@ -68,7 +68,7 @@ chấm ảnh, five-axis review hay test. Task kế tiếp quay về bảng mặc
 
 ## Đặt route và kiểm chứng
 
-Main chọn trực tiếp hay delegation theo [lifecycle](../../AGENTS.md#agent-skills-lifecycle).
+Main chọn trực tiếp hay delegation theo [lifecycle](agent-rule-workflow-tools.md#skill-lifecycle).
 Rule này không tự cho phép tạo subagent hoặc chat mới. Brief ghi model, effort, lý do
 một dòng; khi host không cho override thì giữ route đang chạy và ghi chênh lệch.
 
