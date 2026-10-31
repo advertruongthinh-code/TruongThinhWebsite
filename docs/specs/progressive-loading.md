@@ -228,14 +228,14 @@ And ảnh được vẽ dần dưới blur; khi tải xong blur tan rồi bị g
 
 ### R10. Lên bản gốc sau khi hiện
 
-Ảnh đã hiện ở bản vừa khung (R3) và đang trong màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang và mọi vị trí
-(owner chọn 2026-10-31 10:45). Bản gốc tải riêng bằng `Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của
-`<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện.
+Ảnh khung lớn (rộng từ 640px, hoặc rộng hay cao từ 60% viewport: hero, ảnh lớn detail) đã hiện ở bản vừa khung (R3) và đang trong
+màn hình thì tải tiếp bản gốc (4K khi có), ở mọi trang (owner chọn 14:01, thay "mọi ảnh" lúc 10:45). Card và ô nhỏ giữ
+bản vừa khung: card 4K làm A04s tụt 72 xuống 39-47 FPS, decode 4K giữ main 120-160ms trên PC. Bản gốc tải riêng bằng
+`Image`, `decode()` xong mới đổi `srcset` của ảnh, hoặc của `<source>` JXL khi trình duyệt đang dùng JXL; không cho bản gốc vẽ dần đè lên vì lúc đầu nó mờ hơn bản đang hiện.
 
 - Chỉ chạy khi trang ngừng cuộn `250ms`, sau `load`, khi không ảnh nào trong màn hình còn đang tải; mỗi lượt một ảnh.
   Decode xong lúc trang đã cuộn lại thì chờ rảnh rồi mới đổi.
-- Card còn blur (R9), đang chạy reveal hoặc ảnh đang ẩn (slide hero chưa tới lượt) thì để lượt sau; ảnh có `filter` từ
-  stylesheet (nền mờ primary) không lên.
+- Đang chạy reveal hoặc ảnh đang ẩn (slide hero chưa tới lượt) thì để lượt sau; ảnh có `filter` (nền mờ primary) không lên.
 - Ảnh đã là bản gốc, đã ra khỏi màn hình hoặc bị gỡ thì bỏ. Code ở script `<head>` (`head-inline.js`), một chỗ cho mọi trang.
 
 ```gherkin
@@ -278,7 +278,7 @@ sang blur trên ảnh (R9); README Kính và MediaCard ghi lại điều này kh
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
 | R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card mờ, card chờ ảnh có màu chủ đạo, không card nào có Kính), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9, `image-reveal-complete.e2e.mjs` |
-| R10 | `image-upgrade.e2e.mjs` (hero và card trong màn hình lên bản gốc, card ngoài màn hình giữ bản vừa khung, không đổi khi đang cuộn, một request) |
+| R10 | `image-upgrade.e2e.mjs` (hero và ảnh lớn detail lên bản gốc, card masonry giữ bản vừa khung, không đổi khi đang cuộn, một request) |
 
 ## Gate còn mở
 
