@@ -109,6 +109,22 @@ for f in "$T"/src/caveman/skills/*/SKILL.md; do
   grep -q '^disable-model-invocation:' "$f" || sed -i '1a disable-model-invocation: true' "$f"
 done
 
+# Chống stale không cần lifecycle hook: một watcher cho mỗi repo, graphify-mcp tự nạp lại graph.json.
+cat > "$T/graphify-mcp-live" <<EOF
+#!/bin/sh
+root="\$(git rev-parse --show-toplevel 2>/dev/null)" && cd "\$root"
+if [ -f .graphifyignore ] || [ -d graphify-out ]; then
+  mkdir -p graphify-out
+  pid="\$(cat graphify-out/.watch.pid 2>/dev/null)"
+  if [ -z "\$pid" ] || ! kill -0 "\$pid" 2>/dev/null; then
+    nohup sh -c '"$BIN/graphify" update . && exec "$BIN/graphify" watch .' >/dev/null 2>&1 </dev/null &
+    echo \$! > graphify-out/.watch.pid
+  fi
+fi
+exec "$BIN/graphify-mcp"
+EOF
+chmod +x "$T/graphify-mcp-live"
+
 # Plugin local chứa các MCP server.
 P="$T/cloud-stack"
 mkdir -p "$P/.claude-plugin"
@@ -118,7 +134,7 @@ cat > "$P/.claude-plugin/plugin.json" <<'EOF'
 EOF
 cat > "$P/.mcp.json" <<EOF
 {"mcpServers": {
-  "graphify": {"command": "$BIN/graphify-mcp"},
+  "graphify": {"command": "$T/graphify-mcp-live"},
   "serena": {"command": "$BIN/serena", "args": ["start-mcp-server", "--transport", "stdio",
     "--context", "claude-code", "--project-from-cwd",
     "--enable-web-dashboard", "false", "--open-web-dashboard", "false"]},
@@ -134,7 +150,7 @@ ln -sfnT "$P" "$CFG/skills/cloud-stack"
 
 for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
   "$CFG"/skills/{graphify,find-skills,kie-models,kie-chat-agents}/SKILL.md \
-  "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} \
+  "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
   "$HOME"/.caveman/bin/{caveman-mcp,caveman-browse,cavemem} \
   "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"

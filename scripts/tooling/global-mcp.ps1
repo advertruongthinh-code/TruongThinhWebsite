@@ -55,6 +55,21 @@ switch ($Service) {
     exit $LASTEXITCODE
   }
   "graphify" {
+    # Keep graph.json current without a lifecycle hook; serve hot-reloads it.
+    # One detached watcher per repo, reused across sessions and only where Graphify is in use.
+    $graphDir = Join-Path $projectRoot "graphify-out"
+    if ((Test-Path -LiteralPath $graphDir) -or (Test-Path -LiteralPath (Join-Path $projectRoot ".graphifyignore"))) {
+      New-Item -ItemType Directory -Force -Path $graphDir | Out-Null
+      $pidFile = Join-Path $graphDir ".watch.pid"
+      $watcherPid = if (Test-Path -LiteralPath $pidFile) { (Get-Content -LiteralPath $pidFile -Raw).Trim() } else { $null }
+      if (-not ($watcherPid -and (Get-Process -Id $watcherPid -ErrorAction SilentlyContinue))) {
+        $env:PYTHONUTF8 = "1"
+        $graphify = Join-Path $toolRoot "python\Scripts\graphify.exe"
+        $watcher = Start-Process pwsh -PassThru -WindowStyle Hidden -WorkingDirectory $projectRoot `
+          -ArgumentList "-NoProfile", "-Command", "& '$graphify' update .; & '$graphify' watch ."
+        Set-Content -LiteralPath $pidFile -Value $watcher.Id
+      }
+    }
     & $python -m graphify.serve
     exit $LASTEXITCODE
   }

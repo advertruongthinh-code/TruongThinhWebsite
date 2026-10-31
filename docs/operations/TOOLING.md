@@ -181,7 +181,7 @@ dùng `--no-frozen-lockfile` khi cập nhật dependency; project/CI vẫn froze
 | Chrome DevTools | required | Debug browser không cửa sổ; QA gate vẫn là Playwright và CDP script |
 | Graphify Cloud | required | Graph trên snapshot GitHub; PC `graphify-cloud`, cloud qua connector |
 
-Graphify là STDIO MCP host launch mỗi session, không là Windows daemon.
+Graphify là STDIO MCP host launch mỗi session; launcher giữ thêm một watcher nền cho mỗi repo ([graphify](graphify.md)).
 Owner chốt 2026-10-31: bốn MCP trên là bộ chuẩn cho mọi project, thay quyết định gỡ ngày 2026-10-19.
 QA browser vẫn chạy bằng Playwright và CDP script; Chrome không được cướp focus trên PC.
 Chromium của Playwright 1.64.1 (bản 153) chỉ giải mã JPEG XL khi bật cờ `JXLImageFormat`; `patches/playwright-core@1.64.1.patch`

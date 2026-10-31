@@ -54,7 +54,9 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/tooling/graphify-git-hooks
 
 ## Theo dõi edit đang hoạt động
 
-Monitoring tùy chọn: trong VS Code chạy **Tasks: Run Task** → **Graphify: Watch**,
+Launcher MCP tự bật một watcher ẩn cho mỗi repo có `.graphifyignore` hoặc `graphify-out/`, ghi PID ở
+`graphify-out/.watch.pid`, chạy đến khi tắt máy và không tự dừng theo phiên. Dừng tay: kết thúc PID đó.
+Chạy watcher thủ công: trong VS Code chạy **Tasks: Run Task** → **Graphify: Watch**,
 hoặc dùng wrapper từ terminal:
 
 ```powershell
