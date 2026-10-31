@@ -1,6 +1,6 @@
 # Model, effort và provider routing rule
 
-Owner duyệt 2026-10-15, thêm provider kie.ai 2026-10-19. Điều phối đặt model, effort và provider cho mọi thread, ghi kèm lý do một dòng trong brief. Model cho phép: `opus`, `sonnet`, `haiku` (5.5); không dùng fable. Subagent do thread gọi theo mặc định của Claude Code; repo không đặt rule riêng.
+Owner duyệt 2026-10-15, thêm provider kie.ai 2026-10-19. Điều phối đặt model, effort và provider cho mọi thread, ghi kèm lý do một dòng trong brief. Model cho phép: `opus`, `sonnet`, `haiku` (5.5); không dùng fable. Subagent dùng mặc định Claude Code, không rule riêng.
 
 ## Provider và chế độ
 
@@ -39,7 +39,7 @@ Không dùng mức ngoài Pareto. Giới hạn: Index là điểm tổng quát, 
 
 ## Đối chiếu LiveBench theo Category
 
-Nguồn: [LiveBench 2.0](https://livebench.ai/#/), release 20261014, lấy 2026-10-19 từ `table.csv`, `cost.csv`. Mỗi model chỉ chạy effort max, nên bảng này chọn model theo loại job; effort vẫn theo ma trận Pareto ở trên (áp vào từng effort là suy luận). Ô ghi điểm / USD Max mỗi task.
+Nguồn: [LiveBench 2.0](https://livebench.ai/#/), release 20261014, lấy 2026-10-19. Mỗi model chỉ chạy effort max, nên bảng này chọn model theo loại job; effort vẫn theo ma trận Pareto ở trên (áp vào từng effort là suy luận). Ô: điểm / USD Max mỗi task.
 
 | Category | opus | sonnet | haiku | Model có lợi |
 | --- | --- | --- | --- | --- |
@@ -71,6 +71,7 @@ Chế độ 2 hạ xuống mức Pareto rẻ hơn chỉ khi điểm Category g�
 | Relay, kiểm tra CI/PR, đổi status card, search chỉ đọc | Reasoning | haiku medium, kie | = | haiku không sửa code sẽ merge |
 | Chạy lại hoặc thêm runner CI | Long Agentic ngắn | haiku xhigh, kie | = | lên sonnet high (Max) nếu quá vài bước |
 | Chấm ảnh | không có | sonnet high, Max | = | không benchmark nào đo vision; theo gate trong [QA ảnh](agent-rule-ad-images.md#chấm-điểm) |
+| Reviewer task dài | Coding | opus medium, Max | = | opus high: 3+ file nóng |
 | Wrap-up deep code-review | Coding | owner đặt, Max | = | khởi động không kèm tham số |
 
 Haiku chỉ cho việc ngắn; việc nhiều bước nhiều tool dùng sonnet high trở lên. Không đặt override effort cố định cho một thread; chỉ owner đặt lại khi cần. `ponytail-audit` và `ponytail-debt` ngoài wrap-up chạy opus medium, chỉ khi owner gọi.
