@@ -1,13 +1,16 @@
 ---
 title: Ảnh JPEG XL progressive và thứ tự tải
 status: planned
-source: []
+source:
+  - src/site/sw.js
 tests:
   - tests/site/image-loading-frame.e2e.mjs
+  - tests/site/jxl-threshold.e2e.mjs
+  - tests/site/advertising-skeleton-slow-network.e2e.mjs
   - tests/site/first-load-parity.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/406332849a0e816ebc6af97487876c15
-updated: 2026-10-27
+updated: 2026-10-31
 ---
 
 # Ảnh JPEG XL progressive và thứ tự tải
@@ -42,7 +45,7 @@ media có một thứ tự ưu tiên chung. Spec này thay phần định dạng
 
 Mọi ảnh dưới `/assets/content/` (ảnh tĩnh, ảnh động ngắn, poster video) là JXL progressive (owner 2026-10-27). Google Images
 và Discover chưa index JXL (John Mueller, 2026-10-15), nên HTML tĩnh bọc `<picture>`: `<source>` JXL, `<img>` giữ WebP; trình
-duyệt đọc được JXL chỉ tải JXL (đề xuất 2026-10-31, chờ owner chọn). Logo khách hàng SVG giữ nguyên. Video có tiếng và clip dài vẫn là HLS ([video](video-delivery.md)).
+duyệt đọc được JXL chỉ tải JXL (owner chọn 2026-10-31). Logo khách hàng SVG giữ nguyên. Video có tiếng và clip dài vẫn là HLS ([video](video-delivery.md)).
 
 - Cỡ: 240, 480, 960, 1600, 2048 và bản gốc (3072px hiện nay, 3840px khi có ảnh nguồn); cỡ không nhỏ hơn bản gốc thì bỏ.
 - Encode: `cjxl -p --group_order=1` (vùng giữa ảnh tới trước), effort 7. Mỗi file chọn `distance` sao cho dung lượng không
@@ -255,15 +258,16 @@ gõ `republish`.
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check`; so dung lượng JXL với AVIF cùng cỡ (chưa có test) |
 | R2 | Kiểm ngẫu nhiên ngưỡng bằng `djxl --allow_partial_files` (chưa có test) |
-| R3 | e2e mới: server làm chậm, ghi hình khung, đếm request (theo bản thử ở mục hiện trạng; chưa có test) |
+| R3 | `jxl-threshold.e2e.mjs` (proxy chậm, hero settle trước `load`, một request; Kính card tan khi ảnh còn tải); viewer chưa có test |
 | R4 | `first-load-parity.e2e.mjs`, thêm ca hero trễ 3s và font trễ 1s (chưa có test) |
 | R5, R6 | Waterfall trong `image-delivery-measure.mjs` (chưa có test) |
 | R7 | Review diff: không có đường hiện ảnh thứ hai |
 | R8 | `image-delivery-measure.mjs` trên demo; A04s qua máy PC |
+| R9 | `advertising-skeleton-slow-network.e2e.mjs` (tắt cache, kéo thanh cuộn, hơn 12 card), `glass-surface.e2e.mjs`, `image-loading-frame.e2e.mjs` P9 |
 
 ## Gate còn mở
 
-- Chromium cloud chỉ chạy JXL khi bật cờ (e2e cần `--enable-features=JXLImageFormat`). Main.
+- Viewer (R3) chưa cài lớp bản gốc ẩn tới ngưỡng; hiện vẫn thay `src` rồi chờ `decode()`. Main.
 - A05s và iPhone 16 chưa có kết quả JXL ([trang thử](https://claude.ai/artifact/5L61tBABqqQG3F3KKbh77k)). Owner.
 - Chrome 155 bật JXL mặc định mới thấy ở nguồn thứ cấp; Samsung Internet chưa rõ. Main.
 - Ảnh chưa có PNG gốc encode lại từ WebP: owner xem lại chất lượng trên demo. Owner.

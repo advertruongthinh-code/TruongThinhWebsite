@@ -18,8 +18,8 @@ updated: 2026-10-26
 ## Mục đích
 
 Batch skeleton nối tiếp [masonry](advertising-masonry.md) từ đáy card thật tới footer, mặt là Flow WebGL với 12
-preset, làm nền cho CTA cuối trang. Spec sở hữu hình học batch, preset, assignment, vòng đời và WebGL context; cùng
-renderer phủ ảnh đang tải ([skeleton chờ ảnh](loading-glass-and-page-entry.md)). Vị trí chữ CTA ở
+preset, làm nền cho CTA cuối trang. Spec sở hữu hình học batch, preset, assignment, vòng đời và WebGL context. Card
+chờ ảnh dùng Kính, không dùng Flow ([tải theo nấc R9](progressive-loading.md#r9-kính-mờ-thay-skeleton-flow-trên-card-chờ-ảnh)). Vị trí chữ CTA ở
 [CTA giữa viewport](advertising-cta-center-parallax.md), kính ở [Kính](glass-surface.md).
 
 ## Hành vi
@@ -87,18 +87,7 @@ các bậc nhòe mất rồi hiện lại khi cuộn lên xuống ở CTA (owner
 `motion-paused`, không reduced motion. Tab ẩn hoặc `motion-paused`: dừng, giữ trạng thái đã hiện; hiện lại chạy tiếp từ pha cũ. `pagehide` có `persisted`: dừng
 renderer, `pageshow` có `persisted` chạy tiếp; `pagehide` không `persisted`: hủy mọi context của document.
 
-Skeleton chờ ảnh của card vào viewport trong `250ms` sau một scroll event làm đổi vị trí cuộn (PC: `site:scroll` của
-Locomotive; điện thoại: `scroll`) hiện ngay: khung không fade `0.6s`, canvas Flow không fade `300ms` (ảnh tĩnh dưới canvas
-là một khung hình cùng pha nên không nhảy). Vuốt nhanh (khoảng 7.500 px/s) để card trong viewport khoảng `270ms`, ngắn hơn
-hai fade cộng lại, nên trước đó người xem chỉ thấy ảnh tĩnh `48×32` mờ dần hiện, không thấy Flow (owner thấy trên PC,
-2026-10-26; đo Chromium cloud: Flow thấy rõ 7% thời gian card chờ ảnh, sau sửa 66%). Card vào lúc trang đứng yên (tải
-trang, đổi filter) giữ hai fade. Scroll event ở vị trí không đổi (lúc tải trang) không tính.
-
 ```gherkin
-Given PC, ảnh card tải chậm
-When vuốt nhanh làm card mới vào viewport
-Then khung skeleton của card hiện ngay ở opacity cuối và canvas Flow đã dựng hiện ngay, không transition opacity
-
 Given khung đã hiện xong và Flow đang chạy
 When cuộn khung ra hẳn vùng nhìn thấy rồi vào lại
 Then khung hiện ngay, không trống, reveal Kính không chạy lại
