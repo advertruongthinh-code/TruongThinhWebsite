@@ -1,8 +1,11 @@
 ---
 title: CTA cuối related và đường chuyển vị trí vòng quanh primary
 status: planned
-source: []
-tests: []
+source:
+  - src/site/advertising-products/detour-path.mjs
+tests:
+  - tests/site/advertising-detour-path.test.mjs
+  - tests/site/advertising-related-detour.e2e.mjs
 notion: https://app.notion.com/p/40a332849a0e81dc8ac7dfe53e35e7fb
 updated: 2026-10-31
 ---
@@ -92,7 +95,8 @@ Tọa độ là tọa độ related grid (cùng gốc với canvas). Vùng cấm
 `C = (x của điểm bên cạnh, y của điểm phía dưới)`: `C.x ≥ pw` và `C.y ≥ ph` nên đoạn `AC` và `CB` (mỗi đoạn thẳng đứng
 hoặc nằm ngang) không cắt `Z`. Góc vuông, không bo (owner 2026-10-31). Cỡ hộp lấy số lớn hơn giữa cỡ cũ và cỡ mới của
 card. Tổng thời gian `0.4s ease` như card khác, tốc độ đều dọc đường: keyframe góc tại offset `|AC| / (|AC| + |CB|)`,
-easing đặt ở mức animation. Không cắt thì trượt thẳng như nay.
+easing đặt ở mức animation. Không cắt thì trượt thẳng như nay. Resize làm primary lớn lên đè chỗ cũ của card (điểm đầu nằm trong `Z`) thì
+card xuất phát ngay dưới primary mới (`y = ph +` khoảng giữa, giữ `x`) rồi mới tính đường như trên.
 
 Áp dụng cho mọi card related, card suggestion khi nằm trong related và khung batch (R2); cụm CTA và Kính cung rộng cả
 lưới, luôn dưới mọi thứ nên trượt thẳng. Card mới vào cửa sổ ảo không có `origins` vẫn xuất phát từ đầu cột
