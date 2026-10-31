@@ -52,8 +52,8 @@ Vùng cấm là hình chữ nhật của cụm primary (ảnh, info, nền prima
 không giao vùng cấm ở bất kỳ frame nào. Card có hộp quét theo đường thẳng từ chỗ cũ tới chỗ mới giao vùng cấm thì đi đường gấp
 khúc qua một điểm góc nằm ngoài vùng cấm: `(x cũ, y mới)` hoặc `(x mới, y cũ)`, chọn điểm làm cả hai đoạn không giao vùng
 cấm; không điểm nào thỏa thì đi qua đáy primary (`y` bằng đáy primary cộng một khoảng giữa). Card không cắt vùng cấm vẫn
-trượt thẳng như cũ. Đường vòng chạy cùng tổng thời gian `0.4s` với card khác và bo tròn ở chỗ gấp
-[CẦN LÀM RÕ: owner chưa chốt tổng 0.4s và bo tròn; đây là đề xuất của thread]. `prefers-reduced-motion` thì đặt thẳng như cũ.
+trượt thẳng như cũ. Đường vòng chạy cùng tổng thời gian `0.4s` với card khác,
+gấp góc vuông ở điểm góc (owner 2026-10-31). `prefers-reduced-motion` thì đặt thẳng như cũ.
 
 ```gherkin
 Given detail ở 1569x912, layout split, có card related ở cột 4 cạnh primary
@@ -79,7 +79,7 @@ And card tới đúng chỗ mới khi chuyển vị trí kết thúc
 
 ## Gate còn mở
 
-- Owner duyệt spec; chốt tổng thời gian và bo tròn của đường vòng (R3).
+- Owner duyệt spec.
 
 ## Chú thích thuật ngữ
 
