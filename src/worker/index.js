@@ -678,6 +678,8 @@ async function handleAdminApi(request, env, url, actor) {
   if (url.pathname === "/api/admin/audit-log" && request.method === "GET") {
     return listAuditLog(env);
   }
+  // shortcut: editor placeholder lưu nháp ở slice 3 (cms-editor R8); tới đó báo chưa nối lưu trữ.
+  if (url.pathname.startsWith("/api/admin/content/")) return json({ error: "Content storage not connected." }, 501);
   if (url.pathname.startsWith("/api/admin/")) return handleAdminResource(request, env, url, actor);
   return json({ error: "Not Found" }, 404);
 }

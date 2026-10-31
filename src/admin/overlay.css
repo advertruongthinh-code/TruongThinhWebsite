@@ -1,0 +1,13 @@
+/* Overlay trong bản xem trước của CMS (cms-editor R3). Không thuộc Design System, chỉ nạp trong iframe admin. */
+.tt-cms-box {
+  position: fixed;
+  z-index: 2147483646;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.tt-cms-box--hover { outline: 1px dashed #1a5fd0; outline-offset: 2px; }
+.tt-cms-box--selected { outline: 2px solid #1a5fd0; outline-offset: 2px; box-shadow: 0 0 0 6px rgb(26 95 208 / 0.18); }
+.tt-cms-edit [data-cms-key] { cursor: pointer; }
+.tt-cms-edit [contenteditable] { cursor: text; outline: 2px solid #1a5fd0; outline-offset: 4px; }
+[data-cms-empty] { outline: 2px dashed #b3261e; outline-offset: 2px; }
+[data-cms-empty]:not(img):empty::before { content: "Nhập chữ"; color: #b3261e; }

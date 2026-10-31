@@ -28,7 +28,7 @@ chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xon
 `wrangler.toml` khai Worker `truong-thinh-website`, `main = "src/worker/index.js"`, binding `ASSETS` trỏ `.site-output`
 (`force-trailing-slash`, `404-page`), `run_worker_first` cho `/`, `/vi/*`, `/en/*`, path legacy, `/api/*`, `/media/*`,
 `/robots.txt`, `/sitemap.xml` (không có `/admin/*`). Không khai binding D1 (`DB`), R2 (`MEDIA`) hay biến, nên Worker
-theo file này luôn đi nhánh không có `DB`. Không script nào trong `package.json` trỏ tới file (demo dùng `wrangler.static.toml`). Build chỉ chép `src/site/`, nên `.site-output/` không có `src/admin/`. Chạy local: `pnpm cms:dev` (`scripts/cms/dev-local.mjs`) chạy `prepare:site`, chép `src/admin/` vào `.site-output/admin/`, áp migration lên D1 local rồi `wrangler dev` cổng 8788 theo `scripts/cms/wrangler.local.toml` (D1 `DB`, R2 `MEDIA` giả lập trong `.wrangler/`, biến `CMS_LOCAL_ADMIN_EMAIL`), `--setup-only` dừng sau migration; file đó không deploy, `prepare:site` xóa output nên bản demo không chứa admin.
+theo file này luôn đi nhánh không có `DB`. Không script nào trong `package.json` trỏ tới file (demo dùng `wrangler.static.toml`). Build chỉ chép `src/site/`, nên `.site-output/` không có `src/admin/`. Chạy local: `pnpm cms:dev` (`scripts/cms/dev-local.mjs`) chạy `prepare:site`, dựng admin vào `.site-output/admin/` ([editor R9](cms-editor.md#r9-chạy-local-và-ci)), áp migration lên D1 local rồi `wrangler dev` cổng 8788 theo `scripts/cms/wrangler.local.toml` (D1 `DB`, R2 `MEDIA` giả lập trong `.wrangler/`, biến `CMS_LOCAL_ADMIN_EMAIL`), `--setup-only` dừng sau migration; file đó không deploy, `prepare:site` xóa output nên bản demo không chứa admin.
 
 ```gherkin
 Given wrangler.toml hiện tại
@@ -160,14 +160,14 @@ And upload một WebP hợp lệ trả 201 và ghi đúng một object
 
 ### R8. Giao diện admin
 
-Giao diện mới theo [editor placeholder](cms-editor.md) (planned); bản hiện có: `src/admin/index.html` (tiếng Việt, `noindex, nofollow`, `admin.css` riêng) và module `admin.js`: nút sáu resource,
+`/admin/` là [editor placeholder](cms-editor.md); form cũ ở `src/admin/forms.html` (tiếng Việt, `noindex, nofollow`, `admin.css` riêng) và module `admin.js`: nút sáu resource,
 danh sách bản ghi, form theo resource gửi POST (mới) hoặc PUT (đã có) rồi tải lại. Xoá hỏi `confirm`, ẩn với page;
 page chỉ chọn trong năm id, không tạo mới. Nội dung VI, EN nhập theo field; `sections` mỗi dòng `tiêu đề | nội dung`,
 chỉ chữ. Project chọn template, category, nhóm và thứ tự menu; product nhập tên VI, EN và media ID. Form media nhận
 WebP hoặc logo SVG kèm alt VI, EN; mỗi media có nút "Xuất bản + duyệt" hoặc "Ẩn". Không form nào có trường span.
 
 ```gherkin
-Given admin mở /admin/ sau khi qua Access
+Given admin mở /admin/forms.html sau khi qua Access
 When chọn Trang, chọn home, sửa SEO title tiếng Việt rồi bấm Lưu
 Then admin gửi PUT /api/admin/pages/home với nội dung VI và EN
 And trạng thái hiện "Đã lưu." rồi danh sách tải lại
@@ -247,7 +247,7 @@ fallback tĩnh; gate mẫu parity, browser, accessibility, diễn tập rollback
   thay CSRF token không; rate limit ở Worker hay Cloudflare?]
 - [CẦN LÀM RÕ: `src/admin/` không có trong `.site-output/`, `/admin/*` không chạy Worker trước; admin phục vụ từ đâu,
   Access bảo vệ path nào?] Agent đề xuất ở slice Contract.
-- [CẦN LÀM RÕ: vai trò biên tập, có bước submit, review không; `template` có là `layoutKey` không, preset nào launch
+- [CẦN LÀM RÕ: vai trò biên tập (không có bước duyệt, owner 2026-10-31); `template` có là `layoutKey` không, preset nào launch
   trước; giới hạn cỡ, loại file và danh sách cỡ biến thể media?]
 - [CẦN LÀM RÕ: khi có `DB`, trang trả 404, 503 như R3 (theo [D1 SSR ưu tiên](../decisions/d1-ssr-static-fallback.md))
   hay phục vụ bản tĩnh như invariant fallback dưới?]
