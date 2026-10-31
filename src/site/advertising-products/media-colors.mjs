@@ -60,7 +60,7 @@ export const MEDIA_COLORS = Object.freeze({
  "kiosk-posm-35-owner-20260924": ["#d8c8b8","#d9c5b3","#bea285","#997b5b","#694a2c"],
  "kiosk-posm-35-owner-20260924-audit-a054-v1": ["#d8c8b8","#dcccbf","#b3977e","#846444","#4b3012"],
  "kiosk-posm-36-owner-20260924": ["#d8c8c8","#dfcfc4","#c5aa93","#8b755f","#2c2720"],
- "kiosk-posm-36-owner-20260924-audit-a055-v1": ["#d8c8c8","#d5c3b4","#aa917d","#75583a","#372510"],
+ "kiosk-posm-36-owner-20260924-audit-a055-v1": ["#d8c8c8","#d4c1b2","#a68c77","#6d5233","#34220e"],
  "kiosk-posm-37-owner-20260924": ["#d8d8d8","#d1cfcc","#b1a595","#8e8163","#584b2d"],
  "kiosk-posm-37-owner-20260924-audit-a056-v1": ["#e8d8c8","#d9ccbf","#a2937f","#766441","#403017"],
  "kiosk-posm-38-imagegen-20261014": ["#482818","#b19171","#7f5f42","#553a23","#332111"],
