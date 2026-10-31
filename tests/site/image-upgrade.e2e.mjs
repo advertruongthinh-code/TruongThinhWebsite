@@ -7,8 +7,8 @@ const { chromium } = await import("playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const VARIANT = /-(?:240|480|960|1600|2048)\.(?:jxl|webp)$/;
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
-const open = async () => {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const open = async (options = { viewport: { width: 1440, height: 900 } }) => {
+  const page = await browser.newPage(options);
   const originals = [];
   page.on("request", (request) => {
     const { pathname } = new URL(request.url());
@@ -84,6 +84,20 @@ try {
       const image = document.querySelector(selector);
       return image?.currentSrc && !/-(?:240|480|960|1600|2048)\.\w+$/.test(image.currentSrc);
     }, primary, { timeout: 20_000 }).catch(async () => assert.fail(`detail primary stays on its variant ${await pathOf(page, primary)}`));
+    await page.close();
+  }
+  // Phone trang chủ: 9 slide hoãn tải variant lớn nhất 2048, không tải bản gốc (media-delivery R2, owner 2026-10-31);
+  // slide gốc nhỏ hơn 2048 không có variant 2048 nên bản gốc là ứng viên lớn nhất.
+  {
+    const { page } = await open({ viewport: { width: 384, height: 724 }, deviceScaleFactor: 1.875, isMobile: true, hasTouch: true });
+    await page.goto(`${base}/vi/`, { waitUntil: "load" });
+    await page.waitForFunction(() => document.querySelectorAll(".hero-slide:not(.is-active) img[srcset]").length >= 9, null, { timeout: 10_000 });
+    await page.waitForTimeout(1500);
+    const hidden = await page.evaluate(() => [...document.querySelectorAll(".hero-slide:not(.is-active) img")].map((image) => ({
+      src: new URL(image.currentSrc, location.href).pathname,
+      has2048: (image.previousElementSibling?.srcset ?? image.srcset).includes("-2048."),
+    })));
+    assert.deepEqual(hidden.filter(({ src, has2048 }) => has2048 && !VARIANT.test(src)), [], "hidden slides stay on a variant");
     await page.close();
   }
   console.log("PASS image upgrade");

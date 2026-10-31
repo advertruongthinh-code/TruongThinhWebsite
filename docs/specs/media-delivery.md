@@ -8,6 +8,7 @@ source:
   - src/site/assets/content/jxl-thresholds.json
 tests:
   - tests/site/image-loading-frame.e2e.mjs
+  - tests/site/image-upgrade.e2e.mjs
   - tests/site/image-delivery-measure.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
 updated: 2026-10-27
@@ -63,8 +64,7 @@ khi lazy load bắt đầu tải, nên `sizes` đã đúng trước request đ�
 vùng lazy đã đang tải (`currentSrc` vẫn rỗng) và trình duyệt hủy request để tải lại. Ảnh eager có `src` (hero đầu) và ảnh đầu hero trang
 chủ (đã preload, R4) để nguyên. Khung đổi cỡ (resize, xoay máy) thì observer chạy lại: chỉ ghi khi file đang hiện
 nhỏ hơn nhu cầu mới, nên trình duyệt chỉ nâng lên bản lớn hơn, không đổi sang bản nhỏ; ảnh đang hiện bản gốc thì thôi.
-Ảnh `contain` hoặc không crop giữ bề rộng khung. Phần cần lớn hơn bản gốc (hero điện thoại cần 2520px, gốc 1536 hoặc 1920)
-dùng bản gốc; sinh thêm cỡ lớn hơn nằm ngoài phần này.
+Ảnh `contain` hoặc không crop giữ bề rộng khung. Nhu cầu chặn ở variant 2048px; bản gốc chỉ tới qua [R10](progressive-loading.md#r10-lên-bản-gốc-sau-khi-hiện) (2026-10-31).
 
 ```gherkin
 Given /vi/residential/ ở 1440×900 DPR 1, mạng thường
@@ -264,7 +264,7 @@ E2E cần `pnpm dev`, `BASE_URL=http://127.0.0.1:8787`.
 | R | Test hoặc command |
 | --- | --- |
 | R1 | `node scripts/site/build-image-variants.mjs --check` (CI) |
-| R2 | `image-loading-frame.e2e.mjs` (thuộc tính HTML, không request trùng, biến thể đủ phần hiển thị sau crop ở 390px DPR 3 và 1440px DPR 1, 2); `site.e2e.cjs` chặn ảnh theo mọi biến thể |
+| R2 | `image-loading-frame.e2e.mjs` (thuộc tính HTML, không request trùng, biến thể đủ phần hiển thị sau crop ở 390px DPR 3 và 1440px DPR 1, 2); `image-upgrade.e2e.mjs` (phone trang chủ: slide hoãn dừng ở variant 2048); `site.e2e.cjs` chặn ảnh theo mọi biến thể |
 | R3 | chưa có test riêng; `site-media-card-m02a.e2e.mjs` quy biến thể về WebP gốc khi đếm request |
 | R4 | `image-loading-frame.e2e.mjs` (alt, `loading`, `fetchpriority` khớp HTML; 0 request trùng) |
 | R5 | `--check` của R1; sRGB, EXIF, pixel thật, ngân sách chưa có test |
