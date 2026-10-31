@@ -63,10 +63,12 @@ của spec link tới card.
 
 Fetch schema trước mỗi mutation phụ thuộc schema. Schema đã thấy: `Name`
 (title), `Status` (`Not started`, `Up next`, `In progress`, `Blocked`, `Done`),
-`Agent` (text), `Next action` (text), `Project` (relation), `Due date`,
-`Thứ tự Up next` (number). Không gửi status `Approved`. Field workflow còn
-thiếu (`Git spec`, `PR`, `Priority`) ghi một dòng trong body; schema dùng chung
-chỉ thêm, không xóa hay đổi tên.
+`Agent` (text), `Next action` (text), `Priority` (`P0`, `P1`, `P2`),
+`Evidence` (URL PR hoặc commit trên `main`, điền khi `Done`), `Project`
+(relation), `Due date`, `Thứ tự Up next` (number). Không gửi status
+`Approved`. Card mới luôn gắn `Project` = Truong Thinh Website. Field còn
+thiếu (`Git spec`) ghi một dòng trong body; schema dùng chung chỉ thêm, không
+xóa hay đổi tên.
 
 `Thứ tự Up next` là thứ tự owner yêu cầu; board `By status` sort tăng dần theo
 field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status, ngày tạo
@@ -75,7 +77,7 @@ field này. Chỉ rank card trong scope sắp xếp; không đổi tên, status,
 
 ## Record project hiện tại
 
-- [Project Truong Thinh Website](https://app.notion.com/p/3b7332849a0e81c6bd2be63fe44e67ac): project record, relation Docs/Tasks.
+- [Project Truong Thinh Website](https://app.notion.com/p/3b7332849a0e81c6bd2be63fe44e67ac): project record trong database Projects (cùng chỗ với PrintWork); trang có link nguồn chuẩn, quy ước và board Tasks lọc theo project.
 - [Truong Thinh — Docs & Notion Hub](https://app.notion.com/p/3b7332849a0e81098aeeef782b88657f): hub vận hành; quy tắc category cũ không ghi đè [docs routing](../index.md).
 - [Backlog hiện hành và phát hành snapshot 24/09](https://app.notion.com/p/3e5332849a0e8183b448fea095f9588f): card In progress cho phần việc còn mở.
 - [Tasks — By status](https://app.notion.com/p/3b5332849a0e80689b46e724fa43e480?v=3b5332849a0e8011b307000cca66e3c1): board backlog. Card chờ owner hoặc thiết bị để status `Blocked` (thay dòng `Chờ` đầu body trước đây).
