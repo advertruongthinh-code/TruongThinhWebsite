@@ -2522,7 +2522,17 @@ export async function mountAdvertisingCatalog(container = document.querySelector
   const arcTint = arcGlass?.querySelector(".glass-surface__tint");
   const arcObserver = arcTint && new IntersectionObserver(([entry]) => {
     arcInView = entry.isIntersecting;
-    if (arcInView) grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
+    if (!arcInView) return;
+    // Card còn chờ ảnh mất Kính thì ẩn ảnh lại, tới lúc tải xong crossfade như card không Kính (R1); không thì lộ ảnh tải dở.
+    cardSkeletons.forEach((pending, node) => {
+      if (pending.animations.length || !grid.contains(pending.glass)) return;
+      pending.glass = null;
+      mediaLayers(node).forEach((media) => {
+        media.style.setProperty("transition", "none", "important");
+        media.classList.remove("is-advertising-media-ready");
+      });
+    });
+    grid.querySelectorAll(".glass-surface[data-glass-reveal]").forEach((glass) => glass.remove());
   });
   arcObserver?.observe(arcTint);
   controller.signal.addEventListener("abort", () => arcObserver?.disconnect(), { once: true });
@@ -2610,7 +2620,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
         showMedia(node);
         return;
       }
-      if (entry.glass?.isConnected) {
+      if (entry.glass) {
         // Kính đang ở mức đủ: chỉ chạy nửa tan của reveal (progressive-loading R9).
         entry.animations = playGlassReveal(entry.glass, CARD_REVEAL_MS);
         entry.animations.forEach((animation) => { animation.currentTime = CARD_REVEAL_MS * GLASS_REVEAL_PEAK; });
@@ -2620,8 +2630,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
           media.style.setProperty("transition", "none", "important");
           media.classList.add("is-advertising-media-ready");
         });
-        // Kính bị gỡ giữa chừng (cung vào viewport) thì ảnh đã hiện, không crossfade lại từ 0.
-        entry.animations = entry.glass ? [] : crossfadeLayers([], layers, CARD_REVEAL_MS);
+        entry.animations = crossfadeLayers([], layers, CARD_REVEAL_MS);
       }
       Promise.all(entry.animations.map(({ finished }) => finished))
         .then(() => cardSkeletons.get(node) === entry && dropCardSkeleton(node), () => {});
