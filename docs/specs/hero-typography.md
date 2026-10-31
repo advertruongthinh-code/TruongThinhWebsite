@@ -7,7 +7,7 @@ tests:
   - tests/site/hero-text-shadow.e2e.mjs
   - tests/site/text-mask-hidden.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
-updated: 2026-10-26
+updated: 2026-10-31
 ---
 
 # Chữ hero kiểu espacio, xuống dòng chốt và khoảng cách dòng đều
@@ -18,19 +18,6 @@ Chữ trong hero phải đọc rõ, nằm giữa vùng hero và có nhịp dòng
 nào bị cắt hay đè lên dòng khác, từ 320px tới màn hình PC lớn. Cách bày chữ học từ hero của espaciohomedesign.com.
 Các đoạn văn cùng loại có khoảng cách dòng bằng nhau. Spec không đổi motion
 ([first-load-parity](first-load-parity.md)), font và màu.
-
-## Hiện trạng
-
-- Trước khi sửa (Chromium cloud, `main` 393ace7): hero trang chủ "Làm chắc / Làm khác" vỡ 4 dòng ở 364 đến 387px vì
-  mức sàn `clamp(4.6rem, 19vw, 6.5rem)`; bản EN 4 dòng trên phone. CTA "Giữ nghề" 3 dòng trên phone. Mask
-  `clip-path` cắt nét chữ ngang ở CTA.
-- Đã làm (PR chữ hero): mọi title ở R1 đúng hai dòng, không cắt nét, không đè dòng, không cuộn ngang ở 12 bề rộng
-  của R3, VI và EN, phone giả lập touch và PC. Cách làm ở R2.
-- Trong một đoạn văn, các dòng cách đều (lệch tối đa 1px do làm tròn) ở 390 và 1440. Giữa các loại đoạn văn có ba
-  mức line-height: 1,4 (phần lớn), 1,45 (timeline About), 1,5 (đoạn chữ nhỏ không class).
-  `[CẦN LÀM RÕ: owner thấy lệch ở đoạn nào, trên PC hay phone]`.
-- Cloud không vào được espacio. Số đo dùng là số cũ trong repo: title hero 2 dòng, 112px, line-height 1,4. Đo lại
-  qua phiên PC là gate còn mở.
 
 ## Hành vi
 
@@ -123,14 +110,15 @@ Không đổi font, màu, motion, ảnh hero, hay câu nào ngoài 5 câu ở R1
 
 ### R6. Bóng chữ hai lớp trên ảnh (ngoại lệ Design System)
 
-Owner chọn phương án B trên canvas bản 34 (2026-10-24): giữ lớp tối hiện có (`.hero-shade`, `.portal-shade`,
-`.detail-cta::after`; owner 2026-10-26 chỉnh portal và CTA `0.5`, mọi hero ảnh phủ đều `0.2`, độ tối tổng mép trên `0.7` nhạt dần, mịn tới đúng `0.2` trong 36% chiều cao hero, mép dưới `0.5`, bỏ lớp mép trái), thêm `text-shadow` hai lớp D, cùng bóng với player và nút "Có thể bạn thích" của
-primary-video-player R4 (PR #434, chưa merge):
+Giữ lớp tối hiện có (`.hero-shade`, `.portal-shade`, `.detail-cta::after`: portal và CTA `0.5`, mọi hero ảnh phủ đều
+`0.2`, độ tối tổng mép trên `0.7` nhạt dần, mịn tới đúng `0.2` trong 36% chiều cao hero, mép dưới `0.5`, không có lớp
+mép trái), thêm `text-shadow` hai lớp, cùng bóng với player và nút "Có thể bạn thích" của
+[primary-video-player R4](primary-video-player.md):
 `0 0 2px` đen `0.5` dưới `0 0 12px` đen `0.4`. Một biến CSS `--text-shadow-d` trong `:root` giữ giá trị, `--text-shadow-reach`
 (12px) là bán kính quầng ngoài.
 
 - Áp cho chữ trắng trên ảnh: `.portal-copy` (kicker, title, tagline), `.legacy-copy` ("Giữ nghề") và `.detail-cta` có ảnh.
-- Không áp: chữ mọi hero (owner 2026-10-26 bỏ bóng ở hero), CTA lưới của trang Sản phẩm quảng cáo (chữ `ink` trên giấy),
+- Không áp: chữ mọi hero, CTA lưới của trang Sản phẩm quảng cáo (chữ `ink` trên giấy),
   header khi tông `ink`.
 - Mask chữ (`.hero-line-mask`, `.line-mask`, `.portal-title-mask`, `.detail-line`, `.motion-line-mask`) nới `clip-path`
   thêm `--text-shadow-reach` mỗi cạnh để quầng không bị cắt.
@@ -139,7 +127,7 @@ primary-video-player R4 (PR #434, chưa merge):
   lộ đỉnh chữ và dấu qua vùng nới trước khi motion chạy. Chữ lớn vẫn tụt 2em, nên motion không đổi.
 - Lúc dòng đang ẩn hoặc đang trồi lên, dòng không có bóng và mép dưới mask không nới vùng bóng (class
   `is-text-masked` đặt `text-shadow: none`, `--mask-shadow-bottom: 0px`); chữ chỉ hiện từ đáy mực của chính nó.
-  Tween reveal xong mới gỡ class: mask mở 12px dưới, bóng hiện dần 0.6s (owner 2026-10-26: bóng chỉ fade sau khi
+  Tween reveal xong mới gỡ class: mask mở 12px dưới, bóng hiện dần 0.6s (bóng chỉ fade sau khi
   motion xong). Nới cả lúc trồi thì chữ nhỏ hiện lơ lửng nửa trên dưới chỗ đứng.
 - Design System ghi "không có text-shadow"; đây là ngoại lệ có chủ đích. Ghi vào `design-system/` chỉ khi owner "ok" trong
   thread làm việc này (gate Design System).
@@ -169,7 +157,7 @@ Then đều là none
 ## UI
 
 Token chữ hero và portal trong [Design System](../../design-system/). Chỉ đổi `design-system/` sau khi owner tự audit
-kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republish theo
+kết quả trên PC và phone và duyệt; sau đó republish theo
 [design-system R5](design-system.md#r5-publish-lên-claudeai).
 
 ## Kiểm tra
@@ -186,7 +174,8 @@ kết quả trên PC và phone và duyệt (owner, 2026-10-18); sau đó republi
 
 - Owner audit trên PC và phone trước khi cập nhật Design System.
 - Đo lại espacio (R2) qua phiên PC, so với cỡ chung 12,5 em.
-- R4 chờ owner chỉ đoạn văn thấy lệch.
+- R4 chờ owner chỉ đoạn văn thấy lệch (ba mức line-height đang có: 1,4 phần lớn, 1,45 timeline About, 1,5 đoạn chữ
+  nhỏ không class). [CẦN LÀM RÕ: owner thấy lệch ở đoạn nào, trên PC hay phone]
 
 ## Chú thích thuật ngữ
 

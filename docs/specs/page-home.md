@@ -39,7 +39,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 | # | Section | Nội dung (VI, EN ở `data-en`) | Link | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Sáu ảnh slideshow, `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
+| 1 | `.hero#top` | Mười ảnh slideshow (tính từ HTML), `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm." xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |

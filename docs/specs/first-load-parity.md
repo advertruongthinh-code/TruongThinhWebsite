@@ -14,28 +14,16 @@ updated: 2026-10-31
 
 Khách thường mở site từ link Zalo, Google hoặc bấm F5. Lần mở đó phải giống hệt lúc chuyển trang trong site: chữ
 hero chạy đủ motion, và phần nhẹ hiện trước. Phần nặng như ảnh, catalog, masonry tải song song ở nền và không chặn
-phần nhẹ. Áp dụng cho mọi trang có hero, PC và phone. Không thêm motion mới, không cắt hay tua nhanh motion hiện có
-(owner, 2026-10-18).
-
-## Hiện trạng đã đo (Chromium cloud, localhost, bản `main` 393ace7)
-
-- Mở trực tiếp: motion của chữ hero có chạy, nhưng trước khi `motion.js` claim thì chữ hiện đủ khoảng 0,1 đến 0,2 s,
-  sau đó bị đặt về `opacity: 0` rồi mới fade. Mắt người thấy chữ đứng yên, không thấy motion. Đo trên Trang chủ,
-  Residential, Commercial và Advertising.
-- Advertising mở trực tiếp: các từ của title bắt đầu fade lúc veil (`.route-veil`) còn khoảng 0,5 opacity. Khi veil
-  tan hết thì từ đầu đã gần xong, nên phần lớn motion bị veil che.
-- Chuyển trang mềm (Barba): title đứng yên trong lúc veil chạy, sau đó từng từ fade với stagger. Đây là chuẩn mà
-  owner muốn có cho cả lần mở trực tiếp.
-- Cloud không vào được demo Cloudflare. Mọi số đo nghiệm thu phải chạy qua phiên PC
-  ([thiết bị](../operations/android-real-device-debugging.md)).
+phần nhẹ. Áp dụng cho mọi trang có hero, PC và phone. Không thêm motion mới, không cắt hay tua nhanh motion hiện có.
+Chuẩn là chuyển trang mềm (Barba): title đứng yên trong lúc veil chạy, sau đó từng từ fade với stagger.
 
 ## Hành vi
 
-### R1. Đo nền trước khi đổi
+### R1. Số đo nghiệm thu
 
-Trước khi đổi code, đo trên demo Cloudflare (không đo localhost), ở PC Chrome 1440 và phone Android thật nối adb.
-Đo Trang chủ, Residential, Commercial, About và Advertising. Mỗi trang đo 5 lượt mở trực tiếp và 5 lượt chuyển mềm.
-Ghi lại các mốc sau:
+Đo trên demo Cloudflare (không đo localhost, cloud không vào được demo), ở PC Chrome 1440 và phone Android thật nối adb
+([thiết bị](../operations/android-real-device-debugging.md)). Đo Trang chủ, Residential, Commercial, About và Advertising,
+mỗi trang 5 lượt mở trực tiếp và 5 lượt chuyển mềm. Ghi lại các mốc sau:
 
 - thời điểm chữ hero hiện lần đầu, kể cả nháy;
 - thời điểm veil tan;
@@ -52,12 +40,12 @@ Mọi phần tử chữ trong hero chạy motion theo đúng thứ tự, timing 
 title, dòng phụ và chữ trong hero của trang cụm và trang sản phẩm. Riêng Advertising tính thêm rail và chip.
 
 Khi có JavaScript, chữ ở trạng thái đầu của motion ngay từ lần vẽ đầu, nên không nháy chữ đủ rồi mới ẩn. Delay intro
-hero (title, kicker, zoom, rail và chip) đếm từ lúc veil bắt đầu mở, ở cả hai đường. Trước đây delay đếm từ lúc mount,
-nên khi mở trực tiếp mà catalog hay font về chậm thì chữ chạy dưới veil. Không đổi `duration`, `stagger`, `delay` hay
+hero (title, kicker, zoom, rail và chip) đếm từ lúc veil bắt đầu mở, ở cả hai đường, nên khi mở trực tiếp mà catalog
+hay font về chậm thì chữ không chạy dưới veil. Không đổi `duration`, `stagger`, `delay` hay
 easing ([trang con R5](detail-pages.md), [trang chủ](page-home.md)).
 
 Mốc chuẩn là lúc veil bắt đầu mở, không phải lúc veil tan hết. Lý do: chuyển mềm vào Advertising (`words-06`, delay
-0,6 s) vốn cho từ đầu fade khi veil còn mở dở, và chuẩn là giống chuyển mềm (đo 2026-10-18, Chromium cloud).
+0,6 s) vốn cho từ đầu fade khi veil còn mở dở, và chuẩn là giống chuyển mềm.
 
 ```gherkin
 Given một trang có hero, PC 1440 hoặc phone Android, mở bằng link hoặc F5 trên demo
@@ -105,7 +93,7 @@ dòng thuộc [hero-typography](hero-typography.md).
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R3 | Script đo qua CDP trên demo, chạy từ phiên PC (plan chốt tên file) |
+| R1, R3 | chưa có script; đo qua CDP trên demo từ phiên PC |
 | R2 | `node tests/site/first-load-parity.e2e.mjs`: ghi opacity chữ hero theo frame, so mở trực tiếp với chuyển mềm ở 1440 và 390 |
 
 ## Gate còn mở

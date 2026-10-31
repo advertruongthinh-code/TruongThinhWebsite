@@ -15,7 +15,7 @@ tests:
   - tests/site/cross-browser.smoke.spec.cjs
   - tests/site/cta-title-punctuation.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-10-27
+updated: 2026-10-31
 ---
 
 # Trang Residential, Commercial và About
@@ -60,7 +60,7 @@ mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác 
 | 2 | `.detail-lead#tong-quan` | `h2` "Không gian để *sống.*" nét mảnh canh trái, đoạn mở cột phải thụt dòng đầu (như Espacio "Interior design") | `h2` "Không gian để *kinh doanh.*", cùng bố cục (như Espacio "Kitchens") | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một đoạn ngắn cùng kiểu đoạn mở | "Bằng chứng trong vận hành", một đoạn ngắn | ink |
-| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure`, sáu chuỗi công trình (R7) | "Không gian *đang vận hành.*", 15 `figure`: chín ảnh lẻ, chuỗi "Văn phòng chia sẻ" sáu ảnh (R7) | ink |
+| 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure` (tính từ HTML), sáu chuỗi công trình (R7) | "Không gian *đang vận hành.*", 17 `figure` (tính từ HTML): ảnh lẻ và chuỗi "Văn phòng chia sẻ" (R7) | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện." | Cùng eyebrow, `h2` "Tối ưu từ bản vẽ, / bền bỉ sau ngày mở cửa." | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
 | 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
