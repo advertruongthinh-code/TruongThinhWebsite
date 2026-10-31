@@ -85,6 +85,7 @@ cache hay untracked worktree.
 | --- | --- |
 | Copy, media, layout, UI | [Product và UI](docs/operations/agent-rule-product-ui.md) |
 | Plan, card, Notion, task từ `200 LOC` | [Notion và Git](docs/operations/notion.md#rule) |
+| Viết spec, plan; task dài cần thread reviewer | [Plan và review](docs/operations/agent-rule-plan-review.md) |
 | Change, QA, release, handoff | [Evidence, QA, handoff](docs/operations/agent-rule-evidence-qa-handoff.md) |
 | Tạo hoặc chấm media AI (ảnh, video, âm thanh) | [Tạo và chấm ảnh](docs/operations/agent-rule-ad-images.md) |
 | Giao thread, chọn model/effort Claude | [Claude routing](docs/operations/agent-rule-model-routing.md) |

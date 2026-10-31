@@ -281,7 +281,9 @@ Owner chốt 2026-10-06: một phone Android thật là máy đo chuẩn (lúc �
 phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham khảo. Mục iPhone trong spec khác thuộc nhóm này.
 
 - LCP residential mobile hai mode: JS về trước khi hero title vẽ thì SplitText, GSAP trong `src/site/detail.js` đẩy LCP
-  tới cuối animation (4,2 đến 5,5 s, 3/7 lượt), nếu không khoảng 3,25 s. Sửa cần spec motion reveal riêng; owner quyết.
+  tới cuối animation (4,2 đến 5,5 s), nếu không khoảng 3,25 s. Owner chọn: tách title hero khỏi lô `prepareBatch` trong
+  `detail.js`, không cắt motion; đạt khi median LCP mobile không quá 3,25 s, p90 không quá 3,5 s, phần tử LCP là ảnh
+  hero, timing fade lệch không quá 50 ms. Cần plan duyệt trước khi code.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
   trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
   `/vi/`, trả 404 hay giữ?]
