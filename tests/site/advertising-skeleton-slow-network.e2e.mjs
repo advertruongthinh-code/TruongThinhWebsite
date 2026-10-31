@@ -18,7 +18,7 @@ const open = async (device) => {
   });
   return { context, page, slow };
 };
-// Card trong viewport: ảnh chưa tải mà không blur là ô trống; card không còn khung skeleton hay canvas Flow.
+// Card trong viewport: ảnh chưa tải mà không blur hoặc không có màu chủ đạo là ô trống; card không còn khung skeleton hay canvas Flow.
 const cardStates = (page, selector = "[data-project-grid] [data-advertising-card]") => page.evaluate((selector) =>
   [...document.querySelectorAll(selector)].filter((card) => {
     const { top, bottom } = card.getBoundingClientRect();
@@ -29,6 +29,7 @@ const cardStates = (page, selector = "[data-project-grid] [data-advertising-card
       id: card.dataset.advertisingCard || card.dataset.advertisingRelatedCard,
       loaded: Boolean(image?.complete && image.naturalWidth),
       blur: Boolean(image?.style.filter.startsWith("blur(")),
+      color: Boolean(card.querySelector(".advertising-card-media")?.style.backgroundColor),
       glass: Boolean(card.querySelector(".glass-surface")),
       skeleton: Boolean(card.querySelector("[data-advertising-loading-skeleton], canvas")),
     };
@@ -36,6 +37,8 @@ const cardStates = (page, selector = "[data-project-grid] [data-advertising-card
 const assertNoBlank = (label, states) => {
   assert.ok(states.length, `${label}: cards in view`);
   assert.deepEqual(states.filter(({ loaded, blur }) => !loaded && !blur), [], `${label}: loading cards without blur`);
+  // Ảnh chưa nhận byte nào thì blur chưa có gì để vẽ: khung tô màu chủ đạo của ảnh (owner 2026-10-31).
+  assert.deepEqual(states.filter(({ loaded, color }) => !loaded && !color), [], `${label}: loading cards without dominant color`);
   // Kính backdrop-filter trên card làm rớt FPS khi kéo thanh cuộn (owner 2026-10-31).
   assert.deepEqual(states.filter(({ glass }) => glass), [], `${label}: cards still carry Kính`);
   assert.deepEqual(states.filter(({ skeleton }) => skeleton), [], `${label}: cards still carry skeleton Flow`);
