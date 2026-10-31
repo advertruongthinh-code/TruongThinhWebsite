@@ -1470,7 +1470,7 @@ export async function mountAdvertisingCatalog(container = document.querySelector
     idleWorker = undefined;
     return worker;
   };
-  const [artifact] = await Promise.all([loadArtifact(), imageFormatReady]);
+  const [artifact] = await Promise.all([loadArtifact(), imageFormatReady()]);
   if (!artifact || typeof artifact !== "object") {
     const error = new Error("Advertising artifact must be an object");
     console.error("[advertising-products] artifact validation failed", error);

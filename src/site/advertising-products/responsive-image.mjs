@@ -3,10 +3,11 @@
 const WIDTHS = { jxl: [240, 480, 960, 1600, 2048], webp: [240, 480, 960] };
 const isContent = (src) => /^\/assets\/content\/.+\.webp$/.test(src || "");
 let format = "jxl";
-// Dò bằng ảnh JXL 1x1 như script preload hero; runtime chờ promise này trước khi dựng ảnh đầu tiên.
-const probe = new Image();
-probe.src = "data:image/jxl;base64,/woAEBAJCAQBACwASxiLFcJJQR6A/gA=";
-export const imageFormatReady = probe.decode().catch(() => { format = "webp"; });
+let formatProbe;
+// Dò bằng ảnh JXL 1x1 như script preload hero, một lần; runtime chờ promise này trước khi dựng ảnh đầu tiên.
+export const imageFormatReady = () => formatProbe ??= Object.assign(new Image(), {
+  src: "data:image/jxl;base64,/woAEBAJCAQBACwASxiLFcJJQR6A/gA=",
+}).decode().catch(() => { format = "webp"; });
 
 // needed: số pixel thật cần vẽ; có thì lấy cỡ nhỏ nhất đủ nét, không thì bản gốc. width: bề rộng bản gốc.
 export function responsiveSource(src, width, needed) {
